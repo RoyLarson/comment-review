@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 8 of 12 tasks closed
+Progress: 12 of 13 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-02 (review)
@@ -17,8 +17,9 @@ Repair comment wrapping review findings.
 - [x] T1 | Block and line fragments retained; focused and full tests pass | 731af89e | Fix
       mixed-form paragraph wrapping in reading/lexer.py:196; test adjacent block
       and line comments remain comments
-- [ ] T2 | Fix empty removal in reading/comment.py:23 to retain code after a
-      block closer; test trailing moves and drops preserve code
+- [x] T2 | Empty removal retains suffix code; move and drop regressions pass | 2ac2970c | Fix
+      empty removal in reading/comment.py:23 to retain code after a block
+      closer; test trailing moves and drops preserve code
 - [x] T3 | Opening-line literal stars retained in move and drop regressions | 731af89e | Fix
       decoration stripping in reading/lexer.py:196 to retain literal
       opening-line stars; test retained *ptr prose
@@ -28,8 +29,9 @@ Repair comment wrapping review findings.
 - [x] T5 | Unique match, wrapped return and refusal wording reviewed | 731af89e | Rewrite
       reading/comment.py:60 without_once docstring to state unique matching and
       wrapped returns; verify success and refusal paths
-- [ ] T6 | Locate the real block closer in reading/lexer.py:305; test closer
-      text in following code survives moves and drops
+- [x] T6 | Real closers located with nesting-aware scan; adjacent code retained | 2ac2970c | Locate
+      the real block closer in reading/lexer.py:305; test closer text in
+      following code survives moves and drops
 - [x] T7 | Remaining prose named explicitly; four prose reviews found no issues | 19539398 | Clarify
       reading/comment.py:100 without_raw docstring to name the remaining prose;
       verify its input precondition and output
@@ -42,7 +44,11 @@ Repair comment wrapping review findings.
 - [x] T10 | Repeated marked blank lines survive move and drop regressions | 19539398 | Record
       blank comment separators in reading/comment.py:117; test moves and drops
       retain repeated blank lines
-- [ ] T11 | Separate trailing whitespace lines in reading/lexer.py:248; test
-      block closer removal and exact matching retain blank separators
-- [ ] T12 | Recognize empty overlapping delimiters in reading/lexer.py:248; test
-      snippets spanning /**/ match without spurious prose
+- [x] T11 | Padded blank separators retained; empty removal leaves no delimiters | 2ac2970c | Separate
+      trailing whitespace lines in reading/lexer.py:248; test block closer
+      removal and exact matching retain blank separators
+- [x] T12 | Empty block forms add no prose; spanning moves and raw drops pass | 2ac2970c | Recognize
+      empty overlapping delimiters in reading/lexer.py:248; test snippets
+      spanning /**/ match without spurious prose
+- [ ] T13 | Limit decorative star prefixes in reading/lexer.py:368; test Python
+      docstring, Lua and Ruby bullets survive moves and drops
