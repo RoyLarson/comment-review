@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 3 of 6 tasks closed
+Progress: 4 of 6 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, driving distribute and collate across real stages for
@@ -51,6 +51,7 @@ The staged chain runs but nothing tests it, and the fan-out topology fits one tr
       round-robin by path, so its dispatches hold near-equal places
         > 2026-09-14 self-run: one role's 3 dispatches held 104, 156 and 75 places
         > 2026-09-14 evidence: OneDrive/comment-review-feedback/2026-09-14-self-run
-- [ ] T6 | Make composed topology dispatches match literal page paths containing
-      glob characters
+- [x] T6 | FINISHED; literal paths match only their own dispatches | d1ba8428e13cbbc0692ebd650910005087452611 | Make
+      composed topology dispatches match literal page paths containing glob
+      characters
         > 2026-09-30 Criteria: docs/reviews/2026-09-30-r6-r7-r8.md, 06:3
