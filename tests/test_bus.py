@@ -91,7 +91,7 @@ def test_two_moves_keep_both_origins_and_one_arrival_after_proof_reload(
     schedules = docket_of_proof(reloaded, root).schedules
     assert {
         one.cue: one.text for schedule in schedules for one in schedule.alterations
-    } == {"b1": "# one\n", "b2": "# two\n", "b3": arrival}
+    } == {"b1": "# one", "b2": "# two", "b3": arrival}
 
 
 @pytest.mark.parametrize("reverse", (False, True))

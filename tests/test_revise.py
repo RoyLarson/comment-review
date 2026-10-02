@@ -113,7 +113,7 @@ class TestDocketOf:
         schedule = docket_of(copy, root).schedules[0]
         assert [(one.cue, one.text) for one in schedule.alterations] == [
             ("b0", "# two"),
-            ("b1", "# one\n"),
+            ("b1", "# one"),
         ]
 
     def test_a_whole_move_empties_its_origin(self, tmp_path):

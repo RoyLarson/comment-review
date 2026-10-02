@@ -488,7 +488,11 @@ def fill(copy: dict, entry: dict, root: Path | None) -> tuple[dict | None, list[
 
     if "change" not in mark:
         derived, why = derived_change(
-            instruction, mark.get("claim"), seeded["raw_text"]
+            instruction,
+            mark.get("claim"),
+            seeded["raw_text"],
+            address=address,
+            anchor=seeded["anchor"],
         )
         if why:
             return None, why

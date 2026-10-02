@@ -26,7 +26,7 @@ from dataclasses import dataclass
 from enum import StrEnum, auto
 from typing import Any
 
-from comment_review.desk.marks.rules import first_word_dropped
+from comment_review.desk.marks.rules import comment_at, first_word_dropped
 from comment_review.desk.proof.disposition import CHIEF
 from comment_review.desk.proof.mark import (
     AddMark,
@@ -88,21 +88,21 @@ def _the_raw_text(mark, touch, base):
     return mark.raw_text
 
 
-def _without_once(base: str, snippet: str) -> str | None:
-    if snippet and base.count(snippet) == 1:
-        return base.replace(snippet, "")
-    return None
+def _without_once(address: str, base: str, snippet: str, anchor: str) -> str | None:
+    form = comment_at(address, base, anchor=anchor)
+    unwrapped = comment_at(address, snippet).text
+    return form.without_once(unwrapped)
 
 
 def _move_sets(mark, touch, base):
     if touch is Touch.ORIGIN:
-        return _without_once(base, mark.change)
+        return _without_once(mark.address, base, mark.change, mark.anchor)
     return mark.raw_text
 
 
 def _move_reads(mark, touch, base):
     if touch is Touch.ORIGIN:
-        if _without_once(base, mark.change) is None:
+        if _without_once(mark.address, base, mark.change, mark.anchor) is None:
             return [f"the snippet is not in the origin's paragraph: {mark.change!r}"]
         return []
     dropped = first_word_dropped(base, mark.raw_text)
