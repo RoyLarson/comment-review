@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (120)
+### open  (118)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -294,14 +294,12 @@ that changed a published name or rule:
 | [a-machine-context-raises-query-and-clean](a-machine-context-raises-query-and-clean.md) | backend | yes | 0/8 | annotate carries two subjects -- it extracts index keys, and it flags claims it cannot settle. The second half becomes a context that marks like a role. |
 | [the-chief-has-no-recast-workflow](the-chief-has-no-recast-workflow.md) | backend | yes | 8/14 | cap applies the chief's rulings and closes the stage, but a recast is written out as a correct, so a recast of an add at an empty place writes nothing and exits 0. |
 | [prove-unchanged-line-endings-follow-a-sibling](prove-unchanged-line-endings-follow-a-sibling.md) | backend | -- | 0/2 | On a checkout with core.autocrlf=true, git writes a checked-out text file with CRLF while its blob stays LF, and a file git never rewrote can still be LF. prove_unchanged compares an edited file's line endings with one untouched sibling, so a CRLF file whose sibling is a one-line LF __init__.py FAILs though the write kept every ending and the AST comparison passes. The check should hold the file to its own pre-edit endings. |
-| [rebuilt-middle-final-review](rebuilt-middle-final-review.md) | backend | -- | 27/52 | Every finding of the final review of the rebuilt middle, Broken first. The three Broken ones hold the branch from merging out. |
+| [rebuilt-middle-final-review](rebuilt-middle-final-review.md) | backend | -- | 28/52 | Every finding of the final review of the rebuilt middle, Broken first. The three Broken ones hold the branch from merging out. |
 | [exit-codes-are-an-enum](exit-codes-are-an-enum.md) | backend | -- | 0/5 | Exit codes are written in thirteen places |
 | [command-help-carries-history](command-help-carries-history.md) | backend | -- | 0/1 | Command help carries development history |
 | [vocabulary-has-one-source](vocabulary-has-one-source.md) | systems | -- | 1/2 | Vocabulary has one source |
 | [p5-self-run-findings](p5-self-run-findings.md) | systems | -- | 1/5 | The P5 self-run findings |
-| [r2-prose-review](r2-prose-review.md) | backend | -- | 2/6 | Correct R2 proposed lifecycle wording after editorial review |
 | [r2-preexisting-prose](r2-preexisting-prose.md) | backend | -- | 0/2 | Correct pre-existing move and fold-helper prose |
-| [r2-proposal-clarity](r2-proposal-clarity.md) | backend | -- | 1/10 | Simplify remaining R2 proposal wording |
 
 ### in-progress  (18)
 
@@ -484,3 +482,5 @@ the reason is inside the file.
 | [r2-approved-prose](completed/r2-approved-prose.md) | 1 finished |
 | [r2-whole-move-approval](completed/r2-whole-move-approval.md) | 1 finished |
 | [r2-docket-only](completed/r2-docket-only.md) | 2 finished |
+| [r2-proposal-clarity](completed/r2-proposal-clarity.md) | 9 finished, 1 superseded |
+| [r2-prose-review](completed/r2-prose-review.md) | 6 finished |

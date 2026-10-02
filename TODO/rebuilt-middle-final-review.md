@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 27 of 52 tasks closed
+Progress: 28 of 52 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-09-18 (final whole-branch review of feat/the-middle-rebuilt, 2026-09-18)
@@ -134,8 +134,9 @@ The rebuilt middle's final review.
       a move's two ends on the filing, not the place; two moves out of one
       origin leave the first unpaired (code-review 2026-09-25)
         > 2026-09-26 Process 195: the pair lives on the move aggregate; T27 there
-- [ ] T46 | Correct events.py so AsksTheHuman is said to come before the fold,
-      not from Fold.run; verify the module docstring says so
+- [x] T46 | FINISHED; report docstring names pre-fold human questions | 8c7f9f8d3cb4da8518bd4ca07ea5ad3eb7ba5e1d | Correct
+      events.py so AsksTheHuman is said to come before the fold, not from
+      Fold.run; verify the module docstring says so
         > 2026-09-30 Evidence: docs/reviews/2026-09-30-r2-r3.md, R2-C
 - [x] T47 | Report owns admission and fold events; 205 checks passed | 77a507f9 | Make
       stage reports own events emitted before and during a fold
