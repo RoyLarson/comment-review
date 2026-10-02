@@ -20,6 +20,7 @@ Simplify remaining R2 proposal wording.
         > 2026-10-01 proof/move.py:15
 - [ ] T3 | Describe deferred move ends directly; verify proposal 7
         > 2026-10-01 evaluate/move.py:248
+        > 2026-10-01 Review: evaluated text is cleared while placement is unresolved
 - [ ] T4 | Name human-question output directly; verify proposal 10
         > 2026-10-01 commands/collate.py:20
 - [ ] T5 | Simplify transcription-failure description; verify proposal 14
