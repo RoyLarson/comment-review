@@ -553,13 +553,9 @@ class TestProofTakesAClosedProof:
         assert "the approval names a place this proof cannot set" in out
         assert "the proof decided nothing that can be set" not in out
 
-    def test_a_named_place_with_nothing_to_set_is_named_on_stdout(
+    def test_an_unchanged_approved_place_produces_no_message_or_alteration(
         self, tmp_path, monkeypatch, capsys
     ):
-        """Approving a place that stands on the text already there is not a
-        refusal, and it draws no `<path> -> <draft>` line either -- so the
-        run says so, or the author is told nothing about a place they ruled
-        on. `--only` is repeatable, and this run names two places."""
         proof, repo = a_closed_proof_with_a_place_that_stands(
             tmp_path, monkeypatch, capsys
         )
@@ -579,8 +575,9 @@ class TestProofTakesAClosedProof:
             str(tmp_path / "r1"),
         )
         assert code == 0, out
-        assert "m.py@b2" in out
+        assert "m.py@b2" not in out
         assert TWO in (tmp_path / "r1" / "m.py").read_text(encoding="utf-8")
+        assert "# four\n" in (tmp_path / "r1" / "m.py").read_text(encoding="utf-8")
 
     def test_only_without_a_proof_is_an_argument_error(
         self, tmp_path, monkeypatch, capsys
