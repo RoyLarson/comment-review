@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (121)
+### open  (120)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -301,7 +301,6 @@ that changed a published name or rule:
 | [p5-self-run-findings](p5-self-run-findings.md) | systems | -- | 1/5 | The P5 self-run findings |
 | [r2-prose-review](r2-prose-review.md) | backend | -- | 2/6 | Correct R2 proposed lifecycle wording after editorial review |
 | [r2-preexisting-prose](r2-preexisting-prose.md) | backend | -- | 0/2 | Correct pre-existing move and fold-helper prose |
-| [r2-whole-move-approval](r2-whole-move-approval.md) | backend | -- | 0/1 | Approve moves as indivisible units |
 | [r2-proposal-clarity](r2-proposal-clarity.md) | backend | -- | 0/10 | Simplify remaining R2 proposal wording |
 
 ### in-progress  (18)
@@ -483,3 +482,4 @@ the reason is inside the file.
 | [r2-legacy-state-diagnostics](completed/r2-legacy-state-diagnostics.md) | 1 finished |
 | [r2-refusal-evidence](completed/r2-refusal-evidence.md) | 1 finished |
 | [r2-approved-prose](completed/r2-approved-prose.md) | 1 finished |
+| [r2-whole-move-approval](completed/r2-whole-move-approval.md) | 1 finished |
