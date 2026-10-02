@@ -302,7 +302,7 @@ that changed a published name or rule:
 | [r2-prose-review](r2-prose-review.md) | backend | -- | 2/6 | Correct R2 proposed lifecycle wording after editorial review |
 | [r2-preexisting-prose](r2-preexisting-prose.md) | backend | -- | 0/2 | Correct pre-existing move and fold-helper prose |
 | [r2-proposal-clarity](r2-proposal-clarity.md) | backend | -- | 0/10 | Simplify remaining R2 proposal wording |
-| [r2-docket-only](r2-docket-only.md) | codex | -- | 0/1 | Remove empty-change approval reporting |
+| [r2-docket-only](r2-docket-only.md) | codex | -- | 0/2 | Remove empty-change approval reporting |
 
 ### in-progress  (18)
 

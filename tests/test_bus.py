@@ -88,7 +88,7 @@ def test_two_moves_keep_both_origins_and_one_arrival_after_proof_reload(
         assert (
             one.mark is reloaded.edit_copies[copy - 1].sheets[sheet - 1].marks[mark - 1]
         )
-    schedules = docket_of_proof(reloaded, root).docket.schedules
+    schedules = docket_of_proof(reloaded, root).schedules
     assert {
         one.cue: one.text for schedule in schedules for one in schedule.alterations
     } == {"b1": "# one\n", "b2": "# two\n", "b3": arrival}
@@ -192,7 +192,7 @@ def test_two_moves_and_a_composition_deferral_write_the_expected_page(
         "m.py@b1 -> m.py@b3",
         "m.py@b2 -> m.py@b3",
     }
-    pulled = pull(docket_of_proof(proof, root).docket, root, tmp_path / "revise", 1)
+    pulled = pull(docket_of_proof(proof, root), root, tmp_path / "revise", 1)
     assert pulled.refusals == []
     expected = (
         b"v0 = 0\n# one\nv1 = 1\n# two\nv2 = 2\n"
@@ -1606,7 +1606,7 @@ class TestAnOpenMoveIsNotTranscribed:
     def test_a_contested_move_the_chief_ruled_is_transcribed(self, tmp_path):
         proof, root = self._ruled(tmp_path)
         assert [m.placement for m in proof.moves] == ["agreed"]
-        (schedule,) = docket_of_proof(proof, root).docket.schedules
+        (schedule,) = docket_of_proof(proof, root).schedules
         assert [(one.cue, one.text) for one in schedule.alterations] == [
             ("b1", "# one\n# three"),
             ("b2", ARRIVAL),

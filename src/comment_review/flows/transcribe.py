@@ -11,11 +11,7 @@ becomes one alteration. A closed proof already holds every place the fold
 decided, so nothing is folded again -- the places are read back and each whose
 text differs from its base becomes one alteration.
 
-They answer differently, and the reason is the filter. `docket_of` hands back
-the `Docket`; `docket_of_proof` hands back a `Transcription`, which is that
-docket and the approved places it sets nothing at. Only a partial approval
-names places, so only that path has anything to say about a place it was
-asked for and set nothing at.
+Both paths return a `Docket` containing the corrections to apply.
 
 `only` is the author's partial approval -- `decision-log.md Process: #192`.
 The author approves some decided places and not others, and what they ruled on
@@ -60,7 +56,6 @@ was offered and declined, because it would put a middle type in
 """
 
 from pathlib import Path
-from typing import NamedTuple
 
 from comment_review.binder.page import Page
 from comment_review.desk import report as events
@@ -104,24 +99,6 @@ class CannotApprove(CannotTranscribe):
     honoured is the list of places it was handed (`decision-log.md Process:
     #192`).
     """
-
-
-class Transcription(NamedTuple):
-    """One closed proof transcribed: what the write end sets, and what it does not.
-
-    Attributes:
-        docket: one schedule per page a text is to be set on.
-        sets_nothing: the approved places this transcription sets nothing at,
-            in the order they were named. A place standing on the text
-            already there and a place held for the human both come here: the
-            author ruled on each, and neither leaves the write end anything
-            to do, so a run that said only how many pages it drafted would
-            say nothing at all about them. Empty where no filter was given,
-            since a blanket approval names no place.
-    """
-
-    docket: Docket
-    sets_nothing: tuple[str, ...] = ()
 
 
 def _touched_by_page(copy: EditCopy) -> dict[str, list[str]]:
@@ -371,17 +348,15 @@ def _sets(place: Place) -> bool:
 
     A place the fold decided no text for is nothing to set, and so is one
     whose decided text is the paragraph already there (`decision-log.md
-    Process: #174`). Both the docket below and the report of what an approval
-    leaves undone read this, so the two cannot come to different answers
-    about one place.
+    Process: #174`).
     """
     return place.text is not None and place.text != place.base
 
 
 def _approved(
     places: list[Place], only: tuple[str, ...]
-) -> tuple[list[Place], list[str], tuple[str, ...]]:
-    """The approved places alone, the reasons a name is refused, and what sets nothing.
+) -> tuple[list[Place], list[str]]:
+    """The approved places and the reasons an address is refused.
 
     `decision-log.md Process: #192`. One refusal: an address the proof does
     not carry. Nothing was decided there, so nothing was approved there, and
@@ -395,10 +370,9 @@ def _approved(
             named. A repeat is one approval.
 
     Returns:
-        `(the approved places, the reasons, the approved places that set
-        nothing)`. The places keep the proof's own order, since that is the
-        order the schedules come out in; a non-empty second half means
-        nothing is to be set at all.
+        `(the approved places, the reasons)`. The places keep the proof's own
+        order, since that is the order the schedules come out in; a non-empty
+        second half means nothing is to be set at all.
     """
     by_address = {place.address: place for place in places}
     named = list(dict.fromkeys(only))
@@ -410,17 +384,16 @@ def _approved(
         if address not in by_address
     ]
     if problems:
-        return [], problems, ()
+        return [], problems
     return (
         [place for place in places if place.address in wanted],
         [],
-        tuple(address for address in named if not _sets(by_address[address])),
     )
 
 
 def docket_of_proof(
     proof: MasterProof, repo: Path, only: tuple[str, ...] | None = None
-) -> Transcription:
+) -> Docket:
     """One closed master proof, transcribed into the docket the write chain reads.
 
     `decision-log.md Process: #184`: the proof holds each place's decided
@@ -439,17 +412,16 @@ def docket_of_proof(
             place the proof decided.
 
     Returns:
-        A `Transcription`. Its docket holds one `Schedule` per page a text
-        was decided on, each naming that page's own path and the sha the run
-        read it at, and the chief as the role, since the fold is what decided
+        A `Docket` holding one `Schedule` per page with an approved correction,
+        each naming that page's own path and the sha the run read it at,
+        and the chief as the role, since the fold is what decided
         these places. One alteration per place whose decided text differs
         from the paragraph already there, with an emptied place written as
         the `None` the write end reads as a delete.
 
         A place the fold decided no text for gets none, and neither does one
         standing on the text already there (`Process: #174`): there is
-        nothing to set at either. Where `only` named such a place, it is on
-        `sets_nothing` instead.
+        nothing to set at either.
 
     Raises:
         CannotTranscribe: a place is still carried forward or refused, a
@@ -464,9 +436,8 @@ def docket_of_proof(
     unclosed = _unclosed(places) + _open_moves(list(proof.moves))
     if unclosed:
         raise CannotTranscribe(tuple(unclosed))
-    sets_nothing: tuple[str, ...] = ()
     if only is not None:
-        places, problems, sets_nothing = _approved(places, only)
+        places, problems = _approved(places, only)
         approved = set(only)
         problems.extend(
             f"{CHIEF} {move.key}: approve both ends of this move together"
@@ -496,6 +467,4 @@ def docket_of_proof(
     pages, unreadable = _pages_of(repo, known, touched, CHIEF, "places", {})
     if unreadable:
         raise CannotTranscribe(tuple(unreadable))
-    return Transcription(
-        Docket(schedules=_schedules_of(pages, decided, shas, CHIEF)), sets_nothing
-    )
+    return Docket(schedules=_schedules_of(pages, decided, shas, CHIEF))

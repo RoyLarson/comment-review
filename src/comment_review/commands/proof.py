@@ -227,7 +227,7 @@ def main() -> int:
         # same console face reports it here as below.
         proof, problems = MasterProof.deserialize(source, loaded)
         try:
-            transcribed = (
+            held = (
                 transcribe.docket_of_proof(proof, repo, only=tuple(args.only) or None)
                 if proof is not None
                 else None
@@ -252,11 +252,6 @@ def main() -> int:
             for line in refused.reasons:
                 print(line)
             return 1
-        held = transcribed.docket if transcribed is not None else None
-        # A place the author approved that draws no `<path> -> <draft>` line
-        # is named here.
-        for address in transcribed.sets_nothing if transcribed else ():
-            print(f"approved {address}: nothing to set")
     else:
         copy, problems = EditCopy.deserialize(source, loaded)
         # The transcribe folds, so it can refuse, and it could not until the

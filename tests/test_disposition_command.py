@@ -198,7 +198,7 @@ class TestTheChiefRulesAMoveThenItsEnds:
         closed = _closed(tmp_path)
         assert place_on(closed, "m.py@b1")["text"] == self.REMAINDER
         assert place_on(closed, "m.py@b2")["text"] == self.CHIEFS_OWN
-        docket = docket_of_proof(closed, tmp_path / "repo").docket
+        docket = docket_of_proof(closed, tmp_path / "repo")
         (schedule,) = docket.schedules
         assert [(one.cue, one.text) for one in schedule.alterations] == [
             ("b1", self.REMAINDER),
