@@ -75,8 +75,8 @@ class CopiesReturned(NamedTuple):
         copies: one parsed copy per role, or per shard under fan-out. The
             envelope parse is the command's, so a document that is not a
             copy never reaches here.
-        binder: the binder they were seeded from -- the page paths an
-            address resolves through, and the places each role was handed.
+        binder: the stage binder defining each role's collective assignment
+            and the page paths an address resolves through.
         root: the checkout a cite and a page are read from, and so where
             each place's base text comes from.
         topology: the stage as the topology declares it, where the caller

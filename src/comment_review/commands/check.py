@@ -1,6 +1,6 @@
 """The `check` command: what the fold would refuse, named before a role returns it.
 
-    comment_review check --edit-copy copy.json [--binder B.json] [--repo R]
+    comment_review check --edit-copy copy.json --binder B.json [--repo R]
         [--human answers.toml]
     comment_review check --answers answers.json --sent batch.json --role block-context
         [--human answers.toml]
@@ -27,8 +27,9 @@ my patch*, three batches returned keyed by role instead of as a list, a
 citation whose line did not match, addresses in slash form where the seed
 was flattened. Each cost a turn. All are named here, before the send.
 
-For a COPY: the envelope (`EditCopy.deserialize`), every place the role left
-alone or wrote unreadably (`flows.mark_errors`), and, with `--binder`, source
+For a COPY: the envelope (`EditCopy.deserialize`), missing required rulings
+against the received binder, every assigned place the role left unruled or
+wrote unreadably (`flows.mark_errors`), source
 verification and whether each address and each move's destination names a
 place its page carries (`flows.verify.copy_problems`, the call the fold makes
 for every copy), and what each mark's row finds against the page's text at
@@ -217,8 +218,7 @@ def _check_copy(
             found += 1
     # What the stage admits, asked of a copy written by hand -- the same
     # `desk.stages.not_admitted` `flows.fill` asks as a ruling is placed
-    # (`decision-log.md Process: #193`). It needs no binder, so it runs on
-    # every check rather than under `--binder`: the copy carries the rule.
+    # The copy carries the stage's instruction contract.
     for sheet in copy.sheets:
         for one in sheet.marks:
             why = not_admitted(copy.stage, copy.admits, str(one.instruction))

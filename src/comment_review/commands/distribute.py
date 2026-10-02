@@ -12,6 +12,7 @@ console face of it.
 !! `--stage` IS THE TOPOLOGY'S READER -- `decision-log.md Process: #74`. One
 invocation reads one stage's dispatches out of the topology and writes one
 seeded edit copy per dispatch, in dispatch order, as `DIR/<stage>_<role>_<n>.json`.
+Its received binder is saved as `DIR/binders/<stage>_<role>_<n>.json`.
 The task agent reads the ORDER of the stages from SKILL.md and runs this once
 per stage (`#73`); no command sequences them.
 
@@ -159,7 +160,7 @@ def main() -> int:
         if why:
             print(why, file=sys.stderr)
             return 2
-        # ! REFUSED BEFORE ANYTHING IS WRITTEN. `fan` raises on the two guards
+        # ! REFUSED BEFORE ANYTHING IS WRITTEN. `dealt` raises on the two guards
         # over the whole stage, so a stage that does not fit leaves no copies
         # behind for a role to be handed.
         try:
