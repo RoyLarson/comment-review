@@ -286,6 +286,7 @@ def _comment_fragment(
     foot: tuple[str, ...] = ()
     suffix = ""
     opened = None
+    end_at = -1
     if lang is not None:
         pairs = [*lang.block_comment]
         pairs += [
@@ -316,9 +317,9 @@ def _comment_fragment(
                 op = opening.group(0)
                 close = opening.group(1)
                 opened = op, close
+                end_at = len(indent) + len(token.string) - len(close)
     if opened is not None:
         op, close = opened
-        end_at = -1
         if lang is not None and lang.name != "python":
             pair = next(p for p in lang.block_comment if op.startswith(p[0]))
             scan_from = len(indent) + len(pair[0])
@@ -330,10 +331,7 @@ def _comment_fragment(
         first = indent + op
         body[0] = body[0][len(first) :]
         starts[0] += len(first)
-        if lang is not None and lang.name != "python":
-            closing = end_at - starts[-1] if end_at >= 0 else -1
-        else:
-            closing = body[-1].rfind(close)
+        closing = end_at - starts[-1] if end_at >= 0 else -1
         if closing >= 0:
             last = body[-1][closing:]
             body[-1] = body[-1][:closing]

@@ -202,6 +202,47 @@ def test_docstring_quotes_and_prefixes_survive_removal(quote):
     assert comment_at(paragraph.address, changed).text == "Keep. Ending stays."
 
 
+@pytest.mark.parametrize("instruction", ["move", "drop"])
+@pytest.mark.parametrize("quote", ['"""', "'''", 'r"""', "r'''"])
+@pytest.mark.parametrize("closer_line", ["", "Ending stays."])
+def test_docstring_edits_leave_adjacent_quoted_code_intact(
+    instruction, quote, closer_line
+):
+    close = quote[-3:]
+    literal_quote = "'" if close == '"""' else '"'
+    adjacent = f"; value = {literal_quote}Move. {close}{literal_quote}"
+    source = (
+        f"def f():\n    {quote}Kept. Move.\n"
+        f"    {closer_line}{close}{adjacent}\n    return value\n"
+    )
+    page = build(source, "m.py")
+    paragraph = next(p for p in page if "Kept." in p.raw_text)
+    form = comment_at(paragraph.address, paragraph.raw_text)
+    assert form.text == " ".join(filter(None, ["Kept. Move.", closer_line]))
+    if instruction == "move":
+        changed = form.without_once("Move.")
+    else:
+        changed, problems = derived_change(
+            Instruction.DROP,
+            {"drop": " Move."},
+            paragraph.raw_text,
+            address=paragraph.address,
+        )
+        assert problems == []
+    assert changed is not None
+    assert close + adjacent in changed
+    assert galley.reset(page, {paragraph.address.split("@")[1]: changed}) == []
+    output = compositor.set_page(page)
+    compile(output, "m.py", "exec")
+    reread = build(output, "m.py")
+    edited = next(p for p in reread if p.address == paragraph.address)
+    assert comment_at(edited.address, edited.raw_text).text == " ".join(
+        filter(None, ["Kept.", closer_line])
+    )
+    assert close + adjacent in output
+    assert output.endswith("    return value\n")
+
+
 def test_a_trailing_block_keeps_its_separator_and_code():
     source = "let x = 1;  /* Keep. Move.\n             * Ending stays. */\nlet y = 2;\n"
     page = build(source, "m.js")
