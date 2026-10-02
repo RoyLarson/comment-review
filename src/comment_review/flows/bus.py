@@ -84,6 +84,7 @@ class CopiesReturned(NamedTuple):
         human: the human's answers file, read (`decision-log.md Process:
             #198`) -- each answer rides on the `AsksTheHuman` for the query
             it answers.
+        binders: each copy's received binder, in the same order as the copies.
     """
 
     stage: str
@@ -199,11 +200,9 @@ def _on_copies(message: CopiesReturned) -> tuple[list, Result | None]:
     # none -- so a reader always has somewhere to look. A `Refused` carrying
     # "" would print as a finding about the whole copy, which is a different
     # fact (`collate-command-defects`, measured 2026-09-01).
-    required = (
-        [required_places(b) for b in message.binders]
-        if message.binders is not None and len(message.binders) == len(copies)
-        else None
-    )
+    required = [required_places(binder, message.topology)] * len(copies)
+    if message.binders is not None and len(message.binders) == len(copies):
+        required = [required_places(b) for b in message.binders]
     problems += [
         Problem(one.role, one.where, "; ".join(one.reasons))
         for one in mark_errors(copies, required)
@@ -211,7 +210,8 @@ def _on_copies(message: CopiesReturned) -> tuple[list, Result | None]:
     if message.binders is not None:
         problems += received_problems(copies, message.binders, binder, message.topology)
     else:
-        problems += coverage_problems(copies, binder, message.topology)
+        for copy in copies:
+            problems += coverage_problems([copy], binder, message.topology)
     problems += _root_problems(copies)
     problems += _dealt_problems(copies, message.stage)
     problems += _admitted_problems(copies, message.topology)

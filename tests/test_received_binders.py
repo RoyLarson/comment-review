@@ -3,14 +3,15 @@ from dataclasses import replace
 
 import pytest
 from conftest import run_command
-from helpers import a_clean, a_real_binder_over, returned
+from helpers import a_clean, a_patch, a_real_binder_over, returned
 
-from comment_review.commands import check, collate
+from comment_review.commands import check, collate, distribute
 from comment_review.desk import report as events
 from comment_review.desk.stages import Dispatch, Kind, Role, Stage
-from comment_review.flows.bus import CopiesReturned, handle
+from comment_review.flows.bus import AnswersReturned, CopiesReturned, handle
 from comment_review.flows.distribute import assigned_binder, seed
 from comment_review.flows.fill import withdraw
+from comment_review.flows.proof_io import load_proof
 
 
 def _shards(tmp_path):
@@ -114,7 +115,8 @@ def test_check_ignores_an_unassigned_blank(tmp_path, monkeypatch, capsys):
     assert code == check.OK, out
 
 
-def test_collation_checks_each_copy_against_its_received_binder(tmp_path):
+@pytest.mark.parametrize("with_binders", [True, False])
+def test_collation_checks_each_copy_against_its_received_binder(tmp_path, with_binders):
     binder, received, wires, stage = _shards(tmp_path)
     wires[0]["sheets"][0]["marks"] = []
     wires[1]["sheets"].extend(seed(received[0], "block-context")["sheets"])
@@ -126,7 +128,7 @@ def test_collation_checks_each_copy_against_its_received_binder(tmp_path):
             binder,
             binder.root,
             stage,
-            binders=received,
+            binders=received if with_binders else None,
         )
     )
     assert result is None
@@ -197,3 +199,98 @@ def test_cli_collation_accepts_paired_received_binders(tmp_path, monkeypatch, ca
     code, out = run_command(monkeypatch, capsys, collate, *args)
     assert code == collate.OK, out
     assert (tmp_path / "chief.json").exists()
+
+
+def test_distribution_through_fold_and_turn_preserves_received_binders(
+    tmp_path, monkeypatch, capsys
+):
+    binder, _, _, _ = _shards(tmp_path)
+    original = tmp_path / "binder.json"
+    original.write_text(json.dumps(binder.serialize()), encoding="utf-8")
+    topology = tmp_path / "topology.toml"
+    topology.write_text(
+        '[[stage]]\nname = "4c"\nkind = "editorial"\n'
+        '  [[stage.dispatch]]\nrole = "block-context"\npaths = ["m.py"]\n'
+        '  [[stage.dispatch]]\nrole = "block-context"\npaths = ["n.py"]\n'
+        '  [[stage.dispatch]]\nrole = "function-context"\n',
+        encoding="utf-8",
+    )
+    out_dir = tmp_path / "copies"
+    code, out = run_command(
+        monkeypatch,
+        capsys,
+        distribute,
+        "--topology",
+        str(topology),
+        "--stage",
+        "4c",
+        "--binder",
+        str(original),
+        "--out-dir",
+        str(out_dir),
+    )
+    assert code == 0, out
+    args = [
+        "--stage",
+        "4c",
+        "--binder",
+        str(original),
+        "--topology",
+        str(topology),
+        "--out",
+        str(tmp_path / "chief.json"),
+        "--proof-out",
+        str(tmp_path / "proof.json"),
+    ]
+    paths = sorted(out_dir.glob("*.json"))
+    before = {path: path.read_bytes() for path in (out_dir / "binders").glob("*.json")}
+    for path in paths:
+        wire = json.loads(path.read_text(encoding="utf-8"))
+        for sheet in wire["sheets"]:
+            for slot in sheet["marks"]:
+                address = slot["address"]
+                if address == "m.py@b1":
+                    replacement = (
+                        "# ONE" if wire["role"] == "block-context" else "# Uno"
+                    )
+                    slot.update(a_patch(address, "# one", replacement, replacement))
+                else:
+                    slot.update(a_clean(address))
+        path.write_text(json.dumps(wire), encoding="utf-8")
+        received = out_dir / "binders" / path.name
+        code, out = run_command(
+            monkeypatch,
+            capsys,
+            check,
+            "--edit-copy",
+            str(path),
+            "--binder",
+            str(received),
+        )
+        assert code == check.OK, out
+        args.extend(["--edit-copy", str(path), "--received-binder", str(received)])
+    code, out = run_command(monkeypatch, capsys, collate, *args)
+    assert code == collate.ESCALATIONS, out
+    proof, why = load_proof(tmp_path / "proof.json")
+    assert proof is not None, why
+    out, result = handle(
+        AnswersReturned(
+            proof,
+            {
+                "block-context": [
+                    {"address": "m.py@b1", "instruction": "hold", "reason": "keep mine"}
+                ],
+                "function-context": [
+                    {
+                        "address": "m.py@b1",
+                        "instruction": "withdraw",
+                        "reason": "use theirs",
+                    }
+                ],
+            },
+            binder.root,
+        )
+    )
+    assert result is not None, out
+    assert {path: path.read_bytes() for path in before} == before
+    assert json.loads(original.read_text(encoding="utf-8")) == binder.serialize()
