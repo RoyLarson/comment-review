@@ -265,14 +265,17 @@ def _comment_fragment(
     path: Path, series: Series | None, raw_text: str, anchor: str
 ) -> Fragment:
     lang = language_for(path)
-    lines = raw_text.rstrip("\r\n").splitlines()
-    found_ending = re.search(r"[\r\n]+$", raw_text)
-    ending = found_ending.group(0) if found_ending else ""
+    physical = raw_text.splitlines(keepends=True)
+    while physical and not physical[-1].strip():
+        physical.pop()
+    content = "".join(physical).rstrip("\r\n")
+    ending = raw_text[len(content) :]
+    lines = content.splitlines()
     if not lines:
         return Fragment(raw_text, "", (), "", "", "", ending=ending)
     starts = []
     offset = 0
-    for line in raw_text.rstrip("\r\n").splitlines(keepends=True):
+    for line in content.splitlines(keepends=True):
         starts.append(offset)
         offset += len(line)
     indent = lines[0][: len(lines[0]) - len(lines[0].lstrip())]
@@ -315,13 +318,20 @@ def _comment_fragment(
                 opened = op, close
     if opened is not None:
         op, close = opened
+        end_at = -1
+        if lang is not None and lang.name != "python":
+            pair = next(p for p in lang.block_comment if op.startswith(p[0]))
+            scan_from = len(indent) + len(pair[0])
+            ends, _ = run_ends(raw_text[scan_from:], pair, lang.nests_comments)
+            if ends >= 0:
+                end_at = scan_from + ends - len(close)
+                if end_at < len(indent) + len(op):
+                    op = pair[0]
         first = indent + op
         body[0] = body[0][len(first) :]
         starts[0] += len(first)
         if lang is not None and lang.name != "python":
-            pair = next(p for p in lang.block_comment if op.startswith(p[0]))
-            ends, _ = run_ends(raw_text[len(first) :], pair, lang.nests_comments)
-            closing = len(first) + ends - len(close) - starts[-1] if ends >= 0 else -1
+            closing = end_at - starts[-1] if end_at >= 0 else -1
         else:
             closing = body[-1].rfind(close)
         if closing >= 0:

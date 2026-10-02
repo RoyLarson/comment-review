@@ -411,6 +411,64 @@ def test_removal_retains_unmarked_blanks_between_line_comments():
     )
 
 
+@pytest.mark.parametrize("instruction", ["move", "drop"])
+@pytest.mark.parametrize("blank", [" ", "\t", "  \n\t"])
+def test_block_removal_retains_padded_separators(instruction, blank):
+    raw = f"/* Keep. Move. */\n{blank}\n// Ending stays."
+    page = build(f"x = 1;\n{raw}\ny = 2;\n", "m.js")
+    paragraph = next(p for p in page if "Move." in p.raw_text)
+    form = comment_at(paragraph.address, paragraph.raw_text)
+    assert form.text == "Keep. Move. Ending stays."
+    if instruction == "move":
+        changed = form.without_once("Move.")
+    else:
+        changed, problems = derived_change(
+            Instruction.DROP,
+            {"drop": "Move."},
+            paragraph.raw_text,
+            address=paragraph.address,
+        )
+        assert problems == []
+    assert changed == f"/* Keep. */\n{blank}\n// Ending stays."
+
+
+@pytest.mark.parametrize("empty", ["/**/", "/* */", "/** */"])
+def test_empty_blocks_do_not_interrupt_a_snippet(empty):
+    raw = f"// Move this\n{empty}\n// sentence. Ending."
+    page = build(f"x = 1;\n{raw}\ny = 2;\n", "m.js")
+    paragraph = next(p for p in page if "Move this" in p.raw_text)
+    form = comment_at(paragraph.address, paragraph.raw_text)
+    assert form.text == "Move this sentence. Ending."
+    assert form.without_once("Move this sentence.") == "// Ending."
+
+
+def test_removal_keeps_a_long_word_intact():
+    raw = "# abcdefghijklmnopqrstuvwxyz\n# Move. End."
+    assert comment_at("pkg:m.py@b1", raw).without_once("Move.") == (
+        "# abcdefghijklmnopqrstuvwxyz\n# End."
+    )
+
+
+def test_an_emptied_block_with_padded_separators_leaves_no_delimiters():
+    raw = "/* Move. */\n \n\t\n// Ending stays."
+    assert comment_at("m.js@b1", raw).without_once("Move.") == "// Ending stays."
+    changed, problems = derived_change(
+        Instruction.DROP, {"drop": "Move."}, raw, address="m.js@b1"
+    )
+    assert problems == [] and changed == "// Ending stays."
+
+
+def test_a_raw_drop_spanning_an_empty_block_keeps_only_the_remaining_prose():
+    raw = "// Move this\n/**/\n// sentence. Ending."
+    changed, problems = derived_change(
+        Instruction.DROP,
+        {"drop": "Move this\n/**/\n// sentence."},
+        raw,
+        address="m.js@b1",
+    )
+    assert problems == [] and changed == "// Ending."
+
+
 def test_trailing_rewrapping_counts_the_carried_code_anchor():
     source = (
         "let value = 100; /* Kept. Move.\n * Longer ending stays here. */\nlet y = 2;\n"
@@ -427,38 +485,93 @@ def test_trailing_rewrapping_counts_the_carried_code_anchor():
 
 @pytest.mark.parametrize("instruction", ["move", "drop"])
 @pytest.mark.parametrize(
-    "name,raw,quote,dest",
+    "name,raw,quote,dest,placement",
     [
         (
             "m.py",
             "# Kept. Move this\n# sentence. Ending stays.",
             " Move this\n# sentence.",
             "#",
+            "b",
         ),
         (
             "m.rs",
             "// Kept. Move this\n// sentence.\n\n\n/// Ending stays.",
             " Move this\n// sentence.",
             "//",
+            "b",
         ),
         (
             "m.js",
             "/* Kept. Move this\n * sentence. */\n// Ending stays.",
             " Move this\n * sentence.",
             "//",
+            "b",
+        ),
+        (
+            "one/m.rs",
+            "// Kept. Move this\n// sentence. Ending stays.",
+            " Move this\n// sentence.",
+            "//",
+            "b",
+        ),
+        (
+            "two/m.rs",
+            "//! Kept. Move this\n//! sentence. Ending stays.",
+            " Move this\n//! sentence.",
+            "//",
+            "b",
+        ),
+        (
+            "m.py",
+            '"""Kept. Move this\n    sentence. Ending stays."""',
+            " Move this\n    sentence.",
+            "#",
+            "a",
+        ),
+        (
+            "m.js",
+            "/* Kept. Move this\n * sentence. Ending stays. */",
+            " Move this\n * sentence.",
+            "//",
+            "c",
+        ),
+        (
+            "m.py",
+            "# Kept. Move this\n# sentence. Ending stays.",
+            " Move this\n# sentence.",
+            "#",
+            "f",
         ),
     ],
 )
 def test_mark_check_and_proof_agree_for_wrapped_sentences(
-    tmp_path, instruction, name, raw, quote, dest
+    tmp_path, instruction, name, raw, quote, dest, placement
 ):
-    source = f"x = 0\n{raw}\ny = 1\n{dest} Destination stays.\nz = 2\n"
+    if placement == "a":
+        source = (
+            f"def f():\n    {raw}\n    return 0\ny = 1\n"
+            f"{dest} Destination stays.\nz = 2\n"
+        )
+        expected_anchors = ["def f():", "    return 0", "y = 1", "z = 2"]
+    elif placement == "c":
+        source = f"x = 0 {raw}\ny = 1\n{dest} Destination stays.\nz = 2\n"
+        expected_anchors = ["x = 0", "y = 1", "z = 2"]
+    elif placement == "f":
+        source = f"x = 0\n{dest} Destination stays.\ny = 1\nz = 2\n{raw}\n"
+        expected_anchors = ["x = 0", "y = 1", "z = 2"]
+    else:
+        source = f"x = 0\n{raw}\ny = 1\n{dest} Destination stays.\nz = 2\n"
+        expected_anchors = ["x = 0", "y = 1", "z = 2"]
+    (tmp_path / name).parent.mkdir(parents=True, exist_ok=True)
     (tmp_path / name).write_text(source, encoding="utf-8", newline="\n")
     page = build(source, name)
     binder = bind([page], read_from={"root": str(tmp_path), "revise": 0})
     loaded, problems = Binder.deserialize("binder", binder.serialize())
     assert problems == [] and loaded is not None
     origin = next(p for p in loaded.paragraphs if "Move this" in p.raw_text)
+    if placement != "b":
+        assert f"@{placement}" in origin.address
     destination = next(p for p in loaded.paragraphs if "Destination" in p.raw_text)
     copy = seed(loaded, "block-context")
     entry = {
@@ -492,5 +605,5 @@ def test_mark_check_and_proof_agree_for_wrapped_sentences(
     assert (
         comment_at(remainder.address, remainder.raw_text).text == "Kept. Ending stays."
     )
-    assert [p.anchor for p in again if "@c" in p.address] == ["x = 0", "y = 1", "z = 2"]
+    assert [p.anchor for p in again if "@c" in p.address] == expected_anchors
     assert (tmp_path / name).read_text(encoding="utf-8") == source
