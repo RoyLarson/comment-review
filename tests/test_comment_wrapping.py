@@ -243,6 +243,43 @@ def test_docstring_edits_leave_adjacent_quoted_code_intact(
     assert output.endswith("    return value\n")
 
 
+@pytest.mark.parametrize("instruction", ["move", "drop"])
+@pytest.mark.parametrize("quote", ['"""', "'''", 'r"""', "r'''"])
+@pytest.mark.parametrize("closing_indent", [None, "", "    "])
+def test_empty_docstring_removal_leaves_valid_adjacent_code(
+    instruction, quote, closing_indent
+):
+    close = quote[-3:]
+    raw = f"    {quote}Move."
+    if closing_indent is not None:
+        raw += "\n" + closing_indent
+    raw += close + ";  value = 1; other = 2"
+    source = f"def f():\n{raw}\n    return value + other\n"
+    compile(source, "m.py", "exec")
+    page = build(source, "m.py")
+    paragraph = next(p for p in page if "Move." in p.raw_text)
+    if instruction == "move":
+        changed = comment_at(paragraph.address, paragraph.raw_text).without_once(
+            "Move."
+        )
+    else:
+        changed, problems = derived_change(
+            Instruction.DROP,
+            {"drop": "Move."},
+            paragraph.raw_text,
+            address=paragraph.address,
+        )
+        assert problems == []
+    assert changed is not None
+    assert changed.strip() == "value = 1; other = 2"
+    assert galley.reset(page, {paragraph.address.split("@")[1]: changed}) == []
+    output = compositor.set_page(page)
+    namespace = {}
+    exec(compile(output, "m.py", "exec"), namespace)
+    assert namespace["f"]() == 3
+    assert '"""' not in output and "'''" not in output
+
+
 def test_a_trailing_block_keeps_its_separator_and_code():
     source = "let x = 1;  /* Keep. Move.\n             * Ending stays. */\nlet y = 2;\n"
     page = build(source, "m.js")

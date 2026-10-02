@@ -337,14 +337,16 @@ def _comment_fragment(
             body[-1] = body[-1][:closing]
             after = last[len(close) :]
             if after.strip():
+                suffix_indent = lines[-1][: len(lines[-1]) - len(lines[-1].lstrip())]
+                if lang is not None and lang.name == "python":
+                    suffix_indent = indent
+                    after = after.lstrip(" \t")
+                    if after.startswith(";"):
+                        after = after[1:].lstrip(" \t")
                 suffix = (
                     ("\r\n" if "\r\n" in raw_text else "\n") if len(lines) > 1 else ""
                 )
-                suffix += (
-                    lines[-1][: len(lines[-1]) - len(lines[-1].lstrip())]
-                    + after
-                    + ending
-                )
+                suffix += suffix_indent + after + ending
         if not body[0].strip():
             head = (lines[0],)
             body.pop(0)
