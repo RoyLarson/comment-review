@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 4 of 31 tasks closed
+Progress: 5 of 31 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (/simplify rounds 1 and 2 and /code-review high round 3,
@@ -266,6 +266,7 @@ would.
       all concatenated docstring literals in lexer.py:313; test moving second.
       from adjacent Python literals succeeds
         > 2026-10-02 Repro: .tmp/review_docstring_literals.py; second literal omitted
-- [ ] T31 | Clarify docstring.py without_raw contract; test empty-expression
-      removal and invalid-edit refusal
+- [x] T31 | Contract corrected; raw removal and refusal tests passed | 6eb1fb15651b0dd1bd072a135c5040e40a26dfa4 | Clarify
+      docstring.py without_raw contract; test empty-expression removal and
+      invalid-edit refusal
         > 2026-10-03 Review: full removal deletes literals; invalid edits return None
