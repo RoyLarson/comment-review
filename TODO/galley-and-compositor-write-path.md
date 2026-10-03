@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 39 of 50 tasks closed
+Progress: 40 of 50 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (code-review high round 3 and /simplify round 2, 2026-08-22 -- the
@@ -255,6 +255,7 @@ files in `corpora/` are in that state today.
 - [x] T49 | an alteration with no anchor is refused at verify | 9dd5059d | Update
       the write end to refuse an alteration that carries no anchor, per Process
       135 as amended
-- [ ] T50 | Fix compositor.py:363 EOF separation; test adding b1 with no final
-      newline or with an existing footer preserves both places
+- [x] T50 | Closing-gap insertion survives proof and reread in all cases | b96af9f5bcbfa8f77d449dcc4b7ca9aa2e005ee9 | Fix
+      compositor.py:363 EOF separation; test adding b1 with no final newline or
+      with an existing footer preserves both places
         > 2026-10-02 Repro: .tmp/review_eof_gap.py; b1 rereads as empty
