@@ -236,6 +236,12 @@ def _on_copies(message: CopiesReturned) -> tuple[list, Result | None]:
         edit_copies=tuple(copies),
         places=tuple(fold.decided.values()),
         moves=tuple(move.recorded() for move in fold.decided_moves.values()),
+        page_shas={
+            path: page.sha
+            for path, page in page_cache.items()
+            if page is not None
+            and path not in {sheet.path for copy in copies for sheet in copy.sheets}
+        },
     )
     chief = chief_copy_of(fold.decided, "copy-chief", read_from, _pages_of(copies))
     return out, Result(proof, chief, _batch_or_none(fold, read_from))
@@ -625,6 +631,7 @@ def _commit(
         edit_copies=proof.edit_copies,
         places=tuple(fold.decided.values()),
         moves=tuple(move.recorded() for move in fold.decided_moves.values()),
+        page_shas=dict(proof.page_shas),
     )
     chief = chief_copy_of(
         fold.decided, CHIEF, proof.read_from, _pages_of(list(proof.edit_copies))

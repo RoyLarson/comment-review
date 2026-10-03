@@ -99,7 +99,7 @@ class Comment:
         end = start + len(snippet)
         return self._without_range(start, end)
 
-    def without_raw(self, start: int, end: int) -> str:
+    def without_raw(self, start: int, end: int) -> str | None:
         """Remove prose in a raw-text range and rewrap what remains."""
         selected = []
         raw_offset = prose_offset = 0
@@ -116,7 +116,7 @@ class Comment:
             return self.raw_text
         return self._without_range(selected[0], selected[-1] + 1)
 
-    def _without_range(self, start: int, end: int) -> str:
+    def _without_range(self, start: int, end: int) -> str | None:
         rendered = []
         offset = 0
         for part in self.fragments:

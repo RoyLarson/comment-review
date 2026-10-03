@@ -1,6 +1,6 @@
 """Every edit_copy of one stage, held in one master_proof."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from comment_review.binder.binder import _read_from_problem
 from comment_review.desk.proof.edit_copy import EditCopy
@@ -27,6 +27,7 @@ class MasterProof:
             proof holds places, not their wire.
         moves: every move one fold of this stage decided, as the proof records
             it (`Move.recorded`).
+        page_shas: real path -> sha for pages touched outside the copies.
 
     Each place carries its answers, state and owed readers. Each move carries
     its placement answers. These records determine the proof's turn and rulings.
@@ -37,6 +38,7 @@ class MasterProof:
     edit_copies: tuple[EditCopy, ...]
     places: tuple[Place, ...] = ()
     moves: tuple[Move, ...] = ()
+    page_shas: dict[str, str] = field(default_factory=dict)
 
     @classmethod
     def deserialize(
@@ -153,6 +155,18 @@ class MasterProof:
         problems += why
         moves, why = _moves_in(where, data.get("moves", []))
         problems += why
+        raw_shas = data.get("page_shas", {})
+        page_shas: dict = raw_shas if isinstance(raw_shas, dict) else {}
+        if not isinstance(raw_shas, dict) or any(
+            not isinstance(path, str)
+            or not path.strip()
+            or not isinstance(sha, str)
+            or not sha.strip()
+            for path, sha in page_shas.items()
+        ):
+            problems.append(
+                f"{where}: master_proof's `page_shas` must map paths to shas"
+            )
         if problems:
             return None, problems
         return (
@@ -162,6 +176,7 @@ class MasterProof:
                 edit_copies=tuple(copies),
                 places=places,
                 moves=moves,
+                page_shas=dict(page_shas),
             ),
             [],
         )
@@ -174,6 +189,7 @@ class MasterProof:
             "edit_copies": [copy.serialize() for copy in self.edit_copies],
             "places": [place.serialize() for place in self.places],
             "moves": [move.serialize() for move in self.moves],
+            "page_shas": dict(self.page_shas),
         }
 
 

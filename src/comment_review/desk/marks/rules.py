@@ -145,6 +145,10 @@ def derived_change(
             form = comment_at(address, base, anchor=anchor)
             at = base.index(quoted)
             changed = form.without_raw(at, at + len(quoted))
+            if changed is None:
+                return None, [
+                    f"`claim.{key}` cannot be removed within its comment form"
+                ]
         else:
             changed = _within(changed, _widest(base))
     return changed, []
