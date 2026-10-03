@@ -9,7 +9,7 @@
 | [0.2.4-r2-human-questions-before-the-fold](0.2.4-r2-human-questions-before-the-fold.md) | closed | 29/29 | 32/32 |
 | [0.2.4-r3-composition-and-answer-resolution](0.2.4-r3-composition-and-answer-resolution.md) | closed | 16/16 | 68/68 |
 | [0.2.4-received-binder-checks](0.2.4-received-binder-checks.md) | closed | 6/6 | 5/5 |
-| [0.2.4-review-write-boundaries](0.2.4-review-write-boundaries.md) | open | 0/3 | 0/3 |
+| [0.2.4-review-write-boundaries](0.2.4-review-write-boundaries.md) | open | 0/3 | 0/4 |
 | [0.2.4-rework-the-binder-hands-the-repo](0.2.4-rework-the-binder-hands-the-repo.md) | in-progress | 6/6 | 5/5 |
 | [0.2.4-source-contract](0.2.4-source-contract.md) | closed | 1/1 | 16/16 |
 | [0.2.4-the-agents-read-the-cli](0.2.4-the-agents-read-the-cli.md) | in-progress | 261/263 | 16/19 |
