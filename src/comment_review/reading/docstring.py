@@ -40,7 +40,11 @@ class Docstring(Comment):
         return changed
 
     def without_raw(self, start: int, end: int) -> str | None:
-        """Remove payload intersecting a raw range, keeping literal boundaries."""
+        """Remove prose in a raw range.
+
+        Preserve literal boundaries while prose remains. Remove an emptied
+        expression, or return None if the edit cannot be set.
+        """
         selected = [
             at
             for at, spans in enumerate(self.spans)

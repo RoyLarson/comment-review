@@ -230,3 +230,22 @@ def test_concatenated_docstring_removals_follow_decoded_payloads(
 def test_raw_literal_removal_refuses_an_invalid_closing_quote():
     form = comment_at("m.py@a1", '    r"Kept\\\\" "Move."')
     assert form.without_once("\\Move.") is None
+
+
+def test_raw_removal_keeps_literal_boundaries_while_prose_remains():
+    raw = "    \"First \" 'second.'"
+    form = comment_at("m.py@a1", raw)
+    start = raw.index("second.")
+    assert form.without_raw(start, start + len("second.")) == "    \"First \" ''"
+
+
+def test_raw_removal_of_all_prose_removes_the_expression():
+    raw = '    "First " "second."; print("other")'
+    form = comment_at("m.py@a1", raw)
+    assert form.without_raw(0, len(raw)) == '    print("other")'
+
+
+def test_raw_removal_refuses_an_invalid_literal_remainder():
+    raw = '    r"Kept\\\\" "Move."'
+    form = comment_at("m.py@a1", raw)
+    assert form.without_raw(raw.index("\\") + 1, len(raw)) is None
