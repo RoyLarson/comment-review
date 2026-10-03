@@ -199,6 +199,12 @@ def comment_form(
     """The assigned paragraph's prose and the form its raw text carries."""
     lang = language_for(path)
     chunks: list[str] = []
+    if lang is not None and lang.name == "python" and series is Series.DECLARED:
+        from comment_review.reading.docstring import concatenated
+
+        docstring = concatenated(raw_text)
+        if docstring is not None:
+            return docstring
     pending: list[str] = []
     opened = None
     depth = 1
@@ -1518,6 +1524,23 @@ def paragraphs_stdlib(path: Path, text: str) -> list[Paragraph]:
 
     def flush() -> None:
         if run:
+            if not run[0][3] and run[-1][0] == len(source_lines):
+                split = next(
+                    (
+                        n
+                        for n in range(len(run) - 1, 0, -1)
+                        if any(
+                            not line.strip()
+                            for line in source_lines[run[n - 1][0] : run[n][0] - 1]
+                        )
+                    ),
+                    None,
+                )
+                if split is not None:
+                    footer = run[split:]
+                    del run[split:]
+                    flush()
+                    run.extend(footer)
             # ! PROSE comes from the comment token; WIDTH from the physical
             # line, which is the whole line a width rule measures. Using the
             # physical line for both fed a trailing comment's own code to the

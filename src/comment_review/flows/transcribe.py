@@ -203,11 +203,7 @@ def _schedules_of(
         schedules.append(
             Schedule(
                 path=rel,
-                # The recorded sha where the input carries one, since that is
-                # the bytes its addresses were taken from. A page only a
-                # move's destination names was never gathered and so has no
-                # recorded sha; the page read here is the only one there is.
-                sha=shas.get(name, page.sha),
+                sha=shas[name],
                 alterations=tuple(
                     Alteration(
                         cue=cue_of(place.address).cue,
@@ -298,7 +294,8 @@ def docket_of(copy: EditCopy, repo: Path) -> Docket:
         if place.text is not None:
             decided.setdefault(cue_of(address).path, []).append(place)
 
-    shas = {flatten(sheet.path): sheet.sha for sheet in copy.sheets}
+    shas = {name: page.sha for name, (_rel, page) in pages.items()}
+    shas.update({flatten(sheet.path): sheet.sha for sheet in copy.sheets})
     return Docket(schedules=_schedules_of(pages, decided, shas, copy.role))
 
 
@@ -446,12 +443,19 @@ def docket_of_proof(
     # The pages the run recorded, in the order it recorded them, with the sha
     # each was read at. A page every copy holds a sheet for is named once.
     known: list[str] = []
-    shas: dict[str, str] = {}
+    shas = {flatten(path): sha for path, sha in proof.page_shas.items()}
     for copy in proof.edit_copies:
         for sheet in copy.sheets:
             if sheet.path not in known:
                 known.append(sheet.path)
                 shas[flatten(sheet.path)] = sheet.sha
+    missing = [
+        f"{CHIEF} {name}: no recorded page sha; gather and collate this page again"
+        for name in decided
+        if name not in shas
+    ]
+    if missing:
+        raise CannotTranscribe(tuple(missing))
     pages, unreadable = _pages_of(repo, known, touched, CHIEF, "places", {})
     if unreadable:
         raise CannotTranscribe(tuple(unreadable))
