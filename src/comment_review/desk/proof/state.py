@@ -1,3 +1,5 @@
+"""Place evaluation states and the sets carried forward or settled."""
+
 from enum import StrEnum, auto
 
 
