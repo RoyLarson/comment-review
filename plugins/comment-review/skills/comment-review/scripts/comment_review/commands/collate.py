@@ -1,28 +1,27 @@
-r"""The `collate` command: its argument parsing, its report and its exit code.
+"""Collate returned edit copies and report the stage's outcome.
 
-    comment_review collate --stage 4c --binder B.json --out chief.json \\
-        --edit-copy a.json --edit-copy b.json \\
-        [--proof-out proof.json] [--batch-out batch1.json]
+The report includes `Refused`, `Settled`, `CarriedForward` and
+`PlacementCarried` events. Human questions are reported as `AsksTheHuman`
+before folding.
 
-The work is `flows.collate`; this is only the console face of it.
-
-!! A MODULE DOES ONE JOB AND HAS NO CLI; A FLOW CALLS MODULES;
-A COMMAND EXPOSES A FLOW. `decision-log.md Process: #12`.
-
-!! EVERY CARRIED-FORWARD PLACE IS NAMED, NEVER COUNTED. `A-T2` of
-`TODO/no-command-for-the-middle.md`: a run that settles 4 of 10 must say what
-became of the other 6. ! `--proof-out` AND `--batch-out` WRITE WHAT CONTINUES
-THEM -- the state between turns and the first turn's batch (`Process: #87`);
-the verb that runs the turn is `TODO/no-command-for-the-middle.md` T16.
+After a committed fold, the command writes the chief's copy to `--out`.
+Use `--proof-out` to save the master proof and `--batch-out` to save the
+next turn's batch.
 """
 
 import argparse
 import sys
 from pathlib import Path
 
-from comment_review.desk.proof import MismatchedRoot
+from comment_review.desk import report as events
+from comment_review.desk.proof.answer import Question
+from comment_review.desk.proof.edit_copy import EditCopy
+from comment_review.desk.proof.move import Placement
+from comment_review.desk.proof.place import Place
+from comment_review.desk.proof.state import CARRIED, SETTLED, State
 from comment_review.desk.topology import read as read_topology
-from comment_review.flows.collate import CannotCollate, collate
+from comment_review.flows.bus import CopiesReturned, handle
+from comment_review.flows.human import HumanAnswer, read_answers
 from comment_review.flows.proof_io import (
     load_binder,
     load_copy,
@@ -30,115 +29,27 @@ from comment_review.flows.proof_io import (
     save_copy,
     save_proof,
 )
-from comment_review.flows.turn import batch_for, proof_after
 
-#: Exit codes, extending `distribute`'s own 0/1/2 with the outcomes a caller
-#: branches on. `main` CHECKS `got.escalations`, THEN `got.rereads`, THEN
-#: `got.drift`, so a run holding more than one reports the FIRST of those it
-#: holds: an escalation is the stronger claim on a person's attention than a
-#: re-read, and a re-read is stronger than drift, which never keeps a place
-#: from settling -- `desk.collator.drift_in`'s own docstring: "REPORTED, NOT
-#: REFUSED".
+#: Exit codes, extending `distribute`'s own 0/1/2 with the two outcomes a
+#: caller branches on. `main` checks the escalation before the composition, so
+#: a run holding both reports the escalation: it is the stronger claim on a
+#: person's attention. `turn` and `disposition` exit these same codes, since
+#: all three fold through the Unit of Work and a caller branching on a code
+#: branches once.
+#: !! THERE WERE THREE MORE UNTIL THE FOLD BECAME A UNIT OF WORK -- `DRIFT` 5,
+#: `COVERAGE` 6 and `CARRIED_AND_UNRULED` 7. Each named a finding that routed
+#: back to a role without voiding the round, and there is no such finding left.
+#: Drift is not measured at all (`decision-log.md Process: #185`). A short
+#: shard, a place a role left unruled and a slot a role left unanswered are
+#: found before the fold opens, so each is a `Refused` and the round rolls back
+#: (`Process: #186`).
 OK = 0
 BROKEN = 1
 UNREADABLE = 2
 REREADS = 3
 ESCALATIONS = 4
-#: !! ADDED 2026-08-30. Before this code existed, a run whose every mark
-#: parsed but whose `raw_text` disagreed with the seeded base -- drift -- wrote
-#: the chief copy and exited `OK`: `main`'s own docstring named only
-#: `got.problems` and `RECONCILE_ERRORS` as causes of a non-`OK` outcome, so a
-#: caller branching on the exit code alone -- the documented contract -- got no
-#: signal that a drifted place fed the written output. `drift_in`'s ruling is
-#: that the COPY is never discarded over drift; it says nothing about the exit
-#: code, which this closes.
-DRIFT = 5
-#: !! ADDED 2026-08-31, and it is `Process: #63` reaching the exit codes. A role
-#: short of its shard is REPORTED, never a refusal that voids the round -- but
-#: `_coverage_problems`' findings rode in `got.problems`, which returns `BROKEN`
-#: above and writes no chief copy. Measured: one role, a two-place binder, one
-#: place answered -- the chief carried the settled mark and the command threw it
-#: away. Its own code lets the caller see a short round WITHOUT losing the work
-#: the round did, which is what the ruling asks for.
-#: ! IT IS NOT `DRIFT`'s SIBLING. `DRIFT` exists over a check `Process: #62`
-#: ruled out, and this one answers whether a ROLE ANSWERED rather than whether
-#: the tree moved. Coverage is a fact about the round; drift was a fact about a
-#: page, which the middle has no stake in.
-#: !! IT CARRIES THE UNRULED PLACES TOO, since 2026-09-01. `Collated.unruled`
-#: was computed by the flow and DISCARDED here, so a role that kept every slot
-#: and filled one exited `OK` with the chief copy written -- see
-#: `_unruled_problems` for the measurement. Both mean *this role owes an answer
-#: at this address*, and a code exists so a caller can branch.
-COVERAGE = 6
-#: A run that carries places forward and also holds a place a role owes an
-#: answer at -- one it left unruled, or one its copies did not carry back.
-#: `decision-log.md Process: #112`: that place goes back to its role in
-#: whichever round it is found, and the carried-forward codes tell a caller to
-#: rule at max turns, so the case exits a code of its own and the chief copy
-#: is still written.
-CARRIED_AND_UNRULED = 7
-
-#: The ways a stage cannot be reconciled at all, as against a mark that broke a
-#: rule. They mean the SET cannot be read, so none is routable back to one role
-#: the way a `Problem` is -- they exit `BROKEN` with the reason on stderr.
-#: !! IT HELD THREE UNTIL `P42` AND NOW HOLDS ONE, because two of the three
-#: became unconstructable rather than merely unreached. `desk.collator
-#: .UnnamedRole` is DELETED -- `places` takes a `MasterProof`, whose copies each
-#: carry a `role` `EditCopy.deserialize` already required -- and `master_proof_of` no
-#: longer subscripts `read_from`, so the `KeyError` added 2026-08-30 has no raiser left.
-#: ! THAT `KeyError` WAS REAL WHEN IT WAS ADDED: `master_proof_of` raised it
-#: by design and, uncaught, it escaped past this module's own promise that "a
-#: raise is not a refusal".
-#: !! AND `MismatchedRoot` IS STILL UNREACHABLE FROM `collate`, which is a
-#: different fact and is why it stays: `flows.collate.collate` wraps its only
-#: `master_proof_of` call and re-raises it as `CannotCollate`, so both mismatched-root
-#: tests go through THAT handler. It remains catchable here because nothing
-#: guarantees a future caller cannot reach `master_proof_of` another way, and a catch
-#: that cannot fire is cheaper than the traceback if one does.
-#: ! `CannotCollate` CARRIES ITS OWN `problems` and is handled separately below,
-#: which is the whole point of it; it is deliberately NOT in this tuple.
-#: ! BOUND TO A NAME because no `except` in a shipped file holds a tuple
-#: literal; see `machine/exceptions.py`.
-RECONCILE_ERRORS = (MismatchedRoot,)
-
-
-def _report(problems: list) -> None:
-    """Every routable `Problem` on stdout, one per line.
-
-    One spelling, five callers -- the refusal path, `problems`, `drift`,
-    `coverage` and `dropped`. A second copy of the format string is a place for them to
-    disagree about what a reader is shown. ! IT SAID TWO UNTIL 2026-08-31, and
-    `drift` kept its own hand-written loop three lines below this function for
-    the whole of that day, which is the duplication this exists to prevent.
-
-    ! `(the copy)` STANDS IN FOR AN EMPTY ADDRESS, which is what a problem about
-    the whole document carries -- a missing `role`, a bad `read_from`, a sheet
-    the envelope refused, a role short of its shard. There is no place to name,
-    and a blank column reads as a missing value rather than as a fact about the
-    copy.
-
-    !! IT MEANT TWO THINGS UNTIL 2026-09-01 AND NOW MEANS ONE. A `Revisit` for
-    an entry carrying no `address` printed the same words, where it did not mean
-    *this is about the whole copy* but *we cannot tell you where* -- so
-    `block-context (the copy): this mark: a mark must be an object` read as a
-    document-level finding and named neither the page nor the entry. A `Revisit`
-    carries `where`, which is never empty, and is printed through that instead;
-    this rendering is the copy-level one again, and only that.
-    """
-    for problem in problems:
-        where = problem.address or "(the copy)"
-        print(f"{problem.role} {where}: {problem.message}")
-
-
-#: !! `_unruled_problems` MOVED INTO `flows/mark_errors.py`, `P52`. It turned
-#: `Collated.unruled` into routable `Problem`s HERE, in the console face, while
-#: `flows.collate` turned `Sheet.refused` into others -- so *what a role still
-#: owes* was assembled in two modules and printed as two lists. Roy, 2026-09-01,
-#: asking for the flow: it "collects the errors and makes something that helps
-#: the task agent point to the correct ones for the role agents."
-#: ! WHAT IT MEASURED IS KEPT AT THE FLOW: a role that kept every slot and filled
-#: ONE exited OK with the chief written, because `Collated.unruled` was computed
-#: and read by nothing.
+# A rollback holding human questions and nothing else (`Process: #197`).
+ASKS_THE_HUMAN = 5
 
 
 def _refused(why: list[str]) -> int:
@@ -148,30 +59,203 @@ def _refused(why: list[str]) -> int:
     return UNREADABLE
 
 
+def _human_answers(path: str | None) -> tuple[tuple[HumanAnswer, ...], list[str]]:
+    """The `--human` answers file, read, or the reasons it will not read.
+
+    Shared with `turn` and `check`, which take the same flag.
+
+    Args:
+        path: what `--human` said, or None where it was not given.
+
+    Returns:
+        `(the answers, [])`; `((), [])` for None; `((), problems)` where the
+        file cannot be opened or any section will not read -- a caller hands
+        the problems to `_refused`.
+    """
+    if path is None:
+        return (), []
+    try:
+        text = Path(path).read_text(encoding="utf-8")
+    except OSError as exc:
+        # An OSError's own string names the file it could not open.
+        return (), [str(exc)]
+    answers, problems = read_answers(text, path)
+    if problems:
+        return (), problems
+    return tuple(answers), []
+
+
+def _lines(event: object) -> list[str]:
+    """One event as the lines a reader sees, or none where it reports nothing.
+
+    `Committed` and `RolledBack` carry a count of the places decided or the
+    reasons refused, and every one of those has already printed its own line.
+    `Advised` has a line and a heading of its own, which `_print` writes
+    after the places.
+    """
+    if isinstance(event, events.AsksTheHuman):
+        if event.answer:
+            return [
+                f"answered by the human {event.at}: {event.role} -- {event.answer};"
+                f" {event.role} replaces this query with its mark or answer"
+            ]
+        return [
+            f"asks the human {event.at}: {event.role} -- {event.question}; ask it,"
+            f" record the answer in the answers file, and send it back to {event.role}"
+        ]
+    if isinstance(event, events.Refused):
+        where = event.address or "(the copy)"
+        return [f"{event.role} {where}: {reason}" for reason in event.reasons]
+    if isinstance(event, events.CarriedForward):
+        roles = ", ".join(event.roles)
+        return [f"{event.state} {event.address}: {roles} ({event.question})"]
+    if isinstance(event, events.PlacementCarried):
+        roles = ", ".join(event.roles)
+        return [
+            f"{event.placement} {event.origin} -> {event.destination}:"
+            f" {roles} (placement)"
+        ]
+    if isinstance(event, events.Settled):
+        ruling = event.disposition
+        if ruling is not None:
+            return [
+                f"{ruling.name} {event.address}: {ruling.taken_side} -- {ruling.reason}"
+            ]
+        return [f"stet {event.address}"]
+    # `Advised` prints under its own heading, after the places -- see `_print`.
+    return []
+
+
+#: The heading the advisory notes print under. It names the one rule that
+#: produces a note today -- `desk.marks.table`'s `correct` row, which is what
+#: `decision-log.md Process: #163` asked for and `#177` kept advisory.
+FOR_THE_CHIEF = "for the chief -- each correct below drops words its claim never named:"
+
+
+def _print(out: list) -> None:
+    """Every event's own lines on stdout, the advisory notes last.
+
+    A note is for the chief and changes nothing, so it sits under its own
+    heading below the places rather than between them. Only a committed fold
+    emits one (`desk.report`), so the heading prints only over a
+    committed round.
+    """
+    for event in out:
+        for line in _lines(event):
+            print(line)
+    advised = [one for one in out if isinstance(one, events.Advised)]
+    if advised:
+        print(FOR_THE_CHIEF)
+        for one in advised:
+            where = one.address or "(the copy)"
+            for note in one.notes:
+                print(f"{one.role} {where}: {note}")
+
+
+def _code_for(out: list) -> int:
+    """The exit code one fold's events come to.
+
+    A rollback is `BROKEN` where any `Refused` is in `out`, and
+    `ASKS_THE_HUMAN` where it holds human questions and no refusal: nothing
+    was saved, and every reason is on stdout beside the role that owes it.
+    Otherwise the strongest claim on a person's attention wins -- an
+    escalation over a contested placement over a composition or an open
+    placement, and `OK` where the fold carried nothing forward.
+    """
+    if any(isinstance(one, events.RolledBack) for one in out):
+        if any(isinstance(one, events.Refused) for one in out):
+            return BROKEN
+        if any(isinstance(one, events.AsksTheHuman) for one in out):
+            return ASKS_THE_HUMAN
+        return BROKEN
+    carried = [one for one in out if isinstance(one, events.CarriedForward)]
+    placements = [one for one in out if isinstance(one, events.PlacementCarried)]
+    if any(one.question is Question.ESCALATION for one in carried):
+        return ESCALATIONS
+    if any(one.placement is Placement.CONTESTED for one in placements):
+        return ESCALATIONS
+    if placements or any(one.question is Question.COMPOSITION for one in carried):
+        return REREADS
+    return OK
+
+
+def _counted(places: tuple[Place, ...]) -> str:
+    """What the written proof holds, by the state each of its places came to.
+
+    ! IT READ `N determined, M unsettlable` OFF THE OLD FOLD'S OWN LISTS, and
+    said only `N places` for one commit. A reader of the console has no other
+    summary of what the round did with the places it carries, so the counts
+    are read back off the states the proof records.
+
+    Args:
+        places: `MasterProof.places`.
+
+    Returns:
+        `"N places -- S settled, C carried forward, T to come"`.
+
+    Settled is counted rather than subtracted, since `decision-log.md
+    Process: #193`'s round. It read `len(states) - carried - unsettlable`,
+    which is a third statement of which states are settled --
+    `desk.proof.state.SETTLED` is the one both this and
+    `flows.transcribe._unclosed` read.
+    """
+    states = [str(place.state or "") for place in places]
+    carried = sum(1 for state in states if state in CARRIED)
+    settled = sum(1 for state in states if state in SETTLED)
+    to_come = sum(1 for state in states if state == State.TO_COME)
+    return (
+        f"{len(states)} places -- {settled} settled,"
+        f" {carried} carried forward, {to_come} to come"
+    )
+
+
+def _envelope(documents: list) -> tuple[list[EditCopy], list]:
+    """The copies that parse, and one `Refused` per reason the rest did not.
+
+    !! THE ENVELOPE IS PARSED HERE AND A FAILURE IS REPORTED RATHER THAN
+    RAISED -- `P21`, `decision-log.md Process: #57`. What the two boundaries
+    are is stated once, in `desk/proof/__init__.py`'s module docstring. What is
+    this command's own is the ORDER and the response: envelope first, because
+    a document that is not a copy has no contents to rule on, and every
+    refusal printed beside whoever owes it rather than raised past the rest.
+
+    ! THE ROLE MAY BE THE MISSING THING, so the file's own path stands in
+    where the document names none -- a reader can act on that, where an empty
+    column reads as a missing value.
+
+    Args:
+        documents: `(path, the wire dict)` per `--edit-copy`, as loaded.
+
+    Returns:
+        `(the parsed copies, the refusals)`. A non-empty second half means
+        the stage cannot be folded: a copy that is not a copy has rulings
+        nobody can read, and folding the rest would write a chief silently
+        missing one role's.
+    """
+    copies: list[EditCopy] = []
+    refused: list = []
+    for path, document in documents:
+        parsed, why = EditCopy.deserialize(path, document)
+        if why:
+            named = document.get("role") if isinstance(document, dict) else None
+            who = named if isinstance(named, str) and named else path
+            refused += [events.Refused(who, "", (message,)) for message in why]
+        if parsed is not None:
+            copies.append(parsed)
+    return copies, refused
+
+
 def main() -> int:
     """Fold one stage's returned copies, report, and say what is left.
 
     Returns:
-        One of `OK`, `BROKEN`, `UNREADABLE`, `REREADS`, `ESCALATIONS`,
-        `DRIFT`, `COVERAGE` or `CARRIED_AND_UNRULED`. `BROKEN` covers both a
-        copy that broke a rule (`got.problems`) and a stage that could not be
-        reconciled at all -- a raise is not a refusal, so both are caught and
-        named on stderr rather than left to escape as a traceback.
-
-        ! NEITHER `COVERAGE` NOR `DRIFT` VOIDS THE ROUND -- both write the
-        chief copy first, and both are weaker than either carried-forward
-        outcome, so they are checked after `ESCALATIONS` and `REREADS`. A
-        drifted place can still settle, and so can the places a short shard
-        did answer (`decision-log.md Process: #63`).
-
-        `CARRIED_AND_UNRULED` is checked before all of those: a run carrying a
-        place forward while a role still owes an answer at another exits it
-        rather than `ESCALATIONS` or `REREADS` (`decision-log.md Process:
-        #112`), and it writes the chief copy too.
-
-        ! `COVERAGE` WAS MISSING FROM THIS LIST UNTIL 2026-08-31, one commit
-        after it became reachable. A caller branching on the exit code -- the
-        contract `DRIFT` was added to serve -- had no way to learn 6 exists.
+        One of `OK`, `BROKEN`, `UNREADABLE`, `REREADS`, `ESCALATIONS` or
+        `ASKS_THE_HUMAN`. `UNREADABLE` is a file or an argument that is not
+        what it says, and nothing is read past it. `BROKEN` is a rollback: a
+        document that is not a copy, or a place the fold refused.
+        `ASKS_THE_HUMAN` is a rollback holding human questions and nothing
+        else. The chief's copy, the proof and the batch are written only on a
+        commit, so neither rollback writes any of them.
     """
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--stage", required=True, help="the stage label, e.g. 4c")
@@ -185,18 +269,26 @@ def main() -> int:
         metavar="PATH",
         help="one role's returned edit_copy; repeat for each",
     )
+    ap.add_argument(
+        "--received-binder",
+        action="append",
+        default=None,
+        metavar="PATH",
+        help="one received binder per edit copy, in the same order; "
+        "required for shards;"
+        " without these, each copy must cover the whole stage assignment",
+    )
     ap.add_argument("--out", required=True, help="where to write the chief's edit_copy")
     ap.add_argument(
         "--topology",
         metavar="PATH",
-        help="the run's topology; with it, a dispatch of --stage that returned"
-        " no copy is reported in the coverage list",
+        help="the run's topology defining stage filters and dispatches; required"
+        " for filtered stages and to detect missing dispatches",
     )
     # !! THE ROOT SOURCE VERIFICATION RESOLVES A `cite` AGAINST -- `P25`. It
     # defaults to the binder's own `read_from.root`, which is the tree the
     # copies were gathered from and therefore the one their citations were
-    # written against. ! WHY OPENING A CITED FILE IS NOT A PAGE READ is stated
-    # once, at the call in `flows.collate.collate`, and not restated here.
+    # written against.
     ap.add_argument(
         "--repo",
         help="the checkout a `sources` cite resolves against "
@@ -206,7 +298,7 @@ def main() -> int:
         "--proof-out",
         metavar="PATH",
         help="where to write the master proof -- the state between turns: the"
-        " copies as they stand, every ruling, the unsettlable places. Written"
+        " copies as they stand and every place this fold decided. Written"
         " beside the chief's copy, so not on BROKEN",
     )
     ap.add_argument(
@@ -214,6 +306,12 @@ def main() -> int:
         metavar="PATH",
         help="where to write the first turn's batch, one slot per carried-forward"
         " place per role; nothing is written when nothing is carried forward",
+    )
+    ap.add_argument(
+        "--human",
+        metavar="PATH",
+        help="the human's answers file, TOML, one [[answer]] per question"
+        " (Process 198)",
     )
     args = ap.parse_args()
 
@@ -224,17 +322,17 @@ def main() -> int:
     # !! THE LOAD IS THE FLOW'S, THE DESERIALIZE THE CONTAINER'S --
     # `decision-log.md Process: #67`. `flows.proof_io` holds both steps of
     # the read and hands the binder over as a `Binder`; a copy comes back as
-    # its wire dict, because the fold parses those itself and reports each
-    # refusal beside the role that owes it.
+    # its wire dict, and `_envelope` turns it into an `EditCopy` or into the
+    # reasons it is not one.
     binder, why = load_binder(Path(args.binder))
     if binder is None:
         return _refused(why)
-    copies = []
+    documents = []
     for path in args.edit_copy:
-        copy, why = load_copy(Path(path))
+        document, why = load_copy(Path(path))
         if why:
             return _refused(why)
-        copies.append(copy)
+        documents.append((path, document))
 
     # ! THE BINDER NAMES ITS OWN TREE, so a caller that already passed one does
     # not pass it twice. `read_from` is refused as absent or malformed further
@@ -257,136 +355,71 @@ def main() -> int:
                 [f"stage {args.stage!r} is not in the topology -- it holds: {known}"]
             )
 
-    try:
-        got = collate(args.stage, copies, binder, root, dispatches=dispatches)
-    except CannotCollate as refusal:
-        # !! THE ROUTABLE PROBLEMS GO OUT FIRST, THEN THE REFUSAL. A refusal
-        # says the SET cannot be folded; it says nothing about the marks the
-        # pass already ruled on, and discarding those made one copy's
-        # incompatible header stop routing for every other role. MEASURED
-        # 2026-08-30: exit 1, stdout EMPTY. See `flows.collate.CannotCollate`.
-        _report(refusal.problems)
-        # ! AND THE REVISIT LIST, since `P52` moved every malformed mark into
-        # it. A refusal that printed only `problems` would drop exactly what
-        # `CannotCollate` exists to preserve.
-        for one in refusal.revisit:
-            for reason in one.reasons:
-                print(f"{one.role} {one.where}: {reason}")
-        print(
-            f"REFUSED: the proof could not be reconciled -- {refusal}", file=sys.stderr
+    human, why = _human_answers(args.human)
+    if why:
+        return _refused(why)
+
+    copies, refused = _envelope(documents)
+    if refused:
+        out = [*refused, events.RolledBack(len(refused))]
+        _print(out)
+        return _code_for(out)
+
+    received = None
+    if args.received_binder is not None:
+        if len(args.received_binder) != len(copies):
+            return _refused(["each edit copy needs one received binder"])
+        received = []
+        for path in args.received_binder:
+            one, why = load_binder(Path(path))
+            if one is None:
+                return _refused(why)
+            received.append(one)
+
+    out, result = handle(
+        CopiesReturned(
+            args.stage,
+            copies,
+            binder,
+            root,
+            dispatches,
+            human,
+            tuple(received) if received is not None else None,
         )
-        return BROKEN
-    except RECONCILE_ERRORS as err:
-        # ! THE REFUSAL'S OWN MESSAGE IS PRINTED AS IT STANDS. A `KeyError`
-        # branch stood here reading `f"a copy carries no {err}"`, because that
-        # exception's `str()` is only the missing key, repr'd -- naming the
-        # shape of a refusal rather than its cause. `master_proof_of` no longer raises
-        # one (`P42`), and `MismatchedRoot` already says what went wrong.
-        print(f"REFUSED: the proof could not be reconciled -- {err}", file=sys.stderr)
-        return BROKEN
-
-    _report(got.problems)
-    _report(got.drift)
-    # !! COVERAGE IS PRINTED BEFORE THE `problems` GATE AND DOES NOT TRIP IT --
-    # `decision-log.md Process: #63`: a missing answer ROUTES back to the role
-    # that owes it, and *the places that did come back still settle*. Carried in
-    # `got.problems` it returned BROKEN here and wrote no chief copy, which is
-    # the one thing that ruling forbids. It has its own list and its own code,
-    # the way `drift` already does.
-    _report(got.coverage)
-    # !! EVERY PLACE A ROLE MUST GO BACK TO, IN ONE LIST -- `P52`. It is printed
-    # beside the findings because a task agent reads one screen and dispatches
-    # from it; what separates the two halves is the sentence on each line.
-    for one in got.revisit:
-        for reason in one.reasons:
-            print(f"{one.role} {one.where}: {reason}")
-    # A correct whose change drops words its claim never named, for the chief
-    # to read (`decision-log.md Process: #163`). No exit code reads this list.
-    if got.dropped:
-        print("for the chief -- each correct below drops words its claim never named:")
-        _report(got.dropped)
-    # !! AN UNREADABLE MARK IS `BROKEN` AND AN UNRULED PLACE IS NOT, which is
-    # the whole reason `Revisit.unreadable` exists. `Process: #63` says a
-    # missing ANSWER routes without voiding the round; a mark that will not
-    # read is a different fact, and it gated `BROKEN` through `got.problems`
-    # until `P52` moved it into `revisit`. ! THE CODES DID NOT CHANGE, only
-    # where the command reads them from.
-    if got.problems or any(one.unreadable for one in got.revisit):
-        return BROKEN
-
-    # The proof is built before anything is written: a held move destination
-    # whose page cannot be seeded refuses it (`flows.turn.proof_after`), and
-    # a refusal writes nothing.
-    proof = None
-    if args.proof_out and got.proof is not None:
-        try:
-            proof = proof_after(got, root=root)
-        except ValueError as err:
-            print(
-                f"REFUSED: the master proof cannot be written -- {err}", file=sys.stderr
-            )
-            return BROKEN
+    )
+    _print(out)
+    if result is None:
+        return _code_for(out)
 
     # !! THE SERIALIZE IS THE CONTAINER'S AND THE DUMP IS THE FLOW'S --
-    # `decision-log.md Process: #65`, `#67`. `collate` returns an `EditCopy`
-    # since `P42`; the wire dict is made at the save, and nowhere between.
-    save_copy(Path(args.out), got.chief)
-    resolved = sum(len(sheet.marks) for sheet in got.chief.sheets)
-    print(f"{args.out}: {resolved} places resolved")
-
-    # !! NAMED, NEVER COUNTED. Each carried-forward place prints its address
-    # and every role that ruled there, so a reader can act on one without
-    # re-opening the copies.
-    for entry in got.escalations:
-        print(f"escalated {entry['address']}: {', '.join(entry['roles'])}")
-    for entry in got.rereads:
-        print(f"re-read {entry['address']}: {', '.join(entry['roles'])}")
+    # `decision-log.md Process: #65`, `#67`. The fold returns containers; the
+    # wire dict is made at the save, and nowhere between.
+    # ! A COMMITTED `CopiesReturned` ALWAYS CARRIES A CHIEF COPY -- the field
+    # is optional because a later handler on this bus may have no copy to
+    # write, and the guard is what says so rather than an assertion.
+    if result.chief is not None:
+        save_copy(Path(args.out), result.chief)
+        resolved = sum(len(sheet.marks) for sheet in result.chief.sheets)
+        print(f"{args.out}: {resolved} places resolved")
 
     # !! THE STATE BETWEEN TURNS IS WRITTEN WITH THE CHIEF, NOT INSTEAD OF IT.
-    # `Process: #87`: the master proof carries the copies as they stand, so the
-    # turn verb can mutate and fold them again; the chief's copy is what the
-    # write end reads today. `turns` is empty here -- this is the first fold.
-    if proof is not None:
-        save_proof(Path(args.proof_out), proof)
-        print(
-            f"{args.proof_out}: the master proof -- {len(got.determined)} determined,"
-            f" {len(got.unsettlable)} unsettlable"
-        )
+    # `Process: #87`: the master proof carries the copies as they stand and
+    # every place this fold decided, so the turn verb can answer them and fold
+    # again; the chief's copy is what the write end reads today.
+    if args.proof_out:
+        save_proof(Path(args.proof_out), result.proof)
+        print(f"{args.proof_out}: the master proof -- {_counted(result.proof.places)}")
     # ! NOTHING CARRIED FORWARD IS NO BATCH, NOT AN EMPTY ONE. A file holding
     # `{}` would be handed to roles as a turn with nothing in it.
-    if args.batch_out and (got.escalations or got.rereads):
-        batch = batch_for(got)
-        save_batch(Path(args.batch_out), batch)
+    if args.batch_out and result.batch:
+        save_batch(Path(args.batch_out), result.batch)
         sizes = ", ".join(
-            f"{role} {len(slots)}" for role, slots in sorted(batch.items())
+            f"{role} {len(slots)}" for role, slots in sorted(result.batch.items())
         )
         print(f"{args.batch_out}: turn 1's batch -- {sizes}")
 
-    # A place carried forward beside a place a role still owes is two
-    # instructions to the task agent, and the carried-forward codes name only
-    # the first -- `decision-log.md Process: #112`.
-    if (got.escalations or got.rereads) and (got.coverage or got.revisit):
-        return CARRIED_AND_UNRULED
-    if got.escalations:
-        return ESCALATIONS
-    if got.rereads:
-        return REREADS
-    # Nothing is carried forward by here: a run that also held a place a role
-    # owes exited `CARRIED_AND_UNRULED` above.
-    #
-    # ! IT SITS ABOVE `DRIFT` BY ACCIDENT OF WHAT IS LEFT, NOT BY DESIGN.
-    # `Process: #62` ruled `drift_in` out, and its deletion is the move plan's
-    # task 2; when it goes this branch goes with it and `COVERAGE` becomes the
-    # last check before `OK`. Nothing here should be read as ranking the two.
-    #
-    # !! AN UNRULED PLACE TAKES `COVERAGE` RATHER THAN A SEVENTH CODE, because
-    # the caller's ACT is the same: send this place back to that role. The two
-    # differ in how the role fell short -- the copy came back without the
-    # address, or with the address and no ruling -- and that difference is on
-    # the line `_report` prints, where a reader needs it. A code exists so a
-    # caller can BRANCH, and nothing branches differently on these two.
-    if got.coverage or got.revisit:
-        return COVERAGE
-    if got.drift:
-        return DRIFT
-    return OK
+    return _code_for(out)
+
+
+if __name__ == "__main__":
+    sys.exit(main())

@@ -228,6 +228,10 @@ Act on the exit code first:
 | `3`, `4` | places carried forward -- `composed`, `contested` or `open` | rule on them, below |
 | `5` | human questions are owed | ask them, below, then re-run with `--human` |
 
+Keep the path of the latest committed proof and the chief's copy. A closed proof
+can come from `collate`, `turn` or `disposition`; use that file wherever
+`<closed-proof>` appears below. A refused round supplies no new proof.
+
 A place is settled when every role that read it proposed the same text or answered `clean`;
 `collate` prints each as `stet <place>`. The lines under `for the chief` name a `correct`
 whose change removes words its claim never quoted; weigh that when you rule, and show it to
@@ -295,13 +299,15 @@ python <skill>/scripts/comment-review.py disposition --proof <last proof written
 It names any move or carried-forward place still unruled, and writes when every one has a ruling.
 A placement ruling moves the paragraph or keeps it, and each end is then read as an ordinary
 place; when `disposition` exits `3` or `4`, those ends are carried forward. Rule them from the
-code at each end, and run `disposition` again with `--proof <run-dir>/final.json`. `final.json`
-is the closed proof once it exits `0`.
+code at each end, and run `disposition` again with the proof it just wrote. Use a
+fresh output filename for each ruling round. Its proof becomes `<closed-proof>`
+once it exits `0`.
 
 ### Stage 6 -- compact, when a cap applies
 
 Stage 6 runs as a second stage over the proof pages. Set them from the closed proof into
-`<run-dir>/proof4` (the `proof` command in stage 7a), then gather them as revise 1:
+`<run-dir>/proof4` with `proof --repo . --proof <closed-proof> --out
+<run-dir>/proof4`, then gather them as revise 1:
 
 ```bash
 python <skill>/scripts/comment-review.py gather --repo <run-dir>/proof4 --revise 1 --out <run-dir>/binder6.json <paths...>
@@ -333,16 +339,24 @@ closed proof this produces is the one stage 7a sets.
 ### Stage 7a -- set and present
 
 ```bash
-python <skill>/scripts/comment-review.py proof --repo . --proof <run-dir>/final.json --out <run-dir>/proof
+python <skill>/scripts/comment-review.py proof --repo <stage-root> --proof <closed-proof> --out <run-dir>/proof
 ```
+
+`<stage-root>` is the root the closed proof's binder was gathered from: the repo
+root for stage 4, or the proof pages root for stage 6. Keep the drafts from every
+stage; when a later stage drafts a page again, its draft is the one to present
+and write. Pages unchanged by that stage keep their earlier drafts.
 
 Use a fresh `--out` directory each time. `proof` prints one `<path> -> <draft>` line per page
 it set. It reads each drafted page back and proves its code byte-identical to the original.
 When it refuses, it prints what refused and where; read that, fix the input, and set again.
 
-Present to the author, grouped by instruction, most consequential first. For each mark on
-`chief.json` show `INSTRUCTION / PARAGRAPH / CLAIM / REASON / CHANGE`, with the replacement
-text inline. Then give:
+Present to the author, grouped by instruction, most consequential first. Use the
+closed proof's decided text and the drafts for the proposed result. The chief's
+copy supplies `INSTRUCTION / PARAGRAPH / CLAIM / REASON`; show the current
+`CHANGE` from the draft inline. A turn writes a proof without refreshing the
+chief's copy, so check its entries against the closed proof before presenting.
+Then give:
 
 - one command per page, to read it beside its original: `git diff --no-index <path> <draft>`
 - the count of places raised and places clean

@@ -1,0 +1,230 @@
+"""Every edit_copy of one stage, held in one master_proof."""
+
+from dataclasses import dataclass, field
+
+from comment_review.binder.binder import _read_from_problem
+from comment_review.desk.proof.edit_copy import EditCopy
+from comment_review.desk.proof.mark import filled, read_text
+from comment_review.desk.proof.move import Move
+from comment_review.desk.proof.place import Place
+
+
+@dataclass(frozen=True)
+class MasterProof:
+    """Every `edit_copy` of one stage, held in one place.
+
+    Attributes:
+        stage: the label the copies were dispatched under -- `SKILL.md`'s "4a",
+            "4c".
+        read_from: taken from the first copy by the bus's `_on_copies`, and `{}`
+            where there is none; `flows.bus._root_problems` refuses a set of
+            copies that disagree, and `deserialize` a proof any of whose copies
+            disagrees with its own `read_from`.
+        edit_copies: one per role, or one per SHARD under fan-out.
+        places: every place one fold of this stage decided. `flows.bus`
+            writes it; empty until such a fold has run. Each is read by
+            `Place.deserialize` where the proof is read, so a reader of the
+            proof holds places, not their wire.
+        moves: every move one fold of this stage decided, as the proof records
+            it (`Move.recorded`).
+        page_shas: real path -> sha for pages touched outside the copies.
+
+    Each place carries its answers, state and owed readers. Each move carries
+    its placement answers. These records determine the proof's turn and rulings.
+    """
+
+    stage: str
+    read_from: dict
+    edit_copies: tuple[EditCopy, ...]
+    places: tuple[Place, ...] = ()
+    moves: tuple[Move, ...] = ()
+    page_shas: dict[str, str] = field(default_factory=dict)
+
+    @classmethod
+    def deserialize(
+        cls, where: str, data: object
+    ) -> "tuple[MasterProof | None, list[str]]":
+        """One master_proof and every copy under it, checked.
+
+        Args:
+            where: how to name this proof in a message -- its stage label.
+            data: a master_proof, as `serialize` writes one.
+
+        Returns:
+            `(MasterProof, [])` or `(None, [messages])`. Every bad copy is
+            reported, and so is a `read_from` that fails `_read_from_problem` --
+            the same check `EditCopy.deserialize` runs on an edit_copy's own field --
+            and every edit_copy whose `read_from` disagrees with the proof's is
+            named, as `edit_copy {i}`: the bus's `_on_copies` takes a proof's
+            `read_from` from its first copy and refuses copies that disagree,
+            so a proof holding one was not built by it, and a copy from another
+            tree would give the docket a sha from that tree.
+
+            ! THE SHAPE CHECK RUNS WHETHER OR NOT THERE ARE COPIES, since
+            2026-08-31; the COMPARISON needs copies and runs over each. The
+            single exemption is an empty proof whose `read_from` is `{}` or
+            absent, which is what `_on_copies` writes when it has no first copy
+            to take one from.
+
+            Every place and every move is read here, and one that will not read
+            is named by its position -- `place 2`, `move 1` -- and, for a
+            place, its address, so every command that reads the proof names a
+            bad entry the same way. A place's filed marks point into the
+            copies, which are read first, and a copy entry that will not read
+            refuses the proof. A `places` or `moves` that is not a list is
+            refused; an absent one is empty, as a proof written before the
+            first fold carries neither.
+        """
+        if not isinstance(data, dict):
+            return None, [f"{where}: a master_proof must be an object"]
+        raw_copies = data.get("edit_copies")
+        if not isinstance(raw_copies, list):
+            return None, [f"{where}: a master_proof needs an `edit_copies` list"]
+        copies: list[EditCopy] = []
+        problems: list[str] = []
+        for i, raw in enumerate(raw_copies, 1):
+            copy, why = EditCopy.deserialize(f"{where}: edit_copy {i}", raw)
+            if copy is None:
+                problems += why
+            else:
+                copies.append(copy)
+        # A proof's copies hold only marks that read -- `Sheet.serialize`
+        # writes a sheet's marks and nothing else -- so a place's pointer lands
+        # on the mark it was written for. An entry that will not read would
+        # shift every mark after it, and is refused here by name.
+        problems += [
+            f"{where}: edit_copy {i}: {one.where}: {reason}"
+            for i, copy in enumerate(copies, 1)
+            for sheet in copy.sheets
+            for one in sheet.refused
+            for reason in one.reasons
+        ]
+        if problems:
+            return None, problems
+        read_from = data.get("read_from")
+        # !! THE HEADER IS HELD TO A SHAPE WHETHER OR NOT THERE ARE COPIES, and was
+        # not until 2026-08-31. `_read_from_problem` ran inside the `if copies:`
+        # below, so a proof carrying none admitted ANY value: MEASURED with
+        # `edit_copies: []`, all of `'oops'`, None, 7, [], {'root': 7} and
+        # {'junk': 1} returned `problems == []`, and the two dict-shaped ones were
+        # carried into `MasterProof.read_from` VERBATIM.
+        #
+        # ! AND THOSE TWO VALUES ARE THE REASON `_read_from_problem` IS REUSED
+        # RATHER THAN HAND-ROLLED. A weaker `isinstance(..., dict) and truthy`
+        # let `{"junk": 1}` and `{"root": 7, "revise": "x"}` through at exit 0
+        # while `bind` REFUSED the identical value -- two spellings of one rule,
+        # disagreeing. So the validator here had re-acquired the very defect
+        # reuse exists to prevent.
+        # ! THIS CITED `desk.collator.problems_in`'s OWN COMMENT for that
+        # measurement until 2026-09-01, and `P42` had deleted the comment with
+        # the header checks it explained. The measurement is stated here now,
+        # where the code it justifies is.
+        #
+        # ! `{}` IS STILL ADMITTED, AND ONLY FOR AN EMPTY PROOF. The bus's
+        # `_on_copies` writes it when there is no first copy to take a
+        # `read_from` from, so refusing it would refuse a shape the producer
+        # itself makes. That is the one exemption; it is not a licence for
+        # every other value.
+        #
+        # !! THE DEFAULT IS WHAT SEPARATES AN ABSENT KEY FROM A NULL ONE, and the
+        # two must not be folded together here. `.get("read_from", {})` returns `{}`
+        # for an absent key -- exempt, the shape two of this module's own tests hand
+        # in -- and `None` for a key PRESENT and holding null, which is checked and
+        # refused. Reading `data.get("read_from")` would give `None` for both and
+        # admit the null, which is the four-characters-of-"None" class of defect
+        # `Sheet.deserialize` and `MasterProof.deserialize` each already guard.
+        if copies or data.get("read_from", {}) != {}:
+            why_header = _read_from_problem(data)
+            if why_header:
+                return None, [f"{where}: master_proof's {why_header}"]
+        # Every copy is held to the proof's `read_from`, not the first alone. An
+        # empty proof has no copy to disagree with.
+        disagree = [
+            f"{where}: edit_copy {i}'s `read_from` {copy.read_from!r} disagrees"
+            f" with the master_proof's {read_from!r}"
+            for i, copy in enumerate(copies, 1)
+            if copy.read_from != read_from
+        ]
+        if disagree:
+            return None, disagree
+        # Read as an edit_copy's is: absent or null is "", any other type is
+        # refused rather than turned into a string.
+        stage, why = read_text(f"{where}: master_proof", "stage", data.get("stage"))
+        problems += why
+        places, why = _places_in(where, data.get("places", []), tuple(copies))
+        problems += why
+        moves, why = _moves_in(where, data.get("moves", []))
+        problems += why
+        raw_shas = data.get("page_shas", {})
+        page_shas: dict = raw_shas if isinstance(raw_shas, dict) else {}
+        if not isinstance(raw_shas, dict) or any(
+            not isinstance(path, str)
+            or not path.strip()
+            or not isinstance(sha, str)
+            or not sha.strip()
+            for path, sha in page_shas.items()
+        ):
+            problems.append(
+                f"{where}: master_proof's `page_shas` must map paths to shas"
+            )
+        if problems:
+            return None, problems
+        return (
+            MasterProof(
+                stage=stage,
+                read_from={**read_from} if isinstance(read_from, dict) else {},
+                edit_copies=tuple(copies),
+                places=places,
+                moves=moves,
+                page_shas=dict(page_shas),
+            ),
+            [],
+        )
+
+    def serialize(self) -> dict:
+        """This master_proof as the wire dict `deserialize` reads back."""
+        return {
+            "stage": self.stage,
+            "read_from": {**self.read_from},
+            "edit_copies": [copy.serialize() for copy in self.edit_copies],
+            "places": [place.serialize() for place in self.places],
+            "moves": [move.serialize() for move in self.moves],
+            "page_shas": dict(self.page_shas),
+        }
+
+
+def _places_in(
+    where: str, raw: object, copies: tuple[EditCopy, ...]
+) -> "tuple[tuple[Place, ...], list[str]]":
+    """A proof's `places`, each read against its copies.
+
+    One message is named per entry that will not read.
+    """
+    if not isinstance(raw, list):
+        return (), [f"{where}: master_proof's `places` must be a list"]
+    places: list[Place] = []
+    problems: list[str] = []
+    for i, entry in enumerate(raw, 1):
+        address = entry.get("address") if isinstance(entry, dict) else None
+        at = f"{where}: place {i}" + (f" at {address}" if filled(address) else "")
+        place, why = Place.deserialize(at, entry, copies)
+        if place is None:
+            problems += why
+        else:
+            places.append(place)
+    return tuple(places), problems
+
+
+def _moves_in(where: str, raw: object) -> "tuple[tuple[Move, ...], list[str]]":
+    """A proof's `moves`, each read, and one message per entry that will not."""
+    if not isinstance(raw, list):
+        return (), [f"{where}: master_proof's `moves` must be a list"]
+    moves: list[Move] = []
+    problems: list[str] = []
+    for i, entry in enumerate(raw, 1):
+        move, why = Move.deserialize(f"{where}: move {i}", entry)
+        if move is None:
+            problems += why
+        else:
+            moves.append(move)
+    return tuple(moves), problems

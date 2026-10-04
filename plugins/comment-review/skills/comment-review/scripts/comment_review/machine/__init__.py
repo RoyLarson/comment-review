@@ -4,6 +4,10 @@
     constants    the text/encoding rules, and the console guard
     exceptions   every exception tuple, bound to a NAME
     json_object  text as a JSON object, or why it is not one
+    differences  renders two texts against each other -- `unified`, and
+                 `diff3` for the base paragraph plus every role's edit, and
+                 `compose` where no two sides touched one span. Rules on
+                 nothing, and does no file I/O
 
 !! THE TUPLES LIVE HERE SO NO SHIPPED `except` CLAUSE HOLDS A LITERAL. A repo
 targeting a newer ruff `target-version` can rewrite `except (A, B):` into PEP 758

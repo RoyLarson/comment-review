@@ -1,0 +1,737 @@
+"""The bus: the stage transitions as messages, one handler each.
+
+    CopiesReturned       one stage's copies, back from the roles
+    AnswersReturned      one turn's answers, back from the roles
+    DispositionsWritten  the chief's rulings on what is still carried forward
+
+Each handler checks what its message carries, derives the places, opens a
+Fold, and on commit builds what the stage saves. A command sends one message
+and prints the events; nothing here writes a file, and nothing here names a
+row of the three tables.
+
+What each handler reads. The collate handler reads the pages its copies'
+marks touch: to check an address and a quote against the page
+(`decision-log.md Process: #119`, `#122`) and to take each place's base text
+and anchor from it (`#187`, `#125`). It and the turn handler read a file a
+mark or an answer cites, to verify the citation (`#181`). The disposition
+handler reads nothing. None of them asks whether a page changed since it was gathered
+(`#62`); once the places are built, the fold decides from them alone, and the
+turn and the disposition take their places off the proof.
+
+The collate and turn handlers also check for a human question -- a
+`human-review-necessary` query filed as a mark or given as an answer -- and
+roll back while one stands, until the role replaces it (`#197`). The human's
+answers file (`#198`) rides on the message, and each answer rides on the
+`AsksTheHuman` for the question it answers.
+"""
+
+from collections.abc import Callable, Mapping, Sequence
+from copy import deepcopy
+from pathlib import Path
+from typing import NamedTuple
+
+from comment_review.binder.binder import Binder
+from comment_review.desk import report as events
+from comment_review.desk.collator import Cache, Problem
+from comment_review.desk.evaluate.move import moves_in
+from comment_review.desk.proof.answer import Answer, Question
+from comment_review.desk.proof.disposition import (
+    CHIEF,
+    read_disposition,
+)
+from comment_review.desk.proof.edit_copy import EditCopy
+from comment_review.desk.proof.master_proof import MasterProof
+from comment_review.desk.proof.move import Move, is_open, key_of
+from comment_review.desk.proof.place import Place
+from comment_review.desk.proof.sheet import Sheet
+from comment_review.desk.proof.state import CARRIED, State
+from comment_review.desk.stages import Stage, not_admitted
+from comment_review.desk.work.fold import Fold, asked
+from comment_review.flows.answers import answers_of, slots_of
+from comment_review.flows.human import (
+    HumanAnswer,
+    HumanQuery,
+    answered,
+    queries_in_answers,
+    queries_in_copies,
+)
+from comment_review.flows.mark_errors import mark_errors
+from comment_review.flows.on_the_page import PageCache, held_at
+from comment_review.flows.places import bases_and_anchors, chief_copy_of, places_of
+from comment_review.flows.verify import (
+    copy_problems,
+    coverage_problems,
+    received_problems,
+    required_places,
+    stage_problems,
+)
+
+
+class CopiesReturned(NamedTuple):
+    """One stage's copies, back from the roles and ready to fold.
+
+    Attributes:
+        stage: the label they were dispatched under -- "4a", "4c".
+        copies: one parsed copy per role, or per shard under fan-out. The
+            envelope parse is the command's, so a document that is not a
+            copy never reaches here.
+        binder: the stage binder defining each role's collective assignment
+            and the page paths an address resolves through.
+        root: the checkout a cite and a page are read from, and so where
+            each place's base text comes from.
+        topology: the stage as the topology declares it, where the caller
+            has one. Without it nothing can know a dispatch was owed.
+        human: the human's answers file, read (`decision-log.md Process:
+            #198`) -- each answer rides on the `AsksTheHuman` for the query
+            it answers.
+        binders: each copy's received binder, in the same order as the copies.
+    """
+
+    stage: str
+    copies: list[EditCopy]
+    binder: Binder
+    root: Path
+    topology: Stage | None = None
+    human: tuple[HumanAnswer, ...] = ()
+    binders: tuple[Binder, ...] | None = None
+
+
+class AnswersReturned(NamedTuple):
+    """One turn's answers, back from the roles and ready to fold.
+
+    Attributes:
+        proof: the master proof as the last fold wrote it -- the copies as
+            they stand and every place that fold decided. Its places say
+            which are still carried forward and who each was put to.
+        answers: role -> what that role handed back, in any shape
+            `flows.answers.slots_of` reads. A role the batch named and that
+            returned nothing is absent, and every slot it owed is refused.
+        root: the checkout an answer's `cite` is resolved against. Opening a
+            cited file is not a page read: the places are still decided from
+            the record alone, and what an answer cites as its evidence is
+            held to the check a mark's citation is held to
+            (`decision-log.md Process: #181`).
+        human: the human's answers file, read (`decision-log.md Process:
+            #198`) -- each answer rides on the `AsksTheHuman` for the query
+            it answers.
+    """
+
+    proof: MasterProof
+    answers: Mapping[str, object]
+    root: Path
+    human: tuple[HumanAnswer, ...] = ()
+
+
+class DispositionsWritten(NamedTuple):
+    """The chief's rulings on the places the roles never settled.
+
+    Attributes:
+        proof: the master proof as the last turn wrote it, or as the first
+            fold wrote it where no turn ran -- the baseline.
+        dispositions: one ruling per place still carried forward, as the
+            chief wrote them. A place left unruled is refused by name, and a
+            ruling at a place nothing carries forward is refused too.
+    """
+
+    proof: MasterProof
+    dispositions: list
+
+
+class Result(NamedTuple):
+    """What a committed fold leaves the stage to save.
+
+    Attributes:
+        proof: the copies as they stand, carrying every decided place.
+        chief: the copy chief's own edit_copy, one mark per decided place.
+        batch: role -> the slots a turn asks it about, or None where the
+            fold carried nothing forward.
+    """
+
+    proof: MasterProof
+    chief: EditCopy | None
+    batch: dict | None
+
+
+def handle(message) -> tuple[list, Result | None]:
+    """One message to its handler.
+
+    Args:
+        message: a message this module declares.
+
+    Returns:
+        `(the events, the result)` -- the result is None where the fold
+        rolled back, and the events are then the whole report.
+    """
+    handler = HANDLERS[type(message)]
+    return handler(message)
+
+
+def _on_copies(message: CopiesReturned) -> tuple[list, Result | None]:
+    """The copies checked, then folded: a commit with a result, or a rollback.
+
+    Everything a copy can be wrong about on its own -- a quote that is not in
+    its paragraph, a cite that resolves against nothing, an address no page
+    carries, a place a role left unruled, a role short of its shard, a tree
+    the other copies were not gathered from -- is found before the fold
+    opens, because none of it is a question about how the roles' rulings
+    meet. Each becomes one `Refused`, and the fold never runs. A human
+    question rolls the stage back as well, as one `AsksTheHuman` each
+    (`decision-log.md Process: #197`).
+
+    Each place's base text and anchor are then read off the page, as `mark`,
+    `check` and `proof` read them (`decision-log.md Process: #187`), so an
+    `add` or a `move` at a place the binder lacks is measured here against
+    the paragraph already there rather than first at the write end.
+    """
+    binder, root, copies = message.binder, message.root, message.copies
+    paths = [page.path for page in binder.pages]
+    out: list = []
+    # ! ONE CACHE OF EACH FOR THE WHOLE STAGE, not one per copy: the roles cite
+    # the same evidence and mark the same pages, so a per-copy cache reads one
+    # file once per citing role.
+    cache: Cache = {}
+    page_cache: PageCache = {}
+    problems: list[Problem] = []
+    for copy in copies:
+        problems += copy_problems(copy, paths, root, cache, page_cache)
+    # ! `where` RATHER THAN `address`, and the two differ in one case only:
+    # an entry that named no place. `where` is that entry's own address
+    # wherever it has one, and the page and the entry's position where it has
+    # none -- so a reader always has somewhere to look. A `Refused` carrying
+    # "" would print as a finding about the whole copy, which is a different
+    # fact (`collate-command-defects`, measured 2026-09-01).
+    required = [required_places(binder, message.topology)] * len(copies)
+    if message.binders is not None and len(message.binders) == len(copies):
+        required = [required_places(b) for b in message.binders]
+    problems += [
+        Problem(one.role, one.where, "; ".join(one.reasons))
+        for one in mark_errors(copies, required)
+    ]
+    if message.binders is not None:
+        problems += received_problems(copies, message.binders, binder, message.topology)
+    else:
+        for copy in copies:
+            problems += coverage_problems([copy], binder, message.topology)
+    problems += _root_problems(copies)
+    problems += _dealt_problems(copies, message.stage)
+    problems += _admitted_problems(copies, message.topology)
+    if message.topology is not None:
+        problems += stage_problems(message.topology, copies)
+    asks = _asks(queries_in_copies(copies), message.human)
+    if problems or asks:
+        return _rolled_back(problems, asks)
+
+    bases, anchors = bases_and_anchors(
+        copies, lambda address: held_at(address, paths, root, page_cache)
+    )
+    places = places_of(copies, bases, anchors)
+    fold = Fold(places, turn=0).run()
+    out += fold.events
+    if not fold.committed:
+        return out, None
+    read_from = copies[0].read_from if copies else {}
+    proof = MasterProof(
+        stage=message.stage,
+        read_from={**read_from},
+        edit_copies=tuple(copies),
+        places=tuple(fold.decided.values()),
+        moves=tuple(move.recorded() for move in fold.decided_moves.values()),
+        page_shas={
+            path: page.sha
+            for path, page in page_cache.items()
+            if page is not None
+            and path not in {sheet.path for copy in copies for sheet in copy.sheets}
+        },
+    )
+    chief = chief_copy_of(fold.decided, "copy-chief", read_from, _pages_of(copies))
+    return out, Result(proof, chief, _batch_or_none(fold, read_from))
+
+
+def _root_problems(copies: list[EditCopy]) -> list[Problem]:
+    """One `Problem` per copy gathered from a tree the first copy disagrees with.
+
+    Two copies from different trees have no fold between them: their
+    addresses answer to different address spaces, so an `a0` in one tells
+    nothing about the `a0` in the other. `_on_copies` takes the proof's
+    `read_from` from the first copy, so the comparison is here --
+    `decision-log.md Process: #178`.
+
+    Reported rather than raised, like everything else the handler finds: a
+    refusal that raises empties the report for every other role, measured
+    2026-08-30 as exit 1 with an empty stdout.
+
+    Returns:
+        One `Problem` per odd copy, naming both `read_from` values, with no
+        address -- the finding is about the document. Empty where the copies
+        agree, and for a stage with fewer than two.
+    """
+    if not copies:
+        return []
+    first = copies[0].read_from
+    return [
+        Problem(
+            copy.role,
+            "",
+            f"was gathered from {copy.read_from!r}, disagreeing with the first"
+            f" edit_copy's {first!r} -- copies from different trees share no"
+            " address space",
+        )
+        for copy in copies[1:]
+        if copy.read_from != first
+    ]
+
+
+def _dealt_problems(copies: list[EditCopy], stage: str) -> list[Problem]:
+    """One `Problem` per copy dealt in a stage other than the one being folded.
+
+    A copy folds only in the stage it was dealt in: its `admits` and its
+    places are that stage's, so a stage-6 copy handed to stage 4 would be
+    held to the wrong row -- and without a topology, to none. A copy that
+    names no stage (`""`, seeded without a row) is not compared.
+
+    Returns:
+        One `Problem` per copy whose own `stage` names another, with no
+        address -- the finding is about the document.
+    """
+    return [
+        Problem(
+            copy.role,
+            "",
+            f"was dealt in stage {copy.stage!r}, and this is stage {stage!r} -- a"
+            " copy folds only in the stage it was dealt in",
+        )
+        for copy in copies
+        if copy.stage and copy.stage != stage
+    ]
+
+
+def _admitted_problems(copies: list[EditCopy], stage: Stage | None) -> list[Problem]:
+    """One `Problem` per mark filed under an instruction its stage does not admit.
+
+    `decision-log.md Process: #193`. `commands/mark.py` refuses one as it is
+    placed and `commands/check.py` refuses one on a copy written by hand, and
+    both read the copy's own `admits` -- which is a field on a document a role
+    writes. The row is where a stage's admitted set is decided, so the copies
+    are held to it here, where they are in hand together with the row they
+    were dealt under.
+
+    Args:
+        copies: the parsed copies, as they came back.
+        stage: the row they were dealt under, where the caller has it. None
+            leaves the copy's own `admits` as the only statement there is.
+
+    Returns:
+        One `Problem` per refused mark, at that mark's address, and one per
+        copy whose own `admits` disagrees with the row, with no address --
+        that finding is about the document. Empty where every mark is one its
+        stage admits.
+
+    The field is compared rather than trusted. A copy that widened its
+    `admits` passes both commands that read it, and one that cleared the
+    field reads as every instruction wherever it is asked; comparing it with
+    the row is what makes either loud instead of silent.
+
+    Without a row the copy's own set still binds, so this is never weaker
+    than `check` over the same copy.
+    """
+    problems: list[Problem] = []
+    for copy in copies:
+        admits = tuple(stage.admits) if stage is not None else copy.admits
+        named = stage.name if stage is not None else copy.stage
+        if stage is not None and copy.admits != tuple(stage.admits):
+            problems.append(
+                Problem(
+                    copy.role,
+                    "",
+                    f"says it may file {_named(copy.admits)}, and stage"
+                    f" {stage.name}'s row admits {_named(stage.admits)} -- what a"
+                    " stage admits is the row's, not the copy's",
+                )
+            )
+        problems += [
+            Problem(copy.role, mark.address, why)
+            for sheet in copy.sheets
+            for mark in sheet.marks
+            for why in [not_admitted(named, admits, str(mark.instruction))]
+            if why
+        ]
+    return problems
+
+
+def _named(admits: tuple[str, ...]) -> str:
+    """What a set of admitted instructions is called in a reason."""
+    return ", ".join(admits) if admits else "every instruction"
+
+
+def _pages_of(copies: list[EditCopy]) -> list[Sheet]:
+    """One sheet per page the stage holds, in the order the copies name them.
+
+    Every role was seeded from one binder, so four copies carry four sheets
+    for one page. `chief_copy_of` writes one output sheet per sheet it is
+    handed, so handing it all of them would write that page's marks once per
+    role; the first sheet for a path is kept, with that path's real `path`
+    and `sha`.
+    """
+    out: list[Sheet] = []
+    seen: set[str] = set()
+    for copy in copies:
+        for sheet in copy.sheets:
+            if sheet.path not in seen:
+                seen.add(sheet.path)
+                out.append(sheet)
+    return out
+
+
+def _places_on(proof: MasterProof) -> dict[str, Place]:
+    """The proof's places, by address, as copies a fold may write on.
+
+    The fold writes answers, rulings and states onto the places it is handed,
+    so it is handed copies: the proof the message carried stays as it was
+    written whether this fold commits or rolls back.
+    """
+    return {place.address: deepcopy(place) for place in proof.places}
+
+
+def turn_of(proof: MasterProof) -> int:
+    """The turn a proof stands at -- the last one any place or move answered.
+
+    0 fresh from the first fold, and one more for each turn folded over it.
+    The next turn is this plus one, derived from the record so that nothing
+    counts turns of its own.
+
+    Args:
+        proof: a master proof, as a fold wrote it.
+
+    Returns:
+        The highest turn any place or move records an answer at, 0 where
+        none does. A turn may ask only placements, so a move's answers count.
+    """
+    return max(
+        (at for record in (*proof.places, *proof.moves) for at in record.answers),
+        default=0,
+    )
+
+
+def _on_answers(message: AnswersReturned) -> tuple[list, Result | None]:
+    """One turn's answers written onto the places, then folded again.
+
+    Every role the fold asked owes an answer at every place it was asked
+    about, and nothing else may answer: an entry at a place no turn carries
+    forward, or at one this role was not asked about, is refused, and so is a
+    slot left unanswered. Each refusal voids the round, as a copy's does, so
+    a proof is never written over an answer that was not read. A human
+    question given as an answer rolls the turn back too, as one
+    `AsksTheHuman` each (`decision-log.md Process: #197`).
+
+    A move whose placement is undecided, and which the chief has not ruled at
+    both ends, is asked of each role in its `owed` as one slot keyed by the
+    move (`flows.answers.slot_key`); the answer is written onto the move, not
+    onto either end (`decision-log.md Process: #195`).
+    """
+    places = _places_on(message.proof)
+    moves = moves_in(places, _moves_on(message.proof))
+    problems: list[Problem] = []
+    open_moves = {key: move for key, move in moves.items() if is_open(move)}
+    carried = {a: p for a, p in places.items() if p.state in CARRIED}
+    turn = turn_of(message.proof) + 1
+    given: dict[str, dict[str, Answer]] = {}
+    roles = {role for place in carried.values() for role in asked(place)}
+    roles |= {role for move in open_moves.values() for role in move.owed}
+    # One cache for the whole turn, as the collate handler keeps one for the
+    # whole stage: the roles answer at the same places and cite the same
+    # evidence, so a per-role cache reads one file once per answering role.
+    cache: Cache = {}
+    for role in sorted(roles | set(message.answers)):
+        sent = {
+            address: {"question": str(place.question), "anchor": place.anchor}
+            for address, place in carried.items()
+            if role in asked(place)
+        }
+        sent |= {
+            key: {
+                "question": str(Question.PLACEMENT),
+                "anchor": places[move.origin].anchor if move.origin in places else "",
+            }
+            for key, move in open_moves.items()
+            if role in move.owed
+        }
+        returned = slots_of(message.answers.get(role, []), role)
+        # A file handed in for a role this turn asked nothing of, holding
+        # nothing: every other case names a place, and this one has none to
+        # name, so it is reported against the file itself.
+        if not sent and not returned:
+            problems.append(Problem(role, "", "no slots were sent to this role"))
+            continue
+        answers, why = answers_of(
+            role, sent, returned, _unsent(places, moves, role), message.root, cache
+        )
+        problems += why
+        given[role] = answers
+    asks = _asks(queries_in_answers(given), message.human)
+    if problems or asks:
+        return _rolled_back(problems, asks)
+    for role, answers in given.items():
+        for key, answer in answers.items():
+            target = moves[key].answers if key in moves else places[key].answers
+            target.setdefault(turn, {})[role] = answer
+    return _commit(message.proof, places, moves, turn)
+
+
+def _unsent(
+    places: dict[str, Place], moves: dict[str, Move], role: str
+) -> Callable[[str], str]:
+    """Why an answer at a slot key is not this role's to write, for `answers_of`."""
+
+    def why(address: str) -> str:
+        move = moves.get(address)
+        if move is not None:
+            if not is_open(move):
+                return "not an open move"
+            return f"not put to {role} -- this move is put to {', '.join(move.owed)}"
+        place = places.get(address)
+        if place is None or place.state not in CARRIED:
+            return "not carried forward"
+        return f"not put to {role} -- this place is put to {', '.join(asked(place))}"
+
+    return why
+
+
+def _on_dispositions(message: DispositionsWritten) -> tuple[list, Result | None]:
+    """The chief's rulings written onto the moves and places, then folded.
+
+    Nothing survives the chief's ruling unruled, and nothing is ruled on
+    twice. A ruling naming a move (`to`) rules its placement, and every move
+    still undecided takes one (`decision-log.md Process: #195` item 4). A
+    place carried forward takes a ruling on its words, and one with none is
+    refused by name and with the roles it was put to. A ruling at a place the
+    roles settled, that rides to the human, or that waits on its move is
+    refused as well.
+
+    A placement ruling agrees or withdraws its move, and an end that then
+    needs words is carried forward in what this commits, for the chief to
+    rule on the proof it writes.
+    """
+    places = _places_on(message.proof)
+    moves = moves_in(places, _moves_on(message.proof))
+    problems: list[Problem] = []
+    for i, entry in enumerate(message.dispositions, 1):
+        named = str(entry.get("address") or "") if isinstance(entry, dict) else ""
+        where = named or f"ruling {i}"
+        disposition, why = read_disposition(where, entry)
+        if disposition is None:
+            problems += [
+                Problem(CHIEF, where, one.removeprefix(f"{where}: ")) for one in why
+            ]
+            continue
+        if disposition.to:
+            key = key_of(disposition.address, disposition.to)
+            move = moves.get(key)
+            if move is None or not is_open(move):
+                problems.append(Problem(CHIEF, key, "not an open move"))
+                continue
+            move.disposition = disposition
+            continue
+        place = places.get(disposition.address)
+        if place is not None and place.state is State.TO_COME:
+            problems.append(
+                Problem(
+                    CHIEF,
+                    disposition.address,
+                    "an end of an undecided move -- rule the move's placement,"
+                    " and this end's words once it is placed",
+                )
+            )
+            continue
+        if place is None or place.state not in CARRIED:
+            problems.append(Problem(CHIEF, disposition.address, "not carried forward"))
+            continue
+        place.disposition = disposition
+    for key in sorted(moves):
+        move = moves[key]
+        if is_open(move) and move.disposition is None:
+            problems.append(
+                Problem(
+                    CHIEF,
+                    key,
+                    f"the placement of this move is {move.placement} and not ruled on",
+                )
+            )
+    for address in sorted(places):
+        place = places[address]
+        if place.state in CARRIED and place.disposition is None:
+            problems.append(
+                Problem(
+                    CHIEF,
+                    address,
+                    "carried forward and not ruled on -- it was put to "
+                    f"{', '.join(asked(place))}",
+                )
+            )
+    if problems:
+        return _rolled_back(problems)
+    return _commit(message.proof, places, moves, turn_of(message.proof))
+
+
+def _rolled_back(
+    problems: list[Problem], asks: Sequence[events.AsksTheHuman] = ()
+) -> tuple[list, None]:
+    """Every problem as its own `Refused`, then `asks`, then the rollback.
+
+    Nothing is saved. The rollback counts one reason per problem and one per
+    human question.
+    """
+    out: list = [
+        events.Refused(one.role, one.address, (one.message,)) for one in problems
+    ]
+    out += asks
+    out.append(events.RolledBack(len(problems) + len(asks)))
+    return out, None
+
+
+def _asks(
+    queries: list[HumanQuery], human: tuple[HumanAnswer, ...]
+) -> list[events.AsksTheHuman]:
+    """One `AsksTheHuman` per human question, with the human's answer where given."""
+    return [
+        events.AsksTheHuman(q.role, q.at, q.question, a.answer if a else "")
+        for q, a in answered(queries, list(human))
+    ]
+
+
+def _commit(
+    proof: MasterProof,
+    places: dict[str, Place],
+    recorded: dict[str, Move],
+    turn: int,
+) -> tuple[list, Result | None]:
+    """The fold over the places and moves as they now stand, and what a commit saves.
+
+    Args:
+        proof: the proof these places were read from. Its stage, its
+            `read_from` and its copies are carried onto the next one; what
+            the fold decided replaces its places and its moves.
+        places: the places, each carrying whatever this message wrote onto
+            it. `Fold` evaluates every one of them from its own record.
+        recorded: the moves as the proof recorded them, each carrying the
+            placement answers this message wrote onto it. The fold finds the
+            moves on the places itself and keeps what these record.
+        turn: the turn the fold stands at -- every answer up to it is applied.
+
+    Returns:
+        `(the events, the result)`, the result being None on a rollback.
+    """
+    out: list = []
+    fold = Fold(places, recorded, turn=turn).run()
+    out += fold.events
+    if not fold.committed:
+        return out, None
+    next_proof = MasterProof(
+        stage=proof.stage,
+        read_from={**proof.read_from},
+        edit_copies=proof.edit_copies,
+        places=tuple(fold.decided.values()),
+        moves=tuple(move.recorded() for move in fold.decided_moves.values()),
+        page_shas=dict(proof.page_shas),
+    )
+    chief = chief_copy_of(
+        fold.decided, CHIEF, proof.read_from, _pages_of(list(proof.edit_copies))
+    )
+    return out, Result(next_proof, chief, _batch_or_none(fold, proof.read_from))
+
+
+def _undecided(fold: Fold) -> list[Move]:
+    """The moves this fold carries forward, in key order.
+
+    Only an open move is carried (`desk.proof.move.is_open`), as the fold
+    reports a `PlacementCarried` for an open move alone.
+    """
+    return [
+        fold.decided_moves[key]
+        for key in sorted(fold.decided_moves)
+        if is_open(fold.decided_moves[key])
+    ]
+
+
+def _batch_or_none(fold: Fold, read_from: dict) -> dict[str, list[dict]] | None:
+    """The committed fold's batch, or None where it carries nothing forward."""
+    carried = [place for place in fold.decided.values() if place.state in CARRIED]
+    moves = _undecided(fold)
+    if not carried and not moves:
+        return None
+    return _batch_of(carried, moves, fold.decided, read_from)
+
+
+def _moves_on(proof: MasterProof) -> dict[str, Move]:
+    """The proof's recorded moves, by key, as copies a fold may write on."""
+    return {move.key: deepcopy(move) for move in proof.moves}
+
+
+def _batch_of(
+    carried: list[Place],
+    moves: list[Move],
+    places: dict[str, Place],
+    read_from: dict,
+) -> dict[str, list[dict]]:
+    """Role -> one slot per carried-forward place that role is asked about.
+
+    And one slot per move whose placement is undecided, for each role it is
+    put to (`decision-log.md Process: #195`): the move's two addresses and,
+    for every role that filed it, the snippet and the paragraph it arrives as
+    (`Process: #196`) -- the roles may have moved different text.
+
+    Every slot carries the tree the copies were read from, as an edit_copy and
+    a master proof each carry their own: a role hands the slot back as it was
+    sent and adds only its answer, so the file its answers arrive in says what
+    its citations are resolved against, and `check --answers` defaults its
+    root from the file it is handed rather than from the directory it stands
+    in.
+
+    Args:
+        carried: the places this fold is carrying forward.
+        moves: the moves this fold is carrying forward (`_undecided`).
+        places: the fold's places, where a move's origin anchor is read.
+        read_from: the proof's own, copied onto each slot rather than aliased.
+
+    Returns:
+        role -> its slots. A role nothing is asked of is absent.
+    """
+    batch: dict[str, list[dict]] = {}
+    for place in carried:
+        for role in asked(place):
+            batch.setdefault(role, []).append(
+                {
+                    "address": place.address,
+                    "anchor": place.anchor,
+                    "question": str(place.question),
+                    "raw_text": place.text if place.text is not None else place.base,
+                    "sides": dict(place.sides),
+                    "instruction": None,
+                    "read_from": {**read_from},
+                }
+            )
+    for move in moves:
+        movers = [
+            {"role": role, "snippet": mark.change, "raw_text": mark.raw_text}
+            for role, mark in sorted(move.movers.items())
+        ]
+        origin = places.get(move.origin)
+        for role in move.owed:
+            batch.setdefault(role, []).append(
+                {
+                    "address": move.origin,
+                    "to": move.destination,
+                    "anchor": origin.anchor if origin else "",
+                    "question": str(Question.PLACEMENT),
+                    "movers": [dict(one) for one in movers],
+                    "instruction": None,
+                    "read_from": {**read_from},
+                }
+            )
+    return batch
+
+
+HANDLERS = {
+    CopiesReturned: _on_copies,
+    AnswersReturned: _on_answers,
+    DispositionsWritten: _on_dispositions,
+}

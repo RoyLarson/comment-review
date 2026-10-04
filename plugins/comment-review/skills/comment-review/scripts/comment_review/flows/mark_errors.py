@@ -28,12 +28,12 @@ WHAT is owed; how many times it may be asked for is the briefing's.
 ! WHAT IT DOES NOT DO IS VERIFICATION. `desk.collator.verify_report` asks
 whether a well-formed mark's claims hold against the tree; this asks only about
 places that produced no usable mark at all. The two are separate lists on
-`flows.collate.Collated` for that reason.
+the fold's own report for that reason.
 """
 
 from typing import NamedTuple
 
-from comment_review.desk.containers import EditCopy
+from comment_review.desk.proof.edit_copy import EditCopy
 
 #: What a place a role was handed and left alone is reported as. It is the one
 #: sentence for that case, so a reader meets the same words wherever it is
@@ -54,41 +54,30 @@ class Revisit(NamedTuple):
             ! THE TWO ARE SEPARATE BECAUSE ONE CAN BE EMPTY AND THE OTHER MUST
             NOT BE. A reader needs somewhere to look even for an entry the
             system cannot route; a router needs to know when there is nowhere.
-        reasons: every rule the entry broke, as `desk.mark.parse` worded them,
+        reasons: every rule the entry broke, as its type's read worded them,
             or the one sentence `NOT_RULED` for a place nobody wrote in.
             ! ALL OF THEM TOGETHER, which is the half `Process: #72` asks for
             beyond the address -- one malformed `correct` breaks four rules, and
             a role fixing them one per round is three more round trips.
-        unreadable: True where a role WROTE here and the entry would not parse;
-            False where nobody wrote here at all.
-
-            !! IT EXISTS BECAUSE THE EXIT CODE BRANCHES ON IT, which is what
-            makes it necessary rather than descriptive. `commands/collate.py`
-            returns `BROKEN` for a mark that would not read and `COVERAGE` for a
-            place left unanswered, or `CARRIED_AND_UNRULED` where places are
-            also carried forward -- the second routes back without voiding the
-            round (`Process: #63`) and the first does not. Without this the two
-            are one list and the command cannot tell them apart.
-            ! THE TWO ARE NOT THE SAME FACT, which `desk.mark.untouched`'s own
-            docstring already forbids conflating: a malformed mark means a role
-            DID rule here and got the shape wrong.
     """
 
     role: str
     address: str
     where: str
     reasons: tuple[str, ...]
-    unreadable: bool
 
 
-def mark_errors(edit_copies: list[EditCopy]) -> list[Revisit]:
+def mark_errors(
+    edit_copies: list[EditCopy], required: list[frozenset[str]] | None = None
+) -> list[Revisit]:
     """Every place a role must revisit, across one stage's returned copies.
 
     Args:
-        edit_copies: the parsed copies, as `flows.collate.collate` holds them
+        edit_copies: the parsed copies, as `flows.bus` holds them
             after its envelope pass. ! PARSED, because that is what sorted each
-            entry: `desk.containers.Sheet` carries `unruled` and `refused`, and
+            entry: `desk.proof.sheet.Sheet` carries `unruled` and `refused`, and
             this flow reads them rather than re-deciding what an entry was.
+        required: each copy's assigned addresses, in the same order as the copies.
 
     Returns:
         One `Revisit` per place, in ROLE then ADDRESS order -- so a task agent
@@ -103,7 +92,7 @@ def mark_errors(edit_copies: list[EditCopy]) -> list[Revisit]:
         this returns `Revisit` and not a container.
     """
     out = [
-        Revisit(copy.role, one.address, one.where, one.reasons, unreadable=True)
+        Revisit(copy.role, one.address, one.where, one.reasons)
         for copy in edit_copies
         for sheet in copy.sheets
         for one in sheet.refused
@@ -111,10 +100,11 @@ def mark_errors(edit_copies: list[EditCopy]) -> list[Revisit]:
         # ! AN UNRULED PLACE ALWAYS HAS AN ADDRESS, so `where` is that address.
         # `Sheet.deserialize` refuses an untouched entry that names none rather
         # than counting it a coverage gap -- see `_sorted_entries`.
-        Revisit(copy.role, address, address, (NOT_RULED,), unreadable=False)
-        for copy in edit_copies
+        Revisit(copy.role, address, address, (NOT_RULED,))
+        for i, copy in enumerate(edit_copies)
         for sheet in copy.sheets
         for address in sheet.unruled
+        if required is None or address in required[i]
     ]
     # ! SORTED SO A STRANGER RE-DERIVES THE ORDER. The walk above is copy then
     # sheet then entry, which is an accident of how the stage was assembled;

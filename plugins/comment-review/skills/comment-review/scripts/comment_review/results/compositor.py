@@ -58,8 +58,8 @@ import collections
 import shutil
 from pathlib import Path
 
+from comment_review import constants, exceptions
 from comment_review.binder.page import Page, page_for
-from comment_review.machine import constants, exceptions
 from comment_review.machine.repo import read_source, write_raw
 from comment_review.reading.addresser import GAP, ON, cue_of
 
@@ -238,6 +238,7 @@ def set_page(page: Page, newline: str | None = None) -> str:
     reading = list(page.cues.reading)
     last_code = max((i for i, c in enumerate(reading) if c.startswith(ON)), default=-1)
     previous = ""
+    closing_gap = False
     for at, cue in enumerate(reading):
         prose = held.get(cue, [])
         # ! ASKED OF THE CUE DIRECTLY. `series_of` reads an ADDRESS and
@@ -314,6 +315,7 @@ def set_page(page: Page, newline: str | None = None) -> str:
         # whether or not anything sits beside it.
         if not prose and not beside_code:
             continue
+        closing_gap = False
         if beside_code:
             # ! A `c` IS THE LINE OF CODE, so it is set whether or not anything
             # sits beside it. Its first line is the code and the room together;
@@ -326,6 +328,7 @@ def set_page(page: Page, newline: str | None = None) -> str:
         out.extend(prose)
         if trailing:
             out.append("")
+            closing_gap = True
     # ! THE CLOSING EDGE. A file ending in blank lines has leading below its last
     # place, which the loop cannot reach -- it sets the space BEFORE each place,
     # so the last place's own edge is still owed when the walk runs out.
@@ -355,11 +358,8 @@ def set_page(page: Page, newline: str | None = None) -> str:
         # line would set the original file back and the identity would pass over
         # the top of it.
         return ""
-    # ! THE TRAILING NEWLINE IS THE FILE'S, and the reader drops it -- see
-    # `constants.text_lines`, which states that rule -- so no
-    # paragraph can state whether it was there. A file that ended in one is set
-    # with one; a file that did not is not.
-    tail = ending if page.text.endswith(("\n", "\r")) else ""
+    # A closing-gap insertion needs a physical blank below its prose.
+    tail = ending if closing_gap or page.text.endswith(("\n", "\r")) else ""
     return ending.join(out) + tail
 
 

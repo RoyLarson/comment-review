@@ -5,19 +5,13 @@
 # summarised and nothing is restated anywhere else: a shipped file that USES a term
 # does not also define it.
 #
-# [definitions]  term -> what it means. One line each, and each one is what some
-#                site in the tree used to say in passing.
+# [definitions]  term -> what it means. One definition per line.
 # [roles]        role -> the terms it is given, KEYS ONLY. A term wanted by three
 #                roles is listed three times and written once; `all` is the set every
 #                agent gets, so a role never repeats those.
 #
-# Which terms a role gets was MEASURED from the text that role actually reads --
-# its own agent file, plus the reference it is told to open -- not judged.
-#
-# This file holds what AGENTS are given, and it is the OFFICIAL definition of
-# every term in it. A word this system stopped using is recorded in
-# `docs/vocabulary.md`, which does not ship and is never a second place to look
-# a live term up -- `scripts/check_vocabulary.py` refuses one defined in both.
+# Each role receives the terms used in its agent file and required references.
+# This file defines the terms supplied to agents.
 
 [definitions]
 
@@ -34,13 +28,12 @@ statement = "A line of CODE. Never a piece of prose -- prose is a sentence or a 
 expression = "A piece of CODE that evaluates to a value."
 declaration = "Something that can carry DOCUMENTATION -- a module, class, function, method, struct -- and so what an `a` place is about. ! NOT every line that introduces a name: `x = 1` and `let x = 1;` get no `a`. Which kinds a language offers is whatever its tier can resolve. Four of the eighteen have no docstring practice at all -- sql, toml, ini, yaml. ! c and cpp carry an EMPTY LIST TODAY because the matcher reads a line FIRST word and a C declaration opens with its return type -- a matcher that looks for the keyword anywhere in the line resolves it, so this is deferred and not a property of the languages."
 assignment = "A piece of CODE that binds a value to a name."
-mark = "What stage 4 emits: one role's ruling on one paragraph, as one JSON object in its edit copy. The tool seeds the ADDRESS, the ANCHOR and the paragraph's text; the reviewer fills the instruction, claim, reason, sources and change. A mark that fails its shape check is a finding that does not count."
 annotation = "A type annotation in code -- `x: int` -- which is part of the line of code, not prose. The gather attaches none to a paragraph: a binder row holds its address, its anchor, its start and end line and its text, and nothing else."
 "comment run" = "The contiguous comment lines between the two lines of code that bound them. The prose INSIDE a paragraph, which may instead hold a docstring or nothing at all."
 
 # --- what a reviewer emits ---------------------------------------------------
 instruction = "One of the seven rulings a reviewer may emit: clean, query, drop, correct, patch, add, move."
-"edit mark" = "What you emit on a sentence: the INSTRUCTION together with its payload. It is what would improve or correct the prose IF ITS `CHANGE` WERE APPLIED -- so it shows the result and does not write it. Marking and applying are different stages and different actors."
+mark = "One role's ruling on one paragraph, filed in its edit copy with `mark`: the INSTRUCTION with its payload, the reason, the sources, and the CHANGE -- the paragraph as it would read with the ruling applied. The slot arrives holding the ADDRESS, the ANCHOR and the paragraph's text; the role fills the rest."
 clean = "Nothing to report FROM YOUR ROLE, on a paragraph your role READ. Not a pass, and not a claim the paragraph is correct. A paragraph outside what your role reads is `query`."
 query = "You could not settle the claim -- as against one you did not try to settle. Three shapes reach it, keyed on WHO resolves it: outside-my-role, unable-to-determine, human-review-necessary."
 drop = "The sentence should not exist at all."
@@ -52,9 +45,9 @@ payload = "What an instruction must carry to be usable."
 finding = "One ruling on one sentence, emitted as a MARK."
 "edit copy" = "One role's own copy of the pages it was handed -- its role, the tree it was gathered from, and one SHEET per page. Seeded with a slot per prose paragraph; the role fills the slots in place and hands the copy back. The one file a reviewer writes."
 sheet = "One page inside an edit copy: the file's path, the sha it was read at, and the marks on it."
-"copy chief" = "Who folds the roles' edit copies into one set of edits and rules where they disagree -- the task agent, at max turns. Its answers are its own -- let a mark stand, take one side in, or recast the paragraph -- and no role may give any of them."
+"copy chief" = "Who folds the roles' edit copies into one set of edits and rules where they disagree -- the task agent, at max turns. It rules only where the roles never settled, and there are two rulings: take one side's text in, the original being a side, or recast the paragraph in its own prose. No role may give either."
 remit ="The categories of claim a role rules on -- as against verifying, which is what it does to them."
-"editorial role" = "One of the four scopes a reviewer reads for: ownership-context, block-context, function-context, module-context."
+"editorial role" = "One of the four desks a reviewer sits at, each named by its role id: the notes editor (ownership-context), the fact-check editor (block-context), the line editor (function-context) and the developmental editor (module-context)."
 reviewer = "The identifier for an editorial role, in flags, filenames and report stems."
 
 # --- what a reviewer judges --------------------------------------------------
@@ -76,7 +69,6 @@ template = "A shape written out with its slots, not a shape NAMED. Measured from
 cap = "The published line limit a comment run may not exceed."
 width = "The published column limit for a line."
 original = "The text as it stood when THIS RUN began -- not the first version ever written. A file this run edits is the next run's original."
-residue = "The check asking, of each ORIGINAL sentence, whether anything true, necessary and checkable is missing from the new text."
 proofreader = "Who reads the finished PROOF and decides whether the document deserves more marks."
 
 # --- how a place is NAMED ---------------------------------------------------
@@ -90,14 +82,24 @@ page = "ONE FILE: its paragraphs in order, among the code they sit with. A page 
 paragraph = "One unit of prose on the page: a comment run, a docstring, or the empty place where either could go. It answers to exactly one address. `block` was the older word for it and no longer means this: a `block` is the code symbols that say which series the lines they enclose belong to, never the prose between them."
 
 # --- what is SET, and who sets it --------------------------------------------
-galley = "The proposal set as pages: every paragraph a stage proposes to change, put on a COPY of its page. Nothing under review is touched. In the trade a galley is a proof: what stage 8 reads is the galley `proof` sets, as set."
 compositor = "Who SETS a page as text. It walks the page's places in order and asks each one what it holds. It decides nothing, and it is the only thing that writes a file."
 proof = "Pages as set, pulled to be judged -- what a PROOFREADER reads. It is read as set: the proofreader reports, and moves nothing and writes no alteration or schedule for it."
+docket = "Every alteration the compositor is to set, as one SCHEDULE per page. `proof` transcribes it from a closed MASTER PROOF and sets it; `proof --to-docket` writes it out instead."
+schedule = "One page's ALTERATIONS, with the page's path and the sha of its text when it was read."
+alteration = "One place, and what the compositor sets there: its replacement text, or its deletion."
+
+# --- what carries the work between the stages --------------------------------
+topology = "Which roles each stage dispatches, in what order, how many ways each role is split, and the pages each dispatch covers. A stage may also name a cap, the series it deals and the instructions it admits. `topology --build` writes one that fits the binder."
+"master proof" = "Every place the fold has seen: its base text, the marks on it, and its state -- settled, carried forward, or to come. `collate` writes it, each `turn` and `disposition` advance it, and it is closed when every place is decided."
+batch = "One slot for each carried-forward place, for each role it is put to, sent out in a turn."
+dispositions = "The copy chief's rulings: one per undecided move, `taken_in` a mover's side or the original, and one per carried-forward place, `taken_in` a side's text or `recast` in the chief's own prose."
+"to come" = "An end of a move whose placement is not yet decided -- the trade's TK. It holds no text, asks no role anything, and takes no ruling; once the placement is decided it is read as any place."
 
 # --- the empty places, which are what an `add` cites -------------------------
 interval = "A gap between two lines of code that holds no prose -- a `b` place with nothing in it."
 margin = "The room BESIDE a line of code -- a `c` place with nothing in it, which is any code line carrying no trailing comment."
 undocumented = "A declaration with no docstring -- an `a` place with nothing in it."
+"dark-matter" = "A file with none of its own matter -- an `f` place with nothing in it."
 
 # --- comments that share a line with code ------------------------------------
 "trailing comment" = "Prose after the statement on its own line, about that statement. Its address is a `c`, and its anchor is the code before it."
@@ -107,10 +109,57 @@ undocumented = "A declaration with no docstring -- an `a` place with nothing in 
 # Every agent gets these.
 all = ["paragraph", "sentence", "clause", "finding", "move"]
 
-# The four editorial roles: what the shared brief used to state in passing.
-"ownership-context" = [
+# The task agent reads SKILL.md, and write.md at stage 7b.
+"task-agent" = [
   "add",
   "address",
+  "alteration",
+  "anchor",
+  "batch",
+  "binder",
+  "cap",
+  "clean",
+  "compositor",
+  "copy chief",
+  "correct",
+  "dispositions",
+  "docket",
+  "drop",
+  "edit copy",
+  "editorial role",
+  "gather",
+  "instruction",
+  "line of code",
+  "mark",
+  "master proof",
+  "original",
+  "page",
+  "patch",
+  "payload",
+  "proof",
+  "proofreader",
+  "query",
+  "reviewer",
+  "schedule",
+  "series",
+  "sheet",
+  "style sheet",
+  "template",
+  "to come",
+  "topology",
+  "width",
+]
+
+# Terms supplied to each editorial role.
+"ownership-context" = [
+  "add",
+  "comment run",
+  "dark-matter",
+  "style sheet",
+  "template",
+  "address",
+  "batch",
+  "master proof",
   "anchor",
   "annotation",
   "assignment",
@@ -126,7 +175,6 @@ all = ["paragraph", "sentence", "clause", "finding", "move"]
   "cue",
   "declaration",
   "drop",
-  "edit mark",
   "editorial role",
   "expression",
   "instruction",
@@ -153,7 +201,13 @@ all = ["paragraph", "sentence", "clause", "finding", "move"]
 ]
 "block-context" = [
   "add",
+  "comment run",
+  "dark-matter",
+  "style sheet",
+  "template",
   "address",
+  "batch",
+  "master proof",
   "anchor",
   "annotation",
   "binder",
@@ -168,7 +222,6 @@ all = ["paragraph", "sentence", "clause", "finding", "move"]
   "cue",
   "declaration",
   "drop",
-  "edit mark",
   "editorial role",
   "guard",
   "instruction",
@@ -195,7 +248,13 @@ all = ["paragraph", "sentence", "clause", "finding", "move"]
 ]
 "function-context" = [
   "add",
+  "comment run",
+  "dark-matter",
+  "style sheet",
+  "template",
   "address",
+  "batch",
+  "master proof",
   "anchor",
   "annotation",
   "argument",
@@ -211,7 +270,6 @@ all = ["paragraph", "sentence", "clause", "finding", "move"]
   "cue",
   "declaration",
   "drop",
-  "edit mark",
   "editorial role",
   "guard",
   "instruction",
@@ -238,7 +296,13 @@ all = ["paragraph", "sentence", "clause", "finding", "move"]
 ]
 "module-context" = [
   "add",
+  "comment run",
+  "dark-matter",
+  "style sheet",
+  "template",
   "address",
+  "batch",
+  "master proof",
   "anchor",
   "annotation",
   "argument",
@@ -255,7 +319,6 @@ all = ["paragraph", "sentence", "clause", "finding", "move"]
   "cue",
   "declaration",
   "drop",
-  "edit mark",
   "editorial role",
   "instruction",
   "intermediate comment",
@@ -283,30 +346,27 @@ all = ["paragraph", "sentence", "clause", "finding", "move"]
   "width",
 ]
 
-# Stage 6 and stage 8 never read the shared brief, so they are given theirs here.
-# ! `sheet` is given to both because the drift check reads `style sheet` as a use
-# of it -- declared polysemy, the same way `docs/vocabulary.md` records it.
 compact = [
   "address",
   "anchor",
-  "argument",
+  "binder",
   "cap",
+  "clean",
   "comment run",
   "correct",
   "declaration",
   "drop",
-  "gather",
+  "edit copy",
   "instruction",
-  "load-bearing",
+  "mark",
   "original",
   "owner",
+  "page",
+  "patch",
+  "proof",
   "query",
-  "residue",
-  "reviewer",
-  "series",
   "sheet",
   "style sheet",
-  "trailing comment",
 ]
 review = [
   "add",
@@ -315,14 +375,8 @@ review = [
   "comment run",
   "gather",
   "sheet",
-  "compositor",
-  "editorial role",
-  "galley",
-  "mark",
   "page",
-  "proof",
   "proofreader",
-  "statement",
   "style sheet",
   "template",
 ]

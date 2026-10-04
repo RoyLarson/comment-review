@@ -3,6 +3,11 @@
     comment_review mark --edit-copy COPY --address ADDRESS --instruction correct \
         --false "the clause as it stands" --true "the clause as it should read" \
         --reason "..." --cite pkg/mod.py:12 [--ran "rg -n ..."] [--repo ROOT]
+    comment_review mark --edit-copy COPY --address ADDRESS --withdraw
+
+`--withdraw` takes back every ruling the copy holds at `--address`, handing a
+seeded slot back as it was seeded, so a role places its ruling again rather
+than editing the JSON (`mark-defects` T24, `flows.fill.withdraw`).
 
 !! A MODULE DOES ONE JOB AND HAS NO CLI; A FLOW CALLS MODULES;
 A COMMAND EXPOSES A FLOW. `decision-log.md Process: #12`. The flow is
@@ -20,8 +25,8 @@ so the ordinary case is inline.
 ! THE CLAIM'S KEYS ARE FLAGS BY NAME -- `--false --true` for a `correct`,
 `--from --to` for a `patch` or a `move`, `--drop`, `--missing --anchor` for an
 `add`, `--shape --attempted --settles` for a `query`. A flag the instruction's
-row does not carry is refused by name, and a missing one is named by
-`desk.mark.Mark.deserialize`, so a role learns the contract from the refusal.
+type does not carry is refused by name, and a missing one is named by the
+type's own read, so a role learns the contract from the refusal.
 
 ! A SOURCE IS `--cite`, AND `--verbatim` OR `--ran` BINDS TO THE `--cite`
 BEFORE IT. Ruled 2026-09-07. A `--cite` with no `--verbatim` has the cited
@@ -32,6 +37,15 @@ CREATED here sits on -- an `add` at an empty place, which the binder does not
 carry -- as the addresser printed it. The second is `add`'s claim key: the
 anchor NAMED in backticks.
 
+`--change` is the text that moves or arrives and `--raw-text` is the
+paragraph it lands in -- `decision-log.md Process: #172`, `#175` and `#176`.
+An `add` gives the snippet in `--change` and the paragraph as it will read in
+`--raw-text`; a `move` gives the snippet subtracted from the origin and the
+destination paragraph as it will read. `--raw-text` is owed on every `move`
+and on an `add` at a place that already holds prose; at an empty place the
+two are the same text and it may be left off. Every other instruction takes
+its paragraph from the page and is refused a `--raw-text`.
+
 ! NO BULK PASS OF ANY KIND. Roy, 2026-09-07: a flag that marks every null
 slot `clean` *"invites skipping reviewing each paragraph"*; each role
 certifies each paragraph under its remit, one invocation at a time.
@@ -41,10 +55,11 @@ import argparse
 import sys
 from pathlib import Path
 
-from comment_review.desk.mark import INSTRUCTIONS
-from comment_review.flows.fill import fill
+from comment_review import constants, exceptions
+from comment_review.desk.marks.table import INSTRUCTIONS
+from comment_review.desk.proof.mark import Instruction, mark_type
+from comment_review.flows.fill import fill, withdraw
 from comment_review.flows.proof_io import load_copy, save_wire
-from comment_review.machine import constants, exceptions
 from comment_review.machine.repo import read_raw
 
 #: Exit codes -- `check`'s. `BROKEN` is a ruling the flow refused, with the
@@ -53,11 +68,11 @@ OK = 0
 BROKEN = 1
 UNREADABLE = 2
 
-#: Every claim key any row names, in the order `docs/the-mark.md` lists the
-#: rows. Each is a flag; which ones an instruction accepts is its row's
-#: `claim_all`.
+#: Every claim key any type names, in the order `docs/the-mark.md` lists the
+#: instructions. Each is a flag; which ones an instruction accepts is its
+#: type's `claim_all`.
 CLAIM_FLAGS = tuple(
-    dict.fromkeys(key for spec in INSTRUCTIONS.values() for key in spec.claim_all)
+    dict.fromkeys(key for name in INSTRUCTIONS for key in mark_type(name).claim_all)
 )
 
 #: The prefix that says "read this value from a file".
@@ -84,32 +99,57 @@ class _Source(argparse.Action):
         setattr(namespace, self.dest, sources)
 
 
+def _names_a_file(value: str) -> bool:
+    """Whether `value` is an `@path` -- the prefix and something after it."""
+    return value.startswith(FROM_FILE) and len(value) > 1
+
+
+def _from_file(value: str) -> tuple[str | None, str]:
+    """The text of the file an `@path` value names, or None and why not.
+
+    The file's line endings become LF, whatever it was written with: a slot's
+    `raw_text` is the page's lines joined on LF, so that is the form a
+    `change` or a clause is compared against, and a CRLF scratch file on
+    Windows would otherwise never match.
+    """
+    path = Path(value[1:])
+    try:
+        return constants.LINE_BREAK.sub("\n", read_raw(path)), ""
+    except exceptions.READ_ERRORS as err:
+        return None, f"cannot read {path}: {err}"
+
+
 def _expanded(argv: list[str]) -> tuple[list[str], list[str]]:
     """`argv` with every `@path` value replaced by that file's text.
 
-    ! A flag is never a path, and neither is a lone `@`. The file's line
-    endings become LF, whatever it was written with: a slot's `raw_text` is
-    the page's lines joined on LF, so that is the form a `change` or a
-    clause is compared against, and a CRLF scratch file on Windows would
-    otherwise never match.
+    A value is read from its file whether it stands as its own token or
+    follows a flag's `=` -- `--true=@path`, which argparse reads as it reads
+    `--true @path`. Only the first form was read until `mark-defects` T23,
+    so the second saved the literal path as the clause and inside the derived
+    change. A flag is never a path, and neither is a lone `@`.
     """
     out: list[str] = []
     problems: list[str] = []
     for token in argv:
-        if token.startswith(FROM_FILE) and len(token) > 1 and not token.startswith("-"):
-            path = Path(token[1:])
-            try:
-                out.append(constants.LINE_BREAK.sub("\n", read_raw(path)))
-            except exceptions.READ_ERRORS as err:
-                problems.append(f"cannot read {path}: {err}")
+        flag, eq, value = token.partition("=")
+        if token.startswith("--") and eq and _names_a_file(value):
+            text, why = _from_file(value)
+        elif _names_a_file(token) and not token.startswith("-"):
+            flag, eq = "", ""
+            text, why = _from_file(token)
         else:
             out.append(token)
+            continue
+        if text is None:
+            problems.append(why)
+        else:
+            out.append(f"{flag}{eq}{text}")
     return out, problems
 
 
 def _entry(args: argparse.Namespace) -> tuple[dict, list[str]]:
-    """The ruling as `flows.fill` takes it, or the claim flags the row refuses."""
-    spec = INSTRUCTIONS[args.instruction]
+    """The ruling as `flows.fill` takes it, or the claim flags the type refuses."""
+    spec = mark_type(Instruction(args.instruction))
     given = {key: getattr(args, key) for key in CLAIM_FLAGS if getattr(args, key)}
     stray = sorted(set(given) - set(spec.claim_all))
     if stray:
@@ -124,7 +164,7 @@ def _entry(args: argparse.Namespace) -> tuple[dict, list[str]]:
     entry: dict = {"address": args.address, "instruction": args.instruction}
     if given:
         entry["claim"] = given
-    for key in ("reason", "change"):
+    for key in ("reason", "change", "raw_text"):
         if getattr(args, key) is not None:
             entry[key] = getattr(args, key)
     if args.sources:
@@ -151,9 +191,13 @@ def main() -> int:
     )
     ap.add_argument(
         "--instruction",
-        required=True,
         choices=sorted(INSTRUCTIONS),
-        help="one of the seven",
+        help="one of the seven; required unless --withdraw",
+    )
+    ap.add_argument(
+        "--withdraw",
+        action="store_true",
+        help="take back every ruling placed at --address, and place nothing",
     )
     for key in CLAIM_FLAGS:
         ap.add_argument(f"--{key}", help=f"claim.{key}")
@@ -161,6 +205,12 @@ def main() -> int:
     ap.add_argument(
         "--change",
         help="the updated paragraph as raw text; derived where the row quotes",
+    )
+    ap.add_argument(
+        "--raw-text",
+        dest="raw_text",
+        help="for an add or a move: the paragraph as it will read, with the"
+        " added or moved text in",
     )
     ap.add_argument(
         "--cite", dest="sources", action=_Source, metavar="PATH:LINE", help="one source"
@@ -182,6 +232,10 @@ def main() -> int:
             print(line, file=sys.stderr)
         return UNREADABLE
     args = ap.parse_args(argv)
+    if args.withdraw and args.instruction:
+        ap.error("--withdraw takes back what is placed; it takes no --instruction")
+    if not args.withdraw and not args.instruction:
+        ap.error("--instruction is required, unless --withdraw")
 
     copy_path = Path(args.edit_copy)
     copy, why = load_copy(copy_path)
@@ -189,6 +243,15 @@ def main() -> int:
         for line in why:
             print(line, file=sys.stderr)
         return UNREADABLE
+    if args.withdraw:
+        _, why = withdraw(copy, args.address)
+        if why:
+            for line in why:
+                print(line)
+            return BROKEN
+        save_wire(copy_path, copy)
+        print(f"{args.address}: withdrawn from {copy_path}")
+        return OK
     entry, why = _entry(args)
     if not why:
         _, why = fill(copy, entry, Path(args.repo) if args.repo else None)

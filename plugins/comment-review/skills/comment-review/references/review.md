@@ -1,82 +1,48 @@
-# Stage 8 -- REVIEW: the finished page
+# Stage 8 -- review
 
-**This stage sees the finished page. Every earlier one saw a plan.**
+You are the proofreader. The author has accepted the run's changes and they are written into
+the working tree. You read each finished page end to end, as a reader meets it, and report
+whether it is done -- catching anything the author and the run let through together.
 
-!! **WHAT YOU ARE HANDED IS A PROOF**, and the word carries the rule: a proof is pulled to be judged. The compositor set
-it from the page with every replacement the proposal holds, before the author rules, so nothing
-here is a draft you are helping to shape -- it is the document the author will be asked to
-approve, and your question is whether it deserves more marks.
+**You are handed** the pages written at stage 7b and the style sheet. The code beside or below each
+comment is on the page with it.
 
-! **You are a PROOFREADER, and that is not a fifth editorial role.** The four roles each measured
-one kind of claim against one scope. You read what they produced, as a reader meets it, and the
-things you can see are the things none of them could: whether the page still reads as one page.
+## What you ask
 
-It is deliberately ALL-ENCOMPASSING. It reads the result as a whole and decides whether these
-files are done or whether another comment-review round is wanted. Almost no editorial review
-finishes in one round -- each pass refines what the next one works on, and this is where that
-judgement is made.
+Of every comment and docstring:
 
-**Your whole input is the proof -- the galley `proof` set and the pages drafted in it -- the
-style sheet, and this file.** Everything you need is on the page and in the code beside it.
+- It follows the style sheet's template for its kind.
+- It fits the code it is attached to.
+- Its sentences are checkable claims about that code.
+- It states the reasons, constraints and worked examples that code needs.
 
-Read each file end to end, as a reader would, and ask of every comment and docstring:
+Of each page as a whole, that it reads as one page:
 
-- Does it follow the **style sheet's template** for its kind?
-- Is it still appropriate to the **code it is attached to**?
-- Are its **sentences checkable claims** about that code?
-- Does it state the **reasons, constraints and worked examples** that code needs?
+- Every paragraph is a whole proposition, every clause belongs to a whole sentence, and every
+  contrast word still has its contrast.
+- Paragraphs separated before the edit are still separate; an `add` beside an existing
+  paragraph can make the two one run.
+- Each sentence appears once; a `move` can land beside a paragraph that already said it.
+- The dialect, capitalisation and citation form match the style sheet.
 
-And of the file as a whole: does it still read as one page? Look for --
+## Looking a place up
 
-- **a paragraph that is no longer a proposition** -- a sentence ending mid-clause, a hanging clause
-  under a deleted line, a contrast marker whose contrast went. Measured repeatedly, and it
-  passes every mechanical check there is: it is not stale, not misplaced, not false -- it is
-  ungrammatical, and nothing else asks whether the prose still parses.
-- **runs that merged** -- an `add` landing next to an existing paragraph across a blank line makes
-  one longer run. A compliant edit producing a violation, visible only here.
-- **the same sentence now in two places**, because a `move` landed beside one that already said
-  it.
-- **drift against the style sheet** -- dialect, capitalisation, citation form.
+Gather the written pages into a binder and ask the addresser:
 
-## What this pass may NOT do
+```bash
+python <skill>/scripts/comment-review.py gather --repo . --out <run-dir>/after.json <paths...>
+python <skill>/scripts/comment-review.py addresser --binder <run-dir>/after.json --resolve <address>
+```
 
-! **Do not edit.** You read and you report; the human decides what happens next. That holds for
-a defect this run created and for one that was already there.
-
-**Move nothing, and write no alteration or schedule for the pages.** You are handed the proof as
-set; what it becomes next is the author's to decide.
-
-! **Do not rewrite for quality.** A better wording you notice is a finding for the next round,
-not a licence to write it: the text on the page is what the author is about to rule on, and
-writing over it puts prose in front of them that nobody read.
+An address counts code lines, so it names the same place it named before the edit. Where two
+ranges come back, a docstring and the comment run beneath it share the place; both are real.
 
 ## Report
 
-Two outcomes, and say which.
+For each page, one of two outcomes:
 
-**Everything answers yes** -- the files are done, and say so plainly.
+- **Done** -- say so plainly.
+- **Something to fix** -- each finding: the section, where it is, and what you found, for
+  the author to decide on.
 
-**Anything answers no** -- bring that section to the human as potentially something to fix,
-naming what and where.
-
-Separately, every defect that predates this run. That list is the next round's input and must
-not be folded into the first.
-
-## Looking a place up on a drafted page
-
-**The address is unchanged, and `proof` proved it**: it refuses a draft whose executable code is
-not the code the page was set from, so the code reads the same in the same order -- the Nth code
-line is still the same statement, and an address counts those. The line numbers moved with the
-prose; the ordinal did not.
-
-To read at one, resolve against a binder of the drafted page. The addresser answers about the
-binder, never the tree -- so gather the page first, from the proof's directory as the revise
-`proof` pulled, and the two agree by construction:
-
-```bash
-python <skill>/scripts/comment-review.py gather --repo <proof-dir> --revise 1 --out <run-dir>/after.json <paths...>
-python <skill>/scripts/comment-review.py addresser --binder <run-dir>/after.json --resolve <ADDRESS>
-```
-
-! More than one range can come back -- a docstring and the comment run beneath
-it share a place. Both are real.
+Then, as a separate list, every defect that predates this run. It is the next round's input.

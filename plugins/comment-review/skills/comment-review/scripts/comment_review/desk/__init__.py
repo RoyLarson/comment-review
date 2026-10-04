@@ -1,11 +1,18 @@
 """The copy desk: what a role's marks become.
 
-    mark                the shape a role writes, and the rules a mark can be
-                         judged by ON ITS OWN -- no binder, no page
-    collator            `decision-log.md Vocabulary: #19`'s two named steps.
+    marks               the shape a role writes, and the rules a mark can be
+                         judged by ON ITS OWN -- no binder, no page -- with
+                         the table of rows every reader asks
+    answers             what a role hands back in a turn, and its own table
+    dispositions        what the chief rules on a place the roles never
+                         settled, and its own table
+    evaluate            a place, its six states, and the passes that take one
+                         from the marks filed on it to the state it comes to
+    work                the Unit of Work: a fold over the places, which
+                         commits or rolls back whole, and the events it emits
+    collator            `decision-log.md Vocabulary: #19`'s first named step:
                          SOURCE-VERIFICATION, per mark, against the page it
-                         rules on; and RECONCILIATION -- per address, across
-                         the marks of one stage -- ending in a DOCKET
+                         rules on
     proof               the roles level: every `edit_copy` of one stage
                          held in one `master_proof`
     topology            a run's schedule, read from a TOML file -- which
@@ -20,11 +27,11 @@ goes: marks in from the roles, a DOCKET out. Roy, 2026-08-25, on why the former
 contents left: *"There is code there none of it is correct so testing it is
 solidifying wrong."*
 
-!! TWO SENTENCES ABOVE ARE SUPERSEDED, 2026-08-29. The first line read
-*"RECONCILIATION IS NOT BUILT"* and `collator`'s row read *"RECONCILIATION --
-per place, across the marks of one stage -- is not built"*. It is built:
-`collator.places` and `collator.reconcile` are what this branch added, and
-`tests/test_reconcile.py` runs them. ! A third, `collator.docket_from`, was
+!! RECONCILIATION LEFT `collator` ENTIRELY, and the row above says so. It was
+built there in 2026-08-29 as a grouping step and a ruling step, and the rebuild
+replaced both: a place is built from the marks filed on it
+(`flows.places.places_of`) and ruled from its own record (`evaluate`), inside a
+fold that commits or rolls back whole (`work`). ! `collator.docket_from` was
 added with them and left at `P55` -- the docket is transcribed by
 `flows.revise.docket_of`, because building the WRITE END's artifact was never
 the middle's to do. ! The `stages` row
@@ -40,16 +47,16 @@ nothing ships and that does not run. ! What this package owes is stated by what
 it exports and by the plan that builds the rest; a reader who wants the history
 has `docs/history.md`, which is the file for it.
 
-!! `mark` IS THE FIRST PIECE BACK, ported 2026-08-27 at Roy's direction --
+!! `marks` IS THE FIRST PIECE BACK, ported 2026-08-27 at Roy's direction --
 *"You can copy it from there and update the rules/requirements from there but it
 doesn't belong in the new records.py. It belongs in the desk/ i think."*
 
-! **`mark` IS THE HALF THAT NEEDS NOTHING LOADED.** Whether `claim.false` is a
-key is answerable from the mark alone, and `mark.parse` settles it the
-moment a mark comes back -- turning the entry into a `mark.Mark` or into named
-problems, with no third outcome. Whether that sentence is really IN the paragraph
-needs the text at the place, which the flow reads off the page, and the file a
-`source` cites -- that is
+! **`marks` IS THE HALF THAT NEEDS NOTHING LOADED.** Whether `claim.false` is a
+key is answerable from the mark alone, and `proof.mark.read_mark` settles it
+the moment a mark comes back, reading the entry into its instruction's type or
+into named problems, with no third outcome. Whether that
+sentence is really IN the paragraph needs the text at the place, which the flow
+reads off the page, and the file a `source` cites -- that is
 `collator.source_verification`, which reads no page and at most one file per
 citation, through a per-file cache.
 

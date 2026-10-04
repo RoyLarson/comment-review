@@ -36,7 +36,7 @@ import ast
 from collections.abc import Collection
 from pathlib import Path
 
-from comment_review.machine import constants, exceptions
+from comment_review import constants, exceptions
 from comment_review.machine.repo import git, read_raw
 
 # ! THE TUPLE IS IMPORTED, never spelled here, so no `except` clause in this

@@ -76,6 +76,31 @@ and rust (`startraders`, 2026-08-17).
 
 ## [Unreleased]
 
+## [0.2.4-beta.5]
+
+A pre-release for running the rebuilt editorial middle in another repository.
+
+### Changed
+
+- Collation checks each returned edit copy against its received binder. A role
+  rules on every review place it received, including when dispatches are sharded.
+- The master proof carries the decided places and moves through review turns and
+  chief rulings. Drafting reads the closed proof and applies the approved places.
+- Human questions return to the asking role, which replaces its query before the
+  round can commit.
+- Derived edits preserve language-specific comment forms and match moved prose
+  across line wrapping.
+- Source entries share validation across marks, answers and the published contract.
+- The workflow documentation identifies the closed proof produced by each command.
+
+### Fixed
+
+- Selective approval keeps a move's two ends together.
+- Changes to an ungathered move destination after its base was read are refused
+  before drafting.
+- Closing-gap insertions retain their addresses when drafted pages are reread.
+- Moves from concatenated Python docstring literals can find prose in every literal.
+
 ## [0.2.4-beta.4] -- 2026-09-14
 
 A pre-release for the fresh live run P5 asks for, cut from the agents branch after sets 1c, 2

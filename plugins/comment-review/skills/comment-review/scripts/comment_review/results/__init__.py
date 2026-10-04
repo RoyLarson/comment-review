@@ -2,13 +2,10 @@
 
     galley           updates a page with what the marks decided
     compositor       SETS that page as text, top to bottom. Decides nothing
-    differences      renders two texts against each other -- `unified`, and
-                     `diff3` for the base paragraph plus every role's edit.
-                     Rules on nothing
     prove_unchanged  the executable code is byte-identical
 
-! `differences` WAS ABSENT FROM THIS INVENTORY UNTIL 2026-08-29, having landed
-with the mark and the collator.
+The top-level `comment_review.differences` leaf renders and composes texts
+without file I/O. It is shared by the middle and the command line.
 
 !! THE GALLEY EDITS AND THE COMPOSITOR SETS, AND THEY ARE TWO ROLES. Roy,
 2026-08-21: *"galley gets the old page - updates the old page with the

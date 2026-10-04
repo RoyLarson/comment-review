@@ -6,14 +6,23 @@ and proves the code in every page it wrote is unchanged.
 
 ## Choose the drafts
 
-- **All of it.** The drafts are the ones stage 7a's `proof` printed.
+- **All of it.** Use the drafts retained at stage 7a, taking the latest draft of
+  each page when more than one stage changed it.
 - **Some places.** Set those places alone into a fresh directory; its drafts are the ones this
   prints:
 
   ```bash
-  python <skill>/scripts/comment-review.py proof --repo . --proof <run-dir>/final.json \
+  python <skill>/scripts/comment-review.py proof --repo <stage-root> --proof <closed-proof> \
     --only <address> --only <address> --out <run-dir>/accepted
   ```
+
+  Use the closed proof and source root for the stage that produced the proposed
+  text. When several stages changed a selected page, compare the new draft with
+  the original and confirm every difference is among the author's accepted
+  changes before writing it.
+
+  A move is approved as a whole. Naming either end includes both ends in the
+  draft; show the author both before treating that selection as approval.
 
   The same sentence marked in two files is one finding. When the author accepted it in one
   file and left the other, ask which they want in both.

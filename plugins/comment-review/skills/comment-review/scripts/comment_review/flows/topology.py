@@ -17,6 +17,7 @@ sees which glob missed.
 """
 
 import json
+from glob import escape
 from typing import NamedTuple
 
 from comment_review.binder.binder import Binder
@@ -102,7 +103,7 @@ def compose(directives: list[Directive], binder: Binder) -> str:
             for i in range(ways):
                 lines += ["  [[stage.dispatch]]", f"  role = {_toml_string(role)}"]
                 if ways > 1:
-                    shard = ", ".join(_toml_string(p) for p in pages[i::ways])
+                    shard = ", ".join(_toml_string(escape(p)) for p in pages[i::ways])
                     lines.append(f"  paths = [{shard}]")
         lines.append("")
         previous = name

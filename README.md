@@ -34,9 +34,8 @@ step established.
 instruction, and the question *did telling the roles help* has no answer.
 
 ```
-project -> gather -> find refs -> mark -> apply -> compact -> APPROVAL -> review
-                                         |                   ^
-                                         +----- no cap ------+
+project -> gather -> find refs -> mark -> collate and rule
+    -> compact (when capped) -> set and present -> APPROVAL -> write -> review
 ```
 
 **It is `/code-review`'s wiser older sibling.** That one hunts correctness bugs in the code;
@@ -216,10 +215,10 @@ The skill is broken up into eight phases to cover an editorial system.
 | `add`      | missing entirely                                 | insert the text at the anchor named with it                               |
 | `move`     | true, but it belongs somewhere else              | re-attach the block, unchanged, at the destination carried with it -- another line, another file, or out of the code |
 
-5) APPLY - Agent combines the marks to be a correct, truthful, load-bearing comment for the location
-6) COMPACT - Only if you want to force the LLMs to keep it short
-7) APPROVAL - Agent proposes the change to you - they messed it up for me so I don't trust them to do it twice
-8) REVIEW - Double checking that what was wrote still follows the qualities looked for.
+5) COLLATE AND RULE - Fold the checked copies, return disagreements to reviewers when turns are requested, and resolve the remaining places with chief rulings.
+6) COMPACT - When a cap applies, review the resolved text and shorten paragraphs that exceed it.
+7) SET, APPROVE AND WRITE - Draft pages from the closed proof, show their exact differences, and write only the text the author accepts after checking it compiles and leaves executable code unchanged.
+8) REVIEW - Read the written pages and bring any remaining findings to the author.
 
 
 ## Results
@@ -261,6 +260,29 @@ file would score lower.
 
 ## Install
 
+### Beta.5 test build
+
+The test build is published on `feat/the-middle-rebuilt`. Use a checkout of that
+branch as the local marketplace:
+
+```powershell
+git clone --branch feat/the-middle-rebuilt https://github.com/RoyLarson/comment-review.git comment-review-beta
+claude plugin marketplace add ./comment-review-beta
+claude plugin install comment-review@roy-local
+```
+
+If `roy-local` already points to a checkout, update that checkout to this branch,
+then run `claude plugin marketplace update roy-local` and
+`claude plugin update comment-review@roy-local`. Restart the session to load the
+updated plugin. The plugin manifest should report `0.2.4-beta.5`.
+
+Start the external trial with a single editorial stage and no paragraph cap.
+The build includes the rebuilt middle and drafting repairs. Chief resolution,
+answer validation and contract publication still have open repairs; resolution
+across a whole chain of sequential reviews remains design work.
+
+### Local marketplace
+
 This repository is itself a marketplace, so the plugin can be edited and used in the same
 session:
 
@@ -284,7 +306,7 @@ lives outside every project and is available in all of them.
 | `evals/`                  | twelve planted hazards, a grader, and the authorship split                                                                                              |
 | `corpora/`                | the MANIFEST of pinned corpora. The trees themselves are fetched, never vendored                                                                        |
 | `scripts/`                | `fetch_corpora.py` to materialise them, `find_llm_repos.py` to find more                                                                                |
-| `tests/`                  | a stdlib `unittest` suite for the five scripts, with one census fixture per language under `fixtures/` -- `python -m unittest discover -s tests` |
+| `tests/`                  | pytest coverage of the source package and release gates, with language fixtures under `fixtures/` -- `uv run pytest -q` |
 
 ## The corpora
 

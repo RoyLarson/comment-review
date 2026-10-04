@@ -18,7 +18,7 @@ import importlib
 import sys
 from enum import StrEnum, auto
 
-from comment_review.machine import constants
+from comment_review import constants
 
 
 class Command(StrEnum):

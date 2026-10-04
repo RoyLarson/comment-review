@@ -1,11 +1,12 @@
 """DISTRIBUTE -- hand each role an edit_copy to fill.
 
-    seed(binder, role)     one entry per row, ADDRESS ALREADY WRITTEN
+    seed(binder, role)            one entry per row, ADDRESS ALREADY WRITTEN
+    seed(binder, role, stage)     one entry per row that stage DEALS
 
 !! NAMED FOR THE ACT, NOT THE ARTIFACT, since 2026-08-30. Roy: *"a flow named
 mark reads like it is doing something that it is probably not doing"* -- and
 *"the broadcasting part seems like distribute, the bringin back together seems
-like collate."* `flows/collate.py` is the other half of the round.
+like collate."* `flows/bus.py` is the other half of the round.
 
 !! AND THE CHECK IS NO LONGER HERE. The set-level checks moved
 to `desk/collator.py` -- `decision-log.md Process: #54`: a mark answers for
@@ -24,7 +25,7 @@ when the edit_copy comes back is a COVERAGE GAP, which is a different thing from
 `clean`: `clean` says a role read this and had nothing to report.
 
 !! AND A COVERAGE GAP IS NOT THE SAME AS A MARK THAT NAMES NO INSTRUCTION.
-`desk.mark.untouched` is what tells them apart, and this flow read
+`desk.proof.mark.untouched` is what tells them apart, and this flow read
 `mark.get("mark") is None` until 2026-08-29 -- which said YES to both, so a
 filled-in mark whose ruling key the code did not recognise was dropped before
 `parse` saw it and recounted as a place nobody looked at.
@@ -32,22 +33,52 @@ filled-in mark whose ruling key the code did not recognise was dropped before
 !! WHAT THIS FLOW DOES NOT DO IS CHECK A CLAIM AGAINST THE PAGE. Whether
 `claim.false` appears VERBATIM in the paragraph, whether a `move`'s destination
 is addressable -- both need the page the role read, and both belong to
-SOURCE-VERIFICATION in `collator`. `desk.mark.parse` says the same about its
-own half.
+SOURCE-VERIFICATION in `collator`. A mark's own read, `desk.proof.mark.read_mark`,
+checks the half that needs no page.
 """
+
+from dataclasses import replace
 
 from comment_review.binder.addresses import handed
 from comment_review.binder.binder import Binder
-from comment_review.desk.containers import EditCopy, Sheet
-from comment_review.desk.mark import Mark
+from comment_review.binder.page import RedactedPage
+from comment_review.desk.proof.edit_copy import EditCopy
+from comment_review.desk.proof.mark import BlankMark
+from comment_review.desk.proof.sheet import Sheet
+from comment_review.desk.stages import Stage, deals
 
 
-def seed(binder: Binder, role: str) -> dict:
+def assigned_binder(binder: Binder, stage: Stage | None = None) -> Binder:
+    """The binder containing the review places assigned by this stage."""
+    return replace(
+        binder,
+        pages=tuple(
+            RedactedPage(
+                path=page.path,
+                sha=page.sha,
+                paragraphs=[
+                    b
+                    for b in handed(page.paragraphs)
+                    if stage is None or deals(stage, b)
+                ],
+            )
+            for page in binder.pages
+        ),
+    )
+
+
+def seed(binder: Binder, role: str, stage: Stage | None = None) -> dict:
     """A fillable edit_copy for one role, one sheet per page in the binder.
 
     Args:
         binder: the deserialized binder, as the command's load produced it.
         role: the editorial role this edit_copy is for.
+        stage: the stage being seeded, where the caller has the row. A stage
+            that names a cap or a series is dealt those places alone --
+            `desk.stages.deals` is that rule, and `decision-log.md Process:
+            #193` is why a compacting stage sees nothing else. None deals
+            every place the role is handed, which is every stage the topology
+            states nothing more about.
 
     Returns:
         `{"role": ..., "read_from": ..., "sheets": [...]}` -- `read_from` is
@@ -56,9 +87,9 @@ def seed(binder: Binder, role: str) -> dict:
         and `sha`, plus its `marks` -- one per row on that page, holding the
         `address`, `anchor` and `raw_text` copied from the row, and
         `instruction: None` for the role to fill. ! THE SLOT IS BUILT BY
-        `desk.mark.Mark.seed`, from the mark's own field names, so a
-        renamed field breaks there rather than leaving this module writing
-        the old key.
+        `desk.proof.mark.BlankMark`, from its own field names, so a renamed
+        field breaks there rather than leaving this module writing the old
+        key.
 
     !! ABSENT IS REFUSED AT THE BOUNDARY, AND WAS DEFAULTED TO `{}` UNTIL
     2026-08-28. `bind` refuses a binder that cannot say which root it read; this
@@ -92,18 +123,30 @@ def seed(binder: Binder, role: str) -> dict:
     # MEASURED on for 2026-08-22, and the container is what leaves only one.
     #
     # !! ONE SLOT PER PLACE A ROLE IS HANDED, and `handed` is the one definition
-    # of that -- the coverage count in `flows.collate` reads the same one, so
+    # of that -- the coverage count in `flows.verify` reads the same one, so
     # the two cannot disagree about the `f` series.
+    #
+    # And the stage narrows that set, never widens it: `deals` is asked of
+    # the places `handed` already allows, so a stage cannot deal the file's
+    # own matter by naming its series.
+    #
+    # A page the stage deals nothing on keeps its sheet, holding no slot.
+    # The sheet records the page and the sha it was read at, which the proof
+    # reads back; dropping the page here would leave the run unable to say
+    # what it was cut from.
     return EditCopy.seed(
         role=role,
         read_from=binder.read_from,
+        stage=stage.name if stage else "",
+        admits=list(stage.admits) if stage else [],
         sheets=[
             Sheet.seed(
                 path=page.path,
                 sha=page.sha,
                 marks=[
-                    Mark.seed(b.address, b.anchor, b.raw_text)
+                    BlankMark(b.address, b.anchor, b.raw_text).serialize()
                     for b in handed(page.paragraphs)
+                    if stage is None or deals(stage, b)
                 ],
             )
             for page in binder.pages

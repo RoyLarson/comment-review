@@ -44,7 +44,7 @@ from fnmatch import fnmatch
 from comment_review.binder.binder import Binder
 from comment_review.binder.page import Page, RedactedPage
 from comment_review.desk.stages import Dispatch, Stage
-from comment_review.flows.distribute import seed
+from comment_review.flows.distribute import assigned_binder, seed
 
 
 class OverlappingShards(Exception):
@@ -92,10 +92,10 @@ def fan(binder: Binder, stage: Stage) -> list[dict]:
     with no `read_from` returned shards carrying `read_from={}` and raised
     nothing, while `seed(binder, role)` on the same binder raised `KeyError`.
 
-    ! AND EVERY SHARD AGREED ON `{}`, so `desk.proof.master_proof_of`'s `MismatchedRoot`
-    could not fire either -- the ambiguity surfaced four steps later at
-    the per-copy check, blamed on the role, after four agents had read and filled
-    the shards.
+    ! AND EVERY SHARD AGREED ON `{}`, so the root comparison
+    (`flows.bus._root_problems`) could not fire either -- the ambiguity surfaced
+    four steps later at the per-copy check, blamed on the role, after four
+    agents had read and filled the shards.
 
     !! `replace` IS WHAT MAKES THAT UNAVAILABLE NOW, rather than a rule to
     remember. A shard is THIS binder over fewer pages, so it is built by
@@ -104,10 +104,16 @@ def fan(binder: Binder, stage: Stage) -> list[dict]:
     `{"read_from": ..., "pages": ...}` was a THIRD spelling of the binder
     shape, and it silently dropped `version`.
     """
-    return [
-        seed(replace(binder, pages=tuple(matched)), dispatch.role)
-        for dispatch, matched in partition(binder, stage)
-    ]
+    return [copy for _received, copy in dealt(binder, stage)]
+
+
+def dealt(binder: Binder, stage: Stage) -> list[tuple[Binder, dict]]:
+    """Pair each dispatch's received binder with its seeded edit copy."""
+    out = []
+    for dispatch, matched in partition(binder, stage):
+        received = assigned_binder(replace(binder, pages=tuple(matched)), stage)
+        out.append((received, seed(received, dispatch.role, stage)))
+    return out
 
 
 Shard = tuple[Dispatch, list[Page | RedactedPage]]
