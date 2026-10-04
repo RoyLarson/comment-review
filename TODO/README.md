@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (119)
+### open  (120)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -301,6 +301,7 @@ that changed a published name or rule:
 | [p5-self-run-findings](p5-self-run-findings.md) | systems | -- | 1/5 | The P5 self-run findings |
 | [r2-preexisting-prose](r2-preexisting-prose.md) | backend | -- | 0/2 | Correct pre-existing move and fold-helper prose |
 | [mark-stance-metadata-prose](mark-stance-metadata-prose.md) | backend | -- | 0/2 | Clarify mark stance and reading metadata prose |
+| [smoke-fixture-defects](smoke-fixture-defects.md) | systems | -- | 0/1 | Align the command smoke with paragraph rewrapping |
 
 ### in-progress  (18)
 
