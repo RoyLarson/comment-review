@@ -42,6 +42,7 @@ from dataclasses import dataclass, fields
 from enum import StrEnum, auto
 from typing import Any, ClassVar, Self, TypeGuard, TypeVar
 
+from comment_review.desk.proof.source import problems as source_entry_problems
 from comment_review.reading.addresser import cue_of, folded
 
 
@@ -301,6 +302,8 @@ class Mark:
         out += cls._destination_problems(where, address, claim)
         if cls.owes_sources:
             out += _source_problems(where, sources)
+        else:
+            out += source_entry_problems(where, sources)
         if cls.owes_change:
             out += _change_problems(
                 where, cls.instruction, cls.may_empty, change, anchor
@@ -853,16 +856,7 @@ def _source_problems(where: str, sources: tuple[object, ...]) -> list[str]:
     """
     if not sources:
         return [f"{where}: needs at least one source"]
-    out = []
-    for i, source in enumerate(sources):
-        at = f"{where}: source {i + 1}"
-        if not isinstance(source, dict):
-            out.append(f"{at} must be an object with `cite` and `verbatim`")
-            continue
-        for key in ("cite", "verbatim"):
-            if not filled(source.get(key)):
-                out.append(f"{at} needs `{key}`")
-    return out
+    return source_entry_problems(where, sources)
 
 
 def _change_problems(

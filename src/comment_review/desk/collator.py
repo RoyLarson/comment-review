@@ -77,6 +77,7 @@ from comment_review.binder.binder import Binder
 from comment_review.desk.marks.table import INSTRUCTIONS
 from comment_review.desk.proof.edit_copy import EditCopy
 from comment_review.desk.proof.mark import Instruction, Mark, filled, without_location
+from comment_review.desk.proof.source import entry_problems
 from comment_review.exceptions import READ_ERRORS
 from comment_review.machine.repo import can_escape, read_raw
 
@@ -225,10 +226,8 @@ def cited_problems(where: str, sources: object, root: Path, cache: Cache) -> lis
         the line is past the end of the file
         `verbatim` out of reach  more than `WITHIN` lines from the cited line
 
-    ! A SOURCE WITH NO USABLE `cite` IS PASSED OVER, and so is one with no
-    usable `verbatim` once its cite has resolved. Whether a source was OWED at
-    all is the mark's own read's question, off its type's `owes_sources`;
-    this step rules only on what it can resolve.
+    Each supplied entry must carry usable `cite` and `verbatim` before its
+    file is read. Whether sources are required is the carrying type's check.
 
     Args:
         where: how to name the citing ruling in a message -- its address, or
@@ -247,13 +246,14 @@ def cited_problems(where: str, sources: object, root: Path, cache: Cache) -> lis
         return out
     for i, source in enumerate(sources, 1):
         at = f"{where}: source {i}"
-        if not isinstance(source, dict):
-            out.append(f"{at} is not an object -- a bare string cannot be resolved")
+        shape = entry_problems(at, source)
+        if shape:
+            out += shape
             continue
+        assert isinstance(source, dict)
         cite = source.get("cite")
         verbatim = source.get("verbatim")
-        if not filled(cite):
-            continue
+        assert isinstance(cite, str) and isinstance(verbatim, str)
         parsed = cite_at(cite)
         if parsed is None:
             out.append(f"{at}: `cite` {cite!r} is not `path:line`")
@@ -270,8 +270,6 @@ def cited_problems(where: str, sources: object, root: Path, cache: Cache) -> lis
             continue
         if lineno > len(lines):
             out.append(f"{at}: `cite` {cite!r} names a line past the end of the file")
-            continue
-        if not filled(verbatim):
             continue
         # ! The cited line plus `WITHIN` on each side, clamped at both ends of
         # the file, and rejoined with `\n` whatever the file's own endings are

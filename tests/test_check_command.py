@@ -33,6 +33,7 @@ from helpers import (
 
 from comment_review.commands import check as command
 from comment_review.desk.proof.mark import Shape
+from comment_review.desk.proof.master_proof import MasterProof
 from comment_review.desk.report import Refused
 from comment_review.flows.bus import AnswersReturned, CopiesReturned, handle
 
@@ -326,6 +327,57 @@ def _batch_file(tmp_path, answered_by_role: dict):
 
 
 class TestABatch:
+    def test_proof_read_checks_source_shape_without_resolving_citations(self, tmp_path):
+        wire = _folded(tmp_path).proof.serialize()
+        mark = wire["edit_copies"][0]["sheets"][0]["marks"][0]
+        mark["sources"] = [{"cite": "absent.py:1", "verbatim": "x"}]
+        proof, problems = MasterProof.deserialize("proof", wire)
+        assert proof is not None and not problems
+        proof, problems = MasterProof.deserialize("proof", proof.serialize())
+        assert proof is not None and not problems
+        mark["sources"] = [{"cite": "absent.py:1"}]
+        proof, problems = MasterProof.deserialize("proof", wire)
+        assert proof is None and any("source 1" in p for p in problems)
+
+    def test_malformed_evidence_is_named_before_check_and_turn_commit(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        paths = _batch_file(
+            tmp_path,
+            {
+                "block-context": {
+                    "instruction": "hold",
+                    "reason": "stands",
+                    "sources": [{"verbatim": "x"}],
+                }
+            },
+        )
+        code, out, _ = _run(
+            monkeypatch,
+            capsys,
+            "--answers",
+            paths["block-context"],
+            "--sent",
+            paths["sent"],
+            "--role",
+            "block-context",
+        )
+        assert code == 1
+        assert "block-context m.py@b1" in out and "source 1" in out
+        assert "needs `cite`" in out
+        result = _folded(tmp_path)
+        before = result.proof.serialize()
+        answers: dict[str, list[dict]] = {
+            role: [{"address": "m.py@b1", "instruction": "hold", "reason": "stands"}]
+            for role in result.batch
+        }
+        answers["block-context"][0]["sources"] = [{"verbatim": "x"}]
+        refused, turned = handle(
+            AnswersReturned(result.proof, answers, tmp_path / "repo")
+        )
+        assert turned is None and refused
+        assert result.proof.serialize() == before
+
     def test_an_answered_batch_exits_zero(self, tmp_path, monkeypatch, capsys):
         paths = _batch_file(
             tmp_path, {"block-context": {"instruction": "hold", "reason": "stands"}}
