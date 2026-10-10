@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 5 of 31 tasks closed
+Progress: 5 of 35 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (/simplify rounds 1 and 2 and /code-review high round 3,
@@ -178,6 +178,7 @@ would.
 - [ ] T4 | T4 -- Let the shell row say `#` is inert after a dollar-brace.
       Verify: `n=${#arr} # count` censuses as ONE trailing comment at `# count`,
       not at column 5.
+        > 2026-10-10 Parameter expansion value=${value#prefix} becomes a comment
 - [x] T5 | FINISHED | unknown | T5 -- FIXED FOR KOTLIN 2026-08-22: the soft
       keywords are two-word entries at language.py:342-376, with the reason at
       :348-361. Java, C# and Swift are T13-T15.
@@ -214,6 +215,7 @@ would.
 - [ ] T16 | T16 -- Declare Rust's spanning quotes; language.py:117-146 carries
       none. Verify: a Rust multi-line string is neither refused wholesale nor
       read as comments.
+        > 2026-10-10 Multiline Rust literal edits compare equal as stripped code
 - [ ] T17 | T17 -- Declare C's spanning quotes; language.py:185-193 carries
       none. Verify: a C multi-line string is neither refused wholesale nor read
       as comments.
@@ -270,3 +272,11 @@ would.
       docstring.py without_raw contract; test empty-expression removal and
       invalid-edit refusal
         > 2026-10-03 Review: full removal deletes literals; invalid edits return None
+- [ ] T32 | Recognize raw string delimiters in lexer.py:510; verify a quoted
+      marker inside a Rust raw string stays literal data
+- [ ] T33 | Recognize JavaScript regex literals in lexer.py:1071; verify /[//]/
+      yields no comment paragraph
+- [ ] T34 | Resume code scanning after block comments in lexer.py:1071; verify a
+      quote in a block cannot hide a following line comment
+- [ ] T35 | Select the earliest block opener in lexer.py:1072; verify mixed Lua
+      delimiters inside a long comment preserve its full body
