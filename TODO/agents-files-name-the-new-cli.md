@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 33 of 41 tasks closed
+Progress: 33 of 42 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-09-04 (Roy, 2026-09-04, superseding the-flow-lives-in-the-command T4)
@@ -156,3 +156,5 @@ The agents files name the new CLI and say how to use it.
         > 2026-09-14 evidence: OneDrive/comment-review-feedback/2026-09-14-self-run
 - [ ] T41 | Update SKILL.md stage 4's packet and the four role files to hand a
       reviewer the brief and vocabulary by path, per Process 170
+- [ ] T42 | Correct withdrawal instructions to remove marks and require
+      replacement for received places; verify the brief matches check

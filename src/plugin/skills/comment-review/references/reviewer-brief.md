@@ -173,8 +173,9 @@ python <skill>/scripts/comment-review.py mark --edit-copy <EDIT COPY> --repo <RE
   printed for it, and the slot is created.
 
 `mark` refuses exactly what the fold would refuse, writes nothing when it does, and says why.
-`mark --withdraw --address <address>` takes back every ruling at that address and hands the
-slot back as it was seeded.
+`mark --withdraw --address <address>` removes every ruling at that address from
+your copy. Every review place in your received binder still requires a ruling;
+file its replacement before returning the copy.
 
 ### What makes a mark stand
 
