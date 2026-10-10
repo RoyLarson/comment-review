@@ -17,3 +17,4 @@ Use lexical code identity at both proof boundaries.
 - [ ] T1 | Replace Python AST identity checks with lexical comparison; verify
       docstring add and removal agree at both gates
         > 2026-10-10 Roy chose lexical identity at both code-unchanged boundaries
+        > 2026-10-10 Use the owned scanner, independent of the runtime Python grammar

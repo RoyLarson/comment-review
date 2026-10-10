@@ -368,6 +368,7 @@ the review, and nothing today protects the review.
 - [ ] T32 | T32 -- Read Python on the lexical tier -- no `import ast` in the
       lexer. Verify: `grep -rn 'import ast' plugins/` misses lexer.py:28 and a
       `.py` file still censuses.
+        > 2026-10-10 Own the Python scanner; no runtime AST or tokenizer dependency
 - [ ] T33 | T33 -- Hold the round-trip identity over the Python corpora with the
       new reader. Verify: `compositor.identity` reproduces R13's 2,368
       byte-identical round trips.
