@@ -56,14 +56,10 @@ def write_raw(path: Path, text: str) -> Path:
     page in this system already comes through this module; the one write did
     not, and lived in `results/compositor.py`.
 
-    !! AND `newline=""` IS WHAT MAKES THE ROUND TRIP AN IDENTITY. Without it,
-    `write_text` applies universal-newline translation on the way OUT, turning
-    every `\n` into the platform's ending -- so a page set from a CRLF file
-    lands as LF on Linux, and `results/prove_unchanged.py`'s byte comparison
-    against the source `read_raw` gave it would fail on every line. ! THE SAME
-    DEFECT WAS MEASURED IN THE OTHER DIRECTION, 2026-08-17: a galley command
-    that read with `Path.read_text` wrote a 245-line CRLF source back with 223
-    bare LF, and every line of the diff was an ending change.
+    Strict UTF-8 encoding completes before creating parents or opening the
+    target, so an encoding failure leaves the filesystem untouched. Writing
+    the encoded bytes avoids newline translation and preserves the exact
+    source bytes, including CRLF, bare CR, and bare LF endings.
 
     ! THE MKDIR IS PART OF THE WRITE, not the caller's. A draft lands under a
     tree built from the repo's own paths, so the parent may not exist yet; a
@@ -79,9 +75,9 @@ def write_raw(path: Path, text: str) -> Path:
     Returns:
         `path`, so a caller can chain.
     """
+    raw = text.encode("utf-8")
     path.parent.mkdir(parents=True, exist_ok=True)
-    with open(path, "w", encoding="utf-8", newline="") as f:
-        f.write(text)
+    path.write_bytes(raw)
     return path
 
 
