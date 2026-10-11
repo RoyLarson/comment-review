@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (125)
+### open  (124)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -306,7 +306,6 @@ that changed a published name or rule:
 | [collate-file-input](collate-file-input.md) | backend | -- | 0/1 | Read collation inputs from a file |
 | [2026-10-11-source-reading-contract](2026-10-11-source-reading-contract.md) | backend | -- | 10/11 | Define shared source reading contracts |
 | [2026-10-11-maintained-source-selection](2026-10-11-maintained-source-selection.md) | agents | -- | 0/1 | Select maintained source for review |
-| [2026-10-11-language-registry-contract](2026-10-11-language-registry-contract.md) | backend | -- | 1/3 | Define language registry contracts |
 
 ### in-progress  (18)
 
@@ -495,3 +494,4 @@ the reason is inside the file.
 | [received-binder-handoff](completed/received-binder-handoff.md) | 1 finished |
 | [comment-unwrap-rewrap-review](completed/comment-unwrap-rewrap-review.md) | 15 finished |
 | [transcribe-source-identity](completed/transcribe-source-identity.md) | 1 finished |
+| [2026-10-11-language-registry-contract](completed/2026-10-11-language-registry-contract.md) | 4 finished |

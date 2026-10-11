@@ -2,8 +2,8 @@
 
 ```
 Status:   in-progress
-Progress: 1 of 4 TODO tasks closed
-Plan-tasks: 6 of 26 plan tasks closed
+Progress: 4 of 5 TODO tasks closed
+Plan-tasks: 7 of 26 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (founded by move-t from 2026-10-11-lexical-readers)
@@ -373,14 +373,16 @@ because this machinery exists.
 - [ ] T2 | Carry reader compatibility and language settings through saved runs;
       verify incompatible contexts refuse before address use
 
-### B - [2026-10-11-language-registry-contract](../../TODO/2026-10-11-language-registry-contract.md)
+### B - [2026-10-11-language-registry-contract](../../TODO/completed/2026-10-11-language-registry-contract.md)
 
-- [~] T1 | Load strict independent TOML language definitions; verify explicit
+- [x] T1 | Load strict independent TOML language definitions; verify explicit
       fields, useful errors and no rule inheritance
-- [ ] T2 | Select readers through one registry; verify unique routes, actual
+- [x] T2 | Select readers through one registry; verify unique routes, actual
       coverage and excluded file categories
 - [x] T3 | Describe installed language configuration accurately; verify the
       module docstring agrees with its imports and responsibilities
+- [x] T4 | Describe page coverage in current terms; verify the edited docstring
+      contains no dated deletion history
 
 ## Plan Tasks
 
@@ -402,8 +404,9 @@ because this machinery exists.
 - [x] P6 | Independent existing reader registrations pass 527 tests and review | f0fbb346 | Register
       existing readers independently; verify current suffixes, recognition and
       actual capabilities
-- [ ] P7 | Route selection and coverage through the registry; verify excluded
-      file categories cannot select code readers
+- [x] P7 | Registry selection passes 1133 affected tests and independent review | 1f3ab4ce | Route
+      selection and coverage through the registry; verify excluded file
+      categories cannot select code readers
 - [ ] P8 | Define immutable reading context; verify effective settings, unique
       keys and value equality
 - [ ] P9 | Derive reading compatibility identities; verify relevant changes
