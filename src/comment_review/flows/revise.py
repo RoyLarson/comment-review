@@ -31,6 +31,7 @@ and `Process: #35`'s address gate over those same pages.
 
 import shutil
 import tempfile
+from collections.abc import Mapping
 from pathlib import Path
 from typing import NamedTuple
 
@@ -40,8 +41,14 @@ from comment_review.docket.docket import Docket
 from comment_review.flows import proof_setter
 from comment_review.flows.page_for import page_of
 from comment_review.flows.read_diagnostics import format_failure
+from comment_review.flows.reading_context import (
+    context_for,
+    docket_reading_contexts,
+    page_reading_contexts,
+)
 from comment_review.machine.repo import remove_tree
 from comment_review.reading.addresser import address_for
+from comment_review.reading.context import ReadingContext
 from comment_review.reading.diagnostics import ReadFailure
 
 
@@ -112,6 +119,11 @@ def pull(docket: Docket, repo: Path, into: Path, revise: int) -> Pulled:
     """
     repo = Path(repo)
     into = Path(into)
+    contexts, problems = docket_reading_contexts(docket)
+    if problems:
+        return Pulled(
+            into, revise, {}, [proof_setter.Refusal("read", "", p) for p in problems]
+        )
     # `into` is made outside the protection below, so an `into` that already
     # exists raises `FileExistsError` here and is never removed by it.
     into.mkdir(parents=True)
@@ -154,7 +166,9 @@ def pull(docket: Docket, repo: Path, into: Path, revise: int) -> Pulled:
         # propagates through the handler below, which removes `into` first --
         # a revise whose addresses moved looks whole, and a later stage
         # reading it would measure every mark against the wrong place.
-        assert_addresses_held(repo, pulled, [s.path for s in docket.schedules])
+        assert_addresses_held(
+            repo, pulled, [s.path for s in docket.schedules], reading_contexts=contexts
+        )
         return pulled
     except BaseException:
         # Every way out but a return discards `into`: an exception escaping
@@ -179,7 +193,13 @@ def pull(docket: Docket, repo: Path, into: Path, revise: int) -> Pulled:
             remove_tree(scratch, ignore_errors=True)
 
 
-def assert_addresses_held(original: Path, pulled: Pulled, pages: list[str]) -> None:
+def assert_addresses_held(
+    original: Path,
+    pulled: Pulled,
+    pages: list[str],
+    *,
+    reading_contexts: Mapping[str, ReadingContext] | None = None,
+) -> None:
     """Raise `AddressesMoved` unless `pulled` addresses the same places `original` did.
 
     The comparison runs over `pages` alone -- the docket's pages, which are the
@@ -193,13 +213,36 @@ def assert_addresses_held(original: Path, pulled: Pulled, pages: list[str]) -> N
         pulled: the revise. `pulled.root` is gathered at `pulled.revise`.
         pages: the repo path of each page the docket schedules, posix and
             relative to both roots.
+        reading_contexts: saved contexts for a docket's pages. Omit for a fresh
+            comparison that selects one context per file for both roots.
 
     Raises:
         AddressesMoved: naming the addresses that appeared in the revise and
             the ones that disappeared from the original.
     """
-    before = known_addresses(_binder_over(Path(original), 0, pages))
-    after = known_addresses(_binder_over(Path(pulled.root), pulled.revise, pages))
+    contexts = {}
+    if reading_contexts is not None:
+        contexts, problems = page_reading_contexts(
+            [
+                {"path": path, "reading": value}
+                for path, value in reading_contexts.items()
+            ],
+            "address gate",
+        )
+        if problems:
+            raise AddressesMoved("; ".join(problems))
+    for rel in pages:
+        if rel not in contexts:
+            if reading_contexts is not None:
+                raise AddressesMoved(f"{rel}: missing saved reading context; regather")
+            selected = context_for(Path(original) / rel, {})
+            if isinstance(selected, ReadFailure):
+                raise AddressesMoved(format_failure(selected, path=rel))
+            contexts[rel] = selected
+    before = known_addresses(_binder_over(Path(original), 0, pages, contexts))
+    after = known_addresses(
+        _binder_over(Path(pulled.root), pulled.revise, pages, contexts)
+    )
     appeared = sorted(after - before)
     disappeared = sorted(before - after)
     if appeared or disappeared:
@@ -210,7 +253,9 @@ def assert_addresses_held(original: Path, pulled: Pulled, pages: list[str]) -> N
         )
 
 
-def _binder_over(root: Path, revise: int, pages: list[str]) -> Binder:
+def _binder_over(
+    root: Path, revise: int, pages: list[str], contexts: Mapping[str, ReadingContext]
+) -> Binder:
     """The named pages under `root`, gathered at `revise` -- what the gate compares.
 
     `pages` are repo paths, posix and relative to `root`; nothing else under
@@ -228,7 +273,7 @@ def _binder_over(root: Path, revise: int, pages: list[str]) -> Binder:
     root = Path(root)
     held = []
     for rel in pages:
-        page = page_of(root / rel, rel=rel)
+        page = page_of(root / rel, rel=rel, reading_context=contexts[rel])
         if isinstance(page, ReadFailure):
             raise AddressesMoved(format_failure(page, path=rel))
         held.append(page)

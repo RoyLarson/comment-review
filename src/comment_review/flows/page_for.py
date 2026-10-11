@@ -39,7 +39,8 @@ def page_of(
                 ReadDiagnostic(
                     ReadStage.SELECT,
                     "reading-context-mismatch",
-                    "Supplied reading context differs from installed metadata",
+                    "Supplied reading context differs from installed metadata; "
+                    "regather",
                 ),
             ),
             where,

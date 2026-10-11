@@ -9,6 +9,7 @@ from comment_review.binder.page import Page, RedactedPage
 from comment_review.desk.proof.edit_copy import EditCopy
 from comment_review.desk.proof.master_proof import MasterProof
 from comment_review.desk.proof.sheet import Sheet
+from comment_review.docket.docket import Docket, Schedule
 from comment_review.flows.proof_io import load_value
 from comment_review.machine.digests import sha256_hex
 from comment_review.reading.context import ReadingContext, resolve_context
@@ -93,6 +94,20 @@ def binder_reading_contexts(
     return _reading_contexts(binder.pages, where)
 
 
+def page_reading_contexts(
+    pages: list | tuple, where: str = "pages"
+) -> tuple[dict[str, ReadingContext], list[str]]:
+    """Admit supplied pages before resolving their saved cues."""
+    return _reading_contexts(pages, where)
+
+
+def docket_reading_contexts(
+    docket: Docket, where: str = "docket"
+) -> tuple[dict[str, ReadingContext], list[str]]:
+    """Admit scheduled contexts before a revise creates output."""
+    return _reading_contexts(docket.schedules, where)
+
+
 def _reading_contexts(
     sheets: list | tuple, location: str
 ) -> tuple[dict[str, ReadingContext], list[str]]:
@@ -100,25 +115,22 @@ def _reading_contexts(
     problems: list[str] = []
     for index, sheet in enumerate(sheets, 1):
         label = f"{location} sheet {index}"
-        if isinstance(sheet, (Sheet, Page, RedactedPage)):
+        if isinstance(sheet, (Sheet, Page, RedactedPage, Schedule)):
             path, value = sheet.path, sheet.reading
-            if isinstance(value, ReadingContext):
-                try:
-                    validated = ReadingContext(
-                        value.language,
-                        value.reader,
-                        value.compatibility,
-                        value.settings,
-                    )
-                    value = context_to_wire(validated)
-                except (TypeError, ValueError):
-                    problems.append(f"{label}: malformed reading context; regather")
-                    continue
         elif isinstance(sheet, dict):
             path, value = sheet.get("path"), sheet.get("reading")
         else:
             problems.append(f"{label}: a sheet must be an object; regather")
             continue
+        if isinstance(value, ReadingContext):
+            try:
+                validated = ReadingContext(
+                    value.language, value.reader, value.compatibility, value.settings
+                )
+                value = context_to_wire(validated)
+            except (TypeError, ValueError):
+                problems.append(f"{label}: malformed reading context; regather")
+                continue
         if not isinstance(path, str) or not path:
             problems.append(f"{label}: sheet path is missing; regather")
             continue
