@@ -58,7 +58,9 @@ from comment_review.flows.human import (
 from comment_review.flows.mark_errors import mark_errors
 from comment_review.flows.on_the_page import PageCache, held_at
 from comment_review.flows.places import bases_and_anchors, chief_copy_of, places_of
+from comment_review.flows.reading_context import binder_reading_contexts
 from comment_review.flows.verify import (
+    context_problems,
     copy_problems,
     coverage_problems,
     received_problems,
@@ -184,6 +186,26 @@ def _on_copies(message: CopiesReturned) -> tuple[list, Result | None]:
     the paragraph already there rather than first at the write end.
     """
     binder, root, copies = message.binder, message.root, message.copies
+    roles = sorted({copy.role for copy in copies}) or [""]
+    _, why = binder_reading_contexts(binder, "stage binder")
+    problems = [Problem(role, "", reason) for role in roles for reason in why]
+    received = message.binders
+    if received is not None:
+        for index, one in enumerate(received):
+            _, why = binder_reading_contexts(one, "received binder")
+            role = copies[index].role if index < len(copies) else ""
+            problems.extend(Problem(role, "", reason) for reason in why)
+        if len(received) != len(copies):
+            problems.append(Problem("", "", "each edit copy needs one received binder"))
+    for index, copy in enumerate(copies):
+        assigned = (
+            received[index]
+            if received is not None and index < len(received)
+            else binder
+        )
+        problems.extend(context_problems(copy, assigned, binder))
+    if problems:
+        return _rolled_back(problems, [])
     paths = [page.path for page in binder.pages]
     out: list = []
     # ! ONE CACHE OF EACH FOR THE WHOLE STAGE, not one per copy: the roles cite
@@ -191,7 +213,7 @@ def _on_copies(message: CopiesReturned) -> tuple[list, Result | None]:
     # file once per citing role.
     cache: Cache = {}
     page_cache: PageCache = {}
-    problems: list[Problem] = []
+    problems = []
     for copy in copies:
         problems += copy_problems(copy, paths, root, cache, page_cache)
     # ! `where` RATHER THAN `address`, and the two differ in one case only:
