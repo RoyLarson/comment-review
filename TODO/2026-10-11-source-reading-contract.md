@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 8 of 9 tasks closed
+Progress: 10 of 11 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (2026-10-11 lexical-reader design)
@@ -45,3 +45,11 @@ Define shared source reading contracts.
       sibling selection as current behavior; verify its docstring contains no
       incident narrative
         > 2026-10-11 Review: flows/prove_unchanged.py:30 narrates an old incident
+- [x] T10 | Equal malformed sources report failed page admission | fd1e56a1 | Admit
+      equal taken_in source snapshots before skipping; verify identical
+      malformed sources report refusal
+        > 2026-10-11 Review: commands/taken_in.py:94 skips equal malformed text
+- [x] T11 | Named exception groups retain classification and Python floor | fd1e56a1 | Name
+      source acquisition exception groups; verify handlers avoid literal tuples
+      and retain failure classification
+        > 2026-10-11 Review: flows/source.py:39,51,55 use literal exception tuples

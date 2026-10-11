@@ -3,7 +3,7 @@
 ```
 Status:   decision-needed
 Progress: 19 of 161 TODO tasks closed
-Plan-tasks: 2 of 51 plan tasks closed
+Plan-tasks: 4 of 51 plan tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-10-11 (founded by move-t from 0.2.4-the-middle-rebuilt)
@@ -586,8 +586,9 @@ interfaces, inputs and checks, without internal development files or history.
       and independently expected classifications
         > 2026-10-11 Check: uv run pytest -q tests/test_reading_source.py
         > 2026-10-11 Implemented by subplan 2026-10-11-lexical-source-contract
-- [ ] P2 | Define lexical and placement diagnostics; verify incomplete reads
-      cannot supply successful pages or preservation proofs
+- [x] P2 | Explicit failed-read admission implemented and verified in child | fd1e56a1 | Define
+      lexical and placement diagnostics; verify incomplete reads cannot supply
+      successful pages or preservation proofs
         > 2026-10-11 Check: uv run pytest -q tests/test_reading_diagnostics.py
         > 2026-10-11 Subplan 2026-10-11-lexical-read-results owns this work
 - [-] P3 | Replaced by P51; approved spec uses source I/O tests rather than saved proof JSON tests | b03adaa8 | Integrate
@@ -735,6 +736,7 @@ interfaces, inputs and checks, without internal development files or history.
 - [ ] P50 | Verify lint, formatting, types, shipped syntax and vocabulary for
       the completed implementation
         > 2026-10-11 Run the existing CLAUDE.md completion commands
-- [ ] P51 | Integrate exact source acquisition and writing; verify UTF-8 byte
-      fixtures in test_source_io and source-path integration tests
+- [x] P51 | Exact source acquisition writing and integrations verified | fd1e56a1 | Integrate
+      exact source acquisition and writing; verify UTF-8 byte fixtures in
+      test_source_io and source-path integration tests
         > 2026-10-11 Subplan 2026-10-11-lexical-read-results owns this work

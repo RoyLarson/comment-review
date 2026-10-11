@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 52 of 56 tasks closed
+Progress: 53 of 57 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (code-review high round 3 and /simplify round 2, 2026-08-22 -- the
@@ -287,3 +287,7 @@ files in `corpora/` are in that state today.
       compositor command prose with its flow API; verify no retired path-based
       comparison examples remain
         > 2026-10-11 Caller audit: commands/compositor.py:3,19,21 describe old contracts
+- [x] T57 | Identity diagnostics count only physical source line endings | fd1e56a1 | Report
+      physical identity mismatch lines; verify Unicode separators inside text do
+      not shift line numbers
+        > 2026-10-11 Review: results/compositor.py identity counts U+2028 as a line

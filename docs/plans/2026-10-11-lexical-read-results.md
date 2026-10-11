@@ -1,9 +1,9 @@
 # Source acquisition and read results
 
 ```
-Status:   in-progress
-Progress: 14 of 14 TODO tasks closed
-Plan-tasks: 10 of 13 plan tasks closed
+Status:   closed
+Progress: 17 of 17 TODO tasks closed
+Plan-tasks: 14 of 14 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (founded by move-t from 2026-10-11-lexical-readers)
@@ -255,6 +255,10 @@ runtime implementation is included in the plan-authoring commit.
       normal command on successful and refused source
 - [x] T9 | Describe sibling selection as current behavior; verify its docstring
       contains no incident narrative
+- [x] T10 | Admit equal taken_in source snapshots before skipping; verify
+      identical malformed sources report refusal
+- [x] T11 | Name source acquisition exception groups; verify handlers avoid
+      literal tuples and retain failure classification
 
 ### B - [the-lexer-reads-no-files](../../TODO/the-lexer-reads-no-files.md)
 
@@ -279,6 +283,8 @@ runtime implementation is included in the plan-authoring commit.
       prose agrees with newline and reorder cases
 - [x] T56 | Align compositor command prose with its flow API; verify no retired
       path-based comparison examples remain
+- [x] T57 | Report physical identity mismatch lines; verify Unicode separators
+      inside text do not shift line numbers
 
 ## Plan Tasks
 
@@ -322,16 +328,22 @@ runtime implementation is included in the plan-authoring commit.
       multi-file rollback and import boundaries; check failed rereads preserve
       originals and cannot imply equal addresses
         > 2026-10-11 uv run pytest -q tests/test_proof_setter.py tests/test_areas.py
-- [ ] P10 | Run focused and full regression suites; verify source and proof
-      integration with expected skips reported separately
+- [x] P10 | Final revision passes 2842 tests with known skip and xfails | fd1e56a1 | Run
+      focused and full regression suites; verify source and proof integration
+      with expected skips reported separately
         > 2026-10-11 uv run pytest -q
-- [ ] P11 | Run repository lint and formatting checks; verify both exit zero on
-      the completed implementation
+- [x] P11 | Repository lint and formatting checks both pass | fd1e56a1 | Run
+      repository lint and formatting checks; verify both exit zero on the
+      completed implementation
         > 2026-10-11 uv run ruff check .; uv run ruff format --check .
-- [ ] P12 | Run type, shipped-syntax and vocabulary gates; verify Python 3.11
-      and standard-library runtime compatibility
+- [x] P12 | Type shipped syntax and vocabulary gates pass | fd1e56a1 | Run type,
+      shipped-syntax and vocabulary gates; verify Python 3.11 and
+      standard-library runtime compatibility
         > 2026-10-11 Use the exact P10-P12 gate commands in the objective
 - [x] P13 | Retained failure context renders locations without rereading | fc54847c | Define
       LocatedReadFailure(ReadFailure) in flows/read_diagnostics.py; verify
       commands render stored source spans without rereading
         > 2026-10-11 Frozen fields: path: str, language: str | None, text: str | None
+- [x] P14 | All final-review repairs verified and independently approved | fd1e56a1 | Repair
+      final-review findings; verify equal-source admission, physical line
+      reporting and portable exception handlers
