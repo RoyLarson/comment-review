@@ -551,8 +551,9 @@ interfaces, inputs and checks, without internal development files or history.
 
 ### AO - [2026-10-11-source-reading-contract](../../TODO/2026-10-11-source-reading-contract.md)
 
-- [ ] T1 | Represent source as ordered regions and ownership facts; verify exact
-      reconstruction and independently expected classifications
+- [ ] T1 | MOVED to 2026-10-11-lexical-source-contract | Represent source as
+      ordered regions and ownership facts; verify exact reconstruction and
+      independently expected classifications
 - [ ] T2 | Carry reader compatibility and language settings through saved runs;
       verify incompatible contexts refuse before address use
 
@@ -566,6 +567,7 @@ interfaces, inputs and checks, without internal development files or history.
 - [ ] P1 | Define ordered regions and ownership in reading/source.py; verify
       reconstruction and independently expected classifications
         > 2026-10-11 Check: uv run pytest -q tests/test_reading_source.py
+        > 2026-10-11 Implemented by subplan 2026-10-11-lexical-source-contract
 - [ ] P2 | Define lexical and placement diagnostics; verify incomplete reads
       cannot supply successful pages or preservation proofs
         > 2026-10-11 Check: uv run pytest -q tests/test_reading_diagnostics.py
