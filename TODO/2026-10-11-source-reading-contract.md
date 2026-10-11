@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 4 of 6 tasks closed
+Progress: 5 of 7 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (2026-10-11 lexical-reader design)
@@ -30,5 +30,9 @@ Define shared source reading contracts.
 - [x] T5 | Immutable outcomes and invalid-state checks verified | 42752127 | Define
       immutable read diagnostics and failures; verify location units, field
       validation and successful empty input
-- [ ] T6 | Reject failed readings at page and proof admission; verify
+- [~] T6 | Reject failed readings at page and proof admission; verify
       either-side failures, empty success and cleanup
+- [x] T7 | Unsupported-syntax fixture runs only on affected interpreter | 2b50b752 | Make
+      unsupported-syntax fixtures interpreter-aware; verify valid newer Python
+      syntax is not required to fail
+        > 2026-10-11 Review: test_reading_diagnostics.py:21 assumes Python 3.11 syntax
