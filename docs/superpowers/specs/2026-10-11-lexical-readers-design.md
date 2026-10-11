@@ -73,8 +73,9 @@ language specifications or configuration.
 Every language listed in Scope requires a separate dated specification before
 its reader is implemented. Each specification names that language's definition
 file, authoritative language references, supported syntax and dialects, parser
-configuration, documentation rules and expected fixtures. This document defines
-the common contracts; it does not replace those language specifications.
+configuration, documentation attachment rules and expected fixtures. This
+document defines the common contracts; it does not replace those language
+specifications.
 
 The registry maps supported source paths to individual language definitions.
 A common result contract lets callers consume their readers consistently.
@@ -193,6 +194,47 @@ Shell suffixes and interpreter declarations inform the shell dialect. Where
 they leave a boundary ambiguous, project context supplies the selection.
 Dialect implementations share scanning mechanics where appropriate while
 retaining their own grammar decisions.
+
+## Documentation attachment
+
+Every language specification defines how documentation attaches to its owner.
+Recognizing a documentation marker and identifying what it documents are
+separate facts. Ordinary comments can also serve as documentation where that
+language's own convention establishes the relationship.
+
+Each specification states:
+
+- Which declarations or containing constructs can own documentation, and which
+  comment or string forms can supply it.
+- The required position relative to the owner: before a declaration, inside its
+  body, or another position supported by that language.
+- The effect of whitespace and blank lines between the section and its owner.
+- The effect of intervening ordinary comments, directives, annotations,
+  attributes, decorators and declaration modifiers, wherever applicable.
+- The language reference or documentation-tool convention governing attachment,
+  including any supported version or mode that changes the rule.
+- The resulting kind, owner and address series when attachment succeeds or
+  does not apply, within the existing address coverage.
+
+The phrase "immediately before" must be resolved into those concrete rules.
+Go's prohibition on an intervening blank line belongs to Go's definition.
+Every other language establishes its own interpretation from its own sources.
+
+For example, [JavaDoc](https://docs.oracle.com/en/java/javase/26/docs/specs/javadoc/doc-comment-spec.html)
+places documentation before the declaration's annotations and modifiers.
+[C#](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/language-specification/documentation-comments)
+requires documentation before attributes that form part of the declaration.
+[Rust](https://doc.rust-lang.org/stable/reference/comments.html) distinguishes
+outer documentation on the following item from inner documentation on its
+containing item. Python's first-statement rule is specified below. Ruby's
+specification must establish the behavior of its selected documentation
+convention, including blank lines; [RDoc's placement description](https://github.com/ruby/rdoc/blob/master/doc/markup_reference/rdoc.rdoc)
+alone does not settle every intervening-source case.
+
+Attachment determines the section's owner and place. Same-type comments within
+that place remain one section across blank lines, with line controls applied
+to the whole section. Each language's fixtures assert both successful attachment
+and the expected result when a permitted source layout does not attach.
 
 ## Go documentation
 
@@ -352,6 +394,9 @@ The shared checks demonstrate:
   endings, missing final newlines, non-ASCII text and literal whitespace.
 - Expected prose, forms, declaration relationships and `a`, `b`, `c`, `f`
   addresses, including empty places and comments beside executable source.
+- Each language's documentation attachment with blank lines and applicable
+  intervening comments, directives, annotations, attributes, decorators and
+  modifiers; fixtures assert the kind, owner and address for each outcome.
 - Same-type comments separated by blank lines remain one section at their
   existing `a`, `b` or `c` place, with line controls applied to the whole section.
 - Recognition of real comments after literals and block comments, with markers
