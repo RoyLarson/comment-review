@@ -15,7 +15,37 @@ import pytest
 from conftest import REPLACEMENT, SAMPLE, build, by_cue, cue
 
 from comment_review import exceptions
+from comment_review.results import compositor
 from comment_review.results.compositor import line_endings, set_page
+
+
+@pytest.mark.parametrize("gate", [compositor.lossless, compositor.identity])
+def test_failed_page_is_reported_before_setting(tmp_path, monkeypatch, gate):
+    path = tmp_path / "broken.c"
+    path.write_text("/* open", encoding="utf-8")
+
+    def unexpected_set(page):
+        raise AssertionError("failed page reached the setter")
+
+    monkeypatch.setattr(compositor, "set_page", unexpected_set)
+    assert gate(path) == (
+        "lex/unterminated-comment: Comment has no closing delimiter before "
+        "end of source"
+    )
+
+
+@pytest.mark.parametrize("gate", [compositor.lossless, compositor.identity])
+def test_unexpected_page_exception_propagates(tmp_path, monkeypatch, gate):
+    path = tmp_path / "sample.py"
+    path.write_text("value = 1\n", encoding="utf-8")
+
+    def broken_page(*args, **kwargs):
+        raise exceptions.Refused("unexpected page error")
+
+    monkeypatch.setattr(compositor, "page_for", broken_page)
+    with pytest.raises(exceptions.Refused, match="unexpected page error"):
+        gate(path)
+
 
 #: Every addressed place on the sample, and the subset holding prose. Discovered
 #: from the page rather than listed, so a change to the walk is visible here as

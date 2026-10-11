@@ -55,7 +55,7 @@ from dataclasses import field as dataclass_field
 from itertools import pairwise
 from pathlib import Path
 
-from comment_review import constants, exceptions
+from comment_review import constants
 from comment_review.reading.addresser import (
     COVERS,
     DECLARED,
@@ -67,14 +67,13 @@ from comment_review.reading.addresser import (
     cue,
     cue_of,
 )
+from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, ReadStage
 from comment_review.reading.lexer import (
     Language,
     declarations,
     document_declarations,
-    flag_structural_docs,
     leading_between,
-    paragraphs_lexical,
-    paragraphs_stdlib,
+    read_paragraphs,
 )
 from comment_review.reading.paragraph import Paragraph
 from comment_review.reading.series import Kind, Series
@@ -722,7 +721,9 @@ def places_on(text: str, prose: list[dict], lang: "Language | None" = None) -> "
     return cue(code, placed, decls[0][1] if decls else None)
 
 
-def empty_places(text: str, cues: Cues, occupied: set[str]) -> list[Paragraph]:
+def empty_places(
+    text: str, cues: Cues, occupied: set[str]
+) -> list[Paragraph] | ReadFailure:
     """A paragraph for every place `cue` emitted that no prose fills.
 
     !! ONE LOOP, WHERE THERE WERE FOUR GENERATORS -- `intervals`, `margins` and
@@ -801,8 +802,14 @@ def empty_places(text: str, cues: Cues, occupied: set[str]) -> list[Paragraph]:
                 # place out of the reading order, which the compositor sets
                 # from, so the file would come back missing a line and every
                 # gate would still be green.
-                raise exceptions.Refused(
-                    f"{cue_name}: a `c` place whose anchor has no line"
+                return ReadFailure(
+                    (
+                        ReadDiagnostic(
+                            ReadStage.PLACE,
+                            "unsupported-placement",
+                            f"{cue_name}: a `c` place whose anchor has no line",
+                        ),
+                    )
                 )
             code = lines[n - 1].rstrip()
             out.append(
@@ -850,16 +857,15 @@ def empty_places(text: str, cues: Cues, occupied: set[str]) -> list[Paragraph]:
                 )
             )
         elif not cue_name.startswith(GAP):
-            # !! A SERIES THIS FUNCTION DOES NOT KNOW IS AN ERROR, NOT A SKIP.
-            # Every place `cue` emitted must get a paragraph; one that
-            # falls off the end of these branches gets none, and a place with
-            # no paragraph is uncitable and invisible. That is exactly how
-            # `f0` behaved for its first hour. ! `gather` turns a raise
-            # here into a REPORTED per-file gap, which is loud; falling
-            # through is silent.
-            raise exceptions.Refused(
-                f"no rule for the series of {cue_name!r} -- every series in"
-                " `addresser.SERIES` needs a branch here"
+            return ReadFailure(
+                (
+                    ReadDiagnostic(
+                        ReadStage.PLACE,
+                        "unsupported-placement",
+                        f"no rule for the series of {cue_name!r} -- every series in"
+                        " `addresser.SERIES` needs a branch here",
+                    ),
+                )
             )
         else:
             previous, following = cues.gap_bounds(cue_name)
@@ -967,198 +973,52 @@ def tie_leading(paragraphs: list[Paragraph], cues: Cues) -> dict[str, str]:
 
 def page_for(
     path: Path, text: str, lang: Language, rel: str | None = None, *, sha: str
-) -> Page:
-    """The page for one file, at the highest tier available for its language.
-
-    The ladder is by QUESTION ANSWERED. Python reaches TOKENIZED through the
-    stdlib, which buys docstring anchors; every other language has the LEXICAL
-    floor.
-
-    !! IT RETURNS A COMPLETE PAGE -- addressed and anchored. Both used to be
-    stamped in two different places: anchors here, addresses in the run loop,
-    so a caller that used this function directly got half a page and no
-    error. Every test of the page does exactly that.
-
-    Args:
-        path: the file, used for its suffix and as the address's path.
-        text: its contents.
-        lang: the language record for its suffix.
-        rel: the path as the REPO sees it, when a caller has one. It is what
-            every citation resolves against; `path` stands in when a caller has
-            no repo, which is what the tests are.
-        sha: of `text`, from `repo.read_source`. KEYWORD-ONLY AND REQUIRED: a
-            default would let a caller build a page whose identity does not
-            describe its text, and the write chain's comparison would then pass
-            on a file nobody verified.
-    """
-    if lang.name == "python":
-        got = paragraphs_stdlib(path, text)
-    else:
-        got = paragraphs_lexical(path, text, lang)
-        flag_structural_docs(got, text, lang)
-    # ! A file the parser refused is NOT enumerated into intervals. Its one
-    # `unparsed` paragraph reports the refusal, and the code lines below it were
-    # never established, so any interval drawn there would be invented.
-    # !! THE SPACE BETWEEN PARAGRAPHS, FOR WHICHEVER READER RAN. It is a pass
-    # rather than a branch inside each, so the two cannot disagree about it --
-    # which is what happened to `matter` when it was written on one tier.
+) -> Page | ReadFailure:
+    """Admit a complete read before assigning places and source identity."""
+    got = read_paragraphs(path, text, lang)
+    if isinstance(got, ReadFailure):
+        return got
     got.extend(leading_between(got, text))
     cues = Cues()
     edges: dict[str, str] = {}
-    if not any(b.kind == "unparsed" for b in got):
-        # !! `cue` EMITS EVERY PLACE, AND THE PARAGRAPHS ARE TIED TO THEM.
-        # Reversed -- each paragraph computing its own cue -- a place existed
-        # only when prose happened to fill it, which is how the file's own
-        # matter and the first gap came to be mutually exclusive -- one address
-        # for two places. `addresser` owns both halves: it assigns
-        # the numbering, `attach` reads which place this prose sits in,
-        # and the anchor comes from `cue` that emitted it rather than from a
-        # second pass that could disagree with the first.
-        prose = [vars(b) for b in got]
-        cues = places_on(text, prose, lang)
-        # !! THE LEXER STATES WHICH PROSE DOCUMENTS WHAT, and this only asks.
-        # It was decided in this module until 2026-08-21, which may hold no
-        # positioning rule -- Roy: *"the ONLY places that need this are the lexer
-        # and the compositor."* `paragraphs_stdlib` has always stated it for
-        # Python from its parse; `document_declarations` is the same fact for a
-        # language the parser cannot read, and answers nothing for Python.
-        code = code_lines(text, prose)
-        document_declarations(got, declarations(text, lang, code), code)
-        here = rel if rel is not None else path.as_posix()
-        # !! THE PAGE MAKES THE MAPPING between addresser and paragraph. The
-        # lexer types a run
-        # `matter` and `cue` emits the places a file has for its own prose;
-        # neither counts, so the Nth matter run takes the Nth place here --
-        # which is what makes `f0` the head and `f1` the foot without either
-        # word appearing anywhere.
-        files = cues.file_places()
-        # !! LEADING TAKES A SYMBOL AND NOT A PLACE, ruled 2026-08-22, and the
-        # counter is the PAGE'S because a `d` is not something `cue` makes.
-        # It briefly had its own `Addresser` -- which was the wrong fix to a real
-        # problem, since `emit` is what MAKES a place and leading is not one.
-        # See `addresser.SERIES` for why it failed the substitution, and
-        # `lexer.Paragraph.symbol` for what the label is for.
-        #
-        # ! NUMBERED IN THE ORDER IT OCCURS, which is the order the lexer found
-        # it, because there is no walk to take a number from.
-        leads = iter(range(10**9))
-        for b in sorted(got, key=lambda b: b.original_start or 0):
-            if b.kind == Kind.LEADING:
-                # ! NO ADDRESS. Nothing cites a run of blank lines -- Roy: *"there
-                # is no information to rule on, it is just there for document
-                # preservation"* -- and an address names a place it does not have.
-                b.symbol = f"{LEAD}{next(leads)}"
-                b.address = ""
-                continue
-            # !! A RUN THAT DOCUMENTS A DECLARATION IS NOT THE FILE'S OWN MATTER,
-            # and this tested `matter` FIRST, so it never asked. `attach` has had
-            # the right order since it was written -- a paragraph that declares
-            # takes its `a` place, and only then is matter considered -- but the
-            # branch below short-circuited before `attach` was called, which made
-            # `attach`'s own `matter` case dead code.
-            #
-            # !! MEASURED 2026-08-22 on a two-line file, `.js` and `.ts` alike:
-            # a `//` run documenting the first function was typed `matter`,
-            # withheld from every reviewer as the file's own prose, and the
-            # declaration below it reported `undocumented`. `Page.prose` came
-            # back EMPTY -- the only prose in the file reached nobody -- while
-            # the run ALSO carried `declares=1`, so two paragraphs answered to
-            # declaration 1.
-            #
-            # ! IT DOES NOT REACH A DOC RUN. A `/**` opener is documentation the
-            # language itself marks, so `_is_doc` never let it become matter --
-            # Java's top-of-file Javadoc was already `a1`. What was wrong is the
-            # run a language does NOT mark, `//` and `#`, which is exactly the
-            # run whose ownership has to be read rather than lexed.
-            #
-            # ! RETYPED, because kind and series must agree. A documenting `//`
-            # run that is not at the top of a file is `comment` at an `a` place;
-            # this makes the top-of-file one the same thing, rather than leaving
-            # `matter` sitting on an `a`.
-            # ! ASKED OF THE CUE THE LEXER STAMPED. This read `b.declares >= 0`,
-            # which was the same question one field away -- `Process: #69`.
-            if b.kind == Kind.MATTER and b.address.startswith(DECLARED):
-                b.kind = Kind.COMMENT
-            if b.kind == Kind.MATTER:
-                # ! HEAD OR FOOT, which is the whole of the mapping. The lexer
-                # types a run `matter` when it opens the file or closes it; the
-                # walk emits a place for each end; this says which is which, and
-                # it is the only comparison either side needs.
-                place = files[0] if b.original_start == 1 else files[-1]
-            else:
-                # !! IT ALREADY KNOWS ITS PLACE, when the lexer could say so.
-                # A documenting run is stamped with its `a` cue at the moment
-                # the declaration it belongs to is identified -- the same
-                # reason an EMPTY place carries its own cue thirty lines
-                # below. `decision-log.md Process: #69`. ! `attach` answers
-                # for everything the lexer cannot place: a gap, and the room
-                # beside a line of code.
-                #
-                # ! THE PLACE MUST EXIST. `Addresser.at` refused a cue the
-                # walk never emitted -- a language whose record names no
-                # declaring keyword has no `a` series at all -- and that
-                # check is kept here rather than dropped with the lookup.
-                stamped = b.address if b.address in cues.places else ""
-                place = stamped or attach(vars(b), cues)
-            b.address = address_for(here, place)
-            b.anchor = cues.anchor_of(place, b.anchor)
-        # !! EVERY PLACE PROSE DOES NOT FILL GETS A PARAGRAPH, in one loop over
-        # what `cue` emitted. Three generators used to answer this one
-        # question a series at a time, each walking the file again.
-        occupied = {b.address.split("@")[-1] for b in got if "@" in b.address}
-        for empty in empty_places(text, cues, occupied):
-            # ! IT ALREADY KNOWS ITS PLACE -- the emitter filled that cue and
-            # said so. Asking `attach` again re-derives it from position, which
-            # answered the FIRST GAP for the file's own matter: the two are
-            # different places at the same position, and position cannot tell
-            # them apart. That is the whole defect, one layer up.
-            empty.address = address_for(here, empty.address)
-            got.append(empty)
-        # !! ONE PASS FOR `anchor_line`, OVER EVERYTHING. Stamped per branch it
-        # was filled on the prose and on ONE of the four empty kinds, so every
-        # `interval` and every `margin` read 0 -- the same shape as a series
-        # list that names its members: a branch that forgets is silent.
-        for b in got:
-            cue = b.address.split("@")[-1]
-            b.anchor_line = cues.anchor_line(cue) if cue else None
-            # ! THE ORDINAL, stamped in the same pass and for the same reason:
-            # every paragraph carries it or a consumer has to ask `cue` again.
-            b.anchor_num = cues.anchor_num(cue) if cue else 0
-        # ! AFTER every paragraph exists, so each one's share of its gap is
-        # settled against the neighbours it actually has.
-        fill_the_gaps(text, got)
-        # !! THE READING ORDER IS `cue`'S, AND THIS MODULE DOES NOT BUILD ONE.
-        # `cue` emits every place in sequence and states it at the field -- a
-        # fact it knows, rather than an arithmetic over line numbers -- including
-        # WHERE AN `a` FALLS, which is the language's call and is settled there
-        # once.
-        #
-        # !! IT WAS OVERWRITTEN HERE UNTIL 2026-08-21, by a sort on
-        # `original_start` filtered to paragraphs that hold a line. Two comments
-        # in two modules then stated opposite rules for one field and the later
-        # write won. What it cost: a place holding no prose has no line, so it
-        # fell out of the order, and `compositor.set_page` -- which walks this
-        # list -- could not emit one. An `add` names exactly such a place, so its
-        # approved text was DISCARDED IN SILENCE: no error, and a page identical
-        # to the one before the edit. Roy: *"how do I get you to stop thinking in
-        # line numbers?"*
-        #
-        # ! SO LEADING IS TIED TO THE PLACE IT FOLLOWS, not inserted into the
-        # sequence -- see `Page.leading`. `cue` cannot emit a `d`,
-        # because it runs before any prose is read and leading exists only where
-        # the lexer found a blank run; an edge needs no position in `cue`'s
-        # list, so `cue` does not have to know.
-        edges = tie_leading(got, cues)
-    # ! THE PAGE STATES ITS OWN PATH on every paragraph, empty places included.
-    # `empty_places` builds them without one -- it is handed the text, not the
-    # file -- and a paragraph with no path is one no consumer can place.
+    prose = [vars(b) for b in got]
+    cues = places_on(text, prose, lang)
+    code = code_lines(text, prose)
+    document_declarations(got, declarations(text, lang, code), code)
+    here = rel if rel is not None else path.as_posix()
+    files = cues.file_places()
+    leads = iter(range(10**9))
+    for b in sorted(got, key=lambda b: b.original_start or 0):
+        if b.kind == Kind.LEADING:
+            b.symbol = f"{LEAD}{next(leads)}"
+            b.address = ""
+            continue
+        if b.kind == Kind.MATTER and b.address.startswith(DECLARED):
+            b.kind = Kind.COMMENT
+        if b.kind == Kind.MATTER:
+            place = files[0] if b.original_start == 1 else files[-1]
+        else:
+            stamped = b.address if b.address in cues.places else ""
+            place = stamped or attach(vars(b), cues)
+        b.address = address_for(here, place)
+        b.anchor = cues.anchor_of(place, b.anchor)
+    occupied = {b.address.split("@")[-1] for b in got if "@" in b.address}
+    empty_paragraphs = empty_places(text, cues, occupied)
+    if isinstance(empty_paragraphs, ReadFailure):
+        return empty_paragraphs
+    for empty in empty_paragraphs:
+        empty.address = address_for(here, empty.address)
+        got.append(empty)
+    for b in got:
+        cue = b.address.split("@")[-1]
+        b.anchor_line = cues.anchor_line(cue) if cue else None
+        b.anchor_num = cues.anchor_num(cue) if cue else 0
+    fill_the_gaps(text, got)
+    edges = tie_leading(got, cues)
+
     where = rel if rel is not None else path.as_posix()
     for b in got:
         b.path = where
-    # ! An UNPARSED file never reached `cue`, so it has no cues. An empty
-    # one is the honest answer: the page carries no places, and a consumer that
-    # asks gets nothing rather than a table built over code lines that were
-    # never established.
     return Page(
         path=rel if rel is not None else path.as_posix(),
         text=text,

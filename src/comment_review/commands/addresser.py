@@ -15,6 +15,7 @@ from comment_review.binder.binder import Binder
 from comment_review.constants import text_lines
 from comment_review.flows.page_for import page_of
 from comment_review.flows.proof_io import load_binder
+from comment_review.flows.read_diagnostics import format_failure
 from comment_review.reading.addresser import (
     DECLARED,
     SERIES,
@@ -22,6 +23,7 @@ from comment_review.reading.addresser import (
     cue_of,
     unflatten,
 )
+from comment_review.reading.diagnostics import ReadFailure
 from comment_review.reading.paragraph import Paragraph
 
 
@@ -232,9 +234,9 @@ def _at_line(binder: Binder, file: str, line: int, series: str) -> int:
     except ValueError:
         print(f"{file} is not under the binder's root {binder.root}")
         return 2
-    page, why = page_of(binder.root / rel, rel=rel)
-    if page is None:
-        print(f"{rel} {why}")
+    page = page_of(binder.root / rel, rel=rel)
+    if isinstance(page, ReadFailure):
+        print(format_failure(page, path=rel))
         return 2
     count = len(text_lines(page.text))
     if not 1 <= line <= count:

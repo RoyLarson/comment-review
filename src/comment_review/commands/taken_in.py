@@ -29,8 +29,11 @@ from pathlib import Path
 
 from comment_review.binder.binder import bind
 from comment_review.differences import unified
-from comment_review.flows.page_for import page_of, source_of
+from comment_review.flows.page_for import page_of
+from comment_review.flows.read_diagnostics import format_failure
+from comment_review.flows.source import source_of
 from comment_review.machine.repo import walk_files
+from comment_review.reading.diagnostics import ReadFailure
 from comment_review.reading.lexer import language_for
 
 
@@ -81,19 +84,33 @@ def main(argv: list[str] | None = None) -> int:
     # unreadable, and one bad page is not a bad root.
     skipped: list[str] = []
     for rel in rels:
-        before_source, why_before = source_of(original / rel)
-        after_source, why_after = source_of(revise / rel)
-        if before_source is None or after_source is None:
-            skipped.append(f"{rel}: {why_before or why_after}")
+        before_source = source_of(original / rel)
+        after_source = source_of(revise / rel)
+        if isinstance(before_source, ReadFailure) or isinstance(
+            after_source, ReadFailure
+        ):
+            failure = (
+                before_source
+                if isinstance(before_source, ReadFailure)
+                else after_source
+            )
+            assert isinstance(failure, ReadFailure)
+            skipped.append(format_failure(failure, path=rel))
             continue
         if before_source.text == after_source.text:
             continue
         print("".join(unified(before_source.text, after_source.text, rel)), end="")
 
-        before_page, why_before = page_of(original / rel, rel=rel, source=before_source)
-        after_page, why_after = page_of(revise / rel, rel=rel, source=after_source)
-        if before_page is None or after_page is None:
-            skipped.append(f"{rel}: {why_before or why_after} (addresses not compared)")
+        before_page = page_of(original / rel, rel=rel, source=before_source)
+        after_page = page_of(revise / rel, rel=rel, source=after_source)
+        if isinstance(before_page, ReadFailure) or isinstance(after_page, ReadFailure):
+            failure = (
+                before_page if isinstance(before_page, ReadFailure) else after_page
+            )
+            assert isinstance(failure, ReadFailure)
+            skipped.append(
+                f"{format_failure(failure, path=rel)} (addresses not compared)"
+            )
             continue
         before_binder = bind(
             [before_page], read_from={"root": str(original), "revise": 0}

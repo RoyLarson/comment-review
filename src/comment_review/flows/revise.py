@@ -39,8 +39,10 @@ from comment_review.desk.collator import known_addresses
 from comment_review.docket.docket import Docket
 from comment_review.flows import proof_setter
 from comment_review.flows.page_for import page_of
+from comment_review.flows.read_diagnostics import format_failure
 from comment_review.machine.repo import remove_tree
 from comment_review.reading.addresser import address_for
+from comment_review.reading.diagnostics import ReadFailure
 
 
 class Pulled(NamedTuple):
@@ -226,9 +228,10 @@ def _binder_over(root: Path, revise: int, pages: list[str]) -> Binder:
     root = Path(root)
     held = []
     for rel in pages:
-        page, why = page_of(root / rel, rel=rel)
-        if page is not None:
-            held.append(page)
+        page = page_of(root / rel, rel=rel)
+        if isinstance(page, ReadFailure):
+            raise AddressesMoved(format_failure(page, path=rel))
+        held.append(page)
     return bind(held, read_from={"root": str(root), "revise": revise}, absent=True)
 
 

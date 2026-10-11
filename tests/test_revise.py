@@ -53,6 +53,7 @@ from comment_review.flows.transcribe import (
     docket_of,
     docket_of_proof,
 )
+from comment_review.reading.diagnostics import ReadFailure
 
 
 def a_copy(root: Path, role: str, paragraphs: dict[str, str], marks: dict) -> EditCopy:
@@ -265,8 +266,8 @@ class TestDocketOf:
             },
         )
         (root / "n.py").write_text("v0 = 0\nv1 = 1\n", encoding="utf-8", newline="\n")
-        page, why = page_of(root / "n.py", rel="n.py")
-        assert page is not None, why
+        page = page_of(root / "n.py", rel="n.py")
+        assert not isinstance(page, ReadFailure), page
         docket = docket_of(copy, root)
         assert [one.path for one in docket.schedules] == ["m.py", "n.py"]
         landed = docket.schedules[1]
@@ -422,8 +423,8 @@ class TestDocketOf:
         )
         copy = returned(copies_over(binder, {"block-context": {"m.py@b1": move}})[0])
         (mark,) = entries_of(copy)
-        page, why = page_of(root / "m.py", rel="m.py")
-        assert page is not None, why
+        page = page_of(root / "m.py", rel="m.py")
+        assert not isinstance(page, ReadFailure), page
         schedule = docket_of(copy, root).schedules[0]
         assert [(one.cue, one.anchor) for one in schedule.alterations] == [
             ("b0", page.cues.places["b0"]),
@@ -782,8 +783,8 @@ class TestDocketOfProof:
             },
             texts={"m.py@b1": BASE},
         )
-        page, why = page_of(repo / "n.py", rel="n.py")
-        assert page is not None, why
+        page = page_of(repo / "n.py", rel="n.py")
+        assert not isinstance(page, ReadFailure), page
         docket = docket_of_proof(proof, repo)
         assert [one.path for one in docket.schedules] == ["m.py", "n.py"]
         landed = docket.schedules[1]

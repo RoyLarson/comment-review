@@ -248,6 +248,9 @@ class TestAPageCarriesTheShaItWasGiven:
         lang = language_for(path)
         assert lang is not None, f"no language record for suffix {path.suffix!r}"
         page = page_for(path, SAMPLE, lang, rel="m.py", sha="deadbeef")
+        from comment_review.reading.diagnostics import ReadFailure
+
+        assert not isinstance(page, ReadFailure), page
         assert page.sha == "deadbeef"
 
     def test_the_sha_is_required(self):

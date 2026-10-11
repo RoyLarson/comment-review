@@ -21,6 +21,7 @@ from comment_review.flows.distribute import seed
 from comment_review.flows.transcribe import docket_of
 from comment_review.machine.repo import undraftable
 from comment_review.reading.addresser import cue_of
+from comment_review.reading.diagnostics import ReadFailure
 from comment_review.results import compositor, galley
 from comment_review.results.prove_unchanged import code_fingerprint
 
@@ -575,8 +576,8 @@ class TestOnePlaceTakesOneAlteration:
         where = address(binder, "m.py")
         at = cue_of(where).cue
         (page,) = binder.pages
-        held, why = page_for_mod.page_of(repo / "m.py", rel="m.py")
-        assert held is not None, why
+        held = page_for_mod.page_of(repo / "m.py", rel="m.py")
+        assert not isinstance(held, ReadFailure), held
         anchor = held.cues.places[at]
         docket = Docket(
             schedules=(
@@ -1171,6 +1172,7 @@ def test_a_CUE_COLLISION_in_the_draft_is_REFUSED_and_not_last_one_wins(
 
     def colliding_page_for(path, *args, **kwargs):
         page = real_page_for(path, *args, **kwargs)
+        assert not isinstance(page, ReadFailure), page
         if not Path(path).resolve().is_relative_to(into.resolve()):
             return page
         addressed = [b for b in page if b.address]

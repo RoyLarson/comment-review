@@ -62,6 +62,7 @@ from comment_review import constants, exceptions
 from comment_review.binder.page import Page, page_for
 from comment_review.machine.repo import read_source, write_raw
 from comment_review.reading.addresser import GAP, ON, cue_of
+from comment_review.reading.diagnostics import ReadFailure
 
 # !! THE OTHER DIRECT IMPORTER OF THE ROWS -- see `language.py`. The lexer reads
 # a file into paragraphs and this sets a page back into one, so these two are
@@ -434,8 +435,13 @@ def lossless(path: Path) -> str | None:
     lang = language_for(path)
     if lang is None:
         return f"no language record for {path.suffix!r}"
+    page = page_for(path, text, lang, sha=source.sha)
+    if isinstance(page, ReadFailure):
+        return "; ".join(
+            f"{d.stage.value}/{d.code}: {d.message}" for d in page.diagnostics
+        )
     try:
-        got = set_page(page_for(path, text, lang, sha=source.sha))
+        got = set_page(page)
     except exceptions.Refused as exc:
         return str(exc)
     if sorted(constants.text_lines(got)) == sorted(constants.text_lines(text)):
@@ -467,6 +473,10 @@ def identity(path: Path) -> str | None:
     if lang is None:
         return f"no language record for {path.suffix!r}"
     page = page_for(path, text, lang, sha=source.sha)
+    if isinstance(page, ReadFailure):
+        return "; ".join(
+            f"{d.stage.value}/{d.code}: {d.message}" for d in page.diagnostics
+        )
     try:
         got = set_page(page)
     except exceptions.Refused as exc:

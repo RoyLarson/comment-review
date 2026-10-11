@@ -68,6 +68,7 @@ from comment_review.binder.page import page_for  # noqa: E402
 from comment_review.docket.docket import Docket  # noqa: E402
 from comment_review.machine.repo import sha_of  # noqa: E402
 from comment_review.reading.addresser import cue_of, unflatten  # noqa: E402
+from comment_review.reading.diagnostics import ReadFailure  # noqa: E402
 from comment_review.reading.lexer import language_for  # noqa: E402
 from comment_review.reading.paragraph import Paragraph  # noqa: E402
 
@@ -85,7 +86,9 @@ def build(text: str, name: str = "m.py"):
     path = Path(name)
     lang = language_for(path)
     assert lang is not None, f"no language record for suffix {path.suffix!r}"
-    return page_for(path, text, lang, rel=name, sha=sha_of(text))
+    page = page_for(path, text, lang, rel=name, sha=sha_of(text))
+    assert not isinstance(page, ReadFailure), page
+    return page
 
 
 def cue(paragraph) -> str:

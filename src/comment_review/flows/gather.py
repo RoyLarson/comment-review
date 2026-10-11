@@ -46,7 +46,9 @@ from comment_review.binder.binder import Binder, bind
 from comment_review.binder.page import Page
 from comment_review.concordance.code_names import code_names
 from comment_review.flows.annotations_for import annotations_for
-from comment_review.flows.page_for import page_of, source_of
+from comment_review.flows.page_for import page_of
+from comment_review.flows.read_diagnostics import format_failure
+from comment_review.flows.source import source_of
 from comment_review.machine.repo import (
     path_index,
     relative_to,
@@ -54,6 +56,7 @@ from comment_review.machine.repo import (
     walk_files,
 )
 from comment_review.reading.addresser import SEPARATOR
+from comment_review.reading.diagnostics import ReadFailure
 from comment_review.reading.lexer import language_for
 from comment_review.reading.paragraph import Paragraph
 
@@ -121,9 +124,9 @@ def _pages(g: Gathering) -> None:
     # same walk, which is what stops the two disagreeing about what was
     # gathered.
     for path in g.files:
-        source, why = source_of(path)
-        if source is None:
-            g.unreadable.append(f"{path.as_posix()} ({why})")
+        source = source_of(path)
+        if isinstance(source, ReadFailure):
+            g.unreadable.append(format_failure(source, path=path.as_posix()))
             continue
         # !! EVERY PARAGRAPH'S PATH IS REPO-RELATIVE. It is what `--repo` is for:
         # the binder, the file lists and every citation a reviewer writes all
@@ -167,42 +170,9 @@ def _pages(g: Gathering) -> None:
         # against the root every citation resolves to. It was stamped afterwards
         # for as long as `page_for` returned an unaddressed page, which is
         # the split that let a direct caller receive half a page.
-        try:
-            got, why = page_of(path, rel=rel, source=source)
-        except Exception as e:  # a parse failure is REPORTED, as a gap
-            g.unreadable.append(f"{path.as_posix()} ({type(e).__name__}: {e})")
-            continue
-        if got is None:
-            g.unreadable.append(f"{path.as_posix()} ({why})")
-            continue
-        # !! AN UNPARSED PAGE IS NOT A GATHERED FILE, AND IT ARRIVED AS ONE.
-        # The `except` above cannot see this: `paragraphs_stdlib` CATCHES the
-        # parse failure and returns a single `unparsed` paragraph rather than
-        # raising, `page_for` then gives that page no cues and no addresses,
-        # and `carried` hands over only paragraphs that HAVE one -- so even the
-        # paragraph reporting the refusal is filtered away. The file was read,
-        # produced nothing, and the run said success.
-        #
-        # !! MEASURED 2026-08-29, one file per run over one nine-line control:
-        # the control gathered 11 paragraphs at exit 0, while a UTF-8 BOM, a
-        # syntax error, a NUL byte and an unterminated string each gathered
-        # **0 paragraphs AT EXIT 0**. The same control's DECODE failures --
-        # latin-1 bytes, a UTF-16 BOM -- correctly exited 1, caught upstream.
-        #
-        # !! SO THE RUN REFUSED WHAT IT COULD NOT DECODE AND SILENTLY SKIPPED
-        # WHAT IT COULD NOT PARSE. `CLAUDE.md` states the contract the
-        # asymmetry breaks -- *every file handed in is gathered or the run
-        # stops* -- and a file mid-refactor with a real syntax error is the
-        # common case, not an exotic one: its prose reached no reviewer while
-        # stdout reported a complete run.
-        #
-        # ! IT JOINS `unreadable`, which is what makes it as loud as the decode
-        # failure: named on stderr, and exit 1. The reader's own message is the
-        # reason, so the file
-        # says WHY it could not be read rather than merely that it was skipped.
-        refused = next((b for b in got.paragraphs if b.kind == "unparsed"), None)
-        if refused is not None:
-            g.unreadable.append(f"{path.as_posix()} ({refused.text})")
+        got = page_of(path, rel=rel, source=source)
+        if isinstance(got, ReadFailure):
+            g.unreadable.append(format_failure(got, path=rel))
             continue
         g.pages.append(got)
         g.paragraphs.extend(carried(got))
