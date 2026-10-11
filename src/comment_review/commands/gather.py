@@ -21,6 +21,7 @@ from comment_review.flows.gather import (
     not_gathered,
     unaddressed_report,
 )
+from comment_review.flows.reading_context import load_settings
 from comment_review.reading.language import language_from_definition
 from comment_review.reading.readers import supported_definitions, tier_for
 
@@ -53,7 +54,15 @@ def main() -> int:
         action="store_true",
         help="list known languages and the tier each reaches, then exit",
     )
+    ap.add_argument("--reading-settings", type=Path, metavar="FILE")
     args = ap.parse_args()
+    args.settings = {}
+    if args.reading_settings is not None:
+        args.settings, problems = load_settings(args.reading_settings, Path(args.repo))
+        if problems:
+            for problem in problems:
+                print(problem, file=sys.stderr)
+            return 2
 
     # !! NO PATHS IS A REFUSAL, NOT AN EMPTY BINDER. `paths` is `nargs="*"` so
     # `--languages` can run without one, and everything else with none produced
@@ -100,7 +109,11 @@ def _report(args: argparse.Namespace) -> int:
 
     repo = Path(args.repo).resolve()
     got = gather(
-        repo, [Path(p) for p in args.paths], args.revise, absent=args.include_absent
+        repo,
+        [Path(p) for p in args.paths],
+        args.revise,
+        absent=args.include_absent,
+        settings=args.settings,
     )
 
     # !! THE GATE FIRST. `--out` is the route SKILL.md mandates for the binder

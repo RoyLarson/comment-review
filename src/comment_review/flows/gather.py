@@ -38,7 +38,7 @@ each LANGUAGE reaches, which is a fact about the language rather than a fact
 about a place, and is where to look when a file's reader could not answer.
 """
 
-from collections.abc import Callable, Iterable
+from collections.abc import Callable, Iterable, Mapping
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -48,6 +48,7 @@ from comment_review.concordance.code_names import code_names
 from comment_review.flows.annotations_for import annotations_for
 from comment_review.flows.page_for import page_of
 from comment_review.flows.read_diagnostics import format_failure
+from comment_review.flows.reading_context import context_for
 from comment_review.flows.source import source_of
 from comment_review.machine.repo import (
     path_index,
@@ -56,6 +57,7 @@ from comment_review.machine.repo import (
     walk_files,
 )
 from comment_review.reading.addresser import SEPARATOR
+from comment_review.reading.context import ReadingContext
 from comment_review.reading.diagnostics import ReadFailure
 from comment_review.reading.lexer import language_for
 from comment_review.reading.paragraph import Paragraph
@@ -90,6 +92,8 @@ class Gathering:
     #: what the pages carry, flat, in page order -- see `carried`
     paragraphs: list[Paragraph] = field(default_factory=list)
     binder: Binder = field(init=False)
+    settings: Mapping[Path, Mapping[str, str]] = field(default_factory=dict)
+    reading_contexts: dict[Path, ReadingContext] = field(default_factory=dict)
 
 
 def _walk(g: Gathering) -> None:
@@ -124,6 +128,11 @@ def _pages(g: Gathering) -> None:
     # same walk, which is what stops the two disagreeing about what was
     # gathered.
     for path in g.files:
+        context = context_for(path, g.settings.get(path.resolve(), {}))
+        if isinstance(context, ReadFailure):
+            g.unreadable.append(format_failure(context, path=path.as_posix()))
+            continue
+        g.reading_contexts[path.resolve()] = context
         source = source_of(path)
         if isinstance(source, ReadFailure):
             g.unreadable.append(format_failure(source, path=path.as_posix()))
@@ -170,7 +179,7 @@ def _pages(g: Gathering) -> None:
         # against the root every citation resolves to. It was stamped afterwards
         # for as long as `page_for` returned an unaddressed page, which is
         # the split that let a direct caller receive half a page.
-        got = page_of(path, rel=rel, source=source)
+        got = page_of(path, rel=rel, source=source, reading_context=context)
         if isinstance(got, ReadFailure):
             g.unreadable.append(format_failure(got, path=rel))
             continue
@@ -227,7 +236,12 @@ STEPS: tuple[Callable[[Gathering], None], ...] = (_walk, _pages, _annotations, _
 
 
 def gather(
-    repo: Path, targets: list[Path], revise: int, absent: bool = False
+    repo: Path,
+    targets: list[Path],
+    revise: int,
+    absent: bool = False,
+    *,
+    settings: Mapping[Path, Mapping[str, str]] | None = None,
 ) -> Gathering:
     """Every page under `targets`, annotated and bound, with the gaps named.
 
@@ -238,11 +252,17 @@ def gather(
             number for a revise root pulled after it. Stamped into `read_from`.
         absent: carry the EMPTY places too -- see the command's
             `--include-absent`.
+        settings: fresh per-file overrides keyed by source path.
 
     Returns:
         The `Gathering` every step has written to. `binder` is set.
     """
     g = Gathering(repo, targets, revise, absent)
+    g.settings = (
+        {path.resolve(): value for path, value in settings.items()}
+        if settings is not None
+        else {}
+    )
     for step in STEPS:
         step(g)
     return g

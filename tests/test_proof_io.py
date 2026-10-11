@@ -37,6 +37,13 @@ def a_proof(tmp_path):
     )
 
 
+def test_load_value_optional_pairs_hook_preserves_raw_duplicates(tmp_path):
+    path = tmp_path / "settings.json"
+    path.write_text('{"key":1,"key":2}', encoding="utf-8")
+    assert load_value(path) == ({"key": 2}, [])
+    assert load_value(path, object_pairs_hook=list) == ([("key", 1), ("key", 2)], [])
+
+
 class TestTheRoundTrip:
     def test_what_save_writes_load_reads_back_equal(self, tmp_path):
         proof = a_proof(tmp_path)

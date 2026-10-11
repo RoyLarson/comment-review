@@ -7,6 +7,7 @@ from hashlib import sha256
 from re import fullmatch
 
 from comment_review.reading.definitions import LanguageDefinition
+from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, ReadStage
 
 
 def _json_value(value: object) -> object:
@@ -89,3 +90,47 @@ class ReadingContext:
 def compatible_contexts(saved: ReadingContext, current: ReadingContext) -> bool:
     """Return whether all saved and current context fields match."""
     return saved == current
+
+
+def resolve_context(
+    definition: LanguageDefinition,
+    overrides: Mapping[str, str],
+    *,
+    reader_revision: str,
+    placement_revision: str,
+    grammar_identity: str,
+) -> ReadingContext | ReadFailure:
+    """Resolve fresh settings using only the definition's declared choices."""
+    problems: list[str] = []
+    if not isinstance(overrides, Mapping):
+        problems.append("settings must be a mapping of string choices")
+    else:
+        for key, value in overrides.items():
+            if not isinstance(key, str) or not key or not isinstance(value, str):
+                problems.append(
+                    "settings require nonempty string keys and string values"
+                )
+            elif key not in definition.choices:
+                problems.append(f"unknown setting {key!r} for {definition.language}")
+            elif value not in definition.choices[key]:
+                problems.append(f"unsupported choice {value!r} for setting {key!r}")
+    if problems:
+        return ReadFailure(
+            tuple(
+                ReadDiagnostic(ReadStage.SELECT, "invalid-reading-settings", message)
+                for message in problems
+            )
+        )
+    effective = dict(definition.defaults)
+    effective.update(overrides)
+    return ReadingContext(
+        definition.language,
+        definition.reader,
+        compatibility_identity(
+            definition,
+            reader_revision=reader_revision,
+            placement_revision=placement_revision,
+            grammar_identity=grammar_identity,
+        ),
+        tuple(sorted(effective.items())),
+    )

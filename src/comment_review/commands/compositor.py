@@ -11,6 +11,7 @@ from pathlib import Path
 
 from comment_review.flows.compositor import round_trip
 from comment_review.flows.read_diagnostics import format_failure
+from comment_review.flows.reading_context import load_settings
 from comment_review.reading.diagnostics import ReadFailure
 from comment_review.results.compositor import identity, lossless
 
@@ -19,10 +20,19 @@ def main(argv: list[str] | None = None) -> int:
     """Compare each round trip; fail on refusals or lost or invented lines."""
     parser = argparse.ArgumentParser(description="Set a page as text.")
     parser.add_argument("paths", nargs="+", type=Path)
+    parser.add_argument("--repo", type=Path, default=Path("."))
+    parser.add_argument("--reading-settings", type=Path, metavar="FILE")
     args = parser.parse_args(argv)
+    settings = {}
+    if args.reading_settings is not None:
+        settings, problems = load_settings(args.reading_settings, args.repo)
+        if problems:
+            for problem in problems:
+                print(problem)
+            return 2
     same = moved = broken = 0
     for path in args.paths:
-        result = round_trip(path)
+        result = round_trip(path, settings=settings.get(path.resolve(), {}))
         if isinstance(result, ReadFailure):
             broken += 1
             print(f"  LOSSY   {format_failure(result, path=path.as_posix())}")

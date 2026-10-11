@@ -27,6 +27,7 @@ advance and close a turn load it.
 """
 
 import json
+from collections.abc import Callable
 from pathlib import Path
 
 from comment_review import exceptions
@@ -56,7 +57,11 @@ def _object(path: Path, noun: str) -> tuple[dict | None, list[str]]:
     return loaded, []
 
 
-def load_value(path: Path) -> tuple[object, list[str]]:
+def load_value(
+    path: Path,
+    *,
+    object_pairs_hook: Callable[[list[tuple[str, object]]], object] | None = None,
+) -> tuple[object, list[str]]:
     """The file as ANY JSON value, or the reason there is none.
 
     A role's answered batch and the chief's rulings are lists, which
@@ -66,7 +71,7 @@ def load_value(path: Path) -> tuple[object, list[str]]:
     if text is None:
         return None, why
     try:
-        return json.loads(text), []
+        return json.loads(text, object_pairs_hook=object_pairs_hook), []
     except ValueError as err:
         return None, [f"{path} is not JSON: {err}"]
 

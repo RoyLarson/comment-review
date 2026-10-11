@@ -1,0 +1,128 @@
+"""Resolve installed reading metadata and validate fresh per-file overrides."""
+
+from collections.abc import Mapping
+from pathlib import Path, PureWindowsPath
+from typing import cast
+
+from comment_review.flows.proof_io import load_value
+from comment_review.reading.context import ReadingContext, resolve_context
+from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, ReadStage
+from comment_review.reading.readers import reader_for
+
+PLACEMENT_REVISION = "1"
+
+
+def context_for(
+    path: Path, settings: Mapping[str, str]
+) -> ReadingContext | ReadFailure:
+    """Derive current context from installed definition and runtime metadata."""
+    selected = reader_for(path)
+    if isinstance(selected, ReadFailure):
+        return selected
+    if selected is None:
+        return ReadFailure(
+            (
+                ReadDiagnostic(
+                    ReadStage.SELECT,
+                    "unsupported-language",
+                    "No installed code reader for this suffix",
+                ),
+            )
+        )
+    definition, binding = selected
+    return resolve_context(
+        definition,
+        settings,
+        reader_revision=binding.revision,
+        placement_revision=PLACEMENT_REVISION,
+        grammar_identity=binding.grammar_identity,
+    )
+
+
+def reading_problems(
+    saved: Mapping[Path, ReadingContext], current: Mapping[Path, ReadingContext]
+) -> list[str]:
+    """Compare saved metadata without reading source or consulting addresses."""
+    return [
+        f"{path.as_posix()}: current reading context is missing"
+        if path not in current
+        else f"{path.as_posix()}: reading context differs from saved context"
+        for path in sorted(saved)
+        if path not in current or saved[path] != current[path]
+    ]
+
+
+def _unique_object(pairs: list[tuple[str, object]]) -> dict[str, object]:
+    """Reject repeated JSON names before a dictionary can discard them."""
+    result: dict[str, object] = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError(f"duplicate raw key {key!r}")
+        result[key] = value
+    return result
+
+
+def load_settings(
+    path: Path, repo: Path
+) -> tuple[dict[Path, dict[str, str]], list[str]]:
+    """Acquire settings through artifact I/O and normalize relative path keys."""
+    value, problems = load_value(path, object_pairs_hook=_unique_object)
+    if problems:
+        return {}, problems
+    if not isinstance(value, dict):
+        return {}, [f"{path}: reading settings must be a JSON object"]
+    root = repo.resolve()
+    result: dict[Path, dict[str, str]] = {}
+    for raw, settings in value.items():
+        where = f"{path}: entry {raw!r}"
+        if not isinstance(raw, str):
+            problems.append(f"{where}: path keys must be strings")
+            continue
+        windows = PureWindowsPath(raw)
+        parts = raw.replace("\\", "/").split("/")
+        normalized: list[str] = []
+        if not raw or windows.drive or windows.root or "\x00" in raw:
+            problems.append(f"{where}: path must be nonempty and repo-relative")
+            continue
+        escaped = False
+        for part in parts:
+            if part in ("", "."):
+                continue
+            if part == "..":
+                if not normalized:
+                    escaped = True
+                    break
+                normalized.pop()
+            else:
+                normalized.append(part)
+        if escaped or not normalized:
+            problems.append(f"{where}: path is empty or escapes the repo")
+            continue
+        target = (root / Path(*normalized)).resolve()
+        if not target.is_relative_to(root):
+            problems.append(f"{where}: path escapes the repo")
+            continue
+        if not isinstance(settings, dict) or any(
+            not isinstance(key, str) or not key or not isinstance(item, str)
+            for key, item in settings.items()
+        ):
+            problems.append(
+                f"{where}: settings must be an object of nonempty string keys "
+                "and string values"
+            )
+            continue
+        if target in result and result[target] != settings:
+            problems.append(
+                f"{where}: conflicting normalized path "
+                f"{target.relative_to(root).as_posix()!r}"
+            )
+            continue
+        choices = cast(dict[str, str], settings)
+        context = context_for(target, choices)
+        if isinstance(context, ReadFailure):
+            problems.extend(
+                f"{where}: {diagnostic.message}" for diagnostic in context.diagnostics
+            )
+            continue
+        result[target] = choices
+    return ({}, problems) if problems else (result, [])

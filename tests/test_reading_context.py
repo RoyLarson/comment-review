@@ -1,13 +1,18 @@
 from dataclasses import FrozenInstanceError, replace
 from hashlib import sha256
 from inspect import signature
+from pathlib import Path
 from typing import Any
 
 import pytest
 
+from comment_review.flows import reading_context as flow_context
+from comment_review.flows.compositor import round_trip
+from comment_review.flows.gather import gather
 from comment_review.reading import context as context_module
 from comment_review.reading.context import ReadingContext, compatible_contexts
 from comment_review.reading.definitions import LanguageDefinition, decode_definition
+from comment_review.reading.diagnostics import ReadFailure
 from comment_review.reading.registry import LanguageRegistry
 
 
@@ -22,6 +27,227 @@ def definition() -> LanguageDefinition:
         {"mode": ("", "wide")},
         {"nested": {"tokens": ["\u03bb", True, 1]}},
     )
+
+
+def resolve(settings):
+    return context_module.resolve_context(
+        definition(),
+        settings,
+        reader_revision="reader-1",
+        placement_revision="placement-1",
+        grammar_identity="grammar-1",
+    )
+
+
+def test_resolve_explicit_default_and_independent_override():
+    default = resolve({})
+    override = resolve({"mode": "wide"})
+    assert isinstance(default, ReadingContext)
+    assert isinstance(override, ReadingContext)
+    assert default.settings == (("mode", ""),)
+    assert override.settings == (("mode", "wide"),)
+    assert (
+        default.compatibility
+        == "cefc5dc0563af6a3a811daa0bd6e7babbd224ca9ee1a3150c97e81adfc9be1fa"
+    )
+
+
+@pytest.mark.parametrize(
+    "settings",
+    [[], {"unknown": "wide"}, {"mode": "bad"}, {"mode": 1}, {1: "wide"}, {"": ""}],
+)
+def test_resolve_rejects_malformed_or_unsupported_settings(settings):
+    assert isinstance(resolve(settings), ReadFailure)
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "[]",
+        "{",
+        '{"x.py":{},"x.py":{}}',
+        '{"x.py":{"mode":"a","mode":"a"}}',
+        '{"/x.py":{}}',
+        '{"C:x.py":{}}',
+        '{"\\\\\\\\host\\\\x.py":{}}',
+        '{"":{}}',
+        '{".":{}}',
+        '{"../x.py":{}}',
+        '{"x.py":[]}',
+        '{"x.py":{"mode":1}}',
+        '{"x.py":{"":"a"}}',
+        '{"x.py":{},"./x.py":{"mode":"a"}}',
+    ],
+)
+def test_settings_json_refuses_bad_shapes_paths_and_duplicates(tmp_path, text):
+    settings = tmp_path / "settings.json"
+    settings.write_text(text, encoding="utf-8")
+    loaded, problems = flow_context.load_settings(settings, tmp_path)
+    assert loaded == {}
+    assert problems and str(settings) in problems[0]
+
+
+def test_settings_normalize_without_discovering_source(tmp_path, monkeypatch):
+    from comment_review.reading.readers import ReaderBinding
+
+    binding = ReaderBinding(
+        "invented-reader",
+        "reader-1",
+        ("comments",),
+        "grammar-1",
+        lambda *_: [],
+        lambda _: None,
+    )
+    monkeypatch.setattr(flow_context, "reader_for", lambda _: (definition(), binding))
+    settings = tmp_path / "settings.json"
+    settings.write_text(
+        '{"dir/../x.ix":{"mode":"wide"},"./x.ix":{"mode":"wide"},"other\\\\y.ix":{}}',
+        encoding="utf-8",
+    )
+    loaded, problems = flow_context.load_settings(settings, tmp_path)
+    assert problems == []
+    assert loaded == {
+        tmp_path / "x.ix": {"mode": "wide"},
+        tmp_path / "other" / "y.ix": {},
+    }
+    assert not (tmp_path / "x.ix").exists()
+
+
+def test_unused_json_entry_is_validated_without_source_acquisition(
+    tmp_path, monkeypatch
+):
+    import importlib
+
+    source = importlib.import_module("comment_review.flows.source")
+
+    def forbidden(_):
+        pytest.fail("settings loader acquired source")
+
+    monkeypatch.setattr(source, "source_of", forbidden)
+    settings = tmp_path / "settings.json"
+    settings.write_text('{"missing.py":{"invented":"yes"}}', encoding="utf-8")
+    loaded, problems = flow_context.load_settings(settings, tmp_path)
+    assert loaded == {}
+    assert problems and "missing.py" in problems[0] and "unknown setting" in problems[0]
+    settings.write_text('{"missing.py":{}}', encoding="utf-8")
+    assert flow_context.load_settings(settings, tmp_path) == (
+        {tmp_path / "missing.py": {}},
+        [],
+    )
+    assert not (tmp_path / "missing.py").exists()
+
+
+def test_mixed_contexts_derive_independent_installed_binding_metadata(monkeypatch):
+    from comment_review.reading.readers import ReaderBinding
+
+    binding = ReaderBinding(
+        "invented-reader",
+        "reader-1",
+        ("comments",),
+        "grammar-1",
+        lambda *_: [],
+        lambda _: None,
+    )
+    monkeypatch.setattr(flow_context, "reader_for", lambda _: (definition(), binding))
+    first = flow_context.context_for(Path("a.ix"), {})
+    second = flow_context.context_for(Path("b.ix"), {"mode": "wide"})
+    assert isinstance(first, ReadingContext)
+    assert isinstance(second, ReadingContext)
+    assert first.settings == (("mode", ""),)
+    assert second.settings == (("mode", "wide"),)
+    assert first.compatibility == second.compatibility
+    assert flow_context.reading_problems(
+        {Path("a.ix"): first}, {Path("a.ix"): second}
+    ) == ["a.ix: reading context differs from saved context"]
+    assert flow_context.reading_problems({Path("a.ix"): first}, {}) == [
+        "a.ix: current reading context is missing"
+    ]
+
+
+def test_fresh_flows_reject_settings_before_source_acquisition(tmp_path, monkeypatch):
+    import importlib
+
+    gather_module = importlib.import_module("comment_review.flows.gather")
+    compositor_module = importlib.import_module("comment_review.flows.compositor")
+    path = tmp_path / "x.py"
+    path.write_text("# prose\n", encoding="utf-8")
+
+    def forbidden(_):
+        pytest.fail("source acquired before unsupported setting refusal")
+
+    monkeypatch.setattr(gather_module, "source_of", forbidden)
+    monkeypatch.setattr(compositor_module, "source_of", forbidden)
+    got = gather(tmp_path, [path], 0, settings={path: {"invented": "yes"}})
+    assert got.unreadable and "unknown setting" in got.unreadable[0]
+    assert isinstance(round_trip(path, settings={"invented": "yes"}), ReadFailure)
+
+
+@pytest.mark.parametrize("command", ["gather", "compositor", "prove_unchanged"])
+def test_cli_settings_reach_actual_fresh_flow(tmp_path, monkeypatch, capsys, command):
+    import importlib
+    import sys
+
+    module = importlib.import_module(f"comment_review.commands.{command}")
+    path = tmp_path / "x.py"
+    path.write_text("# prose\n", encoding="utf-8")
+    settings = tmp_path / "settings.json"
+    settings.write_text('{"./x.py":{"invented":"yes"}}', encoding="utf-8")
+    argv = [
+        command,
+        str(path),
+        "--repo",
+        str(tmp_path),
+        "--reading-settings",
+        str(settings),
+    ]
+    if command == "prove_unchanged":
+        argv += ["--base", "HEAD"]
+    monkeypatch.setattr(sys, "argv", argv)
+    assert module.main() == 2
+    captured = capsys.readouterr()
+    assert "unknown setting 'invented'" in captured.out + captured.err
+    settings.write_text('{"x.py":{},"x.py":{}}', encoding="utf-8")
+    assert module.main() == 2
+    captured = capsys.readouterr()
+    assert "duplicate raw key" in captured.out + captured.err
+    from comment_review.reading.readers import ReaderBinding
+
+    binding = ReaderBinding(
+        "invented-reader",
+        "reader-1",
+        ("comments",),
+        "grammar-1",
+        lambda *_: [],
+        lambda _: None,
+    )
+    monkeypatch.setattr(flow_context, "reader_for", lambda _: (definition(), binding))
+    entry = {"gather": "gather", "compositor": "round_trip", "prove_unchanged": "run"}[
+        command
+    ]
+    actual = getattr(module, entry)
+    received = []
+
+    def capture(*args, **kwargs):
+        received.append(kwargs["settings"])
+        return actual(*args, **kwargs)
+
+    monkeypatch.setattr(module, entry, capture)
+    settings.write_text('{"x.py":{"mode":"wide"}}', encoding="utf-8")
+    assert module.main() == (1 if command == "prove_unchanged" else 0)
+    assert received == (
+        [{"mode": "wide"}] if command == "compositor" else [{path: {"mode": "wide"}}]
+    )
+
+
+def test_default_contexts_are_retained_in_fresh_results(tmp_path):
+    path = tmp_path / "x.py"
+    path.write_text("# prose\n", encoding="utf-8")
+    gathering = gather(tmp_path, [path], 0)
+    assert gathering.reading_contexts[path].language == "python"
+    result = round_trip(path)
+    assert not isinstance(result, ReadFailure)
+    assert isinstance(result.reading_context, ReadingContext)
+    assert result.reading_context.settings == ()
 
 
 def identity(value: LanguageDefinition, **revisions: str) -> str:
