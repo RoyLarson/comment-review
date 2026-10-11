@@ -1,4 +1,7 @@
-from dataclasses import FrozenInstanceError
+import subprocess
+import sys
+from dataclasses import FrozenInstanceError, fields
+from pathlib import Path
 from typing import Any, cast
 
 import pytest
@@ -824,3 +827,91 @@ def test_ownership_rejects_duplicate_module_or_declaration_owner(owner):
 def test_ownership_rejects_wrong_link_order():
     with pytest.raises(ValueError, match=r"documentation\[1\].*section.*0"):
         ownership_structure((DocumentationOwner(3, 1), DocumentationOwner(0, None)))
+
+
+def boundary_structure():
+    return SourceStructure(
+        "item\n# note",
+        (SourceRegion(SourceSpan(0, 11), RegionKind.CODE),),
+        (SourceSection(SourceSpan(5, 11), "atlas/line"),),
+        (SourceDeclaration(SourceSpan(0, 4), 0, "atlas/item"),),
+        (DocumentationOwner(0, 0),),
+    )
+
+
+def test_boundary_all_source_record_and_container_fields_are_frozen():
+    source = boundary_structure()
+    records = (
+        source,
+        source.regions[0],
+        source.sections[0],
+        source.declarations[0],
+        source.documentation[0],
+        source.regions[0].span,
+        source.position(0),
+    )
+    for record in records:
+        for record_field in fields(record):
+            with pytest.raises(FrozenInstanceError):
+                setattr(record, record_field.name, None)
+            with pytest.raises(FrozenInstanceError):
+                delattr(record, record_field.name)
+
+
+@pytest.mark.parametrize(
+    "field", ["regions", "sections", "declarations", "documentation", "_line_starts"]
+)
+def test_boundary_source_collections_and_derived_line_starts_are_tuples(field):
+    source = boundary_structure()
+    collection = getattr(source, field)
+    assert isinstance(collection, tuple)
+    assert collection
+    with pytest.raises(TypeError):
+        collection[0] = None
+    with pytest.raises(AttributeError):
+        collection.append(None)
+    assert source._line_starts == (0, 5)
+    assert source.reconstruct() == "item\n# note"
+
+
+@pytest.mark.parametrize(
+    "field", ["regions", "sections", "declarations", "documentation"]
+)
+@pytest.mark.parametrize("empty", [False, True])
+def test_boundary_constructor_rejects_mutable_list_collections(field, empty):
+    source = boundary_structure()
+    values: dict[str, Any] = {
+        "text": source.text,
+        "regions": source.regions,
+        "sections": source.sections,
+        "declarations": source.declarations,
+        "documentation": source.documentation,
+    }
+    values[field] = [] if empty else list(values[field])
+    with pytest.raises(ValueError, match=rf"^{field} must be a tuple$"):
+        SourceStructure(**values)
+
+
+def test_boundary_source_import_does_not_load_workflow_modules():
+    src = Path(__file__).resolve().parents[1] / "src"
+    script = """
+import sys
+
+sys.path.insert(0, sys.argv[1])
+import comment_review.reading.source
+
+forbidden = {"binder", "desk", "flows", "results", "lexer", "paragraph", "addresser"}
+loaded = sorted(
+    name for name in sys.modules
+    if name.startswith("comment_review.")
+    and forbidden.intersection(name.split("."))
+)
+assert not loaded, f"Source import loaded workflow modules: {loaded}"
+"""
+    result = subprocess.run(
+        [sys.executable, "-I", "-c", script, str(src)],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert result.returncode == 0, result.stderr
