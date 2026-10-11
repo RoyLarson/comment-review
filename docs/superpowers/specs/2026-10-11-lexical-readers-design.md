@@ -52,6 +52,18 @@ the future markup work.
 
 ## Responsibilities
 
+The shipped implementation is pure Python and runs locally with the Python
+standard library. Source reading and proof require no third-party packages,
+native parser libraries, external parser processes or runtime downloads. The
+existing dependency gate remains a completion check for this work.
+
+Existing parser implementations and language grammars are research references
+for recognition algorithms, boundary rules and test cases. Implement the
+required logic within this project using reusable Python parsing machinery and
+language-owned definitions. Independently written fixtures demonstrate that
+logic against the authoritative language rules. Local compilation or syntax
+validation remains the separate agent-run check described below.
+
 Each language has its own specification and definition file. That definition
 owns the language's lexical rules, literal and comment forms, contextual
 distinctions, declaration recognition and documentation placement. It selects
