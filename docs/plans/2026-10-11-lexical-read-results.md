@@ -3,7 +3,7 @@
 ```
 Status:   in-progress
 Progress: 1 of 6 TODO tasks closed
-Plan-tasks: 3 of 13 plan tasks closed
+Plan-tasks: 4 of 13 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (founded by move-t from 2026-10-11-lexical-readers)
@@ -252,7 +252,7 @@ runtime implementation is included in the plan-authoring commit.
 
 ### B - [the-lexer-reads-no-files](../../TODO/the-lexer-reads-no-files.md)
 
-- [ ] T23 | Acquire exact UTF-8 source from files and Git; verify BOM, line
+- [~] T23 | Acquire exact UTF-8 source from files and Git; verify BOM, line
       endings, Unicode, identity and named failures
 - [ ] T24 | Write exact UTF-8 bytes; verify unchanged round trips and encoding
       failure before target truncation
@@ -275,8 +275,9 @@ runtime implementation is included in the plan-authoring commit.
       Unicode and distinct byte offsets
         > 2026-10-11 uv run pytest -q tests/test_reading_source.py
         > 2026-10-11 Complete P13 here; formatter falls back to retained failure context
-- [ ] P3 | Acquire exact filesystem and Git source snapshots; verify UTF-8
-      bytes, identities, failures and one read per snapshot
+- [x] P3 | Exact filesystem and binary Git acquisition verified | 193b7d6c | Acquire
+      exact filesystem and Git source snapshots; verify UTF-8 bytes, identities,
+      failures and one read per snapshot
         > 2026-10-11 uv run pytest -q tests/test_source_io.py
 - [ ] P4 | Encode before writing and expose acquisition outcomes; verify
       untouched targets on encoding errors and located decode failures

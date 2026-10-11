@@ -177,7 +177,7 @@ is at `docs/superpowers/specs/2026-08-23-io-and-the-chain-design.md:17`.
 - [ ] T22 | T22 -- **Correct the spec's `read_raw` row, cited in the
       Objective.** Verify: the row names the nine bypassing source reads rather
       than an absence of callers.
-- [ ] T23 | Acquire exact UTF-8 source from files and Git; verify BOM, line
+- [~] T23 | Acquire exact UTF-8 source from files and Git; verify BOM, line
       endings, Unicode, identity and named failures
 - [ ] T24 | Write exact UTF-8 bytes; verify unchanged round trips and encoding
       failure before target truncation
