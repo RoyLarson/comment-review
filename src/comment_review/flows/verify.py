@@ -200,14 +200,12 @@ def _unresolved(
     if not addr.path or not addr.cue:
         return "it is not a `path@cue` address"
     name = printed_name(addr.path, paths, root) or addr.path
-    from comment_review.flows.on_the_page import real_path
-
     real, page = page_named(
         name,
         paths,
         root,
         cache,
-        reading_context=(contexts or {}).get(real_path(name, paths)),
+        contexts=contexts,
     )
     if isinstance(page, ReadFailure):
         return no_page(real) + ": " + "; ".join(d.message for d in page.diagnostics)
@@ -230,9 +228,10 @@ def texts_at(
 ) -> dict[str, tuple[str, ...]]:
     """Every text a quote on `copy` may be in, keyed by the mark's address.
 
-    `decision-log.md Process: #119`: the text at the mark's own address, read
-    from the page whether or not the binder holds that place or its file. It
-    is "" where no page can be read or the page holds nothing at the place.
+    Each successful lookup offers the page's text at the mark's own address,
+    including an empty string for an absent paragraph or place. Failed reads
+    are omitted rather than offered as empty text. copy_problems presents
+    metadata admission errors and resolution_problems presents page failures.
 
     Args:
         copy: one parsed edit_copy.
@@ -242,10 +241,9 @@ def texts_at(
         contexts: admitted contexts from the supplying binder, when available.
 
     Returns:
-        address -> the texts, one entry per address a ruled mark carries. The
-        tuple holds the page's own text and nothing else; it is a tuple
-        because `desk.collator.verify_report` asks whether a quote is in any
-        of the texts a place offers.
+        address -> the texts for successful lookups only, with a one-element
+        tuple holding the page's text. Metadata admission failure returns an
+        empty mapping; callers use copy_problems for diagnostic presentation.
     """
     out: dict[str, tuple[str, ...]] = {}
     contexts, why = lookup_contexts(copy, contexts)

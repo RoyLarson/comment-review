@@ -127,6 +127,7 @@ def page_named(
     cache: PageCache,
     *,
     reading_context: ReadingContext | None = None,
+    contexts: Mapping[str, ReadingContext] | None = None,
     source: Source | None = None,
     settings: Mapping[str, str] | None = None,
 ) -> tuple[str, Page | ReadFailure]:
@@ -136,6 +137,8 @@ def page_named(
     admitted on every request; a supplied source is compared with the held
     source rather than reacquired. A changed context or source is refused
     without replacing the first result. Unsafe paths never acquire source.
+    A supplied contexts map must contain every recorded path requested;
+    only paths outside those records may acquire fresh default readings.
     """
     real = real_path(name, paths)
     previous = cache.get(real)
@@ -144,7 +147,18 @@ def page_named(
         if previous is None:
             cache[real] = HeldPage(None, None, failure)
         return real, cache[real].result
-    requested = reading_context
+    if contexts is not None and real in paths and real not in contexts:
+        return real, _refusal(
+            "missing-reading-context",
+            f"{real}: saved reading context is missing; regather",
+        )
+    requested = (
+        reading_context
+        if reading_context is not None
+        else contexts.get(real)
+        if contexts is not None
+        else None
+    )
     if requested is None and settings is None and previous is not None:
         requested = previous.context
     context = context_for(
@@ -231,22 +245,13 @@ def held_at(
     addr = cue_of(address)
     if not addr.path or not addr.cue:
         return Held("", "")
-    real = real_path(addr.path, paths)
-    if contexts is not None and real in paths and real not in contexts:
-        return _refusal(
-            "missing-reading-context",
-            f"{real}: saved reading context is missing; regather",
-        )
     _real, page = page_named(
         addr.path,
         paths,
         root,
         cache,
-        reading_context=reading_context
-        if reading_context is not None
-        else contexts.get(real)
-        if contexts
-        else None,
+        reading_context=reading_context,
+        contexts=contexts,
         source=source,
         settings=settings,
     )

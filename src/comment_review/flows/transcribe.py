@@ -157,14 +157,12 @@ def _pages_of(
     out: dict[str, tuple[str, Page]] = {}
     refused: list[str] = []
     for name in dict.fromkeys([flatten(path) for path in known] + list(touched)):
-        from comment_review.flows.on_the_page import real_path
-
         rel, page = page_named(
             name,
             known,
             repo,
             cache,
-            reading_context=(contexts or {}).get(real_path(name, known)),
+            contexts=contexts,
         )
         if not isinstance(page, ReadFailure):
             out[name] = (rel, page)

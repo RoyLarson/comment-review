@@ -341,18 +341,16 @@ def composition_problems(
 def page_text_at(
     copies: list[dict], address: str, root: Path | None, cache: PageCache | None = None
 ) -> str | ReadFailure:
-    """The page's paragraph at `address`, or "" where no page answers for it.
+    """Return the paragraph at an address, or an explicit read failure.
 
-    The page is read whether or not any of `copies` holds a sheet for it, as
-    the collate handler reads it (`decision-log.md Process: #187`): a move
-    may land in a file the run did not gather, and the paragraph already
-    there is what its destination text is held to.
+    Saved contexts are admitted before reading a page. A move may name a
+    destination outside the copies' sheets; its existing paragraph is still
+    the destination's base. Unknown extra paths derive defaults at acquisition.
 
-    An empty answer is not a claim that the place is empty, and nothing here
-    turns an unreadable page into a refusal: an address no page resolves is
-    `flows.verify.resolution_problems`' finding, which `check` and the fold
-    both run, and reporting it twice would refuse at `mark` what the parity
-    case (`no-command-for-the-middle` T99) exists to have `check` name.
+    Successful empty places and malformed addresses return "", as does an
+    unavailable root. Context or page read failures return ReadFailure for
+    fill to present as a refusal. The optional cache shares held snapshots
+    across lookups within the operation.
     """
     if root is None:
         return ""

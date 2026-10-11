@@ -317,6 +317,42 @@ def test_context_merge_conflict_refuses_before_source(
     assert "conflicting reading contexts" in problems[0].message
 
 
+@pytest.mark.parametrize("known", [False, True])
+@pytest.mark.parametrize("saved", [False, True])
+def test_resolution_context_admission_precedes_acquisition(
+    tmp_path, monkeypatch, selectable_context, known, saved
+):
+    from comment_review.flows.verify import _unresolved
+
+    path = tmp_path / "m.py"
+    path.write_text("x = 1\n", encoding="utf-8")
+    calls = []
+    acquire = flow.source_of
+
+    def read(path):
+        calls.append(path)
+        return acquire(path)
+
+    monkeypatch.setattr(flow, "source_of", read)
+    cache = {}
+    why = _unresolved(
+        "m.py@b1",
+        ["m.py"] if known else [],
+        tmp_path,
+        cache,
+        {"m.py": selectable_context} if saved else {},
+    )
+    if known and not saved:
+        assert "saved reading context is missing" in why
+        assert calls == []
+        assert cache == {}
+    else:
+        assert why == ""
+        assert calls == [path]
+        if saved:
+            assert cache["m.py"].context == selectable_context
+
+
 def test_incompatible_context_refused_before_cached_address(tmp_path):
     from dataclasses import replace
 
