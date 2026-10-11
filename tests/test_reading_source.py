@@ -1,4 +1,5 @@
 from dataclasses import FrozenInstanceError
+from typing import Any, cast
 
 import pytest
 
@@ -142,7 +143,9 @@ def test_partition_rejects_empty_region():
 )
 @pytest.mark.parametrize("value", [[], None, ""])
 def test_partition_rejects_invalid_tuple_inputs(field, value):
-    values = dict(text="", regions=(), sections=(), declarations=(), documentation=())
+    values: dict[str, Any] = dict(
+        text="", regions=(), sections=(), declarations=(), documentation=()
+    )
     values[field] = value
     with pytest.raises(ValueError, match=field):
         SourceStructure(**values)
@@ -152,7 +155,7 @@ def test_partition_rejects_invalid_tuple_inputs(field, value):
     "field", ["regions", "sections", "declarations", "documentation"]
 )
 def test_partition_rejects_invalid_referenced_record_types(field):
-    values = dict(
+    values: dict[str, Any] = dict(
         text="a",
         regions=(SourceRegion(SourceSpan(0, 1), RegionKind.CODE),),
         sections=(),
@@ -174,7 +177,9 @@ def test_partition_rejects_invalid_referenced_record_types(field):
     ],
 )
 def test_partition_empty_text_rejects_nonempty_collections(field, value):
-    values = dict(text="", regions=(), sections=(), declarations=(), documentation=())
+    values: dict[str, Any] = dict(
+        text="", regions=(), sections=(), declarations=(), documentation=()
+    )
     values[field] = (value,)
     with pytest.raises(ValueError, match=rf"{field}.*0"):
         SourceStructure(**values)
@@ -658,7 +663,7 @@ def test_ownership_rejects_invalid_index_fields(field, value):
 
 def test_ownership_requires_section_index():
     with pytest.raises(ValueError, match=r"documentation.*section.*None"):
-        DocumentationOwner(None, None)
+        DocumentationOwner(cast(Any, None), None)
 
 
 @pytest.mark.parametrize(
