@@ -3,6 +3,7 @@ from typing import Any, cast, get_args
 
 import pytest
 
+from comment_review.flows.read_diagnostics import LocatedReadFailure, format_failure
 from comment_review.reading.diagnostics import (
     ReadDiagnostic,
     ReadFailure,
@@ -115,3 +116,113 @@ def test_failure_preserves_order_duplicates_and_immutable_tuple():
         cast(Any, failure).diagnostics = (first,)
     with pytest.raises(TypeError):
         cast(Any, failure.diagnostics)[0] = first
+
+
+def test_failure_renderer_uses_retained_context_and_encounter_order():
+    text = "\t\u0065\u0301\r\nZ"
+    diagnostics = (
+        ReadDiagnostic(ReadStage.PLACE, "owner", "No owner", SourceSpan(5, 6)),
+        ReadDiagnostic(ReadStage.LEX, "open", "Open literal", SourceSpan(4, 4)),
+    )
+    failure = LocatedReadFailure(diagnostics, "missing/example.py", "python", text)
+    assert failure.text is text
+    assert failure.diagnostics is diagnostics
+    assert isinstance(failure, ReadFailure)
+    assert format_failure(failure, path=failure.path).splitlines() == [
+        "missing/example.py [python] place/owner: No owner "
+        "(line 2, one-based; column 0, zero-based)",
+        "missing/example.py [python] lex/open: Open literal "
+        "(line 1, one-based; column 4, zero-based)",
+    ]
+
+
+def test_failure_renderer_distinguishes_bytes_and_omitted_context():
+    failure = ReadFailure(
+        (ReadDiagnostic(ReadStage.DECODE, "utf8", "Bad byte", byte_offset=7),)
+    )
+    assert format_failure(failure, path="example.py") == (
+        "example.py decode/utf8: Bad byte (byte offset 7, zero-based)"
+    )
+    acquire = ReadFailure((ReadDiagnostic(ReadStage.ACQUIRE, "io", "Missing file"),))
+    assert (
+        format_failure(acquire, path="example.py")
+        == "example.py acquire/io: Missing file"
+    )
+
+
+def test_failure_renderer_requires_text_for_character_spans_and_allows_empty_eof():
+    failure = ReadFailure(
+        (ReadDiagnostic(ReadStage.LEX, "open", "Open", SourceSpan(0, 0)),)
+    )
+    with pytest.raises(ValueError):
+        format_failure(failure, path="example.py")
+    assert "line 1, one-based; column 0, zero-based" in format_failure(
+        failure, path="example.py", text=""
+    )
+    assert LocatedReadFailure(failure.diagnostics, "example.py", None, "").text == ""
+
+
+@pytest.mark.parametrize("text", [None, "", "x"])
+def test_character_failure_rejects_spans_outside_retained_text(text):
+    failure = ReadFailure(
+        (ReadDiagnostic(ReadStage.LEX, "open", "Open", SourceSpan(1, 2)),)
+    )
+    with pytest.raises(ValueError):
+        LocatedReadFailure(failure.diagnostics, "example.py", None, text)
+    with pytest.raises(ValueError):
+        format_failure(failure, path="example.py", text=text)
+
+
+@pytest.mark.parametrize(
+    "field,value", [("path", None), ("path", 1), ("language", 1), ("text", b"x")]
+)
+def test_located_failure_rejects_invalid_context_types(field, value):
+    values: dict[str, Any] = dict(path="example.py", language=None, text=None)
+    values[field] = value
+    records = (ReadDiagnostic(ReadStage.ACQUIRE, "io", "Missing"),)
+    with pytest.raises(ValueError):
+        LocatedReadFailure(records, **values)
+    with pytest.raises(ValueError):
+        format_failure(ReadFailure(records), **values)
+
+
+@pytest.mark.parametrize("field", ["diagnostics", "path", "language", "text"])
+def test_located_failure_is_frozen(field):
+    failure = LocatedReadFailure(
+        (ReadDiagnostic(ReadStage.ACQUIRE, "io", "Missing"),), "example.py", None, None
+    )
+    with pytest.raises(FrozenInstanceError):
+        setattr(failure, field, None)
+
+
+def test_failure_renderer_explicit_context_overrides_retained_values():
+    failure = LocatedReadFailure(
+        (ReadDiagnostic(ReadStage.LEX, "open", "Open", SourceSpan(1, 1)),),
+        "old.py",
+        "python",
+        "\nx",
+    )
+    rendered = format_failure(failure, path="new.js", language="javascript", text="ab")
+    assert rendered == (
+        "new.js [javascript] lex/open: Open (line 1, one-based; column 1, zero-based)"
+    )
+    with pytest.raises(ValueError):
+        format_failure(failure, path="new.py", text="")
+
+
+def test_failure_renderer_keeps_multiline_messages_on_one_report_line():
+    failure = ReadFailure((ReadDiagnostic(ReadStage.ACQUIRE, "io", "Missing\nfile\r"),))
+    assert format_failure(failure, path="example.py").splitlines() == [
+        "example.py acquire/io: Missing\\nfile\\r"
+    ]
+
+
+@pytest.mark.parametrize("records", [[], (), (None,)])
+def test_located_failure_preserves_base_diagnostic_validation(records):
+    with pytest.raises(ValueError):
+        LocatedReadFailure(records, "example.py", None, None)
+
+
+def test_failure_renderer_rejects_non_failure_input():
+    with pytest.raises(ValueError):
+        format_failure(cast(Any, None), path="example.py")
