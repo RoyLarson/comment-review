@@ -3,7 +3,7 @@
 ```
 Status:   in-progress
 Progress: 4 of 5 TODO tasks closed
-Plan-tasks: 8 of 26 plan tasks closed
+Plan-tasks: 9 of 26 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (founded by move-t from 2026-10-11-lexical-readers)
@@ -410,8 +410,9 @@ because this machinery exists.
 - [x] P8 | Immutable context passes 64 focused tests and independent review | 9414c8f7 | Define
       immutable reading context; verify effective settings, unique keys and
       value equality
-- [ ] P9 | Derive reading compatibility identities; verify relevant changes
-      invalidate and unrelated or cosmetic changes do not
+- [x] P9 | Stable compatibility identities pass 291 focused tests and independent review | 3a07e4e4 | Derive
+      reading compatibility identities; verify relevant changes invalidate and
+      unrelated or cosmetic changes do not
         > 2026-10-11 Include definition and bound-reader revisions independently
 - [ ] P10 | Resolve per-file settings at fresh-run entry points; verify explicit
       defaults, valid modes and independent values
