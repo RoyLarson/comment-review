@@ -114,6 +114,136 @@ def test_partition_accepts_empty_text():
     assert structure("", []).regions == ()
 
 
+def test_classification_reference_distinguishes_literal_comment_and_directive():
+    text = 'let note = "# fake /* data */"; // real\n@keep\n'
+    source = structure(
+        text,
+        [
+            (0, 3, RegionKind.CODE),
+            (3, 4, RegionKind.WHITESPACE),
+            (4, 8, RegionKind.CODE),
+            (8, 9, RegionKind.WHITESPACE),
+            (9, 10, RegionKind.CODE),
+            (10, 11, RegionKind.WHITESPACE),
+            (11, 30, RegionKind.LITERAL),
+            (30, 31, RegionKind.CODE),
+            (31, 32, RegionKind.WHITESPACE),
+            (32, 39, RegionKind.COMMENT),
+            (39, 40, RegionKind.WHITESPACE),
+            (40, 45, RegionKind.DIRECTIVE),
+            (45, 46, RegionKind.WHITESPACE),
+        ],
+    )
+    expected = [
+        (0, 3, "let", "code"),
+        (3, 4, " ", "whitespace"),
+        (4, 8, "note", "code"),
+        (8, 9, " ", "whitespace"),
+        (9, 10, "=", "code"),
+        (10, 11, " ", "whitespace"),
+        (11, 30, '"# fake /* data */"', "literal"),
+        (30, 31, ";", "code"),
+        (31, 32, " ", "whitespace"),
+        (32, 39, "// real", "comment"),
+        (39, 40, "\n", "whitespace"),
+        (40, 45, "@keep", "directive"),
+        (45, 46, "\n", "whitespace"),
+    ]
+    actual = [
+        (
+            region.span.start,
+            region.span.end,
+            source.slice(region.span),
+            region.kind.value,
+        )
+        for region in source.regions
+    ]
+    assert actual == expected
+    assert source.reconstruct() == text
+
+    relabelled = SourceStructure(
+        text,
+        tuple(
+            SourceRegion(region.span, RegionKind.COMMENT) if index == 6 else region
+            for index, region in enumerate(source.regions)
+        ),
+        (),
+        (),
+        (),
+    )
+    relabelled_actual = [
+        (
+            region.span.start,
+            region.span.end,
+            relabelled.slice(region.span),
+            region.kind.value,
+        )
+        for region in relabelled.regions
+    ]
+    assert relabelled.reconstruct() == text
+    assert relabelled_actual != expected
+    assert [
+        (wanted, observed)
+        for wanted, observed in zip(expected, relabelled_actual, strict=True)
+        if wanted != observed
+    ] == [
+        (
+            (11, 30, '"# fake /* data */"', "literal"),
+            (11, 30, '"# fake /* data */"', "comment"),
+        )
+    ]
+
+
+def test_classification_documentation_literal_and_interpolation_keep_separate_facts():
+    text = 'item flux\n"""Read # data."""\nf"left # {flux} right //"\n'
+    source = SourceStructure(
+        text,
+        (
+            SourceRegion(SourceSpan(0, 4), RegionKind.CODE),
+            SourceRegion(SourceSpan(4, 5), RegionKind.WHITESPACE),
+            SourceRegion(SourceSpan(5, 9), RegionKind.CODE),
+            SourceRegion(SourceSpan(9, 10), RegionKind.WHITESPACE),
+            SourceRegion(SourceSpan(10, 28), RegionKind.LITERAL),
+            SourceRegion(SourceSpan(28, 29), RegionKind.WHITESPACE),
+            SourceRegion(SourceSpan(29, 38), RegionKind.LITERAL),
+            SourceRegion(SourceSpan(38, 44), RegionKind.CODE),
+            SourceRegion(SourceSpan(44, 54), RegionKind.LITERAL),
+            SourceRegion(SourceSpan(54, 55), RegionKind.WHITESPACE),
+        ),
+        (SourceSection(SourceSpan(10, 28), "atlas/documentation-literal"),),
+        (SourceDeclaration(SourceSpan(0, 9), 5, "atlas/item"),),
+        (DocumentationOwner(0, 0),),
+    )
+    assert [
+        (
+            region.span.start,
+            region.span.end,
+            source.slice(region.span),
+            region.kind.value,
+        )
+        for region in source.regions
+    ] == [
+        (0, 4, "item", "code"),
+        (4, 5, " ", "whitespace"),
+        (5, 9, "flux", "code"),
+        (9, 10, "\n", "whitespace"),
+        (10, 28, '"""Read # data."""', "literal"),
+        (28, 29, "\n", "whitespace"),
+        (29, 38, 'f"left # ', "literal"),
+        (38, 44, "{flux}", "code"),
+        (44, 54, ' right //"', "literal"),
+        (54, 55, "\n", "whitespace"),
+    ]
+    assert source.reconstruct() == text
+    assert source.documentation == (DocumentationOwner(0, 0),)
+    assert source.sections == (
+        SourceSection(SourceSpan(10, 28), "atlas/documentation-literal"),
+    )
+    assert source.slice(source.sections[0].span) == '"""Read # data."""'
+    assert source.regions[4].kind is RegionKind.LITERAL
+    assert source.slice(source.declarations[0].header) == "item flux"
+
+
 @pytest.mark.parametrize(
     "bounds,index",
     [
