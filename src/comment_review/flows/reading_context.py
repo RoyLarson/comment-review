@@ -4,6 +4,8 @@ from collections.abc import Mapping
 from pathlib import Path, PureWindowsPath
 from typing import cast
 
+from comment_review.binder.binder import Binder
+from comment_review.binder.page import Page, RedactedPage
 from comment_review.desk.proof.edit_copy import EditCopy
 from comment_review.desk.proof.sheet import Sheet
 from comment_review.flows.proof_io import load_value
@@ -34,11 +36,24 @@ def copy_reading_contexts(
     location = f"{where}: {role}"
     if not isinstance(sheets, (list, tuple)):
         return {}, [f"{location}: sheets must be a list; regather"]
+    return _reading_contexts(sheets, location)
+
+
+def binder_reading_contexts(
+    binder: Binder, where: str = "binder"
+) -> tuple[dict[str, ReadingContext], list[str]]:
+    """Admit page metadata using the same installed policy as returned sheets."""
+    return _reading_contexts(binder.pages, where)
+
+
+def _reading_contexts(
+    sheets: list | tuple, location: str
+) -> tuple[dict[str, ReadingContext], list[str]]:
     contexts: dict[str, ReadingContext] = {}
     problems: list[str] = []
     for index, sheet in enumerate(sheets, 1):
         label = f"{location} sheet {index}"
-        if isinstance(sheet, Sheet):
+        if isinstance(sheet, (Sheet, Page, RedactedPage)):
             path, value = sheet.path, sheet.reading
             if isinstance(value, ReadingContext):
                 try:
@@ -75,6 +90,8 @@ def copy_reading_contexts(
             f"{label}: {problem}; regather to save a fresh reading context"
             for problem in reading_problems({Path(path): saved}, {Path(path): current})
         )
+        if path in contexts and contexts[path] != saved:
+            problems.append(f"{label} {path}: conflicting reading contexts; regather")
         contexts[path] = saved
     return ({}, problems) if problems else (contexts, [])
 

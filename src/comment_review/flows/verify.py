@@ -39,6 +39,11 @@ from comment_review.flows.on_the_page import (
     page_named,
     printed_name,
 )
+from comment_review.flows.reading_context import (
+    binder_reading_contexts,
+    copy_reading_contexts,
+    reading_problems,
+)
 from comment_review.reading.addresser import address_for, cue_of, folded
 
 
@@ -200,6 +205,41 @@ def required_places(binder: Binder, stage: Stage | None = None) -> frozenset[str
     )
 
 
+def context_problems(
+    copy: EditCopy, received: Binder, binder: Binder | None = None
+) -> list[Problem]:
+    """Admit shared page contexts before any coverage or address work."""
+    returned, why = copy_reading_contexts(copy)
+    assigned, received_why = binder_reading_contexts(received, "received binder")
+    why.extend(received_why)
+    if binder is not None:
+        staged, stage_why = binder_reading_contexts(binder, "stage binder")
+        why.extend(stage_why)
+        why.extend(
+            f"received binder: {problem}; regather"
+            for problem in reading_problems(
+                {
+                    Path(path): context
+                    for path, context in assigned.items()
+                    if path in staged
+                },
+                {Path(path): context for path, context in staged.items()},
+            )
+        )
+    why.extend(
+        f"returned copy: {problem}; regather"
+        for problem in reading_problems(
+            {
+                Path(path): context
+                for path, context in returned.items()
+                if path in assigned
+            },
+            {Path(path): context for path, context in assigned.items()},
+        )
+    )
+    return [Problem(copy.role, "", problem) for problem in why]
+
+
 def received_problems(
     copies: list[EditCopy],
     binders: tuple[Binder, ...],
@@ -209,6 +249,13 @@ def received_problems(
     """Check paired binders and their collective coverage of each role's assignment."""
     if len(copies) != len(binders):
         return [Problem("", "", "each edit copy needs one received binder")]
+    contexts = [
+        problem
+        for copy, received in zip(copies, binders, strict=True)
+        for problem in context_problems(copy, received, binder)
+    ]
+    if contexts:
+        return contexts
     known = required_places(binder, stage)
     paths = {page.path for page in binder.pages}
     by_role: dict[str, set[str]] = {}
@@ -300,6 +347,11 @@ def coverage_problems(
     were dealt, so a caller that names no topology is asking this to measure
     against the whole binder.
     """
+    contexts = [
+        problem for copy in edit_copies for problem in context_problems(copy, binder)
+    ]
+    if contexts:
+        return contexts
     # ! THE PLACES A ROLE WAS HANDED, not every address the binder carries --
     # `binder.addresses.handed` is the one definition, and the seed reads it too.
     # And narrowed by the same `deals` the seed used, so the two cannot
