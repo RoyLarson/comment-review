@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 3 of 4 tasks closed
+Progress: 3 of 6 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (2026-10-11 lexical-reader design)
@@ -27,3 +27,7 @@ Define shared source reading contracts.
       non-string SourceStructure text; verify lists, bytes and None raise
       ValueError before caching
         > 2026-10-11 Review: source.py:143 accepts mutable text and bytes
+- [ ] T5 | Define immutable read diagnostics and failures; verify location
+      units, field validation and successful empty input
+- [ ] T6 | Reject failed readings at page and proof admission; verify
+      either-side failures, empty success and cleanup

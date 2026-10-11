@@ -2,8 +2,8 @@
 
 ```
 Status:   decision-needed
-Progress: 3 of 155 TODO tasks closed
-Plan-tasks: 1 of 50 plan tasks closed
+Progress: 13 of 161 TODO tasks closed
+Plan-tasks: 2 of 51 plan tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-10-11 (founded by move-t from 0.2.4-the-middle-rebuilt)
@@ -46,7 +46,7 @@ interfaces, inputs and checks, without internal development files or history.
 
 ### C - [the-flow-lives-in-the-command](../../TODO/the-flow-lives-in-the-command.md)
 
-- [ ] T8 | Update page_of to return (None, reason) for an unparsed page so
+- [-] T8 | Update page_of to return (None, reason) for an unparsed page so
       _pages drops its bare except and kind scan. Verify: one call in _pages
 
 ### D - [language-rows-in-toml](../../TODO/language-rows-in-toml.md)
@@ -360,23 +360,29 @@ interfaces, inputs and checks, without internal development files or history.
 
 ### W - [galley-and-compositor-write-path](../../TODO/galley-and-compositor-write-path.md)
 
-- [ ] T5 | T5 -- **Test the newline axis the gates never saw.** Verify: a CRLF
+- [-] T5 | T5 -- **Test the newline axis the gates never saw.** Verify: a CRLF
       fixture makes `line_endings()` answer CRLF, and the test fails on HEAD.
-- [ ] T6 | T6 -- **Extract the prologue the two gates share** -- read, resolve
+- [-] T6 | T6 -- **Extract the prologue the two gates share** -- read, resolve
       the language, build the page, set it. Verify: one function does all four.
-- [ ] T7 | T7 -- **Make `lossless` and `identity` call that one function.**
+- [-] T7 | T7 -- **Make `lossless` and `identity` call that one function.**
       Verify: neither repeats the four steps.
-- [ ] T8 | T8 -- **Make `main` read each file once** rather than running the
+- [-] T8 | T8 -- **Make `main` read each file once** rather than running the
       pair twice per file. Verify: a run over one file performs one read of it.
-- [ ] T9 | T9 -- **Make `page_for` RECORD whether the source was read**, rather
+- [-] T9 | T9 -- **Make `page_for` RECORD whether the source was read**, rather
       than throwing the fact away. Verify: a page built from an unread source
       carries that fact.
-- [ ] T10 | T10 -- **Make `compositor.py:231` refuse on that fact, not on an
+- [-] T10 | T10 -- **Make `compositor.py:231` refuse on that fact, not on an
       empty list.** Verify: an empty file with no text still sets back as empty.
+- [ ] T51 | MOVED to 2026-10-11-lexical-read-results | Consolidate round-trip
+      checks in a flow; verify one acquisition and setting per file and
+      independent comparison outcomes
+- [ ] T52 | MOVED to 2026-10-11-lexical-read-results | Verify source-byte
+      preservation using invented BOM, newline and empty fixtures; detect
+      normalization at the actual I/O boundary
 
 ### X - [no-step-produces-a-page](../../TODO/no-step-produces-a-page.md)
 
-- [ ] T3 | Repoint compositor.lossless and compositor.identity at page_of, which
+- [-] T3 | Repoint compositor.lossless and compositor.identity at page_of, which
       also removes the prologue those two share
 
 ### Y - [only-a-flow-reaches-the-machine](../../TODO/only-a-flow-reaches-the-machine.md)
@@ -509,9 +515,9 @@ interfaces, inputs and checks, without internal development files or history.
 - [ ] T16 | T16 -- **Route the nine bypassing source reads through `io.py`.**
       Verify: T13's gate exits 0 on the tree, and every source read in the
       shipped scripts is the lexer's.
-- [ ] T17 | T17 -- **Fix `compositor.identity` so the round trip is compared in
+- [-] T17 | T17 -- **Fix `compositor.identity` so the round trip is compared in
       BYTES.** Verify: it reads through `io.read_raw` and not `read_text`.
-- [ ] T18 | T18 -- **Test `identity` on a CRLF file, FAILING FIRST.** Verify: a
+- [-] T18 | T18 -- **Test `identity` on a CRLF file, FAILING FIRST.** Verify: a
       file written `b'# a note\r\nx = 1\r\n'` reports a difference before the
       fix and `None` after.
 - [ ] T19 | T19 -- **Assert the READ chain as data**: it IS `[language,
@@ -520,6 +526,11 @@ interfaces, inputs and checks, without internal development files or history.
 - [ ] T20 | T20 -- **Assert the WRITE chain as data**, the seven steps named in
       the Objective. Verify: the test fails when a step is removed from the
       list.
+- [ ] T23 | MOVED to 2026-10-11-lexical-read-results | Acquire exact UTF-8
+      source from files and Git; verify BOM, line endings, Unicode, identity and
+      named failures
+- [ ] T24 | MOVED to 2026-10-11-lexical-read-results | Write exact UTF-8 bytes;
+      verify unchanged round trips and encoding failure before target truncation
 
 ### AK - [7a-can-prove-the-change-by-applying-it-to-a-copy](../../TODO/7a-can-prove-the-change-by-applying-it-to-a-copy.md)
 
@@ -556,6 +567,12 @@ interfaces, inputs and checks, without internal development files or history.
       independently expected classifications
 - [ ] T2 | Carry reader compatibility and language settings through saved runs;
       verify incompatible contexts refuse before address use
+- [ ] T5 | MOVED to 2026-10-11-lexical-read-results | Define immutable read
+      diagnostics and failures; verify location units, field validation and
+      successful empty input
+- [ ] T6 | MOVED to 2026-10-11-lexical-read-results | Reject failed readings at
+      page and proof admission; verify either-side failures, empty success and
+      cleanup
 
 ### AP - [2026-10-11-maintained-source-selection](../../TODO/2026-10-11-maintained-source-selection.md)
 
@@ -572,8 +589,10 @@ interfaces, inputs and checks, without internal development files or history.
 - [ ] P2 | Define lexical and placement diagnostics; verify incomplete reads
       cannot supply successful pages or preservation proofs
         > 2026-10-11 Check: uv run pytest -q tests/test_reading_diagnostics.py
-- [ ] P3 | Integrate exact source acquisition; verify BOM, CRLF, mixed endings,
-      Unicode and empty input survive the read and write path
+        > 2026-10-11 Subplan 2026-10-11-lexical-read-results owns this work
+- [-] P3 | Replaced by P51; approved spec uses source I/O tests rather than saved proof JSON tests | b03adaa8 | Integrate
+      exact source acquisition; verify BOM, CRLF, mixed endings, Unicode and
+      empty input survive the read and write path
         > 2026-10-11 Check: uv run pytest -q tests/test_proof_io.py
 - [ ] P4 | Load independent TOML language definitions; verify registry dispatch,
       explicit capabilities and excluded file categories
@@ -716,3 +735,6 @@ interfaces, inputs and checks, without internal development files or history.
 - [ ] P50 | Verify lint, formatting, types, shipped syntax and vocabulary for
       the completed implementation
         > 2026-10-11 Run the existing CLAUDE.md completion commands
+- [ ] P51 | Integrate exact source acquisition and writing; verify UTF-8 byte
+      fixtures in test_source_io and source-path integration tests
+        > 2026-10-11 Subplan 2026-10-11-lexical-read-results owns this work

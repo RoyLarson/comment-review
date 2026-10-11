@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 8 of 22 tasks closed
+Progress: 10 of 24 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-21 (Roy, 2026-08-21: 'The lexer reads zero files - this is also a
@@ -158,11 +158,13 @@ is at `docs/superpowers/specs/2026-08-23-io-and-the-chain-design.md:17`.
 - [ ] T16 | T16 -- **Route the nine bypassing source reads through `io.py`.**
       Verify: T13's gate exits 0 on the tree, and every source read in the
       shipped scripts is the lexer's.
-- [ ] T17 | T17 -- **Fix `compositor.identity` so the round trip is compared in
-      BYTES.** Verify: it reads through `io.read_raw` and not `read_text`.
-- [ ] T18 | T18 -- **Test `identity` on a CRLF file, FAILING FIRST.** Verify: a
-      file written `b'# a note\r\nx = 1\r\n'` reports a difference before the
-      fix and `None` after.
+- [-] T17 | Replaced by galley-and-compositor-write-path T51-T52 and T23: exact byte comparisons and acquisition | b03adaa8 | T17
+      -- **Fix `compositor.identity` so the round trip is compared in BYTES.**
+      Verify: it reads through `io.read_raw` and not `read_text`.
+- [-] T18 | Replaced by galley-and-compositor-write-path T52: invented independent byte fixtures | b03adaa8 | T18
+      -- **Test `identity` on a CRLF file, FAILING FIRST.** Verify: a file
+      written `b'# a note\r\nx = 1\r\n'` reports a difference before the fix and
+      `None` after.
 - [ ] T19 | T19 -- **Assert the READ chain as data**: it IS `[language,
       read_text, lexer, addresser, page]`. Verify: the test fails when a step is
       removed from the list.
@@ -175,6 +177,10 @@ is at `docs/superpowers/specs/2026-08-23-io-and-the-chain-design.md:17`.
 - [ ] T22 | T22 -- **Correct the spec's `read_raw` row, cited in the
       Objective.** Verify: the row names the nine bypassing source reads rather
       than an absence of callers.
+- [ ] T23 | Acquire exact UTF-8 source from files and Git; verify BOM, line
+      endings, Unicode, identity and named failures
+- [ ] T24 | Write exact UTF-8 bytes; verify unchanged round trips and encoding
+      failure before target truncation
 ## Related
 
 - [`bom-is-read-as-source`](bom-is-read-as-source.md) -- the same nine sites, the same one
