@@ -138,3 +138,7 @@ class SourceStructure:
         if not isinstance(span, SourceSpan) or span.end > len(self.text):
             raise ValueError("Slice span must be within text")
         return self.text[span.start : span.end]
+
+    def reconstruct(self) -> str:
+        """Concatenate the exact slices of the ordered source regions."""
+        return "".join(self.slice(region.span) for region in self.regions)

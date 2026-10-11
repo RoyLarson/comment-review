@@ -217,3 +217,92 @@ def test_span_structure_slice_rejects_out_of_range(start, end):
 def test_span_structure_slice_uses_unicode_character_indices():
     source = structure("a\u00e9\U0001f680z", [(0, 4, RegionKind.CODE)])
     assert source.slice(SourceSpan(1, 3)) == "\u00e9\U0001f680"
+
+
+def test_reconstruct_concatenates_differently_classified_region_slices(monkeypatch):
+    source = structure(
+        'a "b"#c!',
+        [
+            (0, 1, RegionKind.CODE),
+            (1, 2, RegionKind.WHITESPACE),
+            (2, 5, RegionKind.LITERAL),
+            (5, 7, RegionKind.COMMENT),
+            (7, 8, RegionKind.DIRECTIVE),
+        ],
+    )
+    calls = []
+    original_slice = SourceStructure.slice
+
+    def record_slice(self, span):
+        calls.append((span.start, span.end))
+        return original_slice(self, span)
+
+    monkeypatch.setattr(SourceStructure, "slice", record_slice)
+    assert source.reconstruct() == 'a "b"#c!'
+    assert calls == [(0, 1), (1, 2), (2, 5), (5, 7), (7, 8)]
+    assert [source.slice(region.span) for region in source.regions] == [
+        "a",
+        " ",
+        '"b"',
+        "#c",
+        "!",
+    ]
+
+
+def test_reconstruct_empty_source():
+    source = structure("", [])
+    assert source.reconstruct() == ""
+    assert source.regions == ()
+
+
+@pytest.mark.parametrize(
+    "text,bounds,components",
+    [
+        (
+            "\ufeffa",
+            [(0, 1, RegionKind.WHITESPACE), (1, 2, RegionKind.CODE)],
+            ["\ufeff", "a"],
+        ),
+        (
+            "\u00e9e\u0301\U0001f680",
+            [(0, 2, RegionKind.CODE), (2, 4, RegionKind.LITERAL)],
+            ["\u00e9e", "\u0301\U0001f680"],
+        ),
+        (
+            "a\r\nb\nc\rd",
+            [
+                (0, 3, RegionKind.CODE),
+                (3, 5, RegionKind.COMMENT),
+                (5, 8, RegionKind.LITERAL),
+            ],
+            ["a\r\n", "b\n", "c\rd"],
+        ),
+        (
+            "x",
+            [(0, 1, RegionKind.CODE)],
+            ["x"],
+        ),
+        (
+            "x\n",
+            [(0, 1, RegionKind.CODE), (1, 2, RegionKind.WHITESPACE)],
+            ["x", "\n"],
+        ),
+        (
+            '" a\t "# b\t  \r\n',
+            [(0, 6, RegionKind.LITERAL), (6, 14, RegionKind.COMMENT)],
+            ['" a\t "', "# b\t  \r\n"],
+        ),
+    ],
+    ids=[
+        "decoded-bom",
+        "unicode-combining",
+        "mixed-endings",
+        "no-final-newline",
+        "final-newline",
+        "literal-comment-whitespace",
+    ],
+)
+def test_reconstruct_preserves_every_character(text, bounds, components):
+    source = structure(text, bounds)
+    assert [source.slice(region.span) for region in source.regions] == components
+    assert source.reconstruct() == text
