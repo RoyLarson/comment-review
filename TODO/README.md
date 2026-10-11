@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (122)
+### open  (124)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -304,6 +304,8 @@ that changed a published name or rule:
 | [smoke-fixture-defects](smoke-fixture-defects.md) | systems | -- | 0/1 | Align the command smoke with paragraph rewrapping |
 | [lexical-code-identity](lexical-code-identity.md) | backend | -- | 0/2 | Use lexical code identity at both proof boundaries |
 | [collate-file-input](collate-file-input.md) | backend | -- | 0/1 | Read collation inputs from a file |
+| [2026-10-11-source-reading-contract](2026-10-11-source-reading-contract.md) | backend | -- | 0/2 | Define shared source reading contracts |
+| [2026-10-11-maintained-source-selection](2026-10-11-maintained-source-selection.md) | agents | -- | 0/1 | Select maintained source for review |
 
 ### in-progress  (18)
 
