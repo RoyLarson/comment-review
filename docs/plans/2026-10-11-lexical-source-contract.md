@@ -3,7 +3,7 @@
 ```
 Status:   in-progress
 Progress: 0 of 1 TODO tasks closed
-Plan-tasks: 4 of 13 plan tasks closed
+Plan-tasks: 5 of 13 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (founded by move-t from 2026-10-11-lexical-readers)
@@ -132,8 +132,9 @@ development history.
       cached character coordinates; test CRLF, lone CR and LF, both CRLF
       offsets, EOF and invalid offsets
         > 2026-10-11 uv run pytest -q tests/test_reading_source.py -k position
-- [ ] P5 | Define source sections and declaration headers; test bounds,
-      ordering, form names, anchors and nested declarations
+- [x] P5 | Section and declaration validation passes fixtures and independent review | f432a08e | Define
+      source sections and declaration headers; test bounds, ordering, form
+      names, anchors and nested declarations
         > 2026-10-11 uv run pytest -q tests/test_reading_source.py -k declaration
 - [ ] P6 | Validate documentation relationships; test module, first declaration,
       ordinary sections, missing references and duplicate owners
