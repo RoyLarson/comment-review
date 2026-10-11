@@ -36,42 +36,7 @@ EXCLUDED_DIRS = frozenset(
 
 
 def read_raw(path: Path) -> str:
-    r"""The file's own line endings, untranslated.
-
-    `Path.read_text` (and a plain `open` with no `newline=`) applies
-    universal-newline translation, collapsing every `\r\n` to `\n` before the
-    caller ever sees it -- so a CRLF file and an LF file become
-    indistinguishable to anything that then asks which ending the text uses.
-    `newline=""` disables that translation.
-
-    !! FOUR SITES CALL IT DIRECTLY, AND NO WRITE PATH IS ONE OF THEM. MEASURED
-    over `src/comment_review/` on 2026-08-29: `read_source` below (which every
-    other reader goes through), `commands/prove_unchanged.py` and
-    `results/prove_unchanged.py` -- both about comparing a file to itself
-    byte-identically, which is why they read raw rather than through the sha
-    pairing `read_source` gives everyone else -- and `desk/collator.py`, which
-    reads a CITED file to find the line a role numbered and needs the endings
-    the role saw. ! It was THREE until `collator._lines` stopped reading through
-    `Path.read_text`. Measured 2026-08-17, when the
-    galley command read the source itself: it used `read_text`, so a 245-line
-    CRLF source was written out with 223 bare LF and every line of the diff was
-    an ending change. That command is gone -- see `docs/history.md` -- and the
-    write chain reaches `read_raw` only through `read_source`.
-    ! THE WRITE PATH IS `write_raw`, BELOW, SINCE `P45`. The sentence above
-    said no write path calls this directly and that is still true; what changed
-    is that there is now a named pair rather than a `write_text` in
-    `results/compositor.py` keeping the `newline=""` rule by hand.
-
-    ! THREE MODULES REACH IT THROUGH `read_source`: `flows/gather.py`,
-    `flows/page_for.py` (in `source_of`, which `page_of` and the whole write
-    chain go through) and `results/compositor.py` (twice) -- MEASURED by
-    import, 2026-08-26.
-
-    ! `Path.read_text`'s own `newline=` parameter arrived in Python 3.13, and
-    the floor here is 3.11, where passing it raises `TypeError`.
-    `check_shipped_syntax.py` reads syntax and two runtime shapes, so a keyword
-    argument that exists only on a newer interpreter gets past it.
-    `open(...).read()` works at the floor and does the same thing.
+    """Read strict UTF-8 text, preserving BOM, Unicode and line endings.
 
     Args:
         path: the file to read.
@@ -79,8 +44,7 @@ def read_raw(path: Path) -> str:
     Returns:
         Its text, with every line ending exactly as it sits on disk.
     """
-    with open(path, encoding="utf-8", newline="") as f:
-        return f.read()
+    return read_source(path).text
 
 
 def write_raw(path: Path, text: str) -> Path:
@@ -154,23 +118,14 @@ def sha_of(text: str) -> str:
     return hashlib.sha256(text.encode("utf-8")).hexdigest()[:16]
 
 
+def source_from_bytes(raw: bytes) -> Source:
+    """Decode strict UTF-8 without translation and identify that exact text."""
+    text = raw.decode("utf-8")
+    return Source(text, sha_of(text))
+
+
 def read_source(path: Path) -> Source:
-    r"""Read a file and identify what was read, in one act.
-
-    !! THE READING AND THE HASHING CANNOT BE SEPARATED WITHOUT LOSING THE
-    GUARANTEE. MEASURED 2026-08-25 over `b"# one\r\ndef f():\r\n    return
-    1\r\n"`, with this tree's two readers:
-
-        read_raw    newline=""            f13497990c3d92d0
-        read_text   universal newlines    83ec58343641fd11
-
-    ! ONE FILE, ONE SET OF BYTES, TWO SHAS. A sha taken downstream of whichever
-    reader a consumer happened to use answers *which reader ran*, not *did the
-    file change* -- so a byte-identical CRLF checkout refuses.
-
-    ! AND THE DEFECT WAS LIVE WHEN THIS LANDED: the gather read through
-    `Path.read_text` and the binder hashed that, so the recorded sha described
-    the TRANSLATED text and not the file.
+    """Read filesystem bytes once, decode strict UTF-8 and identify the text.
 
     Args:
         path: the file to read.
@@ -178,8 +133,39 @@ def read_source(path: Path) -> Source:
     Returns:
         Its text with line endings untouched, and the sha of that text.
     """
-    text = read_raw(path)
-    return Source(text, sha_of(text))
+    return source_from_bytes(path.read_bytes())
+
+
+def read_revision_source(repo: Path, ref: str, rel: str) -> Source:
+    """Read a revision blob as strict UTF-8, preserving its exact contents.
+
+    Args:
+        repo: repository directory; relative paths start here.
+        ref: Git revision to read.
+        rel: path relative to the repository directory.
+
+    Returns:
+        The blob's text and identity, including for an empty blob.
+
+    Raises:
+        subprocess.CalledProcessError: Git cannot resolve the revision or path.
+        UnicodeDecodeError: the blob is not valid UTF-8.
+    """
+    got = subprocess.run(
+        [
+            "git",
+            "-c",
+            "core.quotePath=false",
+            "-C",
+            str(repo),
+            "show",
+            f"{ref}:./{rel}",
+        ],
+        capture_output=True,
+        timeout=30,
+        check=True,
+    )
+    return source_from_bytes(got.stdout)
 
 
 def git(repo: Path, *args: str, timeout: int = 30) -> subprocess.CompletedProcess:
