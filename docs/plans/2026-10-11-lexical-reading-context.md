@@ -3,7 +3,7 @@
 ```
 Status:   in-progress
 Progress: 0 of 3 TODO tasks closed
-Plan-tasks: 2 of 26 plan tasks closed
+Plan-tasks: 3 of 26 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (founded by move-t from 2026-10-11-lexical-readers)
@@ -388,8 +388,9 @@ because this machinery exists.
 - [x] P2 | Strict TOML decoder passes 109 focused tests and independent review | 42806983 | Decode
       TOML definitions without I/O; verify malformed, missing, unknown and
       unsupported fields refuse
-- [ ] P3 | Acquire definition files in flows; verify path-specific failures and
-      no partial registry
+- [x] P3 | Definition acquisition preserves source and diagnostic paths; 119 tests and review pass | c2377616 | Acquire
+      definition files in flows; verify path-specific failures and no partial
+      registry
 - [ ] P4 | Build the language registry; verify duplicate languages and ambiguous
       suffixes refuse
 - [ ] P5 | Bind reader identifiers to installed implementations; verify unknown
