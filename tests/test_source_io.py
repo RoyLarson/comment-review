@@ -238,6 +238,50 @@ def test_expected_acquisition_errors(tmp_path, monkeypatch, error, revision):
     assert result.diagnostics[0].code == "io-error"
 
 
+@pytest.mark.parametrize(
+    "error",
+    [
+        OSError("denied"),
+        subprocess.TimeoutExpired("git", 30),
+        subprocess.SubprocessError("failed"),
+    ],
+)
+def test_expected_repository_probe_errors_keep_acquisition_reason(
+    tmp_path, monkeypatch, error
+):
+    from comment_review.flows import source
+
+    def missing_blob(*args):
+        raise subprocess.CalledProcessError(128, "git show", stderr="blob missing")
+
+    def failed_probe(*args):
+        raise error
+
+    monkeypatch.setattr(source, "read_revision_source", missing_blob)
+    monkeypatch.setattr(source, "git", failed_probe)
+    result = source.revision_source_of(tmp_path, "HEAD", "a.py")
+    assert isinstance(result, ReadFailure)
+    diagnostic = result.diagnostics[0]
+    assert (diagnostic.stage, diagnostic.code) == (ReadStage.ACQUIRE, "io-error")
+    assert "blob missing" in diagnostic.message
+
+
+@pytest.mark.parametrize("error", [ValueError("bad argument"), RuntimeError("bug")])
+def test_unexpected_repository_probe_errors_propagate(tmp_path, monkeypatch, error):
+    from comment_review.flows import source
+
+    def missing_blob(*args):
+        raise subprocess.CalledProcessError(128, "git show", stderr="blob missing")
+
+    def failed_probe(*args):
+        raise error
+
+    monkeypatch.setattr(source, "read_revision_source", missing_blob)
+    monkeypatch.setattr(source, "git", failed_probe)
+    with pytest.raises(type(error)):
+        source.revision_source_of(tmp_path, "HEAD", "a.py")
+
+
 @pytest.mark.parametrize("error", [ValueError("bad argument"), RuntimeError("bug")])
 def test_unexpected_errors_propagate(tmp_path, monkeypatch, error):
     from comment_review.flows import source

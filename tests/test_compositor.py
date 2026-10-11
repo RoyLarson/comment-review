@@ -59,6 +59,33 @@ def test_identity_compares_literal_bytes(original, rendered):
     assert compositor.identity(original, rendered) is not None
 
 
+@pytest.mark.parametrize("separator", ["\u2028", "\u2029", "\x85", "\x0b", "\x0c"])
+@pytest.mark.parametrize("ending", ["\r\n", "\r", "\n"])
+def test_identity_reports_physical_lines_with_literal_separators(separator, ending):
+    original = f"s = '{separator}'{ending}x = 1{ending}"
+    rendered = f"s = '{separator}'{ending}x = 2{ending}"
+    expected = {
+        "\r\n": "line 2: was 'x = 1\\r\\n', set 'x = 2\\r\\n'",
+        "\r": "line 2: was 'x = 1\\r', set 'x = 2\\r'",
+        "\n": "line 2: was 'x = 1\\n', set 'x = 2\\n'",
+    }
+    assert compositor.identity(original, rendered) == expected[ending]
+
+
+@pytest.mark.parametrize(
+    "original,rendered,expected",
+    [
+        ("a\r\n", "a\n", "line 1: was 'a\\r\\n', set 'a\\n'"),
+        ("a\r", "a\n", "line 1: was 'a\\r', set 'a\\n'"),
+        ("a\n", "a", "line 1: was 'a\\n', set 'a'"),
+        ("a\n", "a\nb\n", "1 lines in, 2 out"),
+        ("", "a\n", "0 lines in, 1 out"),
+    ],
+)
+def test_identity_retains_line_endings_in_diagnostics(original, rendered, expected):
+    assert compositor.identity(original, rendered) == expected
+
+
 def test_retained_lines_are_weaker_than_identity():
     assert compositor.lossless("a\r\nb\n", "b\na\n") is None
     assert compositor.lossless("a\na\n", "a\n") == "line lost: 'a'"

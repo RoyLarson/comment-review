@@ -70,18 +70,8 @@ def main(argv: list[str] | None = None) -> int:
     rels = args.paths or _every_page(revise)
 
     changed_addresses: list[str] = []
-    # !! A PAGE THIS CANNOT READ IS NAMED, AND WAS SILENTLY SKIPPED UNTIL
-    # 2026-08-28. `source_of` and `page_of` each return a reason and both were
-    # discarded into `_` before a bare `continue`, so an unreadable or
-    # unparseable page produced NO OUTPUT AND EXIT 0 -- which is this command's
-    # own success condition (`T2.6`: *"it prints nothing when no stage has set
-    # anything"*). A page that could not be compared and a page that did not
-    # change were indistinguishable.
-    #
-    # ! TO STDERR, SO THE CRITERION STILL HOLDS. What T2.6 requires to be empty
-    # is the DIFF, on stdout; a reason a page was not compared belongs beside it
-    # rather than in it. ! Exit stays 0 -- the rule is nonzero when a ROOT is
-    # unreadable, and one bad page is not a bad root.
+    # Report acquisition and page admission failures on stderr even when the
+    # texts match. Exit stays 0: an unreadable page is not an unreadable root.
     skipped: list[str] = []
     for rel in rels:
         before_source = source_of(original / rel)
@@ -97,12 +87,10 @@ def main(argv: list[str] | None = None) -> int:
             assert isinstance(failure, ReadFailure)
             skipped.append(format_failure(failure, path=rel))
             continue
-        if before_source.text == after_source.text:
-            continue
-        print("".join(unified(before_source.text, after_source.text, rel)), end="")
-
         before_page = page_of(original / rel, rel=rel, source=before_source)
         after_page = page_of(revise / rel, rel=rel, source=after_source)
+        if before_source.text != after_source.text:
+            print("".join(unified(before_source.text, after_source.text, rel)), end="")
         if isinstance(before_page, ReadFailure) or isinstance(after_page, ReadFailure):
             failure = (
                 before_page if isinstance(before_page, ReadFailure) else after_page
@@ -111,6 +99,8 @@ def main(argv: list[str] | None = None) -> int:
             skipped.append(
                 f"{format_failure(failure, path=rel)} (addresses not compared)"
             )
+            continue
+        if before_source.text == after_source.text:
             continue
         before_binder = bind(
             [before_page], read_from={"root": str(original), "revise": 0}

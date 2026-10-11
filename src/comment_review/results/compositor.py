@@ -436,12 +436,21 @@ def identity(original: str, rendered: str) -> str | None:
     """Compare supplied strict UTF-8 bytes and report the first difference.
 
     Returns:
-        `None` when the round trip is byte-identical. Otherwise a line naming
-        the FIRST line that differs, which is what a reader needs to look at.
+        `None` when the round trip is byte-identical. Otherwise name the first
+        differing physical line with its ending, or report changed line counts
+        when one text has extra lines after the shared prefix.
     """
     if original.encode("utf-8") == rendered.encode("utf-8"):
         return None
-    was, now = original.splitlines(keepends=True), rendered.splitlines(keepends=True)
+    was: list[str] = []
+    now: list[str] = []
+    for text, lines in ((original, was), (rendered, now)):
+        start = 0
+        for ending in constants.LINE_BREAK.finditer(text):
+            lines.append(text[start : ending.end()])
+            start = ending.end()
+        if start < len(text):
+            lines.append(text[start:])
     for n, (a, b) in enumerate(zip(was, now, strict=False), 1):
         if a != b:
             return f"line {n}: was {a!r}, set {b!r}"
