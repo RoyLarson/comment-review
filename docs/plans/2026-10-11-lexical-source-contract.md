@@ -1,9 +1,9 @@
 # Shared lexical source contract
 
 ```
-Status:   open
+Status:   in-progress
 Progress: 0 of 1 TODO tasks closed
-Plan-tasks: 0 of 13 plan tasks closed
+Plan-tasks: 1 of 13 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (founded by move-t from 2026-10-11-lexical-readers)
@@ -111,13 +111,14 @@ development history.
 
 ### A - [2026-10-11-source-reading-contract](../../TODO/2026-10-11-source-reading-contract.md)
 
-- [ ] T1 | Represent source as ordered regions and ownership facts; verify exact
+- [~] T1 | Represent source as ordered regions and ownership facts; verify exact
       reconstruction and independently expected classifications
 
 ## Plan Tasks
 
-- [ ] P1 | Define SourceSpan and SourcePosition; test half-open slicing, empty
-      spans, negative bounds and reversed bounds
+- [x] P1 | Span and position records pass 35 tests and independent review | 937ba33b | Define
+      SourceSpan and SourcePosition; test half-open slicing, empty spans,
+      negative bounds and reversed bounds
         > 2026-10-11 uv run pytest -q tests/test_reading_source.py -k span
 - [ ] P2 | Implement SourceStructure partition checks; test empty input, gaps,
       overlaps, wrong order, empty regions and lost ends
