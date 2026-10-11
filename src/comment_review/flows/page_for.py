@@ -63,7 +63,9 @@ def page_of(
             None,
             acquired.text,
         )
-    page = page_for(path, acquired.text, lang, rel=rel, sha=acquired.sha)
+    page = page_for(
+        path, acquired.text, lang, rel=rel, sha=acquired.sha, reading=context
+    )
     if isinstance(page, ReadFailure):
         return LocatedReadFailure(page.diagnostics, where, lang.name, acquired.text)
     return page

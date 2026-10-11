@@ -86,7 +86,7 @@ def test_a_page_carries_its_path_and_its_identity(binder, wire):
     assert page.path == "m.py"
     assert page.sha
     # ! THE FIELD SET IS A WIRE CLAIM -- what a page is ON DISK.
-    assert set(wire["pages"][0]) == {"path", "sha", "rows"}
+    assert set(wire["pages"][0]) == {"path", "sha", "rows", "reading"}
 
 
 def test_every_row_carries_exactly_the_ruled_fields(wire):
@@ -381,6 +381,7 @@ class TestAReaderRefusesRatherThanCoping:
                         {
                             "path": "m.py",
                             "sha": "abc",
+                            "reading": build("").serialize()["reading"],
                             "rows": [
                                 {
                                     "cue": "b1",

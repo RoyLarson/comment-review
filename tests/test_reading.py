@@ -247,7 +247,9 @@ class TestAPageCarriesTheShaItWasGiven:
         path = Path("m.py")
         lang = language_for(path)
         assert lang is not None, f"no language record for suffix {path.suffix!r}"
-        page = page_for(path, SAMPLE, lang, rel="m.py", sha="deadbeef")
+        page = page_for(
+            path, SAMPLE, lang, rel="m.py", sha="deadbeef", reading=build("").reading
+        )
         from comment_review.reading.diagnostics import ReadFailure
 
         assert not isinstance(page, ReadFailure), page
@@ -261,4 +263,4 @@ class TestAPageCarriesTheShaItWasGiven:
             # !! DELIBERATELY OMITS `sha` -- proves the keyword-only parameter
             # is enforced at runtime. ty: ignore[missing-argument] because the
             # call is invalid ON PURPOSE; that is what this test asserts.
-            page_for(path, SAMPLE, lang, rel="m.py")  # ty: ignore[missing-argument]
+            page_for(path, SAMPLE, lang, rel="m.py", reading=build("").reading)  # ty: ignore[missing-argument]

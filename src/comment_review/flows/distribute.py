@@ -56,6 +56,7 @@ def assigned_binder(binder: Binder, stage: Stage | None = None) -> Binder:
             RedactedPage(
                 path=page.path,
                 sha=page.sha,
+                reading=page.reading,
                 paragraphs=[
                     b
                     for b in handed(page.paragraphs)

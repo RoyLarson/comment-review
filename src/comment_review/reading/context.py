@@ -1,9 +1,8 @@
 """Immutable identities and effective settings for a saved reading."""
 
 import json
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass, fields
-from hashlib import sha256
 from re import fullmatch
 
 from comment_review.reading.definitions import LanguageDefinition
@@ -25,6 +24,7 @@ def compatibility_identity(
     reader_revision: str,
     placement_revision: str,
     grammar_identity: str,
+    digest: Callable[[bytes], str],
 ) -> str:
     """Hash the complete definition and explicit recognition revisions."""
     for name, value in (
@@ -49,7 +49,7 @@ def compatibility_identity(
         sort_keys=True,
         separators=(",", ":"),
     )
-    return sha256(canonical.encode("utf-8")).hexdigest()
+    return digest(canonical.encode("utf-8"))
 
 
 @dataclass(frozen=True)
@@ -99,6 +99,7 @@ def resolve_context(
     reader_revision: str,
     placement_revision: str,
     grammar_identity: str,
+    digest: Callable[[bytes], str],
 ) -> ReadingContext | ReadFailure:
     """Resolve fresh settings using only the definition's declared choices."""
     problems: list[str] = []
@@ -131,6 +132,7 @@ def resolve_context(
             reader_revision=reader_revision,
             placement_revision=placement_revision,
             grammar_identity=grammar_identity,
+            digest=digest,
         ),
         tuple(sorted(effective.items())),
     )

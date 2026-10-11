@@ -67,6 +67,8 @@ from comment_review.reading.addresser import (
     cue,
     cue_of,
 )
+from comment_review.reading.context import ReadingContext
+from comment_review.reading.context_io import context_from_wire, context_to_wire
 from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, ReadStage
 from comment_review.reading.language import language_for
 from comment_review.reading.lexer import (
@@ -159,6 +161,7 @@ class Page:
     sha: str
     paragraphs: list[Paragraph]
     cues: Cues
+    reading: ReadingContext
     # !! `serialize` IS BELOW, AFTER `leading`. It writes what a binder carries
     # for this page -- see `_place` for the five fields and `RedactedPage` for
     # the variant that emits only the places holding prose.
@@ -246,6 +249,7 @@ class Page:
         return {
             "path": self.path,
             "sha": self.sha,
+            "reading": context_to_wire(self.reading),
             "rows": [_place(b) for b in self.paragraphs if b.address],
         }
 
@@ -399,6 +403,7 @@ class RedactedPage:
     path: str
     sha: str
     paragraphs: list[Paragraph]
+    reading: ReadingContext
 
     @classmethod
     def of(cls, page: Page) -> "RedactedPage":
@@ -406,6 +411,7 @@ class RedactedPage:
         return cls(
             path=page.path,
             sha=page.sha,
+            reading=page.reading,
             paragraphs=[
                 b
                 for b in page.paragraphs
@@ -418,6 +424,7 @@ class RedactedPage:
         return {
             "path": self.path,
             "sha": self.sha,
+            "reading": context_to_wire(self.reading),
             "rows": [_place(b) for b in self.paragraphs],
         }
 
@@ -453,6 +460,9 @@ class RedactedPage:
                 paragraphs.append(_paragraph(place, path))
         if problems:
             return None, problems
+        reading, why = context_from_wire(f"{where}: {path}", checked.get("reading"))
+        if reading is None:
+            return None, why
         # ! AN ABSENT OR NULL `sha` IS ADMITTED AS "". `.get("sha", "")` defaults
         # only when the key is ABSENT, so a `"sha": null` arrives PRESENT and
         # holding None, and `str(None)` is the four-character word "None".
@@ -462,6 +472,7 @@ class RedactedPage:
                 path=path,
                 sha=raw_sha if isinstance(raw_sha, str) else "",
                 paragraphs=paragraphs,
+                reading=reading,
             ),
             [],
         )
@@ -970,7 +981,13 @@ def tie_leading(paragraphs: list[Paragraph], cues: Cues) -> dict[str, str]:
 
 
 def page_for(
-    path: Path, text: str, lang: Language, rel: str | None = None, *, sha: str
+    path: Path,
+    text: str,
+    lang: Language,
+    rel: str | None = None,
+    *,
+    sha: str,
+    reading: ReadingContext,
 ) -> Page | ReadFailure:
     """Admit a complete read before assigning places and source identity."""
     got = read_paragraphs(path, text, lang)
@@ -1024,6 +1041,7 @@ def page_for(
         path=rel if rel is not None else path.as_posix(),
         text=text,
         sha=sha,
+        reading=reading,
         paragraphs=sorted(got, key=lambda b: (b.start, b.end)),
         cues=cues,
         leading=edges,

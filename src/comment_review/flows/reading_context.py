@@ -5,6 +5,7 @@ from pathlib import Path, PureWindowsPath
 from typing import cast
 
 from comment_review.flows.proof_io import load_value
+from comment_review.machine.digests import sha256_hex
 from comment_review.reading.context import ReadingContext, resolve_context
 from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, ReadStage
 from comment_review.reading.readers import reader_for
@@ -36,6 +37,7 @@ def context_for(
         reader_revision=binding.revision,
         placement_revision=PLACEMENT_REVISION,
         grammar_identity=binding.grammar_identity,
+        digest=sha256_hex,
     )
 
 

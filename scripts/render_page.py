@@ -59,7 +59,7 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO / "src"))
 
-from comment_review.binder import page as page_mod  # noqa: E402
+from comment_review.flows.page_for import page_of  # noqa: E402
 from comment_review.machine import repo as repo_mod  # noqa: E402
 from comment_review.reading import lexer  # noqa: E402
 from comment_review.reading.diagnostics import ReadFailure  # noqa: E402
@@ -191,7 +191,7 @@ def render(path: Path, show: str | None) -> None:
     if lang is None:
         print(f"  SKIP {path} -- no language record for {path.suffix!r}")
         return
-    pg = page_mod.page_for(path, src.text, lang, rel=path.as_posix(), sha=src.sha)
+    pg = page_of(path, rel=path.as_posix(), source=src)
     if isinstance(pg, ReadFailure):
         reason = "; ".join(
             f"{d.stage.value}/{d.code}: {d.message}" for d in pg.diagnostics

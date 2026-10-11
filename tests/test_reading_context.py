@@ -36,6 +36,7 @@ def resolve(settings):
         reader_revision="reader-1",
         placement_revision="placement-1",
         grammar_identity="grammar-1",
+        digest=lambda data: sha256(data).hexdigest(),
     )
 
 
@@ -256,6 +257,7 @@ def identity(value: LanguageDefinition, **revisions: str) -> str:
         reader_revision=revisions.get("reader_revision", "reader-1"),
         placement_revision=revisions.get("placement_revision", "placement-1"),
         grammar_identity=revisions.get("grammar_identity", "grammar-1"),
+        digest=lambda data: sha256(data).hexdigest(),
     )
 
 
@@ -385,6 +387,7 @@ def test_compatibility_accepts_only_definition_and_relevant_revisions():
         "reader_revision",
         "placement_revision",
         "grammar_identity",
+        "digest",
     )
     original = definition()
     before = identity(original)

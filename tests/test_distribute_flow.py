@@ -4,6 +4,7 @@ import ast
 import re
 from pathlib import Path
 
+from conftest import build
 from helpers import a_binder_over, binder_of
 
 from comment_review.binder.binder import VERSION, Binder
@@ -156,7 +157,14 @@ def test_a_NULL_sha_is_seeded_as_absent_not_the_word_None():
     wire = {
         "version": VERSION,
         "read_from": {"root": "tests/test_distribute_flow.py", "revise": 0},
-        "pages": [{"path": "m.py", "sha": None, "rows": []}],
+        "pages": [
+            {
+                "path": "m.py",
+                "sha": None,
+                "rows": [],
+                "reading": build("").serialize()["reading"],
+            }
+        ],
     }
     binder, problems = Binder.deserialize("b.json", wire)
     assert binder is not None, problems

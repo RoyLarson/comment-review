@@ -70,7 +70,7 @@ from comment_review.reading.paragraph import Paragraph
 # rather than what any one caller happens to consume. `decision-log.md Process:
 # #67`. ! `seed` no longer raises; it cannot be handed a binder without the
 # field.
-VERSION = "2"
+VERSION = "3"
 
 
 def bind(pages: list[Page], read_from: dict, absent: bool = False) -> "Binder":
@@ -266,6 +266,11 @@ class Binder:
         # annotation is a declaration and survives. Same reason, same spelling
         # as `desk.proof.edit_copy.EditCopy.deserialize`.
         checked: dict = data
+        if checked.get("version") == "2":
+            return None, [
+                f"{where}: binder version '2' carries no saved reading context; "
+                f'regather to save a version "{VERSION}" binder'
+            ]
         if "pages" not in checked:
             return None, [
                 f"{where}: carries no `pages` -- is this the output of `gather`?"
@@ -291,6 +296,11 @@ class Binder:
         if why_header:
             return None, [f"{where}: {why_header}"]
         raw_version = checked.get("version")
+        if raw_version != VERSION:
+            return None, [
+                f"{where}: unsupported binder version {raw_version!r}; "
+                f'regather to save a version "{VERSION}" binder with reading context'
+            ]
         return (
             cls(
                 version=raw_version if isinstance(raw_version, str) else "",
