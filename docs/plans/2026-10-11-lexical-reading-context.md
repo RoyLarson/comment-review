@@ -3,7 +3,7 @@
 ```
 Status:   in-progress
 Progress: 13 of 14 TODO tasks closed
-Plan-tasks: 22 of 26 plan tasks closed
+Plan-tasks: 23 of 26 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (founded by move-t from 2026-10-11-lexical-readers)
@@ -475,8 +475,9 @@ because this machinery exists.
 - [x] P22 | Original and draft reads retain saved context; refusal and rollback gates and review pass | e63b0edf | Validate
       contexts before drafting and rereading; verify exact rollback after
       later-file refusal
-- [ ] P23 | Apply compatible per-file settings to standalone proof; verify both
-      snapshots use the same declared rules
+- [x] P23 | Both standalone snapshots retain selected per-file settings; route regressions and review pass | ad1f98a6 | Apply
+      compatible per-file settings to standalone proof; verify both snapshots
+      use the same declared rules
 - [ ] P24 | Admit contexts in remaining address consumers; verify shortcuts and
       in-memory inputs cannot bypass checks
 - [ ] P25 | Exercise saved-run migration end to end; verify mixed settings, old
