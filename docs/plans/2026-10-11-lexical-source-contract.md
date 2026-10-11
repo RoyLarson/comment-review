@@ -3,7 +3,7 @@
 ```
 Status:   in-progress
 Progress: 0 of 1 TODO tasks closed
-Plan-tasks: 8 of 13 plan tasks closed
+Plan-tasks: 9 of 13 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (founded by move-t from 2026-10-11-lexical-readers)
@@ -148,8 +148,9 @@ development history.
       explicit region-kind fixtures distinguish code, literals, comments,
       whitespace and directives despite equal reconstruction
         > 2026-10-11 uv run pytest -q tests/test_reading_source.py -k classification
-- [ ] P9 | Verify immutable tuples and the leaf import boundary; test source.py
-      imports without loading workflow or language-reader modules
+- [x] P9 | Immutability and isolated import fixtures pass independent review | 72e2be8b | Verify
+      immutable tuples and the leaf import boundary; test source.py imports
+      without loading workflow or language-reader modules
         > 2026-10-11 uv run pytest -q tests/test_reading_source.py -k boundary
 - [ ] P10 | Run focused source-contract tests; verify every required fixture
       passes and no active workflow has been switched over
