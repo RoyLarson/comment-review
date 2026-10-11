@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 17 of 18 tasks closed
+Progress: 19 of 20 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (2026-10-11 lexical-reader design)
@@ -81,3 +81,10 @@ Define shared source reading contracts.
       lookup result prose; verify failure and text omission descriptions match
       current APIs
         > 2026-10-11 Review: fill.py:343 and verify.py:235 describe erased failures
+- [x] T19 | Direct and wire page SHA shape checks share a validated boundary; regressions pass | c35077c5 | Validate
+      direct proof SHA records; verify malformed extra-page identities refuse
+        > 2026-10-11 Review: master_proof.py:88 accepts invalid direct page SHA
+- [x] T20 | Structural context refusal precedes conversion; malformed settings regression passes | c35077c5 | Refuse
+      malformed direct context settings before mapping conversion; verify
+      validation returns diagnostics
+        > 2026-10-11 Review: reading_context.py:47 serializes refused direct settings

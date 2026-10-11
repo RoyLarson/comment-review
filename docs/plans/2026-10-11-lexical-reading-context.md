@@ -2,8 +2,8 @@
 
 ```
 Status:   in-progress
-Progress: 11 of 12 TODO tasks closed
-Plan-tasks: 18 of 26 plan tasks closed
+Progress: 13 of 14 TODO tasks closed
+Plan-tasks: 19 of 26 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (founded by move-t from 2026-10-11-lexical-readers)
@@ -386,6 +386,10 @@ because this machinery exists.
       source acquisition or cached default
 - [x] T18 | Correct lookup result prose; verify failure and text omission
       descriptions match current APIs
+- [x] T19 | Validate direct proof SHA records; verify malformed extra-page
+      identities refuse
+- [x] T20 | Refuse malformed direct context settings before mapping conversion;
+      verify validation returns diagnostics
 
 ### B - [2026-10-11-language-registry-contract](../../TODO/completed/2026-10-11-language-registry-contract.md)
 
@@ -459,8 +463,9 @@ because this machinery exists.
 - [x] P18 | Extra destinations retain one source/base/context snapshot; 328 tests and review pass | a0e6fc97 | Capture
       move destination source and context together; verify ungathered
       destinations retain their original base
-- [ ] P19 | Carry page contexts through saved master proofs; verify extra
-      destinations and contradictory records
+- [x] P19 | Proofs preserve required page contexts with strict shape and consistency; tests and review pass | c35077c5 | Carry
+      page contexts through saved master proofs; verify extra destinations and
+      contradictory records
 - [ ] P20 | Validate resumed turns and dispositions before mutation; verify
       incompatible proofs leave saved state unchanged
 - [ ] P21 | Carry context through chief copies and docket schedules; verify
