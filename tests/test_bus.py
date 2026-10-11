@@ -1498,6 +1498,7 @@ def test_extra_destination_retains_the_acquired_snapshot(tmp_path):
     assert isinstance(held.source, Source)
     assert held.context == held.result.reading
     assert held.source.sha == held.result.sha == result.proof.page_shas["n.py"]
+    assert result.proof.page_readings["n.py"] is held.context
     destination = next(p for p in result.proof.places if p.address == "n.py@b1")
     assert destination.base == next(
         p.raw_text for p in held.result.paragraphs if p.address == "n.py@b1"

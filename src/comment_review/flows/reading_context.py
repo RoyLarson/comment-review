@@ -7,6 +7,7 @@ from typing import cast
 from comment_review.binder.binder import Binder
 from comment_review.binder.page import Page, RedactedPage
 from comment_review.desk.proof.edit_copy import EditCopy
+from comment_review.desk.proof.master_proof import MasterProof
 from comment_review.desk.proof.sheet import Sheet
 from comment_review.flows.proof_io import load_value
 from comment_review.machine.digests import sha256_hex
@@ -16,6 +17,50 @@ from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, Read
 from comment_review.reading.readers import reader_for
 
 PLACEMENT_REVISION = "1"
+
+
+def proof_reading_problems(
+    proof: MasterProof | dict, where: str = "master_proof"
+) -> list[str]:
+    """Admit saved proof metadata before any address-dependent work."""
+    if isinstance(proof, MasterProof):
+        problems = proof.reading_problems(where)
+        records = proof.page_readings
+        sheets = [sheet for copy in proof.edit_copies for sheet in copy.sheets]
+    else:
+        records = proof.get("page_readings")
+        copies = proof.get("edit_copies", [])
+        if not isinstance(copies, list):
+            return [f"{where}: edit_copies must be a list; regather"]
+        sheets = []
+        for copy in copies:
+            if not isinstance(copy, dict) or not isinstance(copy.get("sheets"), list):
+                return [f"{where}: edit_copy sheets must be a list; regather"]
+            sheets.extend(copy["sheets"])
+        problems = []
+    if not isinstance(records, dict):
+        return [f"{where}: page_readings is missing or malformed; regather"]
+    admitted, why = _reading_contexts(
+        [
+            {
+                "path": path,
+                "reading": context_to_wire(value)
+                if isinstance(value, ReadingContext)
+                else value,
+            }
+            for path, value in records.items()
+        ],
+        where,
+    )
+    problems.extend(why)
+    sheet_contexts, why = _reading_contexts(sheets, where)
+    problems.extend(why)
+    for path, context in sheet_contexts.items():
+        if admitted.get(path) != context:
+            problems.append(
+                f"{where}: {path}: sheet reading disagrees with page_readings; regather"
+            )
+    return problems
 
 
 def copy_reading_problems(copy: object, where: str = "edit_copy") -> list[str]:

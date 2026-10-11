@@ -64,6 +64,17 @@ def test_direct_context_duplicate_supported_settings_cannot_collapse(monkeypatch
     assert repr(copy) == before
 
 
+def test_direct_proof_saved_context_is_admitted_against_installed_identity():
+    from comment_review.desk.proof.master_proof import MasterProof
+
+    saved = flow_context.context_for(Path("m.py"), {})
+    assert isinstance(saved, ReadingContext)
+    proof = MasterProof("4c", {}, (), {"m.py": saved}, page_shas={"m.py": "sha"})
+    assert flow_context.proof_reading_problems(proof) == []
+    proof.page_readings["m.py"] = replace(saved, compatibility="0" * 64)
+    assert "regather" in " ".join(flow_context.proof_reading_problems(proof))
+
+
 def definition() -> LanguageDefinition:
     return LanguageDefinition(
         "Invented",

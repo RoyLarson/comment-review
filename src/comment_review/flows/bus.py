@@ -300,12 +300,27 @@ def _on_copies(message: CopiesReturned) -> tuple[list, Result | None]:
         stage=message.stage,
         read_from={**read_from},
         edit_copies=tuple(copies),
+        page_readings={
+            **contexts,
+            **{
+                path: snapshot.context
+                for path, snapshot in snapshots.items()
+                if snapshot.context is not None
+            },
+        },
         places=tuple(fold.decided.values()),
         moves=tuple(move.recorded() for move in fold.decided_moves.values()),
         page_shas={
-            path: snapshot.source.sha
-            for path, snapshot in snapshots.items()
-            if isinstance(snapshot.source, Source)
+            **{
+                page.path: page.sha
+                for page in binder.pages
+                if page.path not in sheet_paths
+            },
+            **{
+                path: snapshot.source.sha
+                for path, snapshot in snapshots.items()
+                if isinstance(snapshot.source, Source)
+            },
         },
     )
     chief = chief_copy_of(fold.decided, "copy-chief", read_from, _pages_of(copies))
@@ -694,6 +709,7 @@ def _commit(
         stage=proof.stage,
         read_from={**proof.read_from},
         edit_copies=proof.edit_copies,
+        page_readings=dict(proof.page_readings),
         places=tuple(fold.decided.values()),
         moves=tuple(move.recorded() for move in fold.decided_moves.values()),
         page_shas=dict(proof.page_shas),

@@ -194,7 +194,8 @@ class TestAnEmptyProofStillHoldsItsHeader:
         """The bus's `_on_copies` produces this shape for a stage with no
         copies, so `{}` is admitted and only the other five values are not."""
         parsed, problems = MasterProof.deserialize(
-            "p", {"stage": "4c", "edit_copies": [], "read_from": {}}
+            "p",
+            {"stage": "4c", "edit_copies": [], "read_from": {}, "page_readings": {}},
         )
         assert problems == []
         assert parsed is not None
@@ -207,6 +208,7 @@ class TestAnEmptyProofStillHoldsItsHeader:
         assert built.edit_copies == () and built.read_from == {}
         parsed, problems = MasterProof.deserialize("4c", built.serialize())
         assert problems == []
+        assert built.page_readings.keys() == built.page_shas.keys() == {"m.py"}
         assert parsed is not None
 
 
@@ -347,7 +349,9 @@ class TestWhatItRefuses:
         """An empty `edit_copies` reads back with `read_from={}`, the shape the
         bus writes when there is no first copy to take it from -- not the
         disagreement or malformed shape the two cases above refuse."""
-        got, why = MasterProof.deserialize("4c", {"stage": "4c", "edit_copies": []})
+        got, why = MasterProof.deserialize(
+            "4c", {"stage": "4c", "edit_copies": [], "page_readings": {}}
+        )
         assert why == []
         assert got is not None
         assert got.read_from == {}
@@ -369,7 +373,9 @@ class TestANullFieldIsAbsentNotTheWordNone:
         assert sheet.sha == ""
 
     def test_a_null_stage(self):
-        proof, why = MasterProof.deserialize("4c", {"stage": None, "edit_copies": []})
+        proof, why = MasterProof.deserialize(
+            "4c", {"stage": None, "edit_copies": [], "page_readings": {}}
+        )
         assert why == []
         assert proof is not None
         assert proof.stage == ""
@@ -462,6 +468,7 @@ def test_a_master_proof_carries_its_moves_and_reads_back_one_written_before_them
         stage="4c",
         read_from={},
         edit_copies=(),
+        page_readings={},
         places=(),
         moves=(Move("m.py@b1", "m.py@b5"),),
     )
@@ -472,6 +479,70 @@ def test_a_master_proof_carries_its_moves_and_reads_back_one_written_before_them
     older["places"] = [{"address": "m.py@b1", "partner": "m.py@b5"}]
     back, why = MasterProof.deserialize("4c", older)
     assert why == [] and back is not None and back.moves == ()
+
+
+def test_master_proof_requires_saved_page_readings():
+    proof, why = MasterProof.deserialize("proof", {"edit_copies": []})
+    assert proof is None
+    assert any("page_readings" in reason and "regather" in reason for reason in why)
+
+
+def test_empty_proof_readings_are_explicit_and_detached():
+    readings = {}
+    proof = MasterProof("4c", {}, (), readings)
+    readings["extra.py"] = a_binder_over({"m.py@b1": "# example\n"}).pages[0].reading
+    assert proof.serialize()["page_readings"] == {}
+    back, why = MasterProof.deserialize("proof", proof.serialize())
+    assert back is not None and why == []
+
+
+def test_repeated_empty_sheets_require_consistent_metadata(tmp_path):
+    wire = a_master_proof(
+        tmp_path / "repo", {"block-context": {"m.py@b1": a_clean("m.py@b1")}}
+    ).serialize()
+    sheet = wire["edit_copies"][0]["sheets"][0]
+    sheet["marks"] = []
+    wire["places"] = []
+    wire["edit_copies"][0]["sheets"].append({**sheet})
+    back, why = MasterProof.deserialize("proof", wire)
+    assert back is not None and why == []
+    wire["edit_copies"][0]["sheets"][1] = {**sheet, "sha": "different"}
+    back, why = MasterProof.deserialize("proof", wire)
+    assert back is None and any("conflicting sheet shas" in one for one in why)
+
+
+@pytest.mark.parametrize("value", [None, [], {"format": 2}])
+def test_master_proof_refuses_invalid_saved_context(tmp_path, value):
+    wire = a_master_proof(
+        tmp_path / "repo", {"block-context": {"m.py@b1": a_clean("m.py@b1")}}
+    ).serialize()
+    wire["page_readings"]["m.py"] = value
+    back, why = MasterProof.deserialize("proof", wire)
+    assert back is None and any("regather" in reason for reason in why)
+
+
+def test_master_proof_page_readings_round_trip_and_detach(tmp_path):
+    proof = a_master_proof(
+        tmp_path / "repo", {"block-context": {"m.py@b1": a_clean("m.py@b1")}}
+    )
+    wire = proof.serialize()
+    assert wire["page_readings"] == {"m.py": reading_wire()}
+    back, why = MasterProof.deserialize("proof", wire)
+    assert why == [] and back is not None
+    wire["page_readings"]["m.py"]["settings"]["new"] = "choice"
+    assert back.serialize()["page_readings"] == {"m.py": reading_wire()}
+
+
+def test_master_proof_refuses_missing_destination_context_before_places(tmp_path):
+    wire = a_master_proof(
+        tmp_path / "repo", {"block-context": {"m.py@b1": a_clean("m.py@b1")}}
+    ).serialize()
+    wire["page_shas"] = {"extra.py": "sha"}
+    wire["places"] = ["invalid"]
+    back, why = MasterProof.deserialize("proof", wire)
+    assert back is None
+    assert any("extra.py" in reason and "regather" in reason for reason in why)
+    assert not any("place 1" in reason for reason in why)
 
 
 class TestEveryBadRecordIsNamed:

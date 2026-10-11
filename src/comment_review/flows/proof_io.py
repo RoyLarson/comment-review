@@ -95,6 +95,13 @@ def load_proof(path: Path) -> tuple[MasterProof | None, list[str]]:
     loaded, why = _object(path, "master_proof")
     if loaded is None:
         return None, why
+    from comment_review.flows.reading_context import proof_reading_problems
+
+    if not isinstance(loaded.get("edit_copies"), list):
+        return MasterProof.deserialize(str(path), loaded)
+    why = proof_reading_problems(loaded, str(path))
+    if why:
+        return None, why
     return MasterProof.deserialize(str(path), loaded)
 
 
