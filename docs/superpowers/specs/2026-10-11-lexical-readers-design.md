@@ -52,10 +52,32 @@ the future markup work.
 
 ## Responsibilities
 
-Each language has a module owning its lexical rules, literal forms, comment
-forms, contextual distinctions and declaration recognition. Small shared
-helpers support source positions, bounded lookahead, delimiter matching and
-diagnostics. A common contract lets callers consume each reader consistently.
+Each language has its own specification and definition file. That definition
+owns the language's lexical rules, literal and comment forms, contextual
+distinctions, declaration recognition and documentation placement. It selects
+and configures the parsing machinery that implements those rules.
+
+Declarative settings live in that language's own TOML definition file.
+Procedural recognition lives in language-owned code selected and configured
+by the definition. The shared engine need not express every grammar rule as
+static delimiter data.
+
+Parsing engines and small helpers can be reused for source positions, bounded
+lookahead, delimiter matching, state transitions and diagnostics. Each
+language's definition supplies the configuration and composes that machinery.
+Language families must not own definitions, defaults or inherited rules. One
+language's definition must not obtain its rules from another language's
+definition. Similar syntax is a reason to reuse an engine, not to combine
+language specifications or configuration.
+
+Every language listed in Scope requires a separate dated specification before
+its reader is implemented. Each specification names that language's definition
+file, authoritative language references, supported syntax and dialects, parser
+configuration, documentation rules and expected fixtures. This document defines
+the common contracts; it does not replace those language specifications.
+
+The registry maps supported source paths to individual language definitions.
+A common result contract lets callers consume their readers consistently.
 
 The reading package owns these contracts and language facts. It supplies the
 existing paragraph and declaration machinery with source ranges and placement
@@ -102,9 +124,9 @@ place one section beside its code line. Blank lines provide formatting within
 the section; they supply no code anchor for another address. Line-control
 requirements apply to the whole section.
 
-Source layouts that the existing places
-cannot represent receive a placement diagnostic; the reader retains the exact
-source and does not combine incompatible forms into one editable paragraph.
+Source layouts that the existing places cannot represent receive a placement
+diagnostic; the reader retains the exact source and does not combine
+incompatible forms into one editable paragraph.
 
 Input decoding, newline handling and output encoding preserve the source
 contract end to end. Existing encoding support is retained. Unsupported input
@@ -130,13 +152,13 @@ Coverage includes the following distinguishing cases:
 | Rust | Lifetimes, character literals, raw delimiters, multiline strings, nested comments and inner versus outer documentation |
 | Go | Interpreted strings, raw strings, runes, package documentation and significant line breaks |
 | C | Character and string literals, escaped physical newlines, preprocessing boundaries and comments beside code |
-| C++ | C-style forms, raw strings with chosen delimiters and preprocessing boundaries |
+| C++ | Character and string literals, raw strings with chosen delimiters, escaped physical newlines and preprocessing boundaries |
 | Java | Unicode translation before token recognition, character literals, strings, text blocks and contextual declaration keywords |
 | C# | Regular, verbatim, raw and interpolated strings; character literals and documentation comments |
 | Swift | Raw and multiline strings, interpolation, regex forms, nested comments and declaration modifiers |
 | Kotlin | Regular and raw strings, interpolation, character literals, nested comments and contextual keywords |
 | JavaScript | Regex versus division, regex character classes, template expressions, significant line breaks and JSX boundaries |
-| TypeScript | JavaScript lexical forms, TypeScript declaration context and TSX boundaries |
+| TypeScript | Regex versus division, regex character classes, template expressions, significant line breaks, declaration context and TSX boundaries |
 | Ruby | Quoted and percent-delimited literals, regex context, interpolation, heredocs and block-comment placement |
 | Shell | Quoting, escapes, substitutions, parameter expansion, arithmetic, heredocs and word-context comment recognition |
 | SQL | The selected dialect's quoting, escaping, comment nesting, dollar-delimited forms and executable comment forms |
@@ -171,6 +193,19 @@ Shell suffixes and interpreter declarations inform the shell dialect. Where
 they leave a boundary ambiguous, project context supplies the selection.
 Dialect implementations share scanning mechanics where appropriate while
 retaining their own grammar decisions.
+
+## Go documentation
+
+A Go documentation section immediately precedes the declaration it documents,
+with no intervening blank line, following
+[Go's documentation rule](https://go.dev/doc/comment). For ordinary mid-file
+comments, a blank line between the section and the declaration leaves the
+whole section at its `b` place instead of assigning it to the declaration's
+`a` place. The section stays whole in either case.
+
+The Go definition owns this adjacency rule. Its specification and fixtures
+cover both placements. Every other language establishes its own documentation
+rules independently.
 
 ## Python documentation
 
@@ -310,6 +345,9 @@ Each language's fixtures exercise its claimed forms and difficult boundaries.
 
 The shared checks demonstrate:
 
+- A separate specification and definition file for every supported language;
+  engine configuration comes from that language's definition. Changing one
+  language's rules leaves the others' independently specified results intact.
 - Complete, ordered source coverage and exact reconstruction, including mixed
   endings, missing final newlines, non-ASCII text and literal whitespace.
 - Expected prose, forms, declaration relationships and `a`, `b`, `c`, `f`
@@ -326,6 +364,9 @@ The shared checks demonstrate:
   equivalent source pairs, with approval independently checked by `proof`.
 - Accurate handling of adjacent docstring literals, executable suffixes,
   documentation ownership changes and same-line documentation placement.
+- Go documentation immediately above a declaration occupies its `a` place;
+  an ordinary mid-file section separated from the declaration by a blank line
+  stays whole at its `b` place.
 - Useful diagnostics for incomplete or unsupported recognition and incompatible
   saved reading contexts.
 - Supported Python syntax newer than the pinned runtime, exercised through
@@ -341,7 +382,7 @@ evidence alongside the common reader invariants.
 
 ## Open TODO coverage
 
-The inventory review covered every open task reported by `job-board todo list`
+The initial inventory review covered every open task reported by `job-board todo list`
 and the corresponding `todo show` results: 168 TODO files containing 930 open
 tasks, including work underway and tasks awaiting a decision. The mappings below
 identify the relevant tasks; unlisted tasks remain outside this design.
@@ -355,16 +396,18 @@ Already-satisfied tasks need reconciliation with their existing evidence.
 An old task whose prescribed mechanism or check conflicts with this design
 needs supersession through the board, retaining its valid behavioral goal in
 a replacement task. Partial coverage needs separate delivered and remaining
-goals. This specification changes no TODO status or plan ownership.
+goals. Coverage alone does not close a TODO or change its plan ownership.
 
 ### Goals covered by the readers and proof
 
 | TODO tasks | Required result and closure boundary |
 | --- | --- |
+| [language-rows-in-toml](../../../TODO/language-rows-in-toml.md) T17, T18 | Each supported language has its own dated specification and definition file configuring its parsing machinery. Shared engines execute independently owned language rules. |
+| [doc-does-not-fill-its-a](../../../TODO/doc-does-not-fill-its-a.md) T10 | Implement the approved Go adjacency rule and verify the resulting `a` and `b` placements and matching reader documentation. The decision is recorded separately in T9; the mixed original T7 is superseded. |
 | [lexical-code-identity](../../../TODO/lexical-code-identity.md) T1, T2 | Both proof boundaries use lexical preservation, agree on docstring additions and removals, and detect literal whitespace changes. This covers all currently open goals in this TODO. |
 | [python-cannot-read-python](../../../TODO/python-cannot-read-python.md) T32, T33, T34, T36, T37, T38, T39 | Owned Python reading, discovered docstrings, supported newer syntax on the pinned runtime, exact reconstruction and accurate proof claims. All open goals are covered; the obsolete checks and physical-line promise require the replacements described below. |
 | [lexer-and-language-findings](../../../TODO/lexer-and-language-findings.md) T3, T4, T13-T19, T22-T25, T27, T28, T32-T35 | Preserve matter ownership; distinguish shell expansion from comments and contextual keywords from declarations; recognize multiline and dynamic literals; resume scanning in source order; classify and set same-line, inner and outer documentation correctly. Each language case needs an expected-discovery fixture as well as reconstruction. |
-| [a-doc-comment-is-cued-a-and-typed-b](../../../TODO/a-doc-comment-is-cued-a-and-typed-b.md) T1-T4 | Placement and the language's documentation rules determine kind and ownership together. Go, Ruby and Lua kinds must agree with their places. Remove expected failures only when the assertions pass. Go and Ruby depend on the adjacency decisions below. |
+| [a-doc-comment-is-cued-a-and-typed-b](../../../TODO/a-doc-comment-is-cued-a-and-typed-b.md) T1-T4 | Placement and each language's independently specified documentation rules determine kind and ownership together. Go, Ruby and Lua kinds must agree with their places. Remove expected failures only when the assertions pass. Go follows its documented adjacency rule above; Ruby's rule remains to be resolved independently. |
 | [matter-misses-two-languages](../../../TODO/matter-misses-two-languages.md) T2 | An ordinary Rust opening comment remains matter instead of becoming a declaration's documentation. The TypeScript classifier question in this TODO is separate. |
 | [block-comment-markers-survive-into-the-prose](../../../TODO/block-comment-markers-survive-into-the-prose.md) T1, T2, T7-T10 | Prose excludes openers, closers and actual continuation markers; form recovery reconstructs them. Invented fixtures cover multiline Javadoc, Ruby and Lua under their own rules. Delimiter removal does not authorize deleting payload characters or relative indentation. |
 | [doc-on-the-declaring-line](../../../TODO/doc-on-the-declaring-line.md) T3, T4 | A same-line Python docstring receives the declared documentation place and can be set without losing surrounding code. |
@@ -405,7 +448,7 @@ implementation mechanism is not evidence that its replacement works.
 | [python-cannot-read-python](../../../TODO/python-cannot-read-python.md) T33, T34, T36, T37 | Replace frozen corpus totals, an external source example and a retired test runner with invented newer-syntax fixtures, current pytest checks and measured reconstruction results. Describe preserved executable content, order and meaningful boundaries; physical line numbers may change with prose. Optional corpus measurements still report their actual population. |
 | [lexer-and-language-findings](../../../TODO/lexer-and-language-findings.md) T2, T7, T10, T11, T21, T26, T29 | Replace per-paragraph unterminated stamps with explicit incomplete-read diagnostics; the fixed importer count with shared-leaf boundaries; old scan optimizations and accumulators with the ordered read result; the predicted address-migration history with actual address fixtures; the `inner_doc` field prescription with language-owned relationships; and the empty-Python-result description with the implemented documentation contract. |
 | [doc-is-structural-means-two-things](../../../TODO/doc-is-structural-means-two-things.md) T1-T3 | Replace the overloaded flag and old helper documentation with explicit literal/comment form and documentation ownership. A form round trip proves that marker handling still works when documentation is recognized by placement. |
-| [language-rows-in-toml](../../../TODO/language-rows-in-toml.md) T1-T5, T12, T13, T15, T16 | Replace a generic two-tier reader and an exhaustive static grammar table with a reader registry and language modules. Static metadata may remain data. Preserve tests for delimiter precedence, explicit capabilities and registry dispatch; remove independent Python suffix lists in the integrated consumers. T14's full name-harvester capability work remains separate. |
+| [language-rows-in-toml](../../../TODO/language-rows-in-toml.md) T1-T5, T12, T13, T15, T16 | Replace a generic two-tier reader and a combined grammar table with a registry and a separate specification and definition file per language. Each definition configures reusable parsing machinery; no family defaults or inherited language rules. Preserve tests for delimiter precedence, explicit capabilities and registry dispatch; remove independent Python suffix lists in the integrated consumers. T14's full name-harvester capability work remains separate. |
 | [a-series-never-fills-outside-python](../../../TODO/a-series-never-fills-outside-python.md) T18; [one-stem-four-jobs](../../../TODO/one-stem-four-jobs.md) T2, T3 | Replace keyword-anywhere matching and renaming its table/helper with context-aware declaration recognition. Identifiers inside literals, comments or expressions cannot mint declaration places. This does not add C or C++ declaration places. |
 | [lexer-does-not-lex](../../../TODO/lexer-does-not-lex.md) T8-T10 | Retain the term lexer for the actual lexical readers. A blanket module/vocabulary rename to describe the old behavior is unnecessary. Record this proposed naming resolution before retiring the decision task. |
 | [a-comment-inside-a-line-makes-the-file-unprovable](../../../TODO/a-comment-inside-a-line-makes-the-file-unprovable.md) T2-T5 | Replace fixed refusal-site counts with current CLI-reachable diagnostic cases, and the paragraph column-field prescription with the shared character-span contract. Corpus frequency is useful measurement but is no longer a prerequisite to preserving code beside comments. |
@@ -430,7 +473,7 @@ the owning tasks before their dependent implementation is finalized.
 
 | TODO tasks | Boundary still to settle |
 | --- | --- |
-| [doc-does-not-fill-its-a](../../../TODO/doc-does-not-fill-its-a.md) T7, T8 | Go and Ruby documentation adjacency, each considered independently: touching its declaration or allowing intervening blank lines. This determines the expected ownership fixtures. |
+| [doc-does-not-fill-its-a](../../../TODO/doc-does-not-fill-its-a.md) T8 | Ruby documentation adjacency, established from Ruby's own rules: touching its declaration or allowing intervening blank lines. This determines Ruby's expected ownership fixtures. |
 | [a-comment-run-merges-across-blanks](../../../TODO/a-comment-run-merges-across-blanks.md) T6; [lexer-and-language-findings](../../../TODO/lexer-and-language-findings.md) T12 | Whether `Paragraph.lines` remains a stored field. Prefer deriving any display count from source spans; settle what the count means before retaining or removing the field. |
 
 The TypeScript doc-shaped header question in

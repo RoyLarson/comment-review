@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 5 of 8 tasks closed
+Progress: 5 of 10 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-20 (found while adding the per-language declares keyword list,
@@ -25,29 +25,25 @@ RE-CHECKED: 2026-08-23 — 2026-08-23. THE COLLATOR HAS LANDED, so tasks 2, 3 an
 
 ## Objective
 
-An above-declaration doc comment used to be addressed as a `b`, never as the declaration's `a`.
-**That is fixed.** `lexer.declarations()` reports the declaring lines,
-`lexer.document_declarations()` (`lexer.py:1526`) says which run documents which, and
-`page.attach()` routes a paragraph with `declares >= 0` to `cues.documents(declares)`
-(`page.py:316-318`).
+Documentation classification and address ownership must agree for each language.
+Each language establishes its rules independently from its own definition and
+authoritative references.
 
-VERIFIED 2026-08-23, `page_for(Path('m.rs'), '/// The one doc.\nfn one() {}\n', rust)`:
+Roy approved following Go's documentation rule: a documentation section must
+immediately precede its declaration, with no intervening blank line, to occupy
+the declaration's a place. For ordinary mid-file comments, an intervening blank
+line leaves the whole section at its b place. The section remains whole in both
+cases. Reference: https://go.dev/doc/comment
 
-```
-m.rs@a0  undocumented  declares=0   <module>
-m.rs@b0  interval      declares=-1  fn one() {}     <- the gap above, a separate place
-m.rs@a1  docstring     declares=1   fn one() {}     <- the doc, in the a series
-m.rs@c0  margin        declares=-1  fn one() {}
-```
+T7 combined this decision with implementation and code-comment changes. T9
+records the approved decision; T10 carries implementation and its verification.
+Closing the decision does not claim that the reader has been changed.
 
-The doc LEFT the `b` series, which is what `a` was introduced for, and no place is shared.
-
-! **WHAT THE ORIGINAL MEASUREMENT READ, 2026-08-20**: on `/// The one doc.` above `fn one() {}`
-the doc was a `b1` with `declares=-1` while `a1` reported `undocumented`. Re-run 2026-08-23, it
-is `a1` with `declares=1`. The keyword list is what made the collator computable, and it is built.
-
-! **Python is unaffected**: `paragraphs_stdlib` has always carried `declares` from the AST. This
-is the lexical tier only, and that is a statement of SCOPE rather than remaining work.
+T8 concerns Ruby's own documentation rules and remains separate. T6 updates the
+compact reference to describe whatever unresolved cases actually remain after
+the reader changes. The lexical-reader specification supplies the current
+architecture; references to retired helpers in older task checks need board
+reconciliation rather than restoring the old implementation.
 
 ## !! What is left: two functions ask the same question and answer it differently
 
@@ -112,3 +108,8 @@ rule is that a language takes its definition from its own grammar and never from
 - [?] T8 | T8 -- * RULE ruby's adjacency, from ruby's own grammar and not from
       go's. Verify: one of the two comments is corrected to cite the other, for
       ruby.
+- [ ] T9 | Record Go documentation adjacency; verify the spec requires no blank
+      line before the declaration
+        > 2026-10-11 Roy approved Go adjacency: no blank before its declaration.
+- [ ] T10 | Implement Go documentation adjacency; verify touching comments use
+      a, separated comments use b, and reader prose agrees
