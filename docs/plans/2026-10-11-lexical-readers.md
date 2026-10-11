@@ -2,8 +2,8 @@
 
 ```
 Status:   decision-needed
-Progress: 2 of 155 TODO tasks closed
-Plan-tasks: 0 of 50 plan tasks closed
+Progress: 3 of 155 TODO tasks closed
+Plan-tasks: 1 of 50 plan tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-10-11 (founded by move-t from 0.2.4-the-middle-rebuilt)
@@ -551,7 +551,7 @@ interfaces, inputs and checks, without internal development files or history.
 
 ### AO - [2026-10-11-source-reading-contract](../../TODO/2026-10-11-source-reading-contract.md)
 
-- [ ] T1 | MOVED to 2026-10-11-lexical-source-contract | Represent source as
+- [x] T1 | MOVED to 2026-10-11-lexical-source-contract | Represent source as
       ordered regions and ownership facts; verify exact reconstruction and
       independently expected classifications
 - [ ] T2 | Carry reader compatibility and language settings through saved runs;
@@ -564,8 +564,9 @@ interfaces, inputs and checks, without internal development files or history.
 
 ## Plan Tasks
 
-- [ ] P1 | Define ordered regions and ownership in reading/source.py; verify
-      reconstruction and independently expected classifications
+- [x] P1 | Source contract subplan implemented, tested and reviewed; 196 focused tests pass | 1c455282 | Define
+      ordered regions and ownership in reading/source.py; verify reconstruction
+      and independently expected classifications
         > 2026-10-11 Check: uv run pytest -q tests/test_reading_source.py
         > 2026-10-11 Implemented by subplan 2026-10-11-lexical-source-contract
 - [ ] P2 | Define lexical and placement diagnostics; verify incomplete reads

@@ -1,9 +1,9 @@
 # Shared lexical source contract
 
 ```
-Status:   in-progress
-Progress: 0 of 3 TODO tasks closed
-Plan-tasks: 13 of 14 plan tasks closed
+Status:   closed
+Progress: 3 of 3 TODO tasks closed
+Plan-tasks: 14 of 14 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (founded by move-t from 2026-10-11-lexical-readers)
@@ -111,11 +111,11 @@ development history.
 
 ### A - [2026-10-11-source-reading-contract](../../TODO/2026-10-11-source-reading-contract.md)
 
-- [~] T1 | Represent source as ordered regions and ownership facts; verify exact
+- [x] T1 | Represent source as ordered regions and ownership facts; verify exact
       reconstruction and independently expected classifications
-- [ ] T3 | Reject invalid SourceRegion kinds; verify unknown strings, None and
+- [x] T3 | Reject invalid SourceRegion kinds; verify unknown strings, None and
       mutable values raise ValueError
-- [ ] T4 | Reject non-string SourceStructure text; verify lists, bytes and None
+- [x] T4 | Reject non-string SourceStructure text; verify lists, bytes and None
       raise ValueError before caching
 
 ## Plan Tasks
@@ -172,5 +172,6 @@ development history.
       type, shipped-syntax and vocabulary checks; verify exit zero and Python
       3.11 compatibility after formatting
         > 2026-10-11 Use the existing CLAUDE.md gate commands; all must exit zero
-- [~] P14 | Validate text and region-kind constructor inputs; verify focused
-      rejection tests, repository gates and scoped review pass
+- [x] P14 | Constructor boundaries reject invalid inputs; regressions, all gates and scoped review pass | 1c455282 | Validate
+      text and region-kind constructor inputs; verify focused rejection tests,
+      repository gates and scoped review pass
