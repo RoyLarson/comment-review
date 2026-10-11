@@ -2,8 +2,8 @@
 
 ```
 Status:   in-progress
-Progress: 6 of 9 TODO tasks closed
-Plan-tasks: 7 of 13 plan tasks closed
+Progress: 12 of 13 TODO tasks closed
+Plan-tasks: 8 of 13 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (founded by move-t from 2026-10-11-lexical-readers)
@@ -265,10 +265,18 @@ runtime implementation is included in the plan-authoring commit.
 
 ### C - [galley-and-compositor-write-path](../../TODO/galley-and-compositor-write-path.md)
 
-- [ ] T51 | Consolidate round-trip checks in a flow; verify one acquisition and
+- [x] T51 | Consolidate round-trip checks in a flow; verify one acquisition and
       setting per file and independent comparison outcomes
-- [ ] T52 | Verify source-byte preservation using invented BOM, newline and
+- [x] T52 | Verify source-byte preservation using invented BOM, newline and
       empty fixtures; detect normalization at the actual I/O boundary
+- [x] T53 | Assert exact BOM and mixed-ending round-trip outcomes; verify
+      expected diagnostic codes or rendered bytes and command status
+- [x] T54 | Describe compositor command refusal exits accurately; verify the
+      comment agrees with all nonzero paths
+- [x] T55 | Describe lossless line retention separately from identity; verify
+      prose agrees with newline and reorder cases
+- [x] T56 | Align compositor command prose with its flow API; verify no retired
+      path-based comparison examples remain
 
 ## Plan Tasks
 
@@ -298,8 +306,9 @@ runtime implementation is included in the plan-authoring commit.
       success, failed admission and no duplicate reads
         > 2026-10-11 uv run pytest -q tests/test_page_for.py
         > 2026-10-11 Return LocatedReadFailure with path, language and retained text
-- [ ] P7 | Move round-trip orchestration into a flow; verify one read and set
-      plus separate identity and line-retention comparisons
+- [x] P7 | One held round trip and independent comparisons verified | 3aa24584 | Move
+      round-trip orchestration into a flow; verify one read and set plus
+      separate identity and line-retention comparisons
         > 2026-10-11 uv run pytest -q tests/test_compositor.py
         > 2026-10-11 Return LocatedReadFailure with path, language and retained text
 - [ ] P8 | Admit both proof inputs through shared outcomes; verify exact Git

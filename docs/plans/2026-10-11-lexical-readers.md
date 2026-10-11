@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 16 of 161 TODO tasks closed
+Progress: 18 of 161 TODO tasks closed
 Plan-tasks: 2 of 51 plan tasks closed
 Owner:    backend
 Requires-Roy: true
@@ -373,10 +373,10 @@ interfaces, inputs and checks, without internal development files or history.
       carries that fact.
 - [-] T10 | T10 -- **Make `compositor.py:231` refuse on that fact, not on an
       empty list.** Verify: an empty file with no text still sets back as empty.
-- [ ] T51 | MOVED to 2026-10-11-lexical-read-results | Consolidate round-trip
+- [x] T51 | MOVED to 2026-10-11-lexical-read-results | Consolidate round-trip
       checks in a flow; verify one acquisition and setting per file and
       independent comparison outcomes
-- [ ] T52 | MOVED to 2026-10-11-lexical-read-results | Verify source-byte
+- [x] T52 | MOVED to 2026-10-11-lexical-read-results | Verify source-byte
       preservation using invented BOM, newline and empty fixtures; detect
       normalization at the actual I/O boundary
 
@@ -570,7 +570,7 @@ interfaces, inputs and checks, without internal development files or history.
 - [x] T5 | MOVED to 2026-10-11-lexical-read-results | Define immutable read
       diagnostics and failures; verify location units, field validation and
       successful empty input
-- [ ] T6 | MOVED to 2026-10-11-lexical-read-results | Reject failed readings at
+- [~] T6 | MOVED to 2026-10-11-lexical-read-results | Reject failed readings at
       page and proof admission; verify either-side failures, empty success and
       cleanup
 

@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 46 of 52 tasks closed
+Progress: 52 of 56 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (code-review high round 3 and /simplify round 2, 2026-08-22 -- the
@@ -265,7 +265,25 @@ files in `corpora/` are in that state today.
       compositor.py:363 EOF separation; test adding b1 with no final newline or
       with an existing footer preserves both places
         > 2026-10-02 Repro: .tmp/review_eof_gap.py; b1 rereads as empty
-- [ ] T51 | Consolidate round-trip checks in a flow; verify one acquisition and
-      setting per file and independent comparison outcomes
-- [ ] T52 | Verify source-byte preservation using invented BOM, newline and
-      empty fixtures; detect normalization at the actual I/O boundary
+- [x] T51 | One acquisition and setting shared by both comparisons | 3aa24584 | Consolidate
+      round-trip checks in a flow; verify one acquisition and setting per file
+      and independent comparison outcomes
+- [x] T52 | Literal source bytes and exact compositor outcomes verified | 3aa24584 | Verify
+      source-byte preservation using invented BOM, newline and empty fixtures;
+      detect normalization at the actual I/O boundary
+- [x] T53 | Exact BOM refusal and mixed-ending command outcomes verified | 3aa24584 | Assert
+      exact BOM and mixed-ending round-trip outcomes; verify expected diagnostic
+      codes or rendered bytes and command status
+        > 2026-10-11 Review: test_compositor.py:135 accepts arbitrary failure or output
+- [x] T54 | Command comment describes refusal and retention exits | 3aa24584 | Describe
+      compositor command refusal exits accurately; verify the comment agrees
+      with all nonzero paths
+        > 2026-10-11 Review: commands/compositor.py:52 omits refusal exit cases
+- [x] T55 | Comparison prose matches byte and line-multiset checks | 3aa24584 | Describe
+      lossless line retention separately from identity; verify prose agrees with
+      newline and reorder cases
+        > 2026-10-11 Review: results/compositor.py:402 claims one difference shape
+- [x] T56 | Command prose describes current flow and comparison API | 3aa24584 | Align
+      compositor command prose with its flow API; verify no retired path-based
+      comparison examples remain
+        > 2026-10-11 Caller audit: commands/compositor.py:3,19,21 describe old contracts
