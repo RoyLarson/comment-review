@@ -91,8 +91,10 @@ from comment_review.desk.stages import not_admitted
 from comment_review.exceptions import READ_ERRORS
 from comment_review.flows.on_the_page import held_at
 from comment_review.flows.page_for import page_of
+from comment_review.flows.read_diagnostics import format_failure
 from comment_review.machine.repo import can_escape, read_raw
 from comment_review.reading.addresser import cue_of, unflatten
+from comment_review.reading.diagnostics import ReadFailure
 
 #: The fields a role decides, in the order a mark carries them. `address` is
 #: how the entry is placed; `anchor` is never read off the entry at all --
@@ -172,9 +174,9 @@ def place_on_the_page(
     marks, rel = found
     if root is None:
         return None, {}, [f"{address}: no checkout to resolve its page against"]
-    page, why_page = page_of(root / rel, rel=rel)
-    if page is None:
-        return None, {}, [f"{address}: {why_page}"]
+    page = page_of(root / rel, rel=rel)
+    if isinstance(page, ReadFailure):
+        return None, {}, [f"{address}: {format_failure(page, path=rel)}"]
     cue = address.partition("@")[2]
     if cue not in page.cues.places:
         return None, {}, [f"{address} names no place on that page"]

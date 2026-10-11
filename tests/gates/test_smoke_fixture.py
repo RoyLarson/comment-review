@@ -38,6 +38,7 @@ from comment_review.flows.answers import slot_key  # noqa: E402
 from comment_review.flows.fill import marks_on  # noqa: E402
 from comment_review.flows.human import HumanAnswer, read_answers  # noqa: E402
 from comment_review.flows.page_for import page_of  # noqa: E402
+from comment_review.reading.diagnostics import ReadFailure
 
 
 def cue_of(paragraph) -> str:
@@ -50,8 +51,8 @@ class TestTheFixtureYieldsEverySeries(unittest.TestCase):
         self.tmp = tempfile.TemporaryDirectory()
         self.root = Path(self.tmp.name)
         path = smoke_fixture.write_fixture(self.root)
-        page, why = page_of(path, rel="fib.py")
-        assert page is not None, why
+        page = page_of(path, rel="fib.py")
+        assert not isinstance(page, ReadFailure), page
         self.page = page
 
     def tearDown(self):
@@ -141,8 +142,8 @@ class TestTheLandingTableAgreesWithTheFixture(unittest.TestCase):
             smoke_fixture.write_store_fixture(root),
             smoke_fixture.write_tally_fixture(root),
         ):
-            page, why = page_of(path, rel=path.name)
-            assert page is not None, why
+            page = page_of(path, rel=path.name)
+            assert not isinstance(page, ReadFailure), page
             self.pages[path.name] = page
 
     def tearDown(self):
@@ -495,8 +496,8 @@ class TestTheSecondStageRulesTheRevisesOwnPlaces(unittest.TestCase):
         root = Path(self.tmp.name)
         path = root / "fib.py"
         path.write_text(smoke_fixture.EXPECTED, encoding="utf-8", newline="\n")
-        page, why = page_of(path, rel="fib.py")
-        assert page is not None, why
+        page = page_of(path, rel="fib.py")
+        assert not isinstance(page, ReadFailure), page
         self.page = page
 
     def tearDown(self):

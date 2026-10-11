@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 40 of 50 tasks closed
+Progress: 53 of 57 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (code-review high round 3 and /simplify round 2, 2026-08-22 -- the
@@ -91,19 +91,25 @@ files in `corpora/` are in that state today.
 - [x] T4 | FINISHED | unknown | T4 -- **Make `compositor.identity` read through
       `repo.read_raw`** (`compositor.py:335`). Verify: `grep -n "read_text"
       compositor.py` returns nothing.
-- [ ] T5 | T5 -- **Test the newline axis the gates never saw.** Verify: a CRLF
-      fixture makes `line_endings()` answer CRLF, and the test fails on HEAD.
-- [ ] T6 | T6 -- **Extract the prologue the two gates share** -- read, resolve
-      the language, build the page, set it. Verify: one function does all four.
-- [ ] T7 | T7 -- **Make `lossless` and `identity` call that one function.**
-      Verify: neither repeats the four steps.
-- [ ] T8 | T8 -- **Make `main` read each file once** rather than running the
-      pair twice per file. Verify: a run over one file performs one read of it.
-- [ ] T9 | T9 -- **Make `page_for` RECORD whether the source was read**, rather
-      than throwing the fact away. Verify: a page built from an unread source
-      carries that fact.
-- [ ] T10 | T10 -- **Make `compositor.py:231` refuse on that fact, not on an
-      empty list.** Verify: an empty file with no text still sets back as empty.
+- [-] T5 | Replaced by T52: independently expected source-byte fixtures | b03adaa8 | T5
+      -- **Test the newline axis the gates never saw.** Verify: a CRLF fixture
+      makes `line_endings()` answer CRLF, and the test fails on HEAD.
+- [-] T6 | Replaced by T51: flow-owned acquisition and setting shared by both checks | b03adaa8 | T6
+      -- **Extract the prologue the two gates share** -- read, resolve the
+      language, build the page, set it. Verify: one function does all four.
+- [-] T7 | Replaced by T51: pure comparisons consume the one flow result | b03adaa8 | T7
+      -- **Make `lossless` and `identity` call that one function.** Verify:
+      neither repeats the four steps.
+- [-] T8 | Replaced by T51: one acquisition and setting per combined check | b03adaa8 | T8
+      -- **Make `main` read each file once** rather than running the pair twice
+      per file. Verify: a run over one file performs one read of it.
+- [-] T9 | Replaced by source-reading-contract T6: explicit failed outcomes instead of unread pages | b03adaa8 | T9
+      -- **Make `page_for` RECORD whether the source was read**, rather than
+      throwing the fact away. Verify: a page built from an unread source carries
+      that fact.
+- [-] T10 | Replaced by source-reading-contract T6: failed admission and successful empty pages | b03adaa8 | T10
+      -- **Make `compositor.py:231` refuse on that fact, not on an empty list.**
+      Verify: an empty file with no text still sets back as empty.
 - [ ] T11 | Delete results.compositor.approve, or name the caller that will use
       it
         > 2026-08-31 MEASURED 2026-08-31 while landing P45: grep over src/ and tests/
@@ -259,3 +265,29 @@ files in `corpora/` are in that state today.
       compositor.py:363 EOF separation; test adding b1 with no final newline or
       with an existing footer preserves both places
         > 2026-10-02 Repro: .tmp/review_eof_gap.py; b1 rereads as empty
+- [x] T51 | One acquisition and setting shared by both comparisons | 3aa24584 | Consolidate
+      round-trip checks in a flow; verify one acquisition and setting per file
+      and independent comparison outcomes
+- [x] T52 | Literal source bytes and exact compositor outcomes verified | 3aa24584 | Verify
+      source-byte preservation using invented BOM, newline and empty fixtures;
+      detect normalization at the actual I/O boundary
+- [x] T53 | Exact BOM refusal and mixed-ending command outcomes verified | 3aa24584 | Assert
+      exact BOM and mixed-ending round-trip outcomes; verify expected diagnostic
+      codes or rendered bytes and command status
+        > 2026-10-11 Review: test_compositor.py:135 accepts arbitrary failure or output
+- [x] T54 | Command comment describes refusal and retention exits | 3aa24584 | Describe
+      compositor command refusal exits accurately; verify the comment agrees
+      with all nonzero paths
+        > 2026-10-11 Review: commands/compositor.py:52 omits refusal exit cases
+- [x] T55 | Comparison prose matches byte and line-multiset checks | 3aa24584 | Describe
+      lossless line retention separately from identity; verify prose agrees with
+      newline and reorder cases
+        > 2026-10-11 Review: results/compositor.py:402 claims one difference shape
+- [x] T56 | Command prose describes current flow and comparison API | 3aa24584 | Align
+      compositor command prose with its flow API; verify no retired path-based
+      comparison examples remain
+        > 2026-10-11 Caller audit: commands/compositor.py:3,19,21 describe old contracts
+- [x] T57 | Identity diagnostics count only physical source line endings | fd1e56a1 | Report
+      physical identity mismatch lines; verify Unicode separators inside text do
+      not shift line numbers
+        > 2026-10-11 Review: results/compositor.py identity counts U+2028 as a line

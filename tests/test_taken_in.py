@@ -4,6 +4,7 @@
 `TODO/the-flow-assumes-every-role-reads-at-once.md` T6.
 """
 
+import pytest
 from helpers import a_docket_over, a_small_real_tree, binder_of
 
 from comment_review.commands.taken_in import main
@@ -14,6 +15,45 @@ def test_taken_in_prints_nothing_when_no_stage_has_set_anything(tmp_path, capsys
     repo = a_small_real_tree(tmp_path)
     assert main(["--original", str(repo), "--revise", str(repo)]) == 0
     assert capsys.readouterr().out.strip() == ""
+
+
+@pytest.mark.parametrize(
+    "name,text,diagnostic",
+    [
+        ("broken.py", "def broken(:\n", "lex/incomplete-read"),
+        ("broken.c", "/* open", "lex/unterminated-comment"),
+    ],
+)
+def test_identical_malformed_sources_are_not_compared(
+    tmp_path, capsys, name, text, diagnostic
+):
+    original = tmp_path / "original"
+    revise = tmp_path / "revise"
+    for root in (original, revise):
+        root.mkdir()
+        (root / name).write_text(text, encoding="utf-8", newline="")
+
+    assert main(["--original", str(original), "--revise", str(revise), name]) == 0
+    seen = capsys.readouterr()
+    assert seen.out == ""
+    assert f"NOT COMPARED {name}" in seen.err
+    assert diagnostic in seen.err
+    assert "addresses not compared" in seen.err
+
+
+@pytest.mark.parametrize(
+    "name,text", [("valid.py", "value = 1\n"), ("valid.c", "int value;\n")]
+)
+def test_identical_valid_sources_print_nothing(tmp_path, capsys, name, text):
+    original = tmp_path / "original"
+    revise = tmp_path / "revise"
+    for root in (original, revise):
+        root.mkdir()
+        (root / name).write_text(text, encoding="utf-8", newline="")
+
+    assert main(["--original", str(original), "--revise", str(revise), name]) == 0
+    seen = capsys.readouterr()
+    assert (seen.out, seen.err) == ("", "")
 
 
 def test_taken_in_shows_a_real_revise(tmp_path, capsys):
@@ -125,11 +165,8 @@ def test_a_page_that_cannot_be_read_is_named_not_skipped(tmp_path, capsys):
 
 
 def test_a_page_with_no_language_record_is_named_after_its_diff(tmp_path, capsys):
-    # ! THE SECOND SKIP, and it needs a different trigger from the one above:
-    # `page_of` returns None only for a suffix no language record covers.
-    # MEASURED -- a syntax error, an empty file and binary bytes all still make
-    # a page. `_every_page` filters these out, so this path is reached only when
-    # a caller NAMES the file, which is why the paths argument exists.
+    # An explicit path reaches page admission even when its suffix has no
+    # language record; discovery filters unsupported suffixes out.
     repo = a_small_real_tree(tmp_path)
     revise = tmp_path / "r1"
     revise.mkdir()

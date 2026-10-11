@@ -28,6 +28,7 @@ from comment_review.binder.binder import bind
 from comment_review.commands import addresser
 from comment_review.commands.addresser import _check, _resolve_one
 from comment_review.flows.page_for import page_of
+from comment_review.reading.diagnostics import ReadFailure
 
 
 def _rows():
@@ -85,8 +86,8 @@ def a_default_binder(tmp_path):
     root = tmp_path / "repo"
     root.mkdir()
     (root / "m.py").write_text(SAMPLE, encoding="utf-8", newline="")
-    page, why = page_of(root / "m.py", rel="m.py")
-    assert page is not None, why
+    page = page_of(root / "m.py", rel="m.py")
+    assert not isinstance(page, ReadFailure), page
     binder = bind([page], read_from={"root": str(root), "revise": 0})
     where = tmp_path / "binder.json"
     where.write_text(json.dumps(binder.serialize()), encoding="utf-8")

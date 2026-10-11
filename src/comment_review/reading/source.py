@@ -1,8 +1,10 @@
 """Immutable source records and exact character partition validation."""
 
-from bisect import bisect_right
 from dataclasses import dataclass, field
 from enum import StrEnum
+
+from comment_review.reading.coordinates import SourceCoordinates
+from comment_review.reading.coordinates import SourcePosition as SourcePosition
 
 
 @dataclass(frozen=True)
@@ -22,28 +24,6 @@ class SourceSpan:
             or not 0 <= self.start <= self.end
         ):
             raise ValueError("Source span requires integer bounds 0 <= start <= end")
-
-
-@dataclass(frozen=True)
-class SourcePosition:
-    """A one-based physical line and zero-based character column."""
-
-    line: int
-    column: int
-
-    def __post_init__(self) -> None:
-        """Reject non-integer values and positions below their lower limits."""
-        if (
-            not isinstance(self.line, int)
-            or isinstance(self.line, bool)
-            or not isinstance(self.column, int)
-            or isinstance(self.column, bool)
-            or self.line < 1
-            or self.column < 0
-        ):
-            raise ValueError(
-                "Source position requires integer line >= 1 and column >= 0"
-            )
 
 
 class RegionKind(StrEnum):
@@ -140,7 +120,7 @@ class SourceStructure:
     sections: tuple[SourceSection, ...]
     declarations: tuple[SourceDeclaration, ...]
     documentation: tuple[DocumentationOwner, ...]
-    _line_starts: tuple[int, ...] = field(init=False, repr=False)
+    _coordinates: SourceCoordinates = field(init=False, repr=False)
 
     def __post_init__(self) -> None:
         """Validate string text and source records, then cache line boundaries."""
@@ -222,29 +202,11 @@ class SourceStructure:
             previous_section = link.section
             owners.add(link.declaration)
 
-        line_starts = [0]
-        offset = 0
-        while offset < len(self.text):
-            character = self.text[offset]
-            offset += 1
-            if character == "\r":
-                if offset < len(self.text) and self.text[offset] == "\n":
-                    offset += 1
-                line_starts.append(offset)
-            elif character == "\n":
-                line_starts.append(offset)
-        object.__setattr__(self, "_line_starts", tuple(line_starts))
+        object.__setattr__(self, "_coordinates", SourceCoordinates(self.text))
 
     def position(self, offset: int) -> SourcePosition:
         """Locate a character offset, including EOF, in cached physical lines."""
-        if (
-            not isinstance(offset, int)
-            or isinstance(offset, bool)
-            or not 0 <= offset <= len(self.text)
-        ):
-            raise ValueError("Position offset must be an integer within text")
-        line = bisect_right(self._line_starts, offset)
-        return SourcePosition(line, offset - self._line_starts[line - 1])
+        return self._coordinates.position(offset)
 
     def slice(self, span: SourceSpan) -> str:
         """Return exact characters from a half-open span within the source."""

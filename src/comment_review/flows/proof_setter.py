@@ -49,9 +49,12 @@ from typing import NamedTuple
 from comment_review import constants
 from comment_review.binder.page import Page
 from comment_review.docket.docket import Alteration, Docket, Schedule
-from comment_review.flows.page_for import page_of, source_of
-from comment_review.machine.repo import can_escape, undraftable
+from comment_review.flows.page_for import page_of
+from comment_review.flows.read_diagnostics import format_failure
+from comment_review.flows.source import source_of
+from comment_review.machine.repo import Source, can_escape, sha_of, undraftable
 from comment_review.reading.addresser import address_for, cue_of
+from comment_review.reading.diagnostics import ReadFailure
 from comment_review.reading.paragraph import Paragraph
 from comment_review.reading.series import Series
 from comment_review.results import compositor, galley
@@ -374,9 +377,9 @@ def _one(
     # This is also the only check in the tree that catches a reviewer editing
     # the file it was reading: no agent file declares `tools:`, so all six
     # inherit Edit and Write, and "read-only" is prose until this compares.
-    held, why = source_of(source)
-    if held is None:
-        return None, Refusal("read", rel, why)
+    held = source_of(source)
+    if isinstance(held, ReadFailure):
+        return None, Refusal("read", rel, format_failure(held, path=rel))
     if not recorded or held.sha != recorded:
         return None, Refusal(
             "verify",
@@ -385,9 +388,9 @@ def _one(
             f" {recorded or '<nothing recorded>'}, reads now as {held.sha}",
         )
 
-    page, why = page_of(source, rel=rel, source=held)
-    if page is None:
-        return None, Refusal("read", rel, why)
+    page = page_of(source, rel=rel, source=held)
+    if isinstance(page, ReadFailure):
+        return None, Refusal("read", rel, format_failure(page, path=rel))
 
     # Every alteration carries the page's anchor at its place, and each is
     # checked against the page's own anchor there, which is what
@@ -477,9 +480,7 @@ def _one(
             _discard(target, created)
             return None, off
 
-        unproven = _prove(
-            rel, page.text, draft.text, target, _approved(page, draft, edits)
-        )
+        unproven = _prove(rel, page, draft, target, _approved(page, draft, edits))
     except Exception:
         _discard(target, created)
         raise
@@ -500,10 +501,7 @@ def _reread(
     memory would be agreeing with itself -- the shape `docs/gates.md` records
     the round trip scoring 699 of 699 on.
 
-    !! IT ASKS `page_of`, AND INLINED THE SAME FOUR CALLS UNTIL 2026-08-26 --
-    without the `Refused` and `READ_ERRORS` handling `page_of` supplies. A draft
-    tripping `page_for`'s `raise exceptions.Refused` escaped `run()` as a
-    traceback, against its documented `(drafted, []) or ([], refusals)`.
+    A failed page read becomes a reread refusal before any alteration is proved.
 
     Args:
         rel: how the repo names the page this draft was set from.
@@ -517,9 +515,11 @@ def _reread(
         `_prove` finds, in the draft, the declaration each approved `a`
         alteration documents.
     """
-    page, why = page_of(target, rel=rel)
-    if page is None:
-        return None, Refusal("reread", rel, f"the draft: {why}")
+    page = page_of(target, rel=rel)
+    if isinstance(page, ReadFailure):
+        return None, Refusal(
+            "reread", rel, f"the draft: {format_failure(page, path=rel)}"
+        )
     # !! COLLECTED AS A LIST PER CUE, BECAUSE A COLLISION IS A REFUSAL AND NOT A
     # LAST-ONE-WINS. This was `{cue_of(b.address).cue: b for b in page ...}`,
     # which keeps the LAST paragraph at a cue two paragraphs share and checks
@@ -653,8 +653,8 @@ def _approved(
 
 def _prove(
     rel: str,
-    before: str,
-    after: str,
+    before: str | Page,
+    after: str | Page,
     path: Path,
     approved: Sequence[tuple[Paragraph, Paragraph]] = (),
 ) -> Refusal | None:
@@ -702,13 +702,24 @@ def _prove(
 
     Args:
         rel: how the repo names the page.
-        before: the text the draft was set from.
-        after: the draft's text.
+        before: the admitted page the draft was set from, or text to admit.
+        after: the admitted draft page, or text to admit.
         path: used for its suffix, which picks the comparison.
         approved: each approved alteration's place, on the page the draft was
             set from and in the draft, as `_approved` pairs them. Empty keeps
             every docstring's presence in the comparison.
     """
+    admitted: list[Page] = []
+    for side, value in (("before", before), ("after", after)):
+        page = (
+            value
+            if isinstance(value, Page)
+            else page_of(path, rel=rel, source=Source(value, sha_of(value)))
+        )
+        if isinstance(page, ReadFailure):
+            return Refusal("prove", rel, f"{side}: {format_failure(page, path=rel)}")
+        admitted.append(page)
+    before_text, after_text = (page.text for page in admitted)
     documented = [
         (was, now)
         for was, now in approved
@@ -718,10 +729,10 @@ def _prove(
     # set from, so both texts set aside a declaration with the same declaring
     # line.
     kind, want = code_fingerprint_setting_aside(
-        before, path, [(was.anchor, was.anchor_line) for was, _ in documented]
+        before_text, path, [(was.anchor, was.anchor_line) for was, _ in documented]
     )
     got_kind, got = code_fingerprint_setting_aside(
-        after, path, [(was.anchor, now.anchor_line) for was, now in documented]
+        after_text, path, [(was.anchor, now.anchor_line) for was, now in documented]
     )
     if kind == "unprovable" or got_kind == "unprovable":
         return Refusal("prove", rel, "the code in this file cannot be proven unchanged")
@@ -732,6 +743,10 @@ def _prove(
             "the declaration an approved docstring alteration documents cannot be"
             " identified in the code, so its docstring cannot be set aside",
         )
+    if kind not in ("ast", "stripped") or got_kind not in ("ast", "stripped"):
+        return Refusal("prove", rel, "the code in this file cannot be proven unchanged")
+    if kind != got_kind:
+        return Refusal("prove", rel, "the proof kind is not what it was")
     if want != got:
         return Refusal("prove", rel, "the executable code is not what it was")
     return None

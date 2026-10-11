@@ -59,16 +59,9 @@ import shutil
 from pathlib import Path
 
 from comment_review import constants, exceptions
-from comment_review.binder.page import Page, page_for
-from comment_review.machine.repo import read_source, write_raw
+from comment_review.binder.page import Page
+from comment_review.machine.repo import write_raw
 from comment_review.reading.addresser import GAP, ON, cue_of
-
-# !! THE OTHER DIRECT IMPORTER OF THE ROWS -- see `language.py`. The lexer reads
-# a file into paragraphs and this sets a page back into one, so these two are
-# where a language's own grammar is applied to text. ! Everywhere else reaches
-# `language_for` through the lexer's re-export, which is a lookup rather than a
-# reading; taking it from `language` here says which of the two this is.
-from comment_review.reading.language import language_for
 from comment_review.reading.series import Kind
 
 CRLF = "\r\n"
@@ -398,13 +391,13 @@ def approve(drafted: Path, real: Path) -> Path:
     return real
 
 
-def lossless(path: Path) -> str | None:
-    """Does this file come back with every line it went in with? None if so.
+def lossless(original: str, rendered: str) -> str | None:
+    """Compare supplied text for retained lines; return None if all remain.
 
     !! THE WEAKER INVARIANT, AND THE ONE THAT MUST NEVER BREAK. `identity` asks
-    for the same bytes in the same order; this asks only that no line was lost
-    and none invented. They differ on exactly one shape, and it is RULED rather
-    than a defect -- see `set_page` on the series order.
+    for the same bytes in the same order; this compares line multisets, including
+    duplicate counts, without line endings. Reordering lines or changing their
+    endings can preserve this invariant while failing byte identity.
 
     ! IT IS WHAT SEPARATES A NORMALISATION FROM A BUG. A gate that could not
     tell them apart would carry the known-acceptable failures, and the next one
@@ -426,23 +419,11 @@ def lossless(path: Path) -> str | None:
     was never named, so it cannot be re-derived; the number above names its set
     so the next reader can disagree with it.
     """
-    try:
-        source = read_source(path)
-    except exceptions.READ_ERRORS as exc:
-        return f"unread: {exc}"
-    text = source.text
-    lang = language_for(path)
-    if lang is None:
-        return f"no language record for {path.suffix!r}"
-    try:
-        got = set_page(page_for(path, text, lang, sha=source.sha))
-    except exceptions.Refused as exc:
-        return str(exc)
-    if sorted(constants.text_lines(got)) == sorted(constants.text_lines(text)):
+    if sorted(constants.text_lines(rendered)) == sorted(constants.text_lines(original)):
         return None
     was, now = (
-        collections.Counter(constants.text_lines(text)),
-        collections.Counter(constants.text_lines(got)),
+        collections.Counter(constants.text_lines(original)),
+        collections.Counter(constants.text_lines(rendered)),
     )
     missing = list((was - now).elements())[:1]
     invented = list((now - was).elements())[:1]
@@ -451,33 +432,25 @@ def lossless(path: Path) -> str | None:
     return f"line invented: {invented[0]!r}"
 
 
-def identity(path: Path) -> str | None:
-    """Set this file from its own page and say where it differs, or None.
+def identity(original: str, rendered: str) -> str | None:
+    """Compare supplied strict UTF-8 bytes and report the first difference.
 
     Returns:
-        `None` when the round trip is byte-identical. Otherwise a line naming
-        the FIRST line that differs, which is what a reader needs to look at.
+        `None` when the round trip is byte-identical. Otherwise name the first
+        differing physical line with its ending, or report changed line counts
+        when one text has extra lines after the shared prefix.
     """
-    try:
-        source = read_source(path)
-    except exceptions.READ_ERRORS as exc:
-        return f"unread: {exc}"
-    text = source.text
-    lang = language_for(path)
-    if lang is None:
-        return f"no language record for {path.suffix!r}"
-    page = page_for(path, text, lang, sha=source.sha)
-    try:
-        got = set_page(page)
-    except exceptions.Refused as exc:
-        # ! The page was never built -- see `set_page`. It is reported like any
-        # other refusal rather than raised through a sweep over a whole tree.
-        # ! NARROWED from a bare `ValueError`, which also caught anything else
-        # that failed inside `page_for` and printed it as our own refusal.
-        return str(exc)
-    if got == text:
+    if original.encode("utf-8") == rendered.encode("utf-8"):
         return None
-    was, now = constants.text_lines(text), constants.text_lines(got)
+    was: list[str] = []
+    now: list[str] = []
+    for text, lines in ((original, was), (rendered, now)):
+        start = 0
+        for ending in constants.LINE_BREAK.finditer(text):
+            lines.append(text[start : ending.end()])
+            start = ending.end()
+        if start < len(text):
+            lines.append(text[start:])
     for n, (a, b) in enumerate(zip(was, now, strict=False), 1):
         if a != b:
             return f"line {n}: was {a!r}, set {b!r}"

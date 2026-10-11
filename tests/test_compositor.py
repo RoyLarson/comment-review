@@ -15,7 +15,195 @@ import pytest
 from conftest import REPLACEMENT, SAMPLE, build, by_cue, cue
 
 from comment_review import exceptions
+from comment_review.results import compositor
 from comment_review.results.compositor import line_endings, set_page
+
+
+def test_failed_page_is_reported_before_setting(tmp_path, monkeypatch):
+    from comment_review.flows.compositor import round_trip
+    from comment_review.reading.diagnostics import ReadFailure
+
+    path = tmp_path / "broken.c"
+    path.write_text("/* open", encoding="utf-8")
+
+    def unexpected_set(page):
+        raise AssertionError("failed page reached the setter")
+
+    monkeypatch.setattr(compositor, "set_page", unexpected_set)
+    result = round_trip(path)
+    assert isinstance(result, ReadFailure)
+    assert result.diagnostics[0].message == (
+        "Comment has no closing delimiter before end of source"
+    )
+
+
+def test_unexpected_page_exception_propagates(tmp_path, monkeypatch):
+    from comment_review.flows import compositor as flow
+
+    path = tmp_path / "sample.py"
+    path.write_text("value = 1\n", encoding="utf-8")
+
+    def broken_page(*args, **kwargs):
+        raise exceptions.Refused("unexpected page error")
+
+    monkeypatch.setattr(flow, "page_of", broken_page)
+    with pytest.raises(exceptions.Refused, match="unexpected page error"):
+        flow.round_trip(path)
+
+
+@pytest.mark.parametrize(
+    "original,rendered",
+    [("a\r\n", "a\n"), ("a\n", "a"), ("\ufeffa\n", "a\n"), ("a\nb\n", "b\na\n")],
+)
+def test_identity_compares_literal_bytes(original, rendered):
+    assert compositor.identity(original, rendered) is not None
+
+
+@pytest.mark.parametrize("separator", ["\u2028", "\u2029", "\x85", "\x0b", "\x0c"])
+@pytest.mark.parametrize("ending", ["\r\n", "\r", "\n"])
+def test_identity_reports_physical_lines_with_literal_separators(separator, ending):
+    original = f"s = '{separator}'{ending}x = 1{ending}"
+    rendered = f"s = '{separator}'{ending}x = 2{ending}"
+    expected = {
+        "\r\n": "line 2: was 'x = 1\\r\\n', set 'x = 2\\r\\n'",
+        "\r": "line 2: was 'x = 1\\r', set 'x = 2\\r'",
+        "\n": "line 2: was 'x = 1\\n', set 'x = 2\\n'",
+    }
+    assert compositor.identity(original, rendered) == expected[ending]
+
+
+@pytest.mark.parametrize(
+    "original,rendered,expected",
+    [
+        ("a\r\n", "a\n", "line 1: was 'a\\r\\n', set 'a\\n'"),
+        ("a\r", "a\n", "line 1: was 'a\\r', set 'a\\n'"),
+        ("a\n", "a", "line 1: was 'a\\n', set 'a'"),
+        ("a\n", "a\nb\n", "1 lines in, 2 out"),
+        ("", "a\n", "0 lines in, 1 out"),
+    ],
+)
+def test_identity_retains_line_endings_in_diagnostics(original, rendered, expected):
+    assert compositor.identity(original, rendered) == expected
+
+
+def test_retained_lines_are_weaker_than_identity():
+    assert compositor.lossless("a\r\nb\n", "b\na\n") is None
+    assert compositor.lossless("a\na\n", "a\n") == "line lost: 'a'"
+
+
+def test_identity_requires_strict_utf8():
+    with pytest.raises(UnicodeEncodeError):
+        compositor.identity("\ud800", "\ud800")
+
+
+def test_identical_literal_text_passes_both_comparisons():
+    text = "\ufeffa\r\nb\n"
+    assert compositor.identity(text, text) is None
+    assert compositor.lossless(text, text) is None
+
+
+@pytest.mark.parametrize("raw", [b"", b"x = 1\r\n"])
+def test_command_sets_actual_empty_and_crlf_files(tmp_path, capsys, raw):
+    from comment_review.commands.compositor import main
+
+    path = tmp_path / "sample.py"
+    path.write_bytes(raw)
+    assert main([str(path)]) == 0
+    assert "1 identical, 0 normalised, 0 LOSSY" in capsys.readouterr().out
+
+
+def test_command_acquires_admits_and_sets_once(tmp_path, monkeypatch):
+    from comment_review.commands.compositor import main
+    from comment_review.flows import compositor as flow
+
+    path = tmp_path / "sample.py"
+    path.write_bytes(b"x = 1\r\n")
+    calls = []
+    for name, module in [
+        ("source_of", flow),
+        ("page_of", flow),
+        ("set_page", compositor),
+    ]:
+        original = getattr(module, name)
+
+        def counted(*args, _name=name, _original=original, **kwargs):
+            calls.append(_name)
+            return _original(*args, **kwargs)
+
+        monkeypatch.setattr(module, name, counted)
+    assert main([str(path)]) == 0
+    assert calls == ["source_of", "page_of", "set_page"]
+
+
+def test_rendering_refusal_retains_context(tmp_path, monkeypatch, capsys):
+    from comment_review.commands.compositor import main
+    from comment_review.flows.compositor import round_trip
+    from comment_review.flows.read_diagnostics import LocatedReadFailure
+
+    path = tmp_path / "sample.py"
+    path.write_bytes(b"x = 1\r\n")
+
+    def refused(page):
+        raise exceptions.Refused("cannot set these places")
+
+    monkeypatch.setattr(compositor, "set_page", refused)
+    result = round_trip(path)
+    assert isinstance(result, LocatedReadFailure)
+    assert result.text == "x = 1\r\n"
+    assert result.path == path.as_posix()
+    assert result.language == "python"
+    assert result.diagnostics[0].span is None
+    assert main([str(path)]) == 1
+    assert "place/unsupported-placement" in capsys.readouterr().out
+
+
+def test_read_failure_reports_retained_location(tmp_path, capsys):
+    from comment_review.commands.compositor import main
+
+    path = tmp_path / "sample.c"
+    path.write_bytes(b"int x;\r\n/* open")
+    assert main([str(path)]) == 1
+    output = capsys.readouterr().out
+    assert "lex/unterminated-comment" in output
+    assert "line 2, one-based; column 0, zero-based" in output
+
+
+def test_python_bom_rejection_is_visible(tmp_path, capsys):
+    from comment_review.commands.compositor import main
+    from comment_review.flows.compositor import round_trip
+    from comment_review.flows.read_diagnostics import LocatedReadFailure
+    from comment_review.reading.diagnostics import ReadStage
+
+    path = tmp_path / "sample.py"
+    path.write_bytes(b"\xef\xbb\xbfx = 1\n")
+    result = round_trip(path)
+    assert isinstance(result, LocatedReadFailure)
+    assert result.text == "\ufeffx = 1\n"
+    assert result.language == "python"
+    assert [(d.stage, d.code) for d in result.diagnostics] == [
+        (ReadStage.LEX, "incomplete-read")
+    ]
+    assert "invalid non-printable character U+FEFF" in result.diagnostics[0].message
+    assert main([str(path)]) == 1
+    output = capsys.readouterr().out
+    assert f"{path.as_posix()} [python] lex/incomplete-read" in output
+    assert "invalid non-printable character U+FEFF" in output
+    assert "0 identical, 0 normalised, 1 LOSSY" in output
+
+
+def test_mixed_endings_set_as_crlf(tmp_path, capsys):
+    from comment_review.commands.compositor import main
+    from comment_review.flows.compositor import RoundTrip, round_trip
+
+    path = tmp_path / "sample.py"
+    path.write_bytes(b"x = 1\r\ny = 2\n")
+    result = round_trip(path)
+    assert isinstance(result, RoundTrip)
+    assert result.original.encode("utf-8") == b"x = 1\r\ny = 2\n"
+    assert result.rendered.encode("utf-8") == b"x = 1\r\ny = 2\r\n"
+    assert main([str(path)]) == 0
+    assert "0 identical, 1 normalised, 0 LOSSY" in capsys.readouterr().out
+
 
 #: Every addressed place on the sample, and the subset holding prose. Discovered
 #: from the page rather than listed, so a change to the walk is visible here as

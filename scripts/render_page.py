@@ -59,9 +59,10 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO / "src"))
 
-import lexer  # noqa: E402
-import page as page_mod  # noqa: E402
-import repo as repo_mod  # noqa: E402
+from comment_review.binder import page as page_mod  # noqa: E402
+from comment_review.machine import repo as repo_mod  # noqa: E402
+from comment_review.reading import lexer  # noqa: E402
+from comment_review.reading.diagnostics import ReadFailure  # noqa: E402
 
 READ_ERRORS = (OSError, UnicodeDecodeError)
 # ! The margin is wide enough for a cue and a series letter; a page with more
@@ -191,6 +192,12 @@ def render(path: Path, show: str | None) -> None:
         print(f"  SKIP {path} -- no language record for {path.suffix!r}")
         return
     pg = page_mod.page_for(path, src.text, lang, rel=path.as_posix(), sha=src.sha)
+    if isinstance(pg, ReadFailure):
+        reason = "; ".join(
+            f"{d.stage.value}/{d.code}: {d.message}" for d in pg.diagnostics
+        )
+        print(f"  SKIP {path} -- {reason}")
+        return
     built = {
         "rows": rows(path),
         "margin": margin(pg, text),

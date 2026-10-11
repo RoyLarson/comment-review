@@ -10,7 +10,23 @@ changed.
 import pytest
 from helpers import a_docket_over, a_small_real_tree, binder_of
 
-from comment_review.flows.revise import AddressesMoved, assert_addresses_held, pull
+from comment_review.flows.revise import (
+    AddressesMoved,
+    Pulled,
+    assert_addresses_held,
+    pull,
+)
+
+
+def test_identically_failed_sources_cannot_pass_address_comparison(tmp_path):
+    original = tmp_path / "original"
+    revised = tmp_path / "revised"
+    original.mkdir()
+    revised.mkdir()
+    for root in (original, revised):
+        (root / "m.py").write_text("def broken(:\n", encoding="utf-8")
+    with pytest.raises(AddressesMoved, match="lex/incomplete-read"):
+        assert_addresses_held(original, Pulled(revised, 1, {}, []), ["m.py"])
 
 
 def test_a_revise_yields_the_address_set_the_original_yielded(tmp_path):

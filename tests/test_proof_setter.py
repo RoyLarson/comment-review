@@ -17,12 +17,183 @@ from comment_review.desk.proof.edit_copy import EditCopy
 from comment_review.docket.docket import Alteration, Docket, Schedule
 from comment_review.flows import page_for as page_for_mod
 from comment_review.flows import proof_setter
+from comment_review.flows import source as source_flow
 from comment_review.flows.distribute import seed
 from comment_review.flows.transcribe import docket_of
 from comment_review.machine.repo import undraftable
 from comment_review.reading.addresser import cue_of
+from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, ReadStage
 from comment_review.results import compositor, galley
 from comment_review.results.prove_unchanged import code_fingerprint
+
+
+@pytest.mark.parametrize("stage", ["lex", "place"])
+def test_direct_proof_refuses_failed_reading(monkeypatch, stage):
+    from comment_review.reading.diagnostics import ReadDiagnostic, ReadStage
+    from comment_review.reading.source import SourceSpan
+
+    def failed_page(*args, **kwargs):
+        return ReadFailure(
+            (
+                ReadDiagnostic(
+                    ReadStage(stage),
+                    "refused-input",
+                    "source refused",
+                    SourceSpan(0, 1),
+                ),
+            )
+        )
+
+    monkeypatch.setattr(page_for_mod, "page_for", failed_page)
+    refusal = proof_setter._prove(
+        "m.js", "const value = 1;\n", "const value = 1;\n", Path("m.js")
+    )
+    assert refusal is not None
+    assert refusal.step == "prove"
+    assert f"{stage}/refused-input" in refusal.why
+
+
+def test_failed_draft_read_rejects_and_rolls_back(tmp_path, monkeypatch):
+    from comment_review.reading.diagnostics import ReadDiagnostic, ReadStage
+
+    repo, binder, _ = _tree(tmp_path)
+    into = tmp_path / "out"
+    real_page = page_for_mod.page_for
+
+    def failed_draft(path, *args, **kwargs):
+        if Path(path).is_relative_to(into):
+            return ReadFailure(
+                (ReadDiagnostic(ReadStage.PLACE, "draft-placement", "draft refused"),)
+            )
+        return real_page(path, *args, **kwargs)
+
+    monkeypatch.setattr(page_for_mod, "page_for", failed_draft)
+    drafted, refused = proof_setter.run(
+        docket_from({address(binder, "m.py"): "# replacement"}, binder), repo, into
+    )
+    assert drafted == []
+    assert refused[0].step == "reread"
+    assert "place/draft-placement" in refused[0].why
+    assert not (into / "m.py").exists()
+
+
+@pytest.mark.parametrize("side", ["source", "draft"])
+@pytest.mark.parametrize("stage", ["acquire", "decode", "lex", "place", "programming"])
+def test_second_file_read_failure_discards_all_nested_drafts(
+    tmp_path, monkeypatch, side, stage
+):
+    originals = {
+        "a/first.py": b"value = 1\r\n\r\n# first note\r\nother = 2\r\n",
+        "z/deep/second.py": b"value = 3\n\n# second note\nother = 4\n",
+    }
+    repo = tmp_path / "repo"
+    into = tmp_path / "out"
+    into.mkdir()
+    pages = []
+    for rel, raw in originals.items():
+        path = repo / rel
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(raw)
+        page = proof_setter.page_of(path, rel=rel)
+        assert not isinstance(page, ReadFailure), page
+        pages.append(page)
+    binder = bind(pages, read_from={"root": str(repo), "revise": 0})
+    docket = docket_from(
+        {address(binder, rel): "# replacement" for rel in originals}, binder
+    )
+    target = (repo if side == "source" else into) / "z/deep/second.py"
+    observed = []
+    bug = RuntimeError("reader implementation failed")
+
+    def check_staged():
+        assert (into / "a/first.py").is_file()
+        assert (into / "a/first.py").read_bytes() != originals["a/first.py"]
+        if side == "draft":
+            assert target.is_file()
+        observed.append(target)
+
+    if stage in ("acquire", "decode"):
+        real_read = source_flow.read_source
+
+        def failing_source(path):
+            if path == target:
+                check_staged()
+                if stage == "acquire":
+                    raise PermissionError("source acquisition refused")
+                raise UnicodeDecodeError("utf-8", b"\xff", 0, 1, "invalid start byte")
+            return real_read(path)
+
+        monkeypatch.setattr(source_flow, "read_source", failing_source)
+    else:
+        real_page = page_for_mod.page_for
+
+        def failing_page(path, *args, **kwargs):
+            if Path(path) == target:
+                check_staged()
+                if stage == "programming":
+                    raise bug
+                return ReadFailure(
+                    (
+                        ReadDiagnostic(
+                            ReadStage(stage), "refused-input", "source refused"
+                        ),
+                    )
+                )
+            return real_page(path, *args, **kwargs)
+
+        monkeypatch.setattr(page_for_mod, "page_for", failing_page)
+
+    if stage == "programming":
+        with pytest.raises(
+            RuntimeError, match="^reader implementation failed$"
+        ) as raised:
+            proof_setter.run(docket, repo, into)
+        assert raised.value is bug
+    else:
+        drafted, refused = proof_setter.run(docket, repo, into)
+        assert drafted == []
+        assert len(refused) == 1
+        assert (refused[0].step, refused[0].path) == (
+            "read" if side == "source" else "reread",
+            "z/deep/second.py",
+        )
+        code = {"acquire": "io-error", "decode": "invalid-utf8"}.get(
+            stage, "refused-input"
+        )
+        assert f"{stage}/{code}" in refused[0].why
+    assert observed == [target]
+    assert list(into.iterdir()) == []
+    assert {rel: (repo / rel).read_bytes() for rel in originals} == originals
+
+
+def test_proof_reuses_admitted_pages(tmp_path, monkeypatch):
+    repo, binder, _ = _tree(tmp_path)
+    real_page = proof_setter.page_of
+    reads = []
+
+    def watching_page(path, *args, **kwargs):
+        reads.append(path)
+        return real_page(path, *args, **kwargs)
+
+    monkeypatch.setattr(proof_setter, "page_of", watching_page)
+    into = tmp_path / "out"
+    drafted, refused = proof_setter.run(
+        docket_from({address(binder, "m.py"): "# replacement"}, binder), repo, into
+    )
+    assert refused == [] and len(drafted) == 1
+    assert reads == [repo / "m.py", into / "m.py"]
+
+
+@pytest.mark.parametrize("kind", ["unprovable", "unknown"])
+def test_direct_proof_failed_fingerprint_kind_cannot_pass(monkeypatch, kind):
+    monkeypatch.setattr(
+        proof_setter, "code_fingerprint_setting_aside", lambda *args: (kind, "")
+    )
+    refusal = proof_setter._prove(
+        "m.js", "const value = 1;\n", "const value = 1;\n", Path("m.js")
+    )
+    assert refusal is not None and refusal.step == "prove"
+
 
 #: A replacement that is legal in each series -- a `c` carries its own
 #: separator, an `a` its indentation. Same table as `tests/test_galley.py`,
@@ -575,8 +746,8 @@ class TestOnePlaceTakesOneAlteration:
         where = address(binder, "m.py")
         at = cue_of(where).cue
         (page,) = binder.pages
-        held, why = page_for_mod.page_of(repo / "m.py", rel="m.py")
-        assert held is not None, why
+        held = page_for_mod.page_of(repo / "m.py", rel="m.py")
+        assert not isinstance(held, ReadFailure), held
         anchor = held.cues.places[at]
         docket = Docket(
             schedules=(
@@ -1171,6 +1342,7 @@ def test_a_CUE_COLLISION_in_the_draft_is_REFUSED_and_not_last_one_wins(
 
     def colliding_page_for(path, *args, **kwargs):
         page = real_page_for(path, *args, **kwargs)
+        assert not isinstance(page, ReadFailure), page
         if not Path(path).resolve().is_relative_to(into.resolve()):
             return page
         addressed = [b for b in page if b.address]

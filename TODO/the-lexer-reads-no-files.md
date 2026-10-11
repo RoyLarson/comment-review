@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 8 of 22 tasks closed
+Progress: 13 of 25 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-21 (Roy, 2026-08-21: 'The lexer reads zero files - this is also a
@@ -158,11 +158,13 @@ is at `docs/superpowers/specs/2026-08-23-io-and-the-chain-design.md:17`.
 - [ ] T16 | T16 -- **Route the nine bypassing source reads through `io.py`.**
       Verify: T13's gate exits 0 on the tree, and every source read in the
       shipped scripts is the lexer's.
-- [ ] T17 | T17 -- **Fix `compositor.identity` so the round trip is compared in
-      BYTES.** Verify: it reads through `io.read_raw` and not `read_text`.
-- [ ] T18 | T18 -- **Test `identity` on a CRLF file, FAILING FIRST.** Verify: a
-      file written `b'# a note\r\nx = 1\r\n'` reports a difference before the
-      fix and `None` after.
+- [-] T17 | Replaced by galley-and-compositor-write-path T51-T52 and T23: exact byte comparisons and acquisition | b03adaa8 | T17
+      -- **Fix `compositor.identity` so the round trip is compared in BYTES.**
+      Verify: it reads through `io.read_raw` and not `read_text`.
+- [-] T18 | Replaced by galley-and-compositor-write-path T52: invented independent byte fixtures | b03adaa8 | T18
+      -- **Test `identity` on a CRLF file, FAILING FIRST.** Verify: a file
+      written `b'# a note\r\nx = 1\r\n'` reports a difference before the fix and
+      `None` after.
 - [ ] T19 | T19 -- **Assert the READ chain as data**: it IS `[language,
       read_text, lexer, addresser, page]`. Verify: the test fails when a step is
       removed from the list.
@@ -175,6 +177,16 @@ is at `docs/superpowers/specs/2026-08-23-io-and-the-chain-design.md:17`.
 - [ ] T22 | T22 -- **Correct the spec's `read_raw` row, cited in the
       Objective.** Verify: the row names the nine bypassing source reads rather
       than an absence of callers.
+- [x] T23 | Exact filesystem and Git snapshots with named failures verified | 1c16426e | Acquire
+      exact UTF-8 source from files and Git; verify BOM, line endings, Unicode,
+      identity and named failures
+- [x] T24 | Byte writes and pre-truncation encoding refusal verified | 1c16426e | Write
+      exact UTF-8 bytes; verify unchanged round trips and encoding failure
+      before target truncation
+- [x] T25 | Missing repository classified separately from missing revision | 1c16426e | Classify
+      Git repository acquisition errors as io-error; verify missing repository
+      differs from an unavailable revision source
+        > 2026-10-11 Review: flows/source.py:49 classifies every Git exit as missing
 ## Related
 
 - [`bom-is-read-as-source`](bom-is-read-as-source.md) -- the same nine sites, the same one

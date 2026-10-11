@@ -14,6 +14,7 @@ from comment_review.flows.bus import (
 from comment_review.flows.page_for import page_of
 from comment_review.flows.proof_setter import run
 from comment_review.flows.transcribe import CannotTranscribe, docket_of_proof
+from comment_review.reading.diagnostics import ReadFailure
 from comment_review.results import compositor, galley
 
 
@@ -149,8 +150,8 @@ def test_inserted_closing_gap_survives_proof_and_rereading(tmp_path, text):
     repo.mkdir()
     source = repo / "m.py"
     source.write_text(text, encoding="utf-8", newline="")
-    page, problems = page_of(source, rel="m.py")
-    assert page is not None, problems
+    page = page_of(source, rel="m.py")
+    assert not isinstance(page, ReadFailure), page
     docket = Docket(
         (
             Schedule(
@@ -162,8 +163,8 @@ def test_inserted_closing_gap_survives_proof_and_rereading(tmp_path, text):
     )
     drafted, refused = run(docket, repo, tmp_path / "draft")
     assert not refused and len(drafted) == 1
-    reread, problems = page_of(tmp_path / "draft" / "m.py", rel="m.py")
-    assert reread is not None, problems
+    reread = page_of(tmp_path / "draft" / "m.py", rel="m.py")
+    assert not isinstance(reread, ReadFailure), reread
     assert next(p for p in reread.paragraphs if p.address == "m.py@b1").text == "new"
     if "# after" in text:
         assert (

@@ -21,6 +21,7 @@ from comment_review.concordance.annotate import annotate
 from comment_review.flows import gather as flow
 from comment_review.flows.annotations_for import annotations_for
 from comment_review.flows.page_for import page_of
+from comment_review.reading.diagnostics import ReadFailure
 
 #: The same sentence in two files -- a backticked name `annotate` resolves and a
 #: number the repeated-literal pass pairs.
@@ -32,10 +33,42 @@ def _pages(root):
     pages = []
     for name in ("a.py", "b.py"):
         (root / name).write_text(A_PAGE, encoding="utf-8", newline="")
-        page, why = page_of(root / name, rel=name)
-        assert page is not None, why
+        page = page_of(root / name, rel=name)
+        assert not isinstance(page, ReadFailure), page
         pages.append(page)
     return pages
+
+
+def test_a_reader_failure_is_reported_without_a_successful_page(tmp_path):
+    from comment_review.flows.gather import Gathering, _pages
+
+    path = tmp_path / "m.c"
+    path.write_text("int v;\n/* open", encoding="utf-8", newline="")
+    gathered = Gathering(tmp_path, [path], 0, files=[path])
+    _pages(gathered)
+    assert gathered.pages == []
+    assert gathered.paragraphs == []
+    assert gathered.unreadable == [
+        "m.c [c] lex/unterminated-comment: Comment has no closing delimiter before "
+        "end of source (line 2, one-based; column 0, zero-based)"
+    ]
+
+
+def test_unexpected_page_errors_propagate_from_gather(tmp_path, monkeypatch):
+    import pytest
+
+    from comment_review.flows import gather as gather_mod
+
+    path = tmp_path / "m.py"
+    path.write_text("v = 1\n", encoding="utf-8")
+    gathered = gather_mod.Gathering(tmp_path, [path], 0, files=[path])
+
+    def broken_page(*args, **kwargs):
+        raise RuntimeError("page bug")
+
+    monkeypatch.setattr(gather_mod, "page_of", broken_page)
+    with pytest.raises(RuntimeError, match="page bug"):
+        gather_mod._pages(gathered)
 
 
 class TestAnnotationsFor:

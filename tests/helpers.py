@@ -69,8 +69,10 @@ from comment_review.docket.docket import Docket
 from comment_review.flows.bus import CopiesReturned, handle
 from comment_review.flows.distribute import seed
 from comment_review.flows.fill import fill
-from comment_review.flows.page_for import page_of, source_of
+from comment_review.flows.page_for import page_of
 from comment_review.flows.proof_io import load_proof
+from comment_review.flows.source import source_of
+from comment_review.reading.diagnostics import ReadFailure
 
 #: `src/comment_review/desk/` -- the source `a_small_real_tree` copies from.
 #: Any package with a handful of ordinary Python files would do; this one was
@@ -109,13 +111,13 @@ def pages_of(root: Path) -> list:
     """Every `.py` page under `root`, through the real reader."""
     pages = []
     for path in sorted(root.rglob("*.py")):
-        source, why = source_of(path)
-        if why:
-            continue
+        source = source_of(path)
+        if isinstance(source, ReadFailure):
+            raise AssertionError(source)
         rel = str(path.relative_to(root))
-        page, why = page_of(path, rel=rel, source=source)
-        if page is not None:
-            pages.append(page)
+        page = page_of(path, rel=rel, source=source)
+        assert not isinstance(page, ReadFailure), page
+        pages.append(page)
     return pages
 
 
@@ -450,8 +452,8 @@ def a_real_binder_over(root: Path, paragraphs: dict[str, str]) -> Binder:
         (root / path).write_text(
             "\n".join(lines) + "\n", encoding="utf-8", newline="\n"
         )
-        page, why = page_of(root / path, rel=path)
-        assert page is not None, why
+        page = page_of(root / path, rel=path)
+        assert not isinstance(page, ReadFailure), page
         pages.append(page)
     binder = bind(pages, read_from={"root": str(root), "revise": 0})
     held = {p.address: p.raw_text for p in binder.paragraphs}

@@ -36,11 +36,7 @@ import ast
 from collections.abc import Collection
 from pathlib import Path
 
-from comment_review import constants, exceptions
-from comment_review.machine.repo import git, read_raw
-
-# ! THE TUPLE IS IMPORTED, never spelled here, so no `except` clause in this
-# file holds a tuple LITERAL. `exceptions.py` carries the reason once.
+from comment_review import constants
 from comment_review.reading.lexer import (
     DOC_ANCHORS,
     MODULE_ANCHOR,
@@ -281,63 +277,3 @@ def dominant_ending(text: str) -> str:
     if crlf == 0 and lf == 0:
         return "none"
     return "crlf" if crlf >= lf else "lf"
-
-
-def _spec(ref: str, rel: str) -> str:
-    """The `git show` argument, built in ONE place so a failure can quote it.
-
-    !! `./` MATTERS. `git show <rev>:<path>` resolves the path against the
-    TOP OF THE WORKTREE, not against `-C`'s directory, so running the stage-7b
-    gate with `--repo` on a package subdirectory made every path print
-    "UNPROVABLE ... new file, or bad ref" and exit 1 -- blaming a bad ref for a
-    path-prefix bug. A leading `./` makes it cwd-relative, which is what every
-    sibling script already assumes.
-
-    !! The failure message then read `no <base>:<rel>` -- a spec git was never
-    asked for, and one that resolves DIFFERENTLY from the one that failed. It
-    put the same misdirection back for exactly the case the `./` fixed, so both
-    callers now read the spec from here.
-    """
-    return f"{ref}:./{rel}"
-
-
-def _show(repo: Path, ref: str, rel: str) -> str | None:
-    """`git show <ref>:./<rel>`, or None when git cannot produce it."""
-    try:
-        got = git(repo, "show", _spec(ref, rel))
-    except exceptions.GIT_ERRORS:
-        return None
-    return got.stdout if got.returncode == 0 else None
-
-
-def _sibling(
-    repo: Path, target: Path, edited: set[Path], tracked: list[str]
-) -> Path | None:
-    """A READABLE tracked file beside `target` that WRITE did not edit.
-
-    Skips a candidate this process cannot itself read as UTF-8 text: a binary
-    or non-UTF-8 sibling is unusable as a line-ending reference, and committing
-    to the first NAME in the directory disabled the check where trying the next
-    tracked file would have answered.
-
-    Args:
-        repo: the repository root.
-        target: the file being proven; never returned as its own sibling.
-        edited: every path this run was asked to prove, resolved -- none of
-            them qualifies as "untouched".
-        tracked: `git_ls_files(repo)` (or `[]`), passed in rather than
-            queried here so a multi-path run spawns git once, not per path.
-    """
-    for rel in tracked:
-        cand = (repo / rel).resolve()
-        # ! `cand == target` IS COVERED. `edited` is built from every path this
-        # run was given and `target` is one of them, so a candidate equal to
-        # the target is already in the set the test above it uses.
-        if cand.parent != target.parent or cand in edited:
-            continue
-        try:
-            read_raw(cand)
-        except exceptions.READ_ERRORS:
-            continue
-        return cand
-    return None

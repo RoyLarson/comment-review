@@ -40,6 +40,7 @@ from comment_review.reading.addresser import (
     folded,
     unflatten,
 )
+from comment_review.reading.diagnostics import ReadFailure
 
 #: One real path -> its page, or None where this checkout holds no readable
 #: page there. A caller keeps one per stage and hands it to every read, so a
@@ -147,7 +148,8 @@ def page_named(
     if real not in cache:
         page = None
         if real and not can_escape(real):
-            page, _why = page_of(root / real, rel=real)
+            got = page_of(root / real, rel=real)
+            page = None if isinstance(got, ReadFailure) else got
         cache[real] = page
     return real, cache[real]
 

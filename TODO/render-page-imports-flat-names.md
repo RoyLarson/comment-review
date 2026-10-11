@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 8 tasks closed
+Progress: 2 of 8 tasks closed
 Owner:    systems
 Requires-Roy: false
 Raised:   2026-08-25 (backend, 2026-08-25, while giving Page a sha during the write-
@@ -30,10 +30,12 @@ render_page.py imports flat module names the 2026-08-24 reorg removed.
 
 ## Tasks
 
-- [ ] T1 | Reproduce: uv run python scripts/render_page.py <any path> and record
-      the failing import
-- [ ] T2 | Point its imports at comment_review.reading.lexer,
-      comment_review.binder.page and comment_review.reading.addresser
+- [x] T1 | Normal invocation regression exposed import failure before repair | a8b18c66 | Reproduce:
+      uv run python scripts/render_page.py <any path> and record the failing
+      import
+- [-] T2 | Replaced by source-reading-contract T8: imports use current package owners | a8b18c66 | Point
+      its imports at comment_review.reading.lexer, comment_review.binder.page
+      and comment_review.reading.addresser
 - [ ] T3 | Verify the three --show modes named in CLAUDE.md still render:
       margin, prose, rows
 - [ ] T4 | A gate that runs every script under scripts/ far enough to prove it

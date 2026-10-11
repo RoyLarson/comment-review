@@ -22,6 +22,7 @@
 | [0.2.4-the-proof-is-one-unit](0.2.4-the-proof-is-one-unit.md) | closed | 15/15 | 15/15 |
 | [0.2.4-the-turn-as-commands](0.2.4-the-turn-as-commands.md) | in-progress | 14/14 | 10/10 |
 | [0.2.4-the-vocabulary-gate-is-asserted](0.2.4-the-vocabulary-gate-is-asserted.md) | in-progress | 1/1 | 2/2 |
-| [0.2.4-what-a-reviewer-is-handed](0.2.4-what-a-reviewer-is-handed.md) | in-progress | 12/24 | 3/4 |
-| [2026-10-11-lexical-readers](2026-10-11-lexical-readers.md) | decision-needed | 3/155 | 1/50 |
+| [0.2.4-what-a-reviewer-is-handed](0.2.4-what-a-reviewer-is-handed.md) | in-progress | 13/24 | 3/4 |
+| [2026-10-11-lexical-read-results](2026-10-11-lexical-read-results.md) | closed | 17/17 | 14/14 |
+| [2026-10-11-lexical-readers](2026-10-11-lexical-readers.md) | decision-needed | 19/161 | 4/51 |
 | [2026-10-11-lexical-source-contract](2026-10-11-lexical-source-contract.md) | closed | 3/3 | 14/14 |

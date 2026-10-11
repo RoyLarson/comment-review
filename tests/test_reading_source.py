@@ -6,6 +6,7 @@ from typing import Any, cast
 
 import pytest
 
+from comment_review.reading.coordinates import SourceCoordinates
 from comment_review.reading.source import (
     DocumentationOwner,
     RegionKind,
@@ -22,6 +23,36 @@ from comment_review.reading.source import (
 def test_span_rejects_invalid_bounds(start, end):
     with pytest.raises(ValueError):
         SourceSpan(start, end)
+
+
+def test_coordinates_share_positions_without_a_source_partition():
+    text = "\t\u0065\u0301\r\nZ\rQ\n"
+    coordinates = SourceCoordinates(text)
+    assert coordinates.text is text
+    assert [coordinates.position(i) for i in range(10)] == [
+        SourcePosition(1, 0),
+        SourcePosition(1, 1),
+        SourcePosition(1, 2),
+        SourcePosition(1, 3),
+        SourcePosition(1, 4),
+        SourcePosition(2, 0),
+        SourcePosition(2, 1),
+        SourcePosition(3, 0),
+        SourcePosition(3, 1),
+        SourcePosition(4, 0),
+    ]
+
+
+@pytest.mark.parametrize("text", [None, b"", 1, True])
+def test_coordinates_reject_non_string_text(text):
+    with pytest.raises(ValueError):
+        SourceCoordinates(text)
+
+
+@pytest.mark.parametrize("offset", [-1, 2, None, True, 0.0])
+def test_coordinates_reject_invalid_offsets(offset):
+    with pytest.raises(ValueError):
+        SourceCoordinates("x").position(offset)
 
 
 @pytest.mark.parametrize("offset", [0, 3])
@@ -507,18 +538,21 @@ def test_position_rejects_invalid_offsets(offset):
 
 def test_position_caches_immutable_derived_line_starts():
     source = structure("a\r\nb\nc\rd", [(0, 8, RegionKind.CODE)])
-    starts = source._line_starts
+    coordinates = source._coordinates
+    assert coordinates.text is source.text
+    starts = coordinates._line_starts
     assert starts == (0, 3, 5, 7)
-    field = source.__dataclass_fields__["_line_starts"]
+    field = coordinates.__dataclass_fields__["_line_starts"]
     assert not field.init
     assert not field.repr
-    assert "_line_starts" not in repr(source)
+    assert "_line_starts" not in repr(coordinates)
     for _ in range(3):
         assert source.position(2) == SourcePosition(1, 2)
         assert source.position(7) == SourcePosition(4, 0)
-        assert source._line_starts is starts
+        assert source._coordinates is coordinates
+        assert coordinates._line_starts is starts
     with pytest.raises(FrozenInstanceError):
-        source._line_starts = (0,)
+        coordinates._line_starts = (0,)
 
 
 @pytest.mark.parametrize("span", [SourceSpan(2, 2), None, (0, 1)])
@@ -893,14 +927,16 @@ def test_boundary_all_source_record_and_container_fields_are_frozen():
 )
 def test_boundary_source_collections_and_derived_line_starts_are_tuples(field):
     source = boundary_structure()
-    collection = getattr(source, field)
+    collection = getattr(
+        source._coordinates if field == "_line_starts" else source, field
+    )
     assert isinstance(collection, tuple)
     assert collection
     with pytest.raises(TypeError):
         collection[0] = None
     with pytest.raises(AttributeError):
         collection.append(None)
-    assert source._line_starts == (0, 5)
+    assert source._coordinates._line_starts == (0, 5)
     assert source.reconstruct() == "item\n# note"
 
 
