@@ -3,7 +3,7 @@
 ```
 Status:   in-progress
 Progress: 13 of 14 TODO tasks closed
-Plan-tasks: 19 of 26 plan tasks closed
+Plan-tasks: 20 of 26 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (founded by move-t from 2026-10-11-lexical-readers)
@@ -466,8 +466,9 @@ because this machinery exists.
 - [x] P19 | Proofs preserve required page contexts with strict shape and consistency; tests and review pass | c35077c5 | Carry
       page contexts through saved master proofs; verify extra destinations and
       contradictory records
-- [ ] P20 | Validate resumed turns and dispositions before mutation; verify
-      incompatible proofs leave saved state unchanged
+- [x] P20 | Resumed folds admit saved metadata before state access; 394 tests and review pass | 48d043fd | Validate
+      resumed turns and dispositions before mutation; verify incompatible proofs
+      leave saved state unchanged
 - [ ] P21 | Carry context through chief copies and docket schedules; verify
       agreement with the originating proof
 - [ ] P22 | Validate contexts before drafting and rereading; verify exact
