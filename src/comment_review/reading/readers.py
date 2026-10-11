@@ -1,15 +1,24 @@
 """Explicit installed paragraph readers and language grammar validation."""
 
+import platform
 import re
+import sys
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
+from functools import partial
 from pathlib import Path
+from types import MappingProxyType
 from typing import TypeAlias
 
 from comment_review.reading.coordinates import SourceCoordinates
 from comment_review.reading.definitions import LanguageDefinition
 from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, ReadStage
-from comment_review.reading.language import Language
+from comment_review.reading.language import (
+    READER_METADATA,
+    Language,
+    tier_for,
+    validate_language_definition,
+)
 from comment_review.reading.lexer import (
     flag_structural_docs,
     paragraphs_lexical,
@@ -81,10 +90,17 @@ def read_paragraphs(
     path: Path, text: str, lang: Language
 ) -> list[Paragraph] | ReadFailure:
     """Read paragraphs or retain explicit reader refusals before decoration."""
+    return _read_paragraphs(path, text, lang, tier_for(lang) == "tokenized")
+
+
+def _read_paragraphs(
+    path: Path, text: str, lang: Language, tokenized: bool
+) -> list[Paragraph] | ReadFailure:
+    """Run the selected engine and retain its refusal diagnostics."""
     coordinates = SourceCoordinates(text)
     paragraphs = (
         paragraphs_stdlib(path, text)
-        if lang.name == "python"
+        if tokenized
         else paragraphs_lexical(path, text, lang)
     )
     diagnostics: list[ReadDiagnostic] = []
@@ -106,9 +122,28 @@ def read_paragraphs(
             )
     if diagnostics:
         return ReadFailure(tuple(diagnostics))
-    if lang.name != "python":
+    if not tokenized:
         flag_structural_docs(paragraphs, text, lang)
     return paragraphs
+
+
+INSTALLED_BINDINGS = MappingProxyType(
+    {
+        metadata.reader: ReaderBinding(
+            reader=metadata.reader,
+            revision=metadata.revision,
+            capabilities=metadata.capabilities,
+            grammar_identity=(
+                f"{platform.python_implementation()} {sys.version}"
+                if metadata.tier == "tokenized"
+                else ""
+            ),
+            read=partial(_read_paragraphs, tokenized=metadata.tier == "tokenized"),
+            validate=partial(validate_language_definition, name),
+        )
+        for name, metadata in READER_METADATA.items()
+    }
+)
 
 
 def _paragraph_source_span(

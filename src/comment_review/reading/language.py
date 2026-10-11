@@ -24,8 +24,13 @@ principle. Each language could change on a new version invalidating the list for
 all of them."* The `c-family` and `js-family` rows were split for exactly that.
 """
 
-from dataclasses import dataclass
+from dataclasses import dataclass, fields
 from pathlib import Path
+from types import MappingProxyType
+from typing import Any, cast
+
+from comment_review.reading.definitions import LanguageDefinition
+from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, ReadStage
 
 
 @dataclass(frozen=True)
@@ -524,6 +529,117 @@ LANGUAGES: tuple[Language, ...] = (
 BY_EXT = {ext: lang for lang in LANGUAGES for ext in lang.extensions}
 
 
+@dataclass(frozen=True)
+class ReaderMetadata:
+    """Reader identity, semantic revision and implemented capabilities."""
+
+    reader: str
+    revision: str
+    capabilities: tuple[str, ...]
+
+    @property
+    def tier(self) -> str:
+        """Return the coverage tier declared in the reader capabilities."""
+        return self.capabilities[-1]
+
+
+READER_METADATA = MappingProxyType(
+    {
+        "python": ReaderMetadata("python-stdlib", "1", ("comments", "tokenized")),
+        "rust": ReaderMetadata("rust-lexical", "1", ("comments", "lexical")),
+        "go": ReaderMetadata("go-lexical", "1", ("comments", "lexical")),
+        "c": ReaderMetadata("c-lexical", "1", ("comments", "lexical")),
+        "cpp": ReaderMetadata("cpp-lexical", "1", ("comments", "lexical")),
+        "java": ReaderMetadata("java-lexical", "1", ("comments", "lexical")),
+        "csharp": ReaderMetadata("csharp-lexical", "1", ("comments", "lexical")),
+        "swift": ReaderMetadata("swift-lexical", "1", ("comments", "lexical")),
+        "kotlin": ReaderMetadata("kotlin-lexical", "1", ("comments", "lexical")),
+        "javascript": ReaderMetadata(
+            "javascript-lexical", "1", ("comments", "lexical")
+        ),
+        "typescript": ReaderMetadata(
+            "typescript-lexical", "1", ("comments", "lexical")
+        ),
+        "ruby": ReaderMetadata("ruby-lexical", "1", ("comments", "lexical")),
+        "shell": ReaderMetadata("shell-lexical", "1", ("comments", "lexical")),
+        "sql": ReaderMetadata("sql-lexical", "1", ("comments", "lexical")),
+        "lua": ReaderMetadata("lua-lexical", "1", ("comments", "lexical")),
+    }
+)
+
+INSTALLED_DEFINITIONS = tuple(
+    LanguageDefinition(
+        language=lang.name,
+        suffixes=lang.extensions,
+        reader=READER_METADATA[lang.name].reader,
+        revision=READER_METADATA[lang.name].revision,
+        capabilities=READER_METADATA[lang.name].capabilities,
+        defaults={},
+        choices={},
+        rules={
+            field.name: getattr(lang, field.name)
+            for field in fields(lang)
+            if field.name not in {"name", "extensions"}
+        },
+    )
+    for lang in LANGUAGES
+    if lang.name in READER_METADATA
+)
+_DEFINITIONS_BY_NAME = {value.language: value for value in INSTALLED_DEFINITIONS}
+
+
+def validate_language_definition(
+    language_name: str, definition: LanguageDefinition
+) -> ReadFailure | None:
+    """Require the complete grammar owned by one installed language."""
+    installed = _DEFINITIONS_BY_NAME.get(language_name)
+    reason = ""
+    if installed is None or definition.language != language_name:
+        reason = "Definition does not belong to this language"
+    elif definition.reader != installed.reader:
+        reason = "Definition does not belong to this reader"
+    elif definition.defaults or definition.choices:
+        reason = "This reader implements no settings"
+    elif definition.rules.keys() != installed.rules.keys():
+        reason = "Grammar must contain exactly the required language keys"
+    else:
+        for key, value in definition.rules.items():
+            expected = installed.rules[key]
+            if isinstance(expected, bool):
+                valid = type(value) is bool
+            elif key == "block_comment":
+                valid = isinstance(value, tuple) and all(
+                    isinstance(pair, tuple)
+                    and len(pair) == 2
+                    and all(isinstance(token, str) and token for token in pair)
+                    for pair in value
+                )
+            else:
+                valid = isinstance(value, tuple) and all(
+                    isinstance(token, str) and token for token in value
+                )
+            if not valid:
+                reason = f"Invalid grammar value for {key}"
+                break
+    if reason:
+        return ReadFailure(
+            (ReadDiagnostic(ReadStage.SELECT, "invalid-language-definition", reason),)
+        )
+    return None
+
+
+def language_from_definition(definition: LanguageDefinition) -> Language:
+    """Materialize validated grammar without supplying missing field defaults."""
+    failure = validate_language_definition(definition.language, definition)
+    if failure is not None:
+        raise ValueError(failure.diagnostics[0].message)
+    return Language(
+        name=definition.language,
+        extensions=definition.suffixes,
+        **cast(dict[str, Any], dict(definition.rules)),
+    )
+
+
 # The ladder is named by the QUESTION each rung answers, not by the library
 # that happens to answer it. Only the top rung knows which declaration a paragraph
 # belongs to.
@@ -538,4 +654,5 @@ def tier_for(lang: Language) -> str:
     One definition, read by the dispatcher and by `--languages`, so the table
     and the run report the same tier.
     """
-    return "tokenized" if lang.name == "python" else "lexical"
+    metadata = READER_METADATA.get(lang.name)
+    return metadata.tier if metadata is not None else "lexical"

@@ -719,3 +719,130 @@ def test_registry_refuses_non_code_suffixes(suffix: str, uppercase: bool) -> Non
     assert diagnostic.code == "invalid-language-definition"
     assert "Excluded" in diagnostic.message
     assert claim in diagnostic.message
+
+
+def test_installed_code_definitions_have_exact_suffixes_and_independent_rules() -> None:
+    from dataclasses import fields
+
+    from comment_review.reading.language import INSTALLED_DEFINITIONS, LANGUAGES
+
+    expected = {
+        "python": (".py", ".pyi"),
+        "rust": (".rs",),
+        "go": (".go",),
+        "c": (".c", ".h"),
+        "cpp": (".cpp", ".hpp", ".cc", ".cxx"),
+        "java": (".java",),
+        "csharp": (".cs",),
+        "swift": (".swift",),
+        "kotlin": (".kt", ".kts"),
+        "javascript": (".js", ".jsx", ".mjs", ".cjs"),
+        "typescript": (".ts", ".tsx", ".mts", ".cts"),
+        "ruby": (".rb",),
+        "shell": (".sh", ".bash", ".zsh"),
+        "sql": (".sql",),
+        "lua": (".lua",),
+    }
+    assert {
+        value.language: value.suffixes for value in INSTALLED_DEFINITIONS
+    } == expected
+    rows = {row.name: row for row in LANGUAGES}
+    for value in INSTALLED_DEFINITIONS:
+        row = rows[value.language]
+        assert value.defaults == value.choices == {}
+        assert dict(value.rules) == {
+            field.name: getattr(row, field.name)
+            for field in fields(row)
+            if field.name not in {"name", "extensions"}
+        }
+    assert len({id(value.rules) for value in INSTALLED_DEFINITIONS}) == 15
+
+
+def test_installed_bindings_validate_rules_and_host_identity() -> None:
+    import platform
+    import sys
+    from dataclasses import replace
+
+    from comment_review.reading.language import INSTALLED_DEFINITIONS, READER_METADATA
+    from comment_review.reading.readers import INSTALLED_BINDINGS
+
+    for value in INSTALLED_DEFINITIONS:
+        installed = INSTALLED_BINDINGS[value.reader]
+        assert bind(value, INSTALLED_BINDINGS) is installed
+        metadata = READER_METADATA[value.language]
+        assert installed.revision == value.revision == metadata.revision
+        assert installed.capabilities == value.capabilities == metadata.capabilities
+        assert metadata.tier in installed.capabilities
+        if value.language == "python":
+            assert platform.python_implementation() in installed.grammar_identity
+            assert platform.python_version() in installed.grammar_identity
+            assert sys.version in installed.grammar_identity
+        else:
+            assert installed.grammar_identity == ""
+        for rules in (
+            {},
+            {**value.rules, "unknown": ()},
+            {**value.rules, "quotes": False},
+            {**value.rules, "nests_comments": 1},
+            {**value.rules, "block_comment": ("/*", "*/")},
+            {**value.rules, "quotes": ("",)},
+            *(
+                {key: item for key, item in value.rules.items() if key != missing}
+                for missing in value.rules
+            ),
+        ):
+            assert isinstance(
+                bind(replace(value, rules=rules), INSTALLED_BINDINGS), ReadFailure
+            )
+        empty = {
+            key: False if isinstance(item, bool) else ()
+            for key, item in value.rules.items()
+        }
+        assert bind(replace(value, rules=empty), INSTALLED_BINDINGS) is installed
+        with pytest.raises(ValueError):
+            from comment_review.reading.language import language_from_definition
+
+            language_from_definition(replace(value, rules={}))
+        assert isinstance(
+            bind(replace(value, capabilities=("dialects",)), INSTALLED_BINDINGS),
+            ReadFailure,
+        )
+        assert isinstance(
+            bind(replace(value, reader="absent"), INSTALLED_BINDINGS), ReadFailure
+        )
+        assert isinstance(
+            bind(replace(value, language="other"), INSTALLED_BINDINGS), ReadFailure
+        )
+
+
+def test_installed_bindings_invoke_existing_engines(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from comment_review.reading import readers
+    from comment_review.reading.language import (
+        INSTALLED_DEFINITIONS,
+        language_from_definition,
+    )
+
+    calls = []
+    monkeypatch.setattr(
+        readers,
+        "paragraphs_stdlib",
+        lambda path, text: calls.append(("stdlib", path, text)) or [],
+    )
+    monkeypatch.setattr(
+        readers,
+        "paragraphs_lexical",
+        lambda path, text, lang: calls.append((lang.name, path, text)) or [],
+    )
+    for value in INSTALLED_DEFINITIONS:
+        path = Path("source" + value.suffixes[0])
+        lang = language_from_definition(value)
+        assert (
+            readers.INSTALLED_BINDINGS[value.reader].read(path, "exact\r\n", lang) == []
+        )
+        assert calls[-1] == (
+            "stdlib" if value.language == "python" else value.language,
+            path,
+            "exact\r\n",
+        )
