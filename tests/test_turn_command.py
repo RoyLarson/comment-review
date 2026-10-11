@@ -40,6 +40,40 @@ from comment_review.commands import turn as turn_command
 ROLES = HAND_ROLES
 
 
+@pytest.mark.parametrize("fault", ["missing", "contradictory", "installed"])
+def test_saved_context_refusal_preserves_turn_artifacts(
+    tmp_path, monkeypatch, capsys, fault
+):
+    deal(tmp_path, monkeypatch, capsys, contested("m.py@b1"))
+    spec = answer(
+        tmp_path, 1, "block-context", "m.py@b1", instruction="hold", reason="stands"
+    )
+    proof_path = tmp_path / "proof0.json"
+    wire = json.loads(proof_path.read_text(encoding="utf-8"))
+    if fault == "missing":
+        wire.pop("page_readings")
+    elif fault == "contradictory":
+        wire["edit_copies"][0]["sheets"][0]["reading"]["compatibility"] = "0" * 64
+    else:
+        monkeypatch.setattr(
+            "comment_review.flows.reading_context.PLACEMENT_REVISION", "changed"
+        )
+    proof_path.write_text(json.dumps(wire), encoding="utf-8")
+    (tmp_path / "proof1.json").write_bytes(b"previous proof")
+    (tmp_path / "batch2.json").write_bytes(b"previous batch")
+    before = {path: path.read_bytes() for path in tmp_path.rglob("*") if path.is_file()}
+
+    def forbidden(*args, **kwargs):
+        pytest.fail("refused metadata reached address work")
+
+    monkeypatch.setattr("comment_review.flows.bus._places_on", forbidden)
+    code, out = turn(tmp_path, monkeypatch, capsys, 1, spec)
+    assert code == collate_command.UNREADABLE, out
+    assert {
+        path: path.read_bytes() for path in tmp_path.rglob("*") if path.is_file()
+    } == before
+
+
 class TestOneTurn:
     def test_two_corrects_that_converge_settle_the_place_and_exit_OK(
         self, tmp_path, monkeypatch, capsys

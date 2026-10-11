@@ -7,6 +7,8 @@ in one wording, since every command reads through here (T17 of
 """
 
 import json
+from dataclasses import replace
+from pathlib import Path
 
 import pytest
 from helpers import (
@@ -35,6 +37,91 @@ def a_proof(tmp_path):
     return a_master_proof(
         tmp_path / "repo", {"block-context": {"m.py@b1": a_correct("m.py@b1")}}
     )
+
+
+@pytest.mark.parametrize(
+    "revision", [None, "reader", "grammar", "rules", "placement", "host"]
+)
+def test_saved_nondefault_context_admitted_before_place_decoding(
+    tmp_path, monkeypatch, revision
+):
+    from comment_review.desk.proof.place import Place
+    from comment_review.flows import reading_context
+    from comment_review.reading.context import ReadingContext
+    from comment_review.reading.definitions import LanguageDefinition
+
+    proof = a_proof(tmp_path)
+    installed = reading_context.reader_for
+
+    def configured(path):
+        selected = installed(path)
+        assert isinstance(selected, tuple)
+        definition, binding = selected
+        assert isinstance(definition, LanguageDefinition)
+        return replace(
+            definition,
+            defaults={"mode": "narrow"},
+            choices={"mode": ("narrow", "wide")},
+        ), binding
+
+    monkeypatch.setattr(reading_context, "reader_for", configured)
+    context = reading_context.context_for(Path("m.py"), {"mode": "wide"})
+    assert isinstance(context, ReadingContext)
+    copies = tuple(
+        replace(
+            copy, sheets=tuple(replace(sheet, reading=context) for sheet in copy.sheets)
+        )
+        for copy in proof.edit_copies
+    )
+    proof = replace(
+        proof,
+        edit_copies=copies,
+        page_readings={"m.py": context, "extra.py": context},
+        page_shas={"extra.py": "original-sha"},
+    )
+    path = tmp_path / "proof.json"
+    save_proof(path, proof)
+    before = path.read_bytes()
+    decoded = []
+    deserialize = Place.deserialize
+
+    def decode(*args, **kwargs):
+        decoded.append(True)
+        if revision:
+            pytest.fail("incompatible saved context reached place decoding")
+        return deserialize(*args, **kwargs)
+
+    monkeypatch.setattr(Place, "deserialize", decode)
+    if revision == "placement":
+        monkeypatch.setattr(reading_context, "PLACEMENT_REVISION", "changed")
+    elif revision:
+
+        def revised(path):
+            definition, binding = configured(path)
+            if revision == "rules":
+                definition = replace(definition, rules={"changed": True})
+            elif revision == "reader":
+                binding = replace(binding, revision="changed")
+            elif revision == "grammar":
+                binding = replace(binding, grammar_identity="changed")
+            elif revision == "host":
+                binding = replace(
+                    binding, grammar_identity="CPython changed host version"
+                )
+            return definition, binding
+
+        monkeypatch.setattr(reading_context, "reader_for", revised)
+    loaded, why = load_proof(path)
+    if revision:
+        assert loaded is None
+        assert any("regather" in problem and "differs" in problem for problem in why)
+        assert not decoded
+    else:
+        assert loaded is not None, why
+        assert loaded == proof, why
+        assert decoded
+        assert loaded.page_readings["extra.py"] == context
+    assert path.read_bytes() == before
 
 
 def test_load_value_optional_pairs_hook_preserves_raw_duplicates(tmp_path):

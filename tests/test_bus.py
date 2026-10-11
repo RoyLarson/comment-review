@@ -1,5 +1,6 @@
 """The bus: one message in, the fold's events and what the stage saves out."""
 
+from copy import deepcopy
 from dataclasses import replace
 
 import pytest
@@ -43,6 +44,85 @@ from comment_review.flows.transcribe import docket_of_proof
 BASE = "# one\n# two\n# three"
 OTHER = "# four\n# five\n# six"
 CORRECTED = "# one\n# TWO\n# three"
+
+
+@pytest.mark.parametrize("route", ["answers", "dispositions"])
+@pytest.mark.parametrize(
+    "fault",
+    [
+        "missing",
+        "sheet",
+        "contradictory",
+        "installed",
+        "destination",
+        "destination-changed",
+    ],
+)
+def test_resumed_context_refusal_precedes_addresses_without_mutation(
+    tmp_path, monkeypatch, route, fault
+):
+    proof = _collated(tmp_path).proof
+    if fault == "missing":
+        proof = replace(proof, page_readings={})
+    elif fault in ("sheet", "contradictory"):
+        copy = proof.edit_copies[0]
+        context = copy.sheets[0].reading
+        sheet = replace(
+            copy.sheets[0],
+            reading=None
+            if fault == "sheet"
+            else replace(context, compatibility="0" * 64),
+        )
+        proof = replace(
+            proof, edit_copies=(replace(copy, sheets=(sheet,)), *proof.edit_copies[1:])
+        )
+    elif fault == "installed":
+        monkeypatch.setattr(
+            "comment_review.flows.reading_context.PLACEMENT_REVISION", "changed"
+        )
+    elif fault == "destination":
+        proof = replace(proof, page_shas={"extra.py": "unchanged"})
+    else:
+        context = proof.page_readings["m.py"]
+        proof = replace(
+            proof,
+            page_shas={"extra.py": "unchanged"},
+            page_readings={
+                **proof.page_readings,
+                "extra.py": replace(context, compatibility="0" * 64),
+            },
+        )
+    answers = _both_hold()
+    rulings = [
+        {"address": PLACE, "answer": "recast", "prose": RECAST, "reason": "combined"}
+    ]
+    message = (
+        AnswersReturned(proof, answers, tmp_path / "repo")
+        if route == "answers"
+        else DispositionsWritten(proof, rulings)
+    )
+    before = deepcopy(message)
+    source = tmp_path / "repo" / "m.py"
+    source_before = source.read_bytes()
+
+    def forbidden(*args, **kwargs):
+        pytest.fail("saved metadata was not admitted before address work")
+
+    for name in (
+        "_places_on",
+        "_moves_on",
+        "moves_in",
+        "turn_of",
+        "slots_of",
+        "read_disposition",
+        "Fold",
+    ):
+        monkeypatch.setattr(f"comment_review.flows.bus.{name}", forbidden)
+    out, result = handle(message)
+    assert result is None
+    assert any("regather" in why for _, _, why in _refusals(out))
+    assert message == before
+    assert source.read_bytes() == source_before
 
 
 @pytest.mark.parametrize("target", ["copy", "stage", "received"])

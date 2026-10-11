@@ -58,7 +58,10 @@ from comment_review.flows.human import (
 from comment_review.flows.mark_errors import mark_errors
 from comment_review.flows.on_the_page import PageCache, held_at
 from comment_review.flows.places import bases_and_anchors, chief_copy_of, places_of
-from comment_review.flows.reading_context import binder_reading_contexts
+from comment_review.flows.reading_context import (
+    binder_reading_contexts,
+    proof_reading_problems,
+)
 from comment_review.flows.verify import (
     context_problems,
     copy_problems,
@@ -508,6 +511,9 @@ def _on_answers(message: AnswersReturned) -> tuple[list, Result | None]:
     move (`flows.answers.slot_key`); the answer is written onto the move, not
     onto either end (`decision-log.md Process: #195`).
     """
+    why = proof_reading_problems(message.proof)
+    if why:
+        return _rolled_back([Problem("", "", reason) for reason in why])
     places = _places_on(message.proof)
     moves = moves_in(places, _moves_on(message.proof))
     problems: list[Problem] = []
@@ -591,6 +597,9 @@ def _on_dispositions(message: DispositionsWritten) -> tuple[list, Result | None]
     needs words is carried forward in what this commits, for the chief to
     rule on the proof it writes.
     """
+    why = proof_reading_problems(message.proof)
+    if why:
+        return _rolled_back([Problem(CHIEF, "", reason) for reason in why])
     places = _places_on(message.proof)
     moves = moves_in(places, _moves_on(message.proof))
     problems: list[Problem] = []

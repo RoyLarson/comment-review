@@ -37,6 +37,58 @@ from comment_review.flows.transcribe import docket_of_proof
 RECAST = "# one\n# both\n# three\n"
 
 
+@pytest.mark.parametrize("fault", ["missing", "contradictory", "installed"])
+def test_saved_context_refusal_preserves_disposition_artifacts(
+    tmp_path, monkeypatch, capsys, fault
+):
+    from conftest import run_command
+
+    from comment_review.commands import disposition as disposition_command
+
+    held_open(tmp_path, monkeypatch, capsys)
+    proof_path = tmp_path / "proof1.json"
+    wire = json.loads(proof_path.read_text(encoding="utf-8"))
+    if fault == "missing":
+        wire.pop("page_readings")
+    elif fault == "contradictory":
+        wire["edit_copies"][0]["sheets"][0]["reading"]["compatibility"] = "0" * 64
+    else:
+        monkeypatch.setattr(
+            "comment_review.flows.reading_context.PLACEMENT_REVISION", "changed"
+        )
+    proof_path.write_text(json.dumps(wire), encoding="utf-8")
+    ruling_path = tmp_path / "dispositions.json"
+    ruling_path.write_text(
+        json.dumps([_taken_in("m.py@b1", "function-context", "stands")]),
+        encoding="utf-8",
+    )
+    for name in ("chief.json", "final.json"):
+        (tmp_path / name).write_bytes(b"previous output")
+    before = {path: path.read_bytes() for path in tmp_path.rglob("*") if path.is_file()}
+
+    def forbidden(*args, **kwargs):
+        pytest.fail("refused metadata reached address work")
+
+    monkeypatch.setattr("comment_review.flows.bus._places_on", forbidden)
+    code, out = run_command(
+        monkeypatch,
+        capsys,
+        disposition_command,
+        "--proof",
+        str(proof_path),
+        "--dispositions",
+        str(ruling_path),
+        "--out",
+        str(tmp_path / "chief.json"),
+        "--proof-out",
+        str(tmp_path / "final.json"),
+    )
+    assert code == collate_command.UNREADABLE, out
+    assert {
+        path: path.read_bytes() for path in tmp_path.rglob("*") if path.is_file()
+    } == before
+
+
 def _taken_in(address: str, side: str, reason: str) -> dict:
     return {"address": address, "answer": "taken_in", "side": side, "reason": reason}
 
