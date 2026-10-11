@@ -9,6 +9,9 @@ A COMMAND EXPOSES A FLOW. Ruled 2026-08-24 -- `decision-log.md Process: #12`.
 import argparse
 from pathlib import Path
 
+from comment_review.flows.compositor import round_trip
+from comment_review.flows.read_diagnostics import format_failure
+from comment_review.reading.diagnostics import ReadFailure
 from comment_review.results.compositor import identity, lossless
 
 
@@ -28,12 +31,17 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     same = moved = broken = 0
     for path in args.paths:
-        gone = lossless(path)
+        result = round_trip(path)
+        if isinstance(result, ReadFailure):
+            broken += 1
+            print(f"  LOSSY   {format_failure(result, path=path.as_posix())}")
+            continue
+        gone = lossless(result.original, result.rendered)
         if gone is not None:
             broken += 1
             print(f"  LOSSY   {path} -- {gone}")
             continue
-        why = identity(path)
+        why = identity(result.original, result.rendered)
         if why is None:
             same += 1
             print(f"  set     {path}")

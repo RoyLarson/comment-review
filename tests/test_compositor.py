@@ -19,8 +19,10 @@ from comment_review.results import compositor
 from comment_review.results.compositor import line_endings, set_page
 
 
-@pytest.mark.parametrize("gate", [compositor.lossless, compositor.identity])
-def test_failed_page_is_reported_before_setting(tmp_path, monkeypatch, gate):
+def test_failed_page_is_reported_before_setting(tmp_path, monkeypatch):
+    from comment_review.flows.compositor import round_trip
+    from comment_review.reading.diagnostics import ReadFailure
+
     path = tmp_path / "broken.c"
     path.write_text("/* open", encoding="utf-8")
 
@@ -28,23 +30,132 @@ def test_failed_page_is_reported_before_setting(tmp_path, monkeypatch, gate):
         raise AssertionError("failed page reached the setter")
 
     monkeypatch.setattr(compositor, "set_page", unexpected_set)
-    assert gate(path) == (
-        "lex/unterminated-comment: Comment has no closing delimiter before "
-        "end of source"
+    result = round_trip(path)
+    assert isinstance(result, ReadFailure)
+    assert result.diagnostics[0].message == (
+        "Comment has no closing delimiter before end of source"
     )
 
 
-@pytest.mark.parametrize("gate", [compositor.lossless, compositor.identity])
-def test_unexpected_page_exception_propagates(tmp_path, monkeypatch, gate):
+def test_unexpected_page_exception_propagates(tmp_path, monkeypatch):
+    from comment_review.flows import compositor as flow
+
     path = tmp_path / "sample.py"
     path.write_text("value = 1\n", encoding="utf-8")
 
     def broken_page(*args, **kwargs):
         raise exceptions.Refused("unexpected page error")
 
-    monkeypatch.setattr(compositor, "page_for", broken_page)
+    monkeypatch.setattr(flow, "page_of", broken_page)
     with pytest.raises(exceptions.Refused, match="unexpected page error"):
-        gate(path)
+        flow.round_trip(path)
+
+
+@pytest.mark.parametrize(
+    "original,rendered",
+    [("a\r\n", "a\n"), ("a\n", "a"), ("\ufeffa\n", "a\n"), ("a\nb\n", "b\na\n")],
+)
+def test_identity_compares_literal_bytes(original, rendered):
+    assert compositor.identity(original, rendered) is not None
+
+
+def test_retained_lines_are_weaker_than_identity():
+    assert compositor.lossless("a\r\nb\n", "b\na\n") is None
+    assert compositor.lossless("a\na\n", "a\n") == "line lost: 'a'"
+
+
+def test_identity_requires_strict_utf8():
+    with pytest.raises(UnicodeEncodeError):
+        compositor.identity("\ud800", "\ud800")
+
+
+def test_identical_literal_text_passes_both_comparisons():
+    text = "\ufeffa\r\nb\n"
+    assert compositor.identity(text, text) is None
+    assert compositor.lossless(text, text) is None
+
+
+@pytest.mark.parametrize("raw", [b"", b"x = 1\r\n"])
+def test_command_sets_actual_empty_and_crlf_files(tmp_path, capsys, raw):
+    from comment_review.commands.compositor import main
+
+    path = tmp_path / "sample.py"
+    path.write_bytes(raw)
+    assert main([str(path)]) == 0
+    assert "1 identical, 0 normalised, 0 LOSSY" in capsys.readouterr().out
+
+
+def test_command_acquires_admits_and_sets_once(tmp_path, monkeypatch):
+    from comment_review.commands.compositor import main
+    from comment_review.flows import compositor as flow
+
+    path = tmp_path / "sample.py"
+    path.write_bytes(b"x = 1\r\n")
+    calls = []
+    for name, module in [
+        ("source_of", flow),
+        ("page_of", flow),
+        ("set_page", compositor),
+    ]:
+        original = getattr(module, name)
+
+        def counted(*args, _name=name, _original=original, **kwargs):
+            calls.append(_name)
+            return _original(*args, **kwargs)
+
+        monkeypatch.setattr(module, name, counted)
+    assert main([str(path)]) == 0
+    assert calls == ["source_of", "page_of", "set_page"]
+
+
+def test_rendering_refusal_retains_context(tmp_path, monkeypatch, capsys):
+    from comment_review.commands.compositor import main
+    from comment_review.flows.compositor import round_trip
+    from comment_review.flows.read_diagnostics import LocatedReadFailure
+
+    path = tmp_path / "sample.py"
+    path.write_bytes(b"x = 1\r\n")
+
+    def refused(page):
+        raise exceptions.Refused("cannot set these places")
+
+    monkeypatch.setattr(compositor, "set_page", refused)
+    result = round_trip(path)
+    assert isinstance(result, LocatedReadFailure)
+    assert result.text == "x = 1\r\n"
+    assert result.path == path.as_posix()
+    assert result.language == "python"
+    assert result.diagnostics[0].span is None
+    assert main([str(path)]) == 1
+    assert "place/unsupported-placement" in capsys.readouterr().out
+
+
+def test_read_failure_reports_retained_location(tmp_path, capsys):
+    from comment_review.commands.compositor import main
+
+    path = tmp_path / "sample.c"
+    path.write_bytes(b"int x;\r\n/* open")
+    assert main([str(path)]) == 1
+    output = capsys.readouterr().out
+    assert "lex/unterminated-comment" in output
+    assert "line 2, one-based; column 0, zero-based" in output
+
+
+@pytest.mark.parametrize("raw", [b"\xef\xbb\xbfx = 1\n", b"x = 1\r\ny = 2\n"])
+def test_literal_acquisition_has_explicit_round_trip_outcome(tmp_path, raw):
+    from comment_review.flows.compositor import RoundTrip, round_trip
+    from comment_review.flows.read_diagnostics import LocatedReadFailure
+
+    path = tmp_path / "sample.py"
+    path.write_bytes(raw)
+    result = round_trip(path)
+    if isinstance(result, LocatedReadFailure):
+        assert result.text == raw.decode("utf-8")
+        assert result.diagnostics
+    else:
+        assert isinstance(result, RoundTrip)
+        assert result.original.encode("utf-8") == raw
+        assert result.rendered.encode("utf-8") != raw
 
 
 #: Every addressed place on the sample, and the subset holding prose. Discovered
