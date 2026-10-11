@@ -76,6 +76,13 @@ class SourceSection:
     span: SourceSpan
     form: str
 
+    def __post_init__(self) -> None:
+        """Require a nonempty span and preserve the nonblank form identifier."""
+        if not isinstance(self.span, SourceSpan) or self.span.start == self.span.end:
+            raise ValueError("Section span must be a nonempty SourceSpan")
+        if not isinstance(self.form, str) or not self.form.strip():
+            raise ValueError("Section form must be a nonblank string")
+
 
 @dataclass(frozen=True)
 class SourceDeclaration:
@@ -84,6 +91,22 @@ class SourceDeclaration:
     header: SourceSpan
     anchor: int
     kind: str
+
+    def __post_init__(self) -> None:
+        """Require a nonempty header, absolute anchor, and nonblank kind."""
+        if (
+            not isinstance(self.header, SourceSpan)
+            or self.header.start == self.header.end
+        ):
+            raise ValueError("Declaration header must be a nonempty SourceSpan")
+        if (
+            not isinstance(self.anchor, int)
+            or isinstance(self.anchor, bool)
+            or not self.header.start <= self.anchor < self.header.end
+        ):
+            raise ValueError("Declaration anchor must be an integer within header")
+        if not isinstance(self.kind, str) or not self.kind.strip():
+            raise ValueError("Declaration kind must be a nonblank string")
 
 
 @dataclass(frozen=True)
@@ -106,7 +129,7 @@ class SourceStructure:
     _line_starts: tuple[int, ...] = field(init=False, repr=False)
 
     def __post_init__(self) -> None:
-        """Validate region coverage and cache physical line boundaries."""
+        """Validate source records and cache physical line boundaries."""
         for name, record_type in (
             ("regions", SourceRegion),
             ("sections", SourceSection),
@@ -134,6 +157,26 @@ class SourceStructure:
                 f"regions[{len(self.regions)}] missing coverage "
                 f"from boundary {boundary}"
             )
+
+        section_end = 0
+        for index, section in enumerate(self.sections):
+            if section.span.end > len(self.text):
+                raise ValueError(f"sections[{index}] span ends outside text")
+            if section.span.start < section_end:
+                raise ValueError(
+                    f"sections[{index}] span must be in source order and nonoverlapping"
+                )
+            section_end = section.span.end
+
+        declaration_start = 0
+        for index, declaration in enumerate(self.declarations):
+            if declaration.header.end > len(self.text):
+                raise ValueError(f"declarations[{index}] header ends outside text")
+            if declaration.header.start < declaration_start:
+                raise ValueError(
+                    f"declarations[{index}] header must be in source order"
+                )
+            declaration_start = declaration.header.start
 
         line_starts = [0]
         offset = 0

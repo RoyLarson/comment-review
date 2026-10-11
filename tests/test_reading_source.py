@@ -168,8 +168,8 @@ def test_partition_rejects_invalid_referenced_record_types(field):
     "field,value",
     [
         ("regions", SourceRegion(SourceSpan(0, 1), RegionKind.CODE)),
-        ("sections", SourceSection(SourceSpan(0, 0), "sample")),
-        ("declarations", SourceDeclaration(SourceSpan(0, 0), 0, "sample")),
+        ("sections", SourceSection(SourceSpan(0, 1), "sample")),
+        ("declarations", SourceDeclaration(SourceSpan(0, 1), 0, "sample")),
         ("documentation", DocumentationOwner(0, None)),
     ],
 )
@@ -351,3 +351,135 @@ def test_position_caches_immutable_derived_line_starts():
         assert source._line_starts is starts
     with pytest.raises(FrozenInstanceError):
         source._line_starts = (0,)
+
+
+@pytest.mark.parametrize("span", [SourceSpan(2, 2), None, (0, 1)])
+def test_declaration_section_requires_nonempty_span(span):
+    with pytest.raises(ValueError, match="span"):
+        SourceSection(span, "section")
+
+
+@pytest.mark.parametrize("header", [SourceSpan(2, 2), None, (0, 1)])
+def test_declaration_requires_nonempty_header(header):
+    with pytest.raises(ValueError, match="header"):
+        SourceDeclaration(header, 2, "declaration")
+
+
+@pytest.mark.parametrize("identifier", ["", " ", "\t\r\n", None, 1])
+def test_declaration_section_requires_nonblank_form(identifier):
+    with pytest.raises(ValueError, match="form"):
+        SourceSection(SourceSpan(2, 4), identifier)
+
+
+@pytest.mark.parametrize("identifier", ["", " ", "\t\r\n", None, 1])
+def test_declaration_requires_nonblank_kind(identifier):
+    with pytest.raises(ValueError, match="kind"):
+        SourceDeclaration(SourceSpan(2, 4), 2, identifier)
+
+
+@pytest.mark.parametrize("anchor", [1, 4, 5, -1, True, False, 2.0, "2", None])
+def test_declaration_rejects_anchor_outside_header_or_noninteger(anchor):
+    with pytest.raises(ValueError, match="anchor"):
+        SourceDeclaration(SourceSpan(2, 4), anchor, "declaration")
+
+
+@pytest.mark.parametrize("anchor", [2, 3])
+def test_declaration_anchor_is_absolute_and_includes_header_start(anchor):
+    declaration = SourceDeclaration(SourceSpan(2, 4), anchor, "declaration")
+    assert declaration.anchor == anchor
+
+
+def declaration_structure(text, sections=(), declarations=()):
+    return SourceStructure(
+        text,
+        (SourceRegion(SourceSpan(0, len(text)), RegionKind.CODE),),
+        sections,
+        declarations,
+        (),
+    )
+
+
+@pytest.mark.parametrize("span", [SourceSpan(0, 7), SourceSpan(6, 7)])
+def test_declaration_structure_rejects_section_outside_source(span):
+    with pytest.raises(ValueError, match=r"sections\[1\].*span"):
+        declaration_structure(
+            "abcdef",
+            (SourceSection(SourceSpan(0, 1), "first"), SourceSection(span, "second")),
+        )
+
+
+@pytest.mark.parametrize("header", [SourceSpan(0, 7), SourceSpan(6, 7)])
+def test_declaration_structure_rejects_header_outside_source(header):
+    with pytest.raises(ValueError, match=r"declarations\[1\].*header"):
+        declaration_structure(
+            "abcdef",
+            declarations=(
+                SourceDeclaration(SourceSpan(0, 1), 0, "first"),
+                SourceDeclaration(header, header.start, "second"),
+            ),
+        )
+
+
+@pytest.mark.parametrize("second", [SourceSpan(1, 4), SourceSpan(0, 1)])
+def test_declaration_structure_rejects_section_overlap_and_order(second):
+    with pytest.raises(ValueError, match=r"sections\[1\]"):
+        declaration_structure(
+            "abcdef",
+            (
+                SourceSection(SourceSpan(1, 3), "first"),
+                SourceSection(second, "second"),
+            ),
+        )
+
+
+def test_declaration_structure_rejects_header_order():
+    with pytest.raises(ValueError, match=r"declarations\[1\]"):
+        declaration_structure(
+            "abcdef",
+            declarations=(
+                SourceDeclaration(SourceSpan(3, 5), 3, "first"),
+                SourceDeclaration(SourceSpan(1, 2), 1, "second"),
+            ),
+        )
+
+
+def test_declaration_structure_accepts_nested_bodies_and_same_line_headers():
+    source = declaration_structure(
+        "outer { inner {} } next {}",
+        sections=(
+            SourceSection(SourceSpan(0, 19), "block"),
+            SourceSection(SourceSpan(19, 26), "block"),
+        ),
+        declarations=(
+            SourceDeclaration(SourceSpan(0, 5), 0, "outer"),
+            SourceDeclaration(SourceSpan(8, 13), 8, "inner"),
+            SourceDeclaration(SourceSpan(19, 23), 19, "next"),
+        ),
+    )
+    assert [source.slice(record.header) for record in source.declarations] == [
+        "outer",
+        "inner",
+        "next",
+    ]
+
+
+def test_declaration_structure_orders_headers_by_start_without_extent_rules():
+    source = declaration_structure(
+        "abcdef",
+        declarations=(
+            SourceDeclaration(SourceSpan(0, 6), 1, "first"),
+            SourceDeclaration(SourceSpan(0, 2), 0, "same-start"),
+            SourceDeclaration(SourceSpan(1, 3), 2, "overlapping"),
+        ),
+    )
+    assert len(source.declarations) == 3
+
+
+def test_declaration_preserves_exact_form_and_kind_identifiers():
+    source = declaration_structure(
+        "abcdef",
+        sections=(SourceSection(SourceSpan(0, 6), "  Custom/Form\t"),),
+        declarations=(SourceDeclaration(SourceSpan(1, 4), 2, " Kind/Custom "),),
+    )
+    assert source.sections[0].form == "  Custom/Form\t"
+    assert source.declarations[0].kind == " Kind/Custom "
