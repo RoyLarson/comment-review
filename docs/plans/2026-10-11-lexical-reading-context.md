@@ -3,7 +3,7 @@
 ```
 Status:   in-progress
 Progress: 4 of 5 TODO tasks closed
-Plan-tasks: 9 of 26 plan tasks closed
+Plan-tasks: 10 of 26 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (founded by move-t from 2026-10-11-lexical-readers)
@@ -414,8 +414,9 @@ because this machinery exists.
       reading compatibility identities; verify relevant changes invalidate and
       unrelated or cosmetic changes do not
         > 2026-10-11 Include definition and bound-reader revisions independently
-- [ ] P10 | Resolve per-file settings at fresh-run entry points; verify explicit
-      defaults, valid modes and independent values
+- [x] P10 | Fresh settings transport passes 654 affected tests and independent review | 20681e4d | Resolve
+      per-file settings at fresh-run entry points; verify explicit defaults,
+      valid modes and independent values
         > 2026-10-11 resolve_context also requires the bound reader_revision keyword
 - [ ] P11 | Serialize reading context; verify exact fields and rejection of
       missing, malformed or future formats
