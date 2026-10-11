@@ -67,6 +67,7 @@ from comment_review.flows.verify import (
     required_places,
     stage_problems,
 )
+from comment_review.machine.repo import Source
 from comment_review.reading.diagnostics import ReadFailure
 
 
@@ -153,6 +154,7 @@ class Result(NamedTuple):
     proof: MasterProof
     chief: EditCopy | None
     batch: dict | None
+    page_snapshots: PageCache
 
 
 def handle(message) -> tuple[list, Result | None]:
@@ -261,6 +263,33 @@ def _on_copies(message: CopiesReturned) -> tuple[list, Result | None]:
             [],
         )
     bases, anchors = held
+    sheet_paths = {sheet.path for copy in copies for sheet in copy.sheets}
+    snapshots = {
+        path: snapshot
+        for path, snapshot in page_cache.items()
+        if path not in sheet_paths and not isinstance(snapshot.result, ReadFailure)
+    }
+    missing = [
+        path
+        for path, snapshot in snapshots.items()
+        if snapshot.context is None
+        or not isinstance(snapshot.source, Source)
+        or isinstance(snapshot.result, ReadFailure)
+        or snapshot.context != snapshot.result.reading
+        or snapshot.source.sha != snapshot.result.sha
+    ]
+    if missing:
+        return _rolled_back(
+            [
+                Problem(
+                    "",
+                    path,
+                    "destination snapshot lacks consistent source and reading"
+                    " context; regather",
+                )
+                for path in missing
+            ]
+        )
     places = places_of(copies, bases, anchors)
     fold = Fold(places, turn=0).run()
     out += fold.events
@@ -274,14 +303,13 @@ def _on_copies(message: CopiesReturned) -> tuple[list, Result | None]:
         places=tuple(fold.decided.values()),
         moves=tuple(move.recorded() for move in fold.decided_moves.values()),
         page_shas={
-            path: held.result.sha
-            for path, held in page_cache.items()
-            if not isinstance(held.result, ReadFailure)
-            and path not in {sheet.path for copy in copies for sheet in copy.sheets}
+            path: snapshot.source.sha
+            for path, snapshot in snapshots.items()
+            if isinstance(snapshot.source, Source)
         },
     )
     chief = chief_copy_of(fold.decided, "copy-chief", read_from, _pages_of(copies))
-    return out, Result(proof, chief, _batch_or_none(fold, read_from))
+    return out, Result(proof, chief, _batch_or_none(fold, read_from), snapshots)
 
 
 def _root_problems(copies: list[EditCopy]) -> list[Problem]:
@@ -673,7 +701,7 @@ def _commit(
     chief = chief_copy_of(
         fold.decided, CHIEF, proof.read_from, _pages_of(list(proof.edit_copies))
     )
-    return out, Result(next_proof, chief, _batch_or_none(fold, proof.read_from))
+    return out, Result(next_proof, chief, _batch_or_none(fold, proof.read_from), {})
 
 
 def _undecided(fold: Fold) -> list[Move]:

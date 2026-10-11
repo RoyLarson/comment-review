@@ -1487,6 +1487,124 @@ def test_a_move_into_an_ungathered_file_that_keeps_every_word_folds(tmp_path):
     assert place.anchor == "v1 = 1"
 
 
+def test_extra_destination_retains_the_acquired_snapshot(tmp_path):
+    message = _moved_into_n(tmp_path, "# seven\n# eight\n# two")
+    out, result = handle(message)
+    assert result is not None, _refusals(out)
+    held = result.page_snapshots["n.py"]
+    from comment_review.machine.repo import Source
+
+    assert isinstance(held.result, Page)
+    assert isinstance(held.source, Source)
+    assert held.context == held.result.reading
+    assert held.source.sha == held.result.sha == result.proof.page_shas["n.py"]
+    destination = next(p for p in result.proof.places if p.address == "n.py@b1")
+    assert destination.base == next(
+        p.raw_text for p in held.result.paragraphs if p.address == "n.py@b1"
+    )
+    original = held.source.text
+    (message.root / "n.py").write_text("# replacement\nv1 = 1\n")
+    assert held.source.text == original
+
+
+@pytest.mark.parametrize("change", ["context", "source"])
+def test_extra_destination_capture_survives_incompatible_reuse(tmp_path, change):
+    from dataclasses import replace
+
+    from comment_review.flows.on_the_page import page_named
+    from comment_review.flows.source import source_of
+    from comment_review.reading.diagnostics import ReadFailure
+
+    message = _moved_into_n(tmp_path, "# seven\n# eight\n# two")
+    out, result = handle(message)
+    assert result is not None, _refusals(out)
+    held = result.page_snapshots["n.py"]
+    original = held.context
+    assert original is not None
+    requested = original
+    source = None
+    if change == "context":
+        requested = replace(original, settings=(("changed", "yes"),))
+    else:
+        (message.root / "n.py").write_text("# replacement\nv1 = 1\n")
+        source = source_of(message.root / "n.py")
+        assert not isinstance(source, ReadFailure)
+    _, refused = page_named(
+        "n.py",
+        [],
+        message.root,
+        result.page_snapshots,
+        reading_context=requested,
+        source=source,
+    )
+    assert isinstance(refused, ReadFailure)
+    assert result.page_snapshots["n.py"] is held
+    assert held.context is original
+
+
+def test_extra_destination_with_missing_captured_context_refuses(tmp_path, monkeypatch):
+    from dataclasses import replace
+
+    from comment_review.flows import bus
+
+    original = bus.held_at
+
+    def without_context(address, paths, root, cache, **kwargs):
+        result = original(address, paths, root, cache, **kwargs)
+        if "n.py" in cache:
+            cache["n.py"] = replace(cache["n.py"], context=None)
+        return result
+
+    monkeypatch.setattr(bus, "held_at", without_context)
+    out, result = handle(_moved_into_n(tmp_path, "# seven\n# eight\n# two"))
+    assert result is None
+    assert any("regather" in reason for _, _, reason in _refusals(out))
+
+
+def test_destination_context_is_captured_before_installed_rules_change(
+    tmp_path, monkeypatch
+):
+    from dataclasses import replace
+
+    from comment_review.flows import bus, on_the_page
+    from comment_review.reading.diagnostics import ReadFailure
+
+    message = _moved_into_n(tmp_path, "# seven\n# eight\n# two")
+    acquire = on_the_page.source_of
+    reads = []
+
+    def counted(path):
+        reads.append(path.name)
+        return acquire(path)
+
+    monkeypatch.setattr(on_the_page, "source_of", counted)
+    bases = bus.bases_and_anchors
+    context_for = on_the_page.context_for
+    captured = []
+
+    def changed_after_base(copies, held):
+        result = bases(copies, held)
+        captured.append(context_for(message.root / "n.py", {}))
+
+        def changed(path, settings):
+            context = context_for(path, settings)
+            assert not isinstance(context, ReadFailure)
+            return replace(context, compatibility="0" * 64)
+
+        monkeypatch.setattr(on_the_page, "context_for", changed)
+        return result
+
+    monkeypatch.setattr(bus, "bases_and_anchors", changed_after_base)
+    out, result = handle(message)
+    assert result is not None, _refusals(out)
+    assert reads.count("n.py") == 1
+    held = result.page_snapshots["n.py"]
+    assert held.context == captured[0]
+    _, refused = on_the_page.page_named("n.py", [], message.root, result.page_snapshots)
+    assert isinstance(refused, ReadFailure)
+    assert result.page_snapshots["n.py"] is held
+
+
 def test_an_add_over_prose_in_an_ungathered_file_that_drops_a_word_is_refused(
     tmp_path,
 ):
