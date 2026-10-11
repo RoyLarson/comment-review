@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 5 of 10 tasks closed
+Progress: 7 of 10 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-20 (found while adding the per-language declares keyword list,
@@ -102,14 +102,16 @@ rule is that a language takes its definition from its own grammar and never from
 - [ ] T6 | T6 -- Name in `compact.md:113` whatever remains genuinely unresolved
       after T5. Verify: the stamp's explanation at :113 names the case that
       still fires.
-- [?] T7 | T7 -- * RULE go's adjacency: must a doc comment TOUCH its
-      declaration, or is nearest-above enough? Verify: one of the two comments
-      cites the other, for go.
+- [-] T7 | Split into T9 for the approved Go rule and T10 for implementation and matching reader prose | 3376dc0f | T7
+      -- * RULE go's adjacency: must a doc comment TOUCH its declaration, or is
+      nearest-above enough? Verify: one of the two comments cites the other, for
+      go.
 - [?] T8 | T8 -- * RULE ruby's adjacency, from ruby's own grammar and not from
       go's. Verify: one of the two comments is corrected to cite the other, for
       ruby.
-- [ ] T9 | Record Go documentation adjacency; verify the spec requires no blank
-      line before the declaration
+- [x] T9 | Roy approved immediate adjacency; the objective and lexer spec record the Go rule | 3376dc0f | Record
+      Go documentation adjacency; verify the spec requires no blank line before
+      the declaration
         > 2026-10-11 Roy approved Go adjacency: no blank before its declaration.
 - [ ] T10 | Implement Go documentation adjacency; verify touching comments use
       a, separated comments use b, and reader prose agrees
