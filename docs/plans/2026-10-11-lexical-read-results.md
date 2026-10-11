@@ -3,7 +3,7 @@
 ```
 Status:   in-progress
 Progress: 1 of 6 TODO tasks closed
-Plan-tasks: 1 of 13 plan tasks closed
+Plan-tasks: 3 of 13 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (founded by move-t from 2026-10-11-lexical-readers)
@@ -270,8 +270,9 @@ runtime implementation is included in the plan-authoring commit.
       immutable diagnostics and failed-read outcomes; verify stages, codes,
       invalid fields and empty-input success
         > 2026-10-11 uv run pytest -q tests/test_reading_diagnostics.py
-- [ ] P2 | Share cached source coordinates and diagnostic rendering; verify
-      CRLF, EOF, Unicode and distinct byte offsets
+- [x] P2 | Shared coordinate cache and located rendering verified | fc54847c | Share
+      cached source coordinates and diagnostic rendering; verify CRLF, EOF,
+      Unicode and distinct byte offsets
         > 2026-10-11 uv run pytest -q tests/test_reading_source.py
         > 2026-10-11 Complete P13 here; formatter falls back to retained failure context
 - [ ] P3 | Acquire exact filesystem and Git source snapshots; verify UTF-8
@@ -307,6 +308,7 @@ runtime implementation is included in the plan-authoring commit.
 - [ ] P12 | Run type, shipped-syntax and vocabulary gates; verify Python 3.11
       and standard-library runtime compatibility
         > 2026-10-11 Use the exact P10-P12 gate commands in the objective
-- [ ] P13 | Define LocatedReadFailure(ReadFailure) in flows/read_diagnostics.py;
-      verify commands render stored source spans without rereading
+- [x] P13 | Retained failure context renders locations without rereading | fc54847c | Define
+      LocatedReadFailure(ReadFailure) in flows/read_diagnostics.py; verify
+      commands render stored source spans without rereading
         > 2026-10-11 Frozen fields: path: str, language: str | None, text: str | None
