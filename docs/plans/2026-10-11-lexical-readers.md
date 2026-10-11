@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 18 of 161 TODO tasks closed
+Progress: 19 of 161 TODO tasks closed
 Plan-tasks: 2 of 51 plan tasks closed
 Owner:    backend
 Requires-Roy: true
@@ -570,7 +570,7 @@ interfaces, inputs and checks, without internal development files or history.
 - [x] T5 | MOVED to 2026-10-11-lexical-read-results | Define immutable read
       diagnostics and failures; verify location units, field validation and
       successful empty input
-- [~] T6 | MOVED to 2026-10-11-lexical-read-results | Reject failed readings at
+- [x] T6 | MOVED to 2026-10-11-lexical-read-results | Reject failed readings at
       page and proof admission; verify either-side failures, empty success and
       cleanup
 

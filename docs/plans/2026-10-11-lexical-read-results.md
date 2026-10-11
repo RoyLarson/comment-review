@@ -2,8 +2,8 @@
 
 ```
 Status:   in-progress
-Progress: 13 of 14 TODO tasks closed
-Plan-tasks: 9 of 13 plan tasks closed
+Progress: 14 of 14 TODO tasks closed
+Plan-tasks: 10 of 13 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (founded by move-t from 2026-10-11-lexical-readers)
@@ -247,7 +247,7 @@ runtime implementation is included in the plan-authoring commit.
 
 - [x] T5 | Define immutable read diagnostics and failures; verify location
       units, field validation and successful empty input
-- [~] T6 | Reject failed readings at page and proof admission; verify
+- [x] T6 | Reject failed readings at page and proof admission; verify
       either-side failures, empty success and cleanup
 - [x] T7 | Make unsupported-syntax fixtures interpreter-aware; verify valid
       newer Python syntax is not required to fail
@@ -318,8 +318,9 @@ runtime implementation is included in the plan-authoring commit.
       refusal of either-side or matching failures
         > 2026-10-11 uv run pytest -q tests/test_proof_command.py
         > 2026-10-11 Render failure context from held snapshots into report messages
-- [ ] P9 | Verify multi-file rollback and import boundaries; check failed
-      rereads preserve originals and cannot imply equal addresses
+- [x] P9 | Multi-file failures clean drafts and preserve exact originals | 9cdff430 | Verify
+      multi-file rollback and import boundaries; check failed rereads preserve
+      originals and cannot imply equal addresses
         > 2026-10-11 uv run pytest -q tests/test_proof_setter.py tests/test_areas.py
 - [ ] P10 | Run focused and full regression suites; verify source and proof
       integration with expected skips reported separately
