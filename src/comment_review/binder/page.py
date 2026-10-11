@@ -130,10 +130,7 @@ class Page:
     from the file, which is a chance to read a file the page no longer
     describes, or asked the caller to carry it alongside.
 
-    ! It carried a `tier` too until 2026-08-24, when the field was deleted at
-    both levels: nothing read the page's, and the paragraph's had one reader
-    printing one line of preamble. `readers.tier_for` still answers which tier
-    a LANGUAGE reaches.
+    `readers.tier_for` reports validated installed coverage for a language.
 
     ! A page IS its paragraphs in order, so it iterates and indexes as one. That
     is not a convenience: a reviewer reads a page top to bottom, and a consumer
