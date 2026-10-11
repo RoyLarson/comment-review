@@ -4,13 +4,79 @@ from collections.abc import Mapping
 from pathlib import Path, PureWindowsPath
 from typing import cast
 
+from comment_review.desk.proof.edit_copy import EditCopy
+from comment_review.desk.proof.sheet import Sheet
 from comment_review.flows.proof_io import load_value
 from comment_review.machine.digests import sha256_hex
 from comment_review.reading.context import ReadingContext, resolve_context
+from comment_review.reading.context_io import context_from_wire, context_to_wire
 from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, ReadStage
 from comment_review.reading.readers import reader_for
 
 PLACEMENT_REVISION = "1"
+
+
+def copy_reading_problems(copy: object, where: str = "edit_copy") -> list[str]:
+    """Admit sheet metadata without parsing marks or resolving saved addresses."""
+    return copy_reading_contexts(copy, where)[1]
+
+
+def copy_reading_contexts(
+    copy: object, where: str = "edit_copy"
+) -> tuple[dict[str, ReadingContext], list[str]]:
+    """Return admitted saved contexts for readers of a copy's pages."""
+    if isinstance(copy, EditCopy):
+        role, sheets = copy.role, copy.sheets
+    elif isinstance(copy, dict):
+        role, sheets = copy.get("role", ""), copy.get("sheets")
+    else:
+        return {}, [f"{where}: an edit_copy must be an object; regather"]
+    location = f"{where}: {role}"
+    if not isinstance(sheets, (list, tuple)):
+        return {}, [f"{location}: sheets must be a list; regather"]
+    contexts: dict[str, ReadingContext] = {}
+    problems: list[str] = []
+    for index, sheet in enumerate(sheets, 1):
+        label = f"{location} sheet {index}"
+        if isinstance(sheet, Sheet):
+            path, value = sheet.path, sheet.reading
+            if isinstance(value, ReadingContext):
+                try:
+                    validated = ReadingContext(
+                        value.language,
+                        value.reader,
+                        value.compatibility,
+                        value.settings,
+                    )
+                    value = context_to_wire(validated)
+                except (TypeError, ValueError):
+                    problems.append(f"{label}: malformed reading context; regather")
+                    continue
+        elif isinstance(sheet, dict):
+            path, value = sheet.get("path"), sheet.get("reading")
+        else:
+            problems.append(f"{label}: a sheet must be an object; regather")
+            continue
+        if not isinstance(path, str) or not path:
+            problems.append(f"{label}: sheet path is missing; regather")
+            continue
+        saved, why = context_from_wire(f"{label} {path}", value)
+        if saved is None:
+            problems.extend(why)
+            continue
+        current = context_for(Path(path), dict(saved.settings))
+        if isinstance(current, ReadFailure):
+            problems.extend(
+                f"{label} {path}: {diagnostic.message}; regather"
+                for diagnostic in current.diagnostics
+            )
+            continue
+        problems.extend(
+            f"{label}: {problem}; regather to save a fresh reading context"
+            for problem in reading_problems({Path(path): saved}, {Path(path): current})
+        )
+        contexts[path] = saved
+    return ({}, problems) if problems else (contexts, [])
 
 
 def context_for(

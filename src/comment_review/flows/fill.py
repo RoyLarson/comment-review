@@ -92,6 +92,10 @@ from comment_review.exceptions import READ_ERRORS
 from comment_review.flows.on_the_page import held_at
 from comment_review.flows.page_for import page_of
 from comment_review.flows.read_diagnostics import format_failure
+from comment_review.flows.reading_context import (
+    copy_reading_contexts,
+    copy_reading_problems,
+)
 from comment_review.machine.repo import can_escape, read_raw
 from comment_review.reading.addresser import cue_of, unflatten
 from comment_review.reading.diagnostics import ReadFailure
@@ -160,10 +164,14 @@ def place_on_the_page(
         the page, there is no checkout, the page cannot be read, or the page
         carries no such place.
     """
+    admitted = [(copy, copy_reading_contexts(copy)) for copy in copies]
+    problems = [problem for _, (_, why) in admitted for problem in why]
+    if problems:
+        return None, {}, problems
     found = next(
         (
-            (marks, rel)
-            for copy in copies
+            (marks, rel, contexts[rel])
+            for copy, (contexts, _) in admitted
             for marks, rel in [_sheet_for(copy, address)]
             if marks is not None
         ),
@@ -171,10 +179,10 @@ def place_on_the_page(
     )
     if found is None:
         return None, {}, [f"{address} names a page this copy has no sheet for"]
-    marks, rel = found
+    marks, rel, context = found
     if root is None:
         return None, {}, [f"{address}: no checkout to resolve its page against"]
-    page = page_of(root / rel, rel=rel)
+    page = page_of(root / rel, rel=rel, reading_context=context)
     if isinstance(page, ReadFailure):
         return None, {}, [f"{address}: {format_failure(page, path=rel)}"]
     cue = address.partition("@")[2]
@@ -460,6 +468,9 @@ def fill(copy: dict, entry: dict, root: Path | None) -> tuple[dict | None, list[
     subtracts its snippet from the origin exactly once and lands a destination
     paragraph holding both (`#172`, `#175`).
     """
+    problems = copy_reading_problems(copy)
+    if problems:
+        return None, problems
     address = entry.get("address")
     if not filled(address):
         return None, ["names no `address`"]
@@ -579,6 +590,9 @@ def withdraw(copy: dict, address: str) -> tuple[dict | None, list[str]]:
         `({}, [])` on removal, or `(None, [message])` with the copy untouched
         where nothing is placed.
     """
+    problems = copy_reading_problems(copy)
+    if problems:
+        return None, problems
     marks, _ = _slot_at(copy, address)
     if marks is None:
         return None, [f"{address}: this copy holds no slot there"]

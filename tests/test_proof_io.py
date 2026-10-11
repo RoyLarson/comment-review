@@ -44,6 +44,15 @@ def test_load_value_optional_pairs_hook_preserves_raw_duplicates(tmp_path):
     assert load_value(path, object_pairs_hook=list) == ([("key", 1), ("key", 2)], [])
 
 
+def test_load_copy_keeps_partial_copy_with_missing_metadata_raw(tmp_path):
+    path = tmp_path / "partial.json"
+    value = {"role": "block-context", "sheets": [{"path": "m.py", "marks": []}]}
+    path.write_text(json.dumps(value), encoding="utf-8")
+    before = path.read_bytes()
+    assert load_copy(path) == (value, [])
+    assert path.read_bytes() == before
+
+
 class TestTheRoundTrip:
     def test_what_save_writes_load_reads_back_equal(self, tmp_path):
         proof = a_proof(tmp_path)

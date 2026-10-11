@@ -82,6 +82,7 @@ from comment_review.flows.proof_io import (
     load_copy,
     load_value,
 )
+from comment_review.flows.reading_context import copy_reading_problems
 from comment_review.flows.verify import (
     copy_problems,
     coverage_problems,
@@ -200,6 +201,11 @@ def _check_copy(
     loaded, why = load_copy(Path(path))
     if why:
         return _refused(why)
+    problems = copy_reading_problems(loaded, path)
+    if problems:
+        for line in problems:
+            print(line)
+        return BROKEN
     copy, problems = EditCopy.deserialize(path, loaded)
     if copy is None:
         for line in problems:

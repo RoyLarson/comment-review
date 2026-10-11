@@ -61,6 +61,32 @@ def run(tmp_path, monkeypatch, capsys) -> _Run:
     return _Run(tmp_path, monkeypatch, capsys)
 
 
+@pytest.mark.parametrize("withdraw", [False, True])
+@pytest.mark.parametrize("reading", [None, [], "incompatible"])
+def test_mark_context_refusal_leaves_exact_file_bytes(
+    run, monkeypatch, withdraw, reading
+):
+    from comment_review.flows import fill as flow
+
+    copy = run.copy()
+    if reading == "incompatible":
+        copy["sheets"][0]["reading"]["compatibility"] = "0" * 64
+    else:
+        copy["sheets"][0]["reading"] = reading
+    run.copy_path.write_text(json.dumps(copy), encoding="utf-8")
+    before = run.copy_path.read_bytes()
+
+    def forbidden(*args):
+        pytest.fail("address lookup before context admission")
+
+    monkeypatch.setattr(flow, "_slot_at", forbidden)
+    flags = ("--address", "m.py@b1", "--withdraw") if withdraw else CORRECT
+    code, out = run(*flags)
+    assert code == command.BROKEN
+    assert "regather" in out and "block-context" in out
+    assert run.copy_path.read_bytes() == before
+
+
 CORRECT: tuple[str, ...] = (
     "--address",
     "m.py@b1",

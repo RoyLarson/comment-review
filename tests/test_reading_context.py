@@ -16,6 +16,54 @@ from comment_review.reading.diagnostics import ReadFailure
 from comment_review.reading.registry import LanguageRegistry
 
 
+@pytest.mark.parametrize(
+    "fault", ["compatible", "digest", "settings", "malformed", "duplicate"]
+)
+def test_direct_copy_metadata_is_admitted_without_trusting_annotations(fault):
+    from comment_review.desk.proof.edit_copy import EditCopy
+    from comment_review.desk.proof.sheet import Sheet
+
+    saved = flow_context.context_for(Path("m.py"), {})
+    assert isinstance(saved, ReadingContext)
+    if fault == "digest":
+        saved = replace(saved, compatibility="0" * 64)
+    elif fault == "settings":
+        saved = replace(saved, settings=(("unknown", "on"),))
+    elif fault == "duplicate":
+        object.__setattr__(saved, "settings", (("a", "on"), ("a", "off")))
+    sheet = Sheet("m.py", "unchanged-sha", (), saved)
+    if fault == "malformed":
+        object.__setattr__(sheet, "reading", [])
+    copy = EditCopy("block-context", {"root": ".", "revise": 0}, (sheet,))
+    before = repr(copy)
+    problems = flow_context.copy_reading_problems(copy)
+    if fault == "compatible":
+        assert problems == []
+    else:
+        assert problems and "regather" in " ".join(problems)
+        assert "block-context" in " ".join(problems)
+    assert repr(copy) == before
+
+
+def test_direct_context_duplicate_supported_settings_cannot_collapse(monkeypatch):
+    from types import SimpleNamespace
+
+    from comment_review.desk.proof.edit_copy import EditCopy
+    from comment_review.desk.proof.sheet import Sheet
+
+    binding = SimpleNamespace(revision="reader-1", grammar_identity="grammar-1")
+    monkeypatch.setattr(flow_context, "reader_for", lambda _: (definition(), binding))
+    saved = flow_context.context_for(Path("m.ix"), {"mode": "wide"})
+    assert isinstance(saved, ReadingContext)
+    object.__setattr__(saved, "settings", (("mode", ""), ("mode", "wide")))
+    copy = EditCopy(
+        "block-context", {"root": ".", "revise": 0}, (Sheet("m.ix", "sha", (), saved),)
+    )
+    before = repr(copy)
+    assert "regather" in " ".join(flow_context.copy_reading_problems(copy))
+    assert repr(copy) == before
+
+
 def definition() -> LanguageDefinition:
     return LanguageDefinition(
         "Invented",
