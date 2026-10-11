@@ -485,6 +485,129 @@ def test_declaration_preserves_exact_form_and_kind_identifiers():
     assert source.declarations[0].kind == " Kind/Custom "
 
 
+def test_section_keeps_separated_comment_fragments_in_one_owned_span():
+    source = SourceStructure(
+        "before\n## first\n\n\n## second\nafter",
+        (
+            SourceRegion(SourceSpan(0, 6), RegionKind.CODE),
+            SourceRegion(SourceSpan(6, 7), RegionKind.WHITESPACE),
+            SourceRegion(SourceSpan(7, 15), RegionKind.COMMENT),
+            SourceRegion(SourceSpan(15, 18), RegionKind.WHITESPACE),
+            SourceRegion(SourceSpan(18, 27), RegionKind.COMMENT),
+            SourceRegion(SourceSpan(27, 28), RegionKind.WHITESPACE),
+            SourceRegion(SourceSpan(28, 33), RegionKind.CODE),
+        ),
+        (SourceSection(SourceSpan(7, 27), "atlas/double-mark"),),
+        (SourceDeclaration(SourceSpan(28, 33), 28, "atlas/item"),),
+        (DocumentationOwner(0, 0),),
+    )
+
+    assert len(source.sections) == 1
+    section = source.sections[0]
+    assert (section.span.start, section.span.end) == (7, 27)
+    assert section.form == "atlas/double-mark"
+    assert source.slice(section.span) == "## first\n\n\n## second"
+    assert [source.slice(region.span) for region in source.regions] == [
+        "before",
+        "\n",
+        "## first",
+        "\n\n\n",
+        "## second",
+        "\n",
+        "after",
+    ]
+    assert source.reconstruct() == "before\n## first\n\n\n## second\nafter"
+    assert source.documentation == (DocumentationOwner(0, 0),)
+    owner_index = source.documentation[0].declaration
+    assert owner_index is not None
+    owner = source.declarations[owner_index]
+    assert (owner.header.start, owner.header.end, owner.anchor) == (28, 33, 28)
+    assert source.slice(owner.header) == "after"
+
+
+def test_section_preserves_independent_forms_and_exact_spans_beside_code():
+    source = SourceStructure(
+        '#a x /*b*/ y """c"""',
+        (
+            SourceRegion(SourceSpan(0, 2), RegionKind.COMMENT),
+            SourceRegion(SourceSpan(2, 3), RegionKind.WHITESPACE),
+            SourceRegion(SourceSpan(3, 4), RegionKind.CODE),
+            SourceRegion(SourceSpan(4, 5), RegionKind.WHITESPACE),
+            SourceRegion(SourceSpan(5, 10), RegionKind.COMMENT),
+            SourceRegion(SourceSpan(10, 11), RegionKind.WHITESPACE),
+            SourceRegion(SourceSpan(11, 12), RegionKind.CODE),
+            SourceRegion(SourceSpan(12, 13), RegionKind.WHITESPACE),
+            SourceRegion(SourceSpan(13, 20), RegionKind.LITERAL),
+        ),
+        (
+            SourceSection(SourceSpan(0, 2), " Atlas/line\t"),
+            SourceSection(SourceSpan(5, 10), "Boreal:BLOCK"),
+            SourceSection(SourceSpan(13, 20), "cedar.literal/v2 "),
+        ),
+        (
+            SourceDeclaration(SourceSpan(3, 4), 3, "atlas/item"),
+            SourceDeclaration(SourceSpan(11, 12), 11, "boreal/item"),
+        ),
+        (
+            DocumentationOwner(0, None),
+            DocumentationOwner(1, 0),
+            DocumentationOwner(2, 1),
+        ),
+    )
+
+    assert [(section.span.start, section.span.end) for section in source.sections] == [
+        (0, 2),
+        (5, 10),
+        (13, 20),
+    ]
+    assert [section.form for section in source.sections] == [
+        " Atlas/line\t",
+        "Boreal:BLOCK",
+        "cedar.literal/v2 ",
+    ]
+    assert [source.slice(section.span) for section in source.sections] == [
+        "#a",
+        "/*b*/",
+        '"""c"""',
+    ]
+    assert [source.slice(region.span) for region in source.regions] == [
+        "#a",
+        " ",
+        "x",
+        " ",
+        "/*b*/",
+        " ",
+        "y",
+        " ",
+        '"""c"""',
+    ]
+    assert source.reconstruct() == '#a x /*b*/ y """c"""'
+    assert [(link.section, link.declaration) for link in source.documentation] == [
+        (0, None),
+        (1, 0),
+        (2, 1),
+    ]
+    assert [source.slice(record.header) for record in source.declarations] == ["x", "y"]
+
+
+@pytest.mark.parametrize(
+    "text,span",
+    [
+        ("before\n## first\n\n\n## second\nafter", SourceSpan(7, 34)),
+        ('#a x /*b*/ y """c"""', SourceSpan(13, 21)),
+    ],
+)
+def test_section_rejects_whole_span_past_exact_source_boundary(text, span):
+    with pytest.raises(ValueError, match=r"sections\[0\].*outside text"):
+        SourceStructure(
+            text,
+            (SourceRegion(SourceSpan(0, len(text)), RegionKind.CODE),),
+            (SourceSection(span, "atlas/whole"),),
+            (),
+            (),
+        )
+
+
 def ownership_structure(documentation):
     text = "module\n\nnotes\nfirst\nordinary\nsecond"
     return SourceStructure(
