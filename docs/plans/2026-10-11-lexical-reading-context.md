@@ -3,7 +3,7 @@
 ```
 Status:   in-progress
 Progress: 11 of 12 TODO tasks closed
-Plan-tasks: 17 of 26 plan tasks closed
+Plan-tasks: 18 of 26 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (founded by move-t from 2026-10-11-lexical-readers)
@@ -456,8 +456,9 @@ because this machinery exists.
 - [x] P17 | Held pages preserve source and reading identity; caller gates and independent review pass | fe51b684 | Validate
       cached pages against source and context; verify incompatible requests
       cannot reuse a cached reading
-- [ ] P18 | Capture move destination source and context together; verify
-      ungathered destinations retain their original base
+- [x] P18 | Extra destinations retain one source/base/context snapshot; 328 tests and review pass | a0e6fc97 | Capture
+      move destination source and context together; verify ungathered
+      destinations retain their original base
 - [ ] P19 | Carry page contexts through saved master proofs; verify extra
       destinations and contradictory records
 - [ ] P20 | Validate resumed turns and dispositions before mutation; verify
