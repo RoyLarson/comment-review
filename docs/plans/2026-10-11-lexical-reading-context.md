@@ -3,7 +3,7 @@
 ```
 Status:   in-progress
 Progress: 13 of 14 TODO tasks closed
-Plan-tasks: 21 of 26 plan tasks closed
+Plan-tasks: 22 of 26 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (founded by move-t from 2026-10-11-lexical-readers)
@@ -472,8 +472,9 @@ because this machinery exists.
 - [x] P21 | Chief sheets and schedules retain original reading context; full and focused checks and review pass | 3f3a9c6a | Carry
       context through chief copies and docket schedules; verify agreement with
       the originating proof
-- [ ] P22 | Validate contexts before drafting and rereading; verify exact
-      rollback after later-file refusal
+- [x] P22 | Original and draft reads retain saved context; refusal and rollback gates and review pass | e63b0edf | Validate
+      contexts before drafting and rereading; verify exact rollback after
+      later-file refusal
 - [ ] P23 | Apply compatible per-file settings to standalone proof; verify both
       snapshots use the same declared rules
 - [ ] P24 | Admit contexts in remaining address consumers; verify shortcuts and
