@@ -2,8 +2,8 @@
 
 ```
 Status:   in-progress
-Progress: 6 of 7 TODO tasks closed
-Plan-tasks: 12 of 26 plan tasks closed
+Progress: 7 of 8 TODO tasks closed
+Plan-tasks: 13 of 26 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (founded by move-t from 2026-10-11-lexical-readers)
@@ -376,6 +376,8 @@ because this machinery exists.
       import gates and canonical digests pass
 - [x] T13 | Update the compositor page example for required context; verify its
       call matches the current interface
+- [x] T14 | Add required reading metadata to the reviewer copy example; verify
+      the shipped JSON parses as an edit copy
 
 ### B - [2026-10-11-language-registry-contract](../../TODO/completed/2026-10-11-language-registry-contract.md)
 
@@ -418,10 +420,12 @@ because this machinery exists.
       reading compatibility identities; verify relevant changes invalidate and
       unrelated or cosmetic changes do not
         > 2026-10-11 Include definition and bound-reader revisions independently
+        > 2026-10-11 P12 adds required digest callable; flow supplies machine hashing
 - [x] P10 | Fresh settings transport passes 654 affected tests and independent review | 20681e4d | Resolve
       per-file settings at fresh-run entry points; verify explicit defaults,
       valid modes and independent values
         > 2026-10-11 resolve_context also requires the bound reader_revision keyword
+        > 2026-10-11 resolve_context requires digest supplied by the owning flow
 - [x] P11 | Strict context codec passes 177 tests and independent review | 619faaf0 | Serialize
       reading context; verify exact fields and rejection of missing, malformed
       or future formats
@@ -429,8 +433,9 @@ because this machinery exists.
       context through pages, binders and redaction; verify empty pages and
       old-artifact refusal
         > 2026-10-11 Include T12 hashing boundary repair; preserve existing import gates
-- [ ] P13 | Carry context through distribution and shards; verify per-page
-      values and empty sheets
+- [x] P13 | Sheet context survives distribution and shards; full suite and review pass | 9159b117 | Carry
+      context through distribution and shards; verify per-page values and empty
+      sheets
 - [ ] P14 | Check context before copy load, mark, check and fill address use;
       verify refusal leaves artifacts unchanged
 - [ ] P15 | Check returned copies against received binders; verify context

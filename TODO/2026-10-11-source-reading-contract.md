@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 12 of 13 tasks closed
+Progress: 13 of 14 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (2026-10-11 lexical-reader design)
@@ -61,3 +61,7 @@ Define shared source reading contracts.
       the compositor page example for required context; verify its call matches
       the current interface
         > 2026-10-11 Review: results/compositor.py:36 omits required page reading
+- [x] T14 | Shipped copy example carries explicit context and parses in normal full suite | 9159b117 | Add
+      required reading metadata to the reviewer copy example; verify the shipped
+      JSON parses as an edit copy
+        > 2026-10-11 Review: reviewer-brief JSON example lacks required Sheet reading
