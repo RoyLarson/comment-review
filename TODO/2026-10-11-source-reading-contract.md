@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 15 of 16 tasks closed
+Progress: 17 of 18 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (2026-10-11 lexical-reader design)
@@ -73,3 +73,11 @@ Define shared source reading contracts.
       binder contexts with zero returned copies; verify refusal before coverage
       and valid empty binders
         > 2026-10-11 Review: verify.py:252 skips admission with zero copies
+- [x] T17 | Shared page lookup refuses missing context before acquisition; regression and review pass | fe51b684 | Reject
+      missing known-page context in resolution lookup; verify no source
+      acquisition or cached default
+        > 2026-10-11 Review: verify.py:210 defaults a known path missing context
+- [x] T18 | Lookup prose describes explicit failures and omitted text; scoped review passes | fe51b684 | Correct
+      lookup result prose; verify failure and text omission descriptions match
+      current APIs
+        > 2026-10-11 Review: fill.py:343 and verify.py:235 describe erased failures

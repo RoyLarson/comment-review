@@ -2,8 +2,8 @@
 
 ```
 Status:   in-progress
-Progress: 9 of 10 TODO tasks closed
-Plan-tasks: 16 of 26 plan tasks closed
+Progress: 11 of 12 TODO tasks closed
+Plan-tasks: 17 of 26 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (founded by move-t from 2026-10-11-lexical-readers)
@@ -382,6 +382,10 @@ because this machinery exists.
       refuse without widening coverage
 - [x] T16 | Admit binder contexts with zero returned copies; verify refusal
       before coverage and valid empty binders
+- [x] T17 | Reject missing known-page context in resolution lookup; verify no
+      source acquisition or cached default
+- [x] T18 | Correct lookup result prose; verify failure and text omission
+      descriptions match current APIs
 
 ### B - [2026-10-11-language-registry-contract](../../TODO/completed/2026-10-11-language-registry-contract.md)
 
@@ -449,8 +453,9 @@ because this machinery exists.
 - [x] P16 | Initial collation admits context before address work; 350 tests and independent review pass | 757a43fc | Admit
       contexts before collation; verify incompatible inputs never reach source
       lookup, coverage or folding
-- [ ] P17 | Validate cached pages against source and context; verify
-      incompatible requests cannot reuse a cached reading
+- [x] P17 | Held pages preserve source and reading identity; caller gates and independent review pass | fe51b684 | Validate
+      cached pages against source and context; verify incompatible requests
+      cannot reuse a cached reading
 - [ ] P18 | Capture move destination source and context together; verify
       ungathered destinations retain their original base
 - [ ] P19 | Carry page contexts through saved master proofs; verify extra
