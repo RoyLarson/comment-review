@@ -3,7 +3,7 @@
 ```
 Status:   in-progress
 Progress: 7 of 8 TODO tasks closed
-Plan-tasks: 13 of 26 plan tasks closed
+Plan-tasks: 14 of 26 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (founded by move-t from 2026-10-11-lexical-readers)
@@ -436,8 +436,9 @@ because this machinery exists.
 - [x] P13 | Sheet context survives distribution and shards; full suite and review pass | 9159b117 | Carry
       context through distribution and shards; verify per-page values and empty
       sheets
-- [ ] P14 | Check context before copy load, mark, check and fill address use;
-      verify refusal leaves artifacts unchanged
+- [x] P14 | Copy admission precedes editing and lookup; 337 tests and review pass | 5b62ff0c | Check
+      context before copy load, mark, check and fill address use; verify refusal
+      leaves artifacts unchanged
 - [ ] P15 | Check returned copies against received binders; verify context
       admission precedes coverage checks
 - [ ] P16 | Admit contexts before collation; verify incompatible inputs never
