@@ -47,7 +47,13 @@ from comment_review.desk.proof.master_proof import MasterProof
 from comment_review.flows import proof_setter
 from comment_review.flows.page_for import page_of
 from comment_review.flows.proof_io import load_proof
-from comment_review.flows.revise import AddressesMoved, _set_by, pull
+from comment_review.flows.revise import (
+    AddressesMoved,
+    Pulled,
+    _set_by,
+    assert_addresses_held,
+    pull,
+)
 from comment_review.flows.transcribe import (
     CannotTranscribe,
     docket_of,
@@ -1093,6 +1099,31 @@ def test_the_gate_passes_reading_only_the_docket_pages(tmp_path, monkeypatch):
     pulled = pull(docket, repo, tmp_path / "r1", revise=1)
     assert not pulled.refusals
     assert (pulled.root / "mark.py").is_file()
+
+
+@pytest.mark.parametrize(
+    "raw, code",
+    [
+        (b"\xff", "decode/invalid-utf8"),
+        (b'value = "unfinished\n', "lex/incomplete-read"),
+    ],
+)
+def test_matching_failed_readings_cannot_pass_the_address_gate(tmp_path, raw, code):
+    original = tmp_path / "original"
+    revise = tmp_path / "revise"
+    readings = []
+    for root in (original, revise):
+        root.mkdir()
+        path = root / "m.py"
+        path.write_bytes(raw)
+        readings.append(page_of(path, rel="m.py"))
+    assert all(isinstance(reading, ReadFailure) for reading in readings)
+    assert readings[0] == readings[1]
+    pulled = Pulled(revise, 1, {}, [])
+    with pytest.raises(AddressesMoved) as raised:
+        assert_addresses_held(original, pulled, ["m.py"])
+    assert code in str(raised.value)
+    assert [(root / "m.py").read_bytes() for root in (original, revise)] == [raw, raw]
 
 
 def test_the_gate_raises_on_a_docket_page_whose_addresses_moved(tmp_path, monkeypatch):
