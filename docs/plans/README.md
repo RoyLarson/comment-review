@@ -24,5 +24,6 @@
 | [0.2.4-the-vocabulary-gate-is-asserted](0.2.4-the-vocabulary-gate-is-asserted.md) | in-progress | 1/1 | 2/2 |
 | [0.2.4-what-a-reviewer-is-handed](0.2.4-what-a-reviewer-is-handed.md) | in-progress | 13/24 | 3/4 |
 | [2026-10-11-lexical-read-results](2026-10-11-lexical-read-results.md) | closed | 17/17 | 14/14 |
-| [2026-10-11-lexical-readers](2026-10-11-lexical-readers.md) | decision-needed | 19/161 | 4/51 |
+| [2026-10-11-lexical-readers](2026-10-11-lexical-readers.md) | decision-needed | 19/161 | 4/53 |
+| [2026-10-11-lexical-reading-context](2026-10-11-lexical-reading-context.md) | open | 0/3 | 0/26 |
 | [2026-10-11-lexical-source-contract](2026-10-11-lexical-source-contract.md) | closed | 3/3 | 14/14 |

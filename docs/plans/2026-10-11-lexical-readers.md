@@ -3,7 +3,7 @@
 ```
 Status:   decision-needed
 Progress: 19 of 161 TODO tasks closed
-Plan-tasks: 4 of 51 plan tasks closed
+Plan-tasks: 4 of 53 plan tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-10-11 (founded by move-t from 0.2.4-the-middle-rebuilt)
@@ -565,8 +565,9 @@ interfaces, inputs and checks, without internal development files or history.
 - [x] T1 | MOVED to 2026-10-11-lexical-source-contract | Represent source as
       ordered regions and ownership facts; verify exact reconstruction and
       independently expected classifications
-- [ ] T2 | Carry reader compatibility and language settings through saved runs;
-      verify incompatible contexts refuse before address use
+- [ ] T2 | MOVED to 2026-10-11-lexical-reading-context | Carry reader
+      compatibility and language settings through saved runs; verify
+      incompatible contexts refuse before address use
 - [x] T5 | MOVED to 2026-10-11-lexical-read-results | Define immutable read
       diagnostics and failures; verify location units, field validation and
       successful empty input
@@ -601,9 +602,11 @@ interfaces, inputs and checks, without internal development files or history.
 - [ ] P5 | Carry reading compatibility and dialect settings through pages and
       binders; verify serialization preserves their identity
         > 2026-10-11 Check: uv run pytest -q tests/test_reading_context.py
+        > 2026-10-11 Subplan 2026-10-11-lexical-reading-context owns this work
 - [ ] P6 | Reject incompatible saved reading contexts before address admission;
       verify distribution, folding, drafting and resume
         > 2026-10-11 Check: uv run pytest -q tests/test_reading_context.py
+        > 2026-10-11 Subplan 2026-10-11-lexical-reading-context owns this work
 - [ ] P7 | Specify Python independently; verify supported modes, directive
       boundaries, declaration ownership and expected fixtures
         > 2026-10-11 Own dated spec and subplan; branch feat/lexer-python
@@ -740,3 +743,9 @@ interfaces, inputs and checks, without internal development files or history.
       exact source acquisition and writing; verify UTF-8 byte fixtures in
       test_source_io and source-path integration tests
         > 2026-10-11 Subplan 2026-10-11-lexical-read-results owns this work
+- [ ] P52 | Build shared definition loading and registry selection; verify
+      unique routes, explicit capabilities and excluded categories
+        > 2026-10-11 Subplan 2026-10-11-lexical-reading-context owns this work
+- [ ] P53 | Implement each language definition with its own spec and reader;
+      verify independent rules without inherited configuration
+        > 2026-10-11 Each language subplan supplies its own spec, definition and reader
