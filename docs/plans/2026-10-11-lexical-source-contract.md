@@ -3,7 +3,7 @@
 ```
 Status:   in-progress
 Progress: 0 of 1 TODO tasks closed
-Plan-tasks: 7 of 13 plan tasks closed
+Plan-tasks: 8 of 13 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (founded by move-t from 2026-10-11-lexical-readers)
@@ -144,8 +144,9 @@ development history.
       whole sections and language-owned forms; test blank-separated fragments
       retain one section and its full span
         > 2026-10-11 uv run pytest -q tests/test_reading_source.py -k section
-- [ ] P8 | Verify explicit region-kind fixtures distinguish code, literals,
-      comments, whitespace and directives despite equal reconstruction
+- [x] P8 | Independent classification fixtures catch relabelling and pass review | 4eeecc4c | Verify
+      explicit region-kind fixtures distinguish code, literals, comments,
+      whitespace and directives despite equal reconstruction
         > 2026-10-11 uv run pytest -q tests/test_reading_source.py -k classification
 - [ ] P9 | Verify immutable tuples and the leaf import boundary; test source.py
       imports without loading workflow or language-reader modules
