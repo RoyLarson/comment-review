@@ -19,6 +19,13 @@ will assign the work and its checks to the existing task owners.
 
 ## Scope
 
+Review targets are maintained source files written by people or agents.
+Generated and preprocessed output is excluded during file selection; prose
+corrections belong in its maintained source. Readers consume original source
+and apply the language's recognition rules, including transformations such as
+line splicing that determine comment boundaries. They do not run preprocessing
+or review its generated output.
+
 The programming-language readers cover these existing suffixes:
 
 | Language | Suffixes |
