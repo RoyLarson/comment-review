@@ -1,3 +1,4 @@
+import sys
 from dataclasses import FrozenInstanceError
 from pathlib import Path
 from typing import Any, cast, get_args
@@ -17,7 +18,19 @@ from comment_review.reading.source import SourceSpan, SourceStructure
 
 
 @pytest.mark.parametrize(
-    "text", ["x = [1,", "def f(:\n    pass\n", 'x = """open', "type Name = int\n"]
+    "text",
+    [
+        "x = [1,",
+        "def f(:\n    pass\n",
+        'x = """open',
+        pytest.param(
+            "type Name = int\n",
+            marks=pytest.mark.skipif(
+                sys.version_info >= (3, 12),
+                reason="Type alias statements are supported on Python 3.12+",
+            ),
+        ),
+    ],
 )
 def test_read_paragraphs_reports_python_refusal(text):
     result = lexer.read_paragraphs(Path("m.py"), text, lexer.LANGUAGES[0])
