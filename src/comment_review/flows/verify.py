@@ -226,6 +226,17 @@ def context_problems(
                 {Path(path): context for path, context in staged.items()},
             )
         )
+        why.extend(
+            f"returned copy against stage binder: {problem}; regather"
+            for problem in reading_problems(
+                {
+                    Path(path): context
+                    for path, context in returned.items()
+                    if path in staged
+                },
+                {Path(path): context for path, context in staged.items()},
+            )
+        )
     why.extend(
         f"returned copy: {problem}; regather"
         for problem in reading_problems(
@@ -240,6 +251,14 @@ def context_problems(
     return [Problem(copy.role, "", problem) for problem in why]
 
 
+def _binder_context_problems(
+    binder: Binder, copies: list[EditCopy], where: str
+) -> list[Problem]:
+    _, why = binder_reading_contexts(binder, where)
+    roles = sorted({copy.role for copy in copies}) or [""]
+    return [Problem(role, "", problem) for role in roles for problem in why]
+
+
 def received_problems(
     copies: list[EditCopy],
     binders: tuple[Binder, ...],
@@ -249,6 +268,9 @@ def received_problems(
     """Check paired binders and their collective coverage of each role's assignment."""
     if len(copies) != len(binders):
         return [Problem("", "", "each edit copy needs one received binder")]
+    binder_contexts = _binder_context_problems(binder, copies, "stage binder")
+    if binder_contexts:
+        return binder_contexts
     contexts = [
         problem
         for copy, received in zip(copies, binders, strict=True)
@@ -347,6 +369,9 @@ def coverage_problems(
     were dealt, so a caller that names no topology is asking this to measure
     against the whole binder.
     """
+    contexts = _binder_context_problems(binder, edit_copies, "received binder")
+    if contexts:
+        return contexts
     contexts = [
         problem for copy in edit_copies for problem in context_problems(copy, binder)
     ]

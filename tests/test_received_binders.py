@@ -163,6 +163,93 @@ def test_direct_coverage_refuses_context_before_required_places(tmp_path, monkey
     assert verify.coverage_problems([copy], received[0])
 
 
+@pytest.mark.parametrize("matching", [False, True])
+def test_extra_stage_sheet_context_is_compared_without_expanding_shard(
+    tmp_path, monkeypatch, matching
+):
+    binder, received, wires, stage = _shards(tmp_path)
+    installed = reading_context.reader_for
+
+    def configured(path):
+        selected = installed(path)
+        assert isinstance(selected, tuple)
+        definition, binding = selected
+        assert isinstance(definition, LanguageDefinition)
+        return replace(
+            definition,
+            defaults={"mode": "narrow"},
+            choices={"mode": ("narrow", "wide")},
+        ), binding
+
+    monkeypatch.setattr(reading_context, "reader_for", configured)
+    narrow = reading_context.context_for(Path("m.py"), {"mode": "narrow"})
+    wide = reading_context.context_for(Path("m.py"), {"mode": "wide"})
+    binder = replace(
+        binder, pages=tuple(replace(page, reading=narrow) for page in binder.pages)
+    )
+    received = tuple(
+        replace(
+            shard, pages=tuple(replace(page, reading=narrow) for page in shard.pages)
+        )
+        for shard in received
+    )
+    copies = [returned(seed(shard, "block-context")) for shard in received]
+    extra = replace(
+        copies[1].sheets[0], reading=narrow if matching else wide, unruled=()
+    )
+    copies[0] = replace(copies[0], sheets=(*copies[0].sheets, extra))
+
+    if not matching:
+
+        def forbidden(*args, **kwargs):
+            pytest.fail("coverage used before extra stage sheet context refusal")
+
+        monkeypatch.setattr(verify, "required_places", forbidden)
+        monkeypatch.setattr(verify, "coverage_problems", forbidden)
+    problems = verify.received_problems(copies, received, binder, stage)
+    if matching:
+        assert problems == []
+    else:
+        assert any(
+            "n.py" in problem.message and "regather" in problem.message
+            for problem in problems
+        )
+
+
+@pytest.mark.parametrize("boundary", ["received", "coverage"])
+@pytest.mark.parametrize("invalid", ["missing", "incompatible"])
+def test_zero_copies_still_admit_present_binder_metadata(
+    tmp_path, monkeypatch, boundary, invalid
+):
+    binder, _, _, _ = _shards(tmp_path)
+    page = binder.pages[0]
+    context = (
+        None if invalid == "missing" else replace(page.reading, compatibility="0" * 64)
+    )
+    binder = replace(binder, pages=(replace(page, reading=context),))
+
+    def forbidden(*args, **kwargs):
+        pytest.fail("required places used before zero-copy binder refusal")
+
+    monkeypatch.setattr(verify, "required_places", forbidden)
+    problems = (
+        verify.received_problems([], (), binder)
+        if boundary == "received"
+        else verify.coverage_problems([], binder)
+    )
+    assert any(
+        "m.py" in problem.message and "regather" in problem.message
+        for problem in problems
+    )
+
+
+def test_zero_copies_accept_valid_empty_binders(tmp_path):
+    binder, _, _, _ = _shards(tmp_path)
+    empty = replace(binder, pages=())
+    assert verify.received_problems([], (), empty) == []
+    assert verify.coverage_problems([], empty) == []
+
+
 def test_received_context_accepts_distinct_languages_and_empty_sheets(tmp_path):
     (tmp_path / "m.py").write_text("value = 1\n", encoding="utf-8")
     (tmp_path / "n.js").write_text("const value = 1;\n", encoding="utf-8")
