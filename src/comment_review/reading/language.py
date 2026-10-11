@@ -1,27 +1,9 @@
-"""THE LANGUAGES: one record per language, and nothing else.
+"""Independent language grammar rows and installed reader configuration.
 
-!! A LEAF, AND THE ONLY PLACE POSITIONING IS STATED. Roy, 2026-08-21: *"All
-framing about positioning should come from the language and should be only in
-either the language definition file, or a reference to the language definition
-file in lexer and compositor. The language definition file should be a leaf
-separate from everything else and imported only by lexer and compositor."*
-
-!! TWO IMPORTERS, AND `scripts/check_language_leaf.py` HOLDS IT. The LEXER reads
-a file into paragraphs and the COMPOSITOR sets a page back into one; they are
-the only two modules that touch a file at all, so they are the only two that may
-ask a language anything. Everything between them carries what those two state.
-
-! IT CAME OUT OF `lexer.py`, where the rows sat beside the lexing. Nothing about
-the split is cosmetic: while they shared a module, four more modules imported the
-records through it -- `gather`, `desk`, `page` and `prove_unchanged` -- and each
-one that holds a `Language` is a place a positioning rule can be written a second
-time and drift from the first.
-
-!! ADDING A LANGUAGE IS A ROW, NOT CODE. That is the whole design, and the rows
-are DUPLICATED ON PURPOSE where they look shareable. Roy, 2026-08-20: *"don't try
-to make the list generic -- that is a failure of the single responsibility
-principle. Each language could change on a new version invalidating the list for
-all of them."* The `c-family` and `js-family` rows were split for exactly that.
+Installed definitions materialize grammar from each programming-language row.
+Validation requires complete grammar with the language's expected value shapes.
+Shared reader metadata supplies identities, revisions, capabilities and coverage
+tiers for registration, dispatch and reporting.
 """
 
 from dataclasses import dataclass, fields
