@@ -95,7 +95,14 @@ Comment rendering and snippet removal use that mapping and the binder's
 the comment form.
 
 The lexer and addresser establish each paragraph's form and placement. A
-paragraph retains one comment form. Source layouts that the existing places
+paragraph retains one comment form. Same-type comments between code lines form
+one section, including intervening blank lines. Each `a` place holds one
+documentation section, each `b` place one section in its code gap, and each `c`
+place one section beside its code line. Blank lines provide formatting within
+the section; they supply no code anchor for another address. Line-control
+requirements apply to the whole section.
+
+Source layouts that the existing places
 cannot represent receive a placement diagnostic; the reader retains the exact
 source and does not combine incompatible forms into one editable paragraph.
 
@@ -307,6 +314,8 @@ The shared checks demonstrate:
   endings, missing final newlines, non-ASCII text and literal whitespace.
 - Expected prose, forms, declaration relationships and `a`, `b`, `c`, `f`
   addresses, including empty places and comments beside executable source.
+- Same-type comments separated by blank lines remain one section at their
+  existing `a`, `b` or `c` place, with line controls applied to the whole section.
 - Recognition of real comments after literals and block comments, with markers
   inside literal payloads retained as data.
 - Successful add, rewrite, drop and move of supported prose, followed by
@@ -410,12 +419,17 @@ implementation mechanism is not evidence that its replacement works.
 
 ### Decisions exposed by the inventory
 
+The blank-line question in
+[a-comment-run-merges-across-blanks](../../../TODO/a-comment-run-merges-across-blanks.md)
+T5 is settled by the existing address rule stated in the source contract:
+same-type comments between code lines stay together. Its stale decision task
+must not be treated as an alternative design choice.
+
 These questions affect expected reader output. They need explicit answers in
 the owning tasks before their dependent implementation is finalized.
 
 | TODO tasks | Boundary still to settle |
 | --- | --- |
-| [a-comment-run-merges-across-blanks](../../../TODO/a-comment-run-merges-across-blanks.md) T5 | Whether a blank line splits a mid-file run of the same comment form. The existing front/back matter rule does not decide this. Different forms or documentation owners must already remain separate under this design. |
 | [doc-does-not-fill-its-a](../../../TODO/doc-does-not-fill-its-a.md) T7, T8 | Go and Ruby documentation adjacency, each considered independently: touching its declaration or allowing intervening blank lines. This determines the expected ownership fixtures. |
 | [a-comment-run-merges-across-blanks](../../../TODO/a-comment-run-merges-across-blanks.md) T6; [lexer-and-language-findings](../../../TODO/lexer-and-language-findings.md) T12 | Whether `Paragraph.lines` remains a stored field. Prefer deriving any display count from source spans; settle what the count means before retaining or removing the field. |
 

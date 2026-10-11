@@ -18,49 +18,23 @@ TRIAGED:  2026-08-23 -- four of five were records and are ticked. ! THE ONE LIVE
 
 ## Objective
 
-A licence header and a doc comment become one paragraph with one address -- **at the top and foot
-of a file, no longer; in the MIDDLE of a file, still.**
+Same-type comments between code lines form one addressable section, including
+intervening blank lines. Each a place holds one documentation section, each b
+place one section in its code gap, and each c place one section beside its code
+line. A blank line supplies no code anchor for another address. Line-control
+requirements apply to the whole section.
 
-!! **MEASURED 2026-08-21, and it is the finding.** Only CODE ends a run; blank lines go to
-`pending`. On a Rust file the licence header, the `//!` crate doc and the `///` item doc censused
-as ONE paragraph, lines 1-6, `kind=comment` -- because `flush()` decides from `raw[0]` alone.
+Roy reaffirmed the existing rule:
 
-!! **RE-MEASURED 2026-08-23** through `lexer.paragraphs_lexical` on a `.rs` page:
+> Together - without keeping them together the address system breaks because there is not code anchor to tie it together. It also doesn't conform to the line control requirements if they are split. Finally, this has been decided so many times now I do not understand why it keeps coming up as an option. The blocks go from one code line to the next code line where they are the same type of comment. All `a` series gets one, all `b` series gets one all `c` series gets one section per code line
 
-| source | paragraphs |
-| --- | --- |
-| `// Copyright` / `// MIT` / blank / `/// Returns the name.` / `fn name()` | `matter` 1-2, `docstring` 4-4 -- **split** |
-| `fn a() {}` / blank / `// Copyright` / `// MIT` / blank / `/// Returns the name.` / `fn b() {}` | `comment` **3-6** -- one paragraph, one address |
-| `fn a() {}` / blank / `// note one` / blank / `// note two` / blank / `fn b() {}` | `comment` **3-5** -- one paragraph, one address |
+T5 records this settled rule. The previous objective conflated same-type
+comments separated by blank lines with comments of different types or
+documentation ownership. Keeping the former together is required behavior. The
+lexical-reader design handles form and ownership recognition separately.
 
-**The cause is unchanged and is one line.** `flush()` decides the kind from `raw[0]` alone --
-`lexer.py:1099`, `if _is_doc(raw[0], lang)` -- and only CODE ends a run, so blanks go to
-`pending`. Mid-file, a `///` doc comment whose run opened with `// Copyright` is typed `comment`
-and absorbed.
-
-**The two consequences the file recorded still follow, wherever the merge happens:**
-
-- `compact.md` routes on KIND, so a crate doc merged into a plain comment run is cut to the
-  COMMENT cap.
-- `ownership-context` is handed a licence header plus a function's documentation as one
-  indivisible paragraph at one address, which no verdict can act on correctly.
-
-**The top-of-file split SHIPS.** It was filed as *"a Rust file opening `// Copyright` / `// MIT` /
-blank / `/// Returns the name.` censuses as ONE paragraph over lines 1-4 ... under the ruling it
-must split: `f0` = 1-2, and line 4 is the declaration's own documentation."* VERIFIED 2026-08-23
-by reading that exact source through `paragraphs_lexical`: `matter` 1-2 and `docstring` 4-4, two
-addresses. ! It went through the lexer's construction, as the box required.
-
-**THE RULING REACHES THE TOP AND FOOT ONLY.** Roy, 2026-08-21: *"if the opening/closing line is a
-comment then the matter continues down/up until there is an empty line or the start/end of a
-docstring"* -- which says nothing about a run between two functions. MEASURED 2026-08-23, the two
-mid-file shapes in the table above are both still one paragraph at one address, and the same two
-consequences follow there. ! So the answer decides whether this file closes or grows a build task.
-
-! **AND THE FIX MOVES A PARAGRAPH BOUNDARY, NOT AN ANNOTATION.** `text` is the run with its
-comment markers stripped, so a split has to go through the lexer's own construction rather than
-re-deriving it afterwards. That is what made the top-of-file half real work, and it is what makes
-the middle-of-file half real work too.
+T6 remains the question of whether Paragraph.lines is needed and what it counts.
+It does not reopen the address or comment-section boundary rule.
 
 ## Tasks
 
@@ -80,6 +54,7 @@ the middle-of-file half real work too.
       a file. Verify: the ruling is recorded in `docs/decision-log.md`.
         > 2026-08-31 3 in this repo's own Python -- page.py b28, mark.py b27
         > 2026-09-05 FitPlan 09-05: two places each held two paragraphs; no mark fits
+        > 2026-10-11 Roy: same-type comments stay together; blank lines add no anchor.
 - [?] T6 | Decide whether Paragraph.lines still has a place, given the mark changes and
       the address system carrying the text properly?
         > 2026-08-31 11 writes, 1 read -- a debug print in commands/census.py
