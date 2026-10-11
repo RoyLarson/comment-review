@@ -524,3 +524,172 @@ def test_nested_settings_cannot_be_mutated():
     context = ReadingContext("invented", "reader-one", "a1" * 32, (("mode", "on"),))
     with pytest.raises(TypeError):
         context.settings[0][1] = "off"  # ty: ignore[invalid-assignment]
+
+
+def wire_context() -> dict[str, Any]:
+    return {
+        "format": 1,
+        "language": "uninstalled-language",
+        "reader": "uninstalled-reader",
+        "compatibility": "ab" * 32,
+        "settings": {"z": "on", "a": ""},
+    }
+
+
+def test_context_wire_decodes_literal_and_normalizes_settings():
+    from comment_review.reading.context_io import context_from_wire
+
+    decoded, problems = context_from_wire("input.json:context", wire_context())
+    assert problems == []
+    assert decoded == ReadingContext(
+        "uninstalled-language",
+        "uninstalled-reader",
+        "ab" * 32,
+        (("a", ""), ("z", "on")),
+    )
+
+
+def test_context_wire_serialization_is_exact_detached_and_round_trips():
+    from comment_review.reading.context_io import context_from_wire, context_to_wire
+
+    context = ReadingContext(
+        "uninstalled-language",
+        "uninstalled-reader",
+        "ab" * 32,
+        (("z", "on"), ("a", "")),
+    )
+    encoded = context_to_wire(context)
+    assert encoded == wire_context()
+    assert list(encoded["settings"]) == ["a", "z"]
+    assert context_from_wire("context", encoded) == (context, [])
+    again = context_to_wire(context)
+    assert again is not encoded
+    assert again["settings"] is not encoded["settings"]
+    encoded["settings"]["a"] = "changed"
+    encoded["language"] = "changed"
+    assert context_to_wire(context) == wire_context()
+
+
+@pytest.mark.parametrize("value", [None, [], (), "context", 1, True])
+def test_context_wire_requires_object_with_regather_diagnostic(value):
+    from comment_review.reading.context_io import context_from_wire
+
+    decoded, problems = context_from_wire("input.json:context", value)
+    assert decoded is None
+    assert len(problems) == 1
+    assert "input.json:context" in problems[0]
+    assert "regather" in problems[0].lower()
+
+
+@pytest.mark.parametrize("key", list(wire_context()))
+def test_context_wire_requires_every_key(key):
+    from comment_review.reading.context_io import context_from_wire
+
+    value = wire_context()
+    del value[key]
+    decoded, problems = context_from_wire("input.json:context", value)
+    assert decoded is None
+    assert "input.json:context" in problems[0]
+    assert key in problems[0]
+    assert "regather" in problems[0].lower()
+
+
+@pytest.mark.parametrize("key", ["extra", 1, None])
+def test_context_wire_rejects_unknown_keys(key):
+    from comment_review.reading.context_io import context_from_wire
+
+    value = wire_context()
+    value[key] = "extra"
+    decoded, problems = context_from_wire("wire", value)
+    assert decoded is None
+    assert "wire" in problems[0]
+
+
+@pytest.mark.parametrize("version", [2, 0, -1, True, False, 1.0, "1", None])
+def test_context_wire_rejects_unsupported_and_noninteger_formats(version):
+    from comment_review.reading.context_io import context_from_wire
+
+    value = wire_context()
+    value["format"] = version
+    decoded, problems = context_from_wire("wire", value)
+    assert decoded is None
+    assert "wire" in problems[0]
+    assert "format" in problems[0]
+    assert "regather" in problems[0].lower()
+
+
+@pytest.mark.parametrize(
+    "field,invalid",
+    [
+        ("language", ""),
+        ("language", None),
+        ("language", 1),
+        ("reader", ""),
+        ("reader", True),
+        ("reader", []),
+        ("compatibility", ""),
+        ("compatibility", "A" * 64),
+        ("compatibility", "a" * 63),
+        ("compatibility", "g" * 64),
+        ("compatibility", None),
+        ("compatibility", 1),
+        ("settings", None),
+        ("settings", []),
+        ("settings", (("a", "on"),)),
+        ("settings", {"": "on"}),
+        ("settings", {1: "on"}),
+        ("settings", {None: "on"}),
+        ("settings", {"a": None}),
+        ("settings", {"a": 1}),
+        ("settings", {"a": True}),
+        ("settings", {"a": []}),
+    ],
+)
+def test_context_wire_rejects_invalid_values_with_located_diagnostic(field, invalid):
+    from comment_review.reading.context_io import context_from_wire
+
+    value = wire_context()
+    value[field] = invalid
+    decoded, problems = context_from_wire("input.json:context", value)
+    assert decoded is None
+    assert len(problems) == 1
+    assert "input.json:context" in problems[0]
+    assert "regather" in problems[0].lower()
+
+
+def test_context_wire_settings_order_is_insignificant_and_empty_settings_valid():
+    from comment_review.reading.context_io import context_from_wire
+
+    value = wire_context()
+    reordered = {**value, "settings": {"a": "", "z": "on"}}
+    assert context_from_wire("wire", value) == context_from_wire("wire", reordered)
+    empty, problems = context_from_wire("wire", {**value, "settings": {}})
+    assert problems == []
+    assert isinstance(empty, ReadingContext)
+    assert empty.settings == ()
+
+
+def test_context_wire_requires_exact_dictionary_types():
+    from comment_review.reading.context_io import context_from_wire
+
+    class DictionarySubclass(dict):
+        pass
+
+    for value in (
+        DictionarySubclass(wire_context()),
+        {**wire_context(), "settings": DictionarySubclass(a="on")},
+    ):
+        decoded, problems = context_from_wire("wire", value)
+        assert decoded is None
+        assert "wire" in problems[0]
+
+
+def test_context_wire_unexpected_constructor_defects_propagate(monkeypatch):
+    from comment_review.reading import context_io
+
+    def broken_context(*args):
+        raise RuntimeError("unexpected defect")
+
+    monkeypatch.setattr(context_io, "ReadingContext", broken_context)
+    with pytest.raises(RuntimeError, match="unexpected defect"):
+        context_io.context_from_wire("wire", wire_context())
