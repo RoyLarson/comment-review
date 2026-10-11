@@ -7,6 +7,187 @@ from typing import Any
 
 import pytest
 
+from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, ReadStage
+
+WIRE = """format = 1
+language = "Invented MIX"
+suffixes = [".IX", ".invented"]
+reader = "invented-reader"
+revision = "r2"
+capabilities = ["comments", "strings"]
+defaults = { style = "" }
+choices = { style = ["", "wide"] }
+rules = { tokens = ["", 2, true, false, { end = [] }], empty = {} }
+"""
+
+
+def decode(text: str) -> Any:
+    return import_module("comment_review.reading.definitions").decode_definition(text)
+
+
+def failure(message: str) -> ReadFailure:
+    return ReadFailure(
+        (ReadDiagnostic(ReadStage.SELECT, "invalid-language-definition", message),)
+    )
+
+
+def test_decode_exact_definition_and_ordered_nested_rules() -> None:
+    value = decode(WIRE)
+    assert value == definition(
+        language="Invented MIX",
+        suffixes=(".IX", ".invented"),
+        reader="invented-reader",
+        revision="r2",
+        capabilities=("comments", "strings"),
+        defaults={"style": ""},
+        choices={"style": ("", "wide")},
+        rules={"tokens": ("", 2, True, False, {"end": ()}), "empty": {}},
+    )
+    assert type(value.rules["tokens"][1]) is int
+    assert type(value.rules["tokens"][2]) is bool
+
+
+@pytest.mark.parametrize(
+    ("text", "reason"),
+    [
+        ("format = [", "Invalid value (at end of document)"),
+        ("format = 1\nformat = 1", "Cannot overwrite a value (at end of document)"),
+    ],
+)
+def test_decode_reports_specific_toml_syntax_errors(text: str, reason: str) -> None:
+    assert decode(text) == failure(reason)
+
+
+@pytest.mark.parametrize("raw", ['"1"', "true", "2", "1.0", "[]", "{}"])
+def test_decode_refuses_wrong_and_future_formats(raw: str) -> None:
+    assert decode(WIRE.replace("format = 1", f"format = {raw}")) == failure(
+        "format must be integer 1"
+    )
+
+
+@pytest.mark.parametrize(
+    "field",
+    [
+        "format",
+        "language",
+        "suffixes",
+        "reader",
+        "revision",
+        "capabilities",
+        "defaults",
+        "choices",
+        "rules",
+    ],
+)
+def test_decode_requires_every_wire_field(field: str) -> None:
+    text = "\n".join(line for line in WIRE.splitlines() if not line.startswith(field))
+    assert decode(text) == failure(f"missing fields: {field}")
+
+
+def test_decode_refuses_unknown_wire_fields() -> None:
+    assert decode(WIRE + "extra = 1\n") == failure("unknown fields: extra")
+
+
+@pytest.mark.parametrize(
+    ("field", "raw", "reason"),
+    [
+        ("language", "1", "language must be a nonempty string"),
+        ("reader", "[]", "reader must be a nonempty string"),
+        ("revision", "{}", "revision must be a nonempty string"),
+        ("language", '""', "language must be a nonempty string"),
+        ("suffixes", '".ix"', "suffixes must be an array of strings"),
+        ("suffixes", "{}", "suffixes must be an array of strings"),
+        ("suffixes", "[1]", "suffixes must contain nonempty strings"),
+        ("suffixes", '["ix"]', "suffixes must start with a dot"),
+        ("suffixes", '[".ix", ".IX"]', "suffixes must be unique after lowercasing"),
+        ("capabilities", '"comments"', "capabilities must be an array of strings"),
+        ("capabilities", "{}", "capabilities must be an array of strings"),
+        ("capabilities", "[false]", "capabilities must contain nonempty strings"),
+        ("defaults", "[]", "defaults must be a mapping"),
+        ("choices", "[]", "choices must be a mapping"),
+        ("rules", "[]", "rules must be a mapping"),
+        (
+            "defaults",
+            "{ style = 1 }",
+            "defaults.style must be a declared string choice",
+        ),
+        (
+            "defaults",
+            '{ style = "absent" }',
+            "defaults.style must be a declared string choice",
+        ),
+        ("defaults", "{}", "defaults and choices must have the same settings keys"),
+        ("choices", '{ style = "wide" }', "choices.style must be an array of strings"),
+        ("choices", "{ style = {} }", "choices.style must be an array of strings"),
+        ("choices", "{ style = [] }", "choices.style must be nonempty"),
+        ("choices", "{ style = [1] }", "choices.style must contain strings"),
+        (
+            "choices",
+            '{ style = ["", ""] }',
+            "choices.style must contain unique strings",
+        ),
+        (
+            "rules",
+            "{ nested = [1.5] }",
+            "rules.nested[0] contains unsupported rule value float",
+        ),
+        (
+            "rules",
+            "{ nested = [2000-01-01] }",
+            "rules.nested[0] contains unsupported rule value date",
+        ),
+        (
+            "rules",
+            "{ nested = [2000-01-01T00:00:00] }",
+            "rules.nested[0] contains unsupported rule value datetime",
+        ),
+    ],
+)
+def test_decode_retains_field_validation_reasons(
+    field: str, raw: str, reason: str
+) -> None:
+    text = "\n".join(
+        f"{field} = {raw}" if line.startswith(f"{field} = ") else line
+        for line in WIRE.splitlines()
+    )
+    assert decode(text) == failure(reason)
+
+
+def test_decode_accepts_explicit_empty_arrays_and_tables() -> None:
+    text = """format = 1
+language = "Empty"
+suffixes = []
+reader = "empty-reader"
+revision = "1"
+capabilities = []
+defaults = {}
+choices = {}
+rules = {}
+"""
+    assert decode(text) == definition(
+        language="Empty",
+        suffixes=(),
+        reader="empty-reader",
+        revision="1",
+        capabilities=(),
+        defaults={},
+        choices={},
+        rules={},
+    )
+
+
+def test_decode_does_not_catch_unexpected_programming_errors(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    module = import_module("comment_review.reading.definitions")
+
+    def broken_definition(**values: Any) -> None:
+        raise RuntimeError("programming error")
+
+    monkeypatch.setattr(module, "LanguageDefinition", broken_definition)
+    with pytest.raises(RuntimeError, match="programming error"):
+        decode(WIRE)
+
 
 def configuration(**changes: Any) -> dict[str, Any]:
     values = {

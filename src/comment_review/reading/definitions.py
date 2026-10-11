@@ -1,9 +1,75 @@
 """Validated immutable language-specific reader configuration."""
 
+from __future__ import annotations
+
+import tomllib
 from collections.abc import Mapping
 from dataclasses import dataclass
 from types import MappingProxyType
 from typing import cast
+
+from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, ReadStage
+
+_WIRE_FIELDS = frozenset(
+    {
+        "format",
+        "language",
+        "suffixes",
+        "reader",
+        "revision",
+        "capabilities",
+        "defaults",
+        "choices",
+        "rules",
+    }
+)
+
+
+def _array_tuple(value: object, field: str) -> tuple[str, ...]:
+    """Require a TOML array before adapting it for value validation."""
+    if not isinstance(value, list):
+        raise ValueError(f"{field} must be an array of strings")
+    return cast(tuple[str, ...], tuple(value))
+
+
+def decode_definition(text: str) -> LanguageDefinition | ReadFailure:
+    """Decode a complete TOML definition, returning expected configuration failures."""
+    try:
+        fields = tomllib.loads(text)
+    except tomllib.TOMLDecodeError as error:
+        return _definition_failure(str(error))
+    missing = _WIRE_FIELDS - fields.keys()
+    if missing:
+        return _definition_failure(f"missing fields: {', '.join(sorted(missing))}")
+    unknown = fields.keys() - _WIRE_FIELDS
+    if unknown:
+        return _definition_failure(f"unknown fields: {', '.join(sorted(unknown))}")
+    if type(fields["format"]) is not int or fields["format"] != 1:
+        return _definition_failure("format must be integer 1")
+    try:
+        choices = {
+            key: _array_tuple(value, f"choices.{key}")
+            for key, value in _mapping(fields["choices"], "choices").items()
+        }
+        return LanguageDefinition(
+            language=fields["language"],
+            suffixes=_array_tuple(fields["suffixes"], "suffixes"),
+            reader=fields["reader"],
+            revision=fields["revision"],
+            capabilities=_array_tuple(fields["capabilities"], "capabilities"),
+            defaults=fields["defaults"],
+            choices=choices,
+            rules=fields["rules"],
+        )
+    except ValueError as error:
+        return _definition_failure(str(error))
+
+
+def _definition_failure(message: str) -> ReadFailure:
+    """Describe invalid language configuration at reader selection."""
+    return ReadFailure(
+        (ReadDiagnostic(ReadStage.SELECT, "invalid-language-definition", message),)
+    )
 
 
 def _string_tuple(
