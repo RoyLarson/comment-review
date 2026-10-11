@@ -3,7 +3,7 @@
 ```
 Status:   in-progress
 Progress: 13 of 14 TODO tasks closed
-Plan-tasks: 20 of 26 plan tasks closed
+Plan-tasks: 21 of 26 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (founded by move-t from 2026-10-11-lexical-readers)
@@ -469,8 +469,9 @@ because this machinery exists.
 - [x] P20 | Resumed folds admit saved metadata before state access; 394 tests and review pass | 48d043fd | Validate
       resumed turns and dispositions before mutation; verify incompatible proofs
       leave saved state unchanged
-- [ ] P21 | Carry context through chief copies and docket schedules; verify
-      agreement with the originating proof
+- [x] P21 | Chief sheets and schedules retain original reading context; full and focused checks and review pass | 3f3a9c6a | Carry
+      context through chief copies and docket schedules; verify agreement with
+      the originating proof
 - [ ] P22 | Validate contexts before drafting and rereading; verify exact
       rollback after later-file refusal
 - [ ] P23 | Apply compatible per-file settings to standalone proof; verify both
