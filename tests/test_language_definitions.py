@@ -471,3 +471,127 @@ def test_mutating_caller_inputs_does_not_change_definition() -> None:
     assert value.defaults == {"style": ""}
     assert value.choices == {"style": ("", "wide")}
     assert value.rules == {"nested": ({"token": "end"},)}
+
+
+def registry(values: Any) -> Any:
+    return import_module("comment_review.reading.registry").LanguageRegistry(values)
+
+
+def select_registry(values: Any) -> Any:
+    return import_module("comment_review.reading.registry").registry_for(values)
+
+
+@pytest.mark.parametrize("reverse", [False, True])
+def test_registry_selection_is_independent_of_registration_order(reverse: bool) -> None:
+    demo = definition(**configuration(language="Demo MIX", suffixes=(".DEMO",)))
+    other = definition(**configuration(language="Other", suffixes=(".jsx", ".tsx")))
+    values = (other, demo) if reverse else (demo, other)
+    value = registry(values)
+    assert value.for_path(Path("nested/name.DeMo")) is demo
+    assert value.for_path(Path("component.JSX")) is other
+    assert value.for_path(Path("component.tsx")) is other
+    assert value.for_language("Demo MIX") is demo
+    assert value.for_language("demo mix") is None
+    assert value.for_language("Other") is other
+    assert value.for_path(Path("unknown.py")) is None
+    assert value.for_path(Path("extensionless")) is None
+    assert select_registry(values) == value
+
+
+def test_empty_registry_has_no_matches() -> None:
+    value = registry(())
+    assert value.for_path(Path("name.demo")) is None
+    assert value.for_language("Demo") is None
+    assert select_registry(()) == value
+
+
+def test_registry_and_registered_definitions_are_immutable() -> None:
+    demo = definition(**configuration(suffixes=(".demo",)))
+    value = registry((demo,))
+    registered = value.definitions
+    with pytest.raises(FrozenInstanceError):
+        value.definitions = ()
+    with pytest.raises(TypeError):
+        registered[0] = demo
+    with pytest.raises(FrozenInstanceError):
+        registered[0].suffixes = (".changed",)
+    assert value.for_path(Path("name.demo")) is demo
+
+
+@pytest.mark.parametrize("invalid", [None, [], {}, "demo", (None,), ("demo",)])
+def test_registry_rejects_wrong_constructor_input(invalid: Any) -> None:
+    with pytest.raises(ValueError, match="definitions"):
+        registry(invalid)
+    result = select_registry(invalid)
+    assert isinstance(result, ReadFailure)
+    assert result.diagnostics[0].stage == ReadStage.SELECT
+    assert result.diagnostics[0].code == "invalid-language-definition"
+
+
+@pytest.mark.parametrize("reverse", [False, True])
+@pytest.mark.parametrize(
+    ("names", "suffixes", "code"),
+    [
+        (("Same", "Same"), ((".one",), (".two",)), "duplicate-language"),
+        (("First", "Second"), ((".demo",), (".demo",)), "ambiguous-language"),
+        (("First", "Second"), ((".DEMO",), (".demo",)), "ambiguous-language"),
+    ],
+)
+def test_registry_refuses_collisions_in_both_orders(
+    reverse: bool, names: tuple[str, str], suffixes: Any, code: str
+) -> None:
+    values = tuple(
+        definition(**configuration(language=name, suffixes=claimed))
+        for name, claimed in zip(names, suffixes, strict=True)
+    )
+    if reverse:
+        values = tuple(reversed(values))
+    with pytest.raises(ValueError):
+        registry(values)
+    result = select_registry(values)
+    assert isinstance(result, ReadFailure)
+    diagnostic = result.diagnostics[0]
+    assert diagnostic.stage == ReadStage.SELECT
+    assert diagnostic.code == code
+    assert all(name in diagnostic.message for name in names)
+
+
+def test_registry_preserves_distinct_exact_language_identities() -> None:
+    upper = definition(**configuration(language="Demo", suffixes=(".one",)))
+    lower = definition(**configuration(language="demo", suffixes=(".two",)))
+    value = registry((upper, lower))
+    assert value.for_language("Demo") is upper
+    assert value.for_language("demo") is lower
+
+
+@pytest.mark.parametrize(
+    "suffix",
+    [
+        ".toml",
+        ".ini",
+        ".yaml",
+        ".yml",
+        ".json",
+        ".jsonl",
+        ".md",
+        ".markdown",
+        ".rst",
+        ".txt",
+        ".html",
+        ".htm",
+        ".css",
+    ],
+)
+@pytest.mark.parametrize("uppercase", [False, True])
+def test_registry_refuses_non_code_suffixes(suffix: str, uppercase: bool) -> None:
+    claim = suffix.upper() if uppercase else suffix
+    values = (definition(**configuration(language="Excluded", suffixes=(claim,))),)
+    with pytest.raises(ValueError, match="Excluded"):
+        registry(values)
+    result = select_registry(values)
+    assert isinstance(result, ReadFailure)
+    diagnostic = result.diagnostics[0]
+    assert diagnostic.stage == ReadStage.SELECT
+    assert diagnostic.code == "invalid-language-definition"
+    assert "Excluded" in diagnostic.message
+    assert claim in diagnostic.message
