@@ -3,7 +3,7 @@
 ```
 Status:   in-progress
 Progress: 0 of 3 TODO tasks closed
-Plan-tasks: 4 of 26 plan tasks closed
+Plan-tasks: 5 of 26 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (founded by move-t from 2026-10-11-lexical-readers)
@@ -394,8 +394,9 @@ because this machinery exists.
 - [x] P4 | Registry lookup and refusals pass 162 tests and corrected-contract review | 6aaf1f27 | Build
       the language registry; verify duplicate languages and ambiguous suffixes
       refuse
-- [ ] P5 | Bind reader identifiers to installed implementations; verify unknown
-      readers and unsupported capabilities refuse
+- [x] P5 | Explicit reader bindings and unchanged dispatch pass 541 tests and review | a6f1bf4c | Bind
+      reader identifiers to installed implementations; verify unknown readers
+      and unsupported capabilities refuse
 - [ ] P6 | Register existing readers independently; verify current suffixes,
       recognition and actual capabilities
 - [ ] P7 | Route selection and coverage through the registry; verify excluded
