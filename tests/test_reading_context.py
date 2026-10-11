@@ -75,6 +75,31 @@ def test_direct_proof_saved_context_is_admitted_against_installed_identity():
     assert "regather" in " ".join(flow_context.proof_reading_problems(proof))
 
 
+@pytest.mark.parametrize(
+    "path, sha",
+    [("m.py", None), ("m.py", ""), ("m.py", " "), ("m.py", 3), ("", "sha"), (7, "sha")],
+)
+def test_direct_extra_page_proof_refuses_invalid_sha_metadata(path, sha):
+    from comment_review.desk.proof.master_proof import MasterProof
+
+    saved = flow_context.context_for(Path("m.py"), {})
+    assert isinstance(saved, ReadingContext)
+    proof = MasterProof("4c", {}, (), {"m.py": saved}, page_shas={path: sha})
+    problems = flow_context.proof_reading_problems(proof)
+    assert any("page_shas" in reason and "regather" in reason for reason in problems)
+
+
+def test_direct_proof_malformed_settings_returns_refusal_before_conversion():
+    from comment_review.desk.proof.master_proof import MasterProof
+
+    saved = flow_context.context_for(Path("m.py"), {})
+    assert isinstance(saved, ReadingContext)
+    object.__setattr__(saved, "settings", (("x",),))
+    proof = MasterProof("4c", {}, (), {"m.py": saved}, page_shas={"m.py": "sha"})
+    problems = flow_context.proof_reading_problems(proof)
+    assert problems == ["master_proof: m.py: malformed reading context; regather"]
+
+
 def definition() -> LanguageDefinition:
     return LanguageDefinition(
         "Invented",

@@ -52,6 +52,17 @@ class MasterProof:
     def reading_problems(self, where: str) -> list[str]:
         """Check saved page metadata without reading source or registry state."""
         problems: list[str] = []
+        if any(
+            not isinstance(path, str)
+            or not path.strip()
+            or not isinstance(sha, str)
+            or not sha.strip()
+            for path, sha in self.page_shas.items()
+        ):
+            problems.append(
+                f"{where}: master_proof's `page_shas` must map nonempty paths"
+                " to nonempty shas; regather"
+            )
         for path, context in self.page_readings.items():
             if (
                 not isinstance(path, str)
@@ -178,15 +189,9 @@ class MasterProof:
             if context is not None:
                 page_readings[path] = context
         raw_shas = data.get("page_shas", {})
-        if not isinstance(raw_shas, dict) or any(
-            not isinstance(path, str)
-            or not path.strip()
-            or not isinstance(sha, str)
-            or not sha.strip()
-            for path, sha in raw_shas.items()
-        ):
+        if not isinstance(raw_shas, dict):
             problems.append(
-                f"{where}: master_proof's `page_shas` must map paths to shas"
+                f"{where}: master_proof's `page_shas` must map paths to shas; regather"
             )
         if problems:
             return None, problems
@@ -256,16 +261,6 @@ class MasterProof:
         problems += why
         raw_shas = data.get("page_shas", {})
         page_shas: dict = raw_shas if isinstance(raw_shas, dict) else {}
-        if not isinstance(raw_shas, dict) or any(
-            not isinstance(path, str)
-            or not path.strip()
-            or not isinstance(sha, str)
-            or not sha.strip()
-            for path, sha in page_shas.items()
-        ):
-            problems.append(
-                f"{where}: master_proof's `page_shas` must map paths to shas"
-            )
         if problems:
             return None, problems
         return (

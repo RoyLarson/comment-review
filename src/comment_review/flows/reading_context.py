@@ -25,6 +25,8 @@ def proof_reading_problems(
     """Admit saved proof metadata before any address-dependent work."""
     if isinstance(proof, MasterProof):
         problems = proof.reading_problems(where)
+        if problems:
+            return problems
         records = proof.page_readings
         sheets = [sheet for copy in proof.edit_copies for sheet in copy.sheets]
     else:
