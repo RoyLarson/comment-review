@@ -12,7 +12,10 @@ from comment_review.flows import proof_setter
 from comment_review.flows.distribute import seed
 from comment_review.flows.fill import fill, row_problems
 from comment_review.flows.transcribe import docket_of
-from comment_review.reading.lexer import LANGUAGES
+from comment_review.reading.language import (
+    INSTALLED_DEFINITIONS,
+    language_from_definition,
+)
 from comment_review.results import compositor, galley
 
 
@@ -161,6 +164,7 @@ def test_removing_a_sentence_retains_a_blank_between_paragraphs():
     assert form.without_once("Move.") == "# Keep.\n#\n# Second paragraph.\n"
 
 
+LANGUAGES = tuple(language_from_definition(value) for value in INSTALLED_DEFINITIONS)
 FORMS = [
     ("m" + lang.extensions[0], f"{marker} Keep. Move.\n{marker} Ending stays.")
     for lang in LANGUAGES
@@ -448,12 +452,6 @@ def test_wrapping_after_a_blank_keeps_the_line_comment_marker():
             '/* Kept. Move.\n */ let y = "*/";',
             "Move.",
             '/* Kept.\n */ let y = "*/";',
-        ),
-        (
-            "m.ini",
-            "# Keep. Move.\n; Ending stays.",
-            "Move.",
-            "# Keep.\n; Ending stays.",
         ),
         (
             "m.rs",

@@ -13,6 +13,7 @@ from typing import Any, cast
 
 from comment_review.reading.definitions import LanguageDefinition
 from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, ReadStage
+from comment_review.reading.registry import LanguageRegistry
 
 
 @dataclass(frozen=True)
@@ -508,8 +509,6 @@ LANGUAGES: tuple[Language, ...] = (
     ),
 )
 
-BY_EXT = {ext: lang for lang in LANGUAGES for ext in lang.extensions}
-
 
 @dataclass(frozen=True)
 class ReaderMetadata:
@@ -567,14 +566,14 @@ INSTALLED_DEFINITIONS = tuple(
     for lang in LANGUAGES
     if lang.name in READER_METADATA
 )
-_DEFINITIONS_BY_NAME = {value.language: value for value in INSTALLED_DEFINITIONS}
+INSTALLED_REGISTRY = LanguageRegistry(INSTALLED_DEFINITIONS)
 
 
 def validate_language_definition(
     language_name: str, definition: LanguageDefinition
 ) -> ReadFailure | None:
     """Require the complete grammar owned by one installed language."""
-    installed = _DEFINITIONS_BY_NAME.get(language_name)
+    installed = INSTALLED_REGISTRY.for_language(language_name)
     reason = ""
     if installed is None or definition.language != language_name:
         reason = "Definition does not belong to this language"
@@ -622,19 +621,16 @@ def language_from_definition(definition: LanguageDefinition) -> Language:
     )
 
 
-# The ladder is named by the QUESTION each rung answers, not by the library
-# that happens to answer it. Only the top rung knows which declaration a paragraph
-# belongs to.
+BY_EXT = MappingProxyType(
+    {
+        suffix.lower(): language_from_definition(value)
+        for value in INSTALLED_REGISTRY.definitions
+        for suffix in value.suffixes
+    }
+)
+
+
 def language_for(path: Path) -> Language | None:
-    """The language record for a path, or None when the suffix is unknown."""
-    return BY_EXT.get(path.suffix.lower())
-
-
-def tier_for(lang: Language) -> str:
-    """The highest rung reachable for this language, here and now.
-
-    One definition, read by the dispatcher and by `--languages`, so the table
-    and the run report the same tier.
-    """
-    metadata = READER_METADATA.get(lang.name)
-    return metadata.tier if metadata is not None else "lexical"
+    """Installed code grammar for a path, excluding non-code suffixes."""
+    value = INSTALLED_REGISTRY.for_path(path)
+    return language_from_definition(value) if value is not None else None

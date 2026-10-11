@@ -39,7 +39,6 @@ from comment_review.reading.language import (
     LANGUAGES,
     Language,
     language_for,
-    tier_for,
 )
 from comment_review.reading.paragraph import Paragraph
 
@@ -53,7 +52,6 @@ __all__ = [
     "LANGUAGES",
     "Language",
     "language_for",
-    "tier_for",
 ]
 
 

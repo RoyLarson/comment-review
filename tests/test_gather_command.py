@@ -31,6 +31,28 @@ from conftest import run_command
 
 from comment_review.commands import gather as gather_command
 
+
+def test_languages_reports_validated_programming_coverage(monkeypatch, capsys):
+    from comment_review.reading import readers
+    from comment_review.reading.language import INSTALLED_DEFINITIONS
+
+    status, output = run_command(monkeypatch, capsys, gather_command, "--languages")
+    assert status == 0
+    rows = [
+        line.split()
+        for line in output.splitlines()[1:]
+        if line and not line.startswith("A suffix")
+    ]
+    assert rows == [
+        [value.language, value.capabilities[-1], *value.suffixes]
+        for value in INSTALLED_DEFINITIONS
+    ]
+    monkeypatch.setattr(readers, "INSTALLED_BINDINGS", {})
+    status, output = run_command(monkeypatch, capsys, gather_command, "--languages")
+    assert status == 0
+    assert all(value.language not in output for value in INSTALLED_DEFINITIONS)
+
+
 #: An ordinary nine-line Python page, and the CONTROL every case below is a
 #: corruption of. It carries a module docstring, a comment, a declaration with
 #: a docstring and a trailing comment -- so a run that reads it produces

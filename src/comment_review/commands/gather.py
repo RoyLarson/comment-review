@@ -21,7 +21,8 @@ from comment_review.flows.gather import (
     not_gathered,
     unaddressed_report,
 )
-from comment_review.reading.lexer import LANGUAGES, tier_for
+from comment_review.reading.language import language_from_definition
+from comment_review.reading.readers import supported_definitions, tier_for
 
 
 def main() -> int:
@@ -90,9 +91,10 @@ def _report(args: argparse.Namespace) -> int:
     """Everything the run prints, so `--out` can wrap it in one place."""
     if args.languages:
         print(f"{'language':<10} {'tier':<11} extensions")
-        for lang in LANGUAGES:
-            exts = " ".join(lang.extensions)
-            print(f"{lang.name:<10} {tier_for(lang):<11} {exts}")
+        for definition in supported_definitions():
+            exts = " ".join(definition.suffixes)
+            tier = tier_for(language_from_definition(definition))
+            print(f"{definition.language:<10} {tier:<11} {exts}")
         print("\nA suffix not listed is named, and the gather exits nonzero.")
         return 0
 

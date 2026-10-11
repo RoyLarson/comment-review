@@ -13,7 +13,7 @@ from pathlib import Path
 from comment_review import exceptions
 from comment_review.concordance.names import SYMBOLISH
 from comment_review.machine.repo import walk_files
-from comment_review.reading.lexer import NAMED_DEFS, language_for
+from comment_review.reading.lexer import LANGUAGES, NAMED_DEFS
 
 # The two gaps in the name corpus that are NOT read failures, named so a caller
 # can tell them apart from one. Every row `code_names` returns reads alike --
@@ -65,7 +65,9 @@ def code_names(
         for p in walk_files(root):
             if tracked is not None and p.resolve() not in tracked:
                 continue
-            lang = language_for(p)
+            lang = next(
+                (row for row in LANGUAGES if p.suffix.lower() in row.extensions), None
+            )
             # ! A non-Python file is a KNOWN hole, reported as one. Parsed as
             # Python it came back `a.go (SyntaxError)`, which reads as "your
             # file is malformed" and sends a reviewer after an invented defect.

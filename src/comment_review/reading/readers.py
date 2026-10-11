@@ -14,9 +14,10 @@ from comment_review.reading.coordinates import SourceCoordinates
 from comment_review.reading.definitions import LanguageDefinition
 from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, ReadStage
 from comment_review.reading.language import (
+    INSTALLED_REGISTRY,
     READER_METADATA,
     Language,
-    tier_for,
+    language_from_definition,
     validate_language_definition,
 )
 from comment_review.reading.lexer import (
@@ -90,7 +91,21 @@ def read_paragraphs(
     path: Path, text: str, lang: Language
 ) -> list[Paragraph] | ReadFailure:
     """Read paragraphs or retain explicit reader refusals before decoration."""
-    return _read_paragraphs(path, text, lang, tier_for(lang) == "tokenized")
+    selected = reader_for(path)
+    if isinstance(selected, ReadFailure):
+        return selected
+    if selected is None:
+        return ReadFailure(
+            (
+                ReadDiagnostic(
+                    ReadStage.SELECT,
+                    "unsupported-language",
+                    "No installed code reader for this suffix",
+                ),
+            )
+        )
+    definition, binding = selected
+    return binding.read(path, text, language_from_definition(definition))
 
 
 def _read_paragraphs(
@@ -144,6 +159,35 @@ INSTALLED_BINDINGS = MappingProxyType(
         for name, metadata in READER_METADATA.items()
     }
 )
+
+
+def reader_for(
+    path: Path,
+) -> tuple[LanguageDefinition, ReaderBinding] | ReadFailure | None:
+    """Select installed code grammar and validate its binding without reading source."""
+    definition = INSTALLED_REGISTRY.for_path(path)
+    if definition is None:
+        return None
+    binding = bind_reader(definition, INSTALLED_BINDINGS)
+    return binding if isinstance(binding, ReadFailure) else (definition, binding)
+
+
+def supported_definitions() -> tuple[LanguageDefinition, ...]:
+    """Installed coverage whose implementations accept their declared grammar."""
+    return tuple(
+        definition
+        for definition in INSTALLED_REGISTRY.definitions
+        if not isinstance(bind_reader(definition, INSTALLED_BINDINGS), ReadFailure)
+    )
+
+
+def tier_for(lang: Language) -> str:
+    """Validated installed coverage for a language, or empty when unavailable."""
+    definition = INSTALLED_REGISTRY.for_language(lang.name)
+    if definition is None:
+        return ""
+    binding = bind_reader(definition, INSTALLED_BINDINGS)
+    return "" if isinstance(binding, ReadFailure) else definition.capabilities[-1]
 
 
 def _paragraph_source_span(

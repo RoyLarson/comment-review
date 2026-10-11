@@ -68,6 +68,7 @@ from comment_review.reading.addresser import (
     cue_of,
 )
 from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, ReadStage
+from comment_review.reading.language import language_for
 from comment_review.reading.lexer import (
     Language,
     declarations,
@@ -131,7 +132,7 @@ class Page:
 
     ! It carried a `tier` too until 2026-08-24, when the field was deleted at
     both levels: nothing read the page's, and the paragraph's had one reader
-    printing one line of preamble. `language.tier_for` still answers which tier
+    printing one line of preamble. `readers.tier_for` still answers which tier
     a LANGUAGE reaches.
 
     ! A page IS its paragraphs in order, so it iterates and indexes as one. That
@@ -978,6 +979,9 @@ def page_for(
     got = read_paragraphs(path, text, lang)
     if isinstance(got, ReadFailure):
         return got
+    selected_language = language_for(path)
+    assert selected_language is not None
+    lang = selected_language
     got.extend(leading_between(got, text))
     cues = Cues()
     edges: dict[str, str] = {}

@@ -47,7 +47,7 @@ SOURCES = {
     "C block": ("m.c", "/* head */\nint a;\n"),
     "rust": ("m.rs", "/// Doc.\npub fn f() {}\n"),
     "go": ("m.go", "// Doc.\nfunc f() {}\n"),
-    "toml": ("m.toml", "# note\nkey = 1\n"),
+    "typescript JSX": ("m.tsx", "// note\nconst card = <Card />;\n"),
     "shell": ("m.sh", "#!/bin/sh\necho hi\n"),
     "js": ("m.js", "// note\nlet a = 1;\n"),
     "unicode": ("m.py", "# caf\u00e9\nx = 1\n"),

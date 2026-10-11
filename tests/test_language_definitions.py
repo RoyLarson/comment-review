@@ -846,3 +846,43 @@ def test_installed_bindings_invoke_existing_engines(
             path,
             "exact\r\n",
         )
+
+
+@pytest.mark.parametrize(
+    "suffix",
+    [".toml", ".ini", ".cfg", ".yaml", ".json", ".md", ".html", ".css", ".unknown"],
+)
+def test_installed_selection_excludes_non_code(suffix: str) -> None:
+    from comment_review.reading.language import language_for
+    from comment_review.reading.readers import reader_for
+
+    assert language_for(Path("source" + suffix.upper())) is None
+    assert reader_for(Path("source" + suffix.upper())) is None
+
+
+def test_installed_selection_and_coverage_use_validated_bindings(monkeypatch) -> None:
+    from dataclasses import replace
+
+    from comment_review.reading import readers
+    from comment_review.reading.language import INSTALLED_REGISTRY, language_for
+    from comment_review.reading.readers import tier_for
+
+    selected = readers.reader_for(Path("component.TSX"))
+    assert selected is not None and not isinstance(selected, ReadFailure)
+    value, installed = selected
+    assert value is INSTALLED_REGISTRY.for_path(Path("component.tsx"))
+    lang = language_for(Path("component.tsx"))
+    assert lang is not None
+    assert tier_for(lang) == "lexical"
+    assert value in readers.supported_definitions()
+    monkeypatch.setattr(readers, "INSTALLED_BINDINGS", {})
+    assert tier_for(lang) == ""
+    assert isinstance(readers.reader_for(Path("component.TSX")), ReadFailure)
+    assert readers.supported_definitions() == ()
+    monkeypatch.setattr(
+        readers,
+        "INSTALLED_BINDINGS",
+        {value.reader: replace(installed, capabilities=("comments",))},
+    )
+    assert isinstance(readers.reader_for(Path("component.TSX")), ReadFailure)
+    assert readers.supported_definitions() == ()
