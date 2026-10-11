@@ -3,7 +3,7 @@
 ```
 Status:   in-progress
 Progress: 0 of 1 TODO tasks closed
-Plan-tasks: 1 of 13 plan tasks closed
+Plan-tasks: 2 of 13 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (founded by move-t from 2026-10-11-lexical-readers)
@@ -120,8 +120,9 @@ development history.
       SourceSpan and SourcePosition; test half-open slicing, empty spans,
       negative bounds and reversed bounds
         > 2026-10-11 uv run pytest -q tests/test_reading_source.py -k span
-- [ ] P2 | Implement SourceStructure partition checks; test empty input, gaps,
-      overlaps, wrong order, empty regions and lost ends
+- [x] P2 | Partition and slicing checks pass with independent review | ad7d9faf | Implement
+      SourceStructure partition checks; test empty input, gaps, overlaps, wrong
+      order, empty regions and lost ends
         > 2026-10-11 uv run pytest -q tests/test_reading_source.py -k partition
 - [ ] P3 | Implement exact reconstruction; test BOM, tabs, Unicode, mixed
       newlines and no final newline without normalization
