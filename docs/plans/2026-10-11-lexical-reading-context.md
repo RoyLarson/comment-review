@@ -3,7 +3,7 @@
 ```
 Status:   in-progress
 Progress: 4 of 5 TODO tasks closed
-Plan-tasks: 10 of 26 plan tasks closed
+Plan-tasks: 11 of 26 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (founded by move-t from 2026-10-11-lexical-readers)
@@ -418,8 +418,9 @@ because this machinery exists.
       per-file settings at fresh-run entry points; verify explicit defaults,
       valid modes and independent values
         > 2026-10-11 resolve_context also requires the bound reader_revision keyword
-- [ ] P11 | Serialize reading context; verify exact fields and rejection of
-      missing, malformed or future formats
+- [x] P11 | Strict context codec passes 177 tests and independent review | 619faaf0 | Serialize
+      reading context; verify exact fields and rejection of missing, malformed
+      or future formats
 - [ ] P12 | Carry context through pages, binders and redaction; verify empty
       pages and old-artifact refusal
 - [ ] P13 | Carry context through distribution and shards; verify per-page
