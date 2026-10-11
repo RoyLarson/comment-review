@@ -3,6 +3,7 @@
 from dataclasses import FrozenInstanceError
 from datetime import date
 from importlib import import_module
+from pathlib import Path
 from typing import Any
 
 import pytest
@@ -29,6 +30,137 @@ def failure(message: str) -> ReadFailure:
     return ReadFailure(
         (ReadDiagnostic(ReadStage.SELECT, "invalid-language-definition", message),)
     )
+
+
+def load(paths: list[Path]) -> Any:
+    return import_module("comment_review.flows.language_definitions").load_definitions(
+        paths
+    )
+
+
+def test_load_empty_input_returns_empty_tuple() -> None:
+    assert load([]) == ()
+
+
+def test_load_files_preserves_input_order_and_nested_values(tmp_path: Path) -> None:
+    first = tmp_path / "first.toml"
+    second = tmp_path / "second.toml"
+    first.write_text(WIRE, encoding="utf-8")
+    second.write_text(WIRE.replace("Invented MIX", "Other Invented"), encoding="utf-8")
+
+    values = load([second, first])
+
+    assert isinstance(values, tuple)
+    assert tuple(value.language for value in values) == (
+        "Other Invented",
+        "Invented MIX",
+    )
+    assert values[0].rules == {
+        "tokens": ("", 2, True, False, {"end": ()}),
+        "empty": {},
+    }
+    assert values[1].choices == {"style": ("", "wide")}
+
+
+def test_load_missing_file_retains_acquisition_diagnostic(tmp_path: Path) -> None:
+    path = tmp_path / "missing.toml"
+
+    result = load([path])
+
+    assert isinstance(result, ReadFailure)
+    diagnostic = result.diagnostics[0]
+    assert diagnostic.stage == ReadStage.ACQUIRE
+    assert diagnostic.code == "io-error"
+    assert str(path) in diagnostic.message
+    assert diagnostic.byte_offset is None
+
+
+def test_load_invalid_utf8_retains_decode_byte_offset(tmp_path: Path) -> None:
+    path = tmp_path / "bad-bytes.toml"
+    path.write_bytes(b"format = 1\n\xff")
+
+    result = load([path])
+
+    assert isinstance(result, ReadFailure)
+    diagnostic = result.diagnostics[0]
+    assert diagnostic.stage == ReadStage.DECODE
+    assert diagnostic.code == "invalid-utf8"
+    assert str(path) in diagnostic.message
+    assert "invalid start byte" in diagnostic.message
+    assert diagnostic.byte_offset == 11
+
+
+@pytest.mark.parametrize(
+    ("text", "reason"),
+    [
+        ("", "missing fields:"),
+        ("format = [", "Invalid value"),
+        (WIRE.replace("format = 1", "format = 2"), "format must be integer 1"),
+    ],
+)
+def test_load_invalid_definition_retains_selection_failure(
+    tmp_path: Path, text: str, reason: str
+) -> None:
+    path = tmp_path / "invalid.toml"
+    path.write_text(text, encoding="utf-8")
+
+    result = load([path])
+
+    assert isinstance(result, ReadFailure)
+    diagnostic = result.diagnostics[0]
+    assert diagnostic.stage == ReadStage.SELECT
+    assert diagnostic.code == "invalid-language-definition"
+    assert str(path) in diagnostic.message
+    assert reason in diagnostic.message
+    assert diagnostic.byte_offset is None
+
+
+def test_load_later_file_failure_does_not_publish_partial_tuple(tmp_path: Path) -> None:
+    good = tmp_path / "good.toml"
+    bad = tmp_path / "bad.toml"
+    good.write_text(WIRE, encoding="utf-8")
+    bad.write_text("", encoding="utf-8")
+
+    result = load([good, bad])
+
+    assert isinstance(result, ReadFailure)
+    assert str(bad) in result.diagnostics[0].message
+
+
+def test_load_decodes_held_text_without_another_read(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    module = import_module("comment_review.flows.language_definitions")
+    source = import_module("comment_review.flows.source")
+    path = tmp_path / "held.toml"
+    path.write_text(WIRE, encoding="utf-8")
+
+    def acquire_then_remove(acquired_path: Path) -> Any:
+        value = source.source_of(acquired_path)
+        acquired_path.unlink()
+        return value
+
+    monkeypatch.setattr(module, "source_of", acquire_then_remove)
+
+    values = load([path])
+
+    assert isinstance(values, tuple)
+    assert len(values) == 1
+    assert values[0].language == "Invented MIX"
+    assert values[0].rules["tokens"] == ("", 2, True, False, {"end": ()})
+
+
+def test_load_unexpected_acquisition_defect_propagates(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    module = import_module("comment_review.flows.language_definitions")
+
+    def broken_acquisition(path: Path) -> Any:
+        raise RuntimeError("programming error")
+
+    monkeypatch.setattr(module, "source_of", broken_acquisition)
+    with pytest.raises(RuntimeError, match="programming error"):
+        load([tmp_path / "example.toml"])
 
 
 def test_decode_exact_definition_and_ordered_nested_rules() -> None:
