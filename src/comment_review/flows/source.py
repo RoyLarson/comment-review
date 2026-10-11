@@ -3,7 +3,7 @@
 import subprocess
 from pathlib import Path
 
-from comment_review.machine.repo import Source, read_revision_source, read_source
+from comment_review.machine.repo import Source, git, read_revision_source, read_source
 from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, ReadStage
 
 
@@ -47,6 +47,11 @@ def revision_source_of(repo: Path, ref: str, rel: str) -> Source | ReadFailure:
     except UnicodeDecodeError as error:
         return _decode_failure(error)
     except subprocess.CalledProcessError as error:
-        return _acquire_failure(error, "missing-revision-source")
+        try:
+            repository = git(repo, "rev-parse", "--git-dir")
+        except (OSError, subprocess.SubprocessError):
+            return _acquire_failure(error)
+        code = "missing-revision-source" if repository.returncode == 0 else "io-error"
+        return _acquire_failure(error, code)
     except (OSError, subprocess.SubprocessError) as error:
         return _acquire_failure(error)

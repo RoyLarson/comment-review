@@ -200,6 +200,16 @@ def test_revision_empty_and_invalid_outcomes(revision_repo):
     assert result.diagnostics[0].stage == ReadStage.DECODE
 
 
+def test_missing_repository_is_an_io_failure(tmp_path):
+    from comment_review.flows.source import revision_source_of
+
+    result = revision_source_of(tmp_path / "missing-repository", "HEAD", "a.py")
+    assert isinstance(result, ReadFailure)
+    diagnostic = result.diagnostics[0]
+    assert (diagnostic.stage, diagnostic.code) == (ReadStage.ACQUIRE, "io-error")
+    assert "cannot change to" in diagnostic.message
+
+
 @pytest.mark.parametrize(
     "error",
     [
