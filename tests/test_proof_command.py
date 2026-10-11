@@ -5,6 +5,8 @@ is the standing precedent for a command's own file.
 """
 
 import json
+import subprocess
+import sys
 
 import pytest
 from conftest import SAMPLE, SRC, build, run_command
@@ -28,6 +30,239 @@ from comment_review.commands import collate as collate_command
 from comment_review.commands import proof as proof_command
 from comment_review.commands import turn as turn_command
 from comment_review.docket.docket import Docket
+
+
+def proof_repository(tmp_path, before, suffix=".js"):
+    repo = tmp_path / "repo"
+    (repo / "pkg").mkdir(parents=True)
+    target = repo / "pkg" / f"source{suffix}"
+    target.write_bytes(before.encode("utf-8"))
+    (target.parent / "sibling.txt").write_bytes(b"one\r\ntwo\r\n")
+    for args in (
+        ("init",),
+        ("config", "core.autocrlf", "false"),
+        ("add", "."),
+        (
+            "-c",
+            "user.name=Test",
+            "-c",
+            "user.email=test@example.invalid",
+            "commit",
+            "-m",
+            "Proof fixture",
+        ),
+    ):
+        subprocess.run(
+            ["git", "-C", str(repo), *args], capture_output=True, check=True, timeout=30
+        )
+    return repo, target
+
+
+@pytest.mark.parametrize("failed_side", ["current", "baseline", "both"])
+@pytest.mark.parametrize("stage", ["lex", "place"])
+def test_standalone_proof_admits_both_pages(
+    tmp_path, monkeypatch, capsys, failed_side, stage
+):
+    from comment_review.commands import prove_unchanged as command
+    from comment_review.flows import page_for
+    from comment_review.reading.diagnostics import (
+        ReadDiagnostic,
+        ReadFailure,
+        ReadStage,
+    )
+    from comment_review.reading.source import SourceSpan
+
+    before, after = "const value = 1; // before\r\n", "const value = 1; // after\r\n"
+    repo, target = proof_repository(tmp_path, before)
+    target.write_bytes(after.encode("utf-8"))
+    real_page_for = page_for.page_for
+
+    def failing_page(path, text, *args, **kwargs):
+        failed = failed_side == "both" or text == (
+            before if failed_side == "baseline" else after
+        )
+        if failed:
+            return ReadFailure(
+                (
+                    ReadDiagnostic(
+                        ReadStage(stage),
+                        "refused-input",
+                        "source refused",
+                        SourceSpan(0, 1),
+                    ),
+                )
+            )
+        return real_page_for(path, text, *args, **kwargs)
+
+    monkeypatch.setattr(page_for, "page_for", failing_page)
+    code, out = run_command(
+        monkeypatch, capsys, command, "--repo", str(repo), "--base", "HEAD", str(target)
+    )
+    assert code == 1, out
+    assert "PROVEN" not in out
+    assert f"{stage}/refused-input" in out
+    assert "line 1" in out and "column 0" in out
+
+
+def test_standalone_cli_preserves_exact_mixed_unicode_snapshots(
+    tmp_path, monkeypatch, capsys
+):
+    from comment_review.commands import prove_unchanged as command
+    from comment_review.flows import page_for
+
+    before = "# caf\u00e9\r\nx = '\u03bb'\rx += 'e\u0301'\n"
+    after = "# changed\r\nx = '\u03bb'\rx += 'e\u0301'\n"
+    repo, target = proof_repository(tmp_path, before, ".py")
+    target.write_bytes(after.encode("utf-8"))
+    real_page_for = page_for.page_for
+    admitted = []
+
+    def watching_page(path, text, *args, **kwargs):
+        admitted.append(text)
+        return real_page_for(path, text, *args, **kwargs)
+
+    monkeypatch.setattr(page_for, "page_for", watching_page)
+    code, out = run_command(
+        monkeypatch,
+        capsys,
+        command,
+        "--repo",
+        str(repo / "pkg"),
+        "--base",
+        "HEAD",
+        str(target),
+    )
+    assert code == 0, out
+    assert admitted == [before, after]
+    assert "PROVEN    source.py" in out
+    cli = subprocess.run(
+        [
+            sys.executable,
+            str(SRC / "comment-review.py"),
+            "prove_unchanged",
+            "--repo",
+            str(repo / "pkg"),
+            "--base",
+            "HEAD",
+            str(target),
+        ],
+        capture_output=True,
+        encoding="utf-8",
+        timeout=30,
+        check=False,
+    )
+    assert cli.returncode == 0, cli.stdout + cli.stderr
+    assert "PROVEN    source.py" in cli.stdout
+
+
+@pytest.mark.parametrize("text", ["int value = 1; /* open\r\n", "/* only prose */\r\n"])
+def test_standalone_failed_or_unprovable_inputs_cannot_prove_equal(
+    tmp_path, monkeypatch, capsys, text
+):
+    from comment_review.commands import prove_unchanged as command
+
+    repo, target = proof_repository(tmp_path, text, ".c")
+    code, out = run_command(
+        monkeypatch, capsys, command, "--repo", str(repo), "--base", "HEAD", str(target)
+    )
+    assert code == 1
+    assert "PROVEN" not in out
+
+
+@pytest.mark.parametrize("kind", ["unprovable", "unknown"])
+def test_standalone_failed_fingerprint_kind_refuses_before_equality(
+    tmp_path, monkeypatch, kind
+):
+    from comment_review.flows import prove_unchanged
+
+    repo, target = proof_repository(tmp_path, "const value = 1;\r\n")
+    monkeypatch.setattr(prove_unchanged, "code_fingerprint", lambda *args: (kind, ""))
+    report = prove_unchanged.run(repo, "HEAD", [target])
+    assert report.failures == 1
+    assert all("PROVEN" not in message for message in report.messages)
+    assert any("UNPROVABLE" in message for message in report.messages)
+
+
+@pytest.mark.parametrize("failed_side", ["current", "baseline"])
+def test_standalone_strict_decode_failure_refuses(
+    tmp_path, monkeypatch, capsys, failed_side
+):
+    from comment_review.commands import prove_unchanged as command
+
+    repo, target = proof_repository(tmp_path, "const value = 1;\r\n")
+    target.write_bytes(b"\xff")
+    if failed_side == "baseline":
+        for args in (
+            ("add", "."),
+            (
+                "-c",
+                "user.name=Test",
+                "-c",
+                "user.email=test@example.invalid",
+                "commit",
+                "-m",
+                "Invalid source",
+            ),
+        ):
+            subprocess.run(
+                ["git", "-C", str(repo), *args],
+                capture_output=True,
+                check=True,
+                timeout=30,
+            )
+        target.write_bytes(b"const value = 1;\r\n")
+    code, out = run_command(
+        monkeypatch, capsys, command, "--repo", str(repo), "--base", "HEAD", str(target)
+    )
+    assert code == 1
+    assert f"{failed_side}:" in out
+    assert "decode/invalid-utf8" in out and "byte offset 0" in out
+
+
+@pytest.mark.parametrize("text,suffix", [("", ".js"), ("# comment\r\n", ".py")])
+def test_standalone_empty_and_supported_comment_only_success(
+    tmp_path, monkeypatch, capsys, text, suffix
+):
+    from comment_review.commands import prove_unchanged as command
+
+    repo, target = proof_repository(tmp_path, text, suffix)
+    code, out = run_command(
+        monkeypatch, capsys, command, "--repo", str(repo), "--base", "HEAD", str(target)
+    )
+    assert code == 0, out
+    assert "PROVEN" in out
+
+
+def test_standalone_absent_baseline_is_explicit(tmp_path, monkeypatch, capsys):
+    from comment_review.commands import prove_unchanged as command
+
+    repo, _ = proof_repository(tmp_path, "const value = 1;\r\n")
+    target = repo / "pkg" / "new.js"
+    target.write_bytes(b"const value = 1;\r\n")
+    code, out = run_command(
+        monkeypatch,
+        capsys,
+        command,
+        "--repo",
+        str(repo / "pkg"),
+        "--base",
+        "HEAD",
+        str(target),
+    )
+    assert code == 1
+    assert "no HEAD:./new.js" in out
+
+
+def test_standalone_sibling_endings_refuse_mismatch(tmp_path, monkeypatch, capsys):
+    from comment_review.commands import prove_unchanged as command
+
+    repo, target = proof_repository(tmp_path, "const value = 1;\r\n")
+    target.write_bytes(b"const value = 1;\n")
+    code, out = run_command(
+        monkeypatch, capsys, command, "--repo", str(repo), "--base", "HEAD", str(target)
+    )
+    assert code == 1
+    assert "line endings lf" in out and "sibling sibling.txt crlf" in out
 
 
 def a_copy_on_disk(tmp_path, binder):

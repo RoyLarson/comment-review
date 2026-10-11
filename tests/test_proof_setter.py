@@ -25,6 +25,86 @@ from comment_review.reading.diagnostics import ReadFailure
 from comment_review.results import compositor, galley
 from comment_review.results.prove_unchanged import code_fingerprint
 
+
+@pytest.mark.parametrize("stage", ["lex", "place"])
+def test_direct_proof_refuses_failed_reading(monkeypatch, stage):
+    from comment_review.reading.diagnostics import ReadDiagnostic, ReadStage
+    from comment_review.reading.source import SourceSpan
+
+    def failed_page(*args, **kwargs):
+        return ReadFailure(
+            (
+                ReadDiagnostic(
+                    ReadStage(stage),
+                    "refused-input",
+                    "source refused",
+                    SourceSpan(0, 1),
+                ),
+            )
+        )
+
+    monkeypatch.setattr(page_for_mod, "page_for", failed_page)
+    refusal = proof_setter._prove(
+        "m.js", "const value = 1;\n", "const value = 1;\n", Path("m.js")
+    )
+    assert refusal is not None
+    assert refusal.step == "prove"
+    assert f"{stage}/refused-input" in refusal.why
+
+
+def test_failed_draft_read_rejects_and_rolls_back(tmp_path, monkeypatch):
+    from comment_review.reading.diagnostics import ReadDiagnostic, ReadStage
+
+    repo, binder, _ = _tree(tmp_path)
+    into = tmp_path / "out"
+    real_page = page_for_mod.page_for
+
+    def failed_draft(path, *args, **kwargs):
+        if Path(path).is_relative_to(into):
+            return ReadFailure(
+                (ReadDiagnostic(ReadStage.PLACE, "draft-placement", "draft refused"),)
+            )
+        return real_page(path, *args, **kwargs)
+
+    monkeypatch.setattr(page_for_mod, "page_for", failed_draft)
+    drafted, refused = proof_setter.run(
+        docket_from({address(binder, "m.py"): "# replacement"}, binder), repo, into
+    )
+    assert drafted == []
+    assert refused[0].step == "reread"
+    assert "place/draft-placement" in refused[0].why
+    assert not (into / "m.py").exists()
+
+
+def test_proof_reuses_admitted_pages(tmp_path, monkeypatch):
+    repo, binder, _ = _tree(tmp_path)
+    real_page = proof_setter.page_of
+    reads = []
+
+    def watching_page(path, *args, **kwargs):
+        reads.append(path)
+        return real_page(path, *args, **kwargs)
+
+    monkeypatch.setattr(proof_setter, "page_of", watching_page)
+    into = tmp_path / "out"
+    drafted, refused = proof_setter.run(
+        docket_from({address(binder, "m.py"): "# replacement"}, binder), repo, into
+    )
+    assert refused == [] and len(drafted) == 1
+    assert reads == [repo / "m.py", into / "m.py"]
+
+
+@pytest.mark.parametrize("kind", ["unprovable", "unknown"])
+def test_direct_proof_failed_fingerprint_kind_cannot_pass(monkeypatch, kind):
+    monkeypatch.setattr(
+        proof_setter, "code_fingerprint_setting_aside", lambda *args: (kind, "")
+    )
+    refusal = proof_setter._prove(
+        "m.js", "const value = 1;\n", "const value = 1;\n", Path("m.js")
+    )
+    assert refusal is not None and refusal.step == "prove"
+
+
 #: A replacement that is legal in each series -- a `c` carries its own
 #: separator, an `a` its indentation. Same table as `tests/test_galley.py`,
 #: which is where the shapes were derived from the compositor.

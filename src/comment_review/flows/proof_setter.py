@@ -52,7 +52,7 @@ from comment_review.docket.docket import Alteration, Docket, Schedule
 from comment_review.flows.page_for import page_of
 from comment_review.flows.read_diagnostics import format_failure
 from comment_review.flows.source import source_of
-from comment_review.machine.repo import can_escape, undraftable
+from comment_review.machine.repo import Source, can_escape, sha_of, undraftable
 from comment_review.reading.addresser import address_for, cue_of
 from comment_review.reading.diagnostics import ReadFailure
 from comment_review.reading.paragraph import Paragraph
@@ -480,9 +480,7 @@ def _one(
             _discard(target, created)
             return None, off
 
-        unproven = _prove(
-            rel, page.text, draft.text, target, _approved(page, draft, edits)
-        )
+        unproven = _prove(rel, page, draft, target, _approved(page, draft, edits))
     except Exception:
         _discard(target, created)
         raise
@@ -655,8 +653,8 @@ def _approved(
 
 def _prove(
     rel: str,
-    before: str,
-    after: str,
+    before: str | Page,
+    after: str | Page,
     path: Path,
     approved: Sequence[tuple[Paragraph, Paragraph]] = (),
 ) -> Refusal | None:
@@ -704,13 +702,24 @@ def _prove(
 
     Args:
         rel: how the repo names the page.
-        before: the text the draft was set from.
-        after: the draft's text.
+        before: the admitted page the draft was set from, or text to admit.
+        after: the admitted draft page, or text to admit.
         path: used for its suffix, which picks the comparison.
         approved: each approved alteration's place, on the page the draft was
             set from and in the draft, as `_approved` pairs them. Empty keeps
             every docstring's presence in the comparison.
     """
+    admitted: list[Page] = []
+    for side, value in (("before", before), ("after", after)):
+        page = (
+            value
+            if isinstance(value, Page)
+            else page_of(path, rel=rel, source=Source(value, sha_of(value)))
+        )
+        if isinstance(page, ReadFailure):
+            return Refusal("prove", rel, f"{side}: {format_failure(page, path=rel)}")
+        admitted.append(page)
+    before_text, after_text = (page.text for page in admitted)
     documented = [
         (was, now)
         for was, now in approved
@@ -720,10 +729,10 @@ def _prove(
     # set from, so both texts set aside a declaration with the same declaring
     # line.
     kind, want = code_fingerprint_setting_aside(
-        before, path, [(was.anchor, was.anchor_line) for was, _ in documented]
+        before_text, path, [(was.anchor, was.anchor_line) for was, _ in documented]
     )
     got_kind, got = code_fingerprint_setting_aside(
-        after, path, [(was.anchor, now.anchor_line) for was, now in documented]
+        after_text, path, [(was.anchor, now.anchor_line) for was, now in documented]
     )
     if kind == "unprovable" or got_kind == "unprovable":
         return Refusal("prove", rel, "the code in this file cannot be proven unchanged")
@@ -734,6 +743,10 @@ def _prove(
             "the declaration an approved docstring alteration documents cannot be"
             " identified in the code, so its docstring cannot be set aside",
         )
+    if kind not in ("ast", "stripped") or got_kind not in ("ast", "stripped"):
+        return Refusal("prove", rel, "the code in this file cannot be proven unchanged")
+    if kind != got_kind:
+        return Refusal("prove", rel, "the proof kind is not what it was")
     if want != got:
         return Refusal("prove", rel, "the executable code is not what it was")
     return None
