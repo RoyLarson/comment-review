@@ -64,9 +64,11 @@ class SourceRegion:
     kind: RegionKind
 
     def __post_init__(self) -> None:
-        """Require a nonempty validated span."""
+        """Require a nonempty validated span and a RegionKind classification."""
         if not isinstance(self.span, SourceSpan) or self.span.start == self.span.end:
             raise ValueError("Region span must be a nonempty SourceSpan")
+        if not isinstance(self.kind, RegionKind):
+            raise ValueError("Region kind must be a RegionKind")
 
 
 @dataclass(frozen=True)
@@ -141,7 +143,9 @@ class SourceStructure:
     _line_starts: tuple[int, ...] = field(init=False, repr=False)
 
     def __post_init__(self) -> None:
-        """Validate source records and cache physical line boundaries."""
+        """Validate string text and source records, then cache line boundaries."""
+        if not isinstance(self.text, str):
+            raise ValueError("text must be a string")
         for name, record_type in (
             ("regions", SourceRegion),
             ("sections", SourceSection),

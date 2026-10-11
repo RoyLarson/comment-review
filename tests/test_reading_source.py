@@ -92,6 +92,36 @@ def structure(text, bounds):
     )
 
 
+@pytest.mark.parametrize("kind", ["unknown", "code", None, []])
+def test_region_rejects_non_enum_kind(kind: object):
+    with pytest.raises(ValueError, match="kind"):
+        SourceRegion(SourceSpan(0, 1), cast(RegionKind, kind))
+
+
+@pytest.mark.parametrize("kind", list(RegionKind))
+def test_region_preserves_enum_kind(kind: RegionKind):
+    assert SourceRegion(SourceSpan(0, 1), kind).kind is kind
+
+
+@pytest.mark.parametrize("text", [["x"], b"x", None, [], b""])
+def test_structure_rejects_non_string_text(text: object):
+    regions = (SourceRegion(SourceSpan(0, 1), RegionKind.CODE),)
+    with pytest.raises(ValueError, match=r"^text\b"):
+        SourceStructure(cast(str, text), regions, (), (), ())
+
+
+def test_structure_validates_text_before_collections():
+    with pytest.raises(ValueError, match=r"^text\b"):
+        SourceStructure(cast(str, None), cast(Any, []), (), (), ())
+
+
+@pytest.mark.parametrize("text", ["", "x", "\ufeffx\r\n\u00e9\t"])
+def test_structure_preserves_exact_string_input(text: str):
+    source = structure(text, [(0, len(text), RegionKind.CODE)] if text else [])
+    assert source.text is text
+    assert source.reconstruct() == text
+
+
 def test_partition_preserves_exact_source_and_classifications():
     source = structure(
         'a "b"#c!',
