@@ -1,7 +1,54 @@
 """Immutable identities and effective settings for a saved reading."""
 
-from dataclasses import dataclass
+import json
+from collections.abc import Mapping
+from dataclasses import dataclass, fields
+from hashlib import sha256
 from re import fullmatch
+
+from comment_review.reading.definitions import LanguageDefinition
+
+
+def _json_value(value: object) -> object:
+    """Convert immutable definition containers to JSON tables and arrays."""
+    if isinstance(value, Mapping):
+        return {key: _json_value(item) for key, item in value.items()}
+    if isinstance(value, tuple):
+        return [_json_value(item) for item in value]
+    return value
+
+
+def compatibility_identity(
+    definition: LanguageDefinition,
+    *,
+    reader_revision: str,
+    placement_revision: str,
+    grammar_identity: str,
+) -> str:
+    """Hash the complete definition and explicit recognition revisions."""
+    for name, value in (
+        ("reader_revision", reader_revision),
+        ("placement_revision", placement_revision),
+    ):
+        if not isinstance(value, str) or not value:
+            raise ValueError(f"{name} must be a nonempty string")
+    if not isinstance(grammar_identity, str):
+        raise ValueError("grammar_identity must be a string")
+    canonical = json.dumps(
+        {
+            "definition": {
+                field.name: _json_value(getattr(definition, field.name))
+                for field in fields(definition)
+            },
+            "reader_revision": reader_revision,
+            "placement_revision": placement_revision,
+            "grammar_identity": grammar_identity,
+        },
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+    return sha256(canonical.encode("utf-8")).hexdigest()
 
 
 @dataclass(frozen=True)
