@@ -1,9 +1,9 @@
 # Source acquisition and read results
 
 ```
-Status:   open
-Progress: 0 of 6 TODO tasks closed
-Plan-tasks: 0 of 13 plan tasks closed
+Status:   in-progress
+Progress: 1 of 6 TODO tasks closed
+Plan-tasks: 1 of 13 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (founded by move-t from 2026-10-11-lexical-readers)
@@ -245,7 +245,7 @@ runtime implementation is included in the plan-authoring commit.
 
 ### A - [2026-10-11-source-reading-contract](../../TODO/2026-10-11-source-reading-contract.md)
 
-- [ ] T5 | Define immutable read diagnostics and failures; verify location
+- [x] T5 | Define immutable read diagnostics and failures; verify location
       units, field validation and successful empty input
 - [ ] T6 | Reject failed readings at page and proof admission; verify
       either-side failures, empty success and cleanup
@@ -266,8 +266,9 @@ runtime implementation is included in the plan-authoring commit.
 
 ## Plan Tasks
 
-- [ ] P1 | Define immutable diagnostics and failed-read outcomes; verify stages,
-      codes, invalid fields and empty-input success
+- [x] P1 | Immutable diagnostics and empty-success distinction verified | 42752127 | Define
+      immutable diagnostics and failed-read outcomes; verify stages, codes,
+      invalid fields and empty-input success
         > 2026-10-11 uv run pytest -q tests/test_reading_diagnostics.py
 - [ ] P2 | Share cached source coordinates and diagnostic rendering; verify
       CRLF, EOF, Unicode and distinct byte offsets
