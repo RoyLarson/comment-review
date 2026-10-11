@@ -49,6 +49,6 @@ def main(argv: list[str] | None = None) -> int:
             moved += 1
             print(f"  moved   {path} -- {why}")
     print(f"\n{same} identical, {moved} normalised, {broken} LOSSY")
-    # !! ONLY A LOST OR INVENTED LINE FAILS. A normalised file is the ruled
-    # series order doing what it was ruled to do -- see `set_page`.
+    # Read or rendering refusals and lost or invented lines fail. A byte
+    # difference retaining every line is reported as successful normalisation.
     return 1 if broken else 0

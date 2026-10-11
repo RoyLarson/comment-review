@@ -141,21 +141,41 @@ def test_read_failure_reports_retained_location(tmp_path, capsys):
     assert "line 2, one-based; column 0, zero-based" in output
 
 
-@pytest.mark.parametrize("raw", [b"\xef\xbb\xbfx = 1\n", b"x = 1\r\ny = 2\n"])
-def test_literal_acquisition_has_explicit_round_trip_outcome(tmp_path, raw):
-    from comment_review.flows.compositor import RoundTrip, round_trip
+def test_python_bom_rejection_is_visible(tmp_path, capsys):
+    from comment_review.commands.compositor import main
+    from comment_review.flows.compositor import round_trip
     from comment_review.flows.read_diagnostics import LocatedReadFailure
+    from comment_review.reading.diagnostics import ReadStage
 
     path = tmp_path / "sample.py"
-    path.write_bytes(raw)
+    path.write_bytes(b"\xef\xbb\xbfx = 1\n")
     result = round_trip(path)
-    if isinstance(result, LocatedReadFailure):
-        assert result.text == raw.decode("utf-8")
-        assert result.diagnostics
-    else:
-        assert isinstance(result, RoundTrip)
-        assert result.original.encode("utf-8") == raw
-        assert result.rendered.encode("utf-8") != raw
+    assert isinstance(result, LocatedReadFailure)
+    assert result.text == "\ufeffx = 1\n"
+    assert result.language == "python"
+    assert [(d.stage, d.code) for d in result.diagnostics] == [
+        (ReadStage.LEX, "incomplete-read")
+    ]
+    assert "invalid non-printable character U+FEFF" in result.diagnostics[0].message
+    assert main([str(path)]) == 1
+    output = capsys.readouterr().out
+    assert f"{path.as_posix()} [python] lex/incomplete-read" in output
+    assert "invalid non-printable character U+FEFF" in output
+    assert "0 identical, 0 normalised, 1 LOSSY" in output
+
+
+def test_mixed_endings_set_as_crlf(tmp_path, capsys):
+    from comment_review.commands.compositor import main
+    from comment_review.flows.compositor import RoundTrip, round_trip
+
+    path = tmp_path / "sample.py"
+    path.write_bytes(b"x = 1\r\ny = 2\n")
+    result = round_trip(path)
+    assert isinstance(result, RoundTrip)
+    assert result.original.encode("utf-8") == b"x = 1\r\ny = 2\n"
+    assert result.rendered.encode("utf-8") == b"x = 1\r\ny = 2\r\n"
+    assert main([str(path)]) == 0
+    assert "0 identical, 1 normalised, 0 LOSSY" in capsys.readouterr().out
 
 
 #: Every addressed place on the sample, and the subset holding prose. Discovered

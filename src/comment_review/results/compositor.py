@@ -395,9 +395,9 @@ def lossless(original: str, rendered: str) -> str | None:
     """Compare supplied text for retained lines; return None if all remain.
 
     !! THE WEAKER INVARIANT, AND THE ONE THAT MUST NEVER BREAK. `identity` asks
-    for the same bytes in the same order; this asks only that no line was lost
-    and none invented. They differ on exactly one shape, and it is RULED rather
-    than a defect -- see `set_page` on the series order.
+    for the same bytes in the same order; this compares line multisets, including
+    duplicate counts, without line endings. Reordering lines or changing their
+    endings can preserve this invariant while failing byte identity.
 
     ! IT IS WHAT SEPARATES A NORMALISATION FROM A BUG. A gate that could not
     tell them apart would carry the known-acceptable failures, and the next one
