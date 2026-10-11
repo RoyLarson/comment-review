@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 7 of 10 tasks closed
+Progress: 7 of 12 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-20 (found while adding the per-language declares keyword list,
@@ -39,11 +39,31 @@ T7 combined this decision with implementation and code-comment changes. T9
 records the approved decision; T10 carries implementation and its verification.
 Closing the decision does not claim that the reader has been changed.
 
-T8 concerns Ruby's own documentation rules and remains separate. T6 updates the
-compact reference to describe whatever unresolved cases actually remain after
-the reader changes. The lexical-reader specification supplies the current
-architecture; references to retired helpers in older task checks need board
-reconciliation rather than restoring the old implementation.
+Ruby follows RDoc attachment: blank lines and whitespace may separate a
+documentation section from its following eligible declaration. There is no
+one-blank-line limit. Intervening executable code ends that attachment
+candidate. The section occupies the declaration's a place; ordinary mid-file
+prose before non-declaration code stays at b. Existing matter and margin rules
+still apply. Same-type comments between code lines stay together as one section.
+
+Ruby's comment grammar defines comment delimiters; RDoc defines documentation
+attachment. RDoc's Ruby parser, prepare_comments, skips blank lines for both
+line comments and embedded documentation blocks:
+https://github.com/ruby/rdoc/blob/master/lib/rdoc/parser/ruby.rb#L275-L325 Ruby
+syntax reference: https://docs.ruby-lang.org/en/master/syntax/comments_rdoc.html
+
+T8 incorrectly made this language investigation a human decision and checked
+agreement between comments instead of behavior. T11 records the evidence in the
+lexical-reader design's Ruby documentation section. T12 carries the reader and
+fixture work. Verify touching comments, one and several blank lines,
+whitespace-only lines, both comment forms, whole blank-separated sections, and
+intervening executable code. Check kind, owner, address and line-control
+coverage.
+
+T6 updates the compact reference to describe whatever unresolved cases actually
+remain after the reader changes. The lexical-reader specification supplies the
+current architecture; references to retired helpers in older task checks need
+board reconciliation rather than restoring the old implementation.
 
 ## !! What is left: two functions ask the same question and answer it differently
 
@@ -115,3 +135,7 @@ rule is that a language takes its definition from its own grammar and never from
         > 2026-10-11 Roy approved Go adjacency: no blank before its declaration.
 - [ ] T10 | Implement Go documentation adjacency; verify touching comments use
       a, separated comments use b, and reader prose agrees
+- [ ] T11 | Record Ruby attachment from authoritative RDoc sources; verify the
+      spec permits blank lines and preserves whole sections
+- [ ] T12 | Implement Ruby attachment; verify blank-separated prose uses a,
+      intervening code blocks attachment, and sections stay whole

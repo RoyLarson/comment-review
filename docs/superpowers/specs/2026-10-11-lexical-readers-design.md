@@ -245,10 +245,8 @@ places documentation before the declaration's annotations and modifiers.
 requires documentation before attributes that form part of the declaration.
 [Rust](https://doc.rust-lang.org/stable/reference/comments.html) distinguishes
 outer documentation on the following item from inner documentation on its
-containing item. Python's first-statement rule is specified below. Ruby's
-specification must establish the behavior of its selected documentation
-convention, including blank lines; [RDoc's placement description](https://github.com/ruby/rdoc/blob/master/doc/markup_reference/rdoc.rdoc)
-alone does not settle every intervening-source case.
+containing item. Python's first-statement rule and Ruby's RDoc attachment rule
+are specified below.
 
 Attachment determines the section's owner and place. Same-type comments within
 that place remain one section across blank lines, with line controls applied
@@ -267,6 +265,37 @@ whole section at its `b` place instead of assigning it to the declaration's
 The Go definition owns this adjacency rule. Its specification and fixtures
 cover both placements. Every other language establishes its own documentation
 rules independently.
+
+## Ruby documentation
+
+Ruby uses RDoc's documentation attachment convention. An eligible declaration
+owns the preceding documentation section when only blank lines or whitespace
+separate them; the section occupies that declaration's `a` place. There is no
+one-blank-line limit. Intervening executable code ends that attachment candidate.
+An ordinary mid-file section whose next code is not an eligible declaration
+stays at its `b` place. Existing matter and margin classifications still apply.
+
+[Ruby's comment syntax](https://docs.ruby-lang.org/en/master/syntax/comments_rdoc.html)
+defines `#` comments and column-zero `=begin`/`=end` blocks. Documentation
+ownership comes from RDoc's convention rather than Ruby's comment grammar.
+[RDoc's markup reference](https://github.com/ruby/rdoc/blob/master/doc/markup_reference/rdoc.rdoc#markup-sources)
+identifies documentation preceding definitions;
+[its Ruby parser](https://github.com/ruby/rdoc/blob/master/lib/rdoc/parser/ruby.rb#L275-L325)
+explicitly skips blank lines to find the following code line. That attachment
+calculation handles both line comments and embedded documentation blocks.
+
+The Ruby definition owns this rule within existing declaration coverage.
+Same-type comments between code lines remain one whole section, including
+blank-separated runs; this is the project's section boundary, independently of
+RDoc's internal comment grouping. Protected directives retain their meaning.
+Ruby's specification must distinguish documentation directives from ordinary
+prose and describe eligible owners and declaration modifiers explicitly.
+
+Required invented fixtures cover touching comments, one and several intervening
+blank lines, whitespace-only lines, same-type runs separated by blanks, both
+comment forms, and executable code between prose and a later declaration.
+Assertions check kind, owner, whole-section address and line-control coverage.
+These are implementation checks; recording this rule does not satisfy them.
 
 ## Python documentation
 
@@ -468,10 +497,11 @@ goals. Coverage alone does not close a TODO or change its plan ownership.
 | --- | --- |
 | [language-rows-in-toml](../../../TODO/language-rows-in-toml.md) T17, T18 | Each supported language has its own dated specification and definition file configuring its parsing machinery. Shared engines execute independently owned language rules. |
 | [doc-does-not-fill-its-a](../../../TODO/doc-does-not-fill-its-a.md) T10 | Implement the approved Go adjacency rule and verify the resulting `a` and `b` placements and matching reader documentation. The decision is recorded separately in T9; the mixed original T7 is superseded. |
+| [doc-does-not-fill-its-a](../../../TODO/doc-does-not-fill-its-a.md) T11, T12 | T11 records the Ruby attachment rule and sources above. T12 verifies its implementation with whole-section ownership fixtures, including blank lines and intervening code. They replace T8's human-ruling classification and code-comment agreement check. |
 | [lexical-code-identity](../../../TODO/lexical-code-identity.md) T1, T2 | Both proof boundaries use lexical preservation, agree on docstring additions and removals, and detect literal whitespace changes. This covers all currently open goals in this TODO. |
 | [python-cannot-read-python](../../../TODO/python-cannot-read-python.md) T32, T33, T34, T36, T37, T38, T39 | Owned Python reading, discovered docstrings, supported newer syntax on the pinned runtime, exact reconstruction and accurate proof claims. All open goals are covered; the obsolete checks and physical-line promise require the replacements described below. |
 | [lexer-and-language-findings](../../../TODO/lexer-and-language-findings.md) T3, T4, T13-T19, T22-T25, T27, T28, T32-T35 | Preserve matter ownership; distinguish shell expansion from comments and contextual keywords from declarations; recognize multiline and dynamic literals; resume scanning in source order; classify and set same-line, inner and outer documentation correctly. Each language case needs an expected-discovery fixture as well as reconstruction. |
-| [a-doc-comment-is-cued-a-and-typed-b](../../../TODO/a-doc-comment-is-cued-a-and-typed-b.md) T1-T4 | Placement and each language's independently specified documentation rules determine kind and ownership together. Go, Ruby and Lua kinds must agree with their places. Remove expected failures only when the assertions pass. Go follows its documented adjacency rule above; Ruby's rule remains to be resolved independently. |
+| [a-doc-comment-is-cued-a-and-typed-b](../../../TODO/a-doc-comment-is-cued-a-and-typed-b.md) T1-T4 | Placement and each language's independently specified documentation rules determine kind and ownership together. Go, Ruby and Lua kinds must agree with their places. Remove expected failures only when the assertions pass. Go and Ruby follow their independently documented attachment rules above. |
 | [matter-misses-two-languages](../../../TODO/matter-misses-two-languages.md) T2 | An ordinary Rust opening comment remains matter instead of becoming a declaration's documentation. The TypeScript classifier question in this TODO is separate. |
 | [block-comment-markers-survive-into-the-prose](../../../TODO/block-comment-markers-survive-into-the-prose.md) T1, T2, T7-T10 | Prose excludes openers, closers and actual continuation markers; form recovery reconstructs them. Invented fixtures cover multiline Javadoc, Ruby and Lua under their own rules. Delimiter removal does not authorize deleting payload characters or relative indentation. |
 | [doc-on-the-declaring-line](../../../TODO/doc-on-the-declaring-line.md) T3, T4 | A same-line Python docstring receives the declared documentation place and can be set without losing surrounding code. |
@@ -537,7 +567,6 @@ the owning tasks before their dependent implementation is finalized.
 
 | TODO tasks | Boundary still to settle |
 | --- | --- |
-| [doc-does-not-fill-its-a](../../../TODO/doc-does-not-fill-its-a.md) T8 | Ruby documentation adjacency, established from Ruby's own rules: touching its declaration or allowing intervening blank lines. This determines Ruby's expected ownership fixtures. |
 | [a-comment-run-merges-across-blanks](../../../TODO/a-comment-run-merges-across-blanks.md) T6; [lexer-and-language-findings](../../../TODO/lexer-and-language-findings.md) T12 | Whether `Paragraph.lines` remains a stored field. Prefer deriving any display count from source spans; settle what the count means before retaining or removing the field. |
 
 The TypeScript doc-shaped header question in
