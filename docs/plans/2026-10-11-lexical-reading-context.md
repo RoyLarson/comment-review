@@ -3,7 +3,7 @@
 ```
 Status:   in-progress
 Progress: 0 of 3 TODO tasks closed
-Plan-tasks: 3 of 26 plan tasks closed
+Plan-tasks: 4 of 26 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (founded by move-t from 2026-10-11-lexical-readers)
@@ -391,8 +391,9 @@ because this machinery exists.
 - [x] P3 | Definition acquisition preserves source and diagnostic paths; 119 tests and review pass | c2377616 | Acquire
       definition files in flows; verify path-specific failures and no partial
       registry
-- [ ] P4 | Build the language registry; verify duplicate languages and ambiguous
-      suffixes refuse
+- [x] P4 | Registry lookup and refusals pass 162 tests and corrected-contract review | 6aaf1f27 | Build
+      the language registry; verify duplicate languages and ambiguous suffixes
+      refuse
 - [ ] P5 | Bind reader identifiers to installed implementations; verify unknown
       readers and unsupported capabilities refuse
 - [ ] P6 | Register existing readers independently; verify current suffixes,
@@ -403,8 +404,10 @@ because this machinery exists.
       keys and value equality
 - [ ] P9 | Derive reading compatibility identities; verify relevant changes
       invalidate and unrelated or cosmetic changes do not
+        > 2026-10-11 Include definition and bound-reader revisions independently
 - [ ] P10 | Resolve per-file settings at fresh-run entry points; verify explicit
       defaults, valid modes and independent values
+        > 2026-10-11 resolve_context also requires the bound reader_revision keyword
 - [ ] P11 | Serialize reading context; verify exact fields and rejection of
       missing, malformed or future formats
 - [ ] P12 | Carry context through pages, binders and redaction; verify empty
