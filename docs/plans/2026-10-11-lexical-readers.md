@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 14 of 161 TODO tasks closed
+Progress: 16 of 161 TODO tasks closed
 Plan-tasks: 2 of 51 plan tasks closed
 Owner:    backend
 Requires-Roy: true
@@ -526,10 +526,10 @@ interfaces, inputs and checks, without internal development files or history.
 - [ ] T20 | T20 -- **Assert the WRITE chain as data**, the seven steps named in
       the Objective. Verify: the test fails when a step is removed from the
       list.
-- [ ] T23 | MOVED to 2026-10-11-lexical-read-results | Acquire exact UTF-8
+- [x] T23 | MOVED to 2026-10-11-lexical-read-results | Acquire exact UTF-8
       source from files and Git; verify BOM, line endings, Unicode, identity and
       named failures
-- [ ] T24 | MOVED to 2026-10-11-lexical-read-results | Write exact UTF-8 bytes;
+- [x] T24 | MOVED to 2026-10-11-lexical-read-results | Write exact UTF-8 bytes;
       verify unchanged round trips and encoding failure before target truncation
 
 ### AK - [7a-can-prove-the-change-by-applying-it-to-a-copy](../../TODO/7a-can-prove-the-change-by-applying-it-to-a-copy.md)

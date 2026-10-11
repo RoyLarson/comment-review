@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 10 of 24 tasks closed
+Progress: 13 of 25 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-21 (Roy, 2026-08-21: 'The lexer reads zero files - this is also a
@@ -177,10 +177,16 @@ is at `docs/superpowers/specs/2026-08-23-io-and-the-chain-design.md:17`.
 - [ ] T22 | T22 -- **Correct the spec's `read_raw` row, cited in the
       Objective.** Verify: the row names the nine bypassing source reads rather
       than an absence of callers.
-- [~] T23 | Acquire exact UTF-8 source from files and Git; verify BOM, line
-      endings, Unicode, identity and named failures
-- [ ] T24 | Write exact UTF-8 bytes; verify unchanged round trips and encoding
-      failure before target truncation
+- [x] T23 | Exact filesystem and Git snapshots with named failures verified | 1c16426e | Acquire
+      exact UTF-8 source from files and Git; verify BOM, line endings, Unicode,
+      identity and named failures
+- [x] T24 | Byte writes and pre-truncation encoding refusal verified | 1c16426e | Write
+      exact UTF-8 bytes; verify unchanged round trips and encoding failure
+      before target truncation
+- [x] T25 | Missing repository classified separately from missing revision | 1c16426e | Classify
+      Git repository acquisition errors as io-error; verify missing repository
+      differs from an unavailable revision source
+        > 2026-10-11 Review: flows/source.py:49 classifies every Git exit as missing
 ## Related
 
 - [`bom-is-read-as-source`](bom-is-read-as-source.md) -- the same nine sites, the same one
