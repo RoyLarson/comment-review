@@ -26,10 +26,9 @@ def _sibling(
 ) -> tuple[Path, Source] | None:
     """A READABLE tracked file beside `target` that WRITE did not edit.
 
-    Skips a candidate this process cannot itself read as UTF-8 text: a binary
-    or non-UTF-8 sibling is unusable as a line-ending reference, and committing
-    to the first NAME in the directory disabled the check where trying the next
-    tracked file would have answered.
+    Skips a candidate this process cannot read as UTF-8 text. Binary or
+    non-UTF-8 siblings cannot supply a line-ending reference, so selection
+    continues until a readable candidate is found.
 
     Args:
         repo: the repository root.
