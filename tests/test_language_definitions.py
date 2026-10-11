@@ -341,6 +341,130 @@ def definition(**values: Any) -> Any:
     return cls(**values)
 
 
+def binding(**changes: Any) -> Any:
+    values = {
+        "reader": "example-reader",
+        "revision": "1",
+        "capabilities": ("comments",),
+        "grammar_identity": "",
+        "read": lambda path, text, lang: [],
+        "validate": lambda value: None,
+    }
+    values.update(changes)
+    return import_module("comment_review.reading.readers").ReaderBinding(**values)
+
+
+def bind(value: Any, bindings: Any) -> Any:
+    return import_module("comment_review.reading.readers").bind_reader(value, bindings)
+
+
+@pytest.mark.parametrize("identifier", ["unknown", "os.system"])
+def test_binding_unknown_identifier_never_invokes_validator(
+    identifier: str, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import builtins
+
+    def forbidden(value: Any) -> Any:
+        pytest.fail("Unknown readers must not invoke installed callables")
+
+    installed = binding(validate=forbidden, read=forbidden)
+    value = definition(**configuration(reader=identifier))
+    bind_reader = import_module("comment_review.reading.readers").bind_reader
+    with monkeypatch.context() as patch:
+        patch.setattr(builtins, "__import__", forbidden)
+        result = bind_reader(value, {installed.reader: installed})
+    assert isinstance(result, ReadFailure)
+    assert result.diagnostics[0].stage == ReadStage.SELECT
+    assert result.diagnostics[0].code == "unavailable-reader"
+
+
+@pytest.mark.parametrize("claims", [("strings",), ("comments", "strings")])
+def test_binding_unsupported_capability_refuses_before_validation(claims: Any) -> None:
+    def forbidden(value: Any) -> Any:
+        pytest.fail("Unsupported capabilities must refuse before validation")
+
+    result = bind(
+        definition(**configuration(capabilities=claims)),
+        {"example-reader": binding(validate=forbidden)},
+    )
+    assert isinstance(result, ReadFailure)
+    assert result.diagnostics[0].code == "unavailable-reader"
+
+
+def test_binding_key_and_identifier_must_agree() -> None:
+    result = bind(
+        definition(**configuration()), {"example-reader": binding(reader="other")}
+    )
+    assert isinstance(result, ReadFailure)
+    assert result.diagnostics[0].code == "unavailable-reader"
+
+
+@pytest.mark.parametrize("rules", [{}, {"tokens": 1}, {"tokens": ()}])
+def test_binding_validator_distinguishes_missing_invalid_and_empty_grammar(
+    rules: Any,
+) -> None:
+    def validate(value: Any) -> ReadFailure | None:
+        if "tokens" not in value.rules or not isinstance(value.rules["tokens"], tuple):
+            return failure("tokens must be present as an array")
+        return None
+
+    def forbidden(path: Path, text: str, lang: Any) -> Any:
+        pytest.fail("Binding must validate grammar before recognition")
+
+    installed = binding(validate=validate, read=forbidden)
+    result = bind(
+        definition(**configuration(rules=rules)), {installed.reader: installed}
+    )
+    if rules == {"tokens": ()}:
+        assert result is installed
+    else:
+        assert result == failure("tokens must be present as an array")
+
+
+def test_binding_read_once_with_exact_source_and_retains_refusal() -> None:
+    from comment_review.reading.language import LANGUAGES
+
+    calls = []
+    refused = ReadFailure(
+        (
+            ReadDiagnostic(ReadStage.LEX, "first", "one"),
+            ReadDiagnostic(ReadStage.LEX, "second", "two"),
+        )
+    )
+
+    def read(path: Path, text: str, lang: Any) -> ReadFailure:
+        calls.append((path, text, lang))
+        return refused
+
+    installed = binding(read=read)
+    path, text, lang = Path("source.py"), "# exact\r\n", LANGUAGES[0]
+    registered = registry((definition(**configuration(suffixes=(".py",))),))
+    selected = bind(registered.for_path(path), {installed.reader: installed})
+    assert selected.read(path, text, lang) is refused
+    assert calls == [(path, text, lang)]
+    assert installed.grammar_identity == ""
+    with pytest.raises(FrozenInstanceError):
+        installed.revision = "2"
+
+
+@pytest.mark.parametrize(
+    "field,value",
+    [
+        ("reader", ""),
+        ("revision", ""),
+        ("capabilities", ["comments"]),
+        ("capabilities", ("comments", "comments")),
+        ("capabilities", (1,)),
+        ("grammar_identity", None),
+        ("read", None),
+        ("validate", None),
+    ],
+)
+def test_binding_rejects_invalid_constructor_fields(field: str, value: Any) -> None:
+    with pytest.raises(ValueError, match=field):
+        binding(**{field: value})
+
+
 @pytest.mark.parametrize("missing", tuple(configuration()))
 def test_every_field_is_required(missing: str) -> None:
     values = configuration()

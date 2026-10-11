@@ -73,9 +73,9 @@ from comment_review.reading.lexer import (
     declarations,
     document_declarations,
     leading_between,
-    read_paragraphs,
 )
 from comment_review.reading.paragraph import Paragraph
+from comment_review.reading.readers import read_paragraphs
 from comment_review.reading.series import Kind, Series
 
 #: The five fields a place is carried by, in the order `Page.serialize` writes
