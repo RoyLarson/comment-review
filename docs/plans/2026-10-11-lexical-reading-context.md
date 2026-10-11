@@ -3,7 +3,7 @@
 ```
 Status:   in-progress
 Progress: 9 of 10 TODO tasks closed
-Plan-tasks: 15 of 26 plan tasks closed
+Plan-tasks: 16 of 26 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (founded by move-t from 2026-10-11-lexical-readers)
@@ -446,8 +446,9 @@ because this machinery exists.
 - [x] P15 | Received and stage contexts admitted before coverage; 313 tests and review pass | 8532c4f7 | Check
       returned copies against received binders; verify context admission
       precedes coverage checks
-- [ ] P16 | Admit contexts before collation; verify incompatible inputs never
-      reach source lookup, coverage or folding
+- [x] P16 | Initial collation admits context before address work; 350 tests and independent review pass | 757a43fc | Admit
+      contexts before collation; verify incompatible inputs never reach source
+      lookup, coverage or folding
 - [ ] P17 | Validate cached pages against source and context; verify
       incompatible requests cannot reuse a cached reading
 - [ ] P18 | Capture move destination source and context together; verify
