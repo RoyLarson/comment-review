@@ -3,7 +3,7 @@
 ```
 Status:   decision-needed
 Progress: 19 of 161 TODO tasks closed
-Plan-tasks: 4 of 53 plan tasks closed
+Plan-tasks: 5 of 53 plan tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-10-11 (founded by move-t from 0.2.4-the-middle-rebuilt)
@@ -596,8 +596,9 @@ interfaces, inputs and checks, without internal development files or history.
       exact source acquisition; verify BOM, CRLF, mixed endings, Unicode and
       empty input survive the read and write path
         > 2026-10-11 Check: uv run pytest -q tests/test_proof_io.py
-- [ ] P4 | Load independent TOML language definitions; verify registry dispatch,
-      explicit capabilities and excluded file categories
+- [-] P4 | Approved split: P52 owns shared registry machinery; P53 owns per-language definitions | d2d29ccf | Load
+      independent TOML language definitions; verify registry dispatch, explicit
+      capabilities and excluded file categories
         > 2026-10-11 Check: uv run pytest -q tests/test_language_definitions.py
 - [ ] P5 | Carry reading compatibility and dialect settings through pages and
       binders; verify serialization preserves their identity
