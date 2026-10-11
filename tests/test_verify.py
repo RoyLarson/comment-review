@@ -27,6 +27,7 @@ from helpers import (
 
 from comment_review.desk.collator import Cache, known_addresses, verify_report
 from comment_review.desk.proof.mark import BlankMark
+from comment_review.desk.proof.sheet import Sheet
 from comment_review.desk.stages import Kind, Stage
 from comment_review.flows.page_for import page_of
 from comment_review.flows.verify import (
@@ -228,7 +229,9 @@ class TestAnAddressOutsideTheCheckoutIsNotRead:
             "sources": [{"cite": "m.py:1", "verbatim": "v0 = 0"}],
             "change": "# one\n# 2\n# three",
         }
-        wire["sheets"].append({"path": path, "sha": "", "marks": [correct]})
+        wire["sheets"].append(
+            Sheet.seed(path, "", [correct], reading=binder.pages[0].reading)
+        )
         read = []
 
         def recording(page_path, *args, **kwargs):
@@ -274,7 +277,9 @@ class TestAQuoteIsCheckedAgainstThePage:
             "sources": [{"cite": "a.py:1", "verbatim": "v0 = 0"}],
             "change": "# one\n# 2\n# three",
         }
-        wire["sheets"].append({"path": "b.py", "sha": "", "marks": [correct]})
+        wire["sheets"].append(
+            Sheet.seed("b.py", "", [correct], reading=binder.pages[0].reading)
+        )
         return [
             p.message
             for p in _quote_problems(wire, binder, root)

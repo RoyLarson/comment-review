@@ -144,5 +144,12 @@ def chief_copy_of(
     for sheet in sheets:
         marks = by_path.get(flatten(sheet.path), [])
         if marks:
-            out.append(Sheet(path=sheet.path, sha=sheet.sha, marks=tuple(marks)))
+            out.append(
+                Sheet(
+                    path=sheet.path,
+                    sha=sheet.sha,
+                    marks=tuple(marks),
+                    reading=sheet.reading,
+                )
+            )
     return EditCopy(role=role, read_from={**read_from}, sheets=tuple(out))

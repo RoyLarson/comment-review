@@ -9,13 +9,18 @@ are about.
 from dataclasses import fields
 
 import pytest
-from helpers import a_clean, a_master_proof, a_small_real_tree, binder_of
+from helpers import a_binder_over, a_clean, a_master_proof, a_small_real_tree, binder_of
 
 from comment_review.desk.proof.edit_copy import EditCopy
 from comment_review.desk.proof.master_proof import MasterProof
 from comment_review.desk.proof.move import Move
 from comment_review.desk.proof.sheet import Sheet
 from comment_review.flows.distribute import seed
+from comment_review.reading.context_io import context_to_wire
+
+
+def reading_wire():
+    return context_to_wire(a_binder_over({"m.py@b1": "# example\n"}).pages[0].reading)
 
 
 def a_real_copy(tmp_path, role="block-context"):
@@ -41,7 +46,12 @@ class TestTheWriteHalfLivesWithTheRead:
         reason the class's fields were: a literal would pass a rename that
         broke `seed` and the declaration together.
         """
-        row = Sheet.seed(path="m.py", sha="abc", marks=[])
+        row = Sheet.seed(
+            path="m.py",
+            sha="abc",
+            marks=[],
+            reading=a_binder_over({"m.py@b1": "# example\n"}).pages[0].reading,
+        )
         wire = {f.name for f in fields(Sheet) if f.metadata.get("wire", True)}
         assert set(row) == wire
         assert wire < {f.name for f in fields(Sheet)}, "some field must be off the wire"
@@ -352,7 +362,7 @@ class TestANullFieldIsAbsentNotTheWordNone:
     def test_a_null_sha(self):
         sheet, why = Sheet.deserialize(
             "sheet 1",
-            {"path": "m.py", "sha": None, "marks": []},
+            {"path": "m.py", "sha": None, "marks": [], "reading": reading_wire()},
         )
         assert why == []
         assert sheet is not None
@@ -393,7 +403,12 @@ class TestAnAddressLessEntryIsStillFindable:
     def test_a_bare_string_is_located_by_page_and_position(self):
         sheet, why = Sheet.deserialize(
             "s",
-            {"path": "m.py", "sha": "a", "marks": [{}, {}, "not an object"]},
+            {
+                "path": "m.py",
+                "sha": "a",
+                "marks": [{}, {}, "not an object"],
+                "reading": reading_wire(),
+            },
         )
         assert why == []
         assert sheet is not None
@@ -410,7 +425,12 @@ class TestAnAddressLessEntryIsStillFindable:
         """
         sheet, why = Sheet.deserialize(
             "s",
-            {"path": "m.py", "sha": "a", "marks": [{"instruction": None}]},
+            {
+                "path": "m.py",
+                "sha": "a",
+                "marks": [{"instruction": None}],
+                "reading": reading_wire(),
+            },
         )
         assert why == []
         assert sheet is not None
@@ -427,6 +447,7 @@ class TestAnAddressLessEntryIsStillFindable:
                 "path": "m.py",
                 "sha": "a",
                 "marks": [{"address": "m.py@b1", "instruction": None}],
+                "reading": reading_wire(),
             },
         )
         assert why == []

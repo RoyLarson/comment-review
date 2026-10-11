@@ -17,6 +17,7 @@ from helpers import (
     returned,
 )
 
+from comment_review.binder.page import Page
 from comment_review.desk import report as events
 from comment_review.desk.marks.table import INSTRUCTIONS
 from comment_review.desk.proof.answer import Question
@@ -34,6 +35,7 @@ from comment_review.flows.bus import (
     turn_of,
 )
 from comment_review.flows.human import HumanAnswer
+from comment_review.flows.page_for import page_of
 from comment_review.flows.proof_io import load_proof, save_proof
 from comment_review.flows.revise import pull
 from comment_review.flows.transcribe import docket_of_proof
@@ -1307,9 +1309,11 @@ def test_an_add_over_prose_in_an_ungathered_file_that_drops_a_word_is_refused(
         "change": "# a new line",
     }
     copy = message.copies[0]
+    page = page_of(tmp_path / "repo" / "n.py", rel="n.py")
+    assert isinstance(page, Page)
     sheet, why = Sheet.deserialize(
         "n.py",
-        {"path": "n.py", "sha": "", "marks": [add]},
+        Sheet.seed("n.py", "", [add], reading=page.reading),
     )
     assert sheet is not None, why
     message.copies[0] = replace(copy, sheets=(*copy.sheets, sheet))
@@ -1349,9 +1353,11 @@ def test_a_move_and_an_add_into_one_ungathered_place_compose_on_different_senten
         **an_add("n.py@b1", reads=UNGATHERED + "\n# six"),
         "change": "# six",
     }
+    page = page_of(tmp_path / "repo" / "n.py", rel="n.py")
+    assert isinstance(page, Page)
     sheet, why = Sheet.deserialize(
         "n.py",
-        {"path": "n.py", "sha": "", "marks": [add]},
+        Sheet.seed("n.py", "", [add], reading=page.reading),
     )
     assert sheet is not None, why
     copy = message.copies[1]

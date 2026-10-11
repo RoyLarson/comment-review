@@ -88,10 +88,18 @@ def test_chief_copy_of_synthesizes_a_correct_for_a_decided_place():
     place = Place(
         address="m.py@b1", anchor="x = 1", base=BASE, text="# x\n", state=State.STANDS
     )
-    sheets = [Sheet(path="m.py", sha="0" * 40, marks=())]
+    sheets = [
+        Sheet(
+            path="m.py",
+            sha="0" * 40,
+            marks=(),
+            reading=a_binder_over({"m.py@b1": BASE}).pages[0].reading,
+        )
+    ]
     copy = chief_copy_of(
         {"m.py@b1": place}, "copy-chief", {"root": ".", "revise": 0}, sheets
     )
+    assert copy.sheets[0].reading == sheets[0].reading
     marks = [m for sheet in copy.sheets for m in sheet.marks]
     assert len(marks) == 1
     assert isinstance(marks[0], CorrectMark)
@@ -103,7 +111,14 @@ def test_chief_copy_of_writes_no_mark_for_a_place_whose_text_is_none():
     place = Place(
         address="m.py@b1", anchor="x = 1", base=BASE, text=None, state=State.STANDS
     )
-    sheets = [Sheet(path="m.py", sha="0" * 40, marks=())]
+    sheets = [
+        Sheet(
+            path="m.py",
+            sha="0" * 40,
+            marks=(),
+            reading=a_binder_over({"m.py@b1": BASE}).pages[0].reading,
+        )
+    ]
     copy = chief_copy_of(
         {"m.py@b1": place}, "copy-chief", {"root": ".", "revise": 0}, sheets
     )
@@ -116,7 +131,14 @@ def test_chief_copy_of_writes_no_mark_for_a_composed_place():
     place = Place(
         address="m.py@b1", anchor="x = 1", base=BASE, text="# x\n", state=State.COMPOSED
     )
-    sheets = [Sheet(path="m.py", sha="0" * 40, marks=())]
+    sheets = [
+        Sheet(
+            path="m.py",
+            sha="0" * 40,
+            marks=(),
+            reading=a_binder_over({"m.py@b1": BASE}).pages[0].reading,
+        )
+    ]
     copy = chief_copy_of(
         {"m.py@b1": place}, "copy-chief", {"root": ".", "revise": 0}, sheets
     )
@@ -127,7 +149,14 @@ def test_chief_copy_of_synthesizes_a_drop_for_an_empty_decided_text():
     place = Place(
         address="m.py@b1", anchor="x = 1", base=BASE, text="", state=State.STANDS
     )
-    sheets = [Sheet(path="m.py", sha="0" * 40, marks=())]
+    sheets = [
+        Sheet(
+            path="m.py",
+            sha="0" * 40,
+            marks=(),
+            reading=a_binder_over({"m.py@b1": BASE}).pages[0].reading,
+        )
+    ]
     copy = chief_copy_of(
         {"m.py@b1": place}, "copy-chief", {"root": ".", "revise": 0}, sheets
     )

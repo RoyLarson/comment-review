@@ -19,6 +19,7 @@ import json
 from pathlib import Path
 
 import pytest
+from helpers import a_binder_over
 from test_mark_brief import BRIEF
 
 from comment_review.desk.marks.rules import allowed, derived_change
@@ -262,7 +263,15 @@ def test_reading_an_entry_into_its_type_IS_the_check():
     mark, why = read_mark("here", entry)
     assert mark is None
     assert why == ["here: correct needs a `reason`"]
-    sheet, why = Sheet.deserialize("s", {"path": "m.py", "sha": "a", "marks": [entry]})
+    sheet, why = Sheet.deserialize(
+        "s",
+        Sheet.seed(
+            "m.py",
+            "a",
+            [entry],
+            reading=a_binder_over({"m.py@b1": "# example\n"}).pages[0].reading,
+        ),
+    )
     assert why == [] and sheet is not None and sheet.marks == ()
     assert sheet.refused[0].reasons == ("correct needs a `reason`",)
 
@@ -683,6 +692,9 @@ class TestAStoredReasonDoesNotRepeatItsLocator:
             {
                 "path": "m.py",
                 "sha": "a",
+                "reading": a_binder_over({"m.py@b1": "# example\n"})
+                .pages[0]
+                .serialize()["reading"],
                 "marks": [
                     {"address": "m.py@b1", "instruction": "correct", "claim": {}},
                     "not an object",

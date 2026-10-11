@@ -117,6 +117,11 @@ You are handed one sheet per file, and one slot per paragraph on it. This is a f
   "sheets": [
     { "path": "redacted_pkg/billing/rates.py",
       "sha":  "9c1f0b7a4e2d6835aa10c4bb37f9e05d2c8471a6",
+      "reading": { "format": 1,
+                   "language": "example-language",
+                   "reader": "example-reader",
+                   "compatibility": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                   "settings": {} },
       "marks": [
         { "address": "redacted_pkg:billing:rates.py@b47",
           "anchor":  "def compute_rates(plan, period, *, clamp=True):",

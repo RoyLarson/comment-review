@@ -144,6 +144,7 @@ def seed(binder: Binder, role: str, stage: Stage | None = None) -> dict:
             Sheet.seed(
                 path=page.path,
                 sha=page.sha,
+                reading=page.reading,
                 marks=[
                     BlankMark(b.address, b.anchor, b.raw_text).serialize()
                     for b in handed(page.paragraphs)
