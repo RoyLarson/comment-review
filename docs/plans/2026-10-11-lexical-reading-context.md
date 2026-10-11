@@ -1,9 +1,9 @@
 # Language registry and saved reading context
 
 ```
-Status:   open
+Status:   in-progress
 Progress: 0 of 3 TODO tasks closed
-Plan-tasks: 0 of 26 plan tasks closed
+Plan-tasks: 1 of 26 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (founded by move-t from 2026-10-11-lexical-readers)
@@ -375,15 +375,16 @@ because this machinery exists.
 
 ### B - [2026-10-11-language-registry-contract](../../TODO/2026-10-11-language-registry-contract.md)
 
-- [ ] T1 | Load strict independent TOML language definitions; verify explicit
+- [~] T1 | Load strict independent TOML language definitions; verify explicit
       fields, useful errors and no rule inheritance
 - [ ] T2 | Select readers through one registry; verify unique routes, actual
       coverage and excluded file categories
 
 ## Plan Tasks
 
-- [ ] P1 | Define immutable language definitions; verify required fields,
-      explicit empties, types and copied nested values
+- [x] P1 | Immutable definition validation passes 62 tests and independent review | 72ed0aa4 | Define
+      immutable language definitions; verify required fields, explicit empties,
+      types and copied nested values
 - [ ] P2 | Decode TOML definitions without I/O; verify malformed, missing,
       unknown and unsupported fields refuse
 - [ ] P3 | Acquire definition files in flows; verify path-specific failures and
