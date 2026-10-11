@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 4 of 6 tasks closed
+Progress: 5 of 6 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-21 (the /code-review xhigh of 2026-08-21, focused on the file-to-
@@ -50,8 +50,9 @@ It does not reopen the address or comment-section boundary rule.
 - [x] T4 | FINISHED | unknown | T4 -- DONE. The top-of-file split ships:
       `matter` 1-2 and `docstring` 4-4, verified 2026-08-23 through
       `paragraphs_lexical`. The filed wording is in the Objective.
-- [?] T5 | T5 -- * RULE whether a blank line ends a comment run in the MIDDLE of
-      a file. Verify: the ruling is recorded in `docs/decision-log.md`.
+- [x] T5 | Settled rule recorded in the objective and lexer spec: same-type comments stay together across blank lines | 89a6a4bb | T5
+      -- * RULE whether a blank line ends a comment run in the MIDDLE of a file.
+      Verify: the ruling is recorded in `docs/decision-log.md`.
         > 2026-08-31 3 in this repo's own Python -- page.py b28, mark.py b27
         > 2026-09-05 FitPlan 09-05: two places each held two paragraphs; no mark fits
         > 2026-10-11 Roy: same-type comments stay together; blank lines add no anchor.
