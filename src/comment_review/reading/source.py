@@ -116,6 +116,18 @@ class DocumentationOwner:
     section: int
     declaration: int | None
 
+    def __post_init__(self) -> None:
+        """Require zero-based indices, with None for module ownership."""
+        for name in ("section", "declaration"):
+            index = getattr(self, name)
+            if name == "declaration" and index is None:
+                continue
+            if not isinstance(index, int) or isinstance(index, bool) or index < 0:
+                raise ValueError(
+                    f"documentation {name} index {index!r} "
+                    "must be a nonnegative integer"
+                )
+
 
 @dataclass(frozen=True)
 class SourceStructure:
@@ -177,6 +189,34 @@ class SourceStructure:
                     f"declarations[{index}] header must be in source order"
                 )
             declaration_start = declaration.header.start
+
+        previous_section = -1
+        owners: set[int | None] = set()
+        for index, link in enumerate(self.documentation):
+            if link.section >= len(self.sections):
+                raise ValueError(
+                    f"documentation[{index}] section index {link.section} "
+                    "does not exist"
+                )
+            if link.declaration is not None and link.declaration >= len(
+                self.declarations
+            ):
+                raise ValueError(
+                    f"documentation[{index}] declaration index "
+                    f"{link.declaration} does not exist"
+                )
+            if link.section <= previous_section:
+                raise ValueError(
+                    f"documentation[{index}] section index {link.section} "
+                    "must be unique and in section order"
+                )
+            if link.declaration in owners:
+                raise ValueError(
+                    f"documentation[{index}] owner index {link.declaration} "
+                    "already has a section"
+                )
+            previous_section = link.section
+            owners.add(link.declaration)
 
         line_starts = [0]
         offset = 0

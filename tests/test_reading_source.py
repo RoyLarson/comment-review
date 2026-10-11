@@ -483,3 +483,86 @@ def test_declaration_preserves_exact_form_and_kind_identifiers():
     )
     assert source.sections[0].form == "  Custom/Form\t"
     assert source.declarations[0].kind == " Kind/Custom "
+
+
+def ownership_structure(documentation):
+    text = "module\n\nnotes\nfirst\nordinary\nsecond"
+    return SourceStructure(
+        text,
+        (SourceRegion(SourceSpan(0, len(text)), RegionKind.COMMENT),),
+        (
+            SourceSection(SourceSpan(0, 13), "prose"),
+            SourceSection(SourceSpan(14, 19), "prose"),
+            SourceSection(SourceSpan(20, 28), "prose"),
+            SourceSection(SourceSpan(29, 35), "prose"),
+        ),
+        (
+            SourceDeclaration(SourceSpan(14, 19), 14, "first"),
+            SourceDeclaration(SourceSpan(29, 35), 29, "second"),
+        ),
+        documentation,
+    )
+
+
+def test_ownership_module_first_and_distinct_declarations_preserve_links():
+    links = (
+        DocumentationOwner(0, None),
+        DocumentationOwner(1, 0),
+        DocumentationOwner(3, 1),
+    )
+    source = ownership_structure(links)
+    assert source.documentation is links
+    assert source.documentation[0].declaration is None
+    assert source.documentation[1].declaration == 0
+    assert source.documentation[2].declaration == 1
+    assert source.slice(source.sections[0].span) == "module\n\nnotes"
+
+
+def test_ownership_allows_ordinary_unowned_comments():
+    source = ownership_structure(())
+    assert len(source.sections) == 4
+    assert source.documentation == ()
+
+
+@pytest.mark.parametrize("field", ["section", "declaration"])
+@pytest.mark.parametrize("value", [-1, True, False, 0.0, "0"])
+def test_ownership_rejects_invalid_index_fields(field, value):
+    values = {"section": 0, "declaration": None}
+    values[field] = value
+    with pytest.raises(ValueError, match=rf"documentation.*{field}.*{value}"):
+        DocumentationOwner(**values)
+
+
+def test_ownership_requires_section_index():
+    with pytest.raises(ValueError, match=r"documentation.*section.*None"):
+        DocumentationOwner(None, None)
+
+
+@pytest.mark.parametrize(
+    "link,field,index",
+    [
+        (DocumentationOwner(4, None), "section", 4),
+        (DocumentationOwner(0, 2), "declaration", 2),
+    ],
+)
+def test_ownership_rejects_unknown_section_or_owner(link, field, index):
+    with pytest.raises(ValueError, match=rf"documentation\[0\].*{field}.*{index}"):
+        ownership_structure((link,))
+
+
+def test_ownership_rejects_duplicate_section():
+    with pytest.raises(ValueError, match=r"documentation\[1\].*section.*0"):
+        ownership_structure((DocumentationOwner(0, None), DocumentationOwner(0, 0)))
+
+
+@pytest.mark.parametrize("owner", [None, 0, 1])
+def test_ownership_rejects_duplicate_module_or_declaration_owner(owner):
+    with pytest.raises(ValueError, match=rf"documentation\[1\].*owner.*{owner}"):
+        ownership_structure(
+            (DocumentationOwner(0, owner), DocumentationOwner(1, owner))
+        )
+
+
+def test_ownership_rejects_wrong_link_order():
+    with pytest.raises(ValueError, match=r"documentation\[1\].*section.*0"):
+        ownership_structure((DocumentationOwner(3, 1), DocumentationOwner(0, None)))
