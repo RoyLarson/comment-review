@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 10 of 11 tasks closed
+Progress: 12 of 13 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (2026-10-11 lexical-reader design)
@@ -53,3 +53,11 @@ Define shared source reading contracts.
       source acquisition exception groups; verify handlers avoid literal tuples
       and retain failure classification
         > 2026-10-11 Review: flows/source.py:39,51,55 use literal exception tuples
+- [x] T12 | Machine supplies hashing to pure compatibility; unchanged import gates pass | 9913333b | Keep
+      compatibility hashing behind the machine boundary; verify import gates and
+      canonical digests pass
+        > 2026-10-11 Review: reading/context.py:6 breaks the hashlib ownership gate
+- [x] T13 | Compositor example uses supplied Page; scoped review passes | 843b3d40 | Update
+      the compositor page example for required context; verify its call matches
+      the current interface
+        > 2026-10-11 Review: results/compositor.py:36 omits required page reading

@@ -2,8 +2,8 @@
 
 ```
 Status:   in-progress
-Progress: 4 of 5 TODO tasks closed
-Plan-tasks: 11 of 26 plan tasks closed
+Progress: 6 of 7 TODO tasks closed
+Plan-tasks: 12 of 26 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (founded by move-t from 2026-10-11-lexical-readers)
@@ -372,6 +372,10 @@ because this machinery exists.
 
 - [ ] T2 | Carry reader compatibility and language settings through saved runs;
       verify incompatible contexts refuse before address use
+- [x] T12 | Keep compatibility hashing behind the machine boundary; verify
+      import gates and canonical digests pass
+- [x] T13 | Update the compositor page example for required context; verify its
+      call matches the current interface
 
 ### B - [2026-10-11-language-registry-contract](../../TODO/completed/2026-10-11-language-registry-contract.md)
 
@@ -421,8 +425,10 @@ because this machinery exists.
 - [x] P11 | Strict context codec passes 177 tests and independent review | 619faaf0 | Serialize
       reading context; verify exact fields and rejection of missing, malformed
       or future formats
-- [ ] P12 | Carry context through pages, binders and redaction; verify empty
-      pages and old-artifact refusal
+- [x] P12 | Required page and binder contexts pass full suite and independent review | 843b3d40 | Carry
+      context through pages, binders and redaction; verify empty pages and
+      old-artifact refusal
+        > 2026-10-11 Include T12 hashing boundary repair; preserve existing import gates
 - [ ] P13 | Carry context through distribution and shards; verify per-page
       values and empty sheets
 - [ ] P14 | Check context before copy load, mark, check and fill address use;
