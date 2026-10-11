@@ -3,7 +3,7 @@
 ```
 Status:   in-progress
 Progress: 0 of 1 TODO tasks closed
-Plan-tasks: 3 of 13 plan tasks closed
+Plan-tasks: 4 of 13 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (founded by move-t from 2026-10-11-lexical-readers)
@@ -128,8 +128,9 @@ development history.
       exact reconstruction; test BOM, tabs, Unicode, mixed newlines and no final
       newline without normalization
         > 2026-10-11 uv run pytest -q tests/test_reading_source.py -k reconstruct
-- [ ] P4 | Derive cached character coordinates; test CRLF, lone CR and LF, both
-      CRLF offsets, EOF and invalid offsets
+- [x] P4 | Cached positions pass CRLF, Unicode and EOF checks and review | 117ee64b | Derive
+      cached character coordinates; test CRLF, lone CR and LF, both CRLF
+      offsets, EOF and invalid offsets
         > 2026-10-11 uv run pytest -q tests/test_reading_source.py -k position
 - [ ] P5 | Define source sections and declaration headers; test bounds,
       ordering, form names, anchors and nested declarations
