@@ -354,6 +354,7 @@ def test_a_page_the_REPO_DOES_NOT_HAVE_refuses_at_read_and_names_it(tmp_path):
                 {
                     "path": "pkg/nowhere.py",
                     "sha": "whatever",
+                    "reading": build("", "pkg/nowhere.py").serialize()["reading"],
                     "alterations": [{"cue": "b0", "text": "# x"}],
                 }
             ]
@@ -700,6 +701,7 @@ class TestEveryAlterationCarriesAnAnchor:
                     {
                         "path": "m.py",
                         "sha": page.sha,
+                        "reading": page.serialize()["reading"],
                         "alterations": [{"cue": cue_of(where).cue, "text": "# x"}],
                     }
                 ]
@@ -754,6 +756,7 @@ class TestOnePlaceTakesOneAlteration:
                 Schedule(
                     path="m.py",
                     sha=page.sha,
+                    reading=page.reading,
                     alterations=(
                         Alteration(cue=at, text="# one", anchor=anchor),
                         Alteration(cue=at, text=None, anchor=anchor),

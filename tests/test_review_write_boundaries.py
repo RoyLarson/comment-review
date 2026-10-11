@@ -160,6 +160,7 @@ def test_inserted_closing_gap_survives_proof_and_rereading(tmp_path, text):
                 "m.py",
                 page.sha,
                 (Alteration("b1", "# new", page.cues.anchor_of("b1")),),
+                page.reading,
             ),
         )
     )

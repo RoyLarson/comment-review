@@ -71,7 +71,10 @@ from comment_review.docket.docket import Alteration, Docket, Schedule
 from comment_review.flows.human import queries_in_copies
 from comment_review.flows.on_the_page import PageCache, held_at, no_page, page_named
 from comment_review.flows.places import bases_and_anchors, places_of
-from comment_review.flows.reading_context import copy_reading_contexts
+from comment_review.flows.reading_context import (
+    copy_reading_contexts,
+    proof_reading_problems,
+)
 from comment_review.reading.addresser import cue_of, flatten
 from comment_review.reading.context import ReadingContext
 from comment_review.reading.diagnostics import ReadFailure
@@ -181,6 +184,7 @@ def _schedules_of(
     decided: dict[str, list[Place]],
     shas: dict[str, str],
     role: str,
+    contexts: dict[str, ReadingContext],
 ) -> tuple[Schedule, ...]:
     """One schedule per page a text was decided on, each page's places in order.
 
@@ -191,6 +195,7 @@ def _schedules_of(
         shas: flattened page name -> the sha recorded for it, where one was.
         role: the role written onto every schedule -- the copy a docket was
             pulled from, or the chief where a fold decided the places.
+        contexts: original contexts keyed by real relative path.
 
     Returns:
         The schedules, in `pages`' own order. A page with nothing to set gets
@@ -231,6 +236,7 @@ def _schedules_of(
                     for place in here
                 ),
                 role=role,
+                reading=contexts[rel],
             )
         )
     return tuple(schedules)
@@ -315,7 +321,9 @@ def docket_of(copy: EditCopy, repo: Path) -> Docket:
 
     shas = {name: page.sha for name, (_rel, page) in pages.items()}
     shas.update({flatten(sheet.path): sheet.sha for sheet in copy.sheets})
-    return Docket(schedules=_schedules_of(pages, decided, shas, copy.role))
+    original = {rel: page.reading for rel, page in pages.values()}
+    original.update(contexts)
+    return Docket(schedules=_schedules_of(pages, decided, shas, copy.role, original))
 
 
 def _open_moves(moves: list[Move]) -> list[str]:
@@ -436,6 +444,9 @@ def docket_of_proof(
             move that will not read never reaches here: `MasterProof.deserialize`
             refuses the proof and names it.
     """
+    problems = proof_reading_problems(proof)
+    if problems:
+        raise CannotTranscribe(tuple(problems))
     places = list(proof.places)
     unclosed = _unclosed(places) + _open_moves(list(proof.moves))
     if unclosed:
@@ -461,13 +472,13 @@ def docket_of_proof(
     }
     # The pages the run recorded, in the order it recorded them, with the sha
     # each was read at. A page every copy holds a sheet for is named once.
-    known: list[str] = []
+    known: list[str] = list(proof.page_readings)
     shas = {flatten(path): sha for path, sha in proof.page_shas.items()}
     for copy in proof.edit_copies:
         for sheet in copy.sheets:
             if sheet.path not in known:
                 known.append(sheet.path)
-                shas[flatten(sheet.path)] = sheet.sha
+            shas[flatten(sheet.path)] = sheet.sha
     missing = [
         f"{CHIEF} {name}: no recorded page sha; gather and collate this page again"
         for name in decided
@@ -475,18 +486,8 @@ def docket_of_proof(
     ]
     if missing:
         raise CannotTranscribe(tuple(missing))
-    contexts: dict[str, ReadingContext] = {}
-    for copy in proof.edit_copies:
-        admitted, why = copy_reading_contexts(copy)
-        if why:
-            raise CannotTranscribe(tuple(why))
-        for path, context in admitted.items():
-            if path in contexts and contexts[path] != context:
-                raise CannotTranscribe(
-                    (f"{CHIEF} {path}: conflicting reading contexts; regather",)
-                )
-            contexts[path] = context
+    contexts = dict(proof.page_readings)
     pages, unreadable = _pages_of(repo, known, touched, CHIEF, "places", {}, contexts)
     if unreadable:
         raise CannotTranscribe(tuple(unreadable))
-    return Docket(schedules=_schedules_of(pages, decided, shas, CHIEF))
+    return Docket(schedules=_schedules_of(pages, decided, shas, CHIEF, contexts))

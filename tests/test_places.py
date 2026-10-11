@@ -97,7 +97,12 @@ def test_chief_copy_of_synthesizes_a_correct_for_a_decided_place():
         )
     ]
     copy = chief_copy_of(
-        {"m.py@b1": place}, "copy-chief", {"root": ".", "revise": 0}, sheets
+        {"m.py@b1": place},
+        "copy-chief",
+        {"root": ".", "revise": 0},
+        sheets,
+        {s.path: s.reading for s in sheets},
+        {},
     )
     assert copy.sheets[0].reading == sheets[0].reading
     marks = [m for sheet in copy.sheets for m in sheet.marks]
@@ -120,7 +125,12 @@ def test_chief_copy_of_writes_no_mark_for_a_place_whose_text_is_none():
         )
     ]
     copy = chief_copy_of(
-        {"m.py@b1": place}, "copy-chief", {"root": ".", "revise": 0}, sheets
+        {"m.py@b1": place},
+        "copy-chief",
+        {"root": ".", "revise": 0},
+        sheets,
+        {s.path: s.reading for s in sheets},
+        {},
     )
     assert copy.sheets == ()
 
@@ -140,7 +150,12 @@ def test_chief_copy_of_writes_no_mark_for_a_composed_place():
         )
     ]
     copy = chief_copy_of(
-        {"m.py@b1": place}, "copy-chief", {"root": ".", "revise": 0}, sheets
+        {"m.py@b1": place},
+        "copy-chief",
+        {"root": ".", "revise": 0},
+        sheets,
+        {s.path: s.reading for s in sheets},
+        {},
     )
     assert copy.sheets == ()
 
@@ -158,7 +173,12 @@ def test_chief_copy_of_synthesizes_a_drop_for_an_empty_decided_text():
         )
     ]
     copy = chief_copy_of(
-        {"m.py@b1": place}, "copy-chief", {"root": ".", "revise": 0}, sheets
+        {"m.py@b1": place},
+        "copy-chief",
+        {"root": ".", "revise": 0},
+        sheets,
+        {s.path: s.reading for s in sheets},
+        {},
     )
     marks = [m for sheet in copy.sheets for m in sheet.marks]
     assert len(marks) == 1

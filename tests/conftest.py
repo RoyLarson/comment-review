@@ -193,7 +193,12 @@ def docket_from(flat: dict, binder: Binder) -> Docket:
                 one["anchor"] = places[one["cue"]]
     wire = {
         "pages": [
-            {"path": rel, "sha": shas.get(rel, ""), "alterations": alterations}
+            {
+                "path": rel,
+                "sha": shas.get(rel, ""),
+                "alterations": alterations,
+                "reading": build("", rel).serialize()["reading"],
+            }
             for rel, alterations in sorted(pages.items())
         ]
     }

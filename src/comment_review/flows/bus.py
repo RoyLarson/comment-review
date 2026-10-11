@@ -326,7 +326,14 @@ def _on_copies(message: CopiesReturned) -> tuple[list, Result | None]:
             },
         },
     )
-    chief = chief_copy_of(fold.decided, "copy-chief", read_from, _pages_of(copies))
+    chief = chief_copy_of(
+        fold.decided,
+        "copy-chief",
+        read_from,
+        _pages_of(copies),
+        proof.page_readings,
+        proof.page_shas,
+    )
     return out, Result(proof, chief, _batch_or_none(fold, read_from), snapshots)
 
 
@@ -724,7 +731,12 @@ def _commit(
         page_shas=dict(proof.page_shas),
     )
     chief = chief_copy_of(
-        fold.decided, CHIEF, proof.read_from, _pages_of(list(proof.edit_copies))
+        fold.decided,
+        CHIEF,
+        proof.read_from,
+        _pages_of(list(proof.edit_copies)),
+        proof.page_readings,
+        proof.page_shas,
     )
     return out, Result(next_proof, chief, _batch_or_none(fold, proof.read_from), {})
 

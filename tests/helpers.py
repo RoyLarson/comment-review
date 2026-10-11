@@ -231,6 +231,7 @@ def a_docket_over(repo: Path, names: list[str]) -> Docket:
             {
                 "path": page.path,
                 "sha": page.sha,
+                "reading": page.serialize()["reading"],
                 "alterations": [
                     {
                         "cue": cue(found),
@@ -273,6 +274,7 @@ def a_docket_whose_claim_is_not_in_the_page(repo: Path, name: str) -> Docket:
                         {
                             "path": page.path,
                             "sha": page.sha,
+                            "reading": page.serialize()["reading"],
                             "alterations": [
                                 {
                                     "cue": "zzz9999",

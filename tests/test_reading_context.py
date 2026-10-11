@@ -16,6 +16,153 @@ from comment_review.reading.diagnostics import ReadFailure
 from comment_review.reading.registry import LanguageRegistry
 
 
+def test_chief_extra_destination_carries_original_context_and_sha():
+    from comment_review.desk.proof.place import Place
+    from comment_review.desk.proof.state import State
+    from comment_review.flows.places import chief_copy_of
+
+    original = ReadingContext("python", "lexical", "a" * 64, ())
+    place = Place("extra.py@b1", "x = 1", "old", text="new", state=State.STANDS)
+    chief = chief_copy_of(
+        {place.address: place},
+        "copy-chief",
+        {},
+        [],
+        {"extra.py": original},
+        {"extra.py": "original-sha"},
+    )
+    assert chief.sheets[0].reading is original
+    assert chief.sheets[0].sha == "original-sha"
+    assert chief.sheets[0].serialize()["reading"] == {
+        "format": 1,
+        "language": "python",
+        "reader": "lexical",
+        "compatibility": "a" * 64,
+        "settings": {},
+    }
+
+
+def test_proof_transcription_admits_extra_context_before_saved_places(
+    monkeypatch, tmp_path
+):
+    from comment_review.desk.proof.master_proof import MasterProof
+    from comment_review.flows import transcribe
+
+    saved = flow_context.context_for(Path("extra.py"), {})
+    assert isinstance(saved, ReadingContext)
+    proof = MasterProof(
+        "4c",
+        {},
+        (),
+        {"extra.py": replace(saved, compatibility="0" * 64)},
+        page_shas={"extra.py": "original-sha"},
+    )
+    monkeypatch.setattr(
+        transcribe, "_unclosed", lambda _: pytest.fail("places inspected")
+    )
+    with pytest.raises(transcribe.CannotTranscribe, match="regather"):
+        transcribe.docket_of_proof(proof, tmp_path)
+
+
+@pytest.mark.parametrize("reading", [None, {}, {"format": 2}])
+def test_schedule_requires_reading_even_without_alterations(reading):
+    from comment_review.docket.docket import Schedule
+
+    schedule, problems = Schedule.deserialize(
+        "docket",
+        {
+            "path": "m.py",
+            "sha": "original",
+            "alterations": [],
+            "reading": reading,
+        },
+    )
+    assert schedule is None
+    assert any("regather" in reason for reason in problems)
+
+
+def test_schedule_real_save_load_preserves_exact_original_context(tmp_path):
+    import json
+
+    from comment_review.docket.docket import Alteration, Docket, Schedule
+
+    saved = ReadingContext("python", "lexical", "a" * 64, (("flavor", "original"),))
+    docket = Docket(
+        (Schedule("extra.py", "original-sha", (Alteration("b1", "new"),), saved),)
+    )
+    path = tmp_path / "docket.json"
+    path.write_text(json.dumps(docket.serialize()), encoding="utf-8")
+    loaded, problems = Docket.deserialize(
+        str(path), json.loads(path.read_text(encoding="utf-8"))
+    )
+    assert problems == []
+    assert loaded == docket
+
+
+def test_docket_refuses_contradictory_repeated_schedule_metadata():
+    from comment_review.docket.docket import Docket
+
+    first = {
+        "path": "m.py",
+        "sha": "original",
+        "alterations": [{"cue": "b1", "text": "new"}],
+        "reading": {
+            "format": 1,
+            "language": "python",
+            "reader": "lexical",
+            "compatibility": "a" * 64,
+            "settings": {},
+        },
+    }
+    second = {
+        **first,
+        "sha": "different",
+        "reading": {**first["reading"], "compatibility": "b" * 64},
+    }
+    docket, problems = Docket.deserialize("docket", {"pages": [first, second]})
+    assert docket is None
+    assert problems == ["m.py: two schedules for one page"]
+
+
+def test_saved_mixed_proof_transcribes_original_extra_destination(tmp_path):
+    import json
+
+    from comment_review.desk.proof.master_proof import MasterProof
+    from comment_review.desk.proof.place import Place
+    from comment_review.desk.proof.state import State
+    from comment_review.flows.page_for import page_of
+    from comment_review.flows.transcribe import docket_of_proof
+
+    (tmp_path / "extra.py").write_text("# old\nx = 1\n", encoding="utf-8")
+    (tmp_path / "other.js").write_text("// old\nconst x = 1;\n", encoding="utf-8")
+    page = page_of(tmp_path / "extra.py", rel="extra.py")
+    other = page_of(tmp_path / "other.js", rel="other.js")
+    assert not isinstance(page, ReadFailure)
+    assert not isinstance(other, ReadFailure)
+    place = Place(
+        "extra.py@b1", page.cues.anchor_of("b1"), "old", text="new", state=State.STANDS
+    )
+    proof = MasterProof(
+        "4c",
+        {},
+        (),
+        {page.path: page.reading, other.path: other.reading},
+        places=(place,),
+        page_shas={page.path: page.sha, other.path: other.sha},
+    )
+    saved = tmp_path / "proof.json"
+    saved.write_text(json.dumps(proof.serialize()), encoding="utf-8")
+    loaded, problems = MasterProof.deserialize(
+        str(saved), json.loads(saved.read_text(encoding="utf-8"))
+    )
+    assert loaded is not None, problems
+    docket = docket_of_proof(loaded, tmp_path)
+    assert len(docket.schedules) == 1
+    schedule = docket.schedules[0]
+    assert schedule.reading is loaded.page_readings["extra.py"]
+    assert schedule.sha == page.sha
+
+
 @pytest.mark.parametrize(
     "fault", ["compatible", "digest", "settings", "malformed", "duplicate"]
 )
