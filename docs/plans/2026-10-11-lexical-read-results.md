@@ -2,8 +2,8 @@
 
 ```
 Status:   in-progress
-Progress: 12 of 13 TODO tasks closed
-Plan-tasks: 8 of 13 plan tasks closed
+Progress: 13 of 14 TODO tasks closed
+Plan-tasks: 9 of 13 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (founded by move-t from 2026-10-11-lexical-readers)
@@ -253,6 +253,8 @@ runtime implementation is included in the plan-authoring commit.
       newer Python syntax is not required to fail
 - [x] T8 | Repair render_page package imports and page outcomes; verify its
       normal command on successful and refused source
+- [x] T9 | Describe sibling selection as current behavior; verify its docstring
+      contains no incident narrative
 
 ### B - [the-lexer-reads-no-files](../../TODO/the-lexer-reads-no-files.md)
 
@@ -311,8 +313,9 @@ runtime implementation is included in the plan-authoring commit.
       separate identity and line-retention comparisons
         > 2026-10-11 uv run pytest -q tests/test_compositor.py
         > 2026-10-11 Return LocatedReadFailure with path, language and retained text
-- [ ] P8 | Admit both proof inputs through shared outcomes; verify exact Git
-      baselines and refusal of either-side or matching failures
+- [x] P8 | Both proof inputs admitted with exact Git baselines verified | 6738562f | Admit
+      both proof inputs through shared outcomes; verify exact Git baselines and
+      refusal of either-side or matching failures
         > 2026-10-11 uv run pytest -q tests/test_proof_command.py
         > 2026-10-11 Render failure context from held snapshots into report messages
 - [ ] P9 | Verify multi-file rollback and import boundaries; check failed

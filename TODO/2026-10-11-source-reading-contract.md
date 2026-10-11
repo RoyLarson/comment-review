@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 6 of 8 tasks closed
+Progress: 7 of 9 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (2026-10-11 lexical-reader design)
@@ -40,3 +40,7 @@ Define shared source reading contracts.
       render_page package imports and page outcomes; verify its normal command
       on successful and refused source
         > 2026-10-11 Found during migration: render_page imports retired flat modules
+- [x] T9 | Sibling docstring describes present selection behavior | 6738562f | Describe
+      sibling selection as current behavior; verify its docstring contains no
+      incident narrative
+        > 2026-10-11 Review: flows/prove_unchanged.py:30 narrates an old incident
