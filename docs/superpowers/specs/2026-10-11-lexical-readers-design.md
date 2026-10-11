@@ -279,11 +279,17 @@ executable comparisons consume the shared results. The per-line masking path
 and delimiter-presence refusals are replaced as the corresponding readers
 become complete.
 
-Name harvesting and referrer discovery have separate consumers of Python AST
-parsing. Their existing work remains separately owned. Reader integration must
-make their availability explicit on source newer than the runtime grammar;
-their inability to parse must not turn a successful lexical read into a failed
-page or silently represent an unavailable result as a complete empty result.
+Declaration facts include the declared identifier and its nesting, where the
+reader recognizes a documentable declaration. Referrer discovery consumes those
+facts for top-level declaration names, replacing its separate Python AST read
+while retaining its path-derived search terms.
+
+Full name harvesting remains separately owned. Its current result includes
+references, attributes, arguments, aliases and selected string values as well
+as declarations; substituting declaration names would lose that coverage.
+Reader integration makes unavailable harvesting explicit on source newer than
+the runtime grammar. An unavailable result cannot turn a successful lexical
+read into a failed page or appear to be a complete empty result.
 
 Operational instructions describe only the task, inputs, tools and checks the
 agents need. Internal design documents, plans and investigation history remain
@@ -323,3 +329,119 @@ The shared checks demonstrate:
 Existing addressing and setting tests continue to cover the shared contract.
 Language-specific expected results and mutation checks provide independent
 evidence alongside the common reader invariants.
+
+## Open TODO coverage
+
+The inventory review covered every open task reported by `job-board todo list`
+and the corresponding `todo show` results: 168 TODO files containing 930 open
+tasks, including work underway and tasks awaiting a decision. The mappings below
+identify the relevant tasks; unlisted tasks remain outside this design.
+
+These are proposed scope and closure criteria, not completion claims. A task
+closes only after its behavior and completion check have been verified. Several
+open tasks describe code that has already moved or been replaced. Establish
+their current behavior before attributing a repair to this implementation.
+Already-satisfied tasks need reconciliation with their existing evidence.
+
+An old task whose prescribed mechanism or check conflicts with this design
+needs supersession through the board, retaining its valid behavioral goal in
+a replacement task. Partial coverage needs separate delivered and remaining
+goals. This specification changes no TODO status or plan ownership.
+
+### Goals covered by the readers and proof
+
+| TODO tasks | Required result and closure boundary |
+| --- | --- |
+| [lexical-code-identity](../../../TODO/lexical-code-identity.md) T1, T2 | Both proof boundaries use lexical preservation, agree on docstring additions and removals, and detect literal whitespace changes. This covers all currently open goals in this TODO. |
+| [python-cannot-read-python](../../../TODO/python-cannot-read-python.md) T32, T33, T34, T36, T37, T38, T39 | Owned Python reading, discovered docstrings, supported newer syntax on the pinned runtime, exact reconstruction and accurate proof claims. All open goals are covered; the obsolete checks and physical-line promise require the replacements described below. |
+| [lexer-and-language-findings](../../../TODO/lexer-and-language-findings.md) T3, T4, T13-T19, T22-T25, T27, T28, T32-T35 | Preserve matter ownership; distinguish shell expansion from comments and contextual keywords from declarations; recognize multiline and dynamic literals; resume scanning in source order; classify and set same-line, inner and outer documentation correctly. Each language case needs an expected-discovery fixture as well as reconstruction. |
+| [a-doc-comment-is-cued-a-and-typed-b](../../../TODO/a-doc-comment-is-cued-a-and-typed-b.md) T1-T4 | Placement and the language's documentation rules determine kind and ownership together. Go, Ruby and Lua kinds must agree with their places. Remove expected failures only when the assertions pass. Go and Ruby depend on the adjacency decisions below. |
+| [matter-misses-two-languages](../../../TODO/matter-misses-two-languages.md) T2 | An ordinary Rust opening comment remains matter instead of becoming a declaration's documentation. The TypeScript classifier question in this TODO is separate. |
+| [block-comment-markers-survive-into-the-prose](../../../TODO/block-comment-markers-survive-into-the-prose.md) T1, T2, T7-T10 | Prose excludes openers, closers and actual continuation markers; form recovery reconstructs them. Invented fixtures cover multiline Javadoc, Ruby and Lua under their own rules. Delimiter removal does not authorize deleting payload characters or relative indentation. |
+| [doc-on-the-declaring-line](../../../TODO/doc-on-the-declaring-line.md) T3, T4 | A same-line Python docstring receives the declared documentation place and can be set without losing surrounding code. |
+| [closing-line-deletes-code](../../../TODO/closing-line-deletes-code.md) T4, T7, T8 | The proposed resolution is to preserve executable prefixes and suffixes, refusing before writing when the place cannot represent the edit. An invented C fixture demonstrates preservation or refusal. Record the outstanding ruling through the owning task before closing it. |
+| [a-comment-inside-a-line-makes-the-file-unprovable](../../../TODO/a-comment-inside-a-line-makes-the-file-unprovable.md) T2, T3, T5, T6 | Source spans distinguish editable comment payload from code on the same line. Changed surrounding code fails proof, and unsupported placement has a named, located diagnostic. The old field and refusal-count prescriptions are superseded below. |
+| [bom-is-read-as-source](../../../TODO/bom-is-read-as-source.md) T1, T2; [census-degrades-silently](../../../TODO/census-degrades-silently.md) T7 | BOM-bearing source yields the expected places and retains its original byte representation when unchanged. Replace the obsolete read-site prescriptions with checks at the current I/O boundary; dropping a BOM before computing identity is insufficient. |
+| [prove-unchanged-line-endings-follow-a-sibling](../../../TODO/prove-unchanged-line-endings-follow-a-sibling.md) T1, T2 | Compare each file with its own original bytes. A CRLF file beside an LF file must retain its own endings. This covers both open tasks. |
+| [the-cue-legend-and-its-round-trip](../../../TODO/the-cue-legend-and-its-round-trip.md) T2-T5 | Reread set output and compare the intended prose at corresponding places, including matter. Detect prose relocated to a neighboring place; demonstrate that disabling the refusal makes the test fail. |
+| [the-code-check-refuses-add-and-drop-on-a-docstring](../../../TODO/the-code-check-refuses-add-and-drop-on-a-docstring.md) T4 | Additions and removals of supported documentation comments pass the same preservation contract as Python docstrings. |
+| [prove-refuses-a-doc](../../../TODO/prove-refuses-a-doc.md) T4, T5 | Report excluded file categories separately from unsupported programming languages. Neither result is a successful executable proof. The document write-chain work in T2 and T3 remains separate. |
+
+### Adjacent work included
+
+These additions share a representation or integration boundary already being
+changed. Their completion remains independently checkable.
+
+| TODO tasks | Why include them and what must become true |
+| --- | --- |
+| [computed-and-never-read](../../../TODO/computed-and-never-read.md) T6; [page-and-addresser-scans](../../../TODO/page-and-addresser-scans.md) T5 | Produce code regions and declaration facts once per page read and share the result. Do not reconstruct equivalent facts independently for addressing and proof. Other addresser performance tasks remain separate. |
+| [name-corpus-sees-one-language](../../../TODO/name-corpus-sees-one-language.md) T1, T5 | Declaration recognition already needs identifiers and nesting. Supply those facts to referrer discovery, preserving path terms and recognized top-level names without a second runtime-parser dependency. This does not complete T2-T4. |
+| [galley-and-compositor-write-path](../../../TODO/galley-and-compositor-write-path.md) T5-T10; [no-step-produces-a-page](../../../TODO/no-step-produces-a-page.md) T3 | Share the source acquisition and page-building work used by reconstruction checks. Retain successful empty input as distinct from unreadable input; verify BOMs and line endings at the byte boundary. Supersede old function-location prescriptions where necessary. |
+| [only-a-flow-reaches-the-machine](../../../TODO/only-a-flow-reaches-the-machine.md) T3, T4, T10 | Flows obtain source and base revisions; the reader and proof comparison consume supplied values. Complete the affected compositor and proof I/O separation while replacing those consumers. This does not authorize the broader command and concordance I/O sweep. |
+| [the-flow-lives-in-the-command](../../../TODO/the-flow-lives-in-the-command.md) T8 | Carry an explicit read failure and its reason through page acquisition to gather. Do not reconstruct failure from an empty page or an exception swallowed by a caller. Reconcile the old return-shape prescription with the shared diagnostic result. |
+| [lexer-and-language-findings](../../../TODO/lexer-and-language-findings.md) T6, T8, T9 | Remove obsolete citations and duplicate opener/stamp logic as the old readers are replaced. Current consumers must obtain the same language facts and diagnostics from their shared owner. |
+| [fixtures-do-not-test-the-shape](../../../TODO/fixtures-do-not-test-the-shape.md) T2, T3, T5; [assertions-that-gate-a-substring](../../../TODO/assertions-that-gate-a-substring.md) T3, T8 | State what each supported language fixture exercises. Assert full source extents and real declaration recognition, including negative cases. Replace the historical language-count check with the supported programming-language registry. |
+| [b-addresser-uninitialised](../../../TODO/b-addresser-uninitialised.md) T16-T18 | Assert that addresses identify the expected anchors, rather than merely existing after a reader change. Use invented fixtures and current address rules. |
+| [smoke-fixture-defects](../../../TODO/smoke-fixture-defects.md) T1 | Reconcile wrapped-drop expectations with paragraph rewrapping and run the full command smoke. Treat this as a baseline repair if it already fails before the reader change. |
+| [doc-does-not-fill-its-a](../../../TODO/doc-does-not-fill-its-a.md) T6; [census-degrades-silently](../../../TODO/census-degrades-silently.md) T5 | Make the compact reference describe the actual unresolved or unreadable cases produced by the new readers. Remove descriptions of retired fallback behavior. |
+| [the-anchor-claims-are-inverted](../../../TODO/the-anchor-claims-are-inverted.md) T1-T4; [docstrings-need-their-own-address-series](../../../TODO/docstrings-need-their-own-address-series.md) T8, T9; [the-cue-legend-was-never-written](../../../TODO/the-cue-legend-was-never-written.md) T1, T2 | Align the affected agent references with the existing four series, their anchors and the declared coverage of each reader. Provide the legend in one maintained location. This does not change admission, review obligations or the policy for requesting absent places. |
+
+### Approaches superseded by this design
+
+The replacement named in each row preserves the useful goal. Retiring an old
+implementation mechanism is not evidence that its replacement works.
+
+| TODO tasks | Proposed replacement |
+| --- | --- |
+| [python-cannot-read-python](../../../TODO/python-cannot-read-python.md) T33, T34, T36, T37 | Replace frozen corpus totals, an external source example and a retired test runner with invented newer-syntax fixtures, current pytest checks and measured reconstruction results. Describe preserved executable content, order and meaningful boundaries; physical line numbers may change with prose. Optional corpus measurements still report their actual population. |
+| [lexer-and-language-findings](../../../TODO/lexer-and-language-findings.md) T2, T7, T10, T11, T21, T26, T29 | Replace per-paragraph unterminated stamps with explicit incomplete-read diagnostics; the fixed importer count with shared-leaf boundaries; old scan optimizations and accumulators with the ordered read result; the predicted address-migration history with actual address fixtures; the `inner_doc` field prescription with language-owned relationships; and the empty-Python-result description with the implemented documentation contract. |
+| [doc-is-structural-means-two-things](../../../TODO/doc-is-structural-means-two-things.md) T1-T3 | Replace the overloaded flag and old helper documentation with explicit literal/comment form and documentation ownership. A form round trip proves that marker handling still works when documentation is recognized by placement. |
+| [language-rows-in-toml](../../../TODO/language-rows-in-toml.md) T1-T5, T12, T13, T15, T16 | Replace a generic two-tier reader and an exhaustive static grammar table with a reader registry and language modules. Static metadata may remain data. Preserve tests for delimiter precedence, explicit capabilities and registry dispatch; remove independent Python suffix lists in the integrated consumers. T14's full name-harvester capability work remains separate. |
+| [a-series-never-fills-outside-python](../../../TODO/a-series-never-fills-outside-python.md) T18; [one-stem-four-jobs](../../../TODO/one-stem-four-jobs.md) T2, T3 | Replace keyword-anywhere matching and renaming its table/helper with context-aware declaration recognition. Identifiers inside literals, comments or expressions cannot mint declaration places. This does not add C or C++ declaration places. |
+| [lexer-does-not-lex](../../../TODO/lexer-does-not-lex.md) T8-T10 | Retain the term lexer for the actual lexical readers. A blanket module/vocabulary rename to describe the old behavior is unnecessary. Record this proposed naming resolution before retiring the decision task. |
+| [a-comment-inside-a-line-makes-the-file-unprovable](../../../TODO/a-comment-inside-a-line-makes-the-file-unprovable.md) T2-T5 | Replace fixed refusal-site counts with current CLI-reachable diagnostic cases, and the paragraph column-field prescription with the shared character-span contract. Corpus frequency is useful measurement but is no longer a prerequisite to preserving code beside comments. |
+| [census-degrades-silently](../../../TODO/census-degrades-silently.md) T6 | Replace blanket refusal of same-line documentation additions with correct declared placement, or a specific refusal when that layout cannot be represented. |
+| [block-comment-markers-survive-into-the-prose](../../../TODO/block-comment-markers-survive-into-the-prose.md) T3 | Replace synchronization of two named legacy helpers with one form/payload mapping consumed by reading and rendering, verified in the same change. |
+| [the-lexer-reads-no-files](../../../TODO/the-lexer-reads-no-files.md) T9-T20 | Replace the proposal to put source acquisition inside the lexer with flow-owned I/O and readers over supplied source. Preserve the byte-identity, BOM and CRLF goals from T17 and T18. Verify end-to-end behavior instead of requiring the old fixed READ and WRITE lists. This does not pull console I/O or every repository read into this effort. |
+| [7a-can-prove-the-change-by-applying-it-to-a-copy](../../../TODO/7a-can-prove-the-change-by-applying-it-to-a-copy.md) T5-T7 | Reread edited source to establish its actual lexical boundaries and places. Splice line deltas alone cannot replace that check. |
+| [the-code-check-refuses-add-and-drop-on-a-docstring](../../../TODO/the-code-check-refuses-add-and-drop-on-a-docstring.md) T2, T3 | Replace a special failure explanation and separate presence-delta output with normal prose alterations, the presented diff and the unified preservation result. |
+| [two-live-runs-proposed-fifteen-changes](../../../TODO/two-live-runs-proposed-fifteen-changes.md) T15 | Replace mandatory parsing after every write with the agreed agent instruction: after successful `prove_unchanged`, run applicable local compilation or syntax validation when available and report it separately. |
+| [exception-hierarchy](../../../TODO/exception-hierarchy.md) T4 | Remove obsolete tokenizer-error handling with the tokenizer dependency. Exercise owned-reader diagnostics instead. The general exception-hierarchy redesign remains separate. |
+
+### Decisions exposed by the inventory
+
+These questions affect expected reader output. They need explicit answers in
+the owning tasks before their dependent implementation is finalized.
+
+| TODO tasks | Boundary still to settle |
+| --- | --- |
+| [a-comment-run-merges-across-blanks](../../../TODO/a-comment-run-merges-across-blanks.md) T5 | Whether a blank line splits a mid-file run of the same comment form. The existing front/back matter rule does not decide this. Different forms or documentation owners must already remain separate under this design. |
+| [doc-does-not-fill-its-a](../../../TODO/doc-does-not-fill-its-a.md) T7, T8 | Go and Ruby documentation adjacency, each considered independently: touching its declaration or allowing intervening blank lines. This determines the expected ownership fixtures. |
+| [a-comment-run-merges-across-blanks](../../../TODO/a-comment-run-merges-across-blanks.md) T6; [lexer-and-language-findings](../../../TODO/lexer-and-language-findings.md) T12 | Whether `Paragraph.lines` remains a stored field. Prefer deriving any display count from source spans; settle what the count means before retaining or removing the field. |
+
+The TypeScript doc-shaped header question in
+[matter-misses-two-languages](../../../TODO/matter-misses-two-languages.md) T3
+and T5 remains assigned to the future prose classifier. Its dependent fixture in
+[fixtures-do-not-test-the-shape](../../../TODO/fixtures-do-not-test-the-shape.md)
+T1 cannot be counted as fixed by recognizing `/**` correctly. Reader fixtures
+must distinguish recognition from the existing header-classification policy.
+
+### Related work that stays separate
+
+| TODO tasks or area | Reason it is not absorbed |
+| --- | --- |
+| [name-corpus-sees-one-language](../../../TODO/name-corpus-sees-one-language.md) T2-T4; [concordance-gaps-stated-twice](../../../TODO/concordance-gaps-stated-twice.md) | Full identifier harvesting and concordance completeness require a wider consumer contract. Declaration discovery alone cannot establish them. |
+| [a-series-never-fills-outside-python](../../../TODO/a-series-never-fills-outside-python.md) T19, T20 | New C and C++ declaration places extend address coverage beyond the retained policy. Correct lexical reading does not imply this extension. |
+| [strip-and-fill-the-markers](../../../TODO/strip-and-fill-the-markers.md) | The source contract shares its goals of reversible form handling and preserved payload indentation, but does not decide the proposed agent-visible marker stripping or change the binder's `raw_text` contract. Its mixed tasks need splitting before any partial closure; the whole TODO remains open. |
+| [versioning-at-v1](../../../TODO/versioning-at-v1.md) | Reader compatibility addresses the narrower changed-meaning hazard also described by T8 and T9. The TODO explicitly defers its system-wide versioning work until v1; this design does not lift that deferral or claim those tasks complete. |
+| [block-comment-markers-survive-into-the-prose](../../../TODO/block-comment-markers-survive-into-the-prose.md) T4-T6; [corpora-are-all-python](../../../TODO/corpora-are-all-python.md); [the-lexer-reads-no-files](../../../TODO/the-lexer-reads-no-files.md) T21, T22 | External corpus acquisition, published population measurements and corrections to an older investigation remain separate. Invented language fixtures are required here; they do not satisfy corpus-measurement tasks. |
+| [brief-says-three-series](../../../TODO/brief-says-three-series.md) | Reader documentation must remain consistent with current series semantics. The open questions about what roles may rule on and how matter corrections receive human approval are workflow policy, not lexical classification. |
+| [mark-defects](../../../TODO/mark-defects.md); [the-parser-merges-across-boundaries-it-cannot-read](../../../TODO/the-parser-merges-across-boundaries-it-cannot-read.md) | Mark composition, conflicting corrections and prose alignment require their own fixes. Better source spans do not resolve competing edits or establish a mark-merging algorithm. Preserve structured prose in reader/setter fixtures without claiming the composition tasks closed. |
+| Remaining middle, dispatch, evidence-input, external-address and review-measurement tasks | They change review workflow or mark handling rather than source recognition. Their existing scope and any explicit deferrals remain in force. |
+
+`lexical-code-identity` T1 and `smoke-fixture-defects` T1 already belong to
+`0.2.4-the-middle-rebuilt`; `the-flow-lives-in-the-command` T8 belongs to
+`0.2.4-what-a-reviewer-is-handed`. The implementation plan must preserve that
+ownership or transfer it through the board rather than schedule a task twice.
+The full name-harvesting, matter-approval and middle-stage plans do not become
+dependencies merely because this specification mentions them.
