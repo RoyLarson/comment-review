@@ -3,7 +3,7 @@
 ```
 Status:   in-progress
 Progress: 0 of 1 TODO tasks closed
-Plan-tasks: 6 of 13 plan tasks closed
+Plan-tasks: 7 of 13 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (founded by move-t from 2026-10-11-lexical-readers)
@@ -140,8 +140,9 @@ development history.
       documentation relationships; test module, first declaration, ordinary
       sections, missing references and duplicate owners
         > 2026-10-11 uv run pytest -q tests/test_reading_source.py -k ownership
-- [ ] P7 | Preserve whole sections and language-owned forms; test
-      blank-separated fragments retain one section and its full span
+- [x] P7 | Whole-section fixtures and invalid-input typing repair pass review and checks | ab64be87 | Preserve
+      whole sections and language-owned forms; test blank-separated fragments
+      retain one section and its full span
         > 2026-10-11 uv run pytest -q tests/test_reading_source.py -k section
 - [ ] P8 | Verify explicit region-kind fixtures distinguish code, literals,
       comments, whitespace and directives despite equal reconstruction
