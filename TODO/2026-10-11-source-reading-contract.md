@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 13 of 14 tasks closed
+Progress: 15 of 16 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (2026-10-11 lexical-reader design)
@@ -65,3 +65,11 @@ Define shared source reading contracts.
       required reading metadata to the reviewer copy example; verify the shipped
       JSON parses as an edit copy
         > 2026-10-11 Review: reviewer-brief JSON example lacks required Sheet reading
+- [x] T15 | Returned and stage contexts agree without expanding shard coverage; regression passes | 8532c4f7 | Compare
+      extra returned sheets with stage contexts; verify mismatches refuse
+      without widening coverage
+        > 2026-10-11 Review: verify.py:218 omits returned versus stage comparison
+- [x] T16 | Zero-copy binder admission precedes addresses; refusal spies and empty positives pass | 8532c4f7 | Admit
+      binder contexts with zero returned copies; verify refusal before coverage
+      and valid empty binders
+        > 2026-10-11 Review: verify.py:252 skips admission with zero copies

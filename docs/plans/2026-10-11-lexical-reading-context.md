@@ -2,8 +2,8 @@
 
 ```
 Status:   in-progress
-Progress: 7 of 8 TODO tasks closed
-Plan-tasks: 14 of 26 plan tasks closed
+Progress: 9 of 10 TODO tasks closed
+Plan-tasks: 15 of 26 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (founded by move-t from 2026-10-11-lexical-readers)
@@ -378,6 +378,10 @@ because this machinery exists.
       call matches the current interface
 - [x] T14 | Add required reading metadata to the reviewer copy example; verify
       the shipped JSON parses as an edit copy
+- [x] T15 | Compare extra returned sheets with stage contexts; verify mismatches
+      refuse without widening coverage
+- [x] T16 | Admit binder contexts with zero returned copies; verify refusal
+      before coverage and valid empty binders
 
 ### B - [2026-10-11-language-registry-contract](../../TODO/completed/2026-10-11-language-registry-contract.md)
 
@@ -439,8 +443,9 @@ because this machinery exists.
 - [x] P14 | Copy admission precedes editing and lookup; 337 tests and review pass | 5b62ff0c | Check
       context before copy load, mark, check and fill address use; verify refusal
       leaves artifacts unchanged
-- [ ] P15 | Check returned copies against received binders; verify context
-      admission precedes coverage checks
+- [x] P15 | Received and stage contexts admitted before coverage; 313 tests and review pass | 8532c4f7 | Check
+      returned copies against received binders; verify context admission
+      precedes coverage checks
 - [ ] P16 | Admit contexts before collation; verify incompatible inputs never
       reach source lookup, coverage or folding
 - [ ] P17 | Validate cached pages against source and context; verify
