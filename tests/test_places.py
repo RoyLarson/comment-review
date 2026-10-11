@@ -182,7 +182,11 @@ def test_every_reader_of_where_a_mark_writes_asks_the_row(monkeypatch, tmp_path)
     elsewhere = (("m.py@b1", Touch.ORIGIN), ("m.py@b7", Touch.DESTINATION))
     monkeypatch.setattr(Row, "places", lambda self, mark: elsewhere)
 
-    bases, _anchors = bases_and_anchors(copies, lambda address: Held(BASE, "x = 1"))
+    result = bases_and_anchors(copies, lambda address: Held(BASE, "x = 1"))
+    from comment_review.reading.diagnostics import ReadFailure
+
+    assert not isinstance(result, ReadFailure)
+    bases, _anchors = result
     assert set(bases) == {"m.py@b1", "m.py@b7"}
     places = places_of(copies, _binder_bases(binder), {})
     assert set(places) == {"m.py@b1", "m.py@b7"}

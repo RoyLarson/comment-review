@@ -71,7 +71,10 @@ from comment_review.docket.docket import Alteration, Docket, Schedule
 from comment_review.flows.human import queries_in_copies
 from comment_review.flows.on_the_page import PageCache, held_at, no_page, page_named
 from comment_review.flows.places import bases_and_anchors, places_of
+from comment_review.flows.reading_context import copy_reading_contexts
 from comment_review.reading.addresser import cue_of, flatten
+from comment_review.reading.context import ReadingContext
+from comment_review.reading.diagnostics import ReadFailure
 
 
 class CannotTranscribe(Exception):
@@ -123,6 +126,7 @@ def _pages_of(
     who: str,
     noun: str,
     cache: PageCache,
+    contexts: dict[str, ReadingContext] | None = None,
 ) -> tuple[dict[str, tuple[str, Page]], list[str]]:
     """Every page a transcription writes at, read from `repo`, and what would not read.
 
@@ -142,6 +146,7 @@ def _pages_of(
             chief where a fold decided the places.
         noun: what is owed at those addresses, for the reasons.
         cache: the pages read, which the caller may read places off again.
+        contexts: admitted saved contexts keyed by real path.
 
     Returns:
         `(the flattened page name -> (its real relative path, the page), the
@@ -152,12 +157,22 @@ def _pages_of(
     out: dict[str, tuple[str, Page]] = {}
     refused: list[str] = []
     for name in dict.fromkeys([flatten(path) for path in known] + list(touched)):
-        rel, page = page_named(name, known, repo, cache)
-        if page is not None:
+        from comment_review.flows.on_the_page import real_path
+
+        rel, page = page_named(
+            name,
+            known,
+            repo,
+            cache,
+            reading_context=(contexts or {}).get(real_path(name, known)),
+        )
+        if not isinstance(page, ReadFailure):
             out[name] = (rel, page)
         elif name in touched:
+            detail = "; ".join(d.message for d in page.diagnostics)
             refused.append(
-                f"{who} {rel or name}: {no_page(rel or name)}, so the {noun} at"
+                f"{who} {rel or name}: {no_page(rel or name)}: {detail},"
+                f" so the {noun} at"
                 f" {', '.join(touched[name])} cannot be set"
             )
     return out, refused
@@ -250,6 +265,9 @@ def docket_of(copy: EditCopy, repo: Path) -> Docket:
         CannotTranscribe: a human-review query is present, an edited page is
             unreadable, or a mark is refused during reading or folding.
     """
+    contexts, why = copy_reading_contexts(copy)
+    if why:
+        raise CannotTranscribe(tuple(why))
     questions = queries_in_copies([copy])
     if questions:
         raise CannotTranscribe(
@@ -258,7 +276,7 @@ def docket_of(copy: EditCopy, repo: Path) -> Docket:
     known = [sheet.path for sheet in copy.sheets]
     cache: PageCache = {}
     pages, unreadable = _pages_of(
-        repo, known, _touched_by_page(copy), copy.role, "marks", cache
+        repo, known, _touched_by_page(copy), copy.role, "marks", cache, contexts
     )
     if unreadable:
         raise CannotTranscribe(tuple(unreadable))
@@ -275,9 +293,12 @@ def docket_of(copy: EditCopy, repo: Path) -> Docket:
     ]
     if refused:
         raise CannotTranscribe(tuple(refused))
-    bases, anchors = bases_and_anchors(
-        [copy], lambda address: held_at(address, known, repo, cache)
+    held = bases_and_anchors(
+        [copy], lambda address: held_at(address, known, repo, cache, contexts=contexts)
     )
+    if isinstance(held, ReadFailure):
+        raise CannotTranscribe(tuple(d.message for d in held.diagnostics))
+    bases, anchors = held
     fold = Fold(places_of([copy], bases, anchors)).run()
     if not fold.committed:
         raise CannotTranscribe(
@@ -456,7 +477,18 @@ def docket_of_proof(
     ]
     if missing:
         raise CannotTranscribe(tuple(missing))
-    pages, unreadable = _pages_of(repo, known, touched, CHIEF, "places", {})
+    contexts: dict[str, ReadingContext] = {}
+    for copy in proof.edit_copies:
+        admitted, why = copy_reading_contexts(copy)
+        if why:
+            raise CannotTranscribe(tuple(why))
+        for path, context in admitted.items():
+            if path in contexts and contexts[path] != context:
+                raise CannotTranscribe(
+                    (f"{CHIEF} {path}: conflicting reading contexts; regather",)
+                )
+            contexts[path] = context
+    pages, unreadable = _pages_of(repo, known, touched, CHIEF, "places", {}, contexts)
     if unreadable:
         raise CannotTranscribe(tuple(unreadable))
     return Docket(schedules=_schedules_of(pages, decided, shas, CHIEF))

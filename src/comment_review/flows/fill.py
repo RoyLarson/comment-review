@@ -89,7 +89,7 @@ from comment_review.desk.proof.place import Filed
 from comment_review.desk.proof.source import entry_problems
 from comment_review.desk.stages import not_admitted
 from comment_review.exceptions import READ_ERRORS
-from comment_review.flows.on_the_page import held_at
+from comment_review.flows.on_the_page import PageCache, held_at
 from comment_review.flows.page_for import page_of
 from comment_review.flows.read_diagnostics import format_failure
 from comment_review.flows.reading_context import (
@@ -338,7 +338,9 @@ def composition_problems(
     return out
 
 
-def page_text_at(copies: list[dict], address: str, root: Path | None) -> str:
+def page_text_at(
+    copies: list[dict], address: str, root: Path | None, cache: PageCache | None = None
+) -> str | ReadFailure:
     """The page's paragraph at `address`, or "" where no page answers for it.
 
     The page is read whether or not any of `copies` holds a sheet for it, as
@@ -360,10 +362,43 @@ def page_text_at(copies: list[dict], address: str, root: Path | None) -> str:
         for sheet in copy.get("sheets", [])
         if isinstance(sheet, dict)
     ]
-    return held_at(address, paths, root, {}).text
+    from comment_review.reading.diagnostics import ReadDiagnostic, ReadStage
+
+    contexts = {}
+    for copy in copies:
+        admitted, why = copy_reading_contexts(copy)
+        if why:
+            return ReadFailure(
+                tuple(
+                    ReadDiagnostic(ReadStage.SELECT, "invalid-reading-context", reason)
+                    for reason in why
+                )
+            )
+        for path, context in admitted.items():
+            if path in contexts and contexts[path] != context:
+                return ReadFailure(
+                    (
+                        ReadDiagnostic(
+                            ReadStage.SELECT,
+                            "reading-context-mismatch",
+                            f"{path}: conflicting reading contexts; regather",
+                        ),
+                    )
+                )
+            contexts[path] = context
+    result = held_at(
+        address, paths, root, cache if cache is not None else {}, contexts=contexts
+    )
+    return result if isinstance(result, ReadFailure) else result.text
 
 
-def _base_beside(copy: dict, seeded: dict, address: str, root: Path | None) -> str:
+def _base_beside(
+    copy: dict,
+    seeded: dict,
+    address: str,
+    root: Path | None,
+    cache: PageCache | None = None,
+) -> str | ReadFailure:
     """The page's paragraph at `address`, taking the slot already in hand first.
 
     The seeded slot carries the page's text at the mark's own address, so only
@@ -371,7 +406,7 @@ def _base_beside(copy: dict, seeded: dict, address: str, root: Path | None) -> s
     """
     if address == seeded["address"]:
         return str(seeded["raw_text"])
-    return page_text_at([copy], address, root)
+    return page_text_at([copy], address, root, cache)
 
 
 def _row_of(named: object):
@@ -544,8 +579,16 @@ def fill(copy: dict, entry: dict, root: Path | None) -> tuple[dict | None, list[
     # The row reads the pages last, after the parse: `read_mark` is
     # what settles a destination that is not addressable at all, and a row
     # asked to read against a place no address names has nothing to say.
+    bases = {}
+    cache: PageCache = {}
+    for where, _ in INSTRUCTIONS[parsed.instruction].places(parsed):
+        result = _base_beside(copy, seeded, where, root, cache)
+        if isinstance(result, ReadFailure):
+            return None, [f"{address}: {d.message}" for d in result.diagnostics]
+        bases[where] = result
+
     def base_at(where: str) -> str:
-        return _base_beside(copy, seeded, where, root)
+        return bases.get(where, "")
 
     found = row_problems(parsed, base_at)
     if found:

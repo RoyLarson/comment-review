@@ -62,6 +62,7 @@ from pathlib import Path
 
 from comment_review.commands.collate import ASKS_THE_HUMAN, _human_answers, _lines
 from comment_review.desk.collator import Cache, Problem
+from comment_review.desk.marks.table import INSTRUCTIONS
 from comment_review.desk.proof.edit_copy import EditCopy
 from comment_review.desk.report import AsksTheHuman
 from comment_review.desk.stages import not_admitted
@@ -82,12 +83,17 @@ from comment_review.flows.proof_io import (
     load_copy,
     load_value,
 )
-from comment_review.flows.reading_context import copy_reading_problems
+from comment_review.flows.reading_context import (
+    binder_reading_contexts,
+    copy_reading_problems,
+)
 from comment_review.flows.verify import (
     copy_problems,
     coverage_problems,
+    lookup_contexts,
     required_places,
 )
+from comment_review.reading.context import ReadingContext
 
 #: Exit codes -- `distribute`'s 0/1/2, and `collate`'s `ASKS_THE_HUMAN`.
 #: `BROKEN` is anything the fold would refuse or send back; `UNREADABLE` is a
@@ -106,7 +112,12 @@ def _refused(why: list[str]) -> int:
 
 
 def _row_problems(
-    copy: EditCopy, paths: list[str], root: Path, pages: PageCache
+    copy: EditCopy,
+    paths: list[str],
+    root: Path,
+    pages: PageCache,
+    *,
+    contexts: dict[str, ReadingContext] | None = None,
 ) -> list[Problem]:
     """What each mark's own row finds against the pages -- `mark`'s own check.
 
@@ -123,13 +134,37 @@ def _row_problems(
         paths: the binder's own page paths.
         root: the checkout every page is read from.
         pages: the pages already read for this copy's other checks.
+        contexts: admitted contexts from the received binder, when available.
 
     Returns:
         One `Problem` per finding, in sheet then mark order.
     """
+    from comment_review.reading.diagnostics import ReadFailure
+
+    contexts, why = lookup_contexts(copy, contexts)
+    if why:
+        return [Problem(copy.role, "", reason) for reason in why]
+    bases = {}
+    failures = []
+    for sheet in copy.sheets:
+        for mark in sheet.marks:
+            for address, _ in INSTRUCTIONS[mark.instruction].places(mark):
+                result = held_at(address, paths, root, pages, contexts=contexts)
+                if isinstance(result, ReadFailure):
+                    failures.append(
+                        Problem(
+                            copy.role,
+                            address,
+                            "; ".join(d.message for d in result.diagnostics),
+                        )
+                    )
+                else:
+                    bases[address] = result.text
+    if failures:
+        return failures
 
     def base_at(address: str) -> str:
-        return held_at(address, paths, root, pages).text
+        return bases.get(address, "")
 
     out = [
         Problem(copy.role, mark.address, why)
@@ -216,6 +251,12 @@ def _check_copy(
     binder, why = load_binder(Path(binder_path))
     if binder is None:
         return _refused(why)
+    contexts, why = binder_reading_contexts(binder, "received binder")
+    if why:
+        return _refused(why)
+    contexts, why = lookup_contexts(copy, contexts)
+    if why:
+        return _refused(why)
     found = 0
     required = [required_places(binder)]
     for one in mark_errors([copy], required):
@@ -237,8 +278,8 @@ def _check_copy(
         pages: PageCache = {}
         paths = [page.path for page in binder.pages]
         for problem in (
-            *copy_problems(copy, paths, root, cache, pages),
-            *_row_problems(copy, paths, root, pages),
+            *copy_problems(copy, paths, root, cache, pages, contexts=contexts),
+            *_row_problems(copy, paths, root, pages, contexts=contexts),
             *coverage_problems([copy], binder),
         ):
             print(

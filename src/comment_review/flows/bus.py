@@ -67,6 +67,7 @@ from comment_review.flows.verify import (
     required_places,
     stage_problems,
 )
+from comment_review.reading.diagnostics import ReadFailure
 
 
 class CopiesReturned(NamedTuple):
@@ -213,9 +214,12 @@ def _on_copies(message: CopiesReturned) -> tuple[list, Result | None]:
     # file once per citing role.
     cache: Cache = {}
     page_cache: PageCache = {}
+    contexts, _ = binder_reading_contexts(binder, "stage binder")
     problems = []
     for copy in copies:
-        problems += copy_problems(copy, paths, root, cache, page_cache)
+        problems += copy_problems(
+            copy, paths, root, cache, page_cache, contexts=contexts
+        )
     # ! `where` RATHER THAN `address`, and the two differ in one case only:
     # an entry that named no place. `where` is that entry's own address
     # wherever it has one, and the page and the entry's position where it has
@@ -243,9 +247,20 @@ def _on_copies(message: CopiesReturned) -> tuple[list, Result | None]:
     if problems or asks:
         return _rolled_back(problems, asks)
 
-    bases, anchors = bases_and_anchors(
-        copies, lambda address: held_at(address, paths, root, page_cache)
+    held = bases_and_anchors(
+        copies,
+        lambda address: held_at(address, paths, root, page_cache, contexts=contexts),
     )
+    if isinstance(held, ReadFailure):
+        return _rolled_back(
+            [
+                Problem(copy.role, "", d.message)
+                for copy in copies
+                for d in held.diagnostics
+            ],
+            [],
+        )
+    bases, anchors = held
     places = places_of(copies, bases, anchors)
     fold = Fold(places, turn=0).run()
     out += fold.events
@@ -259,9 +274,9 @@ def _on_copies(message: CopiesReturned) -> tuple[list, Result | None]:
         places=tuple(fold.decided.values()),
         moves=tuple(move.recorded() for move in fold.decided_moves.values()),
         page_shas={
-            path: page.sha
-            for path, page in page_cache.items()
-            if page is not None
+            path: held.result.sha
+            for path, held in page_cache.items()
+            if not isinstance(held.result, ReadFailure)
             and path not in {sheet.path for copy in copies for sheet in copy.sheets}
         },
     )
