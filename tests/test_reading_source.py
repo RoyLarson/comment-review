@@ -306,3 +306,48 @@ def test_reconstruct_preserves_every_character(text, bounds, components):
     source = structure(text, bounds)
     assert [source.slice(region.span) for region in source.regions] == components
     assert source.reconstruct() == text
+
+
+def test_position_reports_explicit_mixed_newline_coordinates():
+    source = structure("a\r\nb\nc\rd", [(0, 8, RegionKind.CODE)])
+    expected = [(1, 0), (1, 1), (1, 2), (2, 0), (2, 1), (3, 0), (3, 1), (4, 0), (4, 1)]
+    assert [source.position(offset) for offset in range(9)] == [
+        SourcePosition(line, column) for line, column in expected
+    ]
+
+
+@pytest.mark.parametrize("text", ["", "\r", "\n", "\r\n", "a\r", "a\n", "a\r\n"])
+def test_position_empty_source_and_newline_eof(text):
+    source = structure(text, [(0, len(text), RegionKind.CODE)] if text else [])
+    assert source.position(len(text)) == SourcePosition(2 if text else 1, 0)
+
+
+def test_position_counts_characters_and_preserves_unicode_separators():
+    text = "\ufeff\t\u00e9e\u0301\U0001f680\v\f\x85\u2028\u2029"
+    source = structure(text, [(0, 11, RegionKind.CODE)])
+    assert [source.position(offset) for offset in range(12)] == [
+        SourcePosition(1, column) for column in range(12)
+    ]
+
+
+@pytest.mark.parametrize("offset", [-1, 4, True, False, 1.0, "1", None])
+def test_position_rejects_invalid_offsets(offset):
+    source = structure("abc", [(0, 3, RegionKind.CODE)])
+    with pytest.raises(ValueError):
+        source.position(offset)
+
+
+def test_position_caches_immutable_derived_line_starts():
+    source = structure("a\r\nb\nc\rd", [(0, 8, RegionKind.CODE)])
+    starts = source._line_starts
+    assert starts == (0, 3, 5, 7)
+    field = source.__dataclass_fields__["_line_starts"]
+    assert not field.init
+    assert not field.repr
+    assert "_line_starts" not in repr(source)
+    for _ in range(3):
+        assert source.position(2) == SourcePosition(1, 2)
+        assert source.position(7) == SourcePosition(4, 0)
+        assert source._line_starts is starts
+    with pytest.raises(FrozenInstanceError):
+        source._line_starts = (0,)

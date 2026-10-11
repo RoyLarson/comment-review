@@ -1,6 +1,7 @@
 """Immutable source records and exact character partition validation."""
 
-from dataclasses import dataclass
+from bisect import bisect_right
+from dataclasses import dataclass, field
 from enum import StrEnum
 
 
@@ -102,9 +103,10 @@ class SourceStructure:
     sections: tuple[SourceSection, ...]
     declarations: tuple[SourceDeclaration, ...]
     documentation: tuple[DocumentationOwner, ...]
+    _line_starts: tuple[int, ...] = field(init=False, repr=False)
 
     def __post_init__(self) -> None:
-        """Validate collection shapes and complete ordered region coverage."""
+        """Validate region coverage and cache physical line boundaries."""
         for name, record_type in (
             ("regions", SourceRegion),
             ("sections", SourceSection),
@@ -132,6 +134,30 @@ class SourceStructure:
                 f"regions[{len(self.regions)}] missing coverage "
                 f"from boundary {boundary}"
             )
+
+        line_starts = [0]
+        offset = 0
+        while offset < len(self.text):
+            character = self.text[offset]
+            offset += 1
+            if character == "\r":
+                if offset < len(self.text) and self.text[offset] == "\n":
+                    offset += 1
+                line_starts.append(offset)
+            elif character == "\n":
+                line_starts.append(offset)
+        object.__setattr__(self, "_line_starts", tuple(line_starts))
+
+    def position(self, offset: int) -> SourcePosition:
+        """Locate a character offset, including EOF, in cached physical lines."""
+        if (
+            not isinstance(offset, int)
+            or isinstance(offset, bool)
+            or not 0 <= offset <= len(self.text)
+        ):
+            raise ValueError("Position offset must be an integer within text")
+        line = bisect_right(self._line_starts, offset)
+        return SourcePosition(line, offset - self._line_starts[line - 1])
 
     def slice(self, span: SourceSpan) -> str:
         """Return exact characters from a half-open span within the source."""
