@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 0 of 155 TODO tasks closed
+Progress: 2 of 155 TODO tasks closed
 Plan-tasks: 0 of 50 plan tasks closed
 Owner:    backend
 Requires-Roy: true
@@ -89,10 +89,10 @@ interfaces, inputs and checks, without internal development files or history.
 - [ ] T6 | T6 -- Name in `compact.md:113` whatever remains genuinely unresolved
       after T5. Verify: the stamp's explanation at :113 names the case that
       still fires.
-- [?] T8 | T8 -- * RULE ruby's adjacency, from ruby's own grammar and not from
+- [-] T8 | T8 -- * RULE ruby's adjacency, from ruby's own grammar and not from
       go's. Verify: one of the two comments is corrected to cite the other, for
       ruby.
-- [ ] T11 | Record Ruby attachment from authoritative RDoc sources; verify the
+- [x] T11 | Record Ruby attachment from authoritative RDoc sources; verify the
       spec permits blank lines and preserves whole sections
 - [ ] T12 | Implement Ruby attachment; verify blank-separated prose uses a,
       intervening code blocks attachment, and sections stay whole

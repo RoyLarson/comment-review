@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 7 of 12 tasks closed
+Progress: 9 of 12 tasks closed
 Owner:    backend
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-20 (found while adding the per-language declares keyword list,
           2026-08-20)
 Measured: 2026-08-20 — 2026-08-20 -- WHAT THE LEXER ALREADY SETTLES, per language. Roy
@@ -126,16 +126,17 @@ rule is that a language takes its definition from its own grammar and never from
       -- * RULE go's adjacency: must a doc comment TOUCH its declaration, or is
       nearest-above enough? Verify: one of the two comments cites the other, for
       go.
-- [?] T8 | T8 -- * RULE ruby's adjacency, from ruby's own grammar and not from
-      go's. Verify: one of the two comments is corrected to cite the other, for
-      ruby.
+- [-] T8 | Replaced by T11 source-backed rule and T12 behavior checks; no human ruling needed | 65a35b1e | T8
+      -- * RULE ruby's adjacency, from ruby's own grammar and not from go's.
+      Verify: one of the two comments is corrected to cite the other, for ruby.
 - [x] T9 | Roy approved immediate adjacency; the objective and lexer spec record the Go rule | 3376dc0f | Record
       Go documentation adjacency; verify the spec requires no blank line before
       the declaration
         > 2026-10-11 Roy approved Go adjacency: no blank before its declaration.
 - [ ] T10 | Implement Go documentation adjacency; verify touching comments use
       a, separated comments use b, and reader prose agrees
-- [ ] T11 | Record Ruby attachment from authoritative RDoc sources; verify the
-      spec permits blank lines and preserves whole sections
+- [x] T11 | Ruby spec cites RDoc blank-line attachment and retains whole sections | 65a35b1e | Record
+      Ruby attachment from authoritative RDoc sources; verify the spec permits
+      blank lines and preserves whole sections
 - [ ] T12 | Implement Ruby attachment; verify blank-separated prose uses a,
       intervening code blocks attachment, and sections stay whole
