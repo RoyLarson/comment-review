@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 5 of 7 tasks closed
+Progress: 6 of 8 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (2026-10-11 lexical-reader design)
@@ -36,3 +36,7 @@ Define shared source reading contracts.
       unsupported-syntax fixtures interpreter-aware; verify valid newer Python
       syntax is not required to fail
         > 2026-10-11 Review: test_reading_diagnostics.py:21 assumes Python 3.11 syntax
+- [x] T8 | Normal script imports and page outcomes verified by regression | a8b18c66 | Repair
+      render_page package imports and page outcomes; verify its normal command
+      on successful and refused source
+        > 2026-10-11 Found during migration: render_page imports retired flat modules

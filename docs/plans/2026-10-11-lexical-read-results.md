@@ -2,8 +2,8 @@
 
 ```
 Status:   in-progress
-Progress: 5 of 8 TODO tasks closed
-Plan-tasks: 6 of 13 plan tasks closed
+Progress: 6 of 9 TODO tasks closed
+Plan-tasks: 7 of 13 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (founded by move-t from 2026-10-11-lexical-readers)
@@ -251,6 +251,8 @@ runtime implementation is included in the plan-authoring commit.
       either-side failures, empty success and cleanup
 - [x] T7 | Make unsupported-syntax fixtures interpreter-aware; verify valid
       newer Python syntax is not required to fail
+- [x] T8 | Repair render_page package imports and page outcomes; verify its
+      normal command on successful and refused source
 
 ### B - [the-lexer-reads-no-files](../../TODO/the-lexer-reads-no-files.md)
 
@@ -291,8 +293,9 @@ runtime implementation is included in the plan-authoring commit.
       current reader refusal signals at one boundary; verify real malformed
       inputs and returned failure records
         > 2026-10-11 uv run pytest -q tests/test_reading_diagnostics.py
-- [ ] P6 | Migrate page construction and its callers to explicit outcomes;
-      verify empty success, failed admission and no duplicate reads
+- [x] P6 | Page outcome callers migrated and full regression suite passed | a8b18c66 | Migrate
+      page construction and its callers to explicit outcomes; verify empty
+      success, failed admission and no duplicate reads
         > 2026-10-11 uv run pytest -q tests/test_page_for.py
         > 2026-10-11 Return LocatedReadFailure with path, language and retained text
 - [ ] P7 | Move round-trip orchestration into a flow; verify one read and set
