@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 19 of 20 tasks closed
+Progress: 20 of 21 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (2026-10-11 lexical-reader design)
@@ -88,3 +88,7 @@ Define shared source reading contracts.
       malformed direct context settings before mapping conversion; verify
       validation returns diagnostics
         > 2026-10-11 Review: reading_context.py:47 serializes refused direct settings
+- [x] T21 | Supplied-context failure suppresses diffs and requires regathering; regressions and review pass | 869d76ba | Suppress
+      taken-in diff after selected reader refusal; verify disappearance between
+      reads requires regathering
+        > 2026-10-11 Review: taken_in.py:101 emits diff after reader selection fails

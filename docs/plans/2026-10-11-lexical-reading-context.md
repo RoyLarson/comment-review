@@ -2,8 +2,8 @@
 
 ```
 Status:   in-progress
-Progress: 13 of 14 TODO tasks closed
-Plan-tasks: 23 of 26 plan tasks closed
+Progress: 14 of 15 TODO tasks closed
+Plan-tasks: 24 of 26 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (founded by move-t from 2026-10-11-lexical-readers)
@@ -390,6 +390,8 @@ because this machinery exists.
       identities refuse
 - [x] T20 | Refuse malformed direct context settings before mapping conversion;
       verify validation returns diagnostics
+- [x] T21 | Suppress taken-in diff after selected reader refusal; verify
+      disappearance between reads requires regathering
 
 ### B - [2026-10-11-language-registry-contract](../../TODO/completed/2026-10-11-language-registry-contract.md)
 
@@ -478,8 +480,9 @@ because this machinery exists.
 - [x] P23 | Both standalone snapshots retain selected per-file settings; route regressions and review pass | ad1f98a6 | Apply
       compatible per-file settings to standalone proof; verify both snapshots
       use the same declared rules
-- [ ] P24 | Admit contexts in remaining address consumers; verify shortcuts and
-      in-memory inputs cannot bypass checks
+- [x] P24 | Remaining named consumers admit saved context before addresses and outputs; gates and review pass | 869d76ba | Admit
+      contexts in remaining address consumers; verify shortcuts and in-memory
+      inputs cannot bypass checks
 - [ ] P25 | Exercise saved-run migration end to end; verify mixed settings, old
       artifacts, moves and rollback
 - [ ] P26 | Verify focused and full suites, lint, typing, syntax and vocabulary;
