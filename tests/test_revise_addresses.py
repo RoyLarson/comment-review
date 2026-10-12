@@ -80,7 +80,7 @@ def test_pull_itself_runs_the_gate_and_discards_a_revise_that_moved(
     docket = a_docket_over(repo, ["mark.py"])
     into = tmp_path / "r1"
 
-    def moved(original, pulled, pages):
+    def moved(original, pulled, pages, **kwargs):
         raise AddressesMoved("addresses appeared: x.py@b9; disappeared: x.py@b8")
 
     monkeypatch.setattr("comment_review.flows.revise.assert_addresses_held", moved)

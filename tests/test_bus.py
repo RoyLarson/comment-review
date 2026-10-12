@@ -1,5 +1,6 @@
 """The bus: one message in, the fold's events and what the stage saves out."""
 
+from copy import deepcopy
 from dataclasses import replace
 
 import pytest
@@ -17,6 +18,7 @@ from helpers import (
     returned,
 )
 
+from comment_review.binder.page import Page
 from comment_review.desk import report as events
 from comment_review.desk.marks.table import INSTRUCTIONS
 from comment_review.desk.proof.answer import Question
@@ -34,6 +36,7 @@ from comment_review.flows.bus import (
     turn_of,
 )
 from comment_review.flows.human import HumanAnswer
+from comment_review.flows.page_for import page_of
 from comment_review.flows.proof_io import load_proof, save_proof
 from comment_review.flows.revise import pull
 from comment_review.flows.transcribe import docket_of_proof
@@ -41,6 +44,284 @@ from comment_review.flows.transcribe import docket_of_proof
 BASE = "# one\n# two\n# three"
 OTHER = "# four\n# five\n# six"
 CORRECTED = "# one\n# TWO\n# three"
+
+
+@pytest.mark.parametrize("route", ["answers", "dispositions"])
+@pytest.mark.parametrize(
+    "fault",
+    [
+        "missing",
+        "sheet",
+        "contradictory",
+        "installed",
+        "destination",
+        "destination-changed",
+    ],
+)
+def test_resumed_context_refusal_precedes_addresses_without_mutation(
+    tmp_path, monkeypatch, route, fault
+):
+    proof = _collated(tmp_path).proof
+    if fault == "missing":
+        proof = replace(proof, page_readings={})
+    elif fault in ("sheet", "contradictory"):
+        copy = proof.edit_copies[0]
+        context = copy.sheets[0].reading
+        sheet = replace(
+            copy.sheets[0],
+            reading=None
+            if fault == "sheet"
+            else replace(context, compatibility="0" * 64),
+        )
+        proof = replace(
+            proof, edit_copies=(replace(copy, sheets=(sheet,)), *proof.edit_copies[1:])
+        )
+    elif fault == "installed":
+        monkeypatch.setattr(
+            "comment_review.flows.reading_context.PLACEMENT_REVISION", "changed"
+        )
+    elif fault == "destination":
+        proof = replace(proof, page_shas={"extra.py": "unchanged"})
+    else:
+        context = proof.page_readings["m.py"]
+        proof = replace(
+            proof,
+            page_shas={"extra.py": "unchanged"},
+            page_readings={
+                **proof.page_readings,
+                "extra.py": replace(context, compatibility="0" * 64),
+            },
+        )
+    answers = _both_hold()
+    rulings = [
+        {"address": PLACE, "answer": "recast", "prose": RECAST, "reason": "combined"}
+    ]
+    message = (
+        AnswersReturned(proof, answers, tmp_path / "repo")
+        if route == "answers"
+        else DispositionsWritten(proof, rulings)
+    )
+    before = deepcopy(message)
+    source = tmp_path / "repo" / "m.py"
+    source_before = source.read_bytes()
+
+    def forbidden(*args, **kwargs):
+        pytest.fail("saved metadata was not admitted before address work")
+
+    for name in (
+        "_places_on",
+        "_moves_on",
+        "moves_in",
+        "turn_of",
+        "slots_of",
+        "read_disposition",
+        "Fold",
+    ):
+        monkeypatch.setattr(f"comment_review.flows.bus.{name}", forbidden)
+    out, result = handle(message)
+    assert result is None
+    assert any("regather" in why for _, _, why in _refusals(out))
+    assert message == before
+    assert source.read_bytes() == source_before
+
+
+@pytest.mark.parametrize("target", ["copy", "stage", "received"])
+@pytest.mark.parametrize("fault", ["missing", "changed"])
+def test_initial_context_refusal_precedes_address_work(
+    tmp_path, monkeypatch, target, fault
+):
+    binder = a_real_binder_over(tmp_path, {"m.py@b1": BASE})
+    copies = [
+        returned(wire)
+        for wire in copies_over(
+            binder, {"block-context": {"m.py@b1": a_clean("m.py@b1")}}
+        )
+    ]
+    received = binder
+    context = binder.pages[0].reading
+    changed = None if fault == "missing" else replace(context, compatibility="0" * 64)
+    if target == "copy":
+        copies[0] = replace(
+            copies[0], sheets=(replace(copies[0].sheets[0], reading=changed),)
+        )
+    elif target == "stage":
+        binder = replace(binder, pages=(replace(binder.pages[0], reading=changed),))
+    else:
+        received = replace(
+            received, pages=(replace(received.pages[0], reading=changed),)
+        )
+    message = CopiesReturned("4c", copies, binder, tmp_path, binders=(received,))
+    before = repr(message)
+
+    def forbidden(*args, **kwargs):
+        pytest.fail("address-dependent work preceded context admission")
+
+    for name in (
+        "copy_problems",
+        "required_places",
+        "coverage_problems",
+        "received_problems",
+        "bases_and_anchors",
+        "held_at",
+        "places_of",
+        "Fold",
+    ):
+        monkeypatch.setattr(f"comment_review.flows.bus.{name}", forbidden)
+    monkeypatch.setattr("comment_review.flows.verify.texts_at", forbidden)
+    out, result = handle(message)
+    assert result is None
+    assert any(
+        role == "block-context" and "regather" in why and "m.py" in why
+        for role, _, why in _refusals(out)
+    )
+    assert repr(message) == before
+
+
+@pytest.mark.parametrize("target", ["stage", "received"])
+def test_initial_context_admits_binders_without_copies(tmp_path, monkeypatch, target):
+    binder = a_real_binder_over(tmp_path, {"m.py@b1": BASE})
+    invalid = replace(binder, pages=(replace(binder.pages[0], reading=None),))
+    message = CopiesReturned(
+        "4c",
+        [],
+        invalid if target == "stage" else replace(binder, pages=()),
+        tmp_path,
+        binders=(invalid,) if target == "received" else (),
+    )
+
+    def forbidden(*args, **kwargs):
+        pytest.fail("empty-copy metadata refusal reached address work")
+
+    monkeypatch.setattr("comment_review.flows.bus.required_places", forbidden)
+    monkeypatch.setattr("comment_review.flows.bus.Fold", forbidden)
+    out, result = handle(message)
+    assert result is None
+    assert any("m.py" in why and "regather" in why for _, _, why in _refusals(out))
+
+
+@pytest.mark.parametrize("revision", ["reader", "grammar", "rules", "placement"])
+def test_initial_context_refuses_installed_changes_with_unchanged_source(
+    tmp_path, monkeypatch, revision
+):
+    from comment_review.flows import reading_context
+    from comment_review.reading.definitions import LanguageDefinition
+    from comment_review.reading.readers import ReaderBinding
+
+    binder = a_real_binder_over(tmp_path, {"m.py@b1": BASE})
+    copies = [
+        returned(wire)
+        for wire in copies_over(
+            binder, {"block-context": {"m.py@b1": a_clean("m.py@b1")}}
+        )
+    ]
+    installed = reading_context.reader_for
+
+    def revised(path):
+        selected = installed(path)
+        assert isinstance(selected, tuple)
+        definition, binding = selected
+        assert isinstance(definition, LanguageDefinition)
+        assert isinstance(binding, ReaderBinding)
+        if revision == "rules":
+            definition = replace(definition, rules={"changed": True})
+        elif revision == "reader":
+            binding = replace(binding, revision="changed")
+        elif revision == "grammar":
+            binding = replace(binding, grammar_identity="changed")
+        return definition, binding
+
+    monkeypatch.setattr(reading_context, "reader_for", revised)
+    if revision == "placement":
+        monkeypatch.setattr(reading_context, "PLACEMENT_REVISION", "changed")
+
+    def forbidden(*args, **kwargs):
+        pytest.fail("changed installed metadata reached source verification")
+
+    monkeypatch.setattr("comment_review.flows.bus.copy_problems", forbidden)
+    monkeypatch.setattr("comment_review.flows.bus.required_places", forbidden)
+    out, result = handle(CopiesReturned("4c", copies, binder, tmp_path))
+    assert result is None
+    assert any("differs" in why and "regather" in why for _, _, why in _refusals(out))
+
+
+@pytest.mark.parametrize("matching", [False, True])
+def test_initial_context_compares_saved_settings_before_fold(
+    tmp_path, monkeypatch, matching
+):
+    from pathlib import Path
+
+    from comment_review.flows import reading_context
+    from comment_review.reading.context import ReadingContext
+    from comment_review.reading.definitions import LanguageDefinition
+
+    binder = a_real_binder_over(tmp_path, {"m.py@b1": BASE})
+    installed = reading_context.reader_for
+
+    def configured(path):
+        selected = installed(path)
+        assert isinstance(selected, tuple)
+        definition, binding = selected
+        assert isinstance(definition, LanguageDefinition)
+        return replace(
+            definition,
+            defaults={"mode": "narrow"},
+            choices={"mode": ("narrow", "wide")},
+        ), binding
+
+    monkeypatch.setattr(reading_context, "reader_for", configured)
+    wide = reading_context.context_for(Path("m.py"), {"mode": "wide"})
+    narrow = reading_context.context_for(Path("m.py"), {"mode": "narrow"})
+    assert isinstance(wide, ReadingContext) and isinstance(narrow, ReadingContext)
+    binder = replace(binder, pages=(replace(binder.pages[0], reading=wide),))
+    copies = [
+        returned(wire)
+        for wire in copies_over(
+            binder, {"block-context": {"m.py@b1": a_clean("m.py@b1")}}
+        )
+    ]
+    copies[0] = replace(
+        copies[0],
+        sheets=(replace(copies[0].sheets[0], reading=wide if matching else narrow),),
+    )
+    if not matching:
+
+        def forbidden(*args, **kwargs):
+            pytest.fail("contradictory settings reached source verification")
+
+        monkeypatch.setattr("comment_review.flows.bus.copy_problems", forbidden)
+    out, result = handle(CopiesReturned("4c", copies, binder, tmp_path))
+    if matching:
+        assert result is not None, _refusals(out)
+        assert [place.address for place in result.proof.places] == ["m.py@b1"]
+        assert result.proof.places[0].base == BASE
+    else:
+        assert result is None
+        assert any(
+            "differs" in why and "regather" in why for _, _, why in _refusals(out)
+        )
+
+
+def test_initial_context_accepts_mixed_languages_empty_sources_and_no_copies(tmp_path):
+    from comment_review.binder.binder import bind
+    from comment_review.flows.distribute import seed
+
+    (tmp_path / "m.py").write_text("", encoding="utf-8")
+    (tmp_path / "n.js").write_text("const value = 1;\n", encoding="utf-8")
+    pages: list[Page] = []
+    for path in ("m.py", "n.js"):
+        page = page_of(tmp_path / path, path)
+        assert isinstance(page, Page)
+        pages.append(page)
+    binder = bind(pages, {"root": str(tmp_path), "revise": 0})
+    copy = returned(seed(binder, "block-context"))
+    out, result = handle(
+        CopiesReturned("4c", [copy], binder, tmp_path, binders=(binder,))
+    )
+    assert result is not None, _refusals(out)
+    assert result.proof.places == ()
+    empty = replace(binder, pages=())
+    out, result = handle(CopiesReturned("4c", [], empty, tmp_path, binders=()))
+    assert result is not None, _refusals(out)
 
 
 @pytest.mark.parametrize("reverse", (False, True))
@@ -1286,6 +1567,272 @@ def test_a_move_into_an_ungathered_file_that_keeps_every_word_folds(tmp_path):
     assert place.anchor == "v1 = 1"
 
 
+def test_extra_destination_retains_the_acquired_snapshot(tmp_path):
+    message = _moved_into_n(tmp_path, "# seven\n# eight\n# two")
+    out, result = handle(message)
+    assert result is not None, _refusals(out)
+    held = result.page_snapshots["n.py"]
+    from comment_review.machine.repo import Source
+
+    assert isinstance(held.result, Page)
+    assert isinstance(held.source, Source)
+    assert held.context == held.result.reading
+    assert held.source.sha == held.result.sha == result.proof.page_shas["n.py"]
+    assert result.proof.page_readings["n.py"] is held.context
+    destination = next(p for p in result.proof.places if p.address == "n.py@b1")
+    assert destination.base == next(
+        p.raw_text for p in held.result.paragraphs if p.address == "n.py@b1"
+    )
+    original = held.source.text
+    (message.root / "n.py").write_text("# replacement\nv1 = 1\n")
+    assert held.source.text == original
+
+
+@pytest.mark.parametrize("marked", [False, True])
+def test_extra_returned_sheet_survives_collation_and_admission(tmp_path, marked):
+    from comment_review.flows.reading_context import proof_reading_problems
+
+    message = _message(
+        tmp_path,
+        {"block-context": {PLACE: a_clean(PLACE), "m.py@b2": a_clean("m.py@b2")}},
+    )
+    _ungathered_page(tmp_path)
+    page = page_of(message.root / "n.py", rel="n.py")
+    assert isinstance(page, Page)
+    marks = (
+        [
+            dict(
+                a_correct("n.py@b1", UNGATHERED),
+                anchor="v1 = 1",
+                raw_text=UNGATHERED,
+                change="# seven\n# EIGHT",
+            )
+        ]
+        if marked
+        else []
+    )
+    sheet, why = Sheet.deserialize(
+        "extra", Sheet.seed("n.py", page.sha, marks, reading=page.reading)
+    )
+    assert sheet is not None, why
+    copy = message.copies[0]
+    message.copies[0] = replace(copy, sheets=(*copy.sheets, sheet))
+    out, result = handle(message)
+    assert result is not None, _refusals(out)
+    assert result.proof.page_readings["n.py"] == page.reading
+    assert proof_reading_problems(result.proof) == []
+    saved = tmp_path / "extra-proof.json"
+    save_proof(saved, result.proof)
+    loaded, why = load_proof(saved)
+    assert loaded == result.proof, why
+    assert result.chief is not None
+    extras = [sheet for sheet in result.chief.sheets if sheet.path == "n.py"]
+    assert bool(extras) is marked
+    if marked:
+        assert extras[0].sha == page.sha
+        assert extras[0].reading == page.reading
+        assert extras[0].marks
+
+
+def test_extra_returned_sheet_sha_disagreement_refuses_before_fold(
+    tmp_path, monkeypatch
+):
+    message = _message(
+        tmp_path,
+        {"block-context": {PLACE: a_clean(PLACE), "m.py@b2": a_clean("m.py@b2")}},
+    )
+    _ungathered_page(tmp_path)
+    page = page_of(message.root / "n.py", rel="n.py")
+    assert isinstance(page, Page)
+    sheet = Sheet("n.py", page.sha, (), reading=page.reading)
+    copy = message.copies[0]
+    message.copies[:] = [
+        replace(copy, sheets=(*copy.sheets, sheet)),
+        replace(copy, sheets=(*copy.sheets, replace(sheet, sha="other-original"))),
+    ]
+
+    def forbidden(*args, **kwargs):
+        pytest.fail("conflicting original shas reached fold")
+
+    monkeypatch.setattr("comment_review.flows.bus.Fold", forbidden)
+    out, result = handle(message)
+    assert result is None
+    assert any("conflicting sheet shas" in reason for _, _, reason in _refusals(out))
+
+
+@pytest.mark.parametrize(
+    "route", ["raw", "load", "decode", "answers", "dispositions", "mark"]
+)
+@pytest.mark.parametrize("marks_only", [False, True])
+def test_missing_both_destination_records_refuses_before_saved_work(
+    tmp_path, monkeypatch, route, marks_only
+):
+    from comment_review.flows.reading_context import proof_reading_problems
+
+    message = _moved_into_n(tmp_path, "# seven\n# eight\n# two")
+    out, result = handle(message)
+    assert result is not None, _refusals(out)
+    proof = replace(
+        result.proof,
+        page_readings={
+            p: c for p, c in result.proof.page_readings.items() if p != "n.py"
+        },
+        page_shas={p: s for p, s in result.proof.page_shas.items() if p != "n.py"},
+    )
+    if route == "mark" or marks_only:
+        proof = replace(proof, places=(), moves=())
+        move = next(
+            mark
+            for sheet in proof.serialize()["edit_copies"][0]["sheets"]
+            for mark in sheet["marks"]
+            if mark["instruction"] == "move"
+        )
+        assert move["claim"]["to"] == "n.py@b1"
+        assert "to" not in move
+    before = deepcopy(proof)
+    source = (message.root / "n.py").read_bytes()
+
+    def forbidden(*args, **kwargs):
+        pytest.fail(
+            "missing destination metadata reached saved address/fold/chief work"
+        )
+
+    for name in ("_places_on", "_moves_on", "Fold", "chief_copy_of"):
+        monkeypatch.setattr(f"comment_review.flows.bus.{name}", forbidden)
+    if route == "mark":
+        why = proof_reading_problems(proof)
+    elif route == "raw":
+        why = proof_reading_problems(proof.serialize())
+    elif route == "load":
+        saved = tmp_path / "missing-destination.json"
+        save_proof(saved, proof)
+        monkeypatch.setattr(
+            "comment_review.flows.proof_io.MasterProof.deserialize", forbidden
+        )
+        loaded, why = load_proof(saved)
+        assert loaded is None
+    elif route == "decode":
+        monkeypatch.setattr(
+            "comment_review.desk.proof.master_proof._places_in", forbidden
+        )
+        if marks_only:
+            monkeypatch.setattr(
+                "comment_review.desk.proof.master_proof.EditCopy.deserialize", forbidden
+            )
+        decoded, why = MasterProof.deserialize("saved", proof.serialize())
+        assert decoded is None
+    else:
+        resumed = (
+            AnswersReturned(proof, {}, message.root)
+            if route == "answers"
+            else DispositionsWritten(proof, [])
+        )
+        out, resumed_result = handle(resumed)
+        assert resumed_result is None
+        why = [reason for _, _, reason in _refusals(out)]
+    assert any("n.py" in reason and "regather" in reason for reason in why)
+    assert proof == before
+    assert (message.root / "n.py").read_bytes() == source
+
+
+@pytest.mark.parametrize("change", ["context", "source"])
+def test_extra_destination_capture_survives_incompatible_reuse(tmp_path, change):
+    from dataclasses import replace
+
+    from comment_review.flows.on_the_page import page_named
+    from comment_review.flows.source import source_of
+    from comment_review.reading.diagnostics import ReadFailure
+
+    message = _moved_into_n(tmp_path, "# seven\n# eight\n# two")
+    out, result = handle(message)
+    assert result is not None, _refusals(out)
+    held = result.page_snapshots["n.py"]
+    original = held.context
+    assert original is not None
+    requested = original
+    source = None
+    if change == "context":
+        requested = replace(original, settings=(("changed", "yes"),))
+    else:
+        (message.root / "n.py").write_text("# replacement\nv1 = 1\n")
+        source = source_of(message.root / "n.py")
+        assert not isinstance(source, ReadFailure)
+    _, refused = page_named(
+        "n.py",
+        [],
+        message.root,
+        result.page_snapshots,
+        reading_context=requested,
+        source=source,
+    )
+    assert isinstance(refused, ReadFailure)
+    assert result.page_snapshots["n.py"] is held
+    assert held.context is original
+
+
+def test_extra_destination_with_missing_captured_context_refuses(tmp_path, monkeypatch):
+    from dataclasses import replace
+
+    from comment_review.flows import bus
+
+    original = bus.held_at
+
+    def without_context(address, paths, root, cache, **kwargs):
+        result = original(address, paths, root, cache, **kwargs)
+        if "n.py" in cache:
+            cache["n.py"] = replace(cache["n.py"], context=None)
+        return result
+
+    monkeypatch.setattr(bus, "held_at", without_context)
+    out, result = handle(_moved_into_n(tmp_path, "# seven\n# eight\n# two"))
+    assert result is None
+    assert any("regather" in reason for _, _, reason in _refusals(out))
+
+
+def test_destination_context_is_captured_before_installed_rules_change(
+    tmp_path, monkeypatch
+):
+    from dataclasses import replace
+
+    from comment_review.flows import bus, on_the_page
+    from comment_review.reading.diagnostics import ReadFailure
+
+    message = _moved_into_n(tmp_path, "# seven\n# eight\n# two")
+    acquire = on_the_page.source_of
+    reads = []
+
+    def counted(path):
+        reads.append(path.name)
+        return acquire(path)
+
+    monkeypatch.setattr(on_the_page, "source_of", counted)
+    bases = bus.bases_and_anchors
+    context_for = on_the_page.context_for
+    captured = []
+
+    def changed_after_base(copies, held):
+        result = bases(copies, held)
+        captured.append(context_for(message.root / "n.py", {}))
+
+        def changed(path, settings):
+            context = context_for(path, settings)
+            assert not isinstance(context, ReadFailure)
+            return replace(context, compatibility="0" * 64)
+
+        monkeypatch.setattr(on_the_page, "context_for", changed)
+        return result
+
+    monkeypatch.setattr(bus, "bases_and_anchors", changed_after_base)
+    out, result = handle(message)
+    assert result is not None, _refusals(out)
+    assert reads.count("n.py") == 1
+    held = result.page_snapshots["n.py"]
+    assert held.context == captured[0]
+    _, refused = on_the_page.page_named("n.py", [], message.root, result.page_snapshots)
+    assert isinstance(refused, ReadFailure)
+    assert result.page_snapshots["n.py"] is held
+
+
 def test_an_add_over_prose_in_an_ungathered_file_that_drops_a_word_is_refused(
     tmp_path,
 ):
@@ -1307,9 +1854,11 @@ def test_an_add_over_prose_in_an_ungathered_file_that_drops_a_word_is_refused(
         "change": "# a new line",
     }
     copy = message.copies[0]
+    page = page_of(tmp_path / "repo" / "n.py", rel="n.py")
+    assert isinstance(page, Page)
     sheet, why = Sheet.deserialize(
         "n.py",
-        {"path": "n.py", "sha": "", "marks": [add]},
+        Sheet.seed("n.py", "", [add], reading=page.reading),
     )
     assert sheet is not None, why
     message.copies[0] = replace(copy, sheets=(*copy.sheets, sheet))
@@ -1349,9 +1898,11 @@ def test_a_move_and_an_add_into_one_ungathered_place_compose_on_different_senten
         **an_add("n.py@b1", reads=UNGATHERED + "\n# six"),
         "change": "# six",
     }
+    page = page_of(tmp_path / "repo" / "n.py", rel="n.py")
+    assert isinstance(page, Page)
     sheet, why = Sheet.deserialize(
         "n.py",
-        {"path": "n.py", "sha": "", "marks": [add]},
+        Sheet.seed("n.py", "", [add], reading=page.reading),
     )
     assert sheet is not None, why
     copy = message.copies[1]

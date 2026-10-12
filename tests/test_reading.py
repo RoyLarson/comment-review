@@ -47,7 +47,7 @@ SOURCES = {
     "C block": ("m.c", "/* head */\nint a;\n"),
     "rust": ("m.rs", "/// Doc.\npub fn f() {}\n"),
     "go": ("m.go", "// Doc.\nfunc f() {}\n"),
-    "toml": ("m.toml", "# note\nkey = 1\n"),
+    "typescript JSX": ("m.tsx", "// note\nconst card = <Card />;\n"),
     "shell": ("m.sh", "#!/bin/sh\necho hi\n"),
     "js": ("m.js", "// note\nlet a = 1;\n"),
     "unicode": ("m.py", "# caf\u00e9\nx = 1\n"),
@@ -247,7 +247,9 @@ class TestAPageCarriesTheShaItWasGiven:
         path = Path("m.py")
         lang = language_for(path)
         assert lang is not None, f"no language record for suffix {path.suffix!r}"
-        page = page_for(path, SAMPLE, lang, rel="m.py", sha="deadbeef")
+        page = page_for(
+            path, SAMPLE, lang, rel="m.py", sha="deadbeef", reading=build("").reading
+        )
         from comment_review.reading.diagnostics import ReadFailure
 
         assert not isinstance(page, ReadFailure), page
@@ -261,4 +263,4 @@ class TestAPageCarriesTheShaItWasGiven:
             # !! DELIBERATELY OMITS `sha` -- proves the keyword-only parameter
             # is enforced at runtime. ty: ignore[missing-argument] because the
             # call is invalid ON PURPOSE; that is what this test asserts.
-            page_for(path, SAMPLE, lang, rel="m.py")  # ty: ignore[missing-argument]
+            page_for(path, SAMPLE, lang, rel="m.py", reading=build("").reading)  # ty: ignore[missing-argument]

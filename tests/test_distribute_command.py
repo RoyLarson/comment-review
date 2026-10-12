@@ -6,8 +6,10 @@ edit copy per dispatch. The task agent reads the ORDER from SKILL.md (`#73`).
 """
 
 import json
+from dataclasses import replace
 from pathlib import Path
 
+import pytest
 from conftest import SAMPLE, run_command
 
 from comment_review.commands import distribute as distribute_command
@@ -34,6 +36,138 @@ reads = "revise:4a"
   [[stage.dispatch]]
   role = "function-context"
 """
+
+
+@pytest.mark.parametrize("incompatible", [False, True])
+def test_stage_admits_later_language_before_consuming_first_shard(
+    tmp_path, monkeypatch, capsys, incompatible
+):
+    from comment_review.flows import reading_context
+    from comment_review.reading.readers import ReaderBinding
+
+    (tmp_path / "a.py").write_bytes(b"x = 1\n# first\ny = 2\n")
+    (tmp_path / "b.js").write_bytes(b"const x = 1;\n// later\nconst y = 2;\n")
+    code, printed = run_command(
+        monkeypatch,
+        capsys,
+        gather_command,
+        "--repo",
+        str(tmp_path),
+        "--out",
+        str(tmp_path / "binder.json"),
+        str(tmp_path / "a.py"),
+        str(tmp_path / "b.js"),
+        with_stderr=True,
+    )
+    assert code == 0, printed
+    (tmp_path / "t.toml").write_text(
+        '[[stage]]\nname = "4a"\nkind = "editorial"\nreads = "original"\n'
+        '[[stage.dispatch]]\nrole = "block-context"\npaths = ["a.py"]\n'
+        '[[stage.dispatch]]\nrole = "block-context"\npaths = ["b.js"]\n'
+    )
+    before = {path: path.read_bytes() for path in tmp_path.rglob("*") if path.is_file()}
+    if incompatible:
+        original = reading_context.reader_for
+
+        def changed(path):
+            selected = original(path)
+            assert isinstance(selected, tuple)
+            definition, binding = selected
+            assert isinstance(binding, ReaderBinding)
+            return definition, (
+                replace(binding, revision="later-changed")
+                if path.suffix == ".js"
+                else binding
+            )
+
+        monkeypatch.setattr(reading_context, "reader_for", changed)
+
+        def forbidden(*args, **kwargs):
+            pytest.fail("first shard consumed before later language admission")
+
+        monkeypatch.setattr("comment_review.flows.distribute.handed", forbidden)
+        monkeypatch.setattr(distribute_command, "_as_json", forbidden)
+    out = tmp_path / "copies"
+    code, printed = _stage(tmp_path, monkeypatch, capsys, "4a", out)
+    if incompatible:
+        assert code == 2, printed
+        assert "b.js" in printed and "regather" in printed
+        assert not out.exists()
+        assert {
+            path: path.read_bytes() for path in tmp_path.rglob("*") if path.is_file()
+        } == before
+    else:
+        assert code == 0, printed
+        assert [
+            json.loads((out / f"4a_block-context_{n}.json").read_text())["sheets"][0][
+                "path"
+            ]
+            for n in (1, 2)
+        ] == ["a.py", "b.js"]
+
+
+@pytest.mark.parametrize("route", ["seed", "stage"])
+@pytest.mark.parametrize(
+    "installed_change", ["placement", "reader", "definition", "rules"]
+)
+def test_distribution_refuses_installed_incompatible_saved_binder_before_addresses(
+    tmp_path, monkeypatch, capsys, route, installed_change
+):
+    from comment_review.flows import reading_context
+    from comment_review.reading.definitions import LanguageDefinition
+    from comment_review.reading.readers import ReaderBinding
+
+    root = _tree(tmp_path, monkeypatch, capsys)
+    before = {path: path.read_bytes() for path in root.rglob("*") if path.is_file()}
+    if installed_change == "placement":
+        monkeypatch.setattr(reading_context, "PLACEMENT_REVISION", "changed")
+    else:
+        original = reading_context.reader_for
+
+        def changed(path):
+            selected = original(path)
+            assert isinstance(selected, tuple)
+            definition, binding = selected
+            assert isinstance(definition, LanguageDefinition)
+            assert isinstance(binding, ReaderBinding)
+            if installed_change == "reader":
+                binding = replace(binding, revision="changed")
+            elif installed_change == "definition":
+                definition = replace(definition, revision="changed")
+            else:
+                definition = replace(
+                    definition, rules={**definition.rules, "changed": True}
+                )
+            return definition, binding
+
+        monkeypatch.setattr(reading_context, "reader_for", changed)
+
+    def forbidden(*args, **kwargs):
+        pytest.fail("incompatible binder reached saved address consumption")
+
+    monkeypatch.setattr("comment_review.flows.distribute.handed", forbidden)
+    monkeypatch.setattr(distribute_command, "_as_json", forbidden)
+    if route == "seed":
+        code, printed = run_command(
+            monkeypatch,
+            capsys,
+            distribute_command,
+            "--seed",
+            "--binder",
+            str(root / "binder.json"),
+            "--role",
+            "block-context",
+            "--out",
+            str(root / "seeded.json"),
+            with_stderr=True,
+        )
+    else:
+        code, printed = _stage(root, monkeypatch, capsys, "4a", root / "copies")
+    assert code == 2, printed
+    assert "regather" in printed
+    assert {
+        path: path.read_bytes() for path in root.rglob("*") if path.is_file()
+    } == before
 
 
 def _bind(tmp_path, monkeypatch, capsys, repo: Path, out: Path, revise: int):

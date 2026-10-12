@@ -6,7 +6,7 @@ from typing import Any, cast, get_args
 import pytest
 
 from comment_review.flows.read_diagnostics import LocatedReadFailure, format_failure
-from comment_review.reading import lexer
+from comment_review.reading import lexer, readers
 from comment_review.reading.diagnostics import (
     ReadDiagnostic,
     ReadFailure,
@@ -33,7 +33,7 @@ from comment_review.reading.source import SourceSpan, SourceStructure
     ],
 )
 def test_read_paragraphs_reports_python_refusal(text):
-    result = lexer.read_paragraphs(Path("m.py"), text, lexer.LANGUAGES[0])
+    result = readers.read_paragraphs(Path("m.py"), text, lexer.LANGUAGES[0])
     assert isinstance(result, ReadFailure)
     assert [(d.stage, d.code, d.span) for d in result.diagnostics] == [
         (ReadStage.LEX, "incomplete-read", None)
@@ -50,8 +50,8 @@ def test_read_paragraphs_unterminated_comment_before_decoration(monkeypatch):
     def conceal(*args):
         pytest.fail("Refused paragraphs must not reach decoration")
 
-    monkeypatch.setattr(lexer, "flag_structural_docs", conceal)
-    result = lexer.read_paragraphs(path, text, lang)
+    monkeypatch.setattr(readers, "flag_structural_docs", conceal)
+    result = readers.read_paragraphs(path, text, lang)
     assert isinstance(result, ReadFailure)
     assert [(d.stage, d.code, d.span) for d in result.diagnostics] == [
         (ReadStage.LEX, "unterminated-comment", SourceSpan(8, len(text)))
@@ -64,8 +64,8 @@ def test_read_paragraphs_retains_signal_order(monkeypatch):
         Paragraph("m.py", 2, 2, "comment", 1, "open"),
     ]
     records[1].annotations.add("unterminated-paragraph-comment")
-    monkeypatch.setattr(lexer, "paragraphs_stdlib", lambda *args: records)
-    result = lexer.read_paragraphs(Path("m.py"), "code\n# open", lexer.LANGUAGES[0])
+    monkeypatch.setattr(readers, "paragraphs_stdlib", lambda *args: records)
+    result = readers.read_paragraphs(Path("m.py"), "code\n# open", lexer.LANGUAGES[0])
     assert isinstance(result, ReadFailure)
     assert [(d.code, d.span) for d in result.diagnostics] == [
         ("incomplete-read", None),
@@ -77,14 +77,14 @@ def test_read_paragraphs_invalid_record_and_unexpected_error_propagate(monkeypat
     def broken(*args):
         raise RuntimeError("reader defect")
 
-    monkeypatch.setattr(lexer, "paragraphs_stdlib", broken)
+    monkeypatch.setattr(readers, "paragraphs_stdlib", broken)
     with pytest.raises(RuntimeError, match="reader defect"):
-        lexer.read_paragraphs(Path("m.py"), "", lexer.LANGUAGES[0])
+        readers.read_paragraphs(Path("m.py"), "", lexer.LANGUAGES[0])
     record = Paragraph("m.py", 3, 3, "comment", 1, "open")
     record.annotations.add("unterminated-paragraph-comment")
-    monkeypatch.setattr(lexer, "paragraphs_stdlib", lambda *args: [record])
+    monkeypatch.setattr(readers, "paragraphs_stdlib", lambda *args: [record])
     with pytest.raises(ValueError, match="source lines"):
-        lexer.read_paragraphs(Path("m.py"), "# open", lexer.LANGUAGES[0])
+        readers.read_paragraphs(Path("m.py"), "# open", lexer.LANGUAGES[0])
 
 
 @pytest.mark.parametrize(
@@ -107,7 +107,7 @@ def test_read_paragraphs_preserves_supported_readings(name, text):
     )
     if lang.name != "python":
         lexer.flag_structural_docs(expected, text, lang)
-    assert lexer.read_paragraphs(path, text, lang) == expected
+    assert readers.read_paragraphs(path, text, lang) == expected
 
 
 def test_stage_values_and_source_read_alternatives():

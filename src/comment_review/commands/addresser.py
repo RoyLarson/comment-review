@@ -16,6 +16,7 @@ from comment_review.constants import text_lines
 from comment_review.flows.page_for import page_of
 from comment_review.flows.proof_io import load_binder
 from comment_review.flows.read_diagnostics import format_failure
+from comment_review.flows.reading_context import binder_reading_contexts
 from comment_review.reading.addresser import (
     DECLARED,
     SERIES,
@@ -83,6 +84,11 @@ def main() -> int:
     if binder is None:
         for line in problems:
             print(line)
+        return 2
+    _, problems = binder_reading_contexts(binder, str(args.binder))
+    if problems:
+        for problem in problems:
+            print(problem)
         return 2
     paragraphs = binder.paragraphs
     if not paragraphs:
@@ -224,6 +230,11 @@ def _at_line(binder: Binder, file: str, line: int, series: str) -> int:
         0 when a place was named, 1 when the page has no such place at that
         line, 2 when the file could not be read as a page.
     """
+    contexts, problems = binder_reading_contexts(binder)
+    if problems:
+        for problem in problems:
+            print(problem)
+        return 2
     given = Path(file)
     try:
         rel = (
@@ -234,7 +245,10 @@ def _at_line(binder: Binder, file: str, line: int, series: str) -> int:
     except ValueError:
         print(f"{file} is not under the binder's root {binder.root}")
         return 2
-    page = page_of(binder.root / rel, rel=rel)
+    if rel not in contexts:
+        print(f"{rel}: the binder carries no saved reading context; regather")
+        return 2
+    page = page_of(binder.root / rel, rel=rel, reading_context=contexts[rel])
     if isinstance(page, ReadFailure):
         print(format_failure(page, path=rel))
         return 2

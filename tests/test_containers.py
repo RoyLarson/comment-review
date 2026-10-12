@@ -9,13 +9,18 @@ are about.
 from dataclasses import fields
 
 import pytest
-from helpers import a_clean, a_master_proof, a_small_real_tree, binder_of
+from helpers import a_binder_over, a_clean, a_master_proof, a_small_real_tree, binder_of
 
 from comment_review.desk.proof.edit_copy import EditCopy
 from comment_review.desk.proof.master_proof import MasterProof
 from comment_review.desk.proof.move import Move
 from comment_review.desk.proof.sheet import Sheet
 from comment_review.flows.distribute import seed
+from comment_review.reading.context_io import context_to_wire
+
+
+def reading_wire():
+    return context_to_wire(a_binder_over({"m.py@b1": "# example\n"}).pages[0].reading)
 
 
 def a_real_copy(tmp_path, role="block-context"):
@@ -41,7 +46,12 @@ class TestTheWriteHalfLivesWithTheRead:
         reason the class's fields were: a literal would pass a rename that
         broke `seed` and the declaration together.
         """
-        row = Sheet.seed(path="m.py", sha="abc", marks=[])
+        row = Sheet.seed(
+            path="m.py",
+            sha="abc",
+            marks=[],
+            reading=a_binder_over({"m.py@b1": "# example\n"}).pages[0].reading,
+        )
         wire = {f.name for f in fields(Sheet) if f.metadata.get("wire", True)}
         assert set(row) == wire
         assert wire < {f.name for f in fields(Sheet)}, "some field must be off the wire"
@@ -184,7 +194,8 @@ class TestAnEmptyProofStillHoldsItsHeader:
         """The bus's `_on_copies` produces this shape for a stage with no
         copies, so `{}` is admitted and only the other five values are not."""
         parsed, problems = MasterProof.deserialize(
-            "p", {"stage": "4c", "edit_copies": [], "read_from": {}}
+            "p",
+            {"stage": "4c", "edit_copies": [], "read_from": {}, "page_readings": {}},
         )
         assert problems == []
         assert parsed is not None
@@ -197,6 +208,7 @@ class TestAnEmptyProofStillHoldsItsHeader:
         assert built.edit_copies == () and built.read_from == {}
         parsed, problems = MasterProof.deserialize("4c", built.serialize())
         assert problems == []
+        assert built.page_readings.keys() == built.page_shas.keys() == {"m.py"}
         assert parsed is not None
 
 
@@ -337,7 +349,9 @@ class TestWhatItRefuses:
         """An empty `edit_copies` reads back with `read_from={}`, the shape the
         bus writes when there is no first copy to take it from -- not the
         disagreement or malformed shape the two cases above refuse."""
-        got, why = MasterProof.deserialize("4c", {"stage": "4c", "edit_copies": []})
+        got, why = MasterProof.deserialize(
+            "4c", {"stage": "4c", "edit_copies": [], "page_readings": {}}
+        )
         assert why == []
         assert got is not None
         assert got.read_from == {}
@@ -352,14 +366,16 @@ class TestANullFieldIsAbsentNotTheWordNone:
     def test_a_null_sha(self):
         sheet, why = Sheet.deserialize(
             "sheet 1",
-            {"path": "m.py", "sha": None, "marks": []},
+            {"path": "m.py", "sha": None, "marks": [], "reading": reading_wire()},
         )
         assert why == []
         assert sheet is not None
         assert sheet.sha == ""
 
     def test_a_null_stage(self):
-        proof, why = MasterProof.deserialize("4c", {"stage": None, "edit_copies": []})
+        proof, why = MasterProof.deserialize(
+            "4c", {"stage": None, "edit_copies": [], "page_readings": {}}
+        )
         assert why == []
         assert proof is not None
         assert proof.stage == ""
@@ -393,7 +409,12 @@ class TestAnAddressLessEntryIsStillFindable:
     def test_a_bare_string_is_located_by_page_and_position(self):
         sheet, why = Sheet.deserialize(
             "s",
-            {"path": "m.py", "sha": "a", "marks": [{}, {}, "not an object"]},
+            {
+                "path": "m.py",
+                "sha": "a",
+                "marks": [{}, {}, "not an object"],
+                "reading": reading_wire(),
+            },
         )
         assert why == []
         assert sheet is not None
@@ -410,7 +431,12 @@ class TestAnAddressLessEntryIsStillFindable:
         """
         sheet, why = Sheet.deserialize(
             "s",
-            {"path": "m.py", "sha": "a", "marks": [{"instruction": None}]},
+            {
+                "path": "m.py",
+                "sha": "a",
+                "marks": [{"instruction": None}],
+                "reading": reading_wire(),
+            },
         )
         assert why == []
         assert sheet is not None
@@ -427,6 +453,7 @@ class TestAnAddressLessEntryIsStillFindable:
                 "path": "m.py",
                 "sha": "a",
                 "marks": [{"address": "m.py@b1", "instruction": None}],
+                "reading": reading_wire(),
             },
         )
         assert why == []
@@ -437,10 +464,13 @@ class TestAnAddressLessEntryIsStillFindable:
 
 def test_a_master_proof_carries_its_moves_and_reads_back_one_written_before_them():
     """Review Focus 2: a proof written before moves existed still reads."""
+    page = a_binder_over({"m.py@b1": "# example\n"}).pages[0]
     proof = MasterProof(
         stage="4c",
         read_from={},
         edit_copies=(),
+        page_readings={page.path: page.reading},
+        page_shas={page.path: page.sha},
         places=(),
         moves=(Move("m.py@b1", "m.py@b5"),),
     )
@@ -451,6 +481,70 @@ def test_a_master_proof_carries_its_moves_and_reads_back_one_written_before_them
     older["places"] = [{"address": "m.py@b1", "partner": "m.py@b5"}]
     back, why = MasterProof.deserialize("4c", older)
     assert why == [] and back is not None and back.moves == ()
+
+
+def test_master_proof_requires_saved_page_readings():
+    proof, why = MasterProof.deserialize("proof", {"edit_copies": []})
+    assert proof is None
+    assert any("page_readings" in reason and "regather" in reason for reason in why)
+
+
+def test_empty_proof_readings_are_explicit_and_detached():
+    readings = {}
+    proof = MasterProof("4c", {}, (), readings)
+    readings["extra.py"] = a_binder_over({"m.py@b1": "# example\n"}).pages[0].reading
+    assert proof.serialize()["page_readings"] == {}
+    back, why = MasterProof.deserialize("proof", proof.serialize())
+    assert back is not None and why == []
+
+
+def test_repeated_empty_sheets_require_consistent_metadata(tmp_path):
+    wire = a_master_proof(
+        tmp_path / "repo", {"block-context": {"m.py@b1": a_clean("m.py@b1")}}
+    ).serialize()
+    sheet = wire["edit_copies"][0]["sheets"][0]
+    sheet["marks"] = []
+    wire["places"] = []
+    wire["edit_copies"][0]["sheets"].append({**sheet})
+    back, why = MasterProof.deserialize("proof", wire)
+    assert back is not None and why == []
+    wire["edit_copies"][0]["sheets"][1] = {**sheet, "sha": "different"}
+    back, why = MasterProof.deserialize("proof", wire)
+    assert back is None and any("conflicting sheet shas" in one for one in why)
+
+
+@pytest.mark.parametrize("value", [None, [], {"format": 2}])
+def test_master_proof_refuses_invalid_saved_context(tmp_path, value):
+    wire = a_master_proof(
+        tmp_path / "repo", {"block-context": {"m.py@b1": a_clean("m.py@b1")}}
+    ).serialize()
+    wire["page_readings"]["m.py"] = value
+    back, why = MasterProof.deserialize("proof", wire)
+    assert back is None and any("regather" in reason for reason in why)
+
+
+def test_master_proof_page_readings_round_trip_and_detach(tmp_path):
+    proof = a_master_proof(
+        tmp_path / "repo", {"block-context": {"m.py@b1": a_clean("m.py@b1")}}
+    )
+    wire = proof.serialize()
+    assert wire["page_readings"] == {"m.py": reading_wire()}
+    back, why = MasterProof.deserialize("proof", wire)
+    assert why == [] and back is not None
+    wire["page_readings"]["m.py"]["settings"]["new"] = "choice"
+    assert back.serialize()["page_readings"] == {"m.py": reading_wire()}
+
+
+def test_master_proof_refuses_missing_destination_context_before_places(tmp_path):
+    wire = a_master_proof(
+        tmp_path / "repo", {"block-context": {"m.py@b1": a_clean("m.py@b1")}}
+    ).serialize()
+    wire["page_shas"] = {"extra.py": "sha"}
+    wire["places"] = ["invalid"]
+    back, why = MasterProof.deserialize("proof", wire)
+    assert back is None
+    assert any("extra.py" in reason and "regather" in reason for reason in why)
+    assert not any("place 1" in reason for reason in why)
 
 
 class TestEveryBadRecordIsNamed:

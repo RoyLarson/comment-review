@@ -326,9 +326,8 @@ FORMS = {
     "ruby": ("m.rb", "# Doc.\ndef f\nend\n"),
     "lua": ("m.lua", "--- Doc.\nlocal function f() end\n"),
     "shell": ("m.sh", "#!/bin/sh\n# note\necho hi\n"),
-    "toml": ("m.toml", "# note\nkey = 1\n"),
-    "yaml": ("m.yaml", "# note\nkey: 1\n"),
-    "ini": ("m.ini", "; note\n[a]\nb = 1\n"),
+    "jsx": ("m.jsx", "// note\nconst card = <Card />;\n"),
+    "tsx": ("m.TSX", "// note\nconst card = <Card />;\n"),
     "sql": ("m.sql", "-- note\nSELECT 1;\n"),
 }
 FORM_CASES = pytest.mark.parametrize(

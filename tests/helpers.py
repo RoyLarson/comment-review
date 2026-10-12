@@ -29,7 +29,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-from conftest import ROOT, cue, run_command
+from conftest import ROOT, build, cue, run_command
 
 from comment_review.binder.binder import VERSION, Binder, bind
 from comment_review.commands import collate as collate_command
@@ -231,6 +231,7 @@ def a_docket_over(repo: Path, names: list[str]) -> Docket:
             {
                 "path": page.path,
                 "sha": page.sha,
+                "reading": page.serialize()["reading"],
                 "alterations": [
                     {
                         "cue": cue(found),
@@ -273,6 +274,7 @@ def a_docket_whose_claim_is_not_in_the_page(repo: Path, name: str) -> Docket:
                         {
                             "path": page.path,
                             "sha": page.sha,
+                            "reading": page.serialize()["reading"],
                             "alterations": [
                                 {
                                     "cue": "zzz9999",
@@ -368,6 +370,7 @@ def _synthetic_binder(addresses: list[str]) -> Binder:
                 {
                     "path": path,
                     "sha": "0" * 40,
+                    "reading": build("", name=path).serialize()["reading"],
                     "rows": [_row(cue, "") for cue in cues],
                 }
                 for path, cues in by_path.items()
@@ -403,6 +406,7 @@ def a_binder_over(paragraphs: dict[str, str]) -> Binder:
                 {
                     "path": path,
                     "sha": "0" * 40,
+                    "reading": build("", name=path).serialize()["reading"],
                     "rows": [_row(cue, text) for cue, text in rows],
                 }
                 for path, rows in by_path.items()

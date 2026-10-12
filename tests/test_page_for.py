@@ -27,7 +27,7 @@ from comment_review.reading.lexer import language_for
 def test_empty_source_is_a_complete_page():
     lang = language_for(Path("empty.py"))
     assert lang is not None
-    page = page_for(Path("empty.py"), "", lang, sha="empty")
+    page = page_for(Path("empty.py"), "", lang, sha="empty", reading=build("").reading)
     assert isinstance(page, Page)
     assert page.text == ""
     assert page.sha == "empty"
@@ -36,7 +36,9 @@ def test_empty_source_is_a_complete_page():
 def test_malformed_python_is_a_read_failure():
     lang = language_for(Path("bad.py"))
     assert lang is not None
-    page = page_for(Path("bad.py"), "def broken(:\n", lang, sha="bad")
+    page = page_for(
+        Path("bad.py"), "def broken(:\n", lang, sha="bad", reading=build("").reading
+    )
     assert isinstance(page, ReadFailure)
     assert page.diagnostics[0].stage.value == "lex"
 
@@ -81,6 +83,33 @@ def test_failed_reader_never_assigns_places(monkeypatch):
         Path("bad.py"), source=Source("def broken(:\n", "bad")
     )
     assert isinstance(result, ReadFailure)
+
+
+def test_unavailable_binding_is_never_invoked_or_addressed(monkeypatch):
+    from dataclasses import replace
+
+    from comment_review.reading import readers
+
+    selected = readers.reader_for(Path("m.py"))
+    assert selected is not None and not isinstance(selected, ReadFailure)
+    definition, binding = selected
+
+    def forbidden(*args):
+        pytest.fail("An unavailable binding must not read or assign places")
+
+    monkeypatch.setattr(page_mod, "places_on", forbidden)
+    monkeypatch.setattr(
+        readers,
+        "INSTALLED_BINDINGS",
+        {
+            definition.reader: replace(
+                binding, capabilities=("comments",), read=forbidden
+            )
+        },
+    )
+    result = page_for_mod.page_of(Path("m.PY"), source=Source("x = 1\n", "held"))
+    assert isinstance(result, ReadFailure)
+    assert result.diagnostics[0].code == "unavailable-reader"
 
 
 def test_unexpected_reader_exception_propagates(monkeypatch):

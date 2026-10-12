@@ -33,8 +33,8 @@ It is named here because that is a fact about this module and not a licence to
 delete it; filed as `TODO/galley-and-compositor-write-path.md`.
 
 !! AND THE ROUND TRIP IS A TEST BECAUSE THIS IS THE ONLY WRITER.
-`set_page(page_for(path, text, lang, sha=read_source(path).sha)) == text`,
-byte for byte, in any language.
+For a supplied, unchanged `Page`, `set_page(page) == page.text`, byte for byte,
+in any language.
 ! `prove_unchanged.py` is strictly weaker and answers a different question: it
 proves the EXECUTABLE CODE survived an edit, not that the model of a page is
 lossless.

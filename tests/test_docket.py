@@ -59,6 +59,13 @@ from comment_review.machine.json_object import object_of
 #: One ordinary alteration, for the cases whose subject is a SCHEDULE's own
 #: fields rather than what any particular mark transcribes to.
 A_ROW = Alteration(cue="b1", text="# new")
+READING = {
+    "format": 1,
+    "language": "python",
+    "reader": "lexical",
+    "compatibility": "a" * 64,
+    "settings": {},
+}
 
 #: The two paragraphs the move cases below stand on -- the sentence that
 #: travels, and what is already at the place it travels to. A move's snippet
@@ -144,6 +151,7 @@ def a_docket(pages) -> str:
                 {
                     "path": path,
                     "sha": sha,
+                    "reading": READING,
                     "alterations": [{"cue": c, "text": t} for c, t in alterations],
                 }
                 for path, sha, alterations in pages
@@ -325,6 +333,7 @@ class TestTheDocketsOwnPages:
                     {
                         "path": "m.py",
                         "sha": "sha",
+                        "reading": READING,
                         "alterations": [
                             {"cue": "b1", "text": "# new", "anchor": "x = 1"},
                             {"cue": "b3", "text": "# moved"},
@@ -398,7 +407,13 @@ def test_an_EMPTY_role_is_OMITTED_from_the_wire_and_reads_back_as_empty():
     ends, not the docket -- so `copy-chief` on a folded page is the true answer
     and not the false one the old test guarded against.
     """
-    page = Schedule(path="m.py", sha="0" * 40, alterations=(A_ROW,), role="")
+    from comment_review.reading.context_io import context_from_wire
+
+    reading, why = context_from_wire("fixture", READING)
+    assert reading is not None, why
+    page = Schedule(
+        path="m.py", sha="0" * 40, alterations=(A_ROW,), reading=reading, role=""
+    )
     assert "role" not in page.serialize()
     docket = Docket(schedules=(page,))
     assert set(_set_by(docket).values()) == {""}

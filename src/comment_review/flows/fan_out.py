@@ -44,7 +44,7 @@ from fnmatch import fnmatch
 from comment_review.binder.binder import Binder
 from comment_review.binder.page import Page, RedactedPage
 from comment_review.desk.stages import Dispatch, Stage
-from comment_review.flows.distribute import assigned_binder, seed
+from comment_review.flows.distribute import admit_binder, assigned_binder, seed
 
 
 class OverlappingShards(Exception):
@@ -109,6 +109,7 @@ def fan(binder: Binder, stage: Stage) -> list[dict]:
 
 def dealt(binder: Binder, stage: Stage) -> list[tuple[Binder, dict]]:
     """Pair each dispatch's received binder with its seeded edit copy."""
+    admit_binder(binder)
     out = []
     for dispatch, matched in partition(binder, stage):
         received = assigned_binder(replace(binder, pages=tuple(matched)), stage)

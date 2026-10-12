@@ -34,14 +34,11 @@ from pathlib import Path
 
 from comment_review import constants, exceptions
 from comment_review.reading.comment import Comment, Fragment
-from comment_review.reading.coordinates import SourceCoordinates
-from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, ReadStage
 from comment_review.reading.language import (
     BY_EXT,
     LANGUAGES,
     Language,
     language_for,
-    tier_for,
 )
 from comment_review.reading.paragraph import Paragraph
 
@@ -49,73 +46,13 @@ from comment_review.reading.paragraph import Paragraph
 # `language.py`. Everything a language says about where its documentation sits is
 # stated there and read here; no module above this one asks a language anything.
 from comment_review.reading.series import Kind, Series, cue_for
-from comment_review.reading.source import SourceSpan
 
 __all__ = [
     "BY_EXT",
     "LANGUAGES",
     "Language",
     "language_for",
-    "tier_for",
 ]
-
-
-def read_paragraphs(
-    path: Path, text: str, lang: Language
-) -> list[Paragraph] | ReadFailure:
-    """Read paragraphs or retain explicit reader refusals before decoration."""
-    coordinates = SourceCoordinates(text)
-    paragraphs = (
-        paragraphs_stdlib(path, text)
-        if lang.name == "python"
-        else paragraphs_lexical(path, text, lang)
-    )
-    diagnostics: list[ReadDiagnostic] = []
-    for paragraph in paragraphs:
-        if not isinstance(paragraph, Paragraph):
-            raise ValueError("Reader records must be Paragraph values")
-        if paragraph.kind == "unparsed":
-            diagnostics.append(
-                ReadDiagnostic(ReadStage.LEX, "incomplete-read", paragraph.text)
-            )
-        if "unterminated-paragraph-comment" in paragraph.annotations:
-            diagnostics.append(
-                ReadDiagnostic(
-                    ReadStage.LEX,
-                    "unterminated-comment",
-                    "Comment has no closing delimiter before end of source",
-                    span=_paragraph_source_span(paragraph, coordinates),
-                )
-            )
-    if diagnostics:
-        return ReadFailure(tuple(diagnostics))
-    if lang.name != "python":
-        flag_structural_docs(paragraphs, text, lang)
-    return paragraphs
-
-
-def _paragraph_source_span(
-    paragraph: Paragraph, coordinates: SourceCoordinates
-) -> SourceSpan | None:
-    """Locate an annotated paragraph's original physical source lines."""
-    first, last = paragraph.original_start, paragraph.original_end
-    if first is None and last is None:
-        return None
-    breaks = list(re.finditer(r"\r\n|\r|\n", coordinates.text))
-    starts = [0, *(match.end() for match in breaks)]
-    if (
-        not isinstance(first, int)
-        or isinstance(first, bool)
-        or not isinstance(last, int)
-        or isinstance(last, bool)
-        or not 1 <= first <= last <= len(starts)
-    ):
-        raise ValueError("Paragraph original source lines are invalid")
-    start = starts[first - 1]
-    end = breaks[last - 1].start() if last <= len(breaks) else len(coordinates.text)
-    coordinates.position(start)
-    coordinates.position(end)
-    return SourceSpan(start, end)
 
 
 class Layout(IntEnum):

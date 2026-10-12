@@ -1,38 +1,22 @@
-"""What a checkout's pages hold at an address, each page read once.
+"""Read addressed pages once per caller-owned snapshot cache.
 
-    PageCache                             real path -> the page, or None
-    real_path(name, paths)                the real path a flattened page name names
-    printed_name(name, paths, root)       that name as the binder or checkout prints it
-    page_named(name, paths, root, cache)  that path, and its page or None
-    held_at(address, paths, root, cache)  the text and the anchor at one place
-    no_page(real)                         the one sentence for a page that will not read
-
-Every flow that asks what a place holds on the page asks here. The collate
-handler reads each place its copies touch for that place's base and anchor
-(`decision-log.md Process: #187`, which restores `#125`); the quote and
-resolution checks read the place a mark names (`#119`, `#122`); `check` and
-`mark` read the places a row measures a mark against; and the transcription
-reads the pages it sets. Before this module each of them turned a flattened
-name into a path and read the page its own way, and two of the ways
-disagreed about a file the run did not gather.
-
-The page is read whether or not the binder holds it. The binder is the seed
-for what a role is handed, not every place or file a mark may touch (`#119`):
-a move may land in a file the run never gathered, and the paragraph already
-there is still what the move is measured against.
-
-Nothing here asks whether a page changed since it was gathered. The middle
-does not ask that at any granularity (`#62`, `#185`); it reads the page as the
-checkout holds it.
+Each held result retains its acquired source and requested reading context.
+Requests admit installed compatibility before consulting places, and refuse
+different settings or supplied source versions without replacing the first
+reading. Extra paths derive defaults at acquisition and retain that context.
 """
 
 import os
+from collections.abc import Mapping
+from dataclasses import dataclass
 from pathlib import Path
 from typing import NamedTuple
 
 from comment_review.binder.page import Page
 from comment_review.flows.page_for import page_of
-from comment_review.machine.repo import can_escape
+from comment_review.flows.reading_context import context_for
+from comment_review.flows.source import source_of
+from comment_review.machine.repo import Source, can_escape
 from comment_review.reading.addresser import (
     SEPARATOR,
     cue_of,
@@ -40,21 +24,32 @@ from comment_review.reading.addresser import (
     folded,
     unflatten,
 )
-from comment_review.reading.diagnostics import ReadFailure
+from comment_review.reading.context import ReadingContext
+from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, ReadStage
 
-#: One real path -> its page, or None where this checkout holds no readable
-#: page there. A caller keeps one per stage and hands it to every read, so a
-#: page every role's marks touch is read once. The None is cached too.
-PageCache = dict[str, Page | None]
+
+@dataclass(frozen=True)
+class HeldPage:
+    """One acquired snapshot, requested context, and retained read outcome."""
+
+    context: ReadingContext | None
+    source: Source | ReadFailure | None
+    result: Page | ReadFailure
+
+
+PageCache = dict[str, HeldPage]
+
+
+def _refusal(code: str, message: str) -> ReadFailure:
+    return ReadFailure((ReadDiagnostic(ReadStage.SELECT, code, message),))
 
 
 class Held(NamedTuple):
     """What the page holds at one place.
 
     Attributes:
-        text: the paragraph there, or "" where the place holds none, the page
-            cannot be read, or the page carries no such place.
-        anchor: the line of code the place sits on, or "" on the same terms.
+        text: the paragraph there, or "" where the place holds none.
+        anchor: the line of code the place sits on, or "" if absent.
     """
 
     text: str
@@ -126,55 +121,142 @@ def printed_name(name: str, paths: list[str], root: Path) -> str:
 
 
 def page_named(
-    name: str, paths: list[str], root: Path, cache: PageCache
-) -> tuple[str, Page | None]:
-    """One flattened page name's real path, and its page, read at most once.
+    name: str,
+    paths: list[str],
+    root: Path,
+    cache: PageCache,
+    *,
+    reading_context: ReadingContext | None = None,
+    contexts: Mapping[str, ReadingContext] | None = None,
+    source: Source | None = None,
+    settings: Mapping[str, str] | None = None,
+) -> tuple[str, Page | ReadFailure]:
+    """Return a real path and its page or retained expected failure.
 
-    A path that would land outside `root` once joined to it -- absolute,
-    carrying a drive, or climbing with `..` -- reads as no page and nothing is
-    opened. The name comes from an address a role wrote, and
-    `desk.collator.source_problems` keeps the same guard for a cited path.
-
-    Args:
-        name: the path half of an address.
-        paths: the real paths the caller's input records, for `real_path`.
-        root: the checkout the page is read from.
-        cache: shared by every read the caller makes, keyed by real path.
-
-    Returns:
-        `(the real path, the page)`, the page None where none can be read.
+    The caller owns a cache for one checkout snapshot. Installed metadata is
+    admitted on every request; a supplied source is compared with the held
+    source rather than reacquired. A changed context or source is refused
+    without replacing the first result. Unsafe paths never acquire source.
+    A supplied contexts map must contain every recorded path requested;
+    only paths outside those records may acquire fresh default readings.
     """
     real = real_path(name, paths)
-    if real not in cache:
-        page = None
-        if real and not can_escape(real):
-            got = page_of(root / real, rel=real)
-            page = None if isinstance(got, ReadFailure) else got
-        cache[real] = page
-    return real, cache[real]
+    previous = cache.get(real)
+    if not real or can_escape(real):
+        failure = _refusal("unsafe-page-path", no_page(real))
+        if previous is None:
+            cache[real] = HeldPage(None, None, failure)
+        return real, cache[real].result
+    if contexts is not None and real in paths and real not in contexts:
+        return real, _refusal(
+            "missing-reading-context",
+            f"{real}: saved reading context is missing; regather",
+        )
+    requested = (
+        reading_context
+        if reading_context is not None
+        else contexts.get(real)
+        if contexts is not None
+        else None
+    )
+    if requested is None and settings is None and previous is not None:
+        requested = previous.context
+    context = context_for(
+        root / real,
+        settings
+        if settings is not None
+        else dict(requested.settings)
+        if requested
+        else {},
+    )
+    if isinstance(context, ReadFailure):
+        if previous is None:
+            cache[real] = HeldPage(requested, source, context)
+        if previous is not None and source is not None and source != previous.source:
+            return real, _refusal(
+                "held-source-mismatch", "Supplied source differs from held snapshot"
+            )
+        return (
+            real,
+            previous.result
+            if previous
+            and previous.context == requested
+            and isinstance(previous.result, ReadFailure)
+            and previous.result.diagnostics == context.diagnostics
+            else context,
+        )
+    if requested is not None and context != requested:
+        failure = _refusal(
+            "reading-context-mismatch",
+            "Reading context differs from installed metadata; regather",
+        )
+        if previous is None:
+            cache[real] = HeldPage(requested, source, failure)
+        elif (
+            previous.context == requested
+            and isinstance(previous.result, ReadFailure)
+            and previous.result.diagnostics == failure.diagnostics
+        ):
+            failure = previous.result
+        return real, failure
+    if previous is not None:
+        if previous.context != context:
+            return real, _refusal(
+                "held-context-mismatch",
+                "Requested reading context differs from held page; regather",
+            )
+        if source is not None and source != previous.source:
+            return real, _refusal(
+                "held-source-mismatch", "Supplied source differs from held snapshot"
+            )
+        return real, previous.result
+    acquired = source_of(root / real) if source is None else source
+    result = (
+        acquired
+        if isinstance(acquired, ReadFailure)
+        else page_of(
+            root / real,
+            rel=real,
+            source=acquired,
+            reading_context=context,
+        )
+    )
+    cache[real] = HeldPage(context, acquired, result)
+    return real, result
 
 
-def held_at(address: str, paths: list[str], root: Path, cache: PageCache) -> Held:
-    """The text and the anchor the page holds at `address`.
+def held_at(
+    address: str,
+    paths: list[str],
+    root: Path,
+    cache: PageCache,
+    *,
+    reading_context: ReadingContext | None = None,
+    contexts: Mapping[str, ReadingContext] | None = None,
+    source: Source | None = None,
+    settings: Mapping[str, str] | None = None,
+) -> Held | ReadFailure:
+    """Return text and anchor at an address, or an explicit read failure.
 
-    Args:
-        address: `path@cue`.
-        paths: the real paths the caller's input records, for `real_path`.
-        root: the checkout the page is read from.
-        cache: shared by every read the caller makes, keyed by real path.
-
-    Returns:
-        The `Held` there. Both halves are "" where the address is not
-        `path@cue`, no page can be read at its path, or the page carries no
-        such place; a caller that must tell those apart from an empty place
-        asks `page_named`.
+    Saved contexts are keyed by real path. A missing extra path uses explicit
+    defaults on its first acquisition. A malformed address or absent place
+    yields empty text and anchor; unreadable or incompatible pages fail.
     """
     addr = cue_of(address)
     if not addr.path or not addr.cue:
         return Held("", "")
-    _real, page = page_named(addr.path, paths, root, cache)
-    if page is None:
-        return Held("", "")
+    _real, page = page_named(
+        addr.path,
+        paths,
+        root,
+        cache,
+        reading_context=reading_context,
+        contexts=contexts,
+        source=source,
+        settings=settings,
+    )
+    if isinstance(page, ReadFailure):
+        return page
     text = next(
         (
             b.raw_text

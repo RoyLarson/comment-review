@@ -103,6 +103,9 @@ went with the function that could read it.
 
 from dataclasses import dataclass, field
 
+from comment_review.reading.context import ReadingContext
+from comment_review.reading.context_io import context_from_wire, context_to_wire
+
 
 def _not_a(where: str, noun: str, value: object) -> str:
     """One refusal, naming the JSON type that arrived instead of `noun`."""
@@ -202,6 +205,7 @@ class Schedule:
             it against the file it is about to set.
         alterations: one `Alteration` per place, in the order the docket lists
             them.
+        reading: the original context that assigned the saved cues.
         role: the role whose mark settled every alteration here, or "" when
             the docket carries none. `proof_setter` does not read this --
             `flows.revise._set_by` does; carried here so a caller unwinding a
@@ -211,6 +215,7 @@ class Schedule:
     path: str
     sha: str
     alterations: tuple[Alteration, ...]
+    reading: ReadingContext
     role: str = ""
 
     @classmethod
@@ -233,6 +238,8 @@ class Schedule:
         if not isinstance(path, str) or not path:
             return None, [f"{where}: every page needs a `path`, as the repo names it"]
         problems: list[str] = []
+        reading, why = context_from_wire(path, data.get("reading"))
+        problems.extend(why)
         sha = data.get("sha")
         if not isinstance(sha, str) or not sha:
             problems.append(f"{path}: every page needs the `sha` it was read at")
@@ -257,13 +264,14 @@ class Schedule:
                 continue
             seen.add(got.cue)
             alterations.append(got)
-        if problems:
+        if problems or reading is None:
             return None, problems
         return (
             cls(
                 path=path,
                 sha=sha if isinstance(sha, str) else "",
                 alterations=tuple(alterations),
+                reading=reading,
                 role=raw_role if isinstance(raw_role, str) else "",
             ),
             [],
@@ -284,6 +292,7 @@ class Schedule:
             "path": self.path,
             "sha": self.sha,
             "alterations": [one.serialize() for one in self.alterations],
+            "reading": context_to_wire(self.reading),
         }
         if self.role:
             out["role"] = self.role

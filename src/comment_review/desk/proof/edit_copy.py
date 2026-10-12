@@ -5,6 +5,7 @@ every place has exactly one answer, and one mark per place is an ordinary copy.
 There is no second shape and no second parse.
 """
 
+from copy import deepcopy
 from dataclasses import dataclass
 
 from comment_review.binder.binder import _read_from_problem
@@ -80,7 +81,7 @@ class EditCopy:
             {
                 "role": role,
                 "read_from": {**read_from},
-                "sheets": list(sheets),
+                "sheets": deepcopy(sheets),
                 "stage": stage,
                 "admits": list(admits or []),
             },

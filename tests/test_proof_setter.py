@@ -27,6 +27,135 @@ from comment_review.results import compositor, galley
 from comment_review.results.prove_unchanged import code_fingerprint
 
 
+@pytest.mark.parametrize("fault", ["digest", "malformed", "duplicate-settings"])
+def test_saved_context_refuses_before_setting(tmp_path, monkeypatch, fault):
+    repo, binder, _ = _tree(tmp_path)
+    docket = docket_from({address(binder, "m.py"): "# replacement"}, binder)
+    saved = docket.schedules[0].reading
+    if fault == "digest":
+        saved = dataclasses.replace(saved, compatibility="0" * 64)
+    elif fault == "malformed":
+        saved = []
+    else:
+        object.__setattr__(saved, "settings", (("mode", "on"), ("mode", "off")))
+    schedule = dataclasses.replace(docket.schedules[0], reading=saved)
+
+    def forbidden_set(*args, **kwargs):
+        pytest.fail("incompatible context reached the setter")
+
+    monkeypatch.setattr(galley, "reset", forbidden_set)
+    drafted, refused = proof_setter.run(Docket((schedule,)), repo, tmp_path / "out")
+    assert drafted == []
+    assert refused and "reading" in refused[0].why
+
+
+@pytest.mark.parametrize("different", ["same", "sha", "reading"])
+def test_direct_duplicate_paths_refuse_before_drafting(
+    tmp_path, monkeypatch, different
+):
+    repo, binder, _ = _tree(tmp_path)
+    docket = docket_from({address(binder, "m.py"): "# replacement"}, binder)
+    first = docket.schedules[0]
+    second = first
+    if different == "sha":
+        second = dataclasses.replace(first, sha="different")
+    elif different == "reading":
+        second = dataclasses.replace(
+            first, reading=dataclasses.replace(first.reading, compatibility="0" * 64)
+        )
+
+    def forbidden_set(*args, **kwargs):
+        pytest.fail("duplicate paths reached the setter")
+
+    monkeypatch.setattr(galley, "reset", forbidden_set)
+    drafted, refused = proof_setter.run(Docket((first, second)), repo, tmp_path / "out")
+    assert drafted == []
+    assert "two schedules" in refused[0].why
+
+
+def test_later_saved_context_mismatch_discards_nested_draft(tmp_path, monkeypatch):
+    repo, into = tmp_path / "repo", tmp_path / "out"
+    originals = {
+        "a/deep/first.py": b"x = 1\r\n\r\n# note\r\ny = 2\r\n",
+        "z.py": b"x = 1\n\n# note\ny = 2\n",
+    }
+    pages = []
+    for rel, raw in originals.items():
+        path = repo / rel
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(raw)
+        page = proof_setter.page_of(path, rel=rel)
+        assert not isinstance(page, ReadFailure)
+        pages.append(page)
+    binder = bind(pages, read_from={"root": str(repo), "revise": 0})
+    docket = docket_from(
+        {address(binder, rel): "# replacement" for rel in originals}, binder
+    )
+    first, second = docket.schedules
+    second = dataclasses.replace(
+        second, reading=dataclasses.replace(second.reading, compatibility="0" * 64)
+    )
+    real_page = proof_setter.page_of
+    observed = []
+
+    def observing_page(path, *args, **kwargs):
+        if path == repo / "z.py":
+            observed.append((into / "a/deep/first.py").is_file())
+        return real_page(path, *args, **kwargs)
+
+    monkeypatch.setattr(proof_setter, "page_of", observing_page)
+    drafted, refused = proof_setter.run(Docket((first, second)), repo, into)
+    assert drafted == [] and refused
+    assert observed == [True]
+    assert list(into.iterdir()) == []
+    assert {rel: (repo / rel).read_bytes() for rel in originals} == originals
+
+
+@pytest.mark.parametrize("text", ["x = 1\n\n# note\ny = 2\n", ""])
+def test_saved_nondefault_settings_reach_original_and_draft(
+    tmp_path, monkeypatch, text
+):
+    from comment_review.flows import reading_context as flow_context
+
+    original_reader = flow_context.reader_for
+    selected = original_reader(Path("m.py"))
+    assert selected is not None and not isinstance(selected, ReadFailure)
+    definition, binding = selected
+    configured = dataclasses.replace(
+        definition, defaults={"mode": "default"}, choices={"mode": ("default", "saved")}
+    )
+    monkeypatch.setattr(flow_context, "reader_for", lambda path: (configured, binding))
+    repo, into = tmp_path / "repo", tmp_path / "out"
+    repo.mkdir()
+    path = repo / "m.py"
+    path.write_text(text, encoding="utf-8")
+    page = proof_setter.page_of(path, rel="m.py", settings={"mode": "saved"})
+    assert not isinstance(page, ReadFailure)
+    if text:
+        binder = bind([page], read_from={"root": str(repo), "revise": 0})
+        docket = docket_from({address(binder, "m.py"): "# replacement"}, binder)
+        docket = Docket(
+            (dataclasses.replace(docket.schedules[0], reading=page.reading),)
+        )
+    else:
+        docket = Docket((Schedule("m.py", page.sha, (), page.reading),))
+    real_page = page_for_mod.page_for
+    observed = []
+
+    def require_saved(path, *args, **kwargs):
+        reading = kwargs["reading"]
+        observed.append((Path(path), reading.settings))
+        return real_page(path, *args, **kwargs)
+
+    monkeypatch.setattr(page_for_mod, "page_for", require_saved)
+    drafted, refused = proof_setter.run(docket, repo, into)
+    assert refused == [] and len(drafted) == 1
+    assert observed == [
+        (path, (("mode", "saved"),)),
+        (into / "m.py", (("mode", "saved"),)),
+    ]
+
+
 @pytest.mark.parametrize("stage", ["lex", "place"])
 def test_direct_proof_refuses_failed_reading(monkeypatch, stage):
     from comment_review.reading.diagnostics import ReadDiagnostic, ReadStage
@@ -354,6 +483,7 @@ def test_a_page_the_REPO_DOES_NOT_HAVE_refuses_at_read_and_names_it(tmp_path):
                 {
                     "path": "pkg/nowhere.py",
                     "sha": "whatever",
+                    "reading": build("", "pkg/nowhere.py").serialize()["reading"],
                     "alterations": [{"cue": "b0", "text": "# x"}],
                 }
             ]
@@ -700,6 +830,7 @@ class TestEveryAlterationCarriesAnAnchor:
                     {
                         "path": "m.py",
                         "sha": page.sha,
+                        "reading": page.serialize()["reading"],
                         "alterations": [{"cue": cue_of(where).cue, "text": "# x"}],
                     }
                 ]
@@ -754,6 +885,7 @@ class TestOnePlaceTakesOneAlteration:
                 Schedule(
                     path="m.py",
                     sha=page.sha,
+                    reading=page.reading,
                     alterations=(
                         Alteration(cue=at, text="# one", anchor=anchor),
                         Alteration(cue=at, text=None, anchor=anchor),

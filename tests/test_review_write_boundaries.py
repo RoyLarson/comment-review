@@ -13,7 +13,7 @@ from comment_review.flows.bus import (
 )
 from comment_review.flows.page_for import page_of
 from comment_review.flows.proof_setter import run
-from comment_review.flows.transcribe import CannotTranscribe, docket_of_proof
+from comment_review.flows.transcribe import docket_of_proof
 from comment_review.reading.diagnostics import ReadFailure
 from comment_review.results import compositor, galley
 
@@ -70,14 +70,16 @@ def test_unchanged_destination_identity_survives_a_committed_transition(tmp_path
 
 
 def test_a_legacy_proof_cannot_invent_an_ungathered_destination_identity(tmp_path):
-    result, repo = _move_into_ungathered_page(tmp_path)
+    result, _ = _move_into_ungathered_page(tmp_path)
     proof = result.proof
     wire = proof.serialize()
     wire.pop("page_shas", None)
     proof, problems = MasterProof.deserialize("legacy", wire)
-    assert proof is not None and not problems
-    with pytest.raises(CannotTranscribe, match="recorded.*sha"):
-        docket_of_proof(proof, repo)
+    assert proof is None
+    assert any(
+        "n.py" in reason and "page_shas" in reason and "regather" in reason
+        for reason in problems
+    )
 
 
 def test_destination_identity_survives_an_answer_turn(tmp_path):
@@ -158,6 +160,7 @@ def test_inserted_closing_gap_survives_proof_and_rereading(tmp_path, text):
                 "m.py",
                 page.sha,
                 (Alteration("b1", "# new", page.cues.anchor_of("b1")),),
+                page.reading,
             ),
         )
     )

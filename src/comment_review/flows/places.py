@@ -14,11 +14,13 @@ from comment_review.desk.proof.sheet import Sheet
 from comment_review.desk.proof.state import SETTLED
 from comment_review.flows.on_the_page import Held
 from comment_review.reading.addresser import cue_of, flatten
+from comment_review.reading.context import ReadingContext
+from comment_review.reading.diagnostics import ReadFailure
 
 
 def bases_and_anchors(
-    copies: list[EditCopy], held: Callable[[str], Held]
-) -> tuple[dict[str, str], dict[str, str]]:
+    copies: list[EditCopy], held: Callable[[str], Held | ReadFailure]
+) -> tuple[dict[str, str], dict[str, str]] | ReadFailure:
     """The base text and the anchor of every place the copies' marks touch.
 
     The base is the page's text at the place, whether or not the binder holds
@@ -37,7 +39,8 @@ def bases_and_anchors(
             page cache (`flows.on_the_page.held_at`).
 
     Returns:
-        `(address -> base, address -> anchor)`, for `places_of`.
+        `(address -> base, address -> anchor)`, for `places_of`, or the first
+        expected read failure before any fold is built.
     """
     marks = [mark for copy in copies for sheet in copy.sheets for mark in sheet.marks]
     bases: dict[str, str] = {}
@@ -45,7 +48,10 @@ def bases_and_anchors(
     for mark in marks:
         for address, _touch in INSTRUCTIONS[mark.instruction].places(mark):
             if address not in bases:
-                bases[address], anchors[address] = held(address)
+                result = held(address)
+                if isinstance(result, ReadFailure):
+                    return result
+                bases[address], anchors[address] = result
     anchors.update({mark.address: mark.anchor for mark in marks if mark.address})
     return bases, anchors
 
@@ -104,7 +110,12 @@ def places_of(
 
 
 def chief_copy_of(
-    decided: dict[str, Place], role: str, read_from: dict, sheets: list[Sheet]
+    decided: dict[str, Place],
+    role: str,
+    read_from: dict,
+    sheets: list[Sheet],
+    page_readings: dict[str, ReadingContext],
+    page_shas: dict[str, str],
 ) -> EditCopy:
     """The copy chief's edit_copy, one mark per SETTLED place the fold decided.
 
@@ -123,12 +134,12 @@ def chief_copy_of(
         decided: address -> the `Place` the fold settled it at.
         role: the role this copy is written for -- "copy-chief".
         read_from: `{root, revise}`, carried onto the copy.
-        sheets: the pages a mark here may land on; matched to a mark's page
-            by `flatten(sheet.path) == cue_of(mark.address).path`, and the
-            output sheet keeps the input sheet's real `path` and `sha`.
+        sheets: original source identities for pages held by returned copies.
+        page_readings: original contexts recorded by the master proof.
+        page_shas: original source identities for pages absent from the sheets.
 
     Returns:
-        The chief's `EditCopy`, one sheet per page that holds a mark, for
+        The chief's `EditCopy`, one sheet per recorded page that holds a mark, for
         every place whose `state` is in `SETTLED` and whose `text` is not
         None.
     """
@@ -140,9 +151,18 @@ def chief_copy_of(
         mark = chief_mark(place)
         by_path.setdefault(cue_of(mark.address).path, []).append(mark)
 
+    identities = {sheet.path: sheet.sha for sheet in sheets}
+    identities.update(page_shas)
     out = []
-    for sheet in sheets:
-        marks = by_path.get(flatten(sheet.path), [])
+    for path, reading in page_readings.items():
+        marks = by_path.get(flatten(path), [])
         if marks:
-            out.append(Sheet(path=sheet.path, sha=sheet.sha, marks=tuple(marks)))
+            out.append(
+                Sheet(
+                    path=path,
+                    sha=identities[path],
+                    marks=tuple(marks),
+                    reading=reading,
+                )
+            )
     return EditCopy(role=role, read_from={**read_from}, sheets=tuple(out))

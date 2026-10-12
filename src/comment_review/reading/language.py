@@ -1,31 +1,19 @@
-"""THE LANGUAGES: one record per language, and nothing else.
+"""Independent language grammar rows and installed reader configuration.
 
-!! A LEAF, AND THE ONLY PLACE POSITIONING IS STATED. Roy, 2026-08-21: *"All
-framing about positioning should come from the language and should be only in
-either the language definition file, or a reference to the language definition
-file in lexer and compositor. The language definition file should be a leaf
-separate from everything else and imported only by lexer and compositor."*
-
-!! TWO IMPORTERS, AND `scripts/check_language_leaf.py` HOLDS IT. The LEXER reads
-a file into paragraphs and the COMPOSITOR sets a page back into one; they are
-the only two modules that touch a file at all, so they are the only two that may
-ask a language anything. Everything between them carries what those two state.
-
-! IT CAME OUT OF `lexer.py`, where the rows sat beside the lexing. Nothing about
-the split is cosmetic: while they shared a module, four more modules imported the
-records through it -- `gather`, `desk`, `page` and `prove_unchanged` -- and each
-one that holds a `Language` is a place a positioning rule can be written a second
-time and drift from the first.
-
-!! ADDING A LANGUAGE IS A ROW, NOT CODE. That is the whole design, and the rows
-are DUPLICATED ON PURPOSE where they look shareable. Roy, 2026-08-20: *"don't try
-to make the list generic -- that is a failure of the single responsibility
-principle. Each language could change on a new version invalidating the list for
-all of them."* The `c-family` and `js-family` rows were split for exactly that.
+Installed definitions materialize grammar from each programming-language row.
+Validation requires complete grammar with the language's expected value shapes.
+Shared reader metadata supplies identities, revisions, capabilities and coverage
+tiers for registration, dispatch and reporting.
 """
 
-from dataclasses import dataclass
+from dataclasses import dataclass, fields
 from pathlib import Path
+from types import MappingProxyType
+from typing import Any, cast
+
+from comment_review.reading.definitions import LanguageDefinition
+from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, ReadStage
+from comment_review.reading.registry import LanguageRegistry
 
 
 @dataclass(frozen=True)
@@ -521,21 +509,128 @@ LANGUAGES: tuple[Language, ...] = (
     ),
 )
 
-BY_EXT = {ext: lang for lang in LANGUAGES for ext in lang.extensions}
+
+@dataclass(frozen=True)
+class ReaderMetadata:
+    """Reader identity, semantic revision and implemented capabilities."""
+
+    reader: str
+    revision: str
+    capabilities: tuple[str, ...]
+
+    @property
+    def tier(self) -> str:
+        """Return the coverage tier declared in the reader capabilities."""
+        return self.capabilities[-1]
 
 
-# The ladder is named by the QUESTION each rung answers, not by the library
-# that happens to answer it. Only the top rung knows which declaration a paragraph
-# belongs to.
+READER_METADATA = MappingProxyType(
+    {
+        "python": ReaderMetadata("python-stdlib", "1", ("comments", "tokenized")),
+        "rust": ReaderMetadata("rust-lexical", "1", ("comments", "lexical")),
+        "go": ReaderMetadata("go-lexical", "1", ("comments", "lexical")),
+        "c": ReaderMetadata("c-lexical", "1", ("comments", "lexical")),
+        "cpp": ReaderMetadata("cpp-lexical", "1", ("comments", "lexical")),
+        "java": ReaderMetadata("java-lexical", "1", ("comments", "lexical")),
+        "csharp": ReaderMetadata("csharp-lexical", "1", ("comments", "lexical")),
+        "swift": ReaderMetadata("swift-lexical", "1", ("comments", "lexical")),
+        "kotlin": ReaderMetadata("kotlin-lexical", "1", ("comments", "lexical")),
+        "javascript": ReaderMetadata(
+            "javascript-lexical", "1", ("comments", "lexical")
+        ),
+        "typescript": ReaderMetadata(
+            "typescript-lexical", "1", ("comments", "lexical")
+        ),
+        "ruby": ReaderMetadata("ruby-lexical", "1", ("comments", "lexical")),
+        "shell": ReaderMetadata("shell-lexical", "1", ("comments", "lexical")),
+        "sql": ReaderMetadata("sql-lexical", "1", ("comments", "lexical")),
+        "lua": ReaderMetadata("lua-lexical", "1", ("comments", "lexical")),
+    }
+)
+
+INSTALLED_DEFINITIONS = tuple(
+    LanguageDefinition(
+        language=lang.name,
+        suffixes=lang.extensions,
+        reader=READER_METADATA[lang.name].reader,
+        revision=READER_METADATA[lang.name].revision,
+        capabilities=READER_METADATA[lang.name].capabilities,
+        defaults={},
+        choices={},
+        rules={
+            field.name: getattr(lang, field.name)
+            for field in fields(lang)
+            if field.name not in {"name", "extensions"}
+        },
+    )
+    for lang in LANGUAGES
+    if lang.name in READER_METADATA
+)
+INSTALLED_REGISTRY = LanguageRegistry(INSTALLED_DEFINITIONS)
+
+
+def validate_language_definition(
+    language_name: str, definition: LanguageDefinition
+) -> ReadFailure | None:
+    """Require the complete grammar owned by one installed language."""
+    installed = INSTALLED_REGISTRY.for_language(language_name)
+    reason = ""
+    if installed is None or definition.language != language_name:
+        reason = "Definition does not belong to this language"
+    elif definition.reader != installed.reader:
+        reason = "Definition does not belong to this reader"
+    elif definition.defaults or definition.choices:
+        reason = "This reader implements no settings"
+    elif definition.rules.keys() != installed.rules.keys():
+        reason = "Grammar must contain exactly the required language keys"
+    else:
+        for key, value in definition.rules.items():
+            expected = installed.rules[key]
+            if isinstance(expected, bool):
+                valid = type(value) is bool
+            elif key == "block_comment":
+                valid = isinstance(value, tuple) and all(
+                    isinstance(pair, tuple)
+                    and len(pair) == 2
+                    and all(isinstance(token, str) and token for token in pair)
+                    for pair in value
+                )
+            else:
+                valid = isinstance(value, tuple) and all(
+                    isinstance(token, str) and token for token in value
+                )
+            if not valid:
+                reason = f"Invalid grammar value for {key}"
+                break
+    if reason:
+        return ReadFailure(
+            (ReadDiagnostic(ReadStage.SELECT, "invalid-language-definition", reason),)
+        )
+    return None
+
+
+def language_from_definition(definition: LanguageDefinition) -> Language:
+    """Materialize validated grammar without supplying missing field defaults."""
+    failure = validate_language_definition(definition.language, definition)
+    if failure is not None:
+        raise ValueError(failure.diagnostics[0].message)
+    return Language(
+        name=definition.language,
+        extensions=definition.suffixes,
+        **cast(dict[str, Any], dict(definition.rules)),
+    )
+
+
+BY_EXT = MappingProxyType(
+    {
+        suffix.lower(): language_from_definition(value)
+        for value in INSTALLED_REGISTRY.definitions
+        for suffix in value.suffixes
+    }
+)
+
+
 def language_for(path: Path) -> Language | None:
-    """The language record for a path, or None when the suffix is unknown."""
-    return BY_EXT.get(path.suffix.lower())
-
-
-def tier_for(lang: Language) -> str:
-    """The highest rung reachable for this language, here and now.
-
-    One definition, read by the dispatcher and by `--languages`, so the table
-    and the run report the same tier.
-    """
-    return "tokenized" if lang.name == "python" else "lexical"
+    """Installed code grammar for a path, excluding non-code suffixes."""
+    value = INSTALLED_REGISTRY.for_path(path)
+    return language_from_definition(value) if value is not None else None

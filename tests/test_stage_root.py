@@ -38,6 +38,7 @@ def _gather_args(repo, revise: int, paths: list[str]) -> argparse.Namespace:
         repo=str(repo),
         include_absent=False,
         revise=revise,
+        settings=None,
     )
 
 

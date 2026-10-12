@@ -30,7 +30,11 @@ from pathlib import Path
 from comment_review.binder.binder import bind
 from comment_review.differences import unified
 from comment_review.flows.page_for import page_of
-from comment_review.flows.read_diagnostics import format_failure
+from comment_review.flows.read_diagnostics import (
+    ContextAdmissionFailure,
+    format_failure,
+)
+from comment_review.flows.reading_context import context_for
 from comment_review.flows.source import source_of
 from comment_review.machine.repo import walk_files
 from comment_review.reading.diagnostics import ReadFailure
@@ -74,6 +78,7 @@ def main(argv: list[str] | None = None) -> int:
     # texts match. Exit stays 0: an unreadable page is not an unreadable root.
     skipped: list[str] = []
     for rel in rels:
+        context = context_for(original / rel, {})
         before_source = source_of(original / rel)
         after_source = source_of(revise / rel)
         if isinstance(before_source, ReadFailure) or isinstance(
@@ -87,9 +92,20 @@ def main(argv: list[str] | None = None) -> int:
             assert isinstance(failure, ReadFailure)
             skipped.append(format_failure(failure, path=rel))
             continue
-        before_page = page_of(original / rel, rel=rel, source=before_source)
-        after_page = page_of(revise / rel, rel=rel, source=after_source)
-        if before_source.text != after_source.text:
+        if isinstance(context, ReadFailure):
+            before_page = after_page = context
+        else:
+            before_page = page_of(
+                original / rel, rel=rel, source=before_source, reading_context=context
+            )
+            after_page = page_of(
+                revise / rel, rel=rel, source=after_source, reading_context=context
+            )
+        context_refused = any(
+            isinstance(page, ContextAdmissionFailure)
+            for page in (before_page, after_page)
+        )
+        if before_source.text != after_source.text and not context_refused:
             print("".join(unified(before_source.text, after_source.text, rel)), end="")
         if isinstance(before_page, ReadFailure) or isinstance(after_page, ReadFailure):
             failure = (

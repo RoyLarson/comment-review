@@ -54,6 +54,7 @@ from comment_review.flows.read_diagnostics import format_failure
 from comment_review.flows.source import source_of
 from comment_review.machine.repo import Source, can_escape, sha_of, undraftable
 from comment_review.reading.addresser import address_for, cue_of
+from comment_review.reading.context import ReadingContext
 from comment_review.reading.diagnostics import ReadFailure
 from comment_review.reading.paragraph import Paragraph
 from comment_review.reading.series import Series
@@ -202,6 +203,11 @@ def run(docket: Docket, repo: Path, into: Path) -> tuple[list[Drafted], list[Ref
             )
             for p in outside
         ]
+    seen: set[str] = set()
+    for schedule in schedules:
+        if schedule.path in seen:
+            return [], [Refusal("verify", schedule.path, "two schedules for one page")]
+        seen.add(schedule.path)
     into.mkdir(parents=True, exist_ok=True)
     drafted: list[Drafted] = []
     refusals: list[Refusal] = []
@@ -218,16 +224,9 @@ def run(docket: Docket, repo: Path, into: Path) -> tuple[list[Drafted], list[Ref
     # and a name that resolved to nothing was its own refusal. A schedule
     # carries the repo's own path, so both went with the shape change.
     for schedule in sorted(schedules, key=lambda s: s.path):
-        repeated = _repeated(schedule)
-        if repeated is not None:
-            refusals.append(repeated)
-            break
         try:
             made, why = _one(
-                schedule.path,
-                schedule.edits,
-                schedule.anchors,
-                schedule.sha,
+                schedule,
                 repo,
                 into,
                 created,
@@ -337,15 +336,13 @@ def _discard(draft: Path, created: set[Path]) -> None:
 
 
 def _one(
-    rel: str,
-    edits: dict[str, str | None],
-    anchors: dict[str, str],
-    recorded: str,
+    schedule: Schedule,
     repo: Path,
     into: Path,
     created: set[Path],
 ) -> tuple[Drafted | None, Refusal | None]:
     """One page through every step, or the first step that refused."""
+    rel, recorded = schedule.path, schedule.sha
     # !! LEXICAL CONTAINMENT IS `run`'s, ONE STEP UP: `can_escape` has already
     # refused an absolute, drive-relative, rooted or `..`-walking page path for
     # the whole run. What is left to the two comparisons in this function is the
@@ -388,9 +385,22 @@ def _one(
             f" {recorded or '<nothing recorded>'}, reads now as {held.sha}",
         )
 
-    page = page_of(source, rel=rel, source=held)
+    reading = schedule.reading
+    if not isinstance(reading, ReadingContext):
+        return None, Refusal("read", rel, "malformed saved reading context; regather")
+    try:
+        ReadingContext(
+            reading.language, reading.reader, reading.compatibility, reading.settings
+        )
+    except (TypeError, ValueError):
+        return None, Refusal("read", rel, "malformed saved reading context; regather")
+    page = page_of(source, rel=rel, source=held, reading_context=reading)
     if isinstance(page, ReadFailure):
         return None, Refusal("read", rel, format_failure(page, path=rel))
+    repeated = _repeated(schedule)
+    if repeated is not None:
+        return None, repeated
+    edits, anchors = schedule.edits, schedule.anchors
 
     # Every alteration carries the page's anchor at its place, and each is
     # checked against the page's own anchor there, which is what
@@ -475,7 +485,7 @@ def _one(
         # `_prove` takes its text and the places the alterations name on it,
         # the approved changes it compares against (`decision-log.md Process:
         # #113`).
-        draft, off = _reread(rel, target, edits)
+        draft, off = _reread(rel, target, edits, reading)
         if draft is None:
             _discard(target, created)
             return None, off
@@ -491,7 +501,7 @@ def _one(
 
 
 def _reread(
-    rel: str, target: Path, edits: dict[str, str | None]
+    rel: str, target: Path, edits: dict[str, str | None], reading: ReadingContext
 ) -> tuple[Page | None, Refusal | None]:
     """Read the draft back as a page: is each alteration at the cue it was given?
 
@@ -507,6 +517,7 @@ def _reread(
         rel: how the repo names the page this draft was set from.
         target: the draft on disk.
         edits: cue -> replacement text, or None where the place was dropped.
+        reading: the saved context used to admit the original page.
 
     Returns:
         `(the draft's page, None)`, or `(None, the first refusal)`. The page's
@@ -515,7 +526,7 @@ def _reread(
         `_prove` finds, in the draft, the declaration each approved `a`
         alteration documents.
     """
-    page = page_of(target, rel=rel)
+    page = page_of(target, rel=rel, reading_context=reading)
     if isinstance(page, ReadFailure):
         return None, Refusal(
             "reread", rel, f"the draft: {format_failure(page, path=rel)}"

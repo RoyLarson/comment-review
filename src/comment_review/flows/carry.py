@@ -11,7 +11,7 @@ that a constraint exists in code and NOWHERE in prose -- has no place to name.
 
 !! THE PAGE IS READ AGAIN, BECAUSE THE BINDER DOES NOT CARRY WHAT IS WANTED.
 The row has to be built from the walk, and the walk lives on the page. ! So the
-sha is checked first: a binder taken over a file that has since changed would
+sha is checked before cues: a binder over a file that has since changed would
 otherwise gain a row describing a page nobody reviewed, and every cue below the
 edit could have shifted.
 
@@ -30,8 +30,14 @@ prose, and every prose edit moves the line numbers below it.
 """
 
 from dataclasses import replace
+from pathlib import Path
 
 from comment_review.binder.binder import Binder
+from comment_review.flows.reading_context import (
+    binder_reading_contexts,
+    page_reading_contexts,
+    reading_problems,
+)
 from comment_review.reading.addresser import SERIES, cue_of
 
 
@@ -137,10 +143,16 @@ def carry(binder: Binder, page, path: str, **lookup) -> tuple[Binder | None, str
     could return None. `RedactedPage.deserialize` normalizes once, so `held.sha`
     is a `str` and there is nothing left to fold.
     """
+    contexts, problems = binder_reading_contexts(binder)
+    current, page_problems = page_reading_contexts([page])
+    problems.extend(page_problems)
+    if problems:
+        return None, "", "; ".join(problems)
     held = next((p for p in binder.pages if p.path == path), None)
     if held is None:
         return None, "", f"{path}: the binder carries no such page"
-    # !! THE SHA FIRST. The row is built from a page read NOW; if the file has
+    # The SHA is checked before cues. The row is built from a page read NOW;
+    # if the file has
     # moved on, its walk describes prose nobody reviewed and the cues below any
     # edit may have shifted. Refusing is the only safe answer -- the caller
     # re-gathers and asks again.
@@ -153,6 +165,12 @@ def carry(binder: Binder, page, path: str, **lookup) -> tuple[Binder | None, str
                 f" file reads now as {page.sha} -- re-run gather"
             ),
         )
+    problems = reading_problems(
+        {Path(path): contexts[path]},
+        {Path(name): context for name, context in current.items()},
+    )
+    if problems:
+        return None, "", "; ".join(problems) + "; regather"
     got, why = cue_for(page.cues, **lookup)
     if why:
         return None, "", f"{path}: {why}"

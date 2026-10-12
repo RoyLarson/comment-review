@@ -13,6 +13,7 @@ unanswered slot, a `patch` meant as *keep my patch*, a batch keyed by role
 """
 
 import json
+from pathlib import Path
 
 import pytest
 from helpers import (
@@ -38,6 +39,31 @@ from comment_review.desk.report import Refused
 from comment_review.flows.bus import AnswersReturned, CopiesReturned, handle
 
 BASE = "# one\n# two\n# three\n"
+
+
+@pytest.mark.parametrize("reading", [None, [], {"format": 1}, "incompatible"])
+def test_check_context_refusal_precedes_address_checks(
+    tmp_path, monkeypatch, capsys, reading
+):
+    path, binder = _copy_file(tmp_path, {"m.py@b1": a_clean("m.py@b1")})
+    copy_path = Path(path)
+    value = json.loads(copy_path.read_text(encoding="utf-8"))
+    if reading == "incompatible":
+        value["sheets"][0]["reading"]["compatibility"] = "0" * 64
+    else:
+        value["sheets"][0]["reading"] = reading
+    copy_path.write_text(json.dumps(value), encoding="utf-8")
+    before = copy_path.read_bytes()
+
+    def forbidden(*args):
+        pytest.fail("saved address checked before context admission")
+
+    monkeypatch.setattr(command, "mark_errors", forbidden)
+    code, out, err = _run(monkeypatch, capsys, "--edit-copy", path, "--binder", binder)
+    assert code == command.BROKEN
+    assert "regather" in out and "block-context" in out
+    assert not err
+    assert copy_path.read_bytes() == before
 
 
 def _run(monkeypatch, capsys, *argv):

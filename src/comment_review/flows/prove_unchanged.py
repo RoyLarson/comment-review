@@ -1,13 +1,15 @@
 """Admit exact current and revision pages before comparing executable code."""
 
-from collections.abc import Sequence
-from dataclasses import dataclass
+from collections.abc import Mapping, Sequence
+from dataclasses import dataclass, field
 from pathlib import Path
 
 from comment_review.flows.page_for import page_of
 from comment_review.flows.read_diagnostics import format_failure
+from comment_review.flows.reading_context import context_for
 from comment_review.flows.source import revision_source_of, source_of
 from comment_review.machine.repo import Source, git_ls_files
+from comment_review.reading.context import ReadingContext
 from comment_review.reading.diagnostics import ReadFailure
 from comment_review.results.prove_unchanged import code_fingerprint, dominant_ending
 
@@ -19,6 +21,7 @@ class ProofReport:
     messages: tuple[str, ...]
     failures: int
     unchecked: int
+    reading_contexts: Mapping[Path, ReadingContext] = field(default_factory=dict)
 
 
 def _sibling(
@@ -51,13 +54,25 @@ def _sibling(
     return None
 
 
-def run(repo: Path, base: str, paths: Sequence[Path]) -> ProofReport:
+def run(
+    repo: Path,
+    base: str,
+    paths: Sequence[Path],
+    *,
+    settings: Mapping[Path, Mapping[str, str]] | None = None,
+) -> ProofReport:
     """Prove admitted pages against their exact Git baselines and sibling endings."""
     repo = repo.resolve()
     edited = {path.resolve() for path in paths}
     tracked = git_ls_files(repo) or []
     messages: list[str] = []
     failures = unchecked = 0
+    contexts: dict[Path, ReadingContext] = {}
+    overrides = (
+        {path.resolve(): value for path, value in settings.items()}
+        if settings is not None
+        else {}
+    )
     for raw in paths:
         target = raw.resolve()
         try:
@@ -66,6 +81,12 @@ def run(repo: Path, base: str, paths: Sequence[Path]) -> ProofReport:
             messages.append(f"FAIL      {raw}: outside --repo")
             failures += 1
             continue
+        context = context_for(target, overrides.get(target, {}))
+        if isinstance(context, ReadFailure):
+            messages.append(f"FAIL      {format_failure(context, path=rel)}")
+            failures += 1
+            continue
+        contexts[target] = context
         before = revision_source_of(repo, base, rel)
         if isinstance(before, ReadFailure):
             if any(d.code == "missing-revision-source" for d in before.diagnostics):
@@ -84,8 +105,8 @@ def run(repo: Path, base: str, paths: Sequence[Path]) -> ProofReport:
             messages.append(f"FAIL      current: {format_failure(after, path=rel)}")
             failures += 1
             continue
-        page_b = page_of(target, rel=rel, source=before)
-        page_a = page_of(target, rel=rel, source=after)
+        page_b = page_of(target, rel=rel, source=before, reading_context=context)
+        page_a = page_of(target, rel=rel, source=after, reading_context=context)
         failed = False
         for side, page in (("baseline", page_b), ("current", page_a)):
             if isinstance(page, ReadFailure):
@@ -135,4 +156,4 @@ def run(repo: Path, base: str, paths: Sequence[Path]) -> ProofReport:
                     f"sibling {sibling.name} {want}"
                 )
                 failures += 1
-    return ProofReport(tuple(messages), failures, unchecked)
+    return ProofReport(tuple(messages), failures, unchecked, contexts)

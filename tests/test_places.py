@@ -88,10 +88,23 @@ def test_chief_copy_of_synthesizes_a_correct_for_a_decided_place():
     place = Place(
         address="m.py@b1", anchor="x = 1", base=BASE, text="# x\n", state=State.STANDS
     )
-    sheets = [Sheet(path="m.py", sha="0" * 40, marks=())]
+    sheets = [
+        Sheet(
+            path="m.py",
+            sha="0" * 40,
+            marks=(),
+            reading=a_binder_over({"m.py@b1": BASE}).pages[0].reading,
+        )
+    ]
     copy = chief_copy_of(
-        {"m.py@b1": place}, "copy-chief", {"root": ".", "revise": 0}, sheets
+        {"m.py@b1": place},
+        "copy-chief",
+        {"root": ".", "revise": 0},
+        sheets,
+        {s.path: s.reading for s in sheets},
+        {},
     )
+    assert copy.sheets[0].reading == sheets[0].reading
     marks = [m for sheet in copy.sheets for m in sheet.marks]
     assert len(marks) == 1
     assert isinstance(marks[0], CorrectMark)
@@ -103,9 +116,21 @@ def test_chief_copy_of_writes_no_mark_for_a_place_whose_text_is_none():
     place = Place(
         address="m.py@b1", anchor="x = 1", base=BASE, text=None, state=State.STANDS
     )
-    sheets = [Sheet(path="m.py", sha="0" * 40, marks=())]
+    sheets = [
+        Sheet(
+            path="m.py",
+            sha="0" * 40,
+            marks=(),
+            reading=a_binder_over({"m.py@b1": BASE}).pages[0].reading,
+        )
+    ]
     copy = chief_copy_of(
-        {"m.py@b1": place}, "copy-chief", {"root": ".", "revise": 0}, sheets
+        {"m.py@b1": place},
+        "copy-chief",
+        {"root": ".", "revise": 0},
+        sheets,
+        {s.path: s.reading for s in sheets},
+        {},
     )
     assert copy.sheets == ()
 
@@ -116,9 +141,21 @@ def test_chief_copy_of_writes_no_mark_for_a_composed_place():
     place = Place(
         address="m.py@b1", anchor="x = 1", base=BASE, text="# x\n", state=State.COMPOSED
     )
-    sheets = [Sheet(path="m.py", sha="0" * 40, marks=())]
+    sheets = [
+        Sheet(
+            path="m.py",
+            sha="0" * 40,
+            marks=(),
+            reading=a_binder_over({"m.py@b1": BASE}).pages[0].reading,
+        )
+    ]
     copy = chief_copy_of(
-        {"m.py@b1": place}, "copy-chief", {"root": ".", "revise": 0}, sheets
+        {"m.py@b1": place},
+        "copy-chief",
+        {"root": ".", "revise": 0},
+        sheets,
+        {s.path: s.reading for s in sheets},
+        {},
     )
     assert copy.sheets == ()
 
@@ -127,9 +164,21 @@ def test_chief_copy_of_synthesizes_a_drop_for_an_empty_decided_text():
     place = Place(
         address="m.py@b1", anchor="x = 1", base=BASE, text="", state=State.STANDS
     )
-    sheets = [Sheet(path="m.py", sha="0" * 40, marks=())]
+    sheets = [
+        Sheet(
+            path="m.py",
+            sha="0" * 40,
+            marks=(),
+            reading=a_binder_over({"m.py@b1": BASE}).pages[0].reading,
+        )
+    ]
     copy = chief_copy_of(
-        {"m.py@b1": place}, "copy-chief", {"root": ".", "revise": 0}, sheets
+        {"m.py@b1": place},
+        "copy-chief",
+        {"root": ".", "revise": 0},
+        sheets,
+        {s.path: s.reading for s in sheets},
+        {},
     )
     marks = [m for sheet in copy.sheets for m in sheet.marks]
     assert len(marks) == 1
@@ -153,7 +202,11 @@ def test_every_reader_of_where_a_mark_writes_asks_the_row(monkeypatch, tmp_path)
     elsewhere = (("m.py@b1", Touch.ORIGIN), ("m.py@b7", Touch.DESTINATION))
     monkeypatch.setattr(Row, "places", lambda self, mark: elsewhere)
 
-    bases, _anchors = bases_and_anchors(copies, lambda address: Held(BASE, "x = 1"))
+    result = bases_and_anchors(copies, lambda address: Held(BASE, "x = 1"))
+    from comment_review.reading.diagnostics import ReadFailure
+
+    assert not isinstance(result, ReadFailure)
+    bases, _anchors = result
     assert set(bases) == {"m.py@b1", "m.py@b7"}
     places = places_of(copies, _binder_bases(binder), {})
     assert set(places) == {"m.py@b1", "m.py@b7"}

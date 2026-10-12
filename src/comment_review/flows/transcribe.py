@@ -71,7 +71,13 @@ from comment_review.docket.docket import Alteration, Docket, Schedule
 from comment_review.flows.human import queries_in_copies
 from comment_review.flows.on_the_page import PageCache, held_at, no_page, page_named
 from comment_review.flows.places import bases_and_anchors, places_of
+from comment_review.flows.reading_context import (
+    copy_reading_contexts,
+    proof_reading_problems,
+)
 from comment_review.reading.addresser import cue_of, flatten
+from comment_review.reading.context import ReadingContext
+from comment_review.reading.diagnostics import ReadFailure
 
 
 class CannotTranscribe(Exception):
@@ -123,6 +129,7 @@ def _pages_of(
     who: str,
     noun: str,
     cache: PageCache,
+    contexts: dict[str, ReadingContext] | None = None,
 ) -> tuple[dict[str, tuple[str, Page]], list[str]]:
     """Every page a transcription writes at, read from `repo`, and what would not read.
 
@@ -142,6 +149,7 @@ def _pages_of(
             chief where a fold decided the places.
         noun: what is owed at those addresses, for the reasons.
         cache: the pages read, which the caller may read places off again.
+        contexts: admitted saved contexts keyed by real path.
 
     Returns:
         `(the flattened page name -> (its real relative path, the page), the
@@ -152,12 +160,20 @@ def _pages_of(
     out: dict[str, tuple[str, Page]] = {}
     refused: list[str] = []
     for name in dict.fromkeys([flatten(path) for path in known] + list(touched)):
-        rel, page = page_named(name, known, repo, cache)
-        if page is not None:
+        rel, page = page_named(
+            name,
+            known,
+            repo,
+            cache,
+            contexts=contexts,
+        )
+        if not isinstance(page, ReadFailure):
             out[name] = (rel, page)
         elif name in touched:
+            detail = "; ".join(d.message for d in page.diagnostics)
             refused.append(
-                f"{who} {rel or name}: {no_page(rel or name)}, so the {noun} at"
+                f"{who} {rel or name}: {no_page(rel or name)}: {detail},"
+                f" so the {noun} at"
                 f" {', '.join(touched[name])} cannot be set"
             )
     return out, refused
@@ -168,6 +184,7 @@ def _schedules_of(
     decided: dict[str, list[Place]],
     shas: dict[str, str],
     role: str,
+    contexts: dict[str, ReadingContext],
 ) -> tuple[Schedule, ...]:
     """One schedule per page a text was decided on, each page's places in order.
 
@@ -178,6 +195,7 @@ def _schedules_of(
         shas: flattened page name -> the sha recorded for it, where one was.
         role: the role written onto every schedule -- the copy a docket was
             pulled from, or the chief where a fold decided the places.
+        contexts: original contexts keyed by real relative path.
 
     Returns:
         The schedules, in `pages`' own order. A page with nothing to set gets
@@ -218,6 +236,7 @@ def _schedules_of(
                     for place in here
                 ),
                 role=role,
+                reading=contexts[rel],
             )
         )
     return tuple(schedules)
@@ -250,6 +269,9 @@ def docket_of(copy: EditCopy, repo: Path) -> Docket:
         CannotTranscribe: a human-review query is present, an edited page is
             unreadable, or a mark is refused during reading or folding.
     """
+    contexts, why = copy_reading_contexts(copy)
+    if why:
+        raise CannotTranscribe(tuple(why))
     questions = queries_in_copies([copy])
     if questions:
         raise CannotTranscribe(
@@ -258,7 +280,7 @@ def docket_of(copy: EditCopy, repo: Path) -> Docket:
     known = [sheet.path for sheet in copy.sheets]
     cache: PageCache = {}
     pages, unreadable = _pages_of(
-        repo, known, _touched_by_page(copy), copy.role, "marks", cache
+        repo, known, _touched_by_page(copy), copy.role, "marks", cache, contexts
     )
     if unreadable:
         raise CannotTranscribe(tuple(unreadable))
@@ -275,9 +297,12 @@ def docket_of(copy: EditCopy, repo: Path) -> Docket:
     ]
     if refused:
         raise CannotTranscribe(tuple(refused))
-    bases, anchors = bases_and_anchors(
-        [copy], lambda address: held_at(address, known, repo, cache)
+    held = bases_and_anchors(
+        [copy], lambda address: held_at(address, known, repo, cache, contexts=contexts)
     )
+    if isinstance(held, ReadFailure):
+        raise CannotTranscribe(tuple(d.message for d in held.diagnostics))
+    bases, anchors = held
     fold = Fold(places_of([copy], bases, anchors)).run()
     if not fold.committed:
         raise CannotTranscribe(
@@ -296,7 +321,9 @@ def docket_of(copy: EditCopy, repo: Path) -> Docket:
 
     shas = {name: page.sha for name, (_rel, page) in pages.items()}
     shas.update({flatten(sheet.path): sheet.sha for sheet in copy.sheets})
-    return Docket(schedules=_schedules_of(pages, decided, shas, copy.role))
+    original = {rel: page.reading for rel, page in pages.values()}
+    original.update(contexts)
+    return Docket(schedules=_schedules_of(pages, decided, shas, copy.role, original))
 
 
 def _open_moves(moves: list[Move]) -> list[str]:
@@ -417,6 +444,9 @@ def docket_of_proof(
             move that will not read never reaches here: `MasterProof.deserialize`
             refuses the proof and names it.
     """
+    problems = proof_reading_problems(proof)
+    if problems:
+        raise CannotTranscribe(tuple(problems))
     places = list(proof.places)
     unclosed = _unclosed(places) + _open_moves(list(proof.moves))
     if unclosed:
@@ -442,13 +472,13 @@ def docket_of_proof(
     }
     # The pages the run recorded, in the order it recorded them, with the sha
     # each was read at. A page every copy holds a sheet for is named once.
-    known: list[str] = []
+    known: list[str] = list(proof.page_readings)
     shas = {flatten(path): sha for path, sha in proof.page_shas.items()}
     for copy in proof.edit_copies:
         for sheet in copy.sheets:
             if sheet.path not in known:
                 known.append(sheet.path)
-                shas[flatten(sheet.path)] = sheet.sha
+            shas[flatten(sheet.path)] = sheet.sha
     missing = [
         f"{CHIEF} {name}: no recorded page sha; gather and collate this page again"
         for name in decided
@@ -456,7 +486,8 @@ def docket_of_proof(
     ]
     if missing:
         raise CannotTranscribe(tuple(missing))
-    pages, unreadable = _pages_of(repo, known, touched, CHIEF, "places", {})
+    contexts = dict(proof.page_readings)
+    pages, unreadable = _pages_of(repo, known, touched, CHIEF, "places", {}, contexts)
     if unreadable:
         raise CannotTranscribe(tuple(unreadable))
-    return Docket(schedules=_schedules_of(pages, decided, shas, CHIEF))
+    return Docket(schedules=_schedules_of(pages, decided, shas, CHIEF, contexts))

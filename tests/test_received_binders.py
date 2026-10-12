@@ -1,17 +1,280 @@
 import json
 from dataclasses import replace
+from pathlib import Path
 
 import pytest
 from conftest import run_command
 from helpers import a_clean, a_patch, a_real_binder_over, returned
 
+from comment_review.binder.binder import bind
+from comment_review.binder.page import Page
 from comment_review.commands import check, collate, distribute
 from comment_review.desk import report as events
 from comment_review.desk.stages import Dispatch, Kind, Role, Stage
+from comment_review.flows import reading_context, verify
 from comment_review.flows.bus import AnswersReturned, CopiesReturned, handle
 from comment_review.flows.distribute import assigned_binder, seed
 from comment_review.flows.fill import withdraw
+from comment_review.flows.page_for import page_of
 from comment_review.flows.proof_io import load_proof
+from comment_review.reading.definitions import LanguageDefinition
+from comment_review.reading.readers import ReaderBinding
+
+
+@pytest.mark.parametrize("target", ["copy", "received", "stage"])
+@pytest.mark.parametrize("field", ["compatibility", "settings", "missing"])
+def test_received_context_refusal_precedes_coverage(
+    tmp_path, monkeypatch, target, field
+):
+    binder, received, wires, stage = _shards(tmp_path)
+    context = received[0].pages[0].reading
+    changed = (
+        None
+        if field == "missing"
+        else replace(
+            context,
+            **{"compatibility": "0" * 64}
+            if field == "compatibility"
+            else {"settings": (("invented", "yes"),)},
+        )
+    )
+    copies = [returned(wire) for wire in wires]
+    if target == "copy":
+        copies[0] = replace(
+            copies[0], sheets=(replace(copies[0].sheets[0], reading=changed),)
+        )
+    elif target == "received":
+        received = (
+            replace(
+                received[0], pages=(replace(received[0].pages[0], reading=changed),)
+            ),
+            received[1],
+        )
+    else:
+        binder = replace(
+            binder, pages=(replace(binder.pages[0], reading=changed), *binder.pages[1:])
+        )
+
+    def forbidden(*args, **kwargs):
+        pytest.fail("coverage used before context refusal")
+
+    monkeypatch.setattr(verify, "required_places", forbidden)
+    monkeypatch.setattr(verify, "coverage_problems", forbidden)
+    problems = verify.received_problems(copies, received, binder, stage)
+    assert problems
+    assert all(problem.role == "block-context" for problem in problems)
+    assert any(
+        "m.py" in problem.message and "regather" in problem.message
+        for problem in problems
+    )
+
+
+def test_received_context_accepts_disjoint_shards(tmp_path):
+    binder, received, wires, stage = _shards(tmp_path)
+    assert (
+        verify.received_problems(
+            [returned(wire) for wire in wires], received, binder, stage
+        )
+        == []
+    )
+
+
+@pytest.mark.parametrize("revision", ["reader", "rules"])
+def test_installed_revision_refused_before_received_coverage(
+    tmp_path, monkeypatch, revision
+):
+    binder, received, wires, stage = _shards(tmp_path)
+    installed = reading_context.reader_for
+
+    def revised(path):
+        selected = installed(path)
+        assert isinstance(selected, tuple)
+        definition, binding = selected
+        assert isinstance(definition, LanguageDefinition)
+        assert isinstance(binding, ReaderBinding)
+        if revision == "reader":
+            binding = replace(binding, revision="changed")
+        else:
+            definition = replace(definition, rules={"changed": True})
+        return definition, binding
+
+    monkeypatch.setattr(reading_context, "reader_for", revised)
+
+    def forbidden(*args, **kwargs):
+        pytest.fail("required places used before revision refusal")
+
+    monkeypatch.setattr(verify, "required_places", forbidden)
+    assert verify.received_problems(
+        [returned(wire) for wire in wires], received, binder, stage
+    )
+
+
+def test_valid_installed_settings_must_agree_on_shared_path(tmp_path, monkeypatch):
+    binder, received, wires, stage = _shards(tmp_path)
+    installed = reading_context.reader_for
+
+    def configured(path):
+        selected = installed(path)
+        assert isinstance(selected, tuple)
+        definition, binding = selected
+        assert isinstance(definition, LanguageDefinition)
+        assert isinstance(binding, ReaderBinding)
+        return replace(
+            definition,
+            defaults={"mode": "narrow"},
+            choices={"mode": ("narrow", "wide")},
+        ), binding
+
+    monkeypatch.setattr(reading_context, "reader_for", configured)
+    narrow = reading_context.context_for(Path("m.py"), {"mode": "narrow"})
+    wide = reading_context.context_for(Path("m.py"), {"mode": "wide"})
+    received = tuple(
+        replace(
+            shard, pages=tuple(replace(page, reading=narrow) for page in shard.pages)
+        )
+        for shard in received
+    )
+    binder = replace(
+        binder, pages=tuple(replace(page, reading=narrow) for page in binder.pages)
+    )
+    copies = [returned(seed(shard, "block-context")) for shard in received]
+    copies[0] = replace(copies[0], sheets=(replace(copies[0].sheets[0], reading=wide),))
+
+    def forbidden(*args, **kwargs):
+        pytest.fail("required places used before setting mismatch refusal")
+
+    monkeypatch.setattr(verify, "required_places", forbidden)
+    problems = verify.received_problems(copies, received, binder, stage)
+    assert any(
+        "m.py" in problem.message and "differs" in problem.message
+        for problem in problems
+    )
+
+
+def test_direct_coverage_refuses_context_before_required_places(tmp_path, monkeypatch):
+    binder, received, wires, _ = _shards(tmp_path)
+    copy = returned(wires[0])
+    copy = replace(copy, sheets=(replace(copy.sheets[0], reading=None),))
+
+    def forbidden(*args, **kwargs):
+        pytest.fail("required places used before direct coverage refusal")
+
+    monkeypatch.setattr(verify, "required_places", forbidden)
+    assert verify.coverage_problems([copy], received[0])
+
+
+@pytest.mark.parametrize("matching", [False, True])
+def test_extra_stage_sheet_context_is_compared_without_expanding_shard(
+    tmp_path, monkeypatch, matching
+):
+    binder, received, wires, stage = _shards(tmp_path)
+    installed = reading_context.reader_for
+
+    def configured(path):
+        selected = installed(path)
+        assert isinstance(selected, tuple)
+        definition, binding = selected
+        assert isinstance(definition, LanguageDefinition)
+        return replace(
+            definition,
+            defaults={"mode": "narrow"},
+            choices={"mode": ("narrow", "wide")},
+        ), binding
+
+    monkeypatch.setattr(reading_context, "reader_for", configured)
+    narrow = reading_context.context_for(Path("m.py"), {"mode": "narrow"})
+    wide = reading_context.context_for(Path("m.py"), {"mode": "wide"})
+    binder = replace(
+        binder, pages=tuple(replace(page, reading=narrow) for page in binder.pages)
+    )
+    received = tuple(
+        replace(
+            shard, pages=tuple(replace(page, reading=narrow) for page in shard.pages)
+        )
+        for shard in received
+    )
+    copies = [returned(seed(shard, "block-context")) for shard in received]
+    extra = replace(
+        copies[1].sheets[0], reading=narrow if matching else wide, unruled=()
+    )
+    copies[0] = replace(copies[0], sheets=(*copies[0].sheets, extra))
+
+    if not matching:
+
+        def forbidden(*args, **kwargs):
+            pytest.fail("coverage used before extra stage sheet context refusal")
+
+        monkeypatch.setattr(verify, "required_places", forbidden)
+        monkeypatch.setattr(verify, "coverage_problems", forbidden)
+    problems = verify.received_problems(copies, received, binder, stage)
+    if matching:
+        assert problems == []
+    else:
+        assert any(
+            "n.py" in problem.message and "regather" in problem.message
+            for problem in problems
+        )
+
+
+@pytest.mark.parametrize("boundary", ["received", "coverage"])
+@pytest.mark.parametrize("invalid", ["missing", "incompatible"])
+def test_zero_copies_still_admit_present_binder_metadata(
+    tmp_path, monkeypatch, boundary, invalid
+):
+    binder, _, _, _ = _shards(tmp_path)
+    page = binder.pages[0]
+    context = (
+        None if invalid == "missing" else replace(page.reading, compatibility="0" * 64)
+    )
+    binder = replace(binder, pages=(replace(page, reading=context),))
+
+    def forbidden(*args, **kwargs):
+        pytest.fail("required places used before zero-copy binder refusal")
+
+    monkeypatch.setattr(verify, "required_places", forbidden)
+    problems = (
+        verify.received_problems([], (), binder)
+        if boundary == "received"
+        else verify.coverage_problems([], binder)
+    )
+    assert any(
+        "m.py" in problem.message and "regather" in problem.message
+        for problem in problems
+    )
+
+
+def test_zero_copies_accept_valid_empty_binders(tmp_path):
+    binder, _, _, _ = _shards(tmp_path)
+    empty = replace(binder, pages=())
+    assert verify.received_problems([], (), empty) == []
+    assert verify.coverage_problems([], empty) == []
+
+
+def test_received_context_accepts_distinct_languages_and_empty_sheets(tmp_path):
+    (tmp_path / "m.py").write_text("value = 1\n", encoding="utf-8")
+    (tmp_path / "n.js").write_text("const value = 1;\n", encoding="utf-8")
+    pages = [page_of(tmp_path / name, rel=name) for name in ("m.py", "n.js")]
+    assert all(isinstance(page, Page) for page in pages)
+    binder = bind(
+        [page for page in pages if isinstance(page, Page)],
+        read_from={"root": str(tmp_path), "revise": 0},
+    )
+    assert {page.reading.language for page in binder.pages} == {"python", "javascript"}
+    received = tuple(replace(binder, pages=(page,)) for page in binder.pages)
+    copies = [returned(seed(shard, "block-context")) for shard in received]
+    assert all(
+        not sheet.marks and not sheet.unruled
+        for copy in copies
+        for sheet in copy.sheets
+    )
+    assert verify.received_problems(copies, received, binder) == []
+    empty = replace(binder, pages=())
+    assert (
+        verify.received_problems(
+            [returned(seed(empty, "block-context"))], (empty,), empty
+        )
+        == []
+    )
 
 
 def _shards(tmp_path):

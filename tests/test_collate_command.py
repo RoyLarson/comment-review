@@ -36,6 +36,58 @@ from comment_review.flows.proof_io import load_proof
 BASE = "# one\n# two\n# three\n"
 
 
+@pytest.mark.parametrize("target", ["copy", "binder", "received"])
+def test_loaded_initial_context_refusal_preserves_files(
+    tmp_path, monkeypatch, capsys, target
+):
+    binder = a_real_binder_over(tmp_path / "repo", {"m.py@b1": BASE})
+    binder_wire = binder.serialize()
+    received_wire = binder.serialize()
+    copy = copies_over(binder, {"block-context": {"m.py@b1": a_clean("m.py@b1")}})[0]
+    container = {"copy": copy, "binder": binder_wire, "received": received_wire}[target]
+    pages = container["sheets" if target == "copy" else "pages"]
+    pages[0]["reading"]["compatibility"] = "0" * 64
+    inputs = {"binder": binder_wire, "received": received_wire, "copy": copy}
+    for name, value in inputs.items():
+        (tmp_path / f"{name}.json").write_text(json.dumps(value), encoding="utf-8")
+    outputs = [tmp_path / f"{name}.json" for name in ("chief", "proof", "batch")]
+    for path in outputs:
+        path.write_bytes(b"existing state")
+    before = {path: path.read_bytes() for path in tmp_path.glob("*.json")}
+    monkeypatch.setattr(
+        "sys.argv",
+        [
+            "collate",
+            "--stage",
+            "4c",
+            "--binder",
+            str(tmp_path / "binder.json"),
+            "--received-binder",
+            str(tmp_path / "received.json"),
+            "--edit-copy",
+            str(tmp_path / "copy.json"),
+            "--out",
+            str(outputs[0]),
+            "--proof-out",
+            str(outputs[1]),
+            "--batch-out",
+            str(outputs[2]),
+        ],
+    )
+
+    def forbidden(*args, **kwargs):
+        pytest.fail("loaded stale context reached address-dependent work")
+
+    monkeypatch.setattr("comment_review.flows.bus.copy_problems", forbidden)
+    monkeypatch.setattr("comment_review.flows.bus.required_places", forbidden)
+    code = command.main()
+    printed = capsys.readouterr()
+    assert code in (command.BROKEN, command.UNREADABLE)
+    assert "regather" in printed.out + printed.err
+    assert "m.py" in printed.out + printed.err
+    assert {path: path.read_bytes() for path in before} == before
+
+
 def run(
     tmp_path,
     marks_by_role,

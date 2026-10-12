@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 53 of 57 tasks closed
+Progress: 53 of 58 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (code-review high round 3 and /simplify round 2, 2026-08-22 -- the
@@ -291,3 +291,6 @@ files in `corpora/` are in that state today.
       physical identity mismatch lines; verify Unicode separators inside text do
       not shift line numbers
         > 2026-10-11 Review: results/compositor.py identity counts U+2028 as a line
+- [ ] T58 | Refuse occupied draft targets before direct setter writes
+        > 2026-10-11 Review: proof_setter.py:483 overwrites then rollback unlinks
+        > 2026-10-11 Check: existing target bytes survive later schedule refusal

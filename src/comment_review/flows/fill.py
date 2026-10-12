@@ -89,9 +89,13 @@ from comment_review.desk.proof.place import Filed
 from comment_review.desk.proof.source import entry_problems
 from comment_review.desk.stages import not_admitted
 from comment_review.exceptions import READ_ERRORS
-from comment_review.flows.on_the_page import held_at
+from comment_review.flows.on_the_page import PageCache, held_at
 from comment_review.flows.page_for import page_of
 from comment_review.flows.read_diagnostics import format_failure
+from comment_review.flows.reading_context import (
+    copy_reading_contexts,
+    copy_reading_problems,
+)
 from comment_review.machine.repo import can_escape, read_raw
 from comment_review.reading.addresser import cue_of, unflatten
 from comment_review.reading.diagnostics import ReadFailure
@@ -160,10 +164,14 @@ def place_on_the_page(
         the page, there is no checkout, the page cannot be read, or the page
         carries no such place.
     """
+    admitted = [(copy, copy_reading_contexts(copy)) for copy in copies]
+    problems = [problem for _, (_, why) in admitted for problem in why]
+    if problems:
+        return None, {}, problems
     found = next(
         (
-            (marks, rel)
-            for copy in copies
+            (marks, rel, contexts[rel])
+            for copy, (contexts, _) in admitted
             for marks, rel in [_sheet_for(copy, address)]
             if marks is not None
         ),
@@ -171,10 +179,10 @@ def place_on_the_page(
     )
     if found is None:
         return None, {}, [f"{address} names a page this copy has no sheet for"]
-    marks, rel = found
+    marks, rel, context = found
     if root is None:
         return None, {}, [f"{address}: no checkout to resolve its page against"]
-    page = page_of(root / rel, rel=rel)
+    page = page_of(root / rel, rel=rel, reading_context=context)
     if isinstance(page, ReadFailure):
         return None, {}, [f"{address}: {format_failure(page, path=rel)}"]
     cue = address.partition("@")[2]
@@ -330,19 +338,19 @@ def composition_problems(
     return out
 
 
-def page_text_at(copies: list[dict], address: str, root: Path | None) -> str:
-    """The page's paragraph at `address`, or "" where no page answers for it.
+def page_text_at(
+    copies: list[dict], address: str, root: Path | None, cache: PageCache | None = None
+) -> str | ReadFailure:
+    """Return the paragraph at an address, or an explicit read failure.
 
-    The page is read whether or not any of `copies` holds a sheet for it, as
-    the collate handler reads it (`decision-log.md Process: #187`): a move
-    may land in a file the run did not gather, and the paragraph already
-    there is what its destination text is held to.
+    Saved contexts are admitted before reading a page. A move may name a
+    destination outside the copies' sheets; its existing paragraph is still
+    the destination's base. Unknown extra paths derive defaults at acquisition.
 
-    An empty answer is not a claim that the place is empty, and nothing here
-    turns an unreadable page into a refusal: an address no page resolves is
-    `flows.verify.resolution_problems`' finding, which `check` and the fold
-    both run, and reporting it twice would refuse at `mark` what the parity
-    case (`no-command-for-the-middle` T99) exists to have `check` name.
+    Successful empty places and malformed addresses return "", as does an
+    unavailable root. Context or page read failures return ReadFailure for
+    fill to present as a refusal. The optional cache shares held snapshots
+    across lookups within the operation.
     """
     if root is None:
         return ""
@@ -352,10 +360,43 @@ def page_text_at(copies: list[dict], address: str, root: Path | None) -> str:
         for sheet in copy.get("sheets", [])
         if isinstance(sheet, dict)
     ]
-    return held_at(address, paths, root, {}).text
+    from comment_review.reading.diagnostics import ReadDiagnostic, ReadStage
+
+    contexts = {}
+    for copy in copies:
+        admitted, why = copy_reading_contexts(copy)
+        if why:
+            return ReadFailure(
+                tuple(
+                    ReadDiagnostic(ReadStage.SELECT, "invalid-reading-context", reason)
+                    for reason in why
+                )
+            )
+        for path, context in admitted.items():
+            if path in contexts and contexts[path] != context:
+                return ReadFailure(
+                    (
+                        ReadDiagnostic(
+                            ReadStage.SELECT,
+                            "reading-context-mismatch",
+                            f"{path}: conflicting reading contexts; regather",
+                        ),
+                    )
+                )
+            contexts[path] = context
+    result = held_at(
+        address, paths, root, cache if cache is not None else {}, contexts=contexts
+    )
+    return result if isinstance(result, ReadFailure) else result.text
 
 
-def _base_beside(copy: dict, seeded: dict, address: str, root: Path | None) -> str:
+def _base_beside(
+    copy: dict,
+    seeded: dict,
+    address: str,
+    root: Path | None,
+    cache: PageCache | None = None,
+) -> str | ReadFailure:
     """The page's paragraph at `address`, taking the slot already in hand first.
 
     The seeded slot carries the page's text at the mark's own address, so only
@@ -363,7 +404,7 @@ def _base_beside(copy: dict, seeded: dict, address: str, root: Path | None) -> s
     """
     if address == seeded["address"]:
         return str(seeded["raw_text"])
-    return page_text_at([copy], address, root)
+    return page_text_at([copy], address, root, cache)
 
 
 def _row_of(named: object):
@@ -460,6 +501,9 @@ def fill(copy: dict, entry: dict, root: Path | None) -> tuple[dict | None, list[
     subtracts its snippet from the origin exactly once and lands a destination
     paragraph holding both (`#172`, `#175`).
     """
+    problems = copy_reading_problems(copy)
+    if problems:
+        return None, problems
     address = entry.get("address")
     if not filled(address):
         return None, ["names no `address`"]
@@ -533,8 +577,16 @@ def fill(copy: dict, entry: dict, root: Path | None) -> tuple[dict | None, list[
     # The row reads the pages last, after the parse: `read_mark` is
     # what settles a destination that is not addressable at all, and a row
     # asked to read against a place no address names has nothing to say.
+    bases = {}
+    cache: PageCache = {}
+    for where, _ in INSTRUCTIONS[parsed.instruction].places(parsed):
+        result = _base_beside(copy, seeded, where, root, cache)
+        if isinstance(result, ReadFailure):
+            return None, [f"{address}: {d.message}" for d in result.diagnostics]
+        bases[where] = result
+
     def base_at(where: str) -> str:
-        return _base_beside(copy, seeded, where, root)
+        return bases.get(where, "")
 
     found = row_problems(parsed, base_at)
     if found:
@@ -579,6 +631,9 @@ def withdraw(copy: dict, address: str) -> tuple[dict | None, list[str]]:
         `({}, [])` on removal, or `(None, [message])` with the copy untouched
         where nothing is placed.
     """
+    problems = copy_reading_problems(copy)
+    if problems:
+        return None, problems
     marks, _ = _slot_at(copy, address)
     if marks is None:
         return None, [f"{address}: this copy holds no slot there"]

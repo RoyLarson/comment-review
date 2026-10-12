@@ -66,6 +66,7 @@ sys.path.insert(0, str(SRC))
 from comment_review.binder.binder import Binder  # noqa: E402
 from comment_review.binder.page import page_for  # noqa: E402
 from comment_review.docket.docket import Docket  # noqa: E402
+from comment_review.flows.reading_context import context_for  # noqa: E402
 from comment_review.machine.repo import sha_of  # noqa: E402
 from comment_review.reading.addresser import cue_of, unflatten  # noqa: E402
 from comment_review.reading.diagnostics import ReadFailure  # noqa: E402
@@ -86,7 +87,9 @@ def build(text: str, name: str = "m.py"):
     path = Path(name)
     lang = language_for(path)
     assert lang is not None, f"no language record for suffix {path.suffix!r}"
-    page = page_for(path, text, lang, rel=name, sha=sha_of(text))
+    reading = context_for(path, {})
+    assert not isinstance(reading, ReadFailure), reading
+    page = page_for(path, text, lang, rel=name, sha=sha_of(text), reading=reading)
     assert not isinstance(page, ReadFailure), page
     return page
 
@@ -190,7 +193,12 @@ def docket_from(flat: dict, binder: Binder) -> Docket:
                 one["anchor"] = places[one["cue"]]
     wire = {
         "pages": [
-            {"path": rel, "sha": shas.get(rel, ""), "alterations": alterations}
+            {
+                "path": rel,
+                "sha": shas.get(rel, ""),
+                "alterations": alterations,
+                "reading": build("", rel).serialize()["reading"],
+            }
             for rel, alterations in sorted(pages.items())
         ]
     }

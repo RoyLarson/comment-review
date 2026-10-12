@@ -2,8 +2,8 @@
 
 ```
 Status:   decision-needed
-Progress: 19 of 161 TODO tasks closed
-Plan-tasks: 4 of 51 plan tasks closed
+Progress: 20 of 161 TODO tasks closed
+Plan-tasks: 8 of 53 plan tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-10-11 (founded by move-t from 0.2.4-the-middle-rebuilt)
@@ -560,13 +560,14 @@ interfaces, inputs and checks, without internal development files or history.
 - [?] T6 | Decide whether Paragraph.lines still has a place, given the mark
       changes and the address system carrying the text properly?
 
-### AO - [2026-10-11-source-reading-contract](../../TODO/2026-10-11-source-reading-contract.md)
+### AO - [2026-10-11-source-reading-contract](../../TODO/completed/2026-10-11-source-reading-contract.md)
 
 - [x] T1 | MOVED to 2026-10-11-lexical-source-contract | Represent source as
       ordered regions and ownership facts; verify exact reconstruction and
       independently expected classifications
-- [ ] T2 | Carry reader compatibility and language settings through saved runs;
-      verify incompatible contexts refuse before address use
+- [x] T2 | MOVED to 2026-10-11-lexical-reading-context | Carry reader
+      compatibility and language settings through saved runs; verify
+      incompatible contexts refuse before address use
 - [x] T5 | MOVED to 2026-10-11-lexical-read-results | Define immutable read
       diagnostics and failures; verify location units, field validation and
       successful empty input
@@ -595,15 +596,20 @@ interfaces, inputs and checks, without internal development files or history.
       exact source acquisition; verify BOM, CRLF, mixed endings, Unicode and
       empty input survive the read and write path
         > 2026-10-11 Check: uv run pytest -q tests/test_proof_io.py
-- [ ] P4 | Load independent TOML language definitions; verify registry dispatch,
-      explicit capabilities and excluded file categories
+- [-] P4 | Approved split: P52 owns shared registry machinery; P53 owns per-language definitions | d2d29ccf | Load
+      independent TOML language definitions; verify registry dispatch, explicit
+      capabilities and excluded file categories
         > 2026-10-11 Check: uv run pytest -q tests/test_language_definitions.py
-- [ ] P5 | Carry reading compatibility and dialect settings through pages and
-      binders; verify serialization preserves their identity
+- [x] P5 | Required reading settings and identities persist through saved containers; full gates pass | afef752e | Carry
+      reading compatibility and dialect settings through pages and binders;
+      verify serialization preserves their identity
         > 2026-10-11 Check: uv run pytest -q tests/test_reading_context.py
-- [ ] P6 | Reject incompatible saved reading contexts before address admission;
-      verify distribution, folding, drafting and resume
+        > 2026-10-11 Subplan 2026-10-11-lexical-reading-context owns this work
+- [x] P6 | Saved context admission precedes distribution folding drafting and resume; full gates pass | afef752e | Reject
+      incompatible saved reading contexts before address admission; verify
+      distribution, folding, drafting and resume
         > 2026-10-11 Check: uv run pytest -q tests/test_reading_context.py
+        > 2026-10-11 Subplan 2026-10-11-lexical-reading-context owns this work
 - [ ] P7 | Specify Python independently; verify supported modes, directive
       boundaries, declaration ownership and expected fixtures
         > 2026-10-11 Own dated spec and subplan; branch feat/lexer-python
@@ -740,3 +746,10 @@ interfaces, inputs and checks, without internal development files or history.
       exact source acquisition and writing; verify UTF-8 byte fixtures in
       test_source_io and source-path integration tests
         > 2026-10-11 Subplan 2026-10-11-lexical-read-results owns this work
+- [x] P52 | Immutable definitions and unique registry routes are implemented; full gates and review pass | afef752e | Build
+      shared definition loading and registry selection; verify unique routes,
+      explicit capabilities and excluded categories
+        > 2026-10-11 Subplan 2026-10-11-lexical-reading-context owns this work
+- [ ] P53 | Implement each language definition with its own spec and reader;
+      verify independent rules without inherited configuration
+        > 2026-10-11 Each language subplan supplies its own spec, definition and reader

@@ -21,7 +21,88 @@ from comment_review.desk.proof.mark import read_mark, untouched
 from comment_review.flows.distribute import seed
 from comment_review.flows.fill import fill, withdraw
 
+
+@pytest.mark.parametrize("operation", ["fill", "withdraw", "place"])
+@pytest.mark.parametrize(
+    "fault", ["missing", "malformed", "digest", "language", "reader", "settings"]
+)
+def test_context_refusal_precedes_address_lookup(
+    copy, root, monkeypatch, operation, fault
+):
+    from comment_review.flows import fill as flow
+
+    sheet = copy["sheets"][0]
+    if fault == "missing":
+        del sheet["reading"]
+    elif fault == "malformed":
+        sheet["reading"] = []
+    else:
+        key = "compatibility" if fault == "digest" else fault
+        sheet["reading"][key] = (
+            {"unknown": "choice"} if fault == "settings" else "0" * 64
+        )
+    before = json.dumps(copy)
+
+    def forbidden(*args):
+        pytest.fail("saved address consulted before context refusal")
+
+    monkeypatch.setattr(flow, "_slot_at", forbidden)
+    monkeypatch.setattr(flow, "_sheet_for", forbidden)
+    if operation == "fill":
+        placed, why = fill(copy, _a_correct(), root)
+    elif operation == "withdraw":
+        placed, why = withdraw(copy, "m.py@b1")
+    else:
+        placed, _, why = flow.place_on_the_page([copy], "m.py@b1", root)
+    assert placed is None
+    assert why and "regather" in " ".join(why)
+    assert "block-context" in " ".join(why)
+    assert json.dumps(copy) == before
+
+
 BASE = "# one\n# two\n# three\n"
+
+
+def test_place_on_page_transports_saved_effective_settings(copy, root, monkeypatch):
+    from types import SimpleNamespace
+
+    from conftest import build
+
+    from comment_review.flows import fill as flow
+    from comment_review.flows import reading_context as metadata
+    from comment_review.reading.context import ReadingContext
+    from comment_review.reading.context_io import context_to_wire
+    from comment_review.reading.definitions import LanguageDefinition
+
+    page = build(PAGE)
+    definition = LanguageDefinition(
+        "test-language",
+        (".py",),
+        "test-reader",
+        "1",
+        ("comments",),
+        {"mode": ""},
+        {"mode": ("", "wide")},
+        {},
+    )
+    binding = SimpleNamespace(revision="1", grammar_identity="test-grammar")
+    monkeypatch.setattr(metadata, "reader_for", lambda _: (definition, binding))
+    saved = metadata.context_for(root / "m.py", {"mode": "wide"})
+    assert isinstance(saved, ReadingContext)
+    copy["sheets"][0]["reading"] = context_to_wire(saved)
+
+    def read(path, *, rel, reading_context=None):
+        assert path == root / "m.py" and rel == "m.py"
+        assert reading_context is not None
+        assert reading_context.settings == (("mode", "wide"),)
+        return page
+
+    monkeypatch.setattr(flow, "page_of", read)
+    marks, slot, why = flow.place_on_the_page([copy], "m.py@b1", root)
+    assert why == [] and marks is copy["sheets"][0]["marks"]
+    assert slot["raw_text"] == "# one\n# two\n# three"
+
+
 #: Six real code lines so the file carries a real, empty `b3` gap (before
 #: `w = 4`) for the "no slot" tests to target -- `m.py:5` still names
 #: `y = 2`, which the existing cites rely on.
