@@ -464,11 +464,13 @@ class TestAnAddressLessEntryIsStillFindable:
 
 def test_a_master_proof_carries_its_moves_and_reads_back_one_written_before_them():
     """Review Focus 2: a proof written before moves existed still reads."""
+    page = a_binder_over({"m.py@b1": "# example\n"}).pages[0]
     proof = MasterProof(
         stage="4c",
         read_from={},
         edit_copies=(),
-        page_readings={},
+        page_readings={page.path: page.reading},
+        page_shas={page.path: page.sha},
         places=(),
         moves=(Move("m.py@b1", "m.py@b5"),),
     )

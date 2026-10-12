@@ -69,18 +69,7 @@ class MasterProof:
                                 {
                                     "path": sheet.path,
                                     "sha": sheet.sha,
-                                    "marks": [
-                                        {
-                                            "address": mark.address,
-                                            "instruction": str(mark.instruction),
-                                            "to": getattr(
-                                                mark, mark.names_destination, ""
-                                            )
-                                            if mark.names_destination
-                                            else "",
-                                        }
-                                        for mark in sheet.marks
-                                    ],
+                                    "marks": [mark.serialize() for mark in sheet.marks],
                                 }
                                 for sheet in copy.sheets
                             ]
@@ -335,7 +324,7 @@ class MasterProof:
 
 
 def referenced_reading_problems(data: dict, where: str) -> list[str]:
-    """Require saved metadata for reference paths before decoding addresses."""
+    """Require reference metadata before proof decoding or downstream resolution."""
     contexts = data.get("page_readings")
     shas = data.get("page_shas", {})
     if not isinstance(contexts, dict) or not isinstance(shas, dict):
@@ -374,13 +363,9 @@ def referenced_reading_problems(data: dict, where: str) -> list[str]:
                 marks = sheet.get("marks", [])
                 if isinstance(marks, list):
                     for mark in marks:
-                        collect(
-                            mark,
-                            ("address", "to")
-                            if isinstance(mark, dict)
-                            and mark.get("instruction") == "move"
-                            else ("address",),
-                        )
+                        collect(mark, ("address",))
+                        if isinstance(mark, dict) and mark.get("instruction") == "move":
+                            collect(mark.get("claim"), ("to",))
     problems: list[str] = []
     known = [path for path in contexts.keys() | sources.keys() if isinstance(path, str)]
     for reference in sorted(references):
@@ -391,7 +376,8 @@ def referenced_reading_problems(data: dict, where: str) -> list[str]:
             )
         if path not in sources:
             problems.append(
-                f"{where}: {path}: referenced original sha is missing; regather"
+                f"{where}: {path}: referenced original sha in page_shas or sheets"
+                " is missing; regather"
             )
     return problems
 

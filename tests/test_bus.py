@@ -1663,8 +1663,9 @@ def test_extra_returned_sheet_sha_disagreement_refuses_before_fold(
 @pytest.mark.parametrize(
     "route", ["raw", "load", "decode", "answers", "dispositions", "mark"]
 )
+@pytest.mark.parametrize("marks_only", [False, True])
 def test_missing_both_destination_records_refuses_before_saved_work(
-    tmp_path, monkeypatch, route
+    tmp_path, monkeypatch, route, marks_only
 ):
     from comment_review.flows.reading_context import proof_reading_problems
 
@@ -1678,8 +1679,16 @@ def test_missing_both_destination_records_refuses_before_saved_work(
         },
         page_shas={p: s for p, s in result.proof.page_shas.items() if p != "n.py"},
     )
-    if route == "mark":
+    if route == "mark" or marks_only:
         proof = replace(proof, places=(), moves=())
+        move = next(
+            mark
+            for sheet in proof.serialize()["edit_copies"][0]["sheets"]
+            for mark in sheet["marks"]
+            if mark["instruction"] == "move"
+        )
+        assert move["claim"]["to"] == "n.py@b1"
+        assert "to" not in move
     before = deepcopy(proof)
     source = (message.root / "n.py").read_bytes()
 
@@ -1706,6 +1715,10 @@ def test_missing_both_destination_records_refuses_before_saved_work(
         monkeypatch.setattr(
             "comment_review.desk.proof.master_proof._places_in", forbidden
         )
+        if marks_only:
+            monkeypatch.setattr(
+                "comment_review.desk.proof.master_proof.EditCopy.deserialize", forbidden
+            )
         decoded, why = MasterProof.deserialize("saved", proof.serialize())
         assert decoded is None
     else:
