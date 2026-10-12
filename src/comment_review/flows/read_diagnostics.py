@@ -20,6 +20,11 @@ class LocatedReadFailure(ReadFailure):
         _validate_context(self, self.path, self.language, self.text)
 
 
+@dataclass(frozen=True)
+class ContextAdmissionFailure(LocatedReadFailure):
+    """Installed metadata cannot admit the context supplied for a page."""
+
+
 def _validate_context(
     failure: ReadFailure, path: str, language: str | None, text: str | None
 ) -> None:

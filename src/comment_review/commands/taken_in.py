@@ -30,7 +30,10 @@ from pathlib import Path
 from comment_review.binder.binder import bind
 from comment_review.differences import unified
 from comment_review.flows.page_for import page_of
-from comment_review.flows.read_diagnostics import format_failure
+from comment_review.flows.read_diagnostics import (
+    ContextAdmissionFailure,
+    format_failure,
+)
 from comment_review.flows.reading_context import context_for
 from comment_review.flows.source import source_of
 from comment_review.machine.repo import walk_files
@@ -99,10 +102,8 @@ def main(argv: list[str] | None = None) -> int:
                 revise / rel, rel=rel, source=after_source, reading_context=context
             )
         context_refused = any(
-            diagnostic.code == "reading-context-mismatch"
+            isinstance(page, ContextAdmissionFailure)
             for page in (before_page, after_page)
-            if isinstance(page, ReadFailure)
-            for diagnostic in page.diagnostics
         )
         if before_source.text != after_source.text and not context_refused:
             print("".join(unified(before_source.text, after_source.text, rel)), end="")

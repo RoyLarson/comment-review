@@ -94,8 +94,9 @@ def test_carry_command_refuses_before_read_or_write(tmp_path, monkeypatch, capsy
 
 @pytest.mark.parametrize("consumer", ["taken_in", "revise"])
 @pytest.mark.parametrize("equal", [True, False])
+@pytest.mark.parametrize("change", ["revision", "missing-reader", "accepted-settings"])
 def test_fresh_text_comparison_refuses_reader_change(
-    tmp_path, monkeypatch, capsys, consumer, equal
+    tmp_path, monkeypatch, capsys, consumer, equal, change
 ):
     root, _, _ = held_tree(tmp_path)
     revised = tmp_path / "revised"
@@ -110,10 +111,26 @@ def test_fresh_text_comparison_refuses_reader_change(
 
     actual = page_for.page_for
 
+    def original(path):
+        result = installed(path)
+        assert result is not None and not isinstance(result, ReadFailure)
+        definition, binding = result
+        if change == "accepted-settings":
+            definition = replace(
+                definition, defaults={"mode": "plain"}, choices={"mode": ("plain",)}
+            )
+        return definition, binding
+
+    monkeypatch.setattr(reading_context, "reader_for", original)
+
     def changed(path):
-        selected = installed(path)
-        assert selected is not None and not isinstance(selected, ReadFailure)
-        definition, binding = selected
+        if change == "missing-reader":
+            return None
+        definition, binding = original(path)
+        if change == "accepted-settings":
+            return replace(
+                definition, defaults={"mode": "wide"}, choices={"mode": ("wide",)}
+            ), binding
         return definition, replace(binding, revision="changed-reader")
 
     def read_then_change(*args, **kwargs):
@@ -129,9 +146,10 @@ def test_fresh_text_comparison_refuses_reader_change(
         )
         seen = capsys.readouterr()
         assert seen.out == ""
-        assert "reading-context-mismatch" in seen.err
+        assert "regather" in seen.err
+        assert "addresses not compared" in seen.err
     else:
-        with pytest.raises(revise.AddressesMoved, match="reading-context-mismatch"):
+        with pytest.raises(revise.AddressesMoved, match="regather"):
             revise.assert_addresses_held(
                 root, revise.Pulled(revised, 1, {}, []), ["m.py"]
             )

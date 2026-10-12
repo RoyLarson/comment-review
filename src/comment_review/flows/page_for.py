@@ -1,10 +1,14 @@
 """Acquire a source snapshot and admit it as a complete page."""
 
 from collections.abc import Mapping
+from dataclasses import replace
 from pathlib import Path
 
 from comment_review.binder.page import Page, page_for
-from comment_review.flows.read_diagnostics import LocatedReadFailure
+from comment_review.flows.read_diagnostics import (
+    ContextAdmissionFailure,
+    LocatedReadFailure,
+)
 from comment_review.flows.reading_context import context_for
 from comment_review.flows.source import source_of
 from comment_review.machine.repo import Source
@@ -32,9 +36,19 @@ def page_of(
         else {},
     )
     if isinstance(context, ReadFailure):
+        if reading_context is not None:
+            return ContextAdmissionFailure(
+                tuple(
+                    replace(diagnostic, message=f"{diagnostic.message}; regather")
+                    for diagnostic in context.diagnostics
+                ),
+                where,
+                reading_context.language,
+                None,
+            )
         return LocatedReadFailure(context.diagnostics, where, None, None)
     if reading_context is not None and context != reading_context:
-        return LocatedReadFailure(
+        return ContextAdmissionFailure(
             (
                 ReadDiagnostic(
                     ReadStage.SELECT,
