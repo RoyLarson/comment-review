@@ -886,3 +886,152 @@ def test_installed_selection_and_coverage_use_validated_bindings(monkeypatch) ->
     )
     assert isinstance(readers.reader_for(Path("component.TSX")), ReadFailure)
     assert readers.supported_definitions() == ()
+
+
+def python_definition() -> Any:
+    path = (
+        Path(__file__).parents[1]
+        / "src/comment_review/references/languages/python.toml"
+    )
+    values = load([path])
+    assert isinstance(values, tuple), values
+    return values[0]
+
+
+def validate_python_definition(value: Any) -> Any:
+    return import_module("comment_review.reading.python.definition").validate_python(
+        value
+    )
+
+
+def test_python_definition_loads_complete_grammar_without_activating_reader() -> None:
+    from comment_review.reading.readers import INSTALLED_BINDINGS, supported_definitions
+
+    value = python_definition()
+    assert validate_python_definition(value) is None
+    assert value.language == "python"
+    assert value.suffixes == (".py", ".pyi")
+    assert value.defaults == value.choices == {}
+    assert value.reader not in INSTALLED_BINDINGS
+    installed = {item.language: item for item in supported_definitions()}
+    assert len(installed) == 15
+    assert installed["python"].reader == "python-stdlib"
+    assert installed["typescript"].suffixes == (".ts", ".tsx", ".mts", ".cts")
+    assert value.rules["literals"]["prefixes"]["raw_template"] == ("tr", "rt")
+    assert value.rules["documentation"]["literal_groups"] == ("plain", "raw")
+    assert value.rules["identifiers"]["soft_keywords"] == (
+        "match",
+        "case",
+        "_",
+        "type",
+        "lazy",
+    )
+
+
+@pytest.mark.parametrize(
+    "field,wrong",
+    [
+        ("language", "rust"),
+        ("reader", "python-stdlib"),
+        ("revision", "2"),
+        ("suffixes", (".py",)),
+        ("suffixes", (".py", ".pyi", ".pyw")),
+        ("capabilities", ("comments", "tokenized")),
+    ],
+)
+def test_python_definition_rejects_wrong_identity(field: str, wrong: Any) -> None:
+    from dataclasses import replace
+
+    result = validate_python_definition(replace(python_definition(), **{field: wrong}))
+    assert isinstance(result, ReadFailure)
+    diagnostic = result.diagnostics[0]
+    assert diagnostic.stage == ReadStage.SELECT
+    assert diagnostic.code == "invalid-language-definition"
+    assert field in diagnostic.message
+
+
+def test_python_definition_rejects_effective_settings() -> None:
+    from dataclasses import replace
+
+    value = replace(
+        python_definition(),
+        defaults={"version": "3.15"},
+        choices={"version": ("3.15",)},
+    )
+    result = validate_python_definition(value)
+    assert isinstance(result, ReadFailure)
+    assert "defaults" in result.diagnostics[0].message
+    assert "settings" in result.diagnostics[0].message
+
+
+def test_python_definition_requires_every_nested_key_and_rejects_unknown_keys() -> None:
+    from collections.abc import Mapping
+    from dataclasses import replace
+
+    value = python_definition()
+
+    def check_table(table: Any, path: str, ancestors: tuple[str, ...]) -> None:
+        for key in (*table, "unknown"):
+            changed = dict(table)
+            if key == "unknown":
+                changed[key] = True
+            else:
+                del changed[key]
+            for parent in reversed(ancestors):
+                original = value.rules
+                for name in ancestors[: ancestors.index(parent)]:
+                    original = original[name]
+                changed = {**original, parent: changed}
+            result = validate_python_definition(replace(value, rules=changed))
+            assert isinstance(result, ReadFailure), (path, key)
+            assert f"{path}.{key}" in result.diagnostics[0].message
+        for key, child in table.items():
+            if isinstance(child, Mapping):
+                check_table(child, f"{path}.{key}", (*ancestors, key))
+
+    check_table(value.rules, "rules", ())
+
+
+@pytest.mark.parametrize(
+    "section,key,wrong,reason",
+    [
+        ("comments", "marker", 3, "string"),
+        ("comments", "marker", "//", "unsupported"),
+        ("comments", "sections", "split-on-blank", "unsupported"),
+        ("literals", "short_quotes", ("`",), "unsupported"),
+        ("literals", "case_insensitive_prefixes", 1, "boolean"),
+        ("literals", "case_insensitive_prefixes", False, "unsupported"),
+        ("layout", "tab_width", True, "integer"),
+        ("layout", "tab_width", 4, "unsupported"),
+        ("declarations", "keywords", ("lambda",), "unsupported"),
+        ("documentation", "literal_groups", ("bytes",), "unsupported"),
+        ("documentation", "adjacent", "yes", "boolean"),
+        ("documentation", "parenthesized", False, "unsupported"),
+        ("directives", "encoding_lines", (1, 3), "unsupported"),
+        ("identifiers", "soft_keyword_policy", "reserved", "unsupported"),
+    ],
+)
+def test_python_definition_rejects_ill_typed_and_unsupported_rules(
+    section: str, key: str, wrong: Any, reason: str
+) -> None:
+    from dataclasses import replace
+
+    value = python_definition()
+    rules = {**value.rules, section: {**value.rules[section], key: wrong}}
+    result = validate_python_definition(replace(value, rules=rules))
+    assert isinstance(result, ReadFailure)
+    assert f"rules.{section}.{key}" in result.diagnostics[0].message
+    assert reason in result.diagnostics[0].message
+
+
+def test_python_definition_rejects_invalid_prefix_groups() -> None:
+    from dataclasses import replace
+
+    value = python_definition()
+    literals = value.rules["literals"]
+    for wrong in (("ur",), ("f",), (), ("tr", "tr"), True):
+        prefixes = {**literals["prefixes"], "raw_template": wrong}
+        rules = {**value.rules, "literals": {**literals, "prefixes": prefixes}}
+        result = validate_python_definition(replace(value, rules=rules))
+        assert isinstance(result, ReadFailure)
+        assert "rules.literals.prefixes.raw_template" in result.diagnostics[0].message
