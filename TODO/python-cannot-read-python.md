@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 32 of 39 tasks closed
+Progress: 38 of 45 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-21 (Roy, 2026-08-21, on four sentry files the floor interpreter cannot
@@ -365,33 +365,51 @@ the review, and nothing today protects the review.
       the read side.
 - [x] T31 | FINISHED | unknown | T31 -- RECORD R31: the check for the stateful
       reader.
-- [ ] T32 | T32 -- Read Python on the lexical tier -- no `import ast` in the
-      lexer. Verify: `grep -rn 'import ast' plugins/` misses lexer.py:28 and a
-      `.py` file still censuses.
+- [-] T32 | Approved Python lexical spec replaces obsolete criterion with T40 | 112dab2c74c24a36687b6a58a0b1336bfb7ffff5 | T32
+      -- Read Python on the lexical tier -- no `import ast` in the lexer.
+      Verify: `grep -rn 'import ast' plugins/` misses lexer.py:28 and a `.py`
+      file still censuses.
         > 2026-10-10 Own the Python scanner; no runtime AST or tokenizer dependency
-- [ ] T33 | T33 -- Hold the round-trip identity over the Python corpora with the
-      new reader. Verify: `compositor.identity` reproduces R13's 2,368
+- [-] T33 | Approved Python lexical spec replaces obsolete criterion with T41 | 112dab2c74c24a36687b6a58a0b1336bfb7ffff5 | T33
+      -- Hold the round-trip identity over the Python corpora with the new
+      reader. Verify: `compositor.identity` reproduces R13's 2,368
       byte-identical round trips.
         > 2026-09-03 would go green: an unseen docstring is never taken apart
-- [ ] T34 | T34 -- A file with syntax NEWER than the floor censuses instead of
-      setting empty. Verify: sentry's `api/paginator.py` yields places and sets
-      back its 884 lines.
+- [-] T34 | Approved Python lexical spec replaces obsolete criterion with T42 | 112dab2c74c24a36687b6a58a0b1336bfb7ffff5 | T34
+      -- A file with syntax NEWER than the floor censuses instead of setting
+      empty. Verify: sentry's `api/paginator.py` yields places and sets back its
+      884 lines.
 - [-] T35 | SUPERSEDED by T38 -- its verify is a grep going empty, which passes on a gate that has stopped proving; Process 82 rules the rebuild | cf61be2 | T35
       -- Drop the `ast` proof; run `stripped` for every language, Python
       included. Verify: `grep -n 'import ast' prove_unchanged.py` is empty (it
       reads it at :36).
-- [ ] T36 | T36 -- Keep the Python fixtures passing under the `stripped` proof.
-      Verify: `uv run python -m unittest discover -s tests -k prove_unchanged`
-      is green.
-- [ ] T37 | T37 -- Say in `prove_unchanged`'s docstring what `stripped` does NOT
-      cover. Verify: the docstring claims same lines in the same order, never
-      semantic equivalence.
+- [-] T36 | Approved Python lexical spec replaces obsolete criterion with T43 | 112dab2c74c24a36687b6a58a0b1336bfb7ffff5 | T36
+      -- Keep the Python fixtures passing under the `stripped` proof. Verify:
+      `uv run python -m unittest discover -s tests -k prove_unchanged` is green.
+- [-] T37 | Approved Python lexical spec replaces obsolete criterion with T44 | 112dab2c74c24a36687b6a58a0b1336bfb7ffff5 | T37
+      -- Say in `prove_unchanged`'s docstring what `stripped` does NOT cover.
+      Verify: the docstring claims same lines in the same order, never semantic
+      equivalence.
         > 2026-09-03 same lines in same order goes false once the move is admitted
 - [ ] T38 | Rebuild `prove_unchanged` to prove code unchanged with no `ast`
       branch. Verify: an edited docstring proves, a moved token does not
         > 2026-09-03 waits on doc-on-the-declaring-line T4 and R25
         > 2026-09-03 until both land the ast branch is the only proof that runs
-- [ ] T39 | Emit a paragraph for a Python docstring on the lexical tier. Verify:
+- [-] T39 | Approved Python lexical spec replaces obsolete criterion with T45 | 112dab2c74c24a36687b6a58a0b1336bfb7ffff5 | Emit
+      a paragraph for a Python docstring on the lexical tier. Verify:
       `paragraphs_lexical` over a documented def returns one
         > 2026-09-03 MEASURED 2026-09-03: the lexical tier finds Python comments
         > 2026-09-03 and emits NOTHING for a docstring -- a string is not a comment
+- [ ] T40 | Read Python with owned lexical recognition independent of the host
+      AST and tokenizer
+        > 2026-10-11 Check: plan P25 forbids AST/tokenizer in real read/proof routes
+- [ ] T41 | Preserve exact Python round trips over invented boundary fixtures
+        > 2026-10-11 Check: plan P26 compares exact bytes through saved setting
+- [ ] T42 | Read supported newer Python syntax on the pinned Python 3.11 runtime
+        > 2026-10-11 Check: plan P10 asserts 3.11-3.15 fixture facts on host 3.11
+- [ ] T43 | Reject executable Python mutations at both lexical proof gates
+        > 2026-10-11 Check: plan P22 exercises mutations through both proof commands
+- [ ] T44 | Document the Python preservation contract beside its comparison
+        > 2026-10-11 Check: plan P25 prose states tokens, ownership and limits
+- [ ] T45 | Expose complete Python docstrings with their lexical owners
+        > 2026-10-11 Check: plan P11/P12 assert owners and all literal components

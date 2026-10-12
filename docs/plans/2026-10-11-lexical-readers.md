@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 20 of 161 TODO tasks closed
+Progress: 26 of 161 TODO tasks closed
 Plan-tasks: 8 of 53 plan tasks closed
 Owner:    backend
 Requires-Roy: true
@@ -34,8 +34,9 @@ interfaces, inputs and checks, without internal development files or history.
 
 ### A - [lexical-code-identity](../../TODO/lexical-code-identity.md)
 
-- [ ] T1 | Replace Python AST identity checks with lexical comparison; verify
-      docstring add and removal agree at both gates
+- [ ] T1 | MOVED to 2026-10-11-lexer-python | Replace Python AST identity checks
+      with lexical comparison; verify docstring add and removal agree at both
+      gates
 - [ ] T2 | Preserve literal whitespace in prove_unchanged.py:191-207; verify
       blank-line and trailing-space edits change the fingerprint
 
@@ -99,24 +100,25 @@ interfaces, inputs and checks, without internal development files or history.
 
 ### F - [python-cannot-read-python](../../TODO/python-cannot-read-python.md)
 
-- [ ] T32 | T32 -- Read Python on the lexical tier -- no `import ast` in the
+- [-] T32 | T32 -- Read Python on the lexical tier -- no `import ast` in the
       lexer. Verify: `grep -rn 'import ast' plugins/` misses lexer.py:28 and a
       `.py` file still censuses.
-- [ ] T33 | T33 -- Hold the round-trip identity over the Python corpora with the
+- [-] T33 | T33 -- Hold the round-trip identity over the Python corpora with the
       new reader. Verify: `compositor.identity` reproduces R13's 2,368
       byte-identical round trips.
-- [ ] T34 | T34 -- A file with syntax NEWER than the floor censuses instead of
+- [-] T34 | T34 -- A file with syntax NEWER than the floor censuses instead of
       setting empty. Verify: sentry's `api/paginator.py` yields places and sets
       back its 884 lines.
-- [ ] T36 | T36 -- Keep the Python fixtures passing under the `stripped` proof.
+- [-] T36 | T36 -- Keep the Python fixtures passing under the `stripped` proof.
       Verify: `uv run python -m unittest discover -s tests -k prove_unchanged`
       is green.
-- [ ] T37 | T37 -- Say in `prove_unchanged`'s docstring what `stripped` does NOT
+- [-] T37 | T37 -- Say in `prove_unchanged`'s docstring what `stripped` does NOT
       cover. Verify: the docstring claims same lines in the same order, never
       semantic equivalence.
-- [ ] T38 | Rebuild `prove_unchanged` to prove code unchanged with no `ast`
-      branch. Verify: an edited docstring proves, a moved token does not
-- [ ] T39 | Emit a paragraph for a Python docstring on the lexical tier. Verify:
+- [ ] T38 | MOVED to 2026-10-11-lexer-python | Rebuild `prove_unchanged` to
+      prove code unchanged with no `ast` branch. Verify: an edited docstring
+      proves, a moved token does not
+- [-] T39 | Emit a paragraph for a Python docstring on the lexical tier. Verify:
       `paragraphs_lexical` over a documented def returns one
 
 ### G - [lexer-and-language-findings](../../TODO/lexer-and-language-findings.md)
@@ -613,9 +615,11 @@ interfaces, inputs and checks, without internal development files or history.
 - [ ] P7 | Specify Python independently; verify supported modes, directive
       boundaries, declaration ownership and expected fixtures
         > 2026-10-11 Own dated spec and subplan; branch feat/lexer-python
+        > 2026-10-11 Python child: docs/plans/2026-10-11-lexer-python.md
 - [ ] P8 | Implement the Python reader from its definition; verify expected
       comments, protected code, addresses and set/proof behavior
         > 2026-10-11 Check: uv run pytest -q tests/reading/test_python.py
+        > 2026-10-11 Python child: docs/plans/2026-10-11-lexer-python.md
 - [ ] P9 | Specify Rust independently; verify supported modes, directive
       boundaries, declaration ownership and expected fixtures
         > 2026-10-11 Own dated spec and subplan; branch feat/lexer-rust
@@ -703,6 +707,7 @@ interfaces, inputs and checks, without internal development files or history.
 - [ ] P37 | Integrate Python reading through gather, setting and both proof
       commands; verify newer syntax works on Python 3.11
         > 2026-10-11 Complete the Python workflow before other language integration
+        > 2026-10-11 Python child: docs/plans/2026-10-11-lexer-python.md
 - [ ] P38 | Share reader results with paragraphs, forms and declarations; verify
       whole sections retain the existing a, b, c and f anchors
         > 2026-10-11 Check: uv run pytest -q tests/test_reading.py
