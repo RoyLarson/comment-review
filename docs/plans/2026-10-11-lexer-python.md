@@ -1,7 +1,7 @@
 # Python lexical reader implementation
 
 ```
-Status:   open
+Status:   in-progress
 Progress: 0 of 8 TODO tasks closed
 Plan-tasks: 0 of 26 plan tasks closed
 Owner:    backend
@@ -446,8 +446,9 @@ complete merely because this plan or its interfaces are approved.
 
 ## Plan Tasks
 
-- [ ] P1 | Install Python-owned grammar metadata; verify task 1 evidence with
+- [~] P1 | Install Python-owned grammar metadata; verify task 1 evidence with
       its RED/GREEN command
+        > 2026-10-12 Roy authorized subagent-driven implementation
 - [ ] P2 | Represent a validated structured Python read; verify task 2 evidence
       with its RED/GREEN command
 - [ ] P3 | Scan basic Python tokens; verify task 3 evidence with its RED/GREEN
