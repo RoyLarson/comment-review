@@ -3,7 +3,7 @@
 ```
 Status:   in-progress
 Progress: 0 of 8 TODO tasks closed
-Plan-tasks: 0 of 26 plan tasks closed
+Plan-tasks: 1 of 26 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (founded by move-t from 2026-10-11-lexical-readers)
@@ -446,10 +446,11 @@ complete merely because this plan or its interfaces are approved.
 
 ## Plan Tasks
 
-- [~] P1 | Install Python-owned grammar metadata; verify task 1 evidence with
-      its RED/GREEN command
+- [x] P1 | Python definition validates; 216 tests and focused static checks pass; review approved | f23a9e18 | Install
+      Python-owned grammar metadata; verify task 1 evidence with its RED/GREEN
+      command
         > 2026-10-12 Roy authorized subagent-driven implementation
-- [ ] P2 | Represent a validated structured Python read; verify task 2 evidence
+- [~] P2 | Represent a validated structured Python read; verify task 2 evidence
       with its RED/GREEN command
 - [ ] P3 | Scan basic Python tokens; verify task 3 evidence with its RED/GREEN
       command
