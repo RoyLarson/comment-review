@@ -41,13 +41,13 @@ from comment_review.desk.marks.rules import allowed
 from comment_review.desk.stages import ROLES
 from comment_review.desk.topology import read as read_topology
 from comment_review.desk.topology import seeded_from_problem
-from comment_review.flows.distribute import seed
+from comment_review.flows.distribute import IncompatibleBinder, seed
 from comment_review.flows.fan_out import OverlappingShards, UncoveredPage, dealt
 from comment_review.flows.proof_io import load_binder
 
 # ! Bound to a name: a tuple literal in an `except` is what a newer formatter
 # rewrites into a form the floor interpreter cannot parse.
-FAN_REFUSALS = (OverlappingShards, UncoveredPage)
+FAN_REFUSALS = (OverlappingShards, UncoveredPage, IncompatibleBinder)
 
 
 def _as_json(payload: dict) -> str:
@@ -118,7 +118,11 @@ def main() -> int:
             for line in problems:
                 print(line, file=sys.stderr)
             return 2
-        edit_copy = seed(binder, args.role)
+        try:
+            edit_copy = seed(binder, args.role)
+        except IncompatibleBinder as exc:
+            print(str(exc), file=sys.stderr)
+            return 2
         Path(args.out).write_text(_as_json(edit_copy), encoding="utf-8", newline="")
         places = sum(len(sheet["marks"]) for sheet in edit_copy["sheets"])
         print(f"{args.out}: {places} places for {args.role} to rule on")

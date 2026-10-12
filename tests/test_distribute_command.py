@@ -6,8 +6,10 @@ edit copy per dispatch. The task agent reads the ORDER from SKILL.md (`#73`).
 """
 
 import json
+from dataclasses import replace
 from pathlib import Path
 
+import pytest
 from conftest import SAMPLE, run_command
 
 from comment_review.commands import distribute as distribute_command
@@ -34,6 +36,70 @@ reads = "revise:4a"
   [[stage.dispatch]]
   role = "function-context"
 """
+
+
+@pytest.mark.parametrize("route", ["seed", "stage"])
+@pytest.mark.parametrize(
+    "installed_change", ["placement", "reader", "definition", "rules"]
+)
+def test_distribution_refuses_installed_incompatible_saved_binder_before_addresses(
+    tmp_path, monkeypatch, capsys, route, installed_change
+):
+    from comment_review.flows import reading_context
+    from comment_review.reading.definitions import LanguageDefinition
+    from comment_review.reading.readers import ReaderBinding
+
+    root = _tree(tmp_path, monkeypatch, capsys)
+    before = {path: path.read_bytes() for path in root.rglob("*") if path.is_file()}
+    if installed_change == "placement":
+        monkeypatch.setattr(reading_context, "PLACEMENT_REVISION", "changed")
+    else:
+        original = reading_context.reader_for
+
+        def changed(path):
+            selected = original(path)
+            assert isinstance(selected, tuple)
+            definition, binding = selected
+            assert isinstance(definition, LanguageDefinition)
+            assert isinstance(binding, ReaderBinding)
+            if installed_change == "reader":
+                binding = replace(binding, revision="changed")
+            elif installed_change == "definition":
+                definition = replace(definition, revision="changed")
+            else:
+                definition = replace(
+                    definition, rules={**definition.rules, "changed": True}
+                )
+            return definition, binding
+
+        monkeypatch.setattr(reading_context, "reader_for", changed)
+
+    def forbidden(*args, **kwargs):
+        pytest.fail("incompatible binder reached saved address consumption")
+
+    monkeypatch.setattr("comment_review.flows.distribute.handed", forbidden)
+    monkeypatch.setattr(distribute_command, "_as_json", forbidden)
+    if route == "seed":
+        code, printed = run_command(
+            monkeypatch,
+            capsys,
+            distribute_command,
+            "--seed",
+            "--binder",
+            str(root / "binder.json"),
+            "--role",
+            "block-context",
+            "--out",
+            str(root / "seeded.json"),
+            with_stderr=True,
+        )
+    else:
+        code, printed = _stage(root, monkeypatch, capsys, "4a", root / "copies")
+    assert code == 2, printed
+    assert "regather" in printed
+    assert {
+        path: path.read_bytes() for path in root.rglob("*") if path.is_file()
+    } == before
 
 
 def _bind(tmp_path, monkeypatch, capsys, repo: Path, out: Path, revise: int):
