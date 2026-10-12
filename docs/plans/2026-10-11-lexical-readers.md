@@ -3,7 +3,7 @@
 ```
 Status:   decision-needed
 Progress: 26 of 161 TODO tasks closed
-Plan-tasks: 8 of 53 plan tasks closed
+Plan-tasks: 9 of 53 plan tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-10-11 (founded by move-t from 0.2.4-the-middle-rebuilt)
@@ -612,8 +612,9 @@ interfaces, inputs and checks, without internal development files or history.
       distribution, folding, drafting and resume
         > 2026-10-11 Check: uv run pytest -q tests/test_reading_context.py
         > 2026-10-11 Subplan 2026-10-11-lexical-reading-context owns this work
-- [ ] P7 | Specify Python independently; verify supported modes, directive
-      boundaries, declaration ownership and expected fixtures
+- [x] P7 | Approved Python spec and subplan define modes, directives, ownership and fixtures | 9546ebe1 | Specify
+      Python independently; verify supported modes, directive boundaries,
+      declaration ownership and expected fixtures
         > 2026-10-11 Own dated spec and subplan; branch feat/lexer-python
         > 2026-10-11 Python child: docs/plans/2026-10-11-lexer-python.md
 - [ ] P8 | Implement the Python reader from its definition; verify expected
