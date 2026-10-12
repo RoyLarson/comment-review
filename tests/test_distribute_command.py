@@ -38,6 +38,74 @@ reads = "revise:4a"
 """
 
 
+@pytest.mark.parametrize("incompatible", [False, True])
+def test_stage_admits_later_language_before_consuming_first_shard(
+    tmp_path, monkeypatch, capsys, incompatible
+):
+    from comment_review.flows import reading_context
+    from comment_review.reading.readers import ReaderBinding
+
+    (tmp_path / "a.py").write_bytes(b"x = 1\n# first\ny = 2\n")
+    (tmp_path / "b.js").write_bytes(b"const x = 1;\n// later\nconst y = 2;\n")
+    code, printed = run_command(
+        monkeypatch,
+        capsys,
+        gather_command,
+        "--repo",
+        str(tmp_path),
+        "--out",
+        str(tmp_path / "binder.json"),
+        str(tmp_path / "a.py"),
+        str(tmp_path / "b.js"),
+        with_stderr=True,
+    )
+    assert code == 0, printed
+    (tmp_path / "t.toml").write_text(
+        '[[stage]]\nname = "4a"\nkind = "editorial"\nreads = "original"\n'
+        '[[stage.dispatch]]\nrole = "block-context"\npaths = ["a.py"]\n'
+        '[[stage.dispatch]]\nrole = "block-context"\npaths = ["b.js"]\n'
+    )
+    before = {path: path.read_bytes() for path in tmp_path.rglob("*") if path.is_file()}
+    if incompatible:
+        original = reading_context.reader_for
+
+        def changed(path):
+            selected = original(path)
+            assert isinstance(selected, tuple)
+            definition, binding = selected
+            assert isinstance(binding, ReaderBinding)
+            return definition, (
+                replace(binding, revision="later-changed")
+                if path.suffix == ".js"
+                else binding
+            )
+
+        monkeypatch.setattr(reading_context, "reader_for", changed)
+
+        def forbidden(*args, **kwargs):
+            pytest.fail("first shard consumed before later language admission")
+
+        monkeypatch.setattr("comment_review.flows.distribute.handed", forbidden)
+        monkeypatch.setattr(distribute_command, "_as_json", forbidden)
+    out = tmp_path / "copies"
+    code, printed = _stage(tmp_path, monkeypatch, capsys, "4a", out)
+    if incompatible:
+        assert code == 2, printed
+        assert "b.js" in printed and "regather" in printed
+        assert not out.exists()
+        assert {
+            path: path.read_bytes() for path in tmp_path.rglob("*") if path.is_file()
+        } == before
+    else:
+        assert code == 0, printed
+        assert [
+            json.loads((out / f"4a_block-context_{n}.json").read_text())["sheets"][0][
+                "path"
+            ]
+            for n in (1, 2)
+        ] == ["a.py", "b.js"]
+
+
 @pytest.mark.parametrize("route", ["seed", "stage"])
 @pytest.mark.parametrize(
     "installed_change", ["placement", "reader", "definition", "rules"]

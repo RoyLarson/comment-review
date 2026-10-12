@@ -54,7 +54,8 @@ class IncompatibleBinder(Refused):
     """Saved binder metadata cannot be used to distribute addresses."""
 
 
-def _admit(binder: Binder) -> None:
+def admit_binder(binder: Binder) -> None:
+    """Refuse incompatible saved metadata before distribution uses addresses."""
     _, problems = binder_reading_contexts(binder)
     if problems:
         raise IncompatibleBinder("\n".join(problems))
@@ -62,7 +63,7 @@ def _admit(binder: Binder) -> None:
 
 def assigned_binder(binder: Binder, stage: Stage | None = None) -> Binder:
     """The binder containing the review places assigned by this stage."""
-    _admit(binder)
+    admit_binder(binder)
     return replace(
         binder,
         pages=tuple(
@@ -148,7 +149,7 @@ def seed(binder: Binder, role: str, stage: Stage | None = None) -> dict:
     # The sheet records the page and the sha it was read at, which the proof
     # reads back; dropping the page here would leave the run unable to say
     # what it was cut from.
-    _admit(binder)
+    admit_binder(binder)
     return EditCopy.seed(
         role=role,
         read_from=binder.read_from,
