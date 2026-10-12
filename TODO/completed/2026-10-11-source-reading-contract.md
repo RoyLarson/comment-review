@@ -1,8 +1,8 @@
 # Define shared source reading contracts
 
 ```
-Status:   open
-Progress: 22 of 23 tasks closed
+Status:   closed
+Progress: 29 of 29 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (2026-10-11 lexical-reader design)
@@ -17,8 +17,9 @@ Define shared source reading contracts.
 - [x] T1 | Immutable source representation preserves exact text and classifications; all checks and review pass | 1c455282 | Represent
       source as ordered regions and ownership facts; verify exact reconstruction
       and independently expected classifications
-- [ ] T2 | Carry reader compatibility and language settings through saved runs;
-      verify incompatible contexts refuse before address use
+- [x] T2 | Saved reading compatibility survives complete workflows; full gates and independent review pass | afef752e | Carry
+      reader compatibility and language settings through saved runs; verify
+      incompatible contexts refuse before address use
 - [x] T3 | Invalid region kinds raise ValueError; rejection and preservation tests pass review | 1c455282 | Reject
       invalid SourceRegion kinds; verify unknown strings, None and mutable
       values raise ValueError
@@ -100,3 +101,28 @@ Define shared source reading contracts.
       the whole binder before topology distribution
         > 2026-10-11 Review: fan_out.py:114 processes shards before whole admission
         > 2026-10-11 Check: later incompatible shard refuses before handed or writes
+- [x] T24 | All referenced proof paths require metadata before raw and resumed address work | afef752e | Require
+      reading metadata for every referenced proof path
+        > 2026-10-11 Review: master_proof.py:52 misses paths absent from both maps
+        > 2026-10-11 Check: absent destination maps refuse before fold and chief
+        > 2026-10-11 Rereview: move wire destination is claim.to, not top-level to
+- [x] T25 | Extra returned sheets preserve context and original SHA through proof and chief | afef752e | Copy
+      every admitted returned sheet context into the master proof
+        > 2026-10-11 Review: bus.py:306 omits returned sheets outside the binder
+        > 2026-10-11 Check: extra empty and marked sheets survive proof and chief
+- [x] T26 | Declared fixture settings reach transport assertions; full suite passes | afef752e | Configure
+      declared fixture settings in distribution transport tests
+        > 2026-10-11 Review: page and sheet context fixtures use undeclared mode
+        > 2026-10-11 Check: all three transport tests reach their intended assertions
+- [x] T27 | Helper prose accurately names the proof decoding boundary; review passes | afef752e | Describe
+      the actual proof reference admission boundary
+        > 2026-10-11 Review: master_proof.py:338 claims no address decoding
+        > 2026-10-11 Check: prose names proof objects or downstream resolution
+- [x] T28 | Move roundtrip supplies explicit context and SHA; regression passes | afef752e | Supply
+      complete page metadata in the move roundtrip fixture
+        > 2026-10-11 Review: test_containers.py:476 omits referenced page readings
+        > 2026-10-11 Check: valid move proof roundtrip reaches all original assertions
+- [x] T29 | Missing destination diagnostic names saved SHA records; original assertion passes | afef752e | Align
+      missing destination diagnostics with saved metadata fields
+        > 2026-10-11 Review: test_review_write_boundaries.py:79 expects page_shas
+        > 2026-10-11 Check: refusal identifies destination, missing SHA and regather

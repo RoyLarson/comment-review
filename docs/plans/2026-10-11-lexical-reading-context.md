@@ -1,9 +1,9 @@
 # Language registry and saved reading context
 
 ```
-Status:   in-progress
-Progress: 16 of 17 TODO tasks closed
-Plan-tasks: 25 of 26 plan tasks closed
+Status:   closed
+Progress: 23 of 23 TODO tasks closed
+Plan-tasks: 26 of 26 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (founded by move-t from 2026-10-11-lexical-readers)
@@ -368,9 +368,9 @@ because this machinery exists.
 
 ## TODO tasks this plan closes
 
-### A - [2026-10-11-source-reading-contract](../../TODO/2026-10-11-source-reading-contract.md)
+### A - [2026-10-11-source-reading-contract](../../TODO/completed/2026-10-11-source-reading-contract.md)
 
-- [ ] T2 | Carry reader compatibility and language settings through saved runs;
+- [x] T2 | Carry reader compatibility and language settings through saved runs;
       verify incompatible contexts refuse before address use
 - [x] T12 | Keep compatibility hashing behind the machine boundary; verify
       import gates and canonical digests pass
@@ -395,6 +395,12 @@ because this machinery exists.
 - [x] T22 | Admit saved binder contexts before distribution; verify incompatible
       rules prevent seeding and output writes
 - [x] T23 | Admit the whole binder before topology distribution
+- [x] T24 | Require reading metadata for every referenced proof path
+- [x] T25 | Copy every admitted returned sheet context into the master proof
+- [x] T26 | Configure declared fixture settings in distribution transport tests
+- [x] T27 | Describe the actual proof reference admission boundary
+- [x] T28 | Supply complete page metadata in the move roundtrip fixture
+- [x] T29 | Align missing destination diagnostics with saved metadata fields
 
 ### B - [2026-10-11-language-registry-contract](../../TODO/completed/2026-10-11-language-registry-contract.md)
 
@@ -489,5 +495,6 @@ because this machinery exists.
 - [x] P25 | Saved workflows retain settings and identities; 405 tests and independent review pass | 0ae17e78 | Exercise
       saved-run migration end to end; verify mixed settings, old artifacts,
       moves and rollback
-- [ ] P26 | Verify focused and full suites, lint, typing, syntax and vocabulary;
+- [x] P26 | 3464 tests pass with existing skip and xfails; all gates and whole-branch review complete | afef752e | Verify
+      focused and full suites, lint, typing, syntax and vocabulary;
       independently review the complete branch
