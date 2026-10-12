@@ -7,7 +7,10 @@ from typing import cast
 from comment_review.binder.binder import Binder
 from comment_review.binder.page import Page, RedactedPage
 from comment_review.desk.proof.edit_copy import EditCopy
-from comment_review.desk.proof.master_proof import MasterProof
+from comment_review.desk.proof.master_proof import (
+    MasterProof,
+    referenced_reading_problems,
+)
 from comment_review.desk.proof.sheet import Sheet
 from comment_review.docket.docket import Docket, Schedule
 from comment_review.flows.proof_io import load_value
@@ -40,7 +43,9 @@ def proof_reading_problems(
             if not isinstance(copy, dict) or not isinstance(copy.get("sheets"), list):
                 return [f"{where}: edit_copy sheets must be a list; regather"]
             sheets.extend(copy["sheets"])
-        problems = []
+        problems = referenced_reading_problems(proof, where)
+        if problems:
+            return problems
     if not isinstance(records, dict):
         return [f"{where}: page_readings is missing or malformed; regather"]
     admitted, why = _reading_contexts(

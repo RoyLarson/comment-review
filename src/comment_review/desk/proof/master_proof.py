@@ -8,6 +8,7 @@ from comment_review.desk.proof.edit_copy import EditCopy
 from comment_review.desk.proof.mark import filled, read_text
 from comment_review.desk.proof.move import Move
 from comment_review.desk.proof.place import Place
+from comment_review.reading.addresser import cue_of, flatten, unflatten
 from comment_review.reading.context import ReadingContext
 from comment_review.reading.context_io import context_from_wire, context_to_wire
 
@@ -52,6 +53,44 @@ class MasterProof:
     def reading_problems(self, where: str) -> list[str]:
         """Check saved page metadata without reading source or registry state."""
         problems: list[str] = []
+        problems.extend(
+            referenced_reading_problems(
+                {
+                    "page_readings": self.page_readings,
+                    "page_shas": self.page_shas,
+                    "places": [{"address": place.address} for place in self.places],
+                    "moves": [
+                        {"origin": move.origin, "destination": move.destination}
+                        for move in self.moves
+                    ],
+                    "edit_copies": [
+                        {
+                            "sheets": [
+                                {
+                                    "path": sheet.path,
+                                    "sha": sheet.sha,
+                                    "marks": [
+                                        {
+                                            "address": mark.address,
+                                            "instruction": str(mark.instruction),
+                                            "to": getattr(
+                                                mark, mark.names_destination, ""
+                                            )
+                                            if mark.names_destination
+                                            else "",
+                                        }
+                                        for mark in sheet.marks
+                                    ],
+                                }
+                                for sheet in copy.sheets
+                            ]
+                        }
+                        for copy in self.edit_copies
+                    ],
+                },
+                where,
+            )
+        )
         if any(
             not isinstance(path, str)
             or not path.strip()
@@ -151,6 +190,9 @@ class MasterProof:
         raw_copies = data.get("edit_copies")
         if not isinstance(raw_copies, list):
             return None, [f"{where}: a master_proof needs an `edit_copies` list"]
+        missing = referenced_reading_problems(data, where)
+        if missing:
+            return None, missing
         copies: list[EditCopy] = []
         problems: list[str] = []
         for i, raw in enumerate(raw_copies, 1):
@@ -290,6 +332,68 @@ class MasterProof:
                 for path, context in self.page_readings.items()
             },
         }
+
+
+def referenced_reading_problems(data: dict, where: str) -> list[str]:
+    """Require saved metadata for reference paths before decoding addresses."""
+    contexts = data.get("page_readings")
+    shas = data.get("page_shas", {})
+    if not isinstance(contexts, dict) or not isinstance(shas, dict):
+        return [f"{where}: page_readings/page_shas are missing or malformed; regather"]
+    sources = dict(shas)
+    references: set[str] = set()
+
+    def collect(record: object, keys: tuple[str, ...]) -> None:
+        if not isinstance(record, dict):
+            return
+        for key in keys:
+            address = record.get(key)
+            if isinstance(address, str):
+                path = cue_of(address).path
+                if path:
+                    references.add(flatten(path))
+
+    for key, fields in (("places", ("address",)), ("moves", ("origin", "destination"))):
+        records = data.get(key, [])
+        if isinstance(records, list):
+            for record in records:
+                collect(record, fields)
+    copies = data.get("edit_copies", [])
+    if isinstance(copies, list):
+        for copy in copies:
+            sheets = copy.get("sheets", []) if isinstance(copy, dict) else []
+            if not isinstance(sheets, list):
+                continue
+            for sheet in sheets:
+                if not isinstance(sheet, dict):
+                    continue
+                path, sha = sheet.get("path"), sheet.get("sha")
+                if isinstance(path, str):
+                    references.add(flatten(path))
+                    sources.setdefault(path, sha)
+                marks = sheet.get("marks", [])
+                if isinstance(marks, list):
+                    for mark in marks:
+                        collect(
+                            mark,
+                            ("address", "to")
+                            if isinstance(mark, dict)
+                            and mark.get("instruction") == "move"
+                            else ("address",),
+                        )
+    problems: list[str] = []
+    known = [path for path in contexts.keys() | sources.keys() if isinstance(path, str)]
+    for reference in sorted(references):
+        path = unflatten(reference, known) or reference
+        if path not in contexts:
+            problems.append(
+                f"{where}: {path}: referenced page_readings is missing; regather"
+            )
+        if path not in sources:
+            problems.append(
+                f"{where}: {path}: referenced original sha is missing; regather"
+            )
+    return problems
 
 
 def _places_in(

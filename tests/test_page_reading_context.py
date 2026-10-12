@@ -63,7 +63,26 @@ def test_context_is_required_on_all_page_constructors():
 
 
 def test_fresh_flow_retains_admitted_settings_and_held_source(monkeypatch):
-    context = replace(build("").reading, settings=(("mode", "wide"),))
+    from comment_review.flows import reading_context
+    from comment_review.reading.definitions import LanguageDefinition
+    from comment_review.reading.readers import ReaderBinding
+
+    definition = LanguageDefinition(
+        "Invented",
+        (".py",),
+        "invented-reader",
+        "1",
+        ("comments",),
+        {"mode": ""},
+        {"mode": ("", "wide")},
+        {},
+    )
+    binding = ReaderBinding(
+        "invented-reader", "1", ("comments",), "fixture", lambda *_: [], lambda _: None
+    )
+    monkeypatch.setattr(reading_context, "reader_for", lambda _: (definition, binding))
+    context = reading_context.context_for(Path("missing.py"), {"mode": "wide"})
+    assert isinstance(context, ReadingContext)
     received = []
 
     def selected(path, settings):

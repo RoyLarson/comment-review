@@ -60,6 +60,7 @@ from comment_review.flows.on_the_page import PageCache, held_at
 from comment_review.flows.places import bases_and_anchors, chief_copy_of, places_of
 from comment_review.flows.reading_context import (
     binder_reading_contexts,
+    copy_reading_contexts,
     proof_reading_problems,
 )
 from comment_review.flows.verify import (
@@ -210,6 +211,23 @@ def _on_copies(message: CopiesReturned) -> tuple[list, Result | None]:
             else binder
         )
         problems.extend(context_problems(copy, assigned, binder))
+    contexts, _ = binder_reading_contexts(binder, "stage binder")
+    sheet_shas: dict[str, str] = {page.path: page.sha for page in binder.pages}
+    for copy in copies:
+        returned_contexts, why = copy_reading_contexts(copy)
+        problems.extend(Problem(copy.role, "", reason) for reason in why)
+        for path, context in returned_contexts.items():
+            if path in contexts and contexts[path] != context:
+                problems.append(
+                    Problem(copy.role, path, "conflicting reading contexts; regather")
+                )
+            contexts[path] = context
+        for sheet in copy.sheets:
+            if sheet.path in sheet_shas and sheet_shas[sheet.path] != sheet.sha:
+                problems.append(
+                    Problem(copy.role, sheet.path, "conflicting sheet shas; regather")
+                )
+            sheet_shas[sheet.path] = sheet.sha
     if problems:
         return _rolled_back(problems, [])
     paths = [page.path for page in binder.pages]
@@ -219,7 +237,6 @@ def _on_copies(message: CopiesReturned) -> tuple[list, Result | None]:
     # file once per citing role.
     cache: Cache = {}
     page_cache: PageCache = {}
-    contexts, _ = binder_reading_contexts(binder, "stage binder")
     problems = []
     for copy in copies:
         problems += copy_problems(

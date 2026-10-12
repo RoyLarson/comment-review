@@ -1588,6 +1588,140 @@ def test_extra_destination_retains_the_acquired_snapshot(tmp_path):
     assert held.source.text == original
 
 
+@pytest.mark.parametrize("marked", [False, True])
+def test_extra_returned_sheet_survives_collation_and_admission(tmp_path, marked):
+    from comment_review.flows.reading_context import proof_reading_problems
+
+    message = _message(
+        tmp_path,
+        {"block-context": {PLACE: a_clean(PLACE), "m.py@b2": a_clean("m.py@b2")}},
+    )
+    _ungathered_page(tmp_path)
+    page = page_of(message.root / "n.py", rel="n.py")
+    assert isinstance(page, Page)
+    marks = (
+        [
+            dict(
+                a_correct("n.py@b1", UNGATHERED),
+                anchor="v1 = 1",
+                raw_text=UNGATHERED,
+                change="# seven\n# EIGHT",
+            )
+        ]
+        if marked
+        else []
+    )
+    sheet, why = Sheet.deserialize(
+        "extra", Sheet.seed("n.py", page.sha, marks, reading=page.reading)
+    )
+    assert sheet is not None, why
+    copy = message.copies[0]
+    message.copies[0] = replace(copy, sheets=(*copy.sheets, sheet))
+    out, result = handle(message)
+    assert result is not None, _refusals(out)
+    assert result.proof.page_readings["n.py"] == page.reading
+    assert proof_reading_problems(result.proof) == []
+    saved = tmp_path / "extra-proof.json"
+    save_proof(saved, result.proof)
+    loaded, why = load_proof(saved)
+    assert loaded == result.proof, why
+    assert result.chief is not None
+    extras = [sheet for sheet in result.chief.sheets if sheet.path == "n.py"]
+    assert bool(extras) is marked
+    if marked:
+        assert extras[0].sha == page.sha
+        assert extras[0].reading == page.reading
+        assert extras[0].marks
+
+
+def test_extra_returned_sheet_sha_disagreement_refuses_before_fold(
+    tmp_path, monkeypatch
+):
+    message = _message(
+        tmp_path,
+        {"block-context": {PLACE: a_clean(PLACE), "m.py@b2": a_clean("m.py@b2")}},
+    )
+    _ungathered_page(tmp_path)
+    page = page_of(message.root / "n.py", rel="n.py")
+    assert isinstance(page, Page)
+    sheet = Sheet("n.py", page.sha, (), reading=page.reading)
+    copy = message.copies[0]
+    message.copies[:] = [
+        replace(copy, sheets=(*copy.sheets, sheet)),
+        replace(copy, sheets=(*copy.sheets, replace(sheet, sha="other-original"))),
+    ]
+
+    def forbidden(*args, **kwargs):
+        pytest.fail("conflicting original shas reached fold")
+
+    monkeypatch.setattr("comment_review.flows.bus.Fold", forbidden)
+    out, result = handle(message)
+    assert result is None
+    assert any("conflicting sheet shas" in reason for _, _, reason in _refusals(out))
+
+
+@pytest.mark.parametrize(
+    "route", ["raw", "load", "decode", "answers", "dispositions", "mark"]
+)
+def test_missing_both_destination_records_refuses_before_saved_work(
+    tmp_path, monkeypatch, route
+):
+    from comment_review.flows.reading_context import proof_reading_problems
+
+    message = _moved_into_n(tmp_path, "# seven\n# eight\n# two")
+    out, result = handle(message)
+    assert result is not None, _refusals(out)
+    proof = replace(
+        result.proof,
+        page_readings={
+            p: c for p, c in result.proof.page_readings.items() if p != "n.py"
+        },
+        page_shas={p: s for p, s in result.proof.page_shas.items() if p != "n.py"},
+    )
+    if route == "mark":
+        proof = replace(proof, places=(), moves=())
+    before = deepcopy(proof)
+    source = (message.root / "n.py").read_bytes()
+
+    def forbidden(*args, **kwargs):
+        pytest.fail(
+            "missing destination metadata reached saved address/fold/chief work"
+        )
+
+    for name in ("_places_on", "_moves_on", "Fold", "chief_copy_of"):
+        monkeypatch.setattr(f"comment_review.flows.bus.{name}", forbidden)
+    if route == "mark":
+        why = proof_reading_problems(proof)
+    elif route == "raw":
+        why = proof_reading_problems(proof.serialize())
+    elif route == "load":
+        saved = tmp_path / "missing-destination.json"
+        save_proof(saved, proof)
+        monkeypatch.setattr(
+            "comment_review.flows.proof_io.MasterProof.deserialize", forbidden
+        )
+        loaded, why = load_proof(saved)
+        assert loaded is None
+    elif route == "decode":
+        monkeypatch.setattr(
+            "comment_review.desk.proof.master_proof._places_in", forbidden
+        )
+        decoded, why = MasterProof.deserialize("saved", proof.serialize())
+        assert decoded is None
+    else:
+        resumed = (
+            AnswersReturned(proof, {}, message.root)
+            if route == "answers"
+            else DispositionsWritten(proof, [])
+        )
+        out, resumed_result = handle(resumed)
+        assert resumed_result is None
+        why = [reason for _, _, reason in _refusals(out)]
+    assert any("n.py" in reason and "regather" in reason for reason in why)
+    assert proof == before
+    assert (message.root / "n.py").read_bytes() == source
+
+
 @pytest.mark.parametrize("change", ["context", "source"])
 def test_extra_destination_capture_survives_incompatible_reuse(tmp_path, change):
     from dataclasses import replace

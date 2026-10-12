@@ -2,6 +2,7 @@
 
 from copy import deepcopy
 from dataclasses import replace
+from pathlib import Path
 
 import pytest
 from helpers import a_binder_over
@@ -10,14 +11,52 @@ from comment_review.desk.proof.edit_copy import EditCopy
 from comment_review.desk.proof.mark import CleanMark
 from comment_review.desk.proof.sheet import Sheet
 from comment_review.desk.stages import Dispatch, Kind, Role, Stage
-from comment_review.flows.distribute import assigned_binder, seed
+from comment_review.flows import reading_context
+from comment_review.flows.distribute import assigned_binder
 from comment_review.flows.fan_out import fan
 from comment_review.reading.context import ReadingContext
 from comment_review.reading.context_io import context_to_wire
 
 
-def mixed_binder():
+def mixed_binder(monkeypatch=None):
     binder = a_binder_over({"a.py@b1": "# a\n", "b.py@b1": "# b\n"})
+    if monkeypatch is not None:
+        from comment_review.reading.definitions import LanguageDefinition
+        from comment_review.reading.readers import ReaderBinding
+
+        definition = LanguageDefinition(
+            "Invented",
+            (".py",),
+            "invented-reader",
+            "1",
+            ("comments",),
+            {"mode": "a.py"},
+            {"mode": ("a.py", "b.py")},
+            {},
+        )
+        binding = ReaderBinding(
+            "invented-reader",
+            "1",
+            ("comments",),
+            "fixture",
+            lambda *_: [],
+            lambda _: None,
+        )
+        monkeypatch.setattr(
+            reading_context, "reader_for", lambda _: (definition, binding)
+        )
+        return replace(
+            binder,
+            pages=tuple(
+                replace(
+                    page,
+                    reading=reading_context.context_for(
+                        Path(page.path), {"mode": page.path}
+                    ),
+                )
+                for page in binder.pages
+            ),
+        )
     return replace(
         binder,
         pages=tuple(
@@ -29,8 +68,8 @@ def mixed_binder():
     )
 
 
-def test_distribution_preserves_mixed_reading_on_disjoint_empty_sheets():
-    binder = mixed_binder()
+def test_distribution_preserves_mixed_reading_on_disjoint_empty_sheets(monkeypatch):
+    binder = mixed_binder(monkeypatch)
     stage = Stage(
         "sample",
         Kind.EDITORIAL,
@@ -123,7 +162,14 @@ def test_sheet_refuses_missing_malformed_future_reading(reading):
 
 def test_edit_copy_decode_does_not_consult_installed_compatibility():
     binder = mixed_binder()
-    wire = seed(binder, "block-context")
+    wire = EditCopy.seed(
+        "block-context",
+        binder.read_from,
+        [
+            Sheet.seed(page.path, page.sha, [], reading=page.reading)
+            for page in binder.pages
+        ],
+    )
     for sheet in wire["sheets"]:
         sheet["reading"]["compatibility"] = "f" * 64
     copy, why = EditCopy.deserialize("sample", wire)
