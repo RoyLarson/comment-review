@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 20 of 21 tasks closed
+Progress: 22 of 23 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (2026-10-11 lexical-reader design)
@@ -92,3 +92,11 @@ Define shared source reading contracts.
       taken-in diff after selected reader refusal; verify disappearance between
       reads requires regathering
         > 2026-10-11 Review: taken_in.py:101 emits diff after reader selection fails
+- [x] T22 | Distribution admission and saved workflow regressions pass review | 0ae17e78 | Admit
+      saved binder contexts before distribution; verify incompatible rules
+      prevent seeding and output writes
+        > 2026-10-11 E2E: flows/distribute.py:62,150 reach handed before admission
+- [x] T23 | Whole-stage admission precedes shard address use; regression and review pass | 0ae17e78 | Admit
+      the whole binder before topology distribution
+        > 2026-10-11 Review: fan_out.py:114 processes shards before whole admission
+        > 2026-10-11 Check: later incompatible shard refuses before handed or writes

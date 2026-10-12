@@ -2,8 +2,8 @@
 
 ```
 Status:   in-progress
-Progress: 14 of 15 TODO tasks closed
-Plan-tasks: 24 of 26 plan tasks closed
+Progress: 16 of 17 TODO tasks closed
+Plan-tasks: 25 of 26 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (founded by move-t from 2026-10-11-lexical-readers)
@@ -392,6 +392,9 @@ because this machinery exists.
       verify validation returns diagnostics
 - [x] T21 | Suppress taken-in diff after selected reader refusal; verify
       disappearance between reads requires regathering
+- [x] T22 | Admit saved binder contexts before distribution; verify incompatible
+      rules prevent seeding and output writes
+- [x] T23 | Admit the whole binder before topology distribution
 
 ### B - [2026-10-11-language-registry-contract](../../TODO/completed/2026-10-11-language-registry-contract.md)
 
@@ -483,7 +486,8 @@ because this machinery exists.
 - [x] P24 | Remaining named consumers admit saved context before addresses and outputs; gates and review pass | 869d76ba | Admit
       contexts in remaining address consumers; verify shortcuts and in-memory
       inputs cannot bypass checks
-- [ ] P25 | Exercise saved-run migration end to end; verify mixed settings, old
-      artifacts, moves and rollback
+- [x] P25 | Saved workflows retain settings and identities; 405 tests and independent review pass | 0ae17e78 | Exercise
+      saved-run migration end to end; verify mixed settings, old artifacts,
+      moves and rollback
 - [ ] P26 | Verify focused and full suites, lint, typing, syntax and vocabulary;
       independently review the complete branch

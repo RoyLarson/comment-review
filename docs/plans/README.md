@@ -25,5 +25,5 @@
 | [0.2.4-what-a-reviewer-is-handed](0.2.4-what-a-reviewer-is-handed.md) | in-progress | 13/24 | 3/4 |
 | [2026-10-11-lexical-read-results](2026-10-11-lexical-read-results.md) | closed | 17/17 | 14/14 |
 | [2026-10-11-lexical-readers](2026-10-11-lexical-readers.md) | decision-needed | 19/161 | 5/53 |
-| [2026-10-11-lexical-reading-context](2026-10-11-lexical-reading-context.md) | in-progress | 14/15 | 24/26 |
+| [2026-10-11-lexical-reading-context](2026-10-11-lexical-reading-context.md) | in-progress | 16/17 | 25/26 |
 | [2026-10-11-lexical-source-contract](2026-10-11-lexical-source-contract.md) | closed | 3/3 | 14/14 |
