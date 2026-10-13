@@ -3,7 +3,7 @@
 ```
 Status:   in-progress
 Progress: 3 of 12 TODO tasks closed
-Plan-tasks: 8 of 26 plan tasks closed
+Plan-tasks: 9 of 26 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (founded by move-t from 2026-10-11-lexical-readers)
@@ -494,9 +494,10 @@ complete merely because this plan or its interfaces are approved.
       command
         > 2026-10-12 Pass definition explicitly for configured structural boundaries.
         > 2026-10-12 Cover soft-keyword subscript annotations before completion.
-- [~] P9 | Recognize declaration names and ownership; verify task 9 evidence
-      with its RED/GREEN command
-- [ ] P10 | Recognize modern Python structural boundaries; verify task 10
+- [x] P9 | 924 reader tests pass; declaration ownership reviewed | 325650a5 | Recognize
+      declaration names and ownership; verify task 9 evidence with its RED/GREEN
+      command
+- [~] P10 | Recognize modern Python structural boundaries; verify task 10
       evidence with its RED/GREEN command
 - [ ] P11 | Identify documentation expressions and owners; verify task 11
       evidence with its RED/GREEN command
