@@ -35,9 +35,14 @@ def logical_lines(
     active = False
     continuation: SourceSpan | None = None
     awaiting_line: SourceSpan | None = None
+    interpolation_depth = 0
 
     for index, token in enumerate(scan.tokens):
         if token.kind == "newline":
+            if interpolation_depth:
+                continuation = None
+                line_start = token.span.end
+                continue
             if continuation is not None:
                 awaiting_line = continuation
                 continuation = None
@@ -67,6 +72,10 @@ def logical_lines(
             indentation, indent_span = _indentation(scan.text, start, layout)
             active = True
         spelling = scan.text[token.span.start : token.span.end]
+        if token.kind == "interpolation_start":
+            interpolation_depth += 1
+        elif token.kind == "interpolation_end":
+            interpolation_depth -= 1
         if token.kind == "continuation":
             if (
                 spelling != layout["explicit_join"]

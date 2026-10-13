@@ -446,7 +446,6 @@ def test_tokens_exact_partition_and_spelling(python_definition, text, regions, t
 @pytest.mark.parametrize(
     ("text", "start", "end"),
     [
-        ('x = FR"{x}"', 4, 7),
         ('t"value"', 0, 2),
         ("0x", 0, 2),
         ("0b2", 0, 3),
@@ -597,6 +596,17 @@ def test_tokens_literal_prefixes_are_never_classified_as_code(
 ):
     text = prefix.upper() + "'text'"
     result = scan_tokens(text, python_definition)
+    if "f" in prefix:
+        assert not isinstance(result, ReadFailure)
+        assert [(r.kind, r.span) for r in result.regions] == [
+            (RegionKind.LITERAL, SourceSpan(0, len(text)))
+        ]
+        assert [t.kind for t in result.tokens] == [
+            "interpolation_start",
+            "interpolation_literal",
+            "interpolation_end",
+        ]
+        return
     assert isinstance(result, ReadFailure)
     assert result.diagnostics[0].span == SourceSpan(0, len(prefix) + 1)
     assert result.diagnostics[0].stage == ReadStage.LEX
@@ -781,7 +791,7 @@ def test_literals_unescaped_short_newline_fails_before_following_source(
     assert diagnostic.span == SourceSpan(2, 2 + len(prefix) + len(quote) + 4 + slashes)
 
 
-@pytest.mark.parametrize("prefix", ["f", "F", "fr", "Rf", "t", "T", "tr", "Rt"])
+@pytest.mark.parametrize("prefix", ["t", "T", "tr", "Rt"])
 @pytest.mark.parametrize("quote", ["'", '"', "'''", '"""'])
 def test_literals_pending_interpolation_is_located_failure(
     python_definition, prefix, quote
@@ -1101,3 +1111,302 @@ def test_logical_lines_immediate_eof_leaves_explicit_join_unfinished(
     assert result.diagnostics[0].stage == ReadStage.LEX
     assert result.diagnostics[0].code == "incomplete-continuation"
     assert result.diagnostics[0].span == SourceSpan(3, 4)
+
+
+@pytest.mark.parametrize(
+    ("text", "tokens", "regions", "end"),
+    [
+        (
+            'x=f"#{a["x"]!r:>{w}.{p}f}" # end\n',
+            [
+                ("identifier", "x"),
+                ("operator", "="),
+                ("interpolation_start", 'f"'),
+                ("interpolation_literal", "#"),
+                ("field_start", "{"),
+                ("identifier", "a"),
+                ("operator", "["),
+                ("string", '"x"'),
+                ("operator", "]"),
+                ("conversion", "!r"),
+                ("format_start", ":"),
+                ("interpolation_literal", ">"),
+                ("field_start", "{"),
+                ("identifier", "w"),
+                ("field_end", "}"),
+                ("interpolation_literal", "."),
+                ("field_start", "{"),
+                ("identifier", "p"),
+                ("field_end", "}"),
+                ("interpolation_literal", "f"),
+                ("field_end", "}"),
+                ("interpolation_end", '"'),
+                ("comment", "# end"),
+                ("newline", "\n"),
+            ],
+            [
+                ("code", "x="),
+                ("literal", 'f"#'),
+                ("code", "{a["),
+                ("literal", '"x"'),
+                ("code", "]!r:"),
+                ("literal", ">"),
+                ("code", "{w}"),
+                ("literal", "."),
+                ("code", "{p}"),
+                ("literal", "f"),
+                ("code", "}"),
+                ("literal", '"'),
+                ("whitespace", " "),
+                ("comment", "# end"),
+                ("whitespace", "\n"),
+            ],
+            26,
+        ),
+        (
+            'f"{x # }" fake\r\n + 2}";y',
+            [
+                ("interpolation_start", 'f"'),
+                ("field_start", "{"),
+                ("identifier", "x"),
+                ("comment", '# }" fake'),
+                ("newline", "\r\n"),
+                ("operator", "+"),
+                ("number", "2"),
+                ("field_end", "}"),
+                ("interpolation_end", '"'),
+                ("operator", ";"),
+                ("identifier", "y"),
+            ],
+            [
+                ("literal", 'f"'),
+                ("code", "{x"),
+                ("whitespace", " "),
+                ("comment", '# }" fake'),
+                ("whitespace", "\r\n "),
+                ("code", "+"),
+                ("whitespace", " "),
+                ("code", "2}"),
+                ("literal", '"'),
+                ("code", ";y"),
+            ],
+            22,
+        ),
+    ],
+)
+def test_fstrings_exact_events_regions_and_fragment_end(
+    python_definition, text, tokens, regions, end
+):
+    scan = scan_tokens(text, python_definition)
+    assert not isinstance(scan, ReadFailure)
+    assert [(t.kind, text[t.span.start : t.span.end]) for t in scan.tokens] == tokens
+    assert [
+        (r.kind.value, text[r.span.start : r.span.end]) for r in scan.regions
+    ] == regions
+    assert "".join(text[r.span.start : r.span.end] for r in scan.regions) == text
+    assert all(
+        a.span.end <= b.span.start
+        for a, b in zip(scan.tokens, scan.tokens[1:], strict=False)
+    )
+    fragment = import_module(
+        "comment_review.reading.python.interpolation"
+    ).scan_interpolation(text, 2 if text.startswith("x=") else 0, python_definition)
+    assert not isinstance(fragment, ReadFailure)
+    assert fragment.end == end
+    assert fragment.protected == ()
+
+
+@pytest.mark.parametrize(
+    ("text", "strings", "formats"),
+    [
+        ('f"{f"{f"{f"{f"{x}"}"}"}"}"', ['f"'] * 5, []),
+        ("f\"{f'{x}'}\"", ['f"', "f'"], []),
+        ('f"{ {"a": seq[1:3]} }"', ['f"'], []),
+        ('f"{(lambda x: x)(2)} {(x := 4)}"', ['f"'], []),
+        ('f"{value:{width}.{precision}f}"', ['f"'], [":"]),
+        ('f"{value:{width:{precision}}}"', ['f"'], [":", ":"]),
+        ('FR"{x}"', ['FR"'], []),
+    ],
+)
+def test_fstrings_nested_fields_and_code_colons(
+    python_definition, text, strings, formats
+):
+    result = scan_tokens(text, python_definition)
+    assert not isinstance(result, ReadFailure)
+    assert [
+        text[t.span.start : t.span.end]
+        for t in result.tokens
+        if t.kind == "interpolation_start"
+    ] == strings
+    assert [
+        text[t.span.start : t.span.end]
+        for t in result.tokens
+        if t.kind == "format_start"
+    ] == formats
+    assert result.tokens[-1].span.end == len(text)
+
+
+@pytest.mark.parametrize("newline", ["\n", "\r", "\r\n"])
+def test_fstrings_multiline_expression_is_one_logical_line(python_definition, newline):
+    text = 'x=f"{a # }' + newline + " + \\" + newline + ' b}"' + newline + "y=2"
+    scan, lines = read_logical_lines(text, python_definition)
+    assert not isinstance(lines, ReadFailure)
+    assert [text[line.span.start : line.span.end] for line in lines] == [
+        'x=f"{a # }' + newline + " + \\" + newline + ' b}"' + newline,
+        "y=2",
+    ]
+    assert all(
+        scan.tokens[i].kind not in ("newline", "comment", "continuation")
+        for line in lines
+        for i in line.tokens
+    )
+
+
+@pytest.mark.parametrize(
+    ("text", "payload", "fields"),
+    [
+        ('f"{{}}"', ["{{}}"], []),
+        ('f"\\N{LEFT CURLY BRACKET}{x}"', ["\\N{LEFT CURLY BRACKET}"], ["x"]),
+        ('rf"\\N{x}"', ["\\N"], ["x"]),
+        ('f"\\{x}"', ["\\"], ["x"]),
+        ('rf"\\{x}"', ["\\"], ["x"]),
+        ('f"{x:=10}"', ["=10"], ["x"]),
+    ],
+)
+def test_fstrings_literal_braces_and_escape_boundaries(
+    python_definition, text, payload, fields
+):
+    scan = scan_tokens(text, python_definition)
+    assert not isinstance(scan, ReadFailure)
+    assert [
+        text[t.span.start : t.span.end]
+        for t in scan.tokens
+        if t.kind == "interpolation_literal"
+    ] == payload
+    assert [
+        text[t.span.start : t.span.end] for t in scan.tokens if t.kind == "identifier"
+    ] == fields
+
+
+@pytest.mark.parametrize("flag", ["s", "r", "a"])
+def test_fstrings_conversions(python_definition, flag):
+    text = 'f"{x!' + flag + '}"'
+    scan = scan_tokens(text, python_definition)
+    assert not isinstance(scan, ReadFailure)
+    assert [(t.kind, text[t.span.start : t.span.end]) for t in scan.tokens] == [
+        ("interpolation_start", 'f"'),
+        ("field_start", "{"),
+        ("identifier", "x"),
+        ("conversion", "!" + flag),
+        ("field_end", "}"),
+        ("interpolation_end", '"'),
+    ]
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        'f"}"',
+        'f"{"',
+        'f"{}"',
+        'f"{x!}"',
+        'f"{x!q}"',
+        'f"{x!rr}"',
+        'f"{x!r',
+        'f"{x:{w',
+        'f"{x:{w}',
+        'f"{f"{x',
+        'f"{f"{x}"',
+        'f"{[x}"',
+        'f"text',
+        'f"\\N{ABC',
+        'f"abc\n"',
+    ],
+)
+def test_fstrings_unfinished_nested_state_returns_located_failure(
+    python_definition, text
+):
+    result = scan_tokens(text, python_definition)
+    assert isinstance(result, ReadFailure)
+    assert result.diagnostics[0].stage == ReadStage.LEX
+    assert result.diagnostics[0].span is not None
+    assert (
+        0
+        <= result.diagnostics[0].span.start
+        <= result.diagnostics[0].span.end
+        <= len(text)
+    )
+
+
+@pytest.mark.parametrize(
+    ("text", "code", "span"),
+    [
+        ('f"}"', "unmatched-field-closer", SourceSpan(2, 3)),
+        ('f"{}"', "empty-field", SourceSpan(2, 4)),
+        ('f"{x!q}"', "invalid-conversion", SourceSpan(4, 6)),
+        ('f"{x!rr}"', "invalid-conversion", SourceSpan(6, 7)),
+        ('f"{x:{w', "unfinished-field", SourceSpan(5, 7)),
+        ('f"{x:{w}', "unfinished-field", SourceSpan(2, 8)),
+        ('f"{f"{x', "unfinished-field", SourceSpan(5, 7)),
+        ('f"{f"{x}"', "unfinished-field", SourceSpan(2, 9)),
+        ('f"{[x}"', "mismatched-bracket", SourceSpan(5, 6)),
+    ],
+)
+def test_fstrings_failures_locate_innermost_open_state(
+    python_definition, text, code, span
+):
+    result = scan_tokens(text, python_definition)
+    assert isinstance(result, ReadFailure)
+    assert result.diagnostics[0].code == code
+    assert result.diagnostics[0].span == span
+
+
+def test_fstrings_each_nested_truncation_fails_without_internal_exceptions(
+    python_definition,
+):
+    text = 'f"{f"{f"{f"{f"{x}"}"}"}"}"'
+    for end in range(2, len(text)):
+        result = scan_tokens(text[:end], python_definition)
+        assert isinstance(result, ReadFailure), end
+        assert result.diagnostics[0].stage == ReadStage.LEX
+
+
+def test_fstrings_nested_exact_offsets_and_regions(python_definition):
+    text = "f\"{f'{x}'}\""
+    result = scan_tokens(text, python_definition)
+    assert not isinstance(result, ReadFailure)
+    assert [(t.kind, t.span.start, t.span.end) for t in result.tokens] == [
+        ("interpolation_start", 0, 2),
+        ("field_start", 2, 3),
+        ("interpolation_start", 3, 5),
+        ("field_start", 5, 6),
+        ("identifier", 6, 7),
+        ("field_end", 7, 8),
+        ("interpolation_end", 8, 9),
+        ("field_end", 9, 10),
+        ("interpolation_end", 10, 11),
+    ]
+    assert [(r.kind.value, r.span.start, r.span.end) for r in result.regions] == [
+        ("literal", 0, 2),
+        ("code", 2, 3),
+        ("literal", 3, 5),
+        ("code", 5, 8),
+        ("literal", 8, 9),
+        ("code", 9, 10),
+        ("literal", 10, 11),
+    ]
+
+
+@pytest.mark.parametrize("text", ['f"{x != y}"', 'f"{x!r:}"'])
+def test_fstrings_not_equal_and_conversion_with_empty_format(python_definition, text):
+    result = scan_tokens(text, python_definition)
+    assert not isinstance(result, ReadFailure)
+    assert [
+        (t.kind, text[t.span.start : t.span.end])
+        for t in result.tokens
+        if t.kind in ("operator", "conversion", "format_start")
+    ] == (
+        [("operator", "!=")]
+        if text == 'f"{x != y}"'
+        else [("conversion", "!r"), ("format_start", ":")]
+    )

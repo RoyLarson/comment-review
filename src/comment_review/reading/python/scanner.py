@@ -8,7 +8,11 @@ from typing import cast
 from comment_review.reading.definitions import LanguageDefinition
 from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, ReadStage
 from comment_review.reading.python.definition import validate_python
-from comment_review.reading.python.records import PythonScan, PythonToken
+from comment_review.reading.python.records import (
+    ProtectedSource,
+    PythonScan,
+    PythonToken,
+)
 from comment_review.reading.source import RegionKind, SourceRegion, SourceSpan
 
 _DIGITS = r"[0-9](?:_?[0-9])*"
@@ -95,18 +99,30 @@ class _Syntax:
 
 def scan_python(text: str, definition: LanguageDefinition) -> PythonScan | ReadFailure:
     """Partition Python source, failing at unsupported or incomplete lexical state."""
+    from comment_review.reading.python.interpolation import scan_interpolation
+
     failure = validate_python(definition)
     if failure is not None:
         return failure
     syntax = _Syntax.from_definition(definition)
     regions: list[SourceRegion] = []
     tokens: list[PythonToken] = []
+    protected: list[ProtectedSource] = []
     start = 0
     while start < len(text):
         result = _next_token(text, start, syntax)
         if isinstance(result, ReadFailure):
             return result
         kind, end, region_kind = result
+        if kind == "interpolation":
+            fragment = scan_interpolation(text, start, definition)
+            if isinstance(fragment, ReadFailure):
+                return fragment
+            regions.extend(fragment.regions)
+            tokens.extend(fragment.tokens)
+            protected.extend(fragment.protected)
+            start = fragment.end
+            continue
         span = SourceSpan(start, end)
         if kind:
             tokens.append(PythonToken(kind, span))
@@ -121,7 +137,7 @@ def scan_python(text: str, definition: LanguageDefinition) -> PythonScan | ReadF
         else:
             regions.append(SourceRegion(span, region_kind))
         start = end
-    return PythonScan(text, tuple(regions), tuple(tokens), ())
+    return PythonScan(text, tuple(regions), tuple(tokens), tuple(protected))
 
 
 def _next_token(
@@ -184,7 +200,7 @@ def _literal_token(
     )
     end = quote_start + len(quote)
     if prefix in syntax.interpolated_prefixes:
-        return _failure("unsupported-interpolation", start, end)
+        return "interpolation", end, RegionKind.LITERAL
     triple = quote in syntax.triple_quotes
     while end < len(text):
         if text.startswith(quote, end):
