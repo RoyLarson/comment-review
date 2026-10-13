@@ -476,6 +476,7 @@ complete merely because this plan or its interfaces are approved.
         > 2026-10-12 Repair joined final-whitespace refusal found in task review.
 - [~] P6 | Scan nested formatted-string expressions; verify task 6 evidence with
       its RED/GREEN command
+        > 2026-10-12 Include structure.py to consume interpolation boundary events.
 - [ ] P7 | Protect observable interpolation source; verify task 7 evidence with
       its RED/GREEN command
 - [ ] P8 | Recognize Python statements and suites; verify task 8 evidence with
