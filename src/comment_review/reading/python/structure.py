@@ -86,7 +86,7 @@ def logical_lines(
                 brackets.pop()
         significant.append(index)
 
-    if awaiting_line is not None:
+    if awaiting_line is not None and line_start == len(scan.text):
         return _failure("incomplete-continuation", awaiting_line)
     if brackets:
         return _failure("unfinished-join", brackets[-1][1])

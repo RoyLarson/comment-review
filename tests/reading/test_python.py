@@ -1063,3 +1063,41 @@ def test_logical_lines_invalid_backslash_placement_is_located(python_definition,
     assert isinstance(result, ReadFailure)
     assert result.diagnostics[0].stage == ReadStage.LEX
     assert result.diagnostics[0].span == SourceSpan(3, 4)
+
+
+@pytest.mark.parametrize(
+    ("text", "end"),
+    [
+        ("x=1\\\n ", 6),
+        ("x=1\\\n\t", 6),
+        ("x=1\\\r\n ", 7),
+        ("x=1\\\r\n\t", 7),
+        ("x=1\\\r ", 6),
+        ("x=1\\\r\t", 6),
+    ],
+)
+def test_logical_lines_final_whitespace_completes_explicit_join(
+    python_definition, text, end
+):
+    scan, result = read_logical_lines(text, python_definition)
+    assert not isinstance(result, ReadFailure)
+    assert [(line.span, line.tokens, line.indent) for line in result] == [
+        (SourceSpan(0, end), (0, 1, 2), 0)
+    ]
+    assert [
+        text[scan.tokens[i].span.start : scan.tokens[i].span.end]
+        for i in result[0].tokens
+    ] == ["x", "=", "1"]
+    assert scan.regions[-1] == SourceRegion(SourceSpan(4, end), RegionKind.WHITESPACE)
+    assert scan.text == text
+
+
+@pytest.mark.parametrize("text", ["x=1\\\n", "x=1\\\r\n", "x=1\\\r"])
+def test_logical_lines_immediate_eof_leaves_explicit_join_unfinished(
+    python_definition, text
+):
+    _, result = read_logical_lines(text, python_definition)
+    assert isinstance(result, ReadFailure)
+    assert result.diagnostics[0].stage == ReadStage.LEX
+    assert result.diagnostics[0].code == "incomplete-continuation"
+    assert result.diagnostics[0].span == SourceSpan(3, 4)
