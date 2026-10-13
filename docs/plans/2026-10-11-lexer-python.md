@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 2 of 10 TODO tasks closed
+Progress: 2 of 11 TODO tasks closed
 Plan-tasks: 5 of 26 plan tasks closed
 Owner:    backend
 Requires-Roy: false
@@ -454,6 +454,10 @@ complete merely because this plan or its interfaces are approved.
 - [x] T1 | Accept joined final whitespace at EOF; logical_lines tests still
       refuse an immediately unfinished continuation.
 
+### E - [2026-10-12-python-reader-vocabulary](../../TODO/2026-10-12-python-reader-vocabulary.md)
+
+- [ ] T1 | Replace retired Python reader terms
+
 ## Plan Tasks
 
 - [x] P1 | Python definition validates; 216 tests and focused static checks pass; review approved | f23a9e18 | Install
@@ -517,5 +521,6 @@ complete merely because this plan or its interfaces are approved.
       evidence with its RED/GREEN command
 - [ ] P25 | Retire replaced Python interpretation paths; verify task 25 evidence
       with its RED/GREEN command
+        > 2026-10-12 Include definition/scanner/structure/TOML vocabulary repairs.
 - [ ] P26 | Verify the complete Python review workflow; verify task 26 evidence
       with its RED/GREEN command
