@@ -2800,7 +2800,9 @@ def test_directives_effective_preamble_and_literal_lookalikes(
     assert scan.text == text
 
 
-@pytest.mark.parametrize("encoding", ["latin-1", "ascii", "utf-8-sig", "unknown-codec"])
+@pytest.mark.parametrize(
+    "encoding", ["latin-1", "ascii", "utf-8sig", "utf-8.anything", "unknown-codec"]
+)
 def test_directives_incompatible_encoding_refuses_at_effective_cookie(
     python_definition, encoding
 ):
@@ -2812,6 +2814,28 @@ def test_directives_incompatible_encoding_refuses_at_effective_cookie(
     assert diagnostic.stage == ReadStage.PLACE
     assert diagnostic.code == "unsupported-source-encoding"
     assert diagnostic.span == SourceSpan(9, 9 + len(cookie))
+
+
+@pytest.mark.parametrize(
+    "encoding",
+    ["utf-8-sig", "UTF_8_SIG", "utf-8-anything", "uTf_8_AnYtHiNg", "utf-8-"],
+)
+def test_directives_source_cookie_normalization_preserves_utf8_bytes(
+    python_definition, encoding
+):
+    from comment_review.machine.repo import source_from_bytes
+
+    cookie = "# coding: " + encoding
+    raw = cookie.encode("ascii") + b"\r\nvalue = 'caf\xc3\xa9'\r\n"
+    source = source_from_bytes(raw)
+    scan, _, result = read_directives(source.text, python_definition)
+    assert not isinstance(result, ReadFailure)
+    assert len(result) == 1
+    assert result[0].kind == "encoding"
+    assert result[0].span == SourceSpan(0, len(cookie))
+    assert source.text[result[0].span.start : result[0].span.end] == cookie
+    assert result[0].attachment == SourceSpan(0, 0)
+    assert scan.text.encode("utf-8") == raw
 
 
 @pytest.mark.parametrize(

@@ -75,8 +75,14 @@ def directives_in(
             match = encoding_pattern.search(text)
             if match is not None:
                 encoding = match.group(1)
+                normalized = encoding[:12].lower().replace("_", "-")
+                codec_name = (
+                    "utf-8"
+                    if normalized == "utf-8" or normalized.startswith("utf-8-")
+                    else encoding
+                )
                 try:
-                    supported = lookup(encoding).name == "utf-8"
+                    supported = lookup(codec_name).name == "utf-8"
                 except LookupError:
                     supported = False
                 if not supported:
