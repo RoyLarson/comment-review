@@ -446,7 +446,6 @@ def test_tokens_exact_partition_and_spelling(python_definition, text, regions, t
 @pytest.mark.parametrize(
     ("text", "start", "end"),
     [
-        ('t"value"', 0, 2),
         ("0x", 0, 2),
         ("0b2", 0, 3),
         ("0123", 0, 4),
@@ -596,20 +595,15 @@ def test_tokens_literal_prefixes_are_never_classified_as_code(
 ):
     text = prefix.upper() + "'text'"
     result = scan_tokens(text, python_definition)
-    if "f" in prefix:
-        assert not isinstance(result, ReadFailure)
-        assert [(r.kind, r.span) for r in result.regions] == [
-            (RegionKind.LITERAL, SourceSpan(0, len(text)))
-        ]
-        assert [t.kind for t in result.tokens] == [
-            "interpolation_start",
-            "interpolation_literal",
-            "interpolation_end",
-        ]
-        return
-    assert isinstance(result, ReadFailure)
-    assert result.diagnostics[0].span == SourceSpan(0, len(prefix) + 1)
-    assert result.diagnostics[0].stage == ReadStage.LEX
+    assert not isinstance(result, ReadFailure)
+    assert [(r.kind, r.span) for r in result.regions] == [
+        (RegionKind.LITERAL, SourceSpan(0, len(text)))
+    ]
+    assert [t.kind for t in result.tokens] == [
+        "interpolation_start",
+        "interpolation_literal",
+        "interpolation_end",
+    ]
 
 
 @pytest.mark.parametrize(
@@ -791,18 +785,37 @@ def test_literals_unescaped_short_newline_fails_before_following_source(
     assert diagnostic.span == SourceSpan(2, 2 + len(prefix) + len(quote) + 4 + slashes)
 
 
-@pytest.mark.parametrize("prefix", ["t", "T", "tr", "Rt"])
+@pytest.mark.parametrize(
+    "prefix", ["t", "T", "tr", "tR", "Tr", "TR", "rt", "rT", "Rt", "RT"]
+)
 @pytest.mark.parametrize("quote", ["'", '"', "'''", '"""'])
-def test_literals_pending_interpolation_is_located_failure(
+def test_template_observable_source_prefixes_are_executable_literals(
     python_definition, prefix, quote
 ):
     text = "x=" + prefix + quote + "{x} # data" + quote
     result = scan_tokens(text, python_definition)
-    assert isinstance(result, ReadFailure)
-    diagnostic = result.diagnostics[0]
-    assert diagnostic.stage == ReadStage.LEX
-    assert diagnostic.code == "unsupported-interpolation"
-    assert diagnostic.span == SourceSpan(2, 2 + len(prefix) + len(quote))
+    assert not isinstance(result, ReadFailure)
+    assert [(t.kind, text[t.span.start : t.span.end]) for t in result.tokens] == [
+        ("identifier", "x"),
+        ("operator", "="),
+        ("interpolation_start", prefix + quote),
+        ("field_start", "{"),
+        ("identifier", "x"),
+        ("field_end", "}"),
+        ("interpolation_literal", " # data"),
+        ("interpolation_end", quote),
+    ]
+    assert [
+        (p.kind, p.span, text[p.span.start : p.span.end], p.attachment)
+        for p in result.protected
+    ] == [
+        (
+            "template-expression",
+            SourceSpan(3 + len(prefix) + len(quote), 4 + len(prefix) + len(quote)),
+            "x",
+            None,
+        )
+    ]
 
 
 def test_tokens_horizontal_whitespace_never_creates_a_token(python_definition):
@@ -1410,3 +1423,187 @@ def test_fstrings_not_equal_and_conversion_with_empty_format(python_definition, 
         if text == 'f"{x != y}"'
         else [("conversion", "!r"), ("format_start", ":")]
     )
+
+
+@pytest.mark.parametrize(
+    ("text", "protection"),
+    [
+        ('x=f"{  value + 1 = \t }";tail', [("debug-expression", "  value + 1 = \t ")]),
+        ('f"{ value =  !r:>{w}}"', [("debug-expression", " value =  ")]),
+        ('f"{value=:}"', [("debug-expression", "value=")]),
+        ('f"{value == other}"', []),
+        ('f"{value != other}"', []),
+        ('f"{(value := other)}"', []),
+        ('t"{ value + 1 }"', [("template-expression", " value + 1 ")]),
+        ('t"{ value + 1 !r:>{w}}"', [("template-expression", " value + 1 ")]),
+        (
+            't"{ value =  !r:>{w}}"',
+            [
+                ("template-expression", " value "),
+                ("debug-expression", " value =  "),
+            ],
+        ),
+        ('t"{ (x := 1) == 1 }"', [("template-expression", " (x := 1) == 1 ")]),
+        ('rt"\\N{ value }\\n"', [("template-expression", " value ")]),
+        (
+            'f"{(\n value # spelling\n)= \n\t}"',
+            [
+                ("debug-expression", "(\n value # spelling\n)= \n\t"),
+            ],
+        ),
+        (
+            't"{\r\n value # spelling\r\n + 1 \r\n}"',
+            [
+                ("template-expression", "\r\n value # spelling\r\n + 1 \r\n"),
+            ],
+        ),
+        (
+            "t\"{ f'{x # nested\n}' + value # outer\n }\"",
+            [
+                ("template-expression", " f'{x # nested\n}' + value # outer\n "),
+            ],
+        ),
+        (
+            "f\"{ f'{x # nested\n}' + value # outer\n = }\"",
+            [
+                ("debug-expression", " f'{x # nested\n}' + value # outer\n = "),
+            ],
+        ),
+        (
+            "t\"{ f'{ value = }' }\"",
+            [
+                ("template-expression", " f'{ value = }' "),
+                ("debug-expression", " value = "),
+            ],
+        ),
+        (
+            "f\"{ t'{ value }' = }\"",
+            [
+                ("debug-expression", " t'{ value }' = "),
+                ("template-expression", " value "),
+            ],
+        ),
+        (
+            "t\"{t'{ x }'} { y }\"",
+            [
+                ("template-expression", "t'{ x }'"),
+                ("template-expression", " x "),
+                ("template-expression", " y "),
+            ],
+        ),
+    ],
+)
+def test_interpolation_observable_source_exact_spelling(
+    python_definition, text, protection
+):
+    result = scan_tokens(text, python_definition)
+    assert not isinstance(result, ReadFailure)
+    assert [
+        (p.kind, text[p.span.start : p.span.end]) for p in result.protected
+    ] == protection
+    for record, (_, spelling) in zip(result.protected, protection, strict=True):
+        start = text.index(spelling)
+        assert record.span == SourceSpan(start, start + len(spelling))
+        assert record.attachment is None
+    assert "".join(text[r.span.start : r.span.end] for r in result.regions) == text
+    assert all(
+        a.span.end <= b.span.start
+        for a, b in zip(result.tokens, result.tokens[1:], strict=False)
+    )
+    start = 2 if text.startswith("x=") else 0
+    fragment = import_module(
+        "comment_review.reading.python.interpolation"
+    ).scan_interpolation(text, start, python_definition)
+    assert not isinstance(fragment, ReadFailure)
+    assert fragment.protected == result.protected
+    assert fragment.end == (
+        text.index(";tail") if text.endswith(";tail") else len(text)
+    )
+
+
+def test_template_observable_source_conversion_and_format_events(python_definition):
+    text = 'x=t"before { value !s:>{width}} after"'
+    result = scan_tokens(text, python_definition)
+    assert not isinstance(result, ReadFailure)
+    assert [(t.kind, text[t.span.start : t.span.end]) for t in result.tokens] == [
+        ("identifier", "x"),
+        ("operator", "="),
+        ("interpolation_start", 't"'),
+        ("interpolation_literal", "before "),
+        ("field_start", "{"),
+        ("identifier", "value"),
+        ("conversion", "!s"),
+        ("format_start", ":"),
+        ("interpolation_literal", ">"),
+        ("field_start", "{"),
+        ("identifier", "width"),
+        ("field_end", "}"),
+        ("field_end", "}"),
+        ("interpolation_literal", " after"),
+        ("interpolation_end", '"'),
+    ]
+    assert [(p.kind, p.span) for p in result.protected] == [
+        ("template-expression", SourceSpan(12, 19)),
+    ]
+
+
+@pytest.mark.parametrize(
+    ("text", "comments", "protected_comments"),
+    [
+        ('f"{x # ordinary\n}"', ["# ordinary"], []),
+        (
+            't"{f\'{x # inner\n}\' # outer\n}" f"{y # ordinary\n}"',
+            ["# inner", "# outer", "# ordinary"],
+            ["# inner", "# outer"],
+        ),
+        (
+            'f"{f\'{x # inner\n}\' # outer\n = }" f"{y # ordinary\n}"',
+            ["# inner", "# outer", "# ordinary"],
+            ["# inner", "# outer"],
+        ),
+        (
+            "f\"{t'{x # inner\n}' # ordinary\n}\"",
+            ["# inner", "# ordinary"],
+            ["# inner"],
+        ),
+    ],
+)
+def test_interpolation_observable_source_comments_keep_nested_protection(
+    python_definition, text, comments, protected_comments
+):
+    result = scan_tokens(text, python_definition)
+    assert not isinstance(result, ReadFailure)
+    comment_tokens = [t for t in result.tokens if t.kind == "comment"]
+    assert [text[t.span.start : t.span.end] for t in comment_tokens] == comments
+    assert [
+        text[t.span.start : t.span.end]
+        for t in comment_tokens
+        if any(
+            p.span.start <= t.span.start < t.span.end <= p.span.end
+            for p in result.protected
+        )
+    ] == protected_comments
+
+
+@pytest.mark.parametrize(
+    ("text", "code", "span"),
+    [
+        ('t"}"', "unmatched-field-closer", SourceSpan(2, 3)),
+        ('t"{}"', "empty-field", SourceSpan(2, 4)),
+        ('t"{=}"', "empty-field", SourceSpan(2, 4)),
+        ('t"{x!q}"', "invalid-conversion", SourceSpan(4, 6)),
+        ('t"{x:{w}', "unfinished-field", SourceSpan(2, 8)),
+        ("t\"{f'{x", "unfinished-field", SourceSpan(5, 7)),
+        ('t"{[x}"', "mismatched-bracket", SourceSpan(5, 6)),
+        ('t"{x=other}"', "invalid-debug-expression", SourceSpan(5, 10)),
+        ('f"{x=other}"', "invalid-debug-expression", SourceSpan(5, 10)),
+    ],
+)
+def test_interpolation_observable_source_malformed_replacements_are_located(
+    python_definition, text, code, span
+):
+    result = scan_tokens(text, python_definition)
+    assert isinstance(result, ReadFailure)
+    assert result.diagnostics[0].stage == ReadStage.LEX
+    assert result.diagnostics[0].code == code
+    assert result.diagnostics[0].span == span

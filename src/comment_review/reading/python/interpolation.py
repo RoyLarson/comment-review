@@ -5,7 +5,11 @@ from dataclasses import dataclass, field
 from comment_review.reading.definitions import LanguageDefinition
 from comment_review.reading.diagnostics import ReadFailure
 from comment_review.reading.python.definition import validate_python
-from comment_review.reading.python.records import InterpolationScan, PythonToken
+from comment_review.reading.python.records import (
+    InterpolationScan,
+    ProtectedSource,
+    PythonToken,
+)
 from comment_review.reading.python.scanner import _failure, _next_token, _Syntax
 from comment_review.reading.source import RegionKind, SourceRegion, SourceSpan
 
@@ -15,12 +19,14 @@ class _Literal:
     start: int
     quote: str
     raw: bool
+    template: bool
 
 
 @dataclass
 class _Field:
     start: int
     literal: _Literal
+    template: bool = False
     mode: str = "expression"
     brackets: list[str] = field(default_factory=list)
     nonempty: bool = False
@@ -30,6 +36,7 @@ class _Events:
     def __init__(self) -> None:
         self.regions: list[SourceRegion] = []
         self.tokens: list[PythonToken] = []
+        self.protected: list[ProtectedSource] = []
 
     def emit(self, kind: str, start: int, end: int, region: RegionKind) -> None:
         if end == start:
@@ -44,15 +51,24 @@ class _Events:
         else:
             self.regions.append(SourceRegion(span, region))
 
+    def protect(self, frame: _Field, end: int) -> None:
+        if frame.mode == "expression" and frame.template:
+            kind = "template-expression"
+        elif frame.mode == "debug":
+            kind = "debug-expression"
+        else:
+            return
+        self.protected.append(
+            ProtectedSource(SourceSpan(frame.start + 1, end), kind, None)
+        )
 
-def _literal(text: str, start: int, end: int) -> _Literal | ReadFailure:
+
+def _literal(text: str, start: int, end: int) -> _Literal:
     quote_start = start
     while text[quote_start] not in "'\"":
         quote_start += 1
     prefix = text[start:quote_start].lower()
-    if "t" in prefix:
-        return _failure("unsupported-interpolation", start, end)
-    return _Literal(start, text[quote_start:end], "r" in prefix)
+    return _Literal(start, text[quote_start:end], "r" in prefix, "t" in prefix)
 
 
 def scan_interpolation(
@@ -64,6 +80,8 @@ def scan_interpolation(
     replacement fields. format_start and conversion preserve field boundaries.
     interpolation_literal identifies payload rather than ordinary string tokens.
     Code, comments and physical newlines keep the ordinary scanner's kinds.
+    Protection spans keep template expression spelling and debug spelling through
+    the equals sign and following whitespace, including any nested source.
     """
     failure = validate_python(definition)
     if failure is not None:
@@ -78,8 +96,6 @@ def scan_interpolation(
     if kind != "interpolation":
         return _failure("expected-interpolation", start, position)
     literal = _literal(text, start, position)
-    if isinstance(literal, ReadFailure):
-        return literal
     events = _Events()
     events.emit("interpolation_start", start, position, RegionKind.LITERAL)
     stack: list[_Literal | _Field] = [literal]
@@ -124,7 +140,13 @@ def scan_interpolation(
                 position = end
             elif text[position] == "{":
                 events.emit("field_start", position, position + 1, RegionKind.CODE)
-                stack.append(_Field(position, literal))
+                stack.append(
+                    _Field(
+                        position,
+                        literal,
+                        template=isinstance(frame, _Literal) and literal.template,
+                    )
+                )
                 position += 1
             elif isinstance(frame, _Field):
                 events.emit("field_end", position, position + 1, RegionKind.CODE)
@@ -138,6 +160,7 @@ def scan_interpolation(
         if not frame.brackets and char in "}:!" and not text.startswith("!=", position):
             if not frame.nonempty:
                 return _failure("empty-field", frame.start, position + 1)
+            events.protect(frame, position)
             if char == "}":
                 events.emit("field_end", position, position + 1, RegionKind.CODE)
                 stack.pop()
@@ -148,7 +171,7 @@ def scan_interpolation(
                 position += 1
             else:
                 if (
-                    frame.mode != "expression"
+                    frame.mode not in ("expression", "debug")
                     or position + 1 == len(text)
                     or text[position + 1] not in "sra"
                 ):
@@ -165,10 +188,20 @@ def scan_interpolation(
         if isinstance(result, ReadFailure):
             return result
         kind, end, region = result
+        if frame.mode == "debug" and kind not in (
+            "",
+            "comment",
+            "newline",
+            "continuation",
+        ):
+            return _failure("invalid-debug-expression", position, end)
+        if kind == "operator" and text[position:end] == "=" and not frame.brackets:
+            if not frame.nonempty:
+                return _failure("empty-field", frame.start, end)
+            events.protect(frame, position)
+            frame.mode = "debug"
         if kind == "interpolation":
             nested = _literal(text, position, end)
-            if isinstance(nested, ReadFailure):
-                return nested
             events.emit("interpolation_start", position, end, RegionKind.LITERAL)
             stack.append(nested)
             frame.nonempty = True
@@ -191,7 +224,12 @@ def scan_interpolation(
             "unfinished-field" if isinstance(frame, _Field) else "unterminated-literal"
         )
         return _failure(code, frame.start, len(text))
-    return InterpolationScan(position, tuple(events.regions), tuple(events.tokens), ())
+    return InterpolationScan(
+        position,
+        tuple(events.regions),
+        tuple(events.tokens),
+        tuple(sorted(events.protected, key=lambda item: item.span.start)),
+    )
 
 
 def _escape_end(text: str, start: int, literal: _Literal) -> int | ReadFailure:
