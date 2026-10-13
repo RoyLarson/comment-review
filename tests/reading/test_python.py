@@ -2545,3 +2545,200 @@ def test_doc_ownership_rejects_invalid_definition(python_definition):
     assert isinstance(result, ReadFailure)
     assert result.diagnostics[0].stage == ReadStage.SELECT
     assert result.diagnostics[0].code == "invalid-language-definition"
+
+
+def read_payload(text, definition):
+    scan, _, expressions = read_documentation(text, definition)
+    assert not isinstance(expressions, ReadFailure)
+    assert len(expressions) == 1
+    documentation = import_module("comment_review.reading.python.documentation")
+    decoder = getattr(documentation, "decode_documentation", None)
+    assert callable(decoder), "Python documentation payload decoding is not implemented"
+    return scan, expressions[0], decoder(scan, expressions[0], definition)
+
+
+def assert_payload_pieces(payload, expected):
+    boundary = 0
+    pieces = []
+    for decoded, start, end in expected:
+        pieces.append(
+            (SourceSpan(boundary, boundary + len(decoded)), (SourceSpan(start, end),))
+        )
+        boundary += len(decoded)
+    assert [(piece.decoded, piece.raw) for piece in payload.mapping] == pieces
+    assert boundary == len(payload.text)
+
+
+@pytest.mark.parametrize(
+    ("literal", "expected", "pieces"),
+    [
+        ('"hello"', "hello", [("hello", 1, 6)]),
+        ("u'caf\u00e9'", "caf\u00e9", [("caf\u00e9", 2, 6)]),
+        ('U"\u03bb\U0001f40d"', "\u03bb\U0001f40d", [("\u03bb\U0001f40d", 2, 4)]),
+        ('""', "", []),
+        ("r'''\\n\\x41'''", "\\n\\x41", [("\\n\\x41", 4, 10)]),
+        (
+            'R"\\u03bb\\N{NOT A NAME}"',
+            "\\u03bb\\N{NOT A NAME}",
+            [("\\u03bb\\N{NOT A NAME}", 2, 22)],
+        ),
+        (r'''"\"\'\\"''', "\"'\\", [('"', 1, 3), ("'", 3, 5), ("\\", 5, 7)]),
+        (
+            r'"\a\b\f\n\r\t\v"',
+            "\a\b\f\n\r\t\v",
+            [
+                ("\a", 1, 3),
+                ("\b", 3, 5),
+                ("\f", 5, 7),
+                ("\n", 7, 9),
+                ("\r", 9, 11),
+                ("\t", 11, 13),
+                ("\v", 13, 15),
+            ],
+        ),
+        (
+            r'"\0\07\101\7777"',
+            "\0\aA\u01ff7",
+            [
+                ("\0", 1, 3),
+                ("\a", 3, 6),
+                ("A", 6, 10),
+                ("\u01ff", 10, 14),
+                ("7", 14, 15),
+            ],
+        ),
+        (r'"\08"', "\08", [("\0", 1, 3), ("8", 3, 4)]),
+        (r'"\x41\xFf"', "A\u00ff", [("A", 1, 5), ("\u00ff", 5, 9)]),
+        (
+            r'"\u03bb\U0001F40D"',
+            "\u03bb\U0001f40d",
+            [("\u03bb", 1, 7), ("\U0001f40d", 7, 17)],
+        ),
+        (
+            r'"\uD800\U0010FFFF"',
+            "\ud800\U0010ffff",
+            [("\ud800", 1, 7), ("\U0010ffff", 7, 17)],
+        ),
+        (r'"\N{LATIN CAPITAL LETTER A}\N{LF}"', "A\n", [("A", 1, 27), ("\n", 27, 33)]),
+        (
+            r'"before\qafter\8\z"',
+            "before\\qafter\\8\\z",
+            [
+                ("before", 1, 7),
+                ("\\q", 7, 9),
+                ("after", 9, 14),
+                ("\\8", 14, 16),
+                ("\\z", 16, 18),
+            ],
+        ),
+        (
+            'r"quote\\" slash\\\\"',
+            'quote\\" slash\\\\',
+            [('quote\\" slash\\\\', 2, 17)],
+        ),
+    ],
+)
+def test_payloads_literal_decoding_and_contributing_raw_spans(
+    python_definition, literal, expected, pieces
+):
+    scan, expression, payload = read_payload(literal + "\n", python_definition)
+    assert not isinstance(payload, ReadFailure)
+    assert payload.expression is expression
+    assert payload.text == expected
+    assert_payload_pieces(payload, pieces)
+    assert scan.text == literal + "\n"
+
+
+@pytest.mark.parametrize(
+    ("literal", "expected", "pieces"),
+    [
+        ('"""a\nb"""', "a\nb", [("a", 3, 4), ("\n", 4, 5), ("b", 5, 6)]),
+        ('"""a\r\nb"""', "a\nb", [("a", 3, 4), ("\n", 4, 6), ("b", 6, 7)]),
+        ('"""a\rb"""', "a\nb", [("a", 3, 4), ("\n", 4, 5), ("b", 5, 6)]),
+        ('r"""a\r\nb"""', "a\nb", [("a", 4, 5), ("\n", 5, 7), ("b", 7, 8)]),
+        ('r"""a\rb"""', "a\nb", [("a", 4, 5), ("\n", 5, 6), ("b", 6, 7)]),
+        ('"a\\\nb"', "ab", [("a", 1, 2), ("", 2, 4), ("b", 4, 5)]),
+        ('"a\\\r\nb"', "ab", [("a", 1, 2), ("", 2, 5), ("b", 5, 6)]),
+        ('"a\\\rb"', "ab", [("a", 1, 2), ("", 2, 4), ("b", 4, 5)]),
+        ('"\\\n"', "", [("", 1, 3)]),
+        ('r"a\\\nb"', "a\\\nb", [("a\\", 2, 4), ("\n", 4, 5), ("b", 5, 6)]),
+        ('r"a\\\r\nb"', "a\\\nb", [("a\\", 2, 4), ("\n", 4, 6), ("b", 6, 7)]),
+        ('r"a\\\rb"', "a\\\nb", [("a\\", 2, 4), ("\n", 4, 5), ("b", 5, 6)]),
+    ],
+)
+def test_payloads_physical_newlines_preserve_source_and_zero_output(
+    python_definition, literal, expected, pieces
+):
+    scan, _, payload = read_payload(literal + "\n", python_definition)
+    assert not isinstance(payload, ReadFailure)
+    assert payload.text == expected
+    assert_payload_pieces(payload, pieces)
+    assert (
+        "".join(scan.text[r.span.start : r.span.end] for r in scan.regions) == scan.text
+    )
+
+
+def test_payloads_complete_adjacent_prose_excludes_layout_and_following_source(
+    python_definition,
+):
+    text = (
+        '(\n "one " # separator\n R"\\n" u\' two\' ""\n)'
+        '; later = "ignored" # following\n'
+    )
+    _, expression, payload = read_payload(text, python_definition)
+    assert not isinstance(payload, ReadFailure)
+    assert payload.text == "one \\n two"
+    assert expression.components == (
+        SourceSpan(3, 9),
+        SourceSpan(23, 28),
+        SourceSpan(29, 36),
+        SourceSpan(37, 39),
+    )
+    assert_payload_pieces(payload, [("one ", 4, 8), ("\\n", 25, 27), (" two", 31, 35)])
+    assert all(span.end < 39 for piece in payload.mapping for span in piece.raw)
+
+
+def test_payloads_empty_components_do_not_invent_content_mappings(python_definition):
+    _, expression, payload = read_payload('"" r"" U"" "a" ""\n', python_definition)
+    assert not isinstance(payload, ReadFailure)
+    assert payload.text == "a"
+    assert len(expression.components) == 5
+    assert_payload_pieces(payload, [("a", 12, 13)])
+
+
+@pytest.mark.parametrize(
+    ("literal", "code", "span"),
+    [
+        (r'"\x"', "invalid-documentation-escape", SourceSpan(1, 3)),
+        (r'"\x1"', "invalid-documentation-escape", SourceSpan(1, 4)),
+        (r'"\xG1"', "invalid-documentation-escape", SourceSpan(1, 5)),
+        (r'"\u123"', "invalid-documentation-escape", SourceSpan(1, 6)),
+        (r'"\u12z4"', "invalid-documentation-escape", SourceSpan(1, 7)),
+        (r'"\U0001f40"', "invalid-documentation-escape", SourceSpan(1, 10)),
+        (r'"\U00110000"', "invalid-documentation-escape", SourceSpan(1, 11)),
+        (r'"\N"', "invalid-documentation-escape", SourceSpan(1, 3)),
+        (r'"\Nx"', "invalid-documentation-escape", SourceSpan(1, 3)),
+        (r'"\N{LF"', "invalid-documentation-escape", SourceSpan(1, 6)),
+        (r'"\N{}"', "invalid-documentation-escape", SourceSpan(1, 5)),
+        (r'"\N{NOT A UNICODE CHARACTER}"', "unknown-unicode-name", SourceSpan(1, 28)),
+        (r'"\N{KEYCAP DIGIT ONE}"', "unknown-unicode-name", SourceSpan(1, 21)),
+    ],
+)
+def test_payloads_required_escapes_and_unavailable_names_fail_at_raw_escape(
+    python_definition, literal, code, span
+):
+    _, _, result = read_payload(literal + "\n", python_definition)
+    assert isinstance(result, ReadFailure)
+    assert result.diagnostics[0].stage == ReadStage.PLACE
+    assert result.diagnostics[0].code == code
+    assert result.diagnostics[0].span == span
+
+
+def test_payloads_reject_invalid_definition(python_definition):
+    scan, expression, _ = read_payload('"doc"\n', python_definition)
+    definition = replace(python_definition, revision="unsupported")
+    documentation = import_module("comment_review.reading.python.documentation")
+    result = documentation.decode_documentation(scan, expression, definition)
+    assert isinstance(result, ReadFailure)
+    assert result.diagnostics[0].stage == ReadStage.SELECT
+    assert result.diagnostics[0].code == "invalid-language-definition"
