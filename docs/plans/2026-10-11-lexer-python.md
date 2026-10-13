@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 0 of 8 TODO tasks closed
+Progress: 0 of 9 TODO tasks closed
 Plan-tasks: 2 of 26 plan tasks closed
 Owner:    backend
 Requires-Roy: false
@@ -444,6 +444,11 @@ complete merely because this plan or its interfaces are approved.
 - [ ] T44 | Document the Python preservation contract beside its comparison
 - [ ] T45 | Expose complete Python docstrings with their lexical owners
 
+### C - [2026-10-12-python-numeric-keyword-boundaries](../../TODO/2026-10-12-python-numeric-keyword-boundaries.md)
+
+- [ ] T1 | Read numeric keyword boundaries; tokens tests accept 1if and 1jand
+      while malformed numeric suffixes refuse.
+
 ## Plan Tasks
 
 - [x] P1 | Python definition validates; 216 tests and focused static checks pass; review approved | f23a9e18 | Install
@@ -455,6 +460,7 @@ complete merely because this plan or its interfaces are approved.
       RED/GREEN command
 - [~] P3 | Scan basic Python tokens; verify task 3 evidence with its RED/GREEN
       command
+        > 2026-10-12 Repair numeric-keyword boundary refusal from task review.
 - [ ] P4 | Scan ordinary Python literals; verify task 4 evidence with its
       RED/GREEN command
 - [ ] P5 | Recognize logical lines and indentation; verify task 5 evidence with
