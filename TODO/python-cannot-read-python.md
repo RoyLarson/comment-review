@@ -406,11 +406,14 @@ the review, and nothing today protects the review.
         > 2026-10-13 Contract: classify code/documentation, then series A/B/C/D/F.
         > 2026-10-13 Anchor: all code text on the line, including substring notation.
         > 2026-10-13 Identifiers and semantic analysis are outside the lexer contract.
+        > 2026-10-13 Revised Python and shared specs narrow the reader; review pending.
 - [ ] T41 | Preserve exact Python round trips over invented boundary fixtures
         > 2026-10-11 Check: plan P26 compares exact bytes through saved setting
         > 2026-10-13 Location: set_page rebuilds inline doc prefixes and c anchors.
         > 2026-10-13 Check: P18 uses retained spans for exact inline-doc round trips.
         > 2026-10-13 Correction: repair reader output for the existing writer.
+        > 2026-10-13 Cause: protected shebang becomes code and shifts the C cues.
+        > 2026-10-13 Cause: split doc closing lines duplicate raw text in A and C.
 - [ ] T42 | Read supported newer Python syntax on the pinned Python 3.11 runtime
         > 2026-10-11 Check: plan P10 asserts 3.11-3.15 fixture facts on host 3.11
 - [ ] T43 | Reject executable Python mutations at both lexical proof gates

@@ -99,11 +99,21 @@ specifications.
 The registry maps supported source paths to individual language definitions.
 A common result contract lets callers consume their readers consistently.
 
-The reading package owns these contracts and language facts. It supplies the
-existing paragraph and declaration machinery with source ranges and placement
-facts. The existing addresser continues to assign the `a`, `b`, `c` and `f`
-series. Reading and writing consumers use this shared leaf without importing
+The reading package owns these contracts and language facts. First it
+distinguishes code from comments and documentation. Then it classifies the
+documentation using the existing A/B/C/D/F rules and supplies source ranges,
+forms and placement facts to the addresser. D retains its existing leading-space
+meaning rather than becoming editable prose. The addresser numbers and attaches
+the places. Reading and writing consumers use this shared leaf without importing
 one another's containers.
+
+All code portions of a physical line form its anchor in source order, including
+literal text and indexing or slicing notation. Anchors retain the source text;
+they are not reconstructed from identifiers or interpreted operations. Keep
+lexical boundary state and the positional facts needed to recognize
+documentation. Identifier harvesting, symbol relationships, numeric validation
+and general statement or control-flow validation are outside this contract.
+Each language's local tools perform compilation or syntax validation separately.
 
 Language modules determine which constructs are documentable and where their
 documentation belongs. Existing documentable categories remain the starting
@@ -130,11 +140,13 @@ line endings and delimiters. Slicing and concatenating its regions reproduces
 the input exactly. Empty source is a successful empty read. An incomplete read
 has an explicit diagnostic and cannot be used for a successful proof.
 
-Source regions and normalized prose serve different purposes. Decoded prose
-maps back to its raw payload spans, including escapes and adjacent literals.
-Comment rendering and snippet removal use that mapping and the binder's
-`raw_text`. They do not require another copy of the original source to recover
-the comment form.
+Source regions and normalized prose serve different purposes. Source regions
+establish lexical boundaries and preserved code; prose extraction supplies the
+existing paragraph fields, including complete adjacent documentation literals.
+The binder's `raw_text` retains the original form required by the existing
+writer. Per-character decoding maps and a replacement renderer are not part of
+this contract. The lexer must not change the writer's input semantics to suit
+an internal representation.
 
 The lexer and addresser establish each paragraph's form and placement. A
 paragraph retains one comment form. Same-type comments between code lines form
@@ -299,10 +311,12 @@ These are implementation checks; recording this rule does not satisfy them.
 
 ## Python documentation
 
-Python source reading uses an owned scanner and enough structural recognition
-to locate declarations, headers, suites and first statements. Neither source
-reading, docstring reconstruction nor executable proof depends on runtime AST
-or tokenizer parsing.
+Python source reading uses an owned scanner and positional recognition to find
+documentation at the module or at a documentable declaration. Quote state,
+delimiter depth, continuation, indentation and consumed documentation positions
+provide that context. The result does not carry declaration names or a tree of
+statements and suites. Neither source reading, prose extraction nor executable
+proof depends on runtime AST or tokenizer parsing.
 
 A documentation string is identified by its statement shape and placement.
 The reader distinguishes it from assigned strings, later string expressions,
@@ -329,10 +343,11 @@ structural uncertainty wherever it prevents reliable classification.
 ## Executable preservation
 
 `prove_unchanged` uses the reader and existing address system to compare the
-executable content associated with the places before and after the edit. It
-preserves executable token spelling and order, literal contents, structural
-relationships and meaningful separators. Moving a code operation, changing a
-literal or changing a significant boundary fails this comparison.
+code associated with the places before and after the edit. It preserves code
+spelling and order, literal contents, indentation and meaningful separators.
+It compares source rather than interpreting names, operations or a statement
+tree. Moving code, changing a literal or changing a significant boundary fails
+this comparison.
 
 Physical line numbers can move when prose is inserted or removed. Address
 correspondence follows the existing code and declaration places, with the
@@ -411,17 +426,12 @@ executable comparisons consume the shared results. The per-line masking path
 and delimiter-presence refusals are replaced as the corresponding readers
 become complete.
 
-Declaration facts include the declared identifier and its nesting, where the
-reader recognizes a documentable declaration. Referrer discovery consumes those
-facts for top-level declaration names, replacing its separate Python AST read
-while retaining its path-derived search terms.
-
-Full name harvesting remains separately owned. Its current result includes
-references, attributes, arguments, aliases and selected string values as well
-as declarations; substituting declaration names would lose that coverage.
-Reader integration makes unavailable harvesting explicit on source newer than
-the runtime grammar. An unavailable result cannot turn a successful lexical
-read into a failed page or appear to be a complete empty result.
+Declaration facts supply positions needed by the existing address system.
+Declared names and symbol nesting remain the responsibility of referrer and
+name-harvesting consumers, outside this reader implementation. Their separate
+grammar limitations must not become lexical recognition requirements or turn
+a successful lexical read into a failed page. An unavailable consumer result
+must not appear to be a complete empty result.
 
 Operational instructions describe only the task, inputs, tools and checks the
 agents need. Internal design documents, plans and investigation history remain
@@ -440,6 +450,8 @@ The shared checks demonstrate:
   language's rules leaves the others' independently specified results intact.
 - Complete, ordered source coverage and exact reconstruction, including mixed
   endings, missing final newlines, non-ASCII text and literal whitespace.
+- Complete physical-line code anchors without extracting identifier names;
+  all literal, indexing and slicing text remains code.
 - Expected prose, forms, declaration relationships and `a`, `b`, `c`, `f`
   addresses, including empty places and comments beside executable source.
 - Each language's documentation attachment with blank lines and applicable
@@ -521,7 +533,6 @@ changed. Their completion remains independently checkable.
 | TODO tasks | Why include them and what must become true |
 | --- | --- |
 | [computed-and-never-read](../../../TODO/computed-and-never-read.md) T6; [page-and-addresser-scans](../../../TODO/page-and-addresser-scans.md) T5 | Produce code regions and declaration facts once per page read and share the result. Do not reconstruct equivalent facts independently for addressing and proof. Other addresser performance tasks remain separate. |
-| [name-corpus-sees-one-language](../../../TODO/name-corpus-sees-one-language.md) T1, T5 | Declaration recognition already needs identifiers and nesting. Supply those facts to referrer discovery, preserving path terms and recognized top-level names without a second runtime-parser dependency. This does not complete T2-T4. |
 | [galley-and-compositor-write-path](../../../TODO/galley-and-compositor-write-path.md) T5-T10; [no-step-produces-a-page](../../../TODO/no-step-produces-a-page.md) T3 | Share the source acquisition and page-building work used by reconstruction checks. Retain successful empty input as distinct from unreadable input; verify BOMs and line endings at the byte boundary. Supersede old function-location prescriptions where necessary. |
 | [only-a-flow-reaches-the-machine](../../../TODO/only-a-flow-reaches-the-machine.md) T3, T4, T10 | Flows obtain source and base revisions; the reader and proof comparison consume supplied values. Complete the affected compositor and proof I/O separation while replacing those consumers. This does not authorize the broader command and concordance I/O sweep. |
 | [the-flow-lives-in-the-command](../../../TODO/the-flow-lives-in-the-command.md) T8 | Carry an explicit read failure and its reason through page acquisition to gather. Do not reconstruct failure from an empty page or an exception swallowed by a caller. Reconcile the old return-shape prescription with the shared diagnostic result. |
@@ -547,7 +558,7 @@ implementation mechanism is not evidence that its replacement works.
 | [lexer-does-not-lex](../../../TODO/lexer-does-not-lex.md) T8-T10 | Retain the term lexer for the actual lexical readers. A blanket module/vocabulary rename to describe the old behavior is unnecessary. Record this proposed naming resolution before retiring the decision task. |
 | [a-comment-inside-a-line-makes-the-file-unprovable](../../../TODO/a-comment-inside-a-line-makes-the-file-unprovable.md) T2-T5 | Replace fixed refusal-site counts with current CLI-reachable diagnostic cases, and the paragraph column-field prescription with the shared character-span contract. Corpus frequency is useful measurement but is no longer a prerequisite to preserving code beside comments. |
 | [census-degrades-silently](../../../TODO/census-degrades-silently.md) T6 | Replace blanket refusal of same-line documentation additions with correct declared placement, or a specific refusal when that layout cannot be represented. |
-| [block-comment-markers-survive-into-the-prose](../../../TODO/block-comment-markers-survive-into-the-prose.md) T3 | Replace synchronization of two named legacy helpers with one form/payload mapping consumed by reading and rendering, verified in the same change. |
+| [block-comment-markers-survive-into-the-prose](../../../TODO/block-comment-markers-survive-into-the-prose.md) T3 | Verify that reader form classification and binder raw_text supply the existing marker handling correctly. Keep the existing writer; retire an obsolete helper prescription only after its behavioral goal passes. |
 | [the-lexer-reads-no-files](../../../TODO/the-lexer-reads-no-files.md) T9-T20 | Replace the proposal to put source acquisition inside the lexer with flow-owned I/O and readers over supplied source. Preserve the byte-identity, BOM and CRLF goals from T17 and T18. Verify end-to-end behavior instead of requiring the old fixed READ and WRITE lists. This does not pull console I/O or every repository read into this effort. |
 | [7a-can-prove-the-change-by-applying-it-to-a-copy](../../../TODO/7a-can-prove-the-change-by-applying-it-to-a-copy.md) T5-T7 | Reread edited source to establish its actual lexical boundaries and places. Splice line deltas alone cannot replace that check. |
 | [the-code-check-refuses-add-and-drop-on-a-docstring](../../../TODO/the-code-check-refuses-add-and-drop-on-a-docstring.md) T2, T3 | Replace a special failure explanation and separate presence-delta output with normal prose alterations, the presented diff and the unified preservation result. |
@@ -580,7 +591,7 @@ must distinguish recognition from the existing header-classification policy.
 
 | TODO tasks or area | Reason it is not absorbed |
 | --- | --- |
-| [name-corpus-sees-one-language](../../../TODO/name-corpus-sees-one-language.md) T2-T4; [concordance-gaps-stated-twice](../../../TODO/concordance-gaps-stated-twice.md) | Full identifier harvesting and concordance completeness require a wider consumer contract. Declaration discovery alone cannot establish them. |
+| [name-corpus-sees-one-language](../../../TODO/name-corpus-sees-one-language.md) T1-T5; [concordance-gaps-stated-twice](../../../TODO/concordance-gaps-stated-twice.md) | Identifier harvesting and referrer discovery require their own consumer contract. The lexer supplies documentation positions and complete code anchors without collecting names or symbol nesting. |
 | [a-series-never-fills-outside-python](../../../TODO/a-series-never-fills-outside-python.md) T19, T20 | New C and C++ declaration places extend address coverage beyond the retained policy. Correct lexical reading does not imply this extension. |
 | [strip-and-fill-the-markers](../../../TODO/strip-and-fill-the-markers.md) | The source contract shares its goals of reversible form handling and preserved payload indentation, but does not decide the proposed agent-visible marker stripping or change the binder's `raw_text` contract. Its mixed tasks need splitting before any partial closure; the whole TODO remains open. |
 | [versioning-at-v1](../../../TODO/versioning-at-v1.md) | Reader compatibility addresses the narrower changed-meaning hazard also described by T8 and T9. The TODO explicitly defers its system-wide versioning work until v1; this design does not lift that deferral or claim those tasks complete. |
