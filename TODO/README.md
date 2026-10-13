@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (125)
+### open  (126)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -307,6 +307,7 @@ that changed a published name or rule:
 | [2026-10-11-maintained-source-selection](2026-10-11-maintained-source-selection.md) | agents | -- | 0/1 | Select maintained source for review |
 | [2026-10-12-python-reader-vocabulary](2026-10-12-python-reader-vocabulary.md) | backend | -- | 0/1 | Use accepted Python reader vocabulary |
 | [2026-10-13-human-question-list](2026-10-13-human-question-list.md) | backend | -- | 0/1 | Expose human questions across edit copies |
+| [2026-10-13-python-bom-ownership](2026-10-13-python-bom-ownership.md) | backend | -- | 0/1 | Read Python documentation after a UTF-8 BOM |
 
 ### in-progress  (18)
 

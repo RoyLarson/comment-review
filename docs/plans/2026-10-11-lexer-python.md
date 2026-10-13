@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 4 of 13 TODO tasks closed
+Progress: 4 of 14 TODO tasks closed
 Plan-tasks: 13 of 26 plan tasks closed
 Owner:    backend
 Requires-Roy: false
@@ -466,6 +466,10 @@ complete merely because this plan or its interfaces are approved.
 
 - [x] T1 | Normalize Python encoding cookie names
 
+### H - [2026-10-13-python-bom-ownership](../../TODO/2026-10-13-python-bom-ownership.md)
+
+- [ ] T1 | Recognize a leading BOM before Python documentation
+
 ## Plan Tasks
 
 - [x] P1 | Python definition validates; 216 tests and focused static checks pass; review approved | f23a9e18 | Install
@@ -519,10 +523,14 @@ complete merely because this plan or its interfaces are approved.
         > 2026-10-13 Repair valid UTF-8 cookie normalization before completion.
 - [~] P14 | Project whole Python comment sections; verify task 14 evidence with
       its RED/GREEN command
+        > 2026-10-13 Pass definition and directives into section projection.
+        > 2026-10-13 Refuse overlapping editable comments inside doc expressions.
 - [ ] P15 | Admit expression comments at existing places; verify task 15
       evidence with its RED/GREEN command
 - [ ] P16 | Integrate Python reads into page construction; verify task 16
       evidence with its RED/GREEN command
+        > 2026-10-13 Include scanner/structure/directives for leading BOM ownership.
+        > 2026-10-13 Apply existing f boundaries when adapting whole lexical runs.
 - [ ] P17 | Render Python documentation from payload records; verify task 17
       evidence with its RED/GREEN command
 - [ ] P18 | Set Python additions rewrites and removals; verify task 18 evidence
