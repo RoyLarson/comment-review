@@ -3,7 +3,7 @@
 ```
 Status:   in-progress
 Progress: 4 of 14 TODO tasks closed
-Plan-tasks: 14 of 26 plan tasks closed
+Plan-tasks: 15 of 26 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (founded by move-t from 2026-10-11-lexical-readers)
@@ -526,10 +526,11 @@ complete merely because this plan or its interfaces are approved.
       command
         > 2026-10-13 Pass definition and directives into section projection.
         > 2026-10-13 Refuse overlapping editable comments inside doc expressions.
-- [~] P15 | Admit expression comments at existing places; verify task 15
-      evidence with its RED/GREEN command
+- [x] P15 | Existing b/c setting verified; 1171 tests and review pass | 0225f422 | Admit
+      expression comments at existing places; verify task 15 evidence with its
+      RED/GREEN command
         > 2026-10-13 Refuse only demonstrated unrepresentable expression comments.
-- [ ] P16 | Integrate Python reads into page construction; verify task 16
+- [~] P16 | Integrate Python reads into page construction; verify task 16
       evidence with its RED/GREEN command
         > 2026-10-13 Include scanner/structure/directives for leading BOM ownership.
         > 2026-10-13 Apply existing f boundaries when adapting whole lexical runs.
