@@ -3,7 +3,7 @@
 ```
 Status:   in-progress
 Progress: 3 of 12 TODO tasks closed
-Plan-tasks: 9 of 26 plan tasks closed
+Plan-tasks: 10 of 26 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (founded by move-t from 2026-10-11-lexical-readers)
@@ -497,12 +497,15 @@ complete merely because this plan or its interfaces are approved.
 - [x] P9 | 924 reader tests pass; declaration ownership reviewed | 325650a5 | Recognize
       declaration names and ownership; verify task 9 evidence with its RED/GREEN
       command
-- [~] P10 | Recognize modern Python structural boundaries; verify task 10
+- [x] P10 | 927 reader tests pass; modern interpolation assertions reviewed | 3dd55f11 | Recognize
+      modern Python structural boundaries; verify task 10 evidence with its
+      RED/GREEN command
+- [~] P11 | Identify documentation expressions and owners; verify task 11
       evidence with its RED/GREEN command
-- [ ] P11 | Identify documentation expressions and owners; verify task 11
-      evidence with its RED/GREEN command
+        > 2026-10-12 Pass definition explicitly for configured documentation rules.
 - [ ] P12 | Decode complete documentation payloads; verify task 12 evidence with
       its RED/GREEN command
+        > 2026-10-12 Pass definition explicitly for configured literal decoding.
 - [ ] P13 | Protect Python directives and attachment; verify task 13 evidence
       with its RED/GREEN command
 - [ ] P14 | Project whole Python comment sections; verify task 14 evidence with
