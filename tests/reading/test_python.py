@@ -446,11 +446,8 @@ def test_tokens_exact_partition_and_spelling(python_definition, text, regions, t
 @pytest.mark.parametrize(
     ("text", "start", "end"),
     [
-        ("'value'", 0, 1),
         ('x = FR"{x}"', 4, 7),
         ('t"value"', 0, 2),
-        ('name"value"', 4, 5),
-        ('"unterminated', 0, 1),
         ("0x", 0, 2),
         ("0b2", 0, 3),
         ("0123", 0, 4),
@@ -594,9 +591,7 @@ def test_tokens_operator_forms_use_longest_match(python_definition, spelling):
     )
 
 
-@pytest.mark.parametrize(
-    "prefix", ["u", "r", "b", "br", "rb", "f", "fr", "rf", "t", "tr", "rt"]
-)
+@pytest.mark.parametrize("prefix", ["f", "fr", "rf", "t", "tr", "rt"])
 def test_tokens_literal_prefixes_are_never_classified_as_code(
     python_definition, prefix
 ):
@@ -605,6 +600,199 @@ def test_tokens_literal_prefixes_are_never_classified_as_code(
     assert isinstance(result, ReadFailure)
     assert result.diagnostics[0].span == SourceSpan(0, len(prefix) + 1)
     assert result.diagnostics[0].stage == ReadStage.LEX
+
+
+@pytest.mark.parametrize(
+    "prefix",
+    ["", "u", "U", "r", "R", "b", "B", "br", "Br", "bR", "BR", "rb", "Rb", "rB", "RB"],
+)
+@pytest.mark.parametrize("quote", ["'", '"', "'''", '"""'])
+@pytest.mark.parametrize("payload", ["", "value", "value # {braces}  "])
+def test_literals_ordinary_forms_preserve_spans_and_resume(
+    python_definition, prefix, quote, payload
+):
+    literal = prefix + quote + payload + quote
+    text = "x=" + literal + "+y# real\r\n"
+    end = 2 + len(literal)
+    result = scan_tokens(text, python_definition)
+    assert not isinstance(result, ReadFailure)
+    assert result.text == text
+    assert [(r.kind, r.span) for r in result.regions] == [
+        (RegionKind.CODE, SourceSpan(0, 2)),
+        (RegionKind.LITERAL, SourceSpan(2, end)),
+        (RegionKind.CODE, SourceSpan(end, end + 2)),
+        (RegionKind.COMMENT, SourceSpan(end + 2, end + 8)),
+        (RegionKind.WHITESPACE, SourceSpan(end + 8, end + 10)),
+    ]
+    assert [(t.kind, t.span) for t in result.tokens] == [
+        ("identifier", SourceSpan(0, 1)),
+        ("operator", SourceSpan(1, 2)),
+        ("string", SourceSpan(2, end)),
+        ("operator", SourceSpan(end, end + 1)),
+        ("identifier", SourceSpan(end + 1, end + 2)),
+        ("comment", SourceSpan(end + 2, end + 8)),
+        ("newline", SourceSpan(end + 8, end + 10)),
+    ]
+    assert text[result.tokens[2].span.start : result.tokens[2].span.end] == literal
+    assert text[result.tokens[5].span.start : result.tokens[5].span.end] == "# real"
+    assert "".join(text[r.span.start : r.span.end] for r in result.regions) == text
+    assert result.protected == ()
+
+
+@pytest.mark.parametrize("prefix", ["", "u", "r", "b", "br", "rb"])
+@pytest.mark.parametrize("quote", ["'", '"', "'''", '"""'])
+@pytest.mark.parametrize("slashes", range(6))
+def test_literals_escaped_delimiter_parity(python_definition, prefix, quote, slashes):
+    payload = "a" + "\\" * slashes
+    literal = prefix + quote + payload + quote
+    if slashes % 2:
+        literal += "more" + quote
+    result = scan_tokens(literal, python_definition)
+    assert not isinstance(result, ReadFailure)
+    assert [(t.kind, t.span) for t in result.tokens] == [
+        ("string", SourceSpan(0, len(literal)))
+    ]
+    assert [(r.kind, r.span) for r in result.regions] == [
+        (RegionKind.LITERAL, SourceSpan(0, len(literal)))
+    ]
+    assert result.text == literal
+    assert (
+        "".join(literal[r.span.start : r.span.end] for r in result.regions) == literal
+    )
+
+
+@pytest.mark.parametrize("prefix", ["", "u", "r", "b", "br", "rb"])
+@pytest.mark.parametrize("quote", ["'", '"', "'''", '"""'])
+@pytest.mark.parametrize("newline", ["\r", "\n", "\r\n"])
+def test_literals_physical_escaped_newlines(python_definition, prefix, quote, newline):
+    literal = prefix + quote + "before\\" + newline + "# after  " + quote
+    result = scan_tokens(literal, python_definition)
+    assert not isinstance(result, ReadFailure)
+    assert [(t.kind, t.span) for t in result.tokens] == [
+        ("string", SourceSpan(0, len(literal)))
+    ]
+    assert [(r.kind, r.span) for r in result.regions] == [
+        (RegionKind.LITERAL, SourceSpan(0, len(literal)))
+    ]
+    assert result.text == literal
+    assert (
+        "".join(literal[r.span.start : r.span.end] for r in result.regions) == literal
+    )
+
+
+@pytest.mark.parametrize("prefix", ["", "u", "r", "b", "br", "rb"])
+@pytest.mark.parametrize("quote", ["'''", '"""'])
+@pytest.mark.parametrize("newline", ["\r", "\n", "\r\n"])
+def test_literals_triple_payload_keeps_double_delimiters_and_blank_lines(
+    python_definition, prefix, quote, newline
+):
+    literal = (
+        prefix
+        + quote
+        + "# first  "
+        + newline * 2
+        + quote[:2]
+        + "{x}  "
+        + newline
+        + quote
+    )
+    result = scan_tokens(literal, python_definition)
+    assert not isinstance(result, ReadFailure)
+    assert [(t.kind, t.span) for t in result.tokens] == [
+        ("string", SourceSpan(0, len(literal)))
+    ]
+    assert [(r.kind, r.span) for r in result.regions] == [
+        (RegionKind.LITERAL, SourceSpan(0, len(literal)))
+    ]
+    assert result.text == literal
+    assert (
+        "".join(literal[r.span.start : r.span.end] for r in result.regions) == literal
+    )
+
+
+def test_literals_adjacent_boundaries_and_nonprefix_identifier(python_definition):
+    text = 'name"value"R""b' + "'''next'''# tail"
+    result = scan_tokens(text, python_definition)
+    assert not isinstance(result, ReadFailure)
+    assert [(t.kind, t.span) for t in result.tokens] == [
+        ("identifier", SourceSpan(0, 4)),
+        ("string", SourceSpan(4, 11)),
+        ("string", SourceSpan(11, 14)),
+        ("string", SourceSpan(14, 25)),
+        ("comment", SourceSpan(25, 31)),
+    ]
+    assert [(r.kind, r.span) for r in result.regions] == [
+        (RegionKind.CODE, SourceSpan(0, 4)),
+        (RegionKind.LITERAL, SourceSpan(4, 11)),
+        (RegionKind.LITERAL, SourceSpan(11, 14)),
+        (RegionKind.LITERAL, SourceSpan(14, 25)),
+        (RegionKind.COMMENT, SourceSpan(25, 31)),
+    ]
+    assert [text[t.span.start : t.span.end] for t in result.tokens] == [
+        "name",
+        '"value"',
+        'R""',
+        "b'''next'''",
+        "# tail",
+    ]
+    assert "".join(text[r.span.start : r.span.end] for r in result.regions) == text
+
+
+@pytest.mark.parametrize(
+    "literal",
+    [
+        "'",
+        '"unterminated',
+        "u'",
+        "r'tail\\'",
+        'b"tail\\',
+        "br'''tail",
+        "rb'''tail''",
+        '"""tail\\"""',
+        "'tail\\\n",
+        "r'tail\\\r\n",
+    ],
+)
+def test_literals_truncated_or_escaped_closer_is_unterminated(
+    python_definition, literal
+):
+    text = "x=" + literal
+    result = scan_tokens(text, python_definition)
+    assert isinstance(result, ReadFailure)
+    diagnostic = result.diagnostics[0]
+    assert diagnostic.stage == ReadStage.LEX
+    assert diagnostic.code == "unterminated-literal"
+    assert diagnostic.span == SourceSpan(2, len(text))
+
+
+@pytest.mark.parametrize("prefix", ["", "u", "r", "b", "br", "rb"])
+@pytest.mark.parametrize("quote", ["'", '"'])
+@pytest.mark.parametrize("newline", ["\r", "\n", "\r\n"])
+@pytest.mark.parametrize("slashes", [0, 2, 4])
+def test_literals_unescaped_short_newline_fails_before_following_source(
+    python_definition, prefix, quote, newline, slashes
+):
+    text = "x=" + prefix + quote + "tail" + "\\" * slashes + newline + "# real\nnext=1"
+    result = scan_tokens(text, python_definition)
+    assert isinstance(result, ReadFailure)
+    diagnostic = result.diagnostics[0]
+    assert diagnostic.stage == ReadStage.LEX
+    assert diagnostic.code == "unterminated-literal"
+    assert diagnostic.span == SourceSpan(2, 2 + len(prefix) + len(quote) + 4 + slashes)
+
+
+@pytest.mark.parametrize("prefix", ["f", "F", "fr", "Rf", "t", "T", "tr", "Rt"])
+@pytest.mark.parametrize("quote", ["'", '"', "'''", '"""'])
+def test_literals_pending_interpolation_is_located_failure(
+    python_definition, prefix, quote
+):
+    text = "x=" + prefix + quote + "{x} # data" + quote
+    result = scan_tokens(text, python_definition)
+    assert isinstance(result, ReadFailure)
+    diagnostic = result.diagnostics[0]
+    assert diagnostic.stage == ReadStage.LEX
+    assert diagnostic.code == "unsupported-interpolation"
+    assert diagnostic.span == SourceSpan(2, 2 + len(prefix) + len(quote))
 
 
 def test_tokens_horizontal_whitespace_never_creates_a_token(python_definition):

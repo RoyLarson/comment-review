@@ -56,7 +56,11 @@ class _Syntax:
     comment: str
     join: str
     quotes: tuple[str, ...]
+    triple_quotes: tuple[str, ...]
     prefixes: frozenset[str]
+    interpolated_prefixes: frozenset[str]
+    case_insensitive_prefixes: bool
+    escape: str
     operators: tuple[str, ...]
 
     @classmethod
@@ -76,7 +80,15 @@ class _Syntax:
             cast(str, comments["marker"]),
             cast(str, layout["explicit_join"]),
             cast(tuple[str, ...], literals["short_quotes"]),
+            cast(tuple[str, ...], literals["triple_quotes"]),
             frozenset(prefix for group in prefixes.values() for prefix in group),
+            frozenset(
+                prefix
+                for group in ("formatted", "raw_formatted", "template", "raw_template")
+                for prefix in prefixes[group]
+            ),
+            cast(bool, literals["case_insensitive_prefixes"]),
+            cast(str, literals["escape_marker"]),
             tuple(sorted(operators, key=len, reverse=True)),
         )
 
@@ -98,7 +110,11 @@ def scan_python(text: str, definition: LanguageDefinition) -> PythonScan | ReadF
         span = SourceSpan(start, end)
         if kind:
             tokens.append(PythonToken(kind, span))
-        if regions and regions[-1].kind == region_kind:
+        if (
+            regions
+            and regions[-1].kind == region_kind
+            and region_kind != RegionKind.LITERAL
+        ):
             regions[-1] = SourceRegion(
                 SourceSpan(regions[-1].span.start, end), region_kind
             )
@@ -126,7 +142,7 @@ def _next_token(
             end += 1
         return "comment", end, RegionKind.COMMENT
     if char in syntax.quotes:
-        return _failure("unsupported-literal", start, start + 1)
+        return _literal_token(text, start, start, "", syntax)
     if text.startswith(syntax.join, start):
         end = start + len(syntax.join)
         if end == len(text) or text[end] not in "\r\n":
@@ -136,12 +152,11 @@ def _next_token(
         end = start + 1
         while end < len(text) and _name_continue(text[end]):
             end += 1
-        if (
-            end < len(text)
-            and text[end] in syntax.quotes
-            and text[start:end].lower() in syntax.prefixes
-        ):
-            return _failure("unsupported-literal", start, end + 1)
+        prefix = text[start:end]
+        if syntax.case_insensitive_prefixes:
+            prefix = prefix.lower()
+        if end < len(text) and text[end] in syntax.quotes and prefix in syntax.prefixes:
+            return _literal_token(text, start, end, prefix, syntax)
         return "identifier", end, RegionKind.CODE
     if char in "0123456789" or (
         char == "." and start + 1 < len(text) and text[start + 1] in "0123456789"
@@ -154,6 +169,35 @@ def _next_token(
         if text.startswith(operator, start):
             return "operator", start + len(operator), RegionKind.CODE
     return _failure("unsupported-character", start, start + 1)
+
+
+def _literal_token(
+    text: str, start: int, quote_start: int, prefix: str, syntax: _Syntax
+) -> tuple[str, int, RegionKind] | ReadFailure:
+    quote = next(
+        (
+            quote
+            for quote in syntax.triple_quotes
+            if text.startswith(quote, quote_start)
+        ),
+        text[quote_start],
+    )
+    end = quote_start + len(quote)
+    if prefix in syntax.interpolated_prefixes:
+        return _failure("unsupported-interpolation", start, end)
+    triple = quote in syntax.triple_quotes
+    while end < len(text):
+        if text.startswith(quote, end):
+            return "string", end + len(quote), RegionKind.LITERAL
+        if text.startswith(syntax.escape, end):
+            end += len(syntax.escape)
+            if end < len(text):
+                end += 2 if text.startswith("\r\n", end) else 1
+        elif not triple and text[end] in "\r\n":
+            return _failure("unterminated-literal", start, end)
+        else:
+            end += 1
+    return _failure("unterminated-literal", start, end)
 
 
 def _name_start(char: str) -> bool:
