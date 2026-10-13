@@ -451,7 +451,7 @@ complete merely because this plan or its interfaces are approved.
 
 ### D - [2026-10-12-python-continuation-eof](../../TODO/2026-10-12-python-continuation-eof.md)
 
-- [ ] T1 | Accept joined final whitespace at EOF; logical_lines tests still
+- [~] T1 | Accept joined final whitespace at EOF; logical_lines tests still
       refuse an immediately unfinished continuation.
 
 ## Plan Tasks
@@ -499,10 +499,12 @@ complete merely because this plan or its interfaces are approved.
       evidence with its RED/GREEN command
 - [ ] P18 | Set Python additions rewrites and removals; verify task 18 evidence
       with its RED/GREEN command
+        > 2026-10-12 After P20/P21; paired proof is needed for sole-doc removal.
 - [ ] P19 | Match moves against complete decoded prose; verify task 19 evidence
       with its RED/GREEN command
 - [ ] P20 | Compare Python executable structure; verify task 20 evidence with
       its RED/GREEN command
+        > 2026-10-12 Execute after P17 so setting can consume paired comparison.
 - [ ] P21 | Match documentation ownership across reads; verify task 21 evidence
       with its RED/GREEN command
 - [ ] P22 | Use one Python comparison at both proof gates; verify task 22
