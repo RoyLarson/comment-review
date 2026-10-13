@@ -2842,6 +2842,151 @@ def test_sections_documentation_owns_complete_concatenated_statement(python_defi
     assert result.source.reconstruct() == text
 
 
+@pytest.mark.parametrize("ending", ["\n", "\r\n"])
+@pytest.mark.parametrize(
+    "text, raw, place, code",
+    [
+        (
+            'x=f"{value # note\n}"; after()\n',
+            "# note\n",
+            "c0",
+            {1: 'x=f"{value ', 2: '}"; after()'},
+        ),
+        (
+            'x=f"""{\n    # note\n    value\n}"""; after()\n',
+            "    # note\n",
+            "b1",
+            {1: 'x=f"""{', 3: "    value", 4: '}"""; after()'},
+        ),
+        (
+            'x=f"""{value # first\n\n    # second\n}"""; after()\n',
+            "# first\n\n    # second\n",
+            "c0",
+            {1: 'x=f"""{value ', 4: '}"""; after()'},
+        ),
+        (
+            'x=f"""{\n    # first\n\n    # second\n    value\n}"""; after()\n',
+            "    # first\n\n    # second\n",
+            "b1",
+            {1: 'x=f"""{', 5: "    value", 6: '}"""; after()'},
+        ),
+        (
+            'x=f"""{f\'{\n    # note\n    value\n}\'}"""; after()\n',
+            "    # note\n",
+            "b1",
+            {1: 'x=f"""{f\'{', 3: "    value", 4: '}\'}"""; after()'},
+        ),
+        (
+            'x=f"{before}{value # note\n}{after}"; work()\n',
+            "# note\n",
+            "c0",
+            {1: 'x=f"{before}{value ', 2: '}{after}"; work()'},
+        ),
+        (
+            'x=f"{value:{width # note\n}}"; work()\n',
+            "# note\n",
+            "c0",
+            {1: 'x=f"{value:{width ', 2: '}}"; work()'},
+        ),
+        (
+            'x=f"{value # note } f\' x\n}"; after()\n',
+            "# note } f' x\n",
+            "c0",
+            {1: 'x=f"{value ', 2: '}"; after()'},
+        ),
+    ],
+)
+def test_expression_comments_existing_places_preserve_expression_on_set_and_edit(
+    python_definition, ending, text, raw, place, code
+):
+    from conftest import build
+
+    from comment_review.binder.page import Page, attach, code_lines
+    from comment_review.reading.addresser import address_for, cue
+    from comment_review.reading.paragraph import Paragraph
+    from comment_review.results.compositor import set_page
+
+    text = text.replace("\n", ending)
+    raw = raw.replace("\n", ending)
+    scan, _, _, _, result = project_sections(text, python_definition)
+    assert not isinstance(result, ReadFailure)
+    start = text.index(raw)
+    end = start + len(raw)
+    assert result.source.sections == (SourceSection(SourceSpan(start, end), "#"),)
+    assert [
+        text[token.span.start : token.span.end]
+        for token in scan.tokens
+        if token.kind == "comment"
+    ] == [line.lstrip() for line in raw.splitlines() if line.strip()]
+    section = result.source.sections[0]
+    position = result.source.position(section.span.start)
+    first_line = position.line
+    last_line = result.source.position(section.span.end - 1).line
+    prefix = text[start - position.column : start]
+    paragraph = Paragraph(
+        path="m.py",
+        start=first_line,
+        end=last_line,
+        kind="trailing-comment" if prefix.strip() else "comment",
+        lines=last_line - first_line + 1,
+        text=raw,
+        anchor=prefix,
+        raw_lines=result.source.slice(section.span).splitlines(),
+    )
+    anchors = code_lines(text, [vars(paragraph)])
+    assert anchors == code
+    cues = cue(anchors, {}, None)
+    assert attach(vars(paragraph), cues) == place
+    assert cues.anchor_line(place) == (
+        first_line if place.startswith("c") else last_line + 1
+    )
+    paragraph.address = address_for("m.py", place)
+    page = Page("m.py", text, "held", [paragraph], cues, build("").reading)
+    assert set_page(page) == text
+    original_anchors = dict(cues.places)
+    replacement = raw.replace("# note", "# edited").replace("# first", "# edited")
+    replacement += "    # added" + ending
+    paragraph.raw_lines = replacement.splitlines()
+    assert set_page(page) == text[:start] + replacement + text[end:]
+    paragraph.raw_lines = []
+    assert (
+        set_page(page)
+        == text[:start] + (ending if place.startswith("c") else "") + text[end:]
+    )
+    assert cues.places == original_anchors
+
+
+@pytest.mark.parametrize(
+    "text, kind",
+    [
+        ('x=t"{ value # observable\n }"; after()\n', "template-expression"),
+        ('x=f"{ value # observable\n = }"; after()\n', "debug-expression"),
+        ("x=t\"{f'{value # observable\n}'}\"; after()\n", "template-expression"),
+        ("x=f\"{f'{value # observable\n}'=}\"; after()\n", "debug-expression"),
+    ],
+)
+def test_expression_comments_protected_outer_spans_keep_nested_recognition(
+    python_definition, text, kind
+):
+    scan, _, _, _, result = project_sections(text, python_definition)
+    assert not isinstance(result, ReadFailure)
+    comment = next(token for token in result.tokens if token.kind == "comment")
+    assert text[comment.span.start : comment.span.end] == "# observable"
+    assert any(
+        protected.kind == kind
+        and protected.span.start <= comment.span.start
+        and comment.span.end <= protected.span.end
+        for protected in result.protected
+    )
+    assert any(
+        region.kind == RegionKind.COMMENT and region.span == comment.span
+        for region in result.source.regions
+    )
+    assert result.source.sections == ()
+    assert result.tokens is scan.tokens
+    assert result.source.reconstruct() == text
+
+
 def test_sections_documentation_retains_same_line_header_and_following_code(
     python_definition,
 ):

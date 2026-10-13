@@ -528,6 +528,7 @@ complete merely because this plan or its interfaces are approved.
         > 2026-10-13 Refuse overlapping editable comments inside doc expressions.
 - [~] P15 | Admit expression comments at existing places; verify task 15
       evidence with its RED/GREEN command
+        > 2026-10-13 Refuse only demonstrated unrepresentable expression comments.
 - [ ] P16 | Integrate Python reads into page construction; verify task 16
       evidence with its RED/GREEN command
         > 2026-10-13 Include scanner/structure/directives for leading BOM ownership.
