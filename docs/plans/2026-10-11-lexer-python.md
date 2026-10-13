@@ -2,8 +2,8 @@
 
 ```
 Status:   in-progress
-Progress: 0 of 9 TODO tasks closed
-Plan-tasks: 2 of 26 plan tasks closed
+Progress: 1 of 9 TODO tasks closed
+Plan-tasks: 3 of 26 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (founded by move-t from 2026-10-11-lexical-readers)
@@ -444,9 +444,9 @@ complete merely because this plan or its interfaces are approved.
 - [ ] T44 | Document the Python preservation contract beside its comparison
 - [ ] T45 | Expose complete Python docstrings with their lexical owners
 
-### C - [2026-10-12-python-numeric-keyword-boundaries](../../TODO/2026-10-12-python-numeric-keyword-boundaries.md)
+### C - [2026-10-12-python-numeric-keyword-boundaries](../../TODO/completed/2026-10-12-python-numeric-keyword-boundaries.md)
 
-- [ ] T1 | Read numeric keyword boundaries; tokens tests accept 1if and 1jand
+- [x] T1 | Read numeric keyword boundaries; tokens tests accept 1if and 1jand
       while malformed numeric suffixes refuse.
 
 ## Plan Tasks
@@ -458,10 +458,10 @@ complete merely because this plan or its interfaces are approved.
 - [x] P2 | 32 record and 284 source tests pass; independent review clean | 7b6ea2bd | Represent
       a validated structured Python read; verify task 2 evidence with its
       RED/GREEN command
-- [~] P3 | Scan basic Python tokens; verify task 3 evidence with its RED/GREEN
-      command
+- [x] P3 | 158 reader tests pass; numeric repair review clean | d9f6ee81 | Scan
+      basic Python tokens; verify task 3 evidence with its RED/GREEN command
         > 2026-10-12 Repair numeric-keyword boundary refusal from task review.
-- [ ] P4 | Scan ordinary Python literals; verify task 4 evidence with its
+- [~] P4 | Scan ordinary Python literals; verify task 4 evidence with its
       RED/GREEN command
 - [ ] P5 | Recognize logical lines and indentation; verify task 5 evidence with
       its RED/GREEN command

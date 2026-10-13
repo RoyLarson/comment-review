@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (124)
+### open  (123)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -305,7 +305,6 @@ that changed a published name or rule:
 | [lexical-code-identity](lexical-code-identity.md) | backend | -- | 0/2 | Use lexical code identity at both proof boundaries |
 | [collate-file-input](collate-file-input.md) | backend | -- | 0/1 | Read collation inputs from a file |
 | [2026-10-11-maintained-source-selection](2026-10-11-maintained-source-selection.md) | agents | -- | 0/1 | Select maintained source for review |
-| [2026-10-12-python-numeric-keyword-boundaries](2026-10-12-python-numeric-keyword-boundaries.md) | backend | -- | 0/1 | Scanner refuses accepted numeric literals adjacent to keywords. |
 
 ### in-progress  (18)
 
@@ -496,3 +495,4 @@ the reason is inside the file.
 | [transcribe-source-identity](completed/transcribe-source-identity.md) | 1 finished |
 | [2026-10-11-language-registry-contract](completed/2026-10-11-language-registry-contract.md) | 4 finished |
 | [2026-10-11-source-reading-contract](completed/2026-10-11-source-reading-contract.md) | 29 finished |
+| [2026-10-12-python-numeric-keyword-boundaries](completed/2026-10-12-python-numeric-keyword-boundaries.md) | 1 finished |
