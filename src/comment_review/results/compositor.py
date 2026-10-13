@@ -62,33 +62,10 @@ from comment_review import constants, exceptions
 from comment_review.binder.page import Page
 from comment_review.machine.repo import write_raw
 from comment_review.reading.addresser import GAP, ON, cue_of
-from comment_review.reading.python.records import PythonRead
 from comment_review.reading.series import Kind
-from comment_review.reading.source import SourceSpan
 
 CRLF = "\r\n"
 LF = "\n"
-
-
-def _splice_python(read: PythonRead, replacements: dict[SourceSpan, str]) -> str:
-    """Replace exact retained sections while keeping all other source characters."""
-    sections = {section.span for section in read.source.sections}
-    spans = sorted(replacements, key=lambda span: span.start)
-    boundary = 0
-    out = []
-    for span in spans:
-        if span not in sections or span.start < boundary:
-            raise exceptions.Refused(
-                "Python replacement must select a retained section"
-            )
-        replacement = replacements[span]
-        if not isinstance(replacement, str):
-            raise exceptions.Refused("Python replacement must be source text")
-        out.append(read.source.text[boundary : span.start])
-        out.append(replacement)
-        boundary = span.end
-    out.append(read.source.text[boundary:])
-    return "".join(out)
 
 
 def line_endings(text: str) -> str:

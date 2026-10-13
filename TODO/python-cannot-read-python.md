@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 41 of 48 tasks closed
+Progress: 41 of 49 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-21 (Roy, 2026-08-21, on four sentry files the floor interpreter cannot
@@ -403,10 +403,14 @@ the review, and nothing today protects the review.
 - [ ] T40 | Read Python with owned lexical recognition independent of the host
       AST and tokenizer
         > 2026-10-11 Check: plan P25 forbids AST/tokenizer in real read/proof routes
+        > 2026-10-13 Contract: classify code/documentation, then series A/B/C/D/F.
+        > 2026-10-13 Anchor: all code text on the line, including substring notation.
+        > 2026-10-13 Identifiers and semantic analysis are outside the lexer contract.
 - [ ] T41 | Preserve exact Python round trips over invented boundary fixtures
         > 2026-10-11 Check: plan P26 compares exact bytes through saved setting
         > 2026-10-13 Location: set_page rebuilds inline doc prefixes and c anchors.
         > 2026-10-13 Check: P18 uses retained spans for exact inline-doc round trips.
+        > 2026-10-13 Correction: repair reader output for the existing writer.
 - [ ] T42 | Read supported newer Python syntax on the pinned Python 3.11 runtime
         > 2026-10-11 Check: plan P10 asserts 3.11-3.15 fixture facts on host 3.11
 - [ ] T43 | Reject executable Python mutations at both lexical proof gates
@@ -428,3 +432,6 @@ the review, and nothing today protects the review.
       internal blanks in Python comment section length
         > 2026-10-13 Location: projection.py:224 excludes blanks from Paragraph.lines.
         > 2026-10-13 Check: fresh and restored sections have identical cap results.
+- [ ] T49 | Remove the Python-specific writer additions
+        > 2026-10-13 Check: results matches parent; renderer and callers are absent.
+        > 2026-10-13 Reason: Roy rejected replacing the existing deterministic writer.

@@ -2,8 +2,8 @@
 
 ```
 Status:   in-progress
-Progress: 8 of 17 TODO tasks closed
-Plan-tasks: 16 of 26 plan tasks closed
+Progress: 8 of 18 TODO tasks closed
+Plan-tasks: 16 of 27 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (founded by move-t from 2026-10-11-lexical-readers)
@@ -446,6 +446,7 @@ complete merely because this plan or its interfaces are approved.
 - [x] T46 | Reject NUL characters throughout Python source
 - [x] T47 | Assign places to comments immediately after Python documentation
 - [x] T48 | Count internal blanks in Python comment section length
+- [ ] T49 | Remove the Python-specific writer additions
 
 ### C - [2026-10-12-python-numeric-keyword-boundaries](../../TODO/completed/2026-10-12-python-numeric-keyword-boundaries.md)
 
@@ -559,6 +560,7 @@ complete merely because this plan or its interfaces are approved.
 - [ ] P20 | Compare Python executable structure; verify task 20 evidence with
       its RED/GREEN command
         > 2026-10-12 Execute after P17 so setting can consume paired comparison.
+        > 2026-10-13 Hold: revise remaining work against the T40 lexical contract.
 - [ ] P21 | Match documentation ownership across reads; verify task 21 evidence
       with its RED/GREEN command
 - [ ] P22 | Use one Python comparison at both proof gates; verify task 22
@@ -572,3 +574,5 @@ complete merely because this plan or its interfaces are approved.
         > 2026-10-12 Include definition/scanner/structure/TOML vocabulary repairs.
 - [ ] P26 | Verify the complete Python review workflow; verify task 26 evidence
       with its RED/GREEN command
+- [ ] P27 | Remove the Python-specific writer additions
+        > 2026-10-13 Check: parent writer restored; dedicated additions absent.
