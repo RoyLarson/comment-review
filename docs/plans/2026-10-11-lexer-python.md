@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 3 of 12 TODO tasks closed
+Progress: 3 of 13 TODO tasks closed
 Plan-tasks: 12 of 26 plan tasks closed
 Owner:    backend
 Requires-Roy: false
@@ -462,6 +462,10 @@ complete merely because this plan or its interfaces are approved.
 
 - [x] T1 | Read subscript annotations headed by match
 
+### G - [2026-10-13-python-cookie-normalization](../../TODO/2026-10-13-python-cookie-normalization.md)
+
+- [ ] T1 | Normalize Python encoding cookie names
+
 ## Plan Tasks
 
 - [x] P1 | Python definition validates; 216 tests and focused static checks pass; review approved | f23a9e18 | Install
@@ -511,6 +515,7 @@ complete merely because this plan or its interfaces are approved.
 - [~] P13 | Protect Python directives and attachment; verify task 13 evidence
       with its RED/GREEN command
         > 2026-10-12 Pass definition and structure for directive rule ownership.
+        > 2026-10-13 Repair valid UTF-8 cookie normalization before completion.
 - [ ] P14 | Project whole Python comment sections; verify task 14 evidence with
       its RED/GREEN command
 - [ ] P15 | Admit expression comments at existing places; verify task 15
