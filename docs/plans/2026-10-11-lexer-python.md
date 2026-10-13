@@ -548,9 +548,12 @@ complete merely because this plan or its interfaces are approved.
         > 2026-10-13 Repair trailing-doc comment places and whole-section line counts.
 - [~] P17 | Render Python documentation from payload records; verify task 17
       evidence with its RED/GREEN command
+        > 2026-10-13 Add retained-section splicing; P18 migrates the complete setter.
 - [ ] P18 | Set Python additions rewrites and removals; verify task 18 evidence
       with its RED/GREEN command
         > 2026-10-12 After P20/P21; paired proof is needed for sole-doc removal.
+        > 2026-10-13 Replace lossy line reconstruction for inline docs and c anchors.
+        > 2026-10-13 Include wrapping/galley tests for complete-statement raw text.
 - [ ] P19 | Match moves against complete decoded prose; verify task 19 evidence
       with its RED/GREEN command
 - [ ] P20 | Compare Python executable structure; verify task 20 evidence with

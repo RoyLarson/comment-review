@@ -405,6 +405,8 @@ the review, and nothing today protects the review.
         > 2026-10-11 Check: plan P25 forbids AST/tokenizer in real read/proof routes
 - [ ] T41 | Preserve exact Python round trips over invented boundary fixtures
         > 2026-10-11 Check: plan P26 compares exact bytes through saved setting
+        > 2026-10-13 Location: set_page rebuilds inline doc prefixes and c anchors.
+        > 2026-10-13 Check: P18 uses retained spans for exact inline-doc round trips.
 - [ ] T42 | Read supported newer Python syntax on the pinned Python 3.11 runtime
         > 2026-10-11 Check: plan P10 asserts 3.11-3.15 fixture facts on host 3.11
 - [ ] T43 | Reject executable Python mutations at both lexical proof gates
