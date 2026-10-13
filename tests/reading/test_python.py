@@ -930,3 +930,136 @@ def test_tokens_numeric_keyword_boundaries_reject_false_suffixes(
     assert isinstance(result, ReadFailure)
     assert result.diagnostics[0].stage == ReadStage.LEX
     assert result.diagnostics[0].span == SourceSpan(0, end)
+
+
+def read_logical_lines(text, definition):
+    scan = scan_tokens(text, definition)
+    assert not isinstance(scan, ReadFailure)
+    try:
+        structure = import_module("comment_review.reading.python.structure")
+    except ModuleNotFoundError:
+        pytest.fail("Python logical lines are not implemented", pytrace=False)
+    return scan, structure.logical_lines(scan, definition)
+
+
+@pytest.mark.parametrize(
+    ("text", "expected", "spellings"),
+    [
+        ("", [], []),
+        ("  # c\r\n\t\n# last", [], []),
+        ("x=1\n", [(0, 4, (0, 1, 2), 0)], [["x", "=", "1"]]),
+        ("  x=1", [(0, 5, (0, 1, 2), 2)], [["x", "=", "1"]]),
+        (
+            "x=(\n 1, # c\n [2]\n)\ny=3",
+            [(0, 19, (0, 1, 2, 4, 5, 8, 9, 10, 12), 0), (19, 22, (14, 15, 16), 0)],
+            [["x", "=", "(", "1", ",", "[", "2", "]", ")"], ["y", "=", "3"]],
+        ),
+        (
+            "  x=1+\\\r\n  2\r\nz=3",
+            [(0, 14, (0, 1, 2, 3, 6), 2), (14, 17, (8, 9, 10), 0)],
+            [["x", "=", "1", "+", "2"], ["z", "=", "3"]],
+        ),
+        (
+            "if x:\n\ty=1\n\tz=2\nw=3\n",
+            [
+                (0, 6, (0, 1, 2), 0),
+                (6, 11, (4, 5, 6), 8),
+                (11, 16, (8, 9, 10), 8),
+                (16, 20, (12, 13, 14), 0),
+            ],
+            [["if", "x", ":"], ["y", "=", "1"], ["z", "=", "2"], ["w", "=", "3"]],
+        ),
+        ("\t \fy=1\n", [(0, 7, (0, 1, 2), 0)], [["y", "=", "1"]]),
+        (
+            "x=1;y=2 # c\n",
+            [(0, 12, (0, 1, 2, 3, 4, 5, 6), 0)],
+            [["x", "=", "1", ";", "y", "=", "2"]],
+        ),
+        (
+            "x=1\\\n\ny=2",
+            [(0, 6, (0, 1, 2), 0), (6, 9, (6, 7, 8), 0)],
+            [["x", "=", "1"], ["y", "=", "2"]],
+        ),
+        ("    \\\n x=1\n", [(0, 11, (2, 3, 4), 4)], [["x", "=", "1"]]),
+        (
+            "x=1\r\ny=2\rz=3\n",
+            [(0, 5, (0, 1, 2), 0), (5, 9, (4, 5, 6), 0), (9, 13, (8, 9, 10), 0)],
+            [["x", "=", "1"], ["y", "=", "2"], ["z", "=", "3"]],
+        ),
+    ],
+)
+def test_logical_lines_exact_boundaries_and_significant_tokens(
+    python_definition, text, expected, spellings
+):
+    scan, result = read_logical_lines(text, python_definition)
+    assert not isinstance(result, ReadFailure)
+    assert isinstance(result, tuple)
+    assert [
+        (line.span.start, line.span.end, line.tokens, line.indent) for line in result
+    ] == expected
+    assert [
+        [text[scan.tokens[i].span.start : scan.tokens[i].span.end] for i in line.tokens]
+        for line in result
+    ] == spellings
+    assert scan.text == text
+
+
+def test_logical_lines_comments_and_blanks_leave_first_body_statement(
+    python_definition,
+):
+    text = 'def f():\n # c\n\n    "doc"\n'
+    scan, result = read_logical_lines(text, python_definition)
+    assert not isinstance(result, ReadFailure)
+    assert [(line.span, line.tokens, line.indent) for line in result] == [
+        (SourceSpan(0, 9), (0, 1, 2, 3, 4), 0),
+        (SourceSpan(15, 25), (9,), 4),
+    ]
+    assert SourceRegion(SourceSpan(10, 13), RegionKind.COMMENT) in scan.regions
+    assert (
+        text[scan.tokens[result[1].tokens[0]].span.start : scan.tokens[9].span.end]
+        == '"doc"'
+    )
+
+
+def test_logical_lines_literal_interiors_are_opaque(python_definition):
+    text = 'x="""[\n# }\r\n)"""\ny="[ # ]"'
+    scan, result = read_logical_lines(text, python_definition)
+    assert not isinstance(result, ReadFailure)
+    assert [(line.span, line.tokens, line.indent) for line in result] == [
+        (SourceSpan(0, 17), (0, 1, 2), 0),
+        (SourceSpan(17, 26), (4, 5, 6), 0),
+    ]
+    assert (
+        text[scan.tokens[2].span.start : scan.tokens[2].span.end] == '"""[\n# }\r\n)"""'
+    )
+
+
+@pytest.mark.parametrize(
+    ("text", "code", "span"),
+    [
+        ("x=(]\n", "mismatched-bracket", SourceSpan(3, 4)),
+        ("x=)\n", "mismatched-bracket", SourceSpan(2, 3)),
+        ("x=(1\n", "unfinished-join", SourceSpan(2, 3)),
+        ("x=1\\\n", "incomplete-continuation", SourceSpan(3, 4)),
+        ("\\\r\n", "incomplete-continuation", SourceSpan(0, 1)),
+        ("x\n    y\n  z\n", "inconsistent-indentation", SourceSpan(8, 10)),
+        ("x\n\ty\n        z\n", "ambiguous-indentation", SourceSpan(5, 13)),
+        ("x\n    y\n\tz\n", "ambiguous-indentation", SourceSpan(8, 9)),
+        ("x\n\ty\n\t z\n        w\n", "ambiguous-indentation", SourceSpan(9, 17)),
+    ],
+)
+def test_logical_lines_located_failures(python_definition, text, code, span):
+    _, result = read_logical_lines(text, python_definition)
+    assert isinstance(result, ReadFailure)
+    diagnostic = result.diagnostics[0]
+    assert diagnostic.stage == ReadStage.LEX
+    assert diagnostic.code == code
+    assert diagnostic.span == span
+
+
+@pytest.mark.parametrize("text", ["x=1\\ # c\n", "x=1\\ \n", "x=1\\", "x=1\\y\n"])
+def test_logical_lines_invalid_backslash_placement_is_located(python_definition, text):
+    result = scan_tokens(text, python_definition)
+    assert isinstance(result, ReadFailure)
+    assert result.diagnostics[0].stage == ReadStage.LEX
+    assert result.diagnostics[0].span == SourceSpan(3, 4)
