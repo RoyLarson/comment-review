@@ -3,7 +3,7 @@
 ```
 Status:   in-progress
 Progress: 2 of 11 TODO tasks closed
-Plan-tasks: 5 of 26 plan tasks closed
+Plan-tasks: 6 of 26 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (founded by move-t from 2026-10-11-lexical-readers)
@@ -478,10 +478,11 @@ complete merely because this plan or its interfaces are approved.
       command
         > 2026-10-12 Pass definition explicitly to keep layout rules Python-owned.
         > 2026-10-12 Repair joined final-whitespace refusal found in task review.
-- [~] P6 | Scan nested formatted-string expressions; verify task 6 evidence with
-      its RED/GREEN command
+- [x] P6 | 801 reader tests pass; nested fields reviewed | 008b46f0 | Scan
+      nested formatted-string expressions; verify task 6 evidence with its
+      RED/GREEN command
         > 2026-10-12 Include structure.py to consume interpolation boundary events.
-- [ ] P7 | Protect observable interpolation source; verify task 7 evidence with
+- [~] P7 | Protect observable interpolation source; verify task 7 evidence with
       its RED/GREEN command
 - [ ] P8 | Recognize Python statements and suites; verify task 8 evidence with
       its RED/GREEN command
