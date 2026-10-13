@@ -18,6 +18,7 @@ from comment_review.binder.binder import bind
 from comment_review.binder.page import Page, page_for
 from comment_review.flows import page_for as page_for_mod
 from comment_review.flows import proof_setter
+from comment_review.flows.language_definitions import installed_registry
 from comment_review.flows.read_diagnostics import LocatedReadFailure, format_failure
 from comment_review.machine.repo import Source
 from comment_review.reading.addresser import Cues
@@ -25,11 +26,209 @@ from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, Read
 from comment_review.reading.lexer import language_for
 
 
+def test_python_page_retains_complete_structured_read():
+    text = '"module"; x = 1\ndef f[T](): "a\\n" "b"; return 1\n'
+    page = page_for_mod.page_of(Path("m.py"), source=Source(text, "held"))
+    assert isinstance(page, Page)
+    assert page.python_read is not None
+    assert page.python_read.source.text is text
+    assert [section.form for section in page.python_read.source.sections] == [
+        "docstring",
+        "docstring",
+    ]
+    assert [payload.text for payload in page.python_read.payloads] == ["module", "a\nb"]
+    assert [owner.declaration for owner in page.python_read.source.documentation] == [
+        None,
+        0,
+    ]
+    assert page.reading.reader == "python-lexical"
+    assert {b.address.rsplit("@", 1)[-1] for b in page.prose} == {"a0", "a1"}
+    assert any("x = 1" in b.anchor for b in page)
+    assert any("return 1" in b.anchor for b in page)
+
+
+def test_python_page_bom_and_effective_cookie_preserve_exact_bytes():
+    raw = b'\xef\xbb\xbf# coding: utf-8\r\n"module"\r\nx=1\r\n'
+    text = raw.decode("utf-8")
+    page = page_for_mod.page_of(Path("m.py"), source=Source(text, "held"))
+    assert isinstance(page, Page)
+    assert page.python_read is not None
+    assert page.python_read.source.reconstruct().encode("utf-8") == raw
+    assert page.python_read.payloads[0].text == "module"
+    assert [item.kind for item in page.python_read.protected] == ["encoding"]
+
+
+def test_python_page_whole_comments_and_matter_boundaries():
+    text = "# front\n\n# before\nx=1\n# a\n\n# b\ny=2\n# after\n\n# back\n"
+    page = page_for_mod.page_of(Path("m.py"), source=Source(text, "held"))
+    assert isinstance(page, Page)
+    assert page.python_read is not None
+    assert len(page.python_read.source.sections) == 3
+    prose = {p.address.rsplit("@", 1)[-1]: p.raw_text for p in page if p.raw_text}
+    assert prose["f0"] == "# front"
+    assert "# a\n\n# b" in prose.values()
+    assert prose["f1"] == "# back"
+
+
+def test_python_page_recognizes_once_and_retains_object_and_definition(monkeypatch):
+    from comment_review.flows import reading_context
+    from comment_review.reading import readers
+
+    text = '"module"\ndef f():\n    "doc"\n    pass\n'
+    registry = installed_registry()
+    assert not isinstance(registry, ReadFailure)
+    definition = registry.for_path(Path("m.py"))
+    acquired = []
+    recognized = []
+    contexts = []
+    original_read = readers.read_python
+    original_resolve = reading_context.resolve_context
+
+    def acquire():
+        acquired.append(True)
+        return registry
+
+    def recognize(source, grammar):
+        assert grammar is definition
+        result = original_read(source, grammar)
+        recognized.append(result)
+        return result
+
+    def resolve(grammar, *args, **kwargs):
+        contexts.append(grammar)
+        return original_resolve(grammar, *args, **kwargs)
+
+    def forbidden(*args, **kwargs):
+        pytest.fail("Python page rediscovered source interpretation")
+
+    monkeypatch.setattr(page_for_mod, "installed_registry", acquire)
+    monkeypatch.setattr(readers, "read_python", recognize)
+    monkeypatch.setattr(reading_context, "resolve_context", resolve)
+    monkeypatch.setattr(page_mod, "declarations", forbidden)
+    monkeypatch.setattr(page_mod, "code_lines", forbidden)
+    page = page_for_mod.page_of(Path("m.py"), source=Source(text, "held"))
+    assert isinstance(page, Page)
+    assert acquired == [True]
+    assert contexts == [definition]
+    assert len(recognized) == 1
+    assert page.python_read is recognized[0]
+    assert page.python_read.source.text is page.text is text
+    assert set(page.serialize()) == {"path", "sha", "reading", "rows"}
+
+
+@pytest.mark.parametrize(
+    "text, addresses",
+    [
+        ("", {"a0"}),
+        ("def f():\n", {"a0", "a1"}),
+        ("class C:\n    def f():\n", {"a0", "a1", "a2"}),
+    ],
+)
+def test_python_page_empty_documentation_places(text, addresses):
+    page = page_for_mod.page_of(Path("m.pyi"), source=Source(text, "held"))
+    assert isinstance(page, Page)
+    assert {
+        p.address.rsplit("@", 1)[-1] for p in page if p.kind == "undocumented"
+    } == addresses
+
+
+def test_python_page_documentation_raw_text_uses_existing_line_convention():
+    text = 'def f():\r\n    ("a\\n"\r\n     "b")\r\n    pass\r\n'
+    page = page_for_mod.page_of(Path("m.py"), source=Source(text, "held"))
+    assert isinstance(page, Page)
+    assert page.python_read is not None
+    doc = next(p for p in page if p.kind == "docstring")
+    assert doc.text == "a\nb"
+    assert doc.raw_text == '    ("a\\n"\n     "b")'
+    assert page.python_read.source.text.encode("utf-8") == text.encode("utf-8")
+
+
+@pytest.mark.parametrize(
+    "text, expected",
+    [
+        ('x=f"{value # first\n\n # second\n}"\n', ["c0"]),
+        ('x=f"""{\n # first\n\n # second\n value\n}"""\n', ["b1"]),
+    ],
+)
+def test_python_page_interpolation_comments_keep_whole_sections(text, expected):
+    page = page_for_mod.page_of(Path("m.py"), source=Source(text, "held"))
+    assert isinstance(page, Page)
+    assert page.python_read is not None
+    assert len(page.python_read.source.sections) == 1
+    assert [p.address.rsplit("@", 1)[-1] for p in page.prose] == expected
+    assert len(page.prose) == 1
+    assert "# first\n\n # second" in page.prose[0].raw_text
+
+
+def test_python_page_protected_directives_do_not_become_editable_prose():
+    text = "# coding: utf-8\nx=1 # type: int\ny=2 # type: ignore[attr]\n"
+    page = page_for_mod.page_of(Path("m.py"), source=Source(text, "held"))
+    assert isinstance(page, Page)
+    assert page.python_read is not None
+    assert page.python_read.source.sections == ()
+    assert page.prose == []
+    assert [item.kind for item in page.python_read.protected] == [
+        "encoding",
+        "type-comment",
+        "type-ignore",
+    ]
+
+
+@pytest.mark.parametrize(
+    "literal",
+    [
+        't"""{\n # protected\n value\n}"""',
+        'f"""{value # protected\n =}"""',
+    ],
+)
+def test_python_page_protected_interpolation_comments_remain_uneditable(literal):
+    text = "x=" + literal + "\n"
+    page = page_for_mod.page_of(Path("m.py"), source=Source(text, "held"))
+    assert isinstance(page, Page)
+    assert page.python_read is not None
+    assert page.python_read.source.sections == ()
+    assert page.prose == []
+    assert page.python_read.protected
+
+
+@pytest.mark.parametrize(
+    "text, stage",
+    [
+        ('x="unterminated', ReadStage.LEX),
+        ("x='a\x00b'\n", ReadStage.LEX),
+        ('"\\xQ0"\n', ReadStage.PLACE),
+        ('# coding: latin-1\n"doc"\n', ReadStage.PLACE),
+    ],
+)
+def test_python_page_failures_never_reach_paragraph_adaptation(
+    monkeypatch, text, stage
+):
+    def forbidden(*args):
+        pytest.fail("Incomplete recognition reached paragraph adaptation")
+
+    monkeypatch.setattr(page_mod, "paragraphs_for", forbidden)
+    result = page_for_mod.page_of(Path("m.py"), source=Source(text, "held"))
+    assert isinstance(result, LocatedReadFailure)
+    assert result.diagnostics[0].stage == stage
+    assert result.text is text
+
+
+def test_python_page_definition_acquisition_failure_is_located(monkeypatch):
+    failure = ReadFailure(
+        (ReadDiagnostic(ReadStage.ACQUIRE, "io-error", "grammar absent"),)
+    )
+    monkeypatch.setattr(page_for_mod, "installed_registry", lambda: failure)
+    result = page_for_mod.page_of(Path("m.py"), source=Source("x=1\n", "held"))
+    assert isinstance(result, LocatedReadFailure)
+    assert result.path == "m.py"
+    assert result.diagnostics == failure.diagnostics
+
+
 @pytest.mark.parametrize(
     "path, text",
-    [("m.py", "x=1 # note\n"), ("m.c", "int x; // note\n")],
+    [("m.c", "int x; // note\n")],
 )
-def test_sections_projection_is_not_installed_into_page_selection(
+def test_python_sections_projection_is_not_used_for_other_languages(
     monkeypatch, path, text
 ):
     def forbidden(*args):
@@ -46,7 +245,16 @@ def test_sections_projection_is_not_installed_into_page_selection(
 def test_empty_source_is_a_complete_page():
     lang = language_for(Path("empty.py"))
     assert lang is not None
-    page = page_for(Path("empty.py"), "", lang, sha="empty", reading=build("").reading)
+    registry = installed_registry()
+    assert not isinstance(registry, ReadFailure)
+    page = page_for(
+        Path("empty.py"),
+        "",
+        lang,
+        sha="empty",
+        reading=build("").reading,
+        registry=registry,
+    )
     assert isinstance(page, Page)
     assert page.text == ""
     assert page.sha == "empty"
@@ -55,8 +263,15 @@ def test_empty_source_is_a_complete_page():
 def test_malformed_python_is_a_read_failure():
     lang = language_for(Path("bad.py"))
     assert lang is not None
+    registry = installed_registry()
+    assert not isinstance(registry, ReadFailure)
     page = page_for(
-        Path("bad.py"), "def broken(:\n", lang, sha="bad", reading=build("").reading
+        Path("bad.py"),
+        "def broken(:\n",
+        lang,
+        sha="bad",
+        reading=build("").reading,
+        registry=registry,
     )
     assert isinstance(page, ReadFailure)
     assert page.diagnostics[0].stage.value == "lex"
@@ -109,7 +324,9 @@ def test_unavailable_binding_is_never_invoked_or_addressed(monkeypatch):
 
     from comment_review.reading import readers
 
-    selected = readers.reader_for(Path("m.py"))
+    registry = installed_registry()
+    assert not isinstance(registry, ReadFailure)
+    selected = readers.reader_for(Path("m.py"), registry)
     assert selected is not None and not isinstance(selected, ReadFailure)
     definition, binding = selected
 
@@ -132,10 +349,10 @@ def test_unavailable_binding_is_never_invoked_or_addressed(monkeypatch):
 
 
 def test_unexpected_reader_exception_propagates(monkeypatch):
-    def broken_reader(*args):
+    def broken_reader(*args, **kwargs):
         raise RuntimeError("reader bug")
 
-    monkeypatch.setattr(page_mod, "read_paragraphs", broken_reader)
+    monkeypatch.setattr(page_mod, "read_source", broken_reader)
     with pytest.raises(RuntimeError, match="reader bug"):
         page_for_mod.page_of(Path("m.py"), source=Source("v = 1\n", "held"))
 
@@ -168,7 +385,7 @@ def test_known_placement_refusal_is_an_outcome(monkeypatch, series, cue_name, me
     cues = Cues()
     cues.addressers[series].places[cue_name] = "<module>"
     monkeypatch.setattr(page_mod, "places_on", lambda *args: cues)
-    result = page_for_mod.page_of(Path("m.py"), source=Source("", "held"))
+    result = page_for_mod.page_of(Path("m.c"), source=Source("", "held"))
     assert isinstance(result, LocatedReadFailure)
     assert result.diagnostics == (
         ReadDiagnostic(

@@ -44,7 +44,8 @@ def directives_in(
         (token.span.start for token in scan.tokens if token.kind == "newline"),
         default=len(scan.text),
     )
-    first_line = scan.text[:first_line_end].lstrip(" \t\f")
+    preamble_start = 1 if scan.text.startswith("\ufeff") else 0
+    first_line = scan.text[preamble_start:first_line_end].lstrip(" \t\f")
     second_allowed = rules[
         "encoding_second_line"
     ] == "comment-or-blank-first-line" and (
@@ -69,7 +70,9 @@ def directives_in(
             and (position.line != 2 or second_allowed)
             and (
                 not rules["encoding_own_line"]
-                or not scan.text[line_start : span.start].strip(" \t\f")
+                or not scan.text[max(line_start, preamble_start) : span.start].strip(
+                    " \t\f"
+                )
             )
         ):
             match = encoding_pattern.search(text)

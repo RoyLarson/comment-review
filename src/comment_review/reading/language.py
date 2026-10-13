@@ -526,7 +526,6 @@ class ReaderMetadata:
 
 READER_METADATA = MappingProxyType(
     {
-        "python": ReaderMetadata("python-stdlib", "1", ("comments", "tokenized")),
         "rust": ReaderMetadata("rust-lexical", "1", ("comments", "lexical")),
         "go": ReaderMetadata("go-lexical", "1", ("comments", "lexical")),
         "c": ReaderMetadata("c-lexical", "1", ("comments", "lexical")),
@@ -633,4 +632,13 @@ BY_EXT = MappingProxyType(
 def language_for(path: Path) -> Language | None:
     """Installed code grammar for a path, excluding non-code suffixes."""
     value = INSTALLED_REGISTRY.for_path(path)
-    return language_from_definition(value) if value is not None else None
+    if value is not None:
+        return language_from_definition(value)
+    return next(
+        (
+            lang
+            for lang in LANGUAGES
+            if lang.name == "python" and path.suffix.lower() in lang.extensions
+        ),
+        None,
+    )

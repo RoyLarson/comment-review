@@ -287,6 +287,75 @@ def python_definition():
     return definition
 
 
+@pytest.mark.parametrize(
+    "preamble",
+    [
+        b"",
+        b"# coding: utf-8\r\n",
+        b"# header\r\n# coding: UTF_8_SIG\r\n",
+        b"\r\n# coding: utf-8-anything\r\n",
+    ],
+)
+def test_read_python_initial_bom_preserves_exact_source_and_documentation(
+    python_definition, preamble
+):
+    from comment_review.machine.repo import source_from_bytes
+    from comment_review.reading.python import read_python
+
+    raw = b"\xef\xbb\xbf" + preamble + b'"module"\r\nx=1\r\n'
+    source = source_from_bytes(raw)
+    result = read_python(source.text, python_definition)
+    assert not isinstance(result, ReadFailure)
+    assert result.source.text is source.text
+    assert result.source.reconstruct().encode("utf-8") == raw
+    assert result.payloads[0].text == "module"
+    statement = result.payloads[0].expression.statement
+    assert statement.start == 1 + len(preamble)
+    assert result.source.slice(statement) == '"module"'
+    assert [item.kind for item in result.protected] == (
+        ["encoding"] if preamble else []
+    )
+
+
+def test_read_python_bom_does_not_hide_indentation(python_definition):
+    from comment_review.reading.python import read_python
+
+    result = read_python('\ufeff    "doc"\n', python_definition)
+    assert isinstance(result, ReadFailure)
+
+
+def test_read_python_bom_cookie_still_rejects_incompatible_encoding(python_definition):
+    from comment_review.reading.python import read_python
+
+    result = read_python('\ufeff# coding: latin-1\n"doc"\n', python_definition)
+    assert isinstance(result, ReadFailure)
+    assert result.diagnostics[0].code == "unsupported-source-encoding"
+    assert result.diagnostics[0].span == SourceSpan(1, 18)
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "\x00",
+        "# nul\x00\n",
+        "x='a\x00b'\n",
+        'x=f"a\x00{value}"\n',
+        '"doc\x00"\n',
+    ],
+)
+def test_tokens_source_nul_refuses_even_inside_literals_and_comments(
+    python_definition, text
+):
+    result = scan_tokens(text, python_definition)
+    assert isinstance(result, ReadFailure)
+    at = text.index("\x00")
+    assert result.diagnostics == (
+        ReadDiagnostic(
+            ReadStage.LEX, "source-nul", "source nul", SourceSpan(at, at + 1)
+        ),
+    )
+
+
 def scan_tokens(text, definition):
     try:
         scanner = import_module("comment_review.reading.python.scanner")

@@ -727,7 +727,6 @@ def test_installed_code_definitions_have_exact_suffixes_and_independent_rules() 
     from comment_review.reading.language import INSTALLED_DEFINITIONS, LANGUAGES
 
     expected = {
-        "python": (".py", ".pyi"),
         "rust": (".rs",),
         "go": (".go",),
         "c": (".c", ".h"),
@@ -755,7 +754,7 @@ def test_installed_code_definitions_have_exact_suffixes_and_independent_rules() 
             for field in fields(row)
             if field.name not in {"name", "extensions"}
         }
-    assert len({id(value.rules) for value in INSTALLED_DEFINITIONS}) == 15
+    assert len({id(value.rules) for value in INSTALLED_DEFINITIONS}) == 14
 
 
 def test_installed_bindings_validate_rules_and_host_identity() -> None:
@@ -821,15 +820,9 @@ def test_installed_bindings_invoke_existing_engines(
     from comment_review.reading import readers
     from comment_review.reading.language import (
         INSTALLED_DEFINITIONS,
-        language_from_definition,
     )
 
     calls = []
-    monkeypatch.setattr(
-        readers,
-        "paragraphs_stdlib",
-        lambda path, text: calls.append(("stdlib", path, text)) or [],
-    )
     monkeypatch.setattr(
         readers,
         "paragraphs_lexical",
@@ -837,9 +830,9 @@ def test_installed_bindings_invoke_existing_engines(
     )
     for value in INSTALLED_DEFINITIONS:
         path = Path("source" + value.suffixes[0])
-        lang = language_from_definition(value)
         assert (
-            readers.INSTALLED_BINDINGS[value.reader].read(path, "exact\r\n", lang) == []
+            readers.INSTALLED_BINDINGS[value.reader].read(path, "exact\r\n", value)
+            == []
         )
         assert calls[-1] == (
             "stdlib" if value.language == "python" else value.language,
@@ -904,7 +897,8 @@ def validate_python_definition(value: Any) -> Any:
     )
 
 
-def test_python_definition_loads_complete_grammar_without_activating_reader() -> None:
+def test_python_definition_loads_complete_grammar_and_installs_lexical_reader() -> None:
+    from comment_review.flows.language_definitions import installed_registry
     from comment_review.reading.readers import INSTALLED_BINDINGS, supported_definitions
 
     value = python_definition()
@@ -912,10 +906,12 @@ def test_python_definition_loads_complete_grammar_without_activating_reader() ->
     assert value.language == "python"
     assert value.suffixes == (".py", ".pyi")
     assert value.defaults == value.choices == {}
-    assert value.reader not in INSTALLED_BINDINGS
-    installed = {item.language: item for item in supported_definitions()}
+    assert value.reader in INSTALLED_BINDINGS
+    registry = installed_registry()
+    assert not isinstance(registry, ReadFailure)
+    installed = {item.language: item for item in supported_definitions(registry)}
     assert len(installed) == 15
-    assert installed["python"].reader == "python-stdlib"
+    assert installed["python"].reader == "python-lexical"
     assert installed["typescript"].suffixes == (".ts", ".tsx", ".mts", ".cts")
     assert value.rules["literals"]["prefixes"]["raw_template"] == ("tr", "rt")
     assert value.rules["documentation"]["literal_groups"] == ("plain", "raw")

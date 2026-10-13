@@ -124,7 +124,7 @@ def _indentation(
 ) -> tuple[tuple[int, int], SourceSpan]:
     width = cast(int, layout["tab_width"])
     normal = alternate = 0
-    end = start
+    end = 1 if start == 0 and text.startswith("\ufeff") else start
     while end < len(text) and text[end] in " \t\f":
         char = text[end]
         if char == "\t":

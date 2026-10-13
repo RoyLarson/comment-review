@@ -80,12 +80,12 @@ def test_fresh_flow_retains_admitted_settings_and_held_source(monkeypatch):
     binding = ReaderBinding(
         "invented-reader", "1", ("comments",), "fixture", lambda *_: [], lambda _: None
     )
-    monkeypatch.setattr(reading_context, "reader_for", lambda _: (definition, binding))
+    monkeypatch.setattr(reading_context, "reader_for", lambda *_: (definition, binding))
     context = reading_context.context_for(Path("missing.py"), {"mode": "wide"})
     assert isinstance(context, ReadingContext)
     received = []
 
-    def selected(path, settings):
+    def selected(path, settings, **kwargs):
         received.append(settings)
         return context
 

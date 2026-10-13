@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 4 of 14 TODO tasks closed
+Progress: 4 of 15 TODO tasks closed
 Plan-tasks: 15 of 26 plan tasks closed
 Owner:    backend
 Requires-Roy: false
@@ -443,6 +443,7 @@ complete merely because this plan or its interfaces are approved.
 - [ ] T43 | Reject executable Python mutations at both lexical proof gates
 - [ ] T44 | Document the Python preservation contract beside its comparison
 - [ ] T45 | Expose complete Python docstrings with their lexical owners
+- [ ] T46 | Reject NUL characters throughout Python source
 
 ### C - [2026-10-12-python-numeric-keyword-boundaries](../../TODO/completed/2026-10-12-python-numeric-keyword-boundaries.md)
 
@@ -534,6 +535,13 @@ complete merely because this plan or its interfaces are approved.
       evidence with its RED/GREEN command
         > 2026-10-13 Include scanner/structure/directives for leading BOM ownership.
         > 2026-10-13 Apply existing f boundaries when adapting whole lexical runs.
+        > 2026-10-13 Flows acquire Python TOML and pass the registry to pure reading.
+        > 2026-10-13 Include definition/context flows and affected reader tests.
+        > 2026-10-13 Include gather listing and shared page-test acquisition helpers.
+        > 2026-10-13 Keep raw_lines conventions; retain exact bytes in PythonRead.
+        > 2026-10-13 Verify Python lexical coverage through the gather command.
+        > 2026-10-13 Refuse source NUL before lexing; include page/gather evidence.
+        > 2026-10-13 Separate read_source dispatch from the paragraph-only adapter.
 - [ ] P17 | Render Python documentation from payload records; verify task 17
       evidence with its RED/GREEN command
 - [ ] P18 | Set Python additions rewrites and removals; verify task 18 evidence

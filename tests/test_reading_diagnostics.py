@@ -1,10 +1,10 @@
-import sys
 from dataclasses import FrozenInstanceError
 from pathlib import Path
 from typing import Any, cast, get_args
 
 import pytest
 
+from comment_review.flows.language_definitions import installed_registry
 from comment_review.flows.read_diagnostics import LocatedReadFailure, format_failure
 from comment_review.reading import lexer, readers
 from comment_review.reading.diagnostics import (
@@ -14,6 +14,8 @@ from comment_review.reading.diagnostics import (
     SourceRead,
 )
 from comment_review.reading.paragraph import Paragraph
+from comment_review.reading.python.projection import paragraphs_for
+from comment_review.reading.python.records import PythonRead
 from comment_review.reading.source import SourceSpan, SourceStructure
 
 
@@ -23,22 +25,17 @@ from comment_review.reading.source import SourceSpan, SourceStructure
         "x = [1,",
         "def f(:\n    pass\n",
         'x = """open',
-        pytest.param(
-            "type Name = int\n",
-            marks=pytest.mark.skipif(
-                sys.version_info >= (3, 12),
-                reason="Type alias statements are supported on Python 3.12+",
-            ),
-        ),
     ],
 )
 def test_read_paragraphs_reports_python_refusal(text):
-    result = readers.read_paragraphs(Path("m.py"), text, lexer.LANGUAGES[0])
+    registry = installed_registry()
+    assert not isinstance(registry, ReadFailure)
+    result = readers.read_paragraphs(
+        Path("m.py"), text, lexer.LANGUAGES[0], registry=registry
+    )
     assert isinstance(result, ReadFailure)
-    assert [(d.stage, d.code, d.span) for d in result.diagnostics] == [
-        (ReadStage.LEX, "incomplete-read", None)
-    ]
-    assert "UNPARSED" in result.diagnostics[0].message
+    assert result.diagnostics[0].stage == ReadStage.LEX
+    assert result.diagnostics[0].span is not None
 
 
 def test_read_paragraphs_unterminated_comment_before_decoration(monkeypatch):
@@ -64,8 +61,10 @@ def test_read_paragraphs_retains_signal_order(monkeypatch):
         Paragraph("m.py", 2, 2, "comment", 1, "open"),
     ]
     records[1].annotations.add("unterminated-paragraph-comment")
-    monkeypatch.setattr(readers, "paragraphs_stdlib", lambda *args: records)
-    result = readers.read_paragraphs(Path("m.py"), "code\n# open", lexer.LANGUAGES[0])
+    monkeypatch.setattr(readers, "paragraphs_lexical", lambda *args: records)
+    lang = lexer.language_for(Path("m.c"))
+    assert lang is not None
+    result = readers.read_paragraphs(Path("m.c"), "code\n# open", lang)
     assert isinstance(result, ReadFailure)
     assert [(d.code, d.span) for d in result.diagnostics] == [
         ("incomplete-read", None),
@@ -77,14 +76,16 @@ def test_read_paragraphs_invalid_record_and_unexpected_error_propagate(monkeypat
     def broken(*args):
         raise RuntimeError("reader defect")
 
-    monkeypatch.setattr(readers, "paragraphs_stdlib", broken)
+    lang = lexer.language_for(Path("m.c"))
+    assert lang is not None
+    monkeypatch.setattr(readers, "paragraphs_lexical", broken)
     with pytest.raises(RuntimeError, match="reader defect"):
-        readers.read_paragraphs(Path("m.py"), "", lexer.LANGUAGES[0])
+        readers.read_paragraphs(Path("m.c"), "", lang)
     record = Paragraph("m.py", 3, 3, "comment", 1, "open")
     record.annotations.add("unterminated-paragraph-comment")
-    monkeypatch.setattr(readers, "paragraphs_stdlib", lambda *args: [record])
+    monkeypatch.setattr(readers, "paragraphs_lexical", lambda *args: [record])
     with pytest.raises(ValueError, match="source lines"):
-        readers.read_paragraphs(Path("m.py"), "# open", lexer.LANGUAGES[0])
+        readers.read_paragraphs(Path("m.c"), "# open", lang)
 
 
 @pytest.mark.parametrize(
@@ -107,7 +108,36 @@ def test_read_paragraphs_preserves_supported_readings(name, text):
     )
     if lang.name != "python":
         lexer.flag_structural_docs(expected, text, lang)
-    assert readers.read_paragraphs(path, text, lang) == expected
+    registry = installed_registry()
+    assert not isinstance(registry, ReadFailure)
+    result = readers.read_source(path, text, registry=registry)
+    if isinstance(result, PythonRead):
+        assert result.source.text is text
+        result = paragraphs_for(path, result)
+    assert result == expected
+
+
+def test_python_paragraph_adapter_recognizes_source_once(monkeypatch):
+    registry = installed_registry()
+    assert not isinstance(registry, ReadFailure)
+    calls = []
+    recognize = readers.read_python
+
+    def counted(text, definition):
+        result = recognize(text, definition)
+        calls.append(result)
+        return result
+
+    monkeypatch.setattr(readers, "read_python", counted)
+    text = 'def f(): "doc"; return 1\n'
+    result = readers.read_paragraphs(
+        Path("m.py"), text, lexer.LANGUAGES[0], registry=registry
+    )
+    assert isinstance(result, list)
+    assert len(calls) == 1
+    assert result == paragraphs_for(Path("m.py"), calls[0])
+    assert isinstance(result[0], Paragraph)
+    assert result[0].text == "doc"
 
 
 def test_stage_values_and_source_read_alternatives():

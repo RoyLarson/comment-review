@@ -70,7 +70,7 @@ from comment_review.reading.addresser import (
 from comment_review.reading.context import ReadingContext
 from comment_review.reading.context_io import context_from_wire, context_to_wire
 from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, ReadStage
-from comment_review.reading.language import language_for
+from comment_review.reading.language import INSTALLED_REGISTRY, language_for
 from comment_review.reading.lexer import (
     Language,
     declarations,
@@ -78,7 +78,14 @@ from comment_review.reading.lexer import (
     leading_between,
 )
 from comment_review.reading.paragraph import Paragraph
-from comment_review.reading.readers import read_paragraphs
+from comment_review.reading.python.projection import (
+    code_for,
+    declarations_for,
+    paragraphs_for,
+)
+from comment_review.reading.python.records import PythonRead
+from comment_review.reading.readers import read_source
+from comment_review.reading.registry import LanguageRegistry
 from comment_review.reading.series import Kind, Series
 
 #: The five fields a place is carried by, in the order `Page.serialize` writes
@@ -182,6 +189,7 @@ class Page:
     # the edge no longer separated, so the one half that could go wrong was the
     # half kept for legibility. See `tie_leading`.
     leading: dict[str, str] = dataclass_field(default_factory=dict)
+    python_read: PythonRead | None = None
 
     def __iter__(self):
         """Down the page, in order."""
@@ -988,9 +996,15 @@ def page_for(
     *,
     sha: str,
     reading: ReadingContext,
+    registry: LanguageRegistry = INSTALLED_REGISTRY,
 ) -> Page | ReadFailure:
     """Admit a complete read before assigning places and source identity."""
-    got = read_paragraphs(path, text, lang)
+    result = read_source(path, text, registry=registry)
+    if isinstance(result, ReadFailure):
+        return result
+    python_read = result if isinstance(result, PythonRead) else None
+    got = paragraphs_for(path, python_read) if python_read is not None else result
+    assert not isinstance(got, PythonRead)
     if isinstance(got, ReadFailure):
         return got
     selected_language = language_for(path)
@@ -1000,9 +1014,14 @@ def page_for(
     cues = Cues()
     edges: dict[str, str] = {}
     prose = [vars(b) for b in got]
-    cues = places_on(text, prose, lang)
-    code = code_lines(text, prose)
-    document_declarations(got, declarations(text, lang, code), code)
+    if python_read is not None:
+        code = code_for(python_read)
+        decls = declarations_for(python_read)
+        cues = cue(code, documentable(decls, code), decls[0][1])
+    else:
+        cues = places_on(text, prose, lang)
+        code = code_lines(text, prose)
+        document_declarations(got, declarations(text, lang, code), code)
     here = rel if rel is not None else path.as_posix()
     files = cues.file_places()
     leads = iter(range(10**9))
@@ -1028,10 +1047,10 @@ def page_for(
         empty.address = address_for(here, empty.address)
         got.append(empty)
     for b in got:
-        cue = b.address.split("@")[-1]
-        b.anchor_line = cues.anchor_line(cue) if cue else None
-        b.anchor_num = cues.anchor_num(cue) if cue else 0
-    fill_the_gaps(text, got)
+        place_name = b.address.split("@")[-1]
+        b.anchor_line = cues.anchor_line(place_name) if place_name else None
+        b.anchor_num = cues.anchor_num(place_name) if place_name else 0
+    fill_the_gaps(text, got, code=code if python_read is not None else None)
     edges = tie_leading(got, cues)
 
     where = rel if rel is not None else path.as_posix()
@@ -1045,10 +1064,13 @@ def page_for(
         paragraphs=sorted(got, key=lambda b: (b.start, b.end)),
         cues=cues,
         leading=edges,
+        python_read=python_read,
     )
 
 
-def fill_the_gaps(text: str, paragraphs: list[Paragraph]) -> None:
+def fill_the_gaps(
+    text: str, paragraphs: list[Paragraph], *, code: dict[int, str] | None = None
+) -> None:
     """Give every line of a gap to the paragraph it belongs to, blanks included.
 
     !! EVERY LINE HAS AN ADDRESS. Ruled 2026-08-19. A prose paragraph was addressed
@@ -1079,9 +1101,11 @@ def fill_the_gaps(text: str, paragraphs: list[Paragraph]) -> None:
     paragraph opened the gap.
     """
     source = constants.text_lines(text)
-    code = list(code_lines(text, [vars(b) for b in paragraphs]))
+    code_lines_in_order = list(
+        code if code is not None else code_lines(text, [vars(b) for b in paragraphs])
+    )
     last = len(source)
-    edges = [0, *code, last + 1]
+    edges = [0, *code_lines_in_order, last + 1]
 
     # !! EVERY OTHER SERIES OWNS ITS LINES EXACTLY, AND `b` TAKES WHAT IS LEFT.
     # Roy, 2026-08-20: *"a's and c's own their lines exactly, b's own all the

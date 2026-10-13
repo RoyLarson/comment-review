@@ -104,6 +104,9 @@ def scan_python(text: str, definition: LanguageDefinition) -> PythonScan | ReadF
     failure = validate_python(definition)
     if failure is not None:
         return failure
+    nul = text.find("\x00")
+    if nul >= 0:
+        return _failure("source-nul", nul, nul + 1)
     syntax = _Syntax.from_definition(definition)
     regions: list[SourceRegion] = []
     tokens: list[PythonToken] = []
@@ -144,6 +147,8 @@ def _next_token(
     text: str, start: int, syntax: _Syntax
 ) -> tuple[str, int, RegionKind] | ReadFailure:
     char = text[start]
+    if start == 0 and char == "\ufeff":
+        return "", 1, RegionKind.WHITESPACE
     if char in " \t\f":
         end = start + 1
         while end < len(text) and text[end] in " \t\f":

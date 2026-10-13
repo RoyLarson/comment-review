@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 38 of 45 tasks closed
+Progress: 38 of 46 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-21 (Roy, 2026-08-21, on four sentry files the floor interpreter cannot
@@ -413,3 +413,7 @@ the review, and nothing today protects the review.
         > 2026-10-11 Check: plan P25 prose states tokens, ownership and limits
 - [ ] T45 | Expose complete Python docstrings with their lexical owners
         > 2026-10-11 Check: plan P11/P12 assert owners and all literal components
+- [ ] T46 | Reject NUL characters throughout Python source
+        > 2026-10-13 Location: scanner.py accepts NUL inside literal source.
+        > 2026-10-13 Check: scanner, page and gather refuse NUL at its source span.
+        > 2026-10-13 Reason: gather regression after installing the lexical reader.

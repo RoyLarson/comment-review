@@ -1,8 +1,13 @@
 """Project retained Python records into whole editable source sections."""
 
+import re
+from pathlib import Path
+
+from comment_review import constants
 from comment_review.reading.coordinates import SourceCoordinates
 from comment_review.reading.definitions import LanguageDefinition
 from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, ReadStage
+from comment_review.reading.paragraph import Paragraph
 from comment_review.reading.python.definition import validate_python
 from comment_review.reading.python.records import (
     DocumentationPayload,
@@ -11,6 +16,7 @@ from comment_review.reading.python.records import (
     PythonScan,
     PythonStructure,
 )
+from comment_review.reading.series import Kind
 from comment_review.reading.source import (
     DocumentationOwner,
     RegionKind,
@@ -124,3 +130,158 @@ def sections_for(
         documentation,
         protected,
     )
+
+
+def paragraphs_for(path: Path, read: PythonRead) -> list[Paragraph] | ReadFailure:
+    """Adapt retained sections, splitting comment runs only at file-matter edges."""
+    text = read.source.text
+    coordinates = SourceCoordinates(text)
+    lines = constants.text_lines(text)
+    payloads = {payload.expression.statement: payload for payload in read.payloads}
+    paragraphs: list[Paragraph] = []
+    for section in read.source.sections:
+        span = section.span
+        first = coordinates.position(span.start)
+        last = coordinates.position(max(span.start, span.end - 1))
+        if section.form == "docstring":
+            payload = payloads[span]
+            ordinal = payload.expression.declaration
+            line_start = span.start - first.column
+            raw_start = (
+                line_start
+                if not text[line_start : span.start].strip(" \t\f")
+                else span.start
+            )
+            paragraphs.append(
+                Paragraph(
+                    path.as_posix(),
+                    first.line,
+                    last.line,
+                    Kind.DOCSTRING,
+                    last.line - first.line + 1,
+                    payload.text,
+                    address=f"a{0 if ordinal is None else ordinal + 1}",
+                    raw_lines=constants.text_lines(text[raw_start : span.end]),
+                )
+            )
+            continue
+        comments = [
+            token
+            for token in read.tokens
+            if token.kind == "comment" and span.start <= token.span.start < span.end
+        ]
+        groups = [comments]
+        first_comment = coordinates.position(comments[0].span.start)
+        first_whole = not lines[first_comment.line - 1][: first_comment.column].strip(
+            " \t\f\ufeff"
+        )
+        if first_whole and first.line == 1:
+            split = next(
+                (
+                    i
+                    for i in range(1, len(comments))
+                    if coordinates.position(comments[i].span.start).line
+                    > coordinates.position(comments[i - 1].span.start).line + 1
+                ),
+                None,
+            )
+            if split is not None:
+                groups = [comments[:split], comments[split:]]
+        tail = groups[-1]
+        tail_start = coordinates.position(tail[0].span.start)
+        tail_whole = not lines[tail_start.line - 1][: tail_start.column].strip(
+            " \t\f\ufeff"
+        )
+        if tail_whole and coordinates.position(tail[-1].span.start).line == len(lines):
+            split = next(
+                (
+                    i
+                    for i in range(len(tail) - 1, 0, -1)
+                    if coordinates.position(tail[i].span.start).line
+                    > coordinates.position(tail[i - 1].span.start).line + 1
+                ),
+                None,
+            )
+            if split is not None:
+                groups[-1:] = [tail[:split], tail[split:]]
+        for group in groups:
+            start = coordinates.position(group[0].span.start)
+            end = coordinates.position(group[-1].span.end)
+            before = lines[start.line - 1][: start.column]
+            trailing = bool(before.strip(" \t\f\ufeff"))
+            kind = Kind.TRAILING if trailing else Kind.COMMENT
+            if not trailing and (start.line == 1 or end.line == len(lines)):
+                kind = Kind.MATTER
+            raw = lines[start.line - 1 : end.line]
+            if trailing:
+                raw[0] = raw[0][len(before.rstrip()) :]
+            paragraphs.append(
+                Paragraph(
+                    path.as_posix(),
+                    start.line,
+                    end.line,
+                    kind,
+                    len(group),
+                    re.sub(
+                        r"\s+",
+                        " ",
+                        " ".join(
+                            text[token.span.start + 1 : token.span.end].strip()
+                            for token in group
+                        ),
+                    ).strip(),
+                    anchor=before.rstrip() if trailing else "",
+                    raw_lines=raw,
+                )
+            )
+    return paragraphs
+
+
+def code_for(read: PythonRead) -> dict[int, str]:
+    """Project executable line anchors by subtracting retained editable sections."""
+    text = read.source.text
+    sections = read.source.sections
+    code: dict[int, str] = {}
+    offset = 0
+    for number, line in enumerate(constants.text_lines(text), 1):
+        end = offset + len(line)
+        spans = [
+            section.span
+            for section in sections
+            if section.span.start < end and offset < section.span.end
+        ]
+        chunks = []
+        boundary = offset
+        for span in spans:
+            chunks.append(text[boundary : max(boundary, span.start)])
+            boundary = min(end, span.end)
+        chunks.append(text[boundary:end])
+        anchor = "".join(chunks).rstrip()
+        if anchor.strip(" \t\f\ufeff"):
+            code[number] = anchor
+        offset = end
+        if text.startswith("\r\n", offset):
+            offset += 2
+        elif offset < len(text) and text[offset] in "\r\n":
+            offset += 1
+    return code
+
+
+def declarations_for(read: PythonRead) -> list[tuple[int, int, bool]]:
+    """Translate retained declaration and insertion offsets into page coordinates."""
+    source = read.source
+    module = read.suites[0]
+    insertion = (
+        read.statements[module.statements[0]].span.start if module.statements else 0
+    )
+    return [
+        (0, source.position(insertion).line, False),
+        *(
+            (
+                source.position(source.declarations[fact.declaration].anchor).line,
+                source.position(fact.insertion).line,
+                False,
+            )
+            for fact in read.declarations
+        ),
+    ]
