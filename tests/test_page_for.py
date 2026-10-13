@@ -70,6 +70,83 @@ def test_python_page_whole_comments_and_matter_boundaries():
     assert prose["f1"] == "# back"
 
 
+@pytest.mark.parametrize(
+    "text, doc_cue, comment_cue, anchor",
+    [
+        ('"doc" # note\n', "a0", "c0", '"doc"'),
+        ('def f():\n    "doc" # note\n', "a1", "c1", '    "doc"'),
+        ('"""doc\ncontinued""" # note\n', "a0", "c0", 'continued"""'),
+        (
+            'def f():\n    """doc\n    continued""" # note\n',
+            "a1",
+            "c1",
+            '    continued"""',
+        ),
+        ('def f(): "doc" # note\n', "a1", "c0", "def f():"),
+    ],
+)
+def test_python_page_documentation_trailing_comment_keeps_separate_wire_places(
+    text, doc_cue, comment_cue, anchor
+):
+    from comment_review.flows.gather import carried
+
+    page = page_for_mod.page_of(Path("m.py"), source=Source(text, "held"))
+    assert isinstance(page, Page)
+    assert page.python_read is not None
+    doc = next(p for p in page if p.kind == "docstring")
+    comment = next(p for p in page if p.kind == "trailing-comment")
+    assert cue(doc) == doc_cue
+    assert cue(comment) == comment_cue
+    assert comment.anchor == anchor
+    assert comment.raw_text == " # note"
+    assert "# note" not in doc.raw_text
+    assert {p.address for p in carried(page) if p.raw_text.strip()} == {
+        doc.address,
+        comment.address,
+    }
+    wire = {row["cue"]: row for row in page.serialize()["rows"]}
+    assert wire[doc_cue]["raw_text"] == doc.raw_text
+    assert wire[comment_cue]["raw_text"] == " # note"
+    assert wire[comment_cue]["anchor"] == anchor
+    sections = page.python_read.source.sections
+    assert [section.form for section in sections] == ["docstring", "#"]
+    assert sections[0].span.end <= sections[1].span.start
+
+
+@pytest.mark.parametrize(
+    "text, expected",
+    [
+        ("x=1\n# first\n\n# second\ny=2\n", {"b1": 3}),
+        ("x=1 # first\n\n# second\ny=2\n", {"c0": 3}),
+        (
+            "# front\n\n# first\n\n# second\nx=1\n# after\n\n# back\n",
+            {"f0": 1, "b0": 3, "b1": 1, "f1": 1},
+        ),
+    ],
+)
+def test_python_page_complete_comment_line_counts_preserve_wire_cap_eligibility(
+    text, expected
+):
+    from comment_review.binder.page import RedactedPage
+    from comment_review.desk.stages import Kind, Stage, deals
+
+    page = page_for_mod.page_of(Path("m.py"), source=Source(text, "held"))
+    assert isinstance(page, Page)
+    restored, problems = RedactedPage.deserialize("fixture", page.serialize())
+    assert problems == []
+    assert restored is not None
+    fresh = {cue(p): p for p in page if p.raw_text.strip()}
+    saved = {cue(p): p for p in restored.paragraphs if p.raw_text.strip()}
+    assert {key: p.lines for key, p in fresh.items()} == expected
+    assert {key: p.lines for key, p in saved.items()} == expected
+    for key, count in expected.items():
+        assert fresh[key].raw_text == saved[key].raw_text
+        assert fresh[key].lines == len(fresh[key].raw_lines)
+        for cap in (1, 2, 3):
+            stage = Stage("cap", Kind.EDITORIAL, cap=cap)
+            assert deals(stage, fresh[key]) == deals(stage, saved[key]) == (count > cap)
+
+
 def test_python_page_recognizes_once_and_retains_object_and_definition(monkeypatch):
     from comment_review.flows import reading_context
     from comment_review.reading import readers

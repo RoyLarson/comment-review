@@ -221,7 +221,7 @@ def paragraphs_for(path: Path, read: PythonRead) -> list[Paragraph] | ReadFailur
                     start.line,
                     end.line,
                     kind,
-                    len(group),
+                    len(raw),
                     re.sub(
                         r"\s+",
                         " ",
@@ -238,7 +238,7 @@ def paragraphs_for(path: Path, read: PythonRead) -> list[Paragraph] | ReadFailur
 
 
 def code_for(read: PythonRead) -> dict[int, str]:
-    """Project executable line anchors by subtracting retained editable sections."""
+    """Project place anchors from executable text and trailing-comment context."""
     text = read.source.text
     sections = read.source.sections
     code: dict[int, str] = {}
@@ -257,6 +257,20 @@ def code_for(read: PythonRead) -> dict[int, str]:
             boundary = min(end, span.end)
         chunks.append(text[boundary:end])
         anchor = "".join(chunks).rstrip()
+        if not anchor.strip(" \t\f\ufeff"):
+            # A documentation-only line can still anchor its separate c place.
+            # Its retained comment boundary preserves the physical prefix without
+            # assigning the documentation's characters to the comment section.
+            trailing = next(
+                (
+                    section.span.start
+                    for section in sections
+                    if section.form == "#" and offset < section.span.start < end
+                ),
+                None,
+            )
+            if trailing is not None:
+                anchor = text[offset:trailing].rstrip()
         if anchor.strip(" \t\f\ufeff"):
             code[number] = anchor
         offset = end
