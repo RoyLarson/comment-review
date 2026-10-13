@@ -3,7 +3,7 @@
 ```
 Status:   in-progress
 Progress: 1 of 9 TODO tasks closed
-Plan-tasks: 3 of 26 plan tasks closed
+Plan-tasks: 4 of 26 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (founded by move-t from 2026-10-11-lexical-readers)
@@ -461,9 +461,10 @@ complete merely because this plan or its interfaces are approved.
 - [x] P3 | 158 reader tests pass; numeric repair review clean | d9f6ee81 | Scan
       basic Python tokens; verify task 3 evidence with its RED/GREEN command
         > 2026-10-12 Repair numeric-keyword boundary refusal from task review.
-- [~] P4 | Scan ordinary Python literals; verify task 4 evidence with its
-      RED/GREEN command
-- [ ] P5 | Recognize logical lines and indentation; verify task 5 evidence with
+- [x] P4 | 583 literal and 733 reader cases pass; review clean | cada9c0e | Scan
+      ordinary Python literals; verify task 4 evidence with its RED/GREEN
+      command
+- [~] P5 | Recognize logical lines and indentation; verify task 5 evidence with
       its RED/GREEN command
         > 2026-10-12 Pass definition explicitly to keep layout rules Python-owned.
 - [ ] P6 | Scan nested formatted-string expressions; verify task 6 evidence with
