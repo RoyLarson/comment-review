@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 2 of 11 TODO tasks closed
+Progress: 2 of 12 TODO tasks closed
 Plan-tasks: 7 of 26 plan tasks closed
 Owner:    backend
 Requires-Roy: false
@@ -458,6 +458,10 @@ complete merely because this plan or its interfaces are approved.
 
 - [ ] T1 | Replace retired Python reader terms
 
+### F - [2026-10-12-python-soft-keyword-annotations](../../TODO/2026-10-12-python-soft-keyword-annotations.md)
+
+- [ ] T1 | Read subscript annotations headed by match
+
 ## Plan Tasks
 
 - [x] P1 | Python definition validates; 216 tests and focused static checks pass; review approved | f23a9e18 | Install
@@ -488,6 +492,7 @@ complete merely because this plan or its interfaces are approved.
 - [~] P8 | Recognize Python statements and suites; verify task 8 evidence with
       its RED/GREEN command
         > 2026-10-12 Pass definition explicitly for configured structural boundaries.
+        > 2026-10-12 Cover soft-keyword subscript annotations before completion.
 - [ ] P9 | Recognize declaration names and ownership; verify task 9 evidence
       with its RED/GREEN command
 - [ ] P10 | Recognize modern Python structural boundaries; verify task 10
