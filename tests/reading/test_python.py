@@ -1036,6 +1036,165 @@ def test_declarations_decorated_headers_and_async_anchor(python_definition):
         assert result.suites[fact.suite].header == declaration.header
 
 
+def test_modern_syntax_type_parameters_aliases_and_soft_keyword_names(
+    python_definition,
+):
+    text = (
+        "class Crate[\n"
+        "    T: (int, str) = int,\n"
+        "    *Ts = tuple[int, ...],\n"
+        "](Base):\n"
+        "    def build[U: Value = Default](\n"
+        "        value: U = factory(\n"
+        '            {"# is literal text": (lambda item: (item,))},\n'
+        "        ),\n"
+        "    ) -> U:\n"
+        "        return value\n"
+        "type Pair[Item = str] = tuple[Item, Item]\n"
+        "match = 1\n"
+        "case = 2\n"
+        "type = value\n"
+        "lazy = value\n"
+        "def match():\n"
+        "    pass\n"
+        "def case():\n"
+        "    pass\n"
+        "def type():\n"
+        "    pass\n"
+        "def lazy():\n"
+        "    pass\n"
+        "# one real comment\n"
+    )
+    scan, result = read_suites(text, python_definition)
+    assert not isinstance(result, ReadFailure)
+
+    declaration_names = [fact.name for fact in result.facts]
+    assert declaration_names == ["Crate", "build", "match", "case", "type", "lazy"]
+    assert [
+        text[item.header.start : item.header.end] for item in result.declarations
+    ] == [
+        "class Crate[\n    T: (int, str) = int,\n    *Ts = tuple[int, ...],\n](Base):",
+        "def build[U: Value = Default](\n        value: U = factory(\n"
+        '            {"# is literal text": (lambda item: (item,))},\n'
+        "        ),\n    ) -> U:",
+        "def match():",
+        "def case():",
+        "def type():",
+        "def lazy():",
+    ]
+    assert [
+        region.span for region in scan.regions if region.kind == RegionKind.COMMENT
+    ] == [SourceSpan(text.index("# one real comment"), len(text) - 1)]
+    assert [
+        text[token.span.start : token.span.end]
+        for token in scan.tokens
+        if token.kind == "identifier"
+        and text[token.span.start : token.span.end] in {"match", "case", "type", "lazy"}
+    ] == ["type", "match", "case", "type", "lazy", "match", "case", "type", "lazy"]
+    assert [(suite.kind, suite.parent) for suite in result.suites] == [
+        ("module", None),
+        ("class", 0),
+        ("function", 1),
+        ("function", 0),
+        ("function", 0),
+        ("function", 0),
+        ("function", 0),
+    ]
+    assert [fact.parent for fact in result.facts] == [None, 0, None, None, None, None]
+    assert "Pair" not in declaration_names
+
+
+def test_modern_syntax_match_case_lazy_imports_and_async_ownership(
+    python_definition,
+):
+    text = (
+        "lazy import json\n"
+        "lazy from pathlib import Path\n"
+        "lazy = value\n"
+        "async def collect[Item = object](source):\n"
+        "    match source:\n"
+        "        case [first, *rest] if ready(first):\n"
+        "            async with acquire(first) as lease:\n"
+        "                async for item in lease.items():\n"
+        "                    await consume(item)\n"
+        '                    rendered = f"{item!r} # literal"\n'
+        '                    template = t"item={item}"\n'
+    )
+    scan, result = read_suites(text, python_definition)
+    assert not isinstance(result, ReadFailure)
+    assert [fact.name for fact in result.facts] == ["collect"]
+    assert [suite.kind for suite in result.suites] == [
+        "module",
+        "async-function",
+        "match",
+        "case",
+        "async-with",
+        "async-for",
+    ]
+    assert [suite.parent for suite in result.suites] == [None, 0, 1, 2, 3, 4]
+    assert [
+        [
+            text[
+                result.statements[index].span.start : result.statements[index].span.end
+            ]
+            for index in suite.statements
+        ]
+        for suite in result.suites[1:]
+    ] == [
+        ["match source:"],
+        ["case [first, *rest] if ready(first):"],
+        ["async with acquire(first) as lease:"],
+        ["async for item in lease.items():"],
+        [
+            "await consume(item)",
+            'rendered = f"{item!r} # literal"',
+            'template = t"item={item}"',
+        ],
+    ]
+    assert [
+        text[token.span.start : token.span.end]
+        for token in scan.tokens
+        if token.kind == "identifier"
+    ][:7] == ["lazy", "import", "json", "lazy", "from", "pathlib", "import"]
+    assert [
+        region.span for region in scan.regions if region.kind == RegionKind.COMMENT
+    ] == []
+
+
+def test_modern_syntax_unpacked_comprehensions_remain_expression_tokens(
+    python_definition,
+):
+    text = (
+        "def flatten(groups):\n"
+        "    listed = [*parts for parts in groups]\n"
+        "    unique = {*parts for parts in groups}\n"
+        "    generated = (*parts for parts in groups)\n"
+        "    mapped = {**pairs for pairs in groups}\n"
+        "    nested = [*(value for value in part) for part in groups]\n"
+        "    return listed, unique, generated, mapped, nested\n"
+    )
+    scan, result = read_suites(text, python_definition)
+    assert not isinstance(result, ReadFailure)
+    assert [fact.name for fact in result.facts] == ["flatten"]
+    assert [
+        text[result.statements[index].span.start : result.statements[index].span.end]
+        for index in result.suites[1].statements
+    ] == [
+        "listed = [*parts for parts in groups]",
+        "unique = {*parts for parts in groups}",
+        "generated = (*parts for parts in groups)",
+        "mapped = {**pairs for pairs in groups}",
+        "nested = [*(value for value in part) for part in groups]",
+        "return listed, unique, generated, mapped, nested",
+    ]
+    assert scan.text == text
+    assert [
+        text[token.span.start : token.span.end]
+        for token in scan.tokens
+        if text[token.span.start : token.span.end] in {"*", "**"}
+    ] == ["*", "*", "*", "**", "*"]
+
+
 def test_declarations_control_suites_preserve_nearest_owner(python_definition):
     text = (
         "def outer():\n"
