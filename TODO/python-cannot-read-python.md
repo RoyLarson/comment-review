@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 38 of 48 tasks closed
+Progress: 41 of 48 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-21 (Roy, 2026-08-21, on four sentry files the floor interpreter cannot
@@ -413,13 +413,16 @@ the review, and nothing today protects the review.
         > 2026-10-11 Check: plan P25 prose states tokens, ownership and limits
 - [ ] T45 | Expose complete Python docstrings with their lexical owners
         > 2026-10-11 Check: plan P11/P12 assert owners and all literal components
-- [ ] T46 | Reject NUL characters throughout Python source
+- [x] T46 | NUL anywhere in source refuses at its span; gather checks pass | fcd2f0f8 | Reject
+      NUL characters throughout Python source
         > 2026-10-13 Location: scanner.py accepts NUL inside literal source.
         > 2026-10-13 Check: scanner, page and gather refuse NUL at its source span.
         > 2026-10-13 Reason: gather regression after installing the lexical reader.
-- [ ] T47 | Assign places to comments immediately after Python documentation
+- [x] T47 | Documentation-side comments retain a/c rows; review passes | f0efc1c1 | Assign
+      places to comments immediately after Python documentation
         > 2026-10-13 Location: projection.py:240 omits the shared doc/comment anchor.
         > 2026-10-13 Check: module/suite/closing-line comments retain a/c wire rows.
-- [ ] T48 | Count internal blanks in Python comment section length
+- [x] T48 | Whole-section cap eligibility survives serialization; reviewed | f0efc1c1 | Count
+      internal blanks in Python comment section length
         > 2026-10-13 Location: projection.py:224 excludes blanks from Paragraph.lines.
         > 2026-10-13 Check: fresh and restored sections have identical cap results.

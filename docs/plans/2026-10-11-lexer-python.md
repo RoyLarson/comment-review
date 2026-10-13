@@ -2,8 +2,8 @@
 
 ```
 Status:   in-progress
-Progress: 4 of 17 TODO tasks closed
-Plan-tasks: 15 of 26 plan tasks closed
+Progress: 8 of 17 TODO tasks closed
+Plan-tasks: 16 of 26 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (founded by move-t from 2026-10-11-lexical-readers)
@@ -443,9 +443,9 @@ complete merely because this plan or its interfaces are approved.
 - [ ] T43 | Reject executable Python mutations at both lexical proof gates
 - [ ] T44 | Document the Python preservation contract beside its comparison
 - [ ] T45 | Expose complete Python docstrings with their lexical owners
-- [ ] T46 | Reject NUL characters throughout Python source
-- [ ] T47 | Assign places to comments immediately after Python documentation
-- [ ] T48 | Count internal blanks in Python comment section length
+- [x] T46 | Reject NUL characters throughout Python source
+- [x] T47 | Assign places to comments immediately after Python documentation
+- [x] T48 | Count internal blanks in Python comment section length
 
 ### C - [2026-10-12-python-numeric-keyword-boundaries](../../TODO/completed/2026-10-12-python-numeric-keyword-boundaries.md)
 
@@ -469,9 +469,9 @@ complete merely because this plan or its interfaces are approved.
 
 - [x] T1 | Normalize Python encoding cookie names
 
-### H - [2026-10-13-python-bom-ownership](../../TODO/2026-10-13-python-bom-ownership.md)
+### H - [2026-10-13-python-bom-ownership](../../TODO/completed/2026-10-13-python-bom-ownership.md)
 
-- [ ] T1 | Recognize a leading BOM before Python documentation
+- [x] T1 | Recognize a leading BOM before Python documentation
 
 ## Plan Tasks
 
@@ -533,8 +533,9 @@ complete merely because this plan or its interfaces are approved.
       expression comments at existing places; verify task 15 evidence with its
       RED/GREEN command
         > 2026-10-13 Refuse only demonstrated unrepresentable expression comments.
-- [~] P16 | Integrate Python reads into page construction; verify task 16
-      evidence with its RED/GREEN command
+- [x] P16 | Retained page integration verified; 1542 tests and review pass | f0efc1c1 | Integrate
+      Python reads into page construction; verify task 16 evidence with its
+      RED/GREEN command
         > 2026-10-13 Include scanner/structure/directives for leading BOM ownership.
         > 2026-10-13 Apply existing f boundaries when adapting whole lexical runs.
         > 2026-10-13 Flows acquire Python TOML and pass the registry to pure reading.
@@ -545,7 +546,7 @@ complete merely because this plan or its interfaces are approved.
         > 2026-10-13 Refuse source NUL before lexing; include page/gather evidence.
         > 2026-10-13 Separate read_source dispatch from the paragraph-only adapter.
         > 2026-10-13 Repair trailing-doc comment places and whole-section line counts.
-- [ ] P17 | Render Python documentation from payload records; verify task 17
+- [~] P17 | Render Python documentation from payload records; verify task 17
       evidence with its RED/GREEN command
 - [ ] P18 | Set Python additions rewrites and removals; verify task 18 evidence
       with its RED/GREEN command

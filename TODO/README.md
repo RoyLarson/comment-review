@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (126)
+### open  (125)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -211,7 +211,7 @@ that changed a published name or rule:
 | [unaddressed-is-quadratic](unaddressed-is-quadratic.md) | backend | -- | 0/4 | unaddressed() groups by path for a question that needs one flat pass |
 | [stale-claims-after-the-envelope](stale-claims-after-the-envelope.md) | backend | -- | 2/8 | Shipped prose still describes formats and flags this branch deleted |
 | [one-stem-four-jobs](one-stem-four-jobs.md) | backend | -- | 7/15 | one stem, four jobs -- and the vocabulary sweep cannot see it |
-| [python-cannot-read-python](python-cannot-read-python.md) | backend | -- | 38/48 | the AST cannot read syntax newer than the floor, and two readers hide each other's bugs |
+| [python-cannot-read-python](python-cannot-read-python.md) | backend | -- | 41/48 | the AST cannot read syntax newer than the floor, and two readers hide each other's bugs |
 | [census-walks-and-flushes](census-walks-and-flushes.md) | backend | -- | 3/7 | census.py walks the whole repo, runs git twice, and its run-flush never fires |
 | [galley-and-compositor-write-path](galley-and-compositor-write-path.md) | backend | -- | 53/58 | The galley can overwrite the file under review, and the compositor reads through a normaliser |
 | [record-and-verdicts-disagree](record-and-verdicts-disagree.md) | backend | -- | 4/8 | record.py and verdicts.py disagree about what a valid record is, in four places |
@@ -307,7 +307,6 @@ that changed a published name or rule:
 | [2026-10-11-maintained-source-selection](2026-10-11-maintained-source-selection.md) | agents | -- | 0/1 | Select maintained source for review |
 | [2026-10-12-python-reader-vocabulary](2026-10-12-python-reader-vocabulary.md) | backend | -- | 0/1 | Use accepted Python reader vocabulary |
 | [2026-10-13-human-question-list](2026-10-13-human-question-list.md) | backend | -- | 0/1 | Expose human questions across edit copies |
-| [2026-10-13-python-bom-ownership](2026-10-13-python-bom-ownership.md) | backend | -- | 0/1 | Read Python documentation after a UTF-8 BOM |
 
 ### in-progress  (18)
 
@@ -502,3 +501,4 @@ the reason is inside the file.
 | [2026-10-12-python-continuation-eof](completed/2026-10-12-python-continuation-eof.md) | 1 finished |
 | [2026-10-12-python-soft-keyword-annotations](completed/2026-10-12-python-soft-keyword-annotations.md) | 1 finished |
 | [2026-10-13-python-cookie-normalization](completed/2026-10-13-python-cookie-normalization.md) | 1 finished |
+| [2026-10-13-python-bom-ownership](completed/2026-10-13-python-bom-ownership.md) | 1 finished |
