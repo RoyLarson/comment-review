@@ -2754,6 +2754,248 @@ def read_directives(text, definition):
     return scan, structure, directives.directives_in(scan, structure, definition)
 
 
+def section_inputs(text, definition):
+    scan, structure, expressions = read_documentation(text, definition)
+    assert not isinstance(expressions, ReadFailure)
+    documentation = import_module("comment_review.reading.python.documentation")
+    payloads = tuple(
+        documentation.decode_documentation(scan, expression, definition)
+        for expression in expressions
+    )
+    assert all(not isinstance(payload, ReadFailure) for payload in payloads)
+    directives = import_module("comment_review.reading.python.directives")
+    protected = directives.directives_in(scan, structure, definition)
+    assert not isinstance(protected, ReadFailure)
+    return scan, structure, payloads, protected
+
+
+def project_sections(text, definition):
+    scan, structure, payloads, protected = section_inputs(text, definition)
+    try:
+        projection = import_module("comment_review.reading.python.projection")
+    except ModuleNotFoundError:
+        pytest.fail("Python whole-source sections are not implemented", pytrace=False)
+    result = projection.sections_for(scan, structure, payloads, definition, protected)
+    return scan, structure, payloads, protected, result
+
+
+@pytest.mark.parametrize(
+    "text, spans, raw",
+    [
+        ("", (), []),
+        (" \r\n", (), []),
+        ("# a\n\n# b\nx=1\n", ((0, 9),), ["# a\n\n# b\n"]),
+        ("x=1\n# a\n\n# b\nx=2\n", ((4, 13),), ["# a\n\n# b\n"]),
+        ("x=1\n# a\n\n# b\n", ((4, 13),), ["# a\n\n# b\n"]),
+        ("x=1 # a\n\n# b\nx=2\n", ((4, 13),), ["# a\n\n# b\n"]),
+        ("# a\r\n \t\r# b\nx=1\r", ((0, 12),), ["# a\r\n \t\r# b\n"]),
+        ("x=1\n  # a\n\n", ((4, 10),), ["  # a\n"]),
+        ("# a", ((0, 3),), ["# a"]),
+    ],
+)
+def test_sections_whole_same_form_runs_preserve_exact_extent(
+    python_definition, text, spans, raw
+):
+    scan, structure, payloads, protected, result = project_sections(
+        text, python_definition
+    )
+    assert not isinstance(result, ReadFailure)
+    assert result.source.sections == tuple(
+        SourceSection(SourceSpan(start, end), "#") for start, end in spans
+    )
+    assert [
+        result.source.slice(section.span) for section in result.source.sections
+    ] == raw
+    assert result.source.reconstruct() == text
+    assert result.source.text is scan.text
+    assert result.source.regions is scan.regions
+    assert result.tokens is scan.tokens
+    assert result.suites is structure.suites
+    assert result.statements is structure.statements
+    assert result.declarations is structure.facts
+    assert result.source.declarations is structure.declarations
+    assert result.payloads is payloads
+    assert result.protected == scan.protected + protected
+    assert result.source.documentation == ()
+
+
+def test_sections_documentation_owns_complete_concatenated_statement(python_definition):
+    text = '# head\n("a\\n" r"b"); x=1 # tail\n'
+    _, _, payloads, _, result = project_sections(text, python_definition)
+    assert not isinstance(result, ReadFailure)
+    assert result.source.sections == (
+        SourceSection(SourceSpan(0, 7), "#"),
+        SourceSection(SourceSpan(7, 20), "docstring"),
+        SourceSection(SourceSpan(25, 32), "#"),
+    )
+    assert [
+        result.source.slice(section.span) for section in result.source.sections
+    ] == [
+        "# head\n",
+        '("a\\n" r"b");',
+        "# tail\n",
+    ]
+    assert result.source.documentation == (DocumentationOwner(1, None),)
+    assert payloads[0].text == "a\nb"
+    assert payloads[0].expression.components == (SourceSpan(8, 13), SourceSpan(14, 18))
+    assert result.source.slice(SourceSpan(20, 25)) == " x=1 "
+    assert result.source.reconstruct() == text
+
+
+def test_sections_documentation_retains_same_line_header_and_following_code(
+    python_definition,
+):
+    text = 'def f(): "doc"; pass # tail\n'
+    _, structure, _, _, result = project_sections(text, python_definition)
+    assert not isinstance(result, ReadFailure)
+    assert result.source.sections == (
+        SourceSection(SourceSpan(9, 15), "docstring"),
+        SourceSection(SourceSpan(21, 28), "#"),
+    )
+    assert result.source.documentation == (DocumentationOwner(0, 0),)
+    assert result.payloads[0].text == "doc"
+    assert result.source.slice(SourceSpan(0, 9)) == "def f(): "
+    assert result.source.slice(SourceSpan(15, 21)) == " pass "
+    assert result.source.declarations == structure.declarations
+    assert result.source.reconstruct() == text
+
+
+def test_sections_directive_comments_are_uneditable_run_barriers(python_definition):
+    text = "# a\n# type: ignore\n# b\n"
+    _, _, _, protected, result = project_sections(text, python_definition)
+    assert not isinstance(result, ReadFailure)
+    assert result.source.sections == (
+        SourceSection(SourceSpan(0, 4), "#"),
+        SourceSection(SourceSpan(19, 23), "#"),
+    )
+    assert result.protected == protected
+    assert [
+        (region.span, region.kind)
+        for region in result.source.regions
+        if region.kind == RegionKind.DIRECTIVE
+    ] == [(SourceSpan(4, 18), RegionKind.DIRECTIVE)]
+    assert result.source.reconstruct() == text
+
+
+def test_sections_interior_documentation_comment_refuses_independent_overlap(
+    python_definition,
+):
+    text = '("a" # note\n "b")\n'
+    scan, _, payloads, _, result = project_sections(text, python_definition)
+    assert payloads[0].text == "ab"
+    assert payloads[0].expression.statement == SourceSpan(0, 17)
+    assert isinstance(result, ReadFailure)
+    assert result.diagnostics[0].stage == ReadStage.PLACE
+    assert result.diagnostics[0].code == "unsupported-documentation-comment"
+    assert result.diagnostics[0].span == SourceSpan(5, 11)
+    assert scan.text == text
+
+
+def test_sections_reject_invalid_definition_before_projection(python_definition):
+    scan, structure, payloads, protected = section_inputs("# a\n", python_definition)
+    try:
+        projection = import_module("comment_review.reading.python.projection")
+    except ModuleNotFoundError:
+        pytest.fail("Python whole-source sections are not implemented", pytrace=False)
+    result = projection.sections_for(
+        scan, structure, payloads, replace(python_definition, revision="bad"), protected
+    )
+    assert isinstance(result, ReadFailure)
+    assert result.diagnostics[0].stage == ReadStage.SELECT
+    assert result.diagnostics[0].code == "invalid-language-definition"
+
+
+def test_sections_multiple_documentation_owners_keep_source_order(python_definition):
+    text = '"m"\n# a\nclass C:\n    "c"\n    def f(): "f"\n'
+    _, _, _, _, result = project_sections(text, python_definition)
+    assert not isinstance(result, ReadFailure)
+    assert result.source.sections == (
+        SourceSection(SourceSpan(0, 3), "docstring"),
+        SourceSection(SourceSpan(4, 8), "#"),
+        SourceSection(SourceSpan(21, 24), "docstring"),
+        SourceSection(SourceSpan(38, 41), "docstring"),
+    )
+    assert result.source.documentation == (
+        DocumentationOwner(0, None),
+        DocumentationOwner(2, 0),
+        DocumentationOwner(3, 1),
+    )
+    assert [payload.text for payload in result.payloads] == ["m", "c", "f"]
+    assert result.source.reconstruct() == text
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "#!/usr/bin/python\n# coding: utf-8\n# type: ignore\n",
+        'x=t"{ value # observable\n }"\n',
+        'x=f"{ value # observable\n = }"\n',
+    ],
+)
+def test_sections_protected_comments_remain_regions_without_editable_sections(
+    python_definition, text
+):
+    scan, _, _, directives, result = project_sections(text, python_definition)
+    assert not isinstance(result, ReadFailure)
+    assert (
+        result.source.sections == result.source.documentation == result.payloads == ()
+    )
+    assert result.protected == scan.protected + directives
+    assert result.protected
+    assert [
+        result.source.slice(region.span)
+        for region in result.source.regions
+        if region.kind in (RegionKind.COMMENT, RegionKind.DIRECTIVE)
+    ] == (
+        ["#!/usr/bin/python", "# coding: utf-8", "# type: ignore"]
+        if text.startswith("#!")
+        else ["# observable"]
+    )
+    assert result.source.reconstruct() == text
+
+
+def test_sections_protected_interior_documentation_comment_keeps_whole_owner(
+    python_definition,
+):
+    text = '("a" # type: ignore\n "b")\n'
+    _, _, _, directives, result = project_sections(text, python_definition)
+    assert not isinstance(result, ReadFailure)
+    assert result.source.sections == (SourceSection(SourceSpan(0, 25), "docstring"),)
+    assert result.source.documentation == (DocumentationOwner(0, None),)
+    assert result.payloads[0].text == "ab"
+    assert result.protected == directives
+    assert result.source.reconstruct() == text
+
+
+def test_sections_only_compose_completed_stages(python_definition, monkeypatch):
+    scan, structure, payloads, directives = section_inputs(
+        '"doc"\n# a\nx=1\n', python_definition
+    )
+
+    def forbidden(*args):
+        pytest.fail("Section projection must consume retained records")
+
+    for module, functions in (
+        ("scanner", ("scan_python",)),
+        ("structure", ("logical_lines", "recognize_structure")),
+        ("documentation", ("documentation_in", "decode_documentation")),
+        ("directives", ("directives_in",)),
+    ):
+        stage = import_module("comment_review.reading.python." + module)
+        for function in functions:
+            monkeypatch.setattr(stage, function, forbidden)
+    projection = import_module("comment_review.reading.python.projection")
+    result = projection.sections_for(
+        scan, structure, payloads, python_definition, directives
+    )
+    assert not isinstance(result, ReadFailure)
+    assert result.source.sections == (
+        SourceSection(SourceSpan(0, 5), "docstring"),
+        SourceSection(SourceSpan(6, 10), "#"),
+    )
+    assert result.source.reconstruct() == '"doc"\n# a\nx=1\n'
+
+
 @pytest.mark.parametrize(
     ("text", "expected"),
     [

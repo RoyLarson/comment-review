@@ -7,6 +7,7 @@ chain's own file credited `proof_setter` with a contract that is `page_for`'s.
 
 import subprocess
 import sys
+from importlib import import_module
 from pathlib import Path
 
 import pytest
@@ -22,6 +23,24 @@ from comment_review.machine.repo import Source
 from comment_review.reading.addresser import Cues
 from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, ReadStage
 from comment_review.reading.lexer import language_for
+
+
+@pytest.mark.parametrize(
+    "path, text",
+    [("m.py", "x=1 # note\n"), ("m.c", "int x; // note\n")],
+)
+def test_sections_projection_is_not_installed_into_page_selection(
+    monkeypatch, path, text
+):
+    def forbidden(*args):
+        pytest.fail("Foundational section projection is not a production reader yet")
+
+    projection = import_module("comment_review.reading.python.projection")
+    monkeypatch.setattr(projection, "sections_for", forbidden)
+    result = page_for_mod.page_of(Path(path), source=Source(text, "held"))
+    assert isinstance(result, Page)
+    assert result.text == text
+    assert any("note" in paragraph.raw_text for paragraph in result.prose)
 
 
 def test_empty_source_is_a_complete_page():
