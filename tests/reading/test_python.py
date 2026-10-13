@@ -965,6 +965,360 @@ def read_logical_lines(text, definition):
     return scan, structure.logical_lines(scan, definition)
 
 
+def read_suites(text, definition):
+    scan, lines = read_logical_lines(text, definition)
+    if isinstance(lines, ReadFailure):
+        return scan, lines
+    structure = import_module("comment_review.reading.python.structure")
+    assert hasattr(structure, "recognize_structure"), (
+        "Python suites are not implemented"
+    )
+    return scan, structure.recognize_structure(scan, lines, definition)
+
+
+@pytest.mark.parametrize("text", ["", "# comment\n\n"])
+def test_suites_empty_module(python_definition, text):
+    _, result = read_suites(text, python_definition)
+    assert not isinstance(result, ReadFailure)
+    assert result.declarations == result.facts == result.statements == ()
+    assert [
+        (s.span, s.parent, s.header, s.statements, s.kind) for s in result.suites
+    ] == [(SourceSpan(0, len(text)), None, None, (), "module")]
+
+
+def test_suites_nested_headers_bodies_and_semicolons(python_definition):
+    text = (
+        'class C:\n    def f():\n        # before\n        "doc"; x=1\n    y=2\nz=3\n'
+    )
+    scan, result = read_suites(text, python_definition)
+    assert not isinstance(result, ReadFailure)
+    assert [(s.kind, s.parent, s.statements) for s in result.suites] == [
+        ("module", None, (0, 5)),
+        ("class", 0, (1, 4)),
+        ("function", 1, (2, 3)),
+    ]
+    assert [text[s.span.start : s.span.end] for s in result.statements] == [
+        "class C:",
+        "def f():",
+        '"doc";',
+        "x=1",
+        "y=2",
+        "z=3",
+    ]
+    assert [(s.span, s.header) for s in result.suites] == [
+        (SourceSpan(0, 70), None),
+        (SourceSpan(9, 66), SourceSpan(0, 8)),
+        (SourceSpan(22, 58), SourceSpan(13, 21)),
+    ]
+    assert [
+        [text[scan.tokens[i].span.start : scan.tokens[i].span.end] for i in s.tokens]
+        for s in result.statements
+    ] == [
+        ["class", "C", ":"],
+        ["def", "f", "(", ")", ":"],
+        ['"doc"', ";"],
+        ["x", "=", "1"],
+        ["y", "=", "2"],
+        ["z", "=", "3"],
+    ]
+    owned = [i for s in result.statements for i in s.tokens]
+    assert len(owned) == len(set(owned))
+
+
+def test_suites_inline_membership_and_exact_token_order(python_definition):
+    text = 'if x: "doc"; y=2;\nelif y: z=3\nelse: w=4\n'
+    scan, result = read_suites(text, python_definition)
+    assert not isinstance(result, ReadFailure)
+    assert [(s.kind, s.parent, s.statements) for s in result.suites] == [
+        ("module", None, (0, 3, 5)),
+        ("if", 0, (1, 2)),
+        ("elif", 0, (4,)),
+        ("else", 0, (6,)),
+    ]
+    assert [text[s.span.start : s.span.end] for s in result.statements] == [
+        "if x:",
+        '"doc";',
+        "y=2;",
+        "elif y:",
+        "z=3",
+        "else:",
+        "w=4",
+    ]
+    assert [s.tokens for s in result.statements] == [
+        (0, 1, 2),
+        (3, 4),
+        (5, 6, 7, 8),
+        (10, 11, 12),
+        (13, 14, 15),
+        (17, 18),
+        (19, 20, 21),
+    ]
+    assert [text[s.span.start : s.span.end] for s in result.suites[1:]] == [
+        ' "doc"; y=2;\n',
+        " z=3\n",
+        " w=4\n",
+    ]
+    assert scan.text == text
+
+
+@pytest.mark.parametrize(
+    ("text", "kinds", "parents", "memberships"),
+    [
+        (
+            "for x in xs:\n    if x:\n        a()\n"
+            "    else:\n        b()\nelse:\n    c()\n",
+            ["module", "for", "if", "else", "else"],
+            [None, 0, 1, 1, 0],
+            [(0, 5), (1, 3), (2,), (4,), (6,)],
+        ),
+        (
+            "try: a()\nexcept E: b()\nexcept F: c()\nelse: d()\nfinally: e()\n",
+            ["module", "try", "except", "except", "else", "finally"],
+            [None, 0, 0, 0, 0, 0],
+            [(0, 2, 4, 6, 8), (1,), (3,), (5,), (7,), (9,)],
+        ),
+        (
+            "try: a()\nexcept* E: b()\nfinally: c()\n",
+            ["module", "try", "except*", "finally"],
+            [None, 0, 0, 0],
+            [(0, 2, 4), (1,), (3,), (5,)],
+        ),
+        (
+            "async def f():\n    async for x in xs:\n"
+            "        async with cm:\n            a()\n    else:\n        b()\n",
+            ["module", "async-function", "async-for", "async-with", "else"],
+            [None, 0, 1, 2, 1],
+            [(0,), (1, 4), (2,), (3,), (5,)],
+        ),
+        (
+            "match x:\n    case {'a': y} if y:\n        a()\n"
+            "    case _:\n        b()\n",
+            ["module", "match", "case", "case"],
+            [None, 0, 1, 1],
+            [(0,), (1, 3), (2,), (4,)],
+        ),
+        (
+            "while x:\n    with cm:\n        a()\nelse:\n    b()\n",
+            ["module", "while", "with", "else"],
+            [None, 0, 1, 0],
+            [(0, 3), (1,), (2,), (4,)],
+        ),
+    ],
+)
+def test_suites_clause_nesting(python_definition, text, kinds, parents, memberships):
+    _, result = read_suites(text, python_definition)
+    assert not isinstance(result, ReadFailure)
+    assert [s.kind for s in result.suites] == kinds
+    assert [s.parent for s in result.suites] == parents
+    assert [s.statements for s in result.suites] == memberships
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "value: dict[str, int] = {'a': xs[1:]}\n",
+        "callback = lambda x: (lambda y: x+y)\n",
+        'value = f"{dict(a=lambda: x):{width}};:"; next=1\n',
+        'value = t"{dict(a=lambda: x):{width}};:"; next=1\n',
+        "match = {'case': lambda: x}; case: int = 1\n",
+        "match(x); case(x); type=1; lazy=2\n",
+        "match.attr: int = 1\n",
+        "match: int; case: str; type: int; lazy: int\n",
+    ],
+)
+def test_suites_contextual_colons_do_not_create_bodies(python_definition, text):
+    _, result = read_suites(text, python_definition)
+    assert not isinstance(result, ReadFailure)
+    assert len(result.suites) == 1
+    assert result.suites[0].statements == tuple(range(len(result.statements)))
+
+
+@pytest.mark.parametrize(
+    "header",
+    [
+        "if lambda x: x:",
+        "if (lambda x: x):",
+        "if {'a': xs[1:]}:",
+        'if f"{dict(a=lambda: x):{width}};:":',
+        "def f(x: int) -> dict[str, int]:",
+    ],
+)
+def test_suites_header_delimiter_follows_nested_expression(python_definition, header):
+    text = header + "\n    value=1\n"
+    scan, result = read_suites(text, python_definition)
+    assert not isinstance(result, ReadFailure)
+    assert result.statements[0].span == SourceSpan(0, len(header))
+    assert result.suites[1].header == result.statements[0].span
+    assert (
+        text[
+            scan.tokens[result.statements[0].tokens[-1]].span.start : scan.tokens[
+                result.statements[0].tokens[-1]
+            ].span.end
+        ]
+        == ":"
+    )
+    assert result.suites[1].statements == (1,)
+
+
+@pytest.mark.parametrize(
+    ("text", "body", "membership"),
+    [
+        ("def f():", SourceSpan(8, 8), ()),
+        ("def f():\n    # removed\n\n", SourceSpan(9, 24), ()),
+        ("def f():\n# c\nx=1\n", SourceSpan(9, 13), ()),
+        ("if x:\n    def f():\n        # removed\ny=1\n", SourceSpan(19, 37), ()),
+    ],
+)
+def test_suites_empty_bodies_retain_bounded_insertion(
+    python_definition, text, body, membership
+):
+    _, result = read_suites(text, python_definition)
+    assert not isinstance(result, ReadFailure)
+    suite = result.suites[-1]
+    assert suite.span == body
+    assert suite.span.start <= body.start <= suite.span.end
+    assert suite.statements == membership
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "    x=1\n",
+        "x=1\n    y=2\n",
+        "if x: y=1\n    z=2\n",
+        "if x:\n    y=1\n  z=2\n",
+        "else: x=1\n",
+        "if x: a()\nelse: b()\nelif y: c()\n",
+        "for x in xs: a()\nelif y: b()\n",
+        "try: a()\nelse: b()\n",
+        "try: a()\nexcept E: b()\nexcept* F: c()\n",
+        "match x:\n    y=1\n",
+        "if x: if y: a()\n",
+        "if x\n    y=1\n",
+        "x=1;; y=2\n",
+    ],
+)
+def test_suites_uncertain_boundaries_refuse_with_location(python_definition, text):
+    _, result = read_suites(text, python_definition)
+    assert isinstance(result, ReadFailure)
+    assert result.diagnostics[0].stage == ReadStage.LEX
+    assert result.diagnostics[0].span is not None
+
+
+def test_suites_reject_inconsistent_supplied_line_boundaries(python_definition):
+    scan, lines = read_logical_lines("x=1\ny=2\n", python_definition)
+    assert not isinstance(lines, ReadFailure)
+    structure = import_module("comment_review.reading.python.structure")
+    assert hasattr(structure, "recognize_structure"), (
+        "Python suites are not implemented"
+    )
+    bad = (replace(lines[0], span=SourceSpan(0, 2)), lines[1])
+    result = structure.recognize_structure(scan, bad, python_definition)
+    assert isinstance(result, ReadFailure)
+    assert result.diagnostics[0].span == SourceSpan(0, 2)
+
+
+@pytest.mark.parametrize("prefix", ["f", "t"])
+def test_suites_interpolation_punctuation_is_owned_by_surrounding_statements(
+    python_definition, prefix
+):
+    text = f'if {prefix}"{{x; y}}": "doc"; z=1\n'
+    scan, result = read_suites(text, python_definition)
+    assert not isinstance(result, ReadFailure)
+    assert [text[s.span.start : s.span.end] for s in result.statements] == [
+        f'if {prefix}"{{x; y}}":',
+        '"doc";',
+        "z=1",
+    ]
+    assert [s.statements for s in result.suites] == [(0,), (1, 2)]
+    assert [s.tokens for s in result.statements] == [
+        (0, 1, 2, 3, 4, 5, 6, 7, 8),
+        (9, 10),
+        (11, 12, 13),
+    ]
+    assert scan.tokens[4].kind == "operator"
+    assert text[scan.tokens[4].span.start : scan.tokens[4].span.end] == ";"
+
+
+def test_suites_multiline_headers_use_canonical_spans(python_definition):
+    text = "def f(\r\n    x: int,\r\n):\r\n    # c\r\n    value=1\r\n"
+    _, result = read_suites(text, python_definition)
+    assert not isinstance(result, ReadFailure)
+    assert [s.span for s in result.statements] == [
+        SourceSpan(0, 23),
+        SourceSpan(38, 45),
+    ]
+    assert result.suites[1].header == SourceSpan(0, 23)
+    assert result.suites[1].span == SourceSpan(25, 47)
+    assert result.suites[1].statements == (1,)
+
+
+@pytest.mark.parametrize(
+    ("text", "code", "span"),
+    [
+        ("x=1\n    y=2\n", "unexpected-indentation", SourceSpan(4, 12)),
+        ("else: x=1\n", "inconsistent-clause-owner", SourceSpan(0, 4)),
+        ("if x\n", "missing-suite-delimiter", SourceSpan(0, 2)),
+        ("x=1;; y=2\n", "empty-simple-statement", SourceSpan(4, 5)),
+    ],
+)
+def test_suites_diagnostics_identify_ambiguous_boundary(
+    python_definition, text, code, span
+):
+    _, result = read_suites(text, python_definition)
+    assert isinstance(result, ReadFailure)
+    assert result.diagnostics[0].code == code
+    assert result.diagnostics[0].span == span
+
+
+def test_suites_reject_invalid_definition_before_structure(python_definition):
+    scan, lines = read_logical_lines("x=1\n", python_definition)
+    assert not isinstance(lines, ReadFailure)
+    structure = import_module("comment_review.reading.python.structure")
+    result = structure.recognize_structure(
+        scan, lines, replace(python_definition, rules={})
+    )
+    assert isinstance(result, ReadFailure)
+    assert result.diagnostics[0].stage == ReadStage.SELECT
+
+
+@pytest.mark.parametrize(
+    ("text", "kinds", "statements"),
+    [
+        ("match[0]: int\n", ["module"], ["match[0]: int"]),
+        (
+            "match[0].attr[1]: list[int]; next=1\n",
+            ["module"],
+            ["match[0].attr[1]: list[int];", "next=1"],
+        ),
+        (
+            "match [0]:\n    case _: a()\n",
+            ["module", "match", "case"],
+            ["match [0]:", "case _:", "a()"],
+        ),
+        (
+            "match x:\n    case _:\n        case[0]: int\n",
+            ["module", "match", "case"],
+            ["match x:", "case _:", "case[0]: int"],
+        ),
+    ],
+)
+def test_suites_subscript_soft_keyword_annotations(
+    python_definition, text, kinds, statements
+):
+    _, result = read_suites(text, python_definition)
+    assert not isinstance(result, ReadFailure)
+    assert [s.kind for s in result.suites] == kinds
+    assert [text[s.span.start : s.span.end] for s in result.statements] == statements
+
+
+@pytest.mark.parametrize("text", ["match x: a()\n", "match [0] + other: a()\n"])
+def test_suites_unsupported_inline_match_refuses(python_definition, text):
+    _, result = read_suites(text, python_definition)
+    assert isinstance(result, ReadFailure)
+    assert result.diagnostics[0].code == "inline-match-body"
+
+
 @pytest.mark.parametrize(
     ("text", "expected", "spellings"),
     [
