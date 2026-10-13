@@ -2,8 +2,8 @@
 
 ```
 Status:   in-progress
-Progress: 8 of 18 TODO tasks closed
-Plan-tasks: 16 of 27 plan tasks closed
+Progress: 9 of 18 TODO tasks closed
+Plan-tasks: 20 of 27 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (founded by move-t from 2026-10-11-lexical-readers)
@@ -446,7 +446,7 @@ complete merely because this plan or its interfaces are approved.
 - [x] T46 | Reject NUL characters throughout Python source
 - [x] T47 | Assign places to comments immediately after Python documentation
 - [x] T48 | Count internal blanks in Python comment section length
-- [ ] T49 | Remove the Python-specific writer additions
+- [x] T49 | Remove the Python-specific writer additions
 
 ### C - [2026-10-12-python-numeric-keyword-boundaries](../../TODO/completed/2026-10-12-python-numeric-keyword-boundaries.md)
 
@@ -547,16 +547,19 @@ complete merely because this plan or its interfaces are approved.
         > 2026-10-13 Refuse source NUL before lexing; include page/gather evidence.
         > 2026-10-13 Separate read_source dispatch from the paragraph-only adapter.
         > 2026-10-13 Repair trailing-doc comment places and whole-section line counts.
-- [~] P17 | Render Python documentation from payload records; verify task 17
-      evidence with its RED/GREEN command
+- [-] P17 | Python renderer rejected and removed; existing writer retained | 77920841 | Render
+      Python documentation from payload records; verify task 17 evidence with
+      its RED/GREEN command
         > 2026-10-13 Add retained-section splicing; P18 migrates the complete setter.
-- [ ] P18 | Set Python additions rewrites and removals; verify task 18 evidence
-      with its RED/GREEN command
+- [-] P18 | Writer migration rejected; repair reader compatibility under T41 | 77920841 | Set
+      Python additions rewrites and removals; verify task 18 evidence with its
+      RED/GREEN command
         > 2026-10-12 After P20/P21; paired proof is needed for sole-doc removal.
         > 2026-10-13 Replace lossy line reconstruction for inline docs and c anchors.
         > 2026-10-13 Include wrapping/galley tests for complete-statement raw text.
-- [ ] P19 | Match moves against complete decoded prose; verify task 19 evidence
-      with its RED/GREEN command
+- [-] P19 | Payload-map writer coupling rejected; retain existing move writer | 77920841 | Match
+      moves against complete decoded prose; verify task 19 evidence with its
+      RED/GREEN command
 - [ ] P20 | Compare Python executable structure; verify task 20 evidence with
       its RED/GREEN command
         > 2026-10-12 Execute after P17 so setting can consume paired comparison.
@@ -574,5 +577,6 @@ complete merely because this plan or its interfaces are approved.
         > 2026-10-12 Include definition/scanner/structure/TOML vocabulary repairs.
 - [ ] P26 | Verify the complete Python review workflow; verify task 26 evidence
       with its RED/GREEN command
-- [ ] P27 | Remove the Python-specific writer additions
+- [x] P27 | Parent writer restored; absence and static checks pass | 77920841 | Remove
+      the Python-specific writer additions
         > 2026-10-13 Check: parent writer restored; dedicated additions absent.

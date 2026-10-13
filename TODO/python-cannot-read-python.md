@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 41 of 49 tasks closed
+Progress: 42 of 49 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-21 (Roy, 2026-08-21, on four sentry files the floor interpreter cannot
@@ -432,6 +432,7 @@ the review, and nothing today protects the review.
       internal blanks in Python comment section length
         > 2026-10-13 Location: projection.py:224 excludes blanks from Paragraph.lines.
         > 2026-10-13 Check: fresh and restored sections have identical cap results.
-- [ ] T49 | Remove the Python-specific writer additions
+- [x] T49 | Writer matches parent; unused renderer/helper and tests removed | 77920841 | Remove
+      the Python-specific writer additions
         > 2026-10-13 Check: results matches parent; renderer and callers are absent.
         > 2026-10-13 Reason: Roy rejected replacing the existing deterministic writer.
