@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (125)
+### open  (124)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -306,7 +306,6 @@ that changed a published name or rule:
 | [collate-file-input](collate-file-input.md) | backend | -- | 0/1 | Read collation inputs from a file |
 | [2026-10-11-maintained-source-selection](2026-10-11-maintained-source-selection.md) | agents | -- | 0/1 | Select maintained source for review |
 | [2026-10-12-python-reader-vocabulary](2026-10-12-python-reader-vocabulary.md) | backend | -- | 0/1 | Use accepted Python reader vocabulary |
-| [2026-10-12-python-soft-keyword-annotations](2026-10-12-python-soft-keyword-annotations.md) | backend | -- | 0/1 | Read soft-keyword subscript annotations |
 
 ### in-progress  (18)
 
@@ -499,3 +498,4 @@ the reason is inside the file.
 | [2026-10-11-source-reading-contract](completed/2026-10-11-source-reading-contract.md) | 29 finished |
 | [2026-10-12-python-numeric-keyword-boundaries](completed/2026-10-12-python-numeric-keyword-boundaries.md) | 1 finished |
 | [2026-10-12-python-continuation-eof](completed/2026-10-12-python-continuation-eof.md) | 1 finished |
+| [2026-10-12-python-soft-keyword-annotations](completed/2026-10-12-python-soft-keyword-annotations.md) | 1 finished |

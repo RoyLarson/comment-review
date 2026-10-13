@@ -2,8 +2,8 @@
 
 ```
 Status:   in-progress
-Progress: 2 of 12 TODO tasks closed
-Plan-tasks: 7 of 26 plan tasks closed
+Progress: 3 of 12 TODO tasks closed
+Plan-tasks: 8 of 26 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (founded by move-t from 2026-10-11-lexical-readers)
@@ -458,9 +458,9 @@ complete merely because this plan or its interfaces are approved.
 
 - [ ] T1 | Replace retired Python reader terms
 
-### F - [2026-10-12-python-soft-keyword-annotations](../../TODO/2026-10-12-python-soft-keyword-annotations.md)
+### F - [2026-10-12-python-soft-keyword-annotations](../../TODO/completed/2026-10-12-python-soft-keyword-annotations.md)
 
-- [ ] T1 | Read subscript annotations headed by match
+- [x] T1 | Read subscript annotations headed by match
 
 ## Plan Tasks
 
@@ -489,11 +489,12 @@ complete merely because this plan or its interfaces are approved.
 - [x] P7 | 856 reader tests pass; observable spans reviewed | a6622eb5 | Protect
       observable interpolation source; verify task 7 evidence with its RED/GREEN
       command
-- [~] P8 | Recognize Python statements and suites; verify task 8 evidence with
-      its RED/GREEN command
+- [x] P8 | 911 reader tests pass; suites and annotation fix reviewed | 52a61381 | Recognize
+      Python statements and suites; verify task 8 evidence with its RED/GREEN
+      command
         > 2026-10-12 Pass definition explicitly for configured structural boundaries.
         > 2026-10-12 Cover soft-keyword subscript annotations before completion.
-- [ ] P9 | Recognize declaration names and ownership; verify task 9 evidence
+- [~] P9 | Recognize declaration names and ownership; verify task 9 evidence
       with its RED/GREEN command
 - [ ] P10 | Recognize modern Python structural boundaries; verify task 10
       evidence with its RED/GREEN command
