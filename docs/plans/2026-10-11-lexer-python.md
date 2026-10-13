@@ -465,6 +465,7 @@ complete merely because this plan or its interfaces are approved.
       RED/GREEN command
 - [ ] P5 | Recognize logical lines and indentation; verify task 5 evidence with
       its RED/GREEN command
+        > 2026-10-12 Pass definition explicitly to keep layout rules Python-owned.
 - [ ] P6 | Scan nested formatted-string expressions; verify task 6 evidence with
       its RED/GREEN command
 - [ ] P7 | Protect observable interpolation source; verify task 7 evidence with
