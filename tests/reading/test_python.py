@@ -986,6 +986,174 @@ def test_suites_empty_module(python_definition, text):
     ] == [(SourceSpan(0, len(text)), None, None, (), "module")]
 
 
+def test_declarations_decorated_headers_and_async_anchor(python_definition):
+    text = (
+        '@factory("class: def", lambda: {"key": value[1:3]})\n'
+        "# between decorator and declaration\n"
+        "class C[T](Base):\n"
+        "    @decorate\n"
+        "    # before method\n"
+        "    async \\\n"
+        "    def method[U](\n"
+        '        item: dict[str, int] = {"key": value[1:3]},\n'
+        "        callback=(lambda x: x),\n"
+        '        message=f"{value:{width}}",\n'
+        "    ) -> tuple[U, int]:\n"
+        "        # before body\n"
+        "        return item\n"
+    )
+    _, result = read_suites(text, python_definition)
+    assert not isinstance(result, ReadFailure)
+    class_start = text.index("class C")
+    async_start = text.index("async ")
+    method_end = text.index(") -> tuple[U, int]:") + len(") -> tuple[U, int]:")
+    assert result.declarations == (
+        SourceDeclaration(
+            SourceSpan(class_start, class_start + len("class C[T](Base):")),
+            class_start,
+            "class",
+        ),
+        SourceDeclaration(
+            SourceSpan(async_start, method_end), async_start, "async-function"
+        ),
+    )
+    assert [text[d.anchor : d.anchor + 5] for d in result.declarations] == [
+        "class",
+        "async",
+    ]
+    assert [
+        (f.declaration, f.name, f.parent, f.suite, f.insertion) for f in result.facts
+    ] == [
+        (0, "C", None, 1, text.index("@decorate")),
+        (1, "method", 0, 2, text.index("return item")),
+    ]
+    assert [text[s.span.start : s.span.end] for s in result.statements[:3]] == [
+        '@factory("class: def", lambda: {"key": value[1:3]})',
+        "class C[T](Base):",
+        "@decorate",
+    ]
+    for declaration, fact in zip(result.declarations, result.facts, strict=True):
+        assert result.suites[fact.suite].header == declaration.header
+
+
+def test_declarations_control_suites_preserve_nearest_owner(python_definition):
+    text = (
+        "def outer():\n"
+        "    if ready:\n"
+        "        def repeated(): pass\n"
+        "    else:\n"
+        "        class repeated:\n"
+        "            try:\n"
+        "                @decorate\n"
+        "                def repeated(): pass\n"
+        "            finally: cleanup()\n"
+        "if other:\n"
+        "    def repeated(): pass\n"
+    )
+    _, result = read_suites(text, python_definition)
+    assert not isinstance(result, ReadFailure)
+    assert [(f.declaration, f.name, f.parent, f.suite) for f in result.facts] == [
+        (0, "outer", None, 1),
+        (1, "repeated", 0, 3),
+        (2, "repeated", 0, 5),
+        (3, "repeated", 2, 7),
+        (4, "repeated", None, 10),
+    ]
+    assert [text[d.header.start : d.header.end] for d in result.declarations] == [
+        "def outer():",
+        "def repeated():",
+        "class repeated:",
+        "def repeated():",
+        "def repeated():",
+    ]
+    assert result.facts[0].insertion == text.index("if ready:")
+    assert result.facts[2].insertion == text.index("try:")
+    assert result.facts[3].insertion == text.index("pass", text.index("@decorate"))
+
+
+@pytest.mark.parametrize(
+    ("text", "header", "insertion"),
+    [
+        ("def f(): pass; work()\n", "def f():", 9),
+        ("class C: # trailing\n    # body\n", "class C:", 20),
+        ("def f():", "def f():", 8),
+        ("def f():\nx=1\n", "def f():", 9),
+        ("def f():\n    # body\n    x=1\n", "def f():", 24),
+        ("def f():\n    @decorate\n    def g(): pass\n", "def f():", 13),
+    ],
+)
+def test_declarations_body_insertion_is_absolute_and_bounded(
+    python_definition, text, header, insertion
+):
+    _, result = read_suites(text, python_definition)
+    assert not isinstance(result, ReadFailure)
+    assert result.declarations[0] == SourceDeclaration(
+        SourceSpan(0, len(header)),
+        0,
+        "class" if header.startswith("class") else "function",
+    )
+    fact = result.facts[0]
+    assert (fact.declaration, fact.parent, fact.suite, fact.insertion) == (
+        0,
+        None,
+        1,
+        insertion,
+    )
+    assert (
+        result.suites[fact.suite].span.start
+        <= insertion
+        <= result.suites[fact.suite].span.end
+    )
+
+
+def test_declarations_keep_exact_identifier_spelling(python_definition):
+    text = "def \u212a(): pass\nclass \ufb03: pass\n"
+    _, result = read_suites(text, python_definition)
+    assert not isinstance(result, ReadFailure)
+    assert [f.name for f in result.facts] == ["\u212a", "\ufb03"]
+    assert [text[d.header.start : d.header.end] for d in result.declarations] == [
+        "def \u212a():",
+        "class \ufb03:",
+    ]
+
+
+@pytest.mark.parametrize(
+    "text", ["def (): pass\n", "class (): pass\n", "async def (): pass\n"]
+)
+def test_declarations_require_an_identifier_name(python_definition, text):
+    _, result = read_suites(text, python_definition)
+    assert isinstance(result, ReadFailure)
+    assert result.diagnostics[0].stage == ReadStage.LEX
+    assert result.diagnostics[0].code == "missing-declaration-name"
+    start = text.index("(")
+    assert result.diagnostics[0].span == SourceSpan(start, start + 1)
+
+
+def test_declarations_ignore_names_literals_comments_and_type_aliases(
+    python_definition,
+):
+    text = (
+        "# def fake():\n"
+        'message = "class C: async def fake():"\n'
+        'formatted = f"{value:{width}} def fake():"\n'
+        "defector = lambda item: item\n"
+        "obj.class_factory(); obj.async_function()\n"
+        "type Alias[T] = dict[str, T]\n"
+        "match = case = type = lazy = 1\n"
+        "@decorate(lambda: 'def hidden():')\n"
+        "def class_factory(): pass\n"
+    )
+    _, result = read_suites(text, python_definition)
+    assert not isinstance(result, ReadFailure)
+    start = text.index("def class_factory")
+    assert result.declarations == (
+        SourceDeclaration(
+            SourceSpan(start, start + len("def class_factory():")), start, "function"
+        ),
+    )
+    assert [f.name for f in result.facts] == ["class_factory"]
+
+
 def test_suites_nested_headers_bodies_and_semicolons(python_definition):
     text = (
         'class C:\n    def f():\n        # before\n        "doc"; x=1\n    y=2\nz=3\n'

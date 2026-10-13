@@ -8,13 +8,14 @@ from comment_review.reading.definitions import LanguageDefinition
 from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, ReadStage
 from comment_review.reading.python.definition import validate_python
 from comment_review.reading.python.records import (
+    DeclarationFacts,
     LogicalLine,
     PythonScan,
     PythonStatement,
     PythonStructure,
     PythonSuite,
 )
-from comment_review.reading.source import SourceSpan
+from comment_review.reading.source import SourceDeclaration, SourceSpan
 
 
 def logical_lines(
@@ -172,7 +173,7 @@ def recognize_structure(
     Each significant token has one statement owner. A separating semicolon belongs
     to its preceding simple statement. Body spans include intervening layout up
     to the next dedenting line or EOF; empty bodies retain their start as an
-    insertion point. Expression evaluation and declaration facts are separate.
+    insertion point. Declaration facts retain exact names and enclosing owners.
     """
     failure = validate_python(definition)
     if failure is not None:
@@ -181,11 +182,12 @@ def recognize_structure(
     try:
         recognizer.check_lines()
         recognizer.block(0, 0, 0)
+        declarations, facts = recognizer.declaration_records()
     except _StructureError as error:
         return error.failure
     return PythonStructure(
-        (),
-        (),
+        declarations,
+        facts,
         tuple(suite.record() for suite in recognizer.suites),
         tuple(recognizer.statements),
     )
@@ -279,6 +281,47 @@ class _Suites:
         """Read a token's exact spelling from its canonical source span."""
         span = self.scan.tokens[index].span
         return self.scan.text[span.start : span.end]
+
+    def declaration_records(
+        self,
+    ) -> tuple[tuple[SourceDeclaration, ...], tuple[DeclarationFacts, ...]]:
+        """Bind declaration headers to exact names, enclosing owners, and bodies."""
+        headers = {statement.span: statement for statement in self.statements}
+        declarations: list[SourceDeclaration] = []
+        facts: list[DeclarationFacts] = []
+        owners: dict[int, int] = {}
+        for index, suite in enumerate(self.suites):
+            if suite.kind not in {"class", "function", "async-function"}:
+                continue
+            header = suite.header
+            assert header is not None
+            tokens = headers[header].tokens
+            name_position = 2 if self.spelling(tokens[0]) == self.async_keyword else 1
+            name = self.scan.tokens[tokens[name_position]]
+            if name.kind != "identifier":
+                raise _StructureError("missing-declaration-name", name.span)
+            enclosing = suite.parent
+            while enclosing is not None and enclosing not in owners:
+                enclosing = self.suites[enclosing].parent
+            parent = owners[enclosing] if enclosing is not None else None
+            declaration = len(declarations)
+            declarations.append(SourceDeclaration(header, header.start, suite.kind))
+            insertion = (
+                self.statements[suite.statements[0]].span.start
+                if suite.statements
+                else suite.span.start
+            )
+            facts.append(
+                DeclarationFacts(
+                    declaration,
+                    self.spelling(tokens[name_position]),
+                    parent,
+                    index,
+                    insertion,
+                )
+            )
+            owners[index] = declaration
+        return tuple(declarations), tuple(facts)
 
     def surface(self, tokens: tuple[int, ...]) -> list[tuple[int, str]]:
         """Find outer punctuation while keeping brackets and interpolation opaque."""
