@@ -619,3 +619,126 @@ def test_tokens_horizontal_whitespace_never_creates_a_token(python_definition):
     assert (
         "".join(result.text[r.span.start : r.span.end] for r in result.regions) == text
     )
+
+
+@pytest.mark.parametrize(
+    ("text", "regions", "tokens"),
+    [
+        (
+            "1in [1]",
+            [("code", 0, 3), ("whitespace", 3, 4), ("code", 4, 7)],
+            [
+                ("number", 0, 1, "1"),
+                ("identifier", 1, 3, "in"),
+                ("operator", 4, 5, "["),
+                ("number", 5, 6, "1"),
+                ("operator", 6, 7, "]"),
+            ],
+        ),
+        (
+            "1if True else 0",
+            [
+                ("code", 0, 3),
+                ("whitespace", 3, 4),
+                ("code", 4, 8),
+                ("whitespace", 8, 9),
+                ("code", 9, 13),
+                ("whitespace", 13, 14),
+                ("code", 14, 15),
+            ],
+            [
+                ("number", 0, 1, "1"),
+                ("identifier", 1, 3, "if"),
+                ("identifier", 4, 8, "True"),
+                ("identifier", 9, 13, "else"),
+                ("number", 14, 15, "0"),
+            ],
+        ),
+        (
+            "0x1or 2",
+            [("code", 0, 5), ("whitespace", 5, 6), ("code", 6, 7)],
+            [
+                ("number", 0, 3, "0x1"),
+                ("identifier", 3, 5, "or"),
+                ("number", 6, 7, "2"),
+            ],
+        ),
+        (
+            "1and 2",
+            [("code", 0, 4), ("whitespace", 4, 5), ("code", 5, 6)],
+            [("number", 0, 1, "1"), ("identifier", 1, 4, "and"), ("number", 5, 6, "2")],
+        ),
+        (
+            "1jand 2",
+            [("code", 0, 5), ("whitespace", 5, 6), ("code", 6, 7)],
+            [
+                ("number", 0, 2, "1j"),
+                ("identifier", 2, 5, "and"),
+                ("number", 6, 7, "2"),
+            ],
+        ),
+        (
+            "1else",
+            [("code", 0, 5)],
+            [("number", 0, 1, "1"), ("identifier", 1, 5, "else")],
+        ),
+        (
+            "1for",
+            [("code", 0, 4)],
+            [("number", 0, 1, "1"), ("identifier", 1, 4, "for")],
+        ),
+        (
+            "1is",
+            [("code", 0, 3)],
+            [("number", 0, 1, "1"), ("identifier", 1, 3, "is")],
+        ),
+        (
+            "0x1for 2",
+            [("code", 0, 6), ("whitespace", 6, 7), ("code", 7, 8)],
+            [
+                ("number", 0, 4, "0x1f"),
+                ("identifier", 4, 6, "or"),
+                ("number", 7, 8, "2"),
+            ],
+        ),
+        (
+            "1e2or",
+            [("code", 0, 5)],
+            [("number", 0, 3, "1e2"), ("identifier", 3, 5, "or")],
+        ),
+    ],
+)
+def test_tokens_numeric_keyword_boundaries(python_definition, text, regions, tokens):
+    result = scan_tokens(text, python_definition)
+    assert not isinstance(result, ReadFailure)
+    assert [(r.kind.value, r.span.start, r.span.end) for r in result.regions] == regions
+    assert [
+        (t.kind, t.span.start, t.span.end, text[t.span.start : t.span.end])
+        for t in result.tokens
+    ] == tokens
+    assert "".join(text[r.span.start : r.span.end] for r in result.regions) == text
+
+
+@pytest.mark.parametrize(
+    ("text", "end"),
+    [
+        ("1index", 6),
+        ("1or2", 4),
+        ("1and_value", 10),
+        ("1in\u03c0", 4),
+        ("1elif", 5),
+        ("1In", 3),
+        ("0x1and", 6),
+        ("0x1else", 7),
+        ("1e+", 3),
+        ("1__2", 4),
+        ("0x", 2),
+    ],
+)
+def test_tokens_numeric_keyword_boundaries_reject_false_suffixes(
+    python_definition, text, end
+):
+    result = scan_tokens(text, python_definition)
+    assert isinstance(result, ReadFailure)
+    assert result.diagnostics[0].stage == ReadStage.LEX
+    assert result.diagnostics[0].span == SourceSpan(0, end)

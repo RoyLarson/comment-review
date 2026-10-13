@@ -172,6 +172,11 @@ def _number_end(text: str, start: int) -> int | ReadFailure:
         end = match.end()
         if end == len(text) or not _name_continue(text[end]):
             return end
+        name_end = end
+        while name_end < len(text) and _name_continue(text[name_end]):
+            name_end += 1
+        if text[end:name_end] in ("and", "else", "for", "if", "in", "is", "or"):
+            return end
     end = start + 1
     while end < len(text):
         if _name_continue(text[end]) or text[end] == ".":
