@@ -1117,8 +1117,8 @@ def test_modern_syntax_match_case_lazy_imports_and_async_ownership(
         "            async with acquire(first) as lease:\n"
         "                async for item in lease.items():\n"
         "                    await consume(item)\n"
-        '                    rendered = f"{item!r} # literal"\n'
-        '                    template = t"item={item}"\n'
+        '                    rendered = f"{lookup["item"]!r} # literal"\n'
+        '                    template = t"item={lookup["item"]}"\n'
     )
     scan, result = read_suites(text, python_definition)
     assert not isinstance(result, ReadFailure)
@@ -1147,10 +1147,57 @@ def test_modern_syntax_match_case_lazy_imports_and_async_ownership(
         ["async for item in lease.items():"],
         [
             "await consume(item)",
-            'rendered = f"{item!r} # literal"',
-            'template = t"item={item}"',
+            'rendered = f"{lookup["item"]!r} # literal"',
+            'template = t"item={lookup["item"]}"',
         ],
     ]
+    for statement_text in (
+        'rendered = f"{lookup["item"]!r} # literal"',
+        'template = t"item={lookup["item"]}"',
+    ):
+        statement_start = text.index(statement_text)
+        statement_end = statement_start + len(statement_text)
+        field_start = statement_start + statement_text.index("{")
+        field_end = statement_start + statement_text.rindex("}") + 1
+        expected_field_tokens = [
+            ("field_start", "{"),
+            ("identifier", "lookup"),
+            ("operator", "["),
+            ("string", '"item"'),
+            ("operator", "]"),
+        ]
+        if statement_text.startswith("rendered"):
+            expected_field_tokens.append(("conversion", "!r"))
+        expected_field_tokens.append(("field_end", "}"))
+        assert [
+            (token.kind, text[token.span.start : token.span.end])
+            for token in scan.tokens
+            if field_start <= token.span.start and token.span.end <= field_end
+        ] == expected_field_tokens
+        prefix = 'f"' if statement_text.startswith("rendered") else 't"'
+        literal_start = statement_start + statement_text.index(prefix)
+        key_start = statement_start + statement_text.index(
+            '"item"', statement_text.index("{")
+        )
+        assert [
+            region.span
+            for region in scan.regions
+            if region.kind == RegionKind.LITERAL
+            and literal_start <= region.span.start
+            and region.span.end <= statement_end
+        ] == [
+            SourceSpan(literal_start, field_start),
+            SourceSpan(key_start, key_start + len('"item"')),
+            SourceSpan(field_end, statement_end),
+        ]
+        assert (
+            next(
+                statement
+                for statement in result.statements
+                if statement.span == SourceSpan(statement_start, statement_end)
+            ).suite
+            == 5
+        )
     assert [
         text[token.span.start : token.span.end]
         for token in scan.tokens
