@@ -2335,3 +2335,213 @@ def test_interpolation_observable_source_malformed_replacements_are_located(
     assert result.diagnostics[0].stage == ReadStage.LEX
     assert result.diagnostics[0].code == code
     assert result.diagnostics[0].span == span
+
+
+def read_documentation(text, definition):
+    scan, structure = read_suites(text, definition)
+    assert not isinstance(structure, ReadFailure)
+    try:
+        documentation = import_module("comment_review.reading.python.documentation")
+    except ModuleNotFoundError:
+        pytest.fail("Python documentation ownership is not implemented", pytrace=False)
+    return scan, structure, documentation.documentation_in(scan, structure, definition)
+
+
+@pytest.mark.parametrize(
+    ("text", "statement", "components", "owner"),
+    [
+        ('# leading\n\n"module"\n', '"module"', ['"module"'], None),
+        ('class C:\n    # leading\n\n    "class"\n', '"class"', ['"class"'], 0),
+        ('def f():\n    "function"\n', '"function"', ['"function"'], 0),
+        ('async def f():\n    "async"\n', '"async"', ['"async"'], 0),
+        ('class C: "inline"; pass\n', '"inline";', ['"inline"'], 0),
+        ('def f(): "inline"; pass\n', '"inline";', ['"inline"'], 0),
+        ('async def f(): "inline"; pass\n', '"inline";', ['"inline"'], 0),
+        ('""\n', '""', ['""'], None),
+        ('( ( "" ) ) ; pass\n', '( ( "" ) ) ;', ['""'], None),
+        (
+            '(\n    "a" # retained comment\n    R"b" U"c"\n)\n',
+            '(\n    "a" # retained comment\n    R"b" U"c"\n)',
+            ['"a"', 'R"b"', 'U"c"'],
+            None,
+        ),
+        ('((r"a" u"b" "c"))\n', '((r"a" u"b" "c"))', ['r"a"', 'u"b"', '"c"'], None),
+        ('"a" \\\n "b"\n', '"a" \\\n "b"', ['"a"', '"b"'], None),
+        ('"doc"; "later"\n', '"doc";', ['"doc"'], None),
+        ('"""multi\nline""";\n', '"""multi\nline""";', ['"""multi\nline"""'], None),
+    ],
+)
+def test_doc_ownership_complete_statement_and_component_spans(
+    python_definition, text, statement, components, owner
+):
+    scan, structure, result = read_documentation(text, python_definition)
+    assert not isinstance(result, ReadFailure)
+    assert len(result) == 1
+    expression = result[0]
+    assert expression.statement == SourceSpan(
+        text.index(statement), text.index(statement) + len(statement)
+    )
+    assert expression.components == tuple(
+        SourceSpan(text.index(component), text.index(component) + len(component))
+        for component in components
+    )
+    assert expression.declaration == owner
+    assert expression.statement in [item.span for item in structure.statements]
+    assert "".join(text[r.span.start : r.span.end] for r in scan.regions) == text
+    assert [
+        text[t.span.start : t.span.end] for t in scan.tokens if t.kind == "comment"
+    ] == [line[line.index("#") :] for line in text.splitlines() if "#" in line]
+
+
+@pytest.mark.parametrize(
+    "expression",
+    [
+        'value = "doc"',
+        '("doc",)',
+        '"doc", "other"',
+        '+"doc"',
+        '-"doc"',
+        '"doc" + "other"',
+        '"doc" * 2',
+        '"doc"()',
+        '("doc")("other")',
+        '"doc" ("other")',
+        '"doc"[0]',
+        '"doc".upper',
+        'b"doc"',
+        'BR"doc"',
+        'f"doc"',
+        'f"{value}"',
+        't"doc"',
+        't"{value}"',
+        '"plain" f"formatted"',
+        '("plain" t"{value}")',
+        '"plain" b"bytes"',
+        'await "doc"',
+    ],
+)
+@pytest.mark.parametrize("prefix", ["", "def f():\n    "])
+def test_doc_ownership_excluded_shapes_remain_executable(
+    python_definition, expression, prefix
+):
+    text = prefix + expression + "\n"
+    scan, structure, result = read_documentation(text, python_definition)
+    assert result == ()
+    assert (
+        text[structure.statements[-1].span.start : structure.statements[-1].span.end]
+        == expression
+    )
+    assert any(region.kind == RegionKind.LITERAL for region in scan.regions)
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        'pass\n"later"\n',
+        'pass; "later"\n',
+        'b"bytes"; "later"\n',
+        'f"formatted"; "later"\n',
+        't"template"; "later"\n',
+        'def f(): pass; "later"\n',
+        'def f():\n    pass\n    "later"\n',
+        'if ready:\n    "control"\n"later"\n',
+        'def f():\n    if ready:\n        "control"\n    "later"\n',
+        'if ready: "control"\nelse: "clause"\n',
+        'while ready: "control"\nelse: "clause"\n',
+        'try: "control"\nexcept Error: "clause"\nfinally: "final"\n',
+        'with context: "control"\n',
+        'for item in items: "control"\n',
+        'match value:\n    case _: "control"\n',
+    ],
+)
+def test_doc_ownership_first_statement_is_local_to_documentation_suite(
+    python_definition, text
+):
+    _, _, result = read_documentation(text, python_definition)
+    assert result == ()
+
+
+def test_doc_ownership_nested_declarations_under_controls(python_definition):
+    text = (
+        '"module"\n'
+        "class Outer:\n"
+        '    "outer"\n'
+        "    if ready:\n"
+        '        "control"\n'
+        "        def method():\n"
+        '            "method"\n'
+        '            async def inner(): "inner"; pass\n'
+        "    class Empty:\n"
+        "        pass\n"
+        '    def sibling(): "sibling"\n'
+    )
+    _, _, result = read_documentation(text, python_definition)
+    assert not isinstance(result, ReadFailure)
+    assert [
+        (
+            text[e.statement.start : e.statement.end],
+            e.declaration,
+            [text[c.start : c.end] for c in e.components],
+        )
+        for e in result
+    ] == [
+        ('"module"', None, ['"module"']),
+        ('"outer"', 0, ['"outer"']),
+        ('"method"', 1, ['"method"']),
+        ('"inner";', 2, ['"inner"']),
+        ('"sibling"', 4, ['"sibling"']),
+    ]
+
+
+def test_doc_ownership_semicolon_siblings_and_repeated_empty_components(
+    python_definition,
+):
+    text = '"" ""; "later"; pass\n'
+    _, structure, result = read_documentation(text, python_definition)
+    assert not isinstance(result, ReadFailure)
+    assert len(result) == 1
+    assert result[0].statement == SourceSpan(0, 6)
+    assert result[0].components == (SourceSpan(0, 2), SourceSpan(3, 5))
+    assert result[0].declaration is None
+    assert [statement.span for statement in structure.statements] == [
+        SourceSpan(0, 6),
+        SourceSpan(7, 15),
+        SourceSpan(16, 20),
+    ]
+    assert structure.suites[0].statements == (0, 1, 2)
+
+
+def test_doc_ownership_uses_existing_declaration_indices(python_definition):
+    text = 'def first(): "first"\ndef second(): "second"\n'
+    scan, structure = read_suites(text, python_definition)
+    assert not isinstance(structure, ReadFailure)
+    structure = replace(
+        structure,
+        declarations=tuple(reversed(structure.declarations)),
+        facts=tuple(
+            replace(fact, declaration=1 - fact.declaration) for fact in structure.facts
+        ),
+    )
+    documentation = import_module("comment_review.reading.python.documentation")
+    result = documentation.documentation_in(scan, structure, python_definition)
+    assert not isinstance(result, ReadFailure)
+    assert [
+        (text[e.statement.start : e.statement.end], e.declaration) for e in result
+    ] == [('"first"', 1), ('"second"', 0)]
+
+
+@pytest.mark.parametrize("text", ["", "# comment\n\n", "class Empty:\n"])
+def test_doc_ownership_empty_suites(python_definition, text):
+    _, _, result = read_documentation(text, python_definition)
+    assert result == ()
+
+
+def test_doc_ownership_rejects_invalid_definition(python_definition):
+    scan, structure = read_suites('"doc"\n', python_definition)
+    assert not isinstance(structure, ReadFailure)
+    definition = replace(python_definition, revision="unsupported")
+    documentation = import_module("comment_review.reading.python.documentation")
+    result = documentation.documentation_in(scan, structure, definition)
+    assert isinstance(result, ReadFailure)
+    assert result.diagnostics[0].stage == ReadStage.SELECT
+    assert result.diagnostics[0].code == "invalid-language-definition"
