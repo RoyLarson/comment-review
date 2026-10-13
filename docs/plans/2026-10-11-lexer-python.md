@@ -3,7 +3,7 @@
 ```
 Status:   in-progress
 Progress: 2 of 11 TODO tasks closed
-Plan-tasks: 6 of 26 plan tasks closed
+Plan-tasks: 7 of 26 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (founded by move-t from 2026-10-11-lexical-readers)
@@ -482,10 +482,12 @@ complete merely because this plan or its interfaces are approved.
       nested formatted-string expressions; verify task 6 evidence with its
       RED/GREEN command
         > 2026-10-12 Include structure.py to consume interpolation boundary events.
-- [~] P7 | Protect observable interpolation source; verify task 7 evidence with
+- [x] P7 | 856 reader tests pass; observable spans reviewed | a6622eb5 | Protect
+      observable interpolation source; verify task 7 evidence with its RED/GREEN
+      command
+- [~] P8 | Recognize Python statements and suites; verify task 8 evidence with
       its RED/GREEN command
-- [ ] P8 | Recognize Python statements and suites; verify task 8 evidence with
-      its RED/GREEN command
+        > 2026-10-12 Pass definition explicitly for configured structural boundaries.
 - [ ] P9 | Recognize declaration names and ownership; verify task 9 evidence
       with its RED/GREEN command
 - [ ] P10 | Recognize modern Python structural boundaries; verify task 10
