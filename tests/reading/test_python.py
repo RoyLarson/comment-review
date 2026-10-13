@@ -2742,3 +2742,245 @@ def test_payloads_reject_invalid_definition(python_definition):
     assert isinstance(result, ReadFailure)
     assert result.diagnostics[0].stage == ReadStage.SELECT
     assert result.diagnostics[0].code == "invalid-language-definition"
+
+
+def read_directives(text, definition):
+    scan, structure = read_suites(text, definition)
+    assert not isinstance(structure, ReadFailure)
+    try:
+        directives = import_module("comment_review.reading.python.directives")
+    except ModuleNotFoundError:
+        pytest.fail("Python directive recognition is not implemented", pytrace=False)
+    return scan, structure, directives.directives_in(scan, structure, definition)
+
+
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        ("#!/usr/bin/python\nx=1\n", [("shebang", "#!/usr/bin/python", "")]),
+        (" #!/usr/bin/python\nx=1\n", []),
+        ("\n#!/usr/bin/python\nx=1\n", []),
+        ("# coding: utf-8\nx=1\n", [("encoding", "# coding: utf-8", "")]),
+        ("# coding=utf8\nx=1\n", [("encoding", "# coding=utf8", "")]),
+        (
+            "# -*- coding: UTF_8 -*- prose\nx=1\n",
+            [("encoding", "# -*- coding: UTF_8 -*- prose", "")],
+        ),
+        ("# comment\n# coding: utf-8\nx=1\n", [("encoding", "# coding: utf-8", "")]),
+        (" \t\f\r\n# coding: utf-8\nx=1\n", [("encoding", "# coding: utf-8", "")]),
+        (
+            "#!/usr/bin/python\r\n# coding: utf-8\r\nx=1\r\n",
+            [("shebang", "#!/usr/bin/python", ""), ("encoding", "# coding: utf-8", "")],
+        ),
+        ("x=1\n# coding: latin-1\n", []),
+        ("x=1 # coding: latin-1\n", []),
+        ("\n\n# coding: latin-1\n", []),
+        ("# coding: utf-8\n# coding: latin-1\n", [("encoding", "# coding: utf-8", "")]),
+        ('"# coding: latin-1"\n# coding: latin-1\n', []),
+        ('text = "#! # type: ignore # coding: latin-1"\n', []),
+        ("# Coding: latin-1\nx=1\n", []),
+        ("# coding : latin-1\nx=1\n", []),
+        ("# coding: \nx=1\n", []),
+    ],
+)
+def test_directives_effective_preamble_and_literal_lookalikes(
+    python_definition, text, expected
+):
+    scan, _, result = read_directives(text, python_definition)
+    assert not isinstance(result, ReadFailure)
+    assert [
+        (
+            item.kind,
+            text[item.span.start : item.span.end],
+            text[item.attachment.start : item.attachment.end],
+        )
+        for item in result
+    ] == expected
+    assert all(item.attachment == SourceSpan(0, 0) for item in result)
+    assert scan.text == text
+
+
+@pytest.mark.parametrize("encoding", ["latin-1", "ascii", "utf-8-sig", "unknown-codec"])
+def test_directives_incompatible_encoding_refuses_at_effective_cookie(
+    python_definition, encoding
+):
+    cookie = "# coding: " + encoding
+    text = "# header\n" + cookie + "\nvalue = 1\n"
+    _, _, result = read_directives(text, python_definition)
+    assert isinstance(result, ReadFailure)
+    diagnostic = result.diagnostics[0]
+    assert diagnostic.stage == ReadStage.PLACE
+    assert diagnostic.code == "unsupported-source-encoding"
+    assert diagnostic.span == SourceSpan(9, 9 + len(cookie))
+
+
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        ("x=1 # type: int prose\n", [("type-comment", "# type: int prose", "x=1")]),
+        ("x=1 #\t type:\tint\n", [("type-comment", "#\t type:\tint", "x=1")]),
+        (
+            "x=1 # type:ignore[attr-defined] prose\n",
+            [("type-ignore", "# type:ignore[attr-defined] prose", "x=1")],
+        ),
+        ("x=1 # type: ignore-me\n", [("type-ignore", "# type: ignore-me", "x=1")]),
+        ("x=1 # type: ignores\n", [("type-comment", "# type: ignores", "x=1")]),
+        ("x=1 # type: Ignore\n", [("type-comment", "# type: Ignore", "x=1")]),
+        ("x=1; y=2 # type: int\n", [("type-comment", "# type: int", "y=2")]),
+        ("x=1; y=2 # type: ignore\n", [("type-ignore", "# type: ignore", "x=1; y=2")]),
+        (
+            "x=(\n  1, # type: ignore\n  2,\n)\n",
+            [("type-ignore", "# type: ignore", "1,")],
+        ),
+        (
+            "x=(\n  1,\n  2,\n) # type: tuple\n",
+            [("type-comment", "# type: tuple", "x=(\n  1,\n  2,\n)")],
+        ),
+        (
+            "def f(x):\n    # type: (int) -> int\n    # explanation\n    return x\n",
+            [("type-comment", "# type: (int) -> int", "def f(x):")],
+        ),
+        (
+            "# type: ignore\n# explanation\nx=1\n",
+            [("type-ignore", "# type: ignore", "")],
+        ),
+        ("x=1\n# type: ignore\n", [("type-ignore", "# type: ignore", "")]),
+        ("# type: int\n", [("type-comment", "# type: int", "")]),
+        ("x=1 # prose type: int\n", []),
+        ("x=1 # Type: int\n", []),
+        ("x=1 # type : int\n", []),
+        ("x=1 ## type: int\n", []),
+        ("x=1 # noqa\n", []),
+    ],
+)
+def test_directives_complete_type_comments_and_effective_targets(
+    python_definition, text, expected
+):
+    _, _, result = read_directives(text, python_definition)
+    assert not isinstance(result, ReadFailure)
+    assert [
+        (
+            item.kind,
+            text[item.span.start : item.span.end],
+            text[item.attachment.start : item.attachment.end],
+        )
+        for item in result
+    ] == expected
+
+
+def test_directives_standalone_boundary_uses_following_source_or_eof(python_definition):
+    for text, boundary in [
+        ("# type: ignore\nx=1\n", 15),
+        ("x=1\n# type: ignore\n", 19),
+    ]:
+        _, _, result = read_directives(text, python_definition)
+        assert not isinstance(result, ReadFailure)
+        assert result[0].attachment == SourceSpan(boundary, boundary)
+
+
+def test_directives_prose_insertion_preserves_ownership_and_movement_changes_it(
+    python_definition,
+):
+    targets = []
+    for text in [
+        "x=1 # type: int\ny=2\n",
+        "# explanation\nx=1 # type: int\ny=2\n",
+        "x=1\ny=2 # type: int\n",
+    ]:
+        _, structure, result = read_directives(text, python_definition)
+        assert not isinstance(result, ReadFailure)
+        attachment = result[0].attachment
+        assert attachment in [statement.span for statement in structure.statements]
+        targets.append(text[attachment.start : attachment.end])
+    assert targets == ["x=1", "x=1", "y=2"]
+
+
+def test_directives_line_layout_changes_ignore_attachment_without_comment_change(
+    python_definition,
+):
+    targets = []
+    for text in ["x=1; y=2 # type: ignore\n", "x=1\ny=2 # type: ignore\n"]:
+        _, _, result = read_directives(text, python_definition)
+        assert not isinstance(result, ReadFailure)
+        assert text[result[0].span.start : result[0].span.end] == "# type: ignore"
+        attachment = result[0].attachment
+        targets.append(text[attachment.start : attachment.end])
+    assert targets == ["x=1; y=2", "y=2"]
+
+
+def test_directives_preamble_insertion_detects_loss_of_effectiveness(python_definition):
+    _, _, before = read_directives(
+        "#!/usr/bin/python\n# coding: utf-8\nx=1\n", python_definition
+    )
+    _, _, after = read_directives(
+        '"documentation"\n#!/usr/bin/python\n# coding: utf-8\nx=1\n', python_definition
+    )
+    assert not isinstance(before, ReadFailure)
+    assert [item.kind for item in before] == ["shebang", "encoding"]
+    assert after == ()
+
+
+def test_directives_reject_invalid_definition(python_definition):
+    scan, structure = read_suites("x=1 # type: int\n", python_definition)
+    directives = import_module("comment_review.reading.python.directives")
+    result = directives.directives_in(
+        scan, structure, replace(python_definition, rules={})
+    )
+    assert isinstance(result, ReadFailure)
+    assert result.diagnostics[0].stage == ReadStage.SELECT
+
+
+@pytest.mark.parametrize(
+    ("text", "kind", "target"),
+    [
+        ('x="""one\ntwo""" # type: str\n', "type-comment", 'x="""one\ntwo"""'),
+        ('x="""one\ntwo""" # type: ignore\n', "type-ignore", 'two"""'),
+        ("x=1 # type: ignore_why\n", "type-ignore", "x=1"),
+        ("x=1 # type: ignore\u00e9\n", "type-comment", "x=1"),
+        ("x=1 # type: ignore\u200b\n", "type-comment", "x=1"),
+        ("x=1 #\f type: int\n", None, None),
+    ],
+)
+def test_directives_multiline_token_attachment_and_ignore_suffix(
+    python_definition, text, kind, target
+):
+    _, _, result = read_directives(text, python_definition)
+    assert not isinstance(result, ReadFailure)
+    if kind is None:
+        assert result == ()
+    else:
+        assert len(result) == 1
+        assert result[0].kind == kind
+        attachment = result[0].attachment
+        assert text[attachment.start : attachment.end] == target
+
+
+def test_directives_standalone_prose_insertion_keeps_function_and_boundary_targets(
+    python_definition,
+):
+    for extra in ["", "    # explanation\n"]:
+        text = "def f():\n    # type: () -> int\n" + extra + "    return 1\n"
+        _, _, result = read_directives(text, python_definition)
+        assert not isinstance(result, ReadFailure)
+        attachment = result[0].attachment
+        assert text[attachment.start : attachment.end] == "def f():"
+    for extra in ["", "# explanation\n"]:
+        text = "# type: ignore\n" + extra + "x=1\n"
+        _, _, result = read_directives(text, python_definition)
+        assert not isinstance(result, ReadFailure)
+        assert result[0].attachment == SourceSpan(text.index("x=1"), text.index("x=1"))
+
+
+def test_directives_move_within_joined_statement_changes_ignore_target(
+    python_definition,
+):
+    targets = []
+    for text in [
+        "x=(\n  1, # type: ignore\n  2,\n)\n",
+        "x=(\n  1,\n  2, # type: ignore\n)\n",
+    ]:
+        _, _, result = read_directives(text, python_definition)
+        assert not isinstance(result, ReadFailure)
+        attachment = result[0].attachment
+        targets.append(text[attachment.start : attachment.end])
+    assert targets == ["1,", "2,"]
