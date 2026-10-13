@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 38 of 46 tasks closed
+Progress: 38 of 48 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-21 (Roy, 2026-08-21, on four sentry files the floor interpreter cannot
@@ -417,3 +417,9 @@ the review, and nothing today protects the review.
         > 2026-10-13 Location: scanner.py accepts NUL inside literal source.
         > 2026-10-13 Check: scanner, page and gather refuse NUL at its source span.
         > 2026-10-13 Reason: gather regression after installing the lexical reader.
+- [ ] T47 | Assign places to comments immediately after Python documentation
+        > 2026-10-13 Location: projection.py:240 omits the shared doc/comment anchor.
+        > 2026-10-13 Check: module/suite/closing-line comments retain a/c wire rows.
+- [ ] T48 | Count internal blanks in Python comment section length
+        > 2026-10-13 Location: projection.py:224 excludes blanks from Paragraph.lines.
+        > 2026-10-13 Check: fresh and restored sections have identical cap results.
