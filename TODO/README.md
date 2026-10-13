@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (123)
+### open  (124)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -305,6 +305,7 @@ that changed a published name or rule:
 | [lexical-code-identity](lexical-code-identity.md) | backend | -- | 0/2 | Use lexical code identity at both proof boundaries |
 | [collate-file-input](collate-file-input.md) | backend | -- | 0/1 | Read collation inputs from a file |
 | [2026-10-11-maintained-source-selection](2026-10-11-maintained-source-selection.md) | agents | -- | 0/1 | Select maintained source for review |
+| [2026-10-12-python-continuation-eof](2026-10-12-python-continuation-eof.md) | backend | -- | 0/1 | A whitespace-only final physical line is refused after a join. |
 
 ### in-progress  (18)
 

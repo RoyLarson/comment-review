@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 1 of 9 TODO tasks closed
+Progress: 1 of 10 TODO tasks closed
 Plan-tasks: 4 of 26 plan tasks closed
 Owner:    backend
 Requires-Roy: false
@@ -449,6 +449,11 @@ complete merely because this plan or its interfaces are approved.
 - [x] T1 | Read numeric keyword boundaries; tokens tests accept 1if and 1jand
       while malformed numeric suffixes refuse.
 
+### D - [2026-10-12-python-continuation-eof](../../TODO/2026-10-12-python-continuation-eof.md)
+
+- [ ] T1 | Accept joined final whitespace at EOF; logical_lines tests still
+      refuse an immediately unfinished continuation.
+
 ## Plan Tasks
 
 - [x] P1 | Python definition validates; 216 tests and focused static checks pass; review approved | f23a9e18 | Install
@@ -467,6 +472,7 @@ complete merely because this plan or its interfaces are approved.
 - [~] P5 | Recognize logical lines and indentation; verify task 5 evidence with
       its RED/GREEN command
         > 2026-10-12 Pass definition explicitly to keep layout rules Python-owned.
+        > 2026-10-12 Repair joined final-whitespace refusal found in task review.
 - [ ] P6 | Scan nested formatted-string expressions; verify task 6 evidence with
       its RED/GREEN command
 - [ ] P7 | Protect observable interpolation source; verify task 7 evidence with
