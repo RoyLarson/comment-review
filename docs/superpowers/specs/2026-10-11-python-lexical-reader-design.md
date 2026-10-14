@@ -69,6 +69,59 @@ The existing writer continues to consume places, anchors and raw_text.
 Successful paragraph extraction alone is insufficient evidence for code proof;
 the lexical regions must also preserve every code character and boundary.
 
+## Python scanner prototype
+
+Apply the shared scanner construction with Python-owned recognizers and state.
+Use the original source directly as the recognition view. Escapes and explicit
+line continuations are recognized where Python permits them, retaining their
+original ranges. Each iteration consumes source under the active state.
+
+```text
+start with a code frame and the cursor at the beginning
+while source remains:
+    dispatch to the active frame's Python recognizer
+    record the consumed source range and its lexical form
+    advance the cursor
+    apply the requested entry, exit or state change
+finish the active states according to their EOF rules
+classify documentation positions and sections from the recorded source
+```
+
+Use these state responsibilities:
+
+| State | Recognition and transition |
+| --- | --- |
+| Code or replacement expression | Recognize a literal opener or hash comment. In a replacement expression, retain delimiter depth to identify its boundary and entry to a format specification. Other code retains its original spelling. |
+| Ordinary literal | Retain the quote delimiter and raw/escape mode. Consume escapes according to that mode; only an applicable matching delimiter closes the literal. Hashes are literal content. |
+| Interpolated literal text | Recognize the matching quote, doubled literal braces and replacement-field openers using Python's precedence. An opening field enters expression state. Hashes are literal content. |
+| Format specification | Recognize nested replacement fields and the enclosing field's closing boundary. Other payload remains part of the literal form. |
+| Hash comment | Consume to the physical newline or EOF. Quotes and braces are comment text. At a newline, retain its source range and return to the enclosing state. |
+
+A Python literal entry holds its opening position, quote delimiter, prefix mode
+and escape behavior. A replacement entry holds the delimiter context needed to
+distinguish expression punctuation from its closing boundary and format entry.
+Retain debug/template protection facts required by the preservation contract.
+The scanner need not retain operands or compute expression values to make
+these boundary decisions.
+
+Implement opener matching from the language's literal prefixes and quote forms.
+Overlapping forms, including short and triple quotes, need explicit precedence.
+Recognizing a prefix must respect its boundary so letters within an ordinary
+code name cannot begin a literal prefix. This is a boundary check rather than
+an identifier record returned to consumers.
+
+Documentation classification consumes the resulting literal and comment ranges
+and the positional facts described below. It recognizes the complete docstring
+expression, assigns its section, and includes a trailing closing-line comment
+in that same section. It then supplies the existing paragraph fields and
+documentation positions. The addresser receives every remaining code portion
+of each line as its anchor source.
+
+The three-hash fixture below exercises entry into an expression and return to
+literal text. Its companion fixtures exercise escape precedence, nested states
+and return to ordinary code. The closing-line fixtures exercise the separate
+section-ownership step through the existing writer.
+
 ## Lexical boundaries
 
 The scanner carries its state across physical lines and resumes immediately

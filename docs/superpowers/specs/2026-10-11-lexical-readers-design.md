@@ -124,6 +124,115 @@ places retain that policy.
 Both proof entry points use the same lexical preservation operation. Approval
 checking remains the responsibility of `proof` and its alterations.
 
+## Scanner construction
+
+Use a forward scanner with a source cursor and a stack of active constructs.
+Start in code. Ordinary source advances without requiring a keyword match.
+An applicable opener enters a comment or literal; its closer returns to the
+enclosing state. Record the original source ranges as scanning advances.
+Classify documentation and section ownership from those ranges afterward.
+
+The shared machinery supplies cursor movement, lookahead, range recording and
+stack operations. Each language supplies the recognizers, their precedence and
+the state needed to choose between them. A match statement may dispatch on the
+active state. The language definition selects the recognizers; source openers
+create stack entries as they are encountered.
+
+### Interface prototypes
+
+These signatures describe responsibilities, not additional public APIs or a
+required class hierarchy. Adapt the existing source contracts to carry their
+results. Keep scanner frames and recognition context internal to reading.
+
+```text
+scan(source, language_definition) -> lexical_ranges | ReadFailure
+recognize(cursor, active_frame, language_context) -> step | ReadFailure
+classify(source, lexical_ranges, language_definition)
+    -> existing source sections and documentation positions | ReadFailure
+```
+
+The cursor retains the original source position and supports non-consuming
+lookahead. A recognizer returns the consumed range, its lexical form, and the
+state transition. The loop records that range, advances, applies the transition
+and continues. Adjacent compatible ranges may be coalesced. Literal form is
+retained for documentation classification; ordinary literals remain code.
+
+Each successful step consumes source. At EOF, the active state's rule decides
+whether it is complete: a line comment may end there, while an unclosed block
+comment requires a located diagnostic. This gives the loop a progress check
+and makes incomplete input an explicit result.
+
+### State entries and transition rules
+
+A state entry retains its kind, opening source position and the parameters
+needed to find its end. Parameters can include the actual closing delimiter,
+escape mode and nesting depth. A source-chosen delimiter is read once at its
+opener and retained on that entry. Literal interpolation pushes an expression
+state; a nested literal pushes another literal state. Closing each construct
+restores its enclosing state. Simple repeated nesting may use a depth counter.
+
+Every language specification supplies a transition table with these columns:
+
+| Active state | Applicable source pattern and context | Consumed range | Next state | Recorded form |
+| --- | --- | --- | --- | --- |
+| Code | A recognized literal opener | Complete opener | Enter literal | Literal, retained as code |
+| Code | A recognized comment opener | Complete opener | Enter comment | Comment with its form |
+| Code | Ordinary source | Through the next possible boundary | Stay in code | Code |
+| Literal or comment | Its applicable closer | Complete closer | Resume enclosing state | Current construct's form |
+
+The rows above illustrate the contract; the language's table supplies the
+actual patterns and precedence. It specifies which escapes shield a closer,
+whether comments nest, which opener wins when prefixes overlap, and where
+interpolation enters code. Delimiters apply only in the states that recognize
+them. A possible closer inside a nested literal or comment belongs to that
+nested construct.
+
+### Language-specific recognition
+
+Fixed markers use short lookahead. Variable delimiters consume their opener
+according to that language's rule; there is no common fixed maximum length.
+Reuse helpers for matching and scanning delimiter runs. Language-owned
+recognition functions handle cases that require context beyond marker text.
+
+Each such context field must have a fixture showing the differing boundary
+results it distinguishes. For JavaScript, regular-expression versus division
+recognition needs its own specified syntactic context and fixtures; neither a
+previous-character heuristic nor a delimiter table establishes correct coverage.
+The language specification must settle that context before implementing it.
+See the [ECMAScript lexical goals](https://tc39.es/ecma262/multipage/ecmascript-language-lexical-grammar.html).
+
+Language context may also retain pending constructs whose bodies begin later.
+Keep those mechanics in the language that needs them rather than requiring
+every reader to use only immediate stack pushes. Share a helper once its
+required behavior is demonstrated by the individual language fixtures.
+
+### Recognition text and original source
+
+When a language transforms characters before comment recognition, provide a
+recognition view that retains the original ranges consumed by each transformed
+unit, including removed line continuations. The language controls when that view
+applies. Unaffected readers look directly at the original text.
+
+The cursor reports raw character offsets for every recorded range. Transforming
+the recognition view leaves the source and binder raw_text intact. Tests must
+demonstrate both correct comment boundaries and exact reconstruction from the
+original ranges. This mapping serves lexical recognition; prose decoding uses
+the existing paragraph contract independently.
+
+### Boundaries and section ownership
+
+Lexical recognition answers where a comment or literal starts and ends.
+Classification answers which existing documentation section owns that source.
+Keep both facts: a trailing comment on a Python docstring belongs to the
+docstring's section even though its hash begins a lexical comment. The combined
+raw text is handed to the editing agent and written once. Other languages
+specify their own attachment rules in their own definitions.
+
+Check each reader at these boundaries: expected lexical ranges, complete source
+reconstruction, expected section ownership, complete code anchors, and the
+existing writer's set-and-reread result. An identity round trip alone cannot
+establish correct classification or placement.
+
 ## Source contract
 
 A reader receives the exact decoded source, the selected language and the
