@@ -2,8 +2,8 @@
 
 ```
 Status:   in-progress
-Progress: 9 of 18 TODO tasks closed
-Plan-tasks: 20 of 27 plan tasks closed
+Progress: 8 of 18 TODO tasks closed
+Plan-tasks: 20 of 29 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (founded by move-t from 2026-10-11-lexical-readers)
@@ -444,7 +444,7 @@ complete merely because this plan or its interfaces are approved.
 - [ ] T44 | Document the Python preservation contract beside its comparison
 - [ ] T45 | Expose complete Python docstrings with their lexical owners
 - [x] T46 | Reject NUL characters throughout Python source
-- [x] T47 | Assign places to comments immediately after Python documentation
+- [ ] T47 | Assign places to comments immediately after Python documentation
 - [x] T48 | Count internal blanks in Python comment section length
 - [x] T49 | Remove the Python-specific writer additions
 
@@ -580,3 +580,9 @@ complete merely because this plan or its interfaces are approved.
 - [x] P27 | Parent writer restored; absence and static checks pass | 77920841 | Remove
       the Python-specific writer additions
         > 2026-10-13 Check: parent writer restored; dedicated additions absent.
+- [ ] P28 | Test hash classification across Python interpolation boundaries
+        > 2026-10-13 Goal: python-cannot-read-python T40; Python spec hash fixture.
+        > 2026-10-13 Check: only the expression hash opens a comment; raw text matches.
+- [ ] P29 | Test trailing docstring comments as one documentation section
+        > 2026-10-13 Goal: python-cannot-read-python T41 and T47; existing writer.
+        > 2026-10-13 Check: one doc section owns the suffix; no duplicate closing line.

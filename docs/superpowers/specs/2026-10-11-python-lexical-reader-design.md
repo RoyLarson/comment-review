@@ -108,6 +108,35 @@ An apparent closer inside a string or comment cannot close its enclosing field.
 Fixtures exercise the nesting guarantees in
 [PEP 701](https://peps.python.org/pep-0701/).
 
+### Literal and expression hash fixture
+
+Use this invented Python 3.12-or-newer source to demonstrate why the scanner
+retains literal and expression state across physical lines:
+
+```python
+message = f"""# This is literal output.
+Total: {
+    subtotal + tax  # This is a comment.
+}
+# This is also literal output.
+"""
+```
+
+The first and last hashes belong to literal content and remain code. Only the
+middle hash opens a comment, ending at the newline. The closing brace returns
+the scanner to literal content; the closing triple quote returns it to ordinary
+code. Retain the expression source without interpreting its operations.
+
+The fixture asserts the exact comment range and all retained source ranges.
+Their concatenation must equal the input. A line-by-line hash search would
+incorrectly expose the two literal lines as comments; the assertions must catch
+that error. Plan P28 carries this check under the owned-reading goal.
+
+Companion boundary fixtures cover a quoted hash inside the replacement
+expression, escaped quotes, doubled literal braces, nested replacement fields,
+and braces or quotes inside a real comment. Add a comment after the actual
+closing quote to check that ordinary comment recognition resumes there.
+
 Ordinary f-string expressions can contain comments. An editable comment inside
 an expression requires an existing place that can represent it and a setter
 that preserves the expression boundary. An unrepresentable comment produces a
@@ -222,10 +251,17 @@ the raw representation retains what the existing writer requires to reproduce
 the physical source. If an existing representation cannot express a supported
 layout, report that concrete incompatibility before changing the writer.
 
-The compatibility checks must distinguish two inline cases. A multiline
-docstring whose closing line also holds a comment can round-trip through the
-existing full-line raw representation; splitting it into A and an invented C
-code anchor duplicates that line. Restore the compatible representation.
+The compatibility checks must distinguish two inline cases. A trailing comment
+on a docstring's closing line belongs to that docstring's documentation section.
+Keep the complete closing line in its raw representation, owned once. The
+lexical comment boundary remains recognizable within that section; it does not
+create a separate C place. Editing agents receive the combined raw text.
+
+Plan P29 checks both a one-line docstring with a trailing comment and a multiline
+docstring with a trailing comment on its closing line. For module and function
+documentation, assert one owning documentation section, one copy of the closing
+line, and stable placement through the existing writer and reread. A replacement
+of the combined raw text must retain its intended place and following code.
 
 For `def f(): """Explain."""; return 1`, the older representation preserves the
 line but suppresses its code trigger and can attach the docstring at B instead
