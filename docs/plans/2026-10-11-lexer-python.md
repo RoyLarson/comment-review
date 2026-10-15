@@ -3,7 +3,7 @@
 ```
 Status:   in-progress
 Progress: 12 of 22 TODO tasks closed
-Plan-tasks: 32 of 43 plan tasks closed
+Plan-tasks: 34 of 43 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (founded by move-t from 2026-10-11-lexical-readers)
@@ -597,7 +597,8 @@ complete merely because this plan or its interfaces are approved.
 - [x] P27 | Parent writer restored; absence and static checks pass | 77920841 | Remove
       the Python-specific writer additions
         > 2026-10-13 Check: parent writer restored; dedicated additions absent.
-- [ ] P28 | Test hash classification across Python interpolation boundaries
+- [x] P28 | Exact three-hash fixture and source positions pass review | 42c5319a | Test
+      hash classification across Python interpolation boundaries
         > 2026-10-13 Goal: python-cannot-read-python T40; Python spec hash fixture.
         > 2026-10-13 Check: only the expression hash opens a comment; raw text matches.
 - [ ] P29 | Test trailing docstring comments as one documentation section
@@ -625,7 +626,8 @@ complete merely because this plan or its interfaces are approved.
         > 2026-10-14 Goals: T40,T42; reading/python/scanner.py; python.toml.
         > 2026-10-14 Check: quoted hashes, escapes, raw endings and multiline state.
         > 2026-10-14 Check: uv run pytest -q tests/reading/test_python.py
-- [ ] P33 | Scan Python interpolation state transitions
+- [x] P33 | Interpolation and protected-source checks pass with 1338 tests | 42c5319a | Scan
+      Python interpolation state transitions
         > 2026-10-14 Goals: T40,T42; reading/python/interpolation.py; include P28.
         > 2026-10-14 Check: three hashes, nested fields and protected expression text.
         > 2026-10-14 Check: uv run pytest -q tests/reading/test_python.py
