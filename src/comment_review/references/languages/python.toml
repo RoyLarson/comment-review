@@ -79,4 +79,3 @@ encoding_second_line = "comment-or-blank-first-line"
 encoding_own_line = true
 type_marker = "type:"
 type_position = "comment-start-after-whitespace"
-
