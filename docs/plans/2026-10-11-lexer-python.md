@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 12 of 23 TODO tasks closed
+Progress: 12 of 24 TODO tasks closed
 Plan-tasks: 34 of 43 plan tasks closed
 Owner:    backend
 Requires-Roy: false
@@ -488,6 +488,10 @@ complete merely because this plan or its interfaces are approved.
 
 - [ ] T1 | Separate comment-only sections from trailing comments
 
+### L - [2026-10-14-protected-directive-spacing](../../TODO/2026-10-14-protected-directive-spacing.md)
+
+- [ ] T1 | Refuse spacing edits before protected comments
+
 ## Plan Tasks
 
 - [x] P1 | Python definition validates; 216 tests and focused static checks pass; review approved | f23a9e18 | Install
@@ -662,6 +666,7 @@ complete merely because this plan or its interfaces are approved.
         > 2026-10-14 Check: reject code/order/indentation/literal/separator mutations.
         > 2026-10-14 Check: uv run pytest -q tests/test_lexical_preservation.py
         > 2026-10-14 Create tests/test_lexical_preservation.py for these checks.
+        > 2026-10-14 Includes protected-directive-spacing T1 review repair
 - [ ] P39 | Match Python documentation across additions and removals
         > 2026-10-14 Goals: T43,T45; reading/python/preservation.py.
         > 2026-10-14 Check: removing docs cannot expose ordinary literals for edits.
