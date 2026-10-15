@@ -11,19 +11,20 @@ from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, Read
 from comment_review.reading.python.definition import validate_python
 from comment_review.reading.python.records import (
     ProtectedSource,
+    PythonPlacement,
     PythonScan,
-    PythonStructure,
 )
+from comment_review.reading.python.structure import outer_boundaries
 from comment_review.reading.source import SourceSpan
 
 
 def directives_in(
-    scan: PythonScan, structure: PythonStructure, definition: LanguageDefinition
+    scan: PythonScan, structure: PythonPlacement, definition: LanguageDefinition
 ) -> tuple[ProtectedSource, ...] | ReadFailure:
     """Retain whole comments, effective preamble placement, and source ownership.
 
     Preamble directives attach to source start. Inline type comments attach to
-    retained statements; ignores attach to the significant source on their line.
+    joined source boundaries; ignores attach to significant source on their line.
     Standalone comments use function headers or the next owned token boundary.
     """
     failure = validate_python(definition)
@@ -124,48 +125,70 @@ def directives_in(
 
 def _type_attachment(
     scan: PythonScan,
-    structure: PythonStructure,
+    structure: PythonPlacement,
     comment: SourceSpan,
     line_start: int,
     ignored: bool,
 ) -> SourceSpan:
-    owned = [
-        (statement, scan.tokens[index].span)
-        for statement in structure.statements
-        for index in statement.tokens
+    significant = [
+        token
+        for token in scan.tokens
+        if token.kind not in {"comment", "newline", "continuation"}
     ]
     on_line = [
-        (statement, span)
-        for statement, span in owned
-        if span.end > line_start and span.start < comment.start
+        token.span
+        for token in significant
+        if token.span.end > line_start and token.span.start < comment.start
     ]
     if on_line:
+        physical = SourceSpan(max(line_start, on_line[0].start), on_line[-1].end)
         if ignored:
-            return SourceSpan(max(line_start, on_line[0][1].start), on_line[-1][1].end)
-        statement = on_line[-1][0]
-        if statement.span.end <= comment.start:
-            return statement.span
-        return SourceSpan(max(line_start, on_line[0][1].start), on_line[-1][1].end)
-    containing = [
-        suite
-        for suite in structure.suites
-        if suite.span.start <= comment.start < suite.span.end
-    ]
-    suite = min(containing, key=lambda item: item.span.end - item.span.start)
-    if (
-        not ignored
-        and suite.kind in {"function", "async-function"}
-        and suite.header is not None
-        and (
-            not suite.statements
-            or comment.end <= structure.statements[suite.statements[0]].span.start
+            return physical
+        line = next(
+            line
+            for line in structure.lines
+            if line.span.start <= comment.start < line.span.end
         )
-    ):
-        return suite.header
-    following = [
-        span.start
-        for statement, span in owned
-        if comment.end <= span.start <= suite.span.end
-    ]
-    boundary = min(following, default=suite.span.end)
+        preceding = tuple(
+            index
+            for index in line.tokens
+            if scan.tokens[index].span.end <= comment.start
+        )
+        following = next(
+            (
+                index
+                for index in line.tokens
+                if scan.tokens[index].span.start >= comment.end
+            ),
+            None,
+        )
+        if following is not None:
+            return physical
+        separators = [
+            index
+            for index in outer_boundaries(scan, preceding)
+            if scan.text[scan.tokens[index].span.start : scan.tokens[index].span.end]
+            == ";"
+        ]
+        if separators:
+            preceding = tuple(index for index in preceding if index > separators[-1])
+        if preceding:
+            return SourceSpan(
+                scan.tokens[preceding[0]].span.start,
+                scan.tokens[preceding[-1]].span.end,
+            )
+        return physical
+    if not ignored:
+        for declaration, insertion in reversed(
+            tuple(zip(structure.declarations, structure.insertions[1:], strict=True))
+        ):
+            if (
+                declaration.kind in {"function", "async-function"}
+                and declaration.header.end <= comment.start < insertion
+            ):
+                return declaration.header
+    boundary = min(
+        (token.span.start for token in significant if token.span.start >= comment.end),
+        default=len(scan.text),
+    )
     return SourceSpan(boundary, boundary)

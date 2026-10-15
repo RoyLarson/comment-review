@@ -6,21 +6,20 @@ from pathlib import Path
 from comment_review import constants
 from comment_review.reading.coordinates import SourceCoordinates
 from comment_review.reading.definitions import LanguageDefinition
-from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, ReadStage
+from comment_review.reading.diagnostics import ReadFailure
 from comment_review.reading.paragraph import Paragraph
 from comment_review.reading.python.definition import validate_python
 from comment_review.reading.python.records import (
     DocumentationPayload,
     ProtectedSource,
+    PythonPlacement,
     PythonRead,
     PythonScan,
-    PythonStructure,
 )
 from comment_review.reading.series import Kind
 from comment_review.reading.source import (
     DocumentationOwner,
     RegionKind,
-    SourceRegion,
     SourceSection,
     SourceSpan,
     SourceStructure,
@@ -29,7 +28,7 @@ from comment_review.reading.source import (
 
 def sections_for(
     scan: PythonScan,
-    structure: PythonStructure,
+    structure: PythonPlacement,
     documentation: tuple[DocumentationPayload, ...],
     definition: LanguageDefinition,
     directives: tuple[ProtectedSource, ...],
@@ -37,8 +36,8 @@ def sections_for(
     """Retain full statements, whole comment runs, and completed protection.
 
     Forms describe source syntax; paragraph adaptation owns address kinds.
-    Editable comments inside documentation fail because their independent span
-    overlaps the complete documentation statement required by PythonRead.
+    Documentation owns enclosed and closing-line comments. Protection remains
+    attached to exact source without removing comments from classification.
     """
     failure = validate_python(definition)
     if failure is not None:
@@ -50,26 +49,11 @@ def sections_for(
         if token.kind != "comment":
             continue
         if any(
-            token.span.start < item.span.end and item.span.start < token.span.end
-            for item in protected
-        ):
-            continue
-        if any(
             payload.expression.statement.start <= token.span.start
             and token.span.end <= payload.expression.statement.end
             for payload in documentation
         ):
-            return ReadFailure(
-                (
-                    ReadDiagnostic(
-                        ReadStage.PLACE,
-                        "unsupported-documentation-comment",
-                        "An editable comment inside documentation overlaps its "
-                        "complete statement section",
-                        token.span,
-                    ),
-                )
-            )
+            continue
         start = token.span.start
         line_start = start - coordinates.position(start).column
         if not scan.text[line_start:start].strip(" \t\f"):
@@ -107,34 +91,10 @@ def sections_for(
         )
         for payload in documentation
     )
-    directive_spans = {item.span for item in directives}
-    regions = (
-        tuple(
-            SourceRegion(region.span, RegionKind.DIRECTIVE)
-            if region.kind == RegionKind.COMMENT and region.span in directive_spans
-            else region
-            for region in scan.regions
-        )
-        if directives
-        else scan.regions
-    )
     source = SourceStructure(
-        scan.text, regions, sections, structure.declarations, owners
+        scan.text, scan.regions, sections, structure.declarations, owners
     )
-    module = structure.suites[0]
-    module_insertion = (
-        structure.statements[module.statements[0]].span.start
-        if module.statements
-        else 0
-    )
-    declaration_insertions = {
-        fact.declaration: fact.insertion for fact in structure.facts
-    }
-    insertions = (
-        module_insertion,
-        *(declaration_insertions[index] for index in range(len(source.declarations))),
-    )
-    return PythonRead(source, documentation, protected, insertions)
+    return PythonRead(source, documentation, protected, structure.insertions)
 
 
 def paragraphs_for(path: Path, read: PythonRead) -> list[Paragraph] | ReadFailure:

@@ -184,7 +184,7 @@ def scan_interpolation(
             continue
         if frame.mode == "converted":
             return _failure("invalid-conversion", position, position + 1)
-        result = _next_token(text, position, syntax)
+        result = _next_token(text, position, syntax, field=not frame.brackets)
         if isinstance(result, ReadFailure):
             return result
         kind, end, region = result
@@ -195,7 +195,7 @@ def scan_interpolation(
             "continuation",
         ):
             return _failure("invalid-debug-expression", position, end)
-        if kind == "operator" and text[position:end] == "=" and not frame.brackets:
+        if kind == "boundary" and text[position:end] == "=" and not frame.brackets:
             if not frame.nonempty:
                 return _failure("empty-field", frame.start, end)
             events.protect(frame, position)
@@ -207,7 +207,7 @@ def scan_interpolation(
             frame.nonempty = True
         else:
             spelling = text[position:end]
-            if kind == "operator":
+            if kind == "boundary":
                 if spelling in pairs:
                     frame.brackets.append(pairs[spelling])
                 elif spelling in pairs.values():

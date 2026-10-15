@@ -10,20 +10,21 @@ from comment_review.reading.python.definition import validate_python
 from comment_review.reading.python.records import (
     DocumentationExpression,
     DocumentationPayload,
+    PythonPlacement,
     PythonScan,
-    PythonStructure,
     PythonToken,
 )
+from comment_review.reading.python.structure import outer_boundaries
 from comment_review.reading.source import SourceSpan
 
 
 def documentation_in(
-    scan: PythonScan, structure: PythonStructure, definition: LanguageDefinition
+    scan: PythonScan, structure: PythonPlacement, definition: LanguageDefinition
 ) -> tuple[DocumentationExpression, ...] | ReadFailure:
     """Retain the first complete plain-string statement in each documentation body.
 
-    Declaration indices come from the structural facts. Statement spans include
-    any owned semicolon; component spans identify only the ordered literal tokens.
+    Declaration indices and first positions come from preserved source placement.
+    Component spans identify only literals; the section also owns its closing tail.
     """
     failure = validate_python(definition)
     if failure is not None:
@@ -39,26 +40,79 @@ def documentation_in(
     pairs = dict(cast(tuple[tuple[str, str], ...], layout["implicit_pairs"]))
     separator = cast(str, layout["statement_separator"])
     case_insensitive = cast(bool, literals["case_insensitive_prefixes"])
-    body_owners = {fact.suite: fact.declaration for fact in structure.facts}
     expressions: list[DocumentationExpression] = []
-    for index, suite in enumerate(structure.suites):
-        if suite.kind not in owners or not suite.statements:
-            continue
-        if suite.kind == "module":
-            declaration = None
-        elif index in body_owners:
-            declaration = body_owners[index]
+    for ordinal, insertion in enumerate(structure.insertions):
+        declaration = None if ordinal == 0 else ordinal - 1
+        if declaration is None:
+            if "module" not in owners or not structure.lines:
+                continue
+            line = structure.lines[0]
+            if line.indent:
+                continue
         else:
-            continue
-        statement = structure.statements[suite.statements[0]]
-        tokens = tuple(scan.tokens[token] for token in statement.tokens)
+            header = structure.declarations[declaration]
+            if header.kind not in owners:
+                continue
+            header_line = next(
+                line
+                for line in structure.lines
+                if line.span.start <= header.anchor < line.span.end
+            )
+            line = next(
+                (
+                    line
+                    for line in structure.lines
+                    if any(
+                        scan.tokens[index].span.start == insertion
+                        for index in line.tokens
+                    )
+                ),
+                None,
+            )
+            if line is None or (
+                line is not header_line and line.indent <= header_line.indent
+            ):
+                continue
+        indices = tuple(
+            index for index in line.tokens if scan.tokens[index].span.start >= insertion
+        )
+        stop = next(
+            (
+                index
+                for index in outer_boundaries(scan, indices)
+                if scan.text[
+                    scan.tokens[index].span.start : scan.tokens[index].span.end
+                ]
+                == separator
+            ),
+            None,
+        )
+        if stop is not None:
+            indices = tuple(index for index in indices if index <= stop)
+        tokens = tuple(scan.tokens[index] for index in indices)
         components = _components(
             scan.text, tokens, allowed, quotes, pairs["("], separator, case_insensitive
         )
-        if components:
-            expressions.append(
-                DocumentationExpression(statement.span, components, declaration)
+        if not components:
+            continue
+        end = tokens[-1].span.end
+        trailing = next(
+            (
+                token
+                for token in scan.tokens
+                if token.kind == "comment" and token.span.start >= end
+            ),
+            None,
+        )
+        if trailing is not None and not scan.text[end : trailing.span.start].strip(
+            " \t\f"
+        ):
+            end = trailing.span.end
+        expressions.append(
+            DocumentationExpression(
+                SourceSpan(tokens[0].span.start, end), components, declaration
             )
+        )
     return tuple(sorted(expressions, key=lambda expression: expression.statement.start))
 
 
@@ -74,11 +128,11 @@ def _components(
     """Accept adjacent plain literals enclosed only by whole-expression parentheses."""
     spellings = [text[token.span.start : token.span.end] for token in tokens]
     start, end = 0, len(tokens)
-    if end and tokens[end - 1].kind == "operator" and spellings[end - 1] == separator:
+    if end and tokens[end - 1].kind == "boundary" and spellings[end - 1] == separator:
         end -= 1
     while (
         end - start >= 2
-        and tokens[start].kind == tokens[end - 1].kind == "operator"
+        and tokens[start].kind == tokens[end - 1].kind == "boundary"
         and spellings[start] == "("
         and spellings[end - 1] == closer
     ):

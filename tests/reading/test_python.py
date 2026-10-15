@@ -35,7 +35,6 @@ def test_records_module_exists():
 def test_completed_read_projects_documentation_from_source_positions(python_definition):
     from pathlib import Path
 
-    from comment_review.reading.python import read_python
     from comment_review.reading.python.projection import (
         code_for,
         declarations_for,
@@ -49,7 +48,9 @@ def test_completed_read_projects_documentation_from_source_positions(python_defi
         '    "body " "prose"; return value # detail\r\n'
         "class Container:\r\n    pass\r\n"
     )
-    result = read_python(text, python_definition)
+    result = import_module("comment_review.reading.python").read_python(
+        text, python_definition
+    )
     assert isinstance(result, PythonRead)
     reduced = PythonRead(
         result.source, result.payloads, result.protected, result.insertions
@@ -60,7 +61,7 @@ def test_completed_read_projects_documentation_from_source_positions(python_defi
     )
     assert not hasattr(reduced.payloads[0], "mapping")
     paragraphs = paragraphs_for(Path("invented.py"), reduced)
-    assert isinstance(paragraphs, list)
+    assert not isinstance(paragraphs, ReadFailure)
     assert [(p.text, p.raw_lines, p.address, p.anchor) for p in paragraphs] == [
         ("heading", ["# heading"], "", ""),
         ("module\nprose", ['"module\\nprose"'], "a0", ""),
@@ -157,10 +158,9 @@ def test_records_payload_keeps_complete_prose_and_raw_expression(records):
         lambda r: r.LogicalLine(SourceSpan(0, 1), (1, 0), 0),
         lambda r: r.LogicalLine(SourceSpan(0, 1), (True,), 0),
         lambda r: r.LogicalLine(SourceSpan(0, 1), (), -1),
-        lambda r: r.PythonStatement(SourceSpan(0, 1), (), True),
-        lambda r: r.PythonSuite(SourceSpan(0, 1), 0, None, (), "module"),
-        lambda r: r.DeclarationFacts(0, "", None, 0, 0),
-        lambda r: r.DeclarationFacts(-1, "f", None, 0, 0),
+        lambda r: r.PythonPlacement((), (), ()),
+        lambda r: r.PythonPlacement((), (), (-1,)),
+        lambda r: r.PythonPlacement((), (), (True,)),
         lambda r: r.DocumentationExpression(
             SourceSpan(2, 4), (SourceSpan(0, 3),), None
         ),
@@ -230,21 +230,13 @@ def test_records_reject_bad_completed_insertion_positions_and_protection(records
             replace(result, **changed)
 
 
-def test_records_allow_declaration_body_below_control_suite_and_empty_suite(records):
+def test_records_allow_declaration_positions_without_a_tree(records):
     declaration = SourceDeclaration(SourceSpan(5, 13), 5, "function")
-    suites = (
-        records.PythonSuite(SourceSpan(0, 15), None, None, (0,), "module"),
-        records.PythonSuite(SourceSpan(5, 15), 0, SourceSpan(0, 4), (1,), "control"),
-        records.PythonSuite(SourceSpan(15, 15), 1, declaration.header, (), "function"),
-    )
-    statements = (
-        records.PythonStatement(SourceSpan(0, 4), (), 0),
-        records.PythonStatement(declaration.header, (), 1),
-    )
-    facts = (records.DeclarationFacts(0, "f", None, 2, 15),)
-    assert (
-        records.PythonStructure((declaration,), facts, suites, statements).facts
-        == facts
+    placement = records.PythonPlacement((), (declaration,), (0, 15))
+    assert placement.declarations == (declaration,)
+    assert placement.insertions == (0, 15)
+    assert not any(
+        hasattr(placement, name) for name in ("facts", "suites", "statements")
     )
 
 
@@ -283,28 +275,14 @@ def test_records_preservation_results_require_matching_diagnostics(records):
     assert records.PreservationResult(False, (diagnostic,)).diagnostics == (diagnostic,)
 
 
-def test_records_declaration_parent_matches_enclosing_declaration(records):
+def test_records_nested_declarations_keep_only_source_positions(records):
     declarations = (
         SourceDeclaration(SourceSpan(0, 8), 0, "function"),
         SourceDeclaration(SourceSpan(13, 21), 13, "function"),
     )
-    suites = (
-        records.PythonSuite(SourceSpan(0, 25), None, None, (), "module"),
-        records.PythonSuite(
-            SourceSpan(13, 25), 0, declarations[0].header, (), "function"
-        ),
-        records.PythonSuite(
-            SourceSpan(25, 25), 1, declarations[1].header, (), "function"
-        ),
-    )
-    facts = (
-        records.DeclarationFacts(0, "outer", None, 1, 13),
-        records.DeclarationFacts(1, "inner", 0, 2, 25),
-    )
-    result = records.PythonStructure(declarations, facts, suites, ())
-    assert result.facts[1].parent == 0
-    with pytest.raises(ValueError):
-        replace(result, facts=(facts[0], replace(facts[1], parent=None)))
+    placement = records.PythonPlacement((), declarations, (0, 13, 25))
+    assert placement.declarations == declarations
+    assert placement.insertions == (0, 13, 25)
 
 
 @pytest.fixture
@@ -352,8 +330,11 @@ def test_read_python_initial_bom_preserves_exact_source_and_documentation(
 def test_read_python_bom_does_not_hide_indentation(python_definition):
     from comment_review.reading.python import read_python
 
-    result = read_python('\ufeff    "doc"\n', python_definition)
-    assert isinstance(result, ReadFailure)
+    text = '\ufeff    "doc"\n'
+    result = read_python(text, python_definition)
+    assert not isinstance(result, ReadFailure)
+    assert result.payloads == ()
+    assert result.source.reconstruct() == text
 
 
 def test_read_python_bom_cookie_still_rejects_incompatible_encoding(python_definition):
@@ -396,8 +377,146 @@ def scan_tokens(text, definition):
     return scanner.scan_python(text, definition)
 
 
+@pytest.mark.parametrize("ending", ["", "\r", "\n", "\r\n"])
 @pytest.mark.parametrize(
-    ("text", "regions", "tokens"),
+    "code",
+    ["0x", "0b2", "0123", "1e+", "1__2", "3_", "1e_2", "0x1j", "$!", "\u200b"],
+)
+def test_scanner_opaque_code_exposes_exact_comment_and_shields_literal(
+    python_definition, code, ending
+):
+    text = code + ' "# literal" # actual' + ending
+    result = scan_tokens(text, python_definition)
+    assert not isinstance(result, ReadFailure)
+    start = text.index("# actual")
+    assert [
+        region.span for region in result.regions if region.kind == RegionKind.COMMENT
+    ] == [SourceSpan(start, start + len("# actual"))]
+    assert "".join(text[r.span.start : r.span.end] for r in result.regions) == text
+    assert all(
+        t.kind not in {"identifier", "number", "operator"} for t in result.tokens
+    )
+
+
+@pytest.mark.parametrize(
+    "name", ["stuff", "buffer", "raft", "prefixfr", "1f", "\u03c0f"]
+)
+def test_scanner_literal_prefix_requires_name_boundary(python_definition, name):
+    text = name + '"{# literal}"# actual'
+    result = scan_tokens(text, python_definition)
+    assert not isinstance(result, ReadFailure)
+    assert [(r.kind, text[r.span.start : r.span.end]) for r in result.regions] == [
+        (RegionKind.CODE, name),
+        (RegionKind.LITERAL, '"{# literal}"'),
+        (RegionKind.COMMENT, "# actual"),
+    ]
+    assert [t.kind for t in result.tokens] == ["code", "string", "comment"]
+
+
+@pytest.mark.parametrize("prefix", ["f", "t"])
+@pytest.mark.parametrize(
+    "expression", ["0b2", "$", "a==b", "a!=b", "a<=b", "a>=b", "(a:=b)"]
+)
+def test_scanner_opaque_interpolation_code_keeps_field_boundaries(
+    python_definition, prefix, expression
+):
+    text = prefix + '"{' + expression + ' # field\r\n} # literal"# actual'
+    result = scan_tokens(text, python_definition)
+    assert not isinstance(result, ReadFailure)
+    assert [
+        text[r.span.start : r.span.end]
+        for r in result.regions
+        if r.kind == RegionKind.COMMENT
+    ] == ["# field", "# actual"]
+    assert not any(p.kind == "debug-expression" for p in result.protected)
+    assert "".join(text[r.span.start : r.span.end] for r in result.regions) == text
+
+
+def test_read_python_opaque_code_preserves_documentation_and_comment_anchor(
+    python_definition,
+):
+    from pathlib import Path
+
+    from comment_review.reading.python.projection import paragraphs_for
+
+    text = '"module"\r\n$! = 0b2 # actual\r\ndef render():\r\n    "body"\r\n'
+    result = import_module("comment_review.reading.python").read_python(
+        text, python_definition
+    )
+    assert not isinstance(result, ReadFailure)
+    assert result.source.reconstruct() == text
+    assert [payload.text for payload in result.payloads] == ["module", "body"]
+    paragraphs = paragraphs_for(Path("invented.py"), result)
+    assert not isinstance(paragraphs, ReadFailure)
+    assert [(p.text, p.anchor) for p in paragraphs] == [
+        ("module", ""),
+        ("actual", "$! = 0b2"),
+        ("body", ""),
+    ]
+
+
+@pytest.mark.parametrize("keyword", ["except*", "except *"])
+def test_opaque_exception_headers_preserve_nested_documentation(
+    python_definition, keyword
+):
+    text = "try:\n    pass\n" + keyword + ' Error:\n    def render():\n        "body"\n'
+    _, result = read_placement(text, python_definition)
+    assert not isinstance(result, ReadFailure)
+    assert [text[d.header.start : d.header.end] for d in result.declarations] == [
+        "def render():"
+    ]
+    expressions = read_documentation(text, python_definition)[2]
+    assert [text[e.statement.start : e.statement.end] for e in expressions] == [
+        '"body"'
+    ]
+    assert expressions[0].declaration == 0
+    assert scan_tokens(text, python_definition).text == text
+
+
+@pytest.mark.parametrize(
+    ("preamble", "header", "indent"),
+    [
+        ("", "if~ready:", 4),
+        ("", "while~ready:", 4),
+        ("if ready:\n    pass\n", "elif+ready:", 4),
+        ("try:\n    pass\n", "except*ValueError:", 4),
+        ("try:\n    pass\n", "except *ValueError:", 4),
+        ("try:\n    pass\n", "except+Error:", 4),
+        ("", "match-value:\n    case _:", 8),
+        ("", "match value:\n    case-1:", 8),
+        ("", "for*x, in [[1]]:", 4),
+        ("", "async for*x, in [[1]]:", 4),
+        ("", "with~resource:", 4),
+        ("", "async with~resource:", 4),
+        ("", "if lambda*x: 0:", 4),
+        ("", "if+lambda*x: 0:", 4),
+        ("", "if lambda*x: lambda*y: 0:", 4),
+    ],
+)
+def test_compact_header_spelling_preserves_nested_documentation_positions(
+    python_definition, preamble, header, indent
+):
+
+    body = " " * indent + "def render():\n" + " " * (indent + 4) + '"body"\n'
+    text = preamble + header + "\n" + body
+    result = import_module("comment_review.reading.python").read_python(
+        text, python_definition
+    )
+    assert not isinstance(result, ReadFailure)
+    assert result.source.reconstruct() == text
+    assert [payload.text for payload in result.payloads] == ["body"]
+    declaration = result.source.declarations[0]
+    start = text.index("def render():")
+    document = text.index('"body"')
+    assert declaration.header == SourceSpan(start, start + len("def render():"))
+    assert declaration.anchor == start
+    assert result.insertions == (0, document)
+    assert result.payloads[0].expression.statement == SourceSpan(document, document + 6)
+    assert result.payloads[0].expression.declaration == 0
+
+
+@pytest.mark.parametrize(
+    ("text", "regions", "events"),
     [
         ("", [], []),
         (
@@ -414,11 +533,11 @@ def scan_tokens(text, definition):
                 ("code", 15, 17),
             ],
             [
-                ("identifier", 0, 5, "match"),
-                ("identifier", 6, 9, "_x2"),
-                ("identifier", 10, 11, "\u03c0"),
-                ("identifier", 12, 14, "e\u0301"),
-                ("identifier", 15, 17, "\U00011f02x"),
+                ("code", "match"),
+                ("code", "_x2"),
+                ("code", "\u03c0"),
+                ("code", "e\u0301"),
+                ("code", "\U00011f02x"),
             ],
         ),
         (
@@ -431,12 +550,12 @@ def scan_tokens(text, definition):
                 ("comment", 13, 18),
             ],
             [
-                ("identifier", 3, 4, "x"),
-                ("operator", 4, 5, "="),
-                ("number", 5, 6, "1"),
-                ("comment", 6, 11, "# end"),
-                ("newline", 11, 13, "\r\n"),
-                ("comment", 13, 18, "#tail"),
+                ("code", "x"),
+                ("boundary", "="),
+                ("code", "1"),
+                ("comment", "# end"),
+                ("newline", "\r\n"),
+                ("comment", "#tail"),
             ],
         ),
         (
@@ -453,93 +572,58 @@ def scan_tokens(text, definition):
                 ("code", 10, 11),
             ],
             [
-                ("identifier", 0, 1, "a"),
-                ("newline", 1, 3, "\r\n"),
-                ("identifier", 3, 4, "b"),
-                ("newline", 4, 5, "\r"),
-                ("identifier", 5, 6, "c"),
-                ("newline", 6, 7, "\n"),
-                ("continuation", 7, 8, "\\"),
-                ("newline", 8, 10, "\r\n"),
-                ("identifier", 10, 11, "d"),
+                ("code", "a"),
+                ("newline", "\r\n"),
+                ("code", "b"),
+                ("newline", "\r"),
+                ("code", "c"),
+                ("newline", "\n"),
+                ("continuation", "\\"),
+                ("newline", "\r\n"),
+                ("code", "d"),
             ],
         ),
         (
             "1+0xff;0b_10,0o7:1_000",
             [("code", 0, 22)],
             [
-                ("number", 0, 1, "1"),
-                ("operator", 1, 2, "+"),
-                ("number", 2, 6, "0xff"),
-                ("operator", 6, 7, ";"),
-                ("number", 7, 12, "0b_10"),
-                ("operator", 12, 13, ","),
-                ("number", 13, 16, "0o7"),
-                ("operator", 16, 17, ":"),
-                ("number", 17, 22, "1_000"),
+                ("code", "1+0xff"),
+                ("boundary", ";"),
+                ("code", "0b_10,0o7"),
+                ("boundary", ":"),
+                ("code", "1_000"),
             ],
         ),
         (
             ".5+1.e-2+3_0.2_5e+1_0J",
             [("code", 0, 22)],
-            [
-                ("number", 0, 2, ".5"),
-                ("operator", 2, 3, "+"),
-                ("number", 3, 8, "1.e-2"),
-                ("operator", 8, 9, "+"),
-                ("number", 9, 22, "3_0.2_5e+1_0J"),
-            ],
+            [("code", ".5+1.e-2+3_0.2_5e+1_0J")],
         ),
-        (
-            "00j+0_0+12j+1..2",
-            [("code", 0, 16)],
-            [
-                ("number", 0, 3, "00j"),
-                ("operator", 3, 4, "+"),
-                ("number", 4, 7, "0_0"),
-                ("operator", 7, 8, "+"),
-                ("number", 8, 11, "12j"),
-                ("operator", 11, 12, "+"),
-                ("number", 12, 14, "1."),
-                ("number", 14, 16, ".2"),
-            ],
-        ),
+        ("00j+0_0+12j+1..2", [("code", 0, 16)], [("code", "00j+0_0+12j+1..2")]),
         (
             "**=//=<<=>>=:=...!=->()[]{};:@,~",
             [("code", 0, 32)],
             [
-                ("operator", 0, 3, "**="),
-                ("operator", 3, 6, "//="),
-                ("operator", 6, 9, "<<="),
-                ("operator", 9, 12, ">>="),
-                ("operator", 12, 14, ":="),
-                ("operator", 14, 17, "..."),
-                ("operator", 17, 19, "!="),
-                ("operator", 19, 21, "->"),
-                ("operator", 21, 22, "("),
-                ("operator", 22, 23, ")"),
-                ("operator", 23, 24, "["),
-                ("operator", 24, 25, "]"),
-                ("operator", 25, 26, "{"),
-                ("operator", 26, 27, "}"),
-                ("operator", 27, 28, ";"),
-                ("operator", 28, 29, ":"),
-                ("operator", 29, 30, "@"),
-                ("operator", 30, 31, ","),
-                ("operator", 31, 32, "~"),
+                ("code", "**=//=<<=>>=:=...!=->"),
+                ("boundary", "("),
+                ("boundary", ")"),
+                ("boundary", "["),
+                ("boundary", "]"),
+                ("boundary", "{"),
+                ("boundary", "}"),
+                ("boundary", ";"),
+                ("boundary", ":"),
+                ("code", "@,~"),
             ],
         ),
     ],
 )
-def test_tokens_exact_partition_and_spelling(python_definition, text, regions, tokens):
+def test_tokens_exact_partition_and_spelling(python_definition, text, regions, events):
     result = scan_tokens(text, python_definition)
     assert not isinstance(result, ReadFailure)
     assert result.text == text
     assert [(r.kind.value, r.span.start, r.span.end) for r in result.regions] == regions
-    assert [
-        (t.kind, t.span.start, t.span.end, text[t.span.start : t.span.end])
-        for t in result.tokens
-    ] == tokens
+    assert [(t.kind, text[t.span.start : t.span.end]) for t in result.tokens] == events
     assert "".join(text[r.span.start : r.span.end] for r in result.regions) == text
     assert result.protected == ()
 
@@ -547,21 +631,11 @@ def test_tokens_exact_partition_and_spelling(python_definition, text, regions, t
 @pytest.mark.parametrize(
     ("text", "start", "end"),
     [
-        ("0x", 0, 2),
-        ("0b2", 0, 3),
-        ("0123", 0, 4),
-        ("1e+", 0, 3),
-        ("1__2", 0, 4),
-        ("3_", 0, 2),
-        ("1e_2", 0, 4),
-        ("0x1j", 0, 4),
         ("x \\", 2, 3),
         ("\\ \n", 0, 1),
-        ("$", 0, 1),
-        ("!", 0, 1),
     ],
 )
-def test_tokens_fail_locally_on_unsupported_or_incomplete_state(
+def test_tokens_fail_locally_on_incomplete_continuation(
     python_definition, text, start, end
 ):
     result = scan_tokens(text, python_definition)
@@ -609,7 +683,7 @@ def test_tokens_numeric_forms_keep_one_complete_spelling(python_definition, spel
         (RegionKind.CODE, SourceSpan(0, len(spelling)))
     ]
     assert [(t.kind, t.span) for t in result.tokens] == [
-        ("number", SourceSpan(0, len(spelling)))
+        ("code", SourceSpan(0, len(spelling)))
     ]
     assert (
         result.text[result.tokens[0].span.start : result.tokens[0].span.end] == spelling
@@ -672,15 +746,13 @@ def test_tokens_numeric_forms_keep_one_complete_spelling(python_definition, spel
         "}",
     ],
 )
-def test_tokens_operator_forms_use_longest_match(python_definition, spelling):
+def test_tokens_punctuation_spelling_remains_code(python_definition, spelling):
     result = scan_tokens(spelling, python_definition)
     assert not isinstance(result, ReadFailure)
     assert [(r.kind, r.span) for r in result.regions] == [
         (RegionKind.CODE, SourceSpan(0, len(spelling)))
     ]
-    assert [(t.kind, t.span) for t in result.tokens] == [
-        ("operator", SourceSpan(0, len(spelling)))
-    ]
+    assert all(t.kind in {"code", "boundary"} for t in result.tokens)
     assert (
         result.text[result.tokens[0].span.start : result.tokens[0].span.end] == spelling
     )
@@ -730,16 +802,15 @@ def test_literals_ordinary_forms_preserve_spans_and_resume(
         (RegionKind.WHITESPACE, SourceSpan(end + 8, end + 10)),
     ]
     assert [(t.kind, t.span) for t in result.tokens] == [
-        ("identifier", SourceSpan(0, 1)),
-        ("operator", SourceSpan(1, 2)),
+        ("code", SourceSpan(0, 1)),
+        ("boundary", SourceSpan(1, 2)),
         ("string", SourceSpan(2, end)),
-        ("operator", SourceSpan(end, end + 1)),
-        ("identifier", SourceSpan(end + 1, end + 2)),
+        ("code", SourceSpan(end, end + 2)),
         ("comment", SourceSpan(end + 2, end + 8)),
         ("newline", SourceSpan(end + 8, end + 10)),
     ]
     assert text[result.tokens[2].span.start : result.tokens[2].span.end] == literal
-    assert text[result.tokens[5].span.start : result.tokens[5].span.end] == "# real"
+    assert text[result.tokens[4].span.start : result.tokens[4].span.end] == "# real"
     assert "".join(text[r.span.start : r.span.end] for r in result.regions) == text
     assert result.protected == ()
 
@@ -820,7 +891,7 @@ def test_literals_adjacent_boundaries_and_nonprefix_identifier(python_definition
     result = scan_tokens(text, python_definition)
     assert not isinstance(result, ReadFailure)
     assert [(t.kind, t.span) for t in result.tokens] == [
-        ("identifier", SourceSpan(0, 4)),
+        ("code", SourceSpan(0, 4)),
         ("string", SourceSpan(4, 11)),
         ("string", SourceSpan(11, 14)),
         ("string", SourceSpan(14, 25)),
@@ -897,11 +968,11 @@ def test_template_observable_source_prefixes_are_executable_literals(
     result = scan_tokens(text, python_definition)
     assert not isinstance(result, ReadFailure)
     assert [(t.kind, text[t.span.start : t.span.end]) for t in result.tokens] == [
-        ("identifier", "x"),
-        ("operator", "="),
+        ("code", "x"),
+        ("boundary", "="),
         ("interpolation_start", prefix + quote),
         ("field_start", "{"),
-        ("identifier", "x"),
+        ("code", "x"),
         ("field_end", "}"),
         ("interpolation_literal", " # data"),
         ("interpolation_end", quote),
@@ -934,100 +1005,24 @@ def test_tokens_horizontal_whitespace_never_creates_a_token(python_definition):
 
 
 @pytest.mark.parametrize(
-    ("text", "regions", "tokens"),
+    "text",
     [
-        (
-            "1in [1]",
-            [("code", 0, 3), ("whitespace", 3, 4), ("code", 4, 7)],
-            [
-                ("number", 0, 1, "1"),
-                ("identifier", 1, 3, "in"),
-                ("operator", 4, 5, "["),
-                ("number", 5, 6, "1"),
-                ("operator", 6, 7, "]"),
-            ],
-        ),
-        (
-            "1if True else 0",
-            [
-                ("code", 0, 3),
-                ("whitespace", 3, 4),
-                ("code", 4, 8),
-                ("whitespace", 8, 9),
-                ("code", 9, 13),
-                ("whitespace", 13, 14),
-                ("code", 14, 15),
-            ],
-            [
-                ("number", 0, 1, "1"),
-                ("identifier", 1, 3, "if"),
-                ("identifier", 4, 8, "True"),
-                ("identifier", 9, 13, "else"),
-                ("number", 14, 15, "0"),
-            ],
-        ),
-        (
-            "0x1or 2",
-            [("code", 0, 5), ("whitespace", 5, 6), ("code", 6, 7)],
-            [
-                ("number", 0, 3, "0x1"),
-                ("identifier", 3, 5, "or"),
-                ("number", 6, 7, "2"),
-            ],
-        ),
-        (
-            "1and 2",
-            [("code", 0, 4), ("whitespace", 4, 5), ("code", 5, 6)],
-            [("number", 0, 1, "1"), ("identifier", 1, 4, "and"), ("number", 5, 6, "2")],
-        ),
-        (
-            "1jand 2",
-            [("code", 0, 5), ("whitespace", 5, 6), ("code", 6, 7)],
-            [
-                ("number", 0, 2, "1j"),
-                ("identifier", 2, 5, "and"),
-                ("number", 6, 7, "2"),
-            ],
-        ),
-        (
-            "1else",
-            [("code", 0, 5)],
-            [("number", 0, 1, "1"), ("identifier", 1, 5, "else")],
-        ),
-        (
-            "1for",
-            [("code", 0, 4)],
-            [("number", 0, 1, "1"), ("identifier", 1, 4, "for")],
-        ),
-        (
-            "1is",
-            [("code", 0, 3)],
-            [("number", 0, 1, "1"), ("identifier", 1, 3, "is")],
-        ),
-        (
-            "0x1for 2",
-            [("code", 0, 6), ("whitespace", 6, 7), ("code", 7, 8)],
-            [
-                ("number", 0, 4, "0x1f"),
-                ("identifier", 4, 6, "or"),
-                ("number", 7, 8, "2"),
-            ],
-        ),
-        (
-            "1e2or",
-            [("code", 0, 5)],
-            [("number", 0, 3, "1e2"), ("identifier", 3, 5, "or")],
-        ),
+        "1in [1]",
+        "1if True else 0",
+        "0x1or 2",
+        "1and 2",
+        "1jand 2",
+        "1else",
+        "1for",
+        "1is",
+        "0x1for 2",
+        "1e2or",
     ],
 )
-def test_tokens_numeric_keyword_boundaries(python_definition, text, regions, tokens):
+def test_tokens_numeric_keyword_spelling_is_opaque(python_definition, text):
     result = scan_tokens(text, python_definition)
     assert not isinstance(result, ReadFailure)
-    assert [(r.kind.value, r.span.start, r.span.end) for r in result.regions] == regions
-    assert [
-        (t.kind, t.span.start, t.span.end, text[t.span.start : t.span.end])
-        for t in result.tokens
-    ] == tokens
+    assert all(t.kind in {"code", "boundary"} for t in result.tokens)
     assert "".join(text[r.span.start : r.span.end] for r in result.regions) == text
 
 
@@ -1047,13 +1042,14 @@ def test_tokens_numeric_keyword_boundaries(python_definition, text, regions, tok
         ("0x", 2),
     ],
 )
-def test_tokens_numeric_keyword_boundaries_reject_false_suffixes(
-    python_definition, text, end
-):
+def test_tokens_numeric_suffix_spelling_is_opaque(python_definition, text, end):
     result = scan_tokens(text, python_definition)
-    assert isinstance(result, ReadFailure)
-    assert result.diagnostics[0].stage == ReadStage.LEX
-    assert result.diagnostics[0].span == SourceSpan(0, end)
+    assert not isinstance(result, ReadFailure)
+    assert [(r.kind, r.span) for r in result.regions] == [
+        (RegionKind.CODE, SourceSpan(0, end))
+    ]
+    assert [(t.kind, t.span) for t in result.tokens] == [("code", SourceSpan(0, end))]
+    assert "".join(text[r.span.start : r.span.end] for r in result.regions) == text
 
 
 def read_logical_lines(text, definition):
@@ -1066,25 +1062,25 @@ def read_logical_lines(text, definition):
     return scan, structure.logical_lines(scan, definition)
 
 
-def read_suites(text, definition):
+def read_placement(text, definition):
     scan, lines = read_logical_lines(text, definition)
     if isinstance(lines, ReadFailure):
         return scan, lines
     structure = import_module("comment_review.reading.python.structure")
-    assert hasattr(structure, "recognize_structure"), (
-        "Python suites are not implemented"
+    assert hasattr(structure, "place_declarations"), (
+        "Python declaration placement is not implemented"
     )
-    return scan, structure.recognize_structure(scan, lines, definition)
+    return scan, structure.place_declarations(scan, lines, definition)
 
 
 @pytest.mark.parametrize("text", ["", "# comment\n\n"])
-def test_suites_empty_module(python_definition, text):
-    _, result = read_suites(text, python_definition)
+def test_placement_empty_module(python_definition, text):
+    _, result = read_placement(text, python_definition)
     assert not isinstance(result, ReadFailure)
-    assert result.declarations == result.facts == result.statements == ()
-    assert [
-        (s.span, s.parent, s.header, s.statements, s.kind) for s in result.suites
-    ] == [(SourceSpan(0, len(text)), None, None, (), "module")]
+    assert result.declarations == ()
+    assert result.lines == ()
+    assert result.insertions == (0,)
+    assert scan_tokens(text, python_definition).text == text
 
 
 def test_declarations_decorated_headers_and_async_anchor(python_definition):
@@ -1103,7 +1099,7 @@ def test_declarations_decorated_headers_and_async_anchor(python_definition):
         "        # before body\n"
         "        return item\n"
     )
-    _, result = read_suites(text, python_definition)
+    _, result = read_placement(text, python_definition)
     assert not isinstance(result, ReadFailure)
     class_start = text.index("class C")
     async_start = text.index("async ")
@@ -1118,23 +1114,8 @@ def test_declarations_decorated_headers_and_async_anchor(python_definition):
             SourceSpan(async_start, method_end), async_start, "async-function"
         ),
     )
-    assert [text[d.anchor : d.anchor + 5] for d in result.declarations] == [
-        "class",
-        "async",
-    ]
-    assert [
-        (f.declaration, f.name, f.parent, f.suite, f.insertion) for f in result.facts
-    ] == [
-        (0, "C", None, 1, text.index("@decorate")),
-        (1, "method", 0, 2, text.index("return item")),
-    ]
-    assert [text[s.span.start : s.span.end] for s in result.statements[:3]] == [
-        '@factory("class: def", lambda: {"key": value[1:3]})',
-        "class C[T](Base):",
-        "@decorate",
-    ]
-    for declaration, fact in zip(result.declarations, result.facts, strict=True):
-        assert result.suites[fact.suite].header == declaration.header
+    assert result.insertions == (0, text.index("@decorate"), text.index("return item"))
+    assert scan_tokens(text, python_definition).text == text
 
 
 def test_modern_syntax_type_parameters_aliases_and_soft_keyword_names(
@@ -1166,11 +1147,9 @@ def test_modern_syntax_type_parameters_aliases_and_soft_keyword_names(
         "    pass\n"
         "# one real comment\n"
     )
-    scan, result = read_suites(text, python_definition)
+    scan, result = read_placement(text, python_definition)
     assert not isinstance(result, ReadFailure)
 
-    declaration_names = [fact.name for fact in result.facts]
-    assert declaration_names == ["Crate", "build", "match", "case", "type", "lazy"]
     assert [
         text[item.header.start : item.header.end] for item in result.declarations
     ] == [
@@ -1189,20 +1168,11 @@ def test_modern_syntax_type_parameters_aliases_and_soft_keyword_names(
     assert [
         text[token.span.start : token.span.end]
         for token in scan.tokens
-        if token.kind == "identifier"
+        if token.kind == "code"
         and text[token.span.start : token.span.end] in {"match", "case", "type", "lazy"}
     ] == ["type", "match", "case", "type", "lazy", "match", "case", "type", "lazy"]
-    assert [(suite.kind, suite.parent) for suite in result.suites] == [
-        ("module", None),
-        ("class", 0),
-        ("function", 1),
-        ("function", 0),
-        ("function", 0),
-        ("function", 0),
-        ("function", 0),
-    ]
-    assert [fact.parent for fact in result.facts] == [None, 0, None, None, None, None]
-    assert "Pair" not in declaration_names
+    assert scan.text == text
+    assert len(result.insertions) == 7
 
 
 def test_modern_syntax_match_case_lazy_imports_and_async_ownership(
@@ -1221,92 +1191,18 @@ def test_modern_syntax_match_case_lazy_imports_and_async_ownership(
         '                    rendered = f"{lookup["item"]!r} # literal"\n'
         '                    template = t"item={lookup["item"]}"\n'
     )
-    scan, result = read_suites(text, python_definition)
+    scan, result = read_placement(text, python_definition)
     assert not isinstance(result, ReadFailure)
-    assert [fact.name for fact in result.facts] == ["collect"]
-    assert [suite.kind for suite in result.suites] == [
-        "module",
-        "async-function",
-        "match",
-        "case",
-        "async-with",
-        "async-for",
-    ]
-    assert [suite.parent for suite in result.suites] == [None, 0, 1, 2, 3, 4]
-    assert [
-        [
-            text[
-                result.statements[index].span.start : result.statements[index].span.end
-            ]
-            for index in suite.statements
-        ]
-        for suite in result.suites[1:]
-    ] == [
-        ["match source:"],
-        ["case [first, *rest] if ready(first):"],
-        ["async with acquire(first) as lease:"],
-        ["async for item in lease.items():"],
-        [
-            "await consume(item)",
-            'rendered = f"{lookup["item"]!r} # literal"',
-            'template = t"item={lookup["item"]}"',
-        ],
-    ]
-    for statement_text in (
-        'rendered = f"{lookup["item"]!r} # literal"',
-        'template = t"item={lookup["item"]}"',
-    ):
-        statement_start = text.index(statement_text)
-        statement_end = statement_start + len(statement_text)
-        field_start = statement_start + statement_text.index("{")
-        field_end = statement_start + statement_text.rindex("}") + 1
-        expected_field_tokens = [
-            ("field_start", "{"),
-            ("identifier", "lookup"),
-            ("operator", "["),
-            ("string", '"item"'),
-            ("operator", "]"),
-        ]
-        if statement_text.startswith("rendered"):
-            expected_field_tokens.append(("conversion", "!r"))
-        expected_field_tokens.append(("field_end", "}"))
-        assert [
-            (token.kind, text[token.span.start : token.span.end])
-            for token in scan.tokens
-            if field_start <= token.span.start and token.span.end <= field_end
-        ] == expected_field_tokens
-        prefix = 'f"' if statement_text.startswith("rendered") else 't"'
-        literal_start = statement_start + statement_text.index(prefix)
-        key_start = statement_start + statement_text.index(
-            '"item"', statement_text.index("{")
-        )
-        assert [
-            region.span
-            for region in scan.regions
-            if region.kind == RegionKind.LITERAL
-            and literal_start <= region.span.start
-            and region.span.end <= statement_end
-        ] == [
-            SourceSpan(literal_start, field_start),
-            SourceSpan(key_start, key_start + len('"item"')),
-            SourceSpan(field_end, statement_end),
-        ]
-        assert (
-            next(
-                statement
-                for statement in result.statements
-                if statement.span == SourceSpan(statement_start, statement_end)
-            ).suite
-            == 5
-        )
-    assert [
-        text[token.span.start : token.span.end]
-        for token in scan.tokens
-        if token.kind == "identifier"
-    ][:7] == ["lazy", "import", "json", "lazy", "from", "pathlib", "import"]
-    assert [
-        region.span for region in scan.regions if region.kind == RegionKind.COMMENT
-    ] == []
+    start = text.index("async def")
+    assert result.declarations == (
+        SourceDeclaration(
+            SourceSpan(start, text.index(":", start) + 1), start, "async-function"
+        ),
+    )
+    assert result.insertions == (0, text.index("match source:"))
+    assert scan.text == text
+    assert not any(region.kind == RegionKind.COMMENT for region in scan.regions)
+    assert read_documentation(text, python_definition)[2] == ()
 
 
 def test_modern_syntax_unpacked_comprehensions_remain_expression_tokens(
@@ -1321,29 +1217,17 @@ def test_modern_syntax_unpacked_comprehensions_remain_expression_tokens(
         "    nested = [*(value for value in part) for part in groups]\n"
         "    return listed, unique, generated, mapped, nested\n"
     )
-    scan, result = read_suites(text, python_definition)
+    scan, result = read_placement(text, python_definition)
     assert not isinstance(result, ReadFailure)
-    assert [fact.name for fact in result.facts] == ["flatten"]
-    assert [
-        text[result.statements[index].span.start : result.statements[index].span.end]
-        for index in result.suites[1].statements
-    ] == [
-        "listed = [*parts for parts in groups]",
-        "unique = {*parts for parts in groups}",
-        "generated = (*parts for parts in groups)",
-        "mapped = {**pairs for pairs in groups}",
-        "nested = [*(value for value in part) for part in groups]",
-        "return listed, unique, generated, mapped, nested",
-    ]
+    assert result.declarations == (SourceDeclaration(SourceSpan(0, 20), 0, "function"),)
+    assert result.insertions == (0, text.index("listed ="))
+    assert read_documentation(text, python_definition)[2] == ()
     assert scan.text == text
-    assert [
-        text[token.span.start : token.span.end]
-        for token in scan.tokens
-        if text[token.span.start : token.span.end] in {"*", "**"}
-    ] == ["*", "*", "*", "**", "*"]
 
 
-def test_declarations_control_suites_preserve_nearest_owner(python_definition):
+def test_nested_declaration_headers_and_insertions_under_opaque_controls(
+    python_definition,
+):
     text = (
         "def outer():\n"
         "    if ready:\n"
@@ -1357,15 +1241,8 @@ def test_declarations_control_suites_preserve_nearest_owner(python_definition):
         "if other:\n"
         "    def repeated(): pass\n"
     )
-    _, result = read_suites(text, python_definition)
+    _, result = read_placement(text, python_definition)
     assert not isinstance(result, ReadFailure)
-    assert [(f.declaration, f.name, f.parent, f.suite) for f in result.facts] == [
-        (0, "outer", None, 1),
-        (1, "repeated", 0, 3),
-        (2, "repeated", 0, 5),
-        (3, "repeated", 2, 7),
-        (4, "repeated", None, 10),
-    ]
     assert [text[d.header.start : d.header.end] for d in result.declarations] == [
         "def outer():",
         "def repeated():",
@@ -1373,9 +1250,15 @@ def test_declarations_control_suites_preserve_nearest_owner(python_definition):
         "def repeated():",
         "def repeated():",
     ]
-    assert result.facts[0].insertion == text.index("if ready:")
-    assert result.facts[2].insertion == text.index("try:")
-    assert result.facts[3].insertion == text.index("pass", text.index("@decorate"))
+    assert result.insertions == (
+        0,
+        text.index("if ready:"),
+        text.index("pass"),
+        text.index("try:"),
+        text.index("pass", text.index("@decorate")),
+        text.rindex("pass"),
+    )
+    assert scan_tokens(text, python_definition).text == text
 
 
 @pytest.mark.parametrize(
@@ -1392,32 +1275,21 @@ def test_declarations_control_suites_preserve_nearest_owner(python_definition):
 def test_declarations_body_insertion_is_absolute_and_bounded(
     python_definition, text, header, insertion
 ):
-    _, result = read_suites(text, python_definition)
+    _, result = read_placement(text, python_definition)
     assert not isinstance(result, ReadFailure)
     assert result.declarations[0] == SourceDeclaration(
         SourceSpan(0, len(header)),
         0,
         "class" if header.startswith("class") else "function",
     )
-    fact = result.facts[0]
-    assert (fact.declaration, fact.parent, fact.suite, fact.insertion) == (
-        0,
-        None,
-        1,
-        insertion,
-    )
-    assert (
-        result.suites[fact.suite].span.start
-        <= insertion
-        <= result.suites[fact.suite].span.end
-    )
+    assert result.insertions[1] == insertion
+    assert 0 <= insertion <= len(text)
 
 
 def test_declarations_keep_exact_identifier_spelling(python_definition):
     text = "def \u212a(): pass\nclass \ufb03: pass\n"
-    _, result = read_suites(text, python_definition)
+    _, result = read_placement(text, python_definition)
     assert not isinstance(result, ReadFailure)
-    assert [f.name for f in result.facts] == ["\u212a", "\ufb03"]
     assert [text[d.header.start : d.header.end] for d in result.declarations] == [
         "def \u212a():",
         "class \ufb03:",
@@ -1427,13 +1299,13 @@ def test_declarations_keep_exact_identifier_spelling(python_definition):
 @pytest.mark.parametrize(
     "text", ["def (): pass\n", "class (): pass\n", "async def (): pass\n"]
 )
-def test_declarations_require_an_identifier_name(python_definition, text):
-    _, result = read_suites(text, python_definition)
-    assert isinstance(result, ReadFailure)
-    assert result.diagnostics[0].stage == ReadStage.LEX
-    assert result.diagnostics[0].code == "missing-declaration-name"
-    start = text.index("(")
-    assert result.diagnostics[0].span == SourceSpan(start, start + 1)
+def test_declaration_name_spelling_is_opaque(python_definition, text):
+    _, result = read_placement(text, python_definition)
+    assert not isinstance(result, ReadFailure)
+    assert len(result.declarations) == 1
+    assert result.insertions[1] == text.index("pass")
+    assert read_documentation(text, python_definition)[2] == ()
+    assert scan_tokens(text, python_definition).text == text
 
 
 def test_declarations_ignore_names_literals_comments_and_type_aliases(
@@ -1450,7 +1322,7 @@ def test_declarations_ignore_names_literals_comments_and_type_aliases(
         "@decorate(lambda: 'def hidden():')\n"
         "def class_factory(): pass\n"
     )
-    _, result = read_suites(text, python_definition)
+    _, result = read_placement(text, python_definition)
     assert not isinstance(result, ReadFailure)
     start = text.index("def class_factory")
     assert result.declarations == (
@@ -1458,134 +1330,54 @@ def test_declarations_ignore_names_literals_comments_and_type_aliases(
             SourceSpan(start, start + len("def class_factory():")), start, "function"
         ),
     )
-    assert [f.name for f in result.facts] == ["class_factory"]
 
 
-def test_suites_nested_headers_bodies_and_semicolons(python_definition):
+def test_nested_declaration_documentation_and_semicolons(python_definition):
     text = (
         'class C:\n    def f():\n        # before\n        "doc"; x=1\n    y=2\nz=3\n'
     )
-    scan, result = read_suites(text, python_definition)
+    scan, result = read_placement(text, python_definition)
     assert not isinstance(result, ReadFailure)
-    assert [(s.kind, s.parent, s.statements) for s in result.suites] == [
-        ("module", None, (0, 5)),
-        ("class", 0, (1, 4)),
-        ("function", 1, (2, 3)),
-    ]
-    assert [text[s.span.start : s.span.end] for s in result.statements] == [
+    assert [text[d.header.start : d.header.end] for d in result.declarations] == [
         "class C:",
         "def f():",
-        '"doc";',
-        "x=1",
-        "y=2",
-        "z=3",
     ]
-    assert [(s.span, s.header) for s in result.suites] == [
-        (SourceSpan(0, 70), None),
-        (SourceSpan(9, 66), SourceSpan(0, 8)),
-        (SourceSpan(22, 58), SourceSpan(13, 21)),
-    ]
-    assert [
-        [text[scan.tokens[i].span.start : scan.tokens[i].span.end] for i in s.tokens]
-        for s in result.statements
-    ] == [
-        ["class", "C", ":"],
-        ["def", "f", "(", ")", ":"],
-        ['"doc"', ";"],
-        ["x", "=", "1"],
-        ["y", "=", "2"],
-        ["z", "=", "3"],
-    ]
-    owned = [i for s in result.statements for i in s.tokens]
-    assert len(owned) == len(set(owned))
-
-
-def test_suites_inline_membership_and_exact_token_order(python_definition):
-    text = 'if x: "doc"; y=2;\nelif y: z=3\nelse: w=4\n'
-    scan, result = read_suites(text, python_definition)
-    assert not isinstance(result, ReadFailure)
-    assert [(s.kind, s.parent, s.statements) for s in result.suites] == [
-        ("module", None, (0, 3, 5)),
-        ("if", 0, (1, 2)),
-        ("elif", 0, (4,)),
-        ("else", 0, (6,)),
-    ]
-    assert [text[s.span.start : s.span.end] for s in result.statements] == [
-        "if x:",
-        '"doc";',
-        "y=2;",
-        "elif y:",
-        "z=3",
-        "else:",
-        "w=4",
-    ]
-    assert [s.tokens for s in result.statements] == [
-        (0, 1, 2),
-        (3, 4),
-        (5, 6, 7, 8),
-        (10, 11, 12),
-        (13, 14, 15),
-        (17, 18),
-        (19, 20, 21),
-    ]
-    assert [text[s.span.start : s.span.end] for s in result.suites[1:]] == [
-        ' "doc"; y=2;\n',
-        " z=3\n",
-        " w=4\n",
-    ]
+    assert result.insertions == (0, 13, 47)
+    expressions = read_documentation(text, python_definition)[2]
+    assert len(expressions) == 1
+    assert expressions[0].declaration == 1
+    assert (
+        text[expressions[0].statement.start : expressions[0].statement.end] == '"doc";'
+    )
     assert scan.text == text
 
 
+def test_opaque_inline_control_code_cannot_claim_docs(python_definition):
+    text = 'if x: "doc"; y=2;\nelif y: z=3\nelse: w=4\n'
+    scan, result = read_placement(text, python_definition)
+    assert not isinstance(result, ReadFailure)
+    assert scan_tokens(text, python_definition).text == text
+    assert read_documentation(text, python_definition)[2] == ()
+
+
 @pytest.mark.parametrize(
-    ("text", "kinds", "parents", "memberships"),
+    "text",
     [
-        (
-            "for x in xs:\n    if x:\n        a()\n"
-            "    else:\n        b()\nelse:\n    c()\n",
-            ["module", "for", "if", "else", "else"],
-            [None, 0, 1, 1, 0],
-            [(0, 5), (1, 3), (2,), (4,), (6,)],
-        ),
-        (
-            "try: a()\nexcept E: b()\nexcept F: c()\nelse: d()\nfinally: e()\n",
-            ["module", "try", "except", "except", "else", "finally"],
-            [None, 0, 0, 0, 0, 0],
-            [(0, 2, 4, 6, 8), (1,), (3,), (5,), (7,), (9,)],
-        ),
-        (
-            "try: a()\nexcept* E: b()\nfinally: c()\n",
-            ["module", "try", "except*", "finally"],
-            [None, 0, 0, 0],
-            [(0, 2, 4), (1,), (3,), (5,)],
-        ),
-        (
-            "async def f():\n    async for x in xs:\n"
-            "        async with cm:\n            a()\n    else:\n        b()\n",
-            ["module", "async-function", "async-for", "async-with", "else"],
-            [None, 0, 1, 2, 1],
-            [(0,), (1, 4), (2,), (3,), (5,)],
-        ),
-        (
-            "match x:\n    case {'a': y} if y:\n        a()\n"
-            "    case _:\n        b()\n",
-            ["module", "match", "case", "case"],
-            [None, 0, 1, 1],
-            [(0,), (1, 3), (2,), (4,)],
-        ),
-        (
-            "while x:\n    with cm:\n        a()\nelse:\n    b()\n",
-            ["module", "while", "with", "else"],
-            [None, 0, 1, 0],
-            [(0, 3), (1,), (2,), (4,)],
-        ),
+        "for x in xs:\n    if x:\n        a()\n"
+        "    else:\n        b()\nelse:\n    c()\n",
+        "try: a()\nexcept E: b()\nexcept F: c()\nelse: d()\nfinally: e()\n",
+        "try: a()\nexcept* E: b()\nfinally: c()\n",
+        "async def f():\n    async for x in xs:\n"
+        "        async with cm:\n            a()\n    else:\n        b()\n",
+        "match x:\n    case {'a': y} if y:\n        a()\n    case _:\n        b()\n",
+        "while x:\n    with cm:\n        a()\nelse:\n    b()\n",
     ],
 )
-def test_suites_clause_nesting(python_definition, text, kinds, parents, memberships):
-    _, result = read_suites(text, python_definition)
+def test_opaque_control_layout_preserves_source(python_definition, text):
+    _, result = read_placement(text, python_definition)
     assert not isinstance(result, ReadFailure)
-    assert [s.kind for s in result.suites] == kinds
-    assert [s.parent for s in result.suites] == parents
-    assert [s.statements for s in result.suites] == memberships
+    assert scan_tokens(text, python_definition).text == text
+    assert read_documentation(text, python_definition)[2] == ()
 
 
 @pytest.mark.parametrize(
@@ -1601,11 +1393,11 @@ def test_suites_clause_nesting(python_definition, text, kinds, parents, membersh
         "match: int; case: str; type: int; lazy: int\n",
     ],
 )
-def test_suites_contextual_colons_do_not_create_bodies(python_definition, text):
-    _, result = read_suites(text, python_definition)
+def test_opaque_contextual_colons_cannot_claim_docs(python_definition, text):
+    _, result = read_placement(text, python_definition)
     assert not isinstance(result, ReadFailure)
-    assert len(result.suites) == 1
-    assert result.suites[0].statements == tuple(range(len(result.statements)))
+    assert scan_tokens(text, python_definition).text == text
+    assert read_documentation(text, python_definition)[2] == ()
 
 
 @pytest.mark.parametrize(
@@ -1618,21 +1410,18 @@ def test_suites_contextual_colons_do_not_create_bodies(python_definition, text):
         "def f(x: int) -> dict[str, int]:",
     ],
 )
-def test_suites_header_delimiter_follows_nested_expression(python_definition, header):
+def test_header_boundaries_shield_nested_expressions(python_definition, header):
     text = header + "\n    value=1\n"
-    scan, result = read_suites(text, python_definition)
+    scan, result = read_placement(text, python_definition)
     assert not isinstance(result, ReadFailure)
-    assert result.statements[0].span == SourceSpan(0, len(header))
-    assert result.suites[1].header == result.statements[0].span
-    assert (
-        text[
-            scan.tokens[result.statements[0].tokens[-1]].span.start : scan.tokens[
-                result.statements[0].tokens[-1]
-            ].span.end
-        ]
-        == ":"
+    assert scan.text == text
+    expected = (
+        (SourceDeclaration(SourceSpan(0, len(header)), 0, "function"),)
+        if header.startswith("def ")
+        else ()
     )
-    assert result.suites[1].statements == (1,)
+    assert result.declarations == expected
+    assert read_documentation(text, python_definition)[2] == ()
 
 
 @pytest.mark.parametrize(
@@ -1644,15 +1433,14 @@ def test_suites_header_delimiter_follows_nested_expression(python_definition, he
         ("if x:\n    def f():\n        # removed\ny=1\n", SourceSpan(19, 37), ()),
     ],
 )
-def test_suites_empty_bodies_retain_bounded_insertion(
+def test_empty_declarations_retain_bounded_insertion(
     python_definition, text, body, membership
 ):
-    _, result = read_suites(text, python_definition)
+    _, result = read_placement(text, python_definition)
     assert not isinstance(result, ReadFailure)
-    suite = result.suites[-1]
-    assert suite.span == body
-    assert suite.span.start <= body.start <= suite.span.end
-    assert suite.statements == membership
+    assert result.insertions[-1] == body.start
+    assert 0 <= result.insertions[-1] <= len(text)
+    assert read_documentation(text, python_definition)[2] == ()
 
 
 @pytest.mark.parametrize(
@@ -1673,84 +1461,67 @@ def test_suites_empty_bodies_retain_bounded_insertion(
         "x=1;; y=2\n",
     ],
 )
-def test_suites_uncertain_boundaries_refuse_with_location(python_definition, text):
-    _, result = read_suites(text, python_definition)
-    assert isinstance(result, ReadFailure)
-    assert result.diagnostics[0].stage == ReadStage.LEX
-    assert result.diagnostics[0].span is not None
+def test_opaque_grammar_spellings_preserve_source(python_definition, text):
+    _, result = read_placement(text, python_definition)
+    assert not isinstance(result, ReadFailure)
+    assert scan_tokens(text, python_definition).text == text
+    assert read_documentation(text, python_definition)[2] == ()
 
 
-def test_suites_reject_inconsistent_supplied_line_boundaries(python_definition):
-    scan, lines = read_logical_lines("x=1\ny=2\n", python_definition)
-    assert not isinstance(lines, ReadFailure)
-    structure = import_module("comment_review.reading.python.structure")
-    assert hasattr(structure, "recognize_structure"), (
-        "Python suites are not implemented"
+def test_classification_reads_source_boundaries_without_statement_records(
+    python_definition,
+):
+    text = "x=1\ny=2 # detail\n"
+    result = import_module("comment_review.reading.python").read_python(
+        text, python_definition
     )
-    bad = (replace(lines[0], span=SourceSpan(0, 2)), lines[1])
-    result = structure.recognize_structure(scan, bad, python_definition)
-    assert isinstance(result, ReadFailure)
-    assert result.diagnostics[0].span == SourceSpan(0, 2)
+    assert not isinstance(result, ReadFailure)
+    assert result.source.reconstruct() == text
+    assert result.source.slice(result.source.sections[0].span) == "# detail\n"
+    assert result.source.position(result.source.sections[0].span.start).column == 4
 
 
 @pytest.mark.parametrize("prefix", ["f", "t"])
-def test_suites_interpolation_punctuation_is_owned_by_surrounding_statements(
+def test_opaque_control_interpolation_punctuation_cannot_claim_docs(
     python_definition, prefix
 ):
     text = f'if {prefix}"{{x; y}}": "doc"; z=1\n'
-    scan, result = read_suites(text, python_definition)
+    scan, result = read_placement(text, python_definition)
     assert not isinstance(result, ReadFailure)
-    assert [text[s.span.start : s.span.end] for s in result.statements] == [
-        f'if {prefix}"{{x; y}}":',
-        '"doc";',
-        "z=1",
-    ]
-    assert [s.statements for s in result.suites] == [(0,), (1, 2)]
-    assert [s.tokens for s in result.statements] == [
-        (0, 1, 2, 3, 4, 5, 6, 7, 8),
-        (9, 10),
-        (11, 12, 13),
-    ]
-    assert scan.tokens[4].kind == "operator"
-    assert text[scan.tokens[4].span.start : scan.tokens[4].span.end] == ";"
+    assert scan_tokens(text, python_definition).text == text
+    assert read_documentation(text, python_definition)[2] == ()
 
 
-def test_suites_multiline_headers_use_canonical_spans(python_definition):
+def test_multiline_declaration_headers_use_canonical_spans(python_definition):
     text = "def f(\r\n    x: int,\r\n):\r\n    # c\r\n    value=1\r\n"
-    _, result = read_suites(text, python_definition)
+    _, result = read_placement(text, python_definition)
     assert not isinstance(result, ReadFailure)
-    assert [s.span for s in result.statements] == [
-        SourceSpan(0, 23),
-        SourceSpan(38, 45),
-    ]
-    assert result.suites[1].header == SourceSpan(0, 23)
-    assert result.suites[1].span == SourceSpan(25, 47)
-    assert result.suites[1].statements == (1,)
+    assert result.declarations == (SourceDeclaration(SourceSpan(0, 23), 0, "function"),)
+    assert result.insertions == (0, 38)
+    assert scan_tokens(text, python_definition).text == text
 
 
 @pytest.mark.parametrize(
-    ("text", "code", "span"),
+    "text",
     [
-        ("x=1\n    y=2\n", "unexpected-indentation", SourceSpan(4, 12)),
-        ("else: x=1\n", "inconsistent-clause-owner", SourceSpan(0, 4)),
-        ("if x\n", "missing-suite-delimiter", SourceSpan(0, 2)),
-        ("x=1;; y=2\n", "empty-simple-statement", SourceSpan(4, 5)),
+        "x=1\n    y=2\n",
+        "else: x=1\n",
+        "if x\n",
+        "x=1;; y=2\n",
     ],
 )
-def test_suites_diagnostics_identify_ambiguous_boundary(
-    python_definition, text, code, span
-):
-    _, result = read_suites(text, python_definition)
-    assert isinstance(result, ReadFailure)
-    assert result.diagnostics[0].code == code
-    assert result.diagnostics[0].span == span
+def test_opaque_grammar_needs_no_diagnostics(python_definition, text):
+    _, result = read_placement(text, python_definition)
+    assert not isinstance(result, ReadFailure)
+    assert scan_tokens(text, python_definition).text == text
+    assert read_documentation(text, python_definition)[2] == ()
 
 
-def test_suites_reject_invalid_definition_before_structure(python_definition):
+def test_placement_rejects_invalid_definition(python_definition):
     scan, lines = read_logical_lines("x=1\n", python_definition)
     assert not isinstance(lines, ReadFailure)
     structure = import_module("comment_review.reading.python.structure")
-    result = structure.recognize_structure(
+    result = structure.place_declarations(
         scan, lines, replace(python_definition, rules={})
     )
     assert isinstance(result, ReadFailure)
@@ -1758,40 +1529,27 @@ def test_suites_reject_invalid_definition_before_structure(python_definition):
 
 
 @pytest.mark.parametrize(
-    ("text", "kinds", "statements"),
+    "text",
     [
-        ("match[0]: int\n", ["module"], ["match[0]: int"]),
-        (
-            "match[0].attr[1]: list[int]; next=1\n",
-            ["module"],
-            ["match[0].attr[1]: list[int];", "next=1"],
-        ),
-        (
-            "match [0]:\n    case _: a()\n",
-            ["module", "match", "case"],
-            ["match [0]:", "case _:", "a()"],
-        ),
-        (
-            "match x:\n    case _:\n        case[0]: int\n",
-            ["module", "match", "case"],
-            ["match x:", "case _:", "case[0]: int"],
-        ),
+        "match[0]: int\n",
+        "match[0].attr[1]: list[int]; next=1\n",
+        "match [0]:\n    case _: a()\n",
+        "match x:\n    case _:\n        case[0]: int\n",
     ],
 )
-def test_suites_subscript_soft_keyword_annotations(
-    python_definition, text, kinds, statements
-):
-    _, result = read_suites(text, python_definition)
+def test_opaque_soft_keyword_annotations_preserve_source(python_definition, text):
+    _, result = read_placement(text, python_definition)
     assert not isinstance(result, ReadFailure)
-    assert [s.kind for s in result.suites] == kinds
-    assert [text[s.span.start : s.span.end] for s in result.statements] == statements
+    assert scan_tokens(text, python_definition).text == text
+    assert read_documentation(text, python_definition)[2] == ()
 
 
 @pytest.mark.parametrize("text", ["match x: a()\n", "match [0] + other: a()\n"])
-def test_suites_unsupported_inline_match_refuses(python_definition, text):
-    _, result = read_suites(text, python_definition)
-    assert isinstance(result, ReadFailure)
-    assert result.diagnostics[0].code == "inline-match-body"
+def test_opaque_inline_match_preserves_source(python_definition, text):
+    _, result = read_placement(text, python_definition)
+    assert not isinstance(result, ReadFailure)
+    assert scan_tokens(text, python_definition).text == text
+    assert read_documentation(text, python_definition)[2] == ()
 
 
 @pytest.mark.parametrize(
@@ -1803,13 +1561,13 @@ def test_suites_unsupported_inline_match_refuses(python_definition, text):
         ("  x=1", [(0, 5, (0, 1, 2), 2)], [["x", "=", "1"]]),
         (
             "x=(\n 1, # c\n [2]\n)\ny=3",
-            [(0, 19, (0, 1, 2, 4, 5, 8, 9, 10, 12), 0), (19, 22, (14, 15, 16), 0)],
-            [["x", "=", "(", "1", ",", "[", "2", "]", ")"], ["y", "=", "3"]],
+            [(0, 19, (0, 1, 2, 4, 7, 8, 9, 11), 0), (19, 22, (13, 14, 15), 0)],
+            [["x", "=", "(", "1,", "[", "2", "]", ")"], ["y", "=", "3"]],
         ),
         (
             "  x=1+\\\r\n  2\r\nz=3",
-            [(0, 14, (0, 1, 2, 3, 6), 2), (14, 17, (8, 9, 10), 0)],
-            [["x", "=", "1", "+", "2"], ["z", "=", "3"]],
+            [(0, 14, (0, 1, 2, 5), 2), (14, 17, (7, 8, 9), 0)],
+            [["x", "=", "1+", "2"], ["z", "=", "3"]],
         ),
         (
             "if x:\n\ty=1\n\tz=2\nw=3\n",
@@ -1902,11 +1660,16 @@ def test_logical_lines_literal_interiors_are_opaque(python_definition):
 )
 def test_logical_lines_located_failures(python_definition, text, code, span):
     _, result = read_logical_lines(text, python_definition)
-    assert isinstance(result, ReadFailure)
-    diagnostic = result.diagnostics[0]
-    assert diagnostic.stage == ReadStage.LEX
-    assert diagnostic.code == code
-    assert diagnostic.span == span
+    if code in {"inconsistent-indentation", "ambiguous-indentation"}:
+        assert not isinstance(result, ReadFailure)
+        assert scan_tokens(text, python_definition).text == text
+        assert read_documentation(text, python_definition)[2] == ()
+    else:
+        assert isinstance(result, ReadFailure)
+        diagnostic = result.diagnostics[0]
+        assert diagnostic.stage == ReadStage.LEX
+        assert diagnostic.code == code
+        assert diagnostic.span == span
 
 
 @pytest.mark.parametrize("text", ["x=1\\ # c\n", "x=1\\ \n", "x=1\\", "x=1\\y\n"])
@@ -1961,24 +1724,24 @@ def test_logical_lines_immediate_eof_leaves_explicit_join_unfinished(
         (
             'x=f"#{a["x"]!r:>{w}.{p}f}" # end\n',
             [
-                ("identifier", "x"),
-                ("operator", "="),
+                ("code", "x"),
+                ("boundary", "="),
                 ("interpolation_start", 'f"'),
                 ("interpolation_literal", "#"),
                 ("field_start", "{"),
-                ("identifier", "a"),
-                ("operator", "["),
+                ("code", "a"),
+                ("boundary", "["),
                 ("string", '"x"'),
-                ("operator", "]"),
+                ("boundary", "]"),
                 ("conversion", "!r"),
                 ("format_start", ":"),
                 ("interpolation_literal", ">"),
                 ("field_start", "{"),
-                ("identifier", "w"),
+                ("code", "w"),
                 ("field_end", "}"),
                 ("interpolation_literal", "."),
                 ("field_start", "{"),
-                ("identifier", "p"),
+                ("code", "p"),
                 ("field_end", "}"),
                 ("interpolation_literal", "f"),
                 ("field_end", "}"),
@@ -2010,15 +1773,15 @@ def test_logical_lines_immediate_eof_leaves_explicit_join_unfinished(
             [
                 ("interpolation_start", 'f"'),
                 ("field_start", "{"),
-                ("identifier", "x"),
+                ("code", "x"),
                 ("comment", '# }" fake'),
                 ("newline", "\r\n"),
-                ("operator", "+"),
-                ("number", "2"),
+                ("code", "+"),
+                ("code", "2"),
                 ("field_end", "}"),
                 ("interpolation_end", '"'),
-                ("operator", ";"),
-                ("identifier", "y"),
+                ("boundary", ";"),
+                ("code", "y"),
             ],
             [
                 ("literal", 'f"'),
@@ -2126,7 +1889,7 @@ def test_fstrings_literal_braces_and_escape_boundaries(
         if t.kind == "interpolation_literal"
     ] == payload
     assert [
-        text[t.span.start : t.span.end] for t in scan.tokens if t.kind == "identifier"
+        text[t.span.start : t.span.end] for t in scan.tokens if t.kind == "code"
     ] == fields
 
 
@@ -2138,7 +1901,7 @@ def test_fstrings_conversions(python_definition, flag):
     assert [(t.kind, text[t.span.start : t.span.end]) for t in scan.tokens] == [
         ("interpolation_start", 'f"'),
         ("field_start", "{"),
-        ("identifier", "x"),
+        ("code", "x"),
         ("conversion", "!" + flag),
         ("field_end", "}"),
         ("interpolation_end", '"'),
@@ -2222,7 +1985,7 @@ def test_fstrings_nested_exact_offsets_and_regions(python_definition):
         ("field_start", 2, 3),
         ("interpolation_start", 3, 5),
         ("field_start", 5, 6),
-        ("identifier", 6, 7),
+        ("code", 6, 7),
         ("field_end", 7, 8),
         ("interpolation_end", 8, 9),
         ("field_end", 9, 10),
@@ -2246,9 +2009,10 @@ def test_fstrings_not_equal_and_conversion_with_empty_format(python_definition, 
     assert [
         (t.kind, text[t.span.start : t.span.end])
         for t in result.tokens
-        if t.kind in ("operator", "conversion", "format_start")
+        if t.kind in ("conversion", "format_start")
+        or (t.kind == "code" and text[t.span.start : t.span.end] == "!=")
     ] == (
-        [("operator", "!=")]
+        [("code", "!=")]
         if text == 'f"{x != y}"'
         else [("conversion", "!r"), ("format_start", ":")]
     )
@@ -2355,17 +2119,17 @@ def test_template_observable_source_conversion_and_format_events(python_definiti
     result = scan_tokens(text, python_definition)
     assert not isinstance(result, ReadFailure)
     assert [(t.kind, text[t.span.start : t.span.end]) for t in result.tokens] == [
-        ("identifier", "x"),
-        ("operator", "="),
+        ("code", "x"),
+        ("boundary", "="),
         ("interpolation_start", 't"'),
         ("interpolation_literal", "before "),
         ("field_start", "{"),
-        ("identifier", "value"),
+        ("code", "value"),
         ("conversion", "!s"),
         ("format_start", ":"),
         ("interpolation_literal", ">"),
         ("field_start", "{"),
-        ("identifier", "width"),
+        ("code", "width"),
         ("field_end", "}"),
         ("field_end", "}"),
         ("interpolation_literal", " after"),
@@ -2439,7 +2203,7 @@ def test_interpolation_observable_source_malformed_replacements_are_located(
 
 
 def read_documentation(text, definition):
-    scan, structure = read_suites(text, definition)
+    scan, structure = read_placement(text, definition)
     assert not isinstance(structure, ReadFailure)
     try:
         documentation = import_module("comment_review.reading.python.documentation")
@@ -2487,7 +2251,10 @@ def test_doc_ownership_complete_statement_and_component_spans(
         for component in components
     )
     assert expression.declaration == owner
-    assert expression.statement in [item.span for item in structure.statements]
+    assert (
+        structure.insertions[0 if owner is None else owner + 1]
+        == expression.statement.start
+    )
     assert "".join(text[r.span.start : r.span.end] for r in scan.regions) == text
     assert [
         text[t.span.start : t.span.end] for t in scan.tokens if t.kind == "comment"
@@ -2528,10 +2295,8 @@ def test_doc_ownership_excluded_shapes_remain_executable(
     text = prefix + expression + "\n"
     scan, structure, result = read_documentation(text, python_definition)
     assert result == ()
-    assert (
-        text[structure.statements[-1].span.start : structure.statements[-1].span.end]
-        == expression
-    )
+    assert scan.text == text
+    assert structure.insertions[-1] == len(prefix)
     assert any(region.kind == RegionKind.LITERAL for region in scan.regions)
 
 
@@ -2555,7 +2320,7 @@ def test_doc_ownership_excluded_shapes_remain_executable(
         'match value:\n    case _: "control"\n',
     ],
 )
-def test_doc_ownership_first_statement_is_local_to_documentation_suite(
+def test_doc_ownership_first_expression_is_local_to_documentation_owner(
     python_definition, text
 ):
     _, _, result = read_documentation(text, python_definition)
@@ -2604,41 +2369,33 @@ def test_doc_ownership_semicolon_siblings_and_repeated_empty_components(
     assert result[0].statement == SourceSpan(0, 6)
     assert result[0].components == (SourceSpan(0, 2), SourceSpan(3, 5))
     assert result[0].declaration is None
-    assert [statement.span for statement in structure.statements] == [
-        SourceSpan(0, 6),
-        SourceSpan(7, 15),
-        SourceSpan(16, 20),
-    ]
-    assert structure.suites[0].statements == (0, 1, 2)
+    assert structure.insertions == (0,)
+    assert scan_tokens(text, python_definition).text == text
 
 
 def test_doc_ownership_uses_existing_declaration_indices(python_definition):
     text = 'def first(): "first"\ndef second(): "second"\n'
-    scan, structure = read_suites(text, python_definition)
-    assert not isinstance(structure, ReadFailure)
-    structure = replace(
-        structure,
-        declarations=tuple(reversed(structure.declarations)),
-        facts=tuple(
-            replace(fact, declaration=1 - fact.declaration) for fact in structure.facts
-        ),
-    )
+    scan, structure = read_placement(text, python_definition)
     documentation = import_module("comment_review.reading.python.documentation")
     result = documentation.documentation_in(scan, structure, python_definition)
     assert not isinstance(result, ReadFailure)
     assert [
         (text[e.statement.start : e.statement.end], e.declaration) for e in result
-    ] == [('"first"', 1), ('"second"', 0)]
+    ] == [('"first"', 0), ('"second"', 1)]
+    assert [text[d.header.start : d.header.end] for d in structure.declarations] == [
+        "def first():",
+        "def second():",
+    ]
 
 
 @pytest.mark.parametrize("text", ["", "# comment\n\n", "class Empty:\n"])
-def test_doc_ownership_empty_suites(python_definition, text):
+def test_doc_ownership_empty_declarations(python_definition, text):
     _, _, result = read_documentation(text, python_definition)
     assert result == ()
 
 
 def test_doc_ownership_rejects_invalid_definition(python_definition):
-    scan, structure = read_suites('"doc"\n', python_definition)
+    scan, structure = read_placement('"doc"\n', python_definition)
     assert not isinstance(structure, ReadFailure)
     definition = replace(python_definition, revision="unsupported")
     documentation = import_module("comment_review.reading.python.documentation")
@@ -2806,7 +2563,7 @@ def test_payloads_reject_invalid_definition(python_definition):
 
 
 def read_directives(text, definition):
-    scan, structure = read_suites(text, definition)
+    scan, structure = read_placement(text, definition)
     assert not isinstance(structure, ReadFailure)
     try:
         directives = import_module("comment_review.reading.python.directives")
@@ -3041,7 +2798,9 @@ def test_expression_comments_protected_outer_spans_keep_nested_recognition(
         region.kind == RegionKind.COMMENT and region.span == comment.span
         for region in result.source.regions
     )
-    assert result.source.sections == ()
+    assert result.source.sections == (
+        SourceSection(SourceSpan(comment.span.start, comment.span.end + 1), "#"),
+    )
     assert result.source.reconstruct() == text
 
 
@@ -3063,34 +2822,38 @@ def test_sections_documentation_retains_same_line_header_and_following_code(
     assert result.source.reconstruct() == text
 
 
-def test_sections_directive_comments_are_uneditable_run_barriers(python_definition):
+def test_sections_directive_comments_retain_same_form_run_and_protection(
+    python_definition,
+):
     text = "# a\n# type: ignore\n# b\n"
     _, _, _, protected, result = project_sections(text, python_definition)
     assert not isinstance(result, ReadFailure)
-    assert result.source.sections == (
-        SourceSection(SourceSpan(0, 4), "#"),
-        SourceSection(SourceSpan(19, 23), "#"),
-    )
+    assert result.source.sections == (SourceSection(SourceSpan(0, len(text)), "#"),)
     assert result.protected == protected
     assert [
         (region.span, region.kind)
         for region in result.source.regions
-        if region.kind == RegionKind.DIRECTIVE
-    ] == [(SourceSpan(4, 18), RegionKind.DIRECTIVE)]
+        if region.kind == RegionKind.COMMENT
+    ] == [
+        (SourceSpan(0, 3), RegionKind.COMMENT),
+        (SourceSpan(4, 18), RegionKind.COMMENT),
+        (SourceSpan(19, 22), RegionKind.COMMENT),
+    ]
+    assert result.protected[0].span == SourceSpan(4, 18)
     assert result.source.reconstruct() == text
 
 
-def test_sections_interior_documentation_comment_refuses_independent_overlap(
+def test_sections_interior_documentation_comment_belongs_to_whole_owner(
     python_definition,
 ):
     text = '("a" # note\n "b")\n'
     scan, _, payloads, _, result = project_sections(text, python_definition)
     assert payloads[0].text == "ab"
     assert payloads[0].expression.statement == SourceSpan(0, 17)
-    assert isinstance(result, ReadFailure)
-    assert result.diagnostics[0].stage == ReadStage.PLACE
-    assert result.diagnostics[0].code == "unsupported-documentation-comment"
-    assert result.diagnostics[0].span == SourceSpan(5, 11)
+    assert not isinstance(result, ReadFailure)
+    assert result.source.sections == (SourceSection(SourceSpan(0, 17), "docstring"),)
+    assert result.source.documentation == (DocumentationOwner(0, None),)
+    assert result.source.reconstruct() == text
     assert scan.text == text
 
 
@@ -3135,14 +2898,14 @@ def test_sections_multiple_documentation_owners_keep_source_order(python_definit
         'x=f"{ value # observable\n = }"\n',
     ],
 )
-def test_sections_protected_comments_remain_regions_without_editable_sections(
+def test_sections_protected_comments_remain_regions_and_classified_sections(
     python_definition, text
 ):
     scan, _, _, directives, result = project_sections(text, python_definition)
     assert not isinstance(result, ReadFailure)
-    assert (
-        result.source.sections == result.source.documentation == result.payloads == ()
-    )
+    assert result.source.documentation == result.payloads == ()
+    assert len(result.source.sections) == 1
+    assert result.source.sections[0].form == "#"
     assert result.protected == scan.protected + directives
     assert result.protected
     assert [
@@ -3180,7 +2943,7 @@ def test_sections_only_compose_completed_stages(python_definition, monkeypatch):
 
     for module, functions in (
         ("scanner", ("scan_python",)),
-        ("structure", ("logical_lines", "recognize_structure")),
+        ("structure", ("logical_lines", "place_declarations")),
         ("documentation", ("documentation_in", "decode_documentation")),
         ("directives", ("directives_in",)),
     ):
@@ -3359,7 +3122,10 @@ def test_directives_prose_insertion_preserves_ownership_and_movement_changes_it(
         _, structure, result = read_directives(text, python_definition)
         assert not isinstance(result, ReadFailure)
         attachment = result[0].attachment
-        assert attachment in [statement.span for statement in structure.statements]
+        assert any(
+            line.span.start <= attachment.start < attachment.end <= line.span.end
+            for line in structure.lines
+        )
         targets.append(text[attachment.start : attachment.end])
     assert targets == ["x=1", "x=1", "y=2"]
 
@@ -3390,7 +3156,7 @@ def test_directives_preamble_insertion_detects_loss_of_effectiveness(python_defi
 
 
 def test_directives_reject_invalid_definition(python_definition):
-    scan, structure = read_suites("x=1 # type: int\n", python_definition)
+    scan, structure = read_placement("x=1 # type: int\n", python_definition)
     directives = import_module("comment_review.reading.python.directives")
     result = directives.directives_in(
         scan, structure, replace(python_definition, rules={})
@@ -3453,3 +3219,245 @@ def test_directives_move_within_joined_statement_changes_ignore_target(
         attachment = result[0].attachment
         targets.append(text[attachment.start : attachment.end])
     assert targets == ["1,", "2,"]
+
+
+@pytest.mark.parametrize(
+    "header",
+    [
+        "if~ready:",
+        "except*ValueError:",
+        "case-1:",
+        "for*x, in [[1]]:",
+        "if lambda*x: 0:",
+        "unknown 00clause:",
+        "elif missing context:",
+        "else nonsense:",
+        "try anything:",
+    ],
+)
+def test_opaque_control_code_keeps_comment_and_nested_doc_positions(
+    python_definition, header
+):
+    text = (
+        header + "\n    # before declaration\n"
+        '    async def 00name[T = 00value]():\n        (r"full " "documentation")\n'
+    )
+    result = import_module("comment_review.reading.python").read_python(
+        text, python_definition
+    )
+    assert not isinstance(result, ReadFailure)
+    assert result.source.reconstruct() == text
+    assert [payload.text for payload in result.payloads] == ["full documentation"]
+    assert result.source.declarations[0].kind == "async-function"
+    assert result.insertions == (0, text.index('(r"full'))
+
+
+def test_generic_indentation_cannot_claim_module_documentation(python_definition):
+    text = (
+        'arbitrary 00code\n    "not module docs"\n    def odd-name(): "actual docs"\n'
+    )
+    result = import_module("comment_review.reading.python").read_python(
+        text, python_definition
+    )
+    assert not isinstance(result, ReadFailure)
+    assert [payload.text for payload in result.payloads] == ["actual docs"]
+    assert [owner.declaration for owner in result.source.documentation] == [0]
+
+
+@pytest.mark.parametrize("ending", ["\n", "\r\n", "\r"])
+def test_classification_exact_physical_code_and_comment_positions(
+    python_definition, ending
+):
+    from pathlib import Path
+
+    from comment_review.reading.python.projection import code_for, paragraphs_for
+    from comment_review.reading.series import Kind
+
+    text = ending.join(
+        [
+            "CONSTANT = 10 # constant",
+            "def my_funct(x: int, y: tuple): # tail comment",
+            "    call()",
+            "    # whole-line comment",
+            "    call_again()",
+            "",
+        ]
+    )
+    result = import_module("comment_review.reading.python").read_python(
+        text, python_definition
+    )
+    assert not isinstance(result, ReadFailure)
+    comments = [
+        region.span
+        for region in result.source.regions
+        if region.kind == RegionKind.COMMENT
+    ]
+    assert [
+        (
+            result.source.position(span.start).line,
+            result.source.position(span.start).column,
+            result.source.slice(span),
+        )
+        for span in comments
+    ] == [
+        (1, 14, "# constant"),
+        (2, 32, "# tail comment"),
+        (4, 4, "# whole-line comment"),
+    ]
+    assert code_for(result) == {
+        1: "CONSTANT = 10",
+        2: "def my_funct(x: int, y: tuple):",
+        3: "    call()",
+        5: "    call_again()",
+    }
+    assert [
+        (
+            result.source.position(region.span.start).line,
+            result.source.position(region.span.start).column,
+            result.source.position(region.span.end).column,
+            result.source.slice(region.span),
+        )
+        for region in result.source.regions
+        if region.kind == RegionKind.CODE
+    ] == [
+        (1, 0, 8, "CONSTANT"),
+        (1, 9, 10, "="),
+        (1, 11, 13, "10"),
+        (2, 0, 3, "def"),
+        (2, 4, 15, "my_funct(x:"),
+        (2, 16, 20, "int,"),
+        (2, 21, 23, "y:"),
+        (2, 24, 31, "tuple):"),
+        (3, 4, 10, "call()"),
+        (5, 4, 16, "call_again()"),
+    ]
+    paragraphs = paragraphs_for(Path("m.py"), result)
+    assert not isinstance(paragraphs, ReadFailure)
+    assert [
+        (p.start, p.end, p.kind, p.text, p.raw_lines, p.anchor) for p in paragraphs
+    ] == [
+        (1, 1, Kind.TRAILING, "constant", [" # constant"], "CONSTANT = 10"),
+        (
+            2,
+            2,
+            Kind.TRAILING,
+            "tail comment",
+            [" # tail comment"],
+            "def my_funct(x: int, y: tuple):",
+        ),
+        (4, 4, Kind.COMMENT, "whole-line comment", ["    # whole-line comment"], ""),
+    ]
+    assert result.source.reconstruct() == text
+
+
+@pytest.mark.parametrize("ending", ["\n", "\r\n", "\r"])
+def test_classification_closing_doc_comment_has_one_owner(python_definition, ending):
+    from pathlib import Path
+
+    from comment_review.reading.python.projection import code_for, paragraphs_for
+    from comment_review.reading.series import Kind
+
+    text = ending.join(
+        [
+            "def f():",
+            '    r"""full',
+            '    docs""" # closing note',
+            "    work() # detail",
+            "",
+        ]
+    )
+    result = import_module("comment_review.reading.python").read_python(
+        text, python_definition
+    )
+    assert not isinstance(result, ReadFailure)
+    assert len(result.payloads) == len(result.source.documentation) == 1
+    paragraphs = paragraphs_for(Path("m.py"), result)
+    assert not isinstance(paragraphs, ReadFailure)
+    assert [
+        (p.kind, p.start, p.end, p.text, p.raw_lines, p.anchor) for p in paragraphs
+    ] == [
+        (
+            Kind.DOCSTRING,
+            2,
+            3,
+            "full\n    docs",
+            ['    r"""full', '    docs""" # closing note'],
+            "",
+        ),
+        (Kind.TRAILING, 4, 4, "detail", [" # detail"], "    work()"),
+    ]
+    assert paragraphs[0].address == "a1"
+    assert code_for(result) == {1: "def f():", 4: "    work()"}
+    assert (
+        result.source.slice(result.source.sections[0].span)
+        == 'r"""full' + ending + '    docs""" # closing note'
+    )
+    assert result.source.reconstruct() == text
+
+
+@pytest.mark.parametrize(
+    "header",
+    [
+        'def f(x: dict[str, int] = {"key": value[1:3]}) -> (lambda x: x):',
+        "async def f(x=(lambda y: y)) -> dict[str, int]:",
+        "class C[T: (int, str) = int](factory(lambda x: x)):",
+    ],
+)
+def test_documentation_header_colons_inside_expressions_are_shielded(
+    python_definition, header
+):
+    text = header + '\n    ("complete " r"docs") # closer\n    work() # detail\n'
+    result = import_module("comment_review.reading.python").read_python(
+        text, python_definition
+    )
+    assert not isinstance(result, ReadFailure)
+    assert result.source.declarations[0].header == SourceSpan(0, len(header))
+    assert result.insertions == (0, len(header) + 5)
+    assert result.payloads[0].text == "complete docs"
+    assert result.payloads[0].expression.declaration == 0
+    assert (
+        result.source.slice(result.source.sections[0].span)
+        == '("complete " r"docs") # closer'
+    )
+    assert result.source.slice(result.source.sections[1].span) == "# detail\n"
+    assert result.source.reconstruct() == text
+
+
+@pytest.mark.parametrize("annotation", ["lambda x: x", "lambda x: lambda y: y"])
+def test_declaration_annotation_lambda_colons_keep_documentation_position(
+    python_definition, annotation
+):
+    header = "def f() -> " + annotation + ":"
+    text = header + '\n    "complete docs"\n    pass\n'
+    result = import_module("comment_review.reading.python").read_python(
+        text, python_definition
+    )
+    assert not isinstance(result, ReadFailure)
+    assert result.source.declarations == (
+        SourceDeclaration(SourceSpan(0, len(header)), 0, "function"),
+    )
+    assert result.insertions == (0, len(header) + 5)
+    assert [payload.text for payload in result.payloads] == ["complete docs"]
+    assert result.source.reconstruct() == text
+
+
+@pytest.mark.parametrize("spelling", ["lambda\u0301", "lambda\u203f", "lambda\u00b7x"])
+def test_declaration_annotation_unicode_spelling_is_not_lambda_keyword(
+    python_definition, spelling
+):
+    header = "def f() -> " + spelling + ":"
+    text = header + '\n    "docs"\n'
+    result = import_module("comment_review.reading.python").read_python(
+        text, python_definition
+    )
+    assert not isinstance(result, ReadFailure)
+    assert result.source.declarations == (
+        SourceDeclaration(SourceSpan(0, len(header)), 0, "function"),
+    )
+    assert result.insertions == (0, len(header) + 5)
+    assert [payload.text for payload in result.payloads] == ["docs"]
+    assert result.payloads[0].expression.declaration == 0
+    assert result.source.slice(result.source.sections[0].span) == '"docs"'
+    position = result.source.position(result.source.sections[0].span.start)
+    assert (position.line, position.column) == (2, 4)
+    assert result.source.reconstruct() == text

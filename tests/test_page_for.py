@@ -71,22 +71,21 @@ def test_python_page_whole_comments_and_matter_boundaries():
 
 
 @pytest.mark.parametrize(
-    "text, doc_cue, comment_cue, anchor",
+    "text, doc_cue, raw",
     [
-        ('"doc" # note\n', "a0", "c0", '"doc"'),
-        ('def f():\n    "doc" # note\n', "a1", "c1", '    "doc"'),
-        ('"""doc\ncontinued""" # note\n', "a0", "c0", 'continued"""'),
+        ('"doc" # note\n', "a0", '"doc" # note'),
+        ('def f():\n    "doc" # note\n', "a1", '    "doc" # note'),
+        ('"""doc\ncontinued""" # note\n', "a0", '"""doc\ncontinued""" # note'),
         (
             'def f():\n    """doc\n    continued""" # note\n',
             "a1",
-            "c1",
-            '    continued"""',
+            '    """doc\n    continued""" # note',
         ),
-        ('def f(): "doc" # note\n', "a1", "c0", "def f():"),
+        ('def f(): "doc" # note\n', "a1", '"doc" # note'),
     ],
 )
-def test_python_page_documentation_trailing_comment_keeps_separate_wire_places(
-    text, doc_cue, comment_cue, anchor
+def test_python_page_documentation_closing_comment_keeps_one_wire_owner(
+    text, doc_cue, raw
 ):
     from comment_review.flows.gather import carried
 
@@ -94,23 +93,23 @@ def test_python_page_documentation_trailing_comment_keeps_separate_wire_places(
     assert isinstance(page, Page)
     assert page.python_read is not None
     doc = next(p for p in page if p.kind == "docstring")
-    comment = next(p for p in page if p.kind == "trailing-comment")
     assert cue(doc) == doc_cue
-    assert cue(comment) == comment_cue
-    assert comment.anchor == anchor
-    assert comment.raw_text == " # note"
-    assert "# note" not in doc.raw_text
-    assert {p.address for p in carried(page) if p.raw_text.strip()} == {
-        doc.address,
-        comment.address,
-    }
+    assert doc.raw_text == raw
+    assert doc.text == (
+        "doc\n    continued"
+        if "    continued" in text
+        else "doc\ncontinued"
+        if "continued" in text
+        else "doc"
+    )
+    assert not any(p.kind == "trailing-comment" and p.raw_text.strip() for p in page)
+    assert {p.address for p in carried(page) if p.raw_text.strip()} == {doc.address}
     wire = {row["cue"]: row for row in page.serialize()["rows"]}
     assert wire[doc_cue]["raw_text"] == doc.raw_text
-    assert wire[comment_cue]["raw_text"] == " # note"
-    assert wire[comment_cue]["anchor"] == anchor
     sections = page.python_read.source.sections
-    assert [section.form for section in sections] == ["docstring", "#"]
-    assert sections[0].span.end <= sections[1].span.start
+    assert [section.form for section in sections] == ["docstring"]
+    assert page.python_read.source.slice(sections[0].span).endswith("# note")
+    assert page.python_read.source.reconstruct() == text
 
 
 @pytest.mark.parametrize(
@@ -237,13 +236,18 @@ def test_python_page_interpolation_comments_keep_whole_sections(text, expected):
     assert "# first\n\n # second" in page.prose[0].raw_text
 
 
-def test_python_page_protected_directives_do_not_become_editable_prose():
+def test_python_page_protected_directives_keep_comment_classification():
     text = "# coding: utf-8\nx=1 # type: int\ny=2 # type: ignore[attr]\n"
     page = page_for_mod.page_of(Path("m.py"), source=Source(text, "held"))
     assert isinstance(page, Page)
     assert page.python_read is not None
-    assert page.python_read.source.sections == ()
-    assert page.prose == []
+    assert [section.form for section in page.python_read.source.sections] == ["#"] * 3
+    assert [p.raw_text for p in page if p.raw_text.strip()] == [
+        "# coding: utf-8",
+        " # type: int",
+        " # type: ignore[attr]",
+    ]
+    assert page.python_read.source.reconstruct() == text
     assert [item.kind for item in page.python_read.protected] == [
         "encoding",
         "type-comment",
@@ -258,13 +262,15 @@ def test_python_page_protected_directives_do_not_become_editable_prose():
         'f"""{value # protected\n =}"""',
     ],
 )
-def test_python_page_protected_interpolation_comments_remain_uneditable(literal):
+def test_python_page_protected_interpolation_comments_remain_classified(literal):
     text = "x=" + literal + "\n"
     page = page_for_mod.page_of(Path("m.py"), source=Source(text, "held"))
     assert isinstance(page, Page)
     assert page.python_read is not None
-    assert page.python_read.source.sections == ()
-    assert page.prose == []
+    assert len(page.python_read.source.sections) == len(page.prose) == 1
+    assert page.python_read.source.sections[0].form == "#"
+    assert page.prose[0].text == "protected"
+    assert page.python_read.source.reconstruct() == text
     assert page.python_read.protected
 
 

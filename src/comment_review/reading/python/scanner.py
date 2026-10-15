@@ -1,6 +1,5 @@
 """Pure Python token boundaries with exact spelling and physical line endings."""
 
-import re
 from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import cast
@@ -15,45 +14,6 @@ from comment_review.reading.python.records import (
 )
 from comment_review.reading.source import RegionKind, SourceRegion, SourceSpan
 
-_DIGITS = r"[0-9](?:_?[0-9])*"
-_EXPONENT = rf"[eE][+-]?{_DIGITS}"
-_FLOAT = (
-    rf"(?:{_DIGITS}\.(?:{_DIGITS})?(?:{_EXPONENT})?"
-    rf"|\.{_DIGITS}(?:{_EXPONENT})?|{_DIGITS}{_EXPONENT})"
-)
-_NUMBER = re.compile(
-    rf"(?:{_FLOAT}|{_DIGITS})[jJ]|{_FLOAT}"
-    r"|0[xX](?:_?[0-9a-fA-F])+|0[oO](?:_?[0-7])+|0[bB](?:_?[01])+"
-    r"|[1-9](?:_?[0-9])*|0(?:_?0)*"
-)
-_OPERATORS = (
-    "**=",
-    "//=",
-    ">>=",
-    "<<=",
-    "...",
-    "**",
-    "//",
-    "<<",
-    ">>",
-    ":=",
-    "<=",
-    ">=",
-    "==",
-    "!=",
-    "->",
-    "+=",
-    "-=",
-    "*=",
-    "/=",
-    "%=",
-    "@=",
-    "&=",
-    "|=",
-    "^=",
-    *"+-*/%@&|^~<>=.,",
-)
-
 
 @dataclass(frozen=True)
 class _Syntax:
@@ -65,7 +25,8 @@ class _Syntax:
     interpolated_prefixes: frozenset[str]
     case_insensitive_prefixes: bool
     escape: str
-    operators: tuple[str, ...]
+    delimiters: frozenset[str]
+    prefix_lengths: tuple[int, ...]
 
     @classmethod
     def from_definition(cls, definition: LanguageDefinition) -> "_Syntax":
@@ -73,9 +34,9 @@ class _Syntax:
         layout = cast(Mapping[str, object], definition.rules["layout"])
         literals = cast(Mapping[str, object], definition.rules["literals"])
         prefixes = cast(Mapping[str, tuple[str, ...]], literals["prefixes"])
+        forms = frozenset(prefix for group in prefixes.values() for prefix in group)
         pairs = cast(tuple[tuple[str, str], ...], layout["implicit_pairs"])
-        operators = (
-            *_OPERATORS,
+        delimiters = (
             *(char for pair in pairs for char in pair),
             cast(str, layout["statement_separator"]),
             cast(str, layout["suite_delimiter"]),
@@ -85,7 +46,7 @@ class _Syntax:
             cast(str, layout["explicit_join"]),
             cast(tuple[str, ...], literals["short_quotes"]),
             cast(tuple[str, ...], literals["triple_quotes"]),
-            frozenset(prefix for group in prefixes.values() for prefix in group),
+            forms,
             frozenset(
                 prefix
                 for group in ("formatted", "raw_formatted", "template", "raw_template")
@@ -93,7 +54,8 @@ class _Syntax:
             ),
             cast(bool, literals["case_insensitive_prefixes"]),
             cast(str, literals["escape_marker"]),
-            tuple(sorted(operators, key=len, reverse=True)),
+            frozenset(delimiters),
+            tuple(sorted({len(prefix) for prefix in forms if prefix}, reverse=True)),
         )
 
 
@@ -144,7 +106,7 @@ def scan_python(text: str, definition: LanguageDefinition) -> PythonScan | ReadF
 
 
 def _next_token(
-    text: str, start: int, syntax: _Syntax
+    text: str, start: int, syntax: _Syntax, *, field: bool = False
 ) -> tuple[str, int, RegionKind] | ReadFailure:
     char = text[start]
     if start == 0 and char == "\ufeff":
@@ -169,27 +131,25 @@ def _next_token(
         if end == len(text) or text[end] not in "\r\n":
             return _failure("incomplete-continuation", start, end)
         return "continuation", end, RegionKind.CODE
-    if _name_start(char):
-        end = start + 1
-        while end < len(text) and _name_continue(text[end]):
-            end += 1
-        prefix = text[start:end]
-        if syntax.case_insensitive_prefixes:
-            prefix = prefix.lower()
-        if end < len(text) and text[end] in syntax.quotes and prefix in syntax.prefixes:
-            return _literal_token(text, start, end, prefix, syntax)
-        return "identifier", end, RegionKind.CODE
-    if char in "0123456789" or (
-        char == "." and start + 1 < len(text) and text[start + 1] in "0123456789"
-    ):
-        result = _number_end(text, start)
-        if isinstance(result, ReadFailure):
-            return result
-        return "number", result, RegionKind.CODE
-    for operator in syntax.operators:
-        if text.startswith(operator, start):
-            return "operator", start + len(operator), RegionKind.CODE
-    return _failure("unsupported-character", start, start + 1)
+    prefixed = _prefix_at(text, start, syntax)
+    if prefixed is not None:
+        prefix, end = prefixed
+        return _literal_token(text, start, end, prefix, syntax)
+    if _boundary_at(text, start, syntax, field=field):
+        return "boundary", start + 1, RegionKind.CODE
+    end = start + 1
+    while end < len(text):
+        if (
+            text[end] in " \t\f\r\n"
+            or text[end] in syntax.quotes
+            or text.startswith(syntax.comment, end)
+            or text.startswith(syntax.join, end)
+            or _boundary_at(text, end, syntax, field=field)
+            or _prefix_at(text, end, syntax) is not None
+        ):
+            break
+        end += 1
+    return "code", end, RegionKind.CODE
 
 
 def _literal_token(
@@ -221,36 +181,38 @@ def _literal_token(
     return _failure("unterminated-literal", start, end)
 
 
-def _name_start(char: str) -> bool:
-    return char in "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_" or (
-        ord(char) >= 128
+def _prefix_at(text: str, start: int, syntax: _Syntax) -> tuple[str, int] | None:
+    if start and (
+        text[start - 1]
+        in ("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_0123456789")
+        or ord(text[start - 1]) >= 128
+    ):
+        return None
+    for length in syntax.prefix_lengths:
+        end = start + length
+        if end >= len(text) or text[end] not in syntax.quotes:
+            continue
+        prefix = text[start:end]
+        if syntax.case_insensitive_prefixes:
+            prefix = prefix.lower()
+        if prefix in syntax.prefixes:
+            return prefix, end
+    return None
+
+
+def _boundary_at(text: str, start: int, syntax: _Syntax, *, field: bool) -> bool:
+    char = text[start]
+    if char == "!":
+        return field and not text.startswith("!=", start)
+    if char == ":" and text.startswith(":=", start) and not field:
+        return False
+    if char in syntax.delimiters:
+        return True
+    if char != "=":
+        return False
+    return not (
+        text.startswith("==", start) or (start and text[start - 1] in "=!:<>+-*/%@&|^")
     )
-
-
-def _name_continue(char: str) -> bool:
-    return _name_start(char) or char in "0123456789"
-
-
-def _number_end(text: str, start: int) -> int | ReadFailure:
-    match = _NUMBER.match(text, start)
-    if match is not None:
-        end = match.end()
-        if end == len(text) or not _name_continue(text[end]):
-            return end
-        name_end = end
-        while name_end < len(text) and _name_continue(text[name_end]):
-            name_end += 1
-        if text[end:name_end] in ("and", "else", "for", "if", "in", "is", "or"):
-            return end
-    end = start + 1
-    while end < len(text):
-        if _name_continue(text[end]) or text[end] == ".":
-            end += 1
-        elif text[end] in "+-" and text[end - 1] in "eE":
-            end += 1
-        else:
-            break
-    return _failure("invalid-number", start, end)
 
 
 def _failure(code: str, start: int, end: int) -> ReadFailure:

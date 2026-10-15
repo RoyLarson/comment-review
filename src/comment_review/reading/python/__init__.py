@@ -1,4 +1,4 @@
-"""Python source grammar and recognition."""
+"""Python source boundaries and documentation classification."""
 
 from comment_review.reading.definitions import LanguageDefinition
 from comment_review.reading.diagnostics import ReadFailure
@@ -11,7 +11,7 @@ from comment_review.reading.python.projection import paragraphs_for as paragraph
 from comment_review.reading.python.projection import sections_for
 from comment_review.reading.python.records import PythonRead
 from comment_review.reading.python.scanner import scan_python
-from comment_review.reading.python.structure import logical_lines, recognize_structure
+from comment_review.reading.python.structure import logical_lines, place_declarations
 
 
 def read_python(text: str, definition: LanguageDefinition) -> PythonRead | ReadFailure:
@@ -22,7 +22,7 @@ def read_python(text: str, definition: LanguageDefinition) -> PythonRead | ReadF
     lines = logical_lines(scan, definition)
     if isinstance(lines, ReadFailure):
         return lines
-    structure = recognize_structure(scan, lines, definition)
+    structure = place_declarations(scan, lines, definition)
     if isinstance(structure, ReadFailure):
         return structure
     expressions = documentation_in(scan, structure, definition)

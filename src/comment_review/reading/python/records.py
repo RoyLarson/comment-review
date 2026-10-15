@@ -163,160 +163,22 @@ class LogicalLine:
 
 
 @dataclass(frozen=True)
-class PythonStatement:
-    """A complete statement referring to tokens and its containing suite."""
+class PythonPlacement:
+    """Transient source boundaries and declaration positions for classification."""
 
-    span: SourceSpan
-    tokens: tuple[int, ...]
-    suite: int
-
-    def __post_init__(self) -> None:
-        """Require local spans and indices; containers check references."""
-        _span(self.span, "statement span")
-        _indices(self.tokens, "statement tokens")
-        _index(self.suite, "statement suite")
-
-
-@dataclass(frozen=True)
-class PythonSuite:
-    """A suite body, its optional header, and its direct statement indices."""
-
-    span: SourceSpan
-    parent: int | None
-    header: SourceSpan | None
-    statements: tuple[int, ...]
-    kind: str
-
-    def __post_init__(self) -> None:
-        """Validate module identity and local fields, including empty bodies."""
-        _span(self.span, "suite span")
-        _optional_index(self.parent, "suite parent")
-        if self.header is not None:
-            _span(self.header, "suite header")
-        _indices(self.statements, "suite statements")
-        _name(self.kind, "suite kind")
-        if self.kind == "module" and (
-            self.parent is not None or self.header is not None
-        ):
-            raise ValueError("module suite has no parent or header")
-
-
-@dataclass(frozen=True)
-class DeclarationFacts:
-    """Python placement facts for one existing source declaration."""
-
-    declaration: int
-    name: str
-    parent: int | None
-    suite: int
-    insertion: int
-
-    def __post_init__(self) -> None:
-        """Require a name, references, and an absolute insertion offset."""
-        _index(self.declaration, "declaration")
-        _name(self.name, "declaration name")
-        _optional_index(self.parent, "declaration parent")
-        _index(self.suite, "declaration suite")
-        _index(self.insertion, "declaration insertion")
-
-
-@dataclass(frozen=True)
-class PythonStructure:
-    """Declarations, suites, and statements with reconciled structural references."""
-
+    lines: tuple[LogicalLine, ...]
     declarations: tuple[SourceDeclaration, ...]
-    facts: tuple[DeclarationFacts, ...]
-    suites: tuple[PythonSuite, ...]
-    statements: tuple[PythonStatement, ...]
+    insertions: tuple[int, ...]
 
     def __post_init__(self) -> None:
-        """Validate parent trees, direct memberships, and declaration placement."""
+        """Require source records and one insertion per documentation owner."""
+        _tuple(self.lines, LogicalLine, "lines")
         _tuple(self.declarations, SourceDeclaration, "declarations")
-        _tuple(self.facts, DeclarationFacts, "facts")
-        _tuple(self.suites, PythonSuite, "suites")
-        _tuple(self.statements, PythonStatement, "statements")
-        modules = [
-            index for index, suite in enumerate(self.suites) if suite.kind == "module"
-        ]
-        if len(modules) != 1:
-            raise ValueError("structure requires exactly one module suite")
-        membership: set[int] = set()
-        for index, suite in enumerate(self.suites):
-            if suite.kind != "module" and suite.parent is None:
-                raise ValueError("nonmodule suite requires a parent")
-            ancestors: set[int] = {index}
-            parent = suite.parent
-            while parent is not None:
-                if parent >= len(self.suites) or parent in ancestors:
-                    raise ValueError("suite parents must be in range and acyclic")
-                ancestors.add(parent)
-                parent = self.suites[parent].parent
-            if suite.parent is not None:
-                parent_span = self.suites[suite.parent].span
-                if not _contains(parent_span, suite.span) or (
-                    suite.header is not None
-                    and not _contains(parent_span, suite.header)
-                ):
-                    raise ValueError("parent suite must contain child body and header")
-            for statement in suite.statements:
-                if statement >= len(self.statements) or statement in membership:
-                    raise ValueError(
-                        "suite statement references must be unique and in range"
-                    )
-                item = self.statements[statement]
-                if item.suite != index or not _contains(suite.span, item.span):
-                    raise ValueError("statement must belong to and fit its suite")
-                membership.add(statement)
-        if membership != set(range(len(self.statements))):
-            raise ValueError("every statement must belong to a suite")
-        facts = {fact.declaration: fact for fact in self.facts}
-        if len(facts) != len(self.facts) or set(facts) != set(
-            range(len(self.declarations))
-        ):
-            raise ValueError("declaration facts must uniquely map every declaration")
-        body_owners = {fact.suite: fact.declaration for fact in self.facts}
-        if len(body_owners) != len(self.facts):
-            raise ValueError("each declaration requires its own body suite")
-        for fact in self.facts:
-            if fact.suite >= len(self.suites):
-                raise ValueError("declaration suite does not exist")
-            suite = self.suites[fact.suite]
-            declaration = self.declarations[fact.declaration]
-            if suite.header != declaration.header or suite.parent is None:
-                raise ValueError("declaration must identify its body suite header")
-            if not suite.span.start <= fact.insertion <= suite.span.end:
-                raise ValueError("declaration insertion must be within its body")
-            enclosing_suite = suite.parent
-            while enclosing_suite is not None and enclosing_suite not in body_owners:
-                enclosing_suite = self.suites[enclosing_suite].parent
-            enclosing_declaration = (
-                body_owners[enclosing_suite] if enclosing_suite is not None else None
-            )
-            if fact.parent != enclosing_declaration:
-                raise ValueError("declaration parent must match enclosing declaration")
-            ancestors = {fact.declaration}
-            parent = fact.parent
-            while parent is not None:
-                if parent not in facts or parent in ancestors:
-                    raise ValueError("declaration parents must be in range and acyclic")
-                ancestors.add(parent)
-                parent = facts[parent].parent
-            if fact.parent is not None:
-                parent_suite_index = facts[fact.parent].suite
-                parent_span = self.suites[parent_suite_index].span
-                if not _contains(parent_span, declaration.header) or not _contains(
-                    parent_span, suite.span
-                ):
-                    raise ValueError(
-                        "parent declaration must contain child declaration"
-                    )
-                ancestor_suite = suite.parent
-                while (
-                    ancestor_suite is not None and ancestor_suite != parent_suite_index
-                ):
-                    ancestor_suite = self.suites[ancestor_suite].parent
-                if ancestor_suite is None:
-                    raise ValueError("declaration parent must enclose the body suite")
+        _tuple(self.insertions, int, "insertions")
+        if len(self.insertions) != len(self.declarations) + 1:
+            raise ValueError("insertions must match module and declarations")
+        for insertion in self.insertions:
+            _index(insertion, "insertion")
 
 
 @dataclass(frozen=True)
