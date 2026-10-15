@@ -689,6 +689,7 @@ complete merely because this plan or its interfaces are approved.
         > 2026-10-14 Check: uv run pytest -q tests/test_page_reading_context.py
         > 2026-10-14 Check: uv run pytest -q tests/test_proof_command.py
         > 2026-10-14 Includes T44 correction of stale _prove preservation explanation
+        > 2026-10-14 Standalone doc add/drop uses correspondence without approval input
 - [ ] P41 | Retire replaced Python interpretation paths
         > 2026-10-14 Goals: T40,T42,T44 and reader-vocabulary T1; reader/proof routes.
         > 2026-10-14 Check: uv run pytest -q; real paths forbid AST and tokenize.

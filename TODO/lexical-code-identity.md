@@ -21,6 +21,7 @@ Use lexical code identity at both proof boundaries.
         > 2026-10-10 Formatting follows prose-only proof and precedes presentation
         > 2026-10-10 Reader scope: all languages currently listed by gather --languages
         > 2026-10-10 Code-reader scope excludes config, data and document formats
+        > 2026-10-14 Check: both gates accept doc add/drop; proof also requires approval
 - [ ] T2 | Preserve literal whitespace in prove_unchanged.py:191-207; verify
       blank-line and trailing-space edits change the fingerprint
 - [x] T3 | Selected documentation retains protected directive context; reviewed | 09df3de4 | Retain
