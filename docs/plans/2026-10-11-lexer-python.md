@@ -2,8 +2,8 @@
 
 ```
 Status:   in-progress
-Progress: 15 of 25 TODO tasks closed
-Plan-tasks: 36 of 43 plan tasks closed
+Progress: 16 of 25 TODO tasks closed
+Plan-tasks: 38 of 43 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (founded by move-t from 2026-10-11-lexical-readers)
@@ -442,7 +442,7 @@ complete merely because this plan or its interfaces are approved.
 - [ ] T42 | Read supported newer Python syntax on the pinned Python 3.11 runtime
 - [ ] T43 | Reject executable Python mutations at both lexical proof gates
 - [ ] T44 | Document the Python preservation contract beside its comparison
-- [ ] T45 | Expose complete Python docstrings with their lexical owners
+- [x] T45 | Expose complete Python docstrings with their lexical owners
 - [x] T46 | Reject NUL characters throughout Python source
 - [ ] T47 | Assign places to comments immediately after Python documentation
 - [x] T48 | Count internal blanks in Python comment section length
@@ -610,7 +610,8 @@ complete merely because this plan or its interfaces are approved.
       hash classification across Python interpolation boundaries
         > 2026-10-13 Goal: python-cannot-read-python T40; Python spec hash fixture.
         > 2026-10-13 Check: only the expression hash opens a comment; raw text matches.
-- [~] P29 | Test trailing docstring comments as one documentation section
+- [x] P29 | Module and function closing comments survive actual writer/reread | HEAD | Test
+      trailing docstring comments as one documentation section
         > 2026-10-13 Goal: python-cannot-read-python T41 and T47; existing writer.
         > 2026-10-13 Check: one doc section owns the suffix; no duplicate closing line.
 - [x] P30 | Reduced read verified; 1301 tests pass and review is clean | f7fa19c2 | Simplify
@@ -647,7 +648,8 @@ complete merely because this plan or its interfaces are approved.
         > 2026-10-14 Check: uv run pytest -q tests/reading/test_python.py
         > 2026-10-14 Remove control-header parsing; track documentation positions only.
         > 2026-10-14 Closes compact-header-boundaries T2 by removing the dependency.
-- [~] P35 | Extract complete Python documentation sections
+- [x] P35 | Complete literal prose and lexical owners pass roundtrip checks | HEAD | Extract
+      complete Python documentation sections
         > 2026-10-14 Goals: T45,T47; reading/python/documentation.py; include P29.
         > 2026-10-14 Check: adjacent literals and closing comments have one owner.
         > 2026-10-14 Check: uv run pytest -q tests/reading/test_python.py
@@ -671,7 +673,7 @@ complete merely because this plan or its interfaces are approved.
         > 2026-10-14 Check: uv run pytest -q tests/test_lexical_preservation.py
         > 2026-10-14 Create tests/test_lexical_preservation.py for these checks.
         > 2026-10-14 Includes protected-directive-spacing T1 review repair
-- [ ] P39 | Match Python documentation across additions and removals
+- [~] P39 | Match Python documentation across additions and removals
         > 2026-10-14 Goals: T43,T45; reading/python/preservation.py.
         > 2026-10-14 Check: removing docs cannot expose ordinary literals for edits.
         > 2026-10-14 Check: uv run pytest -q tests/test_lexical_preservation.py

@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 41 of 49 tasks closed
+Progress: 42 of 49 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-21 (Roy, 2026-08-21, on four sentry files the floor interpreter cannot
@@ -421,7 +421,8 @@ the review, and nothing today protects the review.
         > 2026-10-11 Check: plan P22 exercises mutations through both proof commands
 - [ ] T44 | Document the Python preservation contract beside its comparison
         > 2026-10-11 Check: plan P25 prose states tokens, ownership and limits
-- [ ] T45 | Expose complete Python docstrings with their lexical owners
+- [x] T45 | All literal components and lexical owners pass reader and roundtrip | HEAD | Expose
+      complete Python docstrings with their lexical owners
         > 2026-10-11 Check: plan P11/P12 assert owners and all literal components
 - [x] T46 | NUL anywhere in source refuses at its span; gather checks pass | fcd2f0f8 | Reject
       NUL characters throughout Python source
