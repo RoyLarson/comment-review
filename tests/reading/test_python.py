@@ -1851,6 +1851,96 @@ def test_fstrings_nested_fields_and_code_colons(
     assert result.tokens[-1].span.end == len(text)
 
 
+def test_fstrings_multiline_literal_and_expression_comment_boundaries(
+    python_definition,
+):
+    text = (
+        'message = f"""# This is literal output.\n'
+        "Total: {\n"
+        "    subtotal + tax  # This is a comment.\n"
+        "}\n"
+        "# This is also literal output.\n"
+        '"""\n'
+        "after()  # This is a final real comment.\n"
+    )
+    scan = scan_tokens(text, python_definition)
+    assert not isinstance(scan, ReadFailure)
+    source = SourceStructure(text, scan.regions, (), (), ())
+    comments = [region for region in scan.regions if region.kind == RegionKind.COMMENT]
+    assert [(region.span, source.slice(region.span)) for region in comments] == [
+        (SourceSpan(69, 89), "# This is a comment."),
+        (SourceSpan(136, 167), "# This is a final real comment."),
+    ]
+    assert [
+        (
+            source.position(region.span.start).line,
+            source.position(region.span.start).column,
+        )
+        for region in comments
+    ] == [(3, 20), (7, 9)]
+    assert [
+        (region.kind, source.slice(region.span))
+        for region in scan.regions
+        if region.kind == RegionKind.LITERAL
+    ] == [
+        (RegionKind.LITERAL, 'f"""# This is literal output.\nTotal: '),
+        (RegionKind.LITERAL, '\n# This is also literal output.\n"""'),
+    ]
+    assert [
+        (region.span, source.slice(region.span))
+        for region in scan.regions
+        if region.kind == RegionKind.CODE and 47 <= region.span.start < 91
+    ] == [
+        (SourceSpan(47, 48), "{"),
+        (SourceSpan(53, 61), "subtotal"),
+        (SourceSpan(62, 63), "+"),
+        (SourceSpan(64, 67), "tax"),
+        (SourceSpan(90, 91), "}"),
+    ]
+    assert [
+        (token.kind, source.slice(token.span))
+        for token in scan.tokens
+        if token.kind in ("field_start", "field_end", "interpolation_end")
+    ] == [("field_start", "{"), ("field_end", "}"), ("interpolation_end", '"""')]
+    assert any(
+        region.kind == RegionKind.CODE and source.slice(region.span) == "after()"
+        for region in scan.regions
+    )
+    assert scan.protected == ()
+    assert scan.text == text
+    assert source.reconstruct() == text
+
+
+@pytest.mark.parametrize("prefix", ["f", "t"])
+@pytest.mark.parametrize("quote", ["'", '"'])
+def test_interpolation_escaped_quote_keeps_hash_and_brace_inside_field_string(
+    python_definition, prefix, quote
+):
+    spelling = quote + "escaped \\" + quote + "# } literal" + quote
+    text = prefix + '"""{' + spelling + ' # real } """\n}# literal\n"""# after\n'
+    scan = scan_tokens(text, python_definition)
+    assert not isinstance(scan, ReadFailure)
+    assert [
+        text[token.span.start : token.span.end]
+        for token in scan.tokens
+        if token.kind == "string"
+    ] == [spelling]
+    assert [
+        text[region.span.start : region.span.end]
+        for region in scan.regions
+        if region.kind == RegionKind.COMMENT
+    ] == ['# real } """', "# after"]
+    assert [token.span.start for token in scan.tokens if token.kind == "field_end"] == [
+        text.index("\n}") + 1
+    ]
+    assert [
+        (item.kind, text[item.span.start : item.span.end]) for item in scan.protected
+    ] == (
+        [("template-expression", spelling + ' # real } """\n')] if prefix == "t" else []
+    )
+    assert SourceStructure(text, scan.regions, (), (), ()).reconstruct() == text
+
+
 @pytest.mark.parametrize("newline", ["\n", "\r", "\r\n"])
 def test_fstrings_multiline_expression_is_one_logical_line(python_definition, newline):
     text = 'x=f"{a # }' + newline + " + \\" + newline + ' b}"' + newline + "y=2"
