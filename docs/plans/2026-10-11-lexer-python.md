@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 29 of 33 TODO tasks closed
+Progress: 30 of 33 TODO tasks closed
 Plan-tasks: 42 of 46 plan tasks closed
 Owner:    backend
 Requires-Roy: false
@@ -446,7 +446,7 @@ complete merely because this plan or its interfaces are approved.
 - [x] T44 | Document the Python preservation contract beside its comparison
 - [x] T45 | Expose complete Python docstrings with their lexical owners
 - [x] T46 | Reject NUL characters throughout Python source
-- [ ] T47 | Assign places to comments immediately after Python documentation
+- [x] T47 | Assign places to comments immediately after Python documentation
 - [x] T48 | Count internal blanks in Python comment section length
 - [x] T49 | Remove the Python-specific writer additions
 - [x] T50 | Remove unused Python identifier interpretation settings
@@ -674,6 +674,7 @@ complete merely because this plan or its interfaces are approved.
         > 2026-10-14 Check: uv run pytest -q tests/test_comment_wrapping.py
         > 2026-10-14 Check: uv run pytest tests/test_compositor.py tests/test_galley.py
         > 2026-10-14 Inline doc plus code needs ruling on indivisible C and A output
+        > 2026-10-14 Open: 41 adjacent executable-suffix cases fail writer compatibility
 - [x] P38 | 63 lexical preservation checks and scoped review pass | bd9b7b7c | Compare
       Python code using lexical source ranges
         > 2026-10-14 Goals: lexical-code-identity T1, Python T38,T43; preservation.py.
@@ -701,6 +702,7 @@ complete merely because this plan or its interfaces are approved.
         > 2026-10-14 Check: uv run pytest -q; real paths forbid AST and tokenize.
         > 2026-10-14 Check: completion commands in the approved Python specification.
         > 2026-10-14 Includes T50 removal of unused identifier interpretation settings
+        > 2026-10-14 Open: raw doc form recovery still invokes host AST and tokenizer
 - [x] P42 | Exact comment columns and retained regions pass review and tests | 64120fb0 | Scan
       physical-line code and comment character boundaries
         > 2026-10-14 Goal: T40; source spans preserve each physical-line boundary.
@@ -723,8 +725,9 @@ complete merely because this plan or its interfaces are approved.
       lexical reader integration test fixtures
         > 2026-10-14 Goals: T52-T54; retain identity, settings and refusal assertions
         > 2026-10-14 Check: affected context, reading, compositor and revise tests
-- [x] P46 | 1320 checks pass; paragraph-only normalization reviewed | 904fa571 | Normalize
+- [x] P46 | 1337 focused checks pass; roundtrip correction reviewed | f3e17569 | Normalize
       documentation prose at the paragraph adapter
         > 2026-10-14 Goal: T55; normalize Paragraph.text, retain raw payload and source
         > 2026-10-14 Check: tests/test_review_write_boundaries.py prose cases
         > 2026-10-14 Scope includes page_for tests of normalized Paragraph.text
+        > 2026-10-14 Include prose expectations in Python roundtrip suite

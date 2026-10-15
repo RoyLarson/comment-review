@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 51 of 55 tasks closed
+Progress: 52 of 55 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-21 (Roy, 2026-08-21, on four sentry files the floor interpreter cannot
@@ -435,7 +435,8 @@ the review, and nothing today protects the review.
         > 2026-10-13 Location: scanner.py accepts NUL inside literal source.
         > 2026-10-13 Check: scanner, page and gather refuse NUL at its source span.
         > 2026-10-13 Reason: gather regression after installing the lexical reader.
-- [ ] T47 | Assign places to comments immediately after Python documentation
+- [x] T47 | Closing comments retain one owner and raw copy through rereading | f3e17569 | Assign
+      places to comments immediately after Python documentation
         > 2026-10-13 Location: projection.py:240 omits the shared doc/comment anchor.
         > 2026-10-13 Check: module/suite/closing-line comments retain a/c wire rows.
         > 2026-10-13 Correction: trailing comments belong to the docstring section.
@@ -466,8 +467,9 @@ the review, and nothing today protects the review.
 - [x] T54 | Malformed comparisons refuse with specific lexical diagnostics | 369dd690 | Assert
       specific lexical refusal diagnostics in address tests
         > 2026-10-14 Check: revise, revise_addresses, taken_in refuse failed readings
-- [x] T55 | Matching prose normalized with exact payload and source retained | 904fa571 | Normalize
+- [x] T55 | Normalized prose and exact decoded payload checked independently | f3e17569 | Normalize
       Python paragraph prose consistently with comment forms
         > 2026-10-14 Location: reading/python/projection.py:134 exposes payload spacing
         > 2026-10-14 Check: concatenated doc prose agrees after clause removal
         > 2026-10-14 Check: page prose expectations normalize; raw-line checks remain
+        > 2026-10-14 Location: test_python_prose_roundtrip.py compares literal spacing
