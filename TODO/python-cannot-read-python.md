@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 43 of 51 tasks closed
+Progress: 46 of 51 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-21 (Roy, 2026-08-21, on four sentry files the floor interpreter cannot
@@ -391,8 +391,9 @@ the review, and nothing today protects the review.
       Verify: the docstring claims same lines in the same order, never semantic
       equivalence.
         > 2026-09-03 same lines in same order goes false once the move is admitted
-- [ ] T38 | Rebuild `prove_unchanged` to prove code unchanged with no `ast`
-      branch. Verify: an edited docstring proves, a moved token does not
+- [x] T38 | Python proof uses acquired lexical records; host AST branch removed | 5564f046 | Rebuild
+      `prove_unchanged` to prove code unchanged with no `ast` branch. Verify: an
+      edited docstring proves, a moved token does not
         > 2026-09-03 waits on doc-on-the-declaring-line T4 and R25
         > 2026-09-03 until both land the ast branch is the only proof that runs
 - [-] T39 | Approved Python lexical spec replaces obsolete criterion with T45 | 112dab2c74c24a36687b6a58a0b1336bfb7ffff5 | Emit
@@ -420,7 +421,8 @@ the review, and nothing today protects the review.
 - [x] T43 | Both lexical proof gates refuse executable mutations; 458 checks pass | ade86459 | Reject
       executable Python mutations at both lexical proof gates
         > 2026-10-11 Check: plan P22 exercises mutations through both proof commands
-- [ ] T44 | Document the Python preservation contract beside its comparison
+- [x] T44 | Comparison and proof prose describe retained lexical source | 5564f046 | Document
+      the Python preservation contract beside its comparison
         > 2026-10-11 Check: plan P25 prose states tokens, ownership and limits
         > 2026-10-14 Location: proof_setter.py:680 still describes the removed AST path
         > 2026-10-14 Check: _prove prose describes lexical and protected-source checks
@@ -445,7 +447,8 @@ the review, and nothing today protects the review.
       the Python-specific writer additions
         > 2026-10-13 Check: results matches parent; renderer and callers are absent.
         > 2026-10-13 Reason: Roy rejected replacing the existing deterministic writer.
-- [ ] T50 | Remove unused Python identifier interpretation settings
+- [x] T50 | Unused identifier settings and validation removed; reader checks pass | 5564f046 | Remove
+      unused Python identifier interpretation settings
         > 2026-10-14 Location: python.toml rules.identifiers and definition.py:109
         > 2026-10-14 Check: reader keeps opaque code; unused identifier rules are absent
 - [ ] T51 | Replace host parsing in raw Python documentation recovery

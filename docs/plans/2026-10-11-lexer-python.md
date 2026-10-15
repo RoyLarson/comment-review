@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 19 of 29 TODO tasks closed
+Progress: 24 of 29 TODO tasks closed
 Plan-tasks: 40 of 44 plan tasks closed
 Owner:    backend
 Requires-Roy: false
@@ -429,27 +429,27 @@ complete merely because this plan or its interfaces are approved.
 
 ### A - [lexical-code-identity](../../TODO/lexical-code-identity.md)
 
-- [ ] T1 | Replace Python AST identity checks with lexical comparison; verify
+- [x] T1 | Replace Python AST identity checks with lexical comparison; verify
       docstring add and removal agree at both gates
 - [x] T3 | Retain protected directive context when selecting documentation
 - [x] T4 | Match retained code after multiline documentation removal
 
 ### B - [python-cannot-read-python](../../TODO/python-cannot-read-python.md)
 
-- [ ] T38 | Rebuild `prove_unchanged` to prove code unchanged with no `ast`
+- [x] T38 | Rebuild `prove_unchanged` to prove code unchanged with no `ast`
       branch. Verify: an edited docstring proves, a moved token does not
 - [ ] T40 | Read Python with owned lexical recognition independent of the host
       AST and tokenizer
 - [ ] T41 | Preserve exact Python round trips over invented boundary fixtures
 - [ ] T42 | Read supported newer Python syntax on the pinned Python 3.11 runtime
 - [x] T43 | Reject executable Python mutations at both lexical proof gates
-- [ ] T44 | Document the Python preservation contract beside its comparison
+- [x] T44 | Document the Python preservation contract beside its comparison
 - [x] T45 | Expose complete Python docstrings with their lexical owners
 - [x] T46 | Reject NUL characters throughout Python source
 - [ ] T47 | Assign places to comments immediately after Python documentation
 - [x] T48 | Count internal blanks in Python comment section length
 - [x] T49 | Remove the Python-specific writer additions
-- [ ] T50 | Remove unused Python identifier interpretation settings
+- [x] T50 | Remove unused Python identifier interpretation settings
 - [ ] T51 | Replace host parsing in raw Python documentation recovery
 
 ### C - [2026-10-12-python-numeric-keyword-boundaries](../../TODO/completed/2026-10-12-python-numeric-keyword-boundaries.md)
@@ -462,9 +462,9 @@ complete merely because this plan or its interfaces are approved.
 - [x] T1 | Accept joined final whitespace at EOF; logical_lines tests still
       refuse an immediately unfinished continuation.
 
-### E - [2026-10-12-python-reader-vocabulary](../../TODO/2026-10-12-python-reader-vocabulary.md)
+### E - [2026-10-12-python-reader-vocabulary](../../TODO/completed/2026-10-12-python-reader-vocabulary.md)
 
-- [ ] T1 | Replace retired Python reader terms
+- [x] T1 | Replace retired Python reader terms
 
 ### F - [2026-10-12-python-soft-keyword-annotations](../../TODO/completed/2026-10-12-python-soft-keyword-annotations.md)
 
