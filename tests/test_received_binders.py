@@ -86,8 +86,8 @@ def test_installed_revision_refused_before_received_coverage(
     binder, received, wires, stage = _shards(tmp_path)
     installed = reading_context.reader_for
 
-    def revised(path):
-        selected = installed(path)
+    def revised(path, registry):
+        selected = installed(path, registry)
         assert isinstance(selected, tuple)
         definition, binding = selected
         assert isinstance(definition, LanguageDefinition)
@@ -113,17 +113,19 @@ def test_valid_installed_settings_must_agree_on_shared_path(tmp_path, monkeypatc
     binder, received, wires, stage = _shards(tmp_path)
     installed = reading_context.reader_for
 
-    def configured(path):
-        selected = installed(path)
+    def configured(path, registry):
+        selected = installed(path, registry)
         assert isinstance(selected, tuple)
         definition, binding = selected
         assert isinstance(definition, LanguageDefinition)
         assert isinstance(binding, ReaderBinding)
         return replace(
             definition,
+            language="test-settings",
+            reader="test-settings-reader",
             defaults={"mode": "narrow"},
             choices={"mode": ("narrow", "wide")},
-        ), binding
+        ), replace(binding, reader="test-settings-reader", validate=lambda _: None)
 
     monkeypatch.setattr(reading_context, "reader_for", configured)
     narrow = reading_context.context_for(Path("m.py"), {"mode": "narrow"})
@@ -170,16 +172,19 @@ def test_extra_stage_sheet_context_is_compared_without_expanding_shard(
     binder, received, wires, stage = _shards(tmp_path)
     installed = reading_context.reader_for
 
-    def configured(path):
-        selected = installed(path)
+    def configured(path, registry):
+        selected = installed(path, registry)
         assert isinstance(selected, tuple)
         definition, binding = selected
         assert isinstance(definition, LanguageDefinition)
+        assert isinstance(binding, ReaderBinding)
         return replace(
             definition,
+            language="test-settings",
+            reader="test-settings-reader",
             defaults={"mode": "narrow"},
             choices={"mode": ("narrow", "wide")},
-        ), binding
+        ), replace(binding, reader="test-settings-reader", validate=lambda _: None)
 
     monkeypatch.setattr(reading_context, "reader_for", configured)
     narrow = reading_context.context_for(Path("m.py"), {"mode": "narrow"})

@@ -168,27 +168,21 @@ def test_read_failure_reports_retained_location(tmp_path, capsys):
     assert "line 2, one-based; column 0, zero-based" in output
 
 
-def test_python_bom_rejection_is_visible(tmp_path, capsys):
+def test_python_bom_is_preserved_exactly(tmp_path, capsys):
     from comment_review.commands.compositor import main
-    from comment_review.flows.compositor import round_trip
-    from comment_review.flows.read_diagnostics import LocatedReadFailure
-    from comment_review.reading.diagnostics import ReadStage
+    from comment_review.flows.compositor import RoundTrip, round_trip
 
     path = tmp_path / "sample.py"
-    path.write_bytes(b"\xef\xbb\xbfx = 1\n")
+    original = b"\xef\xbb\xbfx = 1\n"
+    path.write_bytes(original)
     result = round_trip(path)
-    assert isinstance(result, LocatedReadFailure)
-    assert result.text == "\ufeffx = 1\n"
-    assert result.language == "python"
-    assert [(d.stage, d.code) for d in result.diagnostics] == [
-        (ReadStage.LEX, "incomplete-read")
-    ]
-    assert "invalid non-printable character U+FEFF" in result.diagnostics[0].message
-    assert main([str(path)]) == 1
+    assert isinstance(result, RoundTrip)
+    assert result.original.encode("utf-8") == original
+    assert result.rendered.encode("utf-8") == original
+    assert main([str(path)]) == 0
     output = capsys.readouterr().out
-    assert f"{path.as_posix()} [python] lex/incomplete-read" in output
-    assert "invalid non-printable character U+FEFF" in output
-    assert "0 identical, 0 normalised, 1 LOSSY" in output
+    assert "1 identical, 0 normalised, 0 LOSSY" in output
+    assert path.read_bytes() == original
 
 
 def test_mixed_endings_set_as_crlf(tmp_path, capsys):

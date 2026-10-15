@@ -10,7 +10,9 @@ import pytest
 from conftest import SAMPLE, build, by_cue, occupied
 
 from comment_review.binder.page import page_for
+from comment_review.flows.language_definitions import installed_registry
 from comment_review.machine.repo import sha_of
+from comment_review.reading.diagnostics import ReadFailure
 from comment_review.reading.lexer import language_for
 from comment_review.reading.series import ADDRESSED, Kind, Series
 
@@ -247,10 +249,17 @@ class TestAPageCarriesTheShaItWasGiven:
         path = Path("m.py")
         lang = language_for(path)
         assert lang is not None, f"no language record for suffix {path.suffix!r}"
+        registry = installed_registry()
+        assert not isinstance(registry, ReadFailure), registry
         page = page_for(
-            path, SAMPLE, lang, rel="m.py", sha="deadbeef", reading=build("").reading
+            path,
+            SAMPLE,
+            lang,
+            rel="m.py",
+            sha="deadbeef",
+            reading=build("").reading,
+            registry=registry,
         )
-        from comment_review.reading.diagnostics import ReadFailure
 
         assert not isinstance(page, ReadFailure), page
         assert page.sha == "deadbeef"
@@ -259,8 +268,17 @@ class TestAPageCarriesTheShaItWasGiven:
         path = Path("m.py")
         lang = language_for(path)
         assert lang is not None, f"no language record for suffix {path.suffix!r}"
+        registry = installed_registry()
+        assert not isinstance(registry, ReadFailure), registry
         with pytest.raises(TypeError):
             # !! DELIBERATELY OMITS `sha` -- proves the keyword-only parameter
             # is enforced at runtime. ty: ignore[missing-argument] because the
             # call is invalid ON PURPOSE; that is what this test asserts.
-            page_for(path, SAMPLE, lang, rel="m.py", reading=build("").reading)  # ty: ignore[missing-argument]
+            page_for(  # ty: ignore[missing-argument]
+                path,
+                SAMPLE,
+                lang,
+                rel="m.py",
+                reading=build("").reading,
+                registry=registry,
+            )

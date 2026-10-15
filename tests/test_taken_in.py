@@ -20,7 +20,7 @@ def test_taken_in_prints_nothing_when_no_stage_has_set_anything(tmp_path, capsys
 @pytest.mark.parametrize(
     "name,text,diagnostic",
     [
-        ("broken.py", "def broken(:\n", "lex/incomplete-read"),
+        ("broken.py", "def broken(:\n", "lex/unfinished-continuation"),
         ("broken.c", "/* open", "lex/unterminated-comment"),
     ],
 )

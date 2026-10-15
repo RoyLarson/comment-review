@@ -111,22 +111,29 @@ def test_fresh_text_comparison_refuses_reader_change(
 
     actual = page_for.page_for
 
-    def original(path):
-        result = installed(path)
+    def original(path, registry):
+        result = installed(path, registry)
         assert result is not None and not isinstance(result, ReadFailure)
         definition, binding = result
         if change == "accepted-settings":
             definition = replace(
-                definition, defaults={"mode": "plain"}, choices={"mode": ("plain",)}
+                definition,
+                language="test-settings",
+                reader="test-settings-reader",
+                defaults={"mode": "plain"},
+                choices={"mode": ("plain",)},
+            )
+            binding = replace(
+                binding, reader="test-settings-reader", validate=lambda _: None
             )
         return definition, binding
 
     monkeypatch.setattr(reading_context, "reader_for", original)
 
-    def changed(path):
+    def changed(path, registry):
         if change == "missing-reader":
             return None
-        definition, binding = original(path)
+        definition, binding = original(path, registry)
         if change == "accepted-settings":
             return replace(
                 definition, defaults={"mode": "wide"}, choices={"mode": ("wide",)}
@@ -187,13 +194,17 @@ def test_direct_saved_gate_refuses_malformed_context(tmp_path):
 def installed_modes(monkeypatch):
     actual = reading_context.reader_for
 
-    def selected(path):
-        result = actual(path)
+    def selected(path, registry):
+        result = actual(path, registry)
         assert result is not None and not isinstance(result, ReadFailure)
         definition, binding = result
         return replace(
-            definition, defaults={"mode": "plain"}, choices={"mode": ("plain", "wide")}
-        ), binding
+            definition,
+            language="test-settings",
+            reader="test-settings-reader",
+            defaults={"mode": "plain"},
+            choices={"mode": ("plain", "wide")},
+        ), replace(binding, reader="test-settings-reader", validate=lambda _: None)
 
     monkeypatch.setattr(reading_context, "reader_for", selected)
 
