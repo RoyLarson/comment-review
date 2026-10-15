@@ -3,7 +3,7 @@
 ```
 Status:   in-progress
 Progress: 8 of 18 TODO tasks closed
-Plan-tasks: 20 of 29 plan tasks closed
+Plan-tasks: 20 of 41 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (founded by move-t from 2026-10-11-lexical-readers)
@@ -586,3 +586,54 @@ complete merely because this plan or its interfaces are approved.
 - [ ] P29 | Test trailing docstring comments as one documentation section
         > 2026-10-13 Goal: python-cannot-read-python T41 and T47; existing writer.
         > 2026-10-13 Check: one doc section owns the suffix; no duplicate closing line.
+- [ ] P30 | Simplify Python scanner records to source classification
+        > 2026-10-14 Goals: T40; reading/python/records.py and its consumers.
+        > 2026-10-14 Check: uv run pytest -q tests/reading/test_python.py
+        > 2026-10-14 Check: complete regions; no names or statement trees required.
+        > 2026-10-14 Hold: TODO/2026-10-14-plan-objective-update.md blocks old briefs.
+- [ ] P31 | Scan Python code and comment boundaries in source order
+        > 2026-10-14 Goal: T40; reading/python/scanner.py and definition.py.
+        > 2026-10-14 Check: empty input, EOF comments and unclosed boundaries.
+        > 2026-10-14 Check: uv run pytest -q tests/reading/test_python.py
+- [ ] P32 | Recognize Python literal boundaries with retained state
+        > 2026-10-14 Goals: T40,T42; reading/python/scanner.py; python.toml.
+        > 2026-10-14 Check: quoted hashes, escapes, raw endings and multiline state.
+        > 2026-10-14 Check: uv run pytest -q tests/reading/test_python.py
+- [ ] P33 | Scan Python interpolation state transitions
+        > 2026-10-14 Goals: T40,T42; reading/python/interpolation.py; include P28.
+        > 2026-10-14 Check: three hashes, nested fields and protected expression text.
+        > 2026-10-14 Check: uv run pytest -q tests/reading/test_python.py
+- [ ] P34 | Locate Python documentation positions from source boundaries
+        > 2026-10-14 Goals: T40,T45; reading/python/structure.py and documentation.py.
+        > 2026-10-14 Check: module/class/async/def; empty places and opaque headers.
+        > 2026-10-14 Check: uv run pytest -q tests/reading/test_python.py
+- [ ] P35 | Extract complete Python documentation sections
+        > 2026-10-14 Goals: T45,T47; reading/python/documentation.py; include P29.
+        > 2026-10-14 Check: adjacent literals and closing comments have one owner.
+        > 2026-10-14 Check: uv run pytest -q tests/reading/test_python.py
+- [ ] P36 | Project Python sections and complete code anchors
+        > 2026-10-14 Goals: T40,T41; reading/python/projection.py and binder/page.py.
+        > 2026-10-14 Check: A/B/C/D/F, whole sections, shebang F and all code pieces.
+        > 2026-10-14 Check: uv run pytest -q tests/test_page.py
+- [ ] P37 | Restore Python reader compatibility with the existing writer
+        > 2026-10-14 Goals: T41,T47; reader adapters; results writer stays unchanged.
+        > 2026-10-14 Check: uv run pytest -q tests/test_comment_wrapping.py
+        > 2026-10-14 Check: uv run pytest tests/test_compositor.py tests/test_galley.py
+- [ ] P38 | Compare Python code using lexical source ranges
+        > 2026-10-14 Goals: lexical-code-identity T1, Python T38,T43; preservation.py.
+        > 2026-10-14 Check: reject code/order/indentation/literal/separator mutations.
+        > 2026-10-14 Check: uv run pytest -q tests/test_lexical_preservation.py
+        > 2026-10-14 Create tests/test_lexical_preservation.py for these checks.
+- [ ] P39 | Match Python documentation across additions and removals
+        > 2026-10-14 Goals: T43,T45; reading/python/preservation.py.
+        > 2026-10-14 Check: removing docs cannot expose ordinary literals for edits.
+        > 2026-10-14 Check: uv run pytest -q tests/test_lexical_preservation.py
+- [ ] P40 | Integrate lexical comparison with proof and saved reviews
+        > 2026-10-14 Goals: T38,T43; proof/prove_unchanged and saved-context consumers.
+        > 2026-10-14 Check: both gates agree; incompatible saved context refuses.
+        > 2026-10-14 Check: uv run pytest -q tests/test_page_reading_context.py
+        > 2026-10-14 Check: uv run pytest -q tests/test_proof_command.py
+- [ ] P41 | Retire replaced Python interpretation paths
+        > 2026-10-14 Goals: T40,T42,T44 and reader-vocabulary T1; reader/proof routes.
+        > 2026-10-14 Check: uv run pytest -q; real paths forbid AST and tokenize.
+        > 2026-10-14 Check: completion commands in the approved Python specification.

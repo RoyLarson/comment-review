@@ -407,6 +407,7 @@ the review, and nothing today protects the review.
         > 2026-10-13 Anchor: all code text on the line, including substring notation.
         > 2026-10-13 Identifiers and semantic analysis are outside the lexer contract.
         > 2026-10-13 Revised Python and shared specs narrow the reader; review pending.
+        > 2026-10-14 Approved scanner specifications replace the old task briefs.
 - [ ] T41 | Preserve exact Python round trips over invented boundary fixtures
         > 2026-10-11 Check: plan P26 compares exact bytes through saved setting
         > 2026-10-13 Location: set_page rebuilds inline doc prefixes and c anchors.
