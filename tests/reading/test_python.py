@@ -1649,7 +1649,7 @@ def test_logical_lines_literal_interiors_are_opaque(python_definition):
     [
         ("x=(]\n", "mismatched-bracket", SourceSpan(3, 4)),
         ("x=)\n", "mismatched-bracket", SourceSpan(2, 3)),
-        ("x=(1\n", "unfinished-join", SourceSpan(2, 3)),
+        ("x=(1\n", "unfinished-continuation", SourceSpan(2, 3)),
         ("x=1\\\n", "incomplete-continuation", SourceSpan(3, 4)),
         ("\\\r\n", "incomplete-continuation", SourceSpan(0, 1)),
         ("x\n    y\n  z\n", "inconsistent-indentation", SourceSpan(8, 10)),

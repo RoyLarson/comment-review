@@ -92,36 +92,20 @@ def _grammar(rules: Mapping[str, object]) -> None:
         rules,
         "rules",
         "language_version comments literals layout declarations documentation "
-        "directives identifiers",
+        "directives",
     )
     _scalar(rules["language_version"], "rules.language_version", "3.15")
     comments = _table(
-        rules["comments"], "rules.comments", "marker block_markers sections"
+        rules["comments"], "rules.comments", "marker paragraph_markers sections"
     )
     _scalar(comments["marker"], "rules.comments.marker", "#")
-    _array(comments["block_markers"], "rules.comments.block_markers", ())
+    _array(comments["paragraph_markers"], "rules.comments.paragraph_markers", ())
     _scalar(comments["sections"], "rules.comments.sections", "same-form-across-blanks")
     _literals(rules["literals"])
     _layout(rules["layout"])
     _declarations(rules["declarations"])
     _documentation(rules["documentation"])
     _directives(rules["directives"])
-    identifiers = _table(
-        rules["identifiers"],
-        "rules.identifiers",
-        "normalization soft_keywords soft_keyword_policy",
-    )
-    _scalar(identifiers["normalization"], "rules.identifiers.normalization", "NFKC")
-    _array(
-        identifiers["soft_keywords"],
-        "rules.identifiers.soft_keywords",
-        ("match", "case", "_", "type", "lazy"),
-    )
-    _scalar(
-        identifiers["soft_keyword_policy"],
-        "rules.identifiers.soft_keyword_policy",
-        "contextual",
-    )
 
 
 def _literals(value: object) -> None:

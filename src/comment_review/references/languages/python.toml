@@ -12,7 +12,7 @@ language_version = "3.15"
 
 [rules.comments]
 marker = "#"
-block_markers = []
+paragraph_markers = []
 sections = "same-form-across-blanks"
 
 [rules.literals]
@@ -80,7 +80,3 @@ encoding_own_line = true
 type_marker = "type:"
 type_position = "comment-start-after-whitespace"
 
-[rules.identifiers]
-normalization = "NFKC"
-soft_keywords = ["match", "case", "_", "type", "lazy"]
-soft_keyword_policy = "contextual"

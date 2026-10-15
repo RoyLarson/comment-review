@@ -18,7 +18,7 @@ from comment_review.reading.source import RegionKind, SourceRegion, SourceSpan
 @dataclass(frozen=True)
 class _Syntax:
     comment: str
-    join: str
+    continuation: str
     quotes: tuple[str, ...]
     triple_quotes: tuple[str, ...]
     prefixes: frozenset[str]
@@ -126,8 +126,8 @@ def _next_token(
         return "comment", end, RegionKind.COMMENT
     if char in syntax.quotes:
         return _literal_token(text, start, start, "", syntax)
-    if text.startswith(syntax.join, start):
-        end = start + len(syntax.join)
+    if text.startswith(syntax.continuation, start):
+        end = start + len(syntax.continuation)
         if end == len(text) or text[end] not in "\r\n":
             return _failure("incomplete-continuation", start, end)
         return "continuation", end, RegionKind.CODE
@@ -143,7 +143,7 @@ def _next_token(
             text[end] in " \t\f\r\n"
             or text[end] in syntax.quotes
             or text.startswith(syntax.comment, end)
-            or text.startswith(syntax.join, end)
+            or text.startswith(syntax.continuation, end)
             or _boundary_at(text, end, syntax, field=field)
             or _prefix_at(text, end, syntax) is not None
         ):

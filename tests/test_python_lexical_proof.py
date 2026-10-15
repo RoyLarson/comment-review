@@ -50,6 +50,19 @@ def forbid_host_parsers(patch):
             patch.setattr(owner, name, forbidden)
 
 
+@pytest.mark.parametrize("suffix", [".py", ".pyi", ".PY"])
+@pytest.mark.parametrize("text", ["value = 1\n", "value = (\n", MODERN_SOURCE])
+def test_python_fingerprint_requires_admitted_lexical_records(
+    monkeypatch, suffix, text
+):
+    from comment_review.results.prove_unchanged import code_fingerprint
+
+    with monkeypatch.context() as patch:
+        forbid_host_parsers(patch)
+        result = code_fingerprint(text, Path("m" + suffix))
+    assert result == ("unprovable", "")
+
+
 def test_modern_python_read_and_proof_do_not_use_host_parsers(monkeypatch):
     after = MODERN_SOURCE.replace("Describe the envelope.", "Explain this envelope.")
     after = after.replace("Return the entry.", "Expose the enclosed entry.")

@@ -915,13 +915,6 @@ def test_python_definition_loads_complete_grammar_and_installs_lexical_reader() 
     assert installed["typescript"].suffixes == (".ts", ".tsx", ".mts", ".cts")
     assert value.rules["literals"]["prefixes"]["raw_template"] == ("tr", "rt")
     assert value.rules["documentation"]["literal_groups"] == ("plain", "raw")
-    assert value.rules["identifiers"]["soft_keywords"] == (
-        "match",
-        "case",
-        "_",
-        "type",
-        "lazy",
-    )
 
 
 @pytest.mark.parametrize(
@@ -1004,7 +997,6 @@ def test_python_definition_requires_every_nested_key_and_rejects_unknown_keys() 
         ("documentation", "adjacent", "yes", "boolean"),
         ("documentation", "parenthesized", False, "unsupported"),
         ("directives", "encoding_lines", (1, 3), "unsupported"),
-        ("identifiers", "soft_keyword_policy", "reserved", "unsupported"),
     ],
 )
 def test_python_definition_rejects_ill_typed_and_unsupported_rules(

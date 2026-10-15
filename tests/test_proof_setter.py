@@ -317,11 +317,9 @@ def test_proof_reuses_admitted_pages(tmp_path, monkeypatch):
     assert reads == [repo / "m.py", into / "m.py"]
 
 
-@pytest.mark.parametrize("kind", ["unprovable", "unknown"])
+@pytest.mark.parametrize("kind", ["unprovable", "unknown", "ast"])
 def test_direct_proof_failed_fingerprint_kind_cannot_pass(monkeypatch, kind):
-    monkeypatch.setattr(
-        proof_setter, "code_fingerprint_setting_aside", lambda *args: (kind, "")
-    )
+    monkeypatch.setattr(proof_setter, "code_fingerprint", lambda *args: (kind, ""))
     refusal = proof_setter._prove(
         "m.js", "const value = 1;\n", "const value = 1;\n", Path("m.js")
     )

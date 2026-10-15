@@ -1,121 +1,22 @@
-"""THE CODE CHECK: does the parser read the file the same before and after?
+"""Comment-stripped comparisons for non-Python source and line-ending measures.
 
-Stage 7b's gate.
+The comment lexer removes admitted prose and compares the remaining lines,
+right-stripped with blank lines dropped. Ambiguous comment boundaries and
+spanning literals make this comparison unprovable. Python proofs compare the
+lexical records held by admitted pages in their proof flows.
 
-    python prove_unchanged.py --base <ref> [--repo D] <paths...>
-
-Exits nonzero unless EVERY path is proven. The claim this skill makes to the
-people who run it is that prose changed and the rest reads the same; that claim
-is a pure function of two strings, so this computes it.
-
-Two proofs, because two tiers:
-
-  ast       Python, using the LANGUAGE'S OWN parser. Blank every docstring,
-            compare `ast.dump`. Comments never reach the AST, so anything else
-            that differs fails.
-  stripped  Any other `LANGUAGES` record, using THIS REPO'S comment lexer.
-            Delete every comment it finds, compare the lines that remain --
-            right-stripped, blanks dropped. A PROJECTION of the file; line
-            endings are compared separately below, since this drops them.
-
-! For Python the proof is CPython parsing its own language. Elsewhere it rests
-on a lexer built from a data row, so where that lexer is unsure this refuses: a
-delimiter sharing a line with code, an unterminated paragraph comment, or a binder
-that disagrees with the file all return `unprovable`.
-
-! A file this cannot prove is REPORTED as unprovable and counted a failure. A
-proof that degrades to "looks fine" still prints PROVEN.
-
-! Line endings are compared against an UNTOUCHED SIBLING rather than the stored
-blob: under `core.autocrlf` the blob is always LF, so normalising to it leaves
-the working tree inconsistent with every file WRITE left alone -- and `git diff`
-hides that.
+Line endings are measured separately against an untouched sibling, since Git
+may normalize the stored baseline's endings.
 """
 
-import ast
-from collections.abc import Collection
 from pathlib import Path
 
 from comment_review import constants
 from comment_review.reading.lexer import (
-    DOC_ANCHORS,
-    MODULE_ANCHOR,
-    NAMED_DEFS,
     Language,
     language_for,
     paragraphs_lexical,
 )
-
-
-def _blank_docstrings(tree: ast.AST, aside: Collection[ast.AST] = ()) -> ast.AST:
-    """Empty each docstring whose declaration is not in `aside`, in place.
-
-    A docstring is prose this skill is allowed to rewrite, so its content must
-    not enter the fingerprint. Its presence does: a docstring binds `__doc__`,
-    and adding or deleting one changes the body's shape, which the dump shows.
-
-    The one exception is a declaration in `aside`, whose docstring is removed
-    rather than blanked, so its presence is left out of the fingerprint too.
-    `code_fingerprint_setting_aside` names those declarations: each one an
-    approved alteration documents (`decision-log.md Process: #113`).
-
-    Args:
-        tree: the parsed file, changed in place.
-        aside: declarations -- the module node or a named definition -- whose
-            docstring's presence is left out. Compared by identity.
-    """
-    removed = {id(node) for node in aside}
-    for node in ast.walk(tree):
-        if not isinstance(node, DOC_ANCHORS):
-            continue
-        if not node.body:
-            continue
-        first = node.body[0]
-        if isinstance(first, ast.Expr) and isinstance(first.value, ast.Constant):
-            if isinstance(first.value.value, str):
-                if id(node) in removed:
-                    del node.body[0]
-                else:
-                    first.value.value = ""
-    return tree
-
-
-def _declared_at(
-    tree: ast.Module, lines: list[str], anchor: str, line: int | None
-) -> ast.AST | None:
-    """The one declaration the page puts at `line` with `anchor`, or None.
-
-    A named definition matches when its `def` or `class` keyword sits on
-    `line` -- `lineno`, which is the keyword's line and not a decorator's --
-    and that line begins with `anchor`, the declaring line's code as the page
-    holds it. The module is the declaration whose anchor is `MODULE_ANCHOR`
-    and which sits on no line.
-
-    It returns None unless exactly one declaration matches, so a caller
-    refuses rather than guess between two.
-
-    `code_fingerprint_setting_aside` asks it for each declaration an approved
-    alteration documents, whose docstring's presence the proof sets aside
-    (`decision-log.md Process: #113`).
-
-    Args:
-        tree: the parsed file.
-        lines: the file's text as lines, as `constants.text_lines` splits it.
-        anchor: the place's anchor.
-        line: the line the page puts that anchor on, or None for a sentinel.
-    """
-    if line is None:
-        return tree if anchor == MODULE_ANCHOR else None
-    if not anchor.strip() or not 1 <= line <= len(lines):
-        return None
-    if not lines[line - 1].strip().startswith(anchor.strip()):
-        return None
-    found = [
-        node
-        for node in ast.walk(tree)
-        if isinstance(node, NAMED_DEFS) and node.lineno == line
-    ]
-    return found[0] if len(found) == 1 else None
 
 
 def _delimiter_shares_the_line(line: str, lang: Language) -> bool:
@@ -204,22 +105,19 @@ def _without_comments(text: str, path: Path) -> str | None:
 
 
 def code_fingerprint(text: str, path: Path) -> tuple[str, str]:
-    """A value equal for two texts exactly when their executable code matches.
+    """Compare non-Python code using the language's comment-stripped source.
 
     Args:
         text: the file's contents.
         path: used only for its suffix, to pick which comparison runs.
 
     Returns:
-        `(kind, fingerprint)`. `kind` is "ast", "stripped" or "unprovable"; an
-        unprovable file carries an empty fingerprint and must never be reported
-        as proven.
+        `(kind, fingerprint)`. `kind` is "stripped" or "unprovable". Python
+        requires admitted lexical records and returns "unprovable" here. An
+        unprovable file carries an empty fingerprint and cannot be proven.
     """
     if path.suffix.lower() in (".py", ".pyi"):
-        try:
-            return "ast", ast.dump(_blank_docstrings(ast.parse(text)))
-        except SyntaxError:
-            pass  # fall through to the stripped compare; a broken parse proves nothing
+        return "unprovable", ""
     stripped = _without_comments(text, path)
     if stripped is None:
         return "unprovable", ""
@@ -229,45 +127,6 @@ def code_fingerprint(text: str, path: Path) -> tuple[str, str]:
         # whatever code either one carried.
         return "unprovable", ""
     return "stripped", stripped
-
-
-def code_fingerprint_setting_aside(
-    text: str, path: Path, declarations: Collection[tuple[str, int | None]]
-) -> tuple[str, str]:
-    """`code_fingerprint`, with some declarations' docstring presence left out.
-
-    The proof compares against the approved changes, not against nothing
-    changed (`decision-log.md Process: #113`), so a docstring an approved
-    alteration adds or drops is the edit landing. Each declaration named here
-    has its docstring removed before the dump; every other declaration keeps
-    its docstring's presence, and all code is compared as `code_fingerprint`
-    compares it.
-
-    Only the `ast` kind reads `declarations`: a file `code_fingerprint`
-    answers as `stripped` or `unprovable` gets that answer unchanged.
-
-    Args:
-        text: the file's contents.
-        path: used only for its suffix, as in `code_fingerprint`.
-        declarations: `(anchor, line)` for each declaration whose docstring's
-            presence is left out -- the place's anchor, and the line the page
-            puts it on. See `_declared_at`.
-
-    Returns:
-        `(kind, fingerprint)` as `code_fingerprint` returns it, or
-        `("unidentified", "")` when a pair names no single declaration in this
-        text. An unidentified file must never be reported as proven.
-    """
-    kind, fingerprint = code_fingerprint(text, path)
-    if kind != "ast" or not declarations:
-        return kind, fingerprint
-    tree = ast.parse(text)
-    lines = constants.text_lines(text)
-    aside = [_declared_at(tree, lines, anchor, line) for anchor, line in declarations]
-    found = [node for node in aside if node is not None]
-    if len(found) != len(aside):
-        return "unidentified", ""
-    return "ast", ast.dump(_blank_docstrings(tree, found))
 
 
 def dominant_ending(text: str) -> str:

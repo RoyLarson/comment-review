@@ -60,7 +60,7 @@ from comment_review.reading.paragraph import Paragraph
 from comment_review.reading.python.preservation import compare_preservation
 from comment_review.reading.series import Series
 from comment_review.results import compositor, galley
-from comment_review.results.prove_unchanged import code_fingerprint_setting_aside
+from comment_review.results.prove_unchanged import code_fingerprint
 
 
 class Step(StrEnum):
@@ -733,33 +733,10 @@ def _prove(
             )
         return None
     before_text, after_text = (page.text for page in admitted)
-    documented = [
-        (was, now)
-        for was, now in approved
-        if Series.of(cue_of(was.address).cue) is Series.DECLARED
-    ]
-    # The draft's line is looked up with the anchor from the page the draft was
-    # set from, so both texts set aside a declaration with the same declaring
-    # line.
-    kind, want = code_fingerprint_setting_aside(
-        before_text, path, [(was.anchor, was.anchor_line) for was, _ in documented]
-    )
-    got_kind, got = code_fingerprint_setting_aside(
-        after_text, path, [(was.anchor, now.anchor_line) for was, now in documented]
-    )
-    if kind == "unprovable" or got_kind == "unprovable":
+    kind, want = code_fingerprint(before_text, path)
+    got_kind, got = code_fingerprint(after_text, path)
+    if kind != "stripped" or got_kind != "stripped":
         return Refusal("prove", rel, "the code in this file cannot be proven unchanged")
-    if kind == "unidentified" or got_kind == "unidentified":
-        return Refusal(
-            "prove",
-            rel,
-            "the declaration an approved docstring alteration documents cannot be"
-            " identified in the code, so its docstring cannot be set aside",
-        )
-    if kind not in ("ast", "stripped") or got_kind not in ("ast", "stripped"):
-        return Refusal("prove", rel, "the code in this file cannot be proven unchanged")
-    if kind != got_kind:
-        return Refusal("prove", rel, "the proof kind is not what it was")
     if want != got:
         return Refusal("prove", rel, "the executable code is not what it was")
     return None

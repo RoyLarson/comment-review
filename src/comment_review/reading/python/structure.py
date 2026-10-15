@@ -17,10 +17,10 @@ from comment_review.reading.source import SourceDeclaration, SourceSpan
 def logical_lines(
     scan: PythonScan, definition: LanguageDefinition
 ) -> tuple[LogicalLine, ...] | ReadFailure:
-    """Join physical boundaries while keeping literal and interpolation text opaque.
+    """Read continued physical lines with literal and interpolation text opaque.
 
     Spans include the first physical line's indentation and the terminating
-    newline, if present. Token indices exclude comments and joining markers.
+    newline, if present. Token indices exclude comments and continuation markers.
     """
     failure = validate_python(definition)
     if failure is not None:
@@ -97,7 +97,7 @@ def logical_lines(
     if awaiting_line is not None and line_start == len(scan.text):
         return _failure("incomplete-continuation", awaiting_line)
     if brackets:
-        return _failure("unfinished-join", brackets[-1][1])
+        return _failure("unfinished-continuation", brackets[-1][1])
     if significant:
         lines.append(
             LogicalLine(

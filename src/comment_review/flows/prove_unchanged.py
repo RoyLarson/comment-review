@@ -148,16 +148,10 @@ def run(
         else:
             kind_b, fp_b = code_fingerprint(before.text, target)
             kind_a, fp_a = code_fingerprint(after.text, target)
-            if kind_a not in ("ast", "stripped") or kind_b not in ("ast", "stripped"):
+            if kind_a != "stripped" or kind_b != "stripped":
                 messages.append(
                     f"UNPROVABLE {rel}: prose could not be separated from code"
                     " -- sameness NOT shown"
-                )
-                failures += 1
-            elif kind_a != kind_b:
-                messages.append(
-                    f"FAIL      {rel}: proof kind changed ({kind_b} -> {kind_a}) "
-                    "-- likely broke Python syntax"
                 )
                 failures += 1
             elif fp_a != fp_b:
