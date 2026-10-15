@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (126)
+### open  (125)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -307,7 +307,6 @@ that changed a published name or rule:
 | [2026-10-11-maintained-source-selection](2026-10-11-maintained-source-selection.md) | agents | -- | 0/1 | Select maintained source for review |
 | [2026-10-12-python-reader-vocabulary](2026-10-12-python-reader-vocabulary.md) | backend | -- | 0/1 | Use accepted Python reader vocabulary |
 | [2026-10-13-human-question-list](2026-10-13-human-question-list.md) | backend | -- | 0/1 | Expose human questions across edit copies |
-| [2026-10-14-plan-objective-update](2026-10-14-plan-objective-update.md) | systems | -- | 0/1 | Update obsolete plan objectives through the board |
 
 ### in-progress  (18)
 
@@ -503,3 +502,4 @@ the reason is inside the file.
 | [2026-10-12-python-soft-keyword-annotations](completed/2026-10-12-python-soft-keyword-annotations.md) | 1 finished |
 | [2026-10-13-python-cookie-normalization](completed/2026-10-13-python-cookie-normalization.md) | 1 finished |
 | [2026-10-13-python-bom-ownership](completed/2026-10-13-python-bom-ownership.md) | 1 finished |
+| [2026-10-14-plan-objective-update](completed/2026-10-14-plan-objective-update.md) | 1 superseded |
