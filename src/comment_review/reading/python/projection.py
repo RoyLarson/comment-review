@@ -131,7 +131,7 @@ def paragraphs_for(path: Path, read: PythonRead) -> list[Paragraph] | ReadFailur
                     last.line,
                     Kind.DOCSTRING,
                     last.line - first.line + 1,
-                    payload.text,
+                    re.sub(r"\s+", " ", payload.text).strip(),
                     address=f"a{0 if ordinal is None else ordinal + 1}",
                     raw_lines=constants.text_lines(text[raw_start : span.end]),
                 )

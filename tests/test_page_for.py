@@ -115,13 +115,7 @@ def test_python_page_documentation_closing_comment_keeps_one_wire_owner(
     doc = next(p for p in page if p.kind == "docstring")
     assert cue(doc) == doc_cue
     assert doc.raw_text == raw
-    assert doc.text == (
-        "doc\n    continued"
-        if "    continued" in text
-        else "doc\ncontinued"
-        if "continued" in text
-        else "doc"
-    )
+    assert doc.text == ("doc continued" if "continued" in text else "doc")
     assert not any(p.kind == "trailing-comment" and p.raw_text.strip() for p in page)
     assert {p.address for p in carried(page) if p.raw_text.strip()} == {doc.address}
     wire = {row["cue"]: row for row in page.serialize()["rows"]}
@@ -234,7 +228,7 @@ def test_python_page_documentation_raw_text_uses_existing_line_convention():
     assert isinstance(page, Page)
     assert page.python_read is not None
     doc = next(p for p in page if p.kind == "docstring")
-    assert doc.text == "a\nb"
+    assert doc.text == "a b"
     assert doc.raw_text == '    ("a\\n"\n     "b")'
     assert page.python_read.source.text.encode("utf-8") == text.encode("utf-8")
 

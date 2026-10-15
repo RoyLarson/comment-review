@@ -64,13 +64,57 @@ def test_completed_read_projects_documentation_from_source_positions(python_defi
     assert not isinstance(paragraphs, ReadFailure)
     assert [(p.text, p.raw_lines, p.address, p.anchor) for p in paragraphs] == [
         ("heading", ["# heading"], "", ""),
-        ("module\nprose", ['"module\\nprose"'], "a0", ""),
+        ("module prose", ['"module\\nprose"'], "a0", ""),
         ("body prose", ['    "body " "prose";'], "a1", ""),
         ("detail", [" # detail"], "", '    "body " "prose"; return value'),
     ]
     assert declarations_for(reduced) == [(0, 2, False), (4, 7, False), (8, 9, False)]
     assert code_for(reduced)[7] == "     return value"
+    assert reduced.payloads[0].text == "module\nprose"
     assert reduced.source.reconstruct() == text
+
+
+@pytest.mark.parametrize(
+    ("expression", "decoded", "prose"),
+    [
+        ('"  First\\t  second.\\n "', "  First\t  second.\n ", "First second."),
+        ('r"  First\t  second.  "', "  First\t  second.  ", "First second."),
+        (
+            '("  First "\n     "\\tsecond.\\n ")',
+            "  First \tsecond.\n ",
+            "First second.",
+        ),
+        ('"""\n  First\t second.\n"""', "\n  First\t second.\n", "First second."),
+        ('" \\t\\n "', " \t\n ", ""),
+        ('""', "", ""),
+    ],
+)
+def test_paragraph_prose_normalization_preserves_payload_and_source(
+    python_definition, expression, decoded, prose
+):
+    from pathlib import Path
+
+    from comment_review.reading.python import read_python
+    from comment_review.reading.python.projection import paragraphs_for
+
+    text = expression + "\r\nvalue = 1\r\n"
+    result = read_python(text, python_definition)
+    assert not isinstance(result, ReadFailure)
+    source = result.source
+    payload = result.payloads[0]
+    assert payload.text == decoded
+    paragraphs = paragraphs_for(Path("invented.py"), result)
+    assert not isinstance(paragraphs, ReadFailure)
+    assert len(paragraphs) == 1
+    assert paragraphs[0].text == prose
+    assert paragraphs[0].raw_lines == expression.splitlines()
+    assert paragraphs[0].address == "a0"
+    assert result.source is source
+    assert result.payloads[0] is payload
+    assert payload.text == decoded
+    assert payload.expression.statement == SourceSpan(0, len(expression))
+    assert source.slice(payload.expression.statement) == expression
+    assert source.reconstruct() == text
 
 
 def documented_read(records):
@@ -3500,7 +3544,7 @@ def test_classification_closing_doc_comment_has_one_owner(python_definition, end
             Kind.DOCSTRING,
             2,
             3,
-            "full\n    docs",
+            "full docs",
             ['    r"""full', '    docs""" # closing note'],
             "",
         ),
