@@ -167,3 +167,4 @@ back. `systems` owns whether the two are one file.
         > 2026-09-03 Roy: the 69 removal is still safe -- fix it in the lexer
         > 2026-10-13 Old full-line raw text round-trips but suppresses the code trigger.
         > 2026-10-13 Check: complete code anchors and proper place with existing writer.
+        > 2026-10-14 Check: A cannot fall inside complete C for inline doc plus return

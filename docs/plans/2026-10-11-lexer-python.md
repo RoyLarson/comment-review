@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 13 of 24 TODO tasks closed
+Progress: 13 of 25 TODO tasks closed
 Plan-tasks: 35 of 43 plan tasks closed
 Owner:    backend
 Requires-Roy: false
@@ -486,7 +486,8 @@ complete merely because this plan or its interfaces are approved.
 
 ### K - [2026-10-14-python-comment-section-placement](../../TODO/2026-10-14-python-comment-section-placement.md)
 
-- [ ] T1 | Separate comment-only sections from trailing comments
+- [~] T1 | Separate comment-only sections from trailing comments
+- [ ] T2 | Preserve contiguous header comments after an initial BOM
 
 ### L - [2026-10-14-protected-directive-spacing](../../TODO/completed/2026-10-14-protected-directive-spacing.md)
 
@@ -661,6 +662,7 @@ complete merely because this plan or its interfaces are approved.
         > 2026-10-14 Goals: T41,T47; reader adapters; results writer stays unchanged.
         > 2026-10-14 Check: uv run pytest -q tests/test_comment_wrapping.py
         > 2026-10-14 Check: uv run pytest tests/test_compositor.py tests/test_galley.py
+        > 2026-10-14 Inline doc plus code needs ruling on indivisible C and A output
 - [x] P38 | 63 lexical preservation checks and scoped review pass | HEAD | Compare
       Python code using lexical source ranges
         > 2026-10-14 Goals: lexical-code-identity T1, Python T38,T43; preservation.py.
