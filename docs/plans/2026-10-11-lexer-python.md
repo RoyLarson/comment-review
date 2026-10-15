@@ -2,8 +2,8 @@
 
 ```
 Status:   in-progress
-Progress: 9 of 22 TODO tasks closed
-Plan-tasks: 30 of 43 plan tasks closed
+Progress: 12 of 22 TODO tasks closed
+Plan-tasks: 32 of 43 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (founded by move-t from 2026-10-11-lexical-readers)
@@ -474,15 +474,15 @@ complete merely because this plan or its interfaces are approved.
 
 - [x] T1 | Recognize a leading BOM before Python documentation
 
-### I - [2026-10-14-python-compact-header-boundaries](../../TODO/2026-10-14-python-compact-header-boundaries.md)
+### I - [2026-10-14-python-compact-header-boundaries](../../TODO/completed/2026-10-14-python-compact-header-boundaries.md)
 
 - [-] T1 | Fix compact header recognition; nested documentation tests pass
-- [ ] T2 | Remove control-flow parsing from documentation-position tracking
+- [x] T2 | Remove control-flow parsing from documentation-position tracking
 
-### J - [2026-10-14-python-classification-boundaries](../../TODO/2026-10-14-python-classification-boundaries.md)
+### J - [2026-10-14-python-classification-boundaries](../../TODO/completed/2026-10-14-python-classification-boundaries.md)
 
-- [ ] T1 | Distinguish lambda keywords from Unicode name spelling
-- [ ] T2 | Attach inline type comments to their assignment source
+- [x] T1 | Distinguish lambda keywords from Unicode name spelling
+- [-] T2 | Attach inline type comments to their assignment source
 
 ## Plan Tasks
 
@@ -620,7 +620,8 @@ complete merely because this plan or its interfaces are approved.
         > 2026-10-14 Check: uv run pytest -q tests/reading/test_python.py
         > 2026-10-14 Also closes compact-header-boundaries T1 from task review.
         > 2026-10-14 Replace the old positional parser before closing scanner migration.
-- [ ] P32 | Recognize Python literal boundaries with retained state
+- [x] P32 | Literal boundary matrix passes in 1333 reader checks | 64120fb0 | Recognize
+      Python literal boundaries with retained state
         > 2026-10-14 Goals: T40,T42; reading/python/scanner.py; python.toml.
         > 2026-10-14 Check: quoted hashes, escapes, raw endings and multiline state.
         > 2026-10-14 Check: uv run pytest -q tests/reading/test_python.py
@@ -667,7 +668,8 @@ complete merely because this plan or its interfaces are approved.
         > 2026-10-14 Goals: T40,T42,T44 and reader-vocabulary T1; reader/proof routes.
         > 2026-10-14 Check: uv run pytest -q; real paths forbid AST and tokenize.
         > 2026-10-14 Check: completion commands in the approved Python specification.
-- [ ] P42 | Scan physical-line code and comment character boundaries
+- [x] P42 | Exact comment columns and retained regions pass review and tests | 64120fb0 | Scan
+      physical-line code and comment character boundaries
         > 2026-10-14 Goal: T40; source spans preserve each physical-line boundary.
         > 2026-10-14 Check: exact comment columns, multiline literals and interpolation.
         > 2026-10-14 Check: uv run pytest -q tests/reading/test_python.py
@@ -678,3 +680,4 @@ complete merely because this plan or its interfaces are approved.
         > 2026-10-14 Check: uv run pytest -q tests/reading/test_python.py
         > 2026-10-14 Check: page, wrapping, compositor and galley suites.
         > 2026-10-14 Includes Python classification-boundaries T1 and T2 from review.
+        > 2026-10-14 Classification verified; required writer checks still fail.
