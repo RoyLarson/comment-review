@@ -2,8 +2,8 @@
 
 ```
 Status:   in-progress
-Progress: 24 of 29 TODO tasks closed
-Plan-tasks: 40 of 44 plan tasks closed
+Progress: 24 of 33 TODO tasks closed
+Plan-tasks: 40 of 46 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (founded by move-t from 2026-10-11-lexical-readers)
@@ -451,6 +451,10 @@ complete merely because this plan or its interfaces are approved.
 - [x] T49 | Remove the Python-specific writer additions
 - [x] T50 | Remove unused Python identifier interpretation settings
 - [ ] T51 | Replace host parsing in raw Python documentation recovery
+- [ ] T52 | Update reading-context test fixtures for acquired registries
+- [ ] T53 | Assert exact BOM preservation through Python composition
+- [ ] T54 | Assert specific lexical refusal diagnostics in address tests
+- [ ] T55 | Normalize Python paragraph prose consistently with comment forms
 
 ### C - [2026-10-12-python-numeric-keyword-boundaries](../../TODO/completed/2026-10-12-python-numeric-keyword-boundaries.md)
 
@@ -715,3 +719,9 @@ complete merely because this plan or its interfaces are approved.
         > 2026-10-14 Goal: T51; retain existing forms, removal behavior and writer
         > 2026-10-14 Check: raw doc recovery and move tests forbid host parser calls
         > 2026-10-14 Input wiring needs scope agreement before changing middle callers
+- [ ] P45 | Update lexical reader integration test fixtures
+        > 2026-10-14 Goals: T52-T54; retain identity, settings and refusal assertions
+        > 2026-10-14 Check: affected context, reading, compositor and revise tests
+- [ ] P46 | Normalize documentation prose at the paragraph adapter
+        > 2026-10-14 Goal: T55; normalize Paragraph.text, retain raw payload and source
+        > 2026-10-14 Check: tests/test_review_write_boundaries.py prose cases

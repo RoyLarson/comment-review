@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 46 of 51 tasks closed
+Progress: 46 of 55 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-21 (Roy, 2026-08-21, on four sentry files the floor interpreter cannot
@@ -455,3 +455,13 @@ the review, and nothing today protects the review.
         > 2026-10-14 Location: reading/docstring.py:69,92,118 uses host parsing
         > 2026-10-14 Dependency: form recovery currently receives no acquired definition
         > 2026-10-14 Check: adjacent literal recovery passes with host parsing forbidden
+- [ ] T52 | Update reading-context test fixtures for acquired registries
+        > 2026-10-14 Check: context fixture suites exercise identities and settings
+        > 2026-10-14 Location: test_address_consumer_context.py:144 and related fixtures
+- [ ] T53 | Assert exact BOM preservation through Python composition
+        > 2026-10-14 Check: test_compositor.py retains BOM bytes in RoundTrip
+- [ ] T54 | Assert specific lexical refusal diagnostics in address tests
+        > 2026-10-14 Check: revise, revise_addresses, taken_in refuse failed readings
+- [ ] T55 | Normalize Python paragraph prose consistently with comment forms
+        > 2026-10-14 Location: reading/python/projection.py:134 exposes payload spacing
+        > 2026-10-14 Check: concatenated doc prose agrees after clause removal
