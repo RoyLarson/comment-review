@@ -3,7 +3,7 @@
 ```
 Status:   in-progress
 Progress: 8 of 18 TODO tasks closed
-Plan-tasks: 20 of 41 plan tasks closed
+Plan-tasks: 27 of 41 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (founded by move-t from 2026-10-11-lexical-readers)
@@ -560,23 +560,30 @@ complete merely because this plan or its interfaces are approved.
 - [-] P19 | Payload-map writer coupling rejected; retain existing move writer | 77920841 | Match
       moves against complete decoded prose; verify task 19 evidence with its
       RED/GREEN command
-- [ ] P20 | Compare Python executable structure; verify task 20 evidence with
-      its RED/GREEN command
+- [-] P20 | Lexical range comparison is specified by P38 | 56b022f0 | Compare
+      Python executable structure; verify task 20 evidence with its RED/GREEN
+      command
         > 2026-10-12 Execute after P17 so setting can consume paired comparison.
         > 2026-10-13 Hold: revise remaining work against the T40 lexical contract.
-- [ ] P21 | Match documentation ownership across reads; verify task 21 evidence
-      with its RED/GREEN command
-- [ ] P22 | Use one Python comparison at both proof gates; verify task 22
-      evidence with its RED/GREEN command
-- [ ] P23 | Supply lexical declaration facts to referrers; verify task 23
-      evidence with its RED/GREEN command
-- [ ] P24 | Retain compatible Python reads through saved work; verify task 24
-      evidence with its RED/GREEN command
-- [ ] P25 | Retire replaced Python interpretation paths; verify task 25 evidence
-      with its RED/GREEN command
+- [-] P21 | Documentation correspondence is specified by P39 | 56b022f0 | Match
+      documentation ownership across reads; verify task 21 evidence with its
+      RED/GREEN command
+- [-] P22 | Both proof routes are covered by P40 | 56b022f0 | Use one Python
+      comparison at both proof gates; verify task 22 evidence with its RED/GREEN
+      command
+- [-] P23 | Referrer migration is outside the approved scanner scope | 56b022f0 | Supply
+      lexical declaration facts to referrers; verify task 23 evidence with its
+      RED/GREEN command
+- [-] P24 | Saved reading context is covered by P40 | 56b022f0 | Retain
+      compatible Python reads through saved work; verify task 24 evidence with
+      its RED/GREEN command
+- [-] P25 | Interpretation retirement is covered by P41 | 56b022f0 | Retire
+      replaced Python interpretation paths; verify task 25 evidence with its
+      RED/GREEN command
         > 2026-10-12 Include definition/scanner/structure/TOML vocabulary repairs.
-- [ ] P26 | Verify the complete Python review workflow; verify task 26 evidence
-      with its RED/GREEN command
+- [-] P26 | End-to-end checks are covered by P37 through P41 | 56b022f0 | Verify
+      the complete Python review workflow; verify task 26 evidence with its
+      RED/GREEN command
 - [x] P27 | Parent writer restored; absence and static checks pass | 77920841 | Remove
       the Python-specific writer additions
         > 2026-10-13 Check: parent writer restored; dedicated additions absent.
