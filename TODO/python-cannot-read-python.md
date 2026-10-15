@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 49 of 55 tasks closed
+Progress: 51 of 55 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-21 (Roy, 2026-08-21, on four sentry files the floor interpreter cannot
@@ -416,7 +416,8 @@ the review, and nothing today protects the review.
         > 2026-10-13 Correction: repair reader output for the existing writer.
         > 2026-10-13 Cause: protected shebang becomes code and shifts the C cues.
         > 2026-10-13 Cause: split doc closing lines duplicate raw text in A and C.
-- [ ] T42 | Read supported newer Python syntax on the pinned Python 3.11 runtime
+- [x] T42 | Modern boundary fixtures pass on pinned Python 3.11.15 | 64120fb0 | Read
+      supported newer Python syntax on the pinned Python 3.11 runtime
         > 2026-10-11 Check: plan P10 asserts 3.11-3.15 fixture facts on host 3.11
 - [x] T43 | Both lexical proof gates refuse executable mutations; 458 checks pass | ade86459 | Reject
       executable Python mutations at both lexical proof gates
@@ -465,6 +466,8 @@ the review, and nothing today protects the review.
 - [x] T54 | Malformed comparisons refuse with specific lexical diagnostics | 369dd690 | Assert
       specific lexical refusal diagnostics in address tests
         > 2026-10-14 Check: revise, revise_addresses, taken_in refuse failed readings
-- [ ] T55 | Normalize Python paragraph prose consistently with comment forms
+- [x] T55 | Matching prose normalized with exact payload and source retained | 904fa571 | Normalize
+      Python paragraph prose consistently with comment forms
         > 2026-10-14 Location: reading/python/projection.py:134 exposes payload spacing
         > 2026-10-14 Check: concatenated doc prose agrees after clause removal
+        > 2026-10-14 Check: page prose expectations normalize; raw-line checks remain

@@ -2,8 +2,8 @@
 
 ```
 Status:   in-progress
-Progress: 27 of 33 TODO tasks closed
-Plan-tasks: 41 of 46 plan tasks closed
+Progress: 29 of 33 TODO tasks closed
+Plan-tasks: 42 of 46 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (founded by move-t from 2026-10-11-lexical-readers)
@@ -441,7 +441,7 @@ complete merely because this plan or its interfaces are approved.
 - [ ] T40 | Read Python with owned lexical recognition independent of the host
       AST and tokenizer
 - [ ] T41 | Preserve exact Python round trips over invented boundary fixtures
-- [ ] T42 | Read supported newer Python syntax on the pinned Python 3.11 runtime
+- [x] T42 | Read supported newer Python syntax on the pinned Python 3.11 runtime
 - [x] T43 | Reject executable Python mutations at both lexical proof gates
 - [x] T44 | Document the Python preservation contract beside its comparison
 - [x] T45 | Expose complete Python docstrings with their lexical owners
@@ -454,7 +454,7 @@ complete merely because this plan or its interfaces are approved.
 - [x] T52 | Update reading-context test fixtures for acquired registries
 - [x] T53 | Assert exact BOM preservation through Python composition
 - [x] T54 | Assert specific lexical refusal diagnostics in address tests
-- [ ] T55 | Normalize Python paragraph prose consistently with comment forms
+- [x] T55 | Normalize Python paragraph prose consistently with comment forms
 
 ### C - [2026-10-12-python-numeric-keyword-boundaries](../../TODO/completed/2026-10-12-python-numeric-keyword-boundaries.md)
 
@@ -723,6 +723,8 @@ complete merely because this plan or its interfaces are approved.
       lexical reader integration test fixtures
         > 2026-10-14 Goals: T52-T54; retain identity, settings and refusal assertions
         > 2026-10-14 Check: affected context, reading, compositor and revise tests
-- [ ] P46 | Normalize documentation prose at the paragraph adapter
+- [x] P46 | 1320 checks pass; paragraph-only normalization reviewed | 904fa571 | Normalize
+      documentation prose at the paragraph adapter
         > 2026-10-14 Goal: T55; normalize Paragraph.text, retain raw payload and source
         > 2026-10-14 Check: tests/test_review_write_boundaries.py prose cases
+        > 2026-10-14 Scope includes page_for tests of normalized Paragraph.text
