@@ -33,7 +33,7 @@ def sections_for(
     definition: LanguageDefinition,
     directives: tuple[ProtectedSource, ...],
 ) -> PythonRead | ReadFailure:
-    """Retain full statements, whole comment runs, and completed protection.
+    """Retain full statements, comment runs by placement, and completed protection.
 
     Forms describe source syntax; paragraph adaptation owns address kinds.
     Documentation owns enclosed and closing-line comments. Protection remains
@@ -45,6 +45,7 @@ def sections_for(
     protected = scan.protected + directives
     coordinates = SourceCoordinates(scan.text)
     comments: list[SourceSection] = []
+    previous_whole = False
     for token in scan.tokens:
         if token.kind != "comment":
             continue
@@ -56,16 +57,22 @@ def sections_for(
             continue
         start = token.span.start
         line_start = start - coordinates.position(start).column
-        if not scan.text[line_start:start].strip(" \t\f"):
+        whole = not scan.text[line_start:start].strip(" \t\f\ufeff")
+        if whole:
             start = line_start
         end = token.span.end
         if scan.text.startswith("\r\n", end):
             end += 2
         elif end < len(scan.text) and scan.text[end] in "\r\n":
             end += 1
-        if comments and not scan.text[comments[-1].span.end : start].strip(" \t\f\r\n"):
+        if (
+            comments
+            and whole == previous_whole
+            and not scan.text[comments[-1].span.end : start].strip(" \t\f\r\n")
+        ):
             start = comments.pop().span.start
         comments.append(SourceSection(SourceSpan(start, end), "#"))
+        previous_whole = whole
 
     sections = tuple(
         sorted(

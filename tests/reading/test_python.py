@@ -2695,7 +2695,11 @@ def project_sections(text, definition):
         ("# a\n\n# b\nx=1\n", ((0, 9),), ["# a\n\n# b\n"]),
         ("x=1\n# a\n\n# b\nx=2\n", ((4, 13),), ["# a\n\n# b\n"]),
         ("x=1\n# a\n\n# b\n", ((4, 13),), ["# a\n\n# b\n"]),
-        ("x=1 # a\n\n# b\nx=2\n", ((4, 13),), ["# a\n\n# b\n"]),
+        (
+            "x=1 # a\n\n# b\nx=2\n",
+            ((4, 8), (9, 13)),
+            ["# a\n", "# b\n"],
+        ),
         ("# a\r\n \t\r# b\nx=1\r", ((0, 12),), ["# a\r\n \t\r# b\n"]),
         ("x=1\n  # a\n\n", ((4, 10),), ["  # a\n"]),
         ("# a", ((0, 3),), ["# a"]),
@@ -2764,8 +2768,8 @@ def test_sections_documentation_owns_complete_concatenated_statement(python_defi
         ),
         (
             'x=f"""{value # first\n\n    # second\n}"""; after()\n',
-            "# first\n\n    # second\n",
-            "c0",
+            ("# first\n", "    # second\n"),
+            ("c0", "b1"),
             {1: 'x=f"""{value ', 4: '}"""; after()'},
         ),
         (
@@ -2805,59 +2809,85 @@ def test_expression_comments_existing_places_preserve_expression_on_set_and_edit
 ):
     from conftest import build
 
-    from comment_review.binder.page import Page, attach, code_lines
+    from comment_review.binder.page import Page, attach, code_lines, tie_leading
     from comment_review.reading.addresser import address_for, cue
     from comment_review.reading.paragraph import Paragraph
     from comment_review.results.compositor import set_page
 
     text = text.replace("\n", ending)
-    raw = raw.replace("\n", ending)
+    raws = tuple(
+        part.replace("\n", ending) for part in ((raw,) if isinstance(raw, str) else raw)
+    )
+    places = (place,) if isinstance(place, str) else place
     scan, _, _, _, result = project_sections(text, python_definition)
     assert not isinstance(result, ReadFailure)
-    start = text.index(raw)
-    end = start + len(raw)
-    assert result.source.sections == (SourceSection(SourceSpan(start, end), "#"),)
+    assert result.source.sections == tuple(
+        SourceSection(SourceSpan(text.index(raw), text.index(raw) + len(raw)), "#")
+        for raw in raws
+    )
     assert [
         text[token.span.start : token.span.end]
         for token in scan.tokens
         if token.kind == "comment"
-    ] == [line.lstrip() for line in raw.splitlines() if line.strip()]
-    section = result.source.sections[0]
-    position = result.source.position(section.span.start)
-    first_line = position.line
-    last_line = result.source.position(section.span.end - 1).line
-    prefix = text[start - position.column : start]
-    paragraph = Paragraph(
-        path="m.py",
-        start=first_line,
-        end=last_line,
-        kind="trailing-comment" if prefix.strip() else "comment",
-        lines=last_line - first_line + 1,
-        text=raw,
-        anchor=prefix,
-        raw_lines=result.source.slice(section.span).splitlines(),
-    )
-    anchors = code_lines(text, [vars(paragraph)])
+    ] == [line.lstrip() for raw in raws for line in raw.splitlines() if line.strip()]
+    paragraphs = []
+    for section, raw in zip(result.source.sections, raws, strict=True):
+        position = result.source.position(section.span.start)
+        first_line = position.line
+        last_line = result.source.position(section.span.end - 1).line
+        prefix = text[section.span.start - position.column : section.span.start]
+        paragraphs.append(
+            Paragraph(
+                path="m.py",
+                start=first_line,
+                end=last_line,
+                kind="trailing-comment" if prefix.strip() else "comment",
+                lines=last_line - first_line + 1,
+                text=raw,
+                anchor=prefix,
+                raw_lines=result.source.slice(section.span).splitlines(),
+            )
+        )
+    anchors = code_lines(text, [vars(paragraph) for paragraph in paragraphs])
     assert anchors == code
     cues = cue(anchors, {}, None)
-    assert attach(vars(paragraph), cues) == place
-    assert cues.anchor_line(place) == (
-        first_line if place.startswith("c") else last_line + 1
+    for paragraph, place in zip(paragraphs, places, strict=True):
+        assert attach(vars(paragraph), cues) == place
+        assert paragraph.original_start is not None
+        assert paragraph.original_end is not None
+        assert cues.anchor_line(place) == (
+            paragraph.original_start
+            if place.startswith("c")
+            else paragraph.original_end + 1
+        )
+        paragraph.address = address_for("m.py", place)
+    leading = [p for p in build(text) if p.kind == "leading"]
+    laid_out = sorted([*paragraphs, *leading], key=lambda p: p.start)
+    page = Page(
+        "m.py",
+        text,
+        "held",
+        laid_out,
+        cues,
+        build("").reading,
+        leading=tie_leading(laid_out, cues),
     )
-    paragraph.address = address_for("m.py", place)
-    page = Page("m.py", text, "held", [paragraph], cues, build("").reading)
     assert set_page(page) == text
     original_anchors = dict(cues.places)
-    replacement = raw.replace("# note", "# edited").replace("# first", "# edited")
-    replacement += "    # added" + ending
-    paragraph.raw_lines = replacement.splitlines()
-    assert set_page(page) == text[:start] + replacement + text[end:]
-    paragraph.raw_lines = []
-    assert (
-        set_page(page)
-        == text[:start] + (ending if place.startswith("c") else "") + text[end:]
-    )
-    assert cues.places == original_anchors
+    for paragraph, place, raw in zip(paragraphs, places, raws, strict=True):
+        start = text.index(raw)
+        end = start + len(raw)
+        replacement = raw.replace("# note", "# edited").replace("# first", "# edited")
+        replacement += "    # added" + ending
+        paragraph.raw_lines = replacement.splitlines()
+        assert set_page(page) == text[:start] + replacement + text[end:]
+        paragraph.raw_lines = []
+        assert (
+            set_page(page)
+            == text[:start] + (ending if place.startswith("c") else "") + text[end:]
+        )
+        assert cues.places == original_anchors
+        paragraph.raw_lines = raw.splitlines()
 
 
 @pytest.mark.parametrize(

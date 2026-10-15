@@ -58,6 +58,26 @@ def test_python_page_bom_and_effective_cookie_preserve_exact_bytes():
     assert [item.kind for item in page.python_read.protected] == ["encoding"]
 
 
+@pytest.mark.parametrize("bom", ["", "\ufeff"])
+@pytest.mark.parametrize("ending", ["\n", "\r\n"])
+def test_python_page_contiguous_header_keeps_one_matter_place(bom, ending):
+    from comment_review.reading.series import Kind
+    from comment_review.results.compositor import set_page
+
+    text = ending.join([bom + "# first", "# second", "x=1", ""])
+    page = build(text)
+    composed = set_page(page)
+    assert composed.encode("utf-8") == text.encode("utf-8")
+    for current in (page, build(composed)):
+        filled = {cue(p): p for p in current if p.raw_text.strip()}
+        assert set(filled) == {"f0"}
+        assert filled["f0"].kind == Kind.MATTER
+        assert filled["f0"].raw_lines == [bom + "# first", "# second"]
+        assert current.python_read is not None
+        assert len(current.python_read.source.sections) == 1
+        assert current.python_read.source.reconstruct() == text
+
+
 def test_python_page_whole_comments_and_matter_boundaries():
     text = "# front\n\n# before\nx=1\n# a\n\n# b\ny=2\n# after\n\n# back\n"
     page = page_for_mod.page_of(Path("m.py"), source=Source(text, "held"))
@@ -116,7 +136,7 @@ def test_python_page_documentation_closing_comment_keeps_one_wire_owner(
     "text, expected",
     [
         ("x=1\n# first\n\n# second\ny=2\n", {"b1": 3}),
-        ("x=1 # first\n\n# second\ny=2\n", {"c0": 3}),
+        ("x=1 # first\n\n# second\ny=2\n", {"c0": 1, "b1": 1}),
         (
             "# front\n\n# first\n\n# second\nx=1\n# after\n\n# back\n",
             {"f0": 1, "b0": 3, "b1": 1, "f1": 1},
@@ -222,7 +242,7 @@ def test_python_page_documentation_raw_text_uses_existing_line_convention():
 @pytest.mark.parametrize(
     "text, expected",
     [
-        ('x=f"{value # first\n\n # second\n}"\n', ["c0"]),
+        ('x=f"{value # first\n\n # second\n}"\n', ["c0", "b1"]),
         ('x=f"""{\n # first\n\n # second\n value\n}"""\n', ["b1"]),
     ],
 )
@@ -230,10 +250,12 @@ def test_python_page_interpolation_comments_keep_whole_sections(text, expected):
     page = page_for_mod.page_of(Path("m.py"), source=Source(text, "held"))
     assert isinstance(page, Page)
     assert page.python_read is not None
-    assert len(page.python_read.source.sections) == 1
+    assert len(page.python_read.source.sections) == len(expected)
     assert [p.address.rsplit("@", 1)[-1] for p in page.prose] == expected
-    assert len(page.prose) == 1
-    assert "# first\n\n # second" in page.prose[0].raw_text
+    assert len(page.prose) == len(expected)
+    assert [p.raw_text for p in page.prose] == (
+        [" # first", " # second"] if len(expected) == 2 else [" # first\n\n # second"]
+    )
 
 
 def test_python_page_protected_directives_keep_comment_classification():
