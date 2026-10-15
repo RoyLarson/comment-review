@@ -2,8 +2,8 @@
 
 ```
 Status:   in-progress
-Progress: 16 of 27 TODO tasks closed
-Plan-tasks: 38 of 43 plan tasks closed
+Progress: 18 of 27 TODO tasks closed
+Plan-tasks: 39 of 43 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (founded by move-t from 2026-10-11-lexical-readers)
@@ -431,8 +431,8 @@ complete merely because this plan or its interfaces are approved.
 
 - [ ] T1 | Replace Python AST identity checks with lexical comparison; verify
       docstring add and removal agree at both gates
-- [ ] T3 | Retain protected directive context when selecting documentation
-- [ ] T4 | Match retained code after multiline documentation removal
+- [x] T3 | Retain protected directive context when selecting documentation
+- [x] T4 | Match retained code after multiline documentation removal
 
 ### B - [python-cannot-read-python](../../TODO/python-cannot-read-python.md)
 
@@ -675,13 +675,14 @@ complete merely because this plan or its interfaces are approved.
         > 2026-10-14 Check: uv run pytest -q tests/test_lexical_preservation.py
         > 2026-10-14 Create tests/test_lexical_preservation.py for these checks.
         > 2026-10-14 Includes protected-directive-spacing T1 review repair
-- [~] P39 | Match Python documentation across additions and removals
+- [x] P39 | 103 preservation checks and independent scoped review pass | 09df3de4 | Match
+      Python documentation across additions and removals
         > 2026-10-14 Goals: T43,T45; reading/python/preservation.py.
         > 2026-10-14 Check: removing docs cannot expose ordinary literals for edits.
         > 2026-10-14 Check: uv run pytest -q tests/test_lexical_preservation.py
         > 2026-10-14 Includes lexical-code-identity T3 protected-context review repair
         > 2026-10-14 Includes lexical-code-identity T4 multiline suffix correspondence
-- [ ] P40 | Integrate lexical comparison with proof and saved reviews
+- [~] P40 | Integrate lexical comparison with proof and saved reviews
         > 2026-10-14 Goals: T38,T43; proof/prove_unchanged and saved-context consumers.
         > 2026-10-14 Check: both gates agree; incompatible saved context refuses.
         > 2026-10-14 Check: uv run pytest -q tests/test_page_reading_context.py
