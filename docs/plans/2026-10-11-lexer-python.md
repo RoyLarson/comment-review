@@ -3,7 +3,7 @@
 ```
 Status:   in-progress
 Progress: 8 of 18 TODO tasks closed
-Plan-tasks: 27 of 41 plan tasks closed
+Plan-tasks: 28 of 41 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (founded by move-t from 2026-10-11-lexical-readers)
@@ -593,7 +593,8 @@ complete merely because this plan or its interfaces are approved.
 - [ ] P29 | Test trailing docstring comments as one documentation section
         > 2026-10-13 Goal: python-cannot-read-python T41 and T47; existing writer.
         > 2026-10-13 Check: one doc section owns the suffix; no duplicate closing line.
-- [ ] P30 | Simplify Python scanner records to source classification
+- [x] P30 | Reduced read verified; 1301 tests pass and review is clean | f7fa19c2 | Simplify
+      Python scanner records to source classification
         > 2026-10-14 Goals: T40; reading/python/records.py and its consumers.
         > 2026-10-14 Check: uv run pytest -q tests/reading/test_python.py
         > 2026-10-14 Check: complete regions; no names or statement trees required.
@@ -601,6 +602,7 @@ complete merely because this plan or its interfaces are approved.
         > 2026-10-14 Superseded: old Objective architecture, records and task briefs.
         > 2026-10-14 Current contract: approved Python/shared specs and P28-P41.
         > 2026-10-14 The tooling-gap hold above is withdrawn; supersession suffices.
+        > 2026-10-14 Held-page baseline and current both have 15 reader-setup errors.
 - [ ] P31 | Scan Python code and comment boundaries in source order
         > 2026-10-14 Goal: T40; reading/python/scanner.py and definition.py.
         > 2026-10-14 Check: empty input, EOF comments and unclosed boundaries.
@@ -625,6 +627,8 @@ complete merely because this plan or its interfaces are approved.
         > 2026-10-14 Goals: T40,T41; reading/python/projection.py and binder/page.py.
         > 2026-10-14 Check: A/B/C/D/F, whole sections, shebang F and all code pieces.
         > 2026-10-14 Check: uv run pytest -q tests/test_page.py
+        > 2026-10-14 Correction: the page suite is tests/test_page_for.py.
+        > 2026-10-14 Check: uv run pytest -q tests/test_page_for.py
 - [ ] P37 | Restore Python reader compatibility with the existing writer
         > 2026-10-14 Goals: T41,T47; reader adapters; results writer stays unchanged.
         > 2026-10-14 Check: uv run pytest -q tests/test_comment_wrapping.py
