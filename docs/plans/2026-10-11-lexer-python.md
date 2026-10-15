@@ -2,8 +2,8 @@
 
 ```
 Status:   in-progress
-Progress: 19 of 28 TODO tasks closed
-Plan-tasks: 40 of 43 plan tasks closed
+Progress: 19 of 29 TODO tasks closed
+Plan-tasks: 40 of 44 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (founded by move-t from 2026-10-11-lexical-readers)
@@ -450,6 +450,7 @@ complete merely because this plan or its interfaces are approved.
 - [x] T48 | Count internal blanks in Python comment section length
 - [x] T49 | Remove the Python-specific writer additions
 - [ ] T50 | Remove unused Python identifier interpretation settings
+- [ ] T51 | Replace host parsing in raw Python documentation recovery
 
 ### C - [2026-10-12-python-numeric-keyword-boundaries](../../TODO/completed/2026-10-12-python-numeric-keyword-boundaries.md)
 
@@ -709,3 +710,8 @@ complete merely because this plan or its interfaces are approved.
         > 2026-10-14 Check: page, wrapping, compositor and galley suites.
         > 2026-10-14 Includes Python classification-boundaries T1 and T2 from review.
         > 2026-10-14 Classification verified; required writer checks still fail.
+- [ ] P44 | Read raw Python documentation through the acquired language
+      definition
+        > 2026-10-14 Goal: T51; retain existing forms, removal behavior and writer
+        > 2026-10-14 Check: raw doc recovery and move tests forbid host parser calls
+        > 2026-10-14 Input wiring needs scope agreement before changing middle callers
