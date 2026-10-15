@@ -598,6 +598,9 @@ complete merely because this plan or its interfaces are approved.
         > 2026-10-14 Check: uv run pytest -q tests/reading/test_python.py
         > 2026-10-14 Check: complete regions; no names or statement trees required.
         > 2026-10-14 Hold: TODO/2026-10-14-plan-objective-update.md blocks old briefs.
+        > 2026-10-14 Superseded: old Objective architecture, records and task briefs.
+        > 2026-10-14 Current contract: approved Python/shared specs and P28-P41.
+        > 2026-10-14 The tooling-gap hold above is withdrawn; supersession suffices.
 - [ ] P31 | Scan Python code and comment boundaries in source order
         > 2026-10-14 Goal: T40; reading/python/scanner.py and definition.py.
         > 2026-10-14 Check: empty input, EOF comments and unclosed boundaries.

@@ -17,3 +17,5 @@ Update obsolete plan objectives through the board.
 - [ ] T1 | Provide a supported command to replace a plan objective
         > 2026-10-14 Reason: job-board 0.11.4 has no plan objective update command.
         > 2026-10-14 Check: replace objective; preserve task IDs, notes and ownership.
+        > 2026-10-14 Filed in error: retain old instructions as superseded history.
+        > 2026-10-14 Replacement instructions are stated on the existing plan.
