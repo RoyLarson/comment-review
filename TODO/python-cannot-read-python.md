@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 42 of 50 tasks closed
+Progress: 43 of 50 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-21 (Roy, 2026-08-21, on four sentry files the floor interpreter cannot
@@ -417,7 +417,8 @@ the review, and nothing today protects the review.
         > 2026-10-13 Cause: split doc closing lines duplicate raw text in A and C.
 - [ ] T42 | Read supported newer Python syntax on the pinned Python 3.11 runtime
         > 2026-10-11 Check: plan P10 asserts 3.11-3.15 fixture facts on host 3.11
-- [ ] T43 | Reject executable Python mutations at both lexical proof gates
+- [x] T43 | Both lexical proof gates refuse executable mutations; 458 checks pass | ade86459 | Reject
+      executable Python mutations at both lexical proof gates
         > 2026-10-11 Check: plan P22 exercises mutations through both proof commands
 - [ ] T44 | Document the Python preservation contract beside its comparison
         > 2026-10-11 Check: plan P25 prose states tokens, ownership and limits

@@ -2,8 +2,8 @@
 
 ```
 Status:   in-progress
-Progress: 18 of 28 TODO tasks closed
-Plan-tasks: 39 of 43 plan tasks closed
+Progress: 19 of 28 TODO tasks closed
+Plan-tasks: 40 of 43 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (founded by move-t from 2026-10-11-lexical-readers)
@@ -442,7 +442,7 @@ complete merely because this plan or its interfaces are approved.
       AST and tokenizer
 - [ ] T41 | Preserve exact Python round trips over invented boundary fixtures
 - [ ] T42 | Read supported newer Python syntax on the pinned Python 3.11 runtime
-- [ ] T43 | Reject executable Python mutations at both lexical proof gates
+- [x] T43 | Reject executable Python mutations at both lexical proof gates
 - [ ] T44 | Document the Python preservation contract beside its comparison
 - [x] T45 | Expose complete Python docstrings with their lexical owners
 - [x] T46 | Reject NUL characters throughout Python source
@@ -683,14 +683,15 @@ complete merely because this plan or its interfaces are approved.
         > 2026-10-14 Check: uv run pytest -q tests/test_lexical_preservation.py
         > 2026-10-14 Includes lexical-code-identity T3 protected-context review repair
         > 2026-10-14 Includes lexical-code-identity T4 multiline suffix correspondence
-- [~] P40 | Integrate lexical comparison with proof and saved reviews
+- [x] P40 | Acquired lexical proof and saved-context integration pass review | ade86459 | Integrate
+      lexical comparison with proof and saved reviews
         > 2026-10-14 Goals: T38,T43; proof/prove_unchanged and saved-context consumers.
         > 2026-10-14 Check: both gates agree; incompatible saved context refuses.
         > 2026-10-14 Check: uv run pytest -q tests/test_page_reading_context.py
         > 2026-10-14 Check: uv run pytest -q tests/test_proof_command.py
         > 2026-10-14 Includes T44 correction of stale _prove preservation explanation
         > 2026-10-14 Standalone doc add/drop uses correspondence without approval input
-- [ ] P41 | Retire replaced Python interpretation paths
+- [~] P41 | Retire replaced Python interpretation paths
         > 2026-10-14 Goals: T40,T42,T44 and reader-vocabulary T1; reader/proof routes.
         > 2026-10-14 Check: uv run pytest -q; real paths forbid AST and tokenize.
         > 2026-10-14 Check: completion commands in the approved Python specification.
