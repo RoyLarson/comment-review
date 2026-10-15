@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 12 of 22 TODO tasks closed
+Progress: 12 of 23 TODO tasks closed
 Plan-tasks: 34 of 43 plan tasks closed
 Owner:    backend
 Requires-Roy: false
@@ -484,6 +484,10 @@ complete merely because this plan or its interfaces are approved.
 - [x] T1 | Distinguish lambda keywords from Unicode name spelling
 - [-] T2 | Attach inline type comments to their assignment source
 
+### K - [2026-10-14-python-comment-section-placement](../../TODO/2026-10-14-python-comment-section-placement.md)
+
+- [ ] T1 | Separate comment-only sections from trailing comments
+
 ## Plan Tasks
 
 - [x] P1 | Python definition validates; 216 tests and focused static checks pass; review approved | f23a9e18 | Install
@@ -648,11 +652,12 @@ complete merely because this plan or its interfaces are approved.
         > 2026-10-14 Check: uv run pytest -q tests/test_page.py
         > 2026-10-14 Correction: the page suite is tests/test_page_for.py.
         > 2026-10-14 Check: uv run pytest -q tests/test_page_for.py
+        > 2026-10-14 Includes Python comment-section-placement T1; classify then group.
 - [ ] P37 | Restore Python reader compatibility with the existing writer
         > 2026-10-14 Goals: T41,T47; reader adapters; results writer stays unchanged.
         > 2026-10-14 Check: uv run pytest -q tests/test_comment_wrapping.py
         > 2026-10-14 Check: uv run pytest tests/test_compositor.py tests/test_galley.py
-- [ ] P38 | Compare Python code using lexical source ranges
+- [~] P38 | Compare Python code using lexical source ranges
         > 2026-10-14 Goals: lexical-code-identity T1, Python T38,T43; preservation.py.
         > 2026-10-14 Check: reject code/order/indentation/literal/separator mutations.
         > 2026-10-14 Check: uv run pytest -q tests/test_lexical_preservation.py
