@@ -2,8 +2,8 @@
 
 ```
 Status:   in-progress
-Progress: 8 of 20 TODO tasks closed
-Plan-tasks: 28 of 43 plan tasks closed
+Progress: 9 of 20 TODO tasks closed
+Plan-tasks: 30 of 43 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (founded by move-t from 2026-10-11-lexical-readers)
@@ -476,7 +476,7 @@ complete merely because this plan or its interfaces are approved.
 
 ### I - [2026-10-14-python-compact-header-boundaries](../../TODO/2026-10-14-python-compact-header-boundaries.md)
 
-- [ ] T1 | Fix compact header recognition; nested documentation tests pass
+- [-] T1 | Fix compact header recognition; nested documentation tests pass
 - [ ] T2 | Remove control-flow parsing from documentation-position tracking
 
 ## Plan Tasks
@@ -608,7 +608,8 @@ complete merely because this plan or its interfaces are approved.
         > 2026-10-14 Current contract: approved Python/shared specs and P28-P41.
         > 2026-10-14 The tooling-gap hold above is withdrawn; supersession suffices.
         > 2026-10-14 Held-page baseline and current both have 15 reader-setup errors.
-- [~] P31 | Scan Python code and comment boundaries in source order
+- [-] P31 | P42 defines physical-line boundary scanning separately | 9690bc3e | Scan
+      Python code and comment boundaries in source order
         > 2026-10-14 Goal: T40; reading/python/scanner.py and definition.py.
         > 2026-10-14 Check: empty input, EOF comments and unclosed boundaries.
         > 2026-10-14 Check: uv run pytest -q tests/reading/test_python.py
@@ -622,7 +623,8 @@ complete merely because this plan or its interfaces are approved.
         > 2026-10-14 Goals: T40,T42; reading/python/interpolation.py; include P28.
         > 2026-10-14 Check: three hashes, nested fields and protected expression text.
         > 2026-10-14 Check: uv run pytest -q tests/reading/test_python.py
-- [~] P34 | Locate Python documentation positions from source boundaries
+- [-] P34 | P43 classifies preserved spans after scanning | 9690bc3e | Locate
+      Python documentation positions from source boundaries
         > 2026-10-14 Goals: T40,T45; reading/python/structure.py and documentation.py.
         > 2026-10-14 Check: module/class/async/def; empty places and opaque headers.
         > 2026-10-14 Check: uv run pytest -q tests/reading/test_python.py
