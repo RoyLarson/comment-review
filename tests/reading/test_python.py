@@ -32,6 +32,46 @@ def test_records_module_exists():
         pytest.fail("Python source record module is not implemented", pytrace=False)
 
 
+def test_completed_read_projects_documentation_from_source_positions(python_definition):
+    from pathlib import Path
+
+    from comment_review.reading.python import read_python
+    from comment_review.reading.python.projection import (
+        code_for,
+        declarations_for,
+        paragraphs_for,
+    )
+    from comment_review.reading.python.records import PythonRead
+
+    text = (
+        '# heading\r\n"module\\nprose"\r\n'
+        "@mark\r\ndef render(\r\n    value,\r\n):\r\n"
+        '    "body " "prose"; return value # detail\r\n'
+        "class Container:\r\n    pass\r\n"
+    )
+    result = read_python(text, python_definition)
+    assert isinstance(result, PythonRead)
+    reduced = PythonRead(
+        result.source, result.payloads, result.protected, result.insertions
+    )
+    assert not any(
+        hasattr(reduced, field)
+        for field in ("tokens", "suites", "statements", "declarations")
+    )
+    assert not hasattr(reduced.payloads[0], "mapping")
+    paragraphs = paragraphs_for(Path("invented.py"), reduced)
+    assert isinstance(paragraphs, list)
+    assert [(p.text, p.raw_lines, p.address, p.anchor) for p in paragraphs] == [
+        ("heading", ["# heading"], "", ""),
+        ("module\nprose", ['"module\\nprose"'], "a0", ""),
+        ("body prose", ['    "body " "prose";'], "a1", ""),
+        ("detail", [" # detail"], "", '    "body " "prose"; return value'),
+    ]
+    assert declarations_for(reduced) == [(0, 2, False), (4, 7, False), (8, 9, False)]
+    assert code_for(reduced)[7] == "     return value"
+    assert reduced.source.reconstruct() == text
+
+
 def documented_read(records):
     text = 'def f():\n    "a\\n" "b"\n'
     header = SourceSpan(0, 8)
@@ -47,37 +87,13 @@ def documented_read(records):
         (DocumentationOwner(0, 0),),
     )
     expression = records.DocumentationExpression(statement, components, 0)
-    payload = records.DocumentationPayload(
-        expression,
-        "a\nb",
-        (
-            records.PayloadPiece(SourceSpan(0, 1), (SourceSpan(14, 15),)),
-            records.PayloadPiece(SourceSpan(1, 2), (SourceSpan(15, 17),)),
-            records.PayloadPiece(SourceSpan(2, 3), (SourceSpan(20, 21),)),
-        ),
-    )
-    tokens = (
-        records.PythonToken("name", SourceSpan(0, 3)),
-        records.PythonToken("name", SourceSpan(4, 5)),
-        records.PythonToken("punctuation", SourceSpan(5, 8)),
-        *(records.PythonToken("literal", span) for span in components),
-    )
-    suites = (
-        records.PythonSuite(SourceSpan(0, len(text)), None, None, (0,), "module"),
-        records.PythonSuite(SourceSpan(13, len(text)), 0, header, (1,), "function"),
-    )
-    statements = (
-        records.PythonStatement(header, (0, 1, 2), 0),
-        records.PythonStatement(statement, (3, 4), 1),
-    )
-    facts = (records.DeclarationFacts(0, "f", None, 1, 13),)
-    return records.PythonRead(source, tokens, suites, statements, facts, (payload,), ())
+    payload = records.DocumentationPayload(expression, "a\nb")
+    return records.PythonRead(source, (payload,), (), (0, 13))
 
 
 def test_records_empty_read_preserves_exact_source(records):
     source = SourceStructure("", (), (), (), ())
-    suite = records.PythonSuite(SourceSpan(0, 0), None, None, (), "module")
-    result = records.PythonRead(source, (), (suite,), (), (), (), ())
+    result = records.PythonRead(source, (), (), (0,))
     assert result.source is source
     assert result.source.reconstruct() == ""
     assert records.PythonScan("", (), (), ()).text == ""
@@ -87,7 +103,7 @@ def test_records_documented_read_reconstructs_and_is_frozen(records):
     result = documented_read(records)
     assert result.source.reconstruct() == 'def f():\n    "a\\n" "b"\n'
     assert result.payloads[0].text == "a\nb"
-    assert result.payloads[0].mapping[1].raw == (SourceSpan(15, 17),)
+    assert result.source.slice(result.payloads[0].expression.statement) == '"a\\n" "b"'
     with pytest.raises(FrozenInstanceError):
         result.payloads[0].text = "changed"
 
@@ -110,18 +126,15 @@ def test_records_nested_protection_and_fragment_offsets(records):
     assert scan.protected == protection
 
 
-def test_records_payload_keeps_zero_output_and_multiple_raw_spans(records):
+def test_records_payload_keeps_complete_prose_and_raw_expression(records):
     expression = records.DocumentationExpression(
         SourceSpan(0, 13), (SourceSpan(0, 7), SourceSpan(8, 13)), None
     )
-    pieces = (
-        records.PayloadPiece(SourceSpan(0, 1), (SourceSpan(1, 2),)),
-        records.PayloadPiece(SourceSpan(1, 1), (SourceSpan(2, 4),)),
-        records.PayloadPiece(SourceSpan(1, 3), (SourceSpan(4, 6), SourceSpan(9, 10))),
-    )
-    assert records.DocumentationPayload(expression, "abc", pieces).mapping == pieces
+    payload = records.DocumentationPayload(expression, "abc")
+    assert payload.expression is expression
+    assert payload.text == "abc"
     empty = records.DocumentationExpression(SourceSpan(0, 2), (SourceSpan(0, 2),), None)
-    assert records.DocumentationPayload(empty, "", ()).text == ""
+    assert records.DocumentationPayload(empty, "").text == ""
 
 
 @pytest.mark.parametrize(
@@ -154,7 +167,11 @@ def test_records_payload_keeps_zero_output_and_multiple_raw_spans(records):
         lambda r: r.DocumentationExpression(
             SourceSpan(0, 4), (SourceSpan(0, 3), SourceSpan(2, 4)), None
         ),
-        lambda r: r.PayloadPiece(SourceSpan(0, 1), [SourceSpan(0, 1)]),
+        lambda r: r.DocumentationPayload(None, "prose"),
+        lambda r: r.DocumentationPayload(
+            r.DocumentationExpression(SourceSpan(0, 2), (SourceSpan(0, 2),), None),
+            None,
+        ),
         lambda r: r.PreservationResult(
             True, (ReadDiagnostic(ReadStage.PLACE, "changed", "changed"),)
         ),
@@ -190,17 +207,24 @@ def test_records_reject_overlapping_tokens_and_partition_gaps(records):
         )
 
 
-def test_records_reject_bad_structure_relationships(records):
+def test_records_reject_bad_completed_insertion_positions_and_protection(records):
     result = documented_read(records)
     for changed in (
-        {"statements": (result.statements[0], replace(result.statements[1], suite=9))},
-        {"suites": (result.suites[0], replace(result.suites[1], parent=1))},
-        {"suites": (result.suites[0], replace(result.suites[1], statements=()))},
-        {"declarations": (replace(result.declarations[0], declaration=1),)},
-        {"declarations": (replace(result.declarations[0], parent=0),)},
-        {"declarations": (replace(result.declarations[0], insertion=99),)},
-        {"declarations": result.declarations * 2},
-        {"tokens": (records.PythonToken("name", SourceSpan(0, 99)),)},
+        {"insertions": ()},
+        {"insertions": (0,)},
+        {"insertions": (0, 13, 13)},
+        {"insertions": (0, 99)},
+        {"insertions": (0, -1)},
+        {"insertions": (0, True)},
+        {"insertions": [0, 13]},
+        {"protected": (records.ProtectedSource(SourceSpan(0, 99), "literal", None),)},
+        {
+            "protected": (
+                records.ProtectedSource(
+                    SourceSpan(0, 1), "directive", SourceSpan(0, 99)
+                ),
+            )
+        },
     ):
         with pytest.raises(ValueError):
             replace(result, **changed)
@@ -224,16 +248,24 @@ def test_records_allow_declaration_body_below_control_suite_and_empty_suite(reco
     )
 
 
-def test_records_reject_payload_gaps_bounds_and_wrong_owner(records):
+def test_records_reject_payload_wrong_statement_and_owner(records):
     result = documented_read(records)
     payload = result.payloads[0]
     for changes in (
-        {"mapping": payload.mapping[1:]},
-        {"mapping": (records.PayloadPiece(SourceSpan(0, 4), (SourceSpan(14, 15),)),)},
-        {"mapping": (records.PayloadPiece(SourceSpan(0, 3), (SourceSpan(0, 3),)),)},
+        {"payloads": ()},
+        {
+            "payloads": (
+                replace(
+                    payload,
+                    expression=replace(
+                        payload.expression, statement=SourceSpan(12, 22)
+                    ),
+                ),
+            )
+        },
     ):
         with pytest.raises(ValueError):
-            replace(payload, **changes)
+            replace(result, **changes)
     with pytest.raises(ValueError):
         replace(
             result,
@@ -2626,122 +2658,84 @@ def read_payload(text, definition):
     return scan, expressions[0], decoder(scan, expressions[0], definition)
 
 
-def assert_payload_pieces(payload, expected):
-    boundary = 0
-    pieces = []
-    for decoded, start, end in expected:
-        pieces.append(
-            (SourceSpan(boundary, boundary + len(decoded)), (SourceSpan(start, end),))
-        )
-        boundary += len(decoded)
-    assert [(piece.decoded, piece.raw) for piece in payload.mapping] == pieces
-    assert boundary == len(payload.text)
-
-
 @pytest.mark.parametrize(
-    ("literal", "expected", "pieces"),
+    ("literal", "expected"),
     [
-        ('"hello"', "hello", [("hello", 1, 6)]),
-        ("u'caf\u00e9'", "caf\u00e9", [("caf\u00e9", 2, 6)]),
-        ('U"\u03bb\U0001f40d"', "\u03bb\U0001f40d", [("\u03bb\U0001f40d", 2, 4)]),
-        ('""', "", []),
-        ("r'''\\n\\x41'''", "\\n\\x41", [("\\n\\x41", 4, 10)]),
+        ('"hello"', "hello"),
+        ("u'caf\u00e9'", "caf\u00e9"),
+        ('U"\u03bb\U0001f40d"', "\u03bb\U0001f40d"),
+        ('""', ""),
+        ("r'''\\n\\x41'''", "\\n\\x41"),
         (
             'R"\\u03bb\\N{NOT A NAME}"',
             "\\u03bb\\N{NOT A NAME}",
-            [("\\u03bb\\N{NOT A NAME}", 2, 22)],
         ),
-        (r'''"\"\'\\"''', "\"'\\", [('"', 1, 3), ("'", 3, 5), ("\\", 5, 7)]),
+        (r'''"\"\'\\"''', "\"'\\"),
         (
             r'"\a\b\f\n\r\t\v"',
             "\a\b\f\n\r\t\v",
-            [
-                ("\a", 1, 3),
-                ("\b", 3, 5),
-                ("\f", 5, 7),
-                ("\n", 7, 9),
-                ("\r", 9, 11),
-                ("\t", 11, 13),
-                ("\v", 13, 15),
-            ],
         ),
         (
             r'"\0\07\101\7777"',
             "\0\aA\u01ff7",
-            [
-                ("\0", 1, 3),
-                ("\a", 3, 6),
-                ("A", 6, 10),
-                ("\u01ff", 10, 14),
-                ("7", 14, 15),
-            ],
         ),
-        (r'"\08"', "\08", [("\0", 1, 3), ("8", 3, 4)]),
-        (r'"\x41\xFf"', "A\u00ff", [("A", 1, 5), ("\u00ff", 5, 9)]),
+        (r'"\08"', "\08"),
+        (r'"\x41\xFf"', "A\u00ff"),
         (
             r'"\u03bb\U0001F40D"',
             "\u03bb\U0001f40d",
-            [("\u03bb", 1, 7), ("\U0001f40d", 7, 17)],
         ),
         (
             r'"\uD800\U0010FFFF"',
             "\ud800\U0010ffff",
-            [("\ud800", 1, 7), ("\U0010ffff", 7, 17)],
         ),
-        (r'"\N{LATIN CAPITAL LETTER A}\N{LF}"', "A\n", [("A", 1, 27), ("\n", 27, 33)]),
+        (r'"\N{LATIN CAPITAL LETTER A}\N{LF}"', "A\n"),
         (
             r'"before\qafter\8\z"',
             "before\\qafter\\8\\z",
-            [
-                ("before", 1, 7),
-                ("\\q", 7, 9),
-                ("after", 9, 14),
-                ("\\8", 14, 16),
-                ("\\z", 16, 18),
-            ],
         ),
         (
             'r"quote\\" slash\\\\"',
             'quote\\" slash\\\\',
-            [('quote\\" slash\\\\', 2, 17)],
         ),
     ],
 )
-def test_payloads_literal_decoding_and_contributing_raw_spans(
-    python_definition, literal, expected, pieces
+def test_payloads_literal_decoding_and_complete_raw_expression(
+    python_definition, literal, expected
 ):
     scan, expression, payload = read_payload(literal + "\n", python_definition)
     assert not isinstance(payload, ReadFailure)
     assert payload.expression is expression
     assert payload.text == expected
-    assert_payload_pieces(payload, pieces)
+    assert expression.components == (SourceSpan(0, len(literal)),)
+    assert scan.text[expression.statement.start : expression.statement.end] == literal
     assert scan.text == literal + "\n"
 
 
 @pytest.mark.parametrize(
-    ("literal", "expected", "pieces"),
+    ("literal", "expected"),
     [
-        ('"""a\nb"""', "a\nb", [("a", 3, 4), ("\n", 4, 5), ("b", 5, 6)]),
-        ('"""a\r\nb"""', "a\nb", [("a", 3, 4), ("\n", 4, 6), ("b", 6, 7)]),
-        ('"""a\rb"""', "a\nb", [("a", 3, 4), ("\n", 4, 5), ("b", 5, 6)]),
-        ('r"""a\r\nb"""', "a\nb", [("a", 4, 5), ("\n", 5, 7), ("b", 7, 8)]),
-        ('r"""a\rb"""', "a\nb", [("a", 4, 5), ("\n", 5, 6), ("b", 6, 7)]),
-        ('"a\\\nb"', "ab", [("a", 1, 2), ("", 2, 4), ("b", 4, 5)]),
-        ('"a\\\r\nb"', "ab", [("a", 1, 2), ("", 2, 5), ("b", 5, 6)]),
-        ('"a\\\rb"', "ab", [("a", 1, 2), ("", 2, 4), ("b", 4, 5)]),
-        ('"\\\n"', "", [("", 1, 3)]),
-        ('r"a\\\nb"', "a\\\nb", [("a\\", 2, 4), ("\n", 4, 5), ("b", 5, 6)]),
-        ('r"a\\\r\nb"', "a\\\nb", [("a\\", 2, 4), ("\n", 4, 6), ("b", 6, 7)]),
-        ('r"a\\\rb"', "a\\\nb", [("a\\", 2, 4), ("\n", 4, 5), ("b", 5, 6)]),
+        ('"""a\nb"""', "a\nb"),
+        ('"""a\r\nb"""', "a\nb"),
+        ('"""a\rb"""', "a\nb"),
+        ('r"""a\r\nb"""', "a\nb"),
+        ('r"""a\rb"""', "a\nb"),
+        ('"a\\\nb"', "ab"),
+        ('"a\\\r\nb"', "ab"),
+        ('"a\\\rb"', "ab"),
+        ('"\\\n"', ""),
+        ('r"a\\\nb"', "a\\\nb"),
+        ('r"a\\\r\nb"', "a\\\nb"),
+        ('r"a\\\rb"', "a\\\nb"),
     ],
 )
 def test_payloads_physical_newlines_preserve_source_and_zero_output(
-    python_definition, literal, expected, pieces
+    python_definition, literal, expected
 ):
-    scan, _, payload = read_payload(literal + "\n", python_definition)
+    scan, expression, payload = read_payload(literal + "\n", python_definition)
     assert not isinstance(payload, ReadFailure)
     assert payload.text == expected
-    assert_payload_pieces(payload, pieces)
+    assert scan.text[expression.statement.start : expression.statement.end] == literal
     assert (
         "".join(scan.text[r.span.start : r.span.end] for r in scan.regions) == scan.text
     )
@@ -2763,16 +2757,14 @@ def test_payloads_complete_adjacent_prose_excludes_layout_and_following_source(
         SourceSpan(29, 36),
         SourceSpan(37, 39),
     )
-    assert_payload_pieces(payload, [("one ", 4, 8), ("\\n", 25, 27), (" two", 31, 35)])
-    assert all(span.end < 39 for piece in payload.mapping for span in piece.raw)
+    assert expression.statement == SourceSpan(0, 42)
 
 
-def test_payloads_empty_components_do_not_invent_content_mappings(python_definition):
+def test_payloads_empty_components_do_not_invent_prose(python_definition):
     _, expression, payload = read_payload('"" r"" U"" "a" ""\n', python_definition)
     assert not isinstance(payload, ReadFailure)
     assert payload.text == "a"
     assert len(expression.components) == 5
-    assert_payload_pieces(payload, [("a", 12, 13)])
 
 
 @pytest.mark.parametrize(
@@ -2878,10 +2870,6 @@ def test_sections_whole_same_form_runs_preserve_exact_extent(
     assert result.source.reconstruct() == text
     assert result.source.text is scan.text
     assert result.source.regions is scan.regions
-    assert result.tokens is scan.tokens
-    assert result.suites is structure.suites
-    assert result.statements is structure.statements
-    assert result.declarations is structure.facts
     assert result.source.declarations is structure.declarations
     assert result.payloads is payloads
     assert result.protected == scan.protected + protected
@@ -3039,7 +3027,9 @@ def test_expression_comments_protected_outer_spans_keep_nested_recognition(
 ):
     scan, _, _, _, result = project_sections(text, python_definition)
     assert not isinstance(result, ReadFailure)
-    comment = next(token for token in result.tokens if token.kind == "comment")
+    comment = next(
+        region for region in result.source.regions if region.kind == RegionKind.COMMENT
+    )
     assert text[comment.span.start : comment.span.end] == "# observable"
     assert any(
         protected.kind == kind
@@ -3052,7 +3042,6 @@ def test_expression_comments_protected_outer_spans_keep_nested_recognition(
         for region in result.source.regions
     )
     assert result.source.sections == ()
-    assert result.tokens is scan.tokens
     assert result.source.reconstruct() == text
 
 

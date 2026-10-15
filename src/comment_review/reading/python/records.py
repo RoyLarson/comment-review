@@ -343,53 +343,18 @@ class DocumentationExpression:
 
 
 @dataclass(frozen=True)
-class PayloadPiece:
-    """One decoded span and the original spans that produced it."""
-
-    decoded: SourceSpan
-    raw: tuple[SourceSpan, ...]
-
-    def __post_init__(self) -> None:
-        """Keep zero-output mappings and multiple ordered original spans."""
-        _span(self.decoded, "decoded span")
-        _tuple(self.raw, SourceSpan, "raw spans")
-        if not self.raw or any(span.start == span.end for span in self.raw):
-            raise ValueError("payload piece requires nonempty raw spans")
-        _ordered(self.raw, self.raw[-1].end, "raw spans")
-
-
-@dataclass(frozen=True)
 class DocumentationPayload:
-    """Decoded documentation with complete decoded-to-source mapping."""
+    """Complete decoded prose and the source expression used for raw extraction."""
 
     expression: DocumentationExpression
     text: str
-    mapping: tuple[PayloadPiece, ...]
 
     def __post_init__(self) -> None:
-        """Validate decoded coverage and raw spans within literal components."""
+        """Require the recognized expression and its complete decoded text."""
         if not isinstance(self.expression, DocumentationExpression):
             raise ValueError("payload expression must be a DocumentationExpression")
         if not isinstance(self.text, str):
             raise ValueError("payload text must be a string")
-        _tuple(self.mapping, PayloadPiece, "payload mapping")
-        boundary = 0
-        raw_end = 0
-        for piece in self.mapping:
-            if piece.decoded.start != boundary or piece.decoded.end > len(self.text):
-                raise ValueError("payload mapping must completely cover decoded text")
-            boundary = piece.decoded.end
-            for span in piece.raw:
-                if span.start < raw_end or not any(
-                    _contains(component, span)
-                    for component in self.expression.components
-                ):
-                    raise ValueError(
-                        "payload raw spans must be ordered inside literal components"
-                    )
-                raw_end = span.end
-        if boundary != len(self.text):
-            raise ValueError("payload mapping must completely cover decoded text")
 
 
 @dataclass(frozen=True)
@@ -397,35 +362,31 @@ class PythonRead:
     """A complete Python read reusing the exact source structure."""
 
     source: SourceStructure
-    tokens: tuple[PythonToken, ...]
-    suites: tuple[PythonSuite, ...]
-    statements: tuple[PythonStatement, ...]
-    declarations: tuple[DeclarationFacts, ...]
     payloads: tuple[DocumentationPayload, ...]
     protected: tuple[ProtectedSource, ...]
+    insertions: tuple[int, ...]
 
     def __post_init__(self) -> None:
-        """Reconcile final source bounds, token references, and documentation owners."""
+        """Check source bounds, documentation owners, and ordered insertion slots."""
         if not isinstance(self.source, SourceStructure):
             raise ValueError("read source must be a SourceStructure")
-        _scan_records(
-            len(self.source.text), self.source.regions, self.tokens, self.protected
-        )
-        PythonStructure(
-            self.source.declarations, self.declarations, self.suites, self.statements
-        )
+        _tuple(self.protected, ProtectedSource, "protected")
+        end = len(self.source.text)
+        for item in self.protected:
+            if item.span.end > end or (
+                item.attachment is not None and item.attachment.end > end
+            ):
+                raise ValueError("protected span or attachment is outside source")
+        _tuple(self.insertions, int, "insertions")
+        if len(self.insertions) != len(self.source.declarations) + 1:
+            raise ValueError("insertions must match module and source declarations")
+        for insertion in self.insertions:
+            _index(insertion, "documentation insertion")
+            if insertion > end:
+                raise ValueError("documentation insertion is outside source")
         _tuple(self.payloads, DocumentationPayload, "payloads")
-        if any(suite.span.end > len(self.source.text) for suite in self.suites):
-            raise ValueError("suite ends outside source")
-        for statement in self.statements:
-            for index in statement.tokens:
-                if index >= len(self.tokens) or not _contains(
-                    statement.span, self.tokens[index].span
-                ):
-                    raise ValueError("statement token must exist and fit the statement")
         if len(self.payloads) != len(self.source.documentation):
             raise ValueError("payloads must match source documentation owners")
-        facts = {fact.declaration: fact for fact in self.declarations}
         for payload, owner in zip(
             self.payloads, self.source.documentation, strict=True
         ):
@@ -437,31 +398,6 @@ class PythonRead:
             ):
                 raise ValueError(
                     "payload statement and owner must match source documentation"
-                )
-            expected_suite = (
-                facts[owner.declaration].suite
-                if owner.declaration is not None
-                else next(
-                    index
-                    for index, suite in enumerate(self.suites)
-                    if suite.kind == "module"
-                )
-            )
-            matching = [
-                statement
-                for statement in self.statements
-                if statement.span == expression.statement
-                and statement.suite == expected_suite
-            ]
-            if len(matching) != 1:
-                raise ValueError(
-                    "documentation must identify a complete statement "
-                    "in its owner suite"
-                )
-            token_spans = {self.tokens[index].span for index in matching[0].tokens}
-            if any(component not in token_spans for component in expression.components):
-                raise ValueError(
-                    "documentation components must identify statement tokens"
                 )
 
 

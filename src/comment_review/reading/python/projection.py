@@ -121,15 +121,20 @@ def sections_for(
     source = SourceStructure(
         scan.text, regions, sections, structure.declarations, owners
     )
-    return PythonRead(
-        source,
-        scan.tokens,
-        structure.suites,
-        structure.statements,
-        structure.facts,
-        documentation,
-        protected,
+    module = structure.suites[0]
+    module_insertion = (
+        structure.statements[module.statements[0]].span.start
+        if module.statements
+        else 0
     )
+    declaration_insertions = {
+        fact.declaration: fact.insertion for fact in structure.facts
+    }
+    insertions = (
+        module_insertion,
+        *(declaration_insertions[index] for index in range(len(source.declarations))),
+    )
+    return PythonRead(source, documentation, protected, insertions)
 
 
 def paragraphs_for(path: Path, read: PythonRead) -> list[Paragraph] | ReadFailure:
@@ -166,9 +171,10 @@ def paragraphs_for(path: Path, read: PythonRead) -> list[Paragraph] | ReadFailur
             )
             continue
         comments = [
-            token
-            for token in read.tokens
-            if token.kind == "comment" and span.start <= token.span.start < span.end
+            region
+            for region in read.source.regions
+            if region.kind == RegionKind.COMMENT
+            and span.start <= region.span.start < span.end
         ]
         groups = [comments]
         first_comment = coordinates.position(comments[0].span.start)
@@ -226,8 +232,8 @@ def paragraphs_for(path: Path, read: PythonRead) -> list[Paragraph] | ReadFailur
                         r"\s+",
                         " ",
                         " ".join(
-                            text[token.span.start + 1 : token.span.end].strip()
-                            for token in group
+                            text[region.span.start + 1 : region.span.end].strip()
+                            for region in group
                         ),
                     ).strip(),
                     anchor=before.rstrip() if trailing else "",
@@ -284,18 +290,16 @@ def code_for(read: PythonRead) -> dict[int, str]:
 def declarations_for(read: PythonRead) -> list[tuple[int, int, bool]]:
     """Translate retained declaration and insertion offsets into page coordinates."""
     source = read.source
-    module = read.suites[0]
-    insertion = (
-        read.statements[module.statements[0]].span.start if module.statements else 0
-    )
     return [
-        (0, source.position(insertion).line, False),
+        (0, source.position(read.insertions[0]).line, False),
         *(
             (
-                source.position(source.declarations[fact.declaration].anchor).line,
-                source.position(fact.insertion).line,
+                source.position(declaration.anchor).line,
+                source.position(insertion).line,
                 False,
             )
-            for fact in read.declarations
+            for declaration, insertion in zip(
+                source.declarations, read.insertions[1:], strict=True
+            )
         ),
     ]

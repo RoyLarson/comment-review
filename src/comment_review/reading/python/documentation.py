@@ -1,4 +1,4 @@
-"""Identify documentation expressions and decode their complete mapped payloads."""
+"""Identify documentation expressions and decode their complete prose."""
 
 from collections.abc import Mapping
 from typing import cast
@@ -10,7 +10,6 @@ from comment_review.reading.python.definition import validate_python
 from comment_review.reading.python.records import (
     DocumentationExpression,
     DocumentationPayload,
-    PayloadPiece,
     PythonScan,
     PythonStructure,
     PythonToken,
@@ -106,11 +105,7 @@ def decode_documentation(
     expression: DocumentationExpression,
     definition: LanguageDefinition,
 ) -> DocumentationPayload | ReadFailure:
-    """Concatenate literal contents with exact mappings into the retained source.
-
-    Copy runs, normalized physical newlines, and escapes have separate mappings.
-    Escaped physical lines retain zero-output pieces; empty components have none.
-    """
+    """Concatenate complete literal contents, decoding escapes and physical newlines."""
     failure = validate_python(definition)
     if failure is not None:
         return failure
@@ -121,8 +116,6 @@ def decode_documentation(
     triples = cast(tuple[str, ...], literals["triple_quotes"])
     escape = cast(str, literals["escape_marker"])
     chunks: list[str] = []
-    mapping: list[PayloadPiece] = []
-    boundary = 0
     text = scan.text
     for component in expression.components:
         quote_start = next(
@@ -157,15 +150,8 @@ def decode_documentation(
                     following += 1
                 decoded = text[start:following]
             chunks.append(decoded)
-            mapping.append(
-                PayloadPiece(
-                    SourceSpan(boundary, boundary + len(decoded)),
-                    (SourceSpan(start, following),),
-                )
-            )
-            boundary += len(decoded)
             start = following
-    return DocumentationPayload(expression, "".join(chunks), tuple(mapping))
+    return DocumentationPayload(expression, "".join(chunks))
 
 
 def _newline_end(text: str, start: int, end: int) -> int:
