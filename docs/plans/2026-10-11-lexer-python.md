@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 9 of 20 TODO tasks closed
+Progress: 9 of 22 TODO tasks closed
 Plan-tasks: 30 of 43 plan tasks closed
 Owner:    backend
 Requires-Roy: false
@@ -479,6 +479,11 @@ complete merely because this plan or its interfaces are approved.
 - [-] T1 | Fix compact header recognition; nested documentation tests pass
 - [ ] T2 | Remove control-flow parsing from documentation-position tracking
 
+### J - [2026-10-14-python-classification-boundaries](../../TODO/2026-10-14-python-classification-boundaries.md)
+
+- [ ] T1 | Distinguish lambda keywords from Unicode name spelling
+- [ ] T2 | Attach inline type comments to their assignment source
+
 ## Plan Tasks
 
 - [x] P1 | Python definition validates; 216 tests and focused static checks pass; review approved | f23a9e18 | Install
@@ -666,9 +671,10 @@ complete merely because this plan or its interfaces are approved.
         > 2026-10-14 Goal: T40; source spans preserve each physical-line boundary.
         > 2026-10-14 Check: exact comment columns, multiline literals and interpolation.
         > 2026-10-14 Check: uv run pytest -q tests/reading/test_python.py
-- [ ] P43 | Classify scanned spans from documentation cues and source placement
+- [~] P43 | Classify scanned spans from documentation cues and source placement
         > 2026-10-14 Goals: T40,T45,T47 and compact-header-boundaries T2.
         > 2026-10-14 A cues first; after-code C; comment-only B; existing F/D.
         > 2026-10-14 Read indentation from source after scanning; remove suite trees.
         > 2026-10-14 Check: uv run pytest -q tests/reading/test_python.py
         > 2026-10-14 Check: page, wrapping, compositor and galley suites.
+        > 2026-10-14 Includes Python classification-boundaries T1 and T2 from review.

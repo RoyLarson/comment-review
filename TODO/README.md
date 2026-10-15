@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (126)
+### open  (127)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -308,6 +308,7 @@ that changed a published name or rule:
 | [2026-10-12-python-reader-vocabulary](2026-10-12-python-reader-vocabulary.md) | backend | -- | 0/1 | Use accepted Python reader vocabulary |
 | [2026-10-13-human-question-list](2026-10-13-human-question-list.md) | backend | -- | 0/1 | Expose human questions across edit copies |
 | [2026-10-14-python-compact-header-boundaries](2026-10-14-python-compact-header-boundaries.md) | backend | -- | 1/2 | Preserve compact Python header boundaries |
+| [2026-10-14-python-classification-boundaries](2026-10-14-python-classification-boundaries.md) | backend | -- | 0/2 | Preserve Python classification boundaries |
 
 ### in-progress  (18)
 
