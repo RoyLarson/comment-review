@@ -611,7 +611,7 @@ complete merely because this plan or its interfaces are approved.
       hash classification across Python interpolation boundaries
         > 2026-10-13 Goal: python-cannot-read-python T40; Python spec hash fixture.
         > 2026-10-13 Check: only the expression hash opens a comment; raw text matches.
-- [x] P29 | Module and function closing comments survive actual writer/reread | HEAD | Test
+- [x] P29 | Module and function closing comments survive actual writer/reread | 839e1913 | Test
       trailing docstring comments as one documentation section
         > 2026-10-13 Goal: python-cannot-read-python T41 and T47; existing writer.
         > 2026-10-13 Check: one doc section owns the suffix; no duplicate closing line.
@@ -649,12 +649,12 @@ complete merely because this plan or its interfaces are approved.
         > 2026-10-14 Check: uv run pytest -q tests/reading/test_python.py
         > 2026-10-14 Remove control-header parsing; track documentation positions only.
         > 2026-10-14 Closes compact-header-boundaries T2 by removing the dependency.
-- [x] P35 | Complete literal prose and lexical owners pass roundtrip checks | HEAD | Extract
+- [x] P35 | Complete literal prose and lexical owners pass roundtrip checks | 839e1913 | Extract
       complete Python documentation sections
         > 2026-10-14 Goals: T45,T47; reading/python/documentation.py; include P29.
         > 2026-10-14 Check: adjacent literals and closing comments have one owner.
         > 2026-10-14 Check: uv run pytest -q tests/reading/test_python.py
-- [x] P36 | Sections and complete anchors pass reader/page/writer checks | HEAD | Project
+- [x] P36 | Sections and complete anchors pass reader/page/writer checks | 14c9f1ec | Project
       Python sections and complete code anchors
         > 2026-10-14 Goals: T40,T41; reading/python/projection.py and binder/page.py.
         > 2026-10-14 Check: A/B/C/D/F, whole sections, shebang F and all code pieces.
@@ -667,7 +667,7 @@ complete merely because this plan or its interfaces are approved.
         > 2026-10-14 Check: uv run pytest -q tests/test_comment_wrapping.py
         > 2026-10-14 Check: uv run pytest tests/test_compositor.py tests/test_galley.py
         > 2026-10-14 Inline doc plus code needs ruling on indivisible C and A output
-- [x] P38 | 63 lexical preservation checks and scoped review pass | HEAD | Compare
+- [x] P38 | 63 lexical preservation checks and scoped review pass | bd9b7b7c | Compare
       Python code using lexical source ranges
         > 2026-10-14 Goals: lexical-code-identity T1, Python T38,T43; preservation.py.
         > 2026-10-14 Check: reject code/order/indentation/literal/separator mutations.
