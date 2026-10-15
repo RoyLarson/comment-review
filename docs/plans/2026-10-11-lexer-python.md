@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 8 of 18 TODO tasks closed
+Progress: 8 of 20 TODO tasks closed
 Plan-tasks: 28 of 41 plan tasks closed
 Owner:    backend
 Requires-Roy: false
@@ -474,6 +474,11 @@ complete merely because this plan or its interfaces are approved.
 
 - [x] T1 | Recognize a leading BOM before Python documentation
 
+### I - [2026-10-14-python-compact-header-boundaries](../../TODO/2026-10-14-python-compact-header-boundaries.md)
+
+- [ ] T1 | Fix compact header recognition; nested documentation tests pass
+- [ ] T2 | Remove control-flow parsing from documentation-position tracking
+
 ## Plan Tasks
 
 - [x] P1 | Python definition validates; 216 tests and focused static checks pass; review approved | f23a9e18 | Install
@@ -603,10 +608,12 @@ complete merely because this plan or its interfaces are approved.
         > 2026-10-14 Current contract: approved Python/shared specs and P28-P41.
         > 2026-10-14 The tooling-gap hold above is withdrawn; supersession suffices.
         > 2026-10-14 Held-page baseline and current both have 15 reader-setup errors.
-- [ ] P31 | Scan Python code and comment boundaries in source order
+- [~] P31 | Scan Python code and comment boundaries in source order
         > 2026-10-14 Goal: T40; reading/python/scanner.py and definition.py.
         > 2026-10-14 Check: empty input, EOF comments and unclosed boundaries.
         > 2026-10-14 Check: uv run pytest -q tests/reading/test_python.py
+        > 2026-10-14 Also closes compact-header-boundaries T1 from task review.
+        > 2026-10-14 Replace the old positional parser before closing scanner migration.
 - [ ] P32 | Recognize Python literal boundaries with retained state
         > 2026-10-14 Goals: T40,T42; reading/python/scanner.py; python.toml.
         > 2026-10-14 Check: quoted hashes, escapes, raw endings and multiline state.
@@ -615,10 +622,12 @@ complete merely because this plan or its interfaces are approved.
         > 2026-10-14 Goals: T40,T42; reading/python/interpolation.py; include P28.
         > 2026-10-14 Check: three hashes, nested fields and protected expression text.
         > 2026-10-14 Check: uv run pytest -q tests/reading/test_python.py
-- [ ] P34 | Locate Python documentation positions from source boundaries
+- [~] P34 | Locate Python documentation positions from source boundaries
         > 2026-10-14 Goals: T40,T45; reading/python/structure.py and documentation.py.
         > 2026-10-14 Check: module/class/async/def; empty places and opaque headers.
         > 2026-10-14 Check: uv run pytest -q tests/reading/test_python.py
+        > 2026-10-14 Remove control-header parsing; track documentation positions only.
+        > 2026-10-14 Closes compact-header-boundaries T2 by removing the dependency.
 - [ ] P35 | Extract complete Python documentation sections
         > 2026-10-14 Goals: T45,T47; reading/python/documentation.py; include P29.
         > 2026-10-14 Check: adjacent literals and closing comments have one owner.
