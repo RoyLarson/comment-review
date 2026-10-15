@@ -421,6 +421,8 @@ the review, and nothing today protects the review.
         > 2026-10-11 Check: plan P22 exercises mutations through both proof commands
 - [ ] T44 | Document the Python preservation contract beside its comparison
         > 2026-10-11 Check: plan P25 prose states tokens, ownership and limits
+        > 2026-10-14 Location: proof_setter.py:680 still describes the removed AST path
+        > 2026-10-14 Check: _prove prose describes lexical and protected-source checks
 - [x] T45 | All literal components and lexical owners pass reader and roundtrip | 839e1913 | Expose
       complete Python docstrings with their lexical owners
         > 2026-10-11 Check: plan P11/P12 assert owners and all literal components
