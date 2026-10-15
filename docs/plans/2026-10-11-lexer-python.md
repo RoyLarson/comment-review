@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 16 of 26 TODO tasks closed
+Progress: 16 of 27 TODO tasks closed
 Plan-tasks: 38 of 43 plan tasks closed
 Owner:    backend
 Requires-Roy: false
@@ -432,6 +432,7 @@ complete merely because this plan or its interfaces are approved.
 - [ ] T1 | Replace Python AST identity checks with lexical comparison; verify
       docstring add and removal agree at both gates
 - [ ] T3 | Retain protected directive context when selecting documentation
+- [ ] T4 | Match retained code after multiline documentation removal
 
 ### B - [python-cannot-read-python](../../TODO/python-cannot-read-python.md)
 
@@ -679,6 +680,7 @@ complete merely because this plan or its interfaces are approved.
         > 2026-10-14 Check: removing docs cannot expose ordinary literals for edits.
         > 2026-10-14 Check: uv run pytest -q tests/test_lexical_preservation.py
         > 2026-10-14 Includes lexical-code-identity T3 protected-context review repair
+        > 2026-10-14 Includes lexical-code-identity T4 multiline suffix correspondence
 - [ ] P40 | Integrate lexical comparison with proof and saved reviews
         > 2026-10-14 Goals: T38,T43; proof/prove_unchanged and saved-context consumers.
         > 2026-10-14 Check: both gates agree; incompatible saved context refuses.

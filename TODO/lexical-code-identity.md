@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 3 tasks closed
+Progress: 0 of 4 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-10 (live-run)
@@ -26,3 +26,6 @@ Use lexical code identity at both proof boundaries.
 - [ ] T3 | Retain protected directive context when selecting documentation
         > 2026-10-14 Check: selected docs refuse directive spacing or placement changes
         > 2026-10-14 Reason: preservation.py:213 erases protected source context
+- [ ] T4 | Match retained code after multiline documentation removal
+        > 2026-10-14 Check: multiline doc removal retains closing-line code indentation
+        > 2026-10-14 Reason: _documentation_span loses the retained suffix context
