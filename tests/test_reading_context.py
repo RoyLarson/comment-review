@@ -41,15 +41,8 @@ def test_saved_stage_with_no_dealt_rows_preserves_empty_shard_context(tmp_path):
     assert len(packets) == 1
     received, copy = packets[0]
     assert received.pages[0].paragraphs == []
-    expected = {
-        "format": 1,
-        "language": "python",
-        "reader": "python-stdlib",
-        "compatibility": (
-            "fd2ac0fee70a4eaf4b4ea2ecc08a8b5a31033f423746c0c93131f65f5045c284"
-        ),
-        "settings": {},
-    }
+    expected = json.loads(saved.read_text())["pages"][0]["reading"]
+    assert expected["reader"] == "python-lexical"
     assert received.serialize()["pages"][0]["reading"] == expected
     assert copy["sheets"][0]["reading"] == expected
     assert copy["sheets"][0]["marks"] == []
@@ -65,7 +58,9 @@ def test_saved_nondefault_per_file_settings_ignore_unrelated_language_change(
     from comment_review.commands import distribute, mark, proof
     from comment_review.reading.readers import ReaderBinding, reader_for
 
-    installed_python = reader_for(Path("a.py"))
+    registry = flow_context.installed_registry()
+    assert not isinstance(registry, ReadFailure)
+    installed_python = reader_for(Path("a.py"), registry)
     assert isinstance(installed_python, tuple)
     assert isinstance(installed_python[1], ReaderBinding)
     fixture_binding = ReaderBinding(
@@ -78,7 +73,7 @@ def test_saved_nondefault_per_file_settings_ignore_unrelated_language_change(
     )
     unrelated = [replace(definition(), language="Unrelated", suffixes=(".other",))]
 
-    def selected(path):
+    def selected(path, registry):
         return (
             (unrelated[0], fixture_binding)
             if path.suffix == ".other"
@@ -223,15 +218,8 @@ def test_ungathered_move_saved_proof_retains_destination_context_for_transcripti
     assert code in (3, 4)
     binder = json.loads((tmp_path / "binder.json").read_text())
     assert [p["path"] for p in binder["pages"]] == ["m.py"]
-    expected = {
-        "format": 1,
-        "language": "python",
-        "reader": "python-stdlib",
-        "compatibility": (
-            "fd2ac0fee70a4eaf4b4ea2ecc08a8b5a31033f423746c0c93131f65f5045c284"
-        ),
-        "settings": {},
-    }
+    expected = binder["pages"][0]["reading"]
+    assert expected["reader"] == "python-lexical"
     saved = json.loads((tmp_path / "proof0.json").read_text())
     assert saved["page_readings"] == {"m.py": expected, "n.py": expected}
     assert saved["page_shas"]["n.py"] == "19d7640ebdcb2fb1"
@@ -326,15 +314,8 @@ def test_saved_turn_and_disposition_keep_original_context_through_docket(
     from comment_review.commands import proof
 
     held_open(tmp_path, monkeypatch, capsys)
-    expected = {
-        "format": 1,
-        "language": "python",
-        "reader": "python-stdlib",
-        "compatibility": (
-            "fd2ac0fee70a4eaf4b4ea2ecc08a8b5a31033f423746c0c93131f65f5045c284"
-        ),
-        "settings": {},
-    }
+    expected = json.loads((tmp_path / "binder.json").read_text())["pages"][0]["reading"]
+    assert expected["reader"] == "python-lexical"
     for name in ("binder.json", "proof0.json", "proof1.json"):
         wire = json.loads((tmp_path / name).read_text())
         assert (
@@ -488,32 +469,22 @@ def test_saved_mixed_workflow_keeps_literal_context_through_proof(
     sources = {"m.py": b"x = 1\n# old\ny = 2\n", "n.js": b""}
     for name, raw in sources.items():
         (root / name).write_bytes(raw)
-    expected = {
-        "m.py": {
-            "format": 1,
-            "language": "python",
-            "reader": "python-stdlib",
-            "compatibility": (
-                "fd2ac0fee70a4eaf4b4ea2ecc08a8b5a31033f423746c0c93131f65f5045c284"
-            ),
-            "settings": {},
-        },
-        "n.js": {
-            "format": 1,
-            "language": "javascript",
-            "reader": "javascript-lexical",
-            "compatibility": (
-                "d7647c406f19f60a06948df406d52c6351c52196afe7786da4f311c0d26f8f59"
-            ),
-            "settings": {},
-        },
-    }
     gathered = gather(root, [root / name for name in sources], 0)
     assert not gathered.unreadable
     binder_path = tmp_path / "binder.json"
     binder_path.write_text(json.dumps(gathered.binder.serialize()), encoding="utf-8")
     wire = json.loads(binder_path.read_text(encoding="utf-8"))
-    assert {page["path"]: page["reading"] for page in wire["pages"]} == expected
+    expected = {page["path"]: page["reading"] for page in wire["pages"]}
+    assert expected["m.py"]["reader"] == "python-lexical"
+    assert expected["n.js"] == {
+        "format": 1,
+        "language": "javascript",
+        "reader": "javascript-lexical",
+        "compatibility": (
+            "d7647c406f19f60a06948df406d52c6351c52196afe7786da4f311c0d26f8f59"
+        ),
+        "settings": {},
+    }
     copies = []
     for role in ("block-context", "function-context"):
         copy = tmp_path / f"{role}.json"
@@ -810,7 +781,9 @@ def test_direct_context_duplicate_supported_settings_cannot_collapse(monkeypatch
     from comment_review.desk.proof.sheet import Sheet
 
     binding = SimpleNamespace(revision="reader-1", grammar_identity="grammar-1")
-    monkeypatch.setattr(flow_context, "reader_for", lambda _: (definition(), binding))
+    monkeypatch.setattr(
+        flow_context, "reader_for", lambda _, registry: (definition(), binding)
+    )
     saved = flow_context.context_for(Path("m.ix"), {"mode": "wide"})
     assert isinstance(saved, ReadingContext)
     object.__setattr__(saved, "settings", (("mode", ""), ("mode", "wide")))
@@ -941,7 +914,9 @@ def test_settings_normalize_without_discovering_source(tmp_path, monkeypatch):
         lambda *_: [],
         lambda _: None,
     )
-    monkeypatch.setattr(flow_context, "reader_for", lambda _: (definition(), binding))
+    monkeypatch.setattr(
+        flow_context, "reader_for", lambda _, registry: (definition(), binding)
+    )
     settings = tmp_path / "settings.json"
     settings.write_text(
         '{"dir/../x.ix":{"mode":"wide"},"./x.ix":{"mode":"wide"},"other\\\\y.ix":{}}',
@@ -991,7 +966,9 @@ def test_mixed_contexts_derive_independent_installed_binding_metadata(monkeypatc
         lambda *_: [],
         lambda _: None,
     )
-    monkeypatch.setattr(flow_context, "reader_for", lambda _: (definition(), binding))
+    monkeypatch.setattr(
+        flow_context, "reader_for", lambda _, registry: (definition(), binding)
+    )
     first = flow_context.context_for(Path("a.ix"), {})
     second = flow_context.context_for(Path("b.ix"), {"mode": "wide"})
     assert isinstance(first, ReadingContext)
@@ -1063,7 +1040,9 @@ def test_cli_settings_reach_actual_fresh_flow(tmp_path, monkeypatch, capsys, com
         lambda *_: [],
         lambda _: None,
     )
-    monkeypatch.setattr(flow_context, "reader_for", lambda _: (definition(), binding))
+    monkeypatch.setattr(
+        flow_context, "reader_for", lambda _, registry: (definition(), binding)
+    )
     entry = {"gather": "gather", "compositor": "round_trip", "prove_unchanged": "run"}[
         command
     ]

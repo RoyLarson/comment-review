@@ -1,8 +1,9 @@
 """Explicit installed paragraph readers and language grammar validation."""
 
 import re
+import unicodedata
 from collections.abc import Callable, Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from functools import partial
 from pathlib import Path
 from types import MappingProxyType
@@ -166,7 +167,7 @@ INSTALLED_BINDINGS = MappingProxyType(
     {
         "python-lexical": ReaderBinding(
             "python-lexical",
-            "1",
+            "2",
             (
                 "comments",
                 "strings",
@@ -203,7 +204,16 @@ def reader_for(
     if definition is None:
         return None
     binding = bind_reader(definition, INSTALLED_BINDINGS)
-    return binding if isinstance(binding, ReadFailure) else (definition, binding)
+    if isinstance(binding, ReadFailure):
+        return binding
+    if binding.reader == "python-lexical":
+        binding = replace(
+            binding,
+            grammar_identity=(
+                f"{binding.grammar_identity}; Unicode {unicodedata.unidata_version}"
+            ),
+        )
+    return definition, binding
 
 
 def supported_definitions(

@@ -13,13 +13,15 @@ def selectable_context(monkeypatch):
 
     from comment_review.flows import reading_context as metadata
 
-    installed = metadata.reader_for(Path("m.py"))
+    registry = metadata.installed_registry()
+    assert not isinstance(registry, ReadFailure)
+    installed = metadata.reader_for(Path("m.py"), registry)
     assert installed is not None and not isinstance(installed, ReadFailure)
     definition, binding = installed
     selected = replace(
         definition, defaults={"mode": ""}, choices={"mode": ("", "wide")}
     )
-    monkeypatch.setattr(metadata, "reader_for", lambda _: (selected, binding))
+    monkeypatch.setattr(metadata, "reader_for", lambda _, registry: (selected, binding))
     return metadata.context_for(Path("m.py"), {"mode": "wide"})
 
 

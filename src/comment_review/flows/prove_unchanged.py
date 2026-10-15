@@ -4,6 +4,7 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from comment_review.binder.page import Page
 from comment_review.flows.page_for import page_of
 from comment_review.flows.read_diagnostics import format_failure
 from comment_review.flows.reading_context import context_for
@@ -11,6 +12,7 @@ from comment_review.flows.source import revision_source_of, source_of
 from comment_review.machine.repo import Source, git_ls_files
 from comment_review.reading.context import ReadingContext
 from comment_review.reading.diagnostics import ReadFailure
+from comment_review.reading.python.preservation import compare_preservation
 from comment_review.results.prove_unchanged import code_fingerprint, dominant_ending
 
 
@@ -115,27 +117,56 @@ def run(
         if failed:
             failures += 1
             continue
-        kind_b, fp_b = code_fingerprint(before.text, target)
-        kind_a, fp_a = code_fingerprint(after.text, target)
-        if kind_a not in ("ast", "stripped") or kind_b not in ("ast", "stripped"):
-            messages.append(
-                f"UNPROVABLE {rel}: prose could not be separated from code"
-                " -- sameness NOT shown"
-            )
-            failures += 1
-        elif kind_a != kind_b:
-            messages.append(
-                f"FAIL      {rel}: proof kind changed ({kind_b} -> {kind_a}) "
-                "-- likely broke Python syntax"
-            )
-            failures += 1
-        elif fp_a != fp_b:
-            messages.append(
-                f"FAIL      {rel}: executable code DIFFERS ({kind_a} proof)"
-            )
-            failures += 1
+        assert isinstance(page_b, Page) and isinstance(page_a, Page)
+        if (
+            context.language == "python"
+            or page_b.python_read is not None
+            or page_a.python_read is not None
+        ):
+            if page_b.python_read is None or page_a.python_read is None:
+                messages.append(f"FAIL      {rel}: proof kind changed")
+                failures += 1
+            else:
+                result = compare_preservation(
+                    page_b.python_read,
+                    page_a.python_read,
+                    allowed_documentation_owners=(
+                        None,
+                        *range(len(page_b.python_read.source.declarations)),
+                    ),
+                )
+                if result.unchanged:
+                    messages.append(f"PROVEN    {rel}: reads the same (lexical)")
+                else:
+                    messages.append(
+                        f"FAIL      {rel}: executable code DIFFERS (lexical proof)"
+                    )
+                    messages.append(
+                        format_failure(ReadFailure(result.diagnostics), path=rel)
+                    )
+                    failures += 1
         else:
-            messages.append(f"PROVEN    {rel}: reads the same ({kind_a})")
+            kind_b, fp_b = code_fingerprint(before.text, target)
+            kind_a, fp_a = code_fingerprint(after.text, target)
+            if kind_a not in ("ast", "stripped") or kind_b not in ("ast", "stripped"):
+                messages.append(
+                    f"UNPROVABLE {rel}: prose could not be separated from code"
+                    " -- sameness NOT shown"
+                )
+                failures += 1
+            elif kind_a != kind_b:
+                messages.append(
+                    f"FAIL      {rel}: proof kind changed ({kind_b} -> {kind_a}) "
+                    "-- likely broke Python syntax"
+                )
+                failures += 1
+            elif fp_a != fp_b:
+                messages.append(
+                    f"FAIL      {rel}: executable code DIFFERS ({kind_a} proof)"
+                )
+                failures += 1
+            else:
+                messages.append(f"PROVEN    {rel}: reads the same ({kind_a})")
         sib = _sibling(repo, target, edited, tracked)
         if sib is None:
             messages.append(

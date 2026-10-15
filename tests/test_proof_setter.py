@@ -118,13 +118,17 @@ def test_saved_nondefault_settings_reach_original_and_draft(
     from comment_review.flows import reading_context as flow_context
 
     original_reader = flow_context.reader_for
-    selected = original_reader(Path("m.py"))
+    registry = flow_context.installed_registry()
+    assert not isinstance(registry, ReadFailure)
+    selected = original_reader(Path("m.py"), registry)
     assert selected is not None and not isinstance(selected, ReadFailure)
     definition, binding = selected
     configured = dataclasses.replace(
         definition, defaults={"mode": "default"}, choices={"mode": ("default", "saved")}
     )
-    monkeypatch.setattr(flow_context, "reader_for", lambda path: (configured, binding))
+    monkeypatch.setattr(
+        flow_context, "reader_for", lambda path, registry: (configured, binding)
+    )
     repo, into = tmp_path / "repo", tmp_path / "out"
     repo.mkdir()
     path = repo / "m.py"
@@ -1221,6 +1225,11 @@ class TestEveryVerdictThePlacesCanEXPRESSGetsThroughTheChain:
         "c1: holds [''], was given []")` -- the galley, the compositor and the
         draft on disk all correct, and the draft then discarded."""
         drafted, refused = self._run(tmp_path, {f"m.py@{where}": None})
+        if where == "f0":
+            assert drafted == []
+            assert refused and refused[0].step == "prove"
+            assert "code-changed" in refused[0].why
+            return
         assert refused == []
         assert len(drafted) == 1
         again = build(drafted[0].draft.read_text(encoding="utf-8"))

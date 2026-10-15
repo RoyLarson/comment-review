@@ -53,10 +53,11 @@ from comment_review.flows.page_for import page_of
 from comment_review.flows.read_diagnostics import format_failure
 from comment_review.flows.source import source_of
 from comment_review.machine.repo import Source, can_escape, sha_of, undraftable
-from comment_review.reading.addresser import address_for, cue_of
+from comment_review.reading.addresser import MODULE, address_for, cue_of
 from comment_review.reading.context import ReadingContext
 from comment_review.reading.diagnostics import ReadFailure
 from comment_review.reading.paragraph import Paragraph
+from comment_review.reading.python.preservation import compare_preservation
 from comment_review.reading.series import Series
 from comment_review.results import compositor, galley
 from comment_review.results.prove_unchanged import code_fingerprint_setting_aside
@@ -669,56 +670,20 @@ def _prove(
     path: Path,
     approved: Sequence[tuple[Paragraph, Paragraph]] = (),
 ) -> Refusal | None:
-    """Is the executable code in the draft the code that was there before?
+    """Prove retained source unchanged after the approved prose alterations.
 
-    !! AN UNPROVABLE FILE IS REFUSED, NOT PASSED. `code_fingerprint` returns an
-    EMPTY fingerprint for a file it cannot strip, and two empty strings compare
-    equal -- so reading its instruction without reading its KIND proves every
-    unprovable file identical to every other.
+    Text inputs first enter page admission. Python compares the pages' acquired
+    lexical records, preserving executable source, ordinary literals, protected
+    directives and their attachments. Ordinary prose may change; documentation
+    presence stays fixed except at selected owners named by approved `a` pairs.
+    Each pair must identify the same unique owner through admitted source
+    positions and anchors. A removed docstring cannot authorize changes to an
+    ordinary literal promoted into its place.
 
-    ! WHAT THIS CATCHES THAT `_reread` CANNOT. `_reread` checks only the cues a
-    alteration named, so an alteration surviving it was -- by construction -- read
-    back as a comment: for the AST tier a comment never enters the fingerprint,
-    so a still-a-COMMENT edit can never trip the `want != got` branch below.
-
-    It compares against the approved changes, not against nothing changed --
-    `decision-log.md Process: #113`. A docstring's presence is in the
-    fingerprint, because a docstring binds `__doc__` and the commands in this
-    package read `ArgumentParser(description=__doc__)`. At each declaration an
-    approved alteration in the `a` series documents, that presence is left out
-    of both texts, so an approved `add` or `drop` of a docstring passes. Every
-    other declaration keeps its docstring's presence in the comparison, and
-    all code is compared.
-
-    An approved rewrite at an `a` place has its presence set aside the same
-    way, so whether the docstring is still there is left to `_reread`, which
-    refuses a draft whose text at that cue is not the approved text.
-
-    The declaration is identified from the place, never from the `a` ordinal:
-    in the text before, at the line the page the draft was set from puts the
-    place's anchor on; in the draft, at the line the draft's own page puts the
-    same anchor on. Where either names no single declaration the proof
-    refuses. `test_an_approved_docstring_ADD_reaches_a_draft`,
-    `test_an_approved_docstring_DROP_reaches_a_draft` and the refusals beside
-    them in `tests/test_proof_setter.py` pin it. The comment-stripped
-    comparison other languages take reads no declaration.
-
-    The residual hazard this branch is for is an alteration that breaks its
-    comment's RUN and swallows code BEYOND the edited cue -- an edit whose
-    comment run closes mid-line, or never closes at all, can delete the code
-    that followed it. `_reread` cannot see that: the swallowed code was never
-    one of the cues it was asked about. `_prove` compares the WHOLE file's
-    fingerprint, which is what catches it. See
-    `TODO/closing-line-deletes-code.md`.
-
-    Args:
-        rel: how the repo names the page.
-        before: the admitted page the draft was set from, or text to admit.
-        after: the admitted draft page, or text to admit.
-        path: used for its suffix, which picks the comparison.
-        approved: each approved alteration's place, on the page the draft was
-            set from and in the draft, as `_approved` pairs them. Empty keeps
-            every docstring's presence in the comparison.
+    `_reread` checks the requested text at each edited cue; this comparison also
+    covers retained source elsewhere in the file. Other languages use their
+    existing comment-stripped fingerprint comparison. Failed admission,
+    unidentified owners and unprovable comparisons all refuse.
     """
     admitted: list[Page] = []
     for side, value in (("before", before), ("after", after)):
@@ -730,6 +695,43 @@ def _prove(
         if isinstance(page, ReadFailure):
             return Refusal("prove", rel, f"{side}: {format_failure(page, path=rel)}")
         admitted.append(page)
+    page_before, page_after = admitted
+    if (
+        page_before.reading.language == "python"
+        or page_after.reading.language == "python"
+        or page_before.python_read is not None
+        or page_after.python_read is not None
+    ):
+        if page_before.python_read is None or page_after.python_read is None:
+            return Refusal("prove", rel, "the proof kind is not what it was")
+        owners: set[int | None] = set()
+        for was, now in approved:
+            if Series.of(cue_of(was.address).cue) is not Series.DECLARED:
+                continue
+            before_owner = _python_documentation_owner(page_before, was)
+            after_owner = _python_documentation_owner(page_after, now)
+            if not before_owner or before_owner != after_owner:
+                return Refusal(
+                    "prove",
+                    rel,
+                    "the declaration an approved docstring alteration documents "
+                    "cannot be identified in the code, so its docstring cannot "
+                    "be set aside",
+                )
+            owners.add(before_owner[0])
+        result = compare_preservation(
+            page_before.python_read,
+            page_after.python_read,
+            allowed_documentation_owners=owners,
+        )
+        if not result.unchanged:
+            return Refusal(
+                "prove",
+                rel,
+                "the executable code is not what it was: "
+                + format_failure(ReadFailure(result.diagnostics), path=rel),
+            )
+        return None
     before_text, after_text = (page.text for page in admitted)
     documented = [
         (was, now)
@@ -761,3 +763,29 @@ def _prove(
     if want != got:
         return Refusal("prove", rel, "the executable code is not what it was")
     return None
+
+
+def _python_documentation_owner(
+    page: Page, paragraph: Paragraph
+) -> tuple[int | None, ...]:
+    """Locate one approved owner using the admitted place and declaration position."""
+    read = page.python_read
+    assert read is not None
+    places = [place for place in page if place.address == paragraph.address]
+    cue = cue_of(paragraph.address).cue
+    if len(places) != 1 or Series.of(cue) is not Series.DECLARED:
+        return ()
+    if (paragraph.anchor, paragraph.anchor_line, paragraph.anchor_num) != (
+        page.cues.anchor_of(cue),
+        page.cues.anchor_line(cue),
+        page.cues.anchor_num(cue),
+    ):
+        return ()
+    if paragraph.anchor == MODULE and paragraph.anchor_line is None:
+        return (None,)
+    owners = tuple(
+        index
+        for index, declaration in enumerate(read.source.declarations)
+        if read.source.position(declaration.anchor).line == paragraph.anchor_line
+    )
+    return owners if len(owners) == 1 else ()
