@@ -232,10 +232,10 @@ which belong to other blocks.
 
 ## What makes an address stable
 
-**Stage 7b's CODE CHECK.** It does not prove the file byte-identical -- for Python it compares an
-`ast.dump`, elsewhere the stripped text -- but it proves the Nth code line is still the same
-statement, which is exactly what an ordinal counts. The line numbers move with the prose; the
-ordinal does not.
+**Stage 7b's CODE CHECK.** Python compares retained lexical source, including literal spelling,
+executable indentation and protected directives. Other languages use the existing stripped-text
+comparison. Code anchors remain in source order while prose may shift their physical line
+numbers. Documentation additions and removals must preserve the original ordinary literals.
 
 !! **It rests on the census being a HASHED STATIC TABLE** -- Roy, 2026-08-18 -- exact, constant,
 FULLY ENUMERATED. A code line missed anywhere above a place does not fail: it RENAMES every place

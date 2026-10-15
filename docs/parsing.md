@@ -11,7 +11,8 @@ modes, and conflating them produced the wrong design twice. Keep them apart:
 
 ```
 1. FIND the prose        -- REQUIRED. Deterministic. Ships with the skill.
-     .py                 -> tokenize + ast        tier: tokenized
+     .py, .pyi           -> owned boundary scan and classification
+                                                  tier: lexical
      suffix in LANGUAGES -> lexical scanner       tier: lexical
      unknown suffix      -> reported as a GAP
 
