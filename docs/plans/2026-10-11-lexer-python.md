@@ -2,8 +2,8 @@
 
 ```
 Status:   in-progress
-Progress: 12 of 24 TODO tasks closed
-Plan-tasks: 34 of 43 plan tasks closed
+Progress: 13 of 24 TODO tasks closed
+Plan-tasks: 35 of 43 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (founded by move-t from 2026-10-11-lexical-readers)
@@ -488,9 +488,9 @@ complete merely because this plan or its interfaces are approved.
 
 - [ ] T1 | Separate comment-only sections from trailing comments
 
-### L - [2026-10-14-protected-directive-spacing](../../TODO/2026-10-14-protected-directive-spacing.md)
+### L - [2026-10-14-protected-directive-spacing](../../TODO/completed/2026-10-14-protected-directive-spacing.md)
 
-- [ ] T1 | Refuse spacing edits before protected comments
+- [x] T1 | Refuse spacing edits before protected comments
 
 ## Plan Tasks
 
@@ -650,7 +650,7 @@ complete merely because this plan or its interfaces are approved.
         > 2026-10-14 Goals: T45,T47; reading/python/documentation.py; include P29.
         > 2026-10-14 Check: adjacent literals and closing comments have one owner.
         > 2026-10-14 Check: uv run pytest -q tests/reading/test_python.py
-- [ ] P36 | Project Python sections and complete code anchors
+- [~] P36 | Project Python sections and complete code anchors
         > 2026-10-14 Goals: T40,T41; reading/python/projection.py and binder/page.py.
         > 2026-10-14 Check: A/B/C/D/F, whole sections, shebang F and all code pieces.
         > 2026-10-14 Check: uv run pytest -q tests/test_page.py
@@ -661,7 +661,8 @@ complete merely because this plan or its interfaces are approved.
         > 2026-10-14 Goals: T41,T47; reader adapters; results writer stays unchanged.
         > 2026-10-14 Check: uv run pytest -q tests/test_comment_wrapping.py
         > 2026-10-14 Check: uv run pytest tests/test_compositor.py tests/test_galley.py
-- [~] P38 | Compare Python code using lexical source ranges
+- [x] P38 | 63 lexical preservation checks and scoped review pass | HEAD | Compare
+      Python code using lexical source ranges
         > 2026-10-14 Goals: lexical-code-identity T1, Python T38,T43; preservation.py.
         > 2026-10-14 Check: reject code/order/indentation/literal/separator mutations.
         > 2026-10-14 Check: uv run pytest -q tests/test_lexical_preservation.py

@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (127)
+### open  (126)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -308,7 +308,6 @@ that changed a published name or rule:
 | [2026-10-12-python-reader-vocabulary](2026-10-12-python-reader-vocabulary.md) | backend | -- | 0/1 | Use accepted Python reader vocabulary |
 | [2026-10-13-human-question-list](2026-10-13-human-question-list.md) | backend | -- | 0/1 | Expose human questions across edit copies |
 | [2026-10-14-python-comment-section-placement](2026-10-14-python-comment-section-placement.md) | backend | -- | 0/1 | Keep Python comment sections at their places |
-| [2026-10-14-protected-directive-spacing](2026-10-14-protected-directive-spacing.md) | backend | -- | 0/1 | Retain protected directive spacing in code proof |
 
 ### in-progress  (18)
 
@@ -507,3 +506,4 @@ the reason is inside the file.
 | [2026-10-14-plan-objective-update](completed/2026-10-14-plan-objective-update.md) | 1 superseded |
 | [2026-10-14-python-classification-boundaries](completed/2026-10-14-python-classification-boundaries.md) | 1 finished, 1 superseded |
 | [2026-10-14-python-compact-header-boundaries](completed/2026-10-14-python-compact-header-boundaries.md) | 1 finished, 1 superseded |
+| [2026-10-14-protected-directive-spacing](completed/2026-10-14-protected-directive-spacing.md) | 1 finished |
