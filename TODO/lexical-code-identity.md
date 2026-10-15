@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 2 tasks closed
+Progress: 0 of 3 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-10 (live-run)
@@ -23,3 +23,6 @@ Use lexical code identity at both proof boundaries.
         > 2026-10-10 Code-reader scope excludes config, data and document formats
 - [ ] T2 | Preserve literal whitespace in prove_unchanged.py:191-207; verify
       blank-line and trailing-space edits change the fingerprint
+- [ ] T3 | Retain protected directive context when selecting documentation
+        > 2026-10-14 Check: selected docs refuse directive spacing or placement changes
+        > 2026-10-14 Reason: preservation.py:213 erases protected source context
