@@ -193,3 +193,266 @@ def test_comparison_uses_acquired_source_only(definition, monkeypatch):
     monkeypatch.setattr(python, "read_python", forbidden)
     monkeypatch.setattr(scanner, "scan_python", forbidden)
     assert compare_preservation(before, after).unchanged
+
+
+@pytest.mark.parametrize(
+    ("bare", "documented", "owner"),
+    [
+        ("x=1\n", '("module"); x=1\n', None),
+        ("", '"module"\n', None),
+        ("def f():\n    return 1\n", 'def f():\n    ("doc");\n    return 1\n', 0),
+        ("class C:\n    value=1\n", 'class C:\n    "doc"\n    value=1\n', 0),
+        (
+            "async def f():\n    return 1\n",
+            'async def f():\n    "doc"\n    return 1\n',
+            0,
+        ),
+        ("def f():\n", 'def f(): "doc"\n', 0),
+        (
+            "def same():\n    def same():\n        return 1\n    return same\n",
+            'def same():\n    def same():\n        "doc"\n'
+            "        return 1\n    return same\n",
+            1,
+        ),
+        (
+            "def same():\n    pass\ndef same():\n    pass\n",
+            'def same():\n    pass\ndef same():\n    "doc"\n    pass\n',
+            1,
+        ),
+    ],
+)
+def test_selected_documentation_additions_and_removals(
+    definition, bare, documented, owner
+):
+    was, now = acquired(bare, definition), acquired(documented, definition)
+    for before, after in ((was, now), (now, was)):
+        assert not compare_preservation(before, after).unchanged
+        result = compare_preservation(
+            before, after, allowed_documentation_owners={owner}
+        )
+        assert result.unchanged, result.diagnostics
+
+
+@pytest.mark.parametrize(
+    "header, indent, owner", [("", "", None), ("def f():\n", "    ", 0)]
+)
+def test_promoted_ordinary_literal_keeps_its_exact_source(
+    definition, header, indent, owner
+):
+    before = acquired(
+        header
+        + indent
+        + '"docs"\n'
+        + indent
+        + '(r"ordinary");\n'
+        + indent
+        + '"last"\n',
+        definition,
+    )
+    after = acquired(
+        header + indent + '(r"ordinary");\n' + indent + '"last"\n', definition
+    )
+    assert compare_preservation(
+        before, after, allowed_documentation_owners={owner}
+    ).unchanged
+    for replacement in [
+        '("ordinary");\n"last"\n',
+        '"last"\n',
+        '"last"\n(r"ordinary");\n',
+    ]:
+        changed = acquired(
+            header
+            + "".join(indent + line for line in replacement.splitlines(keepends=True)),
+            definition,
+        )
+        assert not compare_preservation(
+            before, changed, allowed_documentation_owners={owner}
+        ).unchanged
+
+
+@pytest.mark.parametrize(
+    ("before", "after", "owners"),
+    [
+        ('x="ordinary"\n', '"docs"\n', {None}),
+        ('"docs"\n"ordinary"\n', '"changed"\n', {None}),
+        ('"docs"\nx=1; y=2\n', '"new"\nx=1\ny=2\n', {None}),
+        ('def f(): "docs"; return 1\n', 'def f():\n    "new"\n    return 1\n', {0}),
+        ('def f():\n    "docs"\n', "def f():\n    pass\n", {0}),
+        (
+            "def a():\n    pass\ndef b():\n    pass\n",
+            'def a():\n    "docs"\n    pass\ndef b():\n    pass\n',
+            {1},
+        ),
+        ('"docs"\nx=1 # type: int\n', "x=1  # type: int\n", {None}),
+        ('"docs" # type: ignore\nx=1\n', "x=1\n", {None}),
+    ],
+)
+def test_selected_owners_do_not_permit_code_or_protection_changes(
+    definition, before, after, owners
+):
+    was, now = acquired(before, definition), acquired(after, definition)
+    for original, changed in ((was, now), (now, was)):
+        assert not compare_preservation(
+            original, changed, allowed_documentation_owners=owners
+        ).unchanged
+
+
+def test_selected_doc_only_inline_shape_can_relocate(definition):
+    before = acquired('def f(): "docs"\n', definition)
+    after = acquired('def f():\n    "new docs"\n', definition)
+    for original, changed in ((before, after), (after, before)):
+        assert compare_preservation(
+            original, changed, allowed_documentation_owners={0}
+        ).unchanged
+
+
+@pytest.mark.parametrize("owner", [-1, 1, True, "f"])
+def test_documentation_owner_must_exist_as_a_source_position(definition, owner):
+    source = acquired("def f():\n    pass\n", definition)
+    result = compare_preservation(source, source, allowed_documentation_owners={owner})
+    assert not result.unchanged
+
+
+def test_selected_comparison_does_not_reacquire(definition, monkeypatch):
+    from comment_review.reading import python
+    from comment_review.reading.python import scanner
+
+    before, after = (
+        acquired('"docs"\n"ordinary"\n', definition),
+        acquired('"ordinary"\n', definition),
+    )
+
+    def forbidden(*args, **kwargs):
+        pytest.fail("comparison reacquired Python source")
+
+    monkeypatch.setattr(python, "read_python", forbidden)
+    monkeypatch.setattr(scanner, "scan_python", forbidden)
+    assert compare_preservation(
+        before, after, allowed_documentation_owners={None}
+    ).unchanged
+
+
+def test_multiple_selected_owners_keep_independent_source_positions(definition):
+    before = acquired(
+        '"module"\ndef f():\n    "function"\n    "ordinary"\n', definition
+    )
+    after = acquired('def f():\n    "ordinary"\n', definition)
+    assert compare_preservation(
+        before, after, allowed_documentation_owners={None, 0}
+    ).unchanged
+    assert not compare_preservation(
+        before, after, allowed_documentation_owners={0}
+    ).unchanged
+    assert not compare_preservation(
+        before, after, allowed_documentation_owners={None}
+    ).unchanged
+
+
+def test_selected_owner_still_compares_retained_declaration_metadata(definition):
+    before = acquired('def f():\n    "docs"\n    pass\n', definition)
+    declaration = replace(
+        before.source.declarations[0], anchor=before.source.declarations[0].anchor + 1
+    )
+    changed = replace(
+        before, source=replace(before.source, declarations=(declaration,))
+    )
+    result = compare_preservation(before, changed, allowed_documentation_owners={0})
+    assert not result.unchanged
+    assert result.diagnostics[0].code == "declaration-changed"
+
+
+def test_dropping_a_sole_doc_leaves_compilation_to_the_caller(definition):
+    documented = 'def f():\n    "docs"\n'
+    bare = "def f():\n"
+    compile(documented, "<fixture>", "exec")
+    with pytest.raises(IndentationError):
+        compile(bare, "<fixture>", "exec")
+    assert compare_preservation(
+        acquired(documented, definition),
+        acquired(bare, definition),
+        allowed_documentation_owners={0},
+    ).unchanged
+
+
+def test_demoting_documentation_into_ordinary_code_is_refused(definition):
+    before = acquired('"old docs"\nx=1\n', definition)
+    after = acquired('"new docs"\n"old docs"\nx=1\n', definition)
+    assert not compare_preservation(
+        before, after, allowed_documentation_owners={None}
+    ).unchanged
+
+
+@pytest.mark.parametrize(
+    ("before", "after"),
+    [
+        ('"docs"  # type: ignore\nx=1\n', '"new" # type: ignore\nx=1\n'),
+        ('"docs"\t# type: int\nx=1\n', '"new" # type: int\nx=1\n'),
+        ('("docs")  # type: ignore\nx=1\n', '("new") # type: ignore\nx=1\n'),
+        (
+            '(\n "docs"\n) # type: ignore\nx=1\n',
+            '(\n "new" # type: ignore\n)\nx=1\n',
+        ),
+        ('# type: ignore\n"docs"\nx=1\n', "# type: ignore\nx=1\n"),
+    ],
+)
+def test_selected_documentation_keeps_directive_spacing_and_attachment(
+    definition, before, after
+):
+    was, now = acquired(before, definition), acquired(after, definition)
+    for original, changed in ((was, now), (now, was)):
+        assert not compare_preservation(original, changed).unchanged
+        assert not compare_preservation(
+            original, changed, allowed_documentation_owners={None}
+        ).unchanged
+
+
+@pytest.mark.parametrize(
+    ("before", "after", "owners"),
+    [
+        ('"docs"  # type: ignore\nx=1\n', '"new prose"  # type: ignore\nx=1\n', {None}),
+        ('# type: ignore\n"docs"\nx=1\n', '# type: ignore\n"new prose"\nx=1\n', {None}),
+        (
+            '(\n "docs" # old\n) # type: ignore\nx=1\n',
+            '# heading\n(\n "new prose" # updated\n) # type: ignore\nx=1\n',
+            {None},
+        ),
+        (
+            'def f():\n    "docs" # type: ignore\n    pass\n',
+            '"module"\ndef f():\n    "new prose" # type: ignore\n    pass\n',
+            {None, 0},
+        ),
+        (
+            '"docs"\n"ordinary" # type: ignore\n',
+            '"ordinary" # type: ignore\n',
+            {None},
+        ),
+    ],
+)
+def test_selected_documentation_allows_safe_prose_near_directives(
+    definition, before, after, owners
+):
+    result = compare_preservation(
+        acquired(before, definition),
+        acquired(after, definition),
+        allowed_documentation_owners=owners,
+    )
+    assert result.unchanged, result.diagnostics
+
+
+@pytest.mark.parametrize(
+    "expression",
+    ['"""docs\n    """;', '(\n        "docs"\n    );'],
+)
+def test_selected_multiline_doc_keeps_executable_suffix_indentation(
+    definition, expression
+):
+    documented = acquired(f"def f():\n    {expression} x=1\n", definition)
+    bare = acquired("def f():\n    x=1\n", definition)
+    for before, after in ((documented, bare), (bare, documented)):
+        result = compare_preservation(before, after, allowed_documentation_owners={0})
+        assert result.unchanged, result.diagnostics
+    changed = acquired("def f():\n  x=1\n", definition)
+    for before, after in ((documented, changed), (changed, documented)):
+        assert not compare_preservation(
+            before, after, allowed_documentation_owners={0}
+        ).unchanged
