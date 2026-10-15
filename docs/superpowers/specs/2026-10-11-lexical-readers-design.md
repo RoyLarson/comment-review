@@ -99,9 +99,12 @@ specifications.
 The registry maps supported source paths to individual language definitions.
 A common result contract lets callers consume their readers consistently.
 
-The reading package owns these contracts and language facts. First it
-distinguishes code from comments and documentation. Then it classifies the
-documentation using the existing A/B/C/D/F rules and supplies source ranges,
+The reading package owns these contracts and language facts. First it scans
+character boundaries between code and comments on each physical line, retaining
+literal forms and exact source. A line may contain code, comment and further
+code. Quote and comment state continues across lines where needed to find those
+boundaries. Then a separate pass classifies the spans using each language's
+documentation markers, declaration cues and source placement. It supplies ranges,
 forms and placement facts to the addresser. D retains its existing leading-space
 meaning rather than becoming editable prose. The addresser numbers and attaches
 the places. Reading and writing consumers use this shared leaf without importing
@@ -110,8 +113,9 @@ one another's containers.
 All code portions of a physical line form its anchor in source order, including
 literal text and indexing or slicing notation. Anchors retain the source text;
 they are not reconstructed from identifiers or interpreted operations. Keep
-lexical boundary state and the positional facts needed to recognize
-documentation. Identifier harvesting, symbol relationships, numeric validation
+lexical boundary state in the scanner. The classifier reads indentation and
+documentation placement from the preserved source afterward. Identifier
+harvesting, symbol relationships, numeric validation
 and general statement or control-flow validation are outside this contract.
 Each language's local tools perform compilation or syntax validation separately.
 
@@ -131,6 +135,13 @@ Start in code. Ordinary source advances without requiring a keyword match.
 An applicable opener enters a comment or literal; its closer returns to the
 enclosing state. Record the original source ranges as scanning advances.
 Classify documentation and section ownership from those ranges afterward.
+
+Classification applies A documentation rules before ordinary positional rules.
+An ordinary comment starting after code on the same physical line is C;
+comment-only lines between code are B. Same-form sections remain whole across
+intervening blank lines. Existing F matter and D leading-space rules continue
+to apply. The scanner supplies character boundaries; classification supplies
+these forms to the existing addresser.
 
 The shared machinery supplies cursor movement, lookahead, range recording and
 stack operations. Each language supplies the recognizers, their precedence and
@@ -420,12 +431,12 @@ These are implementation checks; recording this rule does not satisfy them.
 
 ## Python documentation
 
-Python source reading uses an owned scanner and positional recognition to find
-documentation at the module or at a documentable declaration. Quote state,
-delimiter depth, continuation, indentation and consumed documentation positions
-provide that context. The result does not carry declaration names or a tree of
-statements and suites. Neither source reading, prose extraction nor executable
-proof depends on runtime AST or tokenizer parsing.
+Python first scans character boundaries using quote, comment and interpolation
+state. Its classifier then reads documentation markers, declaration cues and
+any needed indentation from the preserved source. These passes supply source
+spans and documentation attachment to the existing addresser. Neither source
+reading, prose extraction nor executable proof depends on runtime AST or
+tokenizer parsing.
 
 A documentation string is identified by its statement shape and placement.
 The reader distinguishes it from assigned strings, later string expressions,

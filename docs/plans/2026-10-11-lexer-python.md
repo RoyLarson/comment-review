@@ -3,7 +3,7 @@
 ```
 Status:   in-progress
 Progress: 8 of 20 TODO tasks closed
-Plan-tasks: 28 of 41 plan tasks closed
+Plan-tasks: 28 of 43 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (founded by move-t from 2026-10-11-lexical-readers)
@@ -660,3 +660,13 @@ complete merely because this plan or its interfaces are approved.
         > 2026-10-14 Goals: T40,T42,T44 and reader-vocabulary T1; reader/proof routes.
         > 2026-10-14 Check: uv run pytest -q; real paths forbid AST and tokenize.
         > 2026-10-14 Check: completion commands in the approved Python specification.
+- [ ] P42 | Scan physical-line code and comment character boundaries
+        > 2026-10-14 Goal: T40; source spans preserve each physical-line boundary.
+        > 2026-10-14 Check: exact comment columns, multiline literals and interpolation.
+        > 2026-10-14 Check: uv run pytest -q tests/reading/test_python.py
+- [ ] P43 | Classify scanned spans from documentation cues and source placement
+        > 2026-10-14 Goals: T40,T45,T47 and compact-header-boundaries T2.
+        > 2026-10-14 A cues first; after-code C; comment-only B; existing F/D.
+        > 2026-10-14 Read indentation from source after scanning; remove suite trees.
+        > 2026-10-14 Check: uv run pytest -q tests/reading/test_python.py
+        > 2026-10-14 Check: page, wrapping, compositor and galley suites.

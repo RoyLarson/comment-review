@@ -1,7 +1,7 @@
 # Python lexical reader
 
-This revision is for review. The remaining implementation plan must be
-reconciled with this contract before work resumes under its old task briefs.
+Boundary scanning and classification are separate passes. The implementation
+plan supersedes earlier tasks where they combine those responsibilities.
 
 ## Purpose and scope
 
@@ -34,25 +34,33 @@ not advertised unless the implementation actually provides distinct modes.
 
 ## Approach and responsibilities
 
-Use a stateful scanner to distinguish code from comments and documentation.
-Then classify the documentation using the existing series rules and hand the
-result to the addresser. Literal state is needed so comment markers inside
-ordinary strings remain code. Positional state is needed to recognize Python
-docstrings and the insertion positions of empty documentation places.
+First scan the source for character boundaries between code and comments on
+each physical line. Preserve the exact source and the start and end of each
+span. Quoting, escapes, interpolation and comments retain state only where
+needed to locate those boundaries, including across lines. Literal form stays
+available for the subsequent documentation check. Indentation and declaration
+keywords are read afterward, during classification.
 
-Keep only the lexical state required for those decisions: delimiters, quoting,
-interpolation, line continuation, indentation and whether a documentation
-position has been consumed. Recognize declaration introducers to locate their
-documentation positions. The rest of each header and code line remains opaque
-source text. Compiler validation belongs to the project's local tools.
+Then classify the spans using Python's documentation markers and their placement
+relative to module, class, def and async def source. Documentation receives A
+classification first. An ordinary comment after code on its physical line is C;
+comment-only lines between code are B. Existing F and D rules remain in force.
+Group same-form comments between code boundaries as one section, including
+intervening blank lines, and hand the result to the existing addresser.
+
+The classifier reads any needed indentation from the preserved source. Code
+such as if~ready:, case-1: and except*ValueError: remains opaque throughout this
+work. Classification uses source placement and documentation cues. Compiler
+validation belongs to the project's local tools.
 
 Reuse `SourceStructure`, `SourceSpan`, `SourceDeclaration`, `SourceSection`,
 `DocumentationOwner` and explicit `ReadFailure` outcomes. Character offsets
 remain half-open offsets into the exact decoded source. Regions cover every
 character once, in order; reconstruction is identical to the input.
 
-The result supplies source regions, comment forms, documentation positions
-and diagnostics. Reuse the existing paragraph and declaration-position
+The scan result supplies exact source regions and literal/comment forms.
+Classification supplies documentation positions and sections. Reuse the
+existing paragraph and declaration-position
 interfaces. A declaration needs its source position and documentation position,
 not its name, an enclosing-symbol relationship or a statement tree. Internal
 scanner state remains inside the reader rather than becoming fields on Page.
@@ -84,7 +92,9 @@ while source remains:
     advance the cursor
     apply the requested entry, exit or state change
 finish the active states according to their EOF rules
-classify documentation positions and sections from the recorded source
+return the recorded source boundaries
+
+classify the preserved source and boundaries in a separate pass
 ```
 
 Use these state responsibilities:
@@ -111,7 +121,8 @@ code name cannot begin a literal prefix. This is a boundary check rather than
 an identifier record returned to consumers.
 
 Documentation classification consumes the resulting literal and comment ranges
-and the positional facts described below. It recognizes the complete docstring
+and reads placement cues from the preserved source. It recognizes the complete
+docstring
 expression, assigns its section, and includes a trailing closing-line comment
 in that same section. It then supplies the existing paragraph fields and
 documentation positions. The addresser receives every remaining code portion
