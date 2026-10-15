@@ -2,8 +2,8 @@
 
 ```
 Status:   in-progress
-Progress: 13 of 25 TODO tasks closed
-Plan-tasks: 35 of 43 plan tasks closed
+Progress: 15 of 25 TODO tasks closed
+Plan-tasks: 36 of 43 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (founded by move-t from 2026-10-11-lexical-readers)
@@ -484,10 +484,10 @@ complete merely because this plan or its interfaces are approved.
 - [x] T1 | Distinguish lambda keywords from Unicode name spelling
 - [-] T2 | Attach inline type comments to their assignment source
 
-### K - [2026-10-14-python-comment-section-placement](../../TODO/2026-10-14-python-comment-section-placement.md)
+### K - [2026-10-14-python-comment-section-placement](../../TODO/completed/2026-10-14-python-comment-section-placement.md)
 
-- [~] T1 | Separate comment-only sections from trailing comments
-- [ ] T2 | Preserve contiguous header comments after an initial BOM
+- [x] T1 | Separate comment-only sections from trailing comments
+- [x] T2 | Preserve contiguous header comments after an initial BOM
 
 ### L - [2026-10-14-protected-directive-spacing](../../TODO/completed/2026-10-14-protected-directive-spacing.md)
 
@@ -610,7 +610,7 @@ complete merely because this plan or its interfaces are approved.
       hash classification across Python interpolation boundaries
         > 2026-10-13 Goal: python-cannot-read-python T40; Python spec hash fixture.
         > 2026-10-13 Check: only the expression hash opens a comment; raw text matches.
-- [ ] P29 | Test trailing docstring comments as one documentation section
+- [~] P29 | Test trailing docstring comments as one documentation section
         > 2026-10-13 Goal: python-cannot-read-python T41 and T47; existing writer.
         > 2026-10-13 Check: one doc section owns the suffix; no duplicate closing line.
 - [x] P30 | Reduced read verified; 1301 tests pass and review is clean | f7fa19c2 | Simplify
@@ -647,11 +647,12 @@ complete merely because this plan or its interfaces are approved.
         > 2026-10-14 Check: uv run pytest -q tests/reading/test_python.py
         > 2026-10-14 Remove control-header parsing; track documentation positions only.
         > 2026-10-14 Closes compact-header-boundaries T2 by removing the dependency.
-- [ ] P35 | Extract complete Python documentation sections
+- [~] P35 | Extract complete Python documentation sections
         > 2026-10-14 Goals: T45,T47; reading/python/documentation.py; include P29.
         > 2026-10-14 Check: adjacent literals and closing comments have one owner.
         > 2026-10-14 Check: uv run pytest -q tests/reading/test_python.py
-- [~] P36 | Project Python sections and complete code anchors
+- [x] P36 | Sections and complete anchors pass reader/page/writer checks | HEAD | Project
+      Python sections and complete code anchors
         > 2026-10-14 Goals: T40,T41; reading/python/projection.py and binder/page.py.
         > 2026-10-14 Check: A/B/C/D/F, whole sections, shebang F and all code pieces.
         > 2026-10-14 Check: uv run pytest -q tests/test_page.py
