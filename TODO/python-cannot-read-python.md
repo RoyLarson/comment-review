@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 42 of 49 tasks closed
+Progress: 42 of 50 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-21 (Roy, 2026-08-21, on four sentry files the floor interpreter cannot
@@ -442,3 +442,6 @@ the review, and nothing today protects the review.
       the Python-specific writer additions
         > 2026-10-13 Check: results matches parent; renderer and callers are absent.
         > 2026-10-13 Reason: Roy rejected replacing the existing deterministic writer.
+- [ ] T50 | Remove unused Python identifier interpretation settings
+        > 2026-10-14 Location: python.toml rules.identifiers and definition.py:109
+        > 2026-10-14 Check: reader keeps opaque code; unused identifier rules are absent

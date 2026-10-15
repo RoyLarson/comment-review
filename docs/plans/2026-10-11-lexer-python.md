@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 18 of 27 TODO tasks closed
+Progress: 18 of 28 TODO tasks closed
 Plan-tasks: 39 of 43 plan tasks closed
 Owner:    backend
 Requires-Roy: false
@@ -449,6 +449,7 @@ complete merely because this plan or its interfaces are approved.
 - [ ] T47 | Assign places to comments immediately after Python documentation
 - [x] T48 | Count internal blanks in Python comment section length
 - [x] T49 | Remove the Python-specific writer additions
+- [ ] T50 | Remove unused Python identifier interpretation settings
 
 ### C - [2026-10-12-python-numeric-keyword-boundaries](../../TODO/completed/2026-10-12-python-numeric-keyword-boundaries.md)
 
@@ -691,6 +692,7 @@ complete merely because this plan or its interfaces are approved.
         > 2026-10-14 Goals: T40,T42,T44 and reader-vocabulary T1; reader/proof routes.
         > 2026-10-14 Check: uv run pytest -q; real paths forbid AST and tokenize.
         > 2026-10-14 Check: completion commands in the approved Python specification.
+        > 2026-10-14 Includes T50 removal of unused identifier interpretation settings
 - [x] P42 | Exact comment columns and retained regions pass review and tests | 64120fb0 | Scan
       physical-line code and comment character boundaries
         > 2026-10-14 Goal: T40; source spans preserve each physical-line boundary.
