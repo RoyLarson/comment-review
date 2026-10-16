@@ -461,6 +461,7 @@ the review, and nothing today protects the review.
         > 2026-10-14 Check: adjacent literal recovery passes with host parsing forbidden
         > 2026-10-15 Awaiting scope ruling for explicit language input wiring
         > 2026-10-15 Roy chose flow-supplied language operations selected by Series
+        > 2026-10-15 Roy: middle edits prose; comment formatting belongs at setting
 - [x] T52 | Acquired-registry fixtures retain settings and identity checks | 369dd690 | Update
       reading-context test fixtures for acquired registries
         > 2026-10-14 Check: context fixture suites exercise identities and settings

@@ -68,7 +68,7 @@ scanner state remains inside the reader rather than becoming fields on Page.
 Remove numeric validation, general identifier classification, clause-chain
 validation and the retained statement/suite model. Remove decoded-character
 maps whose purpose was the rejected Python renderer. Keep prose extraction
-needed by the existing Paragraph.text and raw_text contract.
+needed to carry editable prose separately from original raw text.
 
 Flows acquire source and select the installed definition. Reading owns pure
 recognition and interpretation. Existing page/address components consume the
@@ -272,9 +272,11 @@ Code on both sides of a comment remains code. Identifier names are not extracted
 to construct an anchor. A documentation-only line does not become a code anchor
 merely because a comment follows it.
 
-Form recovery and setting use the existing fields and binder `raw_text`; no
-separate copy of original comment text is required. Changed code ordering cannot
-be hidden by freshly matching ordinals.
+The binder retains original `raw_text` alongside explicit extracted prose under
+the shared prose contract. The middle edits that prose. Setting obtains the
+original comment form from the verified source page, without a second copy of
+original source in the docket. Changed code ordering cannot be hidden by freshly
+matching ordinals.
 
 Protect the shebang, a valid-position source encoding declaration and Python
 type comments, including type-ignore directives. Preserve their text and
@@ -291,29 +293,36 @@ cookie inconsistent with that decoding policy produces an explicit refusal;
 the reader must not reinterpret already-decoded text using another encoding.
 Shebangs and cookies must remain in their effective positions after setting.
 
-## Comment operations supplied to the middle
+## Prose through the middle and Python forms at setting
 
 Follow the [comment-operation contract](2026-10-15-series-comment-operations-design.md).
-The flow constructs Python's operations from the acquired compatible definition
-and supplies their Series selector to the middle. Python owns recognition of
-the supplied paragraph's form and its add, subtract and flow behavior. The
-middle invokes those operations on binder and edit-copy text without receiving
-the definition or scanner state.
+The reader supplies Python documentation prose and its original raw source as
+distinct values. Binder and edit-copy serialization retain that distinction.
+Marks, moves, answer rewrites and chief rulings operate on prose. A move removes
+its sentence before resolution, and its destination proposal supplies the whole
+resulting prose. Intermediate prose is not parsed as a Python literal or flowed
+into a comment.
 
-Reuse the owned literal boundary and decoding rules for Python documentation
-forms, including adjacent literals and escapes. Any transient correspondence
-needed to remove prose belongs inside the operation implementation and is
-derived from the current raw paragraph. It is separate from scanner output and
-does not restore the removed renderer or add a mapping field to Page or the
-documentation payload.
+When setting the docket, the flow constructs Python's formatting operations
+from the acquired compatible definition and selects them by Series. They receive
+approved prose and the original form identified on the verified source page.
+They prepare source-formatted paragraph text for the existing galley and
+compositor. The middle receives no language definition, scanner state or
+formatting callable.
 
-Preserve the existing move and drop contracts, including unique matching and
-the destination raw text supplied by a move. Retain an immediately following
-closing-line comment within its documentation section. The implementation
-returns paragraph text or a refusal; the existing writer consumes that text.
-Saved-review entry points reconstruct the operations through the flow after
-compatibility admission. Real edit paths use the owned Python implementation
-without host AST, tokenizer or evaluation calls.
+Reuse owned literal boundary and decoding rules when extracting prose and
+rereading drafts. Python's setting operation supplies quoting, escaping and
+wrapping, including plain/raw and adjacent literal forms. Preserve the complete
+prose from a docstring and its immediately following closing-line comment in
+their single documentation section. Neither portion may be silently lost.
+No decoded-character mapping is needed in the middle to subtract prose, and
+none is added to Page or the documentation payload for that purpose.
+
+Follow the shared specification's explicit field and artifact compatibility
+changes. Saved-review resumes retain prose, while proof setting reconstructs
+the formatting operations after context admission. Reading, setting and
+rereading use owned Python rules without host AST, tokenizer or evaluation
+calls. The existing absent/ambiguous-match and atomic-move rules remain in force.
 
 ## Setting and preservation
 
@@ -325,13 +334,17 @@ Edited prose must appear at its intended place. Code before or after
 documentation on the same line remains present and ordered. Test BOM and absent
 final newline through the real workflow, without adding a second writing route.
 
-The supplied comment operations prepare paragraph text for additions, removals
-and moves. The existing writer places the resulting raw text. This work does
-not add a Python renderer, source-span replacement helper, or Python-specific
-setting route. Reader output must meet
-the writer's existing field contracts, including raw line coverage, anchors,
-indentation and documentation insertion positions. Test those contracts through
-the real writer, not through a new helper used only by tests.
+Alterations hold approved prose or an explicit deletion. At proof setting, the
+language operation prepares raw paragraph text before the existing galley and
+compositor place it. This extends their input preparation without introducing
+a separate source-span writer or Python-specific file-setting route. Prepared
+paragraphs must meet their field contracts for raw line coverage, anchors,
+indentation and documentation insertion positions. Test through the real writer.
+
+Rereading compares extracted prose at the intended address with the alteration,
+rather than comparing the alteration's prose to raw source lines. Any exact
+raw-layout check uses the prepared setting result. Both prose agreement and
+the independent executable-code comparison must pass.
 
 Adjacent documentation literals must expose their complete prose. Preserve the
 existing ordered-word move matching and absent/ambiguous-match refusals. Code
@@ -350,7 +363,7 @@ Plan P29 checks both a one-line docstring with a trailing comment and a multilin
 docstring with a trailing comment on its closing line. For module and function
 documentation, assert one owning documentation section, one copy of the closing
 line, and stable placement through the existing writer and reread. A replacement
-of the combined raw text must retain its intended place and following code.
+of the combined prose must retain its intended place and following code.
 
 For `def f(): """Explain."""; return 1`, the older representation preserves the
 line but suppresses its code trigger and can attach the docstring at B instead
@@ -382,8 +395,9 @@ literal remains executable data.
 Removing a sole docstring does not authorize insertion of `pass` or another
 executable statement. Lexical preservation and compilation remain distinct.
 Report uncertain ownership as a read failure, and otherwise apply the approved
-separate local validation requirement. Formatting follows prose-only proof;
-formatted output is presented with its own diff and does not inherit proof
+separate local validation requirement. Comment formation occurs while setting
+the draft that is proved. Later whole-source formatting follows prose-only
+proof; its output is presented with its own diff and does not inherit proof
 of unchanged executable spelling.
 
 ## Compatibility, diagnostics and integration
@@ -410,8 +424,10 @@ do not add names or symbol relationships to its result. Remove the proposed
 referrer migration from this implementation scope. A referrer limitation must
 not turn a successfully classified page into an empty or failed lexical read.
 
-Other languages keep their existing implementations until their own subplans.
-Shared adapters added for Python must preserve their current results. No runtime
+Other languages keep their existing readers until their own subplans. Each
+language needs compatible prose extraction and setting adapters before accepting
+the new prose artifact contract. Shared adapters must preserve its content,
+placement and proof guarantees. No runtime
 dependencies, generated plugin refresh or release are part of this work.
 Operational agent instructions receive only task-facing commands and checks;
 internal design material stays outside their execution inputs.
@@ -441,6 +457,8 @@ runtime and never require it to compile newer syntax.
 | Ownership changes | Removing the first docstring cannot authorize changing a promoted ordinary string; inserted docs cannot hide existing literals |
 | Failures | Truncated or uncertain input yields located diagnostics, no successful partial proof and no modified originals |
 | Saved workflow | Gather, distribute, mark, collate, saved resume, docket and drafting preserve context and original identities |
+| Prose contract | Raw source and prose survive binder/copy serialization separately; moves and rewrites compose prose without language formatting; alterations are formatted only at setting |
+| Setting comparison | Reread prose equals the approved prose at the intended place; quote escaping and wrapping may differ in raw source while executable-code proof remains independent |
 | Independence | Real read/proof routes work with AST/tokenizer entry points forbidden; import and dependency gates remain intact |
 
 Targeted tests live in `tests/reading/test_python.py`, with integration cases in

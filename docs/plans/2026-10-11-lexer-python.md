@@ -724,6 +724,7 @@ complete merely because this plan or its interfaces are approved.
         > 2026-10-14 Input wiring needs scope agreement before changing middle callers
         > 2026-10-15 Proposed: pass a bound reader through marks and folds
         > 2026-10-15 Design: 2026-10-15-series-comment-operations-design.md
+        > 2026-10-15 Superseding design separates raw source, prose and setting
 - [x] P45 | 989 tests pass; fixture requirements and quality reviewed | 369dd690 | Update
       lexical reader integration test fixtures
         > 2026-10-14 Goals: T52-T54; retain identity, settings and refusal assertions
