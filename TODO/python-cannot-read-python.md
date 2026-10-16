@@ -484,6 +484,7 @@ the review, and nothing today protects the review.
         > 2026-10-16 Location: series-comment-operations spec:99; projection.py:134
         > 2026-10-16 Check: distinguish wrapping, paragraphs and example indentation
         > 2026-10-16 Reason: collapsing whitespace loses structure before setting
+        > 2026-10-16 Roy approved retained text structure with temporary matching views
 - [ ] T57 | Define composition of prose without source wrapping
         > 2026-10-16 Location: series-comment-operations spec:152; differences.compose
         > 2026-10-16 Check: specify independent, equal and conflicting edit examples

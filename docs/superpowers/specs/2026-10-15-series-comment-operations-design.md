@@ -96,9 +96,28 @@ recognition.
 The reader supplies the original prose once, and Paragraph serialization preserves
 it rather than rebuilding it from `raw_text`. The new field is the editable
 content already extracted by the reader; it carries no grammar, scanner state,
-form recipe or source-position map. Source wrapping is removed for matching;
-paragraph boundaries and content required to preserve documentation meaning
-remain available. A matching view must not discard punctuation or change words.
+form recipe or source-position map. Retain line breaks, blank-line paragraph
+breaks and meaningful indentation in `text`. Reading removes source comment
+syntax without flattening the remaining content. Paragraph breaks within an
+addressed Paragraph do not create additional addresses.
+
+Sentence matching may ignore ordinary line wrapping in a temporary matching
+view. It locates a unique match and returns the corresponding start and end in
+the retained `text`; edits apply to that text, preserving the surrounding
+content and paragraph breaks. These are positions in supplied text, not a map
+back to source syntax. The matching view never replaces stored text and must
+not discard punctuation or change words.
+
+For example, `Keep the cache\nuntil shutdown.\n\nReport errors.` retains its
+blank-line break. Matching `Keep the cache until shutdown.` finds the sentence
+across its wrapped line. Changing that sentence leaves the break before
+`Report errors.` intact. An indented example such as `Example:\n\n    run()`
+retains its internal indentation after source comment syntax is removed.
+
+Setting applies the destination's comment syntax and width rules while
+preserving the resulting paragraph breaks and meaningful indentation. It
+reflows ordinary prose within those boundaries rather than reconstructing
+structure discarded by reading.
 
 Prose is an explicit representation, never guessed from its opening characters.
 Quotes, hashes, backslashes and apparent comment delimiters within prose are
@@ -148,7 +167,8 @@ existing refusals. Changes to one end do not bypass atomic move approval.
 
 Parallel proposals are still measured against their authoritative common base;
 sequential review consumes the previous stage's resolved prose. Intermediate
-prose does not acquire markers, quotes, escaping or width-driven line breaks.
+prose retains its supplied structure; language markers, quoting, escaping and
+width-driven reflow are applied at setting.
 The existing line-based composition algorithm must be evaluated against this
 representation: source wrap differences must not manufacture conflicts, equal
 edits apply once, and incompatible content edits remain visible. This change
@@ -252,6 +272,7 @@ pieces of code can be emitted correctly by the current compositor.
 | Ownership | Binder contains Pages; Page contains Paragraphs and delegates their serialization and field validation. Raw text and prose belong to Paragraph, with no duplicate fields on Page or Binder. |
 | Middle isolation | Mark, move, answer, chief and resume paths operate on supplied prose with language recognition, formatting and source I/O unavailable inside the middle. |
 | Wrapped sentence | A sentence split across comment-marker lines is removed once from the prose; the origin remainder and destination proposal are visible before setting. |
+| Text structure | Stored and serialized `text` retain paragraph breaks and example indentation. Matching a sentence across wrapped lines edits its span in retained text; setting preserves surrounding structure and creates no additional addresses. |
 | Prose punctuation | Quotes, hashes, backslashes and apparent closing delimiters remain prose throughout review and reread identically after setting or produce a setting refusal. |
 | Composition | Different source wraps with identical prose do not create different proposals; equal edits apply once; conflicting changes remain unresolved. |
 | Move | Cross-language and cross-Series moves transfer prose, keep both ends atomic, and never insert the destination snippet twice. |
