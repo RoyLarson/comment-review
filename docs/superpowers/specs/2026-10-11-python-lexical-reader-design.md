@@ -291,6 +291,30 @@ cookie inconsistent with that decoding policy produces an explicit refusal;
 the reader must not reinterpret already-decoded text using another encoding.
 Shebangs and cookies must remain in their effective positions after setting.
 
+## Comment operations supplied to the middle
+
+Follow the [comment-operation contract](2026-10-15-series-comment-operations-design.md).
+The flow constructs Python's operations from the acquired compatible definition
+and supplies their Series selector to the middle. Python owns recognition of
+the supplied paragraph's form and its add, subtract and flow behavior. The
+middle invokes those operations on binder and edit-copy text without receiving
+the definition or scanner state.
+
+Reuse the owned literal boundary and decoding rules for Python documentation
+forms, including adjacent literals and escapes. Any transient correspondence
+needed to remove prose belongs inside the operation implementation and is
+derived from the current raw paragraph. It is separate from scanner output and
+does not restore the removed renderer or add a mapping field to Page or the
+documentation payload.
+
+Preserve the existing move and drop contracts, including unique matching and
+the destination raw text supplied by a move. Retain an immediately following
+closing-line comment within its documentation section. The implementation
+returns paragraph text or a refusal; the existing writer consumes that text.
+Saved-review entry points reconstruct the operations through the flow after
+compatibility admission. Real edit paths use the owned Python implementation
+without host AST, tokenizer or evaluation calls.
+
 ## Setting and preservation
 
 Reread every draft under its saved compatible Python context. Keep the existing
@@ -301,9 +325,10 @@ Edited prose must appear at its intended place. Code before or after
 documentation on the same line remains present and ordered. Test BOM and absent
 final newline through the real workflow, without adding a second writing route.
 
-The existing writer handles replacement, removal, addition, move matching and
-comment formatting. This work does not add a Python renderer, source-span
-replacement helper, or Python-specific setting route. Reader output must meet
+The supplied comment operations prepare paragraph text for additions, removals
+and moves. The existing writer places the resulting raw text. This work does
+not add a Python renderer, source-span replacement helper, or Python-specific
+setting route. Reader output must meet
 the writer's existing field contracts, including raw line coverage, anchors,
 indentation and documentation insertion positions. Test those contracts through
 the real writer, not through a new helper used only by tests.

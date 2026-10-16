@@ -416,6 +416,8 @@ the review, and nothing today protects the review.
         > 2026-10-13 Correction: repair reader output for the existing writer.
         > 2026-10-13 Cause: protected shebang becomes code and shifts the C cues.
         > 2026-10-13 Cause: split doc closing lines duplicate raw text in A and C.
+        > 2026-10-15 Writer emits A raw lines and C anchors independently
+        > 2026-10-15 Hiding C makes trailing-comment edits ineffective
 - [x] T42 | Modern boundary fixtures pass on pinned Python 3.11.15 | 64120fb0 | Read
       supported newer Python syntax on the pinned Python 3.11 runtime
         > 2026-10-11 Check: plan P10 asserts 3.11-3.15 fixture facts on host 3.11
@@ -457,6 +459,8 @@ the review, and nothing today protects the review.
         > 2026-10-14 Location: reading/docstring.py:69,92,118 uses host parsing
         > 2026-10-14 Dependency: form recovery currently receives no acquired definition
         > 2026-10-14 Check: adjacent literal recovery passes with host parsing forbidden
+        > 2026-10-15 Awaiting scope ruling for explicit language input wiring
+        > 2026-10-15 Roy chose flow-supplied language operations selected by Series
 - [x] T52 | Acquired-registry fixtures retain settings and identity checks | 369dd690 | Update
       reading-context test fixtures for acquired registries
         > 2026-10-14 Check: context fixture suites exercise identities and settings

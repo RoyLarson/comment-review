@@ -675,6 +675,7 @@ complete merely because this plan or its interfaces are approved.
         > 2026-10-14 Check: uv run pytest tests/test_compositor.py tests/test_galley.py
         > 2026-10-14 Inline doc plus code needs ruling on indivisible C and A output
         > 2026-10-14 Open: 41 adjacent executable-suffix cases fail writer compatibility
+        > 2026-10-15 Adapter-only suffix retention duplicates executable output
 - [x] P38 | 63 lexical preservation checks and scoped review pass | bd9b7b7c | Compare
       Python code using lexical source ranges
         > 2026-10-14 Goals: lexical-code-identity T1, Python T38,T43; preservation.py.
@@ -721,6 +722,8 @@ complete merely because this plan or its interfaces are approved.
         > 2026-10-14 Goal: T51; retain existing forms, removal behavior and writer
         > 2026-10-14 Check: raw doc recovery and move tests forbid host parser calls
         > 2026-10-14 Input wiring needs scope agreement before changing middle callers
+        > 2026-10-15 Proposed: pass a bound reader through marks and folds
+        > 2026-10-15 Design: 2026-10-15-series-comment-operations-design.md
 - [x] P45 | 989 tests pass; fixture requirements and quality reviewed | 369dd690 | Update
       lexical reader integration test fixtures
         > 2026-10-14 Goals: T52-T54; retain identity, settings and refusal assertions
