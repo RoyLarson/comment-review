@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 54 of 59 tasks closed
+Progress: 52 of 55 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-21 (Roy, 2026-08-21, on four sentry files the floor interpreter cannot
@@ -416,8 +416,6 @@ the review, and nothing today protects the review.
         > 2026-10-13 Correction: repair reader output for the existing writer.
         > 2026-10-13 Cause: protected shebang becomes code and shifts the C cues.
         > 2026-10-13 Cause: split doc closing lines duplicate raw text in A and C.
-        > 2026-10-15 Writer emits A raw lines and C anchors independently
-        > 2026-10-15 Hiding C makes trailing-comment edits ineffective
 - [x] T42 | Modern boundary fixtures pass on pinned Python 3.11.15 | 64120fb0 | Read
       supported newer Python syntax on the pinned Python 3.11 runtime
         > 2026-10-11 Check: plan P10 asserts 3.11-3.15 fixture facts on host 3.11
@@ -459,11 +457,6 @@ the review, and nothing today protects the review.
         > 2026-10-14 Location: reading/docstring.py:69,92,118 uses host parsing
         > 2026-10-14 Dependency: form recovery currently receives no acquired definition
         > 2026-10-14 Check: adjacent literal recovery passes with host parsing forbidden
-        > 2026-10-15 Awaiting scope ruling for explicit language input wiring
-        > 2026-10-15 Roy chose flow-supplied language operations selected by Series
-        > 2026-10-15 Roy: middle edits prose; comment formatting belongs at setting
-        > 2026-10-16 Prose belongs to Page paragraphs, never the Binder envelope
-        > 2026-10-16 Raw text and prose belong to Paragraph, not Page or Binder
 - [x] T52 | Acquired-registry fixtures retain settings and identity checks | 369dd690 | Update
       reading-context test fixtures for acquired registries
         > 2026-10-14 Check: context fixture suites exercise identities and settings
@@ -480,23 +473,3 @@ the review, and nothing today protects the review.
         > 2026-10-14 Check: concatenated doc prose agrees after clause removal
         > 2026-10-14 Check: page prose expectations normalize; raw-line checks remain
         > 2026-10-14 Location: test_python_prose_roundtrip.py compares literal spacing
-- [x] T56 | Spec examples distinguish wrapping, paragraph breaks and indentation | d0985225 | Define
-      meaningful whitespace in editable paragraph text
-        > 2026-10-16 Location: series-comment-operations spec:99; projection.py:134
-        > 2026-10-16 Check: distinguish wrapping, paragraphs and example indentation
-        > 2026-10-16 Reason: collapsing whitespace loses structure before setting
-        > 2026-10-16 Roy approved retained text structure with temporary matching views
-- [x] T57 | Spec examples cover independent, equal, conflicting and wrapped edits | e39847aa | Define
-      composition of prose without source wrapping
-        > 2026-10-16 Location: series-comment-operations spec:152; differences.compose
-        > 2026-10-16 Check: specify independent, equal and conflicting edit examples
-        > 2026-10-16 Reason: one-line bases make independent edits touch the same line
-- [ ] T58 | Define setting of combined docstring and closing-comment text
-        > 2026-10-16 Location: Python lexical spec:315; decode_documentation:174
-        > 2026-10-16 Check: rewrite and move retain both portions once at one A place
-        > 2026-10-16 Reason: combined text needs a rule for its closing-comment boundary
-        > 2026-10-16 Roy: keep closing-line comments outside literals, including noqa
-- [ ] T59 | Align the parent lexical spec with the prose-setting contract
-        > 2026-10-16 Location: lexical-readers-design.md:266,272,502,716
-        > 2026-10-16 Check: parent agrees on Paragraph fields and formatting order
-        > 2026-10-16 Reason: older rules conflict with approved child specifications

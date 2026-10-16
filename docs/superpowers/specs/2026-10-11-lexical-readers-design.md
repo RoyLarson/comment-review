@@ -260,21 +260,16 @@ line endings and delimiters. Slicing and concatenating its regions reproduces
 the input exactly. Empty source is a successful empty read. An incomplete read
 has an explicit diagnostic and cannot be used for a successful proof.
 
-Source regions establish lexical boundaries and preserved code. Paragraph
-owns the complete `raw_text` and its derived `text`; Page contains Paragraphs,
-and Binder contains Pages. Paragraph owns serialization under those same field
-names. Follow the [word-alignment contract](2026-10-15-series-comment-operations-design.md):
-whole words, separate symbols and newlines retain correspondence to raw text.
-Recognized decoration can be zero-cost for matching without being removed.
-Raw forms remain through review and setting; derived text is not a replacement
-from which the original form must be reconstructed. Correspondence needed to
-locate edits is permitted, including for decoded documentation literals. A
-replacement file renderer remains outside this contract.
+Source regions and normalized prose serve different purposes. Source regions
+establish lexical boundaries and preserved code; prose extraction supplies the
+existing paragraph fields, including complete adjacent documentation literals.
+The binder's `raw_text` retains the original form required by the existing
+writer. Per-character decoding maps and a replacement renderer are not part of
+this contract. The lexer must not change the writer's input semantics to suit
+an internal representation.
 
 The lexer and addresser establish each paragraph's form and placement. A
-paragraph retains its identified comment form. Python's documented closing-line
-comment belongs to its docstring's A section while retaining its own hash form
-outside the literal. Same-type comments between code lines form
+paragraph retains one comment form. Same-type comments between code lines form
 one section, including intervening blank lines. Each `a` place holds one
 documentation section, each `b` place one section in its code gap, and each `c`
 place one section beside its code line. Blank lines provide formatting within
@@ -504,10 +499,8 @@ and reading context.
 
 ## Formatting and local validation
 
-Setting preserves the retained raw form. Necessary escaping, insertion markers
-and reflow of changed material occur before proof of that draft. A later
-whole-source formatter runs after prose-only proof and before presentation.
-The evidence from a proof applies to the exact text checked; the later formatter
+Prose-only proof precedes formatting. Formatting happens before presentation.
+The evidence from a proof applies to the exact text checked; a later formatter
 result is a separate output and does not inherit an unchanged-code claim.
 The final presented diff includes any formatting changes.
 
@@ -642,7 +635,7 @@ goals. Coverage alone does not close a TODO or change its plan ownership.
 | [lexer-and-language-findings](../../../TODO/lexer-and-language-findings.md) T3, T4, T13-T19, T22-T25, T27, T28, T32-T35 | Preserve matter ownership; distinguish shell expansion from comments and contextual keywords from declarations; recognize multiline and dynamic literals; resume scanning in source order; classify and set same-line, inner and outer documentation correctly. Each language case needs an expected-discovery fixture as well as reconstruction. |
 | [a-doc-comment-is-cued-a-and-typed-b](../../../TODO/a-doc-comment-is-cued-a-and-typed-b.md) T1-T4 | Placement and each language's independently specified documentation rules determine kind and ownership together. Go, Ruby and Lua kinds must agree with their places. Remove expected failures only when the assertions pass. Go and Ruby follow their independently documented attachment rules above. |
 | [matter-misses-two-languages](../../../TODO/matter-misses-two-languages.md) T2 | An ordinary Rust opening comment remains matter instead of becoming a declaration's documentation. The TypeScript classifier question in this TODO is separate. |
-| [block-comment-markers-survive-into-the-prose](../../../TODO/block-comment-markers-survive-into-the-prose.md) T1, T2, T7-T10 | Alignment distinguishes actual markers from content while retaining complete raw form. Invented fixtures cover multiline Javadoc, Ruby and Lua under their own rules. Zero-cost decoration does not authorize deleting payload characters, markers or relative indentation. |
+| [block-comment-markers-survive-into-the-prose](../../../TODO/block-comment-markers-survive-into-the-prose.md) T1, T2, T7-T10 | Prose excludes openers, closers and actual continuation markers; form recovery reconstructs them. Invented fixtures cover multiline Javadoc, Ruby and Lua under their own rules. Delimiter removal does not authorize deleting payload characters or relative indentation. |
 | [doc-on-the-declaring-line](../../../TODO/doc-on-the-declaring-line.md) T3, T4 | A same-line Python docstring receives the declared documentation place and can be set without losing surrounding code. |
 | [closing-line-deletes-code](../../../TODO/closing-line-deletes-code.md) T4, T7, T8 | The proposed resolution is to preserve executable prefixes and suffixes, refusing before writing when the place cannot represent the edit. An invented C fixture demonstrates preservation or refusal. Record the outstanding ruling through the owning task before closing it. |
 | [a-comment-inside-a-line-makes-the-file-unprovable](../../../TODO/a-comment-inside-a-line-makes-the-file-unprovable.md) T2, T3, T5, T6 | Source spans distinguish editable comment payload from code on the same line. Changed surrounding code fails proof, and unsupported placement has a named, located diagnostic. The old field and refusal-count prescriptions are superseded below. |
@@ -720,11 +713,11 @@ must distinguish recognition from the existing header-classification policy.
 | --- | --- |
 | [name-corpus-sees-one-language](../../../TODO/name-corpus-sees-one-language.md) T1-T5; [concordance-gaps-stated-twice](../../../TODO/concordance-gaps-stated-twice.md) | Identifier harvesting and referrer discovery require their own consumer contract. The lexer supplies documentation positions and complete code anchors without collecting names or symbol nesting. |
 | [a-series-never-fills-outside-python](../../../TODO/a-series-never-fills-outside-python.md) T19, T20 | New C and C++ declaration places extend address coverage beyond the retained policy. Correct lexical reading does not imply this extension. |
-| [strip-and-fill-the-markers](../../../TODO/strip-and-fill-the-markers.md) | The word-alignment contract retains Paragraph raw text and uses recognized markers only as matching information. Proposals that discard original form and reconstruct it later are superseded by that contract; any still-applicable mixed goals need splitting before partial closure. |
+| [strip-and-fill-the-markers](../../../TODO/strip-and-fill-the-markers.md) | The source contract shares its goals of reversible form handling and preserved payload indentation, but does not decide the proposed agent-visible marker stripping or change the binder's `raw_text` contract. Its mixed tasks need splitting before any partial closure; the whole TODO remains open. |
 | [versioning-at-v1](../../../TODO/versioning-at-v1.md) | Reader compatibility addresses the narrower changed-meaning hazard also described by T8 and T9. The TODO explicitly defers its system-wide versioning work until v1; this design does not lift that deferral or claim those tasks complete. |
 | [block-comment-markers-survive-into-the-prose](../../../TODO/block-comment-markers-survive-into-the-prose.md) T4-T6; [corpora-are-all-python](../../../TODO/corpora-are-all-python.md); [the-lexer-reads-no-files](../../../TODO/the-lexer-reads-no-files.md) T21, T22 | External corpus acquisition, published population measurements and corrections to an older investigation remain separate. Invented language fixtures are required here; they do not satisfy corpus-measurement tasks. |
 | [brief-says-three-series](../../../TODO/brief-says-three-series.md) | Reader documentation must remain consistent with current series semantics. The open questions about what roles may rule on and how matter corrections receive human approval are workflow policy, not lexical classification. |
-| [mark-defects](../../../TODO/mark-defects.md); [the-parser-merges-across-boundaries-it-cannot-read](../../../TODO/the-parser-merges-across-boundaries-it-cannot-read.md) | The word-alignment spec defines comparison and composition requirements against retained raw text. These tasks still require implementation and their own behavioral checks; better source spans and a completed specification do not close them. |
+| [mark-defects](../../../TODO/mark-defects.md); [the-parser-merges-across-boundaries-it-cannot-read](../../../TODO/the-parser-merges-across-boundaries-it-cannot-read.md) | Mark composition, conflicting corrections and prose alignment require their own fixes. Better source spans do not resolve competing edits or establish a mark-merging algorithm. Preserve structured prose in reader/setter fixtures without claiming the composition tasks closed. |
 | Remaining middle, dispatch, evidence-input, external-address and review-measurement tasks | They change review workflow or mark handling rather than source recognition. Their existing scope and any explicit deferrals remain in force. |
 
 `lexical-code-identity` T1 and `smoke-fixture-defects` T1 already belong to
