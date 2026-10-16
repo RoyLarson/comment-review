@@ -5282,3 +5282,12 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   Roy: *"For P64 - I authorize you to manually update the description this one time"*.
   This exception permits correcting the R3 dependency description while job-board lacks
   that command; task closures and all other plan writes continue through job-board.
+
+- **#210.** **A comment or docstring holding no prose gets a `drop` mark automatically**
+  (Roy, 2026-10-16). Shown that the lexical Python reader finds five empty `""` docstrings
+  in numpy's `lib/_user_array_impl.py` that the `ast` reader had reported as undocumented
+  places, and that no instruction removes one: `drop ""` is refused for an empty claim,
+  and `drop '""'` returns the paragraph unchanged with no problem reported. Roy: *"This
+  looks like a reason for this system to exist"*, *"that there are empty strings maybe
+  not bad but sloppy"*, then *"The reality is that an empty comment should get a drop
+  mark automatically"*.
