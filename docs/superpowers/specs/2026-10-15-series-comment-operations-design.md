@@ -169,10 +169,25 @@ Parallel proposals are still measured against their authoritative common base;
 sequential review consumes the previous stage's resolved prose. Intermediate
 prose retains its supplied structure; language markers, quoting, escaping and
 width-driven reflow are applied at setting.
-The existing line-based composition algorithm must be evaluated against this
-representation: source wrap differences must not manufacture conflicts, equal
-edits apply once, and incompatible content edits remain visible. This change
-does not introduce an event-log redesign or silently change approval rules.
+
+Composition compares proposed edits against spans of the authoritative base
+text. Edits to separate spans combine even when they occur on the same displayed
+line. Identical edits apply once. Incompatible edits to overlapping spans remain
+unresolved. Ordinary source wrapping alone does not create a conflict; paragraph
+breaks and meaningful indentation remain part of the retained text contract.
+The existing line-based algorithm must meet these requirements before it can
+serve this representation. Composition preserves the surrounding retained text
+and uses no language syntax. This changes neither approval rules nor the review
+history model.
+
+For the base `A small red box.`, the required results are:
+
+| Proposals | Composition result |
+| --- | --- |
+| `A large red box.` and `A small blue box.` | `A large blue box.`: separate spans combine. |
+| Two proposals of `A small blue box.` | `A small blue box.`: the equal edit applies once. |
+| `A small blue box.` and `A small green box.` | Unresolved: incompatible replacements of the same span. |
+| `A small\nred box.` and `A small blue box.` | The wrap alone creates no conflict with the color change. |
 
 Empty strings and missing results keep distinct meanings: `Place.text is None`
 means no decided text, while an approved empty result becomes the docket's
@@ -274,7 +289,7 @@ pieces of code can be emitted correctly by the current compositor.
 | Wrapped sentence | A sentence split across comment-marker lines is removed once from the prose; the origin remainder and destination proposal are visible before setting. |
 | Text structure | Stored and serialized `text` retain paragraph breaks and example indentation. Matching a sentence across wrapped lines edits its span in retained text; setting preserves surrounding structure and creates no additional addresses. |
 | Prose punctuation | Quotes, hashes, backslashes and apparent closing delimiters remain prose throughout review and reread identically after setting or produce a setting refusal. |
-| Composition | Different source wraps with identical prose do not create different proposals; equal edits apply once; conflicting changes remain unresolved. |
+| Composition | Separate edited spans combine even on one displayed line; identical edits apply once; incompatible overlapping edits remain unresolved. Ordinary wrapping alone creates no conflict, while paragraph breaks and meaningful indentation remain represented. |
 | Move | Cross-language and cross-Series moves transfer prose, keep both ends atomic, and never insert the destination snippet twice. |
 | Edit contracts | CLI-authored and directly supplied copies use identical prose semantics; source citations still compare verbatim source. |
 | Saved reviews | Answer and disposition resumes, chief copies and turn batches preserve prose; legacy or mixed representations refuse at admission. |
