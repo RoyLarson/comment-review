@@ -1,17 +1,35 @@
-# Prose through the middle, comment forms at proof setting
+# Word alignment against retained raw text
 
 ## Purpose
 
-The middle resolves changes to prose. Docket alterations carry the approved
-prose or an explicit deletion. When setting the proof, language-specific
-operations selected by Series supply comment markers, delimiters, escaping,
-indentation and wrapping. A move still subtracts its sentence before review
-resolution, so reviewers consider both the remaining and arriving prose.
+Keep the complete paragraph in `raw_text`. Locate and compare editorial changes
+by aligning whole words, with symbols, newlines and spacing represented
+separately. Each alignment token retains its contributing raw-text positions.
+This permits matching across wrapping and comment markers while retaining the
+original form, paragraph breaks, indentation and closing-line comments.
 
-This replaces the earlier proposal to restore comment syntax during every
-middle operation. Each language owns its definition and construction of the
-setting operations. This document defines their shared boundary; Python's
-rules belong in [its own specification](2026-10-11-python-lexical-reader-design.md).
+The middle resolves edits against that retained representation. Setting uses
+the existing galley and compositor, with language-specific operations only for
+the changed material that needs placement, escaping or reflow. A move still
+subtracts its sentence before review resolution. Each language owns its
+definition; Python's rules belong in
+[its own specification](2026-10-11-python-lexical-reader-design.md).
+
+## Superseded requirements
+
+This word-alignment contract supersedes the earlier requirements in this spec
+to make stripped `text` the authoritative editable paragraph, propagate
+syntax-free strings through every review artifact, and reconstruct complete
+comment forms from those strings at setting. The proposed conversion of
+`Alteration.text` to syntax-free prose is superseded as well. Retained raw
+forms supply the information that reconstruction would otherwise have to infer.
+
+Paragraph ownership, consistent field names, snapshot consistency, whole-section
+addresses, atomic moves, separate code proof and local validation remain in
+force. Token-to-raw correspondence is permitted for locating edits; the earlier
+blanket exclusion of such correspondence does not apply to this matching work.
+It does not authorize a replacement file writer or language parsing in the
+middle.
 
 ## Current raw-text contract traced
 
@@ -32,14 +50,14 @@ the proposed field meanings.
 | Setting | `_one` hands `Schedule.edits` to `galley.reset`, which assigns replacement lines directly. The compositor emits the page. | [proof_setter.py](../../../src/comment_review/flows/proof_setter.py), `_one`; [galley.py](../../../src/comment_review/results/galley.py), `reset` |
 | Rereading | `_reread` compares the draft paragraph's raw lines with the alteration's text exactly, followed by executable-code proof. | [proof_setter.py](../../../src/comment_review/flows/proof_setter.py), `_reread`, `_prove` |
 
-The present contract depends on alterations already containing source syntax,
-although their loader does not enforce it. Moving formatting to setting requires
-changing both the input to `galley.reset` and the reread comparison.
+The present contract already retains source syntax through alterations. The
+change is to matching and composition against that representation, replacing
+host-dependent form recovery while preserving the existing setting route.
 
 ## Ownership
 
 The Binder contains Pages. Each Page contains Paragraphs. Each Paragraph owns
-its original raw text, extracted prose and serialized representation:
+its original raw text, derived text and serialized representation:
 
 ```text
 Binder
@@ -50,7 +68,7 @@ Binder
 ```
 
 Paragraph serialization and deserialization preserve the two representations.
-Extracted prose uses `text` both in memory and in the serialized Paragraph.
+Derived text uses `text` both in memory and in the serialized Paragraph.
 Raw text remains derived from the Paragraph's source lines. Neither
 representation is duplicated on Page.
 
@@ -68,14 +86,16 @@ the Binder; they are outside this change.
 
 ## Paragraph snapshot lifecycle
 
-A Paragraph's `text` and `raw_text` describe the same source snapshot. Reading
-creates them together; serialization and deserialization preserve that pair.
-The serialized `text` field carries the existing `Paragraph.text` value.
+A Paragraph's `raw_text` is the retained representation. Its derived `text`
+describes that same snapshot and is not independently edited. Reading creates
+them together; serialization and deserialization preserve the pair under the
+same field names. Matching derives positional tokens from `raw_text`, so it
+does not depend on restoring source from the derived `text`.
 
 Review keeps the original Paragraph unchanged. Marks and resolved places hold
-proposed and decided prose separately, including prose passed to later review
-stages. Setting formats the approved prose into source. Rereading the resulting
-draft creates new Paragraphs with matching extracted text and raw source.
+proposed and decided raw paragraph replacements separately, including results
+passed to later review stages. Setting places the approved result. Rereading
+the draft creates new Paragraphs with matching derived text and raw source.
 
 The galley's draft preparation must preserve this boundary: replacing source
 lines alone does not produce a new, synchronized Paragraph. Keep the original
@@ -84,91 +104,153 @@ material until rereading supplies the new pair. A Paragraph must never present
 revised `text` beside original `raw_text`, or revised raw lines beside stale
 `text`, as corresponding representations.
 
-## Source text and editable prose
+## Retained source and alignment tokens
 
-Keep `raw_text` for the original paragraph's source representation, including
-its comment markers and literal spelling. It remains available as context and
-evidence. Give editable prose its own explicit field, `text`, on serialized
-Paragraphs and seeded edit-copy entries. This is needed because
-reconstructing prose from raw text inside the middle would repeat language
-recognition.
+Retain the complete `raw_text`, including markers, literal spelling, newlines,
+paragraph breaks, indentation and closing-line comments. A temporary alignment
+view never replaces it. Paragraph breaks inside one addressed Paragraph remain
+internal structure and do not create additional addresses.
 
-The reader supplies the original prose once, and Paragraph serialization preserves
-it rather than rebuilding it from `raw_text`. The new field is the editable
-content already extracted by the reader; it carries no grammar, scanner state,
-form recipe or source-position map. Retain line breaks, blank-line paragraph
-breaks and meaningful indentation in `text`. Reading removes source comment
-syntax without flattening the remaining content. Paragraph breaks within an
-addressed Paragraph do not create additional addresses.
+Alignment operates on whole-word tokens, not individual letters. Symbols and
+newlines are separate tokens; spacing remains represented between words. Each
+token records the raw span or spans that contributed it. Preserve exact word
+spelling and case. Splitting out punctuation must not lose it.
 
-Sentence matching may ignore ordinary line wrapping in a temporary matching
-view. It locates a unique match and returns the corresponding start and end in
-the retained `text`; edits apply to that text, preserving the surrounding
-content and paragraph breaks. These are positions in supplied text, not a map
-back to source syntax. The matching view never replaces stored text and must
-not discard punctuation or change words.
+For `# Keep the cache\n# until shutdown.`, the significant sequence is
+`# | Keep | the | cache | newline | # | until | shutdown | .`, with spacing
+also retained. The two opening hashes are identified markers; a hash in
+`# Explain the # marker.` is content except for the opening marker.
 
-For example, `Keep the cache\nuntil shutdown.\n\nReport errors.` retains its
-blank-line break. Matching `Keep the cache until shutdown.` finds the sentence
-across its wrapped line. Changing that sentence leaves the break before
-`Report errors.` intact. An indented example such as `Example:\n\n    run()`
-retains its internal indentation after source comment syntax is removed.
+The language's existing form recognition supplies marker roles. The alignment
+engine consumes supplied roles and raw positions; it does not recognize Python
+or another language. Symbol spelling alone never grants zero cost. Literal
+delimiters can be recognized decoration, while a quoted hash or backslash can
+be content. Where literal escapes or adjacent literals alter visible spelling,
+language-owned handling must preserve the correspondence to all contributing
+raw spans. It must not guess by stripping quotes or escape characters.
 
-Setting applies the destination's comment syntax and width rules while
-preserving the resulting paragraph breaks and meaningful indentation. It
-reflows ordinary prose within those boundaries rather than reconstructing
-structure discarded by reading.
+| Token difference | Alignment treatment |
+| --- | --- |
+| Equal word or content symbol | Match with no content-change cost. |
+| Inserted, deleted or replaced word | Positive content-change cost for the whole word. |
+| Inserted, deleted or replaced content symbol | Positive content-change cost. |
+| Ordinary spacing, wrapping or recognized comment decoration | Zero alignment cost; retain the raw characters. |
+| Paragraph breaks or meaningful indentation | Retained structure, never silently collapsed. |
+| Protected directive or executable material | Preserve text and attachment independently of alignment score. |
 
-Prose is an explicit representation, never guessed from its opening characters.
-Quotes, hashes, backslashes and apparent comment delimiters within prose are
-ordinary content. For example, `Explain the # marker.` must retain the hash.
-A proposal with an unmatched quote remains editable prose and may be escaped
-when set. The middle never tries to parse that proposal as source.
+For snippet lookup, align the entire snippet within the addressed raw paragraph;
+unrelated leading and trailing paragraph content is outside the match. Require
+zero content-change cost and a unique content occurrence. A close spelling is
+not a successful match. Equivalent paths through the same formatting are not
+distinct occurrences, but repeated content at different raw positions is
+ambiguous. Whole-word boundaries keep `now here` distinct from `nowhere`.
 
-Original raw text is not overwritten with proposed prose. The field roles are:
+For complete revisions, align the full base and proposal to identify changed
+word and symbol spans. Ambiguous mappings that imply different edits require
+resolution. The result identifies content spans and intervening retained
+decoration; it is not permission to delete one contiguous raw interval that
+also contains markers. Unrelated raw text stays exact. Applying a change must
+retain paragraph breaks and meaningful indentation outside that change.
+
+The implementation uses pure Python and the standard library. It needs no
+alignment dependency. The engine aligns text tokens; it builds no programming
+language token model, statement tree or identifier relationships.
+
+### Small lookup prototypes
+
+These examples exercise lookup with supplied marker positions. They do not test
+language recognition, full revision alignment or applying changes. Raw portions
+listed below exclude surrounding decoration but retain their original spelling.
+
+```python
+# Keep the cache
+# until shutdown.
+# Keep the cache until shutdown.
+# Explain the # marker.
+```
+
+Only each line's first hash is an opening marker.
+
+| Sentence to find | Matching raw portions |
+| --- | --- |
+| `Keep the cache until shutdown.` | Two occurrences: `Keep the cache` on the first line plus `until shutdown.` on the second; the complete sentence on the third. Lookup refuses the ambiguity. |
+| `Keep cache until shutdown.` | None: the source includes `the`. |
+| `Explain the # marker.` | `Explain the # marker.` on the last line, including the internal hash. |
+| `Explain the marker.` | None: the internal hash is content. |
+
+```python
+"""Call run(x).
+Keep the # marker."""  # noqa: D400
+```
+
+The triple quotes and the hash after the closing quotes are supplied as
+decoration. The hash inside the literal remains content.
+
+| Sentence to find | Matching raw portions |
+| --- | --- |
+| `Call run ( x ) .` | `Call run(x).` on the first line; each symbol matches despite spacing. |
+| `Call run(y).` | None: `y` differs from `x`. |
+| `Keep the # marker.` | `Keep the # marker.` on the second line, ending before the closing quotes. |
+| `noqa: D400` | `noqa: D400` in the closing-line comment. Locating it grants no permission to change the protected directive. |
+
+A throwaway lookup probe reproduced these expected portions using explicit
+fixture marker positions and whole-word/symbol comparison. This establishes
+the examples' lookup behavior only; production integration remains required.
+
+## Field roles
+
+The field roles are:
 
 | Carrier | Proposed meaning |
 | --- | --- |
 | Paragraph `raw_text` | Original source representation for the place. |
-| Paragraph `text`, in memory and serialized | Reader-extracted original editable prose. |
-| Seeded edit-copy `raw_text`, `text` | Original source context and original prose supplied to the role. |
+| Paragraph `text`, in memory and serialized | Derived view of the same raw snapshot, with the same field name on both sides. |
+| Seeded edit-copy `raw_text` | Complete original paragraph supplied to the role. |
 | Ordinary mark `raw_text` | Retained source context, not the authoritative base for verification. |
-| Correct, patch and drop `change` | Complete resulting prose; empty prose retains the existing drop meaning. |
-| Add or move `change` | Prose being added or moved. |
-| Add or move `text` | Complete proposed destination prose, replacing the overloaded use of `raw_text` for this purpose. |
-| Quoted editorial claims | Quotes from the authoritative prose supplied for review. |
-| Answer `change`, chief recast `text` | Complete proposed prose for the corresponding side or place. |
-| `Place.base`, `Place.sides`, `Place.text` | Original, proposed and decided prose respectively. |
-| Turn batches and chief copies | Prose from those same fields, presented as prose. Original source context, where carried, remains explicitly raw. |
-| `Alteration.text` | Approved complete prose, or `None` to vacate the place. |
+| Correct, patch and drop `change` | Complete resulting raw paragraph; the existing empty-result rule remains. |
+| Add or move `change` | Content snippet being added or moved, located by whole-word alignment. |
+| Add or move destination proposal | Complete proposed raw destination paragraph under its declared artifact field; no conversion to a syntax-free string. |
+| Quoted editorial claims | Content located against authoritative raw text by alignment. |
+| Answer `change`, chief recast `text` | Complete proposed raw paragraph for the corresponding side or place. |
+| `Place.base`, `Place.sides`, `Place.text` | Original, proposed and decided raw paragraph strings respectively. |
+| Turn batches and chief copies | Retained raw results from those same fields. |
+| `Alteration.text` | Approved complete raw paragraph replacement, or `None` to vacate the place. |
 
 Source citations and their verbatim evidence continue to quote source exactly.
-They are separate from editorial claims about paragraph prose. The copy, mark
-and answer contracts must state which text is quoted and which text is proposed.
+They are separate from editorial claims located by alignment. The copy, mark
+and answer contracts distinguish original raw text, complete raw replacements
+and content snippets explicitly; no field is reinterpreted by guessing from its
+opening characters.
 
 ## Admission and middle operations
 
-Flows obtain the authoritative prose base from a Page in the received Binder
+Flows obtain the authoritative raw base from a Paragraph in the received Binder
 or the existing address-resolution flow. Extra addresses receive the same reading and
 identity checks as gathered places. Returned marks cannot supply their own base
 for verification. Anchors remain opaque values used by existing address checks.
 
 Mark creation, check, collation, direct-copy transcription, answers and chief
-rulings all consume the same prose contract. Admission validates representation
-and required fields. It does not require intermediate prose to be a valid
-comment or string literal.
+rulings consume the same retained-text and word-alignment contract. Flows
+supply the acquired form's token roles and raw correspondence through a narrow
+text interface. The middle receives no language definition or scanner state.
+Admission validates representation and required fields; intermediate edits need
+not already satisfy final wrapping or placement rules. Source validity and
+directive attachment are checked when setting and rereading.
 
 The middle performs language-independent matching, addition, subtraction and
-composition. A move subtracts a uniquely matching snippet from its origin and
+composition. A move subtracts the content spans of a uniquely matching snippet
+from its retained raw origin and
 uses the supplied complete destination proposal. It checks that the destination
 keeps its existing prose and the moved prose in their required order. It does
 not append the snippet a second time. Absent and ambiguous matches retain their
 existing refusals. Changes to one end do not bypass atomic move approval.
 
 Parallel proposals are still measured against their authoritative common base;
-sequential review consumes the previous stage's resolved prose. Intermediate
-prose retains its supplied structure; language markers, quoting, escaping and
-width-driven reflow are applied at setting.
+sequential review consumes the previous stage's resolved raw result. Each
+candidate retains the original form around its edited content. Alignment
+ignores eligible formatting for matching without removing it from candidates.
+Language-specific repair of changed material and width-driven reflow occur
+at setting.
 
 Composition compares proposed edits against spans of the authoritative base
 text. Edits to separate spans combine even when they occur on the same displayed
@@ -180,19 +262,21 @@ serve this representation. Composition preserves the surrounding retained text
 and uses no language syntax. This changes neither approval rules nor the review
 history model.
 
-For the base `A small red box.`, the required results are:
+For the raw base `# A small red box.`, the required results are:
 
 | Proposals | Composition result |
 | --- | --- |
-| `A large red box.` and `A small blue box.` | `A large blue box.`: separate spans combine. |
-| Two proposals of `A small blue box.` | `A small blue box.`: the equal edit applies once. |
-| `A small blue box.` and `A small green box.` | Unresolved: incompatible replacements of the same span. |
-| `A small\nred box.` and `A small blue box.` | The wrap alone creates no conflict with the color change. |
+| `# A large red box.` and `# A small blue box.` | `# A large blue box.`: separate spans combine and the marker remains. |
+| Two proposals of `# A small blue box.` | `# A small blue box.`: the equal edit applies once. |
+| `# A small blue box.` and `# A small green box.` | Unresolved: incompatible replacements of the same word. |
+| `# A small\n# red box.` and `# A small blue box.` | The wrap alone creates no conflict with the color change; markers remain accounted for. |
 
 Empty strings and missing results keep distinct meanings: `Place.text is None`
 means no decided text, while an approved empty result becomes the docket's
-explicit deletion. A prose result equal to its base creates no alteration, so
-unchanged places are not reformatted as a side effect.
+explicit deletion. An unchanged raw result creates no alteration. A zero-cost
+alignment score alone is not evidence that two raw strings are identical;
+required structure, protected text and explicit formatting changes remain
+accounted for. Unchanged places are not reformatted as a side effect.
 
 ## Language-specific setting by Series
 
@@ -203,17 +287,18 @@ The setter declares the narrow interface it needs. Language definitions and
 scanner state stay within the language implementation; the middle receives
 neither a formatting callable nor those details.
 
-For each alteration, the operation receives approved prose, the original
-paragraph's identified form, and the existing placement and line controls. It
-returns the source-formatted paragraph or a setting refusal. The original form
-comes from reading the verified source page. It does not come from parsing the
-edited prose or from another copy of original source stored in the docket.
+For each alteration, the operation receives the approved raw replacement,
+verified original raw paragraph and its identified form, plus existing placement
+and line controls. It preserves untouched form directly. It does not rebuild
+the paragraph from stripped prose or infer where a removed closing comment
+used to begin. The retained raw replacement remains the editing record.
 
-Existing filled places retain their comment form where it can represent the
-approved prose. Empty places use the language's defined insertion form. The
-operation chooses only among that language's permitted forms when quoting or
-escaping requires a different spelling; the decoded prose and Series must stay
-the same. It refuses an unrepresentable result instead of dropping content.
+Only changed material needing escaping, destination-specific markers or width
+handling requires language-specific adjustment. Empty places use the language's
+defined insertion form. A moved snippet transfers its content into the
+destination's form rather than copying origin markers as content. Such changes
+must retain the approved words, content symbols, paragraph structure and Series.
+Unrepresentable output produces a setting refusal.
 
 A documentation section that owns a closing-line comment retains that comment
 outside the documentation literal, on its closing line. Sharing one address
@@ -224,14 +309,19 @@ discard them. A rewrite, move or deletion that cannot preserve this requirement
 must produce a setting refusal. Language-specific details belong to the
 language's specification.
 
-Line comments receive their markers and continuation lines. Block comments
-receive their opening and closing delimiters. Documentation literals receive
-the required quoting and escaping. A, B, C and F retain their placement and
-whole-section rules; D remains leading space. Each language has its own
-definition and assembly, even where mechanics can be shared.
+For `"""Explain the cache."""  # noqa: D400`, changing `cache` to `buffer` retains
+the surrounding quotes, spaces and full closing comment. The raw boundary
+already distinguishes the two forms. An ordinary editable closing comment
+also retains that boundary when its words change; a match must identify which
+content occurrence is edited rather than concatenate both portions and infer
+a new split afterward.
+
+A, B, C and F retain their placement and whole-section rules; D remains leading
+space. Each language has its own definition and assembly, even where mechanics
+can be shared.
 
 The formatted replacements are passed to the existing galley and compositor.
-The docket itself continues to hold approved prose. Deletions use the existing
+The docket holds approved raw replacements. Deletions use the existing
 vacating path. A setting refusal discards the draft run under the current
 all-or-nothing contract, including both ends of a move across different files.
 This is a preparation step in the existing setting flow, not another writer.
@@ -239,11 +329,14 @@ This is a preparation step in the existing setting flow, not another writer.
 ## Rereading and proof
 
 Reread the draft under the admitted context and check the intended place and
-Series. Compare its extracted prose with the approved alteration using the
-same representation used at admission. Added, missing, reordered or differently
-decoded content must fail; a changed line wrap alone must not fail. Check a
-deletion by absence of prose at its retained place. Any raw-layout comparison
-uses the setter's formatted result rather than comparing prose with raw lines.
+Series. Compare actual raw output with the prepared replacement and independently
+check that it retains the approved content and protected boundaries. Where
+setting legitimately changes wrapping or escaping, check content using the
+same word/symbol and language-owned literal rules used at admission. Added,
+missing, reordered or differently decoded content must fail. A raw-layout
+check uses the prepared result; alignment cost alone cannot prove exact form.
+Check a deletion by absence of editable content at its retained place, with
+directive and code preservation checked independently.
 
 Independently prove that executable pieces and their order are unchanged.
 Comment delimiters that escape into code, changed literal data, changed code
@@ -257,34 +350,32 @@ own diff; that later output does not inherit proof of unchanged code spelling.
 
 ## Compatibility and affected interfaces
 
-This changes the meaning of editable fields and `Alteration.text`; it is not a
-drop-in callable substitution. Give the affected Paragraph, edit-copy, master-proof,
-turn-batch and docket formats an explicit shared contract identity or version
-through their existing admission mechanisms. The Binder envelope's version may
-identify a changed nested Paragraph contract; it does not own Paragraph fields.
-Old artifacts must be refused with a regeneration instruction before composition
-or setting. Never guess whether
-a legacy string contains prose or source syntax, and never silently reinterpret
-an old `raw_text` destination proposal as the new `text` field. Rename the chief
-recast's existing `prose` field to `text` in both its object and serialized
-contract as part of the same version change.
+Keep raw replacement semantics through marks, proofs and `Alteration.text`.
+Supersede the proposed wholesale migration to syntax-free fields. Any actual
+field or interpretation change must have an explicit identity through existing
+admission mechanisms. The Binder envelope may identify a changed nested
+Paragraph contract; Paragraph still owns its fields. Keep `text` consistently
+named in memory and on the wire wherever that field is used, including the
+proposed chief-recast rename. Refuse incompatible artifacts with a regeneration
+instruction; never guess whether a string is raw source or a content snippet.
 
 Update serialization and deserialization together with mark/check input,
 derived changes, claims, retained-word checks, move composition, answer and
 chief output, saved resumption, both transcription routes and setter rereading.
-Published CLI contracts and operational documentation must describe prose input
-and source context consistently. This specification does not itself change
+Published CLI contracts and operational documentation must distinguish raw
+replacements from content snippets consistently. This specification does not change
 those runtime contracts or agent instructions.
 
 Callables are constructed only when needed for setting and are never serialized.
-The current raw-to-comment helpers in middle operations are retired once their
-prose replacements cover the real paths. Python reading and setting use the
-owned rules without AST, tokenizer or evaluation entry points. Other languages
-must have compatible adapters before accepting the new prose docket format;
-their detailed rules remain in their own specifications.
+The host-dependent raw-to-comment recovery path is retired once owned
+recognition and word alignment cover its real callers. Python reading and
+setting use owned rules without AST, tokenizer or evaluation entry points.
+Other languages retain their existing readers until their own adapters supply
+the required token roles and setting behavior. Their detailed rules remain in
+their own specifications.
 
 The known shared-line code-anchor representation problem remains independently
-open. Moving formatting to setting does not prove that a docstring between two
+open. Word alignment does not prove that a docstring between two
 pieces of code can be emitted correctly by the current compositor.
 
 ## Acceptance evidence
@@ -294,16 +385,17 @@ pieces of code can be emitted correctly by the current compositor.
 | Paragraph roundtrip | `raw_text` and `text` retain their names and distinct meanings through serialization and deserialization, including Paragraphs contained in Pages inside a Binder. |
 | Snapshot lifecycle | Review and setting preserve the original Paragraph pair; proposals remain separate. Rereading a formatted draft creates a new matching pair, including after saved-review resumption. Draft preparation never exposes stale extracted text as matching revised raw lines. |
 | Ownership | Binder contains Pages; Page contains Paragraphs and delegates their serialization and field validation. Raw text and prose belong to Paragraph, with no duplicate fields on Page or Binder. |
-| Middle isolation | Mark, move, answer, chief and resume paths operate on supplied prose with language recognition, formatting and source I/O unavailable inside the middle. |
-| Wrapped sentence | A sentence split across comment-marker lines is removed once from the prose; the origin remainder and destination proposal are visible before setting. |
-| Text structure | Stored and serialized `text` retain paragraph breaks and example indentation. Matching a sentence across wrapped lines edits its span in retained text; setting preserves surrounding structure and creates no additional addresses. |
-| Prose punctuation | Quotes, hashes, backslashes and apparent closing delimiters remain prose throughout review and reread identically after setting or produce a setting refusal. |
+| Middle isolation | Mark, move, answer, chief and resume paths align supplied text tokens and raw positions; language recognition, formatting and source I/O stay outside the middle. |
+| Wrapped sentence | Whole words match across newline and marker tokens with zero content-change cost. Removal edits content spans once and preserves intervening form; both move ends remain visible before setting. |
+| Text structure | Raw text retains paragraph breaks and example indentation. Alignment never replaces it with a flattened string or creates additional addresses. |
+| Symbols | Opening markers may be zero-cost; literal hashes, slashes, asterisks and punctuation remain content. A changed content symbol incurs a cost. |
+| Match identity | `now here` does not match `nowhere`; changed words refuse snippet lookup. Repeated content at different positions is ambiguous; equivalent formatting paths at one occurrence are not. |
 | Composition | Separate edited spans combine even on one displayed line; identical edits apply once; incompatible overlapping edits remain unresolved. Ordinary wrapping alone creates no conflict, while paragraph breaks and meaningful indentation remain represented. |
 | Move | Cross-language and cross-Series moves transfer prose, keep both ends atomic, and never insert the destination snippet twice. |
-| Edit contracts | CLI-authored and directly supplied copies use identical prose semantics; source citations still compare verbatim source. |
-| Saved reviews | Answer and disposition resumes, chief copies and turn batches preserve prose; legacy or mixed representations refuse at admission. |
-| Docket | Both transcription routes produce prose alterations, omit unchanged places and retain explicit deletion and recorded source identities. |
-| Setting | Markers, escaping, wrapping and empty-place defaults are applied only while setting; a failed destination produces no partial draft run. |
+| Edit contracts | CLI-authored and directly supplied copies distinguish raw replacements from content snippets; source citations still compare verbatim source. |
+| Saved reviews | Answer and disposition resumes, chief copies and turn batches retain raw form; incompatible representations refuse at admission. |
+| Docket | Both transcription routes retain raw replacements, omit unchanged places and preserve explicit deletion and recorded source identities. |
+| Setting | Untouched raw form remains exact under the existing output newline policy. Only changed material needing destination formatting is adjusted; a failed destination produces no partial draft run. |
 | Reread | Approved prose agrees at its intended place despite different raw formatting; missing or changed content and wrong placement refuse. |
 | Python documentation | Plain/raw and adjacent/parenthesized literals expose their full prose; a closing-line comment remains in the same section, with both portions accounted for once. |
 | Closing-line directives | Editing a documentation section preserves its closing-line comment outside the literal at the same address. Directive text and effective attachment survive rewriting; moves and deletions either preserve them or refuse. |
@@ -311,6 +403,6 @@ pieces of code can be emitted correctly by the current compositor.
 
 Use invented examples and the real gather, mark, collate, resume, transcribe and
 proof paths. Existing reader, address, writer and preservation assertions remain
-required. Update raw-equality expectations only where the explicit new prose
-contract replaces them, retaining independent checks for source loss and wrong
-placement.
+required. Include long wrapped sections and repeated-word cases when checking
+alignment cost and ambiguity. Raw equality remains required for untouched form;
+any authorized setting normalization has its own explicit expected result.
