@@ -197,6 +197,47 @@ A throwaway lookup probe reproduced these expected portions using explicit
 fixture marker positions and whole-word/symbol comparison. This establishes
 the examples' lookup behavior only; production integration remains required.
 
+### Small editing prototypes
+
+Use the same supplied marker positions to locate edits, then compare the entire
+result with a literal expected raw string. These probes cover single-line
+replacement and wrapped deletion; they do not choose wrapping for a longer
+replacement or exercise the production setter.
+
+```python
+# Keep the cache
+# until shutdown.
+#
+# Example:
+#     run()
+```
+
+Replacing `cache` with `buffer` changes only that word. Removing
+`Keep the cache until shutdown.` removes its content from the first two lines.
+The exact result, with newlines written as `\n`, is:
+
+```text
+"# \n# \n#\n# Example:\n#     run()"
+```
+
+This exposes the residue of preserving raw form: the first two lines still
+contain their marker and following space. The existing paragraph break and
+example indentation are unchanged. This is the intermediate raw edit, not a
+claim that final setting should retain every newly empty comment line. Matching
+and content removal alone do not decide that cleanup.
+
+For the docstring example above:
+
+| Edit | Exact expected raw result (`\n` denotes a newline) |
+| --- | --- |
+| Replace `Keep the # marker.` with `Keep the / marker.` | `"""Call run(x).\nKeep the / marker."""  # noqa: D400` |
+| Remove `Call run ( x ) .` | `"""\nKeep the # marker."""  # noqa: D400` |
+| Attempt to remove `noqa: D400` | Refuse using the supplied protected range; the original text remains unchanged. |
+
+The throwaway probe reproduces these results. The closing quotes, spaces and
+directive survive both permitted edits exactly. Protection is an explicit
+fixture input, not something the alignment algorithm infers from the words.
+
 ## Field roles
 
 The field roles are:
