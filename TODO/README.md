@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (124)
+### open  (125)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -275,7 +275,7 @@ that changed a published name or rule:
 | [ty-cannot-see-the-tests](ty-cannot-see-the-tests.md) | systems (the gate) - backend (the test fixes) | -- | 1/5 | The type gate is scoped to src and cannot see the tests |
 | [null-becomes-the-word-none](null-becomes-the-word-none.md) | backend | -- | 0/6 | A present-but-null key becomes the four characters None |
 | [collate-flow-defects](collate-flow-defects.md) | backend | -- | 4/25 | Twelve defects in `flows/collate.py`, from a review of one file |
-| [mark-defects](mark-defects.md) | backend | -- | 23/36 | Eleven defects in `desk/mark.py`, found by running its parse against its own prose |
+| [mark-defects](mark-defects.md) | backend | -- | 23/37 | Eleven defects in `desk/mark.py`, found by running its parse against its own prose |
 | [binder-defects](binder-defects.md) | backend | -- | 7/25 | Eighteen defects in binder.py, and `read` admits four shapes it exists to refuse |
 | [docket-defects](docket-defects.md) | backend | -- | 5/11 | Six defects in docket.py, and one discards an approved page at exit 0 |
 | [collate-command-defects](collate-command-defects.md) | backend | -- | 6/23 | Sixteen defects in `commands/collate.py`, measured by running it |
@@ -306,6 +306,7 @@ that changed a published name or rule:
 | [collate-file-input](collate-file-input.md) | backend | -- | 0/1 | Read collation inputs from a file |
 | [2026-10-11-maintained-source-selection](2026-10-11-maintained-source-selection.md) | agents | -- | 0/1 | Select maintained source for review |
 | [2026-10-13-human-question-list](2026-10-13-human-question-list.md) | backend | -- | 0/1 | Expose human questions across edit copies |
+| [empty-comment-gets-a-drop](empty-comment-gets-a-drop.md) | backend | -- | 0/1 | An empty comment gets a drop mark |
 
 ### in-progress  (18)
 
