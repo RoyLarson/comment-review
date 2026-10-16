@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 52 of 55 tasks closed
+Progress: 52 of 59 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-21 (Roy, 2026-08-21, on four sentry files the floor interpreter cannot
@@ -480,3 +480,19 @@ the review, and nothing today protects the review.
         > 2026-10-14 Check: concatenated doc prose agrees after clause removal
         > 2026-10-14 Check: page prose expectations normalize; raw-line checks remain
         > 2026-10-14 Location: test_python_prose_roundtrip.py compares literal spacing
+- [ ] T56 | Define meaningful whitespace in editable paragraph text
+        > 2026-10-16 Location: series-comment-operations spec:99; projection.py:134
+        > 2026-10-16 Check: distinguish wrapping, paragraphs and example indentation
+        > 2026-10-16 Reason: collapsing whitespace loses structure before setting
+- [ ] T57 | Define composition of prose without source wrapping
+        > 2026-10-16 Location: series-comment-operations spec:152; differences.compose
+        > 2026-10-16 Check: specify independent, equal and conflicting edit examples
+        > 2026-10-16 Reason: one-line bases make independent edits touch the same line
+- [ ] T58 | Define setting of combined docstring and closing-comment text
+        > 2026-10-16 Location: Python lexical spec:315; decode_documentation:174
+        > 2026-10-16 Check: rewrite and move retain both portions once at one A place
+        > 2026-10-16 Reason: combined text needs a rule for its closing-comment boundary
+- [ ] T59 | Align the parent lexical spec with the prose-setting contract
+        > 2026-10-16 Location: lexical-readers-design.md:266,272,502,716
+        > 2026-10-16 Check: parent agrees on Paragraph fields and formatting order
+        > 2026-10-16 Reason: older rules conflict with approved child specifications
