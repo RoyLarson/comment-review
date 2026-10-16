@@ -295,6 +295,41 @@ prefix and last-line suffix. The earlier complete-line example does not
 demonstrate that behavior. This result concerns the throwaway operation, not
 a test of the production setter.
 
+A second probe applies the same matched edit, then reflows the affected prose
+paragraph with its neighbouring sentences included. Its input adds a separate
+paragraph with deliberate spacing and indentation:
+
+```python
+# Start here. Keep the cache
+# until shutdown. Report errors.
+#
+# Keep  this paragraph.
+#     run()
+```
+
+At the same width, the complete expected and observed result is:
+
+```python
+# Start here. Keep cached
+# entries until every pending
+# request finishes. Report
+# errors.
+#
+# Keep  this paragraph.
+#     run()
+```
+
+This probe passes exact-output, word-order, width and unchanged-suffix checks.
+The scope of reflow is the affected ordinary-prose paragraph within the addressed
+section, not the entire addressed Paragraph. Its neighbours within that prose
+paragraph can change wrapping while retaining their words and punctuation.
+The following paragraph's raw spacing and indentation remain exact.
+
+The fixture supplies the eligible prose paragraph's boundary and comment prefix.
+It demonstrates the placement remedy for this case, not automatic boundary
+selection or permission to reflow examples or protected directives. The earlier
+sentence-only probe remains a failing comparison.
+
 ## Field roles
 
 The field roles are:
