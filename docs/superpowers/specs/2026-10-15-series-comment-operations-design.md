@@ -66,6 +66,25 @@ metadata. It gains no prose field, parallel paragraph store or formatting
 responsibility. Future Glossary and Index contents would be peers of Pages in
 the Binder; they are outside this change.
 
+## Paragraph snapshot lifecycle
+
+A Paragraph's `text` and `raw_text` describe the same source snapshot. Reading
+creates them together; serialization and deserialization preserve that pair.
+The serialized `prose` field carries the existing `text` value, rather than
+introducing another independently maintained prose value on Paragraph.
+
+Review keeps the original Paragraph unchanged. Marks and resolved places hold
+proposed and decided prose separately, including prose passed to later review
+stages. Setting formats the approved prose into source. Rereading the resulting
+draft creates new Paragraphs with matching extracted text and raw source.
+
+The galley's draft preparation must preserve this boundary: replacing source
+lines alone does not produce a new, synchronized Paragraph. Keep the original
+snapshot available for verification and treat the prepared output as draft
+material until rereading supplies the new pair. A Paragraph must never present
+revised `text` beside original `raw_text`, or revised raw lines beside stale
+`text`, as corresponding representations.
+
 ## Source text and editable prose
 
 Keep `raw_text` for the original paragraph's source representation, including
@@ -228,6 +247,7 @@ pieces of code can be emitted correctly by the current compositor.
 | Check | Required result |
 | --- | --- |
 | Paragraph roundtrip | Raw source and extracted prose survive Paragraph serialization with distinct meanings, including Paragraphs contained in Pages inside a Binder. |
+| Snapshot lifecycle | Review and setting preserve the original Paragraph pair; proposals remain separate. Rereading a formatted draft creates a new matching pair, including after saved-review resumption. Draft preparation never exposes stale extracted text as matching revised raw lines. |
 | Ownership | Binder contains Pages; Page contains Paragraphs and delegates their serialization and field validation. Raw text and prose belong to Paragraph, with no duplicate fields on Page or Binder. |
 | Middle isolation | Mark, move, answer, chief and resume paths operate on supplied prose with language recognition, formatting and source I/O unavailable inside the middle. |
 | Wrapped sentence | A sentence split across comment-marker lines is removed once from the prose; the origin remainder and destination proposal are visible before setting. |
