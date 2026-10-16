@@ -495,6 +495,7 @@ the review, and nothing today protects the review.
         > 2026-10-16 Location: Python lexical spec:315; decode_documentation:174
         > 2026-10-16 Check: rewrite and move retain both portions once at one A place
         > 2026-10-16 Reason: combined text needs a rule for its closing-comment boundary
+        > 2026-10-16 Roy: keep closing-line comments outside literals, including noqa
 - [ ] T59 | Align the parent lexical spec with the prose-setting contract
         > 2026-10-16 Location: lexical-readers-design.md:266,272,502,716
         > 2026-10-16 Check: parent agrees on Paragraph fields and formatting order

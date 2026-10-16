@@ -215,6 +215,15 @@ operation chooses only among that language's permitted forms when quoting or
 escaping requires a different spelling; the decoded prose and Series must stay
 the same. It refuses an unrepresentable result instead of dropping content.
 
+A documentation section that owns a closing-line comment retains that comment
+outside the documentation literal, on its closing line. Sharing one address
+does not make the literal and comment interchangeable output forms. Tool
+directives in that comment retain their exact text and effective attachment;
+prose edits must not absorb them into the literal, reflow them or silently
+discard them. A rewrite, move or deletion that cannot preserve this requirement
+must produce a setting refusal. Language-specific details belong to the
+language's specification.
+
 Line comments receive their markers and continuation lines. Block comments
 receive their opening and closing delimiters. Documentation literals receive
 the required quoting and escaping. A, B, C and F retain their placement and
@@ -297,6 +306,7 @@ pieces of code can be emitted correctly by the current compositor.
 | Setting | Markers, escaping, wrapping and empty-place defaults are applied only while setting; a failed destination produces no partial draft run. |
 | Reread | Approved prose agrees at its intended place despite different raw formatting; missing or changed content and wrong placement refuse. |
 | Python documentation | Plain/raw and adjacent/parenthesized literals expose their full prose; a closing-line comment remains in the same section, with both portions accounted for once. |
+| Closing-line directives | Editing a documentation section preserves its closing-line comment outside the literal at the same address. Directive text and effective attachment survive rewriting; moves and deletions either preserve them or refuse. |
 | Preservation | Code mutations and protected-text changes still refuse independently of successful prose comparison. |
 
 Use invented examples and the real gather, mark, collate, resume, transcribe and

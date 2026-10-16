@@ -281,7 +281,8 @@ without a second copy of original source in the docket. Changed code ordering
 cannot be hidden by freshly matching ordinals.
 
 Protect the shebang, a valid-position source encoding declaration and Python
-type comments, including type-ignore directives. Preserve their text and
+type comments, including type-ignore directives, and `# noqa` directives.
+Preserve their text and
 attachment to source. Protection does not change a comment into code or remove
 its raw text from the existing place representation. In particular, a shebang
 at the file's head must keep its established F placement and must not add a C
@@ -317,6 +318,12 @@ rereading drafts. Python's setting operation supplies quoting, escaping and
 wrapping, including plain/raw and adjacent literal forms. Preserve the complete
 prose from a docstring and its immediately following closing-line comment in
 their single documentation section. Neither portion may be silently lost.
+The closing-line comment remains a hash comment outside the docstring, on its
+closing line. In `"""Explain the cache."""  # noqa: D400`, a prose rewrite changes
+the documentation while retaining `# noqa: D400` as a comment with the same
+effective attachment. It must not become docstring content. Directive text is
+protected from prose rewriting and reflow. Rewriting, moving or deleting this
+section must preserve the directive and its attachment or refuse setting.
 No decoded-character mapping is needed in the middle to subtract prose, and
 none is added to Page or the documentation payload for that purpose.
 
