@@ -200,9 +200,9 @@ the examples' lookup behavior only; production integration remains required.
 ### Small editing prototypes
 
 Use the same supplied marker positions to locate edits, then compare the entire
-result with a literal expected raw string. These probes cover single-line
-replacement and wrapped deletion; they do not choose wrapping for a longer
-replacement or exercise the production setter.
+result with a literal expected raw string. The first probes cover single-line
+replacement and wrapped deletion. The longer-replacement probe below adds local
+reflow with supplied setting inputs. None exercises the production setter.
 
 ```python
 # Keep the cache
@@ -237,6 +237,35 @@ For the docstring example above:
 The throwaway probe reproduces these results. The closing quotes, spaces and
 directive survive both permitted edits exactly. Protection is an explicit
 fixture input, not something the alignment algorithm infers from the words.
+
+For a longer replacement, start with:
+
+```python
+# Keep the cache
+# until shutdown.
+#
+# Report errors.
+```
+
+Replace `Keep the cache until shutdown.` with
+`Keep cached entries until every pending request finishes.` Supply `# ` as the
+setting prefix and a line width of 32 characters, including that prefix. The
+exact expected output is:
+
+```python
+# Keep cached entries until
+# every pending request
+# finishes.
+#
+# Report errors.
+```
+
+The throwaway probe locates the original sentence, reflows its replacement
+using the standard library, and substitutes only the affected block. It checks
+the complete result, the width and the unchanged suffix containing the paragraph
+break and final sentence. This fixture authorizes reflow of complete matched
+comment-content lines. It does not establish handling of a partial-line match,
+mixed prefixes, protected text within that block or an overlong indivisible word.
 
 ## Field roles
 
