@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 53 of 59 tasks closed
+Progress: 54 of 59 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-21 (Roy, 2026-08-21, on four sentry files the floor interpreter cannot
@@ -486,7 +486,8 @@ the review, and nothing today protects the review.
         > 2026-10-16 Check: distinguish wrapping, paragraphs and example indentation
         > 2026-10-16 Reason: collapsing whitespace loses structure before setting
         > 2026-10-16 Roy approved retained text structure with temporary matching views
-- [ ] T57 | Define composition of prose without source wrapping
+- [x] T57 | Spec examples cover independent, equal, conflicting and wrapped edits | e39847aa | Define
+      composition of prose without source wrapping
         > 2026-10-16 Location: series-comment-operations spec:152; differences.compose
         > 2026-10-16 Check: specify independent, equal and conflicting edit examples
         > 2026-10-16 Reason: one-line bases make independent edits touch the same line
