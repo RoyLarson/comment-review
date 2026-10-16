@@ -20,8 +20,8 @@ the proposed field meanings.
 
 | Boundary | Current behavior | Source |
 | --- | --- | --- |
-| Reader to binder | `Paragraph.raw_text` joins `raw_lines`; `_place` serializes that string. Extracted `Paragraph.text` is not carried on the wire. `_paragraph` reconstructs `text` from `raw_text`, losing the distinction. | [paragraph.py](../../../src/comment_review/reading/paragraph.py), [page.py](../../../src/comment_review/binder/page.py), `raw_text`, `_place`, `_paragraph` |
-| Binder to edit copy | `distribute.seed` copies the paragraph's raw string into `BlankMark.raw_text`. | [distribute.py](../../../src/comment_review/flows/distribute.py), `seed` |
+| Reader to Page serialization | `Paragraph.raw_text` joins `raw_lines`; the Page's `_place` serializes that string in a row. Extracted `Paragraph.text` is not carried on the wire. `_paragraph` reconstructs `text` from `raw_text`, losing the distinction. | [paragraph.py](../../../src/comment_review/reading/paragraph.py), [page.py](../../../src/comment_review/binder/page.py), `raw_text`, `_place`, `_paragraph` |
+| Bound Pages to edit copy | `distribute.seed` visits the Binder's Pages and copies each paragraph's raw string into `BlankMark.raw_text`. | [distribute.py](../../../src/comment_review/flows/distribute.py), `seed` |
 | Mark construction | `_composed_text` keeps the seed's raw text for most marks. For add and move it instead takes the role's proposed complete destination paragraph. `change` carries the replacement paragraph, or the added/moved snippet. | [fill.py](../../../src/comment_review/flows/fill.py), `_composed_text`, `fill`; [mark.py](../../../src/comment_review/desk/proof/mark.py), `Amendment`, `AddMark`, `MoveMark` |
 | Base acquisition | `held_at` returns `Paragraph.raw_text`; `bases_and_anchors` installs it as `Place.base`. The callback is supplied by the flow. | [on_the_page.py](../../../src/comment_review/flows/on_the_page.py), `held_at`; [places.py](../../../src/comment_review/flows/places.py), `bases_and_anchors` |
 | Prose removal | Move rows call `_without_once`, which calls `comment_at` on raw paragraph and snippet. Drop derivation also calls comment-form recovery. These helpers decode or strip forms and return source-formatted text. | [table.py](../../../src/comment_review/desk/marks/table.py), `_without_once`; [rules.py](../../../src/comment_review/desk/marks/rules.py), `comment_at`, `derived_change` |
@@ -36,15 +36,39 @@ The present contract depends on alterations already containing source syntax,
 although their loader does not enforce it. Moving formatting to setting requires
 changing both the input to `galley.reset` and the reread comparison.
 
+## Ownership
+
+The Binder contains Pages. Each Page owns its paragraphs and their serialized
+place rows. Original raw text and extracted prose belong to those paragraphs:
+
+```text
+Binder
+  Pages
+    paragraphs / serialized place rows
+      raw_text
+      prose
+```
+
+Page serialization and deserialization preserve the two representations. In
+memory, the extracted prose uses the paragraph's existing text representation;
+the serialized `prose` field carries it across that boundary. It does not add
+a second in-memory copy or replace the Page's existing `prose` collection.
+
+The Binder delegates Page serialization and carries its existing envelope
+metadata. It gains no prose field, parallel paragraph store or formatting
+responsibility. Future Glossary and Index contents would be peers of Pages in
+the Binder; they are outside this change.
+
 ## Source text and editable prose
 
 Keep `raw_text` for the original paragraph's source representation, including
 its comment markers and literal spelling. It remains available as context and
-evidence. Give editable prose its own explicit field, `prose`, on binder rows
-and seeded edit-copy entries. This is needed because reconstructing prose from
-raw text inside the middle would repeat language recognition.
+evidence. Give editable prose its own explicit field, `prose`, on each Page's
+serialized place rows and seeded edit-copy entries. This is needed because
+reconstructing prose from raw text inside the middle would repeat language
+recognition.
 
-The reader supplies the original prose once, and binder serialization preserves
+The reader supplies the original prose once, and Page serialization preserves
 it rather than rebuilding it from `raw_text`. The new field is the editable
 content already extracted by the reader; it carries no grammar, scanner state,
 form recipe or source-position map. Source wrapping is removed for matching;
@@ -61,8 +85,8 @@ Original raw text is not overwritten with proposed prose. The field roles are:
 
 | Carrier | Proposed meaning |
 | --- | --- |
-| Binder row `raw_text` | Original source representation for the place. |
-| Binder row `prose` | Reader-extracted original editable prose. |
+| Page row `raw_text` | Original source representation for the place. |
+| Page row `prose` | Reader-extracted original editable prose. |
 | Seeded edit-copy `raw_text`, `prose` | Original source context and original prose supplied to the role. |
 | Ordinary mark `raw_text` | Retained source context, not the authoritative base for verification. |
 | Correct, patch and drop `change` | Complete resulting prose; empty prose retains the existing drop meaning. |
@@ -80,8 +104,8 @@ and answer contracts must state which text is quoted and which text is proposed.
 
 ## Admission and middle operations
 
-Flows obtain the authoritative prose base from the received binder or the
-existing address-resolution flow. Extra addresses receive the same reading and
+Flows obtain the authoritative prose base from a Page in the received Binder
+or the existing address-resolution flow. Extra addresses receive the same reading and
 identity checks as gathered places. Returned marks cannot supply their own base
 for verification. Anchors remain opaque values used by existing address checks.
 
@@ -165,10 +189,12 @@ own diff; that later output does not inherit proof of unchanged code spelling.
 ## Compatibility and affected interfaces
 
 This changes the meaning of editable fields and `Alteration.text`; it is not a
-drop-in callable substitution. Give the affected binder, edit-copy, master-proof,
+drop-in callable substitution. Give the affected Page, edit-copy, master-proof,
 turn-batch and docket formats an explicit shared contract identity or version
-through their existing admission mechanisms. Old artifacts must be refused with
-a regeneration instruction before composition or setting. Never guess whether
+through their existing admission mechanisms. The Binder envelope's version may
+identify a changed nested Page contract; it does not own the Page's prose fields.
+Old artifacts must be refused with a regeneration instruction before composition
+or setting. Never guess whether
 a legacy string contains prose or source syntax, and never silently reinterpret
 an old `raw_text` destination proposal as the new `prose` field.
 
@@ -194,7 +220,8 @@ pieces of code can be emitted correctly by the current compositor.
 
 | Check | Required result |
 | --- | --- |
-| Binder roundtrip | Raw source and extracted prose both survive serialization with distinct meanings. |
+| Page roundtrip | Raw source and extracted prose both survive Page serialization with distinct meanings, including Pages serialized inside a Binder. |
+| Ownership | Gathered prose belongs to Page paragraphs and seeds the corresponding edit-copy entries; the Binder envelope has no new prose or paragraph fields. |
 | Middle isolation | Mark, move, answer, chief and resume paths operate on supplied prose with language recognition, formatting and source I/O unavailable inside the middle. |
 | Wrapped sentence | A sentence split across comment-marker lines is removed once from the prose; the origin remainder and destination proposal are visible before setting. |
 | Prose punctuation | Quotes, hashes, backslashes and apparent closing delimiters remain prose throughout review and reread identically after setting or produce a setting refusal. |

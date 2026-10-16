@@ -272,9 +272,11 @@ Code on both sides of a comment remains code. Identifier names are not extracted
 to construct an anchor. A documentation-only line does not become a code anchor
 merely because a comment follows it.
 
-The binder retains original `raw_text` alongside explicit extracted prose under
-the shared prose contract. The middle edits that prose. Setting obtains the
-original comment form from the verified source page, without a second copy of
+Each Page retains its paragraphs' original `raw_text` alongside extracted prose
+and serializes both on its place rows under the shared prose contract. The
+Binder contains those Pages and gains no prose fields. The middle edits the
+supplied prose. Setting obtains the original comment form from the verified
+source page, without a second copy of
 original source in the docket. Changed code ordering cannot be hidden by freshly
 matching ordinals.
 
@@ -297,7 +299,7 @@ Shebangs and cookies must remain in their effective positions after setting.
 
 Follow the [comment-operation contract](2026-10-15-series-comment-operations-design.md).
 The reader supplies Python documentation prose and its original raw source as
-distinct values. Binder and edit-copy serialization retain that distinction.
+distinct values. Page rows and edit-copy serialization retain that distinction.
 Marks, moves, answer rewrites and chief rulings operate on prose. A move removes
 its sentence before resolution, and its destination proposal supplies the whole
 resulting prose. Intermediate prose is not parsed as a Python literal or flowed
@@ -457,7 +459,7 @@ runtime and never require it to compile newer syntax.
 | Ownership changes | Removing the first docstring cannot authorize changing a promoted ordinary string; inserted docs cannot hide existing literals |
 | Failures | Truncated or uncertain input yields located diagnostics, no successful partial proof and no modified originals |
 | Saved workflow | Gather, distribute, mark, collate, saved resume, docket and drafting preserve context and original identities |
-| Prose contract | Raw source and prose survive binder/copy serialization separately; moves and rewrites compose prose without language formatting; alterations are formatted only at setting |
+| Prose contract | Raw source and prose survive Page-row and edit-copy serialization separately; the Binder holds Pages; moves and rewrites compose prose without language formatting; alterations are formatted only at setting |
 | Setting comparison | Reread prose equals the approved prose at the intended place; quote escaping and wrapping may differ in raw source while executable-code proof remains independent |
 | Independence | Real read/proof routes work with AST/tokenizer entry points forbidden; import and dependency gates remain intact |
 
