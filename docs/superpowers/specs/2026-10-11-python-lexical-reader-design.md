@@ -272,8 +272,8 @@ Code on both sides of a comment remains code. Identifier names are not extracted
 to construct an anchor. A documentation-only line does not become a code anchor
 merely because a comment follows it.
 
-Each Paragraph retains its original `raw_text` alongside extracted prose and
-owns serialization of both under the shared prose contract. Page contains
+Each Paragraph retains its original `raw_text` alongside extracted prose in
+`text` and owns serialization of both under those same field names. Page contains
 Paragraphs and delegates their serialization; Binder contains Pages. Neither
 container duplicates the Paragraph's text fields. The middle edits supplied
 prose. Setting obtains the original comment form from the verified source page,

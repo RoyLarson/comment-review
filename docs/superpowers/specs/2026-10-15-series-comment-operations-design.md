@@ -46,13 +46,13 @@ Binder
   Pages
     Paragraphs
       raw_text
-      prose
+      text
 ```
 
 Paragraph serialization and deserialization preserve the two representations.
-In memory, extracted prose uses the existing `Paragraph.text`; the serialized
-`prose` field carries it across that boundary. Raw text remains derived from
-the Paragraph's source lines. Neither representation is duplicated on Page.
+Extracted prose uses `text` both in memory and in the serialized Paragraph.
+Raw text remains derived from the Paragraph's source lines. Neither
+representation is duplicated on Page.
 
 Page delegates to each Paragraph when serializing or reading its content
 collection. Move the paragraph field construction and restoration currently in
@@ -70,8 +70,7 @@ the Binder; they are outside this change.
 
 A Paragraph's `text` and `raw_text` describe the same source snapshot. Reading
 creates them together; serialization and deserialization preserve that pair.
-The serialized `prose` field carries the existing `text` value, rather than
-introducing another independently maintained prose value on Paragraph.
+The serialized `text` field carries the existing `Paragraph.text` value.
 
 Review keeps the original Paragraph unchanged. Marks and resolved places hold
 proposed and decided prose separately, including prose passed to later review
@@ -89,7 +88,7 @@ revised `text` beside original `raw_text`, or revised raw lines beside stale
 
 Keep `raw_text` for the original paragraph's source representation, including
 its comment markers and literal spelling. It remains available as context and
-evidence. Give editable prose its own explicit field, `prose`, on serialized
+evidence. Give editable prose its own explicit field, `text`, on serialized
 Paragraphs and seeded edit-copy entries. This is needed because
 reconstructing prose from raw text inside the middle would repeat language
 recognition.
@@ -112,14 +111,14 @@ Original raw text is not overwritten with proposed prose. The field roles are:
 | Carrier | Proposed meaning |
 | --- | --- |
 | Paragraph `raw_text` | Original source representation for the place. |
-| Paragraph serialized `prose` | Reader-extracted original editable prose, carried from `Paragraph.text`. |
-| Seeded edit-copy `raw_text`, `prose` | Original source context and original prose supplied to the role. |
+| Paragraph `text`, in memory and serialized | Reader-extracted original editable prose. |
+| Seeded edit-copy `raw_text`, `text` | Original source context and original prose supplied to the role. |
 | Ordinary mark `raw_text` | Retained source context, not the authoritative base for verification. |
 | Correct, patch and drop `change` | Complete resulting prose; empty prose retains the existing drop meaning. |
 | Add or move `change` | Prose being added or moved. |
-| Add or move `prose` | Complete proposed destination prose, replacing the overloaded use of `raw_text` for this purpose. |
+| Add or move `text` | Complete proposed destination prose, replacing the overloaded use of `raw_text` for this purpose. |
 | Quoted editorial claims | Quotes from the authoritative prose supplied for review. |
-| Answer `change`, chief recast `prose` | Complete proposed prose for the corresponding side or place. |
+| Answer `change`, chief recast `text` | Complete proposed prose for the corresponding side or place. |
 | `Place.base`, `Place.sides`, `Place.text` | Original, proposed and decided prose respectively. |
 | Turn batches and chief copies | Prose from those same fields, presented as prose. Original source context, where carried, remains explicitly raw. |
 | `Alteration.text` | Approved complete prose, or `None` to vacate the place. |
@@ -222,7 +221,9 @@ identify a changed nested Paragraph contract; it does not own Paragraph fields.
 Old artifacts must be refused with a regeneration instruction before composition
 or setting. Never guess whether
 a legacy string contains prose or source syntax, and never silently reinterpret
-an old `raw_text` destination proposal as the new `prose` field.
+an old `raw_text` destination proposal as the new `text` field. Rename the chief
+recast's existing `prose` field to `text` in both its object and serialized
+contract as part of the same version change.
 
 Update serialization and deserialization together with mark/check input,
 derived changes, claims, retained-word checks, move composition, answer and
@@ -246,7 +247,7 @@ pieces of code can be emitted correctly by the current compositor.
 
 | Check | Required result |
 | --- | --- |
-| Paragraph roundtrip | Raw source and extracted prose survive Paragraph serialization with distinct meanings, including Paragraphs contained in Pages inside a Binder. |
+| Paragraph roundtrip | `raw_text` and `text` retain their names and distinct meanings through serialization and deserialization, including Paragraphs contained in Pages inside a Binder. |
 | Snapshot lifecycle | Review and setting preserve the original Paragraph pair; proposals remain separate. Rereading a formatted draft creates a new matching pair, including after saved-review resumption. Draft preparation never exposes stale extracted text as matching revised raw lines. |
 | Ownership | Binder contains Pages; Page contains Paragraphs and delegates their serialization and field validation. Raw text and prose belong to Paragraph, with no duplicate fields on Page or Binder. |
 | Middle isolation | Mark, move, answer, chief and resume paths operate on supplied prose with language recognition, formatting and source I/O unavailable inside the middle. |
