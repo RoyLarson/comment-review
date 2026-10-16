@@ -267,6 +267,34 @@ break and final sentence. This fixture authorizes reflow of complete matched
 comment-content lines. It does not establish handling of a partial-line match,
 mixed prefixes, protected text within that block or an overlong indivisible word.
 
+The partial-line probe uses the same replacement and width with this input:
+
+```python
+# Start here. Keep the cache
+# until shutdown. Report errors.
+```
+
+The existing throwaway reflow operation produces:
+
+```python
+# Start here. Keep cached entries until
+# every pending request
+# finishes. Report errors.
+```
+
+This case fails the width check: the lines contain 39, 23 and 26 characters
+against a limit of 32. Lookup selects exactly the intended sentence; the
+replacement occurs once and both neighbouring sentences retain their words,
+punctuation and order. The failure is in placement: the prototype wraps the
+replacement with only the supplied comment prefix before inserting it after
+the retained opening sentence. It does not account for that occupied space.
+
+Retain this as a failing prototype case. Setting must account for content
+beside a partial-line edit when checking width, including both the first-line
+prefix and last-line suffix. The earlier complete-line example does not
+demonstrate that behavior. This result concerns the throwaway operation, not
+a test of the production setter.
+
 ## Field roles
 
 The field roles are:
