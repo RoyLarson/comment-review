@@ -726,6 +726,7 @@ complete merely because this plan or its interfaces are approved.
         > 2026-10-15 Design: 2026-10-15-series-comment-operations-design.md
         > 2026-10-15 Superseding design separates raw source, prose and setting
         > 2026-10-16 Page rows own prose; Binder contains Pages, no prose fields
+        > 2026-10-16 Paragraph owns its serialization; Page contains Paragraphs
 - [x] P45 | 989 tests pass; fixture requirements and quality reviewed | 369dd690 | Update
       lexical reader integration test fixtures
         > 2026-10-14 Goals: T52-T54; retain identity, settings and refusal assertions

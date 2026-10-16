@@ -38,21 +38,28 @@ changing both the input to `galley.reset` and the reread comparison.
 
 ## Ownership
 
-The Binder contains Pages. Each Page owns its paragraphs and their serialized
-place rows. Original raw text and extracted prose belong to those paragraphs:
+The Binder contains Pages. Each Page contains Paragraphs. Each Paragraph owns
+its original raw text, extracted prose and serialized representation:
 
 ```text
 Binder
   Pages
-    paragraphs / serialized place rows
+    Paragraphs
       raw_text
       prose
 ```
 
-Page serialization and deserialization preserve the two representations. In
-memory, the extracted prose uses the paragraph's existing text representation;
-the serialized `prose` field carries it across that boundary. It does not add
-a second in-memory copy or replace the Page's existing `prose` collection.
+Paragraph serialization and deserialization preserve the two representations.
+In memory, extracted prose uses the existing `Paragraph.text`; the serialized
+`prose` field carries it across that boundary. Raw text remains derived from
+the Paragraph's source lines. Neither representation is duplicated on Page.
+
+Page delegates to each Paragraph when serializing or reading its content
+collection. Move the paragraph field construction and restoration currently in
+`binder.page._place` and `_paragraph` into the Paragraph contract. Page owns its
+identity and collection, while Paragraph owns validation of its own fields.
+The serialized records inside a Page are Paragraphs, not a second Page-owned
+row structure. This does not require exposing every internal Paragraph field.
 
 The Binder delegates Page serialization and carries its existing envelope
 metadata. It gains no prose field, parallel paragraph store or formatting
@@ -63,12 +70,12 @@ the Binder; they are outside this change.
 
 Keep `raw_text` for the original paragraph's source representation, including
 its comment markers and literal spelling. It remains available as context and
-evidence. Give editable prose its own explicit field, `prose`, on each Page's
-serialized place rows and seeded edit-copy entries. This is needed because
+evidence. Give editable prose its own explicit field, `prose`, on serialized
+Paragraphs and seeded edit-copy entries. This is needed because
 reconstructing prose from raw text inside the middle would repeat language
 recognition.
 
-The reader supplies the original prose once, and Page serialization preserves
+The reader supplies the original prose once, and Paragraph serialization preserves
 it rather than rebuilding it from `raw_text`. The new field is the editable
 content already extracted by the reader; it carries no grammar, scanner state,
 form recipe or source-position map. Source wrapping is removed for matching;
@@ -85,8 +92,8 @@ Original raw text is not overwritten with proposed prose. The field roles are:
 
 | Carrier | Proposed meaning |
 | --- | --- |
-| Page row `raw_text` | Original source representation for the place. |
-| Page row `prose` | Reader-extracted original editable prose. |
+| Paragraph `raw_text` | Original source representation for the place. |
+| Paragraph serialized `prose` | Reader-extracted original editable prose, carried from `Paragraph.text`. |
 | Seeded edit-copy `raw_text`, `prose` | Original source context and original prose supplied to the role. |
 | Ordinary mark `raw_text` | Retained source context, not the authoritative base for verification. |
 | Correct, patch and drop `change` | Complete resulting prose; empty prose retains the existing drop meaning. |
@@ -189,10 +196,10 @@ own diff; that later output does not inherit proof of unchanged code spelling.
 ## Compatibility and affected interfaces
 
 This changes the meaning of editable fields and `Alteration.text`; it is not a
-drop-in callable substitution. Give the affected Page, edit-copy, master-proof,
+drop-in callable substitution. Give the affected Paragraph, edit-copy, master-proof,
 turn-batch and docket formats an explicit shared contract identity or version
 through their existing admission mechanisms. The Binder envelope's version may
-identify a changed nested Page contract; it does not own the Page's prose fields.
+identify a changed nested Paragraph contract; it does not own Paragraph fields.
 Old artifacts must be refused with a regeneration instruction before composition
 or setting. Never guess whether
 a legacy string contains prose or source syntax, and never silently reinterpret
@@ -220,8 +227,8 @@ pieces of code can be emitted correctly by the current compositor.
 
 | Check | Required result |
 | --- | --- |
-| Page roundtrip | Raw source and extracted prose both survive Page serialization with distinct meanings, including Pages serialized inside a Binder. |
-| Ownership | Gathered prose belongs to Page paragraphs and seeds the corresponding edit-copy entries; the Binder envelope has no new prose or paragraph fields. |
+| Paragraph roundtrip | Raw source and extracted prose survive Paragraph serialization with distinct meanings, including Paragraphs contained in Pages inside a Binder. |
+| Ownership | Binder contains Pages; Page contains Paragraphs and delegates their serialization and field validation. Raw text and prose belong to Paragraph, with no duplicate fields on Page or Binder. |
 | Middle isolation | Mark, move, answer, chief and resume paths operate on supplied prose with language recognition, formatting and source I/O unavailable inside the middle. |
 | Wrapped sentence | A sentence split across comment-marker lines is removed once from the prose; the origin remainder and destination proposal are visible before setting. |
 | Prose punctuation | Quotes, hashes, backslashes and apparent closing delimiters remain prose throughout review and reread identically after setting or produce a setting refusal. |

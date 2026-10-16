@@ -463,6 +463,7 @@ the review, and nothing today protects the review.
         > 2026-10-15 Roy chose flow-supplied language operations selected by Series
         > 2026-10-15 Roy: middle edits prose; comment formatting belongs at setting
         > 2026-10-16 Prose belongs to Page paragraphs, never the Binder envelope
+        > 2026-10-16 Raw text and prose belong to Paragraph, not Page or Binder
 - [x] T52 | Acquired-registry fixtures retain settings and identity checks | 369dd690 | Update
       reading-context test fixtures for acquired registries
         > 2026-10-14 Check: context fixture suites exercise identities and settings
