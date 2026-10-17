@@ -2,8 +2,8 @@
 
 ```
 Status:   in-progress
-Progress: 34 of 34 TODO tasks closed
-Plan-tasks: 50 of 50 plan tasks closed
+Progress: 34 of 35 TODO tasks closed
+Plan-tasks: 50 of 51 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (founded by move-t from 2026-10-11-lexical-readers)
@@ -503,6 +503,10 @@ complete merely because this plan or its interfaces are approved.
 
 - [x] T1 | Refuse spacing edits before protected comments
 
+### M - [binder-defects](../../TODO/binder-defects.md)
+
+- [ ] T33 | Replace `Page.python_read` with a read any reader produces
+
 ## Plan Tasks
 
 - [x] P1 | Python definition validates; 216 tests and focused static checks pass; review approved | f23a9e18 | Install
@@ -761,3 +765,9 @@ complete merely because this plan or its interfaces are approved.
         > 2026-10-16 Check: the diagnostics test asserts fixed expected paragraphs
         > 2026-10-16 Check: uv run pytest -q passes
         > 2026-10-16 Excludes the comment_form editing path, Process #212
+- [ ] P51 | Replace `Page.python_read` with a read any reader produces
+        > 2026-10-17 Goals: binder-defects T33; Roy ruled it joins this plan 2026-10-17
+        > 2026-10-17 The reader that made a read supplies its comparison to the proof
+        > 2026-10-17 Check: grep finds no python_read in src
+        > 2026-10-17 Check: proof_setter and prove_unchanged test no language name
+        > 2026-10-17 Check: uv run pytest -q passes

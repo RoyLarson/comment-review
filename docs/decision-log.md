@@ -5327,3 +5327,12 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   checked on the creation of the move. That makes it simpler"*. Offered superseding T51 and
   P44, filing the matching idea for backend, reverting the uncommitted P44 work, and
   narrowing P41 to the reading path: *"yes do all four"*.
+
+- **#213.** **`Page.python_read` is replaced on this branch, before the lexer plan
+  closes** (Roy, 2026-10-17). Reading the comment-review run's draft of `Page`'s
+  docstring, which documents the field: *"That seems pretty specific for a tool that is
+  supposed to be a general language tool"*. Shown that `fcd2f0f8` added it and only the
+  Python branches of `proof_setter` and `prove_unchanged` read it, and offered joining
+  the lexer plan, a backlog task, or leaving it; Roy chose joining the lexer plan, where
+  the page carries a read any reader produces and that reader supplies the comparison.
+  Filed as binder-defects T33 and lexer-python P51.
