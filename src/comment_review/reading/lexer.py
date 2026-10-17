@@ -1353,8 +1353,9 @@ def declarations(lang: Language, code: dict[int, str]) -> list[tuple[int, int, b
 
     ! A LANGUAGE WHOSE DOC GOES INSIDE THE BODY IS REFUSED -- `lang.doc_inside`,
     Python. Where its body starts is not the declaring line, so its own reader
-    states its declarations. Every other language puts the doc on the declaring
-    line's own line, so the line the keyword is on is the whole answer.
+    states its declarations. Every other installed language documents a
+    declaration with the run directly above its declaring line, so the line the
+    keyword is on is the whole answer.
 
     ! It REPORTS; it does not emit a paragraph. `undocumented` is a PAGE kind,
     because only a page knows where prose is missing.

@@ -93,12 +93,9 @@ LANGUAGES: tuple[Language, ...] = (
         # other language puts the doc on the declaring line's own line.
         doc_inside=True,
         doc_is_structural=True,
-        # !! A triple quote spans lines, and Python reaches the LEXICAL
-        # path whenever `ast.parse` fails -- syntax newer than the floor,
-        # a file mid-edit. Declaring nothing here left the same fail-open
-        # that was closed for JS the same day: two files differing only
-        # in a `#` line INSIDE a triple-quoted literal fingerprinted
-        # identically and the proof reported PROVEN.
+        # ! A triple quote spans lines. Python is read and proven by its own
+        # reader -- `code_fingerprint` returns before the line-based strip
+        # for a `.py` -- so nothing reads this for Python.
         spanning_quotes=('"""', "'''"),
         quotes=('"', "'"),
     ),
