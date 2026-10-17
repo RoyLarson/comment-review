@@ -5309,3 +5309,21 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   level deeper than its header, and offered taking that level from the file's own first
   indented block, falling back to 4 spaces: *"yes, take the level from the file, but really
   you could probably scan all of github for that pattern in a .py file and not find any."*
+
+- **#212.** **Replacing the middle's `ast` read of a split-literal docstring is outside the
+  lexer's scope** (Roy, 2026-10-16, ruling the lexer plan's T51 and P44). Shown that P44
+  needs the acquired Python definition threaded into `comment_at`/`comment_form`, which the
+  middle calls with an address and raw text: *"Why does the middle need the comment_form?
+  ... I don't think that has to do with changing the lexer. I think that was an expansion of
+  changing the lexer. e.g., if we went back to the python AST did it need this
+  information?"* Shown that `comment_at` (2026-10-02) and `docstring.concatenated`
+  (2026-10-03) predate the lexer plan and read their snippet with `ast` and no definition:
+  *"So the middle since the middle rewrite the middle has reached for the ast to do this
+  job? I thought that the middle only delt with raw_text and relied on the agents to supply
+  the exact snippet that needed to be removed which does cause problems on the other side
+  to add it into the new address, but maybe we are being pedantic by forcing it to be an
+  exact change. Instead we could just verify that the sentence/fragment after subtraction
+  of the white space does align with a spot in the destination raw_text which could be
+  checked on the creation of the move. That makes it simpler"*. Offered superseding T51 and
+  P44, filing the matching idea for backend, reverting the uncommitted P44 work, and
+  narrowing P41 to the reading path: *"yes do all four"*.
