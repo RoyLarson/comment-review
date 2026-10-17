@@ -3,7 +3,7 @@
 ```
 Status:   in-progress
 Progress: 30 of 34 TODO tasks closed
-Plan-tasks: 44 of 49 plan tasks closed
+Plan-tasks: 45 of 49 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (founded by move-t from 2026-10-11-lexical-readers)
@@ -740,7 +740,8 @@ complete merely because this plan or its interfaces are approved.
         > 2026-10-16 Check: each legal shape reads as its hand-split source does
         > 2026-10-16 Check: indent level from file: 4 spaces, 2 spaces, tabs, none
         > 2026-10-16 Check: uv run pytest -q tests/reading/test_python.py
-- [ ] P48 | Set code split from a docstring line onto its own line
+- [x] P48 | Shared-line shapes set broken; template growth rereads; 4972 pass | a7054cf8 | Set
+      code split from a docstring line onto its own line
         > 2026-10-16 Goals: T56,T41; the compositor sets the split P47 reads
         > 2026-10-16 Check: output equals hand-split source, compiles, rereads same
         > 2026-10-16 Check: uv run pytest -q tests/test_comment_wrapping.py
