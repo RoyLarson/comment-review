@@ -2,8 +2,8 @@
 
 ```
 Status:   in-progress
-Progress: 30 of 34 TODO tasks closed
-Plan-tasks: 45 of 49 plan tasks closed
+Progress: 31 of 34 TODO tasks closed
+Plan-tasks: 46 of 49 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (founded by move-t from 2026-10-11-lexical-readers)
@@ -455,7 +455,7 @@ complete merely because this plan or its interfaces are approved.
 - [x] T53 | Assert exact BOM preservation through Python composition
 - [x] T54 | Assert specific lexical refusal diagnostics in address tests
 - [x] T55 | Normalize Python paragraph prose consistently with comment forms
-- [~] T56 | Split Python code sharing a physical line with a docstring onto its
+- [x] T56 | Split Python code sharing a physical line with a docstring onto its
       own line at the read
 
 ### C - [2026-10-12-python-numeric-keyword-boundaries](../../TODO/completed/2026-10-12-python-numeric-keyword-boundaries.md)
@@ -747,7 +747,8 @@ complete merely because this plan or its interfaces are approved.
         > 2026-10-16 Check: uv run pytest -q tests/test_comment_wrapping.py
         > 2026-10-16 Check: review_write_boundaries, compositor and galley suites
         > 2026-10-16 The 41 writer tests are rewritten to the split shape
-- [ ] P49 | Accept the ruled docstring line split at the code gate
+- [x] P49 | Ruled break accepted; 6 other placements refused as code changes | b170cfa0 | Accept
+      the ruled docstring line split at the code gate
         > 2026-10-16 Goals: T56,T43; only `;` or `:` to newline at P47 indent passes
         > 2026-10-16 Check: uv run pytest -q tests/test_lexical_preservation.py
         > 2026-10-16 Check: other indent, or `;` dropped without newline, refused

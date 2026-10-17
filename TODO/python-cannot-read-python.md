@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 52 of 56 tasks closed
+Progress: 53 of 56 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-21 (Roy, 2026-08-21, on four sentry files the floor interpreter cannot
@@ -473,7 +473,8 @@ the review, and nothing today protects the review.
         > 2026-10-14 Check: concatenated doc prose agrees after clause removal
         > 2026-10-14 Check: page prose expectations normalize; raw-line checks remain
         > 2026-10-14 Location: test_python_prose_roundtrip.py compares literal spacing
-- [~] T56 | Split Python code sharing a physical line with a docstring onto its
-      own line at the read
+- [x] T56 | Shared docstring lines read, set and proven broken | b170cfa0 | Split
+      Python code sharing a physical line with a docstring onto its own line at
+      the read
         > 2026-10-16 Reason: Roy ruled the split at the read; decision-log Process #211
         > 2026-10-16 Check: every legal split shape reads, sets and passes the code gate
