@@ -5304,4 +5304,8 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   only at write: *"Yes split at the read. If the human wants it back (which would be poor
   programming practice) they can see it in the review and request the agents to manually
   change it"*. So the page is read and addressed as split, the written page carries the
-  split, and the change is shown in the review like any other.
+  split, and the change is shown in the review like any other. Shown that Python allows no
+  compound statement after a `;` or a one-line suite's `:`, so a split line sits at most one
+  level deeper than its header, and offered taking that level from the file's own first
+  indented block, falling back to 4 spaces: *"yes, take the level from the file, but really
+  you could probably scan all of github for that pattern in a .py file and not find any."*
