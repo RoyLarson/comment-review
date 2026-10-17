@@ -1,8 +1,8 @@
 # The AST reader gets older every release while the files get newer
 
 ```
-Status:   open
-Progress: 54 of 56 tasks closed
+Status:   closed
+Progress: 56 of 56 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-21 (Roy, 2026-08-21, on four sentry files the floor interpreter cannot
@@ -401,15 +401,17 @@ the review, and nothing today protects the review.
       `paragraphs_lexical` over a documented def returns one
         > 2026-09-03 MEASURED 2026-09-03: the lexical tier finds Python comments
         > 2026-09-03 and emits NOTHING for a docstring -- a string is not a comment
-- [ ] T40 | Read Python with owned lexical recognition independent of the host
-      AST and tokenizer
+- [x] T40 | Read and proof routes run with host parsers forbidden | d15a7f83 | Read
+      Python with owned lexical recognition independent of the host AST and
+      tokenizer
         > 2026-10-11 Check: plan P25 forbids AST/tokenizer in real read/proof routes
         > 2026-10-13 Contract: classify code/documentation, then series A/B/C/D/F.
         > 2026-10-13 Anchor: all code text on the line, including substring notation.
         > 2026-10-13 Identifiers and semantic analysis are outside the lexer contract.
         > 2026-10-13 Revised Python and shared specs narrow the reader; review pending.
         > 2026-10-14 Approved scanner specifications replace the old task briefs.
-- [ ] T41 | Preserve exact Python round trips over invented boundary fixtures
+- [x] T41 | Round trips exact over all forms; shared lines break per #211 | a7054cf8 | Preserve
+      exact Python round trips over invented boundary fixtures
         > 2026-10-11 Check: plan P26 compares exact bytes through saved setting
         > 2026-10-13 Location: set_page rebuilds inline doc prefixes and c anchors.
         > 2026-10-13 Check: P18 uses retained spans for exact inline-doc round trips.

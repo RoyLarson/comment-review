@@ -2,8 +2,8 @@
 
 ```
 Status:   in-progress
-Progress: 32 of 34 TODO tasks closed
-Plan-tasks: 49 of 50 plan tasks closed
+Progress: 34 of 34 TODO tasks closed
+Plan-tasks: 50 of 50 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (founded by move-t from 2026-10-11-lexical-readers)
@@ -434,13 +434,13 @@ complete merely because this plan or its interfaces are approved.
 - [x] T3 | Retain protected directive context when selecting documentation
 - [x] T4 | Match retained code after multiline documentation removal
 
-### B - [python-cannot-read-python](../../TODO/python-cannot-read-python.md)
+### B - [python-cannot-read-python](../../TODO/completed/python-cannot-read-python.md)
 
 - [x] T38 | Rebuild `prove_unchanged` to prove code unchanged with no `ast`
       branch. Verify: an edited docstring proves, a moved token does not
-- [ ] T40 | Read Python with owned lexical recognition independent of the host
+- [x] T40 | Read Python with owned lexical recognition independent of the host
       AST and tokenizer
-- [ ] T41 | Preserve exact Python round trips over invented boundary fixtures
+- [x] T41 | Preserve exact Python round trips over invented boundary fixtures
 - [x] T42 | Read supported newer Python syntax on the pinned Python 3.11 runtime
 - [x] T43 | Reject executable Python mutations at both lexical proof gates
 - [x] T44 | Document the Python preservation contract beside its comparison
@@ -754,8 +754,8 @@ complete merely because this plan or its interfaces are approved.
         > 2026-10-16 Goals: T56,T43; only `;` or `:` to newline at P47 indent passes
         > 2026-10-16 Check: uv run pytest -q tests/test_lexical_preservation.py
         > 2026-10-16 Check: other indent, or `;` dropped without newline, refused
-- [ ] P50 | Delete the ast and tokenize reading paths the lexical reader
-      replaced
+- [x] P50 | Stdlib reading paths deleted; 4978 pass; grep finds none | d15a7f83 | Delete
+      the ast and tokenize reading paths the lexical reader replaced
         > 2026-10-16 Goals: T40,T41; paragraphs_stdlib and the declarations ast branch
         > 2026-10-16 Check: grep finds no paragraphs_stdlib or ast.parse in lexer.py
         > 2026-10-16 Check: the diagnostics test asserts fixed expected paragraphs
