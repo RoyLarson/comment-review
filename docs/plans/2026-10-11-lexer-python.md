@@ -3,7 +3,7 @@
 ```
 Status:   in-progress
 Progress: 30 of 34 TODO tasks closed
-Plan-tasks: 43 of 49 plan tasks closed
+Plan-tasks: 44 of 49 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (founded by move-t from 2026-10-11-lexical-readers)
@@ -455,7 +455,7 @@ complete merely because this plan or its interfaces are approved.
 - [x] T53 | Assert exact BOM preservation through Python composition
 - [x] T54 | Assert specific lexical refusal diagnostics in address tests
 - [x] T55 | Normalize Python paragraph prose consistently with comment forms
-- [ ] T56 | Split Python code sharing a physical line with a docstring onto its
+- [~] T56 | Split Python code sharing a physical line with a docstring onto its
       own line at the read
 
 ### C - [2026-10-12-python-numeric-keyword-boundaries](../../TODO/completed/2026-10-12-python-numeric-keyword-boundaries.md)
@@ -734,8 +734,8 @@ complete merely because this plan or its interfaces are approved.
         > 2026-10-14 Check: tests/test_review_write_boundaries.py prose cases
         > 2026-10-14 Scope includes page_for tests of normalized Paragraph.text
         > 2026-10-14 Include prose expectations in Python roundtrip suite
-- [ ] P47 | Read code sharing a line with a Python docstring as its own
-      addressed line
+- [x] P47 | 9 shared-line shapes read as their broken source; reading tests pass | c891c573 | Read
+      code sharing a line with a Python docstring as its own addressed line
         > 2026-10-16 Goals: T56,T47; decision-log Process #211
         > 2026-10-16 Check: each legal shape reads as its hand-split source does
         > 2026-10-16 Check: indent level from file: 4 spaces, 2 spaces, tabs, none
