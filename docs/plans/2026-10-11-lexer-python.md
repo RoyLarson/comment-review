@@ -2,8 +2,8 @@
 
 ```
 Status:   in-progress
-Progress: 30 of 33 TODO tasks closed
-Plan-tasks: 42 of 46 plan tasks closed
+Progress: 30 of 34 TODO tasks closed
+Plan-tasks: 43 of 49 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (founded by move-t from 2026-10-11-lexical-readers)
@@ -455,6 +455,8 @@ complete merely because this plan or its interfaces are approved.
 - [x] T53 | Assert exact BOM preservation through Python composition
 - [x] T54 | Assert specific lexical refusal diagnostics in address tests
 - [x] T55 | Normalize Python paragraph prose consistently with comment forms
+- [ ] T56 | Split Python code sharing a physical line with a docstring onto its
+      own line at the read
 
 ### C - [2026-10-12-python-numeric-keyword-boundaries](../../TODO/completed/2026-10-12-python-numeric-keyword-boundaries.md)
 
@@ -669,7 +671,8 @@ complete merely because this plan or its interfaces are approved.
         > 2026-10-14 Correction: the page suite is tests/test_page_for.py.
         > 2026-10-14 Check: uv run pytest -q tests/test_page_for.py
         > 2026-10-14 Includes Python comment-section-placement T1; classify then group.
-- [ ] P37 | Restore Python reader compatibility with the existing writer
+- [-] P37 | Process #211 ruled the line splits; the writer changes; see P47-P49 | 38e7ad49 | Restore
+      Python reader compatibility with the existing writer
         > 2026-10-14 Goals: T41,T47; reader adapters; results writer stays unchanged.
         > 2026-10-14 Check: uv run pytest -q tests/test_comment_wrapping.py
         > 2026-10-14 Check: uv run pytest tests/test_compositor.py tests/test_galley.py
@@ -731,3 +734,19 @@ complete merely because this plan or its interfaces are approved.
         > 2026-10-14 Check: tests/test_review_write_boundaries.py prose cases
         > 2026-10-14 Scope includes page_for tests of normalized Paragraph.text
         > 2026-10-14 Include prose expectations in Python roundtrip suite
+- [ ] P47 | Read code sharing a line with a Python docstring as its own
+      addressed line
+        > 2026-10-16 Goals: T56,T47; decision-log Process #211
+        > 2026-10-16 Check: each legal shape reads as its hand-split source does
+        > 2026-10-16 Check: indent level from file: 4 spaces, 2 spaces, tabs, none
+        > 2026-10-16 Check: uv run pytest -q tests/reading/test_python.py
+- [ ] P48 | Set code split from a docstring line onto its own line
+        > 2026-10-16 Goals: T56,T41; the compositor sets the split P47 reads
+        > 2026-10-16 Check: output equals hand-split source, compiles, rereads same
+        > 2026-10-16 Check: uv run pytest -q tests/test_comment_wrapping.py
+        > 2026-10-16 Check: review_write_boundaries, compositor and galley suites
+        > 2026-10-16 The 41 writer tests are rewritten to the split shape
+- [ ] P49 | Accept the ruled docstring line split at the code gate
+        > 2026-10-16 Goals: T56,T43; only `;` or `:` to newline at P47 indent passes
+        > 2026-10-16 Check: uv run pytest -q tests/test_lexical_preservation.py
+        > 2026-10-16 Check: other indent, or `;` dropped without newline, refused
