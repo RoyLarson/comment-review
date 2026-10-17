@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 5 of 38 tasks closed
+Progress: 5 of 47 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (/simplify rounds 1 and 2 and /code-review high round 3,
@@ -293,3 +293,30 @@ would.
 - [ ] T38 | Rewrite the CLAUDE.md doc-position sentence to the stated field
         > 2026-10-16 Reason: Roy, 2026-10-16: on Rust it goes above, not on the line
         > 2026-10-16 Check: the sentence names the field T36 adds; Roy approves it
+- [ ] T39 | Remove the Python `Language` row's grammar fields
+        > 2026-10-17 Reason: `python.toml` states it; no Python read uses the row
+        > 2026-10-17 Check: the Python row carries no grammar; reading suites pass
+- [ ] T40 | Remove `BY_EXT`, which nothing reads
+        > 2026-10-17 Reason: `language_for` rebuilds a Language on every call instead
+        > 2026-10-17 Check: grep -rn BY_EXT src tests scripts finds nothing
+- [ ] T41 | Remove the grammar no reader reads from the toml, ini, yaml rows
+        > 2026-10-17 Reason: none is in READER_METADATA; language_for skips them
+        > 2026-10-17 Check: those rows carry only name and extensions
+- [ ] T42 | Move `NAMED_DEFS` into `concordance`
+        > 2026-10-17 Reason: only concordance reads it; it is lexer.py's last ast use
+        > 2026-10-17 Check: grep finds no `import ast` in reading/lexer.py
+- [ ] T43 | Remove the Annotations banner from `lexer.py`
+        > 2026-10-17 Reason: nothing under it is an annotation
+        > 2026-10-17 Check: grep finds no Annotations banner in reading/lexer.py
+- [ ] T44 | Move the comment-form readers out of `lexer.py` to the desk
+        > 2026-10-17 Reason: only desk/marks/rules.py reads comment_form; Process #212
+        > 2026-10-17 Check: lexer.py defines no comment_form or _comment_fragment
+- [ ] T45 | Inline `ESCAPE_WIDTH` into `_closes_a_character`
+        > 2026-10-17 Reason: it is a module constant one function reads
+        > 2026-10-17 Check: grep finds ESCAPE_WIDTH nowhere in src
+- [ ] T46 | Move the galley-defect account out of the lexer's loop
+        > 2026-10-17 Reason: it documents results/galley.py, not this loop
+        > 2026-10-17 Check: the loop comment states only what the loop does
+- [ ] T47 | Remove the `doc-kind-unresolved` annotation, which nothing reads
+        > 2026-10-17 Reason: grep over src and tests finds it only where it is stamped
+        > 2026-10-17 Check: grep -rn doc-kind-unresolved src finds nothing

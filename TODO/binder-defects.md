@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 7 of 25 tasks closed
+Progress: 7 of 32 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, a code review of `binder/binder.py` run against its
@@ -204,3 +204,24 @@ task 5's, but the fix for these two lands in `binder/binder.py`.
 - [-] T25 | superseded by Process 164: the root stays relative to the cwd, as ruled 2026-08-28 | cacae438 | Update
       gather so read_from.root does not depend on the directory gather ran in
         > 2026-09-11 smoke review: addresser fails from any other directory
+- [ ] T26 | Remove `WIRE_FIELDS`, which no code reads
+        > 2026-10-17 Reason: `_place` spells the five wire keys again as a literal
+        > 2026-10-17 Check: grep -rn WIRE_FIELDS src tests finds nothing
+- [ ] T27 | Remove `Page.prose`, which has no caller outside tests
+        > 2026-10-17 Reason: each consumer it names filters by series itself
+        > 2026-10-17 Check: no `.prose` read of a Page remains in src or tests
+- [ ] T28 | Remove the unreachable `Kind.MATTER` branch of `attach`
+        > 2026-10-17 Reason: `page_for` places matter before it calls `attach`
+        > 2026-10-17 Check: page, binder and compositor suites pass without it
+- [ ] T29 | Remove the `lang` parameter `page_for` overwrites unread
+        > 2026-10-17 Reason: `language_for(path)` replaces it before anything reads it
+        > 2026-10-17 Check: page_for takes no lang; its callers and tests pass
+- [ ] T30 | Remove the dead `cues` and `edges` stores in `page_for`
+        > 2026-10-17 Reason: both are reassigned before any read
+        > 2026-10-17 Check: ruff and the page suites pass with them gone
+- [ ] T31 | Move the binder wire format out of `binder/page.py`
+        > 2026-10-17 Reason: _place.._checked_place serve binder.py, not page building
+        > 2026-10-17 Check: test_areas passes; page.py holds no RedactedPage code
+- [ ] T32 | Read every address in `binder/page.py` through `cue_of`
+        > 2026-10-17 Reason: two `split("@")` sites break the one-reader rule
+        > 2026-10-17 Check: grep finds no split("@") in binder/page.py
