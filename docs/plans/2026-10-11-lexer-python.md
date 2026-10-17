@@ -2,8 +2,8 @@
 
 ```
 Status:   in-progress
-Progress: 31 of 34 TODO tasks closed
-Plan-tasks: 47 of 49 plan tasks closed
+Progress: 32 of 34 TODO tasks closed
+Plan-tasks: 49 of 50 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (founded by move-t from 2026-10-11-lexical-readers)
@@ -450,7 +450,7 @@ complete merely because this plan or its interfaces are approved.
 - [x] T48 | Count internal blanks in Python comment section length
 - [x] T49 | Remove the Python-specific writer additions
 - [x] T50 | Remove unused Python identifier interpretation settings
-- [ ] T51 | Replace host parsing in raw Python documentation recovery
+- [-] T51 | Replace host parsing in raw Python documentation recovery
 - [x] T52 | Update reading-context test fixtures for acquired registries
 - [x] T53 | Assert exact BOM preservation through Python composition
 - [x] T54 | Assert specific lexical refusal diagnostics in address tests
@@ -700,7 +700,8 @@ complete merely because this plan or its interfaces are approved.
         > 2026-10-14 Check: uv run pytest -q tests/test_proof_command.py
         > 2026-10-14 Includes T44 correction of stale _prove preservation explanation
         > 2026-10-14 Standalone doc add/drop uses correspondence without approval input
-- [~] P41 | Retire replaced Python interpretation paths
+- [-] P41 | Narrowed to the reading path by Process #212; reissued as P50 | 680ddc9d | Retire
+      replaced Python interpretation paths
         > 2026-10-14 Goals: T40,T42,T44 and reader-vocabulary T1; reader/proof routes.
         > 2026-10-14 Check: uv run pytest -q; real paths forbid AST and tokenize.
         > 2026-10-14 Check: completion commands in the approved Python specification.
@@ -720,8 +721,8 @@ complete merely because this plan or its interfaces are approved.
         > 2026-10-14 Check: page, wrapping, compositor and galley suites.
         > 2026-10-14 Includes Python classification-boundaries T1 and T2 from review.
         > 2026-10-14 Classification verified; required writer checks still fail.
-- [ ] P44 | Read raw Python documentation through the acquired language
-      definition
+- [-] P44 | Outside the lexer: Process #212; filed as mark-defects T38 | 680ddc9d | Read
+      raw Python documentation through the acquired language definition
         > 2026-10-14 Goal: T51; retain existing forms, removal behavior and writer
         > 2026-10-14 Check: raw doc recovery and move tests forbid host parser calls
         > 2026-10-14 Input wiring needs scope agreement before changing middle callers
@@ -753,3 +754,10 @@ complete merely because this plan or its interfaces are approved.
         > 2026-10-16 Goals: T56,T43; only `;` or `:` to newline at P47 indent passes
         > 2026-10-16 Check: uv run pytest -q tests/test_lexical_preservation.py
         > 2026-10-16 Check: other indent, or `;` dropped without newline, refused
+- [ ] P50 | Delete the ast and tokenize reading paths the lexical reader
+      replaced
+        > 2026-10-16 Goals: T40,T41; paragraphs_stdlib and the declarations ast branch
+        > 2026-10-16 Check: grep finds no paragraphs_stdlib or ast.parse in lexer.py
+        > 2026-10-16 Check: the diagnostics test asserts fixed expected paragraphs
+        > 2026-10-16 Check: uv run pytest -q passes
+        > 2026-10-16 Excludes the comment_form editing path, Process #212

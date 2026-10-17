@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 53 of 56 tasks closed
+Progress: 54 of 56 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-21 (Roy, 2026-08-21, on four sentry files the floor interpreter cannot
@@ -453,7 +453,8 @@ the review, and nothing today protects the review.
       unused Python identifier interpretation settings
         > 2026-10-14 Location: python.toml rules.identifiers and definition.py:109
         > 2026-10-14 Check: reader keeps opaque code; unused identifier rules are absent
-- [ ] T51 | Replace host parsing in raw Python documentation recovery
+- [-] T51 | Outside the lexer: Process #212; filed as mark-defects T38 | 680ddc9d | Replace
+      host parsing in raw Python documentation recovery
         > 2026-10-14 Location: reading/docstring.py:69,92,118 uses host parsing
         > 2026-10-14 Dependency: form recovery currently receives no acquired definition
         > 2026-10-14 Check: adjacent literal recovery passes with host parsing forbidden
