@@ -5291,3 +5291,17 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   looks like a reason for this system to exist"*, *"that there are empty strings maybe
   not bad but sloppy"*, then *"The reality is that an empty comment should get a drop
   mark automatically"*.
+
+- **#211.** **Python code sharing a physical line with a docstring is split onto its own
+  line at the read** (Roy, 2026-10-16, ruling the lexer plan's P37). Shown that the 41
+  failing writer tests exercise `"""Doc."""; x = 1`, and that the pattern occurs in none of
+  4,697 docstrings across 2,305 corpus files. Roy: *"Where does the block (b) type go from
+  the `; y=42` if the docstring on `def fn(): "docstring"` becomes more than one line. e.g.,
+  the docstring needs the full google/numpy/other template."*, then *"My answer inclination
+  is that if that example ever shows up the system breaks the line and makes the stuff after
+  the ; a new line and address so the system works correctly."* and *"That would give the
+  'y=42' its own set of B, and C addresses"*. Offered addressing from the read or splitting
+  only at write: *"Yes split at the read. If the human wants it back (which would be poor
+  programming practice) they can see it in the review and request the agents to manually
+  change it"*. So the page is read and addressed as split, the written page carries the
+  split, and the change is shown in the review like any other.
