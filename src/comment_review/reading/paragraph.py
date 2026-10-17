@@ -240,7 +240,7 @@ class Paragraph:
     #
     # !! IT IS STATED BY THE PRODUCER BECAUSE NO READER CAN INFER IT. Two tried,
     # both by testing whether the stored text is a proper SUFFIX of the physical
-    # line, and the test cannot work: `paragraphs_stdlib` stores the WHOLE line for
+    # line, and the test cannot work: the stdlib reader stored the WHOLE line for
     # a trailing comment, so the suffix test answers False. Measured 2026-08-18:
     # gathering `z = 3  # trailing` and editing that paragraph produced a galley
     # reading `# reworded trailing` where the statement had been -- a deleted

@@ -1,11 +1,8 @@
 """How each LANGUAGE marks its prose, and the paragraph a reader produces.
 
-Adding a language is a `Language` row -- data, not code. Two readers consume it,
-at the tier that language reaches:
-
-  tokenized  a lexer + AST (Python, from the stdlib)   + which declaration a
-                                                         docstring documents
-  lexical    a comment-syntax record, nothing else     the prose and its kind
+Adding a language is a `Language` row -- data, not code. The reader here reads
+every language but Python from its row alone: the prose and its kind. Python is
+read by `reading.python`, from its own language definition.
 
 !! IT DEFINES WHAT IT PRODUCES, which is why `Paragraph` lives here. A reader
 builds one the moment it finds prose, and it knows only what the TEXT says --
@@ -29,10 +26,9 @@ import ast
 import io
 import re
 import tokenize
-from enum import IntEnum
 from pathlib import Path
 
-from comment_review import constants, exceptions
+from comment_review import constants
 from comment_review.reading.comment import Comment, Fragment
 from comment_review.reading.language import (
     BY_EXT,
@@ -55,64 +51,7 @@ __all__ = [
 ]
 
 
-class Layout(IntEnum):
-    """Python's LAYOUT tokens: the ones carrying neither code nor prose.
-
-    !! IT IS A CATEGORY AND IT HAD NO NAME. The reader spelled it as two
-    membership tests joined by `or`, over the same operand with disjoint
-    literals -- so what these five have in common was stated nowhere and had to
-    be re-derived by anyone reading the branch. They are what the tokenizer
-    emits to describe SHAPE: where a line ends, where a suite opens and closes,
-    where the file stops.
-
-    ! WHAT ASKS: a comment run SURVIVES every one of them and is ended by
-    anything else. That rule is only sayable once the category has a name.
-
-    ! IT LIVES HERE AND NOT IN `constants`, because it is a fact about CPython's
-    tokenizer rather than about a file. Roy, 2026-08-22, moving it back: *"it is
-    a specific thing to the ast of python."*
-    """
-
-    NL = tokenize.NL
-    NEWLINE = tokenize.NEWLINE
-    INDENT = tokenize.INDENT
-    DEDENT = tokenize.DEDENT
-    ENDMARKER = tokenize.ENDMARKER
-
-
-#: Membership is asked of THIS, never of `Layout` itself.
-#:
-#: !! `x in Layout` RAISES ON THE FLOOR. MEASURED 2026-08-22 on 3.11.15:
-#: `TypeError: unsupported operand type(s) for 'in': 'int' and 'EnumType'`, with
-#: a DeprecationWarning saying 3.12 will answer True or False instead. A token
-#: type is a plain `int`, so the enum cannot be asked directly until the floor
-#: moves -- and a form that works on the dev machine and raises for a user is
-#: exactly what the floor rule exists to stop.
-LAYOUT = frozenset(Layout)
-
-
 NAMED_DEFS = (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)
-DOC_ANCHORS = (ast.Module,) + NAMED_DEFS
-
-
-def declared_in_source_order(tree: ast.AST) -> list:
-    """Every declaration in this tree, in the order a reader meets it.
-
-    !! SOURCE ORDER, WHICH `ast.walk` DOES NOT GIVE. The walk is breadth first,
-    so a method nested in a class comes back after every top-level declaration
-    rather than where it sits on the page. `lineno` is the order down the page,
-    and it is the only one a human can check.
-
-    ! IT IS ONE FUNCTION BECAUSE THE ORDINALS MUST AGREE. The same sort stood in
-    two places, under a comment promising they were *"the same sort, so the
-    ordinals line up by construction"* -- which is a claim about two copies, and
-    the kind that stops being true without anything failing. One call site each
-    now, and the agreement is structural.
-    """
-    return sorted(
-        (n for n in ast.walk(tree) if isinstance(n, NAMED_DEFS)),
-        key=lambda n: n.lineno,
-    )
 
 
 # !! A sentinel that CANNOT be a line number. `0` is one less than line 1, so
@@ -601,37 +540,6 @@ def run_ends(
     return -1, depth
 
 
-def _own_characters(span: list[str], column: int) -> list[str]:
-    """A paragraph's own characters: its lines, cut at `column` on the first.
-
-    !! ONE RULE, AND ONLY THE STDLIB TIER CALLS IT. The rule is shared -- both
-    tiers store a paragraph's own characters and neither keeps the code beside
-    them -- but `paragraphs_lexical` reaches it by cutting at the opener as it
-    reads, through `partial_first`, and never asks this. ! It said *"one rule for
-    both tiers"*, which reads as two callers and is a claim a grep refutes.
-
-    ! WHAT THE RULE IS FOR: the two tiers once stored different things -- the
-    lexical one cut at the comment OPENER, the stdlib one kept the whole physical
-    line -- so the retired `paragraph_matches` could not be written to satisfy
-    both, and refused a FRESH binder on four of six comment shapes.
-
-    ! With `anchor` holding the code, `anchor + raw_lines[0]` reconstructs the
-    first line exactly. Storing the whole line here instead would put the code
-    in two fields, which is the conflation the anchor was added to end.
-
-    Args:
-        span: the paragraph's physical lines, without endings.
-        column: where the prose begins on the first line; 0 when the
-            paragraph owns its lines whole.
-
-    Returns:
-        The same lines, with the first cut at `column`.
-    """
-    if not span or column <= 0:
-        return span
-    return [span[0][column - 1 :], *span[1:]]
-
-
 def _anchor_of(lines: list[str], line_no: int, column: int) -> str:
     """The line of code a `c` paragraph sits beside -- its ANCHOR, verbatim.
 
@@ -643,7 +551,7 @@ def _anchor_of(lines: list[str], line_no: int, column: int) -> str:
     characters before it.
 
     !! WITHOUT IT, STALENESS HAS NOTHING FROM THE BINDER TO COMPARE THE CODE
-    AGAINST. `paragraphs_stdlib` kept the whole physical line in `raw_lines` and so
+    AGAINST. The stdlib reader kept the whole physical line in `raw_lines` and so
     checked both halves by accident; `paragraphs_lexical` cuts at the opener and so
     checked only the prose -- measured 2026-08-19, a lexical trailing comment
     storing `['// note']` made the retired `paragraph_matches` answer False on an
@@ -810,9 +718,9 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
     # ! LAYERS STILL OPEN on a run that crossed a line -- see `run_ends`. Always
     # 1 where the language does not nest.
     layers = 1
-    # ! The line the last trailing comment ended on. Measured: this tier splits a
-    # wrapped trailing comment exactly as `paragraphs_stdlib` does, so it needs the
-    # same stamp. A list because `flush` is a closure and rebinds nothing.
+    # ! The line the last trailing comment ended on. A wrapped trailing comment
+    # splits into two paragraphs here, so the second needs the stamp. A list
+    # because `flush` is a closure and rebinds nothing.
     trailing_end = [_NO_TRAILING]
 
     # !! WHERE THE RUN'S FIRST LINE STOPS BEING CODE -- one past the last
@@ -962,7 +870,7 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
             ),
         )
         partial_first[0] = 0
-        # !! Same split as the tokenized tier: a trailing comment closes its run,
+        # !! A trailing comment closes its run,
         # so a sentence wrapped onto the next line becomes a SECOND paragraph anchored
         # to the code below it. Stamped, not re-cut.
         if kind == "comment" and paragraph.start == trailing_end[0] + 1:
@@ -1046,7 +954,7 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
         # the consequence exactly: "Split on blanks and a 9-line paragraph reads as
         # `6 + 3` and passes a cap of 6 -- the quickest way to fake compliance."
         # Measured 2026-08-17: a six-line run with one blank read as 3L + 3L
-        # in every LEXICAL language, while `paragraphs_stdlib` skips NL tokens and
+        # in every LEXICAL language, while the stdlib reader skipped NL tokens and
         # kept it whole. Seventeen of the eighteen languages could evade any cap.
         #
         # ! The blank JOINS the run rather than being skipped, so `raw_lines`
@@ -1335,8 +1243,7 @@ def document_declarations(
     framing about positioning should come from the language and should be only in
     either the language definition file, or a reference to the language
     definition file in lexer and compositor."* It was in `page.py`, which is
-    neither. ! `paragraphs_stdlib` already states this for Python from its parse;
-    this is the same fact for a language the parser cannot read.
+    neither. ! Python's own reader states the same fact for Python.
 
     !! PROSE BELONGS TO WHICHEVER SIDE IT IS NEARER TO, and a TIE goes to the
     side the language documents on. That is the whole rule, and it replaced
@@ -1425,9 +1332,7 @@ def document_declarations(
             held.address = cue_for(Series.DECLARED.value.letter, ordinal)
 
 
-def declarations(
-    text: str, lang: Language, code: dict[int, str] | None = None
-) -> list[tuple[int, int, bool]]:
+def declarations(lang: Language, code: dict[int, str]) -> list[tuple[int, int, bool]]:
     """Every DOCUMENTABLE declaration in source order: its line, and where its doc goes.
 
     !! ENTRY 0 IS THE MODULE, whose line is 0 -- a module has no line of code
@@ -1446,21 +1351,19 @@ def declarations(
     Python alone, because Python is the one language the stdlib parses. An LSP
     or the build tooling can VERIFY the result; neither is needed to get one.
 
-    ! PYTHON STILL USES ITS PARSER, because its doc goes INSIDE the body --
-    `lang.doc_inside`. Where the body starts is not the declaring line and is
-    not `line + 1`: a wrapped signature moves it several lines down. Every other
-    language puts the doc on the declaring line's own line, so the line the
-    keyword is on is the whole answer.
+    ! A LANGUAGE WHOSE DOC GOES INSIDE THE BODY IS REFUSED -- `lang.doc_inside`,
+    Python. Where its body starts is not the declaring line, so its own reader
+    states its declarations. Every other language puts the doc on the declaring
+    line's own line, so the line the keyword is on is the whole answer.
 
     ! It REPORTS; it does not emit a paragraph. `undocumented` is a PAGE kind,
     because only a page knows where prose is missing.
 
     Args:
-        text: the file's source.
         lang: its record. `declares` decides whether there is an `a` series.
         code: `line -> the code on it`, from `page.code_lines`. The keyword path
             scans ONLY these, so a keyword inside a comment or a string cannot
-            declare anything. Required for a language that is not Python.
+            declare anything.
 
     Returns:
         `(line, insert, above)` per declaration, module first, or `[]` when the
@@ -1473,23 +1376,7 @@ def declarations(
     if not lang.declares:
         return []
     if lang.doc_inside:
-        try:
-            tree = ast.parse(text)
-        except SyntaxError:
-            # ! A file the parser refused declares nothing this can state. Its
-            # one `unparsed` paragraph reports the refusal.
-            return []
-        declared = declared_in_source_order(tree)
-        # ! ABOVE is False for every entry here: this is the `doc_inside`
-        # path, and the row that sent us down it is the statement.
-        out: list[tuple[int, int, bool]] = []
-        for node in [tree, *declared]:
-            body = getattr(node, "body", [])
-            # ! An empty module has no first statement; its doc would open the file.
-            out.append(
-                (getattr(node, "lineno", 0), body[0].lineno if body else 1, False)
-            )
-        return out
+        raise ValueError(f"{lang.name} declarations come from its own reader")
     # !! THE MODULE FIRST, AND ITS DOC OPENS THE FILE. `a0` is the file's own
     # documentation, which in an above-doc language is the run at the top --
     # Rust's `//!`, Go's package comment.
@@ -1497,279 +1384,6 @@ def declarations(
     # ! The doc goes ON the declaring line, pushing it down, so `insert` IS that
     # line. Ordered because `code` is.
     out += [
-        (n, n, True)
-        for n, line in (code or {}).items()
-        if _declares_here(line, lang.declares)
+        (n, n, True) for n, line in code.items() if _declares_here(line, lang.declares)
     ]
     return out
-
-
-def paragraphs_stdlib(path: Path, text: str) -> list[Paragraph]:
-    """Comment paragraphs (bounded by CODE) and docstrings, via tokenize + ast."""
-    out: list[Paragraph] = []
-    source_lines = constants.text_lines(text)
-    # (line, physical source line, the comment token alone, is it trailing)
-    # ! THE LAST FIELD IS A COLUMN, NOT A FLAG, and was annotated `bool`. It is
-    # the column when code precedes the comment and 0 otherwise -- ONE fact,
-    # whose truthiness still answers "is this a trailing comment", which is why
-    # it reads like a flag at every use site. The annotation believed the use
-    # and not the value.
-    run: list[tuple[int, str, str, int]] = []
-    # ! The line the last trailing comment ended on. A comment opening on the
-    # VERY NEXT line continues that sentence, and the flush below has already
-    # split them. A list because `flush` is a closure and rebinds nothing.
-    trailing_end = [_NO_TRAILING]
-
-    def flush() -> None:
-        if run:
-            if not run[0][3] and run[-1][0] == len(source_lines):
-                split = next(
-                    (
-                        n
-                        for n in range(len(run) - 1, 0, -1)
-                        if any(
-                            not line.strip()
-                            for line in source_lines[run[n - 1][0] : run[n][0] - 1]
-                        )
-                    ),
-                    None,
-                )
-                if split is not None:
-                    footer = run[split:]
-                    del run[split:]
-                    flush()
-                    run.extend(footer)
-            # ! PROSE comes from the comment token; WIDTH from the physical
-            # line, which is the whole line a width rule measures. Using the
-            # physical line for both fed a trailing comment's own code to the
-            # annotation regexes -- reviewers saw
-            # `models.Index(fields=(...)),  # note` as the note's text.
-            prose = [c for _, _, c, _ in run]
-            # !! THE SAME MATTER RULE AS THE LEXICAL TIER -- see `MATTER`. Both
-            # readers state it, because a paragraph's TYPE is the lexer's to say
-            # and a file's own prose is not a different thing in Python. ! It was
-            # written on one tier first, and `.py` fixtures then reported NO
-            # matter at all while `.c` ones reported it correctly.
-            whole = not run[0][3]
-            kind = "comment" if whole else "trailing-comment"
-            if whole and (run[0][0] == 1 or run[-1][0] == len(source_lines)):
-                kind = Kind.MATTER
-            out.append(
-                paragraph := Paragraph(
-                    path=path.as_posix(),
-                    start=run[0][0],
-                    end=run[-1][0],
-                    kind=kind,
-                    # ! ONE PAST THE LAST CHARACTER OF CODE on the line, or
-                    # 0 for a leading comment. NOT the `#`: the whitespace
-                    # between a statement and its comment belongs to the `c`
-                    # place, so a `margin` and the trailing comment that would
-                    # replace it carry the same column.
-                    lines=counted_lines(prose),
-                    text=_join(prose),
-                    # !! THE LINES THE PARAGRAPH SPANS, not the lines that carry a
-                    # comment token. A blank line inside a run has no token, so
-                    # taking them from `run` skipped it while `start..end`
-                    # still spanned it -- `raw_lines` was then SHORTER than the
-                    # paragraph, and anything comparing the two disagreed on an
-                    # untouched file. Measured 2026-08-18: 4 paragraphs in this
-                    # repo, each refused by the retired `paragraph_matches` as stale,
-                    # and each one a splice that would have deleted the blank
-                    # line it did not know about.
-                    raw_lines=_own_characters(
-                        source_lines[run[0][0] - 1 : run[-1][0]], run[0][3]
-                    ),
-                    # !! Same string, same reason -- see `paragraphs_lexical`. The
-                    # tokenizer states the column, so the code before it is a
-                    # slice and not an inference.
-                    anchor=_anchor_of(source_lines, run[0][0], run[0][3]),
-                )
-            )
-            # !! A trailing comment CLOSES its run, so a sentence wrapped onto
-            # the next line becomes a SECOND paragraph and re-anchors to the
-            # declaration below it. That is correct by the paragraph definition --
-            # the continuation sits between two lines of code -- and wrong about
-            # the prose, which is one sentence. STAMPED rather than re-cut:
-            # merging would change paragraph boundaries and renumber every binder,
-            # and the harm is a reviewer filing `correct` against a mid-clause
-            # ending the gather manufactured.
-            if paragraph.kind == "comment" and paragraph.start == trailing_end[0] + 1:
-                paragraph.annotations.add("continues-a-trailing-comment")
-                paragraph.notes.append(
-                    "opens on the line after a trailing comment, so it may be"
-                    " the tail of that sentence rather than a note about the"
-                    " code below. A mid-clause ending here may be the split."
-                )
-            if paragraph.kind == "trailing-comment":
-                trailing_end[0] = paragraph.end
-            run.clear()
-
-    # !! THE TOKENIZER RUNS BEFORE THE `unparsed` FALLBACK, so its failure
-    # escaped `page_for` entirely instead of producing the paragraph that
-    # reports it. MEASURED 2026-08-22: `x = [1,` and `x = """open` both raised
-    # `TokenError` out of this loop -- *"EOF in multi-line statement"* and *"EOF
-    # in multi-line string"* -- and a file mid-edit took the caller down with
-    # it. ! `tokenize.TokenError` is NOT a `SyntaxError`, which is why the
-    # `except` below never saw it; `exceptions.TOKENIZE_ERRORS` names both for
-    # exactly this reason.
-    #
-    # ! DRAINED FIRST rather than guarded in place: the generator raises during
-    # ITERATION, so the alternative was wrapping the whole loop and indenting
-    # every line of it. A source file's tokens fit in memory.
-    try:
-        tokens = list(tokenize.generate_tokens(io.StringIO(text).readline))
-    except exceptions.TOKENIZE_ERRORS as e:
-        # !! THE TWO EXCEPTIONS PUT DIFFERENT THINGS IN `args[1]`, and reading
-        # them the same way put a STRING in `Paragraph.start`. `TokenError` cites
-        # `(row, col)`, so `args[1][0]` is the line; `SyntaxError` cites
-        # `(filename, lineno, offset, text, ...)`, so `args[1][0]` is
-        # `'<unknown>'`. MEASURED 2026-08-22 on a dedent mismatch: `page_for`
-        # raised `TypeError: '>=' not supported between 'str' and 'int'`, the
-        # gather printed that TypeError as its diagnosis, and the compositor
-        # exited 1 on a traceback.
-        # ! `lineno` IS THE ATTRIBUTE `SyntaxError` PUBLISHES, and `TokenError`
-        # does not have one -- so asking for it tells the two apart without a
-        # type test, and without either of them naming the other.
-        at = getattr(e, "lineno", None) or (
-            e.args[1][0] if len(e.args) > 1 and e.args[1] else 1
-        )
-        out.append(
-            Paragraph(
-                path=path.as_posix(),
-                start=at,
-                end=at,
-                kind="unparsed",
-                lines=0,
-                text=f"UNPARSED ({e.args[0]}) -- no docstrings, no names harvested",
-            )
-        )
-        return out
-    for raw in tokens:
-        if raw.type == tokenize.COMMENT:
-            # ! The COLUMN when code precedes it, 0 otherwise -- one fact,
-            # and its truthiness is still "this is a trailing comment".
-            before = raw.line[: raw.start[1]]
-            trailing = len(before.rstrip()) + 1 if before.strip() else 0
-            run.append((raw.start[0], raw.line.rstrip("\n"), raw.string, trailing))
-            # ! A trailing comment CLOSES its run. Its code sits before it, so
-            # the next token to arrive is the following leading comment, and the
-            # two merged across two blank lines -- gluing `raise original
-            # DoesNotExist` to an unrelated `TODO` four lines down and handing a
-            # reviewer one paragraph built from two comments.
-            if trailing:
-                flush()
-        # ! A COMMENT RUN SURVIVES LAYOUT AND IS ENDED BY ANYTHING ELSE -- with
-        # the one exception below. The five types are named as one category by
-        # `Layout`; this asked the same operand twice against two disjoint
-        # tuples, which said nothing about what they have in common.
-        elif raw.type in LAYOUT:
-            # !! A BLANK ENDS THE FILE'S OWN MATTER, THE SAME RULE THE LEXICAL
-            # TIER CARRIES IN `end_run`. Roy, 2026-08-21: *"if the
-            # opening/closing line is a comment then the matter continues
-            # down/up until there is an empty line or the start/end of a
-            # docstring"*; restated 2026-08-26: *"It is supposed to stop f0 at
-            # the first blank line."*
-            #
-            # !! MEASURED 2026-08-26 WITHOUT IT: a shebang, a blank and a comment
-            # tokenized as ONE run opening on line 1, so the comment BELOW the
-            # blank was stamped `matter` and took `f0`. An `add` at `b0` then
-            # re-read as `f0`, and the write chain refused a draft it had just
-            # written. The lexical tier answered the same file correctly, so the
-            # two tiers disagreed about what front matter is.
-            #
-            # ! IT ENDS THE FIRST RUN ONLY -- what `not out` says, and the same
-            # bound `end_run` uses. A second run above the first statement is
-            # ordinary prose in that gap and merges there like any other, rather
-            # than becoming a second `f`.
-            if run and not out and run[0][0] == 1 and not raw.line.strip():
-                flush()
-            continue
-        else:
-            flush()
-    flush()
-
-    try:
-        tree = ast.parse(text)
-    except SyntaxError as e:
-        out.append(
-            Paragraph(
-                path=path.as_posix(),
-                start=getattr(e, "lineno", 1) or 1,
-                end=getattr(e, "lineno", 1) or 1,
-                kind="unparsed",
-                lines=0,
-                text=f"UNPARSED ({e.msg}) -- no docstrings, no names harvested",
-            )
-        )
-        return out
-
-    declared = declared_in_source_order(tree)
-    # `id()`, because two declarations can be equal as AST nodes and are never
-    # the same declaration. Module is 0; its declarations count from 1.
-    ordinal = {id(n): i for i, n in enumerate(declared, 1)}
-
-    for node in ast.walk(tree):
-        if not isinstance(node, DOC_ANCHORS):
-            continue
-        doc = ast.get_docstring(node, clean=False)
-        if not doc:
-            continue
-        stmt = node.body[0]
-        start = stmt.lineno
-        end = getattr(stmt, "end_lineno", stmt.lineno) or stmt.lineno
-        # !! `raw_lines` IS THE FILE'S LINES, sliced, and never the AST value.
-        # `ast.get_docstring` returns the string CONTENT: no quote delimiters,
-        # and no indent on the first line. Stored, it made every consumer that
-        # compares a paragraph to the file compare unlike things -- measured
-        # 2026-08-17 on `galley.py`'s own binder, `paragraph_matches` returned False
-        # for all six docstring paragraphs of an UNMODIFIED file and True for all
-        # five comment paragraphs, so a docstring edit was refused as stale and the
-        # galley could not be set for it at all. `text` is the whole source and
-        # the node carries 1-based inclusive lines, so the slice is exact.
-        raw = source_lines[start - 1 : end]
-        out.append(
-            Paragraph(
-                path=path.as_posix(),
-                start=start,
-                end=end,
-                kind="docstring",
-                # ! The PHYSICAL count, which is what `end - start` spans. The
-                # AST value is one line short of a multi-line docstring, having
-                # no closing-delimiter line, so `lines` and `len(raw_lines)`
-                # disagreed by one on every one of them.
-                lines=len(raw),
-                text=re.sub(r"\s+", " ", doc).strip(),
-                anchor=getattr(node, "name", "<module>"),
-                # ! THE CUE, NOT AN ORDINAL -- see `flag_structural_docs`.
-                address=cue_for(Series.DECLARED.value.letter, ordinal.get(id(node), 0)),
-                anchor_line=getattr(node, "lineno", 0),
-                raw_lines=raw,
-            )
-        )
-    # !! A COMMENT ON A LINE A DOCSTRING OWNS IS NOT A PLACE OF ITS OWN, and
-    # this is the ONE line the two readers above both claim. `tokenize` sees
-    # non-blank characters before the `#` on a docstring's CLOSING delimiter and
-    # types the comment `trailing-comment`; `ast` gives that whole line to the
-    # docstring, and `raw_lines` above takes the file's own line, so the comment
-    # is already set back verbatim by the docstring.
-    #
-    # !! WHAT THE SECOND PARAGRAPH COST, MEASURED 2026-08-29 on
-    # `tests/test_compositor.py`'s `docstring closed with a comment`: the
-    # delimiter is not code, so no `c` place exists for the comment to sit in
-    # and `page.attach` left it with NO ADDRESS -- a paragraph that no
-    # instruction can cite and that `test_reading` asserts cannot exist. It also
-    # took the line out of the docstring's occupancy in `page.code_lines`, so
-    # the line was set TWICE and `lossless` reported *line invented*.
-    #
-    # ! IT REACHED THE ONE-LINE FORM TOO, and was invisible there: both
-    # paragraphs share a `start`, so the sort ran the comment first and
-    # `code_lines` happened to answer correctly. The addressless paragraph was
-    # produced either way.
-    docstrings = [(b.start, b.end) for b in out if b.kind == "docstring"]
-    kept = [
-        b
-        for b in out
-        if b.kind != "trailing-comment"
-        or not any(start <= b.start and b.end <= end for start, end in docstrings)
-    ]
-    return sorted(kept, key=lambda b: b.start)

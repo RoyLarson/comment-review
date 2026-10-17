@@ -559,7 +559,7 @@ def code_lines(text: str, prose: list[dict]) -> dict[int, str]:
     (`decision-log.md Process: #69`), read here for its truthiness alone.
     Before THAT it tested whether the stored
     text was a proper SUFFIX of the physical line, which is an inference and
-    was wrong in both directions: `paragraphs_stdlib` stores the WHOLE line for a
+    was wrong in both directions: the stdlib reader stored the WHOLE line for a
     trailing comment, so the test never fired for one -- and a paragraph comment
     opened after a statement had its declaration line dropped from the code
     set, moving every interval boundary in the file. Measured 2026-08-18.
@@ -729,7 +729,7 @@ def places_on(text: str, prose: list[dict], lang: "Language | None" = None) -> "
         The `Cues` for this page.
     """
     code = code_lines(text, prose)
-    decls = declarations(text, lang, code) if lang else []
+    decls = declarations(lang, code) if lang else []
     # !! `None`, NOT `1`, WHEN THERE ARE NO DECLARATIONS. A language with no
     # documentable declaration has no `a` series at all -- see `cue`. It is
     # not a series that happens to be empty, and a YAML file carried an `a0`
@@ -1024,7 +1024,7 @@ def page_for(
     else:
         cues = places_on(text, prose, lang)
         code = code_lines(text, prose)
-        document_declarations(got, declarations(text, lang, code), code)
+        document_declarations(got, declarations(lang, code), code)
     here = rel if rel is not None else path.as_posix()
     files = cues.file_places()
     leads = iter(range(10**9))

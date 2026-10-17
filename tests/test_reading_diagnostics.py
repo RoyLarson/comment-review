@@ -88,33 +88,34 @@ def test_read_paragraphs_invalid_record_and_unexpected_error_propagate(monkeypat
         readers.read_paragraphs(Path("m.c"), "# open", lang)
 
 
-@pytest.mark.parametrize(
-    "name,text",
-    [
-        ("m.py", ""),
-        ("m.c", ""),
-        ("m.py", "# note\nx=1\n"),
-        ("m.c", "/* note */\nint x;\n"),
-    ],
-)
-def test_read_paragraphs_preserves_supported_readings(name, text):
-    path = Path(name)
+@pytest.mark.parametrize("text", ["", "/* note */\nint x;\n"])
+def test_read_paragraphs_preserves_supported_readings(text):
+    path = Path("m.c")
     lang = lexer.language_for(path)
     assert lang is not None
-    expected = (
-        lexer.paragraphs_stdlib(path, text)
-        if lang.name == "python"
-        else lexer.paragraphs_lexical(path, text, lang)
-    )
-    if lang.name != "python":
-        lexer.flag_structural_docs(expected, text, lang)
+    expected = lexer.paragraphs_lexical(path, text, lang)
+    lexer.flag_structural_docs(expected, text, lang)
+    registry = installed_registry()
+    assert not isinstance(registry, ReadFailure)
+    assert readers.read_source(path, text, registry=registry) == expected
+
+
+@pytest.mark.parametrize(
+    "text,expected",
+    [("", []), ("# note\nx=1\n", [(1, 1, "matter", "note", ["# note"])])],
+)
+def test_read_source_gives_python_its_lexical_read(text, expected):
+    path = Path("m.py")
     registry = installed_registry()
     assert not isinstance(registry, ReadFailure)
     result = readers.read_source(path, text, registry=registry)
-    if isinstance(result, PythonRead):
-        assert result.source.text is text
-        result = paragraphs_for(path, result)
-    assert result == expected
+    assert isinstance(result, PythonRead)
+    assert result.source.text is text
+    paragraphs = paragraphs_for(path, result)
+    assert not isinstance(paragraphs, ReadFailure)
+    assert [
+        (p.start, p.end, p.kind, p.text, p.raw_lines) for p in paragraphs
+    ] == expected
 
 
 def test_python_paragraph_adapter_recognizes_source_once(monkeypatch):

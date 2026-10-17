@@ -69,7 +69,7 @@ class Kind(StrEnum):
     # a docstring."* The `where it stops` half is the one that decides anything,
     # and the tokenized reader did not implement it -- a shebang, a blank and a
     # comment became ONE matter run, so the comment below the blank took `f0`
-    # and an `add` at `b0` re-read as `f0`. See `lexer.paragraphs_stdlib`.
+    # and an `add` at `b0` re-read as `f0`.
     MATTER = "matter"
     DARK_MATTER = "dark-matter"
     # ! THE SPACE BETWEEN TWO PLACES. It answers to nothing -- every other

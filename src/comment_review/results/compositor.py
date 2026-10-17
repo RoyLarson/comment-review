@@ -274,7 +274,7 @@ def set_page(page: Page, newline: str | None = None) -> str:
         # ! WHY IT IS NEEDED: front matter and the first gap both sit above the
         # first statement, so a comment set flush under an `f0` re-reads as part
         # of that matter run and the `b` loses its address. A blank between them
-        # is what keeps the two places separable -- see `lexer.paragraphs_stdlib`.
+        # is what keeps the two places separable -- see `Kind.MATTER`.
         #
         # ! ROY RULED THE COST: *"It may not be what all of the projects do but
         # it is generally enough and easy enough to implement and it looks good
