@@ -3,7 +3,7 @@
 ```
 Status:   in-progress
 Progress: 31 of 34 TODO tasks closed
-Plan-tasks: 46 of 49 plan tasks closed
+Plan-tasks: 47 of 49 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (founded by move-t from 2026-10-11-lexical-readers)
@@ -711,7 +711,8 @@ complete merely because this plan or its interfaces are approved.
         > 2026-10-14 Goal: T40; source spans preserve each physical-line boundary.
         > 2026-10-14 Check: exact comment columns, multiline literals and interpolation.
         > 2026-10-14 Check: uv run pytest -q tests/reading/test_python.py
-- [~] P43 | Classify scanned spans from documentation cues and source placement
+- [x] P43 | Classification and writer checks pass: 2021 tests | a7054cf8 | Classify
+      scanned spans from documentation cues and source placement
         > 2026-10-14 Goals: T40,T45,T47 and compact-header-boundaries T2.
         > 2026-10-14 A cues first; after-code C; comment-only B; existing F/D.
         > 2026-10-14 Read indentation from source after scanning; remove suite trees.
