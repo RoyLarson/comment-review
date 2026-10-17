@@ -312,6 +312,25 @@ def test_a_docstring_line_shared_with_code_is_read_broken(
         ).unchanged
 
 
+@pytest.mark.parametrize(
+    ("before", "after"),
+    [
+        ('def fn(): "doc"; y = 42\n', 'def fn():\n    "doc"\ny = 42\n'),
+        ('def fn(): "doc"; y = 42\n', 'def fn():\n    "doc"\n        y = 42\n'),
+        ('def fn(): "doc"; y = 42\n', 'def fn():\n  "doc"\n  y = 42\n'),
+        ('def f():\n    """Doc."""; y = 42\n', 'def f():\n    """Doc."""\ny = 42\n'),
+        ('def f():\n    """Doc."""; y = 42\n', 'def f():\n    """Doc.""" y = 42\n'),
+        ('"""Mod."""; y = 42\n', '"""Mod."""\n    y = 42\n'),
+    ],
+)
+def test_a_broken_line_anywhere_else_is_a_code_change(definition, before, after):
+    was, now = acquired(before, definition), acquired(after, definition)
+    for original, changed in ((was, now), (now, was)):
+        assert not compare_preservation(
+            original, changed, allowed_documentation_owners=(None, 0)
+        ).unchanged
+
+
 def test_selected_doc_only_inline_shape_can_relocate(definition):
     before = acquired('def f(): "docs"\n', definition)
     after = acquired('def f():\n    "new docs"\n', definition)
