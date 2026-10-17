@@ -1003,6 +1003,9 @@ def page_for(
     if isinstance(result, ReadFailure):
         return result
     python_read = result if isinstance(result, PythonRead) else None
+    if python_read is not None:
+        # The read may have broken a docstring's shared line; the page is that text.
+        text = python_read.source.text
     got = paragraphs_for(path, python_read) if python_read is not None else result
     assert not isinstance(got, PythonRead)
     if isinstance(got, ReadFailure):

@@ -65,13 +65,16 @@ def test_completed_read_projects_documentation_from_source_positions(python_defi
     assert [(p.text, p.raw_lines, p.address, p.anchor) for p in paragraphs] == [
         ("heading", ["# heading"], "", ""),
         ("module prose", ['"module\\nprose"'], "a0", ""),
-        ("body prose", ['    "body " "prose";'], "a1", ""),
-        ("detail", [" # detail"], "", '    "body " "prose"; return value'),
+        ("body prose", ['    "body " "prose"'], "a1", ""),
+        ("detail", [" # detail"], "", "    return value"),
     ]
-    assert declarations_for(reduced) == [(0, 2, False), (4, 7, False), (8, 9, False)]
-    assert code_for(reduced)[7] == "     return value"
+    assert declarations_for(reduced) == [(0, 2, False), (4, 7, False), (9, 10, False)]
+    assert 7 not in code_for(reduced)
+    assert code_for(reduced)[8] == "    return value"
     assert reduced.payloads[0].text == "module\nprose"
-    assert reduced.source.reconstruct() == text
+    assert reduced.source.reconstruct() == text.replace(
+        '"prose"; return', '"prose"\r\n    return'
+    )
 
 
 @pytest.mark.parametrize(
@@ -3625,3 +3628,38 @@ def test_declaration_annotation_unicode_spelling_is_not_lambda_keyword(
     position = result.source.position(result.source.sections[0].span.start)
     assert (position.line, position.column) == (2, 4)
     assert result.source.reconstruct() == text
+
+
+@pytest.mark.parametrize(
+    ("shared", "broken"),
+    [
+        ('def fn(): "doc"; y = 42\n', 'def fn():\n    "doc"\n    y = 42\n'),
+        ('def fn(): "doc"\n', 'def fn():\n    "doc"\n'),
+        ('class C: "doc"; y = 42\n', 'class C:\n    "doc"\n    y = 42\n'),
+        (
+            'class C:\n  def m(self): "doc"; y = 42  # note\n',
+            'class C:\n  def m(self):\n    "doc"\n    y = 42  # note\n',
+        ),
+        ('if x:\n   pass\ndef fn(): "doc"\n', 'if x:\n   pass\ndef fn():\n   "doc"\n'),
+        ('def f():\n\t"""Doc."""; y = 42\n', 'def f():\n\t"""Doc."""\n\ty = 42\n'),
+        ('"""Mod."""; y = 42\n', '"""Mod."""\ny = 42\n'),
+        (
+            'def fn(): "doc"; a = 1; b = 2  # note\n',
+            'def fn():\n    "doc"\n    a = 1; b = 2  # note\n',
+        ),
+        (
+            'def f():\r\n    """Doc.""" ; y = 42\r\n',
+            'def f():\r\n    """Doc."""\r\n    y = 42\r\n',
+        ),
+    ],
+)
+def test_a_docstring_sharing_its_line_reads_as_its_broken_source(shared, broken):
+    from conftest import build
+
+    compile(shared, "m.py", "exec")
+    compile(broken, "m.py", "exec")
+    page, expected = build(shared), build(broken)
+    assert page.text == broken
+    assert [(p.address, p.kind, p.raw_text, p.anchor) for p in page] == [
+        (p.address, p.kind, p.raw_text, p.anchor) for p in expected
+    ]

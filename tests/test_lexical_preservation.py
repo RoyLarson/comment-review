@@ -104,7 +104,6 @@ def test_editorial_changes_preserve_code(definition, before, after):
             'def a():\n    "doc"\n    pass\ndef b():\n    pass\n',
             'def a():\n    pass\ndef b():\n    "doc"\n    pass\n',
         ),
-        ('"doc"; x=1\n', '"new"\nx=1\n'),
         ('("doc")\nx=1\n', '"new"\nx=1\n'),
         ("#!/usr/bin/python\nx=1\n", "#!/usr/bin/python3\nx=1\n"),
         ("#!/usr/bin/python\nx=1\n", "# head\n#!/usr/bin/python\nx=1\n"),
@@ -276,7 +275,6 @@ def test_promoted_ordinary_literal_keeps_its_exact_source(
         ('x="ordinary"\n', '"docs"\n', {None}),
         ('"docs"\n"ordinary"\n', '"changed"\n', {None}),
         ('"docs"\nx=1; y=2\n', '"new"\nx=1\ny=2\n', {None}),
-        ('def f(): "docs"; return 1\n', 'def f():\n    "new"\n    return 1\n', {0}),
         ('def f():\n    "docs"\n', "def f():\n    pass\n", {0}),
         (
             "def a():\n    pass\ndef b():\n    pass\n",
@@ -293,6 +291,23 @@ def test_selected_owners_do_not_permit_code_or_protection_changes(
     was, now = acquired(before, definition), acquired(after, definition)
     for original, changed in ((was, now), (now, was)):
         assert not compare_preservation(
+            original, changed, allowed_documentation_owners=owners
+        ).unchanged
+
+
+@pytest.mark.parametrize(
+    ("before", "after", "owners"),
+    [
+        ('"doc"; x=1\n', '"new"\nx=1\n', ()),
+        ('def f(): "docs"; return 1\n', 'def f():\n    "new"\n    return 1\n', {0}),
+    ],
+)
+def test_a_docstring_line_shared_with_code_is_read_broken(
+    definition, before, after, owners
+):
+    was, now = acquired(before, definition), acquired(after, definition)
+    for original, changed in ((was, now), (now, was)):
+        assert compare_preservation(
             original, changed, allowed_documentation_owners=owners
         ).unchanged
 

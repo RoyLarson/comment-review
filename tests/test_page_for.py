@@ -27,7 +27,7 @@ from comment_review.reading.lexer import language_for
 
 
 def test_python_page_retains_complete_structured_read():
-    text = '"module"; x = 1\ndef f[T](): "a\\n" "b"; return 1\n'
+    text = '"module"\nx = 1\ndef f[T]():\n    "a\\n" "b"\n    return 1\n'
     page = page_for_mod.page_of(Path("m.py"), source=Source(text, "held"))
     assert isinstance(page, Page)
     assert page.python_read is not None
@@ -101,7 +101,6 @@ def test_python_page_whole_comments_and_matter_boundaries():
             "a1",
             '    """doc\n    continued""" # note',
         ),
-        ('def f(): "doc" # note\n', "a1", '"doc" # note'),
     ],
 )
 def test_python_page_documentation_closing_comment_keeps_one_wire_owner(
