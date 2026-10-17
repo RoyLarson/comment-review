@@ -542,3 +542,55 @@ class TestAWrappedTrailingCommentIsONEPlace:
         (place,) = [b for b in broken if b.kind == "trailing-comment"]
         place.raw_lines = place.raw_lines[:1]
         assert set_page(broken) != text
+
+
+SHARED_LINES = pytest.mark.parametrize(
+    ("shared", "broken"),
+    [
+        ('def fn(): "doc"; y = 42\n', 'def fn():\n    "doc"\n    y = 42\n'),
+        ('def fn(): "doc"\n', 'def fn():\n    "doc"\n'),
+        (
+            'class C:\n  def m(self): "doc"; y = 42  # note\n',
+            'class C:\n  def m(self):\n    "doc"\n    y = 42  # note\n',
+        ),
+        ('def f():\n\t"""Doc."""; y = 42\n', 'def f():\n\t"""Doc."""\n\ty = 42\n'),
+        ('"""Mod."""; y = 42\n', '"""Mod."""\ny = 42\n'),
+        (
+            'def f():\r\n    """Doc.""" ; y = 42\r\n',
+            'def f():\r\n    """Doc."""\r\n    y = 42\r\n',
+        ),
+    ],
+)
+
+
+class TestADocstringSharingItsLineIsSetBroken:
+    """The read breaks the line, so the page sets the broken source."""
+
+    @SHARED_LINES
+    def test_the_unedited_page_sets_the_broken_source(self, shared, broken):
+        assert set_page(build(shared)) == broken
+
+    @SHARED_LINES
+    def test_a_docstring_grown_to_a_template_keeps_every_other_place(
+        self, shared, broken
+    ):
+        from comment_review.results.galley import reset
+
+        page = build(shared)
+        doc = next(b for b in page if b.kind == "docstring")
+        first = doc.raw_lines[0]
+        pad = first[: len(first) - len(first.lstrip())]
+        template = f'{pad}"""Summary.\n\n{pad}Returns:\n{pad}    A value.\n{pad}"""'
+        assert reset(page, {cue(doc): template}) == []
+        out = set_page(page)
+        compile(out, "m.py", "exec")
+        again = build(out)
+        assert {cue(b) for b in again} == {cue(b) for b in build(broken)}
+        assert by_cue(again)[cue(doc)].text == "Summary. Returns: A value."
+        assert [
+            (b.address, b.raw_text, b.anchor) for b in again if b.kind != "docstring"
+        ] == [
+            (b.address, b.raw_text, b.anchor)
+            for b in build(broken)
+            if b.kind != "docstring"
+        ]
