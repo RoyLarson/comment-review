@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 5 of 35 tasks closed
+Progress: 5 of 38 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (/simplify rounds 1 and 2 and /code-review high round 3,
@@ -280,3 +280,16 @@ would.
       quote in a block cannot hide a following line comment
 - [ ] T35 | Select the earliest block opener in lexer.py:1072; verify mixed Lua
       delimiters inside a long comment preserve its full body
+- [ ] T36 | Replace `doc_inside` with a documentation position every language
+      row states
+        > 2026-10-16 Reason: 17 of 18 rows inherit above from a default; 11 declare
+        > 2026-10-16 Reason: a bool states inside; above is only its absence
+        > 2026-10-16 Check: Language has no default position; every row names one
+        > 2026-10-16 Check: `doc_inside` is gone from src; page and compositor pass
+- [ ] T37 | Rename the side `documentable` returns for a doc set above its
+      declaration
+        > 2026-10-16 Reason: it is `ON`, the c letter, used for between gap and code
+        > 2026-10-16 Check: documentable returns no series letter for a doc side
+- [ ] T38 | Rewrite the CLAUDE.md doc-position sentence to the stated field
+        > 2026-10-16 Reason: Roy, 2026-10-16: on Rust it goes above, not on the line
+        > 2026-10-16 Check: the sentence names the field T36 adds; Roy approves it
