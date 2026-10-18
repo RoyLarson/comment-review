@@ -40,6 +40,10 @@ senses: 736 uses in 57 files under `src/comment_review`, 88 in 8 under
 - [ ] T5 | Rename the binder's `paragraphs` wire key to `passages`
 - [ ] T6 | Rename the term in the agent prose under `src/plugin`
 - [ ] T7 | Rename the term in the tests
+        > 2026-10-18 Also: a retired-noun `block` in tests becomes `passage` too
+        > 2026-10-18 Keep live senses: verb, code block, block comment, BLOCK marker
 - [ ] T8 | Rename the term in the live docs
+        > 2026-10-18 Also: retired `block` in addressing/parsing.md becomes passage
+        > 2026-10-18 limitations.md is agents-lane: name the lane and ask first
 - [ ] T9 | Retire `paragraph` as a term in the vocabulary gate, keeping its
       English sense
