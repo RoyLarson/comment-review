@@ -308,7 +308,7 @@ that changed a published name or rule:
 | [empty-comment-gets-a-drop](empty-comment-gets-a-drop.md) | backend | -- | 0/1 | An empty comment gets a drop mark |
 | [paragraph-is-a-passage](paragraph-is-a-passage.md) | backend | -- | 0/9 | The addressed unit of prose is a passage, not a paragraph |
 
-### in-progress  (18)
+### in-progress  (17)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -317,7 +317,6 @@ that changed a published name or rule:
 | [the-bridge-landed-and-the-rewrite-did-not](the-bridge-landed-and-the-rewrite-did-not.md) | backend | -- | 8/11 | The bridge landed and the rewrite did not |
 | [corpora-are-all-python](corpora-are-all-python.md) | testing | -- | 3/10 | The corpora are nine Python projects, so every per-language rule is measured on Python and C alone |
 | [7a-can-prove-the-change-by-applying-it-to-a-copy](7a-can-prove-the-change-by-applying-it-to-a-copy.md) | agents | yes | 3/8 | 7a can PROVE the change by applying it to a copy and diffing |
-| [a-block-is-a-paragraph-on-a-page](a-block-is-a-paragraph-on-a-page.md) | backend | -- | 3/11 | everything read by a human or an agent says paragraph; 706 internal identifiers remain |
 | [b-addresser-uninitialised](b-addresser-uninitialised.md) | backend | yes | 13/18 | The b addresser is never initialised at the module trigger, and computes its cue from line numbers |
 | [census-degrades-silently](census-degrades-silently.md) | backend | -- | 5/8 | **Four inputs produce a census that is wrong rather than refused, each exiting 0.** The run reads as complete and the addresses are nonsense. |
 | [census-owns-addressing](census-owns-addressing.md) | backend | -- | 4/8 | The census owns addressing, and four modules share one subject between them |
@@ -509,3 +508,4 @@ the reason is inside the file.
 | [2026-10-14-python-comment-section-placement](completed/2026-10-14-python-comment-section-placement.md) | 2 finished |
 | [2026-10-12-python-reader-vocabulary](completed/2026-10-12-python-reader-vocabulary.md) | 1 finished |
 | [python-cannot-read-python](completed/python-cannot-read-python.md) | 48 finished, 8 superseded |
+| [a-block-is-a-paragraph-on-a-page](completed/a-block-is-a-paragraph-on-a-page.md) | 3 finished, 8 superseded |

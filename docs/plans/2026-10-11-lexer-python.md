@@ -1,7 +1,7 @@
 # Python lexical reader implementation
 
 ```
-Status:   in-progress
+Status:   closed
 Progress: 36 of 36 TODO tasks closed
 Plan-tasks: 53 of 53 plan tasks closed
 Owner:    backend
