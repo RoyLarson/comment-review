@@ -5364,3 +5364,17 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
 
   **What it leaves open.** The wording, and what it displaces in each role file, are ruled
   with the other entries in `role-rule-register`.
+
+- **#215.** **Python's `Language` row is removed on this branch, and the tasks that put grammar
+  in one table or on the in-code rows are superseded** (Roy, 2026-10-18: *"I noticed that in
+  language.py all of the constants and declares keywords are in the file specifically instead of
+  in a toml file which I explicitly stated where these should end up. I think the python.toml
+  was the attempt to start that process but then the agents ignored it after the fact."* Offered
+  widening lexer-and-language-findings T39 to removing the Python row, so `python.toml` is
+  Python's only definition, then superseding language-rows-in-toml T1-T5, which put all 18 rows
+  in one `languages.toml`, and lexer-and-language-findings T26, which adds a field to the in-code
+  row, reissuing T26 against Rust's own definition: *"yes"*).
+
+  **What it settles.** Each language's grammar goes in that language's own definition file,
+  as language-rows-in-toml T17 and T18 state. Python is the first: its row leaves
+  `LANGUAGES`, and `language_for` answers `.py` from `python.toml`.
