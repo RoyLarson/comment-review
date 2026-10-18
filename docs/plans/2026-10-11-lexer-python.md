@@ -3,7 +3,7 @@
 ```
 Status:   in-progress
 Progress: 36 of 36 TODO tasks closed
-Plan-tasks: 51 of 53 plan tasks closed
+Plan-tasks: 53 of 53 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (founded by move-t from 2026-10-11-lexical-readers)
@@ -776,11 +776,13 @@ complete merely because this plan or its interfaces are approved.
         > 2026-10-17 Check: grep finds no python_read in src
         > 2026-10-17 Check: proof_setter and prove_unchanged test no language name
         > 2026-10-17 Check: uv run pytest -q passes
-- [ ] P52 | Remove the Python `Language` row from `LANGUAGES`
+- [-] P52 | Reissued as P53; language_for(.py) answers None by design | e1eff71ec8f8787f7f88f13826592ab203bd0ef1 | Remove
+      the Python `Language` row from `LANGUAGES`
         > 2026-10-18 Check: no lang.name == "python" test is left in src
         > 2026-10-18 Check: uv run pytest -q passes
         > 2026-10-18 Check: no python row in LANGUAGES; language_for(.py) resolves
-- [ ] P53 | Remove the Python `Language` row; the registry answers `.py`
+- [x] P53 | No python row; registry answers .py from python.toml; 4979 pass | 064bd62d | Remove
+      the Python `Language` row; the registry answers `.py`
         > 2026-10-18 Goals: lexer-and-language-findings T48; reissues P52
         > 2026-10-18 Check: no lang.name == "python" test is left in src
         > 2026-10-18 Check: uv run pytest -q passes
