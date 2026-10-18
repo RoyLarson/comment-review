@@ -98,7 +98,11 @@ def _after_code(text: str, position: int) -> bool:
 
 
 def _step(text: str, lines: tuple[LogicalLine, ...]) -> str:
-    """The indentation the file's first indented line adds to its parent."""
+    """The indentation the file's first indented line adds to its parent.
+
+    Four spaces when no line is indented, or when that line's indentation does
+    not begin with its parent's.
+    """
     for parent, child in pairwise(lines):
         if child.indent > parent.indent:
             outer = _leading(text, parent.span.start)
@@ -110,7 +114,7 @@ def _step(text: str, lines: tuple[LogicalLine, ...]) -> str:
 
 
 def _newline(text: str) -> str:
-    """The file's own line ending, or a newline in a file with none."""
+    """The ending of the file's first line, or a newline in a file with none."""
     index = next((i for i, char in enumerate(text) if char in "\r\n"), None)
     if index is None:
         return "\n"

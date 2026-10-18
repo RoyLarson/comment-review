@@ -1,25 +1,24 @@
 """How each LANGUAGE marks its prose, and the paragraph a reader produces.
 
-Adding a language is a `Language` row -- data, not code. The reader here reads
-every language but Python from its row alone: the prose and its kind. Python is
-read by `reading.python`, from its own language definition.
+Adding a language is a `Language` row and a `READER_METADATA` entry -- data, not
+code. The reader here reads every language but Python from its row alone: the
+prose and its kind. Python is read by `reading.python`, from its own language
+definition.
 
-!! IT DEFINES WHAT IT PRODUCES, which is why `Paragraph` lives here. A reader
-builds one the moment it finds prose, and it knows only what the TEXT says --
-where the prose starts and ends, what kind it is, the code beside it. Where that
-paragraph SITS is the page's: the path it is on, the place it occupies, and the
-empty places where prose could go and does not.
+This classifies what the purpose is of each paragraph. `paragraphs_lexical`
+emits `comment`, `docstring`, `trailing-comment` and `matter` -- prose it found
+-- and `leading_between` emits `leading`. `interval`, `margin` and `undocumented`
+are the page's, because only a page knows where prose is MISSING.
 
-! So the kinds split too, and NOTHING HERE EMITS A PAGE KIND. A reader emits
-`comment`, `docstring`, `trailing-comment` and `unparsed` -- prose it found.
-`interval`, `margin` and `undocumented` are the page's, because only a page
-knows where prose is MISSING. ! What this reports instead is
-`declarations()`: which lines declare something documentable, and where its
-doc would go. The page turns that into `a` places.
+`declarations()` marks which lines declare something documentable,
+and where its doc would go.
 
-! A LEAF: it imports no sibling. `addresser` is the other one, and neither knows
-anything of the other -- a place has no prose in it and prose has no place until
-a page puts the two together.
+Beside the reader: `document_declarations` stamps the `a` cue on the run that
+documents a declaration, `flag_structural_docs` annotates a Go or Ruby run whose
+kind position cannot settle, `counted_lines` counts the lines a cap charges for,
+and `comment_form` parses a comment's markers and fragments for
+`desk.marks.rules`.
+
 """
 
 import ast
@@ -30,6 +29,11 @@ from pathlib import Path
 
 from comment_review import constants
 from comment_review.reading.comment import Comment, Fragment
+
+# !! THE ROWS ARE A LEAF AND THIS IS ONE OF ITS FIVE IMPORTERS -- see
+# `language.py`. Everything a language says about where its documentation
+# sits is stated there and read here; `binder.page` and `flows.compositor`
+# also call `language_for`.
 from comment_review.reading.language import (
     BY_EXT,
     LANGUAGES,
@@ -37,10 +41,6 @@ from comment_review.reading.language import (
     language_for,
 )
 from comment_review.reading.paragraph import Paragraph
-
-# !! THE ROWS ARE A LEAF AND THIS IS ONE OF ITS TWO IMPORTERS -- see
-# `language.py`. Everything a language says about where its documentation sits is
-# stated there and read here; no module above this one asks a language anything.
 from comment_review.reading.series import Kind, Series, cue_for
 
 __all__ = [
@@ -55,28 +55,18 @@ NAMED_DEFS = (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)
 
 
 # !! A sentinel that CANNOT be a line number. `0` is one less than line 1, so
-# `paragraph.start == trailing_end[0] + 1` was true for every comment opening a
-# file -- stamping `continues-a-trailing-comment` with no trailing comment
-# anywhere, on 3 files in this repo's own tree. SKILL.md tells reviewers a
-# mid-clause ending on a stamped paragraph "is not a `correct`", so the false stamp
-# SUPPRESSED real findings on file headers.
+# `paragraph.start == trailing_end[0] + 1` would hold for every comment opening a
+# file and stamp `continues-a-trailing-comment` with no trailing comment anywhere.
+# The stamp's note tells reviewers a mid-clause ending "may be the split", so a
+# false stamp would suppress real findings on file headers.
 _NO_TRAILING = -2
 
-
-# !! `Kind`, `Series` AND THE PAIRS MOVED TO `series.py` ON 2026-08-25, and
-# the letters went WITH them. Roy: *"The present absent pairings is
-# effectively what defines the series and the identifier we give it should be
-# right there with them."* They were here, and the letters were in
-# `addresser` -- two modules that cannot import each other, tied by member
-# name and held equal by a test. The leaf is what lets both take one
-# declaration. ! This module still owns everything about READING PROSE.
 
 MODULE_ANCHOR = "<module>"
 MARKERS = ("TODO", "FIXME", "HACK", "XXX", "BUG")
 WORK_MARKER = re.compile(r"^(" + "|".join(MARKERS) + r")\b")
 # ! Every punctuation a language opens a comment with, stripped before the
-# marker is matched. Anchored on `#`, the exemption was Python-only: a
-# `// TODO:` was charged to the cap in a script that gathers eighteen languages.
+# marker is matched.
 LEAD_PUNCT = re.compile(r"^[\s#/*\-!=;%<>]+")
 
 
@@ -92,18 +82,19 @@ def counted_lines(raw: list[str]) -> int:
     marker's continuation lines are charged: six lines plus a `TODO:` is six.
     """
     # ! A BLANK LINE IS FREE TOO. It sits inside the paragraph by the interval
-    # definition -- only code bounds a paragraph -- and SKILL.md says so directly:
-    # "The blank is inside the paragraph and is charged nothing." It reaches here
-    # now that a blank no longer ends a lexical run.
+    # definition -- only code bounds a paragraph -- and `paragraphs_lexical` holds it
+    # in the run.
     return sum(
         1 for ln in raw if ln.strip() and not WORK_MARKER.match(LEAD_PUNCT.sub("", ln))
     )
 
 
 # -- Annotations ---------------------------------------------------------------
-# Each is located here and RESOLVED in `annotate.py`. Locating is most of the
-# work; the resolution is what stops a reviewer treating a citation as a
-# verified claim. ! These are ANNOTATIONS, never marks -- a MARK is editorial,
+# This module stamps three -- `continues-a-trailing-comment`,
+# `unterminated-paragraph-comment` and `doc-kind-unresolved`; the citation
+# annotations are located and resolved in `concordance/annotate.py`. Locating is
+# most of the work; the resolution is what stops a reviewer treating a citation as
+# a verified claim. ! These are ANNOTATIONS, never marks -- a MARK is editorial,
 # and stage 4 emits those.
 
 
@@ -394,10 +385,6 @@ def _comment_fragment(
 # at +3 and Rust's widest, `'\u{10FFFF}'`, at +11. An UNESCAPED character needs no
 # constant: it is exactly one character wide, so its closer is at +2 and nowhere
 # else.
-#
-# ! IT WAS 10, AND MEASURED WRONG AGAINST ITS OWN WORKED EXAMPLE, 2026-08-21:
-# `'\u{10FFFF}'` closes at +11, so the one literal the number was chosen for was
-# the one the window never reached.
 ESCAPE_WIDTH = 11
 
 
@@ -406,15 +393,12 @@ def _closes_a_character(line: str, at: int, quote: str) -> bool:
 
     !! THIS IS WHAT TELLS A CHARACTER FROM A LIFETIME. Rust writes both with
     `'`: `'a'` is a character and `&'a mut T` is a lifetime, and the second
-    never closes. Read as a quote it blanks everything after it -- measured
-    2026-08-20, a whole trailing comment lost with no refusal and exit 0.
+    never closes. Read as a quote it would blank everything after it, losing a
+    trailing comment on that line with no refusal and exit 0.
 
     !! IT ASKS WHERE THE CLOSER IS, NOT WHETHER ONE IS NEARBY. A character is
     one character, so its closer is at a FIXED offset; an escape is the only
-    variable-width case and is bounded by `ESCAPE_WIDTH`. ! Scanning a window
-    for any closer is what the first version did, and it read TWO LIFETIMES as
-    one literal -- measured 2026-08-21, `fn f<'a>(x: &'a T)` came back
-    `fn f<         a T)`, blanking real code between them.
+    variable-width case and is bounded by `ESCAPE_WIDTH`.
 
     ! ASKED OF THE LINE, NOT OF THE LANGUAGE'S GRAMMAR. What it does not cover
     is a byte or raw literal spelled with a prefix (`b'x'`): the prefix is
@@ -429,17 +413,11 @@ def _closes_a_character(line: str, at: int, quote: str) -> bool:
         True where this opens a character literal.
     """
     # !! ONE CHARACTER MEANS THE CLOSER IS AT A FIXED OFFSET, not somewhere in a
-    # window. Scanning FORWARD for any closer within a character's width read two
-    # lifetimes as one literal and blanked the code between them: measured
-    # 2026-08-21, `fn f<'a>(x: &'a T) { } // note` came back
-    # `fn f<         a T) { } // note` -- 9 characters of real code gone, and a
-    # comment opener falling in that span would go with them.
+    # window.
     if line[at + 1 : at + 2] != "\\":
         return line[at + 2 : at + 3] == quote
     # ! An ESCAPE is the one variable-width case, and it is bounded: `'\n'` closes
-    # at +3 and Rust's widest, `'\u{10FFFF}'`, at +11. ! The old bound was 10 and
-    # never reached that closer, so the literal this constant is SIZED FOR was the
-    # one case it did not recognise.
+    # at +3 and Rust's widest, `'\u{10FFFF}'`, at +11.
     end = line.find(quote, at + 2)
     return 0 <= end - at <= ESCAPE_WIDTH
 
@@ -451,14 +429,14 @@ def _strip_strings(
 
     `url = "http://x"` holds `//` in most C-family languages. It handles
     single-line literals with backslash escapes; raw strings, heredocs and
-    template nesting are where this tier stops and the lexer starts.
+    template nesting are what this function does not handle.
 
     Args:
         line: the physical line.
         quotes: this language's string delimiters.
         char_quotes: the subset holding exactly ONE character, which is checked
             for a closer before it is believed. Empty where the language has
-            none, and then this behaves exactly as it did.
+            none, and then every quote in `quotes` opens a literal.
 
     Returns:
         The line, its literals blanked, THE SAME LENGTH -- callers cut it at a
@@ -500,15 +478,14 @@ def run_ends(
     !! IT DOES NOT CLOSE UNTIL EVERY LAYER DOES, where the language nests.
     `/* a /* b */ c */` is ONE comment in Rust and the `c` is inside it; in C the
     first `*/` closes and ` c */` is code. Reading the nesting one as the flat one
-    lost the WHOLE comment: the scan closed early, saw more comment after it, and
-    applied the intermediate-comment rule -- which is about code after a mid-line
-    close. Measured 2026-08-20, a Rust trailing comment read as zero prose.
+    loses the WHOLE comment: the scan closes early, sees more comment after it, and
+    applies the intermediate-comment rule -- which is about code after a mid-line
+    close.
 
-    ! WHERE IT MATTERS IS THE TRAILING COMMENT. Roy, 2026-08-20: *"the only place
-    we need to care is if it is a trailing comment."* A `b` needs no depth -- a
-    gap cannot hold a line of code, so the code either side bounds it -- and no
-    language here marks documentation with a bare paragraph opener -- every one
-    of them uses a distinguished `/**` or `///` -- so depth cannot
+    ! WHERE IT MATTERS IS THE TRAILING COMMENT. A `b` needs no depth -- a gap
+    cannot hold a line of code, so the code either side bounds it -- and no language
+    here marks documentation with a bare paragraph opener: every doc marker is
+    `/**`, `///` or `//!`, and Go and Ruby document by position. So depth cannot
     change what counts as a doc.
 
     Args:
@@ -543,30 +520,22 @@ def run_ends(
 def _anchor_of(lines: list[str], line_no: int, column: int) -> str:
     """The line of code a `c` paragraph sits beside -- its ANCHOR, verbatim.
 
-    !! AN ANCHOR IS THE LINE OF CODE, NOT A SYMBOL. Roy, 2026-08-19: *"the
-    anchor isn't the technical symbols and their precise semantic meaning and
-    code use. It is 'the line of code' -- the exact characters in that line of
-    code."* So it needs no parser, no language server and no build tool: every
+    AN ANCHOR IS THE LINE OF CODE, NOT A SYMBOL: the exact characters on that
+    line. So it needs no parser, no language server and no build tool: every
     tier already found where the comment opens, which means it already had the
     characters before it.
 
-    !! WITHOUT IT, STALENESS HAS NOTHING FROM THE BINDER TO COMPARE THE CODE
-    AGAINST. The stdlib reader kept the whole physical line in `raw_lines` and so
-    checked both halves by accident; `paragraphs_lexical` cuts at the opener and so
-    checked only the prose -- measured 2026-08-19, a lexical trailing comment
-    storing `['// note']` made the retired `paragraph_matches` answer False on an
-    UNTOUCHED file. The fix is not to make both tiers store the whole line,
-    which conflates the anchor with the prose in one string -- the conflation
-    that produced the suffix-test defect twice. Roy: *"not marking or saving the
-    anchor is causing the problem."*
+    IT IS KEPT APART FROM THE PROSE. `paragraphs_lexical` cuts `raw_lines` at
+    the opener, so the code before it is held here and in no string with the prose.
 
-    ! It is `""` for a paragraph that owns its lines whole, which has no code on its
+    It is `""` for a paragraph that owns its lines whole, which has no code on its
     line to be anchored to.
 
     Args:
         lines: the file's lines, without endings.
         line_no: 1-based line the paragraph opens on.
-        column: where the prose begins on that paragraph's first line.
+        column: one past the last character of code on that line, 1-based,
+            or 0 when the paragraph owns its line whole.
 
     Returns:
         The code preceding the paragraph on its first line, right-stripped.
@@ -579,17 +548,12 @@ def _anchor_of(lines: list[str], line_no: int, column: int) -> str:
 def leading_between(paragraphs: list["Paragraph"], text: str) -> list["Paragraph"]:
     """Every blank run no paragraph holds, as LEADING -- see `LEADING`.
 
-    !! ONE RULE FOR BOTH READERS, and that is the point of it being a pass rather
-    than a branch inside each. Written per tier, it was written once: the same
-    day, `matter` went into the lexical reader alone and every `.py` file
-    reported no front matter at all. Roy: *"which is certainly hiding a lot of
-    bugs."*
+    !! ONE RULE FOR ALL READERS, and that is the point of it being a pass rather
+    than a branch inside each.
 
     ! THE RULE IS SUBTRACTION, so it cannot disagree with either reader about
     what prose is: a blank line a paragraph already holds is INSIDE it and stays
-    there, and every other blank line is the space between two paragraphs. Roy,
-    2026-08-21: *"if the new line is internal to the paragraph then the two
-    paragraphs + the newlines are in fact one paragraph."*
+    there, and every other blank line is the space between two paragraphs.
 
     Args:
         paragraphs: what a reader produced, before any place is assigned.
@@ -628,18 +592,8 @@ def _leading(
     its anchors are empty by design rather than by omission.
 
     !! A BLANK LINE IS NOT ALWAYS AN EMPTY ONE, which is why `lines` is passed
-    rather than the count. `raw_lines` was fabricated as `[""] * len(run)`, so a
-    line holding a tab or three spaces -- blank to `str.strip`, not blank on
-    disk -- was set back as nothing. MEASURED 2026-08-22 on a four-line file
-    whose second line held one tab and whose third held three spaces: both came
-    back empty, and the identity named the first of them. ! So the check FAILS
-    honestly on a file the model can in fact hold, and the same loss on the
-    write path is silent, because `compositor.draft` does not ask.
-
-    ! It is invisible on every corpus here -- 0 of 3,986 files, all of them
-    formatter-clean -- which is why the identity scored as it did while carrying
-    this. A tree that is not formatter-clean is exactly the tree a reviewer is
-    pointed at.
+    rather than the count. A line holding a tab or three spaces is blank to
+    `str.strip` and not blank on disk, and `raw_lines` keeps what is on disk.
     """
     return Paragraph(
         path=paragraphs[0].path if paragraphs else "",
@@ -656,10 +610,7 @@ def _is_doc(line: str, lang: Language) -> bool:
     """Does this line open a run the language treats as DOCUMENTATION?
 
     ! Two readers ask it and they must agree: `flush` to set the kind, and
-    `carry` to decide whether a blank line ends the file's matter. It was
-    computed inline in one of them, so the other tested a different thing --
-    `eslint.config.ts` opens with `/** */` and had its matter terminated as
-    though the run were an ordinary comment.
+    `carry` to decide whether a blank line ends the file's matter.
     """
     opens = line.strip()
     return _opens_doc(opens, lang.doc_line) or _opens_doc(opens, lang.doc_block)
@@ -668,19 +619,13 @@ def _is_doc(line: str, lang: Language) -> bool:
 def _opens_doc(opens: str, markers: tuple[str, ...]) -> bool:
     """Does this line open a DOC run with one of these markers?
 
-    !! A RULE IS NOT A DOC COMMENT, and `startswith` could not tell them apart.
-    `/*******************/` opens with `/**`, so a BANNER was typed `docstring`
-    and became eligible to document the declaration beneath it -- routing by
-    FORMAT where the question is what the run says. MEASURED 2026-08-22; the
-    corpora hold 135 runs of that shape.
-
-    ! THE TEST IS THE CHARACTER AFTER THE MARKER, which is the rule Javadoc and
+    THE TEST IS THE CHARACTER AFTER THE MARKER, which is the rule Javadoc and
     Doxygen themselves use: `/**` opens documentation, `/***` does not, and the
     difference is whether the next character repeats the marker. It holds for
     `doc_line` unchanged -- `///` is a Rust doc line and `////` is a rule.
 
-    ! An EMPTY doc opener is still one: `///` with nothing after it, or
-    `/** */`, are documentation a reviewer can rule on. Only a REPEAT disqualifies.
+    ! An EMPTY doc opener is still one: `///` with nothing after it, or `/** */`,
+    are documentation a reviewer can rule on. Only a REPEAT disqualifies.
     """
     for marker in markers:
         if (
@@ -694,12 +639,11 @@ def _opens_doc(opens: str, markers: tuple[str, ...]) -> bool:
 def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]:
     """Comment runs for a language with no parser here -- the FLOOR tier.
 
-    Answers where every paragraph is, its line range, its text and its
-    annotations. Every paragraph comes back stamped `tier="lexical"`. ! A paragraph
-    sitting BESIDE code carries an anchor at this tier too -- the line of code
-    itself, which needs no parser; see `_anchor_of`. Only a paragraph that owns its
-    lines whole has none, because its anchor is a declaration and naming one
-    needs the structure this tier lacks.
+    Answers where every paragraph is, its line range, its text and its annotations.
+    ! A paragraph sitting BESIDE code carries an anchor at this tier too -- the
+    line of code itself, which needs no parser; see `_anchor_of`. Only a paragraph
+    that owns its lines whole has none, because its anchor is a declaration and
+    naming one needs the structure this tier lacks.
 
     ! A paragraph opener with no closer swallows every remaining line into one run,
     so code below it is read as prose. That paragraph is STAMPED
@@ -733,9 +677,7 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
     partial_first = [0]
 
     # !! HAS ANY CODE BEEN SEEN YET -- which is what says a run is still at the
-    # HEAD of the file, and therefore whether a blank line ends it. Roy,
-    # 2026-08-21: *"Any normal comment section at the top of the file becomes f0
-    # until there is either a docstring or a blank line."*
+    # HEAD of the file, and therefore whether a blank line ends it.
     #
     # ! Everywhere else a blank line does NOT end a run, and that stays true: a
     # licence header and the first function's documentation separated by a blank
@@ -747,40 +689,27 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
     def carry() -> None:
         """Take the blanks held since the last prose line into the run.
 
-        !! ONE RULE FOR BOTH COMMENT SYNTAXES, and it was written for the line
-        one alone. A delimited comment did not carry them, so `/* one */`, a
-        blank and `/* two */` became two paragraphs where `// one`, a blank and
-        `// two` became one -- the same language, the same gap, a different
-        answer decided by which syntax the author reached for.
+        !! ONE RULE FOR BOTH COMMENT SYNTAXES: `/* one */`, a blank and `/* two */`
+        are one paragraph, exactly as `// one`, a blank and `// two` are.
 
         ! The head-of-file split is part of the rule and travels with it: at the
         top of a file a blank ENDS the run, because what sits above the first
         line of code is the file's own matter.
 
-        !! IT ENDS THE FIRST RUN ONLY, which `out` is what says. A file opening
-        with THREE comment runs before any code -- measured on
-        `meta-package-manager/tests/cli-test-plan.toml` -- split at every blank,
-        so the second and third both took `b0` and shared an address. Only the
-        first is the file's own matter; the rest are ordinary prose in the gap
-        above the first statement, and they merge there like any other.
+        !! IT ENDS THE FIRST RUN ONLY, which `out` is what says. Only the first
+        is the file's own matter; the rest are ordinary prose in the gap above
+        the first statement, and they merge there like any other.
         """
         # !! IT ENDS THE MATTER, SO IT FIRES ONLY WHEN THERE IS MATTER TO END.
-        # Roy's rule is that matter runs from the OPENING LINE down to a blank,
-        # so a run that does not start on line 1 -- or that is a docstring, which
-        # matter never is -- has nothing here to terminate.
-        #
-        # ! MEASURED 2026-08-21 without those two conditions: `floatobject.h`
-        # opens with a BLANK and `eslint.config.ts` with a `/** */`, and each
-        # split into two runs that then SHARED `b0` -- a collision manufactured
-        # by a rule protecting a file that had no matter in the first place.
+        # Matter runs from the OPENING LINE down to a blank, so a run that does not
+        # start on line 1 -- or that is a docstring, which matter never is -- has
+        # nothing here to terminate.
         opens_file = bool(run) and run[0][0] == 1 and not _is_doc(run[0][1], lang)
         if not run:
             # !! BLANKS ABOVE A RUN THAT HAS NOT STARTED ARE NOT ITS OWN. They
             # separate this prose from whatever precedes it, which is what
             # LEADING is -- and `leading_between` finds them afterwards, for both
-            # readers at once. ! Extending an EMPTY run with them made the blank
-            # the paragraph's first line, so a comment two lines below a
-            # statement reported itself as starting at the blank.
+            # readers at once.
             pending.clear()
             return
         if pending and opens_file and not out and not seen_code[0]:
@@ -797,12 +726,9 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
             partial_first[0] = 0
             return
         raw = [t for _, t in run]
-        # !! `raw_lines` IS THE SOURCE, `raw` IS THE PROSE. They were one list,
-        # so a paragraph comment's own indentation and a trailing comment's code
-        # were cut out of the record of what is on disk -- and `paragraph_matches`
-        # then refused a binder built seconds earlier. The cut text still makes
-        # `text` and still counts against the cap; the file's own characters are
-        # what a splice is checked against.
+        # !! `raw_lines` IS THE SOURCE, `raw` IS THE PROSE. The cut text still
+        # makes `text` and still counts against the cap; the file's own characters
+        # are what a splice is checked against.
         span = lines[run[0][0] - 1 : run[-1][0]]
         if partial_first[0] > 0:
             span = [span[0][partial_first[0] - 1 :], *span[1:]]
@@ -810,40 +736,31 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
             kind = "docstring"
         else:
             # !! CODE ON THE FIRST LINE MAKES IT TRAILING, however many lines it
-            # then runs for. Roy, 2026-08-20: *"`c`s are trailing comments by
-            # definition of how they are placed."* A `c` is the room beside a
-            # line of code, so prose occupying that room IS a trailing comment
-            # and the kind must say so. ! `trailing` alone answers only the
-            # single-line case: a paragraph comment opened after a statement
-            # flushes with `trailing=False`, because by then the run spans
-            # several lines -- so `int b = 2; /* opens` was read as a plain
-            # `comment` sitting at a `c` place, and kind and series disagreed.
+            # then runs for. A `c` is the room beside a line of code, so prose
+            # occupying that room IS a trailing comment and the kind must say
+            # so. ! `trailing` alone answers only the single-line case: a
+            # paragraph comment opened after a statement flushes with
+            # `trailing=False`, because by then the run spans several lines --
+            # so `int b = 2; /* opens` would read as a plain `comment` sitting at
+            # a `c` place, and kind and series would disagree.
             kind = "trailing-comment" if trailing or partial_first[0] else "comment"
         # !! THE LEXER SAYS WHICH SERIES THIS RUN IS, and matter is the case it
-        # can say outright. Roy, 2026-08-21: *"the matter/not matter split is
-        # easy and already determined by my ruling that if the opening/closing
-        # line is a comment then the matter continues down/up until there is an
-        # empty line or the start/end of a docstring ... that makes f trivial and
-        # consistent because that paragraph instead of being marked as comment
-        # and the page trying to reconstruct what was meant by top of the file
-        # and a comment."*
+        # can say outright.
         #
         # !! THE OPENING LINE ITSELF MUST BE A COMMENT, not merely the first run
         # of PROSE wherever it sits: a file whose line 1 is BLANK has no front
-        # matter at all. MEASURED: 11 CPython headers open with a blank, each put
-        # an `f0` inside the gap that owned the blank above it, so the gap ran
-        # THROUGH the matter and the compositor set the comment above its own
-        # blank line.
+        # matter at all. Otherwise the gap that owns the blank above it would run
+        # THROUGH the matter, and the compositor would set the comment above its
+        # own blank line.
         #
         # ! A DOCSTRING IS NOT MATTER, and it is what ENDS matter. A file opening
         # with its own documentation has none.
         #
-        # !! ONE TYPE, NOT TWO. Roy, 2026-08-21: *"It is a matter designator, the
-        # anchor is the module ... front-matter, back-matter are paragraph type
-        # matter."* Which END it sits at is not a fact about the paragraph -- it
-        # falls out of the order the `f` addresser emits, exactly as `a1` and `a2`
-        # fall out of the order declarations are met. Naming the two ends here
-        # would state the same fact twice and let them disagree.
+        # !! ONE TYPE, NOT TWO: front and back matter are both `Kind.MATTER`. Which
+        # END it sits at is not stamped on the paragraph -- `page_for` reads it from
+        # where the run opens: line 1 takes the first `f`, any other run the last.
+        # Naming the two ends here would state the same fact twice and let them
+        # disagree.
         if kind == "comment" and (run[0][0] == 1 or run[-1][0] == len(lines)):
             kind = Kind.MATTER
         paragraph = Paragraph(
@@ -854,15 +771,11 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
             lines=counted_lines(raw),
             text=_join(raw, openers),
             raw_lines=span,
-            # !! THE LEXER ALREADY HAS THIS STRING. It found the opener in
-            # order to cut there, so the characters before it were known one
-            # step earlier and were thrown away. Roy, 2026-08-19: *"the lexer
-            # either knows what is before the trailing comment and can snag the
-            # whole string or it is broken."*
+            # !! THE LEXER ALREADY HAS THIS STRING. It found the opener in order
+            # to cut there, so the characters before it are known here.
             # !! MATTER IS ANCHORED TO THE MODULE, because that is what it is
-            # about. Roy, 2026-08-21: *"It is a matter designator, the anchor is
-            # the module."* Every other run answers to the line of code it sits
-            # with; the file's own prose answers to the file.
+            # about. Every other run answers to the line of code it sits with;
+            # the file's own prose answers to the file.
             anchor=(
                 MODULE_ANCHOR
                 if kind == Kind.MATTER
@@ -896,20 +809,18 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
             # trims the paragraph's TEXT and not its `raw_lines`, and the galley
             # splices `start..end` wholesale -- it preserves the head of the
             # FIRST line at `column` and has no tail preservation on the last.
-            # MEASURED 2026-08-21: a `patch` on that paragraph writes the new
-            # prose and `int x = 5;` is gone. `prove_unchanged` catches it, but
-            # only AFTER 7b has written the file.
+            # `prove_unchanged` catches it, but only AFTER 7b has written the
+            # file.
             #
             # !! IT IS THE GALLEY'S TO CATCH, NOT THE LEXER'S AND NOT A
-            # REVIEWER'S. Roy, 2026-08-21: a reviewer rules on a paragraph and has
-            # no view of how the galley splices it, so *"how do the agents know
-            # that the closing line is going to delete code?"* -- they cannot.
-            # The whole-file composition the galley is heading for is where a
-            # write that would drop a line becomes visible BEFORE it happens,
-            # which is the same move `prove_unchanged` needs. Filed as
+            # REVIEWER'S. A reviewer rules on a paragraph and has no view of how
+            # the galley splices it, so it cannot know the closing line will
+            # delete code. The whole-file composition the galley is heading for
+            # is where a write that would drop a line becomes visible BEFORE it
+            # happens, which is the same move `prove_unchanged` needs. Filed as
             # `TODO/closing-line-deletes-code.md`.
             #
-            # ! NEITHER FIX WAS WORTH ITS COST. Dropping the run the way an
+            # ! NEITHER FIX IS WORTH ITS COST. Dropping the run the way an
             # INTERMEDIATE comment is dropped works on the one-line twin --
             # `/* note */ int x = 5;` is wholly a code line -- and not here,
             # where the opening line is nothing but comment and would belong to
@@ -918,20 +829,17 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
             # system replaced, the second teaches every consumer that switches
             # on kind.
             #
-            # !! MEASURED 2026-08-20 OVER THE FETCHED CORPORA: 180,821 lines of
-            # C and JS/TS, and the shape occurs **0 times** -- 3 apparent hits
-            # were `*/` inside a glob string. The one-line form is ordinary
-            # (1,551 hits) and is already right. Roy: *"it is stupid to break
-            # context like that,"* and the style guides agree -- ESLint ships
+            # !! MEASURED OVER THE FETCHED CORPORA: 180,821 lines of C and JS/TS,
+            # and the shape occurs **0 times** -- 3 apparent hits were `*/`
+            # inside a glob string. The one-line form is ordinary (1,551 hits)
+            # and is already right. The style guides agree -- ESLint ships
             # `no-inline-comments`, and the kernel, Google C++ and Java guides
             # all put a paragraph comment on its own line.
             #
-            # ! CUT AT THE CLOSER, the way the opening line cuts at the opener.
-            # The whole raw line was appended, so `   more */ int x = 5;` gave a
-            # paragraph whose TEXT held the statement -- executable code handed to
-            # four reviewers as prose and run through the annotation regexes.
-            # ! The file recorded this as fixed for the OPENING line; the closing
-            # line was never covered. Measured 2026-08-20 on C.
+            # ! CUT AT THE CLOSER, the way the opening line cuts at the opener,
+            # so `   more */ int x = 5;` gives the run only `   more */` and no
+            # executable code reaches four reviewers as prose or the annotation
+            # regexes.
             # ! CARRIES THE DEPTH, so a nested opener on an earlier line keeps
             # the run open past the closer that matches it.
             ends, layers = run_ends(raw_line, in_block, lang.nests_comments, layers)
@@ -949,13 +857,8 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
                 continue
             run.append((n, raw_line.rstrip()))
             continue
-        # !! ONLY CODE ENDS A PARAGRAPH -- a blank line does not, and this reached
-        # `flush()` because `"".startswith(openers)` is False. SKILL.md names
-        # the consequence exactly: "Split on blanks and a 9-line paragraph reads as
-        # `6 + 3` and passes a cap of 6 -- the quickest way to fake compliance."
-        # Measured 2026-08-17: a six-line run with one blank read as 3L + 3L
-        # in every LEXICAL language, while the stdlib reader skipped NL tokens and
-        # kept it whole. Seventeen of the eighteen languages could evade any cap.
+        # !! ONLY CODE ENDS A PARAGRAPH -- a blank line does not. Split on blanks,
+        # a 9-line paragraph would read as `6 + 3` and pass a cap of 6.
         #
         # ! The blank JOINS the run rather than being skipped, so `raw_lines`
         # stays index-aligned with `start..end` -- `prove_unchanged` walks the
@@ -965,89 +868,51 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
         # NOT extend it. They are held here and committed only when another
         # comment line arrives. A run's `end` must stay on its last comment
         # line, because `doc-kind-unresolved` asks whether the very next line
-        # is a declaration -- extend the paragraph over the gap and an ORPHAN run,
+        # holds anything -- extend the paragraph over the gap and an ORPHAN run,
         # held off its declaration by exactly that gap, reads as documenting it.
         if not raw_line.strip():
-            # ! HELD WHETHER OR NOT A RUN IS OPEN, since 2026-08-21. A blank with
-            # no run above it was dropped outright, so the space between two code
-            # lines belonged to nothing the lexer emitted and `fill_the_gaps` had
-            # to hand it to a `b` afterwards.
+            # ! HELD WHETHER OR NOT A RUN IS OPEN; `carry` and `flush` decide what
+            # becomes of them.
             pending.append((n, ""))
             continue
         code = _strip_strings(raw_line, lang.quotes, lang.char_quotes)
         line_at = min((code.index(o) for o in openers if o in code), default=-1)
         opened = next((p for p in lang.block_comment if p[0] in code), None)
-        # !! WHICHEVER OPENER COMES FIRST on the line owns it. The paragraph test
-        # ran first unconditionally, so `// see /* the note` opened a paragraph run
-        # that swallowed every line up to the next `*/` -- executable code
-        # handed to four reviewers as prose, carrying no annotation to say so,
-        # and dropped from `code_lines`, which put every interval in that file
-        # at the wrong boundary. Measured on a five-line C file: one paragraph
-        # spanning lines 2-4 whose text held `int b = 2;`.
+        # !! WHICHEVER OPENER COMES FIRST on the line owns it.
         if opened is not None and -1 < line_at < code.index(opened[0]):
             opened = None
         if opened is not None:
-            # !! OPENING A DELIMITED COMMENT DOES NOT END THE RUN BEFORE IT, and
-            # an unconditional `flush()` here is what made `/* one */`, a blank
-            # and `/* two */` two paragraphs where `// one`, a blank and `// two`
-            # are one. Same language, same gap, and the answer decided by which
-            # syntax the author reached for. ! Whether it ends depends on what is
-            # on THIS line, which is not known until `opens_at` below -- so the
-            # decision moved down to where the facts are.
-            # !! CUT AT THE OPENER, like the line-comment path below does. The
-            # whole raw line was appended, so `int b = 2; /* note */` was
-            # read as one `comment` paragraph whose TEXT held the statement --
-            # executable code handed to four reviewers as prose, run through the
-            # annotation regexes, and dropped from `code_lines`, which moved
-            # every interval boundary in the file. Measured 2026-08-17, the same
-            # shape as the `//`-before-`/*` case fixed directly above.
+            # !! OPENING A DELIMITED COMMENT DOES NOT END THE RUN BEFORE IT, so
+            # `/* one */`, a blank and `/* two */` are one paragraph, as `// one`, a
+            # blank and `// two` are. ! It ends the run only when code precedes the
+            # opener, which is not known until `opens_at` below -- so that decision is
+            # made there.
             opens_at = code.index(opened[0])
             # !! THE OPENER IS FOUND IN THE BLANKED LINE AND THE CLOSER IN THE
             # RAW ONE, and they are different questions. Whether a `/*` OPENS a
             # comment depends on whether it is inside a string, so that is asked
             # of `code`. Once the comment is open, a quote has no meaning at all
             # -- which is why the continuation path above scans `raw_line`.
-            #
-            # !! THIS SCANNED THE BLANKED TEXT FOR THE CLOSER, and an apostrophe
-            # ate it. MEASURED 2026-08-22 on JavaScript: `/* don't cache this */`
-            # over two statements read as ONE `matter` paragraph spanning
-            # lines 1-3, with NO `c` place on the file -- the executable code
-            # handed to four reviewers as prose and every address below it gone.
-            # ! It hits every language whose `quotes` holds `'` and whose
-            # `char_quotes` is empty: javascript, typescript, sql, lua, ruby. C
-            # escaped only because it declares `char_quotes`.
             tail = raw_line[opens_at + len(opened[0]) :]
             ends_at, layers = run_ends(tail, opened, lang.nests_comments)
             closes_here = ends_at >= 0
             after = tail[ends_at:] if closes_here else ""
             # !! AN INTERMEDIATE COMMENT IS NOT GATHERED -- one that CLOSES on
-            # this line with code after it, `int x = /* why */ 5;`. Roy ruled it
-            # 2026-08-19, on the same grounds as a Python type annotation: *"they
-            # are not comments that can be systemically and completely verified
-            # across code bases or written consistently on the same file because
-            # of line length rules ... all intermediate comments are ignored.
-            # They can be brought up by the agents as code change suggestions."*
+            # this line with code after it, `int x = /* why */ 5;`.
             #
-            # ! It was gathered, and the paragraph's TEXT was the whole statement:
-            # measured 2026-08-19, `f.c@c1 comment text='int x = /* why */ 5;'`
-            # -- executable code handed to four reviewers as prose. Cutting at
-            # the opener instead loses the `5;`, so `5` and `7` would compare
-            # EQUAL and `prove_unchanged` report PROVEN on a changed literal.
-            # Neither is available; the line is simply code. It stays a code
-            # line, so it keeps its `b` and its `c` like any other.
+            # ! Gathered, the paragraph's TEXT would be the whole statement --
+            # executable code handed to four reviewers as prose. Cutting at the
+            # opener instead loses the `5;`, so `5` and `7` would compare EQUAL
+            # and `prove_unchanged` report PROVEN on a changed literal. Neither is
+            # available; the line is simply code. It stays a code line, so it
+            # keeps its `b` and its `c` like any other.
             if closes_here and after.strip():
                 # ! THE LINE IS CODE, so it ends the run like any other.
                 flush()
-                # !! AND A LINE COMMENT AFTER IT IS STILL A TRAILING COMMENT.
-                # This returned immediately, so `int x = /* why */ 5; // note`
-                # lost the `// note` ENTIRELY: the `c` place survived as an empty
-                # `margin` and a real comment reached no reviewer. MEASURED
-                # 2026-08-22 against the same line without the intermediate
-                # comment, where `c1` is a `trailing-comment` reading `note`.
-                # ! The ruling ignores the INTERMEDIATE comment -- Roy,
-                # 2026-08-19: *"all intermediate comments are ignored"* -- and
-                # says the line is then simply code. A code line carrying a
-                # trailing comment is the ordinary case, not an exception to it.
+                # !! AND A LINE COMMENT AFTER IT IS STILL A TRAILING COMMENT. The
+                # intermediate comment is ignored and the line is then simply code,
+                # and a code line carrying a trailing comment is the ordinary case,
+                # not an exception to it.
                 # ! It must sit past the CLOSER: a `//` before the delimited
                 # opener never reaches here, because whichever opener comes
                 # first owns the line and `opened` was cleared above.
@@ -1081,31 +946,35 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
             partial_first[0] = (
                 len(raw_line[:opens_at].rstrip()) + 1 if beside_code else 0
             )
+
+            # !! CUT AT THE OPENER, like the line-comment path below does. Taking the
+            # whole raw line would read `int b = 2; /* note */` as one paragraph whose
+            # TEXT held the statement -- executable code handed to four reviewers as
+            # prose, run through the annotation regexes, and dropped from
+            # `code_lines`, which moves every interval boundary in the file.
             run.append((n, raw_line[opens_at:].rstrip()))
             if not closes_here:
                 in_block = opened
             elif beside_code:
-                # !! ONLY CODE ENDS A PARAGRAPH, AND A CLOSER IS NOT CODE. This
-                # flushed on every close, so `/* one */` alone on a line ended
-                # its paragraph and the blank beneath it could not bridge to the
-                # next run. ! Code AFTER the closer cannot reach here -- such a
-                # line is not gathered at all, by the intermediate-comment ruling
-                # above -- so code BEFORE the opener is the only thing left, and
-                # that makes this a trailing comment: prose about the statement
-                # on its own line, which must not absorb the prose beneath it.
+                # !! ONLY CODE ENDS A PARAGRAPH, AND A CLOSER IS NOT CODE. ! Code
+                # AFTER the closer cannot reach here -- such a line is not
+                # gathered at all, by the intermediate-comment ruling above -- so
+                # code BEFORE the opener is the only thing left, and that makes
+                # this a trailing comment: prose about the statement on its own
+                # line, which must not absorb the prose beneath it.
                 flush(trailing=True)
             continue
         # !! ASKED OF THE RAW LINE, NOT THE BLANKED ONE. `_strip_strings` replaces
         # a literal with spaces, which erases the evidence that code came first:
         # `  "b" // the last one` blanks to `      // the last one`, whose strip
-        # starts with the opener, so a JS array element was read as a
+        # starts with the opener, so a JS array element would read as a
         # whole-line `comment` whose TEXT held `"b"` -- executable code handed to
-        # four reviewers as prose -- and its line left `code_lines` entirely.
+        # four reviewers as prose -- and its line would leave `code_lines`.
         # ! WHAT THAT COSTS IS NOT THE MISREADING. Every `b` and `c` below the
         # line shifts, so a galley splice over one of those addresses lands
-        # somewhere other than where the reviewer cited. Measured 2026-08-20 on
-        # JS and C. ! Whitespace before the opener is not code, which is the case
-        # the blanked test got right and this keeps right.
+        # somewhere other than where the reviewer cited. ! Whitespace before the
+        # opener is not code, which is the case the blanked test got right and
+        # this keeps right.
         if line_at >= 0 and not raw_line[:line_at].strip():
             carry()
             run.append((n, raw_line.rstrip()))
@@ -1123,10 +992,8 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
             )
             run.append((n, raw_line[at:].rstrip()))
             flush(trailing=True)  # its own paragraph, anchored to the code on that line
-    # !! THE FOOT OF THE FILE, AND THE LOOP IS OVER SO NOTHING FOLLOWS. Roy,
-    # 2026-08-21, asked whether the foot needed a rule of its own: *"same answer
-    # for the back matter because of the same reason."* Read upward, the run
-    # after the LAST blank line is the file's own matter.
+    # !! THE FOOT OF THE FILE, AND THE LOOP IS OVER SO NOTHING FOLLOWS. Read
+    # upward, the run after the LAST blank line is the file's own matter.
     #
     # !! IT NEEDS NO LOOKAHEAD, which is the whole reason it is done here rather
     # than in the loop: at the head, "no code yet" is a fact already in hand; at
@@ -1135,8 +1002,8 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
     #
     # ! Only an INTERIOR blank can split -- a run never ends on one, because
     # blanks reach `run` from `pending` and `pending` merges only when another
-    # comment follows. The blank itself goes to neither half; `page.fill_the_gaps`
-    # gives it to the gap that owns it, exactly as at the head.
+    # comment follows. The blank itself goes to neither half; `leading_between`
+    # takes it as leading, exactly as at the head.
     if run:
         blanks = [i for i, (_, held) in enumerate(run) if not held.strip()]
         if blanks:
@@ -1169,10 +1036,9 @@ def flag_structural_docs(
     this tier lacks.
 
     The paragraph is annotated as an OPEN QUESTION instead. That matters because
-    `compact.md` routes on KIND: a `comment` is governed by LENGTH and may be
-    cut to the cap, a `docstring` by FORMAT and stands. Unmarked, a three-line
-    Go export doc reads as over a cap of two and is cut by a rule that governs
-    comments.
+    `compact.md` deals `b` and `c` places by length, and tells its editor that a
+    Go or Ruby run directly above a declaration is documentation. Unmarked, a
+    three-line Go export doc reads as an ordinary comment over a cap of two.
 
     Args:
         paragraphs: this file's paragraphs, mutated in place.
@@ -1217,8 +1083,8 @@ def _declares_here(line: str, declares: tuple[str, ...]) -> bool:
 
     ! TWO WORDS ARE TRIED, so a modifier does not hide the keyword: Python's
     `async def`, and a c-family `public static void f()` whose own keyword is
-    `public`. Either word matching is enough, because the list already says
-    which words this language uses for the purpose.
+    `public`. The first word matching, or the first two as one entry, is enough,
+    because the list already says which words this language uses for the purpose.
     """
     m = _FIRST_WORD.match(line)
     if not m:
@@ -1238,19 +1104,16 @@ def document_declarations(
 ) -> None:
     """Say which prose run documents which declaration, at the LEXICAL tier.
 
-    !! IT LIVES HERE BECAUSE POSITIONING IS THE LANGUAGE'S, and the lexer is one
-    of the two modules allowed to ask a language anything. Roy, 2026-08-21: *"All
-    framing about positioning should come from the language and should be only in
-    either the language definition file, or a reference to the language
-    definition file in lexer and compositor."* It was in `page.py`, which is
-    neither. ! Python's own reader states the same fact for Python.
+    !! IT LIVES HERE BECAUSE POSITIONING IS THE LANGUAGE'S, and the lexer is where
+    a row's `declares` and `doc_inside` are read. ! Python's own reader states the
+    same fact for Python.
 
     !! PROSE BELONGS TO WHICHEVER SIDE IT IS NEARER TO, and a TIE goes to the
-    side the language documents on. That is the whole rule, and it replaced
-    "the nearest run above the declaration", which could not tell a
-    declaration's documentation from a note about the statement above it.
+    side the language documents on. That is the whole rule. "The nearest run above
+    the declaration" is not: it cannot tell a declaration's documentation from a
+    note about the statement above it.
 
-    ! MEASURED 2026-08-21 on `meta-package-manager`'s `mpm.js`:
+    ! A worked example, from `meta-package-manager`'s `mpm.js`:
 
         export const MPM_MIN_VERSION = [6, 4, 0];
         /* mpm 6.4.0 renamed `--output-format` back to `--table-format` ... */
@@ -1258,39 +1121,29 @@ def document_declarations(
         export const MPM_TIMEOUT = 60;
 
     The comment explains why the MINIMUM VERSION is 6.4.0 -- it is about the line
-    it sits under. The old rule walked up from `MPM_TIMEOUT`, skipped the blank
-    and claimed it, so four reviewers would have measured that prose against
-    `= 60`. It is flush under the code above (0 blank lines) and one blank from
-    the declaration below, so it is nearer to what it is about.
+    it sits under. It is flush under the code above (0 blank lines) and one blank
+    from the declaration below, so it is nearer to what it is about, and no
+    reviewer measures that prose against `= 60`.
 
-    ! A TIE IS FLUSH ON BOTH SIDES, and it goes to the declaration, which is the
-    convention every above-doc language writes by. MEASURED over the corpora: of
-    23 ties in above-doc languages, 20 sit flush above their declaration and are
-    unaffected, 1 has a blank on both sides and is unaffected, and 2 change --
-    both of them the shape above.
+    ! A TIE -- the same number of blank lines on both sides -- goes to the
+    declaration, which is the convention every above-doc language writes by.
 
     ! WHAT IT CANNOT DO is read the prose. A comment flush under one statement
     and about the next is indistinguishable by position, which is why
     `ownership-context` reads every placement rather than trusting one.
 
     Args:
-        paragraphs: this file's prose, mutated in place -- `declares` is set on
-            the run that documents each declaration.
+        paragraphs: this file's prose, mutated in place -- `address` is set to
+            the `a` cue of the declaration each run documents.
         decls: `(line, insert, above)` per declaration, module first.
         code: `line -> the code on it`, in order.
     """
-    # ! LEADING IS NOT PROSE AND CANNOT DOCUMENT ANYTHING. It became a paragraph
-    # on 2026-08-21, and without this the walk up from a declaring line stopped
-    # at the blank above it and tied THAT -- so a doc comment separated from its
-    # declaration by one blank line, the shape 38% of CPython's use, was left
-    # undocumented and the blank took the `a`.
+    # ! LEADING IS NOT PROSE AND CANNOT DOCUMENT ANYTHING.
     ends = {
         b.original_end: b
         for b in paragraphs
-        # ! ASKED OF THE KIND. This read `not b.original_column`, which was
-        # the same question one field away -- a paragraph beside code is a
-        # trailing comment. `decision-log.md Process: #69`. No margin
-        # exists yet here: the walk has not synthesised the empty places.
+        # ! ASKED OF THE KIND. No margin exists yet here: the walk has not
+        # synthesised the empty places.
         if b.original_end and b.kind not in (Kind.TRAILING, Kind.LEADING)
     }
     if not ends:
@@ -1325,10 +1178,8 @@ def document_declarations(
         previous = [n for n in above_code if n < held.original_start]
         over = held.original_start - previous[-1] - 1 if previous else below + 1
         if below <= over:
-            # ! THE CUE, NOT AN ORDINAL. This stamped `held.declares = ordinal`
-            # and `page.attach` turned it back into `a{n}` three calls later --
-            # `decision-log.md Process: #69`. The lexer knows WHICH declaration
-            # at this moment; the series is what says how to spell it.
+            # ! THE CUE, NOT AN ORDINAL. The lexer knows WHICH declaration at
+            # this moment; the series is what says how to spell it.
             held.address = cue_for(Series.DECLARED.value.letter, ordinal)
 
 
@@ -1344,12 +1195,10 @@ def declarations(lang: Language, code: dict[int, str]) -> list[tuple[int, int, b
     otherwise carry an `a0` -- a place for a module docstring in a language with
     no such thing -- which no instruction could ever fill.
 
-    !! THE KEYWORDS ARE DATA, AND THAT IS THE WHOLE POINT. Roy: *"the easy way
-    is to supply the lexer with the list of keywords that a language/practice
-    uses to say this can get a docstring. Then the lexer matches on that instead
-    of having to have independent tooling."* Before this, `a` resolved for
-    Python alone, because Python is the one language the stdlib parses. An LSP
-    or the build tooling can VERIFY the result; neither is needed to get one.
+    !! THE KEYWORDS ARE DATA. Each language row lists the keywords that say a
+    line can get a docstring, and the lexer matches on that list instead of on
+    independent tooling. An LSP or the build tooling can VERIFY the result;
+    neither is needed to get one.
 
     ! A LANGUAGE WHOSE DOC GOES INSIDE THE BODY IS REFUSED -- `lang.doc_inside`,
     Python. Where its body starts is not the declaring line, so its own reader
@@ -1369,10 +1218,9 @@ def declarations(lang: Language, code: dict[int, str]) -> list[tuple[int, int, b
     Returns:
         `(line, insert, above)` per declaration, module first, or `[]` when the
         language has no `a` series. !! `above` IS THE ROW SPEAKING, not a
-        comparison of the two numbers -- Roy, 2026-08-21: *"The language
-        definition file has to state which, not the code."* It is `doc_inside`
-        read back out, and it is stated HERE because the lexer is one of the two
-        modules that touch a file at all; every step below carries it.
+        comparison of the two numbers: it is `doc_inside` read back out, and it is
+        stated HERE because the lexer is where a row's `declares` and `doc_inside`
+        are read; every step below carries it.
     """
     if not lang.declares:
         return []

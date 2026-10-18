@@ -1,4 +1,9 @@
-"""Python source boundaries and documentation classification."""
+"""Python source boundaries and documentation classification.
+
+`read_python` composes the scan, the declarations, the documentation and the
+directives into one `PythonRead`; `paragraphs_for` is re-exported from
+`projection`.
+"""
 
 from comment_review.reading.definitions import LanguageDefinition
 from comment_review.reading.diagnostics import ReadFailure

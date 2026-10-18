@@ -717,6 +717,19 @@ def cue(
     reads one cue to compute another, and no cue follows from a line's
     ordinal -- see `cue`.
 
+    !! A SKIPPED TRIGGER TAKES NO NUMBER, so every series starts at 0. Each
+    series owns its rule about what it skips and records and increments
+    independently: `c` does not emit for the MODULE and does not step past it
+    either, so its first line of code is `c0`. ! Reading it the other way --
+    that a series takes a number at every trigger it is offered -- burns `b0`
+    and starts `c` at 1.
+
+    !! NOTHING READS ONE CUE TO COMPUTE ANOTHER, and no cue follows from a
+    line's ordinal. Whether two series happen to line up on a given file is not
+    stated anywhere, deliberately: the edge cases where it breaks are not known,
+    and a reader told the numbers coincide will rely on it whatever the sentence
+    around it says.
+
     Args:
         code: `line number -> the exact characters on it`, ascending -- what
             `page.code_lines` returns. The number POSITIONS the trigger; it
