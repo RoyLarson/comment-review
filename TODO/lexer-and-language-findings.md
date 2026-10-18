@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 5 of 47 tasks closed
+Progress: 7 of 49 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (/simplify rounds 1 and 2 and /code-review high round 3,
@@ -253,9 +253,10 @@ would.
 - [ ] T25 | T25 -- Make `_is_doc` consult placement, not only the opener string.
       Verify: a Lua `---` run above `local function f()` types `docstring`,
       above nothing `comment`.
-- [ ] T26 | T26 -- Give the `Language` row an `inner_doc` field, defaulting
-      empty so every existing opener stays outer. Verify: the field exists and
-      no row's typing changes.
+- [-] T26 | A field on the in-code row; reissued against Rust's definition | 9e376f5f | T26
+      -- Give the `Language` row an `inner_doc` field, defaulting empty so every
+      existing opener stays outer. Verify: the field exists and no row's typing
+      changes.
 - [ ] T27 | T27 -- Declare Rust's `//!` inner; `///` stays outer. Verify: a
       `.rs` opening `//!` above nothing types `docstring`, and `///` above
       nothing types `comment`.
@@ -293,7 +294,8 @@ would.
 - [ ] T38 | Rewrite the CLAUDE.md doc-position sentence to the stated field
         > 2026-10-16 Reason: Roy, 2026-10-16: on Rust it goes above, not on the line
         > 2026-10-16 Check: the sentence names the field T36 adds; Roy approves it
-- [ ] T39 | Remove the Python `Language` row's grammar fields
+- [-] T39 | Widened to removing the Python row; reissued as a new task | 9e376f5f | Remove
+      the Python `Language` row's grammar fields
         > 2026-10-17 Reason: `python.toml` states it; no Python read uses the row
         > 2026-10-17 Check: the Python row carries no grammar; reading suites pass
 - [ ] T40 | Remove `BY_EXT`, which nothing reads
@@ -320,3 +322,5 @@ would.
 - [ ] T47 | Remove the `doc-kind-unresolved` annotation, which nothing reads
         > 2026-10-17 Reason: grep over src and tests finds it only where it is stamped
         > 2026-10-17 Check: grep -rn doc-kind-unresolved src finds nothing
+- [ ] T48 | Remove the Python `Language` row from `LANGUAGES`
+- [ ] T49 | State Rust's inner doc openers in Rust's own definition file
