@@ -3,7 +3,7 @@
 ```
 Status:   decision-needed
 Progress: 34 of 162 TODO tasks closed
-Plan-tasks: 9 of 53 plan tasks closed
+Plan-tasks: 11 of 53 plan tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-10-11 (founded by move-t from 0.2.4-the-middle-rebuilt)
@@ -618,8 +618,9 @@ interfaces, inputs and checks, without internal development files or history.
       declaration ownership and expected fixtures
         > 2026-10-11 Own dated spec and subplan; branch feat/lexer-python
         > 2026-10-11 Python child: docs/plans/2026-10-11-lexer-python.md
-- [ ] P8 | Implement the Python reader from its definition; verify expected
-      comments, protected code, addresses and set/proof behavior
+- [x] P8 | Child lexer-python closed; test_python.py 1275 pass | 2bf15f2b | Implement
+      the Python reader from its definition; verify expected comments, protected
+      code, addresses and set/proof behavior
         > 2026-10-11 Check: uv run pytest -q tests/reading/test_python.py
         > 2026-10-11 Python child: docs/plans/2026-10-11-lexer-python.md
 - [ ] P9 | Specify Rust independently; verify supported modes, directive
@@ -706,8 +707,9 @@ interfaces, inputs and checks, without internal development files or history.
 - [ ] P36 | Implement the Lua reader from its definition; verify expected
       comments, protected code, addresses and set/proof behavior
         > 2026-10-11 Check: uv run pytest -q tests/reading/test_lua.py
-- [ ] P37 | Integrate Python reading through gather, setting and both proof
-      commands; verify newer syntax works on Python 3.11
+- [x] P37 | Child lexer-python closed: gather, setting, both proofs, 3.11 | 2bf15f2b | Integrate
+      Python reading through gather, setting and both proof commands; verify
+      newer syntax works on Python 3.11
         > 2026-10-11 Complete the Python workflow before other language integration
         > 2026-10-11 Python child: docs/plans/2026-10-11-lexer-python.md
 - [ ] P38 | Share reader results with paragraphs, forms and declarations; verify
