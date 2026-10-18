@@ -779,3 +779,4 @@ complete merely because this plan or its interfaces are approved.
 - [ ] P52 | Remove the Python `Language` row from `LANGUAGES`
         > 2026-10-18 Check: no lang.name == "python" test is left in src
         > 2026-10-18 Check: uv run pytest -q passes
+        > 2026-10-18 Check: no python row in LANGUAGES; language_for(.py) resolves
