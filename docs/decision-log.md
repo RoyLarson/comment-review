@@ -524,6 +524,21 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   automate it. We can have the task-agent run a compile step on the set page to verify that the
   stuff is set correctly"*
 
+- **#28.** **A language's own documentation rule decides which places can take a doc** (Roy,
+  2026-10-18, asked while specifying the Rust reader whether struct fields and enum variants
+  are documentation places of their own; the Rust Reference lets fields and variants accept
+  outer attributes, which is what a `///` is).
+
+  *"Yep - if the standard implementation has them as able to get docs then they can gets docs"*
+
+  *"This goes for all languages"*
+
+  **What it settles.** In every language specification, a construct is a documentation owner,
+  with its own `a` place, exactly when that language's standard implementation attaches
+  documentation to it. A reader's keyword list is no longer what decides it. For Rust this
+  covers items, associated items, fields and variants, and leaves out statements, match arms and
+  parameters, where rustdoc does not use a doc.
+
 ## Vocabulary
 
 - **#1.** **The metaphor is EDITORIAL, and a new term is checked against the register BEFORE it is
