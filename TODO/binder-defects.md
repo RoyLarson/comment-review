@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 8 of 33 tasks closed
+Progress: 9 of 33 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, a code review of `binder/binder.py` run against its
@@ -213,7 +213,8 @@ task 5's, but the fix for these two lands in `binder/binder.py`.
 - [ ] T28 | Remove the unreachable `Kind.MATTER` branch of `attach`
         > 2026-10-17 Reason: `page_for` places matter before it calls `attach`
         > 2026-10-17 Check: page, binder and compositor suites pass without it
-- [ ] T29 | Remove the `lang` parameter `page_for` overwrites unread
+- [x] T29 | page_for no longer takes a Language | 064bd62d | Remove the `lang`
+      parameter `page_for` overwrites unread
         > 2026-10-17 Reason: `language_for(path)` replaces it before anything reads it
         > 2026-10-17 Check: page_for takes no lang; its callers and tests pass
 - [ ] T30 | Remove the dead `cues` and `edges` stores in `page_for`

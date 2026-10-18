@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 35 of 36 TODO tasks closed
+Progress: 36 of 36 TODO tasks closed
 Plan-tasks: 51 of 52 plan tasks closed
 Owner:    backend
 Requires-Roy: false
@@ -509,7 +509,7 @@ complete merely because this plan or its interfaces are approved.
 
 ### N - [lexer-and-language-findings](../../TODO/lexer-and-language-findings.md)
 
-- [ ] T48 | Remove the Python `Language` row from `LANGUAGES`
+- [x] T48 | Remove the Python `Language` row from `LANGUAGES`
 
 ## Plan Tasks
 

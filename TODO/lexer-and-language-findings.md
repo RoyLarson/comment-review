@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 7 of 49 tasks closed
+Progress: 8 of 49 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (/simplify rounds 1 and 2 and /code-review high round 3,
@@ -322,5 +322,6 @@ would.
 - [ ] T47 | Remove the `doc-kind-unresolved` annotation, which nothing reads
         > 2026-10-17 Reason: grep over src and tests finds it only where it is stamped
         > 2026-10-17 Check: grep -rn doc-kind-unresolved src finds nothing
-- [ ] T48 | Remove the Python `Language` row from `LANGUAGES`
+- [x] T48 | Python row removed; python.toml is its only definition | 064bd62d | Remove
+      the Python `Language` row from `LANGUAGES`
 - [ ] T49 | State Rust's inner doc openers in Rust's own definition file
