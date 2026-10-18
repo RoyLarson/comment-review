@@ -15,7 +15,6 @@ from comment_review.flows.source import source_of
 from comment_review.machine.repo import Source
 from comment_review.reading.context import ReadingContext
 from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, ReadStage
-from comment_review.reading.lexer import language_for
 
 
 def page_of(
@@ -69,8 +68,7 @@ def page_of(
     acquired = source_of(path) if source is None else source
     if isinstance(acquired, ReadFailure):
         return LocatedReadFailure(acquired.diagnostics, where, None, None)
-    lang = language_for(path)
-    if lang is None:
+    if registry.for_path(path) is None:
         return LocatedReadFailure(
             (
                 ReadDiagnostic(
@@ -86,12 +84,13 @@ def page_of(
     page = page_for(
         path,
         acquired.text,
-        lang,
         rel=rel,
         sha=acquired.sha,
         reading=context,
         registry=registry,
     )
     if isinstance(page, ReadFailure):
-        return LocatedReadFailure(page.diagnostics, where, lang.name, acquired.text)
+        return LocatedReadFailure(
+            page.diagnostics, where, context.language, acquired.text
+        )
     return page

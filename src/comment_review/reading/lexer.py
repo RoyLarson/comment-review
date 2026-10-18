@@ -38,7 +38,9 @@ from comment_review.reading.language import (
     BY_EXT,
     LANGUAGES,
     Language,
+    documents_in_literals,
     language_for,
+    line_comment_markers,
 )
 from comment_review.reading.paragraph import Paragraph
 from comment_review.reading.series import Kind, Series, cue_for
@@ -127,7 +129,7 @@ def comment_form(
     """The assigned paragraph's prose and the form its raw text carries."""
     lang = language_for(path)
     chunks: list[str] = []
-    if lang is not None and lang.name == "python" and series is Series.DECLARED:
+    if documents_in_literals(path) and series is Series.DECLARED:
         from comment_review.reading.docstring import concatenated
 
         docstring = concatenated(raw_text)
@@ -137,7 +139,7 @@ def comment_form(
     opened = None
     depth = 1
     line_marker = ""
-    if lang is not None and lang.name != "python":
+    if lang is not None:
         for line in raw_text.splitlines(keepends=True):
             if opened is None and not pending and chunks and not line.strip():
                 chunks[-1] += line
@@ -199,6 +201,7 @@ def _comment_fragment(
     path: Path, series: Series | None, raw_text: str, anchor: str
 ) -> Fragment:
     lang = language_for(path)
+    in_literals = documents_in_literals(path)
     physical = raw_text.splitlines(keepends=True)
     while physical and not physical[-1].strip():
         physical.pop()
@@ -238,8 +241,7 @@ def _comment_fragment(
             None,
         )
     if (
-        lang is not None
-        and lang.name == "python"
+        in_literals
         and series is Series.DECLARED
         and re.match(r"(?i)[rub]*(\"\"\"|'''|\"|')", raw_text.lstrip())
     ):
@@ -254,7 +256,7 @@ def _comment_fragment(
                 end_at = len(indent) + len(token.string) - len(close)
     if opened is not None:
         op, close = opened
-        if lang is not None and lang.name != "python":
+        if lang is not None:
             pair = next(p for p in lang.block_comment if op.startswith(p[0]))
             scan_from = len(indent) + len(pair[0])
             ends, _ = run_ends(raw_text[scan_from:], pair, lang.nests_comments)
@@ -272,7 +274,7 @@ def _comment_fragment(
             after = last[len(close) :]
             if after.strip():
                 suffix_indent = lines[-1][: len(lines[-1]) - len(lines[-1].lstrip())]
-                if lang is not None and lang.name == "python":
+                if in_literals:
                     suffix_indent = indent
                     after = after.lstrip(" \t")
                     if after.startswith(";"):
@@ -314,8 +316,7 @@ def _comment_fragment(
                 if found is not None:
                     body[n] = line[found.end() :]
                     starts[n] += found.end()
-    elif lang is not None:
-        markers = tuple(sorted(lang.line_comment, key=len, reverse=True))
+    elif markers := tuple(sorted(line_comment_markers(path), key=len, reverse=True)):
         marker = next((m for m in markers if lines[0].lstrip().startswith(m)), "")
         if marker:
             lead = indent + marker

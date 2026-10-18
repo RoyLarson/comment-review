@@ -757,6 +757,26 @@ def test_installed_code_definitions_have_exact_suffixes_and_independent_rules() 
     assert len({id(value.rules) for value in INSTALLED_DEFINITIONS}) == 14
 
 
+def test_python_is_defined_by_its_own_file_and_by_no_row() -> None:
+    from comment_review.reading.language import (
+        INSTALLED_REGISTRY,
+        LANGUAGES,
+        SHIPPED_DEFINITIONS,
+        documents_in_literals,
+        language_for,
+        line_comment_markers,
+    )
+
+    path = Path("m.py")
+    assert [row.name for row in LANGUAGES if ".py" in row.extensions] == []
+    assert [value.language for value in SHIPPED_DEFINITIONS] == ["python"]
+    assert INSTALLED_REGISTRY.for_path(path) is SHIPPED_DEFINITIONS[0]
+    assert language_for(path) is None
+    assert line_comment_markers(path) == ("#",)
+    assert documents_in_literals(path)
+    assert not documents_in_literals(Path("m.rs"))
+
+
 def test_installed_bindings_validate_rules_and_host_identity() -> None:
     import platform
     import sys

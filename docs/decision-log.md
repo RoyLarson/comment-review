@@ -5378,3 +5378,12 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   **What it settles.** Each language's grammar goes in that language's own definition file,
   as language-rows-in-toml T17 and T18 state. Python is the first: its row leaves
   `LANGUAGES`, and `language_for` answers `.py` from `python.toml`.
+
+- **#216.** **`reading/` loads the shipped language definition files itself** (Roy,
+  2026-10-18, asked where they load once Python's row is gone -- `reading/` loading them from
+  package data at import, or `flows/` loading them and passing a registry into every caller --
+  chose the first, offered as recommended).
+
+  **What it settles.** The installed registry holds every shipped definition file, so a
+  caller anywhere asks one registry. The files are this program's own data, not the
+  checkout, so `machine` is not involved.

@@ -11,7 +11,6 @@ from comment_review.flows.reading_context import context_for
 from comment_review.flows.source import source_of
 from comment_review.reading.context import ReadingContext
 from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, ReadStage
-from comment_review.reading.language import language_for
 from comment_review.results import compositor
 
 
@@ -40,11 +39,10 @@ def round_trip(
     try:
         rendered = compositor.set_page(page)
     except exceptions.Refused as error:
-        language = language_for(path)
         return LocatedReadFailure(
             (ReadDiagnostic(ReadStage.PLACE, "unsupported-placement", str(error)),),
             path.as_posix(),
-            language.name if language is not None else None,
+            page.reading.language,
             source.text,
         )
     return RoundTrip(source.text, rendered, context)

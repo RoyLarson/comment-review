@@ -2,30 +2,18 @@
 
 from collections.abc import Sequence
 from dataclasses import replace
-from importlib.resources import files
 from pathlib import Path
 
 from comment_review.flows.source import source_of
 from comment_review.reading.definitions import LanguageDefinition, decode_definition
 from comment_review.reading.diagnostics import ReadFailure
-from comment_review.reading.language import INSTALLED_DEFINITIONS
+from comment_review.reading.language import INSTALLED_DEFINITIONS, SHIPPED_DEFINITIONS
 from comment_review.reading.registry import LanguageRegistry, registry_for
 
 
 def installed_registry() -> LanguageRegistry | ReadFailure:
-    """Acquire the shipped Python grammar alongside legacy language definitions."""
-    definitions = load_definitions(
-        [
-            Path(
-                str(
-                    files("comment_review").joinpath("references/languages/python.toml")
-                )
-            )
-        ]
-    )
-    if isinstance(definitions, ReadFailure):
-        return definitions
-    return registry_for((*definitions, *INSTALLED_DEFINITIONS))
+    """Every installed definition -- the shipped files and the lexical rows."""
+    return registry_for((*SHIPPED_DEFINITIONS, *INSTALLED_DEFINITIONS))
 
 
 def load_definitions(

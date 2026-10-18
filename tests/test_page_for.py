@@ -23,7 +23,6 @@ from comment_review.flows.read_diagnostics import LocatedReadFailure, format_fai
 from comment_review.machine.repo import Source
 from comment_review.reading.addresser import Cues
 from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, ReadStage
-from comment_review.reading.lexer import language_for
 from comment_review.reading.python.records import PythonRead
 
 
@@ -342,14 +341,11 @@ def test_python_sections_projection_is_not_used_for_other_languages(
 
 
 def test_empty_source_is_a_complete_page():
-    lang = language_for(Path("empty.py"))
-    assert lang is not None
     registry = installed_registry()
     assert not isinstance(registry, ReadFailure)
     page = page_for(
         Path("empty.py"),
         "",
-        lang,
         sha="empty",
         reading=build("").reading,
         registry=registry,
@@ -360,14 +356,11 @@ def test_empty_source_is_a_complete_page():
 
 
 def test_malformed_python_is_a_read_failure():
-    lang = language_for(Path("bad.py"))
-    assert lang is not None
     registry = installed_registry()
     assert not isinstance(registry, ReadFailure)
     page = page_for(
         Path("bad.py"),
         "def broken(:\n",
-        lang,
         sha="bad",
         reading=build("").reading,
         registry=registry,

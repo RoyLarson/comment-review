@@ -13,7 +13,6 @@ from comment_review.binder.page import page_for
 from comment_review.flows.language_definitions import installed_registry
 from comment_review.machine.repo import sha_of
 from comment_review.reading.diagnostics import ReadFailure
-from comment_review.reading.lexer import language_for
 from comment_review.reading.series import ADDRESSED, Kind, Series
 
 #: Sources chosen to reach a different shape each, across the tiers and
@@ -247,14 +246,11 @@ class TestAPageCarriesTheShaItWasGiven:
         # A page built with a sha that does not describe its text keeps the sha
         # it was HANDED. If page.py hashed anything, this would disagree.
         path = Path("m.py")
-        lang = language_for(path)
-        assert lang is not None, f"no language record for suffix {path.suffix!r}"
         registry = installed_registry()
         assert not isinstance(registry, ReadFailure), registry
         page = page_for(
             path,
             SAMPLE,
-            lang,
             rel="m.py",
             sha="deadbeef",
             reading=build("").reading,
@@ -266,8 +262,6 @@ class TestAPageCarriesTheShaItWasGiven:
 
     def test_the_sha_is_required(self):
         path = Path("m.py")
-        lang = language_for(path)
-        assert lang is not None, f"no language record for suffix {path.suffix!r}"
         registry = installed_registry()
         assert not isinstance(registry, ReadFailure), registry
         with pytest.raises(TypeError):
@@ -277,7 +271,6 @@ class TestAPageCarriesTheShaItWasGiven:
             page_for(  # ty: ignore[missing-argument]
                 path,
                 SAMPLE,
-                lang,
                 rel="m.py",
                 reading=build("").reading,
                 registry=registry,

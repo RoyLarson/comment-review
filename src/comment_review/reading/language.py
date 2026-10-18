@@ -1,19 +1,25 @@
-"""Independent language grammar rows and installed reader configuration.
+"""Language grammar: the shipped definition files and the lexical rows.
 
-Installed definitions materialize grammar from each row `READER_METADATA`
-names -- every row but Python, TOML, INI and YAML. Python's grammar is
-`references/languages/python.toml`.
-Validation requires complete grammar with the language's expected value shapes.
-Shared reader metadata supplies identities, revisions, capabilities and coverage
-tiers for registration, dispatch and reporting.
+A language with its own definition file is read from it:
+`references/languages/*.toml` is loaded at import, one file per language, into
+`SHIPPED_DEFINITIONS`. Python is defined that way.
+
+The other code languages are still rows in `LANGUAGES`, and installed
+definitions materialize grammar from each row `READER_METADATA` names -- every
+row but TOML, INI and YAML. Validation requires complete grammar with the
+language's expected value shapes. Shared reader metadata supplies identities,
+revisions, capabilities and coverage tiers for registration, dispatch and
+reporting.
 """
 
+from collections.abc import Mapping
 from dataclasses import dataclass, fields
+from importlib.resources import files
 from pathlib import Path
 from types import MappingProxyType
 from typing import Any, cast
 
-from comment_review.reading.definitions import LanguageDefinition
+from comment_review.reading.definitions import LanguageDefinition, decode_definition
 from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, ReadStage
 from comment_review.reading.registry import LanguageRegistry
 
@@ -22,18 +28,17 @@ from comment_review.reading.registry import LanguageRegistry
 class Language:
     """What the LEXICAL tier needs to find prose in a language it only lexes.
 
-    Adding a language is this record and its `READER_METADATA` entry -- data,
-    no code. A row with no entry is not installed: `language_for` returns None
-    for TOML, INI and YAML.
+    A row is installed by its `READER_METADATA` entry. A row with no entry is
+    not: `language_for` returns None for TOML, INI and YAML.
 
     Attributes:
         doc_line: line-comment openers that mean DOC rather than ordinary
             comment (Rust `///`, `//!`). Empty when the language marks docs
             some other way.
         doc_block: paragraph openers that mean DOC (`/**`). Same idea.
-        doc_is_structural: the doc is a string in a declaration's body (Python)
-            or the run above a declaration (Go). Both need structure to decide,
-            so this tier reports `comment` and annotates the paragraph.
+        doc_is_structural: the doc is the run above a declaration (Go), which
+            needs structure to decide, so this tier reports `comment` and
+            annotates the paragraph.
         quotes: string delimiters, so a marker inside a literal is skipped.
         char_quotes: delimiters that hold exactly ONE character in this
             language -- `'a'`, or one escape. !! IT IS PER LANGUAGE AND CANNOT BE ONE
@@ -61,10 +66,8 @@ class Language:
             closer wins. ! Lua nests only through its `--[==[` long-bracket
             form, which is a different opener, so it is False.
         doc_inside: the documentation is the first thing INSIDE the body, not
-            the run ABOVE the declaration. Python alone, and it is why Python
-            needs its own reader where a keyword match is enough elsewhere: a
-            `///` run sits directly above the declaring line, a docstring goes
-            wherever the body starts, which a wrapped signature moves.
+            the run ABOVE the declaration. No row sets it: the language that
+            documents this way, Python, states it in its own definition file.
     """
 
     name: str
@@ -94,19 +97,6 @@ class Language:
 # because Lua's does. Neither is evidence about the other, and a row that
 # reasoned from a neighbour would be assembling one definition out of two.
 LANGUAGES: tuple[Language, ...] = (
-    Language(
-        "python",
-        (".py", ".pyi"),
-        ("#",),
-        declares=("def", "class", "async def"),
-        doc_inside=True,
-        doc_is_structural=True,
-        # ! A triple quote spans lines. Python is read and proven by its own
-        # reader -- `code_fingerprint` returns before the line-based strip
-        # for a `.py` -- so nothing reads this for Python.
-        spanning_quotes=('"""', "'''"),
-        quotes=('"', "'"),
-    ),
     Language(
         "rust",
         (".rs",),
@@ -545,7 +535,30 @@ INSTALLED_DEFINITIONS = tuple(
     for lang in LANGUAGES
     if lang.name in READER_METADATA
 )
-INSTALLED_REGISTRY = LanguageRegistry(INSTALLED_DEFINITIONS)
+
+
+def _shipped_definitions() -> tuple[LanguageDefinition, ...]:
+    """Every definition file under `references/languages/`, in name order.
+
+    Raises:
+        ValueError: a shipped file does not decode; the message names the file.
+    """
+    folder = files("comment_review").joinpath("references", "languages")
+    decoded = []
+    for entry in sorted(folder.iterdir(), key=lambda item: item.name):
+        if not entry.name.endswith(".toml"):
+            continue
+        definition = decode_definition(entry.read_text(encoding="utf-8"))
+        if isinstance(definition, ReadFailure):
+            raise ValueError(f"{entry.name}: {definition.diagnostics[0].message}")
+        decoded.append(definition)
+    return tuple(decoded)
+
+
+#: The languages defined by a file of their own, which the lexical rows above
+#: do not describe.
+SHIPPED_DEFINITIONS = _shipped_definitions()
+INSTALLED_REGISTRY = LanguageRegistry((*SHIPPED_DEFINITIONS, *INSTALLED_DEFINITIONS))
 
 
 def validate_language_definition(
@@ -608,25 +621,50 @@ def language_from_definition(definition: LanguageDefinition) -> Language:
 BY_EXT = MappingProxyType(
     {
         suffix.lower(): language_from_definition(value)
-        for value in INSTALLED_REGISTRY.definitions
+        for value in INSTALLED_DEFINITIONS
         for suffix in value.suffixes
     }
 )
 
 
 def language_for(path: Path) -> Language | None:
-    """Installed lexical grammar for a path, or the `LANGUAGES` Python row.
+    """The lexical grammar for a path, built from its installed row.
 
-    None for any other suffix, including the non-code rows TOML, INI and YAML.
+    None for a path no row covers: a language defined by its own file, such as
+    Python, and the non-code rows TOML, INI and YAML.
     """
     value = INSTALLED_REGISTRY.for_path(path)
-    if value is not None:
-        return language_from_definition(value)
-    return next(
-        (
-            lang
-            for lang in LANGUAGES
-            if lang.name == "python" and path.suffix.lower() in lang.extensions
-        ),
-        None,
+    if value is None or value.language not in READER_METADATA:
+        return None
+    return language_from_definition(value)
+
+
+def line_comment_markers(path: Path) -> tuple[str, ...]:
+    """The markers that open a line comment in the path's language.
+
+    A lexical row lists them as `line_comment`; a definition file states its one
+    marker under `comments.marker`. Empty when no definition covers the path.
+    """
+    lang = language_for(path)
+    if lang is not None:
+        return lang.line_comment
+    value = INSTALLED_REGISTRY.for_path(path)
+    comments = value.rules.get("comments") if value is not None else None
+    marker = comments.get("marker") if isinstance(comments, Mapping) else None
+    return (marker,) if isinstance(marker, str) and marker else ()
+
+
+def documents_in_literals(path: Path) -> bool:
+    """Whether the path's language documents in the first statement of a body.
+
+    That documentation is a string literal, not a comment, and its definition
+    states the position as `first-statement` -- as Python's does.
+    """
+    value = INSTALLED_REGISTRY.for_path(path)
+    if value is None:
+        return False
+    documentation = value.rules.get("documentation")
+    return (
+        isinstance(documentation, Mapping)
+        and documentation.get("position") == "first-statement"
     )

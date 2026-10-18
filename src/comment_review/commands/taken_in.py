@@ -38,7 +38,7 @@ from comment_review.flows.reading_context import context_for
 from comment_review.flows.source import source_of
 from comment_review.machine.repo import walk_files
 from comment_review.reading.diagnostics import ReadFailure
-from comment_review.reading.lexer import language_for
+from comment_review.reading.language import INSTALLED_REGISTRY
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -159,7 +159,7 @@ def _every_page(root: Path) -> list[str]:
     """
     rels = []
     for path in walk_files(root):
-        if language_for(path) is None:
+        if INSTALLED_REGISTRY.for_path(path) is None:
             continue
         rels.append(path.resolve().relative_to(root.resolve()).as_posix())
     return sorted(rels)

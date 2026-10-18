@@ -843,7 +843,6 @@ def tie_leading(paragraphs: list[Paragraph], cues: Cues) -> dict[str, str]:
 def page_for(
     path: Path,
     text: str,
-    lang: Language,
     rel: str | None = None,
     *,
     sha: str,
@@ -866,9 +865,6 @@ def page_for(
     assert not isinstance(got, PythonRead)
     if isinstance(got, ReadFailure):
         return got
-    selected_language = language_for(path)
-    assert selected_language is not None
-    lang = selected_language
     got.extend(leading_between(got, text))
     cues = Cues()
     edges: dict[str, str] = {}
@@ -878,6 +874,8 @@ def page_for(
         decls = declarations_for(recognized)
         cues = cue(code, documentable(decls, code), decls[0][1])
     else:
+        lang = language_for(path)
+        assert lang is not None, "a lexical read comes only from a lexical row"
         cues = places_on(text, prose, lang)
         code = code_lines(text, prose)
         document_declarations(got, declarations(lang, code), code)

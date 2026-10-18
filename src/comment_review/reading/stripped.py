@@ -114,12 +114,10 @@ def code_fingerprint(text: str, path: Path) -> tuple[str, str]:
         path: used only for its suffix, to pick which comparison runs.
 
     Returns:
-        `(kind, fingerprint)`. `kind` is "stripped" or "unprovable". Python
-        requires admitted lexical records and returns "unprovable" here. An
+        `(kind, fingerprint)`. `kind` is "stripped" or "unprovable". A path no
+        lexical row covers -- Python among them -- returns "unprovable". An
         unprovable file carries an empty fingerprint and cannot be proven.
     """
-    if path.suffix.lower() in (".py", ".pyi"):
-        return "unprovable", ""
     stripped = _without_comments(text, path)
     if stripped is None:
         return "unprovable", ""
