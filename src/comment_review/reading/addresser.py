@@ -702,25 +702,23 @@ def cue(
 
     ! The four rules differ, and each is measured rather than chosen:
 
-        a   the MODULE, then every documentable declaration. It does not step
-            past a line it cannot emit for, so `a1` is the first declaration
-            however much code precedes it.
+        a   the MODULE, then every documentable declaration. A line it cannot
+            emit for takes no number, so `a1` is the first declaration however
+            much code precedes it.
         b   the MODULE, then the gap above every line of code, then the gap
             after the last one.
-        c   every line of code. It steps past the module without emitting,
-            because a module has no line to sit beside.
+        c   every line of code. The module takes no `c`, because a module has
+            no line to sit beside.
         f   the MODULE and the EOF sentinel, and nothing in between. It is
             the file's own matter at either end, so it emits exactly twice on
-            every file and steps past every line of code without emitting.
+            every file; no line of code takes an `f`.
 
-    ! Line ORDER drives `cue`; no line NUMBER is arithmetic here. Nothing
-    reads one cue to compute another, and no cue follows from a line's
-    ordinal -- see `cue`.
+    ! Line ORDER drives `cue`; no line NUMBER is arithmetic here.
 
     !! A SKIPPED TRIGGER TAKES NO NUMBER, so every series starts at 0. Each
     series owns its rule about what it skips and records and increments
-    independently: `c` does not emit for the MODULE and does not step past it
-    either, so its first line of code is `c0`. ! Reading it the other way --
+    independently: `c` does not emit for the MODULE and takes no number for
+    it, so its first line of code is `c0`. ! Reading it the other way --
     that a series takes a number at every trigger it is offered -- burns `b0`
     and starts `c` at 1.
 

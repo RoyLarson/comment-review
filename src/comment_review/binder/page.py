@@ -106,17 +106,15 @@ WIRE_FIELDS = ("cue", "anchor", "original_start", "original_end", "raw_text")
 # where it opens -- line 1 takes the first `f` place, any other run the last --
 # not stamped as a second fact that could disagree.
 #
-# Every consumer downstream asks the series, not this: `binder.addresses.handed`,
-# which `flows.distribute.seed` and `flows.verify.coverage_problems` read, and
-# `Page.prose`. Asking the type would miss the EMPTY place, which has no prose to
-# type.
+# Every consumer downstream asks the series, not this -- see `Page.prose`.
+# Asking the type would miss the EMPTY place, which has no prose to type.
 
 
 @dataclass
 class Page:
     """ONE FILE: its paragraphs in order, among the code they sit with.
 
-    IT CARRIES WHAT IT WAS BUILT FROM -- the text, the cues and the path.
+    It carries what it was built from -- the text, the cues and the path.
     A consumer that needed one of them would otherwise re-derive it from the
     file, which is a chance to read a file the page no longer describes, or
     ask the caller to carry it alongside.
@@ -821,9 +819,8 @@ def tie_leading(paragraphs: list[Paragraph], cues: Cues) -> dict[str, str]:
         (b for b in paragraphs if b.original_start and b.kind != Kind.LEADING),
         key=lambda b: b.original_start or 0,
     )
-    # !! THE HEAD OF THE FILE IS A PLACE, NOT AN ABSENCE. `cue` emits `f0` at
-    # the MODULE on EVERY file, filled or not, so a run above everything that
-    # holds lines follows `f0`. `""` is left only for a `Cues` with no places.
+    # !! THE HEAD OF THE FILE IS A PLACE, NOT AN ABSENCE: `cue` emits `f0` at
+    # the MODULE on EVERY file, filled or not.
     head = cues.reading[0] if cues.reading else ""
     for b in sorted(paragraphs, key=lambda b: b.original_start or 0):
         if b.kind != Kind.LEADING or not b.symbol:

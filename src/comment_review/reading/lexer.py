@@ -520,12 +520,12 @@ def run_ends(
 def _anchor_of(lines: list[str], line_no: int, column: int) -> str:
     """The line of code a `c` paragraph sits beside -- its ANCHOR, verbatim.
 
-    AN ANCHOR IS THE LINE OF CODE, NOT A SYMBOL: the exact characters on that
+    An anchor is the line of code, not a symbol: the exact characters on that
     line. So it needs no parser, no language server and no build tool: every
     tier already found where the comment opens, which means it already had the
     characters before it.
 
-    IT IS KEPT APART FROM THE PROSE. `paragraphs_lexical` cuts `raw_lines` at
+    It is kept apart from the prose. `paragraphs_lexical` cuts `raw_lines` at
     the opener, so the code before it is held here and in no string with the prose.
 
     It is `""` for a paragraph that owns its lines whole, which has no code on its
@@ -619,7 +619,7 @@ def _is_doc(line: str, lang: Language) -> bool:
 def _opens_doc(opens: str, markers: tuple[str, ...]) -> bool:
     """Does this line open a DOC run with one of these markers?
 
-    THE TEST IS THE CHARACTER AFTER THE MARKER, which is the rule Javadoc and
+    The test is the character after the marker, which is the rule Javadoc and
     Doxygen themselves use: `/**` opens documentation, `/***` does not, and the
     difference is whether the next character repeats the marker. It holds for
     `doc_line` unchanged -- `///` is a Rust doc line and `////` is a rule.
@@ -1108,8 +1108,10 @@ def document_declarations(
     a row's `declares` and `doc_inside` are read. ! Python's own reader states the
     same fact for Python.
 
-    !! PROSE BELONGS TO WHICHEVER SIDE IT IS NEARER TO, and a TIE goes to the
-    side the language documents on. That is the whole rule. "The nearest run above
+    !! PROSE BELONGS TO WHICHEVER SIDE IT IS NEARER TO, and a TIE -- the same
+    number of blank lines on both sides -- goes to the side the language
+    documents on, which for every above-doc language is the declaration. That is
+    the whole rule. "The nearest run above
     the declaration" is not: it cannot tell a declaration's documentation from a
     note about the statement above it.
 
@@ -1124,9 +1126,6 @@ def document_declarations(
     it sits under. It is flush under the code above (0 blank lines) and one blank
     from the declaration below, so it is nearer to what it is about, and no
     reviewer measures that prose against `= 60`.
-
-    ! A TIE -- the same number of blank lines on both sides -- goes to the
-    declaration, which is the convention every above-doc language writes by.
 
     ! WHAT IT CANNOT DO is read the prose. A comment flush under one statement
     and about the next is indistinguishable by position, which is why

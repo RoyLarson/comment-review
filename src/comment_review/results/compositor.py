@@ -136,8 +136,10 @@ def set_page(page: Page, newline: str | None = None) -> str:
     # key means those two places sit against each other, which is what 90% of
     # `c`->`c` boundaries do.
     #
-    # A run above everything follows nothing, and is filed under `""`. An edge
-    # belongs to the place before it, which is what it is keyed by. When a
+    # A run above everything is keyed under `f0`, the first place `cue` emits,
+    # and `""` keys it only for a `Cues` with no places -- see
+    # `Page.tie_leading`. An edge belongs to the place before it, which is what
+    # it is keyed by. When a
     # paragraph goes away the place before it keeps its leading and the dropped
     # place's is not set; no key changes.
     #
@@ -245,10 +247,6 @@ def set_page(page: Page, newline: str | None = None) -> str:
         # pushes it INTO the matter it was meant to stay clear of: on `SAMPLE`,
         # `b4` with a leading still re-reads at `f1`, so the blank changes the
         # bytes and not the outcome.
-        #
-        # ! THE FOOT IS SEPARATED FROM BELOW INSTEAD: a closing `b` added here
-        # takes its blank after its prose -- see `trailing` -- so the back matter
-        # keeps the foot and the gap sits above the blank.
         if adding_a_gap and not edge and at < last_code:
             out.append("")
         # !! AND AT THE FOOT IT GOES ON THE OTHER SIDE -- the head's rule in
@@ -360,8 +358,9 @@ def lossless(original: str, rendered: str) -> str | None:
     the reader never established.
 
     Returns:
-        None when both texts hold the same lines, each as often; otherwise the
-        first lost line, or failing that the first invented one.
+        None when both texts hold the same lines, each as often; otherwise a
+        message naming the first lost line (`line lost: ...`), or failing that
+        the first invented one (`line invented: ...`).
     """
     if sorted(constants.text_lines(rendered)) == sorted(constants.text_lines(original)):
         return None

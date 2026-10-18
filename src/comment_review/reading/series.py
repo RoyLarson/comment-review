@@ -1,11 +1,11 @@
 """What a SERIES is: its letter, and the two kinds a place in it can be.
 
-    `present`
-    `absent`
+A place in a series is one of two kinds: its `present`, when prose fills it, and
+its `absent`, when nothing does.
 
-! WHAT IT COST TO HAVE THEM APART: the letters were `addresser`'s constants and
-the pairs were `lexer`'s enum, tied only by MEMBER NAME and held equal by a
-test. `Kind`'s own docstring drew the table --
+! WHAT IT COST TO HAVE THE LETTER APART FROM ITS PAIR: the letters were
+`addresser`'s constants and the pairs were `lexer`'s enum, tied only by MEMBER
+NAME and held equal by a test. `Kind`'s own docstring drew the table --
 
     a   docstring          undocumented
     b   comment            interval
@@ -48,7 +48,7 @@ class Kind(StrEnum):
     INTERVAL = "interval"
     TRAILING = "trailing-comment"
     MARGIN = "margin"
-    # !! MATTER - THE FILE'S OWN PROSE, AS A PARAGRAPH TYPE.
+    # !! MATTER -- THE FILE'S OWN PROSE, AS A PARAGRAPH TYPE.
     # A licence header, a shebang or a coding line is not an ordinary comment:
     # it answers to the FILE and not to any line of code.
     #
