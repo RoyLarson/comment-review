@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 0 of 5 tasks closed
+Progress: 0 of 6 tasks closed
 Owner:    agents
 Requires-Roy: true
 Raised:   2026-08-18 (Roy, 2026-08-18: keep track of these and have a place to decide on
@@ -139,3 +139,6 @@ focus for them gets a lot easier. ! The dependency is discharged: `cue` emits fo
 - [ ] T5 | T5 -- Record which currency each candidate above pays in -- CATCHES,
       or the search it SAVES. Verify: T1..T4 each carry that line, citing the
       measured cost table.
+- [?] T6 | Rule on the sentence-framing entry for `module-context` with
+      `function-context`
+        > 2026-10-18 Shape: "stamps three -- a, b and c"; a passive that drops the actor

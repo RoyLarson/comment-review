@@ -5350,3 +5350,17 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   the lexer plan, a backlog task, or leaving it; Roy chose joining the lexer plan, where
   the page carries a read any reader produces and that reader supplies the comparison.
   Filed as binder-defects T33 and lexer-python P51.
+
+- **#214.** **Framing that hides what a sentence is about is `module-context`'s and
+  `function-context`'s to find and correct** (Roy, 2026-10-18, on a lexer.py comment that
+  opened *"This module stamps three -- `continues-trailing-comment`, ..."*: *"Lets add a todo to
+  make the agent's roles look for framing like this and correct it. I think that belongs in
+  Module and Function context. Since ownership context is mostly about where comments belong
+  and block context is about truthiness"*).
+
+  **What it names.** A count standing in for the thing counted, with the things themselves
+  held back behind a dash, and a passive verb that leaves the actor out or puts it last.
+  Both make a reader hold an unanswered question while reading the rest of the sentence.
+
+  **What it leaves open.** The wording, and what it displaces in each role file, are ruled
+  with the other entries in `role-rule-register`.

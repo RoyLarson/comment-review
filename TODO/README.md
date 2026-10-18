@@ -336,7 +336,7 @@ that changed a published name or rule:
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
 | [correct-against-patch-is-a-conflict-and-is-not-flagged](correct-against-patch-is-a-conflict-and-is-not-flagged.md) | agents | yes | 0/3 | `correct` against `patch` is a conflict, and the gate does not flag it |
-| [role-rule-register](role-rule-register.md) | agents | yes | 0/5 | The register of proposed additions and amendments to the four editorial role files. ! Role prose is BUDGET-FIXED, so a candidate is not judged alone -- it is judged against what it would replace, which is why they collect here instead of landing one at a time. |
+| [role-rule-register](role-rule-register.md) | agents | yes | 0/6 | The register of proposed additions and amendments to the four editorial role files. ! Role prose is BUDGET-FIXED, so a candidate is not judged alone -- it is judged against what it would replace, which is why they collect here instead of landing one at a time. |
 | [evidence-still-names-places-by-line](evidence-still-names-places-by-line.md) | testing | yes | 0/14 | **The address reached the record key and a `move`'s destination and stopped.** `SOURCES` -- the field the evidentiary contract rests on -- is 100% line-form, and Roy's `address:lines` ruling is unimplemented. Four other artifacts name a place by nothing at all. |
 | [no-mark-for-let-it-stand](no-mark-for-let-it-stand.md) | agents | -- | 13/16 | There is no mark for LET IT STAND -- a declined proposal is not recorded, so the next run proposes it again |
 | [front-half-undetermined](front-half-undetermined.md) | testing | yes | 5/11 | The census to findings to verdicts path has never been determined against a backend that works |
