@@ -86,7 +86,9 @@ def test_place_on_page_transports_saved_effective_settings(copy, root, monkeypat
         {},
     )
     binding = SimpleNamespace(revision="1", grammar_identity="test-grammar")
-    monkeypatch.setattr(metadata, "reader_for", lambda _: (definition, binding))
+    monkeypatch.setattr(
+        metadata, "reader_for", lambda path, registry: (definition, binding)
+    )
     saved = metadata.context_for(root / "m.py", {"mode": "wide"})
     assert isinstance(saved, ReadingContext)
     copy["sheets"][0]["reading"] = context_to_wire(saved)

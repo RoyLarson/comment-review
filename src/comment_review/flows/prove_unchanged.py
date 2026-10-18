@@ -4,6 +4,7 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from comment_review.binder.page import Page
 from comment_review.flows.page_for import page_of
 from comment_review.flows.read_diagnostics import format_failure
 from comment_review.flows.reading_context import context_for
@@ -11,7 +12,7 @@ from comment_review.flows.source import revision_source_of, source_of
 from comment_review.machine.repo import Source, git_ls_files
 from comment_review.reading.context import ReadingContext
 from comment_review.reading.diagnostics import ReadFailure
-from comment_review.results.prove_unchanged import code_fingerprint, dominant_ending
+from comment_review.results.prove_unchanged import dominant_ending
 
 
 @dataclass(frozen=True)
@@ -115,27 +116,26 @@ def run(
         if failed:
             failures += 1
             continue
-        kind_b, fp_b = code_fingerprint(before.text, target)
-        kind_a, fp_a = code_fingerprint(after.text, target)
-        if kind_a not in ("ast", "stripped") or kind_b not in ("ast", "stripped"):
+        assert isinstance(page_b, Page) and isinstance(page_a, Page)
+        proof = page_b.read.proof
+        result = (
+            page_b.read.preserved(page_a.read) if proof == page_a.read.proof else None
+        )
+        if result is None:
+            messages.append(f"FAIL      {rel}: proof kind changed")
+            failures += 1
+        elif result.unchanged:
+            messages.append(f"PROVEN    {rel}: reads the same ({proof})")
+        elif result.unprovable:
             messages.append(
                 f"UNPROVABLE {rel}: prose could not be separated from code"
                 " -- sameness NOT shown"
             )
             failures += 1
-        elif kind_a != kind_b:
-            messages.append(
-                f"FAIL      {rel}: proof kind changed ({kind_b} -> {kind_a}) "
-                "-- likely broke Python syntax"
-            )
-            failures += 1
-        elif fp_a != fp_b:
-            messages.append(
-                f"FAIL      {rel}: executable code DIFFERS ({kind_a} proof)"
-            )
-            failures += 1
         else:
-            messages.append(f"PROVEN    {rel}: reads the same ({kind_a})")
+            messages.append(f"FAIL      {rel}: executable code DIFFERS ({proof} proof)")
+            messages.append(format_failure(ReadFailure(result.diagnostics), path=rel))
+            failures += 1
         sib = _sibling(repo, target, edited, tracked)
         if sib is None:
             messages.append(

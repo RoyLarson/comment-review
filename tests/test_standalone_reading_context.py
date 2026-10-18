@@ -8,6 +8,7 @@ from test_proof_command import proof_repository
 
 from comment_review.commands import prove_unchanged as command
 from comment_review.flows import page_for, prove_unchanged, reading_context
+from comment_review.reading import stripped
 from comment_review.reading.diagnostics import ReadFailure
 
 
@@ -15,8 +16,11 @@ from comment_review.reading.diagnostics import ReadFailure
 def installed_choices(monkeypatch):
     actual = reading_context.reader_for
 
-    def selected(path):
-        result = actual(path)
+    def selected(path, registry=None):
+        if registry is None:
+            registry = reading_context.installed_registry()
+            assert not isinstance(registry, ReadFailure)
+        result = actual(path, registry)
         assert result is not None and not isinstance(result, ReadFailure)
         definition, binding = result
         return (
@@ -130,8 +134,8 @@ def test_standalone_equal_source_refuses_context_change_between_snapshot_reads(
     repo, target = proof_repository(tmp_path, "const value = 1;\r\n")
     before = prove_unchanged.revision_source_of
 
-    def changed(path):
-        definition, binding = installed_choices(path)
+    def changed(path, registry):
+        definition, binding = installed_choices(path, registry)
         if field == "settings":
             definition = replace(definition, defaults={"mode": "wide"})
         elif field == "revision":
@@ -149,7 +153,7 @@ def test_standalone_equal_source_refuses_context_change_between_snapshot_reads(
 
     monkeypatch.setattr(prove_unchanged, "revision_source_of", acquire)
     monkeypatch.setattr(
-        prove_unchanged,
+        stripped,
         "code_fingerprint",
         lambda *_: pytest.fail("compared equal text before context admission"),
     )
@@ -175,8 +179,8 @@ def test_standalone_other_language_change_does_not_invalidate_selected_path(
     repo, target = proof_repository(tmp_path, "const value = 1;\r\n")
     before = prove_unchanged.revision_source_of
 
-    def changed(path):
-        definition, binding = installed_choices(path)
+    def changed(path, registry):
+        definition, binding = installed_choices(path, registry)
         return (
             replace(definition, revision="changed")
             if path.suffix == ".py"

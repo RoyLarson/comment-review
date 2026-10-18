@@ -1,0 +1,81 @@
+format = 1
+language = "python"
+suffixes = [".py", ".pyi"]
+reader = "python-lexical"
+revision = "1"
+capabilities = ["comments", "strings", "declarations", "documentation", "protected-directives", "lexical"]
+defaults = {}
+choices = {}
+
+[rules]
+language_version = "3.15"
+
+[rules.comments]
+marker = "#"
+paragraph_markers = []
+sections = "same-form-across-blanks"
+
+[rules.literals]
+short_quotes = ["'", '"']
+triple_quotes = ["'''", '"""']
+case_insensitive_prefixes = true
+escape_marker = '\'
+interpolation_open = "{"
+interpolation_close = "}"
+doubled_braces = true
+
+[rules.literals.prefixes]
+plain = ["", "u"]
+raw = ["r"]
+bytes = ["b"]
+raw_bytes = ["br", "rb"]
+formatted = ["f"]
+raw_formatted = ["fr", "rf"]
+template = ["t"]
+raw_template = ["tr", "rt"]
+
+[rules.literals.decoding]
+simple_escapes = ['\', "'", '"', "a", "b", "f", "n", "r", "t", "v"]
+octal_max_digits = 3
+hex_digits = 2
+unicode_short_digits = 4
+unicode_long_digits = 8
+named_unicode = true
+unknown_escape = "preserve"
+escaped_newline = "remove"
+raw_escape = "preserve"
+
+[rules.layout]
+significant_indentation = true
+tab_width = 8
+formfeed = "reset-leading"
+explicit_join = '\'
+implicit_pairs = [["(", ")"], ["[", "]"], ["{", "}"]]
+statement_separator = ";"
+suite_delimiter = ":"
+
+[rules.declarations]
+keywords = ["def", "class"]
+async_keyword = "async"
+decorator = "@"
+type_parameters = ["[", "]"]
+multiline_headers = true
+
+[rules.documentation]
+owners = ["module", "class", "function", "async-function"]
+position = "first-statement"
+literal_groups = ["plain", "raw"]
+adjacent = true
+parenthesized = true
+assigned = false
+
+[rules.directives]
+shebang = "#!"
+shebang_line = 1
+shebang_column = 0
+encoding_markers = ["coding:", "coding="]
+encoding_lines = [1, 2]
+encoding_second_line = "comment-or-blank-first-line"
+encoding_own_line = true
+type_marker = "type:"
+type_position = "comment-start-after-whitespace"

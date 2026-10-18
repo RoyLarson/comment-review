@@ -216,8 +216,8 @@ def test_initial_context_refuses_installed_changes_with_unchanged_source(
     ]
     installed = reading_context.reader_for
 
-    def revised(path):
-        selected = installed(path)
+    def revised(path, registry):
+        selected = installed(path, registry)
         assert isinstance(selected, tuple)
         definition, binding = selected
         assert isinstance(definition, LanguageDefinition)
@@ -253,20 +253,24 @@ def test_initial_context_compares_saved_settings_before_fold(
     from comment_review.flows import reading_context
     from comment_review.reading.context import ReadingContext
     from comment_review.reading.definitions import LanguageDefinition
+    from comment_review.reading.readers import ReaderBinding
 
     binder = a_real_binder_over(tmp_path, {"m.py@b1": BASE})
     installed = reading_context.reader_for
 
-    def configured(path):
-        selected = installed(path)
+    def configured(path, registry):
+        selected = installed(path, registry)
         assert isinstance(selected, tuple)
         definition, binding = selected
         assert isinstance(definition, LanguageDefinition)
+        assert isinstance(binding, ReaderBinding)
         return replace(
             definition,
+            language="test-settings",
+            reader="test-settings-reader",
             defaults={"mode": "narrow"},
             choices={"mode": ("narrow", "wide")},
-        ), binding
+        ), replace(binding, reader="test-settings-reader", validate=lambda _: None)
 
     monkeypatch.setattr(reading_context, "reader_for", configured)
     wide = reading_context.context_for(Path("m.py"), {"mode": "wide"})

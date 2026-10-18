@@ -168,27 +168,21 @@ def test_read_failure_reports_retained_location(tmp_path, capsys):
     assert "line 2, one-based; column 0, zero-based" in output
 
 
-def test_python_bom_rejection_is_visible(tmp_path, capsys):
+def test_python_bom_is_preserved_exactly(tmp_path, capsys):
     from comment_review.commands.compositor import main
-    from comment_review.flows.compositor import round_trip
-    from comment_review.flows.read_diagnostics import LocatedReadFailure
-    from comment_review.reading.diagnostics import ReadStage
+    from comment_review.flows.compositor import RoundTrip, round_trip
 
     path = tmp_path / "sample.py"
-    path.write_bytes(b"\xef\xbb\xbfx = 1\n")
+    original = b"\xef\xbb\xbfx = 1\n"
+    path.write_bytes(original)
     result = round_trip(path)
-    assert isinstance(result, LocatedReadFailure)
-    assert result.text == "\ufeffx = 1\n"
-    assert result.language == "python"
-    assert [(d.stage, d.code) for d in result.diagnostics] == [
-        (ReadStage.LEX, "incomplete-read")
-    ]
-    assert "invalid non-printable character U+FEFF" in result.diagnostics[0].message
-    assert main([str(path)]) == 1
+    assert isinstance(result, RoundTrip)
+    assert result.original.encode("utf-8") == original
+    assert result.rendered.encode("utf-8") == original
+    assert main([str(path)]) == 0
     output = capsys.readouterr().out
-    assert f"{path.as_posix()} [python] lex/incomplete-read" in output
-    assert "invalid non-printable character U+FEFF" in output
-    assert "0 identical, 0 normalised, 1 LOSSY" in output
+    assert "1 identical, 0 normalised, 0 LOSSY" in output
+    assert path.read_bytes() == original
 
 
 def test_mixed_endings_set_as_crlf(tmp_path, capsys):
@@ -246,7 +240,7 @@ FORMS = {
     # paragraphs then claimed one line, and `page.code_lines` handed it to the
     # `c` series as well -- the line was set TWICE, `lossless` reported *line
     # invented*, and the duplicate delimiter reopened a string literal, so
-    # `prove_unchanged.code_fingerprint` fell from `ast` to `unprovable` and the
+    # `stripped.code_fingerprint` fell from `ast` to `unprovable` and the
     # write chain refused the docket. Reproduced 2026-08-29; the shape was in
     # none of the sources this file or `test_reading.py` carried.
     "docstring closed with a comment": (
@@ -548,3 +542,55 @@ class TestAWrappedTrailingCommentIsONEPlace:
         (place,) = [b for b in broken if b.kind == "trailing-comment"]
         place.raw_lines = place.raw_lines[:1]
         assert set_page(broken) != text
+
+
+SHARED_LINES = pytest.mark.parametrize(
+    ("shared", "broken"),
+    [
+        ('def fn(): "doc"; y = 42\n', 'def fn():\n    "doc"\n    y = 42\n'),
+        ('def fn(): "doc"\n', 'def fn():\n    "doc"\n'),
+        (
+            'class C:\n  def m(self): "doc"; y = 42  # note\n',
+            'class C:\n  def m(self):\n    "doc"\n    y = 42  # note\n',
+        ),
+        ('def f():\n\t"""Doc."""; y = 42\n', 'def f():\n\t"""Doc."""\n\ty = 42\n'),
+        ('"""Mod."""; y = 42\n', '"""Mod."""\ny = 42\n'),
+        (
+            'def f():\r\n    """Doc.""" ; y = 42\r\n',
+            'def f():\r\n    """Doc."""\r\n    y = 42\r\n',
+        ),
+    ],
+)
+
+
+class TestADocstringSharingItsLineIsSetBroken:
+    """The read breaks the line, so the page sets the broken source."""
+
+    @SHARED_LINES
+    def test_the_unedited_page_sets_the_broken_source(self, shared, broken):
+        assert set_page(build(shared)) == broken
+
+    @SHARED_LINES
+    def test_a_docstring_grown_to_a_template_keeps_every_other_place(
+        self, shared, broken
+    ):
+        from comment_review.results.galley import reset
+
+        page = build(shared)
+        doc = next(b for b in page if b.kind == "docstring")
+        first = doc.raw_lines[0]
+        pad = first[: len(first) - len(first.lstrip())]
+        template = f'{pad}"""Summary.\n\n{pad}Returns:\n{pad}    A value.\n{pad}"""'
+        assert reset(page, {cue(doc): template}) == []
+        out = set_page(page)
+        compile(out, "m.py", "exec")
+        again = build(out)
+        assert {cue(b) for b in again} == {cue(b) for b in build(broken)}
+        assert by_cue(again)[cue(doc)].text == "Summary. Returns: A value."
+        assert [
+            (b.address, b.raw_text, b.anchor) for b in again if b.kind != "docstring"
+        ] == [
+            (b.address, b.raw_text, b.anchor)
+            for b in build(broken)
+            if b.kind != "docstring"
+        ]

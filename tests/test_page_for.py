@@ -7,6 +7,7 @@ chain's own file credited `proof_setter` with a contract that is `page_for`'s.
 
 import subprocess
 import sys
+from importlib import import_module
 from pathlib import Path
 
 import pytest
@@ -17,27 +18,352 @@ from comment_review.binder.binder import bind
 from comment_review.binder.page import Page, page_for
 from comment_review.flows import page_for as page_for_mod
 from comment_review.flows import proof_setter
+from comment_review.flows.language_definitions import installed_registry
 from comment_review.flows.read_diagnostics import LocatedReadFailure, format_failure
 from comment_review.machine.repo import Source
 from comment_review.reading.addresser import Cues
 from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, ReadStage
-from comment_review.reading.lexer import language_for
+from comment_review.reading.python.records import PythonRead
+
+
+def test_python_page_retains_complete_structured_read():
+    text = '"module"\nx = 1\ndef f[T]():\n    "a\\n" "b"\n    return 1\n'
+    page = page_for_mod.page_of(Path("m.py"), source=Source(text, "held"))
+    assert isinstance(page, Page)
+    assert isinstance(page.read, PythonRead)
+    assert page.read.source.text is text
+    assert [section.form for section in page.read.source.sections] == [
+        "docstring",
+        "docstring",
+    ]
+    assert [payload.text for payload in page.read.payloads] == ["module", "a\nb"]
+    assert [owner.declaration for owner in page.read.source.documentation] == [
+        None,
+        0,
+    ]
+    assert page.reading.reader == "python-lexical"
+    assert {b.address.rsplit("@", 1)[-1] for b in page.prose} == {"a0", "a1"}
+    assert any("x = 1" in b.anchor for b in page)
+    assert any("return 1" in b.anchor for b in page)
+
+
+def test_python_page_bom_and_effective_cookie_preserve_exact_bytes():
+    raw = b'\xef\xbb\xbf# coding: utf-8\r\n"module"\r\nx=1\r\n'
+    text = raw.decode("utf-8")
+    page = page_for_mod.page_of(Path("m.py"), source=Source(text, "held"))
+    assert isinstance(page, Page)
+    assert isinstance(page.read, PythonRead)
+    assert page.read.source.reconstruct().encode("utf-8") == raw
+    assert page.read.payloads[0].text == "module"
+    assert [item.kind for item in page.read.protected] == ["encoding"]
+
+
+@pytest.mark.parametrize("bom", ["", "\ufeff"])
+@pytest.mark.parametrize("ending", ["\n", "\r\n"])
+def test_python_page_contiguous_header_keeps_one_matter_place(bom, ending):
+    from comment_review.reading.series import Kind
+    from comment_review.results.compositor import set_page
+
+    text = ending.join([bom + "# first", "# second", "x=1", ""])
+    page = build(text)
+    composed = set_page(page)
+    assert composed.encode("utf-8") == text.encode("utf-8")
+    for current in (page, build(composed)):
+        filled = {cue(p): p for p in current if p.raw_text.strip()}
+        assert set(filled) == {"f0"}
+        assert filled["f0"].kind == Kind.MATTER
+        assert filled["f0"].raw_lines == [bom + "# first", "# second"]
+        assert isinstance(current.read, PythonRead)
+        assert len(current.read.source.sections) == 1
+        assert current.read.source.reconstruct() == text
+
+
+def test_python_page_whole_comments_and_matter_boundaries():
+    text = "# front\n\n# before\nx=1\n# a\n\n# b\ny=2\n# after\n\n# back\n"
+    page = page_for_mod.page_of(Path("m.py"), source=Source(text, "held"))
+    assert isinstance(page, Page)
+    assert isinstance(page.read, PythonRead)
+    assert len(page.read.source.sections) == 3
+    prose = {p.address.rsplit("@", 1)[-1]: p.raw_text for p in page if p.raw_text}
+    assert prose["f0"] == "# front"
+    assert "# a\n\n# b" in prose.values()
+    assert prose["f1"] == "# back"
+
+
+@pytest.mark.parametrize(
+    "text, doc_cue, raw",
+    [
+        ('"doc" # note\n', "a0", '"doc" # note'),
+        ('def f():\n    "doc" # note\n', "a1", '    "doc" # note'),
+        ('"""doc\ncontinued""" # note\n', "a0", '"""doc\ncontinued""" # note'),
+        (
+            'def f():\n    """doc\n    continued""" # note\n',
+            "a1",
+            '    """doc\n    continued""" # note',
+        ),
+    ],
+)
+def test_python_page_documentation_closing_comment_keeps_one_wire_owner(
+    text, doc_cue, raw
+):
+    from comment_review.flows.gather import carried
+
+    page = page_for_mod.page_of(Path("m.py"), source=Source(text, "held"))
+    assert isinstance(page, Page)
+    assert isinstance(page.read, PythonRead)
+    doc = next(p for p in page if p.kind == "docstring")
+    assert cue(doc) == doc_cue
+    assert doc.raw_text == raw
+    assert doc.text == ("doc continued" if "continued" in text else "doc")
+    assert not any(p.kind == "trailing-comment" and p.raw_text.strip() for p in page)
+    assert {p.address for p in carried(page) if p.raw_text.strip()} == {doc.address}
+    wire = {row["cue"]: row for row in page.serialize()["rows"]}
+    assert wire[doc_cue]["raw_text"] == doc.raw_text
+    sections = page.read.source.sections
+    assert [section.form for section in sections] == ["docstring"]
+    assert page.read.source.slice(sections[0].span).endswith("# note")
+    assert page.read.source.reconstruct() == text
+
+
+@pytest.mark.parametrize(
+    "text, expected",
+    [
+        ("x=1\n# first\n\n# second\ny=2\n", {"b1": 3}),
+        ("x=1 # first\n\n# second\ny=2\n", {"c0": 1, "b1": 1}),
+        (
+            "# front\n\n# first\n\n# second\nx=1\n# after\n\n# back\n",
+            {"f0": 1, "b0": 3, "b1": 1, "f1": 1},
+        ),
+    ],
+)
+def test_python_page_complete_comment_line_counts_preserve_wire_cap_eligibility(
+    text, expected
+):
+    from comment_review.binder.page import RedactedPage
+    from comment_review.desk.stages import Kind, Stage, deals
+
+    page = page_for_mod.page_of(Path("m.py"), source=Source(text, "held"))
+    assert isinstance(page, Page)
+    restored, problems = RedactedPage.deserialize("fixture", page.serialize())
+    assert problems == []
+    assert restored is not None
+    fresh = {cue(p): p for p in page if p.raw_text.strip()}
+    saved = {cue(p): p for p in restored.paragraphs if p.raw_text.strip()}
+    assert {key: p.lines for key, p in fresh.items()} == expected
+    assert {key: p.lines for key, p in saved.items()} == expected
+    for key, count in expected.items():
+        assert fresh[key].raw_text == saved[key].raw_text
+        assert fresh[key].lines == len(fresh[key].raw_lines)
+        for cap in (1, 2, 3):
+            stage = Stage("cap", Kind.EDITORIAL, cap=cap)
+            assert deals(stage, fresh[key]) == deals(stage, saved[key]) == (count > cap)
+
+
+def test_python_page_recognizes_once_and_retains_object_and_definition(monkeypatch):
+    from comment_review.flows import reading_context
+    from comment_review.reading import readers
+
+    text = '"module"\ndef f():\n    "doc"\n    pass\n'
+    registry = installed_registry()
+    assert not isinstance(registry, ReadFailure)
+    definition = registry.for_path(Path("m.py"))
+    acquired = []
+    recognized = []
+    contexts = []
+    original_read = readers.read_python
+    original_resolve = reading_context.resolve_context
+
+    def acquire():
+        acquired.append(True)
+        return registry
+
+    def recognize(source, grammar):
+        assert grammar is definition
+        result = original_read(source, grammar)
+        recognized.append(result)
+        return result
+
+    def resolve(grammar, *args, **kwargs):
+        contexts.append(grammar)
+        return original_resolve(grammar, *args, **kwargs)
+
+    def forbidden(*args, **kwargs):
+        pytest.fail("Python page rediscovered source interpretation")
+
+    monkeypatch.setattr(page_for_mod, "installed_registry", acquire)
+    monkeypatch.setattr(readers, "read_python", recognize)
+    monkeypatch.setattr(reading_context, "resolve_context", resolve)
+    monkeypatch.setattr(page_mod, "declarations", forbidden)
+    monkeypatch.setattr(page_mod, "code_lines", forbidden)
+    page = page_for_mod.page_of(Path("m.py"), source=Source(text, "held"))
+    assert isinstance(page, Page)
+    assert acquired == [True]
+    assert contexts == [definition]
+    assert len(recognized) == 1
+    assert page.read is recognized[0]
+    assert page.read.source.text is page.text is text
+    assert set(page.serialize()) == {"path", "sha", "reading", "rows"}
+
+
+@pytest.mark.parametrize(
+    "text, addresses",
+    [
+        ("", {"a0"}),
+        ("def f():\n", {"a0", "a1"}),
+        ("class C:\n    def f():\n", {"a0", "a1", "a2"}),
+    ],
+)
+def test_python_page_empty_documentation_places(text, addresses):
+    page = page_for_mod.page_of(Path("m.pyi"), source=Source(text, "held"))
+    assert isinstance(page, Page)
+    assert {
+        p.address.rsplit("@", 1)[-1] for p in page if p.kind == "undocumented"
+    } == addresses
+
+
+def test_python_page_documentation_raw_text_uses_existing_line_convention():
+    text = 'def f():\r\n    ("a\\n"\r\n     "b")\r\n    pass\r\n'
+    page = page_for_mod.page_of(Path("m.py"), source=Source(text, "held"))
+    assert isinstance(page, Page)
+    assert isinstance(page.read, PythonRead)
+    doc = next(p for p in page if p.kind == "docstring")
+    assert doc.text == "a b"
+    assert doc.raw_text == '    ("a\\n"\n     "b")'
+    assert page.read.source.text.encode("utf-8") == text.encode("utf-8")
+
+
+@pytest.mark.parametrize(
+    "text, expected",
+    [
+        ('x=f"{value # first\n\n # second\n}"\n', ["c0", "b1"]),
+        ('x=f"""{\n # first\n\n # second\n value\n}"""\n', ["b1"]),
+    ],
+)
+def test_python_page_interpolation_comments_keep_whole_sections(text, expected):
+    page = page_for_mod.page_of(Path("m.py"), source=Source(text, "held"))
+    assert isinstance(page, Page)
+    assert isinstance(page.read, PythonRead)
+    assert len(page.read.source.sections) == len(expected)
+    assert [p.address.rsplit("@", 1)[-1] for p in page.prose] == expected
+    assert len(page.prose) == len(expected)
+    assert [p.raw_text for p in page.prose] == (
+        [" # first", " # second"] if len(expected) == 2 else [" # first\n\n # second"]
+    )
+
+
+def test_python_page_protected_directives_keep_comment_classification():
+    text = "# coding: utf-8\nx=1 # type: int\ny=2 # type: ignore[attr]\n"
+    page = page_for_mod.page_of(Path("m.py"), source=Source(text, "held"))
+    assert isinstance(page, Page)
+    assert isinstance(page.read, PythonRead)
+    assert [section.form for section in page.read.source.sections] == ["#"] * 3
+    assert [p.raw_text for p in page if p.raw_text.strip()] == [
+        "# coding: utf-8",
+        " # type: int",
+        " # type: ignore[attr]",
+    ]
+    assert page.read.source.reconstruct() == text
+    assert [item.kind for item in page.read.protected] == [
+        "encoding",
+        "type-comment",
+        "type-ignore",
+    ]
+
+
+@pytest.mark.parametrize(
+    "literal",
+    [
+        't"""{\n # protected\n value\n}"""',
+        'f"""{value # protected\n =}"""',
+    ],
+)
+def test_python_page_protected_interpolation_comments_remain_classified(literal):
+    text = "x=" + literal + "\n"
+    page = page_for_mod.page_of(Path("m.py"), source=Source(text, "held"))
+    assert isinstance(page, Page)
+    assert isinstance(page.read, PythonRead)
+    assert len(page.read.source.sections) == len(page.prose) == 1
+    assert page.read.source.sections[0].form == "#"
+    assert page.prose[0].text == "protected"
+    assert page.read.source.reconstruct() == text
+    assert page.read.protected
+
+
+@pytest.mark.parametrize(
+    "text, stage",
+    [
+        ('x="unterminated', ReadStage.LEX),
+        ("x='a\x00b'\n", ReadStage.LEX),
+        ('"\\xQ0"\n', ReadStage.PLACE),
+        ('# coding: latin-1\n"doc"\n', ReadStage.PLACE),
+    ],
+)
+def test_python_page_failures_never_reach_paragraph_adaptation(
+    monkeypatch, text, stage
+):
+    def forbidden(*args):
+        pytest.fail("Incomplete recognition reached paragraph adaptation")
+
+    monkeypatch.setattr(page_mod, "paragraphs_for", forbidden)
+    result = page_for_mod.page_of(Path("m.py"), source=Source(text, "held"))
+    assert isinstance(result, LocatedReadFailure)
+    assert result.diagnostics[0].stage == stage
+    assert result.text is text
+
+
+def test_python_page_definition_acquisition_failure_is_located(monkeypatch):
+    failure = ReadFailure(
+        (ReadDiagnostic(ReadStage.ACQUIRE, "io-error", "grammar absent"),)
+    )
+    monkeypatch.setattr(page_for_mod, "installed_registry", lambda: failure)
+    result = page_for_mod.page_of(Path("m.py"), source=Source("x=1\n", "held"))
+    assert isinstance(result, LocatedReadFailure)
+    assert result.path == "m.py"
+    assert result.diagnostics == failure.diagnostics
+
+
+@pytest.mark.parametrize(
+    "path, text",
+    [("m.c", "int x; // note\n")],
+)
+def test_python_sections_projection_is_not_used_for_other_languages(
+    monkeypatch, path, text
+):
+    def forbidden(*args):
+        pytest.fail("Foundational section projection is not a production reader yet")
+
+    projection = import_module("comment_review.reading.python.projection")
+    monkeypatch.setattr(projection, "sections_for", forbidden)
+    result = page_for_mod.page_of(Path(path), source=Source(text, "held"))
+    assert isinstance(result, Page)
+    assert result.text == text
+    assert any("note" in paragraph.raw_text for paragraph in result.prose)
 
 
 def test_empty_source_is_a_complete_page():
-    lang = language_for(Path("empty.py"))
-    assert lang is not None
-    page = page_for(Path("empty.py"), "", lang, sha="empty", reading=build("").reading)
+    registry = installed_registry()
+    assert not isinstance(registry, ReadFailure)
+    page = page_for(
+        Path("empty.py"),
+        "",
+        sha="empty",
+        reading=build("").reading,
+        registry=registry,
+    )
     assert isinstance(page, Page)
     assert page.text == ""
     assert page.sha == "empty"
 
 
 def test_malformed_python_is_a_read_failure():
-    lang = language_for(Path("bad.py"))
-    assert lang is not None
+    registry = installed_registry()
+    assert not isinstance(registry, ReadFailure)
     page = page_for(
-        Path("bad.py"), "def broken(:\n", lang, sha="bad", reading=build("").reading
+        Path("bad.py"),
+        "def broken(:\n",
+        sha="bad",
+        reading=build("").reading,
+        registry=registry,
     )
     assert isinstance(page, ReadFailure)
     assert page.diagnostics[0].stage.value == "lex"
@@ -90,7 +416,9 @@ def test_unavailable_binding_is_never_invoked_or_addressed(monkeypatch):
 
     from comment_review.reading import readers
 
-    selected = readers.reader_for(Path("m.py"))
+    registry = installed_registry()
+    assert not isinstance(registry, ReadFailure)
+    selected = readers.reader_for(Path("m.py"), registry)
     assert selected is not None and not isinstance(selected, ReadFailure)
     definition, binding = selected
 
@@ -113,10 +441,10 @@ def test_unavailable_binding_is_never_invoked_or_addressed(monkeypatch):
 
 
 def test_unexpected_reader_exception_propagates(monkeypatch):
-    def broken_reader(*args):
+    def broken_reader(*args, **kwargs):
         raise RuntimeError("reader bug")
 
-    monkeypatch.setattr(page_mod, "read_paragraphs", broken_reader)
+    monkeypatch.setattr(page_mod, "read_source", broken_reader)
     with pytest.raises(RuntimeError, match="reader bug"):
         page_for_mod.page_of(Path("m.py"), source=Source("v = 1\n", "held"))
 
@@ -149,7 +477,7 @@ def test_known_placement_refusal_is_an_outcome(monkeypatch, series, cue_name, me
     cues = Cues()
     cues.addressers[series].places[cue_name] = "<module>"
     monkeypatch.setattr(page_mod, "places_on", lambda *args: cues)
-    result = page_for_mod.page_of(Path("m.py"), source=Source("", "held"))
+    result = page_for_mod.page_of(Path("m.c"), source=Source("", "held"))
     assert isinstance(result, LocatedReadFailure)
     assert result.diagnostics == (
         ReadDiagnostic(

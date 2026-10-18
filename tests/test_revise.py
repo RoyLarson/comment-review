@@ -1105,7 +1105,7 @@ def test_the_gate_passes_reading_only_the_docket_pages(tmp_path, monkeypatch):
     "raw, code",
     [
         (b"\xff", "decode/invalid-utf8"),
-        (b'value = "unfinished\n', "lex/incomplete-read"),
+        (b'value = "unfinished\n', "lex/unterminated-literal"),
     ],
 )
 def test_matching_failed_readings_cannot_pass_the_address_gate(tmp_path, raw, code):

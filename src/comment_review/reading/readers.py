@@ -1,10 +1,9 @@
 """Explicit installed paragraph readers and language grammar validation."""
 
-import platform
 import re
-import sys
+import unicodedata
 from collections.abc import Callable, Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from functools import partial
 from pathlib import Path
 from types import MappingProxyType
@@ -23,13 +22,17 @@ from comment_review.reading.language import (
 from comment_review.reading.lexer import (
     flag_structural_docs,
     paragraphs_lexical,
-    paragraphs_stdlib,
 )
 from comment_review.reading.paragraph import Paragraph
+from comment_review.reading.python import read_python
+from comment_review.reading.python.definition import validate_python
+from comment_review.reading.python.projection import paragraphs_for
+from comment_review.reading.python.records import PythonRead
+from comment_review.reading.registry import LanguageRegistry
 from comment_review.reading.source import SourceSpan
 
-ParagraphReader: TypeAlias = Callable[
-    [Path, str, Language], list[Paragraph] | ReadFailure
+SourceReader: TypeAlias = Callable[
+    [Path, str, LanguageDefinition], list[Paragraph] | PythonRead | ReadFailure
 ]
 
 
@@ -41,7 +44,7 @@ class ReaderBinding:
     revision: str
     capabilities: tuple[str, ...]
     grammar_identity: str
-    read: ParagraphReader
+    read: SourceReader
     validate: Callable[[LanguageDefinition], ReadFailure | None]
 
     def __post_init__(self) -> None:
@@ -88,10 +91,25 @@ def bind_reader(
 
 
 def read_paragraphs(
-    path: Path, text: str, lang: Language
+    path: Path,
+    text: str,
+    lang: Language,
+    *,
+    registry: LanguageRegistry = INSTALLED_REGISTRY,
 ) -> list[Paragraph] | ReadFailure:
-    """Read paragraphs or retain explicit reader refusals before decoration."""
-    selected = reader_for(path)
+    """Adapt the admitted interpretation without repeating source recognition."""
+    result = read_source(path, text, registry=registry)
+    return paragraphs_for(path, result) if isinstance(result, PythonRead) else result
+
+
+def read_source(
+    path: Path,
+    text: str,
+    *,
+    registry: LanguageRegistry = INSTALLED_REGISTRY,
+) -> list[Paragraph] | PythonRead | ReadFailure:
+    """Return the selected reader's admitted records before paragraph decoration."""
+    selected = reader_for(path, registry)
     if isinstance(selected, ReadFailure):
         return selected
     if selected is None:
@@ -105,19 +123,16 @@ def read_paragraphs(
             )
         )
     definition, binding = selected
-    return binding.read(path, text, language_from_definition(definition))
+    return binding.read(path, text, definition)
 
 
 def _read_paragraphs(
-    path: Path, text: str, lang: Language, tokenized: bool
+    path: Path, text: str, definition: LanguageDefinition
 ) -> list[Paragraph] | ReadFailure:
     """Run the selected engine and retain its refusal diagnostics."""
     coordinates = SourceCoordinates(text)
-    paragraphs = (
-        paragraphs_stdlib(path, text)
-        if tokenized
-        else paragraphs_lexical(path, text, lang)
-    )
+    lang = language_from_definition(definition)
+    paragraphs = paragraphs_lexical(path, text, lang)
     diagnostics: list[ReadDiagnostic] = []
     for paragraph in paragraphs:
         if not isinstance(paragraph, Paragraph):
@@ -137,53 +152,84 @@ def _read_paragraphs(
             )
     if diagnostics:
         return ReadFailure(tuple(diagnostics))
-    if not tokenized:
-        flag_structural_docs(paragraphs, text, lang)
+    flag_structural_docs(paragraphs, text, lang)
     return paragraphs
+
+
+def _read_python(
+    path: Path, text: str, definition: LanguageDefinition
+) -> PythonRead | ReadFailure:
+    """Bind canonical Python recognition without paragraph rediscovery."""
+    return read_python(text, definition)
 
 
 INSTALLED_BINDINGS = MappingProxyType(
     {
-        metadata.reader: ReaderBinding(
-            reader=metadata.reader,
-            revision=metadata.revision,
-            capabilities=metadata.capabilities,
-            grammar_identity=(
-                f"{platform.python_implementation()} {sys.version}"
-                if metadata.tier == "tokenized"
-                else ""
+        "python-lexical": ReaderBinding(
+            "python-lexical",
+            "2",
+            (
+                "comments",
+                "strings",
+                "declarations",
+                "documentation",
+                "protected-directives",
+                "lexical",
             ),
-            read=partial(_read_paragraphs, tokenized=metadata.tier == "tokenized"),
-            validate=partial(validate_language_definition, name),
-        )
-        for name, metadata in READER_METADATA.items()
+            "Python 3.15 lexical",
+            _read_python,
+            validate_python,
+        ),
+        **{
+            metadata.reader: ReaderBinding(
+                reader=metadata.reader,
+                revision=metadata.revision,
+                capabilities=metadata.capabilities,
+                grammar_identity="",
+                read=_read_paragraphs,
+                validate=partial(validate_language_definition, name),
+            )
+            for name, metadata in READER_METADATA.items()
+        },
     }
 )
 
 
 def reader_for(
     path: Path,
+    registry: LanguageRegistry = INSTALLED_REGISTRY,
 ) -> tuple[LanguageDefinition, ReaderBinding] | ReadFailure | None:
     """Select installed code grammar and validate its binding without reading source."""
-    definition = INSTALLED_REGISTRY.for_path(path)
+    definition = registry.for_path(path)
     if definition is None:
         return None
     binding = bind_reader(definition, INSTALLED_BINDINGS)
-    return binding if isinstance(binding, ReadFailure) else (definition, binding)
+    if isinstance(binding, ReadFailure):
+        return binding
+    if binding.reader == "python-lexical":
+        binding = replace(
+            binding,
+            grammar_identity=(
+                f"{binding.grammar_identity}; Unicode {unicodedata.unidata_version}"
+            ),
+        )
+    return definition, binding
 
 
-def supported_definitions() -> tuple[LanguageDefinition, ...]:
+def supported_definitions(
+    registry: LanguageRegistry = INSTALLED_REGISTRY,
+) -> tuple[LanguageDefinition, ...]:
     """Installed coverage whose implementations accept their declared grammar."""
     return tuple(
         definition
-        for definition in INSTALLED_REGISTRY.definitions
+        for definition in registry.definitions
         if not isinstance(bind_reader(definition, INSTALLED_BINDINGS), ReadFailure)
     )
 
 
-def tier_for(lang: Language) -> str:
+def tier_for(lang: Language, registry: LanguageRegistry = INSTALLED_REGISTRY) -> str:
     """Validated installed coverage for a language, or empty when unavailable."""
-    definition = INSTALLED_REGISTRY.for_language(lang.name)
+    definition = registry.for_language(lang.name)
     if definition is None:
         return ""
     binding = bind_reader(definition, INSTALLED_BINDINGS)

@@ -69,8 +69,8 @@ def test_stage_admits_later_language_before_consuming_first_shard(
     if incompatible:
         original = reading_context.reader_for
 
-        def changed(path):
-            selected = original(path)
+        def changed(path, registry):
+            selected = original(path, registry)
             assert isinstance(selected, tuple)
             definition, binding = selected
             assert isinstance(binding, ReaderBinding)
@@ -124,8 +124,8 @@ def test_distribution_refuses_installed_incompatible_saved_binder_before_address
     else:
         original = reading_context.reader_for
 
-        def changed(path):
-            selected = original(path)
+        def changed(path, registry):
+            selected = original(path, registry)
             assert isinstance(selected, tuple)
             definition, binding = selected
             assert isinstance(definition, LanguageDefinition)

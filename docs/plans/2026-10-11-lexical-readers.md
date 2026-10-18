@@ -2,8 +2,8 @@
 
 ```
 Status:   decision-needed
-Progress: 20 of 161 TODO tasks closed
-Plan-tasks: 8 of 53 plan tasks closed
+Progress: 34 of 162 TODO tasks closed
+Plan-tasks: 9 of 53 plan tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-10-11 (founded by move-t from 0.2.4-the-middle-rebuilt)
@@ -34,8 +34,9 @@ interfaces, inputs and checks, without internal development files or history.
 
 ### A - [lexical-code-identity](../../TODO/lexical-code-identity.md)
 
-- [ ] T1 | Replace Python AST identity checks with lexical comparison; verify
-      docstring add and removal agree at both gates
+- [x] T1 | MOVED to 2026-10-11-lexer-python | Replace Python AST identity checks
+      with lexical comparison; verify docstring add and removal agree at both
+      gates
 - [ ] T2 | Preserve literal whitespace in prove_unchanged.py:191-207; verify
       blank-line and trailing-space edits change the fingerprint
 
@@ -55,19 +56,19 @@ interfaces, inputs and checks, without internal development files or history.
       own dated spec, references and fixtures
 - [ ] T18 | Implement one definition file per language; verify each configures
       its parser without family defaults or language inheritance
-- [ ] T1 | T1 -- Transcribe all 18 language rows into
+- [-] T1 | T1 -- Transcribe all 18 language rows into
       `references/languages.toml`, Python included, with `tier` as a field.
       Verify: the file holds 18 tables, one per row.
-- [ ] T2 | T2 -- Build `Language` from that table at runtime, the way
+- [-] T2 | T2 -- Build `Language` from that table at runtime, the way
       `vocabulary.py` reads `vocabulary.toml`. Verify: `grep -c "Language("
       language.py` returns 1.
-- [ ] T3 | T3 -- Pin the order-significant fields, since openers match
+- [-] T3 | T3 -- Pin the order-significant fields, since openers match
       longest-first. Verify: a test fails if `///` follows `//`, or `--[==[`
       follows `--[[`.
-- [ ] T4 | T4 -- Pin that an EMPTY list is not a missing key. Verify: `declares
+- [-] T4 | T4 -- Pin that an EMPTY list is not a missing key. Verify: `declares
       = []` loads as *no `a` series at all*, and a row with no `declares` key is
       refused as undecided.
-- [ ] T5 | T5 -- Move `test_every_row_STATES_its_own_quotes` from parsing the
+- [-] T5 | T5 -- Move `test_every_row_STATES_its_own_quotes` from parsing the
       Python AST to asking whether the key is present. Verify: the test reads
       the table, not the AST.
 - [ ] T12 | T12 -- Make `tier_for` (`language.py:546`) read the row's `tier`
@@ -97,26 +98,27 @@ interfaces, inputs and checks, without internal development files or history.
 - [ ] T12 | Implement Ruby attachment; verify blank-separated prose uses a,
       intervening code blocks attachment, and sections stay whole
 
-### F - [python-cannot-read-python](../../TODO/python-cannot-read-python.md)
+### F - [python-cannot-read-python](../../TODO/completed/python-cannot-read-python.md)
 
-- [ ] T32 | T32 -- Read Python on the lexical tier -- no `import ast` in the
+- [-] T32 | T32 -- Read Python on the lexical tier -- no `import ast` in the
       lexer. Verify: `grep -rn 'import ast' plugins/` misses lexer.py:28 and a
       `.py` file still censuses.
-- [ ] T33 | T33 -- Hold the round-trip identity over the Python corpora with the
+- [-] T33 | T33 -- Hold the round-trip identity over the Python corpora with the
       new reader. Verify: `compositor.identity` reproduces R13's 2,368
       byte-identical round trips.
-- [ ] T34 | T34 -- A file with syntax NEWER than the floor censuses instead of
+- [-] T34 | T34 -- A file with syntax NEWER than the floor censuses instead of
       setting empty. Verify: sentry's `api/paginator.py` yields places and sets
       back its 884 lines.
-- [ ] T36 | T36 -- Keep the Python fixtures passing under the `stripped` proof.
+- [-] T36 | T36 -- Keep the Python fixtures passing under the `stripped` proof.
       Verify: `uv run python -m unittest discover -s tests -k prove_unchanged`
       is green.
-- [ ] T37 | T37 -- Say in `prove_unchanged`'s docstring what `stripped` does NOT
+- [-] T37 | T37 -- Say in `prove_unchanged`'s docstring what `stripped` does NOT
       cover. Verify: the docstring claims same lines in the same order, never
       semantic equivalence.
-- [ ] T38 | Rebuild `prove_unchanged` to prove code unchanged with no `ast`
-      branch. Verify: an edited docstring proves, a moved token does not
-- [ ] T39 | Emit a paragraph for a Python docstring on the lexical tier. Verify:
+- [x] T38 | MOVED to 2026-10-11-lexer-python | Rebuild `prove_unchanged` to
+      prove code unchanged with no `ast` branch. Verify: an edited docstring
+      proves, a moved token does not
+- [-] T39 | Emit a paragraph for a Python docstring on the lexical tier. Verify:
       `paragraphs_lexical` over a documented def returns one
 
 ### G - [lexer-and-language-findings](../../TODO/lexer-and-language-findings.md)
@@ -196,7 +198,7 @@ interfaces, inputs and checks, without internal development files or history.
 - [ ] T21 | T21 -- Record the `a1` -> `c` move in `docs/history.md` with the
       ruling that predicted it. Verify: the entry names both tiers and the
       ruling's date.
-- [ ] T26 | T26 -- Give the `Language` row an `inner_doc` field, defaulting
+- [-] T26 | T26 -- Give the `Language` row an `inner_doc` field, defaulting
       empty so every existing opener stays outer. Verify: the field exists and
       no row's typing changes.
 - [ ] T29 | Correct `doc_is_structural`'s docstring so it matches what Python
@@ -204,6 +206,7 @@ interfaces, inputs and checks, without internal development files or history.
 - [ ] T12 | T12 -- Settle what `Paragraph.lines` counts: three rules fill it,
       one column reads it. Verify: one rule fills it, or the field is gone and
       the column computes it.
+- [ ] T49 | State Rust's inner doc openers in Rust's own definition file
 
 ### H - [a-doc-comment-is-cued-a-and-typed-b](../../TODO/a-doc-comment-is-cued-a-and-typed-b.md)
 
@@ -610,12 +613,15 @@ interfaces, inputs and checks, without internal development files or history.
       distribution, folding, drafting and resume
         > 2026-10-11 Check: uv run pytest -q tests/test_reading_context.py
         > 2026-10-11 Subplan 2026-10-11-lexical-reading-context owns this work
-- [ ] P7 | Specify Python independently; verify supported modes, directive
-      boundaries, declaration ownership and expected fixtures
+- [x] P7 | Approved Python spec and subplan define modes, directives, ownership and fixtures | 9546ebe1 | Specify
+      Python independently; verify supported modes, directive boundaries,
+      declaration ownership and expected fixtures
         > 2026-10-11 Own dated spec and subplan; branch feat/lexer-python
+        > 2026-10-11 Python child: docs/plans/2026-10-11-lexer-python.md
 - [ ] P8 | Implement the Python reader from its definition; verify expected
       comments, protected code, addresses and set/proof behavior
         > 2026-10-11 Check: uv run pytest -q tests/reading/test_python.py
+        > 2026-10-11 Python child: docs/plans/2026-10-11-lexer-python.md
 - [ ] P9 | Specify Rust independently; verify supported modes, directive
       boundaries, declaration ownership and expected fixtures
         > 2026-10-11 Own dated spec and subplan; branch feat/lexer-rust
@@ -703,6 +709,7 @@ interfaces, inputs and checks, without internal development files or history.
 - [ ] P37 | Integrate Python reading through gather, setting and both proof
       commands; verify newer syntax works on Python 3.11
         > 2026-10-11 Complete the Python workflow before other language integration
+        > 2026-10-11 Python child: docs/plans/2026-10-11-lexer-python.md
 - [ ] P38 | Share reader results with paragraphs, forms and declarations; verify
       whole sections retain the existing a, b, c and f anchors
         > 2026-10-11 Check: uv run pytest -q tests/test_reading.py

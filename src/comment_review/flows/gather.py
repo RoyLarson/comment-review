@@ -59,7 +59,7 @@ from comment_review.machine.repo import (
 from comment_review.reading.addresser import SEPARATOR
 from comment_review.reading.context import ReadingContext
 from comment_review.reading.diagnostics import ReadFailure
-from comment_review.reading.lexer import language_for
+from comment_review.reading.language import INSTALLED_REGISTRY
 from comment_review.reading.paragraph import Paragraph
 
 
@@ -107,7 +107,7 @@ def _walk(g: Gathering) -> None:
     # READMEs and lockfiles and refusing on those makes the form unusable.
     named = {t.resolve() for t in g.targets if t.is_file()}
     for path in sorted({f for found in by_target.values() for f in found}):
-        if language_for(path) is None and path.resolve() not in named:
+        if INSTALLED_REGISTRY.for_path(path) is None and path.resolve() not in named:
             g.no_record.append(path.as_posix())
         else:
             g.files.append(path)

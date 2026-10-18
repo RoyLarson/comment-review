@@ -53,8 +53,8 @@ def test_saved_nondefault_context_admitted_before_place_decoding(
     proof = a_proof(tmp_path)
     installed = reading_context.reader_for
 
-    def configured(path):
-        selected = installed(path)
+    def configured(path, registry):
+        selected = installed(path, registry)
         assert isinstance(selected, tuple)
         definition, binding = selected
         assert isinstance(definition, LanguageDefinition)
@@ -96,8 +96,8 @@ def test_saved_nondefault_context_admitted_before_place_decoding(
         monkeypatch.setattr(reading_context, "PLACEMENT_REVISION", "changed")
     elif revision:
 
-        def revised(path):
-            definition, binding = configured(path)
+        def revised(path, registry):
+            definition, binding = configured(path, registry)
             if revision == "rules":
                 definition = replace(definition, rules={"changed": True})
             elif revision == "reader":

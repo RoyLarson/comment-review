@@ -66,11 +66,11 @@ sys.path.insert(0, str(SRC))
 from comment_review.binder.binder import Binder  # noqa: E402
 from comment_review.binder.page import page_for  # noqa: E402
 from comment_review.docket.docket import Docket  # noqa: E402
+from comment_review.flows.language_definitions import installed_registry  # noqa: E402
 from comment_review.flows.reading_context import context_for  # noqa: E402
 from comment_review.machine.repo import sha_of  # noqa: E402
 from comment_review.reading.addresser import cue_of, unflatten  # noqa: E402
 from comment_review.reading.diagnostics import ReadFailure  # noqa: E402
-from comment_review.reading.lexer import language_for  # noqa: E402
 from comment_review.reading.paragraph import Paragraph  # noqa: E402
 
 
@@ -85,11 +85,16 @@ def build(text: str, name: str = "m.py"):
     a disk. `read_source` is what supplies it in the running system.
     """
     path = Path(name)
-    lang = language_for(path)
-    assert lang is not None, f"no language record for suffix {path.suffix!r}"
-    reading = context_for(path, {})
+    registry = installed_registry()
+    assert not isinstance(registry, ReadFailure), registry
+    assert registry.for_path(path) is not None, (
+        f"no language definition for suffix {path.suffix!r}"
+    )
+    reading = context_for(path, {}, registry=registry)
     assert not isinstance(reading, ReadFailure), reading
-    page = page_for(path, text, lang, rel=name, sha=sha_of(text), reading=reading)
+    page = page_for(
+        path, text, rel=name, sha=sha_of(text), reading=reading, registry=registry
+    )
     assert not isinstance(page, ReadFailure), page
     return page
 

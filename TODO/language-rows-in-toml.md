@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 6 of 18 tasks closed
+Progress: 11 of 18 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (Roy, 2026-08-22: since tomllib is available the language
@@ -56,21 +56,25 @@ full name-harvester capability work remains separately scoped.
 
 ## Tasks
 
-- [ ] T1 | T1 -- Transcribe all 18 language rows into
-      `references/languages.toml`, Python included, with `tier` as a field.
-      Verify: the file holds 18 tables, one per row.
-- [ ] T2 | T2 -- Build `Language` from that table at runtime, the way
-      `vocabulary.py` reads `vocabulary.toml`. Verify: `grep -c "Language("
-      language.py` returns 1.
-- [ ] T3 | T3 -- Pin the order-significant fields, since openers match
-      longest-first. Verify: a test fails if `///` follows `//`, or `--[==[`
-      follows `--[[`.
-- [ ] T4 | T4 -- Pin that an EMPTY list is not a missing key. Verify: `declares
-      = []` loads as *no `a` series at all*, and a row with no `declares` key is
+- [-] T1 | One combined table; each language gets its own file (T17, T18) | 9e376f5f | T1
+      -- Transcribe all 18 language rows into `references/languages.toml`,
+      Python included, with `tier` as a field. Verify: the file holds 18 tables,
+      one per row.
+- [-] T2 | One combined table; each language gets its own file (T17, T18) | 9e376f5f | T2
+      -- Build `Language` from that table at runtime, the way `vocabulary.py`
+      reads `vocabulary.toml`. Verify: `grep -c "Language(" language.py` returns
+      1.
+- [-] T3 | One combined table; each language gets its own file (T17, T18) | 9e376f5f | T3
+      -- Pin the order-significant fields, since openers match longest-first.
+      Verify: a test fails if `///` follows `//`, or `--[==[` follows `--[[`.
+- [-] T4 | One combined table; each language gets its own file (T17, T18) | 9e376f5f | T4
+      -- Pin that an EMPTY list is not a missing key. Verify: `declares = []`
+      loads as *no `a` series at all*, and a row with no `declares` key is
       refused as undecided.
-- [ ] T5 | T5 -- Move `test_every_row_STATES_its_own_quotes` from parsing the
-      Python AST to asking whether the key is present. Verify: the test reads
-      the table, not the AST.
+- [-] T5 | One combined table; each language gets its own file (T17, T18) | 9e376f5f | T5
+      -- Move `test_every_row_STATES_its_own_quotes` from parsing the Python AST
+      to asking whether the key is present. Verify: the test reads the table,
+      not the AST.
 - [x] T6 | FINISHED | unknown | T6 -- NOT A TASK, restated in the Objective: the
       move makes `language.py`'s own claim -- *adding a language is a row, not
       code* -- true.

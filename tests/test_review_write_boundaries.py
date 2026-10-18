@@ -204,10 +204,13 @@ def test_all_concatenated_docstring_literals_are_prose(expression):
 
 def test_dropping_concatenated_docstrings_keeps_the_adjacent_statement():
     source = 'def f():\n    "First " "second."; print("other")\n    return 1\n'
-    paragraph = next(p for p in build(source, "m.py") if p.address == "m.py@a1")
+    page = build(source, "m.py")
+    paragraph = next(p for p in page if p.address == "m.py@a1")
     form = comment_at(paragraph.address, paragraph.raw_text)
     assert form.text == "First second."
-    assert form.without_once("First second.") == '    print("other")'
+    assert form.without_once("First second.") == ""
+    assert not galley.reset(page, {"a1": None})
+    assert compositor.set_page(page) == 'def f():\n    print("other")\n    return 1\n'
 
 
 @pytest.mark.parametrize(

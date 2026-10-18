@@ -5,49 +5,36 @@ code, this PART of a line is code, this line is comment, this line is docstring
 -- and each line belongs to a PARAGRAPH, which is one unit of prose or the empty
 place where prose could go.
 
-!! A PAGE NAMES ITS OWN PLACES, which is what makes it a page and not a list.
-`places_on` hands `cue` its lines of code and which of them declare something
-documentable; `addresser` emits every place, filled or not, and `attach` says
-which one a given paragraph sits in. A paragraph does not compute its own cue
--- reversed, a place existed only when prose happened to fill it, and the
-file's own matter and the gap above the first line of code were mutually
-exclusive.
+`page_for` builds it in steps: the cues are named, `empty_places` gives every
+place no prose fills a paragraph of its own, `fill_the_gaps` divides each gap's
+lines among its `b` places, and `tie_leading` keys each blank run by the place
+it follows. `documentable` turns the declarations into positions in `cue`'s
+sequence.
+
+A page is all of the addresses in the file, which is what makes it a page and
+not a list.
+`places_on` -- or, on a Python page, the read's `code_for` and
+`declarations_for` -- hands `cue` its lines of code and which of them declare
+something documentable; `addresser` emits every place, filled or not, and
+`attach` says which one a given paragraph sits in. A paragraph does not compute
+its own cue -- if it did, a place would exist only when prose happened to fill
+it.
+
+`Page.serialize` and `RedactedPage` are the page as a binder carries it: the
+five fields of each place, and the page read back with its source text and its
+empty places struck out.
 
 ! The GATHER is every page in scope, put in the form the agents read. One page
-is one file, so building one was never its work: its job is to take the output
-of every page, and this module is where a page comes from.
+is one file, so building one is not its work: its job is to take the output of
+every page, and this module is where a page comes from.
 
 !! IT IS A FLAT LIST, AND THAT IS THE SHAPE OF THE THING. Paragraphs run down a
 page and do not nest. An address is an ORDINAL over a linear sequence and cannot
 express containment, so the two agree by construction rather than by compromise.
 
-! It was called a *pseudo* Concrete Syntax Tree, and the word is retired. Roy,
-2026-08-20: *"it never really fit -- using libcst in python made it easy to move
-and edit comments and so I thought that was what this was. It isn't."* Naming it
-for a syntax tree invited an apology for not being one, and everything the
-apology defended is correct for a page.
-
-! Nothing here asks a tree question either. Measured 2026-08-18 across the
-shipped scripts: ZERO containment tests, and every consumer is a flat ITERATION
-by path, a lookup by line, an ordered walk or a range splice. A tree would be
-flattened again at each of them.
-
-! Where hierarchy IS wanted it arrives as a stamped FACT, not a structure: a
-paragraph's enclosing declaration, which the Python AST already knows and which 191
-of this repo's 266 anchorless prose paragraphs sit inside. Depth is 1 for 182 of
-those 191, so a parent link is the shape that fits and a tree is not.
-
-!! TWO LEAVES BENEATH THIS ONE, and the direction inverted 2026-08-20. A page
-builds itself, so it needs the addresser -- which had been importing this module
-for two constants, a cycle. The cut is that THE ADDRESSER KNOWS NOTHING ABOUT A
-PARAGRAPH: `code_lines` and `attach` were the only two functions of it that did,
-and both are page questions wearing an addressing name.
-
-! Letting the import graph choose a module's subject is what this keeps undoing.
-`Paragraph` first lived in `gather.py`, at the top of the graph, so the modules
-that READ paragraphs could not import the definition of one -- 21 untyped
-`paragraph.get(...)` reads, and two kind sets that ended up in `galley` because
-it was the deepest module all three could reach.
+!! THE ADDRESSER only needs to know the type of Series (DECLARED, GAP, ON, LEAD,
+COVERS): it imports no `Paragraph`. `code_lines` and `attach` read paragraphs,
+so they are page questions and live here.
 """
 
 from dataclasses import dataclass
@@ -70,7 +57,7 @@ from comment_review.reading.addresser import (
 from comment_review.reading.context import ReadingContext
 from comment_review.reading.context_io import context_from_wire, context_to_wire
 from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, ReadStage
-from comment_review.reading.language import language_for
+from comment_review.reading.language import INSTALLED_REGISTRY, language_for
 from comment_review.reading.lexer import (
     Language,
     declarations,
@@ -78,20 +65,28 @@ from comment_review.reading.lexer import (
     leading_between,
 )
 from comment_review.reading.paragraph import Paragraph
-from comment_review.reading.readers import read_paragraphs
+from comment_review.reading.proof import SourceRead
+from comment_review.reading.python.projection import (
+    code_for,
+    declarations_for,
+    paragraphs_for,
+)
+from comment_review.reading.python.records import PythonRead
+from comment_review.reading.readers import read_source
+from comment_review.reading.registry import LanguageRegistry
 from comment_review.reading.series import Kind, Series
+from comment_review.reading.stripped import StrippedRead
 
 #: The five fields a place is carried by, in the order `Page.serialize` writes
 #: them. ! `path` IS NOT AMONG THEM: the page states it once, because repeating
 #: it per place is the same string as many times as the file has paragraphs.
-#: `Addressing: #12` cut eleven of nineteen fields to reach this set.
 WIRE_FIELDS = ("cue", "anchor", "original_start", "original_end", "raw_text")
 
-# !! EVERY LINE HAS AN ADDRESS, AND SO DOES EVERY POTENTIAL LINE. Roy,
-# 2026-08-19: without an empty `c` "you can't specify that the comment belongs
-# at the end of the code line", and without an empty `b` "you can't specify that
-# the code should have multiple lines of comment above it". So each series has
-# an EMPTY kind, and they are what an `add` cites:
+# !! EVERY LINE HAS AN ADDRESS, AND SO DOES EVERY POTENTIAL LINE. Without an
+# empty `c` there is no way to say a comment belongs at the end of a code line,
+# and without an empty `b` no way to say code should have lines of comment above
+# it. So each series but `d` has an EMPTY kind, and they are what an `add`
+# cites:
 #
 #   a   `undocumented`  a declaration with no docstring
 #   b   `interval`      a gap with no prose
@@ -102,37 +97,29 @@ WIRE_FIELDS = ("cue", "anchor", "original_start", "original_end", "raw_text")
 # TWO of them and they are not the same question: `Kind.holds_no_prose` is what
 # a count or a record asks, and `Kind.occupies_no_lines` is what
 # `code_lines` asks. ! They part on exactly `leading`, which holds no prose and
-# DOES stand on real lines -- so answering the second with the first takes a
-# blank run out of `occupied`, reads it as CODE, and renumbers every `b` and
-# `c` below it. Neither is listed; both derive from `Series`.
+# DOES stand on real lines. Neither is listed; both derive from `Series`.
 
-# !! THE FILE'S OWN PROSE IS A PARAGRAPH TYPE, AND THE LEXER STATES IT -- see
-# `lexer.MATTER`. Stamping it HERE would put a positioning rule in a module that
+# !! THE FILE'S OWN PROSE IS A PARAGRAPH TYPE, AND THE READER STATES IT -- see
+# `Kind.MATTER`. Stamping it HERE would put a positioning rule in a module that
 # may hold none, and make the page reconstruct what "top of the file" meant from
 # a run already typed `comment`.
 #
-# ! ONE TYPE FOR BOTH ENDS. Roy: *"front-matter, back-matter are paragraph type
-# matter."* Which end a run sits at is the ORDER the `f` addresser emitted its
-# places, counted by `page_for` -- not a second fact that could disagree.
+# ! ONE TYPE FOR BOTH ENDS. Which end a run sits at is read by `page_for` from
+# where it opens -- line 1 takes the first `f` place, any other run the last --
+# not stamped as a second fact that could disagree.
 #
-# ! EVERY CONSUMER DOWNSTREAM ASKS THE SERIES, not this: the gather's filter, the
-# accountability set, the `query` guard, the record seeding and `Page.prose`.
-# Asking the type would miss the EMPTY place, which has no prose to type -- an
-# `add` proposing a licence header on a file that has none was never turned into
-# a query. Measured 2026-08-20.
+# Every consumer downstream asks the series, not this -- see `Page.prose`.
+# Asking the type would miss the EMPTY place, which has no prose to type.
 
 
 @dataclass
 class Page:
     """ONE FILE: its paragraphs in order, among the code they sit with.
 
-    !! IT CARRIES WHAT IT WAS BUILT FROM, and that is the whole reason it is a
-    type. `page_for` returned a bare list and dropped the text, the cues and
-    the path -- so every consumer that needed one of them either re-derived it
-    from the file, which is a chance to read a file the page no longer
-    describes, or asked the caller to carry it alongside.
-
-    `readers.tier_for` reports validated installed coverage for a language.
+    It carries what it was built from -- the text, the cues and the path.
+    A consumer that needed one of them would otherwise re-derive it from the
+    file, which is a chance to read a file the page no longer describes, or
+    ask the caller to carry it alongside.
 
     ! A page IS its paragraphs in order, so it iterates and indexes as one. That
     is not a convenience: a reviewer reads a page top to bottom, and a consumer
@@ -141,16 +128,17 @@ class Page:
     Attributes:
         path: as the REPO sees it. Every citation resolves against that root.
         text: the file, exactly as it reads. What a splice is checked against.
-        sha: of `text`, RECEIVED from the read and never derived here. Roy,
-            2026-08-25: *"the querying of it should not have left the machine/
-            modules. It is information received by page and binder, not
-            something requested by page/binder."* ! The write chain compares it
-            against the one the binder recorded, which is the only comparison
-            that can fail -- a sha this module took for itself would be asking
-            whether the text equals itself.
+        sha: of `text`, RECEIVED from the read and never derived here. ! The
+            write chain compares it against the one the binder recorded, which
+            is the only comparison that can fail -- a sha this module took for
+            itself would be asking whether the text equals itself.
         paragraphs: in order down the page, prose and empty places alike.
         cues: EVERY place on the page, filled or not -- see
             `addresser.cue`. It is what makes an `add` citable.
+        reading: how the file was read -- its language, reader, compatibility
+            digest and settings, which a binder carries beside the sha.
+        read: the record the reader made of the file. A proof compares two
+            pages' reads to ask whether their code is the same.
         leading: the space below a place, keyed by the place it FOLLOWS --
             `f0 -> d0`. An absent key means nothing blank follows that place,
             which is what most boundaries do.
@@ -162,25 +150,18 @@ class Page:
     paragraphs: list[Paragraph]
     cues: Cues
     reading: ReadingContext
+    read: SourceRead
     # !! `serialize` IS BELOW, AFTER `leading`. It writes what a binder carries
     # for this page -- see `_place` for the five fields and `RedactedPage` for
     # the variant that emits only the places holding prose.
-    # !! IT IS THE PAGE'S, NOT `cue`'S, and it sat on `Cues` for one
-    # evening. Roy, 2026-08-21, reading the field list: *"I kind of expected that
-    # to be the pages job."* MEASURED: `cue` never filled it and never read it
-    # -- `tie_leading` here filled it, `compositor.set_page` read it, and
-    # `addresser.py` held nothing but the declaration. It was parked there because
-    # the cues are what get passed around, which is not a reason.
     #
-    # ! WHY THE PAGE AND NOT `cue`: `cue` runs before any prose is read,
-    # and leading exists only where the LEXER found a blank run. `cue` cannot
-    # know a `d` is there, so it cannot be `cue`'s to hold.
+    # ! `leading` IS THE PAGE'S, NOT `cue`'S: `cue` runs before any prose is
+    # read, and leading exists only where the LEXER found a blank run. `cue`
+    # cannot know a `d` is there, so it cannot be `cue`'s to hold.
     #
-    # !! ONE KEY, NOT A PAIR, SINCE 2026-08-22. It was `(before, after) -> d`
-    # and nothing ever read `after`. Roy: *"so drop the second edge if it isn't
-    # necessary."* ! It was worse than unread -- a drop left it naming a place
-    # the edge no longer separated, so the one half that could go wrong was the
-    # half kept for legibility. See `tie_leading`.
+    # !! ONE KEY, NOT A PAIR: the place a run follows. A second key naming the
+    # place after it goes stale on a `drop`, naming a place the run no longer
+    # separates. See `tie_leading`.
     leading: dict[str, str] = dataclass_field(default_factory=dict)
 
     def __iter__(self):
@@ -203,34 +184,24 @@ class Page:
         one, and nobody owes it a ruling. Front matter is prose and is not
         accountable either -- no role can settle a licence header.
 
-        ! ASKED BY SERIES, not by the kind. Since 2026-08-20 the file's own
-        matter is the `f` series, and every consumer that has to know reads that
-        -- `gather`'s filter, the collator's accountability set and its
-        `query` guard, `record.py`'s seeding, and this.
+        ! ASKED BY SERIES, not by the kind. The file's own matter is the `f`
+        series, and every consumer that has to know reads that --
+        `binder.addresses.handed`, which `flows.distribute.seed` and
+        `flows.verify.coverage_problems` read, and this.
 
-        !! `d` IS OUT BECAUSE IT NAMES NO PLACE, and that is now the whole test.
-        Leading is not prose, it is the space BETWEEN two paragraphs -- Roy,
-        2026-08-21: *"there is no information to rule on. It is just there for
-        document preservation."* A reviewer handed one would be asked to rule on
-        blank lines.
-
-        ! IT WAS NAMED AS A SERIES HERE, `not in (COVERS, LEAD)`, and that stopped
-        working the moment leading gave up its address: `series_of` reads the
-        address, so a `d` answered `""` and passed a filter naming letters.
-        Requiring an ADDRESS says the same thing without a list to keep current
-        -- a paragraph that names no place is owed no record.
+        !! `d` IS OUT BECAUSE IT NAMES NO PLACE, and that is the whole test.
+        Leading is not prose, it is the space BETWEEN two paragraphs; a reviewer
+        handed one would be asked to rule on blank lines. Requiring an ADDRESS
+        keeps it out without a list of series to keep current -- a paragraph
+        that names no place is owed no record.
         """
         return [
             b
             for b in self.paragraphs
             if b.address
             and not Kind.holds_no_prose(b.kind)
-            # ! ASKED OF THE ADDRESS DIRECTLY. This read `series_of(vars(b))`,
-            # which is a dict accessor over `cue_of` -- so a Paragraph was
-            # flattened into a dict to read ONE field the object already has,
-            # and the page took a dependency on the module that reads binder
-            # rows. `cue_of` is the addresser's, which this module already
-            # imports, and the answer is identical.
+            # ! ASKED OF THE ADDRESS DIRECTLY: `cue_of` is the addresser's,
+            # which this module already imports.
             and cue_of(b.address).series != COVERS
         ]
 
@@ -255,28 +226,7 @@ class Page:
 
 
 def _place(paragraph: Paragraph) -> dict:
-    """One place as an agent receives it -- the five fields of `WIRE_FIELDS`.
-
-    !! FIVE FIELDS, RULED ONE BY ONE -- `decision-log.md Addressing: #12`. A
-    place carried nineteen until 2026-08-24; eleven went, and `path` moved to
-    the page that holds it rather than being repeated on every one of them.
-
-    !! `kind` IS NOT AMONG THEM AND IS NOT COMING BACK. Roy, 2026-08-31: *"the
-    address tells you everything, `kind` is not necessary ... that was a hold
-    out from prior to addresses being robust"*, and *"particularly cue tells
-    everything. They are defined by kind."* ! `Series` IS THAT DEFINITION --
-    `DECLARED = Definition("a", DOCSTRING, UNDOCUMENTED)` -- so a cue and a kind
-    are ONE fact spelled twice, and `_paragraph` reads the kind back off the
-    cue rather than off a field. ! MEASURED before the cut, over 14,139 places:
-    `kind` agreed with what the cue implies in 14,136. The three that disagreed
-    are a defect, filed, and not information.
-
-    ! THE PROSE LEAVES AS ONE STRING. Roy: *"LLMs and the token parsers read
-    this as a complete and coherent statement. They do not read this as the same
-    thing: ['LLMs and the token', 'parsers read this as a', ...]."* The four
-    reviewers ARE token parsers and prose is what they judge, so fragments make
-    each role reassemble the sentence before it can ask whether it is true.
-    """
+    """One place as an agent receives it -- the five fields of `WIRE_FIELDS`."""
     return {
         "cue": cue_of(paragraph.address).cue,
         "anchor": paragraph.anchor,
@@ -289,21 +239,9 @@ def _place(paragraph: Paragraph) -> dict:
 def _kind_of(series: "Series | None", raw_text: str) -> str:
     """This place's kind: its series, and whether prose fills it.
 
-    !! BOTH HALVES, AND IT WAS THE SERIES ALONE FOR ONE COMMIT. A `Definition`
-    holds a PAIR -- `GAP = Definition("b", COMMENT, INTERVAL)` -- and taking
-    `.present` unconditionally types every empty place as prose.
-
-    !! MEASURED 2026-08-31 on a binder of `docket.py` written with
-    `absent=True`: 127 `interval`, 130 `margin` and 2 `dark-matter` went out and
-    **all 259 came back as their series' present kind**. `Kind.holds_no_prose`
-    is what `Page.prose` and the gather's filter ask, so a role handed that binder
-    would be given 259 places to rule on that hold nothing -- against Roy's own
-    ruling, 2026-08-25: *"The absent kinds are not supposed to be sent to the
-    agents."*
-
-    ! WHAT MADE IT INVISIBLE: nothing round-tripped a binder holding `Page`s.
-    `absent=True` is the only path that produces one, and the suite exercised it
-    for its CUES and never for its kinds.
+    !! BOTH HALVES. A `Definition` holds a PAIR -- `GAP = Definition("b",
+    COMMENT, INTERVAL)` -- and taking `.present` unconditionally types every
+    empty place as prose.
 
     Args:
         series: the cue's series, or None for a cue no series names.
@@ -311,9 +249,10 @@ def _kind_of(series: "Series | None", raw_text: str) -> str:
 
     Returns:
         The `present` kind when prose fills the place, the `absent` kind when
-        nothing does. ! `d` HAS NO ABSENCE and falls back to its present -- a
-        fence is never carried, so this cannot be reached through a binder, and
-        answering "" would be a kind no series names.
+        nothing does, and "" when `series` is None. ! `d` HAS NO ABSENCE and
+        falls back to its present -- a fence is never carried, so this cannot be
+        reached through a binder, and answering "" would be a kind no series
+        names.
     """
     if series is None:
         return ""
@@ -325,21 +264,19 @@ def _kind_of(series: "Series | None", raw_text: str) -> str:
 def _paragraph(place: dict, path: str) -> Paragraph:
     """One place read back into the `Paragraph` it was written from.
 
-    !! A PARAGRAPH, NOT A REDACTED ONE. Roy, 2026-08-31: *"Paragraphs are held
-    by both. no RedactedParagraphs, they are not necessary."* `decision-log.md
-    Process: #68`. What a redaction removes is at the PAGE -- the source text,
-    and the places holding no prose -- and neither is a field of a paragraph.
+    !! A PARAGRAPH, NOT A REDACTED ONE. What a redaction removes is at the PAGE
+    -- the source text, and the places holding no prose.
 
     ! THE FOUR FIELDS THE WIRE DOES NOT CARRY ARE DERIVED, NOT INVENTED:
 
-        kind     `Series.of(cue).present`, because a cue IS a kind (see `_place`)
+        kind     `_kind_of`: the series' present kind, or its absent one if empty
         start    the recorded `original_start` -- nothing moves between the
         end      gather and the read back, so the two are the same lines
-        lines    the count of `raw_lines`
+        lines    0 for an empty place, else the count of `raw_lines`
 
-    ! `start`/`end` FALL BACK TO 0, which is this type's own spelling for
-    *occupies nothing* -- see `Paragraph.__post_init__`. An EMPTY place carries
-    null line numbers, and that is what it means.
+    ! `start`/`end` FALL BACK TO 0 when the wire carries null line numbers,
+    which is this type's own spelling for *occupies nothing* -- see
+    `Paragraph.__post_init__`.
     """
     cue_text = str(place["cue"])
     raw_text = str(place["raw_text"])
@@ -369,21 +306,18 @@ def _paragraph(place: dict, path: str) -> Paragraph:
 class RedactedPage:
     """A page with its source struck out: what a binder carries and hands back.
 
-    !! A REDACTION, NOT A PARALLEL DOCUMENT -- `decision-log.md Process: #68`.
-    Roy, 2026-08-31: *"Binders have either Pages or RedactedPages, Paragraphs
-    are held by both."* Two things are removed and both are the PAGE's:
+    !! A REDACTION, NOT A PARALLEL DOCUMENT. Both hold the same `Paragraph`s.
+    Two things are removed and both are the PAGE's:
 
         the source text     an agent reads places, not the file; the compositor
                             reads the file from disk and never the binder
-        the empty places    a place where prose COULD go but does not. MEASURED
-                            over this repo before the cut: 5,201 of 5,685 --
-                            91% -- held no prose, at 850KB, read by four roles
+        the empty places    a place where prose COULD go but does not
 
     !! AND AN EMPTY PLACE IS STILL ADDRESSED, WHICH IS WHAT MAKES THE CUT SAFE.
     The walk emits every place, so a reviewer that wants to `add` ASKS the
     addresser for the one it means -- `addresser --file m.py --line N --series b`
-    answers `m.py@b1` from the PAGE, not from these rows (`decision-log.md
-    Process: #96`). The place is citable without being carried.
+    answers `m.py@b1` from the PAGE, not from these rows. The place is citable
+    without being carried.
 
     !! EVERYTHING READ BACK IS ONE OF THESE, WHATEVER WAS WRITTEN. A `Page`
     serializes its text nowhere, so a binder off disk cannot rebuild one --
@@ -518,43 +452,28 @@ def code_lines(text: str, prose: list[dict]) -> dict[int, str]:
     {2: "N = 0", 3: "def f():", 5: "    return 1"}
     ```
 
-    !! ONE STRUCTURE, WHERE THERE WERE THREE FUNCTIONS. `code_lines_of` returned
-    the numbers, `code_lines` returned them again as a `set` for membership, and
-    `lines_of_code` returned them paired with their characters -- two names for
-    one question, and a `sorted()` bridging the types that nearly every caller
-    wrote to convert the set back into the ascending list the first already
-    returned. Roy, 2026-08-20: *"the fact that you said 'sets' leaves me
-    thinking we have a sorted-dictionary or it should always be a list."*
-
     ! A `dict` is insertion-ordered, so ASCENDING BY CONSTRUCTION answers all
     four consumers: iterate it for `cue`, `n in code` for occupancy,
     `enumerate` for the ordinals, `code[n]` for one line's anchor.
 
-    A line is code when it holds something that is not blank and not prose. The
-    two tiers cannot answer that identically, and the difference is the
-    docstring: `tokenized` knows a string literal is a declaration's
-    documentation, `lexical` knows only what its comment-syntax record spells.
-    So a paragraph's BOUNDS are tier-dependent while its CONTENT is not.
+    A line is code when it holds something that is not blank and not prose.
+    This function knows only what a comment-syntax record spells, so `page_for`
+    sends it the lexical reader's pages; a Python page takes its code lines from
+    `code_for` over its read, which knows a string literal is a declaration's
+    documentation.
 
     ! A `trailing-comment` sits ON a code line, so that line stays code. A
     `comment` or `docstring` paragraph occupies its lines entirely, so those lines
     are not. An `interval` occupies nothing, which is what makes this safe to
-    run over a binder that already holds intervals.
+    run over a page that already holds intervals.
 
     !! A PARAGRAPH'S FIRST LINE IS STILL CODE WHEN CODE PRECEDES ITS TEXT.
-    `int b = 2; /* opens` spans from that line, and taking the whole span
-    dropped the statement from the code set, moving every interval boundary
-    below it.
+    `int b = 2; /* opens` spans from that line, and taking the whole span would
+    drop the statement from the code set, moving every interval boundary below
+    it.
 
     !! THE PARAGRAPH SAYS SO, BY ITS SERIES -- a `c` place is the room beside
-    code, filled or not. ! IT WAS A `original_column` FIELD until 2026-08-31
-    (`decision-log.md Process: #69`), read here for its truthiness alone.
-    Before THAT it tested whether the stored
-    text was a proper SUFFIX of the physical line, which is an inference and
-    was wrong in both directions: `paragraphs_stdlib` stores the WHOLE line for a
-    trailing comment, so the test never fired for one -- and a paragraph comment
-    opened after a statement had its declaration line dropped from the code
-    set, moving every interval boundary in the file. Measured 2026-08-18.
+    code, filled or not.
 
     !! THE CHARACTERS COME FROM THAT LINE'S `c`, NEVER RE-CUT HERE. Every code
     line has exactly one `c` -- a `trailing-comment`, or the `margin` standing
@@ -562,9 +481,9 @@ def code_lines(text: str, prose: list[dict]) -> dict[int, str]:
     again answers `'    return os  # why'` where the `c` for the same line
     answers `'    return os'`: two computations of one fact.
 
-    ! It takes DICTS, so it reads a binder off disk and a binder still being
-    built alike. An address counts code lines, so the count has to be the same
-    one the gather used or the two disagree about what `@b3` means.
+    ! It takes DICTS -- `vars()` of each paragraph being built, which is what
+    all three callers pass. An address counts code lines, so the count has to be
+    the same one the gather used or the two disagree about what `@b3` means.
     """
     occupied: set[int] = set()
     beside: dict[int, str] = {}
@@ -604,34 +523,25 @@ def attach(paragraph: dict, cues: "Cues") -> str:
 
     ! TWO FACTS DECIDE IT, and neither is inferred from the kind alone: a
     paragraph in the `c` SERIES sits beside code and takes that line's place,
-    and everything else holds a gap and takes the `b` for it.
-
-    !! IT WAS THREE UNTIL 2026-08-31, and the first was *a paragraph that
-    DOCUMENTS a declaration takes that declaration's `a`* -- read off a
-    `Paragraph.declares` ordinal and turned back into `a{n}` by
-    `Cues.documents` -> `Addresser.at` -> `cue_for`. **The lexer knows which
-    declaration at the moment it tags**, so it stamps the cue and this never
-    sees the paragraph. `decision-log.md Process: #69`.
+    and everything else holds a gap and takes the `b` for it. A paragraph that
+    documents a declaration never reaches here: the reader stamps its `a` when
+    it tags it, and `page_for` keeps a stamped cue.
 
     Args:
-        paragraph: one binder entry, as a dict.
+        paragraph: `vars()` of one paragraph `page_for` is building.
         cues: `cue` over that paragraph's file.
 
     Returns:
         The cue, or "" when the paragraph states no position to tie it to.
     """
-    # ! FRONT MATTER IS THE FILE'S, so it takes `f0` wherever it sits. Asking
-    # `above()` would give it the gap it happens to occupy, which is the gap
-    # that introduces the first statement and belongs to that statement.
-    # !! THE LEXER SAYS SO, and this only reads it. Roy, 2026-08-21: *"that makes
-    # f trivial and consistent because that paragraph instead of being marked as
-    # comment and the page trying to reconstruct what was meant by top of the
-    # file and a comment."* Stamping it here instead would be a positioning rule
-    # in a module that may hold none.
+    # ! FRONT MATTER IS THE FILE'S, so it takes an `f` place wherever it sits.
+    # Asking `above()` would give it the gap it happens to occupy, which is the
+    # gap that introduces the first statement and belongs to that statement.
+    # !! THE READER SAYS SO, and this only reads it. Stamping it here instead
+    # would be a positioning rule in a module that may hold none.
     #
-    # ! WHICH `f` IS A COUNT, NOT A POSITION -- the Nth matter run takes the Nth
-    # place `cue` emitted, exactly as the Nth declaration takes the Nth `a`.
-    # Counting is the PAGE's, so `page_for` hands them out and this says only
+    # ! WHICH `f` IS A POSITION -- `page_for` gives a run opening on line 1 the
+    # first `f` place `cue` emitted and any other run the last. This says only
     # that the question is not `above()`'s to answer.
     if paragraph.get("kind") == Kind.MATTER:
         return ""
@@ -647,23 +557,15 @@ def documentable(
 ) -> dict[int, tuple[int, int, str]]:
     """Which code lines DECLARE something documentable, and WHERE the doc sits.
 
-    !! IT CONVERTS; IT DECIDES NOTHING. The lexer states which side a
-    language's documentation goes on, because the lexer is one of the two modules
-    that touch a file at all. Roy, 2026-08-21: *"The language definition file has
-    to state which, not the code"*, and *"the ONLY places that need this are the
-    lexer and the compositor ... every other part of the program reads inputs and
-    outputs to/from those modules."*
-
-    ! TWO EARLIER VERSIONS PUT THE DECISION HERE, and both were wrong in the same
-    way. One compared `insert <= line` and inferred the rule from an arithmetic
-    on two line numbers; the next read `lang.doc_inside` in this module, which
-    only moved the language out of the lexer. What is left is turning a LINE into
-    a position in `cue`'s own sequence.
+    !! IT CONVERTS. The reader states which side a language's documentation goes on,
+    as the `above` of each declaration it returns -- `lexer.declarations`, or
+    `declarations_for` on a Python page. What is left here is turning a LINE into a
+    position in `cue`'s own sequence.
 
     !! THAT POSITION IS AN ORDINAL, which is the other half of the job. `cue`
-    counts code lines, so handing it a raw line made it compare `insert <= n` to
-    place a docstring -- line arithmetic in the one module that must do none.
-    Roy: *"how do I get you to stop thinking in line numbers?"*
+    counts code lines, so handing it a raw line would make it compare
+    `insert <= n` to place a docstring -- line arithmetic in the one module that
+    must do none.
 
     Args:
         decls: `(line, insert, above)` per declaration, module first -- see
@@ -672,15 +574,15 @@ def documentable(
 
     Returns:
         `index into code -> (the LINE the doc occupies, the code index it is set
-        at, WHICH SIDE of that index's gap)`. Three facts, and they were one
-        field until 2026-08-21. `lexer.document_declarations` is what walks up
-        from a declaration to find prose already sitting there. The index and
-        the side are what the walk places by: `ON` sets the doc between the gap
-        and the code, `GAP`
-        sets it before the gap -- which is where a doc that sits INSIDE its
-        declaration lands, because the gap beneath it introduces whatever comes
-        next. Empty for a tier that resolves no declarations, and the file then
-        has an `a0` and no more.
+        at, WHICH SIDE of that index's gap)`. `lexer.document_declarations` is
+        what walks up from a declaration to find prose already sitting there.
+        The index and the side are what the walk places by: `ON` sets the doc
+        between the gap and the code, `GAP` sets it before the gap -- which is
+        where a doc that sits INSIDE its declaration lands, because the gap
+        beneath it introduces whatever comes next. Empty when `decls` holds the
+        module alone, and the file then has an `a0` and no more; with no `decls`
+        at all `places_on` passes `cue` no module place and the file has no `a`
+        series.
     """
     at = {n: i for i, n in enumerate(code)}
     ordered = sorted(at)
@@ -721,12 +623,12 @@ def places_on(text: str, prose: list[dict], lang: "Language | None" = None) -> "
         The `Cues` for this page.
     """
     code = code_lines(text, prose)
-    decls = declarations(text, lang, code) if lang else []
+    decls = declarations(lang, code) if lang else []
+    placed = documentable(decls, code) if lang else {}
+
     # !! `None`, NOT `1`, WHEN THERE ARE NO DECLARATIONS. A language with no
     # documentable declaration has no `a` series at all -- see `cue`. It is
-    # not a series that happens to be empty, and a YAML file carried an `a0`
-    # until 2026-08-20 because the two were conflated.
-    placed = documentable(decls, code) if lang else {}
+    # not a series that happens to be empty.
     return cue(code, placed, decls[0][1] if decls else None)
 
 
@@ -734,14 +636,6 @@ def empty_places(
     text: str, cues: Cues, occupied: set[str]
 ) -> list[Paragraph] | ReadFailure:
     """A paragraph for every place `cue` emitted that no prose fills.
-
-    !! ONE LOOP, WHERE THERE WERE FOUR GENERATORS -- `intervals`, `margins` and
-    `paragraphs_in` here, and `lexer._undocumented` for the `a` series. Each
-    walked the file again to decide which places of its own series deserved a
-    paragraph: 198 lines answering one question four ways, and disagreeing.
-    `intervals` skipped a gap a comment held, so once front matter took the
-    file's first place nothing occupied the gap above the first line of code,
-    and the place an `add` exists to cite was unreachable.
 
     ! `cue` already emitted every place and said where each sits. This asks
     only which of them prose is sitting in, and gives the rest a paragraph.
@@ -756,31 +650,25 @@ def empty_places(
         occupied: the cues that prose already sits in.
 
     Returns:
-        The empty paragraphs, in no particular order -- the caller sorts.
+        The empty paragraphs, in no particular order -- the caller sorts --
+        or a `ReadFailure` when a `c` has no line or a series has no branch.
     """
     lines = constants.text_lines(text)
     last = len(lines)
-    # ! WHICH LINES ARE ALREADY SPOKEN FOR IS NOT ASKED HERE ANY MORE.
-    # `fill_the_gaps` runs after every paragraph exists and settles it once, for
-    # every gap, against the neighbours each place actually has -- see the
-    # `a`/`c`-exact rule there. Asking it twice is how the two answers came to
-    # disagree.
     out: list[Paragraph] = []
     for cue_name, anchor in cues.places.items():
         if cue_name in occupied:
             continue
         if cue_name.startswith(DECLARED):
-            # ! A DECLARATION WITH NO DOCSTRING. It occupies NO LINE, because
-            # the prose is not written yet -- given the declaration's own range
-            # it swallowed whatever sat between the `def` and its first
-            # statement.
+            # ! A DECLARATION WITH NO DOCSTRING. It occupies NO LINE, because the
+            # prose is not written yet.
             #
             # !! SO ITS ORIGINAL LINES ARE None, NOT `insert..insert-1`. The
             # field holds a closed list of lines, or None when no line currently
-            # holds the place. WHERE the prose would go is
-            # `cues.inserts[cue_name]` and is not this field's to say -- an empty
-            # slice standing in for a position teaches a reader to take these
-            # numbers for one.
+            # holds the place. WHERE the prose would go is the insert line
+            # `documentable` hands to `cue`, and is not this field's to say -- an
+            # empty slice standing in for a position teaches a reader to take
+            # these numbers for one.
             out.append(
                 Paragraph(
                     path="",
@@ -840,17 +728,7 @@ def empty_places(
             # !! THE FILE'S OWN PROSE, AND IT HOLDS NO LINE WHEN IT IS EMPTY.
             # A licence header or a shebang goes at the very top, bounded by
             # nothing on either side -- so there is no gap to measure and
-            # nothing to divide. ! Its own series since 2026-08-20; as a `b` it
-            # took the `(0, 0)` branch of the gap arithmetic below, which is the
-            # shape that let a gap re-cut it.
-            #
-            # !! `matter` NAMES THE SPACE AND NOT A POSITION, which is what the
-            # `f` series needs: Roy, 2026-08-20, rejecting `head` -- *"what
-            # happens if there is a tail? Many text documents have both."* A
-            # licence at the BOTTOM of a file belongs to the file by the same
-            # argument that moved front matter out of the `b` series, so the
-            # kind must survive one. ! It borrows nothing: `matter` is already
-            # the word in `front-matter`.
+            # nothing to divide.
             out.append(
                 Paragraph(
                     path="",
@@ -914,25 +792,17 @@ def tie_leading(paragraphs: list[Paragraph], cues: Cues) -> dict[str, str]:
     under the place it comes after -- `f0 -> d0` reads as *the space below the
     file's matter*.
 
-    !! IT WAS KEYED BY THE PAIR `(before, after)` UNTIL 2026-08-22, and the
-    second half was read by nothing. Roy, on being shown that: *"so drop the
-    second edge if it isn't necessary."* MEASURED before the cut, over 96,047
-    edges on 2,792 corpus pages in ten languages: `before` alone is unique, and
-    collapsing the pair to it lost ZERO.
-
-    !! AND THE SECOND HALF WENT STALE ON A DROP, which is the reason it is a
-    deletion rather than a preference. Dropping `P` between X and Y leaves
-    `(X, P)` alive and sets it between X and **Y**, so the stored pair named a
-    place it no longer separated. It was legible and WRONG, and only safe
-    because the lookup ignored it.
+    !! ONE KEY, NOT A PAIR. A key naming the place AFTER the run goes stale on a
+    drop: dropping `P` between X and Y leaves `(X, P)` alive and sets it between
+    X and **Y**, so the stored pair would name a place it no longer separates.
 
     ! WHICH IS WHY `cue` DOES NOT EMIT ONE. `cue` runs before any prose
     is read and leading exists only where the lexer found a blank run, so the
     walk cannot know a `d` is there. An edge needs no position in `cue`'s
     list, so it does not have to.
 
-    ! A RUN ABOVE EVERYTHING FOLLOWS NOTHING, and is tied under `""`. That is a
-    real answer rather than a miss: the file's own head is what it comes after.
+    ! A RUN ABOVE EVERYTHING FOLLOWS THE FILE'S HEAD, and is tied under the first
+    place `cue` emitted -- `f0` -- or `""` only for a `Cues` with no places.
 
     Args:
         paragraphs: every paragraph on the page, addressed.
@@ -950,27 +820,17 @@ def tie_leading(paragraphs: list[Paragraph], cues: Cues) -> dict[str, str]:
         (b for b in paragraphs if b.original_start and b.kind != Kind.LEADING),
         key=lambda b: b.original_start or 0,
     )
-    # !! THE HEAD OF THE FILE IS A PLACE, NOT AN ABSENCE, and that is the whole
-    # of this fix. Roy, 2026-08-22: *"the drift is happening because you are
-    # short-cutting the opening anchor emission instead of doing it exactly. If
-    # it happened then the anchor and the series would always get the `f0` as it
-    # should, even if `f0` is dark-matter."*
-    #
-    # ! A RUN ABOVE EVERYTHING FOLLOWS NOTHING THAT HOLDS LINES, so this used to
-    # answer `""`. MEASURED before the fix: 48 edges in the corpus were keyed on
-    # the empty string, and an earlier note of mine called them "the file's own
-    # ends" -- they were this. `cue` emits `f0` at the MODULE on EVERY file,
-    # filled or not, so there was always a real place to name.
+    # !! THE HEAD OF THE FILE IS A PLACE, NOT AN ABSENCE: `cue` emits `f0` at
+    # the MODULE on EVERY file, filled or not.
     head = cues.reading[0] if cues.reading else ""
     for b in sorted(paragraphs, key=lambda b: b.original_start or 0):
         if b.kind != Kind.LEADING or not b.symbol:
             continue
         start = b.original_start or 0
         # !! IT IS THE LAST PLACE THAT HELD LINES, never merely the last place
-        # SEEN. A first pass walked the reading order and took whatever came
-        # last, which handed the space below a docstring to the EMPTY gap under
-        # it -- so an `add` into that gap set its comment ABOVE the blank line
-        # and away from the code it documents.
+        # SEEN. The last place seen below a docstring is the EMPTY gap under it,
+        # and tying the space to that gap would set an `add` into it ABOVE the
+        # blank line and away from the code it documents.
         before = head
         for other in set_places:
             if (other.original_end or 0) >= start:
@@ -983,26 +843,42 @@ def tie_leading(paragraphs: list[Paragraph], cues: Cues) -> dict[str, str]:
 def page_for(
     path: Path,
     text: str,
-    lang: Language,
     rel: str | None = None,
     *,
     sha: str,
     reading: ReadingContext,
+    registry: LanguageRegistry = INSTALLED_REGISTRY,
 ) -> Page | ReadFailure:
-    """Admit a complete read before assigning places and source identity."""
-    got = read_paragraphs(path, text, lang)
+    """Build one file's `Page`, or the `ReadFailure` that stopped it.
+
+    Reads the file, addresses every paragraph and empty place, divides the gaps
+    and ties the leading.
+    """
+    result = read_source(path, text, registry=registry)
+    if isinstance(result, ReadFailure):
+        return result
+    recognized = result if isinstance(result, PythonRead) else None
+    if recognized is not None:
+        # The read may have broken a docstring's shared line; the page is that text.
+        text = recognized.source.text
+    got = paragraphs_for(path, recognized) if recognized is not None else result
+    assert not isinstance(got, PythonRead)
     if isinstance(got, ReadFailure):
         return got
-    selected_language = language_for(path)
-    assert selected_language is not None
-    lang = selected_language
     got.extend(leading_between(got, text))
     cues = Cues()
     edges: dict[str, str] = {}
     prose = [vars(b) for b in got]
-    cues = places_on(text, prose, lang)
-    code = code_lines(text, prose)
-    document_declarations(got, declarations(text, lang, code), code)
+    if recognized is not None:
+        code = code_for(recognized)
+        decls = declarations_for(recognized)
+        cues = cue(code, documentable(decls, code), decls[0][1])
+    else:
+        lang = language_for(path)
+        assert lang is not None, "a lexical read comes only from a lexical row"
+        cues = places_on(text, prose, lang)
+        code = code_lines(text, prose)
+        document_declarations(got, declarations(lang, code), code)
     here = rel if rel is not None else path.as_posix()
     files = cues.file_places()
     leads = iter(range(10**9))
@@ -1028,10 +904,10 @@ def page_for(
         empty.address = address_for(here, empty.address)
         got.append(empty)
     for b in got:
-        cue = b.address.split("@")[-1]
-        b.anchor_line = cues.anchor_line(cue) if cue else None
-        b.anchor_num = cues.anchor_num(cue) if cue else 0
-    fill_the_gaps(text, got)
+        place_name = b.address.split("@")[-1]
+        b.anchor_line = cues.anchor_line(place_name) if place_name else None
+        b.anchor_num = cues.anchor_num(place_name) if place_name else 0
+    fill_the_gaps(text, got, code=code if recognized is not None else None)
     edges = tie_leading(got, cues)
 
     where = rel if rel is not None else path.as_posix()
@@ -1044,48 +920,54 @@ def page_for(
         reading=reading,
         paragraphs=sorted(got, key=lambda b: (b.start, b.end)),
         cues=cues,
+        read=recognized if recognized is not None else StrippedRead(text, path),
         leading=edges,
     )
 
 
-def fill_the_gaps(text: str, paragraphs: list[Paragraph]) -> None:
+def fill_the_gaps(
+    text: str, paragraphs: list[Paragraph], *, code: dict[int, str] | None = None
+) -> None:
     """Give every line of a gap to the paragraph it belongs to, blanks included.
 
-    !! EVERY LINE HAS AN ADDRESS. Ruled 2026-08-19. A prose paragraph was addressed
-    by the lines its prose occupied, so a blank line beside it belonged to
-    nothing -- 81 lines of this repo, every one at the edge of a gap, and a
-    a reviewer asking which place held one got no answer at all.
+    !! EVERY LINE HAS AN ADDRESS. A paragraph addressed only by the lines its
+    prose occupies leaves a blank line beside it belonging to nothing, and a
+    reviewer asking which place holds one gets no answer at all.
 
-    ! A paragraph runs to the next paragraph, or to the end of its gap. Leading blanks
-    go to the first paragraph in the gap and trailing blanks to the last, which is
-    the same rule read from either end.
+    ! A paragraph runs to the next paragraph, or to the end of its gap. Leading
+    blanks go to the first paragraph in the gap and trailing blanks to the last,
+    which is the same rule read from either end.
 
-    !! IT MOVES THE ORIGINAL RANGE WITH IT, since 2026-08-20, and `raw_lines`
-    with that. Roy: *"the original lines need to be marked as `b`s because it
-    has this flexibility that the others do not."* The two ranges disagreeing
-    left 105 blank lines -- 16 of 16 shipped scripts -- addressed by a paragraph
-    and covered by none, so the invariant held on one range and not the other.
+    !! IT MOVES THE ORIGINAL RANGE WITH IT, and `raw_lines` with that. With the
+    two ranges disagreeing, a blank line is addressed by a paragraph and covered
+    by none, so the invariant holds on one range and not the other.
 
     ! THE OBJECTION IT OVERRIDES, kept because it is real: widening the original
     range lets a `change` swallow the blank line that separates a comment run
-    from the code beneath it. Roy's answer is a galley rule -- *"strips empty
-    lines at the ends of `b`s and then puts one back in to make the spacing
-    nice"* -- which is why the lines must be MARKED even though writing them
-    verbatim would be wrong.
+    from the code beneath it. Whether a blank still belongs is
+    `compositor.set_page`'s question, which is why the lines must be MARKED even
+    though writing them verbatim would be wrong.
 
     !! AN `a` IS NOT WIDENED. A declaration's documentation has none of that
     flexibility: its lines are the docstring's and a blank beside it belongs to
-    the gap. 25 of the 105 were going to an `a` because this extended whichever
-    paragraph opened the gap.
+    the gap.
+
+    Args:
+        text: the page's source.
+        paragraphs: every paragraph on the page, addressed; the `b`s are recut
+            in place.
+        code: the code lines the page's `Cues` were walked from -- Python pages
+            pass `projection.code_for`. None recomputes them with `code_lines`,
+            and the two must agree or every gap boundary moves.
     """
     source = constants.text_lines(text)
-    code = list(code_lines(text, [vars(b) for b in paragraphs]))
+    code_lines_in_order = list(
+        code if code is not None else code_lines(text, [vars(b) for b in paragraphs])
+    )
     last = len(source)
-    edges = [0, *code, last + 1]
+    edges = [0, *code_lines_in_order, last + 1]
 
     # !! EVERY OTHER SERIES OWNS ITS LINES EXACTLY, AND `b` TAKES WHAT IS LEFT.
-    # Roy, 2026-08-20: *"a's and c's own their lines exactly, b's own all the
-    # other lines."*
     #
     # ! `f` IS IN THAT LIST BECAUSE IT IS A SERIES, not because it is front
     # matter. `b` owns every line that is not another series' lines, and that
@@ -1097,9 +979,8 @@ def fill_the_gaps(text: str, paragraphs: list[Paragraph]) -> None:
     # !! LEADING IS IN THAT LIST BY ITS SYMBOL, not by an address, because it
     # HAS none -- see `addresser.SERIES`. It owns its lines exactly for the same
     # reason an `a` does: the lexer found them and said which they are. ! Read
-    # from `address` alone this returned "" for a `d`, the `if` below fell
-    # through, and the gap took the blank lines a run of leading already held --
-    # so they were set TWICE. Measured the moment `d` left the series.
+    # from `address` alone a `d` answers "", and the gap would take the blank
+    # lines a run of leading already holds -- setting them TWICE.
     exact: set[int] = set()
     for b in paragraphs:
         series = (b.address.split("@")[-1] or b.symbol)[:1]
@@ -1113,28 +994,20 @@ def fill_the_gaps(text: str, paragraphs: list[Paragraph]) -> None:
     def recut(b: Paragraph, mine: set[int] | None = None) -> None:
         """Give this paragraph its share of the gap, on both ranges.
 
-        !! A `b` TAKES THE FREE LINES AND ONLY THOSE. Roy, 2026-08-21, ruling on
-        a blank line above front matter: *"b owns the blank line -- same answer
-        as the blanks around a's and c's for the same reason. it is the flex in
-        the system. it makes the covering precise and full."* ! The span was
-        sliced whole, so a `b` whose free lines are not contiguous took the
-        paragraph sitting inside it as well: `cpython/Include/floatobject.h`
-        opens with a BLANK, `f0` holds line 2, and `b0` held 1-7 -- the comment
-        set twice.
+        !! A `b` TAKES THE FREE LINES AND ONLY THOSE. When its free lines are
+        not contiguous its span runs over the paragraph sitting inside it, so
+        slicing the span whole would set that paragraph twice.
         """
         if b.end >= b.start >= 1:
             b.original_start, b.original_end = b.start, b.end
             # ! `raw_lines` is what `compositor.set_page` SETS, over exactly
-            # this range. Leaving it as the prose alone
-            # made a FRESH binder read as stale on every widened paragraph.
+            # this range.
             own = [n for n in range(b.start, b.end + 1) if mine is None or n in mine]
             b.raw_lines = [source[n - 1] for n in own]
         else:
-            # ! NO LINE CARRIES THIS CUES, and that is the whole
-            # answer. Where prose would GO is not recorded: Roy,
-            # 2026-08-20, on dropping the tool that asked -- *"which
-            # lines to edit is no longer helpful"*. A record names the
-            # PLACE and says what changes in it.
+            # ! NO LINE CARRIES THIS PLACE, and that is the whole
+            # answer. Where prose would GO is not recorded: a record
+            # names the PLACE and says what changes in it.
             b.original_start = b.original_end = None
             b.raw_lines = []
 
@@ -1144,9 +1017,7 @@ def fill_the_gaps(text: str, paragraphs: list[Paragraph]) -> None:
             continue
         free = [n for n in range(lo, hi + 1) if n not in exact]
         # ! ONLY THE `b`s SHARE IT. An `a` in this gap keeps the lines it has --
-        # it has none of the flexibility a `b` has, and extending whichever
-        # paragraph opened the gap handed 25 blank lines in this repo to a
-        # module docstring.
+        # it has none of the flexibility a `b` has.
         here = sorted(
             (
                 b
@@ -1162,7 +1033,7 @@ def fill_the_gaps(text: str, paragraphs: list[Paragraph]) -> None:
         if not free:
             # ! Every line here is spoken for, so each `b` holds NONE. `0/0` is
             # how the addressing range spells "occupies nothing" and `None` is
-            # how the original lines do -- there is no line with this cues.
+            # how the original lines do -- no line is in this place.
             for b in here:
                 b.start, b.end = 0, 0
                 recut(b)

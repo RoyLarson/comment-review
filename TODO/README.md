@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (123)
+### open  (125)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -211,12 +211,11 @@ that changed a published name or rule:
 | [unaddressed-is-quadratic](unaddressed-is-quadratic.md) | backend | -- | 0/4 | unaddressed() groups by path for a question that needs one flat pass |
 | [stale-claims-after-the-envelope](stale-claims-after-the-envelope.md) | backend | -- | 2/8 | Shipped prose still describes formats and flags this branch deleted |
 | [one-stem-four-jobs](one-stem-four-jobs.md) | backend | -- | 7/15 | one stem, four jobs -- and the vocabulary sweep cannot see it |
-| [python-cannot-read-python](python-cannot-read-python.md) | backend | -- | 32/39 | the AST cannot read syntax newer than the floor, and two readers hide each other's bugs |
 | [census-walks-and-flushes](census-walks-and-flushes.md) | backend | -- | 3/7 | census.py walks the whole repo, runs git twice, and its run-flush never fires |
-| [galley-and-compositor-write-path](galley-and-compositor-write-path.md) | backend | -- | 53/58 | The galley can overwrite the file under review, and the compositor reads through a normaliser |
+| [galley-and-compositor-write-path](galley-and-compositor-write-path.md) | backend | -- | 53/59 | The galley can overwrite the file under review, and the compositor reads through a normaliser |
 | [record-and-verdicts-disagree](record-and-verdicts-disagree.md) | backend | -- | 4/8 | record.py and verdicts.py disagree about what a valid record is, in four places |
 | [exception-hierarchy](exception-hierarchy.md) | backend | -- | 2/10 | Named tuples give us the seam; the hierarchy that catches our own types is not built |
-| [language-rows-in-toml](language-rows-in-toml.md) | backend | -- | 6/18 | 18 rows of pure data sit in shipped Python; references/vocabulary.toml is the pattern |
+| [language-rows-in-toml](language-rows-in-toml.md) | backend | -- | 11/18 | 18 rows of pure data sit in shipped Python; references/vocabulary.toml is the pattern |
 | [computed-and-never-read](computed-and-never-read.md) | backend | -- | 5/10 | The insert line, the matter branch, the paragraph index and two repeated full-file scans -- each needs more than a comment fix |
 | [dangling-links-resolve-nowhere](dangling-links-resolve-nowhere.md) | systems | yes | 0/6 | 31 relative links resolve nowhere, and two of them are in a live TODO |
 | [fixtures-do-not-test-the-shape](fixtures-do-not-test-the-shape.md) | testing | -- | 1/5 | A per-language fixture can pass without exercising the shape its language is measured on |
@@ -275,8 +274,8 @@ that changed a published name or rule:
 | [ty-cannot-see-the-tests](ty-cannot-see-the-tests.md) | systems (the gate) - backend (the test fixes) | -- | 1/5 | The type gate is scoped to src and cannot see the tests |
 | [null-becomes-the-word-none](null-becomes-the-word-none.md) | backend | -- | 0/6 | A present-but-null key becomes the four characters None |
 | [collate-flow-defects](collate-flow-defects.md) | backend | -- | 4/25 | Twelve defects in `flows/collate.py`, from a review of one file |
-| [mark-defects](mark-defects.md) | backend | -- | 23/36 | Eleven defects in `desk/mark.py`, found by running its parse against its own prose |
-| [binder-defects](binder-defects.md) | backend | -- | 7/25 | Eighteen defects in binder.py, and `read` admits four shapes it exists to refuse |
+| [mark-defects](mark-defects.md) | backend | -- | 23/38 | Eleven defects in `desk/mark.py`, found by running its parse against its own prose |
+| [binder-defects](binder-defects.md) | backend | -- | 9/33 | Eighteen defects in binder.py, and `read` admits four shapes it exists to refuse |
 | [docket-defects](docket-defects.md) | backend | -- | 5/11 | Six defects in docket.py, and one discards an approved page at exit 0 |
 | [collate-command-defects](collate-command-defects.md) | backend | -- | 6/23 | Sixteen defects in `commands/collate.py`, measured by running it |
 | [differences-defects](differences-defects.md) | backend | -- | 0/10 | Ten defects in `results/differences.py`, none of them in its arithmetic |
@@ -302,11 +301,14 @@ that changed a published name or rule:
 | [r2-preexisting-prose](r2-preexisting-prose.md) | backend | -- | 0/2 | Correct pre-existing move and fold-helper prose |
 | [mark-stance-metadata-prose](mark-stance-metadata-prose.md) | backend | -- | 0/2 | Clarify mark stance and reading metadata prose |
 | [smoke-fixture-defects](smoke-fixture-defects.md) | systems | -- | 0/1 | Align the command smoke with paragraph rewrapping |
-| [lexical-code-identity](lexical-code-identity.md) | backend | -- | 0/2 | Use lexical code identity at both proof boundaries |
+| [lexical-code-identity](lexical-code-identity.md) | backend | -- | 3/4 | Use lexical code identity at both proof boundaries |
 | [collate-file-input](collate-file-input.md) | backend | -- | 0/1 | Read collation inputs from a file |
 | [2026-10-11-maintained-source-selection](2026-10-11-maintained-source-selection.md) | agents | -- | 0/1 | Select maintained source for review |
+| [2026-10-13-human-question-list](2026-10-13-human-question-list.md) | backend | -- | 0/1 | Expose human questions across edit copies |
+| [empty-comment-gets-a-drop](empty-comment-gets-a-drop.md) | backend | -- | 0/1 | An empty comment gets a drop mark |
+| [paragraph-is-a-passage](paragraph-is-a-passage.md) | backend | -- | 0/9 | The addressed unit of prose is a passage, not a paragraph |
 
-### in-progress  (18)
+### in-progress  (17)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -315,7 +317,6 @@ that changed a published name or rule:
 | [the-bridge-landed-and-the-rewrite-did-not](the-bridge-landed-and-the-rewrite-did-not.md) | backend | -- | 8/11 | The bridge landed and the rewrite did not |
 | [corpora-are-all-python](corpora-are-all-python.md) | testing | -- | 3/10 | The corpora are nine Python projects, so every per-language rule is measured on Python and C alone |
 | [7a-can-prove-the-change-by-applying-it-to-a-copy](7a-can-prove-the-change-by-applying-it-to-a-copy.md) | agents | yes | 3/8 | 7a can PROVE the change by applying it to a copy and diffing |
-| [a-block-is-a-paragraph-on-a-page](a-block-is-a-paragraph-on-a-page.md) | backend | -- | 3/11 | everything read by a human or an agent says paragraph; 706 internal identifiers remain |
 | [b-addresser-uninitialised](b-addresser-uninitialised.md) | backend | yes | 13/18 | The b addresser is never initialised at the module trigger, and computes its cue from line numbers |
 | [census-degrades-silently](census-degrades-silently.md) | backend | -- | 5/8 | **Four inputs produce a census that is wrong rather than refused, each exiting 0.** The run reads as complete and the addresses are nonsense. |
 | [census-owns-addressing](census-owns-addressing.md) | backend | -- | 4/8 | The census owns addressing, and four modules share one subject between them |
@@ -326,7 +327,7 @@ that changed a published name or rule:
 | [the-parser-merges-across-boundaries-it-cannot-read](the-parser-merges-across-boundaries-it-cannot-read.md) | backend | -- | 2/4 | The collator merges across a boundary it cannot read, and blames the neighbour |
 | [the-read-only-contract-is-enforced-by-nothing](the-read-only-contract-is-enforced-by-nothing.md) | agents | yes | 2/8 | The read-only contract is enforced by nothing, and four reviewers wrote files |
 | [the-shipped-python-does-not-pass-its-own-review](the-shipped-python-does-not-pass-its-own-review.md) | backend | yes | 7/12 | **Our own scripts spend a sixth of their prose on what the code does NOT do.** ! **Roy's reason, 2026-08-16: *"I don't want the system picking up bad cues from the documentation in the code."*** An agent reads these files and then writes in them. Re-measured after that day's rewrites: **136 of 697 (20%)** comment and docstring lines carry `cannot` / `never` / `does not` / `is not` / `nothing` -- UP from 123/714, because the prose written that day carries the same defect -- `census.py` worst at 52/284. Roy: *"census.py creates the pCST and that is it. Comments about 'cannot answer OWNERSHIP' are not helpful."* ! Not every negative is wrong -- an output (*"reports UNPROVABLE rather than passing"*) and a refusal aimed at a future editor both earn their place -- so the first task is writing the test that tells them apart !! **The hand-pass rule is STRUCK, 2026-08-18.** It told itself not to run `/comment-review` on this repo; Roy: *"By definition the code has to go through the review to state that it has passed."* A hand pass produces a rewrite, and this file's title is a claim about what the review RETURNS -- so it now closes on a run graded from the diff. ! The harness does not gate that: running the skill needs the skill |
-| [lexer-and-language-findings](lexer-and-language-findings.md) | backend | -- | 5/35 | Ten findings in lexer.py and language.py, from three review rounds |
+| [lexer-and-language-findings](lexer-and-language-findings.md) | backend | -- | 8/49 | Ten findings in lexer.py and language.py, from three review rounds |
 | [board-predates-task-ids](board-predates-task-ids.md) | systems | yes | 2/6 | task lines carry no ids, so a plan cannot name one; a trial migration was reverted because it silently cleared 57 `Requires-Roy` flags and refused nine files whose task labels carry a literal pipe |
 
 ### decision-needed  (25)
@@ -334,7 +335,7 @@ that changed a published name or rule:
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
 | [correct-against-patch-is-a-conflict-and-is-not-flagged](correct-against-patch-is-a-conflict-and-is-not-flagged.md) | agents | yes | 0/3 | `correct` against `patch` is a conflict, and the gate does not flag it |
-| [role-rule-register](role-rule-register.md) | agents | yes | 0/5 | The register of proposed additions and amendments to the four editorial role files. ! Role prose is BUDGET-FIXED, so a candidate is not judged alone -- it is judged against what it would replace, which is why they collect here instead of landing one at a time. |
+| [role-rule-register](role-rule-register.md) | agents | yes | 0/6 | The register of proposed additions and amendments to the four editorial role files. ! Role prose is BUDGET-FIXED, so a candidate is not judged alone -- it is judged against what it would replace, which is why they collect here instead of landing one at a time. |
 | [evidence-still-names-places-by-line](evidence-still-names-places-by-line.md) | testing | yes | 0/14 | **The address reached the record key and a `move`'s destination and stopped.** `SOURCES` -- the field the evidentiary contract rests on -- is 100% line-form, and Roy's `address:lines` ruling is unimplemented. Four other artifacts name a place by nothing at all. |
 | [no-mark-for-let-it-stand](no-mark-for-let-it-stand.md) | agents | -- | 13/16 | There is no mark for LET IT STAND -- a declined proposal is not recorded, so the next run proposes it again |
 | [front-half-undetermined](front-half-undetermined.md) | testing | yes | 5/11 | The census to findings to verdicts path has never been determined against a backend that works |
@@ -495,3 +496,16 @@ the reason is inside the file.
 | [transcribe-source-identity](completed/transcribe-source-identity.md) | 1 finished |
 | [2026-10-11-language-registry-contract](completed/2026-10-11-language-registry-contract.md) | 4 finished |
 | [2026-10-11-source-reading-contract](completed/2026-10-11-source-reading-contract.md) | 29 finished |
+| [2026-10-12-python-numeric-keyword-boundaries](completed/2026-10-12-python-numeric-keyword-boundaries.md) | 1 finished |
+| [2026-10-12-python-continuation-eof](completed/2026-10-12-python-continuation-eof.md) | 1 finished |
+| [2026-10-12-python-soft-keyword-annotations](completed/2026-10-12-python-soft-keyword-annotations.md) | 1 finished |
+| [2026-10-13-python-cookie-normalization](completed/2026-10-13-python-cookie-normalization.md) | 1 finished |
+| [2026-10-13-python-bom-ownership](completed/2026-10-13-python-bom-ownership.md) | 1 finished |
+| [2026-10-14-plan-objective-update](completed/2026-10-14-plan-objective-update.md) | 1 superseded |
+| [2026-10-14-python-classification-boundaries](completed/2026-10-14-python-classification-boundaries.md) | 1 finished, 1 superseded |
+| [2026-10-14-python-compact-header-boundaries](completed/2026-10-14-python-compact-header-boundaries.md) | 1 finished, 1 superseded |
+| [2026-10-14-protected-directive-spacing](completed/2026-10-14-protected-directive-spacing.md) | 1 finished |
+| [2026-10-14-python-comment-section-placement](completed/2026-10-14-python-comment-section-placement.md) | 2 finished |
+| [2026-10-12-python-reader-vocabulary](completed/2026-10-12-python-reader-vocabulary.md) | 1 finished |
+| [python-cannot-read-python](completed/python-cannot-read-python.md) | 48 finished, 8 superseded |
+| [a-block-is-a-paragraph-on-a-page](completed/a-block-is-a-paragraph-on-a-page.md) | 3 finished, 8 superseded |

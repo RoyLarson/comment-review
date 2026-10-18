@@ -17,13 +17,14 @@
 | [0.2.4-the-commands-for-the-middle](0.2.4-the-commands-for-the-middle.md) | in-progress | 10/11 | 53/61 |
 | [0.2.4-the-listing-goes](0.2.4-the-listing-goes.md) | in-progress | 7/7 | 4/4 |
 | [0.2.4-the-mark-and-the-collator](0.2.4-the-mark-and-the-collator.md) | in-progress | 31/31 | 21/21 |
-| [0.2.4-the-middle-rebuilt](0.2.4-the-middle-rebuilt.md) | decision-needed | 61/80 | 28/33 |
+| [0.2.4-the-middle-rebuilt](0.2.4-the-middle-rebuilt.md) | decision-needed | 62/80 | 28/33 |
 | [0.2.4-the-placement-branch-runs](0.2.4-the-placement-branch-runs.md) | closed | 22/22 | 12/12 |
 | [0.2.4-the-proof-is-one-unit](0.2.4-the-proof-is-one-unit.md) | closed | 15/15 | 15/15 |
 | [0.2.4-the-turn-as-commands](0.2.4-the-turn-as-commands.md) | in-progress | 14/14 | 10/10 |
 | [0.2.4-the-vocabulary-gate-is-asserted](0.2.4-the-vocabulary-gate-is-asserted.md) | in-progress | 1/1 | 2/2 |
 | [0.2.4-what-a-reviewer-is-handed](0.2.4-what-a-reviewer-is-handed.md) | in-progress | 13/24 | 3/4 |
+| [2026-10-11-lexer-python](2026-10-11-lexer-python.md) | closed | 36/36 | 53/53 |
 | [2026-10-11-lexical-read-results](2026-10-11-lexical-read-results.md) | closed | 17/17 | 14/14 |
-| [2026-10-11-lexical-readers](2026-10-11-lexical-readers.md) | decision-needed | 20/161 | 8/53 |
+| [2026-10-11-lexical-readers](2026-10-11-lexical-readers.md) | decision-needed | 34/162 | 9/53 |
 | [2026-10-11-lexical-reading-context](2026-10-11-lexical-reading-context.md) | closed | 23/23 | 26/26 |
 | [2026-10-11-lexical-source-contract](2026-10-11-lexical-source-contract.md) | closed | 3/3 | 14/14 |

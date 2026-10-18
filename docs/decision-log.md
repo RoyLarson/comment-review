@@ -1314,6 +1314,20 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   `tests/gates/test_skill_commands.py`, `COMMANDS`, and `vocabulary.toml`, and anything under
   `plugins/` is a version-bumping change to the installed plugin. It is filed rather than done.
 
+- **#37.** **The addressed unit of prose is a `passage`, and `paragraph` returns to plain
+  English** (Roy, 2026-10-18: *"Create a todo to change all improper instances of Paragraph to
+  Passage. This is starting to drive me crazy that we used the wrong word. Then `paragraph` can
+  mean the common form for paragraph and `passage` means the common proper for for passage"*).
+
+  **What it settles.** The term of art `vocabulary.toml` defines as `paragraph` -- one unit of
+  prose on the page, a comment run, a docstring, or the empty place either could go, answering
+  to exactly one address -- is renamed `passage`, in code, wire keys and prose. `paragraph`
+  keeps its ordinary meaning: a paragraph of English inside a comment or docstring.
+
+  **What it leaves standing.** `block` stays retired for this unit; the word it was retired in
+  favour of moves on. The rename is filed rather than done:
+  [`paragraph-is-a-passage`](../TODO/paragraph-is-a-passage.md).
+
 ## Metaphor and its limits
 
 - **#1.** **A category doing two jobs gets asked what the trade calls the half that does not fit**
@@ -5282,3 +5296,94 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   Roy: *"For P64 - I authorize you to manually update the description this one time"*.
   This exception permits correcting the R3 dependency description while job-board lacks
   that command; task closures and all other plan writes continue through job-board.
+
+- **#210.** **A comment or docstring holding no prose gets a `drop` mark automatically**
+  (Roy, 2026-10-16). Shown that the lexical Python reader finds five empty `""` docstrings
+  in numpy's `lib/_user_array_impl.py` that the `ast` reader had reported as undocumented
+  places, and that no instruction removes one: `drop ""` is refused for an empty claim,
+  and `drop '""'` returns the paragraph unchanged with no problem reported. Roy: *"This
+  looks like a reason for this system to exist"*, *"that there are empty strings maybe
+  not bad but sloppy"*, then *"The reality is that an empty comment should get a drop
+  mark automatically"*.
+
+- **#211.** **Python code sharing a physical line with a docstring is split onto its own
+  line at the read** (Roy, 2026-10-16, ruling the lexer plan's P37). Shown that the 41
+  failing writer tests exercise `"""Doc."""; x = 1`, and that the pattern occurs in none of
+  4,697 docstrings across 2,305 corpus files. Roy: *"Where does the block (b) type go from
+  the `; y=42` if the docstring on `def fn(): "docstring"` becomes more than one line. e.g.,
+  the docstring needs the full google/numpy/other template."*, then *"My answer inclination
+  is that if that example ever shows up the system breaks the line and makes the stuff after
+  the ; a new line and address so the system works correctly."* and *"That would give the
+  'y=42' its own set of B, and C addresses"*. Offered addressing from the read or splitting
+  only at write: *"Yes split at the read. If the human wants it back (which would be poor
+  programming practice) they can see it in the review and request the agents to manually
+  change it"*. So the page is read and addressed as split, the written page carries the
+  split, and the change is shown in the review like any other. Shown that Python allows no
+  compound statement after a `;` or a one-line suite's `:`, so a split line sits at most one
+  level deeper than its header, and offered taking that level from the file's own first
+  indented block, falling back to 4 spaces: *"yes, take the level from the file, but really
+  you could probably scan all of github for that pattern in a .py file and not find any."*
+
+- **#212.** **Replacing the middle's `ast` read of a split-literal docstring is outside the
+  lexer's scope** (Roy, 2026-10-16, ruling the lexer plan's T51 and P44). Shown that P44
+  needs the acquired Python definition threaded into `comment_at`/`comment_form`, which the
+  middle calls with an address and raw text: *"Why does the middle need the comment_form?
+  ... I don't think that has to do with changing the lexer. I think that was an expansion of
+  changing the lexer. e.g., if we went back to the python AST did it need this
+  information?"* Shown that `comment_at` (2026-10-02) and `docstring.concatenated`
+  (2026-10-03) predate the lexer plan and read their snippet with `ast` and no definition:
+  *"So the middle since the middle rewrite the middle has reached for the ast to do this
+  job? I thought that the middle only delt with raw_text and relied on the agents to supply
+  the exact snippet that needed to be removed which does cause problems on the other side
+  to add it into the new address, but maybe we are being pedantic by forcing it to be an
+  exact change. Instead we could just verify that the sentence/fragment after subtraction
+  of the white space does align with a spot in the destination raw_text which could be
+  checked on the creation of the move. That makes it simpler"*. Offered superseding T51 and
+  P44, filing the matching idea for backend, reverting the uncommitted P44 work, and
+  narrowing P41 to the reading path: *"yes do all four"*.
+
+- **#213.** **`Page.python_read` is replaced on this branch, before the lexer plan
+  closes** (Roy, 2026-10-17). Reading the comment-review run's draft of `Page`'s
+  docstring, which documents the field: *"That seems pretty specific for a tool that is
+  supposed to be a general language tool"*. Shown that `fcd2f0f8` added it and only the
+  Python branches of `proof_setter` and `prove_unchanged` read it, and offered joining
+  the lexer plan, a backlog task, or leaving it; Roy chose joining the lexer plan, where
+  the page carries a read any reader produces and that reader supplies the comparison.
+  Filed as binder-defects T33 and lexer-python P51.
+
+- **#214.** **Framing that hides what a sentence is about is `module-context`'s and
+  `function-context`'s to find and correct** (Roy, 2026-10-18, on a lexer.py comment that
+  opened *"This module stamps three -- `continues-trailing-comment`, ..."*: *"Lets add a todo to
+  make the agent's roles look for framing like this and correct it. I think that belongs in
+  Module and Function context. Since ownership context is mostly about where comments belong
+  and block context is about truthiness"*).
+
+  **What it names.** A count standing in for the thing counted, with the things themselves
+  held back behind a dash, and a passive verb that leaves the actor out or puts it last.
+  Both make a reader hold an unanswered question while reading the rest of the sentence.
+
+  **What it leaves open.** The wording, and what it displaces in each role file, are ruled
+  with the other entries in `role-rule-register`.
+
+- **#215.** **Python's `Language` row is removed on this branch, and the tasks that put grammar
+  in one table or on the in-code rows are superseded** (Roy, 2026-10-18: *"I noticed that in
+  language.py all of the constants and declares keywords are in the file specifically instead of
+  in a toml file which I explicitly stated where these should end up. I think the python.toml
+  was the attempt to start that process but then the agents ignored it after the fact."* Offered
+  widening lexer-and-language-findings T39 to removing the Python row, so `python.toml` is
+  Python's only definition, then superseding language-rows-in-toml T1-T5, which put all 18 rows
+  in one `languages.toml`, and lexer-and-language-findings T26, which adds a field to the in-code
+  row, reissuing T26 against Rust's own definition: *"yes"*).
+
+  **What it settles.** Each language's grammar goes in that language's own definition file,
+  as language-rows-in-toml T17 and T18 state. Python is the first: its row leaves
+  `LANGUAGES`, and `language_for` answers `.py` from `python.toml`.
+
+- **#216.** **`reading/` loads the shipped language definition files itself** (Roy,
+  2026-10-18, asked where they load once Python's row is gone -- `reading/` loading them from
+  package data at import, or `flows/` loading them and passing a registry into every caller --
+  chose the first, offered as recommended).
+
+  **What it settles.** The installed registry holds every shipped definition file, so a
+  caller anywhere asks one registry. The files are this program's own data, not the
+  checkout, so `machine` is not involved.

@@ -43,7 +43,7 @@ def mixed_binder(monkeypatch=None):
             lambda _: None,
         )
         monkeypatch.setattr(
-            reading_context, "reader_for", lambda _: (definition, binding)
+            reading_context, "reader_for", lambda path, registry: (definition, binding)
         )
         return replace(
             binder,

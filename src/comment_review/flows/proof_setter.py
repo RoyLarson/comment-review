@@ -53,13 +53,13 @@ from comment_review.flows.page_for import page_of
 from comment_review.flows.read_diagnostics import format_failure
 from comment_review.flows.source import source_of
 from comment_review.machine.repo import Source, can_escape, sha_of, undraftable
-from comment_review.reading.addresser import address_for, cue_of
+from comment_review.reading.addresser import MODULE, address_for, cue_of
 from comment_review.reading.context import ReadingContext
 from comment_review.reading.diagnostics import ReadFailure
 from comment_review.reading.paragraph import Paragraph
+from comment_review.reading.proof import UNIDENTIFIED_OWNER
 from comment_review.reading.series import Series
 from comment_review.results import compositor, galley
-from comment_review.results.prove_unchanged import code_fingerprint_setting_aside
 
 
 class Step(StrEnum):
@@ -669,56 +669,17 @@ def _prove(
     path: Path,
     approved: Sequence[tuple[Paragraph, Paragraph]] = (),
 ) -> Refusal | None:
-    """Is the executable code in the draft the code that was there before?
+    """Prove retained source unchanged after the approved prose alterations.
 
-    !! AN UNPROVABLE FILE IS REFUSED, NOT PASSED. `code_fingerprint` returns an
-    EMPTY fingerprint for a file it cannot strip, and two empty strings compare
-    equal -- so reading its instruction without reading its KIND proves every
-    unprovable file identical to every other.
+    Text inputs first enter page admission. The before page's read then compares
+    itself with the after page's, given the anchor line of each approved `a`
+    pair; each pair must be the page's own place, carrying the anchor its cues
+    give it. Which docstrings a read may set aside, and how it identifies their
+    owners, is the read's: see `reading.proof.SourceRead`.
 
-    ! WHAT THIS CATCHES THAT `_reread` CANNOT. `_reread` checks only the cues a
-    alteration named, so an alteration surviving it was -- by construction -- read
-    back as a comment: for the AST tier a comment never enters the fingerprint,
-    so a still-a-COMMENT edit can never trip the `want != got` branch below.
-
-    It compares against the approved changes, not against nothing changed --
-    `decision-log.md Process: #113`. A docstring's presence is in the
-    fingerprint, because a docstring binds `__doc__` and the commands in this
-    package read `ArgumentParser(description=__doc__)`. At each declaration an
-    approved alteration in the `a` series documents, that presence is left out
-    of both texts, so an approved `add` or `drop` of a docstring passes. Every
-    other declaration keeps its docstring's presence in the comparison, and
-    all code is compared.
-
-    An approved rewrite at an `a` place has its presence set aside the same
-    way, so whether the docstring is still there is left to `_reread`, which
-    refuses a draft whose text at that cue is not the approved text.
-
-    The declaration is identified from the place, never from the `a` ordinal:
-    in the text before, at the line the page the draft was set from puts the
-    place's anchor on; in the draft, at the line the draft's own page puts the
-    same anchor on. Where either names no single declaration the proof
-    refuses. `test_an_approved_docstring_ADD_reaches_a_draft`,
-    `test_an_approved_docstring_DROP_reaches_a_draft` and the refusals beside
-    them in `tests/test_proof_setter.py` pin it. The comment-stripped
-    comparison other languages take reads no declaration.
-
-    The residual hazard this branch is for is an alteration that breaks its
-    comment's RUN and swallows code BEYOND the edited cue -- an edit whose
-    comment run closes mid-line, or never closes at all, can delete the code
-    that followed it. `_reread` cannot see that: the swallowed code was never
-    one of the cues it was asked about. `_prove` compares the WHOLE file's
-    fingerprint, which is what catches it. See
-    `TODO/closing-line-deletes-code.md`.
-
-    Args:
-        rel: how the repo names the page.
-        before: the admitted page the draft was set from, or text to admit.
-        after: the admitted draft page, or text to admit.
-        path: used for its suffix, which picks the comparison.
-        approved: each approved alteration's place, on the page the draft was
-            set from and in the draft, as `_approved` pairs them. Empty keeps
-            every docstring's presence in the comparison.
+    `_reread` checks the requested text at each edited cue; this comparison also
+    covers retained source elsewhere in the file. Failed admission, a changed
+    proof kind, unidentified owners and unprovable comparisons all refuse.
     """
     admitted: list[Page] = []
     for side, value in (("before", before), ("after", after)):
@@ -730,34 +691,56 @@ def _prove(
         if isinstance(page, ReadFailure):
             return Refusal("prove", rel, f"{side}: {format_failure(page, path=rel)}")
         admitted.append(page)
-    before_text, after_text = (page.text for page in admitted)
-    documented = [
-        (was, now)
-        for was, now in approved
-        if Series.of(cue_of(was.address).cue) is Series.DECLARED
-    ]
-    # The draft's line is looked up with the anchor from the page the draft was
-    # set from, so both texts set aside a declaration with the same declaring
-    # line.
-    kind, want = code_fingerprint_setting_aside(
-        before_text, path, [(was.anchor, was.anchor_line) for was, _ in documented]
-    )
-    got_kind, got = code_fingerprint_setting_aside(
-        after_text, path, [(was.anchor, now.anchor_line) for was, now in documented]
-    )
-    if kind == "unprovable" or got_kind == "unprovable":
-        return Refusal("prove", rel, "the code in this file cannot be proven unchanged")
-    if kind == "unidentified" or got_kind == "unidentified":
-        return Refusal(
-            "prove",
-            rel,
-            "the declaration an approved docstring alteration documents cannot be"
-            " identified in the code, so its docstring cannot be set aside",
-        )
-    if kind not in ("ast", "stripped") or got_kind not in ("ast", "stripped"):
-        return Refusal("prove", rel, "the code in this file cannot be proven unchanged")
-    if kind != got_kind:
+    page_before, page_after = admitted
+    if page_before.read.proof != page_after.read.proof:
         return Refusal("prove", rel, "the proof kind is not what it was")
-    if want != got:
-        return Refusal("prove", rel, "the executable code is not what it was")
-    return None
+    unidentified = Refusal(
+        "prove",
+        rel,
+        "the declaration an approved docstring alteration documents "
+        "cannot be identified in the code, so its docstring cannot "
+        "be set aside",
+    )
+    documented: list[tuple[int | None, int | None]] = []
+    for was, now in approved:
+        if Series.of(cue_of(was.address).cue) is not Series.DECLARED:
+            continue
+        before_line = _documented_line(page_before, was)
+        after_line = _documented_line(page_after, now)
+        if before_line is None or after_line is None:
+            return unidentified
+        documented.append((before_line[0], after_line[0]))
+    result = page_before.read.preserved(page_after.read, documented=documented)
+    if result.unchanged:
+        return None
+    if result.unprovable:
+        return Refusal("prove", rel, "the code in this file cannot be proven unchanged")
+    if any(d.code == UNIDENTIFIED_OWNER for d in result.diagnostics):
+        return unidentified
+    return Refusal(
+        "prove",
+        rel,
+        "the executable code is not what it was: "
+        + format_failure(ReadFailure(result.diagnostics), path=rel),
+    )
+
+
+def _documented_line(page: Page, paragraph: Paragraph) -> tuple[int | None] | None:
+    """The anchor line an approved `a` place documents, `(None,)` for the module.
+
+    None unless the paragraph is the page's single place at its address and
+    carries the anchor the page's cues give that place.
+    """
+    places = [place for place in page if place.address == paragraph.address]
+    cue = cue_of(paragraph.address).cue
+    if len(places) != 1 or Series.of(cue) is not Series.DECLARED:
+        return None
+    if (paragraph.anchor, paragraph.anchor_line, paragraph.anchor_num) != (
+        page.cues.anchor_of(cue),
+        page.cues.anchor_line(cue),
+        page.cues.anchor_num(cue),
+    ):
+        return None
+    if paragraph.anchor == MODULE and paragraph.anchor_line is None:
+        return (None,)
+    return (paragraph.anchor_line,)

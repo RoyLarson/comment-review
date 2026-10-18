@@ -21,9 +21,10 @@ from comment_review.flows.gather import (
     not_gathered,
     unaddressed_report,
 )
+from comment_review.flows.language_definitions import installed_registry
 from comment_review.flows.reading_context import load_settings
-from comment_review.reading.language import language_from_definition
-from comment_review.reading.readers import supported_definitions, tier_for
+from comment_review.reading.diagnostics import ReadFailure
+from comment_review.reading.readers import supported_definitions
 
 
 def main() -> int:
@@ -99,10 +100,15 @@ def main() -> int:
 def _report(args: argparse.Namespace) -> int:
     """Everything the run prints, so `--out` can wrap it in one place."""
     if args.languages:
+        registry = installed_registry()
+        if isinstance(registry, ReadFailure):
+            for diagnostic in registry.diagnostics:
+                print(diagnostic.message, file=sys.stderr)
+            return 2
         print(f"{'language':<10} {'tier':<11} extensions")
-        for definition in supported_definitions():
+        for definition in supported_definitions(registry):
             exts = " ".join(definition.suffixes)
-            tier = tier_for(language_from_definition(definition))
+            tier = definition.capabilities[-1]
             print(f"{definition.language:<10} {tier:<11} {exts}")
         print("\nA suffix not listed is named, and the gather exits nonzero.")
         return 0

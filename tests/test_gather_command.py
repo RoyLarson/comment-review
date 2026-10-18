@@ -33,8 +33,12 @@ from comment_review.commands import gather as gather_command
 
 
 def test_languages_reports_validated_programming_coverage(monkeypatch, capsys):
+    from comment_review.flows.language_definitions import installed_registry
     from comment_review.reading import readers
-    from comment_review.reading.language import INSTALLED_DEFINITIONS
+    from comment_review.reading.diagnostics import ReadFailure
+
+    registry = installed_registry()
+    assert not isinstance(registry, ReadFailure)
 
     status, output = run_command(monkeypatch, capsys, gather_command, "--languages")
     assert status == 0
@@ -45,12 +49,13 @@ def test_languages_reports_validated_programming_coverage(monkeypatch, capsys):
     ]
     assert rows == [
         [value.language, value.capabilities[-1], *value.suffixes]
-        for value in INSTALLED_DEFINITIONS
+        for value in registry.definitions
     ]
+    assert ["python", "lexical", ".py", ".pyi"] in rows
     monkeypatch.setattr(readers, "INSTALLED_BINDINGS", {})
     status, output = run_command(monkeypatch, capsys, gather_command, "--languages")
     assert status == 0
-    assert all(value.language not in output for value in INSTALLED_DEFINITIONS)
+    assert all(value.language not in output for value in registry.definitions)
 
 
 #: An ordinary nine-line Python page, and the CONTROL every case below is a
@@ -77,18 +82,11 @@ CANNOT_DECODE = {
     "a UTF-16 BOM": b"\xff\xfe" + CONTROL.encode("utf-16-le"),
 }
 
-#: The reader decodes the file and then cannot parse it. `paragraphs_stdlib`
-#: CATCHES the failure and returns one `unparsed` paragraph rather than raising,
-#: so the command's own `except` never fires -- and `page_for` gives that page
-#: no addresses, so `carried` drops even the paragraph reporting the refusal.
+#: Decoded source whose incomplete or unsupported lexical state must refuse.
 CANNOT_PARSE = {
     "a syntax error": CONTROL.encode("utf-8") + b"\ndef broken(:\n    pass\n",
     "a NUL byte": CONTROL.encode("utf-8") + b"\nx = 'a\x00b'\n",
     "an unterminated string": CONTROL.encode("utf-8") + b'\ny = """open\n',
-    # ! Its own TODO -- `bom-is-read-as-source.md` -- and this asserts only that
-    # it is LOUD, not that the BOM is handled. A run that reports the file by
-    # name and stops is a different thing from one that reads it correctly.
-    "a UTF-8 BOM": b"\xef\xbb\xbf" + CONTROL.encode("utf-8"),
 }
 
 
@@ -124,6 +122,17 @@ def test_the_control_is_gathered_and_the_run_succeeds(tmp_path, monkeypatch, cap
     code, printed = _run(tmp_path, monkeypatch, capsys, CONTROL.encode("utf-8"))
     assert code == 0, printed
     assert "0 paragraphs" not in printed
+
+
+def test_utf8_bom_source_is_gathered_with_its_documentation(
+    tmp_path, monkeypatch, capsys
+):
+    raw = b"\xef\xbb\xbf" + CONTROL.encode("utf-8")
+    code, printed = _run(tmp_path, monkeypatch, capsys, raw)
+    assert code == 0, printed
+    assert '"reader": "python-lexical"' in printed
+    assert "Module doc." in printed
+    assert (tmp_path / "m.py").read_bytes() == raw
 
 
 @UNREADABLE

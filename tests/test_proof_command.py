@@ -174,9 +174,10 @@ def test_standalone_failed_fingerprint_kind_refuses_before_equality(
     tmp_path, monkeypatch, kind
 ):
     from comment_review.flows import prove_unchanged
+    from comment_review.reading import stripped
 
     repo, target = proof_repository(tmp_path, "const value = 1;\r\n")
-    monkeypatch.setattr(prove_unchanged, "code_fingerprint", lambda *args: (kind, ""))
+    monkeypatch.setattr(stripped, "code_fingerprint", lambda *args: (kind, ""))
     report = prove_unchanged.run(repo, "HEAD", [target])
     assert report.failures == 1
     assert all("PROVEN" not in message for message in report.messages)

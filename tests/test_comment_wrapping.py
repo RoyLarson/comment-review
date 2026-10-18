@@ -242,7 +242,8 @@ def test_docstring_edits_leave_adjacent_quoted_code_intact(
         )
         assert problems == []
     assert changed is not None
-    assert close + adjacent in changed
+    assert changed.endswith(close)
+    assert adjacent[2:] not in changed
     assert galley.reset(page, {paragraph.address.split("@")[1]: changed}) == []
     output = compositor.set_page(page)
     compile(output, "m.py", "exec")
@@ -251,7 +252,7 @@ def test_docstring_edits_leave_adjacent_quoted_code_intact(
     assert comment_at(edited.address, edited.raw_text).text == " ".join(
         filter(None, ["Kept.", closer_line])
     )
-    assert close + adjacent in output
+    assert f"{close}\n    {adjacent[2:]}\n" in output
     assert output.endswith("    return value\n")
 
 
@@ -282,14 +283,16 @@ def test_empty_docstring_removal_leaves_valid_adjacent_code(
             address=paragraph.address,
         )
         assert problems == []
-    assert changed is not None
-    assert changed.strip() == "value = 1; other = 2"
-    assert galley.reset(page, {paragraph.address.split("@")[1]: changed}) == []
+    assert changed == ""
+    assert galley.reset(page, {paragraph.address.split("@")[1]: None}) == []
     output = compositor.set_page(page)
     namespace = {}
     exec(compile(output, "m.py", "exec"), namespace)
     assert namespace["f"]() == 3
     assert '"""' not in output and "'''" not in output
+    assert "\n    value = 1; other = 2\n" in output
+    reread = build(output, "m.py")
+    assert reread.text == output
 
 
 def test_a_trailing_block_keeps_its_separator_and_code():

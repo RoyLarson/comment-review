@@ -21,10 +21,11 @@ from comment_review.flows import source as source_flow
 from comment_review.flows.distribute import seed
 from comment_review.flows.transcribe import docket_of
 from comment_review.machine.repo import undraftable
+from comment_review.reading import stripped
 from comment_review.reading.addresser import cue_of
 from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, ReadStage
+from comment_review.reading.stripped import code_fingerprint
 from comment_review.results import compositor, galley
-from comment_review.results.prove_unchanged import code_fingerprint
 
 
 @pytest.mark.parametrize("fault", ["digest", "malformed", "duplicate-settings"])
@@ -118,13 +119,17 @@ def test_saved_nondefault_settings_reach_original_and_draft(
     from comment_review.flows import reading_context as flow_context
 
     original_reader = flow_context.reader_for
-    selected = original_reader(Path("m.py"))
+    registry = flow_context.installed_registry()
+    assert not isinstance(registry, ReadFailure)
+    selected = original_reader(Path("m.py"), registry)
     assert selected is not None and not isinstance(selected, ReadFailure)
     definition, binding = selected
     configured = dataclasses.replace(
         definition, defaults={"mode": "default"}, choices={"mode": ("default", "saved")}
     )
-    monkeypatch.setattr(flow_context, "reader_for", lambda path: (configured, binding))
+    monkeypatch.setattr(
+        flow_context, "reader_for", lambda path, registry: (configured, binding)
+    )
     repo, into = tmp_path / "repo", tmp_path / "out"
     repo.mkdir()
     path = repo / "m.py"
@@ -313,11 +318,9 @@ def test_proof_reuses_admitted_pages(tmp_path, monkeypatch):
     assert reads == [repo / "m.py", into / "m.py"]
 
 
-@pytest.mark.parametrize("kind", ["unprovable", "unknown"])
+@pytest.mark.parametrize("kind", ["unprovable", "unknown", "ast"])
 def test_direct_proof_failed_fingerprint_kind_cannot_pass(monkeypatch, kind):
-    monkeypatch.setattr(
-        proof_setter, "code_fingerprint_setting_aside", lambda *args: (kind, "")
-    )
+    monkeypatch.setattr(stripped, "code_fingerprint", lambda *args: (kind, ""))
     refusal = proof_setter._prove(
         "m.js", "const value = 1;\n", "const value = 1;\n", Path("m.js")
     )
@@ -1221,6 +1224,11 @@ class TestEveryVerdictThePlacesCanEXPRESSGetsThroughTheChain:
         "c1: holds [''], was given []")` -- the galley, the compositor and the
         draft on disk all correct, and the draft then discarded."""
         drafted, refused = self._run(tmp_path, {f"m.py@{where}": None})
+        if where == "f0":
+            assert drafted == []
+            assert refused and refused[0].step == "prove"
+            assert "code-changed" in refused[0].why
+            return
         assert refused == []
         assert len(drafted) == 1
         again = build(drafted[0].draft.read_text(encoding="utf-8"))

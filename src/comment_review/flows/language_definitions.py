@@ -7,6 +7,13 @@ from pathlib import Path
 from comment_review.flows.source import source_of
 from comment_review.reading.definitions import LanguageDefinition, decode_definition
 from comment_review.reading.diagnostics import ReadFailure
+from comment_review.reading.language import INSTALLED_DEFINITIONS, SHIPPED_DEFINITIONS
+from comment_review.reading.registry import LanguageRegistry, registry_for
+
+
+def installed_registry() -> LanguageRegistry | ReadFailure:
+    """Every installed definition -- the shipped files and the lexical rows."""
+    return registry_for((*SHIPPED_DEFINITIONS, *INSTALLED_DEFINITIONS))
 
 
 def load_definitions(

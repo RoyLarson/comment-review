@@ -1,8 +1,8 @@
 # The AST reader gets older every release while the files get newer
 
 ```
-Status:   open
-Progress: 32 of 39 tasks closed
+Status:   closed
+Progress: 56 of 56 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-21 (Roy, 2026-08-21, on four sentry files the floor interpreter cannot
@@ -365,33 +365,119 @@ the review, and nothing today protects the review.
       the read side.
 - [x] T31 | FINISHED | unknown | T31 -- RECORD R31: the check for the stateful
       reader.
-- [ ] T32 | T32 -- Read Python on the lexical tier -- no `import ast` in the
-      lexer. Verify: `grep -rn 'import ast' plugins/` misses lexer.py:28 and a
-      `.py` file still censuses.
+- [-] T32 | Approved Python lexical spec replaces obsolete criterion with T40 | 112dab2c74c24a36687b6a58a0b1336bfb7ffff5 | T32
+      -- Read Python on the lexical tier -- no `import ast` in the lexer.
+      Verify: `grep -rn 'import ast' plugins/` misses lexer.py:28 and a `.py`
+      file still censuses.
         > 2026-10-10 Own the Python scanner; no runtime AST or tokenizer dependency
-- [ ] T33 | T33 -- Hold the round-trip identity over the Python corpora with the
-      new reader. Verify: `compositor.identity` reproduces R13's 2,368
+- [-] T33 | Approved Python lexical spec replaces obsolete criterion with T41 | 112dab2c74c24a36687b6a58a0b1336bfb7ffff5 | T33
+      -- Hold the round-trip identity over the Python corpora with the new
+      reader. Verify: `compositor.identity` reproduces R13's 2,368
       byte-identical round trips.
         > 2026-09-03 would go green: an unseen docstring is never taken apart
-- [ ] T34 | T34 -- A file with syntax NEWER than the floor censuses instead of
-      setting empty. Verify: sentry's `api/paginator.py` yields places and sets
-      back its 884 lines.
+- [-] T34 | Approved Python lexical spec replaces obsolete criterion with T42 | 112dab2c74c24a36687b6a58a0b1336bfb7ffff5 | T34
+      -- A file with syntax NEWER than the floor censuses instead of setting
+      empty. Verify: sentry's `api/paginator.py` yields places and sets back its
+      884 lines.
 - [-] T35 | SUPERSEDED by T38 -- its verify is a grep going empty, which passes on a gate that has stopped proving; Process 82 rules the rebuild | cf61be2 | T35
       -- Drop the `ast` proof; run `stripped` for every language, Python
       included. Verify: `grep -n 'import ast' prove_unchanged.py` is empty (it
       reads it at :36).
-- [ ] T36 | T36 -- Keep the Python fixtures passing under the `stripped` proof.
-      Verify: `uv run python -m unittest discover -s tests -k prove_unchanged`
-      is green.
-- [ ] T37 | T37 -- Say in `prove_unchanged`'s docstring what `stripped` does NOT
-      cover. Verify: the docstring claims same lines in the same order, never
-      semantic equivalence.
+- [-] T36 | Approved Python lexical spec replaces obsolete criterion with T43 | 112dab2c74c24a36687b6a58a0b1336bfb7ffff5 | T36
+      -- Keep the Python fixtures passing under the `stripped` proof. Verify:
+      `uv run python -m unittest discover -s tests -k prove_unchanged` is green.
+- [-] T37 | Approved Python lexical spec replaces obsolete criterion with T44 | 112dab2c74c24a36687b6a58a0b1336bfb7ffff5 | T37
+      -- Say in `prove_unchanged`'s docstring what `stripped` does NOT cover.
+      Verify: the docstring claims same lines in the same order, never semantic
+      equivalence.
         > 2026-09-03 same lines in same order goes false once the move is admitted
-- [ ] T38 | Rebuild `prove_unchanged` to prove code unchanged with no `ast`
-      branch. Verify: an edited docstring proves, a moved token does not
+- [x] T38 | Python proof uses acquired lexical records; host AST branch removed | 5564f046 | Rebuild
+      `prove_unchanged` to prove code unchanged with no `ast` branch. Verify: an
+      edited docstring proves, a moved token does not
         > 2026-09-03 waits on doc-on-the-declaring-line T4 and R25
         > 2026-09-03 until both land the ast branch is the only proof that runs
-- [ ] T39 | Emit a paragraph for a Python docstring on the lexical tier. Verify:
+- [-] T39 | Approved Python lexical spec replaces obsolete criterion with T45 | 112dab2c74c24a36687b6a58a0b1336bfb7ffff5 | Emit
+      a paragraph for a Python docstring on the lexical tier. Verify:
       `paragraphs_lexical` over a documented def returns one
         > 2026-09-03 MEASURED 2026-09-03: the lexical tier finds Python comments
         > 2026-09-03 and emits NOTHING for a docstring -- a string is not a comment
+- [x] T40 | Read and proof routes run with host parsers forbidden | d15a7f83 | Read
+      Python with owned lexical recognition independent of the host AST and
+      tokenizer
+        > 2026-10-11 Check: plan P25 forbids AST/tokenizer in real read/proof routes
+        > 2026-10-13 Contract: classify code/documentation, then series A/B/C/D/F.
+        > 2026-10-13 Anchor: all code text on the line, including substring notation.
+        > 2026-10-13 Identifiers and semantic analysis are outside the lexer contract.
+        > 2026-10-13 Revised Python and shared specs narrow the reader; review pending.
+        > 2026-10-14 Approved scanner specifications replace the old task briefs.
+- [x] T41 | Round trips exact over all forms; shared lines break per #211 | a7054cf8 | Preserve
+      exact Python round trips over invented boundary fixtures
+        > 2026-10-11 Check: plan P26 compares exact bytes through saved setting
+        > 2026-10-13 Location: set_page rebuilds inline doc prefixes and c anchors.
+        > 2026-10-13 Check: P18 uses retained spans for exact inline-doc round trips.
+        > 2026-10-13 Correction: repair reader output for the existing writer.
+        > 2026-10-13 Cause: protected shebang becomes code and shifts the C cues.
+        > 2026-10-13 Cause: split doc closing lines duplicate raw text in A and C.
+- [x] T42 | Modern boundary fixtures pass on pinned Python 3.11.15 | 64120fb0 | Read
+      supported newer Python syntax on the pinned Python 3.11 runtime
+        > 2026-10-11 Check: plan P10 asserts 3.11-3.15 fixture facts on host 3.11
+- [x] T43 | Both lexical proof gates refuse executable mutations; 458 checks pass | ade86459 | Reject
+      executable Python mutations at both lexical proof gates
+        > 2026-10-11 Check: plan P22 exercises mutations through both proof commands
+- [x] T44 | Comparison and proof prose describe retained lexical source | 5564f046 | Document
+      the Python preservation contract beside its comparison
+        > 2026-10-11 Check: plan P25 prose states tokens, ownership and limits
+        > 2026-10-14 Location: proof_setter.py:680 still describes the removed AST path
+        > 2026-10-14 Check: _prove prose describes lexical and protected-source checks
+- [x] T45 | All literal components and lexical owners pass reader and roundtrip | 839e1913 | Expose
+      complete Python docstrings with their lexical owners
+        > 2026-10-11 Check: plan P11/P12 assert owners and all literal components
+- [x] T46 | NUL anywhere in source refuses at its span; gather checks pass | fcd2f0f8 | Reject
+      NUL characters throughout Python source
+        > 2026-10-13 Location: scanner.py accepts NUL inside literal source.
+        > 2026-10-13 Check: scanner, page and gather refuse NUL at its source span.
+        > 2026-10-13 Reason: gather regression after installing the lexical reader.
+- [x] T47 | Closing comments retain one owner and raw copy through rereading | f3e17569 | Assign
+      places to comments immediately after Python documentation
+        > 2026-10-13 Location: projection.py:240 omits the shared doc/comment anchor.
+        > 2026-10-13 Check: module/suite/closing-line comments retain a/c wire rows.
+        > 2026-10-13 Correction: trailing comments belong to the docstring section.
+        > 2026-10-13 Check: one owner and one raw copy through setting and rereading.
+- [x] T48 | Whole-section cap eligibility survives serialization; reviewed | f0efc1c1 | Count
+      internal blanks in Python comment section length
+        > 2026-10-13 Location: projection.py:224 excludes blanks from Paragraph.lines.
+        > 2026-10-13 Check: fresh and restored sections have identical cap results.
+- [x] T49 | Writer matches parent; unused renderer/helper and tests removed | 77920841 | Remove
+      the Python-specific writer additions
+        > 2026-10-13 Check: results matches parent; renderer and callers are absent.
+        > 2026-10-13 Reason: Roy rejected replacing the existing deterministic writer.
+- [x] T50 | Unused identifier settings and validation removed; reader checks pass | 5564f046 | Remove
+      unused Python identifier interpretation settings
+        > 2026-10-14 Location: python.toml rules.identifiers and definition.py:109
+        > 2026-10-14 Check: reader keeps opaque code; unused identifier rules are absent
+- [-] T51 | Outside the lexer: Process #212; filed as mark-defects T38 | 680ddc9d | Replace
+      host parsing in raw Python documentation recovery
+        > 2026-10-14 Location: reading/docstring.py:69,92,118 uses host parsing
+        > 2026-10-14 Dependency: form recovery currently receives no acquired definition
+        > 2026-10-14 Check: adjacent literal recovery passes with host parsing forbidden
+- [x] T52 | Acquired-registry fixtures retain settings and identity checks | 369dd690 | Update
+      reading-context test fixtures for acquired registries
+        > 2026-10-14 Check: context fixture suites exercise identities and settings
+        > 2026-10-14 Location: test_address_consumer_context.py:144 and related fixtures
+- [x] T53 | BOM composition retains exact bytes in successful roundtrip | 369dd690 | Assert
+      exact BOM preservation through Python composition
+        > 2026-10-14 Check: test_compositor.py retains BOM bytes in RoundTrip
+- [x] T54 | Malformed comparisons refuse with specific lexical diagnostics | 369dd690 | Assert
+      specific lexical refusal diagnostics in address tests
+        > 2026-10-14 Check: revise, revise_addresses, taken_in refuse failed readings
+- [x] T55 | Normalized prose and exact decoded payload checked independently | f3e17569 | Normalize
+      Python paragraph prose consistently with comment forms
+        > 2026-10-14 Location: reading/python/projection.py:134 exposes payload spacing
+        > 2026-10-14 Check: concatenated doc prose agrees after clause removal
+        > 2026-10-14 Check: page prose expectations normalize; raw-line checks remain
+        > 2026-10-14 Location: test_python_prose_roundtrip.py compares literal spacing
+- [x] T56 | Shared docstring lines read, set and proven broken | b170cfa0 | Split
+      Python code sharing a physical line with a docstring onto its own line at
+      the read
+        > 2026-10-16 Reason: Roy ruled the split at the read; decision-log Process #211
+        > 2026-10-16 Check: every legal split shape reads, sets and passes the code gate

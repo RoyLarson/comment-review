@@ -1,57 +1,49 @@
-"""Sets a page as TEXT, in memory, top to bottom. It decides nothing.
+"""Sets a page as TEXT, in memory, top to bottom.
 
-    python -m comment_review compositor <paths...>  # prove the identity, file by file
+    python -m comment_review compositor <paths...>  # check the round trip
 
-!! A COMPOSITOR SETS TYPE; IT DOES NOT EDIT IT. Roy, 2026-08-21: *"galley gets
-the old page - updates the old page with the [instruction]/record/marks and then a
-page-setter sets the page to rewrite the output text."* Two roles, two sets of
-rules: the galley rules on what a paragraph should say, and this puts the page
-together. A module that did both is what `galley.py` was, and its own vocabulary
-said so -- `references/vocabulary.toml`: *"the GALLEY is text set but not yet
-made into pages."*
+!! A COMPOSITOR SETS TYPE. Two roles, two sets of rules:
+the galley rules on what a paragraph should say, and this puts the page
+together.
 
-!! IT SETS FROM THE READING ORDER OF THE CUES AND KNOWS NO LINE NUMBERS. Roy,
-2026-08-21: *"the compositor forms the whole file top to bottom in the order
-defined by the language requirements IN MEMORY."* A page is its places in
-sequence; `Cues.reading` is that sequence, recorded by the walk that
-emitted them. ! An earlier draft built the file from each paragraph's
-`original_start`, which passed the identity by REPLAYING positions -- and would
-have set a reset page wrong, because a paragraph that grows moves every line
-below it and those stored numbers are the ones the agents read, not a position
-this step may trust.
+!! IT SETS FROM THE READING ORDER OF THE CUES AND KNOWS NO LINE NUMBERS. A page
+is its places in sequence; `Cues.reading` is that sequence, recorded by the walk
+that emitted them. ! A paragraph's stored line numbers are not a position this
+step may trust: a paragraph that grows moves every line below it.
 
-!! NOTHING IS WRITTEN OVER THE REAL FILE HERE. `draft()` emits the whole page
-into a file of its own so a reviewer or the author can compare it against the
-original; `approve()` copies that over the real file wholesale, once. Roy: *"No
-editing on the 'real' file until the draft is fully approved."*
+!! NOTHING IS WRITTEN OVER THE REAL FILE UNTIL THE DRAFT IS APPROVED. `draft()`
+emits the whole page into a file of its own so a reviewer or the author can
+compare it against the original; `approve()` copies that over the real file
+wholesale, once.
 
-! AND NO BYTES REACH DISK FROM THIS MODULE'S OWN CODE SINCE `P45`. `draft()`
-hands its text to `machine.repo.write_raw`; what this module owns is SETTING a
-page, and where a page lands is the checkout's business.
-! `approve()` HAS NO CALLER, in `src/` or in `tests/` -- measured 2026-08-31.
-It is named here because that is a fact about this module and not a licence to
-delete it; filed as `TODO/galley-and-compositor-write-path.md`.
+! `draft()` WRITES NO BYTES OF ITS OWN: it hands its text to
+`machine.repo.write_raw`; what this module owns is SETTING a page, and where a
+page lands is the checkout's business. `approve()` copies with
+`shutil.copyfile`.
 
-!! AND THE ROUND TRIP IS A TEST BECAUSE THIS IS THE ONLY WRITER.
+!! AND THE ROUND TRIP IS A TEST.
 For a supplied, unchanged `Page`, `set_page(page) == page.text`, byte for byte,
-in any language.
+except where it normalises: front matter that does not open on line 1 (see
+`set_page`) and mixed line endings (see `line_endings`). `identity` checks that
+round trip byte for byte; `lossless` checks only that no line is lost or
+invented, and the `compositor` command fails on that one.
 ! `prove_unchanged.py` is strictly weaker and answers a different question: it
 proves the EXECUTABLE CODE survived an edit, not that the model of a page is
 lossless.
 
-Two shapes, and only the second needs assembling:
+Every place has an anchor; only a `c` place's anchor is part of what is set:
 
-    a `c` place    holds the LINE OF CODE. Its anchor is that code and its prose
-                   is the room beside it, so the line is the two concatenated --
-                   and a comment opened there can close on a later line, which
-                   is verbatim because no code sits on it.
-    everything     `a`, `b` and `f` hold prose and nothing else. An empty one
-                   contributes no line at all, which is what an empty place IS.
+    a `c` place    is set as its line of code with its prose beside it, the
+                   two concatenated. A comment opened there can close on a
+                   later line, which is set verbatim because no code sits on
+                   it.
+    `a`, `b`, `f`  are set as their prose alone. An empty one sets no line.
 
 ! THE LINE ENDING IS A FACT ABOUT THE FILE, NOT ABOUT ITS PARAGRAPHS, and it is
-the one thing here taken from `page.text`. Nothing a paragraph says can state
-whether the file that held it used CRLF, and a compositor that guessed would
-rewrite every line of a Windows checkout.
+taken from `page.text`, with the two other facts no paragraph holds: whether
+the file has text at all, and whether it ends on a line break. Nothing a
+paragraph says can state whether the file that held it used CRLF, and a
+compositor that guessed would rewrite every line of a Windows checkout.
 """
 
 import collections
@@ -71,9 +63,9 @@ LF = "\n"
 def line_endings(text: str) -> str:
     """Which ending this text uses: CRLF if any line has one, else LF.
 
-    ! THE FIRST ENDING WINS AND MIXED FILES ARE NORMALISED. A file holding both
+    ! ANY CRLF WINS AND MIXED FILES ARE NORMALISED. A file holding both
     is already inconsistent, and picking per line would preserve a defect the
-    author cannot see. `galley.py` has answered it this way since it was written.
+    author cannot see.
     """
     return CRLF if CRLF in text else LF
 
@@ -89,17 +81,12 @@ def _held(page: Page) -> dict[str, list[str]]:
     """
     out: dict[str, list[str]] = {}
     for paragraph in page.paragraphs:
-        # !! ASKED, NOT SPLIT. `cue_of` is the one reader of an address, and
-        # this re-derived it -- so the two disagreed on the one input that tells
-        # them apart. MEASURED 2026-08-22: `cue_of("b3")` answers `""`, because
-        # an address is `path@cue` and a bare cue is not one; `"b3".split("@")
-        # [-1]` answers `"b3"`. So the compositor SET a place `galley.reset`
-        # REFUSES, and the disagreement is invisible until the two are compared.
-        # !! BRANCHED ON THE ADDRESS, NOT ON THE BLANK THAT CAME BACK. This read
-        # `cue_of(paragraph.address or "").cue or paragraph.symbol` -- sending a
-        # `d` through the address reader so the empty answer could signal "go
-        # ask the symbol". Roy, 2026-08-24: *"Series d are walked because they
-        # have to be but they are not cues."* It never was an address question.
+        # !! ASKED, NOT SPLIT. `galley.reset` keys a place by `cue_of`, so this
+        # does too: `cue_of("b3")` answers `""`, because an address is `path@cue`
+        # and a bare cue is not one, where `"b3".split("@")[-1]` answers `"b3"`.
+        # !! BRANCHED ON THE ADDRESS, NOT ON THE BLANK THAT CAME BACK. A `d` is
+        # walked but has no address, so it is keyed by its symbol and never passed
+        # through the address reader.
         cue = cue_of(paragraph.address).cue if paragraph.address else paragraph.symbol
         if cue:
             out[cue] = list(paragraph.raw_lines)
@@ -115,21 +102,18 @@ def set_page(page: Page, newline: str | None = None) -> str:
     it is set where it always was -- next.
 
     !! THE SERIES ORDER IS FIXED AND `f` COMES FIRST, WHICH IS LOSSY ON ONE
-    SHAPE. Roy, 2026-08-21: *"f0 always first, then a0, then b0, then c0. I know
-    f0 is going to grab b0 lines. It is a sacrifice I am willing to make."* A
-    file whose front matter is NOT on line 1 -- a blank above it, which `b` owns
-    -- comes back with the matter above that blank. MEASURED over 699 files: 12
-    are set this way, all C headers, and NONE of them loses or invents a line.
+    SHAPE. A file whose front matter is NOT on line 1 -- a blank above it, which
+    `b` owns -- comes back with the matter above that blank. MEASURED over 3,155
+    corpus files: 3 are set this way, all in `corpora/pymc`, and none loses or
+    invents a line.
 
     ! THAT IS WHY `lossless` EXISTS BESIDE `identity`. The first is the invariant
     that must never break; the second is the strict form, and the gap between
     them is exactly this normalisation.
 
-    ! AND IT IS HANDED TO A READER RATHER THAN SOLVED. Roy: *"I don't know how to
-    do semantic matching thorough enough to catch all of the potential edge
-    cases ... ownership-context is partially about this."* Moving an `f0` into a
-    `b0` because that is where it fits is a `query` to the human, and it is one
-    time per file.
+    ! AND IT IS HANDED TO A READER RATHER THAN SOLVED. Moving an `f0` into a `b0`
+    because that is where it fits is a `query` to the human, and it is one time
+    per file.
 
     Args:
         page: the page to set. Its cues states the order.
@@ -138,6 +122,10 @@ def set_page(page: Page, newline: str | None = None) -> str:
 
     Returns:
         The file's text.
+
+    Raises:
+        Refused: the page has no places over a file with text -- its source
+            was never read, and setting it would empty the file.
     """
     ending = newline if newline is not None else line_endings(page.text)
     held = _held(page)
@@ -148,14 +136,16 @@ def set_page(page: Page, newline: str | None = None) -> str:
     # key means those two places sit against each other, which is what 90% of
     # `c`->`c` boundaries do.
     #
-    # A run above everything follows nothing, and is filed under `""`.
-    # An edge belongs to the place before it, which is what it is keyed by.
-    # When a paragraph goes away the place before it keeps its leading and the
-    # dropped place's is not set; no key changes.
+    # A run above everything is keyed under `f0`, the first place `cue` emits,
+    # and `""` keys it only for a `Cues` with no places -- see
+    # `Page.tie_leading`. An edge belongs to the place before it, which is what
+    # it is keyed by. When a
+    # paragraph goes away the place before it keeps its leading and the dropped
+    # place's is not set; no key changes.
     #
-    # The lookup is the base rule, and each direction adds one check to it.
-    # Drop `P` between X and Y: `P` sets nothing but still becomes `previous`,
-    # and because it is in `vacated` the edge it owned is not set -- so what
+    # The lookup is the base rule, and each direction adds one check to it. Drop
+    # `P` between X and Y: `P` sets nothing but still becomes `previous`, and
+    # because it is in `vacated` the edge it owned is not set -- so what
     # separates X from Y is X's own edge, set before `P`. Add `N` between X and
     # Y: X's edge is set before `N`, and where X owns none and `N` is a `b`
     # above the last line of code, `adding_a_gap` supplies one; `N` owns no
@@ -169,25 +159,15 @@ def set_page(page: Page, newline: str | None = None) -> str:
     # rewrite. Dropping `P` between X and Y leaves X's edge keyed on X, and this
     # loop sets it where it always was -- the new adjacency, reached without
     # computing anything, because the key that finds it never mentioned `P`.
-    #
-    # ! IT WAS KEYED BY A PAIR UNTIL 2026-08-22 and this line collapsed it. Roy,
-    # shown that nothing read the second half: *"so drop the second edge if it
-    # isn't necessary."* MEASURED before the cut over 96,047 edges on 2,792
-    # corpus pages in ten languages, C carrying more of them than Python:
-    # `before` alone is unique and the collapse lost ZERO. ! The pair was kept
-    # for legibility and was the half that could be WRONG -- after a drop it
-    # named a place it no longer separated.
     edges = page.leading
     # !! WHICH PLACES WERE EMPTY WHEN THE PAGE WAS READ. `galley.reset` fills
     # `raw_lines` and leaves the KIND saying absence, so a place holding prose
     # under an absent kind is one an `add` just filled -- which is the only case
     # the leading rule below may fire on.
     #
-    # ! THE EDGE ALONE DOES NOT SAY IT. Measured 2026-08-26: keying the rule on
-    # "no leading was looked up" fired on a MODIFY and on an unedited compose
-    # too, because a `b` sitting flush against its code owns no leading either --
-    # three tests caught it, `test_a_comment_run_that_swallows_code_is_caught_by
-    # _prove` among them.
+    # ! THE EDGE ALONE DOES NOT SAY IT. Keying the rule on "no leading was looked
+    # up" would fire on a MODIFY and on an unedited compose too, because a `b`
+    # sitting flush against its code owns no leading either.
     absent = {
         cue_of(b.address).cue
         for b in page.paragraphs
@@ -217,89 +197,66 @@ def set_page(page: Page, newline: str | None = None) -> str:
         and not Kind.occupies_no_lines(b.kind)
         and not b.raw_lines
     }
-    # !! THE CLOSING GAP IS EXEMPT, AND THE FOOT IS WHY. Back matter is the run
-    # AFTER the last blank line, so a leading above an added closing `b` pushes
-    # it INTO the matter it was meant to stay clear of. MEASURED 2026-08-26 on
-    # `SAMPLE`: `b4` with a leading still re-reads at `f1`, so the blank changes
-    # the bytes and not the outcome.
-    #
-    # ! THAT COLLISION IS ITS OWN FINDING and is not this rule's to solve --
-    # `TODO/foot-of-file-two-places.md`, where `cue` emits the closing gap and
-    # `f1` at the same `<eof>` trigger. The head pair is separable because front
-    # matter ends at the FIRST blank; the foot pair is not, by the same rule read
-    # upward.
     reading = list(page.cues.reading)
     last_code = max((i for i, c in enumerate(reading) if c.startswith(ON)), default=-1)
     previous = ""
     closing_gap = False
     for at, cue in enumerate(reading):
         prose = held.get(cue, [])
-        # ! ASKED OF THE CUE DIRECTLY. `series_of` reads an ADDRESS and
-        # returns its first character, so building one here to take that
-        # character back off is the same test twice -- and it is spelled the
-        # direct way at five other sites in `galley` and `page`.
+        # ! ASKED OF THE CUE DIRECTLY. `series_of` reads a paragraph's address
+        # and returns its cue's first character, so building one here to take
+        # that character back off is the same test twice -- and it is spelled the
+        # direct way at five other sites in `binder/page.py`.
         beside_code = cue.startswith(ON)
-        # !! EVERY PLACE ADVANCES `previous`, INCLUDING ONE THAT SETS NOTHING,
-        # and that is what makes this walk exact. An empty place is still a
-        # place -- it is a position an instruction can cite -- so skipping it here
-        # made this list disagree with the one `tie_leading` walked.
-        #
-        # ! IT SKIPPED THEM UNTIL 2026-08-22, and `tie_leading` skipped them
-        # too, so the two halves agreed by taking the SAME shortcut rather than
-        # by either being right. The visible cost was a dark-matter `f0`: it set
-        # nothing, so `previous` stayed `""` past the head of the file and a run
-        # of blank lines there was keyed on the empty string.
+        # !! EVERY PLACE ADVANCES `previous`, INCLUDING ONE THAT SETS NOTHING, and
+        # that is what makes this walk exact. An empty place is still a place --
+        # it is a position an instruction can cite -- so skipping it here made
+        # this list disagree with the one `tie_leading` walked.
         #
         # ! THE EDGE IS LOOKED UP BEFORE THE PLACE IS SET, so it lands between
         # what came before and what comes next. A place that sets nothing
         # contributes no lines, so the space still falls exactly where it did.
         #
-        # !! A PLACE IS INVIOLABLE -- IT NEVER DISAPPEARS. Roy, 2026-08-22:
-        # *"places are involatile; having an empty sentinel is the key, not that
-        # the place disappears."* An emptied place still holds its position;
-        # whether it still owns the space below it is what `vacated` answers.
+        # !! A PLACE IS INVIOLABLE -- IT NEVER DISAPPEARS. An emptied place still
+        # holds its position; whether it still owns the space below it is what
+        # `vacated` answers.
         #
-        # And the call is this loop's, `Addressing: #22`: a fence is
-        # a property of the page being laid out, so it is asked here and not by
-        # the edit that touched the place. The question is the place's state --
-        # a kind that says prose belongs, and no lines held -- which is what
-        # `vacated` reads.
+        # And the call is this loop's: a fence is a property of the page being
+        # laid out, so it is asked here and not by the edit that touched the
+        # place. The question is the place's state -- a kind that says prose
+        # belongs, and no lines held -- which is what `vacated` reads.
         edge = [] if previous in vacated else held.get(edges.get(previous, ""), [])
         out.extend(edge)
-        # !! A `b` SET INTO A PLACE THAT OWNED NO LEADING TAKES ONE. Roy,
-        # 2026-08-26: *"It needs to add the leading between before any b"*, and
-        # on how this tells: *"the leading look up paragraph is not in there,
-        # which is admittedly backwards but that will tell."*
+        # !! A `b` SET INTO A PLACE THAT OWNED NO LEADING TAKES ONE: when an
+        # added `b` finds no leading looked up before it, a blank line is set
+        # above it.
         #
         # ! WHY IT IS NEEDED: front matter and the first gap both sit above the
         # first statement, so a comment set flush under an `f0` re-reads as part
         # of that matter run and the `b` loses its address. A blank between them
-        # is what keeps the two places separable -- see `lexer.paragraphs_stdlib`.
+        # is what keeps the two places separable -- see `Kind.MATTER`.
         #
-        # ! ROY RULED THE COST: *"It may not be what all of the projects do but
-        # it is generally enough and easy enough to implement and it looks good
-        # enough to most humans that I think it is a justifiable editorial
-        # decision."* And on the file that opens with the blank: *"the leading on
-        # the first line for places that do not have frontmatter will disappear
-        # on an automatic format run like ruff or black."*
         # ! IT FIRES AT THE HEAD OF THE FILE TOO, so a `b0` added to a file with
-        # no front matter opens with a blank line. Roy, 2026-08-26, ruling on
-        # that cost directly: *"The leading on the first line for places that do
-        # not have frontmatter will disappear on an automatic format run like
-        # ruff or black."* Suppressing it there is what left `b0` re-reading as
+        # no front matter opens with a blank line, which a formatter such as
+        # ruff or black removes. Suppressing it there leaves `b0` re-reading as
         # `f0` -- the defect this rule exists to close.
-        #
-        # !! AND AT THE FOOT IT GOES ON THE OTHER SIDE. Roy, 2026-08-26: *"still
-        # the same rule as the frontmatter in reverse."* Matter is the run that
-        # STARTS on line 1 or ENDS on the last one, so what pushes a gap out of
-        # it is a blank BEFORE at the head and a blank AFTER at the foot. !
-        # MEASURED: `...return y\n# ADDED\n` and `...return y\n\n# ADDED\n` both
-        # re-read at `f1`; `...return y\n# ADDED\n\n` re-reads at the closing
-        # gap. A leading before the closing gap was the mirror image of the fix
-        # and moved nothing.
         adding_a_gap = bool(prose) and cue.startswith(GAP) and cue in absent
+
+        # !! THE CLOSING GAP IS EXEMPT, AND THE FOOT IS WHY. Back matter is the
+        # run AFTER the last blank line, so a leading above an added closing `b`
+        # pushes it INTO the matter it was meant to stay clear of: on `SAMPLE`,
+        # `b4` with a leading still re-reads at `f1`, so the blank changes the
+        # bytes and not the outcome.
         if adding_a_gap and not edge and at < last_code:
             out.append("")
+        # !! AND AT THE FOOT IT GOES ON THE OTHER SIDE -- the head's rule in
+        # reverse. Matter is the run that STARTS on line 1 or ENDS on the last
+        # one, so what pushes a gap out of it is a blank BEFORE at the head and a
+        # blank AFTER at the foot. ! `...return y\n# ADDED\n` and
+        # `...return y\n\n# ADDED\n` both re-read at `f1`;
+        # `...return y\n# ADDED\n\n` re-reads at the closing gap, so a leading
+        # before the closing gap moves nothing.
+        #
         # ! OWED UNTIL THE PROSE IS SET, which is why it is held rather than
         # written here -- the blank belongs BELOW the paragraph.
         trailing = adding_a_gap and at > last_code and not edges.get(cue)
@@ -310,10 +267,9 @@ def set_page(page: Page, newline: str | None = None) -> str:
             continue
         closing_gap = False
         if beside_code:
-            # ! A `c` IS THE LINE OF CODE, so it is set whether or not anything
-            # sits beside it. Its first line is the code and the room together;
-            # a comment opened in that room and closed on a later line owns
-            # those lines outright, because no code is on them.
+            # A `c`'s first line is the code and the room together; a comment
+            # opened in that room and closed on a later line owns those lines
+            # outright, because no code is on them.
             code = page.cues.anchor_of(cue)
             out.append(f"{code}{prose[0] if prose else ''}")
             out.extend(prose[1:])
@@ -329,19 +285,13 @@ def set_page(page: Page, newline: str | None = None) -> str:
     if not page.cues.reading and page.text:
         # !! A PAGE WITH NO PLACES OVER A FILE WITH TEXT IS NOT AN EMPTY PAGE --
         # it is a page that was never built, and setting it would EMPTY THE FILE.
-        # `page_for` skips the walk when a reader refuses the source, so
-        # `reading` is empty and every line of the file is unaccounted for.
-        #
-        # !! MEASURED 2026-08-21 on `sentry/src/sentry/api/paginator.py`: 884
-        # lines in, 0 characters out, silently. It uses `class Paginator[T]:` --
-        # PEP 695, which the floor interpreter cannot parse -- and 4 files in
-        # `corpora/` are in that state today. Roy: *"we can't use python to parse
-        # python files ... the ast to bootstrap the pieces fails on new python
-        # syntax."*
+        # `page_for` returns a `ReadFailure` rather than a page when a reader
+        # refuses the source, so a page reaching here with no `reading` was built
+        # some other way, and every line of its file is unaccounted for.
         #
         # ! REFUSING IS THE ONLY SAFE ANSWER. `draft()` writes what this returns,
         # and an empty draft approved by anyone not reading the diff is a deleted
-        # file. See `TODO/python-cannot-read-python.md`.
+        # file.
         raise exceptions.Refused(
             f"{page.path}: the page has no places -- its source was never read"
         )
@@ -359,23 +309,18 @@ def set_page(page: Page, newline: str | None = None) -> str:
 def draft(page: Page, into: Path) -> Path:
     """Write this page to `into` -- a file of its own, never the original.
 
-    !! THE REAL FILE IS NOT TOUCHED HERE. Roy, 2026-08-21: *"it gets emitted into
-    a temporary file to be compared to the original by either the reviewing agent
-    or the human ... No editing on the 'real' file until the draft is fully
-    approved."* So a run that is abandoned, refused or wrong leaves the tree
-    exactly as it found it, and `git diff --no-index` against the original is the
-    whole review.
+    !! THE REAL FILE IS NOT TOUCHED HERE. The page is emitted into a file of its
+    own, so a run that is abandoned, refused or wrong leaves the tree exactly as
+    it found it, and `git diff --no-index` against the original is the whole
+    review.
 
-    !! IT REACHES DISK THROUGH `machine.repo.write_raw` SINCE `P45`, and held its
-    own `mkdir` and `write_text(..., newline="")` before that. This module SETS a
-    page; where the bytes land and how they are written is the checkout's
-    business, which is `machine`'s -- the same rule the read end has always
-    obeyed, and Roy's own wording of the flow spec: *"if the change is a code
-    file it outputs the file through machine/ code."*
+    !! IT REACHES DISK THROUGH `machine.repo.write_raw`. This module SETS a page;
+    where the bytes land and how they are written is the checkout's business,
+    which is `machine`'s.
 
-    ! WHAT DID NOT CHANGE IS THE ONE-WRITER PROPERTY `flows.proof_setter._one`
-    depends on, or the untranslated write `results/prove_unchanged.py`'s byte
-    comparison depends on. `write_raw` carries both, and says so.
+    ! `write_raw` CARRIES the one-writer property `flows.proof_setter._one`
+    depends on, and the untranslated write `results/prove_unchanged.py`'s byte
+    comparison depends on, and says so.
     """
     return write_raw(into, set_page(page))
 
@@ -386,6 +331,8 @@ def approve(drafted: Path, real: Path) -> Path:
     ! A COPY, NOT A SPLICE. The draft IS the finished page -- it was set from the
     whole of it -- so there is nothing to merge and no range to get wrong. That
     is the difference this module exists to make.
+
+    ! IT HAS NO CALLER, in `src/` or in `tests/`.
     """
     shutil.copyfile(drafted, real)
     return real
@@ -399,25 +346,21 @@ def lossless(original: str, rendered: str) -> str | None:
     duplicate counts, without line endings. Reordering lines or changing their
     endings can preserve this invariant while failing byte identity.
 
-    ! IT IS WHAT SEPARATES A NORMALISATION FROM A BUG. A gate that could not
-    tell them apart would carry the known-acceptable failures, and the next one
-    -- a real one -- would land among them unnoticed.
+    ! IT IS WHAT SEPARATES A NORMALISATION FROM A BUG. A gate that could not tell
+    them apart would carry the known-acceptable failures, and the next one -- a
+    real one -- would land among them unnoticed.
 
-    !! MEASURED 2026-08-29 over the ten corpora `corpora/corpora.toml` pins,
-    3,155 files carrying a language record: **3 fail `identity` and 0 lose or
-    invent a line**. The three are the `f`-before-`b` ordering above, all in
+    !! MEASURED over ten of the 18 corpora `corpora/corpora.toml` pins, 3,155
+    files carrying a language record: **3 fail `identity` and 0 lose or invent a
+    line**. The three are the `f`-before-`b` ordering above, all in
     `corpora/pymc`. A further 4, all in `corpora/sentry`, are REFUSED by both
-    checks before either can measure anything -- the unparsed page, whose
-    source the reader never established.
+    checks before either can measure anything -- the unparsed page, whose source
+    the reader never established.
 
-    !! THE 2026-08-21 FIGURE THIS PARAGRAPH CARRIED IS SUPERSEDED -- *"over 699
-    files: 12 fail `identity` and 0 fail this one"*. Its second half was FALSE
-    when written: `TODO/a-closing-quote-with-a-comment.md` records the same
-    corpus run finding 7 files that lose or invent a line, three of them
-    docstrings whose closing delimiter carried a trailing comment, and a review
-    reproduced that shape on 2026-08-29. ! The file set behind the old number
-    was never named, so it cannot be re-derived; the number above names its set
-    so the next reader can disagree with it.
+    Returns:
+        None when both texts hold the same lines, each as often; otherwise a
+        message naming the first lost line (`line lost: ...`), or failing that
+        the first invented one (`line invented: ...`).
     """
     if sorted(constants.text_lines(rendered)) == sorted(constants.text_lines(original)):
         return None
