@@ -26,6 +26,7 @@ from comment_review.reading import readers
 from comment_review.reading.context import ReadingContext, resolve_context
 from comment_review.reading.definitions import LanguageDefinition
 from comment_review.reading.diagnostics import ReadFailure
+from comment_review.reading.stripped import StrippedRead
 
 MODERN_SOURCE = (
     "# Describe the envelope.\n"
@@ -55,7 +56,7 @@ def forbid_host_parsers(patch):
 def test_python_fingerprint_requires_admitted_lexical_records(
     monkeypatch, suffix, text
 ):
-    from comment_review.results.prove_unchanged import code_fingerprint
+    from comment_review.reading.stripped import code_fingerprint
 
     with monkeypatch.context() as patch:
         forbid_host_parsers(patch)
@@ -88,7 +89,8 @@ def test_admitted_proof_never_reacquires_python_records(monkeypatch):
 
 
 def test_missing_python_records_refuse_without_host_fallback(monkeypatch):
-    page = replace(build("value = 1\n"), python_read=None)
+    page = build("value = 1\n")
+    page = replace(page, read=StrippedRead(page.text, Path("m.py")))
     with monkeypatch.context() as patch:
         forbid_host_parsers(patch)
         refusal = proof_setter._prove("m.py", page, page, Path("m.py"))
@@ -211,11 +213,11 @@ def test_selected_owner_requires_unique_retained_correspondence(forgery):
     elif forgery == "missing":
         current = replace(current, anchor_line=None)
     else:
-        read = now.python_read
+        read = now.read
         assert read is not None
         declaration = read.source.declarations[0]
         source = replace(read.source, declarations=(declaration, declaration))
-        now = replace(now, python_read=replace(read, source=source))
+        now = replace(now, read=replace(read, source=source))
     refusal = proof_setter._prove("m.py", was, now, Path("m.py"), [(original, current)])
     assert refusal is not None and "identified" in refusal.why
 

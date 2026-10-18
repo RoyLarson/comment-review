@@ -4,7 +4,8 @@ from collections.abc import Collection, Iterator
 from dataclasses import dataclass
 
 from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, ReadStage
-from comment_review.reading.python.records import PreservationResult, PythonRead
+from comment_review.reading.proof import PreservationResult
+from comment_review.reading.python.records import PythonRead
 from comment_review.reading.source import RegionKind, SourceSpan
 
 _HORIZONTAL = " \t\f"

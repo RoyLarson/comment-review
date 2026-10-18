@@ -24,20 +24,21 @@ from comment_review.machine.repo import Source
 from comment_review.reading.addresser import Cues
 from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, ReadStage
 from comment_review.reading.lexer import language_for
+from comment_review.reading.python.records import PythonRead
 
 
 def test_python_page_retains_complete_structured_read():
     text = '"module"\nx = 1\ndef f[T]():\n    "a\\n" "b"\n    return 1\n'
     page = page_for_mod.page_of(Path("m.py"), source=Source(text, "held"))
     assert isinstance(page, Page)
-    assert page.python_read is not None
-    assert page.python_read.source.text is text
-    assert [section.form for section in page.python_read.source.sections] == [
+    assert isinstance(page.read, PythonRead)
+    assert page.read.source.text is text
+    assert [section.form for section in page.read.source.sections] == [
         "docstring",
         "docstring",
     ]
-    assert [payload.text for payload in page.python_read.payloads] == ["module", "a\nb"]
-    assert [owner.declaration for owner in page.python_read.source.documentation] == [
+    assert [payload.text for payload in page.read.payloads] == ["module", "a\nb"]
+    assert [owner.declaration for owner in page.read.source.documentation] == [
         None,
         0,
     ]
@@ -52,10 +53,10 @@ def test_python_page_bom_and_effective_cookie_preserve_exact_bytes():
     text = raw.decode("utf-8")
     page = page_for_mod.page_of(Path("m.py"), source=Source(text, "held"))
     assert isinstance(page, Page)
-    assert page.python_read is not None
-    assert page.python_read.source.reconstruct().encode("utf-8") == raw
-    assert page.python_read.payloads[0].text == "module"
-    assert [item.kind for item in page.python_read.protected] == ["encoding"]
+    assert isinstance(page.read, PythonRead)
+    assert page.read.source.reconstruct().encode("utf-8") == raw
+    assert page.read.payloads[0].text == "module"
+    assert [item.kind for item in page.read.protected] == ["encoding"]
 
 
 @pytest.mark.parametrize("bom", ["", "\ufeff"])
@@ -73,17 +74,17 @@ def test_python_page_contiguous_header_keeps_one_matter_place(bom, ending):
         assert set(filled) == {"f0"}
         assert filled["f0"].kind == Kind.MATTER
         assert filled["f0"].raw_lines == [bom + "# first", "# second"]
-        assert current.python_read is not None
-        assert len(current.python_read.source.sections) == 1
-        assert current.python_read.source.reconstruct() == text
+        assert isinstance(current.read, PythonRead)
+        assert len(current.read.source.sections) == 1
+        assert current.read.source.reconstruct() == text
 
 
 def test_python_page_whole_comments_and_matter_boundaries():
     text = "# front\n\n# before\nx=1\n# a\n\n# b\ny=2\n# after\n\n# back\n"
     page = page_for_mod.page_of(Path("m.py"), source=Source(text, "held"))
     assert isinstance(page, Page)
-    assert page.python_read is not None
-    assert len(page.python_read.source.sections) == 3
+    assert isinstance(page.read, PythonRead)
+    assert len(page.read.source.sections) == 3
     prose = {p.address.rsplit("@", 1)[-1]: p.raw_text for p in page if p.raw_text}
     assert prose["f0"] == "# front"
     assert "# a\n\n# b" in prose.values()
@@ -110,7 +111,7 @@ def test_python_page_documentation_closing_comment_keeps_one_wire_owner(
 
     page = page_for_mod.page_of(Path("m.py"), source=Source(text, "held"))
     assert isinstance(page, Page)
-    assert page.python_read is not None
+    assert isinstance(page.read, PythonRead)
     doc = next(p for p in page if p.kind == "docstring")
     assert cue(doc) == doc_cue
     assert doc.raw_text == raw
@@ -119,10 +120,10 @@ def test_python_page_documentation_closing_comment_keeps_one_wire_owner(
     assert {p.address for p in carried(page) if p.raw_text.strip()} == {doc.address}
     wire = {row["cue"]: row for row in page.serialize()["rows"]}
     assert wire[doc_cue]["raw_text"] == doc.raw_text
-    sections = page.python_read.source.sections
+    sections = page.read.source.sections
     assert [section.form for section in sections] == ["docstring"]
-    assert page.python_read.source.slice(sections[0].span).endswith("# note")
-    assert page.python_read.source.reconstruct() == text
+    assert page.read.source.slice(sections[0].span).endswith("# note")
+    assert page.read.source.reconstruct() == text
 
 
 @pytest.mark.parametrize(
@@ -200,8 +201,8 @@ def test_python_page_recognizes_once_and_retains_object_and_definition(monkeypat
     assert acquired == [True]
     assert contexts == [definition]
     assert len(recognized) == 1
-    assert page.python_read is recognized[0]
-    assert page.python_read.source.text is page.text is text
+    assert page.read is recognized[0]
+    assert page.read.source.text is page.text is text
     assert set(page.serialize()) == {"path", "sha", "reading", "rows"}
 
 
@@ -225,11 +226,11 @@ def test_python_page_documentation_raw_text_uses_existing_line_convention():
     text = 'def f():\r\n    ("a\\n"\r\n     "b")\r\n    pass\r\n'
     page = page_for_mod.page_of(Path("m.py"), source=Source(text, "held"))
     assert isinstance(page, Page)
-    assert page.python_read is not None
+    assert isinstance(page.read, PythonRead)
     doc = next(p for p in page if p.kind == "docstring")
     assert doc.text == "a b"
     assert doc.raw_text == '    ("a\\n"\n     "b")'
-    assert page.python_read.source.text.encode("utf-8") == text.encode("utf-8")
+    assert page.read.source.text.encode("utf-8") == text.encode("utf-8")
 
 
 @pytest.mark.parametrize(
@@ -242,8 +243,8 @@ def test_python_page_documentation_raw_text_uses_existing_line_convention():
 def test_python_page_interpolation_comments_keep_whole_sections(text, expected):
     page = page_for_mod.page_of(Path("m.py"), source=Source(text, "held"))
     assert isinstance(page, Page)
-    assert page.python_read is not None
-    assert len(page.python_read.source.sections) == len(expected)
+    assert isinstance(page.read, PythonRead)
+    assert len(page.read.source.sections) == len(expected)
     assert [p.address.rsplit("@", 1)[-1] for p in page.prose] == expected
     assert len(page.prose) == len(expected)
     assert [p.raw_text for p in page.prose] == (
@@ -255,15 +256,15 @@ def test_python_page_protected_directives_keep_comment_classification():
     text = "# coding: utf-8\nx=1 # type: int\ny=2 # type: ignore[attr]\n"
     page = page_for_mod.page_of(Path("m.py"), source=Source(text, "held"))
     assert isinstance(page, Page)
-    assert page.python_read is not None
-    assert [section.form for section in page.python_read.source.sections] == ["#"] * 3
+    assert isinstance(page.read, PythonRead)
+    assert [section.form for section in page.read.source.sections] == ["#"] * 3
     assert [p.raw_text for p in page if p.raw_text.strip()] == [
         "# coding: utf-8",
         " # type: int",
         " # type: ignore[attr]",
     ]
-    assert page.python_read.source.reconstruct() == text
-    assert [item.kind for item in page.python_read.protected] == [
+    assert page.read.source.reconstruct() == text
+    assert [item.kind for item in page.read.protected] == [
         "encoding",
         "type-comment",
         "type-ignore",
@@ -281,12 +282,12 @@ def test_python_page_protected_interpolation_comments_remain_classified(literal)
     text = "x=" + literal + "\n"
     page = page_for_mod.page_of(Path("m.py"), source=Source(text, "held"))
     assert isinstance(page, Page)
-    assert page.python_read is not None
-    assert len(page.python_read.source.sections) == len(page.prose) == 1
-    assert page.python_read.source.sections[0].form == "#"
+    assert isinstance(page.read, PythonRead)
+    assert len(page.read.source.sections) == len(page.prose) == 1
+    assert page.read.source.sections[0].form == "#"
     assert page.prose[0].text == "protected"
-    assert page.python_read.source.reconstruct() == text
-    assert page.python_read.protected
+    assert page.read.source.reconstruct() == text
+    assert page.read.protected
 
 
 @pytest.mark.parametrize(

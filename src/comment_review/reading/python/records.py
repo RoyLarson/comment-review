@@ -1,8 +1,11 @@
 """Immutable Python reader stages with character spans and explicit references."""
 
+from collections.abc import Collection
 from dataclasses import dataclass
+from typing import Self
 
-from comment_review.reading.diagnostics import ReadDiagnostic
+from comment_review.reading.diagnostics import ReadDiagnostic, ReadStage
+from comment_review.reading.proof import UNIDENTIFIED_OWNER, PreservationResult
 from comment_review.reading.source import (
     SourceDeclaration,
     SourceRegion,
@@ -262,20 +265,54 @@ class PythonRead:
                     "payload statement and owner must match source documentation"
                 )
 
+    @property
+    def proof(self) -> str:
+        """The comparison's name, as a proof report prints it."""
+        return "lexical"
 
-@dataclass(frozen=True)
-class PreservationResult:
-    """A preservation decision with diagnostics only when source changed."""
+    def owner_at(self, anchor_line: int | None) -> tuple[int | None, ...]:
+        """The declaration documented from this anchor line; None for the module.
 
-    unchanged: bool
-    diagnostics: tuple[ReadDiagnostic, ...]
+        Empty unless exactly one declaration is anchored on that line.
+        """
+        if anchor_line is None:
+            return (None,)
+        owners = tuple(
+            index
+            for index, declaration in enumerate(self.source.declarations)
+            if self.source.position(declaration.anchor).line == anchor_line
+        )
+        return owners if len(owners) == 1 else ()
 
-    def __post_init__(self) -> None:
-        """Require a Boolean decision and the corresponding diagnostic presence."""
-        if not isinstance(self.unchanged, bool):
-            raise ValueError("unchanged must be a bool")
-        _tuple(self.diagnostics, ReadDiagnostic, "diagnostics")
-        if self.unchanged == bool(self.diagnostics):
-            raise ValueError(
-                "unchanged results have no diagnostics; changed results require them"
-            )
+    def preserved(
+        self,
+        after: Self,
+        *,
+        documented: Collection[tuple[int | None, int | None]] | None = None,
+    ) -> PreservationResult:
+        """Whether `after` holds this read's executable source unchanged.
+
+        A docstring is code in Python, so each approved alteration must name the
+        same single declaration on both sides before its docstring is set aside.
+        """
+        # Imported here because `preservation` reads this module's records.
+        from comment_review.reading.python.preservation import compare_preservation
+
+        owners: set[int | None] = set()
+        if documented is None:
+            owners = {None, *range(len(self.source.declarations))}
+        for was, now in documented or ():
+            before_owner, after_owner = self.owner_at(was), after.owner_at(now)
+            if not before_owner or before_owner != after_owner:
+                return PreservationResult(
+                    False,
+                    (
+                        ReadDiagnostic(
+                            ReadStage.PLACE,
+                            UNIDENTIFIED_OWNER,
+                            "an approved docstring's declaration is not identified",
+                        ),
+                    ),
+                )
+            owners.add(before_owner[0])
+        return compare_preservation(self, after, allowed_documentation_owners=owners)

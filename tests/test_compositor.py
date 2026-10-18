@@ -240,7 +240,7 @@ FORMS = {
     # paragraphs then claimed one line, and `page.code_lines` handed it to the
     # `c` series as well -- the line was set TWICE, `lossless` reported *line
     # invented*, and the duplicate delimiter reopened a string literal, so
-    # `prove_unchanged.code_fingerprint` fell from `ast` to `unprovable` and the
+    # `stripped.code_fingerprint` fell from `ast` to `unprovable` and the
     # write chain refused the docket. Reproduced 2026-08-29; the shape was in
     # none of the sources this file or `test_reading.py` carried.
     "docstring closed with a comment": (

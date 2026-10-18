@@ -57,10 +57,9 @@ from comment_review.reading.addresser import MODULE, address_for, cue_of
 from comment_review.reading.context import ReadingContext
 from comment_review.reading.diagnostics import ReadFailure
 from comment_review.reading.paragraph import Paragraph
-from comment_review.reading.python.preservation import compare_preservation
+from comment_review.reading.proof import UNIDENTIFIED_OWNER
 from comment_review.reading.series import Series
 from comment_review.results import compositor, galley
-from comment_review.results.prove_unchanged import code_fingerprint
 
 
 class Step(StrEnum):
@@ -672,18 +671,15 @@ def _prove(
 ) -> Refusal | None:
     """Prove retained source unchanged after the approved prose alterations.
 
-    Text inputs first enter page admission. Python compares the pages' acquired
-    lexical records, preserving executable source, ordinary literals, protected
-    directives and their attachments. Ordinary prose may change; documentation
-    presence stays fixed except at selected owners named by approved `a` pairs.
-    Each pair must identify the same unique owner through admitted source
-    positions and anchors. A removed docstring cannot authorize changes to an
-    ordinary literal promoted into its place.
+    Text inputs first enter page admission. The before page's read then compares
+    itself with the after page's, given the anchor line of each approved `a`
+    pair; each pair must be the page's own place, carrying the anchor its cues
+    give it. Which docstrings a read may set aside, and how it identifies their
+    owners, is the read's: see `reading.proof.SourceRead`.
 
     `_reread` checks the requested text at each edited cue; this comparison also
-    covers retained source elsewhere in the file. Other languages use their
-    existing comment-stripped fingerprint comparison. Failed admission,
-    unidentified owners and unprovable comparisons all refuse.
+    covers retained source elsewhere in the file. Failed admission, a changed
+    proof kind, unidentified owners and unprovable comparisons all refuse.
     """
     admitted: list[Page] = []
     for side, value in (("before", before), ("after", after)):
@@ -696,73 +692,55 @@ def _prove(
             return Refusal("prove", rel, f"{side}: {format_failure(page, path=rel)}")
         admitted.append(page)
     page_before, page_after = admitted
-    if (
-        page_before.reading.language == "python"
-        or page_after.reading.language == "python"
-        or page_before.python_read is not None
-        or page_after.python_read is not None
-    ):
-        if page_before.python_read is None or page_after.python_read is None:
-            return Refusal("prove", rel, "the proof kind is not what it was")
-        owners: set[int | None] = set()
-        for was, now in approved:
-            if Series.of(cue_of(was.address).cue) is not Series.DECLARED:
-                continue
-            before_owner = _python_documentation_owner(page_before, was)
-            after_owner = _python_documentation_owner(page_after, now)
-            if not before_owner or before_owner != after_owner:
-                return Refusal(
-                    "prove",
-                    rel,
-                    "the declaration an approved docstring alteration documents "
-                    "cannot be identified in the code, so its docstring cannot "
-                    "be set aside",
-                )
-            owners.add(before_owner[0])
-        result = compare_preservation(
-            page_before.python_read,
-            page_after.python_read,
-            allowed_documentation_owners=owners,
-        )
-        if not result.unchanged:
-            return Refusal(
-                "prove",
-                rel,
-                "the executable code is not what it was: "
-                + format_failure(ReadFailure(result.diagnostics), path=rel),
-            )
+    if page_before.read.proof != page_after.read.proof:
+        return Refusal("prove", rel, "the proof kind is not what it was")
+    unidentified = Refusal(
+        "prove",
+        rel,
+        "the declaration an approved docstring alteration documents "
+        "cannot be identified in the code, so its docstring cannot "
+        "be set aside",
+    )
+    documented: list[tuple[int | None, int | None]] = []
+    for was, now in approved:
+        if Series.of(cue_of(was.address).cue) is not Series.DECLARED:
+            continue
+        before_line = _documented_line(page_before, was)
+        after_line = _documented_line(page_after, now)
+        if before_line is None or after_line is None:
+            return unidentified
+        documented.append((before_line[0], after_line[0]))
+    result = page_before.read.preserved(page_after.read, documented=documented)
+    if result.unchanged:
         return None
-    before_text, after_text = (page.text for page in admitted)
-    kind, want = code_fingerprint(before_text, path)
-    got_kind, got = code_fingerprint(after_text, path)
-    if kind != "stripped" or got_kind != "stripped":
+    if result.unprovable:
         return Refusal("prove", rel, "the code in this file cannot be proven unchanged")
-    if want != got:
-        return Refusal("prove", rel, "the executable code is not what it was")
-    return None
+    if any(d.code == UNIDENTIFIED_OWNER for d in result.diagnostics):
+        return unidentified
+    return Refusal(
+        "prove",
+        rel,
+        "the executable code is not what it was: "
+        + format_failure(ReadFailure(result.diagnostics), path=rel),
+    )
 
 
-def _python_documentation_owner(
-    page: Page, paragraph: Paragraph
-) -> tuple[int | None, ...]:
-    """Locate one approved owner using the admitted place and declaration position."""
-    read = page.python_read
-    assert read is not None
+def _documented_line(page: Page, paragraph: Paragraph) -> tuple[int | None] | None:
+    """The anchor line an approved `a` place documents, `(None,)` for the module.
+
+    None unless the paragraph is the page's single place at its address and
+    carries the anchor the page's cues give that place.
+    """
     places = [place for place in page if place.address == paragraph.address]
     cue = cue_of(paragraph.address).cue
     if len(places) != 1 or Series.of(cue) is not Series.DECLARED:
-        return ()
+        return None
     if (paragraph.anchor, paragraph.anchor_line, paragraph.anchor_num) != (
         page.cues.anchor_of(cue),
         page.cues.anchor_line(cue),
         page.cues.anchor_num(cue),
     ):
-        return ()
+        return None
     if paragraph.anchor == MODULE and paragraph.anchor_line is None:
         return (None,)
-    owners = tuple(
-        index
-        for index, declaration in enumerate(read.source.declarations)
-        if read.source.position(declaration.anchor).line == paragraph.anchor_line
-    )
-    return owners if len(owners) == 1 else ()
+    return (paragraph.anchor_line,)

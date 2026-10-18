@@ -1,6 +1,7 @@
 import pytest
 from conftest import build, cue
 
+from comment_review.reading.python.records import PythonRead
 from comment_review.reading.series import Kind
 from comment_review.results.compositor import set_page
 from comment_review.results.galley import reset
@@ -14,9 +15,9 @@ def assert_documentation(page, raw, prose, owner, decoded):
     assert doc.raw_text == raw
     assert doc.text == prose
     assert [p for p in page if p.raw_text == raw] == [doc]
-    assert page.python_read is not None
-    assert [p.text for p in page.python_read.payloads] == [decoded]
-    assert [p.declaration for p in page.python_read.source.documentation] == [owner]
+    assert isinstance(page.read, PythonRead)
+    assert [p.text for p in page.read.payloads] == [decoded]
+    assert [p.declaration for p in page.read.source.documentation] == [owner]
     return doc
 
 
@@ -170,15 +171,15 @@ def test_nested_lexical_owners_survive_replacement_and_reread():
         assert {
             cue(p): p.text for p in current if p.kind == Kind.DOCSTRING
         } == expected_docs
-        assert current.python_read is not None
-        assert [p.text for p in current.python_read.payloads] == [
+        assert isinstance(current.read, PythonRead)
+        assert [p.text for p in current.read.payloads] == [
             "module docs",
             "class docs",
             "method docs",
             "nested\n            docs",
             "sibling docs",
         ]
-        assert [p.declaration for p in current.python_read.source.documentation] == [
+        assert [p.declaration for p in current.read.source.documentation] == [
             None,
             0,
             1,
@@ -194,8 +195,8 @@ def test_nested_lexical_owners_survive_replacement_and_reread():
     reread = build(composed)
     expected_docs["a2"] = "changed method"
     assert {cue(p): p.text for p in reread if p.kind == Kind.DOCSTRING} == expected_docs
-    assert reread.python_read is not None
-    assert [p.text for p in reread.python_read.payloads] == [
+    assert isinstance(reread.read, PythonRead)
+    assert [p.text for p in reread.read.payloads] == [
         "module docs",
         "class docs",
         "changed method",

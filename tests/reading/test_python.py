@@ -2917,6 +2917,7 @@ def test_expression_comments_existing_places_preserve_expression_on_set_and_edit
         laid_out,
         cues,
         build("").reading,
+        build(text).read,
         leading=tie_leading(laid_out, cues),
     )
     assert set_page(page) == text

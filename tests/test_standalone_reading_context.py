@@ -8,6 +8,7 @@ from test_proof_command import proof_repository
 
 from comment_review.commands import prove_unchanged as command
 from comment_review.flows import page_for, prove_unchanged, reading_context
+from comment_review.reading import stripped
 from comment_review.reading.diagnostics import ReadFailure
 
 
@@ -152,7 +153,7 @@ def test_standalone_equal_source_refuses_context_change_between_snapshot_reads(
 
     monkeypatch.setattr(prove_unchanged, "revision_source_of", acquire)
     monkeypatch.setattr(
-        prove_unchanged,
+        stripped,
         "code_fingerprint",
         lambda *_: pytest.fail("compared equal text before context admission"),
     )

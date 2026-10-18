@@ -21,10 +21,11 @@ from comment_review.flows import source as source_flow
 from comment_review.flows.distribute import seed
 from comment_review.flows.transcribe import docket_of
 from comment_review.machine.repo import undraftable
+from comment_review.reading import stripped
 from comment_review.reading.addresser import cue_of
 from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, ReadStage
+from comment_review.reading.stripped import code_fingerprint
 from comment_review.results import compositor, galley
-from comment_review.results.prove_unchanged import code_fingerprint
 
 
 @pytest.mark.parametrize("fault", ["digest", "malformed", "duplicate-settings"])
@@ -319,7 +320,7 @@ def test_proof_reuses_admitted_pages(tmp_path, monkeypatch):
 
 @pytest.mark.parametrize("kind", ["unprovable", "unknown", "ast"])
 def test_direct_proof_failed_fingerprint_kind_cannot_pass(monkeypatch, kind):
-    monkeypatch.setattr(proof_setter, "code_fingerprint", lambda *args: (kind, ""))
+    monkeypatch.setattr(stripped, "code_fingerprint", lambda *args: (kind, ""))
     refusal = proof_setter._prove(
         "m.js", "const value = 1;\n", "const value = 1;\n", Path("m.js")
     )

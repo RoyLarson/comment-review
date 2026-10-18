@@ -65,6 +65,7 @@ from comment_review.reading.lexer import (
     leading_between,
 )
 from comment_review.reading.paragraph import Paragraph
+from comment_review.reading.proof import SourceRead
 from comment_review.reading.python.projection import (
     code_for,
     declarations_for,
@@ -74,6 +75,7 @@ from comment_review.reading.python.records import PythonRead
 from comment_review.reading.readers import read_source
 from comment_review.reading.registry import LanguageRegistry
 from comment_review.reading.series import Kind, Series
+from comment_review.reading.stripped import StrippedRead
 
 #: The five fields a place is carried by, in the order `Page.serialize` writes
 #: them. ! `path` IS NOT AMONG THEM: the page states it once, because repeating
@@ -135,12 +137,11 @@ class Page:
             `addresser.cue`. It is what makes an `add` citable.
         reading: how the file was read -- its language, reader, compatibility
             digest and settings, which a binder carries beside the sha.
+        read: the record the reader made of the file. A proof compares two
+            pages' reads to ask whether their code is the same.
         leading: the space below a place, keyed by the place it FOLLOWS --
             `f0 -> d0`. An absent key means nothing blank follows that place,
             which is what most boundaries do.
-        python_read: the Python reader's record of the file, which
-            `proof_setter` and `prove_unchanged` compare across two reads; None
-            for every other language.
     """
 
     path: str
@@ -149,6 +150,7 @@ class Page:
     paragraphs: list[Paragraph]
     cues: Cues
     reading: ReadingContext
+    read: SourceRead
     # !! `serialize` IS BELOW, AFTER `leading`. It writes what a binder carries
     # for this page -- see `_place` for the five fields and `RedactedPage` for
     # the variant that emits only the places holding prose.
@@ -161,7 +163,6 @@ class Page:
     # place after it goes stale on a `drop`, naming a place the run no longer
     # separates. See `tie_leading`.
     leading: dict[str, str] = dataclass_field(default_factory=dict)
-    python_read: PythonRead | None = None
 
     def __iter__(self):
         """Down the page, in order."""
@@ -857,11 +858,11 @@ def page_for(
     result = read_source(path, text, registry=registry)
     if isinstance(result, ReadFailure):
         return result
-    python_read = result if isinstance(result, PythonRead) else None
-    if python_read is not None:
+    recognized = result if isinstance(result, PythonRead) else None
+    if recognized is not None:
         # The read may have broken a docstring's shared line; the page is that text.
-        text = python_read.source.text
-    got = paragraphs_for(path, python_read) if python_read is not None else result
+        text = recognized.source.text
+    got = paragraphs_for(path, recognized) if recognized is not None else result
     assert not isinstance(got, PythonRead)
     if isinstance(got, ReadFailure):
         return got
@@ -872,9 +873,9 @@ def page_for(
     cues = Cues()
     edges: dict[str, str] = {}
     prose = [vars(b) for b in got]
-    if python_read is not None:
-        code = code_for(python_read)
-        decls = declarations_for(python_read)
+    if recognized is not None:
+        code = code_for(recognized)
+        decls = declarations_for(recognized)
         cues = cue(code, documentable(decls, code), decls[0][1])
     else:
         cues = places_on(text, prose, lang)
@@ -908,7 +909,7 @@ def page_for(
         place_name = b.address.split("@")[-1]
         b.anchor_line = cues.anchor_line(place_name) if place_name else None
         b.anchor_num = cues.anchor_num(place_name) if place_name else 0
-    fill_the_gaps(text, got, code=code if python_read is not None else None)
+    fill_the_gaps(text, got, code=code if recognized is not None else None)
     edges = tie_leading(got, cues)
 
     where = rel if rel is not None else path.as_posix()
@@ -921,8 +922,8 @@ def page_for(
         reading=reading,
         paragraphs=sorted(got, key=lambda b: (b.start, b.end)),
         cues=cues,
+        read=recognized if recognized is not None else StrippedRead(text, path),
         leading=edges,
-        python_read=python_read,
     )
 
 
