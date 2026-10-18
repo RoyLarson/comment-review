@@ -1314,6 +1314,20 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   `tests/gates/test_skill_commands.py`, `COMMANDS`, and `vocabulary.toml`, and anything under
   `plugins/` is a version-bumping change to the installed plugin. It is filed rather than done.
 
+- **#37.** **The addressed unit of prose is a `passage`, and `paragraph` returns to plain
+  English** (Roy, 2026-10-18: *"Create a todo to change all improper instances of Paragraph to
+  Passage. This is starting to drive me crazy that we used the wrong word. Then `paragraph` can
+  mean the common form for paragraph and `passage` means the common proper for for passage"*).
+
+  **What it settles.** The term of art `vocabulary.toml` defines as `paragraph` -- one unit of
+  prose on the page, a comment run, a docstring, or the empty place either could go, answering
+  to exactly one address -- is renamed `passage`, in code, wire keys and prose. `paragraph`
+  keeps its ordinary meaning: a paragraph of English inside a comment or docstring.
+
+  **What it leaves standing.** `block` stays retired for this unit; the word it was retired in
+  favour of moves on. The rename is filed rather than done:
+  [`paragraph-is-a-passage`](../TODO/paragraph-is-a-passage.md).
+
 ## Metaphor and its limits
 
 - **#1.** **A category doing two jobs gets asked what the trade calls the half that does not fit**
