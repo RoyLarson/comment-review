@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 7 of 33 tasks closed
+Progress: 8 of 33 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, a code review of `binder/binder.py` run against its
@@ -225,7 +225,8 @@ task 5's, but the fix for these two lands in `binder/binder.py`.
 - [ ] T32 | Read every address in `binder/page.py` through `cue_of`
         > 2026-10-17 Reason: two `split("@")` sites break the one-reader rule
         > 2026-10-17 Check: grep finds no split("@") in binder/page.py
-- [ ] T33 | Replace `Page.python_read` with a read any reader produces
+- [x] T33 | Page.read replaces python_read; each reader supplies its proof | 6c745cd0f0eaaff53f2126a775a81b33ffe592b6 | Replace
+      `Page.python_read` with a read any reader produces
         > 2026-10-17 Reason: a Python-only field on the general Page; added in fcd2f0f8
         > 2026-10-17 Reason: both proof flows branch on Python to compare it
         > 2026-10-17 Check: Page has no python_read; proof flows test no language name
