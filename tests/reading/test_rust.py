@@ -652,6 +652,26 @@ def test_literals_prefix_inside_a_word_opens_nothing(rust_definition):
     ]
 
 
+def test_literals_prefix_after_a_digit_opens_nothing(rust_definition):
+    result = scanned("1r\"a\" 1b'x'", rust_definition)
+    assert shape(result) == [
+        (RegionKind.CODE, "1r"),
+        (RegionKind.LITERAL, '"a"'),
+        (RegionKind.WHITESPACE, " "),
+        (RegionKind.CODE, "1b"),
+        (RegionKind.LITERAL, "'x'"),
+    ]
+    assert spelled(result) == [
+        ("punct", "1"),
+        ("word", "r"),
+        ("string", '"a"'),
+        ("whitespace", " "),
+        ("punct", "1"),
+        ("word", "b"),
+        ("char", "'x'"),
+    ]
+
+
 def test_literals_raw_identifier_is_a_word(rust_definition):
     result = scanned("r#ident = 1", rust_definition)
     assert shape(result) == [

@@ -99,14 +99,14 @@ def _grammar(rules: Mapping[str, object]) -> None:
             "char_quote": "'",
             "char_prefixes": ("b",),
             "escape_marker": "\\",
-            "unicode_escape": ("\\u{", "}"),
             "raw_lifetime_prefix": "r#",
+            "raw_identifier_prefix": "r#",
         },
     )
     _section(
         rules,
         "attributes",
-        {"outer_open": "#[", "inner_open": "#![", "close": "]"},
+        {"outer_open": "#[", "inner_open": "#![", "open": "[", "close": "]"},
     )
     _section(
         rules,

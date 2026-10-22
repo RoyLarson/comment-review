@@ -26,12 +26,13 @@ raw_guard = "#"
 char_quote = "'"
 char_prefixes = ["b"]
 escape_marker = '\'
-unicode_escape = ["\\u{", "}"]
 raw_lifetime_prefix = "r#"
+raw_identifier_prefix = "r#"
 
 [rules.attributes]
 outer_open = "#["
 inner_open = "#!["
+open = "["
 close = "]"
 
 [rules.declarations]

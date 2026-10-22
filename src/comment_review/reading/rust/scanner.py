@@ -52,6 +52,7 @@ class _Literals:
     raw_guard: str
     char_quote: str
     escape: str
+    raw_lifetime: str
     raw_identifier: str
     # (prefix, kind) longest prefix first, so `br` is tried before `b`.
     prefixes: tuple[tuple[str, RustTokenKind], ...]
@@ -74,9 +75,8 @@ class _Literals:
             cast(str, literals["raw_guard"]),
             cast(str, literals["char_quote"]),
             cast(str, literals["escape_marker"]),
-            # A raw lifetime is a quote before a raw identifier, so the one
-            # prefix spells both.
             cast(str, literals["raw_lifetime_prefix"]),
+            cast(str, literals["raw_identifier_prefix"]),
             tuple(prefixes),
         )
 
@@ -85,6 +85,8 @@ class _Literals:
 class _Attributes:
     outer: str
     inner: str
+    # The bracket that opens an attribute's body and nests inside it.
+    open: str
     close: str
 
     @classmethod
@@ -93,13 +95,9 @@ class _Attributes:
         return cls(
             cast(str, attributes["outer_open"]),
             cast(str, attributes["inner_open"]),
+            cast(str, attributes["open"]),
             cast(str, attributes["close"]),
         )
-
-    @property
-    def bracket(self) -> str:
-        """The bracket that opens an attribute's body and nests inside it."""
-        return self.outer[-1]
 
 
 @dataclass(frozen=True)
@@ -185,7 +183,7 @@ def _attribute(
         if isinstance(result, ReadFailure):
             return result
         token_kind, end, _ = result
-        if token_kind is RustTokenKind.OPEN and text[at:end] == attributes.bracket:
+        if token_kind is RustTokenKind.OPEN and text[at:end] == attributes.open:
             depth += 1
         elif token_kind is RustTokenKind.CLOSE and text[at:end] == attributes.close:
             depth -= 1
@@ -270,7 +268,7 @@ def _literal(
             if char is None:
                 return _failure("unterminated-char", start, body)
             return RustTokenKind.CHAR, char, RegionKind.LITERAL
-    name = _past_raw_identifier_prefix(text, start, literals)
+    name = _past_prefix(text, start, literals.raw_identifier)
     if name > start:
         return RustTokenKind.WORD, _identifier_end(text, name), RegionKind.CODE
     return None
@@ -323,20 +321,16 @@ def _char_or_lifetime(
     end = _char(text, body, literals)
     if end is not None:
         return RustTokenKind.CHAR, end, RegionKind.LITERAL
-    name = _past_raw_identifier_prefix(text, body, literals)
+    name = _past_prefix(text, body, literals.raw_lifetime)
     if name < len(text) and text[name].isidentifier():
         return RustTokenKind.LIFETIME, _identifier_end(text, name), RegionKind.CODE
     return _failure("unterminated-char", start, body)
 
 
-def _past_raw_identifier_prefix(text: str, at: int, literals: _Literals) -> int:
-    """Past the raw identifier prefix at `at` if an identifier follows, else `at`."""
-    name = at + len(literals.raw_identifier)
-    if (
-        text.startswith(literals.raw_identifier, at)
-        and name < len(text)
-        and text[name].isidentifier()
-    ):
+def _past_prefix(text: str, at: int, prefix: str) -> int:
+    """Past `prefix` at `at` if an identifier follows it, else `at`."""
+    name = at + len(prefix)
+    if text.startswith(prefix, at) and name < len(text) and text[name].isidentifier():
         return name
     return at
 
