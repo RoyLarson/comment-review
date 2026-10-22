@@ -558,6 +558,27 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   is an ordinary placement change that `prove_unchanged` permits, and the system decides
   comment placement the way a formatter decides layout.
 
+- **#30.** **An attributed Rust item declares on its first attribute line, so the change stays in
+  reading** (Roy, 2026-10-21, after a proposal to anchor the `a` to the keyword line and set it
+  above the attributes through a change to `cue`).
+
+  *"I am not certain I like this. It causes a significant change is how the binder, the
+  edit-copies/master copy, the docket, and the galley"*
+
+  He quoted the proposal's three lines on anchor and position, then:
+
+  *"That is a large blast radius for this and a lot of changes that was supposed to be just the
+  lexer/reading section"*
+
+  Asked whether the reader should report the head's first line as the declaring line, accepting
+  the attribute line as the `a`'s anchor: *"Yes"*
+
+  **What it settles.** The Rust reader reports an owner's declaration as opening on its first
+  outer attribute, or on its keyword line where it has none. The addresser, binder, edit copies,
+  master proof, docket and galley take it unchanged. An attributed item's `a` is anchored to the
+  attribute line, and a doc between an attribute and its item is detached documentation under
+  `#29`.
+
 ## Vocabulary
 
 - **#1.** **The metaphor is EDITORIAL, and a new term is checked against the register BEFORE it is
