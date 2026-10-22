@@ -3,7 +3,7 @@
 ```
 Status:   in-progress
 Progress: 1 of 6 TODO tasks closed
-Plan-tasks: 1 of 13 plan tasks closed
+Plan-tasks: 2 of 13 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-22 (founded by move-t from 2026-10-11-lexical-readers)
@@ -54,7 +54,8 @@ reader.
         > 2026-10-22 Spec: Order of work 1; removes the rust LANGUAGES row
         > 2026-10-22 Check: pytest -k rust_definition; .rs gives rust-lexical
         > 2026-10-22 Check: grep finds no rust row in reading/language.py
-- [ ] P2 | Represent a validated Rust read in reading/rust/records.py
+- [x] P2 | Validated Rust records; 29 records tests; review clean | 33474b0d | Represent
+      a validated Rust read in reading/rust/records.py
         > 2026-10-22 Check: pytest tests/reading/test_rust.py -k records
 - [ ] P3 | Read Rust comments into regions that partition the source
         > 2026-10-22 Spec: nested blocks, the six comment forms, exact source
