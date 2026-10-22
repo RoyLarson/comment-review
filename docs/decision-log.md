@@ -539,6 +539,25 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   covers items, associated items, fields and variants, and leaves out statements, match arms and
   parameters, where rustdoc does not use a doc.
 
+- **#29.** **Documentation the place model cannot hold is read as a flagged ordinary comment,
+  with a warning, and the run proceeds** (Roy, 2026-10-21, asked whether a Rust doc run that a
+  place cannot hold -- one separated from its item by an ordinary comment, or a second run split
+  from the first by an attribute -- should refuse the file or be read as an ordinary `b` comment
+  flagged as documentation).
+
+  *"I would go with a warning and a thing to the task agent to ask but allow to proceed with"*
+
+  *"Because maybe the human wants it like that and dropping the file always completely would
+  just be annoying for being pedantic. Also the system and agents could move things around so
+  prove_unchanged would be true but the exact placement of the comments could change. Also like
+  the python tool Black we are making the decision on formatting."*
+
+  **What it settles.** Such a run is not a read failure. It takes the ordinary place its position
+  gives it, is flagged as documentation, and gather reports a warning naming it. The task agent
+  asks the human about it and continues whatever the answer. Moving the run to its owner's `a`
+  is an ordinary placement change that `prove_unchanged` permits, and the system decides
+  comment placement the way a formatter decides layout.
+
 ## Vocabulary
 
 - **#1.** **The metaphor is EDITORIAL, and a new term is checked against the register BEFORE it is
