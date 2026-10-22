@@ -1064,6 +1064,89 @@ def test_owners_same_line_members_get_none(rust_definition):
     ]
 
 
+@pytest.mark.parametrize(
+    "text",
+    [
+        "fn a() {\n} fn b() {}\n",
+        "fn a() {\n    let x = 1; fn f() {}\n}\n",
+        "enum E\n{ A,\n}\n",
+        "fn f(\n    x: u8,\n) { fn inner() {} }\n",
+        "struct W<\n    T,\n> { t: T,\n}\n",
+    ],
+    ids=[
+        "after-close",
+        "after-statement",
+        "after-open",
+        "after-params",
+        "after-generics",
+    ],
+)
+def test_owners_get_no_place_behind_code_on_their_line(rust_definition, text):
+    assert placed(text, rust_definition) == [("item", 1)]
+
+
+def test_owners_attribute_leading_its_line_gives_a_place(rust_definition):
+    assert placed("x;\n#[a] fn f() {}\n", rust_definition) == [("item", 2)]
+    assert placed("x; #[a] fn f() {}\n", rust_definition) == []
+
+
+def test_owners_code_before_ends_where_a_multi_line_literal_closes(rust_definition):
+    text = 'const S: &str = "a\nb"; fn f() {}\nfn g() {}\n'
+    assert placed(text, rust_definition) == [("item", 1), ("item", 3)]
+
+
+def test_owners_separators_inside_generic_arguments_are_not_members(rust_definition):
+    text = "struct S {\n    map: HashMap<\n        String,\n        u8,\n    >,\n}\n"
+    assert placed(text, rust_definition) == [("item", 1), ("field", 2)]
+
+
+@pytest.mark.parametrize(
+    ("text", "member"),
+    [
+        ("struct S<F: Fn() -> (u8)> {\n    x: F,\n}\n", ("field", 2)),
+        ("struct S<const N: usize = {3}> {\n    x: u8,\n}\n", ("field", 2)),
+        ("impl Foo<{ N }> {\n    fn a() {}\n}\n", ("associated-item", 2)),
+        ("struct T<F: Fn() -> u8>(\n    F,\n);\n", ("field", 2)),
+    ],
+    ids=["arrow", "const-default", "const-argument", "tuple-after-arrow"],
+)
+def test_owners_body_opens_after_generic_arguments_close(rust_definition, text, member):
+    assert placed(text, rust_definition) == [("item", 1), member]
+
+
+def test_owners_kind_not_in_the_definition_owners_gets_no_place(
+    rust_definition, monkeypatch
+):
+    from dataclasses import replace
+
+    structure = import_module("comment_review.reading.rust.structure")
+    documentation = dict(rust_definition.rules["documentation"])
+    documentation["owners"] = tuple(
+        owner for owner in documentation["owners"] if owner != "variant"
+    )
+    rules = dict(rust_definition.rules)
+    rules["documentation"] = documentation
+    narrowed = replace(rust_definition, rules=rules)
+    # The shipped validator accepts only the shipped owners; the filter is
+    # what is under test.
+    monkeypatch.setattr(structure, "validate_rust", lambda definition: None)
+    text = "enum E {\n    A,\n    B {\n        c: u8,\n    },\n}\n"
+    result = structure.place_declarations(scanned(text, rust_definition), narrowed)
+    assert not isinstance(result, ReadFailure)
+    assert [
+        (d.kind, text.count("\n", 0, d.anchor) + 1) for d in result.declarations
+    ] == [
+        ("item", 1),
+        ("field", 4),
+    ]
+    assert placed(text, rust_definition) == [
+        ("item", 1),
+        ("variant", 2),
+        ("variant", 3),
+        ("field", 4),
+    ]
+
+
 def test_owners_qualifier_or_keyword_resolves_once(rust_definition):
     text = (
         "const fn f() {}\n"

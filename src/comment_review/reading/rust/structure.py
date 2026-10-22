@@ -62,13 +62,18 @@ class _Grammar:
     abi: str
     macro_marker: str
     body_open: str
+    generics_open: str
     generics_close: str
+    arrow: str
     terminator: str
     separator: str
+    # The owner kinds that take documentation.
+    owners: frozenset[str]
 
     @classmethod
     def from_definition(cls, definition: LanguageDefinition) -> "_Grammar":
         rules = cast(Mapping[str, object], definition.rules["declarations"])
+        documentation = cast(Mapping[str, object], definition.rules["documentation"])
 
         def words(key: str) -> tuple[str, ...]:
             return cast(tuple[str, ...], rules[key])
@@ -88,9 +93,12 @@ class _Grammar:
             cast(str, rules["abi_qualifier"]),
             cast(str, rules["macro_marker"]),
             cast(str, rules["body_open"]),
+            cast(str, rules["generics_open"]),
             cast(str, rules["generics_close"]),
+            cast(str, rules["arrow"]),
             cast(str, rules["terminator"]),
             cast(str, rules["separator"]),
+            frozenset(cast(tuple[str, ...], documentation["owners"])),
         )
 
 
@@ -118,6 +126,8 @@ class _Frame:
     start: bool
     # The index of the current member's first token, in a member or variant list.
     member: int = -1
+    # How many generic argument lists are open in the current member or item head.
+    generics: int = 0
 
 
 @dataclass(frozen=True)
@@ -138,8 +148,9 @@ def place_declarations(
     first of its visibility, qualifiers and keyword, or a member's first token.
     The header runs from the head's first character to the end of the last code
     token that starts on the keyword's or member's line, and the anchor is the
-    head's first character. An owner whose head starts on a line that an
-    earlier owner's head reached gets no declaration.
+    head's first character. An owner gets a declaration only when its kind is
+    in `[rules.documentation].owners` and its head is the first code on its
+    line: the code before it ends on an earlier line.
 
     `insertions[0]` is 1 and `detached` is empty: documentation fills both.
     """
@@ -161,13 +172,12 @@ class _Placer:
         self.spelling = [
             scan.text[token.span.start : token.span.end] for token in self.tokens
         ]
-        coordinates = SourceCoordinates(scan.text)
-        self.lines = [coordinates.position(t.span.start).line for t in self.tokens]
+        self.coordinates = SourceCoordinates(scan.text)
+        self.lines = [self._line(t.span.start) for t in self.tokens]
         self.closes = _closes(self.tokens)
         self.stack = [_Frame(_Body.CONTAINER, ITEM, "", True)]
         self.pending: _Pending | None = None
         self.attributes: list[int] = []
-        self.reached = 0
         self.declarations: list[SourceDeclaration] = []
         self.insertions: list[int] = []
 
@@ -206,11 +216,37 @@ class _Placer:
             self.stack.append(self._open(at, frame))
         elif spelling == self.grammar.terminator and frame.body in STATEMENT_BODIES:
             frame.start = True
-            if self.pending is not None and self.pending.depth == len(self.stack):
+            frame.generics = 0
+            if self._heading():
                 self.pending = None
-        elif spelling == self.grammar.separator and frame.body in MEMBER_BODIES:
+        elif (
+            spelling == self.grammar.separator
+            and frame.body in MEMBER_BODIES
+            and not frame.generics
+        ):
             frame.start = True
+        elif frame.body in MEMBER_BODIES or self._heading():
+            self._generics(at, frame)
         return at + 1
+
+    def _heading(self) -> bool:
+        """Whether an item's head is being read in the innermost body."""
+        return self.pending is not None and self.pending.depth == len(self.stack)
+
+    def _generics(self, at: int, frame: _Frame) -> None:
+        """Count generic argument lists; the `>` that ends an arrow closes none."""
+        grammar = self.grammar
+        spelling = self.spelling[at]
+        if spelling == grammar.generics_open:
+            frame.generics += 1
+        elif spelling == grammar.generics_close and frame.generics:
+            previous = self.tokens[at - 1]
+            arrow = (
+                previous.span.end == self.tokens[at].span.start
+                and self.spelling[at - 1] + spelling == grammar.arrow
+            )
+            if not arrow:
+                frame.generics -= 1
 
     def _close(self) -> None:
         """Pop a body; after a closing brace a new statement may begin."""
@@ -221,7 +257,11 @@ class _Placer:
         if self.pending is not None and len(self.stack) < self.pending.depth:
             self.pending = None
         top = self.stack[-1]
-        if closed.opener == self.grammar.body_open and top.body in STATEMENT_BODIES:
+        if (
+            closed.opener == self.grammar.body_open
+            and top.body in STATEMENT_BODIES
+            and not self._heading()
+        ):
             top.start = True
 
     def _open(self, at: int, frame: _Frame) -> _Frame:
@@ -229,6 +269,9 @@ class _Placer:
         grammar = self.grammar
         spelling = self.spelling[at]
         if frame.body is _Body.OPAQUE:
+            return _Frame(_Body.OPAQUE, "", spelling, False)
+        if frame.generics:
+            # Braces in generic arguments hold a constant expression.
             return _Frame(_Body.OPAQUE, "", spelling, False)
         pending = self.pending
         if pending is not None and pending.depth == len(self.stack):
@@ -327,20 +370,29 @@ class _Placer:
         return None
 
     def _own(self, owner: str, first: int, line_token: int) -> None:
-        """Record an owner unless its head starts on a line already reached."""
+        """Record an owner whose kind takes documentation and whose head leads its line.
+
+        The code before the head is measured at its last character, so a
+        literal spanning lines ends on the line it closes on.
+        """
         head = self.attributes[0] if self.attributes else first
         self.attributes.clear()
-        start = self.tokens[head].span.start
+        if owner not in self.grammar.owners:
+            return
         head_line = self.lines[head]
+        if head > 0 and self._line(self.tokens[head - 1].span.end - 1) == head_line:
+            return
+        start = self.tokens[head].span.start
         line = self.lines[line_token]
-        if head_line > self.reached:
-            end = line_token
-            while end + 1 < len(self.tokens) and self.lines[end + 1] == line:
-                end += 1
-            header = SourceSpan(start, self.tokens[end].span.end)
-            self.declarations.append(SourceDeclaration(header, start, owner))
-            self.insertions.append(head_line)
-        self.reached = max(self.reached, line)
+        end = line_token
+        while end + 1 < len(self.tokens) and self.lines[end + 1] == line:
+            end += 1
+        header = SourceSpan(start, self.tokens[end].span.end)
+        self.declarations.append(SourceDeclaration(header, start, owner))
+        self.insertions.append(head_line)
+
+    def _line(self, offset: int) -> int:
+        return self.coordinates.position(offset).line
 
     def _spelled(self, at: int) -> str | None:
         return self.spelling[at] if at < len(self.tokens) else None

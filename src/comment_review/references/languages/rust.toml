@@ -50,7 +50,9 @@ macro_definitions = ["macro_rules!"]
 abi_qualifier = "extern"
 macro_marker = "!"
 body_open = "{"
+generics_open = "<"
 generics_close = ">"
+arrow = "->"
 terminator = ";"
 separator = ","
 
