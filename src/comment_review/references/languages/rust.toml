@@ -45,6 +45,14 @@ item_containers = ["mod", "impl", "trait", "extern"]
 member_lists = ["struct", "union"]
 variant_lists = ["enum"]
 function_bodies = ["fn"]
+associated_containers = ["impl", "trait"]
+macro_definitions = ["macro_rules!"]
+abi_qualifier = "extern"
+macro_marker = "!"
+body_open = "{"
+generics_close = ">"
+terminator = ";"
+separator = ","
 
 [rules.documentation]
 owners = ["module", "item", "associated-item", "field", "variant", "nested-item"]

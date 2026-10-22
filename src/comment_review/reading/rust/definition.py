@@ -143,6 +143,14 @@ def _grammar(rules: Mapping[str, object]) -> None:
             "member_lists": ("struct", "union"),
             "variant_lists": ("enum",),
             "function_bodies": ("fn",),
+            "associated_containers": ("impl", "trait"),
+            "macro_definitions": ("macro_rules!",),
+            "abi_qualifier": "extern",
+            "macro_marker": "!",
+            "body_open": "{",
+            "generics_close": ">",
+            "terminator": ";",
+            "separator": ",",
         },
     )
     _section(

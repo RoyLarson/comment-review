@@ -868,3 +868,317 @@ def test_attribute_extent_unclosed_attribute_fails_at_its_opener(
     rust_definition, text, start, end
 ):
     refused(text, rust_definition, "unterminated-attribute", start, end)
+
+
+def placement_of(text, definition):
+    try:
+        structure = import_module("comment_review.reading.rust.structure")
+    except ModuleNotFoundError:
+        pytest.fail("Rust structure is not implemented", pytrace=False)
+    return structure.place_declarations(scanned(text, definition), definition)
+
+
+def placed(text, definition):
+    """Each placed owner as (kind, head first line), checked against insertions."""
+    placement = placement_of(text, definition)
+    assert not isinstance(placement, ReadFailure), placement
+    assert placement.detached == ()
+    found = [
+        (owner.kind, text.count("\n", 0, owner.anchor) + 1)
+        for owner in placement.declarations
+    ]
+    assert placement.insertions == (1, *(line for _, line in found))
+    for owner in placement.declarations:
+        assert owner.anchor == owner.header.start
+    return found
+
+
+def test_owners_every_item_keyword_at_file_level(rust_definition):
+    text = (
+        "fn f() {}\n"
+        "struct S;\n"
+        "enum E {}\n"
+        "union U { a: u8 }\n"
+        "trait T {}\n"
+        "impl S {}\n"
+        "mod m;\n"
+        "type A = u8;\n"
+        "const C: u8 = 1;\n"
+        "static X: u8 = 1;\n"
+        "extern crate k;\n"
+        "use a::b;\n"
+        'extern "C" {}\n'
+        "macro_rules! mac { () => {} }\n"
+    )
+    assert placed(text, rust_definition) == [("item", line) for line in range(1, 15)]
+
+
+def test_owners_empty_source_has_only_the_module_insertion(rust_definition):
+    assert placed("", rust_definition) == []
+
+
+def test_owners_nested_module(rust_definition):
+    text = "mod x {\n    fn y() {}\n}\n"
+    assert placed(text, rust_definition) == [("item", 1), ("item", 2)]
+
+
+def test_owners_associated_items_and_items_in_extern(rust_definition):
+    text = (
+        "impl S {\n"
+        "    const K: u8 = 1;\n"
+        "    fn a(&self) {}\n"
+        "}\n"
+        "trait T {\n"
+        "    type O;\n"
+        "    fn b();\n"
+        "}\n"
+        'extern "C" {\n'
+        "    fn f();\n"
+        "    static G: u8;\n"
+        "}\n"
+    )
+    assert placed(text, rust_definition) == [
+        ("item", 1),
+        ("associated-item", 2),
+        ("associated-item", 3),
+        ("item", 5),
+        ("associated-item", 6),
+        ("associated-item", 7),
+        ("item", 9),
+        ("item", 10),
+        ("item", 11),
+    ]
+
+
+def test_owners_fields_and_variants(rust_definition):
+    text = (
+        "struct P {\n"
+        "    pub x: i32,\n"
+        "    #[serde] y: u8,\n"
+        "}\n"
+        "struct Q(\n"
+        "    i32,\n"
+        "    pub(crate) u8,\n"
+        ");\n"
+        "enum E {\n"
+        "    A,\n"
+        "    B(i32),\n"
+        "    C {\n"
+        "        d: u8,\n"
+        "    },\n"
+        "    D = 4,\n"
+        "}\n"
+        "union V {\n"
+        "    w: u8,\n"
+        "}\n"
+    )
+    assert placed(text, rust_definition) == [
+        ("item", 1),
+        ("field", 2),
+        ("field", 3),
+        ("item", 5),
+        ("field", 6),
+        ("field", 7),
+        ("item", 9),
+        ("variant", 10),
+        ("variant", 11),
+        ("variant", 12),
+        ("field", 13),
+        ("variant", 15),
+        ("item", 17),
+        ("field", 18),
+    ]
+
+
+def test_owners_tuple_variant_fields_are_opaque(rust_definition):
+    text = "enum E {\n    B(\n        i32,\n    ),\n}\n"
+    assert placed(text, rust_definition) == [("item", 1), ("variant", 2)]
+
+
+def test_owners_items_in_a_function_body_and_no_statements(rust_definition):
+    text = (
+        "fn outer(a: u8, b: u8) -> u8 {\n"
+        "    let x = a;\n"
+        "    struct Local;\n"
+        "    match x {\n"
+        "        0 => 1,\n"
+        "        _ => b,\n"
+        "    };\n"
+        '    println!("{}", x);\n'
+        "    fn inner<T>() {}\n"
+        "    {\n"
+        "        const K: u8 = 2;\n"
+        "    }\n"
+        "    x\n"
+        "}\n"
+    )
+    assert placed(text, rust_definition) == [
+        ("item", 1),
+        ("nested-item", 3),
+        ("nested-item", 9),
+        ("nested-item", 11),
+    ]
+
+
+def test_owners_parameters_and_generic_parameters_get_none(rust_definition):
+    text = (
+        "fn g<\n"
+        "    T,\n"
+        "    U,\n"
+        ">(\n"
+        "    a: T,\n"
+        "    b: U,\n"
+        ") {}\n"
+        "struct W<\n"
+        "    T,\n"
+        "> {\n"
+        "    t: T,\n"
+        "}\n"
+    )
+    assert placed(text, rust_definition) == [("item", 1), ("item", 8), ("field", 11)]
+
+
+def test_owners_braces_after_qualifiers_are_not_items(rust_definition):
+    text = "fn f() {\n    const { 1 };\n    unsafe { g() };\n    async {};\n}\n"
+    assert placed(text, rust_definition) == [("item", 1)]
+
+
+def test_owners_same_line_members_get_none(rust_definition):
+    text = (
+        "enum Dir { N, S }\n"
+        "struct P(i32, i32);\n"
+        "struct R { x: i32,\n"
+        "    y: i32 }\n"
+        "fn a() {} fn b() {}\n"
+        "#[derive(Debug)]\n"
+        "struct T { z: u8,\n"
+        "}\n"
+    )
+    assert placed(text, rust_definition) == [
+        ("item", 1),
+        ("item", 2),
+        ("item", 3),
+        ("field", 4),
+        ("item", 5),
+        ("item", 6),
+    ]
+
+
+def test_owners_qualifier_or_keyword_resolves_once(rust_definition):
+    text = (
+        "const fn f() {}\n"
+        "const X: u8 = 1;\n"
+        "extern crate a;\n"
+        'extern "C" fn g() {}\n'
+        'extern "C" {\n'
+        "    fn h();\n"
+        "}\n"
+        'unsafe extern "C" fn k() {}\n'
+        "pub unsafe auto trait Z {}\n"
+    )
+    assert placed(text, rust_definition) == [
+        ("item", 1),
+        ("item", 2),
+        ("item", 3),
+        ("item", 4),
+        ("item", 5),
+        ("item", 6),
+        ("item", 8),
+        ("item", 9),
+    ]
+
+
+def test_owners_visibility_scopes(rust_definition):
+    text = "pub(crate) fn v() {}\npub(in a::b) struct W;\npub(super) mod m;\n"
+    assert placed(text, rust_definition) == [("item", 1), ("item", 2), ("item", 3)]
+
+
+def test_owners_union_as_an_identifier_is_not_an_item(rust_definition):
+    text = "fn f() {\n    let union = 1;\n    union = 2;\n}\nunion U {\n    a: u8,\n}\n"
+    assert placed(text, rust_definition) == [("item", 1), ("item", 5), ("field", 6)]
+
+
+def test_owners_refuses_an_invalid_definition(rust_definition):
+    from dataclasses import replace
+
+    scan_result = scanned("fn f() {}", rust_definition)
+    structure = import_module("comment_review.reading.rust.structure")
+    result = structure.place_declarations(
+        scan_result, replace(rust_definition, revision="9")
+    )
+    assert isinstance(result, ReadFailure)
+
+
+@pytest.mark.parametrize(
+    "attribute",
+    ["#[test]", "#[cfg(\n    x,\n)]", '#[doc = "]"]'],
+    ids=["single-line", "multi-line", "string-close"],
+)
+def test_heads_start_at_the_attribute(rust_definition, attribute):
+    text = f"fn z() {{}}\n\n{attribute}\nfn a() {{}}\n"
+    assert placed(text, rust_definition) == [("item", 1), ("item", 3)]
+
+
+def test_heads_two_attributes_give_the_first(rust_definition):
+    text = "#[a]\n// note\n#[b]\nfn c() {}\n"
+    assert placed(text, rust_definition) == [("item", 1)]
+
+
+def test_heads_attribute_on_the_item_line(rust_definition):
+    text = "fn z() {}\n#[inline] fn f() {}\n"
+    assert placed(text, rust_definition) == [("item", 1), ("item", 2)]
+
+
+def test_heads_header_runs_from_the_head_to_the_keyword_line_code(rust_definition):
+    text = "#[a]\npub fn f(\n    x: u8,\n) {} // tail\nstruct S { // c\n}\n"
+    placement = placement_of(text, rust_definition)
+    assert not isinstance(placement, ReadFailure)
+    assert [text[d.header.start : d.header.end] for d in placement.declarations] == [
+        "#[a]\npub fn f(",
+        "struct S {",
+    ]
+
+
+def test_heads_attributes_on_statements_arms_and_parameters_create_no_place(
+    rust_definition,
+):
+    text = (
+        "fn f(#[a] x: u8) {\n"
+        "    #[allow(unused)]\n"
+        "    let y = x;\n"
+        "    match y {\n"
+        "        #[cfg(a)]\n"
+        "        0 => {}\n"
+        "        _ => {}\n"
+        "    }\n"
+        "}\n"
+    )
+    assert placed(text, rust_definition) == [("item", 1)]
+
+
+def test_heads_member_attribute(rust_definition):
+    text = "struct P {\n    #[a]\n    #[b]\n    x: u8,\n}\n"
+    assert placed(text, rust_definition) == [("item", 1), ("field", 2)]
+
+
+def test_macros_bodies_hold_no_places(rust_definition):
+    text = (
+        "macro_rules! m {\n"
+        "    () => {\n"
+        "        fn hidden() {}\n"
+        "    };\n"
+        "}\n"
+        "foo! {\n"
+        "    fn also_hidden() {}\n"
+        "}\n"
+        "bar!(\n"
+        "    fn too() {}\n"
+        ");\n"
+        "fn seen() {}\n"
+    )
+    assert placed(text, rust_definition) == [("item", 1), ("item", 12)]
+
+
+def test_macros_invocation_above_an_item_is_not_its_head(rust_definition):
+    text = "#[a]\nfoo! {}\nfn x() {}\nmacro_rules! n ( () => {} );\nfn y() {}\n"
+    assert placed(text, rust_definition) == [("item", 3), ("item", 4), ("item", 5)]
