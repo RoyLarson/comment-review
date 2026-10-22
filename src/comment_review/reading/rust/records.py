@@ -1,5 +1,6 @@
 """Immutable Rust reader records: the scan, the place model and the completed read."""
 
+from bisect import bisect_right
 from dataclasses import dataclass
 from enum import StrEnum
 
@@ -60,12 +61,28 @@ def _tuple(value: object, record_type: type, name: str) -> None:
         raise ValueError(f"{name} must be a tuple of {record_type.__name__}")
 
 
-def _ordered(spans: tuple[SourceSpan, ...], end: int, name: str) -> None:
-    boundary = 0
-    for span in spans:
-        if span.start < boundary or span.end > end:
-            raise ValueError(f"{name} must be ordered, nonoverlapping and in bounds")
-        boundary = span.end
+ATTRIBUTE_KINDS = frozenset(
+    {RustTokenKind.OUTER_ATTRIBUTE, RustTokenKind.INNER_ATTRIBUTE}
+)
+
+
+def _nesting(tokens: "tuple[RustToken, ...]", end: int) -> None:
+    """Order tokens by start, enclosing attribute first; only attributes enclose."""
+    cursor = 0
+    open_attributes: list[SourceSpan] = []
+    for token in tokens:
+        span = token.span
+        while open_attributes and open_attributes[-1].end <= span.start:
+            cursor = max(cursor, open_attributes.pop().end)
+        if span.start < cursor or span.end > end:
+            raise ValueError("tokens must be ordered, nonoverlapping and in bounds")
+        if open_attributes and span.end > open_attributes[-1].end:
+            raise ValueError("a token may not overlap the end of an attribute")
+        if token.kind in ATTRIBUTE_KINDS:
+            open_attributes.append(span)
+            cursor = span.start
+        else:
+            cursor = span.end
 
 
 def _insertions(insertions: tuple[int, ...], declarations: int) -> None:
@@ -117,22 +134,18 @@ class RustScan:
             boundary = region.span.end
         if boundary != len(self.text):
             raise ValueError("regions must completely partition source")
-        _ordered(tuple(token.span for token in self.tokens), len(self.text), "tokens")
-        spans = {
-            kind: {r.span for r in self.regions if r.kind is kind}
-            for kind in (RegionKind.COMMENT, RegionKind.LITERAL)
-        }
+        _nesting(self.tokens, len(self.text))
+        starts = [region.span.start for region in self.regions]
         for token in self.tokens:
-            if (
-                token.kind in COMMENT_KINDS
-                and token.span not in spans[RegionKind.COMMENT]
+            if token.kind not in COMMENT_KINDS and token.kind not in LITERAL_KINDS:
+                continue
+            region = self.regions[bisect_right(starts, token.span.start) - 1]
+            if token.kind in COMMENT_KINDS and not (
+                region.kind is RegionKind.COMMENT and region.span == token.span
             ):
                 raise ValueError("comment token must equal a comment region")
-            if token.kind in LITERAL_KINDS and not any(
-                r.kind is RegionKind.LITERAL
-                and r.span.start <= token.span.start
-                and token.span.end <= r.span.end
-                for r in self.regions
+            if token.kind in LITERAL_KINDS and not (
+                region.kind is RegionKind.LITERAL and token.span.end <= region.span.end
             ):
                 raise ValueError("literal token must lie inside a literal region")
 

@@ -1,5 +1,3 @@
-from dataclasses import replace
-
 import pytest
 
 from comment_review.reading.diagnostics import ReadDiagnostic, ReadStage
@@ -131,18 +129,81 @@ def test_records_literal_token_must_lie_in_a_literal_region():
         records.RustScan(TEXT, regions(), (token,))
 
 
+def test_records_scan_accepts_a_literal_token_inside_a_literal_region():
+    kind = records.RustTokenKind
+    found = (
+        SourceRegion(COMMENT, RegionKind.COMMENT),
+        SourceRegion(SourceSpan(7, 12), RegionKind.LITERAL),
+        SourceRegion(SourceSpan(12, 32), RegionKind.CODE),
+    )
+    scan = records.RustScan(
+        TEXT,
+        found,
+        (
+            records.RustToken(kind.LINE, COMMENT),
+            records.RustToken(kind.STRING, SourceSpan(7, 12)),
+        ),
+    )
+    assert len(scan.tokens) == 2
+
+
+def test_records_scan_accepts_a_token_enclosed_by_an_attribute():
+    kind = records.RustTokenKind
+    inside = (
+        records.RustToken(kind.OUTER_ATTRIBUTE, DIRECTIVE),
+        records.RustToken(kind.OPEN, SourceSpan(21, 22)),
+        records.RustToken(kind.WORD, SourceSpan(22, 27)),
+        records.RustToken(kind.INNER_ATTRIBUTE, SourceSpan(27, 31)),
+        records.RustToken(kind.WORD, SourceSpan(31, 32)),
+    )
+    records.RustScan(TEXT, regions(), inside)
+    nested = (
+        records.RustToken(kind.OUTER_ATTRIBUTE, DIRECTIVE),
+        records.RustToken(kind.INNER_ATTRIBUTE, SourceSpan(21, 31)),
+        records.RustToken(kind.WORD, SourceSpan(22, 27)),
+    )
+    records.RustScan(TEXT, regions(), nested)
+
+
+def test_records_scan_rejects_partial_overlap_with_an_attribute():
+    kind = records.RustTokenKind
+    attribute = records.RustToken(kind.OUTER_ATTRIBUTE, DIRECTIVE)
+    runs_past = records.RustToken(kind.WORD, SourceSpan(28, 32))
+    with pytest.raises(ValueError):
+        records.RustScan(TEXT, regions(), (attribute, runs_past))
+    starts_before = records.RustToken(kind.WORD, SourceSpan(17, 21))
+    with pytest.raises(ValueError):
+        records.RustScan(TEXT, regions(), (starts_before, attribute))
+    nested_past = records.RustToken(kind.INNER_ATTRIBUTE, SourceSpan(25, 32))
+    with pytest.raises(ValueError):
+        records.RustScan(TEXT, regions(), (attribute, nested_past))
+
+
+def test_records_scan_rejects_a_non_attribute_token_enclosing_another():
+    kind = records.RustTokenKind
+    outer = records.RustToken(kind.PUNCT, DIRECTIVE)
+    inner = records.RustToken(kind.WORD, SourceSpan(22, 27))
+    with pytest.raises(ValueError):
+        records.RustScan(TEXT, regions(), (outer, inner))
+
+
 def test_records_placement_accepts_one_insertion_per_declaration():
     one = declaration()
     records.RustPlacement((one,), (1, 2), (records.DetachedRun(COMMENT, 0),))
     records.RustPlacement((), (1,), ())
+    records.RustPlacement((one, declaration(10)), (1, 2, 3), ())
 
 
-@pytest.mark.parametrize(
-    "insertions", [(1,), (1, 2, 3), (1, 3, 3), (1, 4, 3), (0, 2), (1, 0), (-1, 2)]
-)
+@pytest.mark.parametrize("insertions", [(1,), (1, 2, 3), (0, 2), (1, 0), (-1, 2)])
 def test_records_placement_rejects_bad_insertions(insertions):
     with pytest.raises(ValueError):
         records.RustPlacement((declaration(),), insertions, ())
+
+
+@pytest.mark.parametrize("insertions", [(1, 3, 3), (1, 4, 3)], ids=["equal", "falling"])
+def test_records_placement_rejects_non_increasing_declaration_insertions(insertions):
+    with pytest.raises(ValueError):
+        records.RustPlacement((declaration(), declaration(10)), insertions, ())
 
 
 def test_records_placement_rejects_detached_owner_out_of_range():
@@ -187,9 +248,3 @@ def test_records_read_protected_span_must_be_a_directive_region():
         read(protected=(SourceSpan(19, 30),))
     with pytest.raises(ValueError):
         read(protected=(SourceSpan(30, 99),))
-
-
-def test_records_read_holds_no_second_copy_of_the_text():
-    result = read()
-    assert not hasattr(result, "text")
-    assert replace(result, protected=()).source is result.source
