@@ -3,6 +3,11 @@
 from collections.abc import Mapping
 from typing import cast
 
+from comment_review.reading.definition_checks import (
+    require_array,
+    require_scalar,
+    require_table,
+)
 from comment_review.reading.definitions import LanguageDefinition
 from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, ReadStage
 
@@ -29,9 +34,9 @@ def _identity(value: LanguageDefinition) -> None:
         ("reader", "rust-lexical"),
         ("revision", "2"),
     ):
-        _scalar(getattr(value, field), field, expected)
-    _array(value.suffixes, "suffixes", (".rs",))
-    _array(
+        require_scalar(getattr(value, field), field, expected)
+    require_array(value.suffixes, "suffixes", (".rs",))
+    require_array(
         value.capabilities,
         "capabilities",
         (
@@ -47,61 +52,23 @@ def _identity(value: LanguageDefinition) -> None:
         raise ValueError("defaults and choices: Rust implements no settings")
 
 
-def _table(value: object, path: str, keys: str) -> Mapping[str, object]:
-    if not isinstance(value, Mapping):
-        raise ValueError(f"{path} must be a table")
-    table = cast(Mapping[str, object], value)
-    required = set(keys.split())
-    missing = required - table.keys()
-    unknown = table.keys() - required
-    if missing:
-        raise ValueError(f"{path}.{sorted(missing)[0]} is required")
-    if unknown:
-        raise ValueError(f"{path}.{sorted(unknown)[0]} is unknown")
-    return table
-
-
-def _scalar(value: object, path: str, supported: str | bool | int) -> None:
-    kind = (
-        "boolean"
-        if isinstance(supported, bool)
-        else "string"
-        if isinstance(supported, str)
-        else "integer"
-    )
-    if type(value) is not type(supported):
-        raise ValueError(f"{path} must be a {kind}")
-    if value != supported:
-        raise ValueError(f"{path} has unsupported value {value!r}")
-
-
-def _array(value: object, path: str, supported: tuple[object, ...]) -> None:
-    if not isinstance(value, tuple):
-        raise ValueError(f"{path} must be an array")
-    if len(value) != len(supported):
-        raise ValueError(f"{path} has unsupported items")
-    for item, expected in zip(value, supported, strict=True):
-        if type(item) is not type(expected):
-            raise ValueError(f"{path} contains an ill-typed item")
-        if item != expected:
-            raise ValueError(f"{path} has unsupported item {item!r}")
-
-
 def _section(
     rules: Mapping[str, object], name: str, supported: Mapping[str, object]
 ) -> None:
     """Require exactly `supported`'s keys under `rules[name]`, each with its value."""
     path = f"rules.{name}"
-    table = _table(rules[name], path, " ".join(supported))
+    table = require_table(rules[name], path, " ".join(supported))
     for key, expected in supported.items():
         if isinstance(expected, tuple):
-            _array(table[key], f"{path}.{key}", expected)
+            require_array(table[key], f"{path}.{key}", expected)
         else:
-            _scalar(table[key], f"{path}.{key}", cast(str | bool | int, expected))
+            require_scalar(
+                table[key], f"{path}.{key}", cast(str | bool | int, expected)
+            )
 
 
 def _grammar(rules: Mapping[str, object]) -> None:
-    _table(
+    require_table(
         rules,
         "rules",
         "comments literals attributes declarations documentation directives",

@@ -1144,6 +1144,12 @@ def test_rust_definition_is_installed_as_rust_lexical_revision_2() -> None:
     assert binding.grammar_identity == "Rust Reference lexical"
 
 
+def installed_rust() -> Any:
+    from comment_review.reading.language import INSTALLED_REGISTRY
+
+    return INSTALLED_REGISTRY.for_path(Path("x.rs"))
+
+
 def test_rust_definition_reader_refuses_until_it_is_finished() -> None:
     from comment_review.reading.readers import INSTALLED_BINDINGS
 
@@ -1151,12 +1157,6 @@ def test_rust_definition_reader_refuses_until_it_is_finished() -> None:
     result = INSTALLED_BINDINGS["rust-lexical"].read(Path("x.rs"), "fn a() {}\n", value)
     assert isinstance(result, ReadFailure)
     assert "not finished" in result.diagnostics[0].message
-
-
-def installed_rust() -> Any:
-    from comment_review.reading.language import INSTALLED_REGISTRY
-
-    return INSTALLED_REGISTRY.for_path(Path("x.rs"))
 
 
 def test_rust_definition_leaves_no_language_row() -> None:
