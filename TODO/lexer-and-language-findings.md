@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 8 of 49 tasks closed
+Progress: 9 of 49 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (/simplify rounds 1 and 2 and /code-review high round 3,
@@ -324,4 +324,5 @@ would.
         > 2026-10-17 Check: grep -rn doc-kind-unresolved src finds nothing
 - [x] T48 | Python row removed; python.toml is its only definition | 064bd62d | Remove
       the Python `Language` row from `LANGUAGES`
-- [ ] T49 | State Rust's inner doc openers in Rust's own definition file
+- [x] T49 | rust.toml states //! and /*! as inner doc openers | 3f1a4817 | State
+      Rust's inner doc openers in Rust's own definition file

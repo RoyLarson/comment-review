@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 34 of 162 TODO tasks closed
+Progress: 35 of 162 TODO tasks closed
 Plan-tasks: 11 of 53 plan tasks closed
 Owner:    backend
 Requires-Roy: true
@@ -207,7 +207,7 @@ interfaces, inputs and checks, without internal development files or history.
 - [ ] T12 | T12 -- Settle what `Paragraph.lines` counts: three rules fill it,
       one column reads it. Verify: one rule fills it, or the field is gone and
       the column computes it.
-- [ ] T49 | MOVED to 2026-10-22-lexer-rust | State Rust's inner doc openers in
+- [x] T49 | MOVED to 2026-10-22-lexer-rust | State Rust's inner doc openers in
       Rust's own definition file
 
 ### H - [a-doc-comment-is-cued-a-and-typed-b](../../TODO/a-doc-comment-is-cued-a-and-typed-b.md)

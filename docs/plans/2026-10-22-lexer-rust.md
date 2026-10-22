@@ -1,9 +1,9 @@
 # Rust lexical reader implementation
 
 ```
-Status:   open
-Progress: 0 of 6 TODO tasks closed
-Plan-tasks: 0 of 13 plan tasks closed
+Status:   in-progress
+Progress: 1 of 6 TODO tasks closed
+Plan-tasks: 1 of 13 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-22 (founded by move-t from 2026-10-11-lexical-readers)
@@ -33,7 +33,7 @@ reader.
       nothing types `comment`.
 - [ ] T32 | Recognize raw string delimiters in lexer.py:510; verify a quoted
       marker inside a Rust raw string stays literal data
-- [ ] T49 | State Rust's inner doc openers in Rust's own definition file
+- [x] T49 | State Rust's inner doc openers in Rust's own definition file
 
 ### B - [matter-misses-two-languages](../../TODO/matter-misses-two-languages.md)
 
@@ -49,8 +49,8 @@ reader.
 
 ## Plan Tasks
 
-- [ ] P1 | Install the Rust definition file, its validator and the rust-lexical
-      binding
+- [x] P1 | Rust definition, validator, binding installed; row removed; review clean | 3f1a4817 | Install
+      the Rust definition file, its validator and the rust-lexical binding
         > 2026-10-22 Spec: Order of work 1; removes the rust LANGUAGES row
         > 2026-10-22 Check: pytest -k rust_definition; .rs gives rust-lexical
         > 2026-10-22 Check: grep finds no rust row in reading/language.py
