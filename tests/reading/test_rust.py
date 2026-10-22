@@ -279,8 +279,15 @@ def scanned(text, definition):
     assert not isinstance(result, ReadFailure), result
     assert "".join(text[r.span.start : r.span.end] for r in result.regions) == text
     kind = records.RustTokenKind
-    code = {kind.WORD, kind.PUNCT, kind.OPEN, kind.CLOSE}
+    code = {kind.WORD, kind.PUNCT, kind.OPEN, kind.CLOSE, kind.LIFETIME}
     for token in result.tokens:
+        if token.kind in records.ATTRIBUTE_KINDS:
+            first, last = (
+                [r for r in result.regions if r.span.start <= at < r.span.end][0]
+                for at in (token.span.start, token.span.end - 1)
+            )
+            assert first.kind is RegionKind.CODE and last.kind is RegionKind.CODE
+            continue
         (region,) = [
             r
             for r in result.regions
@@ -288,6 +295,8 @@ def scanned(text, definition):
         ]
         if token.kind in records.COMMENT_KINDS:
             assert region.kind is RegionKind.COMMENT and region.span == token.span
+        elif token.kind in records.LITERAL_KINDS:
+            assert region.kind is RegionKind.LITERAL
         elif token.kind in code:
             assert region.kind is RegionKind.CODE
         else:
@@ -533,3 +542,309 @@ def test_comments_source_nul_refuses(rust_definition, text):
             ReadStage.LEX, "source-nul", "source nul", SourceSpan(at, at + 1)
         ),
     )
+
+
+def refused(text, definition, code, start, end):
+    result = scan(text, definition)
+    assert isinstance(result, ReadFailure)
+    assert len(result.diagnostics) == 1
+    diagnostic = result.diagnostics[0]
+    assert diagnostic.stage == ReadStage.LEX
+    assert diagnostic.code == code
+    assert diagnostic.span == SourceSpan(start, end)
+
+
+def test_literals_string_crosses_lines(rust_definition):
+    result = scanned('let s = "a\nb";', rust_definition)
+    assert shape(result) == [
+        (RegionKind.CODE, "let"),
+        (RegionKind.WHITESPACE, " "),
+        (RegionKind.CODE, "s"),
+        (RegionKind.WHITESPACE, " "),
+        (RegionKind.CODE, "="),
+        (RegionKind.WHITESPACE, " "),
+        (RegionKind.LITERAL, '"a\nb"'),
+        (RegionKind.CODE, ";"),
+    ]
+    assert spelled(result)[-2:] == [("string", '"a\nb"'), ("punct", ";")]
+
+
+@pytest.mark.parametrize(
+    "text",
+    ['"a\\"b"', '"a\\\nb"', '"a\\\r\nb"', '"\\\\"', 'b"a"', 'c"a"', '""'],
+    ids=[
+        "escaped-quote",
+        "escaped-lf",
+        "escaped-crlf",
+        "escaped-escape",
+        "b",
+        "c",
+        "empty",
+    ],
+)
+def test_literals_string_forms_are_one_string(rust_definition, text):
+    result = scanned(text, rust_definition)
+    assert shape(result) == [(RegionKind.LITERAL, text)]
+    assert spelled(result) == [("string", text)]
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        'r"a\\"',
+        'r#"a"#',
+        'r###"a"## "###',
+        'r##"a"#b"##',
+        'br"a"',
+        'br#"a"#',
+        'cr"a"',
+        'cr##"a"##',
+    ],
+)
+def test_literals_raw_string_closes_at_its_own_guard_count(rust_definition, text):
+    result = scanned(text, rust_definition)
+    assert shape(result) == [(RegionKind.LITERAL, text)]
+    assert spelled(result) == [("raw_string", text)]
+
+
+def test_literals_raw_string_ends_before_extra_guards(rust_definition):
+    result = scanned('r#"a"##', rust_definition)
+    assert shape(result) == [
+        (RegionKind.LITERAL, 'r#"a"#'),
+        (RegionKind.CODE, "#"),
+    ]
+    assert spelled(result) == [("raw_string", 'r#"a"#'), ("punct", "#")]
+
+
+@pytest.mark.parametrize(
+    ("literal", "kind"),
+    [
+        ('"// a /* b"', "string"),
+        ('b"// a /* b"', "string"),
+        ('c"// a /* b"', "string"),
+        ('r#"// a /* b"#', "raw_string"),
+        ('br"// a /* b"', "raw_string"),
+        ('cr"// a /* b"', "raw_string"),
+        ("'/'", "char"),
+        ("b'/'", "char"),
+    ],
+)
+def test_literals_comment_markers_inside_stay_literal(rust_definition, literal, kind):
+    result = scanned(literal + " // c", rust_definition)
+    assert shape(result) == [
+        (RegionKind.LITERAL, literal),
+        (RegionKind.WHITESPACE, " "),
+        (RegionKind.COMMENT, "// c"),
+    ]
+    assert spelled(result) == [(kind, literal), ("whitespace", " "), ("line", "// c")]
+
+
+def test_literals_prefix_inside_a_word_opens_nothing(rust_definition):
+    result = scanned('bar"x"', rust_definition)
+    assert shape(result) == [(RegionKind.CODE, "bar"), (RegionKind.LITERAL, '"x"')]
+    assert spelled(result) == [("word", "bar"), ("string", '"x"')]
+    result = scanned('xr#"a"#', rust_definition)
+    assert spelled(result) == [
+        ("word", "xr"),
+        ("punct", "#"),
+        ("string", '"a"'),
+        ("punct", "#"),
+    ]
+
+
+def test_literals_raw_identifier_is_a_word(rust_definition):
+    result = scanned("r#ident = 1", rust_definition)
+    assert shape(result) == [
+        (RegionKind.CODE, "r#ident"),
+        (RegionKind.WHITESPACE, " "),
+        (RegionKind.CODE, "="),
+        (RegionKind.WHITESPACE, " "),
+        (RegionKind.CODE, "1"),
+    ]
+    assert spelled(result)[0] == ("word", "r#ident")
+
+
+@pytest.mark.parametrize(
+    ("text", "code", "start", "end"),
+    [
+        ('x "a', "unterminated-string", 2, 3),
+        ('b"a\\"', "unterminated-string", 0, 2),
+        ('c"a', "unterminated-string", 0, 2),
+        ('r"a', "unterminated-raw-string", 0, 2),
+        ('r#"a"', "unterminated-raw-string", 0, 3),
+        ('r##"a"#', "unterminated-raw-string", 0, 4),
+        ('br"a', "unterminated-raw-string", 0, 3),
+        ('cr#"a"', "unterminated-raw-string", 0, 4),
+        ("'\\n", "unterminated-char", 0, 1),
+        ("b'ab'", "unterminated-char", 0, 2),
+        ("y '", "unterminated-char", 2, 3),
+    ],
+)
+def test_literals_unterminated_form_fails_at_its_opener(
+    rust_definition, text, code, start, end
+):
+    refused(text, rust_definition, code, start, end)
+
+
+@pytest.mark.parametrize(
+    "literal", ["'a'", "'\\''", "'\\u{10FFFF}'", "'\\x7f'", "b'x'", "b'\\n'", "' '"]
+)
+def test_quotes_character_literals(rust_definition, literal):
+    result = scanned(literal + " // c", rust_definition)
+    assert shape(result) == [
+        (RegionKind.LITERAL, literal),
+        (RegionKind.WHITESPACE, " "),
+        (RegionKind.COMMENT, "// c"),
+    ]
+    assert spelled(result) == [
+        ("char", literal),
+        ("whitespace", " "),
+        ("line", "// c"),
+    ]
+
+
+@pytest.mark.parametrize("lifetime", ["'a", "'static", "'_", "'r#a"])
+def test_quotes_lifetimes_are_code(rust_definition, lifetime):
+    result = scanned(lifetime + " // c", rust_definition)
+    assert shape(result) == [
+        (RegionKind.CODE, lifetime),
+        (RegionKind.WHITESPACE, " "),
+        (RegionKind.COMMENT, "// c"),
+    ]
+    assert spelled(result) == [
+        ("lifetime", lifetime),
+        ("whitespace", " "),
+        ("line", "// c"),
+    ]
+
+
+def test_quotes_lifetime_in_a_reference_type(rust_definition):
+    result = scanned("&'a T", rust_definition)
+    assert shape(result) == [
+        (RegionKind.CODE, "&'a"),
+        (RegionKind.WHITESPACE, " "),
+        (RegionKind.CODE, "T"),
+    ]
+    assert spelled(result) == [
+        ("punct", "&"),
+        ("lifetime", "'a"),
+        ("whitespace", " "),
+        ("word", "T"),
+    ]
+
+
+def test_quotes_apostrophe_inside_a_string(rust_definition):
+    result = scanned('"it\'s" // c', rust_definition)
+    assert shape(result) == [
+        (RegionKind.LITERAL, '"it\'s"'),
+        (RegionKind.WHITESPACE, " "),
+        (RegionKind.COMMENT, "// c"),
+    ]
+    assert spelled(result) == [
+        ("string", '"it\'s"'),
+        ("whitespace", " "),
+        ("line", "// c"),
+    ]
+
+
+def test_attribute_extent_derive(rust_definition):
+    result = scanned("#[derive(Debug)]\nfn", rust_definition)
+    assert shape(result) == [
+        (RegionKind.CODE, "#[derive(Debug)]"),
+        (RegionKind.WHITESPACE, "\n"),
+        (RegionKind.CODE, "fn"),
+    ]
+    assert spelled(result) == [
+        ("outer_attribute", "#[derive(Debug)]"),
+        ("punct", "#"),
+        ("open", "["),
+        ("word", "derive"),
+        ("open", "("),
+        ("word", "Debug"),
+        ("close", ")"),
+        ("close", "]"),
+        ("whitespace", "\n"),
+        ("word", "fn"),
+    ]
+
+
+@pytest.mark.parametrize(
+    ("text", "attribute"),
+    [
+        ("#[cfg(\n    a,\n)]\nfn", "#[cfg(\n    a,\n)]"),
+        ('#[doc = "]"] x', '#[doc = "]"]'),
+        ('#[doc = "x"] x', '#[doc = "x"]'),
+        ("#[cfg(any(a, b))] x", "#[cfg(any(a, b))]"),
+        ("#[a[b[c]]] x", "#[a[b[c]]]"),
+        ("#[a /* ] */ // ]\n] x", "#[a /* ] */ // ]\n]"),
+        ("x #[a] y", "#[a]"),
+    ],
+    ids=["multi-line", "string-close", "doc", "nested", "brackets", "comments", "mid"],
+)
+def test_attribute_extent_spans_to_its_matching_close(rust_definition, text, attribute):
+    result = scanned(text, rust_definition)
+    (token,) = [
+        t for t in result.tokens if t.kind is records.RustTokenKind.OUTER_ATTRIBUTE
+    ]
+    assert text[token.span.start : token.span.end] == attribute
+
+
+def test_attribute_extent_keeps_inner_literals_and_comments(rust_definition):
+    result = scanned('#[doc = "]"/* c */]', rust_definition)
+    assert shape(result) == [
+        (RegionKind.CODE, "#[doc"),
+        (RegionKind.WHITESPACE, " "),
+        (RegionKind.CODE, "="),
+        (RegionKind.WHITESPACE, " "),
+        (RegionKind.LITERAL, '"]"'),
+        (RegionKind.COMMENT, "/* c */"),
+        (RegionKind.CODE, "]"),
+    ]
+    assert spelled(result) == [
+        ("outer_attribute", '#[doc = "]"/* c */]'),
+        ("punct", "#"),
+        ("open", "["),
+        ("word", "doc"),
+        ("whitespace", " "),
+        ("punct", "="),
+        ("whitespace", " "),
+        ("string", '"]"'),
+        ("delimited_comment", "/* c */"),
+        ("close", "]"),
+    ]
+
+
+def test_attribute_extent_inner_attribute(rust_definition):
+    result = scanned("#![allow(x)]\n", rust_definition)
+    assert shape(result) == [
+        (RegionKind.CODE, "#![allow(x)]"),
+        (RegionKind.WHITESPACE, "\n"),
+    ]
+    assert spelled(result) == [
+        ("inner_attribute", "#![allow(x)]"),
+        ("punct", "#"),
+        ("punct", "!"),
+        ("open", "["),
+        ("word", "allow"),
+        ("open", "("),
+        ("word", "x"),
+        ("close", ")"),
+        ("close", "]"),
+        ("whitespace", "\n"),
+    ]
+
+
+def test_attribute_extent_shebang_line_is_not_an_attribute(rust_definition):
+    result = scanned("#!/bin/x\n", rust_definition)
+    assert [kind for kind, _ in spelled(result)][:3] == ["punct", "punct", "punct"]
+    assert all(kind != "inner_attribute" for kind, _ in spelled(result))
+
+
+@pytest.mark.parametrize(
+    ("text", "start", "end"),
+    [("x\n#[cfg(a)", 2, 4), ("#![a", 0, 3), ('#[doc = "]"', 0, 2)],
+)
+def test_attribute_extent_unclosed_attribute_fails_at_its_opener(
+    rust_definition, text, start, end
+):
+    refused(text, rust_definition, "unterminated-attribute", start, end)

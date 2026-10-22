@@ -15,6 +15,8 @@ BYTE_ORDER_MARK = "\ufeff"
 WHITESPACE = frozenset("\t\n\v\f\r \x85\u200e\u200f\u2028\u2029")
 OPENERS = frozenset("{([")
 CLOSERS = frozenset("})]")
+# The Rust Reference's CHAR_LITERAL excludes these from an unescaped body.
+NOT_A_CHAR_BODY = frozenset("\n\r\t")
 
 
 @dataclass(frozen=True)
@@ -44,15 +46,85 @@ class _Comments:
         )
 
 
-def scan_rust(text: str, definition: LanguageDefinition) -> RustScan | ReadFailure:
-    """Partition Rust source, failing at NUL or an unterminated delimited comment.
+@dataclass(frozen=True)
+class _Literals:
+    string_quote: str
+    raw_guard: str
+    char_quote: str
+    escape: str
+    raw_identifier: str
+    # (prefix, kind) longest prefix first, so `br` is tried before `b`.
+    prefixes: tuple[tuple[str, RustTokenKind], ...]
 
-    Adjacent code tokens share one CODE region and adjacent whitespace one
-    WHITESPACE region; every comment is its own COMMENT region.
+    @classmethod
+    def from_definition(cls, definition: LanguageDefinition) -> "_Literals":
+        literals = cast(Mapping[str, object], definition.rules["literals"])
+        prefixes = [
+            (prefix, kind)
+            for key, kind in (
+                ("raw_prefixes", RustTokenKind.RAW_STRING),
+                ("string_prefixes", RustTokenKind.STRING),
+                ("char_prefixes", RustTokenKind.CHAR),
+            )
+            for prefix in cast(tuple[str, ...], literals[key])
+        ]
+        prefixes.sort(key=lambda entry: -len(entry[0]))
+        return cls(
+            cast(str, literals["string_quote"]),
+            cast(str, literals["raw_guard"]),
+            cast(str, literals["char_quote"]),
+            cast(str, literals["escape_marker"]),
+            # A raw lifetime is a quote before a raw identifier, so the one
+            # prefix spells both.
+            cast(str, literals["raw_lifetime_prefix"]),
+            tuple(prefixes),
+        )
+
+
+@dataclass(frozen=True)
+class _Attributes:
+    outer: str
+    inner: str
+    close: str
+
+    @classmethod
+    def from_definition(cls, definition: LanguageDefinition) -> "_Attributes":
+        attributes = cast(Mapping[str, object], definition.rules["attributes"])
+        return cls(
+            cast(str, attributes["outer_open"]),
+            cast(str, attributes["inner_open"]),
+            cast(str, attributes["close"]),
+        )
+
+    @property
+    def bracket(self) -> str:
+        """The bracket that opens an attribute's body and nests inside it."""
+        return self.outer[-1]
+
+
+@dataclass(frozen=True)
+class _Grammar:
+    comments: _Comments
+    literals: _Literals
+    attributes: _Attributes
+
+
+def scan_rust(text: str, definition: LanguageDefinition) -> RustScan | ReadFailure:
+    """Partition Rust source, failing at NUL or at anything left unterminated.
+
+    What can be left unterminated is a delimited comment, a string, a raw
+    string, a character literal or an attribute.
+
+    Adjacent code tokens share one CODE region, adjacent whitespace one
+    WHITESPACE region and adjacent literals one LITERAL region; every comment
+    is its own COMMENT region. A lifetime is code.
 
     Rust's grammar fixes two comment rules: a delimited comment nests, closing
     only when every opener inside it has closed, and an outer doc marker whose
     last character repeats (`////`, `/***`) opens an ordinary comment.
+
+    An attribute is one token from its opener to the close that matches it,
+    emitted ahead of the tokens inside it, which are read as anywhere else.
     """
     failure = validate_rust(definition)
     if failure is not None:
@@ -60,12 +132,21 @@ def scan_rust(text: str, definition: LanguageDefinition) -> RustScan | ReadFailu
     nul = text.find("\x00")
     if nul >= 0:
         return _failure("source-nul", nul, nul + 1)
-    comments = _Comments.from_definition(definition)
+    grammar = _Grammar(
+        _Comments.from_definition(definition),
+        _Literals.from_definition(definition),
+        _Attributes.from_definition(definition),
+    )
     regions: list[SourceRegion] = []
     tokens: list[RustToken] = []
     start = 0
     while start < len(text):
-        result = _next_token(text, start, comments)
+        attribute = _attribute(text, start, grammar)
+        if isinstance(attribute, ReadFailure):
+            return attribute
+        if attribute is not None:
+            tokens.append(attribute)
+        result = _next_token(text, start, grammar)
         if isinstance(result, ReadFailure):
             return result
         kind, end, region_kind = result
@@ -86,10 +167,39 @@ def scan_rust(text: str, definition: LanguageDefinition) -> RustScan | ReadFailu
     return RustScan(text, tuple(regions), tuple(tokens))
 
 
+def _attribute(
+    text: str, start: int, grammar: _Grammar
+) -> RustToken | ReadFailure | None:
+    """The attribute opening at `start`, spanning to the close that matches it."""
+    attributes = grammar.attributes
+    if text.startswith(attributes.inner, start):
+        kind, opener = RustTokenKind.INNER_ATTRIBUTE, attributes.inner
+    elif text.startswith(attributes.outer, start):
+        kind, opener = RustTokenKind.OUTER_ATTRIBUTE, attributes.outer
+    else:
+        return None
+    depth = 0
+    at = start
+    while at < len(text):
+        result = _next_token(text, at, grammar)
+        if isinstance(result, ReadFailure):
+            return result
+        token_kind, end, _ = result
+        if token_kind is RustTokenKind.OPEN and text[at:end] == attributes.bracket:
+            depth += 1
+        elif token_kind is RustTokenKind.CLOSE and text[at:end] == attributes.close:
+            depth -= 1
+            if depth == 0:
+                return RustToken(kind, SourceSpan(start, end))
+        at = end
+    return _failure("unterminated-attribute", start, start + len(opener))
+
+
 def _next_token(
-    text: str, start: int, comments: _Comments
+    text: str, start: int, grammar: _Grammar
 ) -> tuple[RustTokenKind | None, int, RegionKind] | ReadFailure:
     """The token at `start`: its kind (None for a byte-order mark), end and region."""
+    comments = grammar.comments
     char = text[start]
     if start == 0 and char == BYTE_ORDER_MARK:
         return None, 1, RegionKind.WHITESPACE
@@ -102,18 +212,154 @@ def _next_token(
         return _delimited(text, start, comments)
     if text.startswith(comments.line, start):
         return _line(text, start, comments), _line_end(text, start), RegionKind.COMMENT
-    # Literal, lifetime and attribute openers are not read yet; they belong here,
-    # ahead of the code tokens, which would otherwise split them.
+    # Ahead of the code tokens, which would otherwise split a literal.
+    literal = _literal(text, start, grammar.literals)
+    if literal is not None:
+        return literal
     if char in OPENERS:
         return RustTokenKind.OPEN, start + 1, RegionKind.CODE
     if char in CLOSERS:
         return RustTokenKind.CLOSE, start + 1, RegionKind.CODE
     if char.isidentifier():
-        end = start + 1
-        while end < len(text) and f"_{text[end]}".isidentifier():
-            end += 1
-        return RustTokenKind.WORD, end, RegionKind.CODE
+        return RustTokenKind.WORD, _identifier_end(text, start), RegionKind.CODE
     return RustTokenKind.PUNCT, start + 1, RegionKind.CODE
+
+
+def _identifier_end(text: str, start: int) -> int:
+    end = start + 1
+    while end < len(text) and _continues_identifier(text[end]):
+        end += 1
+    return end
+
+
+def _continues_identifier(char: str) -> bool:
+    return f"_{char}".isidentifier()
+
+
+def _literal(
+    text: str, start: int, literals: _Literals
+) -> tuple[RustTokenKind, int, RegionKind] | ReadFailure | None:
+    """A literal, lifetime or raw identifier at `start`, or None for anything else.
+
+    A prefix opens a literal only where the character before it cannot
+    continue an identifier, so the `r` ending `bar` never opens a raw string.
+    """
+    if text.startswith(literals.string_quote, start):
+        return _string(text, start, start + len(literals.string_quote), literals)
+    if text.startswith(literals.char_quote, start):
+        return _char_or_lifetime(
+            text, start, start + len(literals.char_quote), literals
+        )
+    if start > 0 and _continues_identifier(text[start - 1]):
+        return None
+    for prefix, kind in literals.prefixes:
+        if not text.startswith(prefix, start):
+            continue
+        after = start + len(prefix)
+        if kind is RustTokenKind.RAW_STRING:
+            raw = _raw_string(text, start, after, literals)
+            if raw is not None:
+                return raw
+        elif kind is RustTokenKind.STRING:
+            if text.startswith(literals.string_quote, after):
+                body = after + len(literals.string_quote)
+                return _string(text, start, body, literals)
+        elif text.startswith(literals.char_quote, after):
+            body = after + len(literals.char_quote)
+            char = _char(text, body, literals)
+            if char is None:
+                return _failure("unterminated-char", start, body)
+            return RustTokenKind.CHAR, char, RegionKind.LITERAL
+    name = _past_raw_identifier_prefix(text, start, literals)
+    if name > start:
+        return RustTokenKind.WORD, _identifier_end(text, name), RegionKind.CODE
+    return None
+
+
+def _string(
+    text: str, start: int, body: int, literals: _Literals
+) -> tuple[RustTokenKind, int, RegionKind] | ReadFailure:
+    """A string whose body begins at `body`; an escape takes the next character."""
+    at = body
+    while at < len(text):
+        if text.startswith(literals.escape, at):
+            at += len(literals.escape) + 1
+        elif text.startswith(literals.string_quote, at):
+            end = at + len(literals.string_quote)
+            return RustTokenKind.STRING, end, RegionKind.LITERAL
+        else:
+            at += 1
+    return _failure("unterminated-string", start, body)
+
+
+def _raw_string(
+    text: str, start: int, after: int, literals: _Literals
+) -> tuple[RustTokenKind, int, RegionKind] | ReadFailure | None:
+    """A raw string after its prefix, or None where no quote follows the guards.
+
+    It closes only at a quote followed by as many guards as opened it.
+    """
+    quote = after
+    while text.startswith(literals.raw_guard, quote):
+        quote += len(literals.raw_guard)
+    if not text.startswith(literals.string_quote, quote):
+        return None
+    closer = literals.string_quote + text[after:quote]
+    body = quote + len(literals.string_quote)
+    end = text.find(closer, body)
+    if end < 0:
+        return _failure("unterminated-raw-string", start, body)
+    return RustTokenKind.RAW_STRING, end + len(closer), RegionKind.LITERAL
+
+
+def _char_or_lifetime(
+    text: str, start: int, body: int, literals: _Literals
+) -> tuple[RustTokenKind, int, RegionKind] | ReadFailure:
+    """A character, a lifetime, or a failure at the quote that opens neither.
+
+    A valid character body and a closing quote make a character; otherwise an
+    identifier after the quote makes a lifetime.
+    """
+    end = _char(text, body, literals)
+    if end is not None:
+        return RustTokenKind.CHAR, end, RegionKind.LITERAL
+    name = _past_raw_identifier_prefix(text, body, literals)
+    if name < len(text) and text[name].isidentifier():
+        return RustTokenKind.LIFETIME, _identifier_end(text, name), RegionKind.CODE
+    return _failure("unterminated-char", start, body)
+
+
+def _past_raw_identifier_prefix(text: str, at: int, literals: _Literals) -> int:
+    """Past the raw identifier prefix at `at` if an identifier follows, else `at`."""
+    name = at + len(literals.raw_identifier)
+    if (
+        text.startswith(literals.raw_identifier, at)
+        and name < len(text)
+        and text[name].isidentifier()
+    ):
+        return name
+    return at
+
+
+def _char(text: str, body: int, literals: _Literals) -> int | None:
+    """Where a character literal whose body begins at `body` ends, or None.
+
+    An escape takes the character after it and runs to the closing quote on
+    the same line, which covers the hex and unicode escape forms.
+    """
+    if text.startswith(literals.escape, body):
+        at = body + len(literals.escape) + 1
+        close = text.find(literals.char_quote, at)
+        if close < 0 or any(char in NOT_A_CHAR_BODY for char in text[body:close]):
+            return None
+        return close + len(literals.char_quote)
+    if body >= len(text) or text[body] in NOT_A_CHAR_BODY:
+        return None
+    if text.startswith(literals.char_quote, body):
+        return None
+    if text.startswith(literals.char_quote, body + 1):
+        return body + 1 + len(literals.char_quote)
+    return None
 
 
 def _line(text: str, start: int, comments: _Comments) -> RustTokenKind:
