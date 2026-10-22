@@ -727,7 +727,6 @@ def test_installed_code_definitions_have_exact_suffixes_and_independent_rules() 
     from comment_review.reading.language import INSTALLED_DEFINITIONS, LANGUAGES
 
     expected = {
-        "rust": (".rs",),
         "go": (".go",),
         "c": (".c", ".h"),
         "cpp": (".cpp", ".hpp", ".cc", ".cxx"),
@@ -754,7 +753,7 @@ def test_installed_code_definitions_have_exact_suffixes_and_independent_rules() 
             for field in fields(row)
             if field.name not in {"name", "extensions"}
         }
-    assert len({id(value.rules) for value in INSTALLED_DEFINITIONS}) == 14
+    assert len({id(value.rules) for value in INSTALLED_DEFINITIONS}) == 13
 
 
 def test_python_is_defined_by_its_own_file_and_by_no_row() -> None:
@@ -769,7 +768,7 @@ def test_python_is_defined_by_its_own_file_and_by_no_row() -> None:
 
     path = Path("m.py")
     assert [row.name for row in LANGUAGES if ".py" in row.extensions] == []
-    assert [value.language for value in SHIPPED_DEFINITIONS] == ["python"]
+    assert [value.language for value in SHIPPED_DEFINITIONS] == ["python", "rust"]
     assert INSTALLED_REGISTRY.for_path(path) is SHIPPED_DEFINITIONS[0]
     assert language_for(path) is None
     assert line_comment_markers(path) == ("#",)
@@ -1043,3 +1042,166 @@ def test_python_definition_rejects_invalid_prefix_groups() -> None:
         result = validate_python_definition(replace(value, rules=rules))
         assert isinstance(result, ReadFailure)
         assert "rules.literals.prefixes.raw_template" in result.diagnostics[0].message
+
+
+def rust_definition() -> Any:
+    path = (
+        Path(__file__).parents[1] / "src/comment_review/references/languages/rust.toml"
+    )
+    values = load([path])
+    assert isinstance(values, tuple), values
+    return values[0]
+
+
+def validate_rust_definition(value: Any) -> Any:
+    return import_module("comment_review.reading.rust.definition").validate_rust(value)
+
+
+def test_rust_definition_shipped_file_validates() -> None:
+    value = rust_definition()
+    assert validate_rust_definition(value) is None
+    assert value.language == "rust"
+    assert value.defaults == value.choices == {}
+
+
+def test_rust_definition_rejects_wrong_identity() -> None:
+    from dataclasses import replace
+
+    for field, wrong in (
+        ("language", "python"),
+        ("reader", "rust-stdlib"),
+        ("revision", "1"),
+        ("suffixes", (".rs", ".rlib")),
+        ("capabilities", ("comments", "lexical")),
+    ):
+        result = validate_rust_definition(replace(rust_definition(), **{field: wrong}))
+        assert isinstance(result, ReadFailure), field
+        assert result.diagnostics[0].code == "invalid-language-definition"
+        assert field in result.diagnostics[0].message
+
+
+def test_rust_definition_rejects_missing_unknown_wrong_typed_and_changed_rules() -> (
+    None
+):
+    from collections.abc import Mapping
+    from dataclasses import replace
+
+    value = rust_definition()
+    sections = [key for key, item in value.rules.items() if isinstance(item, Mapping)]
+    assert len(sections) == 6
+    for section in sections:
+        table = value.rules[section]
+        for key, item in table.items():
+            wrong = (
+                (*item, "extra")
+                if isinstance(item, tuple)
+                else not item
+                if isinstance(item, bool)
+                else item + 1
+                if isinstance(item, int)
+                else item + "x"
+            )
+            retyped = () if isinstance(item, tuple) else [item]
+            for changed, reason in (
+                ({k: v for k, v in table.items() if k != key}, "required"),
+                ({**table, "unknown": True}, "unknown"),
+                ({**table, key: retyped}, ""),
+                ({**table, key: wrong}, "unsupported"),
+            ):
+                rules = {**value.rules, section: changed}
+                result = validate_rust_definition(replace(value, rules=rules))
+                assert isinstance(result, ReadFailure), (section, key, reason)
+                assert reason in result.diagnostics[0].message
+    missing = {k: v for k, v in value.rules.items() if k != "comments"}
+    result = validate_rust_definition(replace(value, rules=missing))
+    assert isinstance(result, ReadFailure)
+    assert "rules.comments" in result.diagnostics[0].message
+
+
+def test_rust_definition_rejects_effective_settings() -> None:
+    from dataclasses import replace
+
+    value = replace(
+        rust_definition(), defaults={"edition": "2024"}, choices={"edition": ("2024",)}
+    )
+    result = validate_rust_definition(value)
+    assert isinstance(result, ReadFailure)
+    assert "settings" in result.diagnostics[0].message
+
+
+def test_rust_definition_is_installed_as_rust_lexical_revision_2() -> None:
+    from comment_review.reading.language import INSTALLED_REGISTRY, SHIPPED_DEFINITIONS
+    from comment_review.reading.readers import INSTALLED_BINDINGS, bind_reader
+
+    value = INSTALLED_REGISTRY.for_path(Path("x.rs"))
+    assert value is not None
+    assert value.language == "rust"
+    assert value.reader == "rust-lexical"
+    assert value.revision == "2"
+    assert value in SHIPPED_DEFINITIONS
+    binding = bind_reader(value, INSTALLED_BINDINGS)
+    assert not isinstance(binding, ReadFailure)
+    assert binding.grammar_identity == "Rust Reference lexical"
+
+
+def test_rust_definition_reader_refuses_until_it_is_finished() -> None:
+    from comment_review.reading.readers import INSTALLED_BINDINGS
+
+    value = installed_rust()
+    result = INSTALLED_BINDINGS["rust-lexical"].read(Path("x.rs"), "fn a() {}\n", value)
+    assert isinstance(result, ReadFailure)
+    assert "not finished" in result.diagnostics[0].message
+
+
+def installed_rust() -> Any:
+    from comment_review.reading.language import INSTALLED_REGISTRY
+
+    return INSTALLED_REGISTRY.for_path(Path("x.rs"))
+
+
+def test_rust_definition_leaves_no_language_row() -> None:
+    from comment_review.reading.language import LANGUAGES, READER_METADATA
+
+    assert [row.name for row in LANGUAGES if row.name == "rust"] == []
+    assert [row.name for row in LANGUAGES if ".rs" in row.extensions] == []
+    assert "rust" not in READER_METADATA
+
+
+def test_rust_definition_answers_comment_markers_and_form() -> None:
+    from comment_review.reading.language import line_comment_markers
+    from comment_review.reading.lexer import comment_form
+    from comment_review.reading.series import Series
+
+    path = Path("x.rs")
+    assert set(line_comment_markers(path)) == {"//", "///", "//!"}
+    line = comment_form(path, Series.DECLARED, "/// Adds one.\n")
+    assert line.fragments[0].first == "/// "
+    assert line.fragments[0].paragraphs == ("Adds one.",)
+    block = comment_form(path, Series.DECLARED, "/* a /* b */ c */\n")
+    assert block.fragments[0].first == "/* "
+    assert block.fragments[0].last == " */"
+    assert block.fragments[0].paragraphs == ("a /* b */ c",)
+
+
+def test_rust_definition_leaves_other_definitions_unchanged() -> None:
+    from comment_review.reading.language import (
+        INSTALLED_DEFINITIONS,
+        SHIPPED_DEFINITIONS,
+    )
+
+    assert [value.language for value in SHIPPED_DEFINITIONS] == ["python", "rust"]
+    assert [value.language for value in INSTALLED_DEFINITIONS] == [
+        "go",
+        "c",
+        "cpp",
+        "java",
+        "csharp",
+        "swift",
+        "kotlin",
+        "javascript",
+        "typescript",
+        "ruby",
+        "shell",
+        "sql",
+        "lua",
+    ]

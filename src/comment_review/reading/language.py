@@ -2,7 +2,7 @@
 
 A language with its own definition file is read from it:
 `references/languages/*.toml` is loaded at import, one file per language, into
-`SHIPPED_DEFINITIONS`. Python is defined that way.
+`SHIPPED_DEFINITIONS`. Python and Rust are defined that way.
 
 The other code languages are still rows in `LANGUAGES`, and installed
 definitions materialize grammar from each row `READER_METADATA` names -- every
@@ -97,36 +97,6 @@ class Language:
 # because Lua's does. Neither is evidence about the other, and a row that
 # reasoned from a neighbour would be assembling one definition out of two.
 LANGUAGES: tuple[Language, ...] = (
-    Language(
-        "rust",
-        (".rs",),
-        ("///", "//!", "//"),
-        (("/*", "*/"),),
-        doc_line=("///", "//!"),
-        # ! Rust nests its paragraph comments.
-        nests_comments=True,
-        # !! AND A LIFETIME IS NOT A LITERAL. `&'static str` opens a `'` that
-        # never closes, so reading it as a quote blanked the rest of the line --
-        # comment included. `char_quotes` is what tells the two apart.
-        char_quotes=("'",),
-        # ! `pub` opens an item and `let` opens a binding, so one is in and
-        # the other is not.
-        declares=(
-            "pub",
-            "fn",
-            "struct",
-            "enum",
-            "trait",
-            "impl",
-            "mod",
-            "type",
-            "union",
-            "const",
-            "static",
-            "macro_rules!",
-        ),
-        quotes=('"', "'"),
-    ),
     Language(
         "go",
         (".go",),
@@ -496,7 +466,6 @@ class ReaderMetadata:
 
 READER_METADATA = MappingProxyType(
     {
-        "rust": ReaderMetadata("rust-lexical", "1", ("comments", "lexical")),
         "go": ReaderMetadata("go-lexical", "1", ("comments", "lexical")),
         "c": ReaderMetadata("c-lexical", "1", ("comments", "lexical")),
         "cpp": ReaderMetadata("cpp-lexical", "1", ("comments", "lexical")),
@@ -631,7 +600,7 @@ def language_for(path: Path) -> Language | None:
     """The lexical grammar for a path, built from its installed row.
 
     None for a path no row covers: a language defined by its own file, such as
-    Python, and the non-code rows TOML, INI and YAML.
+    Python or Rust, and the non-code rows TOML, INI and YAML.
     """
     value = INSTALLED_REGISTRY.for_path(path)
     if value is None or value.language not in READER_METADATA:
@@ -642,16 +611,61 @@ def language_for(path: Path) -> Language | None:
 def line_comment_markers(path: Path) -> tuple[str, ...]:
     """The markers that open a line comment in the path's language.
 
-    A lexical row lists them as `line_comment`; a definition file states its one
-    marker under `comments.marker`. Empty when no definition covers the path.
+    A lexical row lists them as `line_comment`; a definition file states them
+    under `comments`: Python's one `marker`, Rust's `line` and its two doc
+    forms. Empty when no definition covers the path.
     """
     lang = language_for(path)
     if lang is not None:
         return lang.line_comment
     value = INSTALLED_REGISTRY.for_path(path)
     comments = value.rules.get("comments") if value is not None else None
-    marker = comments.get("marker") if isinstance(comments, Mapping) else None
-    return (marker,) if isinstance(marker, str) and marker else ()
+    if not isinstance(comments, Mapping):
+        return ()
+    names = (
+        ("marker",)
+        if "marker" in comments
+        else (
+            "line",
+            "outer_doc_line",
+            "inner_doc_line",
+        )
+    )
+    markers = tuple(comments.get(name) for name in names)
+    return tuple(m for m in markers if isinstance(m, str) and m)
+
+
+def comment_language_for(path: Path) -> Language | None:
+    """What the comment splitter needs to know about the path's comments.
+
+    A lexical row answers itself. A definition file that states `block_comment`
+    comments, as Rust's does, answers with the markers its `comments` table
+    names; Python's states none, so it answers None.
+    """
+    lang = language_for(path)
+    if lang is not None:
+        return lang
+    value = INSTALLED_REGISTRY.for_path(path)
+    table = value.rules.get("comments") if value is not None else None
+    if value is None or not isinstance(table, Mapping) or "block_comment" not in table:
+        return None
+    comments = cast(Mapping[str, object], table)
+    pair = cast(tuple[str, str], comments["block_comment"])
+    return Language(
+        name=value.language,
+        extensions=value.suffixes,
+        line_comment=line_comment_markers(path),
+        block_comment=(pair,),
+        doc_line=(
+            cast(str, comments["outer_doc_line"]),
+            cast(str, comments["inner_doc_line"]),
+        ),
+        doc_block=(
+            cast(str, comments["outer_doc_block"]),
+            cast(str, comments["inner_doc_block"]),
+        ),
+        nests_comments=cast(bool, comments["nests"]),
+    )
 
 
 def documents_in_literals(path: Path) -> bool:

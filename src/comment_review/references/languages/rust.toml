@@ -1,0 +1,59 @@
+format = 1
+language = "rust"
+suffixes = [".rs"]
+reader = "rust-lexical"
+revision = "2"
+capabilities = ["comments", "strings", "declarations", "documentation", "protected-directives", "lexical"]
+defaults = {}
+choices = {}
+
+[rules.comments]
+line = "//"
+outer_doc_line = "///"
+inner_doc_line = "//!"
+block_comment = ["/*", "*/"]
+outer_doc_block = "/**"
+inner_doc_block = "/*!"
+nests = true
+doc_marker_repeated_is_ordinary = true
+empty_block_comment = "/**/"
+sections = "same-form-across-blanks"
+
+[rules.literals]
+string_quote = '"'
+string_prefixes = ["b", "c"]
+raw_prefixes = ["r", "br", "cr"]
+raw_guard = "#"
+char_quote = "'"
+char_prefixes = ["b"]
+escape_marker = '\'
+unicode_escape = ["\\u{", "}"]
+raw_lifetime_prefix = "r#"
+
+[rules.attributes]
+outer_open = "#["
+inner_open = "#!["
+close = "]"
+
+[rules.declarations]
+visibility = "pub"
+visibility_scopes = ["crate", "super", "self", "in"]
+qualifiers = ["default", "const", "async", "unsafe", "safe", "extern", "auto"]
+keywords = ["fn", "struct", "enum", "union", "trait", "impl", "mod", "type", "const", "static", "use", "extern", "macro_rules!"]
+contextual = ["union", "auto", "safe", "default", "macro_rules!"]
+item_containers = ["mod", "impl", "trait", "extern"]
+member_lists = ["struct", "union"]
+variant_lists = ["enum"]
+function_bodies = ["fn"]
+
+[rules.documentation]
+owners = ["module", "item", "associated-item", "field", "variant", "nested-item"]
+position = "above-head"
+added_outer = "///"
+added_inner = "//!"
+detached = "ordinary-comment-with-warning"
+
+[rules.directives]
+shebang = "#!"
+shebang_line = 1
+inner_attribute_follows = "["

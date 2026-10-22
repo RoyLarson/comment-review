@@ -29,6 +29,8 @@ from comment_review.reading.python.definition import validate_python
 from comment_review.reading.python.projection import paragraphs_for
 from comment_review.reading.python.records import PythonRead
 from comment_review.reading.registry import LanguageRegistry
+from comment_review.reading.rust import read_rust
+from comment_review.reading.rust.definition import validate_rust
 from comment_review.reading.source import SourceSpan
 
 SourceReader: TypeAlias = Callable[
@@ -163,8 +165,28 @@ def _read_python(
     return read_python(text, definition)
 
 
+def _read_rust(path: Path, text: str, definition: LanguageDefinition) -> ReadFailure:
+    """Bind the Rust reader, which refuses every source until it is finished."""
+    return read_rust(text, definition)
+
+
 INSTALLED_BINDINGS = MappingProxyType(
     {
+        "rust-lexical": ReaderBinding(
+            "rust-lexical",
+            "2",
+            (
+                "comments",
+                "strings",
+                "declarations",
+                "documentation",
+                "protected-directives",
+                "lexical",
+            ),
+            "Rust Reference lexical",
+            _read_rust,
+            validate_rust,
+        ),
         "python-lexical": ReaderBinding(
             "python-lexical",
             "2",

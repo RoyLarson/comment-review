@@ -38,6 +38,7 @@ from comment_review.reading.language import (
     BY_EXT,
     LANGUAGES,
     Language,
+    comment_language_for,
     documents_in_literals,
     language_for,
     line_comment_markers,
@@ -127,7 +128,7 @@ def comment_form(
     path: Path, series: Series | None, raw_text: str, anchor: str = ""
 ) -> Comment:
     """The assigned paragraph's prose and the form its raw text carries."""
-    lang = language_for(path)
+    lang = comment_language_for(path)
     chunks: list[str] = []
     if documents_in_literals(path) and series is Series.DECLARED:
         from comment_review.reading.docstring import concatenated
@@ -200,7 +201,7 @@ def comment_form(
 def _comment_fragment(
     path: Path, series: Series | None, raw_text: str, anchor: str
 ) -> Fragment:
-    lang = language_for(path)
+    lang = comment_language_for(path)
     in_literals = documents_in_literals(path)
     physical = raw_text.splitlines(keepends=True)
     while physical and not physical[-1].strip():
