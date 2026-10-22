@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 9 of 49 tasks closed
+Progress: 11 of 49 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (/simplify rounds 1 and 2 and /code-review high round 3,
@@ -212,9 +212,10 @@ would.
 - [ ] T15 | T15 -- Give Swift its own expression of soft keywords: `convenience`
       and `required`. Verify: `required = f()` in a `.swift` mints no `a`, and a
       real init still does.
-- [ ] T16 | T16 -- Declare Rust's spanning quotes; language.py:117-146 carries
-      none. Verify: a Rust multi-line string is neither refused wholesale nor
-      read as comments.
+- [x] T16 | FINISHED: the Rust scanner reads a multi-line string as one literal token, neither a read failure nor comments (tests/reading/test_rust.py) | b239c6ca | T16
+      -- Declare Rust's spanning quotes; language.py:117-146 carries none.
+      Verify: a Rust multi-line string is neither refused wholesale nor read as
+      comments.
         > 2026-10-10 Multiline Rust literal edits compare equal as stripped code
 - [ ] T17 | T17 -- Declare C's spanning quotes; language.py:185-193 carries
       none. Verify: a C multi-line string is neither refused wholesale nor read
@@ -273,8 +274,9 @@ would.
       docstring.py without_raw contract; test empty-expression removal and
       invalid-edit refusal
         > 2026-10-03 Review: full removal deletes literals; invalid edits return None
-- [ ] T32 | Recognize raw string delimiters in lexer.py:510; verify a quoted
-      marker inside a Rust raw string stays literal data
+- [x] T32 | FINISHED: the Rust scanner reads raw strings to their exact guard count, so a comment marker inside stays literal data (tests/reading/test_rust.py) | b239c6ca | Recognize
+      raw string delimiters in lexer.py:510; verify a quoted marker inside a
+      Rust raw string stays literal data
 - [ ] T33 | Recognize JavaScript regex literals in lexer.py:1071; verify /[//]/
       yields no comment paragraph
 - [ ] T34 | Resume code scanning after block comments in lexer.py:1071; verify a

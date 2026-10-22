@@ -2,8 +2,8 @@
 
 ```
 Status:   in-progress
-Progress: 1 of 6 TODO tasks closed
-Plan-tasks: 3 of 13 plan tasks closed
+Progress: 3 of 6 TODO tasks closed
+Plan-tasks: 4 of 13 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-22 (founded by move-t from 2026-10-11-lexical-readers)
@@ -25,13 +25,13 @@ reader.
 
 ### A - [lexer-and-language-findings](../../TODO/lexer-and-language-findings.md)
 
-- [ ] T16 | T16 -- Declare Rust's spanning quotes; language.py:117-146 carries
+- [x] T16 | T16 -- Declare Rust's spanning quotes; language.py:117-146 carries
       none. Verify: a Rust multi-line string is neither refused wholesale nor
       read as comments.
 - [ ] T27 | T27 -- Declare Rust's `//!` inner; `///` stays outer. Verify: a
       `.rs` opening `//!` above nothing types `docstring`, and `///` above
       nothing types `comment`.
-- [ ] T32 | Recognize raw string delimiters in lexer.py:510; verify a quoted
+- [x] T32 | Recognize raw string delimiters in lexer.py:510; verify a quoted
       marker inside a Rust raw string stays literal data
 - [x] T49 | State Rust's inner doc openers in Rust's own definition file
 
@@ -61,7 +61,8 @@ reader.
       Rust comments into regions that partition the source
         > 2026-10-22 Spec: nested blocks, the six comment forms, exact source
         > 2026-10-22 Check: test_rust.py -k comments, plus BOM/CRLF/no-EOL cases
-- [ ] P4 | Read Rust literals by the prefix boundary rule
+- [x] P4 | FINISHED: the Rust scanner reads literals, lifetimes and attributes from rust.toml keys; task review and re-review clean | b239c6ca | Read
+      Rust literals by the prefix boundary rule
         > 2026-10-22 Spec: strings, raw, byte and C strings; char against lifetime
         > 2026-10-22 Check: test_rust.py -k literals and -k quotes
         > 2026-10-22 Check: a marker inside a raw string stays literal data
