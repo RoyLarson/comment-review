@@ -1,6 +1,10 @@
+from importlib import import_module
+from importlib.resources import files
+
 import pytest
 
-from comment_review.reading.diagnostics import ReadDiagnostic, ReadStage
+from comment_review.reading.definitions import LanguageDefinition, decode_definition
+from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, ReadStage
 from comment_review.reading.rust import records
 from comment_review.reading.source import (
     RegionKind,
@@ -248,3 +252,230 @@ def test_records_read_protected_span_must_be_a_directive_region():
         read(protected=(SourceSpan(19, 30),))
     with pytest.raises(ValueError):
         read(protected=(SourceSpan(30, 99),))
+
+
+@pytest.fixture
+def rust_definition():
+    text = (
+        files("comment_review")
+        .joinpath("references/languages/rust.toml")
+        .read_text(encoding="utf-8")
+    )
+    definition = decode_definition(text)
+    assert isinstance(definition, LanguageDefinition)
+    return definition
+
+
+def scan(text, definition):
+    try:
+        scanner = import_module("comment_review.reading.rust.scanner")
+    except ModuleNotFoundError:
+        pytest.fail("Rust scanner is not implemented", pytrace=False)
+    return scanner.scan_rust(text, definition)
+
+
+def scanned(text, definition):
+    result = scan(text, definition)
+    assert not isinstance(result, ReadFailure), result
+    assert "".join(text[r.span.start : r.span.end] for r in result.regions) == text
+    return result
+
+
+def shape(result):
+    return [
+        (region.kind, result.text[region.span.start : region.span.end])
+        for region in result.regions
+    ]
+
+
+def spelled(result):
+    return [
+        (token.kind.value, result.text[token.span.start : token.span.end])
+        for token in result.tokens
+    ]
+
+
+def test_exact_source_empty_input_has_no_regions_or_tokens(rust_definition):
+    result = scanned("", rust_definition)
+    assert result.regions == ()
+    assert result.tokens == ()
+
+
+def test_exact_source_keeps_a_leading_byte_order_mark(rust_definition):
+    result = scanned("\ufefffn x", rust_definition)
+    assert shape(result) == [
+        (RegionKind.WHITESPACE, "\ufeff"),
+        (RegionKind.CODE, "fn"),
+        (RegionKind.WHITESPACE, " "),
+        (RegionKind.CODE, "x"),
+    ]
+    assert spelled(result) == [("word", "fn"), ("whitespace", " "), ("word", "x")]
+
+
+@pytest.mark.parametrize("newline", ["\n", "\r\n"])
+def test_exact_source_reads_lf_and_crlf_as_one_line_break(rust_definition, newline):
+    text = f"// a{newline}fn b(){newline}"
+    result = scanned(text, rust_definition)
+    assert shape(result) == [
+        (RegionKind.COMMENT, "// a"),
+        (RegionKind.WHITESPACE, newline),
+        (RegionKind.CODE, "fn"),
+        (RegionKind.WHITESPACE, " "),
+        (RegionKind.CODE, "b()"),
+        (RegionKind.WHITESPACE, newline),
+    ]
+    assert spelled(result) == [
+        ("line", "// a"),
+        ("whitespace", newline),
+        ("word", "fn"),
+        ("whitespace", " "),
+        ("word", "b"),
+        ("open", "("),
+        ("close", ")"),
+        ("whitespace", newline),
+    ]
+
+
+def test_exact_source_without_a_final_newline(rust_definition):
+    result = scanned("let x=[y];", rust_definition)
+    assert shape(result) == [
+        (RegionKind.CODE, "let"),
+        (RegionKind.WHITESPACE, " "),
+        (RegionKind.CODE, "x=[y];"),
+    ]
+    assert spelled(result) == [
+        ("word", "let"),
+        ("whitespace", " "),
+        ("word", "x"),
+        ("punct", "="),
+        ("open", "["),
+        ("word", "y"),
+        ("close", "]"),
+        ("punct", ";"),
+    ]
+
+
+@pytest.mark.parametrize("space", ["\v", "\f", chr(0x85), chr(0x2028)])
+def test_exact_source_reads_rust_pattern_whitespace(rust_definition, space):
+    result = scanned(f"a{space}b", rust_definition)
+    assert spelled(result) == [("word", "a"), ("whitespace", space), ("word", "b")]
+
+
+@pytest.mark.parametrize(
+    ("text", "kind"),
+    [
+        ("// a", "line"),
+        ("/// a", "outer_doc_line"),
+        ("//! a", "inner_doc_line"),
+        ("//// a", "line"),
+        ("/* a */", "delimited_comment"),
+        ("/** a */", "outer_doc_delimited"),
+        ("/*! a */", "inner_doc_delimited"),
+        ("/***/", "delimited_comment"),
+        ("/*** a */", "delimited_comment"),
+        ("/**/", "delimited_comment"),
+    ],
+)
+def test_comments_each_form_is_one_comment_region(rust_definition, text, kind):
+    result = scanned(text, rust_definition)
+    assert shape(result) == [(RegionKind.COMMENT, text)]
+    assert spelled(result) == [(kind, text)]
+
+
+def test_comments_nested_delimited_comment_is_one_region(rust_definition):
+    result = scanned("/* a /* b */ c */x", rust_definition)
+    assert shape(result) == [
+        (RegionKind.COMMENT, "/* a /* b */ c */"),
+        (RegionKind.CODE, "x"),
+    ]
+    assert spelled(result) == [
+        ("delimited_comment", "/* a /* b */ c */"),
+        ("word", "x"),
+    ]
+
+
+def test_comments_delimited_comment_spans_lines(rust_definition):
+    result = scanned("/** a\r\n b */\r\nfn", rust_definition)
+    assert shape(result) == [
+        (RegionKind.COMMENT, "/** a\r\n b */"),
+        (RegionKind.WHITESPACE, "\r\n"),
+        (RegionKind.CODE, "fn"),
+    ]
+    assert spelled(result)[0] == ("outer_doc_delimited", "/** a\r\n b */")
+
+
+def test_comments_after_a_closing_brace_on_the_same_line(rust_definition):
+    result = scanned("}// a\n", rust_definition)
+    assert shape(result) == [
+        (RegionKind.CODE, "}"),
+        (RegionKind.COMMENT, "// a"),
+        (RegionKind.WHITESPACE, "\n"),
+    ]
+    assert spelled(result) == [("close", "}"), ("line", "// a"), ("whitespace", "\n")]
+
+
+def test_comments_split_code_around_a_delimited_comment(rust_definition):
+    result = scanned("a/* x */b", rust_definition)
+    assert shape(result) == [
+        (RegionKind.CODE, "a"),
+        (RegionKind.COMMENT, "/* x */"),
+        (RegionKind.CODE, "b"),
+    ]
+    assert spelled(result) == [
+        ("word", "a"),
+        ("delimited_comment", "/* x */"),
+        ("word", "b"),
+    ]
+
+
+def test_comments_resume_after_a_close_into_another_comment(rust_definition):
+    result = scanned("/* a *//// b", rust_definition)
+    assert shape(result) == [
+        (RegionKind.COMMENT, "/* a */"),
+        (RegionKind.COMMENT, "/// b"),
+    ]
+    assert spelled(result) == [
+        ("delimited_comment", "/* a */"),
+        ("outer_doc_line", "/// b"),
+    ]
+
+
+def test_comments_final_line_comment_without_newline(rust_definition):
+    result = scanned("x\n//! end", rust_definition)
+    assert shape(result) == [
+        (RegionKind.CODE, "x"),
+        (RegionKind.WHITESPACE, "\n"),
+        (RegionKind.COMMENT, "//! end"),
+    ]
+
+
+@pytest.mark.parametrize(
+    ("text", "opener"),
+    [
+        ("x /* a\n", 2),
+        ("/* a /* b */ c", 0),
+        ("y\n/*! a /* b /* c */", 2),
+    ],
+)
+def test_comments_unterminated_delimited_comment_fails_at_outermost_opener(
+    rust_definition, text, opener
+):
+    result = scan(text, rust_definition)
+    assert isinstance(result, ReadFailure)
+    assert len(result.diagnostics) == 1
+    diagnostic = result.diagnostics[0]
+    assert diagnostic.stage == ReadStage.LEX
+    assert diagnostic.code == "unterminated-comment"
+    assert diagnostic.span == SourceSpan(opener, opener + 2)
+
+
+@pytest.mark.parametrize("text", ["\x00", "// a\x00\n", "/* \x00 */", "x\x00"])
+def test_comments_source_nul_refuses(rust_definition, text):
+    result = scan(text, rust_definition)
+    assert isinstance(result, ReadFailure)
+    at = text.index("\x00")
+    assert result.diagnostics == (
+        ReadDiagnostic(
+            ReadStage.LEX, "source-nul", "source nul", SourceSpan(at, at + 1)
+        ),
+    )
