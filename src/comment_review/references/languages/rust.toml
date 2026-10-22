@@ -15,7 +15,6 @@ block_comment = ["/*", "*/"]
 outer_doc_block = "/**"
 inner_doc_block = "/*!"
 nests = true
-doc_marker_repeated_is_ordinary = true
 empty_block_comment = "/**/"
 sections = "same-form-across-blanks"
 

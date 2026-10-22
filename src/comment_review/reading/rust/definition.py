@@ -84,7 +84,6 @@ def _grammar(rules: Mapping[str, object]) -> None:
             "outer_doc_block": "/**",
             "inner_doc_block": "/*!",
             "nests": True,
-            "doc_marker_repeated_is_ordinary": True,
             "empty_block_comment": "/**/",
             "sections": "same-form-across-blanks",
         },

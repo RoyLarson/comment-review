@@ -278,6 +278,21 @@ def scanned(text, definition):
     result = scan(text, definition)
     assert not isinstance(result, ReadFailure), result
     assert "".join(text[r.span.start : r.span.end] for r in result.regions) == text
+    kind = records.RustTokenKind
+    code = {kind.WORD, kind.PUNCT, kind.OPEN, kind.CLOSE}
+    for token in result.tokens:
+        (region,) = [
+            r
+            for r in result.regions
+            if r.span.start <= token.span.start and token.span.end <= r.span.end
+        ]
+        if token.kind in records.COMMENT_KINDS:
+            assert region.kind is RegionKind.COMMENT and region.span == token.span
+        elif token.kind in code:
+            assert region.kind is RegionKind.CODE
+        else:
+            assert token.kind is kind.WHITESPACE
+            assert region.kind is RegionKind.WHITESPACE
     return result
 
 
@@ -310,6 +325,43 @@ def test_exact_source_keeps_a_leading_byte_order_mark(rust_definition):
         (RegionKind.CODE, "x"),
     ]
     assert spelled(result) == [("word", "fn"), ("whitespace", " "), ("word", "x")]
+
+
+def test_exact_source_byte_order_mark_joins_following_whitespace(rust_definition):
+    result = scanned(chr(0xFEFF) + " \nx", rust_definition)
+    assert shape(result) == [
+        (RegionKind.WHITESPACE, chr(0xFEFF) + " \n"),
+        (RegionKind.CODE, "x"),
+    ]
+    assert spelled(result) == [("whitespace", " \n"), ("word", "x")]
+
+
+def test_comments_after_a_byte_order_mark(rust_definition):
+    result = scanned(chr(0xFEFF) + "//! a", rust_definition)
+    assert shape(result) == [
+        (RegionKind.WHITESPACE, chr(0xFEFF)),
+        (RegionKind.COMMENT, "//! a"),
+    ]
+    assert spelled(result) == [("inner_doc_line", "//! a")]
+
+
+def test_comments_closer_without_an_opener_is_code(rust_definition):
+    result = scanned("a */ b", rust_definition)
+    assert shape(result) == [
+        (RegionKind.CODE, "a"),
+        (RegionKind.WHITESPACE, " "),
+        (RegionKind.CODE, "*/"),
+        (RegionKind.WHITESPACE, " "),
+        (RegionKind.CODE, "b"),
+    ]
+    assert spelled(result) == [
+        ("word", "a"),
+        ("whitespace", " "),
+        ("punct", "*"),
+        ("punct", "/"),
+        ("whitespace", " "),
+        ("word", "b"),
+    ]
 
 
 @pytest.mark.parametrize("newline", ["\n", "\r\n"])
@@ -372,6 +424,8 @@ def test_exact_source_reads_rust_pattern_whitespace(rust_definition, space):
         ("/** a */", "outer_doc_delimited"),
         ("/*! a */", "inner_doc_delimited"),
         ("/***/", "delimited_comment"),
+        ("/*!*/", "inner_doc_delimited"),
+        ("/** a /* b */ c */", "outer_doc_delimited"),
         ("/*** a */", "delimited_comment"),
         ("/**/", "delimited_comment"),
     ],

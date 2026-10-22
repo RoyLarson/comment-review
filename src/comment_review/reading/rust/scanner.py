@@ -27,8 +27,6 @@ class _Comments:
     outer_delimited: str
     inner_delimited: str
     empty: str
-    nests: bool
-    repeated_is_ordinary: bool
 
     @classmethod
     def from_definition(cls, definition: LanguageDefinition) -> "_Comments":
@@ -43,8 +41,6 @@ class _Comments:
             cast(str, comments["outer_doc_block"]),
             cast(str, comments["inner_doc_block"]),
             cast(str, comments["empty_block_comment"]),
-            cast(bool, comments["nests"]),
-            cast(bool, comments["doc_marker_repeated_is_ordinary"]),
         )
 
 
@@ -53,6 +49,10 @@ def scan_rust(text: str, definition: LanguageDefinition) -> RustScan | ReadFailu
 
     Adjacent code tokens share one CODE region and adjacent whitespace one
     WHITESPACE region; every comment is its own COMMENT region.
+
+    Rust's grammar fixes two comment rules: a delimited comment nests, closing
+    only when every opener inside it has closed, and an outer doc marker whose
+    last character repeats (`////`, `/***`) opens an ordinary comment.
     """
     failure = validate_rust(definition)
     if failure is not None:
@@ -120,7 +120,7 @@ def _line(text: str, start: int, comments: _Comments) -> RustTokenKind:
     if text.startswith(comments.inner_line, start):
         return RustTokenKind.INNER_DOC_LINE
     if text.startswith(comments.outer_line, start) and not _repeated(
-        text, start, comments.outer_line, comments
+        text, start, comments.outer_line
     ):
         return RustTokenKind.OUTER_DOC_LINE
     return RustTokenKind.LINE
@@ -141,7 +141,7 @@ def _delimited(
     depth = 1
     end = start + len(comments.opener)
     while end < len(text):
-        if comments.nests and text.startswith(comments.opener, end):
+        if text.startswith(comments.opener, end):
             depth += 1
             end += len(comments.opener)
         elif text.startswith(comments.closer, end):
@@ -160,17 +160,15 @@ def _delimited_kind(text: str, start: int, comments: _Comments) -> RustTokenKind
     if text.startswith(comments.inner_delimited, start):
         return RustTokenKind.INNER_DOC_DELIMITED
     if text.startswith(comments.outer_delimited, start) and not _repeated(
-        text, start, comments.outer_delimited, comments
+        text, start, comments.outer_delimited
     ):
         return RustTokenKind.OUTER_DOC_DELIMITED
     return RustTokenKind.DELIMITED_COMMENT
 
 
-def _repeated(text: str, start: int, marker: str, comments: _Comments) -> bool:
-    """Whether an outer doc marker's last character repeats, making it ordinary."""
-    return comments.repeated_is_ordinary and text.startswith(
-        marker[-1], start + len(marker)
-    )
+def _repeated(text: str, start: int, marker: str) -> bool:
+    """Whether an outer doc marker's last character repeats right after it."""
+    return text.startswith(marker[-1], start + len(marker))
 
 
 def _failure(code: str, start: int, end: int) -> ReadFailure:
