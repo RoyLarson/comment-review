@@ -138,9 +138,9 @@ interfaces, inputs and checks, without internal development files or history.
 - [ ] T15 | T15 -- Give Swift its own expression of soft keywords: `convenience`
       and `required`. Verify: `required = f()` in a `.swift` mints no `a`, and a
       real init still does.
-- [ ] T16 | T16 -- Declare Rust's spanning quotes; language.py:117-146 carries
-      none. Verify: a Rust multi-line string is neither refused wholesale nor
-      read as comments.
+- [ ] T16 | MOVED to 2026-10-22-lexer-rust | T16 -- Declare Rust's spanning
+      quotes; language.py:117-146 carries none. Verify: a Rust multi-line string
+      is neither refused wholesale nor read as comments.
 - [ ] T17 | T17 -- Declare C's spanning quotes; language.py:185-193 carries
       none. Verify: a C multi-line string is neither refused wholesale nor read
       as comments.
@@ -160,14 +160,15 @@ interfaces, inputs and checks, without internal development files or history.
 - [ ] T25 | T25 -- Make `_is_doc` consult placement, not only the opener string.
       Verify: a Lua `---` run above `local function f()` types `docstring`,
       above nothing `comment`.
-- [ ] T27 | T27 -- Declare Rust's `//!` inner; `///` stays outer. Verify: a
-      `.rs` opening `//!` above nothing types `docstring`, and `///` above
-      nothing types `comment`.
+- [ ] T27 | MOVED to 2026-10-22-lexer-rust | T27 -- Declare Rust's `//!` inner;
+      `///` stays outer. Verify: a `.rs` opening `//!` above nothing types
+      `docstring`, and `///` above nothing types `comment`.
 - [ ] T28 | T28 -- Add `---` to Lua's `doc_line`, which T20's ruling authorises.
       Verify: `--- x` above `local function f()` types `docstring` anchored to
       it.
-- [ ] T32 | Recognize raw string delimiters in lexer.py:510; verify a quoted
-      marker inside a Rust raw string stays literal data
+- [ ] T32 | MOVED to 2026-10-22-lexer-rust | Recognize raw string delimiters in
+      lexer.py:510; verify a quoted marker inside a Rust raw string stays
+      literal data
 - [ ] T33 | Recognize JavaScript regex literals in lexer.py:1071; verify /[//]/
       yields no comment paragraph
 - [ ] T34 | Resume code scanning after block comments in lexer.py:1071; verify a
@@ -206,7 +207,8 @@ interfaces, inputs and checks, without internal development files or history.
 - [ ] T12 | T12 -- Settle what `Paragraph.lines` counts: three rules fill it,
       one column reads it. Verify: one rule fills it, or the field is gone and
       the column computes it.
-- [ ] T49 | State Rust's inner doc openers in Rust's own definition file
+- [ ] T49 | MOVED to 2026-10-22-lexer-rust | State Rust's inner doc openers in
+      Rust's own definition file
 
 ### H - [a-doc-comment-is-cued-a-and-typed-b](../../TODO/a-doc-comment-is-cued-a-and-typed-b.md)
 
@@ -220,9 +222,9 @@ interfaces, inputs and checks, without internal development files or history.
 
 ### I - [matter-misses-two-languages](../../TODO/matter-misses-two-languages.md)
 
-- [ ] T2 | T2 -- Stop a Rust file's opening `//` run being claimed as a
-      declaration's doc. Verify: a `.rs` opening `// Copyright` types `f0
-      matter` and an empty `a1`.
+- [ ] T2 | MOVED to 2026-10-22-lexer-rust | T2 -- Stop a Rust file's opening
+      `//` run being claimed as a declaration's doc. Verify: a `.rs` opening `//
+      Copyright` types `f0 matter` and an empty `a1`.
 
 ### J - [block-comment-markers-survive-into-the-prose](../../TODO/block-comment-markers-survive-into-the-prose.md)
 
@@ -398,8 +400,9 @@ interfaces, inputs and checks, without internal development files or history.
 
 ### Z - [fixtures-do-not-test-the-shape](../../TODO/fixtures-do-not-test-the-shape.md)
 
-- [ ] T2 | T2 -- Make `tests/fixtures/sample.rs` open the way a licence header
-      does, or add a `.rs` fixture that does. Verify: it reproduces
+- [ ] T2 | MOVED to 2026-10-22-lexer-rust | T2 -- Make
+      `tests/fixtures/sample.rs` open the way a licence header does, or add a
+      `.rs` fixture that does. Verify: it reproduces
       `matter-misses-two-languages`.
 - [ ] T3 | T3 -- Audit the other sixteen fixtures -- for each language row, name
       the shape its open TODOs are about. Verify: a list of language -> shape ->
