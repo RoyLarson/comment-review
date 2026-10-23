@@ -3,7 +3,7 @@
 ```
 Status:   in-progress
 Progress: 3 of 6 TODO tasks closed
-Plan-tasks: 6 of 13 plan tasks closed
+Plan-tasks: 7 of 13 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-22 (founded by move-t from 2026-10-11-lexical-readers)
@@ -75,7 +75,8 @@ reader.
         > 2026-10-22 Spec: detached runs warn (Addressing #29); a0; shebang; f0
         > 2026-10-22 Check: test_rust.py -k attachment, -k detached, -k matter
         > 2026-10-22 Check: test_rust.py -k directives; // Copyright gives f0
-- [ ] P7 | Derive paragraphs, code and declarations from a Rust read
+- [x] P7 | Rust reads compose into RustRead with paragraphs, code and declarations; ReaderRecord protocol in reading/proof.py, satisfied by PythonRead; projection tests and ty clean | 239c0a77 | Derive
+      paragraphs, code and declarations from a Rust read
         > 2026-10-22 Spec: ReaderRecord protocol satisfied by both records
         > 2026-10-22 Check: test_rust.py -k projection; ty check is clean
 - [ ] P8 | Build a page from any ReaderRecord in binder/page.py
