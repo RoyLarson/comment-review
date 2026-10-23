@@ -3,8 +3,11 @@
 from bisect import bisect_right
 from dataclasses import dataclass
 from enum import StrEnum
+from pathlib import Path
+from typing import final
 
-from comment_review.reading.diagnostics import ReadDiagnostic, ReadStage
+from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, ReadStage
+from comment_review.reading.paragraph import Paragraph
 from comment_review.reading.source import (
     DocumentationOwner,
     RegionKind,
@@ -93,6 +96,8 @@ def _insertions(insertions: tuple[int, ...], declarations: int) -> None:
         raise ValueError("insertions must match module and declarations")
     if any(isinstance(item, bool) or item < 1 for item in insertions):
         raise ValueError("insertions must be positive line numbers")
+    if declarations and insertions[1] < insertions[0]:
+        raise ValueError("the module insertion may not follow the first declaration")
     for before, after in zip(insertions[1:], insertions[2:], strict=False):
         if after <= before:
             raise ValueError("declaration insertions must be strictly increasing")
@@ -291,17 +296,25 @@ class RustDocumentation:
             raise ValueError("warnings must align, in order, with detached runs")
 
 
+@final
 @dataclass(frozen=True)
 class RustRead:
-    """A completed Rust read: the source structure and what the read must keep."""
+    """A completed Rust read: the source structure and what the read must keep.
+
+    `detached` aligns one-to-one, in order, with `warnings`, so a warning's
+    owner is its run's `owner`. `prose` holds, for each COMMENT region in
+    order, the span of its text inside the comment markers.
+    """
 
     source: SourceStructure
     protected: tuple[SourceSpan, ...]
     insertions: tuple[int, ...]
     warnings: tuple[ReadDiagnostic, ...]
+    detached: tuple[DetachedRun, ...]
+    prose: tuple[SourceSpan, ...]
 
     def __post_init__(self) -> None:
-        """Check insertions, protected directive spans and place warnings."""
+        """Check insertions, protected spans, warnings, detached runs and prose."""
         if not isinstance(self.source, SourceStructure):
             raise ValueError("read source must be a SourceStructure")
         _insertions(self.insertions, len(self.source.declarations))
@@ -325,3 +338,43 @@ class RustRead:
                 raise ValueError("warnings must be detached-documentation place notes")
             if warning.span is None or warning.span.end > len(self.source.text):
                 raise ValueError("warning span must lie inside source")
+        _tuple(self.detached, DetachedRun, "detached")
+        if any(
+            run.owner is not None and run.owner >= len(self.source.declarations)
+            for run in self.detached
+        ):
+            raise ValueError("detached owner must index declarations")
+        if [warning.span for warning in self.warnings] != [
+            run.span for run in self.detached
+        ]:
+            raise ValueError("warnings must align, in order, with detached runs")
+        _tuple(self.prose, SourceSpan, "prose")
+        comments = [
+            region.span
+            for region in self.source.regions
+            if region.kind is RegionKind.COMMENT
+        ]
+        if len(self.prose) != len(comments) or any(
+            not region.start <= span.start <= span.end <= region.end
+            for span, region in zip(self.prose, comments, strict=False)
+        ):
+            raise ValueError("prose must lie inside each comment region, in order")
+
+    def paragraphs(self, path: Path) -> list[Paragraph] | ReadFailure:
+        """Every comment section of this read as a page paragraph."""
+        # Imported here because `projection` reads this module's records.
+        from comment_review.reading.rust.projection import paragraphs_for
+
+        return paragraphs_for(path, self)
+
+    def code(self) -> dict[int, str]:
+        """Each line's code with its comments removed; lines with none absent."""
+        from comment_review.reading.rust.projection import code_for
+
+        return code_for(self)
+
+    def declarations(self) -> list[tuple[int, int, bool]]:
+        """The module's and each declaration's documentation place, by line."""
+        from comment_review.reading.rust.projection import declarations_for
+
+        return declarations_for(self)

@@ -857,6 +857,17 @@ def page_for(
     result = read_source(path, text, registry=registry)
     if isinstance(result, ReadFailure):
         return result
+    if not isinstance(result, PythonRead) and not isinstance(result, list):
+        # A reader record other than Python's has no page builder yet.
+        return ReadFailure(
+            (
+                ReadDiagnostic(
+                    ReadStage.LEX,
+                    "reader-unfinished",
+                    "The Rust reader is not finished and reads no source",
+                ),
+            )
+        )
     recognized = result if isinstance(result, PythonRead) else None
     if recognized is not None:
         # The read may have broken a docstring's shared line; the page is that text.

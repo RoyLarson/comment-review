@@ -2,9 +2,11 @@
 
 from collections.abc import Collection
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Self
 
-from comment_review.reading.diagnostics import ReadDiagnostic, ReadStage
+from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, ReadStage
+from comment_review.reading.paragraph import Paragraph
 from comment_review.reading.proof import UNIDENTIFIED_OWNER, PreservationResult
 from comment_review.reading.source import (
     SourceDeclaration,
@@ -269,6 +271,30 @@ class PythonRead:
     def proof(self) -> str:
         """The comparison's name, as a proof report prints it."""
         return "lexical"
+
+    @property
+    def warnings(self) -> tuple[ReadDiagnostic, ...]:
+        """The read's warnings: a Python read reports none."""
+        return ()
+
+    def paragraphs(self, path: Path) -> list[Paragraph] | ReadFailure:
+        """Every retained section of this read as a page paragraph."""
+        # Imported here because `projection` reads this module's records.
+        from comment_review.reading.python.projection import paragraphs_for
+
+        return paragraphs_for(path, self)
+
+    def code(self) -> dict[int, str]:
+        """Each line's code, as the page's place anchors read it."""
+        from comment_review.reading.python.projection import code_for
+
+        return code_for(self)
+
+    def declarations(self) -> list[tuple[int, int, bool]]:
+        """The module's and each declaration's documentation place, by line."""
+        from comment_review.reading.python.projection import declarations_for
+
+        return declarations_for(self)
 
     def owner_at(self, anchor_line: int | None) -> tuple[int | None, ...]:
         """The declaration documented from this anchor line; None for the module.
