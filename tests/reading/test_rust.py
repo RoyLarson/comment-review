@@ -1,3 +1,4 @@
+import re
 from importlib import import_module
 from importlib.resources import files
 
@@ -299,6 +300,8 @@ def scanned(text, definition):
             assert region.kind is RegionKind.LITERAL
         elif token.kind in code:
             assert region.kind is RegionKind.CODE
+        elif token.kind is kind.SHEBANG:
+            assert region.kind is RegionKind.DIRECTIVE and region.span == token.span
         else:
             assert token.kind is kind.WHITESPACE
             assert region.kind is RegionKind.WHITESPACE
@@ -856,7 +859,7 @@ def test_attribute_extent_inner_attribute(rust_definition):
 
 def test_attribute_extent_shebang_line_is_not_an_attribute(rust_definition):
     result = scanned("#!/bin/x\n", rust_definition)
-    assert [kind for kind, _ in spelled(result)][:3] == ["punct", "punct", "punct"]
+    assert spelled(result)[0] == ("shebang", "#!/bin/x")
     assert all(kind != "inner_attribute" for kind, _ in spelled(result))
 
 
@@ -1287,3 +1290,356 @@ def test_macros_bodies_hold_no_places(rust_definition):
 def test_macros_invocation_above_an_item_is_not_its_head(rust_definition):
     text = "#[a]\nfoo! {}\nfn x() {}\nmacro_rules! n ( () => {} );\nfn y() {}\n"
     assert placed(text, rust_definition) == [("item", 3), ("item", 4), ("item", 5)]
+
+
+def line_of(text, offset):
+    return text.count("\n", 0, offset) + 1
+
+
+def documentation_of(text, definition):
+    try:
+        documentation = import_module("comment_review.reading.rust.documentation")
+    except ModuleNotFoundError:
+        pytest.fail("Rust documentation is not implemented", pytrace=False)
+    structure = import_module("comment_review.reading.rust.structure")
+    scan_result = scanned(text, definition)
+    placement = structure.place_declarations(scan_result, definition)
+    assert not isinstance(placement, ReadFailure), placement
+    result = documentation.documentation_in(scan_result, placement, definition)
+    assert not isinstance(result, ReadFailure), result
+    return result
+
+
+def sections_of(text, result):
+    """Each section as (form, its exact text)."""
+    return [
+        (section.form, text[section.span.start : section.span.end])
+        for section in result.sections
+    ]
+
+
+def owners_of(text, result):
+    """Each owned section's text, with its owner's (kind, head line) or None."""
+    found = []
+    for owner in result.owners:
+        span = result.sections[owner.section].span
+        declaration = (
+            None
+            if owner.declaration is None
+            else result.placement.declarations[owner.declaration]
+        )
+        found.append(
+            (
+                text[span.start : span.end],
+                None
+                if declaration is None
+                else (declaration.kind, line_of(text, declaration.anchor)),
+            )
+        )
+    return found
+
+
+def detached_of(text, result):
+    """Each detached run's text, its owner's head line, and its warning's lines."""
+    declarations = result.placement.declarations
+    runs = [
+        (
+            text[run.span.start : run.span.end],
+            line_of(text, declarations[run.owner].anchor),
+        )
+        for run in result.placement.detached
+    ]
+    notes = []
+    for warning in result.warnings:
+        assert warning.stage is ReadStage.PLACE
+        assert warning.code == "detached-documentation"
+        assert warning.span is not None
+        notes.append(
+            (
+                text[warning.span.start : warning.span.end],
+                [int(n) for n in re.findall(r"line (\d+)", warning.message)],
+            )
+        )
+    return runs, notes
+
+
+def test_attachment_doc_above_a_multi_line_attribute_across_blank_lines(
+    rust_definition,
+):
+    text = "/// Doc.\n\n#[cfg(\n    x,\n)]\nfn f() {}\n"
+    result = documentation_of(text, rust_definition)
+    assert sections_of(text, result) == [("outer_doc", "/// Doc.")]
+    assert owners_of(text, result) == [("/// Doc.", ("item", 3))]
+    assert result.placement.insertions == (1, 3)
+    assert result.placement.detached == ()
+    assert result.warnings == ()
+
+
+def test_attachment_a_doc_run_stays_whole_across_blank_lines(rust_definition):
+    text = "fn z() {}\n/// a\n\n/// b\nfn f() {}\n"
+    result = documentation_of(text, rust_definition)
+    assert sections_of(text, result) == [("outer_doc", "/// a\n\n/// b")]
+    assert owners_of(text, result) == [("/// a\n\n/// b", ("item", 5))]
+
+
+def test_attachment_doc_above_a_field_and_a_variant(rust_definition):
+    text = (
+        "struct S {\n    /// x doc\n    x: u8,\n}\nenum E {\n    /// A doc\n    A,\n}\n"
+    )
+    result = documentation_of(text, rust_definition)
+    assert owners_of(text, result) == [
+        ("/// x doc", ("field", 3)),
+        ("/// A doc", ("variant", 7)),
+    ]
+
+
+def test_attachment_delimited_outer_doc_attaches(rust_definition):
+    text = "/** Doc\n * more. */\nfn f() {}\n"
+    result = documentation_of(text, rust_definition)
+    assert sections_of(text, result) == [("outer_doc", "/** Doc\n * more. */")]
+    assert owners_of(text, result) == [("/** Doc\n * more. */", ("item", 3))]
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "fn f() {\n    /// stray\n}\n",
+        "fn f() {\n    /// stray\n    let x = 1;\n}\n",
+        "fn f() {}\n/// stray\n",
+    ],
+    ids=["before-close", "before-statement", "end-of-file"],
+)
+def test_attachment_doc_with_no_following_owner_is_ordinary(rust_definition, text):
+    result = documentation_of(text, rust_definition)
+    assert sections_of(text, result) == [("comment", "/// stray")]
+    assert result.owners == ()
+    assert result.placement.detached == ()
+    assert result.warnings == ()
+
+
+def test_attachment_inner_doc_at_file_head_is_the_module(rust_definition):
+    text = "//! Crate doc.\n\nfn f() {}\n"
+    result = documentation_of(text, rust_definition)
+    assert sections_of(text, result) == [("inner_doc", "//! Crate doc.")]
+    assert owners_of(text, result) == [("//! Crate doc.", None)]
+    assert result.placement.insertions == (1, 3)
+
+
+def test_attachment_inner_doc_after_an_inner_attribute_is_the_module(
+    rust_definition,
+):
+    text = "#![allow(x)]\n/*! Crate doc. */\nfn f() {}\n"
+    result = documentation_of(text, rust_definition)
+    assert owners_of(text, result) == [("/*! Crate doc. */", None)]
+    assert result.placement.insertions == (2, 3)
+
+
+def test_attachment_inner_doc_in_an_inline_module_documents_it(rust_definition):
+    text = "mod x {\n    //! Inner.\n    fn g() {}\n}\n"
+    result = documentation_of(text, rust_definition)
+    assert sections_of(text, result) == [("inner_doc", "//! Inner.")]
+    assert owners_of(text, result) == [("//! Inner.", ("item", 1))]
+    assert result.placement.insertions == (1, 1, 3)
+
+
+def test_attachment_ordinary_comment_above_an_item_is_not_documentation(
+    rust_definition,
+):
+    text = "fn z() {}\n// note\nfn f() {}\n"
+    result = documentation_of(text, rust_definition)
+    assert sections_of(text, result) == [("comment", "// note")]
+    assert result.owners == ()
+
+
+def test_attachment_outer_doc_and_adjacent_ordinary_comment_are_separate(
+    rust_definition,
+):
+    text = "fn z() {}\n// note\n/// Doc.\nfn f() {}\n"
+    result = documentation_of(text, rust_definition)
+    assert sections_of(text, result) == [
+        ("comment", "// note"),
+        ("outer_doc", "/// Doc."),
+    ]
+    assert owners_of(text, result) == [("/// Doc.", ("item", 4))]
+
+
+def test_attachment_trailing_comment_is_its_own_section(rust_definition):
+    text = "fn z() {} // tail\n// next\nfn f() {}\n"
+    result = documentation_of(text, rust_definition)
+    assert sections_of(text, result) == [
+        ("comment", "// tail"),
+        ("comment", "// next"),
+    ]
+
+
+def test_attachment_module_not_in_owners_leaves_the_head_inner_doc_ordinary(
+    rust_definition,
+):
+    shipped = rust_definition.rules["documentation"]["owners"]
+    narrowed = with_owners(
+        rust_definition, tuple(owner for owner in shipped if owner != "module")
+    )
+    assert (
+        owners_refusal(rust_definition, narrowed.rules["documentation"]["owners"])
+        is None
+    )
+    text = "//! Crate doc.\nfn f() {}\n"
+    result = documentation_of(text, narrowed)
+    assert sections_of(text, result) == [("comment", "//! Crate doc.")]
+    assert result.owners == ()
+    assert result.placement.insertions == (1, 2)
+    assert result.warnings == ()
+
+
+def test_attachment_inline_module_inner_doc_follows_its_declaration_kind(
+    rust_definition,
+):
+    shipped = rust_definition.rules["documentation"]["owners"]
+    narrowed = with_owners(
+        rust_definition, tuple(owner for owner in shipped if owner != "item")
+    )
+    text = "mod x {\n    //! Inner.\n}\n"
+    result = documentation_of(text, narrowed)
+    assert sections_of(text, result) == [("comment", "//! Inner.")]
+    assert result.owners == ()
+
+
+@pytest.mark.parametrize(
+    ("text", "sections", "owners", "detached"),
+    [
+        (
+            "/// a\n// b\nfn f() {}\n",
+            [("comment", "/// a"), ("comment", "// b")],
+            [],
+            ("/// a", 3, 1),
+        ),
+        (
+            "#[inline]\n/// a\nfn f() {}\n",
+            [("comment", "/// a")],
+            [],
+            ("/// a", 1, 2),
+        ),
+        (
+            "/// a\n#[inline]\n/// b\nfn f() {}\n",
+            [("outer_doc", "/// a"), ("comment", "/// b")],
+            [("/// a", ("item", 2))],
+            ("/// b", 2, 3),
+        ),
+    ],
+    ids=["behind-ordinary-comment", "behind-attribute", "second-run"],
+)
+def test_detached_documentation_is_ordinary_with_a_warning(
+    rust_definition, text, sections, owners, detached
+):
+    run, head_line, run_line = detached
+    result = documentation_of(text, rust_definition)
+    assert sections_of(text, result) == sections
+    assert owners_of(text, result) == owners
+    assert detached_of(text, result) == (
+        [(run, head_line)],
+        [(run, [run_line, head_line])],
+    )
+
+
+def test_detached_second_inner_doc_in_an_inline_module(rust_definition):
+    text = "/// Outer.\nmod x {\n    //! Inner.\n}\n"
+    result = documentation_of(text, rust_definition)
+    assert sections_of(text, result) == [
+        ("outer_doc", "/// Outer."),
+        ("comment", "//! Inner."),
+    ]
+    assert owners_of(text, result) == [("/// Outer.", ("item", 2))]
+    assert detached_of(text, result) == (
+        [("//! Inner.", 2)],
+        [("//! Inner.", [3, 2])],
+    )
+
+
+def test_detached_second_inner_doc_for_the_module_warns_without_a_run(
+    rust_definition,
+):
+    text = "//! a\n#![allow(x)]\n//! b\nfn f() {}\n"
+    result = documentation_of(text, rust_definition)
+    assert sections_of(text, result) == [
+        ("inner_doc", "//! a"),
+        ("comment", "//! b"),
+    ]
+    assert owners_of(text, result) == [("//! a", None)]
+    assert detached_of(text, result) == ([], [("//! b", [3])])
+    assert result.placement.insertions == (1, 4)
+
+
+def test_matter_opening_ordinary_run_is_not_the_item_doc(rust_definition):
+    text = "// Copyright 2026 Someone.\n// Licensed.\nfn main() {}\n"
+    result = documentation_of(text, rust_definition)
+    assert sections_of(text, result) == [
+        ("matter", "// Copyright 2026 Someone.\n// Licensed."),
+    ]
+    assert result.owners == ()
+    assert result.placement.insertions == (3, 3)
+
+
+def test_matter_follows_a_shebang(rust_definition):
+    text = "#!/usr/bin/env run-cargo-script\n// Copyright.\n\nfn main() {}\n"
+    result = documentation_of(text, rust_definition)
+    assert sections_of(text, result) == [("matter", "// Copyright.")]
+    assert result.placement.insertions == (3, 4)
+
+
+def test_matter_then_a_doc_gives_the_item_its_doc(rust_definition):
+    text = "// Copyright.\n/// Doc.\nfn main() {}\n"
+    result = documentation_of(text, rust_definition)
+    assert sections_of(text, result) == [
+        ("matter", "// Copyright."),
+        ("outer_doc", "/// Doc."),
+    ]
+    assert owners_of(text, result) == [("/// Doc.", ("item", 3))]
+    assert result.placement.insertions == (2, 3)
+
+
+def directives_of(text, definition):
+    try:
+        directives = import_module("comment_review.reading.rust.directives")
+    except ModuleNotFoundError:
+        pytest.fail("Rust directives are not implemented", pytrace=False)
+    return directives.directives_in(scanned(text, definition), definition)
+
+
+def test_directives_shebang_is_a_protected_directive(rust_definition):
+    text = "#!/usr/bin/env run-cargo-script\nfn main() {}\n"
+    result = scanned(text, rust_definition)
+    assert shape(result)[0] == (
+        RegionKind.DIRECTIVE,
+        "#!/usr/bin/env run-cargo-script",
+    )
+    assert directives_of(text, rust_definition) == (SourceSpan(0, 31),)
+    assert documentation_of(text, rust_definition).placement.insertions == (2, 2)
+
+
+@pytest.mark.parametrize(
+    ("text", "span"),
+    [
+        ("\ufeff#!/bin/x\n", SourceSpan(1, 9)),
+        ("#!/bin/x\r\nfn f() {}", SourceSpan(0, 8)),
+    ],
+    ids=["byte-order-mark", "crlf"],
+)
+def test_directives_shebang_runs_to_the_end_of_line_one(rust_definition, text, span):
+    assert directives_of(text, rust_definition) == (span,)
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "#![allow(x)]\n",
+        "#! [x]\n",
+        "#!/*c*/[x]\n",
+        "#!\n// c\n[x]\n",
+        "fn f() {}\n#!/x\n",
+    ],
+    ids=["inner-attribute", "spaced", "comment", "next-line", "not-line-one"],
+)
+def test_directives_bang_before_a_bracket_is_code(rust_definition, text):
+    result = scanned(text, rust_definition)
+    assert all(region.kind is not RegionKind.DIRECTIVE for region in result.regions)
+    assert directives_of(text, rust_definition) == ()

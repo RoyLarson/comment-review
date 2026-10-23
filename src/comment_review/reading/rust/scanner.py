@@ -7,7 +7,12 @@ from typing import cast
 from comment_review.reading.definitions import LanguageDefinition
 from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, ReadStage
 from comment_review.reading.rust.definition import validate_rust
-from comment_review.reading.rust.records import RustScan, RustToken, RustTokenKind
+from comment_review.reading.rust.records import (
+    COMMENT_KINDS,
+    RustScan,
+    RustToken,
+    RustTokenKind,
+)
 from comment_review.reading.source import RegionKind, SourceRegion, SourceSpan
 
 BYTE_ORDER_MARK = "\ufeff"
@@ -101,10 +106,28 @@ class _Attributes:
 
 
 @dataclass(frozen=True)
+class _Directives:
+    shebang: str
+    line: int
+    # What, after the shebang marker, makes the line an inner attribute instead.
+    attribute_follows: str
+
+    @classmethod
+    def from_definition(cls, definition: LanguageDefinition) -> "_Directives":
+        directives = cast(Mapping[str, object], definition.rules["directives"])
+        return cls(
+            cast(str, directives["shebang"]),
+            cast(int, directives["shebang_line"]),
+            cast(str, directives["inner_attribute_follows"]),
+        )
+
+
+@dataclass(frozen=True)
 class _Grammar:
     comments: _Comments
     literals: _Literals
     attributes: _Attributes
+    directives: _Directives
 
 
 def scan_rust(text: str, definition: LanguageDefinition) -> RustScan | ReadFailure:
@@ -123,6 +146,9 @@ def scan_rust(text: str, definition: LanguageDefinition) -> RustScan | ReadFailu
 
     An attribute is one token from its opener to the close that matches it,
     emitted ahead of the tokens inside it, which are read as anywhere else.
+
+    A shebang is one token and one DIRECTIVE region running from its marker
+    to the end of its line; see `_shebang` for when the marker opens one.
     """
     failure = validate_rust(definition)
     if failure is not None:
@@ -134,17 +160,22 @@ def scan_rust(text: str, definition: LanguageDefinition) -> RustScan | ReadFailu
         _Comments.from_definition(definition),
         _Literals.from_definition(definition),
         _Attributes.from_definition(definition),
+        _Directives.from_definition(definition),
     )
     regions: list[SourceRegion] = []
     tokens: list[RustToken] = []
     start = 0
     while start < len(text):
-        attribute = _attribute(text, start, grammar)
-        if isinstance(attribute, ReadFailure):
-            return attribute
-        if attribute is not None:
-            tokens.append(attribute)
-        result = _next_token(text, start, grammar)
+        shebang = _shebang(text, start, grammar)
+        if shebang is not None:
+            result = RustTokenKind.SHEBANG, shebang, RegionKind.DIRECTIVE
+        else:
+            attribute = _attribute(text, start, grammar)
+            if isinstance(attribute, ReadFailure):
+                return attribute
+            if attribute is not None:
+                tokens.append(attribute)
+            result = _next_token(text, start, grammar)
         if isinstance(result, ReadFailure):
             return result
         kind, end, region_kind = result
@@ -163,6 +194,39 @@ def scan_rust(text: str, definition: LanguageDefinition) -> RustScan | ReadFailu
             regions.append(SourceRegion(span, region_kind))
         start = end
     return RustScan(text, tuple(regions), tuple(tokens))
+
+
+def _shebang(text: str, start: int, grammar: _Grammar) -> int | None:
+    """Where a shebang opening at `start` ends, or None where none opens.
+
+    A shebang opens at the start of its line, after a byte-order mark on the
+    first line, unless the first token after its marker that is neither
+    whitespace nor a comment begins with the attribute bracket: then the
+    marker opens an inner attribute, which is code.
+    """
+    directives = grammar.directives
+    line_start = 0
+    for _ in range(directives.line - 1):
+        newline = text.find("\n", line_start)
+        if newline < 0:
+            return None
+        line_start = newline + 1
+    if line_start == 0 and text.startswith(BYTE_ORDER_MARK):
+        line_start = len(BYTE_ORDER_MARK)
+    if start != line_start or not text.startswith(directives.shebang, start):
+        return None
+    at = start + len(directives.shebang)
+    while at < len(text):
+        result = _next_token(text, at, grammar)
+        if isinstance(result, ReadFailure):
+            break
+        kind, end, _ = result
+        if kind is not RustTokenKind.WHITESPACE and kind not in COMMENT_KINDS:
+            if text.startswith(directives.attribute_follows, at):
+                return None
+            break
+        at = end
+    return _line_end(text, start)
 
 
 def _attribute(

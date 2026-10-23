@@ -1,0 +1,311 @@
+"""Group Rust comments into sections and decide which document which owner."""
+
+from bisect import bisect_left, bisect_right
+from collections.abc import Mapping
+from dataclasses import dataclass
+from typing import cast
+
+from comment_review.reading.coordinates import SourceCoordinates
+from comment_review.reading.definitions import LanguageDefinition
+from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, ReadStage
+from comment_review.reading.rust.definition import MODULE, validate_rust
+from comment_review.reading.rust.records import (
+    ATTRIBUTE_KINDS,
+    COMMENT_KINDS,
+    DETACHED_DOCUMENTATION,
+    DetachedRun,
+    RustDocumentation,
+    RustPlacement,
+    RustScan,
+    RustSectionForm,
+    RustToken,
+    RustTokenKind,
+)
+from comment_review.reading.source import (
+    DocumentationOwner,
+    SourceDeclaration,
+    SourceSection,
+    SourceSpan,
+)
+
+# The form a comment is written in, before anything is known of what it documents.
+WRITTEN_FORM = {
+    RustTokenKind.LINE: RustSectionForm.COMMENT,
+    RustTokenKind.DELIMITED_COMMENT: RustSectionForm.COMMENT,
+    RustTokenKind.OUTER_DOC_LINE: RustSectionForm.OUTER_DOC,
+    RustTokenKind.OUTER_DOC_DELIMITED: RustSectionForm.OUTER_DOC,
+    RustTokenKind.INNER_DOC_LINE: RustSectionForm.INNER_DOC,
+    RustTokenKind.INNER_DOC_DELIMITED: RustSectionForm.INNER_DOC,
+}
+UNREAD = COMMENT_KINDS | {RustTokenKind.WHITESPACE, RustTokenKind.SHEBANG}
+
+
+@dataclass
+class _Run:
+    """Comments of one written form with nothing but whitespace between them."""
+
+    span: SourceSpan
+    written: RustSectionForm
+    # A comment with code before it on its line stands alone.
+    trailing: bool
+    # Whether code has been read since the run's last comment.
+    closed: bool = False
+
+
+def documentation_in(
+    scan: RustScan, placement: RustPlacement, definition: LanguageDefinition
+) -> RustDocumentation | ReadFailure:
+    """Section every comment and give each documentation section its owner.
+
+    A section is a run of comments of one written form -- ordinary, outer doc
+    or inner doc -- with only whitespace between them, blank lines included.
+    A comment with code before it on its line is a section of its own.
+
+    An outer doc section with only whitespace between it and an owner's head
+    documents that owner. An inner doc section documents the module when no
+    code but inner attributes precedes it, or the owner whose body it opens.
+    The kinds documentation attaches to are `[rules.documentation].owners`.
+
+    Documentation that Rust attaches to an owner but no `a` place can hold is
+    detached: a run behind an ordinary comment, a run between an attribute and
+    the item, or a second run for one owner. A detached run is a COMMENT
+    section with a DetachedRun and a warning. Every other doc section that
+    documents nothing is a COMMENT section.
+
+    The first section is MATTER when it is ordinary and no code precedes it.
+    The module insertion line is the first line of the module's inner doc,
+    else the line after the matter, else the line after the shebang, else 1.
+    """
+    failure = validate_rust(definition)
+    if failure is not None:
+        return failure
+    documentation = cast(Mapping[str, object], definition.rules["documentation"])
+    declarations = cast(Mapping[str, object], definition.rules["declarations"])
+    assigner = _Assigner(
+        scan,
+        placement,
+        frozenset(cast(tuple[str, ...], documentation["owners"])),
+        cast(str, declarations["body_open"]),
+        cast(str, declarations["terminator"]),
+    )
+    return assigner.run()
+
+
+class _Assigner:
+    """One pass over the comment runs, assigning each its form and owner."""
+
+    def __init__(
+        self,
+        scan: RustScan,
+        placement: RustPlacement,
+        owner_kinds: frozenset[str],
+        body_open: str,
+        terminator: str,
+    ) -> None:
+        self.scan = scan
+        self.placement = placement
+        self.owner_kinds = owner_kinds
+        self.body_open = body_open
+        self.terminator = terminator
+        self.coordinates = SourceCoordinates(scan.text)
+        self.code = _code(scan.tokens)
+        self.starts = [token.span.start for token in self.code]
+        self.heads = [
+            declaration.header.start for declaration in placement.declarations
+        ]
+        self.bodies = [self._item_start(d) for d in placement.declarations]
+        self.runs = _runs(scan.tokens, self.coordinates)
+        self.forms = [run.written for run in self.runs]
+        self.links: dict[int, int | None] = {}
+        self.detached: list[DetachedRun] = []
+        self.warnings: list[ReadDiagnostic] = []
+        self.module_doc: int | None = None
+
+    def run(self) -> RustDocumentation:
+        for index, run in enumerate(self.runs):
+            if run.written is RustSectionForm.OUTER_DOC:
+                self._outer(index, run)
+            elif run.written is RustSectionForm.INNER_DOC:
+                self._inner(index, run)
+            elif index == 0 and bisect_left(self.starts, run.span.start) == 0:
+                self.forms[index] = RustSectionForm.MATTER
+        sections = tuple(
+            SourceSection(run.span, form.value)
+            for run, form in zip(self.runs, self.forms, strict=True)
+        )
+        owners = tuple(
+            DocumentationOwner(section, declaration)
+            for section, declaration in sorted(self.links.items())
+        )
+        placement = RustPlacement(
+            self.placement.declarations,
+            (self._module_line(), *self.placement.insertions[1:]),
+            tuple(self.detached),
+        )
+        return RustDocumentation(sections, owners, placement, tuple(self.warnings))
+
+    def _outer(self, index: int, run: _Run) -> None:
+        """Attach a run directly above a head; detach one inside or behind it."""
+        following = bisect_left(self.starts, run.span.end)
+        if following == len(self.code):
+            self.forms[index] = RustSectionForm.COMMENT
+            return
+        start = self.code[following].span.start
+        owner = bisect_left(self.heads, start)
+        if owner < len(self.heads) and self.heads[owner] == start:
+            nearest = index + 1 == len(self.runs) or (
+                self.runs[index + 1].span.start > start
+            )
+            if nearest and not run.trailing:
+                self._attach(index, run, owner)
+            else:
+                self._detach(index, run, owner)
+            return
+        owner = bisect_right(self.heads, start) - 1
+        if owner >= 0 and start <= self.bodies[owner]:
+            self._detach(index, run, owner)
+            return
+        self.forms[index] = RustSectionForm.COMMENT
+
+    def _inner(self, index: int, run: _Run) -> None:
+        """Attach a run to the module or to the owner whose body it opens."""
+        before = bisect_left(self.starts, run.span.start) - 1
+        while before >= 0 and self.code[before].kind is RustTokenKind.INNER_ATTRIBUTE:
+            before -= 1
+        if before < 0:
+            if self.module_doc is None:
+                self.module_doc = index
+            if MODULE not in self.owner_kinds:
+                self.forms[index] = RustSectionForm.COMMENT
+            elif None in self.links.values():
+                self.forms[index] = RustSectionForm.COMMENT
+                self._warn(run, "the module")
+            else:
+                self.links[index] = None
+            return
+        owner = self._opened_by(before)
+        if owner is None:
+            self.forms[index] = RustSectionForm.COMMENT
+        else:
+            self._attach(index, run, owner)
+
+    def _attach(self, index: int, run: _Run, owner: int) -> None:
+        if owner in self.links.values():
+            self._detach(index, run, owner)
+        else:
+            self.links[index] = owner
+
+    def _detach(self, index: int, run: _Run, owner: int) -> None:
+        self.forms[index] = RustSectionForm.COMMENT
+        self.detached.append(DetachedRun(run.span, owner))
+        head = self.placement.declarations[owner].header.start
+        self._warn(run, f"the owner whose head starts on line {self._line(head)}")
+
+    def _warn(self, run: _Run, owner: str) -> None:
+        self.warnings.append(
+            ReadDiagnostic(
+                ReadStage.PLACE,
+                DETACHED_DOCUMENTATION,
+                f"documentation on line {self._line(run.span.start)} "
+                f"is detached from {owner}",
+                run.span,
+            )
+        )
+
+    def _opened_by(self, at: int) -> int | None:
+        """The owner whose body the delimiter `self.code[at]` opens, or None.
+
+        An item's body is the first `body_open` outside any other delimiter
+        after its keyword, unless a terminator ends the item first.
+        """
+        opener = self.code[at]
+        if opener.kind is not RustTokenKind.OPEN or self._spelled(opener) != (
+            self.body_open
+        ):
+            return None
+        owner = bisect_left(self.heads, opener.span.start) - 1
+        if owner < 0:
+            return None
+        depth = 0
+        for index in range(bisect_left(self.starts, self.bodies[owner]), at + 1):
+            token = self.code[index]
+            spelling = self._spelled(token)
+            if token.kind is RustTokenKind.OPEN:
+                if not depth and spelling == self.body_open:
+                    return owner if index == at else None
+                depth += 1
+            elif token.kind is RustTokenKind.CLOSE:
+                depth -= 1
+                if depth < 0:
+                    return None
+            elif not depth and spelling == self.terminator:
+                return None
+        return None
+
+    def _item_start(self, declaration: SourceDeclaration) -> int:
+        """Where the owner's keyword or member begins, past its outer attributes."""
+        at = bisect_left(self.starts, declaration.header.start)
+        while self.code[at].kind is RustTokenKind.OUTER_ATTRIBUTE:
+            at += 1
+        return self.code[at].span.start
+
+    def _module_line(self) -> int:
+        if self.module_doc is not None:
+            return self._line(self.runs[self.module_doc].span.start)
+        if self.forms and self.forms[0] is RustSectionForm.MATTER:
+            return self._line(self.runs[0].span.end - 1) + 1
+        shebang = next(
+            (t for t in self.scan.tokens if t.kind is RustTokenKind.SHEBANG), None
+        )
+        if shebang is not None:
+            return self._line(shebang.span.end - 1) + 1
+        return 1
+
+    def _line(self, offset: int) -> int:
+        return self.coordinates.position(offset).line
+
+    def _spelled(self, token: RustToken) -> str:
+        return self.scan.text[token.span.start : token.span.end]
+
+
+def _code(tokens: tuple[RustToken, ...]) -> list[RustToken]:
+    """The code tokens, each attribute standing for everything inside it."""
+    kept: list[RustToken] = []
+    inside = 0
+    for token in tokens:
+        if token.span.start < inside or token.kind in UNREAD:
+            continue
+        kept.append(token)
+        if token.kind in ATTRIBUTE_KINDS:
+            inside = token.span.end
+    return kept
+
+
+def _runs(tokens: tuple[RustToken, ...], coordinates: SourceCoordinates) -> list[_Run]:
+    """Group comments of one written form that only whitespace separates."""
+    runs: list[_Run] = []
+    code_end: int | None = None
+    for token in tokens:
+        if token.kind in COMMENT_KINDS:
+            line = coordinates.position(token.span.start).line
+            trailing = (
+                code_end is not None and coordinates.position(code_end - 1).line == line
+            )
+            written = WRITTEN_FORM[token.kind]
+            last = runs[-1] if runs else None
+            if (
+                last is not None
+                and not last.closed
+                and not last.trailing
+                and not trailing
+                and last.written is written
+            ):
+                last.span = SourceSpan(last.span.start, token.span.end)
+            else:
+                runs.append(_Run(token.span, written, trailing))
+        elif token.kind is not RustTokenKind.WHITESPACE:
+            if runs:
+                runs[-1].closed = True
+            if token.kind not in ATTRIBUTE_KINDS:
+                code_end = token.span.end
+    return runs

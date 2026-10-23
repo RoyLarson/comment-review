@@ -6,9 +6,11 @@ from enum import StrEnum
 
 from comment_review.reading.diagnostics import ReadDiagnostic, ReadStage
 from comment_review.reading.source import (
+    DocumentationOwner,
     RegionKind,
     SourceDeclaration,
     SourceRegion,
+    SourceSection,
     SourceSpan,
     SourceStructure,
 )
@@ -188,6 +190,82 @@ class RustPlacement:
         _tuple(self.detached, DetachedRun, "detached")
         if any(run.owner >= len(self.declarations) for run in self.detached):
             raise ValueError("detached owner must index declarations")
+
+
+class RustSectionForm(StrEnum):
+    """What a comment section is, once documentation has been assigned.
+
+    A doc comment that documents nothing, or is detached, is a COMMENT.
+    """
+
+    COMMENT = "comment"
+    OUTER_DOC = "outer_doc"
+    INNER_DOC = "inner_doc"
+    MATTER = "matter"
+
+
+@dataclass(frozen=True)
+class RustDocumentation:
+    """Every comment section, the ones that document an owner, and the placement.
+
+    Each section's form is a RustSectionForm value. `owners` links each
+    OUTER_DOC and INNER_DOC section to its declaration, None for the module.
+    `placement` carries the module insertion line and the detached runs.
+    Each warning marks one COMMENT section that is detached documentation:
+    every detached run has one, and so does a second inner doc run for the
+    module, which no DetachedRun can name.
+    """
+
+    sections: tuple[SourceSection, ...]
+    owners: tuple[DocumentationOwner, ...]
+    placement: RustPlacement
+    warnings: tuple[ReadDiagnostic, ...]
+
+    def __post_init__(self) -> None:
+        """Require ordered sections, owners that index them, and place warnings."""
+        _tuple(self.sections, SourceSection, "sections")
+        _tuple(self.owners, DocumentationOwner, "owners")
+        if not isinstance(self.placement, RustPlacement):
+            raise ValueError("placement must be a RustPlacement")
+        for before, after in zip(self.sections, self.sections[1:], strict=False):
+            if after.span.start < before.span.end:
+                raise ValueError("sections must be ordered and nonoverlapping")
+        if any(section.form not in set(RustSectionForm) for section in self.sections):
+            raise ValueError("section form must be a RustSectionForm")
+        documented = {RustSectionForm.OUTER_DOC, RustSectionForm.INNER_DOC}
+        owned = [owner.section for owner in self.owners]
+        if owned != sorted(set(owned)):
+            raise ValueError("owners must name distinct sections in order")
+        expected = [
+            index
+            for index, section in enumerate(self.sections)
+            if section.form in documented
+        ]
+        if owned != expected:
+            raise ValueError("owners must name exactly the documentation sections")
+        declarations = [owner.declaration for owner in self.owners]
+        if len(set(declarations)) != len(declarations) or any(
+            index is not None and index >= len(self.placement.declarations)
+            for index in declarations
+        ):
+            raise ValueError("owners must name distinct existing declarations")
+        _tuple(self.warnings, ReadDiagnostic, "warnings")
+        comments = {
+            section.span
+            for section in self.sections
+            if section.form == RustSectionForm.COMMENT
+        }
+        warned = [warning.span for warning in self.warnings]
+        for warning in self.warnings:
+            if (
+                warning.code != DETACHED_DOCUMENTATION
+                or warning.stage != ReadStage.PLACE
+            ):
+                raise ValueError("warnings must be detached-documentation place notes")
+            if warning.span not in comments:
+                raise ValueError("a warning must mark a comment section")
+        if any(run.span not in warned for run in self.placement.detached):
+            raise ValueError("every detached run must have a warning")
 
 
 @dataclass(frozen=True)
