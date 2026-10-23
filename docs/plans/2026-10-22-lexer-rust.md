@@ -3,7 +3,7 @@
 ```
 Status:   in-progress
 Progress: 6 of 6 TODO tasks closed
-Plan-tasks: 11 of 13 plan tasks closed
+Plan-tasks: 12 of 13 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-22 (founded by move-t from 2026-10-11-lexical-readers)
@@ -97,7 +97,8 @@ reader.
       the agents TODO for SKILL.md stage 2 warnings
         > 2026-10-22 Spec: O4, approved 2026-10-22; agents lane edits SKILL.md
         > 2026-10-22 Check: the TODO exists with Owner: agents
-- [ ] P12 | Refuse a revision-1 Rust reading context
+- [x] P12 | revision-1 and pre-reader Rust contexts are refused (page_of: reading-context-mismatch; saved artifacts: regather); a Rust context survives gather through drafting; existing Rust cases pass (test_reading_context -k rust; full suite 5400 passed) | b9ef359e | Refuse
+      a revision-1 Rust reading context
         > 2026-10-22 Spec: old Rust cases pass or are superseded case by case
         > 2026-10-22 Check: test_reading_context -k rust; full suite green
         > 2026-10-22 Check: ruff, ty and check_shipped_syntax.py pass
