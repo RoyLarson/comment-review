@@ -5,8 +5,6 @@ COMMENT region in no section is part of its line's code, so the documentation
 stage, not this module, decides which comments may change.
 """
 
-from bisect import bisect_right
-
 from comment_review import constants
 from comment_review.reading.diagnostics import ReadDiagnostic, ReadStage
 from comment_review.reading.proof import PreservationResult
@@ -43,15 +41,15 @@ def _code_lines(read: RustRead) -> tuple[str, ...]:
 
     A line break in a WHITESPACE region ends a logical line, and so does each
     prose comment, which is removed: two fragments either side of a removal
-    are never joined. A line break inside a literal, the shebang or a code
-    comment is part of its line. Each logical line loses its trailing
-    whitespace, and a line left with no code is dropped, so blank lines,
-    comment-only lines and the line-break style are not compared; indentation
-    and the whitespace between code on a line are.
+    are never joined. The protected shebang is left out, as `_protected`
+    compares it. A line break inside a literal or a code comment is part of
+    its line. Each logical line loses its trailing whitespace, and a line left
+    with no code is dropped, so blank lines, comment-only lines and the
+    line-break style are not compared; indentation and the whitespace between
+    code on a line are.
     """
     text = read.source.text
-    sections = [section.span for section in read.source.sections]
-    starts = [span.start for span in sections]
+    protected = set(read.protected)
     lines: list[str] = []
     # The current logical line, as (is code, text) pieces.
     pieces: list[tuple[bool, str]] = []
@@ -65,11 +63,9 @@ def _code_lines(read: RustRead) -> tuple[str, ...]:
 
     for region in read.source.regions:
         span = region.span
-        if region.kind is RegionKind.COMMENT:
-            at = bisect_right(starts, span.start) - 1
-            if at >= 0 and span.start < sections[at].end:
-                finish()
-                continue
+        if read.is_prose(region) or span in protected:
+            finish()
+            continue
         if region.kind is not RegionKind.WHITESPACE:
             pieces.append((True, text[span.start : span.end]))
             continue

@@ -201,8 +201,7 @@ class _Layout:
     def __init__(self, read: RustRead) -> None:
         self.text = read.source.text
         self.lines = _Lines(self.text)
-        self.sections = [section.span for section in read.source.sections]
-        self.section_starts = [span.start for span in self.sections]
+        self.read = read
         comments = [
             region.span
             for region in read.source.regions
@@ -215,10 +214,7 @@ class _Layout:
         """Whether the region is code: code, a literal, or a comment in no section."""
         if region.kind in CODE_KINDS:
             return True
-        if region.kind is not RegionKind.COMMENT:
-            return False
-        at = bisect_right(self.section_starts, region.span.start) - 1
-        return at < 0 or not region.span.start < self.sections[at].end
+        return region.kind is RegionKind.COMMENT and not self.read.is_prose(region)
 
     def prose_in(self, span: SourceSpan) -> list[str]:
         """The prose pieces of every comment inside `span`, in order."""

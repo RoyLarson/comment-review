@@ -321,6 +321,10 @@ class RustDocumentation:
             raise ValueError("warnings must align, in order, with detached runs")
 
 
+def _section_start(section: SourceSection) -> int:
+    return section.span.start
+
+
 @final
 @dataclass(frozen=True)
 class RustRead:
@@ -424,6 +428,14 @@ class RustRead:
                 ),
             )
         return compare_preservation(self, after)
+
+    def is_prose(self, region: SourceRegion) -> bool:
+        """Whether the region is a comment inside a section, so prose, not code."""
+        if region.kind is not RegionKind.COMMENT:
+            return False
+        sections = self.source.sections
+        at = bisect_right(sections, region.span.start, key=_section_start) - 1
+        return at >= 0 and region.span.start < sections[at].span.end
 
     def paragraphs(self, path: Path) -> list[Paragraph] | ReadFailure:
         """Every comment section of this read as a page paragraph."""
