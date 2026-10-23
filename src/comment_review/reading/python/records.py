@@ -3,7 +3,7 @@
 from collections.abc import Collection
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Self
+from typing import Self, final
 
 from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, ReadStage
 from comment_review.reading.paragraph import Paragraph
@@ -224,6 +224,7 @@ class DocumentationPayload:
             raise ValueError("payload text must be a string")
 
 
+@final
 @dataclass(frozen=True)
 class PythonRead:
     """A complete Python read reusing the exact source structure."""

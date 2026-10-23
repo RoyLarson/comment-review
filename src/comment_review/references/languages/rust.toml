@@ -62,6 +62,7 @@ position = "above-head"
 added_outer = "///"
 added_inner = "//!"
 detached = "ordinary-comment-with-warning"
+delimited_decoration = "*"
 
 [rules.directives]
 shebang = "#!"

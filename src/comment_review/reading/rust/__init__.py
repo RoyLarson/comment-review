@@ -28,4 +28,4 @@ def read_rust(text: str, definition: LanguageDefinition) -> RustRead | ReadFailu
     protected = directives_in(scan, definition)
     if isinstance(protected, ReadFailure):
         return protected
-    return sections_for(scan, documentation, protected, definition)
+    return sections_for(scan, documentation, protected)

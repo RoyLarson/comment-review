@@ -102,9 +102,9 @@ def read_paragraphs(
 ) -> list[Paragraph] | ReadFailure:
     """Adapt the admitted interpretation without repeating source recognition."""
     result = read_source(path, text, registry=registry)
-    if isinstance(result, PythonRead) or isinstance(result, RustRead):
-        return result.paragraphs(path)
-    return result
+    if isinstance(result, list) or isinstance(result, ReadFailure):
+        return result
+    return result.paragraphs(path)
 
 
 def read_source(

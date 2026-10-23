@@ -1,5 +1,6 @@
 """Partition Rust source into comment, code and whitespace regions and their tokens."""
 
+import re
 from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import cast
@@ -22,6 +23,12 @@ OPENERS = frozenset("{([")
 CLOSERS = frozenset("})]")
 # The Rust Reference's CHAR_LITERAL excludes these from an unescaped body.
 NOT_A_CHAR_BODY = frozenset("\n\r\t")
+LINE_BREAK = re.compile(r"\r\n|\r|\n")
+# Whitespace that stays on its line.
+INDENT = WHITESPACE - frozenset("\r\n")
+DECORATED_KINDS = frozenset(
+    {RustTokenKind.OUTER_DOC_DELIMITED, RustTokenKind.INNER_DOC_DELIMITED}
+)
 
 
 @dataclass(frozen=True)
@@ -34,10 +41,13 @@ class _Comments:
     outer_delimited: str
     inner_delimited: str
     empty: str
+    # What may open a continuation line of a delimited doc, after its indent.
+    decoration: str
 
     @classmethod
     def from_definition(cls, definition: LanguageDefinition) -> "_Comments":
         comments = cast(Mapping[str, object], definition.rules["comments"])
+        documentation = cast(Mapping[str, object], definition.rules["documentation"])
         opener, closer = cast(tuple[str, str], comments["block_comment"])
         return cls(
             cast(str, comments["line"]),
@@ -48,7 +58,19 @@ class _Comments:
             cast(str, comments["outer_doc_block"]),
             cast(str, comments["inner_doc_block"]),
             cast(str, comments["empty_block_comment"]),
+            cast(str, documentation["delimited_decoration"]),
         )
+
+    def markers(self, kind: RustTokenKind) -> tuple[str, str]:
+        """The opening and closing markers a comment of `kind` is written with."""
+        return {
+            RustTokenKind.LINE: (self.line, ""),
+            RustTokenKind.OUTER_DOC_LINE: (self.outer_line, ""),
+            RustTokenKind.INNER_DOC_LINE: (self.inner_line, ""),
+            RustTokenKind.DELIMITED_COMMENT: (self.opener, self.closer),
+            RustTokenKind.OUTER_DOC_DELIMITED: (self.outer_delimited, self.closer),
+            RustTokenKind.INNER_DOC_DELIMITED: (self.inner_delimited, self.closer),
+        }[kind]
 
 
 @dataclass(frozen=True)
@@ -193,7 +215,38 @@ def scan_rust(text: str, definition: LanguageDefinition) -> RustScan | ReadFailu
         else:
             regions.append(SourceRegion(span, region_kind))
         start = end
-    return RustScan(text, tuple(regions), tuple(tokens))
+    prose = tuple(
+        _prose(text, token, grammar.comments)
+        for token in tokens
+        if token.kind in COMMENT_KINDS
+    )
+    return RustScan(text, tuple(regions), tuple(tokens), prose)
+
+
+def _prose(text: str, token: RustToken, comments: _Comments) -> tuple[SourceSpan, ...]:
+    """The comment's text inside its markers, one piece per physical line.
+
+    On each continuation line of a delimited doc, the indent and one
+    decoration character that follows it are not prose.
+    """
+    opener, closer = comments.markers(token.kind)
+    body = SourceSpan(token.span.start + len(opener), token.span.end - len(closer))
+    if token.kind not in DECORATED_KINDS:
+        return (body,)
+    pieces = []
+    start = body.start
+    for line_break in LINE_BREAK.finditer(text, body.start, body.end):
+        pieces.append(SourceSpan(start, line_break.start()))
+        start = line_break.end()
+        indent = start
+        while indent < body.end and text[indent] in INDENT:
+            indent += 1
+        if text.startswith(comments.decoration, indent) and (
+            indent + len(comments.decoration) <= body.end
+        ):
+            start = indent + len(comments.decoration)
+    pieces.append(SourceSpan(start, body.end))
+    return tuple(pieces)
 
 
 def _shebang(text: str, start: int, grammar: _Grammar) -> int | None:

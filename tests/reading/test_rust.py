@@ -66,8 +66,16 @@ def read(insertions=(1,), protected=(DIRECTIVE,), warnings=(), declarations=()):
         insertions,
         warnings,
         detached,
-        (SourceSpan(2, 7),),
+        ((SourceSpan(2, 7),),),
     )
+
+
+def rust_scan(text, found, scanned_tokens):
+    """A RustScan whose comments' prose is each comment's whole span."""
+    prose = tuple(
+        (token.span,) for token in scanned_tokens if token.kind in records.COMMENT_KINDS
+    )
+    return records.RustScan(text, found, scanned_tokens, prose)
 
 
 def warning(span=COMMENT, code="detached-documentation", stage=ReadStage.PLACE):
@@ -87,14 +95,14 @@ def test_records_token_kinds_spell_the_six_comment_forms():
 
 
 def test_records_valid_scan_reconstructs_its_text():
-    scan = records.RustScan(TEXT, regions(), tokens())
+    scan = rust_scan(TEXT, regions(), tokens())
     assert "".join(TEXT[r.span.start : r.span.end] for r in scan.regions) == TEXT
 
 
 def test_records_empty_text_has_no_regions():
-    records.RustScan("", (), ())
+    rust_scan("", (), ())
     with pytest.raises(ValueError):
-        records.RustScan("", regions(), ())
+        rust_scan("", regions(), ())
 
 
 @pytest.mark.parametrize(
@@ -110,7 +118,7 @@ def test_records_empty_text_has_no_regions():
 )
 def test_records_scan_rejects_bad_region_partition(bad):
     with pytest.raises(ValueError):
-        records.RustScan(TEXT, bad, ())
+        rust_scan(TEXT, bad, ())
 
 
 def test_records_token_requires_nonempty_span():
@@ -121,29 +129,29 @@ def test_records_token_requires_nonempty_span():
 def test_records_scan_rejects_tokens_out_of_order_or_overlapping():
     first, second, third = tokens()
     with pytest.raises(ValueError):
-        records.RustScan(TEXT, regions(), (second, first, third))
+        rust_scan(TEXT, regions(), (second, first, third))
     overlap = records.RustToken(records.RustTokenKind.WORD, SourceSpan(9, 12))
     with pytest.raises(ValueError):
-        records.RustScan(TEXT, regions(), (first, second, overlap, third))
+        rust_scan(TEXT, regions(), (first, second, overlap, third))
     outside = records.RustToken(records.RustTokenKind.WORD, SourceSpan(30, 40))
     with pytest.raises(ValueError):
-        records.RustScan(TEXT, regions(), (first, second, outside))
+        rust_scan(TEXT, regions(), (first, second, outside))
 
 
 def test_records_comment_token_must_equal_a_comment_region():
     kind = records.RustTokenKind
     short = records.RustToken(kind.LINE, SourceSpan(0, 5))
     with pytest.raises(ValueError):
-        records.RustScan(TEXT, regions(), (short,))
+        rust_scan(TEXT, regions(), (short,))
     on_code = records.RustToken(kind.DELIMITED_COMMENT, CODE)
     with pytest.raises(ValueError):
-        records.RustScan(TEXT, regions(), (on_code,))
+        rust_scan(TEXT, regions(), (on_code,))
 
 
 def test_records_literal_token_must_lie_in_a_literal_region():
     token = records.RustToken(records.RustTokenKind.STRING, SourceSpan(8, 10))
     with pytest.raises(ValueError):
-        records.RustScan(TEXT, regions(), (token,))
+        rust_scan(TEXT, regions(), (token,))
 
 
 def test_records_scan_accepts_a_literal_token_inside_a_literal_region():
@@ -153,7 +161,7 @@ def test_records_scan_accepts_a_literal_token_inside_a_literal_region():
         SourceRegion(SourceSpan(7, 12), RegionKind.LITERAL),
         SourceRegion(SourceSpan(12, 32), RegionKind.CODE),
     )
-    scan = records.RustScan(
+    scan = rust_scan(
         TEXT,
         found,
         (
@@ -173,13 +181,13 @@ def test_records_scan_accepts_a_token_enclosed_by_an_attribute():
         records.RustToken(kind.INNER_ATTRIBUTE, SourceSpan(27, 31)),
         records.RustToken(kind.WORD, SourceSpan(31, 32)),
     )
-    records.RustScan(TEXT, regions(), inside)
+    rust_scan(TEXT, regions(), inside)
     nested = (
         records.RustToken(kind.OUTER_ATTRIBUTE, DIRECTIVE),
         records.RustToken(kind.INNER_ATTRIBUTE, SourceSpan(21, 31)),
         records.RustToken(kind.WORD, SourceSpan(22, 27)),
     )
-    records.RustScan(TEXT, regions(), nested)
+    rust_scan(TEXT, regions(), nested)
 
 
 def test_records_scan_rejects_partial_overlap_with_an_attribute():
@@ -187,13 +195,13 @@ def test_records_scan_rejects_partial_overlap_with_an_attribute():
     attribute = records.RustToken(kind.OUTER_ATTRIBUTE, DIRECTIVE)
     runs_past = records.RustToken(kind.WORD, SourceSpan(28, 32))
     with pytest.raises(ValueError):
-        records.RustScan(TEXT, regions(), (attribute, runs_past))
+        rust_scan(TEXT, regions(), (attribute, runs_past))
     starts_before = records.RustToken(kind.WORD, SourceSpan(17, 21))
     with pytest.raises(ValueError):
-        records.RustScan(TEXT, regions(), (starts_before, attribute))
+        rust_scan(TEXT, regions(), (starts_before, attribute))
     nested_past = records.RustToken(kind.INNER_ATTRIBUTE, SourceSpan(25, 32))
     with pytest.raises(ValueError):
-        records.RustScan(TEXT, regions(), (attribute, nested_past))
+        rust_scan(TEXT, regions(), (attribute, nested_past))
 
 
 def test_records_scan_rejects_a_non_attribute_token_enclosing_another():
@@ -201,7 +209,7 @@ def test_records_scan_rejects_a_non_attribute_token_enclosing_another():
     outer = records.RustToken(kind.PUNCT, DIRECTIVE)
     inner = records.RustToken(kind.WORD, SourceSpan(22, 27))
     with pytest.raises(ValueError):
-        records.RustScan(TEXT, regions(), (outer, inner))
+        rust_scan(TEXT, regions(), (outer, inner))
 
 
 def test_records_placement_accepts_one_insertion_per_declaration():
@@ -1769,9 +1777,6 @@ def test_projection_of_docs_comments_code_and_declarations(rust_definition):
         paragraph(
             10, 10, Kind.TRAILING, "tail", [" // tail"], anchor="fn go() -> u8 { 1 }"
         ),
-        paragraph(
-            11, 11, Kind.TRAILING, "why", [" /* why */"], anchor="fn mix() -> u8 { 2"
-        ),
     ]
     assert code == {
         4: "#[derive(Debug)]",
@@ -1779,7 +1784,7 @@ def test_projection_of_docs_comments_code_and_declarations(rust_definition):
         7: "    x: u8,",
         8: "}",
         10: "fn go() -> u8 { 1 }",
-        11: "fn mix() -> u8 { 2  + 3 }",
+        11: "fn mix() -> u8 { 2 /* why */ + 3 }",
     }
     assert declarations == [
         (0, 1, True),
@@ -1806,6 +1811,114 @@ def test_projection_doc_text_drops_the_markers_and_collapses_space(rust_definiti
             ["/**   Spread", "   over   lines. */"],
         ),
     ]
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "/**\n * First line\n * second.\n */\nfn f() {}\n",
+        "/*!\n   * First line\n   * second.\n   */\nfn f() {}\n",
+    ],
+    ids=["outer", "inner"],
+)
+def test_projection_doc_text_drops_the_continuation_decoration(rust_definition, text):
+    paragraphs, _, _ = projection_of(text, rust_definition)
+    assert [(p.kind, p.text, p.raw_text) for p in paragraphs] == [
+        (Kind.DOCSTRING, "First line second.", text[: text.index("*/") + 2])
+    ]
+
+
+def test_projection_ordinary_delimited_comment_keeps_its_stars(rust_definition):
+    text = "fn z() {}\n/*\n * kept\n */\nfn f() {}\n"
+    paragraphs, _, _ = projection_of(text, rust_definition)
+    assert [p.text for p in paragraphs] == ["* kept"]
+
+
+@pytest.mark.parametrize(
+    ("text", "paragraphs", "code"),
+    [
+        ("let_x /* c */ + 1;\n", [], {1: "let_x /* c */ + 1;"}),
+        (
+            "/* a */ fn f() {} // b\n",
+            [
+                paragraph(
+                    1, 1, Kind.TRAILING, "b", [" // b"], anchor="/* a */ fn f() {}"
+                )
+            ],
+            {1: "/* a */ fn f() {}"},
+        ),
+        (
+            "fn a() {} /* one\n two */ fn b() {}\n",
+            [],
+            {1: "fn a() {} /* one", 2: " two */ fn b() {}"},
+        ),
+    ],
+    ids=["between-code", "before-code-and-a-trailing-comment", "across-lines"],
+)
+def test_projection_delimited_comment_with_code_after_it_stays_code(
+    rust_definition, text, paragraphs, code
+):
+    found, lines, _ = projection_of(text, rust_definition)
+    assert found == paragraphs
+    assert lines == code
+
+
+def test_projection_delimited_comment_with_code_only_before_it_trails(
+    rust_definition,
+):
+    paragraphs, code, _ = projection_of("fn f() {} /* t */\n", rust_definition)
+    assert paragraphs == [
+        paragraph(1, 1, Kind.TRAILING, "t", [" /* t */"], anchor="fn f() {}")
+    ]
+    assert code == {1: "fn f() {}"}
+
+
+@pytest.mark.parametrize(
+    "text",
+    ["/** d */ fn f() {}\n", "/*! m */ fn f() {}\n"],
+    ids=["outer-on-its-head-line", "inner-before-code"],
+)
+def test_projection_doc_with_code_after_it_is_code_and_documents_nothing(
+    rust_definition, text
+):
+    result = rust_read(text, rust_definition)
+    assert result.paragraphs(PAGE) == []
+    assert result.code() == {1: text.rstrip("\n")}
+    assert result.source.sections == ()
+    assert result.source.documentation == ()
+    assert result.warnings == ()
+    assert result.detached == ()
+
+
+def test_projection_rust_whitespace_is_not_code(rust_definition):
+    text = "fn f() {}\v// t\nfn z() {}\n/* a */ \t\nfn g() {}\n"
+    paragraphs, code, _ = projection_of(text, rust_definition)
+    assert paragraphs == [
+        paragraph(1, 1, Kind.TRAILING, "t", ["\v// t"], anchor="fn f() {}"),
+        paragraph(3, 3, Kind.COMMENT, "a", ["/* a */ \t"]),
+    ]
+    assert code == {1: "fn f() {}", 2: "fn z() {}", 4: "fn g() {}"}
+
+
+def test_projection_scanner_records_each_comment_prose(rust_definition):
+    text = "/// a\n/* b */\n/**/\n/**\n * c\n */\n"
+    result = scanned(text, rust_definition)
+    assert [
+        [text[piece.start : piece.end] for piece in pieces] for pieces in result.prose
+    ] == [[" a"], [" b "], [""], ["", " c", " "]]
+
+
+def test_projection_scan_refuses_prose_outside_its_comment():
+    with pytest.raises(ValueError, match="prose"):
+        records.RustScan(TEXT, regions(), tokens(), ((SourceSpan(5, 9),),))
+    with pytest.raises(ValueError, match="prose"):
+        records.RustScan(TEXT, regions(), tokens(), ())
+
+
+def test_projection_read_refuses_an_insertion_off_its_anchor_line():
+    with pytest.raises(ValueError, match="anchor"):
+        read(insertions=(1, 3), declarations=(declaration(),))
+    read(insertions=(1, 2), declarations=(declaration(),))
 
 
 def test_projection_opening_run_is_matter_across_blank_lines(rust_definition):
@@ -1912,9 +2025,9 @@ def test_projection_read_refuses_misaligned_records(rust_definition, change, mes
 def test_projection_records_refuse_a_module_insertion_after_the_first_declaration():
     with pytest.raises(ValueError):
         records.RustPlacement((declaration(),), (2, 1), ())
-    with pytest.raises(ValueError):
-        read(insertions=(2, 1), declarations=(declaration(),))
-    read(insertions=(1, 1), declarations=(declaration(),))
+    with pytest.raises(ValueError, match="module insertion"):
+        read(insertions=(2, 1), declarations=(declaration(0),))
+    read(insertions=(1, 1), declarations=(declaration(0),))
 
 
 def test_projection_shebang_line_is_not_code(rust_definition):

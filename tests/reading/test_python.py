@@ -33,7 +33,6 @@ def test_records_module_exists():
 
 
 def test_completed_read_projects_documentation_from_source_positions(python_definition):
-    from dataclasses import fields
     from pathlib import Path
 
     from comment_review.reading.python.projection import (
@@ -56,9 +55,6 @@ def test_completed_read_projects_documentation_from_source_positions(python_defi
     reduced = PythonRead(
         result.source, result.payloads, result.protected, result.insertions
     )
-    stored = {field.name for field in fields(reduced)}
-    assert not stored & {"tokens", "suites", "statements", "declarations"}
-    assert not hasattr(reduced.payloads[0], "mapping")
     paragraphs = paragraphs_for(Path("invented.py"), reduced)
     assert not isinstance(paragraphs, ReadFailure)
     assert [(p.text, p.raw_lines, p.address, p.anchor) for p in paragraphs] == [

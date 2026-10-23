@@ -2,84 +2,87 @@
 
 import re
 from bisect import bisect_left, bisect_right
-from collections.abc import Mapping
 from pathlib import Path
-from typing import cast
 
 from comment_review import constants
-from comment_review.reading.definitions import LanguageDefinition
 from comment_review.reading.diagnostics import ReadFailure
 from comment_review.reading.paragraph import Paragraph
-from comment_review.reading.rust.definition import validate_rust
 from comment_review.reading.rust.records import (
-    COMMENT_KINDS,
     DETACHED_DOCUMENTATION,
     RustDocumentation,
     RustRead,
     RustScan,
     RustSectionForm,
-    RustTokenKind,
 )
 from comment_review.reading.series import Kind
-from comment_review.reading.source import RegionKind, SourceSpan, SourceStructure
+from comment_review.reading.source import (
+    DocumentationOwner,
+    RegionKind,
+    SourceRegion,
+    SourceSpan,
+    SourceStructure,
+)
 
-# The characters a line may hold that are not code.
-LAYOUT = " \t\f\ufeff"
-# Regions whose text is not code: prose, and the protected shebang line.
-NOT_CODE = frozenset({RegionKind.COMMENT, RegionKind.DIRECTIVE})
+# Regions that hold code whenever they are on a line.
+CODE_KINDS = frozenset({RegionKind.CODE, RegionKind.LITERAL})
 
 
 def sections_for(
     scan: RustScan,
     documentation: RustDocumentation,
     protected: tuple[SourceSpan, ...],
-    definition: LanguageDefinition,
-) -> RustRead | ReadFailure:
+) -> RustRead:
     """Assemble the read from the scan, the documentation and the protected spans.
 
-    Each comment's prose is its text inside the markers `[rules.comments]`
-    names for its form.
+    A section followed by code on the line it ends on is part of that code:
+    it leaves the sections, documents nothing and carries no warning. Its
+    comments stay COMMENT regions, and a COMMENT region in no section is code.
     """
-    failure = validate_rust(definition)
-    if failure is not None:
-        return failure
-    comments = cast(Mapping[str, object], definition.rules["comments"])
-    opener, closer = cast(tuple[str, str], comments["block_comment"])
-    openers = {
-        RustTokenKind.LINE: cast(str, comments["line"]),
-        RustTokenKind.OUTER_DOC_LINE: cast(str, comments["outer_doc_line"]),
-        RustTokenKind.INNER_DOC_LINE: cast(str, comments["inner_doc_line"]),
-        RustTokenKind.DELIMITED_COMMENT: opener,
-        RustTokenKind.OUTER_DOC_DELIMITED: cast(str, comments["outer_doc_block"]),
-        RustTokenKind.INNER_DOC_DELIMITED: cast(str, comments["inner_doc_block"]),
-    }
-    delimited = {
-        RustTokenKind.DELIMITED_COMMENT,
-        RustTokenKind.OUTER_DOC_DELIMITED,
-        RustTokenKind.INNER_DOC_DELIMITED,
-    }
-    prose = []
-    for token in scan.tokens:
-        if token.kind not in COMMENT_KINDS:
-            continue
-        start = token.span.start + len(openers[token.kind])
-        end = token.span.end - (len(closer) if token.kind in delimited else 0)
-        prose.append(SourceSpan(min(start, end), max(start, end)))
+    lines = _Lines(scan.text)
+    sections = documentation.sections
+    code_sections: set[int] = set()
+    for index in range(len(sections) - 1, -1, -1):
+        span = sections[index].span
+        line_end = lines.end_of(span.end - 1)
+        following = (
+            region
+            for region in _overlapping(scan.regions, span.end, line_end)
+            if region.span.start >= span.end
+        )
+        if any(
+            region.kind in CODE_KINDS
+            or (
+                region.kind is RegionKind.COMMENT
+                and any(
+                    sections[later].span.start
+                    <= region.span.start
+                    < sections[later].span.end
+                    for later in code_sections
+                )
+            )
+            for region in following
+        ):
+            code_sections.add(index)
+    kept = [i for i in range(len(sections)) if i not in code_sections]
+    renumbered = {old: new for new, old in enumerate(kept)}
+    owners = tuple(
+        DocumentationOwner(renumbered[owner.section], owner.declaration)
+        for owner in documentation.owners
+        if owner.section in renumbered
+    )
+    code_spans = {sections[i].span for i in code_sections}
     placement = documentation.placement
+    detached = tuple(run for run in placement.detached if run.span not in code_spans)
+    warnings = tuple(w for w in documentation.warnings if w.span not in code_spans)
     source = SourceStructure(
         scan.text,
         scan.regions,
-        documentation.sections,
+        tuple(sections[i] for i in kept),
         placement.declarations,
-        documentation.owners,
+        owners,
     )
     return RustRead(
-        source,
-        protected,
-        placement.insertions,
-        documentation.warnings,
-        placement.detached,
-        tuple(prose),
+        source, protected, placement.insertions, warnings, detached, scan.prose
     )
 
 
@@ -89,57 +92,58 @@ def documented_address(declaration: int | None) -> str:
 
 
 def paragraphs_for(path: Path, read: RustRead) -> list[Paragraph] | ReadFailure:
-    """Every comment section as one paragraph.
+    """Every section as one paragraph.
 
     A documentation section is a DOCSTRING at its owner's `a` place. Any
-    other section is MATTER when it is the opening matter, or when it ends
-    the file on its own lines; TRAILING when code precedes it on its first
-    line, with that code as its anchor; else a COMMENT. A detached run
-    carries the `detached-documentation` annotation. A paragraph's raw lines
-    run from its first line's start, or from the end of the code before it,
-    to the end of its last comment.
+    other section is MATTER when its form is `matter`, or when it is not
+    trailing, ends on the last line and nothing but whitespace follows it.
+    The form is not tested there, so an unowned doc that P6 made a COMMENT
+    section counts. Otherwise it is
+    TRAILING when code precedes it on its first line, with that code as its
+    anchor, and COMMENT when none does. A detached run carries the
+    `detached-documentation` annotation.
+
+    A paragraph's raw lines run from the end of the last code or comment
+    before it on its first line, or from that line's start, to the end of its
+    last line, so `anchor + raw_lines[0]` is the first line.
     """
     source = read.source
     text = source.text
-    lines = constants.text_lines(text)
-    code = _Code(read)
+    layout = _Layout(read)
     owners = {owner.section: owner.declaration for owner in source.documentation}
     detached = {run.span for run in read.detached}
-    comment_starts = [
-        region.span.start
-        for region in source.regions
-        if region.kind is RegionKind.COMMENT
-    ]
     paragraphs: list[Paragraph] = []
     for index, section in enumerate(source.sections):
         span = section.span
         first = source.position(span.start)
         last = source.position(span.end - 1)
-        line_start = span.start - first.column
-        before = text[line_start : span.start]
-        trailing = bool(code.between(line_start, span.start).strip(LAYOUT))
-        raw_start = line_start + len(before.rstrip(LAYOUT))
-        joined = " ".join(
-            text[prose.start : prose.end]
-            for prose in read.prose[
-                bisect_left(comment_starts, span.start) : bisect_left(
-                    comment_starts, span.end
-                )
-            ]
-        )
+        line_start = layout.lines.start_of(span.start)
+        line_end = layout.lines.end_of(span.end - 1)
+        before = [
+            region
+            for region in _overlapping(source.regions, line_start, span.start)
+            if region.kind is not RegionKind.WHITESPACE
+        ]
+        code_before = [region for region in before if layout.is_code(region)]
+        anchor_end = code_before[-1].span.end if code_before else line_start
+        raw_start = before[-1].span.end if before else line_start
         if index in owners:
             kind = Kind.DOCSTRING
             address = documented_address(owners[index])
         elif section.form == RustSectionForm.MATTER or (
-            not trailing
-            and last.line == len(lines)
-            and not text[span.end :].strip(LAYOUT + "\r\n")
+            not code_before
+            and last.line == len(layout.lines.spans)
+            and all(
+                region.kind is RegionKind.WHITESPACE
+                for region in _overlapping(source.regions, span.end, len(text))
+            )
         ):
             kind, address = Kind.MATTER, ""
         else:
-            kind = Kind.TRAILING if trailing else Kind.COMMENT
+            kind = Kind.TRAILING if code_before else Kind.COMMENT
             address = ""
-        raw = constants.text_lines(text[raw_start : span.end])
+        raw = constants.text_lines(text[raw_start:line_end])
+        prose = layout.prose_in(span)
         paragraphs.append(
             Paragraph(
                 path.as_posix(),
@@ -147,8 +151,8 @@ def paragraphs_for(path: Path, read: RustRead) -> list[Paragraph] | ReadFailure:
                 last.line,
                 kind,
                 len(raw),
-                re.sub(r"\s+", " ", joined).strip(),
-                anchor=before.rstrip(LAYOUT) if kind == Kind.TRAILING else "",
+                re.sub(r"\s+", " ", " ".join(prose)).strip(),
+                anchor=text[line_start:anchor_end] if kind == Kind.TRAILING else "",
                 address=address,
                 annotations={DETACHED_DOCUMENTATION} if span in detached else set(),
                 raw_lines=raw,
@@ -158,33 +162,34 @@ def paragraphs_for(path: Path, read: RustRead) -> list[Paragraph] | ReadFailure:
 
 
 def code_for(read: RustRead) -> dict[int, str]:
-    """Each line's code with every comment and the shebang removed, right-stripped.
+    """Each line's code: the line without its sections, shebang or trailing space.
 
-    Code on both sides of a delimited comment stays code; a line left with
-    no code is absent.
+    A comment that is code, being in no section, stays; a line left with no
+    code is absent.
     """
+    layout = _Layout(read)
     text = read.source.text
-    found = _Code(read)
     code: dict[int, str] = {}
-    offset = 0
-    for number, line in enumerate(constants.text_lines(text), 1):
-        end = offset + len(line)
-        kept = found.between(offset, end).rstrip()
-        if kept.strip(LAYOUT):
-            code[number] = kept
-        offset = end
-        if text.startswith("\r\n", offset):
-            offset += 2
-        elif offset < len(text) and text[offset] in "\r\n":
-            offset += 1
+    for number, (start, end) in enumerate(layout.lines.spans, 1):
+        pieces = [
+            region
+            for region in _overlapping(read.source.regions, start, end)
+            if layout.is_code(region) or region.kind is RegionKind.WHITESPACE
+        ]
+        while pieces and pieces[-1].kind is RegionKind.WHITESPACE:
+            pieces.pop()
+        if pieces:
+            code[number] = "".join(
+                text[max(start, r.span.start) : min(end, r.span.end)] for r in pieces
+            )
     return code
 
 
 def declarations_for(read: RustRead) -> list[tuple[int, int, bool]]:
     """The module's place, then each declaration's at its head's first line.
 
-    Rust documentation goes above the line it documents, so every entry is
-    above.
+    RustRead holds each declaration's insertion on its anchor line, and Rust
+    documentation goes above that line, so every entry is above.
     """
     source = read.source
     return [
@@ -198,21 +203,78 @@ def declarations_for(read: RustRead) -> list[tuple[int, int, bool]]:
     ]
 
 
-class _Code:
-    """The read's text outside its comment and directive regions."""
+class _Lines:
+    """Each physical line's start and end, its line break excluded."""
+
+    def __init__(self, text: str) -> None:
+        self.spans: list[tuple[int, int]] = []
+        offset = 0
+        for line in constants.text_lines(text):
+            self.spans.append((offset, offset + len(line)))
+            offset += len(line)
+            if text.startswith("\r\n", offset):
+                offset += 2
+            elif offset < len(text) and text[offset] in "\r\n":
+                offset += 1
+        self.starts = [start for start, _ in self.spans]
+
+    def _at(self, offset: int) -> tuple[int, int]:
+        return self.spans[max(0, bisect_right(self.starts, offset) - 1)]
+
+    def start_of(self, offset: int) -> int:
+        return self._at(offset)[0]
+
+    def end_of(self, offset: int) -> int:
+        return self._at(offset)[1]
+
+
+class _Layout:
+    """Which regions of a read are code, its lines, and each comment's prose."""
 
     def __init__(self, read: RustRead) -> None:
         self.text = read.source.text
-        self.spans = [
-            region.span for region in read.source.regions if region.kind not in NOT_CODE
+        self.lines = _Lines(self.text)
+        self.sections = [section.span for section in read.source.sections]
+        self.section_starts = [span.start for span in self.sections]
+        comments = [
+            region.span
+            for region in read.source.regions
+            if region.kind is RegionKind.COMMENT
         ]
-        self.ends = [span.end for span in self.spans]
+        self.comment_starts = [span.start for span in comments]
+        self.prose = read.prose
 
-    def between(self, start: int, end: int) -> str:
-        """The code in `[start, end)`, its pieces joined in source order."""
-        kept = []
-        for span in self.spans[bisect_right(self.ends, start) :]:
-            if span.start >= end:
-                break
-            kept.append(self.text[max(start, span.start) : min(end, span.end)])
-        return "".join(kept)
+    def is_code(self, region: SourceRegion) -> bool:
+        """Whether the region is code: code, a literal, or a comment in no section."""
+        if region.kind in CODE_KINDS:
+            return True
+        if region.kind is not RegionKind.COMMENT:
+            return False
+        at = bisect_right(self.section_starts, region.span.start) - 1
+        return at < 0 or not region.span.start < self.sections[at].end
+
+    def prose_in(self, span: SourceSpan) -> list[str]:
+        """The prose pieces of every comment inside `span`, in order."""
+        first = bisect_left(self.comment_starts, span.start)
+        last = bisect_left(self.comment_starts, span.end)
+        return [
+            self.text[piece.start : piece.end]
+            for pieces in self.prose[first:last]
+            for piece in pieces
+        ]
+
+
+def _overlapping(
+    regions: tuple[SourceRegion, ...], start: int, end: int
+) -> list[SourceRegion]:
+    """The regions that share a character with `[start, end)`, in order."""
+    found = []
+    for region in regions[bisect_right(regions, start, key=_end) :]:
+        if region.span.start >= end:
+            break
+        found.append(region)
+    return found
+
+
+def _end(region: SourceRegion) -> int:
+    return region.span.end

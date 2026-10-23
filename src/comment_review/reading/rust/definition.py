@@ -197,6 +197,7 @@ def _grammar(rules: Mapping[str, object]) -> None:
             "added_outer": "///",
             "added_inner": "//!",
             "detached": "ordinary-comment-with-warning",
+            "delimited_decoration": "*",
         },
         {"owners": _owners},
     )
