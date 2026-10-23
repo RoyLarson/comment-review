@@ -759,43 +759,51 @@ def test_rust_page_comment_directly_below_a_shebang_joins_it_at_f0():
     assert set_page(page) == text
 
 
-def test_rust_page_shebang_matter_stops_where_the_opening_run_does():
+def test_rust_page_shebang_matter_runs_to_the_first_blank_whatever_the_forms():
     from comment_review.results.compositor import set_page
     from comment_review.results.galley import reset
 
     text = "#!/usr/bin/env rust-script\n// Copyright\n/// d\n// e\nfn f() {}\n"
     page = build(text, "m.rs")
     places = by_cue(page)
-    assert places["f0"].raw_lines == ["#!/usr/bin/env rust-script", "// Copyright"]
-    assert places["b0"].raw_lines == ["/// d", "// e"]
-    assert [(w.cue, w.owner) for w in page.warnings] == [("b0", "a1")]
+    assert places["f0"].raw_lines == [
+        "#!/usr/bin/env rust-script",
+        "// Copyright",
+        "/// d",
+        "// e",
+    ]
+    assert "detached-documentation" in places["f0"].annotations
+    assert [(w.cue, w.owner) for w in page.warnings] == [("f0", "a1")]
     assert set_page(page) == text
     reset(page, {"a0": "//! Added."})
-    assert set_page(page).startswith(
-        "#!/usr/bin/env rust-script\n// Copyright\n//! Added.\n"
+    assert set_page(page) == (
+        "#!/usr/bin/env rust-script\n// Copyright\n/// d\n// e\n//! Added.\nfn f() {}\n"
     )
 
 
 #: Comment sections of different written forms in one place, as
-#: `(text, cue, raw_lines, warning cues)`.
+#: `(text, cue, kind, raw_lines, warning cues)`.
 RUST_JOINED = {
     "detached behind ordinary": (
         "fn g() {}\n\n/// Detached.\n// ordinary\nfn f() {}\n",
         "b1",
+        "comment",
         ["/// Detached.", "// ordinary"],
         ["b1"],
     ),
     "doc block behind ordinary": (
         "/** Doc. */\n// c\nfn f() {}",
-        "b0",
+        "f0",
+        "matter",
         ["/** Doc. */", "// c"],
-        ["b0"],
+        ["f0"],
     ),
     "doc split by a FIXME": (
         "/// a\n///\n// FIXME x\n/// b\nfn f() {}",
-        "b0",
+        "f0",
+        "matter",
         ["/// a", "///", "// FIXME x"],
-        ["b0"],
+        ["f0"],
     ),
 }
 
@@ -804,10 +812,10 @@ RUST_JOINED = {
 def test_rust_page_sections_in_one_place_are_one_paragraph(case):
     from comment_review.results.compositor import set_page
 
-    text, place, raw, warned = RUST_JOINED[case]
+    text, place, kind, raw, warned = RUST_JOINED[case]
     page = build(text, "m.rs")
     joined = by_cue(page)[place]
-    assert joined.kind == "comment"
+    assert joined.kind == kind
     assert joined.raw_lines == raw
     assert "detached-documentation" in joined.annotations
     assert [w.cue for w in page.warnings] == warned
@@ -821,7 +829,7 @@ def test_rust_page_doc_split_by_a_fixme_keeps_the_last_run_as_the_item_doc():
     places = _places(page)
     assert places["a1"] == ("docstring", "fn f() {}")
     assert by_cue(page)["a1"].raw_lines == ["/// b"]
-    assert [(w.cue, w.owner) for w in page.warnings] == [("b0", "a1")]
+    assert [(w.cue, w.owner) for w in page.warnings] == [("f0", "a1")]
 
 
 def test_rust_page_reworded_joined_paragraph_sets_in_place():
@@ -836,11 +844,97 @@ def test_rust_page_reworded_joined_paragraph_sets_in_place():
     )
 
 
+#: The file-head rule, as `(text, cue -> raw lines)`: the comments from line
+#: 1, or from the line below the shebang, up to the first blank line are the
+#: file's matter whatever their forms; what follows the blank is a comment.
+RUST_OPENING = {
+    "ordinary run across a blank": (
+        "// Copyright\n\n// note on f\nfn f() {}\n",
+        {"f0": ["// Copyright"], "b0": ["// note on f"]},
+    ),
+    "two blanks": (
+        "// a\n// b\n\n// c\n\n// d\nfn f() {}\n",
+        {"f0": ["// a", "// b"], "b0": ["// c", "", "// d"]},
+    ),
+    "shebang then a run across a blank": (
+        "#!/usr/bin/env rust-script\n// Copyright\n\n// note\nfn f() {}\n",
+        {"f0": ["#!/usr/bin/env rust-script", "// Copyright"], "b0": ["// note"]},
+    ),
+    "two forms then a blank": (
+        "// a\n/* b */\n\n// c\nfn f() {}\n",
+        {"f0": ["// a", "/* b */"], "b0": ["// c"]},
+    ),
+    "codeless, a blank between": (
+        "// a\n\n// b\n",
+        {"f0": ["// a"], "f1": ["// b"]},
+    ),
+}
+
+
+@pytest.mark.parametrize("case", sorted(RUST_OPENING))
+def test_rust_page_opening_comments_follow_one_rule_whatever_their_forms(case):
+    from comment_review.results.compositor import set_page
+
+    text, expected = RUST_OPENING[case]
+    page = build(text, "m.rs")
+    held = {cue(b): b.raw_lines for b in page.paragraphs if b.address and b.raw_text}
+    assert held == expected
+    assert page.warnings == ()
+    assert set_page(page) == text
+
+
+def test_rust_page_added_module_doc_is_set_below_the_opening_matter():
+    from comment_review.results.compositor import set_page
+    from comment_review.results.galley import reset
+
+    page = build("// Copyright\n\n// note on f\nfn f() {}\n", "m.rs")
+    assert page.read.declarations()[0] == (0, 2, True)
+    reset(page, {"a0": "//! Added."})
+    assert set_page(page) == "// Copyright\n\n//! Added.\n// note on f\nfn f() {}\n"
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "// Copyright\n//! m\nfn f() {}\n",
+        "#!/usr/bin/env rust-script\n// Copyright\n//! m\nfn f() {}\n",
+    ],
+    ids=["plain", "shebang"],
+)
+def test_rust_page_module_doc_behind_front_matter_is_attached(text):
+    from comment_review.results.compositor import set_page
+
+    page = build(text, "m.rs")
+    places = by_cue(page)
+    assert places["f0"].kind == "matter"
+    assert places["f0"].raw_lines[-1] == "// Copyright"
+    assert (places["a0"].kind, places["a0"].raw_lines) == ("docstring", ["//! m"])
+    assert page.warnings == ()
+    assert set_page(page) == text
+
+
+def test_rust_page_module_doc_behind_a_trailing_comment_is_detached():
+    from comment_review.results.compositor import set_page
+
+    text = "#![allow(x)] // c\n//! m\nfn f() {}\n"
+    page = build(text, "m.rs")
+    places = by_cue(page)
+    assert (places["c0"].kind, places["c0"].raw_lines) == (
+        "trailing-comment",
+        [" // c"],
+    )
+    assert (places["b1"].kind, places["b1"].raw_lines) == ("comment", ["//! m"])
+    assert "detached-documentation" in places["b1"].annotations
+    assert places["a0"].kind == "undocumented"
+    assert [(w.cue, w.owner) for w in page.warnings] == [("b1", "a0")]
+    assert set_page(page) == text
+
+
 @pytest.mark.parametrize(
     "text",
     [
         RUST_ITEMS,
-        *(t for t, _, _, _ in RUST_JOINED.values()),
+        *(case[0] for case in RUST_JOINED.values()),
         "#!/usr/bin/env rust-script\n// Copyright\n/// d\n// e\nfn f() {}\n",
         "// c\n/// d\n// e\nfn f() {}\n",
         "fn f() {} // t\n// a\n/* b */\n//! c\n/// d\n",
@@ -854,6 +948,11 @@ def test_rust_page_reworded_joined_paragraph_sets_in_place():
         "fn f() {}\n// a\n\n// b\n/// c\n",
         "\n// a\n//! m\n// c\nfn f() {}\n",
         "#![allow(x)]\n// a\n//! m\n/* c */\nfn f() {}\n",
+        "#![allow(x)] // c\n//! m\nfn f() {}\n",
+        "/// d\n//! m\nfn f() {}\n",
+        "// Copyright\n//! m\n// c\nfn f() {}\n",
+        "// a\n// b\n\n// c\n\n// d\nfn f() {}\n",
+        "//! a\n#![allow(x)]\n//! b\n\n//! c\n",
     ],
 )
 def test_rust_page_no_two_paragraphs_share_a_place(text):
@@ -1026,19 +1125,71 @@ def test_rust_page_closing_comments_follow_one_rule_whatever_their_forms(case):
     assert set_page(page) == text
 
 
-def test_rust_page_comments_around_the_module_doc_are_one_place():
-    """A `//!` behind a comment at the file head keeps the module's `a0`, so
-    the comments on each side of it share one gap and are one paragraph."""
-    from comment_review.results.compositor import lossless, set_page
+def test_rust_page_module_doc_behind_a_comment_that_is_not_matter_is_detached():
+    """A `//!` behind an ordinary comment that is not front matter is
+    detached, so the three comments in the gap are one paragraph."""
+    from comment_review.results.compositor import set_page
 
     text = "\n// a\n//! m\n// c\nfn f() {}\n"
     page = build(text, "m.rs")
     places = by_cue(page)
-    assert (places["a0"].kind, places["a0"].raw_lines) == ("docstring", ["//! m"])
-    assert (places["b0"].kind, places["b0"].raw_lines) == ("comment", ["// a", "// c"])
+    assert places["a0"].kind == "undocumented"
+    assert (places["b0"].kind, places["b0"].raw_lines) == (
+        "comment",
+        ["// a", "//! m", "// c"],
+    )
+    assert "detached-documentation" in places["b0"].annotations
+    assert [(w.cue, w.owner) for w in page.warnings] == [("b0", "a0")]
     addresses = [b.address for b in page.paragraphs if b.address]
     assert len(addresses) == len(set(addresses))
-    assert lossless(text, set_page(page)) is None
+    assert set_page(page) == text
+
+
+#: Shapes with detached documentation, each read against the rule that every
+#: annotated paragraph has exactly one warning naming it, and the reverse.
+RUST_ANNOTATED = [
+    "fn g() {}\n\n/// Detached.\n// ordinary\nfn f() {}\n",
+    "/** Doc. */\n// c\nfn f() {}",
+    "/// a\n///\n// FIXME x\n/// b\nfn f() {}",
+    "fn f() {\n    // a\n    //! inner\n}\n",
+    "fn f() { //! same line\n}\n",
+    "\n// a\n//! m\n// c\nfn f() {}\n",
+    "#![allow(x)] // c\n//! m\nfn f() {}\n",
+    "fn z() {} /// t\nfn f() {}\n",
+    "//! a\n#![allow(x)]\n//! b\n\n//! c\n",
+    "#!/usr/bin/env rust-script\n// Copyright\n/// d\n// e\nfn f() {}\n",
+]
+
+
+@pytest.mark.parametrize("text", RUST_ANNOTATED)
+def test_rust_page_annotated_paragraphs_and_warnings_match_one_to_one(text):
+    page = build(text, "m.rs")
+    annotated = sorted(
+        cue(b) for b in page.paragraphs if "detached-documentation" in b.annotations
+    )
+    assert annotated
+    assert sorted(w.cue for w in page.warnings) == annotated
+
+
+def test_rust_page_detached_run_divided_at_the_closing_blank_is_warned_once():
+    text = "//! a\n#![allow(x)]\n//! b\n\n//! c\n"
+    page = build(text, "m.rs")
+    places = by_cue(page)
+    assert (places["a0"].kind, places["a0"].raw_lines) == ("docstring", ["//! a"])
+    assert (places["b1"].kind, places["b1"].raw_lines) == ("comment", ["//! b"])
+    assert places["b1"].annotations == {"detached-documentation"}
+    assert (places["f1"].kind, places["f1"].raw_lines) == ("matter", ["//! c"])
+    assert places["f1"].annotations == set()
+    assert [(w.cue, w.owner) for w in page.warnings] == [("b1", "a0")]
+
+
+def test_rust_page_two_detached_runs_in_one_gap_are_one_paragraph_warned_twice():
+    """Observed, not ruled: two detached runs in one gap are one paragraph,
+    and each run keeps its own warning, so the paragraph's cue is named twice."""
+    text = "fn g() {}\n/// a\n// x\n/// b\n// y\nfn f() {}\n"
+    page = build(text, "m.rs")
+    assert by_cue(page)["b1"].raw_lines == ["/// a", "// x", "/// b", "// y"]
+    assert [(w.cue, w.owner) for w in page.warnings] == [("b1", "a2"), ("b1", "a2")]
 
 
 RUST_DETACHED = "fn g() {}\n\n/// Detached.\n// ordinary\nfn f() {}\n"

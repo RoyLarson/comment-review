@@ -264,8 +264,9 @@ class RustDocumentation:
     Each section's form is a RustSectionForm value. `owners` links each
     OUTER_DOC and INNER_DOC section to its declaration, None for the module.
     `placement` carries the module insertion line and the detached runs.
-    Each warning marks one COMMENT section that is detached documentation,
-    and the warnings align one-to-one, in order, with `placement.detached`.
+    Each warning marks one COMMENT or MATTER section that is detached
+    documentation, and the warnings align one-to-one, in order, with
+    `placement.detached`.
     """
 
     sections: tuple[SourceSection, ...]
@@ -305,7 +306,7 @@ class RustDocumentation:
         comments = {
             section.span
             for section in self.sections
-            if section.form == RustSectionForm.COMMENT
+            if section.form in (RustSectionForm.COMMENT, RustSectionForm.MATTER)
         }
         for warning in self.warnings:
             if (
@@ -314,7 +315,7 @@ class RustDocumentation:
             ):
                 raise ValueError("warnings must be detached-documentation place notes")
             if warning.span not in comments:
-                raise ValueError("a warning must mark a comment section")
+                raise ValueError("a warning must mark a comment or matter section")
         if [warning.span for warning in self.warnings] != [
             run.span for run in self.placement.detached
         ]:

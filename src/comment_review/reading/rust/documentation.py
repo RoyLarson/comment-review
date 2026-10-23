@@ -82,9 +82,12 @@ def documentation_in(
     DetachedRun and a warning. Every other doc section that documents nothing
     is a COMMENT section.
 
-    The first section is MATTER when it is ordinary, starts on line 1 -- or on
-    the line directly below the shebang -- and no code follows it on its last
-    line.
+    The file's opening matter is the comments from line 1 -- or from the line
+    directly below the shebang -- with no blank line or code between them,
+    whatever their forms: every section starting in it is MATTER, up to the
+    first section documenting an owner, which ends the matter. A comment with
+    code after it on its line ends the matter before it. The module's inner
+    doc is detached when a comment that is not opening matter precedes it.
     The module insertion line is the first line of the module's inner doc,
     else the line after the matter, else the line after the shebang, else 1.
     An owner documented by an inner doc inserts at that doc's first line,
@@ -134,6 +137,14 @@ class _Assigner:
         self.detached: list[DetachedRun] = []
         self.warnings: list[ReadDiagnostic] = []
         self.module_doc: int | None = None
+        self.shebang = next(
+            (t for t in scan.tokens if t.kind is RustTokenKind.SHEBANG), None
+        )
+        # The last line of the comments that open the file, or None.
+        self.opening_end = self._opening_end()
+        # The last line of the opening matter once the sections documenting an
+        # owner are known: see `run`.
+        self.matter_end: int | None = None
 
     def run(self) -> RustDocumentation:
         for index, run in enumerate(self.runs):
@@ -143,8 +154,18 @@ class _Assigner:
                 self._outer(index, run)
             elif run.written is RustSectionForm.INNER_DOC:
                 self._inner(index, run)
-            elif index == 0 and self._opens_the_file(run):
+        # Every section starting in the opening comments is matter, up to the
+        # first that documents an owner.
+        if self.opening_end is not None:
+            for index, run in enumerate(self.runs):
+                if run.code or not self._opens(run):
+                    continue
+                if index in self.links:
+                    break
                 self.forms[index] = RustSectionForm.MATTER
+                # A section of one form may run on past the opening comments,
+                # across a blank line; the matter ends where they do.
+                self.matter_end = min(self._line(run.span.end - 1), self.opening_end)
         kept = [index for index, run in enumerate(self.runs) if not run.code]
         section_of = {run: section for section, run in enumerate(kept)}
         sections = tuple(
@@ -175,27 +196,38 @@ class _Assigner:
         )
         return RustDocumentation(sections, owners, placement, tuple(self.warnings))
 
-    def _opens_the_file(self, run: _Run) -> bool:
-        """Whether the run opens the file, with no code on its last line.
+    def _opening_end(self) -> int | None:
+        """The last line of the comments that open the file, or None.
 
-        The run opens the file when it starts on line 1, or on the line
-        directly below the shebang, which shares the file's own place with
-        it. A run below a blank line is not the file's opening matter:
-        filed as front matter it would be set above the blank line it sits
-        under.
+        They start on line 1, or on the line directly below the shebang,
+        which shares the file's own place with them, and run while each
+        comment starts on the line after the last one ends: a blank line,
+        code, or a comment with code after it on its line ends them. A
+        comment below a blank line is not opening matter: filed as front
+        matter it would be set above the blank line it sits under.
         """
-        shebang = next(
-            (t for t in self.scan.tokens if t.kind is RustTokenKind.SHEBANG), None
+        line = 1 if self.shebang is None else self._line(self.shebang.span.end - 1) + 1
+        first_code = self.starts[0] if self.starts else len(self.scan.text)
+        end = None
+        for at, token in enumerate(self.scan.tokens):
+            if token.kind not in COMMENT_KINDS:
+                continue
+            if (
+                token.span.start >= first_code
+                or self._line(token.span.start) != line
+                or _followed_on_its_line(self.scan.tokens, at, self.coordinates)
+            ):
+                break
+            end = self._line(token.span.end - 1)
+            line = end + 1
+        return end
+
+    def _opens(self, run: _Run) -> bool:
+        """Whether the run starts among the comments that open the file."""
+        return (
+            self.opening_end is not None
+            and self._line(run.span.start) <= self.opening_end
         )
-        opening = 1 if shebang is None else self._line(shebang.span.end - 1) + 1
-        if self._line(run.span.start) != opening:
-            return False
-        if bisect_left(self.starts, run.span.start) != 0:
-            return False
-        following = bisect_left(self.starts, run.span.end)
-        return following == len(self.code) or self._line(
-            self.code[following].span.start
-        ) > self._line(run.span.end - 1)
 
     def _outer(self, index: int, run: _Run) -> None:
         """Attach a run directly above a head; detach one inside or behind it."""
@@ -227,12 +259,17 @@ class _Assigner:
         while before >= 0 and self.code[before].kind is RustTokenKind.INNER_ATTRIBUTE:
             before -= 1
         if before < 0:
-            if self.module_doc is None:
-                self.module_doc = index
+            # A comment before the run that is not opening matter -- below a
+            # blank line, or trailing an inner attribute -- detaches it.
+            behind = any(not r.code and not self._opens(r) for r in self.runs[:index])
             if MODULE not in self.owner_kinds:
                 self.forms[index] = RustSectionForm.COMMENT
+            elif behind:
+                self._detach(index, run, None)
             else:
                 self._attach(index, run, None)
+            if index in self.links and self.module_doc is None:
+                self.module_doc = index
             return
         owner = self._opened_by(before)
         if owner is None:
@@ -315,13 +352,10 @@ class _Assigner:
     def _module_line(self) -> int:
         if self.module_doc is not None:
             return self._line(self.runs[self.module_doc].span.start)
-        if self.forms and self.forms[0] is RustSectionForm.MATTER:
-            return self._line(self.runs[0].span.end - 1) + 1
-        shebang = next(
-            (t for t in self.scan.tokens if t.kind is RustTokenKind.SHEBANG), None
-        )
-        if shebang is not None:
-            return self._line(shebang.span.end - 1) + 1
+        if self.matter_end is not None:
+            return self.matter_end + 1
+        if self.shebang is not None:
+            return self._line(self.shebang.span.end - 1) + 1
         return 1
 
     def _line(self, offset: int) -> int:

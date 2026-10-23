@@ -132,25 +132,23 @@ def paragraphs_for(path: Path, read: RustRead) -> list[Paragraph] | ReadFailure:
                 raw_lines=raw,
             )
         )
-    shebang = {source.position(span.start).line for span in read.protected}
-    return _one_per_place(paragraphs, set(code_for(read)), shebang, layout)
+    return _one_per_place(paragraphs, set(code_for(read)), layout)
 
 
 def _one_per_place(
-    paragraphs: list[Paragraph], code: set[int], shebang: set[int], layout: "_Layout"
+    paragraphs: list[Paragraph], code: set[int], layout: "_Layout"
 ) -> list[Paragraph]:
     """Make the paragraphs that would share a place one paragraph.
 
-    The comments after the last code line follow the end-of-file rule first,
-    see `_closing_matter`. Then the COMMENT paragraphs in one gap -- the lines
-    between the same two code lines -- are one COMMENT paragraph there,
-    whatever sits between them: blank lines, or the module's inner doc, whose
-    lines stay its own. The opening matter on the line directly below the
-    shebang becomes one MATTER paragraph with the shebang, at `f0`.
+    The opening comments follow the file-head rule first, see
+    `_opening_matter`, and the comments after the last code line the
+    end-of-file rule, see `_closing_matter`. Then the COMMENT paragraphs in
+    one gap -- the lines between the same two code lines -- are one COMMENT
+    paragraph there, whatever sits between them: blank lines, or the
+    module's inner doc, whose lines stay its own.
     """
-    paragraphs = _closing_matter(
-        sorted(paragraphs, key=lambda p: p.start), code, layout
-    )
+    paragraphs = _opening_matter(sorted(paragraphs, key=lambda p: p.start), layout)
+    paragraphs = _closing_matter(paragraphs, code, layout)
     held = {
         n
         for p in paragraphs
@@ -161,29 +159,55 @@ def _one_per_place(
     out: list[Paragraph] = []
     gaps: dict[int, int] = {}
     for paragraph in paragraphs:
-        previous = out[-1] if out else None
-        if paragraph.kind == Kind.COMMENT:
-            # A COMMENT holds no code line, so the count of code lines above
-            # it names its gap.
-            gap = bisect_right(boundaries, paragraph.end)
-            at = gaps.get(gap)
-            if at is None:
-                gaps[gap] = len(out)
-                out.append(paragraph)
-            else:
-                out[at] = _combined([out[at], paragraph], Kind.COMMENT, layout, held)
-        elif (
-            paragraph.kind == Kind.MATTER
-            and previous is not None
-            and previous.kind == Kind.MATTER
-            and previous.start == previous.end
-            and previous.start in shebang
-            and paragraph.start == previous.end + 1
-        ):
-            out[-1] = _combined([previous, paragraph], Kind.MATTER, layout, held)
-        else:
+        if paragraph.kind != Kind.COMMENT:
             out.append(paragraph)
+            continue
+        # A COMMENT holds no code line, so the count of code lines above it
+        # names its gap.
+        gap = bisect_right(boundaries, paragraph.end)
+        at = gaps.get(gap)
+        if at is None:
+            gaps[gap] = len(out)
+            out.append(paragraph)
+        else:
+            out[at] = _combined([out[at], paragraph], Kind.COMMENT, layout, held)
     return sorted(out, key=lambda p: p.start)
+
+
+def _opening_matter(paragraphs: list[Paragraph], layout: "_Layout") -> list[Paragraph]:
+    """Apply the file-head rule to the opening comments.
+
+    The MATTER paragraphs here are the shebang and the sections that open
+    the file, which the documentation stage marks; every one starts above
+    the file's first blank line. The ones ending above that blank line are
+    one MATTER paragraph, at the first `f` place; a paragraph that spans the
+    blank line is divided at it, and the part below stays a COMMENT. This is
+    the rule the Python projection applies to its opening run.
+    """
+    matter = [p for p in paragraphs if p.kind == Kind.MATTER]
+    if not matter:
+        return paragraphs
+    covered = layout.comment_lines()
+    blank = next(
+        (
+            n
+            for n in range(matter[0].start, len(layout.physical) + 1)
+            if n not in covered and not layout.physical[n - 1].strip()
+        ),
+        None,
+    )
+    kept = [p for p in paragraphs if p.kind != Kind.MATTER]
+    parts: list[Paragraph] = []
+    for paragraph in matter:
+        if blank is None or paragraph.end < blank:
+            parts.append(paragraph)
+        else:
+            at = next(n for n in range(blank + 1, paragraph.end + 1) if n in covered)
+            before, after = _divided(paragraph, at, covered, layout)
+            parts.append(before)
+            kept.append(after)
+    kept.append(_combined(parts, Kind.MATTER, layout, set()))
+    return sorted(kept, key=lambda p: p.start)
 
 
 def _closing_matter(
@@ -228,13 +252,17 @@ def _divided(
     """The whole-line paragraph as two, the second starting on line `at`.
 
     The line above `at` is blank, and the first part ends on the last comment
-    line above it.
+    line above it. The first part keeps the annotations: a detached run's
+    warning names the line it starts on, which is in that part.
     """
     end = at - 1
     while end not in covered:
         end -= 1
     halves = []
-    for start, stop in ((paragraph.start, end), (at, paragraph.end)):
+    for start, stop, notes in (
+        (paragraph.start, end, paragraph.annotations),
+        (at, paragraph.end, set()),
+    ):
         raw = paragraph.raw_lines[start - paragraph.start : stop - paragraph.start + 1]
         halves.append(
             Paragraph(
@@ -244,7 +272,7 @@ def _divided(
                 Kind.COMMENT,
                 len(raw),
                 layout.text_in(start, stop),
-                annotations=set(paragraph.annotations),
+                annotations=set(notes),
                 raw_lines=raw,
             )
         )
