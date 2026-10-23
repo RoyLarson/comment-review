@@ -3,7 +3,7 @@
 ```
 Status:   in-progress
 Progress: 6 of 6 TODO tasks closed
-Plan-tasks: 9 of 13 plan tasks closed
+Plan-tasks: 10 of 13 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-22 (founded by move-t from 2026-10-11-lexical-readers)
@@ -92,7 +92,8 @@ reader.
         > 2026-10-22 Spec: O3 and O5, approved 2026-10-22; exit code unchanged
         > 2026-10-22 Check: test_gather_command -k detached
         > 2026-10-22 Check: check_vocabulary.py exits 0 with the new term
-- [ ] P11 | Create the agents TODO for SKILL.md stage 2 warnings
+- [x] P11 | TODO/stage-two-detached-warnings.md exists with Owner: agents | a073b5bd | Create
+      the agents TODO for SKILL.md stage 2 warnings
         > 2026-10-22 Spec: O4, approved 2026-10-22; agents lane edits SKILL.md
         > 2026-10-22 Check: the TODO exists with Owner: agents
 - [ ] P12 | Refuse a revision-1 Rust reading context
