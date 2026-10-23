@@ -208,6 +208,16 @@ def test_detached_documentation_is_warned_on_stderr_and_exits_zero(
     assert "warning" not in out.read_text(encoding="utf-8")
 
 
+def test_two_detached_runs_in_one_gap_print_two_warnings_with_one_cue(
+    tmp_path, monkeypatch, capsys
+):
+    source = "fn g() {}\n/// a\n// x\n/// b\n// y\nfn f() {}\n"
+    code, printed = _run_rust(tmp_path, monkeypatch, capsys, source)
+    assert code == 0, printed
+    lines = [ln for ln in printed.splitlines() if ln.startswith("warning:")]
+    assert lines == ["warning: lib.rs@b1: detached documentation for a2"] * 2
+
+
 def test_a_rust_file_without_detached_documentation_prints_no_detached_warning(
     tmp_path, monkeypatch, capsys
 ):
