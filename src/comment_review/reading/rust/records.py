@@ -1,14 +1,16 @@
 """Immutable Rust reader records: the scan, the place model and the completed read."""
 
 from bisect import bisect_right
+from collections.abc import Collection
 from dataclasses import dataclass
 from enum import StrEnum
 from itertools import pairwise
 from pathlib import Path
-from typing import final
+from typing import Self, final
 
 from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, ReadStage
 from comment_review.reading.paragraph import Paragraph
+from comment_review.reading.proof import UNPROVABLE, PreservationResult
 from comment_review.reading.source import (
     DocumentationOwner,
     RegionKind,
@@ -389,6 +391,39 @@ class RustRead:
             self.prose,
             [r.span for r in self.source.regions if r.kind is RegionKind.COMMENT],
         )
+
+    @property
+    def proof(self) -> str:
+        """The comparison's name, as a proof report prints it."""
+        return "rust-lexical"
+
+    def preserved(
+        self,
+        after: Self,
+        *,
+        documented: Collection[tuple[int | None, int | None]] | None = None,
+    ) -> PreservationResult:
+        """Whether `after` holds this read's code unchanged.
+
+        Every comment the read makes a section of is prose to the comparison,
+        documentation included, so `documented` is accepted and not read. An
+        `after` that is not a Rust read is unprovable.
+        """
+        # Imported here because `preservation` reads this module's records.
+        from comment_review.reading.rust.preservation import compare_preservation
+
+        if not isinstance(after, RustRead):
+            return PreservationResult(
+                False,
+                (
+                    ReadDiagnostic(
+                        ReadStage.PLACE,
+                        UNPROVABLE,
+                        "the other side is not a Rust read",
+                    ),
+                ),
+            )
+        return compare_preservation(self, after)
 
     def paragraphs(self, path: Path) -> list[Paragraph] | ReadFailure:
         """Every comment section of this read as a page paragraph."""

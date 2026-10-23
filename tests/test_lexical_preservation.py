@@ -5,9 +5,12 @@ import pytest
 
 from comment_review.reading.definitions import LanguageDefinition, decode_definition
 from comment_review.reading.diagnostics import ReadFailure
+from comment_review.reading.proof import UNPROVABLE, ReaderRecord
 from comment_review.reading.python import read_python
 from comment_review.reading.python.preservation import compare_preservation
 from comment_review.reading.python.records import PythonRead
+from comment_review.reading.rust import read_rust
+from comment_review.reading.rust.records import RustRead
 
 
 @pytest.fixture(scope="module")
@@ -490,3 +493,119 @@ def test_selected_multiline_doc_keeps_executable_suffix_indentation(
         assert not compare_preservation(
             before, after, allowed_documentation_owners={0}
         ).unchanged
+
+
+@pytest.fixture(scope="module")
+def rust_definition():
+    text = (
+        files("comment_review")
+        .joinpath("references/languages/rust.toml")
+        .read_text(encoding="utf-8")
+    )
+    result = decode_definition(text)
+    assert isinstance(result, LanguageDefinition)
+    return result
+
+
+def rust_read(text: str, rust_definition: LanguageDefinition) -> RustRead:
+    result = read_rust(text, rust_definition)
+    assert isinstance(result, RustRead), result
+    return result
+
+
+SHEBANG = "#!/usr/bin/env run-script\n"
+PROTECTED = "protected-source-changed"
+
+
+@pytest.mark.parametrize(
+    ("before", "after", "code"),
+    [
+        ("fn f() {}\n", "fn g() {}\n", "code-changed"),
+        ("let x = a + b;\n", "let x = a - b;\n", "code-changed"),
+        ("fn a() {}\nfn b() {}\n", "fn b() {}\nfn a() {}\n", "code-changed"),
+        ('let s = "one";\n', 'let s = "two";\n', "code-changed"),
+        ('let s = r#"one"#;\n', 'let s = r#"two"#;\n', "code-changed"),
+        ('let s = "a\nb";\n', 'let s = "a\r\nb";\n', "code-changed"),
+        ('let s = r"a\n\nb";\n', 'let s = r"a\nb";\n', "code-changed"),
+        ('let s = "a \nb";\n', 'let s = "a\nb";\n', "code-changed"),
+        ("#[cfg(unix)]\nfn f() {}\n", "#[cfg(windows)]\nfn f() {}\n", "code-changed"),
+        ("let x = 1;\nlet y = 2;\n", "let x = 1\nlet y = 2;\n", "code-changed"),
+        ("let x = a/* x */b;\n", "let x = ab;\n", "code-changed"),
+        ("let x = a /* x */ b;\n", "let x = a /* y */ b;\n", "code-changed"),
+        ("let x = a /* x */ b;\n", "let x = a b;\n", "code-changed"),
+        ("let x /* c */ = 1;\n", "let x /* d */ = 1;\n", "code-changed"),
+        ("let x = a\n    + b;\n", "let x = a + b;\n", "code-changed"),
+        ("let x = a + b;\n", "let x = a\n    + b;\n", "code-changed"),
+        ("let x = a + b; // why\n", "let x = a // why\n    + b;\n", "code-changed"),
+        ("// note\nfn f() {}\n", "x // note\nfn f() {}\n", "code-changed"),
+        (
+            "/* note\n   more */\nfn f() {}\n",
+            "/* note\n   more */ x\nfn f() {}\n",
+            "code-changed",
+        ),
+        (SHEBANG + "fn main() {}\n", "#!/bin/other\nfn main() {}\n", PROTECTED),
+        (SHEBANG + "fn main() {}\n", "fn main() {}\n", PROTECTED),
+        ("fn main() {}\n", SHEBANG + "fn main() {}\n", PROTECTED),
+    ],
+)
+def test_rust_code_changes_fail(rust_definition, before, after, code):
+    was, now = rust_read(before, rust_definition), rust_read(after, rust_definition)
+    result = was.preserved(now)
+    assert not result.unchanged
+    assert [d.code for d in result.diagnostics] == [code]
+    assert not result.unprovable
+
+
+@pytest.mark.parametrize(
+    ("before", "after"),
+    [
+        ("// old\nfn f() {}\n", "// new words\nfn f() {}\n"),
+        ("/// Old.\nfn f() {}\n", "/// New doc\n/// of two lines.\nfn f() {}\n"),
+        ("/* old */\nfn f() {}\n", "/* new\n   prose */\nfn f() {}\n"),
+        ("fn f() {} /* t */\n", "fn f() {}   /* reworded */\n"),
+        ("fn f() {} // t\n", "fn f() {}\n"),
+        ("fn f() {}\n", "/// Added.\nfn f() {}\n"),
+        ("mod m {\n    fn f() {}\n}\n", "mod m {\n    /// Added.\n    fn f() {}\n}\n"),
+        ("/// Dropped.\nfn f() {}\n", "fn f() {}\n"),
+        ("// moved\nfn f() {}\n", "/// moved\nfn f() {}\n"),
+        ("// a\nfn f() {}\n// b\n", "\n// a\n\n\nfn f() {}\n\n// b\n\n"),
+        ("fn f() {}\nfn g() {}\n", "fn f() {}\n\n// between\n\nfn g() {}\n"),
+        ("fn f() {}\r\nfn g() {}\r\n", "fn f() {}\nfn g() {}"),
+        ("fn f() {}   \n", "fn f() {}\n"),
+        ("let x = a + // why\n    b;\n", "let x = a +\n    b;\n"),
+        ("let x = a /* x\n   y */\n    + b;\n", "let x = a\n    + b;\n"),
+        (
+            "#[derive(\n    Debug, // why\n)]\nstruct S;\n",
+            "#[derive(\n    Debug,\n)]\nstruct S;\n",
+        ),
+        (SHEBANG + "fn main() {}\n", SHEBANG + "//! Module doc.\nfn main() {}\n"),
+        ("//! Old.\nfn f() {}\n", "//! New.\n\nfn f() {}\n"),
+    ],
+)
+def test_rust_prose_changes_pass(rust_definition, before, after):
+    was, now = rust_read(before, rust_definition), rust_read(after, rust_definition)
+    for original, changed in ((was, now), (now, was)):
+        result = original.preserved(changed)
+        assert result.unchanged, result.diagnostics
+        assert original.preserved(changed, documented=[(None, None)]).unchanged
+
+
+def test_rust_proof_names_its_comparison(rust_definition):
+    assert rust_read("fn f() {}\n", rust_definition).proof == "rust-lexical"
+
+
+def test_rust_foreign_after_is_unprovable(rust_definition, definition):
+    rust = rust_read("fn f() {}\n", rust_definition)
+    python = acquired("def f():\n    pass\n", definition)
+    result = rust.preserved(python)
+    assert not result.unchanged
+    assert result.unprovable
+    assert [d.code for d in result.diagnostics] == [UNPROVABLE]
+
+
+def page_record(read: ReaderRecord) -> str:
+    return read.proof
+
+
+def test_rust_read_is_a_reader_record(rust_definition):
+    assert page_record(rust_read("fn f() {}\n", rust_definition)) == "rust-lexical"
