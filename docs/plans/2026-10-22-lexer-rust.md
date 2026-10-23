@@ -3,7 +3,7 @@
 ```
 Status:   in-progress
 Progress: 3 of 6 TODO tasks closed
-Plan-tasks: 7 of 13 plan tasks closed
+Plan-tasks: 8 of 13 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-22 (founded by move-t from 2026-10-11-lexical-readers)
@@ -83,7 +83,8 @@ reader.
         > 2026-10-22 Spec: O1 and O2, approved 2026-10-22
         > 2026-10-22 Check: build(text, name="m.rs") gives the expected cues
         > 2026-10-22 Check: the Python page suite passes unchanged
-- [ ] P9 | Prove Rust preservation on both comparison paths
+- [x] P9 | RustRead.proof/preserved compare code with prose comments removed; every listed mutation fixture fails and every prose change passes (test_lexical_preservation -k rust, 43 passed) | 4f7e6d7a | Prove
+      Rust preservation on both comparison paths
         > 2026-10-22 Check: test_lexical_preservation -k rust
         > 2026-10-22 Check: each mutation fixture fails; each prose change passes
 - [ ] P10 | Print detached-documentation warnings from gather
