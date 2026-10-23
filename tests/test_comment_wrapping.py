@@ -458,11 +458,9 @@ def test_wrapping_after_a_blank_keeps_the_line_comment_marker():
         ),
         pytest.param(
             "m.rs",
-            # A Rust section holds one written form, so `//` below `///` is
-            # a paragraph of its own and the removal leaves only `///`'s line.
             "/// Keep. Move.\n// Ending stays.",
             "Move.",
-            "/// Keep.",
+            "/// Keep.\n// Ending stays.",
         ),
         ("m.js", "/*\n*ptr is kept. Move.\n*/", "*ptr is kept.", "/*\nMove.\n*/"),
         (
@@ -625,7 +623,7 @@ def test_trailing_rewrapping_counts_the_carried_code_anchor():
         ),
         pytest.param(
             "m.rs",
-            "// Kept. Move this\n// sentence.\n\n\n// Ending stays.",
+            "// Kept. Move this\n// sentence.\n\n\n/// Ending stays.",
             " Move this\n// sentence.",
             "//",
             "b",

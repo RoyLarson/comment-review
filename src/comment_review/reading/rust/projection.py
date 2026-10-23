@@ -74,6 +74,9 @@ def paragraphs_for(path: Path, read: RustRead) -> list[Paragraph] | ReadFailure:
     A paragraph's raw lines run from the end of the last code or comment
     before it on its first line, or from that line's start, to the end of its
     last line, so `anchor + raw_lines[0]` is the first line.
+
+    A place holds one paragraph: sections that would share one become one
+    paragraph -- see `_one_per_place`.
     """
     source = read.source
     text = source.text
@@ -139,7 +142,55 @@ def paragraphs_for(path: Path, read: RustRead) -> list[Paragraph] | ReadFailure:
                 raw_lines=raw,
             )
         )
-    return paragraphs
+    shebang = {source.position(span.start).line for span in read.protected}
+    return _one_per_place(paragraphs, set(code_for(read)), shebang, text)
+
+
+def _one_per_place(
+    paragraphs: list[Paragraph], code: set[int], shebang: set[int], text: str
+) -> list[Paragraph]:
+    """Make the paragraphs that would share a place one paragraph.
+
+    Two COMMENT paragraphs with no code line between them sit in one gap, so
+    in one `b` place: they are sections of different written forms, and the
+    place holds them as one COMMENT paragraph. The opening matter on the line
+    directly below the shebang becomes one MATTER paragraph with the shebang,
+    at `f0`. The combined paragraph's raw lines are the physical lines from
+    its first line to its last, blank lines included; its text is the parts'
+    text in source order, and its annotations are theirs together.
+    """
+    lines = constants.text_lines(text)
+    out: list[Paragraph] = []
+    for paragraph in sorted(paragraphs, key=lambda p: p.start):
+        previous = out[-1] if out else None
+        same_place = previous is not None and (
+            (
+                previous.kind == paragraph.kind == Kind.COMMENT
+                and not any(n in code for n in range(previous.end + 1, paragraph.start))
+            )
+            or (
+                previous.kind == paragraph.kind == Kind.MATTER
+                and previous.start == previous.end
+                and previous.start in shebang
+                and paragraph.start == previous.end + 1
+            )
+        )
+        if previous is None or not same_place:
+            out.append(paragraph)
+            continue
+        raw = [*previous.raw_lines, *lines[previous.end : paragraph.end]]
+        out[-1] = Paragraph(
+            previous.path,
+            previous.start,
+            paragraph.end,
+            previous.kind,
+            len(raw),
+            " ".join(t for t in (previous.text, paragraph.text) if t),
+            address=previous.address,
+            annotations=previous.annotations | paragraph.annotations,
+            raw_lines=raw,
+        )
+    return out
 
 
 def code_for(read: RustRead) -> dict[int, str]:

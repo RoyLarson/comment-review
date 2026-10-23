@@ -745,18 +745,112 @@ def test_rust_page_opening_comment_below_a_blank_line_one_is_a_comment():
     assert set_page(page) == text
 
 
-def test_rust_page_comment_below_a_shebang_is_b0_until_ruled_otherwise():
-    """PROVISIONAL PIN: the Copyright run opens on line 2, so it is a COMMENT
-    at `b0` and the shebang alone is `f0`. A ruling that the run joins the
-    shebang at `f0` changes this test."""
+def test_rust_page_comment_directly_below_a_shebang_joins_it_at_f0():
     from comment_review.results.compositor import set_page
 
     text = "#!/usr/bin/env rust-script\n// Copyright\nfn main() {}\n"
     page = build(text, "m.rs")
-    run = next(b for b in page.paragraphs if "Copyright" in b.text)
-    assert (run.kind, cue(run)) == ("comment", "b0")
-    assert by_cue(page)["f0"].raw_lines == ["#!/usr/bin/env rust-script"]
+    matter = [b for b in page.paragraphs if b.raw_lines and "//" in b.raw_text]
+    assert [(b.kind, cue(b)) for b in matter] == [("matter", "f0")]
+    assert matter[0].raw_lines == ["#!/usr/bin/env rust-script", "// Copyright"]
+    assert [text[s.start : s.end] for s in page.read.protected] == [
+        "#!/usr/bin/env rust-script"
+    ]
     assert set_page(page) == text
+
+
+def test_rust_page_shebang_matter_stops_where_the_opening_run_does():
+    from comment_review.results.compositor import set_page
+    from comment_review.results.galley import reset
+
+    text = "#!/usr/bin/env rust-script\n// Copyright\n/// d\n// e\nfn f() {}\n"
+    page = build(text, "m.rs")
+    places = by_cue(page)
+    assert places["f0"].raw_lines == ["#!/usr/bin/env rust-script", "// Copyright"]
+    assert places["b0"].raw_lines == ["/// d", "// e"]
+    assert [(w.cue, w.owner) for w in page.warnings] == [("b0", "a1")]
+    assert set_page(page) == text
+    reset(page, {"a0": "//! Added."})
+    assert set_page(page).startswith(
+        "#!/usr/bin/env rust-script\n// Copyright\n//! Added.\n"
+    )
+
+
+#: Comment sections of different written forms in one place, as
+#: `(text, cue, raw_lines, warning cues)`.
+RUST_JOINED = {
+    "detached behind ordinary": (
+        "fn g() {}\n\n/// Detached.\n// ordinary\nfn f() {}\n",
+        "b1",
+        ["/// Detached.", "// ordinary"],
+        ["b1"],
+    ),
+    "doc block behind ordinary": (
+        "/** Doc. */\n// c\nfn f() {}",
+        "b0",
+        ["/** Doc. */", "// c"],
+        ["b0"],
+    ),
+    "doc split by a FIXME": (
+        "/// a\n///\n// FIXME x\n/// b\nfn f() {}",
+        "b0",
+        ["/// a", "///", "// FIXME x"],
+        ["b0"],
+    ),
+}
+
+
+@pytest.mark.parametrize("case", sorted(RUST_JOINED))
+def test_rust_page_sections_in_one_place_are_one_paragraph(case):
+    from comment_review.results.compositor import set_page
+
+    text, place, raw, warned = RUST_JOINED[case]
+    page = build(text, "m.rs")
+    joined = by_cue(page)[place]
+    assert joined.kind == "comment"
+    assert joined.raw_lines == raw
+    assert "detached-documentation" in joined.annotations
+    assert [w.cue for w in page.warnings] == warned
+    addresses = [b.address for b in page.paragraphs if b.address]
+    assert len(addresses) == len(set(addresses))
+    assert set_page(page) == text
+
+
+def test_rust_page_doc_split_by_a_fixme_keeps_the_last_run_as_the_item_doc():
+    page = build(RUST_JOINED["doc split by a FIXME"][0], "m.rs")
+    places = _places(page)
+    assert places["a1"] == ("docstring", "fn f() {}")
+    assert by_cue(page)["a1"].raw_lines == ["/// b"]
+    assert [(w.cue, w.owner) for w in page.warnings] == [("b0", "a1")]
+
+
+def test_rust_page_reworded_joined_paragraph_sets_in_place():
+    from comment_review.results.compositor import set_page
+    from comment_review.results.galley import reset
+
+    text = RUST_JOINED["detached behind ordinary"][0]
+    page = build(text, "m.rs")
+    reset(page, {"b1": "/// Reworded.\n// still ordinary"})
+    assert set_page(page) == (
+        "fn g() {}\n\n/// Reworded.\n// still ordinary\nfn f() {}\n"
+    )
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        RUST_ITEMS,
+        *(t for t, _, _, _ in RUST_JOINED.values()),
+        "#!/usr/bin/env rust-script\n// Copyright\n/// d\n// e\nfn f() {}\n",
+        "// c\n/// d\n// e\nfn f() {}\n",
+        "fn f() {} // t\n// a\n/* b */\n//! c\n/// d\n",
+        "fn f() {\n    // a\n    /// b\n    let x = 1; // c\n    /* d */\n}\n",
+    ],
+)
+def test_rust_page_no_two_paragraphs_share_a_place(text):
+    page = build(text, "m.rs")
+    addresses = [b.address for b in page.paragraphs if b.address]
+    assert len(addresses) == len(set(addresses))
 
 
 RUST_SHEBANG = "#!/usr/bin/env rust-script\nfn main() {}\n"

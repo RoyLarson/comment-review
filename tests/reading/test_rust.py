@@ -1656,12 +1656,18 @@ def test_matter_opening_ordinary_run_is_not_the_item_doc(rust_definition):
     assert result.placement.insertions == (3, 3)
 
 
-def test_comment_below_a_shebang_is_not_matter(rust_definition):
-    """Opening matter starts on line 1; a run below the shebang starts on 2."""
+def test_matter_follows_a_shebang(rust_definition):
+    """The run directly below the shebang opens the file, so it is matter."""
     text = "#!/usr/bin/env run-cargo-script\n// Copyright.\n\nfn main() {}\n"
     result = documentation_of(text, rust_definition)
+    assert sections_of(text, result) == [("matter", "// Copyright.")]
+    assert result.placement.insertions == (3, 4)
+
+
+def test_comment_below_a_shebang_and_a_blank_line_is_not_matter(rust_definition):
+    text = "#!/usr/bin/env run-cargo-script\n\n// Copyright.\nfn main() {}\n"
+    result = documentation_of(text, rust_definition)
     assert sections_of(text, result) == [("comment", "// Copyright.")]
-    assert result.placement.insertions == (2, 4)
 
 
 def test_comment_below_a_blank_line_one_is_not_matter(rust_definition):
@@ -2114,9 +2120,16 @@ def test_projection_detached_run_is_an_annotated_comment(rust_definition):
     text = "fn z() {}\n/// a\n// b\nfn f() {}\n"
     result = rust_read(text, rust_definition)
     paragraphs = result.paragraphs(PAGE)
+    # One place holds one paragraph: the detached run joins the comment below.
     assert paragraphs == [
-        paragraph(2, 2, Kind.COMMENT, "a", ["/// a"], notes={"detached-documentation"}),
-        paragraph(3, 3, Kind.COMMENT, "b", ["// b"]),
+        paragraph(
+            2,
+            3,
+            Kind.COMMENT,
+            "a b",
+            ["/// a", "// b"],
+            notes={"detached-documentation"},
+        ),
     ]
     assert len(result.warnings) == 1
     assert result.detached == (records.DetachedRun(result.warnings[0].span, 1),)
