@@ -2,8 +2,8 @@
 
 ```
 Status:   in-progress
-Progress: 3 of 6 TODO tasks closed
-Plan-tasks: 8 of 13 plan tasks closed
+Progress: 6 of 6 TODO tasks closed
+Plan-tasks: 9 of 13 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-22 (founded by move-t from 2026-10-11-lexical-readers)
@@ -28,7 +28,7 @@ reader.
 - [x] T16 | T16 -- Declare Rust's spanning quotes; language.py:117-146 carries
       none. Verify: a Rust multi-line string is neither refused wholesale nor
       read as comments.
-- [ ] T27 | T27 -- Declare Rust's `//!` inner; `///` stays outer. Verify: a
+- [x] T27 | T27 -- Declare Rust's `//!` inner; `///` stays outer. Verify: a
       `.rs` opening `//!` above nothing types `docstring`, and `///` above
       nothing types `comment`.
 - [x] T32 | Recognize raw string delimiters in lexer.py:510; verify a quoted
@@ -37,13 +37,13 @@ reader.
 
 ### B - [matter-misses-two-languages](../../TODO/matter-misses-two-languages.md)
 
-- [ ] T2 | T2 -- Stop a Rust file's opening `//` run being claimed as a
+- [x] T2 | T2 -- Stop a Rust file's opening `//` run being claimed as a
       declaration's doc. Verify: a `.rs` opening `// Copyright` types `f0
       matter` and an empty `a1`.
 
 ### C - [fixtures-do-not-test-the-shape](../../TODO/fixtures-do-not-test-the-shape.md)
 
-- [ ] T2 | T2 -- Make `tests/fixtures/sample.rs` open the way a licence header
+- [x] T2 | T2 -- Make `tests/fixtures/sample.rs` open the way a licence header
       does, or add a `.rs` fixture that does. Verify: it reproduces
       `matter-misses-two-languages`.
 
@@ -79,7 +79,8 @@ reader.
       paragraphs, code and declarations from a Rust read
         > 2026-10-22 Spec: ReaderRecord protocol satisfied by both records
         > 2026-10-22 Check: test_rust.py -k projection; ty check is clean
-- [ ] P8 | Build a page from any ReaderRecord in binder/page.py
+- [x] P8 | page_for builds pages from any ReaderRecord; Rust pages give the expected cues and warnings and every probe shape round-trips; Python and generic pages byte-identical over 1,377 files | b9c5ed1e | Build
+      a page from any ReaderRecord in binder/page.py
         > 2026-10-22 Spec: O1 and O2, approved 2026-10-22
         > 2026-10-22 Check: build(text, name="m.rs") gives the expected cues
         > 2026-10-22 Check: the Python page suite passes unchanged

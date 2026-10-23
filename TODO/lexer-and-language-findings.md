@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 11 of 49 tasks closed
+Progress: 12 of 49 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (/simplify rounds 1 and 2 and /code-review high round 3,
@@ -258,9 +258,10 @@ would.
       -- Give the `Language` row an `inner_doc` field, defaulting empty so every
       existing opener stays outer. Verify: the field exists and no row's typing
       changes.
-- [ ] T27 | T27 -- Declare Rust's `//!` inner; `///` stays outer. Verify: a
-      `.rs` opening `//!` above nothing types `docstring`, and `///` above
-      nothing types `comment`.
+- [x] T27 | Rust //! above nothing is the a0 docstring and /// above nothing is a comment: test_rust_page_inner_doc_above_nothing_is_the_module_docstring, test_rust_page_outer_doc_above_nothing_is_a_comment | b9c5ed1e | T27
+      -- Declare Rust's `//!` inner; `///` stays outer. Verify: a `.rs` opening
+      `//!` above nothing types `docstring`, and `///` above nothing types
+      `comment`.
 - [ ] T28 | T28 -- Add `---` to Lua's `doc_line`, which T20's ruling authorises.
       Verify: `--- x` above `local function f()` types `docstring` anchored to
       it.
