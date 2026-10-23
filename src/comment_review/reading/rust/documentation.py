@@ -70,15 +70,17 @@ def documentation_in(
     An outer doc section that ends on a line above an owner's head, with only
     whitespace between them, documents that owner. An inner doc section
     documents the module when no code but inner attributes precedes it, or
-    the owner whose body it opens. The kinds documentation attaches to are
+    the owner whose body it opens: the first comment in that body, on a line
+    of its own. The kinds documentation attaches to are
     `[rules.documentation].owners`.
 
     Documentation that Rust attaches to an owner but no `a` place can hold is
-    detached: a run behind an ordinary comment, a run between an attribute and
-    the item, a run on the head's own line, a run that trails code on its
-    line, or a second run for one owner, the module included. A detached run
-    is a COMMENT section with a DetachedRun and a warning. Every other doc
-    section that documents nothing is a COMMENT section.
+    detached: a run behind an ordinary comment, outside the owner or in its
+    body, a run between an attribute and the item, a run on the head's own
+    line, a run that trails code on its line, or a second run for one owner,
+    the module included. A detached run is a COMMENT section with a
+    DetachedRun and a warning. Every other doc section that documents nothing
+    is a COMMENT section.
 
     The first section is MATTER when it is ordinary, starts on line 1 -- or on
     the line directly below the shebang -- and no code follows it on its last
@@ -235,6 +237,16 @@ class _Assigner:
         owner = self._opened_by(before)
         if owner is None:
             self.forms[index] = RustSectionForm.COMMENT
+            return
+        # The run documents the owner only when it opens the body: nothing but
+        # whitespace between the body's opening delimiter and the run, and the
+        # run on a line of its own. Behind another comment, or on the head's
+        # line, it is detached.
+        behind = (
+            index > 0 and self.runs[index - 1].span.start > self.code[before].span.start
+        )
+        if run.trailing or behind:
+            self._detach(index, run, owner)
         else:
             self._attach(index, run, owner)
 

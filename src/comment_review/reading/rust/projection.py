@@ -63,20 +63,18 @@ def paragraphs_for(path: Path, read: RustRead) -> list[Paragraph] | ReadFailure:
     """Every section as one paragraph, and the shebang as a MATTER paragraph.
 
     A documentation section is a DOCSTRING at its owner's `a` place. Any
-    other section is MATTER when its form is `matter`, or when it is not
-    trailing, ends on the last line and nothing but whitespace follows it.
-    The form is not tested there, so an unowned doc that the documentation
-    stage made a COMMENT section counts. Otherwise it is TRAILING when code
-    precedes it on its first line, with that code as its
-    anchor, and COMMENT when none does. A detached run carries the
-    `detached-documentation` annotation.
+    other section is MATTER when its form is `matter`, TRAILING when code
+    precedes it on its first line, with that code as its anchor, and COMMENT
+    when none does. A detached run carries the `detached-documentation`
+    annotation.
 
     A paragraph's raw lines run from the end of the last code or comment
     before it on its first line, or from that line's start, to the end of its
     last line, so `anchor + raw_lines[0]` is the first line.
 
-    A place holds one paragraph: sections that would share one become one
-    paragraph -- see `_one_per_place`.
+    The comments after the last code line then follow the end-of-file rule,
+    and a place holds one paragraph: sections that would share one become
+    one paragraph -- see `_one_per_place`.
     """
     source = read.source
     text = source.text
@@ -114,20 +112,12 @@ def paragraphs_for(path: Path, read: RustRead) -> list[Paragraph] | ReadFailure:
         if index in owners:
             kind = Kind.DOCSTRING
             address = documented_address(owners[index])
-        elif section.form == RustSectionForm.MATTER or (
-            not code_before
-            and last.line == len(layout.lines.spans)
-            and all(
-                region.kind is RegionKind.WHITESPACE
-                for region in _overlapping(source.regions, span.end, len(text))
-            )
-        ):
+        elif section.form == RustSectionForm.MATTER:
             kind, address = Kind.MATTER, ""
         else:
             kind = Kind.TRAILING if code_before else Kind.COMMENT
             address = ""
         raw = constants.text_lines(text[raw_start:line_end])
-        prose = layout.prose_in(span)
         paragraphs.append(
             Paragraph(
                 path.as_posix(),
@@ -135,7 +125,7 @@ def paragraphs_for(path: Path, read: RustRead) -> list[Paragraph] | ReadFailure:
                 last.line,
                 kind,
                 len(raw),
-                re.sub(r"\s+", " ", " ".join(prose)).strip(),
+                _text(layout.prose_in(span)),
                 anchor=text[line_start:anchor_end] if kind == Kind.TRAILING else "",
                 address=address,
                 annotations={DETACHED_DOCUMENTATION} if span in detached else set(),
@@ -143,54 +133,156 @@ def paragraphs_for(path: Path, read: RustRead) -> list[Paragraph] | ReadFailure:
             )
         )
     shebang = {source.position(span.start).line for span in read.protected}
-    return _one_per_place(paragraphs, set(code_for(read)), shebang, text)
+    return _one_per_place(paragraphs, set(code_for(read)), shebang, layout)
 
 
 def _one_per_place(
-    paragraphs: list[Paragraph], code: set[int], shebang: set[int], text: str
+    paragraphs: list[Paragraph], code: set[int], shebang: set[int], layout: "_Layout"
 ) -> list[Paragraph]:
     """Make the paragraphs that would share a place one paragraph.
 
-    Two COMMENT paragraphs with no code line between them sit in one gap, so
-    in one `b` place: they are sections of different written forms, and the
-    place holds them as one COMMENT paragraph. The opening matter on the line
-    directly below the shebang becomes one MATTER paragraph with the shebang,
-    at `f0`. The combined paragraph's raw lines are the physical lines from
-    its first line to its last, blank lines included; its text is the parts'
-    text in source order, and its annotations are theirs together.
+    The comments after the last code line follow the end-of-file rule first,
+    see `_closing_matter`. Then the COMMENT paragraphs in one gap -- the lines
+    between the same two code lines -- are one COMMENT paragraph there,
+    whatever sits between them: blank lines, or the module's inner doc, whose
+    lines stay its own. The opening matter on the line directly below the
+    shebang becomes one MATTER paragraph with the shebang, at `f0`.
     """
-    lines = constants.text_lines(text)
+    paragraphs = _closing_matter(
+        sorted(paragraphs, key=lambda p: p.start), code, layout
+    )
+    held = {
+        n
+        for p in paragraphs
+        if p.kind == Kind.DOCSTRING
+        for n in range(p.start, p.end + 1)
+    }
+    boundaries = sorted(code)
     out: list[Paragraph] = []
-    for paragraph in sorted(paragraphs, key=lambda p: p.start):
+    gaps: dict[int, int] = {}
+    for paragraph in paragraphs:
         previous = out[-1] if out else None
-        same_place = previous is not None and (
-            (
-                previous.kind == paragraph.kind == Kind.COMMENT
-                and not any(n in code for n in range(previous.end + 1, paragraph.start))
-            )
-            or (
-                previous.kind == paragraph.kind == Kind.MATTER
-                and previous.start == previous.end
-                and previous.start in shebang
-                and paragraph.start == previous.end + 1
-            )
-        )
-        if previous is None or not same_place:
+        if paragraph.kind == Kind.COMMENT:
+            # A COMMENT holds no code line, so the count of code lines above
+            # it names its gap.
+            gap = bisect_right(boundaries, paragraph.end)
+            at = gaps.get(gap)
+            if at is None:
+                gaps[gap] = len(out)
+                out.append(paragraph)
+            else:
+                out[at] = _combined([out[at], paragraph], Kind.COMMENT, layout, held)
+        elif (
+            paragraph.kind == Kind.MATTER
+            and previous is not None
+            and previous.kind == Kind.MATTER
+            and previous.start == previous.end
+            and previous.start in shebang
+            and paragraph.start == previous.end + 1
+        ):
+            out[-1] = _combined([previous, paragraph], Kind.MATTER, layout, held)
+        else:
             out.append(paragraph)
-            continue
-        raw = [*previous.raw_lines, *lines[previous.end : paragraph.end]]
-        out[-1] = Paragraph(
-            previous.path,
-            previous.start,
-            paragraph.end,
-            previous.kind,
-            len(raw),
-            " ".join(t for t in (previous.text, paragraph.text) if t),
-            address=previous.address,
-            annotations=previous.annotations | paragraph.annotations,
-            raw_lines=raw,
+    return sorted(out, key=lambda p: p.start)
+
+
+def _closing_matter(
+    paragraphs: list[Paragraph], code: set[int], layout: "_Layout"
+) -> list[Paragraph]:
+    """Apply the end-of-file rule to the comments after the last code line.
+
+    The closing run is the whole-line COMMENT paragraphs after the last code
+    line, when the last of them ends on the file's last line. The comments
+    after the run's last blank line are one MATTER paragraph, whatever their
+    forms; the comments before that blank line stay COMMENT paragraphs, and a
+    paragraph that spans the blank line is divided at it. This is the rule
+    the Python projection applies to its closing run.
+    """
+    last_code = max(code, default=0)
+    total = len(layout.lines.spans)
+    closing = [p for p in paragraphs if p.kind == Kind.COMMENT and p.start > last_code]
+    if not closing or closing[-1].end != total:
+        return paragraphs
+    covered = layout.comment_lines()
+    blanks = [n for n in range(closing[0].start, total + 1) if n not in covered]
+    matter_from = blanks[-1] + 1 if blanks else closing[0].start
+    in_run = {id(p) for p in closing}
+    kept = [p for p in paragraphs if id(p) not in in_run]
+    parts: list[Paragraph] = []
+    for paragraph in closing:
+        if paragraph.end < matter_from:
+            kept.append(paragraph)
+        elif paragraph.start >= matter_from:
+            parts.append(paragraph)
+        else:
+            before, after = _divided(paragraph, matter_from, covered, layout)
+            kept.append(before)
+            parts.append(after)
+    kept.append(_combined(parts, Kind.MATTER, layout, set()))
+    return sorted(kept, key=lambda p: p.start)
+
+
+def _divided(
+    paragraph: Paragraph, at: int, covered: set[int], layout: "_Layout"
+) -> tuple[Paragraph, Paragraph]:
+    """The whole-line paragraph as two, the second starting on line `at`.
+
+    The line above `at` is blank, and the first part ends on the last comment
+    line above it.
+    """
+    end = at - 1
+    while end not in covered:
+        end -= 1
+    halves = []
+    for start, stop in ((paragraph.start, end), (at, paragraph.end)):
+        raw = paragraph.raw_lines[start - paragraph.start : stop - paragraph.start + 1]
+        halves.append(
+            Paragraph(
+                paragraph.path,
+                start,
+                stop,
+                Kind.COMMENT,
+                len(raw),
+                layout.text_in(start, stop),
+                annotations=set(paragraph.annotations),
+                raw_lines=raw,
+            )
         )
-    return out
+    return halves[0], halves[1]
+
+
+def _combined(
+    parts: list[Paragraph], kind: str, layout: "_Layout", held: set[int]
+) -> Paragraph:
+    """One paragraph from whole-line parts in source order.
+
+    Its raw lines are the physical lines from the first part's first line to
+    the last part's last line, blank lines included and the lines in `held`
+    left out; its text is the parts' text in order, and its annotations are
+    theirs together.
+    """
+    first, last = parts[0], parts[-1]
+    raw = [
+        layout.physical[n - 1]
+        for n in range(first.start, last.end + 1)
+        if n not in held
+    ]
+    return Paragraph(
+        first.path,
+        first.start,
+        last.end,
+        kind,
+        len(raw),
+        " ".join(t for t in (p.text for p in parts) if t),
+        address=first.address,
+        annotations=set().union(*(p.annotations for p in parts)),
+        raw_lines=raw,
+    )
+
+
+def _text(prose: list[str]) -> str:
+    """The prose pieces as one paragraph's text, whitespace run together."""
+    return re.sub(r"\s+", " ", " ".join(prose)).strip()
 
 
 def code_for(read: RustRead) -> dict[int, str]:
@@ -266,13 +358,15 @@ class _Layout:
     def __init__(self, read: RustRead) -> None:
         self.text = read.source.text
         self.lines = _Lines(self.text)
+        # Each physical line's text, as `constants.text_lines` cuts it.
+        self.physical = constants.text_lines(self.text)
         self.read = read
-        comments = [
+        self.comments = [
             region.span
             for region in read.source.regions
             if region.kind is RegionKind.COMMENT
         ]
-        self.comment_starts = [span.start for span in comments]
+        self.comment_starts = [span.start for span in self.comments]
         self.prose = read.prose
 
     def is_code(self, region: SourceRegion) -> bool:
@@ -290,6 +384,23 @@ class _Layout:
             for pieces in self.prose[first:last]
             for piece in pieces
         ]
+
+    def text_in(self, first: int, last: int) -> str:
+        """The text of the comments on lines `first` through `last`."""
+        start = self.lines.spans[first - 1][0]
+        end = self.lines.spans[last - 1][1]
+        return _text(self.prose_in(SourceSpan(start, end)))
+
+    def comment_lines(self) -> set[int]:
+        """Every line a comment stands on, in whole or in part."""
+        return {
+            line
+            for span in self.comments
+            for line in range(
+                self.read.source.position(span.start).line,
+                self.read.source.position(span.end - 1).line + 1,
+            )
+        }
 
 
 def _overlapping(

@@ -845,6 +845,15 @@ def test_rust_page_reworded_joined_paragraph_sets_in_place():
         "// c\n/// d\n// e\nfn f() {}\n",
         "fn f() {} // t\n// a\n/* b */\n//! c\n/// d\n",
         "fn f() {\n    // a\n    /// b\n    let x = 1; // c\n    /* d */\n}\n",
+        "fn f() {\n    // a\n    //! inner\n}\n",
+        "fn f() {\n    // a\n    //! inner\n    // b\n    let x = 1;\n}\n",
+        "fn f() {\n    /* a */\n    //! inner\n    /* b */\n    let x = 1;\n}\n",
+        "fn f() { //! same line\n}\n",
+        "fn f() {\n    //! first\n    // after\n    let x = 1;\n}\n",
+        "fn f() {}\n/// a\n// b\n",
+        "fn f() {}\n// a\n\n// b\n/// c\n",
+        "\n// a\n//! m\n// c\nfn f() {}\n",
+        "#![allow(x)]\n// a\n//! m\n/* c */\nfn f() {}\n",
     ],
 )
 def test_rust_page_no_two_paragraphs_share_a_place(text):
@@ -915,6 +924,121 @@ def test_rust_page_reworded_inner_doc_is_set_in_place(kind):
     reworded = original.replace(original.split("//! ")[1], "Reworded.")
     reset(page, {"a1": reworded})
     assert set_page(page) == text.replace(original, reworded)
+
+
+#: An inner doc that is not first in its body, or shares its head's line, is
+#: detached: `(text, the detached paragraph's cue and kind, its raw lines)`.
+RUST_INNER_DETACHED = {
+    "behind a comment": (
+        "fn f() {\n    // a\n    //! inner\n}\n",
+        ("b1", "comment"),
+        ["    // a", "    //! inner"],
+    ),
+    "between comments": (
+        "fn f() {\n    // a\n    //! inner\n    // b\n    let x = 1;\n}\n",
+        ("b1", "comment"),
+        ["    // a", "    //! inner", "    // b"],
+    ),
+    "between delimited comments": (
+        "fn f() {\n    /* a */\n    //! inner\n    /* b */\n    let x = 1;\n}\n",
+        ("b1", "comment"),
+        ["    /* a */", "    //! inner", "    /* b */"],
+    ),
+    "on the head's line": (
+        "fn f() { //! same line\n}\n",
+        ("c0", "trailing-comment"),
+        [" //! same line"],
+    ),
+}
+
+
+@pytest.mark.parametrize("case", sorted(RUST_INNER_DETACHED))
+def test_rust_page_inner_doc_not_first_in_its_body_is_detached(case):
+    from comment_review.results.compositor import set_page
+
+    text, (place, kind), raw = RUST_INNER_DETACHED[case]
+    page = build(text, "m.rs")
+    detached = by_cue(page)[place]
+    assert (detached.kind, detached.raw_lines) == (kind, raw)
+    assert "detached-documentation" in detached.annotations
+    assert [(w.cue, w.owner) for w in page.warnings] == [(place, "a1")]
+    assert _places(page)["a1"][0] == "undocumented"
+    addresses = [b.address for b in page.paragraphs if b.address]
+    assert len(addresses) == len(set(addresses))
+    assert set_page(page) == text
+
+
+def test_rust_page_inner_doc_first_in_its_body_keeps_its_a():
+    from comment_review.results.compositor import set_page
+
+    text = "fn f() {\n    //! first\n    // after\n    let x = 1;\n}\n"
+    page = build(text, "m.rs")
+    places = by_cue(page)
+    assert (places["a1"].kind, places["a1"].raw_lines) == (
+        "docstring",
+        ["    //! first"],
+    )
+    assert (places["b1"].kind, places["b1"].raw_lines) == ("comment", ["    // after"])
+    assert page.warnings == ()
+    assert set_page(page) == text
+
+
+#: The comments after the last code line, as `(text, cue -> raw lines)`: the
+#: run after the last blank line is back matter, whatever its forms, and the
+#: comments before that blank are the closing gap's one paragraph.
+RUST_CLOSING = {
+    "two ordinary forms": (
+        "fn f() {}\n/* a */\n// b\n",
+        {"f1": ["/* a */", "// b"]},
+    ),
+    "doc then ordinary": (
+        "fn f() {}\n/// a\n// b\n",
+        {"f1": ["/// a", "// b"]},
+    ),
+    "ordinary, blank, doc": (
+        "fn f() {}\n// a\n\n/// b\n",
+        {"b1": ["// a"], "f1": ["/// b"]},
+    ),
+    "doc, blank, ordinary": (
+        "fn f() {}\n/// a\n\n// b\n",
+        {"b1": ["/// a"], "f1": ["// b"]},
+    ),
+    "one form across the last blank": (
+        "fn f() {}\n// a\n\n// b\n/// c\n",
+        {"b1": ["// a"], "f1": ["// b", "/// c"]},
+    ),
+    "two forms before the last blank": (
+        "fn f() {}\n/// a\n// b\n\n// c\n",
+        {"b1": ["/// a", "// b"], "f1": ["// c"]},
+    ),
+}
+
+
+@pytest.mark.parametrize("case", sorted(RUST_CLOSING))
+def test_rust_page_closing_comments_follow_one_rule_whatever_their_forms(case):
+    from comment_review.results.compositor import set_page
+
+    text, expected = RUST_CLOSING[case]
+    page = build(text, "m.rs")
+    held = {cue(b): b.raw_lines for b in page.paragraphs if b.address and b.raw_text}
+    assert held == expected
+    assert page.warnings == ()
+    assert set_page(page) == text
+
+
+def test_rust_page_comments_around_the_module_doc_are_one_place():
+    """A `//!` behind a comment at the file head keeps the module's `a0`, so
+    the comments on each side of it share one gap and are one paragraph."""
+    from comment_review.results.compositor import lossless, set_page
+
+    text = "\n// a\n//! m\n// c\nfn f() {}\n"
+    page = build(text, "m.rs")
+    places = by_cue(page)
+    assert (places["a0"].kind, places["a0"].raw_lines) == ("docstring", ["//! m"])
+    assert (places["b0"].kind, places["b0"].raw_lines) == ("comment", ["// a", "// c"])
+    addresses = [b.address for b in page.paragraphs if b.address]
+    assert len(addresses) == len(set(addresses))
+    assert lossless(text, set_page(page)) is None
 
 
 RUST_DETACHED = "fn g() {}\n\n/// Detached.\n// ordinary\nfn f() {}\n"

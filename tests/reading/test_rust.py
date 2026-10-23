@@ -1563,6 +1563,41 @@ def test_detached_documentation_is_ordinary_with_a_warning(
     )
 
 
+def test_detached_inner_doc_behind_a_comment_in_its_body(rust_definition):
+    text = "fn f() {\n    // a\n    //! inner\n}\n"
+    result = documentation_of(text, rust_definition)
+    assert sections_of(text, result) == [
+        ("comment", "// a"),
+        ("comment", "//! inner"),
+    ]
+    assert result.owners == ()
+    assert detached_of(text, result) == (
+        [("//! inner", 1)],
+        [("//! inner", [3, 1])],
+    )
+    assert result.placement.insertions == (1, 1)
+
+
+def test_detached_inner_doc_on_its_owner_head_line(rust_definition):
+    text = "fn f() { //! same line\n}\n"
+    result = documentation_of(text, rust_definition)
+    assert sections_of(text, result) == [("comment", "//! same line")]
+    assert result.owners == ()
+    assert detached_of(text, result) == (
+        [("//! same line", 1)],
+        [("//! same line", [1, 1])],
+    )
+
+
+def test_attachment_inner_doc_first_in_its_body_after_a_blank_line(
+    rust_definition,
+):
+    text = "fn f() {\n\n    //! inner\n    // after\n}\n"
+    result = documentation_of(text, rust_definition)
+    assert owners_of(text, result) == [("//! inner", ("item", 1))]
+    assert result.placement.detached == ()
+
+
 def test_detached_second_inner_doc_in_an_inline_module(rust_definition):
     text = "/// Outer.\nmod x {\n    //! Inner.\n}\n"
     result = documentation_of(text, rust_definition)
@@ -2098,6 +2133,32 @@ def test_projection_closing_run_at_end_of_file_is_matter(rust_definition):
     paragraphs, _, _ = projection_of(text, rust_definition)
     assert paragraphs == [
         paragraph(2, 3, Kind.MATTER, "end one end two", ["// end one", "// end two"])
+    ]
+
+
+def test_projection_closing_run_of_two_forms_is_one_matter(rust_definition):
+    text = "fn f() {}\n/// a\n// b\n"
+    paragraphs, _, _ = projection_of(text, rust_definition)
+    assert paragraphs == [paragraph(2, 3, Kind.MATTER, "a b", ["/// a", "// b"])]
+
+
+def test_projection_closing_run_splits_at_its_last_blank_line(rust_definition):
+    text = "fn f() {}\n// a\n\n// b\n/// c\n"
+    paragraphs, _, _ = projection_of(text, rust_definition)
+    assert paragraphs == [
+        paragraph(2, 2, Kind.COMMENT, "a", ["// a"]),
+        paragraph(4, 5, Kind.MATTER, "b c", ["// b", "/// c"]),
+    ]
+
+
+def test_projection_comments_in_one_gap_are_one_paragraph_across_a_module_doc(
+    rust_definition,
+):
+    text = "\n// a\n//! m\n// c\nfn f() {}\n"
+    paragraphs, _, _ = projection_of(text, rust_definition)
+    assert paragraphs == [
+        paragraph(2, 4, Kind.COMMENT, "a c", ["// a", "// c"]),
+        paragraph(3, 3, Kind.DOCSTRING, "m", ["//! m"], address="a0"),
     ]
 
 
