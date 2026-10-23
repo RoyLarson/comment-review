@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 1 tasks closed
+Progress: 0 of 2 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-10-23 (decision-log.md Addressing #29; Rust reader spec O4)
@@ -30,3 +30,5 @@ can carry two warnings.
 - [ ] T1 | Update SKILL.md stage 2 to ask about each gather warning line, then
       proceed. Verify: one ask per warning
         > 2026-10-23 Record each answer; the run continues whatever the answer is
+- [ ] T2 | Move detached documentation into vocabulary.toml for task-agent
+        > 2026-10-23 Do it when SKILL.md first uses it; docs/vocabulary.md holds it
