@@ -8,7 +8,9 @@ from typing import cast
 from comment_review.reading.coordinates import SourceCoordinates
 from comment_review.reading.definitions import LanguageDefinition
 from comment_review.reading.diagnostics import ReadFailure
-from comment_review.reading.rust.definition import validate_rust
+
+# Module imports on both sides, because definition.py reads OWNER_KINDS here.
+from comment_review.reading.rust import definition as rust_definition
 from comment_review.reading.rust.records import (
     COMMENT_KINDS,
     RustPlacement,
@@ -22,12 +24,16 @@ from comment_review.reading.source import SourceDeclaration, SourceSpan
 UNREAD = COMMENT_KINDS | {RustTokenKind.WHITESPACE, RustTokenKind.SHEBANG}
 ABI_KINDS = frozenset({RustTokenKind.STRING, RustTokenKind.RAW_STRING})
 
-# The owner kinds, from `[rules.documentation].owners`.
+# The owner kinds the Rust grammar defines. `[rules.documentation].owners`
+# lists those that take documentation. The module is the file's own frame,
+# whose documentation place is `a0`.
+MODULE = "module"
 ITEM = "item"
 ASSOCIATED_ITEM = "associated-item"
 NESTED_ITEM = "nested-item"
 FIELD = "field"
 VARIANT = "variant"
+OWNER_KINDS = frozenset({MODULE, ITEM, ASSOCIATED_ITEM, NESTED_ITEM, FIELD, VARIANT})
 
 
 class _Body(Enum):
@@ -154,7 +160,7 @@ def place_declarations(
 
     `insertions[0]` is 1 and `detached` is empty: documentation fills both.
     """
-    failure = validate_rust(definition)
+    failure = rust_definition.validate_rust(definition)
     if failure is not None:
         return failure
     placer = _Placer(scan, _Grammar.from_definition(definition))

@@ -1114,24 +1114,46 @@ def test_owners_body_opens_after_generic_arguments_close(rust_definition, text, 
     assert placed(text, rust_definition) == [("item", 1), member]
 
 
-def test_owners_kind_not_in_the_definition_owners_gets_no_place(
-    rust_definition, monkeypatch
-):
+def with_owners(definition, owners):
+    """The definition with `[rules.documentation].owners` replaced."""
     from dataclasses import replace
 
-    structure = import_module("comment_review.reading.rust.structure")
-    documentation = dict(rust_definition.rules["documentation"])
-    documentation["owners"] = tuple(
-        owner for owner in documentation["owners"] if owner != "variant"
-    )
-    rules = dict(rust_definition.rules)
+    documentation = dict(definition.rules["documentation"])
+    documentation["owners"] = owners
+    rules = dict(definition.rules)
     rules["documentation"] = documentation
-    narrowed = replace(rust_definition, rules=rules)
-    # The shipped validator accepts only the shipped owners; the filter is
-    # what is under test.
-    monkeypatch.setattr(structure, "validate_rust", lambda definition: None)
+    return replace(definition, rules=rules)
+
+
+def owners_refusal(definition, owners):
+    from comment_review.reading.rust.definition import validate_rust
+
+    return validate_rust(with_owners(definition, owners))
+
+
+@pytest.mark.parametrize(
+    "owners",
+    [("item", "statement"), ("item", "field", "item"), ()],
+    ids=["unknown", "duplicate", "empty"],
+)
+def test_owners_validator_refuses_an_unsupported_list(rust_definition, owners):
+    failure = owners_refusal(rust_definition, owners)
+    assert isinstance(failure, ReadFailure)
+    assert failure.diagnostics[0].code == "invalid-language-definition"
+
+
+def test_owners_validator_accepts_a_subset(rust_definition):
+    assert owners_refusal(rust_definition, ("module", "item")) is None
+
+
+def test_owners_kind_not_in_the_definition_owners_gets_no_place(rust_definition):
+    shipped = rust_definition.rules["documentation"]["owners"]
+    narrowed = with_owners(
+        rust_definition, tuple(owner for owner in shipped if owner != "variant")
+    )
+    structure = import_module("comment_review.reading.rust.structure")
     text = "enum E {\n    A,\n    B {\n        c: u8,\n    },\n}\n"
-    result = structure.place_declarations(scanned(text, rust_definition), narrowed)
+    result = structure.place_declarations(scanned(text, narrowed), narrowed)
     assert not isinstance(result, ReadFailure)
     assert [
         (d.kind, text.count("\n", 0, d.anchor) + 1) for d in result.declarations

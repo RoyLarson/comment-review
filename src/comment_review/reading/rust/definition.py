@@ -1,6 +1,6 @@
 """Validate the explicit Rust grammar without acquiring definition files."""
 
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from typing import cast
 
 from comment_review.reading.definition_checks import (
@@ -10,6 +10,9 @@ from comment_review.reading.definition_checks import (
 )
 from comment_review.reading.definitions import LanguageDefinition
 from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, ReadStage
+
+# Module imports on both sides, because structure.py calls validate_rust.
+from comment_review.reading.rust import structure
 
 
 def validate_rust(definition: LanguageDefinition) -> ReadFailure | None:
@@ -53,11 +56,21 @@ def _identity(value: LanguageDefinition) -> None:
 
 
 def _section(
-    rules: Mapping[str, object], name: str, supported: Mapping[str, object]
+    rules: Mapping[str, object],
+    name: str,
+    supported: Mapping[str, object],
+    chosen: Mapping[str, Callable[[object, str], None]] | None = None,
 ) -> None:
-    """Require exactly `supported`'s keys under `rules[name]`, each with its value."""
+    """Require exactly the keys of `supported` and `chosen` under `rules[name]`.
+
+    Each key in `supported` must hold its value; each key in `chosen` is
+    passed, with its path, to its own check.
+    """
     path = f"rules.{name}"
-    table = require_table(rules[name], path, " ".join(supported))
+    chosen = chosen or {}
+    table = require_table(rules[name], path, " ".join([*supported, *chosen]))
+    for key, check in chosen.items():
+        check(table[key], f"{path}.{key}")
     for key, expected in supported.items():
         if isinstance(expected, tuple):
             require_array(table[key], f"{path}.{key}", expected)
@@ -65,6 +78,19 @@ def _section(
             require_scalar(
                 table[key], f"{path}.{key}", cast(str | bool | int, expected)
             )
+
+
+def _owners(value: object, path: str) -> None:
+    """Require a nonempty array of distinct owner kinds the structure defines."""
+    if not isinstance(value, tuple) or not value:
+        raise ValueError(f"{path} must be a nonempty array")
+    for item in value:
+        if not isinstance(item, str):
+            raise ValueError(f"{path} contains an ill-typed item")
+        if item not in structure.OWNER_KINDS:
+            raise ValueError(f"{path} has unsupported item {item!r}")
+    if len(set(value)) != len(value):
+        raise ValueError(f"{path} repeats an item")
 
 
 def _grammar(rules: Mapping[str, object]) -> None:
@@ -159,19 +185,12 @@ def _grammar(rules: Mapping[str, object]) -> None:
         rules,
         "documentation",
         {
-            "owners": (
-                "module",
-                "item",
-                "associated-item",
-                "field",
-                "variant",
-                "nested-item",
-            ),
             "position": "above-head",
             "added_outer": "///",
             "added_inner": "//!",
             "detached": "ordinary-comment-with-warning",
         },
+        {"owners": _owners},
     )
     _section(
         rules,
