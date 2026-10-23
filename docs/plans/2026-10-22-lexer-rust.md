@@ -3,7 +3,7 @@
 ```
 Status:   in-progress
 Progress: 3 of 6 TODO tasks closed
-Plan-tasks: 4 of 13 plan tasks closed
+Plan-tasks: 5 of 13 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-22 (founded by move-t from 2026-10-11-lexical-readers)
@@ -66,7 +66,8 @@ reader.
         > 2026-10-22 Spec: strings, raw, byte and C strings; char against lifetime
         > 2026-10-22 Check: test_rust.py -k literals and -k quotes
         > 2026-10-22 Check: a marker inside a raw string stays literal data
-- [ ] P5 | Find Rust owners from the body-kind stack
+- [x] P5 | FINISHED: Rust owners are placed from a body-kind stack where the head leads its line, filtered by rust.toml owners; task review and re-reviews clean | e2027267 | Find
+      Rust owners from the body-kind stack
         > 2026-10-22 Spec: heads start at the first attribute (Addressing #30)
         > 2026-10-22 Check: test_rust.py -k owners, -k heads and -k macros
 - [ ] P6 | Bind Rust documentation to its owner
