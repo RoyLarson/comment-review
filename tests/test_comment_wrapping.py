@@ -18,10 +18,6 @@ from comment_review.reading.language import (
 )
 from comment_review.results import compositor, galley
 
-RUST_PAGE_PENDING = pytest.mark.xfail(
-    strict=True, reason="rust-lexical page integration lands in P8"
-)
-
 
 @pytest.mark.parametrize(
     "address, raw, prose",
@@ -90,7 +86,6 @@ def test_an_empty_remainder_removes_the_comment_delimiters():
             "m.rs",
             "fn first() {}\n//! Keep this sentence. Move this\n"
             "//! sentence. Keep this one too.\nfn next() {}\n",
-            marks=RUST_PAGE_PENDING,
         ),
         (
             "m.js",
@@ -463,10 +458,11 @@ def test_wrapping_after_a_blank_keeps_the_line_comment_marker():
         ),
         pytest.param(
             "m.rs",
+            # A Rust section holds one written form, so `//` below `///` is
+            # a paragraph of its own and the removal leaves only `///`'s line.
             "/// Keep. Move.\n// Ending stays.",
             "Move.",
-            "/// Keep.\n// Ending stays.",
-            marks=RUST_PAGE_PENDING,
+            "/// Keep.",
         ),
         ("m.js", "/*\n*ptr is kept. Move.\n*/", "*ptr is kept.", "/*\nMove.\n*/"),
         (
@@ -629,11 +625,10 @@ def test_trailing_rewrapping_counts_the_carried_code_anchor():
         ),
         pytest.param(
             "m.rs",
-            "// Kept. Move this\n// sentence.\n\n\n/// Ending stays.",
+            "// Kept. Move this\n// sentence.\n\n\n// Ending stays.",
             " Move this\n// sentence.",
             "//",
             "b",
-            marks=RUST_PAGE_PENDING,
         ),
         (
             "m.js",
@@ -648,7 +643,6 @@ def test_trailing_rewrapping_counts_the_carried_code_anchor():
             " Move this\n// sentence.",
             "//",
             "b",
-            marks=RUST_PAGE_PENDING,
         ),
         pytest.param(
             "two/m.rs",
@@ -656,7 +650,6 @@ def test_trailing_rewrapping_counts_the_carried_code_anchor():
             " Move this\n//! sentence.",
             "//",
             "b",
-            marks=RUST_PAGE_PENDING,
         ),
         (
             "m.py",
@@ -748,8 +741,8 @@ def test_mark_check_and_proof_agree_for_wrapped_sentences(
 @pytest.mark.parametrize(
     "origin_name,dest_name",
     [
-        pytest.param("m.py", "m.rs", marks=RUST_PAGE_PENDING),
-        pytest.param("m.rs", "m.py", marks=RUST_PAGE_PENDING),
+        pytest.param("m.py", "m.rs"),
+        pytest.param("m.rs", "m.py"),
     ],
 )
 @pytest.mark.parametrize("existing", [False, True])

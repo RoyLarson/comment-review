@@ -54,9 +54,6 @@ SOURCES = {
     "unicode": ("m.py", "# caf\u00e9\nx = 1\n"),
     "tabs": ("m.py", "def f():\n\treturn 1\n"),
 }
-RUST_PAGE_PENDING = pytest.mark.xfail(
-    strict=True, reason="rust-lexical page integration lands in P8"
-)
 CASES = pytest.mark.parametrize(
     ("name", "text"),
     [
@@ -64,7 +61,6 @@ CASES = pytest.mark.parametrize(
             n,
             t,
             id=k,
-            marks=RUST_PAGE_PENDING if n.endswith(".rs") else (),
         )
         for k, (n, t) in SOURCES.items()
     ],
@@ -199,7 +195,6 @@ KIND_DISAGREES = {"go", "ruby doc", "lua doc"}
                     if k in KIND_DISAGREES
                     else []
                 ),
-                *([RUST_PAGE_PENDING] if n.endswith(".rs") else []),
             ],
         )
         for k, (n, t) in {

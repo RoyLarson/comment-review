@@ -401,6 +401,11 @@ class RustRead:
         """The comparison's name, as a proof report prints it."""
         return "rust-lexical"
 
+    @property
+    def warning_owners(self) -> tuple[int | None, ...]:
+        """Each warning's owner, from the detached run it aligns with."""
+        return tuple(run.owner for run in self.detached)
+
     def preserved(
         self,
         after: Self,

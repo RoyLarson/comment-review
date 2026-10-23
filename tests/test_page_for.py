@@ -304,7 +304,7 @@ def test_python_page_failures_never_reach_paragraph_adaptation(
     def forbidden(*args):
         pytest.fail("Incomplete recognition reached paragraph adaptation")
 
-    monkeypatch.setattr(page_mod, "paragraphs_for", forbidden)
+    monkeypatch.setattr(PythonRead, "paragraphs", forbidden)
     result = page_for_mod.page_of(Path("m.py"), source=Source(text, "held"))
     assert isinstance(result, LocatedReadFailure)
     assert result.diagnostics[0].stage == stage
@@ -643,3 +643,108 @@ class TestPageOfReturnsEveryRefusalItPromises:
         assert [r.step for r in refused] == ["reread"]
         assert "anchor has no line" in refused[0].why
         assert list(into.iterdir()) == []
+
+
+RUST_ITEMS = (
+    "//! Module doc.\n"
+    "\n"
+    "/// A point.\n"
+    "#[derive(Debug)]\n"
+    "pub struct Point {\n"
+    "    /// The x.\n"
+    "    pub x: i32,\n"
+    "}\n"
+    "\n"
+    "fn helper() {} // trailing\n"
+)
+
+
+def _places(page) -> dict[str, tuple[str, str]]:
+    """Each addressed place's cue -> (kind, anchor)."""
+    return {cue(b): (b.kind, b.anchor) for b in page.paragraphs if b.address}
+
+
+def test_rust_page_addresses_documented_items_fields_and_trailing_comments():
+    page = build(RUST_ITEMS, "m.rs")
+    places = _places(page)
+    assert places["a0"] == ("docstring", "<module>")
+    assert places["a1"] == ("docstring", "#[derive(Debug)]")
+    assert places["a2"] == ("docstring", "    pub x: i32,")
+    assert places["a3"] == ("undocumented", "fn helper() {}")
+    assert sorted(c for c in places if c[0] == "a") == ["a0", "a1", "a2", "a3"]
+    assert places["c4"] == ("trailing-comment", "fn helper() {}")
+    assert [c for c in places if c[0] == "b"] == [f"b{n}" for n in range(6)]
+    assert {c for c in places if c[0] == "f"} == {"f0", "f1"}
+    assert page.warnings == ()
+
+
+def test_rust_page_empty_a_sets_its_doc_above_the_attribute_line():
+    from comment_review.results.compositor import set_page
+    from comment_review.results.galley import reset
+
+    text = "#[derive(Debug)]\npub struct S;\n"
+    page = build(text, "m.rs")
+    assert _places(page)["a1"] == ("undocumented", "#[derive(Debug)]")
+    reset(page, {"a1": "/// Added."})
+    assert set_page(page) == "/// Added.\n#[derive(Debug)]\npub struct S;\n"
+
+
+def test_rust_page_item_on_line_one_sets_module_doc_then_item_doc():
+    from comment_review.results.compositor import set_page
+    from comment_review.results.galley import reset
+
+    page = build("fn f() {}\n", "m.rs")
+    assert page.read.declarations() == [(0, 1, True), (1, 1, True)]
+    places = _places(page)
+    assert places["a0"][0] == places["a1"][0] == "undocumented"
+    reset(page, {"a0": "//! Module.", "a1": "/// F."})
+    assert set_page(page) == "//! Module.\n/// F.\nfn f() {}\n"
+
+
+def test_rust_page_detached_doc_is_a_warning_and_not_on_the_wire():
+    from comment_review.binder.page import WIRE_FIELDS, PageWarning
+
+    text = "fn g() {}\n\n/// Detached.\n// ordinary\nfn f() {}\n"
+    page = build(text, "m.rs")
+    detached = next(b for b in page.prose if "Detached" in b.text)
+    assert page.warnings == (
+        PageWarning(cue=cue(detached), owner="a2", code="detached-documentation"),
+    )
+    wire = page.serialize()
+    assert set(wire) == {"path", "sha", "reading", "rows"}
+    assert {tuple(row) for row in wire["rows"]} == {WIRE_FIELDS}
+
+
+def test_rust_page_inner_doc_above_nothing_is_the_module_docstring():
+    places = _places(build("//! Module.\n", "m.rs"))
+    assert places["a0"] == ("docstring", "<module>")
+
+
+def test_rust_page_outer_doc_above_nothing_is_a_comment():
+    page = build("fn f() {\n    /// Orphan.\n}\n", "m.rs")
+    orphan = next(b for b in page.prose if "Orphan" in b.text)
+    assert orphan.kind == "comment"
+    assert cue(orphan)[0] == "b"
+
+
+def test_rust_page_opening_ordinary_comment_is_front_matter():
+    places = _places(build("// Copyright 2026 Example\nfn main() {}\n", "m.rs"))
+    assert places["f0"][0] == "matter"
+    assert places["a1"] == ("undocumented", "fn main() {}")
+
+
+def test_rust_page_matter_after_a_shebang_is_front_matter():
+    text = "#!/usr/bin/env rust-script\n// Copyright\nfn main() {}\n"
+    page = build(text, "m.rs")
+    matter = next(b for b in page.paragraphs if "Copyright" in b.text)
+    assert matter.kind == "matter"
+    assert cue(matter) == "f0"
+
+
+def test_rust_fixture_licence_header_is_front_matter_and_first_item_undocumented():
+    fixture = Path(__file__).parent / "fixtures" / "licensed.rs"
+    text = fixture.read_bytes().decode("utf-8")
+    places = _places(build(text, "licensed.rs"))
+    assert places["f0"][0] == "matter"
+    assert places["a1"] == ("undocumented", "pub fn first() -> u32 {")
+    assert places["a2"][0] == "docstring"

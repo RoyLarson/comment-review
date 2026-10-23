@@ -13,8 +13,8 @@ sequence.
 
 A page is all of the addresses in the file, which is what makes it a page and
 not a list.
-`places_on` -- or, on a Python page, the read's `code_for` and
-`declarations_for` -- hands `cue` its lines of code and which of them declare
+`places_on` -- or, on a page a reader record built, the record's `code` and
+`declarations` -- hands `cue` its lines of code and which of them declare
 something documentable; `addresser` emits every place, filled or not, and
 `attach` says which one a given paragraph sits in. A paragraph does not compute
 its own cue -- if it did, a place would exist only when prose happened to fill
@@ -65,13 +65,7 @@ from comment_review.reading.lexer import (
     leading_between,
 )
 from comment_review.reading.paragraph import Paragraph
-from comment_review.reading.proof import SourceRead
-from comment_review.reading.python.projection import (
-    code_for,
-    declarations_for,
-    paragraphs_for,
-)
-from comment_review.reading.python.records import PythonRead
+from comment_review.reading.proof import ReaderRecord, SourceRead
 from comment_review.reading.readers import read_source
 from comment_review.reading.registry import LanguageRegistry
 from comment_review.reading.series import Kind, Series
@@ -105,11 +99,27 @@ WIRE_FIELDS = ("cue", "anchor", "original_start", "original_end", "raw_text")
 # a run already typed `comment`.
 #
 # ! ONE TYPE FOR BOTH ENDS. Which end a run sits at is read by `page_for` from
-# where it opens -- line 1 takes the first `f` place, any other run the last --
-# not stamped as a second fact that could disagree.
+# where it opens -- the first run, when no code line comes before it, takes the
+# first `f` place, any other run the last -- not stamped as a second fact that
+# could disagree.
 #
 # Every consumer downstream asks the series, not this -- see `Page.prose`.
 # Asking the type would miss the EMPTY place, which has no prose to type.
+
+
+@dataclass(frozen=True)
+class PageWarning:
+    """What the read noted about one place, without refusing the file.
+
+    Attributes:
+        cue: the place the noted prose sits in.
+        owner: the `a` place the prose would document.
+        code: the read's diagnostic code, e.g. `detached-documentation`.
+    """
+
+    cue: str
+    owner: str
+    code: str
 
 
 @dataclass
@@ -142,6 +152,9 @@ class Page:
         leading: the space below a place, keyed by the place it FOLLOWS --
             `f0 -> d0`. An absent key means nothing blank follows that place,
             which is what most boundaries do.
+        warnings: what the read noted without refusing the file, one per
+            noted place. `serialize` does not write them: a binder carries
+            only the five fields of `WIRE_FIELDS` per place.
     """
 
     path: str
@@ -163,6 +176,7 @@ class Page:
     # place after it goes stale on a `drop`, naming a place the run no longer
     # separates. See `tie_leading`.
     leading: dict[str, str] = dataclass_field(default_factory=dict)
+    warnings: tuple[PageWarning, ...] = ()
 
     def __iter__(self):
         """Down the page, in order."""
@@ -458,9 +472,9 @@ def code_lines(text: str, prose: list[dict]) -> dict[int, str]:
 
     A line is code when it holds something that is not blank and not prose.
     This function knows only what a comment-syntax record spells, so `page_for`
-    sends it the lexical reader's pages; a Python page takes its code lines from
-    `code_for` over its read, which knows a string literal is a declaration's
-    documentation.
+    sends it the lexical reader's pages; a page a reader record built takes its
+    code lines from the record's `code`, which knows its language's literals
+    and documentation.
 
     ! A `trailing-comment` sits ON a code line, so that line stays code. A
     `comment` or `docstring` paragraph occupies its lines entirely, so those lines
@@ -540,8 +554,9 @@ def attach(paragraph: dict, cues: "Cues") -> str:
     # !! THE READER SAYS SO, and this only reads it. Stamping it here instead
     # would be a positioning rule in a module that may hold none.
     #
-    # ! WHICH `f` IS A POSITION -- `page_for` gives a run opening on line 1 the
-    # first `f` place `cue` emitted and any other run the last. This says only
+    # ! WHICH `f` IS A POSITION -- `page_for` gives the first run, when no code
+    # line comes before it, the first `f` place `cue` emitted and any other run
+    # the last. This says only
     # that the question is not `above()`'s to answer.
     if paragraph.get("kind") == Kind.MATTER:
         return ""
@@ -558,8 +573,8 @@ def documentable(
     """Which code lines DECLARE something documentable, and WHERE the doc sits.
 
     !! IT CONVERTS. The reader states which side a language's documentation goes on,
-    as the `above` of each declaration it returns -- `lexer.declarations`, or
-    `declarations_for` on a Python page. What is left here is turning a LINE into a
+    as the `above` of each declaration it returns -- `lexer.declarations`, or a
+    reader record's `declarations`. What is left here is turning a LINE into a
     position in `cue`'s own sequence.
 
     !! THAT POSITION IS AN ORDINAL, which is the other half of the job. `cue`
@@ -857,32 +872,25 @@ def page_for(
     result = read_source(path, text, registry=registry)
     if isinstance(result, ReadFailure):
         return result
-    if not isinstance(result, PythonRead) and not isinstance(result, list):
-        # A reader record other than Python's has no page builder yet.
-        return ReadFailure(
-            (
-                ReadDiagnostic(
-                    ReadStage.LEX,
-                    "reader-unfinished",
-                    "The Rust reader is not finished and reads no source",
-                ),
-            )
-        )
-    recognized = result if isinstance(result, PythonRead) else None
-    if recognized is not None:
+    # A reader record is told from a generic row's paragraph list by shape, so
+    # this module names no reader's type.
+    record: ReaderRecord | None = None
+    if isinstance(result, list):
+        got = result
+    else:
+        record = result
         # The read may have broken a docstring's shared line; the page is that text.
-        text = recognized.source.text
-    got = paragraphs_for(path, recognized) if recognized is not None else result
-    assert not isinstance(got, PythonRead)
+        text = record.source.text
+        got = record.paragraphs(path)
     if isinstance(got, ReadFailure):
         return got
     got.extend(leading_between(got, text))
     cues = Cues()
     edges: dict[str, str] = {}
     prose = [vars(b) for b in got]
-    if recognized is not None:
-        code = code_for(recognized)
-        decls = declarations_for(recognized)
+    if record is not None:
+        code = record.code()
+        decls = record.declarations()
         cues = cue(code, documentable(decls, code), decls[0][1])
     else:
         lang = language_for(path)
@@ -892,6 +900,10 @@ def page_for(
         document_declarations(got, declarations(lang, code), code)
     here = rel if rel is not None else path.as_posix()
     files = cues.file_places()
+    # Front matter is the first matter run, when no code line comes before it.
+    # A shebang is not a code line, so matter below one is still front matter.
+    first_code = min(code, default=None)
+    front_taken = False
     leads = iter(range(10**9))
     for b in sorted(got, key=lambda b: b.original_start or 0):
         if b.kind == Kind.LEADING:
@@ -901,12 +913,19 @@ def page_for(
         if b.kind == Kind.MATTER and b.address.startswith(DECLARED):
             b.kind = Kind.COMMENT
         if b.kind == Kind.MATTER:
-            place = files[0] if b.original_start == 1 else files[-1]
+            front = not front_taken and (
+                first_code is None or (b.original_start or 0) < first_code
+            )
+            front_taken = True
+            place = files[0] if front else files[-1]
         else:
             stamped = b.address if b.address in cues.places else ""
             place = stamped or attach(vars(b), cues)
         b.address = address_for(here, place)
         b.anchor = cues.anchor_of(place, b.anchor)
+    warnings = _warnings(record, got, cues) if record is not None else ()
+    if isinstance(warnings, ReadFailure):
+        return warnings
     occupied = {b.address.split("@")[-1] for b in got if "@" in b.address}
     empty_paragraphs = empty_places(text, cues, occupied)
     if isinstance(empty_paragraphs, ReadFailure):
@@ -918,7 +937,7 @@ def page_for(
         place_name = b.address.split("@")[-1]
         b.anchor_line = cues.anchor_line(place_name) if place_name else None
         b.anchor_num = cues.anchor_num(place_name) if place_name else 0
-    fill_the_gaps(text, got, code=code if recognized is not None else None)
+    fill_the_gaps(text, got, code=code if record is not None else None)
     edges = tie_leading(got, cues)
 
     where = rel if rel is not None else path.as_posix()
@@ -931,9 +950,49 @@ def page_for(
         reading=reading,
         paragraphs=sorted(got, key=lambda b: (b.start, b.end)),
         cues=cues,
-        read=recognized if recognized is not None else StrippedRead(text, path),
+        read=record if record is not None else StrippedRead(text, path),
         leading=edges,
+        warnings=warnings,
     )
+
+
+def _warnings(
+    record: ReaderRecord, paragraphs: list[Paragraph], cues: Cues
+) -> tuple[PageWarning, ...] | ReadFailure:
+    """Each of the read's warnings as the place it notes and its owner's place.
+
+    A warning's place is the addressed paragraph whose lines hold the warning's
+    first character; its owner is the `a` place of the declaration the read
+    names, `a0` for the module.
+    """
+    out: list[PageWarning] = []
+    for warning, owner in zip(record.warnings, record.warning_owners, strict=True):
+        line = (
+            record.source.position(warning.span.start).line
+            if warning.span is not None
+            else None
+        )
+        place = next(
+            (
+                b.address.split("@")[-1]
+                for b in paragraphs
+                if "@" in b.address and line is not None and b.start <= line <= b.end
+            ),
+            "",
+        )
+        owner_cue = cues.documents(0 if owner is None else owner + 1)
+        if not place or not owner_cue:
+            return ReadFailure(
+                (
+                    ReadDiagnostic(
+                        ReadStage.PLACE,
+                        "unsupported-placement",
+                        f"{warning.code}: a warning with no place or no owner",
+                    ),
+                )
+            )
+        out.append(PageWarning(cue=place, owner=owner_cue, code=warning.code))
+    return tuple(out)
 
 
 def fill_the_gaps(
@@ -967,9 +1026,10 @@ def fill_the_gaps(
         text: the page's source.
         paragraphs: every paragraph on the page, addressed; the `b`s are recut
             in place.
-        code: the code lines the page's `Cues` were walked from -- Python pages
-            pass `projection.code_for`. None recomputes them with `code_lines`,
-            and the two must agree or every gap boundary moves.
+        code: the code lines the page's `Cues` were walked from -- a page a
+            reader record built passes the record's `code`. None recomputes
+            them with `code_lines`, and the two must agree or every gap
+            boundary moves.
     """
     source = constants.text_lines(text)
     code_lines_in_order = list(

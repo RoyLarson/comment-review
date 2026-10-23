@@ -324,9 +324,6 @@ FORMS = {
     "tsx": ("m.TSX", "// note\nconst card = <Card />;\n"),
     "sql": ("m.sql", "-- note\nSELECT 1;\n"),
 }
-RUST_PAGE_PENDING = pytest.mark.xfail(
-    strict=True, reason="rust-lexical page integration lands in P8"
-)
 FORM_CASES = pytest.mark.parametrize(
     ("name", "text"),
     [
@@ -334,7 +331,6 @@ FORM_CASES = pytest.mark.parametrize(
             n,
             t,
             id=k,
-            marks=RUST_PAGE_PENDING if n.endswith(".rs") else (),
         )
         for k, (n, t) in FORMS.items()
     ],

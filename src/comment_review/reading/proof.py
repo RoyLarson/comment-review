@@ -90,6 +90,14 @@ class ReaderRecord(SourceRead, Protocol):
         """What the read noted without refusing the file."""
         ...
 
+    @property
+    def warning_owners(self) -> tuple[int | None, ...]:
+        """Each warning's owner, aligned with `warnings`.
+
+        An owner is a declaration index, or None for the module.
+        """
+        ...
+
     def paragraphs(self, path: Path) -> list[Paragraph] | ReadFailure:
         """Every prose section of the file as a page paragraph."""
         ...
