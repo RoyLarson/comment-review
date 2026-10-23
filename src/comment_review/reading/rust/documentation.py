@@ -64,8 +64,8 @@ def documentation_in(
     A comment with code before it on its line is a section of its own. A
     comment followed by anything but whitespace on the line it ends on is
     part of that line's code: it is no section, documents nothing, and ends
-    the run above it, which it stands between and its owner like an ordinary
-    comment.
+    the run above it. A doc above it is separated from its owner, as by an
+    ordinary comment, and is detached.
 
     An outer doc section that ends on a line above an owner's head, with only
     whitespace between them, documents that owner. An inner doc section
