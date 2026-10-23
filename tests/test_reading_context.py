@@ -11,6 +11,7 @@ from comment_review.flows.compositor import round_trip
 from comment_review.flows.gather import gather
 from comment_review.reading import context as context_module
 from comment_review.reading.context import ReadingContext, compatible_contexts
+from comment_review.reading.context_io import context_to_wire
 from comment_review.reading.definitions import LanguageDefinition, decode_definition
 from comment_review.reading.diagnostics import ReadFailure
 from comment_review.reading.registry import LanguageRegistry
@@ -596,6 +597,266 @@ def test_saved_mixed_workflow_keeps_literal_context_through_proof(
     assert code == 0, out
     assert (tmp_path / "revise" / "m.py").read_bytes() == b"x = 1\n# new\ny = 2\n"
     assert {name: (root / name).read_bytes() for name in sources} == sources
+
+
+RUST_SOURCE = b"/// Adds one.\nfn add(x: i32) -> i32 {\n    // old\n    x + 1\n}\n"
+
+# What `context_for(Path("m.rs"), {})` returned at bc7096b8^, when `.rs` was a
+# generic lexical row: reader `rust-lexical` revision 1, no grammar identity.
+GENERIC_RUST_COMPATIBILITY = (
+    "1bd8eac8d94fc381df1d21657ba156d8629407464331d63d8be9f0df8321d483"
+)
+
+
+def rust_context(**changes: str) -> ReadingContext:
+    """The installed Rust context, re-resolved with definition fields changed."""
+    from comment_review.reading.readers import ReaderBinding, reader_for
+
+    registry = flow_context.installed_registry()
+    assert not isinstance(registry, ReadFailure)
+    selected = reader_for(Path("m.rs"), registry)
+    assert isinstance(selected, tuple)
+    rust, binding = selected
+    assert isinstance(rust, LanguageDefinition)
+    assert isinstance(binding, ReaderBinding)
+    resolved = context_module.resolve_context(
+        replace(rust, **changes),
+        {},
+        reader_revision=binding.revision,
+        placement_revision=flow_context.PLACEMENT_REVISION,
+        grammar_identity=binding.grammar_identity,
+        digest=lambda data: sha256(data).hexdigest(),
+    )
+    assert isinstance(resolved, ReadingContext)
+    return resolved
+
+
+def rust_page(saved: ReadingContext):
+    """`page_of` over the Rust source with a supplied saved context."""
+    from comment_review.flows import page_for
+    from comment_review.machine.repo import Source
+
+    text = RUST_SOURCE.decode()
+    return page_for.page_of(
+        Path("m.rs"), source=Source(text, "sha"), reading_context=saved
+    )
+
+
+@pytest.mark.parametrize("saved", ["revision-1", "generic-lexical"])
+def test_rust_context_from_before_the_rust_reader_is_refused(monkeypatch, saved):
+    current = flow_context.context_for(Path("m.rs"), {})
+    assert isinstance(current, ReadingContext)
+    assert current == rust_context()
+    old = (
+        rust_context(revision="1")
+        if saved == "revision-1"
+        else ReadingContext("rust", "rust-lexical", GENERIC_RUST_COMPATIBILITY, ())
+    )
+    assert old != current
+    from comment_review.binder import page as page_model
+
+    monkeypatch.setattr(
+        page_model,
+        "read_source",
+        lambda *_, **__: pytest.fail("refused context reached source recognition"),
+    )
+    failed = rust_page(old)
+    assert isinstance(failed, ReadFailure)
+    assert [d.code for d in failed.diagnostics] == ["reading-context-mismatch"]
+    pages = [{"path": "m.rs", "reading": context_to_wire(old)}]
+    admitted, problems = flow_context.page_reading_contexts(pages)
+    assert admitted == {}
+    assert problems and all("regather" in problem for problem in problems)
+
+
+def test_rust_context_gathered_now_is_admitted(tmp_path):
+    path = tmp_path / "m.rs"
+    path.write_bytes(RUST_SOURCE)
+    gathered = gather(tmp_path, [path], 0)
+    assert not gathered.unreadable
+    current = gathered.reading_contexts[path]
+    assert current == rust_context()
+    page = rust_page(current)
+    assert not isinstance(page, ReadFailure)
+    assert page.reading == current
+    admitted, problems = flow_context.binder_reading_contexts(gathered.binder)
+    assert problems == []
+    assert admitted == {"m.rs": current}
+
+
+def test_saved_rust_workflow_keeps_context_through_the_draft(
+    tmp_path, monkeypatch, capsys
+):
+    import json
+
+    from conftest import run_command
+
+    from comment_review.commands import check, collate, distribute, mark, proof
+
+    root = tmp_path / "repo"
+    root.mkdir()
+    (root / "m.rs").write_bytes(RUST_SOURCE)
+    gathered = gather(root, [root / "m.rs"], 0)
+    assert not gathered.unreadable
+    binder_path = tmp_path / "binder.json"
+    binder_path.write_text(json.dumps(gathered.binder.serialize()), encoding="utf-8")
+    expected = json.loads(binder_path.read_text(encoding="utf-8"))["pages"][0][
+        "reading"
+    ]
+    assert expected == context_to_wire(rust_context())
+    assert expected["reader"] == "rust-lexical"
+    copies = []
+    for role in ("block-context", "function-context"):
+        copy = tmp_path / f"{role}.json"
+        code, out = run_command(
+            monkeypatch,
+            capsys,
+            distribute,
+            "--seed",
+            "--binder",
+            str(binder_path),
+            "--role",
+            role,
+            "--out",
+            str(copy),
+            with_stderr=True,
+        )
+        assert code == 0, out
+        code, out = run_command(
+            monkeypatch,
+            capsys,
+            mark,
+            "--edit-copy",
+            str(copy),
+            "--repo",
+            str(root),
+            "--address",
+            "m.rs@b1",
+            "--instruction",
+            "patch",
+            "--change",
+            "    // new",
+            "--from",
+            "old",
+            "--to",
+            "new",
+            "--reason",
+            "clearer",
+            with_stderr=True,
+        )
+        assert code == 0, out
+        code, out = run_command(
+            monkeypatch,
+            capsys,
+            mark,
+            "--edit-copy",
+            str(copy),
+            "--address",
+            "m.rs@a1",
+            "--instruction",
+            "clean",
+            with_stderr=True,
+        )
+        assert code == 0, out
+        code, out = run_command(
+            monkeypatch,
+            capsys,
+            check,
+            "--edit-copy",
+            str(copy),
+            "--binder",
+            str(binder_path),
+            with_stderr=True,
+        )
+        assert code == 0, out
+        sheets = json.loads(copy.read_text(encoding="utf-8"))["sheets"]
+        assert [sheet["reading"] for sheet in sheets] == [expected]
+        copies += ["--edit-copy", str(copy)]
+    proof_path = tmp_path / "proof.json"
+    code, out = run_command(
+        monkeypatch,
+        capsys,
+        collate,
+        "--stage",
+        "4c",
+        "--binder",
+        str(binder_path),
+        "--out",
+        str(tmp_path / "chief.json"),
+        "--proof-out",
+        str(proof_path),
+        *copies,
+        with_stderr=True,
+    )
+    assert code == 0, out
+    saved_proof = json.loads(proof_path.read_text(encoding="utf-8"))
+    assert saved_proof["page_readings"] == {"m.rs": expected}
+    docket_path = tmp_path / "docket.json"
+    code, out = run_command(
+        monkeypatch,
+        capsys,
+        proof,
+        "--proof",
+        str(proof_path),
+        "--repo",
+        str(root),
+        "--to-docket",
+        str(docket_path),
+        with_stderr=True,
+    )
+    assert code == 0, out
+    docket = json.loads(docket_path.read_text(encoding="utf-8"))
+    assert [page["reading"] for page in docket["pages"]] == [expected]
+    code, out = run_command(
+        monkeypatch,
+        capsys,
+        proof,
+        "--from-docket",
+        str(docket_path),
+        "--repo",
+        str(root),
+        "--out",
+        str(tmp_path / "revise"),
+        with_stderr=True,
+    )
+    assert code == 0, out
+    assert (tmp_path / "revise" / "m.rs").read_bytes() == RUST_SOURCE.replace(
+        b"// old", b"// new"
+    )
+    assert (root / "m.rs").read_bytes() == RUST_SOURCE
+
+
+def test_saved_rust_binder_from_before_the_rust_reader_refuses_distribution(
+    tmp_path, monkeypatch, capsys
+):
+    import json
+
+    from conftest import run_command
+
+    from comment_review.commands import distribute
+
+    (tmp_path / "m.rs").write_bytes(RUST_SOURCE)
+    wire = gather(tmp_path, [tmp_path / "m.rs"], 0).binder.serialize()
+    wire["pages"][0]["reading"] = context_to_wire(rust_context(revision="1"))
+    binder_path = tmp_path / "binder.json"
+    binder_path.write_text(json.dumps(wire), encoding="utf-8")
+    copy = tmp_path / "copy.json"
+    code, out = run_command(
+        monkeypatch,
+        capsys,
+        distribute,
+        "--seed",
+        "--binder",
+        str(binder_path),
+        "--role",
+        "block-context",
+        "--out",
+        str(copy),
+        with_stderr=True,
+    )
+    assert code != 0, out
+    assert "regather" in out
+    assert not copy.exists()
 
 
 def test_chief_extra_destination_carries_original_context_and_sha():
