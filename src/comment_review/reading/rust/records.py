@@ -3,6 +3,7 @@
 from bisect import bisect_right
 from dataclasses import dataclass
 from enum import StrEnum
+from itertools import pairwise
 from pathlib import Path
 from typing import final
 
@@ -327,7 +328,8 @@ class RustRead:
     owner is its run's `owner`. `prose` is the scan's prose, one entry per
     COMMENT region, kept because the read holds no tokens. A COMMENT region
     in no section is code. Each declaration's insertion is the line its
-    anchor is on.
+    anchor is on, and no two sections share a physical line, so a page sets
+    at most one paragraph per line.
     """
 
     source: SourceStructure
@@ -347,6 +349,12 @@ class RustRead:
         ):
             if self.source.position(declaration.anchor).line != insertion:
                 raise ValueError("a declaration's insertion must be its anchor line")
+        for before, after in pairwise(self.source.sections):
+            if (
+                self.source.position(after.span.start).line
+                <= self.source.position(before.span.end - 1).line
+            ):
+                raise ValueError("no two sections may share a physical line")
         _tuple(self.protected, SourceSpan, "protected")
         directives = {
             region.span

@@ -34,35 +34,25 @@ def sections_for(
 ) -> RustRead:
     """Assemble the read from the scan, the documentation and the protected spans.
 
-    A section followed by code on the line it ends on is part of that code:
-    it leaves the sections, documents nothing and carries no warning. Its
-    comments stay COMMENT regions, and a COMMENT region in no section is code.
+    A section followed on the line it ends on by anything but whitespace --
+    code or another comment -- is part of that line's code: it leaves the
+    sections, documents nothing and carries no warning. Its comments stay
+    COMMENT regions, and a COMMENT region in no section is code. So every
+    section ends its last line, and no two sections share a line.
     """
     lines = _Lines(scan.text)
     sections = documentation.sections
-    code_sections: set[int] = set()
-    for index in range(len(sections) - 1, -1, -1):
-        span = sections[index].span
-        line_end = lines.end_of(span.end - 1)
-        following = (
-            region
-            for region in _overlapping(scan.regions, span.end, line_end)
-            if region.span.start >= span.end
-        )
+    code_sections = {
+        index
+        for index, section in enumerate(sections)
         if any(
-            region.kind in CODE_KINDS
-            or (
-                region.kind is RegionKind.COMMENT
-                and any(
-                    sections[later].span.start
-                    <= region.span.start
-                    < sections[later].span.end
-                    for later in code_sections
-                )
+            region.kind is not RegionKind.WHITESPACE
+            for region in _overlapping(
+                scan.regions, section.span.end, lines.end_of(section.span.end - 1)
             )
-            for region in following
-        ):
-            code_sections.add(index)
+            if region.span.start >= section.span.end
+        )
+    }
     kept = [i for i in range(len(sections)) if i not in code_sections]
     renumbered = {old: new for new, old in enumerate(kept)}
     owners = tuple(

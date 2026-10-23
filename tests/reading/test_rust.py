@@ -1828,6 +1828,42 @@ def test_projection_doc_text_drops_the_continuation_decoration(rust_definition, 
     ]
 
 
+def test_projection_doc_decoration_stays_unless_every_line_carries_it(
+    rust_definition,
+):
+    text = "/**\n * First\n   second\n */\nfn f() {}\n"
+    paragraphs, _, _ = projection_of(text, rust_definition)
+    assert [(p.kind, p.text) for p in paragraphs] == [
+        (Kind.DOCSTRING, "* First second")
+    ]
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "x; /** a */ // b\n",
+        "x; /* a */ /** b */\n",
+        "/** a */ /*! b */ /* c */\nfn f() {}\n",
+        "fn a() {} /* one\n two */ /** three */ // four\nfn b() {}\n",
+        "/// a\n/** b */ // c\n//! d\n",
+    ],
+)
+def test_projection_no_two_paragraphs_share_a_line(rust_definition, text):
+    paragraphs, _, _ = projection_of(text, rust_definition)
+    lines = [line for p in paragraphs for line in range(p.start, p.end + 1)]
+    assert len(lines) == len(set(lines))
+
+
+def test_projection_read_refuses_two_sections_on_one_line(rust_definition):
+    from dataclasses import replace
+
+    result = rust_read("x; /** a */ // b\n", rust_definition)
+    (trailing,) = result.source.sections
+    doc = SourceSection(SourceSpan(3, 11), "comment")
+    with pytest.raises(ValueError, match="share"):
+        replace(result, source=replace(result.source, sections=(doc, trailing)))
+
+
 def test_projection_ordinary_delimited_comment_keeps_its_stars(rust_definition):
     text = "fn z() {}\n/*\n * kept\n */\nfn f() {}\n"
     paragraphs, _, _ = projection_of(text, rust_definition)
@@ -1852,8 +1888,18 @@ def test_projection_ordinary_delimited_comment_keeps_its_stars(rust_definition):
             [],
             {1: "fn a() {} /* one", 2: " two */ fn b() {}"},
         ),
+        (
+            "x; /** a */ // b\n",
+            [paragraph(1, 1, Kind.TRAILING, "b", [" // b"], anchor="x; /** a */")],
+            {1: "x; /** a */"},
+        ),
     ],
-    ids=["between-code", "before-code-and-a-trailing-comment", "across-lines"],
+    ids=[
+        "between-code",
+        "before-code-and-a-trailing-comment",
+        "across-lines",
+        "before-another-comment",
+    ],
 )
 def test_projection_delimited_comment_with_code_after_it_stays_code(
     rust_definition, text, paragraphs, code

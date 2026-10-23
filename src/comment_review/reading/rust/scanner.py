@@ -226,27 +226,45 @@ def scan_rust(text: str, definition: LanguageDefinition) -> RustScan | ReadFailu
 def _prose(text: str, token: RustToken, comments: _Comments) -> tuple[SourceSpan, ...]:
     """The comment's text inside its markers, one piece per physical line.
 
-    On each continuation line of a delimited doc, the indent and one
-    decoration character that follows it are not prose.
+    A delimited doc's continuation lines are decorated when every one of them
+    opens, after its indent, with the decoration character; a last line that
+    holds only indent, before the closer, is not asked. When they are, each
+    one's indent and decoration are not prose; otherwise all of it is.
     """
     opener, closer = comments.markers(token.kind)
     body = SourceSpan(token.span.start + len(opener), token.span.end - len(closer))
     if token.kind not in DECORATED_KINDS:
         return (body,)
-    pieces = []
+    lines = []
     start = body.start
     for line_break in LINE_BREAK.finditer(text, body.start, body.end):
-        pieces.append(SourceSpan(start, line_break.start()))
+        lines.append(SourceSpan(start, line_break.start()))
         start = line_break.end()
-        indent = start
-        while indent < body.end and text[indent] in INDENT:
-            indent += 1
-        if text.startswith(comments.decoration, indent) and (
-            indent + len(comments.decoration) <= body.end
-        ):
-            start = indent + len(comments.decoration)
-    pieces.append(SourceSpan(start, body.end))
-    return tuple(pieces)
+    lines.append(SourceSpan(start, body.end))
+    stripped = [_undecorated(text, line, comments.decoration) for line in lines[1:]]
+    asked = stripped
+    if len(lines) > 1 and all(text[i] in INDENT for i in range(start, body.end)):
+        asked = stripped[:-1]
+    if not asked or any(line is None for line in asked):
+        return tuple(lines)
+    return (
+        lines[0],
+        *(
+            line if cut is None else cut
+            for line, cut in zip(lines[1:], stripped, strict=True)
+        ),
+    )
+
+
+def _undecorated(text: str, line: SourceSpan, decoration: str) -> SourceSpan | None:
+    """The line past its indent and decoration, or None where it has none."""
+    at = line.start
+    while at < line.end and text[at] in INDENT:
+        at += 1
+    end = at + len(decoration)
+    if end <= line.end and text.startswith(decoration, at):
+        return SourceSpan(end, line.end)
+    return None
 
 
 def _shebang(text: str, start: int, grammar: _Grammar) -> int | None:
