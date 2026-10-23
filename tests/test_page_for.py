@@ -734,6 +734,31 @@ def test_rust_page_opening_ordinary_comment_is_front_matter():
     assert places["a1"] == ("undocumented", "fn main() {}")
 
 
+def test_rust_page_opening_comment_below_a_blank_line_one_is_a_comment():
+    from comment_review.results.compositor import set_page
+
+    text = "\n// Copyright\nfn main() {}\n"
+    page = build(text, "m.rs")
+    run = next(b for b in page.paragraphs if "Copyright" in b.text)
+    assert run.kind == "comment"
+    assert cue(run) == "b0"
+    assert set_page(page) == text
+
+
+def test_rust_page_comment_below_a_shebang_is_b0_until_ruled_otherwise():
+    """PROVISIONAL PIN: the Copyright run opens on line 2, so it is a COMMENT
+    at `b0` and the shebang alone is `f0`. A ruling that the run joins the
+    shebang at `f0` changes this test."""
+    from comment_review.results.compositor import set_page
+
+    text = "#!/usr/bin/env rust-script\n// Copyright\nfn main() {}\n"
+    page = build(text, "m.rs")
+    run = next(b for b in page.paragraphs if "Copyright" in b.text)
+    assert (run.kind, cue(run)) == ("comment", "b0")
+    assert by_cue(page)["f0"].raw_lines == ["#!/usr/bin/env rust-script"]
+    assert set_page(page) == text
+
+
 RUST_SHEBANG = "#!/usr/bin/env rust-script\nfn main() {}\n"
 
 

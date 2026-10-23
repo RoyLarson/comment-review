@@ -80,8 +80,8 @@ def documentation_in(
     is a COMMENT section with a DetachedRun and a warning. Every other doc
     section that documents nothing is a COMMENT section.
 
-    The first section is MATTER when it is ordinary, no code precedes it and
-    no code follows it on its last line.
+    The first section is MATTER when it is ordinary, starts on line 1 and no
+    code follows it on its last line.
     The module insertion line is the first line of the module's inner doc,
     else the line after the matter, else the line after the shebang, else 1.
     An owner documented by an inner doc inserts at that doc's first line,
@@ -173,7 +173,14 @@ class _Assigner:
         return RustDocumentation(sections, owners, placement, tuple(self.warnings))
 
     def _opens_the_file(self, run: _Run) -> bool:
-        """Whether no code precedes the run and none follows it on its last line."""
+        """Whether the run starts on line 1, with no code on its last line.
+
+        A run below a blank first line, or below a shebang, is not the file's
+        opening matter: filed as front matter it would be set above the line
+        it sits under.
+        """
+        if self._line(run.span.start) != 1:
+            return False
         if bisect_left(self.starts, run.span.start) != 0:
             return False
         following = bisect_left(self.starts, run.span.end)
