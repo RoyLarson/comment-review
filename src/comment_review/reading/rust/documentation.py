@@ -48,6 +48,8 @@ class _Run:
     written: RustSectionForm
     # A comment with code before it on its line stands alone.
     trailing: bool
+    # A comment that is part of its line's code: never a section.
+    code: bool = False
     # Whether code has been read since the run's last comment.
     closed: bool = False
 
@@ -59,7 +61,11 @@ def documentation_in(
 
     A section is a run of comments of one written form -- ordinary, outer doc
     or inner doc -- with only whitespace between them, blank lines included.
-    A comment with code before it on its line is a section of its own.
+    A comment with code before it on its line is a section of its own. A
+    comment followed by anything but whitespace on the line it ends on is
+    part of that line's code: it is no section, documents nothing, and ends
+    the run above it, which it stands between and its owner like an ordinary
+    comment.
 
     An outer doc section that ends on a line above an owner's head, with only
     whitespace between them, documents that owner. An inner doc section
@@ -126,19 +132,23 @@ class _Assigner:
 
     def run(self) -> RustDocumentation:
         for index, run in enumerate(self.runs):
+            if run.code:
+                continue
             if run.written is RustSectionForm.OUTER_DOC:
                 self._outer(index, run)
             elif run.written is RustSectionForm.INNER_DOC:
                 self._inner(index, run)
             elif index == 0 and self._opens_the_file(run):
                 self.forms[index] = RustSectionForm.MATTER
+        kept = [index for index, run in enumerate(self.runs) if not run.code]
+        section_of = {run: section for section, run in enumerate(kept)}
         sections = tuple(
-            SourceSection(run.span, form.value)
-            for run, form in zip(self.runs, self.forms, strict=True)
+            SourceSection(self.runs[index].span, self.forms[index].value)
+            for index in kept
         )
         owners = tuple(
-            DocumentationOwner(section, declaration)
-            for section, declaration in sorted(self.links.items())
+            DocumentationOwner(section_of[index], declaration)
+            for index, declaration in sorted(self.links.items())
         )
         placement = RustPlacement(
             self.placement.declarations,
@@ -281,21 +291,33 @@ class _Assigner:
 
 
 def _runs(tokens: tuple[RustToken, ...], coordinates: SourceCoordinates) -> list[_Run]:
-    """Group comments of one written form that only whitespace separates."""
+    """Group comments of one written form that only whitespace separates.
+
+    A comment followed by anything but whitespace on the line it ends on is
+    part of that line's code: it is a run of its own, marked `code`, and it
+    ends the run above it.
+    """
     runs: list[_Run] = []
     code_end: int | None = None
-    for token in tokens:
+    for at, token in enumerate(tokens):
         if token.kind in COMMENT_KINDS:
             line = coordinates.position(token.span.start).line
             trailing = (
                 code_end is not None and coordinates.position(code_end - 1).line == line
             )
+            if _followed_on_its_line(tokens, at, coordinates):
+                if runs:
+                    runs[-1].closed = True
+                runs.append(_Run(token.span, WRITTEN_FORM[token.kind], trailing, True))
+                code_end = token.span.end
+                continue
             written = WRITTEN_FORM[token.kind]
             last = runs[-1] if runs else None
             if (
                 last is not None
                 and not last.closed
                 and not last.trailing
+                and not last.code
                 and not trailing
                 and last.written is written
             ):
@@ -308,3 +330,17 @@ def _runs(tokens: tuple[RustToken, ...], coordinates: SourceCoordinates) -> list
             if token.kind not in ATTRIBUTE_KINDS:
                 code_end = token.span.end
     return runs
+
+
+def _followed_on_its_line(
+    tokens: tuple[RustToken, ...], at: int, coordinates: SourceCoordinates
+) -> bool:
+    """Whether a token other than whitespace starts on the line `tokens[at]` ends on."""
+    end_line = coordinates.position(tokens[at].span.end - 1).line
+    following = next(
+        (t for t in tokens[at + 1 :] if t.kind is not RustTokenKind.WHITESPACE), None
+    )
+    return (
+        following is not None
+        and coordinates.position(following.span.start).line == end_line
+    )

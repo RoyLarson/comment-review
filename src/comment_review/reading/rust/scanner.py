@@ -1,10 +1,10 @@
 """Partition Rust source into comment, code and whitespace regions and their tokens."""
 
-import re
 from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import cast
 
+from comment_review import constants
 from comment_review.reading.definitions import LanguageDefinition
 from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, ReadStage
 from comment_review.reading.rust.definition import validate_rust
@@ -23,7 +23,6 @@ OPENERS = frozenset("{([")
 CLOSERS = frozenset("})]")
 # The Rust Reference's CHAR_LITERAL excludes these from an unescaped body.
 NOT_A_CHAR_BODY = frozenset("\n\r\t")
-LINE_BREAK = re.compile(r"\r\n|\r|\n")
 # Whitespace that stays on its line.
 INDENT = WHITESPACE - frozenset("\r\n")
 DECORATED_KINDS = frozenset(
@@ -227,9 +226,10 @@ def _prose(text: str, token: RustToken, comments: _Comments) -> tuple[SourceSpan
     """The comment's text inside its markers, one piece per physical line.
 
     A delimited doc's continuation lines are decorated when every one of them
-    opens, after its indent, with the decoration character; a last line that
-    holds only indent, before the closer, is not asked. When they are, each
-    one's indent and decoration are not prose; otherwise all of it is.
+    opens, after an indent of one width, with the decoration character; a
+    last line that holds only indent, before the closer, is not asked. When
+    they are, each one's indent and decoration are not prose; otherwise all
+    of it is.
     """
     opener, closer = comments.markers(token.kind)
     body = SourceSpan(token.span.start + len(opener), token.span.end - len(closer))
@@ -237,15 +237,19 @@ def _prose(text: str, token: RustToken, comments: _Comments) -> tuple[SourceSpan
         return (body,)
     lines = []
     start = body.start
-    for line_break in LINE_BREAK.finditer(text, body.start, body.end):
+    for line_break in constants.LINE_BREAK.finditer(text, body.start, body.end):
         lines.append(SourceSpan(start, line_break.start()))
         start = line_break.end()
     lines.append(SourceSpan(start, body.end))
     stripped = [_undecorated(text, line, comments.decoration) for line in lines[1:]]
-    asked = stripped
+    asked = list(zip(lines[1:], stripped, strict=True))
     if len(lines) > 1 and all(text[i] in INDENT for i in range(start, body.end)):
-        asked = stripped[:-1]
-    if not asked or any(line is None for line in asked):
+        asked = asked[:-1]
+    if (
+        not asked
+        or any(cut is None for _, cut in asked)
+        or len({cut.start - line.start for line, cut in asked if cut}) != 1
+    ):
         return tuple(lines)
     return (
         lines[0],

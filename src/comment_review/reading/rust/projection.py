@@ -16,7 +16,6 @@ from comment_review.reading.rust.records import (
 )
 from comment_review.reading.series import Kind
 from comment_review.reading.source import (
-    DocumentationOwner,
     RegionKind,
     SourceRegion,
     SourceSpan,
@@ -34,45 +33,24 @@ def sections_for(
 ) -> RustRead:
     """Assemble the read from the scan, the documentation and the protected spans.
 
-    A section followed on the line it ends on by anything but whitespace --
-    code or another comment -- is part of that line's code: it leaves the
-    sections, documents nothing and carries no warning. Its comments stay
-    COMMENT regions, and a COMMENT region in no section is code. So every
-    section ends its last line, and no two sections share a line.
+    The documentation stage leaves a comment that is part of its line's code
+    out of every section, so here a COMMENT region in no section is code.
     """
-    lines = _Lines(scan.text)
-    sections = documentation.sections
-    code_sections = {
-        index
-        for index, section in enumerate(sections)
-        if any(
-            region.kind is not RegionKind.WHITESPACE
-            for region in _overlapping(
-                scan.regions, section.span.end, lines.end_of(section.span.end - 1)
-            )
-            if region.span.start >= section.span.end
-        )
-    }
-    kept = [i for i in range(len(sections)) if i not in code_sections]
-    renumbered = {old: new for new, old in enumerate(kept)}
-    owners = tuple(
-        DocumentationOwner(renumbered[owner.section], owner.declaration)
-        for owner in documentation.owners
-        if owner.section in renumbered
-    )
-    code_spans = {sections[i].span for i in code_sections}
     placement = documentation.placement
-    detached = tuple(run for run in placement.detached if run.span not in code_spans)
-    warnings = tuple(w for w in documentation.warnings if w.span not in code_spans)
     source = SourceStructure(
         scan.text,
         scan.regions,
-        tuple(sections[i] for i in kept),
+        documentation.sections,
         placement.declarations,
-        owners,
+        documentation.owners,
     )
     return RustRead(
-        source, protected, placement.insertions, warnings, detached, scan.prose
+        source,
+        protected,
+        placement.insertions,
+        documentation.warnings,
+        placement.detached,
+        scan.prose,
     )
 
 
@@ -87,9 +65,9 @@ def paragraphs_for(path: Path, read: RustRead) -> list[Paragraph] | ReadFailure:
     A documentation section is a DOCSTRING at its owner's `a` place. Any
     other section is MATTER when its form is `matter`, or when it is not
     trailing, ends on the last line and nothing but whitespace follows it.
-    The form is not tested there, so an unowned doc that P6 made a COMMENT
-    section counts. Otherwise it is
-    TRAILING when code precedes it on its first line, with that code as its
+    The form is not tested there, so an unowned doc that the documentation
+    stage made a COMMENT section counts. Otherwise it is TRAILING when code
+    precedes it on its first line, with that code as its
     anchor, and COMMENT when none does. A detached run carries the
     `detached-documentation` annotation.
 
@@ -199,13 +177,12 @@ class _Lines:
     def __init__(self, text: str) -> None:
         self.spans: list[tuple[int, int]] = []
         offset = 0
-        for line in constants.text_lines(text):
-            self.spans.append((offset, offset + len(line)))
-            offset += len(line)
-            if text.startswith("\r\n", offset):
-                offset += 2
-            elif offset < len(text) and text[offset] in "\r\n":
-                offset += 1
+        for line_break in constants.LINE_BREAK.finditer(text):
+            self.spans.append((offset, line_break.start()))
+            offset = line_break.end()
+        # As `constants.text_lines`: text after the last break is a line.
+        if offset < len(text):
+            self.spans.append((offset, len(text)))
         self.starts = [start for start, _ in self.spans]
 
     def _at(self, offset: int) -> tuple[int, int]:

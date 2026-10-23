@@ -1591,12 +1591,12 @@ def test_detached_second_inner_doc_for_the_module(
     assert result.placement.insertions == (1, 4)
 
 
-def test_detached_doc_on_its_owner_head_line(rust_definition):
+def test_attachment_doc_on_its_owner_head_line_is_code(rust_definition):
     text = "/** d */ fn f() {}\n"
     result = documentation_of(text, rust_definition)
-    assert sections_of(text, result) == [("comment", "/** d */")]
+    assert sections_of(text, result) == []
     assert result.owners == ()
-    assert detached_of(text, result) == ([("/** d */", 1)], [("/** d */", [1, 1])])
+    assert detached_of(text, result) == ([], [])
 
 
 def test_detached_trailing_doc_above_an_owner(rust_definition):
@@ -1640,7 +1640,7 @@ def test_detached_records_refuse_misaligned_warnings(detached, warned):
 def test_matter_excludes_a_comment_with_code_after_it_on_its_line(rust_definition):
     text = "/* a */ fn f() {}\n"
     result = documentation_of(text, rust_definition)
-    assert sections_of(text, result) == [("comment", "/* a */")]
+    assert sections_of(text, result) == []
     insertions = result.placement.insertions
     assert insertions == (1, 1)
     assert insertions[0] <= insertions[1]
@@ -1838,20 +1838,117 @@ def test_projection_doc_decoration_stays_unless_every_line_carries_it(
     ]
 
 
+def test_projection_doc_decoration_stays_when_its_column_varies(rust_definition):
+    text = "/**\n * a\n  * b\n */\nfn f() {}\n"
+    paragraphs, _, _ = projection_of(text, rust_definition)
+    assert [(p.kind, p.text) for p in paragraphs] == [(Kind.DOCSTRING, "* a * b")]
+
+
 @pytest.mark.parametrize(
-    "text",
+    ("text", "expected"),
     [
-        "x; /** a */ // b\n",
-        "x; /* a */ /** b */\n",
-        "/** a */ /*! b */ /* c */\nfn f() {}\n",
-        "fn a() {} /* one\n two */ /** three */ // four\nfn b() {}\n",
-        "/// a\n/** b */ // c\n//! d\n",
+        (
+            "x; /** a */ // b\n",
+            [paragraph(1, 1, Kind.TRAILING, "b", [" // b"], anchor="x; /** a */")],
+        ),
+        (
+            "x; /* a */ /** b */\n",
+            [paragraph(1, 1, Kind.TRAILING, "b", [" /** b */"], anchor="x; /* a */")],
+        ),
+        (
+            "/** a */ /*! b */ /* c */\nfn f() {}\n",
+            [
+                paragraph(
+                    1,
+                    1,
+                    Kind.TRAILING,
+                    "c",
+                    [" /* c */"],
+                    anchor="/** a */ /*! b */",
+                )
+            ],
+        ),
+        (
+            "fn a() {} /* one\n two */ /** three */ // four\nfn b() {}\n",
+            [
+                paragraph(
+                    2,
+                    2,
+                    Kind.TRAILING,
+                    "four",
+                    [" // four"],
+                    anchor=" two */ /** three */",
+                )
+            ],
+        ),
+        (
+            "/// a\n/** b */ // c\n//! d\n",
+            [
+                paragraph(1, 1, Kind.COMMENT, "a", ["/// a"]),
+                paragraph(2, 2, Kind.TRAILING, "c", [" // c"], anchor="/** b */"),
+                paragraph(3, 3, Kind.DOCSTRING, "d", ["//! d"], address="a0"),
+            ],
+        ),
     ],
 )
-def test_projection_no_two_paragraphs_share_a_line(rust_definition, text):
+def test_projection_no_two_paragraphs_share_a_line(rust_definition, text, expected):
     paragraphs, _, _ = projection_of(text, rust_definition)
+    assert paragraphs == expected
     lines = [line for p in paragraphs for line in range(p.start, p.end + 1)]
     assert len(lines) == len(set(lines))
+
+
+@pytest.mark.parametrize(
+    ("text", "expected", "code", "owners"),
+    [
+        (
+            "// x\n/* y */ fn f() {}\n",
+            [paragraph(1, 1, Kind.MATTER, "x", ["// x"])],
+            {2: "/* y */ fn f() {}"},
+            [],
+        ),
+        (
+            "/// a\n/** b */ fn f() {}\n",
+            [
+                paragraph(
+                    1, 1, Kind.COMMENT, "a", ["/// a"], notes={"detached-documentation"}
+                )
+            ],
+            {2: "/** b */ fn f() {}"},
+            [0],
+        ),
+        (
+            "#[x]\n/// a\n/** b */ fn f() {}\n",
+            [
+                paragraph(
+                    2, 2, Kind.COMMENT, "a", ["/// a"], notes={"detached-documentation"}
+                )
+            ],
+            {1: "#[x]", 3: "/** b */ fn f() {}"},
+            [0],
+        ),
+        (
+            "fn z() {}\n// a\n// b /* c */\n/* d */ fn f() {}\n",
+            [paragraph(2, 3, Kind.COMMENT, "a b /* c */", ["// a", "// b /* c */"])],
+            {1: "fn z() {}", 4: "/* d */ fn f() {}"},
+            [],
+        ),
+    ],
+    ids=[
+        "comment-above",
+        "doc-above",
+        "doc-between-attribute-and-item",
+        "comment-run-above",
+    ],
+)
+def test_projection_only_the_code_bounded_comment_is_code(
+    rust_definition, text, expected, code, owners
+):
+    result = rust_read(text, rust_definition)
+    assert result.paragraphs(PAGE) == expected
+    assert result.code() == code
+    assert [run.owner for run in result.detached] == owners
+    assert [w.span for w in result.warnings] == [r.span for r in result.detached]
 
 
 def test_projection_read_refuses_two_sections_on_one_line(rust_definition):
