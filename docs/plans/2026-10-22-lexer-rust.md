@@ -3,7 +3,7 @@
 ```
 Status:   in-progress
 Progress: 3 of 6 TODO tasks closed
-Plan-tasks: 5 of 13 plan tasks closed
+Plan-tasks: 6 of 13 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-22 (founded by move-t from 2026-10-11-lexical-readers)
@@ -70,7 +70,8 @@ reader.
       Rust owners from the body-kind stack
         > 2026-10-22 Spec: heads start at the first attribute (Addressing #30)
         > 2026-10-22 Check: test_rust.py -k owners, -k heads and -k macros
-- [ ] P6 | Bind Rust documentation to its owner
+- [x] P6 | FINISHED: Rust documentation binds to its owner; detached runs warn one-to-one; a0, shebang and f0 matter decided; task review and re-review clean | 7b4fce41 | Bind
+      Rust documentation to its owner
         > 2026-10-22 Spec: detached runs warn (Addressing #29); a0; shebang; f0
         > 2026-10-22 Check: test_rust.py -k attachment, -k detached, -k matter
         > 2026-10-22 Check: test_rust.py -k directives; // Copyright gives f0
