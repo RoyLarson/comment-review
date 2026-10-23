@@ -11,8 +11,16 @@ from comment_review.reading.definition_checks import (
 from comment_review.reading.definitions import LanguageDefinition
 from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, ReadStage
 
-# Module imports on both sides, because structure.py calls validate_rust.
-from comment_review.reading.rust import structure
+# The owner kinds the Rust grammar defines. `[rules.documentation].owners`
+# lists those that take documentation. The module is the file's own frame,
+# whose documentation place is `a0`.
+MODULE = "module"
+ITEM = "item"
+ASSOCIATED_ITEM = "associated-item"
+NESTED_ITEM = "nested-item"
+FIELD = "field"
+VARIANT = "variant"
+OWNER_KINDS = frozenset({MODULE, ITEM, ASSOCIATED_ITEM, NESTED_ITEM, FIELD, VARIANT})
 
 
 def validate_rust(definition: LanguageDefinition) -> ReadFailure | None:
@@ -81,13 +89,13 @@ def _section(
 
 
 def _owners(value: object, path: str) -> None:
-    """Require a nonempty array of distinct owner kinds the structure defines."""
+    """Require a nonempty array of distinct owner kinds from OWNER_KINDS."""
     if not isinstance(value, tuple) or not value:
         raise ValueError(f"{path} must be a nonempty array")
     for item in value:
         if not isinstance(item, str):
             raise ValueError(f"{path} contains an ill-typed item")
-        if item not in structure.OWNER_KINDS:
+        if item not in OWNER_KINDS:
             raise ValueError(f"{path} has unsupported item {item!r}")
     if len(set(value)) != len(value):
         raise ValueError(f"{path} repeats an item")
