@@ -1461,7 +1461,7 @@ def test_attachment_inner_doc_in_an_inline_module_documents_it(rust_definition):
     result = documentation_of(text, rust_definition)
     assert sections_of(text, result) == [("inner_doc", "//! Inner.")]
     assert owners_of(text, result) == [("//! Inner.", ("item", 1))]
-    assert result.placement.insertions == (1, 1, 3)
+    assert result.placement.insertions == (1, 2, 3)
 
 
 def test_attachment_ordinary_comment_above_an_item_is_not_documentation(
@@ -2178,9 +2178,36 @@ def test_projection_shebang_line_is_not_code(rust_definition):
     result = rust_read(text, rust_definition)
     assert result.protected == (SourceSpan(0, 31),)
     paragraphs, code, declarations = projection_of(text, rust_definition)
-    assert paragraphs == []
+    shebang = "#!/usr/bin/env run-cargo-script"
+    assert paragraphs == [paragraph(1, 1, Kind.MATTER, shebang, [shebang])]
     assert code == {2: "fn main() {}"}
     assert declarations == [(0, 2, True), (2, 2, True)]
+
+
+@pytest.mark.parametrize(
+    "text, inner",
+    [
+        ("fn f() {\n    //! inner\n}\n", 2),
+        ("mod m {\n\n    //! doc\n    fn g() {}\n}\n", 3),
+    ],
+    ids=["fn", "mod"],
+)
+def test_projection_inner_doc_owner_inserts_at_its_inner_doc(
+    rust_definition, text, inner
+):
+    _, _, declarations = projection_of(text, rust_definition)
+    assert declarations[1] == (1, inner, True)
+
+
+def test_projection_read_refuses_an_inner_doc_insertion_outside_its_body(
+    rust_definition,
+):
+    from dataclasses import replace
+
+    result = rust_read("fn f() {\n    //! inner\n}\n", rust_definition)
+    assert result.insertions == (1, 2)
+    with pytest.raises(ValueError, match="body"):
+        replace(result, insertions=(1, 1))
 
 
 def test_projection_read_rust_refuses_an_unterminated_comment(rust_definition):

@@ -11,7 +11,7 @@ from importlib import import_module
 from pathlib import Path
 
 import pytest
-from conftest import SAMPLE, build, cue, docket_from
+from conftest import SAMPLE, build, by_cue, cue, docket_from
 
 from comment_review.binder import page as page_mod
 from comment_review.binder.binder import bind
@@ -20,6 +20,7 @@ from comment_review.flows import page_for as page_for_mod
 from comment_review.flows import proof_setter
 from comment_review.flows.language_definitions import installed_registry
 from comment_review.flows.read_diagnostics import LocatedReadFailure, format_failure
+from comment_review.flows.reading_context import context_for
 from comment_review.machine.repo import Source
 from comment_review.reading.addresser import Cues
 from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, ReadStage
@@ -733,12 +734,100 @@ def test_rust_page_opening_ordinary_comment_is_front_matter():
     assert places["a1"] == ("undocumented", "fn main() {}")
 
 
-def test_rust_page_matter_after_a_shebang_is_front_matter():
-    text = "#!/usr/bin/env rust-script\n// Copyright\nfn main() {}\n"
+RUST_SHEBANG = "#!/usr/bin/env rust-script\nfn main() {}\n"
+
+
+def test_rust_page_shebang_keeps_its_f_placement_and_round_trips():
+    from comment_review.results.compositor import set_page
+
+    page = build(RUST_SHEBANG, "m.rs")
+    shebang = next(b for b in page.paragraphs if cue(b) == "f0")
+    assert shebang.kind == "matter"
+    assert shebang.raw_lines == ["#!/usr/bin/env rust-script"]
+    assert set_page(page) == RUST_SHEBANG
+
+
+def test_rust_page_added_module_doc_is_set_after_the_shebang():
+    from comment_review.results.compositor import set_page
+    from comment_review.results.galley import reset
+
+    page = build(RUST_SHEBANG, "m.rs")
+    reset(page, {"a0": "//! Added."})
+    assert set_page(page) == ("#!/usr/bin/env rust-script\n//! Added.\nfn main() {}\n")
+
+
+@pytest.mark.parametrize("name", ["m.py", "m.lua", "m.rs"])
+def test_codeless_matter_below_line_one_is_back_matter(name):
+    from comment_review.results.compositor import set_page
+
+    marker = {"m.py": "#", "m.lua": "--", "m.rs": "//"}[name]
+    text = f"\n\n{marker} x\n"
+    page = build(text, name)
+    matter = next(b for b in page.paragraphs if b.kind == "matter")
+    assert cue(matter) == "f1"
+    assert set_page(page) == text
+
+
+RUST_INNER_DOCS = {
+    "fn": "fn f() {\n    //! inner\n}\n",
+    "mod": "mod m {\n    //! doc\n    fn g() {}\n}\n",
+}
+
+
+@pytest.mark.parametrize("kind", sorted(RUST_INNER_DOCS))
+def test_rust_page_inner_doc_in_a_body_round_trips(kind):
+    from comment_review.results.compositor import set_page
+
+    text = RUST_INNER_DOCS[kind]
     page = build(text, "m.rs")
-    matter = next(b for b in page.paragraphs if "Copyright" in b.text)
-    assert matter.kind == "matter"
-    assert cue(matter) == "f0"
+    assert page.read.declarations()[1] == (1, 2, True)
+    assert _places(page)["a1"][0] == "docstring"
+    assert set_page(page) == text
+
+
+@pytest.mark.parametrize("kind", sorted(RUST_INNER_DOCS))
+def test_rust_page_reworded_inner_doc_is_set_in_place(kind):
+    from comment_review.results.compositor import set_page
+    from comment_review.results.galley import reset
+
+    text = RUST_INNER_DOCS[kind]
+    page = build(text, "m.rs")
+    original = by_cue(page)["a1"].raw_lines[0]
+    reworded = original.replace(original.split("//! ")[1], "Reworded.")
+    reset(page, {"a1": reworded})
+    assert set_page(page) == text.replace(original, reworded)
+
+
+RUST_DETACHED = "fn g() {}\n\n/// Detached.\n// ordinary\nfn f() {}\n"
+
+
+@pytest.mark.parametrize("missing", ["owner", "place"])
+def test_rust_page_refuses_a_warning_it_cannot_place(monkeypatch, missing):
+    from comment_review.reading.rust.records import RustRead
+
+    if missing == "owner":
+        monkeypatch.setattr(RustRead, "warning_owners", property(lambda self: (99,)))
+    else:
+        real = RustRead.paragraphs
+
+        def without_detached(self, path):
+            got = real(self, path)
+            assert not isinstance(got, ReadFailure)
+            return [b for b in got if "Detached" not in b.text]
+
+        monkeypatch.setattr(RustRead, "paragraphs", without_detached)
+    registry = installed_registry()
+    assert not isinstance(registry, ReadFailure)
+    path = Path("m.rs")
+    reading = context_for(path, {}, registry=registry)
+    assert not isinstance(reading, ReadFailure)
+    result = page_for(
+        path, RUST_DETACHED, rel="m.rs", sha="x", reading=reading, registry=registry
+    )
+    assert isinstance(result, ReadFailure)
+    assert [(d.stage, d.code) for d in result.diagnostics] == [
+        (ReadStage.PLACE, "unsupported-placement")
+    ]
 
 
 def test_rust_fixture_licence_header_is_front_matter_and_first_item_undocumented():

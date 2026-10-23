@@ -84,6 +84,8 @@ def documentation_in(
     no code follows it on its last line.
     The module insertion line is the first line of the module's inner doc,
     else the line after the matter, else the line after the shebang, else 1.
+    An owner documented by an inner doc inserts at that doc's first line,
+    inside its body; every other owner inserts at its head's first line.
     """
     failure = validate_rust(definition)
     if failure is not None:
@@ -150,9 +152,22 @@ class _Assigner:
             DocumentationOwner(section_of[index], declaration)
             for index, declaration in sorted(self.links.items())
         )
+        # An owner documented by an inner doc is documented inside its body, so
+        # its insertion is the inner doc's first line rather than its head's.
+        inner = {
+            owner: self._line(self.runs[index].span.start)
+            for index, owner in self.links.items()
+            if owner is not None and self.forms[index] is RustSectionForm.INNER_DOC
+        }
         placement = RustPlacement(
             self.placement.declarations,
-            (self._module_line(), *self.placement.insertions[1:]),
+            (
+                self._module_line(),
+                *(
+                    inner.get(owner, line)
+                    for owner, line in enumerate(self.placement.insertions[1:])
+                ),
+            ),
             tuple(self.detached),
         )
         return RustDocumentation(sections, owners, placement, tuple(self.warnings))

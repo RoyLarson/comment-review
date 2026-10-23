@@ -60,7 +60,7 @@ def documented_address(declaration: int | None) -> str:
 
 
 def paragraphs_for(path: Path, read: RustRead) -> list[Paragraph] | ReadFailure:
-    """Every section as one paragraph.
+    """Every section as one paragraph, and the shebang as a MATTER paragraph.
 
     A documentation section is a DOCSTRING at its owner's `a` place. Any
     other section is MATTER when its form is `matter`, or when it is not
@@ -81,6 +81,19 @@ def paragraphs_for(path: Path, read: RustRead) -> list[Paragraph] | ReadFailure:
     owners = {owner.section: owner.declaration for owner in source.documentation}
     detached = {run.span for run in read.detached}
     paragraphs: list[Paragraph] = []
+    for span in read.protected:
+        # The shebang is protected source, not a section, and the file's own
+        # matter at line 1: the page files it at the first `f` place.
+        line = source.position(span.start).line
+        whole = text[
+            layout.lines.start_of(span.start) : layout.lines.end_of(span.start)
+        ]
+        shebang = text[span.start : span.end]
+        paragraphs.append(
+            Paragraph(
+                path.as_posix(), line, line, Kind.MATTER, 1, shebang, raw_lines=[whole]
+            )
+        )
     for index, section in enumerate(source.sections):
         span = section.span
         first = source.position(span.start)
@@ -154,10 +167,11 @@ def code_for(read: RustRead) -> dict[int, str]:
 
 
 def declarations_for(read: RustRead) -> list[tuple[int, int, bool]]:
-    """The module's place, then each declaration's at its head's first line.
+    """The module's place, then each declaration's, anchored at its head.
 
-    RustRead holds each declaration's insertion on its anchor line, and Rust
-    documentation goes above that line, so every entry is above.
+    Rust documentation goes above its insertion line, so every entry is above.
+    The insertion is the anchor line, or the first line of the inner doc that
+    documents the declaration inside its body.
     """
     source = read.source
     return [

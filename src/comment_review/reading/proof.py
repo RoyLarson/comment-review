@@ -92,9 +92,10 @@ class ReaderRecord(SourceRead, Protocol):
 
     @property
     def warning_owners(self) -> tuple[int | None, ...]:
-        """Each warning's owner, aligned with `warnings`.
+        """The owner of each `detached-documentation` warning, aligned with `warnings`.
 
-        An owner is a declaration index, or None for the module.
+        An owner is the index of the declaration the detached documentation
+        would document, or None for the module.
         """
         ...
 

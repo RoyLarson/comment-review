@@ -99,9 +99,8 @@ WIRE_FIELDS = ("cue", "anchor", "original_start", "original_end", "raw_text")
 # a run already typed `comment`.
 #
 # ! ONE TYPE FOR BOTH ENDS. Which end a run sits at is read by `page_for` from
-# where it opens -- the first run, when no code line comes before it, takes the
-# first `f` place, any other run the last -- not stamped as a second fact that
-# could disagree.
+# where it opens -- line 1 takes the first `f` place, any other run the last --
+# not stamped as a second fact that could disagree.
 #
 # Every consumer downstream asks the series, not this -- see `Page.prose`.
 # Asking the type would miss the EMPTY place, which has no prose to type.
@@ -554,9 +553,8 @@ def attach(paragraph: dict, cues: "Cues") -> str:
     # !! THE READER SAYS SO, and this only reads it. Stamping it here instead
     # would be a positioning rule in a module that may hold none.
     #
-    # ! WHICH `f` IS A POSITION -- `page_for` gives the first run, when no code
-    # line comes before it, the first `f` place `cue` emitted and any other run
-    # the last. This says only
+    # ! WHICH `f` IS A POSITION -- `page_for` gives a run opening on line 1 the
+    # first `f` place `cue` emitted and any other run the last. This says only
     # that the question is not `above()`'s to answer.
     if paragraph.get("kind") == Kind.MATTER:
         return ""
@@ -605,13 +603,15 @@ def documentable(
     for line, insert, above in decls[1:]:
         if line not in at:
             continue
-        if above:
+        if above and insert <= line:
             # ! ABOVE THE DECLARING LINE, which is that line's own place: the doc
             # is set after the gap and before the code.
             out[at[line]] = (insert, at[line], ON)
             continue
         # ! INSIDE THE DECLARATION -- so it is set after whatever code the
-        # declaration spans, before the gap that introduces the body. A wrapped
+        # declaration spans, before the gap that introduces the body. A doc
+        # above an insertion line below the declaring line -- a Rust inner doc
+        # opening the body -- is inside too. A wrapped
         # signature moves that several code lines down, which is why the LINE is
         # what the parser states and the ordinal is worked out here.
         follows = [n for n in ordered if n >= insert]
@@ -900,10 +900,6 @@ def page_for(
         document_declarations(got, declarations(lang, code), code)
     here = rel if rel is not None else path.as_posix()
     files = cues.file_places()
-    # Front matter is the first matter run, when no code line comes before it.
-    # A shebang is not a code line, so matter below one is still front matter.
-    first_code = min(code, default=None)
-    front_taken = False
     leads = iter(range(10**9))
     for b in sorted(got, key=lambda b: b.original_start or 0):
         if b.kind == Kind.LEADING:
@@ -913,11 +909,7 @@ def page_for(
         if b.kind == Kind.MATTER and b.address.startswith(DECLARED):
             b.kind = Kind.COMMENT
         if b.kind == Kind.MATTER:
-            front = not front_taken and (
-                first_code is None or (b.original_start or 0) < first_code
-            )
-            front_taken = True
-            place = files[0] if front else files[-1]
+            place = files[0] if b.original_start == 1 else files[-1]
         else:
             stamped = b.address if b.address in cues.places else ""
             place = stamped or attach(vars(b), cues)

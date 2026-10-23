@@ -334,7 +334,8 @@ class RustRead:
     owner is its run's `owner`. `prose` is the scan's prose, one entry per
     COMMENT region, kept because the read holds no tokens. A COMMENT region
     in no section is code. Each declaration's insertion is the line its
-    anchor is on, and no two sections share a physical line, so a page sets
+    anchor is on, or, for one documented by an inner doc, that doc's first
+    line inside its body; and no two sections share a physical line, so a page sets
     at most one paragraph per line.
     """
 
@@ -350,10 +351,25 @@ class RustRead:
         if not isinstance(self.source, SourceStructure):
             raise ValueError("read source must be a SourceStructure")
         _insertions(self.insertions, len(self.source.declarations))
-        for declaration, insertion in zip(
-            self.source.declarations, self.insertions[1:], strict=True
+        inner = {
+            owner.declaration: self.source.sections[owner.section]
+            for owner in self.source.documentation
+            if owner.declaration is not None
+            and self.source.sections[owner.section].form == RustSectionForm.INNER_DOC
+        }
+        for index, (declaration, insertion) in enumerate(
+            zip(self.source.declarations, self.insertions[1:], strict=True)
         ):
-            if self.source.position(declaration.anchor).line != insertion:
+            if index in inner:
+                doc = inner[index].span
+                if doc.start < declaration.header.end or (
+                    self.source.position(doc.start).line != insertion
+                ):
+                    raise ValueError(
+                        "an inner-doc owner's insertion must be its doc's first"
+                        " line, inside its body"
+                    )
+            elif self.source.position(declaration.anchor).line != insertion:
                 raise ValueError("a declaration's insertion must be its anchor line")
         for before, after in pairwise(self.source.sections):
             if (
