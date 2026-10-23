@@ -20,6 +20,7 @@ from comment_review.reading.rust.records import (
     RustSectionForm,
     RustToken,
     RustTokenKind,
+    significant_tokens,
 )
 from comment_review.reading.source import (
     DocumentationOwner,
@@ -37,7 +38,6 @@ WRITTEN_FORM = {
     RustTokenKind.INNER_DOC_LINE: RustSectionForm.INNER_DOC,
     RustTokenKind.INNER_DOC_DELIMITED: RustSectionForm.INNER_DOC,
 }
-UNREAD = COMMENT_KINDS | {RustTokenKind.WHITESPACE, RustTokenKind.SHEBANG}
 
 
 @dataclass
@@ -61,18 +61,21 @@ def documentation_in(
     or inner doc -- with only whitespace between them, blank lines included.
     A comment with code before it on its line is a section of its own.
 
-    An outer doc section with only whitespace between it and an owner's head
-    documents that owner. An inner doc section documents the module when no
-    code but inner attributes precedes it, or the owner whose body it opens.
-    The kinds documentation attaches to are `[rules.documentation].owners`.
+    An outer doc section that ends on a line above an owner's head, with only
+    whitespace between them, documents that owner. An inner doc section
+    documents the module when no code but inner attributes precedes it, or
+    the owner whose body it opens. The kinds documentation attaches to are
+    `[rules.documentation].owners`.
 
     Documentation that Rust attaches to an owner but no `a` place can hold is
     detached: a run behind an ordinary comment, a run between an attribute and
-    the item, or a second run for one owner. A detached run is a COMMENT
-    section with a DetachedRun and a warning. Every other doc section that
-    documents nothing is a COMMENT section.
+    the item, a run on the head's own line, a run that trails code on its
+    line, or a second run for one owner, the module included. A detached run
+    is a COMMENT section with a DetachedRun and a warning. Every other doc
+    section that documents nothing is a COMMENT section.
 
-    The first section is MATTER when it is ordinary and no code precedes it.
+    The first section is MATTER when it is ordinary, no code precedes it and
+    no code follows it on its last line.
     The module insertion line is the first line of the module's inner doc,
     else the line after the matter, else the line after the shebang, else 1.
     """
@@ -108,7 +111,7 @@ class _Assigner:
         self.body_open = body_open
         self.terminator = terminator
         self.coordinates = SourceCoordinates(scan.text)
-        self.code = _code(scan.tokens)
+        self.code = significant_tokens(scan.tokens)
         self.starts = [token.span.start for token in self.code]
         self.heads = [
             declaration.header.start for declaration in placement.declarations
@@ -127,7 +130,7 @@ class _Assigner:
                 self._outer(index, run)
             elif run.written is RustSectionForm.INNER_DOC:
                 self._inner(index, run)
-            elif index == 0 and bisect_left(self.starts, run.span.start) == 0:
+            elif index == 0 and self._opens_the_file(run):
                 self.forms[index] = RustSectionForm.MATTER
         sections = tuple(
             SourceSection(run.span, form.value)
@@ -144,6 +147,15 @@ class _Assigner:
         )
         return RustDocumentation(sections, owners, placement, tuple(self.warnings))
 
+    def _opens_the_file(self, run: _Run) -> bool:
+        """Whether no code precedes the run and none follows it on its last line."""
+        if bisect_left(self.starts, run.span.start) != 0:
+            return False
+        following = bisect_left(self.starts, run.span.end)
+        return following == len(self.code) or self._line(
+            self.code[following].span.start
+        ) > self._line(run.span.end - 1)
+
     def _outer(self, index: int, run: _Run) -> None:
         """Attach a run directly above a head; detach one inside or behind it."""
         following = bisect_left(self.starts, run.span.end)
@@ -156,7 +168,8 @@ class _Assigner:
             nearest = index + 1 == len(self.runs) or (
                 self.runs[index + 1].span.start > start
             )
-            if nearest and not run.trailing:
+            above = self._line(run.span.end - 1) < self._line(start)
+            if nearest and above and not run.trailing:
                 self._attach(index, run, owner)
             else:
                 self._detach(index, run, owner)
@@ -177,11 +190,8 @@ class _Assigner:
                 self.module_doc = index
             if MODULE not in self.owner_kinds:
                 self.forms[index] = RustSectionForm.COMMENT
-            elif None in self.links.values():
-                self.forms[index] = RustSectionForm.COMMENT
-                self._warn(run, "the module")
             else:
-                self.links[index] = None
+                self._attach(index, run, None)
             return
         owner = self._opened_by(before)
         if owner is None:
@@ -189,25 +199,27 @@ class _Assigner:
         else:
             self._attach(index, run, owner)
 
-    def _attach(self, index: int, run: _Run, owner: int) -> None:
+    def _attach(self, index: int, run: _Run, owner: int | None) -> None:
         if owner in self.links.values():
             self._detach(index, run, owner)
         else:
             self.links[index] = owner
 
-    def _detach(self, index: int, run: _Run, owner: int) -> None:
+    def _detach(self, index: int, run: _Run, owner: int | None) -> None:
+        """Make the run a COMMENT with a DetachedRun and its warning."""
         self.forms[index] = RustSectionForm.COMMENT
         self.detached.append(DetachedRun(run.span, owner))
-        head = self.placement.declarations[owner].header.start
-        self._warn(run, f"the owner whose head starts on line {self._line(head)}")
-
-    def _warn(self, run: _Run, owner: str) -> None:
+        if owner is None:
+            named = "the module"
+        else:
+            head = self.placement.declarations[owner].header.start
+            named = f"the owner whose head starts on line {self._line(head)}"
         self.warnings.append(
             ReadDiagnostic(
                 ReadStage.PLACE,
                 DETACHED_DOCUMENTATION,
                 f"documentation on line {self._line(run.span.start)} "
-                f"is detached from {owner}",
+                f"is detached from {named}",
                 run.span,
             )
         )
@@ -266,19 +278,6 @@ class _Assigner:
 
     def _spelled(self, token: RustToken) -> str:
         return self.scan.text[token.span.start : token.span.end]
-
-
-def _code(tokens: tuple[RustToken, ...]) -> list[RustToken]:
-    """The code tokens, each attribute standing for everything inside it."""
-    kept: list[RustToken] = []
-    inside = 0
-    for token in tokens:
-        if token.span.start < inside or token.kind in UNREAD:
-            continue
-        kept.append(token)
-        if token.kind in ATTRIBUTE_KINDS:
-            inside = token.span.end
-    return kept
 
 
 def _runs(tokens: tuple[RustToken, ...], coordinates: SourceCoordinates) -> list[_Run]:

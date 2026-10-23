@@ -17,16 +17,14 @@ from comment_review.reading.rust.definition import (
     validate_rust,
 )
 from comment_review.reading.rust.records import (
-    COMMENT_KINDS,
     RustPlacement,
     RustScan,
     RustToken,
     RustTokenKind,
+    significant_tokens,
 )
 from comment_review.reading.source import SourceDeclaration, SourceSpan
 
-# Tokens the structure never consults: layout, prose and the shebang line.
-UNREAD = COMMENT_KINDS | {RustTokenKind.WHITESPACE, RustTokenKind.SHEBANG}
 ABI_KINDS = frozenset({RustTokenKind.STRING, RustTokenKind.RAW_STRING})
 
 
@@ -168,7 +166,7 @@ class _Placer:
     def __init__(self, scan: RustScan, grammar: _Grammar) -> None:
         self.text = scan.text
         self.grammar = grammar
-        self.tokens = _significant(scan.tokens)
+        self.tokens = significant_tokens(scan.tokens)
         self.spelling = [
             scan.text[token.span.start : token.span.end] for token in self.tokens
         ]
@@ -396,19 +394,6 @@ class _Placer:
 
     def _spelled(self, at: int) -> str | None:
         return self.spelling[at] if at < len(self.tokens) else None
-
-
-def _significant(tokens: tuple[RustToken, ...]) -> list[RustToken]:
-    """The code tokens, each attribute standing for everything inside it."""
-    kept: list[RustToken] = []
-    inside = 0
-    for token in tokens:
-        if token.span.start < inside or token.kind in UNREAD:
-            continue
-        kept.append(token)
-        if token.kind in (RustTokenKind.OUTER_ATTRIBUTE, RustTokenKind.INNER_ATTRIBUTE):
-            inside = token.span.end
-    return kept
 
 
 def _closes(tokens: list[RustToken]) -> dict[int, int]:

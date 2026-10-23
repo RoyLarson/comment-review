@@ -11,6 +11,7 @@ from comment_review.reading.source import (
     RegionKind,
     SourceDeclaration,
     SourceRegion,
+    SourceSection,
     SourceSpan,
     SourceStructure,
 )
@@ -1345,7 +1346,9 @@ def detached_of(text, result):
     runs = [
         (
             text[run.span.start : run.span.end],
-            line_of(text, declarations[run.owner].anchor),
+            None
+            if run.owner is None
+            else line_of(text, declarations[run.owner].anchor),
         )
         for run in result.placement.detached
     ]
@@ -1555,7 +1558,7 @@ def test_detached_second_inner_doc_in_an_inline_module(rust_definition):
     )
 
 
-def test_detached_second_inner_doc_for_the_module_warns_without_a_run(
+def test_detached_second_inner_doc_for_the_module(
     rust_definition,
 ):
     text = "//! a\n#![allow(x)]\n//! b\nfn f() {}\n"
@@ -1565,8 +1568,63 @@ def test_detached_second_inner_doc_for_the_module_warns_without_a_run(
         ("comment", "//! b"),
     ]
     assert owners_of(text, result) == [("//! a", None)]
-    assert detached_of(text, result) == ([], [("//! b", [3])])
+    assert detached_of(text, result) == ([("//! b", None)], [("//! b", [3])])
     assert result.placement.insertions == (1, 4)
+
+
+def test_detached_doc_on_its_owner_head_line(rust_definition):
+    text = "/** d */ fn f() {}\n"
+    result = documentation_of(text, rust_definition)
+    assert sections_of(text, result) == [("comment", "/** d */")]
+    assert result.owners == ()
+    assert detached_of(text, result) == ([("/** d */", 1)], [("/** d */", [1, 1])])
+
+
+def test_detached_trailing_doc_above_an_owner(rust_definition):
+    text = "fn z() {} /// t\nfn f() {}\n"
+    result = documentation_of(text, rust_definition)
+    assert sections_of(text, result) == [("comment", "/// t")]
+    assert result.owners == ()
+    assert detached_of(text, result) == ([("/// t", 2)], [("/// t", [1, 2])])
+
+
+def documentation_record(detached, warned):
+    """A RustDocumentation over two comment sections, `a` and `b`, and one item."""
+    spans = {"a": SourceSpan(0, 5), "b": SourceSpan(6, 11)}
+    placement = records.RustPlacement(
+        (SourceDeclaration(SourceSpan(12, 14), 12, "item"),),
+        (1, 3),
+        tuple(records.DetachedRun(spans[name], 0) for name in detached),
+    )
+    return records.RustDocumentation(
+        tuple(SourceSection(span, "comment") for span in spans.values()),
+        (),
+        placement,
+        tuple(warning(spans[name]) for name in warned),
+    )
+
+
+def test_detached_records_accept_warnings_aligned_with_runs():
+    documentation_record("ab", "ab")
+
+
+@pytest.mark.parametrize(
+    ("detached", "warned"),
+    [("ab", "a"), ("a", "ab"), ("ab", "ba")],
+    ids=["extra-run", "missing-run", "reordered"],
+)
+def test_detached_records_refuse_misaligned_warnings(detached, warned):
+    with pytest.raises(ValueError):
+        documentation_record(detached, warned)
+
+
+def test_matter_excludes_a_comment_with_code_after_it_on_its_line(rust_definition):
+    text = "/* a */ fn f() {}\n"
+    result = documentation_of(text, rust_definition)
+    assert sections_of(text, result) == [("comment", "/* a */")]
+    insertions = result.placement.insertions
+    assert insertions == (1, 1)
+    assert insertions[0] <= insertions[1]
 
 
 def test_matter_opening_ordinary_run_is_not_the_item_doc(rust_definition):

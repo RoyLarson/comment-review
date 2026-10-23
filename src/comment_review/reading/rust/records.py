@@ -115,6 +115,23 @@ class RustToken:
             raise ValueError("token span must be nonempty")
 
 
+# Tokens no structural reading consults: layout, prose and the shebang line.
+UNREAD_KINDS = COMMENT_KINDS | {RustTokenKind.WHITESPACE, RustTokenKind.SHEBANG}
+
+
+def significant_tokens(tokens: tuple[RustToken, ...]) -> list[RustToken]:
+    """The code tokens, each attribute standing for everything inside it."""
+    kept: list[RustToken] = []
+    inside = 0
+    for token in tokens:
+        if token.span.start < inside or token.kind in UNREAD_KINDS:
+            continue
+        kept.append(token)
+        if token.kind in ATTRIBUTE_KINDS:
+            inside = token.span.end
+    return kept
+
+
 @dataclass(frozen=True)
 class RustScan:
     """The source text, its complete region partition and its ordered tokens."""
@@ -154,21 +171,24 @@ class RustScan:
 
 @dataclass(frozen=True)
 class DetachedRun:
-    """A documentation run the place model cannot hold, and its would-be owner."""
+    """A documentation run the place model cannot hold, and its would-be owner.
+
+    `owner` is a declaration index, or None for the module.
+    """
 
     span: SourceSpan
-    owner: int
+    owner: int | None
 
     def __post_init__(self) -> None:
-        """Require a SourceSpan and a nonnegative declaration index."""
+        """Require a SourceSpan and a nonnegative declaration index or None."""
         if not isinstance(self.span, SourceSpan):
             raise ValueError("detached span must be a SourceSpan")
-        if (
+        if self.owner is not None and (
             not isinstance(self.owner, int)
             or isinstance(self.owner, bool)
             or self.owner < 0
         ):
-            raise ValueError("detached owner must be a nonnegative integer")
+            raise ValueError("detached owner must be a nonnegative integer or None")
 
 
 @dataclass(frozen=True)
@@ -188,7 +208,10 @@ class RustPlacement:
         _tuple(self.declarations, SourceDeclaration, "declarations")
         _insertions(self.insertions, len(self.declarations))
         _tuple(self.detached, DetachedRun, "detached")
-        if any(run.owner >= len(self.declarations) for run in self.detached):
+        if any(
+            run.owner is not None and run.owner >= len(self.declarations)
+            for run in self.detached
+        ):
             raise ValueError("detached owner must index declarations")
 
 
@@ -211,9 +234,8 @@ class RustDocumentation:
     Each section's form is a RustSectionForm value. `owners` links each
     OUTER_DOC and INNER_DOC section to its declaration, None for the module.
     `placement` carries the module insertion line and the detached runs.
-    Each warning marks one COMMENT section that is detached documentation:
-    every detached run has one, and so does a second inner doc run for the
-    module, which no DetachedRun can name.
+    Each warning marks one COMMENT section that is detached documentation,
+    and the warnings align one-to-one, in order, with `placement.detached`.
     """
 
     sections: tuple[SourceSection, ...]
@@ -255,7 +277,6 @@ class RustDocumentation:
             for section in self.sections
             if section.form == RustSectionForm.COMMENT
         }
-        warned = [warning.span for warning in self.warnings]
         for warning in self.warnings:
             if (
                 warning.code != DETACHED_DOCUMENTATION
@@ -264,8 +285,10 @@ class RustDocumentation:
                 raise ValueError("warnings must be detached-documentation place notes")
             if warning.span not in comments:
                 raise ValueError("a warning must mark a comment section")
-        if any(run.span not in warned for run in self.placement.detached):
-            raise ValueError("every detached run must have a warning")
+        if [warning.span for warning in self.warnings] != [
+            run.span for run in self.placement.detached
+        ]:
+            raise ValueError("warnings must align, in order, with detached runs")
 
 
 @dataclass(frozen=True)
