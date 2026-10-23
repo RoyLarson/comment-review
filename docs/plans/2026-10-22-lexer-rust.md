@@ -3,7 +3,7 @@
 ```
 Status:   in-progress
 Progress: 6 of 6 TODO tasks closed
-Plan-tasks: 10 of 13 plan tasks closed
+Plan-tasks: 11 of 13 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-22 (founded by move-t from 2026-10-11-lexical-readers)
@@ -88,7 +88,8 @@ reader.
       Rust preservation on both comparison paths
         > 2026-10-22 Check: test_lexical_preservation -k rust
         > 2026-10-22 Check: each mutation fixture fails; each prose change passes
-- [ ] P10 | Print detached-documentation warnings from gather
+- [x] P10 | gather prints one stderr warning line per detached run, exit code and binder unchanged; detached documentation defined in docs/vocabulary.md (toml move filed as stage-two-detached-warnings T2) | f696f274 | Print
+      detached-documentation warnings from gather
         > 2026-10-22 Spec: O3 and O5, approved 2026-10-22; exit code unchanged
         > 2026-10-22 Check: test_gather_command -k detached
         > 2026-10-22 Check: check_vocabulary.py exits 0 with the new term

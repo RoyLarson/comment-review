@@ -28,4 +28,4 @@
 | [2026-10-11-lexical-readers](2026-10-11-lexical-readers.md) | decision-needed | 40/162 | 11/53 |
 | [2026-10-11-lexical-reading-context](2026-10-11-lexical-reading-context.md) | closed | 23/23 | 26/26 |
 | [2026-10-11-lexical-source-contract](2026-10-11-lexical-source-contract.md) | closed | 3/3 | 14/14 |
-| [2026-10-22-lexer-rust](2026-10-22-lexer-rust.md) | in-progress | 6/6 | 10/13 |
+| [2026-10-22-lexer-rust](2026-10-22-lexer-rust.md) | in-progress | 6/6 | 11/13 |
