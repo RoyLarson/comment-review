@@ -16,7 +16,6 @@ outer_doc_block = "/**"
 inner_doc_block = "/*!"
 nests = true
 empty_block_comment = "/**/"
-sections = "same-form-across-blanks"
 
 [rules.literals]
 string_quote = '"'
@@ -58,10 +57,6 @@ separator = ","
 
 [rules.documentation]
 owners = ["module", "item", "associated-item", "field", "variant", "nested-item"]
-position = "above-head"
-added_outer = "///"
-added_inner = "//!"
-detached = "ordinary-comment-with-warning"
 delimited_decoration = "*"
 
 [rules.directives]

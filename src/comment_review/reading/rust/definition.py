@@ -119,7 +119,6 @@ def _grammar(rules: Mapping[str, object]) -> None:
             "inner_doc_block": "/*!",
             "nests": True,
             "empty_block_comment": "/**/",
-            "sections": "same-form-across-blanks",
         },
     )
     _section(
@@ -193,10 +192,6 @@ def _grammar(rules: Mapping[str, object]) -> None:
         rules,
         "documentation",
         {
-            "position": "above-head",
-            "added_outer": "///",
-            "added_inner": "//!",
-            "detached": "ordinary-comment-with-warning",
             "delimited_decoration": "*",
         },
         {"owners": _owners},
