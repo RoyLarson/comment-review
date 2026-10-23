@@ -579,6 +579,23 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   attribute line, and a doc between an attribute and its item is detached documentation under
   `#29`.
 
+- **#31.** **A place holds one paragraph, so comment sections of different forms that share a
+  place join into one** (Roy, 2026-10-23, asked whether a detached Rust doc and the ordinary
+  comment beside it in one gap -- `/// My function to do things` above `// I made this up` above
+  the item -- should join into one paragraph or stay apart, which the galley cannot place).
+
+  *"Yes the detached docs get a b1 place and the warning. There is not a good way to know how to
+  interleave them after they have been modified if there are multiple b types per place (at
+  least without added another layer to the system)"*
+
+  **What it settles.** The place, not the comment's written form, decides the paragraph. Sections
+  that fall in one place are one paragraph there. It keeps the `detached-documentation`
+  annotation and the warning when any part of it is detached. A doc attached to its owner has its
+  own `a` place and never shares one. The Rust spec's sentence that the forms "never merge into
+  one paragraph" holds only where each form has a place of its own. Measured the same day over
+  the 312 crates in the local Cargo registry: 257 sites in 76 crates put an ordinary `//` line
+  directly after a doc line (a line-based count, not string-aware).
+
 ## Vocabulary
 
 - **#1.** **The metaphor is EDITORIAL, and a new term is checked against the register BEFORE it is
