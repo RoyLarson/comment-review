@@ -65,6 +65,7 @@ class _Grammar:
     arrow: str
     terminator: str
     separator: str
+    assignment: str
     # The owner kinds that take documentation.
     owners: frozenset[str]
 
@@ -96,6 +97,7 @@ class _Grammar:
             cast(str, rules["arrow"]),
             cast(str, rules["terminator"]),
             cast(str, rules["separator"]),
+            cast(str, rules["assignment"]),
             frozenset(cast(tuple[str, ...], documentation["owners"])),
         )
 
@@ -126,6 +128,9 @@ class _Frame:
     member: int = -1
     # How many generic argument lists are open in the current member or item head.
     generics: int = 0
+    # Whether the current member's own `=` was read: in its discriminant or
+    # default value, `<` and `>` are operators and open no argument list.
+    value: bool = False
 
 
 @dataclass(frozen=True)
@@ -224,7 +229,13 @@ class _Placer:
             and not frame.generics
         ):
             frame.start = True
-        elif frame.body in MEMBER_BODIES or self._heading():
+            frame.value = False
+        elif frame.body in MEMBER_BODIES:
+            if spelling == self.grammar.assignment and not frame.generics:
+                frame.value = True
+            elif not frame.value:
+                self._generics(at, frame)
+        elif self._heading():
             self._generics(at, frame)
         return at + 1
 

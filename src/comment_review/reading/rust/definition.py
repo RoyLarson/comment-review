@@ -186,6 +186,7 @@ def _grammar(rules: Mapping[str, object]) -> None:
             "arrow": "->",
             "terminator": ";",
             "separator": ",",
+            "assignment": "=",
         },
     )
     _section(

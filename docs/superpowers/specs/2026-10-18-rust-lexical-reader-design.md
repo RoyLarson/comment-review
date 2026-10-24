@@ -321,6 +321,7 @@ generics_close = ">"
 arrow = "->"
 terminator = ";"
 separator = ","
+assignment = "="
 
 [rules.documentation]
 owners = ["module", "item", "associated-item", "field", "variant", "nested-item"]

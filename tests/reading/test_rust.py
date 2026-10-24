@@ -1125,6 +1125,32 @@ def test_owners_separators_inside_generic_arguments_are_not_members(rust_definit
 
 
 @pytest.mark.parametrize(
+    ("text", "kind"),
+    [
+        ("enum E {\n    A = 1 << 0,\n    B = 1 << 1,\n    C,\n}\n", "variant"),
+        ("enum E {\n    A = 2 >> 1,\n    B = 1 < 2,\n    C,\n}\n", "variant"),
+        ("struct S {\n    a: Vec<u8> = 1 << 0,\n    b: u8,\n    c: u8,\n}\n", "field"),
+    ],
+    ids=["shift", "closer-then-opener", "default-value"],
+)
+def test_owners_angles_after_a_members_value_are_operators(rust_definition, text, kind):
+    assert placed(text, rust_definition) == [
+        ("item", 1),
+        (kind, 2),
+        (kind, 3),
+        (kind, 4),
+    ]
+
+
+def test_owners_an_equals_inside_generic_arguments_is_not_a_value(rust_definition):
+    text = (
+        "struct S {\n    a: Box<dyn Iterator<Item = u8>>,\n"
+        "    b: HashMap<\n        u8,\n        u8,\n    >,\n}\n"
+    )
+    assert placed(text, rust_definition) == [("item", 1), ("field", 2), ("field", 3)]
+
+
+@pytest.mark.parametrize(
     ("text", "member"),
     [
         ("struct S<F: Fn() -> (u8)> {\n    x: F,\n}\n", ("field", 2)),
