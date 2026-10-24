@@ -171,7 +171,7 @@ def _grammar(rules: Mapping[str, object]) -> None:
                 "extern",
                 "macro_rules!",
             ),
-            "contextual": ("union", "auto", "safe", "default", "macro_rules!"),
+            "contextual": ("union", "macro_rules!"),
             "item_containers": ("mod", "impl", "trait", "extern"),
             "member_lists": ("struct", "union"),
             "variant_lists": ("enum",),

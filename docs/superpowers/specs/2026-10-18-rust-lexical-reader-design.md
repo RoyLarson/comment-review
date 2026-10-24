@@ -95,8 +95,10 @@ An item starts at an optional visibility (`pub`, `pub(crate)`, `pub(super)`,
 order (`default`, `const`, `async`, `unsafe`, `safe`, `extern` with an optional
 ABI string, `auto`), then a keyword from the definition's list. `const` and
 `extern` are a qualifier when an item keyword follows them and the keyword
-otherwise; `union`, `auto`, `safe`, `default` and `macro_rules` are contextual
-and count only where an item can begin, as the Reference states. A field or
+otherwise; `union` and `macro_rules` are contextual keywords and count only
+where a name follows them, as the Reference states. `auto`, `safe` and
+`default` are contextual too, and need no rule of their own: as qualifiers
+they count only where an item follows. A field or
 variant is the first token of each comma-separated member at the list's own
 depth. The tokens between members are never parsed: the reader needs only
 where each member begins.
@@ -306,7 +308,7 @@ visibility = "pub"
 visibility_scopes = ["crate", "super", "self", "in"]
 qualifiers = ["default", "const", "async", "unsafe", "safe", "extern", "auto"]
 keywords = ["fn", "struct", "enum", "union", "trait", "impl", "mod", "type", "const", "static", "use", "extern", "macro_rules!"]
-contextual = ["union", "auto", "safe", "default", "macro_rules!"]
+contextual = ["union", "macro_rules!"]
 item_containers = ["mod", "impl", "trait", "extern"]
 member_lists = ["struct", "union"]
 variant_lists = ["enum"]
