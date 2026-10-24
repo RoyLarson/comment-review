@@ -33,6 +33,7 @@ no recorded approval, and smaller items.
         > 2026-10-23 insert <= line in documentable, page.py:606, not under O1-O5
 - [ ] T4 | Remove the quadratic slices in projection and documentation
         > 2026-10-23 4000 items: 5.9 s; tables.rs 132 s (projection.py:469)
+        > 2026-10-23 Also _body_opener: an inner doc in a field's const block
 - [ ] T5 | Delete the unread contextual entries auto, safe, default
         > 2026-10-23 contextual is read for keywords only (structure.py:356)
 - [ ] T6 | Give a spaced outer attribute its owner's a place
