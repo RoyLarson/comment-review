@@ -190,8 +190,8 @@ line, which is above the attributes, per the
 before attributes." It is written as `///` lines ("Prefer line comments (`///`)
 to block comments"). An added `a0` is written as `//!` lines and is set where the
 page sets `a0`: after the front matter, before the first line of code
-(`decision-log.md Addressing: #30`). A file-level inner doc with code before it
-cannot be held there and is detached (`#32`), so the module entry of the
+(`decision-log.md Addressing: #30`). A file-level inner doc after an inner
+attribute cannot be held there and is detached (`#32`), so the module entry of the
 declarations the read hands the page carries no position the page reads. Every
 other owner inserts at its head's first line; an `add` at the empty `a` of an
 owner with a body inner doc sets `///` lines above its head, and the inner doc
@@ -205,7 +205,9 @@ Permitted layouts attach in Rust and are not held by the `a`:
 - an outer doc run that trails code on its line;
 - a second doc run for one owner, the module included;
 - every inner doc inside a body (`#33`);
-- a file-level inner doc with code before it, such as an inner attribute;
+- a file-level inner doc after an inner attribute at the head of the file (an
+  inner doc after an item is refused by the compiler, and the reader reads it as
+  an ordinary comment with no warning);
 - a file-level `//!` behind an ordinary comment that is not front matter.
 
 Each such run is read as an ordinary comment at the place its position gives
