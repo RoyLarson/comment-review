@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (129)
+### open  (128)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -310,7 +310,6 @@ that changed a published name or rule:
 | [stage-two-detached-warnings](stage-two-detached-warnings.md) | agents | -- | 0/2 | Ask the human about each detached-documentation warning at stage 2 |
 | [drop-path-second-rust-comment-grammar](drop-path-second-rust-comment-grammar.md) | backend | -- | 0/1 | The drop path splits Rust comments with a second Rust comment grammar |
 | [module-insertion-slot-unread](module-insertion-slot-unread.md) | backend | yes | 0/2 | Remove the module insertion slot no page reads |
-| [rust-reader-findings](rust-reader-findings.md) | backend | -- | 7/8 | Rust reader findings from the pre-merge review |
 
 ### in-progress  (17)
 
@@ -513,3 +512,4 @@ the reason is inside the file.
 | [2026-10-12-python-reader-vocabulary](completed/2026-10-12-python-reader-vocabulary.md) | 1 finished |
 | [python-cannot-read-python](completed/python-cannot-read-python.md) | 48 finished, 8 superseded |
 | [a-block-is-a-paragraph-on-a-page](completed/a-block-is-a-paragraph-on-a-page.md) | 3 finished, 8 superseded |
+| [rust-reader-findings](completed/rust-reader-findings.md) | 6 finished, 2 superseded |
