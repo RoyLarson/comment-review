@@ -152,8 +152,9 @@ class Page:
             `f0 -> d0`. An absent key means nothing blank follows that place,
             which is what most boundaries do.
         warnings: what the read noted without refusing the file, one per
-            noted place. `serialize` does not write them: a binder carries
-            only the five fields of `WIRE_FIELDS` per place.
+            warning the read gave, each at the place whose lines hold it; two
+            warnings may share a place. `serialize` does not write them: a
+            binder carries only the five fields of `WIRE_FIELDS` per place.
     """
 
     path: str
