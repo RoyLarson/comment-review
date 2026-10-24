@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 2 of 8 tasks closed
+Progress: 3 of 8 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-23 (pre-merge code review of feat/lexer-rust, 2026-10-23)
@@ -23,7 +23,8 @@ no recorded approval, and smaller items.
 
 ## Tasks
 
-- [ ] T1 | Reset the generic depth at a variant separator in structure.py
+- [x] T1 | FINISHED: angles after a member's own = are operators, the simple rule Roy chose 2026-10-24 | 5d877cab | Reset
+      the generic depth at a variant separator in structure.py
         > 2026-10-23 A = 1 << 0, drops every later variant's a (structure.py:221-248)
 - [x] T2 | FINISHED: every inner doc in a body is detached at its b place under decision-log.md Addressing: #33 | a8672b0d | Detach
       an inner doc after an inner attribute in a body
