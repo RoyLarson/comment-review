@@ -360,8 +360,7 @@ def declarations_for(read: RustRead) -> list[tuple[int, int, bool]]:
     Rust documentation goes above its insertion line, so every entry is above.
     The module's entry is `(0, 1, True)`: the page reads it as the presence
     of an `a0`, which it sets at the file head. A declaration's insertion is
-    its anchor line, or the first line of the inner doc that documents it
-    inside its body.
+    its anchor line.
     """
     source = read.source
     return [

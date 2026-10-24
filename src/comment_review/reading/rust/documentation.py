@@ -70,27 +70,27 @@ def documentation_in(
 
     An outer doc section that ends on a line above an owner's head, with only
     whitespace between them, documents that owner. An inner doc section
-    documents the module when nothing but opening matter precedes it, or the
-    owner whose body it opens: the first comment in that body. Either is
-    on lines of its own: no other comment shares its first or last line. The
-    kinds documentation attaches to are `[rules.documentation].owners`.
+    documents the module when nothing but opening matter precedes it. Either
+    is on lines of its own: no other comment shares its first or last line.
+    The kinds documentation attaches to are `[rules.documentation].owners`.
 
     Documentation that Rust attaches to an owner but no `a` place can hold is
     detached: a run behind an ordinary comment, outside the owner or in its
     body, a run between an attribute and the item, a run on the head's own
     line, a run that trails code on its line, a run sharing a line with
-    another comment, a module doc with an inner attribute before it, or a
-    second run for one owner, the module included. A detached run is a
-    COMMENT section with a DetachedRun and a warning. Every other doc section
-    that documents nothing is a COMMENT section.
+    another comment, a module doc with an inner attribute before it, a
+    second run for one owner, the module included, and every inner doc
+    inside a body, which is detached from the innermost owner whose body
+    holds it. A detached run is a COMMENT section with a DetachedRun and a
+    warning. Every other doc section that documents nothing is a COMMENT
+    section.
 
     The file's opening matter is the comments `opening_end` bounds: every
     section starting in it is MATTER, up to the first section documenting an
     owner, which ends the matter. The module's inner doc is detached when
     code or a comment outside the opening matter precedes it; the page sets
-    `a0` at the file head, so `insertions[0]` stays 1. An owner documented by
-    an inner doc inserts at that doc's first line, inside its body; every
-    other owner inserts at its head's first line.
+    `a0` at the file head, so `insertions[0]` stays 1. Every other owner
+    inserts at its head's first line.
     """
     failure = validate_rust(definition)
     if failure is not None:
@@ -129,7 +129,9 @@ class _Assigner:
         self.heads = [
             declaration.header.start for declaration in placement.declarations
         ]
-        self.bodies = [self._item_start(d) for d in placement.declarations]
+        self.item_starts = [self._item_start(d) for d in placement.declarations]
+        # Each owner's body span as `_body` finds it, filled as `_holder` asks.
+        self.body_spans: dict[int, tuple[int, int] | None] = {}
         self.runs = _runs(scan.tokens, self.coordinates)
         self.forms = [run.written for run in self.runs]
         self.links: dict[int, int | None] = {}
@@ -170,22 +172,9 @@ class _Assigner:
             DocumentationOwner(section_of[index], declaration)
             for index, declaration in sorted(self.links.items())
         )
-        # An owner documented by an inner doc is documented inside its body, so
-        # its insertion is the inner doc's first line rather than its head's.
-        inner = {
-            owner: self._line(self.runs[index].span.start)
-            for index, owner in self.links.items()
-            if owner is not None and self.forms[index] is RustSectionForm.INNER_DOC
-        }
         placement = RustPlacement(
             self.placement.declarations,
-            (
-                self.placement.insertions[0],
-                *(
-                    inner.get(owner, line)
-                    for owner, line in enumerate(self.placement.insertions[1:])
-                ),
-            ),
+            self.placement.insertions,
             tuple(self.detached),
         )
         return RustDocumentation(sections, owners, placement, tuple(self.warnings))
@@ -252,13 +241,13 @@ class _Assigner:
                 self._detach(index, run, owner)
             return
         owner = bisect_right(self.heads, start) - 1
-        if owner >= 0 and start <= self.bodies[owner]:
+        if owner >= 0 and start <= self.item_starts[owner]:
             self._detach(index, run, owner)
             return
         self.forms[index] = RustSectionForm.COMMENT
 
     def _inner(self, index: int, run: _Run) -> None:
-        """Attach a run to the module or to the owner whose body it opens."""
+        """Attach a run to the module, or detach one inside an owner's body."""
         before = bisect_left(self.starts, run.span.start) - 1
         # Code before the run -- an inner attribute -- keeps it from `a0`,
         # which the page sets at the file head.
@@ -281,21 +270,13 @@ class _Assigner:
             else:
                 self._attach(index, run, None)
             return
-        owner = self._opened_by(before)
+        # Inside a body an inner doc documents no owner: it stays at the place
+        # its position gives it, detached from the owner whose body holds it.
+        owner = self._holder(run.span.start)
         if owner is None:
             self.forms[index] = RustSectionForm.COMMENT
-            return
-        # The run documents the owner only when it opens the body: nothing but
-        # whitespace between the body's opening delimiter and the run, and the
-        # run on a line of its own. Behind another comment, or on the head's
-        # line, it is detached.
-        behind = (
-            index > 0 and self.runs[index - 1].span.start > self.code[before].span.start
-        )
-        if run.trailing or behind:
-            self._detach(index, run, owner)
         else:
-            self._attach(index, run, owner)
+            self._detach(index, run, owner)
 
     def _attach(self, index: int, run: _Run, owner: int | None) -> None:
         """Link the run to its owner, or detach it.
@@ -327,33 +308,43 @@ class _Assigner:
             )
         )
 
-    def _opened_by(self, at: int) -> int | None:
-        """The owner whose body the delimiter `self.code[at]` opens, or None.
+    def _holder(self, offset: int) -> int | None:
+        """The innermost owner whose body holds `offset`, or None at file level.
 
         An item's body is the first `body_open` outside any other delimiter
-        after its keyword, unless a terminator ends the item first.
+        after its keyword, unless a terminator ends the item first, and it runs
+        to the delimiter that closes it.
         """
-        opener = self.code[at]
-        if opener.kind is not RustTokenKind.OPEN or self._spelled(opener) != (
-            self.body_open
-        ):
-            return None
-        owner = bisect_left(self.heads, opener.span.start) - 1
-        if owner < 0:
-            return None
+        owner = bisect_right(self.heads, offset) - 1
+        while owner >= 0:
+            if owner not in self.body_spans:
+                self.body_spans[owner] = self._body(owner)
+            body = self.body_spans[owner]
+            if body is not None and body[0] < offset < body[1]:
+                return owner
+            owner -= 1
+        return None
+
+    def _body(self, owner: int) -> tuple[int, int] | None:
+        """Where the owner's body opens and closes, or None for one with none."""
         depth = 0
-        for index in range(bisect_left(self.starts, self.bodies[owner]), at + 1):
+        opened = None
+        for index in range(
+            bisect_left(self.starts, self.item_starts[owner]), len(self.code)
+        ):
             token = self.code[index]
             spelling = self._spelled(token)
             if token.kind is RustTokenKind.OPEN:
-                if not depth and spelling == self.body_open:
-                    return owner if index == at else None
+                if opened is None and not depth and spelling == self.body_open:
+                    opened = token.span.start
                 depth += 1
             elif token.kind is RustTokenKind.CLOSE:
                 depth -= 1
                 if depth < 0:
                     return None
-            elif not depth and spelling == self.terminator:
+                if opened is not None and not depth:
+                    return opened, token.span.end
+            elif opened is None and not depth and spelling == self.terminator:
                 return None
         return None
 

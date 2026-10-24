@@ -169,12 +169,20 @@ owner (before `}`, before a statement, at EOF) attaches to nothing and is
 classified as an ordinary comment section, which is what
 `lexer-and-language-findings` T27's check expects.
 
-An inner doc section documents its parent. At the head of a file that is the
-file's `a0`; inside an inline module body it is that module's place, and it
-documents the owner only when it is the first comment in the body, on a line of
-its own. Rust lets inner attributes (`#![...]`) and inner doc comments
-interleave there; the place model holds only an inner doc that comes before
-them, and a later one is detached.
+An inner doc section at the head of a file is the file's `a0`. Rust lets inner
+attributes (`#![...]`) and inner doc comments interleave there; the place model
+holds only an inner doc that comes before them, and a later one is detached.
+
+An inner doc inside a body -- an inline module, function, impl, trait or block
+-- documents no owner (`decision-log.md Addressing: #33`). It is an ordinary
+comment at the `b` place its position gives it, or the `c` place when it trails
+code, annotated `detached-documentation`, with one warning whose owner is the
+innermost item whose body holds it. The owner's `a` stays empty, and under
+`#31` the inner doc shares one paragraph with any comment in the same place.
+Documentation is held at an `a` only where Rust normally puts it, above the
+item, and the roles correct a comment whose kind is ambiguous. Roy expects to
+revisit this if another language's reader meets documentation held inside the
+body it documents.
 
 **Placement of a doc the run adds.** An added doc lands above the head's first
 line, which is above the attributes, per the
@@ -184,9 +192,10 @@ to block comments"). An added `a0` is written as `//!` lines and is set where th
 page sets `a0`: after the front matter, before the first line of code
 (`decision-log.md Addressing: #30`). A file-level inner doc with code before it
 cannot be held there and is detached (`#32`), so the module entry of the
-declarations the read hands the page carries no position the page reads. An
-owner documented by an inner doc inserts at that doc's first line, inside its
-body.
+declarations the read hands the page carries no position the page reads. Every
+other owner inserts at its head's first line; an `add` at the empty `a` of an
+owner with a body inner doc sets `///` lines above its head, and the inner doc
+stays detached in its body.
 
 **Documentation a place cannot hold.** `decision-log.md Addressing: #29`.
 Permitted layouts attach in Rust and are not held by the `a`:
@@ -195,8 +204,7 @@ Permitted layouts attach in Rust and are not held by the `a`:
 - an outer doc run between an attribute and the item, or on the head's own line;
 - an outer doc run that trails code on its line;
 - a second doc run for one owner, the module included;
-- an inner doc that does not come first in its body;
-- an inner doc with code before it on its line;
+- every inner doc inside a body (`#33`);
 - a file-level inner doc with code before it, such as an inner attribute;
 - a file-level `//!` behind an ordinary comment that is not front matter.
 
@@ -367,10 +375,12 @@ one insertion per declaration plus the module, warnings inside the text.
   raw lines. A detached run is `COMMENT` or `TRAILING` with the
   `detached-documentation` annotation.
 - `code_for` gives line number -> the code on that line.
-- `declarations_for` gives `(0, module insertion line, True)`, then
-  `(head first line, head first line, True)` per owner with a place. `above`
-  is `True` for every entry: the doc goes above the line, and `documentable`
-  (`binder/page.py:555`) already handles that side.
+- `declarations_for` gives `(0, 1, True)` for the module, then
+  `(head first line, head first line, True)` per owner with a place: every
+  declaration's insertion is its anchor line, an owner with a body inner doc
+  included (`decision-log.md Addressing: #33`). `above` is `True` for every
+  entry: the doc goes above the line, and `documentable`
+  (`binder/page.py:568`) handles that side unchanged.
 
 `preservation.py` compares the two reads' code as logical lines with every
 prose comment removed and each removal kept as a fragment boundary, so
@@ -486,7 +496,7 @@ passing, or superseded case by case where they assert the old row's behavior.
 | Heads | Single and multi-line attributes, attributes holding strings with `]`, and an attribute on the item's own line give the head's first line; attributes on a `let`, a match arm and a parameter create no place; an unclosed `#[` refuses with a location |
 | Attachment | Doc above multi-line attributes and across blank lines attaches; a doc before `}` or EOF is an ordinary comment |
 | Placement | An added doc sets above the first attribute as `///`; an added `a0` sets after the shebang and matter as `//!` |
-| Detached docs | A doc behind an ordinary comment, a doc between attribute and item, a second doc run, an inner doc that does not come first in its body, an inner doc with code before it on its line, and a file-level `//!` behind an ordinary comment that is not front matter read as annotated ordinary comments with a warning and exit 0; gather prints one `warning:` line per run, two lines for two runs at one place; sections of different forms in one place make one paragraph that keeps the annotation; moving one to the `a` passes both comparisons |
+| Detached docs | A doc behind an ordinary comment, a doc between attribute and item, a second doc run, an inner doc inside a body (`#33`), and a file-level `//!` behind an ordinary comment that is not front matter read as annotated ordinary comments with a warning and exit 0; gather prints one `warning:` line per run, two lines for two runs at one place; sections of different forms in one place make one paragraph that keeps the annotation; moving one to the `a` passes both comparisons |
 | Matter | An opening `// Copyright` run is `f0` matter with an empty `a1`; a closing run follows the Python closing rule whatever its form; a delimited comment followed by code on its line is code |
 | Directives | The shebang is `f0` matter and an opening run directly below it joins it; `#![` at the head is code |
 | Macros | `fn` inside a `macro_rules!` body creates no place |

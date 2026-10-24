@@ -1157,34 +1157,55 @@ def test_codeless_matter_below_line_one_is_back_matter(name):
     assert set_page(page) == text
 
 
+RUST_SHAPES = (
+    "mod shapes {\n"
+    "    //! Shapes on the board.\n"
+    "\n"
+    "    fn area() -> i32 {\n"
+    "        4\n"
+    "    }\n"
+    "}\n"
+)
+
+#: An inner doc inside a body, as `(text, its b place, that place's raw lines)`.
+#: Each is an ordinary comment in the gap it sits in, warned for `a1`, the item
+#: on line 1 whose body holds it.
 RUST_INNER_DOCS = {
-    "fn": "fn f() {\n    //! inner\n}\n",
-    "mod": "mod m {\n    //! doc\n    fn g() {}\n}\n",
+    "mod": (RUST_SHAPES, "b1", ["    //! Shapes on the board."]),
+    "fn": ("fn f() {\n    //! inner\n}\n", "b1", ["    //! inner"]),
+    "impl": ("impl S {\n    //! inner\n    fn g() {}\n}\n", "b1", ["    //! inner"]),
+    "after an inner attribute": (
+        "mod m {\n    #![allow(x)]\n    //! late\n    fn f() {}\n}\n",
+        "b2",
+        ["    //! late"],
+    ),
 }
 
 
 @pytest.mark.parametrize("kind", sorted(RUST_INNER_DOCS))
-def test_rust_page_inner_doc_in_a_body_round_trips(kind):
+def test_rust_page_inner_doc_in_a_body_is_detached_at_its_b_place(kind):
     from comment_review.results.compositor import set_page
 
-    text = RUST_INNER_DOCS[kind]
+    text, place, raw = RUST_INNER_DOCS[kind]
     page = build(text, "m.rs")
-    assert page.read.declarations()[1] == (1, 2, True)
-    assert _places(page)["a1"][0] == "docstring"
+    places = by_cue(page)
+    assert (places[place].kind, places[place].raw_lines) == ("comment", raw)
+    assert places[place].annotations == {"detached-documentation"}
+    assert [(w.cue, w.owner) for w in page.warnings] == [(place, "a1")]
+    assert places["a1"].kind == "undocumented"
+    assert page.read.declarations()[1] == (1, 1, True)
     assert set_page(page) == text
 
 
-@pytest.mark.parametrize("kind", sorted(RUST_INNER_DOCS))
-def test_rust_page_reworded_inner_doc_is_set_in_place(kind):
+def test_rust_page_added_doc_on_a_module_with_a_body_inner_doc_is_set_above_it():
     from comment_review.results.compositor import set_page
     from comment_review.results.galley import reset
 
-    text = RUST_INNER_DOCS[kind]
-    page = build(text, "m.rs")
-    original = by_cue(page)["a1"].raw_lines[0]
-    reworded = original.replace(original.split("//! ")[1], "Reworded.")
-    reset(page, {"a1": reworded})
-    assert set_page(page) == text.replace(original, reworded)
+    page = build(RUST_SHAPES, "m.rs")
+    reset(page, {"a1": "/// Added."})
+    out = set_page(page)
+    assert out == "/// Added.\n" + RUST_SHAPES
+    assert [(w.cue, w.owner) for w in build(out, "m.rs").warnings] == [("b1", "a1")]
 
 
 #: An inner doc that is not first in its body, or shares its head's line, is
@@ -1229,18 +1250,19 @@ def test_rust_page_inner_doc_not_first_in_its_body_is_detached(case):
     assert set_page(page) == text
 
 
-def test_rust_page_inner_doc_first_in_its_body_keeps_its_a():
+def test_rust_page_inner_doc_first_in_its_body_shares_the_gap_with_a_comment():
     from comment_review.results.compositor import set_page
 
     text = "fn f() {\n    //! first\n    // after\n    let x = 1;\n}\n"
     page = build(text, "m.rs")
     places = by_cue(page)
-    assert (places["a1"].kind, places["a1"].raw_lines) == (
-        "docstring",
-        ["    //! first"],
+    assert places["a1"].kind == "undocumented"
+    assert (places["b1"].kind, places["b1"].raw_lines) == (
+        "comment",
+        ["    //! first", "    // after"],
     )
-    assert (places["b1"].kind, places["b1"].raw_lines) == ("comment", ["    // after"])
-    assert page.warnings == ()
+    assert "detached-documentation" in places["b1"].annotations
+    assert [(w.cue, w.owner) for w in page.warnings] == [("b1", "a1")]
     assert set_page(page) == text
 
 

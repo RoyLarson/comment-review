@@ -603,15 +603,13 @@ def documentable(
     for line, insert, above in decls[1:]:
         if line not in at:
             continue
-        if above and insert <= line:
+        if above:
             # ! ABOVE THE DECLARING LINE, which is that line's own place: the doc
             # is set after the gap and before the code.
             out[at[line]] = (insert, at[line], ON)
             continue
         # ! INSIDE THE DECLARATION -- so it is set after whatever code the
-        # declaration spans, before the gap that introduces the body. A doc
-        # above an insertion line below the declaring line -- a Rust inner doc
-        # opening the body -- is inside too. A wrapped
+        # declaration spans, before the gap that introduces the body. A wrapped
         # signature moves that several code lines down, which is why the LINE is
         # what the parser states and the ordinal is worked out here.
         follows = [n for n in ordered if n >= insert]

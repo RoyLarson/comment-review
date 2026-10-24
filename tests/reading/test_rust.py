@@ -1461,12 +1461,31 @@ def test_detached_inner_doc_after_an_inner_attribute(rust_definition):
     assert result.placement.insertions == (1, 3)
 
 
-def test_attachment_inner_doc_in_an_inline_module_documents_it(rust_definition):
-    text = "mod x {\n    //! Inner.\n    fn g() {}\n}\n"
+@pytest.mark.parametrize(
+    ("text", "doc", "doc_line"),
+    [
+        ("mod x {\n    //! Inner.\n    fn g() {}\n}\n", "//! Inner.", 2),
+        ("fn f() {\n    //! Inner.\n}\n", "//! Inner.", 2),
+        ("impl S {\n    /*! Inner. */\n    fn g() {}\n}\n", "/*! Inner. */", 2),
+        (
+            "mod x {\n    #![allow(x)]\n    //! Late.\n    fn g() {}\n}\n",
+            "//! Late.",
+            3,
+        ),
+        ("fn f() {\n    let x = 1;\n    //! Mid.\n}\n", "//! Mid.", 3),
+        ("fn f() {\n    if x {\n        //! Deep.\n    }\n}\n", "//! Deep.", 3),
+    ],
+    ids=["mod", "fn", "impl", "after-inner-attribute", "after-a-statement", "block"],
+)
+def test_detached_inner_doc_in_a_body_names_the_item_that_holds_it(
+    rust_definition, text, doc, doc_line
+):
     result = documentation_of(text, rust_definition)
-    assert sections_of(text, result) == [("inner_doc", "//! Inner.")]
-    assert owners_of(text, result) == [("//! Inner.", ("item", 1))]
-    assert result.placement.insertions == (1, 2, 3)
+    assert sections_of(text, result) == [("comment", doc)]
+    assert result.owners == ()
+    assert detached_of(text, result) == ([(doc, 1)], [(doc, [doc_line, 1])])
+    # Every declaration inserts at its anchor line.
+    assert result.placement.insertions[1] == 1
 
 
 def test_attachment_ordinary_comment_above_an_item_is_not_documentation(
@@ -1656,13 +1675,16 @@ def test_matter_ends_at_the_module_doc(rust_definition):
     ]
 
 
-def test_attachment_inner_doc_first_in_its_body_after_a_blank_line(
+def test_detached_inner_doc_first_in_its_body_after_a_blank_line(
     rust_definition,
 ):
     text = "fn f() {\n\n    //! inner\n    // after\n}\n"
     result = documentation_of(text, rust_definition)
-    assert owners_of(text, result) == [("//! inner", ("item", 1))]
-    assert result.placement.detached == ()
+    assert result.owners == ()
+    assert detached_of(text, result) == (
+        [("//! inner", 1)],
+        [("//! inner", [3, 1])],
+    )
 
 
 def test_detached_second_inner_doc_in_an_inline_module(rust_definition):
@@ -2407,22 +2429,26 @@ def test_projection_shebang_line_is_not_code(rust_definition):
     ],
     ids=["fn", "mod"],
 )
-def test_projection_inner_doc_owner_inserts_at_its_inner_doc(
+def test_projection_body_inner_doc_leaves_its_item_inserting_at_its_head(
     rust_definition, text, inner
 ):
-    _, _, declarations = projection_of(text, rust_definition)
-    assert declarations[1] == (1, inner, True)
+    paragraphs, _, declarations = projection_of(text, rust_definition)
+    assert declarations[1] == (1, 1, True)
+    detached = [p for p in paragraphs if p.annotations]
+    assert [(p.start, p.kind, p.annotations) for p in detached] == [
+        (inner, Kind.COMMENT, {"detached-documentation"})
+    ]
 
 
-def test_projection_read_refuses_an_inner_doc_insertion_outside_its_body(
+def test_projection_read_refuses_a_body_inner_doc_line_as_an_insertion(
     rust_definition,
 ):
     from dataclasses import replace
 
     result = rust_read("fn f() {\n    //! inner\n}\n", rust_definition)
-    assert result.insertions == (1, 2)
-    with pytest.raises(ValueError, match="body"):
-        replace(result, insertions=(1, 1))
+    assert result.insertions == (1, 1)
+    with pytest.raises(ValueError, match="anchor line"):
+        replace(result, insertions=(1, 2))
 
 
 def test_projection_read_rust_refuses_an_unterminated_comment(rust_definition):

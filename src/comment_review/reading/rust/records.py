@@ -228,7 +228,7 @@ class RustPlacement:
     `insertions[0]` is the module's entry and is 1: the page reads it as the
     presence of an `a0`, which it sets at the file head. `insertions[i + 1]`
     is the 1-based insertion line of `declarations[i]`: its head's first
-    line, or the first line of the inner doc documenting it.
+    line.
     """
 
     declarations: tuple[SourceDeclaration, ...]
@@ -337,10 +337,9 @@ class RustRead:
     owner is its run's `owner`. `prose` is the scan's prose, one entry per
     COMMENT region, kept because the read holds no tokens. A COMMENT region
     in no section is code. Each declaration's insertion is the line its
-    anchor is on, or, for one documented by an inner doc, that doc's first
-    line inside its body. A documentation section shares no physical line
-    with another section, so an `a` place holds its doc alone; other sections
-    may share a line, and the projection makes them one paragraph.
+    anchor is on. A documentation section shares no physical line with
+    another section, so an `a` place holds its doc alone; other sections may
+    share a line, and the projection makes them one paragraph.
     """
 
     source: SourceStructure
@@ -355,25 +354,10 @@ class RustRead:
         if not isinstance(self.source, SourceStructure):
             raise ValueError("read source must be a SourceStructure")
         _insertions(self.insertions, len(self.source.declarations))
-        inner = {
-            owner.declaration: self.source.sections[owner.section]
-            for owner in self.source.documentation
-            if owner.declaration is not None
-            and self.source.sections[owner.section].form == RustSectionForm.INNER_DOC
-        }
-        for index, (declaration, insertion) in enumerate(
-            zip(self.source.declarations, self.insertions[1:], strict=True)
+        for declaration, insertion in zip(
+            self.source.declarations, self.insertions[1:], strict=True
         ):
-            if index in inner:
-                doc = inner[index].span
-                if doc.start < declaration.header.end or (
-                    self.source.position(doc.start).line != insertion
-                ):
-                    raise ValueError(
-                        "an inner-doc owner's insertion must be its doc's first"
-                        " line, inside its body"
-                    )
-            elif self.source.position(declaration.anchor).line != insertion:
+            if self.source.position(declaration.anchor).line != insertion:
                 raise ValueError("a declaration's insertion must be its anchor line")
         documented = {RustSectionForm.OUTER_DOC, RustSectionForm.INNER_DOC}
         for before, after in pairwise(self.source.sections):
