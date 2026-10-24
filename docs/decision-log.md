@@ -608,6 +608,28 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   was. A misclassified comment is acceptable; a moved one is a defect. The `#![no_std]` case is
   read as detached documentation under `#29`, which leaves it in place.
 
+- **#33.** **A Rust inner doc inside a body is read at its `b` place, detached, and gives no
+  owner an `a`** (Roy, 2026-10-23, shown `mod shapes {` / `//! Shapes on the board.` and asked
+  whether the `//!` is the module's docstring or part of the gap's `b` place).
+
+  *"I feel putting that as the b place is the better answer. It keeps things consistent and
+  makes reseting things easier. I might have to change my mind later if other languages cause
+  similar issues so leave a note somewhere but for now documentation is also only found where
+  it is normal and expected to be found and the agents can fix the comment if it is ambiguous.
+  Also keeping the displaced docs warming allows the task agent to ask the human if an agent
+  want to move the lines"*
+
+  **What it settles.** An inner doc (`//!`, `/*!`) inside an inline module or function body is
+  an ordinary comment at the `b` place its position gives it, annotated
+  `detached-documentation`, with the warning that lets the task agent ask the human before a
+  role moves it. The owner's `a` is empty. A file-level inner doc on the file's first code line
+  is still the file's `a0`. Documentation is held at an `a` only where the language normally
+  puts it, and the roles correct a comment whose kind is ambiguous.
+
+  **Open to revision.** Roy expects to revisit this if another language's reader meets the same
+  shape -- documentation held inside the body it documents -- and the `b` answer stops being
+  consistent across languages.
+
 ## Vocabulary
 
 - **#1.** **The metaphor is EDITORIAL, and a new term is checked against the register BEFORE it is
