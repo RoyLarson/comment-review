@@ -225,8 +225,10 @@ class DetachedRun:
 class RustPlacement:
     """Declarations, their documentation insertion lines, and detached runs.
 
-    `insertions[0]` is the 1-based line for an added module document;
-    `insertions[i + 1]` is the 1-based head-first line of `declarations[i]`.
+    `insertions[0]` is the module's entry and is 1: the page reads it as the
+    presence of an `a0`, which it sets at the file head. `insertions[i + 1]`
+    is the 1-based insertion line of `declarations[i]`: its head's first
+    line, or the first line of the inner doc documenting it.
     """
 
     declarations: tuple[SourceDeclaration, ...]
@@ -263,7 +265,7 @@ class RustDocumentation:
 
     Each section's form is a RustSectionForm value. `owners` links each
     OUTER_DOC and INNER_DOC section to its declaration, None for the module.
-    `placement` carries the module insertion line and the detached runs.
+    `placement` carries the insertion lines and the detached runs.
     Each warning marks one COMMENT or MATTER section that is detached
     documentation, and the warnings align one-to-one, in order, with
     `placement.detached`.
@@ -336,8 +338,9 @@ class RustRead:
     COMMENT region, kept because the read holds no tokens. A COMMENT region
     in no section is code. Each declaration's insertion is the line its
     anchor is on, or, for one documented by an inner doc, that doc's first
-    line inside its body; and no two sections share a physical line, so a page sets
-    at most one paragraph per line.
+    line inside its body. A documentation section shares no physical line
+    with another section, so an `a` place holds its doc alone; other sections
+    may share a line, and the projection makes them one paragraph.
     """
 
     source: SourceStructure
@@ -372,12 +375,15 @@ class RustRead:
                     )
             elif self.source.position(declaration.anchor).line != insertion:
                 raise ValueError("a declaration's insertion must be its anchor line")
+        documented = {RustSectionForm.OUTER_DOC, RustSectionForm.INNER_DOC}
         for before, after in pairwise(self.source.sections):
             if (
                 self.source.position(after.span.start).line
                 <= self.source.position(before.span.end - 1).line
-            ):
-                raise ValueError("no two sections may share a physical line")
+            ) and (before.form in documented or after.form in documented):
+                raise ValueError(
+                    "a documentation section may not share a physical line"
+                )
         _tuple(self.protected, SourceSpan, "protected")
         directives = {
             region.span

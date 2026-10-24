@@ -527,6 +527,7 @@ PROTECTED = "protected-source-changed"
         ('let s = r#"one"#;\n', 'let s = r#"two"#;\n', "code-changed"),
         ('let s = "a\nb";\n', 'let s = "a\r\nb";\n', "code-changed"),
         ('let s = r"a\n\nb";\n', 'let s = r"a\nb";\n', "code-changed"),
+        ('let s = r"a\n   \nb";\n', 'let s = r"a\n\nb";\n', "code-changed"),
         ('let s = "a \nb";\n', 'let s = "a\nb";\n', "code-changed"),
         ("#[cfg(unix)]\nfn f() {}\n", "#[cfg(windows)]\nfn f() {}\n", "code-changed"),
         ("let x = 1;\nlet y = 2;\n", "let x = 1\nlet y = 2;\n", "code-changed"),

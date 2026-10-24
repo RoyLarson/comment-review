@@ -2,11 +2,13 @@
 
 import re
 from bisect import bisect_left, bisect_right
+from collections.abc import Iterable
 from pathlib import Path
 
 from comment_review import constants
 from comment_review.reading.diagnostics import ReadFailure
 from comment_review.reading.paragraph import Paragraph
+from comment_review.reading.rust.documentation import opening_end
 from comment_review.reading.rust.records import (
     DETACHED_DOCUMENTATION,
     RustDocumentation,
@@ -73,8 +75,8 @@ def paragraphs_for(path: Path, read: RustRead) -> list[Paragraph] | ReadFailure:
     last line, so `anchor + raw_lines[0]` is the first line.
 
     The comments after the last code line then follow the end-of-file rule,
-    and a place holds one paragraph: sections that would share one become
-    one paragraph -- see `_one_per_place`.
+    and a place holds one paragraph: sections that would share one, on one
+    line or in one gap, become one paragraph -- see `_one_per_place`.
     """
     source = read.source
     text = source.text
@@ -142,12 +144,16 @@ def _one_per_place(
 
     The opening comments follow the file-head rule first, see
     `_opening_matter`, and the comments after the last code line the
-    end-of-file rule, see `_closing_matter`. Then the COMMENT paragraphs in
-    one gap -- the lines between the same two code lines -- are one COMMENT
-    paragraph there, whatever sits between them: blank lines, or the
-    module's inner doc, whose lines stay its own.
+    end-of-file rule, see `_closing_matter`. Then a paragraph starting on a
+    line the paragraph before it ends on is part of that paragraph, which
+    keeps its kind and anchor: comments sharing a line share its place. Then
+    the COMMENT paragraphs in one gap -- the lines between the same two code
+    lines -- are one COMMENT paragraph there, whatever sits between them:
+    blank lines, or the module's inner doc, whose lines stay its own.
     """
-    paragraphs = _opening_matter(sorted(paragraphs, key=lambda p: p.start), layout)
+    paragraphs = _opening_matter(
+        sorted(paragraphs, key=lambda p: p.start), code, layout
+    )
     paragraphs = _closing_matter(paragraphs, code, layout)
     held = {
         n
@@ -159,6 +165,9 @@ def _one_per_place(
     out: list[Paragraph] = []
     gaps: dict[int, int] = {}
     for paragraph in paragraphs:
+        if out and paragraph.start <= out[-1].end:
+            out[-1] = _combined([out[-1], paragraph], out[-1].kind, layout, held)
+            continue
         if paragraph.kind != Kind.COMMENT:
             out.append(paragraph)
             continue
@@ -174,35 +183,35 @@ def _one_per_place(
     return sorted(out, key=lambda p: p.start)
 
 
-def _opening_matter(paragraphs: list[Paragraph], layout: "_Layout") -> list[Paragraph]:
+def _opening_matter(
+    paragraphs: list[Paragraph], code: set[int], layout: "_Layout"
+) -> list[Paragraph]:
     """Apply the file-head rule to the opening comments.
 
     The MATTER paragraphs here are the shebang and the sections that open
-    the file, which the documentation stage marks; every one starts above
-    the file's first blank line. The ones ending above that blank line are
-    one MATTER paragraph, at the first `f` place; a paragraph that spans the
-    blank line is divided at it, and the part below stays a COMMENT. This is
-    the rule the Python projection applies to its opening run.
+    the file, which the documentation stage marks; every one starts in the
+    opening comments `opening_end` bounds, from the lines holding a prose
+    comment and the lines holding code. The ones ending in them are one
+    MATTER paragraph, at the first `f` place; a paragraph that runs on past
+    them, across a blank line, is divided at the first comment line below
+    it, and the part below stays a COMMENT. This is the rule the Python
+    projection applies to its opening run.
     """
     matter = [p for p in paragraphs if p.kind == Kind.MATTER]
     if not matter:
         return paragraphs
+    first = 1
+    for span in layout.read.protected:
+        first = layout.read.source.position(span.end - 1).line + 1
+    end = opening_end(first, layout.prose_lines(), code)
     covered = layout.comment_lines()
-    blank = next(
-        (
-            n
-            for n in range(matter[0].start, len(layout.physical) + 1)
-            if n not in covered and not layout.physical[n - 1].strip()
-        ),
-        None,
-    )
     kept = [p for p in paragraphs if p.kind != Kind.MATTER]
     parts: list[Paragraph] = []
     for paragraph in matter:
-        if blank is None or paragraph.end < blank:
+        if end is None or paragraph.end <= end:
             parts.append(paragraph)
         else:
-            at = next(n for n in range(blank + 1, paragraph.end + 1) if n in covered)
+            at = next(n for n in range(end + 1, paragraph.end + 1) if n in covered)
             before, after = _divided(paragraph, at, covered, layout)
             parts.append(before)
             kept.append(after)
@@ -282,18 +291,22 @@ def _divided(
 def _combined(
     parts: list[Paragraph], kind: str, layout: "_Layout", held: set[int]
 ) -> Paragraph:
-    """One paragraph from whole-line parts in source order.
+    """One paragraph from parts in source order, with the first part's anchor.
 
     Its raw lines are the physical lines from the first part's first line to
     the last part's last line, blank lines included and the lines in `held`
-    left out; its text is the parts' text in order, and its annotations are
-    theirs together.
+    left out; the first line starts after the anchor, which is empty unless
+    the first part trails code. Its text is the parts' text in order, and
+    its annotations are theirs together.
     """
     first, last = parts[0], parts[-1]
     raw = [
-        layout.physical[n - 1]
-        for n in range(first.start, last.end + 1)
-        if n not in held
+        layout.physical[first.start - 1][len(first.anchor) :],
+        *(
+            layout.physical[n - 1]
+            for n in range(first.start + 1, last.end + 1)
+            if n not in held
+        ),
     ]
     return Paragraph(
         first.path,
@@ -302,6 +315,7 @@ def _combined(
         kind,
         len(raw),
         " ".join(t for t in (p.text for p in parts) if t),
+        anchor=first.anchor,
         address=first.address,
         annotations=set().union(*(p.annotations for p in parts)),
         raw_lines=raw,
@@ -316,8 +330,10 @@ def _text(prose: list[str]) -> str:
 def code_for(read: RustRead) -> dict[int, str]:
     """Each line's code: the line without its sections, shebang or trailing space.
 
-    A comment that is code, being in no section, stays; a line left with no
-    code is absent.
+    A comment that is code, being in no section, stays. A line left with no
+    code is absent, including a line inside a multi-line literal that holds
+    only whitespace; the whitespace a literal holds before its line's end
+    stays, as it is part of the literal.
     """
     layout = _Layout(read)
     text = read.source.text
@@ -330,19 +346,22 @@ def code_for(read: RustRead) -> dict[int, str]:
         ]
         while pieces and pieces[-1].kind is RegionKind.WHITESPACE:
             pieces.pop()
-        if pieces:
-            code[number] = "".join(
-                text[max(start, r.span.start) : min(end, r.span.end)] for r in pieces
-            )
+        line = "".join(
+            text[max(start, r.span.start) : min(end, r.span.end)] for r in pieces
+        )
+        if line.strip():
+            code[number] = line
     return code
 
 
 def declarations_for(read: RustRead) -> list[tuple[int, int, bool]]:
-    """The module's place, then each declaration's, anchored at its head.
+    """The module's entry, then each declaration's place, anchored at its head.
 
     Rust documentation goes above its insertion line, so every entry is above.
-    The insertion is the anchor line, or the first line of the inner doc that
-    documents the declaration inside its body.
+    The module's entry is `(0, 1, True)`: the page reads it as the presence
+    of an `a0`, which it sets at the file head. A declaration's insertion is
+    its anchor line, or the first line of the inner doc that documents it
+    inside its body.
     """
     source = read.source
     return [
@@ -421,9 +440,20 @@ class _Layout:
 
     def comment_lines(self) -> set[int]:
         """Every line a comment stands on, in whole or in part."""
+        return self._lines_of(self.comments)
+
+    def prose_lines(self) -> set[int]:
+        """Every line a comment in a section stands on, in whole or in part."""
+        return self._lines_of(
+            region.span
+            for region in self.read.source.regions
+            if self.read.is_prose(region)
+        )
+
+    def _lines_of(self, spans: Iterable[SourceSpan]) -> set[int]:
         return {
             line
-            for span in self.comments
+            for span in spans
             for line in range(
                 self.read.source.position(span.start).line,
                 self.read.source.position(span.end - 1).line + 1,

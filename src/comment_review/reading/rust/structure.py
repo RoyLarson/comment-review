@@ -150,7 +150,8 @@ def place_declarations(
     in `[rules.documentation].owners` and its head is the first code on its
     line: the code before it ends on an earlier line.
 
-    `insertions[0]` is 1 and `detached` is empty: documentation fills both.
+    `insertions[0]` is 1, the module's entry, and stays so; `detached` is
+    empty, and documentation fills it.
     """
     failure = validate_rust(definition)
     if failure is not None:
