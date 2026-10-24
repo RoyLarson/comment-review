@@ -465,7 +465,8 @@ def _overlapping(
 ) -> list[SourceRegion]:
     """The regions that share a character with `[start, end)`, in order."""
     found = []
-    for region in regions[bisect_right(regions, start, key=_end) :]:
+    for at in range(bisect_right(regions, start, key=_end), len(regions)):
+        region = regions[at]
         if region.span.start >= end:
             break
         found.append(region)

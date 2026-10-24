@@ -130,9 +130,10 @@ class _Assigner:
             declaration.header.start for declaration in placement.declarations
         ]
         self.item_starts = [self._item_start(d) for d in placement.declarations]
-        # From `_nesting`, built the first time `_holder` asks.
+        # From `_nesting` and `_bodies`, built the first time `_holder` asks.
         self.open_at: list[int | None] | None = None
         self.enclosing: dict[int, int | None] = {}
+        self.bodies: dict[int, int] = {}
         self.runs = _runs(scan.tokens, self.coordinates)
         self.forms = [run.written for run in self.runs]
         self.links: dict[int, int | None] = {}
@@ -314,45 +315,47 @@ class _Assigner:
 
         It walks out through the delimiters still open at `offset`, innermost
         first, and returns the owner of the first one that is an owner's body.
-        Each level asks only the owners whose heads lie between that delimiter
-        and the one enclosing it, so no owner is asked twice.
         """
         if self.open_at is None:
             self.open_at, self.enclosing = _nesting(self.code)
+            self.bodies = self._bodies()
         before = bisect_left(self.starts, offset) - 1
         at = self.open_at[before] if before >= 0 else None
         while at is not None:
-            outer = self.enclosing[at]
-            limit = -1 if outer is None else self.code[outer].span.start
-            owner = bisect_left(self.heads, self.code[at].span.start) - 1
-            while owner >= 0 and self.heads[owner] > limit:
-                if self._body_opener(owner, at):
-                    return owner
-                owner -= 1
-            at = outer
+            owner = self.bodies.get(at)
+            if owner is not None:
+                return owner
+            at = self.enclosing[at]
         return None
 
-    def _body_opener(self, owner: int, at: int) -> bool:
-        """Whether the delimiter `self.code[at]` opens the owner's body.
+    def _bodies(self) -> dict[int, int]:
+        """Each owner's body, as the index into `self.code` of its opener.
 
         An item's body is the first `body_open` outside any other delimiter
-        after its keyword, unless a terminator ends the item first.
+        after its keyword, unless a terminator or the close of the delimiter
+        holding the item ends it first. Where one opener follows several
+        owners, it is the body of the last of them.
         """
-        depth = 0
-        for index in range(bisect_left(self.starts, self.item_starts[owner]), at + 1):
-            token = self.code[index]
+        starting: dict[int, list[int]] = {}
+        for owner, start in enumerate(self.item_starts):
+            starting.setdefault(bisect_left(self.starts, start), []).append(owner)
+        bodies: dict[int, int] = {}
+        # The owners still waiting for a body, per open delimiter, outermost first.
+        waiting: list[list[int]] = [[]]
+        for index, token in enumerate(self.code):
+            waiting[-1].extend(starting.get(index, ()))
             spelling = self._spelled(token)
             if token.kind is RustTokenKind.OPEN:
-                if not depth and spelling == self.body_open:
-                    return index == at
-                depth += 1
+                if spelling == self.body_open and waiting[-1]:
+                    bodies[index] = waiting[-1][-1]
+                    waiting[-1].clear()
+                waiting.append([])
             elif token.kind is RustTokenKind.CLOSE:
-                depth -= 1
-                if depth < 0:
-                    return False
-            elif not depth and spelling == self.terminator:
-                return False
-        return False
+                if len(waiting) > 1:
+                    waiting.pop()
+            elif spelling == self.terminator:
+                waiting[-1].clear()
+        return bodies
 
     def _item_start(self, declaration: SourceDeclaration) -> int:
         """Where the owner's keyword or member begins, past its outer attributes."""
@@ -465,9 +468,10 @@ def _followed_on_its_line(
     end_line = coordinates.position(tokens[at].span.end - 1).line
     following = next(
         (
-            t
-            for t in tokens[at + 1 :]
-            if t.kind is not RustTokenKind.WHITESPACE and t.kind not in COMMENT_KINDS
+            tokens[index]
+            for index in range(at + 1, len(tokens))
+            if tokens[index].kind is not RustTokenKind.WHITESPACE
+            and tokens[index].kind not in COMMENT_KINDS
         ),
         None,
     )
