@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (128)
+### open  (129)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -212,7 +212,7 @@ that changed a published name or rule:
 | [stale-claims-after-the-envelope](stale-claims-after-the-envelope.md) | backend | -- | 2/8 | Shipped prose still describes formats and flags this branch deleted |
 | [one-stem-four-jobs](one-stem-four-jobs.md) | backend | -- | 7/15 | one stem, four jobs -- and the vocabulary sweep cannot see it |
 | [census-walks-and-flushes](census-walks-and-flushes.md) | backend | -- | 3/7 | census.py walks the whole repo, runs git twice, and its run-flush never fires |
-| [galley-and-compositor-write-path](galley-and-compositor-write-path.md) | backend | -- | 53/59 | The galley can overwrite the file under review, and the compositor reads through a normaliser |
+| [galley-and-compositor-write-path](galley-and-compositor-write-path.md) | backend | -- | 53/60 | The galley can overwrite the file under review, and the compositor reads through a normaliser |
 | [record-and-verdicts-disagree](record-and-verdicts-disagree.md) | backend | -- | 4/8 | record.py and verdicts.py disagree about what a valid record is, in four places |
 | [exception-hierarchy](exception-hierarchy.md) | backend | -- | 2/10 | Named tuples give us the seam; the hierarchy that catches our own types is not built |
 | [language-rows-in-toml](language-rows-in-toml.md) | backend | -- | 11/18 | 18 rows of pure data sit in shipped Python; references/vocabulary.toml is the pattern |
@@ -310,6 +310,7 @@ that changed a published name or rule:
 | [stage-two-detached-warnings](stage-two-detached-warnings.md) | agents | -- | 0/2 | Ask the human about each detached-documentation warning at stage 2 |
 | [drop-path-second-rust-comment-grammar](drop-path-second-rust-comment-grammar.md) | backend | -- | 0/1 | The drop path splits Rust comments with a second Rust comment grammar |
 | [module-insertion-slot-unread](module-insertion-slot-unread.md) | backend | yes | 0/2 | Remove the module insertion slot no page reads |
+| [rust-reader-findings](rust-reader-findings.md) | backend | yes | 0/8 | Rust reader findings from the pre-merge review |
 
 ### in-progress  (17)
 
