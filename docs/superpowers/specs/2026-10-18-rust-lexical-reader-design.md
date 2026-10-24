@@ -172,18 +172,21 @@ classified as an ordinary comment section, which is what
 An inner doc section documents its parent. At the head of a file that is the
 file's `a0`; inside an inline module body it is that module's place, and it
 documents the owner only when it is the first comment in the body, on a line of
-its own. Inner attributes (`#![...]`) and inner doc comments may interleave
-there.
+its own. Rust lets inner attributes (`#![...]`) and inner doc comments
+interleave there; the place model holds only an inner doc that comes before
+them, and a later one is detached.
 
 **Placement of a doc the run adds.** An added doc lands above the head's first
 line, which is above the attributes, per the
 [Rust Style Guide](https://doc.rust-lang.org/style-guide/): "Put doc comments
 before attributes." It is written as `///` lines ("Prefer line comments (`///`)
-to block comments"). An added `a0` is written as `//!` lines; its insertion line
-is the first line of the module's inner doc, else the first line after the
-front matter, else the first line after the shebang, else line 1, supplied as
-the module entry of the declarations the read hands the page. An owner
-documented by an inner doc inserts at that doc's first line, inside its body.
+to block comments"). An added `a0` is written as `//!` lines and is set where the
+page sets `a0`: after the front matter, before the first line of code
+(`decision-log.md Addressing: #30`). A file-level inner doc with code before it
+cannot be held there and is detached (`#32`), so the module entry of the
+declarations the read hands the page carries no position the page reads. An
+owner documented by an inner doc inserts at that doc's first line, inside its
+body.
 
 **Documentation a place cannot hold.** `decision-log.md Addressing: #29`.
 Permitted layouts attach in Rust and are not held by the `a`:
@@ -194,6 +197,7 @@ Permitted layouts attach in Rust and are not held by the `a`:
 - a second doc run for one owner, the module included;
 - an inner doc that does not come first in its body;
 - an inner doc with code before it on its line;
+- a file-level inner doc with code before it, such as an inner attribute;
 - a file-level `//!` behind an ordinary comment that is not front matter.
 
 Each such run is read as an ordinary comment at the place its position gives
