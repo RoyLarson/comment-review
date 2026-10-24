@@ -264,7 +264,8 @@ class RustDocumentation:
     """Every comment section, the ones that document an owner, and the placement.
 
     Each section's form is a RustSectionForm value. `owners` links each
-    OUTER_DOC and INNER_DOC section to its declaration, None for the module.
+    OUTER_DOC section to its declaration and each INNER_DOC section to the
+    module, as declaration None: an inner doc in a body documents no owner.
     `placement` carries the insertion lines and the detached runs.
     Each warning marks one COMMENT or MATTER section that is detached
     documentation, and the warnings align one-to-one, in order, with
@@ -304,6 +305,12 @@ class RustDocumentation:
             for index in declarations
         ):
             raise ValueError("owners must name distinct existing declarations")
+        if any(
+            owner.declaration is not None
+            and self.sections[owner.section].form == RustSectionForm.INNER_DOC
+            for owner in self.owners
+        ):
+            raise ValueError("an inner doc section may document only the module")
         _tuple(self.warnings, ReadDiagnostic, "warnings")
         comments = {
             section.span

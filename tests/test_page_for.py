@@ -1197,6 +1197,22 @@ def test_rust_page_inner_doc_in_a_body_is_detached_at_its_b_place(kind):
     assert set_page(page) == text
 
 
+@pytest.mark.parametrize(
+    ("text", "warnings"),
+    [
+        ("mod a {\n    fn b() {}\n    //! x\n    fn c() {}\n}\n", [("b2", "a1")]),
+        ("mod a {\n    fn b() {\n        //! x\n    }\n}\n", [("b2", "a2")]),
+    ],
+    ids=["after-a-closed-nested-item", "inside-a-nested-fn"],
+)
+def test_rust_page_body_inner_doc_names_the_innermost_item_holding_it(text, warnings):
+    from comment_review.results.compositor import set_page
+
+    page = build(text, "m.rs")
+    assert [(w.cue, w.owner) for w in page.warnings] == warnings
+    assert set_page(page) == text
+
+
 def test_rust_page_added_doc_on_a_module_with_a_body_inner_doc_is_set_above_it():
     from comment_review.results.compositor import set_page
     from comment_review.results.galley import reset

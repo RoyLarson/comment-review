@@ -11,6 +11,7 @@ from comment_review.reading.paragraph import Paragraph
 from comment_review.reading.rust import records
 from comment_review.reading.series import Kind
 from comment_review.reading.source import (
+    DocumentationOwner,
     RegionKind,
     SourceDeclaration,
     SourceRegion,
@@ -1759,6 +1760,31 @@ def test_detached_records_accept_warnings_aligned_with_runs():
 def test_detached_records_refuse_misaligned_warnings(detached, warned):
     with pytest.raises(ValueError):
         documentation_record(detached, warned)
+
+
+@pytest.mark.parametrize(
+    ("declaration", "refused"), [(None, False), (0, True)], ids=["module", "item"]
+)
+def test_detached_records_let_an_inner_doc_document_only_the_module(
+    declaration, refused
+):
+    placement = records.RustPlacement(
+        (SourceDeclaration(SourceSpan(12, 14), 12, "item"),), (1, 3), ()
+    )
+
+    def made():
+        return records.RustDocumentation(
+            (SourceSection(SourceSpan(0, 5), "inner_doc"),),
+            (DocumentationOwner(0, declaration),),
+            placement,
+            (),
+        )
+
+    if refused:
+        with pytest.raises(ValueError, match="only the module"):
+            made()
+    else:
+        made()
 
 
 def test_matter_excludes_a_comment_with_code_after_it_on_its_line(rust_definition):

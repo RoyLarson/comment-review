@@ -130,8 +130,9 @@ class _Assigner:
             declaration.header.start for declaration in placement.declarations
         ]
         self.item_starts = [self._item_start(d) for d in placement.declarations]
-        # Each owner's body span as `_body` finds it, filled as `_holder` asks.
-        self.body_spans: dict[int, tuple[int, int] | None] = {}
+        # From `_nesting`, built the first time `_holder` asks.
+        self.open_at: list[int | None] | None = None
+        self.enclosing: dict[int, int | None] = {}
         self.runs = _runs(scan.tokens, self.coordinates)
         self.forms = [run.written for run in self.runs]
         self.links: dict[int, int | None] = {}
@@ -311,42 +312,47 @@ class _Assigner:
     def _holder(self, offset: int) -> int | None:
         """The innermost owner whose body holds `offset`, or None at file level.
 
-        An item's body is the first `body_open` outside any other delimiter
-        after its keyword, unless a terminator ends the item first, and it runs
-        to the delimiter that closes it.
+        It walks out through the delimiters still open at `offset`, innermost
+        first, and returns the owner of the first one that is an owner's body.
+        Each level asks only the owners whose heads lie between that delimiter
+        and the one enclosing it, so no owner is asked twice.
         """
-        owner = bisect_right(self.heads, offset) - 1
-        while owner >= 0:
-            if owner not in self.body_spans:
-                self.body_spans[owner] = self._body(owner)
-            body = self.body_spans[owner]
-            if body is not None and body[0] < offset < body[1]:
-                return owner
-            owner -= 1
+        if self.open_at is None:
+            self.open_at, self.enclosing = _nesting(self.code)
+        before = bisect_left(self.starts, offset) - 1
+        at = self.open_at[before] if before >= 0 else None
+        while at is not None:
+            outer = self.enclosing[at]
+            limit = -1 if outer is None else self.code[outer].span.start
+            owner = bisect_left(self.heads, self.code[at].span.start) - 1
+            while owner >= 0 and self.heads[owner] > limit:
+                if self._body_opener(owner, at):
+                    return owner
+                owner -= 1
+            at = outer
         return None
 
-    def _body(self, owner: int) -> tuple[int, int] | None:
-        """Where the owner's body opens and closes, or None for one with none."""
+    def _body_opener(self, owner: int, at: int) -> bool:
+        """Whether the delimiter `self.code[at]` opens the owner's body.
+
+        An item's body is the first `body_open` outside any other delimiter
+        after its keyword, unless a terminator ends the item first.
+        """
         depth = 0
-        opened = None
-        for index in range(
-            bisect_left(self.starts, self.item_starts[owner]), len(self.code)
-        ):
+        for index in range(bisect_left(self.starts, self.item_starts[owner]), at + 1):
             token = self.code[index]
             spelling = self._spelled(token)
             if token.kind is RustTokenKind.OPEN:
-                if opened is None and not depth and spelling == self.body_open:
-                    opened = token.span.start
+                if not depth and spelling == self.body_open:
+                    return index == at
                 depth += 1
             elif token.kind is RustTokenKind.CLOSE:
                 depth -= 1
                 if depth < 0:
-                    return None
-                if opened is not None and not depth:
-                    return opened, token.span.end
-            elif opened is None and not depth and spelling == self.terminator:
-                return None
-        return None
+                    return False
+            elif not depth and spelling == self.terminator:
+                return False
+        return False
 
     def _item_start(self, declaration: SourceDeclaration) -> int:
         """Where the owner's keyword or member begins, past its outer attributes."""
@@ -424,6 +430,28 @@ def _runs(tokens: tuple[RustToken, ...], coordinates: SourceCoordinates) -> list
             if token.kind not in ATTRIBUTE_KINDS:
                 code_end = token.span.end
     return runs
+
+
+def _nesting(
+    code: list[RustToken],
+) -> tuple[list[int | None], dict[int, int | None]]:
+    """Which delimiters are open around each code token, by index into `code`.
+
+    The first list gives, for each token, the innermost delimiter still open
+    after it: the token itself for an opener, None at file level. The mapping
+    gives, for each opener, the delimiter enclosing it.
+    """
+    open_at: list[int | None] = []
+    enclosing: dict[int, int | None] = {}
+    stack: list[int] = []
+    for index, token in enumerate(code):
+        if token.kind is RustTokenKind.OPEN:
+            enclosing[index] = stack[-1] if stack else None
+            stack.append(index)
+        elif token.kind is RustTokenKind.CLOSE and stack:
+            stack.pop()
+        open_at.append(stack[-1] if stack else None)
+    return open_at, enclosing
 
 
 def _followed_on_its_line(
