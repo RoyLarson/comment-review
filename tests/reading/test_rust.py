@@ -1114,6 +1114,22 @@ def test_owners_attribute_leading_its_line_gives_a_place(rust_definition):
     assert placed("x; #[a] fn f() {}\n", rust_definition) == []
 
 
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        (
+            "# [derive(Debug)]\npub struct P {\n    x: u8,\n}\n",
+            [("item", 1), ("field", 3)],
+        ),
+        ("#\n/* c */ [a]\nfn f() {}\n", [("item", 1)]),
+        ("#! [allow(x)]\nfn f() {}\n", [("item", 2)]),
+    ],
+    ids=["spaced-outer", "comment-between", "spaced-inner"],
+)
+def test_owners_an_attribute_opener_may_be_spaced(rust_definition, text, expected):
+    assert placed(text, rust_definition) == expected
+
+
 def test_owners_code_before_ends_where_a_multi_line_literal_closes(rust_definition):
     text = 'const S: &str = "a\nb"; fn f() {}\nfn g() {}\n'
     assert placed(text, rust_definition) == [("item", 1), ("item", 3)]

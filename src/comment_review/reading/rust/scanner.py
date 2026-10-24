@@ -307,12 +307,16 @@ def _shebang(text: str, start: int, grammar: _Grammar) -> int | None:
 def _attribute(
     text: str, start: int, grammar: _Grammar
 ) -> RustToken | ReadFailure | None:
-    """The attribute opening at `start`, spanning to the close that matches it."""
+    """The attribute opening at `start`, spanning to the close that matches it.
+
+    Its opener's characters are tokens of their own, so whitespace and
+    comments may stand between them: `# [derive(Debug)]` is an attribute.
+    """
     attributes = grammar.attributes
-    if text.startswith(attributes.inner, start):
-        kind, opener = RustTokenKind.INNER_ATTRIBUTE, attributes.inner
-    elif text.startswith(attributes.outer, start):
-        kind, opener = RustTokenKind.OUTER_ATTRIBUTE, attributes.outer
+    if (opened := _opens(text, start, attributes.inner, grammar)) is not None:
+        kind = RustTokenKind.INNER_ATTRIBUTE
+    elif (opened := _opens(text, start, attributes.outer, grammar)) is not None:
+        kind = RustTokenKind.OUTER_ATTRIBUTE
     else:
         return None
     depth = 0
@@ -329,7 +333,29 @@ def _attribute(
             if depth == 0:
                 return RustToken(kind, SourceSpan(start, end))
         at = end
-    return _failure("unterminated-attribute", start, start + len(opener))
+    return _failure("unterminated-attribute", start, opened)
+
+
+def _opens(text: str, start: int, opener: str, grammar: _Grammar) -> int | None:
+    """Where `opener` ends when it opens at `start`, or None where it does not.
+
+    Each of its characters may follow the one before it past whitespace and
+    comments.
+    """
+    at = start
+    for index, char in enumerate(opener):
+        while index and at < len(text):
+            result = _next_token(text, at, grammar)
+            if isinstance(result, ReadFailure):
+                break
+            kind, end, _ = result
+            if kind is not RustTokenKind.WHITESPACE and kind not in COMMENT_KINDS:
+                break
+            at = end
+        if not text.startswith(char, at):
+            return None
+        at += len(char)
+    return at
 
 
 def _next_token(
