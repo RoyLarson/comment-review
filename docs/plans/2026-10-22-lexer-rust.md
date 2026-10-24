@@ -3,7 +3,7 @@
 ```
 Status:   in-progress
 Progress: 6 of 6 TODO tasks closed
-Plan-tasks: 12 of 13 plan tasks closed
+Plan-tasks: 13 of 13 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-22 (founded by move-t from 2026-10-11-lexical-readers)
@@ -102,7 +102,8 @@ reader.
         > 2026-10-22 Spec: old Rust cases pass or are superseded case by case
         > 2026-10-22 Check: test_reading_context -k rust; full suite green
         > 2026-10-22 Check: ruff, ty and check_shipped_syntax.py pass
-- [ ] P13 | Run /comment-review end to end on a local Rust crate
+- [x] P13 | Full /comment-review over a local edition-2021 crate (9 src files): every file read by rust-lexical; cargo check passed before and after; prove_unchanged against the pre-edit ref exited 0 (3 pages PROVEN); 3 places written; worktrees removed by hand | 288639bc | Run
+      /comment-review end to end on a local Rust crate
         > 2026-10-22 Check: cargo check before and after; prove_unchanged exits 0
         > 2026-10-22 Check: every file read by rust-lexical; worktree removed by hand
         > 2026-10-22 Spec: the crate is named nowhere in this repo
