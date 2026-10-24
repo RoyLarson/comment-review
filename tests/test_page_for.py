@@ -972,6 +972,13 @@ def test_rust_page_module_doc_behind_a_trailing_comment_is_detached():
         "/* c */ /** d */\nfn g() {}\n",
         "fn f() {} /* a\n b */ /* c */\nfn g() {}\n",
         "/** a */ /*! b */ /* c */\nfn f() {}\n",
+        # An inner doc with a comment after it on its line.
+        "/*! a */ /* b */\nfn f() {}\n",
+        "fn f() {\n    /*! a */ /* b */\n    let x = 1;\n}\n",
+        "mod m {\n    /*! a */ /* b */\n    fn g() {}\n}\n",
+        "fn f() {}\n/*! a */ /** b */\nfn g() {}\n",
+        "/*! a */ /** b */\nfn f() {}\n",
+        "#![no_std]\n/*! a */ // b\nfn f() {}\n",
     ],
 )
 def test_rust_page_no_two_paragraphs_share_a_place(text):
@@ -1054,6 +1061,49 @@ def test_rust_page_doc_sharing_its_line_with_a_comment_is_detached_and_warned():
     out = set_page(page)
     assert out == "fn f() {}\n/** a */ // b\n/// Added.\nfn g() {}\n"
     assert [(w.cue, w.owner) for w in build(out, "m.rs").warnings] == [("b1", "a2")]
+
+
+@pytest.mark.parametrize(
+    ("text", "place", "kind", "raw", "owner"),
+    [
+        ("/*! a */ /* b */\nfn f() {}\n", "f0", "matter", ["/*! a */ /* b */"], "a0"),
+        (
+            "fn f() {\n    /*! a */ /* b */\n    let x = 1;\n}\n",
+            "b1",
+            "comment",
+            ["    /*! a */ /* b */"],
+            "a1",
+        ),
+        (
+            "mod m {\n    /*! a */ /* b */\n    fn g() {}\n}\n",
+            "b1",
+            "comment",
+            ["    /*! a */ /* b */"],
+            "a1",
+        ),
+        (
+            "fn f() {}\n/*! a */ /** b */\nfn g() {}\n",
+            "b1",
+            "comment",
+            ["/*! a */ /** b */"],
+            "a2",
+        ),
+    ],
+    ids=["file-head", "fn-body", "mod-body", "inner-then-outer-above-an-item"],
+)
+def test_rust_page_inner_doc_with_a_comment_after_it_is_detached(
+    text, place, kind, raw, owner
+):
+    from comment_review.results.compositor import set_page
+
+    page = build(text, "m.rs")
+    places = by_cue(page)
+    assert (places[place].kind, places[place].raw_lines) == (kind, raw)
+    assert places[place].text == "a b"
+    assert "detached-documentation" in places[place].annotations
+    assert places[owner].kind == "undocumented"
+    assert [(w.cue, w.owner) for w in page.warnings] == [(place, owner)]
+    assert set_page(page) == text
 
 
 def test_rust_page_doc_trailing_code_with_a_comment_after_it_is_one_trailing():

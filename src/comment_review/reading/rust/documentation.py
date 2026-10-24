@@ -69,20 +69,20 @@ def documentation_in(
     prose, and the two share a place.
 
     An outer doc section that ends on a line above an owner's head, with only
-    whitespace between them and no comment before it on its first line,
-    documents that owner. An inner doc section documents the module when
-    nothing but opening matter precedes it, or the owner whose body it opens:
-    the first comment in that body, on a line of its own. The kinds
-    documentation attaches to are `[rules.documentation].owners`.
+    whitespace between them, documents that owner. An inner doc section
+    documents the module when nothing but opening matter precedes it, or the
+    owner whose body it opens: the first comment in that body. Either is
+    on lines of its own: no other comment shares its first or last line. The
+    kinds documentation attaches to are `[rules.documentation].owners`.
 
     Documentation that Rust attaches to an owner but no `a` place can hold is
     detached: a run behind an ordinary comment, outside the owner or in its
     body, a run between an attribute and the item, a run on the head's own
-    line, a run that trails code or another comment on its line, a module
-    doc with an inner attribute before it, or a second run for one owner, the
-    module included. A detached run is a COMMENT section with a DetachedRun
-    and a warning. Every other doc section that documents nothing is a
-    COMMENT section.
+    line, a run that trails code on its line, a run sharing a line with
+    another comment, a module doc with an inner attribute before it, or a
+    second run for one owner, the module included. A detached run is a
+    COMMENT section with a DetachedRun and a warning. Every other doc section
+    that documents nothing is a COMMENT section.
 
     The file's opening matter is the comments `opening_end` bounds: every
     section starting in it is MATTER, up to the first section documenting an
@@ -220,10 +220,18 @@ class _Assigner:
         )
 
     def _beside(self, index: int, run: _Run) -> bool:
-        """Whether a comment before the run ends on the run's first line."""
-        return index > 0 and self._line(
+        """Whether another comment shares the run's first or last line.
+
+        A doc that does is detached: the comments on that line are one
+        paragraph at the line's place, and an `a` place holds its doc alone.
+        """
+        before = index > 0 and self._line(
             self.runs[index - 1].span.end - 1
         ) == self._line(run.span.start)
+        after = index + 1 < len(self.runs) and self._line(
+            self.runs[index + 1].span.start
+        ) == self._line(run.span.end - 1)
+        return before or after
 
     def _outer(self, index: int, run: _Run) -> None:
         """Attach a run directly above a head; detach one inside or behind it."""
@@ -238,8 +246,7 @@ class _Assigner:
                 self.runs[index + 1].span.start > start
             )
             above = self._line(run.span.end - 1) < self._line(start)
-            alone = not run.trailing and not self._beside(index, run)
-            if nearest and above and alone:
+            if nearest and above and not run.trailing:
                 self._attach(index, run, owner)
             else:
                 self._detach(index, run, owner)
@@ -260,8 +267,8 @@ class _Assigner:
             before -= 1
         if before < 0:
             # A comment before the run that is not opening matter -- below a
-            # blank line, or one a run that opens the file runs on to -- or
-            # one ending on the run's first line detaches it.
+            # blank line, or one a run that opens the file runs on to --
+            # detaches it.
             end = self.opening_end or 0
             behind = any(
                 not r.code and self._line(r.span.end - 1) > end
@@ -269,7 +276,7 @@ class _Assigner:
             )
             if MODULE not in self.owner_kinds:
                 self.forms[index] = RustSectionForm.COMMENT
-            elif preceded or behind or self._beside(index, run):
+            elif preceded or behind:
                 self._detach(index, run, None)
             else:
                 self._attach(index, run, None)
@@ -291,7 +298,12 @@ class _Assigner:
             self._attach(index, run, owner)
 
     def _attach(self, index: int, run: _Run, owner: int | None) -> None:
-        if owner in self.links.values():
+        """Link the run to its owner, or detach it.
+
+        An owner that has a doc, or a run sharing a line with another
+        comment, detaches the run.
+        """
+        if owner in self.links.values() or self._beside(index, run):
             self._detach(index, run, owner)
         else:
             self.links[index] = owner
