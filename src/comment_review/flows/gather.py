@@ -187,8 +187,9 @@ def _pages(g: Gathering) -> None:
             g.unreadable.append(format_failure(got, path=rel))
             continue
         g.pages.append(got)
+        # The phrase is the warning's code, `detached-documentation`, as words.
         g.warnings.extend(
-            f"warning: {rel}@{w.cue}: detached documentation for {w.owner}"
+            f"warning: {rel}@{w.cue}: {w.code.replace('-', ' ')} for {w.owner}"
             for w in got.warnings
         )
         g.paragraphs.extend(carried(got))
