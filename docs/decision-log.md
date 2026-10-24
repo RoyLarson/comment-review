@@ -5493,3 +5493,10 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   **What it settles.** The installed registry holds every shipped definition file, so a
   caller anywhere asks one registry. The files are this program's own data, not the
   checkout, so `machine` is not involved.
+
+- **#217.** **No test guards that neither reader imports the other's package** (Roy,
+  2026-10-24, shown rust-reader-findings T7, which would add one for the Rust spec's acceptance
+  row: *"T7 doesn't need a test. It would be silly to put a test there."*).
+
+  **What it settles.** The spec's independence row stays an acceptance statement, checked by
+  reading the imports; T7 is superseded.
