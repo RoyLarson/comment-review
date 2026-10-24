@@ -310,7 +310,7 @@ that changed a published name or rule:
 | [stage-two-detached-warnings](stage-two-detached-warnings.md) | agents | -- | 0/2 | Ask the human about each detached-documentation warning at stage 2 |
 | [drop-path-second-rust-comment-grammar](drop-path-second-rust-comment-grammar.md) | backend | -- | 0/1 | The drop path splits Rust comments with a second Rust comment grammar |
 | [module-insertion-slot-unread](module-insertion-slot-unread.md) | backend | yes | 0/2 | Remove the module insertion slot no page reads |
-| [rust-reader-findings](rust-reader-findings.md) | backend | yes | 0/8 | Rust reader findings from the pre-merge review |
+| [rust-reader-findings](rust-reader-findings.md) | backend | -- | 2/8 | Rust reader findings from the pre-merge review |
 
 ### in-progress  (17)
 

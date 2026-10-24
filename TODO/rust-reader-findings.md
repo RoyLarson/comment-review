@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 0 of 8 tasks closed
+Progress: 2 of 8 tasks closed
 Owner:    backend
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-10-23 (pre-merge code review of feat/lexer-rust, 2026-10-23)
 ```
 
@@ -25,9 +25,11 @@ no recorded approval, and smaller items.
 
 - [ ] T1 | Reset the generic depth at a variant separator in structure.py
         > 2026-10-23 A = 1 << 0, drops every later variant's a (structure.py:221-248)
-- [ ] T2 | Detach an inner doc after an inner attribute in a body
+- [x] T2 | FINISHED: every inner doc in a body is detached at its b place under decision-log.md Addressing: #33 | a8672b0d | Detach
+      an inner doc after an inner attribute in a body
         > 2026-10-23 mod m { #![allow(x)] //! late } reads as a1 (documentation.py:262)
-- [?] T3 | Record Roy's ruling on the documentable change in page.py
+- [-] T3 | SUPERSEDED by the revert of the documentable change, decision-log.md Addressing: #33 | a8672b0d | Record
+      Roy's ruling on the documentable change in page.py
         > 2026-10-23 insert <= line in documentable, page.py:606, not under O1-O5
 - [ ] T4 | Remove the quadratic slices in projection and documentation
         > 2026-10-23 4000 items: 5.9 s; tables.rs 132 s (projection.py:469)
