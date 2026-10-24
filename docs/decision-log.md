@@ -596,6 +596,18 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   the 312 crates in the local Cargo registry: 257 sites in 76 crates put an ordinary `//` line
   directly after a doc line (a line-based count, not string-aware).
 
+- **#32.** **A reader's job is to place every comment where it sits, not to classify every
+  comment exactly** (Roy, 2026-10-23, on the final review's finding that a Rust module doc after
+  an inner attribute -- `#![no_std]` then `//! Docs.` -- was set back above the attribute).
+
+  *"The goal is to be able to place the comments correctly not absolutely correctly classify
+  every comment/documentation."*
+
+  **What it settles.** Where a reader cannot hold a comment at the place its kind would give it,
+  it reads the comment at the place its position gives it, so the page sets it back where it
+  was. A misclassified comment is acceptable; a moved one is a defect. The `#![no_std]` case is
+  read as detached documentation under `#29`, which leaves it in place.
+
 ## Vocabulary
 
 - **#1.** **The metaphor is EDITORIAL, and a new term is checked against the register BEFORE it is
