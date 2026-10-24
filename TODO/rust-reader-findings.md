@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 3 of 8 tasks closed
+Progress: 4 of 8 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-23 (pre-merge code review of feat/lexer-rust, 2026-10-23)
@@ -39,7 +39,8 @@ no recorded approval, and smaller items.
         > 2026-10-23 contextual is read for keywords only (structure.py:356)
 - [ ] T6 | Give a spaced outer attribute its owner's a place
         > 2026-10-23 # [derive(Debug)] loses the a; doc becomes f0 (scanner.py:307)
-- [ ] T7 | Test that neither reader imports the other's package
+- [-] T7 | SUPERSEDED by decision-log.md Process: #217, no test for reader independence | 9e3287a0 | Test
+      that neither reader imports the other's package
         > 2026-10-23 Spec acceptance: neither reader imports the other's package
 - [ ] T8 | Correct the Page.warnings docstring in binder/page.py:154
         > 2026-10-23 It says one per noted place; two warnings can share a place
