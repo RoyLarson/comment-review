@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 4 of 8 tasks closed
+Progress: 7 of 8 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-23 (pre-merge code review of feat/lexer-rust, 2026-10-23)
@@ -35,12 +35,15 @@ no recorded approval, and smaller items.
 - [ ] T4 | Remove the quadratic slices in projection and documentation
         > 2026-10-23 4000 items: 5.9 s; tables.rs 132 s (projection.py:469)
         > 2026-10-23 Also _body_opener: an inner doc in a field's const block
-- [ ] T5 | Delete the unread contextual entries auto, safe, default
+- [x] T5 | FINISHED: auto, safe and default deleted from contextual | d7fc1385 | Delete
+      the unread contextual entries auto, safe, default
         > 2026-10-23 contextual is read for keywords only (structure.py:356)
-- [ ] T6 | Give a spaced outer attribute its owner's a place
+- [x] T6 | FINISHED: an attribute opener may hold whitespace and comments between its characters | 29e92d04 | Give
+      a spaced outer attribute its owner's a place
         > 2026-10-23 # [derive(Debug)] loses the a; doc becomes f0 (scanner.py:307)
 - [-] T7 | SUPERSEDED by decision-log.md Process: #217, no test for reader independence | 9e3287a0 | Test
       that neither reader imports the other's package
         > 2026-10-23 Spec acceptance: neither reader imports the other's package
-- [ ] T8 | Correct the Page.warnings docstring in binder/page.py:154
+- [x] T8 | FINISHED: the docstring says two warnings can share a place | 787884f5 | Correct
+      the Page.warnings docstring in binder/page.py:154
         > 2026-10-23 It says one per noted place; two warnings can share a place
