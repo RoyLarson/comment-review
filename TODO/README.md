@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (126)
+### open  (127)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -308,6 +308,7 @@ that changed a published name or rule:
 | [empty-comment-gets-a-drop](empty-comment-gets-a-drop.md) | backend | -- | 0/1 | An empty comment gets a drop mark |
 | [paragraph-is-a-passage](paragraph-is-a-passage.md) | backend | -- | 0/9 | The addressed unit of prose is a passage, not a paragraph |
 | [stage-two-detached-warnings](stage-two-detached-warnings.md) | agents | -- | 0/2 | Ask the human about each detached-documentation warning at stage 2 |
+| [drop-path-second-rust-comment-grammar](drop-path-second-rust-comment-grammar.md) | backend | -- | 0/1 | The drop path splits Rust comments with a second Rust comment grammar |
 
 ### in-progress  (17)
 
