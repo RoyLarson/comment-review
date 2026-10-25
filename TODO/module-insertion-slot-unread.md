@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 0 of 2 tasks closed
+Progress: 1 of 4 tasks closed
 Owner:    backend
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-10-23 (final review of the Rust reader plan, R2)
 ```
 
@@ -26,6 +26,14 @@ readers satisfy.
 
 ## Tasks
 
-- [?] T1 | Decide whether insertions[0] leaves both reader records
+- [x] T1 | Ruling recorded as decision-log Process #218 | 0d257f3c | Decide
+      whether insertions[0] leaves both reader records
+        > 2026-10-24 Roy chose C, NamedTuple included; decision-log Process #218
 - [ ] T2 | Remove the slot or its dead check, as decided. Verify: a test fails
       first
+        > 2026-10-24 Decided by #218: insertions[0] and its check leave both readers
+- [ ] T3 | Replace the bare tuple[int, int, bool] with a named documentation
+      place
+        > 2026-10-24 Check: grep finds no tuple[int, int, bool] under src
+- [ ] T4 | Move the module entry out of declarations() into an a-series answer
+        > 2026-10-24 Check: no caller indexes decls[0] or slices decls[1:]
