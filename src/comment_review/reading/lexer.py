@@ -1137,7 +1137,7 @@ def document_declarations(
     Args:
         paragraphs: this file's prose, mutated in place -- `address` is set to
             the `a` cue of the declaration each run documents.
-        decls: `(line, insert, above)` per declaration, module first.
+        decls: each declaration's place, as `declarations` returns them.
         code: `line -> the code on it`, in order.
     """
     # ! LEADING IS NOT PROSE AND CANNOT DOCUMENT ANYTHING.
@@ -1151,7 +1151,7 @@ def document_declarations(
     if not ends:
         return
     above_code = sorted(code)
-    for ordinal, (line, _insert, above) in enumerate(decls[1:], 1):
+    for ordinal, (line, _insert, above) in enumerate(decls, 1):
         if not above:
             # ! Python states this from its parse; nothing positional to do.
             continue
@@ -1188,14 +1188,10 @@ def document_declarations(
 def declarations(lang: Language, code: dict[int, str]) -> list[DocumentationPlace]:
     """Every DOCUMENTABLE declaration in source order: its line, and where its doc goes.
 
-    !! ENTRY 0 IS THE MODULE, whose line is 0 -- a module has no line of code
-    declaring it. Entries 1..N are its declarations in the order a reader meets
-    them down the page, which is the order the `a` series counts.
-
-    !! AN EMPTY LIST MEANS THIS LANGUAGE HAS NO `a` SERIES, not "none found
-    here". A language with no docstring practice, such as YAML or TOML, would
-    otherwise carry an `a0` -- a place for a module docstring in a language with
-    no such thing -- which no instruction could ever fill.
+    !! THE ORDER A READER MEETS THEM down the page, which is the order the `a`
+    series counts from `a1`. The module is not among them: a module has no line
+    of code declaring it, and its `a0` exists whenever the language has an `a`
+    series at all -- which is whether `lang.declares` lists any keyword.
 
     !! THE KEYWORDS ARE DATA. Each language row lists the keywords that say a
     line can get a docstring, and the lexer matches on that list instead of on
@@ -1212,31 +1208,23 @@ def declarations(lang: Language, code: dict[int, str]) -> list[DocumentationPlac
     because only a page knows where prose is missing.
 
     Args:
-        lang: its record. `declares` decides whether there is an `a` series.
+        lang: its record; `declares` holds the keywords.
         code: `line -> the code on it`, from `page.code_lines`. The keyword path
             scans ONLY these, so a keyword inside a comment or a string cannot
             declare anything.
 
     Returns:
-        `(line, insert, above)` per declaration, module first, or `[]` when the
-        language has no `a` series. !! `above` IS THE ROW SPEAKING, not a
+        A `DocumentationPlace` per declaration. !! `above` IS THE ROW SPEAKING, not a
         comparison of the two numbers: it is `doc_inside` read back out, and it is
         stated HERE because the lexer is where a row's `declares` and `doc_inside`
         are read; every step below carries it.
     """
-    if not lang.declares:
-        return []
     if lang.doc_inside:
         raise ValueError(f"{lang.name} declarations come from its own reader")
-    # !! THE MODULE FIRST, AND ITS DOC OPENS THE FILE. `a0` is the file's own
-    # documentation, which in an above-doc language is the run at the top --
-    # Rust's `//!`, Go's package comment.
-    out = [DocumentationPlace(0, 1, True)]
     # ! The doc goes ON the declaring line, pushing it down, so `insert` IS that
     # line. Ordered because `code` is.
-    out += [
+    return [
         DocumentationPlace(n, n, True)
         for n, line in code.items()
         if _declares_here(line, lang.declares)
     ]
-    return out

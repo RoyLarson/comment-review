@@ -1992,7 +1992,6 @@ def test_projection_of_docs_comments_code_and_declarations(rust_definition):
         11: "fn mix() -> u8 { 2 /* why */ + 3 }",
     }
     assert declarations == [
-        (0, 1, True),
         (4, 4, True),
         (7, 7, True),
         (10, 10, True),
@@ -2314,7 +2313,7 @@ def test_projection_opening_run_is_matter_up_to_its_first_blank_line(
         paragraph(3, 3, Kind.COMMENT, "note on f", ["// note on f"]),
     ]
     assert code == {4: "fn f() {}"}
-    assert declarations == [(0, 1, True), (4, 4, True)]
+    assert declarations == [(4, 4, True)]
 
 
 def test_projection_opening_matter_takes_every_form_up_to_the_first_blank(
@@ -2333,7 +2332,7 @@ def test_projection_opening_matter_takes_every_form_up_to_the_first_blank(
         ),
         paragraph(5, 5, Kind.COMMENT, "d", ["// d"]),
     ]
-    assert declarations[0] == (0, 1, True)
+    assert declarations == [(6, 6, True)]
 
 
 def test_projection_opening_and_closing_matter_of_a_codeless_file(rust_definition):
@@ -2383,7 +2382,7 @@ def test_projection_comments_in_one_gap_with_a_detached_module_doc_are_one(
             notes={"detached-documentation"},
         ),
     ]
-    assert declarations[0] == (0, 1, True)
+    assert declarations == [(5, 5, True)]
 
 
 def test_projection_ordinary_comment_above_an_item_is_a_comment(rust_definition):
@@ -2486,7 +2485,7 @@ def test_projection_shebang_line_is_not_code(rust_definition):
     shebang = "#!/usr/bin/env run-cargo-script"
     assert paragraphs == [paragraph(1, 1, Kind.MATTER, shebang, [shebang])]
     assert code == {2: "fn main() {}"}
-    assert declarations == [(0, 1, True), (2, 2, True)]
+    assert declarations == [(2, 2, True)]
 
 
 @pytest.mark.parametrize(
@@ -2501,7 +2500,7 @@ def test_projection_body_inner_doc_leaves_its_item_inserting_at_its_head(
     rust_definition, text, inner
 ):
     paragraphs, _, declarations = projection_of(text, rust_definition)
-    assert declarations[1] == (1, 1, True)
+    assert declarations[0] == (1, 1, True)
     detached = [p for p in paragraphs if p.annotations]
     assert [(p.start, p.kind, p.annotations) for p in detached] == [
         (inner, Kind.COMMENT, {"detached-documentation"})
@@ -2544,7 +2543,7 @@ def test_projection_reader_record_is_satisfied_by_a_python_read():
     paragraphs = result.paragraphs(Path("x.py"))
     assert not isinstance(paragraphs, ReadFailure)
     assert [p.address for p in paragraphs] == ["a0"]
-    assert result.declarations()[0] == (0, 1, False)
+    assert result.declarations() == [(3, 4, False)]
 
 
 def test_projection_rust_read_answers_the_record_methods(rust_definition):
@@ -2552,7 +2551,7 @@ def test_projection_rust_read_answers_the_record_methods(rust_definition):
     assert result.warnings == ()
     assert result.paragraphs(PAGE) == []
     assert result.code() == {1: "fn f() {}"}
-    assert result.declarations() == [(0, 1, True), (1, 1, True)]
+    assert result.declarations() == [(1, 1, True)]
 
 
 def test_projection_read_source_returns_the_rust_record():

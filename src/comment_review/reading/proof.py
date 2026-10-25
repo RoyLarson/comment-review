@@ -108,5 +108,5 @@ class ReaderRecord(SourceRead, Protocol):
         ...
 
     def declarations(self) -> list[DocumentationPlace]:
-        """Each documentation place; the first is the module's, at line 0."""
+        """Each declaration's documentation place, in source order."""
         ...

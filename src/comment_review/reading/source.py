@@ -115,7 +115,7 @@ class DocumentationOwner:
 class DocumentationPlace(NamedTuple):
     """Where one declaration's documentation goes, in 1-based source lines."""
 
-    #: The line that declares it; 0 for the module, which has none.
+    #: The line that declares it.
     line: int
     #: The line the documentation is set at.
     insert: int

@@ -380,8 +380,9 @@ one insertion per declaration plus the module, warnings inside the text.
   raw lines. A detached run is `COMMENT` or `TRAILING` with the
   `detached-documentation` annotation.
 - `code_for` gives line number -> the code on that line.
-- `declarations_for` gives `(0, 1, True)` for the module, then
-  `(head first line, head first line, True)` per owner with a place: every
+- `declarations_for` gives a `DocumentationPlace`
+  `(head first line, head first line, True)` per owner with a place, and none
+  for the module, whose `a0` the page sets whenever there is an `a` series: every
   declaration's insertion is its anchor line, an owner with a body inner doc
   included (`decision-log.md Addressing: #33`). `above` is `True` for every
   entry: the doc goes above the line, and `documentable`

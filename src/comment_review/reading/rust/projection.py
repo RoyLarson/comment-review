@@ -356,24 +356,17 @@ def code_for(read: RustRead) -> dict[int, str]:
 
 
 def declarations_for(read: RustRead) -> list[DocumentationPlace]:
-    """The module's entry, then each declaration's place, anchored at its head.
+    """Each declaration's place, anchored at its head.
 
     Rust documentation goes above its insertion line, so every entry is above.
-    The module's entry is `(0, 1, True)`: the page reads it as the presence
-    of an `a0`, which it sets at the file head. A declaration's insertion is
-    its anchor line.
+    A declaration's insertion is its anchor line.
     """
     source = read.source
     return [
-        DocumentationPlace(0, read.insertions[0], True),
-        *(
-            DocumentationPlace(
-                source.position(declaration.anchor).line, insertion, True
-            )
-            for declaration, insertion in zip(
-                source.declarations, read.insertions[1:], strict=True
-            )
-        ),
+        DocumentationPlace(source.position(declaration.anchor).line, insertion, True)
+        for declaration, insertion in zip(
+            source.declarations, read.insertions[1:], strict=True
+        )
     ]
 
 

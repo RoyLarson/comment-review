@@ -583,8 +583,8 @@ def documentable(
     must do none.
 
     Args:
-        decls: `(line, insert, above)` per declaration, module first -- see
-            `lexer.declarations`, which states all three.
+        decls: each declaration's `DocumentationPlace` -- see
+            `lexer.declarations`, which states all three fields.
         code: `cue`'s triggers, `(line, anchor)` in order.
 
     Returns:
@@ -594,15 +594,13 @@ def documentable(
         The index and the side are what the walk places by: `ON` sets the doc
         between the gap and the code, `GAP` sets it before the gap -- which is
         where a doc that sits INSIDE its declaration lands, because the gap
-        beneath it introduces whatever comes next. Empty when `decls` holds the
-        module alone, and the file then has an `a0` and no more; with no `decls`
-        at all `places_on` passes `cue` no module place and the file has no `a`
-        series.
+        beneath it introduces whatever comes next. Empty when `decls` is, and
+        a file with an `a` series then has an `a0` and no more.
     """
     at = {n: i for i, n in enumerate(code)}
     ordered = sorted(at)
     out: dict[int, tuple[int, int, str]] = {}
-    for line, insert, above in decls[1:]:
+    for line, insert, above in decls:
         if line not in at:
             continue
         if above:
@@ -641,10 +639,9 @@ def places_on(text: str, prose: list[dict], lang: "Language | None" = None) -> "
     decls = declarations(lang, code) if lang else []
     placed = documentable(decls, code) if lang else {}
 
-    # !! `None`, NOT `1`, WHEN THERE ARE NO DECLARATIONS. A language with no
-    # documentable declaration has no `a` series at all -- see `cue`. It is
-    # not a series that happens to be empty.
-    return cue(code, placed, decls[0][1] if decls else None)
+    # !! A language with no documentable declaration has no `a` series at all
+    # -- see `cue`. It is not a series that happens to be empty.
+    return cue(code, placed, a_series=lang is not None and bool(lang.declares))
 
 
 def empty_places(
@@ -890,8 +887,9 @@ def page_for(
     prose = [vars(b) for b in got]
     if record is not None:
         code = record.code()
-        decls = record.declarations()
-        cues = cue(code, documentable(decls, code), decls[0][1])
+        # Every reader record's language documents its declarations, so its
+        # page has an `a` series.
+        cues = cue(code, documentable(record.declarations(), code))
     else:
         lang = language_for(path)
         assert lang is not None, "a lexical read comes only from a lexical row"

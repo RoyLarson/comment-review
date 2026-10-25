@@ -690,12 +690,21 @@ def test_rust_page_empty_a_sets_its_doc_above_the_attribute_line():
     assert set_page(page) == "/// Added.\n#[derive(Debug)]\npub struct S;\n"
 
 
+def test_lexical_declarations_hold_only_the_declaration_places():
+    from comment_review.reading.language import language_for
+    from comment_review.reading.lexer import declarations
+
+    go = language_for(Path("m.go"))
+    assert go is not None
+    assert declarations(go, {1: "package m", 3: "func f() {}"}) == [(3, 3, True)]
+
+
 def test_rust_page_item_on_line_one_sets_module_doc_then_item_doc():
     from comment_review.results.compositor import set_page
     from comment_review.results.galley import reset
 
     page = build("fn f() {}\n", "m.rs")
-    assert page.read.declarations() == [(0, 1, True), (1, 1, True)]
+    assert page.read.declarations() == [(1, 1, True)]
     places = _places(page)
     assert places["a0"][0] == places["a1"][0] == "undocumented"
     reset(page, {"a0": "//! Module.", "a1": "/// F."})
@@ -1193,7 +1202,7 @@ def test_rust_page_inner_doc_in_a_body_is_detached_at_its_b_place(kind):
     assert places[place].annotations == {"detached-documentation"}
     assert [(w.cue, w.owner) for w in page.warnings] == [(place, "a1")]
     assert places["a1"].kind == "undocumented"
-    assert page.read.declarations()[1] == (1, 1, True)
+    assert page.read.declarations()[0] == (1, 1, True)
     assert set_page(page) == text
 
 

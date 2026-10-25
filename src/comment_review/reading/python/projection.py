@@ -259,15 +259,12 @@ def declarations_for(read: PythonRead) -> list[DocumentationPlace]:
     """Translate retained declaration and insertion offsets into page coordinates."""
     source = read.source
     return [
-        DocumentationPlace(0, source.position(read.insertions[0]).line, False),
-        *(
-            DocumentationPlace(
-                source.position(declaration.anchor).line,
-                source.position(insertion).line,
-                False,
-            )
-            for declaration, insertion in zip(
-                source.declarations, read.insertions[1:], strict=True
-            )
-        ),
+        DocumentationPlace(
+            source.position(declaration.anchor).line,
+            source.position(insertion).line,
+            False,
+        )
+        for declaration, insertion in zip(
+            source.declarations, read.insertions[1:], strict=True
+        )
     ]

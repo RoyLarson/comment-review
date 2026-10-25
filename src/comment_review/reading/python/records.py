@@ -298,7 +298,7 @@ class PythonRead:
         return code_for(self)
 
     def declarations(self) -> list[DocumentationPlace]:
-        """The module's and each declaration's documentation place, by line."""
+        """Each declaration's documentation place, by line."""
         from comment_review.reading.python.projection import declarations_for
 
         return declarations_for(self)

@@ -63,7 +63,7 @@ def test_completed_read_projects_documentation_from_source_positions(python_defi
         ("body prose", ['    "body " "prose"'], "a1", ""),
         ("detail", [" # detail"], "", "    return value"),
     ]
-    assert declarations_for(reduced) == [(0, 2, False), (4, 7, False), (9, 10, False)]
+    assert declarations_for(reduced) == [(4, 7, False), (9, 10, False)]
     assert 7 not in code_for(reduced)
     assert code_for(reduced)[8] == "    return value"
     assert reduced.payloads[0].text == "module\nprose"
@@ -2892,7 +2892,7 @@ def test_expression_comments_existing_places_preserve_expression_on_set_and_edit
         )
     anchors = code_lines(text, [vars(paragraph) for paragraph in paragraphs])
     assert anchors == code
-    cues = cue(anchors, {}, None)
+    cues = cue(anchors, {}, a_series=False)
     for paragraph, place in zip(paragraphs, places, strict=True):
         assert attach(vars(paragraph), cues) == place
         assert paragraph.original_start is not None
