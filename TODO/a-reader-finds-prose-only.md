@@ -58,6 +58,7 @@ defect and is repaired (lexer-and-language-findings T12, b30cc510).
         > 2026-10-25 Rust holds two copies: documentation.py:182 and projection.py:205
         > 2026-10-25 Check: .rs and .kt give the same f places on matter-only input
         > 2026-10-25 Per #225 the reader assigns matter; a helper may share the rule
+        > 2026-10-25 Matter ruling made: Process #225; T7 closed
 - [-] T9 | #226: sectioning is the reader's; reissued as T14 | cf911ec9 | Move
       the one-paragraph-per-place rule from the Rust reader to the page
         > 2026-10-25 rust/projection.py:139 _one_per_place; Rust spec lines 227-232
