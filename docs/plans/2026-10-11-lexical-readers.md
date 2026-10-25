@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 66 of 177 TODO tasks closed
+Progress: 67 of 177 TODO tasks closed
 Plan-tasks: 40 of 53 plan tasks closed
 Owner:    backend
 Requires-Roy: false
@@ -588,7 +588,7 @@ interfaces, inputs and checks, without internal development files or history.
 
 ### AQ - [a-reader-finds-prose-only](../../TODO/a-reader-finds-prose-only.md)
 
-- [ ] T1 | MOVED to 2026-10-25-reader-hands-prose-only | Derive Paragraph.text
+- [x] T1 | MOVED to 2026-10-25-reader-hands-prose-only | Derive Paragraph.text
       in one place for every reader
 - [ ] T2 | MOVED to 2026-10-25-reader-hands-prose-only | Assign each paragraph's
       address in the page instead of in a reader

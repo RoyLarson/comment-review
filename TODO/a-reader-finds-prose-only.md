@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 5 of 15 tasks closed
+Progress: 6 of 15 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-25 (decision-log.md Process: #224)
@@ -24,7 +24,8 @@ defect and is repaired (lexer-and-language-findings T12, b30cc510).
 
 ## Tasks
 
-- [ ] T1 | Derive Paragraph.text in one place for every reader
+- [x] T1 | Paragraph.text is comment_form text, set once after the reader | d8a5666a | Derive
+      Paragraph.text in one place for every reader
         > 2026-10-25 Check: one comment in .py, .rs and .go reads the same text
         > 2026-10-25 Check: no reader passes text to Paragraph
 - [ ] T2 | Assign each paragraph's address in the page instead of in a reader

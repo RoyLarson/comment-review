@@ -1,9 +1,9 @@
 # A reader hands over only what parsing finds
 
 ```
-Status:   open
-Progress: 0 of 10 TODO tasks closed
-Plan-tasks: 0 of 12 plan tasks closed
+Status:   in-progress
+Progress: 1 of 10 TODO tasks closed
+Plan-tasks: 1 of 12 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-25 (founded by move-t from 2026-10-11-lexical-readers)
@@ -23,7 +23,7 @@ per step; each step lands its failing test first.
 
 ### A - [a-reader-finds-prose-only](../../TODO/a-reader-finds-prose-only.md)
 
-- [ ] T1 | Derive Paragraph.text in one place for every reader
+- [x] T1 | Derive Paragraph.text in one place for every reader
 - [ ] T2 | Assign each paragraph's address in the page instead of in a reader
 - [ ] T4 | Derive each line's code in the page for every reader
 - [ ] T5 | Give a Python docstring paragraph its whole source lines
@@ -36,7 +36,8 @@ per step; each step lands its failing test first.
 
 ## Plan Tasks
 
-- [ ] P1 | Derive Paragraph.text in Paragraph for every reader
+- [x] P1 | One derivation (comment_form, #227); reviewed clean | d8a5666a | Derive
+      Paragraph.text in Paragraph for every reader
         > 2026-10-25 Check: one comment in .py, .rs and .go reads the same text
         > 2026-10-25 Works a-reader-finds-prose-only T1
 - [ ] P2 | Assign every paragraph's address in the page
