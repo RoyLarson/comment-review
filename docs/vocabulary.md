@@ -519,18 +519,6 @@ what no role may be handed, and a role is not owed a ruling at a place its stage
 file uses either word: a role reads its copy, which holds the places and says nothing about how
 they were chosen. `cap` is in it already, for the compact role, and is not restated here.
 
-## detached documentation -- a doc comment the place model cannot hold as an `a`
-
-| term | meaning |
-| --- | --- |
-| **detached documentation** | A doc comment the language attaches to an owner but the place model cannot hold as that owner's `a` place: one behind an ordinary comment, between an attribute and its item, a second doc run in one head, or an inner doc that does not come first in its body or that trails code on its line. It is read as part of the ordinary paragraph at the place its position gives it -- a place holds one paragraph, so it shares that paragraph with any other comment there -- with a warning, and never a read failure. One paragraph can carry more than one warning when two detached runs share its place |
-
-**It is defined here and not in `vocabulary.toml`, because no agent file uses it yet.** The
-drift check refuses a shipped term no role uses (`NO RECIPIENT`), so the entry moves to
-`vocabulary.toml`, and into the role lists that read it, in the change that has an agent file
-say the word. The gather prints one `warning: <path>@<cue>: detached documentation for <owner
-cue>` line on stderr for each.
-
 ## ownership -- settled, and deliberately not emitted
 
 **The relation: which anchor best justifies holding a comment.** `anchor` is the code position,
