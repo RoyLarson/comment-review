@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 61 of 174 TODO tasks closed
+Progress: 62 of 174 TODO tasks closed
 Plan-tasks: 40 of 53 plan tasks closed
 Owner:    backend
 Requires-Roy: true
@@ -590,7 +590,7 @@ interfaces, inputs and checks, without internal development files or history.
 
 - [ ] T1 | Derive Paragraph.text in one place for every reader
 - [ ] T2 | Assign each paragraph's address in the page instead of in a reader
-- [ ] T3 | List each Paragraph, Page or Addresser duty a reader still performs
+- [x] T3 | List each Paragraph, Page or Addresser duty a reader still performs
 - [ ] T4 | Derive each line's code in the page for every reader
 - [ ] T5 | Give a Python docstring paragraph its whole source lines
 - [ ] T6 | Delete the continues-a-trailing-comment stamp from lexer.py

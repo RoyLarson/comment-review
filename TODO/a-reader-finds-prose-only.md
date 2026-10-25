@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 12 tasks closed
+Progress: 1 of 12 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-10-25 (decision-log.md Process: #224)
@@ -29,7 +29,8 @@ defect and is repaired (lexer-and-language-findings T12, b30cc510).
         > 2026-10-25 Check: no reader passes text to Paragraph
 - [ ] T2 | Assign each paragraph's address in the page instead of in a reader
         > 2026-10-25 Check: git grep finds no address= in reading/python or reading/rust
-- [ ] T3 | List each Paragraph, Page or Addresser duty a reader still performs
+- [x] T3 | Nine duties filed as T4-T12, each naming file:line | 17c030f6 | List
+      each Paragraph, Page or Addresser duty a reader still performs
         > 2026-10-25 Check: each duty is a task on this file naming its file:line
 - [ ] T4 | Derive each line's code in the page for every reader
         > 2026-10-25 python/projection.py:212 and rust/projection.py:327 code_for
