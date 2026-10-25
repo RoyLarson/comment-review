@@ -208,16 +208,14 @@ def code_lines_for(read: PythonRead) -> list[CodeLine]:
     signature: the line its header's closing colon is on.
     """
     source = read.source
-    return lines_of_code(
-        _code(read),
-        (
-            (
-                source.position(declaration.anchor).line,
-                DocPlace(source.position(declaration.header.end - 1).line, False),
-            )
-            for declaration in source.declarations
-        ),
-    )
+    declared: dict[int, DocPlace] = {}
+    for declaration in source.declarations:
+        # The first declaration on a line takes its place.
+        declared.setdefault(
+            source.position(declaration.anchor).line,
+            DocPlace(source.position(declaration.header.end - 1).line, False),
+        )
+    return lines_of_code(_code(read), declared)
 
 
 def _code(read: PythonRead) -> dict[int, str]:

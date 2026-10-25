@@ -49,7 +49,7 @@ def sections_for(
     return RustRead(
         source,
         protected,
-        placement.warnings + documentation.warnings,
+        documentation.warnings,
         placement.detached,
     )
 
@@ -258,8 +258,9 @@ def code_lines_for(read: RustRead) -> list[CodeLine]:
     place is that line, above.
     """
     source = read.source
+    # The placer gives a line at most one declaration, the first on it.
     declaring = (source.position(d.anchor).line for d in source.declarations)
-    return lines_of_code(_code(read), ((n, DocPlace(n, True)) for n in declaring))
+    return lines_of_code(_code(read), {n: DocPlace(n, True) for n in declaring})
 
 
 def _code(read: RustRead) -> dict[int, str]:

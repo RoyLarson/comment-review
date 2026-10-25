@@ -2420,29 +2420,8 @@ def test_projection_a_line_declaring_two_items_documents_the_first(
     paragraphs, lines = projection_of(text, rust_definition)
     assert lines == [CodeLine(2, "fn a() {} fn b() {}", DocPlace(2, True))]
     assert paragraphs == [paragraph(1, 1, Kind.DOCSTRING, ["/// Doc."], address="a1")]
-    assert [
-        (w.code, result.source.position(w.span.start).line)
-        for w in result.warnings
-        if w.span is not None
-    ] == [(records.SEVERAL_DECLARATIONS_CODE, 2)]
-    assert result.detached == ()
-
-
-@pytest.mark.parametrize(
-    "text",
-    ["struct P { x: u8, y: u8 }\n", "#[x]\nfn a() {} fn b() {}\n"],
-    ids=["three-items", "attribute-above"],
-)
-def test_projection_a_line_declaring_several_items_warns_once(rust_definition, text):
-    result = rust_read(text, rust_definition)
-    assert [w.code for w in result.warnings] == [records.SEVERAL_DECLARATIONS_CODE]
-
-
-def test_projection_an_item_after_other_code_on_its_line_is_no_warning(
-    rust_definition,
-):
-    result = rust_read("fn g() {\n    let x = 1; fn h() {}\n}\n", rust_definition)
     assert result.warnings == ()
+    assert result.detached == ()
 
 
 def test_projection_read_source_returns_the_rust_record():

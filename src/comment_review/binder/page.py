@@ -574,8 +574,9 @@ def places_on(text: str, prose: list[dict], lang: "Language | None" = None) -> "
     """
     code = code_lines(text, prose)
     decls = declarations(lang, code) if lang else []
+    # `declarations` returns at most one place per code line.
     lines = lines_of_code(
-        code, ((line, DocPlace(insert, above)) for line, insert, above in decls)
+        code, {line: DocPlace(insert, above) for line, insert, above in decls}
     )
 
     # !! A language with no documentable declaration has no `a` series at all

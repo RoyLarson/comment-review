@@ -7,7 +7,7 @@ from typing import cast
 
 from comment_review.reading.coordinates import SourceCoordinates
 from comment_review.reading.definitions import LanguageDefinition
-from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, ReadStage
+from comment_review.reading.diagnostics import ReadFailure
 from comment_review.reading.rust.definition import (
     ASSOCIATED_ITEM,
     FIELD,
@@ -17,7 +17,6 @@ from comment_review.reading.rust.definition import (
     validate_rust,
 )
 from comment_review.reading.rust.records import (
-    SEVERAL_DECLARATIONS_CODE,
     RustPlacement,
     RustScan,
     RustToken,
@@ -154,8 +153,8 @@ def place_declarations(
     token that starts on the keyword's or member's line, and the anchor is the
     head's first character. An owner gets a declaration only when its kind is
     in `[rules.documentation].owners` and its head is the first code on its
-    line: the code before it ends on an earlier line. An owner on a line a
-    declaration already holds gets none, and that line gets one warning.
+    line: the code before it ends on an earlier line, so a line holding
+    several owners gives a declaration to the first alone.
 
     `detached` is empty, and documentation fills it.
     """
@@ -164,7 +163,7 @@ def place_declarations(
         return failure
     placer = _Placer(scan, _Grammar.from_definition(definition))
     placer.run()
-    return RustPlacement(tuple(placer.declarations), (), tuple(placer.warnings))
+    return RustPlacement(tuple(placer.declarations), ())
 
 
 class _Placer:
@@ -184,9 +183,6 @@ class _Placer:
         self.pending: _Pending | None = None
         self.attributes: list[int] = []
         self.declarations: list[SourceDeclaration] = []
-        self.warnings: list[ReadDiagnostic] = []
-        # Lines already warned of, so a line holding several items warns once.
-        self.crowded: set[int] = set()
 
     def run(self) -> None:
         at = 0
@@ -394,7 +390,6 @@ class _Placer:
             return
         head_line = self.lines[head]
         if head > 0 and self._line(self.tokens[head - 1].span.end - 1) == head_line:
-            self._several(head)
             return
         start = self.tokens[head].span.start
         line = self.lines[line_token]
@@ -403,25 +398,6 @@ class _Placer:
             end += 1
         header = SourceSpan(start, self.tokens[end].span.end)
         self.declarations.append(SourceDeclaration(header, start, owner))
-
-    def _several(self, head: int) -> None:
-        """Warn, once per line, of an owner on a line a declaration already holds."""
-        line = self.lines[head]
-        if not self.declarations or line in self.crowded:
-            return
-        # A declaration's header ends on the line its keyword or member is on.
-        if self._line(self.declarations[-1].header.end - 1) != line:
-            return
-        self.crowded.add(line)
-        self.warnings.append(
-            ReadDiagnostic(
-                ReadStage.PLACE,
-                SEVERAL_DECLARATIONS_CODE,
-                f"line {line} declares several items; the first takes its"
-                " documentation",
-                self.tokens[head].span,
-            )
-        )
 
     def _line(self, offset: int) -> int:
         return self.coordinates.position(offset).line

@@ -1,6 +1,6 @@
 """Immutable source records and exact character partition validation."""
 
-from collections.abc import Iterable, Mapping
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from enum import StrEnum
 from typing import NamedTuple
@@ -146,31 +146,29 @@ class CodeLine(NamedTuple):
 
 
 def lines_of_code(
-    code: Mapping[int, str], declared: Iterable[tuple[int, DocPlace]]
+    code: Mapping[int, str], declared: Mapping[int, DocPlace]
 ) -> list[CodeLine]:
     """Each code line in order, carrying the documentation place declared on it.
 
-    A line declares at most one documentable thing: when several declarations
-    share a line, the first one's place is the line's.
+    A line declares at most one documentable thing, so `declared` holds one
+    place per line; a reader keeps the first declaration on a line when it
+    builds it.
 
     Args:
         code: each 1-based line that holds code -> its code, ascending.
-        declared: each declaration's line and documentation place, in source
-            order.
+        declared: each declaring line -> its documentation place.
 
     Raises:
         ValueError: when a declaring line, or the line a documentation place
             is set against, is not a code line.
     """
-    places: dict[int, DocPlace] = {}
-    for line, place in declared:
+    for line, place in declared.items():
         for named in (line, place.at):
             if named not in code:
                 raise ValueError(
                     f"a documentation place names line {named}, not a code line"
                 )
-        places.setdefault(line, place)
-    return [CodeLine(n, text, places.get(n)) for n, text in code.items()]
+    return [CodeLine(n, text, declared.get(n)) for n, text in code.items()]
 
 
 @dataclass(frozen=True)
