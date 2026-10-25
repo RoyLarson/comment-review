@@ -1,9 +1,9 @@
 """How each LANGUAGE marks its prose, and the paragraph a reader produces.
 
 Adding a language is a `Language` row and a `READER_METADATA` entry -- data, not
-code. The reader here reads every language but Python from its row alone: the
-prose and its kind. Python is read by `reading.python`, from its own language
-definition.
+code. The reader here reads every language without a reader package of its own
+from its row alone: the prose and its kind. Python and Rust are read by
+`reading.python` and `reading.rust`, each from its own language definition.
 
 This classifies what the purpose is of each paragraph. `paragraphs_lexical`
 emits `comment`, `docstring`, `trailing-comment` and `matter` -- prose it found
