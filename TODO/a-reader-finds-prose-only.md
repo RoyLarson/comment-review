@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 7 of 17 tasks closed
+Progress: 9 of 20 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-25 (decision-log.md Process: #224)
@@ -92,10 +92,22 @@ defect and is repaired (lexer-and-language-findings T12, b30cc510).
         > 2026-10-25 Check: git grep -E "PageWarning|DETACHED_DOCUMENTATION" -- src
         > 2026-10-25 Check: gather prints the warning as file:line
         > 2026-10-25 Reason: several detached docs merged at one b cue read the same
-- [ ] T16 | Move the lexical path's code lines and declarations into its reader
+- [-] T16 | Filed with another task's notes; reissued as T20 | cb6a5005 | Move
+      the lexical path's code lines and declarations into its reader
         > 2026-10-25 Design: docs/superpowers/specs/2026-10-25-code-lines-design.md
         > 2026-10-25 Check: no def documentable in binder/page.py
         > 2026-10-25 Check: fn a() {} fn b() {} gives one documented line, one warning
-- [ ] T17 | Correct each reader's code text
+- [-] T17 | Filed with another task's notes; reissued as T18 | cb6a5005 | Correct
+      each reader's code text
+        > 2026-10-25 Check: page builds places without code_lines or declarations
+        > 2026-10-25 Check: corpus address dump unchanged for two lexical languages
+- [ ] T18 | Correct each reader's code text
+        > 2026-10-25 Check: every .rs margin anchor + raw_lines[0] equals its line
+        > 2026-10-25 Check: the Python backslash docstring sets back byte-identical
+- [ ] T19 | Return CodeLines from the Python and Rust readers
+        > 2026-10-25 Design: docs/superpowers/specs/2026-10-25-code-lines-design.md
+        > 2026-10-25 Check: no def documentable in binder/page.py
+        > 2026-10-25 Check: fn a() {} fn b() {} gives one documented line, one warning
+- [ ] T20 | Move the lexical path's code lines and declarations into its reader
         > 2026-10-25 Check: page builds places without code_lines or declarations
         > 2026-10-25 Check: corpus address dump unchanged for two lexical languages

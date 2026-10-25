@@ -2,8 +2,8 @@
 
 ```
 Status:   in-progress
-Progress: 2 of 12 TODO tasks closed
-Plan-tasks: 2 of 14 plan tasks closed
+Progress: 4 of 15 TODO tasks closed
+Plan-tasks: 4 of 17 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-25 (founded by move-t from 2026-10-11-lexical-readers)
@@ -33,8 +33,11 @@ per step; each step lands its failing test first.
 - [ ] T13 | Stop the page changing a reader's matter kind to comment
 - [ ] T14 | Form one comment section per gap in the Rust reader
 - [ ] T15 | Remove the page's detached-documentation placement
-- [ ] T16 | Move the lexical path's code lines and declarations into its reader
-- [ ] T17 | Correct each reader's code text
+- [-] T16 | Move the lexical path's code lines and declarations into its reader
+- [-] T17 | Correct each reader's code text
+- [ ] T18 | Correct each reader's code text
+- [ ] T19 | Return CodeLines from the Python and Rust readers
+- [ ] T20 | Move the lexical path's code lines and declarations into its reader
 
 ## Plan Tasks
 
@@ -47,6 +50,7 @@ per step; each step lands its failing test first.
         > 2026-10-25 Works T2
         > 2026-10-25 49389b6f reverted in e699deaf; redo on anchor_line after P13
         > 2026-10-25 Doc paragraphs are Kind.DOCSTRING; anchor_line names it (#229)
+        > 2026-10-25 Redo after P16, not P13 (P13 superseded)
 - [ ] P3 | Stop the page changing a reader's matter kind
         > 2026-10-25 Check: git grep "b.kind = " -- src/comment_review/binder: none
         > 2026-10-25 Works T13; needs P2
@@ -73,6 +77,7 @@ per step; each step lands its failing test first.
         > 2026-10-25 Check: gather prints the warning as file:line
         > 2026-10-25 Works T15; after P8
         > 2026-10-25 Lands before P13: drops warning_owners, the last ordinal
+        > 2026-10-25 Lands before P16, not P13 (P13 superseded)
 - [ ] P10 | Replace the Rust reader's _Lines with the shared line splitter
         > 2026-10-25 Check: git grep "class _Lines" -- src returns none
         > 2026-10-25 Works T12
@@ -82,10 +87,22 @@ per step; each step lands its failing test first.
         > 2026-10-25 Also amend the spec's code_for and declarations sections (#228)
 - [ ] P12 | Run the completion gates on the finished subplan
         > 2026-10-25 Check: pytest, ruff, ty, shipped syntax and vocabulary all green
-- [ ] P13 | Move the lexical path's code lines and declarations into its reader
+- [-] P13 | Carries another step's notes; reissued as P17 | cb6a5005 | Move the
+      lexical path's code lines and declarations into its reader
         > 2026-10-25 Works T16; after P9; design 2026-10-25-code-lines-design.md
         > 2026-10-25 Check: no def documentable in binder/page.py
         > 2026-10-25 Check: DocPlace(at, above=False) sets the a after at
-- [ ] P14 | Correct each reader's code text
+- [-] P14 | Carries another step's notes; reissued as P15 | cb6a5005 | Correct
+      each reader's code text
         > 2026-10-25 Works T17; after P13
+        > 2026-10-25 Check: corpus address dump unchanged for two lexical languages
+- [ ] P15 | Correct each reader's code text
+        > 2026-10-25 Works T18; replaces P4
+        > 2026-10-25 Check: Rust margins rebuild; Python backslash case round-trips
+- [ ] P16 | Return CodeLines from the Python and Rust readers
+        > 2026-10-25 Works T19; after P9; design 2026-10-25-code-lines-design.md
+        > 2026-10-25 Check: no def documentable in binder/page.py
+        > 2026-10-25 Check: DocPlace(at, above=False) sets the a after at
+- [ ] P17 | Move the lexical path's code lines and declarations into its reader
+        > 2026-10-25 Works T20; after P16
         > 2026-10-25 Check: corpus address dump unchanged for two lexical languages
