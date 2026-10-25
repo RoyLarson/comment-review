@@ -5636,3 +5636,23 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   docstring's escapes keep their source spelling; a block comment's markers, `*` continuation
   marks included, are not prose. Separating the setting half (`Fragment.wrap`) from the reading
   half is filed, not done here.
+
+- **#228.** **A reader hands back its code lines, each saying whether it declares something
+  documentable and where the doc is set** (Roy, 2026-10-25, shown that `declarations()` is a
+  list beside `code()` joined to it by line number in `page.documentable` and again in `cue`,
+  and that P2 had added a `documents` ordinal to `Paragraph`: *"I agree that it should go back
+  to using anchor line ... Seems pretty simple to change this so that code -> CodeLine"*;
+  agreeing a line's prose belongs to `Paragraph` -- *"that may be reaching into what Paragraph is
+  for"*; on a Python docstring's position being recomputed from its insert line: *"the DocPlace
+  could hold the correct placement value because it already holds above/inside ... this is just
+  recalculating that fact"*; and on two declarations on one line: *"one line - one documentable
+  thing ... this is a bad design pattern"*, *"The first gets it and the rest of the line is
+  included in the docstring as part of the first docstring"*, with a warning -- *"Yes but I
+  expect the agents know"*).
+
+  **What it settles.** A reader returns `CodeLine`s -- each line's number, its code verbatim,
+  and, when it declares something documentable, a `DocPlace` naming the code line the doc is set
+  against and whether it sits above that line or after it. A doc paragraph names its
+  declaration by `anchor_line`; `Paragraph` gains no ordinal. A line declares at most one
+  documentable thing: the first declaration on it takes the `a` place, documentation for the
+  rest of the line joins that docstring, and the read prints a `file:line` warning.
