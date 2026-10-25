@@ -5599,3 +5599,12 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   its raw lines, its kind and its anchor. What follows from those is derived once, for every
   language: `Paragraph` derives its own fields, the page places it and the addresser addresses
   it, as they did for Python before the lexical readers.
+
+- **#225.** **Matter is a kind, and the reader assigns it** (Roy, 2026-10-25, asked whether
+  matter is a kind a reader assigns or a place the page works out from position: *"Matter is a
+  Kind which from src\comment_review\reading\series.py::Kind It should be assigned by the
+  Reader like the other Kinds are assigned by the Reader. The Page and the Addresser fill out
+  the addresses for them points"*).
+
+  **What it settles.** `Kind.MATTER` is assigned by the reader, as every other kind is. The page
+  and the addresser give a matter paragraph its `f` address and do not change its kind.
