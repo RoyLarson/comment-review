@@ -1407,6 +1407,28 @@ def detached_of(text, result):
     return runs, notes
 
 
+def test_sections_comments_and_a_detached_doc_with_no_code_between_are_one(
+    rust_definition,
+):
+    text = "fn a() {}\n// one\n/// two\n// three\nfn b() {}\n"
+    result = documentation_of(text, rust_definition)
+    assert sections_of(text, result) == [("comment", "// one\n/// two\n// three")]
+    # The detached run keeps its own record and warning.
+    assert detached_of(text, result) == (
+        [("/// two", 5)],
+        [("/// two", [3, 5])],
+    )
+
+
+def test_sections_code_between_comments_ends_a_section(rust_definition):
+    text = "fn a() {}\n// one\n\n// two\nfn b() {}\n// three\nfn c() {}\n"
+    result = documentation_of(text, rust_definition)
+    assert sections_of(text, result) == [
+        ("comment", "// one\n\n// two"),
+        ("comment", "// three"),
+    ]
+
+
 def test_attachment_doc_above_a_multi_line_attribute_across_blank_lines(
     rust_definition,
 ):
@@ -1614,10 +1636,7 @@ def test_detached_documentation_is_ordinary_with_a_warning(
 def test_detached_inner_doc_behind_a_comment_in_its_body(rust_definition):
     text = "fn f() {\n    // a\n    //! inner\n}\n"
     result = documentation_of(text, rust_definition)
-    assert sections_of(text, result) == [
-        ("comment", "// a"),
-        ("comment", "//! inner"),
-    ]
+    assert sections_of(text, result) == [("comment", "// a\n    //! inner")]
     assert result.owners == ()
     assert detached_of(text, result) == (
         [("//! inner", 1)],
@@ -1640,11 +1659,7 @@ def test_detached_inner_doc_on_its_owner_head_line(rust_definition):
 def test_detached_module_doc_behind_a_comment_that_is_not_matter(rust_definition):
     text = "\n// a\n//! m\n// c\nfn f() {}\n"
     result = documentation_of(text, rust_definition)
-    assert sections_of(text, result) == [
-        ("comment", "// a"),
-        ("comment", "//! m"),
-        ("comment", "// c"),
-    ]
+    assert sections_of(text, result) == [("comment", "// a\n//! m\n// c")]
     assert result.owners == ()
     assert detached_of(text, result) == ([("//! m", None)], [("//! m", [3])])
     assert anchor_lines(text, result.placement) == (5,)
@@ -2281,7 +2296,8 @@ def test_projection_comment_and_detached_doc_after_code_are_one_comment(
 
 
 def test_projection_code_ends_a_comment_section(rust_definition):
-    text = "fn a() {}\n// one\n\n// two\nfn b() {}\n// three\nfn c() {}\n"
+    # The first section joins three runs (comment, detached doc, comment).
+    text = "fn a() {}\n// one\n/// two\n// three\nfn b() {}\n// four\nfn c() {}\n"
     paragraphs, _, _ = projection_of(text, rust_definition)
     assert [(p.start, p.end, p.kind) for p in paragraphs] == [
         (2, 4, Kind.COMMENT),

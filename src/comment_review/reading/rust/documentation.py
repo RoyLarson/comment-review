@@ -59,14 +59,16 @@ def documentation_in(
 ) -> RustDocumentation | ReadFailure:
     """Section every comment and give each documentation section its owner.
 
-    A section is a run of comments of one written form -- ordinary, outer doc
-    or inner doc -- with only whitespace between them, blank lines included.
-    A comment with code before it on its line is a section of its own. A
-    comment followed by code on the line it ends on is part of that line's
-    code: it is no section, documents nothing, and ends the run above it. A
-    doc above it is separated from its owner, as by an ordinary comment, and
-    is detached. A comment followed only by another comment on its line is
-    prose, and the two share a place.
+    A run is comments of one written form -- ordinary, outer doc or inner
+    doc -- with only whitespace between them, blank lines included. A run
+    that documents an owner is a section; the runs that are ordinary
+    comments, including the docs detached into them, with no code between
+    them are one section. A comment with code before it on its line is a
+    section of its own. A comment followed by code on the line it ends on is
+    part of that line's code: it is no section, documents nothing, and ends
+    the run above it. A doc above it is separated from its owner, as by an
+    ordinary comment, and is detached. A comment followed only by another
+    comment on its line is prose, and the two share a place.
 
     An outer doc section that ends on a line above an owner's head, with only
     whitespace between them, documents that owner. An inner doc section
@@ -153,9 +155,9 @@ class _Assigner:
             elif run.written is RustSectionForm.INNER_DOC:
                 self._inner(index, run)
         # Every section starting in the opening comments is matter, up to the
-        # first that documents an owner. A section of one form may run on past
-        # the opening comments, across a blank line; the projection divides it
-        # where they end.
+        # first that documents an owner. A run may run on past the
+        # opening comments, across a blank line; the sections divide it where
+        # they end.
         if self.opening_end is not None:
             for index, run in enumerate(self.runs):
                 if run.code or not self._opens(run):
@@ -163,11 +165,30 @@ class _Assigner:
                 if index in self.links:
                     break
                 self.forms[index] = RustSectionForm.MATTER
-        kept = [index for index, run in enumerate(self.runs) if not run.code]
-        section_of = {run: section for section, run in enumerate(kept)}
+        # Each section is [form, start, end, last run]; the last run is what
+        # the next run is checked against.
+        groups: list[list] = []
+        section_of: dict[int, int] = {}
+        for index, run in enumerate(self.runs):
+            if run.code:
+                continue
+            form, start = self.forms[index], run.span.start
+            tail = self._past_the_opening(index, run)
+            if tail is not None:
+                # The opening matter ends before the run does: the comments
+                # from `tail` on are ordinary and section with what follows.
+                groups.append([form, start, self._comment_end(start, tail), index])
+                section_of[index] = len(groups) - 1
+                form, start = RustSectionForm.COMMENT, tail
+            elif groups and self._continues(groups[-1], index):
+                groups[-1][2:] = [run.span.end, index]
+                section_of[index] = len(groups) - 1
+                continue
+            groups.append([form, start, run.span.end, index])
+            section_of[index] = len(groups) - 1
         sections = tuple(
-            SourceSection(self.runs[index].span, self.forms[index].value)
-            for index in kept
+            SourceSection(SourceSpan(start, end), form.value)
+            for form, start, end, _ in groups
         )
         owners = tuple(
             DocumentationOwner(section_of[index], declaration)
@@ -178,6 +199,53 @@ class _Assigner:
             tuple(self.detached),
         )
         return RustDocumentation(sections, owners, placement, tuple(self.warnings))
+
+    def _past_the_opening(self, index: int, run: _Run) -> int | None:
+        """Where the ordinary comments start, if matter ends inside the run.
+
+        A matter run runs on past the opening comments when a blank line
+        ends them and a comment of the same form follows; the first comment
+        below the opening comments starts the ordinary ones.
+        """
+        if (
+            self.forms[index] is not RustSectionForm.MATTER
+            or self.opening_end is None
+            or self._line(run.span.end - 1) <= self.opening_end
+        ):
+            return None
+        return next(
+            token.span.start
+            for token in self.scan.tokens
+            if token.kind in COMMENT_KINDS
+            and token.span.start >= run.span.start
+            and self._line(token.span.start) > self.opening_end
+        )
+
+    def _comment_end(self, start: int, stop: int) -> int:
+        """The end of the last comment in `[start, stop)`."""
+        return max(
+            token.span.end
+            for token in self.scan.tokens
+            if token.kind in COMMENT_KINDS and start <= token.span.start < stop
+        )
+
+    def _continues(self, group: list, index: int) -> bool:
+        """Whether run `index` is part of the COMMENT section `group`.
+
+        Only code ends a section: the run follows the section's last run
+        directly, both are ordinary comments that stand on lines of their own,
+        and no code was read between them.
+        """
+        before = group[3]
+        first, second = self.runs[before], self.runs[index]
+        return (
+            index == before + 1
+            and not first.closed
+            and group[0] is RustSectionForm.COMMENT
+            and self.forms[index] is RustSectionForm.COMMENT
+            and not first.trailing
+            and not second.trailing
+        )
 
     def _opening_end(self) -> int | None:
         """The last line of the comments that open the file, or None.

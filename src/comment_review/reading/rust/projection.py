@@ -7,7 +7,6 @@ from pathlib import Path
 from comment_review import constants
 from comment_review.reading.diagnostics import ReadFailure
 from comment_review.reading.paragraph import Paragraph
-from comment_review.reading.rust.documentation import opening_end
 from comment_review.reading.rust.records import (
     DETACHED_DOCUMENTATION,
     RustDocumentation,
@@ -65,22 +64,21 @@ def paragraphs_for(path: Path, read: RustRead) -> list[Paragraph] | ReadFailure:
     A documentation section is a DOCSTRING at its owner's `a` place. Any
     other section is MATTER when its form is `matter`, TRAILING when code
     precedes it on its first line, with that code as its anchor, and COMMENT
-    when none does. A detached run carries the `detached-documentation`
-    annotation.
+    when none does.
 
     A paragraph's raw lines run from the end of the last code or comment
     before it on its first line, or from that line's start, to the end of its
     last line, so `anchor + raw_lines[0]` is the first line.
 
-    The comments after the last code line then follow the end-of-file rule,
-    and the comment sections are formed by the section rule -- see
-    `_comment_sections`.
+    The file's opening and closing comments then follow the file-head and
+    end-of-file rules, and sections sharing a line are one paragraph -- see
+    `_file_edges_and_shared_lines`. A paragraph on whose lines a detached run
+    starts carries the `detached-documentation` annotation.
     """
     source = read.source
     text = source.text
     layout = _Layout(read)
     owners = {owner.section: owner.declaration for owner in source.documentation}
-    detached = {run.span for run in read.detached}
     paragraphs: list[Paragraph] = []
     for span in read.protected:
         # The shebang is protected source, not a section, and the file's own
@@ -123,93 +121,53 @@ def paragraphs_for(path: Path, read: RustRead) -> list[Paragraph] | ReadFailure:
                 kind,
                 anchor=text[line_start:anchor_end] if kind == Kind.TRAILING else "",
                 address=address,
-                annotations={DETACHED_DOCUMENTATION} if span in detached else set(),
                 raw_lines=raw,
             )
         )
-    return _comment_sections(paragraphs, set(code_for(read)), layout)
+    found = _file_edges_and_shared_lines(paragraphs, set(code_for(read)), layout)
+    starts = [source.position(run.span.start).line for run in read.detached]
+    for paragraph in found:
+        if any(paragraph.start <= line <= paragraph.end for line in starts):
+            paragraph.annotations.add(DETACHED_DOCUMENTATION)
+    return found
 
 
-def _comment_sections(
+def _file_edges_and_shared_lines(
     paragraphs: list[Paragraph], code: set[int], layout: "_Layout"
 ) -> list[Paragraph]:
-    """Form the comment sections of the read's paragraphs.
+    """Apply the file-head and end-of-file rules, then merge paragraphs sharing a line.
 
-    The opening comments follow the file-head rule first, see
-    `_opening_matter`, and the comments after the last code line the
-    end-of-file rule, see `_closing_matter`. Then a paragraph starting on a
-    line the paragraph before it ends on is part of that paragraph, which
-    keeps its kind and anchor. Then the COMMENT paragraphs with no code line
-    between them are one COMMENT section, whatever sits between them: blank
-    lines, or the module's inner doc, whose lines stay its own. Only code
-    ends a section.
+    The opening comments follow the file-head rule, see `_opening_matter`,
+    and the comments after the last code line the end-of-file rule, see
+    `_closing_matter`. Then a paragraph starting on a line the paragraph
+    before it ends on is part of that paragraph, which keeps its kind and
+    anchor.
     """
-    paragraphs = _opening_matter(
-        sorted(paragraphs, key=lambda p: p.start), code, layout
-    )
+    paragraphs = _opening_matter(sorted(paragraphs, key=lambda p: p.start), layout)
     paragraphs = _closing_matter(paragraphs, code, layout)
-    held = {
-        n
-        for p in paragraphs
-        if p.kind == Kind.DOCSTRING
-        for n in range(p.start, p.end + 1)
-    }
     out: list[Paragraph] = []
-    # The index in `out` of the COMMENT section that no code line has closed.
-    open_section: int | None = None
     for paragraph in paragraphs:
         if out and paragraph.start <= out[-1].end:
-            out[-1] = _combined([out[-1], paragraph], out[-1].kind, layout, held)
-            continue
-        if open_section is not None and any(
-            n in code for n in range(out[open_section].end + 1, paragraph.start)
-        ):
-            open_section = None
-        if paragraph.kind != Kind.COMMENT:
-            out.append(paragraph)
-        elif open_section is None:
-            open_section = len(out)
-            out.append(paragraph)
+            out[-1] = _combined([out[-1], paragraph], out[-1].kind, layout)
         else:
-            out[open_section] = _combined(
-                [out[open_section], paragraph], Kind.COMMENT, layout, held
-            )
+            out.append(paragraph)
     return sorted(out, key=lambda p: p.start)
 
 
-def _opening_matter(
-    paragraphs: list[Paragraph], code: set[int], layout: "_Layout"
-) -> list[Paragraph]:
+def _opening_matter(paragraphs: list[Paragraph], layout: "_Layout") -> list[Paragraph]:
     """Apply the file-head rule to the opening comments.
 
     The MATTER paragraphs here are the shebang and the sections that open
-    the file, which the documentation stage marks; every one starts in the
-    opening comments `opening_end` bounds, from the lines holding a prose
-    comment and the lines holding code. The ones ending in them are one
-    MATTER paragraph, at the first `f` place; a paragraph that runs on past
-    them, across a blank line, is divided at the first comment line below
-    it, and the part below stays a COMMENT. This is the rule the Python
+    the file, which the documentation stage marks and ends before the first
+    ordinary comment below the opening comments. They are one MATTER
+    paragraph, at the first `f` place. This is the rule the Python
     projection applies to its opening run.
     """
     matter = [p for p in paragraphs if p.kind == Kind.MATTER]
     if not matter:
         return paragraphs
-    first = 1
-    for span in layout.read.protected:
-        first = layout.read.source.position(span.end - 1).line + 1
-    end = opening_end(first, layout.prose_lines(), code)
-    covered = layout.comment_lines()
     kept = [p for p in paragraphs if p.kind != Kind.MATTER]
-    parts: list[Paragraph] = []
-    for paragraph in matter:
-        if end is None or paragraph.end <= end:
-            parts.append(paragraph)
-        else:
-            at = next(n for n in range(end + 1, paragraph.end + 1) if n in covered)
-            before, after = _divided(paragraph, at, covered)
-            parts.append(before)
-            kept.append(after)
-    kept.append(_combined(parts, Kind.MATTER, layout, set()))
+    kept.append(_combined(matter, Kind.MATTER, layout))
     return sorted(kept, key=lambda p: p.start)
 
 
@@ -245,7 +203,7 @@ def _closing_matter(
             before, after = _divided(paragraph, matter_from, covered)
             kept.append(before)
             parts.append(after)
-    kept.append(_combined(parts, Kind.MATTER, layout, set()))
+    kept.append(_combined(parts, Kind.MATTER, layout))
     return sorted(kept, key=lambda p: p.start)
 
 
@@ -255,17 +213,13 @@ def _divided(
     """The whole-line paragraph as two, the second starting on line `at`.
 
     The line above `at` is blank, and the first part ends on the last comment
-    line above it. The first part keeps the annotations: a detached run's
-    warning names the line it starts on, which is in that part.
+    line above it.
     """
     end = at - 1
     while end not in covered:
         end -= 1
     halves = []
-    for start, stop, notes in (
-        (paragraph.start, end, paragraph.annotations),
-        (at, paragraph.end, set()),
-    ):
+    for start, stop in ((paragraph.start, end), (at, paragraph.end)):
         raw = paragraph.raw_lines[start - paragraph.start : stop - paragraph.start + 1]
         halves.append(
             Paragraph(
@@ -273,31 +227,23 @@ def _divided(
                 start,
                 stop,
                 Kind.COMMENT,
-                annotations=set(notes),
                 raw_lines=raw,
             )
         )
     return halves[0], halves[1]
 
 
-def _combined(
-    parts: list[Paragraph], kind: str, layout: "_Layout", held: set[int]
-) -> Paragraph:
+def _combined(parts: list[Paragraph], kind: str, layout: "_Layout") -> Paragraph:
     """One paragraph from parts in source order, with the first part's anchor.
 
     Its raw lines are the physical lines from the first part's first line to
-    the last part's last line, blank lines included and the lines in `held`
-    left out; the first line starts after the anchor, which is empty unless
-    the first part trails code. Its annotations are the parts' together.
+    the last part's last line, blank lines included; the first line starts
+    after the anchor, which is empty unless the first part trails code.
     """
     first, last = parts[0], parts[-1]
     raw = [
         layout.physical[first.start - 1][len(first.anchor) :],
-        *(
-            layout.physical[n - 1]
-            for n in range(first.start + 1, last.end + 1)
-            if n not in held
-        ),
+        *(layout.physical[n - 1] for n in range(first.start + 1, last.end + 1)),
     ]
     return Paragraph(
         first.path,
@@ -306,7 +252,6 @@ def _combined(
         kind,
         anchor=first.anchor,
         address=first.address,
-        annotations=set().union(*(p.annotations for p in parts)),
         raw_lines=raw,
     )
 
@@ -400,14 +345,6 @@ class _Layout:
     def comment_lines(self) -> set[int]:
         """Every line a comment stands on, in whole or in part."""
         return self._lines_of(self.comments)
-
-    def prose_lines(self) -> set[int]:
-        """Every line a comment in a section stands on, in whole or in part."""
-        return self._lines_of(
-            region.span
-            for region in self.read.source.regions
-            if self.read.is_prose(region)
-        )
 
     def _lines_of(self, spans: Iterable[SourceSpan]) -> set[int]:
         return {

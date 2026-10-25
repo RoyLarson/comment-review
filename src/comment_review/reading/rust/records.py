@@ -270,18 +270,21 @@ class RustDocumentation:
         ):
             raise ValueError("an inner doc section may document only the module")
         _tuple(self.warnings, ReadDiagnostic, "warnings")
-        comments = {
+        comments = [
             section.span
             for section in self.sections
             if section.form in (RustSectionForm.COMMENT, RustSectionForm.MATTER)
-        }
+        ]
         for warning in self.warnings:
             if (
                 warning.code != DETACHED_DOCUMENTATION
                 or warning.stage != ReadStage.PLACE
             ):
                 raise ValueError("warnings must be detached-documentation place notes")
-            if warning.span not in comments:
+            if not any(
+                warning.span is not None and span.start <= warning.span.start < span.end
+                for span in comments
+            ):
                 raise ValueError("a warning must mark a comment or matter section")
         if [warning.span for warning in self.warnings] != [
             run.span for run in self.placement.detached
