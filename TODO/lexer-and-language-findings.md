@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 20 of 49 tasks closed
+Progress: 21 of 49 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (/simplify rounds 1 and 2 and /code-review high round 3,
@@ -200,9 +200,10 @@ would.
 - [ ] T11 | T11 -- Replace the four one-element lists standing in for `nonlocal`
       in lexer.py. Verify: no `[0]` subscript on a one-element accumulator
       remains in lexer.py.
-- [~] T12 | T12 -- Settle what `Paragraph.lines` counts: three rules fill it,
-      one column reads it. Verify: one rule fills it, or the field is gone and
-      the column computes it.
+- [x] T12 | One rule: Paragraph.lines derives from counted_lines | b30cc510 | T12
+      -- Settle what `Paragraph.lines` counts: three rules fill it, one column
+      reads it. Verify: one rule fills it, or the field is gone and the column
+      computes it.
         > 2026-10-25 Rule settled: counted_lines; decision-log.md Process: #223
 - [-] T13 | Moved to language-reader-java.md | 42f3d3e5 | T13 -- Give Java its
       own expression of a soft keyword: `record` at language.py:248. Verify:
