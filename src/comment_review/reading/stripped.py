@@ -145,6 +145,11 @@ class StrippedRead:
         """The comparison's name, as a proof report prints it."""
         return "stripped"
 
+    @property
+    def warnings(self) -> tuple[ReadDiagnostic, ...]:
+        """The read's warnings: a lexical read reports none."""
+        return ()
+
     def preserved(
         self,
         after: Self,

@@ -276,11 +276,6 @@ class PythonRead:
         """The read's warnings: a Python read reports none."""
         return ()
 
-    @property
-    def warning_owners(self) -> tuple[int | None, ...]:
-        """Each warning's owner: a Python read has no warnings, so none."""
-        return ()
-
     def paragraphs(self, path: Path) -> list[Paragraph] | ReadFailure:
         """Every retained section of this read as a page paragraph."""
         # Imported here because `projection` reads this module's records.

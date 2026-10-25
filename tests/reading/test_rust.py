@@ -1936,7 +1936,7 @@ def projection_of(text, definition):
     return paragraphs, result.code(), result.declarations()
 
 
-def paragraph(start, end, kind, raw, *, address="", anchor="", notes=()):
+def paragraph(start, end, kind, raw, *, address="", anchor=""):
     return Paragraph(
         PAGE.as_posix(),
         start,
@@ -1944,7 +1944,6 @@ def paragraph(start, end, kind, raw, *, address="", anchor="", notes=()):
         kind,
         anchor=anchor,
         address=address,
-        annotations=set(notes),
         raw_lines=raw,
     )
 
@@ -2007,7 +2006,6 @@ def test_projection_of_docs_comments_code_and_declarations(rust_definition):
                     1,
                     Kind.MATTER,
                     ["/** a */ /*! b */ /* c */"],
-                    notes={"detached-documentation"},
                 )
             ],
         ),
@@ -2021,7 +2019,6 @@ def test_projection_of_docs_comments_code_and_declarations(rust_definition):
                     Kind.TRAILING,
                     [" /* one", " two */ /** three */ // four"],
                     anchor="fn a() {}",
-                    notes={"detached-documentation"},
                 )
             ],
         ),
@@ -2054,17 +2051,13 @@ def test_projection_sections_sharing_a_line_are_one_paragraph(
         ),
         (
             "/// a\n/** b */ fn f() {}\n",
-            [paragraph(1, 1, Kind.MATTER, ["/// a"], notes={"detached-documentation"})],
+            [paragraph(1, 1, Kind.MATTER, ["/// a"])],
             {2: "/** b */ fn f() {}"},
             [0],
         ),
         (
             "#[x]\n/// a\n/** b */ fn f() {}\n",
-            [
-                paragraph(
-                    2, 2, Kind.COMMENT, ["/// a"], notes={"detached-documentation"}
-                )
-            ],
+            [paragraph(2, 2, Kind.COMMENT, ["/// a"])],
             {1: "#[x]", 3: "/** b */ fn f() {}"},
             [0],
         ),
@@ -2225,7 +2218,6 @@ def test_projection_opening_matter_takes_every_form_up_to_the_first_blank(
             3,
             Kind.MATTER,
             ["/* a */", "/// b", "// c"],
-            notes={"detached-documentation"},
         ),
         paragraph(5, 5, Kind.COMMENT, ["// d"]),
     ]
@@ -2273,7 +2265,6 @@ def test_projection_comments_in_one_gap_with_a_detached_module_doc_are_one(
             4,
             Kind.COMMENT,
             ["// a", "//! m", "// c"],
-            notes={"detached-documentation"},
         ),
     ]
     assert declarations == [(5, 5, True)]
@@ -2290,7 +2281,6 @@ def test_projection_comment_and_detached_doc_after_code_are_one_comment(
             4,
             Kind.COMMENT,
             ["// one", "/// two", "// three"],
-            notes={"detached-documentation"},
         )
     ]
 
@@ -2331,7 +2321,6 @@ def test_projection_detached_run_is_an_annotated_comment(rust_definition):
             3,
             Kind.COMMENT,
             ["/// a", "// b"],
-            notes={"detached-documentation"},
         ),
     ]
     assert len(result.warnings) == 1
@@ -2350,7 +2339,6 @@ def test_projection_detached_trailing_run_keeps_its_anchor(rust_definition):
             Kind.TRAILING,
             [" /// t"],
             anchor="fn z() {}",
-            notes={"detached-documentation"},
         )
     ]
 
@@ -2408,10 +2396,7 @@ def test_projection_body_inner_doc_leaves_its_item_inserting_at_its_head(
 ):
     paragraphs, _, declarations = projection_of(text, rust_definition)
     assert declarations[0] == (1, 1, True)
-    detached = [p for p in paragraphs if p.annotations]
-    assert [(p.start, p.kind, p.annotations) for p in detached] == [
-        (inner, Kind.COMMENT, {"detached-documentation"})
-    ]
+    assert [(p.start, p.kind) for p in paragraphs] == [(inner, Kind.COMMENT)]
 
 
 def test_projection_read_rust_refuses_an_unterminated_comment(rust_definition):

@@ -60,6 +60,11 @@ class SourceRead(Protocol):
         """The comparison's name, as a proof report prints it."""
         ...
 
+    @property
+    def warnings(self) -> tuple[ReadDiagnostic, ...]:
+        """What the read noted without refusing the file."""
+        ...
+
     def preserved(
         self,
         after: Self,
@@ -83,20 +88,6 @@ class ReaderRecord(SourceRead, Protocol):
     @property
     def source(self) -> SourceStructure:
         """The exact source and its reader-supplied structure."""
-        ...
-
-    @property
-    def warnings(self) -> tuple[ReadDiagnostic, ...]:
-        """What the read noted without refusing the file."""
-        ...
-
-    @property
-    def warning_owners(self) -> tuple[int | None, ...]:
-        """The owner of each `detached-documentation` warning, aligned with `warnings`.
-
-        An owner is the index of the declaration the detached documentation
-        would document, or None for the module.
-        """
         ...
 
     def paragraphs(self, path: Path) -> list[Paragraph] | ReadFailure:

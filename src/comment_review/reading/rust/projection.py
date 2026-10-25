@@ -8,7 +8,6 @@ from comment_review import constants
 from comment_review.reading.diagnostics import ReadFailure
 from comment_review.reading.paragraph import Paragraph
 from comment_review.reading.rust.records import (
-    DETACHED_DOCUMENTATION,
     RustDocumentation,
     RustRead,
     RustScan,
@@ -72,8 +71,7 @@ def paragraphs_for(path: Path, read: RustRead) -> list[Paragraph] | ReadFailure:
 
     The file's opening and closing comments then follow the file-head and
     end-of-file rules, and sections sharing a line are one paragraph -- see
-    `_file_edges_and_shared_lines`. A paragraph on whose lines a detached run
-    starts carries the `detached-documentation` annotation.
+    `_file_edges_and_shared_lines`.
     """
     source = read.source
     text = source.text
@@ -124,12 +122,7 @@ def paragraphs_for(path: Path, read: RustRead) -> list[Paragraph] | ReadFailure:
                 raw_lines=raw,
             )
         )
-    found = _file_edges_and_shared_lines(paragraphs, set(code_for(read)), layout)
-    starts = [source.position(run.span.start).line for run in read.detached]
-    for paragraph in found:
-        if any(paragraph.start <= line <= paragraph.end for line in starts):
-            paragraph.annotations.add(DETACHED_DOCUMENTATION)
-    return found
+    return _file_edges_and_shared_lines(paragraphs, set(code_for(read)), layout)
 
 
 def _file_edges_and_shared_lines(

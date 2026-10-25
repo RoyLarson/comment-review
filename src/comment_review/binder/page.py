@@ -108,21 +108,6 @@ WIRE_FIELDS = ("cue", "anchor", "original_start", "original_end", "raw_text")
 # Asking the type would miss the EMPTY place, which has no prose to type.
 
 
-@dataclass(frozen=True)
-class PageWarning:
-    """What the read noted about one place, without refusing the file.
-
-    Attributes:
-        cue: the place the noted prose sits in.
-        owner: the `a` place the prose would document.
-        code: the read's diagnostic code, e.g. `detached-documentation`.
-    """
-
-    cue: str
-    owner: str
-    code: str
-
-
 @dataclass
 class Page:
     """ONE FILE: its paragraphs in order, among the code they sit with.
@@ -153,10 +138,6 @@ class Page:
         leading: the space below a place, keyed by the place it FOLLOWS --
             `f0 -> d0`. An absent key means nothing blank follows that place,
             which is what most boundaries do.
-        warnings: what the read noted without refusing the file, one per
-            warning the read gave, each at the place whose lines hold it; two
-            warnings may share a place. `serialize` does not write them: a
-            binder carries only the five fields of `WIRE_FIELDS` per place.
     """
 
     path: str
@@ -178,7 +159,6 @@ class Page:
     # place after it goes stale on a `drop`, naming a place the run no longer
     # separates. See `tie_leading`.
     leading: dict[str, str] = dataclass_field(default_factory=dict)
-    warnings: tuple[PageWarning, ...] = ()
 
     def __iter__(self):
         """Down the page, in order."""
@@ -918,9 +898,6 @@ def page_for(
         b.address = address_for(here, place)
         b.anchor = cues.anchor_of(place, b.anchor)
         b.text = _text_of(path.as_posix(), place, "\n".join(b.raw_lines), b.anchor)
-    warnings = _warnings(record, got, cues) if record is not None else ()
-    if isinstance(warnings, ReadFailure):
-        return warnings
     occupied = {b.address.split("@")[-1] for b in got if "@" in b.address}
     empty_paragraphs = empty_places(text, cues, occupied)
     if isinstance(empty_paragraphs, ReadFailure):
@@ -947,47 +924,7 @@ def page_for(
         cues=cues,
         read=record if record is not None else StrippedRead(text, path),
         leading=edges,
-        warnings=warnings,
     )
-
-
-def _warnings(
-    record: ReaderRecord, paragraphs: list[Paragraph], cues: Cues
-) -> tuple[PageWarning, ...] | ReadFailure:
-    """Each of the read's warnings as the place it notes and its owner's place.
-
-    A warning's place is the addressed paragraph whose lines hold the warning's
-    first character; its owner is the `a` place of the declaration the read
-    names, `a0` for the module.
-    """
-    out: list[PageWarning] = []
-    for warning, owner in zip(record.warnings, record.warning_owners, strict=True):
-        line = (
-            record.source.position(warning.span.start).line
-            if warning.span is not None
-            else None
-        )
-        place = next(
-            (
-                b.address.split("@")[-1]
-                for b in paragraphs
-                if "@" in b.address and line is not None and b.start <= line <= b.end
-            ),
-            "",
-        )
-        owner_cue = cues.documents(0 if owner is None else owner + 1)
-        if not place or not owner_cue:
-            return ReadFailure(
-                (
-                    ReadDiagnostic(
-                        ReadStage.PLACE,
-                        "unsupported-placement",
-                        f"{warning.code}: a warning with no place or no owner",
-                    ),
-                )
-            )
-        out.append(PageWarning(cue=place, owner=owner_cue, code=warning.code))
-    return tuple(out)
 
 
 def fill_the_gaps(

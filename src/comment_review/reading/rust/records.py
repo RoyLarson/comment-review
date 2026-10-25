@@ -22,7 +22,7 @@ from comment_review.reading.source import (
     SourceStructure,
 )
 
-DETACHED_DOCUMENTATION = "detached-documentation"
+DETACHED_DOC_CODE = "detached-documentation"
 
 
 class RustTokenKind(StrEnum):
@@ -276,10 +276,7 @@ class RustDocumentation:
             if section.form in (RustSectionForm.COMMENT, RustSectionForm.MATTER)
         ]
         for warning in self.warnings:
-            if (
-                warning.code != DETACHED_DOCUMENTATION
-                or warning.stage != ReadStage.PLACE
-            ):
+            if warning.code != DETACHED_DOC_CODE or warning.stage != ReadStage.PLACE:
                 raise ValueError("warnings must be detached-documentation place notes")
             if not any(
                 warning.span is not None and span.start <= warning.span.start < span.end
@@ -347,10 +344,7 @@ class RustRead:
                 raise ValueError("protected span must coincide with a directive region")
         _tuple(self.warnings, ReadDiagnostic, "warnings")
         for warning in self.warnings:
-            if (
-                warning.code != DETACHED_DOCUMENTATION
-                or warning.stage != ReadStage.PLACE
-            ):
+            if warning.code != DETACHED_DOC_CODE or warning.stage != ReadStage.PLACE:
                 raise ValueError("warnings must be detached-documentation place notes")
             if warning.span is None or warning.span.end > len(self.source.text):
                 raise ValueError("warning span must lie inside source")
@@ -369,11 +363,6 @@ class RustRead:
     def proof(self) -> str:
         """The comparison's name, as a proof report prints it."""
         return "rust-lexical"
-
-    @property
-    def warning_owners(self) -> tuple[int | None, ...]:
-        """Each warning's owner, from the detached run it aligns with."""
-        return tuple(run.owner for run in self.detached)
 
     def preserved(
         self,

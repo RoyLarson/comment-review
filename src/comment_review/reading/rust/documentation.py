@@ -12,7 +12,7 @@ from comment_review.reading.rust.definition import MODULE, validate_rust
 from comment_review.reading.rust.records import (
     ATTRIBUTE_KINDS,
     COMMENT_KINDS,
-    DETACHED_DOCUMENTATION,
+    DETACHED_DOC_CODE,
     DetachedRun,
     RustDocumentation,
     RustPlacement,
@@ -369,7 +369,7 @@ class _Assigner:
         self.warnings.append(
             ReadDiagnostic(
                 ReadStage.PLACE,
-                DETACHED_DOCUMENTATION,
+                DETACHED_DOC_CODE,
                 f"documentation on line {self._line(run.span.start)} "
                 f"is detached from {named}",
                 run.span,
