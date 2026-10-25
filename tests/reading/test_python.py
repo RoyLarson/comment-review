@@ -2881,7 +2881,6 @@ def test_expression_comments_existing_places_preserve_expression_on_set_and_edit
                 start=first_line,
                 end=last_line,
                 kind="trailing-comment" if prefix.strip() else "comment",
-                lines=last_line - first_line + 1,
                 text=raw,
                 anchor=prefix,
                 raw_lines=result.source.slice(section.span).splitlines(),

@@ -19,8 +19,10 @@ literal to read it from (`TODO/topology-is-a-source-edit.md` T3).
 from dataclasses import replace
 from pathlib import Path
 
+import pytest
 from conftest import build
 
+from comment_review.binder.page import RedactedPage
 from comment_review.desk.stages import ROLES, Kind, Stage, deals, pulls_revise
 from comment_review.desk.topology import read as read_topology
 from comment_review.reading.addresser import cue_of
@@ -169,8 +171,32 @@ def test_a_trailing_comment_over_the_cap_is_dealt():
     with the lines another language's would hold."""
     beside = _places()["c2"]
     assert not deals(COMPACTING, beside)
-    spanning = replace(beside, raw_lines=["# one", "# two", "# three"], lines=3)
+    spanning = replace(beside, raw_lines=["# one", "# two", "# three"])
     assert deals(COMPACTING, spanning)
+
+
+#: A comment run holding a blank line and a work-marker line. The cap charges
+#: neither, so the run stands on two lines whichever reader built it.
+SPACED = {
+    "m.py": "x = 1\n# one\n\n# TODO: filed\n# two\ny = 2\n",
+    "m.rs": "fn f() {}\n// one\n\n// TODO: filed\n// two\nfn g() {}\n",
+    "m.go": "var x = 1\n// one\n\n// TODO: filed\n// two\nvar y = 2\n",
+}
+
+
+@pytest.mark.parametrize("name", sorted(SPACED))
+def test_a_run_counts_neither_its_blank_nor_its_marker_line(name):
+    page = build(SPACED[name], name)
+    run = next(p for p in page.paragraphs if "one" in p.raw_text)
+    assert run.lines == 2
+
+
+@pytest.mark.parametrize("name", sorted(SPACED))
+def test_a_binder_read_back_keeps_the_count(name):
+    back, why = RedactedPage.deserialize("t", build(SPACED[name], name).serialize())
+    assert back is not None, why
+    run = next(p for p in back.paragraphs if "one" in p.raw_text)
+    assert run.lines == 2
 
 
 def test_a_cap_with_no_series_asks_only_the_length():

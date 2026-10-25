@@ -57,8 +57,8 @@ def test_read_paragraphs_unterminated_comment_before_decoration(monkeypatch):
 
 def test_read_paragraphs_retains_signal_order(monkeypatch):
     records = [
-        Paragraph("m.py", 1, 1, "unparsed", 0, "unsupported reading"),
-        Paragraph("m.py", 2, 2, "comment", 1, "open"),
+        Paragraph("m.py", 1, 1, "unparsed", "unsupported reading"),
+        Paragraph("m.py", 2, 2, "comment", "open"),
     ]
     records[1].annotations.add("unterminated-paragraph-comment")
     monkeypatch.setattr(readers, "paragraphs_lexical", lambda *args: records)
@@ -81,7 +81,7 @@ def test_read_paragraphs_invalid_record_and_unexpected_error_propagate(monkeypat
     monkeypatch.setattr(readers, "paragraphs_lexical", broken)
     with pytest.raises(RuntimeError, match="reader defect"):
         readers.read_paragraphs(Path("m.c"), "", lang)
-    record = Paragraph("m.py", 3, 3, "comment", 1, "open")
+    record = Paragraph("m.py", 3, 3, "comment", "open")
     record.annotations.add("unterminated-paragraph-comment")
     monkeypatch.setattr(readers, "paragraphs_lexical", lambda *args: [record])
     with pytest.raises(ValueError, match="source lines"):

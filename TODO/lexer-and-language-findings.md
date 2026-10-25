@@ -200,7 +200,7 @@ would.
 - [ ] T11 | T11 -- Replace the four one-element lists standing in for `nonlocal`
       in lexer.py. Verify: no `[0]` subscript on a one-element accumulator
       remains in lexer.py.
-- [ ] T12 | T12 -- Settle what `Paragraph.lines` counts: three rules fill it,
+- [~] T12 | T12 -- Settle what `Paragraph.lines` counts: three rules fill it,
       one column reads it. Verify: one rule fills it, or the field is gone and
       the column computes it.
         > 2026-10-25 Rule settled: counted_lines; decision-log.md Process: #223
