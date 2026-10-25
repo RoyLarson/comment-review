@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (125)
+### open  (138)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -307,6 +307,19 @@ that changed a published name or rule:
 | [empty-comment-gets-a-drop](empty-comment-gets-a-drop.md) | backend | -- | 0/1 | An empty comment gets a drop mark |
 | [paragraph-is-a-passage](paragraph-is-a-passage.md) | backend | -- | 0/9 | The addressed unit of prose is a passage, not a paragraph |
 | [one-line-ending-per-file](one-line-ending-per-file.md) | backend | -- | 1/6 | One line ending per file |
+| [language-reader-go](language-reader-go.md) | backend | -- | 0/2 | Go lexical reader |
+| [language-reader-c](language-reader-c.md) | backend | -- | 0/2 | C lexical reader |
+| [language-reader-cpp](language-reader-cpp.md) | backend | -- | 0/2 | C++ lexical reader |
+| [language-reader-java](language-reader-java.md) | backend | -- | 0/2 | Java lexical reader |
+| [language-reader-csharp](language-reader-csharp.md) | backend | -- | 0/2 | C# lexical reader |
+| [language-reader-swift](language-reader-swift.md) | backend | -- | 0/2 | Swift lexical reader |
+| [language-reader-kotlin](language-reader-kotlin.md) | backend | -- | 0/2 | Kotlin lexical reader |
+| [language-reader-javascript](language-reader-javascript.md) | backend | -- | 0/2 | JavaScript lexical reader |
+| [language-reader-typescript](language-reader-typescript.md) | backend | -- | 0/2 | TypeScript lexical reader |
+| [language-reader-ruby](language-reader-ruby.md) | backend | -- | 0/2 | Ruby lexical reader |
+| [language-reader-shell](language-reader-shell.md) | backend | -- | 0/2 | Shell lexical reader |
+| [language-reader-sql](language-reader-sql.md) | backend | -- | 0/2 | SQL lexical reader |
+| [language-reader-lua](language-reader-lua.md) | backend | -- | 0/2 | Lua lexical reader |
 
 ### in-progress  (17)
 

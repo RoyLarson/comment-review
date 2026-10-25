@@ -3,7 +3,7 @@
 ```
 Status:   decision-needed
 Progress: 42 of 162 TODO tasks closed
-Plan-tasks: 13 of 53 plan tasks closed
+Plan-tasks: 40 of 53 plan tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-10-11 (founded by move-t from 0.2.4-the-middle-rebuilt)
@@ -636,83 +636,109 @@ interfaces, inputs and checks, without internal development files or history.
       code, addresses and set/proof behavior
         > 2026-10-11 Check: uv run pytest -q tests/reading/test_rust.py
         > 2026-10-25 Rust child: docs/plans/2026-10-22-lexer-rust.md
-- [ ] P11 | Specify Go independently; verify supported modes, directive
-      boundaries, declaration ownership and expected fixtures
+- [-] P11 | Deferred until asked for; language-reader-go.md T1 | 3708a84a | Specify
+      Go independently; verify supported modes, directive boundaries,
+      declaration ownership and expected fixtures
         > 2026-10-11 Own dated spec and subplan; branch feat/lexer-go
-- [ ] P12 | Implement the Go reader from its definition; verify expected
-      comments, protected code, addresses and set/proof behavior
+- [-] P12 | Deferred until asked for; language-reader-go.md T2 | 3708a84a | Implement
+      the Go reader from its definition; verify expected comments, protected
+      code, addresses and set/proof behavior
         > 2026-10-11 Check: uv run pytest -q tests/reading/test_go.py
-- [ ] P13 | Specify C independently; verify supported modes, directive
-      boundaries, declaration ownership and expected fixtures
+- [-] P13 | Deferred until asked for; language-reader-c.md T1 | 3708a84a | Specify
+      C independently; verify supported modes, directive boundaries, declaration
+      ownership and expected fixtures
         > 2026-10-11 Own dated spec and subplan; branch feat/lexer-c
-- [ ] P14 | Implement the C reader from its definition; verify expected
-      comments, protected code, addresses and set/proof behavior
+- [-] P14 | Deferred until asked for; language-reader-c.md T2 | 3708a84a | Implement
+      the C reader from its definition; verify expected comments, protected
+      code, addresses and set/proof behavior
         > 2026-10-11 Check: uv run pytest -q tests/reading/test_c.py
-- [ ] P15 | Specify C++ independently; verify supported modes, directive
-      boundaries, declaration ownership and expected fixtures
+- [-] P15 | Deferred until asked for; language-reader-cpp.md T1 | 3708a84a | Specify
+      C++ independently; verify supported modes, directive boundaries,
+      declaration ownership and expected fixtures
         > 2026-10-11 Own dated spec and subplan; branch feat/lexer-cpp
-- [ ] P16 | Implement the C++ reader from its definition; verify expected
-      comments, protected code, addresses and set/proof behavior
+- [-] P16 | Deferred until asked for; language-reader-cpp.md T2 | 3708a84a | Implement
+      the C++ reader from its definition; verify expected comments, protected
+      code, addresses and set/proof behavior
         > 2026-10-11 Check: uv run pytest -q tests/reading/test_cpp.py
-- [ ] P17 | Specify Java independently; verify supported modes, directive
-      boundaries, declaration ownership and expected fixtures
+- [-] P17 | Deferred until asked for; language-reader-java.md T1 | 3708a84a | Specify
+      Java independently; verify supported modes, directive boundaries,
+      declaration ownership and expected fixtures
         > 2026-10-11 Own dated spec and subplan; branch feat/lexer-java
-- [ ] P18 | Implement the Java reader from its definition; verify expected
-      comments, protected code, addresses and set/proof behavior
+- [-] P18 | Deferred until asked for; language-reader-java.md T2 | 3708a84a | Implement
+      the Java reader from its definition; verify expected comments, protected
+      code, addresses and set/proof behavior
         > 2026-10-11 Check: uv run pytest -q tests/reading/test_java.py
-- [ ] P19 | Specify C# independently; verify supported modes, directive
-      boundaries, declaration ownership and expected fixtures
+- [-] P19 | Deferred until asked for; language-reader-csharp.md T1 | 3708a84a | Specify
+      C# independently; verify supported modes, directive boundaries,
+      declaration ownership and expected fixtures
         > 2026-10-11 Own dated spec and subplan; branch feat/lexer-csharp
-- [ ] P20 | Implement the C# reader from its definition; verify expected
-      comments, protected code, addresses and set/proof behavior
+- [-] P20 | Deferred until asked for; language-reader-csharp.md T2 | 3708a84a | Implement
+      the C# reader from its definition; verify expected comments, protected
+      code, addresses and set/proof behavior
         > 2026-10-11 Check: uv run pytest -q tests/reading/test_csharp.py
-- [ ] P21 | Specify Swift independently; verify supported modes, directive
-      boundaries, declaration ownership and expected fixtures
+- [-] P21 | Deferred until asked for; language-reader-swift.md T1 | 3708a84a | Specify
+      Swift independently; verify supported modes, directive boundaries,
+      declaration ownership and expected fixtures
         > 2026-10-11 Own dated spec and subplan; branch feat/lexer-swift
-- [ ] P22 | Implement the Swift reader from its definition; verify expected
-      comments, protected code, addresses and set/proof behavior
+- [-] P22 | Deferred until asked for; language-reader-swift.md T2 | 3708a84a | Implement
+      the Swift reader from its definition; verify expected comments, protected
+      code, addresses and set/proof behavior
         > 2026-10-11 Check: uv run pytest -q tests/reading/test_swift.py
-- [ ] P23 | Specify Kotlin independently; verify supported modes, directive
-      boundaries, declaration ownership and expected fixtures
+- [-] P23 | Deferred until asked for; language-reader-kotlin.md T1 | 3708a84a | Specify
+      Kotlin independently; verify supported modes, directive boundaries,
+      declaration ownership and expected fixtures
         > 2026-10-11 Own dated spec and subplan; branch feat/lexer-kotlin
-- [ ] P24 | Implement the Kotlin reader from its definition; verify expected
-      comments, protected code, addresses and set/proof behavior
+- [-] P24 | Deferred until asked for; language-reader-kotlin.md T2 | 3708a84a | Implement
+      the Kotlin reader from its definition; verify expected comments, protected
+      code, addresses and set/proof behavior
         > 2026-10-11 Check: uv run pytest -q tests/reading/test_kotlin.py
-- [ ] P25 | Specify JavaScript independently; verify supported modes, directive
-      boundaries, declaration ownership and expected fixtures
+- [-] P25 | Deferred until asked for; language-reader-javascript.md T1 | 3708a84a | Specify
+      JavaScript independently; verify supported modes, directive boundaries,
+      declaration ownership and expected fixtures
         > 2026-10-11 Own dated spec and subplan; branch feat/lexer-javascript
-- [ ] P26 | Implement the JavaScript reader from its definition; verify expected
-      comments, protected code, addresses and set/proof behavior
+- [-] P26 | Deferred until asked for; language-reader-javascript.md T2 | 3708a84a | Implement
+      the JavaScript reader from its definition; verify expected comments,
+      protected code, addresses and set/proof behavior
         > 2026-10-11 Check: uv run pytest -q tests/reading/test_javascript.py
-- [ ] P27 | Specify TypeScript independently; verify supported modes, directive
-      boundaries, declaration ownership and expected fixtures
+- [-] P27 | Deferred until asked for; language-reader-typescript.md T1 | 3708a84a | Specify
+      TypeScript independently; verify supported modes, directive boundaries,
+      declaration ownership and expected fixtures
         > 2026-10-11 Own dated spec and subplan; branch feat/lexer-typescript
-- [ ] P28 | Implement the TypeScript reader from its definition; verify expected
-      comments, protected code, addresses and set/proof behavior
+- [-] P28 | Deferred until asked for; language-reader-typescript.md T2 | 3708a84a | Implement
+      the TypeScript reader from its definition; verify expected comments,
+      protected code, addresses and set/proof behavior
         > 2026-10-11 Check: uv run pytest -q tests/reading/test_typescript.py
-- [ ] P29 | Specify Ruby independently; verify supported modes, directive
-      boundaries, declaration ownership and expected fixtures
+- [-] P29 | Deferred until asked for; language-reader-ruby.md T1 | 3708a84a | Specify
+      Ruby independently; verify supported modes, directive boundaries,
+      declaration ownership and expected fixtures
         > 2026-10-11 Own dated spec and subplan; branch feat/lexer-ruby
-- [ ] P30 | Implement the Ruby reader from its definition; verify expected
-      comments, protected code, addresses and set/proof behavior
+- [-] P30 | Deferred until asked for; language-reader-ruby.md T2 | 3708a84a | Implement
+      the Ruby reader from its definition; verify expected comments, protected
+      code, addresses and set/proof behavior
         > 2026-10-11 Check: uv run pytest -q tests/reading/test_ruby.py
-- [ ] P31 | Specify Shell independently; verify supported modes, directive
-      boundaries, declaration ownership and expected fixtures
+- [-] P31 | Deferred until asked for; language-reader-shell.md T1 | 3708a84a | Specify
+      Shell independently; verify supported modes, directive boundaries,
+      declaration ownership and expected fixtures
         > 2026-10-11 Own dated spec and subplan; branch feat/lexer-shell
-- [ ] P32 | Implement the Shell reader from its definition; verify expected
-      comments, protected code, addresses and set/proof behavior
+- [-] P32 | Deferred until asked for; language-reader-shell.md T2 | 3708a84a | Implement
+      the Shell reader from its definition; verify expected comments, protected
+      code, addresses and set/proof behavior
         > 2026-10-11 Check: uv run pytest -q tests/reading/test_shell.py
-- [ ] P33 | Specify SQL independently; verify supported modes, directive
-      boundaries, declaration ownership and expected fixtures
+- [-] P33 | Deferred until asked for; language-reader-sql.md T1 | 3708a84a | Specify
+      SQL independently; verify supported modes, directive boundaries,
+      declaration ownership and expected fixtures
         > 2026-10-11 Own dated spec and subplan; branch feat/lexer-sql
-- [ ] P34 | Implement the SQL reader from its definition; verify expected
-      comments, protected code, addresses and set/proof behavior
+- [-] P34 | Deferred until asked for; language-reader-sql.md T2 | 3708a84a | Implement
+      the SQL reader from its definition; verify expected comments, protected
+      code, addresses and set/proof behavior
         > 2026-10-11 Check: uv run pytest -q tests/reading/test_sql.py
-- [ ] P35 | Specify Lua independently; verify supported modes, directive
-      boundaries, declaration ownership and expected fixtures
+- [-] P35 | Deferred until asked for; language-reader-lua.md T1 | 3708a84a | Specify
+      Lua independently; verify supported modes, directive boundaries,
+      declaration ownership and expected fixtures
         > 2026-10-11 Own dated spec and subplan; branch feat/lexer-lua
-- [ ] P36 | Implement the Lua reader from its definition; verify expected
-      comments, protected code, addresses and set/proof behavior
+- [-] P36 | Deferred until asked for; language-reader-lua.md T2 | 3708a84a | Implement
+      the Lua reader from its definition; verify expected comments, protected
+      code, addresses and set/proof behavior
         > 2026-10-11 Check: uv run pytest -q tests/reading/test_lua.py
 - [x] P37 | Child lexer-python closed: gather, setting, both proofs, 3.11 | 2bf15f2b | Integrate
       Python reading through gather, setting and both proof commands; verify
@@ -766,6 +792,7 @@ interfaces, inputs and checks, without internal development files or history.
       shared definition loading and registry selection; verify unique routes,
       explicit capabilities and excluded categories
         > 2026-10-11 Subplan 2026-10-11-lexical-reading-context owns this work
-- [ ] P53 | Implement each language definition with its own spec and reader;
-      verify independent rules without inherited configuration
+- [-] P53 | Python and Rust delivered; others in language-reader-*.md | 3708a84a | Implement
+      each language definition with its own spec and reader; verify independent
+      rules without inherited configuration
         > 2026-10-11 Each language subplan supplies its own spec, definition and reader
