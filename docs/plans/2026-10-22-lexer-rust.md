@@ -1,7 +1,7 @@
 # Rust lexical reader implementation
 
 ```
-Status:   in-progress
+Status:   closed
 Progress: 6 of 6 TODO tasks closed
 Plan-tasks: 13 of 13 plan tasks closed
 Owner:    backend
