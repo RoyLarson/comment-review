@@ -353,23 +353,22 @@ documentation. Revision `2` replaces the shared row's
 | Module | Provides | Built on |
 | --- | --- | --- |
 | `definition.py` | `validate_rust(definition) -> ReadFailure \| None` | `LanguageDefinition` |
-| `records.py` | `RustToken(kind, span)`, `RustScan(text, regions, tokens, prose)`, `RustPlacement(declarations, insertions, detached)`, `DetachedRun(span, owner)`, `RustDocumentation(sections, owners, placement, warnings)`, `RustRead` | `SourceStructure`, `SourceSpan`, `SourceSection`, `SourceDeclaration`, `DocumentationOwner` from `reading/source.py` |
+| `records.py` | `RustToken(kind, span)`, `RustScan(text, regions, tokens, prose)`, `RustPlacement(declarations, detached)`, `DetachedRun(span, owner)`, `RustDocumentation(sections, owners, placement, warnings)`, `RustRead` | `SourceStructure`, `SourceSpan`, `SourceSection`, `SourceDeclaration`, `DocumentationOwner` from `reading/source.py` |
 | `scanner.py` | `scan_rust(text, definition) -> RustScan \| ReadFailure`: the state table above | `ReadDiagnostic` at `LEX` |
 | `structure.py` | `place_declarations(scan, definition) -> RustPlacement \| ReadFailure`: the body-kind stack, owners, heads, the same-line rule, macro opacity | the scan's tokens only |
-| `documentation.py` | `documentation_in(scan, placement, definition)`: attaches doc sections to owners, finds detached runs, the module's `a0` and its insertion line | the scan and placement |
+| `documentation.py` | `documentation_in(scan, placement, definition)`: attaches doc sections to owners, finds detached runs and the module's `a0` | the scan and placement |
 | `directives.py` | `directives_in(scan, definition)`: the shebang | the scan |
 | `projection.py` | `sections_for(...) -> RustRead`, `paragraphs_for(path, read)`, `code_for(read)`, `declarations_for(read)` | `Paragraph`, `Kind` |
 | `preservation.py` | `compare_preservation(before, after) -> PreservationResult` | `reading/proof.py` |
 | `__init__.py` | `read_rust(text, definition) -> RustRead \| ReadFailure` | the above, in order |
 
-`RustRead` holds `source: SourceStructure`, `protected` (the shebang),
-`insertions` (the module's, then one per declaration), `warnings:
+`RustRead` holds `source: SourceStructure`, `protected` (the shebang), `warnings:
 tuple[ReadDiagnostic, ...]` for detached documentation, at stage `PLACE`, code
 `detached-documentation`, with the detached run's span, `detached` (the runs,
 each with its owner's declaration index or `None` for the module) and `prose`
 (the scan's prose pieces). `warning_owners` gives each warning's owner. It
 validates in `__post_init__` as `PythonRead` does: regions partition the text,
-one insertion per declaration, warnings inside the text.
+each declaration anchored on its own line, warnings inside the text.
 
 `projection.py` follows the Python projection's contract
 (`reading/python/projection.py:107-257`):
@@ -383,7 +382,7 @@ one insertion per declaration, warnings inside the text.
 - `declarations_for` gives a `DocumentationPlace`
   `(head first line, head first line, True)` per owner with a place, and none
   for the module, whose `a0` the page sets whenever there is an `a` series: every
-  declaration's insertion is its anchor line, an owner with a body inner doc
+  declaration inserts at its anchor line, an owner with a body inner doc
   included (`decision-log.md Addressing: #33`). `above` is `True` for every
   entry: the doc goes above the line, and `documentable`
   (`binder/page.py:568`) handles that side unchanged.
@@ -459,7 +458,7 @@ Each step ends with its tests green and the full suite green.
 3. **Structure.** `place_declarations`: owners by body kind, heads, the
    same-line rule, macro opacity.
 4. **Documentation and directives.** Attachment, detached runs and their
-   warnings, the module `a0` and its insertion line, the shebang.
+   warnings, the module `a0`, the shebang.
 5. **Projection and records.** `RustRead`, `paragraphs_for`, `code_for`,
    `declarations_for`, the `ReaderRecord` protocol satisfied by both records.
 6. **Page integration.** O1 and O2: `page_for` over a `.rs`

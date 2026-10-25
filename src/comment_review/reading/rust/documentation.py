@@ -175,7 +175,6 @@ class _Assigner:
         )
         placement = RustPlacement(
             self.placement.declarations,
-            self.placement.insertions,
             tuple(self.detached),
         )
         return RustDocumentation(sections, owners, placement, tuple(self.warnings))

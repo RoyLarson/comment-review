@@ -50,7 +50,6 @@ def sections_for(
     return RustRead(
         source,
         protected,
-        placement.insertions,
         documentation.warnings,
         placement.detached,
         scan.prose,
@@ -358,16 +357,15 @@ def code_for(read: RustRead) -> dict[int, str]:
 def declarations_for(read: RustRead) -> list[DocumentationPlace]:
     """Each declaration's place, anchored at its head.
 
-    Rust documentation goes above its insertion line, so every entry is above.
-    A declaration's insertion is its anchor line.
+    Rust documentation goes above the declaring line, so every entry is above
+    and is inserted at its anchor's line.
     """
     source = read.source
-    return [
-        DocumentationPlace(source.position(declaration.anchor).line, insertion, True)
-        for declaration, insertion in zip(
-            source.declarations, read.insertions, strict=True
-        )
-    ]
+    places = []
+    for declaration in source.declarations:
+        line = source.position(declaration.anchor).line
+        places.append(DocumentationPlace(line, line, True))
+    return places
 
 
 class _Lines:

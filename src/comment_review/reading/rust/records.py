@@ -94,17 +94,6 @@ def _nesting(tokens: "tuple[RustToken, ...]", end: int) -> None:
             cursor = span.end
 
 
-def _insertions(insertions: tuple[int, ...], declarations: int) -> None:
-    _tuple(insertions, int, "insertions")
-    if len(insertions) != declarations:
-        raise ValueError("insertions must match declarations")
-    if any(isinstance(item, bool) or item < 1 for item in insertions):
-        raise ValueError("insertions must be positive line numbers")
-    for before, after in pairwise(insertions):
-        if after <= before:
-            raise ValueError("declaration insertions must be strictly increasing")
-
-
 def _prose(
     prose: tuple[tuple[SourceSpan, ...], ...], comments: list[SourceSpan]
 ) -> None:
@@ -222,20 +211,14 @@ class DetachedRun:
 
 @dataclass(frozen=True)
 class RustPlacement:
-    """Declarations, their documentation insertion lines, and detached runs.
-
-    `insertions[i]` is the 1-based insertion line of `declarations[i]`: its
-    head's first line.
-    """
+    """Declarations and detached runs."""
 
     declarations: tuple[SourceDeclaration, ...]
-    insertions: tuple[int, ...]
     detached: tuple[DetachedRun, ...]
 
     def __post_init__(self) -> None:
-        """Require one insertion per declaration and detached owners that exist."""
+        """Require declarations and detached owners that exist."""
         _tuple(self.declarations, SourceDeclaration, "declarations")
-        _insertions(self.insertions, len(self.declarations))
         _tuple(self.detached, DetachedRun, "detached")
         if any(
             run.owner is not None and run.owner >= len(self.declarations)
@@ -263,7 +246,7 @@ class RustDocumentation:
     Each section's form is a RustSectionForm value. `owners` links each
     OUTER_DOC section to its declaration and each INNER_DOC section to the
     module, as declaration None: an inner doc in a body documents no owner.
-    `placement` carries the insertion lines and the detached runs.
+    `placement` carries the declarations and the detached runs.
     Each warning marks one COMMENT or MATTER section that is detached
     documentation, and the warnings align one-to-one, in order, with
     `placement.detached`.
@@ -340,29 +323,29 @@ class RustRead:
     `detached` aligns one-to-one, in order, with `warnings`, so a warning's
     owner is its run's `owner`. `prose` is the scan's prose, one entry per
     COMMENT region, kept because the read holds no tokens. A COMMENT region
-    in no section is code. Each declaration's insertion is the line its
-    anchor is on. A documentation section shares no physical line with
+    in no section is code. Each declaration anchors on its own line, below
+    the one before it, and its documentation goes above that line. A
+    documentation section shares no physical line with
     another section, so an `a` place holds its doc alone; other sections may
     share a line, and the projection makes them one paragraph.
     """
 
     source: SourceStructure
     protected: tuple[SourceSpan, ...]
-    insertions: tuple[int, ...]
     warnings: tuple[ReadDiagnostic, ...]
     detached: tuple[DetachedRun, ...]
     prose: tuple[tuple[SourceSpan, ...], ...]
 
     def __post_init__(self) -> None:
-        """Check insertions, protected spans, warnings, detached runs and prose."""
+        """Check declaration lines, protected spans, warnings, detached runs, prose."""
         if not isinstance(self.source, SourceStructure):
             raise ValueError("read source must be a SourceStructure")
-        _insertions(self.insertions, len(self.source.declarations))
-        for declaration, insertion in zip(
-            self.source.declarations, self.insertions, strict=True
-        ):
-            if self.source.position(declaration.anchor).line != insertion:
-                raise ValueError("a declaration's insertion must be its anchor line")
+        lines = [
+            self.source.position(declaration.anchor).line
+            for declaration in self.source.declarations
+        ]
+        if any(after <= before for before, after in pairwise(lines)):
+            raise ValueError("each declaration must anchor on its own line")
         documented = {RustSectionForm.OUTER_DOC, RustSectionForm.INNER_DOC}
         for before, after in pairwise(self.source.sections):
             if (

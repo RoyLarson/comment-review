@@ -162,7 +162,7 @@ def place_declarations(
         return failure
     placer = _Placer(scan, _Grammar.from_definition(definition))
     placer.run()
-    return RustPlacement(tuple(placer.declarations), tuple(placer.insertions), ())
+    return RustPlacement(tuple(placer.declarations), ())
 
 
 class _Placer:
@@ -182,7 +182,6 @@ class _Placer:
         self.pending: _Pending | None = None
         self.attributes: list[int] = []
         self.declarations: list[SourceDeclaration] = []
-        self.insertions: list[int] = []
 
     def run(self) -> None:
         at = 0
@@ -398,7 +397,6 @@ class _Placer:
             end += 1
         header = SourceSpan(start, self.tokens[end].span.end)
         self.declarations.append(SourceDeclaration(header, start, owner))
-        self.insertions.append(head_line)
 
     def _line(self, offset: int) -> int:
         return self.coordinates.position(offset).line
