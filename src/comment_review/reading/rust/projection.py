@@ -18,6 +18,7 @@ from comment_review.reading.rust.records import (
 )
 from comment_review.reading.series import Kind
 from comment_review.reading.source import (
+    DocumentationPlace,
     RegionKind,
     SourceRegion,
     SourceSpan,
@@ -354,7 +355,7 @@ def code_for(read: RustRead) -> dict[int, str]:
     return code
 
 
-def declarations_for(read: RustRead) -> list[tuple[int, int, bool]]:
+def declarations_for(read: RustRead) -> list[DocumentationPlace]:
     """The module's entry, then each declaration's place, anchored at its head.
 
     Rust documentation goes above its insertion line, so every entry is above.
@@ -364,9 +365,11 @@ def declarations_for(read: RustRead) -> list[tuple[int, int, bool]]:
     """
     source = read.source
     return [
-        (0, read.insertions[0], True),
+        DocumentationPlace(0, read.insertions[0], True),
         *(
-            (source.position(declaration.anchor).line, insertion, True)
+            DocumentationPlace(
+                source.position(declaration.anchor).line, insertion, True
+            )
             for declaration, insertion in zip(
                 source.declarations, read.insertions[1:], strict=True
             )

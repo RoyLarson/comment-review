@@ -9,6 +9,7 @@ from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, Read
 from comment_review.reading.paragraph import Paragraph
 from comment_review.reading.proof import UNIDENTIFIED_OWNER, PreservationResult
 from comment_review.reading.source import (
+    DocumentationPlace,
     SourceDeclaration,
     SourceRegion,
     SourceSpan,
@@ -296,7 +297,7 @@ class PythonRead:
 
         return code_for(self)
 
-    def declarations(self) -> list[tuple[int, int, bool]]:
+    def declarations(self) -> list[DocumentationPlace]:
         """The module's and each declaration's documentation place, by line."""
         from comment_review.reading.python.projection import declarations_for
 

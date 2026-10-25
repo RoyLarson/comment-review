@@ -69,6 +69,7 @@ from comment_review.reading.proof import ReaderRecord, SourceRead
 from comment_review.reading.readers import read_source
 from comment_review.reading.registry import LanguageRegistry
 from comment_review.reading.series import Kind, Series
+from comment_review.reading.source import DocumentationPlace
 from comment_review.reading.stripped import StrippedRead
 
 #: The five fields a place is carried by, in the order `Page.serialize` writes
@@ -567,7 +568,7 @@ def attach(paragraph: dict, cues: "Cues") -> str:
 
 
 def documentable(
-    decls: list[tuple[int, int, bool]], code: dict[int, str]
+    decls: list[DocumentationPlace], code: dict[int, str]
 ) -> dict[int, tuple[int, int, str]]:
     """Which code lines DECLARE something documentable, and WHERE the doc sits.
 

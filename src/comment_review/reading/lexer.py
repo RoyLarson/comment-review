@@ -45,6 +45,7 @@ from comment_review.reading.language import (
 )
 from comment_review.reading.paragraph import Paragraph
 from comment_review.reading.series import Kind, Series, cue_for
+from comment_review.reading.source import DocumentationPlace
 
 __all__ = [
     "BY_EXT",
@@ -1101,7 +1102,7 @@ def _declares_here(line: str, declares: tuple[str, ...]) -> bool:
 
 def document_declarations(
     paragraphs: list["Paragraph"],
-    decls: list[tuple[int, int, bool]],
+    decls: list[DocumentationPlace],
     code: dict[int, str],
 ) -> None:
     """Say which prose run documents which declaration, at the LEXICAL tier.
@@ -1184,7 +1185,7 @@ def document_declarations(
             held.address = cue_for(Series.DECLARED.value.letter, ordinal)
 
 
-def declarations(lang: Language, code: dict[int, str]) -> list[tuple[int, int, bool]]:
+def declarations(lang: Language, code: dict[int, str]) -> list[DocumentationPlace]:
     """Every DOCUMENTABLE declaration in source order: its line, and where its doc goes.
 
     !! ENTRY 0 IS THE MODULE, whose line is 0 -- a module has no line of code
@@ -1230,10 +1231,12 @@ def declarations(lang: Language, code: dict[int, str]) -> list[tuple[int, int, b
     # !! THE MODULE FIRST, AND ITS DOC OPENS THE FILE. `a0` is the file's own
     # documentation, which in an above-doc language is the run at the top --
     # Rust's `//!`, Go's package comment.
-    out = [(0, 1, True)]
+    out = [DocumentationPlace(0, 1, True)]
     # ! The doc goes ON the declaring line, pushing it down, so `insert` IS that
     # line. Ordered because `code` is.
     out += [
-        (n, n, True) for n, line in code.items() if _declares_here(line, lang.declares)
+        DocumentationPlace(n, n, True)
+        for n, line in code.items()
+        if _declares_here(line, lang.declares)
     ]
     return out

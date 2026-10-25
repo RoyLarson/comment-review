@@ -15,7 +15,7 @@ from typing import Protocol, Self
 
 from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure
 from comment_review.reading.paragraph import Paragraph
-from comment_review.reading.source import SourceStructure
+from comment_review.reading.source import DocumentationPlace, SourceStructure
 
 #: The diagnostic code a read reports when it cannot separate prose from code,
 #: so sameness is neither shown nor refuted.
@@ -107,9 +107,6 @@ class ReaderRecord(SourceRead, Protocol):
         """Each 1-based line's code; a line with none is absent."""
         ...
 
-    def declarations(self) -> list[tuple[int, int, bool]]:
-        """Each documentation place as (anchor line, insertion line, above).
-
-        The first entry is the module's, with anchor line 0.
-        """
+    def declarations(self) -> list[DocumentationPlace]:
+        """Each documentation place; the first is the module's, at line 0."""
         ...

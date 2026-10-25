@@ -19,6 +19,7 @@ from comment_review.reading.python.records import (
 from comment_review.reading.series import Kind
 from comment_review.reading.source import (
     DocumentationOwner,
+    DocumentationPlace,
     RegionKind,
     SourceSection,
     SourceSpan,
@@ -254,13 +255,13 @@ def code_for(read: PythonRead) -> dict[int, str]:
     return code
 
 
-def declarations_for(read: PythonRead) -> list[tuple[int, int, bool]]:
+def declarations_for(read: PythonRead) -> list[DocumentationPlace]:
     """Translate retained declaration and insertion offsets into page coordinates."""
     source = read.source
     return [
-        (0, source.position(read.insertions[0]).line, False),
+        DocumentationPlace(0, source.position(read.insertions[0]).line, False),
         *(
-            (
+            DocumentationPlace(
                 source.position(declaration.anchor).line,
                 source.position(insertion).line,
                 False,
