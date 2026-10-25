@@ -1,0 +1,76 @@
+# A reader hands over only what parsing finds
+
+```
+Status:   open
+Progress: 0 of 10 TODO tasks closed
+Plan-tasks: 0 of 12 plan tasks closed
+Owner:    backend
+Requires-Roy: false
+Raised:   2026-10-25 (founded by move-t from 2026-10-11-lexical-readers)
+```
+
+## Objective
+
+A reader hands over only what parsing finds -- span, raw lines, kind and anchor
+(Process #224; matter is a reader-assigned kind, #225; a detached doc is a
+comment, #226). Paragraph derives text, the page derives each line's code and
+assigns every address, and the page changes no kind and holds no
+detached-documentation logic. Branch: feat/reader-hands-prose-only, based on
+feat/lexical-readers, returned by no-ff merge. Subagent-driven, with a review
+per step; each step lands its failing test first.
+
+## TODO tasks this plan closes
+
+### A - [a-reader-finds-prose-only](../../TODO/a-reader-finds-prose-only.md)
+
+- [ ] T1 | Derive Paragraph.text in one place for every reader
+- [ ] T2 | Assign each paragraph's address in the page instead of in a reader
+- [ ] T4 | Derive each line's code in the page for every reader
+- [ ] T5 | Give a Python docstring paragraph its whole source lines
+- [ ] T6 | Delete the continues-a-trailing-comment stamp from lexer.py
+- [ ] T8 | Move the front and back matter rule to one shared place
+- [ ] T12 | Replace the Rust reader's _Lines with the shared line splitter
+- [ ] T13 | Stop the page changing a reader's matter kind to comment
+- [ ] T14 | Form one comment section per gap in the Rust reader
+- [ ] T15 | Remove the page's detached-documentation placement
+
+## Plan Tasks
+
+- [ ] P1 | Derive Paragraph.text in Paragraph for every reader
+        > 2026-10-25 Check: one comment in .py, .rs and .go reads the same text
+        > 2026-10-25 Works a-reader-finds-prose-only T1
+- [ ] P2 | Assign every paragraph's address in the page
+        > 2026-10-25 Check: no address= in reading/python or reading/rust; suite green
+        > 2026-10-25 Works T2
+- [ ] P3 | Stop the page changing a reader's matter kind
+        > 2026-10-25 Check: git grep "b.kind = " -- src/comment_review/binder: none
+        > 2026-10-25 Works T13; needs P2
+- [ ] P4 | Derive each line's code in the page for every reader
+        > 2026-10-25 Check: every .rs margin anchor + raw_lines[0] equals its line
+        > 2026-10-25 Check: no def code_for under reading/python or reading/rust
+        > 2026-10-25 Works T4
+- [ ] P5 | Give a Python docstring paragraph its whole source lines
+        > 2026-10-25 Check: the """doc""" \ input sets back byte-identical
+        > 2026-10-25 Works T5
+- [ ] P6 | Delete the continues-a-trailing-comment stamp
+        > 2026-10-25 Check: git grep continues-a-trailing-comment -- src: none
+        > 2026-10-25 Works T6
+- [ ] P7 | State the matter rule once in reading for every reader to call
+        > 2026-10-25 Check: one definition; .rs and .kt give the same f places
+        > 2026-10-25 Works T8
+- [ ] P8 | Form one comment section per gap in the Rust reader
+        > 2026-10-25 Check: a detached /// between // lines reads as one b comment
+        > 2026-10-25 Check: no _one_per_place under reading/rust
+        > 2026-10-25 Works T14
+- [ ] P9 | Remove the page's detached-documentation placement
+        > 2026-10-25 Check: no PageWarning or DETACHED_DOCUMENTATION in src
+        > 2026-10-25 Check: gather prints the warning as file:line
+        > 2026-10-25 Works T15; after P8
+- [ ] P10 | Replace the Rust reader's _Lines with the shared line splitter
+        > 2026-10-25 Check: git grep "class _Lines" -- src returns none
+        > 2026-10-25 Works T12
+- [ ] P11 | Amend the Rust spec where it gives the reader page duties
+        > 2026-10-25 Spec lines 227-241 and 373-381; after P8 and P9
+        > 2026-10-25 Check: those sections name the page or addresser as owner
+- [ ] P12 | Run the completion gates on the finished subplan
+        > 2026-10-25 Check: pytest, ruff, ty, shipped syntax and vocabulary all green

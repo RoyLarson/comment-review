@@ -588,22 +588,32 @@ interfaces, inputs and checks, without internal development files or history.
 
 ### AQ - [a-reader-finds-prose-only](../../TODO/a-reader-finds-prose-only.md)
 
-- [ ] T1 | Derive Paragraph.text in one place for every reader
-- [ ] T2 | Assign each paragraph's address in the page instead of in a reader
+- [ ] T1 | MOVED to 2026-10-25-reader-hands-prose-only | Derive Paragraph.text
+      in one place for every reader
+- [ ] T2 | MOVED to 2026-10-25-reader-hands-prose-only | Assign each paragraph's
+      address in the page instead of in a reader
 - [x] T3 | List each Paragraph, Page or Addresser duty a reader still performs
-- [ ] T4 | Derive each line's code in the page for every reader
-- [ ] T5 | Give a Python docstring paragraph its whole source lines
-- [ ] T6 | Delete the continues-a-trailing-comment stamp from lexer.py
+- [ ] T4 | MOVED to 2026-10-25-reader-hands-prose-only | Derive each line's code
+      in the page for every reader
+- [ ] T5 | MOVED to 2026-10-25-reader-hands-prose-only | Give a Python docstring
+      paragraph its whole source lines
+- [ ] T6 | MOVED to 2026-10-25-reader-hands-prose-only | Delete the
+      continues-a-trailing-comment stamp from lexer.py
 - [x] T7 | Decide whether matter is a kind a reader assigns or a page place
-- [ ] T8 | Move the front and back matter rule to one shared place
+- [ ] T8 | MOVED to 2026-10-25-reader-hands-prose-only | Move the front and back
+      matter rule to one shared place
 - [-] T9 | Move the one-paragraph-per-place rule from the Rust reader to the
       page
 - [-] T10 | Move the Rust reader's a-place capacity rules to the page
 - [-] T11 | Carry detached documentation as one fact instead of two
-- [ ] T12 | Replace the Rust reader's _Lines with the shared line splitter
-- [ ] T13 | Stop the page changing a reader's matter kind to comment
-- [ ] T14 | Form one comment section per gap in the Rust reader
-- [ ] T15 | Remove the page's detached-documentation placement
+- [ ] T12 | MOVED to 2026-10-25-reader-hands-prose-only | Replace the Rust
+      reader's _Lines with the shared line splitter
+- [ ] T13 | MOVED to 2026-10-25-reader-hands-prose-only | Stop the page changing
+      a reader's matter kind to comment
+- [ ] T14 | MOVED to 2026-10-25-reader-hands-prose-only | Form one comment
+      section per gap in the Rust reader
+- [ ] T15 | MOVED to 2026-10-25-reader-hands-prose-only | Remove the page's
+      detached-documentation placement
 
 ## Plan Tasks
 
