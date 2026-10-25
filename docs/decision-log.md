@@ -5624,3 +5624,15 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   joins the same-type comment section it sits in like any other comment. The page holds no
   detached-documentation logic. The warning reaches the terminal from the read, naming a file
   and line.
+
+- **#227.** **`comment_form` is the one derivation of a paragraph's text** (Roy, 2026-10-25,
+  offered `comment_form(...).text` -- what the desk already matches a role's claims against --
+  or a new function decoding docstring escapes as the AST reader did: *"comment_form becomes the
+  one function"*, and on its reading and setting halves sharing one module: *"Yes with a todo on
+  the edit path isolation"*).
+
+  **What it settles.** `Paragraph.text` is `comment_form(...).text`, computed once after the
+  reader and again on a binder read-back, so a paragraph and the desk read the same prose. A
+  docstring's escapes keep their source spelling; a block comment's markers, `*` continuation
+  marks included, are not prose. Separating the setting half (`Fragment.wrap`) from the reading
+  half is filed, not done here.
