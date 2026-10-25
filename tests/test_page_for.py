@@ -37,7 +37,10 @@ def test_python_page_retains_complete_structured_read():
         "docstring",
         "docstring",
     ]
-    assert [payload.text for payload in page.read.payloads] == ["module", "a\nb"]
+    assert [
+        page.read.source.slice(payload.expression.statement)
+        for payload in page.read.payloads
+    ] == ['"module"', '"a\\n" "b"']
     assert [owner.declaration for owner in page.read.source.documentation] == [
         None,
         0,
@@ -55,7 +58,9 @@ def test_python_page_bom_and_effective_cookie_preserve_exact_bytes():
     assert isinstance(page, Page)
     assert isinstance(page.read, PythonRead)
     assert page.read.source.reconstruct().encode("utf-8") == raw
-    assert page.read.payloads[0].text == "module"
+    assert page.read.source.slice(page.read.payloads[0].expression.statement) == (
+        '"module"'
+    )
     assert [item.kind for item in page.read.protected] == ["encoding"]
 
 

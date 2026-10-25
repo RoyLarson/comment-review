@@ -212,17 +212,14 @@ class DocumentationExpression:
 
 @dataclass(frozen=True)
 class DocumentationPayload:
-    """Complete decoded prose and the source expression used for raw extraction."""
+    """A documentation expression whose every literal decodes."""
 
     expression: DocumentationExpression
-    text: str
 
     def __post_init__(self) -> None:
-        """Require the recognized expression and its complete decoded text."""
+        """Require the recognized expression."""
         if not isinstance(self.expression, DocumentationExpression):
             raise ValueError("payload expression must be a DocumentationExpression")
-        if not isinstance(self.text, str):
-            raise ValueError("payload text must be a string")
 
 
 @final

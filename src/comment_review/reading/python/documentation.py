@@ -168,7 +168,11 @@ def decode_documentation(
     expression: DocumentationExpression,
     definition: LanguageDefinition,
 ) -> DocumentationPayload | ReadFailure:
-    """Concatenate complete literal contents, decoding escapes and physical newlines."""
+    """Admit the expression once every escape in its literals decodes.
+
+    A raw literal preserves its escapes, so only the others are decoded; an
+    escape the definition refuses is the `ReadFailure`.
+    """
     failure = validate_python(definition)
     if failure is not None:
         return failure
@@ -178,7 +182,6 @@ def decode_documentation(
     quotes = cast(tuple[str, ...], literals["short_quotes"])
     triples = cast(tuple[str, ...], literals["triple_quotes"])
     escape = cast(str, literals["escape_marker"])
-    chunks: list[str] = []
     text = scan.text
     for component in expression.components:
         quote_start = next(
@@ -193,28 +196,19 @@ def decode_documentation(
             (quote for quote in triples if text.startswith(quote, quote_start)),
             text[quote_start],
         )
-        raw = prefix in prefixes["raw"] and decoding["raw_escape"] == "preserve"
+        if prefix in prefixes["raw"] and decoding["raw_escape"] == "preserve":
+            continue
         start = quote_start + len(quote)
         end = component.end - len(quote)
         while start < end:
-            if text[start] in "\r\n":
-                following = _newline_end(text, start, end)
-                decoded = "\n"
-            elif not raw and text.startswith(escape, start):
-                result = decode_escape(text, start, end, escape, decoding)
-                if isinstance(result, ReadFailure):
-                    return result
-                decoded, following = result
-            else:
-                following = start + 1
-                while following < end and text[following] not in "\r\n":
-                    if not raw and text.startswith(escape, following):
-                        break
-                    following += 1
-                decoded = text[start:following]
-            chunks.append(decoded)
-            start = following
-    return DocumentationPayload(expression, "".join(chunks))
+            if not text.startswith(escape, start):
+                start += 1
+                continue
+            result = decode_escape(text, start, end, escape, decoding)
+            if isinstance(result, ReadFailure):
+                return result
+            start = result[1]
+    return DocumentationPayload(expression)
 
 
 def _newline_end(text: str, start: int, end: int) -> int:
