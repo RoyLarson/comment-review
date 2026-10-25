@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 1 of 12 tasks closed
+Progress: 2 of 13 tasks closed
 Owner:    backend
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-10-25 (decision-log.md Process: #224)
 ```
 
@@ -45,14 +45,17 @@ defect and is repaired (lexer-and-language-findings T12, b30cc510).
         > 2026-10-25 lexer.py:846; the Python and Rust readers never stamp it
         > 2026-10-25 Reason: nothing in src or src/plugin reads the annotation
         > 2026-10-25 Check: git grep continues-a-trailing-comment -- src returns none
-- [?] T7 | Decide whether matter is a kind a reader assigns or a page place
+- [x] T7 | Ruled: matter is a Kind the reader assigns | c59b3424 | Decide
+      whether matter is a kind a reader assigns or a page place
         > 2026-10-25 Reason: #224 gives kind to the reader; matter is position-only
         > 2026-10-25 Copies: lexer.py:765-823, python/projection.py:146-187
         > 2026-10-25 Copies: rust/projection.py:185-254, rust/documentation.py:372
+        > 2026-10-25 Roy: the reader assigns matter; decision-log.md Process: #225
 - [ ] T8 | Move the front and back matter rule to one shared place
         > 2026-10-25 Waits on the matter ruling in this file
         > 2026-10-25 Rust holds two copies: documentation.py:182 and projection.py:205
         > 2026-10-25 Check: .rs and .kt give the same f places on matter-only input
+        > 2026-10-25 Per #225 the reader assigns matter; a helper may share the rule
 - [ ] T9 | Move the one-paragraph-per-place rule from the Rust reader to the
       page
         > 2026-10-25 rust/projection.py:139 _one_per_place; Rust spec lines 227-232
@@ -70,3 +73,7 @@ defect and is repaired (lexer-and-language-findings T12, b30cc510).
 - [ ] T12 | Replace the Rust reader's _Lines with the shared line splitter
         > 2026-10-25 rust/projection.py:368-389 copies constants.text_lines
         > 2026-10-25 Check: git grep "class _Lines" -- src returns none
+- [ ] T13 | Stop the page changing a reader's matter kind to comment
+        > 2026-10-25 page.py:898-899 turns MATTER into COMMENT when it has an a address
+        > 2026-10-25 Reason: #225, the reader assigns the kind; the page only addresses
+        > 2026-10-25 Check: git grep "b.kind = Kind" -- src/comment_review/binder: none
