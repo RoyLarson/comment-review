@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 6 of 15 tasks closed
+Progress: 7 of 17 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-25 (decision-log.md Process: #224)
@@ -33,7 +33,8 @@ defect and is repaired (lexer-and-language-findings T12, b30cc510).
 - [x] T3 | Nine duties filed as T4-T12, each naming file:line | 17c030f6 | List
       each Paragraph, Page or Addresser duty a reader still performs
         > 2026-10-25 Check: each duty is a task on this file naming its file:line
-- [ ] T4 | Derive each line's code in the page for every reader
+- [-] T4 | Readers own code text (#228); reissued as T18 | 56d0e3d1 | Derive
+      each line's code in the page for every reader
         > 2026-10-25 python/projection.py:212 and rust/projection.py:327 code_for
         > 2026-10-25 Rust keeps a literal's trailing space: c0 anchor+raw breaks line 1
         > 2026-10-25 Check: no def code_for under reading/python or reading/rust
@@ -91,3 +92,10 @@ defect and is repaired (lexer-and-language-findings T12, b30cc510).
         > 2026-10-25 Check: git grep -E "PageWarning|DETACHED_DOCUMENTATION" -- src
         > 2026-10-25 Check: gather prints the warning as file:line
         > 2026-10-25 Reason: several detached docs merged at one b cue read the same
+- [ ] T16 | Move the lexical path's code lines and declarations into its reader
+        > 2026-10-25 Design: docs/superpowers/specs/2026-10-25-code-lines-design.md
+        > 2026-10-25 Check: no def documentable in binder/page.py
+        > 2026-10-25 Check: fn a() {} fn b() {} gives one documented line, one warning
+- [ ] T17 | Correct each reader's code text
+        > 2026-10-25 Check: page builds places without code_lines or declarations
+        > 2026-10-25 Check: corpus address dump unchanged for two lexical languages

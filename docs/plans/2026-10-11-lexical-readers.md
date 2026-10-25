@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 67 of 177 TODO tasks closed
+Progress: 68 of 177 TODO tasks closed
 Plan-tasks: 40 of 53 plan tasks closed
 Owner:    backend
 Requires-Roy: false
@@ -593,7 +593,7 @@ interfaces, inputs and checks, without internal development files or history.
 - [ ] T2 | MOVED to 2026-10-25-reader-hands-prose-only | Assign each paragraph's
       address in the page instead of in a reader
 - [x] T3 | List each Paragraph, Page or Addresser duty a reader still performs
-- [ ] T4 | MOVED to 2026-10-25-reader-hands-prose-only | Derive each line's code
+- [-] T4 | MOVED to 2026-10-25-reader-hands-prose-only | Derive each line's code
       in the page for every reader
 - [ ] T5 | MOVED to 2026-10-25-reader-hands-prose-only | Give a Python docstring
       paragraph its whole source lines

@@ -2,8 +2,8 @@
 
 ```
 Status:   in-progress
-Progress: 1 of 10 TODO tasks closed
-Plan-tasks: 1 of 12 plan tasks closed
+Progress: 2 of 12 TODO tasks closed
+Plan-tasks: 2 of 14 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-25 (founded by move-t from 2026-10-11-lexical-readers)
@@ -25,7 +25,7 @@ per step; each step lands its failing test first.
 
 - [x] T1 | Derive Paragraph.text in one place for every reader
 - [ ] T2 | Assign each paragraph's address in the page instead of in a reader
-- [ ] T4 | Derive each line's code in the page for every reader
+- [-] T4 | Derive each line's code in the page for every reader
 - [ ] T5 | Give a Python docstring paragraph its whole source lines
 - [ ] T6 | Delete the continues-a-trailing-comment stamp from lexer.py
 - [ ] T8 | Move the front and back matter rule to one shared place
@@ -33,6 +33,8 @@ per step; each step lands its failing test first.
 - [ ] T13 | Stop the page changing a reader's matter kind to comment
 - [ ] T14 | Form one comment section per gap in the Rust reader
 - [ ] T15 | Remove the page's detached-documentation placement
+- [ ] T16 | Move the lexical path's code lines and declarations into its reader
+- [ ] T17 | Correct each reader's code text
 
 ## Plan Tasks
 
@@ -43,10 +45,13 @@ per step; each step lands its failing test first.
 - [ ] P2 | Assign every paragraph's address in the page
         > 2026-10-25 Check: no address= in reading/python or reading/rust; suite green
         > 2026-10-25 Works T2
+        > 2026-10-25 49389b6f reverted in e699deaf; redo on anchor_line after P13
+        > 2026-10-25 Doc paragraphs are Kind.DOCSTRING; anchor_line names it (#229)
 - [ ] P3 | Stop the page changing a reader's matter kind
         > 2026-10-25 Check: git grep "b.kind = " -- src/comment_review/binder: none
         > 2026-10-25 Works T13; needs P2
-- [ ] P4 | Derive each line's code in the page for every reader
+- [-] P4 | Readers own code text (#228); replaced by P15 | 56d0e3d1 | Derive
+      each line's code in the page for every reader
         > 2026-10-25 Check: every .rs margin anchor + raw_lines[0] equals its line
         > 2026-10-25 Check: no def code_for under reading/python or reading/rust
         > 2026-10-25 Works T4
@@ -67,11 +72,20 @@ per step; each step lands its failing test first.
         > 2026-10-25 Check: no PageWarning or DETACHED_DOCUMENTATION in src
         > 2026-10-25 Check: gather prints the warning as file:line
         > 2026-10-25 Works T15; after P8
+        > 2026-10-25 Lands before P13: drops warning_owners, the last ordinal
 - [ ] P10 | Replace the Rust reader's _Lines with the shared line splitter
         > 2026-10-25 Check: git grep "class _Lines" -- src returns none
         > 2026-10-25 Works T12
 - [ ] P11 | Amend the Rust spec where it gives the reader page duties
         > 2026-10-25 Spec lines 227-241 and 373-381; after P8 and P9
         > 2026-10-25 Check: those sections name the page or addresser as owner
+        > 2026-10-25 Also amend the spec's code_for and declarations sections (#228)
 - [ ] P12 | Run the completion gates on the finished subplan
         > 2026-10-25 Check: pytest, ruff, ty, shipped syntax and vocabulary all green
+- [ ] P13 | Move the lexical path's code lines and declarations into its reader
+        > 2026-10-25 Works T16; after P9; design 2026-10-25-code-lines-design.md
+        > 2026-10-25 Check: no def documentable in binder/page.py
+        > 2026-10-25 Check: DocPlace(at, above=False) sets the a after at
+- [ ] P14 | Correct each reader's code text
+        > 2026-10-25 Works T17; after P13
+        > 2026-10-25 Check: corpus address dump unchanged for two lexical languages
