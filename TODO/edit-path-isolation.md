@@ -27,3 +27,4 @@ language through every reader's comment scanner.
 - [ ] T1 | Move Fragment.wrap and its layout fields out of reading
         > 2026-10-25 Check: desk imports no setting code from comment_review.reading
 - [ ] T2 | Move comment_form out of lexer.py into its own reading module
+        > 2026-10-25 Check: no def comment_form in reading/lexer.py
