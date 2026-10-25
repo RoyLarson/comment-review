@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (125)
+### open  (126)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -307,6 +307,7 @@ that changed a published name or rule:
 | [2026-10-13-human-question-list](2026-10-13-human-question-list.md) | backend | -- | 0/1 | Expose human questions across edit copies |
 | [empty-comment-gets-a-drop](empty-comment-gets-a-drop.md) | backend | -- | 0/1 | An empty comment gets a drop mark |
 | [paragraph-is-a-passage](paragraph-is-a-passage.md) | backend | -- | 0/9 | The addressed unit of prose is a passage, not a paragraph |
+| [one-line-ending-per-file](one-line-ending-per-file.md) | backend | -- | 0/5 | One line ending per file |
 
 ### in-progress  (17)
 
