@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 5 tasks closed
+Progress: 1 of 6 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-25 (decision-log Process #220, #221)
@@ -46,5 +46,8 @@ current corpus supplies.
         > 2026-10-25 Check: a CRLF page sets back CRLF on drop, move, patch, docstring
 - [ ] T4 | Check a written file's ending against its own pre-edit read
         > 2026-10-25 Check: CRLF file beside an LF sibling: kept proves, LF fails
-- [ ] T5 | Remove every line-ending rule outside machine/
+- [-] T5 | SUPERSEDED by T6: reworded, the label read as a ruling owed | 74a033c2 | Remove
+      every line-ending rule outside machine/
+        > 2026-10-25 Check: no "\r\n"-vs-"\n" choice in src/ outside machine/
+- [ ] T6 | Delete each line-ending guess made outside machine/
         > 2026-10-25 Check: no "\r\n"-vs-"\n" choice in src/ outside machine/

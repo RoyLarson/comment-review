@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 35 of 162 TODO tasks closed
+Progress: 42 of 162 TODO tasks closed
 Plan-tasks: 11 of 53 plan tasks closed
 Owner:    backend
 Requires-Roy: true
@@ -138,7 +138,7 @@ interfaces, inputs and checks, without internal development files or history.
 - [ ] T15 | T15 -- Give Swift its own expression of soft keywords: `convenience`
       and `required`. Verify: `required = f()` in a `.swift` mints no `a`, and a
       real init still does.
-- [ ] T16 | MOVED to 2026-10-22-lexer-rust | T16 -- Declare Rust's spanning
+- [x] T16 | MOVED to 2026-10-22-lexer-rust | T16 -- Declare Rust's spanning
       quotes; language.py:117-146 carries none. Verify: a Rust multi-line string
       is neither refused wholesale nor read as comments.
 - [ ] T17 | T17 -- Declare C's spanning quotes; language.py:185-193 carries
@@ -160,13 +160,13 @@ interfaces, inputs and checks, without internal development files or history.
 - [ ] T25 | T25 -- Make `_is_doc` consult placement, not only the opener string.
       Verify: a Lua `---` run above `local function f()` types `docstring`,
       above nothing `comment`.
-- [ ] T27 | MOVED to 2026-10-22-lexer-rust | T27 -- Declare Rust's `//!` inner;
+- [x] T27 | MOVED to 2026-10-22-lexer-rust | T27 -- Declare Rust's `//!` inner;
       `///` stays outer. Verify: a `.rs` opening `//!` above nothing types
       `docstring`, and `///` above nothing types `comment`.
 - [ ] T28 | T28 -- Add `---` to Lua's `doc_line`, which T20's ruling authorises.
       Verify: `--- x` above `local function f()` types `docstring` anchored to
       it.
-- [ ] T32 | MOVED to 2026-10-22-lexer-rust | Recognize raw string delimiters in
+- [x] T32 | MOVED to 2026-10-22-lexer-rust | Recognize raw string delimiters in
       lexer.py:510; verify a quoted marker inside a Rust raw string stays
       literal data
 - [ ] T33 | Recognize JavaScript regex literals in lexer.py:1071; verify /[//]/
@@ -222,7 +222,7 @@ interfaces, inputs and checks, without internal development files or history.
 
 ### I - [matter-misses-two-languages](../../TODO/matter-misses-two-languages.md)
 
-- [ ] T2 | MOVED to 2026-10-22-lexer-rust | T2 -- Stop a Rust file's opening
+- [x] T2 | MOVED to 2026-10-22-lexer-rust | T2 -- Stop a Rust file's opening
       `//` run being claimed as a declaration's doc. Verify: a `.rs` opening `//
       Copyright` types `f0 matter` and an empty `a1`.
 
@@ -306,11 +306,11 @@ interfaces, inputs and checks, without internal development files or history.
       instead of writing above the `def`. Verify: `galley.reset` returns a
       problem for that edit, not `[]`.
 
-### P - [prove-unchanged-line-endings-follow-a-sibling](../../TODO/prove-unchanged-line-endings-follow-a-sibling.md)
+### P - [prove-unchanged-line-endings-follow-a-sibling](../../TODO/completed/prove-unchanged-line-endings-follow-a-sibling.md)
 
-- [ ] T1 | Check a written file's line endings against its own pre-edit bytes,
+- [-] T1 | Check a written file's line endings against its own pre-edit bytes,
       not against one untouched sibling
-- [ ] T2 | Test it with a CRLF file beside an LF sibling: an edit keeping CRLF
+- [-] T2 | Test it with a CRLF file beside an LF sibling: an edit keeping CRLF
       proves, one converting to LF fails
 
 ### Q - [the-cue-legend-and-its-round-trip](../../TODO/the-cue-legend-and-its-round-trip.md)
@@ -400,7 +400,7 @@ interfaces, inputs and checks, without internal development files or history.
 
 ### Z - [fixtures-do-not-test-the-shape](../../TODO/fixtures-do-not-test-the-shape.md)
 
-- [ ] T2 | MOVED to 2026-10-22-lexer-rust | T2 -- Make
+- [x] T2 | MOVED to 2026-10-22-lexer-rust | T2 -- Make
       `tests/fixtures/sample.rs` open the way a licence header does, or add a
       `.rs` fixture that does. Verify: it reproduces
       `matter-misses-two-languages`.
