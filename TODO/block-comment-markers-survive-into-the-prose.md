@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 4 of 10 tasks closed
+Progress: 4 of 12 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-17 (Roy: "use the github api to find a heavily documented file
@@ -181,6 +181,12 @@ grammar and never from a neighbour's, so the two are decided one at a time.
 - [-] T10 | Moved to language-reader-lua.md | 42f3d3e5 | T10 -- Decide the same
       for a Lua `--[[ ]]` block, from Lua's own grammar and not Ruby's. Verify:
       the answer and its measurement are written into this file.
+- [ ] T11 | Stop comment_form leaving a stray asterisk from a double-star closer
+        > 2026-10-25 lexer._comment_fragment closer handling; reaches Paragraph.text
+        > 2026-10-25 Check: comment_form text of /** Assembly **/ is "Assembly"
+- [ ] T12 | Stop comment_form stripping a markdown bullet from Rust doc prose
+        > 2026-10-25 A leading `* ` item in a /// doc is lost from Paragraph.text (#227)
+        > 2026-10-25 Check: /// * item reads "* item" as comment_form text
 ## Related
 
 - [`a-prose-file-has-no-blocks`](a-prose-file-has-no-blocks.md) -- the other half of "what this

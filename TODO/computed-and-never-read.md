@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 5 of 10 tasks closed
+Progress: 5 of 11 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (simplify round 7, 2026-08-22 -- found by Pyright and by reading,
@@ -131,3 +131,6 @@ page.py:793-794 for `_SHEBANG`/`_CODING`, which round 7 deleted; those citations
 - [x] T10 | FINISHED | unknown | T10 -- FINISHED. Two TODOs describing a
       function that no longer exists are superseded and their stale citations
       resolved. In the Objective.
+- [ ] T11 | Delete the unparsed-kind branch in reading/readers.py
+        > 2026-10-25 readers.py:145-147; nothing in src produces kind "unparsed"
+        > 2026-10-25 Check: git grep unparsed -- src/comment_review returns none
