@@ -1,8 +1,8 @@
 # Ask the human about each detached-documentation warning at stage 2
 
 ```
-Status:   open
-Progress: 0 of 2 tasks closed
+Status:   closed
+Progress: 2 of 2 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-10-23 (decision-log.md Addressing #29; Rust reader spec O4)
@@ -27,8 +27,10 @@ can carry two warnings.
 
 ## Tasks
 
-- [ ] T1 | Update SKILL.md stage 2 to ask about each gather warning line, then
-      proceed. Verify: one ask per warning
+- [x] T1 | Stage 2 asks once per warning line, then proceeds | aa1e14d4 | Update
+      SKILL.md stage 2 to ask about each gather warning line, then proceed.
+      Verify: one ask per warning
         > 2026-10-23 Record each answer; the run continues whatever the answer is
-- [ ] T2 | Move detached documentation into vocabulary.toml for task-agent
+- [x] T2 | Term in vocabulary.toml for task-agent; gate 0 drifted | aa1e14d4 | Move
+      detached documentation into vocabulary.toml for task-agent
         > 2026-10-23 Do it when SKILL.md first uses it; docs/vocabulary.md holds it
