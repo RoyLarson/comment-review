@@ -89,10 +89,10 @@ class Kind(StrEnum):
         """Does this paragraph stand on no line of the file?
 
         !! `leading` IS THE WHOLE REASON THIS IS NOT THE SAME QUESTION AS ABOVE.
-        It holds no prose and DOES stand on real blank lines. `code_lines` skips
-        a paragraph that occupies nothing, so answering YES here would take
-        those blanks out of `occupied` -- which changes no code line, because
-        `code_lines` counts only a line that is not blank.
+        It holds no prose and DOES stand on real blank lines. `lexer.code_text`
+        skips a paragraph that occupies nothing, so answering YES here would
+        take those blanks out of `occupied` -- which changes no code line,
+        because `code_text` counts only a line that is not blank.
         """
         return kind in ABSENT
 

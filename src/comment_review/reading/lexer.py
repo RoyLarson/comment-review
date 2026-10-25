@@ -10,12 +10,14 @@ emits `comment`, `docstring`, `trailing-comment` and `matter` -- prose it found
 -- and `leading_between` emits `leading`. `interval`, `margin` and `undocumented`
 are the page's, because only a page knows where prose is MISSING.
 
-`declarations()` marks which lines declare something documentable,
-and where its doc would go.
+`lexical_read` completes the read for the page: `code_text` gives each line of
+code its code, `declarations()` marks which lines declare something
+documentable and where its doc would go, and `document_declarations` stamps the
+`a` cue on the run that documents a declaration. It hands back a `LexicalRead`,
+the paragraphs and their `CodeLine`s together.
 
-Beside the reader: `document_declarations` stamps the `a` cue on the run that
-documents a declaration, `flag_structural_docs` annotates a Go or Ruby run whose
-kind position cannot settle, and `comment_form` parses a comment's markers and
+Beside the reader: `flag_structural_docs` annotates a Go or Ruby run whose kind
+position cannot settle, and `comment_form` parses a comment's markers and
 fragments for `desk.marks.rules`.
 
 """
@@ -23,6 +25,7 @@ fragments for `desk.marks.rules`.
 import ast
 import re
 from collections.abc import Callable, Mapping
+from dataclasses import dataclass
 from pathlib import Path
 from types import MappingProxyType
 
@@ -46,7 +49,7 @@ from comment_review.reading.language import (
 from comment_review.reading.paragraph import Paragraph
 from comment_review.reading.rust.scanner import comments_in
 from comment_review.reading.series import Kind, Series, cue_for
-from comment_review.reading.source import DocumentationPlace
+from comment_review.reading.source import CodeLine, DocPlace, lines_of_code
 
 __all__ = [
     "BY_EXT",
@@ -844,7 +847,7 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
         if in_block is not None:
             # !! CODE AFTER THE CLOSER KEEPS ITS PROSE AND LOSES ITS CODE LINE.
             # `/* note\n   more */ int x = 5;` gathers the run and leaves
-            # `int x = 5;` out of `code_lines`, so every interval boundary below
+            # `int x = 5;` out of `code_text`, so every interval boundary below
             # it moves.
             #
             # !! AND AN EDIT TO THAT PARAGRAPH DELETES THE STATEMENT. This cut
@@ -993,7 +996,7 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
             # whole raw line would read `int b = 2; /* note */` as one paragraph whose
             # TEXT held the statement -- executable code handed to four reviewers as
             # prose, run through the annotation regexes, and dropped from
-            # `code_lines`, which moves every interval boundary in the file.
+            # `code_text`, which moves every interval boundary in the file.
             run.append((n, raw_line[opens_at:].rstrip()))
             if not closes_here:
                 in_block = opened
@@ -1011,7 +1014,7 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
         # `  "b" // the last one` blanks to `      // the last one`, whose strip
         # starts with the opener, so a JS array element would read as a
         # whole-line `comment` whose TEXT held `"b"` -- executable code handed to
-        # four reviewers as prose -- and its line would leave `code_lines`.
+        # four reviewers as prose -- and its line would leave `code_text`.
         # ! WHAT THAT COSTS IS NOT THE MISREADING. Every `b` and `c` below the
         # line shifts, so a galley splice over one of those addresses lands
         # somewhere other than where the reviewer cited. ! Whitespace before the
@@ -1139,11 +1142,7 @@ def _declares_here(line: str, declares: tuple[str, ...]) -> bool:
     return bool(second and f"{first} {second.group(1)}" in declares)
 
 
-def document_declarations(
-    paragraphs: list["Paragraph"],
-    decls: list[DocumentationPlace],
-    code: dict[int, str],
-) -> None:
+def document_declarations(paragraphs: list["Paragraph"], lines: list[CodeLine]) -> None:
     """Say which prose run documents which declaration, at the LEXICAL tier.
 
     !! IT LIVES HERE BECAUSE POSITIONING IS THE LANGUAGE'S, and the lexer is where
@@ -1176,8 +1175,8 @@ def document_declarations(
     Args:
         paragraphs: this file's prose, mutated in place -- `address` is set to
             the `a` cue of the declaration each run documents.
-        decls: each declaration's place, as `declarations` returns them.
-        code: `line -> the code on it`, in order.
+        lines: the file's code lines, in order; a line whose `documents` is set
+            declares something documentable.
     """
     # ! LEADING IS NOT PROSE AND CANNOT DOCUMENT ANYTHING.
     ends = {
@@ -1189,11 +1188,10 @@ def document_declarations(
     }
     if not ends:
         return
-    above_code = sorted(code)
-    for ordinal, (line, _insert, above) in enumerate(decls, 1):
-        if not above:
-            # ! Python states this from its parse; nothing positional to do.
-            continue
+    above_code = [c.line for c in lines]
+    code = set(above_code)
+    declaring = [c.line for c in lines if c.documents is not None]
+    for ordinal, line in enumerate(declaring, 1):
         # ! UP FROM THE DECLARING LINE, past blanks, stopping at CODE -- prose
         # above that code is about that code and cannot reach across it.
         held = None
@@ -1224,7 +1222,7 @@ def document_declarations(
             held.address = cue_for(Series.DECLARED.value.letter, ordinal)
 
 
-def declarations(lang: Language, code: dict[int, str]) -> list[DocumentationPlace]:
+def declarations(lang: Language, code: Mapping[int, str]) -> dict[int, DocPlace]:
     """Every DOCUMENTABLE declaration in source order: its line, and where its doc goes.
 
     !! THE ORDER A READER MEETS THEM down the page, which is the order the `a`
@@ -1248,22 +1246,113 @@ def declarations(lang: Language, code: dict[int, str]) -> list[DocumentationPlac
 
     Args:
         lang: its record; `declares` holds the keywords.
-        code: `line -> the code on it`, from `page.code_lines`. The keyword path
+        code: `line -> the code on it`, from `code_text`. The keyword path
             scans ONLY these, so a keyword inside a comment or a string cannot
             declare anything.
 
     Returns:
-        A `DocumentationPlace` per declaration. !! `above` IS THE ROW SPEAKING, not a
-        comparison of the two numbers: it is `doc_inside` read back out, and it is
-        stated HERE because the lexer is where a row's `declares` and `doc_inside`
-        are read; every step below carries it.
+        Each declaring line -> its `DocPlace`. !! `above` IS THE ROW SPEAKING:
+        it is `doc_inside` read back out, and it is stated HERE because the
+        lexer is where a row's `declares` and `doc_inside` are read.
     """
     if lang.doc_inside:
         raise ValueError(f"{lang.name} declarations come from its own reader")
-    # ! The doc goes ON the declaring line, pushing it down, so `insert` IS that
-    # line. Ordered because `code` is.
-    return [
-        DocumentationPlace(n, n, True)
+    # ! The doc goes ON the declaring line, pushing it down, so the place is set
+    # against that line. Ordered because `code` is.
+    return {
+        n: DocPlace(n, True)
         for n, line in code.items()
         if _declares_here(line, lang.declares)
-    ]
+    }
+
+
+def code_text(text: str, paragraphs: list[Paragraph]) -> dict[int, str]:
+    """Every LINE OF CODE on a lexically read page, in order, with the code on it.
+
+    ```python
+    {2: "N = 0", 3: "def f():", 5: "    return 1"}
+    ```
+
+    A line is code when it holds something that is not blank and not prose.
+    This knows only what a comment-syntax record spells, so it reads the
+    lexical reader's paragraphs; the Python and Rust readers state their own
+    code lines from what they parsed.
+
+    ! A `trailing-comment` sits ON a code line, so that line stays code. A
+    `comment` or `docstring` paragraph occupies its lines entirely, so those
+    lines are not.
+
+    !! A PARAGRAPH'S FIRST LINE IS STILL CODE WHEN CODE PRECEDES ITS TEXT.
+    `int b = 2; /* opens` spans from that line, and taking the whole span would
+    drop the statement from the code set, moving every interval boundary below
+    it.
+
+    !! THE PARAGRAPH SAYS SO, BY ITS SERIES -- a `c` paragraph is the prose
+    beside code.
+
+    !! THE CHARACTERS COME FROM THAT LINE'S `c` PARAGRAPH, NEVER RE-CUT HERE. A
+    `trailing-comment`'s anchor already states where the code stops; cutting
+    the line again answers `'    return os  # why'` where the paragraph for the
+    same line answers `'    return os'`: two computations of one fact.
+
+    Args:
+        text: the file's source.
+        paragraphs: the prose the lexical reader found in it.
+    """
+    occupied: set[int] = set()
+    beside: dict[int, str] = {}
+    for b in paragraphs:
+        on = Series.of_kind(b.kind) is Series.ON
+        if on:
+            beside[b.start] = b.anchor
+        if Kind.occupies_no_lines(b.kind):
+            continue
+        occupied.update(range(b.start, b.end + 1))
+        if on:
+            occupied.discard(b.start)
+    return {
+        n: beside.get(n) or line.rstrip()
+        for n, line in enumerate(constants.text_lines(text), 1)
+        if line.strip() and n not in occupied
+    }
+
+
+@dataclass(frozen=True)
+class LexicalRead:
+    """What the generic lexical reader hands the page: its prose and code lines.
+
+    It answers the page with the two calls a reader record answers it with,
+    `paragraphs` and `code_lines`, so the page reads every reader one way.
+    """
+
+    #: The prose the reader found, documenting runs stamped with their `a` cue.
+    found: list[Paragraph]
+    #: Each line holding code, in order, with the documentation it declares.
+    lines: list[CodeLine]
+    #: Whether the page has an `a` series: the row lists a declaring keyword.
+    #: A language with none has no `a` series at all, not an empty one.
+    a_series: bool
+
+    def paragraphs(self, path: Path) -> list[Paragraph]:
+        """Every prose run of the file as a page paragraph."""
+        return self.found
+
+    def code_lines(self) -> list[CodeLine]:
+        """Each line holding code, in order, with the documentation it declares."""
+        return self.lines
+
+
+def lexical_read(paragraphs: list[Paragraph], text: str, lang: Language) -> LexicalRead:
+    """Complete a lexical read: the code lines, their declarations, the doc runs.
+
+    Args:
+        paragraphs: the prose `paragraphs_lexical` found, mutated in place --
+            each run that documents a declaration takes that declaration's
+            `a` cue as its `address`.
+        text: the file's source.
+        lang: its record; `declares` holds the keywords.
+    """
+    code = code_text(text, paragraphs)
+    lines = lines_of_code(code, declarations(lang, code))
+    document_declarations(paragraphs, lines)
+    return LexicalRead(paragraphs, lines, bool(lang.declares))

@@ -347,7 +347,9 @@ def binding(**changes: Any) -> Any:
         "revision": "1",
         "capabilities": ("comments",),
         "grammar_identity": "",
-        "read": lambda path, text, lang: [],
+        "read": lambda path, text, lang: import_module(
+            "comment_review.reading.lexer"
+        ).LexicalRead([], [], False),
         "validate": lambda value: None,
     }
     values.update(changes)
@@ -849,10 +851,9 @@ def test_installed_bindings_invoke_existing_engines(
     )
     for value in INSTALLED_DEFINITIONS:
         path = Path("source" + value.suffixes[0])
-        assert (
-            readers.INSTALLED_BINDINGS[value.reader].read(path, "exact\r\n", value)
-            == []
-        )
+        result = readers.INSTALLED_BINDINGS[value.reader].read(path, "exact\r\n", value)
+        assert isinstance(result, readers.LexicalRead)
+        assert result.paragraphs(path) == []
         assert calls[-1] == (
             "stdlib" if value.language == "python" else value.language,
             path,

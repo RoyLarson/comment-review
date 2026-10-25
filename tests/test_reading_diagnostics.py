@@ -97,7 +97,9 @@ def test_read_paragraphs_preserves_supported_readings(text):
     lexer.flag_structural_docs(expected, text, lang)
     registry = installed_registry()
     assert not isinstance(registry, ReadFailure)
-    assert readers.read_source(path, text, registry=registry) == expected
+    result = readers.read_source(path, text, registry=registry)
+    assert isinstance(result, lexer.LexicalRead)
+    assert result.paragraphs(path) == expected
 
 
 @pytest.mark.parametrize(

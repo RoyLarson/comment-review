@@ -113,18 +113,6 @@ class DocumentationOwner:
                 )
 
 
-class DocumentationPlace(NamedTuple):
-    """Where one declaration's documentation goes, in 1-based source lines."""
-
-    #: The line that declares it.
-    line: int
-    #: The line the documentation is set at.
-    insert: int
-    #: Whether the documentation sits above the declaring line rather than
-    #: inside the declaration.
-    above: bool
-
-
 class DocPlace(NamedTuple):
     """Where a declaration's documentation is set, against one code line."""
 

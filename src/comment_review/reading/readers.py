@@ -20,7 +20,9 @@ from comment_review.reading.language import (
     validate_language_definition,
 )
 from comment_review.reading.lexer import (
+    LexicalRead,
     flag_structural_docs,
+    lexical_read,
     paragraphs_lexical,
 )
 from comment_review.reading.paragraph import Paragraph
@@ -35,7 +37,7 @@ from comment_review.reading.source import SourceSpan
 
 SourceReader: TypeAlias = Callable[
     [Path, str, LanguageDefinition],
-    list[Paragraph] | PythonRead | RustRead | ReadFailure,
+    LexicalRead | PythonRead | RustRead | ReadFailure,
 ]
 
 
@@ -102,7 +104,7 @@ def read_paragraphs(
 ) -> list[Paragraph] | ReadFailure:
     """Adapt the admitted interpretation without repeating source recognition."""
     result = read_source(path, text, registry=registry)
-    if isinstance(result, list) or isinstance(result, ReadFailure):
+    if isinstance(result, ReadFailure):
         return result
     return result.paragraphs(path)
 
@@ -112,7 +114,7 @@ def read_source(
     text: str,
     *,
     registry: LanguageRegistry = INSTALLED_REGISTRY,
-) -> list[Paragraph] | PythonRead | RustRead | ReadFailure:
+) -> LexicalRead | PythonRead | RustRead | ReadFailure:
     """Return the selected reader's admitted records before paragraph decoration."""
     selected = reader_for(path, registry)
     if isinstance(selected, ReadFailure):
@@ -133,7 +135,7 @@ def read_source(
 
 def _read_paragraphs(
     path: Path, text: str, definition: LanguageDefinition
-) -> list[Paragraph] | ReadFailure:
+) -> LexicalRead | ReadFailure:
     """Run the selected engine and retain its refusal diagnostics."""
     coordinates = SourceCoordinates(text)
     lang = language_from_definition(definition)
@@ -158,7 +160,7 @@ def _read_paragraphs(
     if diagnostics:
         return ReadFailure(tuple(diagnostics))
     flag_structural_docs(paragraphs, text, lang)
-    return paragraphs
+    return lexical_read(paragraphs, text, lang)
 
 
 def _read_python(

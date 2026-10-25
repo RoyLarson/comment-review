@@ -109,7 +109,7 @@ LANGUAGES: tuple[Language, ...] = (
         # out on the ground that a raw string takes no escapes was reasoning
         # about the wrong cost: `return `http://example.com/a`` then read as
         # a TRAILING COMMENT carrying the URL as prose, the `return` line left
-        # `return `http:` and dropped out of `code_lines`, and every `b`/`c`
+        # `return `http:` and dropped out of `code_text`, and every `b`/`c`
         # below it renumbered.
         # ! This blanking is imperfect here: `_strip_strings` honours a
         # backslash, and a raw string ending in one (`` `C:\` ``) runs past its

@@ -14,6 +14,7 @@ from comment_review.reading.context import ReadingContext, compatible_contexts
 from comment_review.reading.context_io import context_to_wire
 from comment_review.reading.definitions import LanguageDefinition, decode_definition
 from comment_review.reading.diagnostics import ReadFailure
+from comment_review.reading.lexer import LexicalRead
 from comment_review.reading.registry import LanguageRegistry
 
 
@@ -1172,7 +1173,7 @@ def test_settings_normalize_without_discovering_source(tmp_path, monkeypatch):
         "reader-1",
         ("comments",),
         "grammar-1",
-        lambda *_: [],
+        lambda *_: LexicalRead([], [], False),
         lambda _: None,
     )
     monkeypatch.setattr(
@@ -1224,7 +1225,7 @@ def test_mixed_contexts_derive_independent_installed_binding_metadata(monkeypatc
         "reader-1",
         ("comments",),
         "grammar-1",
-        lambda *_: [],
+        lambda *_: LexicalRead([], [], False),
         lambda _: None,
     )
     monkeypatch.setattr(
@@ -1298,7 +1299,7 @@ def test_cli_settings_reach_actual_fresh_flow(tmp_path, monkeypatch, capsys, com
         "reader-1",
         ("comments",),
         "grammar-1",
-        lambda *_: [],
+        lambda *_: LexicalRead([], [], False),
         lambda _: None,
     )
     monkeypatch.setattr(

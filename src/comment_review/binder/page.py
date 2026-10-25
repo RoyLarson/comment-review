@@ -12,8 +12,8 @@ it follows.
 
 A page is all of the addresses in the file, which is what makes it a page and
 not a list.
-`places_on` -- or, on a page a reader record built, the record's
-`code_lines` -- hands `cue` its lines of code, each carrying the documentation
+The read's `code_lines` -- every reader's, the generic lexical reader's
+included -- hands `cue` its lines of code, each carrying the documentation
 place it declares; `addresser` emits every place, filled or not, and
 `attach` says which one a given paragraph sits in. A paragraph does not compute
 its own cue -- if it did, a place would exist only when prose happened to fill
@@ -32,8 +32,8 @@ page and do not nest. An address is an ORDINAL over a linear sequence and cannot
 express containment, so the two agree by construction rather than by compromise.
 
 !! THE ADDRESSER only needs to know the type of Series (DECLARED, GAP, ON, LEAD,
-COVERS): it imports no `Paragraph`. `code_lines` and `attach` read paragraphs,
-so they are page questions and live here.
+COVERS): it imports no `Paragraph`. `attach` reads paragraphs, so it is a page
+question and lives here.
 """
 
 from dataclasses import dataclass
@@ -56,12 +56,10 @@ from comment_review.reading.addresser import (
 from comment_review.reading.context import ReadingContext
 from comment_review.reading.context_io import context_from_wire, context_to_wire
 from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, ReadStage
-from comment_review.reading.language import INSTALLED_REGISTRY, language_for
+from comment_review.reading.language import INSTALLED_REGISTRY
 from comment_review.reading.lexer import (
-    Language,
+    LexicalRead,
     comment_form,
-    declarations,
-    document_declarations,
     leading_between,
 )
 from comment_review.reading.paragraph import Paragraph
@@ -69,7 +67,6 @@ from comment_review.reading.proof import ReaderRecord, SourceRead
 from comment_review.reading.readers import read_source
 from comment_review.reading.registry import LanguageRegistry
 from comment_review.reading.series import Kind, Series
-from comment_review.reading.source import DocPlace, lines_of_code
 from comment_review.reading.stripped import StrippedRead
 
 #: The five fields a place is carried by, in the order `Page.serialize` writes
@@ -91,7 +88,7 @@ WIRE_FIELDS = ("cue", "anchor", "original_start", "original_end", "raw_text")
 # !! THE QUESTIONS ARE ASKED OF `Kind`, AND THIS MODULE KEEPS NO SET. There are
 # TWO of them and they are not the same question: `Kind.holds_no_prose` is what
 # a count or a record asks, and `Kind.occupies_no_lines` is what
-# `code_lines` asks. ! They part on exactly `leading`, which holds no prose and
+# `lexer.code_text` asks. ! They part on exactly `leading`, which holds no prose and
 # DOES stand on real lines. Neither is listed; both derive from `Series`.
 
 # !! THE FILE'S OWN PROSE IS A PARAGRAPH TYPE, AND THE READER STATES IT -- see
@@ -447,74 +444,6 @@ def _checked_place(where: str, data: object) -> tuple[dict | None, list[str]]:
     return checked, []
 
 
-def code_lines(text: str, prose: list[dict]) -> dict[int, str]:
-    """Every LINE OF CODE on this page, in order, with the code on it.
-
-    ```python
-    {2: "N = 0", 3: "def f():", 5: "    return 1"}
-    ```
-
-    ! A `dict` is insertion-ordered, so ASCENDING BY CONSTRUCTION answers all
-    four consumers: iterate it for `cue`, `n in code` for occupancy,
-    `enumerate` for the ordinals, `code[n]` for one line's anchor.
-
-    A line is code when it holds something that is not blank and not prose.
-    This function knows only what a comment-syntax record spells, so `page_for`
-    sends it the lexical reader's pages; a page a reader record built takes its
-    code lines from the record's `code`, which knows its language's literals
-    and documentation.
-
-    ! A `trailing-comment` sits ON a code line, so that line stays code. A
-    `comment` or `docstring` paragraph occupies its lines entirely, so those lines
-    are not. An `interval` occupies nothing, which is what makes this safe to
-    run over a page that already holds intervals.
-
-    !! A PARAGRAPH'S FIRST LINE IS STILL CODE WHEN CODE PRECEDES ITS TEXT.
-    `int b = 2; /* opens` spans from that line, and taking the whole span would
-    drop the statement from the code set, moving every interval boundary below
-    it.
-
-    !! THE PARAGRAPH SAYS SO, BY ITS SERIES -- a `c` place is the room beside
-    code, filled or not.
-
-    !! THE CHARACTERS COME FROM THAT LINE'S `c`, NEVER RE-CUT HERE. Every code
-    line has exactly one `c` -- a `trailing-comment`, or the `margin` standing
-    in for one -- and it already states where the code stops. Cutting the line
-    again answers `'    return os  # why'` where the `c` for the same line
-    answers `'    return os'`: two computations of one fact.
-
-    ! It takes DICTS -- `vars()` of each paragraph being built, which is what
-    all three callers pass. An address counts code lines, so the count has to be
-    the same one the gather used or the two disagree about what `@b3` means.
-    """
-    occupied: set[int] = set()
-    beside: dict[int, str] = {}
-    for b in prose:
-        start, end = b.get("start"), b.get("end")
-        # ! The `c` is read BEFORE the occupancy test, because the paragraph
-        # standing in for one is a `margin`, which occupies nothing.
-        if Series.of_kind(str(b.get("kind", ""))) is Series.ON and isinstance(
-            start, int
-        ):
-            beside[start] = b.get("anchor", "")
-        # ! AN EMPTY PLACE OCCUPIES NOTHING, which is what its kind means. At
-        # this point an `interval` still spans the gap between two code lines --
-        # `fill_the_gaps` has not recut it yet -- so counting it would take
-        # those lines out of the code and renumber every `b` below.
-        if Kind.occupies_no_lines(str(b.get("kind", ""))):
-            continue
-        if not isinstance(start, int) or not isinstance(end, int):
-            continue
-        occupied.update(range(start, end + 1))
-        if Series.of_kind(str(b.get("kind", ""))) is Series.ON:
-            occupied.discard(start)
-    return {
-        n: beside.get(n) or line.rstrip()
-        for n, line in enumerate(constants.text_lines(text), 1)
-        if line.strip() and n not in occupied
-    }
-
-
 def attach(paragraph: dict, cues: "Cues") -> str:
     """Which place this paragraph occupies -- the cue, without the path.
 
@@ -552,36 +481,6 @@ def attach(paragraph: dict, cues: "Cues") -> str:
         return cues.beside(start) if isinstance(start, int) else ""
     at = paragraph.get("original_start")
     return cues.above(at) if isinstance(at, int) else ""
-
-
-def places_on(text: str, prose: list[dict], lang: "Language | None" = None) -> "Cues":
-    """Every place on a lexically read page, walked.
-
-    !! THE PAGE NAMES ITS OWN PLACES, which is what makes it a page rather than
-    a list. It hands `cue` its lines of code, each carrying the documentation
-    place it declares; `cue` emits every place, filled or not, and `attach`
-    says which one a given paragraph sits in.
-
-    Args:
-        text: the file's source.
-        prose: its paragraphs, as dicts.
-        lang: its record, so the declarations can be resolved HERE -- the
-            keyword path scans the code lines, and this is where they are
-            computed. None gives a page with no `a` series.
-
-    Returns:
-        The `Cues` for this page.
-    """
-    code = code_lines(text, prose)
-    decls = declarations(lang, code) if lang else []
-    # `declarations` returns at most one place per code line.
-    lines = lines_of_code(
-        code, {line: DocPlace(insert, above) for line, insert, above in decls}
-    )
-
-    # !! A language with no documentable declaration has no `a` series at all
-    # -- see `cue`. It is not a series that happens to be empty.
-    return cue(lines, a_series=lang is not None and bool(lang.declares))
 
 
 def empty_places(
@@ -805,32 +704,25 @@ def page_for(
     result = read_source(path, text, registry=registry)
     if isinstance(result, ReadFailure):
         return result
-    # A reader record is told from a generic row's paragraph list by shape, so
-    # this module names no reader's type.
+    # Every read answers `paragraphs` and `code_lines`. The generic lexical read
+    # is told from a reader record by its type, so this module names no
+    # language reader's type.
     record: ReaderRecord | None = None
-    if isinstance(result, list):
-        got = result
+    if isinstance(result, LexicalRead):
+        a_series = result.a_series
     else:
         record = result
         # The read may have broken a docstring's shared line; the page is that text.
         text = record.source.text
-        got = record.paragraphs(path)
+        # Every reader record's language documents its declarations, so its
+        # page has an `a` series.
+        a_series = True
+    got = result.paragraphs(path)
     if isinstance(got, ReadFailure):
         return got
     got.extend(leading_between(got, text))
-    cues = Cues()
     edges: dict[str, str] = {}
-    prose = [vars(b) for b in got]
-    if record is not None:
-        # Every reader record's language documents its declarations, so its
-        # page has an `a` series.
-        cues = cue(record.code_lines())
-    else:
-        lang = language_for(path)
-        assert lang is not None, "a lexical read comes only from a lexical row"
-        cues = places_on(text, prose, lang)
-        code = code_lines(text, prose)
-        document_declarations(got, declarations(lang, code), code)
+    cues = cue(result.code_lines(), a_series=a_series)
     here = rel if rel is not None else path.as_posix()
     files = cues.file_places()
     leads = iter(range(10**9))

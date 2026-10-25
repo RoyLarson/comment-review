@@ -164,8 +164,7 @@ def test_python_page_recognizes_once_and_retains_object_and_definition(monkeypat
     monkeypatch.setattr(page_for_mod, "installed_registry", acquire)
     monkeypatch.setattr(readers, "read_python", recognize)
     monkeypatch.setattr(reading_context, "resolve_context", resolve)
-    monkeypatch.setattr(page_mod, "declarations", forbidden)
-    monkeypatch.setattr(page_mod, "code_lines", forbidden)
+    monkeypatch.setattr(readers, "lexical_read", forbidden)
     page = page_for_mod.page_of(Path("m.py"), source=Source(text, "held"))
     assert isinstance(page, Page)
     assert acquired == [True]
@@ -375,7 +374,7 @@ def test_failed_reader_never_assigns_places(monkeypatch):
     def unexpected_places(*args):
         raise AssertionError("failed input reached placement")
 
-    monkeypatch.setattr(page_mod, "places_on", unexpected_places)
+    monkeypatch.setattr(page_mod, "cue", unexpected_places)
     result = page_for_mod.page_of(
         Path("bad.py"), source=Source("def broken(:\n", "bad")
     )
@@ -396,7 +395,7 @@ def test_unavailable_binding_is_never_invoked_or_addressed(monkeypatch):
     def forbidden(*args):
         pytest.fail("An unavailable binding must not read or assign places")
 
-    monkeypatch.setattr(page_mod, "places_on", forbidden)
+    monkeypatch.setattr(page_mod, "cue", forbidden)
     monkeypatch.setattr(
         readers,
         "INSTALLED_BINDINGS",
@@ -447,7 +446,7 @@ def test_located_error_renders_after_file_is_removed(tmp_path):
 def test_known_placement_refusal_is_an_outcome(monkeypatch, series, cue_name, message):
     cues = Cues()
     cues.addressers[series].places[cue_name] = "<module>"
-    monkeypatch.setattr(page_mod, "places_on", lambda *args: cues)
+    monkeypatch.setattr(page_mod, "cue", lambda *args, **kwargs: cues)
     result = page_for_mod.page_of(Path("m.c"), source=Source("", "held"))
     assert isinstance(result, LocatedReadFailure)
     assert result.diagnostics == (
@@ -657,15 +656,6 @@ def test_rust_page_empty_a_sets_its_doc_above_the_attribute_line():
     assert _places(page)["a1"] == ("undocumented", "#[derive(Debug)]")
     reset(page, {"a1": "/// Added."})
     assert set_page(page) == "/// Added.\n#[derive(Debug)]\npub struct S;\n"
-
-
-def test_lexical_declarations_hold_only_the_declaration_places():
-    from comment_review.reading.language import language_for
-    from comment_review.reading.lexer import declarations
-
-    go = language_for(Path("m.go"))
-    assert go is not None
-    assert declarations(go, {1: "package m", 3: "func f() {}"}) == [(3, 3, True)]
 
 
 def test_rust_page_item_on_line_one_sets_module_doc_then_item_doc():

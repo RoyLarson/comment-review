@@ -2815,7 +2815,7 @@ def test_expression_comments_existing_places_preserve_expression_on_set_and_edit
 ):
     from conftest import build
 
-    from comment_review.binder.page import Page, attach, code_lines, tie_leading
+    from comment_review.binder.page import Page, attach, tie_leading
     from comment_review.reading.addresser import address_for, cue
     from comment_review.reading.paragraph import Paragraph
     from comment_review.results.compositor import set_page
@@ -2853,9 +2853,7 @@ def test_expression_comments_existing_places_preserve_expression_on_set_and_edit
                 raw_lines=result.source.slice(section.span).splitlines(),
             )
         )
-    anchors = code_lines(text, [vars(paragraph) for paragraph in paragraphs])
-    assert anchors == code
-    cues = cue([CodeLine(n, code, None) for n, code in anchors.items()], a_series=False)
+    cues = cue([CodeLine(n, line, None) for n, line in code.items()], a_series=False)
     for paragraph, place in zip(paragraphs, places, strict=True):
         assert attach(vars(paragraph), cues) == place
         assert paragraph.original_start is not None
