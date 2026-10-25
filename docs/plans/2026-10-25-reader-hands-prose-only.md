@@ -2,8 +2,8 @@
 
 ```
 Status:   in-progress
-Progress: 5 of 15 TODO tasks closed
-Plan-tasks: 5 of 17 plan tasks closed
+Progress: 6 of 15 TODO tasks closed
+Plan-tasks: 6 of 17 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-25 (founded by move-t from 2026-10-11-lexical-readers)
@@ -32,7 +32,7 @@ per step; each step lands its failing test first.
 - [ ] T12 | Replace the Rust reader's _Lines with the shared line splitter
 - [ ] T13 | Stop the page changing a reader's matter kind to comment
 - [x] T14 | Form one comment section per gap in the Rust reader
-- [ ] T15 | Remove the page's detached-documentation placement
+- [x] T15 | Remove the page's detached-documentation placement
 - [-] T16 | Move the lexical path's code lines and declarations into its reader
 - [-] T17 | Correct each reader's code text
 - [ ] T18 | Correct each reader's code text
@@ -73,7 +73,8 @@ per step; each step lands its failing test first.
         > 2026-10-25 Check: a detached /// between // lines reads as one b comment
         > 2026-10-25 Check: no _one_per_place under reading/rust
         > 2026-10-25 Works T14
-- [ ] P9 | Remove the page's detached-documentation placement
+- [x] P9 | Page warning placement removed; reviewed clean | 2d9c6652 | Remove
+      the page's detached-documentation placement
         > 2026-10-25 Check: no PageWarning or DETACHED_DOCUMENTATION in src
         > 2026-10-25 Check: gather prints the warning as file:line
         > 2026-10-25 Works T15; after P8

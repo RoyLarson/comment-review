@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 10 of 20 tasks closed
+Progress: 11 of 20 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-25 (decision-log.md Process: #224)
@@ -88,7 +88,8 @@ defect and is repaired (lexer-and-language-findings T12, b30cc510).
         > 2026-10-25 Replaces rust/projection.py:139 _one_per_place merging afterward
         > 2026-10-25 Check: a detached /// between // lines reads as one b comment
         > 2026-10-25 Check: no _one_per_place under reading/rust
-- [ ] T15 | Remove the page's detached-documentation placement
+- [x] T15 | Page holds no detached-doc logic; gather prints path:line | 2d9c6652 | Remove
+      the page's detached-documentation placement
         > 2026-10-25 page.py:940-976 _warnings, PageWarning; rust/projection.py:132
         > 2026-10-25 Reason: #226, the warning names a file and line from the read
         > 2026-10-25 Check: git grep -E "PageWarning|DETACHED_DOCUMENTATION" -- src
