@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 5 of 11 tasks closed
+Progress: 7 of 12 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (simplify round 7, 2026-08-22 -- found by Pyright and by reading,
@@ -100,9 +100,10 @@ page.py:793-794 for `_SHEBANG`/`_CODING`, which round 7 deleted; those citations
 
 ## Tasks
 
-- [ ] T1 | T1 -- Drop the insert line from `page.documentable`'s tuple and from
-      both consumers. Verify: a 2-tuple return, both consumers unpacking two,
-      and `uv run ty check` green.
+- [x] T1 | FINISHED: documentable and DocumentationPlace deleted; DocPlace carries no insert line | 94c67d21 | T1
+      -- Drop the insert line from `page.documentable`'s tuple and from both
+      consumers. Verify: a 2-tuple return, both consumers unpacking two, and `uv
+      run ty check` green.
 - [x] T2 | FINISHED | unknown | T2 -- RECORD, not a task. The
       `page.documented_by` citation was corrected in round 7 to
       `lexer.document_declarations`; the tuple it exposed is T1. In the
@@ -116,9 +117,10 @@ page.py:793-794 for `_SHEBANG`/`_CODING`, which round 7 deleted; those citations
 - [ ] T5 | T5 -- Drop the index from `record.prose_paragraphs`' return type
       (record.py:645). Verify: the return type carries no index and the suite is
       green.
-- [ ] T6 | T6 -- Compute `code_lines` and `declarations` once per page, not at
-      :419-420 and again at :725-726. Verify: each is computed once and the four
-      test callers pass.
+- [x] T6 | FINISHED: code lines and declarations computed once, in the lexical reader | 94c67d21 | T6
+      -- Compute `code_lines` and `declarations` once per page, not at :419-420
+      and again at :725-726. Verify: each is computed once and the four test
+      callers pass.
 - [x] T7 | FINISHED | unknown | T7 -- RECORD, not a task. The 21 ms double
       `prose_numbers` pass, measured and deliberately not counted. In the
       Objective.
@@ -134,3 +136,5 @@ page.py:793-794 for `_SHEBANG`/`_CODING`, which round 7 deleted; those citations
 - [ ] T11 | Delete the unparsed-kind branch in reading/readers.py
         > 2026-10-25 readers.py:145-147; nothing in src produces kind "unparsed"
         > 2026-10-25 Check: git grep unparsed -- src/comment_review returns none
+- [ ] T12 | Delete readers.read_paragraphs, which has no production caller
+        > 2026-10-25 readers.py:98; only test_reading_diagnostics calls it

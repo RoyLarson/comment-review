@@ -2,8 +2,8 @@
 
 ```
 Status:   in-progress
-Progress: 7 of 15 TODO tasks closed
-Plan-tasks: 7 of 17 plan tasks closed
+Progress: 8 of 15 TODO tasks closed
+Plan-tasks: 8 of 17 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-25 (founded by move-t from 2026-10-11-lexical-readers)
@@ -37,7 +37,7 @@ per step; each step lands its failing test first.
 - [-] T17 | Correct each reader's code text
 - [ ] T18 | Correct each reader's code text
 - [x] T19 | Return CodeLines from the Python and Rust readers
-- [ ] T20 | Move the lexical path's code lines and declarations into its reader
+- [x] T20 | Move the lexical path's code lines and declarations into its reader
 
 ## Plan Tasks
 
@@ -106,6 +106,7 @@ per step; each step lands its failing test first.
         > 2026-10-25 Works T19; after P9; design 2026-10-25-code-lines-design.md
         > 2026-10-25 Check: no def documentable in binder/page.py
         > 2026-10-25 Check: DocPlace(at, above=False) sets the a after at
-- [ ] P17 | Move the lexical path's code lines and declarations into its reader
+- [x] P17 | FINISHED: lexical reader returns CodeLines; one page path; review clean after 1 fix round | 456902d3 | Move
+      the lexical path's code lines and declarations into its reader
         > 2026-10-25 Works T20; after P16
         > 2026-10-25 Check: corpus address dump unchanged for two lexical languages

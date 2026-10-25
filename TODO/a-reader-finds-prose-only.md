@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 12 of 20 tasks closed
+Progress: 13 of 20 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-25 (decision-log.md Process: #224)
@@ -112,6 +112,7 @@ defect and is repaired (lexer-and-language-findings T12, b30cc510).
         > 2026-10-25 Design: docs/superpowers/specs/2026-10-25-code-lines-design.md
         > 2026-10-25 Check: no def documentable in binder/page.py
         > 2026-10-25 Check: fn a() {} fn b() {} gives one documented line, one warning
-- [ ] T20 | Move the lexical path's code lines and declarations into its reader
+- [x] T20 | FINISHED: LexicalRead hands paragraphs, CodeLines and a_series; page computes no code lines | 456902d3 | Move
+      the lexical path's code lines and declarations into its reader
         > 2026-10-25 Check: page builds places without code_lines or declarations
         > 2026-10-25 Check: corpus address dump unchanged for two lexical languages
