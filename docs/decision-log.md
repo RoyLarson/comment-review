@@ -5608,3 +5608,19 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
 
   **What it settles.** `Kind.MATTER` is assigned by the reader, as every other kind is. The page
   and the addresser give a matter paragraph its `f` address and do not change its kind.
+
+- **#226.** **A detached doc is a comment, and only the reader knows it was a doc** (Roy,
+  2026-10-25, shown that the Rust reader detaches a doc an `a` place cannot hold and the page
+  then places a `detached-documentation` warning at an address: *"I would have thought that the
+  Reader would have already specified all of the detached document places as Kind::COMMENT and
+  that the page would then never have to know about that specifically. The warning would be
+  there for the agent's to pick up if they can watch the terminal or whatever but the fact that
+  the whole section was already specified as Kind::COMMENT would not need logic in the Page to
+  refigure out what is happening. Just because it is a documentation thing doesn't mean it gets
+  its own paragraph and anchor."* Asked whether the warning may name a file and line instead of
+  addresses: *"I think this is actually clearer ... it would name a file and line"*).
+
+  **What it settles.** The reader decides a doc is detached and gives it `Kind.COMMENT`; it then
+  joins the same-type comment section it sits in like any other comment. The page holds no
+  detached-documentation logic. The warning reaches the terminal from the read, naming a file
+  and line.
