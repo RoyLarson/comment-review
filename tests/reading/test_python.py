@@ -66,11 +66,11 @@ def test_completed_read_projects_documentation_from_source_positions(python_defi
     )
     paragraphs = paragraphs_for(Path("invented.py"), reduced)
     assert not isinstance(paragraphs, ReadFailure)
-    assert [(p.raw_lines, p.address, p.anchor) for p in paragraphs] == [
-        (["# heading"], "", ""),
-        (['"module\\nprose"'], "a0", ""),
-        (['    "body " "prose"'], "a1", ""),
-        ([" # detail"], "", "    return value"),
+    assert [(p.raw_lines, p.address, p.documents, p.anchor) for p in paragraphs] == [
+        (["# heading"], "", None, ""),
+        (['"module\\nprose"'], "", 0, ""),
+        (['    "body " "prose"'], "", 1, ""),
+        ([" # detail"], "", None, "    return value"),
     ]
     assert declarations_for(reduced) == [(4, 7, False), (9, 10, False)]
     assert 7 not in code_for(reduced)
@@ -109,7 +109,7 @@ def test_documentation_paragraph_preserves_payload_and_source(
     assert not isinstance(paragraphs, ReadFailure)
     assert len(paragraphs) == 1
     assert paragraphs[0].raw_lines == expression.splitlines()
-    assert paragraphs[0].address == "a0"
+    assert (paragraphs[0].address, paragraphs[0].documents) == ("", 0)
     assert result.source is source
     assert result.payloads[0] is payload
     assert payload.expression.statement == SourceSpan(0, len(expression))
@@ -3517,7 +3517,7 @@ def test_classification_closing_doc_comment_has_one_owner(python_definition, end
         ),
         (Kind.TRAILING, 4, 4, [" # detail"], "    work()"),
     ]
-    assert paragraphs[0].address == "a1"
+    assert (paragraphs[0].address, paragraphs[0].documents) == ("", 1)
     assert code_for(result) == {1: "def f():", 4: "    work()"}
     assert (
         result.source.slice(result.source.sections[0].span)

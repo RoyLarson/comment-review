@@ -24,8 +24,8 @@ nothing for `absent` to mean.
 
 !! A LEAF. It imports nothing from this package, which is what lets BOTH
 `addresser` -- which owns places and knows nothing of prose -- and `lexer` --
-which owns prose and spells a declaration's `a` cue with `cue_for` -- take their
-halves from one declaration instead of from each other.
+which owns prose -- take their halves from one declaration instead of from each
+other.
 
 `cue_for` spells a cue from a letter and a step, and `ADDRESSED`, `ABSENT`,
 `BY_LETTER` and `BY_KIND` are lookups derived from `Series`.
@@ -184,11 +184,7 @@ def cue_for(series: str, step: int) -> str:
     ! NAMED FOR ITS DIRECTION, so it cannot collide with `cue()`: this BUILDS a
     cue from its parts, and `addresser.cue_of` takes one apart.
 
-    !! IT LIVES HERE, NOT IN `addresser`. A cue is `f"{letter}{step}"`, which is
-    what a SERIES is lettered for and holds no notion of a place -- so the LEXER
-    can build one without importing the addresser, which this module's own
-    header forbids: *the addresser knows nothing of prose, the lexer knows
-    nothing of places*. ! `lexer.document_declarations` stamps a documenting
-    run's address as its cue, `a3`, directly.
+    ! A cue is `f"{letter}{step}"`, which is what a SERIES is lettered for and
+    holds no notion of a place.
     """
     return f"{series}{step}"
