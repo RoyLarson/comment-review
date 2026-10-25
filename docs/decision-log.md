@@ -5650,9 +5650,20 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   included in the docstring as part of the first docstring"*, with a warning -- *"Yes but I
   expect the agents know"*).
 
-  **What it settles.** A reader returns `CodeLine`s -- each line's number, its code verbatim,
+  **What it settles.** A reader returns `CodeLine`s -- each line's number, its code right-trimmed,
   and, when it declares something documentable, a `DocPlace` naming the code line the doc is set
   against and whether it sits above that line or after it. A doc paragraph names its
   declaration by `anchor_line`; `Paragraph` gains no ordinal. A line declares at most one
   documentable thing: the first declaration on it takes the `a` place, documentation for the
-  rest of the line joins that docstring, and the read prints a `file:line` warning.
+  rest of the line joins that docstring, and the read prints a `file:line` warning. Design:
+  `docs/superpowers/specs/2026-10-25-code-lines-design.md`.
+
+- **#229.** **The kind says a paragraph documents something** (Roy, 2026-10-25, offered that a
+  reader gives every paragraph it decides documents a declaration or the module
+  `Kind.DOCSTRING` -- a Go or Ruby comment run above a declaration included -- with
+  `anchor_line` naming which, and `None` with the `<module>` anchor meaning the module: *"Looks
+  good"*).
+
+  **What it settles.** `Kind.DOCSTRING` is the one mark that a paragraph documents something;
+  `anchor_line` names its declaration. Matter and the module's doc hang off the `<module>` and
+  `<eof>` sentinels, not off a code line.
