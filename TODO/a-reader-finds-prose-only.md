@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 11 of 20 tasks closed
+Progress: 12 of 20 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-25 (decision-log.md Process: #224)
@@ -107,7 +107,8 @@ defect and is repaired (lexer-and-language-findings T12, b30cc510).
 - [ ] T18 | Correct each reader's code text
         > 2026-10-25 Check: every .rs margin anchor + raw_lines[0] equals its line
         > 2026-10-25 Check: the Python backslash docstring sets back byte-identical
-- [ ] T19 | Return CodeLines from the Python and Rust readers
+- [x] T19 | FINISHED: readers return CodeLines carrying their DocPlace; documentable deleted; one-per-line silent (#230) | 7962289d | Return
+      CodeLines from the Python and Rust readers
         > 2026-10-25 Design: docs/superpowers/specs/2026-10-25-code-lines-design.md
         > 2026-10-25 Check: no def documentable in binder/page.py
         > 2026-10-25 Check: fn a() {} fn b() {} gives one documented line, one warning

@@ -2,8 +2,8 @@
 
 ```
 Status:   in-progress
-Progress: 6 of 15 TODO tasks closed
-Plan-tasks: 6 of 17 plan tasks closed
+Progress: 7 of 15 TODO tasks closed
+Plan-tasks: 7 of 17 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-25 (founded by move-t from 2026-10-11-lexical-readers)
@@ -36,7 +36,7 @@ per step; each step lands its failing test first.
 - [-] T16 | Move the lexical path's code lines and declarations into its reader
 - [-] T17 | Correct each reader's code text
 - [ ] T18 | Correct each reader's code text
-- [ ] T19 | Return CodeLines from the Python and Rust readers
+- [x] T19 | Return CodeLines from the Python and Rust readers
 - [ ] T20 | Move the lexical path's code lines and declarations into its reader
 
 ## Plan Tasks
@@ -101,7 +101,8 @@ per step; each step lands its failing test first.
 - [ ] P15 | Correct each reader's code text
         > 2026-10-25 Works T18; replaces P4
         > 2026-10-25 Check: Rust margins rebuild; Python backslash case round-trips
-- [ ] P16 | Return CodeLines from the Python and Rust readers
+- [x] P16 | FINISHED: CodeLine/DocPlace from both readers; cue walks CodeLines; review clean after 1 fix round | 7962289d | Return
+      CodeLines from the Python and Rust readers
         > 2026-10-25 Works T19; after P9; design 2026-10-25-code-lines-design.md
         > 2026-10-25 Check: no def documentable in binder/page.py
         > 2026-10-25 Check: DocPlace(at, above=False) sets the a after at
