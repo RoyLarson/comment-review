@@ -1411,29 +1411,3 @@ def test_rust_fixture_licence_header_is_front_matter_and_first_item_undocumented
     assert places["f0"][0] == "matter"
     assert places["a1"] == ("undocumented", "pub fn first() -> u32 {")
     assert places["a2"][0] == "docstring"
-
-
-def _two_declarations():
-    """`cue` over a page with two documentable declarations, `a1` and `a2`."""
-    from comment_review.reading import addresser
-    from comment_review.reading.source import DocumentationPlace
-
-    code = {2: "fn g() {}", 4: "fn f() {}"}
-    decls = [DocumentationPlace(2, 2, True), DocumentationPlace(4, 4, True)]
-    return addresser.cue(code, page_mod.documentable(decls, code))
-
-
-@pytest.mark.parametrize(("documents", "place"), [(0, "a0"), (1, "a1"), (2, "a2")])
-def test_attach_places_documentation_at_its_declarations_a(documents, place):
-    from comment_review.reading.paragraph import Paragraph
-
-    doc = Paragraph("m.rs", 3, 3, "comment", raw_lines=["/// f"], documents=documents)
-    assert page_mod.attach(vars(doc), _two_declarations()) == place
-
-
-def test_attach_places_documentation_of_no_a_place_in_its_gap():
-    from comment_review.reading.paragraph import Paragraph
-
-    cues = _two_declarations()
-    doc = Paragraph("m.rs", 3, 3, "comment", raw_lines=["/// f"], documents=7)
-    assert page_mod.attach(vars(doc), cues) == cues.above(3)

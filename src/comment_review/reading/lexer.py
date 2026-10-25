@@ -45,7 +45,7 @@ from comment_review.reading.language import (
 )
 from comment_review.reading.paragraph import Paragraph
 from comment_review.reading.rust.scanner import comments_in
-from comment_review.reading.series import Kind, Series
+from comment_review.reading.series import Kind, Series, cue_for
 from comment_review.reading.source import DocumentationPlace
 
 __all__ = [
@@ -1174,8 +1174,8 @@ def document_declarations(
     `ownership-context` reads every placement rather than trusting one.
 
     Args:
-        paragraphs: this file's prose, mutated in place -- `documents` is set
-            to the ordinal of the declaration each run documents.
+        paragraphs: this file's prose, mutated in place -- `address` is set to
+            the `a` cue of the declaration each run documents.
         decls: each declaration's place, as `declarations` returns them.
         code: `line -> the code on it`, in order.
     """
@@ -1219,7 +1219,9 @@ def document_declarations(
         previous = [n for n in above_code if n < held.original_start]
         over = held.original_start - previous[-1] - 1 if previous else below + 1
         if below <= over:
-            held.documents = ordinal
+            # ! THE CUE, NOT AN ORDINAL. The lexer knows WHICH declaration at
+            # this moment; the series is what says how to spell it.
+            held.address = cue_for(Series.DECLARED.value.letter, ordinal)
 
 
 def declarations(lang: Language, code: dict[int, str]) -> list[DocumentationPlace]:

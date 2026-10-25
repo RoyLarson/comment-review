@@ -544,11 +544,11 @@ def attach(paragraph: dict, cues: "Cues") -> str:
     of them this prose is sitting in. Reversed -- a paragraph computing its own
     cue -- is how a place could exist only when prose happened to fill it.
 
-    ! A paragraph the reader says `documents` a declaration takes that
-    declaration's `a` when `cue` emitted one. Otherwise TWO FACTS DECIDE IT, and
-    neither is inferred from the kind alone: a paragraph in the `c` SERIES sits
-    beside code and takes that line's place, and everything else holds a gap
-    and takes the `b` for it.
+    ! TWO FACTS DECIDE IT, and neither is inferred from the kind alone: a
+    paragraph in the `c` SERIES sits beside code and takes that line's place,
+    and everything else holds a gap and takes the `b` for it. A paragraph that
+    documents a declaration never reaches here: the reader stamps its `a` when
+    it tags it, and `page_for` keeps a stamped cue.
 
     Args:
         paragraph: `vars()` of one paragraph `page_for` is building.
@@ -568,10 +568,6 @@ def attach(paragraph: dict, cues: "Cues") -> str:
     # that the question is not `above()`'s to answer.
     if paragraph.get("kind") == Kind.MATTER:
         return ""
-    documents = paragraph.get("documents")
-    owned = cues.documents(documents) if isinstance(documents, int) else ""
-    if owned:
-        return owned
     if Series.of_kind(str(paragraph.get("kind", ""))) is Series.ON:
         start = paragraph.get("start")
         return cues.beside(start) if isinstance(start, int) else ""
@@ -912,12 +908,13 @@ def page_for(
             b.symbol = f"{LEAD}{next(leads)}"
             b.address = ""
             continue
-        if b.kind == Kind.MATTER and b.documents is not None:
+        if b.kind == Kind.MATTER and b.address.startswith(DECLARED):
             b.kind = Kind.COMMENT
         if b.kind == Kind.MATTER:
             place = files[0] if b.original_start == 1 else files[-1]
         else:
-            place = attach(vars(b), cues)
+            stamped = b.address if b.address in cues.places else ""
+            place = stamped or attach(vars(b), cues)
         b.address = address_for(here, place)
         b.anchor = cues.anchor_of(place, b.anchor)
         b.text = _text_of(path.as_posix(), place, "\n".join(b.raw_lines), b.anchor)

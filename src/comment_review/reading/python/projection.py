@@ -130,7 +130,7 @@ def paragraphs_for(path: Path, read: PythonRead) -> list[Paragraph] | ReadFailur
                     first.line,
                     last.line,
                     Kind.DOCSTRING,
-                    documents=0 if ordinal is None else ordinal + 1,
+                    address=f"a{0 if ordinal is None else ordinal + 1}",
                     raw_lines=constants.text_lines(text[raw_start : span.end]),
                 )
             )

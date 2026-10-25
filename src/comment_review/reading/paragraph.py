@@ -106,11 +106,6 @@ class Paragraph:
     # Stamped in the path-normalising loop, the only place holding the file
     # text, the finished paragraph list and the repo-relative path at once.
     address: str = ""
-    # !! WHICH DECLARATION THIS PROSE DOCUMENTS, as the reader found it: the
-    # module is 0 and the nth documentable declaration down the page is n. None
-    # when it documents nothing. The page turns it into the `a` place --
-    # `page.attach` -- so a reader names an owner and never a cue.
-    documents: int | None = field(default=None, kw_only=True)
     # !! A LABEL, NOT AN ADDRESS, and only LEADING carries one. `d0` marks a run
     # of blank lines in `scripts/render_page.py`'s margin, so a reader can see
     # that every line on the page belongs to something.

@@ -1921,14 +1921,14 @@ def projection_of(text, definition):
     return paragraphs, result.code(), result.declarations()
 
 
-def paragraph(start, end, kind, raw, *, documents=None, anchor="", notes=()):
+def paragraph(start, end, kind, raw, *, address="", anchor="", notes=()):
     return Paragraph(
         PAGE.as_posix(),
         start,
         end,
         kind,
         anchor=anchor,
-        documents=documents,
+        address=address,
         annotations=set(notes),
         raw_lines=raw,
     )
@@ -1950,9 +1950,9 @@ def test_projection_of_docs_comments_code_and_declarations(rust_definition):
     )
     paragraphs, code, declarations = projection_of(text, rust_definition)
     assert paragraphs == [
-        paragraph(1, 1, Kind.DOCSTRING, ["//! Crate doc."], documents=0),
-        paragraph(3, 3, Kind.DOCSTRING, ["/// A point."], documents=1),
-        paragraph(6, 6, Kind.DOCSTRING, ["    /// Across."], documents=2),
+        paragraph(1, 1, Kind.DOCSTRING, ["//! Crate doc."], address="a0"),
+        paragraph(3, 3, Kind.DOCSTRING, ["/// A point."], address="a1"),
+        paragraph(6, 6, Kind.DOCSTRING, ["    /// Across."], address="a2"),
         paragraph(10, 10, Kind.TRAILING, [" // tail"], anchor="fn go() -> u8 { 1 }"),
     ]
     assert code == {
@@ -2014,7 +2014,7 @@ def test_projection_of_docs_comments_code_and_declarations(rust_definition):
             "/// a\n/** b */ // c\n//! d\n",
             [
                 paragraph(1, 2, Kind.MATTER, ["/// a", "/** b */ // c"]),
-                paragraph(3, 3, Kind.DOCSTRING, ["//! d"], documents=0),
+                paragraph(3, 3, Kind.DOCSTRING, ["//! d"], address="a0"),
             ],
         ),
     ],
@@ -2273,9 +2273,9 @@ def test_projection_ordinary_comment_above_an_item_is_a_comment(rust_definition)
 def test_projection_docs_and_comments_never_merge(rust_definition):
     text = "fn z() {}\n// note\n/// Doc.\nfn f() {}\n"
     paragraphs, _, _ = projection_of(text, rust_definition)
-    assert [(p.kind, p.raw_lines, p.address, p.documents) for p in paragraphs] == [
-        (Kind.COMMENT, ["// note"], "", None),
-        (Kind.DOCSTRING, ["/// Doc."], "", 2),
+    assert [(p.kind, p.raw_lines, p.address) for p in paragraphs] == [
+        (Kind.COMMENT, ["// note"], ""),
+        (Kind.DOCSTRING, ["/// Doc."], "a2"),
     ]
 
 
@@ -2295,6 +2295,8 @@ def test_projection_detached_run_is_an_annotated_comment(rust_definition):
     ]
     assert len(result.warnings) == 1
     assert result.detached == (records.DetachedRun(result.warnings[0].span, 1),)
+    projection = import_module("comment_review.reading.rust.projection")
+    assert projection.documented_address(result.detached[0].owner) == "a2"
 
 
 def test_projection_detached_trailing_run_keeps_its_anchor(rust_definition):
@@ -2317,6 +2319,8 @@ def test_projection_module_owned_detached_run_names_a0(rust_definition):
     result = rust_read(text, rust_definition)
     assert [run.owner for run in result.detached] == [None]
     assert [w.span for w in result.warnings] == [r.span for r in result.detached]
+    projection = import_module("comment_review.reading.rust.projection")
+    assert projection.documented_address(result.detached[0].owner) == "a0"
 
 
 @pytest.mark.parametrize(
@@ -2393,7 +2397,7 @@ def test_projection_reader_record_is_satisfied_by_a_python_read():
     assert result.code() == {3: "def f():", 4: "    pass"}
     paragraphs = result.paragraphs(Path("x.py"))
     assert not isinstance(paragraphs, ReadFailure)
-    assert [(p.address, p.documents) for p in paragraphs] == [("", 0)]
+    assert [p.address for p in paragraphs] == ["a0"]
     assert result.declarations() == [(3, 4, False)]
 
 

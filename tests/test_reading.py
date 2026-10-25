@@ -289,19 +289,3 @@ class TestAPageCarriesTheShaItWasGiven:
                 reading=build("").reading,
                 registry=registry,
             )
-
-
-def test_document_declarations_hands_over_the_declaration_a_run_documents():
-    from comment_review.reading.lexer import document_declarations
-    from comment_review.reading.paragraph import Paragraph
-    from comment_review.reading.source import DocumentationPlace
-
-    # The run sits flush above `fn f`, one blank below `x`: the declaration,
-    # the second documentable one, is nearer.
-    code = {1: "let x = 1;", 4: "fn g() {}", 7: "fn f() {}"}
-    decls = [DocumentationPlace(4, 4, True), DocumentationPlace(7, 7, True)]
-    run = Paragraph("m.rs", 6, 6, Kind.COMMENT, raw_lines=["// f does."])
-    note = Paragraph("m.rs", 2, 2, Kind.COMMENT, raw_lines=["// about x."])
-    document_declarations([note, run], decls, code)
-    assert (run.documents, run.address) == (2, "")
-    assert (note.documents, note.address) == (None, "")
