@@ -25,10 +25,13 @@ import ast
 import io
 import re
 import tokenize
+from collections.abc import Callable, Mapping
 from pathlib import Path
+from types import MappingProxyType
 
 from comment_review import constants
-from comment_review.reading.comment import Comment, Fragment
+from comment_review.reading.comment import Comment, CommentSpan, Fragment
+from comment_review.reading.definitions import LanguageDefinition
 
 # !! THE ROWS ARE A LEAF AND THIS IS ONE OF ITS FIVE IMPORTERS -- see
 # `language.py`. Everything a language says about where its documentation
@@ -36,14 +39,15 @@ from comment_review.reading.comment import Comment, Fragment
 # also call `language_for`.
 from comment_review.reading.language import (
     BY_EXT,
+    INSTALLED_REGISTRY,
     LANGUAGES,
     Language,
-    comment_language_for,
     documents_in_literals,
     language_for,
     line_comment_markers,
 )
 from comment_review.reading.paragraph import Paragraph
+from comment_review.reading.rust.scanner import comments_in
 from comment_review.reading.series import Kind, Series, cue_for
 from comment_review.reading.source import DocumentationPlace
 
@@ -125,11 +129,24 @@ def _join(lines: list[str], markers: tuple[str, ...] = ("#",)) -> str:
     return re.sub(r"\s+", " ", " ".join(out)).strip()
 
 
+#: The readers whose own scanner says where each comment in a paragraph sits
+#: and what it is written with, keyed by the reader a definition names. A
+#: language read by one of them is split by its reader's grammar alone.
+COMMENT_SCANNERS: Mapping[
+    str, Callable[[str, LanguageDefinition], tuple[CommentSpan, ...] | None]
+] = MappingProxyType({"rust-lexical": comments_in})
+
+
 def comment_form(
     path: Path, series: Series | None, raw_text: str, anchor: str = ""
 ) -> Comment:
     """The assigned paragraph's prose and the form its raw text carries."""
-    lang = comment_language_for(path)
+    value = INSTALLED_REGISTRY.for_path(path)
+    scanner = COMMENT_SCANNERS.get(value.reader) if value is not None else None
+    if value is not None and scanner is not None:
+        found = scanner(raw_text, value)
+        return _scanned_form(path, series, raw_text, anchor, found)
+    lang = language_for(path)
     chunks: list[str] = []
     if documents_in_literals(path) and series is Series.DECLARED:
         from comment_review.reading.docstring import concatenated
@@ -199,10 +216,66 @@ def comment_form(
     return Comment(raw_text, parts)
 
 
+def _scanned_form(
+    path: Path,
+    series: Series | None,
+    raw_text: str,
+    anchor: str,
+    found: tuple[CommentSpan, ...] | None,
+) -> Comment:
+    """The paragraph cut into fragments at the comments its reader scanned.
+
+    A delimited comment, and a line comment of another form than the one
+    before it, starts a fragment: at its line's start when it opens the line,
+    or where it opens when something precedes it there. Line comments of one
+    form run on as one fragment. A paragraph its reader finds no comment in
+    is one fragment with no markers.
+    """
+    if not found:
+        return Comment(raw_text, (_comment_fragment(path, series, raw_text, anchor),))
+    cuts = [0]
+    opening: list[CommentSpan] = []
+    for comment in found:
+        if opening:
+            previous = opening[-1]
+            if not comment.closer and not previous.closer:
+                if comment.opener == previous.opener:
+                    continue
+            line_start = raw_text.rfind("\n", 0, comment.start) + 1
+            opens_line = not raw_text[line_start : comment.start].strip()
+            cuts.append(line_start if opens_line else comment.start)
+        opening.append(comment)
+    cuts.append(len(raw_text))
+    parts = []
+    for n, comment in enumerate(opening):
+        start = cuts[n]
+        close_at = comment.end - len(comment.closer) - start if comment.closer else -1
+        parts.append(
+            _comment_fragment(
+                path,
+                series,
+                raw_text[start : cuts[n + 1]],
+                anchor if n == 0 else "",
+                marks=(comment.opener, comment.closer, close_at),
+            )
+        )
+    return Comment(raw_text, tuple(parts))
+
+
 def _comment_fragment(
-    path: Path, series: Series | None, raw_text: str, anchor: str
+    path: Path,
+    series: Series | None,
+    raw_text: str,
+    anchor: str,
+    marks: tuple[str, str, int] | None = None,
 ) -> Fragment:
-    lang = comment_language_for(path)
+    """One comment's prose and markers.
+
+    `marks` is the comment's opener, closer and the closer's offset in
+    `raw_text`, as its reader scanned them, with an empty closer and -1 for a
+    line comment. Without them the language's row decides the markers.
+    """
+    lang = language_for(path)
     in_literals = documents_in_literals(path)
     physical = raw_text.splitlines(keepends=True)
     while physical and not physical[-1].strip():
@@ -226,7 +299,12 @@ def _comment_fragment(
     suffix = ""
     opened = None
     end_at = -1
-    if lang is not None:
+    if marks is not None:
+        opener, closer, close_at = marks
+        if closer:
+            opened = opener, closer
+            end_at = close_at
+    elif lang is not None:
         pairs = [*lang.block_comment]
         pairs += [
             (doc, close)
@@ -318,7 +396,11 @@ def _comment_fragment(
                 if found is not None:
                     body[n] = line[found.end() :]
                     starts[n] += found.end()
-    elif markers := tuple(sorted(line_comment_markers(path), key=len, reverse=True)):
+    elif markers := (
+        marks[:1]
+        if marks is not None
+        else tuple(sorted(line_comment_markers(path), key=len, reverse=True))
+    ):
         marker = next((m for m in markers if lines[0].lstrip().startswith(m)), "")
         if marker:
             lead = indent + marker

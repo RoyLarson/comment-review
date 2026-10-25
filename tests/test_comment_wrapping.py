@@ -317,6 +317,44 @@ def test_crlf_and_final_newline_survive_rewrapping():
     assert "\n" not in changed.replace("\r\n", "")
 
 
+@pytest.mark.parametrize(
+    "raw",
+    [
+        "//// x\n// y\n",
+        "/*** x */\n",
+        "/**/\n// z\n",
+        "/** doc\n * more\n */\n",
+        "// a\n\n// b\n",
+        "/* a */ /* b */\n",
+        "//! inner\n",
+    ],
+    ids=[
+        "four-slashes",
+        "slash-three-stars",
+        "empty",
+        "decorated",
+        "gap",
+        "one-line",
+        "inner",
+    ],
+)
+def test_rust_drop_path_reads_a_paragraph_as_the_page_does(raw):
+    page = build(raw + "fn f() {}\n", "m.rs")
+    for paragraph in page.paragraphs:
+        if paragraph.raw_text.strip():
+            form = comment_at(paragraph.address, paragraph.raw_text)
+            assert form.text == paragraph.text
+
+
+def test_rust_drop_keeps_four_slashes_and_two_ordinary_comments():
+    raw = "//// x\n// y\n"
+    changed, problems = derived_change(
+        Instruction.DROP, {"drop": "y"}, raw, address="m.rs@b0"
+    )
+    assert problems == []
+    assert changed == "//// x\n"
+
+
 def test_nested_block_delimiters_in_prose_remain():
     form = comment_at("m.rs@b1", "/* Keep /* this nested note */. Move. */")
     changed = form.without_once("Move.")

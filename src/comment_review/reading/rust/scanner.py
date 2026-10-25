@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from typing import cast
 
 from comment_review import constants
+from comment_review.reading.comment import CommentSpan
 from comment_review.reading.definitions import LanguageDefinition
 from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, ReadStage
 from comment_review.reading.rust.definition import validate_rust
@@ -220,6 +221,29 @@ def scan_rust(text: str, definition: LanguageDefinition) -> RustScan | ReadFailu
         if token.kind in COMMENT_KINDS
     )
     return RustScan(text, tuple(regions), tuple(tokens), prose)
+
+
+def comments_in(
+    text: str, definition: LanguageDefinition
+) -> tuple[CommentSpan, ...] | None:
+    """Each comment in `text` and the markers it is written with.
+
+    None where `text` does not scan, or holds anything but comments and
+    whitespace.
+    """
+    scan = scan_rust(text, definition)
+    if isinstance(scan, ReadFailure):
+        return None
+    comments = _Comments.from_definition(definition)
+    found = []
+    for token in scan.tokens:
+        if token.kind is RustTokenKind.WHITESPACE:
+            continue
+        if token.kind not in COMMENT_KINDS:
+            return None
+        opener, closer = comments.markers(token.kind)
+        found.append(CommentSpan(token.span.start, token.span.end, opener, closer))
+    return tuple(found)
 
 
 def _prose(text: str, token: RustToken, comments: _Comments) -> tuple[SourceSpan, ...]:

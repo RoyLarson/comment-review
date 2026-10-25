@@ -1152,13 +1152,11 @@ def test_rust_definition_leaves_no_language_row() -> None:
     assert "rust" not in READER_METADATA
 
 
-def test_rust_definition_answers_comment_markers_and_form() -> None:
-    from comment_review.reading.language import line_comment_markers
+def test_rust_comment_form_takes_its_markers_from_the_rust_scanner() -> None:
     from comment_review.reading.lexer import comment_form
     from comment_review.reading.series import Series
 
     path = Path("x.rs")
-    assert set(line_comment_markers(path)) == {"//", "///", "//!"}
     line = comment_form(path, Series.DECLARED, "/// Adds one.\n")
     assert line.fragments[0].first == "/// "
     assert line.fragments[0].paragraphs == ("Adds one.",)

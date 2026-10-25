@@ -6,6 +6,20 @@ from dataclasses import dataclass
 
 
 @dataclass(frozen=True)
+class CommentSpan:
+    """One comment in a paragraph's raw text, as its language's own reader reads it.
+
+    `start` and `end` are offsets into the raw text; `closer` is empty for a
+    line comment.
+    """
+
+    start: int
+    end: int
+    opener: str
+    closer: str
+
+
+@dataclass(frozen=True)
 class Fragment:
     """Prose inside one comment form, with its original markers and layout."""
 

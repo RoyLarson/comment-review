@@ -611,9 +611,9 @@ def language_for(path: Path) -> Language | None:
 def line_comment_markers(path: Path) -> tuple[str, ...]:
     """The markers that open a line comment in the path's language.
 
-    A lexical row lists them as `line_comment`; a definition file states them
-    under `comments`: Python's one `marker`, Rust's `line` and its two doc
-    forms. Empty when no definition covers the path.
+    A lexical row lists them as `line_comment`; Python's definition file states
+    its one `marker` under `comments`. Empty when neither does: a language whose
+    reader scans its own comments, as Rust's does, is split by that reader.
     """
     lang = language_for(path)
     if lang is not None:
@@ -622,50 +622,8 @@ def line_comment_markers(path: Path) -> tuple[str, ...]:
     comments = value.rules.get("comments") if value is not None else None
     if not isinstance(comments, Mapping):
         return ()
-    names = (
-        ("marker",)
-        if "marker" in comments
-        else (
-            "line",
-            "outer_doc_line",
-            "inner_doc_line",
-        )
-    )
-    markers = tuple(comments.get(name) for name in names)
-    return tuple(m for m in markers if isinstance(m, str) and m)
-
-
-def comment_language_for(path: Path) -> Language | None:
-    """What the comment splitter needs to know about the path's comments.
-
-    A lexical row answers itself. A definition file that states `block_comment`
-    comments, as Rust's does, answers with the markers its `comments` table
-    names; Python's states none, so it answers None.
-    """
-    lang = language_for(path)
-    if lang is not None:
-        return lang
-    value = INSTALLED_REGISTRY.for_path(path)
-    table = value.rules.get("comments") if value is not None else None
-    if value is None or not isinstance(table, Mapping) or "block_comment" not in table:
-        return None
-    comments = cast(Mapping[str, object], table)
-    pair = cast(tuple[str, str], comments["block_comment"])
-    return Language(
-        name=value.language,
-        extensions=value.suffixes,
-        line_comment=line_comment_markers(path),
-        block_comment=(pair,),
-        doc_line=(
-            cast(str, comments["outer_doc_line"]),
-            cast(str, comments["inner_doc_line"]),
-        ),
-        doc_block=(
-            cast(str, comments["outer_doc_block"]),
-            cast(str, comments["inner_doc_block"]),
-        ),
-        nests_comments=cast(bool, comments["nests"]),
-    )
+    marker = comments.get("marker")
+    return (marker,) if isinstance(marker, str) and marker else ()
 
 
 def documents_in_literals(path: Path) -> bool:
