@@ -1,8 +1,8 @@
 # Remove the module insertion slot no page reads
 
 ```
-Status:   open
-Progress: 3 of 4 tasks closed
+Status:   closed
+Progress: 4 of 4 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-23 (final review of the Rust reader plan, R2)
@@ -29,8 +29,8 @@ readers satisfy.
 - [x] T1 | Ruling recorded as decision-log Process #218 | 0d257f3c | Decide
       whether insertions[0] leaves both reader records
         > 2026-10-24 Roy chose C, NamedTuple included; decision-log Process #218
-- [ ] T2 | Remove the slot or its dead check, as decided. Verify: a test fails
-      first
+- [x] T2 | Slot and its check removed; 164 reader tests failed first | 660bc873 | Remove
+      the slot or its dead check, as decided. Verify: a test fails first
         > 2026-10-24 Decided by #218: insertions[0] and its check leave both readers
 - [x] T3 | DocumentationPlace replaces the bare tuple; grep finds none in src | f04fc147 | Replace
       the bare tuple[int, int, bool] with a named documentation place

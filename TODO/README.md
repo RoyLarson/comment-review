@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (128)
+### open  (127)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -309,7 +309,6 @@ that changed a published name or rule:
 | [paragraph-is-a-passage](paragraph-is-a-passage.md) | backend | -- | 0/9 | The addressed unit of prose is a passage, not a paragraph |
 | [stage-two-detached-warnings](stage-two-detached-warnings.md) | agents | -- | 0/2 | Ask the human about each detached-documentation warning at stage 2 |
 | [drop-path-second-rust-comment-grammar](drop-path-second-rust-comment-grammar.md) | backend | -- | 0/1 | The drop path splits Rust comments with a second Rust comment grammar |
-| [module-insertion-slot-unread](module-insertion-slot-unread.md) | backend | -- | 3/4 | Remove the module insertion slot no page reads |
 
 ### in-progress  (17)
 
@@ -513,3 +512,4 @@ the reason is inside the file.
 | [python-cannot-read-python](completed/python-cannot-read-python.md) | 48 finished, 8 superseded |
 | [a-block-is-a-paragraph-on-a-page](completed/a-block-is-a-paragraph-on-a-page.md) | 3 finished, 8 superseded |
 | [rust-reader-findings](completed/rust-reader-findings.md) | 6 finished, 2 superseded |
+| [module-insertion-slot-unread](completed/module-insertion-slot-unread.md) | 4 finished |
