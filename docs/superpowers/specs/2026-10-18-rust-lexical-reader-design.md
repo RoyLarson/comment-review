@@ -369,7 +369,7 @@ tuple[ReadDiagnostic, ...]` for detached documentation, at stage `PLACE`, code
 each with its owner's declaration index or `None` for the module) and `prose`
 (the scan's prose pieces). `warning_owners` gives each warning's owner. It
 validates in `__post_init__` as `PythonRead` does: regions partition the text,
-one insertion per declaration plus the module, warnings inside the text.
+one insertion per declaration, warnings inside the text.
 
 `projection.py` follows the Python projection's contract
 (`reading/python/projection.py:107-257`):

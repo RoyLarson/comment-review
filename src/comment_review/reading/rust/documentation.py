@@ -89,8 +89,7 @@ def documentation_in(
     section starting in it is MATTER, up to the first section documenting an
     owner, which ends the matter. The module's inner doc is detached when
     code or a comment outside the opening matter precedes it; the page sets
-    `a0` at the file head, so `insertions[0]` stays 1. Every other owner
-    inserts at its head's first line.
+    `a0` at the file head. Every other owner inserts at its head's first line.
     """
     failure = validate_rust(definition)
     if failure is not None:

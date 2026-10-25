@@ -180,7 +180,7 @@ def place_declarations(
         r"(?![a-zA-Z0-9_\x80-\U0010ffff])"
     )
     declarations: list[SourceDeclaration] = []
-    insertions = [scan.tokens[lines[0].tokens[0]].span.start if lines else 0]
+    insertions: list[int] = []
     delimiter = cast(Mapping[str, object], definition.rules["layout"])[
         "suite_delimiter"
     ]

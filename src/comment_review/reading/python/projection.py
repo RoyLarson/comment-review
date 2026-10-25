@@ -265,6 +265,6 @@ def declarations_for(read: PythonRead) -> list[DocumentationPlace]:
             False,
         )
         for declaration, insertion in zip(
-            source.declarations, read.insertions[1:], strict=True
+            source.declarations, read.insertions, strict=True
         )
     ]

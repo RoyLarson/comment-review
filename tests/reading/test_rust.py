@@ -57,7 +57,7 @@ def source(*, declarations=(), text=TEXT, found=None) -> SourceStructure:
     return SourceStructure(text, found or regions(), (), declarations, ())
 
 
-def read(insertions=(1,), protected=(DIRECTIVE,), warnings=(), declarations=()):
+def read(insertions=(), protected=(DIRECTIVE,), warnings=(), declarations=()):
     detached = tuple(
         records.DetachedRun(w.span, None) for w in warnings if w.span is not None
     )
@@ -215,18 +215,18 @@ def test_records_scan_rejects_a_non_attribute_token_enclosing_another():
 
 def test_records_placement_accepts_one_insertion_per_declaration():
     one = declaration()
-    records.RustPlacement((one,), (1, 2), (records.DetachedRun(COMMENT, 0),))
-    records.RustPlacement((), (1,), ())
-    records.RustPlacement((one, declaration(10)), (1, 2, 3), ())
+    records.RustPlacement((one,), (2,), (records.DetachedRun(COMMENT, 0),))
+    records.RustPlacement((), (), ())
+    records.RustPlacement((one, declaration(10)), (2, 3), ())
 
 
-@pytest.mark.parametrize("insertions", [(1,), (1, 2, 3), (0, 2), (1, 0), (-1, 2)])
+@pytest.mark.parametrize("insertions", [(), (2, 3), (0,), (-1,)])
 def test_records_placement_rejects_bad_insertions(insertions):
     with pytest.raises(ValueError):
         records.RustPlacement((declaration(),), insertions, ())
 
 
-@pytest.mark.parametrize("insertions", [(1, 3, 3), (1, 4, 3)], ids=["equal", "falling"])
+@pytest.mark.parametrize("insertions", [(3, 3), (4, 3)], ids=["equal", "falling"])
 def test_records_placement_rejects_non_increasing_declaration_insertions(insertions):
     with pytest.raises(ValueError):
         records.RustPlacement((declaration(), declaration(10)), insertions, ())
@@ -235,25 +235,25 @@ def test_records_placement_rejects_non_increasing_declaration_insertions(inserti
 def test_records_placement_rejects_detached_owner_out_of_range():
     with pytest.raises(ValueError):
         records.RustPlacement(
-            (declaration(),), (1, 2), (records.DetachedRun(COMMENT, 1),)
+            (declaration(),), (2,), (records.DetachedRun(COMMENT, 1),)
         )
     with pytest.raises(ValueError):
         records.RustPlacement(
-            (declaration(),), (1, 2), (records.DetachedRun(COMMENT, -1),)
+            (declaration(),), (2,), (records.DetachedRun(COMMENT, -1),)
         )
 
 
 def test_records_read_accepts_a_consistent_read():
     result = read(warnings=(warning(),))
-    assert result.insertions == (1,)
-    read(insertions=(1, 2), declarations=(declaration(),))
+    assert result.insertions == ()
+    read(insertions=(2,), declarations=(declaration(),))
 
 
 def test_records_read_rejects_bad_insertions():
     with pytest.raises(ValueError):
-        read(insertions=(1, 2))
+        read(insertions=(2,))
     with pytest.raises(ValueError):
-        read(insertions=(1, 2, 2), declarations=(declaration(), declaration(10)))
+        read(insertions=(2, 2), declarations=(declaration(), declaration(10)))
 
 
 def test_records_read_rejects_wrong_warning_code_stage_or_span():
@@ -911,7 +911,7 @@ def placed(text, definition):
         (owner.kind, text.count("\n", 0, owner.anchor) + 1)
         for owner in placement.declarations
     ]
-    assert placement.insertions == (1, *(line for _, line in found))
+    assert placement.insertions == tuple(line for _, line in found)
     for owner in placement.declarations:
         assert owner.anchor == owner.header.start
     return found
@@ -937,7 +937,7 @@ def test_owners_every_item_keyword_at_file_level(rust_definition):
     assert placed(text, rust_definition) == [("item", line) for line in range(1, 15)]
 
 
-def test_owners_empty_source_has_only_the_module_insertion(rust_definition):
+def test_owners_empty_source_has_no_owner(rust_definition):
     assert placed("", rust_definition) == []
 
 
@@ -1435,7 +1435,7 @@ def test_attachment_doc_above_a_multi_line_attribute_across_blank_lines(
     result = documentation_of(text, rust_definition)
     assert sections_of(text, result) == [("outer_doc", "/// Doc.")]
     assert owners_of(text, result) == [("/// Doc.", ("item", 3))]
-    assert result.placement.insertions == (1, 3)
+    assert result.placement.insertions == (3,)
     assert result.placement.detached == ()
     assert result.warnings == ()
 
@@ -1487,7 +1487,7 @@ def test_attachment_inner_doc_at_file_head_is_the_module(rust_definition):
     result = documentation_of(text, rust_definition)
     assert sections_of(text, result) == [("inner_doc", "//! Crate doc.")]
     assert owners_of(text, result) == [("//! Crate doc.", None)]
-    assert result.placement.insertions == (1, 3)
+    assert result.placement.insertions == (3,)
 
 
 def test_detached_inner_doc_after_an_inner_attribute(rust_definition):
@@ -1501,7 +1501,7 @@ def test_detached_inner_doc_after_an_inner_attribute(rust_definition):
         [("/*! Crate doc. */", None)],
         [("/*! Crate doc. */", [2])],
     )
-    assert result.placement.insertions == (1, 3)
+    assert result.placement.insertions == (3,)
 
 
 @pytest.mark.parametrize(
@@ -1528,7 +1528,7 @@ def test_detached_inner_doc_in_a_body_names_the_item_that_holds_it(
     assert result.owners == ()
     assert detached_of(text, result) == ([(doc, 1)], [(doc, [doc_line, 1])])
     # Every declaration inserts at its anchor line.
-    assert result.placement.insertions[1] == 1
+    assert result.placement.insertions[0] == 1
 
 
 def test_attachment_ordinary_comment_above_an_item_is_not_documentation(
@@ -1577,7 +1577,7 @@ def test_attachment_module_not_in_owners_leaves_the_head_inner_doc_ordinary(
     # Documenting nothing, the run opening the file is its matter.
     assert sections_of(text, result) == [("matter", "//! Crate doc.")]
     assert result.owners == ()
-    assert result.placement.insertions == (1, 2)
+    assert result.placement.insertions == (2,)
     assert result.warnings == ()
 
 
@@ -1644,7 +1644,7 @@ def test_detached_inner_doc_behind_a_comment_in_its_body(rust_definition):
         [("//! inner", 1)],
         [("//! inner", [3, 1])],
     )
-    assert result.placement.insertions == (1, 1)
+    assert result.placement.insertions == (1,)
 
 
 def test_detached_inner_doc_on_its_owner_head_line(rust_definition):
@@ -1668,7 +1668,7 @@ def test_detached_module_doc_behind_a_comment_that_is_not_matter(rust_definition
     ]
     assert result.owners == ()
     assert detached_of(text, result) == ([("//! m", None)], [("//! m", [3])])
-    assert result.placement.insertions == (1, 5)
+    assert result.placement.insertions == (5,)
 
 
 def test_detached_module_doc_behind_a_trailing_comment(rust_definition):
@@ -1681,8 +1681,8 @@ def test_detached_module_doc_behind_a_trailing_comment(rust_definition):
 @pytest.mark.parametrize(
     ("text", "insertions"),
     [
-        ("// Copyright\n//! m\nfn f() {}\n", (1, 3)),
-        ("#!/usr/bin/env rust-script\n// Copyright\n//! m\nfn f() {}\n", (1, 4)),
+        ("// Copyright\n//! m\nfn f() {}\n", (3,)),
+        ("#!/usr/bin/env rust-script\n// Copyright\n//! m\nfn f() {}\n", (4,)),
     ],
     ids=["plain", "shebang"],
 )
@@ -1705,7 +1705,7 @@ def test_matter_opening_detached_doc_is_matter(rust_definition):
         [("/** Doc. */", 3)],
         [("/** Doc. */", [1, 3])],
     )
-    assert result.placement.insertions == (1, 3)
+    assert result.placement.insertions == (3,)
 
 
 def test_matter_ends_at_the_module_doc(rust_definition):
@@ -1755,7 +1755,7 @@ def test_detached_second_inner_doc_for_the_module(
     ]
     assert owners_of(text, result) == [("//! a", None)]
     assert detached_of(text, result) == ([("//! b", None)], [("//! b", [3])])
-    assert result.placement.insertions == (1, 4)
+    assert result.placement.insertions == (4,)
 
 
 def test_attachment_doc_on_its_owner_head_line_is_code(rust_definition):
@@ -1779,7 +1779,7 @@ def documentation_record(detached, warned):
     spans = {"a": SourceSpan(0, 5), "b": SourceSpan(6, 11)}
     placement = records.RustPlacement(
         (SourceDeclaration(SourceSpan(12, 14), 12, "item"),),
-        (1, 3),
+        (3,),
         tuple(records.DetachedRun(spans[name], 0) for name in detached),
     )
     return records.RustDocumentation(
@@ -1811,7 +1811,7 @@ def test_detached_records_let_an_inner_doc_document_only_the_module(
     declaration, refused
 ):
     placement = records.RustPlacement(
-        (SourceDeclaration(SourceSpan(12, 14), 12, "item"),), (1, 3), ()
+        (SourceDeclaration(SourceSpan(12, 14), 12, "item"),), (3,), ()
     )
 
     def made():
@@ -1834,8 +1834,7 @@ def test_matter_excludes_a_comment_with_code_after_it_on_its_line(rust_definitio
     result = documentation_of(text, rust_definition)
     assert sections_of(text, result) == []
     insertions = result.placement.insertions
-    assert insertions == (1, 1)
-    assert insertions[0] <= insertions[1]
+    assert insertions == (1,)
 
 
 def test_matter_opening_ordinary_run_is_not_the_item_doc(rust_definition):
@@ -1845,7 +1844,7 @@ def test_matter_opening_ordinary_run_is_not_the_item_doc(rust_definition):
         ("matter", "// Copyright 2026 Someone.\n// Licensed."),
     ]
     assert result.owners == ()
-    assert result.placement.insertions == (1, 3)
+    assert result.placement.insertions == (3,)
 
 
 def test_matter_follows_a_shebang(rust_definition):
@@ -1853,7 +1852,7 @@ def test_matter_follows_a_shebang(rust_definition):
     text = "#!/usr/bin/env run-cargo-script\n// Copyright.\n\nfn main() {}\n"
     result = documentation_of(text, rust_definition)
     assert sections_of(text, result) == [("matter", "// Copyright.")]
-    assert result.placement.insertions == (1, 4)
+    assert result.placement.insertions == (4,)
 
 
 def test_comment_below_a_shebang_and_a_blank_line_is_not_matter(rust_definition):
@@ -1876,7 +1875,7 @@ def test_matter_then_a_doc_gives_the_item_its_doc(rust_definition):
         ("outer_doc", "/// Doc."),
     ]
     assert owners_of(text, result) == [("/// Doc.", ("item", 3))]
-    assert result.placement.insertions == (1, 3)
+    assert result.placement.insertions == (3,)
 
 
 def directives_of(text, definition):
@@ -1895,7 +1894,7 @@ def test_directives_shebang_is_a_protected_directive(rust_definition):
         "#!/usr/bin/env run-cargo-script",
     )
     assert directives_of(text, rust_definition) == (SourceSpan(0, 31),)
-    assert documentation_of(text, rust_definition).placement.insertions == (1, 2)
+    assert documentation_of(text, rust_definition).placement.insertions == (2,)
 
 
 @pytest.mark.parametrize(
@@ -2291,8 +2290,8 @@ def test_projection_scan_refuses_prose_outside_its_comment():
 
 def test_projection_read_refuses_an_insertion_off_its_anchor_line():
     with pytest.raises(ValueError, match="anchor"):
-        read(insertions=(1, 3), declarations=(declaration(),))
-    read(insertions=(1, 2), declarations=(declaration(),))
+        read(insertions=(3,), declarations=(declaration(),))
+    read(insertions=(2,), declarations=(declaration(),))
 
 
 def test_projection_opening_run_is_matter_up_to_its_first_blank_line(
@@ -2469,14 +2468,6 @@ def test_projection_read_refuses_misaligned_records(rust_definition, change, mes
         records.RustRead(**{**fields, **change})
 
 
-def test_projection_records_refuse_a_module_insertion_after_the_first_declaration():
-    with pytest.raises(ValueError):
-        records.RustPlacement((declaration(),), (2, 1), ())
-    with pytest.raises(ValueError, match="module insertion"):
-        read(insertions=(2, 1), declarations=(declaration(0),))
-    read(insertions=(1, 1), declarations=(declaration(0),))
-
-
 def test_projection_shebang_line_is_not_code(rust_definition):
     text = "#!/usr/bin/env run-cargo-script\nfn main() {}\n"
     result = rust_read(text, rust_definition)
@@ -2513,9 +2504,9 @@ def test_projection_read_refuses_a_body_inner_doc_line_as_an_insertion(
     from dataclasses import replace
 
     result = rust_read("fn f() {\n    //! inner\n}\n", rust_definition)
-    assert result.insertions == (1, 1)
+    assert result.insertions == (1,)
     with pytest.raises(ValueError, match="anchor line"):
-        replace(result, insertions=(1, 2))
+        replace(result, insertions=(2,))
 
 
 def test_projection_read_rust_refuses_an_unterminated_comment(rust_definition):

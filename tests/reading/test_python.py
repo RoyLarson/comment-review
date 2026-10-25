@@ -131,12 +131,12 @@ def documented_read(records):
     )
     expression = records.DocumentationExpression(statement, components, 0)
     payload = records.DocumentationPayload(expression, "a\nb")
-    return records.PythonRead(source, (payload,), (), (0, 13))
+    return records.PythonRead(source, (payload,), (), (13,))
 
 
 def test_records_empty_read_preserves_exact_source(records):
     source = SourceStructure("", (), (), (), ())
-    result = records.PythonRead(source, (), (), (0,))
+    result = records.PythonRead(source, (), (), ())
     assert result.source is source
     assert result.source.reconstruct() == ""
     assert records.PythonScan("", (), (), ()).text == ""
@@ -200,7 +200,7 @@ def test_records_payload_keeps_complete_prose_and_raw_expression(records):
         lambda r: r.LogicalLine(SourceSpan(0, 1), (1, 0), 0),
         lambda r: r.LogicalLine(SourceSpan(0, 1), (True,), 0),
         lambda r: r.LogicalLine(SourceSpan(0, 1), (), -1),
-        lambda r: r.PythonPlacement((), (), ()),
+        lambda r: r.PythonPlacement((), (), (0,)),
         lambda r: r.PythonPlacement((), (), (-1,)),
         lambda r: r.PythonPlacement((), (), (True,)),
         lambda r: r.DocumentationExpression(
@@ -253,11 +253,11 @@ def test_records_reject_bad_completed_insertion_positions_and_protection(records
     result = documented_read(records)
     for changed in (
         {"insertions": ()},
-        {"insertions": (0,)},
-        {"insertions": (0, 13, 13)},
-        {"insertions": (0, 99)},
-        {"insertions": (0, -1)},
-        {"insertions": (0, True)},
+        {"insertions": (13, 13)},
+        {"insertions": (99,)},
+        {"insertions": (-1,)},
+        {"insertions": (True,)},
+        {"insertions": [13]},
         {"insertions": [0, 13]},
         {"protected": (records.ProtectedSource(SourceSpan(0, 99), "literal", None),)},
         {
@@ -274,9 +274,9 @@ def test_records_reject_bad_completed_insertion_positions_and_protection(records
 
 def test_records_allow_declaration_positions_without_a_tree(records):
     declaration = SourceDeclaration(SourceSpan(5, 13), 5, "function")
-    placement = records.PythonPlacement((), (declaration,), (0, 15))
+    placement = records.PythonPlacement((), (declaration,), (15,))
     assert placement.declarations == (declaration,)
-    assert placement.insertions == (0, 15)
+    assert placement.insertions == (15,)
     assert not any(
         hasattr(placement, name) for name in ("facts", "suites", "statements")
     )
@@ -322,9 +322,9 @@ def test_records_nested_declarations_keep_only_source_positions(records):
         SourceDeclaration(SourceSpan(0, 8), 0, "function"),
         SourceDeclaration(SourceSpan(13, 21), 13, "function"),
     )
-    placement = records.PythonPlacement((), declarations, (0, 13, 25))
+    placement = records.PythonPlacement((), declarations, (13, 25))
     assert placement.declarations == declarations
-    assert placement.insertions == (0, 13, 25)
+    assert placement.insertions == (13, 25)
 
 
 @pytest.fixture
@@ -552,7 +552,7 @@ def test_compact_header_spelling_preserves_nested_documentation_positions(
     document = text.index('"body"')
     assert declaration.header == SourceSpan(start, start + len("def render():"))
     assert declaration.anchor == start
-    assert result.insertions == (0, document)
+    assert result.insertions == (document,)
     assert result.payloads[0].expression.statement == SourceSpan(document, document + 6)
     assert result.payloads[0].expression.declaration == 0
 
@@ -1121,7 +1121,7 @@ def test_placement_empty_module(python_definition, text):
     assert not isinstance(result, ReadFailure)
     assert result.declarations == ()
     assert result.lines == ()
-    assert result.insertions == (0,)
+    assert result.insertions == ()
     assert scan_tokens(text, python_definition).text == text
 
 
@@ -1156,7 +1156,7 @@ def test_declarations_decorated_headers_and_async_anchor(python_definition):
             SourceSpan(async_start, method_end), async_start, "async-function"
         ),
     )
-    assert result.insertions == (0, text.index("@decorate"), text.index("return item"))
+    assert result.insertions == (text.index("@decorate"), text.index("return item"))
     assert scan_tokens(text, python_definition).text == text
 
 
@@ -1214,7 +1214,7 @@ def test_modern_syntax_type_parameters_aliases_and_soft_keyword_names(
         and text[token.span.start : token.span.end] in {"match", "case", "type", "lazy"}
     ] == ["type", "match", "case", "type", "lazy", "match", "case", "type", "lazy"]
     assert scan.text == text
-    assert len(result.insertions) == 7
+    assert len(result.insertions) == 6
 
 
 def test_modern_syntax_match_case_lazy_imports_and_async_ownership(
@@ -1241,7 +1241,7 @@ def test_modern_syntax_match_case_lazy_imports_and_async_ownership(
             SourceSpan(start, text.index(":", start) + 1), start, "async-function"
         ),
     )
-    assert result.insertions == (0, text.index("match source:"))
+    assert result.insertions == (text.index("match source:"),)
     assert scan.text == text
     assert not any(region.kind == RegionKind.COMMENT for region in scan.regions)
     assert read_documentation(text, python_definition)[2] == ()
@@ -1262,7 +1262,7 @@ def test_modern_syntax_unpacked_comprehensions_remain_expression_tokens(
     scan, result = read_placement(text, python_definition)
     assert not isinstance(result, ReadFailure)
     assert result.declarations == (SourceDeclaration(SourceSpan(0, 20), 0, "function"),)
-    assert result.insertions == (0, text.index("listed ="))
+    assert result.insertions == (text.index("listed ="),)
     assert read_documentation(text, python_definition)[2] == ()
     assert scan.text == text
 
@@ -1293,7 +1293,6 @@ def test_nested_declaration_headers_and_insertions_under_opaque_controls(
         "def repeated():",
     ]
     assert result.insertions == (
-        0,
         text.index("if ready:"),
         text.index("pass"),
         text.index("try:"),
@@ -1324,7 +1323,7 @@ def test_declarations_body_insertion_is_absolute_and_bounded(
         0,
         "class" if header.startswith("class") else "function",
     )
-    assert result.insertions[1] == insertion
+    assert result.insertions[0] == insertion
     assert 0 <= insertion <= len(text)
 
 
@@ -1345,7 +1344,7 @@ def test_declaration_name_spelling_is_opaque(python_definition, text):
     _, result = read_placement(text, python_definition)
     assert not isinstance(result, ReadFailure)
     assert len(result.declarations) == 1
-    assert result.insertions[1] == text.index("pass")
+    assert result.insertions[0] == text.index("pass")
     assert read_documentation(text, python_definition)[2] == ()
     assert scan_tokens(text, python_definition).text == text
 
@@ -1384,7 +1383,7 @@ def test_nested_declaration_documentation_and_semicolons(python_definition):
         "class C:",
         "def f():",
     ]
-    assert result.insertions == (0, 13, 47)
+    assert result.insertions == (13, 47)
     expressions = read_documentation(text, python_definition)[2]
     assert len(expressions) == 1
     assert expressions[0].declaration == 1
@@ -1539,7 +1538,7 @@ def test_multiline_declaration_headers_use_canonical_spans(python_definition):
     _, result = read_placement(text, python_definition)
     assert not isinstance(result, ReadFailure)
     assert result.declarations == (SourceDeclaration(SourceSpan(0, 23), 0, "function"),)
-    assert result.insertions == (0, 38)
+    assert result.insertions == (38,)
     assert scan_tokens(text, python_definition).text == text
 
 
@@ -2383,10 +2382,8 @@ def test_doc_ownership_complete_statement_and_component_spans(
         for component in components
     )
     assert expression.declaration == owner
-    assert (
-        structure.insertions[0 if owner is None else owner + 1]
-        == expression.statement.start
-    )
+    if owner is not None:
+        assert structure.insertions[owner] == expression.statement.start
     assert "".join(text[r.span.start : r.span.end] for r in scan.regions) == text
     assert [
         text[t.span.start : t.span.end] for t in scan.tokens if t.kind == "comment"
@@ -2428,7 +2425,7 @@ def test_doc_ownership_excluded_shapes_remain_executable(
     scan, structure, result = read_documentation(text, python_definition)
     assert result == ()
     assert scan.text == text
-    assert structure.insertions[-1] == len(prefix)
+    assert structure.insertions == ((len(prefix),) if prefix else ())
     assert any(region.kind == RegionKind.LITERAL for region in scan.regions)
 
 
@@ -2501,7 +2498,7 @@ def test_doc_ownership_semicolon_siblings_and_repeated_empty_components(
     assert result[0].statement == SourceSpan(0, 6)
     assert result[0].components == (SourceSpan(0, 2), SourceSpan(3, 5))
     assert result[0].declaration is None
-    assert structure.insertions == (0,)
+    assert structure.insertions == ()
     assert scan_tokens(text, python_definition).text == text
 
 
@@ -3412,7 +3409,7 @@ def test_opaque_control_code_keeps_comment_and_nested_doc_positions(
     assert result.source.reconstruct() == text
     assert [payload.text for payload in result.payloads] == ["full documentation"]
     assert result.source.declarations[0].kind == "async-function"
-    assert result.insertions == (0, text.index('(r"full'))
+    assert result.insertions == (text.index('(r"full'),)
 
 
 def test_generic_indentation_cannot_claim_module_documentation(python_definition):
@@ -3575,7 +3572,7 @@ def test_documentation_header_colons_inside_expressions_are_shielded(
     )
     assert not isinstance(result, ReadFailure)
     assert result.source.declarations[0].header == SourceSpan(0, len(header))
-    assert result.insertions == (0, len(header) + 5)
+    assert result.insertions == (len(header) + 5,)
     assert result.payloads[0].text == "complete docs"
     assert result.payloads[0].expression.declaration == 0
     assert (
@@ -3599,7 +3596,7 @@ def test_declaration_annotation_lambda_colons_keep_documentation_position(
     assert result.source.declarations == (
         SourceDeclaration(SourceSpan(0, len(header)), 0, "function"),
     )
-    assert result.insertions == (0, len(header) + 5)
+    assert result.insertions == (len(header) + 5,)
     assert [payload.text for payload in result.payloads] == ["complete docs"]
     assert result.source.reconstruct() == text
 
@@ -3617,7 +3614,7 @@ def test_declaration_annotation_unicode_spelling_is_not_lambda_keyword(
     assert result.source.declarations == (
         SourceDeclaration(SourceSpan(0, len(header)), 0, "function"),
     )
-    assert result.insertions == (0, len(header) + 5)
+    assert result.insertions == (len(header) + 5,)
     assert [payload.text for payload in result.payloads] == ["docs"]
     assert result.payloads[0].expression.declaration == 0
     assert result.source.slice(result.source.sections[0].span) == '"docs"'

@@ -155,15 +155,14 @@ def place_declarations(
     in `[rules.documentation].owners` and its head is the first code on its
     line: the code before it ends on an earlier line.
 
-    `insertions[0]` is 1, the module's entry, and stays so; `detached` is
-    empty, and documentation fills it.
+    `detached` is empty, and documentation fills it.
     """
     failure = validate_rust(definition)
     if failure is not None:
         return failure
     placer = _Placer(scan, _Grammar.from_definition(definition))
     placer.run()
-    return RustPlacement(tuple(placer.declarations), (1, *placer.insertions), ())
+    return RustPlacement(tuple(placer.declarations), tuple(placer.insertions), ())
 
 
 class _Placer:

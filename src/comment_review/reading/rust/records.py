@@ -96,13 +96,11 @@ def _nesting(tokens: "tuple[RustToken, ...]", end: int) -> None:
 
 def _insertions(insertions: tuple[int, ...], declarations: int) -> None:
     _tuple(insertions, int, "insertions")
-    if len(insertions) != declarations + 1:
-        raise ValueError("insertions must match module and declarations")
+    if len(insertions) != declarations:
+        raise ValueError("insertions must match declarations")
     if any(isinstance(item, bool) or item < 1 for item in insertions):
         raise ValueError("insertions must be positive line numbers")
-    if declarations and insertions[1] < insertions[0]:
-        raise ValueError("the module insertion may not follow the first declaration")
-    for before, after in zip(insertions[1:], insertions[2:], strict=False):
+    for before, after in pairwise(insertions):
         if after <= before:
             raise ValueError("declaration insertions must be strictly increasing")
 
@@ -226,10 +224,8 @@ class DetachedRun:
 class RustPlacement:
     """Declarations, their documentation insertion lines, and detached runs.
 
-    `insertions[0]` is the module's entry and is 1: the page reads it as the
-    presence of an `a0`, which it sets at the file head. `insertions[i + 1]`
-    is the 1-based insertion line of `declarations[i]`: its head's first
-    line.
+    `insertions[i]` is the 1-based insertion line of `declarations[i]`: its
+    head's first line.
     """
 
     declarations: tuple[SourceDeclaration, ...]
@@ -363,7 +359,7 @@ class RustRead:
             raise ValueError("read source must be a SourceStructure")
         _insertions(self.insertions, len(self.source.declarations))
         for declaration, insertion in zip(
-            self.source.declarations, self.insertions[1:], strict=True
+            self.source.declarations, self.insertions, strict=True
         ):
             if self.source.position(declaration.anchor).line != insertion:
                 raise ValueError("a declaration's insertion must be its anchor line")

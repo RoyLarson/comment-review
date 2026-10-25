@@ -177,12 +177,12 @@ class PythonPlacement:
     insertions: tuple[int, ...]
 
     def __post_init__(self) -> None:
-        """Require source records and one insertion per documentation owner."""
+        """Require source records and one insertion per declaration."""
         _tuple(self.lines, LogicalLine, "lines")
         _tuple(self.declarations, SourceDeclaration, "declarations")
         _tuple(self.insertions, int, "insertions")
-        if len(self.insertions) != len(self.declarations) + 1:
-            raise ValueError("insertions must match module and declarations")
+        if len(self.insertions) != len(self.declarations):
+            raise ValueError("insertions must match declarations")
         for insertion in self.insertions:
             _index(insertion, "insertion")
 
@@ -247,8 +247,8 @@ class PythonRead:
             ):
                 raise ValueError("protected span or attachment is outside source")
         _tuple(self.insertions, int, "insertions")
-        if len(self.insertions) != len(self.source.declarations) + 1:
-            raise ValueError("insertions must match module and source declarations")
+        if len(self.insertions) != len(self.source.declarations):
+            raise ValueError("insertions must match source declarations")
         for insertion in self.insertions:
             _index(insertion, "documentation insertion")
             if insertion > end:

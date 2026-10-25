@@ -365,7 +365,7 @@ def declarations_for(read: RustRead) -> list[DocumentationPlace]:
     return [
         DocumentationPlace(source.position(declaration.anchor).line, insertion, True)
         for declaration, insertion in zip(
-            source.declarations, read.insertions[1:], strict=True
+            source.declarations, read.insertions, strict=True
         )
     ]
 
