@@ -167,24 +167,14 @@ class RustScan:
 
 @dataclass(frozen=True)
 class DetachedRun:
-    """A documentation run the place model cannot hold, and its would-be owner.
-
-    `owner` is a declaration index, or None for the module.
-    """
+    """A documentation run the place model cannot hold."""
 
     span: SourceSpan
-    owner: int | None
 
     def __post_init__(self) -> None:
-        """Require a SourceSpan and a nonnegative declaration index or None."""
+        """Require a SourceSpan."""
         if not isinstance(self.span, SourceSpan):
             raise ValueError("detached span must be a SourceSpan")
-        if self.owner is not None and (
-            not isinstance(self.owner, int)
-            or isinstance(self.owner, bool)
-            or self.owner < 0
-        ):
-            raise ValueError("detached owner must be a nonnegative integer or None")
 
 
 @dataclass(frozen=True)
@@ -195,14 +185,9 @@ class RustPlacement:
     detached: tuple[DetachedRun, ...]
 
     def __post_init__(self) -> None:
-        """Require declarations and detached owners that exist."""
+        """Require declarations and detached runs."""
         _tuple(self.declarations, SourceDeclaration, "declarations")
         _tuple(self.detached, DetachedRun, "detached")
-        if any(
-            run.owner is not None and run.owner >= len(self.declarations)
-            for run in self.detached
-        ):
-            raise ValueError("detached owner must index declarations")
 
 
 class RustSectionForm(StrEnum):
@@ -349,11 +334,6 @@ class RustRead:
             if warning.span is None or warning.span.end > len(self.source.text):
                 raise ValueError("warning span must lie inside source")
         _tuple(self.detached, DetachedRun, "detached")
-        if any(
-            run.owner is not None and run.owner >= len(self.source.declarations)
-            for run in self.detached
-        ):
-            raise ValueError("detached owner must index declarations")
         if [warning.span for warning in self.warnings] != [
             run.span for run in self.detached
         ]:

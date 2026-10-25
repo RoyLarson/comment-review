@@ -360,7 +360,7 @@ class _Assigner:
     def _detach(self, index: int, run: _Run, owner: int | None) -> None:
         """Make the run a COMMENT with a DetachedRun and its warning."""
         self.forms[index] = RustSectionForm.COMMENT
-        self.detached.append(DetachedRun(run.span, owner))
+        self.detached.append(DetachedRun(run.span))
         if owner is None:
             named = "the module"
         else:

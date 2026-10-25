@@ -134,9 +134,10 @@ The gather reads every file handed to it and exits nonzero naming any language i
 record for; `gather --languages` lists the ones it reads. Report every gap it prints.
 
 The gather also prints one line on stderr for each detached documentation it read, in the form
-`warning: <path>@<cue>: detached documentation for <owner cue>`. Ask the author about each line
-with `AskUserQuestion`, showing the paragraph at `<cue>` and offering two answers: move it to
-`<owner cue>`, or leave it where it is. Record each answer in the style sheet, and continue the
+`warning: <path>:<line>: detached documentation`. The documentation starts at `<line>` and is
+read as a comment. Ask the author about each line with `AskUserQuestion`, showing that comment
+and its owner, the anchor it was written for, and offering two answers: move it to the owner's
+`a` cue, or leave it where it is. Record each answer in the style sheet, and continue the
 run whatever the answer is.
 
 Then build the topology: one stage, `4`, with every role split so each dispatch holds five
