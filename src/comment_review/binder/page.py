@@ -8,14 +8,13 @@ place where prose could go.
 `page_for` builds it in steps: the cues are named, `empty_places` gives every
 place no prose fills a paragraph of its own, `fill_the_gaps` divides each gap's
 lines among its `b` places, and `tie_leading` keys each blank run by the place
-it follows. `documentable` turns the declarations into positions in `cue`'s
-sequence.
+it follows.
 
 A page is all of the addresses in the file, which is what makes it a page and
 not a list.
-`places_on` -- or, on a page a reader record built, the record's `code` and
-`declarations` -- hands `cue` its lines of code and which of them declare
-something documentable; `addresser` emits every place, filled or not, and
+`places_on` -- or, on a page a reader record built, the record's
+`code_lines` -- hands `cue` its lines of code, each carrying the documentation
+place it declares; `addresser` emits every place, filled or not, and
 `attach` says which one a given paragraph sits in. A paragraph does not compute
 its own cue -- if it did, a place would exist only when prose happened to fill
 it.
@@ -70,7 +69,7 @@ from comment_review.reading.proof import ReaderRecord, SourceRead
 from comment_review.reading.readers import read_source
 from comment_review.reading.registry import LanguageRegistry
 from comment_review.reading.series import Kind, Series
-from comment_review.reading.source import DocumentationPlace
+from comment_review.reading.source import DocPlace, lines_of_code
 from comment_review.reading.stripped import StrippedRead
 
 #: The five fields a place is carried by, in the order `Page.serialize` writes
@@ -555,63 +554,13 @@ def attach(paragraph: dict, cues: "Cues") -> str:
     return cues.above(at) if isinstance(at, int) else ""
 
 
-def documentable(
-    decls: list[DocumentationPlace], code: dict[int, str]
-) -> dict[int, tuple[int, int, str]]:
-    """Which code lines DECLARE something documentable, and WHERE the doc sits.
-
-    !! IT CONVERTS. The reader states which side a language's documentation goes on,
-    as the `above` of each declaration it returns -- `lexer.declarations`, or a
-    reader record's `declarations`. What is left here is turning a LINE into a
-    position in `cue`'s own sequence.
-
-    !! THAT POSITION IS AN ORDINAL, which is the other half of the job. `cue`
-    counts code lines, so handing it a raw line would make it compare
-    `insert <= n` to place a docstring -- line arithmetic in the one module that
-    must do none.
-
-    Args:
-        decls: each declaration's `DocumentationPlace` -- see
-            `lexer.declarations`, which states all three fields.
-        code: `cue`'s triggers, `(line, anchor)` in order.
-
-    Returns:
-        `index into code -> (the LINE the doc occupies, the code index it is set
-        at, WHICH SIDE of that index's gap)`. `lexer.document_declarations` is
-        what walks up from a declaration to find prose already sitting there.
-        The index and the side are what the walk places by: `ON` sets the doc
-        between the gap and the code, `GAP` sets it before the gap -- which is
-        where a doc that sits INSIDE its declaration lands, because the gap
-        beneath it introduces whatever comes next. Empty when `decls` is, and
-        a file with an `a` series then has an `a0` and no more.
-    """
-    at = {n: i for i, n in enumerate(code)}
-    ordered = sorted(at)
-    out: dict[int, tuple[int, int, str]] = {}
-    for line, insert, above in decls:
-        if line not in at:
-            continue
-        if above:
-            # ! ABOVE THE DECLARING LINE, which is that line's own place: the doc
-            # is set after the gap and before the code.
-            out[at[line]] = (insert, at[line], ON)
-            continue
-        # ! INSIDE THE DECLARATION -- so it is set after whatever code the
-        # declaration spans, before the gap that introduces the body. A wrapped
-        # signature moves that several code lines down, which is why the LINE is
-        # what the parser states and the ordinal is worked out here.
-        follows = [n for n in ordered if n >= insert]
-        out[at[line]] = (insert, at[follows[0]] if follows else len(code), GAP)
-    return out
-
-
 def places_on(text: str, prose: list[dict], lang: "Language | None" = None) -> "Cues":
-    """Every place on this page, walked.
+    """Every place on a lexically read page, walked.
 
     !! THE PAGE NAMES ITS OWN PLACES, which is what makes it a page rather than
-    a list. It hands `cue` its lines of code and which of them declare
-    something documentable; `cue` emits every place, filled or not, and
-    `attach` says which one a given paragraph sits in.
+    a list. It hands `cue` its lines of code, each carrying the documentation
+    place it declares; `cue` emits every place, filled or not, and `attach`
+    says which one a given paragraph sits in.
 
     Args:
         text: the file's source.
@@ -625,11 +574,13 @@ def places_on(text: str, prose: list[dict], lang: "Language | None" = None) -> "
     """
     code = code_lines(text, prose)
     decls = declarations(lang, code) if lang else []
-    placed = documentable(decls, code) if lang else {}
+    lines = lines_of_code(
+        code, ((line, DocPlace(insert, above)) for line, insert, above in decls)
+    )
 
     # !! A language with no documentable declaration has no `a` series at all
     # -- see `cue`. It is not a series that happens to be empty.
-    return cue(code, placed, a_series=lang is not None and bool(lang.declares))
+    return cue(lines, a_series=lang is not None and bool(lang.declares))
 
 
 def empty_places(
@@ -665,8 +616,8 @@ def empty_places(
             #
             # !! SO ITS ORIGINAL LINES ARE None, NOT `insert..insert-1`. The
             # field holds a closed list of lines, or None when no line currently
-            # holds the place. WHERE the prose would go is the insert line
-            # `documentable` hands to `cue`, and is not this field's to say -- an
+            # holds the place. WHERE the prose would go is the `DocPlace` the
+            # reader hands to `cue`, and is not this field's to say -- an
             # empty slice standing in for a position teaches a reader to take
             # these numbers for one.
             out.append(
@@ -870,10 +821,9 @@ def page_for(
     edges: dict[str, str] = {}
     prose = [vars(b) for b in got]
     if record is not None:
-        code = record.code()
         # Every reader record's language documents its declarations, so its
         # page has an `a` series.
-        cues = cue(code, documentable(record.declarations(), code))
+        cues = cue(record.code_lines())
     else:
         lang = language_for(path)
         assert lang is not None, "a lexical read comes only from a lexical row"
@@ -909,7 +859,7 @@ def page_for(
         place_name = b.address.split("@")[-1]
         b.anchor_line = cues.anchor_line(place_name) if place_name else None
         b.anchor_num = cues.anchor_num(place_name) if place_name else 0
-    fill_the_gaps(text, got, code=code if record is not None else None)
+    fill_the_gaps(text, got, cues)
     edges = tie_leading(got, cues)
 
     where = rel if rel is not None else path.as_posix()
@@ -927,9 +877,7 @@ def page_for(
     )
 
 
-def fill_the_gaps(
-    text: str, paragraphs: list[Paragraph], *, code: dict[int, str] | None = None
-) -> None:
+def fill_the_gaps(text: str, paragraphs: list[Paragraph], cues: Cues) -> None:
     """Give every line of a gap to the paragraph it belongs to, blanks included.
 
     !! EVERY LINE HAS AN ADDRESS. A paragraph addressed only by the lines its
@@ -958,17 +906,13 @@ def fill_the_gaps(
         text: the page's source.
         paragraphs: every paragraph on the page, addressed; the `b`s are recut
             in place.
-        code: the code lines the page's `Cues` were walked from -- a page a
-            reader record built passes the record's `code`. None recomputes
-            them with `code_lines`, and the two must agree or every gap
-            boundary moves.
+        cues: the page's places. A gap's edges are the code lines `cue`
+            walked, read off its triggers, so the gaps divided here are the
+            gaps `cue` addressed.
     """
     source = constants.text_lines(text)
-    code_lines_in_order = list(
-        code if code is not None else code_lines(text, [vars(b) for b in paragraphs])
-    )
     last = len(source)
-    edges = [0, *code_lines_in_order, last + 1]
+    edges = [0, *(n for n in cues.triggers if isinstance(n, int)), last + 1]
 
     # !! EVERY OTHER SERIES OWNS ITS LINES EXACTLY, AND `b` TAKES WHAT IS LEFT.
     #

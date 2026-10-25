@@ -12,8 +12,8 @@ from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, Read
 from comment_review.reading.paragraph import Paragraph
 from comment_review.reading.proof import UNPROVABLE, PreservationResult
 from comment_review.reading.source import (
+    CodeLine,
     DocumentationOwner,
-    DocumentationPlace,
     RegionKind,
     SourceDeclaration,
     SourceRegion,
@@ -23,6 +23,8 @@ from comment_review.reading.source import (
 )
 
 DETACHED_DOC_CODE = "detached-documentation"
+# A line declares several documentable items; the first takes its `a` place.
+SEVERAL_DECLARATIONS_CODE = "several-declarations-on-one-line"
 
 
 class RustTokenKind(StrEnum):
@@ -179,15 +181,22 @@ class DetachedRun:
 
 @dataclass(frozen=True)
 class RustPlacement:
-    """Declarations and detached runs."""
+    """Declarations, detached runs, and a warning per line declaring several items."""
 
     declarations: tuple[SourceDeclaration, ...]
     detached: tuple[DetachedRun, ...]
+    warnings: tuple[ReadDiagnostic, ...] = ()
 
     def __post_init__(self) -> None:
-        """Require declarations and detached runs."""
+        """Require declarations, detached runs and several-declarations warnings."""
         _tuple(self.declarations, SourceDeclaration, "declarations")
         _tuple(self.detached, DetachedRun, "detached")
+        _tuple(self.warnings, ReadDiagnostic, "warnings")
+        if any(
+            w.code != SEVERAL_DECLARATIONS_CODE or w.stage != ReadStage.PLACE
+            for w in self.warnings
+        ):
+            raise ValueError("placement warnings must be several-declarations notes")
 
 
 class RustSectionForm(StrEnum):
@@ -283,8 +292,9 @@ def _section_start(section: SourceSection) -> int:
 class RustRead:
     """A completed Rust read: the source structure and what the read must keep.
 
-    `detached` aligns one-to-one, in order, with `warnings`, so a warning's
-    owner is its run's `owner`. A COMMENT region in no section is code. Each
+    `detached` aligns one-to-one, in order, with the detached-documentation
+    warnings; each other warning marks a line that declares several items.
+    A COMMENT region in no section is code. Each
     declaration anchors on its own line, below the one before it, and its
     documentation goes above that line. A documentation section shares no
     physical line with another section, so an `a` place holds its doc alone;
@@ -328,13 +338,17 @@ class RustRead:
             if span not in directives:
                 raise ValueError("protected span must coincide with a directive region")
         _tuple(self.warnings, ReadDiagnostic, "warnings")
+        codes = (DETACHED_DOC_CODE, SEVERAL_DECLARATIONS_CODE)
         for warning in self.warnings:
-            if warning.code != DETACHED_DOC_CODE or warning.stage != ReadStage.PLACE:
-                raise ValueError("warnings must be detached-documentation place notes")
+            if warning.code not in codes or warning.stage != ReadStage.PLACE:
+                raise ValueError(
+                    "warnings must be detached-documentation or"
+                    " several-declarations place notes"
+                )
             if warning.span is None or warning.span.end > len(self.source.text):
                 raise ValueError("warning span must lie inside source")
         _tuple(self.detached, DetachedRun, "detached")
-        if [warning.span for warning in self.warnings] != [
+        if [w.span for w in self.warnings if w.code == DETACHED_DOC_CODE] != [
             run.span for run in self.detached
         ]:
             raise ValueError("warnings must align, in order, with detached runs")
@@ -387,14 +401,8 @@ class RustRead:
 
         return paragraphs_for(path, self)
 
-    def code(self) -> dict[int, str]:
-        """Each line's code with its comments removed; lines with none absent."""
-        from comment_review.reading.rust.projection import code_for
+    def code_lines(self) -> list[CodeLine]:
+        """Each code line, with a declaration's documentation place above it."""
+        from comment_review.reading.rust.projection import code_lines_for
 
-        return code_for(self)
-
-    def declarations(self) -> list[DocumentationPlace]:
-        """Each declaration's documentation place, by line."""
-        from comment_review.reading.rust.projection import declarations_for
-
-        return declarations_for(self)
+        return code_lines_for(self)

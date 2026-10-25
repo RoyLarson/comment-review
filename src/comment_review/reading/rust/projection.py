@@ -15,11 +15,13 @@ from comment_review.reading.rust.records import (
 )
 from comment_review.reading.series import Kind
 from comment_review.reading.source import (
-    DocumentationPlace,
+    CodeLine,
+    DocPlace,
     RegionKind,
     SourceRegion,
     SourceSpan,
     SourceStructure,
+    lines_of_code,
 )
 
 # Regions that hold code whenever they are on a line.
@@ -47,7 +49,7 @@ def sections_for(
     return RustRead(
         source,
         protected,
-        documentation.warnings,
+        placement.warnings + documentation.warnings,
         placement.detached,
     )
 
@@ -122,7 +124,7 @@ def paragraphs_for(path: Path, read: RustRead) -> list[Paragraph] | ReadFailure:
                 raw_lines=raw,
             )
         )
-    return _file_edges_and_shared_lines(paragraphs, set(code_for(read)), layout)
+    return _file_edges_and_shared_lines(paragraphs, set(_code(read)), layout)
 
 
 def _file_edges_and_shared_lines(
@@ -249,7 +251,18 @@ def _combined(parts: list[Paragraph], kind: str, layout: "_Layout") -> Paragraph
     )
 
 
-def code_for(read: RustRead) -> dict[int, str]:
+def code_lines_for(read: RustRead) -> list[CodeLine]:
+    """Each code line, with a declaration's documentation place above it.
+
+    Rust documentation goes above the declaring line, so each declaring line's
+    place is that line, above.
+    """
+    source = read.source
+    declaring = (source.position(d.anchor).line for d in source.declarations)
+    return lines_of_code(_code(read), ((n, DocPlace(n, True)) for n in declaring))
+
+
+def _code(read: RustRead) -> dict[int, str]:
     """Each line's code: the line without its sections, shebang or trailing space.
 
     A comment that is code, being in no section, stays. A line left with no
@@ -274,20 +287,6 @@ def code_for(read: RustRead) -> dict[int, str]:
         if line.strip():
             code[number] = line
     return code
-
-
-def declarations_for(read: RustRead) -> list[DocumentationPlace]:
-    """Each declaration's place, anchored at its head.
-
-    Rust documentation goes above the declaring line, so every entry is above
-    and is inserted at its anchor's line.
-    """
-    source = read.source
-    places = []
-    for declaration in source.declarations:
-        line = source.position(declaration.anchor).line
-        places.append(DocumentationPlace(line, line, True))
-    return places
 
 
 class _Lines:

@@ -958,6 +958,36 @@ def test_boundary_constructor_rejects_mutable_list_collections(field, empty):
         SourceStructure(**values)
 
 
+def test_code_lines_carry_the_documentation_place_of_their_line():
+    from comment_review.reading.source import CodeLine, DocPlace, lines_of_code
+
+    code = {1: "def f(", 2: "):", 4: "    pass"}
+    assert lines_of_code(code, [(1, DocPlace(2, False))]) == [
+        CodeLine(1, "def f(", DocPlace(2, False)),
+        CodeLine(2, "):", None),
+        CodeLine(4, "    pass", None),
+    ]
+
+
+def test_the_first_declaration_on_a_line_takes_its_documentation_place():
+    from comment_review.reading.source import CodeLine, DocPlace, lines_of_code
+
+    declared = [(1, DocPlace(1, True)), (1, DocPlace(1, False))]
+    assert lines_of_code({1: "fn a() {} fn b() {}"}, declared) == [
+        CodeLine(1, "fn a() {} fn b() {}", DocPlace(1, True))
+    ]
+
+
+@pytest.mark.parametrize(
+    ("line", "at"), [(2, 2), (1, 3)], ids=["declaring-line", "documentation-line"]
+)
+def test_a_documentation_place_off_the_code_lines_is_refused(line, at):
+    from comment_review.reading.source import DocPlace, lines_of_code
+
+    with pytest.raises(ValueError, match="not a code line"):
+        lines_of_code({1: "def f():", 4: "    pass"}, [(line, DocPlace(at, False))])
+
+
 def test_boundary_source_import_does_not_load_workflow_modules():
     src = Path(__file__).resolve().parents[1] / "src"
     script = """

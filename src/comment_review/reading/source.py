@@ -1,5 +1,6 @@
 """Immutable source records and exact character partition validation."""
 
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, field
 from enum import StrEnum
 from typing import NamedTuple
@@ -122,6 +123,54 @@ class DocumentationPlace(NamedTuple):
     #: Whether the documentation sits above the declaring line rather than
     #: inside the declaration.
     above: bool
+
+
+class DocPlace(NamedTuple):
+    """Where a declaration's documentation is set, against one code line."""
+
+    #: The code line the documentation is set against.
+    at: int
+    #: True: above that line; False: after it, inside the declaration.
+    above: bool
+
+
+class CodeLine(NamedTuple):
+    """One line of code, and the documentation place it declares, if any."""
+
+    #: The 1-based source line.
+    line: int
+    #: The line's code with trailing whitespace removed: what an anchor is.
+    code: str
+    #: Set when this line declares something documentable.
+    documents: DocPlace | None
+
+
+def lines_of_code(
+    code: Mapping[int, str], declared: Iterable[tuple[int, DocPlace]]
+) -> list[CodeLine]:
+    """Each code line in order, carrying the documentation place declared on it.
+
+    A line declares at most one documentable thing: when several declarations
+    share a line, the first one's place is the line's.
+
+    Args:
+        code: each 1-based line that holds code -> its code, ascending.
+        declared: each declaration's line and documentation place, in source
+            order.
+
+    Raises:
+        ValueError: when a declaring line, or the line a documentation place
+            is set against, is not a code line.
+    """
+    places: dict[int, DocPlace] = {}
+    for line, place in declared:
+        for named in (line, place.at):
+            if named not in code:
+                raise ValueError(
+                    f"a documentation place names line {named}, not a code line"
+                )
+        places.setdefault(line, place)
+    return [CodeLine(n, text, places.get(n)) for n, text in code.items()]
 
 
 @dataclass(frozen=True)

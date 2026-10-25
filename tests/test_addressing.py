@@ -11,6 +11,7 @@ from conftest import build, by_cue
 from comment_review.reading.addresser import (
     SEPARATOR,
     address_for,
+    cue,
     cue_of,
     flatten,
     unflatten,
@@ -22,6 +23,7 @@ from comment_review.reading.series import (
     Kind,
     Series,
 )
+from comment_review.reading.source import CodeLine, DocPlace
 
 PATHS = [
     "m.py",
@@ -158,6 +160,45 @@ class TestComposingAndTakingApart:
     def test_either_half_missing_composes_no_address(self):
         assert address_for("", "b0") == ""
         assert address_for("m.py", "") == ""
+
+
+class TestTheWalkOverCodeLines:
+    """`cue` over hand-built `CodeLine`s: an `a` is set where `DocPlace` says."""
+
+    @staticmethod
+    def walk(documented: dict[int, DocPlace], lines=(1, 2, 3, 5)):
+        return cue([CodeLine(n, f"line {n}", documented.get(n)) for n in lines])
+
+    def test_a_doc_inside_its_declaration_is_set_after_the_line_it_names(self):
+        cues = self.walk({1: DocPlace(3, False)})
+        assert cues.reading == [
+            *("f0", "a0", "b0", "c0", "b1", "c1", "b2", "c2"),
+            *("a1", "b3", "c3", "b4", "f1"),
+        ]
+        assert cues.anchor_line("a1") == 1
+        assert cues.anchor_of("a1") == "line 1"
+
+    def test_a_doc_above_its_declaration_is_set_between_the_gap_and_the_line(self):
+        cues = self.walk({3: DocPlace(3, True)})
+        assert cues.reading == [
+            *("f0", "a0", "b0", "c0", "b1", "c1", "b2", "a1", "c2"),
+            *("b3", "c3", "b4", "f1"),
+        ]
+        assert cues.anchor_line("a1") == 3
+
+    def test_a_doc_after_the_last_line_comes_before_the_closing_gap(self):
+        cues = self.walk({2: DocPlace(2, False)}, lines=(1, 2))
+        assert cues.reading == ["f0", "a0", "b0", "c0", "b1", "c1", "a1", "b2", "f1"]
+
+    def test_a_one_line_def_sets_its_doc_after_the_line_not_before_its_gap(self):
+        """The one reading-order change `CodeLine`s made: the `a` of a
+        declaration whose body shares its line follows that line's `c`."""
+        cues = cue([CodeLine(1, "def f(): return 1", DocPlace(1, False))])
+        assert cues.reading == ["f0", "a0", "b0", "c0", "a1", "b1", "f1"]
+
+    def test_a_doc_set_before_its_own_declaration_is_refused(self):
+        with pytest.raises(ValueError, match="a1"):
+            self.walk({3: DocPlace(2, False)})
 
 
 class TestAddressesOnARealPage:

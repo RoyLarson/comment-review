@@ -11,6 +11,8 @@ from comment_review.reading.paragraph import Paragraph
 from comment_review.reading.rust import records
 from comment_review.reading.series import Kind
 from comment_review.reading.source import (
+    CodeLine,
+    DocPlace,
     DocumentationOwner,
     RegionKind,
     SourceDeclaration,
@@ -1913,11 +1915,16 @@ def rust_read(text, definition):
 
 
 def projection_of(text, definition):
-    """The read's paragraphs, code lines and declaration places."""
+    """The read's paragraphs and its code lines."""
     result = rust_read(text, definition)
     paragraphs = result.paragraphs(PAGE)
     assert not isinstance(paragraphs, ReadFailure), paragraphs
-    return paragraphs, result.code(), result.declarations()
+    return paragraphs, result.code_lines()
+
+
+def code_of(lines):
+    """Each code line's number and code, for tests that check only the code."""
+    return {line.line: line.code for line in lines}
 
 
 def paragraph(start, end, kind, raw, *, address="", anchor=""):
@@ -1946,26 +1953,20 @@ def test_projection_of_docs_comments_code_and_declarations(rust_definition):
         "fn go() -> u8 { 1 } // tail\n"
         "fn mix() -> u8 { 2 /* why */ + 3 }\n"
     )
-    paragraphs, code, declarations = projection_of(text, rust_definition)
+    paragraphs, lines = projection_of(text, rust_definition)
     assert paragraphs == [
         paragraph(1, 1, Kind.DOCSTRING, ["//! Crate doc."], address="a0"),
         paragraph(3, 3, Kind.DOCSTRING, ["/// A point."], address="a1"),
         paragraph(6, 6, Kind.DOCSTRING, ["    /// Across."], address="a2"),
         paragraph(10, 10, Kind.TRAILING, [" // tail"], anchor="fn go() -> u8 { 1 }"),
     ]
-    assert code == {
-        4: "#[derive(Debug)]",
-        5: "struct P {",
-        7: "    x: u8,",
-        8: "}",
-        10: "fn go() -> u8 { 1 }",
-        11: "fn mix() -> u8 { 2 /* why */ + 3 }",
-    }
-    assert declarations == [
-        (4, 4, True),
-        (7, 7, True),
-        (10, 10, True),
-        (11, 11, True),
+    assert lines == [
+        CodeLine(4, "#[derive(Debug)]", DocPlace(4, True)),
+        CodeLine(5, "struct P {", None),
+        CodeLine(7, "    x: u8,", DocPlace(7, True)),
+        CodeLine(8, "}", None),
+        CodeLine(10, "fn go() -> u8 { 1 }", DocPlace(10, True)),
+        CodeLine(11, "fn mix() -> u8 { 2 /* why */ + 3 }", DocPlace(11, True)),
     ]
 
 
@@ -2018,7 +2019,7 @@ def test_projection_of_docs_comments_code_and_declarations(rust_definition):
 def test_projection_sections_sharing_a_line_are_one_paragraph(
     rust_definition, text, expected
 ):
-    paragraphs, _, _ = projection_of(text, rust_definition)
+    paragraphs, _ = projection_of(text, rust_definition)
     assert paragraphs == expected
     lines = [line for p in paragraphs for line in range(p.start, p.end + 1)]
     assert len(lines) == len(set(lines))
@@ -2060,7 +2061,7 @@ def test_projection_only_the_code_bounded_comment_is_code(
 ):
     result = rust_read(text, rust_definition)
     assert result.paragraphs(PAGE) == expected
-    assert result.code() == code
+    assert code_of(result.code_lines()) == code
     assert [w.span for w in result.warnings] == [r.span for r in result.detached]
 
 
@@ -2097,17 +2098,17 @@ def test_projection_read_refuses_a_doc_section_sharing_a_line(rust_definition):
 def test_projection_delimited_comment_with_code_after_it_stays_code(
     rust_definition, text, paragraphs, code
 ):
-    found, lines, _ = projection_of(text, rust_definition)
+    found, lines = projection_of(text, rust_definition)
     assert found == paragraphs
-    assert lines == code
+    assert code_of(lines) == code
 
 
 def test_projection_delimited_comment_with_only_a_comment_after_it_is_prose(
     rust_definition,
 ):
-    found, lines, _ = projection_of("x; /** a */ // b\n", rust_definition)
+    found, lines = projection_of("x; /** a */ // b\n", rust_definition)
     assert found == [paragraph(1, 1, Kind.TRAILING, [" /** a */ // b"], anchor="x;")]
-    assert lines == {1: "x;"}
+    assert code_of(lines) == {1: "x;"}
 
 
 @pytest.mark.parametrize(
@@ -2125,18 +2126,18 @@ def test_projection_delimited_comment_with_only_a_comment_after_it_is_prose(
     ids=["blank", "whitespace-only"],
 )
 def test_projection_literal_line_with_no_code_is_absent(rust_definition, text, code):
-    _, lines, _ = projection_of(text, rust_definition)
-    assert lines == code
+    _, lines = projection_of(text, rust_definition)
+    assert code_of(lines) == code
 
 
 def test_projection_delimited_comment_with_code_only_before_it_trails(
     rust_definition,
 ):
-    paragraphs, code, _ = projection_of("fn f() {} /* t */\n", rust_definition)
+    paragraphs, lines = projection_of("fn f() {} /* t */\n", rust_definition)
     assert paragraphs == [
         paragraph(1, 1, Kind.TRAILING, [" /* t */"], anchor="fn f() {}")
     ]
-    assert code == {1: "fn f() {}"}
+    assert code_of(lines) == {1: "fn f() {}"}
 
 
 @pytest.mark.parametrize(
@@ -2149,7 +2150,7 @@ def test_projection_doc_with_code_after_it_is_code_and_documents_nothing(
 ):
     result = rust_read(text, rust_definition)
     assert result.paragraphs(PAGE) == []
-    assert result.code() == {1: text.rstrip("\n")}
+    assert code_of(result.code_lines()) == {1: text.rstrip("\n")}
     assert result.source.sections == ()
     assert result.source.documentation == ()
     assert result.warnings == ()
@@ -2158,12 +2159,12 @@ def test_projection_doc_with_code_after_it_is_code_and_documents_nothing(
 
 def test_projection_rust_whitespace_is_not_code(rust_definition):
     text = "fn f() {}\v// t\nfn z() {}\n/* a */ \t\nfn g() {}\n"
-    paragraphs, code, _ = projection_of(text, rust_definition)
+    paragraphs, lines = projection_of(text, rust_definition)
     assert paragraphs == [
         paragraph(1, 1, Kind.TRAILING, ["\v// t"], anchor="fn f() {}"),
         paragraph(3, 3, Kind.COMMENT, ["/* a */ \t"]),
     ]
-    assert code == {1: "fn f() {}", 2: "fn z() {}", 4: "fn g() {}"}
+    assert code_of(lines) == {1: "fn f() {}", 2: "fn z() {}", 4: "fn g() {}"}
 
 
 def test_projection_opening_run_is_matter_up_to_its_first_blank_line(
@@ -2172,7 +2173,7 @@ def test_projection_opening_run_is_matter_up_to_its_first_blank_line(
     """The place rules divide a section that spans the first blank line: the
     part above it is the file's matter, the part below an ordinary comment."""
     text = "// Copyright 2026 Someone.\n\n// note on f\nfn f() {}\n"
-    paragraphs, code, declarations = projection_of(text, rust_definition)
+    paragraphs, lines = projection_of(text, rust_definition)
     assert paragraphs == [
         paragraph(
             1,
@@ -2182,15 +2183,14 @@ def test_projection_opening_run_is_matter_up_to_its_first_blank_line(
         ),
         paragraph(3, 3, Kind.COMMENT, ["// note on f"]),
     ]
-    assert code == {4: "fn f() {}"}
-    assert declarations == [(4, 4, True)]
+    assert lines == [CodeLine(4, "fn f() {}", DocPlace(4, True))]
 
 
 def test_projection_opening_matter_takes_every_form_up_to_the_first_blank(
     rust_definition,
 ):
     text = "/* a */\n/// b\n// c\n\n// d\nfn f() {}\n"
-    paragraphs, _, declarations = projection_of(text, rust_definition)
+    paragraphs, lines = projection_of(text, rust_definition)
     assert paragraphs == [
         paragraph(
             1,
@@ -2200,12 +2200,12 @@ def test_projection_opening_matter_takes_every_form_up_to_the_first_blank(
         ),
         paragraph(5, 5, Kind.COMMENT, ["// d"]),
     ]
-    assert declarations == [(6, 6, True)]
+    assert lines == [CodeLine(6, "fn f() {}", DocPlace(6, True))]
 
 
 def test_projection_opening_and_closing_matter_of_a_codeless_file(rust_definition):
     text = "// a\n\n// b\n"
-    paragraphs, _, _ = projection_of(text, rust_definition)
+    paragraphs, _ = projection_of(text, rust_definition)
     assert paragraphs == [
         paragraph(1, 1, Kind.MATTER, ["// a"]),
         paragraph(3, 3, Kind.MATTER, ["// b"]),
@@ -2214,19 +2214,19 @@ def test_projection_opening_and_closing_matter_of_a_codeless_file(rust_definitio
 
 def test_projection_closing_run_at_end_of_file_is_matter(rust_definition):
     text = "fn f() {}\n// end one\n// end two\n"
-    paragraphs, _, _ = projection_of(text, rust_definition)
+    paragraphs, _ = projection_of(text, rust_definition)
     assert paragraphs == [paragraph(2, 3, Kind.MATTER, ["// end one", "// end two"])]
 
 
 def test_projection_closing_run_of_two_forms_is_one_matter(rust_definition):
     text = "fn f() {}\n/// a\n// b\n"
-    paragraphs, _, _ = projection_of(text, rust_definition)
+    paragraphs, _ = projection_of(text, rust_definition)
     assert paragraphs == [paragraph(2, 3, Kind.MATTER, ["/// a", "// b"])]
 
 
 def test_projection_closing_run_splits_at_its_last_blank_line(rust_definition):
     text = "fn f() {}\n// a\n\n// b\n/// c\n"
-    paragraphs, _, _ = projection_of(text, rust_definition)
+    paragraphs, _ = projection_of(text, rust_definition)
     assert paragraphs == [
         paragraph(2, 2, Kind.COMMENT, ["// a"]),
         paragraph(4, 5, Kind.MATTER, ["// b", "/// c"]),
@@ -2237,7 +2237,7 @@ def test_projection_comments_in_one_gap_with_a_detached_module_doc_are_one(
     rust_definition,
 ):
     text = "\n// a\n//! m\n// c\nfn f() {}\n"
-    paragraphs, _, declarations = projection_of(text, rust_definition)
+    paragraphs, lines = projection_of(text, rust_definition)
     assert paragraphs == [
         paragraph(
             2,
@@ -2246,14 +2246,14 @@ def test_projection_comments_in_one_gap_with_a_detached_module_doc_are_one(
             ["// a", "//! m", "// c"],
         ),
     ]
-    assert declarations == [(5, 5, True)]
+    assert lines == [CodeLine(5, "fn f() {}", DocPlace(5, True))]
 
 
 def test_projection_comment_and_detached_doc_after_code_are_one_comment(
     rust_definition,
 ):
     text = "fn a() {}\n// one\n/// two\n// three\nfn b() {}\n"
-    paragraphs, _, _ = projection_of(text, rust_definition)
+    paragraphs, _ = projection_of(text, rust_definition)
     assert paragraphs == [
         paragraph(
             2,
@@ -2267,7 +2267,7 @@ def test_projection_comment_and_detached_doc_after_code_are_one_comment(
 def test_projection_code_ends_a_comment_section(rust_definition):
     # The first section joins three runs (comment, detached doc, comment).
     text = "fn a() {}\n// one\n/// two\n// three\nfn b() {}\n// four\nfn c() {}\n"
-    paragraphs, _, _ = projection_of(text, rust_definition)
+    paragraphs, _ = projection_of(text, rust_definition)
     assert [(p.start, p.end, p.kind) for p in paragraphs] == [
         (2, 4, Kind.COMMENT),
         (6, 6, Kind.COMMENT),
@@ -2276,13 +2276,13 @@ def test_projection_code_ends_a_comment_section(rust_definition):
 
 def test_projection_ordinary_comment_above_an_item_is_a_comment(rust_definition):
     text = "fn z() {}\n// note\nfn f() {}\n"
-    paragraphs, _, _ = projection_of(text, rust_definition)
+    paragraphs, _ = projection_of(text, rust_definition)
     assert paragraphs == [paragraph(2, 2, Kind.COMMENT, ["// note"])]
 
 
 def test_projection_docs_and_comments_never_merge(rust_definition):
     text = "fn z() {}\n// note\n/// Doc.\nfn f() {}\n"
-    paragraphs, _, _ = projection_of(text, rust_definition)
+    paragraphs, _ = projection_of(text, rust_definition)
     assert [(p.kind, p.raw_lines, p.address) for p in paragraphs] == [
         (Kind.COMMENT, ["// note"], ""),
         (Kind.DOCSTRING, ["/// Doc."], "a2"),
@@ -2310,7 +2310,7 @@ def test_projection_detached_run_joins_its_gap_comment_with_one_warning(
 
 def test_projection_detached_trailing_run_keeps_its_anchor(rust_definition):
     text = "fn z() {} /// t\nfn f() {}\n"
-    paragraphs, _, _ = projection_of(text, rust_definition)
+    paragraphs, _ = projection_of(text, rust_definition)
     assert paragraphs == [
         paragraph(
             1,
@@ -2353,11 +2353,10 @@ def test_projection_shebang_line_is_not_code(rust_definition):
     text = "#!/usr/bin/env run-cargo-script\nfn main() {}\n"
     result = rust_read(text, rust_definition)
     assert result.protected == (SourceSpan(0, 31),)
-    paragraphs, code, declarations = projection_of(text, rust_definition)
+    paragraphs, lines = projection_of(text, rust_definition)
     shebang = "#!/usr/bin/env run-cargo-script"
     assert paragraphs == [paragraph(1, 1, Kind.MATTER, [shebang])]
-    assert code == {2: "fn main() {}"}
-    assert declarations == [(2, 2, True)]
+    assert lines == [CodeLine(2, "fn main() {}", DocPlace(2, True))]
 
 
 @pytest.mark.parametrize(
@@ -2371,8 +2370,8 @@ def test_projection_shebang_line_is_not_code(rust_definition):
 def test_projection_body_inner_doc_leaves_its_item_inserting_at_its_head(
     rust_definition, text, inner
 ):
-    paragraphs, _, declarations = projection_of(text, rust_definition)
-    assert declarations[0] == (1, 1, True)
+    paragraphs, lines = projection_of(text, rust_definition)
+    assert lines[0].documents == DocPlace(1, True)
     assert [(p.start, p.kind) for p in paragraphs] == [(inner, Kind.COMMENT)]
 
 
@@ -2397,19 +2396,53 @@ def test_projection_reader_record_is_satisfied_by_a_python_read():
     result = read_python('"""Doc."""\n\ndef f():\n    pass\n', definition)
     assert isinstance(result, PythonRead)
     assert warned(result) == 0
-    assert result.code() == {3: "def f():", 4: "    pass"}
+    assert result.code_lines() == [
+        CodeLine(3, "def f():", DocPlace(3, False)),
+        CodeLine(4, "    pass", None),
+    ]
     paragraphs = result.paragraphs(Path("x.py"))
     assert not isinstance(paragraphs, ReadFailure)
     assert [p.address for p in paragraphs] == ["a0"]
-    assert result.declarations() == [(3, 4, False)]
 
 
 def test_projection_rust_read_answers_the_record_methods(rust_definition):
     result = rust_read("fn f() {}\n", rust_definition)
     assert result.warnings == ()
     assert result.paragraphs(PAGE) == []
-    assert result.code() == {1: "fn f() {}"}
-    assert result.declarations() == [(1, 1, True)]
+    assert result.code_lines() == [CodeLine(1, "fn f() {}", DocPlace(1, True))]
+
+
+def test_projection_a_line_declaring_two_items_documents_the_first(
+    rust_definition,
+):
+    text = "/// Doc.\nfn a() {} fn b() {}\n"
+    result = rust_read(text, rust_definition)
+    paragraphs, lines = projection_of(text, rust_definition)
+    assert lines == [CodeLine(2, "fn a() {} fn b() {}", DocPlace(2, True))]
+    assert paragraphs == [paragraph(1, 1, Kind.DOCSTRING, ["/// Doc."], address="a1")]
+    assert [
+        (w.code, result.source.position(w.span.start).line)
+        for w in result.warnings
+        if w.span is not None
+    ] == [(records.SEVERAL_DECLARATIONS_CODE, 2)]
+    assert result.detached == ()
+
+
+@pytest.mark.parametrize(
+    "text",
+    ["struct P { x: u8, y: u8 }\n", "#[x]\nfn a() {} fn b() {}\n"],
+    ids=["three-items", "attribute-above"],
+)
+def test_projection_a_line_declaring_several_items_warns_once(rust_definition, text):
+    result = rust_read(text, rust_definition)
+    assert [w.code for w in result.warnings] == [records.SEVERAL_DECLARATIONS_CODE]
+
+
+def test_projection_an_item_after_other_code_on_its_line_is_no_warning(
+    rust_definition,
+):
+    result = rust_read("fn g() {\n    let x = 1; fn h() {}\n}\n", rust_definition)
+    assert result.warnings == ()
 
 
 def test_projection_read_source_returns_the_rust_record():

@@ -17,12 +17,14 @@ from comment_review.reading.python.records import (
 )
 from comment_review.reading.series import Kind
 from comment_review.reading.source import (
+    CodeLine,
+    DocPlace,
     DocumentationOwner,
-    DocumentationPlace,
     RegionKind,
     SourceSection,
     SourceSpan,
     SourceStructure,
+    lines_of_code,
 )
 
 
@@ -101,7 +103,7 @@ def sections_for(
     source = SourceStructure(
         scan.text, scan.regions, sections, structure.declarations, owners
     )
-    return PythonRead(source, documentation, protected, structure.insertions)
+    return PythonRead(source, documentation, protected)
 
 
 def paragraphs_for(path: Path, read: PythonRead) -> list[Paragraph] | ReadFailure:
@@ -199,7 +201,26 @@ def paragraphs_for(path: Path, read: PythonRead) -> list[Paragraph] | ReadFailur
     return paragraphs
 
 
-def code_for(read: PythonRead) -> dict[int, str]:
+def code_lines_for(read: PythonRead) -> list[CodeLine]:
+    """Each code line, with a docstring's place on the line that declares it.
+
+    A docstring is set after the code line that ends its declaration's
+    signature: the line its header's closing colon is on.
+    """
+    source = read.source
+    return lines_of_code(
+        _code(read),
+        (
+            (
+                source.position(declaration.anchor).line,
+                DocPlace(source.position(declaration.header.end - 1).line, False),
+            )
+            for declaration in source.declarations
+        ),
+    )
+
+
+def _code(read: PythonRead) -> dict[int, str]:
     """Project place anchors from executable text and trailing-comment context."""
     text = read.source.text
     sections = read.source.sections
@@ -241,18 +262,3 @@ def code_for(read: PythonRead) -> dict[int, str]:
         elif offset < len(text) and text[offset] in "\r\n":
             offset += 1
     return code
-
-
-def declarations_for(read: PythonRead) -> list[DocumentationPlace]:
-    """Translate retained declaration and insertion offsets into page coordinates."""
-    source = read.source
-    return [
-        DocumentationPlace(
-            source.position(declaration.anchor).line,
-            source.position(insertion).line,
-            False,
-        )
-        for declaration, insertion in zip(
-            source.declarations, read.insertions, strict=True
-        )
-    ]

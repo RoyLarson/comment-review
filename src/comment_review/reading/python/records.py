@@ -9,7 +9,7 @@ from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, Read
 from comment_review.reading.paragraph import Paragraph
 from comment_review.reading.proof import UNIDENTIFIED_OWNER, PreservationResult
 from comment_review.reading.source import (
-    DocumentationPlace,
+    CodeLine,
     SourceDeclaration,
     SourceRegion,
     SourceSpan,
@@ -230,10 +230,9 @@ class PythonRead:
     source: SourceStructure
     payloads: tuple[DocumentationPayload, ...]
     protected: tuple[ProtectedSource, ...]
-    insertions: tuple[int, ...]
 
     def __post_init__(self) -> None:
-        """Check source bounds, documentation owners, and ordered insertion slots."""
+        """Check source bounds and documentation owners."""
         if not isinstance(self.source, SourceStructure):
             raise ValueError("read source must be a SourceStructure")
         _tuple(self.protected, ProtectedSource, "protected")
@@ -243,13 +242,6 @@ class PythonRead:
                 item.attachment is not None and item.attachment.end > end
             ):
                 raise ValueError("protected span or attachment is outside source")
-        _tuple(self.insertions, int, "insertions")
-        if len(self.insertions) != len(self.source.declarations):
-            raise ValueError("insertions must match source declarations")
-        for insertion in self.insertions:
-            _index(insertion, "documentation insertion")
-            if insertion > end:
-                raise ValueError("documentation insertion is outside source")
         _tuple(self.payloads, DocumentationPayload, "payloads")
         if len(self.payloads) != len(self.source.documentation):
             raise ValueError("payloads must match source documentation owners")
@@ -283,17 +275,11 @@ class PythonRead:
 
         return paragraphs_for(path, self)
 
-    def code(self) -> dict[int, str]:
-        """Each line's code, as the page's place anchors read it."""
-        from comment_review.reading.python.projection import code_for
+    def code_lines(self) -> list[CodeLine]:
+        """Each code line, with a docstring's place on its declaring line."""
+        from comment_review.reading.python.projection import code_lines_for
 
-        return code_for(self)
-
-    def declarations(self) -> list[DocumentationPlace]:
-        """Each declaration's documentation place, by line."""
-        from comment_review.reading.python.projection import declarations_for
-
-        return declarations_for(self)
+        return code_lines_for(self)
 
     def owner_at(self, anchor_line: int | None) -> tuple[int | None, ...]:
         """The declaration documented from this anchor line; None for the module.

@@ -5,7 +5,7 @@ itself with a second read of the same file. A proof asks that question of the
 page's `read` and never of the language: `PythonRead` compares lexical source
 structure, and `StrippedRead` compares the source with its comments removed.
 `ReaderRecord` adds what the page builder reads from the same record: its
-paragraphs, code lines, documentation places and warnings.
+paragraphs, its code lines with their documentation places, and its warnings.
 """
 
 from collections.abc import Collection
@@ -15,7 +15,7 @@ from typing import Protocol, Self
 
 from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure
 from comment_review.reading.paragraph import Paragraph
-from comment_review.reading.source import DocumentationPlace, SourceStructure
+from comment_review.reading.source import CodeLine, SourceStructure
 
 #: The diagnostic code a read reports when it cannot separate prose from code,
 #: so sameness is neither shown nor refuted.
@@ -94,10 +94,6 @@ class ReaderRecord(SourceRead, Protocol):
         """Every prose section of the file as a page paragraph."""
         ...
 
-    def code(self) -> dict[int, str]:
-        """Each 1-based line's code; a line with none is absent."""
-        ...
-
-    def declarations(self) -> list[DocumentationPlace]:
-        """Each declaration's documentation place, in source order."""
+    def code_lines(self) -> list[CodeLine]:
+        """Each line holding code, in order, with the documentation it declares."""
         ...

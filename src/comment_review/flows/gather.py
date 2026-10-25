@@ -189,7 +189,7 @@ def _pages(g: Gathering) -> None:
             g.unreadable.append(format_failure(got, path=rel))
             continue
         g.pages.append(got)
-        # The phrase is the warning's code, `detached-documentation`, as words.
+        # The phrase is the warning's code as words.
         coordinates = SourceCoordinates(got.text)
         g.warnings.extend(
             f"warning: {rel}:{coordinates.position(w.span.start).line}:"

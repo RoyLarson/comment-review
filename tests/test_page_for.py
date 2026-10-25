@@ -673,7 +673,6 @@ def test_rust_page_item_on_line_one_sets_module_doc_then_item_doc():
     from comment_review.results.galley import reset
 
     page = build("fn f() {}\n", "m.rs")
-    assert page.read.declarations() == [(1, 1, True)]
     places = _places(page)
     assert places["a0"][0] == places["a1"][0] == "undocumented"
     reset(page, {"a0": "//! Module.", "a1": "/// F."})
@@ -1131,7 +1130,6 @@ def test_rust_page_inner_doc_in_a_body_is_detached_at_its_b_place(kind):
     places = by_cue(page)
     assert (places[place].kind, places[place].raw_lines) == ("comment", raw)
     assert places["a1"].kind == "undocumented"
-    assert page.read.declarations()[0] == (1, 1, True)
     assert set_page(page) == text
 
 

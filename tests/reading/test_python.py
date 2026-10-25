@@ -8,6 +8,8 @@ import pytest
 from comment_review.reading.definitions import LanguageDefinition, decode_definition
 from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, ReadStage
 from comment_review.reading.source import (
+    CodeLine,
+    DocPlace,
     DocumentationOwner,
     RegionKind,
     SourceDeclaration,
@@ -45,8 +47,7 @@ def test_completed_read_projects_documentation_from_source_positions(python_defi
     from pathlib import Path
 
     from comment_review.reading.python.projection import (
-        code_for,
-        declarations_for,
+        code_lines_for,
         paragraphs_for,
     )
     from comment_review.reading.python.records import PythonRead
@@ -61,9 +62,7 @@ def test_completed_read_projects_documentation_from_source_positions(python_defi
         text, python_definition
     )
     assert isinstance(result, PythonRead)
-    reduced = PythonRead(
-        result.source, result.payloads, result.protected, result.insertions
-    )
+    reduced = PythonRead(result.source, result.payloads, result.protected)
     paragraphs = paragraphs_for(Path("invented.py"), reduced)
     assert not isinstance(paragraphs, ReadFailure)
     assert [(p.raw_lines, p.address, p.anchor) for p in paragraphs] == [
@@ -72,9 +71,13 @@ def test_completed_read_projects_documentation_from_source_positions(python_defi
         (['    "body " "prose"'], "a1", ""),
         ([" # detail"], "", "    return value"),
     ]
-    assert declarations_for(reduced) == [(4, 7, False), (9, 10, False)]
-    assert 7 not in code_for(reduced)
-    assert code_for(reduced)[8] == "    return value"
+    lines = code_lines_for(reduced)
+    assert [(c.line, c.documents) for c in lines if c.documents] == [
+        (4, DocPlace(6, False)),
+        (9, DocPlace(9, False)),
+    ]
+    assert 7 not in [c.line for c in lines]
+    assert [c.code for c in lines if c.line == 8] == ["    return value"]
     assert literal_value(reduced.source.text, reduced.payloads[0]) == "module\nprose"
     assert reduced.source.reconstruct() == text.replace(
         '"prose"; return', '"prose"\r\n    return'
@@ -133,12 +136,12 @@ def documented_read(records):
     )
     expression = records.DocumentationExpression(statement, components, 0)
     payload = records.DocumentationPayload(expression)
-    return records.PythonRead(source, (payload,), (), (13,))
+    return records.PythonRead(source, (payload,), ())
 
 
 def test_records_empty_read_preserves_exact_source(records):
     source = SourceStructure("", (), (), (), ())
-    result = records.PythonRead(source, (), (), ())
+    result = records.PythonRead(source, (), ())
     assert result.source is source
     assert result.source.reconstruct() == ""
     assert records.PythonScan("", (), (), ()).text == ""
@@ -242,16 +245,9 @@ def test_records_reject_overlapping_tokens_and_partition_gaps(records):
         )
 
 
-def test_records_reject_bad_completed_insertion_positions_and_protection(records):
+def test_records_reject_protection_outside_the_source(records):
     result = documented_read(records)
     for changed in (
-        {"insertions": ()},
-        {"insertions": (13, 13)},
-        {"insertions": (99,)},
-        {"insertions": (-1,)},
-        {"insertions": (True,)},
-        {"insertions": [13]},
-        {"insertions": [0, 13]},
         {"protected": (records.ProtectedSource(SourceSpan(0, 99), "literal", None),)},
         {
             "protected": (
@@ -549,7 +545,6 @@ def test_compact_header_spelling_preserves_nested_documentation_positions(
     document = text.index('"body"')
     assert declaration.header == SourceSpan(start, start + len("def render():"))
     assert declaration.anchor == start
-    assert result.insertions == (document,)
     assert result.payloads[0].expression.statement == SourceSpan(document, document + 6)
     assert result.payloads[0].expression.declaration == 0
 
@@ -2860,7 +2855,7 @@ def test_expression_comments_existing_places_preserve_expression_on_set_and_edit
         )
     anchors = code_lines(text, [vars(paragraph) for paragraph in paragraphs])
     assert anchors == code
-    cues = cue(anchors, {}, a_series=False)
+    cues = cue([CodeLine(n, code, None) for n, code in anchors.items()], a_series=False)
     for paragraph, place in zip(paragraphs, places, strict=True):
         assert attach(vars(paragraph), cues) == place
         assert paragraph.original_start is not None
@@ -3384,7 +3379,6 @@ def test_opaque_control_code_keeps_comment_and_nested_doc_positions(
         literal_value(result.source.text, payload) for payload in result.payloads
     ] == ["full documentation"]
     assert result.source.declarations[0].kind == "async-function"
-    assert result.insertions == (text.index('(r"full'),)
 
 
 def test_generic_indentation_cannot_claim_module_documentation(python_definition):
@@ -3407,7 +3401,10 @@ def test_classification_exact_physical_code_and_comment_positions(
 ):
     from pathlib import Path
 
-    from comment_review.reading.python.projection import code_for, paragraphs_for
+    from comment_review.reading.python.projection import (
+        code_lines_for,
+        paragraphs_for,
+    )
     from comment_review.reading.series import Kind
 
     text = ending.join(
@@ -3441,12 +3438,12 @@ def test_classification_exact_physical_code_and_comment_positions(
         (2, 32, "# tail comment"),
         (4, 4, "# whole-line comment"),
     ]
-    assert code_for(result) == {
-        1: "CONSTANT = 10",
-        2: "def my_funct(x: int, y: tuple):",
-        3: "    call()",
-        5: "    call_again()",
-    }
+    assert code_lines_for(result) == [
+        CodeLine(1, "CONSTANT = 10", None),
+        CodeLine(2, "def my_funct(x: int, y: tuple):", DocPlace(2, False)),
+        CodeLine(3, "    call()", None),
+        CodeLine(5, "    call_again()", None),
+    ]
     assert [
         (
             result.source.position(region.span.start).line,
@@ -3484,11 +3481,46 @@ def test_classification_exact_physical_code_and_comment_positions(
     assert result.source.reconstruct() == text
 
 
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        (
+            "def f(\n    a,\n) -> int:\n    return a\n",
+            [(1, DocPlace(3, False))],
+        ),
+        ("def f(): return 1\n", [(1, DocPlace(1, False))]),
+        ("def f(\n    a,\n) -> int: ...\n", [(1, DocPlace(3, False))]),
+        (
+            "class C:\n    def f(self):\n        pass\n",
+            [
+                (1, DocPlace(1, False)),
+                (2, DocPlace(2, False)),
+            ],
+        ),
+    ],
+    ids=["wrapped-signature", "one-line-def", "wrapped-one-line-body", "nested"],
+)
+def test_a_docstring_is_set_after_the_line_that_ends_the_signature(
+    python_definition, text, expected
+):
+    from comment_review.reading.python.projection import code_lines_for
+
+    result = import_module("comment_review.reading.python").read_python(
+        text, python_definition
+    )
+    assert not isinstance(result, ReadFailure)
+    lines = code_lines_for(result)
+    assert [(c.line, c.documents) for c in lines if c.documents] == expected
+
+
 @pytest.mark.parametrize("ending", ["\n", "\r\n", "\r"])
 def test_classification_closing_doc_comment_has_one_owner(python_definition, ending):
     from pathlib import Path
 
-    from comment_review.reading.python.projection import code_for, paragraphs_for
+    from comment_review.reading.python.projection import (
+        code_lines_for,
+        paragraphs_for,
+    )
     from comment_review.reading.series import Kind
 
     text = ending.join(
@@ -3518,7 +3550,10 @@ def test_classification_closing_doc_comment_has_one_owner(python_definition, end
         (Kind.TRAILING, 4, 4, [" # detail"], "    work()"),
     ]
     assert paragraphs[0].address == "a1"
-    assert code_for(result) == {1: "def f():", 4: "    work()"}
+    assert code_lines_for(result) == [
+        CodeLine(1, "def f():", DocPlace(1, False)),
+        CodeLine(4, "    work()", None),
+    ]
     assert (
         result.source.slice(result.source.sections[0].span)
         == 'r"""full' + ending + '    docs""" # closing note'
@@ -3543,7 +3578,6 @@ def test_documentation_header_colons_inside_expressions_are_shielded(
     )
     assert not isinstance(result, ReadFailure)
     assert result.source.declarations[0].header == SourceSpan(0, len(header))
-    assert result.insertions == (len(header) + 5,)
     assert literal_value(result.source.text, result.payloads[0]) == "complete docs"
     assert result.payloads[0].expression.declaration == 0
     assert (
@@ -3567,7 +3601,6 @@ def test_declaration_annotation_lambda_colons_keep_documentation_position(
     assert result.source.declarations == (
         SourceDeclaration(SourceSpan(0, len(header)), 0, "function"),
     )
-    assert result.insertions == (len(header) + 5,)
     assert [
         literal_value(result.source.text, payload) for payload in result.payloads
     ] == ["complete docs"]
@@ -3587,7 +3620,6 @@ def test_declaration_annotation_unicode_spelling_is_not_lambda_keyword(
     assert result.source.declarations == (
         SourceDeclaration(SourceSpan(0, len(header)), 0, "function"),
     )
-    assert result.insertions == (len(header) + 5,)
     assert [
         literal_value(result.source.text, payload) for payload in result.payloads
     ] == ["docs"]
