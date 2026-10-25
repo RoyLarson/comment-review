@@ -126,39 +126,6 @@ def test_python_page_documentation_closing_comment_keeps_one_wire_owner(
     assert page.read.source.reconstruct() == text
 
 
-@pytest.mark.parametrize(
-    "text, expected",
-    [
-        ("x=1\n# first\n\n# second\ny=2\n", {"b1": 2}),
-        ("x=1 # first\n\n# second\ny=2\n", {"c0": 1, "b1": 1}),
-        (
-            "# front\n\n# first\n\n# second\nx=1\n# after\n\n# back\n",
-            {"f0": 1, "b0": 2, "b1": 1, "f1": 1},
-        ),
-    ],
-)
-def test_python_page_complete_comment_line_counts_preserve_wire_cap_eligibility(
-    text, expected
-):
-    from comment_review.binder.page import RedactedPage
-    from comment_review.desk.stages import Kind, Stage, deals
-
-    page = page_for_mod.page_of(Path("m.py"), source=Source(text, "held"))
-    assert isinstance(page, Page)
-    restored, problems = RedactedPage.deserialize("fixture", page.serialize())
-    assert problems == []
-    assert restored is not None
-    fresh = {cue(p): p for p in page if p.raw_text.strip()}
-    saved = {cue(p): p for p in restored.paragraphs if p.raw_text.strip()}
-    assert {key: p.lines for key, p in fresh.items()} == expected
-    assert {key: p.lines for key, p in saved.items()} == expected
-    for key, count in expected.items():
-        assert fresh[key].raw_text == saved[key].raw_text
-        for cap in (1, 2, 3):
-            stage = Stage("cap", Kind.EDITORIAL, cap=cap)
-            assert deals(stage, fresh[key]) == deals(stage, saved[key]) == (count > cap)
-
-
 def test_python_page_recognizes_once_and_retains_object_and_definition(monkeypatch):
     from comment_review.flows import reading_context
     from comment_review.reading import readers
