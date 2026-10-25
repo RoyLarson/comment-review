@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 63 of 175 TODO tasks closed
+Progress: 66 of 177 TODO tasks closed
 Plan-tasks: 40 of 53 plan tasks closed
 Owner:    backend
 Requires-Roy: false
@@ -596,12 +596,14 @@ interfaces, inputs and checks, without internal development files or history.
 - [ ] T6 | Delete the continues-a-trailing-comment stamp from lexer.py
 - [x] T7 | Decide whether matter is a kind a reader assigns or a page place
 - [ ] T8 | Move the front and back matter rule to one shared place
-- [ ] T9 | Move the one-paragraph-per-place rule from the Rust reader to the
+- [-] T9 | Move the one-paragraph-per-place rule from the Rust reader to the
       page
-- [ ] T10 | Move the Rust reader's a-place capacity rules to the page
-- [ ] T11 | Carry detached documentation as one fact instead of two
+- [-] T10 | Move the Rust reader's a-place capacity rules to the page
+- [-] T11 | Carry detached documentation as one fact instead of two
 - [ ] T12 | Replace the Rust reader's _Lines with the shared line splitter
 - [ ] T13 | Stop the page changing a reader's matter kind to comment
+- [ ] T14 | Form one comment section per gap in the Rust reader
+- [ ] T15 | Remove the page's detached-documentation placement
 
 ## Plan Tasks
 

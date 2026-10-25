@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 2 of 13 tasks closed
+Progress: 5 of 15 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-25 (decision-log.md Process: #224)
@@ -56,17 +56,19 @@ defect and is repaired (lexer-and-language-findings T12, b30cc510).
         > 2026-10-25 Rust holds two copies: documentation.py:182 and projection.py:205
         > 2026-10-25 Check: .rs and .kt give the same f places on matter-only input
         > 2026-10-25 Per #225 the reader assigns matter; a helper may share the rule
-- [ ] T9 | Move the one-paragraph-per-place rule from the Rust reader to the
-      page
+- [-] T9 | #226: sectioning is the reader's; reissued as T14 | cf911ec9 | Move
+      the one-paragraph-per-place rule from the Rust reader to the page
         > 2026-10-25 rust/projection.py:139 _one_per_place; Rust spec lines 227-232
         > 2026-10-25 Reason: page.py:904-910 assigns cues and never checks for a clash
         > 2026-10-25 Check: no _one_per_place under reading/rust; Rust tests pass
-- [ ] T10 | Move the Rust reader's a-place capacity rules to the page
+- [-] T10 | #226: detaching a doc assigns a kind; reader's | cf911ec9 | Move the
+      Rust reader's a-place capacity rules to the page
         > 2026-10-25 rust/documentation.py:211-247,281-290: _beside, _outer, _attach
         > 2026-10-25 Reason: which item owns a doc is grammar; what a place holds is not
         > 2026-10-25 Suspected, not shown to disagree; Rust spec lines 202-221
         > 2026-10-25 Check: the three detach reasons are decided outside reading/rust
-- [ ] T11 | Carry detached documentation as one fact instead of two
+- [-] T11 | #226: page drops it; reissued as T15 | cf911ec9 | Carry detached
+      documentation as one fact instead of two
         > 2026-10-25 rust/projection.py:132 annotation and page.py:940-976 warning
         > 2026-10-25 Suspected redundant; no input found where the two disagree
         > 2026-10-25 Check: one of the two is gone; the gather warning still prints
@@ -77,3 +79,13 @@ defect and is repaired (lexer-and-language-findings T12, b30cc510).
         > 2026-10-25 page.py:898-899 turns MATTER into COMMENT when it has an a address
         > 2026-10-25 Reason: #225, the reader assigns the kind; the page only addresses
         > 2026-10-25 Check: git grep "b.kind = Kind" -- src/comment_review/binder: none
+- [ ] T14 | Form one comment section per gap in the Rust reader
+        > 2026-10-25 A detached doc joins the comments around it; #226
+        > 2026-10-25 Replaces rust/projection.py:139 _one_per_place merging afterward
+        > 2026-10-25 Check: a detached /// between // lines reads as one b comment
+        > 2026-10-25 Check: no _one_per_place under reading/rust
+- [ ] T15 | Remove the page's detached-documentation placement
+        > 2026-10-25 page.py:940-976 _warnings, PageWarning; rust/projection.py:132
+        > 2026-10-25 Reason: #226, the warning names a file and line from the read
+        > 2026-10-25 Check: git grep -E "PageWarning|DETACHED_DOCUMENTATION" -- src
+        > 2026-10-25 Check: gather prints the warning as file:line

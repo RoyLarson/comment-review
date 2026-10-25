@@ -320,7 +320,7 @@ that changed a published name or rule:
 | [language-reader-shell](language-reader-shell.md) | backend | -- | 0/3 | Shell lexical reader |
 | [language-reader-sql](language-reader-sql.md) | backend | -- | 0/2 | SQL lexical reader |
 | [language-reader-lua](language-reader-lua.md) | backend | -- | 0/7 | Lua lexical reader |
-| [a-reader-finds-prose-only](a-reader-finds-prose-only.md) | backend | -- | 2/13 | A reader finds prose and rebuilds nothing after it |
+| [a-reader-finds-prose-only](a-reader-finds-prose-only.md) | backend | -- | 5/15 | A reader finds prose and rebuilds nothing after it |
 
 ### in-progress  (17)
 
