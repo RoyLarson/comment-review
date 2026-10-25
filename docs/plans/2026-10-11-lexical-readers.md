@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 42 of 162 TODO tasks closed
+Progress: 56 of 162 TODO tasks closed
 Plan-tasks: 40 of 53 plan tasks closed
 Owner:    backend
 Requires-Roy: true
@@ -85,7 +85,7 @@ interfaces, inputs and checks, without internal development files or history.
 
 ### E - [doc-does-not-fill-its-a](../../TODO/doc-does-not-fill-its-a.md)
 
-- [ ] T10 | Implement Go documentation adjacency; verify touching comments use
+- [-] T10 | Implement Go documentation adjacency; verify touching comments use
       a, separated comments use b, and reader prose agrees
 - [ ] T6 | T6 -- Name in `compact.md:113` whatever remains genuinely unresolved
       after T5. Verify: the stamp's explanation at :113 names the case that
@@ -95,7 +95,7 @@ interfaces, inputs and checks, without internal development files or history.
       ruby.
 - [x] T11 | Record Ruby attachment from authoritative RDoc sources; verify the
       spec permits blank lines and preserves whole sections
-- [ ] T12 | Implement Ruby attachment; verify blank-separated prose uses a,
+- [-] T12 | Implement Ruby attachment; verify blank-separated prose uses a,
       intervening code blocks attachment, and sections stay whole
 
 ### F - [python-cannot-read-python](../../TODO/completed/python-cannot-read-python.md)
@@ -126,16 +126,16 @@ interfaces, inputs and checks, without internal development files or history.
 - [ ] T3 | T3 -- Exclude `Kind.MATTER` from the walk-up candidates. Verify: Ruby
       front matter above a `def` leaves `f0.declares` unset, and only `a1`
       declares 1.
-- [ ] T4 | T4 -- Let the shell row say `#` is inert after a dollar-brace.
+- [-] T4 | T4 -- Let the shell row say `#` is inert after a dollar-brace.
       Verify: `n=${#arr} # count` censuses as ONE trailing comment at `# count`,
       not at column 5.
-- [ ] T13 | T13 -- Give Java its own expression of a soft keyword: `record` at
+- [-] T13 | T13 -- Give Java its own expression of a soft keyword: `record` at
       language.py:248. Verify: `record = lookup()` in a `.java` mints no `a`,
       and a real one still does.
 - [ ] T14 | T14 -- Give C# its own expression of a soft keyword: `record` at
       language.py:283. Verify: `record = lookup()` in a `.cs` mints no `a`, and
       a real one still does.
-- [ ] T15 | T15 -- Give Swift its own expression of soft keywords: `convenience`
+- [-] T15 | T15 -- Give Swift its own expression of soft keywords: `convenience`
       and `required`. Verify: `required = f()` in a `.swift` mints no `a`, and a
       real init still does.
 - [x] T16 | MOVED to 2026-10-22-lexer-rust | T16 -- Declare Rust's spanning
@@ -144,7 +144,7 @@ interfaces, inputs and checks, without internal development files or history.
 - [ ] T17 | T17 -- Declare C's spanning quotes; language.py:185-193 carries
       none. Verify: a C multi-line string is neither refused wholesale nor read
       as comments.
-- [ ] T18 | T18 -- Bound Lua's long-bracket level, or read it; language.py:473
+- [-] T18 | T18 -- Bound Lua's long-bracket level, or read it; language.py:473
       stops at two `=` so `--[===[` reads as code. Verify: a fixture with
       `--[===[` fails before the fix.
 - [ ] T19 | T19 -- Make `def g(): """d."""` census instead of failing the file.
@@ -157,23 +157,23 @@ interfaces, inputs and checks, without internal development files or history.
 - [ ] T24 | T24 -- Make `prove_unchanged` admit that one move. Verify: PROVEN on
       the two-line form, and still FAILS when any other token on that line
       moves.
-- [ ] T25 | T25 -- Make `_is_doc` consult placement, not only the opener string.
+- [-] T25 | T25 -- Make `_is_doc` consult placement, not only the opener string.
       Verify: a Lua `---` run above `local function f()` types `docstring`,
       above nothing `comment`.
 - [x] T27 | MOVED to 2026-10-22-lexer-rust | T27 -- Declare Rust's `//!` inner;
       `///` stays outer. Verify: a `.rs` opening `//!` above nothing types
       `docstring`, and `///` above nothing types `comment`.
-- [ ] T28 | T28 -- Add `---` to Lua's `doc_line`, which T20's ruling authorises.
+- [-] T28 | T28 -- Add `---` to Lua's `doc_line`, which T20's ruling authorises.
       Verify: `--- x` above `local function f()` types `docstring` anchored to
       it.
 - [x] T32 | MOVED to 2026-10-22-lexer-rust | Recognize raw string delimiters in
       lexer.py:510; verify a quoted marker inside a Rust raw string stays
       literal data
-- [ ] T33 | Recognize JavaScript regex literals in lexer.py:1071; verify /[//]/
+- [-] T33 | Recognize JavaScript regex literals in lexer.py:1071; verify /[//]/
       yields no comment paragraph
 - [ ] T34 | Resume code scanning after block comments in lexer.py:1071; verify a
       quote in a block cannot hide a following line comment
-- [ ] T35 | Select the earliest block opener in lexer.py:1072; verify mixed Lua
+- [-] T35 | Select the earliest block opener in lexer.py:1072; verify mixed Lua
       delimiters inside a long comment preserve its full body
 - [ ] T6 | T6 -- Make language.py:9 name a file that exists, or drop the
       citation -- `scripts/check_language_leaf.py` does not. Verify: the path it
@@ -228,7 +228,7 @@ interfaces, inputs and checks, without internal development files or history.
 
 ### J - [block-comment-markers-survive-into-the-prose](../../TODO/block-comment-markers-survive-into-the-prose.md)
 
-- [ ] T1 | T1 -- Strip the `block_comment` and `doc_block` opener and closer in
+- [-] T1 | T1 -- Strip the `block_comment` and `doc_block` opener and closer in
       `_join`. Verify: a `.java` docstring's census `text` holds no `/**` and no
       `*/`.
 - [ ] T2 | T2 -- Strip the interior continuation marker as well. Verify: a
@@ -237,12 +237,12 @@ interfaces, inputs and checks, without internal development files or history.
 - [ ] T7 | T7 -- Write the unit fixtures for the fix from INVENTED text, not
       from the corpus. Verify: no assertion under `tests/` quotes a line from
       any file in the table above.
-- [ ] T8 | T8 -- Add a multi-line Javadoc to `tests/fixtures/sample.java`.
+- [-] T8 | T8 -- Add a multi-line Javadoc to `tests/fixtures/sample.java`.
       Verify: the fixture carries a continuation `*` on three or more lines.
-- [ ] T9 | T9 -- Decide whether a Ruby `=begin`/`=end` block gets the same
+- [-] T9 | T9 -- Decide whether a Ruby `=begin`/`=end` block gets the same
       stripping. Verify: the answer and its measurement are written into this
       file.
-- [ ] T10 | T10 -- Decide the same for a Lua `--[[ ]]` block, from Lua's own
+- [-] T10 | T10 -- Decide the same for a Lua `--[[ ]]` block, from Lua's own
       grammar and not Ruby's. Verify: the answer and its measurement are written
       into this file.
 - [ ] T3 | T3 -- Change `block_text` (`lexer.py:609`) in the SAME commit as each

@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 10 tasks closed
+Progress: 4 of 10 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-17 (Roy: "use the github api to find a heavily documented file
@@ -153,9 +153,9 @@ grammar and never from a neighbour's, so the two are decided one at a time.
 
 ## Tasks
 
-- [ ] T1 | T1 -- Strip the `block_comment` and `doc_block` opener and closer in
-      `_join`. Verify: a `.java` docstring's census `text` holds no `/**` and no
-      `*/`.
+- [-] T1 | Moved to language-reader-java.md | 42f3d3e5 | T1 -- Strip the
+      `block_comment` and `doc_block` opener and closer in `_join`. Verify: a
+      `.java` docstring's census `text` holds no `/**` and no `*/`.
 - [ ] T2 | T2 -- Strip the interior continuation marker as well. Verify: a
       multi-line Javadoc's census `text` carries no leading `*` on any line
       after the first.
@@ -172,14 +172,15 @@ grammar and never from a neighbour's, so the two are decided one at a time.
 - [ ] T7 | T7 -- Write the unit fixtures for the fix from INVENTED text, not
       from the corpus. Verify: no assertion under `tests/` quotes a line from
       any file in the table above.
-- [ ] T8 | T8 -- Add a multi-line Javadoc to `tests/fixtures/sample.java`.
-      Verify: the fixture carries a continuation `*` on three or more lines.
-- [ ] T9 | T9 -- Decide whether a Ruby `=begin`/`=end` block gets the same
-      stripping. Verify: the answer and its measurement are written into this
-      file.
-- [ ] T10 | T10 -- Decide the same for a Lua `--[[ ]]` block, from Lua's own
-      grammar and not Ruby's. Verify: the answer and its measurement are written
-      into this file.
+- [-] T8 | Moved to language-reader-java.md | 42f3d3e5 | T8 -- Add a multi-line
+      Javadoc to `tests/fixtures/sample.java`. Verify: the fixture carries a
+      continuation `*` on three or more lines.
+- [-] T9 | Moved to language-reader-ruby.md | 42f3d3e5 | T9 -- Decide whether a
+      Ruby `=begin`/`=end` block gets the same stripping. Verify: the answer and
+      its measurement are written into this file.
+- [-] T10 | Moved to language-reader-lua.md | 42f3d3e5 | T10 -- Decide the same
+      for a Lua `--[[ ]]` block, from Lua's own grammar and not Ruby's. Verify:
+      the answer and its measurement are written into this file.
 ## Related
 
 - [`a-prose-file-has-no-blocks`](a-prose-file-has-no-blocks.md) -- the other half of "what this

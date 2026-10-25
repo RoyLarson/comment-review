@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 9 of 12 tasks closed
+Progress: 11 of 12 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-20 (found while adding the per-language declares keyword list,
@@ -133,10 +133,12 @@ rule is that a language takes its definition from its own grammar and never from
       Go documentation adjacency; verify the spec requires no blank line before
       the declaration
         > 2026-10-11 Roy approved Go adjacency: no blank before its declaration.
-- [ ] T10 | Implement Go documentation adjacency; verify touching comments use
-      a, separated comments use b, and reader prose agrees
+- [-] T10 | Moved to language-reader-go.md | 42f3d3e5 | Implement Go
+      documentation adjacency; verify touching comments use a, separated
+      comments use b, and reader prose agrees
 - [x] T11 | Ruby spec cites RDoc blank-line attachment and retains whole sections | 65a35b1e | Record
       Ruby attachment from authoritative RDoc sources; verify the spec permits
       blank lines and preserves whole sections
-- [ ] T12 | Implement Ruby attachment; verify blank-separated prose uses a,
-      intervening code blocks attachment, and sections stay whole
+- [-] T12 | Moved to language-reader-ruby.md | 42f3d3e5 | Implement Ruby
+      attachment; verify blank-separated prose uses a, intervening code blocks
+      attachment, and sections stay whole

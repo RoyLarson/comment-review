@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 12 of 49 tasks closed
+Progress: 20 of 49 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (/simplify rounds 1 and 2 and /code-review high round 3,
@@ -175,9 +175,9 @@ would.
 - [ ] T3 | T3 -- Exclude `Kind.MATTER` from the walk-up candidates. Verify: Ruby
       front matter above a `def` leaves `f0.declares` unset, and only `a1`
       declares 1.
-- [ ] T4 | T4 -- Let the shell row say `#` is inert after a dollar-brace.
-      Verify: `n=${#arr} # count` censuses as ONE trailing comment at `# count`,
-      not at column 5.
+- [-] T4 | Moved to language-reader-shell.md | 42f3d3e5 | T4 -- Let the shell
+      row say `#` is inert after a dollar-brace. Verify: `n=${#arr} # count`
+      censuses as ONE trailing comment at `# count`, not at column 5.
         > 2026-10-10 Parameter expansion value=${value#prefix} becomes a comment
 - [x] T5 | FINISHED | unknown | T5 -- FIXED FOR KOTLIN 2026-08-22: the soft
       keywords are two-word entries at language.py:342-376, with the reason at
@@ -203,15 +203,15 @@ would.
 - [ ] T12 | T12 -- Settle what `Paragraph.lines` counts: three rules fill it,
       one column reads it. Verify: one rule fills it, or the field is gone and
       the column computes it.
-- [ ] T13 | T13 -- Give Java its own expression of a soft keyword: `record` at
-      language.py:248. Verify: `record = lookup()` in a `.java` mints no `a`,
-      and a real one still does.
+- [-] T13 | Moved to language-reader-java.md | 42f3d3e5 | T13 -- Give Java its
+      own expression of a soft keyword: `record` at language.py:248. Verify:
+      `record = lookup()` in a `.java` mints no `a`, and a real one still does.
 - [ ] T14 | T14 -- Give C# its own expression of a soft keyword: `record` at
       language.py:283. Verify: `record = lookup()` in a `.cs` mints no `a`, and
       a real one still does.
-- [ ] T15 | T15 -- Give Swift its own expression of soft keywords: `convenience`
-      and `required`. Verify: `required = f()` in a `.swift` mints no `a`, and a
-      real init still does.
+- [-] T15 | Moved to language-reader-swift.md | 42f3d3e5 | T15 -- Give Swift its
+      own expression of soft keywords: `convenience` and `required`. Verify:
+      `required = f()` in a `.swift` mints no `a`, and a real init still does.
 - [x] T16 | FINISHED: the Rust scanner reads a multi-line string as one literal token, neither a read failure nor comments (tests/reading/test_rust.py) | b239c6ca | T16
       -- Declare Rust's spanning quotes; language.py:117-146 carries none.
       Verify: a Rust multi-line string is neither refused wholesale nor read as
@@ -220,9 +220,10 @@ would.
 - [ ] T17 | T17 -- Declare C's spanning quotes; language.py:185-193 carries
       none. Verify: a C multi-line string is neither refused wholesale nor read
       as comments.
-- [ ] T18 | T18 -- Bound Lua's long-bracket level, or read it; language.py:473
-      stops at two `=` so `--[===[` reads as code. Verify: a fixture with
-      `--[===[` fails before the fix.
+- [-] T18 | Moved to language-reader-lua.md | 42f3d3e5 | T18 -- Bound Lua's
+      long-bracket level, or read it; language.py:473 stops at two `=` so
+      `--[===[` reads as code. Verify: a fixture with `--[===[` fails before the
+      fix.
 - [ ] T19 | T19 -- Make `def g(): """d."""` census instead of failing the file.
       Verify: it types `a1 kind=docstring anchor=g` and `census.py` exits 0.
 - [x] T20 | FINISHED | unknown | T20 -- RULED 2026-08-23: placement decides -- a
@@ -251,9 +252,9 @@ would.
         > 2026-09-03 needed with T23: admit that one move, fail on any other token
         > 2026-09-03 ast.dump has no lineno, so it already admits every move
         > 2026-09-03 second clause already false under ast; Process 82 rules the rebuild
-- [ ] T25 | T25 -- Make `_is_doc` consult placement, not only the opener string.
-      Verify: a Lua `---` run above `local function f()` types `docstring`,
-      above nothing `comment`.
+- [-] T25 | Moved to language-reader-lua.md | 42f3d3e5 | T25 -- Make `_is_doc`
+      consult placement, not only the opener string. Verify: a Lua `---` run
+      above `local function f()` types `docstring`, above nothing `comment`.
 - [-] T26 | A field on the in-code row; reissued against Rust's definition | 9e376f5f | T26
       -- Give the `Language` row an `inner_doc` field, defaulting empty so every
       existing opener stays outer. Verify: the field exists and no row's typing
@@ -262,9 +263,9 @@ would.
       -- Declare Rust's `//!` inner; `///` stays outer. Verify: a `.rs` opening
       `//!` above nothing types `docstring`, and `///` above nothing types
       `comment`.
-- [ ] T28 | T28 -- Add `---` to Lua's `doc_line`, which T20's ruling authorises.
-      Verify: `--- x` above `local function f()` types `docstring` anchored to
-      it.
+- [-] T28 | Moved to language-reader-lua.md | 42f3d3e5 | T28 -- Add `---` to
+      Lua's `doc_line`, which T20's ruling authorises. Verify: `--- x` above
+      `local function f()` types `docstring` anchored to it.
 - [ ] T29 | Correct `doc_is_structural`'s docstring so it matches what Python
       yields on the lexical tier. Verify: the prose names the empty result
 - [x] T30 | All literals read; removals retain quotes and executable suffixes | b96af9f5bcbfa8f77d449dcc4b7ca9aa2e005ee9 | Read
@@ -278,12 +279,14 @@ would.
 - [x] T32 | FINISHED: the Rust scanner reads raw strings to their exact guard count, so a comment marker inside stays literal data (tests/reading/test_rust.py) | b239c6ca | Recognize
       raw string delimiters in lexer.py:510; verify a quoted marker inside a
       Rust raw string stays literal data
-- [ ] T33 | Recognize JavaScript regex literals in lexer.py:1071; verify /[//]/
-      yields no comment paragraph
+- [-] T33 | Moved to language-reader-javascript.md | 42f3d3e5 | Recognize
+      JavaScript regex literals in lexer.py:1071; verify /[//]/ yields no
+      comment paragraph
 - [ ] T34 | Resume code scanning after block comments in lexer.py:1071; verify a
       quote in a block cannot hide a following line comment
-- [ ] T35 | Select the earliest block opener in lexer.py:1072; verify mixed Lua
-      delimiters inside a long comment preserve its full body
+- [-] T35 | Moved to language-reader-lua.md | 42f3d3e5 | Select the earliest
+      block opener in lexer.py:1072; verify mixed Lua delimiters inside a long
+      comment preserve its full body
 - [ ] T36 | Replace `doc_inside` with a documentation position every language
       row states
         > 2026-10-16 Reason: 17 of 18 rows inherit above from a default; 11 declare
