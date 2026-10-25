@@ -5667,3 +5667,14 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   **What it settles.** `Kind.DOCSTRING` is the one mark that a paragraph documents something;
   `anchor_line` names its declaration. Matter and the module's doc hang off the `<module>` and
   `<eof>` sentinels, not off a code line.
+
+- **#230.** **A warning reports what is, not what could be** (Roy, 2026-10-25, shown that the
+  Rust read warned of several declarations on one line from the code alone -- 352 times over
+  1,647 crate files, on lines such as `struct Meters(f64);` with no documentation at all -- and
+  that in scope no documentation can join another's on such a line, since a doc above a line
+  documents its first item, as rustdoc reads it, and Python cannot put two declarations on one
+  line: *"I agree. I was expecting that the warning would be on an 'is' not on a 'could be'"*).
+
+  **What it settles.** #228's warning is withdrawn. The first declaration on a line still takes
+  its `a` place, silently. A warning is printed only when documentation is actually joined,
+  which needs a doc comment between code on one line -- out of scope until that work is taken up.

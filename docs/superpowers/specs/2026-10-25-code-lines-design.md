@@ -69,14 +69,14 @@ A line declares at most one documentable thing. When a line holds several declar
 (`fn a() {} fn b() {}`), the **first** takes the line's `DocPlace` and its `a` place. The
 documentation written for the rest of the line is part of that first docstring -- one section,
 one paragraph at the first declaration's `a` -- and later declarations on the line get no `a`
-place. The read prints a `file:line` warning naming the line; nothing else marks it (Roy:
-"I expect the agents know").
+place. No warning is printed: a doc above the line documents its first item, so nothing is
+joined, and a warning reports what is, not what could be (`decision-log.md Process: #230`).
 
 ## Who does what (decided)
 
 | part | does |
 | --- | --- |
-| each reader (Python, Rust, the generic lexical reader) | returns its `CodeLine`s in place of `code()` and `declarations()`; sets a doc paragraph's `anchor_line`; applies the one-per-line rule and its warning |
+| each reader (Python, Rust, the generic lexical reader) | returns its `CodeLine`s in place of `code()` and `declarations()`; sets a doc paragraph's `anchor_line`; applies the one-per-line rule |
 | page (`binder/page.py`) | hands the `CodeLine`s to the addresser; attaches each paragraph to its place, a doc by `anchor_line`; computes no code lines and converts no declarations -- `documentable` and the page's own `code_lines` call for building places are deleted |
 | addresser (`reading/addresser.py`) | walks the `CodeLine`s; emits an `a` where `documents` is set, at the step `DocPlace.at` and `above` name; `b`, `c` and `f` unchanged |
 
@@ -159,4 +159,4 @@ become the lexical reader's, so every reader hands the page the same thing.
 - An addresser test: hand-built `CodeLine`s with a `DocPlace(at, above=False)` whose `at` is a
   later line than the declaring line place the `a` after that line.
 - A reader test: `fn a() {} fn b() {}` with a doc above it yields one `CodeLine` with
-  `documents` set, one documentation paragraph anchored to it, and one warning.
+  `documents` set, one documentation paragraph anchored to it, and no warning.
