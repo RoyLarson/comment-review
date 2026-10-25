@@ -343,7 +343,7 @@ that changed a published name or rule:
 | [lexer-and-language-findings](lexer-and-language-findings.md) | backend | -- | 20/49 | Ten findings in lexer.py and language.py, from three review rounds |
 | [board-predates-task-ids](board-predates-task-ids.md) | systems | yes | 2/6 | task lines carry no ids, so a plan cannot name one; a trial migration was reverted because it silently cleared 57 `Requires-Roy` flags and refused nine files whose task labels carry a literal pipe |
 
-### decision-needed  (25)
+### decision-needed  (24)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -354,7 +354,6 @@ that changed a published name or rule:
 | [front-half-undetermined](front-half-undetermined.md) | testing | yes | 5/11 | The census to findings to verdicts path has never been determined against a backend that works |
 | [a-role-with-no-code-out-damages-the-prose](a-role-with-no-code-out-damages-the-prose.md) | agents | -- | 5/12 | `code_concerns` is defined in the shared brief that every role reads, but named in only ONE of the four reviewer files -- `function-context`. It is absent from `module-context`, whose whole remit is whether a module announces ONE subject, which is the finding that most needs a code out. MEASURED in the harness: `module-context-widens-a-two-subject-docstring` detected that `verdicts.py` holds four subjects, had no verdict for 'split this module', and emitted a prose `patch` widening the docstring to announce TWO -- the exact defect its own trigger is named for. `code_concerns` came back empty. |
 | [dead-sweep-skips-private](dead-sweep-skips-private.md) | systems | yes | 4/5 | dead_sweep skips every _private name, so a dead module constant is invisible to it and to ruff |
-| [lexer-does-not-lex](lexer-does-not-lex.md) | backend | yes | 7/10 | One module, two jobs: one tier reads characters, the other reads CPython's parse |
 | [a-comment-run-merges-across-blanks](a-comment-run-merges-across-blanks.md) | backend | yes | 5/6 | A licence header and a doc comment become one paragraph with one address |
 | [a-coverage-gap-should-go-back-to-the-reviewer](a-coverage-gap-should-go-back-to-the-reviewer.md) | agents | yes | 2/7 | **A block a reviewer never accounted for is unfinished work, not a finding about the run.** Today `verdicts.py` prints a COVERAGE GAP against the role by name and exits nonzero. Roy, 2026-08-16: *"if comment blocks are missed by a reviewer then they are returned to the reviewer to rule on."* ! Same shape as the two deleted lists one level up -- the reviewer stopped early, and the system files the stopping rather than fixing it. * Unruled: re-dispatch with only the missed indices or the whole census, and what bounds the retry |
 | [a-prose-file-has-no-blocks](a-prose-file-has-no-blocks.md) | backend | yes | 4/9 | A prose file has no blocks, so the system cannot review documentation |
@@ -527,3 +526,4 @@ the reason is inside the file.
 | [stage-two-detached-warnings](completed/stage-two-detached-warnings.md) | 2 finished |
 | [drop-path-second-rust-comment-grammar](completed/drop-path-second-rust-comment-grammar.md) | 1 finished |
 | [prove-unchanged-line-endings-follow-a-sibling](completed/prove-unchanged-line-endings-follow-a-sibling.md) | 2 superseded |
+| [lexer-does-not-lex](completed/lexer-does-not-lex.md) | 8 finished, 2 superseded |

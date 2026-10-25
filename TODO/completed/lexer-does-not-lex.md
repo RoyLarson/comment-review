@@ -1,10 +1,10 @@
 # The lexer does not lex -- it reads a parse
 
 ```
-Status:   decision-needed
-Progress: 7 of 10 tasks closed
+Status:   closed
+Progress: 10 of 10 tasks closed
 Owner:    backend
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-22 (Roy, 2026-08-22, on adding a token-type enum: the lexer is not
           doing lexing, it is parsing a tokenized parser and that is different)
 Known:    2026-08-22 -- IT MOSTLY WORKS, AND THE EXCEPTION IS NAMED. Roy, 2026-08-22:
@@ -93,11 +93,14 @@ is changed, and not the other way round.**
       FILE'S OWN TITLE: both tiers produce one thing, a Kind per paragraph.
 - [x] T7 | FINISHED | unknown | T7 -- NOT THE ADDRESSER, WHICH WAS THE FIRST
       GUESS; `cue()` never sees prose and a test enforces it.
-- [?] T8 | T8 -- * DETERMINE THE NAME, after the Python ruling lands. Verify:
-      the name and its reason are written in `docs/vocabulary.md`.
-- [ ] T9 | T9 -- Rename the module and every import of it. Verify: `uv run
-      pytest -q` is green and no file under `plugins/` imports the old module
-      name.
-- [ ] T10 | T10 -- Retire the old word in the vocabulary entry and in every
-      prose use. Verify: `check_vocabulary.py` passes with the old word RETIRED
-      and the new one defined.
+- [x] T8 | Name kept, reason in docs/vocabulary.md | 08c70b43 | T8 -- *
+      DETERMINE THE NAME, after the Python ruling lands. Verify: the name and
+      its reason are written in `docs/vocabulary.md`.
+        > 2026-10-25 Roy kept lexer; decision-log.md Vocabulary: #38
+- [-] T9 | No rename: lexer kept, Vocabulary #38 | 08c70b43 | T9 -- Rename the
+      module and every import of it. Verify: `uv run pytest -q` is green and no
+      file under `plugins/` imports the old module name.
+- [-] T10 | No old word to retire: lexer kept, Vocabulary #38 | 08c70b43 | T10
+      -- Retire the old word in the vocabulary entry and in every prose use.
+      Verify: `check_vocabulary.py` passes with the old word RETIRED and the new
+      one defined.

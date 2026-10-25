@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 56 of 162 TODO tasks closed
+Progress: 59 of 162 TODO tasks closed
 Plan-tasks: 40 of 53 plan tasks closed
 Owner:    backend
 Requires-Roy: true
@@ -488,14 +488,14 @@ interfaces, inputs and checks, without internal development files or history.
       `grep -n declares` over `lexer.py` returns no use of the language keyword
       tuple.
 
-### AI - [lexer-does-not-lex](../../TODO/lexer-does-not-lex.md)
+### AI - [lexer-does-not-lex](../../TODO/completed/lexer-does-not-lex.md)
 
-- [?] T8 | T8 -- * DETERMINE THE NAME, after the Python ruling lands. Verify:
+- [x] T8 | T8 -- * DETERMINE THE NAME, after the Python ruling lands. Verify:
       the name and its reason are written in `docs/vocabulary.md`.
-- [ ] T9 | T9 -- Rename the module and every import of it. Verify: `uv run
+- [-] T9 | T9 -- Rename the module and every import of it. Verify: `uv run
       pytest -q` is green and no file under `plugins/` imports the old module
       name.
-- [ ] T10 | T10 -- Retire the old word in the vocabulary entry and in every
+- [-] T10 | T10 -- Retire the old word in the vocabulary entry and in every
       prose use. Verify: `check_vocabulary.py` passes with the old word RETIRED
       and the new one defined.
 
