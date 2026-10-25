@@ -73,8 +73,8 @@ def paragraphs_for(path: Path, read: RustRead) -> list[Paragraph] | ReadFailure:
     last line, so `anchor + raw_lines[0]` is the first line.
 
     The comments after the last code line then follow the end-of-file rule,
-    and a place holds one paragraph: sections that would share one, on one
-    line or in one gap, become one paragraph -- see `_one_per_place`.
+    and the comment sections are formed by the section rule -- see
+    `_comment_sections`.
     """
     source = read.source
     text = source.text
@@ -127,22 +127,22 @@ def paragraphs_for(path: Path, read: RustRead) -> list[Paragraph] | ReadFailure:
                 raw_lines=raw,
             )
         )
-    return _one_per_place(paragraphs, set(code_for(read)), layout)
+    return _comment_sections(paragraphs, set(code_for(read)), layout)
 
 
-def _one_per_place(
+def _comment_sections(
     paragraphs: list[Paragraph], code: set[int], layout: "_Layout"
 ) -> list[Paragraph]:
-    """Make the paragraphs that would share a place one paragraph.
+    """Form the comment sections of the read's paragraphs.
 
     The opening comments follow the file-head rule first, see
     `_opening_matter`, and the comments after the last code line the
     end-of-file rule, see `_closing_matter`. Then a paragraph starting on a
     line the paragraph before it ends on is part of that paragraph, which
-    keeps its kind and anchor: comments sharing a line share its place. Then
-    the COMMENT paragraphs in one gap -- the lines between the same two code
-    lines -- are one COMMENT paragraph there, whatever sits between them:
-    blank lines, or the module's inner doc, whose lines stay its own.
+    keeps its kind and anchor. Then the COMMENT paragraphs with no code line
+    between them are one COMMENT section, whatever sits between them: blank
+    lines, or the module's inner doc, whose lines stay its own. Only code
+    ends a section.
     """
     paragraphs = _opening_matter(
         sorted(paragraphs, key=lambda p: p.start), code, layout
@@ -154,25 +154,26 @@ def _one_per_place(
         if p.kind == Kind.DOCSTRING
         for n in range(p.start, p.end + 1)
     }
-    boundaries = sorted(code)
     out: list[Paragraph] = []
-    gaps: dict[int, int] = {}
+    # The index in `out` of the COMMENT section that no code line has closed.
+    open_section: int | None = None
     for paragraph in paragraphs:
         if out and paragraph.start <= out[-1].end:
             out[-1] = _combined([out[-1], paragraph], out[-1].kind, layout, held)
             continue
+        if open_section is not None and any(
+            n in code for n in range(out[open_section].end + 1, paragraph.start)
+        ):
+            open_section = None
         if paragraph.kind != Kind.COMMENT:
             out.append(paragraph)
-            continue
-        # A COMMENT holds no code line, so the count of code lines above it
-        # names its gap.
-        gap = bisect_right(boundaries, paragraph.end)
-        at = gaps.get(gap)
-        if at is None:
-            gaps[gap] = len(out)
+        elif open_section is None:
+            open_section = len(out)
             out.append(paragraph)
         else:
-            out[at] = _combined([out[at], paragraph], Kind.COMMENT, layout, held)
+            out[open_section] = _combined(
+                [out[open_section], paragraph], Kind.COMMENT, layout, held
+            )
     return sorted(out, key=lambda p: p.start)
 
 

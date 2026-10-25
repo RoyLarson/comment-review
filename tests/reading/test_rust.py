@@ -2264,6 +2264,31 @@ def test_projection_comments_in_one_gap_with_a_detached_module_doc_are_one(
     assert declarations == [(5, 5, True)]
 
 
+def test_projection_comment_and_detached_doc_after_code_are_one_comment(
+    rust_definition,
+):
+    text = "fn a() {}\n// one\n/// two\n// three\nfn b() {}\n"
+    paragraphs, _, _ = projection_of(text, rust_definition)
+    assert paragraphs == [
+        paragraph(
+            2,
+            4,
+            Kind.COMMENT,
+            ["// one", "/// two", "// three"],
+            notes={"detached-documentation"},
+        )
+    ]
+
+
+def test_projection_code_ends_a_comment_section(rust_definition):
+    text = "fn a() {}\n// one\n\n// two\nfn b() {}\n// three\nfn c() {}\n"
+    paragraphs, _, _ = projection_of(text, rust_definition)
+    assert [(p.start, p.end, p.kind) for p in paragraphs] == [
+        (2, 4, Kind.COMMENT),
+        (6, 6, Kind.COMMENT),
+    ]
+
+
 def test_projection_ordinary_comment_above_an_item_is_a_comment(rust_definition):
     text = "fn z() {}\n// note\nfn f() {}\n"
     paragraphs, _, _ = projection_of(text, rust_definition)
