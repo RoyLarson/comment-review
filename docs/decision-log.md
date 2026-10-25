@@ -5522,3 +5522,18 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
 
   **What it settles.** The TODO closes on this branch, and SKILL.md's new stage 2 wording is
   shown to Roy before it is applied.
+
+- **#220.** **A file with a lone CR is refused at gather, and a file's line ending is decided in
+  one place, in `machine/`, and passed through the flows to what needs it** (Roy, 2026-10-24,
+  shown galley-and-compositor-write-path T60 -- `set_page` turns every lone CR into LF, the proof
+  refuses it for Rust and Python and passes it for a lexical page, and no file in 4,621 sampled
+  holds one -- and offered keeping each line's ending, refusing such a file at gather, or
+  keeping the normalising; then told the normalising rule had no ruling behind it and that
+  three modules decide a file's ending three ways: *"Option 2 is fine, but your statements
+  state there are 3 different places that line endings are determined. This should be one
+  place, preferably in the machine/ area. And the appropriate line endings are passed to the
+  functions through the flows for what needs them"*).
+
+  **What it settles.** The gather names a file holding a lone CR as unreadable. One function in
+  `machine/` answers a file's line ending; no reader, desk or results module decides one, and a
+  function that writes line breaks takes the ending as an argument.
