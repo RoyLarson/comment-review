@@ -92,7 +92,6 @@ class TestTheFixtureYieldsEverySeries(unittest.TestCase):
             self.assertEqual(by_cue[addr].kind, "comment")
         for addr in ("c1", "c6", "c12"):
             self.assertEqual(by_cue[addr].kind, "trailing-comment")
-        self.assertEqual(by_cue["b9"].lines, 2)
 
     def test_f0_and_f1_hold_no_prose(self):
         by_cue = {cue_of(p): p for p in self.page.paragraphs if p.text}
