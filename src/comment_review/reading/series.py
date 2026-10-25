@@ -89,10 +89,9 @@ class Kind(StrEnum):
         """Does this paragraph stand on no line of the file?
 
         !! `leading` IS THE WHOLE REASON THIS IS NOT THE SAME QUESTION AS ABOVE.
-        It holds no prose and DOES stand on real blank lines. `lexer.code_text`
-        skips a paragraph that occupies nothing, so answering YES here would
-        take those blanks out of `occupied` -- which changes no code line,
-        because `code_text` counts only a line that is not blank.
+        It holds no prose and DOES stand on real blank lines, so it answers NO
+        here. Every absence answers YES: `compositor.set_page` reads that as a
+        place the walk emitted, which an `add` may fill.
         """
         return kind in ABSENT
 

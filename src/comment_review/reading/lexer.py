@@ -1279,8 +1279,9 @@ def code_text(text: str, paragraphs: list[Paragraph]) -> dict[int, str]:
     code lines from what they parsed.
 
     ! A `trailing-comment` sits ON a code line, so that line stays code. A
-    `comment` or `docstring` paragraph occupies its lines entirely, so those
-    lines are not.
+    `comment`, `docstring` or `matter` paragraph occupies its lines entirely,
+    so those lines are not. Every paragraph here is prose the reader found; no
+    empty place exists yet.
 
     !! A PARAGRAPH'S FIRST LINE IS STILL CODE WHEN CODE PRECEDES ITS TEXT.
     `int b = 2; /* opens` spans from that line, and taking the whole span would
@@ -1305,8 +1306,6 @@ def code_text(text: str, paragraphs: list[Paragraph]) -> dict[int, str]:
         on = Series.of_kind(b.kind) is Series.ON
         if on:
             beside[b.start] = b.anchor
-        if Kind.occupies_no_lines(b.kind):
-            continue
         occupied.update(range(b.start, b.end + 1))
         if on:
             occupied.discard(b.start)
@@ -1334,8 +1333,8 @@ class LexicalRead:
     a_series: bool
 
     def paragraphs(self, path: Path) -> list[Paragraph]:
-        """Every prose run of the file as a page paragraph."""
-        return self.found
+        """Every prose run of the file as a page paragraph, in a new list."""
+        return list(self.found)
 
     def code_lines(self) -> list[CodeLine]:
         """Each line holding code, in order, with the documentation it declares."""

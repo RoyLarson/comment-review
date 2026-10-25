@@ -97,3 +97,8 @@ class ReaderRecord(SourceRead, Protocol):
     def code_lines(self) -> list[CodeLine]:
         """Each line holding code, in order, with the documentation it declares."""
         ...
+
+    @property
+    def a_series(self) -> bool:
+        """Whether the page has an `a` series: its language documents declarations."""
+        ...

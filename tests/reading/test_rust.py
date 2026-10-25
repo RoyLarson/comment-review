@@ -2430,3 +2430,11 @@ def test_projection_read_source_returns_the_rust_record():
     result = read_source(PAGE, "// note\nfn f() {}\n")
     assert isinstance(result, records.RustRead)
     assert result.paragraphs(PAGE) == [paragraph(1, 1, Kind.MATTER, ["// note"])]
+
+
+def test_a_rust_page_always_has_an_a_series():
+    from comment_review.reading.readers import read_source
+
+    result = read_source(PAGE, "")
+    assert isinstance(result, records.RustRead)
+    assert result.a_series is True

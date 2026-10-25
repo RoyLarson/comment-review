@@ -392,3 +392,11 @@ class RustRead:
         from comment_review.reading.rust.projection import code_lines_for
 
         return code_lines_for(self)
+
+    @property
+    def a_series(self) -> bool:
+        """Whether the page has an `a` series: always, for Rust.
+
+        Rust documents its crate or module and its items.
+        """
+        return True

@@ -85,11 +85,9 @@ WIRE_FIELDS = ("cue", "anchor", "original_start", "original_end", "raw_text")
 #   c   `margin`        a code line with no trailing comment
 #   f   `dark-matter`   a file with none of its own prose
 #
-# !! THE QUESTIONS ARE ASKED OF `Kind`, AND THIS MODULE KEEPS NO SET. There are
-# TWO of them and they are not the same question: `Kind.holds_no_prose` is what
-# a count or a record asks, and `Kind.occupies_no_lines` is what
-# `lexer.code_text` asks. ! They part on exactly `leading`, which holds no prose and
-# DOES stand on real lines. Neither is listed; both derive from `Series`.
+# !! THE QUESTION IS ASKED OF `Kind`, AND THIS MODULE KEEPS NO SET.
+# `Kind.holds_no_prose` is what a count or a record asks; it is not listed
+# here, and derives from `Series`.
 
 # !! THE FILE'S OWN PROSE IS A PARAGRAPH TYPE, AND THE READER STATES IT -- see
 # `Kind.MATTER`. Stamping it HERE would put a positioning rule in a module that
@@ -704,25 +702,20 @@ def page_for(
     result = read_source(path, text, registry=registry)
     if isinstance(result, ReadFailure):
         return result
-    # Every read answers `paragraphs` and `code_lines`. The generic lexical read
-    # is told from a reader record by its type, so this module names no
-    # language reader's type.
+    # Every read answers `paragraphs`, `code_lines` and `a_series`. Only a
+    # reader record carries its own source text and proof, so the generic
+    # `LexicalRead` is the one read tested for by type.
     record: ReaderRecord | None = None
-    if isinstance(result, LexicalRead):
-        a_series = result.a_series
-    else:
+    if not isinstance(result, LexicalRead):
         record = result
         # The read may have broken a docstring's shared line; the page is that text.
         text = record.source.text
-        # Every reader record's language documents its declarations, so its
-        # page has an `a` series.
-        a_series = True
     got = result.paragraphs(path)
     if isinstance(got, ReadFailure):
         return got
     got.extend(leading_between(got, text))
     edges: dict[str, str] = {}
-    cues = cue(result.code_lines(), a_series=a_series)
+    cues = cue(result.code_lines(), a_series=result.a_series)
     here = rel if rel is not None else path.as_posix()
     files = cues.file_places()
     leads = iter(range(10**9))

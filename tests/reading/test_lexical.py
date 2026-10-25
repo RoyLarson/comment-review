@@ -36,6 +36,13 @@ def test_the_code_lines_carry_code_and_the_documentation_place():
     ]
 
 
+def test_each_call_hands_back_a_new_list():
+    lexical = read("m.go", GO)
+    first = lexical.paragraphs(Path("m.go"))
+    first.clear()
+    assert lexical.paragraphs(Path("m.go"))
+
+
 def test_the_run_above_a_declaration_takes_its_a_cue():
     found = read("m.go", GO).paragraphs(Path("m.go"))
     assert [(p.start, p.address) for p in found if p.address] == [(3, "a1")]

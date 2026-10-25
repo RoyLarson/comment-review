@@ -281,6 +281,14 @@ class PythonRead:
 
         return code_lines_for(self)
 
+    @property
+    def a_series(self) -> bool:
+        """Whether the page has an `a` series: always, for Python.
+
+        Python documents its module, its classes and its functions.
+        """
+        return True
+
     def owner_at(self, anchor_line: int | None) -> tuple[int | None, ...]:
         """The declaration documented from this anchor line; None for the module.
 

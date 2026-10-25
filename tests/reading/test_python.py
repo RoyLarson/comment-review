@@ -2764,7 +2764,7 @@ def test_sections_documentation_owns_complete_concatenated_statement(python_defi
             'x=f"{value # note\n}"; after()\n',
             "# note\n",
             "c0",
-            {1: 'x=f"{value ', 2: '}"; after()'},
+            {1: 'x=f"{value', 2: '}"; after()'},
         ),
         (
             'x=f"""{\n    # note\n    value\n}"""; after()\n',
@@ -2776,7 +2776,7 @@ def test_sections_documentation_owns_complete_concatenated_statement(python_defi
             'x=f"""{value # first\n\n    # second\n}"""; after()\n',
             ("# first\n", "    # second\n"),
             ("c0", "b1"),
-            {1: 'x=f"""{value ', 4: '}"""; after()'},
+            {1: 'x=f"""{value', 4: '}"""; after()'},
         ),
         (
             'x=f"""{\n    # first\n\n    # second\n    value\n}"""; after()\n',
@@ -2794,19 +2794,19 @@ def test_sections_documentation_owns_complete_concatenated_statement(python_defi
             'x=f"{before}{value # note\n}{after}"; work()\n',
             "# note\n",
             "c0",
-            {1: 'x=f"{before}{value ', 2: '}{after}"; work()'},
+            {1: 'x=f"{before}{value', 2: '}{after}"; work()'},
         ),
         (
             'x=f"{value:{width # note\n}}"; work()\n',
             "# note\n",
             "c0",
-            {1: 'x=f"{value:{width ', 2: '}}"; work()'},
+            {1: 'x=f"{value:{width', 2: '}}"; work()'},
         ),
         (
             'x=f"{value # note } f\' x\n}"; after()\n',
             "# note } f' x\n",
             "c0",
-            {1: 'x=f"{value ', 2: '}"; after()'},
+            {1: 'x=f"{value', 2: '}"; after()'},
         ),
     ],
 )
@@ -2836,24 +2836,34 @@ def test_expression_comments_existing_places_preserve_expression_on_set_and_edit
         for token in scan.tokens
         if token.kind == "comment"
     ] == [line.lstrip() for raw in raws for line in raw.splitlines() if line.strip()]
+    # A trailing comment's prose starts where the line's code ends: the code is
+    # right-trimmed, so the blanks before the `#` are the paragraph's.
     paragraphs = []
+    owns = []
     for section, raw in zip(result.source.sections, raws, strict=True):
         position = result.source.position(section.span.start)
         first_line = position.line
         last_line = result.source.position(section.span.end - 1).line
         prefix = text[section.span.start - position.column : section.span.start]
+        code_part = prefix.rstrip()
+        own = text[
+            section.span.start - (len(prefix) - len(code_part)) : section.span.end
+        ]
+        owns.append(own)
         paragraphs.append(
             Paragraph(
                 path="m.py",
                 start=first_line,
                 end=last_line,
-                kind="trailing-comment" if prefix.strip() else "comment",
+                kind="trailing-comment" if code_part else "comment",
                 text=raw,
-                anchor=prefix,
-                raw_lines=result.source.slice(section.span).splitlines(),
+                anchor=code_part,
+                raw_lines=own.splitlines(),
             )
         )
-    cues = cue([CodeLine(n, line, None) for n, line in code.items()], a_series=False)
+    lines = result.code_lines()
+    assert {c.line: c.code for c in lines} == code
+    cues = cue(lines, a_series=False)
     for paragraph, place in zip(paragraphs, places, strict=True):
         assert attach(vars(paragraph), cues) == place
         assert paragraph.original_start is not None
@@ -2878,10 +2888,10 @@ def test_expression_comments_existing_places_preserve_expression_on_set_and_edit
     )
     assert set_page(page) == text
     original_anchors = dict(cues.places)
-    for paragraph, place, raw in zip(paragraphs, places, raws, strict=True):
-        start = text.index(raw)
-        end = start + len(raw)
-        replacement = raw.replace("# note", "# edited").replace("# first", "# edited")
+    for paragraph, place, own in zip(paragraphs, places, owns, strict=True):
+        start = text.index(own)
+        end = start + len(own)
+        replacement = own.replace("# note", "# edited").replace("# first", "# edited")
         replacement += "    # added" + ending
         paragraph.raw_lines = replacement.splitlines()
         assert set_page(page) == text[:start] + replacement + text[end:]
@@ -2891,7 +2901,7 @@ def test_expression_comments_existing_places_preserve_expression_on_set_and_edit
             == text[:start] + (ending if place.startswith("c") else "") + text[end:]
         )
         assert cues.places == original_anchors
-        paragraph.raw_lines = raw.splitlines()
+        paragraph.raw_lines = own.splitlines()
 
 
 @pytest.mark.parametrize(

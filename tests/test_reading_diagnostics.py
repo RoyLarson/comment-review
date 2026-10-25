@@ -113,6 +113,7 @@ def test_read_source_gives_python_its_lexical_read(text, expected):
     result = readers.read_source(path, text, registry=registry)
     assert isinstance(result, PythonRead)
     assert result.source.text is text
+    assert result.a_series is True
     paragraphs = paragraphs_for(path, result)
     assert not isinstance(paragraphs, ReadFailure)
     assert [(p.start, p.end, p.kind, p.raw_lines) for p in paragraphs] == expected
