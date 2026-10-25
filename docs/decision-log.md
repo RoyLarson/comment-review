@@ -5513,3 +5513,12 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   no module entry; whether a file has an `a` series is a separate answer, which `cue` and the
   page read in place of `decls[0][1]`. Both readers drop `insertions[0]` and the check on it.
   Roy approved the reach past Reading in the same answer.
+
+- **#219.** **The `backend` session on `feat/lexer-rust` writes stage-two-detached-warnings T1
+  in SKILL.md, crossing into `agents`** (Roy, 2026-10-24, offered three ways to close the
+  `agents`-owned TODO filed on this branch -- the `backend` session crossing for T1 with the
+  exact wording shown first, an `agents` session doing it before merge, or ruling it no gate on
+  this branch: *"1"*).
+
+  **What it settles.** The TODO closes on this branch, and SKILL.md's new stage 2 wording is
+  shown to Roy before it is applied.
