@@ -89,3 +89,4 @@ defect and is repaired (lexer-and-language-findings T12, b30cc510).
         > 2026-10-25 Reason: #226, the warning names a file and line from the read
         > 2026-10-25 Check: git grep -E "PageWarning|DETACHED_DOCUMENTATION" -- src
         > 2026-10-25 Check: gather prints the warning as file:line
+        > 2026-10-25 Reason: several detached docs merged at one b cue read the same
