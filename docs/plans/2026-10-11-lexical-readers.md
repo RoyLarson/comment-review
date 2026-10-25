@@ -3,7 +3,7 @@
 ```
 Status:   decision-needed
 Progress: 42 of 162 TODO tasks closed
-Plan-tasks: 11 of 53 plan tasks closed
+Plan-tasks: 13 of 53 plan tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-10-11 (founded by move-t from 0.2.4-the-middle-rebuilt)
@@ -626,12 +626,16 @@ interfaces, inputs and checks, without internal development files or history.
       code, addresses and set/proof behavior
         > 2026-10-11 Check: uv run pytest -q tests/reading/test_python.py
         > 2026-10-11 Python child: docs/plans/2026-10-11-lexer-python.md
-- [ ] P9 | Specify Rust independently; verify supported modes, directive
-      boundaries, declaration ownership and expected fixtures
+- [x] P9 | Rust spec approved; child lexer-rust closed 13/13 | 35704e16 | Specify
+      Rust independently; verify supported modes, directive boundaries,
+      declaration ownership and expected fixtures
         > 2026-10-11 Own dated spec and subplan; branch feat/lexer-rust
-- [ ] P10 | Implement the Rust reader from its definition; verify expected
-      comments, protected code, addresses and set/proof behavior
+        > 2026-10-25 Rust child: docs/plans/2026-10-22-lexer-rust.md
+- [x] P10 | Child lexer-rust merged; test_rust.py 280 pass | 86110df0 | Implement
+      the Rust reader from its definition; verify expected comments, protected
+      code, addresses and set/proof behavior
         > 2026-10-11 Check: uv run pytest -q tests/reading/test_rust.py
+        > 2026-10-25 Rust child: docs/plans/2026-10-22-lexer-rust.md
 - [ ] P11 | Specify Go independently; verify supported modes, directive
       boundaries, declaration ownership and expected fixtures
         > 2026-10-11 Own dated spec and subplan; branch feat/lexer-go
