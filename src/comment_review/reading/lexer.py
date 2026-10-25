@@ -78,27 +78,14 @@ MODULE_ANCHOR = "<module>"
 # and stage 4 emits those.
 
 
-def _join(lines: list[str], markers: tuple[str, ...] = ("#",)) -> str:
-    """A comment run as ONE normalised string, its comment markers stripped.
+def _join(lines: list[str]) -> str:
+    """Prose lines, their markers already cut, as ONE normalised string.
 
     Prose wraps, so every claim-bearing phrase in a real file straddles a line
     break. Matching line-by-line reports the fragment instead of the claim: a
     count reads as absent and `used to say` degrades to a bare `used to`.
-
-    Args:
-        lines: the run's raw source lines.
-        markers: the language's comment openers, longest first at the call site
-            so `///` is stripped before `//` leaves a stray slash in the prose.
     """
-    out = []
-    for ln in lines:
-        s = ln.strip()
-        for m in markers:
-            if s.startswith(m):
-                s = s[len(m) :].strip()
-                break
-        out.append(s)
-    return re.sub(r"\s+", " ", " ".join(out)).strip()
+    return re.sub(r"\s+", " ", " ".join(ln.strip() for ln in lines)).strip()
 
 
 #: The readers whose own scanner says where each comment in a paragraph sits
@@ -396,7 +383,7 @@ def _comment_fragment(
                     starts[n] += len(line) - len(stripped) + len(actual)
     sections = re.split(r"\n\s*\n", "\n".join(body))
     paragraphs = tuple(
-        _join(section.splitlines(), ()) for section in sections if section.strip()
+        _join(section.splitlines()) for section in sections if section.strip()
     )
     gaps = []
     blank = []
@@ -660,7 +647,6 @@ def _leading(
         start=run[0],
         end=run[-1],
         kind=Kind.LEADING,
-        text="",
         raw_lines=[lines[n - 1] for n in run],
     )
 
@@ -698,7 +684,8 @@ def _opens_doc(opens: str, markers: tuple[str, ...]) -> bool:
 def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]:
     """Comment runs for a language with no parser here -- the FLOOR tier.
 
-    Answers where every paragraph is, its line range, its text and its annotations.
+    Answers where every paragraph is, its line range, its raw lines and its
+    annotations.
     ! A paragraph sitting BESIDE code carries an anchor at this tier too -- the
     line of code itself, which needs no parser; see `_anchor_of`. Only a paragraph
     that owns its lines whole has none, because its anchor is a declaration and
@@ -784,14 +771,12 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
         if not run:
             partial_first[0] = 0
             return
-        raw = [t for _, t in run]
-        # !! `raw_lines` IS THE SOURCE, `raw` IS THE PROSE. The cut text still
-        # makes `text` and still counts against the cap; the file's own characters
-        # are what a splice is checked against.
+        # !! `raw_lines` IS THE SOURCE: the file's own characters, which are what
+        # a splice is checked against.
         span = lines[run[0][0] - 1 : run[-1][0]]
         if partial_first[0] > 0:
             span = [span[0][partial_first[0] - 1 :], *span[1:]]
-        if _is_doc(raw[0], lang):
+        if _is_doc(run[0][1], lang):
             kind = "docstring"
         else:
             # !! CODE ON THE FIRST LINE MAKES IT TRAILING, however many lines it
@@ -827,7 +812,6 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
             start=run[0][0],
             end=run[-1][0],
             kind=kind,
-            text=_join(raw, openers),
             raw_lines=span,
             # !! THE LEXER ALREADY HAS THIS STRING. It found the opener in order
             # to cut there, so the characters before it are known here.
@@ -864,8 +848,8 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
             # it moves.
             #
             # !! AND AN EDIT TO THAT PARAGRAPH DELETES THE STATEMENT. This cut
-            # trims the paragraph's TEXT and not its `raw_lines`, and the galley
-            # splices `start..end` wholesale -- it preserves the head of the
+            # trims the run's own entry and not the paragraph's `raw_lines`, and
+            # the galley splices `start..end` wholesale -- it preserves the head of the
             # FIRST line at `column` and has no tail preservation on the last.
             # `prove_unchanged` catches it, but only AFTER 7b has written the
             # file.

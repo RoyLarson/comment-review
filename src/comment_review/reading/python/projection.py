@@ -1,6 +1,5 @@
 """Project retained Python records into whole editable source sections."""
 
-import re
 from pathlib import Path
 
 from comment_review import constants
@@ -131,7 +130,6 @@ def paragraphs_for(path: Path, read: PythonRead) -> list[Paragraph] | ReadFailur
                     first.line,
                     last.line,
                     Kind.DOCSTRING,
-                    re.sub(r"\s+", " ", payload.text).strip(),
                     address=f"a{0 if ordinal is None else ordinal + 1}",
                     raw_lines=constants.text_lines(text[raw_start : span.end]),
                 )
@@ -194,14 +192,6 @@ def paragraphs_for(path: Path, read: PythonRead) -> list[Paragraph] | ReadFailur
                     start.line,
                     end.line,
                     kind,
-                    re.sub(
-                        r"\s+",
-                        " ",
-                        " ".join(
-                            text[region.span.start + 1 : region.span.end].strip()
-                            for region in group
-                        ),
-                    ).strip(),
                     anchor=before.rstrip() if trailing else "",
                     raw_lines=raw,
                 )

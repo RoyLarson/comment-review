@@ -57,11 +57,11 @@ def test_completed_read_projects_documentation_from_source_positions(python_defi
     )
     paragraphs = paragraphs_for(Path("invented.py"), reduced)
     assert not isinstance(paragraphs, ReadFailure)
-    assert [(p.text, p.raw_lines, p.address, p.anchor) for p in paragraphs] == [
-        ("heading", ["# heading"], "", ""),
-        ("module prose", ['"module\\nprose"'], "a0", ""),
-        ("body prose", ['    "body " "prose"'], "a1", ""),
-        ("detail", [" # detail"], "", "    return value"),
+    assert [(p.raw_lines, p.address, p.anchor) for p in paragraphs] == [
+        (["# heading"], "", ""),
+        (['"module\\nprose"'], "a0", ""),
+        (['    "body " "prose"'], "a1", ""),
+        ([" # detail"], "", "    return value"),
     ]
     assert declarations_for(reduced) == [(4, 7, False), (9, 10, False)]
     assert 7 not in code_for(reduced)
@@ -73,22 +73,18 @@ def test_completed_read_projects_documentation_from_source_positions(python_defi
 
 
 @pytest.mark.parametrize(
-    ("expression", "decoded", "prose"),
+    ("expression", "decoded"),
     [
-        ('"  First\\t  second.\\n "', "  First\t  second.\n ", "First second."),
-        ('r"  First\t  second.  "', "  First\t  second.  ", "First second."),
-        (
-            '("  First "\n     "\\tsecond.\\n ")',
-            "  First \tsecond.\n ",
-            "First second.",
-        ),
-        ('"""\n  First\t second.\n"""', "\n  First\t second.\n", "First second."),
-        ('" \\t\\n "', " \t\n ", ""),
-        ('""', "", ""),
+        ('"  First\\t  second.\\n "', "  First\t  second.\n "),
+        ('r"  First\t  second.  "', "  First\t  second.  "),
+        ('("  First "\n     "\\tsecond.\\n ")', "  First \tsecond.\n "),
+        ('"""\n  First\t second.\n"""', "\n  First\t second.\n"),
+        ('" \\t\\n "', " \t\n "),
+        ('""', ""),
     ],
 )
-def test_paragraph_prose_normalization_preserves_payload_and_source(
-    python_definition, expression, decoded, prose
+def test_documentation_paragraph_preserves_payload_and_source(
+    python_definition, expression, decoded
 ):
     from pathlib import Path
 
@@ -104,7 +100,6 @@ def test_paragraph_prose_normalization_preserves_payload_and_source(
     paragraphs = paragraphs_for(Path("invented.py"), result)
     assert not isinstance(paragraphs, ReadFailure)
     assert len(paragraphs) == 1
-    assert paragraphs[0].text == prose
     assert paragraphs[0].raw_lines == expression.splitlines()
     assert paragraphs[0].address == "a0"
     assert result.source is source
@@ -490,10 +485,10 @@ def test_read_python_opaque_code_preserves_documentation_and_comment_anchor(
     assert [payload.text for payload in result.payloads] == ["module", "body"]
     paragraphs = paragraphs_for(Path("invented.py"), result)
     assert not isinstance(paragraphs, ReadFailure)
-    assert [(p.text, p.anchor) for p in paragraphs] == [
-        ("module", ""),
-        ("actual", "$! = 0b2"),
-        ("body", ""),
+    assert [(p.raw_lines, p.anchor) for p in paragraphs] == [
+        (['"module"'], ""),
+        ([" # actual"], "$! = 0b2"),
+        (['    "body"'], ""),
     ]
 
 
@@ -3492,19 +3487,16 @@ def test_classification_exact_physical_code_and_comment_positions(
     ]
     paragraphs = paragraphs_for(Path("m.py"), result)
     assert not isinstance(paragraphs, ReadFailure)
-    assert [
-        (p.start, p.end, p.kind, p.text, p.raw_lines, p.anchor) for p in paragraphs
-    ] == [
-        (1, 1, Kind.TRAILING, "constant", [" # constant"], "CONSTANT = 10"),
+    assert [(p.start, p.end, p.kind, p.raw_lines, p.anchor) for p in paragraphs] == [
+        (1, 1, Kind.TRAILING, [" # constant"], "CONSTANT = 10"),
         (
             2,
             2,
             Kind.TRAILING,
-            "tail comment",
             [" # tail comment"],
             "def my_funct(x: int, y: tuple):",
         ),
-        (4, 4, Kind.COMMENT, "whole-line comment", ["    # whole-line comment"], ""),
+        (4, 4, Kind.COMMENT, ["    # whole-line comment"], ""),
     ]
     assert result.source.reconstruct() == text
 
@@ -3532,18 +3524,15 @@ def test_classification_closing_doc_comment_has_one_owner(python_definition, end
     assert len(result.payloads) == len(result.source.documentation) == 1
     paragraphs = paragraphs_for(Path("m.py"), result)
     assert not isinstance(paragraphs, ReadFailure)
-    assert [
-        (p.kind, p.start, p.end, p.text, p.raw_lines, p.anchor) for p in paragraphs
-    ] == [
+    assert [(p.kind, p.start, p.end, p.raw_lines, p.anchor) for p in paragraphs] == [
         (
             Kind.DOCSTRING,
             2,
             3,
-            "full docs",
             ['    r"""full', '    docs""" # closing note'],
             "",
         ),
-        (Kind.TRAILING, 4, 4, "detail", [" # detail"], "    work()"),
+        (Kind.TRAILING, 4, 4, [" # detail"], "    work()"),
     ]
     assert paragraphs[0].address == "a1"
     assert code_for(result) == {1: "def f():", 4: "    work()"}

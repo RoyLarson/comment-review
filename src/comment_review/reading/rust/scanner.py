@@ -4,7 +4,6 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import cast
 
-from comment_review import constants
 from comment_review.reading.comment import CommentSpan
 from comment_review.reading.definitions import LanguageDefinition
 from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, ReadStage
@@ -24,11 +23,6 @@ OPENERS = frozenset("{([")
 CLOSERS = frozenset("})]")
 # The Rust Reference's CHAR_LITERAL excludes these from an unescaped body.
 NOT_A_CHAR_BODY = frozenset("\n\r\t")
-# Whitespace that stays on its line.
-INDENT = WHITESPACE - frozenset("\r\n")
-DECORATED_KINDS = frozenset(
-    {RustTokenKind.OUTER_DOC_DELIMITED, RustTokenKind.INNER_DOC_DELIMITED}
-)
 
 
 @dataclass(frozen=True)
@@ -41,13 +35,10 @@ class _Comments:
     outer_delimited: str
     inner_delimited: str
     empty: str
-    # What may open a continuation line of a delimited doc, after its indent.
-    decoration: str
 
     @classmethod
     def from_definition(cls, definition: LanguageDefinition) -> "_Comments":
         comments = cast(Mapping[str, object], definition.rules["comments"])
-        documentation = cast(Mapping[str, object], definition.rules["documentation"])
         opener, closer = cast(tuple[str, str], comments["block_comment"])
         return cls(
             cast(str, comments["line"]),
@@ -58,7 +49,6 @@ class _Comments:
             cast(str, comments["outer_doc_block"]),
             cast(str, comments["inner_doc_block"]),
             cast(str, comments["empty_block_comment"]),
-            cast(str, documentation["delimited_decoration"]),
         )
 
     def markers(self, kind: RustTokenKind) -> tuple[str, str]:
@@ -215,12 +205,7 @@ def scan_rust(text: str, definition: LanguageDefinition) -> RustScan | ReadFailu
         else:
             regions.append(SourceRegion(span, region_kind))
         start = end
-    prose = tuple(
-        _prose(text, token, grammar.comments)
-        for token in tokens
-        if token.kind in COMMENT_KINDS
-    )
-    return RustScan(text, tuple(regions), tuple(tokens), prose)
+    return RustScan(text, tuple(regions), tuple(tokens))
 
 
 def comments_in(
@@ -244,55 +229,6 @@ def comments_in(
         opener, closer = comments.markers(token.kind)
         found.append(CommentSpan(token.span.start, token.span.end, opener, closer))
     return tuple(found)
-
-
-def _prose(text: str, token: RustToken, comments: _Comments) -> tuple[SourceSpan, ...]:
-    """The comment's text inside its markers, one piece per physical line.
-
-    A delimited doc's continuation lines are decorated when every one of them
-    opens, after an indent of one width, with the decoration character; a
-    last line that holds only indent, before the closer, is not asked. When
-    they are, each one's indent and decoration are not prose; otherwise all
-    of it is.
-    """
-    opener, closer = comments.markers(token.kind)
-    body = SourceSpan(token.span.start + len(opener), token.span.end - len(closer))
-    if token.kind not in DECORATED_KINDS:
-        return (body,)
-    lines = []
-    start = body.start
-    for line_break in constants.LINE_BREAK.finditer(text, body.start, body.end):
-        lines.append(SourceSpan(start, line_break.start()))
-        start = line_break.end()
-    lines.append(SourceSpan(start, body.end))
-    stripped = [_undecorated(text, line, comments.decoration) for line in lines[1:]]
-    asked = list(zip(lines[1:], stripped, strict=True))
-    if len(lines) > 1 and all(text[i] in INDENT for i in range(start, body.end)):
-        asked = asked[:-1]
-    if (
-        not asked
-        or any(cut is None for _, cut in asked)
-        or len({cut.start - line.start for line, cut in asked if cut}) != 1
-    ):
-        return tuple(lines)
-    return (
-        lines[0],
-        *(
-            line if cut is None else cut
-            for line, cut in zip(lines[1:], stripped, strict=True)
-        ),
-    )
-
-
-def _undecorated(text: str, line: SourceSpan, decoration: str) -> SourceSpan | None:
-    """The line past its indent and decoration, or None where it has none."""
-    at = line.start
-    while at < line.end and text[at] in INDENT:
-        at += 1
-    end = at + len(decoration)
-    if end <= line.end and text.startswith(decoration, at):
-        return SourceSpan(end, line.end)
-    return None
 
 
 def _shebang(text: str, start: int, grammar: _Grammar) -> int | None:

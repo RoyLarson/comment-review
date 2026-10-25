@@ -60,7 +60,10 @@ class Paragraph:
     start: int
     end: int
     kind: str  # a `series.Kind` value
-    text: str  # the run JOINED, so a wrapped claim matches as one string
+    # The prose JOINED, so a wrapped claim matches as one string. A reader
+    # leaves it empty; the page fills it from `raw_lines` with
+    # `lexer.comment_form`, the one derivation of a paragraph's prose.
+    text: str = ""
     # !! WHAT THIS PARAGRAPH IS ATTACHED TO, and it is ONE-TO-MANY THE OTHER WAY:
     # an anchor has MANY addresses -- its own `a`, the `b` above it, the `c`
     # beside it, every `b` and `c` in its body -- and an address has ONE anchor.
@@ -144,8 +147,9 @@ class Paragraph:
         `raw_text`, and `_paragraph` reads it back into `raw_lines`.
 
         ! NOT `text`. That is the run joined for MATCHING -- what a claim is
-        checked against -- and the two differ wherever the lexer trimmed. A
-        consumer that means the characters means this one.
+        checked against -- and the two differ by every marker and line break
+        `comment_form` takes out. A consumer that means the characters means
+        this one.
         """
         return "\n".join(self.raw_lines)
 

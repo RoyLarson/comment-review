@@ -1,7 +1,6 @@
 """Project a completed Rust read into page paragraphs, code lines and places."""
 
-import re
-from bisect import bisect_left, bisect_right
+from bisect import bisect_right
 from collections.abc import Iterable
 from pathlib import Path
 
@@ -52,7 +51,6 @@ def sections_for(
         protected,
         documentation.warnings,
         placement.detached,
-        scan.prose,
     )
 
 
@@ -91,11 +89,8 @@ def paragraphs_for(path: Path, read: RustRead) -> list[Paragraph] | ReadFailure:
         whole = text[
             layout.lines.start_of(span.start) : layout.lines.end_of(span.start)
         ]
-        shebang = text[span.start : span.end]
         paragraphs.append(
-            Paragraph(
-                path.as_posix(), line, line, Kind.MATTER, shebang, raw_lines=[whole]
-            )
+            Paragraph(path.as_posix(), line, line, Kind.MATTER, raw_lines=[whole])
         )
     for index, section in enumerate(source.sections):
         span = section.span
@@ -126,7 +121,6 @@ def paragraphs_for(path: Path, read: RustRead) -> list[Paragraph] | ReadFailure:
                 first.line,
                 last.line,
                 kind,
-                _text(layout.prose_in(span)),
                 anchor=text[line_start:anchor_end] if kind == Kind.TRAILING else "",
                 address=address,
                 annotations={DETACHED_DOCUMENTATION} if span in detached else set(),
@@ -211,7 +205,7 @@ def _opening_matter(
             parts.append(paragraph)
         else:
             at = next(n for n in range(end + 1, paragraph.end + 1) if n in covered)
-            before, after = _divided(paragraph, at, covered, layout)
+            before, after = _divided(paragraph, at, covered)
             parts.append(before)
             kept.append(after)
     kept.append(_combined(parts, Kind.MATTER, layout, set()))
@@ -247,7 +241,7 @@ def _closing_matter(
         elif paragraph.start >= matter_from:
             parts.append(paragraph)
         else:
-            before, after = _divided(paragraph, matter_from, covered, layout)
+            before, after = _divided(paragraph, matter_from, covered)
             kept.append(before)
             parts.append(after)
     kept.append(_combined(parts, Kind.MATTER, layout, set()))
@@ -255,7 +249,7 @@ def _closing_matter(
 
 
 def _divided(
-    paragraph: Paragraph, at: int, covered: set[int], layout: "_Layout"
+    paragraph: Paragraph, at: int, covered: set[int]
 ) -> tuple[Paragraph, Paragraph]:
     """The whole-line paragraph as two, the second starting on line `at`.
 
@@ -278,7 +272,6 @@ def _divided(
                 start,
                 stop,
                 Kind.COMMENT,
-                layout.text_in(start, stop),
                 annotations=set(notes),
                 raw_lines=raw,
             )
@@ -294,8 +287,7 @@ def _combined(
     Its raw lines are the physical lines from the first part's first line to
     the last part's last line, blank lines included and the lines in `held`
     left out; the first line starts after the anchor, which is empty unless
-    the first part trails code. Its text is the parts' text in order, and
-    its annotations are theirs together.
+    the first part trails code. Its annotations are the parts' together.
     """
     first, last = parts[0], parts[-1]
     raw = [
@@ -311,17 +303,11 @@ def _combined(
         first.start,
         last.end,
         kind,
-        " ".join(t for t in (p.text for p in parts) if t),
         anchor=first.anchor,
         address=first.address,
         annotations=set().union(*(p.annotations for p in parts)),
         raw_lines=raw,
     )
-
-
-def _text(prose: list[str]) -> str:
-    """The prose pieces as one paragraph's text, whitespace run together."""
-    return re.sub(r"\s+", " ", " ".join(prose)).strip()
 
 
 def code_for(read: RustRead) -> dict[int, str]:
@@ -390,7 +376,7 @@ class _Lines:
 
 
 class _Layout:
-    """Which regions of a read are code, its lines, and each comment's prose."""
+    """Which regions of a read are code, its lines, and the lines comments hold."""
 
     def __init__(self, read: RustRead) -> None:
         self.text = read.source.text
@@ -403,30 +389,12 @@ class _Layout:
             for region in read.source.regions
             if region.kind is RegionKind.COMMENT
         ]
-        self.comment_starts = [span.start for span in self.comments]
-        self.prose = read.prose
 
     def is_code(self, region: SourceRegion) -> bool:
         """Whether the region is code: code, a literal, or a comment in no section."""
         if region.kind in CODE_KINDS:
             return True
         return region.kind is RegionKind.COMMENT and not self.read.is_prose(region)
-
-    def prose_in(self, span: SourceSpan) -> list[str]:
-        """The prose pieces of every comment inside `span`, in order."""
-        first = bisect_left(self.comment_starts, span.start)
-        last = bisect_left(self.comment_starts, span.end)
-        return [
-            self.text[piece.start : piece.end]
-            for pieces in self.prose[first:last]
-            for piece in pieces
-        ]
-
-    def text_in(self, first: int, last: int) -> str:
-        """The text of the comments on lines `first` through `last`."""
-        start = self.lines.spans[first - 1][0]
-        end = self.lines.spans[last - 1][1]
-        return _text(self.prose_in(SourceSpan(start, end)))
 
     def comment_lines(self) -> set[int]:
         """Every line a comment stands on, in whole or in part."""

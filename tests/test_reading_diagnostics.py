@@ -102,7 +102,7 @@ def test_read_paragraphs_preserves_supported_readings(text):
 
 @pytest.mark.parametrize(
     "text,expected",
-    [("", []), ("# note\nx=1\n", [(1, 1, "matter", "note", ["# note"])])],
+    [("", []), ("# note\nx=1\n", [(1, 1, "matter", ["# note"])])],
 )
 def test_read_source_gives_python_its_lexical_read(text, expected):
     path = Path("m.py")
@@ -113,9 +113,7 @@ def test_read_source_gives_python_its_lexical_read(text, expected):
     assert result.source.text is text
     paragraphs = paragraphs_for(path, result)
     assert not isinstance(paragraphs, ReadFailure)
-    assert [
-        (p.start, p.end, p.kind, p.text, p.raw_lines) for p in paragraphs
-    ] == expected
+    assert [(p.start, p.end, p.kind, p.raw_lines) for p in paragraphs] == expected
 
 
 def test_python_paragraph_adapter_recognizes_source_once(monkeypatch):
@@ -138,7 +136,7 @@ def test_python_paragraph_adapter_recognizes_source_once(monkeypatch):
     assert len(calls) == 1
     assert result == paragraphs_for(Path("m.py"), calls[0])
     assert isinstance(result[0], Paragraph)
-    assert result[0].text == "doc"
+    assert result[0].raw_lines == ['    "doc"']
 
 
 def test_stage_values_and_source_read_alternatives():

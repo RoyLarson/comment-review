@@ -1382,7 +1382,7 @@ def test_rust_page_refuses_a_warning_it_cannot_place(monkeypatch, missing):
         def without_detached(self, path):
             got = real(self, path)
             assert not isinstance(got, ReadFailure)
-            return [b for b in got if "Detached" not in b.text]
+            return [b for b in got if "Detached" not in b.raw_text]
 
         monkeypatch.setattr(RustRead, "paragraphs", without_detached)
     registry = installed_registry()

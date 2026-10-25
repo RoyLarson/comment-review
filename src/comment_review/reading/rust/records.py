@@ -94,21 +94,6 @@ def _nesting(tokens: "tuple[RustToken, ...]", end: int) -> None:
             cursor = span.end
 
 
-def _prose(
-    prose: tuple[tuple[SourceSpan, ...], ...], comments: list[SourceSpan]
-) -> None:
-    """Require one ordered run of pieces per comment, each inside its comment."""
-    if not isinstance(prose, tuple) or len(prose) != len(comments):
-        raise ValueError("prose must hold one entry per comment, in order")
-    for pieces, comment in zip(prose, comments, strict=True):
-        _tuple(pieces, SourceSpan, "prose pieces")
-        boundary = comment.start
-        for piece in pieces:
-            if piece.start < boundary or piece.end > comment.end:
-                raise ValueError("prose must lie inside its comment, in order")
-            boundary = piece.end
-
-
 @dataclass(frozen=True)
 class RustToken:
     """A scanner token: a kind and the nonempty source span it covers."""
@@ -150,12 +135,9 @@ class RustScan:
     text: str
     regions: tuple[SourceRegion, ...]
     tokens: tuple[RustToken, ...]
-    # Each comment token's prose, in token order: the spans of its text inside
-    # its markers, one per physical line for a decorated doc.
-    prose: tuple[tuple[SourceSpan, ...], ...]
 
     def __post_init__(self) -> None:
-        """Require a contiguous partition, tokens that agree with it, and prose."""
+        """Require a contiguous partition and tokens that agree with it."""
         if not isinstance(self.text, str):
             raise ValueError("scan text must be a string")
         _tuple(self.regions, SourceRegion, "regions")
@@ -181,10 +163,6 @@ class RustScan:
                 region.kind is RegionKind.LITERAL and token.span.end <= region.span.end
             ):
                 raise ValueError("literal token must lie inside a literal region")
-        _prose(
-            self.prose,
-            [token.span for token in self.tokens if token.kind in COMMENT_KINDS],
-        )
 
 
 @dataclass(frozen=True)
@@ -321,23 +299,21 @@ class RustRead:
     """A completed Rust read: the source structure and what the read must keep.
 
     `detached` aligns one-to-one, in order, with `warnings`, so a warning's
-    owner is its run's `owner`. `prose` is the scan's prose, one entry per
-    COMMENT region, kept because the read holds no tokens. A COMMENT region
-    in no section is code. Each declaration anchors on its own line, below
-    the one before it, and its documentation goes above that line. A
-    documentation section shares no physical line with
-    another section, so an `a` place holds its doc alone; other sections may
-    share a line, and the projection makes them one paragraph.
+    owner is its run's `owner`. A COMMENT region in no section is code. Each
+    declaration anchors on its own line, below the one before it, and its
+    documentation goes above that line. A documentation section shares no
+    physical line with another section, so an `a` place holds its doc alone;
+    other sections may share a line, and the projection makes them one
+    paragraph.
     """
 
     source: SourceStructure
     protected: tuple[SourceSpan, ...]
     warnings: tuple[ReadDiagnostic, ...]
     detached: tuple[DetachedRun, ...]
-    prose: tuple[tuple[SourceSpan, ...], ...]
 
     def __post_init__(self) -> None:
-        """Check declaration lines, protected spans, warnings, detached runs, prose."""
+        """Check declaration lines, protected spans, warnings and detached runs."""
         if not isinstance(self.source, SourceStructure):
             raise ValueError("read source must be a SourceStructure")
         lines = [
@@ -385,10 +361,6 @@ class RustRead:
             run.span for run in self.detached
         ]:
             raise ValueError("warnings must align, in order, with detached runs")
-        _prose(
-            self.prose,
-            [r.span for r in self.source.regions if r.kind is RegionKind.COMMENT],
-        )
 
     @property
     def proof(self) -> str:
