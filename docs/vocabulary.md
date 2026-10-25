@@ -530,6 +530,18 @@ word cannot return without a ruling behind it.
 ! **Do not add it to `vocabulary.toml`.** That file holds what agents are GIVEN, and the drift
 check refuses a term no role uses. Adding it to tidy the numbers is writing to the check.
 
+## `lexer` -- the module that reads characters against a language definition
+
+**`reading/lexer.py` is the lexer, and the name is literal.** For each language without a
+reader package of its own, it reads a source file's characters against that language's
+definition -- comment openers, quotes, spanning delimiters -- and cuts the prose from the code.
+That is lexical analysis, and `scan` is the word for it.
+
+It kept the name rather than taking `typecoder` because the reason to rename went away: the
+module once also read CPython's tokens and parse for Python, which is not lexing. Python is now
+read by `reading/python/`, so what is left in `lexer.py` lexes
+(`decision-log.md Vocabulary: #38`).
+
 ## Rules about the words themselves
 
 - **The metaphor is EDITORIAL.** Editorial roles read a manuscript and write editorial marks;

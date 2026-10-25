@@ -1434,6 +1434,16 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   favour of moves on. The rename is filed rather than done:
   [`paragraph-is-a-passage`](../TODO/paragraph-is-a-passage.md).
 
+- **#38.** **`lexer` keeps its name** (Roy, 2026-10-25, asked whether to keep `lexer` now that
+  Python is read by `reading/python/` and `paragraphs_stdlib` is gone: *"Sure"*).
+
+  **What it settles.** `reading/lexer.py` reads characters against a language definition --
+  comment openers, quotes, spanning delimiters -- for each language without its own reader
+  package, which is lexical analysis, so the name is true. The objection in
+  [`lexer-does-not-lex`](../TODO/lexer-does-not-lex.md) was that the module also read CPython's
+  parse; that half left with the Python reader. No rename follows, so that TODO's rename and
+  retirement tasks are superseded.
+
 ## Metaphor and its limits
 
 - **#1.** **A category doing two jobs gets asked what the trade calls the half that does not fit**
