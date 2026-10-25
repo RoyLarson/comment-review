@@ -5537,3 +5537,16 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   **What it settles.** The gather names a file holding a lone CR as unreadable. One function in
   `machine/` answers a file's line ending; no reader, desk or results module decides one, and a
   function that writes line breaks takes the ending as an argument.
+
+- **#221.** **What the one line-ending function answers for a mixed file and an unbroken one,
+  and where the work is done** (Roy, 2026-10-25, asked three questions: a file mixing CRLF and
+  bare LF with no lone CR, none in about 6,000 sampled, offered refusing it, CRLF if any, or the
+  majority; a file with no line break, offered LF or the platform's ending; and the branch,
+  offered its own plan and branch, `feat/lexer-rust`, or a split). His answers: mixed -- *"Do what
+  git does"*; no break -- *"LF (Recommended)"*; branch -- *"Its own plan and branch
+  (Recommended)"*.
+
+  **What it settles.** Lines added to a file with no line break take LF. The change is planned on
+  its own branch, and galley-and-compositor-write-path T60 is superseded on `feat/lexer-rust` by
+  the TODO that holds it. A mixed file follows git; what that means on a checkout whose git
+  configuration varies is stated in the plan for Roy to approve.
