@@ -282,12 +282,11 @@ def _paragraph(place: dict, path: str) -> Paragraph:
     !! A PARAGRAPH, NOT A REDACTED ONE. What a redaction removes is at the PAGE
     -- the source text, and the places holding no prose.
 
-    ! THE FOUR FIELDS THE WIRE DOES NOT CARRY ARE DERIVED, NOT INVENTED:
+    ! THE THREE FIELDS THE WIRE DOES NOT CARRY ARE DERIVED, NOT INVENTED:
 
         kind     `_kind_of`: the series' present kind, or its absent one if empty
         start    the recorded `original_start` -- nothing moves between the
         end      gather and the read back, so the two are the same lines
-        lines    0 for an empty place, else the count of `raw_lines`
 
     ! `start`/`end` FALL BACK TO 0 when the wire carries null line numbers,
     which is this type's own spelling for *occupies nothing* -- see
@@ -304,10 +303,6 @@ def _paragraph(place: dict, path: str) -> Paragraph:
         start=start if isinstance(start, int) else 0,
         end=end if isinstance(end, int) else 0,
         kind=_kind_of(series, raw_text),
-        # ! ZERO WHERE THE PLACE HOLDS NOTHING, which is what an EMPTY place
-        # means -- `Kind.occupies_no_lines`. `raw_lines` still holds one entry
-        # for it, so `len(raw_lines)` would say 1.
-        lines=0 if not raw_text.strip() else len(raw_lines),
         text=raw_text,
         anchor=str(place.get("anchor", "")),
         address=address_for(path, cue_text),
@@ -687,7 +682,6 @@ def empty_places(
                     start=0,
                     end=0,
                     kind="undocumented",
-                    lines=0,
                     text="",
                     anchor=anchor,
                     original_start=None,
@@ -727,7 +721,6 @@ def empty_places(
                     start=n,
                     end=n,
                     kind="margin",
-                    lines=0,
                     text="",
                     raw_lines=[lines[n - 1][len(code) :]],
                     original_start=n,
@@ -747,7 +740,6 @@ def empty_places(
                     start=0,
                     end=0,
                     kind="dark-matter",
-                    lines=0,
                     text="",
                     original_start=None,
                     original_end=None,
@@ -780,7 +772,6 @@ def empty_places(
                     start=low if low <= high else 0,
                     end=high if low <= high else 0,
                     kind="interval",
-                    lines=0,
                     text="",
                     # ! A CLOSED LIST OR None -- see `Paragraph`. `low > high`
                     # here says the gap holds no line of its own, which is not

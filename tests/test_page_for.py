@@ -129,11 +129,11 @@ def test_python_page_documentation_closing_comment_keeps_one_wire_owner(
 @pytest.mark.parametrize(
     "text, expected",
     [
-        ("x=1\n# first\n\n# second\ny=2\n", {"b1": 3}),
+        ("x=1\n# first\n\n# second\ny=2\n", {"b1": 2}),
         ("x=1 # first\n\n# second\ny=2\n", {"c0": 1, "b1": 1}),
         (
             "# front\n\n# first\n\n# second\nx=1\n# after\n\n# back\n",
-            {"f0": 1, "b0": 3, "b1": 1, "f1": 1},
+            {"f0": 1, "b0": 2, "b1": 1, "f1": 1},
         ),
     ],
 )
@@ -154,7 +154,6 @@ def test_python_page_complete_comment_line_counts_preserve_wire_cap_eligibility(
     assert {key: p.lines for key, p in saved.items()} == expected
     for key, count in expected.items():
         assert fresh[key].raw_text == saved[key].raw_text
-        assert fresh[key].lines == len(fresh[key].raw_lines)
         for cap in (1, 2, 3):
             stage = Stage("cap", Kind.EDITORIAL, cap=cap)
             assert deals(stage, fresh[key]) == deals(stage, saved[key]) == (count > cap)

@@ -94,7 +94,7 @@ def paragraphs_for(path: Path, read: RustRead) -> list[Paragraph] | ReadFailure:
         shebang = text[span.start : span.end]
         paragraphs.append(
             Paragraph(
-                path.as_posix(), line, line, Kind.MATTER, 1, shebang, raw_lines=[whole]
+                path.as_posix(), line, line, Kind.MATTER, shebang, raw_lines=[whole]
             )
         )
     for index, section in enumerate(source.sections):
@@ -126,7 +126,6 @@ def paragraphs_for(path: Path, read: RustRead) -> list[Paragraph] | ReadFailure:
                 first.line,
                 last.line,
                 kind,
-                len(raw),
                 _text(layout.prose_in(span)),
                 anchor=text[line_start:anchor_end] if kind == Kind.TRAILING else "",
                 address=address,
@@ -279,7 +278,6 @@ def _divided(
                 start,
                 stop,
                 Kind.COMMENT,
-                len(raw),
                 layout.text_in(start, stop),
                 annotations=set(notes),
                 raw_lines=raw,
@@ -313,7 +311,6 @@ def _combined(
         first.start,
         last.end,
         kind,
-        len(raw),
         " ".join(t for t in (p.text for p in parts) if t),
         anchor=first.anchor,
         address=first.address,

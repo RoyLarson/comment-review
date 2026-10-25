@@ -1932,7 +1932,6 @@ def paragraph(start, end, kind, text, raw, *, address="", anchor="", notes=()):
         start,
         end,
         kind,
-        len(raw),
         text,
         anchor=anchor,
         address=address,

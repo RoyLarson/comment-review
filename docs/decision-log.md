@@ -5580,3 +5580,22 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   **What it settles.** `lines` is the count a stage's cap compares, and it is counted as
   `counted_lines` counts it: blank lines and a work-marker line are free. Every other way of
   filling it is a defect to repair.
+
+  **Where the rule comes from.** It predates this log: workout_organizer `c7558601`
+  (2026-08-12), `tests/test_docstring_hygiene.py` -- *"Roy's approved markers (2026-08-11) --
+  the whole list; anything absent COUNTS"* (`TODO`, `FIXME`, `HACK`, `XXX`, `BUG`), *"Only CODE
+  ends a run"*, and *"A `# TODO` line is treated exactly like a blank one -- not counted, and
+  not a separator either."* Roy confirmed it the same day, asked whether a blank line inside a
+  run is free as leading: *"I can go with yes on that."*
+
+- **#224.** **A reader finds prose; it does not rebuild the paragraph, the page or the addresser**
+  (Roy, 2026-10-25, shown that the lexer, the Python reader and the Rust reader each compute a
+  paragraph's `lines` and `text` their own way and two of them stamp `address`: *"The goal was
+  to make the system act exactly the same as the original python AST version post lexer. It was
+  not to reimplement all of the Paragraph and Page and Addresser for each language type. That
+  was a mistake"*).
+
+  **What it settles.** A reader supplies what only parsing can find -- each paragraph's span,
+  its raw lines, its kind and its anchor. What follows from those is derived once, for every
+  language: `Paragraph` derives its own fields, the page places it and the addresser addresses
+  it, as they did for Python before the lexical readers.

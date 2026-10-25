@@ -257,16 +257,11 @@ def deals(stage: Stage, paragraph: Paragraph) -> bool:
         stage: the row, as a run's topology states it.
         paragraph: one place a role would be handed -- a binder's row, or a
             page's own paragraph. Both carry the address the series is read
-            off and the line count the page put on them.
+            off and the raw lines `Paragraph.lines` counts.
 
     Returns:
         Whether the seed gives this place a slot. A place holding no prose
         counts 0 lines, so it is never over a cap.
-
-    The count is the page's, not a second count taken here. `binder.page`
-    fills `lines` from the paragraph's own raw text when a binder is read
-    back, and the lexer fills it when a page is built, so what this compares
-    is what the page says the paragraph stands on.
     """
     if stage.series and cue_of(paragraph.address).series not in stage.series:
         return False

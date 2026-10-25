@@ -18,7 +18,32 @@ that makes one and every module that reads one take it from the same
 declaration instead of from each other.
 """
 
+import re
 from dataclasses import dataclass, field
+
+MARKERS = ("TODO", "FIXME", "HACK", "XXX", "BUG")
+WORK_MARKER = re.compile(r"^(" + "|".join(MARKERS) + r")\b")
+# ! Every punctuation a language opens a comment with, stripped before the
+# marker is matched.
+LEAD_PUNCT = re.compile(r"^[\s#/*\-!=;%<>]+")
+
+
+def counted_lines(raw: list[str]) -> int:
+    """Lines a cap charges for: a marker LINE itself is free.
+
+    A marker points at filed work; the explanation is the rest of the paragraph, and
+    the cap measures the explanation. Charge the marker and the quickest route to
+    green is deleting the pointer -- which is quick to do and expensive to have
+    done: the work is still needed, and nothing names it any more.
+
+    The exemption is one line wide. A run stays one run across a marker, and a
+    marker's continuation lines are charged: six lines plus a `TODO:` is six.
+    """
+    # ! A BLANK LINE IS FREE TOO. It sits inside the paragraph by the interval
+    # definition -- only code bounds a paragraph -- and is leading, not prose.
+    return sum(
+        1 for ln in raw if ln.strip() and not WORK_MARKER.match(LEAD_PUNCT.sub("", ln))
+    )
 
 
 @dataclass
@@ -35,7 +60,6 @@ class Paragraph:
     start: int
     end: int
     kind: str  # a `series.Kind` value
-    lines: int
     text: str  # the run JOINED, so a wrapped claim matches as one string
     # !! WHAT THIS PARAGRAPH IS ATTACHED TO, and it is ONE-TO-MANY THE OTHER WAY:
     # an anchor has MANY addresses -- its own `a`, the `b` above it, the `c`
@@ -124,6 +148,15 @@ class Paragraph:
         consumer that means the characters means this one.
         """
         return "\n".join(self.raw_lines)
+
+    @property
+    def lines(self) -> int:
+        """The lines a stage's cap charges this paragraph for -- `counted_lines`.
+
+        Derived from `raw_lines`, so every reader and a binder read back count
+        one way. An empty place holds no prose line and counts 0.
+        """
+        return counted_lines(self.raw_lines)
 
     # !! THE LINES THIS PARAGRAPH COVERS IN THE FILE AS IT READS NOW. That is
     # the whole definition, and it is NOT always the range that ADDRESSES the

@@ -15,9 +15,8 @@ and where its doc would go.
 
 Beside the reader: `document_declarations` stamps the `a` cue on the run that
 documents a declaration, `flag_structural_docs` annotates a Go or Ruby run whose
-kind position cannot settle, `counted_lines` counts the lines a cap charges for,
-and `comment_form` parses a comment's markers and fragments for
-`desk.marks.rules`.
+kind position cannot settle, and `comment_form` parses a comment's markers and
+fragments for `desk.marks.rules`.
 
 """
 
@@ -71,31 +70,6 @@ _NO_TRAILING = -2
 
 
 MODULE_ANCHOR = "<module>"
-MARKERS = ("TODO", "FIXME", "HACK", "XXX", "BUG")
-WORK_MARKER = re.compile(r"^(" + "|".join(MARKERS) + r")\b")
-# ! Every punctuation a language opens a comment with, stripped before the
-# marker is matched.
-LEAD_PUNCT = re.compile(r"^[\s#/*\-!=;%<>]+")
-
-
-def counted_lines(raw: list[str]) -> int:
-    """Lines a cap charges for: a marker LINE itself is free.
-
-    A marker points at filed work; the explanation is the rest of the paragraph, and
-    the cap measures the explanation. Charge the marker and the quickest route to
-    green is deleting the pointer -- which is quick to do and expensive to have
-    done: the work is still needed, and nothing names it any more.
-
-    The exemption is one line wide. A run stays one run across a marker, and a
-    marker's continuation lines are charged: six lines plus a `TODO:` is six.
-    """
-    # ! A BLANK LINE IS FREE TOO. It sits inside the paragraph by the interval
-    # definition -- only code bounds a paragraph -- and `paragraphs_lexical` holds it
-    # in the run.
-    return sum(
-        1 for ln in raw if ln.strip() and not WORK_MARKER.match(LEAD_PUNCT.sub("", ln))
-    )
-
 
 # -- Annotations ---------------------------------------------------------------
 # This module stamps three -- `continues-a-trailing-comment`,
@@ -685,7 +659,6 @@ def _leading(
         start=run[0],
         end=run[-1],
         kind=Kind.LEADING,
-        lines=0,
         text="",
         raw_lines=[lines[n - 1] for n in run],
     )
@@ -853,7 +826,6 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
             start=run[0][0],
             end=run[-1][0],
             kind=kind,
-            lines=counted_lines(raw),
             text=_join(raw, openers),
             raw_lines=span,
             # !! THE LEXER ALREADY HAS THIS STRING. It found the opener in order
