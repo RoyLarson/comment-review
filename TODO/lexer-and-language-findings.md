@@ -203,6 +203,7 @@ would.
 - [ ] T12 | T12 -- Settle what `Paragraph.lines` counts: three rules fill it,
       one column reads it. Verify: one rule fills it, or the field is gone and
       the column computes it.
+        > 2026-10-25 Rule settled: counted_lines; decision-log.md Process: #223
 - [-] T13 | Moved to language-reader-java.md | 42f3d3e5 | T13 -- Give Java its
       own expression of a soft keyword: `record` at language.py:248. Verify:
       `record = lookup()` in a `.java` mints no `a`, and a real one still does.
