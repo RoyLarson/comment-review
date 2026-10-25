@@ -5570,3 +5570,13 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   with a row -- Go, C, C++, Java, C#, Swift, Kotlin, JavaScript, TypeScript, Ruby, Shell, SQL and
   Lua -- has its own TODO holding its spec and its reader, and is worked when it is asked for.
   The plan's per-language steps P11-P36 and the all-languages step P53 are superseded.
+
+- **#223.** **`Paragraph.lines` stays, and the lexer's count is the one that is right** (Roy,
+  2026-10-25, shown that `desk/stages.py` `deals` compares `lines` against a stage's cap, and
+  that `counted_lines` in `reading/lexer.py`, `len(raw_lines)` in `binder/page.py` and the
+  Python reader's span length count it three ways; asked whether it has a place as the count the
+  cap compares: *"Yes - The only one that is correct is the reading/lexer.py version."*).
+
+  **What it settles.** `lines` is the count a stage's cap compares, and it is counted as
+  `counted_lines` counts it: blank lines and a work-marker line are free. Every other way of
+  filling it is a defect to repair.
