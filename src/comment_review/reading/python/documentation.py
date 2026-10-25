@@ -201,7 +201,7 @@ def decode_documentation(
                 following = _newline_end(text, start, end)
                 decoded = "\n"
             elif not raw and text.startswith(escape, start):
-                result = _decode_escape(text, start, end, escape, decoding)
+                result = decode_escape(text, start, end, escape, decoding)
                 if isinstance(result, ReadFailure):
                     return result
                 decoded, following = result
@@ -221,13 +221,18 @@ def _newline_end(text: str, start: int, end: int) -> int:
     return start + (2 if text.startswith("\r\n", start, end) else 1)
 
 
-def _decode_escape(
+def decode_escape(
     text: str,
     start: int,
     end: int,
     marker: str,
     decoding: Mapping[str, object],
 ) -> tuple[str, int] | ReadFailure:
+    """The characters the escape at `start` stands for, and the offset after it.
+
+    `decoding` is the definition's `literals.decoding` table; an escape it
+    refuses is a `ReadFailure`.
+    """
     suffix = start + len(marker)
     if suffix == end:
         return _payload_failure("invalid-documentation-escape", start, end)

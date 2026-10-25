@@ -21,9 +21,7 @@ fragments for `desk.marks.rules`.
 """
 
 import ast
-import io
 import re
-import tokenize
 from collections.abc import Callable, Mapping
 from pathlib import Path
 from types import MappingProxyType
@@ -122,10 +120,10 @@ def comment_form(
         return _scanned_form(path, series, raw_text, anchor, found)
     lang = language_for(path)
     chunks: list[str] = []
-    if documents_in_literals(path) and series is Series.DECLARED:
+    if value is not None and documents_in_literals(path) and series is Series.DECLARED:
         from comment_review.reading.docstring import concatenated
 
-        docstring = concatenated(raw_text)
+        docstring = concatenated(raw_text, value)
         if docstring is not None:
             return docstring
     pending: list[str] = []
@@ -294,20 +292,23 @@ def _comment_fragment(
             ),
             None,
         )
+    definition = INSTALLED_REGISTRY.for_path(path)
     if (
         in_literals
+        and definition is not None
         and series is Series.DECLARED
         and re.match(r"(?i)[rub]*(\"\"\"|'''|\"|')", raw_text.lstrip())
     ):
-        tokens = tokenize.generate_tokens(io.StringIO(raw_text.lstrip()).readline)
-        token = next((one for one in tokens if one.type == tokenize.STRING), None)
-        if token is not None:
-            opening = re.match(r"(?i)[rub]*(\"\"\"|'''|\"|')", token.string)
+        from comment_review.reading.docstring import first_literal
+
+        spelling = first_literal(raw_text.lstrip(), definition)
+        if spelling is not None:
+            opening = re.match(r"(?i)[rub]*(\"\"\"|'''|\"|')", spelling)
             if opening is not None:
                 op = opening.group(0)
                 close = opening.group(1)
                 opened = op, close
-                end_at = len(indent) + len(token.string) - len(close)
+                end_at = len(indent) + len(spelling) - len(close)
     if opened is not None:
         op, close = opened
         if lang is not None:
