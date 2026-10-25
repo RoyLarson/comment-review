@@ -1,11 +1,11 @@
 # Lexical readers implementation
 
 ```
-Status:   in-progress
-Progress: 61 of 165 TODO tasks closed
+Status:   decision-needed
+Progress: 61 of 174 TODO tasks closed
 Plan-tasks: 40 of 53 plan tasks closed
 Owner:    backend
-Requires-Roy: false
+Requires-Roy: true
 Raised:   2026-10-11 (founded by move-t from 0.2.4-the-middle-rebuilt)
 ```
 
@@ -591,6 +591,16 @@ interfaces, inputs and checks, without internal development files or history.
 - [ ] T1 | Derive Paragraph.text in one place for every reader
 - [ ] T2 | Assign each paragraph's address in the page instead of in a reader
 - [ ] T3 | List each Paragraph, Page or Addresser duty a reader still performs
+- [ ] T4 | Derive each line's code in the page for every reader
+- [ ] T5 | Give a Python docstring paragraph its whole source lines
+- [ ] T6 | Delete the continues-a-trailing-comment stamp from lexer.py
+- [?] T7 | Decide whether matter is a kind a reader assigns or a page place
+- [ ] T8 | Move the front and back matter rule to one shared place
+- [ ] T9 | Move the one-paragraph-per-place rule from the Rust reader to the
+      page
+- [ ] T10 | Move the Rust reader's a-place capacity rules to the page
+- [ ] T11 | Carry detached documentation as one fact instead of two
+- [ ] T12 | Replace the Rust reader's _Lines with the shared line splitter
 
 ## Plan Tasks
 
