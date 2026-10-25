@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 61 of 162 TODO tasks closed
+Progress: 61 of 165 TODO tasks closed
 Plan-tasks: 40 of 53 plan tasks closed
 Owner:    backend
 Requires-Roy: false
@@ -585,6 +585,12 @@ interfaces, inputs and checks, without internal development files or history.
 
 - [ ] T1 | Exclude generated and preprocessed output from review targets; verify
       the task instructions select maintained source
+
+### AQ - [a-reader-finds-prose-only](../../TODO/a-reader-finds-prose-only.md)
+
+- [ ] T1 | Derive Paragraph.text in one place for every reader
+- [ ] T2 | Assign each paragraph's address in the page instead of in a reader
+- [ ] T3 | List each Paragraph, Page or Addresser duty a reader still performs
 
 ## Plan Tasks
 
