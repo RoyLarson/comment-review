@@ -1,10 +1,10 @@
 # A licence header and a doc comment become one paragraph with one address
 
 ```
-Status:   decision-needed
-Progress: 5 of 6 tasks closed
+Status:   closed
+Progress: 6 of 6 tasks closed
 Owner:    backend
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-21 (the /code-review xhigh of 2026-08-21, focused on the file-to-
           census route)
 TRIAGED:  2026-08-23 -- four of five were records and are ticked. ! THE ONE LIVE TASK IS
@@ -56,7 +56,9 @@ It does not reopen the address or comment-section boundary rule.
         > 2026-08-31 3 in this repo's own Python -- page.py b28, mark.py b27
         > 2026-09-05 FitPlan 09-05: two places each held two paragraphs; no mark fits
         > 2026-10-11 Roy: same-type comments stay together; blank lines add no anchor.
-- [?] T6 | Decide whether Paragraph.lines still has a place, given the mark changes and
-      the address system carrying the text properly?
+- [x] T6 | Ruled: lines stays, counted by counted_lines | d86fa272 | Decide
+      whether Paragraph.lines still has a place, given the mark changes and the
+      address system carrying the text properly?
         > 2026-08-31 11 writes, 1 read -- a debug print in commands/census.py
         > 2026-08-31 == len(raw_lines) filled, 0 empty, wrong on the 3 merged runs
+        > 2026-10-25 Roy: lines stays, lexer count; decision-log.md Process: #223

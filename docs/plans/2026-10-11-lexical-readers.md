@@ -1,11 +1,11 @@
 # Lexical readers implementation
 
 ```
-Status:   decision-needed
-Progress: 59 of 162 TODO tasks closed
+Status:   in-progress
+Progress: 60 of 162 TODO tasks closed
 Plan-tasks: 40 of 53 plan tasks closed
 Owner:    backend
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-10-11 (founded by move-t from 0.2.4-the-middle-rebuilt)
 ```
 
@@ -561,9 +561,9 @@ interfaces, inputs and checks, without internal development files or history.
       with `from e`. Verify: `grep -rn exceptions.TOKENIZE_ERRORS plugins/` is
       empty and pytest is green.
 
-### AN - [a-comment-run-merges-across-blanks](../../TODO/a-comment-run-merges-across-blanks.md)
+### AN - [a-comment-run-merges-across-blanks](../../TODO/completed/a-comment-run-merges-across-blanks.md)
 
-- [?] T6 | Decide whether Paragraph.lines still has a place, given the mark
+- [x] T6 | Decide whether Paragraph.lines still has a place, given the mark
       changes and the address system carrying the text properly?
 
 ### AO - [2026-10-11-source-reading-contract](../../TODO/completed/2026-10-11-source-reading-contract.md)
