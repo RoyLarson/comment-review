@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 9 of 20 tasks closed
+Progress: 10 of 20 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-25 (decision-log.md Process: #224)
@@ -82,7 +82,8 @@ defect and is repaired (lexer-and-language-findings T12, b30cc510).
         > 2026-10-25 page.py:898-899 turns MATTER into COMMENT when it has an a address
         > 2026-10-25 Reason: #225, the reader assigns the kind; the page only addresses
         > 2026-10-25 Check: git grep "b.kind = Kind" -- src/comment_review/binder: none
-- [ ] T14 | Form one comment section per gap in the Rust reader
+- [x] T14 | Rust sections formed once in documentation.py; reviewed clean | 431d1614 | Form
+      one comment section per gap in the Rust reader
         > 2026-10-25 A detached doc joins the comments around it; #226
         > 2026-10-25 Replaces rust/projection.py:139 _one_per_place merging afterward
         > 2026-10-25 Check: a detached /// between // lines reads as one b comment

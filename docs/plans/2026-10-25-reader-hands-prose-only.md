@@ -2,8 +2,8 @@
 
 ```
 Status:   in-progress
-Progress: 4 of 15 TODO tasks closed
-Plan-tasks: 4 of 17 plan tasks closed
+Progress: 5 of 15 TODO tasks closed
+Plan-tasks: 5 of 17 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-25 (founded by move-t from 2026-10-11-lexical-readers)
@@ -31,7 +31,7 @@ per step; each step lands its failing test first.
 - [ ] T8 | Move the front and back matter rule to one shared place
 - [ ] T12 | Replace the Rust reader's _Lines with the shared line splitter
 - [ ] T13 | Stop the page changing a reader's matter kind to comment
-- [ ] T14 | Form one comment section per gap in the Rust reader
+- [x] T14 | Form one comment section per gap in the Rust reader
 - [ ] T15 | Remove the page's detached-documentation placement
 - [-] T16 | Move the lexical path's code lines and declarations into its reader
 - [-] T17 | Correct each reader's code text
@@ -68,7 +68,8 @@ per step; each step lands its failing test first.
 - [ ] P7 | State the matter rule once in reading for every reader to call
         > 2026-10-25 Check: one definition; .rs and .kt give the same f places
         > 2026-10-25 Works T8
-- [ ] P8 | Form one comment section per gap in the Rust reader
+- [x] P8 | Sections formed once; post-merge removed; 5466 passed | 431d1614 | Form
+      one comment section per gap in the Rust reader
         > 2026-10-25 Check: a detached /// between // lines reads as one b comment
         > 2026-10-25 Check: no _one_per_place under reading/rust
         > 2026-10-25 Works T14

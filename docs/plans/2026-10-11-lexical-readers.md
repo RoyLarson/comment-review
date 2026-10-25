@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 68 of 177 TODO tasks closed
+Progress: 69 of 177 TODO tasks closed
 Plan-tasks: 40 of 53 plan tasks closed
 Owner:    backend
 Requires-Roy: false
@@ -610,7 +610,7 @@ interfaces, inputs and checks, without internal development files or history.
       reader's _Lines with the shared line splitter
 - [ ] T13 | MOVED to 2026-10-25-reader-hands-prose-only | Stop the page changing
       a reader's matter kind to comment
-- [ ] T14 | MOVED to 2026-10-25-reader-hands-prose-only | Form one comment
+- [x] T14 | MOVED to 2026-10-25-reader-hands-prose-only | Form one comment
       section per gap in the Rust reader
 - [ ] T15 | MOVED to 2026-10-25-reader-hands-prose-only | Remove the page's
       detached-documentation placement
