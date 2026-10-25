@@ -133,6 +133,12 @@ python <skill>/scripts/comment-review.py gather --repo . --out <run-dir>/binder.
 The gather reads every file handed to it and exits nonzero naming any language it has no
 record for; `gather --languages` lists the ones it reads. Report every gap it prints.
 
+The gather also prints one line on stderr for each detached documentation it read, in the form
+`warning: <path>@<cue>: detached documentation for <owner cue>`. Ask the author about each line
+with `AskUserQuestion`, showing the paragraph at `<cue>` and offering two answers: move it to
+`<owner cue>`, or leave it where it is. Record each answer in the style sheet, and continue the
+run whatever the answer is.
+
 Then build the topology: one stage, `4`, with every role split so each dispatch holds five
 files at most. `<n>` is the number of files divided by five, rounded up.
 

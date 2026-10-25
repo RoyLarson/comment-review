@@ -2,7 +2,7 @@
 
 A language with its own definition file is read from it:
 `references/languages/*.toml` is loaded at import, one file per language, into
-`SHIPPED_DEFINITIONS`. Python is defined that way.
+`SHIPPED_DEFINITIONS`. Python and Rust are defined that way.
 
 The other code languages are still rows in `LANGUAGES`, and installed
 definitions materialize grammar from each row `READER_METADATA` names -- every
@@ -97,36 +97,6 @@ class Language:
 # because Lua's does. Neither is evidence about the other, and a row that
 # reasoned from a neighbour would be assembling one definition out of two.
 LANGUAGES: tuple[Language, ...] = (
-    Language(
-        "rust",
-        (".rs",),
-        ("///", "//!", "//"),
-        (("/*", "*/"),),
-        doc_line=("///", "//!"),
-        # ! Rust nests its paragraph comments.
-        nests_comments=True,
-        # !! AND A LIFETIME IS NOT A LITERAL. `&'static str` opens a `'` that
-        # never closes, so reading it as a quote blanked the rest of the line --
-        # comment included. `char_quotes` is what tells the two apart.
-        char_quotes=("'",),
-        # ! `pub` opens an item and `let` opens a binding, so one is in and
-        # the other is not.
-        declares=(
-            "pub",
-            "fn",
-            "struct",
-            "enum",
-            "trait",
-            "impl",
-            "mod",
-            "type",
-            "union",
-            "const",
-            "static",
-            "macro_rules!",
-        ),
-        quotes=('"', "'"),
-    ),
     Language(
         "go",
         (".go",),
@@ -496,7 +466,6 @@ class ReaderMetadata:
 
 READER_METADATA = MappingProxyType(
     {
-        "rust": ReaderMetadata("rust-lexical", "1", ("comments", "lexical")),
         "go": ReaderMetadata("go-lexical", "1", ("comments", "lexical")),
         "c": ReaderMetadata("c-lexical", "1", ("comments", "lexical")),
         "cpp": ReaderMetadata("cpp-lexical", "1", ("comments", "lexical")),
@@ -631,7 +600,7 @@ def language_for(path: Path) -> Language | None:
     """The lexical grammar for a path, built from its installed row.
 
     None for a path no row covers: a language defined by its own file, such as
-    Python, and the non-code rows TOML, INI and YAML.
+    Python or Rust, and the non-code rows TOML, INI and YAML.
     """
     value = INSTALLED_REGISTRY.for_path(path)
     if value is None or value.language not in READER_METADATA:
@@ -642,15 +611,18 @@ def language_for(path: Path) -> Language | None:
 def line_comment_markers(path: Path) -> tuple[str, ...]:
     """The markers that open a line comment in the path's language.
 
-    A lexical row lists them as `line_comment`; a definition file states its one
-    marker under `comments.marker`. Empty when no definition covers the path.
+    A lexical row lists them as `line_comment`; Python's definition file states
+    its one `marker` under `comments`. Empty when neither does: a language whose
+    reader scans its own comments, as Rust's does, is split by that reader.
     """
     lang = language_for(path)
     if lang is not None:
         return lang.line_comment
     value = INSTALLED_REGISTRY.for_path(path)
     comments = value.rules.get("comments") if value is not None else None
-    marker = comments.get("marker") if isinstance(comments, Mapping) else None
+    if not isinstance(comments, Mapping):
+        return ()
+    marker = comments.get("marker")
     return (marker,) if isinstance(marker, str) and marker else ()
 
 

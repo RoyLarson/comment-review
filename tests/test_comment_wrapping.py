@@ -82,7 +82,7 @@ def test_an_empty_remainder_removes_the_comment_delimiters():
 @pytest.mark.parametrize(
     "name,source",
     [
-        (
+        pytest.param(
             "m.rs",
             "fn first() {}\n//! Keep this sentence. Move this\n"
             "//! sentence. Keep this one too.\nfn next() {}\n",
@@ -317,6 +317,44 @@ def test_crlf_and_final_newline_survive_rewrapping():
     assert "\n" not in changed.replace("\r\n", "")
 
 
+@pytest.mark.parametrize(
+    "raw",
+    [
+        "//// x\n// y\n",
+        "/*** x */\n",
+        "/**/\n// z\n",
+        "/** doc\n * more\n */\n",
+        "// a\n\n// b\n",
+        "/* a */ /* b */\n",
+        "//! inner\n",
+    ],
+    ids=[
+        "four-slashes",
+        "slash-three-stars",
+        "empty",
+        "decorated",
+        "gap",
+        "one-line",
+        "inner",
+    ],
+)
+def test_rust_drop_path_reads_a_paragraph_as_the_page_does(raw):
+    page = build(raw + "fn f() {}\n", "m.rs")
+    for paragraph in page.paragraphs:
+        if paragraph.raw_text.strip():
+            form = comment_at(paragraph.address, paragraph.raw_text)
+            assert form.text == paragraph.text
+
+
+def test_rust_drop_keeps_four_slashes_and_two_ordinary_comments():
+    raw = "//// x\n// y\n"
+    changed, problems = derived_change(
+        Instruction.DROP, {"drop": "y"}, raw, address="m.rs@b0"
+    )
+    assert problems == []
+    assert changed == "//// x\n"
+
+
 def test_nested_block_delimiters_in_prose_remain():
     form = comment_at("m.rs@b1", "/* Keep /* this nested note */. Move. */")
     changed = form.without_once("Move.")
@@ -456,7 +494,7 @@ def test_wrapping_after_a_blank_keeps_the_line_comment_marker():
             "Move.",
             '/* Kept.\n */ let y = "*/";',
         ),
-        (
+        pytest.param(
             "m.rs",
             "/// Keep. Move.\n// Ending stays.",
             "Move.",
@@ -621,7 +659,7 @@ def test_trailing_rewrapping_counts_the_carried_code_anchor():
             "#",
             "b",
         ),
-        (
+        pytest.param(
             "m.rs",
             "// Kept. Move this\n// sentence.\n\n\n/// Ending stays.",
             " Move this\n// sentence.",
@@ -635,14 +673,14 @@ def test_trailing_rewrapping_counts_the_carried_code_anchor():
             "//",
             "b",
         ),
-        (
+        pytest.param(
             "one/m.rs",
             "// Kept. Move this\n// sentence. Ending stays.",
             " Move this\n// sentence.",
             "//",
             "b",
         ),
-        (
+        pytest.param(
             "two/m.rs",
             "//! Kept. Move this\n//! sentence. Ending stays.",
             " Move this\n//! sentence.",
@@ -736,7 +774,13 @@ def test_mark_check_and_proof_agree_for_wrapped_sentences(
     assert (tmp_path / name).read_text(encoding="utf-8") == source
 
 
-@pytest.mark.parametrize("origin_name,dest_name", [("m.py", "m.rs"), ("m.rs", "m.py")])
+@pytest.mark.parametrize(
+    "origin_name,dest_name",
+    [
+        pytest.param("m.py", "m.rs"),
+        pytest.param("m.rs", "m.py"),
+    ],
+)
 @pytest.mark.parametrize("existing", [False, True])
 def test_cross_language_move_sets_the_supplied_destination_form(
     tmp_path, origin_name, dest_name, existing

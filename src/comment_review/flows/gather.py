@@ -88,6 +88,9 @@ class Gathering:
     unreadable: list[str] = field(default_factory=list)
     #: files the name corpus could not read, from `code_names`
     unread: list[str] = field(default_factory=list)
+    #: what a read noted without refusing the file, one printable line per
+    #: `PageWarning`; the run proceeds and the command prints them
+    warnings: list[str] = field(default_factory=list)
     pages: list[Page] = field(default_factory=list)
     #: what the pages carry, flat, in page order -- see `carried`
     paragraphs: list[Paragraph] = field(default_factory=list)
@@ -184,6 +187,11 @@ def _pages(g: Gathering) -> None:
             g.unreadable.append(format_failure(got, path=rel))
             continue
         g.pages.append(got)
+        # The phrase is the warning's code, `detached-documentation`, as words.
+        g.warnings.extend(
+            f"warning: {rel}@{w.cue}: {w.code.replace('-', ' ')} for {w.owner}"
+            for w in got.warnings
+        )
         g.paragraphs.extend(carried(got))
 
 

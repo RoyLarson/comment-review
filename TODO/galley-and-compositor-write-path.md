@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 53 of 59 tasks closed
+Progress: 55 of 60 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (code-review high round 3 and /simplify round 2, 2026-08-22 -- the
@@ -294,6 +294,10 @@ files in `corpora/` are in that state today.
 - [ ] T58 | Refuse occupied draft targets before direct setter writes
         > 2026-10-11 Review: proof_setter.py:483 overwrites then rollback unlinks
         > 2026-10-11 Check: existing target bytes survive later schedule refusal
-- [ ] T59 | Give one function the rule for a file's line ending
+- [-] T59 | SUPERSEDED by one-line-ending-per-file T1 | 74a033c2 | Give one
+      function the rule for a file's line ending
         > 2026-10-17 Reason: compositor, line_breaks, prove_unchanged each decide it
         > 2026-10-17 Check: one function decides it; the other two call it
+- [-] T60 | SUPERSEDED by one-line-ending-per-file T2: a lone CR is refused | 74a033c2 | Set
+      a lone CR back as a CR on every page
+        > 2026-10-23 A lone CR becomes LF on set-back, even inside a string literal

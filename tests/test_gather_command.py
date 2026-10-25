@@ -175,6 +175,59 @@ def test_a_parse_failure_is_AS_LOUD_AS_a_decode_failure(tmp_path, monkeypatch, c
     )
 
 
+#: A doc comment behind an ordinary comment: the place model cannot hold it as
+#: `f`'s `a`, so the read notes it.
+DETACHED_RUST = "fn g() {}\n\n/// Docs for f.\n// plain note\nfn f() {}\n"
+
+
+def _run_rust(tmp_path, monkeypatch, capsys, source: str, *extra: str):
+    target = tmp_path / "lib.rs"
+    target.write_text(source, encoding="utf-8", newline="")
+    return run_command(
+        monkeypatch,
+        capsys,
+        gather_command,
+        "--repo",
+        str(tmp_path),
+        str(target),
+        *extra,
+        with_stderr=True,
+    )
+
+
+def test_detached_documentation_is_warned_on_stderr_and_exits_zero(
+    tmp_path, monkeypatch, capsys
+):
+    out = tmp_path / "binder.json"
+    code, printed = _run_rust(
+        tmp_path, monkeypatch, capsys, DETACHED_RUST, "--out", str(out)
+    )
+    assert code == 0, printed
+    assert "warning: lib.rs@b1: detached documentation for a2\n" in printed
+    assert printed.count("warning:") == 1
+    assert "warning" not in out.read_text(encoding="utf-8")
+
+
+def test_two_detached_runs_in_one_gap_print_two_warnings_with_one_cue(
+    tmp_path, monkeypatch, capsys
+):
+    source = "fn g() {}\n/// a\n// x\n/// b\n// y\nfn f() {}\n"
+    code, printed = _run_rust(tmp_path, monkeypatch, capsys, source)
+    assert code == 0, printed
+    lines = [ln for ln in printed.splitlines() if ln.startswith("warning:")]
+    assert lines == ["warning: lib.rs@b1: detached documentation for a2"] * 2
+
+
+def test_a_rust_file_without_detached_documentation_prints_no_detached_warning(
+    tmp_path, monkeypatch, capsys
+):
+    code, printed = _run_rust(
+        tmp_path, monkeypatch, capsys, "/// Docs for f.\nfn f() {}\n"
+    )
+    assert code == 0, printed
+    assert "warning:" not in printed
+
+
 def test_the_command_builds_no_page_and_resolves_no_annotation():
     """`TODO/completed/census-should-be-a-chain-of-producers.md` T3, verify text
     word for word: *it calls page_for nowhere*. And `annotate` nowhere, for the

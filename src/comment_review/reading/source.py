@@ -2,6 +2,7 @@
 
 from dataclasses import dataclass, field
 from enum import StrEnum
+from typing import NamedTuple
 
 from comment_review.reading.coordinates import SourceCoordinates
 from comment_review.reading.coordinates import SourcePosition as SourcePosition
@@ -109,6 +110,18 @@ class DocumentationOwner:
                     f"documentation {name} index {index!r} "
                     "must be a nonnegative integer"
                 )
+
+
+class DocumentationPlace(NamedTuple):
+    """Where one declaration's documentation goes, in 1-based source lines."""
+
+    #: The line that declares it.
+    line: int
+    #: The line the documentation is set at.
+    insert: int
+    #: Whether the documentation sits above the declaring line rather than
+    #: inside the declaration.
+    above: bool
 
 
 @dataclass(frozen=True)

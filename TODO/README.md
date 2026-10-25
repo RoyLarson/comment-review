@@ -212,20 +212,20 @@ that changed a published name or rule:
 | [stale-claims-after-the-envelope](stale-claims-after-the-envelope.md) | backend | -- | 2/8 | Shipped prose still describes formats and flags this branch deleted |
 | [one-stem-four-jobs](one-stem-four-jobs.md) | backend | -- | 7/15 | one stem, four jobs -- and the vocabulary sweep cannot see it |
 | [census-walks-and-flushes](census-walks-and-flushes.md) | backend | -- | 3/7 | census.py walks the whole repo, runs git twice, and its run-flush never fires |
-| [galley-and-compositor-write-path](galley-and-compositor-write-path.md) | backend | -- | 53/59 | The galley can overwrite the file under review, and the compositor reads through a normaliser |
+| [galley-and-compositor-write-path](galley-and-compositor-write-path.md) | backend | -- | 55/60 | The galley can overwrite the file under review, and the compositor reads through a normaliser |
 | [record-and-verdicts-disagree](record-and-verdicts-disagree.md) | backend | -- | 4/8 | record.py and verdicts.py disagree about what a valid record is, in four places |
 | [exception-hierarchy](exception-hierarchy.md) | backend | -- | 2/10 | Named tuples give us the seam; the hierarchy that catches our own types is not built |
 | [language-rows-in-toml](language-rows-in-toml.md) | backend | -- | 11/18 | 18 rows of pure data sit in shipped Python; references/vocabulary.toml is the pattern |
 | [computed-and-never-read](computed-and-never-read.md) | backend | -- | 5/10 | The insert line, the matter branch, the paragraph index and two repeated full-file scans -- each needs more than a comment fix |
 | [dangling-links-resolve-nowhere](dangling-links-resolve-nowhere.md) | systems | yes | 0/6 | 31 relative links resolve nowhere, and two of them are in a live TODO |
-| [fixtures-do-not-test-the-shape](fixtures-do-not-test-the-shape.md) | testing | -- | 1/5 | A per-language fixture can pass without exercising the shape its language is measured on |
+| [fixtures-do-not-test-the-shape](fixtures-do-not-test-the-shape.md) | testing | -- | 2/5 | A per-language fixture can pass without exercising the shape its language is measured on |
 | [drop-the-column](drop-the-column.md) | backend | -- | 7/9 | the column is len(anchor)+1 everywhere; the address system answers what it was added for |
 | [held-runs-need-a-one-off-migration](held-runs-need-a-one-off-migration.md) | testing | -- | 2/5 | the report cannot name a place, but the recorded hash can -- a script, not a feature |
 | [the-roles-are-named-for-what-they-read](the-roles-are-named-for-what-they-read.md) | agents | -- | 1/6 | block-context etc. become the editorial desks; unlike `block` these ARE on the wire |
 | [lookup-parses-whole-census](lookup-parses-whole-census.md) | backend | -- | 4/14 | A lookup is O(project), not O(file) -- 1.1s per lookup extrapolated at 500k lines; sharding or batching fixes it, re-lexing trades away staleness detection |
 | [verdicts-is-the-join](verdicts-is-the-join.md) | backend | -- | 8/12 | The VERDICTS table lives in record.py; verdicts.py is the collator and 43 sites say so |
 | [census-row-carries-empty-fields](census-row-carries-empty-fields.md) | backend | -- | 12/17 | A census row carries 19 fields and an empty place fills 7, with three different spellings of absent |
-| [matter-misses-two-languages](matter-misses-two-languages.md) | backend | yes | 2/5 | C and Python type a licence header as matter; Rust loses the run to the `a` series and TypeScript types it a docstring |
+| [matter-misses-two-languages](matter-misses-two-languages.md) | backend | yes | 3/5 | C and Python type a licence header as matter; Rust loses the run to the `a` series and TypeScript types it a docstring |
 | [nothing-runs-the-whole-chain](nothing-runs-the-whole-chain.md) | backend | -- | 0/7 | Every stage of the backend has its own tests and nothing runs census -> seed -> record -> join -> galley -> compositor -> prove in one pass. So the redesign phase has no measurement to hold constant, and a defect that lives BETWEEN two stages is invisible to every gate this repo has. |
 | [nothing-makes-the-fair-copy](nothing-makes-the-fair-copy.md) | backend | yes | 1/13 | Nothing turns the collated marks into the paragraph the galley writes |
 | [settle-carries-two-meanings](settle-carries-two-meanings.md) | systems | yes | 0/6 | settle carries two meanings in what an agent is handed, and neither is declared to it |
@@ -292,7 +292,6 @@ that changed a published name or rule:
 | [reviewer-prose-is-rules-not-guidance](reviewer-prose-is-rules-not-guidance.md) | agents | -- | 10/17 | The reviewer prose is rules and punishments, not guidance toward a good result |
 | [a-machine-context-raises-query-and-clean](a-machine-context-raises-query-and-clean.md) | backend | yes | 0/8 | annotate carries two subjects -- it extracts index keys, and it flags claims it cannot settle. The second half becomes a context that marks like a role. |
 | [the-chief-has-no-recast-workflow](the-chief-has-no-recast-workflow.md) | backend | yes | 8/14 | cap applies the chief's rulings and closes the stage, but a recast is written out as a correct, so a recast of an add at an empty place writes nothing and exits 0. |
-| [prove-unchanged-line-endings-follow-a-sibling](prove-unchanged-line-endings-follow-a-sibling.md) | backend | -- | 0/2 | On a checkout with core.autocrlf=true, git writes a checked-out text file with CRLF while its blob stays LF, and a file git never rewrote can still be LF. prove_unchanged compares an edited file's line endings with one untouched sibling, so a CRLF file whose sibling is a one-line LF __init__.py FAILs though the write kept every ending and the AST comparison passes. The check should hold the file to its own pre-edit endings. |
 | [rebuilt-middle-final-review](rebuilt-middle-final-review.md) | backend | -- | 30/52 | Every finding of the final review of the rebuilt middle, Broken first. The three Broken ones hold the branch from merging out. |
 | [exit-codes-are-an-enum](exit-codes-are-an-enum.md) | backend | -- | 0/5 | Exit codes are written in thirteen places |
 | [command-help-carries-history](command-help-carries-history.md) | backend | -- | 0/1 | Command help carries development history |
@@ -307,6 +306,7 @@ that changed a published name or rule:
 | [2026-10-13-human-question-list](2026-10-13-human-question-list.md) | backend | -- | 0/1 | Expose human questions across edit copies |
 | [empty-comment-gets-a-drop](empty-comment-gets-a-drop.md) | backend | -- | 0/1 | An empty comment gets a drop mark |
 | [paragraph-is-a-passage](paragraph-is-a-passage.md) | backend | -- | 0/9 | The addressed unit of prose is a passage, not a paragraph |
+| [one-line-ending-per-file](one-line-ending-per-file.md) | backend | -- | 1/6 | One line ending per file |
 
 ### in-progress  (17)
 
@@ -327,7 +327,7 @@ that changed a published name or rule:
 | [the-parser-merges-across-boundaries-it-cannot-read](the-parser-merges-across-boundaries-it-cannot-read.md) | backend | -- | 2/4 | The collator merges across a boundary it cannot read, and blames the neighbour |
 | [the-read-only-contract-is-enforced-by-nothing](the-read-only-contract-is-enforced-by-nothing.md) | agents | yes | 2/8 | The read-only contract is enforced by nothing, and four reviewers wrote files |
 | [the-shipped-python-does-not-pass-its-own-review](the-shipped-python-does-not-pass-its-own-review.md) | backend | yes | 7/12 | **Our own scripts spend a sixth of their prose on what the code does NOT do.** ! **Roy's reason, 2026-08-16: *"I don't want the system picking up bad cues from the documentation in the code."*** An agent reads these files and then writes in them. Re-measured after that day's rewrites: **136 of 697 (20%)** comment and docstring lines carry `cannot` / `never` / `does not` / `is not` / `nothing` -- UP from 123/714, because the prose written that day carries the same defect -- `census.py` worst at 52/284. Roy: *"census.py creates the pCST and that is it. Comments about 'cannot answer OWNERSHIP' are not helpful."* ! Not every negative is wrong -- an output (*"reports UNPROVABLE rather than passing"*) and a refusal aimed at a future editor both earn their place -- so the first task is writing the test that tells them apart !! **The hand-pass rule is STRUCK, 2026-08-18.** It told itself not to run `/comment-review` on this repo; Roy: *"By definition the code has to go through the review to state that it has passed."* A hand pass produces a rewrite, and this file's title is a claim about what the review RETURNS -- so it now closes on a run graded from the diff. ! The harness does not gate that: running the skill needs the skill |
-| [lexer-and-language-findings](lexer-and-language-findings.md) | backend | -- | 8/49 | Ten findings in lexer.py and language.py, from three review rounds |
+| [lexer-and-language-findings](lexer-and-language-findings.md) | backend | -- | 12/49 | Ten findings in lexer.py and language.py, from three review rounds |
 | [board-predates-task-ids](board-predates-task-ids.md) | systems | yes | 2/6 | task lines carry no ids, so a plan cannot name one; a trial migration was reverted because it silently cleared 57 `Requires-Roy` flags and refused nine files whose task labels carry a literal pipe |
 
 ### decision-needed  (25)
@@ -509,3 +509,8 @@ the reason is inside the file.
 | [2026-10-12-python-reader-vocabulary](completed/2026-10-12-python-reader-vocabulary.md) | 1 finished |
 | [python-cannot-read-python](completed/python-cannot-read-python.md) | 48 finished, 8 superseded |
 | [a-block-is-a-paragraph-on-a-page](completed/a-block-is-a-paragraph-on-a-page.md) | 3 finished, 8 superseded |
+| [rust-reader-findings](completed/rust-reader-findings.md) | 6 finished, 2 superseded |
+| [module-insertion-slot-unread](completed/module-insertion-slot-unread.md) | 4 finished |
+| [stage-two-detached-warnings](completed/stage-two-detached-warnings.md) | 2 finished |
+| [drop-path-second-rust-comment-grammar](completed/drop-path-second-rust-comment-grammar.md) | 1 finished |
+| [prove-unchanged-line-endings-follow-a-sibling](completed/prove-unchanged-line-endings-follow-a-sibling.md) | 2 superseded |

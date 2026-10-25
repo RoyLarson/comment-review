@@ -26,13 +26,16 @@ from comment_review.reading.lexer import (
 from comment_review.reading.paragraph import Paragraph
 from comment_review.reading.python import read_python
 from comment_review.reading.python.definition import validate_python
-from comment_review.reading.python.projection import paragraphs_for
 from comment_review.reading.python.records import PythonRead
 from comment_review.reading.registry import LanguageRegistry
+from comment_review.reading.rust import read_rust
+from comment_review.reading.rust.definition import validate_rust
+from comment_review.reading.rust.records import RustRead
 from comment_review.reading.source import SourceSpan
 
 SourceReader: TypeAlias = Callable[
-    [Path, str, LanguageDefinition], list[Paragraph] | PythonRead | ReadFailure
+    [Path, str, LanguageDefinition],
+    list[Paragraph] | PythonRead | RustRead | ReadFailure,
 ]
 
 
@@ -99,7 +102,9 @@ def read_paragraphs(
 ) -> list[Paragraph] | ReadFailure:
     """Adapt the admitted interpretation without repeating source recognition."""
     result = read_source(path, text, registry=registry)
-    return paragraphs_for(path, result) if isinstance(result, PythonRead) else result
+    if isinstance(result, list) or isinstance(result, ReadFailure):
+        return result
+    return result.paragraphs(path)
 
 
 def read_source(
@@ -107,7 +112,7 @@ def read_source(
     text: str,
     *,
     registry: LanguageRegistry = INSTALLED_REGISTRY,
-) -> list[Paragraph] | PythonRead | ReadFailure:
+) -> list[Paragraph] | PythonRead | RustRead | ReadFailure:
     """Return the selected reader's admitted records before paragraph decoration."""
     selected = reader_for(path, registry)
     if isinstance(selected, ReadFailure):
@@ -163,8 +168,30 @@ def _read_python(
     return read_python(text, definition)
 
 
+def _read_rust(
+    path: Path, text: str, definition: LanguageDefinition
+) -> RustRead | ReadFailure:
+    """Bind Rust recognition without paragraph rediscovery."""
+    return read_rust(text, definition)
+
+
 INSTALLED_BINDINGS = MappingProxyType(
     {
+        "rust-lexical": ReaderBinding(
+            "rust-lexical",
+            "2",
+            (
+                "comments",
+                "strings",
+                "declarations",
+                "documentation",
+                "protected-directives",
+                "lexical",
+            ),
+            "Rust Reference lexical",
+            _read_rust,
+            validate_rust,
+        ),
         "python-lexical": ReaderBinding(
             "python-lexical",
             "2",

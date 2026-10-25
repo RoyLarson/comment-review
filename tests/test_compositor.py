@@ -310,6 +310,8 @@ FORMS = {
     ),
     "rust doc": ("m.rs", "/// Doc.\npub fn f() {}\n"),
     "rust inner doc": ("m.rs", "//! Module doc.\npub fn f() {}\n"),
+    "rust shebang": ("m.rs", "#!/usr/bin/env rust-script\nfn main() {}\n"),
+    "rust inner doc in a body": ("m.rs", "fn f() {\n    //! Inner.\n}\n"),
     "go": ("m.go", "// Doc.\nfunc f() {}\n"),
     "java": ("m.java", "/** Doc. */\npublic void f() {}\n"),
     "cs": ("m.cs", "/// <summary>D</summary>\npublic void F() {}\n"),
@@ -326,7 +328,14 @@ FORMS = {
 }
 FORM_CASES = pytest.mark.parametrize(
     ("name", "text"),
-    [pytest.param(n, t, id=k) for k, (n, t) in FORMS.items()],
+    [
+        pytest.param(
+            n,
+            t,
+            id=k,
+        )
+        for k, (n, t) in FORMS.items()
+    ],
 )
 
 

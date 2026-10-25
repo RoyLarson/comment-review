@@ -56,7 +56,14 @@ SOURCES = {
 }
 CASES = pytest.mark.parametrize(
     ("name", "text"),
-    [pytest.param(n, t, id=k) for k, (n, t) in SOURCES.items()],
+    [
+        pytest.param(
+            n,
+            t,
+            id=k,
+        )
+        for k, (n, t) in SOURCES.items()
+    ],
 )
 
 
@@ -175,13 +182,20 @@ KIND_DISAGREES = {"go", "ruby doc", "lua doc"}
             n,
             t,
             id=k,
-            marks=pytest.mark.xfail(
-                strict=True,
-                reason="the doc marker is an ordinary comment marker, so the "
-                "lexer types it `comment` while the walk cues it `a`",
-            )
-            if k in KIND_DISAGREES
-            else (),
+            marks=[
+                *(
+                    [
+                        pytest.mark.xfail(
+                            strict=True,
+                            reason="the doc marker is an ordinary comment marker, "
+                            "so the lexer types it `comment` while the walk "
+                            "cues it `a`",
+                        )
+                    ]
+                    if k in KIND_DISAGREES
+                    else []
+                ),
+            ],
         )
         for k, (n, t) in {
             **SOURCES,

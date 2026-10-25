@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 1 of 5 tasks closed
+Progress: 2 of 5 tasks closed
 Owner:    testing
 Requires-Roy: false
 Raised:   2026-08-23 (2026-08-23, triaging matter-misses-two-languages: censusing the
@@ -49,8 +49,9 @@ set -- which is what the ruling has to settle.
 - [ ] T1 | T1 -- Make `tests/fixtures/sample.ts` open the way a licence header
       does, or add a `.ts` fixture that does. Verify: it reproduces
       `matter-misses-two-languages`.
-- [ ] T2 | T2 -- Make `tests/fixtures/sample.rs` open the way a licence header
-      does, or add a `.rs` fixture that does. Verify: it reproduces
+- [x] T2 | sample.rs did not exist; tests/fixtures/licensed.rs opens with a Copyright/SPDX header and gives f0 matter with an empty first a: test_rust_fixture_licence_header_is_front_matter_and_first_item_undocumented | b9c5ed1e | T2
+      -- Make `tests/fixtures/sample.rs` open the way a licence header does, or
+      add a `.rs` fixture that does. Verify: it reproduces
       `matter-misses-two-languages`.
 - [ ] T3 | T3 -- Audit the other sixteen fixtures -- for each language row, name
       the shape its open TODOs are about. Verify: a list of language -> shape ->

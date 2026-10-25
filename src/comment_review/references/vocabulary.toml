@@ -103,7 +103,8 @@ undocumented = "A declaration with no docstring -- an `a` place with nothing in 
 
 # --- comments that share a line with code ------------------------------------
 "trailing comment" = "Prose after the statement on its own line, about that statement. Its address is a `c`, and its anchor is the code before it."
-"intermediate comment" = "A comment with code on BOTH sides of it -- `int x = /* why */ 5;`. It is NOT gathered and has no address, because it is part of the line of code rather than prose about it. Raise one as a code concern."
+"detached documentation" = "A doc comment the language attaches to an owner but the place model cannot hold as that owner's `a` place: one behind an ordinary comment, between an attribute and its item, a second doc run in one head, or an inner doc that does not come first in its body or that trails code on its line. It is read as part of the ordinary paragraph at the place its position gives it, which it shares with any other comment there, and the gather prints a warning for it. One paragraph can carry more than one warning."
+"intermediate comment" ="A comment with code on BOTH sides of it -- `int x = /* why */ 5;`. It is NOT gathered and has no address, because it is part of the line of code rather than prose about it. Raise one as a code concern."
 
 [roles]
 # Every agent gets these.
@@ -122,6 +123,8 @@ all = ["paragraph", "sentence", "clause", "finding", "move"]
   "compositor",
   "copy chief",
   "correct",
+  "cue",
+  "detached documentation",
   "dispositions",
   "docket",
   "drop",
@@ -133,6 +136,7 @@ all = ["paragraph", "sentence", "clause", "finding", "move"]
   "mark",
   "master proof",
   "original",
+  "owner",
   "page",
   "patch",
   "payload",

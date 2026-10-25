@@ -160,12 +160,16 @@ def _report(args: argparse.Namespace) -> int:
 
 
 def _passed_over(got: Gathering) -> None:
-    """The two gap reports, on stderr so the binder on stdout stays parseable.
+    """The gap reports and the read's warnings, all on stderr.
 
-    Both are gaps and not passes, and both were said only by the text report
-    that stage 2 no longer prints; a gather that stopped saying them would
-    read as complete over files it never read.
+    Stdout holds the binder, which stays parseable. The gaps are not passes,
+    and both were said only by the text report that stage 2 no longer
+    prints; a gather that stopped saying them would read as complete over
+    files it never read. A warning does not change the exit code: the file
+    was read, and the line names a place the task agent asks the human about.
     """
+    for line in got.warnings:
+        print(line, file=sys.stderr)
     if got.unread:
         print("NOT CHECKED -- these are gaps, not passes:", file=sys.stderr)
         for u in got.unread:

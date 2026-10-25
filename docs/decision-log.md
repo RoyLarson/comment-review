@@ -579,6 +579,57 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   attribute line, and a doc between an attribute and its item is detached documentation under
   `#29`.
 
+- **#31.** **A place holds one paragraph, so comment sections of different forms that share a
+  place join into one** (Roy, 2026-10-23, asked whether a detached Rust doc and the ordinary
+  comment beside it in one gap -- `/// My function to do things` above `// I made this up` above
+  the item -- should join into one paragraph or stay apart, which the galley cannot place).
+
+  *"Yes the detached docs get a b1 place and the warning. There is not a good way to know how to
+  interleave them after they have been modified if there are multiple b types per place (at
+  least without added another layer to the system)"*
+
+  **What it settles.** The place, not the comment's written form, decides the paragraph. Sections
+  that fall in one place are one paragraph there. It keeps the `detached-documentation`
+  annotation and the warning when any part of it is detached. A doc attached to its owner has its
+  own `a` place and never shares one. The Rust spec's sentence that the forms "never merge into
+  one paragraph" holds only where each form has a place of its own. Measured the same day over
+  the 312 crates in the local Cargo registry: 257 sites in 76 crates put an ordinary `//` line
+  directly after a doc line (a line-based count, not string-aware).
+
+- **#32.** **A reader's job is to place every comment where it sits, not to classify every
+  comment exactly** (Roy, 2026-10-23, on the final review's finding that a Rust module doc after
+  an inner attribute -- `#![no_std]` then `//! Docs.` -- was set back above the attribute).
+
+  *"The goal is to be able to place the comments correctly not absolutely correctly classify
+  every comment/documentation."*
+
+  **What it settles.** Where a reader cannot hold a comment at the place its kind would give it,
+  it reads the comment at the place its position gives it, so the page sets it back where it
+  was. A misclassified comment is acceptable; a moved one is a defect. The `#![no_std]` case is
+  read as detached documentation under `#29`, which leaves it in place.
+
+- **#33.** **A Rust inner doc inside a body is read at its `b` place, detached, and gives no
+  owner an `a`** (Roy, 2026-10-23, shown `mod shapes {` / `//! Shapes on the board.` and asked
+  whether the `//!` is the module's docstring or part of the gap's `b` place).
+
+  *"I feel putting that as the b place is the better answer. It keeps things consistent and
+  makes reseting things easier. I might have to change my mind later if other languages cause
+  similar issues so leave a note somewhere but for now documentation is also only found where
+  it is normal and expected to be found and the agents can fix the comment if it is ambiguous.
+  Also keeping the displaced docs warming allows the task agent to ask the human if an agent
+  want to move the lines"*
+
+  **What it settles.** An inner doc (`//!`, `/*!`) inside an inline module or function body is
+  an ordinary comment at the `b` place its position gives it, annotated
+  `detached-documentation`, with the warning that lets the task agent ask the human before a
+  role moves it. The owner's `a` is empty. A file-level inner doc on the file's first code line
+  is still the file's `a0`. Documentation is held at an `a` only where the language normally
+  puts it, and the roles correct a comment whose kind is ambiguous.
+
+  **Open to revision.** Roy expects to revisit this if another language's reader meets the same
+  shape -- documentation held inside the body it documents -- and the `b` answer stops being
+  consistent across languages.
+
 ## Vocabulary
 
 - **#1.** **The metaphor is EDITORIAL, and a new term is checked against the register BEFORE it is
@@ -5442,3 +5493,60 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   **What it settles.** The installed registry holds every shipped definition file, so a
   caller anywhere asks one registry. The files are this program's own data, not the
   checkout, so `machine` is not involved.
+
+- **#217.** **No test guards that neither reader imports the other's package** (Roy,
+  2026-10-24, shown rust-reader-findings T7, which would add one for the Rust spec's acceptance
+  row: *"T7 doesn't need a test. It would be silly to put a test there."*).
+
+  **What it settles.** The spec's independence row stays an acceptance statement, checked by
+  reading the imports; T7 is superseded.
+
+- **#218.** **`declarations()` returns only declaration places, as a named type, and the
+  module's `a` series is stated on its own** (Roy, 2026-10-24, shown module-insertion-slot-unread
+  T1: the bare `tuple[int, int, bool]` spelled at eight sites, its first entry `(0, 1, True)`
+  read only for whether it exists, and the change reaching `binder/page.py` and the
+  `ReaderRecord` contract; asked *"Shall I make C the ruling for module-insertion T1, with the
+  NamedTuple included?"*: *"Yes"*).
+
+  **What it settles.** A documentation place is a NamedTuple of its declaring line, its
+  insertion line and whether the doc sits above. `declarations()` holds one per declaration and
+  no module entry; whether a file has an `a` series is a separate answer, which `cue` and the
+  page read in place of `decls[0][1]`. Both readers drop `insertions[0]` and the check on it.
+  Roy approved the reach past Reading in the same answer.
+
+- **#219.** **The `backend` session on `feat/lexer-rust` writes stage-two-detached-warnings T1
+  in SKILL.md, crossing into `agents`** (Roy, 2026-10-24, offered three ways to close the
+  `agents`-owned TODO filed on this branch -- the `backend` session crossing for T1 with the
+  exact wording shown first, an `agents` session doing it before merge, or ruling it no gate on
+  this branch: *"1"*).
+
+  **What it settles.** The TODO closes on this branch, and SKILL.md's new stage 2 wording is
+  shown to Roy before it is applied.
+
+- **#220.** **A file with a lone CR is refused at gather, and a file's line ending is decided in
+  one place, in `machine/`, and passed through the flows to what needs it** (Roy, 2026-10-24,
+  shown galley-and-compositor-write-path T60 -- `set_page` turns every lone CR into LF, the proof
+  refuses it for Rust and Python and passes it for a lexical page, and no file in 4,621 sampled
+  holds one -- and offered keeping each line's ending, refusing such a file at gather, or
+  keeping the normalising; then told the normalising rule had no ruling behind it and that
+  three modules decide a file's ending three ways: *"Option 2 is fine, but your statements
+  state there are 3 different places that line endings are determined. This should be one
+  place, preferably in the machine/ area. And the appropriate line endings are passed to the
+  functions through the flows for what needs them"*).
+
+  **What it settles.** The gather names a file holding a lone CR as unreadable. One function in
+  `machine/` answers a file's line ending; no reader, desk or results module decides one, and a
+  function that writes line breaks takes the ending as an argument.
+
+- **#221.** **What the one line-ending function answers for a mixed file and an unbroken one,
+  and where the work is done** (Roy, 2026-10-25, asked three questions: a file mixing CRLF and
+  bare LF with no lone CR, none in about 6,000 sampled, offered refusing it, CRLF if any, or the
+  majority; a file with no line break, offered LF or the platform's ending; and the branch,
+  offered its own plan and branch, `feat/lexer-rust`, or a split). His answers: mixed -- *"Do what
+  git does"*; no break -- *"LF (Recommended)"*; branch -- *"Its own plan and branch
+  (Recommended)"*.
+
+  **What it settles.** Lines added to a file with no line break take LF. The change is planned on
+  its own branch, and galley-and-compositor-write-path T60 is superseded on `feat/lexer-rust` by
+  the TODO that holds it. A mixed file follows git; what that means on a checkout whose git
+  configuration varies is stated in the plan for Roy to approve.

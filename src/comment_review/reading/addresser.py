@@ -687,7 +687,7 @@ class Cues:
 def cue(
     code: dict[int, str],
     documentable: dict[int, tuple[int, int, str]],
-    module_insert: int | None = 1,
+    a_series: bool = True,
 ) -> Cues:
     """Walk the anchors of one file; return every cue and its line of code.
 
@@ -739,9 +739,9 @@ def cue(
             NUMBER, which is the shape this had before the three facts were
             split apart 2026-08-21. Honouring either crashed: `{0: 2}` raises
             `cannot unpack non-iterable int object`.
-        module_insert: where the MODULE's own doc would go, or None when the
-            language has no documentable declaration at all -- then there is no
-            `a` series, not an empty one.
+        a_series: whether the page has an `a` series. False when the language
+            has no documentable declaration at all -- then there is no `a`
+            series, not an empty one.
 
     Returns:
         The `Cues`: every place, and both directions between them.
@@ -761,8 +761,8 @@ def cue(
     # !! NO `a` SERIES AT ALL WHEN THE LANGUAGE HAS NO DOCUMENTABLE
     # DECLARATION. A language with no docstring practice -- YAML, TOML -- would
     # otherwise be given an `a0`, a place for a module docstring it cannot have,
-    # and no instruction could ever fill it. `None` says the series does not exist;
-    # `1` says it does and the module's own doc would open the file.
+    # and no instruction could ever fill it. `a_series` says whether the series
+    # exists; when it does, the module's own doc opens it at `a0`.
     # !! `cue` READS `triggers()`, WHICH IS THE WHOLE POINT OF THERE BEING ONE.
     # A loop written out by hand beside it makes the list that claims *"ONE LIST,
     # SO THE FOUR SERIES CANNOT DRIFT APART"* a list no series walks.
@@ -801,7 +801,7 @@ def cue(
                 # tested for truth here, which is the same question asked twice
                 # -- `emit` returns `a0` at the least, so it is never falsy when
                 # the language has an `a` series.
-                if module_insert is not None:
+                if a_series:
                     out.reading.append(a.emit(MODULE, at))
                 # !! `b` AND `c` SKIP THE MODULE ENTIRELY -- no place, and no
                 # number. It has no gap above it and no line to sit beside. Roy,

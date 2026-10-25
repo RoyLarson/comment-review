@@ -25,10 +25,13 @@ import ast
 import io
 import re
 import tokenize
+from collections.abc import Callable, Mapping
 from pathlib import Path
+from types import MappingProxyType
 
 from comment_review import constants
-from comment_review.reading.comment import Comment, Fragment
+from comment_review.reading.comment import Comment, CommentSpan, Fragment
+from comment_review.reading.definitions import LanguageDefinition
 
 # !! THE ROWS ARE A LEAF AND THIS IS ONE OF ITS FIVE IMPORTERS -- see
 # `language.py`. Everything a language says about where its documentation
@@ -36,6 +39,7 @@ from comment_review.reading.comment import Comment, Fragment
 # also call `language_for`.
 from comment_review.reading.language import (
     BY_EXT,
+    INSTALLED_REGISTRY,
     LANGUAGES,
     Language,
     documents_in_literals,
@@ -43,7 +47,9 @@ from comment_review.reading.language import (
     line_comment_markers,
 )
 from comment_review.reading.paragraph import Paragraph
+from comment_review.reading.rust.scanner import comments_in
 from comment_review.reading.series import Kind, Series, cue_for
+from comment_review.reading.source import DocumentationPlace
 
 __all__ = [
     "BY_EXT",
@@ -123,10 +129,23 @@ def _join(lines: list[str], markers: tuple[str, ...] = ("#",)) -> str:
     return re.sub(r"\s+", " ", " ".join(out)).strip()
 
 
+#: The readers whose own scanner says where each comment in a paragraph sits
+#: and what it is written with, keyed by the reader a definition names. A
+#: language read by one of them is split by its reader's grammar alone.
+COMMENT_SCANNERS: Mapping[
+    str, Callable[[str, LanguageDefinition], tuple[CommentSpan, ...] | None]
+] = MappingProxyType({"rust-lexical": comments_in})
+
+
 def comment_form(
     path: Path, series: Series | None, raw_text: str, anchor: str = ""
 ) -> Comment:
     """The assigned paragraph's prose and the form its raw text carries."""
+    value = INSTALLED_REGISTRY.for_path(path)
+    scanner = COMMENT_SCANNERS.get(value.reader) if value is not None else None
+    if value is not None and scanner is not None:
+        found = scanner(raw_text, value)
+        return _scanned_form(path, series, raw_text, anchor, found)
     lang = language_for(path)
     chunks: list[str] = []
     if documents_in_literals(path) and series is Series.DECLARED:
@@ -197,9 +216,65 @@ def comment_form(
     return Comment(raw_text, parts)
 
 
+def _scanned_form(
+    path: Path,
+    series: Series | None,
+    raw_text: str,
+    anchor: str,
+    found: tuple[CommentSpan, ...] | None,
+) -> Comment:
+    """The paragraph cut into fragments at the comments its reader scanned.
+
+    A delimited comment, and a line comment of another form than the one
+    before it, starts a fragment: at its line's start when it opens the line,
+    or where it opens when something precedes it there. Line comments of one
+    form run on as one fragment. A paragraph its reader finds no comment in
+    is one fragment with no markers.
+    """
+    if not found:
+        return Comment(raw_text, (_comment_fragment(path, series, raw_text, anchor),))
+    cuts = [0]
+    opening: list[CommentSpan] = []
+    for comment in found:
+        if opening:
+            previous = opening[-1]
+            if not comment.closer and not previous.closer:
+                if comment.opener == previous.opener:
+                    continue
+            line_start = raw_text.rfind("\n", 0, comment.start) + 1
+            opens_line = not raw_text[line_start : comment.start].strip()
+            cuts.append(line_start if opens_line else comment.start)
+        opening.append(comment)
+    cuts.append(len(raw_text))
+    parts = []
+    for n, comment in enumerate(opening):
+        start = cuts[n]
+        close_at = comment.end - len(comment.closer) - start if comment.closer else -1
+        parts.append(
+            _comment_fragment(
+                path,
+                series,
+                raw_text[start : cuts[n + 1]],
+                anchor if n == 0 else "",
+                marks=(comment.opener, comment.closer, close_at),
+            )
+        )
+    return Comment(raw_text, tuple(parts))
+
+
 def _comment_fragment(
-    path: Path, series: Series | None, raw_text: str, anchor: str
+    path: Path,
+    series: Series | None,
+    raw_text: str,
+    anchor: str,
+    marks: tuple[str, str, int] | None = None,
 ) -> Fragment:
+    """One comment's prose and markers.
+
+    `marks` is the comment's opener, closer and the closer's offset in
+    `raw_text`, as its reader scanned them, with an empty closer and -1 for a
+    line comment. Without them the language's row decides the markers.
+    """
     lang = language_for(path)
     in_literals = documents_in_literals(path)
     physical = raw_text.splitlines(keepends=True)
@@ -224,7 +299,12 @@ def _comment_fragment(
     suffix = ""
     opened = None
     end_at = -1
-    if lang is not None:
+    if marks is not None:
+        opener, closer, close_at = marks
+        if closer:
+            opened = opener, closer
+            end_at = close_at
+    elif lang is not None:
         pairs = [*lang.block_comment]
         pairs += [
             (doc, close)
@@ -316,7 +396,11 @@ def _comment_fragment(
                 if found is not None:
                     body[n] = line[found.end() :]
                     starts[n] += found.end()
-    elif markers := tuple(sorted(line_comment_markers(path), key=len, reverse=True)):
+    elif markers := (
+        marks[:1]
+        if marks is not None
+        else tuple(sorted(line_comment_markers(path), key=len, reverse=True))
+    ):
         marker = next((m for m in markers if lines[0].lstrip().startswith(m)), "")
         if marker:
             lead = indent + marker
@@ -1100,7 +1184,7 @@ def _declares_here(line: str, declares: tuple[str, ...]) -> bool:
 
 def document_declarations(
     paragraphs: list["Paragraph"],
-    decls: list[tuple[int, int, bool]],
+    decls: list[DocumentationPlace],
     code: dict[int, str],
 ) -> None:
     """Say which prose run documents which declaration, at the LEXICAL tier.
@@ -1135,7 +1219,7 @@ def document_declarations(
     Args:
         paragraphs: this file's prose, mutated in place -- `address` is set to
             the `a` cue of the declaration each run documents.
-        decls: `(line, insert, above)` per declaration, module first.
+        decls: each declaration's place, as `declarations` returns them.
         code: `line -> the code on it`, in order.
     """
     # ! LEADING IS NOT PROSE AND CANNOT DOCUMENT ANYTHING.
@@ -1149,7 +1233,7 @@ def document_declarations(
     if not ends:
         return
     above_code = sorted(code)
-    for ordinal, (line, _insert, above) in enumerate(decls[1:], 1):
+    for ordinal, (line, _insert, above) in enumerate(decls, 1):
         if not above:
             # ! Python states this from its parse; nothing positional to do.
             continue
@@ -1183,17 +1267,13 @@ def document_declarations(
             held.address = cue_for(Series.DECLARED.value.letter, ordinal)
 
 
-def declarations(lang: Language, code: dict[int, str]) -> list[tuple[int, int, bool]]:
+def declarations(lang: Language, code: dict[int, str]) -> list[DocumentationPlace]:
     """Every DOCUMENTABLE declaration in source order: its line, and where its doc goes.
 
-    !! ENTRY 0 IS THE MODULE, whose line is 0 -- a module has no line of code
-    declaring it. Entries 1..N are its declarations in the order a reader meets
-    them down the page, which is the order the `a` series counts.
-
-    !! AN EMPTY LIST MEANS THIS LANGUAGE HAS NO `a` SERIES, not "none found
-    here". A language with no docstring practice, such as YAML or TOML, would
-    otherwise carry an `a0` -- a place for a module docstring in a language with
-    no such thing -- which no instruction could ever fill.
+    !! THE ORDER A READER MEETS THEM down the page, which is the order the `a`
+    series counts from `a1`. The module is not among them: a module has no line
+    of code declaring it, and its `a0` exists whenever the language has an `a`
+    series at all -- which is whether `lang.declares` lists any keyword.
 
     !! THE KEYWORDS ARE DATA. Each language row lists the keywords that say a
     line can get a docstring, and the lexer matches on that list instead of on
@@ -1210,29 +1290,23 @@ def declarations(lang: Language, code: dict[int, str]) -> list[tuple[int, int, b
     because only a page knows where prose is missing.
 
     Args:
-        lang: its record. `declares` decides whether there is an `a` series.
+        lang: its record; `declares` holds the keywords.
         code: `line -> the code on it`, from `page.code_lines`. The keyword path
             scans ONLY these, so a keyword inside a comment or a string cannot
             declare anything.
 
     Returns:
-        `(line, insert, above)` per declaration, module first, or `[]` when the
-        language has no `a` series. !! `above` IS THE ROW SPEAKING, not a
+        A `DocumentationPlace` per declaration. !! `above` IS THE ROW SPEAKING, not a
         comparison of the two numbers: it is `doc_inside` read back out, and it is
         stated HERE because the lexer is where a row's `declares` and `doc_inside`
         are read; every step below carries it.
     """
-    if not lang.declares:
-        return []
     if lang.doc_inside:
         raise ValueError(f"{lang.name} declarations come from its own reader")
-    # !! THE MODULE FIRST, AND ITS DOC OPENS THE FILE. `a0` is the file's own
-    # documentation, which in an above-doc language is the run at the top --
-    # Rust's `//!`, Go's package comment.
-    out = [(0, 1, True)]
     # ! The doc goes ON the declaring line, pushing it down, so `insert` IS that
     # line. Ordered because `code` is.
-    out += [
-        (n, n, True) for n, line in code.items() if _declares_here(line, lang.declares)
+    return [
+        DocumentationPlace(n, n, True)
+        for n, line in code.items()
+        if _declares_here(line, lang.declares)
     ]
-    return out

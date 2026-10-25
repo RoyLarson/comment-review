@@ -180,7 +180,7 @@ def _type_attachment(
         return physical
     if not ignored:
         for declaration, insertion in reversed(
-            tuple(zip(structure.declarations, structure.insertions[1:], strict=True))
+            tuple(zip(structure.declarations, structure.insertions, strict=True))
         ):
             if (
                 declaration.kind in {"function", "async-function"}

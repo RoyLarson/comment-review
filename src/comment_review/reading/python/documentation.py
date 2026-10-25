@@ -1,6 +1,6 @@
 """Identify documentation expressions and decode their complete prose."""
 
-from collections.abc import Mapping
+from collections.abc import Iterator, Mapping
 from typing import cast
 from unicodedata import lookup
 
@@ -10,6 +10,7 @@ from comment_review.reading.python.definition import validate_python
 from comment_review.reading.python.records import (
     DocumentationExpression,
     DocumentationPayload,
+    LogicalLine,
     PythonPlacement,
     PythonScan,
     PythonToken,
@@ -41,38 +42,7 @@ def documentation_in(
     separator = cast(str, layout["statement_separator"])
     case_insensitive = cast(bool, literals["case_insensitive_prefixes"])
     expressions: list[DocumentationExpression] = []
-    for ordinal, insertion in enumerate(structure.insertions):
-        declaration = None if ordinal == 0 else ordinal - 1
-        if declaration is None:
-            if "module" not in owners or not structure.lines:
-                continue
-            line = structure.lines[0]
-            if line.indent:
-                continue
-        else:
-            header = structure.declarations[declaration]
-            if header.kind not in owners:
-                continue
-            header_line = next(
-                line
-                for line in structure.lines
-                if line.span.start <= header.anchor < line.span.end
-            )
-            line = next(
-                (
-                    line
-                    for line in structure.lines
-                    if any(
-                        scan.tokens[index].span.start == insertion
-                        for index in line.tokens
-                    )
-                ),
-                None,
-            )
-            if line is None or (
-                line is not header_line and line.indent <= header_line.indent
-            ):
-                continue
+    for declaration, line, insertion in _bodies(scan, structure, owners):
         indices = tuple(
             index for index in line.tokens if scan.tokens[index].span.start >= insertion
         )
@@ -114,6 +84,45 @@ def documentation_in(
             )
         )
     return tuple(sorted(expressions, key=lambda expression: expression.statement.start))
+
+
+def _bodies(
+    scan: PythonScan, structure: PythonPlacement, owners: tuple[str, ...]
+) -> Iterator[tuple[int | None, LogicalLine, int]]:
+    """Each owner whose body may open with documentation, and where it opens.
+
+    Yields the declaration index, None for the module; the logical line the
+    body's first statement is on; and that statement's first offset. The
+    module's body is an unindented first line.
+    """
+    if "module" in owners and structure.lines and not structure.lines[0].indent:
+        first = structure.lines[0]
+        yield None, first, scan.tokens[first.tokens[0]].span.start
+    for declaration, (header, insertion) in enumerate(
+        zip(structure.declarations, structure.insertions, strict=True)
+    ):
+        if header.kind not in owners:
+            continue
+        header_line = next(
+            line
+            for line in structure.lines
+            if line.span.start <= header.anchor < line.span.end
+        )
+        line = next(
+            (
+                line
+                for line in structure.lines
+                if any(
+                    scan.tokens[index].span.start == insertion for index in line.tokens
+                )
+            ),
+            None,
+        )
+        if line is None or (
+            line is not header_line and line.indent <= header_line.indent
+        ):
+            continue
+        yield declaration, line, insertion
 
 
 def _components(
