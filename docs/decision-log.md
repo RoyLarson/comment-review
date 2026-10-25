@@ -5550,3 +5550,13 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   its own branch, and galley-and-compositor-write-path T60 is superseded on `feat/lexer-rust` by
   the TODO that holds it. A mixed file follows git; what that means on a checkout whose git
   configuration varies is stated in the plan for Roy to approve.
+
+- **#222.** **The remaining language readers leave the lexical-readers plan and wait to be asked
+  for** (Roy, 2026-10-25, after Rust's P9 and P10 closed and Go's spec was offered as the next
+  step: *"create new todos (one per language) for the other languages and supersede the current
+  tasks. We can wait till later to implement them when they get asked for."*).
+
+  **What it settles.** Python and Rust are the readers this plan delivers. Each other language
+  with a row -- Go, C, C++, Java, C#, Swift, Kotlin, JavaScript, TypeScript, Ruby, Shell, SQL and
+  Lua -- has its own TODO holding its spec and its reader, and is worked when it is asked for.
+  The plan's per-language steps P11-P36 and the all-languages step P53 are superseded.
