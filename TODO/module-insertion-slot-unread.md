@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 2 of 4 tasks closed
+Progress: 3 of 4 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-23 (final review of the Rust reader plan, R2)
@@ -35,5 +35,6 @@ readers satisfy.
 - [x] T3 | DocumentationPlace replaces the bare tuple; grep finds none in src | f04fc147 | Replace
       the bare tuple[int, int, bool] with a named documentation place
         > 2026-10-24 Check: grep finds no tuple[int, int, bool] under src
-- [ ] T4 | Move the module entry out of declarations() into an a-series answer
+- [x] T4 | No module entry; cue takes a_series; no decls[0] or decls[1:] left | bb73c864 | Move
+      the module entry out of declarations() into an a-series answer
         > 2026-10-24 Check: no caller indexes decls[0] or slices decls[1:]
