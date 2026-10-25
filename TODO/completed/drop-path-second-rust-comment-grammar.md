@@ -1,8 +1,8 @@
 # The drop path splits Rust comments with a second Rust comment grammar
 
 ```
-Status:   open
-Progress: 0 of 1 tasks closed
+Status:   closed
+Progress: 1 of 1 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-23 (review)
@@ -32,7 +32,7 @@ the final review of the feat/lexer-rust branch
 
 ## Tasks
 
-- [ ] T1 | Make the drop path split Rust comments with the Rust reader's comment
-      grammar
+- [x] T1 | Drop path splits with scan_rust; page and drop prose agree | 3acbc7cf | Make
+      the drop path split Rust comments with the Rust reader's comment grammar
         > 2026-10-23 Check: a drop on `//// x` above `// y` reads both as ordinary
         > 2026-10-23 Reason: scanner.py and lexer.py differ on `/***` and `////`

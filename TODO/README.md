@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (126)
+### open  (125)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -307,7 +307,6 @@ that changed a published name or rule:
 | [2026-10-13-human-question-list](2026-10-13-human-question-list.md) | backend | -- | 0/1 | Expose human questions across edit copies |
 | [empty-comment-gets-a-drop](empty-comment-gets-a-drop.md) | backend | -- | 0/1 | An empty comment gets a drop mark |
 | [paragraph-is-a-passage](paragraph-is-a-passage.md) | backend | -- | 0/9 | The addressed unit of prose is a passage, not a paragraph |
-| [drop-path-second-rust-comment-grammar](drop-path-second-rust-comment-grammar.md) | backend | -- | 0/1 | The drop path splits Rust comments with a second Rust comment grammar |
 
 ### in-progress  (17)
 
@@ -513,3 +512,4 @@ the reason is inside the file.
 | [rust-reader-findings](completed/rust-reader-findings.md) | 6 finished, 2 superseded |
 | [module-insertion-slot-unread](completed/module-insertion-slot-unread.md) | 4 finished |
 | [stage-two-detached-warnings](completed/stage-two-detached-warnings.md) | 2 finished |
+| [drop-path-second-rust-comment-grammar](completed/drop-path-second-rust-comment-grammar.md) | 1 finished |
