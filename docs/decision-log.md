@@ -5500,3 +5500,16 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
 
   **What it settles.** The spec's independence row stays an acceptance statement, checked by
   reading the imports; T7 is superseded.
+
+- **#218.** **`declarations()` returns only declaration places, as a named type, and the
+  module's `a` series is stated on its own** (Roy, 2026-10-24, shown module-insertion-slot-unread
+  T1: the bare `tuple[int, int, bool]` spelled at eight sites, its first entry `(0, 1, True)`
+  read only for whether it exists, and the change reaching `binder/page.py` and the
+  `ReaderRecord` contract; asked *"Shall I make C the ruling for module-insertion T1, with the
+  NamedTuple included?"*: *"Yes"*).
+
+  **What it settles.** A documentation place is a NamedTuple of its declaring line, its
+  insertion line and whether the doc sits above. `declarations()` holds one per declaration and
+  no module entry; whether a file has an `a` series is a separate answer, which `cue` and the
+  page read in place of `decls[0][1]`. Both readers drop `insertions[0]` and the check on it.
+  Roy approved the reach past Reading in the same answer.
