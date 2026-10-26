@@ -25,7 +25,9 @@ def documentation_in(
     """Retain the first complete plain-string statement in each documentation body.
 
     Declaration indices and first positions come from preserved source placement.
-    Component spans identify only literals; the section also owns its closing tail.
+    Component spans identify only literals; the statement also owns its closing
+    tail: a trailing comment and, when the statement ends its logical line, the
+    rest of the physical line -- blanks and a continuation marker.
     """
     failure = validate_python(definition)
     if failure is not None:
@@ -78,12 +80,31 @@ def documentation_in(
             " \t\f"
         ):
             end = trailing.span.end
+        if stop is None or stop == line.tokens[-1]:
+            end = _line_end(scan, end)
         expressions.append(
             DocumentationExpression(
                 SourceSpan(tokens[0].span.start, end), components, declaration
             )
         )
     return tuple(sorted(expressions, key=lambda expression: expression.statement.start))
+
+
+def _line_end(scan: PythonScan, end: int) -> int:
+    """Where the physical line holding `end` ends, past blanks and continuation.
+
+    Called only when the documentation ends its logical line, so the rest of
+    the physical line is blanks and at most a continuation marker.
+    """
+    newline = next(
+        (
+            token
+            for token in scan.tokens
+            if token.span.start >= end and token.kind != "continuation"
+        ),
+        None,
+    )
+    return len(scan.text) if newline is None else newline.span.start
 
 
 def _bodies(

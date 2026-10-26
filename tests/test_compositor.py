@@ -255,6 +255,12 @@ FORMS = {
         "m.py",
         'def f():\n    """D."""  # type: ignore\n    return 1\n',
     ),
+    "docstring continued by a backslash": ("m.py", 'def f():\n    """D.""" \\\n    \n'),
+    "docstring with blanks after it": (
+        "m.py",
+        'def f():\n    """D."""   \n    return 1\n',
+    ),
+    "module docstring continued by a backslash": ("m.py", '"""D.""" \\\n\nx = 1\n'),
     "function no doc": ("m.py", "def f():\n    return 1\n"),
     "two functions": ("m.py", "def f():\n    return 1\n\n\ndef g():\n    return 2\n"),
     "nested def": ("m.py", "def f():\n    def g():\n        return 1\n    return g\n"),

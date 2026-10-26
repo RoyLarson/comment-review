@@ -3572,6 +3572,41 @@ def test_classification_closing_doc_comment_has_one_owner(python_definition, end
     assert result.source.reconstruct() == text
 
 
+@pytest.mark.parametrize("ending", ["\n", "\r\n", "\r"])
+@pytest.mark.parametrize(
+    "lines, first, last, anchor_line",
+    [
+        (["def f():", '    """doc""" \\', "    ", "    return 1"], 2, 2, 1),
+        (["def f():", '    """doc"""   ', "    return 1"], 2, 2, 1),
+        (["def f():", '    """a', '    b"""  \\', "", "    return 1"], 2, 3, 1),
+        (['"""mod""" \\', "", "x = 1"], 1, 1, None),
+    ],
+    ids=["continued", "trailing-blanks", "multi-line-continued", "module-continued"],
+)
+def test_a_docstring_paragraph_holds_its_whole_last_line(
+    python_definition, ending, lines, first, last, anchor_line
+):
+    """The rest of the closing line -- blanks, a continuation -- is the docstring's."""
+    from pathlib import Path
+
+    from comment_review.reading.python.projection import paragraphs_for
+    from comment_review.reading.series import Kind
+
+    text = ending.join([*lines, ""])
+    result = import_module("comment_review.reading.python").read_python(
+        text, python_definition
+    )
+    assert not isinstance(result, ReadFailure)
+    paragraphs = paragraphs_for(Path("m.py"), result)
+    assert not isinstance(paragraphs, ReadFailure)
+    assert [(p.kind, p.start, p.end, p.raw_lines) for p in paragraphs] == [
+        (Kind.DOCSTRING, first, last, lines[first - 1 : last])
+    ]
+    assert paragraphs[0].anchor_line == anchor_line
+    assert all(not first <= c.line <= last for c in result.code_lines())
+    assert result.source.reconstruct() == text
+
+
 @pytest.mark.parametrize(
     "header",
     [
