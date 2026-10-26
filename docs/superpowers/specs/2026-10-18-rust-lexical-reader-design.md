@@ -72,9 +72,10 @@ character of that code. That covers the second and later members on one line
 (`enum Dir { N, S }`), a first member on its parent's header line
 (`struct P(i32, i32);`, `struct P { x: i32,`), and any item that follows other
 code on its line (`fn a() {} fn b() {}`). The existing writer sets one `a` per
-declaring line, from the `(line, insert, above)` positions the read supplies,
-and cannot represent two insertions on one line. They remain code in the
-anchor.
+declaring line, from the `DocPlace` on that line's `CodeLine`, and cannot
+represent two insertions on one line. The first declaration on a line takes the
+place, silently (`decision-log.md Process: #228`, `#230`); the rest remain code
+in the anchor.
 
 ## How an owner is recognized
 
@@ -107,9 +108,11 @@ where each member begins.
 #30`. Each owner has a head: its outer attributes, then the line its keyword
 or member opens on. The reader reports the declaration as opening on the
 head's first line: its first outer attribute where it has one, its keyword
-line otherwise. Everything outside reading consumes that line as it consumes
-any above-the-line declaration today: the `a` is set above it, the doc run
-directly above it is the `a`, and the `a`'s anchor is that line's code. On an
+line otherwise. That line is the `CodeLine` carrying
+`DocPlace(line, above=True)` and the `anchor_line` of the doc above it. The page
+and addresser consume it as any above-the-line declaration: the `a` is set above
+it, the doc run directly above it is the `a`, and the `a`'s anchor is that
+line's code. On an
 attributed owner the anchor is the attribute line, such as `#[derive(Debug)]`,
 which several places may share; the address identifies the place.
 
@@ -154,11 +157,9 @@ one code, comment or literal region, in order, and their concatenation equals
 the input. Each comment region records its form: `line`, `outer-doc-line`,
 `inner-doc-line`, `block`, `outer-doc-block` or `inner-doc-block`.
 
-The scan also records each comment's prose: the text inside its markers, one
-piece per physical line. A delimited doc's continuation lines are decorated
-when every one of them opens, after an indent of one width, with
-`[rules.documentation].delimited_decoration`; the indent and decoration are
-then not prose. Otherwise all of the line is.
+The scan records no prose. A paragraph's `text` is `comment_form` over its raw
+lines, computed once after every reader (`decision-log.md Process: #227`); a
+delimited comment's markers and `*` continuation marks are not prose there.
 
 **My call:** isolated CR inside a doc comment, which the Reference forbids, is
 not checked; it is the compiler's to refuse.
@@ -176,11 +177,9 @@ attributes (`#![...]`) and inner doc comments interleave there; the place model
 holds only an inner doc that comes before them, and a later one is detached.
 
 An inner doc inside a body -- an inline module, function, impl, trait or block
--- documents no owner (`decision-log.md Addressing: #33`). It is an ordinary
-comment at the `b` place its position gives it, or the `c` place when it trails
-code, annotated `detached-documentation`, with one warning whose owner is the
-innermost item whose body holds it. The owner's `a` stays empty, and under
-`#31` the inner doc shares one paragraph with any comment in the same place.
+-- documents no owner (`decision-log.md Addressing: #33`). It is a COMMENT
+(`TRAILING` when it trails code) with one warning, joined to the comment section
+it sits in. The owner's `a` stays empty.
 Documentation is held at an `a` only where Rust normally puts it, above the
 item, and the roles correct a comment whose kind is ambiguous. Roy expects to
 revisit this if another language's reader meets documentation held inside the
@@ -193,9 +192,8 @@ before attributes." It is written as `///` lines ("Prefer line comments (`///`)
 to block comments"). An added `a0` is written as `//!` lines and is set where the
 page sets `a0`: after the front matter, before the first line of code
 (`decision-log.md Addressing: #30`). A file-level inner doc after an inner
-attribute cannot be held there and is detached (`#32`), so the module entry of the
-declarations the read hands the page carries no position the page reads. Every
-other owner inserts at its head's first line; an `add` at the empty `a` of an
+attribute cannot be held there and is detached (`#32`). The read's code lines
+carry no place for the module; the page sets `a0`. Every other owner inserts at its head's first line; an `add` at the empty `a` of an
 owner with a body inner doc sets `///` lines above its head, and the inner doc
 stays detached in its body.
 
@@ -206,39 +204,50 @@ Permitted layouts attach in Rust and are not held by the `a`:
 - an outer doc run between an attribute and the item, or on the head's own line;
 - an outer doc run that trails code on its line;
 - a second doc run for one owner, the module included;
+- an outer doc run that shares a line with another comment;
 - every inner doc inside a body (`#33`);
 - a file-level inner doc after an inner attribute at the head of the file (an
   inner doc after an item is refused by the compiler, and the reader reads it as
   an ordinary comment with no warning);
 - a file-level `//!` behind an ordinary comment that is not front matter.
 
-Each such run is read as an ordinary comment at the place its position gives
-it, annotated `detached-documentation`, and the read carries a warning naming
-its line and its owner. It is not a read failure. Moving the detached run to
-the `a` is an ordinary placement change, which both comparisons pass. Gather
-prints one `warning:` line per detached run, so two runs at one place print two
-lines; how the warning reaches gather's output is outside reading, see
-*Changes outside reading*.
+Detached means placed apart from the owner by the reader's rules, which need
+not match the compiler's attachment (`decision-log.md Process: #235`). Each
+such run is a COMMENT at the place its position gives it (`#226`); the page
+holds no detached-documentation logic. The read carries one warning per run
+(`RustRead.warnings`). It is not a read failure. Moving the detached run to the
+`a` is an ordinary placement change, which both comparisons pass. Gather prints
+`warning: <path>:<line>: detached documentation` to stderr, one line per run;
+see *Changes outside reading*.
 
 ## Sections, directives and addresses
 
-Existing address assignment remains authoritative. A same-form comment section
-extends between its surrounding code boundaries and remains whole across blank
-lines; the existing `a`, `b`, `c` and `f` rules place it. A place holds one
-paragraph (`decision-log.md Addressing: #31`): sections of different forms that
-fall in one place make one paragraph there. That paragraph keeps the
-`detached-documentation` annotation and its warning when any part of it is
-detached. An attached doc has its own `a` place and never shares one, so the
-forms never merge into one paragraph where each has a place of its own.
+The reader hands over each paragraph's span, raw lines, kind and anchor; the
+page and addresser assign everything else (`decision-log.md Process: #224`).
+Existing address assignment remains authoritative.
 
-Opening and closing matter follow the same rule as the other readers. The
-opening run starts on line 1, or directly below the shebang, and ends at the
-first blank line; it is `f0` matter whatever its comment forms, and is not
-claimed as a declaration's documentation (`matter-misses-two-languages` T2).
-The closing run follows the Python projection's closing rule, whatever the
-comment form: the whole-line comments after the last code line, when the last
-of them ends on the file's last line, and those after the run's last blank line
-are the foot's `f` matter.
+**Sections.** The reader joins the comment runs between two code boundaries into
+one COMMENT section, across blank lines; a detached doc, being a COMMENT, joins
+it. Sections that share a physical line are one paragraph, which keeps the
+first part's kind and anchor. An attached doc has its own `a` place and shares
+no line with another section.
+
+**Matter.** `reading/matter.py` `file_matter` is the one matter rule for every
+reader (`decision-log.md Process: #232`). The Rust projection hands it the line
+the matter may open on (line 1, or directly below the shebang) and the prose
+lines: lines a COMMENT paragraph's comment stands on and no code does. It cuts
+each COMMENT paragraph at the matter's edges and gives the parts inside the
+front matter, with the shebang, one `Kind.MATTER` paragraph (`#225`), and the
+parts inside the back matter another. The page files them at the first and last
+`f` place. Front matter runs from the opening line to the first line that is
+not prose; back matter is the same rule read from the last line upward. A doc
+attached to an owner or the module is `Kind.DOCSTRING`, never matter
+(`matter-misses-two-languages` T2). The documentation stage asks `file_matter`
+for the opening comments, to decide whether the module's inner doc is detached.
+
+**The `a` series.** `RustRead.a_series` is always true. `closing_docstring` is
+false: an inner doc after the first item, or an outer doc with no item after
+it, does not compile, so no `a` is emitted at `<eof>` (`#233`, `#234`).
 
 An anchor contains every code portion of its physical line, in source order.
 Code on both sides of a block comment remains code. A delimited comment
@@ -327,7 +336,6 @@ assignment = "="
 
 [rules.documentation]
 owners = ["module", "item", "associated-item", "field", "variant", "nested-item"]
-delimited_decoration = "*"
 
 [rules.directives]
 shebang = "#!"
@@ -353,39 +361,39 @@ documentation. Revision `2` replaces the shared row's
 | Module | Provides | Built on |
 | --- | --- | --- |
 | `definition.py` | `validate_rust(definition) -> ReadFailure \| None` | `LanguageDefinition` |
-| `records.py` | `RustToken(kind, span)`, `RustScan(text, regions, tokens, prose)`, `RustPlacement(declarations, detached)`, `DetachedRun(span, owner)`, `RustDocumentation(sections, owners, placement, warnings)`, `RustRead` | `SourceStructure`, `SourceSpan`, `SourceSection`, `SourceDeclaration`, `DocumentationOwner` from `reading/source.py` |
+| `records.py` | `RustToken(kind, span)`, `RustScan(text, regions, tokens)`, `RustPlacement(declarations, detached)`, `DetachedRun(span)`, `RustDocumentation(sections, owners, placement, warnings)`, `RustRead` | `SourceStructure`, `SourceSpan`, `SourceSection`, `SourceDeclaration`, `DocumentationOwner`, `CodeLine` from `reading/source.py` |
 | `scanner.py` | `scan_rust(text, definition) -> RustScan \| ReadFailure`: the state table above | `ReadDiagnostic` at `LEX` |
 | `structure.py` | `place_declarations(scan, definition) -> RustPlacement \| ReadFailure`: the body-kind stack, owners, heads, the same-line rule, macro opacity | the scan's tokens only |
-| `documentation.py` | `documentation_in(scan, placement, definition)`: attaches doc sections to owners, finds detached runs and the module's `a0` | the scan and placement |
+| `documentation.py` | `documentation_in(scan, placement, definition)`: groups comments into sections, attaches doc sections to owners, finds detached runs and the module's `a0` | the scan and placement; `reading/matter.py` |
 | `directives.py` | `directives_in(scan, definition)`: the shebang | the scan |
-| `projection.py` | `sections_for(...) -> RustRead`, `paragraphs_for(path, read)`, `code_for(read)`, `declarations_for(read)` | `Paragraph`, `Kind` |
+| `projection.py` | `sections_for(...) -> RustRead`, `paragraphs_for(path, read)`, `code_lines_for(read)` | `Paragraph`, `Kind`, `reading/matter.py`, `lines_of_code`, `SourceCoordinates.line_span` |
 | `preservation.py` | `compare_preservation(before, after) -> PreservationResult` | `reading/proof.py` |
 | `__init__.py` | `read_rust(text, definition) -> RustRead \| ReadFailure` | the above, in order |
 
-`RustRead` holds `source: SourceStructure`, `protected` (the shebang), `warnings:
-tuple[ReadDiagnostic, ...]` for detached documentation, at stage `PLACE`, code
-`detached-documentation`, with the detached run's span, `detached` (the runs,
-each with its owner's declaration index or `None` for the module) and `prose`
-(the scan's prose pieces). `warning_owners` gives each warning's owner. It
-validates in `__post_init__` as `PythonRead` does: regions partition the text,
-each declaration anchored on its own line, warnings inside the text.
+`RustRead` holds `source: SourceStructure`, `protected` (the shebang),
+`warnings: tuple[ReadDiagnostic, ...]` -- one per detached run, at stage `PLACE`,
+code `detached-documentation`, with the run's span -- and `detached` (the
+`DetachedRun` spans, aligned with `warnings`). It records no owner for a
+warning. It validates in `__post_init__`: each declaration anchored on its own
+line below the one before, no documentation section sharing a physical line,
+protected spans coinciding with directive regions, warnings aligned with
+detached runs. It satisfies `ReaderRecord` (`reading/proof.py`) with
+`paragraphs(path)`, `code_lines()`, `a_series` and `closing_docstring`.
 
-`projection.py` follows the Python projection's contract
-(`reading/python/projection.py:107-257`):
+`projection.py` hands the page what only parsing finds (`decision-log.md
+Process: #224`):
 
-- `paragraphs_for` gives an attached doc section `Kind.DOCSTRING` with address
-  `a{n}` (`a0` the module), stamped by the reader as Python's are, and gives
-  other comment groups `TRAILING`, `COMMENT` or `MATTER` with their anchor and
-  raw lines. A detached run is `COMMENT` or `TRAILING` with the
-  `detached-documentation` annotation.
-- `code_for` gives line number -> the code on that line.
-- `declarations_for` gives a `DocumentationPlace`
-  `(head first line, head first line, True)` per owner with a place, and none
-  for the module, whose `a0` the page sets whenever there is an `a` series: every
-  declaration inserts at its anchor line, an owner with a body inner doc
-  included (`decision-log.md Addressing: #33`). `above` is `True` for every
-  entry: the doc goes above the line, and `documentable`
-  (`binder/page.py:568`) handles that side unchanged.
+- `paragraphs_for` gives an attached doc section `Kind.DOCSTRING` with
+  `anchor_line` set to its owner's declaring line, `None` for the module
+  (`#229`); other comment groups `TRAILING` (anchor: the code before it on its
+  first line), `COMMENT` or `MATTER`, each with its span and raw lines. It sets
+  no address, text or anchor number: the page derives them.
+- `code_lines_for` gives a `CodeLine(line, code, documents)` per line holding
+  code, the code right-trimmed. `documents` is `DocPlace(line, True)` on each
+  declaring line -- the head's first line, an owner with a body inner doc
+  included (`decision-log.md Addressing: #33`) -- and `None` elsewhere. The module
+  has no entry: the page sets `a0` whenever there is an `a` series. `above` is
+  `True` throughout: the doc goes above the line.
 
 `preservation.py` compares the two reads' code as logical lines with every
 prose comment removed and each removal kept as a fragment boundary, so
@@ -421,7 +429,8 @@ These are within `reading/` and need no further approval:
 | `reading/lexer.py` | `comment_form` (`:130`, `:203`) answers Rust from the definition | `desk/marks/rules.py:37` calls it to split a mark's comment from its markers; without the row it returns the raw text whole |
 | `reading/stripped.py` | No change: a Rust page's read is the `RustRead`, so `StrippedRead` is no longer built for `.rs` | `stripped.py:62` needs `language_for`, which answers `None` once the row goes |
 | `reading/readers.py` | A `rust-lexical` `ReaderBinding` with `read_rust`, `validate_rust`, grammar identity `"Rust Reference lexical"`; `SourceReader` and `read_source` return a reader record rather than naming `PythonRead`; `read_paragraphs` asks the record for its paragraphs | `readers.py:34-36`, `:93-102` name `PythonRead` |
-| `reading/proof.py` | A `ReaderRecord` `Protocol` beside `SourceRead`: `source`, `paragraphs(path)`, `code()`, `declarations()`, `warnings`, `warning_owners`, plus `SourceRead`'s `proof` and `preserved`. `PythonRead` and `RustRead` both satisfy it | one interface for `page_for` to ask, so no consumer names a reader |
+| `reading/proof.py` | A `ReaderRecord` `Protocol` beside `SourceRead`: `source`, `paragraphs(path)`, `code_lines()`, `a_series`, `closing_docstring`, plus `SourceRead`'s `proof`, `warnings` and `preserved`. `PythonRead` and `RustRead` both satisfy it | one interface for `page_for` to ask, so no consumer names a reader |
+| `reading/matter.py` | `file_matter`, the one matter rule every reader calls | the front and back matter is stated once (`decision-log.md Process: #232`) |
 
 ## Changes outside reading -- approved
 
@@ -430,9 +439,9 @@ Anything outside reading not in this table still needs his approval first.
 
 | # | File | Change | Justification |
 | --- | --- | --- | --- |
-| O1 | `binder/page.py`, `page_for` (`:857-925`) | Replace `isinstance(result, PythonRead)` and the `reading.python.projection` imports (`:69-78`) with the `ReaderRecord` protocol: take the page text, paragraphs, `code()` and `declarations()` from the record, pass `code` to `fill_the_gaps` (`:910`) for any record, and set `read=` to the record (`:923`). The lexical-row branch (`:877-881`) stays for the remaining rows | A Rust record falls into the lexical branch today: its `assert` (`:878`) fails because `language_for(.rs)` is `None`, and `got` is not a list. No change inside reading can make `page_for` accept a second record type. About fifteen lines; no address or wire change |
-| O2 | `binder/page.py`, `Page` | Carry the record's `warnings`, each turned into the cue of the paragraph its span falls in, as a `warnings` field not written to the binder wire | `#29` requires a warning. Only the page knows a paragraph's cue, and the binder wire stays `cue, anchor, original_start, original_end, raw_text` (`page.py:83,228-236`) |
-| O3 | `flows/gather.py`, `commands/gather.py` | Print each page warning to stderr as `warning: <path>@<cue>: detached documentation for <owner cue>`; the exit code is unchanged | No non-fatal channel exists: `ReadFailure` always fails the file (`diagnostics.py:55`), and gather prints only `unreadable`, unaddressed, `unread` and `no_record` (`commands/gather.py:131-201`) |
+| O1 | `binder/page.py`, `page_for` | Replace `isinstance(result, PythonRead)` and the `reading.python.projection` imports with the `ReaderRecord` protocol: take the page text, paragraphs, `code_lines()`, `a_series` and `closing_docstring` from the record, and set `read=` to the record. The generic lexical read stays the one tested for by type | No change inside reading can make `page_for` accept a second record type. No address or wire change |
+| O2 | `binder/page.py`, `Page` | None beyond O1: `Page.read` is the record, so its `warnings` reach gather without the page reading them. The page holds no detached-documentation logic and no warning field (`decision-log.md Process: #226`) | The binder wire stays `cue, anchor, original_start, original_end, raw_text` |
+| O3 | `flows/gather.py`, `commands/gather.py` | Print each of the read's warnings to stderr as `warning: <path>:<line>: detached documentation`, the line being the warning span's start; the exit code is unchanged | No non-fatal channel exists: `ReadFailure` always fails the file, and gather prints only `unreadable`, unaddressed, `unread` and `no_record`. `flows/gather.py` collects the lines; `commands/gather.py` `_passed_over` prints them |
 | O4 | `src/plugin/skills/comment-review/SKILL.md`, stage 2 | Ask the human about each detached-documentation warning, record the answer, and proceed | `#29`. The `agents` lane owns it: this work files an `agents` TODO and does not edit the file |
 | O5 | `references/vocabulary.toml`, `docs/vocabulary.md` | Add `detached documentation` | Shared by no lane; a new term is added on both sides in the same change (`docs/conventions.md`, *The vocabulary is shared*). `detached documentation` is defined in `docs/vocabulary.md`; its move to `vocabulary.toml` is filed in `TODO/stage-two-detached-warnings.md` T2 |
 
@@ -459,9 +468,9 @@ Each step ends with its tests green and the full suite green.
    same-line rule, macro opacity.
 4. **Documentation and directives.** Attachment, detached runs and their
    warnings, the module `a0`, the shebang.
-5. **Projection and records.** `RustRead`, `paragraphs_for`, `code_for`,
-   `declarations_for`, the `ReaderRecord` protocol satisfied by both records.
-6. **Page integration.** O1 and O2: `page_for` over a `.rs`
+5. **Projection and records.** `RustRead`, `paragraphs_for`, `code_lines_for`,
+   the `ReaderRecord` protocol satisfied by both records.
+6. **Page integration.** O1: `page_for` over a `.rs`
    source gives the expected addresses through `tests/conftest.py:77`'s
    `build(text, name="m.rs")`.
 7. **Preservation.** `compare_preservation` and both comparison paths.
@@ -485,7 +494,10 @@ on its own, and page-level cases through `tests/conftest.py`'s `build`.
 Integration cases go in the affected page, setter, proof and command suites
 (`test_page_for`, `test_lexical_preservation`, `test_proof_setter`,
 `test_proof_command`, `test_gather_command`, `test_language_definitions`,
-`test_reading_context`). Each fixture states its expected regions, prose,
+`test_reading_context`). A test asks only what its unit is responsible for: the
+reader's tests check the spans, raw lines, kinds, anchors and code lines it
+hands over; text, addresses and matter placement are the `Paragraph`, page and
+addresser tests'. Each fixture states its expected regions, prose,
 owners, forms, addresses and code independently. No fixture copies code from
 another project. Existing Rust cases in `test_comment_wrapping`,
 `test_compositor`, `test_reading` and `test_language_definitions` are kept
@@ -501,8 +513,8 @@ passing, or superseded case by case where they assert the old row's behavior.
 | Heads | Single and multi-line attributes, attributes holding strings with `]`, and an attribute on the item's own line give the head's first line; attributes on a `let`, a match arm and a parameter create no place; an unclosed `#[` refuses with a location |
 | Attachment | Doc above multi-line attributes and across blank lines attaches; a doc before `}` or EOF is an ordinary comment |
 | Placement | An added doc sets above the first attribute as `///`; an added `a0` sets after the shebang and matter as `//!` |
-| Detached docs | A doc behind an ordinary comment, a doc between attribute and item, a second doc run, an inner doc inside a body (`#33`), and a file-level `//!` behind an ordinary comment that is not front matter read as annotated ordinary comments with a warning and exit 0; gather prints one `warning:` line per run, two lines for two runs at one place; sections of different forms in one place make one paragraph that keeps the annotation; moving one to the `a` passes both comparisons |
-| Matter | An opening `// Copyright` run is `f0` matter with an empty `a1`; a closing run follows the Python closing rule whatever its form; a delimited comment followed by code on its line is code |
+| Detached docs | A doc behind an ordinary comment, a doc between attribute and item, a second doc run, an inner doc inside a body (`#33`), and a file-level `//!` behind an ordinary comment that is not front matter read as COMMENT with a warning and exit 0; gather prints one `warning:` line per run, two lines for two runs at one place; a detached doc joins the COMMENT section it sits in; moving one to the `a` passes both comparisons |
+| Matter | An opening `// Copyright` run is `f0` matter with an empty `a1`; a closing run follows `file_matter`, whatever its form; a delimited comment followed by code on its line is code |
 | Directives | The shebang is `f0` matter and an opening run directly below it joins it; `#![` at the head is code |
 | Macros | `fn` inside a `macro_rules!` body creates no place |
 | Preservation | Code, order, literal, attribute and separator mutations fail; joining fragments fails; prose changes, doc adds, drops and `b`-to-`a` moves pass both comparisons |
