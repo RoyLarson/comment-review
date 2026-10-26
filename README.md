@@ -356,8 +356,8 @@ The gather reads fifteen languages, all lexically (`gather --languages`).
   Undeclared literals: [TODO/lexer-and-language-findings.md](TODO/lexer-and-language-findings.md).
 - **Documentation.** A reader marks prose that documents a declaration as `docstring` and
   names the declaring line. The matcher reads a line's first word, so the C and C++ rows
-  list no keywords until it looks past the return type; their documentation reads as
-  comments meanwhile. SQL has no docstring practice.
+  list no keywords until it looks past the return type; documentation on their
+  declarations reads as comments meanwhile. SQL has no docstring practice.
 - **Comments.** A comment is anchored to the code below it (`b`) or beside it (`c`).
   Reviewers judge whether it is about that code.
 
