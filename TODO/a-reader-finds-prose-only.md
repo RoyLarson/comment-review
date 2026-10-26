@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 16 of 20 tasks closed
+Progress: 17 of 20 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-25 (decision-log.md Process: #224)
@@ -40,7 +40,8 @@ defect and is repaired (lexer-and-language-findings T12, b30cc510).
         > 2026-10-25 Rust keeps a literal's trailing space: c0 anchor+raw breaks line 1
         > 2026-10-25 Check: no def code_for under reading/python or reading/rust
         > 2026-10-25 Check: every margin anchor + raw_lines[0] equals its line, .rs
-- [ ] T5 | Give a Python docstring paragraph its whole source lines
+- [x] T5 | FINISHED: docstring span runs to its line end; backslash case sets back byte-identical | 6a6f8659 | Give
+      a Python docstring paragraph its whole source lines
         > 2026-10-25 python/projection.py:136 cuts raw_lines at the statement end
         > 2026-10-25 Reason: in """doc""" \ the \ belongs to no place; set drops it
         > 2026-10-25 Check: that input sets back identical through set_page

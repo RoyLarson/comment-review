@@ -2,8 +2,8 @@
 
 ```
 Status:   in-progress
-Progress: 11 of 15 TODO tasks closed
-Plan-tasks: 11 of 17 plan tasks closed
+Progress: 12 of 15 TODO tasks closed
+Plan-tasks: 12 of 17 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-25 (founded by move-t from 2026-10-11-lexical-readers)
@@ -26,7 +26,7 @@ per step; each step lands its failing test first.
 - [x] T1 | Derive Paragraph.text in one place for every reader
 - [x] T2 | Assign each paragraph's address in the page instead of in a reader
 - [-] T4 | Derive each line's code in the page for every reader
-- [ ] T5 | Give a Python docstring paragraph its whole source lines
+- [x] T5 | Give a Python docstring paragraph its whole source lines
 - [ ] T6 | Delete the continues-a-trailing-comment stamp from lexer.py
 - [ ] T8 | Move the front and back matter rule to one shared place
 - [ ] T12 | Replace the Rust reader's _Lines with the shared line splitter
@@ -61,7 +61,8 @@ per step; each step lands its failing test first.
         > 2026-10-25 Check: every .rs margin anchor + raw_lines[0] equals its line
         > 2026-10-25 Check: no def code_for under reading/python or reading/rust
         > 2026-10-25 Works T4
-- [ ] P5 | Give a Python docstring paragraph its whole source lines
+- [x] P5 | FINISHED: docstring holds its whole closing line; ; + code stays code; reviewed | 6a6f8659 | Give
+      a Python docstring paragraph its whole source lines
         > 2026-10-25 Check: the """doc""" \ input sets back byte-identical
         > 2026-10-25 Works T5
         > 2026-10-25 Takes P15's Python case: doc span runs to line end
