@@ -1510,6 +1510,21 @@ def test_detached_inner_doc_in_a_body_names_the_item_that_holds_it(
     assert anchor_lines(text, result.placement)[0] == 1
 
 
+@pytest.mark.parametrize(
+    ("text", "owner_line"),
+    [
+        ("mod a {\n    fn b() {}\n    //! x\n    fn c() {}\n}\n", 1),
+        ("mod a {\n    fn b() {\n        //! x\n    }\n}\n", 2),
+    ],
+    ids=["after-a-closed-nested-item", "inside-a-nested-fn"],
+)
+def test_detached_inner_doc_in_a_body_names_the_innermost_item_holding_it(
+    rust_definition, text, owner_line
+):
+    result = documentation_of(text, rust_definition)
+    assert detached_of(text, result) == [("//! x", [3, owner_line])]
+
+
 def test_attachment_ordinary_comment_above_an_item_is_not_documentation(
     rust_definition,
 ):
