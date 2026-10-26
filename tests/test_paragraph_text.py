@@ -53,6 +53,21 @@ def test_python_docstring_escapes_keep_their_source_spelling():
     assert comment_form(Path("m.py"), Series.DECLARED, raw).text == "Takes \\\\*args."
 
 
+@pytest.mark.parametrize(
+    ("raw", "text"),
+    [
+        ('    """Doc.""" \\', "Doc."),
+        ('    """Doc.\n    more""" \\\n', "Doc. more"),
+        ('    """Doc. """ """More.""" \\', "Doc. More."),
+    ],
+    ids=["one-line", "two-lines", "concatenated"],
+)
+def test_a_python_docstring_ending_in_a_continuation_has_no_quotes_in_its_text(
+    raw, text
+):
+    assert comment_form(Path("m.py"), Series.DECLARED, raw).text == text
+
+
 def _page(name: str, text: str) -> Page:
     path = Path(name)
     context = context_for(path, {})

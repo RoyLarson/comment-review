@@ -609,3 +609,14 @@ class TestADocstringSharingItsLineIsSetBroken:
             for b in build(broken)
             if b.kind != "docstring"
         ]
+
+
+def test_a_docstring_continued_by_a_backslash_is_set_back_with_its_continuation():
+    from comment_review.results.galley import reset
+
+    page = build('def f():\n    """D.""" \\\n    \n    return 1\n')
+    doc = next(b for b in page if b.kind == "docstring")
+    assert reset(page, {cue(doc): '    """New doc.""" \\'}) == []
+    out = set_page(page)
+    assert out == 'def f():\n    """New doc.""" \\\n    \n    return 1\n'
+    compile(out, "m.py", "exec")

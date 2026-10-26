@@ -9,7 +9,7 @@ from comment_review.reading.comment import Comment, Fragment
 from comment_review.reading.definitions import LanguageDefinition
 from comment_review.reading.diagnostics import ReadFailure
 from comment_review.reading.python.documentation import decode_escape
-from comment_review.reading.python.records import PythonToken
+from comment_review.reading.python.records import PythonScan, PythonToken
 from comment_review.reading.python.scanner import scan_python
 
 
@@ -53,9 +53,19 @@ class Docstring(Comment):
         return self._without_range(selected[0], selected[-1] + 1)
 
 
+def _scan_line(raw: str, definition: LanguageDefinition) -> PythonScan | ReadFailure:
+    """Scan a paragraph's raw text as the physical lines it stands on.
+
+    A docstring paragraph runs to the end of its closing line, which may end in
+    a continuation marker; the line break after it, which the paragraph does
+    not hold, is what completes the marker, so the scan is given one.
+    """
+    return scan_python(raw + "\n", definition)
+
+
 def first_literal(raw: str, definition: LanguageDefinition) -> str | None:
     """The spelling of the first string literal in `raw`, or None where none scans."""
-    scan = scan_python(raw, definition)
+    scan = _scan_line(raw, definition)
     if isinstance(scan, ReadFailure):
         return None
     token = next((one for one in scan.tokens if one.kind == "string"), None)
@@ -71,7 +81,7 @@ def concatenated(raw: str, definition: LanguageDefinition) -> Docstring | None:
     """
     indent = raw[: len(raw) - len(raw.lstrip())]
     source = raw[len(indent) :]
-    scan = scan_python(source, definition)
+    scan = _scan_line(source, definition)
     if isinstance(scan, ReadFailure):
         return None
     expression = _expression(source, scan.tokens, definition)

@@ -214,6 +214,13 @@ def test_docstring_quotes_and_prefixes_survive_removal(quote):
     assert comment_at(paragraph.address, changed).text == "Keep. Ending stays."
 
 
+def test_a_docstring_continued_by_a_backslash_wraps_inside_its_quotes():
+    raw = '    """Keep. Move.""" \\'
+    form = comment_at("m.py@a1", raw)
+    assert form.fragments[0].wrap("New doc.") == '    """New doc.""" \\'
+    assert form.without_once("Move.") == '    """Keep.""" \\'
+
+
 @pytest.mark.parametrize("instruction", ["move", "drop"])
 @pytest.mark.parametrize("quote", ['"""', "'''", 'r"""', "r'''"])
 @pytest.mark.parametrize("closer_line", ["", "Ending stays."])
