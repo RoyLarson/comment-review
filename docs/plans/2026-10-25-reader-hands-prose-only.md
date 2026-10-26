@@ -3,7 +3,7 @@
 ```
 Status:   in-progress
 Progress: 15 of 15 TODO tasks closed
-Plan-tasks: 15 of 17 plan tasks closed
+Plan-tasks: 16 of 17 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-25 (founded by move-t from 2026-10-11-lexical-readers)
@@ -91,7 +91,8 @@ per step; each step lands its failing test first.
       the Rust reader's _Lines with the shared line splitter
         > 2026-10-25 Check: git grep "class _Lines" -- src returns none
         > 2026-10-25 Works T12
-- [ ] P11 | Amend the Rust spec where it gives the reader page duties
+- [x] P11 | FINISHED: Rust spec states the page, addresser and shared owners; dead names gone | 5ad6ad3c | Amend
+      the Rust spec where it gives the reader page duties
         > 2026-10-25 Spec lines 227-241 and 373-381; after P8 and P9
         > 2026-10-25 Check: those sections name the page or addresser as owner
         > 2026-10-25 Also amend the spec's code_for and declarations sections (#228)
