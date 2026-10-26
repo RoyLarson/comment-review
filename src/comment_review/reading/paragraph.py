@@ -13,13 +13,17 @@ it is where the page's own dependencies already point. A page adds its leadings
 and a few load-bearing attributes to its paragraphs, so `Page` stays where it is
 and this sits beneath both.
 
-! A LEAF, LIKE `series`. It imports nothing from this package, so every module
-that makes one and every module that reads one take it from the same
-declaration instead of from each other.
+! BENEATH EVERY MODULE THAT MAKES OR READS ONE. At import it takes only
+`series`, so every module that makes one and every module that reads one take
+it from the same declaration instead of from each other; `text` calls
+`lexer.comment_form` when it is first read.
 """
 
 import re
 from dataclasses import dataclass, field
+from pathlib import Path
+
+from comment_review.reading.series import Series
 
 MARKERS = ("TODO", "FIXME", "HACK", "XXX", "BUG")
 WORK_MARKER = re.compile(r"^(" + "|".join(MARKERS) + r")\b")
@@ -60,10 +64,6 @@ class Paragraph:
     start: int
     end: int
     kind: str  # a `series.Kind` value
-    # The prose JOINED, so a wrapped claim matches as one string. A reader
-    # leaves it empty; the page fills it from `raw_lines` with
-    # `lexer.comment_form`, the one derivation of a paragraph's prose.
-    text: str = ""
     # !! WHAT THIS PARAGRAPH IS ATTACHED TO, and it is ONE-TO-MANY THE OTHER WAY:
     # an anchor has MANY addresses -- its own `a`, the `b` above it, the `c`
     # beside it, every `b` and `c` in its body -- and an address has ONE anchor.
@@ -154,6 +154,30 @@ class Paragraph:
         return "\n".join(self.raw_lines)
 
     @property
+    def text(self) -> str:
+        """The prose JOINED, so a wrapped claim matches as one string.
+
+        Derived by `lexer.comment_form` -- the one derivation of a paragraph's
+        prose -- from `raw_lines`, the cue's series, `anchor` and the path's
+        language, the first time it is asked for, and again only when one of
+        those has changed. "" where the paragraph holds no prose.
+        """
+        cue = self.address.rsplit("@", 1)[-1]
+        key = (self.path, cue, self.anchor, tuple(self.raw_lines))
+        if self._text is not None and self._text[0] == key:
+            return self._text[1]
+        text = ""
+        if self.raw_text.strip():
+            # Imported here: `lexer` builds paragraphs, so it imports this module.
+            from comment_review.reading.lexer import comment_form
+
+            text = comment_form(
+                Path(self.path), Series.of(cue), self.raw_text, self.anchor
+            ).text
+        self._text = (key, text)
+        return text
+
+    @property
     def lines(self) -> int:
         """The lines a stage's cap charges this paragraph for -- `counted_lines`.
 
@@ -188,6 +212,10 @@ class Paragraph:
     # without visiting every construction site.
     original_start: int | None = None
     original_end: int | None = None
+    # `text` as last derived, with the inputs it was derived from.
+    _text: tuple[tuple[str, str, str, tuple[str, ...]], str] | None = field(
+        default=None, init=False, repr=False, compare=False
+    )
 
     def __post_init__(self) -> None:
         """Default the covered lines to the addressing range, or to None.

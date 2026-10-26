@@ -19,7 +19,7 @@ declaring keyword. It hands back a `LexicalRead`, the paragraphs and their
 `CodeLine`s together; `paragraphs_lexical` is its paragraphs alone.
 
 Beside the reader: `comment_form` parses a comment's markers and fragments for
-`desk.marks.rules`.
+`Paragraph.text` and `desk.marks.rules`.
 
 """
 

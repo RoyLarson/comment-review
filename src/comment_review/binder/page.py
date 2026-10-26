@@ -60,7 +60,6 @@ from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, Read
 from comment_review.reading.language import INSTALLED_REGISTRY
 from comment_review.reading.lexer import (
     LexicalRead,
-    comment_form,
     leading_between,
 )
 from comment_review.reading.paragraph import Paragraph
@@ -252,29 +251,19 @@ def _kind_of(series: "Series | None", raw_text: str) -> str:
     return series.value.absent or series.value.present
 
 
-def _text_of(path: str, cue: str, raw_text: str, anchor: str) -> str:
-    """A place's prose as one string: `comment_form`'s text, or "" with no prose.
-
-    A fresh page and a place read back off the wire both call this, so a
-    reloaded paragraph's `text` is the fresh one's.
-    """
-    if not raw_text.strip():
-        return ""
-    return comment_form(Path(path), Series.of(cue), raw_text, anchor).text
-
-
 def _paragraph(place: dict, path: str) -> Paragraph:
     """One place read back into the `Paragraph` it was written from.
 
     !! A PARAGRAPH, NOT A REDACTED ONE. What a redaction removes is at the PAGE
     -- the source text, and the places holding no prose.
 
-    ! THE FOUR FIELDS THE WIRE DOES NOT CARRY ARE DERIVED, NOT INVENTED:
+    ! THE THREE FIELDS THE WIRE DOES NOT CARRY ARE DERIVED, NOT INVENTED:
 
         kind     `_kind_of`: the series' present kind, or its absent one if empty
-        text     `_text_of`, as `page_for` derives it
         start    the recorded `original_start` -- nothing moves between the
         end      gather and the read back, so the two are the same lines
+
+    `text` is the paragraph's own derivation, made only when it is read.
 
     ! `start`/`end` FALL BACK TO 0 when the wire carries null line numbers,
     which is this type's own spelling for *occupies nothing* -- see
@@ -291,7 +280,6 @@ def _paragraph(place: dict, path: str) -> Paragraph:
         start=start if isinstance(start, int) else 0,
         end=end if isinstance(end, int) else 0,
         kind=_kind_of(series, raw_text),
-        text=_text_of(path, cue_text, raw_text, str(place.get("anchor", ""))),
         anchor=str(place.get("anchor", "")),
         address=address_for(path, cue_text),
         raw_lines=raw_lines,
@@ -525,7 +513,6 @@ def empty_places(
                     start=0,
                     end=0,
                     kind="undocumented",
-                    text="",
                     anchor=anchor,
                     original_start=None,
                     original_end=None,
@@ -564,7 +551,6 @@ def empty_places(
                     start=n,
                     end=n,
                     kind="margin",
-                    text="",
                     raw_lines=[lines[n - 1][len(code) :]],
                     original_start=n,
                     original_end=n,
@@ -583,7 +569,6 @@ def empty_places(
                     start=0,
                     end=0,
                     kind="dark-matter",
-                    text="",
                     original_start=None,
                     original_end=None,
                     anchor=anchor,
@@ -615,7 +600,6 @@ def empty_places(
                     start=low if low <= high else 0,
                     end=high if low <= high else 0,
                     kind="interval",
-                    text="",
                     # ! A CLOSED LIST OR None -- see `Paragraph`. `low > high`
                     # here says the gap holds no line of its own, which is not
                     # a range and is not written as one.
@@ -768,7 +752,6 @@ def page_for(
             place = attach(vars(b), cues)
         b.address = address_for(here, place)
         b.anchor = cues.anchor_of(place, b.anchor)
-        b.text = _text_of(path.as_posix(), place, "\n".join(b.raw_lines), b.anchor)
     occupied = {b.address.split("@")[-1] for b in got if "@" in b.address}
     empty_paragraphs = empty_places(text, cues, occupied)
     if isinstance(empty_paragraphs, ReadFailure):
