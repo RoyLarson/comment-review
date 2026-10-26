@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 22 of 49 tasks closed
+Progress: 22 of 50 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (/simplify rounds 1 and 2 and /code-review high round 3,
@@ -335,3 +335,7 @@ would.
       the Python `Language` row from `LANGUAGES`
 - [x] T49 | rust.toml states //! and /*! as inner doc openers | 3f1a4817 | State
       Rust's inner doc openers in Rust's own definition file
+- [ ] T50 | Read a line-1 comment run above a declaration as f0 matter, not an a
+      docstring (#232)
+        > 2026-10-26 js: // Licence, blank, function f() {} -> a1; over const x -> f0
+        > 2026-10-26 At ef037f20 too; document_declarations claims before the matter cut
