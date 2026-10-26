@@ -136,10 +136,7 @@ def _shebang(text: str, path: Path) -> str | None:
     the comparison checks it here on its own.
     """
     lang = language_for(path)
-    first = constants.text_lines(text)[:1]
-    if lang is None or not first or not first[0].startswith(lang.shebang):
-        return None
-    return first[0]
+    return None if lang is None else lang.interpreter_line(constants.text_lines(text))
 
 
 @dataclass(frozen=True)

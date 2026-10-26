@@ -1192,3 +1192,22 @@ def test_rust_definition_leaves_other_definitions_unchanged() -> None:
         "sql",
         "lua",
     ]
+
+
+@pytest.mark.parametrize(
+    ("shebang", "lines", "line"),
+    [
+        (("#!",), ["#!/bin/sh", "echo"], "#!/bin/sh"),
+        (("#!",), ["echo", "#!/bin/sh"], None),
+        (("#!",), [], None),
+        ((), ["#!/bin/sh"], None),
+    ],
+    ids=["first-line", "below-line-1", "empty-file", "no-marker"],
+)
+def test_a_rows_interpreter_line_is_line_1_opening_with_its_shebang(
+    shebang, lines, line
+) -> None:
+    from comment_review.reading.language import Language
+
+    row = Language("x", (".x",), ("#",), shebang=shebang)
+    assert row.interpreter_line(lines) == line

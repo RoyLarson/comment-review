@@ -832,13 +832,14 @@ def read_lexical(path: Path, text: str, lang: Language) -> "LexicalRead":
     # The interpreter line the row names, kept as the file's own matter: it is
     # neither code nor a comment, and the matter rule opens on the line below.
     shebang = None
-    if lines and lines[0].startswith(lang.shebang):
+    interpreter = lang.interpreter_line(lines)
+    if interpreter is not None:
         shebang = Paragraph(
             path=path.as_posix(),
             start=1,
             end=1,
             kind=Kind.MATTER,
-            raw_lines=[lines[0]],
+            raw_lines=[interpreter],
             anchor=MODULE_ANCHOR,
         )
 

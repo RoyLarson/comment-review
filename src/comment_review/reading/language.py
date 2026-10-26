@@ -12,7 +12,7 @@ revisions, capabilities and coverage tiers for registration, dispatch and
 reporting.
 """
 
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, fields
 from importlib.resources import files
 from pathlib import Path
@@ -101,6 +101,15 @@ class Language:
         closing docstring, and a comment written there is back matter.
         """
         return bool(self.doc_line or self.doc_block)
+
+    def interpreter_line(self, lines: Sequence[str]) -> str | None:
+        """The file's first line when it opens with `shebang`, exactly, or None.
+
+        `lines` is the file's lines, as `constants.text_lines` gives them.
+        """
+        if lines and lines[0].startswith(self.shebang):
+            return lines[0]
+        return None
 
 
 # ! Line-comment openers are matched longest-first whatever order a row
