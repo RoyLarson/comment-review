@@ -2,8 +2,8 @@
 
 ```
 Status:   in-progress
-Progress: 14 of 15 TODO tasks closed
-Plan-tasks: 14 of 17 plan tasks closed
+Progress: 15 of 15 TODO tasks closed
+Plan-tasks: 15 of 17 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-25 (founded by move-t from 2026-10-11-lexical-readers)
@@ -21,7 +21,7 @@ per step; each step lands its failing test first.
 
 ## TODO tasks this plan closes
 
-### A - [a-reader-finds-prose-only](../../TODO/a-reader-finds-prose-only.md)
+### A - [a-reader-finds-prose-only](../../TODO/completed/a-reader-finds-prose-only.md)
 
 - [x] T1 | Derive Paragraph.text in one place for every reader
 - [x] T2 | Assign each paragraph's address in the page instead of in a reader
@@ -29,7 +29,7 @@ per step; each step lands its failing test first.
 - [x] T5 | Give a Python docstring paragraph its whole source lines
 - [x] T6 | Delete the continues-a-trailing-comment stamp from lexer.py
 - [x] T8 | Move the front and back matter rule to one shared place
-- [ ] T12 | Replace the Rust reader's _Lines with the shared line splitter
+- [x] T12 | Replace the Rust reader's _Lines with the shared line splitter
 - [x] T13 | Stop the page changing a reader's matter kind to comment
 - [x] T14 | Form one comment section per gap in the Rust reader
 - [x] T15 | Remove the page's detached-documentation placement
@@ -87,7 +87,8 @@ per step; each step lands its failing test first.
         > 2026-10-25 Works T15; after P8
         > 2026-10-25 Lands before P13: drops warning_owners, the last ordinal
         > 2026-10-25 Lands before P16, not P13 (P13 superseded)
-- [ ] P10 | Replace the Rust reader's _Lines with the shared line splitter
+- [x] P10 | FINISHED: _Lines replaced by shared line_span; 1647 .rs identical | 943ec462 | Replace
+      the Rust reader's _Lines with the shared line splitter
         > 2026-10-25 Check: git grep "class _Lines" -- src returns none
         > 2026-10-25 Works T12
 - [ ] P11 | Amend the Rust spec where it gives the reader page duties

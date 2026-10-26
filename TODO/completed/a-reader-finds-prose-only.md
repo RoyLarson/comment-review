@@ -1,8 +1,8 @@
 # A reader finds prose and rebuilds nothing after it
 
 ```
-Status:   open
-Progress: 19 of 20 tasks closed
+Status:   closed
+Progress: 20 of 20 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-25 (decision-log.md Process: #224)
@@ -80,7 +80,8 @@ defect and is repaired (lexer-and-language-findings T12, b30cc510).
         > 2026-10-25 rust/projection.py:132 annotation and page.py:940-976 warning
         > 2026-10-25 Suspected redundant; no input found where the two disagree
         > 2026-10-25 Check: one of the two is gone; the gather warning still prints
-- [ ] T12 | Replace the Rust reader's _Lines with the shared line splitter
+- [x] T12 | FINISHED: _Lines deleted; Rust uses SourceCoordinates.line_span; dump identical | 943ec462 | Replace
+      the Rust reader's _Lines with the shared line splitter
         > 2026-10-25 rust/projection.py:368-389 copies constants.text_lines
         > 2026-10-25 Check: git grep "class _Lines" -- src returns none
 - [x] T13 | FINISHED: the page's MATTER->COMMENT retype is deleted; binder assigns no kind | 9ac42812 | Stop
