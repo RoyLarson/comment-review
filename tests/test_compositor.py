@@ -325,6 +325,8 @@ FORMS = {
     "swift": ("m.swift", "/// Doc.\nfunc f() {}\n"),
     "ts": ("m.ts", "/** Doc. */\nfunction f(): void {}\n"),
     "js": ("m.js", "// note\nlet a = 1;\n"),
+    "js shebang": ("m.js", "#!/usr/bin/env node\n// Licence\n\nlet a = 1;\n"),
+    "ts shebang": ("m.ts", "#!/usr/bin/env node\nlet a = 1;\n"),
     "ruby": ("m.rb", "# Doc.\ndef f\nend\n"),
     "lua": ("m.lua", "--- Doc.\nlocal function f() end\n"),
     "shell": ("m.sh", "#!/bin/sh\n# note\necho hi\n"),
@@ -620,3 +622,30 @@ def test_a_docstring_continued_by_a_backslash_is_set_back_with_its_continuation(
     out = set_page(page)
     assert out == 'def f():\n    """New doc.""" \\\n    \n    return 1\n'
     compile(out, "m.py", "exec")
+
+
+@pytest.mark.parametrize("name", ["m.js", "m.ts"])
+@pytest.mark.parametrize(
+    ("place", "prose", "expected"),
+    [
+        (
+            "f0",
+            "#!/usr/bin/env node\n// Licence.",
+            "#!/usr/bin/env node\n// Licence.\nfunction main() {}\n",
+        ),
+        (
+            "a0",
+            "/** Module. */",
+            "#!/usr/bin/env node\n/** Module. */\nfunction main() {}\n",
+        ),
+    ],
+    ids=["f0", "a0"],
+)
+def test_filling_the_head_of_a_shebang_file_keeps_the_shebang_on_line_one(
+    name, place, prose, expected
+):
+    from comment_review.results.galley import reset
+
+    page = build("#!/usr/bin/env node\nfunction main() {}\n", name)
+    assert reset(page, {place: prose}) == []
+    assert set_page(page) == expected

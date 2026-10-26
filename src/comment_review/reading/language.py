@@ -63,6 +63,10 @@ class Language:
         doc_inside: the documentation is the first thing INSIDE the body, not
             the run ABOVE the declaration. No row sets it: the language that
             documents this way, Python, states it in its own definition file.
+        shebang: what line 1 opens with when it is an interpreter line the
+            language does not read as a comment (`#!`). The line is the file's own
+            matter, and the matter rule opens on the line below it. Empty
+            where the language has none, or reads it as a comment.
     """
 
     name: str
@@ -77,6 +81,7 @@ class Language:
     spanning_quotes: tuple[str, ...] = ()
     declares: tuple[str, ...] = ()
     doc_inside: bool = False
+    shebang: tuple[str, ...] = ()
 
     @property
     def a_series(self) -> bool:
@@ -335,6 +340,9 @@ LANGUAGES: tuple[Language, ...] = (
         declares=("function", "class", "export", "async"),
         quotes=('"', "'", "`"),
         spanning_quotes=("`",),
+        # ! Node and the ECMAScript hashbang grammar read `#!` on line 1 as an
+        # interpreter line, not as code and not as a comment.
+        shebang=("#!",),
     ),
     Language(
         "typescript",
@@ -359,6 +367,9 @@ LANGUAGES: tuple[Language, ...] = (
         ),
         quotes=('"', "'", "`"),
         spanning_quotes=("`",),
+        # ! TypeScript's scanner reads `#!` on line 1 as an interpreter line
+        # and emits it unchanged.
+        shebang=("#!",),
     ),
     Language(
         "ruby",

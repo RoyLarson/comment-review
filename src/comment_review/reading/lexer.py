@@ -782,7 +782,22 @@ def read_lexical(path: Path, text: str, lang: Language) -> "LexicalRead":
         out.append(paragraph)
         run.clear()
 
+    # The interpreter line the row names, kept as the file's own matter: it is
+    # neither code nor a comment, and the matter rule opens on the line below.
+    shebang = None
+    if lines and lines[0].startswith(lang.shebang):
+        shebang = Paragraph(
+            path=path.as_posix(),
+            start=1,
+            end=1,
+            kind=Kind.MATTER,
+            raw_lines=[lines[0]],
+            anchor=MODULE_ANCHOR,
+        )
+
     for n, raw_line in enumerate(lines, 1):
+        if shebang is not None and n == 1:
+            continue
         if in_block is not None:
             # !! CODE AFTER THE CLOSER KEEPS ITS PROSE AND LOSES ITS CODE LINE.
             # `/* note\n   more */ int x = 5;` gathers the run and leaves
@@ -983,7 +998,7 @@ def read_lexical(path: Path, text: str, lang: Language) -> "LexicalRead":
             run.append((n, raw_line[at:].rstrip()))
             flush(trailing=True)  # its own paragraph, anchored to the code on that line
     flush()
-    found, code_lines = _file_edges(out, text, lang, between, documentation)
+    found, code_lines = _file_edges(out, text, lang, between, documentation, shebang)
     if in_block is not None and found:
         # The loop ended with a paragraph comment still open, so the final flush
         # emitted the run that ate the rest of the file. It is the ONE paragraph
@@ -1003,6 +1018,7 @@ def _file_edges(
     lang: Language,
     between: set[int],
     documentation: set[int],
+    shebang: Paragraph | None,
 ) -> tuple[list[Paragraph], list[CodeLine]]:
     """Say which runs document a declaration, then which are the file's own matter.
 
@@ -1011,8 +1027,9 @@ def _file_edges(
 
     A prose line, for `reading.matter`, is a line of a whole-line run with a
     comment on it -- not a blank it took in `between` two comments, and not a
-    line of `documentation`. The matter opens on line 1, since a row names no
-    line the file keeps above its matter.
+    line of `documentation`. The matter opens on line 1, or on line 2 below a
+    `shebang`, the MATTER paragraph of the interpreter line the row names; the
+    front matter below it joins it as one paragraph.
 
     !! A RUN IS CUT AT THE MATTER'S EDGES BEFORE DOCUMENTATION IS DECIDED, so
     a licence header and the declaration's documentation below it are two
@@ -1028,6 +1045,7 @@ def _file_edges(
     prose answers to the file.
     """
     total = len(constants.text_lines(text))
+    opens = 1 if shebang is None else 2
 
     def held(p: Paragraph) -> set[int]:
         return {n for n in range(p.start, p.end + 1) if n not in between}
@@ -1041,7 +1059,7 @@ def _file_edges(
             for n in held(p)
             if n not in documentation
         }
-        matter = file_matter(total, 1, prose)
+        matter = file_matter(total, opens, prose)
         out: list[Paragraph] = []
         for p in found:
             parts = matter.parts(p.start, p.end, held(p)) if p.kind in kinds else []
@@ -1066,10 +1084,25 @@ def _file_edges(
         return out
 
     found = cut(paragraphs, (Kind.COMMENT, Kind.DOCSTRING), mark=False)
+    if shebang is not None:
+        found.insert(0, shebang)
     code = code_text(text, found)
     code_lines = lines_of_code(code, declarations(lang, code))
     document_declarations(found, code_lines)
     found = cut(found, (Kind.COMMENT,), mark=True)
+    if shebang is not None and len(found) > 1:
+        below = found[1]
+        if below.kind == Kind.MATTER and below.start == opens:
+            found[:2] = [
+                Paragraph(
+                    path=shebang.path,
+                    start=1,
+                    end=below.end,
+                    kind=Kind.MATTER,
+                    raw_lines=[*shebang.raw_lines, *below.raw_lines],
+                    anchor=MODULE_ANCHOR,
+                )
+            ]
     if lang.a_series:
         found = _module_documentation(found, set(code), between, documentation)
     return found, code_lines
@@ -1214,13 +1247,14 @@ def document_declarations(paragraphs: list["Paragraph"], lines: list[CodeLine]) 
         lines: the file's code lines, in order; a line whose `documents` is set
             declares something documentable.
     """
-    # ! LEADING IS NOT PROSE AND CANNOT DOCUMENT ANYTHING.
+    # ! LEADING IS NOT PROSE AND CANNOT DOCUMENT ANYTHING, and MATTER -- a
+    # shebang, here -- is the file's own.
     ends = {
         b.original_end: b
         for b in paragraphs
         # ! ASKED OF THE KIND. No margin exists yet here: the walk has not
         # synthesised the empty places.
-        if b.original_end and b.kind not in (Kind.TRAILING, Kind.LEADING)
+        if b.original_end and b.kind not in (Kind.TRAILING, Kind.LEADING, Kind.MATTER)
     }
     documenting: set[int] = set()
     above_code = [c.line for c in lines]

@@ -125,6 +125,51 @@ def test_a_licence_header_is_not_part_of_the_declarations_documentation():
     assert kinds("m.kt", text) == [(1, 1, Kind.MATTER), (3, 3, Kind.DOCSTRING)]
 
 
+@pytest.mark.parametrize("name", ["m.js", "m.ts"])
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        (
+            "#!/usr/bin/env node\nfunction f() {}\n",
+            [(1, 1, Kind.MATTER, ["#!/usr/bin/env node"])],
+        ),
+        (
+            "#!/usr/bin/env node\n// Licence MIT\n\nlet x = 1;\n",
+            [(1, 2, Kind.MATTER, ["#!/usr/bin/env node", "// Licence MIT"])],
+        ),
+        (
+            "#!/usr/bin/env node\n\n// note\nlet x = 1;\n",
+            [
+                (1, 1, Kind.MATTER, ["#!/usr/bin/env node"]),
+                (3, 3, Kind.COMMENT, ["// note"]),
+            ],
+        ),
+    ],
+    ids=["alone", "with-front-matter", "blank-after"],
+)
+def test_a_shebang_is_the_files_matter_and_the_matter_rule_opens_below_it(
+    name, text, expected
+):
+    lexical = read(name, text)
+    found = lexical.paragraphs(Path(name))
+    assert [(p.start, p.end, p.kind, p.raw_lines) for p in found] == expected
+    assert 1 not in [c.line for c in lexical.code_lines()]
+
+
+def test_a_shebang_does_not_document_the_declaration_below_it():
+    found = read("m.js", "#!/usr/bin/env node\nfunction f() {}\n").paragraphs(
+        Path("m.js")
+    )
+    assert [(p.kind, p.anchor_line) for p in found] == [(Kind.MATTER, None)]
+
+
+def test_a_row_without_a_shebang_reads_hash_bang_as_its_language_does():
+    # Go names no shebang, so `#!` on line 1 is code.
+    lexical = read("m.go", "#!/x\npackage p\n")
+    assert lexical.paragraphs(Path("m.go")) == []
+    assert [c.line for c in lexical.code_lines()] == [1, 2]
+
+
 @pytest.mark.parametrize(
     ("name", "text", "a_series"),
     [
