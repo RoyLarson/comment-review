@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 2 of 9 tasks closed
+Progress: 2 of 10 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (C:/Program Files/Git/simplify rounds 1 and 2 and /code-review high
@@ -90,3 +90,5 @@ a run.
 - [ ] T9 | Release a Python docstring's a after the b gap above it
         > 2026-10-26 Check: '# pylint' line between def and docstring sets back in place
         > 2026-10-26 Reason: pre-existing; set_page moves the comment below the doc
+- [ ] T10 | Index the logical lines once for the Python reader's _bodies
+        > 2026-10-26 _bodies scans lines per declaration twice; 3.0 of 4.2 s on 9k lines
