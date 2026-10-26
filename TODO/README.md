@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (137)
+### open  (138)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -298,7 +298,7 @@ that changed a published name or rule:
 | [r2-preexisting-prose](r2-preexisting-prose.md) | backend | -- | 0/2 | Correct pre-existing move and fold-helper prose |
 | [mark-stance-metadata-prose](mark-stance-metadata-prose.md) | backend | -- | 0/2 | Clarify mark stance and reading metadata prose |
 | [smoke-fixture-defects](smoke-fixture-defects.md) | systems | -- | 0/1 | Align the command smoke with paragraph rewrapping |
-| [lexical-code-identity](lexical-code-identity.md) | backend | -- | 3/4 | Use lexical code identity at both proof boundaries |
+| [lexical-code-identity](lexical-code-identity.md) | backend | -- | 3/5 | Use lexical code identity at both proof boundaries |
 | [collate-file-input](collate-file-input.md) | backend | -- | 0/1 | Read collation inputs from a file |
 | [2026-10-11-maintained-source-selection](2026-10-11-maintained-source-selection.md) | agents | -- | 0/1 | Select maintained source for review |
 | [2026-10-13-human-question-list](2026-10-13-human-question-list.md) | backend | -- | 0/1 | Expose human questions across edit copies |
@@ -319,6 +319,7 @@ that changed a published name or rule:
 | [language-reader-sql](language-reader-sql.md) | backend | -- | 0/2 | SQL lexical reader |
 | [language-reader-lua](language-reader-lua.md) | backend | -- | 0/7 | Lua lexical reader |
 | [edit-path-isolation](edit-path-isolation.md) | backend | -- | 0/2 | Isolate the edit path from comment reading |
+| [a-reader-finds-prose-only](a-reader-finds-prose-only.md) | backend | -- | 20/29 | A reader finds prose and rebuilds nothing after it |
 
 ### in-progress  (17)
 
@@ -332,7 +333,7 @@ that changed a published name or rule:
 | [b-addresser-uninitialised](b-addresser-uninitialised.md) | backend | yes | 13/18 | The b addresser is never initialised at the module trigger, and computes its cue from line numbers |
 | [census-degrades-silently](census-degrades-silently.md) | backend | -- | 5/8 | **Four inputs produce a census that is wrong rather than refused, each exiting 0.** The run reads as complete and the addresses are nonsense. |
 | [census-owns-addressing](census-owns-addressing.md) | backend | -- | 4/8 | The census owns addressing, and four modules share one subject between them |
-| [page-and-addresser-scans](page-and-addresser-scans.md) | backend | -- | 2/8 | page.py and addresser.py carry four scans that grow with the file and one CLI that contradicts the gate |
+| [page-and-addresser-scans](page-and-addresser-scans.md) | backend | -- | 2/9 | page.py and addresser.py carry four scans that grow with the file and one CLI that contradicts the gate |
 | [record-verdict-desk-findings](record-verdict-desk-findings.md) | backend | -- | 9/14 | Round-4 findings in record/verdict/desk, including two that certify a run at exit 0 |
 | [the-census-is-mostly-intervals-nobody-rules-on](the-census-is-mostly-intervals-nobody-rules-on.md) | backend | -- | 26/27 | **The census is 67% of what it costs to start a reviewer, and 966 of its 1,120 blocks are intervals nobody rules on.** 131,353 bytes of 195,243, paid four times. Roy ruled the design 2026-08-18: the census stays fully enumerated ON DISK, the agents get a FILTERED view, and a destination outside their set comes from a TOOL answering one question -- what is the ADDRESS of this line of code. ! It does not reverse the 2026-08-17 enumeration; it is a projection of it, and `add` was not expressible before it. ! Rule 4 buys a check as well as bytes: `move`'s `to` is free text nothing resolves, and an index is resolvable exactly as an address already is |
 | [the-lexer-reads-no-files](the-lexer-reads-no-files.md) | backend | -- | 13/25 | one decision -- bytes into text -- made in nine places, none of them the lexer |
@@ -528,4 +529,3 @@ the reason is inside the file.
 | [a-comment-run-merges-across-blanks](completed/a-comment-run-merges-across-blanks.md) | 6 finished |
 | [doc-does-not-fill-its-a](completed/doc-does-not-fill-its-a.md) | 6 finished, 6 superseded |
 | [doc-is-structural-means-two-things](completed/doc-is-structural-means-two-things.md) | 3 superseded |
-| [a-reader-finds-prose-only](completed/a-reader-finds-prose-only.md) | 14 finished, 6 superseded |

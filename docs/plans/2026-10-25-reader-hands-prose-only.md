@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 15 of 15 TODO tasks closed
+Progress: 15 of 24 TODO tasks closed
 Plan-tasks: 17 of 17 plan tasks closed
 Owner:    backend
 Requires-Roy: false
@@ -21,7 +21,7 @@ per step; each step lands its failing test first.
 
 ## TODO tasks this plan closes
 
-### A - [a-reader-finds-prose-only](../../TODO/completed/a-reader-finds-prose-only.md)
+### A - [a-reader-finds-prose-only](../../TODO/a-reader-finds-prose-only.md)
 
 - [x] T1 | Derive Paragraph.text in one place for every reader
 - [x] T2 | Assign each paragraph's address in the page instead of in a reader
@@ -38,6 +38,15 @@ per step; each step lands its failing test first.
 - [x] T18 | Correct each reader's code text
 - [x] T19 | Return CodeLines from the Python and Rust readers
 - [x] T20 | Move the lexical path's code lines and declarations into its reader
+- [ ] T21 | Trim each Rust code line by the scanner's whitespace regions
+- [ ] T22 | Read a doc comment that trails code as a trailing comment
+- [ ] T23 | Cut file matter from the reader's runs, not a per-line prose mask
+- [ ] T24 | Give the <eof> a its own position in a file with no code line
+- [ ] T25 | Resolve the <eof> a through the addresser command
+- [ ] T26 | Derive a parenthesised Python docstring's text from its literal
+- [ ] T27 | Match a comment marker after a leading byte-order mark
+- [ ] T28 | Prove a lexical file whose prose lines end in whitespace
+- [ ] T29 | Attach a doc run above an annotation line to the declaration below
 
 ## Plan Tasks
 

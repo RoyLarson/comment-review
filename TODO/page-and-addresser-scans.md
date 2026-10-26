@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 2 of 8 tasks closed
+Progress: 2 of 9 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (C:/Program Files/Git/simplify rounds 1 and 2 and /code-review high
@@ -87,3 +87,6 @@ a run.
 - [ ] T8 | T8 -- Put a before and an after number in this file, from a 200-file
       run. Verify: this file carries both a wall-clock and an iteration count,
       not a prediction.
+- [ ] T9 | Release a Python docstring's a after the b gap above it
+        > 2026-10-26 Check: '# pylint' line between def and docstring sets back in place
+        > 2026-10-26 Reason: pre-existing; set_page moves the comment below the doc

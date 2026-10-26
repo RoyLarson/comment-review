@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 3 of 4 tasks closed
+Progress: 3 of 5 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-10 (live-run)
@@ -33,3 +33,6 @@ Use lexical code identity at both proof boundaries.
       retained code after multiline documentation removal
         > 2026-10-14 Check: multiline doc removal retains closing-line code indentation
         > 2026-10-14 Reason: _documentation_span loses the retained suffix context
+- [ ] T5 | Compare a shebang no language row names in the stripped proof
+        > 2026-10-26 Check: dropping a .rb, .sh or .lua shebang is refused
+        > 2026-10-26 Reason: pre-existing; .js, .rs and .py already refuse it
