@@ -5690,3 +5690,17 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   annotation go; a run above code that declares nothing is a comment and is counted against the
   cap like any other. A declaration form missing from a language's keyword list is fixed in
   that row.
+
+- **#232.** **The matter rule, for every reader** (Roy, 2026-10-25, correcting a ruling that a
+  doc-marked run documenting nothing at a file's head is matter: *"A docstring at the top or
+  bottom of the file is the modules docstring not matter"*, restating the original Python rule,
+  and for the foot: *"the same rules stacked in reverse"*).
+
+  **What it settles.** Front matter: when line 1 is a shebang or a comment, that run is matter,
+  running down until a fully empty line (no comment marker) or code. When the opening run is a
+  docstring, there is no front matter and the module gets that docstring; matter followed by a
+  docstring gives both. A blank line 1 means no front matter; a comment after a fully empty line
+  is an ordinary comment. Back matter is the same rule from the last line upward: a comment on
+  the last line opens it, a fully empty line or code ends it, a closing docstring is the
+  module's docstring, and a blank last line means none. A blank line inside a delimited comment
+  is part of that comment and ends nothing (#223).
