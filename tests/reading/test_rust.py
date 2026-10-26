@@ -1561,8 +1561,8 @@ def test_attachment_module_not_in_owners_leaves_the_head_inner_doc_ordinary(
     )
     text = "//! Crate doc.\nfn f() {}\n"
     result = documentation_of(text, narrowed)
-    # Documenting nothing, the run opening the file is its matter.
-    assert sections_of(text, result) == [("matter", "//! Crate doc.")]
+    # Documenting nothing, the inner doc is an ordinary comment.
+    assert sections_of(text, result) == [("comment", "//! Crate doc.")]
     assert result.owners == ()
     assert anchor_lines(text, result.placement) == (2,)
     assert result.warnings == ()
@@ -1586,8 +1586,8 @@ def test_attachment_inline_module_inner_doc_follows_its_declaration_kind(
     [
         (
             "/// a\n// b\nfn f() {}\n",
-            # Both open the file, so both are its matter.
-            [("matter", "/// a"), ("matter", "// b")],
+            # Detached, the doc is an ordinary comment in one section with `b`.
+            [("comment", "/// a\n// b")],
             [],
             ("/// a", 3, 1),
         ),
@@ -1669,7 +1669,7 @@ def test_detached_module_doc_behind_a_trailing_comment(rust_definition):
 def test_attachment_module_doc_behind_front_matter(rust_definition, text, lines):
     result = documentation_of(text, rust_definition)
     assert sections_of(text, result) == [
-        ("matter", "// Copyright"),
+        ("comment", "// Copyright"),
         ("inner_doc", "//! m"),
     ]
     assert owners_of(text, result) == [("//! m", None)]
@@ -1677,10 +1677,12 @@ def test_attachment_module_doc_behind_front_matter(rust_definition, text, lines)
     assert anchor_lines(text, result.placement) == lines
 
 
-def test_matter_opening_detached_doc_is_matter(rust_definition):
+def test_detached_doc_opening_the_file_sections_with_the_comment_below(
+    rust_definition,
+):
     text = "/** Doc. */\n// c\nfn f() {}\n"
     result = documentation_of(text, rust_definition)
-    assert sections_of(text, result) == [("matter", "/** Doc. */"), ("matter", "// c")]
+    assert sections_of(text, result) == [("comment", "/** Doc. */\n// c")]
     assert detached_of(text, result) == (
         ["/** Doc. */"],
         [("/** Doc. */", [1, 3])],
@@ -1688,11 +1690,11 @@ def test_matter_opening_detached_doc_is_matter(rust_definition):
     assert anchor_lines(text, result.placement) == (3,)
 
 
-def test_matter_ends_at_the_module_doc(rust_definition):
+def test_module_doc_below_the_opening_comment_documents_the_module(rust_definition):
     text = "// Copyright\n//! m\n// c\nfn f() {}\n"
     result = documentation_of(text, rust_definition)
     assert sections_of(text, result) == [
-        ("matter", "// Copyright"),
+        ("comment", "// Copyright"),
         ("inner_doc", "//! m"),
         ("comment", "// c"),
     ]
@@ -1815,41 +1817,21 @@ def test_matter_excludes_a_comment_with_code_after_it_on_its_line(rust_definitio
     assert anchor_lines(text, result.placement) == (1,)
 
 
-def test_matter_opening_ordinary_run_is_not_the_item_doc(rust_definition):
+def test_ordinary_run_opening_the_file_is_not_the_item_doc(rust_definition):
     text = "// Copyright 2026 Someone.\n// Licensed.\nfn main() {}\n"
     result = documentation_of(text, rust_definition)
     assert sections_of(text, result) == [
-        ("matter", "// Copyright 2026 Someone.\n// Licensed."),
+        ("comment", "// Copyright 2026 Someone.\n// Licensed."),
     ]
     assert result.owners == ()
     assert anchor_lines(text, result.placement) == (3,)
 
 
-def test_matter_follows_a_shebang(rust_definition):
-    """The run directly below the shebang opens the file, so it is matter."""
-    text = "#!/usr/bin/env run-cargo-script\n// Copyright.\n\nfn main() {}\n"
-    result = documentation_of(text, rust_definition)
-    assert sections_of(text, result) == [("matter", "// Copyright.")]
-    assert anchor_lines(text, result.placement) == (4,)
-
-
-def test_comment_below_a_shebang_and_a_blank_line_is_not_matter(rust_definition):
-    text = "#!/usr/bin/env run-cargo-script\n\n// Copyright.\nfn main() {}\n"
-    result = documentation_of(text, rust_definition)
-    assert sections_of(text, result) == [("comment", "// Copyright.")]
-
-
-def test_comment_below_a_blank_line_one_is_not_matter(rust_definition):
-    text = "\n// Copyright.\nfn main() {}\n"
-    result = documentation_of(text, rust_definition)
-    assert sections_of(text, result) == [("comment", "// Copyright.")]
-
-
-def test_matter_then_a_doc_gives_the_item_its_doc(rust_definition):
+def test_opening_comment_then_a_doc_gives_the_item_its_doc(rust_definition):
     text = "// Copyright.\n/// Doc.\nfn main() {}\n"
     result = documentation_of(text, rust_definition)
     assert sections_of(text, result) == [
-        ("matter", "// Copyright."),
+        ("comment", "// Copyright."),
         ("outer_doc", "/// Doc."),
     ]
     assert owners_of(text, result) == [("/// Doc.", ("item", 3))]
@@ -1912,6 +1894,11 @@ def rust_read(text, definition):
     result = import_module("comment_review.reading.rust").read_rust(text, definition)
     assert isinstance(result, records.RustRead), result
     return result
+
+
+def test_rust_read_has_an_a_series_and_no_closing_docstring(rust_definition):
+    result = rust_read("fn f() {}\n/// after\n", rust_definition)
+    assert (result.a_series, result.closing_docstring) == (True, False)
 
 
 def projection_of(text, definition):
@@ -2259,6 +2246,47 @@ def test_projection_closing_run_splits_at_its_last_blank_line(rust_definition):
     assert paragraphs == [
         paragraph(2, 2, Kind.COMMENT, ["// a"]),
         paragraph(4, 5, Kind.MATTER, ["// b", "/// c"]),
+    ]
+
+
+def test_projection_closing_comment_with_a_blank_line_inside_is_one_matter(
+    rust_definition,
+):
+    text = "fn f() {}\n// x\n/* a\n\n b */\n"
+    paragraphs, _ = projection_of(text, rust_definition)
+    assert paragraphs == [paragraph(2, 5, Kind.MATTER, ["// x", "/* a", "", " b */"])]
+
+
+def test_projection_opening_matter_takes_the_run_below_a_shebang(rust_definition):
+    shebang = "#!/usr/bin/env run-cargo-script"
+    text = f"{shebang}\n// Copyright.\n\nfn main() {{}}\n"
+    paragraphs, _ = projection_of(text, rust_definition)
+    assert paragraphs == [paragraph(1, 2, Kind.MATTER, [shebang, "// Copyright."])]
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "#!/usr/bin/env run-cargo-script\n\n// Copyright.\nfn main() {}\n",
+        "\n// Copyright.\nfn main() {}\n",
+    ],
+    ids=["below-a-shebang-and-a-blank", "below-a-blank-line-one"],
+)
+def test_projection_comment_below_a_blank_line_is_not_opening_matter(
+    rust_definition, text
+):
+    paragraphs, _ = projection_of(text, rust_definition)
+    comment = next(p for p in paragraphs if p.raw_lines == ["// Copyright."])
+    assert comment.kind == Kind.COMMENT
+
+
+def test_projection_opening_matter_ends_at_the_module_doc(rust_definition):
+    text = "// Copyright\n//! m\n// c\nfn f() {}\n"
+    paragraphs, _ = projection_of(text, rust_definition)
+    assert paragraphs == [
+        paragraph(1, 1, Kind.MATTER, ["// Copyright"]),
+        paragraph(2, 2, Kind.DOCSTRING, ["//! m"]),
+        paragraph(3, 3, Kind.COMMENT, ["// c"]),
     ]
 
 

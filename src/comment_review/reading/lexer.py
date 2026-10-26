@@ -31,6 +31,7 @@ from pathlib import Path
 from types import MappingProxyType
 
 from comment_review import constants
+from comment_review.reading.addresser import EOF
 from comment_review.reading.comment import Comment, CommentSpan, Fragment
 from comment_review.reading.definitions import LanguageDefinition
 
@@ -47,6 +48,7 @@ from comment_review.reading.language import (
     language_for,
     line_comment_markers,
 )
+from comment_review.reading.matter import file_matter
 from comment_review.reading.paragraph import Paragraph
 from comment_review.reading.rust.scanner import comments_in
 from comment_review.reading.series import Kind, Series
@@ -649,8 +651,7 @@ def _leading(
 def _is_doc(line: str, lang: Language) -> bool:
     """Does this line open a run the language treats as DOCUMENTATION?
 
-    ! Two readers ask it and they must agree: `flush` to set the kind, and
-    `carry` to decide whether a blank line ends the file's matter.
+    `flush` asks it to set a run's kind.
     """
     opens = line.strip()
     return _opens_doc(opens, lang.doc_line) or _opens_doc(opens, lang.doc_block)
@@ -711,36 +712,20 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
     # statement flushes with `trailing=False`, because by then the run spans
     # several lines. A list because `flush` is a closure and rebinds nothing.
     partial_first = [0]
-
-    # !! HAS ANY CODE BEEN SEEN YET -- which is what says a run is still at the
-    # HEAD of the file, and therefore whether a blank line ends it.
-    #
-    # ! Everywhere else a blank line does NOT end a run, and that stays true: a
-    # licence header and the first function's documentation separated by a blank
-    # are two things, while a wrapped sentence with a blank in it is one. Only at
-    # the file's own edge does the blank decide. A list because `flush` is a
-    # closure and rebinds nothing.
-    seen_code = [False]
+    # The blank lines a run took in between two of its comments. Every other
+    # line of a run has a comment on it; `_file_edges` reads the two apart.
+    between: set[int] = set()
+    # The lines a doc-marked comment stands on, and whether the delimited
+    # comment still open is one. `_file_edges` reads no such line as matter.
+    documentation: set[int] = set()
+    in_doc = False
 
     def carry() -> None:
         """Take the blanks held since the last prose line into the run.
 
         !! ONE RULE FOR BOTH COMMENT SYNTAXES: `/* one */`, a blank and `/* two */`
         are one paragraph, exactly as `// one`, a blank and `// two` are.
-
-        ! The head-of-file split is part of the rule and travels with it: at the
-        top of a file a blank ENDS the run, because what sits above the first
-        line of code is the file's own matter.
-
-        !! IT ENDS THE FIRST RUN ONLY, which `out` is what says. Only the first
-        is the file's own matter; the rest are ordinary prose in the gap above
-        the first statement, and they merge there like any other.
         """
-        # !! IT ENDS THE MATTER, SO IT FIRES ONLY WHEN THERE IS MATTER TO END.
-        # Matter runs from the OPENING LINE down to a blank, so a run that does not
-        # start on line 1 -- or that is a docstring, which matter never is -- has
-        # nothing here to terminate.
-        opens_file = bool(run) and run[0][0] == 1 and not _is_doc(run[0][1], lang)
         if not run:
             # !! BLANKS ABOVE A RUN THAT HAS NOT STARTED ARE NOT ITS OWN. They
             # separate this prose from whatever precedes it, which is what
@@ -748,11 +733,9 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
             # readers at once.
             pending.clear()
             return
-        if pending and opens_file and not out and not seen_code[0]:
-            flush()
-        else:
-            run.extend(pending)
-            pending.clear()
+        between.update(n for n, _ in pending)
+        run.extend(pending)
+        pending.clear()
 
     def flush(trailing: bool = False) -> None:
         # ! The blanks held since the run's last prose line are LEADING, not the
@@ -778,25 +761,6 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
             # so `int b = 2; /* opens` would read as a plain `comment` sitting at
             # a `c` place, and kind and series would disagree.
             kind = "trailing-comment" if trailing or partial_first[0] else "comment"
-        # !! THE LEXER SAYS WHICH SERIES THIS RUN IS, and matter is the case it
-        # can say outright.
-        #
-        # !! THE OPENING LINE ITSELF MUST BE A COMMENT, not merely the first run
-        # of PROSE wherever it sits: a file whose line 1 is BLANK has no front
-        # matter at all. Otherwise the gap that owns the blank above it would run
-        # THROUGH the matter, and the compositor would set the comment above its
-        # own blank line.
-        #
-        # ! A DOCSTRING IS NOT MATTER, and it is what ENDS matter. A file opening
-        # with its own documentation has none.
-        #
-        # !! ONE TYPE, NOT TWO: front and back matter are both `Kind.MATTER`. Which
-        # END it sits at is not stamped on the paragraph -- `page_for` reads it from
-        # where the run opens: line 1 takes the first `f`, any other run the last.
-        # Naming the two ends here would state the same fact twice and let them
-        # disagree.
-        if kind == "comment" and (run[0][0] == 1 or run[-1][0] == len(lines)):
-            kind = Kind.MATTER
         paragraph = Paragraph(
             path=path.as_posix(),
             start=run[0][0],
@@ -805,14 +769,7 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
             raw_lines=span,
             # !! THE LEXER ALREADY HAS THIS STRING. It found the opener in order
             # to cut there, so the characters before it are known here.
-            # !! MATTER IS ANCHORED TO THE MODULE, because that is what it is
-            # about. Every other run answers to the line of code it sits with;
-            # the file's own prose answers to the file.
-            anchor=(
-                MODULE_ANCHOR
-                if kind == Kind.MATTER
-                else _anchor_of(lines, run[0][0], partial_first[0])
-            ),
+            anchor=_anchor_of(lines, run[0][0], partial_first[0]),
         )
         partial_first[0] = 0
         out.append(paragraph)
@@ -862,10 +819,13 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
             # regexes.
             # ! CARRIES THE DEPTH, so a nested opener on an earlier line keeps
             # the run open past the closer that matches it.
+            if in_doc:
+                documentation.add(n)
             ends, layers = run_ends(raw_line, in_block, lang.nests_comments, layers)
             if ends >= 0:
                 run.append((n, raw_line[:ends].rstrip()))
                 in_block = None
+                in_doc = False
                 # !! THE SAME RULE AS THE SINGLE-LINE CLOSE BELOW: a closer ends
                 # the COMMENT, not the paragraph. This one opened on an earlier
                 # line, so code cannot precede it here -- `partial_first` records
@@ -936,7 +896,6 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
                 # ! It must sit past the CLOSER: a `//` before the delimited
                 # opener never reaches here, because whichever opener comes
                 # first owns the line and `opened` was cleared above.
-                seen_code[0] = True
                 closed_at = opens_at + len(opened[0]) + ends_at
                 if line_at >= closed_at:
                     partial_first[0] = (
@@ -966,6 +925,9 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
             partial_first[0] = (
                 len(raw_line[:opens_at].rstrip()) + 1 if beside_code else 0
             )
+            if _is_doc(raw_line[opens_at:], lang):
+                documentation.add(n)
+                in_doc = not closes_here
 
             # !! CUT AT THE OPENER, like the line-comment path below does. Taking the
             # whole raw line would read `int b = 2; /* note */` as one paragraph whose
@@ -998,9 +960,10 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
         if line_at >= 0 and not raw_line[:line_at].strip():
             carry()
             run.append((n, raw_line.rstrip()))
+            if _is_doc(raw_line, lang):
+                documentation.add(n)
             continue
         flush()  # ! CODE ends a paragraph; a blank line does not
-        seen_code[0] = True
         at = line_at
         if at >= 0:
             # ! `flush()` above emptied the run, so this line is the first
@@ -1012,36 +975,151 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
             )
             run.append((n, raw_line[at:].rstrip()))
             flush(trailing=True)  # its own paragraph, anchored to the code on that line
-    # !! THE FOOT OF THE FILE, AND THE LOOP IS OVER SO NOTHING FOLLOWS. Read
-    # upward, the run after the LAST blank line is the file's own matter.
-    #
-    # !! IT NEEDS NO LOOKAHEAD, which is the whole reason it is done here rather
-    # than in the loop: at the head, "no code yet" is a fact already in hand; at
-    # the foot, "no code after" is only a fact once the loop has ended. Both are
-    # the same rule read from opposite ends.
-    #
-    # ! Only an INTERIOR blank can split -- a run never ends on one, because
-    # blanks reach `run` from `pending` and `pending` merges only when another
-    # comment follows. The blank itself goes to neither half; `leading_between`
-    # takes it as leading, exactly as at the head.
-    if run:
-        blanks = [i for i, (_, held) in enumerate(run) if not held.strip()]
-        if blanks:
-            tail = run[blanks[-1] + 1 :]
-            del run[blanks[-1] :]
-            flush()
-            run.extend(tail)
     flush()
-    if in_block is not None and out:
+    found = _file_edges(out, text, lang, between, documentation)
+    if in_block is not None and found:
         # The loop ended with a paragraph comment still open, so the final flush
         # emitted the run that ate the rest of the file. It is the ONE paragraph
         # that may hold code.
-        out[-1].annotations.add("unterminated-paragraph-comment")
-        out[-1].notes.append(
+        found[-1].annotations.add("unterminated-paragraph-comment")
+        found[-1].notes.append(
             f"UNTERMINATED {in_block[0]}: no closing {in_block[1]} before end of "
             "file, so every line below the opener was swallowed into this run. "
             "Code down there was NOT read as code."
         )
+    return found
+
+
+def _file_edges(
+    paragraphs: list[Paragraph],
+    text: str,
+    lang: Language,
+    between: set[int],
+    documentation: set[int],
+) -> list[Paragraph]:
+    """Say which runs document a declaration, then which are the file's own matter.
+
+    A prose line, for `reading.matter`, is a line of a whole-line run with a
+    comment on it -- not a blank it took in `between` two comments, and not a
+    line of `documentation`. The matter opens on line 1, since a row names no
+    line the file keeps above its matter.
+
+    !! A RUN IS CUT AT THE MATTER'S EDGES BEFORE DOCUMENTATION IS DECIDED, so
+    a licence header and the declaration's documentation below it are two
+    runs and only the second documents. A part opening on a doc-marked line is
+    a `docstring` run, as `flush` kinds a run. Once documentation is decided,
+    the `comment` parts inside the matter are MATTER.
+
+    !! DOCUMENTATION AT EITHER END IS THE MODULE'S, NEVER MATTER -- see
+    `_module_documentation`.
+
+    !! MATTER IS ANCHORED TO THE MODULE, because that is what it is about.
+    Every other run answers to the line of code it sits with; the file's own
+    prose answers to the file.
+    """
+    total = len(constants.text_lines(text))
+
+    def held(p: Paragraph) -> set[int]:
+        return {n for n in range(p.start, p.end + 1) if n not in between}
+
+    def cut(found: list[Paragraph], kinds: tuple[str, ...], mark: bool):
+        """Cut every run of `kinds` at the matter's edges; MATTER parts if `mark`."""
+        prose = {
+            n
+            for p in found
+            if p.kind in kinds
+            for n in held(p)
+            if n not in documentation
+        }
+        matter = file_matter(total, 1, prose)
+        out: list[Paragraph] = []
+        for p in found:
+            parts = matter.parts(p.start, p.end, held(p)) if p.kind in kinds else []
+            if len(parts) < 2 and not (mark and parts and parts[0][2]):
+                out.append(p)
+                continue
+            for start, end, is_matter in parts:
+                if mark:
+                    kind = Kind.MATTER if is_matter else p.kind
+                else:
+                    kind = Kind.DOCSTRING if start in documentation else Kind.COMMENT
+                out.append(
+                    Paragraph(
+                        path=p.path,
+                        start=start,
+                        end=end,
+                        kind=kind,
+                        raw_lines=p.raw_lines[start - p.start : end - p.start + 1],
+                        anchor=MODULE_ANCHOR if kind == Kind.MATTER else p.anchor,
+                    )
+                )
+        return out
+
+    found = cut(paragraphs, (Kind.COMMENT, Kind.DOCSTRING), mark=False)
+    code = code_text(text, found)
+    document_declarations(found, lines_of_code(code, declarations(lang, code)))
+    found = cut(found, (Kind.COMMENT,), mark=True)
+    if lang.a_series:
+        found = _module_documentation(found, set(code), between, documentation)
+    return found
+
+
+def _module_documentation(
+    paragraphs: list[Paragraph],
+    code: set[int],
+    between: set[int],
+    documentation: set[int],
+) -> list[Paragraph]:
+    """Give the module the doc-marked runs at either end that document nothing.
+
+    A run is at an end when no code and no prose but matter lies between it and
+    the file's first or last line, and it is doc-marked when it opens on a line
+    of `documentation`. The run at the head documents the module at `a0`; the
+    run at the foot, a different run, at the `a` emitted at EOF, which its
+    `<eof>` anchor names. Either ends at its last doc-marked line: the comments
+    after it stay a `comment` run, starting on the next line it has a comment
+    on, past any blank it took in `between`.
+    """
+    prose = sorted(
+        (p for p in paragraphs if p.kind not in (Kind.MATTER, Kind.LEADING)),
+        key=lambda p: p.start,
+    )
+    ends: list[tuple[Paragraph, str]] = []
+    if prose and not any(n < prose[0].start for n in code):
+        ends.append((prose[0], ""))
+    if prose and not any(n > prose[-1].end for n in code):
+        if not ends or ends[0][0] is not prose[-1]:
+            ends.append((prose[-1], EOF))
+    out = list(paragraphs)
+    for p, anchor in ends:
+        if p.kind != Kind.COMMENT or p.start not in documentation:
+            continue
+        last = max(n for n in range(p.start, p.end + 1) if n in documentation)
+        rest = [n for n in range(last + 1, p.end + 1) if n not in between]
+        at = out.index(p)
+        out[at : at + 1] = [
+            Paragraph(
+                path=p.path,
+                start=p.start,
+                end=last,
+                kind=Kind.DOCSTRING,
+                raw_lines=p.raw_lines[: last - p.start + 1],
+                anchor=anchor,
+            ),
+            *(
+                [
+                    Paragraph(
+                        path=p.path,
+                        start=rest[0],
+                        end=p.end,
+                        kind=Kind.COMMENT,
+                        raw_lines=p.raw_lines[rest[0] - p.start :],
+                    )
+                ]
+                if rest
+                else []
+            ),
+        ]
     return out
 
 
@@ -1268,9 +1346,17 @@ class LexicalRead:
     found: list[Paragraph]
     #: Each line holding code, in order, with the documentation it declares.
     lines: list[CodeLine]
-    #: Whether the page has an `a` series: the row lists a declaring keyword.
-    #: A language with none has no `a` series at all, not an empty one.
+    #: Whether the page has an `a` series: the row declares a documentation
+    #: practice -- see `Language.a_series`.
     a_series: bool
+
+    @property
+    def closing_docstring(self) -> bool:
+        """Whether the module's documentation can sit at the file's foot: yes.
+
+        A doc-marked run after the last line of code documents the module.
+        """
+        return True
 
     def paragraphs(self, path: Path) -> list[Paragraph]:
         """Every prose run of the file as a page paragraph, in a new list."""
@@ -1282,15 +1368,14 @@ class LexicalRead:
 
 
 def lexical_read(paragraphs: list[Paragraph], text: str, lang: Language) -> LexicalRead:
-    """Complete a lexical read: the code lines, their declarations, the doc runs.
+    """Complete a lexical read: the code lines and their declarations.
 
     Args:
-        paragraphs: the prose `paragraphs_lexical` found, mutated in place --
-            see `document_declarations`.
+        paragraphs: the prose `paragraphs_lexical` found, each documenting run
+            already naming its declaration.
         text: the file's source.
         lang: its record; `declares` holds the keywords.
     """
     code = code_text(text, paragraphs)
     lines = lines_of_code(code, declarations(lang, code))
-    document_declarations(paragraphs, lines)
-    return LexicalRead(paragraphs, lines, bool(lang.declares))
+    return LexicalRead(paragraphs, lines, lang.a_series)

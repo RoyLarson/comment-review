@@ -361,6 +361,14 @@ def test_read_python_initial_bom_preserves_exact_source_and_documentation(
     )
 
 
+def test_read_python_has_an_a_series_and_no_closing_docstring(python_definition):
+    from comment_review.reading.python import read_python
+
+    result = read_python('x = 1\n"not the module doc"\n', python_definition)
+    assert not isinstance(result, ReadFailure)
+    assert (result.a_series, result.closing_docstring) == (True, False)
+
+
 def test_read_python_bom_does_not_hide_indentation(python_definition):
     from comment_review.reading.python import read_python
 

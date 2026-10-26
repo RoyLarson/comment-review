@@ -53,10 +53,8 @@ class Language:
             these reads as a comment; `prove_unchanged` refuses such a file
             rather than proving it. Empty where a language has none.
         declares: the KEYWORDS this language uses to introduce something that
-            can carry documentation. !! EMPTY MEANS THE LANGUAGE HAS NO `a`
-            SERIES AT ALL -- not "none found in this file". A language with no
-            docstring practice, such as YAML or TOML, would otherwise be given
-            an `a0` it can never fill.
+            can carry documentation. Empty, the language still has an `a`
+            series when it has doc markers -- see `a_series`.
         nests_comments: an opener INSIDE a paragraph comment adds a LAYER, so the
             run closes only when every one of them does. Rust, Swift and Kotlin;
             C, C++, Java, C#, JS, TS, Go and SQL do NOT, and there the first
@@ -79,6 +77,15 @@ class Language:
     spanning_quotes: tuple[str, ...] = ()
     declares: tuple[str, ...] = ()
     doc_inside: bool = False
+
+    @property
+    def a_series(self) -> bool:
+        """Whether the row declares a documentation practice: doc markers or keywords.
+
+        A language with neither, such as YAML or TOML, has no `a` series at all
+        -- not an empty one -- since an `a0` there could never be filled.
+        """
+        return bool(self.doc_line or self.doc_block or self.declares)
 
 
 # ! Line-comment openers are matched longest-first whatever order a row

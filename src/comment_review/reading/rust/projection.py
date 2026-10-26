@@ -6,12 +6,12 @@ from pathlib import Path
 
 from comment_review import constants
 from comment_review.reading.diagnostics import ReadFailure
+from comment_review.reading.matter import file_matter
 from comment_review.reading.paragraph import Paragraph
 from comment_review.reading.rust.records import (
     RustDocumentation,
     RustRead,
     RustScan,
-    RustSectionForm,
 )
 from comment_review.reading.series import Kind
 from comment_review.reading.source import (
@@ -60,16 +60,15 @@ def paragraphs_for(path: Path, read: RustRead) -> list[Paragraph] | ReadFailure:
 
     A documentation section is a DOCSTRING whose `anchor_line` is its owner's
     declaring line, or None when it documents the module. Any
-    other section is MATTER when its form is `matter`, TRAILING when code
-    precedes it on its first line, with that code as its anchor, and COMMENT
-    when none does.
+    other section is TRAILING when code precedes it on its first line, with
+    that code as its anchor, and COMMENT when none does.
 
     A paragraph's raw lines run from the end of the last code or comment
     before it on its first line, or from that line's start, to the end of its
     last line, so `anchor + raw_lines[0]` is the first line.
 
-    The file's opening and closing comments then follow the file-head and
-    end-of-file rules, and sections sharing a line are one paragraph -- see
+    The COMMENT paragraphs are then cut at the file's own matter, and
+    sections sharing a line are one paragraph -- see
     `_file_edges_and_shared_lines`.
     """
     source = read.source
@@ -77,10 +76,13 @@ def paragraphs_for(path: Path, read: RustRead) -> list[Paragraph] | ReadFailure:
     layout = _Layout(read)
     owners = {owner.section: owner.declaration for owner in source.documentation}
     paragraphs: list[Paragraph] = []
+    # The matter opens on line 1, or on the line below the shebang.
+    opens = 1
     for span in read.protected:
         # The shebang is protected source, not a section, and the file's own
         # matter at line 1: the page files it at the first `f` place.
         line = source.position(span.start).line
+        opens = line + 1
         whole = text[
             layout.lines.start_of(span.start) : layout.lines.end_of(span.start)
         ]
@@ -107,8 +109,6 @@ def paragraphs_for(path: Path, read: RustRead) -> list[Paragraph] | ReadFailure:
             owner = owners[index]
             if owner is not None:
                 declaring = _declaring_line(source, source.declarations[owner])
-        elif section.form == RustSectionForm.MATTER:
-            kind = Kind.MATTER
         else:
             kind = Kind.TRAILING if code_before else Kind.COMMENT
         raw = constants.text_lines(text[raw_start:line_end])
@@ -123,108 +123,65 @@ def paragraphs_for(path: Path, read: RustRead) -> list[Paragraph] | ReadFailure:
                 raw_lines=raw,
             )
         )
-    return _file_edges_and_shared_lines(paragraphs, set(_code(read)), layout)
+    return _file_edges_and_shared_lines(paragraphs, set(_code(read)), opens, layout)
 
 
 def _file_edges_and_shared_lines(
-    paragraphs: list[Paragraph], code: set[int], layout: "_Layout"
+    paragraphs: list[Paragraph], code: set[int], opens: int, layout: "_Layout"
 ) -> list[Paragraph]:
-    """Apply the file-head and end-of-file rules, then merge paragraphs sharing a line.
+    """Cut the COMMENT paragraphs at the file's own matter, then merge shared lines.
 
-    The opening comments follow the file-head rule, see `_opening_matter`,
-    and the comments after the last code line the end-of-file rule, see
-    `_closing_matter`. Then a paragraph starting on a line the paragraph
-    before it ends on is part of that paragraph, which keeps its kind and
-    anchor.
+    A prose line, for `reading.matter`, is one a COMMENT paragraph's comment
+    stands on and no code does; the matter opens on `opens`. The module's
+    documentation is the `//!` the documentation stage attached, a DOCSTRING;
+    a doc comment that documents no owner is a COMMENT, so its lines are
+    prose. Each COMMENT paragraph is cut at the matter's edges, and the parts
+    inside the front matter, with the shebang, are one MATTER paragraph, as
+    are the parts inside the back matter. Then a paragraph starting on a line
+    the paragraph before it ends on is part of that paragraph, which keeps its
+    kind and anchor.
     """
-    paragraphs = _opening_matter(sorted(paragraphs, key=lambda p: p.start), layout)
-    paragraphs = _closing_matter(paragraphs, code, layout)
-    out: list[Paragraph] = []
+    covered = layout.comment_lines()
+    prose = {
+        n
+        for p in paragraphs
+        if p.kind == Kind.COMMENT
+        for n in range(p.start, p.end + 1)
+        if n in covered and n not in code
+    }
+    matter = file_matter(len(layout.lines.spans), opens, prose)
+    cut: list[Paragraph] = []
     for paragraph in paragraphs:
+        if paragraph.kind != Kind.COMMENT:
+            cut.append(paragraph)
+            continue
+        for start, end, is_matter in matter.parts(
+            paragraph.start, paragraph.end, covered
+        ):
+            offset = start - paragraph.start
+            cut.append(
+                Paragraph(
+                    paragraph.path,
+                    start,
+                    end,
+                    Kind.MATTER if is_matter else Kind.COMMENT,
+                    raw_lines=paragraph.raw_lines[offset : offset + end - start + 1],
+                )
+            )
+    kept = [p for p in cut if p.kind != Kind.MATTER]
+    found = sorted((p for p in cut if p.kind == Kind.MATTER), key=lambda p: p.start)
+    front = [p for p in found if p.start < matter.front.stop]
+    back = [p for p in found if p.start >= matter.front.stop]
+    for parts in (front, back):
+        if parts:
+            kept.append(_combined(parts, Kind.MATTER, layout))
+    out: list[Paragraph] = []
+    for paragraph in sorted(kept, key=lambda p: p.start):
         if out and paragraph.start <= out[-1].end:
             out[-1] = _combined([out[-1], paragraph], out[-1].kind, layout)
         else:
             out.append(paragraph)
     return sorted(out, key=lambda p: p.start)
-
-
-def _opening_matter(paragraphs: list[Paragraph], layout: "_Layout") -> list[Paragraph]:
-    """Apply the file-head rule to the opening comments.
-
-    The MATTER paragraphs here are the shebang and the sections that open
-    the file, which the documentation stage marks and ends before the first
-    ordinary comment below the opening comments. They are one MATTER
-    paragraph, at the first `f` place. This is the rule the Python
-    projection applies to its opening run.
-    """
-    matter = [p for p in paragraphs if p.kind == Kind.MATTER]
-    if not matter:
-        return paragraphs
-    kept = [p for p in paragraphs if p.kind != Kind.MATTER]
-    kept.append(_combined(matter, Kind.MATTER, layout))
-    return sorted(kept, key=lambda p: p.start)
-
-
-def _closing_matter(
-    paragraphs: list[Paragraph], code: set[int], layout: "_Layout"
-) -> list[Paragraph]:
-    """Apply the end-of-file rule to the comments after the last code line.
-
-    The closing run is the whole-line COMMENT paragraphs after the last code
-    line, when the last of them ends on the file's last line. The comments
-    after the run's last blank line are one MATTER paragraph, whatever their
-    forms; the comments before that blank line stay COMMENT paragraphs, and a
-    paragraph that spans the blank line is divided at it. This is the rule
-    the Python projection applies to its closing run.
-    """
-    last_code = max(code, default=0)
-    total = len(layout.lines.spans)
-    closing = [p for p in paragraphs if p.kind == Kind.COMMENT and p.start > last_code]
-    if not closing or closing[-1].end != total:
-        return paragraphs
-    covered = layout.comment_lines()
-    blanks = [n for n in range(closing[0].start, total + 1) if n not in covered]
-    matter_from = blanks[-1] + 1 if blanks else closing[0].start
-    in_run = {id(p) for p in closing}
-    kept = [p for p in paragraphs if id(p) not in in_run]
-    parts: list[Paragraph] = []
-    for paragraph in closing:
-        if paragraph.end < matter_from:
-            kept.append(paragraph)
-        elif paragraph.start >= matter_from:
-            parts.append(paragraph)
-        else:
-            before, after = _divided(paragraph, matter_from, covered)
-            kept.append(before)
-            parts.append(after)
-    kept.append(_combined(parts, Kind.MATTER, layout))
-    return sorted(kept, key=lambda p: p.start)
-
-
-def _divided(
-    paragraph: Paragraph, at: int, covered: set[int]
-) -> tuple[Paragraph, Paragraph]:
-    """The whole-line paragraph as two, the second starting on line `at`.
-
-    The line above `at` is blank, and the first part ends on the last comment
-    line above it.
-    """
-    end = at - 1
-    while end not in covered:
-        end -= 1
-    halves = []
-    for start, stop in ((paragraph.start, end), (at, paragraph.end)):
-        raw = paragraph.raw_lines[start - paragraph.start : stop - paragraph.start + 1]
-        halves.append(
-            Paragraph(
-                paragraph.path,
-                start,
-                stop,
-                Kind.COMMENT,
-                raw_lines=raw,
-            )
-        )
-    return halves[0], halves[1]
 
 
 def _combined(parts: list[Paragraph], kind: str, layout: "_Layout") -> Paragraph:

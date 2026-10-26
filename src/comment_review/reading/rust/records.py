@@ -199,7 +199,6 @@ class RustSectionForm(StrEnum):
     COMMENT = "comment"
     OUTER_DOC = "outer_doc"
     INNER_DOC = "inner_doc"
-    MATTER = "matter"
 
 
 @dataclass(frozen=True)
@@ -210,7 +209,7 @@ class RustDocumentation:
     OUTER_DOC section to its declaration and each INNER_DOC section to the
     module, as declaration None: an inner doc in a body documents no owner.
     `placement` carries the declarations and the detached runs.
-    Each warning marks one COMMENT or MATTER section that is detached
+    Each warning marks one COMMENT section that is detached
     documentation, and the warnings align one-to-one, in order, with
     `placement.detached`.
     """
@@ -258,7 +257,7 @@ class RustDocumentation:
         comments = [
             section.span
             for section in self.sections
-            if section.form in (RustSectionForm.COMMENT, RustSectionForm.MATTER)
+            if section.form == RustSectionForm.COMMENT
         ]
         for warning in self.warnings:
             if warning.code != DETACHED_DOC_CODE or warning.stage != ReadStage.PLACE:
@@ -267,7 +266,7 @@ class RustDocumentation:
                 warning.span is not None and span.start <= warning.span.start < span.end
                 for span in comments
             ):
-                raise ValueError("a warning must mark a comment or matter section")
+                raise ValueError("a warning must mark a comment section")
         if [warning.span for warning in self.warnings] != [
             run.span for run in self.placement.detached
         ]:
@@ -400,3 +399,12 @@ class RustRead:
         Rust documents its crate or module and its items.
         """
         return True
+
+    @property
+    def closing_docstring(self) -> bool:
+        """Whether the module's documentation can sit at the file's foot: never.
+
+        An inner doc after the first item, or an outer doc with no item after
+        it, does not compile.
+        """
+        return False

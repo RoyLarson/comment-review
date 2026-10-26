@@ -266,8 +266,9 @@ SERIES = ADDRESSED
 MODULE = "<module>"
 
 #: The LAST TRIGGER, past the final line of code. `b` emits for it -- the gap
-#: after the last statement is a place prose can go -- and `a`, `c` and `f` skip
-#: it today.
+#: after the last statement is a place prose can go -- and so do `a`, for the
+#: module's closing documentation where the language can hold it, and `f`, for
+#: the file's own matter at the foot. `c` skips it.
 #:
 #: !! IT IS A TRIGGER AND NOT AN ARITHMETIC RULE. The alternative is `b`
 #: emitting N+1 places by definition, which is one line shorter and puts a
@@ -528,6 +529,14 @@ class Cues:
             return walker.at(0)
         return next((c for c in walker.places if self.anchor_line(c) == line), "")
 
+    def closing_documentation(self) -> str:
+        """The `a` emitted at EOF, for the module's closing documentation.
+
+        "" when the page has no `a` series.
+        """
+        walker = self.addressers[DECLARED]
+        return next((c for c, anchor in walker.places.items() if anchor == EOF), "")
+
     def at_line(self, line: int, series: str) -> list[str]:
         """The places of one SERIES that a line NUMBER of the file names.
 
@@ -691,7 +700,9 @@ class Cues:
         return list(self.addressers[COVERS].places)
 
 
-def cue(code: list[CodeLine], a_series: bool = True) -> Cues:
+def cue(
+    code: list[CodeLine], a_series: bool = True, closing_docstring: bool = True
+) -> Cues:
     """Walk the anchors of one file; return every cue and its line of code.
 
     !! `cue` IS WHAT MAKES EVERY PLACE EXIST. A place is emitted because
@@ -705,9 +716,10 @@ def cue(code: list[CodeLine], a_series: bool = True) -> Cues:
 
     ! The four rules differ, and each is measured rather than chosen:
 
-        a   the MODULE, then every documentable declaration. A line it cannot
-            emit for takes no number, so `a1` is the first declaration however
-            much code precedes it.
+        a   the MODULE, then every documentable declaration, then the EOF
+            sentinel where the language can document the module there. A line
+            it cannot emit for takes no number, so `a1` is the first
+            declaration however much code precedes it.
         b   the MODULE, then the gap above every line of code, then the gap
             after the last one.
         c   every line of code. The module takes no `c`, because a module has
@@ -739,8 +751,11 @@ def cue(code: list[CodeLine], a_series: bool = True) -> Cues:
             the line `at` names, between its gap and its code, or after that
             line's `c`.
         a_series: whether the page has an `a` series. False when the language
-            has no documentable declaration at all -- then there is no `a`
+            has no documentation practice at all -- then there is no `a`
             series, not an empty one.
+        closing_docstring: whether the language can hold the module's
+            documentation at the file's foot. Where it cannot, `a` does not
+            emit at EOF.
 
     Returns:
         The `Cues`: every place, and both directions between them.
@@ -763,11 +778,12 @@ def cue(code: list[CodeLine], a_series: bool = True) -> Cues:
     a, b, c, f = (out.addressers[s] for s in (DECLARED, GAP, ON, COVERS))
     # ! Each code line's step, so a `DocPlace` naming a line is filed against it.
     step_of = {line.line: step for step, line in enumerate(code)}
-    # !! NO `a` SERIES AT ALL WHEN THE LANGUAGE HAS NO DOCUMENTABLE
-    # DECLARATION. A language with no docstring practice -- YAML, TOML -- would
-    # otherwise be given an `a0`, a place for a module docstring it cannot have,
-    # and no instruction could ever fill it. `a_series` says whether the series
-    # exists; when it does, the module's own doc opens it at `a0`.
+    # !! NO `a` SERIES AT ALL WHEN THE LANGUAGE HAS NO DOCUMENTATION PRACTICE.
+    # A language with no docstring practice -- YAML, TOML -- would otherwise be
+    # given an `a0`, a place for a module docstring it cannot have, and no
+    # instruction could ever fill it. `a_series` says whether the series exists;
+    # when it does, the module's own doc opens it at `a0`, and closes it at EOF
+    # where `closing_docstring` says the language can hold it there.
     # !! `cue` READS `triggers()`, WHICH IS THE WHOLE POINT OF THERE BEING ONE.
     # A loop written out by hand beside it makes the list that claims *"ONE LIST,
     # SO THE FOUR SERIES CANNOT DRIFT APART"* a list no series walks.
@@ -849,6 +865,12 @@ def cue(code: list[CodeLine], a_series: bool = True) -> Cues:
                         + ", ".join(name for held in release.values() for name in held)
                     )
                 out.reading.append(closing)
+                # The module's closing documentation, after the closing gap and
+                # before the file's own matter at the foot. It takes the next
+                # number, so no `a` above it moves. Only where the language can
+                # hold documentation there.
+                if a_series and closing_docstring:
+                    out.reading.append(a.emit(EOF, at))
                 # ! `EOF` FOR THE SAME REASON THE GAP TAKES IT: the anchor names
                 # the trigger. `f0` answers `<module>` because that is where it
                 # was emitted, not because the file's matter belongs to the

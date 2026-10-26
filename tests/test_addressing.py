@@ -173,7 +173,7 @@ class TestTheWalkOverCodeLines:
         cues = self.walk({1: DocPlace(3, False)})
         assert cues.reading == [
             *("f0", "a0", "b0", "c0", "b1", "c1", "b2", "c2"),
-            *("a1", "b3", "c3", "b4", "f1"),
+            *("a1", "b3", "c3", "b4", "a2", "f1"),
         ]
         assert cues.anchor_line("a1") == 1
         assert cues.anchor_of("a1") == "line 1"
@@ -182,19 +182,45 @@ class TestTheWalkOverCodeLines:
         cues = self.walk({3: DocPlace(3, True)})
         assert cues.reading == [
             *("f0", "a0", "b0", "c0", "b1", "c1", "b2", "a1", "c2"),
-            *("b3", "c3", "b4", "f1"),
+            *("b3", "c3", "b4", "a2", "f1"),
         ]
         assert cues.anchor_line("a1") == 3
 
     def test_a_doc_after_the_last_line_comes_before_the_closing_gap(self):
         cues = self.walk({2: DocPlace(2, False)}, lines=(1, 2))
-        assert cues.reading == ["f0", "a0", "b0", "c0", "b1", "c1", "a1", "b2", "f1"]
+        assert cues.reading == [
+            "f0",
+            "a0",
+            "b0",
+            "c0",
+            "b1",
+            "c1",
+            "a1",
+            "b2",
+            "a2",
+            "f1",
+        ]
 
     def test_a_one_line_def_sets_its_doc_after_the_line_not_before_its_gap(self):
         """The one reading-order change `CodeLine`s made: the `a` of a
         declaration whose body shares its line follows that line's `c`."""
         cues = cue([CodeLine(1, "def f(): return 1", DocPlace(1, False))])
-        assert cues.reading == ["f0", "a0", "b0", "c0", "a1", "b1", "f1"]
+        assert cues.reading == ["f0", "a0", "b0", "c0", "a1", "b1", "a2", "f1"]
+
+    def test_the_a_series_meets_eof_between_the_closing_gap_and_the_foot(self):
+        cues = cue([CodeLine(1, "x", DocPlace(1, True)), CodeLine(2, "y", None)])
+        assert cues.reading[-3:] == ["b2", "a2", "f1"]
+        assert cues.anchor_of("a2") == "<eof>"
+        assert cues.anchor_line("a2") is None
+        assert cues.anchor_num("a2") == 3
+
+    def test_without_an_a_series_nothing_meets_eof_but_the_gap_and_the_foot(self):
+        cues = cue([CodeLine(1, "x", None)], a_series=False)
+        assert cues.reading == ["f0", "b0", "c0", "b1", "f1"]
+
+    def test_a_language_with_no_closing_docstring_has_no_a_at_eof(self):
+        cues = cue([CodeLine(1, "x", None)], closing_docstring=False)
+        assert cues.reading == ["f0", "a0", "b0", "c0", "b1", "f1"]
 
     def test_a_doc_set_before_its_own_declaration_is_refused(self):
         with pytest.raises(ValueError, match="a1"):

@@ -45,6 +45,7 @@ from comment_review import constants
 from comment_review.reading.addresser import (
     COVERS,
     DECLARED,
+    EOF,
     GAP,
     LEAD,
     ON,
@@ -702,7 +703,8 @@ def page_for(
     result = read_source(path, text, registry=registry)
     if isinstance(result, ReadFailure):
         return result
-    # Every read answers `paragraphs`, `code_lines` and `a_series`. Only a
+    # Every read answers `paragraphs`, `code_lines`, `a_series` and
+    # `closing_docstring`. Only a
     # reader record carries its own source text and proof, so the generic
     # `LexicalRead` is the one read tested for by type.
     record: ReaderRecord | None = None
@@ -715,7 +717,11 @@ def page_for(
         return got
     got.extend(leading_between(got, text))
     edges: dict[str, str] = {}
-    cues = cue(result.code_lines(), a_series=result.a_series)
+    cues = cue(
+        result.code_lines(),
+        a_series=result.a_series,
+        closing_docstring=result.closing_docstring,
+    )
     here = rel if rel is not None else path.as_posix()
     files = cues.file_places()
     leads = iter(range(10**9))
@@ -728,8 +734,14 @@ def page_for(
             place = files[0] if b.original_start == 1 else files[-1]
         elif b.kind == Kind.DOCSTRING:
             # Documentation takes the `a` of the line its reader named; None is
-            # the module's `a0`. A line that declares nothing is a reader bug.
-            place = cues.documents(b.anchor_line)
+            # the module's, at `a0`, or at the `a` emitted at EOF when the
+            # reader anchors it there. A line that declares nothing is a reader
+            # bug.
+            place = (
+                cues.closing_documentation()
+                if b.anchor == EOF
+                else cues.documents(b.anchor_line)
+            )
             if not place:
                 return ReadFailure(
                     (

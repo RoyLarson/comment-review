@@ -1,11 +1,13 @@
 """Project retained Python records into whole editable source sections."""
 
+from bisect import bisect_right
 from pathlib import Path
 
 from comment_review import constants
 from comment_review.reading.coordinates import SourceCoordinates
 from comment_review.reading.definitions import LanguageDefinition
 from comment_review.reading.diagnostics import ReadFailure
+from comment_review.reading.matter import file_matter
 from comment_review.reading.paragraph import Paragraph
 from comment_review.reading.python.definition import validate_python
 from comment_review.reading.python.records import (
@@ -108,10 +110,19 @@ def sections_for(
 
 
 def paragraphs_for(path: Path, read: PythonRead) -> list[Paragraph] | ReadFailure:
-    """Adapt retained sections, splitting comment runs only at file-matter edges."""
+    """Adapt retained sections, cutting comment runs only at file-matter edges.
+
+    A comment section with code before it on its first line is TRAILING. Every
+    other comment section is cut at the edges `reading.matter` gives, and each
+    part is MATTER inside the file's own matter and COMMENT outside it.
+    """
     text = read.source.text
     coordinates = SourceCoordinates(text)
     lines = constants.text_lines(text)
+    # A Python shebang or encoding line is a comment, so the matter opens on
+    # line 1.
+    prose = _prose(read, coordinates)
+    matter = file_matter(len(lines), 1, prose)
     payloads = {payload.expression.statement: payload for payload in read.payloads}
     paragraphs: list[Paragraph] = []
     for section in read.source.sections:
@@ -143,68 +154,54 @@ def paragraphs_for(path: Path, read: PythonRead) -> list[Paragraph] | ReadFailur
                 )
             )
             continue
-        comments = [
-            region
-            for region in read.source.regions
-            if region.kind == RegionKind.COMMENT
-            and span.start <= region.span.start < span.end
-        ]
-        groups = [comments]
-        first_comment = coordinates.position(comments[0].span.start)
-        first_whole = not lines[first_comment.line - 1][: first_comment.column].strip(
-            " \t\f\ufeff"
-        )
-        if first_whole and first.line == 1:
-            split = next(
-                (
-                    i
-                    for i in range(1, len(comments))
-                    if coordinates.position(comments[i].span.start).line
-                    > coordinates.position(comments[i - 1].span.start).line + 1
-                ),
-                None,
-            )
-            if split is not None:
-                groups = [comments[:split], comments[split:]]
-        tail = groups[-1]
-        tail_start = coordinates.position(tail[0].span.start)
-        tail_whole = not lines[tail_start.line - 1][: tail_start.column].strip(
-            " \t\f\ufeff"
-        )
-        if tail_whole and coordinates.position(tail[-1].span.start).line == len(lines):
-            split = next(
-                (
-                    i
-                    for i in range(len(tail) - 1, 0, -1)
-                    if coordinates.position(tail[i].span.start).line
-                    > coordinates.position(tail[i - 1].span.start).line + 1
-                ),
-                None,
-            )
-            if split is not None:
-                groups[-1:] = [tail[:split], tail[split:]]
-        for group in groups:
-            start = coordinates.position(group[0].span.start)
-            end = coordinates.position(group[-1].span.end)
-            before = lines[start.line - 1][: start.column]
-            trailing = bool(before.strip(" \t\f\ufeff"))
-            kind = Kind.TRAILING if trailing else Kind.COMMENT
-            if not trailing and (start.line == 1 or end.line == len(lines)):
-                kind = Kind.MATTER
-            raw = lines[start.line - 1 : end.line]
-            if trailing:
-                raw[0] = raw[0][len(before.rstrip()) :]
+        before = lines[first.line - 1][: first.column]
+        if before.strip(" \t\f\ufeff"):
+            raw = lines[first.line - 1 : last.line]
+            raw[0] = raw[0][len(before.rstrip()) :]
             paragraphs.append(
                 Paragraph(
                     path.as_posix(),
-                    start.line,
-                    end.line,
-                    kind,
-                    anchor=before.rstrip() if trailing else "",
+                    first.line,
+                    last.line,
+                    Kind.TRAILING,
+                    anchor=before.rstrip(),
                     raw_lines=raw,
                 )
             )
+            continue
+        for start, end, is_matter in matter.parts(first.line, last.line, prose):
+            paragraphs.append(
+                Paragraph(
+                    path.as_posix(),
+                    start,
+                    end,
+                    Kind.MATTER if is_matter else Kind.COMMENT,
+                    raw_lines=lines[start - 1 : end],
+                )
+            )
     return paragraphs
+
+
+def _prose(read: PythonRead, coordinates: SourceCoordinates) -> set[int]:
+    """The prose lines, for `reading.matter`: each line a whole-line comment is on.
+
+    A docstring is a statement, so no comment is documentation.
+    """
+    text = read.source.text
+    spans = [s.span for s in read.source.sections if s.form == "#"]
+    starts = [span.start for span in spans]
+    prose: set[int] = set()
+    for region in read.source.regions:
+        if region.kind != RegionKind.COMMENT:
+            continue
+        at = bisect_right(starts, region.span.start) - 1
+        if at < 0 or region.span.start >= spans[at].end:
+            continue
+        position = coordinates.position(region.span.start)
+        head = text[region.span.start - position.column : region.span.start]
+        if not head.strip(" \t\f\ufeff"):
+            prose.add(position.line)
+    return prose
 
 
 def code_lines_for(read: PythonRead) -> list[CodeLine]:

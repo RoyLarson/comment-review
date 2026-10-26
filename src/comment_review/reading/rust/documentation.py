@@ -1,13 +1,15 @@
 """Group Rust comments into sections and decide which document which owner."""
 
 from bisect import bisect_left, bisect_right
-from collections.abc import Collection, Mapping
+from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import cast
 
+from comment_review import constants
 from comment_review.reading.coordinates import SourceCoordinates
 from comment_review.reading.definitions import LanguageDefinition
 from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, ReadStage
+from comment_review.reading.matter import file_matter
 from comment_review.reading.rust.definition import MODULE, validate_rust
 from comment_review.reading.rust.records import (
     ATTRIBUTE_KINDS,
@@ -72,7 +74,7 @@ def documentation_in(
 
     An outer doc section that ends on a line above an owner's head, with only
     whitespace between them, documents that owner. An inner doc section
-    documents the module when nothing but opening matter precedes it. Either
+    documents the module when nothing but the opening comments precede it. Either
     is on lines of its own: no other comment shares its first or last line.
     The kinds documentation attaches to are `[rules.documentation].owners`.
 
@@ -87,11 +89,10 @@ def documentation_in(
     warning. Every other doc section that documents nothing is a COMMENT
     section.
 
-    The file's opening matter is the comments `opening_end` bounds: every
-    section starting in it is MATTER, up to the first section documenting an
-    owner, which ends the matter. The module's inner doc is detached when
-    code or a comment outside the opening matter precedes it; the page sets
+    The opening comments are the ones `_opening` gives. The module's inner doc
+    is detached when code or a comment outside them precedes it; the page sets
     `a0` at the file head. Every other owner inserts at its head's first line.
+    Which sections are the file's own matter is the projection's to say.
     """
     failure = validate_rust(definition)
     if failure is not None:
@@ -143,8 +144,8 @@ class _Assigner:
         self.shebang = next(
             (t for t in scan.tokens if t.kind is RustTokenKind.SHEBANG), None
         )
-        # The last line of the comments that open the file, or None.
-        self.opening_end = self._opening_end()
+        # The lines of the comments that open the file.
+        self.opening = self._opening()
 
     def run(self) -> RustDocumentation:
         for index, run in enumerate(self.runs):
@@ -154,17 +155,6 @@ class _Assigner:
                 self._outer(index, run)
             elif run.written is RustSectionForm.INNER_DOC:
                 self._inner(index, run)
-        # Every section starting in the opening comments is matter, up to the
-        # first that documents an owner. A run may run on past the
-        # opening comments, across a blank line; the sections divide it where
-        # they end.
-        if self.opening_end is not None:
-            for index, run in enumerate(self.runs):
-                if run.code or not self._opens(run):
-                    continue
-                if index in self.links:
-                    break
-                self.forms[index] = RustSectionForm.MATTER
         # Each section is [form, start, end, last run]; the last run is what
         # the next run is checked against.
         groups: list[list] = []
@@ -172,19 +162,10 @@ class _Assigner:
         for index, run in enumerate(self.runs):
             if run.code:
                 continue
-            form, start = self.forms[index], run.span.start
-            tail = self._past_the_opening(index, run)
-            if tail is not None:
-                # The opening matter ends before the run does: the comments
-                # from `tail` on are ordinary and section with what follows.
-                groups.append([form, start, self._comment_end(start, tail), index])
-                section_of[index] = len(groups) - 1
-                form, start = RustSectionForm.COMMENT, tail
-            elif groups and self._continues(groups[-1], index):
+            if groups and self._continues(groups[-1], index):
                 groups[-1][2:] = [run.span.end, index]
-                section_of[index] = len(groups) - 1
-                continue
-            groups.append([form, start, run.span.end, index])
+            else:
+                groups.append([self.forms[index], run.span.start, run.span.end, index])
             section_of[index] = len(groups) - 1
         sections = tuple(
             SourceSection(SourceSpan(start, end), form.value)
@@ -199,35 +180,6 @@ class _Assigner:
             tuple(self.detached),
         )
         return RustDocumentation(sections, owners, placement, tuple(self.warnings))
-
-    def _past_the_opening(self, index: int, run: _Run) -> int | None:
-        """Where the ordinary comments start, if matter ends inside the run.
-
-        A matter run runs on past the opening comments when a blank line
-        ends them and a comment of the same form follows; the first comment
-        below the opening comments starts the ordinary ones.
-        """
-        if (
-            self.forms[index] is not RustSectionForm.MATTER
-            or self.opening_end is None
-            or self._line(run.span.end - 1) <= self.opening_end
-        ):
-            return None
-        return next(
-            token.span.start
-            for token in self.scan.tokens
-            if token.kind in COMMENT_KINDS
-            and token.span.start >= run.span.start
-            and self._line(token.span.start) > self.opening_end
-        )
-
-    def _comment_end(self, start: int, stop: int) -> int:
-        """The end of the last comment in `[start, stop)`."""
-        return max(
-            token.span.end
-            for token in self.scan.tokens
-            if token.kind in COMMENT_KINDS and start <= token.span.start < stop
-        )
 
     def _continues(self, group: list, index: int) -> bool:
         """Whether run `index` is part of the COMMENT section `group`.
@@ -247,12 +199,15 @@ class _Assigner:
             and not second.trailing
         )
 
-    def _opening_end(self) -> int | None:
-        """The last line of the comments that open the file, or None.
+    def _opening(self) -> range:
+        """The lines of the comments that open the file, documentation included.
 
-        The lines handed to `opening_end` are the ones a prose comment stands
-        on and the ones code stands on: a code token's first and last lines,
-        and every line of a comment that is part of its line's code.
+        They are the front matter `reading.matter` gives when every comment,
+        documentation or not, counts as prose. They open on line 1, or on the
+        line directly below the shebang, which shares the file's own place with
+        them. A prose line is one a comment stands on and no code does: a code
+        token's first and last lines, and every line of a comment that is part
+        of its line's code, are code.
         """
         first = 1 if self.shebang is None else self._line(self.shebang.span.end - 1) + 1
         prose: set[int] = set()
@@ -267,14 +222,8 @@ class _Assigner:
             (code if followed else prose).update(lines)
         for token in self.code:
             code.update((self._line(token.span.start), self._line(token.span.end - 1)))
-        return opening_end(first, prose, code)
-
-    def _opens(self, run: _Run) -> bool:
-        """Whether the run starts among the comments that open the file."""
-        return (
-            self.opening_end is not None
-            and self._line(run.span.start) <= self.opening_end
-        )
+        total = len(constants.text_lines(self.scan.text))
+        return file_matter(total, first, prose - code).front
 
     def _beside(self, index: int, run: _Run) -> bool:
         """Whether another comment shares the run's first or last line.
@@ -323,12 +272,11 @@ class _Assigner:
         while before >= 0 and self.code[before].kind is RustTokenKind.INNER_ATTRIBUTE:
             before -= 1
         if before < 0:
-            # A comment before the run that is not opening matter -- below a
-            # blank line, or one a run that opens the file runs on to --
-            # detaches it.
-            end = self.opening_end or 0
+            # A comment before the run that is not among the opening comments
+            # -- below a blank line, or one a run that opens the file runs on
+            # to -- detaches it.
             behind = any(
-                not r.code and self._line(r.span.end - 1) > end
+                not r.code and self._line(r.span.end - 1) >= self.opening.stop
                 for r in self.runs[:index]
             )
             if MODULE not in self.owner_kinds:
@@ -435,28 +383,6 @@ class _Assigner:
 
     def _spelled(self, token: RustToken) -> str:
         return self.scan.text[token.span.start : token.span.end]
-
-
-def opening_end(
-    first: int, prose_lines: Collection[int], code_lines: Collection[int]
-) -> int | None:
-    """The last line of the comments that open the file, or None.
-
-    They start on `first` -- line 1, or the line directly below the shebang,
-    which shares the file's own place with them -- and run while each line
-    holds a prose comment and no code. A blank line, a line with code on it
-    or the end of the file ends them. A comment below a blank line is not
-    opening matter: filed as front matter it would be set above the blank
-    line it sits under. The documentation stage and the projection both
-    decide the opening matter here, from the lines each knows to hold prose
-    and to hold code.
-    """
-    end = None
-    line = first
-    while line in prose_lines and line not in code_lines:
-        end = line
-        line += 1
-    return end
 
 
 def _runs(tokens: tuple[RustToken, ...], coordinates: SourceCoordinates) -> list[_Run]:

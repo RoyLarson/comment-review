@@ -423,6 +423,33 @@ def test_unexpected_reader_exception_propagates(monkeypatch):
         page_for_mod.page_of(Path("m.py"), source=Source("v = 1\n", "held"))
 
 
+@pytest.mark.parametrize(
+    ("anchor", "place"),
+    [("<eof>", "a1"), ("", "a0")],
+    ids=["closing-at-eof", "opening-at-a0"],
+)
+def test_module_documentation_takes_the_a_its_anchor_names(monkeypatch, anchor, place):
+    from comment_review.results.compositor import set_page
+
+    text = "x;\n/** d */\n" if anchor else "/** d */\nx;\n"
+    line = 2 if anchor else 1
+    doc = Paragraph("m.c", line, line, Kind.DOCSTRING, anchor=anchor)
+    doc.raw_lines = ["/** d */"]
+    code = CodeLine(1 if anchor else 2, "x;", None)
+
+    def read(*args, **kwargs):
+        return LexicalRead([doc], [code], True)
+
+    monkeypatch.setattr(page_mod, "read_source", read)
+    page = page_for_mod.page_of(Path("m.c"), source=Source(text, "held"))
+    assert isinstance(page, Page)
+    assert (by_cue(page)[place].kind, by_cue(page)[place].raw_lines) == (
+        Kind.DOCSTRING,
+        ["/** d */"],
+    )
+    assert set_page(page) == text
+
+
 def test_located_error_renders_after_file_is_removed(tmp_path):
     path = tmp_path / "m.c"
     path.write_text("int v;\n/* open", encoding="utf-8", newline="")

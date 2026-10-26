@@ -102,3 +102,8 @@ class ReaderRecord(SourceRead, Protocol):
     def a_series(self) -> bool:
         """Whether the page has an `a` series: its language documents declarations."""
         ...
+
+    @property
+    def closing_docstring(self) -> bool:
+        """Whether the language can hold the module's documentation at its foot."""
+        ...
