@@ -2,8 +2,8 @@
 
 ```
 Status:   in-progress
-Progress: 10 of 15 TODO tasks closed
-Plan-tasks: 10 of 17 plan tasks closed
+Progress: 11 of 15 TODO tasks closed
+Plan-tasks: 11 of 17 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-25 (founded by move-t from 2026-10-11-lexical-readers)
@@ -35,7 +35,7 @@ per step; each step lands its failing test first.
 - [x] T15 | Remove the page's detached-documentation placement
 - [-] T16 | Move the lexical path's code lines and declarations into its reader
 - [-] T17 | Correct each reader's code text
-- [ ] T18 | Correct each reader's code text
+- [x] T18 | Correct each reader's code text
 - [x] T19 | Return CodeLines from the Python and Rust readers
 - [x] T20 | Move the lexical path's code lines and declarations into its reader
 
@@ -64,6 +64,7 @@ per step; each step lands its failing test first.
 - [ ] P5 | Give a Python docstring paragraph its whole source lines
         > 2026-10-25 Check: the """doc""" \ input sets back byte-identical
         > 2026-10-25 Works T5
+        > 2026-10-25 Takes P15's Python case: doc span runs to line end
 - [ ] P6 | Delete the continues-a-trailing-comment stamp
         > 2026-10-25 Check: git grep continues-a-trailing-comment -- src: none
         > 2026-10-25 Works T6
@@ -100,7 +101,8 @@ per step; each step lands its failing test first.
       each reader's code text
         > 2026-10-25 Works T17; after P13
         > 2026-10-25 Check: corpus address dump unchanged for two lexical languages
-- [ ] P15 | Correct each reader's code text
+- [x] P15 | FINISHED: Rust literal whitespace trimmed; Python case moved to P5 | 573eb183 | Correct
+      each reader's code text
         > 2026-10-25 Works T18; replaces P4
         > 2026-10-25 Check: Rust margins rebuild; Python backslash case round-trips
 - [x] P16 | FINISHED: CodeLine/DocPlace from both readers; cue walks CodeLines; review clean after 1 fix round | 7962289d | Return

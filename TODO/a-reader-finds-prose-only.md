@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 15 of 20 tasks closed
+Progress: 16 of 20 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-25 (decision-log.md Process: #224)
@@ -44,6 +44,7 @@ defect and is repaired (lexer-and-language-findings T12, b30cc510).
         > 2026-10-25 python/projection.py:136 cuts raw_lines at the statement end
         > 2026-10-25 Reason: in """doc""" \ the \ belongs to no place; set drops it
         > 2026-10-25 Check: that input sets back identical through set_page
+        > 2026-10-25 Repro: def f(): newline then indented doc with trailing backslash
 - [ ] T6 | Delete the continues-a-trailing-comment stamp from lexer.py
         > 2026-10-25 lexer.py:846; the Python and Rust readers never stamp it
         > 2026-10-25 Reason: nothing in src or src/plugin reads the annotation
@@ -106,7 +107,8 @@ defect and is repaired (lexer-and-language-findings T12, b30cc510).
       each reader's code text
         > 2026-10-25 Check: page builds places without code_lines or declarations
         > 2026-10-25 Check: corpus address dump unchanged for two lexical languages
-- [ ] T18 | Correct each reader's code text
+- [x] T18 | FINISHED: Rust code right-trimmed (573eb183); the Python backslash case is T5's | 573eb183 | Correct
+      each reader's code text
         > 2026-10-25 Check: every .rs margin anchor + raw_lines[0] equals its line
         > 2026-10-25 Check: the Python backslash docstring sets back byte-identical
 - [x] T19 | FINISHED: readers return CodeLines carrying their DocPlace; documentable deleted; one-per-line silent (#230) | 7962289d | Return
