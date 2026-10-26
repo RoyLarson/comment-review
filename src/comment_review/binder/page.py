@@ -724,8 +724,6 @@ def page_for(
             b.symbol = f"{LEAD}{next(leads)}"
             b.address = ""
             continue
-        if b.kind == Kind.MATTER and b.address.startswith(DECLARED):
-            b.kind = Kind.COMMENT
         if b.kind == Kind.MATTER:
             place = files[0] if b.original_start == 1 else files[-1]
         elif b.kind == Kind.DOCSTRING:
