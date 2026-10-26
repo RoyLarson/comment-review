@@ -5,18 +5,18 @@ code. The reader here reads every language without a reader package of its own
 from its row alone: the prose and its kind. Python and Rust are read by
 `reading.python` and `reading.rust`, each from its own language definition.
 
-This classifies what the purpose is of each paragraph. `paragraphs_lexical`
-emits `comment`, `docstring`, `trailing-comment` and `matter` -- prose it found
--- and `leading_between` emits `leading`. `interval`, `margin` and `undocumented`
-are the page's, because only a page knows where prose is MISSING.
+This classifies what the purpose is of each paragraph. `read_lexical` emits
+`comment`, `docstring`, `trailing-comment` and `matter` -- prose it found -- and
+`leading_between` emits `leading`. `interval`, `margin` and `undocumented` are
+the page's, because only a page knows where prose is MISSING.
 
-`lexical_read` completes the read for the page: `code_text` gives each line of
-code its code, `declarations()` marks which lines declare something
+`read_lexical` also completes the read for the page: `code_text` gives each
+line of code its code, `declarations()` marks which lines declare something
 documentable and where its doc would go, and `document_declarations` marks the
 run that documents a declaration `docstring`, naming that declaration's line --
 for Go and Ruby too, whose documentation is an ordinary comment run above the
 declaring keyword. It hands back a `LexicalRead`, the paragraphs and their
-`CodeLine`s together.
+`CodeLine`s together; `paragraphs_lexical` is its paragraphs alone.
 
 Beside the reader: `comment_form` parses a comment's markers and fragments for
 `desk.marks.rules`.
@@ -569,7 +569,7 @@ def _anchor_of(lines: list[str], line_no: int, column: int) -> str:
     tier already found where the comment opens, which means it already had the
     characters before it.
 
-    It is kept apart from the prose. `paragraphs_lexical` cuts `raw_lines` at
+    It is kept apart from the prose. `read_lexical` cuts `raw_lines` at
     the opener, so the code before it is held here and in no string with the prose.
 
     It is `""` for a paragraph that owns its lines whole, which has no code on its
@@ -649,9 +649,11 @@ def _leading(
 
 
 def _is_doc(line: str, lang: Language) -> bool:
-    """Does this line open a run the language treats as DOCUMENTATION?
+    """Does this line open a comment the language treats as DOCUMENTATION?
 
-    `flush` asks it to set a run's kind.
+    `read_lexical` asks it of each comment it opens, to record the lines doc
+    comments stand on, and `flush` asks it of a run's first line to set the
+    run's kind.
     """
     opens = line.strip()
     return _opens_doc(opens, lang.doc_line) or _opens_doc(opens, lang.doc_block)
@@ -678,10 +680,15 @@ def _opens_doc(opens: str, markers: tuple[str, ...]) -> bool:
 
 
 def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]:
-    """Comment runs for a language with no parser here -- the FLOOR tier.
+    """The comment runs `read_lexical` finds, without the code lines."""
+    return read_lexical(path, text, lang).found
+
+
+def read_lexical(path: Path, text: str, lang: Language) -> "LexicalRead":
+    """Comment runs and code lines for a language with no parser here -- the FLOOR tier.
 
     Answers where every paragraph is, its line range, its raw lines and its
-    annotations.
+    annotations, and each line of code with the documentation it declares.
     ! A paragraph sitting BESIDE code carries an anchor at this tier too -- the
     line of code itself, which needs no parser; see `_anchor_of`. Only a paragraph
     that owns its lines whole has none, because its anchor is a declaration and
@@ -976,7 +983,7 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
             run.append((n, raw_line[at:].rstrip()))
             flush(trailing=True)  # its own paragraph, anchored to the code on that line
     flush()
-    found = _file_edges(out, text, lang, between, documentation)
+    found, code_lines = _file_edges(out, text, lang, between, documentation)
     if in_block is not None and found:
         # The loop ended with a paragraph comment still open, so the final flush
         # emitted the run that ate the rest of the file. It is the ONE paragraph
@@ -987,7 +994,7 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
             "file, so every line below the opener was swallowed into this run. "
             "Code down there was NOT read as code."
         )
-    return found
+    return LexicalRead(found, code_lines, lang.a_series)
 
 
 def _file_edges(
@@ -996,8 +1003,11 @@ def _file_edges(
     lang: Language,
     between: set[int],
     documentation: set[int],
-) -> list[Paragraph]:
+) -> tuple[list[Paragraph], list[CodeLine]]:
     """Say which runs document a declaration, then which are the file's own matter.
+
+    Returns the paragraphs and the file's code lines, which cutting a run at a
+    blank line or a docstring's end does not change.
 
     A prose line, for `reading.matter`, is a line of a whole-line run with a
     comment on it -- not a blank it took in `between` two comments, and not a
@@ -1057,11 +1067,12 @@ def _file_edges(
 
     found = cut(paragraphs, (Kind.COMMENT, Kind.DOCSTRING), mark=False)
     code = code_text(text, found)
-    document_declarations(found, lines_of_code(code, declarations(lang, code)))
+    code_lines = lines_of_code(code, declarations(lang, code))
+    document_declarations(found, code_lines)
     found = cut(found, (Kind.COMMENT,), mark=True)
     if lang.a_series:
         found = _module_documentation(found, set(code), between, documentation)
-    return found
+    return found, code_lines
 
 
 def _module_documentation(
@@ -1365,17 +1376,3 @@ class LexicalRead:
     def code_lines(self) -> list[CodeLine]:
         """Each line holding code, in order, with the documentation it declares."""
         return self.lines
-
-
-def lexical_read(paragraphs: list[Paragraph], text: str, lang: Language) -> LexicalRead:
-    """Complete a lexical read: the code lines and their declarations.
-
-    Args:
-        paragraphs: the prose `paragraphs_lexical` found, each documenting run
-            already naming its declaration.
-        text: the file's source.
-        lang: its record; `declares` holds the keywords.
-    """
-    code = code_text(text, paragraphs)
-    lines = lines_of_code(code, declarations(lang, code))
-    return LexicalRead(paragraphs, lines, lang.a_series)

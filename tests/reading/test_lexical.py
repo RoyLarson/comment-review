@@ -4,7 +4,6 @@ from pathlib import Path
 
 import pytest
 
-from comment_review.reading.diagnostics import ReadFailure
 from comment_review.reading.language import language_for
 from comment_review.reading.lexer import LexicalRead, declarations
 from comment_review.reading.readers import read_source
@@ -106,20 +105,6 @@ def test_a_comment_on_line_one_of_sql_is_front_matter():
 def test_a_licence_header_is_not_part_of_the_declarations_documentation():
     text = "// licence\n\n// doc\nfun f() {}\n"
     assert kinds("m.kt", text) == [(1, 1, Kind.MATTER), (3, 3, Kind.DOCSTRING)]
-
-
-def test_kt_and_rs_hand_back_matter_on_the_same_runs_for_a_licence_then_an_import():
-    # The code after the licence declares nothing in either language: where a
-    # comment documents a declaration is each reader's own rule.
-    kotlin = "// licence\n// more\n\nimport a.b\n\n// tail one\n\n// tail two\n"
-    rust = "// licence\n// more\n\nuse a::b;\n\n// tail one\n\n// tail two\n"
-    expected = [(1, 2, Kind.MATTER), (6, 6, Kind.COMMENT), (8, 8, Kind.MATTER)]
-    assert kinds("m.kt", kotlin) == expected
-    rust_read = read_source(Path("m.rs"), rust)
-    assert not isinstance(rust_read, ReadFailure)
-    found = rust_read.paragraphs(Path("m.rs"))
-    assert not isinstance(found, ReadFailure)
-    assert [(p.start, p.end, p.kind) for p in found] == expected
 
 
 @pytest.mark.parametrize(

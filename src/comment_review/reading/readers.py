@@ -21,8 +21,7 @@ from comment_review.reading.language import (
 )
 from comment_review.reading.lexer import (
     LexicalRead,
-    lexical_read,
-    paragraphs_lexical,
+    read_lexical,
 )
 from comment_review.reading.paragraph import Paragraph
 from comment_review.reading.python import read_python
@@ -138,9 +137,9 @@ def _read_paragraphs(
     """Run the selected engine and retain its refusal diagnostics."""
     coordinates = SourceCoordinates(text)
     lang = language_from_definition(definition)
-    paragraphs = paragraphs_lexical(path, text, lang)
+    read = read_lexical(path, text, lang)
     diagnostics: list[ReadDiagnostic] = []
-    for paragraph in paragraphs:
+    for paragraph in read.found:
         if not isinstance(paragraph, Paragraph):
             raise ValueError("Reader records must be Paragraph values")
         if paragraph.kind == "unparsed":
@@ -158,7 +157,7 @@ def _read_paragraphs(
             )
     if diagnostics:
         return ReadFailure(tuple(diagnostics))
-    return lexical_read(paragraphs, text, lang)
+    return read
 
 
 def _read_python(

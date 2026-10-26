@@ -168,7 +168,7 @@ def test_python_page_recognizes_once_and_retains_object_and_definition(monkeypat
     monkeypatch.setattr(page_for_mod, "installed_registry", acquire)
     monkeypatch.setattr(readers, "read_python", recognize)
     monkeypatch.setattr(reading_context, "resolve_context", resolve)
-    monkeypatch.setattr(readers, "lexical_read", forbidden)
+    monkeypatch.setattr(readers, "read_lexical", forbidden)
     page = page_for_mod.page_of(Path("m.py"), source=Source(text, "held"))
     assert isinstance(page, Page)
     assert acquired == [True]

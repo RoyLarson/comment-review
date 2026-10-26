@@ -38,16 +38,11 @@ def test_read_paragraphs_reports_python_refusal(text):
     assert result.diagnostics[0].span is not None
 
 
-def test_read_paragraphs_unterminated_comment_stops_the_read(monkeypatch):
+def test_read_paragraphs_unterminated_comment_stops_the_read():
     path = Path("m.c")
     text = "int x;\r\n/* open\r\nstill open"
     lang = lexer.language_for(path)
     assert lang is not None
-
-    def conceal(*args):
-        pytest.fail("Refused paragraphs must not reach the rest of the read")
-
-    monkeypatch.setattr(readers, "lexical_read", conceal)
     result = readers.read_paragraphs(path, text, lang)
     assert isinstance(result, ReadFailure)
     assert [(d.stage, d.code, d.span) for d in result.diagnostics] == [
@@ -61,7 +56,9 @@ def test_read_paragraphs_retains_signal_order(monkeypatch):
         Paragraph("m.py", 2, 2, "comment", "open"),
     ]
     records[1].annotations.add("unterminated-paragraph-comment")
-    monkeypatch.setattr(readers, "paragraphs_lexical", lambda *args: records)
+    monkeypatch.setattr(
+        readers, "read_lexical", lambda *args: lexer.LexicalRead(records, [], False)
+    )
     lang = lexer.language_for(Path("m.c"))
     assert lang is not None
     result = readers.read_paragraphs(Path("m.c"), "code\n# open", lang)
@@ -78,12 +75,14 @@ def test_read_paragraphs_invalid_record_and_unexpected_error_propagate(monkeypat
 
     lang = lexer.language_for(Path("m.c"))
     assert lang is not None
-    monkeypatch.setattr(readers, "paragraphs_lexical", broken)
+    monkeypatch.setattr(readers, "read_lexical", broken)
     with pytest.raises(RuntimeError, match="reader defect"):
         readers.read_paragraphs(Path("m.c"), "", lang)
     record = Paragraph("m.py", 3, 3, "comment", "open")
     record.annotations.add("unterminated-paragraph-comment")
-    monkeypatch.setattr(readers, "paragraphs_lexical", lambda *args: [record])
+    monkeypatch.setattr(
+        readers, "read_lexical", lambda *args: lexer.LexicalRead([record], [], False)
+    )
     with pytest.raises(ValueError, match="source lines"):
         readers.read_paragraphs(Path("m.c"), "# open", lang)
 

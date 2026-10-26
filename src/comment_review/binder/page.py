@@ -704,9 +704,8 @@ def page_for(
     if isinstance(result, ReadFailure):
         return result
     # Every read answers `paragraphs`, `code_lines`, `a_series` and
-    # `closing_docstring`. Only a
-    # reader record carries its own source text and proof, so the generic
-    # `LexicalRead` is the one read tested for by type.
+    # `closing_docstring`. Only a reader record carries its own source text and
+    # proof, so the generic `LexicalRead` is the one read tested for by type.
     record: ReaderRecord | None = None
     if not isinstance(result, LexicalRead):
         record = result

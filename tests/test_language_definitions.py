@@ -846,8 +846,11 @@ def test_installed_bindings_invoke_existing_engines(
     calls = []
     monkeypatch.setattr(
         readers,
-        "paragraphs_lexical",
-        lambda path, text, lang: calls.append((lang.name, path, text)) or [],
+        "read_lexical",
+        lambda path, text, lang: (
+            calls.append((lang.name, path, text))
+            or readers.LexicalRead([], [], lang.a_series)
+        ),
     )
     for value in INSTALLED_DEFINITIONS:
         path = Path("source" + value.suffixes[0])
