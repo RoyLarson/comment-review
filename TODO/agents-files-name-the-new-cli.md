@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 34 of 42 tasks closed
+Progress: 34 of 43 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-09-04 (Roy, 2026-09-04, superseding the-flow-lives-in-the-command T4)
@@ -159,3 +159,5 @@ The agents files name the new CLI and say how to use it.
 - [x] T42 | Withdrawal brief matches removal and binder obligations; 8 focused tests pass; wording review clean | e5c05a63 | Correct
       withdrawal instructions to remove marks and require replacement for
       received places; verify the brief matches check
+- [ ] T43 | Restate SKILL.md's detached-doc step: matter, and the printed owner
+        > 2026-10-26 Detached doc in matter is read as matter; warning now names owner

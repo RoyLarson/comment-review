@@ -298,8 +298,8 @@ commit that first recorded it is the source, and `git log -S` finds it.
 
 **A language has an `a` series when its row declares a documentation practice** -- doc
 markers or declaring keywords. `yaml`, `toml`, `ini` and `sql` declare neither and have no
-`a` series. The `a` series meets both sentinels: `a0` at `<module>`, and one more `a` at
-`<eof>` for a closing docstring.
+`a` series. The `a` series meets `<module>` as `a0`. A row that holds a closing docstring --
+one with doc markers, outside Python and Rust -- also meets `<eof>` with one more `a`.
 
 **C and C++ list no keywords yet, and that is deferral rather than impossibility.** They keep
 `a0` and the `<eof>` `a` through their `/**` marker; their declaration `a`s wait on the matcher.

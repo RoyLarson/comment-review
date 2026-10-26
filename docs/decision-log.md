@@ -5753,3 +5753,11 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   #226's printed form. (3) A row may name its shebang; the generic reader then passes the line
   after it to the matter rule as #232 states for every reader. JavaScript and TypeScript name
   `#!`, each in its own row.
+
+- **#237.** **The wording that follows #236** (Roy, 2026-10-26: *"CLAUDE update approved"*;
+  *"SKILL option A is better"*).
+
+  **What it settles.** `CLAUDE.md` states the `<eof>` `a` per #236.1: the `a` series meets
+  `<module>` as `a0`, and a row that holds a closing docstring -- one with doc markers, outside
+  Python and Rust -- also meets `<eof>` with one more `a`. `SKILL.md` gives the agent both printed
+  forms of #236.2, `(owner on line <n>)` and `(owner: module)`.
