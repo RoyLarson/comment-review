@@ -5740,3 +5740,16 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
 
   **What it settles.** A doc is detached when an ordinary comment sits between it and the item,
   whatever the compiler attaches; #226 and #232 then apply to it as a comment.
+
+- **#236.** **Three repairs from the branch's final review** (Roy, 2026-10-26, choosing the
+  recommended answer to each).
+
+  **What it settles.** (1) A generic lexical row can hold a closing docstring only when it has a
+  doc marker (`doc_line` or `doc_block`); Go, Ruby, Shell and Lua carry none, so a comment written
+  at their `<eof>` `a` read back as back matter, and they emit no `<eof>` `a`. Amends #234. (2)
+  The detached-documentation warning names the owner the reader states:
+  `warning: <path>:<line>: detached documentation (owner on line <n>)`, or `(owner: module)`, so
+  the task agent's instruction to show the owner and offer its `a` cue has what it needs. Amends
+  #226's printed form. (3) A row may name its shebang; the generic reader then passes the line
+  after it to the matter rule as #232 states for every reader. JavaScript and TypeScript name
+  `#!`, each in its own row.

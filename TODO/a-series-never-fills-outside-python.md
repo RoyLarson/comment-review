@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 17 of 20 tasks closed
+Progress: 17 of 22 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-21 (the /code-review xhigh of 2026-08-21, focused on the file-to-
@@ -208,3 +208,7 @@ a row is wrong the moment its justification cites another row.
 - [ ] T20 | T20 -- Give `cpp` a `declares` keyword list, from C++'s own grammar.
       Verify: a `.cpp` file resolves an `a` for a class and a function, and
       gains no SPURIOUS `a`.
+- [ ] T21 | Make a0 fillable on rows whose module doc is a plain comment
+        > 2026-10-26 Go a0 // Package p does. reads back as f0 matter
+- [ ] T22 | Make a0 fillable when a module doc sits above the first declaration
+        > 2026-10-26 Java a0 /** Module. */ above class A reads back as a1
