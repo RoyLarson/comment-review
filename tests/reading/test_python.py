@@ -3590,7 +3590,6 @@ def test_a_docstring_paragraph_holds_its_whole_last_line(
     from pathlib import Path
 
     from comment_review.reading.python.projection import paragraphs_for
-    from comment_review.reading.series import Kind
 
     text = ending.join([*lines, ""])
     result = import_module("comment_review.reading.python").read_python(
@@ -3605,6 +3604,55 @@ def test_a_docstring_paragraph_holds_its_whole_last_line(
     assert paragraphs[0].anchor_line == anchor_line
     assert all(not first <= c.line <= last for c in result.code_lines())
     assert result.source.reconstruct() == text
+
+
+@pytest.mark.parametrize(
+    "lines, read, raw_lines, code",
+    [
+        (
+            ["def f():", '    """doc"""; x = 1'],
+            ["def f():", '    """doc"""', "    x = 1"],
+            ['    """doc"""'],
+            {1: "def f():", 3: "    x = 1"},
+        ),
+        (
+            ["def f():", '    """doc""" \\', "    ;x = 1"],
+            ["def f():", '    """doc""" \\', "", "    x = 1"],
+            ['    """doc""" \\'],
+            {1: "def f():", 4: "    x = 1"},
+        ),
+        (
+            ["def f():", '    """doc""" \\', "    ;"],
+            ["def f():", '    """doc""" \\', "    ;"],
+            ['    """doc""" \\', "    ;"],
+            {1: "def f():"},
+        ),
+    ],
+    ids=["code-after-separator", "continued-code-after-separator", "lone-separator"],
+)
+def test_code_after_a_docstring_separator_stays_code(
+    python_definition, lines, read, raw_lines, code
+):
+    """Code after the `;` is code; a separator with nothing after it is the docstring's.
+
+    A line holding code after the docstring is read as its broken source.
+    """
+    from pathlib import Path
+
+    from comment_review.reading.python.projection import paragraphs_for
+
+    text = "\n".join([*lines, ""])
+    result = import_module("comment_review.reading.python").read_python(
+        text, python_definition
+    )
+    assert not isinstance(result, ReadFailure)
+    assert result.source.text == "\n".join([*read, ""])
+    paragraphs = paragraphs_for(Path("m.py"), result)
+    assert not isinstance(paragraphs, ReadFailure)
+    assert [(p.kind, p.start, p.raw_lines) for p in paragraphs] == [
+        (Kind.DOCSTRING, 2, raw_lines)
+    ]
+    assert {c.line: c.code for c in result.code_lines()} == code
 
 
 @pytest.mark.parametrize(
