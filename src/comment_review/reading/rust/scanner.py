@@ -1,6 +1,6 @@
 """Partition Rust source into comment, code and whitespace regions and their tokens."""
 
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from typing import cast
 
@@ -162,18 +162,30 @@ def scan_rust(text: str, definition: LanguageDefinition) -> RustScan | ReadFailu
     A shebang is one token and one DIRECTIVE region running from its marker
     to the end of its line; see `_shebang` for when the marker opens one.
     """
+    grammar = _grammar(definition)
+    if isinstance(grammar, ReadFailure):
+        return grammar
+    return _scan(text, grammar)
+
+
+def _grammar(definition: LanguageDefinition) -> _Grammar | ReadFailure:
+    """The definition's grammar, or the failure that refuses the definition."""
     failure = validate_rust(definition)
     if failure is not None:
         return failure
-    nul = text.find("\x00")
-    if nul >= 0:
-        return _failure("source-nul", nul, nul + 1)
-    grammar = _Grammar(
+    return _Grammar(
         _Comments.from_definition(definition),
         _Literals.from_definition(definition),
         _Attributes.from_definition(definition),
         _Directives.from_definition(definition),
     )
+
+
+def _scan(text: str, grammar: _Grammar) -> RustScan | ReadFailure:
+    """Partition `text` under a grammar already built from a valid definition."""
+    nul = text.find("\x00")
+    if nul >= 0:
+        return _failure("source-nul", nul, nul + 1)
     regions: list[SourceRegion] = []
     tokens: list[RustToken] = []
     start = 0
@@ -208,27 +220,35 @@ def scan_rust(text: str, definition: LanguageDefinition) -> RustScan | ReadFailu
     return RustScan(text, tuple(regions), tuple(tokens))
 
 
-def comments_in(
-    text: str, definition: LanguageDefinition
-) -> tuple[CommentSpan, ...] | None:
-    """Each comment in `text` and the markers it is written with.
+def comment_scanner(
+    definition: LanguageDefinition,
+) -> Callable[[str], tuple[CommentSpan, ...] | None]:
+    """A scanner giving each comment in a text and the markers it is written with.
 
-    None where `text` does not scan, or holds anything but comments,
-    whitespace and the shebang the file's matter opens with.
+    The definition is validated and its grammar built once, here. The scanner
+    answers None where the text does not scan, or holds anything but comments,
+    whitespace and the shebang the file's matter opens with, and for every text
+    when the definition is refused.
     """
-    scan = scan_rust(text, definition)
-    if isinstance(scan, ReadFailure):
-        return None
-    comments = _Comments.from_definition(definition)
-    found = []
-    for token in scan.tokens:
-        if token.kind in (RustTokenKind.WHITESPACE, RustTokenKind.SHEBANG):
-            continue
-        if token.kind not in COMMENT_KINDS:
+    grammar = _grammar(definition)
+
+    def comments_in(text: str) -> tuple[CommentSpan, ...] | None:
+        if isinstance(grammar, ReadFailure):
             return None
-        opener, closer = comments.markers(token.kind)
-        found.append(CommentSpan(token.span.start, token.span.end, opener, closer))
-    return tuple(found)
+        scan = _scan(text, grammar)
+        if isinstance(scan, ReadFailure):
+            return None
+        found = []
+        for token in scan.tokens:
+            if token.kind in (RustTokenKind.WHITESPACE, RustTokenKind.SHEBANG):
+                continue
+            if token.kind not in COMMENT_KINDS:
+                return None
+            opener, closer = grammar.comments.markers(token.kind)
+            found.append(CommentSpan(token.span.start, token.span.end, opener, closer))
+        return tuple(found)
+
+    return comments_in
 
 
 def _shebang(text: str, start: int, grammar: _Grammar) -> int | None:

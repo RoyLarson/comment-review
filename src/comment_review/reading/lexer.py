@@ -27,6 +27,7 @@ import ast
 import re
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
+from functools import cache
 from pathlib import Path
 from types import MappingProxyType
 from typing import NamedTuple
@@ -51,7 +52,7 @@ from comment_review.reading.language import (
 )
 from comment_review.reading.matter import file_matter
 from comment_review.reading.paragraph import Paragraph
-from comment_review.reading.rust.scanner import comments_in
+from comment_review.reading.rust.scanner import comment_scanner
 from comment_review.reading.series import Kind, Series
 from comment_review.reading.source import CodeLine, DocPlace, lines_of_code
 
@@ -90,12 +91,13 @@ def _join(lines: list[str]) -> str:
 #: and what it is written with, keyed by the reader a definition names. A
 #: language read by one of them is split by its reader's grammar alone.
 COMMENT_SCANNERS: Mapping[
-    str, Callable[[str, LanguageDefinition], tuple[CommentSpan, ...] | None]
-] = MappingProxyType({"rust-lexical": comments_in})
+    str,
+    Callable[[LanguageDefinition], Callable[[str], tuple[CommentSpan, ...] | None]],
+] = MappingProxyType({"rust-lexical": comment_scanner})
 
 
 class _Grammar(NamedTuple):
-    """What a path's language says about its comments, looked up once per form."""
+    """What a path's language says about its comments, resolved once per suffix."""
 
     #: The lexical row, or None for a language defined by its own file.
     lang: Language | None
@@ -105,23 +107,37 @@ class _Grammar(NamedTuple):
     in_literals: bool
     #: The markers that open a line comment.
     markers: tuple[str, ...]
+    #: The reader's comment scanner, or None for a language split by its row.
+    scanner: Callable[[str], tuple[CommentSpan, ...] | None] | None
+
+
+@cache
+def _grammar_for(suffix: str) -> _Grammar:
+    """The comment grammar of the installed language a suffix selects.
+
+    Selection is by suffix alone, and the installed registry does not change
+    while the process runs, so each suffix is resolved once.
+    """
+    path = Path(f"m{suffix}")
+    value = INSTALLED_REGISTRY.for_path(path)
+    factory = COMMENT_SCANNERS.get(value.reader) if value is not None else None
+    return _Grammar(
+        language_for(path),
+        value,
+        documents_in_literals(path),
+        tuple(sorted(line_comment_markers(path), key=len, reverse=True)),
+        factory(value) if value is not None and factory is not None else None,
+    )
 
 
 def comment_form(
     path: Path, series: Series | None, raw_text: str, anchor: str = ""
 ) -> Comment:
     """The assigned paragraph's prose and the form its raw text carries."""
-    value = INSTALLED_REGISTRY.for_path(path)
-    lang = language_for(path)
-    grammar = _Grammar(
-        lang,
-        value,
-        documents_in_literals(path),
-        tuple(sorted(line_comment_markers(path), key=len, reverse=True)),
-    )
-    scanner = COMMENT_SCANNERS.get(value.reader) if value is not None else None
-    if value is not None and scanner is not None:
-        found = scanner(raw_text, value)
+    grammar = _grammar_for(path.suffix.lower())
+    lang, value = grammar.lang, grammar.definition
+    if grammar.scanner is not None:
+        found = grammar.scanner(raw_text)
         return _scanned_form(grammar, series, raw_text, anchor, found)
     chunks: list[str] = []
     if value is not None and grammar.in_literals and series is Series.DECLARED:
@@ -267,7 +283,8 @@ def _comment_fragment(
     `raw_text`, as its reader scanned them, with an empty closer and -1 for a
     line comment. Without them the language's row decides the markers.
     """
-    lang, definition, in_literals, _ = grammar
+    lang, definition = grammar.lang, grammar.definition
+    in_literals = grammar.in_literals
     physical = raw_text.splitlines(keepends=True)
     while physical and not physical[-1].strip():
         physical.pop()
