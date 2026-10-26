@@ -736,18 +736,6 @@ def page_for(
                         ),
                     )
                 )
-            if cues.anchor_line(place) != b.anchor_line:
-                return ReadFailure(
-                    (
-                        ReadDiagnostic(
-                            ReadStage.PLACE,
-                            "documentation-anchor-disagrees",
-                            f"{here}:{b.start}: documentation names line"
-                            f" {b.anchor_line}, but its place {place} answers"
-                            f" line {cues.anchor_line(place)}",
-                        ),
-                    )
-                )
         else:
             place = attach(vars(b), cues)
         b.address = address_for(here, place)

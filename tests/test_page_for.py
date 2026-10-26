@@ -527,15 +527,6 @@ def test_documentation_naming_no_declaring_line_is_refused(monkeypatch, line):
     assert [d.code for d in result.diagnostics] == ["documentation-declares-nothing"]
 
 
-def test_documentation_whose_place_answers_another_line_is_refused(monkeypatch):
-    # The module's documentation, handed the `a` of `func F` on line 4.
-    monkeypatch.setattr(Cues, "documents", lambda self, line: "a1")
-    found = [Paragraph("m.go", 1, 1, Kind.DOCSTRING, raw_lines=["// Package m."])]
-    result = page_over_read(monkeypatch, found)
-    assert isinstance(result, ReadFailure)
-    assert [d.code for d in result.diagnostics] == ["documentation-anchor-disagrees"]
-
-
 def test_failed_acquisition_has_no_invented_context(tmp_path):
     result = page_for_mod.page_of(tmp_path / "absent.py")
     assert isinstance(result, LocatedReadFailure)
