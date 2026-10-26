@@ -8,7 +8,12 @@ from itertools import pairwise
 from pathlib import Path
 from typing import Self, final
 
-from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, ReadStage
+from comment_review.reading.diagnostics import (
+    DetachedDocumentation,
+    ReadDiagnostic,
+    ReadFailure,
+    ReadStage,
+)
 from comment_review.reading.paragraph import Paragraph
 from comment_review.reading.proof import UNPROVABLE, PreservationResult
 from comment_review.reading.source import (
@@ -217,7 +222,7 @@ class RustDocumentation:
     sections: tuple[SourceSection, ...]
     owners: tuple[DocumentationOwner, ...]
     placement: RustPlacement
-    warnings: tuple[ReadDiagnostic, ...]
+    warnings: tuple[DetachedDocumentation, ...]
 
     def __post_init__(self) -> None:
         """Require ordered sections, owners that index them, and place warnings."""
@@ -253,7 +258,7 @@ class RustDocumentation:
             for owner in self.owners
         ):
             raise ValueError("an inner doc section may document only the module")
-        _tuple(self.warnings, ReadDiagnostic, "warnings")
+        _tuple(self.warnings, DetachedDocumentation, "warnings")
         comments = [
             section.span
             for section in self.sections
@@ -293,7 +298,7 @@ class RustRead:
 
     source: SourceStructure
     protected: tuple[SourceSpan, ...]
-    warnings: tuple[ReadDiagnostic, ...]
+    warnings: tuple[DetachedDocumentation, ...]
     detached: tuple[DetachedRun, ...]
 
     def __post_init__(self) -> None:
@@ -326,7 +331,7 @@ class RustRead:
                 raise ValueError("protected span is outside source")
             if span not in directives:
                 raise ValueError("protected span must coincide with a directive region")
-        _tuple(self.warnings, ReadDiagnostic, "warnings")
+        _tuple(self.warnings, DetachedDocumentation, "warnings")
         for warning in self.warnings:
             if warning.code != DETACHED_DOC_CODE or warning.stage != ReadStage.PLACE:
                 raise ValueError("warnings must be detached-documentation place notes")

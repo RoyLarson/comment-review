@@ -8,6 +8,7 @@ from comment_review.flows.language_definitions import installed_registry
 from comment_review.flows.read_diagnostics import LocatedReadFailure, format_failure
 from comment_review.reading import lexer, readers
 from comment_review.reading.diagnostics import (
+    DetachedDocumentation,
     ReadDiagnostic,
     ReadFailure,
     ReadStage,
@@ -228,6 +229,22 @@ def test_diagnostic_is_frozen(field):
     diagnostic = ReadDiagnostic(ReadStage.LEX, "code", "message")
     with pytest.raises(FrozenInstanceError):
         setattr(diagnostic, field, None)
+
+
+@pytest.mark.parametrize("owner_line", [None, 5])
+def test_detached_documentation_carries_its_owner_line(owner_line):
+    warning = DetachedDocumentation(
+        ReadStage.PLACE, "code", "message", SourceSpan(0, 1), owner_line=owner_line
+    )
+    assert warning.owner_line == owner_line
+
+
+@pytest.mark.parametrize("owner_line", [0, -1, True, "5"])
+def test_detached_documentation_rejects_an_invalid_owner_line(owner_line):
+    with pytest.raises(ValueError):
+        DetachedDocumentation(
+            ReadStage.PLACE, "code", "message", SourceSpan(0, 1), owner_line=owner_line
+        )
 
 
 @pytest.mark.parametrize("records", [[], (), None, "diagnostics", (None,), ("bad",)])

@@ -1,4 +1,3 @@
-import re
 from importlib import import_module
 from importlib.resources import files
 from pathlib import Path
@@ -6,7 +5,12 @@ from pathlib import Path
 import pytest
 
 from comment_review.reading.definitions import LanguageDefinition, decode_definition
-from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, ReadStage
+from comment_review.reading.diagnostics import (
+    DetachedDocumentation,
+    ReadDiagnostic,
+    ReadFailure,
+    ReadStage,
+)
 from comment_review.reading.paragraph import Paragraph
 from comment_review.reading.rust import records
 from comment_review.reading.series import Kind
@@ -76,7 +80,9 @@ def rust_scan(text, found, scanned_tokens):
 
 
 def warning(span=COMMENT, code="detached-documentation", stage=ReadStage.PLACE):
-    return ReadDiagnostic(stage, code, "documentation cannot be placed", span)
+    return DetachedDocumentation(
+        stage, code, "documentation cannot be placed", span, owner_line=None
+    )
 
 
 def test_records_token_kinds_spell_the_six_comment_forms():
@@ -1377,17 +1383,22 @@ def owners_of(text, result):
 
 
 def detached_of(text, result):
-    """Each detached run's text, and each warning's text and the lines it names."""
+    """Each detached run's text, and each warning's text, line and owner's line.
+
+    The lines are the warning's own line, then its owner's head line, which
+    is absent for the module.
+    """
     runs = [text[run.span.start : run.span.end] for run in result.placement.detached]
     notes = []
     for warning in result.warnings:
         assert warning.stage is ReadStage.PLACE
         assert warning.code == "detached-documentation"
         assert warning.span is not None
+        owner = [] if warning.owner_line is None else [warning.owner_line]
         notes.append(
             (
                 text[warning.span.start : warning.span.end],
-                [int(n) for n in re.findall(r"line (\d+)", warning.message)],
+                [line_of(text, warning.span.start), *owner],
             )
         )
     return runs, notes

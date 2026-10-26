@@ -59,7 +59,11 @@ from comment_review.machine.repo import (
 from comment_review.reading.addresser import SEPARATOR
 from comment_review.reading.context import ReadingContext
 from comment_review.reading.coordinates import SourceCoordinates
-from comment_review.reading.diagnostics import ReadFailure
+from comment_review.reading.diagnostics import (
+    DetachedDocumentation,
+    ReadDiagnostic,
+    ReadFailure,
+)
 from comment_review.reading.language import INSTALLED_REGISTRY
 from comment_review.reading.paragraph import Paragraph
 
@@ -189,15 +193,25 @@ def _pages(g: Gathering) -> None:
             g.unreadable.append(format_failure(got, path=rel))
             continue
         g.pages.append(got)
-        # The phrase is the warning's code as words.
+        # The phrase is the warning's code as words, then the owner a
+        # detached doc was written for.
         coordinates = SourceCoordinates(got.text)
         g.warnings.extend(
             f"warning: {rel}:{coordinates.position(w.span.start).line}:"
-            f" {w.code.replace('-', ' ')}"
+            f" {w.code.replace('-', ' ')}{_owner(w)}"
             for w in got.read.warnings
             if w.span is not None
         )
         g.paragraphs.extend(carried(got))
+
+
+def _owner(warning: ReadDiagnostic) -> str:
+    """The owner a detached doc was written for, as the warning line ends it."""
+    if not isinstance(warning, DetachedDocumentation):
+        return ""
+    if warning.owner_line is None:
+        return " (owner: module)"
+    return f" (owner on line {warning.owner_line})"
 
 
 def _annotations(g: Gathering) -> None:

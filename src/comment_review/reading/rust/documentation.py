@@ -8,7 +8,11 @@ from typing import cast
 from comment_review import constants
 from comment_review.reading.coordinates import SourceCoordinates
 from comment_review.reading.definitions import LanguageDefinition
-from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, ReadStage
+from comment_review.reading.diagnostics import (
+    DetachedDocumentation,
+    ReadFailure,
+    ReadStage,
+)
 from comment_review.reading.matter import file_matter
 from comment_review.reading.rust.definition import MODULE, validate_rust
 from comment_review.reading.rust.records import (
@@ -140,7 +144,7 @@ class _Assigner:
         self.forms = [run.written for run in self.runs]
         self.links: dict[int, int | None] = {}
         self.detached: list[DetachedRun] = []
-        self.warnings: list[ReadDiagnostic] = []
+        self.warnings: list[DetachedDocumentation] = []
         self.shebang = next(
             (t for t in scan.tokens if t.kind is RustTokenKind.SHEBANG), None
         )
@@ -310,17 +314,19 @@ class _Assigner:
         self.forms[index] = RustSectionForm.COMMENT
         self.detached.append(DetachedRun(run.span))
         if owner is None:
+            line = None
             named = "the module"
         else:
-            head = self.placement.declarations[owner].header.start
-            named = f"the owner whose head starts on line {self._line(head)}"
+            line = self._line(self.placement.declarations[owner].header.start)
+            named = f"the owner whose head starts on line {line}"
         self.warnings.append(
-            ReadDiagnostic(
+            DetachedDocumentation(
                 ReadStage.PLACE,
                 DETACHED_DOC_CODE,
                 f"documentation on line {self._line(run.span.start)} "
                 f"is detached from {named}",
                 run.span,
+                owner_line=line,
             )
         )
 
