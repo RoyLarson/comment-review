@@ -96,7 +96,7 @@ WIRE_FIELDS = ("cue", "anchor", "original_start", "original_end", "raw_text")
 #
 # ! ONE TYPE FOR BOTH ENDS. Which end a run sits at is read by `page_for` from
 # where it opens -- line 1 takes the first `f` place, any other run the last --
-# not stamped as a second fact that could disagree.
+# not recorded as a second fact that could disagree.
 #
 # Every consumer downstream asks the series, not this -- see `Page.prose`.
 # Asking the type would miss the EMPTY place, which has no prose to type.
@@ -453,8 +453,8 @@ def attach(paragraph: dict, cues: "Cues") -> str:
     ! TWO FACTS DECIDE IT, and neither is inferred from the kind alone: a
     paragraph in the `c` SERIES sits beside code and takes that line's place,
     and everything else holds a gap and takes the `b` for it. A paragraph that
-    documents a declaration never reaches here: the reader stamps its `a` when
-    it tags it, and `page_for` keeps a stamped cue.
+    documents something never reaches here: it is `Kind.DOCSTRING`, and
+    `page_for` gives it the `a` of the line its `anchor_line` names.
 
     Args:
         paragraph: `vars()` of one paragraph `page_for` is building.
@@ -728,9 +728,23 @@ def page_for(
             b.kind = Kind.COMMENT
         if b.kind == Kind.MATTER:
             place = files[0] if b.original_start == 1 else files[-1]
+        elif b.kind == Kind.DOCSTRING:
+            # Documentation takes the `a` of the line its reader named; None is
+            # the module's `a0`. A line that declares nothing is a reader bug.
+            place = cues.documents(b.anchor_line)
+            if not place:
+                return ReadFailure(
+                    (
+                        ReadDiagnostic(
+                            ReadStage.PLACE,
+                            "documentation-declares-nothing",
+                            f"{here}:{b.start}: documentation names line"
+                            f" {b.anchor_line}, which declares nothing documentable",
+                        ),
+                    )
+                )
         else:
-            stamped = b.address if b.address in cues.places else ""
-            place = stamped or attach(vars(b), cues)
+            place = attach(vars(b), cues)
         b.address = address_for(here, place)
         b.anchor = cues.anchor_of(place, b.anchor)
         b.text = _text_of(path.as_posix(), place, "\n".join(b.raw_lines), b.anchor)
@@ -743,6 +757,8 @@ def page_for(
         got.append(empty)
     for b in got:
         place_name = b.address.split("@")[-1]
+        # A docstring's place is the `a` whose anchor line is the one its
+        # reader named, so this rewrites that line with itself.
         b.anchor_line = cues.anchor_line(place_name) if place_name else None
         b.anchor_num = cues.anchor_num(place_name) if place_name else 0
     fill_the_gaps(text, got, cues)

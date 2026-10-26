@@ -1927,14 +1927,14 @@ def code_of(lines):
     return {line.line: line.code for line in lines}
 
 
-def paragraph(start, end, kind, raw, *, address="", anchor=""):
+def paragraph(start, end, kind, raw, *, anchor_line=None, anchor=""):
     return Paragraph(
         PAGE.as_posix(),
         start,
         end,
         kind,
         anchor=anchor,
-        address=address,
+        anchor_line=anchor_line,
         raw_lines=raw,
     )
 
@@ -1955,9 +1955,11 @@ def test_projection_of_docs_comments_code_and_declarations(rust_definition):
     )
     paragraphs, lines = projection_of(text, rust_definition)
     assert paragraphs == [
-        paragraph(1, 1, Kind.DOCSTRING, ["//! Crate doc."], address="a0"),
-        paragraph(3, 3, Kind.DOCSTRING, ["/// A point."], address="a1"),
-        paragraph(6, 6, Kind.DOCSTRING, ["    /// Across."], address="a2"),
+        # The inner doc is the module's and names no line; each item doc names
+        # its item's declaring line, the attribute above `struct P` included.
+        paragraph(1, 1, Kind.DOCSTRING, ["//! Crate doc."]),
+        paragraph(3, 3, Kind.DOCSTRING, ["/// A point."], anchor_line=4),
+        paragraph(6, 6, Kind.DOCSTRING, ["    /// Across."], anchor_line=7),
         paragraph(10, 10, Kind.TRAILING, [" // tail"], anchor="fn go() -> u8 { 1 }"),
     ]
     assert lines == [
@@ -2011,7 +2013,7 @@ def test_projection_of_docs_comments_code_and_declarations(rust_definition):
             "/// a\n/** b */ // c\n//! d\n",
             [
                 paragraph(1, 2, Kind.MATTER, ["/// a", "/** b */ // c"]),
-                paragraph(3, 3, Kind.DOCSTRING, ["//! d"], address="a0"),
+                paragraph(3, 3, Kind.DOCSTRING, ["//! d"]),
             ],
         ),
     ],
@@ -2283,9 +2285,9 @@ def test_projection_ordinary_comment_above_an_item_is_a_comment(rust_definition)
 def test_projection_docs_and_comments_never_merge(rust_definition):
     text = "fn z() {}\n// note\n/// Doc.\nfn f() {}\n"
     paragraphs, _ = projection_of(text, rust_definition)
-    assert [(p.kind, p.raw_lines, p.address) for p in paragraphs] == [
-        (Kind.COMMENT, ["// note"], ""),
-        (Kind.DOCSTRING, ["/// Doc."], "a2"),
+    assert [(p.kind, p.raw_lines, p.anchor_line) for p in paragraphs] == [
+        (Kind.COMMENT, ["// note"], None),
+        (Kind.DOCSTRING, ["/// Doc."], 4),
     ]
 
 
@@ -2402,7 +2404,7 @@ def test_projection_reader_record_is_satisfied_by_a_python_read():
     ]
     paragraphs = result.paragraphs(Path("x.py"))
     assert not isinstance(paragraphs, ReadFailure)
-    assert [p.address for p in paragraphs] == ["a0"]
+    assert [(p.kind, p.anchor_line) for p in paragraphs] == [(Kind.DOCSTRING, None)]
 
 
 def test_projection_rust_read_answers_the_record_methods(rust_definition):
@@ -2419,7 +2421,7 @@ def test_projection_a_line_declaring_two_items_documents_the_first(
     result = rust_read(text, rust_definition)
     paragraphs, lines = projection_of(text, rust_definition)
     assert lines == [CodeLine(2, "fn a() {} fn b() {}", DocPlace(2, True))]
-    assert paragraphs == [paragraph(1, 1, Kind.DOCSTRING, ["/// Doc."], address="a1")]
+    assert paragraphs == [paragraph(1, 1, Kind.DOCSTRING, ["/// Doc."], anchor_line=2)]
     assert result.warnings == ()
     assert result.detached == ()
 

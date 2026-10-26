@@ -23,7 +23,11 @@ from comment_review.flows.read_diagnostics import LocatedReadFailure, format_fai
 from comment_review.machine.repo import Source
 from comment_review.reading.addresser import Cues
 from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, ReadStage
+from comment_review.reading.lexer import LexicalRead
+from comment_review.reading.paragraph import Paragraph
 from comment_review.reading.python.records import PythonRead
+from comment_review.reading.series import Kind
+from comment_review.reading.source import CodeLine, DocPlace
 
 
 def test_python_page_retains_complete_structured_read():
@@ -456,6 +460,47 @@ def test_known_placement_refusal_is_an_outcome(monkeypatch, series, cue_name, me
             message,
         ),
     )
+
+
+GO_DOCUMENTED = "// Package m.\npackage m\n// F.\nfunc F() {}\n"
+
+
+def page_over_read(monkeypatch, found: list[Paragraph]) -> Page | ReadFailure:
+    """`page_for` over GO_DOCUMENTED, handed these paragraphs and its code lines."""
+    reading = build("", "m.go").reading
+    lines = [
+        CodeLine(2, "package m", None),
+        CodeLine(4, "func F() {}", DocPlace(4, True)),
+    ]
+    read = LexicalRead(found, lines, True)
+    monkeypatch.setattr(page_mod, "read_source", lambda *args, **kwargs: read)
+    return page_for(
+        Path("m.go"), GO_DOCUMENTED, rel="m.go", sha="held", reading=reading
+    )
+
+
+def test_documentation_lands_at_the_a_of_the_line_it_names(monkeypatch):
+    page = page_over_read(
+        monkeypatch,
+        [
+            Paragraph("m.go", 1, 1, Kind.DOCSTRING, raw_lines=["// Package m."]),
+            Paragraph("m.go", 3, 3, Kind.DOCSTRING, anchor_line=4, raw_lines=["// F."]),
+        ],
+    )
+    assert isinstance(page, Page)
+    assert [
+        (cue(p), p.anchor_line, p.anchor) for p in page if p.kind == Kind.DOCSTRING
+    ] == [("a0", None, "<module>"), ("a1", 4, "func F() {}")]
+
+
+@pytest.mark.parametrize("line", [2, 3], ids=["code-declaring-nothing", "no-code"])
+def test_documentation_naming_no_declaring_line_is_refused(monkeypatch, line):
+    found = [
+        Paragraph("m.go", 3, 3, Kind.DOCSTRING, anchor_line=line, raw_lines=["// F."])
+    ]
+    result = page_over_read(monkeypatch, found)
+    assert isinstance(result, ReadFailure)
+    assert [d.code for d in result.diagnostics] == ["documentation-declares-nothing"]
 
 
 def test_failed_acquisition_has_no_invented_context(tmp_path):

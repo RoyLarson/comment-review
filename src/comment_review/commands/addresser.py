@@ -262,8 +262,8 @@ def _at_line(binder: Binder, file: str, line: int, series: str) -> int:
         if series == DECLARED:
             what = "declares nothing documentable"
         print(f"line {line} of {rel} {what}, so it has no `{series}` place")
-        if series == DECLARED and page.cues.documents(0):
-            head = address_for(rel, page.cues.documents(0))
+        if series == DECLARED and page.cues.documents(None):
+            head = address_for(rel, page.cues.documents(None))
             print(f"  the module's own documentation is {head}")
         return 1
     held = {b.address for b in binder.paragraphs}

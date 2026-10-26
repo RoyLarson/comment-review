@@ -7,6 +7,7 @@ import pytest
 
 from comment_review.reading.definitions import LanguageDefinition, decode_definition
 from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, ReadStage
+from comment_review.reading.series import Kind
 from comment_review.reading.source import (
     CodeLine,
     DocPlace,
@@ -65,12 +66,15 @@ def test_completed_read_projects_documentation_from_source_positions(python_defi
     reduced = PythonRead(result.source, result.payloads, result.protected)
     paragraphs = paragraphs_for(Path("invented.py"), reduced)
     assert not isinstance(paragraphs, ReadFailure)
-    assert [(p.raw_lines, p.address, p.anchor) for p in paragraphs] == [
-        (["# heading"], "", ""),
-        (['"module\\nprose"'], "a0", ""),
-        (['    "body " "prose"'], "a1", ""),
-        ([" # detail"], "", "    return value"),
+    # The module docstring names no line; the method docstring names `def
+    # render(`, the line that declares it, not the `@mark` above it.
+    assert [(p.raw_lines, p.kind, p.anchor_line, p.anchor) for p in paragraphs] == [
+        (["# heading"], Kind.MATTER, None, ""),
+        (['"module\\nprose"'], Kind.DOCSTRING, None, ""),
+        (['    "body " "prose"'], Kind.DOCSTRING, 4, ""),
+        ([" # detail"], Kind.TRAILING, None, "    return value"),
     ]
+    assert not any(p.address for p in paragraphs)
     lines = code_lines_for(reduced)
     assert [(c.line, c.documents) for c in lines if c.documents] == [
         (4, DocPlace(6, False)),
@@ -112,7 +116,7 @@ def test_documentation_paragraph_preserves_payload_and_source(
     assert not isinstance(paragraphs, ReadFailure)
     assert len(paragraphs) == 1
     assert paragraphs[0].raw_lines == expression.splitlines()
-    assert paragraphs[0].address == "a0"
+    assert (paragraphs[0].kind, paragraphs[0].anchor_line) == (Kind.DOCSTRING, None)
     assert result.source is source
     assert result.payloads[0] is payload
     assert payload.expression.statement == SourceSpan(0, len(expression))
@@ -3557,7 +3561,7 @@ def test_classification_closing_doc_comment_has_one_owner(python_definition, end
         ),
         (Kind.TRAILING, 4, 4, [" # detail"], "    work()"),
     ]
-    assert paragraphs[0].address == "a1"
+    assert paragraphs[0].anchor_line == 1
     assert code_lines_for(result) == [
         CodeLine(1, "def f():", DocPlace(1, False)),
         CodeLine(4, "    work()", None),

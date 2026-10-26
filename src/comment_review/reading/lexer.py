@@ -12,8 +12,9 @@ are the page's, because only a page knows where prose is MISSING.
 
 `lexical_read` completes the read for the page: `code_text` gives each line of
 code its code, `declarations()` marks which lines declare something
-documentable and where its doc would go, and `document_declarations` stamps the
-`a` cue on the run that documents a declaration. It hands back a `LexicalRead`,
+documentable and where its doc would go, and `document_declarations` marks the
+run that documents a declaration `docstring`, naming that declaration's line. It
+hands back a `LexicalRead`,
 the paragraphs and their `CodeLine`s together.
 
 Beside the reader: `flag_structural_docs` annotates a Go or Ruby run whose kind
@@ -48,7 +49,7 @@ from comment_review.reading.language import (
 )
 from comment_review.reading.paragraph import Paragraph
 from comment_review.reading.rust.scanner import comments_in
-from comment_review.reading.series import Kind, Series, cue_for
+from comment_review.reading.series import Kind, Series
 from comment_review.reading.source import CodeLine, DocPlace, lines_of_code
 
 __all__ = [
@@ -1172,9 +1173,14 @@ def document_declarations(paragraphs: list["Paragraph"], lines: list[CodeLine]) 
     and about the next is indistinguishable by position, which is why
     `ownership-context` reads every placement rather than trusting one.
 
+    ! A run opened with a doc marker that documents no declaration is a
+    `comment`: `Kind.DOCSTRING` says a paragraph documents something, and this
+    one documents nothing the page can place.
+
     Args:
-        paragraphs: this file's prose, mutated in place -- `address` is set to
-            the `a` cue of the declaration each run documents.
+        paragraphs: this file's prose, mutated in place -- each run that
+            documents a declaration becomes `Kind.DOCSTRING` with that
+            declaration's line as its `anchor_line`.
         lines: the file's code lines, in order; a line whose `documents` is set
             declares something documentable.
     """
@@ -1186,12 +1192,11 @@ def document_declarations(paragraphs: list["Paragraph"], lines: list[CodeLine]) 
         # synthesised the empty places.
         if b.original_end and b.kind not in (Kind.TRAILING, Kind.LEADING)
     }
-    if not ends:
-        return
+    documenting: set[int] = set()
     above_code = [c.line for c in lines]
     code = set(above_code)
-    declaring = [c.line for c in lines if c.documents is not None]
-    for ordinal, line in enumerate(declaring, 1):
+    declaring = [c.line for c in lines if c.documents is not None] if ends else []
+    for line in declaring:
         # ! UP FROM THE DECLARING LINE, past blanks, stopping at CODE -- prose
         # above that code is about that code and cannot reach across it.
         held = None
@@ -1217,9 +1222,13 @@ def document_declarations(paragraphs: list["Paragraph"], lines: list[CodeLine]) 
         previous = [n for n in above_code if n < held.original_start]
         over = held.original_start - previous[-1] - 1 if previous else below + 1
         if below <= over:
-            # ! THE CUE, NOT AN ORDINAL. The lexer knows WHICH declaration at
-            # this moment; the series is what says how to spell it.
-            held.address = cue_for(Series.DECLARED.value.letter, ordinal)
+            # ! THE LINE, NOT A CUE. The page gives it the `a` of that line.
+            held.kind = Kind.DOCSTRING
+            held.anchor_line = line
+            documenting.add(id(held))
+    for b in paragraphs:
+        if b.kind == Kind.DOCSTRING and id(b) not in documenting:
+            b.kind = Kind.COMMENT
 
 
 def declarations(lang: Language, code: Mapping[int, str]) -> dict[int, DocPlace]:
@@ -1324,7 +1333,7 @@ class LexicalRead:
     `paragraphs` and `code_lines`, so the page reads every reader one way.
     """
 
-    #: The prose the reader found, documenting runs stamped with their `a` cue.
+    #: The prose the reader found, each documenting run naming its declaration.
     found: list[Paragraph]
     #: Each line holding code, in order, with the documentation it declares.
     lines: list[CodeLine]
@@ -1346,8 +1355,7 @@ def lexical_read(paragraphs: list[Paragraph], text: str, lang: Language) -> Lexi
 
     Args:
         paragraphs: the prose `paragraphs_lexical` found, mutated in place --
-            each run that documents a declaration takes that declaration's
-            `a` cue as its `address`.
+            see `document_declarations`.
         text: the file's source.
         lang: its record; `declares` holds the keywords.
     """

@@ -118,8 +118,14 @@ def paragraphs_for(path: Path, read: PythonRead) -> list[Paragraph] | ReadFailur
         first = coordinates.position(span.start)
         last = coordinates.position(max(span.start, span.end - 1))
         if section.form == "docstring":
-            payload = payloads[span]
-            ordinal = payload.expression.declaration
+            ordinal = payloads[span].expression.declaration
+            # The line declaring what this docstring documents; None for the
+            # module's own docstring.
+            declaring = (
+                None
+                if ordinal is None
+                else read.source.position(read.source.declarations[ordinal].anchor).line
+            )
             line_start = span.start - first.column
             raw_start = (
                 line_start
@@ -132,7 +138,7 @@ def paragraphs_for(path: Path, read: PythonRead) -> list[Paragraph] | ReadFailur
                     first.line,
                     last.line,
                     Kind.DOCSTRING,
-                    address=f"a{0 if ordinal is None else ordinal + 1}",
+                    anchor_line=declaring,
                     raw_lines=constants.text_lines(text[raw_start : span.end]),
                 )
             )

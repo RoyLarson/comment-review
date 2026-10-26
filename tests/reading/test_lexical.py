@@ -7,6 +7,7 @@ import pytest
 from comment_review.reading.language import language_for
 from comment_review.reading.lexer import LexicalRead, declarations
 from comment_review.reading.readers import read_source
+from comment_review.reading.series import Kind
 from comment_review.reading.source import CodeLine, DocPlace
 
 GO = (
@@ -43,9 +44,23 @@ def test_each_call_hands_back_a_new_list():
     assert lexical.paragraphs(Path("m.go"))
 
 
-def test_the_run_above_a_declaration_takes_its_a_cue():
+def test_the_run_above_a_declaration_documents_its_declaring_line():
     found = read("m.go", GO).paragraphs(Path("m.go"))
-    assert [(p.start, p.address) for p in found if p.address] == [(3, "a1")]
+    assert [(p.start, p.kind, p.anchor_line, p.address) for p in found] == [
+        (3, Kind.DOCSTRING, 4, ""),
+        (4, Kind.TRAILING, None, ""),
+        (5, Kind.COMMENT, None, ""),
+    ]
+
+
+def test_a_doc_run_that_documents_no_declaration_is_a_comment():
+    # `/** two */` is held off `function f` by code, so it documents nothing.
+    text = "/** one */\nfunction f() {}\nlet x = 1;\n/** two */\nlet y = 2;\n"
+    found = read("m.js", text).paragraphs(Path("m.js"))
+    assert [(p.start, p.kind, p.anchor_line) for p in found] == [
+        (1, Kind.DOCSTRING, 2),
+        (4, Kind.COMMENT, None),
+    ]
 
 
 @pytest.mark.parametrize(

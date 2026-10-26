@@ -54,15 +54,11 @@ def sections_for(
     )
 
 
-def documented_address(declaration: int | None) -> str:
-    """The `a` place documenting a declaration index, `a0` for the module."""
-    return f"a{0 if declaration is None else declaration + 1}"
-
-
 def paragraphs_for(path: Path, read: RustRead) -> list[Paragraph] | ReadFailure:
     """Every section as one paragraph, and the shebang as a MATTER paragraph.
 
-    A documentation section is a DOCSTRING at its owner's `a` place. Any
+    A documentation section is a DOCSTRING whose `anchor_line` is its owner's
+    declaring line, or None when it documents the module. Any
     other section is MATTER when its form is `matter`, TRAILING when code
     precedes it on its first line, with that code as its anchor, and COMMENT
     when none does.
@@ -104,14 +100,16 @@ def paragraphs_for(path: Path, read: RustRead) -> list[Paragraph] | ReadFailure:
         code_before = [region for region in before if layout.is_code(region)]
         anchor_end = code_before[-1].span.end if code_before else line_start
         raw_start = before[-1].span.end if before else line_start
+        declaring = None
         if index in owners:
             kind = Kind.DOCSTRING
-            address = documented_address(owners[index])
+            owner = owners[index]
+            if owner is not None:
+                declaring = source.position(source.declarations[owner].anchor).line
         elif section.form == RustSectionForm.MATTER:
-            kind, address = Kind.MATTER, ""
+            kind = Kind.MATTER
         else:
             kind = Kind.TRAILING if code_before else Kind.COMMENT
-            address = ""
         raw = constants.text_lines(text[raw_start:line_end])
         paragraphs.append(
             Paragraph(
@@ -120,7 +118,7 @@ def paragraphs_for(path: Path, read: RustRead) -> list[Paragraph] | ReadFailure:
                 last.line,
                 kind,
                 anchor=text[line_start:anchor_end] if kind == Kind.TRAILING else "",
-                address=address,
+                anchor_line=declaring,
                 raw_lines=raw,
             )
         )
@@ -229,7 +227,7 @@ def _divided(
 
 
 def _combined(parts: list[Paragraph], kind: str, layout: "_Layout") -> Paragraph:
-    """One paragraph from parts in source order, with the first part's anchor.
+    """One paragraph from parts in source order, with the first part's anchors.
 
     Its raw lines are the physical lines from the first part's first line to
     the last part's last line, blank lines included; the first line starts
@@ -246,7 +244,7 @@ def _combined(parts: list[Paragraph], kind: str, layout: "_Layout") -> Paragraph
         last.end,
         kind,
         anchor=first.anchor,
-        address=first.address,
+        anchor_line=first.anchor_line,
         raw_lines=raw,
     )
 

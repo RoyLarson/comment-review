@@ -517,9 +517,16 @@ class Cues:
             # answer -- the sentinels are strings, so no line can match one.
             return ""
 
-    def documents(self, ordinal: int) -> str:
-        """The `a` for the nth documentable declaration; 0 is the module."""
-        return self.addressers[DECLARED].at(ordinal)
+    def documents(self, line: int | None) -> str:
+        """The `a` documenting the declaration on this code line.
+
+        None is the module, whose documentation is `a0`. "" when the line
+        declares nothing documentable, or the page has no `a` series.
+        """
+        walker = self.addressers[DECLARED]
+        if line is None:
+            return walker.at(0)
+        return next((c for c in walker.places if self.anchor_line(c) == line), "")
 
     def at_line(self, line: int, series: str) -> list[str]:
         """The places of one SERIES that a line NUMBER of the file names.
@@ -549,8 +556,7 @@ class Cues:
         if series == ON:
             return [c for c in (self.beside(line),) if c]
         if series == DECLARED:
-            walker = self.addressers[DECLARED]
-            return [c for c in walker.places if self.anchor_line(c) == line]
+            return [c for c in (self.documents(line),) if c]
         if series == COVERS:
             return self.file_places()
         return []

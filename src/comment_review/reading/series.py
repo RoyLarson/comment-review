@@ -187,7 +187,6 @@ def cue_for(series: str, step: int) -> str:
     what a SERIES is lettered for and holds no notion of a place -- so the LEXER
     can build one without importing the addresser, which this module's own
     header forbids: *the addresser knows nothing of prose, the lexer knows
-    nothing of places*. ! `lexer.document_declarations` stamps a documenting
-    run's address as its cue, `a3`, directly.
+    nothing of places*.
     """
     return f"{series}{step}"
