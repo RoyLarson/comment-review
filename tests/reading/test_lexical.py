@@ -228,6 +228,32 @@ def test_a_blank_looking_line_the_reader_gave_as_code_is_not_leading():
     assert [(p.start, p.end) for p in leading_between([], text, [1, 3])] == [(2, 2)]
 
 
+def test_a_byte_order_mark_before_a_line_comment_is_not_code():
+    found = read("m.js", "\ufeff// Licence MIT\nconst x = 1;\n").paragraphs(
+        Path("m.js")
+    )
+    assert [(p.start, p.kind, p.anchor, p.raw_lines) for p in found] == [
+        (1, Kind.MATTER, "<module>", ["\ufeff// Licence MIT"])
+    ]
+    assert found[0].text == "Licence MIT"
+
+
+def test_a_byte_order_mark_before_code_stays_in_the_anchor_of_a_trailing_comment():
+    found = read("m.js", "\ufeffconst x = 1; // why\n").paragraphs(Path("m.js"))
+    assert [(p.kind, p.anchor, p.raw_lines) for p in found] == [
+        (Kind.TRAILING, "\ufeffconst x = 1;", [" // why"])
+    ]
+
+
+def test_a_byte_order_mark_before_a_shebang_keeps_the_shebang_as_matter():
+    found = read("m.js", "\ufeff#!/usr/bin/env node\nconst x = 1;\n").paragraphs(
+        Path("m.js")
+    )
+    assert [(p.kind, p.raw_lines) for p in found] == [
+        (Kind.MATTER, ["\ufeff#!/usr/bin/env node"])
+    ]
+
+
 def test_declarations_hold_only_the_declaring_lines():
     go = language_for(Path("m.go"))
     assert go is not None

@@ -20,6 +20,7 @@ from collections.abc import Mapping
 from itertools import pairwise
 from typing import cast
 
+from comment_review import constants
 from comment_review.reading.definitions import LanguageDefinition
 from comment_review.reading.python.records import (
     DocumentationExpression,
@@ -30,7 +31,7 @@ from comment_review.reading.python.records import (
 
 FALLBACK_STEP = "    "
 _BLANK = " \t\f"
-_BOM = "\N{ZERO WIDTH NO-BREAK SPACE}"
+_BOM = constants.BYTE_ORDER_MARK
 
 
 def broken_lines(

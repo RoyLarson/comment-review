@@ -133,7 +133,12 @@ def _grammar_for(suffix: str) -> _Grammar:
 def comment_form(
     path: Path, series: Series | None, raw_text: str, anchor: str = ""
 ) -> Comment:
-    """The assigned paragraph's prose and the form its raw text carries."""
+    """The assigned paragraph's prose and the form its raw text carries.
+
+    A byte-order mark opening the raw text is the file's encoding, and the form
+    is read without it.
+    """
+    raw_text = raw_text.removeprefix(constants.BYTE_ORDER_MARK)
     grammar = _grammar_for(path.suffix.lower())
     lang, value = grammar.lang, grammar.definition
     if grammar.scanner is not None:
@@ -753,6 +758,13 @@ def read_lexical(path: Path, text: str, lang: Language) -> "LexicalRead":
     """
     openers = tuple(sorted(lang.line_comment, key=len, reverse=True))
     lines = constants.text_lines(text)
+    # The byte-order mark is the file's encoding, not line 1's text: the loop
+    # below reads line 1 without it, and a paragraph that holds line 1 keeps it.
+    mark = ""
+    scanned = lines
+    if lines and lines[0].startswith(constants.BYTE_ORDER_MARK):
+        mark = constants.BYTE_ORDER_MARK
+        scanned = [lines[0].removeprefix(mark), *lines[1:]]
     out: list[Paragraph] = []
     run: list[tuple[int, str]] = []
     # ! Blank lines seen since the last comment line. They belong to the run only if
@@ -806,8 +818,12 @@ def read_lexical(path: Path, text: str, lang: Language) -> "LexicalRead":
         # !! `raw_lines` IS THE SOURCE: the file's own characters, which are what
         # a splice is checked against.
         span = lines[run[0][0] - 1 : run[-1][0]]
-        if partial_first[0] > 0:
-            span = [span[0][partial_first[0] - 1 :], *span[1:]]
+        # The code before a run opened on line 1 begins with the mark.
+        column = partial_first[0]
+        if column and run[0][0] == 1:
+            column += len(mark)
+        if column > 0:
+            span = [span[0][column - 1 :], *span[1:]]
         if _is_doc(run[0][1], lang):
             kind = "docstring"
         else:
@@ -828,7 +844,7 @@ def read_lexical(path: Path, text: str, lang: Language) -> "LexicalRead":
             raw_lines=span,
             # !! THE LEXER ALREADY HAS THIS STRING. It found the opener in order
             # to cut there, so the characters before it are known here.
-            anchor=_anchor_of(lines, run[0][0], partial_first[0]),
+            anchor=_anchor_of(lines, run[0][0], column),
         )
         partial_first[0] = 0
         out.append(paragraph)
@@ -848,7 +864,7 @@ def read_lexical(path: Path, text: str, lang: Language) -> "LexicalRead":
             anchor=MODULE_ANCHOR,
         )
 
-    for n, raw_line in enumerate(lines, 1):
+    for n, raw_line in enumerate(scanned, 1):
         if shebang is not None and n == 1:
             continue
         if in_block is not None:

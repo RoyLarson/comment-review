@@ -19,6 +19,7 @@ from pathlib import Path
 from types import MappingProxyType
 from typing import Any, cast
 
+from comment_review import constants
 from comment_review.reading.definitions import LanguageDefinition, decode_definition
 from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, ReadStage
 from comment_review.reading.registry import LanguageRegistry
@@ -105,9 +106,13 @@ class Language:
     def interpreter_line(self, lines: Sequence[str]) -> str | None:
         """The file's first line when it opens with `shebang`, exactly, or None.
 
-        `lines` is the file's lines, as `constants.text_lines` gives them.
+        `lines` is the file's lines, as `constants.text_lines` gives them. A
+        byte-order mark before the shebang is part of the line returned, and
+        not part of what is matched.
         """
-        if lines and lines[0].startswith(self.shebang):
+        if lines and lines[0].removeprefix(constants.BYTE_ORDER_MARK).startswith(
+            self.shebang
+        ):
             return lines[0]
         return None
 

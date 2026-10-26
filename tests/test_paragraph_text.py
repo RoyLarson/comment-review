@@ -28,6 +28,16 @@ def test_one_comment_run_reads_as_one_text_in_every_language(path, marker):
 
 
 @pytest.mark.parametrize(
+    ("path", "marker"),
+    [("m.py", "#"), ("m.rs", "//"), ("m.js", "//"), ("m.c", "/*")],
+)
+def test_a_byte_order_mark_before_the_first_marker_is_not_prose(path, marker):
+    mark = chr(0xFEFF)
+    raw = f"{mark}{marker} Licence MIT"
+    assert comment_form(Path(path), Series.COVERS, raw).text == "Licence MIT"
+
+
+@pytest.mark.parametrize(
     ("path", "raw", "text"),
     [
         ("m.c", "/* abi_only */", "abi_only"),

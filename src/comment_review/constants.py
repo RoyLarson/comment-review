@@ -27,6 +27,10 @@ import sys
 #: The three things that end a line of a FILE: CRLF, CR, LF. Nothing else.
 LINE_BREAK = re.compile(r"\r\n|\r|\n")
 
+#: The byte-order mark a file may open with. It belongs to the file's encoding,
+#: not to the text of line 1, so a reader matches a marker after it.
+BYTE_ORDER_MARK = "\N{ZERO WIDTH NO-BREAK SPACE}"
+
 
 def text_lines(text: str) -> list[str]:
     """This text as lines, split ONLY where a file's line actually ends.

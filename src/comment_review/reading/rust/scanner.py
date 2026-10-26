@@ -4,6 +4,7 @@ from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from typing import cast
 
+from comment_review import constants
 from comment_review.reading.comment import CommentSpan
 from comment_review.reading.definitions import LanguageDefinition
 from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, ReadStage
@@ -16,7 +17,7 @@ from comment_review.reading.rust.records import (
 )
 from comment_review.reading.source import RegionKind, SourceRegion, SourceSpan
 
-BYTE_ORDER_MARK = "\ufeff"
+BYTE_ORDER_MARK = constants.BYTE_ORDER_MARK
 # The Rust Reference's whitespace: Pattern_White_Space.
 WHITESPACE = frozenset("\t\n\v\f\r \x85\u200e\u200f\u2028\u2029")
 OPENERS = frozenset("{([")
