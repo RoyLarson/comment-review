@@ -2132,6 +2132,33 @@ def test_projection_literal_line_with_no_code_is_absent(rust_definition, text, c
     assert code_of(lines) == code
 
 
+@pytest.mark.parametrize(
+    "text",
+    [
+        'fn f() {\n    let s = "a   \nb";\n}\n',
+        'fn f() {\n    let s = r"a \t\n  b  "; // c\n}\n',
+        'let s = "a  \n" ;  \n',
+    ],
+    ids=["literal-ends-its-line", "literal-then-trailing-comment", "spaces-after"],
+)
+def test_projection_code_and_its_c_text_rebuild_the_line(rust_definition, text):
+    """A line's code is what it holds before its prose, right-trimmed: the code
+    plus the trailing paragraph's first raw line, or plus the whitespace after
+    the code when no paragraph trails it, is the source line."""
+    paragraphs, lines = projection_of(text, rust_definition)
+    source = text.split("\n")
+    trailing = {p.start: p for p in paragraphs if p.kind == Kind.TRAILING}
+    for line in lines:
+        whole = source[line.line - 1]
+        assert line.code == line.code.rstrip()
+        if line.line in trailing:
+            assert trailing[line.line].anchor == line.code
+            rest = trailing[line.line].raw_lines[0]
+        else:
+            rest = whole[len(whole.rstrip()) :]
+        assert line.code + rest == whole
+
+
 def test_projection_delimited_comment_with_code_only_before_it_trails(
     rust_definition,
 ):

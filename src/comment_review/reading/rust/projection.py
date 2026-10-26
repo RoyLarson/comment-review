@@ -270,26 +270,22 @@ def _declaring_line(source: SourceStructure, declaration: SourceDeclaration) -> 
 def _code(read: RustRead) -> dict[int, str]:
     """Each line's code: the line without its sections, shebang or trailing space.
 
-    A comment that is code, being in no section, stays. A line left with no
-    code is absent, including a line inside a multi-line literal that holds
-    only whitespace; the whitespace a literal holds before its line's end
-    stays, as it is part of the literal.
+    A comment that is code, being in no section, stays. The code is
+    right-trimmed, a multi-line literal's whitespace at the line's end
+    included, so the code plus what follows it on the line is the line. A
+    line left with no code is absent, including a line inside a multi-line
+    literal that holds only whitespace.
     """
     layout = _Layout(read)
     text = read.source.text
     code: dict[int, str] = {}
     for number, (start, end) in enumerate(layout.lines.spans, 1):
-        pieces = [
-            region
+        line = "".join(
+            text[max(start, region.span.start) : min(end, region.span.end)]
             for region in _overlapping(read.source.regions, start, end)
             if layout.is_code(region) or region.kind is RegionKind.WHITESPACE
-        ]
-        while pieces and pieces[-1].kind is RegionKind.WHITESPACE:
-            pieces.pop()
-        line = "".join(
-            text[max(start, r.span.start) : min(end, r.span.end)] for r in pieces
-        )
-        if line.strip():
+        ).rstrip()
+        if line:
             code[number] = line
     return code
 
