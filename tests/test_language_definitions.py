@@ -9,6 +9,7 @@ from typing import Any
 import pytest
 
 from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, ReadStage
+from comment_review.reading.language import Language
 
 WIRE = """format = 1
 language = "Invented MIX"
@@ -1207,7 +1208,5 @@ def test_rust_definition_leaves_other_definitions_unchanged() -> None:
 def test_a_rows_interpreter_line_is_line_1_opening_with_its_shebang(
     shebang, lines, line
 ) -> None:
-    from comment_review.reading.language import Language
-
     row = Language("x", (".x",), ("#",), shebang=shebang)
     assert row.interpreter_line(lines) == line
