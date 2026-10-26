@@ -134,7 +134,8 @@ The gather reads every file handed to it and exits nonzero naming any language i
 record for; `gather --languages` lists the ones it reads. Report every gap it prints.
 
 The gather also prints one line on stderr for each detached documentation it read, in the form
-`warning: <path>:<line>: detached documentation`. The documentation starts at `<line>` and is
+`warning: <path>:<line>: detached documentation (owner on line <n>)`, or `(owner: module)` when
+the owner is the module. The documentation starts at `<line>` and is
 read as a comment. Ask the author about each line with `AskUserQuestion`, showing that comment
 and its owner, the anchor it was written for, and offering two answers: move it to the owner's
 `a` cue, or leave it where it is. Record each answer in the style sheet, and continue the
