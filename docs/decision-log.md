@@ -5678,3 +5678,15 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   **What it settles.** #228's warning is withdrawn. The first declaration on a line still takes
   its `a` place, silently. A warning is printed only when documentation is actually joined,
   which needs a doc comment between code on one line -- out of scope until that work is taken up.
+
+- **#231.** **`doc-kind-unresolved` is retired** (Roy, 2026-10-25, shown that under #229 the
+  lexical reader decides a Go or Ruby run's kind from the declaring-keyword list, so the
+  annotation contradicted the reader's own kind on every run it marked -- a run above `func F`
+  read `docstring` and "kind unresolved"; a run above `x := 1` read `comment` and "may be
+  documentation" -- and that its adjacency rule chose different runs from
+  `document_declarations`: *"Agree -- retire the mark entirely"*).
+
+  **What it settles.** The reader's kind is the answer. `flag_structural_docs` and the
+  annotation go; a run above code that declares nothing is a comment and is counted against the
+  cap like any other. A declaration form missing from a language's keyword list is fixed in
+  that row.
