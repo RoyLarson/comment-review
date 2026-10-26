@@ -347,21 +347,21 @@ two reported `NEEDS-EYES` rather than clean, and any replacement owes the same r
 
 ## Known gaps
 
-### The census reads eleven languages, but only lexically
+### Languages
 
-The four editorial roles are language-neutral -- they ask whether prose is in the right
-place, still true, describes what the code does, and agrees with its neighbours, and none
-of that is about syntax. The census underneath them now reads eleven languages from a
-data table (`census.py --languages`), but at two very different depths: Python gets a real
-lexer and AST, everything else gets a comment-syntax record and a hand-rolled string
-skipper that is wrong on heredocs, raw strings and template nesting.
+The gather reads fifteen languages, all lexically (`gather --languages`).
 
-! **No comment carries an owner, in any language.** A docstring's owner comes free from
-the AST; a `#` run's does not, and nothing infers it -- so every ownership-context instruction rests on
-a reviewer reading the file. See [docs/parsing.md](docs/parsing.md) for where structure
-could come from and what was already tried and rejected.
+- **Readers.** Python and Rust have their own readers. The other thirteen share one generic
+  reader driven by each language's row: comment syntax, string delimiters, declaring keywords.
+  Undeclared literals: [TODO/lexer-and-language-findings.md](TODO/lexer-and-language-findings.md).
+- **Documentation.** A reader marks prose that documents a declaration as `docstring` and
+  names the declaring line. The matcher reads a line's first word, so the C and C++ rows
+  list no keywords until it looks past the return type; their documentation reads as
+  comments meanwhile. SQL has no docstring practice.
+- **Comments.** A comment is anchored to the code below it (`b`) or beside it (`c`).
+  Reviewers judge whether it is about that code.
 
-What is still compiled in rather than detected per project:
+### Fixed per build, not detected per project
 
 | what varies                    | today                  | should be                                                                  |
 | ------------------------------ | ---------------------- | -------------------------------------------------------------------------- |
@@ -369,12 +369,8 @@ What is still compiled in rather than detected per project:
 | what a citable path looks like | a fixed suffix list    | the extensions present in the repo                                         |
 | Markdown and reStructuredText  | no record at all       | prose files are where cited documentation actually lives                   |
 
-! **Two of these moved.** A `LANGUAGES` row that sets `doc_is_structural` now
-declares a per-block KIND GAP instead of silently classifying a positional doc
-comment as an ordinary run -- measured, a three-line Go export doc counted as
-over a cap of two. And the name corpus is built from `git ls-files`, so a
-vendored or gitignored tree can no longer donate its namespace and mask an
-obituary.
+The name corpus reads tracked files only (`git ls-files`); without git it walks the tree
+and reports that.
 
 The quoting convention is the one that is **not** a language property: two Python projects in
 the corpus disagreed with each other about it, and on one of them three symbol findings were
