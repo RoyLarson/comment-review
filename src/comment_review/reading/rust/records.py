@@ -284,7 +284,7 @@ class RustRead:
         if not isinstance(self.source, SourceStructure):
             raise ValueError("read source must be a SourceStructure")
         lines = [
-            self.source.position(declaration.anchor).line
+            self.source.declaring_line(declaration)
             for declaration in self.source.declarations
         ]
         if any(after <= before for before, after in pairwise(lines)):

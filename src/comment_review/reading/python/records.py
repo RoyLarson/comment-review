@@ -296,7 +296,7 @@ class PythonRead:
         owners = tuple(
             index
             for index, declaration in enumerate(self.source.declarations)
-            if self.source.position(declaration.anchor).line == anchor_line
+            if self.source.declaring_line(declaration) == anchor_line
         )
         return owners if len(owners) == 1 else ()
 
