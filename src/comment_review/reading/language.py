@@ -36,9 +36,6 @@ class Language:
             comment (Rust `///`, `//!`). Empty when the language marks docs
             some other way.
         doc_block: paragraph openers that mean DOC (`/**`). Same idea.
-        doc_is_structural: the doc is the run above a declaration (Go), which
-            needs structure to decide, so this tier reports `comment` and
-            annotates the paragraph.
         quotes: string delimiters, so a marker inside a literal is skipped.
         char_quotes: delimiters that hold exactly ONE character in this
             language -- `'a'`, or one escape. !! IT IS PER LANGUAGE AND CANNOT BE ONE
@@ -76,7 +73,6 @@ class Language:
     block_comment: tuple[tuple[str, str], ...] = ()
     doc_line: tuple[str, ...] = ()
     doc_block: tuple[str, ...] = ()
-    doc_is_structural: bool = False
     quotes: tuple[str, ...] = ('"', "'")
     char_quotes: tuple[str, ...] = ()
     nests_comments: bool = False
@@ -102,7 +98,6 @@ LANGUAGES: tuple[Language, ...] = (
         (".go",),
         ("//",),
         (("/*", "*/"),),
-        doc_is_structural=True,
         # ! A rune literal is one character.
         char_quotes=("'",),
         # !! THE BACKTICK IS A STRING DELIMITER AND MUST BE BLANKED. Leaving it
@@ -353,7 +348,6 @@ LANGUAGES: tuple[Language, ...] = (
         (".rb",),
         ("#",),
         (("=begin", "=end"),),
-        doc_is_structural=True,
         declares=("def", "class", "module"),
         # ! A HEREDOC CROSSES LINES BY DEFINITION. Declared so a file holding
         # one is refused rather than having a line inside it stripped as a

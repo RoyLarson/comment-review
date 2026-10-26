@@ -483,7 +483,7 @@ def test_saved_mixed_workflow_keeps_literal_context_through_proof(
         "language": "javascript",
         "reader": "javascript-lexical",
         "compatibility": (
-            "d7647c406f19f60a06948df406d52c6351c52196afe7786da4f311c0d26f8f59"
+            "db43bc21079d03f1400a5e9a0ac8ff79c3f14752a9935954dce2636efa85a1a3"
         ),
         "settings": {},
     }
