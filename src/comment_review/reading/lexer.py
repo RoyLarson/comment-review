@@ -25,7 +25,7 @@ Beside the reader: `comment_form` parses a comment's markers and fragments for
 
 import ast
 import re
-from collections.abc import Callable, Mapping
+from collections.abc import Callable, Collection, Mapping
 from dataclasses import dataclass
 from functools import cache
 from pathlib import Path
@@ -636,25 +636,30 @@ def _anchor_of(lines: list[str], line_no: int, column: int) -> str:
     return lines[line_no - 1][: column - 1]
 
 
-def leading_between(paragraphs: list["Paragraph"], text: str) -> list["Paragraph"]:
+def leading_between(
+    paragraphs: list["Paragraph"], text: str, code: Collection[int]
+) -> list["Paragraph"]:
     """Every blank run no paragraph holds, as LEADING -- see `LEADING`.
 
     !! ONE RULE FOR ALL READERS, and that is the point of it being a pass rather
     than a branch inside each.
 
     ! THE RULE IS SUBTRACTION, so it cannot disagree with either reader about
-    what prose is: a blank line a paragraph already holds is INSIDE it and stays
-    there, and every other blank line is the space between two paragraphs.
+    what prose or code is: a blank line a paragraph already holds is INSIDE it
+    and stays there, a line the reader gave as code is code whatever
+    `str.strip` makes of it, and every other blank line is the space between
+    two paragraphs.
 
     Args:
         paragraphs: what a reader produced, before any place is assigned.
         text: the file, read for which lines are blank.
+        code: the numbers of the lines the reader gave as code.
 
     Returns:
         One paragraph per unheld blank run, in order.
     """
     lines = constants.text_lines(text)
-    held = set()
+    held = set(code)
     for b in paragraphs:
         if b.original_start:
             held.update(

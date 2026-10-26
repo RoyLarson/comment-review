@@ -84,6 +84,15 @@ def test_python_page_contiguous_header_keeps_one_matter_place(bom, ending):
         assert current.read.source.reconstruct() == text
 
 
+def test_a_margin_holds_what_follows_its_anchor_on_the_line():
+    no_break_space = chr(0xA0)
+    text = "struct S {\n" + no_break_space + "\n    x: i32,\n}\n"
+    page = build(text, "m.rs")
+    margin = next(p for p in page if p.anchor == no_break_space and p.kind == "margin")
+    assert margin.raw_lines == [""]
+    assert not [p for p in page if p.kind == Kind.LEADING]
+
+
 def test_python_page_whole_comments_and_matter_boundaries():
     text = "# front\n\n# before\nx=1\n# a\n\n# b\ny=2\n# after\n\n# back\n"
     page = page_for_mod.page_of(Path("m.py"), source=Source(text, "held"))

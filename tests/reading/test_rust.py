@@ -2170,6 +2170,45 @@ def test_projection_rust_whitespace_is_not_code(rust_definition):
     assert code_of(lines) == {1: "fn f() {}", 2: "fn z() {}", 4: "fn g() {}"}
 
 
+def test_projection_a_byte_order_mark_before_a_comment_is_not_code(rust_definition):
+    text = "\ufeff// Copyright 2024\n// Licensed MIT.\n\nfn main() {}\n"
+    paragraphs, lines = projection_of(text, rust_definition)
+    assert paragraphs == [
+        paragraph(1, 2, Kind.MATTER, ["\ufeff// Copyright 2024", "// Licensed MIT."])
+    ]
+    assert lines == [CodeLine(4, "fn main() {}", DocPlace(4, True))]
+
+
+@pytest.mark.parametrize(
+    ("text", "code"),
+    [
+        (
+            "struct S {\n\u00a0\n    x: i32,\n}\n",
+            {1: "struct S {", 2: "\u00a0", 3: "    x: i32,", 4: "}"},
+        ),
+        ("fn f() {}\u3000\nfn g() {}\n", {1: "fn f() {}\u3000", 2: "fn g() {}"}),
+        ("fn f() {}\u200f\nfn g() {}\n", {1: "fn f() {}", 2: "fn g() {}"}),
+    ],
+    ids=["no-break-space-line", "ideographic-space", "left-to-right-mark"],
+)
+def test_projection_code_is_trimmed_by_the_scanners_whitespace(
+    rust_definition, text, code
+):
+    _, lines = projection_of(text, rust_definition)
+    assert code_of(lines) == code
+
+
+@pytest.mark.parametrize("mark", ["\u200f", "\u3000"])
+def test_projection_a_trailing_comment_after_exotic_space_rebuilds_its_line(
+    rust_definition, mark
+):
+    text = f"fn f() {{\n    let x = 1;{mark}// note\n}}\n"
+    paragraphs, lines = projection_of(text, rust_definition)
+    trailing = next(p for p in paragraphs if p.kind == Kind.TRAILING)
+    assert trailing.anchor + trailing.raw_lines[0] == f"    let x = 1;{mark}// note"
+    assert code_of(lines)[2] == trailing.anchor
+
+
 def test_projection_opening_run_is_matter_up_to_its_first_blank_line(
     rust_definition,
 ):

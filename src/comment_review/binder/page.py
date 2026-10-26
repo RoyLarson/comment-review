@@ -544,14 +544,13 @@ def empty_places(
                         ),
                     )
                 )
-            code = lines[n - 1].rstrip()
             out.append(
                 Paragraph(
                     path="",
                     start=n,
                     end=n,
                     kind="margin",
-                    raw_lines=[lines[n - 1][len(code) :]],
+                    raw_lines=[lines[n - 1][len(anchor) :]],
                     original_start=n,
                     original_end=n,
                     anchor=anchor,
@@ -698,10 +697,11 @@ def page_for(
     got = result.paragraphs(path)
     if isinstance(got, ReadFailure):
         return got
-    got.extend(leading_between(got, text))
+    code_lines = result.code_lines()
+    got.extend(leading_between(got, text, [line.line for line in code_lines]))
     edges: dict[str, str] = {}
     cues = cue(
-        result.code_lines(),
+        code_lines,
         a_series=result.a_series,
         closing_docstring=result.closing_docstring,
     )

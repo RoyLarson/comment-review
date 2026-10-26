@@ -6,7 +6,7 @@ import pytest
 from conftest import kinds
 
 from comment_review.reading.language import Language, language_for
-from comment_review.reading.lexer import LexicalRead, declarations
+from comment_review.reading.lexer import LexicalRead, declarations, leading_between
 from comment_review.reading.readers import read_source
 from comment_review.reading.series import Kind
 from comment_review.reading.source import CodeLine, DocPlace
@@ -220,6 +220,12 @@ def test_a_row_holds_a_closing_docstring_when_it_has_a_doc_marker(
         declares=declares,
     )
     assert row.closing_docstring is closing
+
+
+def test_a_blank_looking_line_the_reader_gave_as_code_is_not_leading():
+    text = "a\n\u00a0\nb\n"
+    assert leading_between([], text, [1, 2, 3]) == []
+    assert [(p.start, p.end) for p in leading_between([], text, [1, 3])] == [(2, 2)]
 
 
 def test_declarations_hold_only_the_declaring_lines():

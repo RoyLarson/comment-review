@@ -13,6 +13,7 @@ from comment_review.reading.rust.records import (
     RustRead,
     RustScan,
 )
+from comment_review.reading.rust.scanner import WHITESPACE
 from comment_review.reading.series import Kind
 from comment_review.reading.source import (
     CodeLine,
@@ -26,6 +27,8 @@ from comment_review.reading.source import (
 
 # Regions that hold code whenever they are on a line.
 CODE_KINDS = frozenset({RegionKind.CODE, RegionKind.LITERAL})
+# The scanner's whitespace characters, as `str.rstrip` takes them.
+SCANNER_WHITESPACE = "".join(WHITESPACE)
 
 
 def sections_for(
@@ -220,21 +223,28 @@ def _code(read: RustRead) -> dict[int, str]:
     """Each line's code: the line without its sections, shebang or trailing space.
 
     A comment that is code, being in no section, stays. The code is
-    right-trimmed, a multi-line literal's whitespace at the line's end
-    included, so the code plus what follows it on the line is the line. A
-    line left with no code is absent, including a line inside a multi-line
-    literal that holds only whitespace.
+    right-trimmed of the scanner's WHITESPACE regions and of the scanner's
+    whitespace characters inside a multi-line literal at the line's end, so
+    the code plus what follows it on the line is the line. A line left with
+    no code is absent, including a line inside a multi-line literal that
+    holds only whitespace.
     """
     layout = _Layout(read)
     text = read.source.text
     code: dict[int, str] = {}
     for number in range(1, len(layout.physical) + 1):
         start, end = read.source.line_span(number)
-        line = "".join(
-            text[max(start, region.span.start) : min(end, region.span.end)]
+        pieces = [
+            (
+                region.kind,
+                text[max(start, region.span.start) : min(end, region.span.end)],
+            )
             for region in _overlapping(read.source.regions, start, end)
             if layout.is_code(region) or region.kind is RegionKind.WHITESPACE
-        ).rstrip()
+        ]
+        while pieces and pieces[-1][0] is RegionKind.WHITESPACE:
+            pieces.pop()
+        line = "".join(piece for _, piece in pieces).rstrip(SCANNER_WHITESPACE)
         if line:
             code[number] = line
     return code
