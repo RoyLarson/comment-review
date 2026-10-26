@@ -5730,3 +5730,13 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   closing docstring. The generic lexical rows say yes. Python says no: a string after the last
   statement is a string literal, not `__doc__`, so it reads back as code. Rust says no: an inner
   or outer doc comment after the last item does not compile. Amends #233.
+
+- **#235.** **A detached doc need not match the compiler's attachment** (Roy, 2026-10-26, shown
+  that the Rust reader calls `/** Doc. */` detached when an ordinary comment sits between it and
+  `fn f`, where rustc ignores the plain comment and attaches the doc: *"Our detached docs
+  currently do not need to match the compiler's version. This is due to the limits of being able
+  to put the docs exactly back in place and in order, and the current method works simply and is
+  mostly simple to understand so I don't want to give that up yet"*).
+
+  **What it settles.** A doc is detached when an ordinary comment sits between it and the item,
+  whatever the compiler attaches; #226 and #232 then apply to it as a comment.

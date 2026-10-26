@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 18 of 20 tasks closed
+Progress: 19 of 20 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-25 (decision-log.md Process: #224)
@@ -57,7 +57,8 @@ defect and is repaired (lexer-and-language-findings T12, b30cc510).
         > 2026-10-25 Copies: lexer.py:765-823, python/projection.py:146-187
         > 2026-10-25 Copies: rust/projection.py:185-254, rust/documentation.py:372
         > 2026-10-25 Roy: the reader assigns matter; decision-log.md Process: #225
-- [ ] T8 | Move the front and back matter rule to one shared place
+- [x] T8 | FINISHED: reading/matter.py file_matter states #232 once; every reader calls it | 58727f6f | Move
+      the front and back matter rule to one shared place
         > 2026-10-25 Waits on the matter ruling in this file
         > 2026-10-25 Rust holds two copies: documentation.py:182 and projection.py:205
         > 2026-10-25 Check: .rs and .kt give the same f places on matter-only input

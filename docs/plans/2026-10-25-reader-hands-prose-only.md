@@ -2,8 +2,8 @@
 
 ```
 Status:   in-progress
-Progress: 13 of 15 TODO tasks closed
-Plan-tasks: 13 of 17 plan tasks closed
+Progress: 14 of 15 TODO tasks closed
+Plan-tasks: 14 of 17 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-25 (founded by move-t from 2026-10-11-lexical-readers)
@@ -28,7 +28,7 @@ per step; each step lands its failing test first.
 - [-] T4 | Derive each line's code in the page for every reader
 - [x] T5 | Give a Python docstring paragraph its whole source lines
 - [x] T6 | Delete the continues-a-trailing-comment stamp from lexer.py
-- [ ] T8 | Move the front and back matter rule to one shared place
+- [x] T8 | Move the front and back matter rule to one shared place
 - [ ] T12 | Replace the Rust reader's _Lines with the shared line splitter
 - [x] T13 | Stop the page changing a reader's matter kind to comment
 - [x] T14 | Form one comment section per gap in the Rust reader
@@ -70,9 +70,11 @@ per step; each step lands its failing test first.
       the continues-a-trailing-comment stamp
         > 2026-10-25 Check: git grep continues-a-trailing-comment -- src: none
         > 2026-10-25 Works T6
-- [ ] P7 | State the matter rule once in reading for every reader to call
+- [x] P7 | FINISHED: one matter rule (#232); a at eof (#233, #234); reviewed, 1 fix round | 58727f6f | State
+      the matter rule once in reading for every reader to call
         > 2026-10-25 Check: one definition; .rs and .kt give the same f places
         > 2026-10-25 Works T8
+        > 2026-10-26 Also #233: a emits at eof; a series from doc practice
 - [x] P8 | Sections formed once; post-merge removed; 5466 passed | 431d1614 | Form
       one comment section per gap in the Rust reader
         > 2026-10-25 Check: a detached /// between // lines reads as one b comment
