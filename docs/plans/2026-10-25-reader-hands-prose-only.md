@@ -3,7 +3,7 @@
 ```
 Status:   in-progress
 Progress: 15 of 15 TODO tasks closed
-Plan-tasks: 16 of 17 plan tasks closed
+Plan-tasks: 17 of 17 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-25 (founded by move-t from 2026-10-11-lexical-readers)
@@ -96,7 +96,8 @@ per step; each step lands its failing test first.
         > 2026-10-25 Spec lines 227-241 and 373-381; after P8 and P9
         > 2026-10-25 Check: those sections name the page or addresser as owner
         > 2026-10-25 Also amend the spec's code_for and declarations sections (#228)
-- [ ] P12 | Run the completion gates on the finished subplan
+- [x] P12 | FINISHED: 5552 passed; ruff, format, ty, shipped syntax, vocabulary green; suite 248s vs base 251s | ed4abb5b | Run
+      the completion gates on the finished subplan
         > 2026-10-25 Check: pytest, ruff, ty, shipped syntax and vocabulary all green
 - [-] P13 | Carries another step's notes; reissued as P17 | cb6a5005 | Move the
       lexical path's code lines and declarations into its reader
