@@ -4,18 +4,16 @@ Every reader returns a record of the file it read, and the record compares
 itself with a second read of the same file. A proof asks that question of the
 page's `read` and never of the language: `PythonRead` compares lexical source
 structure, and `StrippedRead` compares the source with its comments removed.
-`ReaderRecord` adds what the page builder reads from the same record: its
-paragraphs, its code lines with their documentation places, and its warnings.
+`ReaderRecord` is a read that also carries its source, which the page builder
+takes the page's text from.
 """
 
 from collections.abc import Collection
 from dataclasses import dataclass
-from pathlib import Path
 from typing import Protocol, Self
 
-from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure
-from comment_review.reading.paragraph import Paragraph
-from comment_review.reading.source import CodeLine, SourceStructure
+from comment_review.reading.diagnostics import ReadDiagnostic
+from comment_review.reading.source import SourceStructure
 
 #: The diagnostic code a read reports when it cannot separate prose from code,
 #: so sameness is neither shown nor refuted.
@@ -83,27 +81,13 @@ class SourceRead(Protocol):
 
 
 class ReaderRecord(SourceRead, Protocol):
-    """A reader's record of one file, as the page builder reads it."""
+    """A read that carries the source it was made of.
+
+    The page builder takes the page's text from `source`, which a reader may
+    have rewritten, and keeps the record as the page's `read`.
+    """
 
     @property
     def source(self) -> SourceStructure:
         """The exact source and its reader-supplied structure."""
-        ...
-
-    def paragraphs(self, path: Path) -> list[Paragraph] | ReadFailure:
-        """Every prose section of the file as a page paragraph."""
-        ...
-
-    def code_lines(self) -> list[CodeLine]:
-        """Each line holding code, in order, with the documentation it declares."""
-        ...
-
-    @property
-    def a_series(self) -> bool:
-        """Whether the page has an `a` series: its language documents declarations."""
-        ...
-
-    @property
-    def closing_docstring(self) -> bool:
-        """Whether the language can hold the module's documentation at its foot."""
         ...
