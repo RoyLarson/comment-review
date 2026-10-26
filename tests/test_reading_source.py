@@ -43,6 +43,24 @@ def test_coordinates_share_positions_without_a_source_partition():
     ]
 
 
+@pytest.mark.parametrize(
+    "text,spans",
+    [
+        ("", []),
+        ("a", [(0, 1)]),
+        ("a\n", [(0, 1)]),
+        ("a\r\n\nb\rc", [(0, 1), (3, 3), (4, 5), (6, 7)]),
+        ("a\r\rb\r", [(0, 1), (2, 2), (3, 4)]),
+    ],
+)
+def test_coordinates_line_span_leaves_out_the_line_break(text, spans):
+    coordinates = SourceCoordinates(text)
+    assert [coordinates.line_span(n) for n in range(1, len(spans) + 1)] == spans
+    for number in (0, len(spans) + 1):
+        with pytest.raises(ValueError):
+            coordinates.line_span(number)
+
+
 @pytest.mark.parametrize("text", [None, b"", 1, True])
 def test_coordinates_reject_non_string_text(text):
     with pytest.raises(ValueError):

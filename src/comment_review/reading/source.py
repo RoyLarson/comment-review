@@ -256,6 +256,10 @@ class SourceStructure:
         """Locate a character offset, including EOF, in cached physical lines."""
         return self._coordinates.position(offset)
 
+    def line_span(self, line: int) -> tuple[int, int]:
+        """Start and end offset of a physical line, its line break excluded."""
+        return self._coordinates.line_span(line)
+
     def slice(self, span: SourceSpan) -> str:
         """Return exact characters from a half-open span within the source."""
         if not isinstance(span, SourceSpan) or span.end > len(self.text):

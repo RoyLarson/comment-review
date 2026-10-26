@@ -1959,6 +1959,26 @@ def test_projection_of_docs_comments_code_and_declarations(rust_definition):
     ]
 
 
+@pytest.mark.parametrize("final", [True, False], ids=["final-break", "no-final-break"])
+@pytest.mark.parametrize("newline", ["\n", "\r\n", "\r"], ids=["lf", "crlf", "cr"])
+def test_projection_cuts_lines_at_lf_crlf_and_cr(rust_definition, newline, final):
+    # The shebang line, like a `//` comment, ends at LF in the Rust scan, so a
+    # lone CR is tested on block comments alone.
+    shebang = ["#!/bin/x"] if newline != "\r" else []
+    rows = [*shebang, "/*! Doc. */", "fn go() {} /* a */"]
+    text = newline.join(rows) + (newline if final else "")
+    first = len(shebang) + 1
+    paragraphs, lines = projection_of(text, rust_definition)
+    assert paragraphs == [
+        *(paragraph(1, 1, Kind.MATTER, shebang) for _ in shebang),
+        paragraph(first, first, Kind.DOCSTRING, ["/*! Doc. */"]),
+        paragraph(
+            first + 1, first + 1, Kind.TRAILING, [" /* a */"], anchor="fn go() {}"
+        ),
+    ]
+    assert lines == [CodeLine(first + 1, "fn go() {}", DocPlace(first + 1, True))]
+
+
 @pytest.mark.parametrize(
     ("text", "expected"),
     [

@@ -83,18 +83,21 @@ def paragraphs_for(path: Path, read: RustRead) -> list[Paragraph] | ReadFailure:
         # matter at line 1: the page files it at the first `f` place.
         line = source.position(span.start).line
         opens = line + 1
-        whole = text[
-            layout.lines.start_of(span.start) : layout.lines.end_of(span.start)
-        ]
         paragraphs.append(
-            Paragraph(path.as_posix(), line, line, Kind.MATTER, raw_lines=[whole])
+            Paragraph(
+                path.as_posix(),
+                line,
+                line,
+                Kind.MATTER,
+                raw_lines=[layout.physical[line - 1]],
+            )
         )
     for index, section in enumerate(source.sections):
         span = section.span
         first = source.position(span.start)
         last = source.position(span.end - 1)
-        line_start = layout.lines.start_of(span.start)
-        line_end = layout.lines.end_of(span.end - 1)
+        line_start = source.line_span(first.line)[0]
+        line_end = source.line_span(last.line)[1]
         before = [
             region
             for region in _overlapping(source.regions, line_start, span.start)
@@ -149,7 +152,7 @@ def _file_edges_and_shared_lines(
         for n in range(p.start, p.end + 1)
         if n in covered and n not in code
     }
-    matter = file_matter(len(layout.lines.spans), opens, prose)
+    matter = file_matter(len(layout.physical), opens, prose)
     cut: list[Paragraph] = []
     for paragraph in paragraphs:
         if paragraph.kind != Kind.COMMENT:
@@ -236,7 +239,8 @@ def _code(read: RustRead) -> dict[int, str]:
     layout = _Layout(read)
     text = read.source.text
     code: dict[int, str] = {}
-    for number, (start, end) in enumerate(layout.lines.spans, 1):
+    for number in range(1, len(layout.physical) + 1):
+        start, end = read.source.line_span(number)
         line = "".join(
             text[max(start, region.span.start) : min(end, region.span.end)]
             for region in _overlapping(read.source.regions, start, end)
@@ -247,36 +251,11 @@ def _code(read: RustRead) -> dict[int, str]:
     return code
 
 
-class _Lines:
-    """Each physical line's start and end, its line break excluded."""
-
-    def __init__(self, text: str) -> None:
-        self.spans: list[tuple[int, int]] = []
-        offset = 0
-        for line_break in constants.LINE_BREAK.finditer(text):
-            self.spans.append((offset, line_break.start()))
-            offset = line_break.end()
-        # As `constants.text_lines`: text after the last break is a line.
-        if offset < len(text):
-            self.spans.append((offset, len(text)))
-        self.starts = [start for start, _ in self.spans]
-
-    def _at(self, offset: int) -> tuple[int, int]:
-        return self.spans[max(0, bisect_right(self.starts, offset) - 1)]
-
-    def start_of(self, offset: int) -> int:
-        return self._at(offset)[0]
-
-    def end_of(self, offset: int) -> int:
-        return self._at(offset)[1]
-
-
 class _Layout:
     """Which regions of a read are code, its lines, and the lines comments hold."""
 
     def __init__(self, read: RustRead) -> None:
         self.text = read.source.text
-        self.lines = _Lines(self.text)
         # Each physical line's text, as `constants.text_lines` cuts it.
         self.physical = constants.text_lines(self.text)
         self.read = read
