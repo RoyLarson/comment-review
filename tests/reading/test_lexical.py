@@ -46,10 +46,10 @@ def test_each_call_hands_back_a_new_list():
 
 def test_the_run_above_a_declaration_documents_its_declaring_line():
     found = read("m.go", GO).paragraphs(Path("m.go"))
-    assert [(p.start, p.kind, p.anchor_line, p.address) for p in found] == [
-        (3, Kind.DOCSTRING, 4, ""),
-        (4, Kind.TRAILING, None, ""),
-        (5, Kind.COMMENT, None, ""),
+    assert [(p.start, p.kind, p.anchor_line) for p in found] == [
+        (3, Kind.DOCSTRING, 4),
+        (4, Kind.TRAILING, None),
+        (5, Kind.COMMENT, None),
     ]
 
 

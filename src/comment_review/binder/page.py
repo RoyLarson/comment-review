@@ -743,6 +743,18 @@ def page_for(
                         ),
                     )
                 )
+            if cues.anchor_line(place) != b.anchor_line:
+                return ReadFailure(
+                    (
+                        ReadDiagnostic(
+                            ReadStage.PLACE,
+                            "documentation-anchor-disagrees",
+                            f"{here}:{b.start}: documentation names line"
+                            f" {b.anchor_line}, but its place {place} answers"
+                            f" line {cues.anchor_line(place)}",
+                        ),
+                    )
+                )
         else:
             place = attach(vars(b), cues)
         b.address = address_for(here, place)
@@ -757,8 +769,6 @@ def page_for(
         got.append(empty)
     for b in got:
         place_name = b.address.split("@")[-1]
-        # A docstring's place is the `a` whose anchor line is the one its
-        # reader named, so this rewrites that line with itself.
         b.anchor_line = cues.anchor_line(place_name) if place_name else None
         b.anchor_num = cues.anchor_num(place_name) if place_name else 0
     fill_the_gaps(text, got, cues)

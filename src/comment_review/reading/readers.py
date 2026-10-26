@@ -21,7 +21,6 @@ from comment_review.reading.language import (
 )
 from comment_review.reading.lexer import (
     LexicalRead,
-    flag_structural_docs,
     lexical_read,
     paragraphs_lexical,
 )
@@ -159,7 +158,6 @@ def _read_paragraphs(
             )
     if diagnostics:
         return ReadFailure(tuple(diagnostics))
-    flag_structural_docs(paragraphs, text, lang)
     return lexical_read(paragraphs, text, lang)
 
 

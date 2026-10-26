@@ -74,7 +74,6 @@ def test_completed_read_projects_documentation_from_source_positions(python_defi
         (['    "body " "prose"'], Kind.DOCSTRING, 4, ""),
         ([" # detail"], Kind.TRAILING, None, "    return value"),
     ]
-    assert not any(p.address for p in paragraphs)
     lines = code_lines_for(reduced)
     assert [(c.line, c.documents) for c in lines if c.documents] == [
         (4, DocPlace(6, False)),

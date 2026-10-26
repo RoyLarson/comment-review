@@ -38,16 +38,16 @@ def test_read_paragraphs_reports_python_refusal(text):
     assert result.diagnostics[0].span is not None
 
 
-def test_read_paragraphs_unterminated_comment_before_decoration(monkeypatch):
+def test_read_paragraphs_unterminated_comment_stops_the_read(monkeypatch):
     path = Path("m.c")
     text = "int x;\r\n/* open\r\nstill open"
     lang = lexer.language_for(path)
     assert lang is not None
 
     def conceal(*args):
-        pytest.fail("Refused paragraphs must not reach decoration")
+        pytest.fail("Refused paragraphs must not reach the rest of the read")
 
-    monkeypatch.setattr(readers, "flag_structural_docs", conceal)
+    monkeypatch.setattr(readers, "lexical_read", conceal)
     result = readers.read_paragraphs(path, text, lang)
     assert isinstance(result, ReadFailure)
     assert [(d.stage, d.code, d.span) for d in result.diagnostics] == [
@@ -94,7 +94,6 @@ def test_read_paragraphs_preserves_supported_readings(text):
     lang = lexer.language_for(path)
     assert lang is not None
     expected = lexer.paragraphs_lexical(path, text, lang)
-    lexer.flag_structural_docs(expected, text, lang)
     registry = installed_registry()
     assert not isinstance(registry, ReadFailure)
     result = readers.read_source(path, text, registry=registry)

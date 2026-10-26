@@ -13,13 +13,13 @@ are the page's, because only a page knows where prose is MISSING.
 `lexical_read` completes the read for the page: `code_text` gives each line of
 code its code, `declarations()` marks which lines declare something
 documentable and where its doc would go, and `document_declarations` marks the
-run that documents a declaration `docstring`, naming that declaration's line. It
-hands back a `LexicalRead`,
-the paragraphs and their `CodeLine`s together.
+run that documents a declaration `docstring`, naming that declaration's line --
+for Go and Ruby too, whose documentation is an ordinary comment run above the
+declaring keyword. It hands back a `LexicalRead`, the paragraphs and their
+`CodeLine`s together.
 
-Beside the reader: `flag_structural_docs` annotates a Go or Ruby run whose kind
-position cannot settle, and `comment_form` parses a comment's markers and
-fragments for `desk.marks.rules`.
+Beside the reader: `comment_form` parses a comment's markers and fragments for
+`desk.marks.rules`.
 
 """
 
@@ -74,8 +74,8 @@ _NO_TRAILING = -2
 MODULE_ANCHOR = "<module>"
 
 # -- Annotations ---------------------------------------------------------------
-# This module stamps three -- `continues-a-trailing-comment`,
-# `unterminated-paragraph-comment` and `doc-kind-unresolved`; the citation
+# This module stamps two -- `continues-a-trailing-comment` and
+# `unterminated-paragraph-comment`; the citation
 # annotations are located and resolved in `concordance/annotate.py`. Locating is
 # most of the work; the resolution is what stops a reviewer treating a citation as
 # a verified claim. ! These are ANNOTATIONS, never marks -- a MARK is editorial,
@@ -913,9 +913,9 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
         # !! A blank line INSIDE a run joins it; a blank line AFTER one does
         # NOT extend it. They are held here and committed only when another
         # comment line arrives. A run's `end` must stay on its last comment
-        # line, because `doc-kind-unresolved` asks whether the very next line
-        # holds anything -- extend the paragraph over the gap and an ORPHAN run,
-        # held off its declaration by exactly that gap, reads as documenting it.
+        # line, because `document_declarations` counts the blank lines between
+        # a run's end and the declaration below it -- extend the paragraph over
+        # the gap and a run held off its declaration reads as flush against it.
         if not raw_line.strip():
             # ! HELD WHETHER OR NOT A RUN IS OPEN; `carry` and `flush` decide what
             # becomes of them.
@@ -1069,49 +1069,6 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
             "Code down there was NOT read as code."
         )
     return out
-
-
-def flag_structural_docs(
-    paragraphs: list[Paragraph], text: str, lang: Language
-) -> None:
-    """Mark each run whose KIND is still an open question at this tier.
-
-    Go and Ruby attach documentation by POSITION -- an ordinary line comment
-    directly above a declaration IS that declaration's documentation -- so a
-    doc reads like any other run, and telling them apart needs the structure
-    this tier lacks.
-
-    The paragraph is annotated as an OPEN QUESTION instead. That matters because
-    `compact.md` deals `b` and `c` places by length, and tells its editor that a
-    Go or Ruby run directly above a declaration is documentation. Unmarked, a
-    three-line Go export doc reads as an ordinary comment over a cap of two.
-
-    Args:
-        paragraphs: this file's paragraphs, mutated in place.
-        text: the file's source, for looking at what follows each run.
-        lang: the language record, which decides whether this pass applies.
-    """
-    if not lang.doc_is_structural:
-        return
-    lines = constants.text_lines(text)
-    for paragraph in paragraphs:
-        # Only a leading `comment` run can be a positional doc: a trailing
-        # comment annotates the code on its own line.
-        if paragraph.kind != "comment":
-            continue
-        # ! The IMMEDIATELY next line. Both languages require a doc comment to
-        # touch its declaration, so a run held off by a blank line is an ORPHAN
-        # -- left unmarked here, and charged to the cap.
-        nxt = lines[paragraph.end].strip() if paragraph.end < len(lines) else ""
-        if not nxt:
-            continue
-        paragraph.annotations.add("doc-kind-unresolved")
-        paragraph.notes.append(
-            "KIND UNRESOLVED: this run sits above code and "
-            f"{lang.name} attaches docs by position, so it may be documentation "
-            "governed by FORMAT rather than a comment governed by LENGTH. "
-            "NOT counted against the cap. Confirm the kind before compacting."
-        )
 
 
 #: A declaring line's first word, ignoring indentation. Stops at anything that

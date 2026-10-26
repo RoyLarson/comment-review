@@ -21,6 +21,7 @@ from comment_review.reading.source import (
     DocPlace,
     DocumentationOwner,
     RegionKind,
+    SourceDeclaration,
     SourceSection,
     SourceSpan,
     SourceStructure,
@@ -119,12 +120,11 @@ def paragraphs_for(path: Path, read: PythonRead) -> list[Paragraph] | ReadFailur
         last = coordinates.position(max(span.start, span.end - 1))
         if section.form == "docstring":
             ordinal = payloads[span].expression.declaration
-            # The line declaring what this docstring documents; None for the
-            # module's own docstring.
+            # None for the module's own docstring.
             declaring = (
                 None
                 if ordinal is None
-                else read.source.position(read.source.declarations[ordinal].anchor).line
+                else _declaring_line(read.source, read.source.declarations[ordinal])
             )
             line_start = span.start - first.column
             raw_start = (
@@ -218,10 +218,15 @@ def code_lines_for(read: PythonRead) -> list[CodeLine]:
     for declaration in source.declarations:
         # The first declaration on a line takes its place.
         declared.setdefault(
-            source.position(declaration.anchor).line,
+            _declaring_line(source, declaration),
             DocPlace(source.position(declaration.header.end - 1).line, False),
         )
     return lines_of_code(_code(read), declared)
+
+
+def _declaring_line(source: SourceStructure, declaration: SourceDeclaration) -> int:
+    """The code line that declares this: the line a docstring's `anchor_line` names."""
+    return source.position(declaration.anchor).line
 
 
 def _code(read: PythonRead) -> dict[int, str]:
