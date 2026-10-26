@@ -63,19 +63,10 @@ __all__ = [
 NAMED_DEFS = (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)
 
 
-# !! A sentinel that CANNOT be a line number. `0` is one less than line 1, so
-# `paragraph.start == trailing_end[0] + 1` would hold for every comment opening a
-# file and stamp `continues-a-trailing-comment` with no trailing comment anywhere.
-# The stamp's note tells reviewers a mid-clause ending "may be the split", so a
-# false stamp would suppress real findings on file headers.
-_NO_TRAILING = -2
-
-
 MODULE_ANCHOR = "<module>"
 
 # -- Annotations ---------------------------------------------------------------
-# This module stamps two -- `continues-a-trailing-comment` and
-# `unterminated-paragraph-comment`; the citation
+# This module stamps one -- `unterminated-paragraph-comment`; the citation
 # annotations are located and resolved in `concordance/annotate.py`. Locating is
 # most of the work; the resolution is what stops a reviewer treating a citation as
 # a verified claim. ! These are ANNOTATIONS, never marks -- a MARK is editorial,
@@ -712,11 +703,6 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
     # ! LAYERS STILL OPEN on a run that crossed a line -- see `run_ends`. Always
     # 1 where the language does not nest.
     layers = 1
-    # ! The line the last trailing comment ended on. A wrapped trailing comment
-    # splits into two paragraphs here, so the second needs the stamp. A list
-    # because `flush` is a closure and rebinds nothing.
-    trailing_end = [_NO_TRAILING]
-
     # !! WHERE THE RUN'S FIRST LINE STOPS BEING CODE -- one past the last
     # character of code, or 0 when the run owns its lines whole. It cuts
     # `raw_lines[0]` and is not carried on the paragraph.
@@ -829,18 +815,6 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
             ),
         )
         partial_first[0] = 0
-        # !! A trailing comment closes its run,
-        # so a sentence wrapped onto the next line becomes a SECOND paragraph anchored
-        # to the code below it. Stamped, not re-cut.
-        if kind == "comment" and paragraph.start == trailing_end[0] + 1:
-            paragraph.annotations.add("continues-a-trailing-comment")
-            paragraph.notes.append(
-                "opens on the line after a trailing comment, so it may be the"
-                " tail of that sentence rather than a note about the code"
-                " below. A mid-clause ending here may be the split."
-            )
-        if kind == "trailing-comment":
-            trailing_end[0] = paragraph.end
         out.append(paragraph)
         run.clear()
 
