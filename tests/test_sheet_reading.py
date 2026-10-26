@@ -40,7 +40,7 @@ def mixed_binder(monkeypatch=None):
             "1",
             ("comments",),
             "fixture",
-            lambda *_: LexicalRead([], [], False),
+            lambda *_: LexicalRead([], [], False, False),
             lambda _: None,
         )
         monkeypatch.setattr(

@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from comment_review.reading.language import language_for
+from comment_review.reading.language import Language, language_for
 from comment_review.reading.lexer import LexicalRead, declarations
 from comment_review.reading.readers import read_source
 from comment_review.reading.series import Kind
@@ -138,8 +138,47 @@ def test_a_language_has_an_a_series_when_it_documents_at_all(name, text, a_serie
     assert read(name, text).a_series is a_series
 
 
-def test_a_lexical_read_can_hold_a_closing_docstring():
-    assert read("m.java", "import a.b;\n/** x */\n").closing_docstring is True
+@pytest.mark.parametrize(
+    ("name", "closing"),
+    [
+        ("m.java", True),
+        ("m.swift", True),
+        ("m.go", False),
+        ("m.rb", False),
+        ("m.sh", False),
+        ("m.lua", False),
+        ("m.sql", False),
+    ],
+    ids=["doc-block", "doc-line-and-block", "go", "ruby", "shell", "lua", "neither"],
+)
+def test_a_lexical_read_holds_a_closing_docstring_when_its_row_has_a_doc_marker(
+    name, closing
+):
+    assert read(name, "x\n").closing_docstring is closing
+
+
+@pytest.mark.parametrize(
+    ("doc_line", "doc_block", "declares", "closing"),
+    [
+        (("///",), (), (), True),
+        ((), ("/**",), (), True),
+        ((), (), ("def",), False),
+        ((), (), (), False),
+    ],
+    ids=["doc-line", "doc-block", "keywords-alone", "neither"],
+)
+def test_a_row_holds_a_closing_docstring_when_it_has_a_doc_marker(
+    doc_line, doc_block, declares, closing
+):
+    row = Language(
+        "x",
+        (".x",),
+        ("//",),
+        doc_line=doc_line,
+        doc_block=doc_block,
+        declares=declares,
+    )
+    assert row.closing_docstring is closing
 
 
 def test_declarations_hold_only_the_declaring_lines():

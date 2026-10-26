@@ -87,6 +87,16 @@ class Language:
         """
         return bool(self.doc_line or self.doc_block or self.declares)
 
+    @property
+    def closing_docstring(self) -> bool:
+        """Whether the module's documentation can sit at the file's foot: a doc marker.
+
+        A run after the last line of code documents the module only when it is
+        doc-marked, so a row with no doc marker, such as Go or Ruby, has no
+        closing docstring, and a comment written there is back matter.
+        """
+        return bool(self.doc_line or self.doc_block)
+
 
 # ! Line-comment openers are matched longest-first whatever order a row
 # lists them in, so `///` is tried before `//` and a Rust doc line keeps

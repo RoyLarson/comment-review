@@ -83,7 +83,7 @@ def test_fresh_flow_retains_admitted_settings_and_held_source(monkeypatch):
         "1",
         ("comments",),
         "fixture",
-        lambda *_: LexicalRead([], [], False),
+        lambda *_: LexicalRead([], [], False, False),
         lambda _: None,
     )
     monkeypatch.setattr(reading_context, "reader_for", lambda *_: (definition, binding))

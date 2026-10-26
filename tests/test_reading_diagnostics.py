@@ -57,7 +57,9 @@ def test_read_paragraphs_retains_signal_order(monkeypatch):
     ]
     records[1].annotations.add("unterminated-paragraph-comment")
     monkeypatch.setattr(
-        readers, "read_lexical", lambda *args: lexer.LexicalRead(records, [], False)
+        readers,
+        "read_lexical",
+        lambda *args: lexer.LexicalRead(records, [], False, False),
     )
     lang = lexer.language_for(Path("m.c"))
     assert lang is not None
@@ -81,7 +83,9 @@ def test_read_paragraphs_invalid_record_and_unexpected_error_propagate(monkeypat
     record = Paragraph("m.py", 3, 3, "comment", "open")
     record.annotations.add("unterminated-paragraph-comment")
     monkeypatch.setattr(
-        readers, "read_lexical", lambda *args: lexer.LexicalRead([record], [], False)
+        readers,
+        "read_lexical",
+        lambda *args: lexer.LexicalRead([record], [], False, False),
     )
     with pytest.raises(ValueError, match="source lines"):
         readers.read_paragraphs(Path("m.c"), "# open", lang)

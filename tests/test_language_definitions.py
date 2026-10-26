@@ -349,7 +349,7 @@ def binding(**changes: Any) -> Any:
         "grammar_identity": "",
         "read": lambda path, text, lang: import_module(
             "comment_review.reading.lexer"
-        ).LexicalRead([], [], False),
+        ).LexicalRead([], [], False, False),
         "validate": lambda value: None,
     }
     values.update(changes)
@@ -849,7 +849,7 @@ def test_installed_bindings_invoke_existing_engines(
         "read_lexical",
         lambda path, text, lang: (
             calls.append((lang.name, path, text))
-            or readers.LexicalRead([], [], lang.a_series)
+            or readers.LexicalRead([], [], lang.a_series, lang.closing_docstring)
         ),
     )
     for value in INSTALLED_DEFINITIONS:

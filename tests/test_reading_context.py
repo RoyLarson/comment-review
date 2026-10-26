@@ -1173,7 +1173,7 @@ def test_settings_normalize_without_discovering_source(tmp_path, monkeypatch):
         "reader-1",
         ("comments",),
         "grammar-1",
-        lambda *_: LexicalRead([], [], False),
+        lambda *_: LexicalRead([], [], False, False),
         lambda _: None,
     )
     monkeypatch.setattr(
@@ -1225,7 +1225,7 @@ def test_mixed_contexts_derive_independent_installed_binding_metadata(monkeypatc
         "reader-1",
         ("comments",),
         "grammar-1",
-        lambda *_: LexicalRead([], [], False),
+        lambda *_: LexicalRead([], [], False, False),
         lambda _: None,
     )
     monkeypatch.setattr(
@@ -1299,7 +1299,7 @@ def test_cli_settings_reach_actual_fresh_flow(tmp_path, monkeypatch, capsys, com
         "reader-1",
         ("comments",),
         "grammar-1",
-        lambda *_: LexicalRead([], [], False),
+        lambda *_: LexicalRead([], [], False, False),
         lambda _: None,
     )
     monkeypatch.setattr(

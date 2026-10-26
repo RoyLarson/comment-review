@@ -994,7 +994,7 @@ def read_lexical(path: Path, text: str, lang: Language) -> "LexicalRead":
             "file, so every line below the opener was swallowed into this run. "
             "Code down there was NOT read as code."
         )
-    return LexicalRead(found, code_lines, lang.a_series)
+    return LexicalRead(found, code_lines, lang.a_series, lang.closing_docstring)
 
 
 def _file_edges(
@@ -1370,14 +1370,9 @@ class LexicalRead:
     #: Whether the page has an `a` series: the row declares a documentation
     #: practice -- see `Language.a_series`.
     a_series: bool
-
-    @property
-    def closing_docstring(self) -> bool:
-        """Whether the module's documentation can sit at the file's foot: yes.
-
-        A doc-marked run after the last line of code documents the module.
-        """
-        return True
+    #: Whether the module's documentation can sit at the file's foot, so the
+    #: `a` series meets `<eof>` -- see `Language.closing_docstring`.
+    closing_docstring: bool
 
     def paragraphs(self, path: Path) -> list[Paragraph]:
         """Every prose run of the file as a page paragraph, in a new list."""

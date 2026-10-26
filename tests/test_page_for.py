@@ -438,7 +438,7 @@ def test_module_documentation_takes_the_a_its_anchor_names(monkeypatch, anchor, 
     code = CodeLine(1 if anchor else 2, "x;", None)
 
     def read(*args, **kwargs):
-        return LexicalRead([doc], [code], True)
+        return LexicalRead([doc], [code], True, True)
 
     monkeypatch.setattr(page_mod, "read_source", read)
     page = page_for_mod.page_of(Path("m.c"), source=Source(text, "held"))
@@ -499,7 +499,7 @@ def page_over_read(monkeypatch, found: list[Paragraph]) -> Page | ReadFailure:
         CodeLine(2, "package m", None),
         CodeLine(4, "func F() {}", DocPlace(4, True)),
     ]
-    read = LexicalRead(found, lines, True)
+    read = LexicalRead(found, lines, True, True)
     monkeypatch.setattr(page_mod, "read_source", lambda *args, **kwargs: read)
     return page_for(
         Path("m.go"), GO_DOCUMENTED, rel="m.go", sha="held", reading=reading
