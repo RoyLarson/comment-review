@@ -2,8 +2,8 @@
 
 ```
 Status:   in-progress
-Progress: 9 of 15 TODO tasks closed
-Plan-tasks: 9 of 17 plan tasks closed
+Progress: 10 of 15 TODO tasks closed
+Plan-tasks: 10 of 17 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-25 (founded by move-t from 2026-10-11-lexical-readers)
@@ -30,7 +30,7 @@ per step; each step lands its failing test first.
 - [ ] T6 | Delete the continues-a-trailing-comment stamp from lexer.py
 - [ ] T8 | Move the front and back matter rule to one shared place
 - [ ] T12 | Replace the Rust reader's _Lines with the shared line splitter
-- [ ] T13 | Stop the page changing a reader's matter kind to comment
+- [x] T13 | Stop the page changing a reader's matter kind to comment
 - [x] T14 | Form one comment section per gap in the Rust reader
 - [x] T15 | Remove the page's detached-documentation placement
 - [-] T16 | Move the lexical path's code lines and declarations into its reader
@@ -52,7 +52,8 @@ per step; each step lands its failing test first.
         > 2026-10-25 49389b6f reverted in e699deaf; redo on anchor_line after P13
         > 2026-10-25 Doc paragraphs are Kind.DOCSTRING; anchor_line names it (#229)
         > 2026-10-25 Redo after P16, not P13 (P13 superseded)
-- [ ] P3 | Stop the page changing a reader's matter kind
+- [x] P3 | FINISHED: retype deleted (unreachable after P2); addresses unchanged by probe | 9ac42812 | Stop
+      the page changing a reader's matter kind
         > 2026-10-25 Check: git grep "b.kind = " -- src/comment_review/binder: none
         > 2026-10-25 Works T13; needs P2
 - [-] P4 | Readers own code text (#228); replaced by P15 | 56d0e3d1 | Derive

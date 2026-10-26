@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 14 of 20 tasks closed
+Progress: 15 of 20 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-25 (decision-log.md Process: #224)
@@ -79,7 +79,8 @@ defect and is repaired (lexer-and-language-findings T12, b30cc510).
 - [ ] T12 | Replace the Rust reader's _Lines with the shared line splitter
         > 2026-10-25 rust/projection.py:368-389 copies constants.text_lines
         > 2026-10-25 Check: git grep "class _Lines" -- src returns none
-- [ ] T13 | Stop the page changing a reader's matter kind to comment
+- [x] T13 | FINISHED: the page's MATTER->COMMENT retype is deleted; binder assigns no kind | 9ac42812 | Stop
+      the page changing a reader's matter kind to comment
         > 2026-10-25 page.py:898-899 turns MATTER into COMMENT when it has an a address
         > 2026-10-25 Reason: #225, the reader assigns the kind; the page only addresses
         > 2026-10-25 Check: git grep "b.kind = Kind" -- src/comment_review/binder: none
