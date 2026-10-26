@@ -5704,3 +5704,19 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   the last line opens it, a fully empty line or code ends it, a closing docstring is the
   module's docstring, and a blank last line means none. A blank line inside a delimited comment
   is part of that comment and ends nothing (#223).
+
+- **#233.** **The `a` series meets `<eof>`, and a language has one when it documents at all**
+  (Roy, 2026-10-26, shown that `cue` offers every trigger to every series and `a` skips
+  `<eof>`, so a file's closing docstring had no place: *"Yes that matches my intent, and I think
+  it fixes the C and C++ question you just gave me as well, though maybe we messed up a
+  little"*; then, on splitting the `a` series' existence from the keyword list: *"Yes that looks
+  like a better solution in multiple ways"*).
+
+  **What it settles.** `a` emits at `<eof>` as `f` does, numbered next after the last
+  declaration and read after the closing `b` and before the last `f`; a closing docstring
+  attaches there, so a head and a foot docstring never compete. A language has an `a` series
+  when its row declares a documentation practice -- doc markers or declaring keywords; an empty
+  keyword list no longer removes it. C and C++ therefore have `a0` and the `<eof>` `a`, and a
+  doc-marked run on their line 1 is the module's docstring, not front matter (withdrawing the
+  answer given the same morning, which rested on C having no `a` series). SQL, TOML, INI and
+  YAML declare neither, so they have no `a` series and a comment on line 1 is front matter.
