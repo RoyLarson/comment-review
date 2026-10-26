@@ -195,13 +195,15 @@ def _pages(g: Gathering) -> None:
         g.pages.append(got)
         # The phrase is the warning's code as words, then the owner a
         # detached doc was written for.
-        coordinates = SourceCoordinates(got.text)
-        g.warnings.extend(
-            f"warning: {rel}:{coordinates.position(w.span.start).line}:"
-            f" {w.code.replace('-', ' ')}{_owner(w)}"
-            for w in got.read.warnings
-            if w.span is not None
-        )
+        located = [w for w in got.read.warnings if w.span is not None]
+        if located:
+            coordinates = SourceCoordinates(got.text)
+            g.warnings.extend(
+                f"warning: {rel}:{coordinates.position(w.span.start).line}:"
+                f" {w.code.replace('-', ' ')}{_owner(w)}"
+                for w in located
+                if w.span is not None
+            )
         g.paragraphs.extend(carried(got))
 
 
