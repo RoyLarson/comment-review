@@ -171,28 +171,14 @@ class RustScan:
 
 
 @dataclass(frozen=True)
-class DetachedRun:
-    """A documentation run the place model cannot hold."""
-
-    span: SourceSpan
-
-    def __post_init__(self) -> None:
-        """Require a SourceSpan."""
-        if not isinstance(self.span, SourceSpan):
-            raise ValueError("detached span must be a SourceSpan")
-
-
-@dataclass(frozen=True)
 class RustPlacement:
-    """Declarations and detached runs."""
+    """The declarations the place model found, in source order."""
 
     declarations: tuple[SourceDeclaration, ...]
-    detached: tuple[DetachedRun, ...]
 
     def __post_init__(self) -> None:
-        """Require declarations and detached runs."""
+        """Require declarations."""
         _tuple(self.declarations, SourceDeclaration, "declarations")
-        _tuple(self.detached, DetachedRun, "detached")
 
 
 class RustSectionForm(StrEnum):
@@ -213,10 +199,8 @@ class RustDocumentation:
     Each section's form is a RustSectionForm value. `owners` links each
     OUTER_DOC section to its declaration and each INNER_DOC section to the
     module, as declaration None: an inner doc in a body documents no owner.
-    `placement` carries the declarations and the detached runs.
-    Each warning marks one COMMENT section that is detached
-    documentation, and the warnings align one-to-one, in order, with
-    `placement.detached`.
+    `placement` carries the declarations. Each warning marks one COMMENT
+    section that is detached documentation.
     """
 
     sections: tuple[SourceSection, ...]
@@ -272,10 +256,6 @@ class RustDocumentation:
                 for span in comments
             ):
                 raise ValueError("a warning must mark a comment section")
-        if [warning.span for warning in self.warnings] != [
-            run.span for run in self.placement.detached
-        ]:
-            raise ValueError("warnings must align, in order, with detached runs")
 
 
 def _section_start(section: SourceSection) -> int:
@@ -287,10 +267,9 @@ def _section_start(section: SourceSection) -> int:
 class RustRead:
     """A completed Rust read: the source structure and what the read must keep.
 
-    `detached` aligns one-to-one, in order, with `warnings`. A COMMENT region
-    in no section is code. Each
-    declaration anchors on its own line, below the one before it, and its
-    documentation goes above that line. A documentation section shares no
+    A COMMENT region in no section is code. Each declaration anchors on its
+    own line, below the one before it, and its documentation goes above
+    that line. A documentation section shares no
     physical line with another section, so an `a` place holds its doc alone;
     other sections may share a line, and the projection makes them one
     paragraph.
@@ -299,10 +278,9 @@ class RustRead:
     source: SourceStructure
     protected: tuple[SourceSpan, ...]
     warnings: tuple[DetachedDocumentation, ...]
-    detached: tuple[DetachedRun, ...]
 
     def __post_init__(self) -> None:
-        """Check declaration lines, protected spans, warnings and detached runs."""
+        """Check declaration lines, protected spans and warnings."""
         if not isinstance(self.source, SourceStructure):
             raise ValueError("read source must be a SourceStructure")
         lines = [
@@ -337,11 +315,6 @@ class RustRead:
                 raise ValueError("warnings must be detached-documentation place notes")
             if warning.span is None or warning.span.end > len(self.source.text):
                 raise ValueError("warning span must lie inside source")
-        _tuple(self.detached, DetachedRun, "detached")
-        if [warning.span for warning in self.warnings] != [
-            run.span for run in self.detached
-        ]:
-            raise ValueError("warnings must align, in order, with detached runs")
 
     @property
     def proof(self) -> str:

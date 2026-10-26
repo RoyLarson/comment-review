@@ -141,9 +141,11 @@ LANGUAGES: tuple[Language, ...] = (
         # places, `a0` and `a1`.
         declares=("func", "type", "var", "const"),
     ),
-    # !! C AND C++ GET NO `a`. A C function is introduced by its RETURN TYPE --
-    # `size_t f(void)`, `MyRec f(void)` -- and `_declares_here` reads only a
-    # line's first two words, so no keyword list can reach the name.
+    # !! C AND C++ DECLARE NO KEYWORDS, so no declaration gets an `a`. A C
+    # function is introduced by its RETURN TYPE -- `size_t f(void)`, `MyRec
+    # f(void)` -- and `_declares_here` reads only a line's first two words, so
+    # no keyword list can reach the name. Their doc marker still gives the
+    # module its `a0` and `<eof>` `a` -- see `Language.a_series`.
     # ! A wrong `a` is worse than no `a`: a spurious match renumbers every `a`
     # below it, and an instruction is then invited on something that cannot hold one.
     Language(

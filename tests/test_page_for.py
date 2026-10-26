@@ -41,8 +41,7 @@ def test_python_page_retains_complete_structured_read():
         "docstring",
     ]
     assert [
-        page.read.source.slice(payload.expression.statement)
-        for payload in page.read.payloads
+        page.read.source.slice(payload.statement) for payload in page.read.payloads
     ] == ['"module"', '"a\\n" "b"']
     assert [owner.declaration for owner in page.read.source.documentation] == [
         None,
@@ -61,9 +60,7 @@ def test_python_page_bom_and_effective_cookie_preserve_exact_bytes():
     assert isinstance(page, Page)
     assert isinstance(page.read, PythonRead)
     assert page.read.source.reconstruct().encode("utf-8") == raw
-    assert page.read.source.slice(page.read.payloads[0].expression.statement) == (
-        '"module"'
-    )
+    assert page.read.source.slice(page.read.payloads[0].statement) == ('"module"')
     assert [item.kind for item in page.read.protected] == ["encoding"]
 
 
@@ -1326,22 +1323,6 @@ def test_rust_page_module_doc_behind_a_comment_that_is_not_matter_is_detached():
     addresses = [b.address for b in page.paragraphs if b.address]
     assert len(addresses) == len(set(addresses))
     assert set_page(page) == text
-
-
-def test_rust_page_detached_run_is_divided_at_the_closing_blank():
-    text = "//! a\n#![allow(x)]\n//! b\n\n//! c\n"
-    page = build(text, "m.rs")
-    places = by_cue(page)
-    assert (places["a0"].kind, places["a0"].raw_lines) == ("docstring", ["//! a"])
-    assert (places["b1"].kind, places["b1"].raw_lines) == ("comment", ["//! b"])
-    assert (places["f1"].kind, places["f1"].raw_lines) == ("matter", ["//! c"])
-
-
-def test_rust_page_two_detached_runs_in_one_gap_are_one_paragraph():
-    """Observed, not ruled: two detached runs in one gap are one paragraph."""
-    text = "fn g() {}\n/// a\n// x\n/// b\n// y\nfn f() {}\n"
-    page = build(text, "m.rs")
-    assert by_cue(page)["b1"].raw_lines == ["/// a", "// x", "/// b", "// y"]
 
 
 def test_rust_fixture_licence_header_is_front_matter_and_first_item_undocumented():

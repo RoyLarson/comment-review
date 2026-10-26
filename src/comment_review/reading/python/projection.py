@@ -11,7 +11,7 @@ from comment_review.reading.matter import file_matter
 from comment_review.reading.paragraph import Paragraph
 from comment_review.reading.python.definition import validate_python
 from comment_review.reading.python.records import (
-    DocumentationPayload,
+    DocumentationExpression,
     ProtectedSource,
     PythonPlacement,
     PythonRead,
@@ -23,7 +23,6 @@ from comment_review.reading.source import (
     DocPlace,
     DocumentationOwner,
     RegionKind,
-    SourceDeclaration,
     SourceSection,
     SourceSpan,
     SourceStructure,
@@ -34,7 +33,7 @@ from comment_review.reading.source import (
 def sections_for(
     scan: PythonScan,
     structure: PythonPlacement,
-    documentation: tuple[DocumentationPayload, ...],
+    documentation: tuple[DocumentationExpression, ...],
     definition: LanguageDefinition,
     directives: tuple[ProtectedSource, ...],
 ) -> PythonRead | ReadFailure:
@@ -55,8 +54,8 @@ def sections_for(
         if token.kind != "comment":
             continue
         if any(
-            payload.expression.statement.start <= token.span.start
-            and token.span.end <= payload.expression.statement.end
+            payload.statement.start <= token.span.start
+            and token.span.end <= payload.statement.end
             for payload in documentation
         ):
             continue
@@ -84,7 +83,7 @@ def sections_for(
             (
                 *comments,
                 *(
-                    SourceSection(payload.expression.statement, "docstring")
+                    SourceSection(payload.statement, "docstring")
                     for payload in documentation
                 ),
             ),
@@ -98,8 +97,8 @@ def sections_for(
     }
     owners = tuple(
         DocumentationOwner(
-            documentation_sections[payload.expression.statement],
-            payload.expression.declaration,
+            documentation_sections[payload.statement],
+            payload.declaration,
         )
         for payload in documentation
     )
@@ -123,19 +122,19 @@ def paragraphs_for(path: Path, read: PythonRead) -> list[Paragraph] | ReadFailur
     # line 1.
     prose = _prose(read, coordinates)
     matter = file_matter(len(lines), 1, prose)
-    payloads = {payload.expression.statement: payload for payload in read.payloads}
+    payloads = {payload.statement: payload for payload in read.payloads}
     paragraphs: list[Paragraph] = []
     for section in read.source.sections:
         span = section.span
         first = coordinates.position(span.start)
         last = coordinates.position(max(span.start, span.end - 1))
         if section.form == "docstring":
-            ordinal = payloads[span].expression.declaration
+            ordinal = payloads[span].declaration
             # None for the module's own docstring.
             declaring = (
                 None
                 if ordinal is None
-                else _declaring_line(read.source, read.source.declarations[ordinal])
+                else read.source.declaring_line(read.source.declarations[ordinal])
             )
             line_start = span.start - first.column
             raw_start = (
@@ -213,17 +212,10 @@ def code_lines_for(read: PythonRead) -> list[CodeLine]:
     source = read.source
     declared: dict[int, DocPlace] = {}
     for declaration in source.declarations:
-        # The first declaration on a line takes its place.
-        declared.setdefault(
-            _declaring_line(source, declaration),
-            DocPlace(source.position(declaration.header.end - 1).line, False),
+        declared[source.declaring_line(declaration)] = DocPlace(
+            source.position(declaration.header.end - 1).line, False
         )
     return lines_of_code(_code(read), declared)
-
-
-def _declaring_line(source: SourceStructure, declaration: SourceDeclaration) -> int:
-    """The code line that declares this: the line a docstring's `anchor_line` names."""
-    return source.position(declaration.anchor).line
 
 
 def _code(read: PythonRead) -> dict[int, str]:
@@ -246,20 +238,6 @@ def _code(read: PythonRead) -> dict[int, str]:
             boundary = min(end, span.end)
         chunks.append(text[boundary:end])
         anchor = "".join(chunks).rstrip()
-        if not anchor.strip(" \t\f\ufeff"):
-            # A documentation-only line can still anchor its separate c place.
-            # Its retained comment boundary preserves the physical prefix without
-            # assigning the documentation's characters to the comment section.
-            trailing = next(
-                (
-                    section.span.start
-                    for section in sections
-                    if section.form == "#" and offset < section.span.start < end
-                ),
-                None,
-            )
-            if trailing is not None:
-                anchor = text[offset:trailing].rstrip()
         if anchor.strip(" \t\f\ufeff"):
             code[number] = anchor
         offset = end

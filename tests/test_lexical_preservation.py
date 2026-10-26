@@ -161,10 +161,7 @@ def test_failures_never_compare_successfully(definition):
 def test_retained_owner_links_are_compared(definition):
     before = acquired('def a():\n    "old"\n    pass\ndef b():\n    pass\n', definition)
     owner = replace(before.source.documentation[0], declaration=1)
-    payload = replace(
-        before.payloads[0],
-        expression=replace(before.payloads[0].expression, declaration=1),
-    )
+    payload = replace(before.payloads[0], declaration=1)
     after = replace(
         before,
         source=replace(before.source, documentation=(owner,)),

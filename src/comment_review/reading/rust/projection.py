@@ -18,7 +18,6 @@ from comment_review.reading.source import (
     CodeLine,
     DocPlace,
     RegionKind,
-    SourceDeclaration,
     SourceRegion,
     SourceSpan,
     SourceStructure,
@@ -47,12 +46,7 @@ def sections_for(
         placement.declarations,
         documentation.owners,
     )
-    return RustRead(
-        source,
-        protected,
-        documentation.warnings,
-        placement.detached,
-    )
+    return RustRead(source, protected, documentation.warnings)
 
 
 def paragraphs_for(path: Path, read: RustRead) -> list[Paragraph] | ReadFailure:
@@ -111,7 +105,7 @@ def paragraphs_for(path: Path, read: RustRead) -> list[Paragraph] | ReadFailure:
             kind = Kind.DOCSTRING
             owner = owners[index]
             if owner is not None:
-                declaring = _declaring_line(source, source.declarations[owner])
+                declaring = source.declaring_line(source.declarations[owner])
         else:
             kind = Kind.TRAILING if code_before else Kind.COMMENT
         raw = constants.text_lines(text[raw_start:line_end])
@@ -218,13 +212,8 @@ def code_lines_for(read: RustRead) -> list[CodeLine]:
     """
     source = read.source
     # The placer gives a line at most one declaration, the first on it.
-    declaring = (_declaring_line(source, d) for d in source.declarations)
+    declaring = (source.declaring_line(d) for d in source.declarations)
     return lines_of_code(_code(read), {n: DocPlace(n, True) for n in declaring})
-
-
-def _declaring_line(source: SourceStructure, declaration: SourceDeclaration) -> int:
-    """The code line that declares this: the line a doc's `anchor_line` names."""
-    return source.position(declaration.anchor).line
 
 
 def _code(read: RustRead) -> dict[int, str]:

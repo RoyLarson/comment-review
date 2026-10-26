@@ -196,6 +196,20 @@ def test_partition_accepts_empty_text():
     assert structure("", []).regions == ()
 
 
+def test_a_declaration_is_declared_on_its_anchors_line():
+    # The header opens on line 1 and its anchor, past the attribute, is on line 2.
+    text = "@d\ndef f(): pass\n"
+    declaration = SourceDeclaration(SourceSpan(0, 16), 3, "def")
+    source = SourceStructure(
+        text,
+        (SourceRegion(SourceSpan(0, len(text)), RegionKind.CODE),),
+        (),
+        (declaration,),
+        (),
+    )
+    assert source.declaring_line(declaration) == 2
+
+
 def test_classification_reference_distinguishes_literal_comment_and_directive():
     text = 'let note = "# fake /* data */"; // real\n@keep\n'
     source = structure(

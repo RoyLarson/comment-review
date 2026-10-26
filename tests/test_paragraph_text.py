@@ -4,6 +4,7 @@ The derivation is tested on `comment_form` with raw lines handed to it; the page
 is tested for calling it, on a fresh page and on a place read back off the wire.
 """
 
+from dataclasses import replace
 from pathlib import Path
 
 import pytest
@@ -12,6 +13,8 @@ from comment_review.binder import page as page_mod
 from comment_review.binder.page import Page, page_for
 from comment_review.flows.reading_context import context_for
 from comment_review.reading.diagnostics import ReadFailure
+from comment_review.reading.docstring import Docstring
+from comment_review.reading.language import INSTALLED_REGISTRY
 from comment_review.reading.lexer import comment_form
 from comment_review.reading.series import Series
 
@@ -42,10 +45,16 @@ def test_one_comment_run_reads_as_one_text_in_every_language(path, marker):
             "/*\n * One wrapped claim\n * runs on.\n */",
             "One wrapped claim runs on.",
         ),
+        ("m.rs", "/** Doc\n * more\n */", "Doc more"),
     ],
 )
 def test_block_comment_markers_are_not_prose(path, raw, text):
     assert comment_form(Path(path), Series.GAP, raw).text == text
+
+
+def test_a_rust_shebang_is_its_own_fragment_and_the_comment_keeps_no_marker():
+    form = comment_form(Path("m.rs"), Series.COVERS, "#!/usr/bin/env rust\n// Licence")
+    assert [part.text for part in form.fragments] == ["#!/usr/bin/env rust", "Licence"]
 
 
 def test_python_docstring_escapes_keep_their_source_spelling():
@@ -66,6 +75,15 @@ def test_a_python_docstring_ending_in_a_continuation_has_no_quotes_in_its_text(
     raw, text
 ):
     assert comment_form(Path("m.py"), Series.DECLARED, raw).text == text
+
+
+def test_a_docstrings_language_definition_is_not_part_of_its_value():
+    form = comment_form(Path("m.py"), Series.DECLARED, '    """A. """ """B."""')
+    assert isinstance(form, Docstring)
+    other = INSTALLED_REGISTRY.for_path(Path("m.rs"))
+    assert other is not None
+    assert replace(form, definition=other) == form
+    assert "definition" not in repr(form)
 
 
 def _page(name: str, text: str) -> Page:
@@ -89,17 +107,21 @@ SOURCES = {
 }
 
 
+TEXTS = {
+    "m.c": {"f0": "File matter.", "c0": "abi_only", "b1": "Doc for f."},
+    "m.rs": {"a0": "Module doc.", "a1": "Adds one.", "c0": "trailing"},
+    "m.py": {"a0": "Module doc.", "b0": "A comment", "c0": "trailing"},
+}
+
+
 @pytest.mark.parametrize("name", sorted(SOURCES))
 def test_the_page_fills_text_from_comment_form(name):
     page = _page(name, SOURCES[name])
-    prose = [b for b in page.paragraphs if "".join(b.raw_lines).strip()]
-    assert prose
-    for b in prose:
-        cue = b.address.rsplit("@", 1)[-1]
-        if not cue:
-            continue
-        raw = "\n".join(b.raw_lines)
-        assert b.text == comment_form(Path(name), Series.of(cue), raw, b.anchor).text
+    assert {
+        b.address.rsplit("@", 1)[-1]: b.text
+        for b in page.paragraphs
+        if "".join(b.raw_lines).strip()
+    } == TEXTS[name]
 
 
 def test_a_c_block_comment_on_the_page_has_no_markers():

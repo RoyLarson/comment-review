@@ -1,4 +1,9 @@
-"""Immutable source records and exact character partition validation."""
+"""Immutable source records and exact character partition validation.
+
+Beside them is the contract a reader hands the page its code lines by:
+`CodeLine`, each line of code with the `DocPlace` it declares, built by
+`lines_of_code`.
+"""
 
 from collections.abc import Mapping
 from dataclasses import dataclass, field
@@ -259,6 +264,10 @@ class SourceStructure:
     def line_span(self, line: int) -> tuple[int, int]:
         """Start and end offset of a physical line, its line break excluded."""
         return self._coordinates.line_span(line)
+
+    def declaring_line(self, declaration: SourceDeclaration) -> int:
+        """The code line that declares this: the line a doc's `anchor_line` names."""
+        return self.position(declaration.anchor).line
 
     def slice(self, span: SourceSpan) -> str:
         """Return exact characters from a half-open span within the source."""

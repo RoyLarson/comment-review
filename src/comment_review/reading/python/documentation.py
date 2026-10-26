@@ -9,7 +9,6 @@ from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, Read
 from comment_review.reading.python.definition import validate_python
 from comment_review.reading.python.records import (
     DocumentationExpression,
-    DocumentationPayload,
     LogicalLine,
     PythonPlacement,
     PythonScan,
@@ -188,7 +187,7 @@ def decode_documentation(
     scan: PythonScan,
     expression: DocumentationExpression,
     definition: LanguageDefinition,
-) -> DocumentationPayload | ReadFailure:
+) -> DocumentationExpression | ReadFailure:
     """Admit the expression once every escape in its literals decodes.
 
     A raw literal preserves its escapes, so only the others are decoded; an
@@ -229,7 +228,7 @@ def decode_documentation(
             if isinstance(result, ReadFailure):
                 return result
             start = result[1]
-    return DocumentationPayload(expression)
+    return expression
 
 
 def _newline_end(text: str, start: int, end: int) -> int:

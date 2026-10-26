@@ -2,7 +2,7 @@
 
 import re
 from collections.abc import Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import cast
 
 from comment_review.reading.comment import Comment, Fragment
@@ -19,7 +19,8 @@ class Docstring(Comment):
 
     spans: tuple[tuple[tuple[int, int], ...], ...]
     suffix: str
-    definition: LanguageDefinition
+    #: The grammar an edit is re-read with; not part of the docstring's value.
+    definition: LanguageDefinition = field(compare=False, repr=False)
 
     def _without_range(self, start: int, end: int) -> str | None:
         remaining = self.text[:start] + self.text[end:]

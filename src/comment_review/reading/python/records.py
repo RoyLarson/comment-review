@@ -210,25 +210,15 @@ class DocumentationExpression:
             raise ValueError("literal components must be nonempty and inside statement")
 
 
-@dataclass(frozen=True)
-class DocumentationPayload:
-    """A documentation expression whose every literal decodes."""
-
-    expression: DocumentationExpression
-
-    def __post_init__(self) -> None:
-        """Require the recognized expression."""
-        if not isinstance(self.expression, DocumentationExpression):
-            raise ValueError("payload expression must be a DocumentationExpression")
-
-
 @final
 @dataclass(frozen=True)
 class PythonRead:
     """A complete Python read reusing the exact source structure."""
 
     source: SourceStructure
-    payloads: tuple[DocumentationPayload, ...]
+    #: The documentation expressions whose every literal decodes, one per
+    #: documentation owner, in order.
+    payloads: tuple[DocumentationExpression, ...]
     protected: tuple[ProtectedSource, ...]
 
     def __post_init__(self) -> None:
@@ -242,13 +232,12 @@ class PythonRead:
                 item.attachment is not None and item.attachment.end > end
             ):
                 raise ValueError("protected span or attachment is outside source")
-        _tuple(self.payloads, DocumentationPayload, "payloads")
+        _tuple(self.payloads, DocumentationExpression, "payloads")
         if len(self.payloads) != len(self.source.documentation):
             raise ValueError("payloads must match source documentation owners")
-        for payload, owner in zip(
+        for expression, owner in zip(
             self.payloads, self.source.documentation, strict=True
         ):
-            expression = payload.expression
             section = self.source.sections[owner.section]
             if (
                 expression.declaration != owner.declaration

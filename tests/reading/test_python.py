@@ -32,8 +32,7 @@ def records():
 def literal_value(text, payload):
     """The value of a payload's literals: which docstring the read recognized."""
     return "".join(
-        ast.literal_eval(text[span.start : span.end])
-        for span in payload.expression.components
+        ast.literal_eval(text[span.start : span.end]) for span in payload.components
     )
 
 
@@ -118,8 +117,8 @@ def test_documentation_paragraph_preserves_payload_and_source(
     assert (paragraphs[0].kind, paragraphs[0].anchor_line) == (Kind.DOCSTRING, None)
     assert result.source is source
     assert result.payloads[0] is payload
-    assert payload.expression.statement == SourceSpan(0, len(expression))
-    assert source.slice(payload.expression.statement) == expression
+    assert payload.statement == SourceSpan(0, len(expression))
+    assert source.slice(payload.statement) == expression
     assert source.reconstruct() == text
 
 
@@ -138,8 +137,7 @@ def documented_read(records):
         (DocumentationOwner(0, 0),),
     )
     expression = records.DocumentationExpression(statement, components, 0)
-    payload = records.DocumentationPayload(expression)
-    return records.PythonRead(source, (payload,), ())
+    return records.PythonRead(source, (expression,), ())
 
 
 def test_records_empty_read_preserves_exact_source(records):
@@ -153,9 +151,9 @@ def test_records_empty_read_preserves_exact_source(records):
 def test_records_documented_read_reconstructs_and_is_frozen(records):
     result = documented_read(records)
     assert result.source.reconstruct() == 'def f():\n    "a\\n" "b"\n'
-    assert result.source.slice(result.payloads[0].expression.statement) == '"a\\n" "b"'
+    assert result.source.slice(result.payloads[0].statement) == '"a\\n" "b"'
     with pytest.raises(FrozenInstanceError):
-        result.payloads[0].expression = result.payloads[0].expression
+        result.payloads[0].statement = result.payloads[0].statement
 
 
 def test_records_nested_protection_and_fragment_offsets(records):
@@ -174,13 +172,6 @@ def test_records_nested_protection_and_fragment_offsets(records):
         protection,
     )
     assert scan.protected == protection
-
-
-def test_records_payload_keeps_raw_expression(records):
-    expression = records.DocumentationExpression(
-        SourceSpan(0, 13), (SourceSpan(0, 7), SourceSpan(8, 13)), None
-    )
-    assert records.DocumentationPayload(expression).expression is expression
 
 
 @pytest.mark.parametrize(
@@ -212,7 +203,6 @@ def test_records_payload_keeps_raw_expression(records):
         lambda r: r.DocumentationExpression(
             SourceSpan(0, 4), (SourceSpan(0, 3), SourceSpan(2, 4)), None
         ),
-        lambda r: r.DocumentationPayload(None),
         lambda r: r.PreservationResult(
             True, (ReadDiagnostic(ReadStage.PLACE, "changed", "changed"),)
         ),
@@ -279,27 +269,14 @@ def test_records_reject_payload_wrong_statement_and_owner(records):
     payload = result.payloads[0]
     for changes in (
         {"payloads": ()},
-        {
-            "payloads": (
-                replace(
-                    payload,
-                    expression=replace(
-                        payload.expression, statement=SourceSpan(12, 22)
-                    ),
-                ),
-            )
-        },
+        {"payloads": (replace(payload, statement=SourceSpan(12, 22)),)},
     ):
         with pytest.raises(ValueError):
             replace(result, **changes)
     with pytest.raises(ValueError):
         replace(
             result,
-            payloads=(
-                replace(
-                    payload, expression=replace(payload.expression, declaration=None)
-                ),
-            ),
+            payloads=(replace(payload, declaration=None),),
         )
 
 
@@ -353,7 +330,7 @@ def test_read_python_initial_bom_preserves_exact_source_and_documentation(
     assert result.source.text is source.text
     assert result.source.reconstruct().encode("utf-8") == raw
     assert literal_value(result.source.text, result.payloads[0]) == "module"
-    statement = result.payloads[0].expression.statement
+    statement = result.payloads[0].statement
     assert statement.start == 1 + len(preamble)
     assert result.source.slice(statement) == '"module"'
     assert [item.kind for item in result.protected] == (
@@ -556,8 +533,8 @@ def test_compact_header_spelling_preserves_nested_documentation_positions(
     document = text.index('"body"')
     assert declaration.header == SourceSpan(start, start + len("def render():"))
     assert declaration.anchor == start
-    assert result.payloads[0].expression.statement == SourceSpan(document, document + 6)
-    assert result.payloads[0].expression.declaration == 0
+    assert result.payloads[0].statement == SourceSpan(document, document + 6)
+    assert result.payloads[0].declaration == 0
 
 
 @pytest.mark.parametrize(
@@ -2573,7 +2550,7 @@ def test_payloads_admit_valid_escapes_and_record_the_raw_expression(
 ):
     scan, expression, payload = read_payload(literal + "\n", python_definition)
     assert not isinstance(payload, ReadFailure)
-    assert payload.expression is expression
+    assert payload is expression
     assert expression.components == (SourceSpan(0, len(literal)),)
     assert scan.text[expression.statement.start : expression.statement.end] == literal
     assert scan.text == literal + "\n"
@@ -2762,80 +2739,64 @@ def test_sections_documentation_owns_complete_concatenated_statement(python_defi
     ]
     assert result.source.documentation == (DocumentationOwner(1, None),)
     assert literal_value(result.source.text, payloads[0]) == "a\nb"
-    assert payloads[0].expression.components == (SourceSpan(8, 13), SourceSpan(14, 18))
+    assert payloads[0].components == (SourceSpan(8, 13), SourceSpan(14, 18))
     assert result.source.slice(SourceSpan(20, 25)) == " x=1 "
     assert result.source.reconstruct() == text
 
 
 @pytest.mark.parametrize("ending", ["\n", "\r\n"])
 @pytest.mark.parametrize(
-    "text, raw, place, code",
+    "text, raw, code",
     [
         (
             'x=f"{value # note\n}"; after()\n',
             "# note\n",
-            "c0",
             {1: 'x=f"{value', 2: '}"; after()'},
         ),
         (
             'x=f"""{\n    # note\n    value\n}"""; after()\n',
             "    # note\n",
-            "b1",
             {1: 'x=f"""{', 3: "    value", 4: '}"""; after()'},
         ),
         (
             'x=f"""{value # first\n\n    # second\n}"""; after()\n',
             ("# first\n", "    # second\n"),
-            ("c0", "b1"),
             {1: 'x=f"""{value', 4: '}"""; after()'},
         ),
         (
             'x=f"""{\n    # first\n\n    # second\n    value\n}"""; after()\n',
             "    # first\n\n    # second\n",
-            "b1",
             {1: 'x=f"""{', 5: "    value", 6: '}"""; after()'},
         ),
         (
             'x=f"""{f\'{\n    # note\n    value\n}\'}"""; after()\n',
             "    # note\n",
-            "b1",
             {1: 'x=f"""{f\'{', 3: "    value", 4: '}\'}"""; after()'},
         ),
         (
             'x=f"{before}{value # note\n}{after}"; work()\n',
             "# note\n",
-            "c0",
             {1: 'x=f"{before}{value', 2: '}{after}"; work()'},
         ),
         (
             'x=f"{value:{width # note\n}}"; work()\n',
             "# note\n",
-            "c0",
             {1: 'x=f"{value:{width', 2: '}}"; work()'},
         ),
         (
             'x=f"{value # note } f\' x\n}"; after()\n',
             "# note } f' x\n",
-            "c0",
             {1: 'x=f"{value', 2: '}"; after()'},
         ),
     ],
 )
-def test_expression_comments_existing_places_preserve_expression_on_set_and_edit(
-    python_definition, ending, text, raw, place, code
+def test_expression_comments_are_sections_and_the_expression_keeps_its_code(
+    python_definition, ending, text, raw, code
 ):
-    from conftest import build
-
-    from comment_review.binder.page import Page, attach, tie_leading
-    from comment_review.reading.addresser import address_for, cue
-    from comment_review.reading.paragraph import Paragraph
-    from comment_review.results.compositor import set_page
-
     text = text.replace("\n", ending)
     raws = tuple(
         part.replace("\n", ending) for part in ((raw,) if isinstance(raw, str) else raw)
     )
-    places = (place,) if isinstance(place, str) else place
     scan, _, _, _, result = project_sections(text, python_definition)
     assert not isinstance(result, ReadFailure)
     assert result.source.sections == tuple(
@@ -2847,72 +2808,7 @@ def test_expression_comments_existing_places_preserve_expression_on_set_and_edit
         for token in scan.tokens
         if token.kind == "comment"
     ] == [line.lstrip() for raw in raws for line in raw.splitlines() if line.strip()]
-    # A trailing comment's prose starts where the line's code ends: the code is
-    # right-trimmed, so the blanks before the `#` are the paragraph's.
-    paragraphs = []
-    owns = []
-    for section, raw in zip(result.source.sections, raws, strict=True):
-        position = result.source.position(section.span.start)
-        first_line = position.line
-        last_line = result.source.position(section.span.end - 1).line
-        prefix = text[section.span.start - position.column : section.span.start]
-        code_part = prefix.rstrip()
-        own = text[
-            section.span.start - (len(prefix) - len(code_part)) : section.span.end
-        ]
-        owns.append(own)
-        paragraphs.append(
-            Paragraph(
-                path="m.py",
-                start=first_line,
-                end=last_line,
-                kind="trailing-comment" if code_part else "comment",
-                text=raw,
-                anchor=code_part,
-                raw_lines=own.splitlines(),
-            )
-        )
-    lines = result.code_lines()
-    assert {c.line: c.code for c in lines} == code
-    cues = cue(lines, a_series=False)
-    for paragraph, place in zip(paragraphs, places, strict=True):
-        assert attach(vars(paragraph), cues) == place
-        assert paragraph.original_start is not None
-        assert paragraph.original_end is not None
-        assert cues.anchor_line(place) == (
-            paragraph.original_start
-            if place.startswith("c")
-            else paragraph.original_end + 1
-        )
-        paragraph.address = address_for("m.py", place)
-    leading = [p for p in build(text) if p.kind == "leading"]
-    laid_out = sorted([*paragraphs, *leading], key=lambda p: p.start)
-    page = Page(
-        "m.py",
-        text,
-        "held",
-        laid_out,
-        cues,
-        build("").reading,
-        build(text).read,
-        leading=tie_leading(laid_out, cues),
-    )
-    assert set_page(page) == text
-    original_anchors = dict(cues.places)
-    for paragraph, place, own in zip(paragraphs, places, owns, strict=True):
-        start = text.index(own)
-        end = start + len(own)
-        replacement = own.replace("# note", "# edited").replace("# first", "# edited")
-        replacement += "    # added" + ending
-        paragraph.raw_lines = replacement.splitlines()
-        assert set_page(page) == text[:start] + replacement + text[end:]
-        paragraph.raw_lines = []
-        assert (
-            set_page(page)
-            == text[:start] + (ending if place.startswith("c") else "") + text[end:]
-        )
-        assert cues.places == original_anchors
-        paragraph.raw_lines = own.splitlines()
+    assert {c.line: c.code for c in result.code_lines()} == code
 
 
 @pytest.mark.parametrize(
@@ -2994,7 +2890,7 @@ def test_sections_interior_documentation_comment_belongs_to_whole_owner(
     text = '("a" # note\n "b")\n'
     scan, _, payloads, _, result = project_sections(text, python_definition)
     assert literal_value(result.source.text, payloads[0]) == "ab"
-    assert payloads[0].expression.statement == SourceSpan(0, 17)
+    assert payloads[0].statement == SourceSpan(0, 17)
     assert not isinstance(result, ReadFailure)
     assert result.source.sections == (SourceSection(SourceSpan(0, 17), "docstring"),)
     assert result.source.documentation == (DocumentationOwner(0, None),)
@@ -3681,7 +3577,7 @@ def test_documentation_header_colons_inside_expressions_are_shielded(
     assert not isinstance(result, ReadFailure)
     assert result.source.declarations[0].header == SourceSpan(0, len(header))
     assert literal_value(result.source.text, result.payloads[0]) == "complete docs"
-    assert result.payloads[0].expression.declaration == 0
+    assert result.payloads[0].declaration == 0
     assert (
         result.source.slice(result.source.sections[0].span)
         == '("complete " r"docs") # closer'
@@ -3725,7 +3621,7 @@ def test_declaration_annotation_unicode_spelling_is_not_lambda_keyword(
     assert [
         literal_value(result.source.text, payload) for payload in result.payloads
     ] == ["docs"]
-    assert result.payloads[0].expression.declaration == 0
+    assert result.payloads[0].declaration == 0
     assert result.source.slice(result.source.sections[0].span) == '"docs"'
     position = result.source.position(result.source.sections[0].span.start)
     assert (position.line, position.column) == (2, 4)

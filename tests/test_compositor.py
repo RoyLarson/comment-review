@@ -649,3 +649,39 @@ def test_filling_the_head_of_a_shebang_file_keeps_the_shebang_on_line_one(
     page = build("#!/usr/bin/env node\nfunction main() {}\n", name)
     assert reset(page, {place: prose}) == []
     assert set_page(page) == expected
+
+
+@pytest.mark.parametrize("ending", ["\n", "\r\n"])
+@pytest.mark.parametrize(
+    ("text", "places"),
+    [
+        ('x=f"{value # note\n}"; after()\n', ("c0",)),
+        ('x=f"""{\n    # note\n    value\n}"""; after()\n', ("b1",)),
+        ('x=f"""{value # first\n\n    # second\n}"""; after()\n', ("c0", "b1")),
+        ('x=f"""{\n    # first\n\n    # second\n    value\n}"""; after()\n', ("b1",)),
+        ('x=f"""{f\'{\n    # note\n    value\n}\'}"""; after()\n', ("b1",)),
+        ('x=f"{before}{value # note\n}{after}"; work()\n', ("c0",)),
+        ('x=f"{value:{width # note\n}}"; work()\n', ("c0",)),
+        ('x=f"{value # note } f\' x\n}"; after()\n', ("c0",)),
+    ],
+)
+def test_a_comment_inside_an_expression_is_set_and_edited_around_the_expression(
+    ending, text, places
+):
+    from comment_review.results.galley import reset
+
+    text = text.replace("\n", ending)
+    assert set_page(build(text)) == text
+    for place in places:
+        own = ending.join(by_cue(build(text))[place].raw_lines) + ending
+        start = text.index(own)
+        end = start + len(own)
+        replacement = own.replace("# note", "# edited").replace("# first", "# edited")
+        replacement += "    # added" + ending
+        page = build(text)
+        assert reset(page, {place: replacement}) == []
+        assert set_page(page) == text[:start] + replacement + text[end:]
+        page = build(text)
+        assert reset(page, {place: None}) == []
+        vacated = ending if place.startswith("c") else ""
+        assert set_page(page) == text[:start] + vacated + text[end:]

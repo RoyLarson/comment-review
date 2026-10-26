@@ -217,8 +217,9 @@ such run is a COMMENT at the place its position gives it (`#226`); the page
 holds no detached-documentation logic. The read carries one warning per run
 (`RustRead.warnings`). It is not a read failure. Moving the detached run to the
 `a` is an ordinary placement change, which both comparisons pass. Gather prints
-`warning: <path>:<line>: detached documentation` to stderr, one line per run;
-see *Changes outside reading*.
+`warning: <path>:<line>: detached documentation (owner on line <n>)`, or
+`(owner: module)`, to stderr, one line per run (`#236`); see *Changes outside
+reading*.
 
 ## Sections, directives and addresses
 
@@ -346,7 +347,7 @@ inner_attribute_follows = "["
 Two constraints are fixed: every value the reader consults is in this file, and
 `reading/rust/definition.py`'s `validate_rust` checks the identity and every
 rules value by exact comparison and type, as `validate_python` does
-(`reading/python/definition.py:10`). The one exception is
+(`reading/python/definition.py`). The one exception is
 `[rules.documentation].owners`, which must be a nonempty list of distinct owner
 kinds from the grammar's set, so a definition may narrow which kinds take
 documentation. Revision `2` replaces the shared row's
@@ -361,7 +362,7 @@ documentation. Revision `2` replaces the shared row's
 | Module | Provides | Built on |
 | --- | --- | --- |
 | `definition.py` | `validate_rust(definition) -> ReadFailure \| None` | `LanguageDefinition` |
-| `records.py` | `RustToken(kind, span)`, `RustScan(text, regions, tokens)`, `RustPlacement(declarations, detached)`, `DetachedRun(span)`, `RustDocumentation(sections, owners, placement, warnings)`, `RustRead` | `SourceStructure`, `SourceSpan`, `SourceSection`, `SourceDeclaration`, `DocumentationOwner`, `CodeLine` from `reading/source.py` |
+| `records.py` | `RustToken(kind, span)`, `RustScan(text, regions, tokens)`, `RustPlacement(declarations)`, `RustDocumentation(sections, owners, placement, warnings)`, `RustRead` | `SourceStructure`, `SourceSpan`, `SourceSection`, `SourceDeclaration`, `DocumentationOwner`, `CodeLine` from `reading/source.py` |
 | `scanner.py` | `scan_rust(text, definition) -> RustScan \| ReadFailure`: the state table above | `ReadDiagnostic` at `LEX` |
 | `structure.py` | `place_declarations(scan, definition) -> RustPlacement \| ReadFailure`: the body-kind stack, owners, heads, the same-line rule, macro opacity | the scan's tokens only |
 | `documentation.py` | `documentation_in(scan, placement, definition)`: groups comments into sections, attaches doc sections to owners, finds detached runs and the module's `a0` | the scan and placement; `reading/matter.py` |
@@ -370,14 +371,15 @@ documentation. Revision `2` replaces the shared row's
 | `preservation.py` | `compare_preservation(before, after) -> PreservationResult` | `reading/proof.py` |
 | `__init__.py` | `read_rust(text, definition) -> RustRead \| ReadFailure` | the above, in order |
 
-`RustRead` holds `source: SourceStructure`, `protected` (the shebang),
-`warnings: tuple[ReadDiagnostic, ...]` -- one per detached run, at stage `PLACE`,
-code `detached-documentation`, with the run's span -- and `detached` (the
-`DetachedRun` spans, aligned with `warnings`). It records no owner for a
-warning. It validates in `__post_init__`: each declaration anchored on its own
-line below the one before, no documentation section sharing a physical line,
-protected spans coinciding with directive regions, warnings aligned with
-detached runs. It satisfies `ReaderRecord` (`reading/proof.py`) with
+`RustRead` holds `source: SourceStructure`, `protected` (the shebang) and
+`warnings: tuple[DetachedDocumentation, ...]` (`reading/diagnostics.py`) --
+one per detached run, at stage `PLACE`, code `detached-documentation`, with
+the run's span and `owner_line`, the line its owner's head starts on, or
+None for the module (`decision-log.md Process: #236`). It validates in
+`__post_init__`: each declaration anchored on its own line below the one
+before, no documentation section sharing a physical line, protected spans
+coinciding with directive regions, and each warning a detached-documentation
+place note inside the source. It satisfies `ReaderRecord` (`reading/proof.py`) with
 `paragraphs(path)`, `code_lines()`, `a_series` and `closing_docstring`.
 
 `projection.py` hands the page what only parsing finds (`decision-log.md
@@ -405,7 +407,7 @@ compared first, as protected source. Codes are the Python
 comparison's where they mean the same thing: `code-changed`,
 `protected-source-changed`. `RustRead.preserved(after, *, documented=None)`
 accepts `documented` and ignores it, as `StrippedRead` does
-(`reading/stripped.py:148-179`).
+(`StrippedRead.preserved` in `reading/stripped.py`).
 
 **My call:** every comment, ordinary or documentation, is prose to the
 comparison. Unlike a Python docstring, a Rust doc comment holds no executable
@@ -424,11 +426,11 @@ These are within `reading/` and need no further approval:
 
 | File | Change | Why |
 | --- | --- | --- |
-| `reading/language.py` | Remove the `"rust"` row from `LANGUAGES` and `READER_METADATA` | `language.py:561` builds `INSTALLED_REGISTRY` directly, and a second `rust` raises `duplicate-language` (`registry.py:54-58`) |
-| `reading/language.py` | `line_comment_markers` and the paragraph-comment lookup answer Rust from `rust.toml` | they read the row today (`language.py:651-654`) |
-| `reading/lexer.py` | `comment_form` (`:130`, `:203`) answers Rust from the definition | `desk/marks/rules.py:37` calls it to split a mark's comment from its markers; without the row it returns the raw text whole |
-| `reading/stripped.py` | No change: a Rust page's read is the `RustRead`, so `StrippedRead` is no longer built for `.rs` | `stripped.py:62` needs `language_for`, which answers `None` once the row goes |
-| `reading/readers.py` | A `rust-lexical` `ReaderBinding` with `read_rust`, `validate_rust`, grammar identity `"Rust Reference lexical"`; `SourceReader` and `read_source` return a reader record rather than naming `PythonRead`; `read_paragraphs` asks the record for its paragraphs | `readers.py:34-36`, `:93-102` name `PythonRead` |
+| `reading/language.py` | Remove the `"rust"` row from `LANGUAGES` and `READER_METADATA` | `INSTALLED_REGISTRY` in `language.py` is built from both, and a second `rust` raises `duplicate-language` (`LanguageRegistry` in `registry.py`) |
+| `reading/language.py` | `line_comment_markers` and the paragraph-comment lookup answer Rust from `rust.toml` | they read the row (`line_comment_markers` and `language_for` in `language.py`) |
+| `reading/lexer.py` | `comment_form` answers Rust from the definition | `comment_at` in `desk/marks/rules.py` calls it to split a mark's comment from its markers; without the row it returns the raw text whole |
+| `reading/stripped.py` | No change: a Rust page's read is the `RustRead`, so `StrippedRead` is no longer built for `.rs` | `_without_comments` in `stripped.py` needs `language_for`, which answers `None` once the row goes |
+| `reading/readers.py` | A `rust-lexical` `ReaderBinding` with `read_rust`, `validate_rust`, grammar identity `"Rust Reference lexical"`; `SourceReader` and `read_source` return a reader record rather than naming `PythonRead`; `read_paragraphs` asks the record for its paragraphs | `SourceReader` and `read_source` in `readers.py` named `PythonRead` |
 | `reading/proof.py` | A `ReaderRecord` `Protocol` beside `SourceRead`: `source`, `paragraphs(path)`, `code_lines()`, `a_series`, `closing_docstring`, plus `SourceRead`'s `proof`, `warnings` and `preserved`. `PythonRead` and `RustRead` both satisfy it | one interface for `page_for` to ask, so no consumer names a reader |
 | `reading/matter.py` | `file_matter`, the one matter rule every reader calls | the front and back matter is stated once (`decision-log.md Process: #232`) |
 
@@ -441,16 +443,17 @@ Anything outside reading not in this table still needs his approval first.
 | --- | --- | --- | --- |
 | O1 | `binder/page.py`, `page_for` | Replace `isinstance(result, PythonRead)` and the `reading.python.projection` imports with the `ReaderRecord` protocol: take the page text, paragraphs, `code_lines()`, `a_series` and `closing_docstring` from the record, and set `read=` to the record. The generic lexical read stays the one tested for by type | No change inside reading can make `page_for` accept a second record type. No address or wire change |
 | O2 | `binder/page.py`, `Page` | None beyond O1: `Page.read` is the record, so its `warnings` reach gather without the page reading them. The page holds no detached-documentation logic and no warning field (`decision-log.md Process: #226`) | The binder wire stays `cue, anchor, original_start, original_end, raw_text` |
-| O3 | `flows/gather.py`, `commands/gather.py` | Print each of the read's warnings to stderr as `warning: <path>:<line>: detached documentation`, the line being the warning span's start; the exit code is unchanged | No non-fatal channel exists: `ReadFailure` always fails the file, and gather prints only `unreadable`, unaddressed, `unread` and `no_record`. `flows/gather.py` collects the lines; `commands/gather.py` `_passed_over` prints them |
+| O3 | `flows/gather.py`, `commands/gather.py` | Print each of the read's warnings to stderr as `warning: <path>:<line>: detached documentation (owner on line <n>)`, or `(owner: module)`, the line being the warning span's start and the owner the warning's `owner_line` (`#236`); the exit code is unchanged | No non-fatal channel exists: `ReadFailure` always fails the file, and gather prints only `unreadable`, unaddressed, `unread` and `no_record`. `flows/gather.py` collects the lines; `commands/gather.py` `_passed_over` prints them |
 | O4 | `src/plugin/skills/comment-review/SKILL.md`, stage 2 | Ask the human about each detached-documentation warning, record the answer, and proceed | `#29`. The `agents` lane owns it: this work files an `agents` TODO and does not edit the file |
 | O5 | `references/vocabulary.toml`, `docs/vocabulary.md` | Add `detached documentation` | Shared by no lane; a new term is added on both sides in the same change (`docs/conventions.md`, *The vocabulary is shared*). `detached documentation` is defined in `docs/vocabulary.md`; its move to `vocabulary.toml` is filed in `TODO/stage-two-detached-warnings.md` T2 |
 
-These are checked and need no change: `flows/prove_unchanged.py:120-122` and
-`flows/proof_setter.py:695,713` use only `proof` and `preserved`;
-`flows/reading_context.py:174` and `flows/page_for.py:54-71` select the reader
-through `reader_for`; `commands/gather.py:109` prints `capabilities[-1]`;
-`concordance/code_names.py:69-77` and `concordance/referrers.py:54` treat a
-non-Python file as having no harvester, unchanged by this work.
+These are checked and need no change: `flows/prove_unchanged.py` and
+`flows/proof_setter.py` use only the read's `proof` and `preserved`;
+`context_for` in `flows/reading_context.py` selects the reader through
+`reader_for`; `commands/gather.py` prints `capabilities[-1]` for
+`--languages`; `code_names` in `concordance/code_names.py` and `tokens_for`
+in `concordance/referrers.py` treat a non-Python file as having no
+harvester, unchanged by this work.
 
 ## Order of work
 
@@ -471,7 +474,7 @@ Each step ends with its tests green and the full suite green.
 5. **Projection and records.** `RustRead`, `paragraphs_for`, `code_lines_for`,
    the `ReaderRecord` protocol satisfied by both records.
 6. **Page integration.** O1: `page_for` over a `.rs`
-   source gives the expected addresses through `tests/conftest.py:77`'s
+   source gives the expected addresses through `tests/conftest.py`'s
    `build(text, name="m.rs")`.
 7. **Preservation.** `compare_preservation` and both comparison paths.
 8. **Gather warning.** O3; the O4 `agents` TODO filed; O5 made.
@@ -480,7 +483,7 @@ Each step ends with its tests green and the full suite green.
 ## Diagnostics and compatibility
 
 Changing the Rust definition or reader changes its compatibility identity
-(`reading/context.py:21-52`), and older Rust review artifacts require
+(`compatibility_identity` in `reading/context.py`), and older Rust review artifacts require
 regathering. Unterminated comments, literals and attributes return located
 diagnostics. Ordinary code is not rejected because it would fail to compile.
 The existing input-decoding policy and source-NUL refusal are kept.

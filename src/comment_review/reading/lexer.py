@@ -29,6 +29,7 @@ from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from pathlib import Path
 from types import MappingProxyType
+from typing import NamedTuple
 
 from comment_review import constants
 from comment_review.reading.addresser import EOF
@@ -93,18 +94,37 @@ COMMENT_SCANNERS: Mapping[
 ] = MappingProxyType({"rust-lexical": comments_in})
 
 
+class _Grammar(NamedTuple):
+    """What a path's language says about its comments, looked up once per form."""
+
+    #: The lexical row, or None for a language defined by its own file.
+    lang: Language | None
+    #: The installed definition, or None for a path no language covers.
+    definition: LanguageDefinition | None
+    #: Whether the language documents in string literals, as Python does.
+    in_literals: bool
+    #: The markers that open a line comment.
+    markers: tuple[str, ...]
+
+
 def comment_form(
     path: Path, series: Series | None, raw_text: str, anchor: str = ""
 ) -> Comment:
     """The assigned paragraph's prose and the form its raw text carries."""
     value = INSTALLED_REGISTRY.for_path(path)
+    lang = language_for(path)
+    grammar = _Grammar(
+        lang,
+        value,
+        documents_in_literals(path),
+        tuple(sorted(line_comment_markers(path), key=len, reverse=True)),
+    )
     scanner = COMMENT_SCANNERS.get(value.reader) if value is not None else None
     if value is not None and scanner is not None:
         found = scanner(raw_text, value)
-        return _scanned_form(path, series, raw_text, anchor, found)
-    lang = language_for(path)
+        return _scanned_form(grammar, series, raw_text, anchor, found)
     chunks: list[str] = []
-    if value is not None and documents_in_literals(path) and series is Series.DECLARED:
+    if value is not None and grammar.in_literals and series is Series.DECLARED:
         from comment_review.reading.docstring import concatenated
 
         docstring = concatenated(raw_text, value)
@@ -166,14 +186,14 @@ def comment_form(
     else:
         chunks = [raw_text]
     parts = tuple(
-        _comment_fragment(path, series, chunk, anchor if n == 0 else "")
+        _comment_fragment(grammar, series, chunk, anchor if n == 0 else "")
         for n, chunk in enumerate(chunks)
     )
     return Comment(raw_text, parts)
 
 
 def _scanned_form(
-    path: Path,
+    grammar: _Grammar,
     series: Series | None,
     raw_text: str,
     anchor: str,
@@ -184,11 +204,27 @@ def _scanned_form(
     A delimited comment, and a line comment of another form than the one
     before it, starts a fragment: at its line's start when it opens the line,
     or where it opens when something precedes it there. Line comments of one
-    form run on as one fragment. A paragraph its reader finds no comment in
-    is one fragment with no markers.
+    form run on as one fragment. Text before the first comment, such as a
+    shebang the matter holds, is a fragment of its own with no markers, and so
+    is a paragraph its reader finds no comment in.
     """
     if not found:
-        return Comment(raw_text, (_comment_fragment(path, series, raw_text, anchor),))
+        return Comment(
+            raw_text, (_comment_fragment(grammar, series, raw_text, anchor),)
+        )
+    leading: list[Fragment] = []
+    if raw_text[: found[0].start].strip():
+        line_start = raw_text.rfind("\n", 0, found[0].start) + 1
+        opens_line = not raw_text[line_start : found[0].start].strip()
+        cut = line_start if opens_line else found[0].start
+        leading.append(_comment_fragment(grammar, series, raw_text[:cut], anchor))
+        raw_text, whole = raw_text[cut:], raw_text
+        found = tuple(
+            CommentSpan(c.start - cut, c.end - cut, c.opener, c.closer) for c in found
+        )
+        anchor = ""
+    else:
+        whole = raw_text
     cuts = [0]
     opening: list[CommentSpan] = []
     for comment in found:
@@ -208,18 +244,18 @@ def _scanned_form(
         close_at = comment.end - len(comment.closer) - start if comment.closer else -1
         parts.append(
             _comment_fragment(
-                path,
+                grammar,
                 series,
                 raw_text[start : cuts[n + 1]],
                 anchor if n == 0 else "",
                 marks=(comment.opener, comment.closer, close_at),
             )
         )
-    return Comment(raw_text, tuple(parts))
+    return Comment(whole, (*leading, *parts))
 
 
 def _comment_fragment(
-    path: Path,
+    grammar: _Grammar,
     series: Series | None,
     raw_text: str,
     anchor: str,
@@ -231,8 +267,7 @@ def _comment_fragment(
     `raw_text`, as its reader scanned them, with an empty closer and -1 for a
     line comment. Without them the language's row decides the markers.
     """
-    lang = language_for(path)
-    in_literals = documents_in_literals(path)
+    lang, definition, in_literals, _ = grammar
     physical = raw_text.splitlines(keepends=True)
     while physical and not physical[-1].strip():
         physical.pop()
@@ -276,7 +311,6 @@ def _comment_fragment(
             ),
             None,
         )
-    definition = INSTALLED_REGISTRY.for_path(path)
     if (
         in_literals
         and definition is not None
@@ -355,11 +389,7 @@ def _comment_fragment(
                 if found is not None:
                     body[n] = line[found.end() :]
                     starts[n] += found.end()
-    elif markers := (
-        marks[:1]
-        if marks is not None
-        else tuple(sorted(line_comment_markers(path), key=len, reverse=True))
-    ):
+    elif markers := (marks[:1] if marks is not None else grammar.markers):
         marker = next((m for m in markers if lines[0].lstrip().startswith(m)), "")
         if marker:
             lead = indent + marker
@@ -1301,7 +1331,7 @@ def declarations(lang: Language, code: Mapping[int, str]) -> dict[int, DocPlace]
     !! THE ORDER A READER MEETS THEM down the page, which is the order the `a`
     series counts from `a1`. The module is not among them: a module has no line
     of code declaring it, and its `a0` exists whenever the language has an `a`
-    series at all -- which is whether `lang.declares` lists any keyword.
+    series at all -- see `Language.a_series`.
 
     !! THE KEYWORDS ARE DATA. Each language row lists the keywords that say a
     line can get a docstring, and the lexer matches on that list instead of on

@@ -19,7 +19,6 @@ from comment_review.reading.rust.records import (
     ATTRIBUTE_KINDS,
     COMMENT_KINDS,
     DETACHED_DOC_CODE,
-    DetachedRun,
     RustDocumentation,
     RustPlacement,
     RustScan,
@@ -89,9 +88,8 @@ def documentation_in(
     another comment, a module doc with an inner attribute before it, a
     second run for one owner, the module included, and every inner doc
     inside a body, which is detached from the innermost owner whose body
-    holds it. A detached run is a COMMENT section with a DetachedRun and a
-    warning. Every other doc section that documents nothing is a COMMENT
-    section.
+    holds it. A detached run is a COMMENT section with a warning. Every other
+    doc section that documents nothing is a COMMENT section.
 
     The opening comments are the ones `_opening` gives. The module's inner doc
     is detached when code or a comment outside them precedes it; the page sets
@@ -143,7 +141,6 @@ class _Assigner:
         self.runs = _runs(scan.tokens, self.coordinates)
         self.forms = [run.written for run in self.runs]
         self.links: dict[int, int | None] = {}
-        self.detached: list[DetachedRun] = []
         self.warnings: list[DetachedDocumentation] = []
         self.shebang = next(
             (t for t in scan.tokens if t.kind is RustTokenKind.SHEBANG), None
@@ -179,11 +176,7 @@ class _Assigner:
             DocumentationOwner(section_of[index], declaration)
             for index, declaration in sorted(self.links.items())
         )
-        placement = RustPlacement(
-            self.placement.declarations,
-            tuple(self.detached),
-        )
-        return RustDocumentation(sections, owners, placement, tuple(self.warnings))
+        return RustDocumentation(sections, owners, self.placement, tuple(self.warnings))
 
     def _continues(self, group: list, index: int) -> bool:
         """Whether run `index` is part of the COMMENT section `group`.
@@ -310,9 +303,8 @@ class _Assigner:
             self.links[index] = owner
 
     def _detach(self, index: int, run: _Run, owner: int | None) -> None:
-        """Make the run a COMMENT with a DetachedRun and its warning."""
+        """Make the run a COMMENT with its warning."""
         self.forms[index] = RustSectionForm.COMMENT
-        self.detached.append(DetachedRun(run.span))
         if owner is None:
             line = None
             named = "the module"

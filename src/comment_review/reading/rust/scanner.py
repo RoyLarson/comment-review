@@ -213,8 +213,8 @@ def comments_in(
 ) -> tuple[CommentSpan, ...] | None:
     """Each comment in `text` and the markers it is written with.
 
-    None where `text` does not scan, or holds anything but comments and
-    whitespace.
+    None where `text` does not scan, or holds anything but comments,
+    whitespace and the shebang the file's matter opens with.
     """
     scan = scan_rust(text, definition)
     if isinstance(scan, ReadFailure):
@@ -222,7 +222,7 @@ def comments_in(
     comments = _Comments.from_definition(definition)
     found = []
     for token in scan.tokens:
-        if token.kind is RustTokenKind.WHITESPACE:
+        if token.kind in (RustTokenKind.WHITESPACE, RustTokenKind.SHEBANG):
             continue
         if token.kind not in COMMENT_KINDS:
             return None
