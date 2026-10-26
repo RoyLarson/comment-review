@@ -3,6 +3,7 @@
 from pathlib import Path
 
 import pytest
+from conftest import kinds
 
 from comment_review.reading.language import Language, language_for
 from comment_review.reading.lexer import LexicalRead, declarations
@@ -61,11 +62,6 @@ def test_a_doc_run_that_documents_no_declaration_is_a_comment():
         (1, Kind.DOCSTRING, 2),
         (4, Kind.COMMENT, None),
     ]
-
-
-def kinds(name: str, text: str) -> list[tuple[int, int, str]]:
-    found = read(name, text).paragraphs(Path(name))
-    return [(p.start, p.end, p.kind) for p in found]
 
 
 def test_a_closing_comment_with_a_blank_line_inside_is_one_matter_run():
