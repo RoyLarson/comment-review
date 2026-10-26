@@ -3,7 +3,7 @@
 ```
 Status:   in-progress
 Progress: 15 of 24 TODO tasks closed
-Plan-tasks: 17 of 17 plan tasks closed
+Plan-tasks: 17 of 21 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-25 (founded by move-t from 2026-10-11-lexical-readers)
@@ -130,3 +130,11 @@ per step; each step lands its failing test first.
       the lexical path's code lines and declarations into its reader
         > 2026-10-25 Works T20; after P16
         > 2026-10-25 Check: corpus address dump unchanged for two lexical languages
+- [ ] P18 | Classify each lexical run once as whole-line or sharing code
+        > 2026-10-26 Works T22, T23, T29; reader only, no compositor edit
+- [ ] P19 | Apply each reader's own whitespace definition to code and prose
+        > 2026-10-26 Works T21, T27, T28
+- [ ] P20 | Give the <eof> a a position and an addresser route apart from a0
+        > 2026-10-26 Works T24, T25; after P18
+- [ ] P21 | Derive a parenthesised Python docstring's text from its literal
+        > 2026-10-26 Works T26
