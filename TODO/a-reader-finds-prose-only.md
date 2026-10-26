@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 13 of 20 tasks closed
+Progress: 14 of 20 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-25 (decision-log.md Process: #224)
@@ -28,7 +28,8 @@ defect and is repaired (lexer-and-language-findings T12, b30cc510).
       Paragraph.text in one place for every reader
         > 2026-10-25 Check: one comment in .py, .rs and .go reads the same text
         > 2026-10-25 Check: no reader passes text to Paragraph
-- [ ] T2 | Assign each paragraph's address in the page instead of in a reader
+- [x] T2 | FINISHED: readers mark docs Kind.DOCSTRING with anchor_line; page assigns every address | 20cbdbbd | Assign
+      each paragraph's address in the page instead of in a reader
         > 2026-10-25 Check: git grep finds no address= in reading/python or reading/rust
 - [x] T3 | Nine duties filed as T4-T12, each naming file:line | 17c030f6 | List
       each Paragraph, Page or Addresser duty a reader still performs

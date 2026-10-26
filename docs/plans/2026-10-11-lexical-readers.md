@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 70 of 177 TODO tasks closed
+Progress: 76 of 177 TODO tasks closed
 Plan-tasks: 40 of 53 plan tasks closed
 Owner:    backend
 Requires-Roy: false
@@ -83,11 +83,11 @@ interfaces, inputs and checks, without internal development files or history.
 - [ ] T16 | T16 -- Make `referrers.py:53` take the same suffix tuple from
       `language.py:99`. Verify: the tuple is not re-spelled in `referrers.py`.
 
-### E - [doc-does-not-fill-its-a](../../TODO/doc-does-not-fill-its-a.md)
+### E - [doc-does-not-fill-its-a](../../TODO/completed/doc-does-not-fill-its-a.md)
 
 - [-] T10 | Implement Go documentation adjacency; verify touching comments use
       a, separated comments use b, and reader prose agrees
-- [ ] T6 | T6 -- Name in `compact.md:113` whatever remains genuinely unresolved
+- [-] T6 | T6 -- Name in `compact.md:113` whatever remains genuinely unresolved
       after T5. Verify: the stamp's explanation at :113 names the case that
       still fires.
 - [-] T8 | T8 -- * RULE ruby's adjacency, from ruby's own grammar and not from
@@ -346,7 +346,7 @@ interfaces, inputs and checks, without internal development files or history.
 
 ### T - [computed-and-never-read](../../TODO/computed-and-never-read.md)
 
-- [ ] T6 | T6 -- Compute `code_lines` and `declarations` once per page, not at
+- [x] T6 | T6 -- Compute `code_lines` and `declarations` once per page, not at
       :419-420 and again at :725-726. Verify: each is computed once and the four
       test callers pass.
 
@@ -462,15 +462,15 @@ interfaces, inputs and checks, without internal development files or history.
 - [ ] T2 | Say where it lives -- the brief, a reference of its own, or each role
       file
 
-### AF - [doc-is-structural-means-two-things](../../TODO/doc-is-structural-means-two-things.md)
+### AF - [doc-is-structural-means-two-things](../../TODO/completed/doc-is-structural-means-two-things.md)
 
-- [ ] T1 | T1 -- Split or rename `doc_is_structural` so each reader names the
+- [-] T1 | T1 -- Split or rename `doc_is_structural` so each reader names the
       property it uses. Verify: `grep -n doc_is_structural scripts/*.py` shows
       each reader's property.
-- [ ] T2 | T2 -- Correct `lexer.block_text`'s docstring at `:634-635` and
+- [-] T2 | T2 -- Correct `lexer.block_text`'s docstring at `:634-635` and
       `:643-644`, which call it a string in a body. Verify: no comment says only
       Python sets the flag.
-- [ ] T3 | T3 -- Refuse or route the latent case -- a record with both
+- [-] T3 | T3 -- Refuse or route the latent case -- a record with both
       `doc_line` and `doc_is_structural=True`. Verify: a `///` run through
       `block_text` keeps no marker.
 
@@ -590,7 +590,7 @@ interfaces, inputs and checks, without internal development files or history.
 
 - [x] T1 | MOVED to 2026-10-25-reader-hands-prose-only | Derive Paragraph.text
       in one place for every reader
-- [ ] T2 | MOVED to 2026-10-25-reader-hands-prose-only | Assign each paragraph's
+- [x] T2 | MOVED to 2026-10-25-reader-hands-prose-only | Assign each paragraph's
       address in the page instead of in a reader
 - [x] T3 | List each Paragraph, Page or Addresser duty a reader still performs
 - [-] T4 | MOVED to 2026-10-25-reader-hands-prose-only | Derive each line's code

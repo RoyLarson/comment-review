@@ -2,8 +2,8 @@
 
 ```
 Status:   in-progress
-Progress: 8 of 15 TODO tasks closed
-Plan-tasks: 8 of 17 plan tasks closed
+Progress: 9 of 15 TODO tasks closed
+Plan-tasks: 9 of 17 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-25 (founded by move-t from 2026-10-11-lexical-readers)
@@ -24,7 +24,7 @@ per step; each step lands its failing test first.
 ### A - [a-reader-finds-prose-only](../../TODO/a-reader-finds-prose-only.md)
 
 - [x] T1 | Derive Paragraph.text in one place for every reader
-- [ ] T2 | Assign each paragraph's address in the page instead of in a reader
+- [x] T2 | Assign each paragraph's address in the page instead of in a reader
 - [-] T4 | Derive each line's code in the page for every reader
 - [ ] T5 | Give a Python docstring paragraph its whole source lines
 - [ ] T6 | Delete the continues-a-trailing-comment stamp from lexer.py
@@ -45,7 +45,8 @@ per step; each step lands its failing test first.
       Paragraph.text in Paragraph for every reader
         > 2026-10-25 Check: one comment in .py, .rs and .go reads the same text
         > 2026-10-25 Works a-reader-finds-prose-only T1
-- [ ] P2 | Assign every paragraph's address in the page
+- [x] P2 | FINISHED: page assigns every address from anchor_line; doc-kind-unresolved retired; reviewed clean after 2 fix rounds | 20cbdbbd | Assign
+      every paragraph's address in the page
         > 2026-10-25 Check: no address= in reading/python or reading/rust; suite green
         > 2026-10-25 Works T2
         > 2026-10-25 49389b6f reverted in e699deaf; redo on anchor_line after P13
