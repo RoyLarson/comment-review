@@ -80,6 +80,24 @@ def test_a_closing_doc_run_documenting_nothing_is_the_modules_at_eof():
     ]
 
 
+@pytest.mark.parametrize(
+    ("text", "doc_line"),
+    [
+        ("fun f() {}\n\n// note\n/** foot doc */\n", 4),
+        ("fun f() {}\n\n// note\n\n/** foot doc */\n", 5),
+    ],
+    ids=["flush", "blank-between"],
+)
+def test_a_closing_doc_run_starts_at_its_first_doc_marked_line(text, doc_line):
+    # The foot mirrors the head: the comment above the closing docstring stays
+    # an ordinary comment, and the docstring is the module's at `<eof>`.
+    found = read("m.kt", text).paragraphs(Path("m.kt"))
+    assert [(p.start, p.end, p.kind, p.anchor) for p in found] == [
+        (3, 3, Kind.COMMENT, ""),
+        (doc_line, doc_line, Kind.DOCSTRING, "<eof>"),
+    ]
+
+
 def test_an_opening_doc_run_ends_at_its_last_doc_marked_line():
     # `val` declares nothing here, so the run documents nothing: the module's
     # docstring is line 1, and the comment after the empty line is ordinary.

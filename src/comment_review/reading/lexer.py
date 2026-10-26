@@ -1084,12 +1084,15 @@ def _module_documentation(
     """Give the module the doc-marked runs at either end that document nothing.
 
     A run is at an end when no code and no prose but matter lies between it and
-    the file's first or last line, and it is doc-marked when it opens on a line
-    of `documentation`. The run at the head documents the module at `a0`; the
-    run at the foot, a different run, at the `a` emitted at EOF, which its
-    `<eof>` anchor names. Either ends at its last doc-marked line: the comments
-    after it stay a `comment` run, starting on the next line it has a comment
-    on, past any blank it took in `between`.
+    the file's first or last line. The run at the head documents the module at
+    `a0` when it opens on a line of `documentation`, and its docstring ends at
+    its last doc-marked line: the comments after it stay a `comment` run,
+    starting on the next line it has a comment on, past any blank it took in
+    `between`. The run at the foot, a different run, is the same rule read
+    upward: it documents the module at the `a` emitted at EOF, which its
+    `<eof>` anchor names, when it ends on a line of `documentation`, and its
+    docstring starts at its first doc-marked line, the comments before it
+    staying a `comment` run that ends on the last line it has a comment on.
     """
     prose = sorted(
         (p for p in paragraphs if p.kind not in (Kind.MATTER, Kind.LEADING)),
@@ -1103,34 +1106,41 @@ def _module_documentation(
             ends.append((prose[-1], EOF))
     out = list(paragraphs)
     for p, anchor in ends:
-        if p.kind != Kind.COMMENT or p.start not in documentation:
+        opens = p.end if anchor == EOF else p.start
+        if p.kind != Kind.COMMENT or opens not in documentation:
             continue
-        last = max(n for n in range(p.start, p.end + 1) if n in documentation)
-        rest = [n for n in range(last + 1, p.end + 1) if n not in between]
-        at = out.index(p)
-        out[at : at + 1] = [
-            Paragraph(
-                path=p.path,
-                start=p.start,
-                end=last,
-                kind=Kind.DOCSTRING,
-                raw_lines=p.raw_lines[: last - p.start + 1],
-                anchor=anchor,
-            ),
-            *(
-                [
-                    Paragraph(
-                        path=p.path,
-                        start=rest[0],
-                        end=p.end,
-                        kind=Kind.COMMENT,
-                        raw_lines=p.raw_lines[rest[0] - p.start :],
-                    )
-                ]
-                if rest
-                else []
-            ),
+        doc = [n for n in range(p.start, p.end + 1) if n in documentation]
+        first, last = (doc[0], p.end) if anchor == EOF else (p.start, doc[-1])
+        comment = [
+            n
+            for n in range(p.start, p.end + 1)
+            if not first <= n <= last and n not in between
         ]
+        docstring = Paragraph(
+            path=p.path,
+            start=first,
+            end=last,
+            kind=Kind.DOCSTRING,
+            raw_lines=p.raw_lines[first - p.start : last - p.start + 1],
+            anchor=anchor,
+        )
+        rest = (
+            [
+                Paragraph(
+                    path=p.path,
+                    start=comment[0],
+                    end=comment[-1],
+                    kind=Kind.COMMENT,
+                    raw_lines=p.raw_lines[
+                        comment[0] - p.start : comment[-1] - p.start + 1
+                    ],
+                )
+            ]
+            if comment
+            else []
+        )
+        at = out.index(p)
+        out[at : at + 1] = [*rest, docstring] if anchor == EOF else [docstring, *rest]
     return out
 
 
