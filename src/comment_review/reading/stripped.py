@@ -92,8 +92,9 @@ def _without_comments(text: str, path: Path) -> str | None:
         for offset, n in enumerate(range(paragraph.start, paragraph.end + 1)):
             if n not in kept or offset >= len(paragraph.raw_lines):
                 return None  # a paragraph naming a line this text does not have
+            # Both sides are right-stripped, as `kept` holds the source lines.
             actual = lines[n - 1].rstrip()
-            stored = paragraph.raw_lines[offset]
+            stored = paragraph.raw_lines[offset].rstrip()
             if actual == stored:
                 if _delimiter_shares_the_line(actual, lang):
                     return None
