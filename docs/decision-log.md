@@ -5720,3 +5720,13 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   doc-marked run on their line 1 is the module's docstring, not front matter (withdrawing the
   answer given the same morning, which rested on C having no `a` series). SQL, TOML, INI and
   YAML declare neither, so they have no `a` series and a comment on line 1 is front matter.
+
+- **#234.** **Each reader states whether its language has a closing docstring** (Roy,
+  2026-10-26, shown that the `<eof>` `a` could never be filled on a Python or Rust page -- an
+  approved `add` there was refused at re-read -- and offered a reader-stated answer or a desk
+  refusal: *"Agree with a - on the language specific a series places"*).
+
+  **What it settles.** `a` emits at `<eof>` only where the reader says its language can hold a
+  closing docstring. The generic lexical rows say yes. Python says no: a string after the last
+  statement is a string literal, not `__doc__`, so it reads back as code. Rust says no: an inner
+  or outer doc comment after the last item does not compile. Amends #233.
