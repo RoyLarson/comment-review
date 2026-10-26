@@ -444,6 +444,11 @@ class Cues:
     # `CodeLine`, and `cue` turns it into a position in this list -- so
     # nothing downstream asks the question again.
     reading: list[str] = field(default_factory=list)
+    # `documents`' index of the `a` places by their anchor's line, with the
+    # count of `a` places it was built over.
+    _declared: tuple[int, dict[int, str]] | None = field(
+        default=None, init=False, repr=False, compare=False
+    )
     # ! LEADING IS NOT HERE, and was for one evening. It is `Page.leading` --
     # `cue` never filled it and never read it, because `cue` runs before
     # any prose exists and leading is only where the LEXER found a blank run.
@@ -527,7 +532,16 @@ class Cues:
         walker = self.addressers[DECLARED]
         if line is None:
             return walker.at(0)
-        return next((c for c in walker.places if self.anchor_line(c) == line), "")
+        # Indexed once, the first time a line is asked for; `cue` has emitted
+        # every place by then, and the count says if one was emitted since.
+        if self._declared is None or self._declared[0] != len(walker.places):
+            index: dict[int, str] = {}
+            for c in walker.places:
+                at = self.anchor_line(c)
+                if at is not None:
+                    index.setdefault(at, c)
+            self._declared = (len(walker.places), index)
+        return self._declared[1].get(line, "")
 
     def closing_documentation(self) -> str:
         """The `a` emitted at EOF, for the module's closing documentation.

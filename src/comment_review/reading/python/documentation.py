@@ -1,5 +1,6 @@
 """Identify documentation expressions and decode their complete prose."""
 
+from bisect import bisect_left
 from collections.abc import Iterator, Mapping
 from typing import cast
 from unicodedata import lookup
@@ -43,6 +44,9 @@ def documentation_in(
     separator = cast(str, layout["statement_separator"])
     case_insensitive = cast(bool, literals["case_insensitive_prefixes"])
     expressions: list[DocumentationExpression] = []
+    # The scan's tokens are ordered, so the first at or after an offset is a
+    # bisection over their starts.
+    starts = [token.span.start for token in scan.tokens]
     for declaration, line, insertion in _bodies(scan, structure, owners):
         indices = tuple(
             index for index in line.tokens if scan.tokens[index].span.start >= insertion
@@ -70,8 +74,8 @@ def documentation_in(
         trailing = next(
             (
                 token
-                for token in scan.tokens
-                if token.kind == "comment" and token.span.start >= end
+                for token in _tokens_from(scan, starts, end)
+                if token.kind == "comment"
             ),
             None,
         )
@@ -80,7 +84,7 @@ def documentation_in(
         ):
             end = trailing.span.end
         if stop is None or stop == line.tokens[-1]:
-            end = _line_end(scan, end)
+            end = _line_end(scan, starts, end)
         expressions.append(
             DocumentationExpression(
                 SourceSpan(tokens[0].span.start, end), components, declaration
@@ -89,21 +93,30 @@ def documentation_in(
     return tuple(sorted(expressions, key=lambda expression: expression.statement.start))
 
 
-def _line_end(scan: PythonScan, end: int) -> int:
+def _line_end(scan: PythonScan, starts: list[int], end: int) -> int:
     """Where the physical line holding `end` ends, past blanks and continuation.
 
     Called only when the documentation ends its logical line, so the rest of
-    the physical line is blanks and at most a continuation marker.
+    the physical line is blanks and at most a continuation marker. `starts` is
+    each token's start, in the scan's order.
     """
     newline = next(
         (
             token
-            for token in scan.tokens
-            if token.span.start >= end and token.kind != "continuation"
+            for token in _tokens_from(scan, starts, end)
+            if token.kind != "continuation"
         ),
         None,
     )
     return len(scan.text) if newline is None else newline.span.start
+
+
+def _tokens_from(
+    scan: PythonScan, starts: list[int], offset: int
+) -> Iterator[PythonToken]:
+    """The scan's tokens in order, from the first that starts at or after `offset`."""
+    for index in range(bisect_left(starts, offset), len(scan.tokens)):
+        yield scan.tokens[index]
 
 
 def _bodies(
