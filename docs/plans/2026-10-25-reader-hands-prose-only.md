@@ -2,8 +2,8 @@
 
 ```
 Status:   in-progress
-Progress: 12 of 15 TODO tasks closed
-Plan-tasks: 12 of 17 plan tasks closed
+Progress: 13 of 15 TODO tasks closed
+Plan-tasks: 13 of 17 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-25 (founded by move-t from 2026-10-11-lexical-readers)
@@ -27,7 +27,7 @@ per step; each step lands its failing test first.
 - [x] T2 | Assign each paragraph's address in the page instead of in a reader
 - [-] T4 | Derive each line's code in the page for every reader
 - [x] T5 | Give a Python docstring paragraph its whole source lines
-- [ ] T6 | Delete the continues-a-trailing-comment stamp from lexer.py
+- [x] T6 | Delete the continues-a-trailing-comment stamp from lexer.py
 - [ ] T8 | Move the front and back matter rule to one shared place
 - [ ] T12 | Replace the Rust reader's _Lines with the shared line splitter
 - [x] T13 | Stop the page changing a reader's matter kind to comment
@@ -66,7 +66,8 @@ per step; each step lands its failing test first.
         > 2026-10-25 Check: the """doc""" \ input sets back byte-identical
         > 2026-10-25 Works T5
         > 2026-10-25 Takes P15's Python case: doc span runs to line end
-- [ ] P6 | Delete the continues-a-trailing-comment stamp
+- [x] P6 | FINISHED: continues-a-trailing-comment deleted; 657 lexical files unchanged | 40f55321 | Delete
+      the continues-a-trailing-comment stamp
         > 2026-10-25 Check: git grep continues-a-trailing-comment -- src: none
         > 2026-10-25 Works T6
 - [ ] P7 | State the matter rule once in reading for every reader to call

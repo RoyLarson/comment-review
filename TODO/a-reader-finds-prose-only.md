@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 17 of 20 tasks closed
+Progress: 18 of 20 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-25 (decision-log.md Process: #224)
@@ -46,7 +46,8 @@ defect and is repaired (lexer-and-language-findings T12, b30cc510).
         > 2026-10-25 Reason: in """doc""" \ the \ belongs to no place; set drops it
         > 2026-10-25 Check: that input sets back identical through set_page
         > 2026-10-25 Repro: def f(): newline then indented doc with trailing backslash
-- [ ] T6 | Delete the continues-a-trailing-comment stamp from lexer.py
+- [x] T6 | FINISHED: stamp, note, trailing_end and _NO_TRAILING deleted; lexical dump identical | 40f55321 | Delete
+      the continues-a-trailing-comment stamp from lexer.py
         > 2026-10-25 lexer.py:846; the Python and Rust readers never stamp it
         > 2026-10-25 Reason: nothing in src or src/plugin reads the annotation
         > 2026-10-25 Check: git grep continues-a-trailing-comment -- src returns none
