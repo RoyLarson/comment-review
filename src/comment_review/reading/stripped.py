@@ -129,6 +129,19 @@ def code_fingerprint(text: str, path: Path) -> tuple[str, str]:
     return "stripped", stripped
 
 
+def _shebang(text: str, path: Path) -> str | None:
+    """The interpreter line the language row names, exactly, or None.
+
+    The reader hands it over as matter, which `_without_comments` removes, so
+    the comparison checks it here on its own.
+    """
+    lang = language_for(path)
+    first = constants.text_lines(text)[:1]
+    if lang is None or not first or not first[0].startswith(lang.shebang):
+        return None
+    return first[0]
+
+
 @dataclass(frozen=True)
 class StrippedRead:
     """A lexically read file, compared by its comment-stripped source.
@@ -156,7 +169,22 @@ class StrippedRead:
         *,
         documented: Collection[tuple[int | None, int | None]] | None = None,
     ) -> PreservationResult:
-        """Whether `after`'s comment-stripped source equals this one's."""
+        """Whether `after` keeps this read's interpreter line and stripped source.
+
+        The interpreter line is compared first, exactly, so any change to it,
+        adding it or removing it is `protected-source-changed`.
+        """
+        if _shebang(self.text, self.path) != _shebang(after.text, after.path):
+            return PreservationResult(
+                False,
+                (
+                    ReadDiagnostic(
+                        ReadStage.PLACE,
+                        "protected-source-changed",
+                        "the interpreter line or its presence changed",
+                    ),
+                ),
+            )
         kind, want = code_fingerprint(self.text, self.path)
         got_kind, got = code_fingerprint(after.text, after.path)
         if kind != "stripped" or got_kind != "stripped":
