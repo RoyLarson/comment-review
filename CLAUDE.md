@@ -296,12 +296,14 @@ nothing marks a cut: this tree writes `--` for an em-dash because of the ASCII r
 elision and a dash are spelled the same. **When a ruling is quoted here, quote all of it** -- the
 commit that first recorded it is the source, and `git log -S` finds it.
 
-**An empty list means the language has no `a` series at all** -- not an empty one. `yaml`,
-`toml`, `ini` and `sql` have no docstring practice, and carried an `a0` no instruction could fill until
-this landed.
+**A language has an `a` series when its row declares a documentation practice** -- doc
+markers or declaring keywords. `yaml`, `toml`, `ini` and `sql` declare neither and have no
+`a` series. The `a` series meets both sentinels: `a0` at `<module>`, and one more `a` at
+`<eof>` for a closing docstring.
 
-**C and C++ sit in that group for A different reason, and it is deferral rather than
-IMPOSSIBILITY.** A C declaration opens with its return type, and the matcher reads a line's FIRST
+**C and C++ list no keywords yet, and that is deferral rather than impossibility.** They keep
+`a0` and the `<eof>` `a` through their `/**` marker; their declaration `a`s wait on the matcher.
+A C declaration opens with its return type, and the matcher reads a line's FIRST
 word -- so no keyword ever matches and a spurious `a` would renumber every `a` below it. **That
 is a fact about the MATCHER, not about C.** Roy, 2026-08-23: *"assumes you don't create a slightly
 smarter parser that looks for the correct keyword in the line instead of just the 'first' word. It
