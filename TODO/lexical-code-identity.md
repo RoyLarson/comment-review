@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 3 of 5 tasks closed
+Progress: 3 of 6 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-10 (live-run)
@@ -36,3 +36,5 @@ Use lexical code identity at both proof boundaries.
 - [ ] T5 | Compare a shebang no language row names in the stripped proof
         > 2026-10-26 Check: dropping a .rb, .sh or .lua shebang is refused
         > 2026-10-26 Reason: pre-existing; .js, .rs and .py already refuse it
+- [ ] T6 | Prove a Lua file whose [[ only opens a --[[ comment
+        > 2026-10-26 stripped.py:84: any [[ in text is unprovable; each --[[ hits it

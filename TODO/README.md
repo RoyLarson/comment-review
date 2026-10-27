@@ -298,7 +298,7 @@ that changed a published name or rule:
 | [r2-preexisting-prose](r2-preexisting-prose.md) | backend | -- | 0/2 | Correct pre-existing move and fold-helper prose |
 | [mark-stance-metadata-prose](mark-stance-metadata-prose.md) | backend | -- | 0/2 | Clarify mark stance and reading metadata prose |
 | [smoke-fixture-defects](smoke-fixture-defects.md) | systems | -- | 0/1 | Align the command smoke with paragraph rewrapping |
-| [lexical-code-identity](lexical-code-identity.md) | backend | -- | 3/5 | Use lexical code identity at both proof boundaries |
+| [lexical-code-identity](lexical-code-identity.md) | backend | -- | 3/6 | Use lexical code identity at both proof boundaries |
 | [collate-file-input](collate-file-input.md) | backend | -- | 0/1 | Read collation inputs from a file |
 | [2026-10-11-maintained-source-selection](2026-10-11-maintained-source-selection.md) | agents | -- | 0/1 | Select maintained source for review |
 | [2026-10-13-human-question-list](2026-10-13-human-question-list.md) | backend | -- | 0/1 | Expose human questions across edit copies |
