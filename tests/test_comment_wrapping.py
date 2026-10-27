@@ -530,6 +530,43 @@ def test_removing_the_first_comment_of_a_line_keeps_the_space_before_it(
     assert code_fingerprint(output, Path(name)) == (kind, before)
 
 
+@pytest.mark.parametrize(
+    "source, snippet, expected",
+    [
+        (
+            "int x; /* A. */ /* B. */ /* C. */\nint y;\n",
+            "B.",
+            "int x; /* A. */ /* C. */\nint y;\n",
+        ),
+        (
+            "int x; /* A. */ /* B. */ /* C. */\nint y;\n",
+            "C.",
+            "int x; /* A. */ /* B. */\nint y;\n",
+        ),
+        (
+            "int x;\n    /* A. */ /* B. */ /* C. */\nint y;\n",
+            "B.",
+            "int x;\n    /* A. */ /* C. */\nint y;\n",
+        ),
+    ],
+    ids=["the-middle", "the-last", "the-middle-of-a-whole-line"],
+)
+def test_removing_one_of_three_comments_on_a_line_keeps_the_others_apart(
+    source, snippet, expected
+):
+    page = build(source, "m.c")
+    paragraph = next(p for p in page if snippet in p.raw_text)
+    changed = comment_at(
+        paragraph.address, paragraph.raw_text, anchor=paragraph.anchor
+    ).without_once(snippet)
+    assert galley.reset(page, {paragraph.address.split("@")[1]: changed}) == []
+    output = compositor.set_page(page)
+    assert output == expected
+    kind, before = code_fingerprint(source, Path("m.c"))
+    assert kind == "stripped"
+    assert code_fingerprint(output, Path("m.c")) == (kind, before)
+
+
 @pytest.mark.parametrize("instruction", ["move", "drop"])
 def test_empty_removal_retains_code_after_a_closer(instruction):
     source = "let x = 1; /* Move.\n */ let y = 2;\nlet z = 3;\n"

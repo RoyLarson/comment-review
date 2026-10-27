@@ -135,7 +135,11 @@ class Comment:
         offset = 0
         # The space an emptied comment stood on, owed to the comment after it.
         carried = ""
-        for part in self.fragments:
+        for at, part in enumerate(self.fragments):
+            # The comment ends its line: a line break follows it, or nothing.
+            ends_line = at == len(self.fragments) - 1 or part.raw_text.endswith(
+                ("\n", "\r")
+            )
             remaining = []
             kept_indices = []
             for n, paragraph in enumerate(part.paragraphs):
@@ -150,12 +154,18 @@ class Comment:
                 offset += len(paragraph) + 1
             text = part.wrap("\n\n".join(remaining), tuple(kept_indices))
             previous = rendered[-1] if rendered else ""
-            if not text and previous and not previous.endswith(("\n", "\r")):
-                # The comment shared its line with the one before it, so the
-                # line stays and keeps its end; only the space before it goes.
+            shares_line = bool(previous) and not previous.endswith(("\n", "\r"))
+            if not text and shares_line and ends_line:
+                # The comment shared its line with the one before it and ended
+                # the line, so the line stays and keeps its end; only the space
+                # before the removed comment goes.
                 rendered[-1] = rendered[-1].rstrip(" \t")
                 text = part.ending
-            elif not text and not part.raw_text.endswith(("\n", "\r")):
+            elif not text and shares_line:
+                # A comment between two others on its line: the space before it
+                # stays to separate the two that remain.
+                text = ""
+            elif not text and not ends_line:
                 # The comment shared its line with the one after it, which takes
                 # the indent or the space after code the removed one stood on.
                 leading = part.raw_text[
