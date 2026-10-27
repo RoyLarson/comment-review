@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 34 of 43 tasks closed
+Progress: 34 of 44 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-09-04 (Roy, 2026-09-04, superseding the-flow-lives-in-the-command T4)
@@ -161,3 +161,5 @@ The agents files name the new CLI and say how to use it.
       received places; verify the brief matches check
 - [ ] T43 | Restate SKILL.md's detached-doc step: matter, and the printed owner
         > 2026-10-26 Detached doc in matter is read as matter; warning now names owner
+- [ ] T44 | Restate agent prose that takes an anchor to be one line of code
+        > 2026-10-26 decision-log #238: an a/b anchor may span the unit's lines

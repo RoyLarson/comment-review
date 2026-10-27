@@ -5761,3 +5761,27 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   `<module>` as `a0`, and a row that holds a closing docstring -- one with doc markers, outside
   Python and Rust -- also meets `<eof>` with one more `a`. `SKILL.md` gives the agent both printed
   forms of #236.2, `(owner on line <n>)` and `(owner: module)`.
+
+- **#238.** **A declaration's annotations and its declaring line are one unit for `a` and `b`**
+  (Roy, 2026-10-26: *"It should document the whole line of code and nothing less than the whole
+  line of code. We are not stating that this documents that, we are stating that something in
+  this line allows for a docstring and that allows us to put the doc string back next to the
+  line of code where it belongs. Nothing more nothing less"*; *"i think the answer maybe as
+  simple as being able to adjust the triggers on a, b lines to treat those two lines as one
+  line and still let them have individual c lines"*; on adopting it, *"yes - this does fix a big
+  potential problem which only because agents are relatively smart hasn't caused problems
+  yet"*).
+
+  **What it settles.** A reader marks the annotation lines above a declaring line as joined to
+  it. The addresser gives the unit one `b` and one `a` above its first line, both anchored to the
+  whole unit, and each line its own `c`; no `b` falls inside the unit. Python decorators and Rust
+  attributes have the same shape (*"yes those have the same problem"*). C# and JavaScript list
+  no annotation openers for now (Roy does not code in either and took the recommendation).
+
+- **#239.** **Reads are ephemeral; readers keep no revisions** (Roy, 2026-10-26: *"All of the
+  runs and the results are to be considered ephemeral"*; *"We do not need to keep revisions of
+  the readers. If a past read needs to be pulled into the current system a standalone script can
+  make the convers[ion]"*; on removing the revisions and the compatibility hash, *"yes"*).
+
+  **What it settles.** A reading change bumps nothing. The reader and placement revisions and
+  the compatibility hash that refuses a saved binder are to be removed.

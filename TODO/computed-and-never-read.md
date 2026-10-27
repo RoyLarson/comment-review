@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 7 of 14 tasks closed
+Progress: 7 of 15 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (simplify round 7, 2026-08-22 -- found by Pyright and by reading,
@@ -140,3 +140,5 @@ page.py:793-794 for `_SHEBANG`/`_CODING`, which round 7 deleted; those citations
         > 2026-10-25 readers.py:98; only test_reading_diagnostics calls it
 - [ ] T13 | Drop page_for's dead edges assignment and its duplicate path
 - [ ] T14 | Delete the unparsed branch in readers.py, which no reader produces
+- [ ] T15 | Remove the reader and placement revisions and the compatibility hash
+        > 2026-10-26 decision-log #239: reads are ephemeral; reading/context.py, flows

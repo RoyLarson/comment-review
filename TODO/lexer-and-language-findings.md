@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 22 of 50 tasks closed
+Progress: 22 of 52 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (/simplify rounds 1 and 2 and /code-review high round 3,
@@ -339,3 +339,6 @@ would.
       docstring (#232)
         > 2026-10-26 js: // Licence, blank, function f() {} -> a1; over const x -> f0
         > 2026-10-26 At ef037f20 too; document_declarations claims before the matter cut
+- [ ] T51 | Make Python decorators and Rust attributes one unit with their item
+        > 2026-10-26 decision-log #238; CodeLine.joins from P18; b falls inside today
+- [ ] T52 | Match a C# attribute section apart from a collection expression
