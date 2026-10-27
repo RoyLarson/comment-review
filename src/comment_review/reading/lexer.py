@@ -138,7 +138,7 @@ def comment_form(
     A byte-order mark opening the raw text is the file's encoding, and the form
     is read without it.
     """
-    raw_text = raw_text.removeprefix(constants.BYTE_ORDER_MARK)
+    raw_text = constants.without_mark(raw_text)
     grammar = _grammar_for(path.suffix.lower())
     lang, value = grammar.lang, grammar.definition
     if grammar.scanner is not None:
@@ -761,7 +761,7 @@ def read_lexical(path: Path, text: str, lang: Language) -> "LexicalRead":
     # The loop below reads line 1 without its byte-order mark, and a paragraph
     # that holds line 1 keeps it.
     scanned = constants.scan_lines(text)
-    mark = lines[0][: len(lines[0]) - len(scanned[0])] if lines else ""
+    mark = constants.mark_of(text)
     out: list[Paragraph] = []
     run: list[tuple[int, str]] = []
     # ! Blank lines seen since the last comment line. They belong to the run only if

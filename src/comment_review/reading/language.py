@@ -110,9 +110,7 @@ class Language:
         byte-order mark before the shebang is part of the line returned, and
         not part of what is matched.
         """
-        if lines and lines[0].removeprefix(constants.BYTE_ORDER_MARK).startswith(
-            self.shebang
-        ):
+        if lines and constants.without_mark(lines[0]).startswith(self.shebang):
             return lines[0]
         return None
 

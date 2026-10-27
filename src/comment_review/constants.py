@@ -66,6 +66,16 @@ def text_lines(text: str) -> list[str]:
     return out
 
 
+def without_mark(text: str) -> str:
+    """The text without a byte-order mark opening it."""
+    return text.removeprefix(BYTE_ORDER_MARK)
+
+
+def mark_of(text: str) -> str:
+    """The byte-order mark opening the text, or "" when it has none."""
+    return text[: len(text) - len(without_mark(text))]
+
+
 def scan_lines(text: str) -> list[str]:
     """`text_lines` with the byte-order mark removed from line 1.
 
@@ -76,7 +86,7 @@ def scan_lines(text: str) -> list[str]:
     """
     lines = text_lines(text)
     if lines:
-        lines[0] = lines[0].removeprefix(BYTE_ORDER_MARK)
+        lines[0] = without_mark(lines[0])
     return lines
 
 
