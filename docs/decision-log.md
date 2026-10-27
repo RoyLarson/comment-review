@@ -5850,3 +5850,14 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   filed after this plan merges; its first step moves the cut by place out of `lexer.py` so
   the rule has one home. Until then, the page refuses two paragraphs at one address (P22).
 
+- **#245.** **A lone head doc over a declaration is the declaration's; two split** (Roy,
+  2026-10-27, shown that an add at `a0` in `function f() {}` reads back at `a1` and the write
+  chain refuses it: *"Okay to 1 & 2 together"*).
+
+  **What it settles.** Orders #242's two head rules. A lone doc run at the file's head that
+  touches a declaration is that declaration's `a`. Two or more doc comments above the first
+  declaration split: the first is `a0`, the one touching the declaration is its `a`. The write
+  chain accepts an alteration that reads back at the other of the two places when its text sits
+  exactly where it was written -- `a0` filled alone above a declaration reads back as that
+  declaration's `a`, as #241 accepts for the `<eof>` `a` in a file with no code.
+

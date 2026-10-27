@@ -3,7 +3,7 @@
 ```
 Status:   in-progress
 Progress: 24 of 24 TODO tasks closed
-Plan-tasks: 22 of 22 plan tasks closed
+Plan-tasks: 22 of 24 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-25 (founded by move-t from 2026-10-11-lexical-readers)
@@ -145,3 +145,5 @@ per step; each step lands its failing test first.
 - [x] P22 | FINISHED: page_for refuses a shared address; corpus 3002 files, 0 refused | f5a0fac1 | Refuse
       a page where two paragraphs share an address
         > 2026-10-27 Roy 2026-10-27: add the error, with tests that try to break it
+- [ ] P23 | Split two head docs into a0 and the declaration's a, per #245
+- [ ] P24 | Accept a head or foot doc re-read at its partner place, per #245
