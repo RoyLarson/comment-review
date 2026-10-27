@@ -160,7 +160,11 @@ NOTE = Kind.COMMENT
         ),
         (
             "/** doc */\n// eslint-disable-next-line\nfunction f() {}\n",
-            [(1, 1, NOTE, "", None), (2, 2, DOC, "", 3)],
+            [(1, 1, DOC, "", None), (2, 2, DOC, "", 3)],
+        ),
+        (
+            "let x = 1;\n/** doc */\n// eslint-disable-next-line\nfunction f() {}\n",
+            [(2, 2, NOTE, "", None), (3, 3, DOC, "", 4)],
         ),
         (
             "function f() {}\n\n/** A */\n// n1\n/** B */\n// n2\n/** C */\n"
@@ -179,7 +183,8 @@ NOTE = Kind.COMMENT
     ids=[
         "no-code",
         "head-above-a-declaration",
-        "doc-detached-by-a-comment",
+        "comment-documents-below-the-head-doc",
+        "comment-documents-below-a-mid-file-doc",
         "between-two-declarations",
         "foot-below-code",
         "head-above-plain-code",

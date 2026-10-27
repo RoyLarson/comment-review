@@ -1283,10 +1283,7 @@ def _cut_by_place(
     - The group touching the gap's lower edge is that edge's `a`: the
       declaration the run documents -- whatever kind the group is -- or, at the
       foot of the file, `<eof>` when the group is doc-marked.
-    - At the head of the file, the doc-marked group opening the run is `a0`,
-      unless the run documents a declaration through a plain comment group with
-      no doc-marked group between the two: that doc is the declaration's, cut
-      off from it by the comment, and is a comment.
+    - At the head of the file, the doc-marked group opening the run is `a0`.
     - Everything else in the run is the gap's one `b`, a `comment`.
 
     With no code a run is both head and foot, and one doc-marked group is `a0`.
@@ -1318,12 +1315,7 @@ def _cut_by_place(
             lowest = groups[-1]
         opening = None
         if head and groups[0][2] and groups[0] is not lowest:
-            detached = (
-                documents
-                and not groups[-1][2]
-                and not any(doc for _, _, doc in groups[1:-1])
-            )
-            opening = None if detached else groups[0]
+            opening = groups[0]
         if opening is None and lowest is None:
             p.kind = Kind.COMMENT
             out.append(p)
