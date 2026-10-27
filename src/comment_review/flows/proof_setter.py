@@ -53,7 +53,7 @@ from comment_review.flows.page_for import page_of
 from comment_review.flows.read_diagnostics import format_failure
 from comment_review.flows.source import source_of
 from comment_review.machine.repo import Source, can_escape, sha_of, undraftable
-from comment_review.reading.addresser import MODULE, address_for, cue_of
+from comment_review.reading.addresser import EOF, MODULE, address_for, cue_of
 from comment_review.reading.context import ReadingContext
 from comment_review.reading.diagnostics import ReadFailure
 from comment_review.reading.paragraph import Paragraph
@@ -485,7 +485,7 @@ def _one(
         # `_prove` takes its text and the places the alterations name on it,
         # the approved changes it compares against (`decision-log.md Process:
         # #113`).
-        draft, off = _reread(rel, target, edits, reading)
+        draft, off = _reread(rel, target, page, edits, reading)
         if draft is None:
             _discard(target, created)
             return None, off
@@ -501,7 +501,11 @@ def _one(
 
 
 def _reread(
-    rel: str, target: Path, edits: dict[str, str | None], reading: ReadingContext
+    rel: str,
+    target: Path,
+    page: Page,
+    edits: dict[str, str | None],
+    reading: ReadingContext,
 ) -> tuple[Page | None, Refusal | None]:
     """Read the draft back as a page: is each alteration at the cue it was given?
 
@@ -512,10 +516,13 @@ def _reread(
     the round trip scoring 699 of 699 on.
 
     A failed page read becomes a reread refusal before any alteration is proved.
+    An alteration that reads back unchanged at its partner place, on the lines
+    it was written to, is at its cue -- see `_partner`.
 
     Args:
         rel: how the repo names the page this draft was set from.
         target: the draft on disk.
+        page: the page the draft was set from.
         edits: cue -> replacement text, or None where the place was dropped.
         reading: the saved context used to admit the original page.
 
@@ -526,12 +533,12 @@ def _reread(
         `_prove` finds, in the draft, the declaration each approved `a`
         alteration documents.
     """
-    page = page_of(target, rel=rel, reading_context=reading)
-    if isinstance(page, ReadFailure):
+    draft = page_of(target, rel=rel, reading_context=reading)
+    if isinstance(draft, ReadFailure):
         return None, Refusal(
-            "reread", rel, f"the draft: {format_failure(page, path=rel)}"
+            "reread", rel, f"the draft: {format_failure(draft, path=rel)}"
         )
-    placed = {cue_of(b.address).cue: b for b in page if b.address}
+    placed = {cue_of(b.address).cue: b for b in draft if b.address}
     for where, replacement in edits.items():
         got = placed.get(where)
         if got is None:
@@ -560,14 +567,67 @@ def _reread(
                 )
             continue
         want = constants.text_lines(replacement)
-        if got.raw_lines != want:
-            return None, Refusal(
-                "reread",
-                rel,
-                f"{where}: holds {got.raw_lines!r}, was given {want!r}"
-                f"{_elsewhere(placed, where, want)}",
-            )
-    return page, None
+        if got.raw_lines == want:
+            continue
+        partner = placed.get(_partner(page, where, edits) or "")
+        if (
+            partner is not None
+            and partner.raw_lines == want
+            and not any(line.strip() for line in got.raw_lines)
+            and _written_once(draft.text, want) == partner.start
+        ):
+            continue
+        return None, Refusal(
+            "reread",
+            rel,
+            f"{where}: holds {got.raw_lines!r}, was given {want!r}"
+            f"{_elsewhere(placed, where, want)}",
+        )
+    return draft, None
+
+
+def _partner(page: Page, where: str, edits: dict[str, str | None]) -> str | None:
+    """The other place an alteration at `where` is set against, or None.
+
+    Two places sit on the same lines when one of them is empty:
+    - `a0` and the first declaration's `a`, in a file with code: `a0` filled
+      alone above that declaration reads back as the declaration's;
+    - `a0` and the `<eof>` `a`, in a file with no code line: the `<eof>` `a`
+      filled alone reads back as `a0`.
+
+    Each is a partner only while it holds no prose on the page and no
+    alteration names it.
+    """
+    reading = page.cues.reading
+    declared = [c for c in reading if Series.of(c) is Series.DECLARED]
+    if len(declared) < 2 or where not in (declared[0], declared[1]):
+        return None
+    has_code = any(Series.of(c) is Series.ON for c in reading)
+    if where == declared[0] and has_code:
+        partner = declared[1]
+        if page.cues.anchor_of(partner) == EOF:
+            return None
+    elif where == declared[1] and not has_code:
+        partner = declared[0]
+    else:
+        return None
+    held = next(
+        (b for b in page if b.address and cue_of(b.address).cue == partner), None
+    )
+    if held is None or partner in edits or any(line.strip() for line in held.raw_lines):
+        return None
+    return partner
+
+
+def _written_once(text: str, want: list[str]) -> int | None:
+    """The line `want` starts on in `text`, or None unless it stands there once."""
+    lines = constants.text_lines(text)
+    at = [
+        n + 1
+        for n in range(len(lines) - len(want) + 1)
+        if lines[n : n + len(want)] == want
+    ]
+    return at[0] if len(at) == 1 else None
 
 
 def _elsewhere(placed: dict[str, Paragraph], where: str, want: list[str]) -> str:

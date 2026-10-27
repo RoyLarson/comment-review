@@ -1453,6 +1453,80 @@ class TestOnlyCommentsChange:
         assert refused.step == "prove"
 
 
+def _chain(tmp_path, name: str, text: str, alterations: dict):
+    """The chain over a one-file repo holding `text` as `name`."""
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    (repo / name).write_text(text, encoding="utf-8", newline="")
+    binder = bind([build(text, name)], read_from={"root": str(repo), "revise": 0})
+    flat = {f"{name}@{where}": prose for where, prose in alterations.items()}
+    return proof_setter.run(docket_from(flat, binder), repo, tmp_path / "out")
+
+
+@pytest.mark.parametrize(
+    ("text", "alterations", "expected"),
+    [
+        (
+            "function f() {}\n",
+            {"a0": "/** Module. */"},
+            "/** Module. */\nfunction f() {}\n",
+        ),
+        (
+            "function f() {}\n",
+            {"a0": "/** Module. */", "a1": "/** F. */"},
+            "/** Module. */\n/** F. */\nfunction f() {}\n",
+        ),
+    ],
+    ids=["a0-over-a-declaration", "a0-and-a1"],
+)
+def test_an_alteration_read_back_at_its_partner_place_is_accepted(
+    tmp_path, text, alterations, expected
+):
+    # `a0` filled alone above a declaration reads back as that declaration's `a`.
+    drafted, refused = _chain(tmp_path, "m.js", text, alterations)
+    assert refused == []
+    assert drafted[0].draft.read_text(encoding="utf-8") == expected
+
+
+def test_the_eof_a_filled_with_no_code_reads_back_as_a0_and_is_refused_at_prove(
+    tmp_path,
+):
+    # The re-read accepts the `<eof>` `a` reading back as `a0`; the proof then
+    # refuses, as it refuses every change to a file with no code line, whose
+    # code cannot be proven unchanged.
+    drafted, refused = _chain(tmp_path, "m.js", "// licence\n", {"a1": "/** End. */"})
+    assert drafted == []
+    assert (refused[0].step, refused[0].why) == (
+        "prove",
+        "the code in this file cannot be proven unchanged",
+    )
+
+
+@pytest.mark.parametrize(
+    ("text", "alterations", "why"),
+    [
+        (
+            "/** F. */\nfunction f() {}\n",
+            {"a0": "/** Module. */", "a1": None},
+            "a0: holds [], was given ['/** Module. */'] -- a1 holds it",
+        ),
+        (
+            "let y;\n/** D */\n// c\n\n// m\n",
+            {"a1": "/** X */"},
+            "a1: holds ['/** D */'], was given ['/** X */']",
+        ),
+    ],
+    ids=["partner-altered", "foot"],
+)
+def test_any_other_alteration_not_read_back_at_its_place_is_refused(
+    tmp_path, text, alterations, why
+):
+    drafted, refused = _chain(tmp_path, "m.js", text, alterations)
+    assert drafted == []
+    assert refused[0].step == "reread"
+    assert refused[0].why.startswith(why)
+
+
 def test_a_directory_THAT_WAS_THERE_BEFORE_the_run_survives_it(tmp_path, monkeypatch):
     """IMPORTANT, measured 2026-08-25: `_discard` walked up `rmdir`-ing ANY
     empty directory under `into`, so a `<into>/pkg` that existed before the run
