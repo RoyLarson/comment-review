@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 55 of 60 tasks closed
+Progress: 55 of 61 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (code-review high round 3 and /simplify round 2, 2026-08-22 -- the
@@ -301,3 +301,4 @@ files in `corpora/` are in that state today.
 - [-] T60 | SUPERSEDED by one-line-ending-per-file T2: a lone CR is refused | 74a033c2 | Set
       a lone CR back as a CR on every page
         > 2026-10-23 A lone CR becomes LF on set-back, even inside a string literal
+- [ ] T61 | Set an added b0 below matter in a file with no code, adding no blank
