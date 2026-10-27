@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 23 of 29 tasks closed
+Progress: 24 of 29 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-25 (decision-log.md Process: #224)
@@ -137,7 +137,8 @@ defect and is repaired (lexer-and-language-findings T12, b30cc510).
         > 2026-10-26 Check: add at a1 of '/** @typedef */' reads back at a1, not a0
 - [ ] T25 | Resolve the <eof> a through the addresser command
         > 2026-10-26 Check: addresser on 'class A {}' + foot comment can name A.java@a2
-- [ ] T26 | Derive a parenthesised Python docstring's text from its literal
+- [x] T26 | FINISHED: concatenated reads one parenthesised literal | f53ceefb | Derive
+      a parenthesised Python docstring's text from its literal
         > 2026-10-26 Check: def f(): ("doc")  # c gives a1 text 'doc'
 - [x] T27 | FINISHED: one BOM rule in constants; marker matched after the mark | f821db13 | Match
       a comment marker after a leading byte-order mark
