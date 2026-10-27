@@ -333,6 +333,24 @@ FORMS = {
     "jsx": ("m.jsx", "// note\nconst card = <Card />;\n"),
     "tsx": ("m.TSX", "// note\nconst card = <Card />;\n"),
     "sql": ("m.sql", "-- note\nSELECT 1;\n"),
+    # A gap whose run alternates doc and comment is cut into its places.
+    "js docs and comments alternating, no code": (
+        "m.js",
+        "/** A */\n// n1\n/** B */\n// n2\n/** C */\n",
+    ),
+    "js docs and comments above a declaration": (
+        "m.js",
+        "/** A */\n// note\n/** B */\nfunction f() {}\n",
+    ),
+    "js doc cut off by a comment": (
+        "m.js",
+        "/** doc */\n// eslint-disable-next-line\nfunction f() {}\n",
+    ),
+    "js docs and comments between declarations": (
+        "m.js",
+        "function f() {}\n\n/** A */\n// n1\n/** B */\n// n2\n/** C */\n"
+        "function g() {}\n",
+    ),
 }
 FORM_CASES = pytest.mark.parametrize(
     ("name", "text"),

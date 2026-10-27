@@ -1173,8 +1173,8 @@ def _file_edges(
     a `docstring` run, as `flush` kinds a run. Once documentation is decided,
     the `comment` parts inside the matter are MATTER.
 
-    !! DOCUMENTATION AT EITHER END IS THE MODULE'S, NEVER MATTER -- see
-    `_module_documentation`.
+    !! DOCUMENTATION AT EITHER END IS THE MODULE'S, NEVER MATTER, and each
+    run is then cut by the places its gap holds -- see `_cut_by_place`.
 
     !! MATTER IS ANCHORED TO THE MODULE, because that is what it is about.
     Every other run answers to the line of code it sits with; the file's own
@@ -1232,8 +1232,7 @@ def _file_edges(
     code_lines = lines_of_code(code, declared, joined)
     document_declarations(found, code_lines)
     found = _one_matter_per_end(cut(found, (Kind.COMMENT,), mark=True))
-    if lang.a_series:
-        found = _module_documentation(found, set(code), between, documentation)
+    found = _cut_by_place(found, set(code), between, documentation, lang.a_series)
     return found, code_lines
 
 
@@ -1268,71 +1267,93 @@ def _one_matter_per_end(paragraphs: list[Paragraph]) -> list[Paragraph]:
     return out
 
 
-def _module_documentation(
+def _cut_by_place(
     paragraphs: list[Paragraph],
     code: set[int],
     between: set[int],
     documentation: set[int],
+    a_series: bool,
 ) -> list[Paragraph]:
-    """Give the module the doc-marked runs at either end that document nothing.
+    """Cut each gap's run into the places the gap holds: `a0`, one `b`, an `a`.
 
-    A run is at an end when no code and no prose but matter lies between it and
-    the file's first or last line. The run at the head documents the module at
-    `a0` when it opens on a line of `documentation`, and its docstring ends at
-    its last doc-marked line: the comments after it stay a `comment` run,
-    starting on the next line it has a comment on, past any blank it took in
-    `between`. The run at the foot, a different run, is the same rule read
-    upward: it documents the module at the `a` emitted at EOF, which its
-    `<eof>` anchor names, when it ends on a line of `documentation`, and its
-    docstring starts at its first doc-marked line, the comments before it
-    staying a `comment` run that ends on the last line it has a comment on.
+    A gap lies between two lines of code, or a sentinel and code, and its run
+    reads as GROUPS: the doc-marked lines and the plain comment lines, each
+    stretch of one kind a group, a blank it took in `between` joining nothing.
 
-    In a file with no code, one run can be both. Its docs at the top are then
-    `a0` up to its first comment line, and the docs below its last comment line
-    are the `a` at EOF; with no comment line in it, all of its docs are `a0`.
+    - The group touching the gap's lower edge is that edge's `a`: the
+      declaration the run documents -- whatever kind the group is -- or, at the
+      foot of the file, `<eof>` when the group is doc-marked.
+    - At the head of the file, the doc-marked group opening the run is `a0`,
+      unless the run documents a declaration through a plain comment group with
+      no doc-marked group between the two: that doc is the declaration's, cut
+      off from it by the comment, and is a comment.
+    - Everything else in the run is the gap's one `b`, a `comment`.
+
+    With no code a run is both head and foot, and one doc-marked group is `a0`.
     """
-    prose = sorted(
-        (
-            p
-            for p in paragraphs
-            if p.kind not in (Kind.MATTER, Kind.LEADING, Kind.TRAILING)
-        ),
-        key=lambda p: p.start,
-    )
-    ends: list[tuple[Paragraph, str]] = []
-    if prose and not any(n < prose[0].start for n in code):
-        ends.append((prose[0], ""))
-    if prose and not any(n > prose[-1].end for n in code):
-        if not ends or ends[0][0] is not prose[-1]:
-            ends.append((prose[-1], EOF))
-    out = list(paragraphs)
-    for p, anchor in ends:
-        opens = p.end if anchor == EOF else p.start
-        if p.kind != Kind.COMMENT or opens not in documentation:
+    prose = [
+        p
+        for p in sorted(paragraphs, key=lambda p: p.start)
+        if p.kind in (Kind.COMMENT, Kind.DOCSTRING)
+    ]
+    out: list[Paragraph] = []
+    for p in paragraphs:
+        if p.kind not in (Kind.COMMENT, Kind.DOCSTRING):
+            out.append(p)
             continue
-        doc = [n for n in range(p.start, p.end + 1) if n in documentation]
-        first, last = (doc[0], p.end) if anchor == EOF else (p.start, doc[-1])
-        spans = [(first, last, anchor)]
-        comments = [
-            n for n in range(p.start, p.end + 1) if n not in documentation | between
-        ]
-        if not code and anchor != EOF and p is prose[-1] and comments:
-            # With no code the run is the foot as well: a comment ends the docs
-            # at its top, and the docs below its last comment are the module's
-            # at EOF.
-            spans = [(first, max(n for n in doc if n < comments[0]), anchor)]
-            if p.end in documentation:
-                spans.append((min(n for n in doc if n > comments[-1]), p.end, EOF))
-        comment = [
+        groups: list[tuple[int, int, bool]] = []
+        for n in range(p.start, p.end + 1):
+            if n in between:
+                continue
+            doc = n in documentation
+            if groups and groups[-1][2] == doc:
+                groups[-1] = (groups[-1][0], n, doc)
+            else:
+                groups.append((n, n, doc))
+        head = a_series and p is prose[0] and not any(n < p.start for n in code)
+        foot = a_series and p is prose[-1] and not any(n > p.end for n in code)
+        documents = p.kind == Kind.DOCSTRING
+        lowest = groups[-1] if documents else None
+        if not documents and foot and groups[-1][2] and not (head and len(groups) == 1):
+            lowest = groups[-1]
+        opening = None
+        if head and groups[0][2] and groups[0] is not lowest:
+            detached = (
+                documents
+                and not groups[-1][2]
+                and not any(doc for _, _, doc in groups[1:-1])
+            )
+            opening = None if detached else groups[0]
+        if opening is None and lowest is None:
+            p.kind = Kind.COMMENT
+            out.append(p)
+            continue
+        if len(groups) == 1:
+            # One group is the whole run: it keeps its paragraph.
+            p.kind = Kind.DOCSTRING
+            p.anchor = p.anchor if documents else ("" if opening else EOF)
+            out.append(p)
+            continue
+        parts: list[Paragraph] = []
+        if opening is not None:
+            parts.append(_part(p, opening[0], opening[1], Kind.DOCSTRING))
+        rest = [
             n
             for n in range(p.start, p.end + 1)
-            if not any(lo <= n <= hi for lo, hi, _ in spans) and n not in between
+            if n not in between
+            and not (opening and opening[0] <= n <= opening[1])
+            and not (lowest and lowest[0] <= n <= lowest[1])
         ]
-        parts = [_part(p, lo, hi, Kind.DOCSTRING, at) for lo, hi, at in spans]
-        if comment:
-            parts.append(_part(p, comment[0], comment[-1], Kind.COMMENT))
-        at = out.index(p)
-        out[at : at + 1] = sorted(parts, key=lambda q: q.start)
+        if rest:
+            parts.append(_part(p, rest[0], rest[-1], Kind.COMMENT))
+        if lowest is not None:
+            last = _part(p, lowest[0], lowest[1], Kind.DOCSTRING, p.anchor)
+            if documents:
+                last.anchor_line = p.anchor_line
+            else:
+                last.anchor = EOF
+            parts.append(last)
+        out.extend(parts)
     return out
 
 

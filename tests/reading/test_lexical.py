@@ -143,6 +143,56 @@ def test_with_no_code_the_docs_at_the_top_are_the_modules_until_a_comment(
     assert [(p.start, p.end, p.kind, p.anchor) for p in found] == expected
 
 
+DOC = Kind.DOCSTRING
+NOTE = Kind.COMMENT
+
+
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        (
+            "/** A */\n// n1\n/** B */\n// n2\n/** C */\n",
+            [(1, 1, DOC, "", None), (2, 4, NOTE, "", None), (5, 5, DOC, "<eof>", None)],
+        ),
+        (
+            "/** A */\n// note\n/** B */\nfunction f() {}\n",
+            [(1, 1, DOC, "", None), (2, 2, NOTE, "", None), (3, 3, DOC, "", 4)],
+        ),
+        (
+            "/** doc */\n// eslint-disable-next-line\nfunction f() {}\n",
+            [(1, 1, NOTE, "", None), (2, 2, DOC, "", 3)],
+        ),
+        (
+            "function f() {}\n\n/** A */\n// n1\n/** B */\n// n2\n/** C */\n"
+            "function g() {}\n",
+            [(3, 6, NOTE, "", None), (7, 7, DOC, "", 8)],
+        ),
+        (
+            "let x = 1;\n/** A */\n// n1\n/** B */\n",
+            [(2, 3, NOTE, "", None), (4, 4, DOC, "<eof>", None)],
+        ),
+        (
+            "/** A */\n// n1\n/** B */\nlet x = 1;\n",
+            [(1, 1, DOC, "", None), (2, 3, NOTE, "", None)],
+        ),
+    ],
+    ids=[
+        "no-code",
+        "head-above-a-declaration",
+        "doc-detached-by-a-comment",
+        "between-two-declarations",
+        "foot-below-code",
+        "head-above-plain-code",
+    ],
+)
+def test_a_gap_is_cut_into_its_a0_its_one_b_and_the_a_at_its_lower_edge(text, expected):
+    # The run touching the gap's lower edge is that edge's `a`; at the head the
+    # doc run opening the file is `a0`; everything else in the gap is one `b`.
+    found = read("m.js", text).paragraphs(Path("m.js"))
+    got = [(p.start, p.end, p.kind, p.anchor, p.anchor_line) for p in found]
+    assert [row for row in got if row[2] != Kind.TRAILING] == expected
+
+
 def test_an_opening_doc_run_ends_at_its_last_doc_marked_line():
     # `val` declares nothing here, so the run documents nothing: the module's
     # docstring is line 1, and the comment after the empty line is ordinary.
