@@ -5811,3 +5811,17 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   order (`f0 a0 b0 a1 f1`), so an add at `b0` and `a1` gives matter, doc, comment, doc. No blank
   line or other marker is invented to tell `a0` from the `<eof>` `a`.
 
+- **#242.** **Paragraphs are cut by place** (Roy, 2026-10-27, correcting "only code ends a
+  paragraph" with *"Or new paragraph Kind"*, then asking for a rule that holds against
+  DOC, COMMENT, DOC, COMMENT, DOC...: *"This needs a general rule that fixes this ... Is
+  pathological and silly and hopefully would never be found in reality. But I can see someone
+  trying to break their own system with these edge cases."*; approving the rule below: *"Yes"*).
+
+  **What it settles.** A gap -- between two lines of code, or a sentinel and code -- holds a
+  fixed set of places. The run touching its lower edge (a declaration, or `<eof>`) is that `a`;
+  a plain comment run touching a declaration still documents it. At the file's head, the doc
+  run opening it, after any matter, is `a0`. Everything else in the gap, whatever kinds it
+  alternates, is the gap's one `b`, a comment. No gap holds more than three paragraphs. A doc
+  that documents nothing is a comment, and a doc cut off from its item by an ordinary comment
+  is detached (#235).
+
