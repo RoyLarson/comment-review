@@ -637,7 +637,7 @@ def run_ends(
     return -1, depth
 
 
-class _AfterCloser(NamedTuple):
+class AfterCloser(NamedTuple):
     """What follows a delimited comment's closer on its line."""
 
     #: Nothing but comments: the line holds no code past the closer.
@@ -648,7 +648,7 @@ class _AfterCloser(NamedTuple):
     layers: int
 
 
-def _after_closer(rest: str, lang: Language) -> _AfterCloser:
+def after_closer(rest: str, lang: Language) -> AfterCloser:
     """Read the text after a closer: comments only, or code.
 
     A delimited opener is tried before a line opener, because Lua's `--[[`
@@ -660,14 +660,14 @@ def _after_closer(rest: str, lang: Language) -> _AfterCloser:
     while True:
         stripped = text.lstrip()
         if not stripped:
-            return _AfterCloser(True, None, 1)
+            return AfterCloser(True, None, 1)
         pair = next((p for p in lang.block_comment if stripped.startswith(p[0])), None)
         if pair is None:
-            return _AfterCloser(stripped.startswith(lang.line_comment), None, 1)
+            return AfterCloser(stripped.startswith(lang.line_comment), None, 1)
         tail = stripped[len(pair[0]) :]
         ends, layers = run_ends(tail, pair, lang.nests_comments)
         if ends < 0:
-            return _AfterCloser(True, pair, layers)
+            return AfterCloser(True, pair, layers)
         text = tail[ends:]
 
 
@@ -975,7 +975,7 @@ def read_lexical(path: Path, text: str, lang: Language) -> "LexicalRead":
                 # closes its long comment and opens an empty line comment, and
                 # `*/ /* more` opens another delimited comment the run goes on
                 # into. Only code after the closer ends the run here.
-                after = _after_closer(raw_line[ends:], lang)
+                after = after_closer(raw_line[ends:], lang)
                 if after.still_open is not None:
                     in_block, layers = after.still_open, after.layers
                     continue
@@ -1029,7 +1029,7 @@ def read_lexical(path: Path, text: str, lang: Language) -> "LexicalRead":
             closes_here = ends_at >= 0
             # Comments after the closer are prose, as they are on a line the
             # comment closes on below; only code makes the comment intermediate.
-            after = _after_closer(tail[ends_at:] if closes_here else "", lang)
+            after = after_closer(tail[ends_at:] if closes_here else "", lang)
             # !! AN INTERMEDIATE COMMENT IS NOT GATHERED -- one that CLOSES on
             # this line with code after it, `int x = /* why */ 5;`.
             #

@@ -15,6 +15,7 @@ from comment_review import constants
 from comment_review.reading.diagnostics import ReadDiagnostic, ReadStage
 from comment_review.reading.lexer import (
     Language,
+    after_closer,
     language_for,
     paragraphs_lexical,
 )
@@ -34,12 +35,20 @@ def _delimiter_shares_the_line(line: str, lang: Language) -> bool:
     A delimiter spelled inside a string literal on the same line trips this and
     routes a safe line to `unprovable` -- the SAFE direction for a proof to
     fail, so it stands in place of a second copy of gather's quoting logic.
+
+    Comments are not code: text after a closer that `after_closer` reads as
+    comments only, and text before an opener that holds a closer -- the tail
+    of the comment closing there -- leave the line whole prose.
     """
     for opener, closer in lang.block_comment:
-        if opener in line and line[: line.index(opener)].strip():
-            return True
-        if closer in line and line[line.index(closer) + len(closer) :].strip():
-            return True
+        if opener in line:
+            before = line[: line.index(opener)]
+            if before.strip() and closer not in before:
+                return True
+        if closer in line:
+            rest = line[line.index(closer) + len(closer) :]
+            if rest.strip() and not after_closer(rest, lang).comment:
+                return True
     return False
 
 

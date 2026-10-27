@@ -58,6 +58,26 @@ def test_a_byte_order_mark_before_a_block_comment_does_not_make_the_file_unprova
     assert [d.code for d in changed.diagnostics] == ["code-changed"]
 
 
+@pytest.mark.parametrize(
+    ("name", "line"),
+    [
+        ("m.c", "    /* a */ /* b */"),
+        ("m.c", "/* a */ // b"),
+        ("m.c", "/* a\n b */ /* c\n d */"),
+    ],
+    ids=["two-blocks", "block-then-line", "closer-then-open-block"],
+)
+def test_a_line_of_comments_after_a_closer_is_provable(name, line):
+    code = ("int x;", "int y;")
+    text = f"{code[0]}\n{line}\n{code[1]}\n"
+
+    assert _preserved(text, text, name).unchanged
+    changed = _preserved(text, text.replace(code[1], code[1] + " "), name)
+    assert changed.unchanged
+    changed = _preserved(text, text.replace(code[1], code[0]), name)
+    assert [d.code for d in changed.diagnostics] == ["code-changed"]
+
+
 @pytest.mark.parametrize("name", ["m.js", "m.ts"])
 def test_an_interpreter_line_with_trailing_space_still_protects_it(name):
     before = "#!/usr/bin/env node  \nlet x = 1;\n"
