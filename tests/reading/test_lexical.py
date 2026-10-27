@@ -477,6 +477,69 @@ def test_the_annotation_lines_and_their_declaring_line_are_handed_over_joined():
     ]
 
 
+@pytest.mark.parametrize(
+    ("name", "text", "expected"),
+    [
+        (
+            "m.kt",
+            "class A {\n    @Inject lateinit var a: Foo\n"
+            "    @Inject lateinit var b: Bar\n    private val c = 1\n}\n",
+            [
+                CodeLine(1, "class A {", DocPlace(1, True)),
+                CodeLine(2, "    @Inject lateinit var a: Foo", None),
+                CodeLine(3, "    @Inject lateinit var b: Bar", None),
+                CodeLine(4, "    private val c = 1", DocPlace(4, True)),
+                CodeLine(5, "}", None),
+            ],
+        ),
+        (
+            "m.java",
+            "class A {\n  @Override public int hashCode() { return 1; }\n"
+            '  public String toString() { return ""; }\n}\n',
+            [
+                CodeLine(1, "class A {", DocPlace(1, True)),
+                CodeLine(
+                    2,
+                    "  @Override public int hashCode() { return 1; }",
+                    DocPlace(2, True),
+                ),
+                CodeLine(
+                    3, '  public String toString() { return ""; }', DocPlace(3, True)
+                ),
+                CodeLine(4, "}", None),
+            ],
+        ),
+        (
+            "m.java",
+            "@Ann\n@Override public void f() {}\n",
+            [
+                CodeLine(1, "@Ann", None),
+                CodeLine(2, "@Override public void f() {}", DocPlace(1, True), True),
+            ],
+        ),
+        (
+            "m.java",
+            '@Ann(x = "a)")\n@Other({1, 2})\npublic void f() {}\n',
+            [
+                CodeLine(1, '@Ann(x = "a)")', None),
+                CodeLine(2, "@Other({1, 2})", None, True),
+                CodeLine(3, "public void f() {}", DocPlace(1, True), True),
+            ],
+        ),
+    ],
+    ids=[
+        "kotlin-annotated-members",
+        "java-annotated-method",
+        "annotation-above-an-annotated-declaration",
+        "annotations-with-arguments",
+    ],
+)
+def test_only_a_line_holding_nothing_but_annotations_joins_the_line_below(
+    name, text, expected
+):
+    assert read(name, text).code_lines() == expected
+
+
 def test_declarations_hold_only_the_declaring_lines():
     go = language_for(Path("m.go"))
     assert go is not None

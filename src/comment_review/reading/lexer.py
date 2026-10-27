@@ -1347,6 +1347,53 @@ def _module_documentation(
 _FIRST_WORD = re.compile(r"^\s*([A-Za-z_][A-Za-z0-9_]*!?)")
 
 
+#: An annotation's name after its opener: `Override`, `file:JvmName`, `a.b.C`.
+_ANNOTATION_NAME = re.compile(r"[\w.:$]*")
+
+#: What closes each bracket an annotation's arguments may open.
+_CLOSERS = {"(": ")", "[": "]", "{": "}"}
+
+
+def _after_annotations(line: str, lang: Language) -> str | None:
+    """The code after the annotations a line opens with, or None if it opens with none.
+
+    An annotation is one of the row's `annotations` openers, a name, and an
+    optional bracketed argument list, read with string literals blanked so a
+    bracket inside one does not count. An opener that is itself a bracket,
+    `[[`, is closed the same way. "" means the line holds annotations and
+    nothing else.
+    """
+    if not lang.annotations:
+        return None
+    code = _strip_strings(line, lang.quotes, lang.char_quotes)
+    at = len(code) - len(code.lstrip())
+    found = False
+    while True:
+        opener = next((o for o in lang.annotations if code.startswith(o, at)), None)
+        if opener is None:
+            break
+        found = True
+        open_brackets = [_CLOSERS[c] for c in opener if c in _CLOSERS]
+        at += len(opener)
+        if not open_brackets:
+            name = _ANNOTATION_NAME.match(code, at)
+            at = name.end() if name else at
+            if code[at : at + 1] == "(":
+                open_brackets = [")"]
+                at += 1
+        while open_brackets and at < len(code):
+            char = code[at]
+            if char in _CLOSERS:
+                open_brackets.append(_CLOSERS[char])
+            elif char == open_brackets[-1]:
+                open_brackets.pop()
+            at += 1
+        if open_brackets:
+            return None
+        at = len(code) - len(code[at:].lstrip())
+    return line[at:] if found else None
+
+
 def _declares_here(line: str, declares: tuple[str, ...]) -> bool:
     """Does this line of code introduce something documentable?
 
@@ -1505,15 +1552,16 @@ def declarations(lang: Language, code: Mapping[int, str]) -> dict[int, DocPlace]
     # set against its first line. Ordered because `code` is.
     # !! AN ANNOTATION IS PART OF THE DECLARATION IT PRECEDES -- see
     # `Language.annotations` -- so the first line is the topmost of the
-    # annotation lines directly above the declaring line.
+    # annotation lines directly above the declaring line: lines holding
+    # annotations and nothing else. A line that opens with annotations and then
+    # declares is itself the declaring line, and its keyword follows them.
     found: dict[int, DocPlace] = {}
     for n, line in code.items():
-        if not _declares_here(line, lang.declares):
+        after = _after_annotations(line, lang)
+        if not _declares_here(line if after is None else after, lang.declares):
             continue
         top = n
-        while lang.annotations and code.get(top - 1, "").lstrip().startswith(
-            lang.annotations
-        ):
+        while top - 1 in code and _after_annotations(code[top - 1], lang) == "":
             top -= 1
         found[n] = DocPlace(top, True)
     return found
