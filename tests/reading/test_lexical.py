@@ -99,44 +99,46 @@ def test_a_closing_doc_run_starts_at_its_first_doc_marked_line(text, doc_line):
     [
         ("/** one */\n", [(1, 1, Kind.DOCSTRING, "")]),
         ("/** one */\n/** two */\n", [(1, 2, Kind.DOCSTRING, "")]),
+        ("/** one */\n\n/** two */\n", [(1, 3, Kind.DOCSTRING, "")]),
+        ("\n/** one */\n", [(2, 2, Kind.DOCSTRING, "")]),
         (
-            "/** one */\n\n/** two */\n",
-            [(1, 1, Kind.DOCSTRING, ""), (3, 3, Kind.DOCSTRING, "<eof>")],
+            "// licence\n\n/** one */\n",
+            [(1, 1, Kind.MATTER, "<module>"), (3, 3, Kind.DOCSTRING, "")],
         ),
         (
-            "/** one */\n// note\n\n/** two */\n",
+            "// licence\n\n/** one */\n// note\n/** two */\n",
             [
-                (1, 1, Kind.DOCSTRING, ""),
-                (2, 2, Kind.COMMENT, ""),
-                (4, 4, Kind.DOCSTRING, "<eof>"),
+                (1, 1, Kind.MATTER, "<module>"),
+                (3, 3, Kind.DOCSTRING, ""),
+                (4, 4, Kind.COMMENT, ""),
+                (5, 5, Kind.DOCSTRING, "<eof>"),
             ],
         ),
-        ("\n/** two */\n", [(2, 2, Kind.DOCSTRING, "<eof>")]),
         (
-            "// licence\n/** one */\n",
-            [(1, 1, Kind.MATTER, "<module>"), (2, 2, Kind.DOCSTRING, "")],
-        ),
-        (
-            "// licence\n\n/** two */\n",
-            [(1, 1, Kind.MATTER, "<module>"), (3, 3, Kind.DOCSTRING, "<eof>")],
+            "/** one */\n// note\n\n// more\n/** two */\n",
+            [
+                (1, 1, Kind.DOCSTRING, ""),
+                (2, 4, Kind.COMMENT, ""),
+                (5, 5, Kind.DOCSTRING, "<eof>"),
+            ],
         ),
     ],
     ids=[
         "one",
         "two-flush",
         "two-apart",
-        "comment-between",
         "blank-above",
-        "below-matter",
         "blank-below-matter",
+        "comment-between",
+        "comments-between",
     ],
 )
-def test_with_no_code_a_blank_line_parts_the_opening_doc_from_the_closing_one(
+def test_with_no_code_the_docs_at_the_top_are_the_modules_until_a_comment(
     text, expected
 ):
-    # No code separates the two ends, so a fully empty line does: the opening
-    # docstring is the doc-marked run at the head, and the closing one is the
-    # doc-marked run below the run's last blank line.
+    # The one run is both the head and the foot. The docs at its top are the
+    # module's `a0`; a comment in it ends them, and the docs below its last
+    # comment are the `<eof>` `a`.
     found = read("m.js", text).paragraphs(Path("m.js"))
     assert [(p.start, p.end, p.kind, p.anchor) for p in found] == expected
 

@@ -654,32 +654,68 @@ def test_filling_the_head_of_a_shebang_file_keeps_the_shebang_on_line_one(
 @pytest.mark.parametrize(
     ("text", "places", "expected"),
     [
+        ("/** One. */\n", {"a1": "/** Two. */"}, "/** One. */\n/** Two. */\n"),
+        ("/** One. */\n", {"a0": None, "a1": "/** Two. */"}, "/** Two. */\n"),
         (
-            "/** One. */\n",
-            {"a1": "/** Two. */"},
-            "/** One. */\n\n/** Two. */\n",
-        ),
-        ("/** One. */\n", {"a0": None, "a1": "/** Two. */"}, "\n/** Two. */\n"),
-        ("// Licence.\n", {"a1": "/** Two. */"}, "// Licence.\n\n/** Two. */\n"),
-        (
-            "/** One. */\n",
-            {"b0": "// Note.", "a1": "/** Two. */"},
-            "/** One. */\n// Note.\n\n/** Two. */\n",
+            "// Licence.\n\n/** Doc. */\n",
+            {"b0": "// Note.", "a1": "/** End. */"},
+            "// Licence.\n\n/** Doc. */\n// Note.\n/** End. */\n",
         ),
         ("class A {}\n", {"a2": "/** Two. */"}, "class A {}\n/** Two. */\n"),
     ],
-    ids=["below-a0", "a0-empty", "below-matter", "below-a-gap", "below-code"],
+    ids=["below-a0", "a0-empty", "gap-and-closing", "below-code"],
 )
-def test_an_added_closing_docstring_with_no_code_above_it_is_set_below_a_blank(
+def test_an_added_closing_docstring_is_set_in_reading_order_and_nothing_more(
     text, places, expected
 ):
-    # With no code on the page, only a blank line sets the closing docstring
-    # apart from the head of the file; below code, the code does.
+    # The places are set f0 a0 b0 a1 f1, and no line is set that no place
+    # holds.
     from comment_review.results.galley import reset
 
     page = build(text, "m.js")
     assert reset(page, places) == []
     assert set_page(page) == expected
+
+
+@pytest.mark.parametrize(
+    ("name", "text", "places", "expected"),
+    [
+        ("m.js", "/** Doc. */\n", {"f0": "// licence"}, "// licence\n/** Doc. */\n"),
+        ("m.js", "// licence\n", {"a0": "/** Doc. */"}, "// licence\n/** Doc. */\n"),
+        (
+            "m.js",
+            "let x = 1;\n",
+            {"f0": "// licence", "a0": "/** Doc. */"},
+            "// licence\n/** Doc. */\nlet x = 1;\n",
+        ),
+        (
+            "m.js",
+            "#!/usr/bin/env node\nlet x = 1;\n",
+            {"f0": "#!/usr/bin/env node\n// licence", "a0": "/** Doc. */"},
+            "#!/usr/bin/env node\n// licence\n/** Doc. */\nlet x = 1;\n",
+        ),
+        (
+            "m.py",
+            "x = 1\n",
+            {"f0": "# licence", "a0": '"""Doc."""'},
+            '# licence\n"""Doc."""\nx = 1\n',
+        ),
+    ],
+    ids=["doc-only", "matter-only", "code-only", "shebang", "python"],
+)
+def test_the_head_places_are_filled_and_set_back_in_reading_order(
+    name, text, places, expected
+):
+    # f0 then a0, each set back where it was filled and read back there.
+    from comment_review.results.galley import reset
+
+    page = build(text, name)
+    assert reset(page, places) == []
+    out = set_page(page)
+    assert out == expected
+    again = by_cue(build(out, name))
+    for place, prose in places.items():
+        assert again[place].raw_lines == prose.split("\n")
 
 
 @pytest.mark.parametrize("ending", ["\n", "\r\n"])

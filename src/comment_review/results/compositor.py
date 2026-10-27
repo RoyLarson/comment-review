@@ -53,7 +53,7 @@ from pathlib import Path
 from comment_review import constants, exceptions
 from comment_review.binder.page import Page
 from comment_review.machine.repo import write_raw
-from comment_review.reading.addresser import DECLARED, EOF, GAP, ON, cue_of
+from comment_review.reading.addresser import DECLARED, GAP, ON, cue_of
 from comment_review.reading.series import Kind
 
 CRLF = "\r\n"
@@ -249,20 +249,6 @@ def set_page(page: Page, newline: str | None = None) -> str:
         # bytes and not the outcome.
         if adding_a_gap and not edge and at < last_code:
             out.append("")
-        # !! WITH NO CODE ON THE PAGE, AN ADDED CLOSING DOCSTRING TAKES A BLANK
-        # ABOVE IT. Below code, the code is what keeps it off the head of the
-        # file; with none, the reader takes a doc run at the head as the
-        # module's `a0` and parts the `<eof>` `a` from it at a blank line.
-        elif (
-            last_code < 0
-            and bool(prose)
-            and cue in absent
-            and not edge
-            and not closing_gap
-            and page.cues.anchor_of(cue) == EOF
-            and cue.startswith(DECLARED)
-        ):
-            out.append("")
         # !! AND AT THE FOOT IT GOES ON THE OTHER SIDE -- the head's rule in
         # reverse. Matter is the run that STARTS on line 1 or ENDS on the last
         # one, so what pushes a gap out of it is a blank BEFORE at the head and a
@@ -273,7 +259,18 @@ def set_page(page: Page, newline: str | None = None) -> str:
         #
         # ! OWED UNTIL THE PROSE IS SET, which is why it is held rather than
         # written here -- the blank belongs BELOW the paragraph.
-        trailing = adding_a_gap and at > last_code and not edges.get(cue)
+        #
+        # ! AND NOT OWED WHEN A CLOSING DOCSTRING IS SET BELOW IT: the gap then
+        # does not end on the last line, and the docstring is what parts it
+        # from the back matter.
+        trailing = (
+            adding_a_gap
+            and at > last_code
+            and not edges.get(cue)
+            and not any(
+                held.get(c) for c in reading[at + 1 :] if c.startswith(DECLARED)
+            )
+        )
         previous = cue
         # ! A `c` IS NEVER EMPTY IN THIS SENSE -- it sets its line of code
         # whether or not anything sits beside it.

@@ -1287,12 +1287,9 @@ def _module_documentation(
     docstring starts at its first doc-marked line, the comments before it
     staying a `comment` run that ends on the last line it has a comment on.
 
-    !! WITH NO CODE IN THE FILE, A BLANK LINE PARTS THE TWO ENDS. The head is
-    then read only from a run that opens on line 1 or directly below the front
-    matter, and only down to the run's first blank line; the foot only from the
-    run's last blank line down. A run with no blank line is the head's when it
-    opens there and the foot's otherwise, so the docstring at `<eof>` has a
-    position of its own -- below a blank line -- whatever holds the head.
+    In a file with no code, one run can be both. Its docs at the top are then
+    `a0` up to its first comment line, and the docs below its last comment line
+    are the `a` at EOF; with no comment line in it, all of its docs are `a0`.
     """
     prose = sorted(
         (
@@ -1302,50 +1299,40 @@ def _module_documentation(
         ),
         key=lambda p: p.start,
     )
-    if not prose:
-        return list(paragraphs)
-    # Each end as its run and the lines of that run it reads.
-    ends: list[tuple[Paragraph, str, int, int]] = []
-    if code:
-        if not any(n < prose[0].start for n in code):
-            ends.append((prose[0], "", prose[0].start, prose[0].end))
-        if not any(n > prose[-1].end for n in code) and (
-            not ends or ends[0][0] is not prose[-1]
-        ):
-            ends.append((prose[-1], EOF, prose[-1].start, prose[-1].end))
-    else:
-        head, foot = prose[0], prose[-1]
-        matter_ends = {p.end for p in paragraphs if p.kind == Kind.MATTER}
-        at_head = head.start == 1 or head.start - 1 in matter_ends
-        blanks = [n for n in range(foot.start, foot.end + 1) if n in between]
-        head_blanks = [n for n in range(head.start, head.end + 1) if n in between]
-        if at_head:
-            ends.append(
-                (head, "", head.start, head_blanks[0] - 1 if head_blanks else head.end)
-            )
-        if blanks or foot is not head or not at_head:
-            ends.append((foot, EOF, blanks[-1] + 1 if blanks else foot.start, foot.end))
+    ends: list[tuple[Paragraph, str]] = []
+    if prose and not any(n < prose[0].start for n in code):
+        ends.append((prose[0], ""))
+    if prose and not any(n > prose[-1].end for n in code):
+        if not ends or ends[0][0] is not prose[-1]:
+            ends.append((prose[-1], EOF))
     out = list(paragraphs)
-    # Both ends can read the same run, which is then cut once.
-    for p in {id(run): run for run, *_ in ends}.values():
-        docstrings: list[Paragraph] = []
-        for _, anchor, lo, hi in (end for end in ends if end[0] is p):
-            opens = hi if anchor == EOF else lo
-            if p.kind != Kind.COMMENT or opens not in documentation:
-                continue
-            doc = [n for n in range(lo, hi + 1) if n in documentation]
-            first, last = (doc[0], hi) if anchor == EOF else (lo, doc[-1])
-            docstrings.append(_part(p, first, last, Kind.DOCSTRING, anchor))
-        if not docstrings:
+    for p, anchor in ends:
+        opens = p.end if anchor == EOF else p.start
+        if p.kind != Kind.COMMENT or opens not in documentation:
             continue
+        doc = [n for n in range(p.start, p.end + 1) if n in documentation]
+        first, last = (doc[0], p.end) if anchor == EOF else (p.start, doc[-1])
+        spans = [(first, last, anchor)]
+        comments = [
+            n for n in range(p.start, p.end + 1) if n not in documentation | between
+        ]
+        if not code and anchor != EOF and p is prose[-1] and comments:
+            # With no code the run is the foot as well: a comment ends the docs
+            # at its top, and the docs below its last comment are the module's
+            # at EOF.
+            spans = [(first, max(n for n in doc if n < comments[0]), anchor)]
+            if p.end in documentation:
+                spans.append((min(n for n in doc if n > comments[-1]), p.end, EOF))
         comment = [
             n
             for n in range(p.start, p.end + 1)
-            if not any(d.start <= n <= d.end for d in docstrings) and n not in between
+            if not any(lo <= n <= hi for lo, hi, _ in spans) and n not in between
         ]
-        rest = [_part(p, comment[0], comment[-1], Kind.COMMENT)] if comment else []
+        parts = [_part(p, lo, hi, Kind.DOCSTRING, at) for lo, hi, at in spans]
+        if comment:
+            parts.append(_part(p, comment[0], comment[-1], Kind.COMMENT))
         at = out.index(p)
-        out[at : at + 1] = sorted([*docstrings, *rest], key=lambda q: q.start)
+        out[at : at + 1] = sorted(parts, key=lambda q: q.start)
     return out
 
 
