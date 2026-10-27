@@ -74,11 +74,12 @@ def first_literal(raw: str, definition: LanguageDefinition) -> str | None:
 
 
 def concatenated(raw: str, definition: LanguageDefinition) -> Docstring | None:
-    """Read the first statement when it is two or more adjacent string literals.
+    """Read the first statement when it is parenthesised or holds adjacent literals.
 
     The statement is the literals alone, in parentheses or not, followed by
     nothing, a line break, a comment or a statement separator. None where it
-    is anything else, holds one literal, or does not scan or decode.
+    is anything else, holds one literal outside parentheses, or does not scan
+    or decode.
     """
     indent = raw[: len(raw) - len(raw.lstrip())]
     source = raw[len(indent) :]
@@ -89,7 +90,7 @@ def concatenated(raw: str, definition: LanguageDefinition) -> Docstring | None:
     if expression is None:
         return None
     strings, last = expression
-    if len(strings) < 2:
+    if len(strings) < 2 and not source.startswith("("):
         return None
     literals = cast(Mapping[str, object], definition.rules["literals"])
     decoding = cast(Mapping[str, object], literals["decoding"])

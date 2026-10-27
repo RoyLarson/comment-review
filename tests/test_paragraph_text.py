@@ -83,6 +83,29 @@ def test_a_python_docstring_ending_in_a_continuation_has_no_quotes_in_its_text(
     assert comment_form(Path("m.py"), Series.DECLARED, raw).text == text
 
 
+@pytest.mark.parametrize(
+    ("raw", "text"),
+    [
+        ('    ("doc")', "doc"),
+        ('    ("doc")  # c', "doc"),
+        ('    "doc"  # c', "doc"),
+        ('    ("a"\n     "b")', "ab"),
+        ('    ("a"\n     "b")  # c', "ab"),
+        ('    (\n        "doc"\n    )', "doc"),
+    ],
+    ids=[
+        "parenthesised",
+        "parenthesised-comment",
+        "bare-comment",
+        "two-lines",
+        "two-lines-comment",
+        "own-lines",
+    ],
+)
+def test_a_parenthesised_python_docstring_reads_as_its_literal(raw, text):
+    assert comment_form(Path("m.py"), Series.DECLARED, raw).text == text
+
+
 def test_a_docstrings_language_definition_is_not_part_of_its_value():
     form = comment_form(Path("m.py"), Series.DECLARED, '    """A. """ """B."""')
     assert isinstance(form, Docstring)
