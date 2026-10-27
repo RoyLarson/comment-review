@@ -354,6 +354,34 @@ FORMS = {
         "m.js",
         "function f() {}\n/* a\n b */ x = 1;\n// c\ny = 2;\n",
     ),
+    "js two runs with plain groups facing": (
+        "m.js",
+        "y = 0;\n/* a\n b */ x = 1;\n// c\nfunction g() {}\n",
+    ),
+    "js two runs with doc groups facing": (
+        "m.js",
+        "function f() {}\n/** a\n b */ x = 1;\n/** D */\nfunction g() {}\n",
+    ),
+    "js two runs with doc groups facing at the head": (
+        "m.js",
+        "/** a\n b */ x = 1;\n/** D */\nfunction g() {}\n",
+    ),
+    "lua two runs": (
+        "m.lua",
+        "local a = 1\n--[[ a\n b ]] x = 1\n-- c\nlocal function g() end\n",
+    ),
+    "js matter, doc, then comments and docs to the last line": (
+        "m.js",
+        "// M1\n/** D1 */\n// C1\n/** D2 */\n// C2\n/** D3 */\n// C3\n",
+    ),
+    "js matter, doc, then comments and docs, blank last line": (
+        "m.js",
+        "// M1\n/** D1 */\n// C1\n/** D2 */\n// C2\n/** D3 */\n// C3\n\n",
+    ),
+    "js two runs with a blank between": (
+        "m.js",
+        "function f() {}\n/* a\n b */ x = 1;\n\n// c\nfunction g() {}\n",
+    ),
     "js docs and comments between declarations": (
         "m.js",
         "function f() {}\n\n/** A */\n// n1\n/** B */\n// n2\n/** C */\n"
@@ -718,6 +746,59 @@ def test_an_added_closing_docstring_is_set_in_reading_order_and_nothing_more(
     page = build(text, "m.js")
     assert reset(page, places) == []
     assert set_page(page) == expected
+
+
+@pytest.mark.parametrize(
+    ("name", "text", "place", "prose", "replaced"),
+    [
+        (
+            "m.js",
+            "y = 0;\n/* a\n b */ x = 1;\n// c\nfunction g() {}\n",
+            "a1",
+            "/** G */",
+            "// c",
+        ),
+        (
+            "m.js",
+            "function f() {}\n/** a\n b */ x = 1;\n/** D */\nfunction g() {}\n",
+            "a2",
+            "/** G */",
+            "/** D */",
+        ),
+        (
+            "m.js",
+            "/** a\n b */ x = 1;\n/** D */\nfunction g() {}\n",
+            "a1",
+            "/** G */",
+            "/** D */",
+        ),
+        (
+            "m.lua",
+            "local a = 1\n--[[ a\n b ]] x = 1\n-- c\nlocal function g() end\n",
+            "a1",
+            "--- G",
+            "-- c",
+        ),
+        (
+            "m.js",
+            "function f() {}\n/* a\n b */ x = 1;\n\n// c\nfunction g() {}\n",
+            "a2",
+            "/** G */",
+            "// c",
+        ),
+    ],
+    ids=["plain-facing", "doc-facing", "doc-facing-head", "lua", "blank-between"],
+)
+def test_filling_the_a_below_a_closing_line_with_code_keeps_that_line(
+    name, text, place, prose, replaced
+):
+    # The `a` holds only its own run's lines, so the closing line and its
+    # statement above it are set back as they were.
+    from comment_review.results.galley import reset
+
+    page = build(text, name)
+    assert reset(page, {place: prose}) == []
+    assert set_page(page) == text.replace(replaced, prose)
 
 
 @pytest.mark.parametrize(

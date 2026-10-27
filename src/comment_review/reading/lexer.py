@@ -1295,9 +1295,12 @@ def _cut_by_place(
       at the foot of the file, `<eof>` when the group is doc-marked.
     - At the head of the file, the doc-marked group opening the gap is `a0`.
     - Everything else in the gap is its one `b`, a `comment`.
+    - Where the back matter starts on the line below the gap's last run, the
+      matter is what touches the foot: the gap has no `a` there, and
+      everything in it but `a0` is the back matter, one paragraph.
 
     With no code the gap is both head and foot, and one doc-marked group is
-    `a0`.
+    `a0`. Each place holds one paragraph.
     """
     prose = [
         p
@@ -1310,11 +1313,32 @@ def _cut_by_place(
             gaps[-1].append(p)
         else:
             gaps.append([p])
+    back = next(
+        (
+            p
+            for p in paragraphs
+            if p.kind == Kind.MATTER
+            and gaps
+            and p.start == gaps[-1][-1].end + 1
+            and p.end == len(lines)
+        ),
+        None,
+    )
     cut = {
-        id(gap[0]): _cut_gap(gap, lines, code, between, documentation, a_series)
+        id(gap[0]): _cut_gap(
+            gap,
+            lines,
+            code,
+            between,
+            documentation,
+            a_series,
+            back if gap is gaps[-1] else None,
+        )
         for gap in gaps
     }
     held = {id(p) for p in prose}
+    if back is not None:
+        held.add(id(back))
     out: list[Paragraph] = []
     for p in paragraphs:
         if id(p) in cut:
@@ -1331,28 +1355,44 @@ def _cut_gap(
     between: set[int],
     documentation: set[int],
     a_series: bool,
+    back: Paragraph | None,
 ) -> list[Paragraph]:
-    """One gap's runs, cut into its `a0`, its one `b` and its lower edge's `a`."""
+    """One gap's runs, cut into its `a0`, its one `b` and its lower edge's `a`.
+
+    With `back`, the back matter directly below the gap, everything but `a0`
+    joins the matter instead.
+    """
     first, last = runs[0], runs[-1]
     raw = {p.start + i: line for p in runs for i, line in enumerate(p.raw_lines)}
     held = sorted(n for n in raw if n not in between)
+    # A group never crosses from one run into the next, so `a0` stays in the
+    # gap's first run and the lower edge's `a` in its last.
     groups: list[tuple[int, int, bool]] = []
-    for n in held:
-        doc = n in documentation
-        if groups and groups[-1][2] == doc:
-            groups[-1] = (groups[-1][0], n, doc)
-        else:
-            groups.append((n, n, doc))
+    for p in runs:
+        opened = len(groups)
+        for n in (n for n in held if p.start <= n <= p.end):
+            doc = n in documentation
+            if len(groups) > opened and groups[-1][2] == doc:
+                groups[-1] = (groups[-1][0], n, doc)
+            else:
+                groups.append((n, n, doc))
     head = a_series and not any(n < first.start for n in code)
     foot = a_series and not any(n > last.end for n in code)
     documents = last.kind == Kind.DOCSTRING
     lowest = groups[-1] if documents else None
     if not documents and foot and groups[-1][2] and not (head and len(groups) == 1):
         lowest = groups[-1]
+    if back is not None:
+        lowest = None
+        raw.update((back.start + i, line) for i, line in enumerate(back.raw_lines))
     opening = None
     if head and groups[0][2] and groups[0] is not lowest:
         opening = groups[0]
-    if len(runs) == 1 and (len(groups) == 1 or (opening is None and lowest is None)):
+    if (
+        back is None
+        and len(runs) == 1
+        and (len(groups) == 1 or (opening is None and lowest is None))
+    ):
         # A gap of one run that is one place keeps its paragraph.
         p = runs[0]
         if opening is None and lowest is None:
@@ -1382,7 +1422,11 @@ def _cut_gap(
         if not (opening and opening[0] <= n <= opening[1])
         and not (lowest and lowest[0] <= n <= lowest[1])
     ]
-    if rest:
+    if back is not None:
+        parts.append(
+            part(rest[0] if rest else back.start, back.end, Kind.MATTER, MODULE_ANCHOR)
+        )
+    elif rest:
         parts.append(part(rest[0], rest[-1], Kind.COMMENT))
     if lowest is not None:
         closing = part(lowest[0], lowest[1], Kind.DOCSTRING, last.anchor)

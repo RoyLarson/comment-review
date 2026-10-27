@@ -148,25 +148,92 @@ NOTE = Kind.COMMENT
 
 
 @pytest.mark.parametrize(
-    ("text", "expected"),
+    ("name", "text", "expected"),
     [
         (
+            "m.js",
             "y = 0;\n/* a\n b */ x = 1;\n/** D */\n// c\n/** E */\nfunction g() {}\n",
             [(2, 5, NOTE, "", None), (6, 6, DOC, "", 7)],
         ),
         (
+            "m.js",
             "function f() {}\n/* a\n b */ x = 1;\n// c\ny = 2;\n",
             [(2, 4, NOTE, "", None)],
         ),
+        (
+            "m.js",
+            "y = 0;\n/* a\n b */ x = 1;\n// c\nfunction g() {}\n",
+            [(2, 3, NOTE, "", None), (4, 4, DOC, "", 5)],
+        ),
+        (
+            "m.js",
+            "function f() {}\n/** a\n b */ x = 1;\n/** D */\nfunction g() {}\n",
+            [(2, 3, NOTE, "", None), (4, 4, DOC, "", 5)],
+        ),
+        (
+            "m.js",
+            "/** a\n b */ x = 1;\n/** D */\nfunction g() {}\n",
+            [(1, 2, DOC, "", None), (3, 3, DOC, "", 4)],
+        ),
+        (
+            "m.lua",
+            "local a = 1\n--[[ a\n b ]] x = 1\n-- c\nlocal function g() end\n",
+            [(2, 3, NOTE, "", None), (4, 4, DOC, "", 5)],
+        ),
+        (
+            "m.js",
+            "function f() {}\n/* a\n b */ x = 1;\n\n// c\nfunction g() {}\n",
+            [(2, 3, NOTE, "", None), (5, 5, DOC, "", 6)],
+        ),
     ],
-    ids=["two-runs-above-a-declaration", "two-runs-above-plain-code"],
+    ids=[
+        "two-runs-above-a-declaration",
+        "two-runs-above-plain-code",
+        "plain-groups-facing",
+        "doc-groups-facing-mid-file",
+        "doc-groups-facing-at-the-head",
+        "lua",
+        "blank-between-the-runs",
+    ],
 )
-def test_a_gap_holding_two_runs_has_one_b(text, expected):
+def test_a_gap_holding_two_runs_has_one_b(name, text, expected):
     # A delimited comment closing on a line that holds code leaves that line
     # out of the code, so the run below it is in the same gap and joins its b.
-    found = read("m.js", text).paragraphs(Path("m.js"))
+    # A group never crosses from one run into the next, so the lower edge's
+    # `a` stays inside the last run and `a0` inside the first.
+    found = read(name, text).paragraphs(Path(name))
     got = [(p.start, p.end, p.kind, p.anchor, p.anchor_line) for p in found]
     assert [row for row in got if row[2] != Kind.TRAILING] == expected
+
+
+ROYS_CASE = "// M1\n/** D1 */\n// C1\n/** D2 */\n// C2\n/** D3 */\n// C3\n"
+
+
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        (
+            ROYS_CASE,
+            [
+                (1, 1, Kind.MATTER, "<module>"),
+                (2, 2, DOC, ""),
+                (3, 7, Kind.MATTER, "<module>"),
+            ],
+        ),
+        (
+            ROYS_CASE + "\n",
+            [(1, 1, Kind.MATTER, "<module>"), (2, 2, DOC, ""), (3, 7, NOTE, "")],
+        ),
+    ],
+    ids=["back-matter", "blank-last-line"],
+)
+def test_each_place_holds_one_paragraph_and_the_rest_is_one_b_or_the_back_matter(
+    text, expected
+):
+    # Past a0, the gap's comments and docs are one paragraph: the back matter
+    # when they reach the last line, the gap's b when a blank line ends it.
+    found = read("m.js", text).paragraphs(Path("m.js"))
+    assert [(p.start, p.end, p.kind, p.anchor) for p in found] == expected
 
 
 @pytest.mark.parametrize(
