@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 2 of 4 tasks closed
+Progress: 2 of 5 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-21 (the /code-review xhigh of 2026-08-21, focused on the file-to-
@@ -70,3 +70,5 @@ the first statement rather than as a `trailing-comment`, and no anchor is the BO
 - [x] T4 | FINISHED | unknown | T4 -- A statement about the platform, in the
       Objective: BOM is the Visual Studio and Windows PowerShell default for
       `.c`, `.cs`, `.cpp` and `.ps1`.
+- [ ] T5 | Write the byte-order mark ahead of f0, a0 or b0 when the head is set
+        > 2026-10-27 compositor.py:96, galley.py:99; proof passes a lost mark

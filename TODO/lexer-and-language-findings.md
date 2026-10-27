@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 22 of 55 tasks closed
+Progress: 22 of 56 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (/simplify rounds 1 and 2 and /code-review high round 3,
@@ -348,5 +348,9 @@ would.
         > 2026-10-26 js twin hides it: // note + /** Doc. */ read as one b0 comment
         > 2026-10-26 pymc _version.py, distributions/continuous.py, setupegg.py
         > 2026-10-26 Foot mirrors it (#240): comments under a closing doc are matter
+        > 2026-10-27 Also: let y; /** D */ // c, blank, // m: eof a fill reads as f1
+        > 2026-10-27 Also let y; /** D */ // c, blank, // m: eof a fill reads as f1
 - [ ] T54 | Add Kotlin's property keywords to its declares list
 - [ ] T55 | Join an annotation whose arguments run onto a second line
+- [ ] T56 | Offer no place inside a string literal that spans lines
+        > 2026-10-27 C backslash strings get c; Python triple quotes get b
