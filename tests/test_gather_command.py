@@ -175,6 +175,45 @@ def test_a_parse_failure_is_AS_LOUD_AS_a_decode_failure(tmp_path, monkeypatch, c
     )
 
 
+def test_a_file_whose_paragraphs_share_an_address_is_named_and_stops_the_run(
+    tmp_path, monkeypatch, capsys
+):
+    """The page refuses a mis-cut read, and the gather reports that refusal as
+    it reports any file it could not gather."""
+    from comment_review.binder import page as page_mod
+    from comment_review.reading.lexer import LexicalRead
+    from comment_review.reading.paragraph import Paragraph
+    from comment_review.reading.series import Kind
+    from comment_review.reading.source import CodeLine, DocPlace
+
+    found = [
+        Paragraph("m.go", 3, 3, Kind.COMMENT, raw_lines=["// one"]),
+        Paragraph("m.go", 3, 3, Kind.COMMENT, raw_lines=["// two"]),
+    ]
+    lines = [
+        CodeLine(2, "package m", None),
+        CodeLine(4, "func F() {}", DocPlace(4, True)),
+    ]
+    read = LexicalRead(found, lines, True, True)
+    monkeypatch.setattr(page_mod, "read_source", lambda *args, **kwargs: read)
+    target = tmp_path / "m.go"
+    target.write_text(
+        "// Package m.\npackage m\n// F.\nfunc F() {}\n", encoding="utf-8"
+    )
+    code, printed = run_command(
+        monkeypatch,
+        capsys,
+        gather_command,
+        "--repo",
+        str(tmp_path),
+        str(target),
+        with_stderr=True,
+    )
+    assert code != 0, printed
+    assert "m.go" in printed
+    assert "place/address-held-twice" in printed
+
+
 #: A doc comment behind an ordinary comment: the place model cannot hold it as
 #: `f`'s `a`, so the read notes it.
 DETACHED_RUST = "fn g() {}\n\n/// Docs for f.\n// plain note\nfn f() {}\n"

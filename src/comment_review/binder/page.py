@@ -669,6 +669,44 @@ def tie_leading(paragraphs: list[Paragraph], cues: Cues) -> dict[str, str]:
     return edges
 
 
+def held_twice(paragraphs: list[Paragraph]) -> ReadFailure | None:
+    """A `ReadFailure` naming the first address two paragraphs hold, or None.
+
+    ! EACH `a`, `c` AND `f` PLACE HOLDS ONE PARAGRAPH, and each gap's `b` holds
+    one. The compositor sets one paragraph per address, so a second paragraph at
+    the same address would be dropped without a word -- and a paragraph a reader
+    mis-cut can take code lines with it. An empty place counts: it is a
+    paragraph, and it shares an address with no filled one.
+
+    A leading run has no address and is not asked.
+    """
+    seen: dict[str, Paragraph] = {}
+    for b in paragraphs:
+        if not b.address:
+            continue
+        first = seen.setdefault(b.address, b)
+        if first is b:
+            continue
+        return ReadFailure(
+            (
+                ReadDiagnostic(
+                    ReadStage.PLACE,
+                    "address-held-twice",
+                    f"{b.address} is held by the paragraph on {_span_of(first)}"
+                    f" and the paragraph on {_span_of(b)}",
+                ),
+            )
+        )
+    return None
+
+
+def _span_of(paragraph: Paragraph) -> str:
+    """The lines a paragraph stands on, as a diagnostic words them."""
+    if paragraph.original_start is None or paragraph.original_end is None:
+        return "no lines"
+    return f"lines {paragraph.original_start}-{paragraph.original_end}"
+
+
 def page_for(
     path: Path,
     text: str,
@@ -680,8 +718,8 @@ def page_for(
 ) -> Page | ReadFailure:
     """Build one file's `Page`, or the `ReadFailure` that stopped it.
 
-    Reads the file, addresses every paragraph and empty place, divides the gaps
-    and ties the leading.
+    Reads the file, addresses every paragraph and empty place, refuses the page
+    when two paragraphs hold one address, divides the gaps and ties the leading.
     """
     result = read_source(path, text, registry=registry)
     if isinstance(result, ReadFailure):
@@ -747,6 +785,9 @@ def page_for(
     for empty in empty_paragraphs:
         empty.address = address_for(here, empty.address)
         got.append(empty)
+    shared = held_twice(got)
+    if shared is not None:
+        return shared
     for b in got:
         place_name = b.address.split("@")[-1]
         b.anchor_line = cues.anchor_line(place_name) if place_name else None

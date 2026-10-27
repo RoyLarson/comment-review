@@ -549,6 +549,28 @@ def test_documentation_naming_no_declaring_line_is_refused(monkeypatch, line):
     assert [d.code for d in result.diagnostics] == ["documentation-declares-nothing"]
 
 
+def test_two_paragraphs_at_one_address_refuse_the_page(monkeypatch):
+    found = [
+        Paragraph("m.go", 3, 3, Kind.COMMENT, raw_lines=["// one"]),
+        Paragraph("m.go", 3, 3, Kind.COMMENT, raw_lines=["// two"]),
+    ]
+    result = page_over_read(monkeypatch, found)
+    assert isinstance(result, ReadFailure)
+    assert result.diagnostics == (
+        ReadDiagnostic(
+            ReadStage.PLACE,
+            "address-held-twice",
+            "m.go@b1 is held by the paragraph on lines 3-3 and the paragraph on"
+            " lines 3-3",
+        ),
+    )
+
+
+def test_a_paragraph_alone_in_its_place_builds(monkeypatch):
+    found = [Paragraph("m.go", 3, 3, Kind.COMMENT, raw_lines=["// one"])]
+    assert isinstance(page_over_read(monkeypatch, found), Page)
+
+
 def test_failed_acquisition_has_no_invented_context(tmp_path):
     result = page_for_mod.page_of(tmp_path / "absent.py")
     assert isinstance(result, LocatedReadFailure)
