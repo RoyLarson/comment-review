@@ -821,18 +821,21 @@ def read_lexical(path: Path, text: str, lang: Language) -> "LexicalRead":
             column += len(mark)
         if column > 0:
             span = [span[0][column - 1 :], *span[1:]]
-        if _is_doc(run[0][1], lang):
-            kind = "docstring"
+        # !! CODE ON THE FIRST LINE MAKES IT TRAILING, however many lines it
+        # then runs for, and whatever marker opens it. A `c` is the room beside
+        # a line of code, so prose occupying that room IS a trailing comment
+        # and the kind must say so: never a docstring, never matter, never the
+        # module's documentation. ! `trailing` alone answers only the
+        # single-line case: a paragraph comment opened after a statement
+        # flushes with `trailing=False`, because by then the run spans several
+        # lines -- so `int b = 2; /* opens` would read as a plain `comment`
+        # sitting at a `c` place, and kind and series would disagree.
+        if trailing or partial_first[0]:
+            kind = Kind.TRAILING
+        elif _is_doc(run[0][1], lang):
+            kind = Kind.DOCSTRING
         else:
-            # !! CODE ON THE FIRST LINE MAKES IT TRAILING, however many lines it
-            # then runs for. A `c` is the room beside a line of code, so prose
-            # occupying that room IS a trailing comment and the kind must say
-            # so. ! `trailing` alone answers only the single-line case: a
-            # paragraph comment opened after a statement flushes with
-            # `trailing=False`, because by then the run spans several lines --
-            # so `int b = 2; /* opens` would read as a plain `comment` sitting at
-            # a `c` place, and kind and series would disagree.
-            kind = "trailing-comment" if trailing or partial_first[0] else "comment"
+            kind = Kind.COMMENT
         paragraph = Paragraph(
             path=path.as_posix(),
             start=run[0][0],
@@ -1013,7 +1016,9 @@ def read_lexical(path: Path, text: str, lang: Language) -> "LexicalRead":
             partial_first[0] = (
                 len(raw_line[:opens_at].rstrip()) + 1 if beside_code else 0
             )
-            if _is_doc(raw_line[opens_at:], lang):
+            # ! A doc marker beside code opens a trailing comment, which
+            # documents nothing, so its lines are not `documentation`.
+            if not beside_code and _is_doc(raw_line[opens_at:], lang):
                 documentation.add(n)
                 in_doc = not closes_here
 
@@ -1194,7 +1199,11 @@ def _module_documentation(
     staying a `comment` run that ends on the last line it has a comment on.
     """
     prose = sorted(
-        (p for p in paragraphs if p.kind not in (Kind.MATTER, Kind.LEADING)),
+        (
+            p
+            for p in paragraphs
+            if p.kind not in (Kind.MATTER, Kind.LEADING, Kind.TRAILING)
+        ),
         key=lambda p: p.start,
     )
     ends: list[tuple[Paragraph, str]] = []

@@ -265,6 +265,30 @@ def test_a_byte_order_mark_before_a_shebang_keeps_the_shebang_as_matter():
     ]
 
 
+@pytest.mark.parametrize(
+    ("name", "text", "raw"),
+    [
+        ("m.js", "const a = 1; /** note */\nfunction f() {}\n", [" /** note */"]),
+        ("m.js", "const a = 1; /** note */\nconst b = 2;\n", [" /** note */"]),
+        ("m.java", "int a = 1; /** note */\nclass A {}\n", [" /** note */"]),
+        (
+            "m.java",
+            "int a = 1; /** note\n   more */\nclass A {}\n",
+            [" /** note", "   more */"],
+        ),
+    ],
+    ids=["above-a-declaration", "at-the-head", "java", "spanning-lines"],
+)
+def test_a_doc_comment_trailing_code_is_a_trailing_comment(name, text, raw):
+    lexical = read(name, text)
+    found = lexical.paragraphs(Path(name))
+    code = text.split(" /**")[0]
+    assert [
+        (p.start, p.end, p.kind, p.anchor, p.anchor_line, p.raw_lines) for p in found
+    ] == [(1, len(raw), Kind.TRAILING, code, None, raw)]
+    assert lexical.code_lines()[0].line == 1
+
+
 def test_declarations_hold_only_the_declaring_lines():
     go = language_for(Path("m.go"))
     assert go is not None
