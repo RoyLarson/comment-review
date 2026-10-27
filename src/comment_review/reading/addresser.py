@@ -583,8 +583,8 @@ class Cues:
         walker = self.addressers[DECLARED]
         return next((c for c, anchor in walker.places.items() if anchor == EOF), "")
 
-    def at_line(self, line: int, series: str) -> list[str]:
-        """The places of one SERIES that a line NUMBER of the file names.
+    def at_line(self, line: int | str, series: str) -> list[str]:
+        """The places of one SERIES that a line NUMBER or a SENTINEL names.
 
         !! A LINE NUMBER IS HOW A ROLE ASKS; AN ADDRESS IS HOW IT ANSWERS --
         `decision-log.md Process: #96`. The binder a role reads is filtered to
@@ -601,11 +601,21 @@ class Cues:
             f   both of the file's own places -- no line tells the head from
                 the foot, so the caller chooses by address
 
+        A sentinel, `MODULE` or `EOF`, names the places the series emitted at
+        that trigger: `a0` and `f0` at `MODULE`; the closing `b`, the `<eof>`
+        `a` and the last `f` at `EOF`. No line number reaches those.
+
         Returns:
             The cues, in emission order. Empty when the series has no place at
             that line -- a `c` on a blank line, an `a` on a line that declares
-            nothing -- which a caller reports rather than treating as a place.
+            nothing, a `c` at a sentinel -- which a caller reports rather than
+            treating as a place.
         """
+        if isinstance(line, str):
+            walker = self.addressers[series]
+            return [
+                c for c, step in walker.trigger.items() if self.triggers[step] == line
+            ]
         if series == GAP:
             return [self.above(line)]
         if series == ON:

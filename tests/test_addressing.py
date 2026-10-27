@@ -214,6 +214,19 @@ class TestTheWalkOverCodeLines:
         assert cues.anchor_line("a2") is None
         assert cues.anchor_num("a2") == 3
 
+    @pytest.mark.parametrize(
+        ("sentinel", "expected"),
+        [
+            ("<module>", [["a0"], [], [], ["f0"]]),
+            ("<eof>", [["a2"], ["b2"], [], ["f1"]]),
+        ],
+    )
+    def test_a_sentinel_names_the_places_each_series_emitted_there(
+        self, sentinel, expected
+    ):
+        cues = cue([CodeLine(1, "x", DocPlace(1, True)), CodeLine(2, "y", None)])
+        assert [cues.at_line(sentinel, s) for s in "abcf"] == expected
+
     def test_without_an_a_series_nothing_meets_eof_but_the_gap_and_the_foot(self):
         cues = cue([CodeLine(1, "x", None)], a_series=False)
         assert cues.reading == ["f0", "b0", "c0", "b1", "f1"]
