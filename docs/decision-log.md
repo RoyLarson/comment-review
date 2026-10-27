@@ -5795,4 +5795,6 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   **What it settles.** Amends #232's front matter. When a module docstring opens the file's
   code, every comment above it is front matter, whatever blank lines lie between. With no module
   docstring, a fully empty line still ends the matter and a comment after it is an ordinary
-  comment. Whether the foot mirrors this (comments below a closing docstring) is not ruled.
+  comment. The foot mirrors it (Roy, the same day: *"On the back matter, the answer is yes,
+  same as front matter in reverse"*): when a closing docstring ends the file's code, every
+  comment below it is back matter; with none, a fully empty line ends the back matter.

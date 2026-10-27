@@ -346,3 +346,4 @@ would.
         > 2026-10-26 py: lic, blank, # note, blank, doc sets back reordered; at ef037f20
         > 2026-10-26 js twin hides it: // note + /** Doc. */ read as one b0 comment
         > 2026-10-26 pymc _version.py, distributions/continuous.py, setupegg.py
+        > 2026-10-26 Foot mirrors it (#240): comments under a closing doc are matter
