@@ -66,6 +66,20 @@ def text_lines(text: str) -> list[str]:
     return out
 
 
+def scan_lines(text: str) -> list[str]:
+    """`text_lines` with the byte-order mark removed from line 1.
+
+    The mark is the file's encoding, not line 1's text, so a question about
+    what line 1 holds -- blank, code, or a comment marker first -- is asked of
+    these lines. The paragraphs and code lines a reader hands over keep the
+    mark, since `text_lines` is what the file is.
+    """
+    lines = text_lines(text)
+    if lines:
+        lines[0] = lines[0].removeprefix(BYTE_ORDER_MARK)
+    return lines
+
+
 def utf8_console() -> None:
     """Print UTF-8 with replacement, whatever the terminal's encoding is.
 

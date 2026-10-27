@@ -85,6 +85,7 @@ def _without_comments(text: str, path: Path) -> str | None:
         return None
 
     lines = constants.text_lines(text)
+    scanned = constants.scan_lines(text)
     # Pre-seed every line as itself; a paragraph below either drops its entry
     # (None) or replaces it with the code prefix it proved survives.
     kept: dict[int, str | None] = {i + 1: ln.rstrip() for i, ln in enumerate(lines)}
@@ -96,7 +97,7 @@ def _without_comments(text: str, path: Path) -> str | None:
             actual = lines[n - 1].rstrip()
             stored = paragraph.raw_lines[offset].rstrip()
             if actual == stored:
-                if _delimiter_shares_the_line(actual, lang):
+                if _delimiter_shares_the_line(scanned[n - 1].rstrip(), lang):
                     return None
                 kept[n] = None
             elif stored and actual.endswith(stored):

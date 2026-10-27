@@ -39,6 +39,25 @@ def test_a_file_whose_prose_lines_end_in_whitespace_is_provable(name, space):
     assert result.diagnostics == ()
 
 
+@pytest.mark.parametrize(
+    ("name", "header"),
+    [
+        ("m.js", "/* Licence MIT */\n"),
+        ("m.js", "/** Module doc. */\n"),
+        ("m.java", "/*\n * Licence\n */\n"),
+        ("m.cs", "/* Licence */\n"),
+    ],
+)
+def test_a_byte_order_mark_before_a_block_comment_does_not_make_the_file_unprovable(
+    name, header
+):
+    text = chr(0xFEFF) + header + "x = 1\n"
+
+    assert _preserved(text, text, name).unchanged
+    changed = _preserved(text, text.replace("x = 1", "x = 2"), name)
+    assert [d.code for d in changed.diagnostics] == ["code-changed"]
+
+
 @pytest.mark.parametrize("name", ["m.js", "m.ts"])
 def test_an_interpreter_line_with_trailing_space_still_protects_it(name):
     before = "#!/usr/bin/env node  \nlet x = 1;\n"
