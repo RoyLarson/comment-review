@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 20 of 29 tasks closed
+Progress: 23 of 29 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-25 (decision-log.md Process: #224)
@@ -124,7 +124,8 @@ defect and is repaired (lexer-and-language-findings T12, b30cc510).
       the lexical path's code lines and declarations into its reader
         > 2026-10-25 Check: page builds places without code_lines or declarations
         > 2026-10-25 Check: corpus address dump unchanged for two lexical languages
-- [ ] T21 | Trim each Rust code line by the scanner's whitespace regions
+- [x] T21 | FINISHED: Rust code lines trimmed by scanner whitespace; BOM line sets back | c2b565fb | Trim
+      each Rust code line by the scanner's whitespace regions
         > 2026-10-26 Check: BOM + // licence (.rs) and an NBSP line set back identical
 - [ ] T22 | Read a doc comment that trails code as a trailing comment
         > 2026-10-26 Check: js 'const a = 1; /** note */' sets back identical
@@ -138,9 +139,11 @@ defect and is repaired (lexer-and-language-findings T12, b30cc510).
         > 2026-10-26 Check: addresser on 'class A {}' + foot comment can name A.java@a2
 - [ ] T26 | Derive a parenthesised Python docstring's text from its literal
         > 2026-10-26 Check: def f(): ("doc")  # c gives a1 text 'doc'
-- [ ] T27 | Match a comment marker after a leading byte-order mark
+- [x] T27 | FINISHED: one BOM rule in constants; marker matched after the mark | f821db13 | Match
+      a comment marker after a leading byte-order mark
         > 2026-10-26 Check: BOM + '# Licence MIT' (.py) gives f0 text 'Licence MIT'
-- [ ] T28 | Prove a lexical file whose prose lines end in whitespace
+- [x] T28 | FINISHED: stripped proof keeps prose trailing whitespace | bb6ed118 | Prove
+      a lexical file whose prose lines end in whitespace
         > 2026-10-26 Check: '#!/usr/bin/env node  ' file proves against itself
         > 2026-10-26 Reason: raw prose is compared to a right-stripped line
 - [ ] T29 | Attach a doc run above an annotation line to the declaration below
