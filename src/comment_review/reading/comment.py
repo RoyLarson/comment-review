@@ -146,7 +146,14 @@ class Comment:
                     remaining.append(kept)
                     kept_indices.append(n)
                 offset += len(paragraph) + 1
-            rendered.append(part.wrap("\n\n".join(remaining), tuple(kept_indices)))
+            text = part.wrap("\n\n".join(remaining), tuple(kept_indices))
+            previous = rendered[-1] if rendered else ""
+            if not text and previous and not previous.endswith(("\n", "\r")):
+                # The comment shared its line with the one before it, so the
+                # line stays and keeps its end; only the space before it goes.
+                rendered[-1] = rendered[-1].rstrip(" \t")
+                text = part.ending
+            rendered.append(text)
         found = re.search(r"[\r\n]+$", self.raw_text)
         ending = found.group(0) if found else ""
         return "".join(rendered).rstrip("\r\n") + (ending if any(rendered) else "")

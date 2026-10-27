@@ -58,6 +58,29 @@ def test_block_comment_markers_are_not_prose(path, raw, text):
     assert comment_form(Path(path), Series.GAP, raw).text == text
 
 
+@pytest.mark.parametrize(
+    ("path", "raw", "text"),
+    [
+        ("m.c", "/* licence */ /* more */\n// note", "licence more note"),
+        ("m.c", "/* a\n b */ /* c\n d */", "a b c d"),
+        ("m.c", "/* a */ // b", "a b"),
+        ("m.c", "/* a\n b */ // c", "a b c"),
+        ("m.lua", "--[[ a ]]-- b", "a b"),
+        ("m.lua", "--[[\n  Licence MIT\n]]--\n-- Module foo", "Licence MIT Module foo"),
+    ],
+    ids=[
+        "two-blocks",
+        "two-spanning-blocks",
+        "block-then-line",
+        "closer-then-line",
+        "lua-long-then-line",
+        "lua-empty-line-comment",
+    ],
+)
+def test_each_comment_on_a_line_gives_its_own_text(path, raw, text):
+    assert comment_form(Path(path), Series.GAP, raw).text == text
+
+
 def test_a_rust_shebang_is_its_own_fragment_and_the_comment_keeps_no_marker():
     form = comment_form(Path("m.rs"), Series.COVERS, "#!/usr/bin/env rust\n// Licence")
     assert [part.text for part in form.fragments] == ["#!/usr/bin/env rust", "Licence"]

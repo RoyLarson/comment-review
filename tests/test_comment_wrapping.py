@@ -421,6 +421,65 @@ def test_removal_keeps_each_comment_fragment(instruction, raw, snippet, expected
     )
 
 
+@pytest.mark.parametrize(
+    "name, raw, snippet, expected",
+    [
+        (
+            "m.js",
+            "/* Keep. Move. */ /* More. */\n// Ending stays.",
+            "Move.",
+            "/* Keep. */ /* More. */\n// Ending stays.",
+        ),
+        (
+            "m.js",
+            "/* Keep. */ /* Move. */\n// Ending stays.",
+            "Move.",
+            "/* Keep. */\n// Ending stays.",
+        ),
+        (
+            "m.js",
+            "/* Move. */ /* Keep. */\n// Ending stays.",
+            "Move.",
+            "/* Keep. */\n// Ending stays.",
+        ),
+        (
+            "m.js",
+            "/* Keep.\n   Move. */ // Ending stays.",
+            "Move.",
+            "/* Keep. */ // Ending stays.",
+        ),
+        (
+            "m.lua",
+            "--[[ Keep. Move. ]]-- Ending stays.",
+            "Move.",
+            "--[[ Keep. ]]-- Ending stays.",
+        ),
+        (
+            "m.lua",
+            "--[[\n Keep. Move.\n]]--\n-- Ending stays.",
+            "Move.",
+            "--[[\n Keep.\n]]--\n-- Ending stays.",
+        ),
+    ],
+    ids=[
+        "inside-the-first",
+        "the-whole-second",
+        "the-whole-first",
+        "closer-then-line",
+        "lua-one-line",
+        "lua-empty-line-comment",
+    ],
+)
+def test_removal_keeps_each_comment_on_a_line(name, raw, snippet, expected):
+    code = ("let x = 1;", "let y = 2;") if name == "m.js" else ("x = 1", "y = 2")
+    page = build(f"{code[0]}\n{raw}\n{code[1]}\n", name)
+    paragraph = next(p for p in page if snippet in p.raw_text)
+    changed = comment_at(paragraph.address, paragraph.raw_text).without_once(snippet)
+    assert changed == expected
+    assert galley.reset(page, {paragraph.address.split("@")[1]: changed}) == []
+    assert compositor.set_page(page) == f"{code[0]}\n{expected}\n{code[1]}\n"
+
+
 @pytest.mark.parametrize("instruction", ["move", "drop"])
 def test_empty_removal_retains_code_after_a_closer(instruction):
     source = "let x = 1; /* Move.\n */ let y = 2;\nlet z = 3;\n"

@@ -163,45 +163,62 @@ def comment_form(
             if opened is None and pending and not line.strip():
                 pending.append(line)
                 continue
-            if opened is None:
-                pair = next(
-                    (
-                        pair
-                        for pair in lang.block_comment
-                        if line.lstrip().startswith(pair[0])
-                    ),
-                    None,
-                )
-                if pair is not None:
-                    if pending:
-                        chunks.append("".join(pending))
-                        pending.clear()
-                    opened = pair
-                    tail = line.lstrip()[len(pair[0]) :]
-                    depth = 1
-                else:
-                    marker = next(
+            # A line may hold several comments: a delimited one that closes,
+            # then another comment after its closer. Each is its own chunk, so
+            # each gives its own text; the cut falls at the next opener, and
+            # the space before it stays with the comment that closed.
+            segment = line
+            while segment:
+                if opened is None:
+                    pair = next(
                         (
-                            m
-                            for m in sorted(lang.line_comment, key=len, reverse=True)
-                            if line.lstrip().startswith(m)
+                            pair
+                            for pair in lang.block_comment
+                            if segment.lstrip().startswith(pair[0])
                         ),
-                        "",
+                        None,
                     )
-                    if pending and marker != line_marker:
+                    if pair is not None:
+                        if pending:
+                            chunks.append("".join(pending))
+                            pending.clear()
+                        opened = pair
+                        tail = segment.lstrip()[len(pair[0]) :]
+                        depth = 1
+                    else:
+                        marker = next(
+                            (
+                                m
+                                for m in sorted(
+                                    lang.line_comment, key=len, reverse=True
+                                )
+                                if segment.lstrip().startswith(m)
+                            ),
+                            "",
+                        )
+                        if pending and marker != line_marker:
+                            chunks.append("".join(pending))
+                            pending.clear()
+                        line_marker = marker
+                        tail = segment
+                else:
+                    tail = segment
+                pending.append(segment)
+                segment = ""
+                if opened is not None:
+                    ends, depth = run_ends(tail, opened, lang.nests_comments, depth)
+                    if ends >= 0:
+                        closed = pending[-1]
+                        cut = len(closed) - len(tail) + ends
+                        rest = closed[cut:]
+                        following = rest.lstrip(" \t")
+                        if following.strip() and _opens_comment(following, lang):
+                            pending[-1] = closed[: len(closed) - len(following)]
+                            segment = following
                         chunks.append("".join(pending))
                         pending.clear()
-                    line_marker = marker
-                    tail = line
-            else:
-                tail = line
-            pending.append(line)
-            if opened is not None:
-                ends, depth = run_ends(tail, opened, lang.nests_comments, depth)
-                if ends >= 0:
-                    chunks.append("".join(pending))
-                    pending.clear()
-                    opened = None
+                        opened = None
+                        line_marker = ""
         if pending:
             chunks.append("".join(pending))
     else:
@@ -211,6 +228,13 @@ def comment_form(
         for n, chunk in enumerate(chunks)
     )
     return Comment(raw_text, parts)
+
+
+def _opens_comment(text: str, lang: Language) -> bool:
+    """Does this text open with one of the language's comment openers?"""
+    return text.startswith(tuple(pair[0] for pair in lang.block_comment)) or (
+        text.startswith(lang.line_comment)
+    )
 
 
 def _scanned_form(
