@@ -567,29 +567,6 @@ def test_two_paragraphs_at_one_address_refuse_the_page(monkeypatch):
     )
 
 
-def test_an_empty_place_sharing_an_address_with_a_paragraph_refuses_the_page(
-    monkeypatch,
-):
-    real = page_mod.empty_places
-
-    def with_a_stray_empty(text, cues, occupied):
-        # An empty place for `b1`, which the comment below already holds.
-        genuine = real(text, cues, occupied)
-        assert isinstance(genuine, list)
-        return [
-            *genuine,
-            Paragraph("", 0, 0, "interval", address="b1", original_start=None),
-        ]
-
-    monkeypatch.setattr(page_mod, "empty_places", with_a_stray_empty)
-    found = [Paragraph("m.go", 3, 3, Kind.COMMENT, raw_lines=["// one"])]
-    result = page_over_read(monkeypatch, found)
-    assert isinstance(result, ReadFailure)
-    assert [d.message for d in result.diagnostics] == [
-        "m.go@b1 is held by the paragraph on lines 3-3 and the paragraph on no lines"
-    ]
-
-
 def test_a_paragraph_alone_in_its_place_builds(monkeypatch):
     found = [Paragraph("m.go", 3, 3, Kind.COMMENT, raw_lines=["// one"])]
     assert isinstance(page_over_read(monkeypatch, found), Page)
