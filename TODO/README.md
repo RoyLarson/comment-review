@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (139)
+### open  (138)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -319,7 +319,6 @@ that changed a published name or rule:
 | [language-reader-sql](language-reader-sql.md) | backend | -- | 0/2 | SQL lexical reader |
 | [language-reader-lua](language-reader-lua.md) | backend | -- | 0/7 | Lua lexical reader |
 | [edit-path-isolation](edit-path-isolation.md) | backend | -- | 0/2 | Isolate the edit path from comment reading |
-| [a-reader-finds-prose-only](a-reader-finds-prose-only.md) | backend | -- | 27/29 | A reader finds prose and rebuilds nothing after it |
 | [one-reader-builder](one-reader-builder.md) | backend | -- | 0/6 | One reader builder from each language's definition |
 
 ### in-progress  (17)
@@ -530,3 +529,4 @@ the reason is inside the file.
 | [a-comment-run-merges-across-blanks](completed/a-comment-run-merges-across-blanks.md) | 6 finished |
 | [doc-does-not-fill-its-a](completed/doc-does-not-fill-its-a.md) | 6 finished, 6 superseded |
 | [doc-is-structural-means-two-things](completed/doc-is-structural-means-two-things.md) | 3 superseded |
+| [a-reader-finds-prose-only](completed/a-reader-finds-prose-only.md) | 23 finished, 6 superseded |

@@ -1,8 +1,8 @@
 # A reader finds prose and rebuilds nothing after it
 
 ```
-Status:   open
-Progress: 27 of 29 tasks closed
+Status:   closed
+Progress: 29 of 29 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-25 (decision-log.md Process: #224)
@@ -135,9 +135,11 @@ defect and is repaired (lexer-and-language-findings T12, b30cc510).
       file matter from the reader's runs, not a per-line prose mask
         > 2026-10-26 Reason: two runs share one matter range; one moves or is dropped
         > 2026-10-26 Check: lua --[[ ]]-- then a -- line, at head or foot, sets back
-- [ ] T24 | Give the <eof> a its own position in a file with no code line
+- [x] T24 | FINISHED: no-code file keeps an empty <eof> a (#241); places cut by place (#242/#243) | 4535709f | Give
+      the <eof> a its own position in a file with no code line
         > 2026-10-26 Check: add at a1 of '/** @typedef */' reads back at a1, not a0
-- [ ] T25 | Resolve the <eof> a through the addresser command
+- [x] T25 | FINISHED: addresser --line takes '<module>' and '<eof>' | e2dae290 | Resolve
+      the <eof> a through the addresser command
         > 2026-10-26 Check: addresser on 'class A {}' + foot comment can name A.java@a2
 - [x] T26 | FINISHED: concatenated reads one parenthesised literal | f53ceefb | Derive
       a parenthesised Python docstring's text from its literal

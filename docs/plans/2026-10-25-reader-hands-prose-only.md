@@ -2,8 +2,8 @@
 
 ```
 Status:   in-progress
-Progress: 22 of 24 TODO tasks closed
-Plan-tasks: 20 of 22 plan tasks closed
+Progress: 24 of 24 TODO tasks closed
+Plan-tasks: 21 of 22 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-25 (founded by move-t from 2026-10-11-lexical-readers)
@@ -21,7 +21,7 @@ per step; each step lands its failing test first.
 
 ## TODO tasks this plan closes
 
-### A - [a-reader-finds-prose-only](../../TODO/a-reader-finds-prose-only.md)
+### A - [a-reader-finds-prose-only](../../TODO/completed/a-reader-finds-prose-only.md)
 
 - [x] T1 | Derive Paragraph.text in one place for every reader
 - [x] T2 | Assign each paragraph's address in the page instead of in a reader
@@ -41,8 +41,8 @@ per step; each step lands its failing test first.
 - [x] T21 | Trim each Rust code line by the scanner's whitespace regions
 - [x] T22 | Read a doc comment that trails code as a trailing comment
 - [x] T23 | Cut file matter from the reader's runs, not a per-line prose mask
-- [ ] T24 | Give the <eof> a its own position in a file with no code line
-- [ ] T25 | Resolve the <eof> a through the addresser command
+- [x] T24 | Give the <eof> a its own position in a file with no code line
+- [x] T25 | Resolve the <eof> a through the addresser command
 - [x] T26 | Derive a parenthesised Python docstring's text from its literal
 - [x] T27 | Match a comment marker after a leading byte-order mark
 - [x] T28 | Prove a lexical file whose prose lines end in whitespace
@@ -136,7 +136,8 @@ per step; each step lands its failing test first.
 - [x] P19 | FINISHED: T21 T27 T28; review clean after 2 fix rounds | f821db13 | Apply
       each reader's own whitespace definition to code and prose
         > 2026-10-26 Works T21, T27, T28
-- [ ] P20 | Give the <eof> a a position and an addresser route apart from a0
+- [x] P20 | FINISHED: T24 T25; review loop 5 rounds + 1 approved by Roy | 4535709f | Give
+      the <eof> a a position and an addresser route apart from a0
         > 2026-10-26 Works T24, T25; after P18
 - [x] P21 | FINISHED: T26; controller-verified through the page | f53ceefb | Derive
       a parenthesised Python docstring's text from its literal
