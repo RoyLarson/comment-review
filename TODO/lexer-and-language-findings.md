@@ -341,6 +341,7 @@ would.
         > 2026-10-26 At ef037f20 too; document_declarations claims before the matter cut
 - [ ] T51 | Make Python decorators and Rust attributes one unit with their item
         > 2026-10-26 decision-log #238; CodeLine.joins from P18; b falls inside today
+        > 2026-10-27 Lands with one-reader-builder (#244); fix once for every reader
 - [ ] T52 | Match a C# attribute section apart from a collection expression
 - [ ] T53 | Make every comment above a module docstring front matter, per #240
         > 2026-10-26 py: lic, blank, # note, blank, doc sets back reordered; at ef037f20

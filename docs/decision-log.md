@@ -5837,3 +5837,16 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   included -- are one paragraph: `b0` when a blank last line leaves no back matter, otherwise
   back matter `f1` (#232).
 
+- **#244.** **One reader builder takes each language's definition** (Roy, 2026-10-27,
+  clarifying the 2026-08-22 rule that no language shares another's definition: *"That was not
+  meant to be that the machinery that parses the files shouldn't be shared. It would be better
+  if there was one Strategy/Builder/Visitor system that could take the configuration and
+  create the pieces that understand how to take the different pieces in the system and builds
+  the correct Reader. Then we can fix this once and that fixes every language implementation
+  after"*; approving the split below: *"I like your split"*).
+
+  **What it settles.** Definitions stay per language; the reading machinery is shared. A rule
+  such as #243 is written once and reaches every language. The builder is a design objective
+  filed after this plan merges; its first step moves the cut by place out of `lexer.py` so
+  the rule has one home. Until then, the page refuses two paragraphs at one address (P22).
+
