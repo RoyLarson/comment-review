@@ -5798,3 +5798,16 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   comment. The foot mirrors it (Roy, the same day: *"On the back matter, the answer is yes,
   same as front matter in reverse"*): when a closing docstring ends the file's code, every
   comment below it is back matter; with none, a fully empty line ends the back matter.
+
+- **#241.** **A file with no code keeps its `<eof>` `a`, empty** (Roy, 2026-10-27, refusing both
+  a blank-line rule that split `a0` from the `<eof>` `a` and a proposal to emit no `<eof>` `a` in
+  a file with no code: *"No that is not necessary all of the docs can can be assigned to a0 and
+  a1 gets an empty it will be able to be modified and reset correctly and your solution would
+  preclude an add that while stupid would be allowed"*, with the case MATTER, DOCS, `<eof>`;
+  add `b0`, add `a1`; giving MATTER, DOC, COMMENT, DOC, `<eof>`).
+
+  **What it settles.** In a file with no code line, the docs at the top are the module's `a0`;
+  the `<eof>` `a` is still emitted, empty, and may be filled. Places are written in reading
+  order (`f0 a0 b0 a1 f1`), so an add at `b0` and `a1` gives matter, doc, comment, doc. No blank
+  line or other marker is invented to tell `a0` from the `<eof>` `a`.
+
