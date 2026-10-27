@@ -3,7 +3,7 @@
 ```
 Status:   in-progress
 Progress: 22 of 24 TODO tasks closed
-Plan-tasks: 20 of 21 plan tasks closed
+Plan-tasks: 20 of 22 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-25 (founded by move-t from 2026-10-11-lexical-readers)
@@ -141,3 +141,5 @@ per step; each step lands its failing test first.
 - [x] P21 | FINISHED: T26; controller-verified through the page | f53ceefb | Derive
       a parenthesised Python docstring's text from its literal
         > 2026-10-26 Works T26
+- [ ] P22 | Refuse a page where two paragraphs share an address
+        > 2026-10-27 Roy 2026-10-27: add the error, with tests that try to break it
