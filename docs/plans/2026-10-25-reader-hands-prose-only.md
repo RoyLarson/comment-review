@@ -2,8 +2,8 @@
 
 ```
 Status:   in-progress
-Progress: 19 of 24 TODO tasks closed
-Plan-tasks: 19 of 21 plan tasks closed
+Progress: 22 of 24 TODO tasks closed
+Plan-tasks: 20 of 21 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-25 (founded by move-t from 2026-10-11-lexical-readers)
@@ -39,14 +39,14 @@ per step; each step lands its failing test first.
 - [x] T19 | Return CodeLines from the Python and Rust readers
 - [x] T20 | Move the lexical path's code lines and declarations into its reader
 - [x] T21 | Trim each Rust code line by the scanner's whitespace regions
-- [ ] T22 | Read a doc comment that trails code as a trailing comment
-- [ ] T23 | Cut file matter from the reader's runs, not a per-line prose mask
+- [x] T22 | Read a doc comment that trails code as a trailing comment
+- [x] T23 | Cut file matter from the reader's runs, not a per-line prose mask
 - [ ] T24 | Give the <eof> a its own position in a file with no code line
 - [ ] T25 | Resolve the <eof> a through the addresser command
 - [x] T26 | Derive a parenthesised Python docstring's text from its literal
 - [x] T27 | Match a comment marker after a leading byte-order mark
 - [x] T28 | Prove a lexical file whose prose lines end in whitespace
-- [ ] T29 | Attach a doc run above an annotation line to the declaration below
+- [x] T29 | Attach a doc run above an annotation line to the declaration below
 
 ## Plan Tasks
 
@@ -130,7 +130,8 @@ per step; each step lands its failing test first.
       the lexical path's code lines and declarations into its reader
         > 2026-10-25 Works T20; after P16
         > 2026-10-25 Check: corpus address dump unchanged for two lexical languages
-- [ ] P18 | Classify each lexical run once as whole-line or sharing code
+- [x] P18 | FINISHED: T22 T23 T29; review clean after 4 fix rounds | 555b457d | Classify
+      each lexical run once as whole-line or sharing code
         > 2026-10-26 Works T22, T23, T29; reader only, no compositor edit
 - [x] P19 | FINISHED: T21 T27 T28; review clean after 2 fix rounds | f821db13 | Apply
       each reader's own whitespace definition to code and prose

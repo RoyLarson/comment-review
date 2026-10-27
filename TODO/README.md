@@ -319,7 +319,7 @@ that changed a published name or rule:
 | [language-reader-sql](language-reader-sql.md) | backend | -- | 0/2 | SQL lexical reader |
 | [language-reader-lua](language-reader-lua.md) | backend | -- | 0/7 | Lua lexical reader |
 | [edit-path-isolation](edit-path-isolation.md) | backend | -- | 0/2 | Isolate the edit path from comment reading |
-| [a-reader-finds-prose-only](a-reader-finds-prose-only.md) | backend | -- | 24/29 | A reader finds prose and rebuilds nothing after it |
+| [a-reader-finds-prose-only](a-reader-finds-prose-only.md) | backend | -- | 27/29 | A reader finds prose and rebuilds nothing after it |
 
 ### in-progress  (17)
 

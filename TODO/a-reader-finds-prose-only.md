@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 24 of 29 tasks closed
+Progress: 27 of 29 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-25 (decision-log.md Process: #224)
@@ -127,10 +127,12 @@ defect and is repaired (lexer-and-language-findings T12, b30cc510).
 - [x] T21 | FINISHED: Rust code lines trimmed by scanner whitespace; BOM line sets back | c2b565fb | Trim
       each Rust code line by the scanner's whitespace regions
         > 2026-10-26 Check: BOM + // licence (.rs) and an NBSP line set back identical
-- [ ] T22 | Read a doc comment that trails code as a trailing comment
+- [x] T22 | FINISHED: a doc that trails code is a trailing comment | 60bd218d | Read
+      a doc comment that trails code as a trailing comment
         > 2026-10-26 Check: js 'const a = 1; /** note */' sets back identical
         > 2026-10-26 Reason: flush kinds it docstring; set_page deletes 'const a = 1;'
-- [ ] T23 | Cut file matter from the reader's runs, not a per-line prose mask
+- [x] T23 | FINISHED: runs after a closer stay whole; one matter per end | 2894dc59 | Cut
+      file matter from the reader's runs, not a per-line prose mask
         > 2026-10-26 Reason: two runs share one matter range; one moves or is dropped
         > 2026-10-26 Check: lua --[[ ]]-- then a -- line, at head or foot, sets back
 - [ ] T24 | Give the <eof> a its own position in a file with no code line
@@ -147,5 +149,6 @@ defect and is repaired (lexer-and-language-findings T12, b30cc510).
       a lexical file whose prose lines end in whitespace
         > 2026-10-26 Check: '#!/usr/bin/env node  ' file proves against itself
         > 2026-10-26 Reason: raw prose is compared to a right-stripped line
-- [ ] T29 | Attach a doc run above an annotation line to the declaration below
+- [x] T29 | FINISHED: annotations join their declaration as one a/b unit (#238) | 09e5c721 | Attach
+      a doc run above an annotation line to the declaration below
         > 2026-10-26 Check: java /** App. */ @Ann class App {} documents a1, not a0
