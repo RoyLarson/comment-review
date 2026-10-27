@@ -5785,3 +5785,14 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
 
   **What it settles.** A reading change bumps nothing. The reader and placement revisions and
   the compatibility hash that refuses a saved binder are to be removed.
+
+- **#240.** **Every comment above a module docstring is matter** (Roy, 2026-10-26, shown that a
+  comment between the front matter and the module docstring is written back below the
+  docstring, three pymc files: *"The fix is all comments above a module docstring become matter.
+  Which is kind of a pain in the butt, but that would fix it. If there is not a module docstring
+  then the space splits the matter from the normal comment"*).
+
+  **What it settles.** Amends #232's front matter. When a module docstring opens the file's
+  code, every comment above it is front matter, whatever blank lines lie between. With no module
+  docstring, a fully empty line still ends the matter and a comment after it is an ordinary
+  comment. Whether the foot mirrors this (comments below a closing docstring) is not ruled.

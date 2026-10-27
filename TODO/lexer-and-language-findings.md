@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 22 of 52 tasks closed
+Progress: 22 of 53 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (/simplify rounds 1 and 2 and /code-review high round 3,
@@ -342,3 +342,7 @@ would.
 - [ ] T51 | Make Python decorators and Rust attributes one unit with their item
         > 2026-10-26 decision-log #238; CodeLine.joins from P18; b falls inside today
 - [ ] T52 | Match a C# attribute section apart from a collection expression
+- [ ] T53 | Make every comment above a module docstring front matter, per #240
+        > 2026-10-26 py: lic, blank, # note, blank, doc sets back reordered; at ef037f20
+        > 2026-10-26 js twin hides it: // note + /** Doc. */ read as one b0 comment
+        > 2026-10-26 pymc _version.py, distributions/continuous.py, setupegg.py

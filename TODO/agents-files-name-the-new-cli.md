@@ -163,3 +163,4 @@ The agents files name the new CLI and say how to use it.
         > 2026-10-26 Detached doc in matter is read as matter; warning now names owner
 - [ ] T44 | Restate agent prose that takes an anchor to be one line of code
         > 2026-10-26 decision-log #238: an a/b anchor may span the unit's lines
+        > 2026-10-26 reviewer-brief.md:259 and :177-178 state a one-line anchor
