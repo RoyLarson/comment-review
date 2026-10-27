@@ -289,6 +289,46 @@ def test_a_doc_comment_trailing_code_is_a_trailing_comment(name, text, raw):
     assert lexical.code_lines()[0].line == 1
 
 
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        (
+            "--[[\n  Licence MIT\n]]--\n-- Module foo\nlocal M = {}\nreturn M\n",
+            [(1, 4, Kind.MATTER, ["--[[", "  Licence MIT", "]]--", "-- Module foo"])],
+        ),
+        (
+            "local M = {}\nreturn M\n--[[\n  notes\n]]--\n-- end\n",
+            [(3, 6, Kind.MATTER, ["--[[", "  notes", "]]--", "-- end"])],
+        ),
+    ],
+    ids=["head", "foot"],
+)
+def test_a_line_comment_after_a_long_comments_closer_continues_its_run(text, expected):
+    found = read("m.lua", text).paragraphs(Path("m.lua"))
+    assert [(p.start, p.end, p.kind, p.raw_lines) for p in found] == expected
+
+
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        (
+            "/* a\n b */ /* c */\n// d\nint y;\n",
+            [(1, 3, Kind.MATTER, "<module>", ["/* a", " b */ /* c */", "// d"])],
+        ),
+        (
+            "int y;\n/* a\n b */ /* c */\n// d\n",
+            [(2, 4, Kind.MATTER, "<module>", ["/* a", " b */ /* c */", "// d"])],
+        ),
+    ],
+    ids=["front", "back"],
+)
+def test_the_runs_at_one_end_of_the_file_are_one_matter_paragraph(text, expected):
+    found = read("m.c", text).paragraphs(Path("m.c"))
+    assert [(p.start, p.end, p.kind, p.anchor, p.raw_lines) for p in found] == (
+        expected
+    )
+
+
 def test_declarations_hold_only_the_declaring_lines():
     go = language_for(Path("m.go"))
     assert go is not None

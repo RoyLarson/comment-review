@@ -914,16 +914,24 @@ def read_lexical(path: Path, text: str, lang: Language) -> "LexicalRead":
                 documentation.add(n)
             ends, layers = run_ends(raw_line, in_block, lang.nests_comments, layers)
             if ends >= 0:
-                run.append((n, raw_line[:ends].rstrip()))
                 in_block = None
                 in_doc = False
+                # ! A LINE COMMENT AFTER THE CLOSER IS PROSE, NOT CODE: Lua's
+                # `]]--` closes its long comment and opens an empty line comment,
+                # and the line holds no code, so the run goes on past it.
+                after = raw_line[ends:].strip()
+                if after.startswith(openers):
+                    run.append((n, raw_line.rstrip()))
+                    after = ""
+                else:
+                    run.append((n, raw_line[:ends].rstrip()))
                 # !! THE SAME RULE AS THE SINGLE-LINE CLOSE BELOW: a closer ends
                 # the COMMENT, not the paragraph. This one opened on an earlier
                 # line, so code cannot precede it here -- `partial_first` records
                 # whether code preceded it THERE, which is what makes the run a
                 # `c`. ! Code after the closer does reach this branch, unlike the
                 # single-line case, and it is the next statement.
-                if partial_first[0] or raw_line[ends:].strip():
+                if partial_first[0] or after:
                     flush()
                 continue
             run.append((n, raw_line.rstrip()))
@@ -1099,8 +1107,9 @@ def _file_edges(
     A prose line, for `reading.matter`, is a line of a whole-line run with a
     comment on it -- not a blank it took in `between` two comments, and not a
     line of `documentation`. The matter opens on line 1, or on line 2 below a
-    `shebang`, the MATTER paragraph of the interpreter line the row names; the
-    front matter below it joins it as one paragraph.
+    `shebang`, the MATTER paragraph of the interpreter line the row names. Each
+    end's matter reaches the page as one paragraph, the shebang's included --
+    see `_one_matter_per_end`.
 
     !! A RUN IS CUT AT THE MATTER'S EDGES BEFORE DOCUMENTATION IS DECIDED, so
     a licence header and the declaration's documentation below it are two
@@ -1160,23 +1169,39 @@ def _file_edges(
     code = code_text(text, found)
     code_lines = lines_of_code(code, declarations(lang, code))
     document_declarations(found, code_lines)
-    found = cut(found, (Kind.COMMENT,), mark=True)
-    if shebang is not None and len(found) > 1:
-        below = found[1]
-        if below.kind == Kind.MATTER and below.start == opens:
-            found[:2] = [
-                Paragraph(
-                    path=shebang.path,
-                    start=1,
-                    end=below.end,
-                    kind=Kind.MATTER,
-                    raw_lines=[*shebang.raw_lines, *below.raw_lines],
-                    anchor=MODULE_ANCHOR,
-                )
-            ]
+    found = _one_matter_per_end(cut(found, (Kind.COMMENT,), mark=True))
     if lang.a_series:
         found = _module_documentation(found, set(code), between, documentation)
     return found, code_lines
+
+
+def _one_matter_per_end(paragraphs: list[Paragraph]) -> list[Paragraph]:
+    """The MATTER paragraphs at each end of the file, as one paragraph per end.
+
+    Front matter is one place and back matter is another, and the matter rule
+    covers a run of lines with no gap, so two MATTER paragraphs on adjacent
+    lines are at the same end: a shebang and the licence below it, or a
+    delimited comment and the line comments after it.
+    """
+    out: list[Paragraph] = []
+    for p in paragraphs:
+        last = out[-1] if out else None
+        if (
+            last is not None
+            and last.kind == p.kind == Kind.MATTER
+            and p.start == last.end + 1
+        ):
+            out[-1] = Paragraph(
+                path=last.path,
+                start=last.start,
+                end=p.end,
+                kind=Kind.MATTER,
+                raw_lines=[*last.raw_lines, *p.raw_lines],
+                anchor=MODULE_ANCHOR,
+            )
+            continue
+        out.append(p)
+    return out
 
 
 def _module_documentation(
