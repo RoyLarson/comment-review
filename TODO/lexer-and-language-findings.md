@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 22 of 56 tasks closed
+Progress: 22 of 57 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (/simplify rounds 1 and 2 and /code-review high round 3,
@@ -354,3 +354,5 @@ would.
 - [ ] T55 | Join an annotation whose arguments run onto a second line
 - [ ] T56 | Offer no place inside a string literal that spans lines
         > 2026-10-27 C backslash strings get c; Python triple quotes get b
+- [ ] T57 | Place a doc comment whole when another opens on its first line
+        > 2026-10-27 /** M */ /** F, newline, */ over f is cut over a0 and a1

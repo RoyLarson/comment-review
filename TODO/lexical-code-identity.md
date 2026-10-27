@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 3 of 6 tasks closed
+Progress: 3 of 7 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-10 (live-run)
@@ -38,3 +38,6 @@ Use lexical code identity at both proof boundaries.
         > 2026-10-26 Reason: pre-existing; .js, .rs and .py already refuse it
 - [ ] T6 | Prove a Lua file whose [[ only opens a --[[ comment
         > 2026-10-26 stripped.py:84: any [[ in text is unprovable; each --[[ hits it
+- [ ] T7 | Prove a lexical file that has no line of code
+        > 2026-10-27 code_fingerprint: an empty strip is unprovable; at ef037f20
+        > 2026-10-27 Blocks #241: filling a no-code file's <eof> a refuses at prove
