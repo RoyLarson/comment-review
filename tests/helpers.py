@@ -1277,32 +1277,23 @@ FORMS = {
     "shebang": ("m.py", "#!/usr/bin/env python\nx = 1\n"),
     "coding line": ("m.py", "# -*- coding: utf-8 -*-\nx = 1\n"),
     "shebang and docstring": ("m.py", '#!/usr/bin/env python\n"""D."""\nx = 1\n'),
-    # !! MATTER, A BLANK, THEN A GAP COMMENT -- the shape the two tiers
-    # disagreed about until 2026-08-26. The tokenized reader ran the comment run
-    # THROUGH the blank, so all three lines became one `matter` paragraph at
-    # `f0` and the gap comment lost its address; the lexical reader split it
-    # correctly. Roy: *"It is supposed to stop f0 at the first blank line."*
+    # Matter, a blank, then a gap comment: the matter ends at the first blank
+    # line, and the comment after the blank is its own paragraph with an
+    # address.
     "matter then a gap comment": ("m.py", "#!/usr/bin/env python\n\n# note\nx = 1\n"),
     "licence then a gap comment": ("m.py", "# (c) me\n\n# note\nx = 1\n"),
     "matter, blank, two comments": ("m.py", "# (c) me\n\n# one\n# two\nx = 1\n"),
     "function": ("m.py", 'def f():\n    """D."""\n    return 1\n'),
-    # !! A DOCSTRING'S CLOSING DELIMITER CARRYING A TRAILING COMMENT. The
-    # tokenizer sees a comment with non-blank characters before it and types it
-    # `trailing-comment`; the AST gives the same line to the docstring. Two
-    # paragraphs then claimed one line, and `page.code_lines` handed it to the
-    # `c` series as well -- the line was set TWICE, `lossless` reported *line
-    # invented*, and the duplicate delimiter reopened a string literal, so
-    # `stripped.code_fingerprint` fell from `ast` to `unprovable` and the
-    # write chain refused the docket. Reproduced 2026-08-29; the shape was in
-    # none of the sources this file or `test_reading.py` carried.
+    # A docstring whose closing delimiter carries a trailing comment. The line
+    # belongs to the docstring alone: one paragraph claims it, and it is set
+    # once.
     "docstring closed with a comment": (
         "m.py",
         'def f():\n    """D.\n    """  # NOQA\n    return 1\n',
     ),
     "module docstring closed with a comment": ("m.py", '"""D.\n"""  # NOQA\nx = 1\n'),
-    # ! THE ONE-LINE FORM ANSWERED CORRECTLY BEFORE THE FIX, and only because
-    # both paragraphs share a `start` and the stable sort ran the comment first.
-    # It is kept so the two forms are asserted to agree.
+    # The one-line form of the same shape, so the two forms are asserted to
+    # agree.
     "one-line docstring with a comment": (
         "m.py",
         'def f():\n    """D."""  # type: ignore\n    return 1\n',
@@ -1337,12 +1328,8 @@ FORMS = {
     "C block": ("m.c", "/* head */\nint a;\n"),
     "C line comment": ("m.c", "// note\nint a;\n"),
     "C both": ("m.c", "/* one */\n// two\nint a;\n"),
-    # !! A TRAILING BLOCK COMMENT THAT WRAPS -- code first, then an opener that
-    # runs on. Every block-comment case above puts the comment on its OWN line,
-    # so this shape was in no test in the suite until 2026-08-31, and it is the
-    # one `original_column` existed for: a single int can say where line 1's
-    # prose begins and has no slot for lines 2..N, which own themselves whole.
-    # `decision-log.md Process: #69`.
+    # A trailing block comment that wraps: code first, then an opener that runs
+    # on. Lines 2..N of the comment are whole lines of prose.
     "C trailing block wrapped": (
         "m.c",
         "int x = 1; /* this comment\n"
