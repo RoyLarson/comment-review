@@ -5825,3 +5825,15 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   that documents nothing is a comment, and a doc cut off from its item by an ordinary comment
   is detached (#235).
 
+- **#243.** **Each place holds one paragraph; extras go to the `b`** (Roy, 2026-10-27, after a
+  repair let an `a` take in a neighbouring run: *"Just a general rule each place gets an
+  allowed but single one of 'a', 'c', or 'f', All extras are wrapped up into the appropriate
+  'b'"*, with the case Matter 1, Doc 1, Comment 1, Doc 2, Comment 2, Doc 3, Comment 3:
+  *"Comment 1->Comment 3 would end up in b0, or f1 (depending on the trailing empty line)"*).
+
+  **What it settles.** Generalises #242. An `a`, a `c` and an `f` place each hold at most one
+  paragraph; whatever else falls in a gap is that gap's one `b`. In the case above, with no
+  code: `f0` Matter 1, `a0` Doc 1, and Comment 1 through Comment 3 -- the docs between them
+  included -- are one paragraph: `b0` when a blank last line leaves no back matter, otherwise
+  back matter `f1` (#232).
+
