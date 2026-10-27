@@ -1,4 +1,5 @@
 from copy import deepcopy
+from pathlib import Path
 
 import pytest
 from conftest import build
@@ -16,6 +17,7 @@ from comment_review.reading.language import (
     INSTALLED_DEFINITIONS,
     language_from_definition,
 )
+from comment_review.reading.stripped import code_fingerprint
 from comment_review.results import compositor, galley
 
 
@@ -478,6 +480,54 @@ def test_removal_keeps_each_comment_on_a_line(name, raw, snippet, expected):
     assert changed == expected
     assert galley.reset(page, {paragraph.address.split("@")[1]: changed}) == []
     assert compositor.set_page(page) == f"{code[0]}\n{expected}\n{code[1]}\n"
+
+
+@pytest.mark.parametrize(
+    "name, source, expected",
+    [
+        (
+            "m.c",
+            "int x = a / /* Move. */ /* Keep. */\n    b;\n",
+            "int x = a / /* Keep. */\n    b;\n",
+        ),
+        (
+            "m.c",
+            "int x; /* Move. */ /* Keep. */\n",
+            "int x; /* Keep. */\n",
+        ),
+        (
+            "m.js",
+            "function f() {\n    /* Move. */ /* Keep. */\n    // Ending stays.\n}\n",
+            "function f() {\n    /* Keep. */\n    // Ending stays.\n}\n",
+        ),
+        (
+            "m.lua",
+            "local x = 1\n  --[[ Move. ]]-- Keep.\nlocal y = 2\n",
+            "local x = 1\n  -- Keep.\nlocal y = 2\n",
+        ),
+    ],
+    ids=["after-an-operator", "after-code", "indented", "lua-indented"],
+)
+def test_removing_the_first_comment_of_a_line_keeps_the_space_before_it(
+    name, source, expected
+):
+    page = build(source, name)
+    paragraph = next(p for p in page if "Move." in p.raw_text)
+    changed = comment_at(
+        paragraph.address, paragraph.raw_text, anchor=paragraph.anchor
+    ).without_once("Move.")
+    assert galley.reset(page, {paragraph.address.split("@")[1]: changed}) == []
+    output = compositor.set_page(page)
+    assert output == expected
+    kind, before = code_fingerprint(source, Path(name))
+    if name == "m.lua":
+        # Lua's long comment spells the long string's `[[`, a spanning quote,
+        # so the source is not provable; the output holds none, and its code
+        # is the source's two lines.
+        assert kind == "unprovable"
+        kind, before = "stripped", "local x = 1\nlocal y = 2"
+    assert kind == "stripped"
+    assert code_fingerprint(output, Path(name)) == (kind, before)
 
 
 @pytest.mark.parametrize("instruction", ["move", "drop"])

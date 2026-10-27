@@ -133,6 +133,8 @@ class Comment:
     def _without_range(self, start: int, end: int) -> str | None:
         rendered = []
         offset = 0
+        # The space an emptied comment stood on, owed to the comment after it.
+        carried = ""
         for part in self.fragments:
             remaining = []
             kept_indices = []
@@ -153,6 +155,16 @@ class Comment:
                 # line stays and keeps its end; only the space before it goes.
                 rendered[-1] = rendered[-1].rstrip(" \t")
                 text = part.ending
+            elif not text and not part.raw_text.endswith(("\n", "\r")):
+                # The comment shared its line with the one after it, which takes
+                # the indent or the space after code the removed one stood on.
+                leading = part.raw_text[
+                    : len(part.raw_text) - len(part.raw_text.lstrip(" \t"))
+                ]
+                carried = carried or leading
+            elif text and carried:
+                text = carried + text
+                carried = ""
             rendered.append(text)
         found = re.search(r"[\r\n]+$", self.raw_text)
         ending = found.group(0) if found else ""
