@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 22 of 53 tasks closed
+Progress: 22 of 55 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (/simplify rounds 1 and 2 and /code-review high round 3,
@@ -347,3 +347,5 @@ would.
         > 2026-10-26 js twin hides it: // note + /** Doc. */ read as one b0 comment
         > 2026-10-26 pymc _version.py, distributions/continuous.py, setupegg.py
         > 2026-10-26 Foot mirrors it (#240): comments under a closing doc are matter
+- [ ] T54 | Add Kotlin's property keywords to its declares list
+- [ ] T55 | Join an annotation whose arguments run onto a second line
