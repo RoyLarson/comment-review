@@ -151,6 +151,28 @@ NOTE = Kind.COMMENT
     ("text", "expected"),
     [
         (
+            "y = 0;\n/* a\n b */ x = 1;\n/** D */\n// c\n/** E */\nfunction g() {}\n",
+            [(2, 5, NOTE, "", None), (6, 6, DOC, "", 7)],
+        ),
+        (
+            "function f() {}\n/* a\n b */ x = 1;\n// c\ny = 2;\n",
+            [(2, 4, NOTE, "", None)],
+        ),
+    ],
+    ids=["two-runs-above-a-declaration", "two-runs-above-plain-code"],
+)
+def test_a_gap_holding_two_runs_has_one_b(text, expected):
+    # A delimited comment closing on a line that holds code leaves that line
+    # out of the code, so the run below it is in the same gap and joins its b.
+    found = read("m.js", text).paragraphs(Path("m.js"))
+    got = [(p.start, p.end, p.kind, p.anchor, p.anchor_line) for p in found]
+    assert [row for row in got if row[2] != Kind.TRAILING] == expected
+
+
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        (
             "/** A */\n// n1\n/** B */\n// n2\n/** C */\n",
             [(1, 1, DOC, "", None), (2, 4, NOTE, "", None), (5, 5, DOC, "<eof>", None)],
         ),
@@ -198,14 +220,14 @@ def test_a_gap_is_cut_into_its_a0_its_one_b_and_the_a_at_its_lower_edge(text, ex
     assert [row for row in got if row[2] != Kind.TRAILING] == expected
 
 
-def test_an_opening_doc_run_ends_at_its_last_doc_marked_line():
+def test_the_modules_docstring_ends_where_its_opening_doc_group_does():
     # `val` declares nothing here, so the run documents nothing: the module's
-    # docstring is line 1, and the comment after the empty line is ordinary.
-    text = "/** x */\n\n// y\nval z = 1\n"
+    # docstring is line 1, and the comment and the doc below it are one `b`.
+    text = "/** x */\n// y\n/** w */\n\nval z = 1\n"
     found = read("m.kt", text).paragraphs(Path("m.kt"))
     assert [(p.start, p.end, p.kind, p.anchor_line) for p in found] == [
         (1, 1, Kind.DOCSTRING, None),
-        (3, 3, Kind.COMMENT, None),
+        (2, 3, Kind.COMMENT, None),
     ]
 
 

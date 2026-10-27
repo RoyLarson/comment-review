@@ -1157,8 +1157,8 @@ def _file_edges(
 ) -> tuple[list[Paragraph], list[CodeLine]]:
     """Say which runs document a declaration, then which are the file's own matter.
 
-    Returns the paragraphs and the file's code lines, which cutting a run at a
-    blank line or a docstring's end does not change.
+    Returns the paragraphs and the file's code lines, which cutting a gap's
+    runs by place does not change.
 
     A prose line, for `reading.matter`, is a line of a whole-line run with a
     comment on it -- not a blank it took in `between` two comments, and not a
@@ -1232,7 +1232,14 @@ def _file_edges(
     code_lines = lines_of_code(code, declared, joined)
     document_declarations(found, code_lines)
     found = _one_matter_per_end(cut(found, (Kind.COMMENT,), mark=True))
-    found = _cut_by_place(found, set(code), between, documentation, lang.a_series)
+    found = _cut_by_place(
+        found,
+        constants.text_lines(text),
+        set(code),
+        between,
+        documentation,
+        lang.a_series,
+    )
     return found, code_lines
 
 
@@ -1269,98 +1276,122 @@ def _one_matter_per_end(paragraphs: list[Paragraph]) -> list[Paragraph]:
 
 def _cut_by_place(
     paragraphs: list[Paragraph],
+    lines: list[str],
     code: set[int],
     between: set[int],
     documentation: set[int],
     a_series: bool,
 ) -> list[Paragraph]:
-    """Cut each gap's run into the places the gap holds: `a0`, one `b`, an `a`.
+    """Cut each gap's prose into the places the gap holds: `a0`, one `b`, an `a`.
 
-    A gap lies between two lines of code, or a sentinel and code, and its run
-    reads as GROUPS: the doc-marked lines and the plain comment lines, each
-    stretch of one kind a group, a blank it took in `between` joining nothing.
+    A gap lies between two lines of code, or a sentinel and code. It holds one
+    run, or more where a line that is not code parts them -- a delimited
+    comment closing on a line with code after it. Its prose reads as GROUPS:
+    the doc-marked lines and the plain comment lines, each stretch of one kind
+    a group, a blank it took in `between` joining nothing.
 
     - The group touching the gap's lower edge is that edge's `a`: the
-      declaration the run documents -- whatever kind the group is -- or, at the
-      foot of the file, `<eof>` when the group is doc-marked.
-    - At the head of the file, the doc-marked group opening the run is `a0`.
-    - Everything else in the run is the gap's one `b`, a `comment`.
+      declaration its last run documents -- whatever kind the group is -- or,
+      at the foot of the file, `<eof>` when the group is doc-marked.
+    - At the head of the file, the doc-marked group opening the gap is `a0`.
+    - Everything else in the gap is its one `b`, a `comment`.
 
-    With no code a run is both head and foot, and one doc-marked group is `a0`.
+    With no code the gap is both head and foot, and one doc-marked group is
+    `a0`.
     """
     prose = [
         p
         for p in sorted(paragraphs, key=lambda p: p.start)
         if p.kind in (Kind.COMMENT, Kind.DOCSTRING)
     ]
+    gaps: list[list[Paragraph]] = []
+    for p in prose:
+        if gaps and not any(gaps[-1][-1].end < n < p.start for n in code):
+            gaps[-1].append(p)
+        else:
+            gaps.append([p])
+    cut = {
+        id(gap[0]): _cut_gap(gap, lines, code, between, documentation, a_series)
+        for gap in gaps
+    }
+    held = {id(p) for p in prose}
     out: list[Paragraph] = []
     for p in paragraphs:
-        if p.kind not in (Kind.COMMENT, Kind.DOCSTRING):
+        if id(p) in cut:
+            out.extend(cut[id(p)])
+        elif id(p) not in held:
             out.append(p)
-            continue
-        groups: list[tuple[int, int, bool]] = []
-        for n in range(p.start, p.end + 1):
-            if n in between:
-                continue
-            doc = n in documentation
-            if groups and groups[-1][2] == doc:
-                groups[-1] = (groups[-1][0], n, doc)
-            else:
-                groups.append((n, n, doc))
-        head = a_series and p is prose[0] and not any(n < p.start for n in code)
-        foot = a_series and p is prose[-1] and not any(n > p.end for n in code)
-        documents = p.kind == Kind.DOCSTRING
-        lowest = groups[-1] if documents else None
-        if not documents and foot and groups[-1][2] and not (head and len(groups) == 1):
-            lowest = groups[-1]
-        opening = None
-        if head and groups[0][2] and groups[0] is not lowest:
-            opening = groups[0]
-        if opening is None and lowest is None:
-            p.kind = Kind.COMMENT
-            out.append(p)
-            continue
-        if len(groups) == 1:
-            # One group is the whole run: it keeps its paragraph.
-            p.kind = Kind.DOCSTRING
-            p.anchor = p.anchor if documents else ("" if opening else EOF)
-            out.append(p)
-            continue
-        parts: list[Paragraph] = []
-        if opening is not None:
-            parts.append(_part(p, opening[0], opening[1], Kind.DOCSTRING))
-        rest = [
-            n
-            for n in range(p.start, p.end + 1)
-            if n not in between
-            and not (opening and opening[0] <= n <= opening[1])
-            and not (lowest and lowest[0] <= n <= lowest[1])
-        ]
-        if rest:
-            parts.append(_part(p, rest[0], rest[-1], Kind.COMMENT))
-        if lowest is not None:
-            last = _part(p, lowest[0], lowest[1], Kind.DOCSTRING, p.anchor)
-            if documents:
-                last.anchor_line = p.anchor_line
-            else:
-                last.anchor = EOF
-            parts.append(last)
-        out.extend(parts)
     return out
 
 
-def _part(
-    p: Paragraph, first: int, last: int, kind: Kind, anchor: str = ""
-) -> Paragraph:
-    """Lines `first` to `last` of the run `p`, as a paragraph of `kind`."""
-    return Paragraph(
-        path=p.path,
-        start=first,
-        end=last,
-        kind=kind,
-        raw_lines=p.raw_lines[first - p.start : last - p.start + 1],
-        anchor=anchor,
-    )
+def _cut_gap(
+    runs: list[Paragraph],
+    lines: list[str],
+    code: set[int],
+    between: set[int],
+    documentation: set[int],
+    a_series: bool,
+) -> list[Paragraph]:
+    """One gap's runs, cut into its `a0`, its one `b` and its lower edge's `a`."""
+    first, last = runs[0], runs[-1]
+    raw = {p.start + i: line for p in runs for i, line in enumerate(p.raw_lines)}
+    held = sorted(n for n in raw if n not in between)
+    groups: list[tuple[int, int, bool]] = []
+    for n in held:
+        doc = n in documentation
+        if groups and groups[-1][2] == doc:
+            groups[-1] = (groups[-1][0], n, doc)
+        else:
+            groups.append((n, n, doc))
+    head = a_series and not any(n < first.start for n in code)
+    foot = a_series and not any(n > last.end for n in code)
+    documents = last.kind == Kind.DOCSTRING
+    lowest = groups[-1] if documents else None
+    if not documents and foot and groups[-1][2] and not (head and len(groups) == 1):
+        lowest = groups[-1]
+    opening = None
+    if head and groups[0][2] and groups[0] is not lowest:
+        opening = groups[0]
+    if len(runs) == 1 and (len(groups) == 1 or (opening is None and lowest is None)):
+        # A gap of one run that is one place keeps its paragraph.
+        p = runs[0]
+        if opening is None and lowest is None:
+            p.kind = Kind.COMMENT
+        else:
+            p.kind = Kind.DOCSTRING
+            p.anchor = p.anchor if documents else ("" if opening else EOF)
+        return [p]
+
+    def part(lo: int, hi: int, kind: Kind, anchor: str = "") -> Paragraph:
+        # A line between two runs that neither holds is a blank, read from the file.
+        return Paragraph(
+            path=first.path,
+            start=lo,
+            end=hi,
+            kind=kind,
+            raw_lines=[raw.get(n, lines[n - 1]) for n in range(lo, hi + 1)],
+            anchor=anchor,
+        )
+
+    parts: list[Paragraph] = []
+    if opening is not None:
+        parts.append(part(opening[0], opening[1], Kind.DOCSTRING))
+    rest = [
+        n
+        for n in held
+        if not (opening and opening[0] <= n <= opening[1])
+        and not (lowest and lowest[0] <= n <= lowest[1])
+    ]
+    if rest:
+        parts.append(part(rest[0], rest[-1], Kind.COMMENT))
+    if lowest is not None:
+        closing = part(lowest[0], lowest[1], Kind.DOCSTRING, last.anchor)
+        if documents:
+            closing.anchor_line = last.anchor_line
+        else:
+            closing.anchor = EOF
+        parts.append(closing)
+    return parts
 
 
 #: A declaring line's first word, ignoring indentation. Stops at anything that

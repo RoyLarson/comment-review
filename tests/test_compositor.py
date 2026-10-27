@@ -346,6 +346,14 @@ FORMS = {
         "m.js",
         "/** doc */\n// eslint-disable-next-line\nfunction f() {}\n",
     ),
+    "js a gap of two runs above a declaration": (
+        "m.js",
+        "y = 0;\n/* a\n b */ x = 1;\n/** D */\n// c\n/** E */\nfunction g() {}\n",
+    ),
+    "js a gap of two runs above plain code": (
+        "m.js",
+        "function f() {}\n/* a\n b */ x = 1;\n// c\ny = 2;\n",
+    ),
     "js docs and comments between declarations": (
         "m.js",
         "function f() {}\n\n/** A */\n// n1\n/** B */\n// n2\n/** C */\n"
