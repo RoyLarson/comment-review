@@ -1383,7 +1383,12 @@ def _cut_gap(
     if not documents and foot and groups[-1][2] and not (head and len(groups) == 1):
         lowest = groups[-1]
     if back is not None:
-        lowest = None
+        # Below code, the first doc group is the closing docstring that ends
+        # the file's code, and the comments below it are part of the back
+        # matter.
+        # With no code there is no closing docstring above the matter.
+        below_code = any(n < first.start for n in code)
+        lowest = next((g for g in groups if g[2]), None) if below_code else None
         raw.update((back.start + i, line) for i, line in enumerate(back.raw_lines))
     opening = None
     if head and groups[0][2] and groups[0] is not lowest:
@@ -1423,9 +1428,12 @@ def _cut_gap(
         and not (lowest and lowest[0] <= n <= lowest[1])
     ]
     if back is not None:
-        parts.append(
-            part(rest[0] if rest else back.start, back.end, Kind.MATTER, MODULE_ANCHOR)
-        )
+        above = [n for n in rest if lowest and n < lowest[0]]
+        below = [n for n in rest if n not in above]
+        if above:
+            parts.append(part(above[0], above[-1], Kind.COMMENT))
+        matter = part(below[0] if below else back.start, back.end, Kind.MATTER)
+        matter.anchor = MODULE_ANCHOR
     elif rest:
         parts.append(part(rest[0], rest[-1], Kind.COMMENT))
     if lowest is not None:
@@ -1435,6 +1443,8 @@ def _cut_gap(
         else:
             closing.anchor = EOF
         parts.append(closing)
+    if back is not None:
+        parts.append(matter)
     return parts
 
 

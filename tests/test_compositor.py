@@ -378,6 +378,22 @@ FORMS = {
         "m.js",
         "// M1\n/** D1 */\n// C1\n/** D2 */\n// C2\n/** D3 */\n// C3\n\n",
     ),
+    "js closing doc then a comment below code": (
+        "m.js",
+        "let x = 1;\n/** D1 */\n// C1\n",
+    ),
+    "js closing doc then comments and docs below code": (
+        "m.js",
+        "let x = 1;\n/** D1 */\n// C1\n/** D2 */\n// C2\n",
+    ),
+    "js closing doc then a comment below code, blank last line": (
+        "m.js",
+        "let x = 1;\n/** D1 */\n// C1\n\n",
+    ),
+    "js closing doc then comments and docs below code, blank last line": (
+        "m.js",
+        "let x = 1;\n/** D1 */\n// C1\n/** D2 */\n// C2\n\n",
+    ),
     "js two runs with a blank between": (
         "m.js",
         "function f() {}\n/* a\n b */ x = 1;\n\n// c\nfunction g() {}\n",

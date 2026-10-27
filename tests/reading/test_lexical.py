@@ -240,6 +240,33 @@ def test_each_place_holds_one_paragraph_and_the_rest_is_one_b_or_the_back_matter
     ("text", "expected"),
     [
         (
+            "let x = 1;\n/** D1 */\n// C1\n",
+            [(2, 2, DOC, "<eof>"), (3, 3, Kind.MATTER, "<module>")],
+        ),
+        (
+            "let x = 1;\n/** D1 */\n// C1\n/** D2 */\n// C2\n",
+            [(2, 2, DOC, "<eof>"), (3, 5, Kind.MATTER, "<module>")],
+        ),
+        ("let x = 1;\n/** D1 */\n// C1\n\n", [(2, 3, NOTE, "")]),
+        ("let x = 1;\n/** D1 */\n// C1\n/** D2 */\n// C2\n\n", [(2, 5, NOTE, "")]),
+    ],
+    ids=["one-comment", "comments-and-docs", "one-comment-blank", "comments-blank"],
+)
+def test_a_closing_docstring_below_code_keeps_its_a_above_the_back_matter(
+    text, expected
+):
+    # The doc that ends the file's code is the module's `<eof>` `a`, and every
+    # comment below it is back matter, one paragraph. With a blank last line
+    # there is no back matter, and the gap's prose is its one b.
+    found = read("m.js", text).paragraphs(Path("m.js"))
+    got = [(p.start, p.end, p.kind, p.anchor) for p in found]
+    assert [row for row in got if row[2] != Kind.TRAILING] == expected
+
+
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        (
             "/** A */\n// n1\n/** B */\n// n2\n/** C */\n",
             [(1, 1, DOC, "", None), (2, 4, NOTE, "", None), (5, 5, DOC, "<eof>", None)],
         ),
