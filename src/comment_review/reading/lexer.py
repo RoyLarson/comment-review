@@ -1167,7 +1167,13 @@ def _file_edges(
     if shebang is not None:
         found.insert(0, shebang)
     code = code_text(text, found)
-    code_lines = lines_of_code(code, declarations(lang, code))
+    declared = declarations(lang, code)
+    # A declaring line and the annotation lines above it are one unit: every
+    # line below the place its doc is set against joins the line above it.
+    joined = [
+        n for line, place in declared.items() for n in range(place.at + 1, line + 1)
+    ]
+    code_lines = lines_of_code(code, declared, joined)
     document_declarations(found, code_lines)
     found = _one_matter_per_end(cut(found, (Kind.COMMENT,), mark=True))
     if lang.a_series:
@@ -1345,7 +1351,8 @@ def document_declarations(paragraphs: list["Paragraph"], lines: list[CodeLine]) 
             documents a declaration becomes `Kind.DOCSTRING` with that
             declaration's line as its `anchor_line`.
         lines: the file's code lines, in order; a line whose `documents` is set
-            declares something documentable.
+            declares something documentable, and its `at` is the line the
+            documentation is set above.
     """
     # ! LEADING IS NOT PROSE AND CANNOT DOCUMENT ANYTHING, and MATTER -- a
     # shebang, here -- is the file's own.
@@ -1359,12 +1366,17 @@ def document_declarations(paragraphs: list["Paragraph"], lines: list[CodeLine]) 
     documenting: set[int] = set()
     above_code = [c.line for c in lines]
     code = set(above_code)
-    declaring = [c.line for c in lines if c.documents is not None] if ends else []
-    for line in declaring:
-        # ! UP FROM THE DECLARING LINE, past blanks, stopping at CODE -- prose
-        # above that code is about that code and cannot reach across it.
+    declaring = (
+        [(c.line, c.documents.at) for c in lines if c.documents is not None]
+        if ends
+        else []
+    )
+    for line, top in declaring:
+        # ! UP FROM THE LINE THE DOC IS SET AGAINST -- the declaring line or
+        # its topmost annotation -- past blanks, stopping at CODE: prose above
+        # that code is about that code and cannot reach across it.
         held = None
-        at = line - 1
+        at = top - 1
         while at >= 1:
             if at in code:
                 break
@@ -1382,7 +1394,7 @@ def document_declarations(paragraphs: list["Paragraph"], lines: list[CodeLine]) 
         # ! THE TWO DISTANCES, counted in blank lines. Nothing above the run
         # means there is nothing for it to belong to, so the declaration takes
         # it -- `over` is set past `below` to say so.
-        below = line - held.original_end - 1
+        below = top - held.original_end - 1
         previous = [n for n in above_code if n < held.original_start]
         over = held.original_start - previous[-1] - 1 if previous else below + 1
         if below <= over:
@@ -1411,8 +1423,8 @@ def declarations(lang: Language, code: Mapping[int, str]) -> dict[int, DocPlace]
     ! A LANGUAGE WHOSE DOC GOES INSIDE THE BODY IS REFUSED -- `lang.doc_inside`,
     Python. Where its body starts is not the declaring line, so its own reader
     states its declarations. Every other installed language documents a
-    declaration with the run directly above its declaring line, so the line the
-    keyword is on is the whole answer.
+    declaration with the run directly above it: above its declaring line, or
+    above the annotation lines directly over that line.
 
     ! It REPORTS; it does not emit a paragraph. `undocumented` is a PAGE kind,
     because only a page knows where prose is missing.
@@ -1424,18 +1436,18 @@ def declarations(lang: Language, code: Mapping[int, str]) -> dict[int, DocPlace]
             declare anything.
 
     Returns:
-        Each declaration's first line -> its `DocPlace`: the declaring line,
-        or the topmost annotation line above it. !! `above` IS THE ROW SPEAKING:
+        Each declaring line -> its `DocPlace`, set above the declaring line or
+        above its topmost annotation line. !! `above` IS THE ROW SPEAKING:
         it is `doc_inside` read back out, and it is stated HERE because the
         lexer is where a row's `declares` and `doc_inside` are read.
     """
     if lang.doc_inside:
         raise ValueError(f"{lang.name} declarations come from its own reader")
-    # ! The doc goes ON the declaring line, pushing it down, so the place is set
-    # against that line. Ordered because `code` is.
+    # ! The doc goes ABOVE the declaration, pushing it down, so the place is
+    # set against its first line. Ordered because `code` is.
     # !! AN ANNOTATION IS PART OF THE DECLARATION IT PRECEDES -- see
-    # `Language.annotations` -- so a declaration opens on the topmost of the
-    # annotation lines directly above its keyword, and its doc goes above them.
+    # `Language.annotations` -- so the first line is the topmost of the
+    # annotation lines directly above the declaring line.
     found: dict[int, DocPlace] = {}
     for n, line in code.items():
         if not _declares_here(line, lang.declares):
@@ -1445,7 +1457,7 @@ def declarations(lang: Language, code: Mapping[int, str]) -> dict[int, DocPlace]
             lang.annotations
         ):
             top -= 1
-        found[top] = DocPlace(top, True)
+        found[n] = DocPlace(top, True)
     return found
 
 

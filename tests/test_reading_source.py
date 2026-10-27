@@ -1011,6 +1011,28 @@ def test_a_documentation_place_off_the_code_lines_is_refused(line, at):
         lines_of_code({1: "def f():", 4: "    pass"}, {line: DocPlace(at, False)})
 
 
+def test_a_joined_line_is_marked_as_one_unit_with_the_code_line_above():
+    from comment_review.reading.source import CodeLine, DocPlace, lines_of_code
+
+    code = {1: "@Ann", 2: "@Other", 3: "class A {}", 5: "int x;"}
+    assert lines_of_code(code, {3: DocPlace(1, True)}, [2, 3]) == [
+        CodeLine(1, "@Ann", None, False),
+        CodeLine(2, "@Other", None, True),
+        CodeLine(3, "class A {}", DocPlace(1, True), True),
+        CodeLine(5, "int x;", None, False),
+    ]
+
+
+@pytest.mark.parametrize(
+    "joined", [[5], [4], [1]], ids=["under-a-blank", "not-code", "first-line"]
+)
+def test_a_joined_line_with_no_code_line_directly_above_is_refused(joined):
+    from comment_review.reading.source import lines_of_code
+
+    with pytest.raises(ValueError, match="joins no code line"):
+        lines_of_code({1: "@Ann", 2: "class A {}", 5: "int x;"}, {}, joined)
+
+
 def test_boundary_source_import_does_not_load_workflow_modules():
     src = Path(__file__).resolve().parents[1] / "src"
     script = """

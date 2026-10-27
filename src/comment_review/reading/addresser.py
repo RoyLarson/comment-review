@@ -330,7 +330,8 @@ class Addresser:
 
     Attributes:
         series: `a`, `b`, `c` or `f`.
-        places: cue -> the LINE OF CODE it is attached to, in emission order.
+        places: cue -> the LINE OF CODE it is attached to, in emission order;
+            for a unit's `a` and `b`, every line of the unit, one per line.
     """
 
     series: str
@@ -357,7 +358,8 @@ class Addresser:
         """Take this trigger's number, record what it is, and return the cue.
 
         Args:
-            anchor: the line of code this place is attached to, or `MODULE`.
+            anchor: the code this place is attached to -- a line, or every
+                line of a unit, one per line -- or `MODULE`.
             trigger: which trigger this is, indexing `triggers()`.
         """
         got = cue_for(self.series, self._step)
@@ -444,9 +446,14 @@ class Cues:
     # `CodeLine`, and `cue` turns it into a position in this list -- so
     # nothing downstream asks the question again.
     reading: list[str] = field(default_factory=list)
-    # `documents`' index of the `a` places by their anchor's line, with the
-    # count of `a` places it was built over.
+    # `documents`' index of the `a` places by every line of the unit each was
+    # emitted at, with the count of `a` places it was built over.
     _declared: tuple[int, dict[int, str]] | None = field(
+        default=None, init=False, repr=False, compare=False
+    )
+    # `above`'s index of the `b` places by the trigger each fired at, with the
+    # count of `b` places it was built over.
+    _gap_at: tuple[int, dict[int, str]] | None = field(
         default=None, init=False, repr=False, compare=False
     )
     # ! LEADING IS NOT HERE, and was for one evening. It is `Page.leading` --
@@ -495,19 +502,38 @@ class Cues:
 
         ! The gap above the FIRST code line at or after `line`. Past the last
         one it is the closing gap, which is the place with no line below it --
-        the `b` at the ordinal one past every line of code.
+        the `b` fired at the EOF trigger.
 
-        ! IT READS `cue` DIRECTLY. A `b` fires at the trigger BELOW it, so
-        the gap above `triggers[i]` is `b` at `i - 1`, and the closing gap is the one
-        at the EOF trigger. ! This went through a `_code` PROPERTY for one hour
-        on 2026-08-22, which rebuilt the list on every read -- twice here -- in
-        the file whose `anchor_of` twenty lines below records fixing exactly that
-        quadratic. The property is deleted; `cue` is the list.
+        ! IT READS `cue` DIRECTLY. A `b` fires at the trigger BELOW it, and
+        the closing gap is the one at the EOF trigger. A line that joins the
+        line above it takes no `b`, so a line inside a unit answers the gap
+        above the unit's first line.
         """
+        gaps = self._gaps()
         for step, trigger in enumerate(self.triggers):
             if isinstance(trigger, int) and line <= trigger:
-                return self.addressers[GAP].at(step - 1)
-        return self.addressers[GAP].at(len(self.triggers) - 2)
+                return gaps.get(self._unit_head(step), "")
+        return gaps.get(len(self.triggers) - 1, "")
+
+    def _gaps(self) -> dict[int, str]:
+        """Each trigger a `b` fired at -> that `b`."""
+        walker = self.addressers[GAP]
+        if self._gap_at is None or self._gap_at[0] != len(walker.places):
+            self._gap_at = (
+                len(walker.places),
+                {step: c for c, step in walker.trigger.items()},
+            )
+        return self._gap_at[1]
+
+    def _unit_head(self, step: int) -> int:
+        """The trigger that opens the unit this trigger is in.
+
+        It is the nearest trigger at or before this one that a `b` fired at.
+        """
+        gaps = self._gaps()
+        while step > 0 and step not in gaps:
+            step -= 1
+        return step
 
     def beside(self, line: int) -> str:
         """The `c` on this line of code, or "" if the line holds no code.
@@ -526,8 +552,9 @@ class Cues:
     def documents(self, line: int | None) -> str:
         """The `a` documenting the declaration on this code line.
 
-        None is the module, whose documentation is `a0`. "" when the line
-        declares nothing documentable, or the page has no `a` series.
+        Every line of a unit answers the unit's `a`. None is the module, whose
+        documentation is `a0`. "" when the line declares nothing documentable,
+        or the page has no `a` series.
         """
         walker = self.addressers[DECLARED]
         if line is None:
@@ -535,11 +562,16 @@ class Cues:
         # Indexed once, the first time a line is asked for; `cue` has emitted
         # every place by then, and the count says if one was emitted since.
         if self._declared is None or self._declared[0] != len(walker.places):
+            gaps = self._gaps()
             index: dict[int, str] = {}
-            for c in walker.places:
-                at = self.anchor_line(c)
-                if at is not None:
-                    index.setdefault(at, c)
+            for c, step in walker.trigger.items():
+                # The unit's lines run from the trigger the `a` fired at to the
+                # next trigger a `b` fired at.
+                while isinstance(line_at := self.triggers[step], int):
+                    index.setdefault(line_at, c)
+                    step += 1
+                    if step in gaps:
+                        break
             self._declared = (len(walker.places), index)
         return self._declared[1].get(line, "")
 
@@ -892,20 +924,35 @@ def cue(
                 out.reading.append(f.emit(EOF, at))
             continue
         line = code[seen]
-        if line.documents is not None:
-            # ! 0 is the module, so a declaration's ordinal is its position
-            # among the documentable ones, counting from 1.
-            declared = a.emit(line.code, at)
-            # !! THE READER STATED WHERE THE DOC IS SET, as a code line and a
-            # side. `cue` holds the place until that line's step and compares
-            # nothing.
-            place = line.documents
-            release.setdefault((step_of[place.at], place.above), []).append(declared)
-        gap = b.emit(line.code, at)
+        if not line.joins:
+            # !! A UNIT IS THIS LINE AND EVERY LINE BELOW IT THAT JOINS IT, and
+            # it is one line for `a` and `b`: one gap above it, one `a` for the
+            # declaration in it, both anchored to every line of it. Each line
+            # still takes its own `c`. A line that joins nothing is a unit of
+            # one.
+            unit = [line]
+            while seen + len(unit) < len(code) and code[seen + len(unit)].joins:
+                unit.append(code[seen + len(unit)])
+            anchor = "\n".join(member.code for member in unit)
+            for member in unit:
+                if member.documents is None:
+                    continue
+                # ! 0 is the module, so a declaration's ordinal is its position
+                # among the documentable ones, counting from 1.
+                declared = a.emit(anchor, at)
+                # !! THE READER STATED WHERE THE DOC IS SET, as a code line and
+                # a side. `cue` holds the place until that line's step and
+                # compares nothing.
+                place = member.documents
+                release.setdefault((step_of[place.at], place.above), []).append(
+                    declared
+                )
+            out.reading.append(b.emit(anchor, at))
         beside = c.emit(line.code, at)
-        # !! THE ORDER A READER MEETS THEM: the gap above this line, then any
-        # declaration documented above it, then the line itself with the room
-        # beside it, then any declaration documented after it.
+        # !! THE ORDER A READER MEETS THEM: the gap above this line's unit,
+        # appended above, then any declaration documented above it, then the
+        # line itself with the room beside it, then any declaration documented
+        # after it.
         #
         # !! THE SIDE IS THE PER-LANGUAGE QUESTION, AND IT IS NOT ASKED HERE.
         # The reader's `DocPlace` already answered it, so this releases
@@ -915,7 +962,6 @@ def cue(
         # docstring lands after the signature -- however many code lines a
         # wrapped one spans. ! No line is compared, which is what keeps `cue`
         # free of arithmetic it would otherwise have to keep right.
-        out.reading.append(gap)
         out.reading.extend(release.pop((seen, True), ()))
         out.reading.append(beside)
         out.reading.extend(release.pop((seen, False), ()))

@@ -5,7 +5,7 @@ Beside them is the contract a reader hands the page its code lines by:
 `lines_of_code`.
 """
 
-from collections.abc import Mapping
+from collections.abc import Collection, Mapping
 from dataclasses import dataclass, field
 from enum import StrEnum
 from typing import NamedTuple
@@ -136,10 +136,16 @@ class CodeLine(NamedTuple):
     code: str
     #: Set when this line declares something documentable.
     documents: DocPlace | None
+    #: True when this line and the code line directly above it are one unit
+    #: for the `a` and `b` series: one gap above the unit and one `a` for it.
+    #: Each line of a unit keeps its own `c`.
+    joins: bool = False
 
 
 def lines_of_code(
-    code: Mapping[int, str], declared: Mapping[int, DocPlace]
+    code: Mapping[int, str],
+    declared: Mapping[int, DocPlace],
+    joined: Collection[int] = (),
 ) -> list[CodeLine]:
     """Each code line in order, carrying the documentation place declared on it.
 
@@ -150,10 +156,13 @@ def lines_of_code(
     Args:
         code: each 1-based line that holds code -> its code, ascending.
         declared: each declaring line -> its documentation place.
+        joined: each line that is one unit with the code line directly above
+            it, such as a declaring line under its annotation.
 
     Raises:
         ValueError: when a declaring line, or the line a documentation place
-            is set against, is not a code line.
+            is set against, is not a code line; or when a joined line, or the
+            line directly above it, is not a code line.
     """
     for line, place in declared.items():
         for named in (line, place.at):
@@ -161,7 +170,11 @@ def lines_of_code(
                 raise ValueError(
                     f"a documentation place names line {named}, not a code line"
                 )
-    return [CodeLine(n, text, declared.get(n)) for n, text in code.items()]
+    joins = set(joined)
+    for line in joins:
+        if line not in code or line - 1 not in code:
+            raise ValueError(f"line {line} joins no code line directly above it")
+    return [CodeLine(n, text, declared.get(n), n in joins) for n, text in code.items()]
 
 
 @dataclass(frozen=True)

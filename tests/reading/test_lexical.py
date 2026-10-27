@@ -332,17 +332,17 @@ def test_the_runs_at_one_end_of_the_file_are_one_matter_paragraph(text, expected
 @pytest.mark.parametrize(
     ("name", "text", "line"),
     [
-        ("m.java", "/** App. */\n@Ann\nclass App {}\n", 2),
-        ("m.java", "/** App. */\n@Ann\n@Other\nclass App {}\n", 2),
-        ("m.java", "/** App. */\n@Ann(x = 1)\nclass App {}\n", 2),
+        ("m.java", "/** App. */\n@Ann\nclass App {}\n", 3),
+        ("m.java", "/** App. */\n@Ann\n@Other\nclass App {}\n", 4),
+        ("m.java", "/** App. */\n@Ann(x = 1)\nclass App {}\n", 3),
+        ("m.ts", "/** C. */\n@Component({})\nexport class C {}\n", 3),
     ],
-    ids=["one", "two", "with-arguments"],
+    ids=["one", "two", "with-arguments", "typescript-decorator"],
 )
 def test_a_doc_run_above_annotation_lines_documents_the_declaration_below(
     name, text, line
 ):
-    # The declaration opens on its topmost annotation line, which is the line
-    # the run documents.
+    # The run documents the declaring line, across the annotations above it.
     found = read(name, text).paragraphs(Path(name))
     assert [(p.start, p.kind, p.anchor_line) for p in found] == [
         (1, Kind.DOCSTRING, line)
@@ -394,17 +394,30 @@ def test_an_annotation_line_belongs_only_to_a_row_that_names_it():
 @pytest.mark.parametrize(
     ("code", "expected"),
     [
-        ({1: "@Ann", 2: "@Other(x = 1)", 3: "class A {}"}, {1: DocPlace(1, True)}),
-        ({1: "int x;", 3: "@Ann", 4: "class A {}"}, {3: DocPlace(3, True)}),
+        ({1: "@Ann", 2: "@Other(x = 1)", 3: "class A {}"}, {3: DocPlace(1, True)}),
+        ({1: "int x;", 3: "@Ann", 4: "class A {}"}, {4: DocPlace(3, True)}),
         ({1: "@Ann", 3: "class A {}"}, {3: DocPlace(3, True)}),
         ({1: "@Ann", 2: "int y = 1;"}, {}),
     ],
     ids=["two-annotations", "below-code", "blank-between", "no-declaration"],
 )
-def test_a_declaration_opens_on_the_annotation_lines_directly_above_it(code, expected):
+def test_a_declarations_doc_is_set_above_the_annotation_lines_directly_above_it(
+    code, expected
+):
     java = language_for(Path("m.java"))
     assert java is not None
     assert declarations(java, code) == expected
+
+
+def test_the_annotation_lines_and_their_declaring_line_are_handed_over_joined():
+    text = "class A {\n  /** F. */\n  @Ann // why\n  @Other\n  public void f() {}\n}\n"
+    assert read("m.java", text).code_lines() == [
+        CodeLine(1, "class A {", DocPlace(1, True)),
+        CodeLine(3, "  @Ann", None),
+        CodeLine(4, "  @Other", None, True),
+        CodeLine(5, "  public void f() {}", DocPlace(3, True), True),
+        CodeLine(6, "}", None),
+    ]
 
 
 def test_declarations_hold_only_the_declaring_lines():
