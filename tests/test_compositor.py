@@ -651,6 +651,37 @@ def test_filling_the_head_of_a_shebang_file_keeps_the_shebang_on_line_one(
     assert set_page(page) == expected
 
 
+@pytest.mark.parametrize(
+    ("text", "places", "expected"),
+    [
+        (
+            "/** One. */\n",
+            {"a1": "/** Two. */"},
+            "/** One. */\n\n/** Two. */\n",
+        ),
+        ("/** One. */\n", {"a0": None, "a1": "/** Two. */"}, "\n/** Two. */\n"),
+        ("// Licence.\n", {"a1": "/** Two. */"}, "// Licence.\n\n/** Two. */\n"),
+        (
+            "/** One. */\n",
+            {"b0": "// Note.", "a1": "/** Two. */"},
+            "/** One. */\n// Note.\n\n/** Two. */\n",
+        ),
+        ("class A {}\n", {"a2": "/** Two. */"}, "class A {}\n/** Two. */\n"),
+    ],
+    ids=["below-a0", "a0-empty", "below-matter", "below-a-gap", "below-code"],
+)
+def test_an_added_closing_docstring_with_no_code_above_it_is_set_below_a_blank(
+    text, places, expected
+):
+    # With no code on the page, only a blank line sets the closing docstring
+    # apart from the head of the file; below code, the code does.
+    from comment_review.results.galley import reset
+
+    page = build(text, "m.js")
+    assert reset(page, places) == []
+    assert set_page(page) == expected
+
+
 @pytest.mark.parametrize("ending", ["\n", "\r\n"])
 @pytest.mark.parametrize(
     ("text", "places"),

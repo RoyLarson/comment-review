@@ -94,6 +94,53 @@ def test_a_closing_doc_run_starts_at_its_first_doc_marked_line(text, doc_line):
     ]
 
 
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        ("/** one */\n", [(1, 1, Kind.DOCSTRING, "")]),
+        ("/** one */\n/** two */\n", [(1, 2, Kind.DOCSTRING, "")]),
+        (
+            "/** one */\n\n/** two */\n",
+            [(1, 1, Kind.DOCSTRING, ""), (3, 3, Kind.DOCSTRING, "<eof>")],
+        ),
+        (
+            "/** one */\n// note\n\n/** two */\n",
+            [
+                (1, 1, Kind.DOCSTRING, ""),
+                (2, 2, Kind.COMMENT, ""),
+                (4, 4, Kind.DOCSTRING, "<eof>"),
+            ],
+        ),
+        ("\n/** two */\n", [(2, 2, Kind.DOCSTRING, "<eof>")]),
+        (
+            "// licence\n/** one */\n",
+            [(1, 1, Kind.MATTER, "<module>"), (2, 2, Kind.DOCSTRING, "")],
+        ),
+        (
+            "// licence\n\n/** two */\n",
+            [(1, 1, Kind.MATTER, "<module>"), (3, 3, Kind.DOCSTRING, "<eof>")],
+        ),
+    ],
+    ids=[
+        "one",
+        "two-flush",
+        "two-apart",
+        "comment-between",
+        "blank-above",
+        "below-matter",
+        "blank-below-matter",
+    ],
+)
+def test_with_no_code_a_blank_line_parts_the_opening_doc_from_the_closing_one(
+    text, expected
+):
+    # No code separates the two ends, so a fully empty line does: the opening
+    # docstring is the doc-marked run at the head, and the closing one is the
+    # doc-marked run below the run's last blank line.
+    found = read("m.js", text).paragraphs(Path("m.js"))
+    assert [(p.start, p.end, p.kind, p.anchor) for p in found] == expected
+
+
 def test_an_opening_doc_run_ends_at_its_last_doc_marked_line():
     # `val` declares nothing here, so the run documents nothing: the module's
     # docstring is line 1, and the comment after the empty line is ordinary.
