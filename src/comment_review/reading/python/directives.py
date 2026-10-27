@@ -5,6 +5,7 @@ from codecs import lookup
 from collections.abc import Mapping
 from typing import cast
 
+from comment_review import constants
 from comment_review.reading.coordinates import SourceCoordinates
 from comment_review.reading.definitions import LanguageDefinition
 from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, ReadStage
@@ -45,7 +46,7 @@ def directives_in(
         (token.span.start for token in scan.tokens if token.kind == "newline"),
         default=len(scan.text),
     )
-    preamble_start = 1 if scan.text.startswith("\ufeff") else 0
+    preamble_start = 1 if scan.text.startswith(constants.BYTE_ORDER_MARK) else 0
     first_line = scan.text[preamble_start:first_line_end].lstrip(" \t\f")
     second_allowed = rules[
         "encoding_second_line"

@@ -4,6 +4,7 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import cast
 
+from comment_review import constants
 from comment_review.reading.definitions import LanguageDefinition
 from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, ReadStage
 from comment_review.reading.python.definition import validate_python
@@ -109,7 +110,7 @@ def _next_token(
     text: str, start: int, syntax: _Syntax, *, field: bool = False
 ) -> tuple[str, int, RegionKind] | ReadFailure:
     char = text[start]
-    if start == 0 and char == "\ufeff":
+    if start == 0 and char == constants.BYTE_ORDER_MARK:
         return "", 1, RegionKind.WHITESPACE
     if char in " \t\f":
         end = start + 1

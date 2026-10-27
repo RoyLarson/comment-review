@@ -17,7 +17,6 @@ from comment_review.reading.rust.records import (
 )
 from comment_review.reading.source import RegionKind, SourceRegion, SourceSpan
 
-BYTE_ORDER_MARK = constants.BYTE_ORDER_MARK
 # The Rust Reference's whitespace: Pattern_White_Space.
 WHITESPACE = frozenset("\t\n\v\f\r \x85\u200e\u200f\u2028\u2029")
 OPENERS = frozenset("{([")
@@ -267,8 +266,8 @@ def _shebang(text: str, start: int, grammar: _Grammar) -> int | None:
         if newline < 0:
             return None
         line_start = newline + 1
-    if line_start == 0 and text.startswith(BYTE_ORDER_MARK):
-        line_start = len(BYTE_ORDER_MARK)
+    if line_start == 0 and text.startswith(constants.BYTE_ORDER_MARK):
+        line_start = len(constants.BYTE_ORDER_MARK)
     if start != line_start or not text.startswith(directives.shebang, start):
         return None
     at = start + len(directives.shebang)
@@ -345,7 +344,7 @@ def _next_token(
     """The token at `start`: its kind (None for a byte-order mark), end and region."""
     comments = grammar.comments
     char = text[start]
-    if start == 0 and char == BYTE_ORDER_MARK:
+    if start == 0 and char == constants.BYTE_ORDER_MARK:
         return None, 1, RegionKind.WHITESPACE
     if char in WHITESPACE:
         end = start + 1

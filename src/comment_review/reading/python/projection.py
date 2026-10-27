@@ -61,7 +61,9 @@ def sections_for(
             continue
         start = token.span.start
         line_start = start - coordinates.position(start).column
-        whole = not scan.text[line_start:start].strip(" \t\f\ufeff")
+        whole = not scan.text[line_start:start].strip(
+            " \t\f" + constants.BYTE_ORDER_MARK
+        )
         if whole:
             start = line_start
         end = token.span.end
@@ -154,7 +156,7 @@ def paragraphs_for(path: Path, read: PythonRead) -> list[Paragraph] | ReadFailur
             )
             continue
         before = lines[first.line - 1][: first.column]
-        if before.strip(" \t\f\ufeff"):
+        if before.strip(" \t\f" + constants.BYTE_ORDER_MARK):
             raw = lines[first.line - 1 : last.line]
             raw[0] = raw[0][len(before.rstrip()) :]
             paragraphs.append(
@@ -198,7 +200,7 @@ def _prose(read: PythonRead, coordinates: SourceCoordinates) -> set[int]:
             continue
         position = coordinates.position(region.span.start)
         head = text[region.span.start - position.column : region.span.start]
-        if not head.strip(" \t\f\ufeff"):
+        if not head.strip(" \t\f" + constants.BYTE_ORDER_MARK):
             prose.add(position.line)
     return prose
 
@@ -238,7 +240,7 @@ def _code(read: PythonRead) -> dict[int, str]:
             boundary = min(end, span.end)
         chunks.append(text[boundary:end])
         anchor = "".join(chunks).rstrip()
-        if anchor.strip(" \t\f\ufeff"):
+        if anchor.strip(" \t\f" + constants.BYTE_ORDER_MARK):
             code[number] = anchor
         offset = end
         if text.startswith("\r\n", offset):

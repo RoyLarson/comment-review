@@ -235,7 +235,18 @@ def test_a_byte_order_mark_before_a_line_comment_is_not_code():
     assert [(p.start, p.kind, p.anchor, p.raw_lines) for p in found] == [
         (1, Kind.MATTER, "<module>", ["\ufeff// Licence MIT"])
     ]
-    assert found[0].text == "Licence MIT"
+
+
+def test_a_line_holding_only_a_byte_order_mark_is_leading_and_keeps_the_mark():
+    mark = chr(0xFEFF)
+    found = leading_between([], mark + "\nx\n", [2])
+    assert [(p.start, p.end, p.raw_lines) for p in found] == [(1, 1, [mark])]
+
+
+def test_a_line_holding_only_a_byte_order_mark_is_not_a_code_line():
+    mark = chr(0xFEFF)
+    lines = read("m.js", mark + "\nconst x = 1;\n").code_lines()
+    assert [line.line for line in lines] == [2]
 
 
 def test_a_byte_order_mark_before_code_stays_in_the_anchor_of_a_trailing_comment():

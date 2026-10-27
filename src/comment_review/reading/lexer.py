@@ -672,7 +672,7 @@ def leading_between(
             )
     out: list[Paragraph] = []
     run: list[int] = []
-    for n, line in enumerate(lines, 1):
+    for n, line in enumerate(constants.scan_lines(text), 1):
         if not line.strip() and n not in held:
             run.append(n)
             continue
@@ -758,13 +758,10 @@ def read_lexical(path: Path, text: str, lang: Language) -> "LexicalRead":
     """
     openers = tuple(sorted(lang.line_comment, key=len, reverse=True))
     lines = constants.text_lines(text)
-    # The byte-order mark is the file's encoding, not line 1's text: the loop
-    # below reads line 1 without it, and a paragraph that holds line 1 keeps it.
-    mark = ""
-    scanned = lines
-    if lines and lines[0].startswith(constants.BYTE_ORDER_MARK):
-        mark = constants.BYTE_ORDER_MARK
-        scanned = [lines[0].removeprefix(mark), *lines[1:]]
+    # The loop below reads line 1 without its byte-order mark, and a paragraph
+    # that holds line 1 keeps it.
+    scanned = constants.scan_lines(text)
+    mark = lines[0][: len(lines[0]) - len(scanned[0])] if lines else ""
     out: list[Paragraph] = []
     run: list[tuple[int, str]] = []
     # ! Blank lines seen since the last comment line. They belong to the run only if
@@ -1453,8 +1450,10 @@ def code_text(text: str, paragraphs: list[Paragraph]) -> dict[int, str]:
             occupied.discard(b.start)
     return {
         n: beside.get(n) or line.rstrip()
-        for n, line in enumerate(constants.text_lines(text), 1)
-        if line.strip() and n not in occupied
+        for n, (line, scanned) in enumerate(
+            zip(constants.text_lines(text), constants.scan_lines(text), strict=True), 1
+        )
+        if scanned.strip() and n not in occupied
     }
 
 

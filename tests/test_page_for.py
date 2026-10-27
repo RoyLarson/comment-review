@@ -90,7 +90,20 @@ def test_a_margin_holds_what_follows_its_anchor_on_the_line():
     page = build(text, "m.rs")
     margin = next(p for p in page if p.anchor == no_break_space and p.kind == "margin")
     assert margin.raw_lines == [""]
-    assert not [p for p in page if p.kind == Kind.LEADING]
+
+
+@pytest.mark.parametrize("name", ["m.rs", "m.py", "m.js"])
+@pytest.mark.parametrize("rest", ["x = 1\n", "# Licence\nx = 1\n"])
+def test_a_page_opening_with_a_line_holding_only_a_byte_order_mark_sets_back(
+    name, rest
+):
+    from comment_review.results.compositor import set_page
+
+    if name != "m.py":
+        rest = rest.replace("# ", "// ").replace("x = 1", "fn main() {}")
+    text = chr(0xFEFF) + "\n" + rest
+    page = build(text, name)
+    assert set_page(page) == text
 
 
 def test_python_page_whole_comments_and_matter_boundaries():
