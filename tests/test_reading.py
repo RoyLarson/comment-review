@@ -91,8 +91,8 @@ def test_every_line_of_the_file_is_covered_exactly_once(name, text):
 def test_no_two_paragraphs_share_an_address(name, text):
     """An address identifies ONE paragraph, or a replacement is ambiguous.
 
-    `galley.reset` refuses an edit whose place holds more than one paragraph,
-    so a page that breaks this cannot be edited at all.
+    `page_for` refuses a page that breaks this, so the file cannot be
+    gathered at all.
     """
     addresses = [b.address for b in build(text, name).paragraphs if b.address]
     assert len(addresses) == len(set(addresses))

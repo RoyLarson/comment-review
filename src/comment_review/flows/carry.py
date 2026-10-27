@@ -113,8 +113,7 @@ def carry(binder: Binder, page, path: str, **lookup) -> tuple[Binder | None, str
 
     !! IT REFUSES A PLACE THAT ALREADY HOLDS PROSE. Such a place is not an
     absence to be cited; the binder is already carrying it, and adding a second
-    row would put two rows on one address -- the shape `galley.reset` refuses by
-    name, 157 of them measured in one tree.
+    row would put two rows on one address, the shape `page_for` refuses.
 
     Args:
         binder: the deserialized binder.

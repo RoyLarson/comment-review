@@ -930,7 +930,8 @@ def read_lexical(path: Path, text: str, lang: Language) -> "LexicalRead":
             # int x = 5;` gathers the run through the closing line, and
             # `raw_lines` holds that line whole, `int x = 5;` included, because
             # `raw_lines` is the source from `start` to `end`. The closing line's
-            # code is therefore inside the paragraph's span.
+            # code is therefore inside the paragraph's span, and an edit to that
+            # paragraph replaces it: `int x = 5;` is deleted.
             #
             # ! CARRIES THE DEPTH, so a nested opener on an earlier line keeps
             # the run open past the closer that matches it.

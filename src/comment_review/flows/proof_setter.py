@@ -595,11 +595,8 @@ def _elsewhere(placed: dict[str, Paragraph], where: str, want: list[str]) -> str
     the edit step instead of checking it.
 
     ! IT READS THE TABLE `_reread` ALREADY BUILT, rather than walking the page a
-    second time and recomputing `cue_of` for every paragraph on it. ! Where
-    SEVERAL places hold the text it now names the first such CUE down the page
-    rather than the first matching PARAGRAPH; the two differ only when an
-    earlier cue's match sits below a later cue's paragraph, and either answers
-    the question this returns a clause for.
+    second time and recomputing `cue_of` for every paragraph on it. Where
+    several places hold the text it names the first such cue down the page.
 
     Args:
         placed: the draft's paragraphs, by cue, as `_reread` built it.
