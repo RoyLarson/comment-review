@@ -680,8 +680,25 @@ def test_filling_the_head_of_a_shebang_file_keeps_the_shebang_on_line_one(
             "// Licence.\n\n/** Doc. */\n// Note.\n/** End. */\n",
         ),
         ("class A {}\n", {"a2": "/** Two. */"}, "class A {}\n/** Two. */\n"),
+        (
+            "class A {}\n",
+            {"b1": "// Gap.", "a2": "/** End. */"},
+            "class A {}\n// Gap.\n/** End. */\n",
+        ),
+        (
+            "class A {}\n/** End. */\n",
+            {"b1": "// Gap."},
+            "class A {}\n// Gap.\n/** End. */\n",
+        ),
     ],
-    ids=["below-a0", "a0-empty", "gap-and-closing", "below-code"],
+    ids=[
+        "below-a0",
+        "a0-empty",
+        "gap-and-closing",
+        "below-code",
+        "gap-and-closing-below-code",
+        "gap-above-a-held-closing",
+    ],
 )
 def test_an_added_closing_docstring_is_set_in_reading_order_and_nothing_more(
     text, places, expected
@@ -724,16 +741,13 @@ def test_an_added_closing_docstring_is_set_in_reading_order_and_nothing_more(
 def test_the_head_places_are_filled_and_set_back_in_reading_order(
     name, text, places, expected
 ):
-    # f0 then a0, each set back where it was filled and read back there.
+    # f0 then a0, each set where it was filled. That the written text is read
+    # back at the same places is the page's, in `tests/test_page_for.py`.
     from comment_review.results.galley import reset
 
     page = build(text, name)
     assert reset(page, places) == []
-    out = set_page(page)
-    assert out == expected
-    again = by_cue(build(out, name))
-    for place, prose in places.items():
-        assert again[place].raw_lines == prose.split("\n")
+    assert set_page(page) == expected
 
 
 @pytest.mark.parametrize("ending", ["\n", "\r\n"])

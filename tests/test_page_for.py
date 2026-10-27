@@ -1345,3 +1345,34 @@ def test_rust_fixture_licence_header_is_front_matter_and_first_item_undocumented
     assert places["f0"][0] == "matter"
     assert places["a1"] == ("undocumented", "pub fn first() -> u32 {")
     assert places["a2"][0] == "docstring"
+
+
+@pytest.mark.parametrize(
+    ("name", "text", "places"),
+    [
+        (
+            "m.js",
+            "// licence\n/** Doc. */\n",
+            {"f0": ["// licence"], "a0": ["/** Doc. */"]},
+        ),
+        (
+            "m.js",
+            "// licence\n/** Doc. */\nlet x = 1;\n",
+            {"f0": ["// licence"], "a0": ["/** Doc. */"]},
+        ),
+        (
+            "m.js",
+            "#!/usr/bin/env node\n// licence\n/** Doc. */\nlet x = 1;\n",
+            {"f0": ["#!/usr/bin/env node", "// licence"], "a0": ["/** Doc. */"]},
+        ),
+        (
+            "m.py",
+            '# licence\n"""Doc."""\nx = 1\n',
+            {"f0": ["# licence"], "a0": ['"""Doc."""']},
+        ),
+    ],
+    ids=["no-code", "code", "shebang", "python"],
+)
+def test_matter_then_a_doc_at_the_head_are_placed_at_f0_and_a0(name, text, places):
+    found = by_cue(build(text, name))
+    assert {place: found[place].raw_lines for place in places} == places

@@ -294,6 +294,13 @@ class TestBySentinel:
         assert code == 1
         assert "<module>" in out and "no `c` place" in out
 
+    def test_the_usage_line_names_both_sentinels(self, monkeypatch, capsys):
+        monkeypatch.setattr("sys.argv", ["addresser", "--help"])
+        with pytest.raises(SystemExit):
+            addresser.main()
+        usage = capsys.readouterr().out.split("\n\n")[0]
+        assert "--line N|<module>|<eof>" in " ".join(usage.split())
+
     def test_the_binder_still_checks(self, monkeypatch, capsys, a_closing_binder):
         code, out = run_command(
             monkeypatch, capsys, addresser, "--binder", str(a_closing_binder), "--check"

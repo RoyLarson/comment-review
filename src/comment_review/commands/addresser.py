@@ -58,7 +58,7 @@ def main() -> int:
     ap.add_argument(
         "--line",
         type=_line,
-        metavar="N",
+        metavar=f"N|{MODULE}|{EOF}",
         help=f"a line NUMBER of that file as it was gathered, or {MODULE} or {EOF}"
         " for the places no line names: the module's documentation and front"
         " matter, and the closing gap, documentation and back matter",
