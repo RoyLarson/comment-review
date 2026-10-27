@@ -613,6 +613,40 @@ def run_ends(
     return -1, depth
 
 
+class _AfterCloser(NamedTuple):
+    """What follows a delimited comment's closer on its line."""
+
+    #: Nothing but comments: the line holds no code past the closer.
+    comment: bool
+    #: The delimited comment those comments leave open, or None.
+    still_open: tuple[str, str] | None
+    #: The layers still open on it -- see `run_ends`.
+    layers: int
+
+
+def _after_closer(rest: str, lang: Language) -> _AfterCloser:
+    """Read the text after a closer: comments only, or code.
+
+    A delimited opener is tried before a line opener, because Lua's `--[[`
+    begins with its line opener `--`. A line comment runs to the line's end; a
+    delimited comment that closes is passed over and the text after it read
+    the same way; one that does not close is left open for the lines below.
+    """
+    text = rest
+    while True:
+        stripped = text.lstrip()
+        if not stripped:
+            return _AfterCloser(True, None, 1)
+        pair = next((p for p in lang.block_comment if stripped.startswith(p[0])), None)
+        if pair is None:
+            return _AfterCloser(stripped.startswith(lang.line_comment), None, 1)
+        tail = stripped[len(pair[0]) :]
+        ends, layers = run_ends(tail, pair, lang.nests_comments)
+        if ends < 0:
+            return _AfterCloser(True, pair, layers)
+        text = tail[ends:]
+
+
 def _anchor_of(lines: list[str], line_no: int, column: int) -> str:
     """The line of code a `c` paragraph sits beside -- its ANCHOR, verbatim.
 
@@ -904,37 +938,31 @@ def read_lexical(path: Path, text: str, lang: Language) -> "LexicalRead":
             # `no-inline-comments`, and the kernel, Google C++ and Java guides
             # all put a paragraph comment on its own line.
             #
-            # ! CUT AT THE CLOSER, the way the opening line cuts at the opener,
-            # so `   more */ int x = 5;` gives the run only `   more */` and no
-            # executable code reaches four reviewers as prose or the annotation
-            # regexes.
             # ! CARRIES THE DEPTH, so a nested opener on an earlier line keeps
             # the run open past the closer that matches it.
             if in_doc:
                 documentation.add(n)
+            run.append((n, raw_line.rstrip()))
             ends, layers = run_ends(raw_line, in_block, lang.nests_comments, layers)
             if ends >= 0:
                 in_block = None
                 in_doc = False
-                # ! A LINE COMMENT AFTER THE CLOSER IS PROSE, NOT CODE: Lua's
-                # `]]--` closes its long comment and opens an empty line comment,
-                # and the line holds no code, so the run goes on past it.
-                after = raw_line[ends:].strip()
-                if after.startswith(openers):
-                    run.append((n, raw_line.rstrip()))
-                    after = ""
-                else:
-                    run.append((n, raw_line[:ends].rstrip()))
+                # ! COMMENTS AFTER THE CLOSER ARE PROSE, NOT CODE: Lua's `]]--`
+                # closes its long comment and opens an empty line comment, and
+                # `*/ /* more` opens another delimited comment the run goes on
+                # into. Only code after the closer ends the run here.
+                after = _after_closer(raw_line[ends:], lang)
+                if after.still_open is not None:
+                    in_block, layers = after.still_open, after.layers
+                    continue
                 # !! THE SAME RULE AS THE SINGLE-LINE CLOSE BELOW: a closer ends
                 # the COMMENT, not the paragraph. This one opened on an earlier
                 # line, so code cannot precede it here -- `partial_first` records
                 # whether code preceded it THERE, which is what makes the run a
                 # `c`. ! Code after the closer does reach this branch, unlike the
                 # single-line case, and it is the next statement.
-                if partial_first[0] or after:
+                if partial_first[0] or not after.comment:
                     flush()
-                continue
-            run.append((n, raw_line.rstrip()))
             continue
         # !! ONLY CODE ENDS A PARAGRAPH -- a blank line does not. Split on blanks,
         # a 9-line paragraph would read as `6 + 3` and pass a cap of 6.
@@ -975,7 +1003,9 @@ def read_lexical(path: Path, text: str, lang: Language) -> "LexicalRead":
             tail = raw_line[opens_at + len(opened[0]) :]
             ends_at, layers = run_ends(tail, opened, lang.nests_comments)
             closes_here = ends_at >= 0
-            after = tail[ends_at:] if closes_here else ""
+            # Comments after the closer are prose, as they are on a line the
+            # comment closes on below; only code makes the comment intermediate.
+            after = _after_closer(tail[ends_at:] if closes_here else "", lang)
             # !! AN INTERMEDIATE COMMENT IS NOT GATHERED -- one that CLOSES on
             # this line with code after it, `int x = /* why */ 5;`.
             #
@@ -985,7 +1015,7 @@ def read_lexical(path: Path, text: str, lang: Language) -> "LexicalRead":
             # and `prove_unchanged` report PROVEN on a changed literal. Neither is
             # available; the line is simply code. It stays a code line, so it
             # keeps its `b` and its `c` like any other.
-            if closes_here and after.strip():
+            if not after.comment:
                 # ! THE LINE IS CODE, so it ends the run like any other.
                 flush()
                 # !! AND A LINE COMMENT AFTER IT IS STILL A TRAILING COMMENT. The
@@ -1038,6 +1068,8 @@ def read_lexical(path: Path, text: str, lang: Language) -> "LexicalRead":
             run.append((n, raw_line[opens_at:].rstrip()))
             if not closes_here:
                 in_block = opened
+            elif after.still_open is not None:
+                in_block, layers = after.still_open, after.layers
             elif beside_code:
                 # !! ONLY CODE ENDS A PARAGRAPH, AND A CLOSER IS NOT CODE. ! Code
                 # AFTER the closer cannot reach here -- such a line is not
@@ -1186,8 +1218,10 @@ def _one_matter_per_end(paragraphs: list[Paragraph]) -> list[Paragraph]:
 
     Front matter is one place and back matter is another, and the matter rule
     covers a run of lines with no gap, so two MATTER paragraphs on adjacent
-    lines are at the same end: a shebang and the licence below it, or a
-    delimited comment and the line comments after it.
+    lines are at the same end. The reader gathers each end's comments as one
+    run, so two arise only where a run is kept apart from the comments beside
+    it: a shebang and the licence below it, and a delimited comment whose
+    closing line also holds code and the comments below it.
     """
     out: list[Paragraph] = []
     for p in paragraphs:

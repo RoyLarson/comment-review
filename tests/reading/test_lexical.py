@@ -330,6 +330,63 @@ def test_the_runs_at_one_end_of_the_file_are_one_matter_paragraph(text, expected
 
 
 @pytest.mark.parametrize(
+    ("name", "text", "expected", "code"),
+    [
+        (
+            "m.c",
+            "int x;\n/* a\n b */ /* c */\n// d\nint y;\n",
+            [(2, 4, Kind.COMMENT)],
+            [1, 5],
+        ),
+        (
+            "m.c",
+            "int x;\n/* a\n b */ /* c\n d */\nint y;\n",
+            [(2, 4, Kind.COMMENT)],
+            [1, 5],
+        ),
+        (
+            "m.c",
+            "int x;\n/* a */ /* b\n c */\nint y;\n",
+            [(2, 3, Kind.COMMENT)],
+            [1, 4],
+        ),
+        ("m.c", "/* a */ // b\nint y;\n", [(1, 1, Kind.MATTER)], [2]),
+        ("m.c", "int x; /* a */ // b\n", [(1, 1, Kind.TRAILING)], [1]),
+        (
+            "m.lua",
+            "--[[\n lic\n]]--\n-- more\nlocal x = 1\n",
+            [(1, 4, Kind.MATTER)],
+            [5],
+        ),
+        ("m.lua", "--[[ lic ]]--\nlocal x = 1\n", [(1, 1, Kind.MATTER)], [2]),
+        (
+            "m.lua",
+            "-- a\n--[[ b ]]-- tail\nlocal x = 1\n",
+            [(1, 2, Kind.MATTER)],
+            [3],
+        ),
+    ],
+    ids=[
+        "closer-then-block-comment",
+        "closer-then-open-block",
+        "one-line-then-open-block",
+        "one-line-then-line-comment",
+        "beside-code",
+        "lua-long-closer",
+        "lua-one-line",
+        "lua-one-line-with-text",
+    ],
+)
+def test_a_comment_after_a_closer_continues_the_run_on_a_line_holding_no_code(
+    name, text, expected, code
+):
+    lexical = read(name, text)
+    found = lexical.paragraphs(Path(name))
+    assert [(p.start, p.end, p.kind) for p in found] == expected
+    assert [c.line for c in lexical.code_lines()] == code
+
+
+@pytest.mark.parametrize(
     ("name", "text", "line"),
     [
         ("m.java", "/** App. */\n@Ann\nclass App {}\n", 3),
