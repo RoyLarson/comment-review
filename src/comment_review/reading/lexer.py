@@ -926,41 +926,11 @@ def read_lexical(path: Path, text: str, lang: Language) -> "LexicalRead":
         if shebang is not None and n == 1:
             continue
         if in_block is not None:
-            # !! CODE AFTER THE CLOSER KEEPS ITS PROSE AND LOSES ITS CODE LINE.
-            # `/* note\n   more */ int x = 5;` gathers the run and leaves
-            # `int x = 5;` out of `code_text`, so every interval boundary below
-            # it moves.
-            #
-            # !! AND AN EDIT TO THAT PARAGRAPH DELETES THE STATEMENT. This cut
-            # trims the run's own entry and not the paragraph's `raw_lines`, and
-            # the galley splices `start..end` wholesale -- it preserves the head of the
-            # FIRST line at `column` and has no tail preservation on the last.
-            # `prove_unchanged` catches it, but only AFTER 7b has written the
-            # file.
-            #
-            # !! IT IS THE GALLEY'S TO CATCH, NOT THE LEXER'S AND NOT A
-            # REVIEWER'S. A reviewer rules on a paragraph and has no view of how
-            # the galley splices it, so it cannot know the closing line will
-            # delete code. The whole-file composition the galley is heading for
-            # is where a write that would drop a line becomes visible BEFORE it
-            # happens, which is the same move `prove_unchanged` needs. Filed as
-            # `TODO/closing-line-deletes-code.md`.
-            #
-            # ! NEITHER FIX IS WORTH ITS COST. Dropping the run the way an
-            # INTERMEDIATE comment is dropped works on the one-line twin --
-            # `/* note */ int x = 5;` is wholly a code line -- and not here,
-            # where the opening line is nothing but comment and would belong to
-            # nothing. Keeping both needs a field for where the text ENDS, or a
-            # kind for comment-then-code; the first re-adds a column the address
-            # system replaced, the second teaches every consumer that switches
-            # on kind.
-            #
-            # !! MEASURED OVER THE FETCHED CORPORA: 180,821 lines of C and JS/TS,
-            # and the shape occurs **0 times** -- 3 apparent hits were `*/`
-            # inside a glob string. The one-line form is ordinary (1,551 hits)
-            # and is already right. The style guides agree -- ESLint ships
-            # `no-inline-comments`, and the kernel, Google C++ and Java guides
-            # all put a paragraph comment on its own line.
+            # !! CODE AFTER THE CLOSER STAYS IN THE PARAGRAPH. `/* note\n   more */
+            # int x = 5;` gathers the run through the closing line, and
+            # `raw_lines` holds that line whole, `int x = 5;` included, because
+            # `raw_lines` is the source from `start` to `end`. The closing line's
+            # code is therefore inside the paragraph's span.
             #
             # ! CARRIES THE DEPTH, so a nested opener on an earlier line keeps
             # the run open past the closer that matches it.
