@@ -845,6 +845,10 @@ def read_lexical(path: Path, text: str, lang: Language) -> "LexicalRead":
     # comment still open is one. `_file_edges` reads no such line as matter.
     documentation: set[int] = set()
     in_doc = False
+    # The line each doc comment opens on: a doc-marked delimited comment, or
+    # the first of a stretch of doc-marked line comments on adjacent lines.
+    doc_opens: set[int] = set()
+    doc_line_comments: set[int] = set()
 
     def carry() -> None:
         """Take the blanks held since the last prose line into the run.
@@ -1053,6 +1057,7 @@ def read_lexical(path: Path, text: str, lang: Language) -> "LexicalRead":
             # documents nothing, so its lines are not `documentation`.
             if not beside_code and _is_doc(raw_line[opens_at:], lang):
                 documentation.add(n)
+                doc_opens.add(n)
                 in_doc = not closes_here
 
             # !! CUT AT THE OPENER, like the line-comment path below does. Taking the
@@ -1090,6 +1095,9 @@ def read_lexical(path: Path, text: str, lang: Language) -> "LexicalRead":
             run.append((n, raw_line.rstrip()))
             if _is_doc(raw_line, lang):
                 documentation.add(n)
+                doc_line_comments.add(n)
+                if n - 1 not in doc_line_comments:
+                    doc_opens.add(n)
             continue
         flush()  # ! CODE ends a paragraph; a blank line does not
         at = line_at
@@ -1104,7 +1112,9 @@ def read_lexical(path: Path, text: str, lang: Language) -> "LexicalRead":
             run.append((n, raw_line[at:].rstrip()))
             flush(trailing=True)  # its own paragraph, anchored to the code on that line
     flush()
-    found, code_lines = _file_edges(out, text, lang, between, documentation, shebang)
+    found, code_lines = _file_edges(
+        out, text, lang, between, documentation, doc_opens, shebang
+    )
     if in_block is not None and found:
         # The loop ended with a paragraph comment still open, so the final flush
         # emitted the run that ate the rest of the file. It is the ONE paragraph
@@ -1124,6 +1134,7 @@ def _file_edges(
     lang: Language,
     between: set[int],
     documentation: set[int],
+    doc_opens: set[int],
     shebang: Paragraph | None,
 ) -> tuple[list[Paragraph], list[CodeLine]]:
     """Say which runs document a declaration, then which are the file's own matter.
@@ -1209,6 +1220,7 @@ def _file_edges(
         set(code),
         between,
         documentation,
+        doc_opens,
         lang.a_series,
     )
     return found, code_lines
@@ -1251,6 +1263,7 @@ def _cut_by_place(
     code: set[int],
     between: set[int],
     documentation: set[int],
+    doc_opens: set[int],
     a_series: bool,
 ) -> list[Paragraph]:
     """Cut each gap's prose into the places the gap holds: `a0`, one `b`, an `a`.
@@ -1265,6 +1278,10 @@ def _cut_by_place(
       declaration its last run documents -- whatever kind the group is -- or,
       at the foot of the file, `<eof>` when the group is doc-marked.
     - At the head of the file, the doc-marked group opening the gap is `a0`.
+      Where that group is also the one touching a declaration, a lone doc
+      comment in it is the declaration's `a`; with two or more, the first is
+      `a0` and the one touching the declaration is its `a`. A doc comment opens
+      on a line of `doc_opens`, so two on one line are one.
     - Everything else in the gap is its one `b`, a `comment`.
     - Where the back matter starts on the line below the gap's last run, the
       matter is what touches the foot: the gap has no `a` there, and
@@ -1302,6 +1319,7 @@ def _cut_by_place(
             code,
             between,
             documentation,
+            doc_opens,
             a_series,
             back if gap is gaps[-1] else None,
         )
@@ -1325,6 +1343,7 @@ def _cut_gap(
     code: set[int],
     between: set[int],
     documentation: set[int],
+    doc_opens: set[int],
     a_series: bool,
     back: Paragraph | None,
 ) -> list[Paragraph]:
@@ -1364,10 +1383,18 @@ def _cut_gap(
     opening = None
     if head and groups[0][2] and groups[0] is not lowest:
         opening = groups[0]
+    elif head and documents and lowest is groups[0] and lowest[2]:
+        # The head's doc group touches the declaration: its first doc comment
+        # is `a0` and its last the declaration's `a` once it holds two.
+        opens = sorted(n for n in doc_opens if lowest[0] <= n <= lowest[1])
+        if len(opens) > 1:
+            opening = (lowest[0], max(n for n in held if n < opens[1]), True)
+            lowest = (opens[-1], lowest[1], True)
     if (
         back is None
         and len(runs) == 1
         and (len(groups) == 1 or (opening is None and lowest is None))
+        and not (opening and lowest)
     ):
         # A gap of one run that is one place keeps its paragraph.
         p = runs[0]

@@ -1442,6 +1442,18 @@ FORMS = {
         "function f() {}\n\n/** A */\n// n1\n/** B */\n// n2\n/** C */\n"
         "function g() {}\n",
     ),
+    "js two head docs over a declaration": (
+        "m.js",
+        "/** M */\n/** F */\nfunction f() {}\n",
+    ),
+    "js two head docs apart over a declaration": (
+        "m.js",
+        "/** M */\n\n/** F */\nfunction f() {}\n",
+    ),
+    "js three head docs over a declaration": (
+        "m.js",
+        "/** A */\n/** B */\n/** C */\nfunction f() {}\n",
+    ),
 }
 
 

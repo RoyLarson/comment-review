@@ -298,6 +298,67 @@ def test_a_gap_is_cut_into_its_a0_its_one_b_and_the_a_at_its_lower_edge(text, ex
     assert [row for row in got if row[2] != Kind.TRAILING] == expected
 
 
+@pytest.mark.parametrize(
+    ("name", "text", "expected"),
+    [
+        (
+            "m.js",
+            "/** M */\n/** F */\nfunction f() {}\n",
+            [(1, 1, DOC, "", None), (2, 2, DOC, "", 3)],
+        ),
+        (
+            "m.js",
+            "/** M */\n\n/** F */\nfunction f() {}\n",
+            [(1, 1, DOC, "", None), (3, 3, DOC, "", 4)],
+        ),
+        (
+            "m.js",
+            "/** A */\n/** B */\n/** C */\nfunction f() {}\n",
+            [(1, 1, DOC, "", None), (2, 2, NOTE, "", None), (3, 3, DOC, "", 4)],
+        ),
+        (
+            "m.js",
+            "/**\n * M\n */\n/**\n * F\n */\nfunction f() {}\n",
+            [(1, 3, DOC, "", None), (4, 6, DOC, "", 7)],
+        ),
+        (
+            "m.swift",
+            "/// M\n\n/// F\nfunc f() {}\n",
+            [(1, 1, DOC, "", None), (3, 3, DOC, "", 4)],
+        ),
+        ("m.js", "/** F */\nfunction f() {}\n", [(1, 1, DOC, "", 2)]),
+        ("m.swift", "/// M\n/// F\nfunc f() {}\n", [(1, 2, DOC, "", 3)]),
+        (
+            "m.js",
+            "/** M */ /** F */\nfunction f() {}\n",
+            [(1, 1, DOC, "", 2)],
+        ),
+        ("m.js", "/** M */\n/** F */\nlet x = 1;\n", [(1, 2, DOC, "", None)]),
+    ],
+    ids=[
+        "two-flush",
+        "two-apart",
+        "three",
+        "two-multi-line",
+        "two-doc-line-runs",
+        "one",
+        "one-doc-line-run",
+        "two-on-one-line",
+        "above-plain-code",
+    ],
+)
+def test_two_head_doc_comments_over_a_declaration_split_into_a0_and_its_a(
+    name, text, expected
+):
+    # A lone doc comment at the head touching a declaration is the
+    # declaration's. Two or more split: the first is `a0`, the one touching the
+    # declaration is its `a`, and any between are the gap's `b`. A line is not
+    # cut, so two doc comments on one line are one.
+    found = read(name, text).paragraphs(Path(name))
+    got = [(p.start, p.end, p.kind, p.anchor, p.anchor_line) for p in found]
+    assert [row for row in got if row[2] != Kind.TRAILING] == expected
+
+
 def test_the_modules_docstring_ends_where_its_opening_doc_group_does():
     # `val` declares nothing here, so the run documents nothing: the module's
     # docstring is line 1, and the comment and the doc below it are one `b`.
