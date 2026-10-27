@@ -1246,3 +1246,352 @@ def the_chief(tmp_path) -> EditCopy:
     """`disposition`'s chief.json, as the ordinary edit_copy it must be."""
     loaded = json.loads((tmp_path / "chief.json").read_text(encoding="utf-8"))
     return returned(loaded, "chief")
+
+
+GO = (
+    "package m\n"
+    "\n"
+    "// F does a thing.\n"
+    "func F() { // why\n"
+    "\t/* inside\n"
+    "\t   still */\n"
+    "}\n"
+)
+
+
+#: Every shape worth putting through it. Each is a file some checkout really
+#: has; none has front matter below line 1.
+FORMS = {
+    "bare statement": ("m.py", "x = 1\n"),
+    "no final newline": ("m.py", "x = 1"),
+    "module docstring": ("m.py", '"""Doc."""\nx = 1\n'),
+    "docstring then code": ("m.py", '"""Doc."""\n\n\nx = 1\n'),
+    "comment above code": ("m.py", "# note\nx = 1\n"),
+    "two comments": ("m.py", "# one\n# two\nx = 1\n"),
+    "trailing comment": ("m.py", "x = 1  # beside\n"),
+    "comment and trailing": ("m.py", "# above\nx = 1  # beside\n"),
+    "blank between": ("m.py", "x = 1\n\n\ny = 2\n"),
+    "leading blanks": ("m.py", "\n\nx = 1\n"),
+    "trailing blanks": ("m.py", "x = 1\n\n\n"),
+    "blanks both ends": ("m.py", "\n\nx = 1\n\n\n"),
+    "shebang": ("m.py", "#!/usr/bin/env python\nx = 1\n"),
+    "coding line": ("m.py", "# -*- coding: utf-8 -*-\nx = 1\n"),
+    "shebang and docstring": ("m.py", '#!/usr/bin/env python\n"""D."""\nx = 1\n'),
+    # !! MATTER, A BLANK, THEN A GAP COMMENT -- the shape the two tiers
+    # disagreed about until 2026-08-26. The tokenized reader ran the comment run
+    # THROUGH the blank, so all three lines became one `matter` paragraph at
+    # `f0` and the gap comment lost its address; the lexical reader split it
+    # correctly. Roy: *"It is supposed to stop f0 at the first blank line."*
+    "matter then a gap comment": ("m.py", "#!/usr/bin/env python\n\n# note\nx = 1\n"),
+    "licence then a gap comment": ("m.py", "# (c) me\n\n# note\nx = 1\n"),
+    "matter, blank, two comments": ("m.py", "# (c) me\n\n# one\n# two\nx = 1\n"),
+    "function": ("m.py", 'def f():\n    """D."""\n    return 1\n'),
+    # !! A DOCSTRING'S CLOSING DELIMITER CARRYING A TRAILING COMMENT. The
+    # tokenizer sees a comment with non-blank characters before it and types it
+    # `trailing-comment`; the AST gives the same line to the docstring. Two
+    # paragraphs then claimed one line, and `page.code_lines` handed it to the
+    # `c` series as well -- the line was set TWICE, `lossless` reported *line
+    # invented*, and the duplicate delimiter reopened a string literal, so
+    # `stripped.code_fingerprint` fell from `ast` to `unprovable` and the
+    # write chain refused the docket. Reproduced 2026-08-29; the shape was in
+    # none of the sources this file or `test_reading.py` carried.
+    "docstring closed with a comment": (
+        "m.py",
+        'def f():\n    """D.\n    """  # NOQA\n    return 1\n',
+    ),
+    "module docstring closed with a comment": ("m.py", '"""D.\n"""  # NOQA\nx = 1\n'),
+    # ! THE ONE-LINE FORM ANSWERED CORRECTLY BEFORE THE FIX, and only because
+    # both paragraphs share a `start` and the stable sort ran the comment first.
+    # It is kept so the two forms are asserted to agree.
+    "one-line docstring with a comment": (
+        "m.py",
+        'def f():\n    """D."""  # type: ignore\n    return 1\n',
+    ),
+    "docstring continued by a backslash": ("m.py", 'def f():\n    """D.""" \\\n    \n'),
+    "docstring with blanks after it": (
+        "m.py",
+        'def f():\n    """D."""   \n    return 1\n',
+    ),
+    "module docstring continued by a backslash": ("m.py", '"""D.""" \\\n\nx = 1\n'),
+    "function no doc": ("m.py", "def f():\n    return 1\n"),
+    "two functions": ("m.py", "def f():\n    return 1\n\n\ndef g():\n    return 2\n"),
+    "nested def": ("m.py", "def f():\n    def g():\n        return 1\n    return g\n"),
+    "class": ("m.py", 'class A:\n    """D."""\n\n    x = 1\n'),
+    "class with method": ("m.py", "class A:\n    def m(self):\n        return 1\n"),
+    "decorator": ("m.py", "@dec\ndef f():\n    return 1\n"),
+    "only comments": ("m.py", "# one\n# two\n"),
+    "only blanks": ("m.py", "\n\n\n"),
+    "one blank": ("m.py", "\n"),
+    "empty file": ("m.py", ""),
+    "CRLF": ("m.py", "x = 1\r\ny = 2\r\n"),
+    "CRLF with comment": ("m.py", "# note\r\nx = 1\r\n"),
+    "CRLF no final": ("m.py", "x = 1\r\ny = 2"),
+    "tabs": ("m.py", "def f():\n\treturn 1\n"),
+    "unicode prose": ("m.py", "# caf\u00e9 na\u00efve \u2014 dash\nx = 1\n"),
+    "long code run": ("m.py", "".join(f"x{i} = {i}\n" for i in range(20))),
+    "deep indent": (
+        "m.py",
+        "def f():\n    if x:\n        if y:\n            return 1\n",
+    ),
+    "string with hash": ("m.py", 'x = "# not a comment"\n'),
+    "C block": ("m.c", "/* head */\nint a;\n"),
+    "C line comment": ("m.c", "// note\nint a;\n"),
+    "C both": ("m.c", "/* one */\n// two\nint a;\n"),
+    # !! A TRAILING BLOCK COMMENT THAT WRAPS -- code first, then an opener that
+    # runs on. Every block-comment case above puts the comment on its OWN line,
+    # so this shape was in no test in the suite until 2026-08-31, and it is the
+    # one `original_column` existed for: a single int can say where line 1's
+    # prose begins and has no slot for lines 2..N, which own themselves whole.
+    # `decision-log.md Process: #69`.
+    "C trailing block wrapped": (
+        "m.c",
+        "int x = 1; /* this comment\n"
+        "              wraps onto a second line\n"
+        "              and a third */\n"
+        "int y = 2;\n",
+    ),
+    "C trailing block one line": ("m.c", "int x = 1; /* note */\nint y = 2;\n"),
+    "cpp": ("m.cpp", "// note\nint a = 1;\n"),
+    "rust trailing block wrapped": (
+        "m.rs",
+        "let x = 1; /* this comment\n"
+        "              wraps onto a second line */\n"
+        "let y = 2;\n",
+    ),
+    "java trailing block wrapped": (
+        "m.java",
+        "int x = 1; /* wraps\n              here */\nint y = 2;\n",
+    ),
+    "ts trailing block wrapped": (
+        "m.ts",
+        "const x = 1; /* wraps\n                here */\nconst y = 2;\n",
+    ),
+    "rust doc": ("m.rs", "/// Doc.\npub fn f() {}\n"),
+    "rust inner doc": ("m.rs", "//! Module doc.\npub fn f() {}\n"),
+    "rust shebang": ("m.rs", "#!/usr/bin/env rust-script\nfn main() {}\n"),
+    "rust inner doc in a body": ("m.rs", "fn f() {\n    //! Inner.\n}\n"),
+    "go": ("m.go", "// Doc.\nfunc f() {}\n"),
+    "java": ("m.java", "/** Doc. */\npublic void f() {}\n"),
+    "cs": ("m.cs", "/// <summary>D</summary>\npublic void F() {}\n"),
+    "kotlin": ("m.kt", "/** Doc. */\nfun f() {}\n"),
+    "swift": ("m.swift", "/// Doc.\nfunc f() {}\n"),
+    "ts": ("m.ts", "/** Doc. */\nfunction f(): void {}\n"),
+    "js": ("m.js", "// note\nlet a = 1;\n"),
+    "js shebang": ("m.js", "#!/usr/bin/env node\n// Licence\n\nlet a = 1;\n"),
+    "ts shebang": ("m.ts", "#!/usr/bin/env node\nlet a = 1;\n"),
+    "ruby": ("m.rb", "# Doc.\ndef f\nend\n"),
+    "lua": ("m.lua", "--- Doc.\nlocal function f() end\n"),
+    "shell": ("m.sh", "#!/bin/sh\n# note\necho hi\n"),
+    "jsx": ("m.jsx", "// note\nconst card = <Card />;\n"),
+    "tsx": ("m.TSX", "// note\nconst card = <Card />;\n"),
+    "sql": ("m.sql", "-- note\nSELECT 1;\n"),
+    # A gap whose run alternates doc and comment is cut into its places.
+    "js docs and comments alternating, no code": (
+        "m.js",
+        "/** A */\n// n1\n/** B */\n// n2\n/** C */\n",
+    ),
+    "js docs and comments above a declaration": (
+        "m.js",
+        "/** A */\n// note\n/** B */\nfunction f() {}\n",
+    ),
+    "js doc cut off by a comment": (
+        "m.js",
+        "/** doc */\n// eslint-disable-next-line\nfunction f() {}\n",
+    ),
+    "js a gap of two runs above a declaration": (
+        "m.js",
+        "y = 0;\n/* a\n b */ x = 1;\n/** D */\n// c\n/** E */\nfunction g() {}\n",
+    ),
+    "js a gap of two runs above plain code": (
+        "m.js",
+        "function f() {}\n/* a\n b */ x = 1;\n// c\ny = 2;\n",
+    ),
+    "js two runs with plain groups facing": (
+        "m.js",
+        "y = 0;\n/* a\n b */ x = 1;\n// c\nfunction g() {}\n",
+    ),
+    "js two runs with doc groups facing": (
+        "m.js",
+        "function f() {}\n/** a\n b */ x = 1;\n/** D */\nfunction g() {}\n",
+    ),
+    "js two runs with doc groups facing at the head": (
+        "m.js",
+        "/** a\n b */ x = 1;\n/** D */\nfunction g() {}\n",
+    ),
+    "lua two runs": (
+        "m.lua",
+        "local a = 1\n--[[ a\n b ]] x = 1\n-- c\nlocal function g() end\n",
+    ),
+    "js matter, doc, then comments and docs to the last line": (
+        "m.js",
+        "// M1\n/** D1 */\n// C1\n/** D2 */\n// C2\n/** D3 */\n// C3\n",
+    ),
+    "js matter, doc, then comments and docs, blank last line": (
+        "m.js",
+        "// M1\n/** D1 */\n// C1\n/** D2 */\n// C2\n/** D3 */\n// C3\n\n",
+    ),
+    "js closing doc then a comment below code": (
+        "m.js",
+        "let x = 1;\n/** D1 */\n// C1\n",
+    ),
+    "js closing doc then comments and docs below code": (
+        "m.js",
+        "let x = 1;\n/** D1 */\n// C1\n/** D2 */\n// C2\n",
+    ),
+    "js closing doc then a comment below code, blank last line": (
+        "m.js",
+        "let x = 1;\n/** D1 */\n// C1\n\n",
+    ),
+    "js closing doc then comments and docs below code, blank last line": (
+        "m.js",
+        "let x = 1;\n/** D1 */\n// C1\n/** D2 */\n// C2\n\n",
+    ),
+    "js two runs with a blank between": (
+        "m.js",
+        "function f() {}\n/* a\n b */ x = 1;\n\n// c\nfunction g() {}\n",
+    ),
+    "js docs and comments between declarations": (
+        "m.js",
+        "function f() {}\n\n/** A */\n// n1\n/** B */\n// n2\n/** C */\n"
+        "function g() {}\n",
+    ),
+}
+
+
+RUST_ITEMS = (
+    "//! Module doc.\n"
+    "\n"
+    "/// A point.\n"
+    "#[derive(Debug)]\n"
+    "pub struct Point {\n"
+    "    /// The x.\n"
+    "    pub x: i32,\n"
+    "}\n"
+    "\n"
+    "fn helper() {} // trailing\n"
+)
+
+
+#: The `(file name, text)` of each input the lexical reader's tests read,
+#: keyed by `test/case`. The page's address test builds a page from every one.
+LEXICAL_INPUTS = {
+    "two-runs/two-runs-above-a-declaration": (
+        "m.js",
+        "y = 0;\n/* a\n b */ x = 1;\n/** D */\n// c\n/** E */\nfunction g() {}\n",
+    ),
+    "two-runs/two-runs-above-plain-code": (
+        "m.js",
+        "function f() {}\n/* a\n b */ x = 1;\n// c\ny = 2;\n",
+    ),
+    "two-runs/plain-groups-facing": (
+        "m.js",
+        "y = 0;\n/* a\n b */ x = 1;\n// c\nfunction g() {}\n",
+    ),
+    "two-runs/doc-groups-facing-mid-file": (
+        "m.js",
+        "function f() {}\n/** a\n b */ x = 1;\n/** D */\nfunction g() {}\n",
+    ),
+    "two-runs/doc-groups-facing-at-the-head": (
+        "m.js",
+        "/** a\n b */ x = 1;\n/** D */\nfunction g() {}\n",
+    ),
+    "two-runs/lua": (
+        "m.lua",
+        "local a = 1\n--[[ a\n b ]] x = 1\n-- c\nlocal function g() end\n",
+    ),
+    "two-runs/blank-between-the-runs": (
+        "m.js",
+        "function f() {}\n/* a\n b */ x = 1;\n\n// c\nfunction g() {}\n",
+    ),
+    "a-series/keywords": ("m.go", GO),
+    "a-series/doc-markers-alone": (
+        "m.c",
+        "int x; // n\n",
+    ),
+    "a-series/neither": (
+        "m.sql",
+        "select 1; -- n\n",
+    ),
+    "doc-trailing/above-a-declaration": (
+        "m.js",
+        "const a = 1; /** note */\nfunction f() {}\n",
+    ),
+    "doc-trailing/at-the-head": (
+        "m.js",
+        "const a = 1; /** note */\nconst b = 2;\n",
+    ),
+    "doc-trailing/java": (
+        "m.java",
+        "int a = 1; /** note */\nclass A {}\n",
+    ),
+    "doc-trailing/spanning-lines": (
+        "m.java",
+        "int a = 1; /** note\n   more */\nclass A {}\n",
+    ),
+    "closer/closer-then-block-comment": (
+        "m.c",
+        "int x;\n/* a\n b */ /* c */\n// d\nint y;\n",
+    ),
+    "closer/closer-then-open-block": (
+        "m.c",
+        "int x;\n/* a\n b */ /* c\n d */\nint y;\n",
+    ),
+    "closer/one-line-then-open-block": (
+        "m.c",
+        "int x;\n/* a */ /* b\n c */\nint y;\n",
+    ),
+    "closer/one-line-then-line-comment": (
+        "m.c",
+        "/* a */ // b\nint y;\n",
+    ),
+    "closer/beside-code": (
+        "m.c",
+        "int x; /* a */ // b\n",
+    ),
+    "closer/lua-long-closer": (
+        "m.lua",
+        "--[[\n lic\n]]--\n-- more\nlocal x = 1\n",
+    ),
+    "closer/lua-one-line": (
+        "m.lua",
+        "--[[ lic ]]--\nlocal x = 1\n",
+    ),
+    "closer/lua-one-line-with-text": (
+        "m.lua",
+        "-- a\n--[[ b ]]-- tail\nlocal x = 1\n",
+    ),
+    "annotated-doc/one": (
+        "m.java",
+        "/** App. */\n@Ann\nclass App {}\n",
+    ),
+    "annotated-doc/two": (
+        "m.java",
+        "/** App. */\n@Ann\n@Other\nclass App {}\n",
+    ),
+    "annotated-doc/with-arguments": (
+        "m.java",
+        "/** App. */\n@Ann(x = 1)\nclass App {}\n",
+    ),
+    "annotated-doc/typescript-decorator": (
+        "m.ts",
+        "/** C. */\n@Component({})\nexport class C {}\n",
+    ),
+    "annotation-join/kotlin-annotated-members": (
+        "m.kt",
+        "class A {\n    @Inject lateinit var a: Foo\n"
+        "    @Inject lateinit var b: Bar\n    private val c = 1\n}\n",
+    ),
+    "annotation-join/java-annotated-method": (
+        "m.java",
+        "class A {\n  @Override public int hashCode() { return 1; }\n"
+        '  public String toString() { return ""; }\n}\n',
+    ),
+    "annotation-join/annotation-above-an-annotated-declaration": (
+        "m.java",
+        "@Ann\n@Override public void f() {}\n",
+    ),
+    "annotation-join/annotations-with-arguments": (
+        "m.java",
+        '@Ann(x = "a)")\n@Other({1, 2})\npublic void f() {}\n',
+    ),
+}

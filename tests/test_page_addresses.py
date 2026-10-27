@@ -3,43 +3,19 @@
 ! THE PAGE REFUSES A READ WHOSE PARAGRAPHS SHARE AN ADDRESS (`held_twice`), so a
 reader that mis-cuts a file fails the case below by name instead of the
 compositor silently writing one paragraph and dropping the other. The inputs are
-the compositor's `FORMS`, the lexical reader's cases that pair a file name with
-its text, the Rust items, and one sample per installed language built from that
-language's own row.
+`helpers.FORMS`, `helpers.LEXICAL_INPUTS` (the lexical reader's own cases, read
+by `reading/test_lexical.py`), `helpers.RUST_ITEMS`, and one sample per
+installed language built from that language's own row.
 """
 
 import pytest
 from conftest import build
-from reading import test_lexical
-from test_compositor import FORMS
-from test_page_for import RUST_ITEMS
+from helpers import FORMS, LEXICAL_INPUTS, RUST_ITEMS
 
 from comment_review.reading.language import (
     INSTALLED_DEFINITIONS,
     language_from_definition,
 )
-
-
-def _named_and_texted(module) -> dict[str, tuple[str, str]]:
-    """Every `(name, text)` a module's tests parametrize over, keyed by test and id."""
-    found: dict[str, tuple[str, str]] = {}
-    for fn_name, fn in vars(module).items():
-        if not fn_name.startswith("test_"):
-            continue
-        for mark in getattr(fn, "pytestmark", []):
-            if mark.name != "parametrize":
-                continue
-            argnames = mark.args[0]
-            if not isinstance(argnames, (tuple, list)):
-                argnames = [n.strip() for n in argnames.split(",")]
-            if "name" not in argnames or "text" not in argnames:
-                continue
-            ids = mark.kwargs.get("ids")
-            for n, values in enumerate(mark.args[1]):
-                row = dict(zip(argnames, values, strict=False))
-                label = ids[n] if ids else str(n)
-                found[f"{fn_name}-{label}"] = (row["name"], row["text"])
-    return found
 
 
 def _sample_for(definition) -> tuple[str, str]:
@@ -61,7 +37,7 @@ def _sample_for(definition) -> tuple[str, str]:
 
 CASES = {
     **{f"form-{k}": v for k, v in FORMS.items()},
-    **{f"lexical-{k}": v for k, v in _named_and_texted(test_lexical).items()},
+    **{f"lexical-{k}": v for k, v in LEXICAL_INPUTS.items()},
     "rust-items": ("m.rs", RUST_ITEMS),
     **{
         f"sample-{definition.language}": _sample_for(definition)

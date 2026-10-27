@@ -4,22 +4,13 @@ from pathlib import Path
 
 import pytest
 from conftest import kinds
+from helpers import GO, LEXICAL_INPUTS
 
 from comment_review.reading.language import Language, language_for
 from comment_review.reading.lexer import LexicalRead, declarations, leading_between
 from comment_review.reading.readers import read_source
 from comment_review.reading.series import Kind
 from comment_review.reading.source import CodeLine, DocPlace
-
-GO = (
-    "package m\n"
-    "\n"
-    "// F does a thing.\n"
-    "func F() { // why\n"
-    "\t/* inside\n"
-    "\t   still */\n"
-    "}\n"
-)
 
 
 def read(name: str, text: str) -> LexicalRead:
@@ -151,38 +142,31 @@ NOTE = Kind.COMMENT
     ("name", "text", "expected"),
     [
         (
-            "m.js",
-            "y = 0;\n/* a\n b */ x = 1;\n/** D */\n// c\n/** E */\nfunction g() {}\n",
+            *LEXICAL_INPUTS["two-runs/two-runs-above-a-declaration"],
             [(2, 5, NOTE, "", None), (6, 6, DOC, "", 7)],
         ),
         (
-            "m.js",
-            "function f() {}\n/* a\n b */ x = 1;\n// c\ny = 2;\n",
+            *LEXICAL_INPUTS["two-runs/two-runs-above-plain-code"],
             [(2, 4, NOTE, "", None)],
         ),
         (
-            "m.js",
-            "y = 0;\n/* a\n b */ x = 1;\n// c\nfunction g() {}\n",
+            *LEXICAL_INPUTS["two-runs/plain-groups-facing"],
             [(2, 3, NOTE, "", None), (4, 4, DOC, "", 5)],
         ),
         (
-            "m.js",
-            "function f() {}\n/** a\n b */ x = 1;\n/** D */\nfunction g() {}\n",
+            *LEXICAL_INPUTS["two-runs/doc-groups-facing-mid-file"],
             [(2, 3, NOTE, "", None), (4, 4, DOC, "", 5)],
         ),
         (
-            "m.js",
-            "/** a\n b */ x = 1;\n/** D */\nfunction g() {}\n",
+            *LEXICAL_INPUTS["two-runs/doc-groups-facing-at-the-head"],
             [(1, 2, DOC, "", None), (3, 3, DOC, "", 4)],
         ),
         (
-            "m.lua",
-            "local a = 1\n--[[ a\n b ]] x = 1\n-- c\nlocal function g() end\n",
+            *LEXICAL_INPUTS["two-runs/lua"],
             [(2, 3, NOTE, "", None), (4, 4, DOC, "", 5)],
         ),
         (
-            "m.js",
-            "function f() {}\n/* a\n b */ x = 1;\n\n// c\nfunction g() {}\n",
+            *LEXICAL_INPUTS["two-runs/blank-between-the-runs"],
             [(2, 3, NOTE, "", None), (5, 5, DOC, "", 6)],
         ),
     ],
@@ -389,9 +373,18 @@ def test_a_row_without_a_shebang_reads_hash_bang_as_its_language_does():
 @pytest.mark.parametrize(
     ("name", "text", "a_series"),
     [
-        ("m.go", GO, True),
-        ("m.c", "int x; // n\n", True),
-        ("m.sql", "select 1; -- n\n", False),
+        (
+            *LEXICAL_INPUTS["a-series/keywords"],
+            True,
+        ),
+        (
+            *LEXICAL_INPUTS["a-series/doc-markers-alone"],
+            True,
+        ),
+        (
+            *LEXICAL_INPUTS["a-series/neither"],
+            False,
+        ),
     ],
     ids=["keywords", "doc-markers-alone", "neither"],
 )
@@ -488,12 +481,20 @@ def test_a_byte_order_mark_before_a_shebang_keeps_the_shebang_as_matter():
 @pytest.mark.parametrize(
     ("name", "text", "raw"),
     [
-        ("m.js", "const a = 1; /** note */\nfunction f() {}\n", [" /** note */"]),
-        ("m.js", "const a = 1; /** note */\nconst b = 2;\n", [" /** note */"]),
-        ("m.java", "int a = 1; /** note */\nclass A {}\n", [" /** note */"]),
         (
-            "m.java",
-            "int a = 1; /** note\n   more */\nclass A {}\n",
+            *LEXICAL_INPUTS["doc-trailing/above-a-declaration"],
+            [" /** note */"],
+        ),
+        (
+            *LEXICAL_INPUTS["doc-trailing/at-the-head"],
+            [" /** note */"],
+        ),
+        (
+            *LEXICAL_INPUTS["doc-trailing/java"],
+            [" /** note */"],
+        ),
+        (
+            *LEXICAL_INPUTS["doc-trailing/spanning-lines"],
             [" /** note", "   more */"],
         ),
     ],
@@ -553,35 +554,42 @@ def test_the_runs_at_one_end_of_the_file_are_one_matter_paragraph(text, expected
     ("name", "text", "expected", "code"),
     [
         (
-            "m.c",
-            "int x;\n/* a\n b */ /* c */\n// d\nint y;\n",
+            *LEXICAL_INPUTS["closer/closer-then-block-comment"],
             [(2, 4, Kind.COMMENT)],
             [1, 5],
         ),
         (
-            "m.c",
-            "int x;\n/* a\n b */ /* c\n d */\nint y;\n",
+            *LEXICAL_INPUTS["closer/closer-then-open-block"],
             [(2, 4, Kind.COMMENT)],
             [1, 5],
         ),
         (
-            "m.c",
-            "int x;\n/* a */ /* b\n c */\nint y;\n",
+            *LEXICAL_INPUTS["closer/one-line-then-open-block"],
             [(2, 3, Kind.COMMENT)],
             [1, 4],
         ),
-        ("m.c", "/* a */ // b\nint y;\n", [(1, 1, Kind.MATTER)], [2]),
-        ("m.c", "int x; /* a */ // b\n", [(1, 1, Kind.TRAILING)], [1]),
         (
-            "m.lua",
-            "--[[\n lic\n]]--\n-- more\nlocal x = 1\n",
+            *LEXICAL_INPUTS["closer/one-line-then-line-comment"],
+            [(1, 1, Kind.MATTER)],
+            [2],
+        ),
+        (
+            *LEXICAL_INPUTS["closer/beside-code"],
+            [(1, 1, Kind.TRAILING)],
+            [1],
+        ),
+        (
+            *LEXICAL_INPUTS["closer/lua-long-closer"],
             [(1, 4, Kind.MATTER)],
             [5],
         ),
-        ("m.lua", "--[[ lic ]]--\nlocal x = 1\n", [(1, 1, Kind.MATTER)], [2]),
         (
-            "m.lua",
-            "-- a\n--[[ b ]]-- tail\nlocal x = 1\n",
+            *LEXICAL_INPUTS["closer/lua-one-line"],
+            [(1, 1, Kind.MATTER)],
+            [2],
+        ),
+        (
+            *LEXICAL_INPUTS["closer/lua-one-line-with-text"],
             [(1, 2, Kind.MATTER)],
             [3],
         ),
@@ -609,10 +617,22 @@ def test_a_comment_after_a_closer_continues_the_run_on_a_line_holding_no_code(
 @pytest.mark.parametrize(
     ("name", "text", "line"),
     [
-        ("m.java", "/** App. */\n@Ann\nclass App {}\n", 3),
-        ("m.java", "/** App. */\n@Ann\n@Other\nclass App {}\n", 4),
-        ("m.java", "/** App. */\n@Ann(x = 1)\nclass App {}\n", 3),
-        ("m.ts", "/** C. */\n@Component({})\nexport class C {}\n", 3),
+        (
+            *LEXICAL_INPUTS["annotated-doc/one"],
+            3,
+        ),
+        (
+            *LEXICAL_INPUTS["annotated-doc/two"],
+            4,
+        ),
+        (
+            *LEXICAL_INPUTS["annotated-doc/with-arguments"],
+            3,
+        ),
+        (
+            *LEXICAL_INPUTS["annotated-doc/typescript-decorator"],
+            3,
+        ),
     ],
     ids=["one", "two", "with-arguments", "typescript-decorator"],
 )
@@ -701,9 +721,7 @@ def test_the_annotation_lines_and_their_declaring_line_are_handed_over_joined():
     ("name", "text", "expected"),
     [
         (
-            "m.kt",
-            "class A {\n    @Inject lateinit var a: Foo\n"
-            "    @Inject lateinit var b: Bar\n    private val c = 1\n}\n",
+            *LEXICAL_INPUTS["annotation-join/kotlin-annotated-members"],
             [
                 CodeLine(1, "class A {", DocPlace(1, True)),
                 CodeLine(2, "    @Inject lateinit var a: Foo", None),
@@ -713,9 +731,7 @@ def test_the_annotation_lines_and_their_declaring_line_are_handed_over_joined():
             ],
         ),
         (
-            "m.java",
-            "class A {\n  @Override public int hashCode() { return 1; }\n"
-            '  public String toString() { return ""; }\n}\n',
+            *LEXICAL_INPUTS["annotation-join/java-annotated-method"],
             [
                 CodeLine(1, "class A {", DocPlace(1, True)),
                 CodeLine(
@@ -730,16 +746,16 @@ def test_the_annotation_lines_and_their_declaring_line_are_handed_over_joined():
             ],
         ),
         (
-            "m.java",
-            "@Ann\n@Override public void f() {}\n",
+            *LEXICAL_INPUTS[
+                "annotation-join/annotation-above-an-annotated-declaration"
+            ],
             [
                 CodeLine(1, "@Ann", None),
                 CodeLine(2, "@Override public void f() {}", DocPlace(1, True), True),
             ],
         ),
         (
-            "m.java",
-            '@Ann(x = "a)")\n@Other({1, 2})\npublic void f() {}\n',
+            *LEXICAL_INPUTS["annotation-join/annotations-with-arguments"],
             [
                 CodeLine(1, '@Ann(x = "a)")', None),
                 CodeLine(2, "@Other({1, 2})", None, True),
