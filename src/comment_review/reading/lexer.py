@@ -1424,7 +1424,8 @@ def declarations(lang: Language, code: Mapping[int, str]) -> dict[int, DocPlace]
             declare anything.
 
     Returns:
-        Each declaring line -> its `DocPlace`. !! `above` IS THE ROW SPEAKING:
+        Each declaration's first line -> its `DocPlace`: the declaring line,
+        or the topmost annotation line above it. !! `above` IS THE ROW SPEAKING:
         it is `doc_inside` read back out, and it is stated HERE because the
         lexer is where a row's `declares` and `doc_inside` are read.
     """
@@ -1432,11 +1433,20 @@ def declarations(lang: Language, code: Mapping[int, str]) -> dict[int, DocPlace]
         raise ValueError(f"{lang.name} declarations come from its own reader")
     # ! The doc goes ON the declaring line, pushing it down, so the place is set
     # against that line. Ordered because `code` is.
-    return {
-        n: DocPlace(n, True)
-        for n, line in code.items()
-        if _declares_here(line, lang.declares)
-    }
+    # !! AN ANNOTATION IS PART OF THE DECLARATION IT PRECEDES -- see
+    # `Language.annotations` -- so a declaration opens on the topmost of the
+    # annotation lines directly above its keyword, and its doc goes above them.
+    found: dict[int, DocPlace] = {}
+    for n, line in code.items():
+        if not _declares_here(line, lang.declares):
+            continue
+        top = n
+        while lang.annotations and code.get(top - 1, "").lstrip().startswith(
+            lang.annotations
+        ):
+            top -= 1
+        found[top] = DocPlace(top, True)
+    return found
 
 
 def code_text(text: str, paragraphs: list[Paragraph]) -> dict[int, str]:

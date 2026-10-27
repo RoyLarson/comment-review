@@ -329,6 +329,65 @@ def test_the_runs_at_one_end_of_the_file_are_one_matter_paragraph(text, expected
     )
 
 
+@pytest.mark.parametrize(
+    ("name", "text", "line"),
+    [
+        ("m.java", "/** App. */\n@Ann\nclass App {}\n", 2),
+        ("m.java", "/** App. */\n@Ann\n@Other\nclass App {}\n", 2),
+        ("m.java", "/** App. */\n@Ann(x = 1)\nclass App {}\n", 2),
+        ("m.cs", "/// App.\n[Serializable]\nclass App {}\n", 2),
+    ],
+    ids=["one", "two", "with-arguments", "csharp-attribute"],
+)
+def test_a_doc_run_above_annotation_lines_documents_the_declaration_below(
+    name, text, line
+):
+    # The declaration opens on its topmost annotation line, which is the line
+    # the run documents.
+    found = read(name, text).paragraphs(Path(name))
+    assert [(p.start, p.kind, p.anchor_line) for p in found] == [
+        (1, Kind.DOCSTRING, line)
+    ]
+
+
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        ("/** x */\n@Ann\nint y = 1;\n", [(1, Kind.DOCSTRING, None, "")]),
+        (
+            "class A {}\n/** x */\n@Ann\nint y = 1;\n",
+            [(2, Kind.COMMENT, None, "")],
+        ),
+    ],
+    ids=["at-the-head", "between-code"],
+)
+def test_a_doc_run_above_an_annotation_on_no_declaration_documents_none(text, expected):
+    found = read("m.java", text).paragraphs(Path("m.java"))
+    assert [(p.start, p.kind, p.anchor_line, p.anchor) for p in found] == expected
+
+
+def test_an_annotation_line_belongs_only_to_a_row_that_names_it():
+    # Go names no annotation opener, so `@x` is code the walk stops at.
+    found = read("m.go", "// doc\n@x\nfunc F() {}\n").paragraphs(Path("m.go"))
+    assert [(p.start, p.anchor_line) for p in found] == [(1, None)]
+
+
+@pytest.mark.parametrize(
+    ("code", "expected"),
+    [
+        ({1: "@Ann", 2: "@Other(x = 1)", 3: "class A {}"}, {1: DocPlace(1, True)}),
+        ({1: "int x;", 3: "@Ann", 4: "class A {}"}, {3: DocPlace(3, True)}),
+        ({1: "@Ann", 3: "class A {}"}, {3: DocPlace(3, True)}),
+        ({1: "@Ann", 2: "int y = 1;"}, {}),
+    ],
+    ids=["two-annotations", "below-code", "blank-between", "no-declaration"],
+)
+def test_a_declaration_opens_on_the_annotation_lines_directly_above_it(code, expected):
+    java = language_for(Path("m.java"))
+    assert java is not None
+    assert declarations(java, code) == expected
+
+
 def test_declarations_hold_only_the_declaring_lines():
     go = language_for(Path("m.go"))
     assert go is not None

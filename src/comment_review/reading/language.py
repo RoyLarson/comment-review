@@ -68,6 +68,10 @@ class Language:
             language does not read as a comment (`#!`). The line is the file's own
             matter, and the matter rule opens on the line below it. Empty
             where the language has none, or reads it as a comment.
+        annotations: what a line of code opens with when it is an annotation,
+            attribute or decorator, which belongs to the declaration below it
+            (Java `@Override`, C# `[Serializable]`). The run above such lines
+            documents that declaration. Empty where the language has none.
     """
 
     name: str
@@ -83,6 +87,7 @@ class Language:
     declares: tuple[str, ...] = ()
     doc_inside: bool = False
     shebang: tuple[str, ...] = ()
+    annotations: tuple[str, ...] = ()
 
     @property
     def a_series(self) -> bool:
@@ -152,6 +157,7 @@ LANGUAGES: tuple[Language, ...] = (
         # documentation, which is `a0`. Naming it gave the same prose two
         # places, `a0` and `a1`.
         declares=("func", "type", "var", "const"),
+        annotations=(),
     ),
     # !! C AND C++ DECLARE NO KEYWORDS, so no declaration gets an `a`. A C
     # function is introduced by its RETURN TYPE -- `size_t f(void)`, `MyRec
@@ -168,6 +174,9 @@ LANGUAGES: tuple[Language, ...] = (
         doc_block=("/**",),
         char_quotes=("'",),
         quotes=('"', "'"),
+        # ! C23's attribute specifier `[[...]]` may stand on its own line
+        # before a declaration.
+        annotations=("[[",),
     ),
     Language(
         "cpp",
@@ -184,6 +193,9 @@ LANGUAGES: tuple[Language, ...] = (
         # strings do not.
         spanning_quotes=('R"',),
         quotes=('"', "'"),
+        # ! C++11's attribute specifier `[[...]]` may stand on its own line
+        # before a declaration.
+        annotations=("[[",),
     ),
     Language(
         "java",
@@ -226,6 +238,9 @@ LANGUAGES: tuple[Language, ...] = (
         # not a comment.
         spanning_quotes=('"""',),
         quotes=('"', "'"),
+        # ! An annotation, `@Override` or `@Ann(x = 1)`, modifies the
+        # declaration it precedes.
+        annotations=("@",),
     ),
     Language(
         "csharp",
@@ -266,6 +281,9 @@ LANGUAGES: tuple[Language, ...] = (
         # contain `@"`.
         spanning_quotes=('"""', '@"'),
         quotes=('"', "'"),
+        # ! An attribute section, `[Serializable]`, applies to the declaration
+        # it precedes.
+        annotations=("[",),
     ),
     Language(
         "swift",
@@ -303,6 +321,9 @@ LANGUAGES: tuple[Language, ...] = (
         ),
         spanning_quotes=('"""',),
         quotes=('"',),
+        # ! An attribute, `@objc` or `@available(...)`, applies to the
+        # declaration it precedes.
+        annotations=("@",),
     ),
     Language(
         "kotlin",
@@ -342,6 +363,9 @@ LANGUAGES: tuple[Language, ...] = (
         ),
         spanning_quotes=('"""',),
         quotes=('"', "'"),
+        # ! An annotation, `@JvmStatic` or `@Suppress(...)`, applies to the
+        # declaration it precedes.
+        annotations=("@",),
     ),
     Language(
         "javascript",
@@ -357,6 +381,9 @@ LANGUAGES: tuple[Language, ...] = (
         # ! Node and the ECMAScript hashbang grammar read `#!` on line 1 as an
         # interpreter line, not as code and not as a comment.
         shebang=("#!",),
+        # ! ECMAScript's grammar defines no decorator; the `@` form is a
+        # proposal, not the language.
+        annotations=(),
     ),
     Language(
         "typescript",
@@ -384,6 +411,9 @@ LANGUAGES: tuple[Language, ...] = (
         # ! TypeScript's scanner reads `#!` on line 1 as an interpreter line
         # and emits it unchanged.
         shebang=("#!",),
+        # ! A decorator, `@Component(...)`, applies to the declaration it
+        # precedes.
+        annotations=("@",),
     ),
     Language(
         "ruby",
@@ -396,6 +426,7 @@ LANGUAGES: tuple[Language, ...] = (
         # comment.
         spanning_quotes=("<<~", "<<-"),
         quotes=('"', "'"),
+        annotations=(),
     ),
     Language(
         "shell",
@@ -409,6 +440,7 @@ LANGUAGES: tuple[Language, ...] = (
         # contain `<<`.
         spanning_quotes=("<<",),
         quotes=('"', "'"),
+        annotations=(),
     ),
     Language(
         "sql",
@@ -416,6 +448,7 @@ LANGUAGES: tuple[Language, ...] = (
         ("--",),
         (("/*", "*/"),),
         quotes=("'", '"'),
+        annotations=(),
     ),
     Language(
         "lua",
@@ -451,6 +484,7 @@ LANGUAGES: tuple[Language, ...] = (
         # costing; it is stated because a silent bound reads as completeness.
         spanning_quotes=("[[", "[=[", "[==["),
         quotes=('"', "'"),
+        annotations=(),
     ),
     # !! TOML AND INI ARE TWO LANGUAGES AND TWO ROWS. They share `#` and
     # nothing else: INI also takes `;`, and TOML's multi-line strings do not
@@ -465,6 +499,7 @@ LANGUAGES: tuple[Language, ...] = (
         # every `.toml` file is refused before this field is consulted.
         spanning_quotes=('"""', "'''"),
         quotes=('"', "'"),
+        annotations=(),
     ),
     # ! `;` is INI's original comment marker and `#` the later convention; both
     # are live, so both are listed. There is no multi-line string in INI.
@@ -473,12 +508,14 @@ LANGUAGES: tuple[Language, ...] = (
         (".ini", ".cfg"),
         ("#", ";"),
         quotes=(),
+        annotations=(),
     ),
     Language(
         "yaml",
         (".yaml", ".yml"),
         ("#",),
         quotes=('"', "'"),
+        annotations=(),
     ),
 )
 
