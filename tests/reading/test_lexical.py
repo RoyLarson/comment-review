@@ -335,9 +335,8 @@ def test_the_runs_at_one_end_of_the_file_are_one_matter_paragraph(text, expected
         ("m.java", "/** App. */\n@Ann\nclass App {}\n", 2),
         ("m.java", "/** App. */\n@Ann\n@Other\nclass App {}\n", 2),
         ("m.java", "/** App. */\n@Ann(x = 1)\nclass App {}\n", 2),
-        ("m.cs", "/// App.\n[Serializable]\nclass App {}\n", 2),
     ],
-    ids=["one", "two", "with-arguments", "csharp-attribute"],
+    ids=["one", "two", "with-arguments"],
 )
 def test_a_doc_run_above_annotation_lines_documents_the_declaration_below(
     name, text, line
@@ -364,6 +363,26 @@ def test_a_doc_run_above_annotation_lines_documents_the_declaration_below(
 def test_a_doc_run_above_an_annotation_on_no_declaration_documents_none(text, expected):
     found = read("m.java", text).paragraphs(Path("m.java"))
     assert [(p.start, p.kind, p.anchor_line, p.anchor) for p in found] == expected
+
+
+def test_a_csharp_line_opening_with_a_bracket_is_not_an_annotation():
+    # C# names no annotation opener: `[` opens an attribute section and a
+    # collection-expression line alike.
+    found = read("m.cs", "/// App.\n[Serializable]\nclass App {}\n").paragraphs(
+        Path("m.cs")
+    )
+    assert [(p.start, p.kind, p.anchor_line) for p in found] == [
+        (1, Kind.DOCSTRING, None)
+    ]
+    csharp = language_for(Path("m.cs"))
+    assert csharp is not None
+    code = {
+        1: "class A {",
+        2: "  int[] xs =",
+        3: "  [1, 2];",
+        4: "  public void F() {}",
+    }
+    assert declarations(csharp, code) == {1: DocPlace(1, True), 4: DocPlace(4, True)}
 
 
 def test_an_annotation_line_belongs_only_to_a_row_that_names_it():

@@ -281,9 +281,10 @@ LANGUAGES: tuple[Language, ...] = (
         # contain `@"`.
         spanning_quotes=('"""', '@"'),
         quotes=('"', "'"),
-        # ! An attribute section, `[Serializable]`, applies to the declaration
-        # it precedes.
-        annotations=("[",),
+        # ! EMPTY: `[` opens an attribute section, `[Serializable]`, and also
+        # a collection-expression line, `[1, 2];`, and a line's opening
+        # character cannot tell the two apart.
+        annotations=(),
     ),
     Language(
         "swift",

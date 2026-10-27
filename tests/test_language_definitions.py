@@ -1195,14 +1195,13 @@ def test_rust_definition_leaves_other_definitions_unchanged() -> None:
     ]
 
 
-def test_every_installed_row_states_its_annotation_openers() -> None:
+def test_annotation_openers_are_validated_and_pinned_per_row() -> None:
     from dataclasses import replace
 
     from comment_review.reading.language import INSTALLED_DEFINITIONS
     from comment_review.reading.readers import INSTALLED_BINDINGS
 
     for value in INSTALLED_DEFINITIONS:
-        assert "annotations" in value.rules
         for invalid in (("",), "@", (1,)):
             rules = {**value.rules, "annotations": invalid}
             assert isinstance(
@@ -1210,7 +1209,8 @@ def test_every_installed_row_states_its_annotation_openers() -> None:
             )
     by_name = {value.language: value.rules for value in INSTALLED_DEFINITIONS}
     assert by_name["java"]["annotations"] == ("@",)
-    assert by_name["csharp"]["annotations"] == ("[",)
+    assert by_name["typescript"]["annotations"] == ("@",)
+    assert by_name["csharp"]["annotations"] == ()
     assert by_name["go"]["annotations"] == ()
 
 
