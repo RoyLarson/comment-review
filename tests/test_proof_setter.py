@@ -1453,54 +1453,6 @@ class TestOnlyCommentsChange:
         assert refused.step == "prove"
 
 
-def test_a_CUE_COLLISION_in_the_draft_is_REFUSED_and_not_last_one_wins(
-    tmp_path, monkeypatch
-):
-    """IMPORTANT, measured 2026-08-25: `_reread` built
-    `placed = {cue_of(b.address).cue: b for b in page if b.address}`, so two
-    paragraphs sharing a cue silently kept the LAST and checked the alteration
-    against it -- a draft holding the approved text at one and prose nobody
-    looked at at the other passed. `galley.reset` refuses that shape BY NAME
-    (157 of them measured in one tree on 2026-08-21), so the verification step
-    was weaker than the edit step it exists to check.
-
-    ! THE COLLISION IS THE INPUT, which is why it is made rather than found: no
-    file in this tree produces one today, and `_reread` reads the DRAFT, so the
-    only way in is the reader it calls. The page is a real page over the real
-    draft; one paragraph's address is copied onto another so the shape under
-    test is the shape being asserted about.
-
-    ! IT IS CONDITIONED ON THE PATH because `_reread` reads through `page_of`,
-    the same step `_one` reads the SOURCE through. Colliding both would refuse
-    at `edit` -- `galley.reset`'s own collision check -- and never reach the
-    step under test."""
-    repo, binder, _ = _tree(tmp_path)
-    into = tmp_path / "out"
-    where = address(binder, "m.py")
-    cue = cue_of(where).cue
-    real_page_for = page_for_mod.page_for
-
-    def colliding_page_for(path, *args, **kwargs):
-        page = real_page_for(path, *args, **kwargs)
-        assert not isinstance(page, ReadFailure), page
-        if not Path(path).resolve().is_relative_to(into.resolve()):
-            return page
-        addressed = [b for b in page if b.address]
-        held = next(b for b in addressed if cue_of(b.address).cue == cue)
-        other = next(b for b in addressed if b is not held)
-        other.address = held.address
-        return page
-
-    monkeypatch.setattr(page_for_mod, "page_for", colliding_page_for)
-    drafted, refused = proof_setter.run(
-        docket_from({where: "# REPLACED"}, binder), repo, into
-    )
-    assert drafted == []
-    assert len(refused) == 1
-    assert refused[0].step == "reread"
-    assert "2 paragraphs share this place" in refused[0].why
-
-
 def test_a_directory_THAT_WAS_THERE_BEFORE_the_run_survives_it(tmp_path, monkeypatch):
     """IMPORTANT, measured 2026-08-25: `_discard` walked up `rmdir`-ing ANY
     empty directory under `into`, so a `<into>/pkg` that existed before the run

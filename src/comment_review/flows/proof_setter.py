@@ -531,32 +531,13 @@ def _reread(
         return None, Refusal(
             "reread", rel, f"the draft: {format_failure(page, path=rel)}"
         )
-    # !! COLLECTED AS A LIST PER CUE, BECAUSE A COLLISION IS A REFUSAL AND NOT A
-    # LAST-ONE-WINS. This was `{cue_of(b.address).cue: b for b in page ...}`,
-    # which keeps the LAST paragraph at a cue two paragraphs share and checks
-    # the alteration against it -- so a draft holding the approved text at one of
-    # them and prose nobody looked at at the other passed. `galley.reset`
-    # refuses that shape by name (157 of them measured in one tree on
-    # 2026-08-21), and a verification step weaker than the edit step it exists
-    # to check cannot report the edit step being wrong.
-    placed: dict[str, list] = {}
-    for b in page:
-        if b.address:
-            placed.setdefault(cue_of(b.address).cue, []).append(b)
+    placed = {cue_of(b.address).cue: b for b in page if b.address}
     for where, replacement in edits.items():
-        found = placed.get(where)
-        if not found:
+        got = placed.get(where)
+        if got is None:
             return None, Refusal(
                 "reread", rel, f"{where}: the draft carries no such place"
             )
-        if len(found) > 1:
-            return None, Refusal(
-                "reread",
-                rel,
-                f"{where}: {len(found)} paragraphs share this place in the draft,"
-                " so no alteration can be checked against it",
-            )
-        got = found[0]
         if replacement is None:
             # !! A VACATED `c` READS BACK AS `['']`, NOT AS `[]`, so this asked
             # for a shape no drop can produce. `page.empty_places` stores a
@@ -589,7 +570,7 @@ def _reread(
     return page, None
 
 
-def _elsewhere(placed: dict[str, list], where: str, want: list[str]) -> str:
+def _elsewhere(placed: dict[str, Paragraph], where: str, want: list[str]) -> str:
     """Which OTHER place in the draft holds this text, as a trailing clause.
 
     !! TWO PLACES CAN NAME ONE POSITION, and the refusal above named neither
@@ -621,7 +602,7 @@ def _elsewhere(placed: dict[str, list], where: str, want: list[str]) -> str:
     the question this returns a clause for.
 
     Args:
-        placed: the draft's paragraphs, grouped by cue, as `_reread` built it.
+        placed: the draft's paragraphs, by cue, as `_reread` built it.
         where: the cue whose alteration did not read back.
         want: the lines that were asked for there.
 
@@ -629,7 +610,7 @@ def _elsewhere(placed: dict[str, list], where: str, want: list[str]) -> str:
         `" -- <cue> holds it"`, or "" when no other place does.
     """
     for cue, found in placed.items():
-        if cue != where and any(b.raw_lines == want for b in found):
+        if cue != where and found.raw_lines == want:
             return f" -- {cue} holds it"
     return ""
 
@@ -642,10 +623,10 @@ def _approved(
     `_prove` compares the draft against these approved changes, not against
     nothing changed (`decision-log.md Process: #113`).
 
-    Keying each page by cue is safe for the cues read here: by the time this
-    runs, every cue in `edits` is held by exactly one paragraph on the page --
-    `galley.reset` refuses a cue that no paragraph, or more than one, holds --
-    and in the draft, where `_reread` refuses the same two shapes.
+    Keying each page by cue is safe for the cues read here: a page holds one
+    paragraph per address, and by the time this runs every cue in `edits` is
+    held on the page -- `galley.reset` refuses a cue no paragraph holds -- and
+    in the draft, where `_reread` refuses the same shape.
 
     Args:
         page: the page the draft was set from. `galley.reset` changes its

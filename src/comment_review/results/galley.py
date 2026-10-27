@@ -151,29 +151,15 @@ def reset(page, edits: dict[str, str | None]) -> list[str]:
         One sentence per edit that could not be placed. Empty means every one
         landed.
     """
-    by_place: dict[str, list] = {}
-    for b in page:
-        if b.address:
-            by_place.setdefault(cue_of(b.address).cue, []).append(b)
+    by_place = {cue_of(b.address).cue: b for b in page if b.address}
     refused = []
     for where, replacement in edits.items():
         found = by_place.get(where)
-        if not found:
+        if found is None:
             refused.append(f"{where}: this page carries no such place")
             continue
-        # !! ONE PLACE, ONE PARAGRAPH. Two paragraphs sharing an address was a
-        # real defect until 2026-08-21 -- 157 of them in one tree -- and it is
-        # the one shape that would make a replacement ambiguous here. It is
-        # reported rather than resolved: picking either would write the author's
-        # approved text over prose nobody looked at.
-        if len(found) > 1:
-            refused.append(
-                f"{where}: {len(found)} paragraphs share this place, so no"
-                " replacement can be placed against it"
-            )
-            continue
         if replacement is None:
-            _vacate(found[0])
+            _vacate(found)
             continue
         if not isinstance(replacement, str):
             refused.append(
@@ -184,7 +170,7 @@ def reset(page, edits: dict[str, str | None]) -> list[str]:
         if not replacement:
             refused.append(f"{where}: an empty string is not a delete -- None is")
             continue
-        found[0].raw_lines = constants.text_lines(replacement)
+        found.raw_lines = constants.text_lines(replacement)
     return refused
 
 

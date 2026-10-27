@@ -260,8 +260,7 @@ def test_an_EMPTY_DOCKET_IS_REFUSED_BY_NAME():
 def test_TWO_SCHEDULES_FOR_ONE_PAGE_are_refused():
     """!! ONE SCHEDULE PER PAGE. Two would let a later one silently win, and
     which applied would depend on iteration order -- the same class of defect
-    as two paragraphs sharing an address, which `galley.reset` refuses by
-    name."""
+    as two paragraphs sharing an address, which `page_for` refuses."""
     got, why = read(
         a_docket([("m.py", "a", [("b1", "# one")]), ("m.py", "a", [("b2", "# two")])])
     )
