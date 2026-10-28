@@ -4,21 +4,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Development and review
 
-Help Roy accomplish the agreed goals and improve the systems involved. Success
-means useful working results, clear design, and evidence that the result serves
-its purpose.
-
-Actively look for Broken code while working in a project. Examine whether
-behavior, responsibilities, interfaces, and design serve the project's purpose.
-Pursue improvements that make the system work correctly and coherently,
-including problems that passing tests leave undetected. Looking for Broken
-code takes priority over looking for ways to make tests fail. Use tests to
-evaluate behavior and verify repairs.
-
-Use the global definition of Broken and the applicable scope, planning, and
-review procedures. Trace suspected edge cases to supported inputs, reachable
-states, or actual callers; investigate uncertain reachability before
-recommending a repair.
+Follow the global workflow for design assessment, scope, planning, review,
+and verified completion.
 
 ## What this repo is
 
@@ -77,10 +64,10 @@ development."*
 
 ## Commands
 
-!! **Run everything through `uv run`.** The project is pinned to Python 3.11, the
-floor `plugins/` ships against, in `.python-version` and `[project]
-requires-python`. Substituting a bare `python` re-opens the gap that pinning
-closed.
+Run project Python commands, pytest, Ruff, and ty through `uv run`. Use
+installed `job-board` for board operations and `claude plugin validate` for
+plugin validation. The project pins Python 3.11 in `.python-version` and
+`[project] requires-python`; shipped code must run on that version.
 
 -> [docs/history.md](docs/history.md), 2026-08-17.
 
@@ -128,9 +115,9 @@ uv run python scripts/render_page.py <paths...> [--show margin|prose|rows]
 
 ### The board
 
-**The vendored `scripts/todo_tool.py` is the older copy** and writes the
-pre-2026-08-31 format. The board was migrated to the five marks on 2026-08-31;
-use `job-board`.
+Use installed `job-board`, not the vendored `scripts/todo_tool.py`, for board
+operations. Follow the global workflow and job-board procedure for board
+writes, including Roy's express-approval requirement for hand edits.
 
 ### The suite
 
@@ -161,7 +148,7 @@ in, and planting the set on one of the public corpora.
 
 ### The gates
 
-!! **`ruff` and `ty` run through `uv run`, like everything else.** Both are pinned
+Run `ruff` and `ty` through `uv run`. Both are pinned
 dev dependencies. A bare `ruff` is whatever the machine has, and `ruff format`
 rewrites source. Ruff config lives in `pyproject.toml`, and `corpora/**` is
 excluded from linting.
@@ -187,12 +174,12 @@ not run.**
 `src/plugin/skills/comment-review/SKILL.md` is the task agent's own instructions --
 read it before touching the skill.
 
-!! **The middle touches no files. Stages 4-6 read and write JSON AND MEMORY, NOTHING ELSE.** Roy,
-2026-08-30: *"the middle doesn't care if the pages have changed - it is not reading or writing to
-the pages at all. The edit process moves data in json files or memory nothing in the actual
-files."* Its inputs are a binder and the returned `edit_copy`s; its output is the copy chief's
-`edit_copy` and, downstream, a docket. **Pages are opened at the ENDS of the chain only** --
-`gather` at one, the write chain at the other.
+Stages 4-6 operate on binders, edit copies, and other JSON or in-memory records.
+They do not read or modify source pages. Source pages are opened only by
+gather and the write chain.
+
+The middle takes a binder and the returned `edit_copy`s and produces the copy
+chief's `edit_copy` and, downstream, a docket.
 
 **So nothing in the middle asks whether a page changed.** No drift check, at any granularity: a
 `raw_text` comparison and a `sha` comparison are the same question, and the middle has no stake in
@@ -296,16 +283,17 @@ nothing marks a cut: this tree writes `--` for an em-dash because of the ASCII r
 elision and a dash are spelled the same. **When a ruling is quoted here, quote all of it** -- the
 commit that first recorded it is the source, and `git log -S` finds it.
 
-**A language has an `a` series when its row declares a documentation practice** -- doc
-markers or declaring keywords. `yaml`, `toml`, `ini` and `sql` declare neither and have no
-`a` series. The `a` series meets `<module>` as `a0`. A row that holds a closing docstring --
-one with doc markers, outside Python and Rust -- also meets `<eof>` with one more `a`.
+A language has an `a` series when its row declares a documentation practice --
+doc markers or declaring keywords. `yaml`, `toml`, `ini` and `sql` declare
+neither and have no `a` series. The `a` series meets `<module>` as `a0`. A row
+that holds a closing docstring -- one with doc markers, outside Python and
+Rust -- also meets `<eof>` with one more `a`.
 
-**C and C++ list no keywords yet, and that is deferral rather than impossibility.** They keep
-`a0` and the `<eof>` `a` through their `/**` marker; their declaration `a`s wait on the matcher.
-A C declaration opens with its return type, and the matcher reads a line's FIRST
-word -- so no keyword ever matches and a spurious `a` would renumber every `a` below it. **That
-is a fact about the MATCHER, not about C.** Roy, 2026-08-23: *"assumes you don't create a slightly
+C and C++ list no keywords yet; this is deferred support. They keep `a0` and
+the `<eof>` `a` through their `/**` marker; their declaration `a`s wait on the
+matcher. A C declaration opens with its return type, and the matcher reads a
+line's first word, so no keyword matches and a spurious `a` would renumber
+every `a` below it. This is a limitation of the matcher. Roy, 2026-08-23: *"assumes you don't create a slightly
 smarter parser that looks for the correct keyword in the line instead of just the 'first' word. It
 is a simple fix."* Both languages plainly have documentable declarations; the list is empty until
 that lands.
@@ -330,7 +318,7 @@ content elsewhere, and a change to a rule belongs in exactly one of these files 
 
 | path                              | what                                                                                                                                                                       |
 | --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `src/comment_review/`             | **the Python, and the only place to edit it.** Eight areas -- `machine`, `reading`, `binder`, `concordance`, `desk`, `docket`, `results`, `flows` -- plus `commands/`, which holds every `main()` and argparse, `references/`, the package data, and `__main__.py`, the dispatcher. **`desk/` is sub-packaged**: `marks/`, `answers/` and `dispositions/` are the three tables, `evaluate/` the place and its passes, `work/` the Unit of Work. `release.py` copies sub-packages intact, so the shipped tree takes the same shape. `src/comment-review.py` beside it is the launcher, the one file allowed to touch `sys.path` |
+| `src/comment_review/` | Python source; edit it here. `src/comment-review.py` is the launcher and the only file allowed to modify `sys.path`. See [docs/the-turn.md](docs/the-turn.md) for the desk architecture. |
 | `src/plugin/`                     | **the prose an agent reads, and the only place to edit it** -- `agents/*.md`, `SKILL.md`, `references/*.md` and `plugin.json`, in the plugin's own shape |
 | `plugins/comment-review/`         | the shipped plugin -- OUTPUT of `scripts/release.py`, all of it, rebuilt at release from `src/plugin/` and `src/comment_review/` |
 | `docs/`                           | how this system behaves today, and the rules for changing it: `addressing.md` (how a place is NAMED -- the crux, and what the line-numbered form got wrong), `parsing.md` (where a page's structure could come from), `limitations.md` (read before changing agent files or skill prose), `vocabulary.md` (the settled terms, and every word this system stopped using), `the-turn.md` (the SOURCE for what a TURN is, what a DiffMark answers, and what closes the editorial roles -- the loop lived only in chat until 2026-09-02 and was reconstructed wrong twice), `history.md` (what the system used to DO and stopped doing -- a retired format or mechanism, with the commit that removed it, so an OLD artifact can still be read), `decision-log.md` (WHAT was decided and WHEN -- the dated chain of rulings, retractions and supersessions; the commentary on WHY is `history.md`'s. Cited as `decision-log.md TOPIC: #N`) |
@@ -434,23 +422,23 @@ no context -- exact files, TDD steps, a commit per task. The first is a release 
 
 #### A box is a claim about whether work remains
 
-!! **A box is a verifiable checkpoint and nothing else gets one.** A task names something a
-stranger can look at and call done or not done -- a command that must come back empty, a file
-that must exist, a test that must fail first. **A ruling, a measurement, a naming decision or a
-line of reasoning is not a task**, however much it matters: it belongs in the **Objective**, or
-in a dated `note`.
+A task states one thing to accomplish, with verification in a dated note.
+Deciding a required name or design is a task when that decision is still owed.
+A statement of an existing decision, measurement, or rationale belongs in the
+objective or a dated note, not in a new task.
 
-**The tell is that it cannot be finished.** *"The trade word is `leading`"* is true the day it
-is written and every day after -- there is no state in which someone ticks it. If ticking would
-be a JUDGEMENT rather than an observation, it is not a task.
+Follow the global job-board procedure for decision tasks: mark the task
+`[?]`, ask Roy for the decision, record its outcome, and close only the
+satisfied decision task against the commit containing that evidence.
+Implementation remains separate work and does not close when Roy decides.
 
 **An unchecked box says the work is still to do, and something automated now reads it.** Roy,
 2026-08-18: *"a check box not-marked is left as something todo, even if it was superseded and no
 longer necessary."* Measured the same day: five RESOLVED proposals held in a prose table with no
 boxes made `resync` generate a README row reading `0/9` on a file a third finished.
 
-!! **A TODO is never deleted. It is SUPERSEDED and checked.** Roy, 2026-08-19: *"todos don't get
-deleted they get SUPERSEDED and checked. That is going to be an addition to the tool soon."*
+A TODO is never deleted. Supersede it through job-board when its work is
+overtaken or was filed in error.
 
 **A deleted box leaves no trace that it was ever there, or why it went.** A superseded one
 keeps the error legible -- which is the same reason a superseded RULING is kept beside the one
@@ -459,20 +447,21 @@ that replaced it rather than rewritten away.
 It applies to a task filed in error as much as to one overtaken by better work. Removing a
 mistake removes the record that it was made.
 
-| the task is | the box | the file's `Status:` |
-| --- | --- | --- |
-| **done** | `[x]` | -- |
-| **superseded** -- overtaken, no longer necessary | `[-]` | -- |
-| **partly delivered** | `[-]` on the original; the pieces filed as new tasks, the finished one `[x]` | -- |
-| **deferred** -- waiting on a named event | `[ ]` | say what it waits on |
-| not started | `[ ]` | -- |
+| the task is | the box |
+| --- | --- |
+| done | `[x]` |
+| superseded -- overtaken, no longer necessary | `[-]` |
+| partly delivered | `[-]` on the original; the pieces filed as new tasks, the finished one `[x]` |
+| deferred -- waiting on a named event | `[ ]`; record the dependency in a note |
+| not started | `[ ]` |
 
 **Deferred is not done.** Roy, 2026-08-18: *"Deferred is not done - just waiting so its status
 is still correct."* Waiting on an event is work not started, which is what an unchecked box
 already says.
 
-**`in-progress` means some boxes are ticked** -- not blocked, not waiting on a ruling. A file
-where only a RULING has landed is `in-progress`, because a ruling is work.
+Let job-board derive progress and decision flags from task marks. Do not set
+derived status by hand. Closing a decision task does not establish that the
+related implementation is finished.
 
 **A superseded ARGUMENT is not a superseded task.** Reasoning kept so an error stays legible
 carries no box at all; only work does.
