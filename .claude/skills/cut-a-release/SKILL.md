@@ -18,7 +18,7 @@ read it, which is why it is written down rather than remembered.
 
 ## The version is stated three times
 
-`tests/test_release.py` holds them equal. Bump all three in one commit, or the gate fails:
+`tests/gates/test_release.py` holds them equal. Bump all three in one commit, or the gate fails:
 
 | file | field |
 | --- | --- |
@@ -45,8 +45,10 @@ anyone re-deriving which code produced a measurement hits first.
 
 ## Assemble, then commit what it writes
 
-`plugins/` is a copy of `src/`, so a release cut without `uv run python scripts/release.py` ships
-whatever the last run left behind -- and every gate reads `src/`, so nothing fails on a stale copy.
+Run `uv run python scripts/release.py` to assemble `plugins/comment-review/`
+from the current sources before release. The shipped-syntax, import, and
+frontmatter checks inspect `src/`; passing them does not show that the
+generated plugin is current. Validate the assembled plugin before tagging.
 
 | | |
 | --- | --- |
@@ -61,7 +63,7 @@ tree: a file the source dropped is removed, and bytecode does not ship.
 Run `claude plugin validate plugins/comment-review`. No test replaces it: it is the parser the
 runtime actually uses, and it caught a frontmatter parse failure that had shipped through every
 release to date, silently dropping a skill's whole metadata and an agent's description.
-`tests/test_frontmatter.py` gates the one cause that is known; the validator is what finds the
+`tests/gates/test_frontmatter.py` gates the one cause that is known; the validator is what finds the
 next one.
 
 ## Publish

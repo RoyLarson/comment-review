@@ -398,3 +398,237 @@ instruction, reason, change}` -- and an `Answer` reads the same keys, under a `q
 carries rather than the answer. `hold`, `withdraw`, `correct` and `patch` still name the four
 answers to an escalation; `check --contract` prints the sets from the tables themselves.
 
+
+## Historical excerpts relocated from conventions -- 2026-10-27
+
+These excerpts preserve the incidents removed from the operating conventions.
+They describe the observations and terminology recorded at those dates, not
+current instructions or current measurements. Use conventions.md and lanes.md
+for the active rules.
+
+### Test ownership -- 2026-08-24
+
+!! **It does not own `tests/`, and this file said it did until 2026-08-24.** Roy: *"testing's
+lane is specifically about building and testing the running agent system that is in the testing
+harness branch. If it is backend testing that is on you. If it is vocabulary and system gating
+tests that is systems. Running the tests for the agents is the agents responsibility, it is
+testing's lane to make the grader and keep the grades."* **A test is owned by the lane that owns
+what it makes a claim about** -- the table is in [`lanes.md`](lanes.md), the ruling is
+`decision-log.md Process: #5`.
+
+**The cost of the old row is the one it was measured on.** Two `record.py` regressions were
+filed to `testing` on 2026-08-24 because they landed in `tests/` -- shipping a backend fix with
+nothing able to notice it regress, and parking the test on a lane whose work is a grader on
+another branch.
+
+
+### Vocabulary drift -- 2026-08-23
+
+!! **The cost of waiting is measured.** A rename that stopped at the code left 32 quoted rulings
+and 31 uses of a retired word in prose an agent reads, past a green suite, `ty`, `ruff`, the
+floor gate, the vocabulary gate and the corpus round trip -- see
+[`evidence/rename-left-history-in-the-comments/`](../evidence/rename-left-history-in-the-comments/README.md).
+Every gate answered a different question, and the only thing that could have caught it was the
+lane that did the renaming saying so on the other side.
+
+
+### Field necessity and carryovers -- 2026-08-30 and 2026-08-31
+
+**The MEASURED failure is A field that answers neither.** `desk/mark.py` declared
+`owes_destination` and **nothing read it**: measured 2026-08-30,
+`grep -rn "owes_destination" src/` returned three lines and all three were in the file that
+declares it. A flag nobody reads cannot make the system correct and serves no purpose,
+and it survived because no plan ever had to say what it was for.
+
+**SUPERSEDED the same day, and the way it was SUPERSEDED is the point.** `f17b712`
+gave the flag a reader -- `parse` now runs `_destination_problems` under it, refusing a
+`move` whose `claim.to` equals its own address. The grep returns five lines, one of them a
+read. **The measurement above stands as of its date and the rule it argues for is
+unchanged; what moved is the example.**
+
+**A field does not become necessary by being wired -- It becomes necessary when something
+would otherwise be wrong.** Here something was: a move onto its own address reached the
+docket as a bare delete, so the flag now answers *what would be incorrect without it*. That
+is the answer this section asks for, arriving a plan late rather than never. The three
+lines were the honest reading on the day; leaving them uncorrected would make this section
+an instance of the rot it exists to forbid.
+
+Roy, 2026-08-31, on why two vestigial fields had to go that day while a third could wait:
+**"The others were hurting because you were actively designing them into the system instead
+of letting them drop because they were not necessary."*
+
+| | what it was | what happened |
+| --- | --- | --- |
+| `original_column` | where a trailing comment began on a line that starts with code | I read it in a NEW page type, and reasoned about whether a redacted paragraph could carry it |
+| `declares` | which declaration a docstring documents, as an ordinal | I proposed a REPLACEMENT MECHANISM for it, measured that mechanism failing, and filed a ruling request on the strength of it |
+| `lines` | how many lines a paragraph stands on | nothing. It sits there, 11 writes and 1 read |
+
+**The first two were urgent because I was spending design on them.** Not because they
+cost anything at rest -- a dead field costs nothing at rest. What they cost was every
+decision taken while assuming they were load-bearing: a `RedactedParagraph` argued for, an
+anchor-matching scheme invented and measured, a plan step filed as needing a ruling that no
+ruling was owed on. **Each of those was work produced by the field rather than by the
+PROBLEM.**
+
+**And the third is left in, deliberately.** Roy: *"that thread probably needs pulled a
+little more carefully and it isn't hurting yet to leave it in."*
+
+
+### Value tracing -- 2026-08-31
+
+The former conventions used this trace of the implementation then under review:
+
+```text
+lexer     held.declares = ordinal
+attach    cues.documents(declares)
+Cues      self.addressers[DECLARED].at(ordinal)
+at        got = cue_for(self.series, step)
+cue_for   return f"{series}{step}"          <- the terminus: it rebuilds `a3`
+```
+
+**Roy ran that chain and had the answer before any measurement was taken.** 2026-08-31,
+after two sessions of my evidence pointing the other way: *"you tried very hard to convince
+me that those were necessary even though I had already followed the full chain on logic
+determining they were dead."*
+
+| what I asked | why it answered nothing |
+| --- | --- |
+| *is it read* | always yes for a field with a reader. One hop, no terminus |
+| *does it agree with the address* | the address is computed FROM it -- 11,702 agreements that could not have come out otherwise |
+| *does my replacement work* | it did not, and that is a fact about my replacement. Anchor TEXT was never the key; the ordinal already was the cue |
+
+!! **Do not WRITE this rule as a self-check.** An earlier wording of it said *"the test is
+not is it dead but AM I REASONING FROM IT"* -- which asks for introspection in the moment,
+and Roy named that plainly the same day: *"you are not very good at introspection or seeing
+the global shape of the code."* It is the fault `CLAUDE.md` already records for boxes --
+**"is this a verifiable checkpoint" is a judgement; "does this box open with implement,
+update, delete, or a question" is a reading* -- arriving on a field instead of on a task.
+**Trace the chain, which is a reading. Do not ask yourself how you feel about it.**
+
+
+### Task headings and filing -- 2026-08-30
+
+Roy, 2026-08-30: *"This very thing made an earlier session completely jump a bunch of
+steps in a plan ... The task headers made it easy to skip past a set of tasks and start
+working on the next section of tasks."*
+
+!! **A new file is the exception and has to earn itself.** MEASURED 2026-08-30: **34 of
+159 open TODOs carry three tasks or fewer**, two of them ONE, against a mean of 7.3 over
+1,155 tasks. Re-derive with `grep -h "^Progress:" TODO/*.md`. Each was a defensible
+filing on the day it was made; what they add up to is a board whose index is longer than
+most of the work in it, where a reader scanning `TODO/README.md` cannot tell a SUBJECT
+from a single observation.
+
+
+### Shipped prose -- 2026-09-27
+
+This stood above `NOT_THE_TERM` in `scripts/check_vocabulary.py` until 2026-09-27, when a
+comment-review run found nothing there enforcing it and Roy ruled that it lives here.
+
+## Historical excerpts relocated from instructions -- 2026-10-28
+
+These excerpts retain the wording and observations removed from the parent
+and limitations guide. They are historical records, not current rules.
+The lane-crossing excerpt overlaps the Vocabulary drift entry above; the
+current crossing permissions are in conventions.md.
+
+### Generated output -- 2026-09-05
+
+**And `plugins/` is assembled, not written.** `scripts/release.py` deletes it and rebuilds it
+from two sources, WHOLESALE -- sub-packages intact, because Roy ruled the shipped tree takes
+the same shape as the source: the Python in **`src/comment_review/`** with its launcher, and
+the prose an agent reads in **`src/plugin/`** -- `agents/*.md`, `SKILL.md`, `references/*.md`
+and `plugin.json`, laid out as the plugin is. **Edit `src/`; all of `plugins/` is output.** It
+is rebuilt at release only, so between releases it lags and nothing reddens over that. The
+gate that held the two equal per change went on 2026-09-05; Roy: *"It is just noise in the
+development."*
+
+### Type-check scope -- observation retained from the parent
+
+!! **`ty` runs bare, covering both trees.** `[tool.ty]` in `pyproject.toml` sets
+the scope, not a path typed on the command line. Before that, `tests/` sat outside
+every ty run and four real `invalid-argument-type` errors there passed a green
+suite, `ruff check`, `ty check` and the floor gate, because nothing was ever
+pointed at `tests/`.
+
+### Full quotations -- 2026-08-22
+
+!! **A shortened quotation is not a shorter rule; it is a different ONE.** Roy, 2026-08-22:
+*"I am pretty certain that the session cut out the important part when it shortened it."* And
+nothing marks a cut: this tree writes `--` for an em-dash because of the ASCII rule, so an
+elision and a dash are spelled the same. **When a ruling is quoted here, quote all of it** -- the
+commit that first recorded it is the source, and `git log -S` finds it.
+
+### Lane crossing -- superseded parent summary
+
+**Four lanes own this repo, and a TODO's `Owner:` is one of them.** Roy runs sessions in
+parallel, each opened as *"You are the `backend` -- I need you to ..."*, and **the lane scopes
+what you may change.** If a task touches a file another lane owns, **name the lane and ask**.
+
+| lane | owns, in one line |
+| --- | --- |
+| `agents` | **What an agent is TOLD, and how the roles hand off** |
+| `backend` | **What the Python actually does** |
+| `testing` | **How well the running system does, and what that is scored against** |
+| `systems` | **Whether it installs, and whether the gates still bite** |
+
+!! **The vocabulary is shared and crossing is the point.** Roy, 2026-08-23: *"any side can and
+should update the vocab on the other side as soon as a split or modification is noticed."* It is
+the ONE standing exception to *name the lane and ask*, and the cost of waiting is measured --
+`evidence/rename-left-history-in-the-comments/`.
+
+**And a lane that trips A gate fixes its own code**, never the gate. A gate edited to pass is
+indistinguishable afterwards from one that always passed.
+
+### Role-file measurements -- 2026-08-18
+
+**The four editorial roles, measured 2026-08-18:**
+
+| agent file (`plugins/comment-review/agents/`) | lines |
+| --- | --- |
+| `comment-review-ownership-context.md` | 111 |
+| `comment-review-block-context.md` | 117 |
+| `comment-review-function-context.md` | 124 |
+| `comment-review-module-context.md` | 130 |
+
+!! **THREE OF THE FOUR HAD GROWN, AND THAT IS THE EVIDENCE, NOT THE DEFECT.**
+`ownership-context` 91 -> 111, `block-context` 110 -> 117, `module-context` 128 -> 130. Roy,
+2026-08-18: *"I have allowed expansion on those files just because of this"* -- because the
+rules added paid in one of the two currencies above. **A replaces-one rule that was live would
+have refused all three**, so the file was describing a policy it was not running, and the growth
+is what proves it.
+
+### Shared-file measurements -- August and September 2026
+
+!! **THE TWO LARGEST FILES A RUN LOADS AS CONTEXT HAVE NO BUDGET.** A reviewer loads its role
+file plus the brief, and **the brief is read FIVE times** -- by the four reviewers and by the
+task agent. Roy, 2026-08-18. So a line there costs five times a line in a role file, and the
+numbers above budget the ROLE files only -- the smallest part of what a run actually costs.
+
+| | 2026-08-16 | 2026-08-18 | 2026-09-12 | 2026-09-14 | |
+| --- | ---: | ---: | ---: | ---: | --- |
+| `reviewer-brief.md` | 11,579 | 23,397 | 38,090 | 37,754 | paid FIVE times |
+| `SKILL.md` | 45,257 | 62,531 | 60,037 | 62,242 | paid once, by the task agent |
+
+The 2026-09-12 column is each file's stored blob, `git show HEAD:<path> | wc -c`, after five
+commits (7d2e1834 to 3b0314e6). The brief grew 1,964 bytes: what a role answers in a turn and
+the `f` run a role may act on, net of the blank-line rule it dropped. `SKILL.md` grew 2,128: the
+turn run between `collate` and `disposition`, and exit 7's row.
+
+The 2026-09-14 column is the same measure at ebe58e91, against 37,288 and 60,383 at a22eb0ec:
+the brief's 466 bytes and `SKILL.md`'s 1,859 bought stage 8's read of the proof before 7a, 7a's
+questions on a held move and a correct that drops words, `disposition`'s printed lines, 7b's
+temporary files, a per-file split of each role, and a role that fills its one copy itself and
+calls LSP only when it holds the tool, net of the annotation table and prose that went.
+
+!! **THE BRIEF HAS MORE THAN DOUBLED IN TWO DAYS, WHICH IS THIS WARNING COMING TRUE.** Every
+addition was argued on its own and none was weighed against the file, because nothing measures
+it -- the four role files are counted line by line while the thing costing four times as much
+is not. ! Re-measure it whenever it is edited and say what the growth bought, the same
+discipline the role table gets. ! Larger files ship -- `census.py` is 31 KB -- but
+are EXECUTED, never read into a prompt.
+
+The August shared-file units were not stated in the source and remain
+unverified. The September columns explicitly measure stored bytes; the
+role-file table above measures lines. These are dated records, not current
+measurements.
