@@ -128,14 +128,16 @@ def code_fingerprint(text: str, path: Path) -> tuple[str, str]:
         `(kind, fingerprint)`. `kind` is "stripped" or "unprovable". A path no
         lexical row covers -- Python among them -- returns "unprovable". An
         unprovable file carries an empty fingerprint and cannot be proven.
+
+        An empty fingerprint of kind "stripped" is a file its row reads as
+        holding no code line. Two of those compare equal because neither holds
+        code, whatever their comments say, and `preserved` reads `kind` before
+        it compares the strings. The row is what makes "no code line" true: a
+        path with no row is never "stripped", and neither is a file with an
+        unterminated comment, which can hide code.
     """
     stripped = _without_comments(text, path)
     if stripped is None:
-        return "unprovable", ""
-    if not stripped.strip() and text.strip():
-        # An all-comment file reaches here STRIPPED to nothing while the source
-        # held text. `"" == ""` would "prove" any two such files identical
-        # whatever code either one carried.
         return "unprovable", ""
     return "stripped", stripped
 

@@ -1447,22 +1447,36 @@ class TestOnlyCommentsChange:
         assert refused is not None
         assert refused.step == "prove"
 
-    def test_TWO_UNPROVABLE_files_are_not_reported_identical(self):
-        """The hazard named at the top of `code_fingerprint`'s own docstring:
-        an unprovable file's fingerprint is the empty string, and two empty
-        strings compare equal. These two files hold different code and are
-        each unprovable for a different reason -- an all-comment file with no
-        code at all, and one whose comment never closes -- so a `_prove` that
-        compared `want != got` without reading `kind` first would report them
-        IDENTICAL."""
+    def test_code_a_comment_never_closes_over_is_not_proven_as_no_code(self):
+        """An unprovable file's fingerprint is the empty string, the same as a
+        file with no code line, so a `_prove` that compared `want != got`
+        without reading `kind` first would report these two IDENTICAL."""
         before = "// just a comment\n"
         after = "int y = 999; /* oops\n"
-        assert code_fingerprint(before, Path("m.c")) == ("unprovable", "")
+        assert code_fingerprint(before, Path("m.c")) == ("stripped", "")
         assert code_fingerprint(after, Path("m.c")) == ("unprovable", "")
 
         refused = proof_setter._prove("m.c", before, after, Path("m.c"))
         assert refused is not None
         assert refused.step == "prove"
+
+    def test_two_files_with_no_code_line_prove_equal_because_neither_holds_code(self):
+        refused = proof_setter._prove(
+            "m.js", "// one\n", "/** two */\n// three\n", Path("m.js")
+        )
+        assert refused is None
+
+    def test_code_added_to_a_file_with_no_code_line_refuses(self):
+        refused = proof_setter._prove(
+            "m.js", "// one\n", "// one\nlet x;\n", Path("m.js")
+        )
+        assert refused is not None
+        assert refused.step == "prove"
+        assert "code-changed" in refused.why
+
+    @pytest.mark.parametrize("suffix", [".md", ".rst", ".txt", ".html"])
+    def test_a_path_with_no_row_stays_unprovable(self, suffix):
+        assert code_fingerprint("# Title\n", Path("m" + suffix)) == ("unprovable", "")
 
 
 def _chain(tmp_path, name: str, text: str, alterations: dict):
@@ -1548,6 +1562,29 @@ def test_roys_chain_ends_byte_identical_to_the_first_draft(tmp_path, written, th
     assert _at(first, "m.js", words) == "a1"
     assert through(tmp_path, 2, "m.js", first, {"a1": words}) == first
     assert through(tmp_path, 3, "m.js", first, {"a1": None, "a0": words}) == first
+
+
+@pytest.mark.parametrize(
+    ("name", "text", "words", "alteration", "expected"),
+    [
+        ("m.js", "", "", {"a0": "// A note."}, "// A note."),
+        ("m.js", "// licence\n", "", {"a1": "/** End. */"}, None),
+        ("m.js", "// a tpyo\n", "// a tpyo", {"": "// a typo"}, "// a typo\n"),
+        ("m.h", "/** Teh doc. */\n", "/** Teh doc. */", {"": "/** The doc. */"}, None),
+    ],
+    ids=["blank-gets-a-comment", "eof-a", "typo-fixed", "header-of-docs"],
+)
+def test_a_file_with_no_code_line_takes_a_comment_change(
+    tmp_path, name, text, words, alteration, expected
+):
+    alterations = {
+        (_at(text, name, words) if not where else where): prose
+        for where, prose in alteration.items()
+    }
+    drafted, refused = _chain(tmp_path, name, text, alterations)
+    assert refused == []
+    if expected is not None:
+        assert drafted[0].draft.read_text(encoding="utf-8") == expected
 
 
 class TestAnEmptyPackageInit:
