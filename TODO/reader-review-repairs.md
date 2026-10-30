@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 11 of 18 tasks closed
+Progress: 13 of 18 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-30 (/broken-review, 2026-10-30, 0abe0010..106b767d)
@@ -55,9 +55,11 @@ Repair what the reader-hands-prose-only review found.
 - [-] T15 | SUPERSEDED by one-reader-builder T7; Roy moved it | 4494431b | Remove
       the reader anchor the page discards
         > 2026-10-30 A8: 5 of 5 probes identical blanked; 4 MODULE_ANCHOR stamps dropped
-- [ ] T16 | Give anchor_line one meaning across reader and page
+- [x] T16 | FINISHED: reader field is declares_line; page keeps anchor_line | 44563a05 | Give
+      anchor_line one meaning across reader and page
         > 2026-10-30 D5: Java line 3 from reader, 2 from page; T51 would break owner_at
-- [ ] T17 | State a unit once, in joins or in DocPlace.at
+- [x] T17 | FINISHED: lines_of_code refuses joins and at disagreeing | 44563a05 | State
+      a unit once, in joins or in DocPlace.at
         > 2026-10-30 D9: both say it and nothing checks they agree
 - [x] T18 | FINISHED: re-read asks landed, dropped, unchanged, by code-line count; chain passes | f71e1a17 | Check
       a draft by where its text landed, per #247

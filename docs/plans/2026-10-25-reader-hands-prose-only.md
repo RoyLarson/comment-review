@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 39 of 46 TODO tasks closed
+Progress: 41 of 46 TODO tasks closed
 Plan-tasks: 24 of 24 plan tasks closed
 Owner:    backend
 Requires-Roy: false
@@ -65,8 +65,8 @@ per step; each step lands its failing test first.
 - [ ] T13 | Replace the Cues count-stamped caches with cached_property
 - [ ] T14 | Correct the comments that disagree with the code
 - [-] T15 | Remove the reader anchor the page discards
-- [ ] T16 | Give anchor_line one meaning across reader and page
-- [ ] T17 | State a unit once, in joins or in DocPlace.at
+- [x] T16 | Give anchor_line one meaning across reader and page
+- [x] T17 | State a unit once, in joins or in DocPlace.at
 - [x] T18 | Check a draft by where its text landed, per #247
 
 ### C - [lexer-and-language-findings](../../TODO/lexer-and-language-findings.md)
