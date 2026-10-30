@@ -12,11 +12,12 @@ the page's, because only a page knows where prose is MISSING.
 
 `read_lexical` also completes the read for the page: `code_text` gives each
 line of code its code, `declarations()` marks which lines declare something
-documentable and where its doc would go, and `document_declarations` marks the
-run that documents a declaration `docstring`, naming that declaration's line --
-for Go and Ruby too, whose documentation is an ordinary comment run above the
-declaring keyword. It hands back a `LexicalRead`, the paragraphs and their
-`CodeLine`s together; `paragraphs_lexical` is its paragraphs alone.
+documentable and where its doc would go, and `document_declarations` gives the
+run that documents a declaration that declaration's line -- for Go and Ruby too,
+whose documentation is an ordinary comment run above the declaring keyword.
+`_cut_gap` then settles each run's kind. `read_lexical` hands back a
+`LexicalRead`, the paragraphs and their `CodeLine`s together;
+`paragraphs_lexical` is its paragraphs alone.
 
 Beside the reader: `comment_form` parses a comment's markers and fragments for
 `Paragraph.text` and `desk.marks.rules`.
@@ -767,8 +768,7 @@ def _is_doc(line: str, lang: Language) -> bool:
     """Does this line open a comment the language treats as DOCUMENTATION?
 
     `read_lexical` asks it of each comment it opens, to record the lines doc
-    comments stand on, and `flush` asks it of a run's first line to set the
-    run's kind.
+    comments stand on.
     """
     opens = line.strip()
     return _opens_doc(opens, lang.doc_line) or _opens_doc(opens, lang.doc_block)
@@ -891,18 +891,14 @@ def read_lexical(path: Path, text: str, lang: Language) -> "LexicalRead":
         # single-line case: a paragraph comment opened after a statement
         # flushes with `trailing=False`, because by then the run spans several
         # lines -- so `int b = 2; /* opens` would read as a plain `comment`
-        # sitting at a `c` place, and kind and series would disagree.
-        if trailing or partial_first[0]:
-            kind = Kind.TRAILING
-        elif _is_doc(run[0][1], lang):
-            kind = Kind.DOCSTRING
-        else:
-            kind = Kind.COMMENT
+        # sitting at a `c` place, and kind and series would disagree. Every
+        # other run is a `comment` until `_cut_gap` says which place it holds.
+        trails = trailing or partial_first[0]
         paragraph = Paragraph(
             path=path.as_posix(),
             start=run[0][0],
             end=run[-1][0],
-            kind=kind,
+            kind=Kind.TRAILING if trails else Kind.COMMENT,
             raw_lines=span,
             # !! THE LEXER ALREADY HAS THIS STRING. It found the opener in order
             # to cut there, so the characters before it are known here.
@@ -1171,8 +1167,7 @@ def _file_edges(
 
     !! A RUN IS CUT AT THE MATTER'S EDGES BEFORE DOCUMENTATION IS DECIDED, so
     a licence header and the declaration's documentation below it are two
-    runs and only the second documents. A part opening on a doc-marked line is
-    a `docstring` run, as `flush` kinds a run. Once documentation is decided,
+    runs and only the second documents. Once documentation is decided,
     `_file_docs` names the module and closing docstrings and the parts inside
     the matter they give are MATTER.
 
@@ -1191,13 +1186,13 @@ def _file_edges(
     def held(p: Paragraph) -> set[int]:
         return {n for n in range(p.start, p.end + 1) if n not in between}
 
-    def prose(found: list[Paragraph], kinds: tuple[str, ...]) -> set[int]:
+    def prose(found: list[Paragraph], skipped: set[int]) -> set[int]:
         return {
             n
             for p in found
-            if p.kind in kinds
+            if p.kind == Kind.COMMENT
             for n in held(p)
-            if n not in documentation
+            if n not in skipped
         }
 
     def cut(found: list[Paragraph], matter: Matter, mark: bool) -> list[Paragraph]:
@@ -1205,18 +1200,13 @@ def _file_edges(
         out: list[Paragraph] = []
         for p in found:
             parts = (
-                matter.parts(p.start, p.end, held(p))
-                if p.kind in (Kind.COMMENT, Kind.DOCSTRING)
-                else []
+                matter.parts(p.start, p.end, held(p)) if p.kind == Kind.COMMENT else []
             )
             if len(parts) < 2 and not (mark and parts and parts[0][2]):
                 out.append(p)
                 continue
             for start, end, is_matter in parts:
-                if mark:
-                    kind = Kind.MATTER if is_matter else p.kind
-                else:
-                    kind = Kind.DOCSTRING if start in documentation else Kind.COMMENT
+                kind = Kind.MATTER if mark and is_matter else Kind.COMMENT
                 out.append(
                     Paragraph(
                         path=p.path,
@@ -1230,9 +1220,8 @@ def _file_edges(
                 )
         return out
 
-    written = (Kind.COMMENT, Kind.DOCSTRING)
     found = cut(
-        paragraphs, file_matter(total, opens, prose(paragraphs, written)), False
+        paragraphs, file_matter(total, opens, prose(paragraphs, documentation)), False
     )
     if shebang is not None:
         found.insert(0, shebang)
@@ -1244,22 +1233,22 @@ def _file_edges(
         n for line, place in declared.items() for n in range(place.at + 1, line + 1)
     ]
     code_lines = lines_of_code(code, declared, joined)
-    document_declarations(found, code_lines)
+    claimed = document_declarations(found, code_lines)
     code_at = set(code)
     module_doc, closing_doc = _file_docs(
-        found, code_at, between, documentation, doc_opens, lang.a_series
+        found, code_at, between, documentation, doc_opens, claimed, lang.a_series
     )
     matter = file_matter(
         total,
         opens,
-        prose(found, (Kind.COMMENT,)),
+        prose(found, documentation | claimed),
         module_doc=module_doc,
         closing_doc=closing_doc,
         codeless=not code_at,
     )
     found = _one_matter_per_end(cut(found, matter, mark=True), matter, lines)
     found = _cut_by_place(
-        found, lines, code_at, between, documentation, doc_opens, lang.a_series
+        found, lines, code_at, between, documentation, doc_opens, claimed, lang.a_series
     )
     return found, code_lines
 
@@ -1310,7 +1299,7 @@ def _gaps(paragraphs: list[Paragraph], code: set[int]) -> list[list[Paragraph]]:
     """The file's prose runs, gathered by the gap between code each lies in."""
     gaps: list[list[Paragraph]] = []
     for p in sorted(paragraphs, key=lambda p: p.start):
-        if p.kind not in (Kind.COMMENT, Kind.DOCSTRING):
+        if p.kind != Kind.COMMENT:
             continue
         if gaps and not any(gaps[-1][-1].end < n < p.start for n in code):
             gaps[-1].append(p)
@@ -1325,6 +1314,7 @@ def _file_docs(
     between: set[int],
     documentation: set[int],
     doc_opens: set[int],
+    claimed: set[int],
     a_series: bool,
 ) -> tuple[range | None, range | None]:
     """The lines of the module and closing docstrings, for `file_matter`.
@@ -1338,13 +1328,15 @@ def _file_docs(
     if not gaps:
         return None, None
     module_doc = closing_doc = None
-    opening = _doc_places(gaps[0], code, between, documentation, doc_opens, a_series)[1]
+    opening = _doc_places(
+        gaps[0], code, between, documentation, doc_opens, claimed, a_series
+    )[1]
     if opening is not None:
         module_doc = range(opening[0], opening[1] + 1)
     foot = gaps[-1]
     if code and max(code) < foot[0].start:
         groups, _, lowest = _doc_places(
-            foot, code, between, documentation, doc_opens, a_series
+            foot, code, between, documentation, doc_opens, claimed, a_series
         )
         closing = lowest or next((g for g in groups if g[2]), None)
         if closing is not None:
@@ -1359,6 +1351,7 @@ def _cut_by_place(
     between: set[int],
     documentation: set[int],
     doc_opens: set[int],
+    claimed: set[int],
     a_series: bool,
 ) -> list[Paragraph]:
     """Cut each gap's prose into the places the gap holds: `a0`, one `b`, an `a`.
@@ -1387,7 +1380,7 @@ def _cut_by_place(
     gaps = _gaps(paragraphs, code)
     cut = {
         id(gap[0]): _cut_gap(
-            gap, lines, code, between, documentation, doc_opens, a_series
+            gap, lines, code, between, documentation, doc_opens, claimed, a_series
         )
         for gap in gaps
     }
@@ -1412,6 +1405,7 @@ def _doc_places(
     between: set[int],
     documentation: set[int],
     doc_opens: set[int],
+    claimed: set[int],
     a_series: bool,
 ) -> tuple[list[_Group], _Group | None, _Group | None]:
     """One gap's groups, its `a0` and the `a` at its lower edge."""
@@ -1432,7 +1426,7 @@ def _doc_places(
     touching = groups[-1]
     head = a_series and not any(n < first.start for n in code)
     opening = next((g for g in groups if g[2]), None) if head else None
-    if last.kind != Kind.DOCSTRING:
+    if last.start not in claimed:
         # No declaration below: the first doc group is `a0` whole, and a doc
         # group left touching the foot is `<eof>`.
         foot = a_series and not any(n > last.end for n in code)
@@ -1460,16 +1454,19 @@ def _cut_gap(
     between: set[int],
     documentation: set[int],
     doc_opens: set[int],
+    claimed: set[int],
     a_series: bool,
 ) -> list[Paragraph]:
-    """One gap's runs, cut into its `a0`, its one `b` and its lower edge's `a`."""
+    """One gap's runs, cut into its `a0`, its one `b` and its lower edge's `a`.
+
+    This is where a run's kind is settled.
+    """
     first, last = runs[0], runs[-1]
     raw = {p.start + i: line for p in runs for i, line in enumerate(p.raw_lines)}
     held = sorted(n for n in raw if n not in between)
     _, opening, lowest = _doc_places(
-        runs, code, between, documentation, doc_opens, a_series
+        runs, code, between, documentation, doc_opens, claimed, a_series
     )
-    documents = last.kind == Kind.DOCSTRING
 
     def part(
         lo: int, hi: int, kind: Kind, anchor: str = "", anchor_line: int | None = None
@@ -1497,7 +1494,7 @@ def _cut_gap(
     if rest:
         parts.append(part(rest[0], rest[-1], Kind.COMMENT))
     if lowest is not None:
-        anchor = "" if documents else EOF
+        anchor = "" if last.start in claimed else EOF
         parts.append(
             part(lowest[0], lowest[1], Kind.DOCSTRING, anchor, last.anchor_line)
         )
@@ -1580,7 +1577,9 @@ def _declares_here(line: str, declares: tuple[str, ...]) -> bool:
     return bool(second and f"{first} {second.group(1)}" in declares)
 
 
-def document_declarations(paragraphs: list["Paragraph"], lines: list[CodeLine]) -> None:
+def document_declarations(
+    paragraphs: list["Paragraph"], lines: list[CodeLine]
+) -> set[int]:
     """Say which prose run documents which declaration, at the LEXICAL tier.
 
     !! IT LIVES HERE BECAUSE POSITIONING IS THE LANGUAGE'S, and the lexer is where
@@ -1610,17 +1609,17 @@ def document_declarations(paragraphs: list["Paragraph"], lines: list[CodeLine]) 
     and about the next is indistinguishable by position, which is why
     `ownership-context` reads every placement rather than trusting one.
 
-    ! A run opened with a doc marker that documents no declaration is a
-    `comment`: `Kind.DOCSTRING` says a paragraph documents something, and this
-    one documents nothing the page can place.
-
     Args:
         paragraphs: this file's prose, mutated in place -- each run that
-            documents a declaration becomes `Kind.DOCSTRING` with that
-            declaration's line as its `anchor_line`.
+            documents a declaration takes that declaration's line as its
+            `anchor_line`.
         lines: the file's code lines, in order; a line whose `documents` is set
             declares something documentable, and its `at` is the line the
             documentation is set above.
+
+    Returns:
+        The lines of every run that documents a declaration. Lines rather than
+        the runs, because cutting a run at the matter's edges makes new ones.
     """
     # ! LEADING IS NOT PROSE AND CANNOT DOCUMENT ANYTHING, and MATTER -- a
     # shebang, here -- is the file's own.
@@ -1631,7 +1630,7 @@ def document_declarations(paragraphs: list["Paragraph"], lines: list[CodeLine]) 
         # synthesised the empty places.
         if b.original_end and b.kind not in (Kind.TRAILING, Kind.LEADING, Kind.MATTER)
     }
-    documenting: set[int] = set()
+    claimed: set[int] = set()
     above_code = [c.line for c in lines]
     code = set(above_code)
     declaring = (
@@ -1667,12 +1666,9 @@ def document_declarations(paragraphs: list["Paragraph"], lines: list[CodeLine]) 
         over = held.original_start - previous[-1] - 1 if previous else below + 1
         if below <= over:
             # ! THE LINE, NOT A CUE. The page gives it the `a` of that line.
-            held.kind = Kind.DOCSTRING
             held.anchor_line = line
-            documenting.add(id(held))
-    for b in paragraphs:
-        if b.kind == Kind.DOCSTRING and id(b) not in documenting:
-            b.kind = Kind.COMMENT
+            claimed.update(range(held.original_start, held.original_end + 1))
+    return claimed
 
 
 def declarations(lang: Language, code: Mapping[int, str]) -> dict[int, DocPlace]:
