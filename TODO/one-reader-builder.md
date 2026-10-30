@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 7 tasks closed
+Progress: 0 of 8 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-27 (Roy, 2026-10-27, decision-log #244)
@@ -42,3 +42,5 @@ only they need.
 - [ ] T6 | Replace the three unchanged-code proofs with one
 - [ ] T7 | Remove the reader's anchor text once the page places paragraphs
         > 2026-10-30 Page overwrites it at page.py:780; only use is the EOF flag :763
+- [ ] T8 | Remove CodeLine.joins once a unit has one statement
+        > 2026-10-30 Derive it from DocPlace.at; Rust units land then (T51)
