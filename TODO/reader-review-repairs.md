@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 10 of 18 tasks closed
+Progress: 11 of 18 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-30 (/broken-review, 2026-10-30, 0abe0010..106b767d)
@@ -31,7 +31,8 @@ Repair what the reader-hands-prose-only review found.
       the foot's matter rule into reading/matter.py
         > 2026-10-30 A2: _cut_gap's back branch is a second home for #240, #243
         > 2026-10-30 #246: landing with lexer-and-language-findings T53, here
-- [ ] T7 | State the multi-line anchor in _change_problems and the vocabulary
+- [x] T7 | FINISHED: guard compares each anchor line; words corrected; real unit page test | e083a647 | State
+      the multi-line anchor in _change_problems and the vocabulary
         > 2026-10-30 D1: guard compares single lines; vocabulary.toml:19 says one
 - [x] T8 | FINISHED: _cut_by_place marked provisional | 58a89f01 | Mark
       _cut_by_place provisional in the code

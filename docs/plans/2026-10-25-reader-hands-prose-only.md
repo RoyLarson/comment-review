@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 38 of 46 TODO tasks closed
+Progress: 39 of 46 TODO tasks closed
 Plan-tasks: 24 of 24 plan tasks closed
 Owner:    backend
 Requires-Roy: false
@@ -56,7 +56,7 @@ per step; each step lands its failing test first.
 - [x] T4 | Reduce _cut_gap to one rule with no early-return path
 - [x] T5 | Stop using Kind as a message between read steps
 - [x] T6 | Move the foot's matter rule into reading/matter.py
-- [ ] T7 | State the multi-line anchor in _change_problems and the vocabulary
+- [x] T7 | State the multi-line anchor in _change_problems and the vocabulary
 - [x] T8 | Mark _cut_by_place provisional in the code
 - [-] T9 | Delete _partner's no-code branch, which no draft reaches
 - [-] T10 | Move _partner's rule beside the place rule it depends on
