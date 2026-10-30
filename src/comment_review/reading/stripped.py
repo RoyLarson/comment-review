@@ -82,22 +82,6 @@ def _without_comments(text: str, path: Path) -> str | None:
         return None
     if any(_UNPROVABLE_MARKS & b.annotations for b in paragraphs):
         return None
-    # !! A LITERAL THAT SPANS LINES MAKES THIS FILE UNPROVABLE. `_strip_strings`
-    # is per-line and carries no open-quote state, so a line INSIDE a JS
-    # template literal or a Java text block that begins with the language's
-    # comment marker is read as a comment and deleted from BOTH
-    # fingerprints. Measured 2026-08-17: a template literal whose body changed
-    # from `// alpha` to `// omega` produced identical fingerprints and the file
-    # was reported PROVEN -- a fail-OPEN in the one gate whose whole claim is
-    # that executable code is byte-identical.
-    #
-    # ! This refuses on the delimiter's PRESENCE, not on parity: parity is what
-    # the per-line lexer already cannot compute, so trusting it here would be
-    # the same mistake one layer up. A proof that refuses costs a report; a
-    # proof that lies costs the claim.
-    if any(q in text for q in lang.spanning_quotes):
-        return None
-
     lines = constants.text_lines(text)
     scanned = constants.scan_lines(text)
     # Pre-seed every line as itself; a paragraph below either drops its entry
@@ -119,7 +103,26 @@ def _without_comments(text: str, path: Path) -> str | None:
             else:
                 return None  # binder and the file disagree; do not reconcile
     survivors = [v for v in kept.values() if v is not None]
-    return "\n".join(v for v in survivors if v.strip())
+    code = [v for v in survivors if v.strip()]
+    # !! A LITERAL THAT SPANS LINES MAKES THIS FILE UNPROVABLE. `_strip_strings`
+    # is per-line and carries no open-quote state, so a line INSIDE a JS
+    # template literal or a Java text block that begins with the language's
+    # comment marker is read as a comment and deleted from BOTH
+    # fingerprints. Measured 2026-08-17: a template literal whose body changed
+    # from `// alpha` to `// omega` produced identical fingerprints and the file
+    # was reported PROVEN -- a fail-OPEN in the one gate whose whole claim is
+    # that executable code is byte-identical.
+    #
+    # ! This refuses on the delimiter's PRESENCE, not on parity: parity is what
+    # the per-line lexer already cannot compute, so trusting it here would be
+    # the same mistake one layer up. A proof that refuses costs a report; a
+    # proof that lies costs the claim.
+    #
+    # ! A literal opens on a line of code, so a file with none has no literal,
+    # and a delimiter spelled in one of its comments is prose.
+    if code and any(q in text for q in lang.spanning_quotes):
+        return None
+    return "\n".join(code)
 
 
 def code_fingerprint(text: str, path: Path) -> tuple[str, str]:
@@ -137,9 +140,12 @@ def code_fingerprint(text: str, path: Path) -> tuple[str, str]:
         An empty fingerprint of kind "stripped" is a file its row reads as
         holding no code line. Two of those compare equal because neither holds
         code, whatever their comments say, and `preserved` reads `kind` before
-        it compares the strings. The row is what makes "no code line" true: a
-        path with no row is never "stripped", and neither is a file with an
-        unterminated comment, which can hide code.
+        it compares the strings. "No code line" is the row's reading: a path
+        with no row is never "stripped", and neither is a file with an
+        unterminated comment or a line ending the row states inside a comment.
+        A row sees comment delimiters and nothing a language does before them,
+        so a directive held in a comment, or a closer spelled by an escape or a
+        line splice, is a comment here.
     """
     stripped = _without_comments(text, path)
     if stripped is None:

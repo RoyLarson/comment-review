@@ -1474,6 +1474,26 @@ class TestOnlyCommentsChange:
         assert refused.step == "prove"
         assert "code-changed" in refused.why
 
+    @pytest.mark.parametrize(
+        ("name", "text"),
+        [
+            ("m.js", "/* `a */\n"),
+            ("m.sh", "# <<EOF\n"),
+            ("m.lua", "--[[ a ]]\n"),
+            ("m.go", "// `a\n"),
+        ],
+    )
+    def test_a_spanning_delimiter_in_a_file_with_no_code_line_proves(self, name, text):
+        assert code_fingerprint(text, Path(name)) == ("stripped", "")
+
+    @pytest.mark.parametrize(
+        ("name", "text"),
+        [("m.js", "`\n// a\n`\n"), ("m.js", "/* `a */\nlet x;\n")],
+        ids=["literal-of-comment-lines", "beside-code"],
+    )
+    def test_a_spanning_delimiter_beside_code_stays_unprovable(self, name, text):
+        assert code_fingerprint(text, Path(name)) == ("unprovable", "")
+
     @pytest.mark.parametrize("suffix", [".md", ".rst", ".txt", ".html"])
     def test_a_path_with_no_row_stays_unprovable(self, suffix):
         assert code_fingerprint("# Title\n", Path("m" + suffix)) == ("unprovable", "")
