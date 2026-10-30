@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 35 of 46 TODO tasks closed
+Progress: 38 of 46 TODO tasks closed
 Plan-tasks: 24 of 24 plan tasks closed
 Owner:    backend
 Requires-Roy: false
@@ -53,11 +53,11 @@ per step; each step lands its failing test first.
 - [-] T1 | Decide how a drop beside a #245 partner place reads back
 - [ ] T2 | Track the previous comment by line in Comment._without_range
 - [ ] T3 | Replace the gap scan's membership tests with a bisect
-- [ ] T4 | Reduce _cut_gap to one rule with no early-return path
-- [ ] T5 | Stop using Kind as a message between read steps
+- [x] T4 | Reduce _cut_gap to one rule with no early-return path
+- [x] T5 | Stop using Kind as a message between read steps
 - [x] T6 | Move the foot's matter rule into reading/matter.py
 - [ ] T7 | State the multi-line anchor in _change_problems and the vocabulary
-- [ ] T8 | Mark _cut_by_place provisional in the code
+- [x] T8 | Mark _cut_by_place provisional in the code
 - [-] T9 | Delete _partner's no-code branch, which no draft reaches
 - [-] T10 | Move _partner's rule beside the place rule it depends on
 - [-] T11 | Make _written_once check position, with a failing test each guard

@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 7 of 18 tasks closed
+Progress: 10 of 18 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-30 (/broken-review, 2026-10-30, 0abe0010..106b767d)
@@ -21,9 +21,11 @@ Repair what the reader-hands-prose-only review found.
         > 2026-10-30 I2: comment.py:156; /* a */ /* b */ /* c */ minus b c merges lines
 - [ ] T3 | Replace the gap scan's membership tests with a bisect
         > 2026-10-30 I5: lexer.py:1301,1371; 16k lines 17.9s, 4.6x per doubling
-- [ ] T4 | Reduce _cut_gap to one rule with no early-return path
+- [x] T4 | FINISHED: _cut_gap has one path; 69,129 reads unchanged | bc00c189 | Reduce
+      _cut_gap to one rule with no early-return path
         > 2026-10-30 I3: lexer.py:1341-1456; two mutants pass alone, fail together
-- [ ] T5 | Stop using Kind as a message between read steps
+- [x] T5 | FINISHED: Kind set once in the cut; 69,129 reads unchanged | 3b340503 | Stop
+      using Kind as a message between read steps
         > 2026-10-30 I4: lexer.py:1372,1627; flipped to COMMENT, restored in _cut_gap
 - [x] T6 | FINISHED: one matter rule in matter.py; _cut_gap's back branch gone | 70f1f028 | Move
       the foot's matter rule into reading/matter.py
@@ -31,7 +33,8 @@ Repair what the reader-hands-prose-only review found.
         > 2026-10-30 #246: landing with lexer-and-language-findings T53, here
 - [ ] T7 | State the multi-line anchor in _change_problems and the vocabulary
         > 2026-10-30 D1: guard compares single lines; vocabulary.toml:19 says one
-- [ ] T8 | Mark _cut_by_place provisional in the code
+- [x] T8 | FINISHED: _cut_by_place marked provisional | 58a89f01 | Mark
+      _cut_by_place provisional in the code
         > 2026-10-30 A1: #244 defers it; conventions require the marking
 - [-] T9 | SUPERSEDED by T18, per #247 | 0f9cf8f8 | Delete _partner's no-code
       branch, which no draft reaches
