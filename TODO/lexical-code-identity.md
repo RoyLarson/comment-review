@@ -41,3 +41,4 @@ Use lexical code identity at both proof boundaries.
 - [ ] T7 | Prove a lexical file that has no line of code
         > 2026-10-27 code_fingerprint: an empty strip is unprovable; at ef037f20
         > 2026-10-27 Blocks #241: filling a no-code file's <eof> a refuses at prove
+        > 2026-10-30 #248: only under a language row; no row stays unprovable

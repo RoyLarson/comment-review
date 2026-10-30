@@ -5885,6 +5885,8 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   #241's acceptance, which no longer needs a named pair of places. "The original" in the test
   is the draft written at the first step (Roy, the same day: *"We mean to the draft after writing
   the first a1"*): the move ends byte-identical to that draft, not to the file before the add.
+  "The blank doc" is a blank docstring on a file with code (Roy, the same day: *"Sorry I meant
+  blank doc strings and your example function f() {}"*), not a file with no code.
 
 - **#248.** **A no-code file proves only under a language row; documents keep their own chain**
   (Roy, 2026-10-30, on proving a file with no code line: *"this is super important ... We need to

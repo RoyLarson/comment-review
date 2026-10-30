@@ -58,3 +58,4 @@ Repair what the reader-hands-prose-only review found.
 - [ ] T18 | Check a draft by where its text landed, per #247
         > 2026-10-30 Check: Roy's chain: add a1, reads a0, unchanged, move, original
         > 2026-10-30 'original' means the draft from step 1, byte-identical
+        > 2026-10-30 Roy: blank doc = blank docstring on function f() {}; no T7 needed
