@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 17 tasks closed
+Progress: 1 of 17 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-10-30 (/broken-review, 2026-10-30, 0abe0010..106b767d)
@@ -42,7 +42,8 @@ Repair what the reader-hands-prose-only review found.
         > 2026-10-30 I9: addresser.py:451-576; stamp guards a mutation that never occurs
 - [ ] T14 | Correct the comments that disagree with the code
         > 2026-10-30 I13: lexer.py:966,1074,1272,1565,70; addresser.py:600,724,779
-- [ ] T15 | Remove the reader anchor the page discards
+- [-] T15 | SUPERSEDED by one-reader-builder T7; Roy moved it | 4494431b | Remove
+      the reader anchor the page discards
         > 2026-10-30 A8: 5 of 5 probes identical blanked; 4 MODULE_ANCHOR stamps dropped
 - [ ] T16 | Give anchor_line one meaning across reader and page
         > 2026-10-30 D5: Java line 3 from reader, 2 from page; T51 would break owner_at

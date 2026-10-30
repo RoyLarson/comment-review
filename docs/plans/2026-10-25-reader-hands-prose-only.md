@@ -1,11 +1,11 @@
 # A reader hands over only what parsing finds
 
 ```
-Status:   in-progress
-Progress: 24 of 41 TODO tasks closed
+Status:   decision-needed
+Progress: 25 of 41 TODO tasks closed
 Plan-tasks: 24 of 24 plan tasks closed
 Owner:    backend
-Requires-Roy: false
+Requires-Roy: true
 Raised:   2026-10-25 (founded by move-t from 2026-10-11-lexical-readers)
 ```
 
@@ -50,7 +50,7 @@ per step; each step lands its failing test first.
 
 ### B - [reader-review-repairs](../../TODO/reader-review-repairs.md)
 
-- [ ] T1 | Decide how a drop beside a #245 partner place reads back
+- [?] T1 | Decide how a drop beside a #245 partner place reads back
 - [ ] T2 | Track the previous comment by line in Comment._without_range
 - [ ] T3 | Replace the gap scan's membership tests with a bisect
 - [ ] T4 | Reduce _cut_gap to one rule with no early-return path
@@ -64,7 +64,7 @@ per step; each step lands its failing test first.
 - [ ] T12 | Delete the dead conditions in the lexer
 - [ ] T13 | Replace the Cues count-stamped caches with cached_property
 - [ ] T14 | Correct the comments that disagree with the code
-- [ ] T15 | Remove the reader anchor the page discards
+- [-] T15 | Remove the reader anchor the page discards
 - [ ] T16 | Give anchor_line one meaning across reader and page
 - [ ] T17 | State a unit once, in joins or in DocPlace.at
 
