@@ -58,7 +58,7 @@ from comment_review.reading.context import ReadingContext
 from comment_review.reading.diagnostics import ReadFailure
 from comment_review.reading.paragraph import Paragraph
 from comment_review.reading.proof import UNIDENTIFIED_OWNER
-from comment_review.reading.series import Series
+from comment_review.reading.series import Kind, Series
 from comment_review.results import compositor, galley
 
 
@@ -519,14 +519,19 @@ def _reread(
     an alteration can read back at another place (`decision-log.md Process:
     #247`):
     - landed: on the exact lines written for an alteration, the reader finds
-      one paragraph holding exactly that text. The lines come from the
-      compositor; what stands on them comes from the reader.
+      one paragraph holding exactly that text, with as many code lines above it
+      as its place has on the page. The lines come from the compositor; what
+      stands on them, and the count, come from the reader.
     - dropped: the dropped text is gone. Dropped lines still in the draft are
       lines the page no longer holds, which the third question refuses, and
       counting lines there is what lets the same words stand elsewhere.
     - unchanged: every paragraph nobody edited reads back with the same text,
-      in the same order. It is compared by line: a drop can leave two paragraphs
-      touching, and the reader then finds one run holding both.
+      in the same order, under the same count of code lines. It is compared by
+      line: a drop can leave two paragraphs touching, and the reader then finds
+      one run holding both.
+
+    The count is safe because `_prove` holds the code lines themselves. It
+    cannot see a change inside one stretch between two code lines.
 
     A failed page read becomes a reread refusal before any of the three.
 
@@ -550,6 +555,7 @@ def _reread(
             "reread", rel, f"the draft: {format_failure(draft, path=rel)}"
         )
     written = compositor.spans(page)
+    was_above, now_above = _code_above(page), _code_above(draft)
     read = sorted(
         (b for b in draft if b.address and _holds_prose(b)), key=lambda b: b.start
     )
@@ -571,12 +577,27 @@ def _reread(
                 f"{where}: on lines {first}-{last} the draft holds {held!r},"
                 f" was given {want!r}{_elsewhere(placed, where, want)}",
             )
+        below = now_above[cue_of(on_those_lines[0].address).cue]
+        if below != was_above[where]:
+            return None, Refusal(
+                "reread",
+                rel,
+                f"{where}: stands under {below} code lines in the draft, and"
+                f" under {was_above[where]} on the page",
+            )
         landed.extend(on_those_lines)
     held_by = {cue_of(b.address).cue: b for b in page if b.address}
     kept = _prose_lines(
-        held_by[cue] for cue in page.cues.reading if cue in held_by and cue not in edits
+        (
+            held_by[cue]
+            for cue in page.cues.reading
+            if cue in held_by and cue not in edits
+        ),
+        was_above,
     )
-    came_back = _prose_lines(b for b in read if not any(b is one for one in landed))
+    came_back = _prose_lines(
+        (b for b in read if not any(b is one for one in landed)), now_above
+    )
     if came_back != kept:
         return None, Refusal(
             "reread",
@@ -591,9 +612,31 @@ def _holds_prose(paragraph: Paragraph) -> bool:
     return any(line.strip() for line in paragraph.raw_lines)
 
 
-def _prose_lines(paragraphs: Iterable[Paragraph]) -> list[str]:
-    """These paragraphs' lines in order, without the blank ones."""
-    return [line for b in paragraphs for line in b.raw_lines if line.strip()]
+def _code_above(page: Page) -> dict[str, int]:
+    """How many code lines stand at or above each place, by cue."""
+    seen = 0
+    above: dict[str, int] = {}
+    for cue in page.cues.reading:
+        seen += Series.of(cue) is Series.ON
+        above[cue] = seen
+    return above
+
+
+def _prose_lines(
+    paragraphs: Iterable[Paragraph], above: dict[str, int]
+) -> list[tuple[int, str]]:
+    """The lines of those paragraphs holding prose, each with its count of code.
+
+    A blank inside a docstring is its text and is kept. Any other blank is space
+    between comment lines, and a drop can cut those runs differently.
+    """
+    return [
+        (above[cue_of(b.address).cue], line)
+        for b in paragraphs
+        if _holds_prose(b)
+        for line in b.raw_lines
+        if line.strip() or b.kind == Kind.DOCSTRING
+    ]
 
 
 def _elsewhere(placed: dict[str, Paragraph], where: str, want: list[str]) -> str:

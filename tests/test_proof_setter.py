@@ -1628,8 +1628,8 @@ def test_text_with_no_paragraph_of_its_own_on_its_lines_is_refused(
     assert refused[0].why.startswith(why)
 
 
-def _draft_written_as(monkeypatch, wrong: str) -> None:
-    """The compositor writes `wrong`, and still reports its own spans."""
+def _draft_written_as(monkeypatch, wrong: str, spans: dict | None = None) -> None:
+    """The compositor writes `wrong`, and reports `spans` if handed any."""
 
     def write(page, into):
         into.parent.mkdir(parents=True, exist_ok=True)
@@ -1637,6 +1637,8 @@ def _draft_written_as(monkeypatch, wrong: str) -> None:
         return into
 
     monkeypatch.setattr(compositor, "draft", write)
+    if spans is not None:
+        monkeypatch.setattr(compositor, "spans", lambda page: spans)
 
 
 @pytest.mark.parametrize(
@@ -1670,6 +1672,112 @@ def test_the_reread_asks_the_file_on_disk_not_the_compositor(
     assert drafted == []
     assert refused[0].step == "reread"
     assert why in refused[0].why
+
+
+@pytest.mark.parametrize(
+    ("name", "text", "wrong"),
+    [
+        (
+            "m.js",
+            "// a\nlet x;\n// b\nlet y;\n",
+            "// A\nlet x;\nlet y;\n// b\n",
+        ),
+        (
+            "m.py",
+            "# a\nx = 1\n# b\ny = 2\n",
+            "# A\nx = 1\ny = 2\n# b\n",
+        ),
+        (
+            "m.rs",
+            "// a\nconst X: i32 = 1;\n// b\nconst Y: i32 = 2;\n",
+            "// A\nconst X: i32 = 1;\nconst Y: i32 = 2;\n// b\n",
+        ),
+    ],
+    ids=["js", "py", "rs"],
+)
+def test_an_unedited_comment_moved_across_a_code_line_is_refused(
+    tmp_path, monkeypatch, name, text, wrong
+):
+    upper = wrong.splitlines()[0]
+    alteration = {_at(text, name, upper.lower()): upper}
+    _draft_written_as(monkeypatch, wrong)
+    drafted, refused = _chain(tmp_path, name, text, alteration)
+    assert drafted == []
+    assert refused[0].step == "reread"
+    assert "the draft reads" in refused[0].why
+
+
+@pytest.mark.parametrize(
+    ("text", "alterations", "wrong", "spans"),
+    [
+        (
+            "// a\nlet x;\n// b\nlet y;\n// c\nlet z; // d\nlet w;\n",
+            {"b1": "// B", "b2": "// C"},
+            "// a\nlet x;\n// C\nlet y;\n// B\nlet z; // d\nlet w;\n",
+            {"b1": (5, 5), "b2": (3, 3)},
+        ),
+        (
+            "function f() {}\nfunction g() {}\n",
+            {"a2": "/** G */"},
+            "/** G */\nfunction f() {}\nfunction g() {}\n",
+            {"a2": (1, 1)},
+        ),
+    ],
+    ids=["two-edits-swapped", "set-on-the-wrong-declaration"],
+)
+def test_text_where_the_spans_say_is_refused_if_that_is_not_its_place(
+    tmp_path, monkeypatch, text, alterations, wrong, spans
+):
+    # Draft and spans agree, so only the count of code lines above can object.
+    _draft_written_as(monkeypatch, wrong, spans)
+    drafted, refused = _chain(tmp_path, "m.js", text, alterations)
+    assert drafted == []
+    assert refused[0].step == "reread"
+    assert "code lines in the draft" in refused[0].why
+
+
+@pytest.mark.parametrize(
+    "wrong",
+    [
+        '# TOP\n"""Head.\n    Body.\n    """\nx = 1\n',
+        '# TOP\n"""Head.\n\n\n    Body.\n    """\nx = 1\n',
+    ],
+    ids=["removed", "added"],
+)
+def test_a_blank_changed_inside_an_unedited_docstring_is_refused(
+    tmp_path, monkeypatch, wrong
+):
+    text = '# top\n"""Head.\n\n    Body.\n    """\nx = 1\n'
+    alteration = {_at(text, "m.py", "# top"): "# TOP"}
+    _draft_written_as(monkeypatch, wrong)
+    drafted, refused = _chain(tmp_path, "m.py", text, alteration)
+    assert drafted == []
+    assert refused[0].step == "reread"
+    assert "the draft reads" in refused[0].why
+
+
+@pytest.mark.parametrize(
+    ("name", "text", "alterations"),
+    [
+        (
+            "m.js",
+            "/** D */\nlet x;\n\n/** A */\n\n// b\n\n// c\nlet y;\n",
+            {"a1": None},
+        ),
+        (
+            "m.py",
+            '#!/usr/bin/env python\n"""M."""\n\n# note\n\n# more\nx = 1\n',
+            {"a0": None},
+        ),
+    ],
+    ids=["js", "py"],
+)
+def test_a_drop_beside_blank_separated_comments_is_accepted(
+    tmp_path, name, text, alterations
+):
+    drafted, refused = _chain(tmp_path, name, text, alterations)
+    assert refused == []
+    assert drafted
 
 
 @pytest.mark.parametrize(
