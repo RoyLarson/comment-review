@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 76 of 177 TODO tasks closed
+Progress: 81 of 182 TODO tasks closed
 Plan-tasks: 40 of 53 plan tasks closed
 Owner:    backend
 Requires-Roy: false
@@ -39,6 +39,7 @@ interfaces, inputs and checks, without internal development files or history.
       gates
 - [ ] T2 | Preserve literal whitespace in prove_unchanged.py:191-207; verify
       blank-line and trailing-space edits change the fingerprint
+- [ ] T7 | Prove a lexical file that has no line of code
 
 ### B - [smoke-fixture-defects](../../TODO/smoke-fixture-defects.md)
 
@@ -209,6 +210,9 @@ interfaces, inputs and checks, without internal development files or history.
       the column computes it.
 - [x] T49 | MOVED to 2026-10-22-lexer-rust | State Rust's inner doc openers in
       Rust's own definition file
+- [ ] T53 | Make every comment above a module docstring front matter, per #240
+- [ ] T51 | Make Python decorators and Rust attributes one unit with their item
+- [ ] T56 | Offer no place inside a string literal that spans lines
 
 ### H - [a-doc-comment-is-cued-a-and-typed-b](../../TODO/a-doc-comment-is-cued-a-and-typed-b.md)
 
@@ -293,6 +297,7 @@ interfaces, inputs and checks, without internal development files or history.
 - [ ] T2 | T2 -- Read with `utf-8-sig` at `census.py:177`, which feeds
       `ast.parse`. Verify: a BOM'd `.py` censuses its module docstring, not one
       `unparsed` paragraph.
+- [ ] T5 | Write the byte-order mark ahead of f0, a0 or b0 when the head is set
 
 ### O - [census-degrades-silently](../../TODO/census-degrades-silently.md)
 
@@ -586,7 +591,7 @@ interfaces, inputs and checks, without internal development files or history.
 - [ ] T1 | Exclude generated and preprocessed output from review targets; verify
       the task instructions select maintained source
 
-### AQ - [a-reader-finds-prose-only](../../TODO/a-reader-finds-prose-only.md)
+### AQ - [a-reader-finds-prose-only](../../TODO/completed/a-reader-finds-prose-only.md)
 
 - [x] T1 | MOVED to 2026-10-25-reader-hands-prose-only | Derive Paragraph.text
       in one place for every reader
@@ -595,20 +600,20 @@ interfaces, inputs and checks, without internal development files or history.
 - [x] T3 | List each Paragraph, Page or Addresser duty a reader still performs
 - [-] T4 | MOVED to 2026-10-25-reader-hands-prose-only | Derive each line's code
       in the page for every reader
-- [ ] T5 | MOVED to 2026-10-25-reader-hands-prose-only | Give a Python docstring
+- [x] T5 | MOVED to 2026-10-25-reader-hands-prose-only | Give a Python docstring
       paragraph its whole source lines
-- [ ] T6 | MOVED to 2026-10-25-reader-hands-prose-only | Delete the
+- [x] T6 | MOVED to 2026-10-25-reader-hands-prose-only | Delete the
       continues-a-trailing-comment stamp from lexer.py
 - [x] T7 | Decide whether matter is a kind a reader assigns or a page place
-- [ ] T8 | MOVED to 2026-10-25-reader-hands-prose-only | Move the front and back
+- [x] T8 | MOVED to 2026-10-25-reader-hands-prose-only | Move the front and back
       matter rule to one shared place
 - [-] T9 | Move the one-paragraph-per-place rule from the Rust reader to the
       page
 - [-] T10 | Move the Rust reader's a-place capacity rules to the page
 - [-] T11 | Carry detached documentation as one fact instead of two
-- [ ] T12 | MOVED to 2026-10-25-reader-hands-prose-only | Replace the Rust
+- [x] T12 | MOVED to 2026-10-25-reader-hands-prose-only | Replace the Rust
       reader's _Lines with the shared line splitter
-- [ ] T13 | MOVED to 2026-10-25-reader-hands-prose-only | Stop the page changing
+- [x] T13 | MOVED to 2026-10-25-reader-hands-prose-only | Stop the page changing
       a reader's matter kind to comment
 - [x] T14 | MOVED to 2026-10-25-reader-hands-prose-only | Form one comment
       section per gap in the Rust reader
