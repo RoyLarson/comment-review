@@ -555,9 +555,9 @@ def _reread(
     )
     landed: list[Paragraph] = []
     for where, replacement in edits.items():
-        want = constants.text_lines(replacement or "")
-        if not any(line.strip() for line in want):
+        if replacement is None:
             continue
+        want = constants.text_lines(replacement)
         first, last = written[where]
         on_those_lines = [b for b in read if b.start <= last and first <= b.end]
         if [(b.start, b.end, b.raw_lines) for b in on_those_lines] != [

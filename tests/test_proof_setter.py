@@ -1672,6 +1672,23 @@ def test_the_reread_asks_the_file_on_disk_not_the_compositor(
     assert why in refused[0].why
 
 
+@pytest.mark.parametrize(
+    ("name", "text", "alterations"),
+    [
+        ("m.js", "/** F */\nfunction f() {}\n", {"a1": "   "}),
+        ("m.js", "let x;\n// a\nlet y;\n", {"b1": "\n\n"}),
+        ("m.py", 'def f():\n    """D."""\n    return 1\n', {"a1": "    "}),
+        ("m.js", "function f() {}\n", {"a0": "   "}),
+        ("m.js", "let x; // m\n", {"c0": "   "}),
+    ],
+    ids=["doc", "comment", "docstring", "empty-place", "margin"],
+)
+def test_white_space_is_not_a_way_to_spell_a_drop(tmp_path, name, text, alterations):
+    drafted, refused = _chain(tmp_path, name, text, alterations)
+    assert drafted == []
+    assert refused[0].step == "reread"
+
+
 def test_a_directory_THAT_WAS_THERE_BEFORE_the_run_survives_it(tmp_path, monkeypatch):
     """IMPORTANT, measured 2026-08-25: `_discard` walked up `rmdir`-ing ANY
     empty directory under `into`, so a `<into>/pkg` that existed before the run
