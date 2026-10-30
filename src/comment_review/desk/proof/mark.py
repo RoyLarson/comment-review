@@ -142,8 +142,8 @@ class Mark:
         address: `path@cue`. WHICH PLACE -- seeded, copied from the row, never
             built. Empty only on a `clean`, the one type `substantive` is False
             for.
-        anchor: the line of code the place sits on -- seeded, and empty where
-            the gather resolved none.
+        anchor: a line of code, or every line of a unit -- seeded, and empty
+            where the gather resolved none.
         raw_text: the paragraph as it stands -- seeded -- or, on the types the
             marks table says carry their own, the paragraph as it will read.
             ! CARRIED, NEVER TRUSTED AS THE BASE: the page's text at the
@@ -686,7 +686,7 @@ class BlankMark:
 
     Attributes:
         address: `path@cue`, composed by `reading.addresser.address_for`.
-        anchor: the line of code the place sits on, or "".
+        anchor: a line of code, or every line of a unit, or "".
         raw_text: the paragraph as it stands.
     """
 
@@ -871,9 +871,9 @@ def _change_problems(
     A `change` that is absent or not a string -- a line array among them -- is
     refused with the one message that names what is owed: the paragraph as
     RAW TEXT. An empty string is the edit only where `may_empty`; whitespace
-    alone is never content. A `change` holding a line equal to the mark's
-    `anchor`, whitespace aside, is refused: the anchor is the line of code the
-    place sits on, and a change is the paragraph alone.
+    alone is never content. A `change` holding a line equal to a line of the
+    mark's `anchor`, whitespace aside, is refused: the anchor is a line of code,
+    or every line of a unit, and a change is the paragraph alone.
     """
     if change is None:
         return [
@@ -882,11 +882,14 @@ def _change_problems(
         ]
     if not filled(change) and not may_empty:
         return [f"{where}: {instruction} needs `change` to hold the new text"]
-    if filled(anchor) and anchor.strip() in (
-        line.strip() for line in change.splitlines()
-    ):
+    anchored = {line.strip() for line in anchor.splitlines() if filled(line)}
+    carried = next(
+        (line.strip() for line in change.splitlines() if line.strip() in anchored),
+        None,
+    )
+    if carried is not None:
         return [
             f"{where}: {instruction}'s `change` carries the anchor's own line of "
-            f"code, {anchor.strip()!r} -- `change` is the paragraph alone"
+            f"code, {carried!r} -- `change` is the paragraph alone"
         ]
     return []

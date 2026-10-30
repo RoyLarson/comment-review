@@ -132,7 +132,7 @@ class CodeLine(NamedTuple):
 
     #: The 1-based source line.
     line: int
-    #: The line's code with trailing whitespace removed: what an anchor is.
+    #: The line's code with trailing whitespace removed: what a `c`'s anchor is.
     code: str
     #: Set when this line declares something documentable.
     documents: DocPlace | None
@@ -279,7 +279,10 @@ class SourceStructure:
         return self._coordinates.line_span(line)
 
     def declaring_line(self, declaration: SourceDeclaration) -> int:
-        """The code line that declares this: the line a doc's `anchor_line` names."""
+        """The code line that declares this.
+
+        It is the line a doc's `anchor_line` names where a unit is one line.
+        """
         return self.position(declaration.anchor).line
 
     def slice(self, span: SourceSpan) -> str:

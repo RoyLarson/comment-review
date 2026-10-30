@@ -68,11 +68,11 @@ class Paragraph:
     # an anchor has MANY addresses -- its own `a`, the `b` above it, the `c`
     # beside it, every `b` and `c` in its body -- and an address has ONE anchor.
     #
-    # !! IT IS ALWAYS THE LINE OF CODE, VERBATIM -- never a name, and never a
-    # symbol. An `a` carries the line that DECLARES it, `def f():` and not `f`;
-    # see `_anchor_of`.
+    # !! IT IS ALWAYS CODE, VERBATIM -- a line of code, or every line of a unit,
+    # never a name and never a symbol. An `a` carries what DECLARES it,
+    # `def f():` and not `f`; see `_anchor_of`.
     anchor: str = ""
-    # !! THE LINE THIS PLACE'S ANCHOR SITS ON, so an anchor's OTHER places can
+    # !! THE LINE THIS PLACE'S ANCHOR OPENS ON, so an anchor's OTHER places can
     # be found: the `c` beside its `def`, the `b` above it, its own `a`. Without
     # it a consumer has to infer the line from the prose's position, which is
     # exactly the inference that breaks on the next language -- Rust's doc sits
@@ -126,8 +126,8 @@ class Paragraph:
 
     # !! THE PARAGRAPH'S OWN CHARACTERS, EXACTLY AS THE FILE HOLDS THEM -- its
     # lines whole where it owns them, and from the end of the code onward on
-    # the first line where code comes first. With `anchor` holding that code,
-    # the two RECONSTRUCT the line: `anchor + raw_lines[0]` is what is on disk.
+    # the first line where code comes first. A `c`'s `anchor` holds that code,
+    # so the two RECONSTRUCT the line: `anchor + raw_lines[0]` is what is on disk.
     #
     # !! SO THE CUT IS RECORDED IN THE LINES THEMSELVES, NOT IN A FIELD.
     # Whether a paragraph sits beside code is what its series answers.

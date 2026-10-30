@@ -235,7 +235,7 @@ LEAD = Series.LEAD.value.letter
 #: !! IT FAILED THE SUBSTITUTION THE OTHER FOUR SATISFY. Roy: *"it has no
 #: anchor, and so by the LSR -- any child class has to be able to answer its
 #: parent class's answers as well, correctly -- it breaks that rule."* `places`
-#: is `cue -> the line of code it is attached to`; `a0` and every `f` answer
+#: is `cue -> the code it is attached to`; `a0` and every `f` answer
 #: `<module>`, every `b` and `c` answer a line, and a `d` answered `""`. That is
 #: the absence of an answer, not a different one, so a consumer could not use a
 #: `d` where it expected a place.
@@ -315,7 +315,7 @@ def triggers(code: list[int]) -> list[int | str]:
 class Addresser:
     """One series' counter, and every place it emitted.
 
-    !! IT HOLDS BOTH HALVES. A cue and the line of code it is attached to are one
+    !! IT HOLDS BOTH HALVES. A cue and the code it is attached to are one
     fact, so they are stated by ONE STEP of `cue` -- not computed here and
     decorated on later, which is what lets an anchor disagree with its address.
 
@@ -387,7 +387,7 @@ class Addresser:
 
 @dataclass
 class Cues:
-    """Every place in one file, and the line of code each is attached to.
+    """Every place in one file, and the code each is attached to.
 
     !! IT ANSWERS BOTH DIRECTIONS, which is why it is one object. `cue`
     assigns them; these read them back -- *which address does this line
@@ -463,7 +463,7 @@ class Cues:
 
     @property
     def places(self) -> dict[str, str]:
-        """Every place in the file -> the line of code it is attached to.
+        """Every place in the file -> a line of code, or every line of a unit.
 
         ! DERIVED FROM THE ADDRESSERS, in `SERIES` order. It was a field `cue`
         assigned by flattening the walkers on its last line, which is what made
@@ -481,7 +481,7 @@ class Cues:
         }
 
     def anchor_of(self, cue: str, default: str = "") -> str:
-        """The line of code this place is attached to; `default` if no such place.
+        """This place's line of code, or every line of its unit; else `default`.
 
         !! ONE LOOKUP, NOT A REBUILT DICT. `places` composes the walkers into a
         fresh mapping on every read, so asking it for ONE place inside a loop is
@@ -597,7 +597,8 @@ class Cues:
 
             b   the gap a paragraph inserting at `line` falls into
             c   the room beside `line`, if it holds code
-            a   the documentation of a declaration OPENING on `line`
+            a   the documentation of a declaration on `line`, or of the
+                unit `line` is a line of
             f   both of the file's own places -- no line tells the head from
                 the foot, so the caller chooses by address
 
@@ -627,7 +628,7 @@ class Cues:
         return []
 
     def anchor_line(self, cue: str) -> int | None:
-        """The LINE the anchor of this place sits on. None when it has none.
+        """The LINE this place's anchor opens on. None when it has none.
 
         !! IT IS THE LINE OF THE TRIGGER THE PLACE FIRED AT, which is one lookup
         and not a table. A `lines` dict held it for an `a` and a `c` alone, and a
@@ -759,7 +760,7 @@ class Cues:
 def cue(
     code: list[CodeLine], a_series: bool = True, closing_docstring: bool = True
 ) -> Cues:
-    """Walk the anchors of one file; return every cue and its line of code.
+    """Walk the anchors of one file; return every cue and its code.
 
     !! `cue` IS WHAT MAKES EVERY PLACE EXIST. A place is emitted because
     `cue` reached its trigger, not because prose was found sitting there -- which

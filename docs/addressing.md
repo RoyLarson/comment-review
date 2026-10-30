@@ -96,13 +96,15 @@ not matter that Python's sits after its `def` and Rust's `///` before its `fn`. 
 
 !! **AN ANCHOR HAS MANY ADDRESSES. AN ADDRESS HAS ONE ANCHOR.** Roy, 2026-08-19:
 *"a, b, c are the address -- each has an anchor. An anchor can be tied to multiple
-addresses ... anchors have many, an address has one."* One line of code carries the `b` above it
-and the `c` beside it; one declaration carries those plus its own `a` and every `b` and `c` in
-its body.
+addresses ... anchors have many, an address has one."* One line of code carries the `c` beside
+it, and the `b` above it unless it joins a unit, which has one `b` and one `a` over all its lines
+while each line keeps its `c`. One declaration carries those plus its own `a` and every `b` and
+`c` in its body.
 
 !! **THE ANCHOR IS THE LINE OF CODE -- the exact characters.** Roy, the same day: *"the anchor
 isn't the technical symbols and their precise semantic meaning and code use. It is 'the line of
-code' -- the exact characters in that line of code."*
+code' -- the exact characters in that line of code."* An `a` and a `b` over a unit carry every
+line of it: a line of code, or every line of a unit, one per line.
 
 **So it needs no parser, no language server and no build tool.** Every tier already finds where a
 comment opens in order to cut there, which means it already holds the characters before it. Roy:
@@ -111,8 +113,8 @@ is broken."*
 
 | series | its anchor is |
 | --- | --- |
-| `a` | the LINE that declares it -- `def f():`, not `f`. The name is not carried: Roy, 2026-08-19, *"drop it -- the line is the anchor"* |
-| `b` | the code line BELOW the gap -- the statement the prose introduces. At the end of a file, the line above, because that is the bound the gap has |
+| `a` | the LINE that declares it, or every line of its unit -- `def f():`, not `f`. The name is not carried: Roy, 2026-08-19, *"drop it -- the line is the anchor"* |
+| `b` | the code line BELOW the gap, or every line of the unit there -- the statement the prose introduces. At the end of a file, the line above, because that is the bound the gap has |
 | `c` | the code on its own line, which is `line[:original_column - 1]` |
 
 !! **A RECORD WITH NO ANCHOR IS A BROKEN RECORD** -- Roy -- and `record.seeded_problems` says so.
@@ -124,7 +126,7 @@ it.
 at either tier"* as a statement of intent, and `test_record.py` asserted which KEYS are seeded
 rather than that either held a value. The two agreed with each other and agreed on nothing.
 
-! **A `b` copies its anchor from that line's `c`, never re-cutting the line.** Every code line has
+! **A `b` copies its anchor from the `c` of each line it covers, never re-cutting one.** Every code line has
 exactly one `c` and it already states where the code stops. Cutting again answered
 `'    return os  # why'` where the `c` for the same line answered `'    return os'` -- two
 computations of one fact, which is what `whole_lines` was removed for.
@@ -150,8 +152,9 @@ A line NUMBER names one trigger, so `addresser --line` answers one place per ser
 `f`, whose two places no line tells apart; there it prints both and the CALLER chooses by
 address. Taking the first rules on the wrong end of the file.
 
-! **An anchor has ONE spelling: the line of code.** A declaration's `a`, the `b` above it and the
-`c` beside it all carry `def f():`. The NAME is not carried at all.
+! **An anchor has ONE spelling: a line of code, or every line of a unit.** A declaration's `a`,
+the `b` above it and the `c` beside it all carry `def f():`. Over a unit the `a` and `b` carry
+all its lines and each `c` its own. The NAME is not carried at all.
 
 
 !! **A MODULE IS THE ONE ADDRESS WITH NO LINE OF CODE.** In Python it keeps `<module>` -- the name
