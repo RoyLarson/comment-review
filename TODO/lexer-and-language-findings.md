@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 23 of 59 tasks closed
+Progress: 23 of 62 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (/simplify rounds 1 and 2 and /code-review high round 3,
@@ -364,3 +364,8 @@ would.
         > 2026-10-30 W2: refused in TS Go Ruby Lua Kotlin C# Swift
 - [ ] T59 | Read a delimited comment after a string-only prefix as trailing
         > 2026-10-30 I1: lexer.py:1037; "b" /* c */ becomes prose, file unprovable
+- [ ] T60 | Refuse a line separator inside a comment that ends at the line break
+- [ ] T61 | Refuse a C comment ending in a backslash splice
+        > 2026-10-30 C/C++ '// a \' splices the next code line; not compiled here
+- [ ] T62 | Name the shebang on the shell row
+        > 2026-10-30 language.py:434: a shebang can be dropped or altered in .sh
