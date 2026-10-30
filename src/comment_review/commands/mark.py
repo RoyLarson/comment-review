@@ -34,8 +34,8 @@ line read out of the checkout by the flow.
 
 ! `--anchor-line` IS NOT `--anchor`. The first is the code a slot CREATED here
 sits on, a line or every line of a unit -- an `add` at an empty place, which
-the binder does not carry -- as the addresser printed it. The second is `add`'s claim key: the
-anchor NAMED in backticks.
+the binder does not carry -- as the addresser printed it. The second is `add`'s
+claim key: the anchor NAMED in backticks.
 
 `--change` is the text that moves or arrives and `--raw-text` is the
 paragraph it lands in -- `decision-log.md Process: #172`, `#175` and `#176`.
