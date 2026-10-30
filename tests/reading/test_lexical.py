@@ -45,6 +45,11 @@ def test_the_run_above_a_declaration_documents_its_declaring_line():
     ]
 
 
+def test_a_plain_run_opening_the_file_over_a_declaration_documents_it_not_the_file():
+    found = read("m.js", "// c\nfunction f() {}\n").paragraphs(Path("m.js"))
+    assert [(p.start, p.kind, p.anchor_line) for p in found] == [(1, Kind.DOCSTRING, 2)]
+
+
 def test_a_doc_run_that_documents_no_declaration_is_a_comment():
     # `/** two */` is held off `function f` by code, so it documents nothing.
     text = "/** one */\nfunction f() {}\nlet x = 1;\n/** two */\nlet y = 2;\n"
