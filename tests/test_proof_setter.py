@@ -1568,9 +1568,21 @@ def test_roys_chain_ends_byte_identical_to_the_first_draft(tmp_path, written, th
     ("name", "text", "words", "alteration", "expected"),
     [
         ("m.js", "", "", {"a0": "// A note."}, "// A note."),
-        ("m.js", "// licence\n", "", {"a1": "/** End. */"}, None),
+        (
+            "m.js",
+            "// licence\n",
+            "",
+            {"a1": "/** End. */"},
+            "// licence\n/** End. */\n",
+        ),
         ("m.js", "// a tpyo\n", "// a tpyo", {"": "// a typo"}, "// a typo\n"),
-        ("m.h", "/** Teh doc. */\n", "/** Teh doc. */", {"": "/** The doc. */"}, None),
+        (
+            "m.h",
+            "/** Teh doc. */\n",
+            "/** Teh doc. */",
+            {"": "/** The doc. */"},
+            "/** The doc. */\n",
+        ),
     ],
     ids=["blank-gets-a-comment", "eof-a", "typo-fixed", "header-of-docs"],
 )
@@ -1583,8 +1595,14 @@ def test_a_file_with_no_code_line_takes_a_comment_change(
     }
     drafted, refused = _chain(tmp_path, name, text, alterations)
     assert refused == []
-    if expected is not None:
-        assert drafted[0].draft.read_text(encoding="utf-8") == expected
+    assert drafted[0].draft.read_bytes().decode("utf-8") == expected
+
+
+def test_the_eof_a_filled_with_no_code_reads_back_as_a0(tmp_path):
+    drafted, refused = _chain(tmp_path, "m.js", "// licence\n", {"a1": "/** End. */"})
+    assert refused == []
+    read = drafted[0].draft.read_bytes().decode("utf-8")
+    assert _at(read, "m.js", "/** End. */") == "a0"
 
 
 @pytest.mark.parametrize(
