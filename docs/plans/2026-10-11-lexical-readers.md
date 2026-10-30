@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 81 of 182 TODO tasks closed
+Progress: 82 of 182 TODO tasks closed
 Plan-tasks: 40 of 53 plan tasks closed
 Owner:    backend
 Requires-Roy: false
@@ -39,7 +39,8 @@ interfaces, inputs and checks, without internal development files or history.
       gates
 - [ ] T2 | Preserve literal whitespace in prove_unchanged.py:191-207; verify
       blank-line and trailing-space edits change the fingerprint
-- [ ] T7 | Prove a lexical file that has no line of code
+- [ ] T7 | MOVED to 2026-10-25-reader-hands-prose-only | Prove a lexical file
+      that has no line of code
 
 ### B - [smoke-fixture-defects](../../TODO/smoke-fixture-defects.md)
 
@@ -210,7 +211,7 @@ interfaces, inputs and checks, without internal development files or history.
       the column computes it.
 - [x] T49 | MOVED to 2026-10-22-lexer-rust | State Rust's inner doc openers in
       Rust's own definition file
-- [ ] T53 | MOVED to 2026-10-25-reader-hands-prose-only | Make every comment
+- [x] T53 | MOVED to 2026-10-25-reader-hands-prose-only | Make every comment
       above a module docstring front matter, per #240
 - [ ] T51 | Make Python decorators and Rust attributes one unit with their item
 - [ ] T56 | Offer no place inside a string literal that spans lines

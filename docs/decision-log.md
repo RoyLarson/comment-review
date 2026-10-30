@@ -5886,3 +5886,15 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   is the draft written at the first step (Roy, the same day: *"We mean to the draft after writing
   the first a1"*): the move ends byte-identical to that draft, not to the file before the add.
 
+- **#248.** **A no-code file proves only under a language row; documents keep their own chain**
+  (Roy, 2026-10-30, on proving a file with no code line: *"this is super important ... We need to
+  be super careful in how we do this because all of the text files fall into this and we do want
+  to be able to update them, *.md, *.rst, *.txt, the various html templates probably, i am
+  certain I am missing a pile here"*; on narrowing it: *"Yes"*).
+
+  **What it settles.** A file in a language with a row proves unchanged with no code line when
+  the reader finds none on either side and neither side holds an unterminated comment: the row
+  says what code is. A path with no row stays unprovable. Documents come through their own chain;
+  fenced code, front matter, directives and template tags are what a document reader must protect,
+  and #247's three questions are the proposed proof there.
+

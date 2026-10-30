@@ -40,6 +40,9 @@ into, not a replacement for either of them.
 - [ ] T1 | Implement a read, editorial review, resolution and write chain for
       non-code documents. Verify: a document reaches a role, a finding
       round-trips to approval, and the file sets back changed
+        > 2026-10-30 #247's three questions are the proposed proof (#248)
+        > 2026-10-30 Protect fenced code, front matter, directives, template tags
+        > 2026-10-30 Scope owed: md rst txt html, also tex adoc org ipynb, jinja, others
 - [ ] T2 | Wire the document chain into the code one, so one run changes both.
       Verify: a run touching a code file and a cited document proposes and
       applies changes to each
