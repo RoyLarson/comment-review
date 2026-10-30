@@ -1603,6 +1603,24 @@ def test_a_replacement_cannot_carry_a_stated_line_ending(tmp_path, name, text, w
     assert "U+2028" in refused[0].why
 
 
+@pytest.mark.parametrize(
+    ("name", "text", "where"),
+    [
+        ("m.js", "/* x\n\n   y */\n/** D */\nfunction f() {}\n", "a1"),
+        ("m.ts", "/* x\n\n   y */\n/** D */\nfunction f() {}\n", "a1"),
+        ("m.go", "/* x\n\n   y */\n\n// d\nfunc f() {}\n", "a1"),
+        ("m.js", "/** a */\n/** b\n\n    c */\n/** d */\nfunction f() {}\n", "a0"),
+        ("m.java", "/** a */\n/** b\n\n    c */\n/** d */\nclass C {}\n", "a1"),
+    ],
+    ids=["js", "ts", "go", "doc-js", "doc-java"],
+)
+def test_a_drop_can_turn_a_neighbour_into_documentation(tmp_path, name, text, where):
+    # The neighbour's kind changes between page and draft, and its text does not.
+    drafted, refused = _chain(tmp_path, name, text, {where: None})
+    assert refused == []
+    assert drafted
+
+
 @pytest.mark.parametrize("name", ["m.sh", "m.bash", "m.zsh", "m.rb"])
 @pytest.mark.parametrize(
     ("before", "after"),

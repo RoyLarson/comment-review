@@ -56,6 +56,7 @@ from comment_review.machine.repo import Source, can_escape, sha_of, undraftable
 from comment_review.reading.addresser import MODULE, address_for, cue_of
 from comment_review.reading.context import ReadingContext
 from comment_review.reading.diagnostics import ReadFailure
+from comment_review.reading.language import documents_in_literals
 from comment_review.reading.paragraph import Paragraph
 from comment_review.reading.proof import UNIDENTIFIED_OWNER
 from comment_review.reading.series import Kind, Series
@@ -631,15 +632,18 @@ def _prose_lines(
 ) -> list[tuple[int, str]]:
     """The lines of those paragraphs holding prose, each with its count of code.
 
-    A blank inside a docstring is its text and is kept. Any other blank is space
-    between comment lines, and a drop can cut those runs differently.
+    A blank inside a string a language documents with is that string's value and
+    is kept. A blank in a comment is not compared: a drop can re-cut comment runs
+    or turn a comment into documentation, so the same blank can stand inside a
+    paragraph on one side and between two on the other.
     """
     return [
         (above[cue_of(b.address).cue], line)
         for b in paragraphs
         if _holds_prose(b)
         for line in b.raw_lines
-        if line.strip() or b.kind == Kind.DOCSTRING
+        if line.strip()
+        or (b.kind == Kind.DOCSTRING and documents_in_literals(Path(b.path)))
     ]
 
 
