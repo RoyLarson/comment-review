@@ -1603,6 +1603,31 @@ def test_a_replacement_cannot_carry_a_stated_line_ending(tmp_path, name, text, w
     assert "U+2028" in refused[0].why
 
 
+@pytest.mark.parametrize("name", ["m.sh", "m.bash", "m.zsh", "m.rb"])
+@pytest.mark.parametrize(
+    ("before", "after"),
+    [
+        ("#!/bin/sh\n# a\n", "#!/bin/rm\n# a\n"),
+        ("#!/bin/sh\n# a\n", "# a\n"),
+        ("# a\n", "#!/bin/rm\n# a\n"),
+    ],
+    ids=["changed", "removed", "added"],
+)
+def test_the_interpreter_line_is_protected(name, before, after):
+    refused = proof_setter._prove(name, before, after, Path(name))
+    assert refused is not None
+    assert refused.step == "prove"
+    assert "protected-source-changed" in refused.why
+
+
+@pytest.mark.parametrize("name", ["m.sh", "m.rb"])
+def test_dropping_the_matter_cannot_take_the_interpreter_line(tmp_path, name):
+    text = "#!/bin/sh\n# lic\n\nx=1\n"
+    drafted, refused = _chain(tmp_path, name, text, {"f0": None})
+    assert drafted == []
+    assert refused
+
+
 class TestAnEmptyPackageInit:
     """An empty `__init__.py`, the no-code file Python reads and proves itself."""
 

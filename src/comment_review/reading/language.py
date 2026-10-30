@@ -64,10 +64,12 @@ class Language:
         doc_inside: the documentation is the first thing INSIDE the body, not
             the run ABOVE the declaration. No row sets it: the language that
             documents this way, Python, states it in its own definition file.
-        shebang: what line 1 opens with when it is an interpreter line the
-            language does not read as a comment (`#!`). The line is the file's own
-            matter, and the matter rule opens on the line below it. Empty
-            where the language has none, or reads it as a comment.
+        shebang: what line 1 opens with when it is an interpreter line (`#!`),
+            which runs the file whether or not the language reads it as a
+            comment. The line is the file's own matter, the matter rule opens on
+            the line below it, and the comparison holds it exactly. Empty where
+            the language has none, or where the row reads the line as code, so
+            the comparison already holds it.
         annotations: what a line of code opens with when it is an annotation,
             attribute or decorator, which belongs to the declaration below it
             (Java `@Override`, C# `[Serializable]`). The run above such lines
@@ -448,6 +450,9 @@ LANGUAGES: tuple[Language, ...] = (
         (".rb",),
         ("#",),
         (("=begin", "=end"),),
+        # ! `ruby` reads `#!` on line 1 for its switches, and the kernel reads it
+        # to run the file, though the grammar makes it a comment.
+        shebang=("#!",),
         declares=("def", "class", "module"),
         # ! A HEREDOC CROSSES LINES BY DEFINITION. Declared so a file holding
         # one is refused rather than having a line inside it stripped as a
@@ -462,6 +467,9 @@ LANGUAGES: tuple[Language, ...] = (
         "shell",
         (".sh", ".bash", ".zsh"),
         ("#",),
+        # ! The kernel reads `#!` on line 1 to choose the program that runs the
+        # file, though the shell's grammar makes it a comment.
+        shebang=("#!",),
         declares=("function",),
         # ! A HEREDOC CROSSES LINES, and in shell `<<` is one almost always -- the
         # only other reading is an arithmetic left shift inside `$(( ))`. A `#`
