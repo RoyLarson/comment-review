@@ -16,7 +16,7 @@ from conftest import REPLACEMENT, SAMPLE, build, by_cue, cue
 from helpers import FORMS
 
 from comment_review import exceptions
-from comment_review.results import compositor
+from comment_review.results import compositor, galley
 from comment_review.results.compositor import line_endings, set_page
 
 
@@ -261,6 +261,34 @@ def test_no_line_is_invented_or_lost(name, text):
     """A weaker check than the identity, and it isolates the failure: a
     mismatch here is a COUNT problem rather than a content one."""
     assert len(set_page(build(text, name)).splitlines()) == len(text.splitlines())
+
+
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        ("// a\nlet x;\n\n// b\n// c\nlet y; // d\n", {"b1": (4, 5), "c1": (6, 6)}),
+        ("/* f\n */\nlet x;\n", {"f0": (1, 2)}),
+        ("", {}),
+    ],
+    ids=["gap-and-margin", "matter", "empty"],
+)
+def test_spans_name_the_lines_each_place_is_set_on(text, expected):
+    page = build(text, "m.js")
+    spans = compositor.spans(page)
+    assert {c: spans[c] for c in expected} == expected
+    lines = text.splitlines()
+    for first, last in spans.values():
+        assert 1 <= first <= last <= len(lines)
+    assert set_page(page) == text
+
+
+def test_spans_follow_a_place_that_grew():
+    page = build("let w;\n// a\nlet x;\n// b\nlet y;\n", "m.js")
+    gaps = [c for c, b in by_cue(page).items() if b.raw_lines == ["// a"]]
+    below = [c for c, b in by_cue(page).items() if b.raw_lines == ["// b"]]
+    assert compositor.spans(page)[below[0]] == (4, 4)
+    galley.reset(page, {gaps[0]: "// a\n// more"})
+    assert compositor.spans(page)[below[0]] == (5, 5)
 
 
 class TestLineEndings:

@@ -9,7 +9,7 @@
         -> galley          the marks are put on the page
         -> compositor      the page is set as text
         -> draft           a temporary file, never the original
-        -> read it back    each alteration is at the cue it was given
+        -> read it back    each alteration's text landed where it was written
         -> prove           only comments changed
         -> the human
 
@@ -41,7 +41,7 @@ second literal, so a step dropped from the tuple shows up as a diff against
 that pin, not as a call somebody forgot to make.
 """
 
-from collections.abc import Sequence
+from collections.abc import Iterable, Sequence
 from enum import StrEnum, auto
 from pathlib import Path
 from typing import NamedTuple
@@ -53,7 +53,7 @@ from comment_review.flows.page_for import page_of
 from comment_review.flows.read_diagnostics import format_failure
 from comment_review.flows.source import source_of
 from comment_review.machine.repo import Source, can_escape, sha_of, undraftable
-from comment_review.reading.addresser import EOF, MODULE, address_for, cue_of
+from comment_review.reading.addresser import MODULE, address_for, cue_of
 from comment_review.reading.context import ReadingContext
 from comment_review.reading.diagnostics import ReadFailure
 from comment_review.reading.paragraph import Paragraph
@@ -507,7 +507,7 @@ def _reread(
     edits: dict[str, str | None],
     reading: ReadingContext,
 ) -> tuple[Page | None, Refusal | None]:
-    """Read the draft back as a page: is each alteration at the cue it was given?
+    """Read the draft back as a page: did the text land where it was written?
 
     !! IT IS READ FROM DISK, NOT FROM THE PAGE IN HAND. Roy, 2026-08-24: the
     workflow *"Sends that through the page system again to make certain that
@@ -515,14 +515,25 @@ def _reread(
     memory would be agreeing with itself -- the shape `docs/gates.md` records
     the round trip scoring 699 of 699 on.
 
-    A failed page read becomes a reread refusal before any alteration is proved.
-    An alteration that reads back unchanged at its partner place, on the lines
-    it was written to, is at its cue -- see `_partner`.
+    It asks three things of that read, none of them about an address, because
+    an alteration can read back at another place (`decision-log.md Process:
+    #247`):
+    - landed: on the exact lines written for an alteration, the reader finds
+      one paragraph holding exactly that text. The lines come from the
+      compositor; what stands on them comes from the reader.
+    - dropped: the dropped text is gone. Dropped lines still in the draft are
+      lines the page no longer holds, which the third question refuses, and
+      counting lines there is what lets the same words stand elsewhere.
+    - unchanged: every paragraph nobody edited reads back with the same text,
+      in the same order. It is compared by line: a drop can leave two paragraphs
+      touching, and the reader then finds one run holding both.
+
+    A failed page read becomes a reread refusal before any of the three.
 
     Args:
         rel: how the repo names the page this draft was set from.
         target: the draft on disk.
-        page: the page the draft was set from.
+        page: the page the draft was set from, with the alterations on it.
         edits: cue -> replacement text, or None where the place was dropped.
         reading: the saved context used to admit the original page.
 
@@ -538,130 +549,63 @@ def _reread(
         return None, Refusal(
             "reread", rel, f"the draft: {format_failure(draft, path=rel)}"
         )
-    placed = {cue_of(b.address).cue: b for b in draft if b.address}
+    written = compositor.spans(page)
+    read = sorted(
+        (b for b in draft if b.address and _holds_prose(b)), key=lambda b: b.start
+    )
+    landed: list[Paragraph] = []
     for where, replacement in edits.items():
-        got = placed.get(where)
-        if got is None:
+        want = constants.text_lines(replacement or "")
+        if not any(line.strip() for line in want):
+            continue
+        first, last = written[where]
+        on_those_lines = [b for b in read if b.start <= last and first <= b.end]
+        if [(b.start, b.end, b.raw_lines) for b in on_those_lines] != [
+            (first, last, want)
+        ]:
+            placed = {cue_of(b.address).cue: b for b in read}
+            held = [b.raw_lines for b in on_those_lines]
             return None, Refusal(
-                "reread", rel, f"{where}: the draft carries no such place"
+                "reread",
+                rel,
+                f"{where}: on lines {first}-{last} the draft holds {held!r},"
+                f" was given {want!r}{_elsewhere(placed, where, want)}",
             )
-        if replacement is None:
-            # !! A VACATED `c` READS BACK AS `['']`, NOT AS `[]`, so this asked
-            # for a shape no drop can produce. `page.empty_places` stores a
-            # margin's prose as `[lines[n - 1][len(code):]]` -- the room beside
-            # the statement, which is the empty string when nothing sits there
-            # -- while this built `want = []` and compared exactly. MEASURED
-            # 2026-08-25 on `tests/conftest.SAMPLE`: `c0`, `c1` and `c2` each
-            # refused with "holds [''], was given []", so `drop` was
-            # unreachable for the whole `c` series while the galley, the
-            # compositor and the draft on disk were all correct.
-            #
-            # ! WHAT A DROP ASSERTS IS THAT THE PLACE HOLDS NO PROSE, which is
-            # the question asked here. It can still fail: a place that kept its
-            # paragraph reads back with that paragraph's text in it.
-            if any(line.strip() for line in got.raw_lines):
-                return None, Refusal(
-                    "reread",
-                    rel,
-                    f"{where}: was dropped, but the draft holds {got.raw_lines!r}",
-                )
-            continue
-        want = constants.text_lines(replacement)
-        if got.raw_lines == want:
-            continue
-        partner_cue = _partner(page, where, edits)
-        partner = None if partner_cue is None else placed.get(partner_cue)
-        if (
-            partner is not None
-            and partner.raw_lines == want
-            and not any(line.strip() for line in got.raw_lines)
-            and _written_once(draft.text, want) == partner.start
-        ):
-            continue
+        landed.extend(on_those_lines)
+    held_by = {cue_of(b.address).cue: b for b in page if b.address}
+    kept = _prose_lines(
+        held_by[cue] for cue in page.cues.reading if cue in held_by and cue not in edits
+    )
+    came_back = _prose_lines(b for b in read if not any(b is one for one in landed))
+    if came_back != kept:
         return None, Refusal(
             "reread",
             rel,
-            f"{where}: holds {got.raw_lines!r}, was given {want!r}"
-            f"{_elsewhere(placed, where, want)}",
+            f"the draft reads {came_back!r} where nobody edited {kept!r}",
         )
     return draft, None
 
 
-def _partner(page: Page, where: str, edits: dict[str, str | None]) -> str | None:
-    """The other place an alteration at `where` is set against, or None.
-
-    Two places sit on the same lines when one of them is empty:
-    - `a0` and the first declaration's `a`, in a file with code: `a0` filled
-      alone above that declaration reads back as the declaration's;
-    - `a0` and the `<eof>` `a`, in a file with no code line: the `<eof>` `a`
-      filled alone reads back as `a0`.
-
-    Each is a partner only while it holds no prose on the page and no
-    alteration names it.
-    """
-    reading = page.cues.reading
-    declared = [c for c in reading if Series.of(c) is Series.DECLARED]
-    if len(declared) < 2 or where not in (declared[0], declared[1]):
-        return None
-    has_code = any(Series.of(c) is Series.ON for c in reading)
-    if where == declared[0] and has_code:
-        partner = declared[1]
-        if page.cues.anchor_of(partner) == EOF:
-            return None
-    elif where == declared[1] and not has_code:
-        partner = declared[0]
-    else:
-        return None
-    held = next(
-        (b for b in page if b.address and cue_of(b.address).cue == partner), None
-    )
-    if held is None or partner in edits or any(line.strip() for line in held.raw_lines):
-        return None
-    return partner
+def _holds_prose(paragraph: Paragraph) -> bool:
+    """Whether any of this paragraph's lines hold more than white space."""
+    return any(line.strip() for line in paragraph.raw_lines)
 
 
-def _written_once(text: str, want: list[str]) -> int | None:
-    """The line `want` starts on in `text`, or None unless it stands there once."""
-    lines = constants.text_lines(text)
-    at = [
-        n + 1
-        for n in range(len(lines) - len(want) + 1)
-        if lines[n : n + len(want)] == want
-    ]
-    return at[0] if len(at) == 1 else None
+def _prose_lines(paragraphs: Iterable[Paragraph]) -> list[str]:
+    """These paragraphs' lines in order, without the blank ones."""
+    return [line for b in paragraphs for line in b.raw_lines if line.strip()]
 
 
 def _elsewhere(placed: dict[str, Paragraph], where: str, want: list[str]) -> str:
     """Which OTHER place in the draft holds this text, as a trailing clause.
 
-    !! TWO PLACES CAN NAME ONE POSITION, and the refusal above named neither
-    when they disagreed. `addresser.cue` emits the closing gap and the file's
-    back matter at the SAME `<eof>` trigger -- its own comment says so:
-    *"both sentinels are shared -- `a0` with `f0` at the head, the closing gap
-    with `f1` at the foot."* Which of the two a paragraph attaches to is the
-    LEXER's `matter` rule, so an `add` of an ordinary comment at the closing
-    gap is set exactly where it was asked for and read back at `f1`.
-
-    ! MEASURED 2026-08-25 on `tests/conftest.SAMPLE`: `{'m.py@b4': '# ADDED'}`
-    and `{'m.py@f1': '# ADDED'}` compose the SAME bytes, and the second passes
-    the whole chain while the first refused with `b4: holds [], was given
-    ['# ADDED']` -- a message that named neither the collision nor the place
-    that does hold the text.
-
-    ! IT REPORTS; IT DOES NOT ACCEPT. Naming the other place is what makes the
-    refusal actionable. Deciding which of two co-located places owns prose at
-    the foot of a file is a page-model ruling -- see
-    `TODO/foot-of-file-two-places.md` -- and reading the alteration as
-    satisfied because the text is SOMEWHERE would be this step agreeing with
-    the edit step instead of checking it.
-
-    ! IT READS THE TABLE `_reread` ALREADY BUILT, rather than walking the page a
-    second time and recomputing `cue_of` for every paragraph on it. Where
-    several places hold the text it names the first such cue down the page.
+    It reports and does not accept: naming the other place makes a refusal
+    actionable, and text that stands somewhere other than where it was written
+    has not landed.
 
     Args:
-        placed: the draft's paragraphs, by cue, as `_reread` built it.
-        where: the cue whose alteration did not read back.
+        placed: the draft's paragraphs holding prose, by cue.
+        where: the cue whose alteration did not land.
         want: the lines that were asked for there.
 
     Returns:
@@ -683,8 +627,9 @@ def _approved(
 
     Keying each page by cue is safe for the cues read here: a page holds one
     paragraph per address, and by the time this runs every cue in `edits` is
-    held on the page -- `galley.reset` refuses a cue no paragraph holds -- and
-    in the draft, where `_reread` refuses the same shape.
+    held on the page -- `galley.reset` refuses a cue no paragraph holds. A cue
+    the draft does not carry is left out, and the comparison then refuses any
+    docstring change it would have set aside.
 
     Args:
         page: the page the draft was set from. `galley.reset` changes its
@@ -698,7 +643,7 @@ def _approved(
     """
     was = {cue_of(b.address).cue: b for b in page if b.address}
     now = {cue_of(b.address).cue: b for b in draft if b.address}
-    return [(was[where], now[where]) for where in edits]
+    return [(was[where], now[where]) for where in edits if where in now]
 
 
 def _prove(
@@ -716,8 +661,8 @@ def _prove(
     give it. Which docstrings a read may set aside, and how it identifies their
     owners, is the read's: see `reading.proof.SourceRead`.
 
-    `_reread` checks the requested text at each edited cue; this comparison also
-    covers retained source elsewhere in the file. Failed admission, a changed
+    `_reread` checks the prose of the draft; this comparison covers the
+    retained source. Failed admission, a changed
     proof kind, unidentified owners and unprovable comparisons all refuse.
     """
     admitted: list[Page] = []

@@ -94,7 +94,22 @@ def _held(page: Page) -> dict[str, list[str]]:
 
 
 def set_page(page: Page, newline: str | None = None) -> str:
-    """This page, set as the text of a file.
+    """This page, set as the text of a file -- see `_set`."""
+    return _set(page, newline)[0]
+
+
+def spans(page: Page) -> dict[str, tuple[int, int]]:
+    """The lines each place holding prose is set on, by cue, first and last.
+
+    Both ends are inclusive and count from 1. A place that sets no prose has no
+    entry. These say where the text was written and nothing about what a reader
+    finds there, which is `flows.proof_setter._reread`'s question.
+    """
+    return _set(page, None)[1]
+
+
+def _set(page: Page, newline: str | None) -> tuple[str, dict[str, tuple[int, int]]]:
+    """This page as text, with the lines each place holding prose is set on.
 
     !! IT WALKS THE READING ORDER AND ASKS EACH PLACE WHAT IT HOLDS. That is the
     whole algorithm, and it is why an edit needs no arithmetic: a paragraph that
@@ -121,7 +136,7 @@ def set_page(page: Page, newline: str | None = None) -> str:
             text, which is the one fact a paragraph cannot state.
 
     Returns:
-        The file's text.
+        `(the file's text, cue -> (first line, last line))`.
 
     Raises:
         Refused: the page has no places over a file with text -- its source
@@ -130,6 +145,7 @@ def set_page(page: Page, newline: str | None = None) -> str:
     ending = newline if newline is not None else line_endings(page.text)
     held = _held(page)
     out: list[str] = []
+    lines_of: dict[str, tuple[int, int]] = {}
     # !! LEADING IS SET BETWEEN TWO PLACES, NOT AT ONE. It is an edge -- see
     # `Page.leading` -- so the walk hands over a sequence of places and the
     # space between each adjacent pair is looked up as it is reached. An absent
@@ -280,6 +296,8 @@ def set_page(page: Page, newline: str | None = None) -> str:
         if not prose and not beside_code:
             continue
         closing_gap = False
+        if prose:
+            lines_of[cue] = (len(out) + 1, len(out) + len(prose))
         if beside_code:
             # A `c`'s first line is the code and the room together; a comment
             # opened in that room and closed on a later line owns those lines
@@ -314,10 +332,10 @@ def set_page(page: Page, newline: str | None = None) -> str:
         # this whole instrument would come to lie. A model that had lost every
         # line would set the original file back and the identity would pass over
         # the top of it.
-        return ""
+        return "", lines_of
     # A closing-gap insertion needs a physical blank below its prose.
     tail = ending if closing_gap or page.text.endswith(("\n", "\r")) else ""
-    return ending.join(out) + tail
+    return ending.join(out) + tail, lines_of
 
 
 def draft(page: Page, into: Path) -> Path:
