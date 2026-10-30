@@ -38,7 +38,7 @@ def test_each_call_hands_back_a_new_list():
 
 def test_the_run_above_a_declaration_documents_its_declaring_line():
     found = read("m.go", GO).paragraphs(Path("m.go"))
-    assert [(p.start, p.kind, p.anchor_line) for p in found] == [
+    assert [(p.start, p.kind, p.declares_line) for p in found] == [
         (3, Kind.DOCSTRING, 4),
         (4, Kind.TRAILING, None),
         (5, Kind.COMMENT, None),
@@ -47,14 +47,16 @@ def test_the_run_above_a_declaration_documents_its_declaring_line():
 
 def test_a_plain_run_opening_the_file_over_a_declaration_documents_it_not_the_file():
     found = read("m.js", "// c\nfunction f() {}\n").paragraphs(Path("m.js"))
-    assert [(p.start, p.kind, p.anchor_line) for p in found] == [(1, Kind.DOCSTRING, 2)]
+    assert [(p.start, p.kind, p.declares_line) for p in found] == [
+        (1, Kind.DOCSTRING, 2)
+    ]
 
 
 def test_a_doc_run_that_documents_no_declaration_is_a_comment():
     # `/** two */` is held off `function f` by code, so it documents nothing.
     text = "/** one */\nfunction f() {}\nlet x = 1;\n/** two */\nlet y = 2;\n"
     found = read("m.js", text).paragraphs(Path("m.js"))
-    assert [(p.start, p.kind, p.anchor_line) for p in found] == [
+    assert [(p.start, p.kind, p.declares_line) for p in found] == [
         (1, Kind.DOCSTRING, 2),
         (4, Kind.COMMENT, None),
     ]
@@ -191,7 +193,7 @@ def test_a_gap_holding_two_runs_has_one_b(name, text, expected):
     # A group never crosses from one run into the next, so the lower edge's
     # `a` stays inside the last run and `a0` inside the first.
     found = read(name, text).paragraphs(Path(name))
-    got = [(p.start, p.end, p.kind, p.anchor, p.anchor_line) for p in found]
+    got = [(p.start, p.end, p.kind, p.anchor, p.declares_line) for p in found]
     assert [row for row in got if row[2] != Kind.TRAILING] == expected
 
 
@@ -309,7 +311,7 @@ def test_a_gap_is_cut_into_its_a0_its_one_b_and_the_a_at_its_lower_edge(text, ex
     # The run touching the gap's lower edge is that edge's `a`; at the head the
     # doc run opening the file is `a0`; everything else in the gap is one `b`.
     found = read("m.js", text).paragraphs(Path("m.js"))
-    got = [(p.start, p.end, p.kind, p.anchor, p.anchor_line) for p in found]
+    got = [(p.start, p.end, p.kind, p.anchor, p.declares_line) for p in found]
     assert [row for row in got if row[2] != Kind.TRAILING] == expected
 
 
@@ -347,7 +349,7 @@ def test_every_comment_above_a_module_docstring_is_front_matter(text, expected):
     # A lone doc over a declaration is the declaration's, so it has no such
     # comments and a blank line ends the matter.
     found = read("m.js", text).paragraphs(Path("m.js"))
-    assert [(p.start, p.end, p.kind, p.anchor, p.anchor_line) for p in found] == (
+    assert [(p.start, p.end, p.kind, p.anchor, p.declares_line) for p in found] == (
         expected
     )
 
@@ -415,7 +417,7 @@ def test_two_head_doc_comments_over_a_declaration_split_into_a0_and_its_a(
     # declaration is its `a`, and any between are the gap's `b`. A line is not
     # cut, so two doc comments on one line are one.
     found = read(name, text).paragraphs(Path(name))
-    got = [(p.start, p.end, p.kind, p.anchor, p.anchor_line) for p in found]
+    got = [(p.start, p.end, p.kind, p.anchor, p.declares_line) for p in found]
     assert [row for row in got if row[2] != Kind.TRAILING] == expected
 
 
@@ -424,7 +426,7 @@ def test_the_modules_docstring_ends_where_its_opening_doc_group_does():
     # docstring is line 1, and the comment and the doc below it are one `b`.
     text = "/** x */\n// y\n/** w */\n\nval z = 1\n"
     found = read("m.kt", text).paragraphs(Path("m.kt"))
-    assert [(p.start, p.end, p.kind, p.anchor_line) for p in found] == [
+    assert [(p.start, p.end, p.kind, p.declares_line) for p in found] == [
         (1, 1, Kind.DOCSTRING, None),
         (2, 3, Kind.COMMENT, None),
     ]
@@ -432,7 +434,7 @@ def test_the_modules_docstring_ends_where_its_opening_doc_group_does():
 
 def test_an_opening_doc_run_on_line_one_of_c_is_the_modules():
     found = read("m.c", "/** x */\nint y;\n").paragraphs(Path("m.c"))
-    assert [(p.start, p.kind, p.anchor_line) for p in found] == [
+    assert [(p.start, p.kind, p.declares_line) for p in found] == [
         (1, Kind.DOCSTRING, None)
     ]
 
@@ -481,7 +483,7 @@ def test_a_shebang_does_not_document_the_declaration_below_it():
     found = read("m.js", "#!/usr/bin/env node\nfunction f() {}\n").paragraphs(
         Path("m.js")
     )
-    assert [(p.kind, p.anchor_line) for p in found] == [(Kind.MATTER, None)]
+    assert [(p.kind, p.declares_line) for p in found] == [(Kind.MATTER, None)]
 
 
 def test_a_row_without_a_shebang_reads_hash_bang_as_its_language_does():
@@ -626,7 +628,7 @@ def test_a_doc_comment_trailing_code_is_a_trailing_comment(name, text, raw):
     found = lexical.paragraphs(Path(name))
     code = text.split(" /**")[0]
     assert [
-        (p.start, p.end, p.kind, p.anchor, p.anchor_line, p.raw_lines) for p in found
+        (p.start, p.end, p.kind, p.anchor, p.declares_line, p.raw_lines) for p in found
     ] == [(1, len(raw), Kind.TRAILING, code, None, raw)]
     assert lexical.code_lines()[0].line == 1
 
@@ -762,7 +764,7 @@ def test_a_doc_run_above_annotation_lines_documents_the_declaration_below(
 ):
     # The run documents the declaring line, across the annotations above it.
     found = read(name, text).paragraphs(Path(name))
-    assert [(p.start, p.kind, p.anchor_line) for p in found] == [
+    assert [(p.start, p.kind, p.declares_line) for p in found] == [
         (1, Kind.DOCSTRING, line)
     ]
 
@@ -780,7 +782,7 @@ def test_a_doc_run_above_annotation_lines_documents_the_declaration_below(
 )
 def test_a_doc_run_above_an_annotation_on_no_declaration_documents_none(text, expected):
     found = read("m.java", text).paragraphs(Path("m.java"))
-    assert [(p.start, p.kind, p.anchor_line, p.anchor) for p in found] == expected
+    assert [(p.start, p.kind, p.declares_line, p.anchor) for p in found] == expected
 
 
 def test_a_csharp_line_opening_with_a_bracket_is_not_an_annotation():
@@ -789,7 +791,7 @@ def test_a_csharp_line_opening_with_a_bracket_is_not_an_annotation():
     found = read("m.cs", "/// App.\n[Serializable]\nclass App {}\n").paragraphs(
         Path("m.cs")
     )
-    assert [(p.start, p.kind, p.anchor_line) for p in found] == [
+    assert [(p.start, p.kind, p.declares_line) for p in found] == [
         (1, Kind.DOCSTRING, None)
     ]
     csharp = language_for(Path("m.cs"))
@@ -806,7 +808,7 @@ def test_a_csharp_line_opening_with_a_bracket_is_not_an_annotation():
 def test_an_annotation_line_belongs_only_to_a_row_that_names_it():
     # Go names no annotation opener, so `@x` is code the walk stops at.
     found = read("m.go", "// doc\n@x\nfunc F() {}\n").paragraphs(Path("m.go"))
-    assert [(p.start, p.anchor_line) for p in found] == [(1, None)]
+    assert [(p.start, p.declares_line) for p in found] == [(1, None)]
 
 
 @pytest.mark.parametrize(

@@ -443,7 +443,7 @@ def attach(paragraph: dict, cues: "Cues") -> str:
     paragraph in the `c` SERIES sits beside code and takes that line's place,
     and everything else holds a gap and takes the `b` for it. A paragraph that
     documents something never reaches here: it is `Kind.DOCSTRING`, and
-    `page_for` gives it the `a` of the line its `anchor_line` names.
+    `page_for` gives it the `a` of the line its `declares_line` names.
 
     Args:
         paragraph: `vars()` of one paragraph `page_for` is building.
@@ -768,7 +768,7 @@ def page_for(
             place = (
                 cues.closing_documentation()
                 if b.anchor == EOF
-                else cues.documents(b.anchor_line)
+                else cues.documents(b.declares_line)
             )
             if not place:
                 return ReadFailure(
@@ -777,7 +777,7 @@ def page_for(
                             ReadStage.PLACE,
                             "documentation-declares-nothing",
                             f"{here}:{b.start}: documentation names line"
-                            f" {b.anchor_line}, which declares nothing documentable",
+                            f" {b.declares_line}, which declares nothing documentable",
                         ),
                     )
                 )

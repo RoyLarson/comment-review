@@ -67,7 +67,7 @@ def test_completed_read_projects_documentation_from_source_positions(python_defi
     assert not isinstance(paragraphs, ReadFailure)
     # The module docstring names no line; the method docstring names `def
     # render(`, the line that declares it, not the `@mark` above it.
-    assert [(p.raw_lines, p.kind, p.anchor_line, p.anchor) for p in paragraphs] == [
+    assert [(p.raw_lines, p.kind, p.declares_line, p.anchor) for p in paragraphs] == [
         (["# heading"], Kind.MATTER, None, ""),
         (['"module\\nprose"'], Kind.DOCSTRING, None, ""),
         (['    "body " "prose"'], Kind.DOCSTRING, 4, ""),
@@ -114,7 +114,7 @@ def test_documentation_paragraph_preserves_payload_and_source(
     assert not isinstance(paragraphs, ReadFailure)
     assert len(paragraphs) == 1
     assert paragraphs[0].raw_lines == expression.splitlines()
-    assert (paragraphs[0].kind, paragraphs[0].anchor_line) == (Kind.DOCSTRING, None)
+    assert (paragraphs[0].kind, paragraphs[0].declares_line) == (Kind.DOCSTRING, None)
     assert result.source is source
     assert result.payloads[0] is payload
     assert payload.statement == SourceSpan(0, len(expression))
@@ -3495,7 +3495,7 @@ def test_classification_closing_doc_comment_has_one_owner(python_definition, end
         ),
         (Kind.TRAILING, 4, 4, [" # detail"], "    work()"),
     ]
-    assert paragraphs[0].anchor_line == 1
+    assert paragraphs[0].declares_line == 1
     assert code_lines_for(result) == [
         CodeLine(1, "def f():", DocPlace(1, False)),
         CodeLine(4, "    work()", None),
@@ -3509,7 +3509,7 @@ def test_classification_closing_doc_comment_has_one_owner(python_definition, end
 
 @pytest.mark.parametrize("ending", ["\n", "\r\n", "\r"])
 @pytest.mark.parametrize(
-    "lines, first, last, anchor_line",
+    "lines, first, last, declares_line",
     [
         (["def f():", '    """doc""" \\', "    ", "    return 1"], 2, 2, 1),
         (["def f():", '    """doc"""   ', "    return 1"], 2, 2, 1),
@@ -3519,7 +3519,7 @@ def test_classification_closing_doc_comment_has_one_owner(python_definition, end
     ids=["continued", "trailing-blanks", "multi-line-continued", "module-continued"],
 )
 def test_a_docstring_paragraph_holds_its_whole_last_line(
-    python_definition, ending, lines, first, last, anchor_line
+    python_definition, ending, lines, first, last, declares_line
 ):
     """The rest of the closing line -- blanks, a continuation -- is the docstring's."""
     from pathlib import Path
@@ -3536,7 +3536,7 @@ def test_a_docstring_paragraph_holds_its_whole_last_line(
     assert [(p.kind, p.start, p.end, p.raw_lines) for p in paragraphs] == [
         (Kind.DOCSTRING, first, last, lines[first - 1 : last])
     ]
-    assert paragraphs[0].anchor_line == anchor_line
+    assert paragraphs[0].declares_line == declares_line
     assert all(not first <= c.line <= last for c in result.code_lines())
     assert result.source.reconstruct() == text
 

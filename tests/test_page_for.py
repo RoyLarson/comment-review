@@ -531,19 +531,21 @@ def test_documentation_lands_at_the_a_of_the_line_it_names(monkeypatch):
         monkeypatch,
         [
             Paragraph("m.go", 1, 1, Kind.DOCSTRING, raw_lines=["// Package m."]),
-            Paragraph("m.go", 3, 3, Kind.DOCSTRING, anchor_line=4, raw_lines=["// F."]),
+            Paragraph(
+                "m.go", 3, 3, Kind.DOCSTRING, declares_line=4, raw_lines=["// F."]
+            ),
         ],
     )
     assert isinstance(page, Page)
     assert [
-        (cue(p), p.anchor_line, p.anchor) for p in page if p.kind == Kind.DOCSTRING
+        (cue(p), p.declares_line, p.anchor) for p in page if p.kind == Kind.DOCSTRING
     ] == [("a0", None, "<module>"), ("a1", 4, "func F() {}")]
 
 
 @pytest.mark.parametrize("line", [2, 3], ids=["code-declaring-nothing", "no-code"])
 def test_documentation_naming_no_declaring_line_is_refused(monkeypatch, line):
     found = [
-        Paragraph("m.go", 3, 3, Kind.DOCSTRING, anchor_line=line, raw_lines=["// F."])
+        Paragraph("m.go", 3, 3, Kind.DOCSTRING, declares_line=line, raw_lines=["// F."])
     ]
     result = page_over_read(monkeypatch, found)
     assert isinstance(result, ReadFailure)

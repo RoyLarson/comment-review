@@ -8,6 +8,7 @@ import pytest
 
 from comment_review.reading.coordinates import SourceCoordinates
 from comment_review.reading.source import (
+    DocPlace,
     DocumentationOwner,
     RegionKind,
     SourceDeclaration,
@@ -1031,6 +1032,34 @@ def test_a_joined_line_with_no_code_line_directly_above_is_refused(joined):
 
     with pytest.raises(ValueError, match="joins no code line"):
         lines_of_code({1: "@Ann", 2: "class A {}", 5: "int x;"}, {}, joined)
+
+
+@pytest.mark.parametrize(
+    ("declared", "joined", "match"),
+    [
+        ({3: DocPlace(2, True)}, [2, 3], "end on"),
+        ({3: DocPlace(1, True)}, [2], "joined"),
+        ({3: DocPlace(1, True)}, [], "joined"),
+        ({}, [2], "end on"),
+    ],
+    ids=[
+        "unit-ends-on-a-place-not-at-its-first-line",
+        "place-above-is-not-reached-through-joined-lines",
+        "place-above-with-no-joined-lines",
+        "joined-run-ends-on-no-declaration",
+    ],
+)
+def test_a_joined_run_and_the_place_it_is_set_above_must_agree(declared, joined, match):
+    from comment_review.reading.source import lines_of_code
+
+    with pytest.raises(ValueError, match=match):
+        lines_of_code({1: "@Ann", 2: "@Other", 3: "class A {}"}, declared, joined)
+
+
+def test_a_place_above_its_own_line_needs_no_joined_lines():
+    from comment_review.reading.source import lines_of_code
+
+    lines_of_code({1: "#[a]", 2: "fn f() {}"}, {2: DocPlace(2, True)})
 
 
 def test_boundary_source_import_does_not_load_workflow_modules():

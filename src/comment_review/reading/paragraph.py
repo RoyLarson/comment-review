@@ -93,6 +93,12 @@ class Paragraph:
     # both were wrong. Roy: *"the end of file getting a 0 is non-functional
     # filling in for a missing value."*
     anchor_line: int | None = None
+    # !! THE LINE A READER SAYS THIS DOC DECLARES FOR -- the declaration's own
+    # line, which can sit below the trigger line `anchor_line` holds (a Java
+    # unit's annotation opens above its `class`). `None` for the module's doc.
+    # Only a reader sets it; the page reads it to choose the doc's place, then
+    # sets `anchor_line` from that place.
+    declares_line: int | None = None
     # !! THE ORDINAL OF THAT ANCHOR AMONG THE LINES OF CODE, and
     # `flows.proof_setter` checks it, with `anchor` and `anchor_line`, against the
     # page's cues. This tool edits prose and every prose edit moves the lines

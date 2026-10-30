@@ -1190,7 +1190,7 @@ def _file_edges(
         return {
             n
             for p in found
-            if p.kind == Kind.COMMENT and p.anchor_line is None
+            if p.kind == Kind.COMMENT and p.declares_line is None
             for n in held(p)
             if n not in documentation
         }
@@ -1215,7 +1215,7 @@ def _file_edges(
                         kind=kind,
                         raw_lines=p.raw_lines[start - p.start : end - p.start + 1],
                         anchor=MODULE_ANCHOR if kind == Kind.MATTER else p.anchor,
-                        anchor_line=p.anchor_line,
+                        declares_line=p.declares_line,
                     )
                 )
         return out
@@ -1422,7 +1422,7 @@ def _doc_places(
     touching = groups[-1]
     head = a_series and not any(n < first.start for n in code)
     opening = next((g for g in groups if g[2]), None) if head else None
-    if last.anchor_line is None:
+    if last.declares_line is None:
         # No declaration below: the first doc group is `a0` whole, and a doc
         # group left touching the foot is `<eof>`.
         foot = a_series and not any(n > last.end for n in code)
@@ -1464,7 +1464,7 @@ def _cut_gap(
     )
 
     def part(
-        lo: int, hi: int, kind: Kind, anchor: str = "", anchor_line: int | None = None
+        lo: int, hi: int, kind: Kind, anchor: str = "", declares_line: int | None = None
     ) -> Paragraph:
         # A line between two runs that neither holds is a blank, read from the file.
         return Paragraph(
@@ -1474,7 +1474,7 @@ def _cut_gap(
             kind=kind,
             raw_lines=[raw.get(n, lines[n - 1]) for n in range(lo, hi + 1)],
             anchor=anchor,
-            anchor_line=anchor_line,
+            declares_line=declares_line,
         )
 
     parts: list[Paragraph] = []
@@ -1489,9 +1489,9 @@ def _cut_gap(
     if rest:
         parts.append(part(rest[0], rest[-1], Kind.COMMENT))
     if lowest is not None:
-        anchor = EOF if last.anchor_line is None else ""
+        anchor = EOF if last.declares_line is None else ""
         parts.append(
-            part(lowest[0], lowest[1], Kind.DOCSTRING, anchor, last.anchor_line)
+            part(lowest[0], lowest[1], Kind.DOCSTRING, anchor, last.declares_line)
         )
     return parts
 
@@ -1605,7 +1605,7 @@ def document_declarations(paragraphs: list["Paragraph"], lines: list[CodeLine]) 
     Args:
         paragraphs: this file's prose, mutated in place -- each run that
             documents a declaration takes that declaration's line as its
-            `anchor_line`.
+            `declares_line`.
         lines: the file's code lines, in order; a line whose `documents` is set
             declares something documentable, and its `at` is the line the
             documentation is set above.
@@ -1654,7 +1654,7 @@ def document_declarations(paragraphs: list["Paragraph"], lines: list[CodeLine]) 
         over = held.original_start - previous[-1] - 1 if previous else below + 1
         if below <= over:
             # ! THE LINE, NOT A CUE. The page gives it the `a` of that line.
-            held.anchor_line = line
+            held.declares_line = line
 
 
 def declarations(lang: Language, code: Mapping[int, str]) -> dict[int, DocPlace]:

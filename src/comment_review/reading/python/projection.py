@@ -156,7 +156,7 @@ def paragraphs_for(path: Path, read: PythonRead) -> list[Paragraph] | ReadFailur
                     first.line,
                     last.line,
                     Kind.DOCSTRING,
-                    anchor_line=declaring,
+                    declares_line=declaring,
                     raw_lines=constants.text_lines(text[raw_start : span.end]),
                 )
             )

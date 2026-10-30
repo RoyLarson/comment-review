@@ -174,6 +174,25 @@ def lines_of_code(
     for line in joins:
         if line not in code or line - 1 not in code:
             raise ValueError(f"line {line} joins no code line directly above it")
+    # Joins and places both state a unit; they must agree.
+    for line, place in declared.items():
+        if place.above and any(n not in joins for n in range(place.at + 1, line + 1)):
+            raise ValueError(
+                f"line {line} is documented above line {place.at}, "
+                "but the lines between are not all joined"
+            )
+    for line in sorted(joins):
+        if line + 1 in joins:
+            continue
+        top = line
+        while top in joins:
+            top -= 1
+        place = declared.get(line)
+        if place is None or not place.above or place.at != top:
+            raise ValueError(
+                f"the joined lines {top}-{line} end on a line that is not a "
+                f"declaration documented above line {top}"
+            )
     return [CodeLine(n, text, declared.get(n), n in joins) for n, text in code.items()]
 
 
@@ -281,7 +300,7 @@ class SourceStructure:
     def declaring_line(self, declaration: SourceDeclaration) -> int:
         """The code line that declares this.
 
-        It is the line a doc's `anchor_line` names where a unit is one line.
+        It is the line a doc's `declares_line` names where a unit is one line.
         """
         return self.position(declaration.anchor).line
 

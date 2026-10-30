@@ -286,17 +286,17 @@ class PythonRead:
         """
         return False
 
-    def owner_at(self, anchor_line: int | None) -> tuple[int | None, ...]:
+    def owner_at(self, declares_line: int | None) -> tuple[int | None, ...]:
         """The declaration documented from this anchor line; None for the module.
 
         Empty unless exactly one declaration is anchored on that line.
         """
-        if anchor_line is None:
+        if declares_line is None:
             return (None,)
         owners = tuple(
             index
             for index, declaration in enumerate(self.source.declarations)
-            if self.source.declaring_line(declaration) == anchor_line
+            if self.source.declaring_line(declaration) == declares_line
         )
         return owners if len(owners) == 1 else ()
 
