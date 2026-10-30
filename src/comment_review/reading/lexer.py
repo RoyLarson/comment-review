@@ -1125,7 +1125,27 @@ def read_lexical(path: Path, text: str, lang: Language) -> "LexicalRead":
             "file, so every line below the opener was swallowed into this run. "
             "Code down there was NOT read as code."
         )
+    _mark_line_endings(found, lang)
     return LexicalRead(found, code_lines, lang.a_series, lang.closing_docstring)
+
+
+def _mark_line_endings(found: list[Paragraph], lang: Language) -> None:
+    """Mark each paragraph holding a line ending this file's lines do not split on.
+
+    Prose read as one line that the language reads as two can carry code past
+    the comment's real end, and every later step would take it for a comment.
+    A string literal is not prose, so one holding the ending is not marked.
+    """
+    for paragraph in found:
+        for n, line in enumerate(paragraph.raw_lines, paragraph.start):
+            held = next((end for end in lang.line_endings if end in line), None)
+            if held is not None:
+                paragraph.annotations.add("line-ending-in-comment")
+                paragraph.notes.append(
+                    f"line {n} holds U+{ord(held):04X}, which ends a line in"
+                    f" {lang.name}"
+                )
+                break
 
 
 def _file_edges(

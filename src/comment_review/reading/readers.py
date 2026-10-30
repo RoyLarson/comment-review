@@ -155,6 +155,15 @@ def _read_paragraphs(
                     span=_paragraph_source_span(paragraph, coordinates),
                 )
             )
+        if "line-ending-in-comment" in paragraph.annotations:
+            diagnostics.append(
+                ReadDiagnostic(
+                    ReadStage.LEX,
+                    "line-ending-in-comment",
+                    paragraph.notes[-1],
+                    span=_paragraph_source_span(paragraph, coordinates),
+                )
+            )
     if diagnostics:
         return ReadFailure(tuple(diagnostics))
     return read

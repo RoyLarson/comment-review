@@ -168,6 +168,20 @@ def test_standalone_failed_or_unprovable_inputs_cannot_prove_equal(
     assert "PROVEN" not in out
 
 
+def test_standalone_a_stated_line_ending_in_a_no_code_file_cannot_prove(
+    tmp_path, monkeypatch, capsys
+):
+    from comment_review.commands import prove_unchanged as command
+
+    repo, target = proof_repository(tmp_path, "// a evil();\n", ".js")
+    code, out = run_command(
+        monkeypatch, capsys, command, "--repo", str(repo), "--base", "HEAD", str(target)
+    )
+    assert code == 1
+    assert "PROVEN" not in out
+    assert "U+2028" in out
+
+
 def test_standalone_a_file_with_no_code_line_proves_under_its_row(
     tmp_path, monkeypatch, capsys
 ):

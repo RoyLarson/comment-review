@@ -1587,6 +1587,22 @@ def test_a_file_with_no_code_line_takes_a_comment_change(
         assert drafted[0].draft.read_text(encoding="utf-8") == expected
 
 
+@pytest.mark.parametrize(
+    ("name", "text", "where"),
+    [
+        ("m.js", "let x;\n// a\nlet y;\n", "b1"),
+        ("m.ts", "let x;\n// a\nlet y;\n", "b1"),
+        ("m.js", "// a\n", "f0"),
+    ],
+    ids=["js", "ts", "no-code-js"],
+)
+def test_a_replacement_cannot_carry_a_stated_line_ending(tmp_path, name, text, where):
+    drafted, refused = _chain(tmp_path, name, text, {where: "// a evil();"})
+    assert drafted == []
+    assert refused[0].step == "reread"
+    assert "U+2028" in refused[0].why
+
+
 class TestAnEmptyPackageInit:
     """An empty `__init__.py`, the no-code file Python reads and proves itself."""
 

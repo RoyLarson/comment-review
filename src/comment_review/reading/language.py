@@ -72,6 +72,11 @@ class Language:
             attribute or decorator, which belongs to the declaration below it
             (Java `@Override`, C# `[Serializable]`). The run above such lines
             documents that declaration. Empty where the language has none.
+        line_endings: the characters beyond LF and CR that end a line in this
+            language's grammar. `constants.text_lines` does not split on them, so
+            a line comment holding one is a comment here and two lines to the
+            language, and the read refuses it. Empty where the grammar defines
+            none.
     """
 
     name: str
@@ -88,6 +93,7 @@ class Language:
     doc_inside: bool = False
     shebang: tuple[str, ...] = ()
     annotations: tuple[str, ...] = ()
+    line_endings: tuple[str, ...] = ()
 
     @property
     def a_series(self) -> bool:
@@ -158,6 +164,8 @@ LANGUAGES: tuple[Language, ...] = (
         # places, `a0` and `a1`.
         declares=("func", "type", "var", "const"),
         annotations=(),
+        # ! The Go spec's `newline` is U+000A alone.
+        line_endings=(),
     ),
     # !! C AND C++ DECLARE NO KEYWORDS, so no declaration gets an `a`. A C
     # function is introduced by its RETURN TYPE -- `size_t f(void)`, `MyRec
@@ -177,6 +185,9 @@ LANGUAGES: tuple[Language, ...] = (
         # ! C23's attribute specifier `[[...]]` may stand on its own line
         # before a declaration.
         annotations=("[[",),
+        # ! C leaves the end of a physical line to the implementation; GCC and
+        # Clang end one at LF, CR or CRLF.
+        line_endings=(),
     ),
     Language(
         "cpp",
@@ -196,6 +207,9 @@ LANGUAGES: tuple[Language, ...] = (
         # ! C++11's attribute specifier `[[...]]` may stand on its own line
         # before a declaration.
         annotations=("[[",),
+        # ! C++ leaves the end of a physical line to the implementation; GCC,
+        # Clang and MSVC end one at LF, CR or CRLF.
+        line_endings=(),
     ),
     Language(
         "java",
@@ -241,6 +255,8 @@ LANGUAGES: tuple[Language, ...] = (
         # ! An annotation, `@Override` or `@Ann(x = 1)`, modifies the
         # declaration it precedes.
         annotations=("@",),
+        # ! JLS 3.4: LF, CR and CRLF, and nothing else.
+        line_endings=(),
     ),
     Language(
         "csharp",
@@ -285,6 +301,8 @@ LANGUAGES: tuple[Language, ...] = (
         # a collection-expression line, `[1, 2];`, and a line's opening
         # character cannot tell the two apart.
         annotations=(),
+        # ! The C# spec's `new_line`: U+0085, U+2028 and U+2029 beside CR and LF.
+        line_endings=("\x85", "\u2028", "\u2029"),
     ),
     Language(
         "swift",
@@ -325,6 +343,8 @@ LANGUAGES: tuple[Language, ...] = (
         # ! An attribute, `@objc` or `@available(...)`, applies to the
         # declaration it precedes.
         annotations=("@",),
+        # ! The Swift reference's `line-break`: U+000A, U+000D and the pair.
+        line_endings=(),
     ),
     Language(
         "kotlin",
@@ -367,6 +387,8 @@ LANGUAGES: tuple[Language, ...] = (
         # ! An annotation, `@JvmStatic` or `@Suppress(...)`, applies to the
         # declaration it precedes.
         annotations=("@",),
+        # ! The Kotlin grammar's `NL`: LF, CR and CRLF.
+        line_endings=(),
     ),
     Language(
         "javascript",
@@ -385,6 +407,8 @@ LANGUAGES: tuple[Language, ...] = (
         # ! ECMAScript's grammar defines no decorator; the `@` form is a
         # proposal, not the language.
         annotations=(),
+        # ! ECMA-262 `LineTerminator`: U+2028 and U+2029 beside LF and CR.
+        line_endings=("\u2028", "\u2029"),
     ),
     Language(
         "typescript",
@@ -415,6 +439,9 @@ LANGUAGES: tuple[Language, ...] = (
         # ! A decorator, `@Component(...)`, applies to the declaration it
         # precedes.
         annotations=("@",),
+        # ! TypeScript's scanner, `isLineBreak`: U+2028 and U+2029 beside LF and
+        # CR. It reads U+0085 as white space.
+        line_endings=("\u2028", "\u2029"),
     ),
     Language(
         "ruby",
@@ -428,6 +455,8 @@ LANGUAGES: tuple[Language, ...] = (
         spanning_quotes=("<<~", "<<-"),
         quotes=('"', "'"),
         annotations=(),
+        # ! The Ruby spec's `line-terminator`: LF and CRLF.
+        line_endings=(),
     ),
     Language(
         "shell",
@@ -442,6 +471,8 @@ LANGUAGES: tuple[Language, ...] = (
         spanning_quotes=("<<",),
         quotes=('"', "'"),
         annotations=(),
+        # ! POSIX: a newline is LF.
+        line_endings=(),
     ),
     Language(
         "sql",
@@ -450,6 +481,9 @@ LANGUAGES: tuple[Language, ...] = (
         (("/*", "*/"),),
         quotes=("'", '"'),
         annotations=(),
+        # ! The standard leaves it to the implementation; PostgreSQL's and
+        # MySQL's scanners end a `--` comment at LF or CR.
+        line_endings=(),
     ),
     Language(
         "lua",
@@ -486,6 +520,8 @@ LANGUAGES: tuple[Language, ...] = (
         spanning_quotes=("[[", "[=[", "[==["),
         quotes=('"', "'"),
         annotations=(),
+        # ! The Lua lexer's newline is LF or CR.
+        line_endings=(),
     ),
     # !! TOML AND INI ARE TWO LANGUAGES AND TWO ROWS. They share `#` and
     # nothing else: INI also takes `;`, and TOML's multi-line strings do not
@@ -501,6 +537,8 @@ LANGUAGES: tuple[Language, ...] = (
         spanning_quotes=('"""', "'''"),
         quotes=('"', "'"),
         annotations=(),
+        # ! The TOML spec's newline: LF and CRLF.
+        line_endings=(),
     ),
     # ! `;` is INI's original comment marker and `#` the later convention; both
     # are live, so both are listed. There is no multi-line string in INI.
@@ -510,6 +548,8 @@ LANGUAGES: tuple[Language, ...] = (
         ("#", ";"),
         quotes=(),
         annotations=(),
+        # ! INI has no grammar that names one beyond LF and CR.
+        line_endings=(),
     ),
     Language(
         "yaml",
@@ -517,6 +557,8 @@ LANGUAGES: tuple[Language, ...] = (
         ("#",),
         quotes=('"', "'"),
         annotations=(),
+        # ! YAML 1.2 `b-break`: LF and CR, and it retired U+0085.
+        line_endings=(),
     ),
 )
 
@@ -623,6 +665,11 @@ def validate_language_definition(
             expected = installed.rules[key]
             if isinstance(expected, bool):
                 valid = type(value) is bool
+            elif key == "line_endings":
+                valid = isinstance(value, tuple) and all(
+                    isinstance(token, str) and len(token) == 1 and token not in "\r\n"
+                    for token in value
+                )
             elif key == "block_comment":
                 valid = isinstance(value, tuple) and all(
                     isinstance(pair, tuple)

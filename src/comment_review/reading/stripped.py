@@ -21,6 +21,9 @@ from comment_review.reading.lexer import (
 )
 from comment_review.reading.proof import UNPROVABLE, PreservationResult
 
+#: Annotations saying a paragraph can hold code the read did not see as code.
+_UNPROVABLE_MARKS = {"unterminated-paragraph-comment", "line-ending-in-comment"}
+
 
 def _delimiter_shares_the_line(line: str, lang: Language) -> bool:
     """A paragraph-comment delimiter with real code beside it, on this ONE line.
@@ -66,7 +69,9 @@ def _without_comments(text: str, path: Path) -> str | None:
     `unterminated-paragraph-comment` annotation. The lexer swallows every line below
     the opener into that run, so code below it never reaches the comparison and
     the stripped text is merely SHORT -- short, plausible, and equal on two
-    files whose executable code differs.
+    files whose executable code differs. A line ending the row states inside a
+    comment is refused the same way, on `line-ending-in-comment`: what follows it
+    is a line of code to the language.
     """
     lang = language_for(path)
     if lang is None:
@@ -75,7 +80,7 @@ def _without_comments(text: str, path: Path) -> str | None:
         paragraphs = paragraphs_lexical(path, text, lang)
     except Exception:  # noqa: BLE001  -- an unprovable file is reported, not passed
         return None
-    if any("unterminated-paragraph-comment" in b.annotations for b in paragraphs):
+    if any(_UNPROVABLE_MARKS & b.annotations for b in paragraphs):
         return None
     # !! A LITERAL THAT SPANS LINES MAKES THIS FILE UNPROVABLE. `_strip_strings`
     # is per-line and carries no open-quote state, so a line INSIDE a JS
