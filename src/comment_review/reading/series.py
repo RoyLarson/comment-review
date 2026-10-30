@@ -54,6 +54,8 @@ class Kind(StrEnum):
     # Matter runs from the file's opening line down, or from its closing line up,
     # until an empty line or a docstring -- so a shebang, a blank and a comment
     # are two runs, and the comment below the blank is a `b`, not part of `f0`.
+    # A module or closing docstring takes in every comment beyond it, and a file
+    # with no code has one more rule: `reading.matter` states them.
     #
     # !! `matter` NAMES THE SPACE AND NOT A POSITION, which is what the `f`
     # series needs: a file can carry its own prose at the head and at the tail.

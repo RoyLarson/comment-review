@@ -121,9 +121,15 @@ def paragraphs_for(path: Path, read: PythonRead) -> list[Paragraph] | ReadFailur
     coordinates = SourceCoordinates(text)
     lines = constants.text_lines(text)
     # A Python shebang or encoding line is a comment, so the matter opens on
-    # line 1.
+    # line 1. A closing string is code, so Python has no closing docstring.
     prose = _prose(read, coordinates)
-    matter = file_matter(len(lines), 1, prose)
+    matter = file_matter(
+        len(lines),
+        1,
+        prose,
+        module_doc=_module_doc(read, coordinates),
+        codeless=not _code(read),
+    )
     payloads = {payload.statement: payload for payload in read.payloads}
     paragraphs: list[Paragraph] = []
     for section in read.source.sections:
@@ -181,6 +187,18 @@ def paragraphs_for(path: Path, read: PythonRead) -> list[Paragraph] | ReadFailur
                 )
             )
     return paragraphs
+
+
+def _module_doc(read: PythonRead, coordinates: SourceCoordinates) -> range | None:
+    """The lines of the module's docstring, or None when it has none."""
+    for payload in read.payloads:
+        if payload.declaration is None:
+            span = payload.statement
+            return range(
+                coordinates.position(span.start).line,
+                coordinates.position(max(span.start, span.end - 1)).line + 1,
+            )
+    return None
 
 
 def _prose(read: PythonRead, coordinates: SourceCoordinates) -> set[int]:

@@ -50,7 +50,7 @@ from comment_review.reading.language import (
     language_for,
     line_comment_markers,
 )
-from comment_review.reading.matter import file_matter
+from comment_review.reading.matter import Matter, file_matter
 from comment_review.reading.paragraph import Paragraph
 from comment_review.reading.rust.scanner import comment_scanner
 from comment_review.reading.series import Kind, Series
@@ -1153,7 +1153,8 @@ def _file_edges(
     a licence header and the declaration's documentation below it are two
     runs and only the second documents. A part opening on a doc-marked line is
     a `docstring` run, as `flush` kinds a run. Once documentation is decided,
-    the `comment` parts inside the matter are MATTER.
+    `_file_docs` names the module and closing docstrings and the parts inside
+    the matter they give are MATTER.
 
     !! DOCUMENTATION AT EITHER END IS THE MODULE'S, NEVER MATTER, and each
     run is then cut by the places its gap holds -- see `_cut_by_place`.
@@ -1162,25 +1163,31 @@ def _file_edges(
     Every other run answers to the line of code it sits with; the file's own
     prose answers to the file.
     """
-    total = len(constants.text_lines(text))
+    lines = constants.text_lines(text)
+    total = len(lines)
     opens = 1 if shebang is None else 2
 
     def held(p: Paragraph) -> set[int]:
         return {n for n in range(p.start, p.end + 1) if n not in between}
 
-    def cut(found: list[Paragraph], kinds: tuple[str, ...], mark: bool):
-        """Cut every run of `kinds` at the matter's edges; MATTER parts if `mark`."""
-        prose = {
+    def prose(found: list[Paragraph], kinds: tuple[str, ...]) -> set[int]:
+        return {
             n
             for p in found
             if p.kind in kinds
             for n in held(p)
             if n not in documentation
         }
-        matter = file_matter(total, opens, prose)
+
+    def cut(found: list[Paragraph], matter: Matter, mark: bool) -> list[Paragraph]:
+        """Cut every prose run at the matter's edges; MATTER parts if `mark`."""
         out: list[Paragraph] = []
         for p in found:
-            parts = matter.parts(p.start, p.end, held(p)) if p.kind in kinds else []
+            parts = (
+                matter.parts(p.start, p.end, held(p))
+                if p.kind in (Kind.COMMENT, Kind.DOCSTRING)
+                else []
+            )
             if len(parts) < 2 and not (mark and parts and parts[0][2]):
                 out.append(p)
                 continue
@@ -1197,11 +1204,15 @@ def _file_edges(
                         kind=kind,
                         raw_lines=p.raw_lines[start - p.start : end - p.start + 1],
                         anchor=MODULE_ANCHOR if kind == Kind.MATTER else p.anchor,
+                        anchor_line=p.anchor_line,
                     )
                 )
         return out
 
-    found = cut(paragraphs, (Kind.COMMENT, Kind.DOCSTRING), mark=False)
+    written = (Kind.COMMENT, Kind.DOCSTRING)
+    found = cut(
+        paragraphs, file_matter(total, opens, prose(paragraphs, written)), False
+    )
     if shebang is not None:
         found.insert(0, shebang)
     code = code_text(text, found)
@@ -1213,48 +1224,111 @@ def _file_edges(
     ]
     code_lines = lines_of_code(code, declared, joined)
     document_declarations(found, code_lines)
-    found = _one_matter_per_end(cut(found, (Kind.COMMENT,), mark=True))
+    code_at = set(code)
+    module_doc, closing_doc = _file_docs(
+        found, code_at, between, documentation, doc_opens, lang.a_series
+    )
+    matter = file_matter(
+        total,
+        opens,
+        prose(found, (Kind.COMMENT,)),
+        module_doc=module_doc,
+        closing_doc=closing_doc,
+        codeless=not code_at,
+    )
+    found = _one_matter_per_end(cut(found, matter, mark=True), matter, lines)
     found = _cut_by_place(
-        found,
-        constants.text_lines(text),
-        set(code),
-        between,
-        documentation,
-        doc_opens,
-        lang.a_series,
+        found, lines, code_at, between, documentation, doc_opens, lang.a_series
     )
     return found, code_lines
 
 
-def _one_matter_per_end(paragraphs: list[Paragraph]) -> list[Paragraph]:
+def _one_matter_per_end(
+    paragraphs: list[Paragraph], matter: Matter, lines: list[str]
+) -> list[Paragraph]:
     """The MATTER paragraphs at each end of the file, as one paragraph per end.
 
-    Front matter is one place and back matter is another, and the matter rule
-    covers a run of lines with no gap, so two MATTER paragraphs on adjacent
-    lines are at the same end. The reader gathers each end's comments as one
-    run, so two arise only where a run is kept apart from the comments beside
-    it: a shebang and the licence below it, and a delimited comment whose
-    closing line also holds code and the comments below it.
+    Front matter is one place and back matter is another. The reader gathers
+    each end's comments as one run where it can, and two arise where a run is
+    kept apart from the comments around it: a shebang and the licence below
+    it, a delimited comment whose closing line also holds code and the
+    comments below it, and the parts of a run cut at a blank line before its
+    docstring was known. A blank between two parts is read from the file.
     """
-    out: list[Paragraph] = []
-    for p in paragraphs:
-        last = out[-1] if out else None
-        if (
-            last is not None
-            and last.kind == p.kind == Kind.MATTER
-            and p.start == last.end + 1
-        ):
-            out[-1] = Paragraph(
-                path=last.path,
-                start=last.start,
-                end=p.end,
-                kind=Kind.MATTER,
-                raw_lines=[*last.raw_lines, *p.raw_lines],
-                anchor=MODULE_ANCHOR,
+    front = [
+        p for p in paragraphs if p.kind == Kind.MATTER and p.start < matter.front.stop
+    ]
+    back = [
+        p for p in paragraphs if p.kind == Kind.MATTER and p.start >= matter.front.stop
+    ]
+    out = [p for p in paragraphs if p.kind != Kind.MATTER]
+    for parts in (front, back):
+        if len(parts) == 1:
+            out.append(parts[0])
+        elif parts:
+            raw = {
+                p.start + i: line for p in parts for i, line in enumerate(p.raw_lines)
+            }
+            out.append(
+                Paragraph(
+                    path=parts[0].path,
+                    start=parts[0].start,
+                    end=parts[-1].end,
+                    kind=Kind.MATTER,
+                    raw_lines=[
+                        raw.get(n, lines[n - 1])
+                        for n in range(parts[0].start, parts[-1].end + 1)
+                    ],
+                    anchor=MODULE_ANCHOR,
+                )
             )
+    return sorted(out, key=lambda p: p.start)
+
+
+def _gaps(paragraphs: list[Paragraph], code: set[int]) -> list[list[Paragraph]]:
+    """The file's prose runs, gathered by the gap between code each lies in."""
+    gaps: list[list[Paragraph]] = []
+    for p in sorted(paragraphs, key=lambda p: p.start):
+        if p.kind not in (Kind.COMMENT, Kind.DOCSTRING):
             continue
-        out.append(p)
-    return out
+        if gaps and not any(gaps[-1][-1].end < n < p.start for n in code):
+            gaps[-1].append(p)
+        else:
+            gaps.append([p])
+    return gaps
+
+
+def _file_docs(
+    paragraphs: list[Paragraph],
+    code: set[int],
+    between: set[int],
+    documentation: set[int],
+    doc_opens: set[int],
+    a_series: bool,
+) -> tuple[range | None, range | None]:
+    """The lines of the module and closing docstrings, for `file_matter`.
+
+    The module docstring is the head gap's `a0`. Below code, the closing
+    docstring is the foot gap's `a`, or, where comments below it end the gap,
+    the first doc group: that one ends the file's code. A file with no code
+    has no closing docstring above its back matter.
+    """
+    gaps = _gaps(paragraphs, code)
+    if not gaps:
+        return None, None
+    module_doc = closing_doc = None
+    opening = _doc_places(gaps[0], code, between, documentation, doc_opens, a_series)[1]
+    if opening is not None:
+        module_doc = range(opening[0], opening[1] + 1)
+    foot = gaps[-1]
+    if code and max(code) < foot[0].start:
+        groups, _, lowest = _doc_places(
+            foot, code, between, documentation, doc_opens, a_series
+        )
+        closing = lowest or next((g for g in groups if g[2]), None)
+        if closing is not None:
+            closing_doc = range(closing[0], closing[1] + 1)
+    return module_doc, closing_doc
 
 
 def _cut_by_place(
@@ -1277,58 +1351,26 @@ def _cut_by_place(
     - The group touching the gap's lower edge is that edge's `a`: the
       declaration its last run documents -- whatever kind the group is -- or,
       at the foot of the file, `<eof>` when the group is doc-marked.
-    - At the head of the file, the doc-marked group opening the gap is `a0`.
-      Where the gap's lower edge is a declaration, `a0` is that group's first
-      doc comment alone and the rest of the group is the `b`; where the group
-      is also the one touching the declaration, a lone doc comment in it is
-      the declaration's `a`, and with two or more the last is. A doc comment
-      opens on a line of `doc_opens`, so two on one line are one.
+    - At the head of the file, the gap's first doc-marked group is `a0`. Where
+      the gap's lower edge is a declaration, `a0` is that group's first doc
+      comment alone and the rest of the group is the `b`; where the group is
+      also the one touching the declaration, a lone doc comment in it is the
+      declaration's `a`, and with two or more the last is. A doc comment opens
+      on a line of `doc_opens`, so two on one line are one.
     - Everything else in the gap is its one `b`, a `comment`.
-    - Where the back matter starts on the line below the gap's last run, the
-      matter is what touches the foot: the gap has no `a` there, and
-      everything in it but `a0` is the back matter, one paragraph.
 
     With no code the gap is both head and foot, and one doc-marked group is
-    `a0`. Each place holds one paragraph.
+    `a0`. Each place holds one paragraph. The matter is already out of the
+    gaps, so what reaches the foot past `a0` or `<eof>` is not cut here.
     """
-    prose = [
-        p
-        for p in sorted(paragraphs, key=lambda p: p.start)
-        if p.kind in (Kind.COMMENT, Kind.DOCSTRING)
-    ]
-    gaps: list[list[Paragraph]] = []
-    for p in prose:
-        if gaps and not any(gaps[-1][-1].end < n < p.start for n in code):
-            gaps[-1].append(p)
-        else:
-            gaps.append([p])
-    back = next(
-        (
-            p
-            for p in paragraphs
-            if p.kind == Kind.MATTER
-            and gaps
-            and p.start == gaps[-1][-1].end + 1
-            and p.end == len(lines)
-        ),
-        None,
-    )
+    gaps = _gaps(paragraphs, code)
     cut = {
         id(gap[0]): _cut_gap(
-            gap,
-            lines,
-            code,
-            between,
-            documentation,
-            doc_opens,
-            a_series,
-            back if gap is gaps[-1] else None,
+            gap, lines, code, between, documentation, doc_opens, a_series
         )
         for gap in gaps
     }
-    held = {id(p) for p in prose}
-    if back is not None:
-        held.add(id(back))
+    held = {id(p) for gap in gaps for p in gap}
     out: list[Paragraph] = []
     for p in paragraphs:
         if id(p) in cut:
@@ -1336,6 +1378,59 @@ def _cut_by_place(
         elif id(p) not in held:
             out.append(p)
     return out
+
+
+#: A stretch of one kind of prose in a gap: its first line, its last, and
+#: whether it is doc-marked.
+_Group = tuple[int, int, bool]
+
+
+def _doc_places(
+    runs: list[Paragraph],
+    code: set[int],
+    between: set[int],
+    documentation: set[int],
+    doc_opens: set[int],
+    a_series: bool,
+) -> tuple[list[_Group], _Group | None, _Group | None]:
+    """One gap's groups, its `a0` and the `a` at its lower edge."""
+    first, last = runs[0], runs[-1]
+    # A group never crosses from one run into the next, so `a0` stays in the
+    # gap's first run and the lower edge's `a` in its last.
+    groups: list[_Group] = []
+    for p in runs:
+        opened = len(groups)
+        for n in range(p.start, p.end + 1):
+            if n in between:
+                continue
+            doc = n in documentation
+            if len(groups) > opened and groups[-1][2] == doc:
+                groups[-1] = (groups[-1][0], n, doc)
+            else:
+                groups.append((n, n, doc))
+    head = a_series and not any(n < first.start for n in code)
+    foot = a_series and not any(n > last.end for n in code)
+    documents = last.kind == Kind.DOCSTRING
+    opening = next((g for g in groups if g[2]), None) if head else None
+    lowest = None
+    if documents or (foot and groups[-1][2] and groups[-1] is not opening):
+        lowest = groups[-1]
+    if documents and opening is not None:
+        # Over a declaration, `a0` is the head's first doc comment alone. When
+        # the doc group also touches the declaration, its last doc comment is
+        # the declaration's `a`, and a lone one is that `a` and no `a0`.
+        opens = sorted(n for n in doc_opens if opening[0] <= n <= opening[1])
+        alone = opening
+        if len(opens) > 1:
+            held = [n for n in range(opening[0], opens[1]) if n not in between]
+            alone = (opening[0], held[-1], True)
+        if opening is lowest:
+            if len(opens) > 1:
+                lowest = (opens[-1], opening[1], True)
+            else:
+                alone = None
+        opening = alone
+    return groups, opening, lowest
 
 
 def _cut_gap(
@@ -1346,63 +1441,17 @@ def _cut_gap(
     documentation: set[int],
     doc_opens: set[int],
     a_series: bool,
-    back: Paragraph | None,
 ) -> list[Paragraph]:
-    """One gap's runs, cut into its `a0`, its one `b` and its lower edge's `a`.
-
-    With `back`, the back matter directly below the gap, everything but `a0`
-    joins the matter instead.
-    """
+    """One gap's runs, cut into its `a0`, its one `b` and its lower edge's `a`."""
     first, last = runs[0], runs[-1]
     raw = {p.start + i: line for p in runs for i, line in enumerate(p.raw_lines)}
     held = sorted(n for n in raw if n not in between)
-    # A group never crosses from one run into the next, so `a0` stays in the
-    # gap's first run and the lower edge's `a` in its last.
-    groups: list[tuple[int, int, bool]] = []
-    for p in runs:
-        opened = len(groups)
-        for n in (n for n in held if p.start <= n <= p.end):
-            doc = n in documentation
-            if len(groups) > opened and groups[-1][2] == doc:
-                groups[-1] = (groups[-1][0], n, doc)
-            else:
-                groups.append((n, n, doc))
-    head = a_series and not any(n < first.start for n in code)
-    foot = a_series and not any(n > last.end for n in code)
+    groups, opening, lowest = _doc_places(
+        runs, code, between, documentation, doc_opens, a_series
+    )
     documents = last.kind == Kind.DOCSTRING
-    lowest = groups[-1] if documents else None
-    if not documents and foot and groups[-1][2] and not (head and len(groups) == 1):
-        lowest = groups[-1]
-    if back is not None:
-        # Below code, the first doc group is the closing docstring that ends
-        # the file's code, and the comments below it are part of the back
-        # matter.
-        # With no code there is no closing docstring above the matter.
-        below_code = any(n < first.start for n in code)
-        lowest = next((g for g in groups if g[2]), None) if below_code else None
-        raw.update((back.start + i, line) for i, line in enumerate(back.raw_lines))
-    opening = None
-    if head and groups[0][2] and groups[0] is not lowest:
-        opening = groups[0]
-    elif head and documents and lowest is groups[0] and lowest[2]:
-        opening = lowest
-    if head and documents and opening is not None:
-        # Over a declaration, `a0` is the head's first doc comment alone. When
-        # the doc group also touches the declaration, its last doc comment is
-        # the declaration's `a`, and a lone one is that `a` and no `a0`.
-        opens = sorted(n for n in doc_opens if opening[0] <= n <= opening[1])
-        alone = opening
-        if len(opens) > 1:
-            alone = (opening[0], max(n for n in held if n < opens[1]), True)
-        if opening is lowest:
-            if len(opens) > 1:
-                lowest = (opens[-1], opening[1], True)
-            else:
-                alone = None
-        opening = alone
     if (
-        back is None
-        and len(runs) == 1
+        len(runs) == 1
         and (len(groups) == 1 or (opening is None and lowest is None))
         and not (opening and lowest)
     ):
@@ -1435,14 +1484,7 @@ def _cut_gap(
         if not (opening and opening[0] <= n <= opening[1])
         and not (lowest and lowest[0] <= n <= lowest[1])
     ]
-    if back is not None:
-        above = [n for n in rest if lowest and n < lowest[0]]
-        below = [n for n in rest if n not in above]
-        if above:
-            parts.append(part(above[0], above[-1], Kind.COMMENT))
-        matter = part(below[0] if below else back.start, back.end, Kind.MATTER)
-        matter.anchor = MODULE_ANCHOR
-    elif rest:
+    if rest:
         parts.append(part(rest[0], rest[-1], Kind.COMMENT))
     if lowest is not None:
         closing = part(lowest[0], lowest[1], Kind.DOCSTRING, last.anchor)
@@ -1451,8 +1493,6 @@ def _cut_gap(
         else:
             closing.anchor = EOF
         parts.append(closing)
-    if back is not None:
-        parts.append(matter)
     return parts
 
 

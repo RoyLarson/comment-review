@@ -5,7 +5,6 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import cast
 
-from comment_review import constants
 from comment_review.reading.coordinates import SourceCoordinates
 from comment_review.reading.definitions import LanguageDefinition
 from comment_review.reading.diagnostics import (
@@ -13,7 +12,6 @@ from comment_review.reading.diagnostics import (
     ReadFailure,
     ReadStage,
 )
-from comment_review.reading.matter import file_matter
 from comment_review.reading.rust.definition import MODULE, validate_rust
 from comment_review.reading.rust.records import (
     ATTRIBUTE_KINDS,
@@ -77,22 +75,21 @@ def documentation_in(
 
     An outer doc section that ends on a line above an owner's head, with only
     whitespace between them, documents that owner. An inner doc section
-    documents the module when nothing but the opening comments precede it. Either
+    documents the module when nothing but comments precede it. Either
     is on lines of its own: no other comment shares its first or last line.
     The kinds documentation attaches to are `[rules.documentation].owners`.
 
     Documentation that Rust attaches to an owner but no `a` place can hold is
-    detached: a run behind an ordinary comment, outside the owner or in its
-    body, a run between an attribute and the item, a run on the head's own
-    line, a run that trails code on its line, a run sharing a line with
-    another comment, a module doc with an inner attribute before it, a
+    detached: a run behind an ordinary comment above an item, outside the
+    owner or in its body, a run between an attribute and the item, a run on
+    the head's own line, a run that trails code on its line, a run sharing a
+    line with another comment, a module doc with an inner attribute before it, a
     second run for one owner, the module included, and every inner doc
     inside a body, which is detached from the innermost owner whose body
     holds it. A detached run is a COMMENT section with a warning. Every other
     doc section that documents nothing is a COMMENT section.
 
-    The opening comments are the ones `_opening` gives. The module's inner doc
-    is detached when code or a comment outside them precedes it; the page sets
+    The module's inner doc is detached when code precedes it; the page sets
     `a0` at the file head. Every other owner inserts at its head's first line.
     Which sections are the file's own matter is the projection's to say.
     """
@@ -142,11 +139,6 @@ class _Assigner:
         self.forms = [run.written for run in self.runs]
         self.links: dict[int, int | None] = {}
         self.warnings: list[DetachedDocumentation] = []
-        self.shebang = next(
-            (t for t in scan.tokens if t.kind is RustTokenKind.SHEBANG), None
-        )
-        # The lines of the comments that open the file.
-        self.opening = self._opening()
 
     def run(self) -> RustDocumentation:
         for index, run in enumerate(self.runs):
@@ -196,32 +188,6 @@ class _Assigner:
             and not second.trailing
         )
 
-    def _opening(self) -> range:
-        """The lines of the comments that open the file, documentation included.
-
-        They are the front matter `reading.matter` gives when every comment,
-        documentation or not, counts as prose. They open on line 1, or on the
-        line directly below the shebang, which shares the file's own place with
-        them. A prose line is one a comment stands on and no code does: a code
-        token's first and last lines, and every line of a comment that is part
-        of its line's code, are code.
-        """
-        first = 1 if self.shebang is None else self._line(self.shebang.span.end - 1) + 1
-        prose: set[int] = set()
-        code: set[int] = set()
-        for at, token in enumerate(self.scan.tokens):
-            if token.kind not in COMMENT_KINDS:
-                continue
-            lines = range(
-                self._line(token.span.start), self._line(token.span.end - 1) + 1
-            )
-            followed = _followed_on_its_line(self.scan.tokens, at, self.coordinates)
-            (code if followed else prose).update(lines)
-        for token in self.code:
-            code.update((self._line(token.span.start), self._line(token.span.end - 1)))
-        total = len(constants.text_lines(self.scan.text))
-        return file_matter(total, first, prose - code).front
-
     def _beside(self, index: int, run: _Run) -> bool:
         """Whether another comment shares the run's first or last line.
 
@@ -269,16 +235,9 @@ class _Assigner:
         while before >= 0 and self.code[before].kind is RustTokenKind.INNER_ATTRIBUTE:
             before -= 1
         if before < 0:
-            # A comment before the run that is not among the opening comments
-            # -- below a blank line, or one a run that opens the file runs on
-            # to -- detaches it.
-            behind = any(
-                not r.code and self._line(r.span.end - 1) >= self.opening.stop
-                for r in self.runs[:index]
-            )
             if MODULE not in self.owner_kinds:
                 self.forms[index] = RustSectionForm.COMMENT
-            elif preceded or behind:
+            elif preceded:
                 self._detach(index, run, None)
             else:
                 self._attach(index, run, None)

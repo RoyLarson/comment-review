@@ -1512,8 +1512,8 @@ def test_the_eof_a_filled_with_no_code_reads_back_as_a0_and_is_refused_at_prove(
         ),
         (
             "let y;\n/** D */\n// c\n\n// m\n",
-            {"a1": "/** X */"},
-            "a1: holds ['/** D */'], was given ['/** X */']",
+            {"a1": "// X"},
+            "a1: holds [], was given ['// X']",
         ),
     ],
     ids=["partner-altered", "foot"],

@@ -250,10 +250,10 @@ def test_detached_documentation_is_warned_on_stderr_and_exits_zero(
 def test_detached_module_documentation_names_the_module_as_its_owner(
     tmp_path, monkeypatch, capsys
 ):
-    source = "\n// note\n//! Module docs.\nfn f() {}\n"
+    source = "#![no_std]\n//! Module docs.\nfn f() {}\n"
     code, printed = _run_rust(tmp_path, monkeypatch, capsys, source)
     assert code == 0, printed
-    assert "warning: lib.rs:3: detached documentation (owner: module)\n" in printed
+    assert "warning: lib.rs:2: detached documentation (owner: module)\n" in printed
 
 
 def test_two_detached_runs_in_one_gap_print_two_warnings_on_their_own_lines(

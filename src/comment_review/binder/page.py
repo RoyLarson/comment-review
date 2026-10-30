@@ -631,7 +631,9 @@ def tie_leading(paragraphs: list[Paragraph], cues: Cues) -> dict[str, str]:
     list, so it does not have to.
 
     ! A RUN ABOVE EVERYTHING FOLLOWS THE FILE'S HEAD, and is tied under the first
-    place `cue` emitted -- `f0` -- or `""` only for a `Cues` with no places.
+    place `cue` emitted -- `f0`. Where that place holds lines the run is above
+    it, and `f0`'s edge is the run below it, so the run is tied under `""`,
+    the key before the first place. `""` also serves a `Cues` with no places.
 
     Args:
         paragraphs: every paragraph on the page, addressed.
@@ -652,6 +654,7 @@ def tie_leading(paragraphs: list[Paragraph], cues: Cues) -> dict[str, str]:
     # !! THE HEAD OF THE FILE IS A PLACE, NOT AN ABSENCE: `cue` emits `f0` at
     # the MODULE on EVERY file, filled or not.
     head = cues.reading[0] if cues.reading else ""
+    held_head = bool(set_places) and set_places[0].address.endswith(f"@{head}")
     for b in sorted(paragraphs, key=lambda b: b.original_start or 0):
         if b.kind != Kind.LEADING or not b.symbol:
             continue
@@ -660,7 +663,7 @@ def tie_leading(paragraphs: list[Paragraph], cues: Cues) -> dict[str, str]:
         # SEEN. The last place seen below a docstring is the EMPTY gap under it,
         # and tying the space to that gap would set an `add` into it ABOVE the
         # blank line and away from the code it documents.
-        before = head
+        before = "" if held_head else head
         for other in set_places:
             if (other.original_end or 0) >= start:
                 break
@@ -745,6 +748,7 @@ def page_for(
     )
     here = rel if rel is not None else path.as_posix()
     files = cues.file_places()
+    last_line = len(constants.text_lines(text))
     leads = iter(range(10**9))
     for b in sorted(got, key=lambda b: b.original_start or 0):
         if b.kind == Kind.LEADING:
@@ -752,7 +756,10 @@ def page_for(
             b.address = ""
             continue
         if b.kind == Kind.MATTER:
-            place = files[0] if b.original_start == 1 else files[-1]
+            # Back matter reaches the last line. Front matter opens line 1, or
+            # sits above the module's docstring, below a blank opening line.
+            opens = b.original_start == 1 or b.original_end != last_line
+            place = files[0] if opens else files[-1]
         elif b.kind == Kind.DOCSTRING:
             # Documentation takes the `a` of the line its reader named; None is
             # the module's, at `a0`, or at the `a` emitted at EOF when the

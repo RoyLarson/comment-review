@@ -79,3 +79,62 @@ def test_a_documentation_line_ends_the_matter_and_stays_in_its_part():
 def test_a_documentation_line_at_the_foot_leaves_no_back_matter():
     matter = file_matter(4, 1, {3})
     assert matter.back == range(5, 5)
+
+
+def test_with_a_module_docstring_every_comment_above_it_is_front_matter():
+    # Line 2 is blank, and it ends nothing above the docstring on lines 5-6.
+    matter = file_matter(8, 1, {1, 3, 4}, module_doc=range(5, 7))
+    assert matter.front == range(1, 5)
+    assert matter.parts(1, 4, {1, 3, 4}) == [(1, 4, True)]
+
+
+def test_with_a_module_docstring_the_front_matter_opens_where_the_caller_names():
+    matter = file_matter(5, 2, {3}, module_doc=range(4, 5))
+    assert matter.front == range(2, 4)
+
+
+def test_a_module_docstring_on_the_opening_line_leaves_no_front_matter():
+    matter = file_matter(3, 1, {3}, module_doc=range(1, 2))
+    assert matter.front == range(1, 1)
+
+
+def test_with_no_module_docstring_a_blank_line_ends_the_front_matter():
+    matter = file_matter(5, 1, {1, 3})
+    assert matter.front == range(1, 2)
+
+
+def test_with_a_closing_docstring_every_comment_below_it_is_back_matter():
+    # Line 5 is blank, and it ends nothing below the docstring on line 2.
+    matter = file_matter(6, 1, {3, 4, 6}, closing_doc=range(2, 3))
+    assert matter.back == range(3, 7)
+
+
+def test_a_blank_last_line_leaves_no_back_matter_below_a_closing_docstring():
+    matter = file_matter(5, 1, {3, 4}, closing_doc=range(2, 3))
+    assert matter.back == range(6, 6)
+
+
+def test_a_closing_docstring_on_the_last_line_leaves_no_back_matter():
+    matter = file_matter(4, 1, {3}, closing_doc=range(4, 5))
+    assert matter.back == range(5, 5)
+
+
+def test_with_no_closing_docstring_a_blank_line_ends_the_back_matter():
+    matter = file_matter(6, 1, {2, 4, 6})
+    assert matter.back == range(6, 7)
+
+
+def test_with_no_code_everything_past_the_front_matter_is_one_back_matter():
+    matter = file_matter(5, 1, {1, 3, 5}, codeless=True)
+    assert (matter.front, matter.back) == (range(1, 2), range(2, 6))
+
+
+def test_with_no_code_everything_past_the_module_docstring_is_one_back_matter():
+    # Line 6 is documentation inside it, and it goes with it.
+    matter = file_matter(8, 1, {1, 5, 8}, module_doc=range(3, 4), codeless=True)
+    assert (matter.front, matter.back) == (range(1, 3), range(4, 9))
+
+
+def test_with_no_code_a_blank_last_line_leaves_no_back_matter():
+    matter = file_matter(4, 1, {1, 3}, codeless=True)
+    assert (matter.front, matter.back) == (range(1, 2), range(5, 5))

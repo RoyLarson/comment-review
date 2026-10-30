@@ -233,8 +233,18 @@ def test_each_place_holds_one_paragraph_and_the_rest_is_one_b_or_the_back_matter
         ),
         ("let x = 1;\n/** D1 */\n// C1\n\n", [(2, 3, NOTE, "")]),
         ("let x = 1;\n/** D1 */\n// C1\n/** D2 */\n// C2\n\n", [(2, 5, NOTE, "")]),
+        (
+            "let x = 1;\n/** D1 */\n// C1\n\n// C2\n",
+            [(2, 2, DOC, "<eof>"), (3, 5, Kind.MATTER, "<module>")],
+        ),
     ],
-    ids=["one-comment", "comments-and-docs", "one-comment-blank", "comments-blank"],
+    ids=[
+        "one-comment",
+        "comments-and-docs",
+        "one-comment-blank",
+        "comments-blank",
+        "blank-between",
+    ],
 )
 def test_a_closing_docstring_below_code_keeps_its_a_above_the_back_matter(
     text, expected
@@ -296,6 +306,45 @@ def test_a_gap_is_cut_into_its_a0_its_one_b_and_the_a_at_its_lower_edge(text, ex
     found = read("m.js", text).paragraphs(Path("m.js"))
     got = [(p.start, p.end, p.kind, p.anchor, p.anchor_line) for p in found]
     assert [row for row in got if row[2] != Kind.TRAILING] == expected
+
+
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        (
+            "// licence\n\n// note\n\n/** Doc. */\n\nlet x = 1;\n",
+            [(1, 3, Kind.MATTER, "<module>", None), (5, 5, DOC, "", None)],
+        ),
+        (
+            "// licence\n\n// note\n\n/** M */\n/** F */\nfunction f() {}\n",
+            [
+                (1, 3, Kind.MATTER, "<module>", None),
+                (5, 5, DOC, "", None),
+                (6, 6, DOC, "", 7),
+            ],
+        ),
+        (
+            "#!/usr/bin/env node\n\n// note\n\n/** Doc. */\n\nlet x = 1;\n",
+            [(1, 3, Kind.MATTER, "<module>", None), (5, 5, DOC, "", None)],
+        ),
+        (
+            "// licence\n\n// note\n\n/** F */\nfunction f() {}\n",
+            [
+                (1, 1, Kind.MATTER, "<module>", None),
+                (3, 3, NOTE, "", None),
+                (5, 5, DOC, "", 6),
+            ],
+        ),
+    ],
+    ids=["module-doc", "two-docs-split", "shebang", "lone-doc-is-the-declarations"],
+)
+def test_every_comment_above_a_module_docstring_is_front_matter(text, expected):
+    # A lone doc over a declaration is the declaration's, so it has no such
+    # comments and a blank line ends the matter.
+    found = read("m.js", text).paragraphs(Path("m.js"))
+    assert [(p.start, p.end, p.kind, p.anchor, p.anchor_line) for p in found] == (
+        expected
+    )
 
 
 @pytest.mark.parametrize(

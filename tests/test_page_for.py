@@ -1042,18 +1042,86 @@ def test_rust_page_module_doc_after_an_inner_attribute_is_detached():
     assert set_page(page) == text
 
 
-def test_rust_page_module_doc_behind_a_comment_below_the_opening_matter_is_detached():
+@pytest.mark.parametrize(
+    ("name", "text", "doc"),
+    [
+        ("m.py", '# licence\n\n# note\n\n"""Doc."""\n\nx = 1\n', '"""Doc."""'),
+        ("m.js", "// licence\n\n// note\n\n/** Doc. */\n\nlet x = 1;\n", "/** Doc. */"),
+        ("m.rs", "// licence\n\n// note\n\n//! Doc.\n\nfn f() {}\n", "//! Doc."),
+    ],
+    ids=["python", "lexical", "rust"],
+)
+def test_every_comment_above_a_module_docstring_is_front_matter(name, text, doc):
     from comment_review.results.compositor import set_page
 
-    text = "// Copyright\n\n// note\n\n//! Docs.\n\nfn f() {}\n"
-    page = build(text, "m.rs")
+    page = build(text, name)
     places = by_cue(page)
-    assert (places["f0"].kind, places["f0"].raw_lines) == ("matter", ["// Copyright"])
-    assert places["a0"].kind == "undocumented"
-    assert (places["b0"].kind, places["b0"].raw_lines) == (
-        "comment",
-        ["// note", "", "//! Docs."],
+    assert (places["f0"].kind, places["f0"].raw_lines) == (
+        "matter",
+        text.splitlines()[:3],
     )
+    assert (places["a0"].kind, places["a0"].raw_lines) == ("docstring", [doc])
+    assert set_page(page) == text
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        '# one\n\n# note\n\n"""Doc."""\n\n# below\n\nx = 1\n',
+        '\n# one\n"""Doc."""\nx = 1\n',
+        '#!/bin/sh\n\n# note\n\n"""Doc."""\nx = 1\n',
+    ],
+    ids=["comment-below", "blank-opening-line", "shebang"],
+)
+def test_python_matter_above_a_module_docstring_sets_back(text):
+    from comment_review.results.compositor import set_page
+
+    assert set_page(build(text, "m.py")) == text
+
+
+def test_a_comment_below_a_blank_opening_line_with_no_docstring_is_back_matter():
+    from comment_review.results.compositor import set_page
+
+    text = "\n# one\n"
+    page = build(text, "m.py")
+    assert (by_cue(page)["f1"].kind, by_cue(page)["f0"].kind) == (
+        "matter",
+        "dark-matter",
+    )
+    assert set_page(page) == text
+
+
+def test_lexical_every_comment_below_a_closing_docstring_is_back_matter():
+    from comment_review.results.compositor import set_page
+
+    text = "let x = 1;\n/** D1 */\n// C1\n\n// C2\n"
+    page = build(text, "m.js")
+    places = by_cue(page)
+    closing = next(p for c, p in places.items() if p.raw_lines == ["/** D1 */"])
+    assert closing.kind == "docstring"
+    assert cue(closing).startswith("a")
+    assert (places["f1"].kind, places["f1"].raw_lines) == (
+        "matter",
+        ["// C1", "", "// C2"],
+    )
+    assert set_page(page) == text
+
+
+@pytest.mark.parametrize(
+    ("name", "text", "f1"),
+    [
+        ("m.py", '# M\n\n"""D."""\n\n# one\n\n# two\n', ["# one", "", "# two"]),
+        ("m.rs", "// M\n\n//! D.\n\n// one\n\n// two\n", ["// one", "", "// two"]),
+    ],
+    ids=["python", "rust"],
+)
+def test_with_no_code_everything_past_a0_is_one_back_matter(name, text, f1):
+    from comment_review.results.compositor import set_page
+
+    page = build(text, name)
+    places = by_cue(page)
+    assert places["a0"].kind == "docstring"
+    assert (places["f1"].kind, places["f1"].raw_lines) == ("matter", f1)
     assert set_page(page) == text
 
 
@@ -1329,21 +1397,17 @@ def test_rust_page_closing_comments_follow_one_rule_whatever_their_forms(case):
     assert set_page(page) == text
 
 
-def test_rust_page_module_doc_behind_a_comment_that_is_not_matter_is_detached():
-    """A `//!` behind an ordinary comment that is not front matter is
-    detached, so the three comments in the gap are one paragraph."""
+def test_rust_page_module_doc_behind_a_comment_below_a_blank_opening_line_keeps_a0():
+    """A `//!` behind a comment below a blank line 1 is the module's, and the
+    comment above it is matter."""
     from comment_review.results.compositor import set_page
 
     text = "\n// a\n//! m\n// c\nfn f() {}\n"
     page = build(text, "m.rs")
     places = by_cue(page)
-    assert places["a0"].kind == "undocumented"
-    assert (places["b0"].kind, places["b0"].raw_lines) == (
-        "comment",
-        ["// a", "//! m", "// c"],
-    )
-    addresses = [b.address for b in page.paragraphs if b.address]
-    assert len(addresses) == len(set(addresses))
+    assert (places["f0"].kind, places["f0"].raw_lines) == ("matter", ["// a"])
+    assert (places["a0"].kind, places["a0"].raw_lines) == ("docstring", ["//! m"])
+    assert (places["b0"].kind, places["b0"].raw_lines) == ("comment", ["// c"])
     assert set_page(page) == text
 
 

@@ -1640,13 +1640,15 @@ def test_detached_inner_doc_on_its_owner_head_line(rust_definition):
     assert detached_of(text, result) == [("//! same line", [1, 1])]
 
 
-def test_detached_module_doc_behind_a_comment_that_is_not_matter(rust_definition):
-    text = "\n// a\n//! m\n// c\nfn f() {}\n"
+@pytest.mark.parametrize(
+    "text",
+    ["\n// a\n//! m\nfn f() {}\n", "// a\n\n// b\n\n//! m\nfn f() {}\n"],
+    ids=["below-a-blank-opening-line", "below-a-blank-line"],
+)
+def test_module_doc_behind_any_comment_documents_the_module(rust_definition, text):
     result = documentation_of(text, rust_definition)
-    assert sections_of(text, result) == [("comment", "// a\n//! m\n// c")]
-    assert result.owners == ()
-    assert detached_of(text, result) == [("//! m", [3])]
-    assert anchor_lines(text, result.placement) == (5,)
+    assert owners_of(text, result) == [("//! m", None)]
+    assert detached_of(text, result) == []
 
 
 def test_detached_module_doc_behind_a_trailing_comment(rust_definition):
@@ -2319,7 +2321,7 @@ def test_projection_opening_matter_ends_at_the_module_doc(rust_definition):
 def test_projection_comments_in_one_gap_with_a_detached_module_doc_are_one(
     rust_definition,
 ):
-    text = "\n// a\n//! m\n// c\nfn f() {}\n"
+    text = "#![no_std]\n// a\n//! m\n// c\nfn f() {}\n"
     paragraphs, lines = projection_of(text, rust_definition)
     assert paragraphs == [
         paragraph(
@@ -2329,7 +2331,7 @@ def test_projection_comments_in_one_gap_with_a_detached_module_doc_are_one(
             ["// a", "//! m", "// c"],
         ),
     ]
-    assert lines == [CodeLine(5, "fn f() {}", DocPlace(5, True))]
+    assert lines[-1] == CodeLine(5, "fn f() {}", DocPlace(5, True))
 
 
 def test_projection_comment_and_detached_doc_after_code_are_one_comment(
