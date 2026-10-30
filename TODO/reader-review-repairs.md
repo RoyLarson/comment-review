@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 1 of 18 tasks closed
+Progress: 5 of 18 tasks closed
 Owner:    backend
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-10-30 (/broken-review, 2026-10-30, 0abe0010..106b767d)
 ```
 
@@ -14,7 +14,8 @@ Repair what the reader-hands-prose-only review found.
 
 ## Tasks
 
-- [?] T1 | Decide how a drop beside a #245 partner place reads back
+- [-] T1 | SUPERSEDED by T18, per #247 | 0f9cf8f8 | Decide how a drop beside a
+      #245 partner place reads back
         > 2026-10-30 W1 D3 I6: proof_setter.py:548; base accepted, branch aborts the run
 - [ ] T2 | Track the previous comment by line in Comment._without_range
         > 2026-10-30 I2: comment.py:156; /* a */ /* b */ /* c */ minus b c merges lines
@@ -31,11 +32,14 @@ Repair what the reader-hands-prose-only review found.
         > 2026-10-30 D1: guard compares single lines; vocabulary.toml:19 says one
 - [ ] T8 | Mark _cut_by_place provisional in the code
         > 2026-10-30 A1: #244 defers it; conventions require the marking
-- [ ] T9 | Delete _partner's no-code branch, which no draft reaches
+- [-] T9 | SUPERSEDED by T18, per #247 | 0f9cf8f8 | Delete _partner's no-code
+      branch, which no draft reaches
         > 2026-10-30 A4: StrippedRead refuses no-code files; lexical-code-identity T7
-- [ ] T10 | Move _partner's rule beside the place rule it depends on
+- [-] T10 | SUPERSEDED by T18, per #247 | 0f9cf8f8 | Move _partner's rule beside
+      the place rule it depends on
         > 2026-10-30 A3: page-model fact in a flow, coupled to _cut_gap's #245 rule
-- [ ] T11 | Make _written_once check position, with a failing test each guard
+- [-] T11 | SUPERSEDED by T18, per #247 | 0f9cf8f8 | Make _written_once check
+      position, with a failing test each guard
         > 2026-10-30 D4 I10: proof_setter.py:574-610; no test fails on 3 guards
 - [ ] T12 | Delete the dead conditions in the lexer
         > 2026-10-30 I8: lexer.py:870,1110,1031,1312; mutants pass the full suite

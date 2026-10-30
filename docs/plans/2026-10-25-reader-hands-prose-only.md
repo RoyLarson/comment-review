@@ -1,11 +1,11 @@
 # A reader hands over only what parsing finds
 
 ```
-Status:   decision-needed
-Progress: 25 of 42 TODO tasks closed
+Status:   in-progress
+Progress: 29 of 43 TODO tasks closed
 Plan-tasks: 24 of 24 plan tasks closed
 Owner:    backend
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-10-25 (founded by move-t from 2026-10-11-lexical-readers)
 ```
 
@@ -50,7 +50,7 @@ per step; each step lands its failing test first.
 
 ### B - [reader-review-repairs](../../TODO/reader-review-repairs.md)
 
-- [?] T1 | Decide how a drop beside a #245 partner place reads back
+- [-] T1 | Decide how a drop beside a #245 partner place reads back
 - [ ] T2 | Track the previous comment by line in Comment._without_range
 - [ ] T3 | Replace the gap scan's membership tests with a bisect
 - [ ] T4 | Reduce _cut_gap to one rule with no early-return path
@@ -58,15 +58,16 @@ per step; each step lands its failing test first.
 - [ ] T6 | Move the foot's matter rule into reading/matter.py
 - [ ] T7 | State the multi-line anchor in _change_problems and the vocabulary
 - [ ] T8 | Mark _cut_by_place provisional in the code
-- [ ] T9 | Delete _partner's no-code branch, which no draft reaches
-- [ ] T10 | Move _partner's rule beside the place rule it depends on
-- [ ] T11 | Make _written_once check position, with a failing test each guard
+- [-] T9 | Delete _partner's no-code branch, which no draft reaches
+- [-] T10 | Move _partner's rule beside the place rule it depends on
+- [-] T11 | Make _written_once check position, with a failing test each guard
 - [ ] T12 | Delete the dead conditions in the lexer
 - [ ] T13 | Replace the Cues count-stamped caches with cached_property
 - [ ] T14 | Correct the comments that disagree with the code
 - [-] T15 | Remove the reader anchor the page discards
 - [ ] T16 | Give anchor_line one meaning across reader and page
 - [ ] T17 | State a unit once, in joins or in DocPlace.at
+- [ ] T18 | Check a draft by where its text landed, per #247
 
 ### C - [lexer-and-language-findings](../../TODO/lexer-and-language-findings.md)
 
