@@ -137,8 +137,9 @@ def set_page(page: Page, newline: str | None = None) -> str:
     # `c`->`c` boundaries do.
     #
     # A run above everything is keyed under `f0`, the first place `cue` emits,
-    # and `""` keys it only for a `Cues` with no places -- see
-    # `Page.tie_leading`. An edge belongs to the place before it, which is what
+    # while `f0` holds no lines. Above a filled `f0`, and for a `Cues` with no
+    # places, it is keyed under `""`, which is `previous` at the first place --
+    # see `tie_leading`. An edge belongs to the place before it, which is what
     # it is keyed by. When a
     # paragraph goes away the place before it keeps its leading and the dropped
     # place's is not set; no key changes.
@@ -242,17 +243,19 @@ def set_page(page: Page, newline: str | None = None) -> str:
         # `f0` -- the defect this rule exists to close.
         adding_a_gap = bool(prose) and cue.startswith(GAP) and cue in absent
 
-        # !! THE CLOSING GAP IS EXEMPT, AND THE FOOT IS WHY. Back matter is the
-        # run AFTER the last blank line, so a leading above an added closing `b`
+        # !! THE CLOSING GAP IS EXEMPT, AND THE FOOT IS WHY. With no closing
+        # docstring, back matter is the run AFTER the last blank line -- the rule
+        # is `reading.matter`'s -- so a leading above an added closing `b`
         # pushes it INTO the matter it was meant to stay clear of: on `SAMPLE`,
         # `b4` with a leading still re-reads at `f1`, so the blank changes the
         # bytes and not the outcome.
         if adding_a_gap and not edge and at < last_code:
             out.append("")
         # !! AND AT THE FOOT IT GOES ON THE OTHER SIDE -- the head's rule in
-        # reverse. Matter is the run that STARTS on line 1 or ENDS on the last
-        # one, so what pushes a gap out of it is a blank BEFORE at the head and a
-        # blank AFTER at the foot. ! `...return y\n# ADDED\n` and
+        # reverse. With no module or closing docstring, matter is the run that
+        # STARTS on line 1 or ENDS on the last one, so what pushes a gap out of it
+        # is a blank BEFORE at the head and a blank AFTER at the foot.
+        # ! `...return y\n# ADDED\n` and
         # `...return y\n\n# ADDED\n` both re-read at `f1`;
         # `...return y\n# ADDED\n\n` re-reads at the closing gap, so a leading
         # before the closing gap moves nothing.

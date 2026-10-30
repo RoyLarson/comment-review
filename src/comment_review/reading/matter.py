@@ -9,8 +9,10 @@ A PROSE line holds a comment that is not documentation and stands on its line
 alone, and holds no code. Every line such a comment stands on is prose, a blank
 line inside a delimited comment included, so a comment is never cut. A fully
 empty line between two comments is not prose, and neither is a line of a
-doc-marked run: documentation at either end of a file is the module's
-docstring, never its matter.
+doc-marked run, so documentation ends a walk over prose lines. The module and
+closing docstrings are never matter. Other documentation is matter only where
+it lies inside a back matter below a closing docstring or in a file with no
+code, the two cases that take every line and not only prose lines.
 
 Front matter with a module docstring is every line from the opening line down
 to that docstring, whatever blank lines lie between. With none, it is the prose
@@ -24,8 +26,8 @@ In a file with no code, everything below the module docstring -- or below the
 front matter, with no docstring -- is one back matter, documentation inside it
 included.
 
-Back matter reaches the last line: a blank last line leaves none, whatever
-stands above it.
+Back matter reaches the last line: a last line that is not prose, blank or
+documentation, leaves none, whatever stands above it.
 
 A lone doc over a declaration is the declaration's, so a reader does not name
 it as the module docstring.

@@ -1156,8 +1156,9 @@ def _file_edges(
     `_file_docs` names the module and closing docstrings and the parts inside
     the matter they give are MATTER.
 
-    !! DOCUMENTATION AT EITHER END IS THE MODULE'S, NEVER MATTER, and each
-    run is then cut by the places its gap holds -- see `_cut_by_place`.
+    !! THE MODULE AND CLOSING DOCSTRINGS ARE NEVER MATTER, and each run left
+    is then cut by the places its gap holds -- see `_cut_by_place`. Other
+    documentation is matter only inside a back matter, as `reading.matter` says.
 
     !! MATTER IS ANCHORED TO THE MODULE, because that is what it is about.
     Every other run answers to the line of code it sits with; the file's own

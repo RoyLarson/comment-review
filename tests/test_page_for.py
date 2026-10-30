@@ -1091,6 +1091,15 @@ def test_a_comment_below_a_blank_opening_line_with_no_docstring_is_back_matter()
     assert set_page(page) == text
 
 
+@pytest.mark.parametrize(
+    ("text", "key"),
+    [('\n# one\n"""Doc."""\nx = 1\n', ""), ("\nx = 1\n", "f0")],
+    ids=["above-a-filled-f0", "at-an-empty-f0"],
+)
+def test_a_run_above_everything_is_keyed_by_whether_f0_holds_lines(text, key):
+    assert list(build(text, "m.py").leading) == [key]
+
+
 def test_lexical_every_comment_below_a_closing_docstring_is_back_matter():
     from comment_review.results.compositor import set_page
 

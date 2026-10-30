@@ -1488,6 +1488,15 @@ def test_an_alteration_read_back_at_its_partner_place_is_accepted(
     assert drafted[0].draft.read_text(encoding="utf-8") == expected
 
 
+def test_the_closing_docstring_above_back_matter_can_be_altered(tmp_path):
+    text = "let y;\n/** D */\n// c\n\n// m\n"
+    drafted, refused = _chain(tmp_path, "m.js", text, {"a1": "/** X */"})
+    assert refused == []
+    assert drafted[0].draft.read_text(encoding="utf-8") == (
+        "let y;\n/** X */\n// c\n\n// m\n"
+    )
+
+
 def test_the_eof_a_filled_with_no_code_reads_back_as_a0_and_is_refused_at_prove(
     tmp_path,
 ):

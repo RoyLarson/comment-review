@@ -338,6 +338,37 @@ def test_read_python_initial_bom_preserves_exact_source_and_documentation(
     )
 
 
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        (
+            '# one\n\n# two\n\n"""Doc."""\nx = 1\n',
+            [(1, 3, Kind.MATTER), (5, 5, Kind.DOCSTRING)],
+        ),
+        ("# one\n\n# two\nx = 1\n", [(1, 1, Kind.MATTER), (3, 3, Kind.COMMENT)]),
+        (
+            '"""Doc."""\n\n# one\n\n# two\n',
+            [(1, 1, Kind.DOCSTRING), (3, 5, Kind.MATTER)],
+        ),
+    ],
+    ids=["module-docstring", "no-docstring", "no-code"],
+)
+def test_paragraphs_for_hands_the_module_docstring_to_the_matter_rule(
+    python_definition, text, expected
+):
+    from pathlib import Path
+
+    from comment_review.reading.python.projection import paragraphs_for
+
+    result = import_module("comment_review.reading.python").read_python(
+        text, python_definition
+    )
+    assert not isinstance(result, ReadFailure)
+    paragraphs = paragraphs_for(Path("m.py"), result)
+    assert not isinstance(paragraphs, ReadFailure)
+    assert [(p.start, p.end, p.kind) for p in paragraphs] == expected
+
+
 def test_read_python_has_an_a_series_and_no_closing_docstring(python_definition):
     from comment_review.reading.python import read_python
 
