@@ -210,7 +210,8 @@ interfaces, inputs and checks, without internal development files or history.
       the column computes it.
 - [x] T49 | MOVED to 2026-10-22-lexer-rust | State Rust's inner doc openers in
       Rust's own definition file
-- [ ] T53 | Make every comment above a module docstring front matter, per #240
+- [ ] T53 | MOVED to 2026-10-25-reader-hands-prose-only | Make every comment
+      above a module docstring front matter, per #240
 - [ ] T51 | Make Python decorators and Rust attributes one unit with their item
 - [ ] T56 | Offer no place inside a string literal that spans lines
 

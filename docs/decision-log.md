@@ -5861,3 +5861,12 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   exactly where it was written -- `a0` filled alone above a declaration reads back as that
   declaration's `a`, as #241 accepts for the `<eof>` `a` in a file with no code.
 
+- **#246.** **One matter rule for every reader; #240 overrides #235 in Rust** (Roy, 2026-10-30,
+  on where #240 and the foot of #243 live: *"B is what I meant. It seems pretty easy to make the
+  lexical reader and only the lexical reader to read and label the matters"*; asked whether that
+  meant every reader, and how it meets #235: *"meaning 1, and #240 overrides #235 for Rust"*).
+
+  **What it settles.** A reader labels matter, for all three readers, by the one rule in
+  `reading/matter.py`, which states #240 and #243 at both ends. A comment above a Rust module doc
+  is therefore matter, and that doc is no longer detached; #235 stands for a doc above an item.
+

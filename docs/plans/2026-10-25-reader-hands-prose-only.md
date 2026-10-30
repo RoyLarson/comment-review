@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 25 of 41 TODO tasks closed
+Progress: 25 of 42 TODO tasks closed
 Plan-tasks: 24 of 24 plan tasks closed
 Owner:    backend
 Requires-Roy: true
@@ -67,6 +67,10 @@ per step; each step lands its failing test first.
 - [-] T15 | Remove the reader anchor the page discards
 - [ ] T16 | Give anchor_line one meaning across reader and page
 - [ ] T17 | State a unit once, in joins or in DocPlace.at
+
+### C - [lexer-and-language-findings](../../TODO/lexer-and-language-findings.md)
+
+- [ ] T53 | Make every comment above a module docstring front matter, per #240
 
 ## Plan Tasks
 

@@ -26,6 +26,7 @@ Repair what the reader-hands-prose-only review found.
         > 2026-10-30 I4: lexer.py:1372,1627; flipped to COMMENT, restored in _cut_gap
 - [ ] T6 | Move the foot's matter rule into reading/matter.py
         > 2026-10-30 A2: _cut_gap's back branch is a second home for #240, #243
+        > 2026-10-30 #246: landing with lexer-and-language-findings T53, here
 - [ ] T7 | State the multi-line anchor in _change_problems and the vocabulary
         > 2026-10-30 D1: guard compares single lines; vocabulary.toml:19 says one
 - [ ] T8 | Mark _cut_by_place provisional in the code
