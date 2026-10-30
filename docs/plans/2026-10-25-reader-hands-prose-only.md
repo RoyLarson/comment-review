@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 31 of 46 TODO tasks closed
+Progress: 35 of 46 TODO tasks closed
 Plan-tasks: 24 of 24 plan tasks closed
 Owner:    backend
 Requires-Roy: false
@@ -67,17 +67,17 @@ per step; each step lands its failing test first.
 - [-] T15 | Remove the reader anchor the page discards
 - [ ] T16 | Give anchor_line one meaning across reader and page
 - [ ] T17 | State a unit once, in joins or in DocPlace.at
-- [ ] T18 | Check a draft by where its text landed, per #247
+- [x] T18 | Check a draft by where its text landed, per #247
 
 ### C - [lexer-and-language-findings](../../TODO/lexer-and-language-findings.md)
 
 - [x] T53 | Make every comment above a module docstring front matter, per #240
-- [ ] T60 | Refuse a line separator inside a comment that ends at the line break
-- [ ] T62 | Name the shebang on the shell row
+- [x] T60 | Refuse a line separator inside a comment that ends at the line break
+- [x] T62 | Name the shebang on the shell row
 
 ### D - [lexical-code-identity](../../TODO/lexical-code-identity.md)
 
-- [ ] T7 | Prove a lexical file that has no line of code
+- [x] T7 | Prove a lexical file that has no line of code
 
 ## Plan Tasks
 

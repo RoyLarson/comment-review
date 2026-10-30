@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 82 of 182 TODO tasks closed
+Progress: 83 of 182 TODO tasks closed
 Plan-tasks: 40 of 53 plan tasks closed
 Owner:    backend
 Requires-Roy: false
@@ -39,7 +39,7 @@ interfaces, inputs and checks, without internal development files or history.
       gates
 - [ ] T2 | Preserve literal whitespace in prove_unchanged.py:191-207; verify
       blank-line and trailing-space edits change the fingerprint
-- [ ] T7 | MOVED to 2026-10-25-reader-hands-prose-only | Prove a lexical file
+- [x] T7 | MOVED to 2026-10-25-reader-hands-prose-only | Prove a lexical file
       that has no line of code
 
 ### B - [smoke-fixture-defects](../../TODO/smoke-fixture-defects.md)

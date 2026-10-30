@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 6 of 18 tasks closed
+Progress: 7 of 18 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-30 (/broken-review, 2026-10-30, 0abe0010..106b767d)
@@ -55,7 +55,8 @@ Repair what the reader-hands-prose-only review found.
         > 2026-10-30 D5: Java line 3 from reader, 2 from page; T51 would break owner_at
 - [ ] T17 | State a unit once, in joins or in DocPlace.at
         > 2026-10-30 D9: both say it and nothing checks they agree
-- [ ] T18 | Check a draft by where its text landed, per #247
+- [x] T18 | FINISHED: re-read asks landed, dropped, unchanged, by code-line count; chain passes | f71e1a17 | Check
+      a draft by where its text landed, per #247
         > 2026-10-30 Check: Roy's chain: add a1, reads a0, unchanged, move, original
         > 2026-10-30 'original' means the draft from step 1, byte-identical
         > 2026-10-30 Roy: blank doc = blank docstring on function f() {}; no T7 needed

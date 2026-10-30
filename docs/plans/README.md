@@ -25,8 +25,8 @@
 | [0.2.4-what-a-reviewer-is-handed](0.2.4-what-a-reviewer-is-handed.md) | in-progress | 13/24 | 3/4 |
 | [2026-10-11-lexer-python](2026-10-11-lexer-python.md) | closed | 36/36 | 53/53 |
 | [2026-10-11-lexical-read-results](2026-10-11-lexical-read-results.md) | closed | 17/17 | 14/14 |
-| [2026-10-11-lexical-readers](2026-10-11-lexical-readers.md) | in-progress | 82/182 | 40/53 |
+| [2026-10-11-lexical-readers](2026-10-11-lexical-readers.md) | in-progress | 83/182 | 40/53 |
 | [2026-10-11-lexical-reading-context](2026-10-11-lexical-reading-context.md) | closed | 23/23 | 26/26 |
 | [2026-10-11-lexical-source-contract](2026-10-11-lexical-source-contract.md) | closed | 3/3 | 14/14 |
 | [2026-10-22-lexer-rust](2026-10-22-lexer-rust.md) | closed | 6/6 | 13/13 |
-| [2026-10-25-reader-hands-prose-only](2026-10-25-reader-hands-prose-only.md) | in-progress | 31/46 | 24/24 |
+| [2026-10-25-reader-hands-prose-only](2026-10-25-reader-hands-prose-only.md) | in-progress | 35/46 | 24/24 |
