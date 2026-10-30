@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 2 of 10 tasks closed
+Progress: 2 of 14 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (C:/Program Files/Git/simplify rounds 1 and 2 and /code-review high
@@ -92,3 +92,11 @@ a run.
         > 2026-10-26 Reason: pre-existing; set_page moves the comment below the doc
 - [ ] T10 | Index the logical lines once for the Python reader's _bodies
         > 2026-10-26 _bodies scans lines per declaration twice; 3.0 of 4.2 s on 9k lines
+- [ ] T11 | Align Page.text, sha and lines after a Python read rewrites
+        > 2026-10-30 W3 D7: shared-line docstring; compositor says LOSSY
+- [ ] T12 | Refuse a trailing paragraph with no c instead of an empty address
+        > 2026-10-30 D2: address '' bypasses held_twice; synthetic input only
+- [ ] T13 | Declare what page_for reads from a lexical read in a Protocol
+        > 2026-10-30 A5 D8: isinstance(LexicalRead) in page; proof.py:3 is false
+- [ ] T14 | Type Paragraph.kind as Kind
+        > 2026-10-30 D10: str, literals in empty_places; attach MATTER unreachable

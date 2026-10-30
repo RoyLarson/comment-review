@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 22 of 57 tasks closed
+Progress: 22 of 59 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (/simplify rounds 1 and 2 and /code-review high round 3,
@@ -342,6 +342,7 @@ would.
 - [ ] T51 | Make Python decorators and Rust attributes one unit with their item
         > 2026-10-26 decision-log #238; CodeLine.joins from P18; b falls inside today
         > 2026-10-27 Lands with one-reader-builder (#244); fix once for every reader
+        > 2026-10-30 W5: with a Rust attribute the fn line declares nothing, says a0
 - [ ] T52 | Match a C# attribute section apart from a collection expression
 - [ ] T53 | Make every comment above a module docstring front matter, per #240
         > 2026-10-26 py: lic, blank, # note, blank, doc sets back reordered; at ef037f20
@@ -350,9 +351,15 @@ would.
         > 2026-10-26 Foot mirrors it (#240): comments under a closing doc are matter
         > 2026-10-27 Also: let y; /** D */ // c, blank, // m: eof a fill reads as f1
         > 2026-10-27 Also let y; /** D */ // c, blank, // m: eof a fill reads as f1
+        > 2026-10-30 W4: comments both sides of a py module doc now refuse the gather
 - [ ] T54 | Add Kotlin's property keywords to its declares list
 - [ ] T55 | Join an annotation whose arguments run onto a second line
 - [ ] T56 | Offer no place inside a string literal that spans lines
         > 2026-10-27 C backslash strings get c; Python triple quotes get b
 - [ ] T57 | Place a doc comment whole when another opens on its first line
         > 2026-10-27 /** M */ /** F, newline, */ over f is cut over a0 and a1
+        > 2026-10-30 I7: lexer.py:948 same cut on another comment's closing line
+- [ ] T58 | Allow an add at the b directly above a declaration
+        > 2026-10-30 W2: refused in TS Go Ruby Lua Kotlin C# Swift
+- [ ] T59 | Read a delimited comment after a string-only prefix as trailing
+        > 2026-10-30 I1: lexer.py:1037; "b" /* c */ becomes prose, file unprovable

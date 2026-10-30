@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 34 of 45 tasks closed
+Progress: 34 of 46 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-09-04 (Roy, 2026-09-04, superseding the-flow-lives-in-the-command T4)
@@ -167,3 +167,5 @@ The agents files name the new CLI and say how to use it.
 - [ ] T45 | Name the addresser's --line '<module>' and '<eof>' in the agent
       prose
         > 2026-10-27 reviewer-brief.md:99-105, SKILL.md:158, ownership-context.md:87-90
+- [ ] T46 | Remove --anchor-line from the reviewer brief, which nothing reads
+        > 2026-10-30 D11: reviewer-brief.md:177-178

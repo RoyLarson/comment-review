@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 55 of 61 tasks closed
+Progress: 55 of 62 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (code-review high round 3 and /simplify round 2, 2026-08-22 -- the
@@ -302,3 +302,5 @@ files in `corpora/` are in that state today.
       a lone CR back as a CR on every page
         > 2026-10-23 A lone CR becomes LF on set-back, even inside a string literal
 - [ ] T61 | Set an added b0 below matter in a file with no code, adding no blank
+- [ ] T62 | Stop an add and drop at b0 growing blanks at the file head
+        > 2026-10-30 W6: compositor.py:228-251; each cycle adds one blank

@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 7 of 15 tasks closed
+Progress: 7 of 17 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (simplify round 7, 2026-08-22 -- found by Pyright and by reading,
@@ -142,3 +142,7 @@ page.py:793-794 for `_SHEBANG`/`_CODING`, which round 7 deleted; those citations
 - [ ] T14 | Delete the unparsed branch in readers.py, which no reader produces
 - [ ] T15 | Remove the reader and placement revisions and the compatibility hash
         > 2026-10-26 decision-log #239: reads are ephemeral; reading/context.py, flows
+- [ ] T16 | Remove the page's anchor_num and _documented_line checks
+        > 2026-10-30 D6: refusals have no production route and no test
+- [ ] T17 | Compute each c anchor once in the Python and Rust readers
+        > 2026-10-30 D12: twice, 0 of 9,623 disagreed, nothing asserts it
