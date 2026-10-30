@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 29 of 43 TODO tasks closed
+Progress: 31 of 43 TODO tasks closed
 Plan-tasks: 24 of 24 plan tasks closed
 Owner:    backend
 Requires-Roy: false
@@ -55,7 +55,7 @@ per step; each step lands its failing test first.
 - [ ] T3 | Replace the gap scan's membership tests with a bisect
 - [ ] T4 | Reduce _cut_gap to one rule with no early-return path
 - [ ] T5 | Stop using Kind as a message between read steps
-- [ ] T6 | Move the foot's matter rule into reading/matter.py
+- [x] T6 | Move the foot's matter rule into reading/matter.py
 - [ ] T7 | State the multi-line anchor in _change_problems and the vocabulary
 - [ ] T8 | Mark _cut_by_place provisional in the code
 - [-] T9 | Delete _partner's no-code branch, which no draft reaches
@@ -71,7 +71,7 @@ per step; each step lands its failing test first.
 
 ### C - [lexer-and-language-findings](../../TODO/lexer-and-language-findings.md)
 
-- [ ] T53 | Make every comment above a module docstring front matter, per #240
+- [x] T53 | Make every comment above a module docstring front matter, per #240
 
 ## Plan Tasks
 

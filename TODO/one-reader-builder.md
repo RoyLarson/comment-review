@@ -34,6 +34,7 @@ only they need.
 - [ ] T1 | Move the cut by place out of lexer.py into one step every reader
       passes
         > 2026-10-30 A3: take _partner with the cut; A6: lexer.py is 1763 lines
+        > 2026-10-30 file_matter runs twice while docs are decided after the cut
 - [ ] T2 | Write the design for the reader builder and its shared parts
 - [ ] T3 | Build the lexical reader through the builder
 - [ ] T4 | Rebuild the Python reader as a definition plus its own parts

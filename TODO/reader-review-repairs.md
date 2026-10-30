@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 5 of 18 tasks closed
+Progress: 6 of 18 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-30 (/broken-review, 2026-10-30, 0abe0010..106b767d)
@@ -25,7 +25,8 @@ Repair what the reader-hands-prose-only review found.
         > 2026-10-30 I3: lexer.py:1341-1456; two mutants pass alone, fail together
 - [ ] T5 | Stop using Kind as a message between read steps
         > 2026-10-30 I4: lexer.py:1372,1627; flipped to COMMENT, restored in _cut_gap
-- [ ] T6 | Move the foot's matter rule into reading/matter.py
+- [x] T6 | FINISHED: one matter rule in matter.py; _cut_gap's back branch gone | 70f1f028 | Move
+      the foot's matter rule into reading/matter.py
         > 2026-10-30 A2: _cut_gap's back branch is a second home for #240, #243
         > 2026-10-30 #246: landing with lexer-and-language-findings T53, here
 - [ ] T7 | State the multi-line anchor in _change_problems and the vocabulary
@@ -56,3 +57,4 @@ Repair what the reader-hands-prose-only review found.
         > 2026-10-30 D9: both say it and nothing checks they agree
 - [ ] T18 | Check a draft by where its text landed, per #247
         > 2026-10-30 Check: Roy's chain: add a1, reads a0, unchanged, move, original
+        > 2026-10-30 'original' means the draft from step 1, byte-identical

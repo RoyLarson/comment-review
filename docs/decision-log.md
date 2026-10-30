@@ -5882,5 +5882,7 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   reader finds one paragraph holding exactly that text, whatever address it gives; dropped text
   is gone; every paragraph nobody edited reads back with the same text in the same order. The
   check stays independent of the compositor: the draft is read from disk. Amends #245's and
-  #241's acceptance, which no longer needs a named pair of places.
+  #241's acceptance, which no longer needs a named pair of places. "The original" in the test
+  is the draft written at the first step (Roy, the same day: *"We mean to the draft after writing
+  the first a1"*): the move ends byte-identical to that draft, not to the file before the add.
 

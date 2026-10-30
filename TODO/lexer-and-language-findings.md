@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 22 of 59 tasks closed
+Progress: 23 of 59 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (/simplify rounds 1 and 2 and /code-review high round 3,
@@ -344,7 +344,8 @@ would.
         > 2026-10-27 Lands with one-reader-builder (#244); fix once for every reader
         > 2026-10-30 W5: with a Rust attribute the fn line declares nothing, says a0
 - [ ] T52 | Match a C# attribute section apart from a collection expression
-- [ ] T53 | Make every comment above a module docstring front matter, per #240
+- [x] T53 | FINISHED: #240 for all three readers; pymc sets back identical | 70f1f028 | Make
+      every comment above a module docstring front matter, per #240
         > 2026-10-26 py: lic, blank, # note, blank, doc sets back reordered; at ef037f20
         > 2026-10-26 js twin hides it: // note + /** Doc. */ read as one b0 comment
         > 2026-10-26 pymc _version.py, distributions/continuous.py, setupegg.py
