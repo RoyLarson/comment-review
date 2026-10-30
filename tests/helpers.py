@@ -1450,6 +1450,10 @@ FORMS = {
         "m.js",
         "/** M */\n\n/** F */\nfunction f() {}\n",
     ),
+    "js two head docs over a documenting comment": (
+        "m.js",
+        "/** M */\n/** F */\n// c\nfunction f() {}\n",
+    ),
     "js three head docs over a declaration": (
         "m.js",
         "/** A */\n/** B */\n/** C */\nfunction f() {}\n",

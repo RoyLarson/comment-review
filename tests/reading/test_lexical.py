@@ -326,6 +326,11 @@ def test_a_gap_is_cut_into_its_a0_its_one_b_and_the_a_at_its_lower_edge(text, ex
             "/// M\n\n/// F\nfunc f() {}\n",
             [(1, 1, DOC, "", None), (3, 3, DOC, "", 4)],
         ),
+        (
+            "m.js",
+            "/** M */\n/** F */\n// c\nfunction f() {}\n",
+            [(1, 1, DOC, "", None), (2, 2, NOTE, "", None), (3, 3, DOC, "", 4)],
+        ),
         ("m.js", "/** F */\nfunction f() {}\n", [(1, 1, DOC, "", 2)]),
         ("m.swift", "/// M\n/// F\nfunc f() {}\n", [(1, 2, DOC, "", 3)]),
         (
@@ -341,6 +346,7 @@ def test_a_gap_is_cut_into_its_a0_its_one_b_and_the_a_at_its_lower_edge(text, ex
         "three",
         "two-multi-line",
         "two-doc-line-runs",
+        "two-over-a-documenting-comment",
         "one",
         "one-doc-line-run",
         "two-on-one-line",

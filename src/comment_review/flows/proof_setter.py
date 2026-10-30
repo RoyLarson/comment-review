@@ -569,7 +569,8 @@ def _reread(
         want = constants.text_lines(replacement)
         if got.raw_lines == want:
             continue
-        partner = placed.get(_partner(page, where, edits) or "")
+        partner_cue = _partner(page, where, edits)
+        partner = None if partner_cue is None else placed.get(partner_cue)
         if (
             partner is not None
             and partner.raw_lines == want

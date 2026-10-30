@@ -1278,10 +1278,11 @@ def _cut_by_place(
       declaration its last run documents -- whatever kind the group is -- or,
       at the foot of the file, `<eof>` when the group is doc-marked.
     - At the head of the file, the doc-marked group opening the gap is `a0`.
-      Where that group is also the one touching a declaration, a lone doc
-      comment in it is the declaration's `a`; with two or more, the first is
-      `a0` and the one touching the declaration is its `a`. A doc comment opens
-      on a line of `doc_opens`, so two on one line are one.
+      Where the gap's lower edge is a declaration, `a0` is that group's first
+      doc comment alone and the rest of the group is the `b`; where the group
+      is also the one touching the declaration, a lone doc comment in it is
+      the declaration's `a`, and with two or more the last is. A doc comment
+      opens on a line of `doc_opens`, so two on one line are one.
     - Everything else in the gap is its one `b`, a `comment`.
     - Where the back matter starts on the line below the gap's last run, the
       matter is what touches the foot: the gap has no `a` there, and
@@ -1384,12 +1385,21 @@ def _cut_gap(
     if head and groups[0][2] and groups[0] is not lowest:
         opening = groups[0]
     elif head and documents and lowest is groups[0] and lowest[2]:
-        # The head's doc group touches the declaration: its first doc comment
-        # is `a0` and its last the declaration's `a` once it holds two.
-        opens = sorted(n for n in doc_opens if lowest[0] <= n <= lowest[1])
+        opening = lowest
+    if head and documents and opening is not None:
+        # Over a declaration, `a0` is the head's first doc comment alone. When
+        # the doc group also touches the declaration, its last doc comment is
+        # the declaration's `a`, and a lone one is that `a` and no `a0`.
+        opens = sorted(n for n in doc_opens if opening[0] <= n <= opening[1])
+        alone = opening
         if len(opens) > 1:
-            opening = (lowest[0], max(n for n in held if n < opens[1]), True)
-            lowest = (opens[-1], lowest[1], True)
+            alone = (opening[0], max(n for n in held if n < opens[1]), True)
+        if opening is lowest:
+            if len(opens) > 1:
+                lowest = (opens[-1], opening[1], True)
+            else:
+                alone = None
+        opening = alone
     if (
         back is None
         and len(runs) == 1
