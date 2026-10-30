@@ -563,6 +563,10 @@ def _reread(
     for where, replacement in edits.items():
         if replacement is None:
             continue
+        if where not in written:
+            return None, Refusal(
+                "reread", rel, f"{where}: the compositor set no lines for this place"
+            )
         want = constants.text_lines(replacement)
         first, last = written[where]
         on_those_lines = [b for b in read if b.start <= last and first <= b.end]

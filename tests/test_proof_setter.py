@@ -1756,6 +1756,17 @@ def test_a_blank_changed_inside_an_unedited_docstring_is_refused(
     assert "the draft reads" in refused[0].why
 
 
+def test_spans_missing_a_place_refuse_by_name(tmp_path, monkeypatch):
+    text = "let x;\n// a\nlet y;\n"
+    _draft_written_as(monkeypatch, text.replace("// a", "// A"), {})
+    drafted, refused = _chain(tmp_path, "m.js", text, {"b1": "// A"})
+    assert drafted == []
+    assert (refused[0].step, refused[0].why) == (
+        "reread",
+        "b1: the compositor set no lines for this place",
+    )
+
+
 @pytest.mark.parametrize(
     ("name", "text", "alterations"),
     [
