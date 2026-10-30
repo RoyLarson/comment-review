@@ -1429,29 +1429,28 @@ def _doc_places(
                 groups[-1] = (groups[-1][0], n, doc)
             else:
                 groups.append((n, n, doc))
+    touching = groups[-1]
     head = a_series and not any(n < first.start for n in code)
-    foot = a_series and not any(n > last.end for n in code)
-    documents = last.kind == Kind.DOCSTRING
     opening = next((g for g in groups if g[2]), None) if head else None
-    lowest = None
-    if documents or (foot and groups[-1][2] and groups[-1] is not opening):
-        lowest = groups[-1]
-    if documents and opening is not None:
-        # Over a declaration, `a0` is the head's first doc comment alone. When
-        # the doc group also touches the declaration, its last doc comment is
-        # the declaration's `a`, and a lone one is that `a` and no `a0`.
-        opens = sorted(n for n in doc_opens if opening[0] <= n <= opening[1])
-        alone = opening
-        if len(opens) > 1:
-            held = [n for n in range(opening[0], opens[1]) if n not in between]
-            alone = (opening[0], held[-1], True)
-        if opening is lowest:
-            if len(opens) > 1:
-                lowest = (opens[-1], opening[1], True)
-            else:
-                alone = None
-        opening = alone
-    return groups, opening, lowest
+    if last.kind != Kind.DOCSTRING:
+        # No declaration below: the first doc group is `a0` whole, and a doc
+        # group left touching the foot is `<eof>`.
+        foot = a_series and not any(n > last.end for n in code)
+        closes = foot and touching[2] and touching != opening
+        return groups, opening, touching if closes else None
+    if opening is None:
+        return groups, None, touching
+    # Over a declaration, `a0` is the head's first doc comment alone. When the
+    # doc group also touches the declaration, its last doc comment is the
+    # declaration's `a`, and a lone one is that `a` and no `a0`.
+    opens = sorted(n for n in doc_opens if opening[0] <= n <= opening[1])
+    if len(opens) < 2:
+        return groups, None if opening == touching else opening, touching
+    kept = [n for n in range(opening[0], opens[1]) if n not in between]
+    alone = (opening[0], kept[-1], True)
+    if opening == touching:
+        return groups, alone, (opens[-1], opening[1], True)
+    return groups, alone, touching
 
 
 def _cut_gap(
@@ -1467,25 +1466,14 @@ def _cut_gap(
     first, last = runs[0], runs[-1]
     raw = {p.start + i: line for p in runs for i, line in enumerate(p.raw_lines)}
     held = sorted(n for n in raw if n not in between)
-    groups, opening, lowest = _doc_places(
+    _, opening, lowest = _doc_places(
         runs, code, between, documentation, doc_opens, a_series
     )
     documents = last.kind == Kind.DOCSTRING
-    if (
-        len(runs) == 1
-        and (len(groups) == 1 or (opening is None and lowest is None))
-        and not (opening and lowest)
-    ):
-        # A gap of one run that is one place keeps its paragraph.
-        p = runs[0]
-        if opening is None and lowest is None:
-            p.kind = Kind.COMMENT
-        else:
-            p.kind = Kind.DOCSTRING
-            p.anchor = p.anchor if documents else ("" if opening else EOF)
-        return [p]
 
-    def part(lo: int, hi: int, kind: Kind, anchor: str = "") -> Paragraph:
+    def part(
+        lo: int, hi: int, kind: Kind, anchor: str = "", anchor_line: int | None = None
+    ) -> Paragraph:
         # A line between two runs that neither holds is a blank, read from the file.
         return Paragraph(
             path=first.path,
@@ -1494,6 +1482,7 @@ def _cut_gap(
             kind=kind,
             raw_lines=[raw.get(n, lines[n - 1]) for n in range(lo, hi + 1)],
             anchor=anchor,
+            anchor_line=anchor_line,
         )
 
     parts: list[Paragraph] = []
@@ -1508,12 +1497,10 @@ def _cut_gap(
     if rest:
         parts.append(part(rest[0], rest[-1], Kind.COMMENT))
     if lowest is not None:
-        closing = part(lowest[0], lowest[1], Kind.DOCSTRING, last.anchor)
-        if documents:
-            closing.anchor_line = last.anchor_line
-        else:
-            closing.anchor = EOF
-        parts.append(closing)
+        anchor = "" if documents else EOF
+        parts.append(
+            part(lowest[0], lowest[1], Kind.DOCSTRING, anchor, last.anchor_line)
+        )
     return parts
 
 
