@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 1 of 17 tasks closed
+Progress: 1 of 18 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-10-30 (/broken-review, 2026-10-30, 0abe0010..106b767d)
@@ -50,3 +50,5 @@ Repair what the reader-hands-prose-only review found.
         > 2026-10-30 D5: Java line 3 from reader, 2 from page; T51 would break owner_at
 - [ ] T17 | State a unit once, in joins or in DocPlace.at
         > 2026-10-30 D9: both say it and nothing checks they agree
+- [ ] T18 | Check a draft by where its text landed, per #247
+        > 2026-10-30 Check: Roy's chain: add a1, reads a0, unchanged, move, original

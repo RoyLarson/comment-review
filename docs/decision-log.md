@@ -5870,3 +5870,17 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   `reading/matter.py`, which states #240 and #243 at both ends. A comment above a Rust module doc
   is therefore matter, and that doc is no longer detached; #235 stands for a doc above an item.
 
+- **#247.** **A draft is checked by where its text landed, not by its address** (Roy, 2026-10-30,
+  on the question "did this text land where it was written, and is everything else unchanged?":
+  *"This is the right question and I am glad you got that"*; then the acceptance test: *"A a1 is
+  added to the blank doc, it is written the read brings it back as a0, the a0 is run through the
+  system and comes back unchanged, then a move happens to move it back to a1 and it comes back to
+  the original again. That covers the while expected chain of reasoning and keeps the 'did this
+  set where is was supposed regardless of what the address ended up being"*).
+
+  **What it settles.** The re-read of a draft asks three things: on the exact lines written, the
+  reader finds one paragraph holding exactly that text, whatever address it gives; dropped text
+  is gone; every paragraph nobody edited reads back with the same text in the same order. The
+  check stays independent of the compositor: the draft is read from disk. Amends #245's and
+  #241's acceptance, which no longer needs a named pair of places.
+
