@@ -1494,6 +1494,13 @@ class TestOnlyCommentsChange:
     def test_a_spanning_delimiter_beside_code_stays_unprovable(self, name, text):
         assert code_fingerprint(text, Path(name)) == ("unprovable", "")
 
+    @pytest.mark.parametrize("line", ["\x1c", "\x1d", "\xa0", "\u2003"])
+    def test_a_line_the_language_can_run_is_not_blank(self, line):
+        before = "# a\n" + line + "\n"
+        refused = proof_setter._prove("m.sh", before, "# a\n", Path("m.sh"))
+        assert refused is not None
+        assert "code-changed" in refused.why
+
     @pytest.mark.parametrize("suffix", [".md", ".rst", ".txt", ".html"])
     def test_a_path_with_no_row_stays_unprovable(self, suffix):
         assert code_fingerprint("# Title\n", Path("m" + suffix)) == ("unprovable", "")

@@ -21,6 +21,10 @@ from comment_review.reading.lexer import (
 )
 from comment_review.reading.proof import UNPROVABLE, PreservationResult
 
+#: What the comparison ignores at a line's end. `str.strip` also takes U+001C to
+#: U+001F, NBSP and U+2003, and a language can run a line holding only those.
+_BLANK = " \t\f\v"
+
 #: Annotations saying a paragraph can hold code the read did not see as code.
 _UNPROVABLE_MARKS = {"unterminated-paragraph-comment", "line-ending-in-comment"}
 
@@ -86,24 +90,26 @@ def _without_comments(text: str, path: Path) -> str | None:
     scanned = constants.scan_lines(text)
     # Pre-seed every line as itself; a paragraph below either drops its entry
     # (None) or replaces it with the code prefix it proved survives.
-    kept: dict[int, str | None] = {i + 1: ln.rstrip() for i, ln in enumerate(lines)}
+    kept: dict[int, str | None] = {
+        i + 1: ln.rstrip(_BLANK) for i, ln in enumerate(lines)
+    }
     for paragraph in paragraphs:
         for offset, n in enumerate(range(paragraph.start, paragraph.end + 1)):
             if n not in kept or offset >= len(paragraph.raw_lines):
                 return None  # a paragraph naming a line this text does not have
             # Both sides are right-stripped, as `kept` holds the source lines.
-            actual = lines[n - 1].rstrip()
-            stored = paragraph.raw_lines[offset].rstrip()
+            actual = lines[n - 1].rstrip(_BLANK)
+            stored = paragraph.raw_lines[offset].rstrip(_BLANK)
             if actual == stored:
                 if _delimiter_shares_the_line(scanned[n - 1].rstrip(), lang):
                     return None
                 kept[n] = None
             elif stored and actual.endswith(stored):
-                kept[n] = actual[: len(actual) - len(stored)].rstrip()
+                kept[n] = actual[: len(actual) - len(stored)].rstrip(_BLANK)
             else:
                 return None  # binder and the file disagree; do not reconcile
     survivors = [v for v in kept.values() if v is not None]
-    code = [v for v in survivors if v.strip()]
+    code = [v for v in survivors if v.strip(_BLANK)]
     # !! A LITERAL THAT SPANS LINES MAKES THIS FILE UNPROVABLE. `_strip_strings`
     # is per-line and carries no open-quote state, so a line INSIDE a JS
     # template literal or a Java text block that begins with the language's
