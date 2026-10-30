@@ -365,7 +365,9 @@ would.
 - [ ] T59 | Read a delimited comment after a string-only prefix as trailing
         > 2026-10-30 I1: lexer.py:1037; "b" /* c */ becomes prose, file unprovable
 - [ ] T60 | Refuse a line separator inside a comment that ends at the line break
+        > 2026-10-30 // a U+2028 evil(); accepted in js/ts, node ran it; cs too
 - [ ] T61 | Refuse a C comment ending in a backslash splice
         > 2026-10-30 C/C++ '// a \' splices the next code line; not compiled here
+        > 2026-10-30 Roy: waits for a C specific reader (#250)
 - [ ] T62 | Name the shebang on the shell row
         > 2026-10-30 language.py:434: a shebang can be dropped or altered in .sh

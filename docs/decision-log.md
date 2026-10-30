@@ -5900,3 +5900,19 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   fenced code, front matter, directives and template tags are what a document reader must protect,
   and #247's three questions are the proposed proof there.
 
+- **#249.** **Repeated text and combined head edits are accepted** (Roy, 2026-10-30, shown five
+  edits the check by address refused and #247's check accepts: *"1 yes 2 yes 3 - yes 4 - yes
+  5 - yes"*).
+
+  **What it settles.** Text that also stands elsewhere is accepted, at the foot, in a mid-file `b`,
+  or at `f0` beside `a0`. On `/** F */` over `function f`, an add at `a0` with a drop at `a1` in one
+  docket is accepted, as is an add at `a0` with one at `b0`. Repeated text is not an error.
+
+- **#250.** **Each row states its own line endings** (Roy, 2026-10-30, shown that
+  `// note<U+2028>evil();` is accepted as a comment in `.js` and Node runs the text after the
+  separator: *"T60 yes"*; on the C backslash splice: *"T61 no waits for a C specific reader"*).
+
+  **What it settles.** A language row states the line endings its grammar defines. Text holding
+  one the reader does not split on is refused, in the source and in a replacement, so a line
+  comment cannot carry code past its real end. The C and C++ `// a \` splice waits for a C reader.
+

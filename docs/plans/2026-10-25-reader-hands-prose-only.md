@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 31 of 44 TODO tasks closed
+Progress: 31 of 45 TODO tasks closed
 Plan-tasks: 24 of 24 plan tasks closed
 Owner:    backend
 Requires-Roy: false
@@ -72,6 +72,7 @@ per step; each step lands its failing test first.
 ### C - [lexer-and-language-findings](../../TODO/lexer-and-language-findings.md)
 
 - [x] T53 | Make every comment above a module docstring front matter, per #240
+- [ ] T60 | Refuse a line separator inside a comment that ends at the line break
 
 ### D - [lexical-code-identity](../../TODO/lexical-code-identity.md)
 
