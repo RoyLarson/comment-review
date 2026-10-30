@@ -29,4 +29,4 @@
 | [2026-10-11-lexical-reading-context](2026-10-11-lexical-reading-context.md) | closed | 23/23 | 26/26 |
 | [2026-10-11-lexical-source-contract](2026-10-11-lexical-source-contract.md) | closed | 3/3 | 14/14 |
 | [2026-10-22-lexer-rust](2026-10-22-lexer-rust.md) | closed | 6/6 | 13/13 |
-| [2026-10-25-reader-hands-prose-only](2026-10-25-reader-hands-prose-only.md) | in-progress | 31/45 | 24/24 |
+| [2026-10-25-reader-hands-prose-only](2026-10-25-reader-hands-prose-only.md) | in-progress | 31/46 | 24/24 |
