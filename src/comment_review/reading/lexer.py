@@ -1376,6 +1376,9 @@ def _cut_by_place(
     With no code the gap is both head and foot, and one doc-marked group is
     `a0`. Each place holds one paragraph. The matter is already out of the
     gaps, so what reaches the foot past `a0` or `<eof>` is not cut here.
+
+    Provisional: this is a page rule held in the reader until
+    `TODO/one-reader-builder.md` T1 moves it.
     """
     gaps = _gaps(paragraphs, code)
     cut = {
