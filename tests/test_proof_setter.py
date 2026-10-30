@@ -16,7 +16,7 @@ from comment_review.binder.binder import bind
 from comment_review.desk.proof.edit_copy import EditCopy
 from comment_review.docket.docket import Alteration, Docket, Schedule
 from comment_review.flows import page_for as page_for_mod
-from comment_review.flows import proof_setter
+from comment_review.flows import proof_setter, revise
 from comment_review.flows import source as source_flow
 from comment_review.flows.distribute import seed
 from comment_review.flows.transcribe import docket_of
@@ -1523,18 +1523,31 @@ def _at(text: str, name: str, words: str) -> str:
     )
 
 
+def _pulled(tmp_path, n: int, name: str, text: str, alterations: dict) -> str:
+    """`_step` through `revise.pull`, the flow the `proof` command calls."""
+    repo = tmp_path / str(n) / "repo"
+    repo.mkdir()
+    (repo / name).write_text(text, encoding="utf-8", newline="")
+    binder = bind([build(text, name)], read_from={"root": str(repo), "revise": 0})
+    flat = {f"{name}@{where}": prose for where, prose in alterations.items()}
+    pulled = revise.pull(docket_from(flat, binder), repo, tmp_path / str(n) / "out", 1)
+    assert pulled.refusals == []
+    return (pulled.root / name).read_bytes().decode("utf-8")
+
+
+@pytest.mark.parametrize("through", [_step, _pulled], ids=["run", "pull"])
 @pytest.mark.parametrize("written", ["a0", "a1"])
-def test_roys_chain_ends_byte_identical_to_the_first_draft(tmp_path, written):
+def test_roys_chain_ends_byte_identical_to_the_first_draft(tmp_path, written, through):
     # Decision #247, on a blank docstring: add, read it back at the declaration's
     # `a`, run it through unchanged, move it to the other place.
     for path in (tmp_path / "1", tmp_path / "2", tmp_path / "3"):
         path.mkdir()
     words = "/** Doc. */"
-    first = _step(tmp_path, 1, "m.js", "function f() {}\n", {written: words})
+    first = through(tmp_path, 1, "m.js", "function f() {}\n", {written: words})
     assert first == "/** Doc. */\nfunction f() {}\n"
     assert _at(first, "m.js", words) == "a1"
-    assert _step(tmp_path, 2, "m.js", first, {"a1": words}) == first
-    assert _step(tmp_path, 3, "m.js", first, {"a1": None, "a0": words}) == first
+    assert through(tmp_path, 2, "m.js", first, {"a1": words}) == first
+    assert through(tmp_path, 3, "m.js", first, {"a1": None, "a0": words}) == first
 
 
 class TestAnEmptyPackageInit:
