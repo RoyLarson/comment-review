@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 3 tasks closed
+Progress: 1 of 3 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-25 (decision-log.md Process: #222)
@@ -22,4 +22,5 @@ Worked when it is asked for -- decision-log.md Process: #222.
         > 2026-10-25 Check: spec states modes, directive bounds, doc owners, fixtures
 - [ ] T2 | Implement the SQL reader from its definition
         > 2026-10-25 Check: uv run pytest -q tests/reading/test_sql.py
-- [~] T3 | Read a backslash inside a single-quoted string as literal
+- [x] T3 | SQL backslash-quote and backslash-double-quote files refused as unprovable; full suite passes | 694f4fed772a4024be3f1199d5925f755dd30000 | Read
+      a backslash inside a single-quoted string as literal

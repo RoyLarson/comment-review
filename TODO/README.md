@@ -315,8 +315,8 @@ that changed a published name or rule:
 | [language-reader-javascript](language-reader-javascript.md) | backend | -- | 1/5 | JavaScript lexical reader |
 | [language-reader-typescript](language-reader-typescript.md) | backend | -- | 0/2 | TypeScript lexical reader |
 | [language-reader-ruby](language-reader-ruby.md) | backend | -- | 0/7 | Ruby lexical reader |
-| [language-reader-shell](language-reader-shell.md) | backend | -- | 2/7 | Shell lexical reader |
-| [language-reader-sql](language-reader-sql.md) | backend | -- | 0/3 | SQL lexical reader |
+| [language-reader-shell](language-reader-shell.md) | backend | -- | 3/7 | Shell lexical reader |
+| [language-reader-sql](language-reader-sql.md) | backend | -- | 1/3 | SQL lexical reader |
 | [language-reader-lua](language-reader-lua.md) | backend | -- | 1/9 | Lua lexical reader |
 | [edit-path-isolation](edit-path-isolation.md) | backend | -- | 0/2 | Isolate the edit path from comment reading |
 | [one-reader-builder](one-reader-builder.md) | backend | -- | 0/10 | One reader builder from each language's definition |

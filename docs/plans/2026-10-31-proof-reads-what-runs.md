@@ -2,8 +2,8 @@
 
 ```
 Status:   in-progress
-Progress: 3 of 9 TODO tasks closed
-Plan-tasks: 3 of 9 plan tasks closed
+Progress: 5 of 9 TODO tasks closed
+Plan-tasks: 4 of 9 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-31 (code-review max, 2026-10-31)
@@ -28,11 +28,11 @@ A comment edit that changes what the language runs never reports PROVEN
 
 ### C - [language-reader-shell](../../TODO/language-reader-shell.md)
 
-- [~] T6 | Read a backslash inside a single-quoted string as literal
+- [x] T6 | Read a backslash inside a single-quoted string as literal
 
 ### D - [language-reader-sql](../../TODO/language-reader-sql.md)
 
-- [~] T3 | Read a backslash inside a single-quoted string as literal
+- [x] T3 | Read a backslash inside a single-quoted string as literal
 
 ### E - [lexer-and-language-findings](../../TODO/lexer-and-language-findings.md)
 
@@ -52,7 +52,8 @@ A comment edit that changes what the language runs never reports PROVEN
       a lone CR at every read
 - [x] P2 | Interpreter line compared with its ending in the stripped, Rust and Python readers; tests fail without the fix | 0033936561c21255827f51a1e592a3cb7912dd0f | Compare
       the interpreter line with its ending
-- [~] P3 | Read a backslash in a verbatim quote as text
+- [x] P3 | verbatim_quotes read backslash as text; scan_strings built; full suite passes | 694f4fed772a4024be3f1199d5925f755dd30000 | Read
+      a backslash in a verbatim quote as text
 - [ ] P4 | Refuse a comment standing inside an open string
 - [ ] P5 | Refuse a comment inside JSX text
 - [ ] P6 | Refuse a Rust doc marker with nothing to attach to
