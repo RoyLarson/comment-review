@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 57 of 70 tasks closed
+Progress: 58 of 70 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (code-review high round 3 and /simplify round 2, 2026-08-22 -- the
@@ -304,7 +304,8 @@ files in `corpora/` are in that state today.
 - [ ] T61 | Set an added b0 below matter in a file with no code, adding no blank
 - [ ] T62 | Stop an add and drop at b0 growing blanks at the file head
         > 2026-10-30 W6: compositor.py:228-251; each cycle adds one blank
-- [ ] T63 | Refuse a Python draft that no longer parses at prove, at
+- [x] T63 | Refused in PythonRead.preserved; prove_unchanged stops too | d6b40e39 | Refuse
+      a Python draft that no longer parses at prove, at
       `flows/proof_setter.py:700`
 - [x] T64 | Refuse ruled, #251; repair is T63 | 207d733bcd76762e6fe72d77618c45e68c11ad42 | Decide
       what a drop of a body's only docstring does

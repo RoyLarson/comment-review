@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 4 tasks closed
+Progress: 1 of 5 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-25 (decision-log.md Process: #222)
@@ -26,4 +26,7 @@ Worked when it is asked for -- decision-log.md Process: #222.
         > 2026-10-25 Moved from lexer-and-language-findings T4
         > 2026-10-25 Check: `n=${#arr} # count` reads ONE trailing comment at `# count`
         > 2026-10-25 Parameter expansion value=${value#prefix} becomes a comment
-- [ ] T4 | Read a shell `#` as a comment only at a word start, at `lexer.py:973`
+        > 2026-10-30 Open: `echo ${v% #*}` reads ` #*}` as c0; a drop keeps PROVEN
+- [x] T4 | word_breaks row field; bash-checked inputs in tests | 5b0f9fbf | Read
+      a shell `#` as a comment only at a word start, at `lexer.py:973`
+- [ ] T5 | Read a line opening `#` after a `\` continuation as code
