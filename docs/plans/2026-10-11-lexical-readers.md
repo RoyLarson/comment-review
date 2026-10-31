@@ -299,7 +299,8 @@ interfaces, inputs and checks, without internal development files or history.
 - [ ] T2 | T2 -- Read with `utf-8-sig` at `census.py:177`, which feeds
       `ast.parse`. Verify: a BOM'd `.py` censuses its module docstring, not one
       `unparsed` paragraph.
-- [ ] T5 | Write the byte-order mark ahead of f0, a0 or b0 when the head is set
+- [ ] T5 | MOVED to 2026-10-31-proof-reads-what-runs | Write the byte-order mark
+      ahead of f0, a0 or b0 when the head is set
 
 ### O - [census-degrades-silently](../../TODO/census-degrades-silently.md)
 
