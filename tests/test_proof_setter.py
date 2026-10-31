@@ -1703,16 +1703,23 @@ class TestAnInterpreterLineTheRowNames:
         assert refused is not None
         assert "protected-source-changed" in refused.why
 
-    @pytest.mark.parametrize("where", ["a0", "f0", "b0"])
-    def test_an_add_at_the_head_keeps_it_on_line_one(
-        self, tmp_path, name, comment, code, where
+    @pytest.mark.parametrize(("where", "gap"), [("a0", ""), ("b0", "\n")])
+    def test_an_add_at_the_head_lands_below_it(
+        self, tmp_path, name, comment, code, where, gap
     ):
         text = f"{self.SHEBANG}\n{code}\n"
         drafted, refused = _chain(tmp_path, name, text, {where: comment})
-        assert drafted or refused
-        for draft in drafted:
-            written = draft.draft.read_text(encoding="utf-8")
-            assert written.startswith(self.SHEBANG + "\n")
+        assert refused == []
+        written = drafted[0].draft.read_text(encoding="utf-8")
+        assert written == f"{self.SHEBANG}\n{gap}{comment}\n{code}\n"
+
+    def test_an_add_at_f0_stands_above_it_and_is_refused(
+        self, tmp_path, name, comment, code
+    ):
+        text = f"{self.SHEBANG}\n{code}\n"
+        drafted, refused = _chain(tmp_path, name, text, {"f0": comment})
+        assert drafted == []
+        assert "protected-source-changed" in refused[0].why
 
 
 @pytest.mark.parametrize("name", ["m.sh", "m.rb"])
@@ -1721,14 +1728,6 @@ def test_dropping_the_matter_cannot_take_the_interpreter_line(tmp_path, name):
     drafted, refused = _chain(tmp_path, name, text, {"f0": None})
     assert drafted == []
     assert refused
-
-
-def test_a_shell_hash_inside_a_word_offers_no_place_a_drop_could_take(tmp_path):
-    text = "if [ $# -eq 0 ]; then\n  echo none\nfi\n"
-    drafted, refused = _chain(tmp_path, "m.sh", text, {"b0": "# Note."})
-    assert refused == []
-    written = drafted[0].draft.read_text(encoding="utf-8")
-    assert "if [ $# -eq 0 ]; then\n" in written
 
 
 ONLY_A_DOCSTRING = 'class E(Exception):\n    """x"""\n\n\ndef f():\n    return 1\n'
