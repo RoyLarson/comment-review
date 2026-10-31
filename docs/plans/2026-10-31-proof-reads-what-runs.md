@@ -60,7 +60,7 @@ A comment edit that changes what the language runs never reports PROVEN
       a comment inside JSX text
 - [x] P6 | Same: doc-without-item refusal verified with rustc drafts and tests | 2768a650fa090ad37529962456288862a55676f6 | Refuse
       a Rust doc marker with nothing to attach to
-- [ ] P7 | State what the stripped comparison holds
+- [~] P7 | State what the stripped comparison holds
 - [x] P8 | Stripped comparison holds line_continuations; covered by tests/reading/test_stripped.py and test_language_definitions.py. | a57c7015ed721c3fa4f08758c47da59f56f7c9c8 | Compare
       a backslash continuation in the stripped comparison
 - [x] P9 | Compositor sets the byte-order mark at byte 0; tests/test_compositor.py, tests/reading/test_stripped.py, test_rust.py, test_python.py; full suite 6432 passed | dd155ab83501f5ff98b7772a98a79094a1e89929 | Set

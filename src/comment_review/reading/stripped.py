@@ -1,9 +1,17 @@
 """The comment-stripped read of a non-Python file, and its code comparison.
 
 The comment lexer removes admitted prose and compares the remaining lines,
-right-stripped with blank lines dropped. Ambiguous comment boundaries and
-spanning literals make this comparison unprovable. `StrippedRead` is the record
-a page carries for every language the lexical reader reads.
+right-stripped with blank lines dropped. A line a continuation joins to the
+line above is code whatever it holds. The byte-order mark and the interpreter
+line, with its ending, are compared on their own, outside the stripped text.
+
+A file is unprovable when the lexer cannot tell prose from code in it: a lone
+CR, an unterminated paragraph comment, a line ending the row states inside a
+comment, a paragraph-comment delimiter sharing a line with code, a comment in
+a string literal still open or between the tags of a markup element, a comment
+touching a continuation character, or a literal the row's `spanning_quotes`
+name. `StrippedRead` is the record a page carries for every language the
+lexical reader reads.
 """
 
 import re
@@ -251,9 +259,9 @@ def code_fingerprint(text: str, path: Path) -> tuple[str, str]:
         it compares the strings. "No code line" is the row's reading: a path
         with no row is never "stripped", and neither is a file with an
         unterminated comment or a line ending the row states inside a comment.
-        A row sees comment delimiters and nothing a language does before them,
-        so a directive held in a comment, or a closer spelled by an escape or a
-        line splice, is a comment here.
+        A row sees comment delimiters and nothing a language does before them.
+        Two shapes are not answered: a closer spelled by an escape or a line
+        splice, and a directive held in a comment, are both a comment here.
     """
     stripped = _without_comments(text, path)
     if stripped is None:
