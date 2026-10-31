@@ -5931,3 +5931,12 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   their own grammars. Roy also let stand the refusal of `/* a<U+2028>b */` at gather, which #250
   states.
 
+- **#253.** **A matter transform is the human's to approve** (Roy, 2026-10-30, on a `.sh` drop of
+  `f0` losing the interpreter line: *"all matter transforms are supposed to be raised to the human
+  for review so if the human says okay it is okay"*).
+
+  **What it settles.** An approved alteration at an `f` place may change the interpreter line. The
+  proof's refusal does not apply to it. An alteration at any other place, such as an `a0` add above
+  `#!`, still refuses. The raise itself is plan `0.2.4-an-f-correction-is-raised-alone`, not yet
+  built, so the refusal is lifted when that raise exists.
+

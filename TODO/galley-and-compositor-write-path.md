@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 56 of 68 tasks closed
+Progress: 56 of 69 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-22 (code-review high round 3 and /simplify round 2, 2026-08-22 -- the
@@ -317,3 +317,7 @@ files in `corpora/` are in that state today.
 - [ ] T68 | Classify the seven other mutants surviving final review 3
         > 2026-10-30 landed-text-only head-ignores-a-series foot-any-a code-between-le
         > 2026-10-30 matter-part-no-raw cut-part-no-raw shares-any
+- [ ] T69 | Admit an approved `f` alteration that changes the interpreter line
+      (#253)
+        > 2026-10-30 Waits on the raise: plan 0.2.4-an-f-correction-is-raised-alone
+        > 2026-10-30 Check: `a0` above `#!` still refuses; approved `f0` drop proves

@@ -210,7 +210,7 @@ that changed a published name or rule:
 | [stale-claims-after-the-envelope](stale-claims-after-the-envelope.md) | backend | -- | 2/8 | Shipped prose still describes formats and flags this branch deleted |
 | [one-stem-four-jobs](one-stem-four-jobs.md) | backend | -- | 7/15 | one stem, four jobs -- and the vocabulary sweep cannot see it |
 | [census-walks-and-flushes](census-walks-and-flushes.md) | backend | -- | 3/7 | census.py walks the whole repo, runs git twice, and its run-flush never fires |
-| [galley-and-compositor-write-path](galley-and-compositor-write-path.md) | backend | yes | 56/68 | The galley can overwrite the file under review, and the compositor reads through a normaliser |
+| [galley-and-compositor-write-path](galley-and-compositor-write-path.md) | backend | yes | 56/69 | The galley can overwrite the file under review, and the compositor reads through a normaliser |
 | [record-and-verdicts-disagree](record-and-verdicts-disagree.md) | backend | -- | 4/8 | record.py and verdicts.py disagree about what a valid record is, in four places |
 | [exception-hierarchy](exception-hierarchy.md) | backend | -- | 2/10 | Named tuples give us the seam; the hierarchy that catches our own types is not built |
 | [language-rows-in-toml](language-rows-in-toml.md) | backend | -- | 11/18 | 18 rows of pure data sit in shipped Python; references/vocabulary.toml is the pattern |
