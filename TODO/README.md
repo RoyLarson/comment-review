@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (139)
+### open  (138)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -320,7 +320,6 @@ that changed a published name or rule:
 | [language-reader-lua](language-reader-lua.md) | backend | -- | 0/7 | Lua lexical reader |
 | [edit-path-isolation](edit-path-isolation.md) | backend | -- | 0/2 | Isolate the edit path from comment reading |
 | [one-reader-builder](one-reader-builder.md) | backend | -- | 0/8 | One reader builder from each language's definition |
-| [reader-review-repairs](reader-review-repairs.md) | backend | -- | 13/18 | Repair what the reader-hands-prose-only review found |
 
 ### in-progress  (17)
 
@@ -531,3 +530,4 @@ the reason is inside the file.
 | [doc-does-not-fill-its-a](completed/doc-does-not-fill-its-a.md) | 6 finished, 6 superseded |
 | [doc-is-structural-means-two-things](completed/doc-is-structural-means-two-things.md) | 3 superseded |
 | [a-reader-finds-prose-only](completed/a-reader-finds-prose-only.md) | 23 finished, 6 superseded |
+| [reader-review-repairs](completed/reader-review-repairs.md) | 13 finished, 5 superseded |

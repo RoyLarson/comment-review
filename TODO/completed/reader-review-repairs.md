@@ -1,8 +1,8 @@
 # Repair what the reader-hands-prose-only review found
 
 ```
-Status:   open
-Progress: 13 of 18 tasks closed
+Status:   closed
+Progress: 18 of 18 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-30 (/broken-review, 2026-10-30, 0abe0010..106b767d)
@@ -17,9 +17,11 @@ Repair what the reader-hands-prose-only review found.
 - [-] T1 | SUPERSEDED by T18, per #247 | 0f9cf8f8 | Decide how a drop beside a
       #245 partner place reads back
         > 2026-10-30 W1 D3 I6: proof_setter.py:548; base accepted, branch aborts the run
-- [ ] T2 | Track the previous comment by line in Comment._without_range
+- [x] T2 | FINISHED: _without_range tracks the comment before it by line | d2575398 | Track
+      the previous comment by line in Comment._without_range
         > 2026-10-30 I2: comment.py:156; /* a */ /* b */ /* c */ minus b c merges lines
-- [ ] T3 | Replace the gap scan's membership tests with a bisect
+- [x] T3 | FINISHED: gap scan bisects; 16k lines 9.0s to 0.21s | 19b4a31e | Replace
+      the gap scan's membership tests with a bisect
         > 2026-10-30 I5: lexer.py:1301,1371; 16k lines 17.9s, 4.6x per doubling
 - [x] T4 | FINISHED: _cut_gap has one path; 69,129 reads unchanged | bc00c189 | Reduce
       _cut_gap to one rule with no early-return path
@@ -46,11 +48,14 @@ Repair what the reader-hands-prose-only review found.
 - [-] T11 | SUPERSEDED by T18, per #247 | 0f9cf8f8 | Make _written_once check
       position, with a failing test each guard
         > 2026-10-30 D4 I10: proof_setter.py:574-610; no test fails on 3 guards
-- [ ] T12 | Delete the dead conditions in the lexer
+- [x] T12 | FINISHED: dead conditions deleted, each shown by a mutant | 7af40799 | Delete
+      the dead conditions in the lexer
         > 2026-10-30 I8: lexer.py:870,1110,1031,1312; mutants pass the full suite
-- [ ] T13 | Replace the Cues count-stamped caches with cached_property
+- [x] T13 | FINISHED: Cues uses cached_property | 226440e3 | Replace the Cues
+      count-stamped caches with cached_property
         > 2026-10-30 I9: addresser.py:451-576; stamp guards a mutation that never occurs
-- [ ] T14 | Correct the comments that disagree with the code
+- [x] T14 | FINISHED: comments corrected | 565defb5 | Correct the comments that
+      disagree with the code
         > 2026-10-30 I13: lexer.py:966,1074,1272,1565,70; addresser.py:600,724,779
 - [-] T15 | SUPERSEDED by one-reader-builder T7; Roy moved it | 4494431b | Remove
       the reader anchor the page discards

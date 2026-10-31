@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 41 of 46 TODO tasks closed
+Progress: 46 of 46 TODO tasks closed
 Plan-tasks: 24 of 24 plan tasks closed
 Owner:    backend
 Requires-Roy: false
@@ -48,11 +48,11 @@ per step; each step lands its failing test first.
 - [x] T28 | Prove a lexical file whose prose lines end in whitespace
 - [x] T29 | Attach a doc run above an annotation line to the declaration below
 
-### B - [reader-review-repairs](../../TODO/reader-review-repairs.md)
+### B - [reader-review-repairs](../../TODO/completed/reader-review-repairs.md)
 
 - [-] T1 | Decide how a drop beside a #245 partner place reads back
-- [ ] T2 | Track the previous comment by line in Comment._without_range
-- [ ] T3 | Replace the gap scan's membership tests with a bisect
+- [x] T2 | Track the previous comment by line in Comment._without_range
+- [x] T3 | Replace the gap scan's membership tests with a bisect
 - [x] T4 | Reduce _cut_gap to one rule with no early-return path
 - [x] T5 | Stop using Kind as a message between read steps
 - [x] T6 | Move the foot's matter rule into reading/matter.py
@@ -61,9 +61,9 @@ per step; each step lands its failing test first.
 - [-] T9 | Delete _partner's no-code branch, which no draft reaches
 - [-] T10 | Move _partner's rule beside the place rule it depends on
 - [-] T11 | Make _written_once check position, with a failing test each guard
-- [ ] T12 | Delete the dead conditions in the lexer
-- [ ] T13 | Replace the Cues count-stamped caches with cached_property
-- [ ] T14 | Correct the comments that disagree with the code
+- [x] T12 | Delete the dead conditions in the lexer
+- [x] T13 | Replace the Cues count-stamped caches with cached_property
+- [x] T14 | Correct the comments that disagree with the code
 - [-] T15 | Remove the reader anchor the page discards
 - [x] T16 | Give anchor_line one meaning across reader and page
 - [x] T17 | State a unit once, in joins or in DocPlace.at
