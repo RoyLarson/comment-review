@@ -190,12 +190,14 @@ def _resolve_one(address: str, paragraphs: Sequence[Paragraph]) -> int:
     already written. Roy, 2026-08-18: *"in goes an address out comes the line
     numbers that cover that address ... particularly important after 7b and
     stage 8 wants to look something up to double check."* Every line number a
-    record carried is stale by then; the ADDRESS is not, so a binder of the
-    file AS IT IS NOW turns it back into lines to read.
+    record carried is stale by then, so a binder of the file AS IT IS NOW turns
+    an address into lines to read.
 
     ! Gather the CURRENT file, not the one the run started from. The address is
-    what survives an edit; the lines are what moved, and reading a pre-edit
-    binder here would hand back exactly the numbers 7b invalidated.
+    read as that file places it, which need not be the place the text was
+    written at: written text can share a neighbour's paragraph and read at
+    another address. A pre-edit binder would hand back exactly the numbers 7b
+    invalidated.
 
     ! Several entries can answer to one address -- a docstring and the comment
     run beneath it sit in the same gap -- so every match is printed. Measured

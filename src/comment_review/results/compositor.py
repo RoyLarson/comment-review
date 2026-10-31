@@ -23,10 +23,10 @@ page lands is the checkout's business. `approve()` copies with
 
 !! AND THE ROUND TRIP IS A TEST.
 For a supplied, unchanged `Page`, `set_page(page) == page.text`, byte for byte,
-except where it normalises: front matter that does not open on line 1 (see
-`set_page`) and mixed line endings (see `line_endings`). `identity` checks that
-round trip byte for byte; `lossless` checks only that no line is lost or
-invented, and the `compositor` command fails on that one.
+except where it normalises: a comment between a declaration and the docstring
+inside it (see `_set`) and mixed line endings (see `line_endings`). `identity`
+checks that round trip byte for byte; `lossless` checks only that no line is
+lost or invented, and the `compositor` command fails on that one.
 ! `prove_unchanged.py` is strictly weaker and answers a different question: it
 proves the EXECUTABLE CODE survived an edit, not that the model of a page is
 lossless.
@@ -116,19 +116,15 @@ def _set(page: Page, newline: str | None) -> tuple[str, dict[str, tuple[int, int
     grows from one line to four just hands back four lines, and every place after
     it is set where it always was -- next.
 
-    !! THE SERIES ORDER IS FIXED AND `f` COMES FIRST, WHICH IS LOSSY ON ONE
-    SHAPE. A file whose front matter is NOT on line 1 -- a blank above it, which
-    `b` owns -- comes back with the matter above that blank. MEASURED over 3,155
-    corpus files: 3 are set this way, all in `corpora/pymc`, and none loses or
-    invents a line.
+    !! THE SERIES ORDER IS FIXED AND AN `a` COMES BEFORE THE `b` BELOW ITS
+    DECLARATION, WHICH IS LOSSY ON ONE SHAPE. A comment between a declaration and
+    the docstring inside it comes back below that docstring, and no line is lost
+    or invented. `flows.proof_setter._reread` expects the file's order, so an
+    alteration on such a page is refused.
 
     ! THAT IS WHY `lossless` EXISTS BESIDE `identity`. The first is the invariant
     that must never break; the second is the strict form, and the gap between
-    them is exactly this normalisation.
-
-    ! AND IT IS HANDED TO A READER RATHER THAN SOLVED. Moving an `f0` into a `b0`
-    because that is where it fits is a `query` to the human, and it is one time
-    per file.
+    them is this normalisation and mixed line endings.
 
     Args:
         page: the page to set. Its cues states the order.
@@ -385,13 +381,6 @@ def lossless(original: str, rendered: str) -> str | None:
     ! IT IS WHAT SEPARATES A NORMALISATION FROM A BUG. A gate that could not tell
     them apart would carry the known-acceptable failures, and the next one -- a
     real one -- would land among them unnoticed.
-
-    !! MEASURED over ten of the 18 corpora `corpora/corpora.toml` pins, 3,155
-    files carrying a language record: **3 fail `identity` and 0 lose or invent a
-    line**. The three are the `f`-before-`b` ordering above, all in
-    `corpora/pymc`. A further 4, all in `corpora/sentry`, are REFUSED by both
-    checks before either can measure anything -- the unparsed page, whose source
-    the reader never established.
 
     Returns:
         None when both texts hold the same lines, each as often; otherwise a

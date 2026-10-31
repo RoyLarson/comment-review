@@ -458,9 +458,10 @@ def attach(paragraph: dict, cues: "Cues") -> str:
     # !! THE READER SAYS SO, and this only reads it. Stamping it here instead
     # would be a positioning rule in a module that may hold none.
     #
-    # ! WHICH `f` IS A POSITION -- `page_for` gives a run opening on line 1 the
-    # first `f` place `cue` emitted and any other run the last. This says only
-    # that the question is not `above()`'s to answer.
+    # ! WHICH `f` IS A POSITION -- `page_for` gives a run opening on line 1, or
+    # ending above the last line, the first `f` place `cue` emitted, and any
+    # other run the last. This says only that the question is not `above()`'s
+    # to answer.
     if paragraph.get("kind") == Kind.MATTER:
         return ""
     if Series.of_kind(str(paragraph.get("kind", ""))) is Series.ON:
