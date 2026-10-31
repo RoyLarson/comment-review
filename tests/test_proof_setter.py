@@ -1811,34 +1811,49 @@ def test_a_draft_is_accepted_on_where_its_text_landed(
     assert drafted[0].draft.read_text(encoding="utf-8") == expected
 
 
+@pytest.mark.parametrize("through", [_step, _pulled], ids=["run", "pull"])
 @pytest.mark.parametrize(
-    ("text", "alterations", "why"),
+    ("name", "text", "alterations", "expected"),
     [
+        ("m.js", "/** D */\n", {"a1": "/** E */"}, "/** D */\n/** E */\n"),
         (
-            "/** M */\n",
-            {"a1": "/** End. */"},
-            "a1: on lines 2-2 the draft holds",
+            "m.js",
+            "// M\n\n/** D */\n",
+            {"a1": "/** E */"},
+            "// M\n\n/** D */\n/** E */\n",
         ),
         (
+            "m.sh",
+            "#!/bin/sh\necho hi\n",
+            {"a0": "# doc"},
+            "#!/bin/sh\n# doc\necho hi\n",
+        ),
+        (
+            "m.js",
             "let y;\n/** D */\n// c\n\n// m\n",
             {"a1": "// X"},
-            "a1: on lines 2-2 the draft holds",
+            "let y;\n// X\n// c\n\n// m\n",
         ),
         (
+            "m.js",
             "function f() {}\n",
             {"a0": "/** M */\n/** N */"},
-            "a0: on lines 1-2 the draft holds",
+            "/** M */\n/** N */\nfunction f() {}\n",
         ),
     ],
-    ids=["merged-with-a-neighbour", "foot", "read-as-two"],
+    ids=[
+        "under-a-doc",
+        "under-a-doc-below-a-blank",
+        "under-a-shebang",
+        "foot",
+        "as-two",
+    ],
 )
-def test_text_with_no_paragraph_of_its_own_on_its_lines_is_refused(
-    tmp_path, text, alterations, why
+def test_written_text_may_join_a_neighbour_or_read_elsewhere(
+    tmp_path, name, text, alterations, expected, through
 ):
-    drafted, refused = _chain(tmp_path, "m.js", text, alterations)
-    assert drafted == []
-    assert refused[0].step == "reread"
-    assert refused[0].why.startswith(why)
+    (tmp_path / "1").mkdir()
+    assert through(tmp_path, 1, name, text, alterations) == expected
 
 
 def _draft_written_as(monkeypatch, wrong: str, spans: dict | None = None) -> None:
@@ -1852,6 +1867,52 @@ def _draft_written_as(monkeypatch, wrong: str, spans: dict | None = None) -> Non
     monkeypatch.setattr(compositor, "draft", write)
     if spans is not None:
         monkeypatch.setattr(compositor, "spans", lambda page: spans)
+
+
+@pytest.mark.parametrize(
+    ("wrong", "spans", "why"),
+    [
+        ("/** X */\n/** E */\n", None, "the draft reads"),
+        ("\n/** E */\n", None, "the draft reads"),
+        ("/** D */\n/** E */\n/** D */\n", None, "the draft reads"),
+        ("\n/** E */\n/** D */\n", None, "the draft reads"),
+        ("/** D */\n/** E */\n/** E */\n", None, "the draft reads"),
+        ("/** D */\n/** Z */\n", None, "a1: on lines 2-2 the draft holds"),
+        ("/** D */\nlet z;\n", None, "a1: on lines 2-2 the draft holds"),
+        ("/** D */\nlet z;\n/** E */\n", {"a1": (3, 3)}, "code lines in the draft"),
+        ("/** D */\n/** E */\n", {"a1": (2, 3)}, "a1: on lines 2-3 the draft holds"),
+    ],
+    ids=[
+        "neighbour-changed",
+        "neighbour-lost",
+        "neighbour-doubled",
+        "neighbour-moved-below",
+        "text-doubled",
+        "text-absent",
+        "code-on-its-line",
+        "code-count-changed",
+        "spans-wider-than-the-text",
+    ],
+)
+def test_a_merged_paragraph_is_still_checked_line_by_line(
+    tmp_path, monkeypatch, wrong, spans, why
+):
+    _draft_written_as(monkeypatch, wrong, spans)
+    drafted, refused = _chain(tmp_path, "m.js", "/** D */\n", {"a1": "/** E */"})
+    assert drafted == []
+    assert refused[0].step == "reread"
+    assert why in refused[0].why
+
+
+def test_written_text_on_a_code_line_is_refused(tmp_path, monkeypatch):
+    # The text is where the spans say, under the right count, and in the margin,
+    # whose read holds the blank before it.
+    text = "// a\nlet x;\n// b\nlet y;\n"
+    _draft_written_as(monkeypatch, "// a\n\nlet x; // B\nlet y;\n")
+    drafted, refused = _chain(tmp_path, "m.js", text, {"b1": " // B"})
+    assert drafted == []
+    assert refused[0].step == "reread"
+    assert "b1: on lines 3-3 the text stands on a code line" in refused[0].why
 
 
 @pytest.mark.parametrize(

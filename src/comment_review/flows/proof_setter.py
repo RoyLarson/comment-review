@@ -41,7 +41,7 @@ second literal, so a step dropped from the tuple shows up as a diff against
 that pin, not as a call somebody forgot to make.
 """
 
-from collections.abc import Iterable, Sequence
+from collections.abc import Collection, Iterable, Sequence
 from enum import StrEnum, auto
 from pathlib import Path
 from typing import NamedTuple
@@ -519,20 +519,23 @@ def _reread(
     It asks three things of that read, none of them about an address, because
     an alteration can read back at another place (`decision-log.md Process:
     #247`):
-    - landed: on the exact lines written for an alteration, the reader finds
-      one paragraph holding exactly that text, with as many code lines above it
-      as its place has on the page. The lines come from the compositor; what
+    - landed: the exact lines written for an alteration hold exactly that text,
+      in prose, under as many code lines as its place has on the page. The text
+      may share a paragraph with a neighbour and read at another address
+      (`decision-log.md Process: #254`). The lines come from the compositor; what
       stands on them, and the count, come from the reader.
     - dropped: the dropped text is gone. Dropped lines still in the draft are
       lines the page no longer holds, which the third question refuses, and
       counting lines there is what lets the same words stand elsewhere.
-    - unchanged: every paragraph nobody edited reads back with the same text,
-      in the same order, under the same count of code lines. It is compared by
-      line: a drop can leave two paragraphs touching, and the reader then finds
-      one run holding both.
+    - unchanged: every line of prose the page holds reads back with the same
+      text, in the same order, under the same count of code lines. It is compared
+      by line: a neighbour merged into written text is still checked, and so is
+      where the written text stands against it. A drop can leave two paragraphs
+      touching, and the reader then finds one run holding both.
 
-    The count is safe because `_prove` holds the code lines themselves. It
-    cannot see a change inside one stretch between two code lines.
+    The count is safe because `_prove` holds the code lines themselves. Within
+    one stretch between two code lines the order holds and the blanks are not
+    compared.
 
     A failed page read becomes a reread refusal before any of the three.
 
@@ -560,7 +563,7 @@ def _reread(
     read = sorted(
         (b for b in draft if b.address and _holds_prose(b)), key=lambda b: b.start
     )
-    landed: list[Paragraph] = []
+    lines_written: set[int] = set()
     for where, replacement in edits.items():
         if replacement is None:
             continue
@@ -571,38 +574,48 @@ def _reread(
         want = constants.text_lines(replacement)
         first, last = written[where]
         on_those_lines = [b for b in read if b.start <= last and first <= b.end]
-        if [(b.start, b.end, b.raw_lines) for b in on_those_lines] != [
-            (first, last, want)
-        ]:
-            placed = {cue_of(b.address).cue: b for b in read}
-            held = [b.raw_lines for b in on_those_lines]
+        held = [
+            (at, line)
+            for b in on_those_lines
+            for at, line in enumerate(b.raw_lines, b.start)
+            if first <= at <= last
+        ]
+        if held != list(enumerate(want, first)) or last - first + 1 != len(want):
             return None, Refusal(
                 "reread",
                 rel,
-                f"{where}: on lines {first}-{last} the draft holds {held!r},"
-                f" was given {want!r}{_elsewhere(placed, where, want)}",
+                f"{where}: on lines {first}-{last} the draft holds"
+                f" {[line for _, line in held]!r}, was given {want!r}",
             )
-        below = now_above[cue_of(on_those_lines[0].address).cue]
-        if below != was_above[where]:
+        if Series.of(where) is not Series.ON and any(
+            Series.of(cue_of(b.address).cue) is Series.ON for b in on_those_lines
+        ):
             return None, Refusal(
                 "reread",
                 rel,
-                f"{where}: stands under {below} code lines in the draft, and"
-                f" under {was_above[where]} on the page",
+                f"{where}: on lines {first}-{last} the text stands on a code line",
             )
-        landed.extend(on_those_lines)
+        lines_written.update(range(first, last + 1))
+        for below in {now_above[cue_of(b.address).cue] for b in on_those_lines}:
+            if below != was_above[where]:
+                return None, Refusal(
+                    "reread",
+                    rel,
+                    f"{where}: stands under {below} code lines in the draft, and"
+                    f" under {was_above[where]} on the page",
+                )
     held_by = {cue_of(b.address).cue: b for b in page if b.address}
-    kept = _prose_lines(
-        (
-            held_by[cue]
-            for cue in page.cues.reading
-            if cue in held_by and cue not in edits
-        ),
-        was_above,
-    )
-    came_back = _prose_lines(
-        (b for b in read if not any(b is one for one in landed)), now_above
-    )
+    kept: list[tuple[int, str]] = []
+    for cue in page.cues.reading:
+        if cue in edits:
+            kept += [
+                (was_above[cue], line)
+                for line in constants.text_lines(edits[cue] or "")
+                if line.strip()
+            ]
+        elif cue in held_by:
+            kept += _prose_lines([held_by[cue]], was_above)
+    came_back = _prose_lines(read, now_above, lines_written)
     if came_back != kept:
         return None, Refusal(
             "reread",
@@ -628,44 +641,31 @@ def _code_above(page: Page) -> dict[str, int]:
 
 
 def _prose_lines(
-    paragraphs: Iterable[Paragraph], above: dict[str, int]
+    paragraphs: Iterable[Paragraph],
+    above: dict[str, int],
+    written: Collection[int] = (),
 ) -> list[tuple[int, str]]:
     """The lines of those paragraphs holding prose, each with its count of code.
 
     A blank inside a string a language documents with is that string's value and
     is kept. A blank in a comment is not compared: a drop can re-cut comment runs
     or turn a comment into documentation, so the same blank can stand inside a
-    paragraph on one side and between two on the other.
+    paragraph on one side and between two on the other. A blank on a line in
+    `written` is alteration text, compared where the alteration is, and how a
+    reader takes it says nothing about the page.
     """
     return [
         (above[cue_of(b.address).cue], line)
         for b in paragraphs
         if _holds_prose(b)
-        for line in b.raw_lines
+        for at, line in enumerate(b.raw_lines, b.start)
         if line.strip()
-        or (b.kind == Kind.DOCSTRING and documents_in_literals(Path(b.path)))
+        or (
+            at not in written
+            and b.kind == Kind.DOCSTRING
+            and documents_in_literals(Path(b.path))
+        )
     ]
-
-
-def _elsewhere(placed: dict[str, Paragraph], where: str, want: list[str]) -> str:
-    """Which OTHER place in the draft holds this text, as a trailing clause.
-
-    It reports and does not accept: naming the other place makes a refusal
-    actionable, and text that stands somewhere other than where it was written
-    has not landed.
-
-    Args:
-        placed: the draft's paragraphs holding prose, by cue.
-        where: the cue whose alteration did not land.
-        want: the lines that were asked for there.
-
-    Returns:
-        `" -- <cue> holds it"`, or "" when no other place does.
-    """
-    for cue, found in placed.items():
-        if cue != where and found.raw_lines == want:
-            return f" -- {cue} holds it"
-    return ""
 
 
 def _approved(
