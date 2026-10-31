@@ -1722,6 +1722,14 @@ def test_dropping_the_matter_cannot_take_the_interpreter_line(tmp_path, name):
     assert refused
 
 
+def test_a_shell_hash_inside_a_word_offers_no_place_a_drop_could_take(tmp_path):
+    text = "if [ $# -eq 0 ]; then\n  echo none\nfi\n"
+    drafted, refused = _chain(tmp_path, "m.sh", text, {"b0": "# Note."})
+    assert refused == []
+    written = drafted[0].draft.read_text(encoding="utf-8")
+    assert "if [ $# -eq 0 ]; then\n" in written
+
+
 ONLY_A_DOCSTRING = 'class E(Exception):\n    """x"""\n\n\ndef f():\n    return 1\n'
 
 

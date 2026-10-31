@@ -73,6 +73,10 @@ class Language:
             attribute or decorator, which belongs to the declaration below it
             (Java `@Override`, C# `[Serializable]`). The run above such lines
             documents that declaration. Empty where the language has none.
+        word_breaks: the characters a line comment's opener must follow, or
+            line start. They end a word, and an opener inside a word is that
+            word's text (shell `$#`). A backslash before one takes its meaning
+            away. Empty where an opener opens wherever it stands.
         line_endings: the characters beyond LF and CR that end a line in this
             language's grammar. `constants.text_lines` does not split on them, so
             a line comment holding one is a comment here and two lines to the
@@ -94,6 +98,7 @@ class Language:
     doc_inside: bool = False
     shebang: tuple[str, ...] = ()
     annotations: tuple[str, ...] = ()
+    word_breaks: tuple[str, ...] = ()
     line_endings: tuple[str, ...] = ()
 
     @property
@@ -486,6 +491,9 @@ LANGUAGES: tuple[Language, ...] = (
         spanning_quotes=("<<",),
         quotes=('"', "'"),
         annotations=(),
+        # ! Bash's blanks and metacharacters. `#` opens a comment only as the
+        # first character of a word, and these are what end one.
+        word_breaks=(" ", "\t", ";", "&", "|", "(", ")", "<", ">"),
         # ! POSIX: a newline is LF.
         line_endings=(),
     ),

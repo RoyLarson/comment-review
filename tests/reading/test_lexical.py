@@ -494,6 +494,72 @@ def test_a_row_naming_a_shebang_takes_line_one_from_the_code(name):
     assert [c.line for c in lexical.code_lines()] == [2]
 
 
+@pytest.mark.parametrize(
+    "line",
+    [
+        "if [ $# -eq 0 ]; then",
+        "echo ${#name}",
+        "echo a#b",
+        "curl https://x/p#frag",
+        'echo "a"#b',
+        "echo 'a'#b",
+        "echo a\\ #b",
+        "echo a\\;#b",
+        "echo \\#b",
+    ],
+    ids=[
+        "dollar-hash",
+        "brace-hash",
+        "inside-a-word",
+        "url",
+        "after-a-double-quote",
+        "after-a-single-quote",
+        "after-an-escaped-space",
+        "after-an-escaped-metacharacter",
+        "escaped",
+    ],
+)
+def test_a_shell_hash_inside_a_word_is_code(line):
+    assert read("m.sh", f"{line}\n").paragraphs(Path("m.sh")) == []
+
+
+@pytest.mark.parametrize(
+    ("line", "comment"),
+    [
+        ("echo a # c", "# c"),
+        ("echo a\t# c", "# c"),
+        ("echo a;# c", "# c"),
+        ("echo a &# c", "# c"),
+        ("echo a |# c", "# c"),
+        ("(# c", "# c"),
+        ("(echo a)# c", "# c"),
+        ("cat <# c", "# c"),
+        ("cat ># c", "# c"),
+        ("echo a#b # c", "# c"),
+        ("echo $# # c", "# c"),
+        ("n=${#arr} # count", "# count"),
+    ],
+)
+def test_a_shell_hash_at_a_word_start_opens_a_comment(line, comment):
+    found = read("m.sh", f"{line}\n").paragraphs(Path("m.sh"))
+    assert [(p.kind, p.raw_lines[0].strip()) for p in found] == [
+        (Kind.TRAILING, comment)
+    ]
+
+
+def test_a_shell_hash_opening_a_line_is_a_comment():
+    found = read("m.sh", "    # c\necho a\n").paragraphs(Path("m.sh"))
+    assert [p.raw_lines for p in found] == [["    # c"]]
+
+
+@pytest.mark.parametrize(
+    ("name", "line"), [("m.rb", "x = a#b"), ("m.js", "a//b"), ("m.lua", "a--b")]
+)
+def test_a_row_with_no_word_breaks_opens_a_comment_anywhere(name, line):
+    found = read(name, f"{line}\n").paragraphs(Path(name))
+    assert [p.kind for p in found] == [Kind.TRAILING]
+
+
 def test_a_row_without_a_shebang_reads_hash_bang_as_its_language_does():
     # Go names no shebang, so `#!` on line 1 is code.
     lexical = read("m.go", "#!/x\npackage p\n")

@@ -798,6 +798,44 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
     return read_lexical(path, text, lang).found
 
 
+def _opens_word(line: str, at: int, breaks: tuple[str, ...]) -> bool:
+    """Whether column `at` of `line` starts a word: line start, or after a break.
+
+    Asked of the raw line, because a blanked literal reads as a break and a
+    literal joins the word beside it. A break after an odd run of backslashes
+    is escaped, and is word text.
+    """
+    if at == 0:
+        return True
+    head = line[: at - 1]
+    escaped = (len(head) - len(head.rstrip("\\"))) % 2 == 1
+    return line[at - 1] in breaks and not escaped
+
+
+def _line_comment_at(
+    line: str, code: str, openers: tuple[str, ...], lang: Language
+) -> int:
+    """The column of the line comment opening in `code`, or -1 where none does.
+
+    Args:
+        line: the raw line.
+        code: the same line with its literals blanked.
+        openers: the row's line-comment openers, longest first.
+        lang: the row, whose `word_breaks` say where an opener may stand.
+    """
+    if not lang.word_breaks:
+        return min((code.index(o) for o in openers if o in code), default=-1)
+    return min(
+        (
+            found.start()
+            for opener in openers
+            for found in re.finditer(re.escape(opener), code)
+            if _opens_word(line, found.start(), lang.word_breaks)
+        ),
+        default=-1,
+    )
+
+
 def read_lexical(path: Path, text: str, lang: Language) -> "LexicalRead":
     """Comment runs and code lines for a language with no parser here -- the FLOOR tier.
 
@@ -970,7 +1008,7 @@ def read_lexical(path: Path, text: str, lang: Language) -> "LexicalRead":
             pending.append((n, ""))
             continue
         code = _strip_strings(raw_line, lang.quotes, lang.char_quotes)
-        line_at = min((code.index(o) for o in openers if o in code), default=-1)
+        line_at = _line_comment_at(raw_line, code, openers, lang)
         opened = next((p for p in lang.block_comment if p[0] in code), None)
         # !! WHICHEVER OPENER COMES FIRST on the line owns it.
         if opened is not None and -1 < line_at < code.index(opened[0]):
