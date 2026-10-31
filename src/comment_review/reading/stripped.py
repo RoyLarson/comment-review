@@ -88,9 +88,11 @@ def _comment_in_a_string(
     return False
 
 
-#: An element opens at `<Name` or `<>` that no word, `)` or `]` precedes (else it
-#: is a comparison or a type argument), and closes at `</` or `/>`.
-_ELEMENT_EDGE = re.compile(r"(?<![\w)\]])<(?:[A-Za-z_$]|>)|</|/>")
+#: An element opens at `<Name` or `<>` and closes at `</` or `/>`. Outside an
+#: element a word, `)` or `]` before the `<` makes it a comparison or a type
+#: argument; inside one it is text beside a child element.
+_ELEMENT_EDGE = re.compile(r"</|/>|<(?:[A-Za-z_$]|>)")
+_BEFORE_COMPARISON = re.compile(r"[\w)\]]")
 
 
 def _comment_in_an_element(
@@ -113,11 +115,12 @@ def _comment_in_an_element(
             continue
         blanked, _ = scan_strings(v, lang)
         for edge in _ELEMENT_EDGE.finditer(blanked):
-            depth = (
-                depth + 1
-                if edge[0].startswith("<") and edge[0] != "</"
-                else max(depth - 1, 0)
-            )
+            if edge[0] in ("</", "/>"):
+                depth = max(depth - 1, 0)
+            elif depth or not (
+                edge.start() and _BEFORE_COMPARISON.match(blanked[edge.start() - 1])
+            ):
+                depth += 1
         if depth and n in partial:
             return True
     return False
@@ -194,7 +197,9 @@ def _without_comments(text: str, path: Path) -> str | None:
                 return None  # binder and the file disagree; do not reconcile
     if _comment_in_a_string(kept, partial, lang):
         return None
-    if lang.element_text and _comment_in_an_element(kept, partial, lang):
+    if path.suffix.lower() in lang.element_suffixes and _comment_in_an_element(
+        kept, partial, lang
+    ):
         return None
     code = []
     joined = False

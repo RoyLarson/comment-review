@@ -252,6 +252,10 @@ def test_an_apostrophe_in_a_comment_opens_nothing():
         "const a = <>\n  // text\n</>;\n",
         "const a = <p>\n  b // text\n</p>;\n",
         "const a = <p> // text\n</p>;\n",
+        "const a = <p>\n  Hello<br/>\n  // text\n</p>;\n",
+        "const a = <p>\n  see<b>x</b>\n  // text\n</p>;\n",
+        "const a = <p>see<b>x</b>\n  // text\n</p>;\n",
+        "const a = <p>\n  (x)<b>y</b>\n  // text\n</p>;\n",
     ],
 )
 def test_a_comment_inside_an_element_is_unprovable(text):
@@ -272,3 +276,9 @@ def test_a_comment_inside_an_element_is_unprovable(text):
 )
 def test_a_comment_outside_any_element_proves(text):
     assert _preserved(text, text.replace("text", "other"), "a.tsx").unchanged
+
+
+def test_a_ts_file_holds_no_elements():
+    before = "type F = <T>(x: T) => T;\n// one\n"
+
+    assert _preserved(before, before.replace("one", "two"), "a.ts").unchanged
