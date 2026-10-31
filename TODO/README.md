@@ -317,7 +317,7 @@ that changed a published name or rule:
 | [language-reader-ruby](language-reader-ruby.md) | backend | -- | 0/7 | Ruby lexical reader |
 | [language-reader-shell](language-reader-shell.md) | backend | -- | 1/5 | Shell lexical reader |
 | [language-reader-sql](language-reader-sql.md) | backend | -- | 0/2 | SQL lexical reader |
-| [language-reader-lua](language-reader-lua.md) | backend | -- | 1/8 | Lua lexical reader |
+| [language-reader-lua](language-reader-lua.md) | backend | -- | 1/9 | Lua lexical reader |
 | [edit-path-isolation](edit-path-isolation.md) | backend | -- | 0/2 | Isolate the edit path from comment reading |
 | [one-reader-builder](one-reader-builder.md) | backend | -- | 0/8 | One reader builder from each language's definition |
 
