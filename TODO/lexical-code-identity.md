@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 6 of 13 tasks closed
+Progress: 7 of 13 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-10 (live-run)
@@ -48,7 +48,8 @@ Use lexical code identity at both proof boundaries.
         > 2026-10-30 Java \u000a, C *\ newline /, trigraphs; pass beside code too
 - [ ] T9 | Add per-row directive forms the proof protects inside comments
         > 2026-10-30 /// <reference> in .d.ts; /*!50000 DROP TABLE */ in .sql; design
-- [~] T10 | Refuse an ordinary string spanning lines at `stripped.py:129`
+- [x] T10 | A comment inside an open string makes the file unprovable; tests and corpus count verified | 4092d634d1a4f31403fa12a4ef728ba86dc70b58 | Refuse
+      an ordinary string spanning lines at `stripped.py:129`
 - [x] T11 | A shebang gaining a CR is no longer proven in the stripped, Rust and Python readers; full suite passes | 0033936561c21255827f51a1e592a3cb7912dd0f | Compare
       the interpreter line by bytes at `stripped.py:169`
 - [ ] T12 | Read only code for a spanning delimiter at `stripped.py:129`

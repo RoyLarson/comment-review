@@ -2,8 +2,8 @@
 
 ```
 Status:   in-progress
-Progress: 5 of 9 TODO tasks closed
-Plan-tasks: 4 of 9 plan tasks closed
+Progress: 6 of 9 TODO tasks closed
+Plan-tasks: 5 of 9 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-31 (code-review max, 2026-10-31)
@@ -24,7 +24,7 @@ A comment edit that changes what the language runs never reports PROVEN
 - [x] T11 | Compare the interpreter line by bytes at `stripped.py:169`
 - [x] T13 | Hold a backslash continuation in the stripped comparison,
       `stripped.py:108`
-- [ ] T10 | Refuse an ordinary string spanning lines at `stripped.py:129`
+- [x] T10 | Refuse an ordinary string spanning lines at `stripped.py:129`
 
 ### C - [language-reader-shell](../../TODO/language-reader-shell.md)
 
@@ -54,7 +54,8 @@ A comment edit that changes what the language runs never reports PROVEN
       the interpreter line with its ending
 - [x] P3 | verbatim_quotes read backslash as text; scan_strings built; full suite passes | 694f4fed772a4024be3f1199d5925f755dd30000 | Read
       a backslash in a verbatim quote as text
-- [~] P4 | Refuse a comment standing inside an open string
+- [x] P4 | A comment inside an open string makes the file unprovable; tests and corpus count verified | 4092d634d1a4f31403fa12a4ef728ba86dc70b58 | Refuse
+      a comment standing inside an open string
 - [ ] P5 | Refuse a comment inside JSX text
 - [ ] P6 | Refuse a Rust doc marker with nothing to attach to
 - [ ] P7 | State what the stripped comparison holds
