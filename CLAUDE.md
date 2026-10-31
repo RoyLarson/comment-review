@@ -200,9 +200,10 @@ deliberately separate stages/actors.
 ### An address holds for one reading of the file
 
 An address says one thing: change the text here and it is set in the right
-spot relative to its anchor. It promises nothing about the next reading. Text
-set at `a1` may read back at `a0` when the addresses do not need to express
-that location.
+spot relative to its anchor. Each reading may parse back the comments to
+different locations if surrounding comments or code is inserted or deleted.
+The address is specific to the anchor not to the comment. Text set at `a1` may
+read back at `a0` when the addresses do not need to express that location.
 
 The invariant is location: where text stands relative to the code, and
 relative to the other comments and documents around it. A check compares those.
