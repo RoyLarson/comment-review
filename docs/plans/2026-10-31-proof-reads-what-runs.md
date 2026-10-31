@@ -2,8 +2,8 @@
 
 ```
 Status:   in-progress
-Progress: 0 of 9 TODO tasks closed
-Plan-tasks: 0 of 9 plan tasks closed
+Progress: 1 of 9 TODO tasks closed
+Plan-tasks: 1 of 9 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-31 (code-review max, 2026-10-31)
@@ -17,7 +17,7 @@ A comment edit that changes what the language runs never reports PROVEN
 
 ### A - [one-line-ending-per-file](../../TODO/one-line-ending-per-file.md)
 
-- [~] T2 | Refuse a file holding a lone CR at the gather
+- [x] T2 | Refuse a file holding a lone CR at the gather
 
 ### B - [lexical-code-identity](../../TODO/lexical-code-identity.md)
 
@@ -48,7 +48,8 @@ A comment edit that changes what the language runs never reports PROVEN
 
 ## Plan Tasks
 
-- [~] P1 | Refuse a lone CR at every read
+- [x] P1 | Lone CR refused at source_of, revision_source_of and _without_comments; tests fail first then pass | d506ea66c3357750b4bcf27375d4716a7d32abca | Refuse
+      a lone CR at every read
 - [ ] P2 | Compare the interpreter line with its ending
 - [ ] P3 | Read a backslash in a verbatim quote as text
 - [ ] P4 | Refuse a comment standing inside an open string

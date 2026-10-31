@@ -304,7 +304,7 @@ that changed a published name or rule:
 | [2026-10-13-human-question-list](2026-10-13-human-question-list.md) | backend | -- | 0/1 | Expose human questions across edit copies |
 | [empty-comment-gets-a-drop](empty-comment-gets-a-drop.md) | backend | -- | 0/1 | An empty comment gets a drop mark |
 | [paragraph-is-a-passage](paragraph-is-a-passage.md) | backend | -- | 0/9 | The addressed unit of prose is a passage, not a paragraph |
-| [one-line-ending-per-file](one-line-ending-per-file.md) | backend | -- | 1/6 | One line ending per file |
+| [one-line-ending-per-file](one-line-ending-per-file.md) | backend | -- | 2/6 | One line ending per file |
 | [language-reader-go](language-reader-go.md) | backend | -- | 0/3 | Go lexical reader |
 | [language-reader-c](language-reader-c.md) | backend | -- | 0/2 | C lexical reader |
 | [language-reader-cpp](language-reader-cpp.md) | backend | -- | 0/2 | C++ lexical reader |

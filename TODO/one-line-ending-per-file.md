@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 1 of 6 tasks closed
+Progress: 2 of 6 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-25 (decision-log Process #220, #221)
@@ -40,7 +40,8 @@ current corpus supplies.
 
 - [ ] T1 | Answer each file's line ending from one function in machine/
         > 2026-10-25 Check: a test per case (one, lone CR, mixed, none) fails first
-- [~] T2 | Refuse a file holding a lone CR at the gather
+- [x] T2 | Gather, proof and prove_unchanged refuse a lone-CR file as decode/lone-cr; a draft with a lone CR is unprovable; suite 6335 passed | d506ea66c3357750b4bcf27375d4716a7d32abca | Refuse
+      a file holding a lone CR at the gather
         > 2026-10-25 Check: a lone-CR fixture makes gather exit nonzero, naming it
         > 2026-10-31 Code review: `# x<CR>touch PWNED` proves with a c0 edit
         > 2026-10-31 Code review: `# x<CR>touch PWNED` proves with a c0 edit
