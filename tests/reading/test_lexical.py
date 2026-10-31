@@ -584,6 +584,19 @@ def test_a_row_with_no_word_breaks_opens_a_comment_anywhere(name, line):
     assert [p.kind for p in found] == [Kind.TRAILING]
 
 
+@pytest.mark.parametrize(
+    ("line", "code"),
+    [
+        ("let x = 1;　", "let x = 1;　"),
+        ("let x = 1;   ", "let x = 1; "),
+        ("let x = 1;  \t", "let x = 1;"),
+    ],
+)
+def test_a_code_line_ends_at_its_blanks_not_at_every_unicode_space(line, code):
+    # The comparison keeps these characters, so the anchor has to as well.
+    assert read("m.js", f"{line}\n").code_lines()[0].code == code
+
+
 def test_a_row_without_a_shebang_reads_hash_bang_as_its_language_does():
     # Go names no shebang, so `#!` on line 1 is code.
     lexical = read("m.go", "#!/x\npackage p\n")

@@ -1790,6 +1790,14 @@ def test_the_first_difference_is_named(found, expected, named):
     assert proof_setter._first_difference(found, expected) == named
 
 
+def test_a_comment_beside_a_line_ending_in_a_unicode_space_lands(tmp_path):
+    text = "let x = 1;　\n"
+    drafted, refused = _chain(tmp_path, "m.js", text, {"c0": " // n"})
+    assert refused == []
+    written = drafted[0].draft.read_bytes().decode("utf-8")
+    assert written == "let x = 1;　 // n\n"
+
+
 def test_a_drop_beside_other_statements_still_lands(tmp_path):
     text = ONLY_A_DOCSTRING.replace('"""x"""\n', '"""x"""\n    y = 1\n')
     drafted, refused = _chain(tmp_path, "m.py", text, {"a1": None})

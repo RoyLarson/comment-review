@@ -542,6 +542,12 @@ def _closes_a_character(line: str, at: int, quote: str) -> bool:
     return 0 <= end - at <= ESCAPE_WIDTH
 
 
+#: What ends a line of code. `str.strip` also takes U+001C to U+001F, NBSP,
+#: U+2003 and U+3000, which a language can hold as code: the comparison keeps
+#: them, and so does a `c`'s anchor.
+BLANK = " \t\f\v"
+
+
 def _strip_strings(
     line: str, quotes: tuple[str, ...], char_quotes: tuple[str, ...] = ()
 ) -> str:
@@ -1075,7 +1081,7 @@ def read_lexical(path: Path, text: str, lang: Language) -> "LexicalRead":
                 # first owns the line and `opened` was cleared above.
                 closed_at = opens_at + len(opened[0]) + ends_at
                 if line_at >= closed_at:
-                    partial_first[0] = len(raw_line[:line_at].rstrip()) + 1
+                    partial_first[0] = len(raw_line[:line_at].rstrip(BLANK)) + 1
                     run.append((n, raw_line[line_at:].rstrip()))
                     flush()
                 continue
@@ -1096,7 +1102,7 @@ def read_lexical(path: Path, text: str, lang: Language) -> "LexicalRead":
             # asked of the blanked one, so a string alone before the opener
             # reads as no code.
             partial_first[0] = (
-                len(raw_line[:opens_at].rstrip()) + 1 if beside_code else 0
+                len(raw_line[:opens_at].rstrip(BLANK)) + 1 if beside_code else 0
             )
             # ! A doc marker beside code opens a trailing comment, which
             # documents nothing, so its lines are not `documentation`.
@@ -1151,7 +1157,7 @@ def read_lexical(path: Path, text: str, lang: Language) -> "LexicalRead":
             # one and the code before `at` is what makes it trailing. A line
             # comment runs to end of line, so there is no other side to test.
             # ! THE RAW LINE, not the blanked one -- same reason as above.
-            partial_first[0] = len(raw_line[:at].rstrip()) + 1
+            partial_first[0] = len(raw_line[:at].rstrip(BLANK)) + 1
             run.append((n, raw_line[at:].rstrip()))
             flush()  # its own paragraph, anchored to the code on that line
     flush()
@@ -1814,7 +1820,7 @@ def code_text(text: str, paragraphs: list[Paragraph]) -> dict[int, str]:
         if on:
             occupied.discard(b.start)
     return {
-        n: beside.get(n) or line.rstrip()
+        n: beside.get(n) or line.rstrip(BLANK)
         for n, (line, scanned) in enumerate(
             zip(constants.text_lines(text), constants.scan_lines(text), strict=True), 1
         )
