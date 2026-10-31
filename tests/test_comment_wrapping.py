@@ -567,6 +567,31 @@ def test_removing_one_of_three_comments_on_a_line_keeps_the_others_apart(
     assert code_fingerprint(output, Path("m.c")) == (kind, before)
 
 
+@pytest.mark.parametrize(
+    "raw, snippet, expected",
+    [
+        (
+            "/* a */ /* b */ /* c */\n// next\n",
+            "b c",
+            "/* a */\n// next\n",
+        ),
+        (
+            "/* a */ /* b */ /* c */",
+            "b c",
+            "/* a */",
+        ),
+        (
+            "    /* a */ /* b */\n    // next\n",
+            "a b",
+            "    // next\n",
+        ),
+    ],
+    ids=["two-emptied-end-the-line", "at-the-end-of-the-text", "whole-line-emptied"],
+)
+def test_two_emptied_comments_leave_the_lines_around_them(raw, snippet, expected):
+    assert comment_at("m.js@b1", raw).without_once(snippet) == expected
+
+
 @pytest.mark.parametrize("instruction", ["move", "drop"])
 def test_empty_removal_retains_code_after_a_closer(instruction):
     source = "let x = 1; /* Move.\n */ let y = 2;\nlet z = 3;\n"
