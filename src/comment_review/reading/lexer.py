@@ -26,6 +26,7 @@ Beside the reader: `comment_form` parses a comment's markers and fragments for
 
 import ast
 import re
+from bisect import bisect_left, bisect_right
 from collections.abc import Callable, Collection, Mapping
 from dataclasses import dataclass
 from functools import cache
@@ -1232,7 +1233,7 @@ def _file_edges(
     ]
     code_lines = lines_of_code(code, declared, joined)
     document_declarations(found, code_lines)
-    code_at = set(code)
+    code_at = sorted(code)
     module_doc, closing_doc = _file_docs(
         found, code_at, between, documentation, doc_opens, lang.a_series
     )
@@ -1293,13 +1294,19 @@ def _one_matter_per_end(
     return sorted(out, key=lambda p: p.start)
 
 
-def _gaps(paragraphs: list[Paragraph], code: set[int]) -> list[list[Paragraph]]:
+def _code_between(code: list[int], low: int, high: int) -> bool:
+    """Does a line of `code`, ascending, lie strictly between these two lines?"""
+    at = bisect_right(code, low)
+    return at < len(code) and code[at] < high
+
+
+def _gaps(paragraphs: list[Paragraph], code: list[int]) -> list[list[Paragraph]]:
     """The file's prose runs, gathered by the gap between code each lies in."""
     gaps: list[list[Paragraph]] = []
     for p in sorted(paragraphs, key=lambda p: p.start):
         if p.kind != Kind.COMMENT:
             continue
-        if gaps and not any(gaps[-1][-1].end < n < p.start for n in code):
+        if gaps and not _code_between(code, gaps[-1][-1].end, p.start):
             gaps[-1].append(p)
         else:
             gaps.append([p])
@@ -1308,7 +1315,7 @@ def _gaps(paragraphs: list[Paragraph], code: set[int]) -> list[list[Paragraph]]:
 
 def _file_docs(
     paragraphs: list[Paragraph],
-    code: set[int],
+    code: list[int],
     between: set[int],
     documentation: set[int],
     doc_opens: set[int],
@@ -1329,7 +1336,7 @@ def _file_docs(
     if opening is not None:
         module_doc = range(opening[0], opening[1] + 1)
     foot = gaps[-1]
-    if code and max(code) < foot[0].start:
+    if code and code[-1] < foot[0].start:
         groups, _, lowest = _doc_places(
             foot, code, between, documentation, doc_opens, a_series
         )
@@ -1342,7 +1349,7 @@ def _file_docs(
 def _cut_by_place(
     paragraphs: list[Paragraph],
     lines: list[str],
-    code: set[int],
+    code: list[int],
     between: set[int],
     documentation: set[int],
     doc_opens: set[int],
@@ -1398,7 +1405,7 @@ _Group = tuple[int, int, bool]
 
 def _doc_places(
     runs: list[Paragraph],
-    code: set[int],
+    code: list[int],
     between: set[int],
     documentation: set[int],
     doc_opens: set[int],
@@ -1420,12 +1427,12 @@ def _doc_places(
             else:
                 groups.append((n, n, doc))
     touching = groups[-1]
-    head = a_series and not any(n < first.start for n in code)
+    head = a_series and bisect_left(code, first.start) == 0
     opening = next((g for g in groups if g[2]), None) if head else None
     if last.declares_line is None:
         # No declaration below: the first doc group is `a0` whole, and a doc
         # group left touching the foot is `<eof>`.
-        foot = a_series and not any(n > last.end for n in code)
+        foot = a_series and bisect_right(code, last.end) == len(code)
         closes = foot and touching[2] and touching != opening
         return groups, opening, touching if closes else None
     if opening is None:
@@ -1446,7 +1453,7 @@ def _doc_places(
 def _cut_gap(
     runs: list[Paragraph],
     lines: list[str],
-    code: set[int],
+    code: list[int],
     between: set[int],
     documentation: set[int],
     doc_opens: set[int],
@@ -1650,8 +1657,12 @@ def document_declarations(paragraphs: list["Paragraph"], lines: list[CodeLine]) 
         # means there is nothing for it to belong to, so the declaration takes
         # it -- `over` is set past `below` to say so.
         below = top - held.original_end - 1
-        previous = [n for n in above_code if n < held.original_start]
-        over = held.original_start - previous[-1] - 1 if previous else below + 1
+        previous = bisect_left(above_code, held.original_start)
+        over = (
+            held.original_start - above_code[previous - 1] - 1
+            if previous
+            else below + 1
+        )
         if below <= over:
             # ! THE LINE, NOT A CUE. The page gives it the `a` of that line.
             held.declares_line = line
