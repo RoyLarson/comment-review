@@ -106,6 +106,18 @@ def test_a_shebang_gaining_a_cr_is_protected_source():
     assert [d.code for d in result.diagnostics] == ["protected-source-changed"]
 
 
+def test_a_bom_prefixed_shebang_gaining_a_cr_is_protected_source():
+    before = chr(0xFEFF) + "#!/bin/sh\necho a\n"
+
+    result = _preserved(before, before.replace("sh\n", "sh\r\n"), "a.sh")
+
+    assert [d.code for d in result.diagnostics] == ["protected-source-changed"]
+
+
+def test_a_shebang_with_no_line_ending_proves_against_itself():
+    assert _preserved("#!/bin/sh", "#!/bin/sh", "a.sh").unchanged
+
+
 def test_a_crlf_shebang_that_stays_proves():
     before = "#!/bin/sh\r\necho a\r\n"
 
@@ -256,6 +268,7 @@ def test_an_apostrophe_in_a_comment_opens_nothing():
         "const a = <p>\n  see<b>x</b>\n  // text\n</p>;\n",
         "const a = <p>see<b>x</b>\n  // text\n</p>;\n",
         "const a = <p>\n  (x)<b>y</b>\n  // text\n</p>;\n",
+        "const a = <\u00dcnicode>\n// text\n</\u00dcnicode>;\n",
     ],
 )
 def test_a_comment_inside_an_element_is_unprovable(text):
