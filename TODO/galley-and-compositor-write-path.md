@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 56 of 69 tasks closed
+Progress: 57 of 70 tasks closed
 Owner:    backend
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-22 (code-review high round 3 and /simplify round 2, 2026-08-22 -- the
           write path, which is the one place a defect reaches disk)
 RE-VERIFIED: 2026-08-23 — 2026-08-23. Task 1 is FIXED and ticked -- the destructive case
@@ -309,8 +309,9 @@ files in `corpora/` are in that state today.
 - [x] T64 | Refuse ruled, #251; repair is T63 | 207d733bcd76762e6fe72d77618c45e68c11ad42 | Decide
       what a drop of a body's only docstring does
         > 2026-10-30 Outcome: refuse; no pass is added (#251)
-- [?] T65 | Decide whether `a1` may fill alone behind a filled `a0` in a no-code
-      file
+- [x] T65 | Ruled #254 | 309a02122fb45a18e0793511b703d2a952bd389b | Decide
+      whether `a1` may fill alone behind a filled `a0` in a no-code file
+        > 2026-10-30 Outcome: stays offered; landed test changes, #254
 - [ ] T66 | Correct the front-matter comments at `results/compositor.py:26`,
       `:119`, `:385`
 - [ ] T67 | State `_reread`'s four whitespace passes in its docstring
@@ -321,3 +322,4 @@ files in `corpora/` are in that state today.
       (#253)
         > 2026-10-30 Waits on the raise: plan 0.2.4-an-f-correction-is-raised-alone
         > 2026-10-30 Check: `a0` above `#!` still refuses; approved `f0` drop proves
+- [ ] T70 | Accept written text that joins a neighbouring paragraph (#254)
