@@ -52,5 +52,5 @@ Use lexical code identity at both proof boundaries.
 - [x] T11 | A shebang gaining a CR is no longer proven in the stripped, Rust and Python readers; full suite passes | 0033936561c21255827f51a1e592a3cb7912dd0f | Compare
       the interpreter line by bytes at `stripped.py:169`
 - [ ] T12 | Read only code for a spanning delimiter at `stripped.py:129`
-- [ ] T13 | Hold a backslash continuation in the stripped comparison,
+- [~] T13 | Hold a backslash continuation in the stripped comparison,
       `stripped.py:108`

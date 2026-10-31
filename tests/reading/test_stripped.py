@@ -130,3 +130,37 @@ def test_a_draft_holding_a_lone_cr_is_unprovable():
 def test_a_crlf_file_is_no_lone_cr():
     assert not constants.holds_lone_cr("a\r\nb\r\n")
     assert constants.holds_lone_cr("a\rb\n")
+
+
+@pytest.mark.parametrize(
+    ("before", "after"),
+    [
+        ("echo a \\\n  b\n", "echo a \\  # n\n  b\n"),
+        ("echo a \\  # n\n  b\n", "echo a \\\n  b\n"),
+        ("echo a \\\n  b\n", "echo a \\\n# n\n  b\n"),
+        ("echo a \\\n# n\n  b\n", "echo a \\\n  b\n"),
+        ("echo a \\\n\n  b\n", "echo a \\\n  b\n"),
+    ],
+)
+def test_an_edit_at_a_continuation_is_changed_code(before, after):
+    result = _preserved(before, after, "a.sh")
+
+    assert [d.code for d in result.diagnostics] == ["code-changed"]
+
+
+def test_rewording_a_comment_past_a_broken_continuation_proves():
+    before = "echo a \\  # one\n  b\n"
+
+    assert _preserved(before, before.replace("one", "two"), "a.sh").unchanged
+
+
+def test_two_backslashes_do_not_continue():
+    before = "echo a\\\\\n# one\n"
+
+    assert _preserved(before, before.replace("one", "two"), "a.sh").unchanged
+
+
+def test_a_row_with_no_continuation_reads_its_comment_as_prose():
+    before = "x = a \\\n-- one\n"
+
+    assert _preserved(before, before.replace("one", "two"), "a.lua").unchanged

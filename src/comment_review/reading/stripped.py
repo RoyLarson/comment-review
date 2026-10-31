@@ -56,6 +56,11 @@ def _delimiter_shares_the_line(line: str, lang: Language) -> bool:
     return False
 
 
+def _continues(line: str, lang: Language) -> bool:
+    """Whether the line ends in an odd run of one of the row's continuations."""
+    return any((len(line) - len(line.rstrip(c))) % 2 for c in lang.line_continuations)
+
+
 def _without_comments(text: str, path: Path) -> str | None:
     """The file with every comment paragraph removed, or None if unprovable here.
 
@@ -93,6 +98,7 @@ def _without_comments(text: str, path: Path) -> str | None:
     kept: dict[int, str | None] = {
         i + 1: ln.rstrip(BLANK) for i, ln in enumerate(lines)
     }
+    partial: set[int] = set()  # lines kept as a code prefix before a comment
     for paragraph in paragraphs:
         for offset, n in enumerate(range(paragraph.start, paragraph.end + 1)):
             if n not in kept or offset >= len(paragraph.raw_lines):
@@ -105,11 +111,21 @@ def _without_comments(text: str, path: Path) -> str | None:
                     return None
                 kept[n] = None
             elif stored and actual.endswith(stored):
-                kept[n] = actual[: len(actual) - len(stored)].rstrip(BLANK)
+                prefix = actual[: len(actual) - len(stored)].rstrip(BLANK)
+                # Blanks between a continuation character and the comment keep
+                # it from joining the next line, so they are code.
+                gap = stored[: len(stored) - len(stored.lstrip(BLANK))]
+                kept[n] = prefix + gap if _continues(prefix, lang) else prefix
+                partial.add(n)
             else:
                 return None  # binder and the file disagree; do not reconcile
-    survivors = [v for v in kept.values() if v is not None]
-    code = [v for v in survivors if v.strip(BLANK)]
+    code = []
+    joined = False
+    for n, v in kept.items():
+        if joined or (v is not None and v.strip(BLANK)):
+            # The line a continuation joins is code whatever it holds.
+            code.append(lines[n - 1].rstrip(BLANK) if v is None else v)
+        joined = v is not None and n not in partial and _continues(lines[n - 1], lang)
     # !! A LITERAL THAT SPANS LINES MAKES THIS FILE UNPROVABLE. `_strip_strings`
     # is per-line and carries no open-quote state, so a line INSIDE a JS
     # template literal or a Java text block that begins with the language's

@@ -84,6 +84,10 @@ class Language:
             a line comment holding one is a comment here and two lines to the
             language, and the read refuses it. Empty where the grammar defines
             none.
+        line_continuations: the single characters that, as the last character
+            of a line in an odd-length run, continue it onto the next line. Two
+            in a row are an escaped character, so the run's parity decides.
+            Empty where the grammar has no such continuation.
     """
 
     name: str
@@ -103,6 +107,7 @@ class Language:
     word_breaks: tuple[str, ...] = ()
     word_parens: tuple[str, ...] = ()
     line_endings: tuple[str, ...] = ()
+    line_continuations: tuple[str, ...] = ()
 
     @property
     def a_series(self) -> bool:
@@ -197,6 +202,8 @@ LANGUAGES: tuple[Language, ...] = (
         # ! C leaves the end of a physical line to the implementation; GCC and
         # Clang end one at LF, CR or CRLF.
         line_endings=(),
+        # ! A backslash before the newline splices the lines (translation phase 2).
+        line_continuations=("\\",),
     ),
     Language(
         "cpp",
@@ -219,6 +226,8 @@ LANGUAGES: tuple[Language, ...] = (
         # ! C++ leaves the end of a physical line to the implementation; GCC,
         # Clang and MSVC end one at LF, CR or CRLF.
         line_endings=(),
+        # ! A backslash before the newline splices the lines (translation phase 2).
+        line_continuations=("\\",),
     ),
     Language(
         "java",
@@ -477,6 +486,8 @@ LANGUAGES: tuple[Language, ...] = (
         annotations=(),
         # ! The Ruby spec's `line-terminator`: LF and CRLF.
         line_endings=(),
+        # ! A backslash before the newline continues the line onto the next.
+        line_continuations=("\\",),
     ),
     Language(
         "shell",
@@ -503,6 +514,9 @@ LANGUAGES: tuple[Language, ...] = (
         word_parens=("$(", "<(", ">(", "=("),
         # ! POSIX: a newline is LF.
         line_endings=(),
+        # ! An unquoted backslash before the newline is removed with it, and the
+        # next line continues the command.
+        line_continuations=("\\",),
     ),
     Language(
         "sql",

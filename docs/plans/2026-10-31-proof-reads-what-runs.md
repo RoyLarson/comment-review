@@ -57,5 +57,5 @@ A comment edit that changes what the language runs never reports PROVEN
 - [ ] P5 | Refuse a comment inside JSX text
 - [ ] P6 | Refuse a Rust doc marker with nothing to attach to
 - [ ] P7 | State what the stripped comparison holds
-- [ ] P8 | Compare a backslash continuation in the stripped comparison
+- [~] P8 | Compare a backslash continuation in the stripped comparison
 - [ ] P9 | Set the byte-order mark at byte 0
