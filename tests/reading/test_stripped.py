@@ -221,9 +221,15 @@ def test_a_comment_inside_an_open_string_is_unprovable(name, text):
 
 
 def test_a_string_spanning_lines_with_no_comment_in_it_proves():
-    text = 'echo "a\nb"\n'
+    text = 'echo "a\nb"  # note\n'
 
     assert _preserved(text, text, "a.sh").unchanged
+
+
+def test_a_comment_trailing_a_line_that_leaves_a_string_open_is_unprovable():
+    before = 'echo "a\nb # one\nc"\n'
+
+    assert _preserved(before, before.replace("one", "two"), "a.sh").unprovable
 
 
 def test_a_comment_after_the_string_closes_proves():

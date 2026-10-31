@@ -103,7 +103,8 @@ def _without_comments(text: str, path: Path) -> str | None:
     the stripped text is merely SHORT -- short, plausible, and equal on two
     files whose executable code differs. A line ending the row states inside a
     comment is refused the same way, on `line-ending-in-comment`: what follows it
-    is a line of code to the language.
+    is a line of code to the language. A comment standing where a string literal
+    is still open is refused too, see `_comment_in_a_string`.
 
     Text holding a lone CR is refused first: the lexer ends a line there, and a
     shell or compiler may not, so the comment may run on into code.
@@ -166,12 +167,11 @@ def _without_comments(text: str, path: Path) -> str | None:
     # !! A LITERAL THAT SPANS LINES THE ROW CANNOT TRACK MAKES THIS FILE
     # UNPROVABLE. The gather carries no quote from line to line, so a line INSIDE
     # a JS template literal or a Java text block that begins with the language's
-    # comment marker is read as a comment and deleted from BOTH fingerprints:
-    # a template literal whose body changed from `// alpha` to `// omega`
-    # produced identical fingerprints and the file was reported PROVEN -- a
-    # fail-OPEN in the one gate whose whole claim is that executable code is
-    # byte-identical. `_comment_in_a_string` catches this for the quotes
-    # `scan_strings` tracks; the row's `spanning_quotes` are the ones it does not.
+    # comment marker is read as a comment and deleted from BOTH fingerprints, so
+    # a changed literal body compares equal and the file reports PROVEN, where
+    # the claim is that executable code is byte-identical.
+    # `_comment_in_a_string` catches this for the quotes `scan_strings` tracks;
+    # the row's `spanning_quotes` are the ones it does not.
     #
     # ! This refuses on the delimiter's PRESENCE, not on parity: parity is what
     # the per-line lexer already cannot compute, so trusting it here would be
