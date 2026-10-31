@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 58 of 70 tasks closed
+Progress: 59 of 70 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (code-review high round 3 and /simplify round 2, 2026-08-22 -- the
@@ -323,4 +323,5 @@ files in `corpora/` are in that state today.
       (#253)
         > 2026-10-30 Waits on the raise: plan 0.2.4-an-f-correction-is-raised-alone
         > 2026-10-30 Check: `a0` above `#!` still refuses; approved `f0` drop proves
-- [ ] T70 | Accept written text that joins a neighbouring paragraph (#254)
+- [x] T70 | Landed by written lines; 53 corpus accepts pull cleanly | 05c8a067 | Accept
+      written text that joins a neighbouring paragraph (#254)
