@@ -413,7 +413,7 @@ class TestTheRulesBite:
         bad["change"] = ""
         assert problems("here", bad)
 
-    @pytest.mark.parametrize("instruction", ["correct", "patch", "add"])
+    @pytest.mark.parametrize("instruction", ["correct", "patch", "add", "drop"])
     def test_a_WHITESPACE_ONLY_change_is_not_an_answer(self, instruction):
         """!! THE SAME GAP `filled` CLOSES FOR A `claim` KEY -- see
         `test_an_empty_claim_key_is_not_an_answer`, above. `may_empty` decides

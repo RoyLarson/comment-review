@@ -871,17 +871,18 @@ def _change_problems(
 
     A `change` that is absent or not a string -- a line array among them -- is
     refused with the one message that names what is owed: the paragraph as
-    RAW TEXT. An empty string is the edit only where `may_empty`; whitespace
-    alone is never content. A `change` holding a line equal to a line of the
-    mark's `anchor`, whitespace aside, is refused: the anchor is a line of code,
-    or every line of a unit, and a change is the paragraph alone.
+    RAW TEXT. The empty string is the edit only where `may_empty`; white space
+    alone is an empty patch for every instruction. A `change` holding a line
+    equal to a line of the mark's `anchor`, whitespace aside, is refused: the
+    anchor is a line of code, or every line of a unit, and a change is the
+    paragraph alone.
     """
     if change is None:
         return [
             f"{where}: {instruction} needs `change` as the updated paragraph in "
             "RAW TEXT"
         ]
-    if not filled(change) and not may_empty:
+    if not filled(change) and not (may_empty and change == ""):
         return [
             f"{where}: {constants.EMPTY_PATCH}: {instruction} needs `change` to"
             " hold the new text"
