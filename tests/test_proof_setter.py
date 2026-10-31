@@ -1744,6 +1744,15 @@ def test_a_drop_that_leaves_python_unparsable_is_refused(tmp_path, opening):
     assert "expected an indented block" in refused[0].why
 
 
+def test_a_page_only_the_compiler_refuses_still_counts_as_parsing(tmp_path):
+    # `return` outside a function parses; only compilation refuses it.
+    text = 'def f():\n    """Doc."""\nreturn 1\n'
+    drafted, refused = _chain(tmp_path, "m.py", text, {"a1": None})
+    assert drafted == []
+    assert refused[0].step == "prove"
+    assert "draft-does-not-parse" in refused[0].why
+
+
 def test_a_drop_beside_other_statements_still_lands(tmp_path):
     text = ONLY_A_DOCSTRING.replace('"""x"""\n', '"""x"""\n    y = 1\n')
     drafted, refused = _chain(tmp_path, "m.py", text, {"a1": None})

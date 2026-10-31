@@ -1,5 +1,6 @@
 """Immutable Python reader stages with character spans and explicit references."""
 
+import ast
 import warnings
 from collections.abc import Collection
 from dataclasses import dataclass
@@ -18,16 +19,26 @@ from comment_review.reading.source import (
     SourceStructure,
 )
 
-#: What `compile` raises for a source it will not take.
+#: What `compile` raises for a source it will not parse.
 _COMPILE_ERRORS = exceptions.PARSE_ERRORS + (RecursionError, MemoryError)
 
 
 def _parse_error(text: str) -> str | None:
-    """Why this interpreter's parser refuses `text`, or None where it takes it."""
+    """Why this interpreter's parser refuses `text`, or None where it takes it.
+
+    Parsing stops at the tree, so `return` outside a function parses: a check
+    the compiler makes after the parser says nothing about a drop.
+    """
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         try:
-            compile(constants.without_mark(text), "draft", "exec", dont_inherit=True)
+            compile(
+                constants.without_mark(text),
+                "draft",
+                "exec",
+                ast.PyCF_ONLY_AST,
+                dont_inherit=True,
+            )
         except _COMPILE_ERRORS as err:
             return str(err)
     return None
