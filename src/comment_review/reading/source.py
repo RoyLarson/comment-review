@@ -1,5 +1,11 @@
-"""Immutable source records and exact character partition validation."""
+"""Immutable source records and exact character partition validation.
 
+Beside them is the contract a reader hands the page its code lines by:
+`CodeLine`, each line of code with the `DocPlace` it declares, built by
+`lines_of_code`.
+"""
+
+from collections.abc import Collection, Mapping
 from dataclasses import dataclass, field
 from enum import StrEnum
 from typing import NamedTuple
@@ -112,16 +118,82 @@ class DocumentationOwner:
                 )
 
 
-class DocumentationPlace(NamedTuple):
-    """Where one declaration's documentation goes, in 1-based source lines."""
+class DocPlace(NamedTuple):
+    """Where a declaration's documentation is set, against one code line."""
 
-    #: The line that declares it.
-    line: int
-    #: The line the documentation is set at.
-    insert: int
-    #: Whether the documentation sits above the declaring line rather than
-    #: inside the declaration.
+    #: The code line the documentation is set against.
+    at: int
+    #: True: above that line; False: after it, inside the declaration.
     above: bool
+
+
+class CodeLine(NamedTuple):
+    """One line of code, and the documentation place it declares, if any."""
+
+    #: The 1-based source line.
+    line: int
+    #: The line's code with trailing whitespace removed: what a `c`'s anchor is.
+    code: str
+    #: Set when this line declares something documentable.
+    documents: DocPlace | None
+    #: True when this line and the code line directly above it are one unit
+    #: for the `a` and `b` series: one gap above the unit and one `a` for it.
+    #: Each line of a unit keeps its own `c`.
+    joins: bool = False
+
+
+def lines_of_code(
+    code: Mapping[int, str],
+    declared: Mapping[int, DocPlace],
+    joined: Collection[int] = (),
+) -> list[CodeLine]:
+    """Each code line in order, carrying the documentation place declared on it.
+
+    A line declares at most one documentable thing, so `declared` holds one
+    place per line; a reader keeps the first declaration on a line when it
+    builds it.
+
+    Args:
+        code: each 1-based line that holds code -> its code, ascending.
+        declared: each declaring line -> its documentation place.
+        joined: each line that is one unit with the code line directly above
+            it, such as a declaring line under its annotation.
+
+    Raises:
+        ValueError: when a declaring line, or the line a documentation place
+            is set against, is not a code line; or when a joined line, or the
+            line directly above it, is not a code line.
+    """
+    for line, place in declared.items():
+        for named in (line, place.at):
+            if named not in code:
+                raise ValueError(
+                    f"a documentation place names line {named}, not a code line"
+                )
+    joins = set(joined)
+    for line in joins:
+        if line not in code or line - 1 not in code:
+            raise ValueError(f"line {line} joins no code line directly above it")
+    # Joins and places both state a unit; they must agree.
+    for line, place in declared.items():
+        if place.above and any(n not in joins for n in range(place.at + 1, line + 1)):
+            raise ValueError(
+                f"line {line} is documented above line {place.at}, "
+                "but the lines between are not all joined"
+            )
+    for line in sorted(joins):
+        if line + 1 in joins:
+            continue
+        top = line
+        while top in joins:
+            top -= 1
+        place = declared.get(line)
+        if place is None or not place.above or place.at != top:
+            raise ValueError(
+                f"the joined lines {top}-{line} end on a line that is not a "
+                f"declaration documented above line {top}"
+            )
+    return [CodeLine(n, text, declared.get(n), n in joins) for n, text in code.items()]
 
 
 @dataclass(frozen=True)
@@ -220,6 +292,17 @@ class SourceStructure:
     def position(self, offset: int) -> SourcePosition:
         """Locate a character offset, including EOF, in cached physical lines."""
         return self._coordinates.position(offset)
+
+    def line_span(self, line: int) -> tuple[int, int]:
+        """Start and end offset of a physical line, its line break excluded."""
+        return self._coordinates.line_span(line)
+
+    def declaring_line(self, declaration: SourceDeclaration) -> int:
+        """The code line that declares this.
+
+        It is the line a doc's `declares_line` names where a unit is one line.
+        """
+        return self.position(declaration.anchor).line
 
     def slice(self, span: SourceSpan) -> str:
         """Return exact characters from a half-open span within the source."""

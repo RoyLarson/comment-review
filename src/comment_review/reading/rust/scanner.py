@@ -1,6 +1,6 @@
 """Partition Rust source into comment, code and whitespace regions and their tokens."""
 
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from typing import cast
 
@@ -17,18 +17,12 @@ from comment_review.reading.rust.records import (
 )
 from comment_review.reading.source import RegionKind, SourceRegion, SourceSpan
 
-BYTE_ORDER_MARK = "\ufeff"
 # The Rust Reference's whitespace: Pattern_White_Space.
 WHITESPACE = frozenset("\t\n\v\f\r \x85\u200e\u200f\u2028\u2029")
 OPENERS = frozenset("{([")
 CLOSERS = frozenset("})]")
 # The Rust Reference's CHAR_LITERAL excludes these from an unescaped body.
 NOT_A_CHAR_BODY = frozenset("\n\r\t")
-# Whitespace that stays on its line.
-INDENT = WHITESPACE - frozenset("\r\n")
-DECORATED_KINDS = frozenset(
-    {RustTokenKind.OUTER_DOC_DELIMITED, RustTokenKind.INNER_DOC_DELIMITED}
-)
 
 
 @dataclass(frozen=True)
@@ -41,13 +35,10 @@ class _Comments:
     outer_delimited: str
     inner_delimited: str
     empty: str
-    # What may open a continuation line of a delimited doc, after its indent.
-    decoration: str
 
     @classmethod
     def from_definition(cls, definition: LanguageDefinition) -> "_Comments":
         comments = cast(Mapping[str, object], definition.rules["comments"])
-        documentation = cast(Mapping[str, object], definition.rules["documentation"])
         opener, closer = cast(tuple[str, str], comments["block_comment"])
         return cls(
             cast(str, comments["line"]),
@@ -58,7 +49,6 @@ class _Comments:
             cast(str, comments["outer_doc_block"]),
             cast(str, comments["inner_doc_block"]),
             cast(str, comments["empty_block_comment"]),
-            cast(str, documentation["delimited_decoration"]),
         )
 
     def markers(self, kind: RustTokenKind) -> tuple[str, str]:
@@ -172,18 +162,30 @@ def scan_rust(text: str, definition: LanguageDefinition) -> RustScan | ReadFailu
     A shebang is one token and one DIRECTIVE region running from its marker
     to the end of its line; see `_shebang` for when the marker opens one.
     """
+    grammar = _grammar(definition)
+    if isinstance(grammar, ReadFailure):
+        return grammar
+    return _scan(text, grammar)
+
+
+def _grammar(definition: LanguageDefinition) -> _Grammar | ReadFailure:
+    """The definition's grammar, or the failure that refuses the definition."""
     failure = validate_rust(definition)
     if failure is not None:
         return failure
-    nul = text.find("\x00")
-    if nul >= 0:
-        return _failure("source-nul", nul, nul + 1)
-    grammar = _Grammar(
+    return _Grammar(
         _Comments.from_definition(definition),
         _Literals.from_definition(definition),
         _Attributes.from_definition(definition),
         _Directives.from_definition(definition),
     )
+
+
+def _scan(text: str, grammar: _Grammar) -> RustScan | ReadFailure:
+    """Partition `text` under a grammar already built from a valid definition."""
+    nul = text.find("\x00")
+    if nul >= 0:
+        return _failure("source-nul", nul, nul + 1)
     regions: list[SourceRegion] = []
     tokens: list[RustToken] = []
     start = 0
@@ -215,84 +217,38 @@ def scan_rust(text: str, definition: LanguageDefinition) -> RustScan | ReadFailu
         else:
             regions.append(SourceRegion(span, region_kind))
         start = end
-    prose = tuple(
-        _prose(text, token, grammar.comments)
-        for token in tokens
-        if token.kind in COMMENT_KINDS
-    )
-    return RustScan(text, tuple(regions), tuple(tokens), prose)
+    return RustScan(text, tuple(regions), tuple(tokens))
 
 
-def comments_in(
-    text: str, definition: LanguageDefinition
-) -> tuple[CommentSpan, ...] | None:
-    """Each comment in `text` and the markers it is written with.
+def comment_scanner(
+    definition: LanguageDefinition,
+) -> Callable[[str], tuple[CommentSpan, ...] | None]:
+    """A scanner giving each comment in a text and the markers it is written with.
 
-    None where `text` does not scan, or holds anything but comments and
-    whitespace.
+    The definition is validated and its grammar built once, here. The scanner
+    answers None where the text does not scan, or holds anything but comments,
+    whitespace and the shebang the file's matter opens with, and for every text
+    when the definition is refused.
     """
-    scan = scan_rust(text, definition)
-    if isinstance(scan, ReadFailure):
-        return None
-    comments = _Comments.from_definition(definition)
-    found = []
-    for token in scan.tokens:
-        if token.kind is RustTokenKind.WHITESPACE:
-            continue
-        if token.kind not in COMMENT_KINDS:
+    grammar = _grammar(definition)
+
+    def comments_in(text: str) -> tuple[CommentSpan, ...] | None:
+        if isinstance(grammar, ReadFailure):
             return None
-        opener, closer = comments.markers(token.kind)
-        found.append(CommentSpan(token.span.start, token.span.end, opener, closer))
-    return tuple(found)
+        scan = _scan(text, grammar)
+        if isinstance(scan, ReadFailure):
+            return None
+        found = []
+        for token in scan.tokens:
+            if token.kind in (RustTokenKind.WHITESPACE, RustTokenKind.SHEBANG):
+                continue
+            if token.kind not in COMMENT_KINDS:
+                return None
+            opener, closer = grammar.comments.markers(token.kind)
+            found.append(CommentSpan(token.span.start, token.span.end, opener, closer))
+        return tuple(found)
 
-
-def _prose(text: str, token: RustToken, comments: _Comments) -> tuple[SourceSpan, ...]:
-    """The comment's text inside its markers, one piece per physical line.
-
-    A delimited doc's continuation lines are decorated when every one of them
-    opens, after an indent of one width, with the decoration character; a
-    last line that holds only indent, before the closer, is not asked. When
-    they are, each one's indent and decoration are not prose; otherwise all
-    of it is.
-    """
-    opener, closer = comments.markers(token.kind)
-    body = SourceSpan(token.span.start + len(opener), token.span.end - len(closer))
-    if token.kind not in DECORATED_KINDS:
-        return (body,)
-    lines = []
-    start = body.start
-    for line_break in constants.LINE_BREAK.finditer(text, body.start, body.end):
-        lines.append(SourceSpan(start, line_break.start()))
-        start = line_break.end()
-    lines.append(SourceSpan(start, body.end))
-    stripped = [_undecorated(text, line, comments.decoration) for line in lines[1:]]
-    asked = list(zip(lines[1:], stripped, strict=True))
-    if len(lines) > 1 and all(text[i] in INDENT for i in range(start, body.end)):
-        asked = asked[:-1]
-    if (
-        not asked
-        or any(cut is None for _, cut in asked)
-        or len({cut.start - line.start for line, cut in asked if cut}) != 1
-    ):
-        return tuple(lines)
-    return (
-        lines[0],
-        *(
-            line if cut is None else cut
-            for line, cut in zip(lines[1:], stripped, strict=True)
-        ),
-    )
-
-
-def _undecorated(text: str, line: SourceSpan, decoration: str) -> SourceSpan | None:
-    """The line past its indent and decoration, or None where it has none."""
-    at = line.start
-    while at < line.end and text[at] in INDENT:
-        at += 1
-    end = at + len(decoration)
-    if end <= line.end and text.startswith(decoration, at):
-        return SourceSpan(end, line.end)
-    return None
+    return comments_in
 
 
 def _shebang(text: str, start: int, grammar: _Grammar) -> int | None:
@@ -310,8 +266,8 @@ def _shebang(text: str, start: int, grammar: _Grammar) -> int | None:
         if newline < 0:
             return None
         line_start = newline + 1
-    if line_start == 0 and text.startswith(BYTE_ORDER_MARK):
-        line_start = len(BYTE_ORDER_MARK)
+    if line_start == 0 and text.startswith(constants.BYTE_ORDER_MARK):
+        line_start = len(constants.BYTE_ORDER_MARK)
     if start != line_start or not text.startswith(directives.shebang, start):
         return None
     at = start + len(directives.shebang)
@@ -388,7 +344,7 @@ def _next_token(
     """The token at `start`: its kind (None for a byte-order mark), end and region."""
     comments = grammar.comments
     char = text[start]
-    if start == 0 and char == BYTE_ORDER_MARK:
+    if start == 0 and char == constants.BYTE_ORDER_MARK:
         return None, 1, RegionKind.WHITESPACE
     if char in WHITESPACE:
         end = start + 1

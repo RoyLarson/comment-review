@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 34 of 42 tasks closed
+Progress: 35 of 47 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-09-04 (Roy, 2026-09-04, superseding the-flow-lives-in-the-command T4)
@@ -159,3 +159,17 @@ The agents files name the new CLI and say how to use it.
 - [x] T42 | Withdrawal brief matches removal and binder obligations; 8 focused tests pass; wording review clean | e5c05a63 | Correct
       withdrawal instructions to remove marks and require replacement for
       received places; verify the brief matches check
+- [ ] T43 | Restate SKILL.md's detached-doc step: matter, and the printed owner
+        > 2026-10-26 Detached doc in matter is read as matter; warning now names owner
+- [ ] T44 | Restate agent prose that takes an anchor to be one line of code
+        > 2026-10-26 decision-log #238: an a/b anchor may span the unit's lines
+        > 2026-10-26 reviewer-brief.md:259 and :177-178 state a one-line anchor
+        > 2026-10-31 Also `references/review.md:38`: two ranges claim unchecked
+        > 2026-10-31 Also `references/review.md:38`: two ranges unchecked
+- [ ] T45 | Name the addresser's --line '<module>' and '<eof>' in the agent
+      prose
+        > 2026-10-27 reviewer-brief.md:99-105, SKILL.md:158, ownership-context.md:87-90
+- [ ] T46 | Remove --anchor-line from the reviewer brief, which nothing reads
+        > 2026-10-30 D11: reviewer-brief.md:177-178
+- [x] T47 | CLAUDE.md names --from-docket; Roy approved the wording | 207d733bcd76762e6fe72d77618c45e68c11ad42 | Correct
+      `CLAUDE.md:81` to `--from-docket`

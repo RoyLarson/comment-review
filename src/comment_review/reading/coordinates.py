@@ -60,3 +60,21 @@ class SourceCoordinates:
             raise ValueError("Position offset must be an integer within text")
         line = bisect_right(self._line_starts, offset)
         return SourcePosition(line, offset - self._line_starts[line - 1])
+
+    def line_span(self, line: int) -> tuple[int, int]:
+        """Start and end offset of a line, its line break excluded.
+
+        Lines are those of `constants.text_lines`: text after the last break is
+        a line, and a trailing break starts none.
+        """
+        starts = self._line_starts
+        count = len(starts) - (starts[-1] == len(self.text))
+        if (
+            not isinstance(line, int)
+            or isinstance(line, bool)
+            or not 1 <= line <= count
+        ):
+            raise ValueError("Line must be an integer within the text's lines")
+        start = starts[line - 1]
+        end = starts[line] if line < len(starts) else len(self.text)
+        return start, start + len(self.text[start:end].rstrip("\r\n"))

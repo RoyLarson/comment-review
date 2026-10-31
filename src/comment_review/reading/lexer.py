@@ -5,30 +5,37 @@ code. The reader here reads every language without a reader package of its own
 from its row alone: the prose and its kind. Python and Rust are read by
 `reading.python` and `reading.rust`, each from its own language definition.
 
-This classifies what the purpose is of each paragraph. `paragraphs_lexical`
-emits `comment`, `docstring`, `trailing-comment` and `matter` -- prose it found
--- and `leading_between` emits `leading`. `interval`, `margin` and `undocumented`
-are the page's, because only a page knows where prose is MISSING.
+This classifies what the purpose is of each paragraph. `read_lexical` emits
+`comment`, `docstring`, `trailing-comment` and `matter` -- prose it found -- and
+`leading_between` emits `leading`. `interval`, `margin` and `undocumented` are
+the page's, because only a page knows where prose is MISSING.
 
-`declarations()` marks which lines declare something documentable,
-and where its doc would go.
+`read_lexical` also completes the read for the page: `code_text` gives each
+line of code its code, `declarations()` marks which lines declare something
+documentable and where its doc would go, and `document_declarations` gives the
+run that documents a declaration that declaration's line -- for Go and Ruby too,
+whose documentation is an ordinary comment run above the declaring keyword.
+`_cut_gap` then settles each run's kind. `read_lexical` hands back a
+`LexicalRead`, the paragraphs and their `CodeLine`s together;
+`paragraphs_lexical` is its paragraphs alone.
 
-Beside the reader: `document_declarations` stamps the `a` cue on the run that
-documents a declaration, `flag_structural_docs` annotates a Go or Ruby run whose
-kind position cannot settle, and `comment_form` parses a comment's markers and
-fragments for `desk.marks.rules`.
+Beside the reader: `comment_form` parses a comment's markers and fragments for
+`Paragraph.text` and `desk.marks.rules`.
 
 """
 
 import ast
-import io
 import re
-import tokenize
-from collections.abc import Callable, Mapping
+from bisect import bisect_left, bisect_right
+from collections.abc import Callable, Collection, Mapping
+from dataclasses import dataclass
+from functools import cache
 from pathlib import Path
 from types import MappingProxyType
+from typing import NamedTuple
 
 from comment_review import constants
+from comment_review.reading.addresser import EOF, MODULE
 from comment_review.reading.comment import Comment, CommentSpan, Fragment
 from comment_review.reading.definitions import LanguageDefinition
 
@@ -45,10 +52,11 @@ from comment_review.reading.language import (
     language_for,
     line_comment_markers,
 )
+from comment_review.reading.matter import Matter, file_matter
 from comment_review.reading.paragraph import Paragraph
-from comment_review.reading.rust.scanner import comments_in
-from comment_review.reading.series import Kind, Series, cue_for
-from comment_review.reading.source import DocumentationPlace
+from comment_review.reading.rust.scanner import comment_scanner
+from comment_review.reading.series import Kind, Series
+from comment_review.reading.source import CodeLine, DocPlace, lines_of_code
 
 __all__ = [
     "BY_EXT",
@@ -61,71 +69,86 @@ __all__ = [
 NAMED_DEFS = (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)
 
 
-# !! A sentinel that CANNOT be a line number. `0` is one less than line 1, so
-# `paragraph.start == trailing_end[0] + 1` would hold for every comment opening a
-# file and stamp `continues-a-trailing-comment` with no trailing comment anywhere.
-# The stamp's note tells reviewers a mid-clause ending "may be the split", so a
-# false stamp would suppress real findings on file headers.
-_NO_TRAILING = -2
-
-
-MODULE_ANCHOR = "<module>"
-
 # -- Annotations ---------------------------------------------------------------
-# This module stamps three -- `continues-a-trailing-comment`,
-# `unterminated-paragraph-comment` and `doc-kind-unresolved`; the citation
+# This module stamps one -- `unterminated-paragraph-comment`; the citation
 # annotations are located and resolved in `concordance/annotate.py`. Locating is
 # most of the work; the resolution is what stops a reviewer treating a citation as
 # a verified claim. ! These are ANNOTATIONS, never marks -- a MARK is editorial,
 # and stage 4 emits those.
 
 
-def _join(lines: list[str], markers: tuple[str, ...] = ("#",)) -> str:
-    """A comment run as ONE normalised string, its comment markers stripped.
+def _join(lines: list[str]) -> str:
+    """Prose lines, their markers already cut, as ONE normalised string.
 
     Prose wraps, so every claim-bearing phrase in a real file straddles a line
     break. Matching line-by-line reports the fragment instead of the claim: a
     count reads as absent and `used to say` degrades to a bare `used to`.
-
-    Args:
-        lines: the run's raw source lines.
-        markers: the language's comment openers, longest first at the call site
-            so `///` is stripped before `//` leaves a stray slash in the prose.
     """
-    out = []
-    for ln in lines:
-        s = ln.strip()
-        for m in markers:
-            if s.startswith(m):
-                s = s[len(m) :].strip()
-                break
-        out.append(s)
-    return re.sub(r"\s+", " ", " ".join(out)).strip()
+    return re.sub(r"\s+", " ", " ".join(ln.strip() for ln in lines)).strip()
 
 
 #: The readers whose own scanner says where each comment in a paragraph sits
 #: and what it is written with, keyed by the reader a definition names. A
 #: language read by one of them is split by its reader's grammar alone.
 COMMENT_SCANNERS: Mapping[
-    str, Callable[[str, LanguageDefinition], tuple[CommentSpan, ...] | None]
-] = MappingProxyType({"rust-lexical": comments_in})
+    str,
+    Callable[[LanguageDefinition], Callable[[str], tuple[CommentSpan, ...] | None]],
+] = MappingProxyType({"rust-lexical": comment_scanner})
+
+
+class _Grammar(NamedTuple):
+    """What a path's language says about its comments, resolved once per suffix."""
+
+    #: The lexical row, or None for a language defined by its own file.
+    lang: Language | None
+    #: The installed definition, or None for a path no language covers.
+    definition: LanguageDefinition | None
+    #: Whether the language documents in string literals, as Python does.
+    in_literals: bool
+    #: The markers that open a line comment.
+    markers: tuple[str, ...]
+    #: The reader's comment scanner, or None for a language split by its row.
+    scanner: Callable[[str], tuple[CommentSpan, ...] | None] | None
+
+
+@cache
+def _grammar_for(suffix: str) -> _Grammar:
+    """The comment grammar of the installed language a suffix selects.
+
+    Selection is by suffix alone, and the installed registry does not change
+    while the process runs, so each suffix is resolved once.
+    """
+    path = Path(f"m{suffix}")
+    value = INSTALLED_REGISTRY.for_path(path)
+    factory = COMMENT_SCANNERS.get(value.reader) if value is not None else None
+    return _Grammar(
+        language_for(path),
+        value,
+        documents_in_literals(path),
+        tuple(sorted(line_comment_markers(path), key=len, reverse=True)),
+        factory(value) if value is not None and factory is not None else None,
+    )
 
 
 def comment_form(
     path: Path, series: Series | None, raw_text: str, anchor: str = ""
 ) -> Comment:
-    """The assigned paragraph's prose and the form its raw text carries."""
-    value = INSTALLED_REGISTRY.for_path(path)
-    scanner = COMMENT_SCANNERS.get(value.reader) if value is not None else None
-    if value is not None and scanner is not None:
-        found = scanner(raw_text, value)
-        return _scanned_form(path, series, raw_text, anchor, found)
-    lang = language_for(path)
+    """The assigned paragraph's prose and the form its raw text carries.
+
+    A byte-order mark opening the raw text is the file's encoding, and the form
+    is read without it.
+    """
+    raw_text = constants.without_mark(raw_text)
+    grammar = _grammar_for(path.suffix.lower())
+    lang, value = grammar.lang, grammar.definition
+    if grammar.scanner is not None:
+        found = grammar.scanner(raw_text)
+        return _scanned_form(grammar, series, raw_text, anchor, found)
     chunks: list[str] = []
-    if documents_in_literals(path) and series is Series.DECLARED:
+    if value is not None and grammar.in_literals and series is Series.DECLARED:
         from comment_review.reading.docstring import concatenated
 
-        docstring = concatenated(raw_text)
+        docstring = concatenated(raw_text, value)
         if docstring is not None:
             return docstring
     pending: list[str] = []
@@ -140,58 +163,82 @@ def comment_form(
             if opened is None and pending and not line.strip():
                 pending.append(line)
                 continue
-            if opened is None:
-                pair = next(
-                    (
-                        pair
-                        for pair in lang.block_comment
-                        if line.lstrip().startswith(pair[0])
-                    ),
-                    None,
-                )
-                if pair is not None:
-                    if pending:
-                        chunks.append("".join(pending))
-                        pending.clear()
-                    opened = pair
-                    tail = line.lstrip()[len(pair[0]) :]
-                    depth = 1
-                else:
-                    marker = next(
+            # A line may hold several comments: a delimited one that closes,
+            # then another comment after its closer. Each is its own chunk, so
+            # each gives its own text; the cut falls at the next opener, and
+            # the space before it stays with the comment that closed.
+            segment = line
+            while segment:
+                if opened is None:
+                    pair = next(
                         (
-                            m
-                            for m in sorted(lang.line_comment, key=len, reverse=True)
-                            if line.lstrip().startswith(m)
+                            pair
+                            for pair in lang.block_comment
+                            if segment.lstrip().startswith(pair[0])
                         ),
-                        "",
+                        None,
                     )
-                    if pending and marker != line_marker:
+                    if pair is not None:
+                        if pending:
+                            chunks.append("".join(pending))
+                            pending.clear()
+                        opened = pair
+                        tail = segment.lstrip()[len(pair[0]) :]
+                        depth = 1
+                    else:
+                        marker = next(
+                            (
+                                m
+                                for m in sorted(
+                                    lang.line_comment, key=len, reverse=True
+                                )
+                                if segment.lstrip().startswith(m)
+                            ),
+                            "",
+                        )
+                        if pending and marker != line_marker:
+                            chunks.append("".join(pending))
+                            pending.clear()
+                        line_marker = marker
+                        tail = segment
+                else:
+                    tail = segment
+                pending.append(segment)
+                segment = ""
+                if opened is not None:
+                    ends, depth = run_ends(tail, opened, lang.nests_comments, depth)
+                    if ends >= 0:
+                        closed = pending[-1]
+                        cut = len(closed) - len(tail) + ends
+                        rest = closed[cut:]
+                        following = rest.lstrip(" \t")
+                        if following.strip() and _opens_comment(following, lang):
+                            pending[-1] = closed[: len(closed) - len(following)]
+                            segment = following
                         chunks.append("".join(pending))
                         pending.clear()
-                    line_marker = marker
-                    tail = line
-            else:
-                tail = line
-            pending.append(line)
-            if opened is not None:
-                ends, depth = run_ends(tail, opened, lang.nests_comments, depth)
-                if ends >= 0:
-                    chunks.append("".join(pending))
-                    pending.clear()
-                    opened = None
+                        opened = None
+                        line_marker = ""
         if pending:
             chunks.append("".join(pending))
     else:
         chunks = [raw_text]
     parts = tuple(
-        _comment_fragment(path, series, chunk, anchor if n == 0 else "")
+        _comment_fragment(grammar, series, chunk, anchor if n == 0 else "")
         for n, chunk in enumerate(chunks)
     )
     return Comment(raw_text, parts)
 
 
+def _opens_comment(text: str, lang: Language) -> bool:
+    """Does this text open with one of the language's comment openers?"""
+    return text.startswith(tuple(pair[0] for pair in lang.block_comment)) or (
+        text.startswith(lang.line_comment)
+    )
+
+
 def _scanned_form(
-    path: Path,
+    grammar: _Grammar,
     series: Series | None,
     raw_text: str,
     anchor: str,
@@ -202,11 +249,27 @@ def _scanned_form(
     A delimited comment, and a line comment of another form than the one
     before it, starts a fragment: at its line's start when it opens the line,
     or where it opens when something precedes it there. Line comments of one
-    form run on as one fragment. A paragraph its reader finds no comment in
-    is one fragment with no markers.
+    form run on as one fragment. Text before the first comment, such as a
+    shebang the matter holds, is a fragment of its own with no markers, and so
+    is a paragraph its reader finds no comment in.
     """
     if not found:
-        return Comment(raw_text, (_comment_fragment(path, series, raw_text, anchor),))
+        return Comment(
+            raw_text, (_comment_fragment(grammar, series, raw_text, anchor),)
+        )
+    leading: list[Fragment] = []
+    if raw_text[: found[0].start].strip():
+        line_start = raw_text.rfind("\n", 0, found[0].start) + 1
+        opens_line = not raw_text[line_start : found[0].start].strip()
+        cut = line_start if opens_line else found[0].start
+        leading.append(_comment_fragment(grammar, series, raw_text[:cut], anchor))
+        raw_text, whole = raw_text[cut:], raw_text
+        found = tuple(
+            CommentSpan(c.start - cut, c.end - cut, c.opener, c.closer) for c in found
+        )
+        anchor = ""
+    else:
+        whole = raw_text
     cuts = [0]
     opening: list[CommentSpan] = []
     for comment in found:
@@ -226,18 +289,18 @@ def _scanned_form(
         close_at = comment.end - len(comment.closer) - start if comment.closer else -1
         parts.append(
             _comment_fragment(
-                path,
+                grammar,
                 series,
                 raw_text[start : cuts[n + 1]],
                 anchor if n == 0 else "",
                 marks=(comment.opener, comment.closer, close_at),
             )
         )
-    return Comment(raw_text, tuple(parts))
+    return Comment(whole, (*leading, *parts))
 
 
 def _comment_fragment(
-    path: Path,
+    grammar: _Grammar,
     series: Series | None,
     raw_text: str,
     anchor: str,
@@ -249,8 +312,8 @@ def _comment_fragment(
     `raw_text`, as its reader scanned them, with an empty closer and -1 for a
     line comment. Without them the language's row decides the markers.
     """
-    lang = language_for(path)
-    in_literals = documents_in_literals(path)
+    lang, definition = grammar.lang, grammar.definition
+    in_literals = grammar.in_literals
     physical = raw_text.splitlines(keepends=True)
     while physical and not physical[-1].strip():
         physical.pop()
@@ -296,18 +359,20 @@ def _comment_fragment(
         )
     if (
         in_literals
+        and definition is not None
         and series is Series.DECLARED
         and re.match(r"(?i)[rub]*(\"\"\"|'''|\"|')", raw_text.lstrip())
     ):
-        tokens = tokenize.generate_tokens(io.StringIO(raw_text.lstrip()).readline)
-        token = next((one for one in tokens if one.type == tokenize.STRING), None)
-        if token is not None:
-            opening = re.match(r"(?i)[rub]*(\"\"\"|'''|\"|')", token.string)
+        from comment_review.reading.docstring import first_literal
+
+        spelling = first_literal(raw_text.lstrip(), definition)
+        if spelling is not None:
+            opening = re.match(r"(?i)[rub]*(\"\"\"|'''|\"|')", spelling)
             if opening is not None:
                 op = opening.group(0)
                 close = opening.group(1)
                 opened = op, close
-                end_at = len(indent) + len(token.string) - len(close)
+                end_at = len(indent) + len(spelling) - len(close)
     if opened is not None:
         op, close = opened
         if lang is not None:
@@ -370,11 +435,7 @@ def _comment_fragment(
                 if found is not None:
                     body[n] = line[found.end() :]
                     starts[n] += found.end()
-    elif markers := (
-        marks[:1]
-        if marks is not None
-        else tuple(sorted(line_comment_markers(path), key=len, reverse=True))
-    ):
+    elif markers := (marks[:1] if marks is not None else grammar.markers):
         marker = next((m for m in markers if lines[0].lstrip().startswith(m)), "")
         if marker:
             lead = indent + marker
@@ -395,7 +456,7 @@ def _comment_fragment(
                     starts[n] += len(line) - len(stripped) + len(actual)
     sections = re.split(r"\n\s*\n", "\n".join(body))
     paragraphs = tuple(
-        _join(section.splitlines(), ()) for section in sections if section.strip()
+        _join(section.splitlines()) for section in sections if section.strip()
     )
     gaps = []
     blank = []
@@ -479,6 +540,12 @@ def _closes_a_character(line: str, at: int, quote: str) -> bool:
     # at +3 and Rust's widest, `'\u{10FFFF}'`, at +11.
     end = line.find(quote, at + 2)
     return 0 <= end - at <= ESCAPE_WIDTH
+
+
+#: What ends a line of code. `str.strip` also takes U+001C to U+001F, NBSP,
+#: U+2003 and U+3000, which a language can hold as code: the comparison keeps
+#: them, and so does a `c`'s anchor.
+BLANK = " \t\f\v"
 
 
 def _strip_strings(
@@ -576,6 +643,40 @@ def run_ends(
     return -1, depth
 
 
+class AfterCloser(NamedTuple):
+    """What follows a delimited comment's closer on its line."""
+
+    #: Nothing but comments: the line holds no code past the closer.
+    comment: bool
+    #: The delimited comment those comments leave open, or None.
+    still_open: tuple[str, str] | None
+    #: The layers still open on it -- see `run_ends`.
+    layers: int
+
+
+def after_closer(rest: str, lang: Language) -> AfterCloser:
+    """Read the text after a closer: comments only, or code.
+
+    A delimited opener is tried before a line opener, because Lua's `--[[`
+    begins with its line opener `--`. A line comment runs to the line's end; a
+    delimited comment that closes is passed over and the text after it read
+    the same way; one that does not close is left open for the lines below.
+    """
+    text = rest
+    while True:
+        stripped = text.lstrip()
+        if not stripped:
+            return AfterCloser(True, None, 1)
+        pair = next((p for p in lang.block_comment if stripped.startswith(p[0])), None)
+        if pair is None:
+            return AfterCloser(stripped.startswith(lang.line_comment), None, 1)
+        tail = stripped[len(pair[0]) :]
+        ends, layers = run_ends(tail, pair, lang.nests_comments)
+        if ends < 0:
+            return AfterCloser(True, pair, layers)
+        text = tail[ends:]
+
+
 def _anchor_of(lines: list[str], line_no: int, column: int) -> str:
     """The line of code a `c` paragraph sits beside -- its ANCHOR, verbatim.
 
@@ -584,7 +685,7 @@ def _anchor_of(lines: list[str], line_no: int, column: int) -> str:
     tier already found where the comment opens, which means it already had the
     characters before it.
 
-    It is kept apart from the prose. `paragraphs_lexical` cuts `raw_lines` at
+    It is kept apart from the prose. `read_lexical` cuts `raw_lines` at
     the opener, so the code before it is held here and in no string with the prose.
 
     It is `""` for a paragraph that owns its lines whole, which has no code on its
@@ -604,25 +705,30 @@ def _anchor_of(lines: list[str], line_no: int, column: int) -> str:
     return lines[line_no - 1][: column - 1]
 
 
-def leading_between(paragraphs: list["Paragraph"], text: str) -> list["Paragraph"]:
+def leading_between(
+    paragraphs: list["Paragraph"], text: str, code: Collection[int]
+) -> list["Paragraph"]:
     """Every blank run no paragraph holds, as LEADING -- see `LEADING`.
 
     !! ONE RULE FOR ALL READERS, and that is the point of it being a pass rather
     than a branch inside each.
 
     ! THE RULE IS SUBTRACTION, so it cannot disagree with either reader about
-    what prose is: a blank line a paragraph already holds is INSIDE it and stays
-    there, and every other blank line is the space between two paragraphs.
+    what prose or code is: a blank line a paragraph already holds is INSIDE it
+    and stays there, a line the reader gave as code is code whatever
+    `str.strip` makes of it, and every other blank line is the space between
+    two paragraphs.
 
     Args:
         paragraphs: what a reader produced, before any place is assigned.
         text: the file, read for which lines are blank.
+        code: the numbers of the lines the reader gave as code.
 
     Returns:
         One paragraph per unheld blank run, in order.
     """
     lines = constants.text_lines(text)
-    held = set()
+    held = set(code)
     for b in paragraphs:
         if b.original_start:
             held.update(
@@ -630,7 +736,7 @@ def leading_between(paragraphs: list["Paragraph"], text: str) -> list["Paragraph
             )
     out: list[Paragraph] = []
     run: list[int] = []
-    for n, line in enumerate(lines, 1):
+    for n, line in enumerate(constants.scan_lines(text), 1):
         if not line.strip() and n not in held:
             run.append(n)
             continue
@@ -659,16 +765,15 @@ def _leading(
         start=run[0],
         end=run[-1],
         kind=Kind.LEADING,
-        text="",
         raw_lines=[lines[n - 1] for n in run],
     )
 
 
 def _is_doc(line: str, lang: Language) -> bool:
-    """Does this line open a run the language treats as DOCUMENTATION?
+    """Does this line open a comment the language treats as DOCUMENTATION?
 
-    ! Two readers ask it and they must agree: `flush` to set the kind, and
-    `carry` to decide whether a blank line ends the file's matter.
+    `read_lexical` asks it of each comment it opens, to record the lines doc
+    comments stand on.
     """
     opens = line.strip()
     return _opens_doc(opens, lang.doc_line) or _opens_doc(opens, lang.doc_block)
@@ -695,9 +800,76 @@ def _opens_doc(opens: str, markers: tuple[str, ...]) -> bool:
 
 
 def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]:
-    """Comment runs for a language with no parser here -- the FLOOR tier.
+    """The comment runs `read_lexical` finds, without the code lines."""
+    return read_lexical(path, text, lang).found
 
-    Answers where every paragraph is, its line range, its text and its annotations.
+
+def _joins_its_word(code: str, close: int, parens: tuple[str, ...]) -> bool:
+    """Whether the `)` at column `close` closes one of the row's `word_parens`.
+
+    shortcut: pairs parens on this line alone, so a `)` closing a `$(` opened on
+    an earlier line reads as a break. Upgrade when the lexer carries shell state
+    across lines.
+
+    Args:
+        code: the line with its literals blanked, so a quoted paren is not one.
+        close: the column of that `)`.
+        parens: the row's `word_parens`.
+    """
+    opened: list[bool] = []
+    for at, char in enumerate(code[:close]):
+        if char == "(":
+            opened.append(any(code.endswith(p, 0, at + 1) for p in parens))
+        elif char == ")" and opened:
+            opened.pop()
+    return bool(opened) and opened[-1]
+
+
+def _opens_word(line: str, code: str, at: int, lang: Language) -> bool:
+    """Whether column `at` of `line` starts a word: line start, or after a break.
+
+    Asked of the raw line, because a blanked literal reads as a break and a
+    literal joins the word beside it. A break after an odd run of backslashes
+    is escaped, and is word text, and so is a `)` that `_joins_its_word`.
+    """
+    if at == 0:
+        return True
+    head = line[: at - 1]
+    escaped = (len(head) - len(head.rstrip("\\"))) % 2 == 1
+    if line[at - 1] not in lang.word_breaks or escaped:
+        return False
+    return line[at - 1] != ")" or not _joins_its_word(code, at - 1, lang.word_parens)
+
+
+def _line_comment_at(
+    line: str, code: str, openers: tuple[str, ...], lang: Language
+) -> int:
+    """The column of the line comment opening in `code`, or -1 where none does.
+
+    Args:
+        line: the raw line.
+        code: the same line with its literals blanked.
+        openers: the row's line-comment openers, longest first.
+        lang: the row, whose `word_breaks` say where an opener may stand.
+    """
+    if not lang.word_breaks:
+        return min((code.index(o) for o in openers if o in code), default=-1)
+    return min(
+        (
+            found.start()
+            for opener in openers
+            for found in re.finditer(re.escape(opener), code)
+            if _opens_word(line, code, found.start(), lang)
+        ),
+        default=-1,
+    )
+
+
+def read_lexical(path: Path, text: str, lang: Language) -> "LexicalRead":
+    """Comment runs and code lines for a language with no parser here -- the FLOOR tier.
+
+    Answers where every paragraph is, its line range, its raw lines and its
+    annotations, and each line of code with the documentation it declares.
     ! A paragraph sitting BESIDE code carries an anchor at this tier too -- the
     line of code itself, which needs no parser; see `_anchor_of`. Only a paragraph
     that owns its lines whole has none, because its anchor is a declaration and
@@ -710,6 +882,10 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
     """
     openers = tuple(sorted(lang.line_comment, key=len, reverse=True))
     lines = constants.text_lines(text)
+    # The loop below reads line 1 without its byte-order mark, and a paragraph
+    # that holds line 1 keeps it.
+    scanned = constants.scan_lines(text)
+    mark = constants.mark_of(text)
     out: list[Paragraph] = []
     run: list[tuple[int, str]] = []
     # ! Blank lines seen since the last comment line. They belong to the run only if
@@ -720,49 +896,29 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
     # ! LAYERS STILL OPEN on a run that crossed a line -- see `run_ends`. Always
     # 1 where the language does not nest.
     layers = 1
-    # ! The line the last trailing comment ended on. A wrapped trailing comment
-    # splits into two paragraphs here, so the second needs the stamp. A list
-    # because `flush` is a closure and rebinds nothing.
-    trailing_end = [_NO_TRAILING]
-
     # !! WHERE THE RUN'S FIRST LINE STOPS BEING CODE -- one past the last
     # character of code, or 0 when the run owns its lines whole. It cuts
-    # `raw_lines[0]` and is not carried on the paragraph.
-    #
-    # ! `trailing` does not answer it: a MULTI-LINE paragraph comment opened after a
-    # statement flushes with `trailing=False`, because by then the run spans
-    # several lines. A list because `flush` is a closure and rebinds nothing.
+    # `raw_lines[0]` and makes the run trailing, and is not carried on the
+    # paragraph. A list because `flush` is a closure and rebinds nothing.
     partial_first = [0]
-
-    # !! HAS ANY CODE BEEN SEEN YET -- which is what says a run is still at the
-    # HEAD of the file, and therefore whether a blank line ends it.
-    #
-    # ! Everywhere else a blank line does NOT end a run, and that stays true: a
-    # licence header and the first function's documentation separated by a blank
-    # are two things, while a wrapped sentence with a blank in it is one. Only at
-    # the file's own edge does the blank decide. A list because `flush` is a
-    # closure and rebinds nothing.
-    seen_code = [False]
+    # The blank lines a run took in between two of its comments. Every other
+    # line of a run has a comment on it; `_file_edges` reads the two apart.
+    between: set[int] = set()
+    # The lines a doc-marked comment stands on, and whether the delimited
+    # comment still open is one. `_file_edges` reads no such line as matter.
+    documentation: set[int] = set()
+    in_doc = False
+    # The line each doc comment opens on: a doc-marked delimited comment, or
+    # the first of a stretch of doc-marked line comments on adjacent lines.
+    doc_opens: set[int] = set()
+    doc_line_comments: set[int] = set()
 
     def carry() -> None:
         """Take the blanks held since the last prose line into the run.
 
         !! ONE RULE FOR BOTH COMMENT SYNTAXES: `/* one */`, a blank and `/* two */`
-        are one paragraph, exactly as `// one`, a blank and `// two` are.
-
-        ! The head-of-file split is part of the rule and travels with it: at the
-        top of a file a blank ENDS the run, because what sits above the first
-        line of code is the file's own matter.
-
-        !! IT ENDS THE FIRST RUN ONLY, which `out` is what says. Only the first
-        is the file's own matter; the rest are ordinary prose in the gap above
-        the first statement, and they merge there like any other.
+        are one run, exactly as `// one`, a blank and `// two` are.
         """
-        # !! IT ENDS THE MATTER, SO IT FIRES ONLY WHEN THERE IS MATTER TO END.
-        # Matter runs from the OPENING LINE down to a blank, so a run that does not
-        # start on line 1 -- or that is a docstring, which matter never is -- has
-        # nothing here to terminate.
-        opens_file = bool(run) and run[0][0] == 1 and not _is_doc(run[0][1], lang)
         if not run:
             # !! BLANKS ABOVE A RUN THAT HAS NOT STARTED ARE NOT ITS OWN. They
             # separate this prose from whatever precedes it, which is what
@@ -770,152 +926,100 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
             # readers at once.
             pending.clear()
             return
-        if pending and opens_file and not out and not seen_code[0]:
-            flush()
-        else:
-            run.extend(pending)
-            pending.clear()
+        between.update(n for n, _ in pending)
+        run.extend(pending)
+        pending.clear()
 
-    def flush(trailing: bool = False) -> None:
+    def flush() -> None:
         # ! The blanks held since the run's last prose line are LEADING, not the
         # run's -- `leading_between` collects them once every paragraph exists.
         pending.clear()
         if not run:
             partial_first[0] = 0
             return
-        raw = [t for _, t in run]
-        # !! `raw_lines` IS THE SOURCE, `raw` IS THE PROSE. The cut text still
-        # makes `text` and still counts against the cap; the file's own characters
-        # are what a splice is checked against.
+        # !! `raw_lines` IS THE SOURCE: the file's own characters, which are what
+        # a splice is checked against.
         span = lines[run[0][0] - 1 : run[-1][0]]
-        if partial_first[0] > 0:
-            span = [span[0][partial_first[0] - 1 :], *span[1:]]
-        if _is_doc(raw[0], lang):
-            kind = "docstring"
-        else:
-            # !! CODE ON THE FIRST LINE MAKES IT TRAILING, however many lines it
-            # then runs for. A `c` is the room beside a line of code, so prose
-            # occupying that room IS a trailing comment and the kind must say
-            # so. ! `trailing` alone answers only the single-line case: a
-            # paragraph comment opened after a statement flushes with
-            # `trailing=False`, because by then the run spans several lines --
-            # so `int b = 2; /* opens` would read as a plain `comment` sitting at
-            # a `c` place, and kind and series would disagree.
-            kind = "trailing-comment" if trailing or partial_first[0] else "comment"
-        # !! THE LEXER SAYS WHICH SERIES THIS RUN IS, and matter is the case it
-        # can say outright.
-        #
-        # !! THE OPENING LINE ITSELF MUST BE A COMMENT, not merely the first run
-        # of PROSE wherever it sits: a file whose line 1 is BLANK has no front
-        # matter at all. Otherwise the gap that owns the blank above it would run
-        # THROUGH the matter, and the compositor would set the comment above its
-        # own blank line.
-        #
-        # ! A DOCSTRING IS NOT MATTER, and it is what ENDS matter. A file opening
-        # with its own documentation has none.
-        #
-        # !! ONE TYPE, NOT TWO: front and back matter are both `Kind.MATTER`. Which
-        # END it sits at is not stamped on the paragraph -- `page_for` reads it from
-        # where the run opens: line 1 takes the first `f`, any other run the last.
-        # Naming the two ends here would state the same fact twice and let them
-        # disagree.
-        if kind == "comment" and (run[0][0] == 1 or run[-1][0] == len(lines)):
-            kind = Kind.MATTER
+        # The code before a run opened on line 1 begins with the mark.
+        column = partial_first[0]
+        if column and run[0][0] == 1:
+            column += len(mark)
+        if column > 0:
+            span = [span[0][column - 1 :], *span[1:]]
+        # !! CODE ON THE FIRST LINE MAKES IT TRAILING, however many lines it
+        # then runs for, and whatever marker opens it. A `c` is the room beside
+        # a line of code, so prose occupying that room IS a trailing comment
+        # and the kind must say so: never a docstring, never matter, never the
+        # module's documentation. Every other run is a `comment` until
+        # `_cut_gap` says which place it holds.
         paragraph = Paragraph(
             path=path.as_posix(),
             start=run[0][0],
             end=run[-1][0],
-            kind=kind,
-            text=_join(raw, openers),
+            kind=Kind.TRAILING if column else Kind.COMMENT,
             raw_lines=span,
             # !! THE LEXER ALREADY HAS THIS STRING. It found the opener in order
             # to cut there, so the characters before it are known here.
-            # !! MATTER IS ANCHORED TO THE MODULE, because that is what it is
-            # about. Every other run answers to the line of code it sits with;
-            # the file's own prose answers to the file.
-            anchor=(
-                MODULE_ANCHOR
-                if kind == Kind.MATTER
-                else _anchor_of(lines, run[0][0], partial_first[0])
-            ),
+            anchor=_anchor_of(lines, run[0][0], column),
         )
         partial_first[0] = 0
-        # !! A trailing comment closes its run,
-        # so a sentence wrapped onto the next line becomes a SECOND paragraph anchored
-        # to the code below it. Stamped, not re-cut.
-        if kind == "comment" and paragraph.start == trailing_end[0] + 1:
-            paragraph.annotations.add("continues-a-trailing-comment")
-            paragraph.notes.append(
-                "opens on the line after a trailing comment, so it may be the"
-                " tail of that sentence rather than a note about the code"
-                " below. A mid-clause ending here may be the split."
-            )
-        if kind == "trailing-comment":
-            trailing_end[0] = paragraph.end
         out.append(paragraph)
         run.clear()
 
-    for n, raw_line in enumerate(lines, 1):
+    # The interpreter line the row names, kept as the file's own matter: it is
+    # neither code nor a comment, and the matter rule opens on the line below.
+    shebang = None
+    interpreter = lang.interpreter_line(lines)
+    if interpreter is not None:
+        shebang = Paragraph(
+            path=path.as_posix(),
+            start=1,
+            end=1,
+            kind=Kind.MATTER,
+            raw_lines=[interpreter],
+            anchor=MODULE,
+        )
+
+    for n, raw_line in enumerate(scanned, 1):
+        if shebang is not None and n == 1:
+            continue
         if in_block is not None:
-            # !! CODE AFTER THE CLOSER KEEPS ITS PROSE AND LOSES ITS CODE LINE.
-            # `/* note\n   more */ int x = 5;` gathers the run and leaves
-            # `int x = 5;` out of `code_lines`, so every interval boundary below
-            # it moves.
+            # !! CODE AFTER THE CLOSER STAYS IN THE PARAGRAPH. `/* note\n   more */
+            # int x = 5;` gathers the run through the closing line, and
+            # `raw_lines` holds that line whole, `int x = 5;` included, because
+            # `raw_lines` is the source from `start` to `end`. The closing line's
+            # code is therefore inside the paragraph's span, and an edit to that
+            # paragraph replaces it: `int x = 5;` is deleted.
             #
-            # !! AND AN EDIT TO THAT PARAGRAPH DELETES THE STATEMENT. This cut
-            # trims the paragraph's TEXT and not its `raw_lines`, and the galley
-            # splices `start..end` wholesale -- it preserves the head of the
-            # FIRST line at `column` and has no tail preservation on the last.
-            # `prove_unchanged` catches it, but only AFTER 7b has written the
-            # file.
-            #
-            # !! IT IS THE GALLEY'S TO CATCH, NOT THE LEXER'S AND NOT A
-            # REVIEWER'S. A reviewer rules on a paragraph and has no view of how
-            # the galley splices it, so it cannot know the closing line will
-            # delete code. The whole-file composition the galley is heading for
-            # is where a write that would drop a line becomes visible BEFORE it
-            # happens, which is the same move `prove_unchanged` needs. Filed as
-            # `TODO/closing-line-deletes-code.md`.
-            #
-            # ! NEITHER FIX IS WORTH ITS COST. Dropping the run the way an
-            # INTERMEDIATE comment is dropped works on the one-line twin --
-            # `/* note */ int x = 5;` is wholly a code line -- and not here,
-            # where the opening line is nothing but comment and would belong to
-            # nothing. Keeping both needs a field for where the text ENDS, or a
-            # kind for comment-then-code; the first re-adds a column the address
-            # system replaced, the second teaches every consumer that switches
-            # on kind.
-            #
-            # !! MEASURED OVER THE FETCHED CORPORA: 180,821 lines of C and JS/TS,
-            # and the shape occurs **0 times** -- 3 apparent hits were `*/`
-            # inside a glob string. The one-line form is ordinary (1,551 hits)
-            # and is already right. The style guides agree -- ESLint ships
-            # `no-inline-comments`, and the kernel, Google C++ and Java guides
-            # all put a paragraph comment on its own line.
-            #
-            # ! CUT AT THE CLOSER, the way the opening line cuts at the opener,
-            # so `   more */ int x = 5;` gives the run only `   more */` and no
-            # executable code reaches four reviewers as prose or the annotation
-            # regexes.
             # ! CARRIES THE DEPTH, so a nested opener on an earlier line keeps
             # the run open past the closer that matches it.
+            if in_doc:
+                documentation.add(n)
+            run.append((n, raw_line.rstrip()))
             ends, layers = run_ends(raw_line, in_block, lang.nests_comments, layers)
             if ends >= 0:
-                run.append((n, raw_line[:ends].rstrip()))
                 in_block = None
+                in_doc = False
+                # ! COMMENTS AFTER THE CLOSER ARE PROSE, NOT CODE: Lua's `]]--`
+                # closes its long comment and opens an empty line comment, and
+                # `*/ /* more` opens another delimited comment the run goes on
+                # into. Only code after the closer ends the run here.
+                after = after_closer(raw_line[ends:], lang)
+                if after.still_open is not None:
+                    in_block, layers = after.still_open, after.layers
+                    continue
                 # !! THE SAME RULE AS THE SINGLE-LINE CLOSE BELOW: a closer ends
-                # the COMMENT, not the paragraph. This one opened on an earlier
+                # the COMMENT, not the run. This one opened on an earlier
                 # line, so code cannot precede it here -- `partial_first` records
                 # whether code preceded it THERE, which is what makes the run a
                 # `c`. ! Code after the closer does reach this branch, unlike the
                 # single-line case, and it is the next statement.
-                if partial_first[0] or raw_line[ends:].strip():
+                if partial_first[0] or not after.comment:
                     flush()
-                continue
-            run.append((n, raw_line.rstrip()))
             continue
-        # !! ONLY CODE ENDS A PARAGRAPH -- a blank line does not. Split on blanks,
-        # a 9-line paragraph would read as `6 + 3` and pass a cap of 6.
+        # !! ONLY CODE ENDS A RUN -- a blank line does not -- and `_cut_by_place`
+        # then cuts each gap's runs into paragraphs by place. Split on blanks, a
+        # 9-line run would read as `6 + 3` and pass a cap of 6.
         #
         # ! The blank JOINS the run rather than being skipped, so `raw_lines`
         # stays index-aligned with `start..end` -- `prove_unchanged` walks the
@@ -924,23 +1028,23 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
         # !! A blank line INSIDE a run joins it; a blank line AFTER one does
         # NOT extend it. They are held here and committed only when another
         # comment line arrives. A run's `end` must stay on its last comment
-        # line, because `doc-kind-unresolved` asks whether the very next line
-        # holds anything -- extend the paragraph over the gap and an ORPHAN run,
-        # held off its declaration by exactly that gap, reads as documenting it.
+        # line, because `document_declarations` counts the blank lines between
+        # a run's end and the declaration below it -- extend the run over
+        # the gap and a run held off its declaration reads as flush against it.
         if not raw_line.strip():
             # ! HELD WHETHER OR NOT A RUN IS OPEN; `carry` and `flush` decide what
             # becomes of them.
             pending.append((n, ""))
             continue
         code = _strip_strings(raw_line, lang.quotes, lang.char_quotes)
-        line_at = min((code.index(o) for o in openers if o in code), default=-1)
+        line_at = _line_comment_at(raw_line, code, openers, lang)
         opened = next((p for p in lang.block_comment if p[0] in code), None)
         # !! WHICHEVER OPENER COMES FIRST on the line owns it.
         if opened is not None and -1 < line_at < code.index(opened[0]):
             opened = None
         if opened is not None:
             # !! OPENING A DELIMITED COMMENT DOES NOT END THE RUN BEFORE IT, so
-            # `/* one */`, a blank and `/* two */` are one paragraph, as `// one`, a
+            # `/* one */`, a blank and `/* two */` are one run, as `// one`, a
             # blank and `// two` are. ! It ends the run only when code precedes the
             # opener, which is not known until `opens_at` below -- so that decision is
             # made there.
@@ -953,7 +1057,9 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
             tail = raw_line[opens_at + len(opened[0]) :]
             ends_at, layers = run_ends(tail, opened, lang.nests_comments)
             closes_here = ends_at >= 0
-            after = tail[ends_at:] if closes_here else ""
+            # Comments after the closer are prose, as they are on a line the
+            # comment closes on below; only code makes the comment intermediate.
+            after = after_closer(tail[ends_at:] if closes_here else "", lang)
             # !! AN INTERMEDIATE COMMENT IS NOT GATHERED -- one that CLOSES on
             # this line with code after it, `int x = /* why */ 5;`.
             #
@@ -963,7 +1069,7 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
             # and `prove_unchanged` report PROVEN on a changed literal. Neither is
             # available; the line is simply code. It stays a code line, so it
             # keeps its `b` and its `c` like any other.
-            if closes_here and after.strip():
+            if not after.comment:
                 # ! THE LINE IS CODE, so it ends the run like any other.
                 flush()
                 # !! AND A LINE COMMENT AFTER IT IS STILL A TRAILING COMMENT. The
@@ -973,16 +1079,11 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
                 # ! It must sit past the CLOSER: a `//` before the delimited
                 # opener never reaches here, because whichever opener comes
                 # first owns the line and `opened` was cleared above.
-                seen_code[0] = True
                 closed_at = opens_at + len(opened[0]) + ends_at
                 if line_at >= closed_at:
-                    partial_first[0] = (
-                        len(raw_line[:line_at].rstrip()) + 1
-                        if raw_line[:line_at].strip()
-                        else 0
-                    )
+                    partial_first[0] = len(raw_line[:line_at].rstrip(BLANK)) + 1
                     run.append((n, raw_line[line_at:].rstrip()))
-                    flush(trailing=True)
+                    flush()
                 continue
             beside_code = bool(code[:opens_at].strip())
             if beside_code:
@@ -997,36 +1098,44 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
             # ! Only the run's FIRST line decides it, and a run continuing from
             # an earlier comment already answered 0 -- which is what this sets
             # when no code precedes the opener, so it stays a no-op there.
-            # ! THE RAW LINE, for the reason the whole-line test below gives:
-            # a blanked literal is whitespace, so a line whose only prefix is a
-            # string reported column 0 and left the code set.
+            # ! The column is measured on the raw line; `beside_code` above is
+            # asked of the blanked one, so a string alone before the opener
+            # reads as no code.
             partial_first[0] = (
-                len(raw_line[:opens_at].rstrip()) + 1 if beside_code else 0
+                len(raw_line[:opens_at].rstrip(BLANK)) + 1 if beside_code else 0
             )
+            # ! A doc marker beside code opens a trailing comment, which
+            # documents nothing, so its lines are not `documentation`.
+            if not beside_code and _is_doc(raw_line[opens_at:], lang):
+                documentation.add(n)
+                doc_opens.add(n)
+                in_doc = not closes_here
 
             # !! CUT AT THE OPENER, like the line-comment path below does. Taking the
             # whole raw line would read `int b = 2; /* note */` as one paragraph whose
             # TEXT held the statement -- executable code handed to four reviewers as
             # prose, run through the annotation regexes, and dropped from
-            # `code_lines`, which moves every interval boundary in the file.
+            # `code_text`, which moves every interval boundary in the file.
             run.append((n, raw_line[opens_at:].rstrip()))
             if not closes_here:
                 in_block = opened
+            elif after.still_open is not None:
+                in_block, layers = after.still_open, after.layers
             elif beside_code:
-                # !! ONLY CODE ENDS A PARAGRAPH, AND A CLOSER IS NOT CODE. ! Code
+                # !! ONLY CODE ENDS A RUN, AND A CLOSER IS NOT CODE. ! Code
                 # AFTER the closer cannot reach here -- such a line is not
                 # gathered at all, by the intermediate-comment ruling above -- so
                 # code BEFORE the opener is the only thing left, and that makes
                 # this a trailing comment: prose about the statement on its own
                 # line, which must not absorb the prose beneath it.
-                flush(trailing=True)
+                flush()
             continue
         # !! ASKED OF THE RAW LINE, NOT THE BLANKED ONE. `_strip_strings` replaces
         # a literal with spaces, which erases the evidence that code came first:
         # `  "b" // the last one` blanks to `      // the last one`, whose strip
         # starts with the opener, so a JS array element would read as a
         # whole-line `comment` whose TEXT held `"b"` -- executable code handed to
-        # four reviewers as prose -- and its line would leave `code_lines`.
+        # four reviewers as prose -- and its line would leave `code_text`.
         # ! WHAT THAT COSTS IS NOT THE MISREADING. Every `b` and `c` below the
         # line shifts, so a galley splice over one of those addresses lands
         # somewhere other than where the reviewer cited. ! Whitespace before the
@@ -1035,100 +1144,469 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
         if line_at >= 0 and not raw_line[:line_at].strip():
             carry()
             run.append((n, raw_line.rstrip()))
+            if _is_doc(raw_line, lang):
+                documentation.add(n)
+                doc_line_comments.add(n)
+                if n - 1 not in doc_line_comments:
+                    doc_opens.add(n)
             continue
-        flush()  # ! CODE ends a paragraph; a blank line does not
-        seen_code[0] = True
+        flush()  # ! CODE ends a run; a blank line does not
         at = line_at
         if at >= 0:
             # ! `flush()` above emptied the run, so this line is the first
             # one and the code before `at` is what makes it trailing. A line
             # comment runs to end of line, so there is no other side to test.
             # ! THE RAW LINE, not the blanked one -- same reason as above.
-            partial_first[0] = (
-                len(raw_line[:at].rstrip()) + 1 if raw_line[:at].strip() else 0
-            )
+            partial_first[0] = len(raw_line[:at].rstrip(BLANK)) + 1
             run.append((n, raw_line[at:].rstrip()))
-            flush(trailing=True)  # its own paragraph, anchored to the code on that line
-    # !! THE FOOT OF THE FILE, AND THE LOOP IS OVER SO NOTHING FOLLOWS. Read
-    # upward, the run after the LAST blank line is the file's own matter.
-    #
-    # !! IT NEEDS NO LOOKAHEAD, which is the whole reason it is done here rather
-    # than in the loop: at the head, "no code yet" is a fact already in hand; at
-    # the foot, "no code after" is only a fact once the loop has ended. Both are
-    # the same rule read from opposite ends.
-    #
-    # ! Only an INTERIOR blank can split -- a run never ends on one, because
-    # blanks reach `run` from `pending` and `pending` merges only when another
-    # comment follows. The blank itself goes to neither half; `leading_between`
-    # takes it as leading, exactly as at the head.
-    if run:
-        blanks = [i for i, (_, held) in enumerate(run) if not held.strip()]
-        if blanks:
-            tail = run[blanks[-1] + 1 :]
-            del run[blanks[-1] :]
-            flush()
-            run.extend(tail)
+            flush()  # its own paragraph, anchored to the code on that line
     flush()
-    if in_block is not None and out:
+    found, code_lines = _file_edges(
+        out, text, lang, between, documentation, doc_opens, shebang
+    )
+    if in_block is not None and found:
         # The loop ended with a paragraph comment still open, so the final flush
         # emitted the run that ate the rest of the file. It is the ONE paragraph
         # that may hold code.
-        out[-1].annotations.add("unterminated-paragraph-comment")
-        out[-1].notes.append(
+        found[-1].annotations.add("unterminated-paragraph-comment")
+        found[-1].notes.append(
             f"UNTERMINATED {in_block[0]}: no closing {in_block[1]} before end of "
             "file, so every line below the opener was swallowed into this run. "
             "Code down there was NOT read as code."
         )
+    _mark_line_endings(found, lang)
+    return LexicalRead(found, code_lines, lang.a_series, lang.closing_docstring)
+
+
+def _mark_line_endings(found: list[Paragraph], lang: Language) -> None:
+    """Mark each paragraph holding a line ending this file's lines do not split on.
+
+    Prose read as one line that the language reads as two can carry code past
+    the comment's real end, and every later step would take it for a comment.
+    A string literal is not prose, so one holding the ending is not marked.
+    """
+    for paragraph in found:
+        for n, line in enumerate(paragraph.raw_lines, paragraph.start):
+            held = next((end for end in lang.line_endings if end in line), None)
+            if held is not None:
+                paragraph.annotations.add("line-ending-in-comment")
+                paragraph.notes.append(
+                    f"line {n} holds U+{ord(held):04X}, which ends a line in"
+                    f" {lang.name}"
+                )
+                break
+
+
+def _file_edges(
+    paragraphs: list[Paragraph],
+    text: str,
+    lang: Language,
+    between: set[int],
+    documentation: set[int],
+    doc_opens: set[int],
+    shebang: Paragraph | None,
+) -> tuple[list[Paragraph], list[CodeLine]]:
+    """Say which runs document a declaration, then which are the file's own matter.
+
+    Returns the paragraphs and the file's code lines, which cutting a gap's
+    runs by place does not change.
+
+    A prose line, for `reading.matter`, is a line of a whole-line run with a
+    comment on it -- not a blank it took in `between` two comments, and not a
+    line of `documentation`. The matter opens on line 1, or on line 2 below a
+    `shebang`, the MATTER paragraph of the interpreter line the row names. Each
+    end's matter reaches the page as one paragraph, the shebang's included --
+    see `_one_matter_per_end`.
+
+    !! A RUN IS CUT AT THE MATTER'S EDGES BEFORE DOCUMENTATION IS DECIDED, so
+    a licence header and the declaration's documentation below it are two
+    runs and only the second documents. Once documentation is decided,
+    `_file_docs` names the module and closing docstrings and the parts inside
+    the matter they give are MATTER.
+
+    !! THE MODULE AND CLOSING DOCSTRINGS ARE NEVER MATTER, and each run left
+    is then cut by the places its gap holds -- see `_cut_by_place`. Other
+    documentation is matter only inside a back matter, as `reading.matter` says.
+
+    !! MATTER IS ANCHORED TO THE MODULE, because that is what it is about.
+    Every other run answers to the line of code it sits with; the file's own
+    prose answers to the file.
+    """
+    lines = constants.text_lines(text)
+    total = len(lines)
+    opens = 1 if shebang is None else 2
+
+    def held(p: Paragraph) -> set[int]:
+        return {n for n in range(p.start, p.end + 1) if n not in between}
+
+    def prose(found: list[Paragraph]) -> set[int]:
+        return {
+            n
+            for p in found
+            if p.kind == Kind.COMMENT and p.declares_line is None
+            for n in held(p)
+            if n not in documentation
+        }
+
+    def cut(found: list[Paragraph], matter: Matter, mark: bool) -> list[Paragraph]:
+        """Cut every prose run at the matter's edges; MATTER parts if `mark`."""
+        out: list[Paragraph] = []
+        for p in found:
+            parts = (
+                matter.parts(p.start, p.end, held(p)) if p.kind == Kind.COMMENT else []
+            )
+            if len(parts) < 2 and not (mark and parts and parts[0][2]):
+                out.append(p)
+                continue
+            for start, end, is_matter in parts:
+                kind = Kind.MATTER if mark and is_matter else Kind.COMMENT
+                out.append(
+                    Paragraph(
+                        path=p.path,
+                        start=start,
+                        end=end,
+                        kind=kind,
+                        raw_lines=p.raw_lines[start - p.start : end - p.start + 1],
+                        anchor=MODULE if kind == Kind.MATTER else p.anchor,
+                        declares_line=p.declares_line,
+                    )
+                )
+        return out
+
+    found = cut(paragraphs, file_matter(total, opens, prose(paragraphs)), False)
+    if shebang is not None:
+        found.insert(0, shebang)
+    code = code_text(text, found)
+    declared = declarations(lang, code)
+    # A declaring line and the annotation lines above it are one unit: every
+    # line below the place its doc is set against joins the line above it.
+    joined = [
+        n for line, place in declared.items() for n in range(place.at + 1, line + 1)
+    ]
+    code_lines = lines_of_code(code, declared, joined)
+    document_declarations(found, code_lines)
+    code_at = sorted(code)
+    module_doc, closing_doc = _file_docs(
+        found, code_at, between, documentation, doc_opens, lang.a_series
+    )
+    matter = file_matter(
+        total,
+        opens,
+        prose(found),
+        module_doc=module_doc,
+        closing_doc=closing_doc,
+        codeless=not code_at,
+    )
+    found = _one_matter_per_end(cut(found, matter, mark=True), matter, lines)
+    found = _cut_by_place(
+        found, lines, code_at, between, documentation, doc_opens, lang.a_series
+    )
+    return found, code_lines
+
+
+def _one_matter_per_end(
+    paragraphs: list[Paragraph], matter: Matter, lines: list[str]
+) -> list[Paragraph]:
+    """The MATTER paragraphs at each end of the file, as one paragraph per end.
+
+    Front matter is one place and back matter is another. The reader gathers
+    each end's comments as one run where it can, and two arise where a run is
+    kept apart from the comments around it: a shebang and the licence below
+    it, a delimited comment whose closing line also holds code and the
+    comments below it, and the parts of a run cut at a blank line before its
+    docstring was known. A blank between two parts is read from the file.
+    """
+    front = [
+        p for p in paragraphs if p.kind == Kind.MATTER and p.start < matter.front.stop
+    ]
+    back = [
+        p for p in paragraphs if p.kind == Kind.MATTER and p.start >= matter.front.stop
+    ]
+    out = [p for p in paragraphs if p.kind != Kind.MATTER]
+    for parts in (front, back):
+        if len(parts) == 1:
+            out.append(parts[0])
+        elif parts:
+            raw = {
+                p.start + i: line for p in parts for i, line in enumerate(p.raw_lines)
+            }
+            out.append(
+                Paragraph(
+                    path=parts[0].path,
+                    start=parts[0].start,
+                    end=parts[-1].end,
+                    kind=Kind.MATTER,
+                    raw_lines=[
+                        raw.get(n, lines[n - 1])
+                        for n in range(parts[0].start, parts[-1].end + 1)
+                    ],
+                    anchor=MODULE,
+                )
+            )
+    return sorted(out, key=lambda p: p.start)
+
+
+def _code_between(code: list[int], low: int, high: int) -> bool:
+    """Does a line of `code`, ascending, lie strictly between these two lines?"""
+    at = bisect_right(code, low)
+    return at < len(code) and code[at] < high
+
+
+def _gaps(paragraphs: list[Paragraph], code: list[int]) -> list[list[Paragraph]]:
+    """The file's prose runs, gathered by the gap between code each lies in."""
+    gaps: list[list[Paragraph]] = []
+    for p in sorted(paragraphs, key=lambda p: p.start):
+        if p.kind != Kind.COMMENT:
+            continue
+        if gaps and not _code_between(code, gaps[-1][-1].end, p.start):
+            gaps[-1].append(p)
+        else:
+            gaps.append([p])
+    return gaps
+
+
+def _file_docs(
+    paragraphs: list[Paragraph],
+    code: list[int],
+    between: set[int],
+    documentation: set[int],
+    doc_opens: set[int],
+    a_series: bool,
+) -> tuple[range | None, range | None]:
+    """The lines of the module and closing docstrings, for `file_matter`.
+
+    The module docstring is the head gap's `a0`. Below code, the closing
+    docstring is the foot gap's `a`, or, where comments below it end the gap,
+    the first doc group: that one ends the file's code. A file with no code
+    has no closing docstring above its back matter.
+    """
+    gaps = _gaps(paragraphs, code)
+    if not gaps:
+        return None, None
+    module_doc = closing_doc = None
+    opening = _doc_places(gaps[0], code, between, documentation, doc_opens, a_series)[1]
+    if opening is not None:
+        module_doc = range(opening[0], opening[1] + 1)
+    foot = gaps[-1]
+    if code and code[-1] < foot[0].start:
+        groups, _, lowest = _doc_places(
+            foot, code, between, documentation, doc_opens, a_series
+        )
+        closing = lowest or next((g for g in groups if g[2]), None)
+        if closing is not None:
+            closing_doc = range(closing[0], closing[1] + 1)
+    return module_doc, closing_doc
+
+
+def _cut_by_place(
+    paragraphs: list[Paragraph],
+    lines: list[str],
+    code: list[int],
+    between: set[int],
+    documentation: set[int],
+    doc_opens: set[int],
+    a_series: bool,
+) -> list[Paragraph]:
+    """Cut each gap's prose into the places the gap holds: `a0`, one `b`, an `a`.
+
+    A gap lies between two lines of code, or a sentinel and code. It holds one
+    run, or more where a run ends with no code line below it -- a delimited
+    comment closing on a line with code after it, which the run holds whole
+    and which is not a code line. Its prose reads as GROUPS:
+    the doc-marked lines and the plain comment lines, each stretch of one kind
+    a group, a blank it took in `between` joining nothing.
+
+    - The group touching the gap's lower edge is that edge's `a`: the
+      declaration its last run documents -- whatever kind the group is -- or,
+      at the foot of the file, `<eof>` when the group is doc-marked.
+    - At the head of the file, the gap's first doc-marked group is `a0`. Where
+      the gap's lower edge is a declaration, `a0` is that group's first doc
+      comment alone and the rest of the group is the `b`; where the group is
+      also the one touching the declaration, a lone doc comment in it is the
+      declaration's `a`, and with two or more the last is. A doc comment opens
+      on a line of `doc_opens`, so two on one line are one.
+    - Everything else in the gap is its one `b`, a `comment`.
+
+    With no code the gap is both head and foot, and one doc-marked group is
+    `a0`. Each place holds one paragraph. The matter is already out of the
+    gaps, so what reaches the foot past `a0` or `<eof>` is not cut here.
+
+    Provisional: this is a page rule held in the reader until
+    `TODO/one-reader-builder.md` T1 moves it.
+    """
+    gaps = _gaps(paragraphs, code)
+    cut = {
+        id(gap[0]): _cut_gap(
+            gap, lines, code, between, documentation, doc_opens, a_series
+        )
+        for gap in gaps
+    }
+    held = {id(p) for gap in gaps for p in gap}
+    out: list[Paragraph] = []
+    for p in paragraphs:
+        if id(p) in cut:
+            out.extend(cut[id(p)])
+        elif id(p) not in held:
+            out.append(p)
     return out
 
 
-def flag_structural_docs(
-    paragraphs: list[Paragraph], text: str, lang: Language
-) -> None:
-    """Mark each run whose KIND is still an open question at this tier.
+#: A stretch of one kind of prose in a gap: its first line, its last, and
+#: whether it is doc-marked.
+_Group = tuple[int, int, bool]
 
-    Go and Ruby attach documentation by POSITION -- an ordinary line comment
-    directly above a declaration IS that declaration's documentation -- so a
-    doc reads like any other run, and telling them apart needs the structure
-    this tier lacks.
 
-    The paragraph is annotated as an OPEN QUESTION instead. That matters because
-    `compact.md` deals `b` and `c` places by length, and tells its editor that a
-    Go or Ruby run directly above a declaration is documentation. Unmarked, a
-    three-line Go export doc reads as an ordinary comment over a cap of two.
+def _doc_places(
+    runs: list[Paragraph],
+    code: list[int],
+    between: set[int],
+    documentation: set[int],
+    doc_opens: set[int],
+    a_series: bool,
+) -> tuple[list[_Group], _Group | None, _Group | None]:
+    """One gap's groups, its `a0` and the `a` at its lower edge."""
+    first, last = runs[0], runs[-1]
+    # A group never crosses from one run into the next, so `a0` stays in the
+    # gap's first run and the lower edge's `a` in its last.
+    groups: list[_Group] = []
+    for p in runs:
+        opened = len(groups)
+        for n in range(p.start, p.end + 1):
+            if n in between:
+                continue
+            doc = n in documentation
+            if len(groups) > opened and groups[-1][2] == doc:
+                groups[-1] = (groups[-1][0], n, doc)
+            else:
+                groups.append((n, n, doc))
+    touching = groups[-1]
+    head = a_series and bisect_left(code, first.start) == 0
+    opening = next((g for g in groups if g[2]), None) if head else None
+    if last.declares_line is None:
+        # No declaration below: the first doc group is `a0` whole, and a doc
+        # group left touching the foot is `<eof>`.
+        foot = a_series and bisect_right(code, last.end) == len(code)
+        closes = foot and touching[2] and touching != opening
+        return groups, opening, touching if closes else None
+    if opening is None:
+        return groups, None, touching
+    # Over a declaration, `a0` is the head's first doc comment alone. When the
+    # doc group also touches the declaration, its last doc comment is the
+    # declaration's `a`, and a lone one is that `a` and no `a0`.
+    opens = sorted(n for n in doc_opens if opening[0] <= n <= opening[1])
+    if len(opens) < 2:
+        return groups, None if opening == touching else opening, touching
+    kept = [n for n in range(opening[0], opens[1]) if n not in between]
+    alone = (opening[0], kept[-1], True)
+    if opening == touching:
+        return groups, alone, (opens[-1], opening[1], True)
+    return groups, alone, touching
 
-    Args:
-        paragraphs: this file's paragraphs, mutated in place.
-        text: the file's source, for looking at what follows each run.
-        lang: the language record, which decides whether this pass applies.
+
+def _cut_gap(
+    runs: list[Paragraph],
+    lines: list[str],
+    code: list[int],
+    between: set[int],
+    documentation: set[int],
+    doc_opens: set[int],
+    a_series: bool,
+) -> list[Paragraph]:
+    """One gap's runs, cut into its `a0`, its one `b` and its lower edge's `a`.
+
+    This is where a run's kind is settled.
     """
-    if not lang.doc_is_structural:
-        return
-    lines = constants.text_lines(text)
-    for paragraph in paragraphs:
-        # Only a leading `comment` run can be a positional doc: a trailing
-        # comment annotates the code on its own line.
-        if paragraph.kind != "comment":
-            continue
-        # ! The IMMEDIATELY next line. Both languages require a doc comment to
-        # touch its declaration, so a run held off by a blank line is an ORPHAN
-        # -- left unmarked here, and charged to the cap.
-        nxt = lines[paragraph.end].strip() if paragraph.end < len(lines) else ""
-        if not nxt:
-            continue
-        paragraph.annotations.add("doc-kind-unresolved")
-        paragraph.notes.append(
-            "KIND UNRESOLVED: this run sits above code and "
-            f"{lang.name} attaches docs by position, so it may be documentation "
-            "governed by FORMAT rather than a comment governed by LENGTH. "
-            "NOT counted against the cap. Confirm the kind before compacting."
+    first, last = runs[0], runs[-1]
+    raw = {p.start + i: line for p in runs for i, line in enumerate(p.raw_lines)}
+    held = sorted(n for n in raw if n not in between)
+    _, opening, lowest = _doc_places(
+        runs, code, between, documentation, doc_opens, a_series
+    )
+
+    def part(
+        lo: int, hi: int, kind: Kind, anchor: str = "", declares_line: int | None = None
+    ) -> Paragraph:
+        # A line between two runs that neither holds is a blank, read from the file.
+        return Paragraph(
+            path=first.path,
+            start=lo,
+            end=hi,
+            kind=kind,
+            raw_lines=[raw.get(n, lines[n - 1]) for n in range(lo, hi + 1)],
+            anchor=anchor,
+            declares_line=declares_line,
         )
+
+    parts: list[Paragraph] = []
+    if opening is not None:
+        parts.append(part(opening[0], opening[1], Kind.DOCSTRING))
+    rest = [
+        n
+        for n in held
+        if not (opening and opening[0] <= n <= opening[1])
+        and not (lowest and lowest[0] <= n <= lowest[1])
+    ]
+    if rest:
+        parts.append(part(rest[0], rest[-1], Kind.COMMENT))
+    if lowest is not None:
+        anchor = EOF if last.declares_line is None else ""
+        parts.append(
+            part(lowest[0], lowest[1], Kind.DOCSTRING, anchor, last.declares_line)
+        )
+    return parts
 
 
 #: A declaring line's first word, ignoring indentation. Stops at anything that
 #: cannot be part of a keyword, so `macro_rules!` and `async def` both reach the
 #: match while `func(x)` yields `func` and `x=1` yields `x`.
 _FIRST_WORD = re.compile(r"^\s*([A-Za-z_][A-Za-z0-9_]*!?)")
+
+
+#: An annotation's name after its opener: `Override`, `file:JvmName`, `a.b.C`.
+_ANNOTATION_NAME = re.compile(r"[\w.:$]*")
+
+#: What closes each bracket an annotation's arguments may open.
+_CLOSERS = {"(": ")", "[": "]", "{": "}"}
+
+
+def _after_annotations(line: str, lang: Language) -> str | None:
+    """The code after the annotations a line opens with, or None if it opens with none.
+
+    An annotation is one of the row's `annotations` openers, a name, and an
+    optional bracketed argument list, read with string literals blanked so a
+    bracket inside one does not count. An opener that is itself a bracket,
+    `[[`, is closed the same way. "" means the line holds annotations and
+    nothing else.
+    """
+    if not lang.annotations:
+        return None
+    code = _strip_strings(line, lang.quotes, lang.char_quotes)
+    at = len(code) - len(code.lstrip())
+    found = False
+    while True:
+        opener = next((o for o in lang.annotations if code.startswith(o, at)), None)
+        if opener is None:
+            break
+        found = True
+        open_brackets = [_CLOSERS[c] for c in opener if c in _CLOSERS]
+        at += len(opener)
+        if not open_brackets:
+            name = _ANNOTATION_NAME.match(code, at)
+            at = name.end() if name else at
+            if code[at : at + 1] == "(":
+                open_brackets = [")"]
+                at += 1
+        while open_brackets and at < len(code):
+            char = code[at]
+            if char in _CLOSERS:
+                open_brackets.append(_CLOSERS[char])
+            elif char == open_brackets[-1]:
+                open_brackets.pop()
+            at += 1
+        if open_brackets:
+            return None
+        at = len(code) - len(code[at:].lstrip())
+    return line[at:] if found else None
 
 
 def _declares_here(line: str, declares: tuple[str, ...]) -> bool:
@@ -1154,11 +1632,7 @@ def _declares_here(line: str, declares: tuple[str, ...]) -> bool:
     return bool(second and f"{first} {second.group(1)}" in declares)
 
 
-def document_declarations(
-    paragraphs: list["Paragraph"],
-    decls: list[DocumentationPlace],
-    code: dict[int, str],
-) -> None:
+def document_declarations(paragraphs: list["Paragraph"], lines: list[CodeLine]) -> None:
     """Say which prose run documents which declaration, at the LEXICAL tier.
 
     !! IT LIVES HERE BECAUSE POSITIONING IS THE LANGUAGE'S, and the lexer is where
@@ -1189,30 +1663,35 @@ def document_declarations(
     `ownership-context` reads every placement rather than trusting one.
 
     Args:
-        paragraphs: this file's prose, mutated in place -- `address` is set to
-            the `a` cue of the declaration each run documents.
-        decls: each declaration's place, as `declarations` returns them.
-        code: `line -> the code on it`, in order.
+        paragraphs: this file's prose, mutated in place -- each run that
+            documents a declaration takes that declaration's line as its
+            `declares_line`.
+        lines: the file's code lines, in order; a line whose `documents` is set
+            declares something documentable, and its `at` is the line the
+            documentation is set above.
     """
-    # ! LEADING IS NOT PROSE AND CANNOT DOCUMENT ANYTHING.
+    # ! LEADING IS NOT PROSE AND CANNOT DOCUMENT ANYTHING, and MATTER -- a
+    # shebang, here -- is the file's own.
     ends = {
         b.original_end: b
         for b in paragraphs
         # ! ASKED OF THE KIND. No margin exists yet here: the walk has not
         # synthesised the empty places.
-        if b.original_end and b.kind not in (Kind.TRAILING, Kind.LEADING)
+        if b.original_end and b.kind not in (Kind.TRAILING, Kind.LEADING, Kind.MATTER)
     }
-    if not ends:
-        return
-    above_code = sorted(code)
-    for ordinal, (line, _insert, above) in enumerate(decls, 1):
-        if not above:
-            # ! Python states this from its parse; nothing positional to do.
-            continue
-        # ! UP FROM THE DECLARING LINE, past blanks, stopping at CODE -- prose
-        # above that code is about that code and cannot reach across it.
+    above_code = [c.line for c in lines]
+    code = set(above_code)
+    declaring = (
+        [(c.line, c.documents.at) for c in lines if c.documents is not None]
+        if ends
+        else []
+    )
+    for line, top in declaring:
+        # ! UP FROM THE LINE THE DOC IS SET AGAINST -- the declaring line or
+        # its topmost annotation -- past blanks, stopping at CODE: prose above
+        # that code is about that code and cannot reach across it.
         held = None
-        at = line - 1
+        at = top - 1
         while at >= 1:
             if at in code:
                 break
@@ -1230,22 +1709,25 @@ def document_declarations(
         # ! THE TWO DISTANCES, counted in blank lines. Nothing above the run
         # means there is nothing for it to belong to, so the declaration takes
         # it -- `over` is set past `below` to say so.
-        below = line - held.original_end - 1
-        previous = [n for n in above_code if n < held.original_start]
-        over = held.original_start - previous[-1] - 1 if previous else below + 1
+        below = top - held.original_end - 1
+        previous = bisect_left(above_code, held.original_start)
+        over = (
+            held.original_start - above_code[previous - 1] - 1
+            if previous
+            else below + 1
+        )
         if below <= over:
-            # ! THE CUE, NOT AN ORDINAL. The lexer knows WHICH declaration at
-            # this moment; the series is what says how to spell it.
-            held.address = cue_for(Series.DECLARED.value.letter, ordinal)
+            # ! THE LINE, NOT A CUE. The page gives it the `a` of that line.
+            held.declares_line = line
 
 
-def declarations(lang: Language, code: dict[int, str]) -> list[DocumentationPlace]:
+def declarations(lang: Language, code: Mapping[int, str]) -> dict[int, DocPlace]:
     """Every DOCUMENTABLE declaration in source order: its line, and where its doc goes.
 
     !! THE ORDER A READER MEETS THEM down the page, which is the order the `a`
     series counts from `a1`. The module is not among them: a module has no line
     of code declaring it, and its `a0` exists whenever the language has an `a`
-    series at all -- which is whether `lang.declares` lists any keyword.
+    series at all -- see `Language.a_series`.
 
     !! THE KEYWORDS ARE DATA. Each language row lists the keywords that say a
     line can get a docstring, and the lexer matches on that list instead of on
@@ -1255,30 +1737,120 @@ def declarations(lang: Language, code: dict[int, str]) -> list[DocumentationPlac
     ! A LANGUAGE WHOSE DOC GOES INSIDE THE BODY IS REFUSED -- `lang.doc_inside`,
     Python. Where its body starts is not the declaring line, so its own reader
     states its declarations. Every other installed language documents a
-    declaration with the run directly above its declaring line, so the line the
-    keyword is on is the whole answer.
+    declaration with the run directly above it: above its declaring line, or
+    above the annotation lines directly over that line.
 
     ! It REPORTS; it does not emit a paragraph. `undocumented` is a PAGE kind,
     because only a page knows where prose is missing.
 
     Args:
         lang: its record; `declares` holds the keywords.
-        code: `line -> the code on it`, from `page.code_lines`. The keyword path
+        code: `line -> the code on it`, from `code_text`. The keyword path
             scans ONLY these, so a keyword inside a comment or a string cannot
             declare anything.
 
     Returns:
-        A `DocumentationPlace` per declaration. !! `above` IS THE ROW SPEAKING, not a
-        comparison of the two numbers: it is `doc_inside` read back out, and it is
-        stated HERE because the lexer is where a row's `declares` and `doc_inside`
-        are read; every step below carries it.
+        Each declaring line -> its `DocPlace`, set above the declaring line or
+        above its topmost annotation line. !! `above` IS THE ROW SPEAKING:
+        it is `doc_inside` read back out, and it is stated HERE because the
+        lexer is where a row's `declares` and `doc_inside` are read.
     """
     if lang.doc_inside:
         raise ValueError(f"{lang.name} declarations come from its own reader")
-    # ! The doc goes ON the declaring line, pushing it down, so `insert` IS that
-    # line. Ordered because `code` is.
-    return [
-        DocumentationPlace(n, n, True)
-        for n, line in code.items()
-        if _declares_here(line, lang.declares)
-    ]
+    # ! The doc goes ABOVE the declaration, pushing it down, so the place is
+    # set against its first line. Ordered because `code` is.
+    # !! AN ANNOTATION IS PART OF THE DECLARATION IT PRECEDES -- see
+    # `Language.annotations` -- so the first line is the topmost of the
+    # annotation lines directly above the declaring line: lines holding
+    # annotations and nothing else. A line that opens with annotations and then
+    # declares is itself the declaring line, and its keyword follows them.
+    found: dict[int, DocPlace] = {}
+    for n, line in code.items():
+        after = _after_annotations(line, lang)
+        if not _declares_here(line if after is None else after, lang.declares):
+            continue
+        top = n
+        while top - 1 in code and _after_annotations(code[top - 1], lang) == "":
+            top -= 1
+        found[n] = DocPlace(top, True)
+    return found
+
+
+def code_text(text: str, paragraphs: list[Paragraph]) -> dict[int, str]:
+    """Every LINE OF CODE on a lexically read page, in order, with the code on it.
+
+    ```python
+    {2: "N = 0", 3: "def f():", 5: "    return 1"}
+    ```
+
+    A line is code when it holds something that is not blank and not prose.
+    This knows only what a comment-syntax record spells, so it reads the
+    lexical reader's paragraphs; the Python and Rust readers state their own
+    code lines from what they parsed.
+
+    ! A `trailing-comment` sits ON a code line, so that line stays code. A
+    `comment`, `docstring` or `matter` paragraph occupies its lines entirely,
+    so those lines are not. Every paragraph here is prose the reader found; no
+    empty place exists yet.
+
+    !! A PARAGRAPH'S FIRST LINE IS STILL CODE WHEN CODE PRECEDES ITS TEXT.
+    `int b = 2; /* opens` spans from that line, and taking the whole span would
+    drop the statement from the code set, moving every interval boundary below
+    it.
+
+    !! THE PARAGRAPH SAYS SO, BY ITS SERIES -- a `c` paragraph is the prose
+    beside code.
+
+    !! THE CHARACTERS COME FROM THAT LINE'S `c` PARAGRAPH, NEVER RE-CUT HERE. A
+    `trailing-comment`'s anchor already states where the code stops; cutting
+    the line again answers `'    return os  # why'` where the paragraph for the
+    same line answers `'    return os'`: two computations of one fact.
+
+    Args:
+        text: the file's source.
+        paragraphs: the prose the lexical reader found in it.
+    """
+    occupied: set[int] = set()
+    beside: dict[int, str] = {}
+    for b in paragraphs:
+        on = Series.of_kind(b.kind) is Series.ON
+        if on:
+            beside[b.start] = b.anchor
+        occupied.update(range(b.start, b.end + 1))
+        if on:
+            occupied.discard(b.start)
+    return {
+        n: beside.get(n) or line.rstrip(BLANK)
+        for n, (line, scanned) in enumerate(
+            zip(constants.text_lines(text), constants.scan_lines(text), strict=True), 1
+        )
+        if scanned.strip() and n not in occupied
+    }
+
+
+@dataclass(frozen=True)
+class LexicalRead:
+    """What the generic lexical reader hands the page: its prose and code lines.
+
+    It answers the page with the two calls a reader record answers it with,
+    `paragraphs` and `code_lines`, so the page reads every reader one way.
+    """
+
+    #: The prose the reader found, each documenting run naming its declaration.
+    found: list[Paragraph]
+    #: Each line holding code, in order, with the documentation it declares.
+    lines: list[CodeLine]
+    #: Whether the page has an `a` series: the row declares a documentation
+    #: practice -- see `Language.a_series`.
+    a_series: bool
+    #: Whether the module's documentation can sit at the file's foot, so the
+    #: `a` series meets `<eof>` -- see `Language.closing_docstring`.
+    closing_docstring: bool
+
+    def paragraphs(self, path: Path) -> list[Paragraph]:
+        """Every prose run of the file as a page paragraph, in a new list."""
+        return list(self.found)
+
+    def code_lines(self) -> list[CodeLine]:
+        """Each line holding code, in order, with the documentation it declares."""
+        return self.lines

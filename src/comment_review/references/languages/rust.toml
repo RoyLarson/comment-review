@@ -58,7 +58,6 @@ assignment = "="
 
 [rules.documentation]
 owners = ["module", "item", "associated-item", "field", "variant", "nested-item"]
-delimited_decoration = "*"
 
 [rules.directives]
 shebang = "#!"

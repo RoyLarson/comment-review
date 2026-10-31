@@ -155,18 +155,44 @@ def test_standalone_cli_preserves_exact_mixed_unicode_snapshots(
     assert "PROVEN    source.py" in cli.stdout
 
 
-@pytest.mark.parametrize("text", ["int value = 1; /* open\r\n", "/* only prose */\r\n"])
 def test_standalone_failed_or_unprovable_inputs_cannot_prove_equal(
-    tmp_path, monkeypatch, capsys, text
+    tmp_path, monkeypatch, capsys
 ):
     from comment_review.commands import prove_unchanged as command
 
-    repo, target = proof_repository(tmp_path, text, ".c")
+    repo, target = proof_repository(tmp_path, "int value = 1; /* open\r\n", ".c")
     code, out = run_command(
         monkeypatch, capsys, command, "--repo", str(repo), "--base", "HEAD", str(target)
     )
     assert code == 1
     assert "PROVEN" not in out
+
+
+def test_standalone_a_stated_line_ending_in_a_no_code_file_cannot_prove(
+    tmp_path, monkeypatch, capsys
+):
+    from comment_review.commands import prove_unchanged as command
+
+    repo, target = proof_repository(tmp_path, "// a evil();\n", ".js")
+    code, out = run_command(
+        monkeypatch, capsys, command, "--repo", str(repo), "--base", "HEAD", str(target)
+    )
+    assert code == 1
+    assert "PROVEN" not in out
+    assert "U+2028" in out
+
+
+def test_standalone_a_file_with_no_code_line_proves_under_its_row(
+    tmp_path, monkeypatch, capsys
+):
+    from comment_review.commands import prove_unchanged as command
+
+    repo, target = proof_repository(tmp_path, "/* only prose */\r\n", ".c")
+    code, out = run_command(
+        monkeypatch, capsys, command, "--repo", str(repo), "--base", "HEAD", str(target)
+    )
+    assert code == 0
+    assert "PROVEN" in out
 
 
 @pytest.mark.parametrize("kind", ["unprovable", "unknown"])

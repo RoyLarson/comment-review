@@ -8,12 +8,17 @@ from itertools import pairwise
 from pathlib import Path
 from typing import Self, final
 
-from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, ReadStage
+from comment_review.reading.diagnostics import (
+    DetachedDocumentation,
+    ReadDiagnostic,
+    ReadFailure,
+    ReadStage,
+)
 from comment_review.reading.paragraph import Paragraph
 from comment_review.reading.proof import UNPROVABLE, PreservationResult
 from comment_review.reading.source import (
+    CodeLine,
     DocumentationOwner,
-    DocumentationPlace,
     RegionKind,
     SourceDeclaration,
     SourceRegion,
@@ -22,7 +27,7 @@ from comment_review.reading.source import (
     SourceStructure,
 )
 
-DETACHED_DOCUMENTATION = "detached-documentation"
+DETACHED_DOC_CODE = "detached-documentation"
 
 
 class RustTokenKind(StrEnum):
@@ -94,21 +99,6 @@ def _nesting(tokens: "tuple[RustToken, ...]", end: int) -> None:
             cursor = span.end
 
 
-def _prose(
-    prose: tuple[tuple[SourceSpan, ...], ...], comments: list[SourceSpan]
-) -> None:
-    """Require one ordered run of pieces per comment, each inside its comment."""
-    if not isinstance(prose, tuple) or len(prose) != len(comments):
-        raise ValueError("prose must hold one entry per comment, in order")
-    for pieces, comment in zip(prose, comments, strict=True):
-        _tuple(pieces, SourceSpan, "prose pieces")
-        boundary = comment.start
-        for piece in pieces:
-            if piece.start < boundary or piece.end > comment.end:
-                raise ValueError("prose must lie inside its comment, in order")
-            boundary = piece.end
-
-
 @dataclass(frozen=True)
 class RustToken:
     """A scanner token: a kind and the nonempty source span it covers."""
@@ -150,12 +140,9 @@ class RustScan:
     text: str
     regions: tuple[SourceRegion, ...]
     tokens: tuple[RustToken, ...]
-    # Each comment token's prose, in token order: the spans of its text inside
-    # its markers, one per physical line for a decorated doc.
-    prose: tuple[tuple[SourceSpan, ...], ...]
 
     def __post_init__(self) -> None:
-        """Require a contiguous partition, tokens that agree with it, and prose."""
+        """Require a contiguous partition and tokens that agree with it."""
         if not isinstance(self.text, str):
             raise ValueError("scan text must be a string")
         _tuple(self.regions, SourceRegion, "regions")
@@ -181,50 +168,17 @@ class RustScan:
                 region.kind is RegionKind.LITERAL and token.span.end <= region.span.end
             ):
                 raise ValueError("literal token must lie inside a literal region")
-        _prose(
-            self.prose,
-            [token.span for token in self.tokens if token.kind in COMMENT_KINDS],
-        )
-
-
-@dataclass(frozen=True)
-class DetachedRun:
-    """A documentation run the place model cannot hold, and its would-be owner.
-
-    `owner` is a declaration index, or None for the module.
-    """
-
-    span: SourceSpan
-    owner: int | None
-
-    def __post_init__(self) -> None:
-        """Require a SourceSpan and a nonnegative declaration index or None."""
-        if not isinstance(self.span, SourceSpan):
-            raise ValueError("detached span must be a SourceSpan")
-        if self.owner is not None and (
-            not isinstance(self.owner, int)
-            or isinstance(self.owner, bool)
-            or self.owner < 0
-        ):
-            raise ValueError("detached owner must be a nonnegative integer or None")
 
 
 @dataclass(frozen=True)
 class RustPlacement:
-    """Declarations and detached runs."""
+    """The declarations the place model found, in source order."""
 
     declarations: tuple[SourceDeclaration, ...]
-    detached: tuple[DetachedRun, ...]
 
     def __post_init__(self) -> None:
-        """Require declarations and detached owners that exist."""
+        """Require declarations."""
         _tuple(self.declarations, SourceDeclaration, "declarations")
-        _tuple(self.detached, DetachedRun, "detached")
-        if any(
-            run.owner is not None and run.owner >= len(self.declarations)
-            for run in self.detached
-        ):
-            raise ValueError("detached owner must index declarations")
 
 
 class RustSectionForm(StrEnum):
@@ -236,7 +190,6 @@ class RustSectionForm(StrEnum):
     COMMENT = "comment"
     OUTER_DOC = "outer_doc"
     INNER_DOC = "inner_doc"
-    MATTER = "matter"
 
 
 @dataclass(frozen=True)
@@ -246,16 +199,14 @@ class RustDocumentation:
     Each section's form is a RustSectionForm value. `owners` links each
     OUTER_DOC section to its declaration and each INNER_DOC section to the
     module, as declaration None: an inner doc in a body documents no owner.
-    `placement` carries the declarations and the detached runs.
-    Each warning marks one COMMENT or MATTER section that is detached
-    documentation, and the warnings align one-to-one, in order, with
-    `placement.detached`.
+    `placement` carries the declarations. Each warning marks one COMMENT
+    section that is detached documentation.
     """
 
     sections: tuple[SourceSection, ...]
     owners: tuple[DocumentationOwner, ...]
     placement: RustPlacement
-    warnings: tuple[ReadDiagnostic, ...]
+    warnings: tuple[DetachedDocumentation, ...]
 
     def __post_init__(self) -> None:
         """Require ordered sections, owners that index them, and place warnings."""
@@ -291,24 +242,20 @@ class RustDocumentation:
             for owner in self.owners
         ):
             raise ValueError("an inner doc section may document only the module")
-        _tuple(self.warnings, ReadDiagnostic, "warnings")
-        comments = {
+        _tuple(self.warnings, DetachedDocumentation, "warnings")
+        comments = [
             section.span
             for section in self.sections
-            if section.form in (RustSectionForm.COMMENT, RustSectionForm.MATTER)
-        }
+            if section.form == RustSectionForm.COMMENT
+        ]
         for warning in self.warnings:
-            if (
-                warning.code != DETACHED_DOCUMENTATION
-                or warning.stage != ReadStage.PLACE
-            ):
+            if warning.code != DETACHED_DOC_CODE or warning.stage != ReadStage.PLACE:
                 raise ValueError("warnings must be detached-documentation place notes")
-            if warning.span not in comments:
-                raise ValueError("a warning must mark a comment or matter section")
-        if [warning.span for warning in self.warnings] != [
-            run.span for run in self.placement.detached
-        ]:
-            raise ValueError("warnings must align, in order, with detached runs")
+            if not any(
+                warning.span is not None and span.start <= warning.span.start < span.end
+                for span in comments
+            ):
+                raise ValueError("a warning must mark a comment section")
 
 
 def _section_start(section: SourceSection) -> int:
@@ -320,28 +267,24 @@ def _section_start(section: SourceSection) -> int:
 class RustRead:
     """A completed Rust read: the source structure and what the read must keep.
 
-    `detached` aligns one-to-one, in order, with `warnings`, so a warning's
-    owner is its run's `owner`. `prose` is the scan's prose, one entry per
-    COMMENT region, kept because the read holds no tokens. A COMMENT region
-    in no section is code. Each declaration anchors on its own line, below
-    the one before it, and its documentation goes above that line. A
-    documentation section shares no physical line with
-    another section, so an `a` place holds its doc alone; other sections may
-    share a line, and the projection makes them one paragraph.
+    A COMMENT region in no section is code. Each declaration anchors on its
+    own line, below the one before it, and its documentation goes above
+    that line. A documentation section shares no
+    physical line with another section, so an `a` place holds its doc alone;
+    other sections may share a line, and the projection makes them one
+    paragraph.
     """
 
     source: SourceStructure
     protected: tuple[SourceSpan, ...]
-    warnings: tuple[ReadDiagnostic, ...]
-    detached: tuple[DetachedRun, ...]
-    prose: tuple[tuple[SourceSpan, ...], ...]
+    warnings: tuple[DetachedDocumentation, ...]
 
     def __post_init__(self) -> None:
-        """Check declaration lines, protected spans, warnings, detached runs, prose."""
+        """Check declaration lines, protected spans and warnings."""
         if not isinstance(self.source, SourceStructure):
             raise ValueError("read source must be a SourceStructure")
         lines = [
-            self.source.position(declaration.anchor).line
+            self.source.declaring_line(declaration)
             for declaration in self.source.declarations
         ]
         if any(after <= before for before, after in pairwise(lines)):
@@ -366,39 +309,17 @@ class RustRead:
                 raise ValueError("protected span is outside source")
             if span not in directives:
                 raise ValueError("protected span must coincide with a directive region")
-        _tuple(self.warnings, ReadDiagnostic, "warnings")
+        _tuple(self.warnings, DetachedDocumentation, "warnings")
         for warning in self.warnings:
-            if (
-                warning.code != DETACHED_DOCUMENTATION
-                or warning.stage != ReadStage.PLACE
-            ):
+            if warning.code != DETACHED_DOC_CODE or warning.stage != ReadStage.PLACE:
                 raise ValueError("warnings must be detached-documentation place notes")
             if warning.span is None or warning.span.end > len(self.source.text):
                 raise ValueError("warning span must lie inside source")
-        _tuple(self.detached, DetachedRun, "detached")
-        if any(
-            run.owner is not None and run.owner >= len(self.source.declarations)
-            for run in self.detached
-        ):
-            raise ValueError("detached owner must index declarations")
-        if [warning.span for warning in self.warnings] != [
-            run.span for run in self.detached
-        ]:
-            raise ValueError("warnings must align, in order, with detached runs")
-        _prose(
-            self.prose,
-            [r.span for r in self.source.regions if r.kind is RegionKind.COMMENT],
-        )
 
     @property
     def proof(self) -> str:
         """The comparison's name, as a proof report prints it."""
         return "rust-lexical"
-
-    @property
-    def warning_owners(self) -> tuple[int | None, ...]:
-        """Each warning's owner, from the detached run it aligns with."""
-        return tuple(run.owner for run in self.detached)
 
     def preserved(
         self,
@@ -443,14 +364,25 @@ class RustRead:
 
         return paragraphs_for(path, self)
 
-    def code(self) -> dict[int, str]:
-        """Each line's code with its comments removed; lines with none absent."""
-        from comment_review.reading.rust.projection import code_for
+    def code_lines(self) -> list[CodeLine]:
+        """Each code line, with a declaration's documentation place above it."""
+        from comment_review.reading.rust.projection import code_lines_for
 
-        return code_for(self)
+        return code_lines_for(self)
 
-    def declarations(self) -> list[DocumentationPlace]:
-        """Each declaration's documentation place, by line."""
-        from comment_review.reading.rust.projection import declarations_for
+    @property
+    def a_series(self) -> bool:
+        """Whether the page has an `a` series: always, for Rust.
 
-        return declarations_for(self)
+        Rust documents its crate or module and its items.
+        """
+        return True
+
+    @property
+    def closing_docstring(self) -> bool:
+        """Whether the module's documentation can sit at the file's foot: never.
+
+        An inner doc after the first item, or an outer doc with no item after
+        it, does not compile.
+        """
+        return False

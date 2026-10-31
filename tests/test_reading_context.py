@@ -14,6 +14,7 @@ from comment_review.reading.context import ReadingContext, compatible_contexts
 from comment_review.reading.context_io import context_to_wire
 from comment_review.reading.definitions import LanguageDefinition, decode_definition
 from comment_review.reading.diagnostics import ReadFailure
+from comment_review.reading.lexer import LexicalRead
 from comment_review.reading.registry import LanguageRegistry
 
 
@@ -482,7 +483,7 @@ def test_saved_mixed_workflow_keeps_literal_context_through_proof(
         "language": "javascript",
         "reader": "javascript-lexical",
         "compatibility": (
-            "d7647c406f19f60a06948df406d52c6351c52196afe7786da4f311c0d26f8f59"
+            "4705871e23b205e53064695b2e1bf93e969bbe6e70a0fe85f8a81e3fbcdf74bb"
         ),
         "settings": {},
     }
@@ -1172,7 +1173,7 @@ def test_settings_normalize_without_discovering_source(tmp_path, monkeypatch):
         "reader-1",
         ("comments",),
         "grammar-1",
-        lambda *_: [],
+        lambda *_: LexicalRead([], [], False, False),
         lambda _: None,
     )
     monkeypatch.setattr(
@@ -1224,7 +1225,7 @@ def test_mixed_contexts_derive_independent_installed_binding_metadata(monkeypatc
         "reader-1",
         ("comments",),
         "grammar-1",
-        lambda *_: [],
+        lambda *_: LexicalRead([], [], False, False),
         lambda _: None,
     )
     monkeypatch.setattr(
@@ -1298,7 +1299,7 @@ def test_cli_settings_reach_actual_fresh_flow(tmp_path, monkeypatch, capsys, com
         "reader-1",
         ("comments",),
         "grammar-1",
-        lambda *_: [],
+        lambda *_: LexicalRead([], [], False, False),
         lambda _: None,
     )
     monkeypatch.setattr(

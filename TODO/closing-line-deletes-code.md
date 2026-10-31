@@ -107,6 +107,7 @@ of the two notes stands.
 - [ ] T4 | T4 -- * RE-RULE the 2026-08-20 acceptance with the DELETED CODE on
       the table, and say which of the two contradicting notes stands. Verify:
       the answer is in this file.
+        > 2026-10-27 At the head too: a closing line with code lands in f0 (P20 probe)
 - [x] T5 | FINISHED | unknown | T5 -- RECORD, not a task. The three options are
       unchanged and are named in the Objective.
 - [x] T6 | FINISHED | unknown | T6 -- RECORD, not a task. Close this with the

@@ -12,6 +12,7 @@ from pathlib import Path
 
 import pytest
 from conftest import SAMPLE, build, by_cue, cue, docket_from
+from helpers import RUST_ITEMS
 
 from comment_review.binder import page as page_mod
 from comment_review.binder.binder import bind
@@ -20,11 +21,14 @@ from comment_review.flows import page_for as page_for_mod
 from comment_review.flows import proof_setter
 from comment_review.flows.language_definitions import installed_registry
 from comment_review.flows.read_diagnostics import LocatedReadFailure, format_failure
-from comment_review.flows.reading_context import context_for
 from comment_review.machine.repo import Source
 from comment_review.reading.addresser import Cues
 from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, ReadStage
+from comment_review.reading.lexer import LexicalRead
+from comment_review.reading.paragraph import Paragraph
 from comment_review.reading.python.records import PythonRead
+from comment_review.reading.series import Kind
+from comment_review.reading.source import CodeLine, DocPlace
 
 
 def test_python_page_retains_complete_structured_read():
@@ -37,7 +41,9 @@ def test_python_page_retains_complete_structured_read():
         "docstring",
         "docstring",
     ]
-    assert [payload.text for payload in page.read.payloads] == ["module", "a\nb"]
+    assert [
+        page.read.source.slice(payload.statement) for payload in page.read.payloads
+    ] == ['"module"', '"a\\n" "b"']
     assert [owner.declaration for owner in page.read.source.documentation] == [
         None,
         0,
@@ -55,7 +61,7 @@ def test_python_page_bom_and_effective_cookie_preserve_exact_bytes():
     assert isinstance(page, Page)
     assert isinstance(page.read, PythonRead)
     assert page.read.source.reconstruct().encode("utf-8") == raw
-    assert page.read.payloads[0].text == "module"
+    assert page.read.source.slice(page.read.payloads[0].statement) == ('"module"')
     assert [item.kind for item in page.read.protected] == ["encoding"]
 
 
@@ -77,6 +83,28 @@ def test_python_page_contiguous_header_keeps_one_matter_place(bom, ending):
         assert isinstance(current.read, PythonRead)
         assert len(current.read.source.sections) == 1
         assert current.read.source.reconstruct() == text
+
+
+def test_a_margin_holds_what_follows_its_anchor_on_the_line():
+    no_break_space = chr(0xA0)
+    text = "struct S {\n" + no_break_space + "\n    x: i32,\n}\n"
+    page = build(text, "m.rs")
+    margin = next(p for p in page if p.anchor == no_break_space and p.kind == "margin")
+    assert margin.raw_lines == [""]
+
+
+@pytest.mark.parametrize("name", ["m.rs", "m.py", "m.js"])
+@pytest.mark.parametrize("rest", ["x = 1\n", "# Licence\nx = 1\n"])
+def test_a_page_opening_with_a_line_holding_only_a_byte_order_mark_sets_back(
+    name, rest
+):
+    from comment_review.results.compositor import set_page
+
+    if name != "m.py":
+        rest = rest.replace("# ", "// ").replace("x = 1", "fn main() {}")
+    text = chr(0xFEFF) + "\n" + rest
+    page = build(text, name)
+    assert set_page(page) == text
 
 
 def test_python_page_whole_comments_and_matter_boundaries():
@@ -160,8 +188,7 @@ def test_python_page_recognizes_once_and_retains_object_and_definition(monkeypat
     monkeypatch.setattr(page_for_mod, "installed_registry", acquire)
     monkeypatch.setattr(readers, "read_python", recognize)
     monkeypatch.setattr(reading_context, "resolve_context", resolve)
-    monkeypatch.setattr(page_mod, "declarations", forbidden)
-    monkeypatch.setattr(page_mod, "code_lines", forbidden)
+    monkeypatch.setattr(readers, "read_lexical", forbidden)
     page = page_for_mod.page_of(Path("m.py"), source=Source(text, "held"))
     assert isinstance(page, Page)
     assert acquired == [True]
@@ -371,7 +398,7 @@ def test_failed_reader_never_assigns_places(monkeypatch):
     def unexpected_places(*args):
         raise AssertionError("failed input reached placement")
 
-    monkeypatch.setattr(page_mod, "places_on", unexpected_places)
+    monkeypatch.setattr(page_mod, "cue", unexpected_places)
     result = page_for_mod.page_of(
         Path("bad.py"), source=Source("def broken(:\n", "bad")
     )
@@ -392,7 +419,7 @@ def test_unavailable_binding_is_never_invoked_or_addressed(monkeypatch):
     def forbidden(*args):
         pytest.fail("An unavailable binding must not read or assign places")
 
-    monkeypatch.setattr(page_mod, "places_on", forbidden)
+    monkeypatch.setattr(page_mod, "cue", forbidden)
     monkeypatch.setattr(
         readers,
         "INSTALLED_BINDINGS",
@@ -414,6 +441,33 @@ def test_unexpected_reader_exception_propagates(monkeypatch):
     monkeypatch.setattr(page_mod, "read_source", broken_reader)
     with pytest.raises(RuntimeError, match="reader bug"):
         page_for_mod.page_of(Path("m.py"), source=Source("v = 1\n", "held"))
+
+
+@pytest.mark.parametrize(
+    ("anchor", "place"),
+    [("<eof>", "a1"), ("", "a0")],
+    ids=["closing-at-eof", "opening-at-a0"],
+)
+def test_module_documentation_takes_the_a_its_anchor_names(monkeypatch, anchor, place):
+    from comment_review.results.compositor import set_page
+
+    text = "x;\n/** d */\n" if anchor else "/** d */\nx;\n"
+    line = 2 if anchor else 1
+    doc = Paragraph("m.c", line, line, Kind.DOCSTRING, anchor=anchor)
+    doc.raw_lines = ["/** d */"]
+    code = CodeLine(1 if anchor else 2, "x;", None)
+
+    def read(*args, **kwargs):
+        return LexicalRead([doc], [code], True, True)
+
+    monkeypatch.setattr(page_mod, "read_source", read)
+    page = page_for_mod.page_of(Path("m.c"), source=Source(text, "held"))
+    assert isinstance(page, Page)
+    assert (by_cue(page)[place].kind, by_cue(page)[place].raw_lines) == (
+        Kind.DOCSTRING,
+        ["/** d */"],
+    )
+    assert set_page(page) == text
 
 
 def test_located_error_renders_after_file_is_removed(tmp_path):
@@ -443,7 +497,7 @@ def test_located_error_renders_after_file_is_removed(tmp_path):
 def test_known_placement_refusal_is_an_outcome(monkeypatch, series, cue_name, message):
     cues = Cues()
     cues.addressers[series].places[cue_name] = "<module>"
-    monkeypatch.setattr(page_mod, "places_on", lambda *args: cues)
+    monkeypatch.setattr(page_mod, "cue", lambda *args, **kwargs: cues)
     result = page_for_mod.page_of(Path("m.c"), source=Source("", "held"))
     assert isinstance(result, LocatedReadFailure)
     assert result.diagnostics == (
@@ -453,6 +507,71 @@ def test_known_placement_refusal_is_an_outcome(monkeypatch, series, cue_name, me
             message,
         ),
     )
+
+
+GO_DOCUMENTED = "// Package m.\npackage m\n// F.\nfunc F() {}\n"
+
+
+def page_over_read(monkeypatch, found: list[Paragraph]) -> Page | ReadFailure:
+    """`page_for` over GO_DOCUMENTED, handed these paragraphs and its code lines."""
+    reading = build("", "m.go").reading
+    lines = [
+        CodeLine(2, "package m", None),
+        CodeLine(4, "func F() {}", DocPlace(4, True)),
+    ]
+    read = LexicalRead(found, lines, True, True)
+    monkeypatch.setattr(page_mod, "read_source", lambda *args, **kwargs: read)
+    return page_for(
+        Path("m.go"), GO_DOCUMENTED, rel="m.go", sha="held", reading=reading
+    )
+
+
+def test_documentation_lands_at_the_a_of_the_line_it_names(monkeypatch):
+    page = page_over_read(
+        monkeypatch,
+        [
+            Paragraph("m.go", 1, 1, Kind.DOCSTRING, raw_lines=["// Package m."]),
+            Paragraph(
+                "m.go", 3, 3, Kind.DOCSTRING, declares_line=4, raw_lines=["// F."]
+            ),
+        ],
+    )
+    assert isinstance(page, Page)
+    assert [
+        (cue(p), p.declares_line, p.anchor) for p in page if p.kind == Kind.DOCSTRING
+    ] == [("a0", None, "<module>"), ("a1", 4, "func F() {}")]
+
+
+@pytest.mark.parametrize("line", [2, 3], ids=["code-declaring-nothing", "no-code"])
+def test_documentation_naming_no_declaring_line_is_refused(monkeypatch, line):
+    found = [
+        Paragraph("m.go", 3, 3, Kind.DOCSTRING, declares_line=line, raw_lines=["// F."])
+    ]
+    result = page_over_read(monkeypatch, found)
+    assert isinstance(result, ReadFailure)
+    assert [d.code for d in result.diagnostics] == ["documentation-declares-nothing"]
+
+
+def test_two_paragraphs_at_one_address_refuse_the_page(monkeypatch):
+    found = [
+        Paragraph("m.go", 3, 3, Kind.COMMENT, raw_lines=["// one"]),
+        Paragraph("m.go", 3, 3, Kind.COMMENT, raw_lines=["// two"]),
+    ]
+    result = page_over_read(monkeypatch, found)
+    assert isinstance(result, ReadFailure)
+    assert result.diagnostics == (
+        ReadDiagnostic(
+            ReadStage.PLACE,
+            "address-held-twice",
+            "m.go@b1 is held by the paragraph on lines 3-3 and the paragraph on"
+            " lines 3-3",
+        ),
+    )
+
+
+def test_a_paragraph_alone_in_its_place_builds(monkeypatch):
+    found = [Paragraph("m.go", 3, 3, Kind.COMMENT, raw_lines=["// one"])]
+    assert isinstance(page_over_read(monkeypatch, found), Page)
 
 
 def test_failed_acquisition_has_no_invented_context(tmp_path):
@@ -612,20 +731,6 @@ class TestPageOfReturnsEveryRefusalItPromises:
         assert list(into.iterdir()) == []
 
 
-RUST_ITEMS = (
-    "//! Module doc.\n"
-    "\n"
-    "/// A point.\n"
-    "#[derive(Debug)]\n"
-    "pub struct Point {\n"
-    "    /// The x.\n"
-    "    pub x: i32,\n"
-    "}\n"
-    "\n"
-    "fn helper() {} // trailing\n"
-)
-
-
 def _places(page) -> dict[str, tuple[str, str]]:
     """Each addressed place's cue -> (kind, anchor)."""
     return {cue(b): (b.kind, b.anchor) for b in page.paragraphs if b.address}
@@ -642,7 +747,6 @@ def test_rust_page_addresses_documented_items_fields_and_trailing_comments():
     assert places["c4"] == ("trailing-comment", "fn helper() {}")
     assert [c for c in places if c[0] == "b"] == [f"b{n}" for n in range(6)]
     assert {c for c in places if c[0] == "f"} == {"f0", "f1"}
-    assert page.warnings == ()
 
 
 def test_rust_page_empty_a_sets_its_doc_above_the_attribute_line():
@@ -656,39 +760,15 @@ def test_rust_page_empty_a_sets_its_doc_above_the_attribute_line():
     assert set_page(page) == "/// Added.\n#[derive(Debug)]\npub struct S;\n"
 
 
-def test_lexical_declarations_hold_only_the_declaration_places():
-    from comment_review.reading.language import language_for
-    from comment_review.reading.lexer import declarations
-
-    go = language_for(Path("m.go"))
-    assert go is not None
-    assert declarations(go, {1: "package m", 3: "func f() {}"}) == [(3, 3, True)]
-
-
 def test_rust_page_item_on_line_one_sets_module_doc_then_item_doc():
     from comment_review.results.compositor import set_page
     from comment_review.results.galley import reset
 
     page = build("fn f() {}\n", "m.rs")
-    assert page.read.declarations() == [(1, 1, True)]
     places = _places(page)
     assert places["a0"][0] == places["a1"][0] == "undocumented"
     reset(page, {"a0": "//! Module.", "a1": "/// F."})
     assert set_page(page) == "//! Module.\n/// F.\nfn f() {}\n"
-
-
-def test_rust_page_detached_doc_is_a_warning_and_not_on_the_wire():
-    from comment_review.binder.page import WIRE_FIELDS, PageWarning
-
-    text = "fn g() {}\n\n/// Detached.\n// ordinary\nfn f() {}\n"
-    page = build(text, "m.rs")
-    detached = next(b for b in page.prose if "Detached" in b.text)
-    assert page.warnings == (
-        PageWarning(cue=cue(detached), owner="a2", code="detached-documentation"),
-    )
-    wire = page.serialize()
-    assert set(wire) == {"path", "sha", "reading", "rows"}
-    assert {tuple(row) for row in wire["rows"]} == {WIRE_FIELDS}
 
 
 def test_rust_page_inner_doc_above_nothing_is_the_module_docstring():
@@ -747,8 +827,6 @@ def test_rust_page_shebang_matter_runs_to_the_first_blank_whatever_the_forms():
         "/// d",
         "// e",
     ]
-    assert "detached-documentation" in places["f0"].annotations
-    assert [(w.cue, w.owner) for w in page.warnings] == [("f0", "a1")]
     assert set_page(page) == text
     reset(page, {"a0": "//! Added."})
     assert set_page(page) == (
@@ -757,28 +835,25 @@ def test_rust_page_shebang_matter_runs_to_the_first_blank_whatever_the_forms():
 
 
 #: Comment sections of different written forms in one place, as
-#: `(text, cue, kind, raw_lines, warning cues)`.
+#: `(text, cue, kind, raw_lines)`.
 RUST_JOINED = {
     "detached behind ordinary": (
         "fn g() {}\n\n/// Detached.\n// ordinary\nfn f() {}\n",
         "b1",
         "comment",
         ["/// Detached.", "// ordinary"],
-        ["b1"],
     ),
     "doc block behind ordinary": (
         "/** Doc. */\n// c\nfn f() {}",
         "f0",
         "matter",
         ["/** Doc. */", "// c"],
-        ["f0"],
     ),
     "doc split by a FIXME": (
         "/// a\n///\n// FIXME x\n/// b\nfn f() {}",
         "f0",
         "matter",
         ["/// a", "///", "// FIXME x"],
-        ["f0"],
     ),
 }
 
@@ -787,13 +862,11 @@ RUST_JOINED = {
 def test_rust_page_sections_in_one_place_are_one_paragraph(case):
     from comment_review.results.compositor import set_page
 
-    text, place, kind, raw, warned = RUST_JOINED[case]
+    text, place, kind, raw = RUST_JOINED[case]
     page = build(text, "m.rs")
     joined = by_cue(page)[place]
     assert joined.kind == kind
     assert joined.raw_lines == raw
-    assert "detached-documentation" in joined.annotations
-    assert [w.cue for w in page.warnings] == warned
     addresses = [b.address for b in page.paragraphs if b.address]
     assert len(addresses) == len(set(addresses))
     assert set_page(page) == text
@@ -804,7 +877,6 @@ def test_rust_page_doc_split_by_a_fixme_keeps_the_last_run_as_the_item_doc():
     places = _places(page)
     assert places["a1"] == ("docstring", "fn f() {}")
     assert by_cue(page)["a1"].raw_lines == ["/// b"]
-    assert [(w.cue, w.owner) for w in page.warnings] == [("f0", "a1")]
 
 
 def test_rust_page_reworded_joined_paragraph_sets_in_place():
@@ -854,7 +926,6 @@ def test_rust_page_opening_comments_follow_one_rule_whatever_their_forms(case):
     page = build(text, "m.rs")
     held = {cue(b): b.raw_lines for b in page.paragraphs if b.address and b.raw_text}
     assert held == expected
-    assert page.warnings == ()
     assert set_page(page) == text
 
 
@@ -883,7 +954,6 @@ def test_rust_page_module_doc_behind_front_matter_is_attached(text):
     assert places["f0"].kind == "matter"
     assert places["f0"].raw_lines[-1] == "// Copyright"
     assert (places["a0"].kind, places["a0"].raw_lines) == ("docstring", ["//! m"])
-    assert page.warnings == ()
     assert set_page(page) == text
 
 
@@ -898,9 +968,7 @@ def test_rust_page_module_doc_behind_a_trailing_comment_is_detached():
         [" // c"],
     )
     assert (places["b1"].kind, places["b1"].raw_lines) == ("comment", ["//! m"])
-    assert "detached-documentation" in places["b1"].annotations
     assert places["a0"].kind == "undocumented"
-    assert [(w.cue, w.owner) for w in page.warnings] == [("b1", "a0")]
     assert set_page(page) == text
 
 
@@ -973,25 +1041,98 @@ def test_rust_page_module_doc_after_an_inner_attribute_is_detached():
     places = by_cue(page)
     assert places["a0"].kind == "undocumented"
     assert (places["b1"].kind, places["b1"].raw_lines) == ("comment", ["//! Docs."])
-    assert "detached-documentation" in places["b1"].annotations
-    assert [(w.cue, w.owner) for w in page.warnings] == [("b1", "a0")]
     assert set_page(page) == text
 
 
-def test_rust_page_module_doc_behind_a_comment_below_the_opening_matter_is_detached():
+@pytest.mark.parametrize(
+    ("name", "text", "doc"),
+    [
+        ("m.py", '# licence\n\n# note\n\n"""Doc."""\n\nx = 1\n', '"""Doc."""'),
+        ("m.js", "// licence\n\n// note\n\n/** Doc. */\n\nlet x = 1;\n", "/** Doc. */"),
+        ("m.rs", "// licence\n\n// note\n\n//! Doc.\n\nfn f() {}\n", "//! Doc."),
+    ],
+    ids=["python", "lexical", "rust"],
+)
+def test_every_comment_above_a_module_docstring_is_front_matter(name, text, doc):
     from comment_review.results.compositor import set_page
 
-    text = "// Copyright\n\n// note\n\n//! Docs.\n\nfn f() {}\n"
-    page = build(text, "m.rs")
+    page = build(text, name)
     places = by_cue(page)
-    assert (places["f0"].kind, places["f0"].raw_lines) == ("matter", ["// Copyright"])
-    assert places["a0"].kind == "undocumented"
-    assert (places["b0"].kind, places["b0"].raw_lines) == (
-        "comment",
-        ["// note", "", "//! Docs."],
+    assert (places["f0"].kind, places["f0"].raw_lines) == (
+        "matter",
+        text.splitlines()[:3],
     )
-    assert "detached-documentation" in places["b0"].annotations
-    assert [(w.cue, w.owner) for w in page.warnings] == [("b0", "a0")]
+    assert (places["a0"].kind, places["a0"].raw_lines) == ("docstring", [doc])
+    assert set_page(page) == text
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        '# one\n\n# note\n\n"""Doc."""\n\n# below\n\nx = 1\n',
+        '\n# one\n"""Doc."""\nx = 1\n',
+        '#!/bin/sh\n\n# note\n\n"""Doc."""\nx = 1\n',
+    ],
+    ids=["comment-below", "blank-opening-line", "shebang"],
+)
+def test_python_matter_above_a_module_docstring_sets_back(text):
+    from comment_review.results.compositor import set_page
+
+    assert set_page(build(text, "m.py")) == text
+
+
+def test_a_comment_below_a_blank_opening_line_with_no_docstring_is_back_matter():
+    from comment_review.results.compositor import set_page
+
+    text = "\n# one\n"
+    page = build(text, "m.py")
+    assert (by_cue(page)["f1"].kind, by_cue(page)["f0"].kind) == (
+        "matter",
+        "dark-matter",
+    )
+    assert set_page(page) == text
+
+
+@pytest.mark.parametrize(
+    ("text", "key"),
+    [('\n# one\n"""Doc."""\nx = 1\n', ""), ("\nx = 1\n", "f0")],
+    ids=["above-a-filled-f0", "at-an-empty-f0"],
+)
+def test_a_run_above_everything_is_keyed_by_whether_f0_holds_lines(text, key):
+    assert list(build(text, "m.py").leading) == [key]
+
+
+def test_lexical_every_comment_below_a_closing_docstring_is_back_matter():
+    from comment_review.results.compositor import set_page
+
+    text = "let x = 1;\n/** D1 */\n// C1\n\n// C2\n"
+    page = build(text, "m.js")
+    places = by_cue(page)
+    closing = next(p for c, p in places.items() if p.raw_lines == ["/** D1 */"])
+    assert closing.kind == "docstring"
+    assert cue(closing).startswith("a")
+    assert (places["f1"].kind, places["f1"].raw_lines) == (
+        "matter",
+        ["// C1", "", "// C2"],
+    )
+    assert set_page(page) == text
+
+
+@pytest.mark.parametrize(
+    ("name", "text", "f1"),
+    [
+        ("m.py", '# M\n\n"""D."""\n\n# one\n\n# two\n', ["# one", "", "# two"]),
+        ("m.rs", "// M\n\n//! D.\n\n// one\n\n// two\n", ["// one", "", "// two"]),
+    ],
+    ids=["python", "rust"],
+)
+def test_with_no_code_everything_past_a0_is_one_back_matter(name, text, f1):
+    from comment_review.results.compositor import set_page
+
+    page = build(text, name)
+    places = by_cue(page)
+    assert places["a0"].kind == "docstring"
+    assert (places["f1"].kind, places["f1"].raw_lines) == ("matter", f1)
     assert set_page(page) == text
 
 
@@ -1019,7 +1160,7 @@ def test_rust_page_prose_edit_elsewhere_leaves_a_detached_module_doc_in_place(te
     assert before.preserved(after).unchanged
 
 
-def test_rust_page_doc_sharing_its_line_with_a_comment_is_detached_and_warned():
+def test_rust_page_doc_sharing_its_line_with_a_comment_is_a_comment():
     from comment_review.results.compositor import set_page
     from comment_review.results.galley import reset
 
@@ -1028,14 +1169,11 @@ def test_rust_page_doc_sharing_its_line_with_a_comment_is_detached_and_warned():
     places = by_cue(page)
     assert (places["b1"].kind, places["b1"].raw_lines) == ("comment", ["/** a */ // b"])
     assert places["b1"].text == "a b"
-    assert "detached-documentation" in places["b1"].annotations
     assert places["a2"].kind == "undocumented"
-    assert [(w.cue, w.owner) for w in page.warnings] == [("b1", "a2")]
     assert set_page(page) == text
     reset(page, {"a2": "/// Added."})
     out = set_page(page)
     assert out == "fn f() {}\n/** a */ // b\n/// Added.\nfn g() {}\n"
-    assert [(w.cue, w.owner) for w in build(out, "m.rs").warnings] == [("b1", "a2")]
 
 
 @pytest.mark.parametrize(
@@ -1075,9 +1213,7 @@ def test_rust_page_inner_doc_with_a_comment_after_it_is_detached(
     places = by_cue(page)
     assert (places[place].kind, places[place].raw_lines) == (kind, raw)
     assert places[place].text == "a b"
-    assert "detached-documentation" in places[place].annotations
     assert places[owner].kind == "undocumented"
-    assert [(w.cue, w.owner) for w in page.warnings] == [(place, owner)]
     assert set_page(page) == text
 
 
@@ -1093,8 +1229,6 @@ def test_rust_page_doc_trailing_code_with_a_comment_after_it_is_one_trailing():
     )
     assert places["c0"].anchor == "fn f() {}"
     assert places["c0"].text == "a b"
-    assert "detached-documentation" in places["c0"].annotations
-    assert [(w.cue, w.owner) for w in page.warnings] == [("c0", "a2")]
     assert set_page(page) == text
 
 
@@ -1143,8 +1277,7 @@ RUST_SHAPES = (
 )
 
 #: An inner doc inside a body, as `(text, its b place, that place's raw lines)`.
-#: Each is an ordinary comment in the gap it sits in, warned for `a1`, the item
-#: on line 1 whose body holds it.
+#: Each is an ordinary comment in the gap it sits in.
 RUST_INNER_DOCS = {
     "mod": (RUST_SHAPES, "b1", ["    //! Shapes on the board."]),
     "fn": ("fn f() {\n    //! inner\n}\n", "b1", ["    //! inner"]),
@@ -1165,26 +1298,7 @@ def test_rust_page_inner_doc_in_a_body_is_detached_at_its_b_place(kind):
     page = build(text, "m.rs")
     places = by_cue(page)
     assert (places[place].kind, places[place].raw_lines) == ("comment", raw)
-    assert places[place].annotations == {"detached-documentation"}
-    assert [(w.cue, w.owner) for w in page.warnings] == [(place, "a1")]
     assert places["a1"].kind == "undocumented"
-    assert page.read.declarations()[0] == (1, 1, True)
-    assert set_page(page) == text
-
-
-@pytest.mark.parametrize(
-    ("text", "warnings"),
-    [
-        ("mod a {\n    fn b() {}\n    //! x\n    fn c() {}\n}\n", [("b2", "a1")]),
-        ("mod a {\n    fn b() {\n        //! x\n    }\n}\n", [("b2", "a2")]),
-    ],
-    ids=["after-a-closed-nested-item", "inside-a-nested-fn"],
-)
-def test_rust_page_body_inner_doc_names_the_innermost_item_holding_it(text, warnings):
-    from comment_review.results.compositor import set_page
-
-    page = build(text, "m.rs")
-    assert [(w.cue, w.owner) for w in page.warnings] == warnings
     assert set_page(page) == text
 
 
@@ -1196,7 +1310,6 @@ def test_rust_page_added_doc_on_a_module_with_a_body_inner_doc_is_set_above_it()
     reset(page, {"a1": "/// Added."})
     out = set_page(page)
     assert out == "/// Added.\n" + RUST_SHAPES
-    assert [(w.cue, w.owner) for w in build(out, "m.rs").warnings] == [("b1", "a1")]
 
 
 #: An inner doc that is not first in its body, or shares its head's line, is
@@ -1233,8 +1346,6 @@ def test_rust_page_inner_doc_not_first_in_its_body_is_detached(case):
     page = build(text, "m.rs")
     detached = by_cue(page)[place]
     assert (detached.kind, detached.raw_lines) == (kind, raw)
-    assert "detached-documentation" in detached.annotations
-    assert [(w.cue, w.owner) for w in page.warnings] == [(place, "a1")]
     assert _places(page)["a1"][0] == "undocumented"
     addresses = [b.address for b in page.paragraphs if b.address]
     assert len(addresses) == len(set(addresses))
@@ -1252,8 +1363,6 @@ def test_rust_page_inner_doc_first_in_its_body_shares_the_gap_with_a_comment():
         "comment",
         ["    //! first", "    // after"],
     )
-    assert "detached-documentation" in places["b1"].annotations
-    assert [(w.cue, w.owner) for w in page.warnings] == [("b1", "a1")]
     assert set_page(page) == text
 
 
@@ -1296,107 +1405,21 @@ def test_rust_page_closing_comments_follow_one_rule_whatever_their_forms(case):
     page = build(text, "m.rs")
     held = {cue(b): b.raw_lines for b in page.paragraphs if b.address and b.raw_text}
     assert held == expected
-    assert page.warnings == ()
     assert set_page(page) == text
 
 
-def test_rust_page_module_doc_behind_a_comment_that_is_not_matter_is_detached():
-    """A `//!` behind an ordinary comment that is not front matter is
-    detached, so the three comments in the gap are one paragraph."""
+def test_rust_page_module_doc_behind_a_comment_below_a_blank_opening_line_keeps_a0():
+    """A `//!` behind a comment below a blank line 1 is the module's, and the
+    comment above it is matter."""
     from comment_review.results.compositor import set_page
 
     text = "\n// a\n//! m\n// c\nfn f() {}\n"
     page = build(text, "m.rs")
     places = by_cue(page)
-    assert places["a0"].kind == "undocumented"
-    assert (places["b0"].kind, places["b0"].raw_lines) == (
-        "comment",
-        ["// a", "//! m", "// c"],
-    )
-    assert "detached-documentation" in places["b0"].annotations
-    assert [(w.cue, w.owner) for w in page.warnings] == [("b0", "a0")]
-    addresses = [b.address for b in page.paragraphs if b.address]
-    assert len(addresses) == len(set(addresses))
+    assert (places["f0"].kind, places["f0"].raw_lines) == ("matter", ["// a"])
+    assert (places["a0"].kind, places["a0"].raw_lines) == ("docstring", ["//! m"])
+    assert (places["b0"].kind, places["b0"].raw_lines) == ("comment", ["// c"])
     assert set_page(page) == text
-
-
-#: Shapes with detached documentation, each read against the rule that every
-#: annotated paragraph has exactly one warning naming it, and the reverse.
-RUST_ANNOTATED = [
-    "fn g() {}\n\n/// Detached.\n// ordinary\nfn f() {}\n",
-    "/** Doc. */\n// c\nfn f() {}",
-    "/// a\n///\n// FIXME x\n/// b\nfn f() {}",
-    "fn f() {\n    // a\n    //! inner\n}\n",
-    "fn f() { //! same line\n}\n",
-    "\n// a\n//! m\n// c\nfn f() {}\n",
-    "#![allow(x)] // c\n//! m\nfn f() {}\n",
-    "fn z() {} /// t\nfn f() {}\n",
-    "//! a\n#![allow(x)]\n//! b\n\n//! c\n",
-    "#!/usr/bin/env rust-script\n// Copyright\n/// d\n// e\nfn f() {}\n",
-]
-
-
-@pytest.mark.parametrize("text", RUST_ANNOTATED)
-def test_rust_page_annotated_paragraphs_and_warnings_match_one_to_one(text):
-    page = build(text, "m.rs")
-    annotated = sorted(
-        cue(b) for b in page.paragraphs if "detached-documentation" in b.annotations
-    )
-    assert annotated
-    assert sorted(w.cue for w in page.warnings) == annotated
-
-
-def test_rust_page_detached_run_divided_at_the_closing_blank_is_warned_once():
-    text = "//! a\n#![allow(x)]\n//! b\n\n//! c\n"
-    page = build(text, "m.rs")
-    places = by_cue(page)
-    assert (places["a0"].kind, places["a0"].raw_lines) == ("docstring", ["//! a"])
-    assert (places["b1"].kind, places["b1"].raw_lines) == ("comment", ["//! b"])
-    assert places["b1"].annotations == {"detached-documentation"}
-    assert (places["f1"].kind, places["f1"].raw_lines) == ("matter", ["//! c"])
-    assert places["f1"].annotations == set()
-    assert [(w.cue, w.owner) for w in page.warnings] == [("b1", "a0")]
-
-
-def test_rust_page_two_detached_runs_in_one_gap_are_one_paragraph_warned_twice():
-    """Observed, not ruled: two detached runs in one gap are one paragraph,
-    and each run keeps its own warning, so the paragraph's cue is named twice."""
-    text = "fn g() {}\n/// a\n// x\n/// b\n// y\nfn f() {}\n"
-    page = build(text, "m.rs")
-    assert by_cue(page)["b1"].raw_lines == ["/// a", "// x", "/// b", "// y"]
-    assert [(w.cue, w.owner) for w in page.warnings] == [("b1", "a2"), ("b1", "a2")]
-
-
-RUST_DETACHED = "fn g() {}\n\n/// Detached.\n// ordinary\nfn f() {}\n"
-
-
-@pytest.mark.parametrize("missing", ["owner", "place"])
-def test_rust_page_refuses_a_warning_it_cannot_place(monkeypatch, missing):
-    from comment_review.reading.rust.records import RustRead
-
-    if missing == "owner":
-        monkeypatch.setattr(RustRead, "warning_owners", property(lambda self: (99,)))
-    else:
-        real = RustRead.paragraphs
-
-        def without_detached(self, path):
-            got = real(self, path)
-            assert not isinstance(got, ReadFailure)
-            return [b for b in got if "Detached" not in b.text]
-
-        monkeypatch.setattr(RustRead, "paragraphs", without_detached)
-    registry = installed_registry()
-    assert not isinstance(registry, ReadFailure)
-    path = Path("m.rs")
-    reading = context_for(path, {}, registry=registry)
-    assert not isinstance(reading, ReadFailure)
-    result = page_for(
-        path, RUST_DETACHED, rel="m.rs", sha="x", reading=reading, registry=registry
-    )
-    assert isinstance(result, ReadFailure)
-    assert [(d.stage, d.code) for d in result.diagnostics] == [
-        (ReadStage.PLACE, "unsupported-placement")
-    ]
 
 
 def test_rust_fixture_licence_header_is_front_matter_and_first_item_undocumented():
@@ -1406,3 +1429,34 @@ def test_rust_fixture_licence_header_is_front_matter_and_first_item_undocumented
     assert places["f0"][0] == "matter"
     assert places["a1"] == ("undocumented", "pub fn first() -> u32 {")
     assert places["a2"][0] == "docstring"
+
+
+@pytest.mark.parametrize(
+    ("name", "text", "places"),
+    [
+        (
+            "m.js",
+            "// licence\n/** Doc. */\n",
+            {"f0": ["// licence"], "a0": ["/** Doc. */"]},
+        ),
+        (
+            "m.js",
+            "// licence\n/** Doc. */\nlet x = 1;\n",
+            {"f0": ["// licence"], "a0": ["/** Doc. */"]},
+        ),
+        (
+            "m.js",
+            "#!/usr/bin/env node\n// licence\n/** Doc. */\nlet x = 1;\n",
+            {"f0": ["#!/usr/bin/env node", "// licence"], "a0": ["/** Doc. */"]},
+        ),
+        (
+            "m.py",
+            '# licence\n"""Doc."""\nx = 1\n',
+            {"f0": ["# licence"], "a0": ['"""Doc."""']},
+        ),
+    ],
+    ids=["no-code", "code", "shebang", "python"],
+)
+def test_matter_then_a_doc_at_the_head_are_placed_at_f0_and_a0(name, text, places):
+    found = by_cue(build(text, name))
+    assert {place: found[place].raw_lines for place in places} == places

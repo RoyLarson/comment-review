@@ -9,6 +9,7 @@ from typing import Any
 import pytest
 
 from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, ReadStage
+from comment_review.reading.language import Language
 
 WIRE = """format = 1
 language = "Invented MIX"
@@ -347,7 +348,9 @@ def binding(**changes: Any) -> Any:
         "revision": "1",
         "capabilities": ("comments",),
         "grammar_identity": "",
-        "read": lambda path, text, lang: [],
+        "read": lambda path, text, lang: import_module(
+            "comment_review.reading.lexer"
+        ).LexicalRead([], [], False, False),
         "validate": lambda value: None,
     }
     values.update(changes)
@@ -844,15 +847,17 @@ def test_installed_bindings_invoke_existing_engines(
     calls = []
     monkeypatch.setattr(
         readers,
-        "paragraphs_lexical",
-        lambda path, text, lang: calls.append((lang.name, path, text)) or [],
+        "read_lexical",
+        lambda path, text, lang: (
+            calls.append((lang.name, path, text))
+            or readers.LexicalRead([], [], lang.a_series, lang.closing_docstring)
+        ),
     )
     for value in INSTALLED_DEFINITIONS:
         path = Path("source" + value.suffixes[0])
-        assert (
-            readers.INSTALLED_BINDINGS[value.reader].read(path, "exact\r\n", value)
-            == []
-        )
+        result = readers.INSTALLED_BINDINGS[value.reader].read(path, "exact\r\n", value)
+        assert isinstance(result, readers.LexicalRead)
+        assert result.paragraphs(path) == []
         assert calls[-1] == (
             "stdlib" if value.language == "python" else value.language,
             path,
@@ -1188,3 +1193,39 @@ def test_rust_definition_leaves_other_definitions_unchanged() -> None:
         "sql",
         "lua",
     ]
+
+
+def test_annotation_openers_are_validated_and_pinned_per_row() -> None:
+    from dataclasses import replace
+
+    from comment_review.reading.language import INSTALLED_DEFINITIONS
+    from comment_review.reading.readers import INSTALLED_BINDINGS
+
+    for value in INSTALLED_DEFINITIONS:
+        for invalid in (("",), "@", (1,)):
+            rules = {**value.rules, "annotations": invalid}
+            assert isinstance(
+                bind(replace(value, rules=rules), INSTALLED_BINDINGS), ReadFailure
+            )
+    by_name = {value.language: value.rules for value in INSTALLED_DEFINITIONS}
+    assert by_name["java"]["annotations"] == ("@",)
+    assert by_name["typescript"]["annotations"] == ("@",)
+    assert by_name["csharp"]["annotations"] == ()
+    assert by_name["go"]["annotations"] == ()
+
+
+@pytest.mark.parametrize(
+    ("shebang", "lines", "line"),
+    [
+        (("#!",), ["#!/bin/sh", "echo"], "#!/bin/sh"),
+        (("#!",), ["echo", "#!/bin/sh"], None),
+        (("#!",), [], None),
+        ((), ["#!/bin/sh"], None),
+    ],
+    ids=["first-line", "below-line-1", "empty-file", "no-marker"],
+)
+def test_a_rows_interpreter_line_is_line_1_opening_with_its_shebang(
+    shebang, lines, line
+) -> None:
+    row = Language("x", (".x",), ("#",), shebang=shebang)
+    assert row.interpreter_line(lines) == line

@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 7 tasks closed
+Progress: 1 of 9 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-25 (decision-log.md Process: #222)
@@ -39,3 +39,7 @@ Worked when it is asked for -- decision-log.md Process: #222.
 - [ ] T7 | Decide whether a Lua `--[[ ]]` block has its markers stripped
         > 2026-10-25 Moved from block-comment-markers-survive-into-the-prose T10
         > 2026-10-25 Check: answer and measurement written here, from Lua's grammar
+- [x] T8 | Row names shebang; refusal tested, Lua not run | 6e48bc46 | Name
+      `shebang` on the Lua row from its own grammar
+- [ ] T9 | Read any Lua line 1 opening `#` as the interpreter line
+        > 2026-10-30 M6: `# not a shebang` moves to line 2 on add a0; from memory of lua

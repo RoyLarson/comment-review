@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 2 of 4 tasks closed
+Progress: 2 of 7 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-21 (the /code-review xhigh of 2026-08-21, focused on the file-to-
@@ -70,3 +70,12 @@ the first statement rather than as a `trailing-comment`, and no anchor is the BO
 - [x] T4 | FINISHED | unknown | T4 -- A statement about the platform, in the
       Objective: BOM is the Visual Studio and Windows PowerShell default for
       `.c`, `.cs`, `.cpp` and `.ps1`.
+- [ ] T5 | Write the byte-order mark ahead of f0, a0 or b0 when the head is set
+        > 2026-10-27 compositor.py:96, galley.py:99; proof passes a lost mark
+        > 2026-10-30 Final review 3 M5: mark moves to line 2 on add f0; 338 dockets
+        > 2026-10-30 Outcome 2026-10-30: edits moving the mark stay refused until T5, T6
+        > 2026-10-31 Code review: a head add over a marked code line still lands
+        > 2026-10-31 Code review: a head add over a marked code line still lands
+- [ ] T6 | Give a declaration on a marked line 1 its a
+        > 2026-10-30 A7: \ufeffclass A {} gets no a; same at 0abe0010
+- [ ] T7 | Test the mark in the docstring branch at `python/projection.py:150`

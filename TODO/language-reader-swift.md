@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 3 tasks closed
+Progress: 1 of 4 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-25 (decision-log.md Process: #222)
@@ -25,3 +25,5 @@ Worked when it is asked for -- decision-log.md Process: #222.
 - [ ] T3 | Give Swift its own soft-keyword rule for `convenience`, `required`
         > 2026-10-25 Moved from lexer-and-language-findings T15
         > 2026-10-25 Check: `required = f()` in a .swift mints no a; a real init does
+- [x] T4 | Row names shebang; refusal tested, Swift not run | 6e48bc46 | Name
+      `shebang` on the Swift row from its own grammar

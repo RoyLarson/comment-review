@@ -91,8 +91,8 @@ def test_every_line_of_the_file_is_covered_exactly_once(name, text):
 def test_no_two_paragraphs_share_an_address(name, text):
     """An address identifies ONE paragraph, or a replacement is ambiguous.
 
-    `galley.reset` refuses an edit whose place holds more than one paragraph,
-    so a page that breaks this cannot be edited at all.
+    `page_for` refuses a page that breaks this, so the file cannot be
+    gathered at all.
     """
     addresses = [b.address for b in build(text, name).paragraphs if b.address]
     assert len(addresses) == len(set(addresses))
@@ -166,37 +166,10 @@ def test_an_empty_place_stands_on_no_line(name, text):
             assert b.raw_lines == []
 
 
-#: The three languages whose doc marker IS an ordinary line-comment marker.
-#: MEASURED 2026-08-25 across thirteen languages: `go` (`//`), `ruby` (`#`) and
-#: `lua` (`--`) place a declaration's documentation at an `a` cue and type it
-#: `comment`, which is the `b` series' kind. Rust, Java, C#, Kotlin, Swift, TS
-#: and JS all answer `docstring`, and they are the ones with a DISTINCT doc
-#: marker -- `///`, `/** */`.
-KIND_DISAGREES = {"go", "ruby doc", "lua doc"}
-
-
 @pytest.mark.parametrize(
     ("name", "text"),
     [
-        pytest.param(
-            n,
-            t,
-            id=k,
-            marks=[
-                *(
-                    [
-                        pytest.mark.xfail(
-                            strict=True,
-                            reason="the doc marker is an ordinary comment marker, "
-                            "so the lexer types it `comment` while the walk "
-                            "cues it `a`",
-                        )
-                    ]
-                    if k in KIND_DISAGREES
-                    else []
-                ),
-            ],
-        )
+        pytest.param(n, t, id=k)
         for k, (n, t) in {
             **SOURCES,
             "ruby doc": ("m.rb", "# Doc.\ndef f\nend\n"),
@@ -214,10 +187,9 @@ def test_the_kind_agrees_with_the_series_the_cue_names(name, text):
     `record.prose_paragraphs` filters on the KIND while `series_of` reads the
     CUE.
 
-    !! THREE LANGUAGES BREAK THIS TODAY and the xfail says which. It is the
-    defect `Kind`'s own docstring describes -- *"the two halves were set in
-    different modules and nothing tied them"* -- still live where the doc marker
-    cannot be told from a comment marker by the token alone.
+    ! Go, Ruby and Lua document with an ordinary comment marker, so the reader
+    types such a run `docstring` when it decides the run documents a
+    declaration, and the page cues it `a` from that.
     """
     for c, b in by_cue(build(text, name)).items():
         definition = Series.of(c)

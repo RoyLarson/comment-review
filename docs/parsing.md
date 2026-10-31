@@ -80,13 +80,14 @@ census already prints: `no language record for its suffix`.
 **Improvising a parse is never the fallback. Declaring the gap is; proposing a
 row is the fix.**
 
-* **The refusal has a second instance now, and it is the same shape.** Go and
-Ruby attach docs by POSITION, so the lexical tier cannot separate a doc comment
-from an ordinary run -- and detecting declarations to find out would be the
-improvised parse this section refuses. The census marks `doc-kind-unresolved`
-and excludes the block from the cap tally instead. Measured 2026-08-15: without
-it, a three-line `// Add returns...` run above `func Add` reported `over cap (2): 1`,
-and `compact.md` routes on KIND, so the cap would have cut an export doc.
+* **Go and Ruby attach docs by position, and the row says which lines declare.**
+Their documentation is an ordinary comment run above a declaration. The lexical
+reader finds the declaring lines from the row's `declares` keywords, and a run
+that belongs to one of them is typed `docstring` and set at its `a` place
+(`lexer.document_declarations`). Any other run above code is a `comment`, and the
+cap counts it like any other. A reviewer still reads every placement --
+`ownership-context` -- because position cannot tell a run about the statement
+above it from one about the declaration below.
 
 ## Not built: a real lexer for other languages
 
@@ -178,9 +179,11 @@ comment-syntax record plus a lexer:
 - **where prose is MISSING** -- the intervals between two lines of code
 - **which lines are CODE**, which is what `addresser.py` numbers a place against
 
-! None of those needs a grammar. What a grammar would add is OWNERSHIP -- which
-declaration a comment belongs to -- and that is a REVIEWER's judgement in every
-language but Python today, or an `LSP documentSymbol` where stage 1.7's probe
+None of those needs a grammar. Which declaration a run documents comes from the
+row too: its `declares` keywords mark the declaring lines, and the reader gives a
+run above one of them that line (`lexer.document_declarations`). What a grammar
+would add is a reading of the prose's subject, which position cannot give -- that
+is a reviewer's judgement, or an `LSP documentSymbol` where stage 1.7's probe
 found a server.
 
 ### Per-language structure is a PULL REQUEST, not a roadmap item

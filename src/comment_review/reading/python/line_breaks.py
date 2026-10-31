@@ -20,6 +20,7 @@ from collections.abc import Mapping
 from itertools import pairwise
 from typing import cast
 
+from comment_review import constants
 from comment_review.reading.definitions import LanguageDefinition
 from comment_review.reading.python.records import (
     DocumentationExpression,
@@ -30,7 +31,6 @@ from comment_review.reading.python.records import (
 
 FALLBACK_STEP = "    "
 _BLANK = " \t\f"
-_BOM = "\N{ZERO WIDTH NO-BREAK SPACE}"
 
 
 def broken_lines(
@@ -83,7 +83,7 @@ def broken_lines(
 
 def _leading(text: str, start: int) -> str:
     """The indentation opening the physical line at `start`."""
-    if start == 0 and text.startswith(_BOM):
+    if start == 0 and text.startswith(constants.BYTE_ORDER_MARK):
         start = 1
     end = start
     while end < len(text) and text[end] in _BLANK:
@@ -94,7 +94,7 @@ def _leading(text: str, start: int) -> str:
 def _after_code(text: str, position: int) -> bool:
     """Whether source text precedes `position` on its physical line."""
     line_start = max(text.rfind("\n", 0, position), text.rfind("\r", 0, position)) + 1
-    return bool(text[line_start:position].strip(_BLANK + _BOM))
+    return bool(text[line_start:position].strip(_BLANK + constants.BYTE_ORDER_MARK))
 
 
 def _step(text: str, lines: tuple[LogicalLine, ...]) -> str:

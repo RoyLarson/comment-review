@@ -1,8 +1,8 @@
 # The doc-to-declaration join landed, and doc-kind-unresolved now fires on the wrong runs
 
 ```
-Status:   open
-Progress: 11 of 12 tasks closed
+Status:   closed
+Progress: 12 of 12 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-20 (found while adding the per-language declares keyword list,
@@ -119,9 +119,10 @@ rule is that a language takes its definition from its own grammar and never from
       -- Make `flag_structural_docs` read `declares` instead of re-deriving it.
       Verify: on go, a `declares >= 0` run and a `declares == -1` run both stamp
       nothing.
-- [ ] T6 | T6 -- Name in `compact.md:113` whatever remains genuinely unresolved
-      after T5. Verify: the stamp's explanation at :113 names the case that
-      still fires.
+- [-] T6 | SUPERSEDED: doc-kind-unresolved retired (#231); nothing is left unresolved to name | 79cf418f | T6
+      -- Name in `compact.md:113` whatever remains genuinely unresolved after
+      T5. Verify: the stamp's explanation at :113 names the case that still
+      fires.
 - [-] T7 | Split into T9 for the approved Go rule and T10 for implementation and matching reader prose | 3376dc0f | T7
       -- * RULE go's adjacency: must a doc comment TOUCH its declaration, or is
       nearest-above enough? Verify: one of the two comments cites the other, for

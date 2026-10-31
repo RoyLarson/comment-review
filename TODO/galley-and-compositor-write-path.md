@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 55 of 60 tasks closed
+Progress: 70 of 80 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (code-review high round 3 and /simplify round 2, 2026-08-22 -- the
@@ -301,3 +301,49 @@ files in `corpora/` are in that state today.
 - [-] T60 | SUPERSEDED by one-line-ending-per-file T2: a lone CR is refused | 74a033c2 | Set
       a lone CR back as a CR on every page
         > 2026-10-23 A lone CR becomes LF on set-back, even inside a string literal
+- [ ] T61 | Set an added b0 below matter in a file with no code, adding no blank
+- [ ] T62 | Stop an add and drop at b0 growing blanks at the file head
+        > 2026-10-30 W6: compositor.py:228-251; each cycle adds one blank
+- [x] T63 | Refused in PythonRead.preserved; prove_unchanged stops too | d6b40e39 | Refuse
+      a Python draft that no longer parses at prove, at
+      `flows/proof_setter.py:700`
+- [x] T64 | Refuse ruled, #251; repair is T63 | 207d733bcd76762e6fe72d77618c45e68c11ad42 | Decide
+      what a drop of a body's only docstring does
+        > 2026-10-30 Outcome: refuse; no pass is added (#251)
+- [x] T65 | Ruled #254 | 309a02122fb45a18e0793511b703d2a952bd389b | Decide
+      whether `a1` may fill alone behind a filled `a0` in a no-code file
+        > 2026-10-30 Outcome: stays offered; landed test changes, #254
+- [x] T66 | Compositor comments corrected to the code | e3e138fa | Correct the
+      front-matter comments at `results/compositor.py:26`, `:119`, `:385`
+- [ ] T67 | State `_reread`'s four whitespace passes in its docstring
+- [ ] T68 | Classify the seven other mutants surviving final review 3
+        > 2026-10-30 landed-text-only head-ignores-a-series foot-any-a code-between-le
+        > 2026-10-30 matter-part-no-raw cut-part-no-raw shares-any
+- [ ] T69 | Admit an approved `f` alteration that changes the interpreter line
+      (#253)
+        > 2026-10-30 Waits on the raise: plan 0.2.4-an-f-correction-is-raised-alone
+        > 2026-10-30 Check: `a0` above `#!` still refuses; approved `f0` drop proves
+- [x] T70 | Landed by written lines; 53 corpus accepts pull cleanly | 05c8a067 | Accept
+      written text that joins a neighbouring paragraph (#254)
+- [x] T71 | empty-patch refused at mark and docket; add counts | 58b7f165 | Refuse
+      a white-space-only replacement with its own error code (#255)
+- [x] T72 | Split lands: 39 chain rows, 18 pinned by tests | b663954d | Test a
+      paragraph split through the real chain (#255)
+        > 2026-10-30 Scoped review: `// a\n\n// b` at `a0` refuses today
+- [x] T73 | Expected order built from the file; the T9 shape refuses | 7001940d | Build
+      `_reread`'s expected order from the file, at `proof_setter.py:622`
+- [x] T74 | Ruled #257; work filed on one-reader-builder | b44d12e7b45c844d290955cf674b8dd412c6f67c | Decide
+      whether `AddressesMoved` refuses after #254, at `revise.py:85`
+        > 2026-10-31 Outcome: option 2, #257; lands with one-reader-builder
+- [x] T75 | Refusal names the first difference | 3883dd5a | Name the first
+      difference in the unchanged refusal, at `proof_setter.py:636`
+- [x] T76 | White-space drop text refused at mark as empty-patch | 152dc631 | Refuse
+      a white-space-only `drop` text at `desk/proof/mark.py:884`
+- [x] T77 | Trailing blank lands with no final newline | 6b57df21 | Land a
+      trailing blank in a file with no final newline, at `compositor.py:337`
+- [x] T78 | Statements corrected to the code | e3e138fa | Correct the statements
+      at `addresser.py:193`, `page.py:461`
+- [x] T79 | Tests can fail; mutants shown | 4abac5f6 | Make the tests at
+      `test_proof_setter.py:1712`, `:1726` able to fail
+- [x] T80 | AST-only parse; compile-stage forms now refuse | 680d6c63 | Parse
+      with only the AST flag in `_parse_error`, `python/records.py:30`

@@ -72,6 +72,7 @@ from comment_review.machine.repo import sha_of  # noqa: E402
 from comment_review.reading.addresser import cue_of, unflatten  # noqa: E402
 from comment_review.reading.diagnostics import ReadFailure  # noqa: E402
 from comment_review.reading.paragraph import Paragraph  # noqa: E402
+from comment_review.reading.readers import read_source  # noqa: E402
 
 
 def build(text: str, name: str = "m.py"):
@@ -97,6 +98,15 @@ def build(text: str, name: str = "m.py"):
     )
     assert not isinstance(page, ReadFailure), page
     return page
+
+
+def kinds(name: str, text: str) -> list[tuple[int, int, str]]:
+    """Each paragraph the reader for `name` hands over, as (start, end, kind)."""
+    read = read_source(Path(name), text)
+    assert not isinstance(read, ReadFailure), read
+    found = read.paragraphs(Path(name))
+    assert not isinstance(found, ReadFailure), found
+    return [(p.start, p.end, p.kind) for p in found]
 
 
 def cue(paragraph) -> str:

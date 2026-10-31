@@ -51,6 +51,27 @@ class ReadDiagnostic:
             raise ValueError("Diagnostic byte locations require decode stage")
 
 
+@dataclass(frozen=True, kw_only=True)
+class DetachedDocumentation(ReadDiagnostic):
+    """A doc run no `a` place can hold, and the owner it was written for.
+
+    `owner_line` is the line the owner's head starts on, or None when the
+    owner is the module.
+    """
+
+    owner_line: int | None
+
+    def __post_init__(self) -> None:
+        """Validate the diagnostic, then the owner's line."""
+        super().__post_init__()
+        if self.owner_line is not None and (
+            not isinstance(self.owner_line, int)
+            or isinstance(self.owner_line, bool)
+            or self.owner_line < 1
+        ):
+            raise ValueError("Detached owner_line must be a positive integer or None")
+
+
 @dataclass(frozen=True)
 class ReadFailure:
     """A nonempty immutable tuple of read diagnostics."""

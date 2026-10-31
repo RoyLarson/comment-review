@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 18 of 43 tasks closed
+Progress: 19 of 43 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, from the blind rewrite of collator.py -- the prose was
@@ -148,10 +148,11 @@ Four defects in collator.py, found by reading only the code.
         > 2026-08-31 P42 deleted UnnamedRole -- places takes a MasterProof, whose
         > 2026-08-31 copies each carry a role. The roll this box asks for should not
         > 2026-08-31 list it; the other six names stand.
-- [ ] T26 | Update `desk.collator._alteration_text:979` so a whitespace-only
-      `change` on a `drop` is a delete rather than three spaces of text. Verify:
-      `parse` accepting `change='   '` on a `drop` yields an alteration whose text
-      is null, and the docstring at 972-975 covers the whitespace case as well as
+- [-] T26 | Conflicts with #255; its target no longer exists | 3a235f4e | Update
+      `desk.collator._alteration_text:979` so a whitespace-only `change` on a
+      `drop` is a delete rather than three spaces of text. Verify: `parse`
+      accepting `change=' '` on a `drop` yields an alteration whose text is
+      null, and the docstring at 972-975 covers the whitespace case as well as
       the empty string.
 - [ ] T27 | Delete drift detection from the middle, per `decision-log.md
       Process: #62` -- `desk.collator.drift_in`, the `drift` field on

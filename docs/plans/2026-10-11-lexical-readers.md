@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 66 of 177 TODO tasks closed
+Progress: 83 of 182 TODO tasks closed
 Plan-tasks: 40 of 53 plan tasks closed
 Owner:    backend
 Requires-Roy: false
@@ -39,6 +39,8 @@ interfaces, inputs and checks, without internal development files or history.
       gates
 - [ ] T2 | Preserve literal whitespace in prove_unchanged.py:191-207; verify
       blank-line and trailing-space edits change the fingerprint
+- [x] T7 | MOVED to 2026-10-25-reader-hands-prose-only | Prove a lexical file
+      that has no line of code
 
 ### B - [smoke-fixture-defects](../../TODO/smoke-fixture-defects.md)
 
@@ -83,11 +85,11 @@ interfaces, inputs and checks, without internal development files or history.
 - [ ] T16 | T16 -- Make `referrers.py:53` take the same suffix tuple from
       `language.py:99`. Verify: the tuple is not re-spelled in `referrers.py`.
 
-### E - [doc-does-not-fill-its-a](../../TODO/doc-does-not-fill-its-a.md)
+### E - [doc-does-not-fill-its-a](../../TODO/completed/doc-does-not-fill-its-a.md)
 
 - [-] T10 | Implement Go documentation adjacency; verify touching comments use
       a, separated comments use b, and reader prose agrees
-- [ ] T6 | T6 -- Name in `compact.md:113` whatever remains genuinely unresolved
+- [-] T6 | T6 -- Name in `compact.md:113` whatever remains genuinely unresolved
       after T5. Verify: the stamp's explanation at :113 names the case that
       still fires.
 - [-] T8 | T8 -- * RULE ruby's adjacency, from ruby's own grammar and not from
@@ -209,6 +211,10 @@ interfaces, inputs and checks, without internal development files or history.
       the column computes it.
 - [x] T49 | MOVED to 2026-10-22-lexer-rust | State Rust's inner doc openers in
       Rust's own definition file
+- [x] T53 | MOVED to 2026-10-25-reader-hands-prose-only | Make every comment
+      above a module docstring front matter, per #240
+- [ ] T51 | Make Python decorators and Rust attributes one unit with their item
+- [ ] T56 | Offer no place inside a string literal that spans lines
 
 ### H - [a-doc-comment-is-cued-a-and-typed-b](../../TODO/a-doc-comment-is-cued-a-and-typed-b.md)
 
@@ -293,6 +299,7 @@ interfaces, inputs and checks, without internal development files or history.
 - [ ] T2 | T2 -- Read with `utf-8-sig` at `census.py:177`, which feeds
       `ast.parse`. Verify: a BOM'd `.py` censuses its module docstring, not one
       `unparsed` paragraph.
+- [ ] T5 | Write the byte-order mark ahead of f0, a0 or b0 when the head is set
 
 ### O - [census-degrades-silently](../../TODO/census-degrades-silently.md)
 
@@ -346,7 +353,7 @@ interfaces, inputs and checks, without internal development files or history.
 
 ### T - [computed-and-never-read](../../TODO/computed-and-never-read.md)
 
-- [ ] T6 | T6 -- Compute `code_lines` and `declarations` once per page, not at
+- [x] T6 | T6 -- Compute `code_lines` and `declarations` once per page, not at
       :419-420 and again at :725-726. Verify: each is computed once and the four
       test callers pass.
 
@@ -462,15 +469,15 @@ interfaces, inputs and checks, without internal development files or history.
 - [ ] T2 | Say where it lives -- the brief, a reference of its own, or each role
       file
 
-### AF - [doc-is-structural-means-two-things](../../TODO/doc-is-structural-means-two-things.md)
+### AF - [doc-is-structural-means-two-things](../../TODO/completed/doc-is-structural-means-two-things.md)
 
-- [ ] T1 | T1 -- Split or rename `doc_is_structural` so each reader names the
+- [-] T1 | T1 -- Split or rename `doc_is_structural` so each reader names the
       property it uses. Verify: `grep -n doc_is_structural scripts/*.py` shows
       each reader's property.
-- [ ] T2 | T2 -- Correct `lexer.block_text`'s docstring at `:634-635` and
+- [-] T2 | T2 -- Correct `lexer.block_text`'s docstring at `:634-635` and
       `:643-644`, which call it a string in a body. Verify: no comment says only
       Python sets the flag.
-- [ ] T3 | T3 -- Refuse or route the latent case -- a record with both
+- [-] T3 | T3 -- Refuse or route the latent case -- a record with both
       `doc_line` and `doc_is_structural=True`. Verify: a `///` run through
       `block_text` keeps no marker.
 
@@ -586,24 +593,34 @@ interfaces, inputs and checks, without internal development files or history.
 - [ ] T1 | Exclude generated and preprocessed output from review targets; verify
       the task instructions select maintained source
 
-### AQ - [a-reader-finds-prose-only](../../TODO/a-reader-finds-prose-only.md)
+### AQ - [a-reader-finds-prose-only](../../TODO/completed/a-reader-finds-prose-only.md)
 
-- [ ] T1 | Derive Paragraph.text in one place for every reader
-- [ ] T2 | Assign each paragraph's address in the page instead of in a reader
+- [x] T1 | MOVED to 2026-10-25-reader-hands-prose-only | Derive Paragraph.text
+      in one place for every reader
+- [x] T2 | MOVED to 2026-10-25-reader-hands-prose-only | Assign each paragraph's
+      address in the page instead of in a reader
 - [x] T3 | List each Paragraph, Page or Addresser duty a reader still performs
-- [ ] T4 | Derive each line's code in the page for every reader
-- [ ] T5 | Give a Python docstring paragraph its whole source lines
-- [ ] T6 | Delete the continues-a-trailing-comment stamp from lexer.py
+- [-] T4 | MOVED to 2026-10-25-reader-hands-prose-only | Derive each line's code
+      in the page for every reader
+- [x] T5 | MOVED to 2026-10-25-reader-hands-prose-only | Give a Python docstring
+      paragraph its whole source lines
+- [x] T6 | MOVED to 2026-10-25-reader-hands-prose-only | Delete the
+      continues-a-trailing-comment stamp from lexer.py
 - [x] T7 | Decide whether matter is a kind a reader assigns or a page place
-- [ ] T8 | Move the front and back matter rule to one shared place
+- [x] T8 | MOVED to 2026-10-25-reader-hands-prose-only | Move the front and back
+      matter rule to one shared place
 - [-] T9 | Move the one-paragraph-per-place rule from the Rust reader to the
       page
 - [-] T10 | Move the Rust reader's a-place capacity rules to the page
 - [-] T11 | Carry detached documentation as one fact instead of two
-- [ ] T12 | Replace the Rust reader's _Lines with the shared line splitter
-- [ ] T13 | Stop the page changing a reader's matter kind to comment
-- [ ] T14 | Form one comment section per gap in the Rust reader
-- [ ] T15 | Remove the page's detached-documentation placement
+- [x] T12 | MOVED to 2026-10-25-reader-hands-prose-only | Replace the Rust
+      reader's _Lines with the shared line splitter
+- [x] T13 | MOVED to 2026-10-25-reader-hands-prose-only | Stop the page changing
+      a reader's matter kind to comment
+- [x] T14 | MOVED to 2026-10-25-reader-hands-prose-only | Form one comment
+      section per gap in the Rust reader
+- [x] T15 | MOVED to 2026-10-25-reader-hands-prose-only | Remove the page's
+      detached-documentation placement
 
 ## Plan Tasks
 

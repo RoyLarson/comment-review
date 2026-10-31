@@ -23,10 +23,10 @@ page lands is the checkout's business. `approve()` copies with
 
 !! AND THE ROUND TRIP IS A TEST.
 For a supplied, unchanged `Page`, `set_page(page) == page.text`, byte for byte,
-except where it normalises: front matter that does not open on line 1 (see
-`set_page`) and mixed line endings (see `line_endings`). `identity` checks that
-round trip byte for byte; `lossless` checks only that no line is lost or
-invented, and the `compositor` command fails on that one.
+except where it normalises: a comment between a declaration and the docstring
+inside it (see `_set`) and mixed line endings (see `line_endings`). `identity`
+checks that round trip byte for byte; `lossless` checks only that no line is
+lost or invented, and the `compositor` command fails on that one.
 ! `prove_unchanged.py` is strictly weaker and answers a different question: it
 proves the EXECUTABLE CODE survived an edit, not that the model of a page is
 lossless.
@@ -53,7 +53,7 @@ from pathlib import Path
 from comment_review import constants, exceptions
 from comment_review.binder.page import Page
 from comment_review.machine.repo import write_raw
-from comment_review.reading.addresser import GAP, ON, cue_of
+from comment_review.reading.addresser import DECLARED, GAP, ON, cue_of
 from comment_review.reading.series import Kind
 
 CRLF = "\r\n"
@@ -94,26 +94,37 @@ def _held(page: Page) -> dict[str, list[str]]:
 
 
 def set_page(page: Page, newline: str | None = None) -> str:
-    """This page, set as the text of a file.
+    """This page, set as the text of a file -- see `_set`."""
+    return _set(page, newline)[0]
+
+
+def spans(page: Page) -> dict[str, tuple[int, int]]:
+    """The lines each place holding prose is set on, by cue, first and last.
+
+    Both ends are inclusive and count from 1. A place that sets no prose has no
+    entry. These say where the text was written and nothing about what a reader
+    finds there, which is `flows.proof_setter._reread`'s question.
+    """
+    return _set(page, None)[1]
+
+
+def _set(page: Page, newline: str | None) -> tuple[str, dict[str, tuple[int, int]]]:
+    """This page as text, with the lines each place holding prose is set on.
 
     !! IT WALKS THE READING ORDER AND ASKS EACH PLACE WHAT IT HOLDS. That is the
     whole algorithm, and it is why an edit needs no arithmetic: a paragraph that
     grows from one line to four just hands back four lines, and every place after
     it is set where it always was -- next.
 
-    !! THE SERIES ORDER IS FIXED AND `f` COMES FIRST, WHICH IS LOSSY ON ONE
-    SHAPE. A file whose front matter is NOT on line 1 -- a blank above it, which
-    `b` owns -- comes back with the matter above that blank. MEASURED over 3,155
-    corpus files: 3 are set this way, all in `corpora/pymc`, and none loses or
-    invents a line.
+    !! THE SERIES ORDER IS FIXED AND AN `a` COMES BEFORE THE `b` BELOW ITS
+    DECLARATION, WHICH IS LOSSY ON ONE SHAPE. A comment between a declaration and
+    the docstring inside it comes back below that docstring, and no line is lost
+    or invented. `flows.proof_setter._reread` expects the file's order, so an
+    alteration on such a page is refused.
 
     ! THAT IS WHY `lossless` EXISTS BESIDE `identity`. The first is the invariant
     that must never break; the second is the strict form, and the gap between
-    them is exactly this normalisation.
-
-    ! AND IT IS HANDED TO A READER RATHER THAN SOLVED. Moving an `f0` into a `b0`
-    because that is where it fits is a `query` to the human, and it is one time
-    per file.
+    them is this normalisation and mixed line endings.
 
     Args:
         page: the page to set. Its cues states the order.
@@ -121,7 +132,7 @@ def set_page(page: Page, newline: str | None = None) -> str:
             text, which is the one fact a paragraph cannot state.
 
     Returns:
-        The file's text.
+        `(the file's text, cue -> (first line, last line))`.
 
     Raises:
         Refused: the page has no places over a file with text -- its source
@@ -130,6 +141,7 @@ def set_page(page: Page, newline: str | None = None) -> str:
     ending = newline if newline is not None else line_endings(page.text)
     held = _held(page)
     out: list[str] = []
+    lines_of: dict[str, tuple[int, int]] = {}
     # !! LEADING IS SET BETWEEN TWO PLACES, NOT AT ONE. It is an edge -- see
     # `Page.leading` -- so the walk hands over a sequence of places and the
     # space between each adjacent pair is looked up as it is reached. An absent
@@ -137,8 +149,9 @@ def set_page(page: Page, newline: str | None = None) -> str:
     # `c`->`c` boundaries do.
     #
     # A run above everything is keyed under `f0`, the first place `cue` emits,
-    # and `""` keys it only for a `Cues` with no places -- see
-    # `Page.tie_leading`. An edge belongs to the place before it, which is what
+    # while `f0` holds no lines. Above a filled `f0`, and for a `Cues` with no
+    # places, it is keyed under `""`, which is `previous` at the first place --
+    # see `tie_leading`. An edge belongs to the place before it, which is what
     # it is keyed by. When a
     # paragraph goes away the place before it keeps its leading and the dropped
     # place's is not set; no key changes.
@@ -242,30 +255,45 @@ def set_page(page: Page, newline: str | None = None) -> str:
         # `f0` -- the defect this rule exists to close.
         adding_a_gap = bool(prose) and cue.startswith(GAP) and cue in absent
 
-        # !! THE CLOSING GAP IS EXEMPT, AND THE FOOT IS WHY. Back matter is the
-        # run AFTER the last blank line, so a leading above an added closing `b`
+        # !! THE CLOSING GAP IS EXEMPT, AND THE FOOT IS WHY. With no closing
+        # docstring, back matter is the run AFTER the last blank line -- the rule
+        # is `reading.matter`'s -- so a leading above an added closing `b`
         # pushes it INTO the matter it was meant to stay clear of: on `SAMPLE`,
         # `b4` with a leading still re-reads at `f1`, so the blank changes the
         # bytes and not the outcome.
         if adding_a_gap and not edge and at < last_code:
             out.append("")
         # !! AND AT THE FOOT IT GOES ON THE OTHER SIDE -- the head's rule in
-        # reverse. Matter is the run that STARTS on line 1 or ENDS on the last
-        # one, so what pushes a gap out of it is a blank BEFORE at the head and a
-        # blank AFTER at the foot. ! `...return y\n# ADDED\n` and
+        # reverse. With no module or closing docstring, matter is the run that
+        # STARTS on line 1 or ENDS on the last one, so what pushes a gap out of it
+        # is a blank BEFORE at the head and a blank AFTER at the foot.
+        # ! `...return y\n# ADDED\n` and
         # `...return y\n\n# ADDED\n` both re-read at `f1`;
         # `...return y\n# ADDED\n\n` re-reads at the closing gap, so a leading
         # before the closing gap moves nothing.
         #
         # ! OWED UNTIL THE PROSE IS SET, which is why it is held rather than
         # written here -- the blank belongs BELOW the paragraph.
-        trailing = adding_a_gap and at > last_code and not edges.get(cue)
+        #
+        # ! AND NOT OWED WHEN A CLOSING DOCSTRING IS SET BELOW IT: the gap then
+        # does not end on the last line, and the docstring is what parts it
+        # from the back matter.
+        trailing = (
+            adding_a_gap
+            and at > last_code
+            and not edges.get(cue)
+            and not any(
+                held.get(c) for c in reading[at + 1 :] if c.startswith(DECLARED)
+            )
+        )
         previous = cue
         # ! A `c` IS NEVER EMPTY IN THIS SENSE -- it sets its line of code
         # whether or not anything sits beside it.
         if not prose and not beside_code:
             continue
         closing_gap = False
+        if prose:
+            lines_of[cue] = (len(out) + 1, len(out) + len(prose))
         if beside_code:
             # A `c`'s first line is the code and the room together; a comment
             # opened in that room and closed on a later line owns those lines
@@ -300,10 +328,14 @@ def set_page(page: Page, newline: str | None = None) -> str:
         # this whole instrument would come to lie. A model that had lost every
         # line would set the original file back and the identity would pass over
         # the top of it.
-        return ""
-    # A closing-gap insertion needs a physical blank below its prose.
-    tail = ending if closing_gap or page.text.endswith(("\n", "\r")) else ""
-    return ending.join(out) + tail
+        return "", lines_of
+    # A closing-gap insertion, or text ending in a blank, needs a physical blank
+    # below its prose, whether or not the file ended on a line break.
+    held_blank = not out[-1]
+    tail = (
+        ending if closing_gap or held_blank or page.text.endswith(("\n", "\r")) else ""
+    )
+    return ending.join(out) + tail, lines_of
 
 
 def draft(page: Page, into: Path) -> Path:
@@ -349,13 +381,6 @@ def lossless(original: str, rendered: str) -> str | None:
     ! IT IS WHAT SEPARATES A NORMALISATION FROM A BUG. A gate that could not tell
     them apart would carry the known-acceptable failures, and the next one -- a
     real one -- would land among them unnoticed.
-
-    !! MEASURED over ten of the 18 corpora `corpora/corpora.toml` pins, 3,155
-    files carrying a language record: **3 fail `identity` and 0 lose or invent a
-    line**. The three are the `f`-before-`b` ordering above, all in
-    `corpora/pymc`. A further 4, all in `corpora/sentry`, are REFUSED by both
-    checks before either can measure anything -- the unparsed page, whose source
-    the reader never established.
 
     Returns:
         None when both texts hold the same lines, each as often; otherwise a

@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 3 tasks closed
+Progress: 0 of 4 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-25 (decision-log.md Process: #222)
@@ -25,3 +25,4 @@ Worked when it is asked for -- decision-log.md Process: #222.
 - [ ] T3 | Implement JavaScript regex-literal recognition
         > 2026-10-25 Moved from lexer-and-language-findings T33
         > 2026-10-25 Check: `/[//]/` yields no comment paragraph
+- [ ] T4 | Read JSX text as code, not a line comment

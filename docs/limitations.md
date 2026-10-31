@@ -64,28 +64,15 @@ a QUESTION to answer about a candidate rule, and a rule that answers neither is 
 ! And the two are not the same test: a rule can catch nothing new and still earn its place by
 making a claim settleable without opening another file.
 
-! **Length still matters, which is why the numbers stay.** They are what tells you a file has
-grown and that the trade should be looked at -- not a ceiling that automatically evicts a rule.
+## Measuring context cost
 
-**The four editorial roles, measured 2026-08-18:**
+Measure each rule file when it changes and record the result with the
+work. Explain what any growth buys: a defect the rule catches or a search
+it saves. Growth alone does not disqualify a rule. Measure the shared
+reviewer brief and the skill as well as the four role files. Keep dated
+measurements unchanged in the history record.
 
-| agent file (`plugins/comment-review/agents/`) | lines |
-| --- | --- |
-| `comment-review-ownership-context.md` | 111 |
-| `comment-review-block-context.md` | 117 |
-| `comment-review-function-context.md` | 124 |
-| `comment-review-module-context.md` | 130 |
-
-!! **THREE OF THE FOUR HAD GROWN, AND THAT IS THE EVIDENCE, NOT THE DEFECT.**
-`ownership-context` 91 -> 111, `block-context` 110 -> 117, `module-context` 128 -> 130. Roy,
-2026-08-18: *"I have allowed expansion on those files just because of this"* -- because the
-rules added paid in one of the two currencies above. **A replaces-one rule that was live would
-have refused all three**, so the file was describing a policy it was not running, and the growth
-is what proves it.
-
-! A count that no longer matches `wc -l` is still a finding against this file -- but it is a
-finding about the NUMBER being stale, not about the file being over a limit. Update it and say
-what the growth bought.
+## Rule ownership
 
 ! **A rule belongs in exactly one file.** Shared reviewer contract ->
 `reviewer-brief.md`; one role's -> that role's agent definition; a stage's procedure -> that
@@ -95,34 +82,3 @@ rule a SCRIPT enforces -> that script's docstring (`census.py`, `annotate.py`, `
 orchestration -> here. Restating one across two files is
 the antipattern this skill exists to find, and the four agents are the place it will happen --
 they read alike and invite copy-paste.
-
-!! **THE TWO LARGEST FILES A RUN LOADS AS CONTEXT HAVE NO BUDGET.** A reviewer loads its role
-file plus the brief, and **the brief is read FIVE times** -- by the four reviewers and by the
-task agent. Roy, 2026-08-18. So a line there costs five times a line in a role file, and the
-numbers above budget the ROLE files only -- the smallest part of what a run actually costs.
-
-| | 2026-08-16 | 2026-08-18 | 2026-09-12 | 2026-09-14 | |
-| --- | ---: | ---: | ---: | ---: | --- |
-| `reviewer-brief.md` | 11,579 | 23,397 | 38,090 | 37,754 | paid FIVE times |
-| `SKILL.md` | 45,257 | 62,531 | 60,037 | 62,242 | paid once, by the task agent |
-
-The 2026-09-12 column is each file's stored blob, `git show HEAD:<path> | wc -c`, after five
-commits (7d2e1834 to 3b0314e6). The brief grew 1,964 bytes: what a role answers in a turn and
-the `f` run a role may act on, net of the blank-line rule it dropped. `SKILL.md` grew 2,128: the
-turn run between `collate` and `disposition`, and exit 7's row.
-
-The 2026-09-14 column is the same measure at ebe58e91, against 37,288 and 60,383 at a22eb0ec:
-the brief's 466 bytes and `SKILL.md`'s 1,859 bought stage 8's read of the proof before 7a, 7a's
-questions on a held move and a correct that drops words, `disposition`'s printed lines, 7b's
-temporary files, a per-file split of each role, and a role that fills its one copy itself and
-calls LSP only when it holds the tool, net of the annotation table and prose that went.
-
-!! **THE BRIEF HAS MORE THAN DOUBLED IN TWO DAYS, WHICH IS THIS WARNING COMING TRUE.** Every
-addition was argued on its own and none was weighed against the file, because nothing measures
-it -- the four role files are counted line by line while the thing costing four times as much
-is not. ! Re-measure it whenever it is edited and say what the growth bought, the same
-discipline the role table gets. ! Larger files ship -- `census.py` is 31 KB -- but
-are EXECUTED, never read into a prompt.
-
-**Any Python shipped here must be generic** -- no hardcoded paths, no assumed directory names,
-no cap baked into a script whose prose says the skill has no cap of its own.

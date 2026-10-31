@@ -22,10 +22,9 @@ whose `absent` is None, which says the same thing where the thing is defined. ! 
 fence has a present and no absence: an empty one could not be cited, and there is
 nothing for `absent` to mean.
 
-!! A LEAF. It imports nothing from this package, which is what lets BOTH
-`addresser` -- which owns places and knows nothing of prose -- and `lexer` --
-which owns prose and spells a declaration's `a` cue with `cue_for` -- take their
-halves from one declaration instead of from each other.
+!! A LEAF. It imports nothing from this package, so `addresser`, which owns
+places, and the readers and `paragraph`, which own prose, take the series and
+their kinds from one declaration instead of from each other.
 
 `cue_for` spells a cue from a letter and a step, and `ADDRESSED`, `ABSENT`,
 `BY_LETTER` and `BY_KIND` are lookups derived from `Series`.
@@ -55,6 +54,8 @@ class Kind(StrEnum):
     # Matter runs from the file's opening line down, or from its closing line up,
     # until an empty line or a docstring -- so a shebang, a blank and a comment
     # are two runs, and the comment below the blank is a `b`, not part of `f0`.
+    # A module or closing docstring takes in every comment beyond it, and a file
+    # with no code has one more rule: `reading.matter` states them.
     #
     # !! `matter` NAMES THE SPACE AND NOT A POSITION, which is what the `f`
     # series needs: a file can carry its own prose at the head and at the tail.
@@ -89,10 +90,9 @@ class Kind(StrEnum):
         """Does this paragraph stand on no line of the file?
 
         !! `leading` IS THE WHOLE REASON THIS IS NOT THE SAME QUESTION AS ABOVE.
-        It holds no prose and DOES stand on real blank lines. `code_lines` skips
-        a paragraph that occupies nothing, so answering YES here would take
-        those blanks out of `occupied` -- which changes no code line, because
-        `code_lines` counts only a line that is not blank.
+        It holds no prose and DOES stand on real blank lines, so it answers NO
+        here. Every absence answers YES: `compositor.set_page` reads that as a
+        place the walk emitted, which an `add` may fill.
         """
         return kind in ABSENT
 
@@ -184,11 +184,7 @@ def cue_for(series: str, step: int) -> str:
     ! NAMED FOR ITS DIRECTION, so it cannot collide with `cue()`: this BUILDS a
     cue from its parts, and `addresser.cue_of` takes one apart.
 
-    !! IT LIVES HERE, NOT IN `addresser`. A cue is `f"{letter}{step}"`, which is
-    what a SERIES is lettered for and holds no notion of a place -- so the LEXER
-    can build one without importing the addresser, which this module's own
-    header forbids: *the addresser knows nothing of prose, the lexer knows
-    nothing of places*. ! `lexer.document_declarations` stamps a documenting
-    run's address as its cue, `a3`, directly.
+    A cue is `f"{letter}{step}"`: it is spelled from a series' letter and holds
+    no notion of a place. `addresser`'s walkers are its caller.
     """
     return f"{series}{step}"

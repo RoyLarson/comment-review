@@ -178,25 +178,23 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (139)
+### open  (138)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
 | [a-comment-inside-a-line-makes-the-file-unprovable](a-comment-inside-a-line-makes-the-file-unprovable.md) | backend | -- | 3/8 | A comment INSIDE a line makes the whole file unprovable |
 | [a-role-can-reverse-itself-between-runs](a-role-can-reverse-itself-between-runs.md) | agents | yes | 1/6 | A role can reverse itself between runs, and nothing measures it |
 | [a-scope-declaration-costs-as-much-as-a-finding](a-scope-declaration-costs-as-much-as-a-finding.md) | agents | yes | 2/7 | A scope declaration costs as much as a finding |
-| [block-comment-markers-survive-into-the-prose](block-comment-markers-survive-into-the-prose.md) | backend | -- | 4/10 | Block-comment markers survive into the prose the reviewers read |
+| [block-comment-markers-survive-into-the-prose](block-comment-markers-survive-into-the-prose.md) | backend | -- | 4/12 | Block-comment markers survive into the prose the reviewers read |
 | [move-and-correct-compose](move-and-correct-compose.md) | agents | -- | 4/6 | `move` and `correct` COMPOSE, and the gate calls them a contradiction |
 | [only-census-got-out-and-the-skill-instructs-a-redirect](only-census-got-out-and-the-skill-instructs-a-redirect.md) | agents | -- | 3/5 | Only `census.py` got `--out`, and `SKILL.md` instructs the redirect it forbids |
 | [referrers-matches-on-any-public-name-and-surfaces-the-whole-repo](referrers-matches-on-any-public-name-and-surfaces-the-whole-repo.md) | backend | -- | 0/6 | `referrers.py` matches on any public name, and surfaced the whole repo |
 | [stage-5-is-the-only-stage-with-no-independent-reader](stage-5-is-the-only-stage-with-no-independent-reader.md) | agents | -- | 10/14 | Stage 5 is the only stage whose writer is also its checker |
 | [the-code-check-refuses-add-and-drop-on-a-docstring](the-code-check-refuses-add-and-drop-on-a-docstring.md) | backend | -- | 9/12 | The CODE CHECK refuses `add` and `drop` when the prose is a docstring |
 | [the-emitted-vocabulary-can-collide-with-the-repo](the-emitted-vocabulary-can-collide-with-the-repo.md) | agents | yes | 1/6 | The emitted vocabulary can collide with the reviewed repo's own terms |
-| [doc-is-structural-means-two-things](doc-is-structural-means-two-things.md) | backend | -- | 0/3 | doc_is_structural means two things and its docstring names one |
 | [docstrings-need-their-own-address-series](docstrings-need-their-own-address-series.md) | backend | -- | 5/9 | A docstring needs its own address series, and it names what it documents |
 | [line-0-places-are-unreachable](line-0-places-are-unreachable.md) | backend | -- | 4/6 | **An empty place sits at line 0 by ruling, and both tools that answer by LINE filter on `start &lt;= line &lt;= end`.** So the places an `add` exists to cite are the ones no line lookup can name -- while the brief forbids the only remaining route, counting. |
 | [filtered-measurement-unrecorded](filtered-measurement-unrecorded.md) | testing | -- | 3/5 | The filtered-census measurement exists only in run history |
-| [doc-does-not-fill-its-a](doc-does-not-fill-its-a.md) | backend | -- | 11/12 | the a place now exists for Rust/Go/etc but the doc that fills it still sits at b |
 | [six-mutations-survive-the-suite](six-mutations-survive-the-suite.md) | testing | -- | 1/8 | 720 tests green against six deliberate defects in shipped code |
 | [the-anchor-claims-are-inverted](the-anchor-claims-are-inverted.md) | agents | -- | 0/4 | shipped prose says an anchor is often empty; it is never empty |
 | [stale-measurements-in-shipped-prose](stale-measurements-in-shipped-prose.md) | testing | yes | 1/6 | every one re-derivable by a command, and every one wrong |
@@ -205,18 +203,18 @@ that changed a published name or rule:
 | [closing-line-deletes-code](closing-line-deletes-code.md) | backend | -- | 5/8 | An edit to a comment whose run closes mid-line DELETES the code after the closer |
 | [versioning-at-v1](versioning-at-v1.md) | systems | -- | 3/12 | v1.x wants a concrete versioning system on everything that ships |
 | [check-passes-a-shared-address](check-passes-a-shared-address.md) | backend | -- | 0/4 | addresser --check prints SHARED and exits 0 |
-| [a-series-never-fills-outside-python](a-series-never-fills-outside-python.md) | backend | -- | 17/20 | Outside Python the `a` place is emitted and never filled |
-| [bom-is-read-as-source](bom-is-read-as-source.md) | backend | -- | 2/4 | A UTF-8 BOM is censused as a line of code |
+| [a-series-never-fills-outside-python](a-series-never-fills-outside-python.md) | backend | -- | 17/22 | Outside Python the `a` place is emitted and never filled |
+| [bom-is-read-as-source](bom-is-read-as-source.md) | backend | -- | 2/7 | A UTF-8 BOM is censused as a line of code |
 | [a-malformed-page-drops-its-records](a-malformed-page-drops-its-records.md) | backend | -- | 1/5 | A page entry that is not an object loses every record under it, silently |
 | [unaddressed-is-quadratic](unaddressed-is-quadratic.md) | backend | -- | 0/4 | unaddressed() groups by path for a question that needs one flat pass |
 | [stale-claims-after-the-envelope](stale-claims-after-the-envelope.md) | backend | -- | 2/8 | Shipped prose still describes formats and flags this branch deleted |
 | [one-stem-four-jobs](one-stem-four-jobs.md) | backend | -- | 7/15 | one stem, four jobs -- and the vocabulary sweep cannot see it |
 | [census-walks-and-flushes](census-walks-and-flushes.md) | backend | -- | 3/7 | census.py walks the whole repo, runs git twice, and its run-flush never fires |
-| [galley-and-compositor-write-path](galley-and-compositor-write-path.md) | backend | -- | 55/60 | The galley can overwrite the file under review, and the compositor reads through a normaliser |
+| [galley-and-compositor-write-path](galley-and-compositor-write-path.md) | backend | -- | 70/80 | The galley can overwrite the file under review, and the compositor reads through a normaliser |
 | [record-and-verdicts-disagree](record-and-verdicts-disagree.md) | backend | -- | 4/8 | record.py and verdicts.py disagree about what a valid record is, in four places |
 | [exception-hierarchy](exception-hierarchy.md) | backend | -- | 2/10 | Named tuples give us the seam; the hierarchy that catches our own types is not built |
 | [language-rows-in-toml](language-rows-in-toml.md) | backend | -- | 11/18 | 18 rows of pure data sit in shipped Python; references/vocabulary.toml is the pattern |
-| [computed-and-never-read](computed-and-never-read.md) | backend | -- | 5/10 | The insert line, the matter branch, the paragraph index and two repeated full-file scans -- each needs more than a comment fix |
+| [computed-and-never-read](computed-and-never-read.md) | backend | -- | 7/17 | The insert line, the matter branch, the paragraph index and two repeated full-file scans -- each needs more than a comment fix |
 | [dangling-links-resolve-nowhere](dangling-links-resolve-nowhere.md) | systems | yes | 0/6 | 31 relative links resolve nowhere, and two of them are in a live TODO |
 | [fixtures-do-not-test-the-shape](fixtures-do-not-test-the-shape.md) | testing | -- | 2/5 | A per-language fixture can pass without exercising the shape its language is measured on |
 | [drop-the-column](drop-the-column.md) | backend | -- | 7/9 | the column is len(anchor)+1 everywhere; the address system answers what it was added for |
@@ -267,7 +265,7 @@ that changed a published name or rule:
 | [brief-example-and-scope](brief-example-and-scope.md) | agents | -- | 0/3 | the brief's worked example shows a 40-character `sha` where `bind` writes 16, and the brief says a source resolves against 'the repo' without saying whether that is the scoped tree or the checkout it was cut from |
 | [rows-of-derives-no-type](rows-of-derives-no-type.md) | backend | -- | 0/4 | `binder.rows_of` returns `list[dict]` where `docket.schedules_of` returns `list[Schedule]`; the codebase holds one example of each pattern, the typed one is the one that catches things, and `rows_of` has 8 callers and no covering tests |
 | [strip-before-review-experiment](strip-before-review-experiment.md) | agents | yes | 0/5 | the `collator.py` prose was deleted whole and rewritten by an agent that could read only the code -- it found three defects the old prose never mentioned and named two things the code cannot say; whether that beats editing in place is untested |
-| [collator-defects](collator-defects.md) | backend | -- | 18/43 | four defects in `desk/collator.py`, all found by an agent writing the file's prose from the code alone: a `move` onto its own address becomes a bare delete, a multi-line `verbatim` from a CRLF file can never match, the source cache is keyed without its root, and a malformed cite raises where the half is meant to report |
+| [collator-defects](collator-defects.md) | backend | -- | 19/43 | four defects in `desk/collator.py`, all found by an agent writing the file's prose from the code alone: a `move` onto its own address becomes a bare delete, a multi-line `verbatim` from a CRLF file can never match, the source cache is keyed without its root, and a malformed cite raises where the half is meant to report |
 | [staged-chain-untested](staged-chain-untested.md) | backend | -- | 4/6 | the four-stage chain runs and the edits accumulate, proven 2026-08-30 -- but no test in the suite drives it, and the only committed fan-out topology refuses any tree but this repo's |
 | [containers-and-verification-are-unwired](containers-and-verification-are-unwired.md) | backend | -- | 37/60 | The containers and the source-verification half are wired to nothing |
 | [mark-holds-spec-and-parse](mark-holds-spec-and-parse.md) | backend | -- | 0/6 | mark.py holds the instruction spec and the boundary parse at one scope |
@@ -288,7 +286,7 @@ that changed a published name or rule:
 | [only-a-flow-reaches-the-machine](only-a-flow-reaches-the-machine.md) | backend | -- | 2/10 | Route every machine read and write through a flow |
 | [a-non-code-document-has-no-read-review-resolve-or-write-chain-of-its-own](a-non-code-document-has-no-read-review-resolve-or-write-chain-of-its-own.md) | backend | -- | 0/2 | A non-code document has no read, review, resolve or write chain of its own |
 | [re-review-is-retired-for-revise](re-review-is-retired-for-revise.md) | agents | -- | 4/6 | re-review is retired for revise |
-| [agents-files-name-the-new-cli](agents-files-name-the-new-cli.md) | agents | -- | 34/42 | The agents files name the new CLI and say how to use it |
+| [agents-files-name-the-new-cli](agents-files-name-the-new-cli.md) | agents | -- | 35/47 | The agents files name the new CLI and say how to use it |
 | [reviewer-prose-is-rules-not-guidance](reviewer-prose-is-rules-not-guidance.md) | agents | -- | 10/17 | The reviewer prose is rules and punishments, not guidance toward a good result |
 | [a-machine-context-raises-query-and-clean](a-machine-context-raises-query-and-clean.md) | backend | yes | 0/8 | annotate carries two subjects -- it extracts index keys, and it flags claims it cannot settle. The second half becomes a context that marks like a role. |
 | [the-chief-has-no-recast-workflow](the-chief-has-no-recast-workflow.md) | backend | yes | 8/14 | cap applies the chief's rulings and closes the stage, but a recast is written out as a correct, so a recast of an add at an empty place writes nothing and exits 0. |
@@ -300,7 +298,7 @@ that changed a published name or rule:
 | [r2-preexisting-prose](r2-preexisting-prose.md) | backend | -- | 0/2 | Correct pre-existing move and fold-helper prose |
 | [mark-stance-metadata-prose](mark-stance-metadata-prose.md) | backend | -- | 0/2 | Clarify mark stance and reading metadata prose |
 | [smoke-fixture-defects](smoke-fixture-defects.md) | systems | -- | 0/1 | Align the command smoke with paragraph rewrapping |
-| [lexical-code-identity](lexical-code-identity.md) | backend | -- | 3/4 | Use lexical code identity at both proof boundaries |
+| [lexical-code-identity](lexical-code-identity.md) | backend | -- | 4/13 | Use lexical code identity at both proof boundaries |
 | [collate-file-input](collate-file-input.md) | backend | -- | 0/1 | Read collation inputs from a file |
 | [2026-10-11-maintained-source-selection](2026-10-11-maintained-source-selection.md) | agents | -- | 0/1 | Select maintained source for review |
 | [2026-10-13-human-question-list](2026-10-13-human-question-list.md) | backend | -- | 0/1 | Expose human questions across edit copies |
@@ -311,16 +309,17 @@ that changed a published name or rule:
 | [language-reader-c](language-reader-c.md) | backend | -- | 0/2 | C lexical reader |
 | [language-reader-cpp](language-reader-cpp.md) | backend | -- | 0/2 | C++ lexical reader |
 | [language-reader-java](language-reader-java.md) | backend | -- | 0/5 | Java lexical reader |
-| [language-reader-csharp](language-reader-csharp.md) | backend | -- | 0/2 | C# lexical reader |
-| [language-reader-swift](language-reader-swift.md) | backend | -- | 0/3 | Swift lexical reader |
-| [language-reader-kotlin](language-reader-kotlin.md) | backend | -- | 0/2 | Kotlin lexical reader |
-| [language-reader-javascript](language-reader-javascript.md) | backend | -- | 0/3 | JavaScript lexical reader |
+| [language-reader-csharp](language-reader-csharp.md) | backend | -- | 1/3 | C# lexical reader |
+| [language-reader-swift](language-reader-swift.md) | backend | -- | 1/4 | Swift lexical reader |
+| [language-reader-kotlin](language-reader-kotlin.md) | backend | -- | 1/3 | Kotlin lexical reader |
+| [language-reader-javascript](language-reader-javascript.md) | backend | -- | 0/4 | JavaScript lexical reader |
 | [language-reader-typescript](language-reader-typescript.md) | backend | -- | 0/2 | TypeScript lexical reader |
-| [language-reader-ruby](language-reader-ruby.md) | backend | -- | 0/4 | Ruby lexical reader |
-| [language-reader-shell](language-reader-shell.md) | backend | -- | 0/3 | Shell lexical reader |
-| [language-reader-sql](language-reader-sql.md) | backend | -- | 0/2 | SQL lexical reader |
-| [language-reader-lua](language-reader-lua.md) | backend | -- | 0/7 | Lua lexical reader |
-| [a-reader-finds-prose-only](a-reader-finds-prose-only.md) | backend | -- | 5/15 | A reader finds prose and rebuilds nothing after it |
+| [language-reader-ruby](language-reader-ruby.md) | backend | -- | 0/7 | Ruby lexical reader |
+| [language-reader-shell](language-reader-shell.md) | backend | -- | 2/7 | Shell lexical reader |
+| [language-reader-sql](language-reader-sql.md) | backend | -- | 0/3 | SQL lexical reader |
+| [language-reader-lua](language-reader-lua.md) | backend | -- | 1/9 | Lua lexical reader |
+| [edit-path-isolation](edit-path-isolation.md) | backend | -- | 0/2 | Isolate the edit path from comment reading |
+| [one-reader-builder](one-reader-builder.md) | backend | -- | 0/10 | One reader builder from each language's definition |
 
 ### in-progress  (17)
 
@@ -334,14 +333,14 @@ that changed a published name or rule:
 | [b-addresser-uninitialised](b-addresser-uninitialised.md) | backend | yes | 13/18 | The b addresser is never initialised at the module trigger, and computes its cue from line numbers |
 | [census-degrades-silently](census-degrades-silently.md) | backend | -- | 5/8 | **Four inputs produce a census that is wrong rather than refused, each exiting 0.** The run reads as complete and the addresses are nonsense. |
 | [census-owns-addressing](census-owns-addressing.md) | backend | -- | 4/8 | The census owns addressing, and four modules share one subject between them |
-| [page-and-addresser-scans](page-and-addresser-scans.md) | backend | -- | 2/8 | page.py and addresser.py carry four scans that grow with the file and one CLI that contradicts the gate |
+| [page-and-addresser-scans](page-and-addresser-scans.md) | backend | -- | 2/14 | page.py and addresser.py carry four scans that grow with the file and one CLI that contradicts the gate |
 | [record-verdict-desk-findings](record-verdict-desk-findings.md) | backend | -- | 9/14 | Round-4 findings in record/verdict/desk, including two that certify a run at exit 0 |
 | [the-census-is-mostly-intervals-nobody-rules-on](the-census-is-mostly-intervals-nobody-rules-on.md) | backend | -- | 26/27 | **The census is 67% of what it costs to start a reviewer, and 966 of its 1,120 blocks are intervals nobody rules on.** 131,353 bytes of 195,243, paid four times. Roy ruled the design 2026-08-18: the census stays fully enumerated ON DISK, the agents get a FILTERED view, and a destination outside their set comes from a TOOL answering one question -- what is the ADDRESS of this line of code. ! It does not reverse the 2026-08-17 enumeration; it is a projection of it, and `add` was not expressible before it. ! Rule 4 buys a check as well as bytes: `move`'s `to` is free text nothing resolves, and an index is resolvable exactly as an address already is |
 | [the-lexer-reads-no-files](the-lexer-reads-no-files.md) | backend | -- | 13/25 | one decision -- bytes into text -- made in nine places, none of them the lexer |
 | [the-parser-merges-across-boundaries-it-cannot-read](the-parser-merges-across-boundaries-it-cannot-read.md) | backend | -- | 2/4 | The collator merges across a boundary it cannot read, and blames the neighbour |
 | [the-read-only-contract-is-enforced-by-nothing](the-read-only-contract-is-enforced-by-nothing.md) | agents | yes | 2/8 | The read-only contract is enforced by nothing, and four reviewers wrote files |
 | [the-shipped-python-does-not-pass-its-own-review](the-shipped-python-does-not-pass-its-own-review.md) | backend | yes | 7/12 | **Our own scripts spend a sixth of their prose on what the code does NOT do.** ! **Roy's reason, 2026-08-16: *"I don't want the system picking up bad cues from the documentation in the code."*** An agent reads these files and then writes in them. Re-measured after that day's rewrites: **136 of 697 (20%)** comment and docstring lines carry `cannot` / `never` / `does not` / `is not` / `nothing` -- UP from 123/714, because the prose written that day carries the same defect -- `census.py` worst at 52/284. Roy: *"census.py creates the pCST and that is it. Comments about 'cannot answer OWNERSHIP' are not helpful."* ! Not every negative is wrong -- an output (*"reports UNPROVABLE rather than passing"*) and a refusal aimed at a future editor both earn their place -- so the first task is writing the test that tells them apart !! **The hand-pass rule is STRUCK, 2026-08-18.** It told itself not to run `/comment-review` on this repo; Roy: *"By definition the code has to go through the review to state that it has passed."* A hand pass produces a rewrite, and this file's title is a claim about what the review RETURNS -- so it now closes on a run graded from the diff. ! The harness does not gate that: running the skill needs the skill |
-| [lexer-and-language-findings](lexer-and-language-findings.md) | backend | -- | 21/49 | Ten findings in lexer.py and language.py, from three review rounds |
+| [lexer-and-language-findings](lexer-and-language-findings.md) | backend | -- | 25/69 | Ten findings in lexer.py and language.py, from three review rounds |
 | [board-predates-task-ids](board-predates-task-ids.md) | systems | yes | 2/6 | task lines carry no ids, so a plan cannot name one; a trial migration was reverted because it silently cleared 57 `Requires-Roy` flags and refused nine files whose task labels carry a literal pipe |
 
 ### decision-needed  (23)
@@ -528,3 +527,7 @@ the reason is inside the file.
 | [prove-unchanged-line-endings-follow-a-sibling](completed/prove-unchanged-line-endings-follow-a-sibling.md) | 2 superseded |
 | [lexer-does-not-lex](completed/lexer-does-not-lex.md) | 8 finished, 2 superseded |
 | [a-comment-run-merges-across-blanks](completed/a-comment-run-merges-across-blanks.md) | 6 finished |
+| [doc-does-not-fill-its-a](completed/doc-does-not-fill-its-a.md) | 6 finished, 6 superseded |
+| [doc-is-structural-means-two-things](completed/doc-is-structural-means-two-things.md) | 3 superseded |
+| [a-reader-finds-prose-only](completed/a-reader-finds-prose-only.md) | 23 finished, 6 superseded |
+| [reader-review-repairs](completed/reader-review-repairs.md) | 13 finished, 5 superseded |

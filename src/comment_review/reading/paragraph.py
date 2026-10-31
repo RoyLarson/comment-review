@@ -13,13 +13,17 @@ it is where the page's own dependencies already point. A page adds its leadings
 and a few load-bearing attributes to its paragraphs, so `Page` stays where it is
 and this sits beneath both.
 
-! A LEAF, LIKE `series`. It imports nothing from this package, so every module
-that makes one and every module that reads one take it from the same
-declaration instead of from each other.
+! BENEATH EVERY MODULE THAT MAKES OR READS ONE. At import it takes only
+`series`, so every module that makes one and every module that reads one take
+it from the same declaration instead of from each other; `text` calls
+`lexer.comment_form` when it is first read.
 """
 
 import re
 from dataclasses import dataclass, field
+from pathlib import Path
+
+from comment_review.reading.series import Series
 
 MARKERS = ("TODO", "FIXME", "HACK", "XXX", "BUG")
 WORK_MARKER = re.compile(r"^(" + "|".join(MARKERS) + r")\b")
@@ -39,8 +43,8 @@ def counted_lines(raw: list[str]) -> int:
     The exemption is one line wide. A run stays one run across a marker, and a
     marker's continuation lines are charged: six lines plus a `TODO:` is six.
     """
-    # ! A BLANK LINE IS FREE TOO. It sits inside the paragraph by the interval
-    # definition -- only code bounds a paragraph -- and is leading, not prose.
+    # ! A BLANK LINE IS FREE TOO. A run holds the blanks between its comments,
+    # and a paragraph cut from it keeps them. They are leading, not prose.
     return sum(
         1 for ln in raw if ln.strip() and not WORK_MARKER.match(LEAD_PUNCT.sub("", ln))
     )
@@ -60,16 +64,15 @@ class Paragraph:
     start: int
     end: int
     kind: str  # a `series.Kind` value
-    text: str  # the run JOINED, so a wrapped claim matches as one string
     # !! WHAT THIS PARAGRAPH IS ATTACHED TO, and it is ONE-TO-MANY THE OTHER WAY:
     # an anchor has MANY addresses -- its own `a`, the `b` above it, the `c`
     # beside it, every `b` and `c` in its body -- and an address has ONE anchor.
     #
-    # !! IT IS ALWAYS THE LINE OF CODE, VERBATIM -- never a name, and never a
-    # symbol. An `a` carries the line that DECLARES it, `def f():` and not `f`;
-    # see `_anchor_of`.
+    # !! IT IS ALWAYS CODE, VERBATIM -- a line of code, or every line of a unit,
+    # never a name and never a symbol. An `a` carries what DECLARES it,
+    # `def f():` and not `f`; see `_anchor_of`.
     anchor: str = ""
-    # !! THE LINE THIS PLACE'S ANCHOR SITS ON, so an anchor's OTHER places can
+    # !! THE LINE THIS PLACE'S ANCHOR OPENS ON, so an anchor's OTHER places can
     # be found: the `c` beside its `def`, the `b` above it, its own `a`. Without
     # it a consumer has to infer the line from the prose's position, which is
     # exactly the inference that breaks on the next language -- Rust's doc sits
@@ -90,6 +93,12 @@ class Paragraph:
     # both were wrong. Roy: *"the end of file getting a 0 is non-functional
     # filling in for a missing value."*
     anchor_line: int | None = None
+    # !! THE LINE A READER SAYS THIS DOC DECLARES FOR -- the declaration's own
+    # line, which can sit below the trigger line `anchor_line` holds (a Java
+    # unit's annotation opens above its `class`). `None` for the module's doc.
+    # Only a reader sets it; the page reads it to choose the doc's place, then
+    # sets `anchor_line` from that place.
+    declares_line: int | None = None
     # !! THE ORDINAL OF THAT ANCHOR AMONG THE LINES OF CODE, and
     # `flows.proof_setter` checks it, with `anchor` and `anchor_line`, against the
     # page's cues. This tool edits prose and every prose edit moves the lines
@@ -123,8 +132,8 @@ class Paragraph:
 
     # !! THE PARAGRAPH'S OWN CHARACTERS, EXACTLY AS THE FILE HOLDS THEM -- its
     # lines whole where it owns them, and from the end of the code onward on
-    # the first line where code comes first. With `anchor` holding that code,
-    # the two RECONSTRUCT the line: `anchor + raw_lines[0]` is what is on disk.
+    # the first line where code comes first. A `c`'s `anchor` holds that code,
+    # so the two RECONSTRUCT the line: `anchor + raw_lines[0]` is what is on disk.
     #
     # !! SO THE CUT IS RECORDED IN THE LINES THEMSELVES, NOT IN A FIELD.
     # Whether a paragraph sits beside code is what its series answers.
@@ -144,10 +153,35 @@ class Paragraph:
         `raw_text`, and `_paragraph` reads it back into `raw_lines`.
 
         ! NOT `text`. That is the run joined for MATCHING -- what a claim is
-        checked against -- and the two differ wherever the lexer trimmed. A
-        consumer that means the characters means this one.
+        checked against -- and the two differ by every marker and line break
+        `comment_form` takes out. A consumer that means the characters means
+        this one.
         """
         return "\n".join(self.raw_lines)
+
+    @property
+    def text(self) -> str:
+        """The prose JOINED, so a wrapped claim matches as one string.
+
+        Derived by `lexer.comment_form` -- the one derivation of a paragraph's
+        prose -- from `raw_lines`, the cue's series, `anchor` and the path's
+        language, the first time it is asked for, and again only when one of
+        those has changed. "" where the paragraph holds no prose.
+        """
+        cue = self.address.rsplit("@", 1)[-1]
+        key = (self.path, cue, self.anchor, tuple(self.raw_lines))
+        if self._text is not None and self._text[0] == key:
+            return self._text[1]
+        text = ""
+        if self.raw_text.strip():
+            # Imported here: `lexer` builds paragraphs, so it imports this module.
+            from comment_review.reading.lexer import comment_form
+
+            text = comment_form(
+                Path(self.path), Series.of(cue), self.raw_text, self.anchor
+            ).text
+        self._text = (key, text)
+        return text
 
     @property
     def lines(self) -> int:
@@ -184,6 +218,10 @@ class Paragraph:
     # without visiting every construction site.
     original_start: int | None = None
     original_end: int | None = None
+    # `text` as last derived, with the inputs it was derived from.
+    _text: tuple[tuple[str, str, str, tuple[str, ...]], str] | None = field(
+        default=None, init=False, repr=False, compare=False
+    )
 
     def __post_init__(self) -> None:
         """Default the covered lines to the addressing range, or to None.

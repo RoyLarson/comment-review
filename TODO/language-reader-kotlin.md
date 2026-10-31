@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 2 tasks closed
+Progress: 1 of 3 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-25 (decision-log.md Process: #222)
@@ -22,3 +22,5 @@ Worked when it is asked for -- decision-log.md Process: #222.
         > 2026-10-25 Check: spec states modes, directive bounds, doc owners, fixtures
 - [ ] T2 | Implement the Kotlin reader from its definition
         > 2026-10-25 Check: uv run pytest -q tests/reading/test_kotlin.py
+- [x] T3 | Row names shebang; refusal tested, Kotlin not run | 6e48bc46 | Name
+      `shebang` on the Kotlin row from its own grammar

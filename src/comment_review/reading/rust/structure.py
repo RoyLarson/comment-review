@@ -153,16 +153,15 @@ def place_declarations(
     token that starts on the keyword's or member's line, and the anchor is the
     head's first character. An owner gets a declaration only when its kind is
     in `[rules.documentation].owners` and its head is the first code on its
-    line: the code before it ends on an earlier line.
-
-    `detached` is empty, and documentation fills it.
+    line: the code before it ends on an earlier line, so a line holding
+    several owners gives a declaration to the first alone.
     """
     failure = validate_rust(definition)
     if failure is not None:
         return failure
     placer = _Placer(scan, _Grammar.from_definition(definition))
     placer.run()
-    return RustPlacement(tuple(placer.declarations), ())
+    return RustPlacement(tuple(placer.declarations))
 
 
 class _Placer:

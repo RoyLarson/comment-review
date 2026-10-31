@@ -1,19 +1,22 @@
 """Group Rust comments into sections and decide which document which owner."""
 
 from bisect import bisect_left, bisect_right
-from collections.abc import Collection, Mapping
+from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import cast
 
 from comment_review.reading.coordinates import SourceCoordinates
 from comment_review.reading.definitions import LanguageDefinition
-from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, ReadStage
+from comment_review.reading.diagnostics import (
+    DetachedDocumentation,
+    ReadFailure,
+    ReadStage,
+)
 from comment_review.reading.rust.definition import MODULE, validate_rust
 from comment_review.reading.rust.records import (
     ATTRIBUTE_KINDS,
     COMMENT_KINDS,
-    DETACHED_DOCUMENTATION,
-    DetachedRun,
+    DETACHED_DOC_CODE,
     RustDocumentation,
     RustPlacement,
     RustScan,
@@ -59,37 +62,36 @@ def documentation_in(
 ) -> RustDocumentation | ReadFailure:
     """Section every comment and give each documentation section its owner.
 
-    A section is a run of comments of one written form -- ordinary, outer doc
-    or inner doc -- with only whitespace between them, blank lines included.
-    A comment with code before it on its line is a section of its own. A
-    comment followed by code on the line it ends on is part of that line's
-    code: it is no section, documents nothing, and ends the run above it. A
-    doc above it is separated from its owner, as by an ordinary comment, and
-    is detached. A comment followed only by another comment on its line is
-    prose, and the two share a place.
+    A run is comments of one written form -- ordinary, outer doc or inner
+    doc -- with only whitespace between them, blank lines included. A run
+    that documents an owner is a section; the runs that are ordinary
+    comments, including the docs detached into them, with no code between
+    them are one section. A comment with code before it on its line is a
+    section of its own. A comment followed by code on the line it ends on is
+    part of that line's code: it is no section, documents nothing, and ends
+    the run above it. A doc above it is separated from its owner, as by an
+    ordinary comment, and is detached. A comment followed only by another
+    comment on its line is prose, and the two share a place.
 
     An outer doc section that ends on a line above an owner's head, with only
     whitespace between them, documents that owner. An inner doc section
-    documents the module when nothing but opening matter precedes it. Either
+    documents the module when nothing but comments precede it. Either
     is on lines of its own: no other comment shares its first or last line.
     The kinds documentation attaches to are `[rules.documentation].owners`.
 
     Documentation that Rust attaches to an owner but no `a` place can hold is
-    detached: a run behind an ordinary comment, outside the owner or in its
-    body, a run between an attribute and the item, a run on the head's own
-    line, a run that trails code on its line, a run sharing a line with
-    another comment, a module doc with an inner attribute before it, a
+    detached: a run behind an ordinary comment above an item, outside the
+    owner or in its body, a run between an attribute and the item, a run on
+    the head's own line, a run that trails code on its line, a run sharing a
+    line with another comment, a module doc with an inner attribute before it, a
     second run for one owner, the module included, and every inner doc
     inside a body, which is detached from the innermost owner whose body
-    holds it. A detached run is a COMMENT section with a DetachedRun and a
-    warning. Every other doc section that documents nothing is a COMMENT
-    section.
+    holds it. A detached run is a COMMENT section with a warning. Every other
+    doc section that documents nothing is a COMMENT section.
 
-    The file's opening matter is the comments `opening_end` bounds: every
-    section starting in it is MATTER, up to the first section documenting an
-    owner, which ends the matter. The module's inner doc is detached when
-    code or a comment outside the opening matter precedes it; the page sets
+    The module's inner doc is detached when code precedes it; the page sets
     `a0` at the file head. Every other owner inserts at its head's first line.
+    Which sections are the file's own matter is the projection's to say.
     """
     failure = validate_rust(definition)
     if failure is not None:
@@ -136,13 +138,7 @@ class _Assigner:
         self.runs = _runs(scan.tokens, self.coordinates)
         self.forms = [run.written for run in self.runs]
         self.links: dict[int, int | None] = {}
-        self.detached: list[DetachedRun] = []
-        self.warnings: list[ReadDiagnostic] = []
-        self.shebang = next(
-            (t for t in scan.tokens if t.kind is RustTokenKind.SHEBANG), None
-        )
-        # The last line of the comments that open the file, or None.
-        self.opening_end = self._opening_end()
+        self.warnings: list[DetachedDocumentation] = []
 
     def run(self) -> RustDocumentation:
         for index, run in enumerate(self.runs):
@@ -152,60 +148,44 @@ class _Assigner:
                 self._outer(index, run)
             elif run.written is RustSectionForm.INNER_DOC:
                 self._inner(index, run)
-        # Every section starting in the opening comments is matter, up to the
-        # first that documents an owner. A section of one form may run on past
-        # the opening comments, across a blank line; the projection divides it
-        # where they end.
-        if self.opening_end is not None:
-            for index, run in enumerate(self.runs):
-                if run.code or not self._opens(run):
-                    continue
-                if index in self.links:
-                    break
-                self.forms[index] = RustSectionForm.MATTER
-        kept = [index for index, run in enumerate(self.runs) if not run.code]
-        section_of = {run: section for section, run in enumerate(kept)}
+        # Each section is [form, start, end, last run]; the last run is what
+        # the next run is checked against.
+        groups: list[list] = []
+        section_of: dict[int, int] = {}
+        for index, run in enumerate(self.runs):
+            if run.code:
+                continue
+            if groups and self._continues(groups[-1], index):
+                groups[-1][2:] = [run.span.end, index]
+            else:
+                groups.append([self.forms[index], run.span.start, run.span.end, index])
+            section_of[index] = len(groups) - 1
         sections = tuple(
-            SourceSection(self.runs[index].span, self.forms[index].value)
-            for index in kept
+            SourceSection(SourceSpan(start, end), form.value)
+            for form, start, end, _ in groups
         )
         owners = tuple(
             DocumentationOwner(section_of[index], declaration)
             for index, declaration in sorted(self.links.items())
         )
-        placement = RustPlacement(
-            self.placement.declarations,
-            tuple(self.detached),
-        )
-        return RustDocumentation(sections, owners, placement, tuple(self.warnings))
+        return RustDocumentation(sections, owners, self.placement, tuple(self.warnings))
 
-    def _opening_end(self) -> int | None:
-        """The last line of the comments that open the file, or None.
+    def _continues(self, group: list, index: int) -> bool:
+        """Whether run `index` is part of the COMMENT section `group`.
 
-        The lines handed to `opening_end` are the ones a prose comment stands
-        on and the ones code stands on: a code token's first and last lines,
-        and every line of a comment that is part of its line's code.
+        Only code ends a section: the run follows the section's last run
+        directly, both are ordinary comments that stand on lines of their own,
+        and no code was read between them.
         """
-        first = 1 if self.shebang is None else self._line(self.shebang.span.end - 1) + 1
-        prose: set[int] = set()
-        code: set[int] = set()
-        for at, token in enumerate(self.scan.tokens):
-            if token.kind not in COMMENT_KINDS:
-                continue
-            lines = range(
-                self._line(token.span.start), self._line(token.span.end - 1) + 1
-            )
-            followed = _followed_on_its_line(self.scan.tokens, at, self.coordinates)
-            (code if followed else prose).update(lines)
-        for token in self.code:
-            code.update((self._line(token.span.start), self._line(token.span.end - 1)))
-        return opening_end(first, prose, code)
-
-    def _opens(self, run: _Run) -> bool:
-        """Whether the run starts among the comments that open the file."""
+        before = group[3]
+        first, second = self.runs[before], self.runs[index]
         return (
-            self.opening_end is not None
-            and self._line(run.span.start) <= self.opening_end
+            index == before + 1
+            and not first.closed
+            and group[0] is RustSectionForm.COMMENT
+            and self.forms[index] is RustSectionForm.COMMENT
+            and not first.trailing
+            and not second.trailing
         )
 
     def _beside(self, index: int, run: _Run) -> bool:
@@ -255,17 +235,9 @@ class _Assigner:
         while before >= 0 and self.code[before].kind is RustTokenKind.INNER_ATTRIBUTE:
             before -= 1
         if before < 0:
-            # A comment before the run that is not opening matter -- below a
-            # blank line, or one a run that opens the file runs on to --
-            # detaches it.
-            end = self.opening_end or 0
-            behind = any(
-                not r.code and self._line(r.span.end - 1) > end
-                for r in self.runs[:index]
-            )
             if MODULE not in self.owner_kinds:
                 self.forms[index] = RustSectionForm.COMMENT
-            elif preceded or behind:
+            elif preceded:
                 self._detach(index, run, None)
             else:
                 self._attach(index, run, None)
@@ -290,21 +262,22 @@ class _Assigner:
             self.links[index] = owner
 
     def _detach(self, index: int, run: _Run, owner: int | None) -> None:
-        """Make the run a COMMENT with a DetachedRun and its warning."""
+        """Make the run a COMMENT with its warning."""
         self.forms[index] = RustSectionForm.COMMENT
-        self.detached.append(DetachedRun(run.span, owner))
         if owner is None:
+            line = None
             named = "the module"
         else:
-            head = self.placement.declarations[owner].header.start
-            named = f"the owner whose head starts on line {self._line(head)}"
+            line = self._line(self.placement.declarations[owner].header.start)
+            named = f"the owner whose head starts on line {line}"
         self.warnings.append(
-            ReadDiagnostic(
+            DetachedDocumentation(
                 ReadStage.PLACE,
-                DETACHED_DOCUMENTATION,
+                DETACHED_DOC_CODE,
                 f"documentation on line {self._line(run.span.start)} "
                 f"is detached from {named}",
                 run.span,
+                owner_line=line,
             )
         )
 
@@ -367,28 +340,6 @@ class _Assigner:
 
     def _spelled(self, token: RustToken) -> str:
         return self.scan.text[token.span.start : token.span.end]
-
-
-def opening_end(
-    first: int, prose_lines: Collection[int], code_lines: Collection[int]
-) -> int | None:
-    """The last line of the comments that open the file, or None.
-
-    They start on `first` -- line 1, or the line directly below the shebang,
-    which shares the file's own place with them -- and run while each line
-    holds a prose comment and no code. A blank line, a line with code on it
-    or the end of the file ends them. A comment below a blank line is not
-    opening matter: filed as front matter it would be set above the blank
-    line it sits under. The documentation stage and the projection both
-    decide the opening matter here, from the lines each knows to hold prose
-    and to hold code.
-    """
-    end = None
-    line = first
-    while line in prose_lines and line not in code_lines:
-        end = line
-        line += 1
-    return end
 
 
 def _runs(tokens: tuple[RustToken, ...], coordinates: SourceCoordinates) -> list[_Run]:

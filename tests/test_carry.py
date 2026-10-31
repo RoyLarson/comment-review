@@ -99,8 +99,7 @@ class TestWhatItRefuses:
 
     def test_a_place_that_ALREADY_HOLDS_PROSE(self, tmp_path):
         """!! IT IS NOT AN ABSENCE. The binder already carries it, and a second
-        row would put two on one address -- the shape `galley.reset` refuses by
-        name, 157 measured in one tree."""
+        row would put two on one address, the shape `page_for` refuses."""
         repo, binder, page = _tree(tmp_path)
         _, added, why = carry(binder, page, "m.py", cue=filled_cues(page)[0])
         assert added == ""

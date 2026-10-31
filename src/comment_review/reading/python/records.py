@@ -1,20 +1,47 @@
 """Immutable Python reader stages with character spans and explicit references."""
 
+import ast
+import warnings
 from collections.abc import Collection
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Self, final
 
+from comment_review import constants, exceptions
 from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, ReadStage
 from comment_review.reading.paragraph import Paragraph
 from comment_review.reading.proof import UNIDENTIFIED_OWNER, PreservationResult
 from comment_review.reading.source import (
-    DocumentationPlace,
+    CodeLine,
     SourceDeclaration,
     SourceRegion,
     SourceSpan,
     SourceStructure,
 )
+
+#: What `compile` raises for a source it will not parse.
+_COMPILE_ERRORS = exceptions.PARSE_ERRORS + (RecursionError, MemoryError)
+
+
+def _parse_error(text: str) -> str | None:
+    """Why this interpreter's parser refuses `text`, or None where it takes it.
+
+    Parsing stops at the tree, so `return` outside a function parses: a check
+    the compiler makes after the parser says nothing about a drop.
+    """
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        try:
+            compile(
+                constants.without_mark(text),
+                "draft",
+                "exec",
+                ast.PyCF_ONLY_AST,
+                dont_inherit=True,
+            )
+        except _COMPILE_ERRORS as err:
+            return str(err)
+    return None
 
 
 def _index(value: object, name: str) -> None:
@@ -210,33 +237,19 @@ class DocumentationExpression:
             raise ValueError("literal components must be nonempty and inside statement")
 
 
-@dataclass(frozen=True)
-class DocumentationPayload:
-    """Complete decoded prose and the source expression used for raw extraction."""
-
-    expression: DocumentationExpression
-    text: str
-
-    def __post_init__(self) -> None:
-        """Require the recognized expression and its complete decoded text."""
-        if not isinstance(self.expression, DocumentationExpression):
-            raise ValueError("payload expression must be a DocumentationExpression")
-        if not isinstance(self.text, str):
-            raise ValueError("payload text must be a string")
-
-
 @final
 @dataclass(frozen=True)
 class PythonRead:
     """A complete Python read reusing the exact source structure."""
 
     source: SourceStructure
-    payloads: tuple[DocumentationPayload, ...]
+    #: The documentation expressions whose every literal decodes, one per
+    #: documentation owner, in order.
+    payloads: tuple[DocumentationExpression, ...]
     protected: tuple[ProtectedSource, ...]
-    insertions: tuple[int, ...]
 
     def __post_init__(self) -> None:
-        """Check source bounds, documentation owners, and ordered insertion slots."""
+        """Check source bounds and documentation owners."""
         if not isinstance(self.source, SourceStructure):
             raise ValueError("read source must be a SourceStructure")
         _tuple(self.protected, ProtectedSource, "protected")
@@ -246,20 +259,12 @@ class PythonRead:
                 item.attachment is not None and item.attachment.end > end
             ):
                 raise ValueError("protected span or attachment is outside source")
-        _tuple(self.insertions, int, "insertions")
-        if len(self.insertions) != len(self.source.declarations):
-            raise ValueError("insertions must match source declarations")
-        for insertion in self.insertions:
-            _index(insertion, "documentation insertion")
-            if insertion > end:
-                raise ValueError("documentation insertion is outside source")
-        _tuple(self.payloads, DocumentationPayload, "payloads")
+        _tuple(self.payloads, DocumentationExpression, "payloads")
         if len(self.payloads) != len(self.source.documentation):
             raise ValueError("payloads must match source documentation owners")
-        for payload, owner in zip(
+        for expression, owner in zip(
             self.payloads, self.source.documentation, strict=True
         ):
-            expression = payload.expression
             section = self.source.sections[owner.section]
             if (
                 expression.declaration != owner.declaration
@@ -279,11 +284,6 @@ class PythonRead:
         """The read's warnings: a Python read reports none."""
         return ()
 
-    @property
-    def warning_owners(self) -> tuple[int | None, ...]:
-        """Each warning's owner: a Python read has no warnings, so none."""
-        return ()
-
     def paragraphs(self, path: Path) -> list[Paragraph] | ReadFailure:
         """Every retained section of this read as a page paragraph."""
         # Imported here because `projection` reads this module's records.
@@ -291,29 +291,39 @@ class PythonRead:
 
         return paragraphs_for(path, self)
 
-    def code(self) -> dict[int, str]:
-        """Each line's code, as the page's place anchors read it."""
-        from comment_review.reading.python.projection import code_for
+    def code_lines(self) -> list[CodeLine]:
+        """Each code line, with a docstring's place on its declaring line."""
+        from comment_review.reading.python.projection import code_lines_for
 
-        return code_for(self)
+        return code_lines_for(self)
 
-    def declarations(self) -> list[DocumentationPlace]:
-        """Each declaration's documentation place, by line."""
-        from comment_review.reading.python.projection import declarations_for
+    @property
+    def a_series(self) -> bool:
+        """Whether the page has an `a` series: always, for Python.
 
-        return declarations_for(self)
+        Python documents its module, its classes and its functions.
+        """
+        return True
 
-    def owner_at(self, anchor_line: int | None) -> tuple[int | None, ...]:
+    @property
+    def closing_docstring(self) -> bool:
+        """Whether the module's documentation can sit at the file's foot: never.
+
+        A string after the last statement is an expression, not `__doc__`.
+        """
+        return False
+
+    def owner_at(self, declares_line: int | None) -> tuple[int | None, ...]:
         """The declaration documented from this anchor line; None for the module.
 
         Empty unless exactly one declaration is anchored on that line.
         """
-        if anchor_line is None:
+        if declares_line is None:
             return (None,)
         owners = tuple(
             index
             for index, declaration in enumerate(self.source.declarations)
-            if self.source.position(declaration.anchor).line == anchor_line
+            if self.source.declaring_line(declaration) == declares_line
         )
         return owners if len(owners) == 1 else ()
 
@@ -327,6 +337,10 @@ class PythonRead:
 
         A docstring is code in Python, so each approved alteration must name the
         same single declaration on both sides before its docstring is set aside.
+
+        A draft this interpreter cannot parse is refused when it can parse this
+        read's source, which a drop of a body's only statement leaves. Source
+        newer than the interpreter gets the comparison alone.
         """
         # Imported here because `preservation` reads this module's records.
         from comment_review.reading.python.preservation import compare_preservation
@@ -348,4 +362,18 @@ class PythonRead:
                     ),
                 )
             owners.add(before_owner[0])
-        return compare_preservation(self, after, allowed_documentation_owners=owners)
+        result = compare_preservation(self, after, allowed_documentation_owners=owners)
+        if result.unchanged:
+            error = _parse_error(after.source.text)
+            if error is not None and _parse_error(self.source.text) is None:
+                return PreservationResult(
+                    False,
+                    (
+                        ReadDiagnostic(
+                            ReadStage.PLACE,
+                            "draft-does-not-parse",
+                            f"the page parses and this does not: {error}",
+                        ),
+                    ),
+                )
+        return result

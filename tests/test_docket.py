@@ -48,6 +48,7 @@ from helpers import (
     returned_copies,
 )
 
+from comment_review.constants import EMPTY_PATCH
 from comment_review.desk import report as events
 from comment_review.desk.proof.master_proof import MasterProof
 from comment_review.desk.work.fold import Fold
@@ -203,7 +204,9 @@ def test_None_is_the_delete():
         (a_docket([("m.py", "a", [("", "# x")])]), "needs a `cue`"),
         (a_docket([("m.py", "a", [("b1", 123)])]), "must be text or null"),
         (a_docket([("m.py", "a", [("b1", ["a"])])]), "must be text or null"),
-        (a_docket([("m.py", "a", [("b1", "")])]), "empty string"),
+        (a_docket([("m.py", "a", [("b1", "")])]), EMPTY_PATCH),
+        (a_docket([("m.py", "a", [("b1", "   ")])]), EMPTY_PATCH),
+        (a_docket([("m.py", "a", [("b1", "\n\t\n")])]), EMPTY_PATCH),
         (
             json.dumps(
                 {
@@ -260,8 +263,7 @@ def test_an_EMPTY_DOCKET_IS_REFUSED_BY_NAME():
 def test_TWO_SCHEDULES_FOR_ONE_PAGE_are_refused():
     """!! ONE SCHEDULE PER PAGE. Two would let a later one silently win, and
     which applied would depend on iteration order -- the same class of defect
-    as two paragraphs sharing an address, which `galley.reset` refuses by
-    name."""
+    as two paragraphs sharing an address, which `page_for` refuses."""
     got, why = read(
         a_docket([("m.py", "a", [("b1", "# one")]), ("m.py", "a", [("b2", "# two")])])
     )

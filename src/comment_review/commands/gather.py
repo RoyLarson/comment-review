@@ -166,7 +166,7 @@ def _passed_over(got: Gathering) -> None:
     and both were said only by the text report that stage 2 no longer
     prints; a gather that stopped saying them would read as complete over
     files it never read. A warning does not change the exit code: the file
-    was read, and the line names a place the task agent asks the human about.
+    was read, and the line names the file and line the warning is about.
     """
     for line in got.warnings:
         print(line, file=sys.stderr)

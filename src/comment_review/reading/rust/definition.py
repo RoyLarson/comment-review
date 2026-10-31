@@ -189,14 +189,7 @@ def _grammar(rules: Mapping[str, object]) -> None:
             "assignment": "=",
         },
     )
-    _section(
-        rules,
-        "documentation",
-        {
-            "delimited_decoration": "*",
-        },
-        {"owners": _owners},
-    )
+    _section(rules, "documentation", {}, {"owners": _owners})
     _section(
         rules,
         "directives",

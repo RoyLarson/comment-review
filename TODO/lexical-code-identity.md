@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 3 of 4 tasks closed
+Progress: 4 of 13 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-10 (live-run)
@@ -33,3 +33,23 @@ Use lexical code identity at both proof boundaries.
       retained code after multiline documentation removal
         > 2026-10-14 Check: multiline doc removal retains closing-line code indentation
         > 2026-10-14 Reason: _documentation_span loses the retained suffix context
+- [ ] T5 | Compare a shebang no language row names in the stripped proof
+        > 2026-10-26 Check: dropping a .rb, .sh or .lua shebang is refused
+        > 2026-10-26 Reason: pre-existing; .js, .rs and .py already refuse it
+- [ ] T6 | Prove a Lua file whose [[ only opens a --[[ comment
+        > 2026-10-26 stripped.py:84: any [[ in text is unprovable; each --[[ hits it
+        > 2026-10-30 Part met 91c8e885: a no-code Lua file with --[[ now proves
+- [x] T7 | FINISHED: no-code file proves under a language row (#248) | 435fed79 | Prove
+      a lexical file that has no line of code
+        > 2026-10-27 code_fingerprint: an empty strip is unprovable; at ef037f20
+        > 2026-10-27 Blocks #241: filling a no-code file's <eof> a refuses at prove
+        > 2026-10-30 #248: only under a language row; no row stays unprovable
+- [ ] T8 | Refuse an escape that ends a comment in a row's grammar
+        > 2026-10-30 Java \u000a, C *\ newline /, trigraphs; pass beside code too
+- [ ] T9 | Add per-row directive forms the proof protects inside comments
+        > 2026-10-30 /// <reference> in .d.ts; /*!50000 DROP TABLE */ in .sql; design
+- [ ] T10 | Refuse an ordinary string spanning lines at `stripped.py:129`
+- [ ] T11 | Compare the interpreter line by bytes at `stripped.py:169`
+- [ ] T12 | Read only code for a spanning delimiter at `stripped.py:129`
+- [ ] T13 | Hold a backslash continuation in the stripped comparison,
+      `stripped.py:108`

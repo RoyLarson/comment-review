@@ -58,7 +58,12 @@ from comment_review.machine.repo import (
 )
 from comment_review.reading.addresser import SEPARATOR
 from comment_review.reading.context import ReadingContext
-from comment_review.reading.diagnostics import ReadFailure
+from comment_review.reading.coordinates import SourceCoordinates
+from comment_review.reading.diagnostics import (
+    DetachedDocumentation,
+    ReadDiagnostic,
+    ReadFailure,
+)
 from comment_review.reading.language import INSTALLED_REGISTRY
 from comment_review.reading.paragraph import Paragraph
 
@@ -89,7 +94,8 @@ class Gathering:
     #: files the name corpus could not read, from `code_names`
     unread: list[str] = field(default_factory=list)
     #: what a read noted without refusing the file, one printable line per
-    #: `PageWarning`; the run proceeds and the command prints them
+    #: warning of the read, naming its file and line; the run proceeds and the
+    #: command prints them
     warnings: list[str] = field(default_factory=list)
     pages: list[Page] = field(default_factory=list)
     #: what the pages carry, flat, in page order -- see `carried`
@@ -187,12 +193,27 @@ def _pages(g: Gathering) -> None:
             g.unreadable.append(format_failure(got, path=rel))
             continue
         g.pages.append(got)
-        # The phrase is the warning's code, `detached-documentation`, as words.
-        g.warnings.extend(
-            f"warning: {rel}@{w.cue}: {w.code.replace('-', ' ')} for {w.owner}"
-            for w in got.warnings
-        )
+        # The phrase is the warning's code as words, then the owner a
+        # detached doc was written for.
+        located = [w for w in got.read.warnings if w.span is not None]
+        if located:
+            coordinates = SourceCoordinates(got.text)
+            g.warnings.extend(
+                f"warning: {rel}:{coordinates.position(w.span.start).line}:"
+                f" {w.code.replace('-', ' ')}{_owner(w)}"
+                for w in located
+                if w.span is not None
+            )
         g.paragraphs.extend(carried(got))
+
+
+def _owner(warning: ReadDiagnostic) -> str:
+    """The owner a detached doc was written for, as the warning line ends it."""
+    if not isinstance(warning, DetachedDocumentation):
+        return ""
+    if warning.owner_line is None:
+        return " (owner: module)"
+    return f" (owner on line {warning.owner_line})"
 
 
 def _annotations(g: Gathering) -> None:

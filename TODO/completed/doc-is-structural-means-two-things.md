@@ -1,8 +1,8 @@
 # doc_is_structural means two things and its docstring names one
 
 ```
-Status:   open
-Progress: 0 of 3 tasks closed
+Status:   closed
+Progress: 3 of 3 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-18 (Roy, 2026-08-18, asking whether docstrings are separable per
@@ -95,12 +95,15 @@ census emits.
 
 ## Tasks
 
-- [ ] T1 | T1 -- Split or rename `doc_is_structural` so each reader names the
-      property it uses. Verify: `grep -n doc_is_structural scripts/*.py` shows
-      each reader's property.
-- [ ] T2 | T2 -- Correct `lexer.block_text`'s docstring at `:634-635` and
-      `:643-644`, which call it a string in a body. Verify: no comment says only
-      Python sets the flag.
-- [ ] T3 | T3 -- Refuse or route the latent case -- a record with both
-      `doc_line` and `doc_is_structural=True`. Verify: a `///` run through
-      `block_text` keeps no marker.
+- [-] T1 | SUPERSEDED: doc_is_structural, flag_structural_docs and block_text no longer exist | 20cbdbbd | T1
+      -- Split or rename `doc_is_structural` so each reader names the property
+      it uses. Verify: `grep -n doc_is_structural scripts/*.py` shows each
+      reader's property.
+- [-] T2 | SUPERSEDED: doc_is_structural, flag_structural_docs and block_text no longer exist | 20cbdbbd | T2
+      -- Correct `lexer.block_text`'s docstring at `:634-635` and `:643-644`,
+      which call it a string in a body. Verify: no comment says only Python sets
+      the flag.
+- [-] T3 | SUPERSEDED: doc_is_structural, flag_structural_docs and block_text no longer exist | 20cbdbbd | T3
+      -- Refuse or route the latent case -- a record with both `doc_line` and
+      `doc_is_structural=True`. Verify: a `///` run through `block_text` keeps
+      no marker.

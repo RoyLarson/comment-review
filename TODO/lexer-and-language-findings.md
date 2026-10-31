@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 21 of 49 tasks closed
+Progress: 25 of 69 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (/simplify rounds 1 and 2 and /code-review high round 3,
@@ -327,10 +327,63 @@ would.
 - [ ] T46 | Move the galley-defect account out of the lexer's loop
         > 2026-10-17 Reason: it documents results/galley.py, not this loop
         > 2026-10-17 Check: the loop comment states only what the loop does
-- [ ] T47 | Remove the `doc-kind-unresolved` annotation, which nothing reads
+- [x] T47 | FINISHED: doc-kind-unresolved and flag_structural_docs retired (#231) | 79cf418f | Remove
+      the `doc-kind-unresolved` annotation, which nothing reads
         > 2026-10-17 Reason: grep over src and tests finds it only where it is stamped
         > 2026-10-17 Check: grep -rn doc-kind-unresolved src finds nothing
 - [x] T48 | Python row removed; python.toml is its only definition | 064bd62d | Remove
       the Python `Language` row from `LANGUAGES`
 - [x] T49 | rust.toml states //! and /*! as inner doc openers | 3f1a4817 | State
       Rust's inner doc openers in Rust's own definition file
+- [ ] T50 | Read a line-1 comment run above a declaration as f0 matter, not an a
+      docstring (#232)
+        > 2026-10-26 js: // Licence, blank, function f() {} -> a1; over const x -> f0
+        > 2026-10-26 At ef037f20 too; document_declarations claims before the matter cut
+- [ ] T51 | Make Python decorators and Rust attributes one unit with their item
+        > 2026-10-26 decision-log #238; CodeLine.joins from P18; b falls inside today
+        > 2026-10-27 Lands with one-reader-builder (#244); fix once for every reader
+        > 2026-10-30 W5: with a Rust attribute the fn line declares nothing, says a0
+        > 2026-10-30 Check: `owner_at` gets the trigger line; decorated drafts refuse
+        > 2026-10-30 Fix: `_documented_line` returns a line `owner_at` matches (D5)
+- [ ] T52 | Match a C# attribute section apart from a collection expression
+- [x] T53 | FINISHED: #240 for all three readers; pymc sets back identical | 70f1f028 | Make
+      every comment above a module docstring front matter, per #240
+        > 2026-10-26 py: lic, blank, # note, blank, doc sets back reordered; at ef037f20
+        > 2026-10-26 js twin hides it: // note + /** Doc. */ read as one b0 comment
+        > 2026-10-26 pymc _version.py, distributions/continuous.py, setupegg.py
+        > 2026-10-26 Foot mirrors it (#240): comments under a closing doc are matter
+        > 2026-10-27 Also: let y; /** D */ // c, blank, // m: eof a fill reads as f1
+        > 2026-10-27 Also let y; /** D */ // c, blank, // m: eof a fill reads as f1
+        > 2026-10-30 W4: comments both sides of a py module doc now refuse the gather
+- [ ] T54 | Add Kotlin's property keywords to its declares list
+- [ ] T55 | Join an annotation whose arguments run onto a second line
+- [ ] T56 | Offer no place inside a string literal that spans lines
+        > 2026-10-27 C backslash strings get c; Python triple quotes get b
+- [ ] T57 | Place a doc comment whole when another opens on its first line
+        > 2026-10-27 /** M */ /** F, newline, */ over f is cut over a0 and a1
+        > 2026-10-30 I7: lexer.py:948 same cut on another comment's closing line
+- [ ] T58 | Allow an add at the b directly above a declaration
+        > 2026-10-30 W2: refused in TS Go Ruby Lua Kotlin C# Swift
+- [ ] T59 | Read a delimited comment after a string-only prefix as trailing
+        > 2026-10-30 I1: lexer.py:1037; "b" /* c */ becomes prose, file unprovable
+- [x] T60 | FINISHED: each row states its line endings; text holding one refuses (#250) | 23f96926 | Refuse
+      a line separator inside a comment that ends at the line break
+        > 2026-10-30 // a U+2028 evil(); accepted in js/ts, node ran it; cs too
+- [ ] T61 | Refuse a C comment ending in a backslash splice
+        > 2026-10-30 C/C++ '// a \' splices the next code line; not compiled here
+        > 2026-10-30 Roy: waits for a C specific reader (#250)
+- [x] T62 | FINISHED: shell and Ruby rows name their shebang | 34c14a05 | Name
+      the shebang on the shell row
+        > 2026-10-30 language.py:434: a shebang can be dropped or altered in .sh
+- [ ] T63 | Read one definition of a blank line in `lexer.py:967` and
+      `stripped.py:26`
+        > 2026-10-31 Also `lexer.py:1055`, `:1076`, `:1131`; U+3000 refuses wrongly
+        > 2026-10-31 U+3000 refusal fixed in d64cd55f; reader `BLANK` differs from proof
+- [ ] T64 | Let `a0` hold a plain comment flush under a bare shebang
+- [ ] T65 | Test a line ending carried through a `c` place
+- [ ] T66 | Test a line ending on a paragraph's later line
+- [ ] T67 | Confirm the CR notes at `language.py:190`, `:492` and
+      `nests_comments`
+- [ ] T68 | Refuse the `.rs` draft rustc cannot read at `rust/records.py:350`
+        > 2026-10-31 Outcome: refuse in `RustRead.preserved`, #256
+- [ ] T69 | Add `RecursionError` to `PARSE_ERRORS` at `exceptions.py:80`

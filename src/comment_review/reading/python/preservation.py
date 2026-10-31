@@ -65,13 +65,13 @@ def compare_preservation(
     removed = frozenset(
         index
         for index, payload in enumerate(before.payloads)
-        if payload.expression.declaration in selected
+        if payload.declaration in selected
     )
     was = _project(before, removed)
     candidates = frozenset(
         index
         for index, payload in enumerate(after.payloads)
-        if payload.expression.declaration in selected
+        if payload.declaration in selected
     )
     now_removed = frozenset()
     if candidates:
@@ -123,7 +123,7 @@ def _physical_lines(text: str) -> Iterator[tuple[int, int, int]]:
 def _documentation_span(read: PythonRead, index: int) -> SourceSpan:
     """Include only the acquired expression and its otherwise empty line trivia."""
     text = read.source.text
-    statement = read.payloads[index].expression.statement
+    statement = read.payloads[index].statement
     start, end = statement.start, statement.end
     line_start = max(text.rfind("\n", 0, start), text.rfind("\r", 0, start)) + 1
     line_end = end
@@ -212,7 +212,7 @@ def _project(
     ]
     documentation: dict[int, str] = {}
     documentation_ends: set[int] = set()
-    for index, payload in enumerate(read.payloads):
+    for index, expression in enumerate(read.payloads):
         if index in removed:
             span = _documentation_span(read, index)
             keep[span.start : span.end] = [False] * (span.end - span.start)
@@ -229,7 +229,6 @@ def _project(
             continue
         if index in literal_documentation:
             continue
-        expression = payload.expression
         start, end = expression.components[0].start, expression.components[-1].end
         keep[start:end] = [False] * (end - start)
         exact[start:end] = [False] * (end - start)
@@ -295,7 +294,7 @@ def _protection(
         nonlocal envelopes
         evidence = []
         for index in sorted(removed):
-            expression = read.payloads[index].expression
+            expression = read.payloads[index]
             statement = expression.statement
             if not any(
                 other is not None

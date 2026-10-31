@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 2 tasks closed
+Progress: 1 of 3 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-25 (decision-log.md Process: #222)
@@ -22,3 +22,6 @@ Worked when it is asked for -- decision-log.md Process: #222.
         > 2026-10-25 Check: spec states modes, directive bounds, doc owners, fixtures
 - [ ] T2 | Implement the C# reader from its definition
         > 2026-10-25 Check: uv run pytest -q tests/reading/test_csharp.py
+- [x] T3 | Ruled #252; the row change is in the repair commit | 207d733bcd76762e6fe72d77618c45e68c11ad42 | Decide
+      whether C# holds `#!` as an interpreter line
+        > 2026-10-30 Outcome: C# names `#!` on its row (#252)

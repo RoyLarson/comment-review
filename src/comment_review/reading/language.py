@@ -12,13 +12,14 @@ revisions, capabilities and coverage tiers for registration, dispatch and
 reporting.
 """
 
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, fields
 from importlib.resources import files
 from pathlib import Path
 from types import MappingProxyType
 from typing import Any, cast
 
+from comment_review import constants
 from comment_review.reading.definitions import LanguageDefinition, decode_definition
 from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, ReadStage
 from comment_review.reading.registry import LanguageRegistry
@@ -36,9 +37,6 @@ class Language:
             comment (Rust `///`, `//!`). Empty when the language marks docs
             some other way.
         doc_block: paragraph openers that mean DOC (`/**`). Same idea.
-        doc_is_structural: the doc is the run above a declaration (Go), which
-            needs structure to decide, so this tier reports `comment` and
-            annotates the paragraph.
         quotes: string delimiters, so a marker inside a literal is skipped.
         char_quotes: delimiters that hold exactly ONE character in this
             language -- `'a'`, or one escape. !! IT IS PER LANGUAGE AND CANNOT BE ONE
@@ -56,10 +54,8 @@ class Language:
             these reads as a comment; `prove_unchanged` refuses such a file
             rather than proving it. Empty where a language has none.
         declares: the KEYWORDS this language uses to introduce something that
-            can carry documentation. !! EMPTY MEANS THE LANGUAGE HAS NO `a`
-            SERIES AT ALL -- not "none found in this file". A language with no
-            docstring practice, such as YAML or TOML, would otherwise be given
-            an `a0` it can never fill.
+            can carry documentation. Empty, the language still has an `a`
+            series when it has doc markers -- see `a_series`.
         nests_comments: an opener INSIDE a paragraph comment adds a LAYER, so the
             run closes only when every one of them does. Rust, Swift and Kotlin;
             C, C++, Java, C#, JS, TS, Go and SQL do NOT, and there the first
@@ -68,6 +64,26 @@ class Language:
         doc_inside: the documentation is the first thing INSIDE the body, not
             the run ABOVE the declaration. No row sets it: the language that
             documents this way, Python, states it in its own definition file.
+        shebang: what line 1 opens with when it is an interpreter line (`#!`),
+            which runs the file whether or not the language reads it as a
+            comment. The line is the file's own matter, the matter rule opens on
+            the line below it, and the comparison holds it exactly, on line 1.
+            Empty where the language has none.
+        annotations: what a line of code opens with when it is an annotation,
+            attribute or decorator, which belongs to the declaration below it
+            (Java `@Override`, C# `[Serializable]`). The run above such lines
+            documents that declaration. Empty where the language has none.
+        word_breaks: the characters a line comment's opener must follow, or
+            line start. They end a word, and an opener inside a word is that
+            word's text (shell `$#`). A backslash before one takes its meaning
+            away. Empty where an opener opens wherever it stands.
+        word_parens: the openers whose closing `)` leaves the word open, where
+            `)` is a word break otherwise (shell `$(`: `$(x)#y` is one word).
+        line_endings: the characters beyond LF and CR that end a line in this
+            language's grammar. `constants.text_lines` does not split on them, so
+            a line comment holding one is a comment here and two lines to the
+            language, and the read refuses it. Empty where the grammar defines
+            none.
     """
 
     name: str
@@ -76,13 +92,47 @@ class Language:
     block_comment: tuple[tuple[str, str], ...] = ()
     doc_line: tuple[str, ...] = ()
     doc_block: tuple[str, ...] = ()
-    doc_is_structural: bool = False
     quotes: tuple[str, ...] = ('"', "'")
     char_quotes: tuple[str, ...] = ()
     nests_comments: bool = False
     spanning_quotes: tuple[str, ...] = ()
     declares: tuple[str, ...] = ()
     doc_inside: bool = False
+    shebang: tuple[str, ...] = ()
+    annotations: tuple[str, ...] = ()
+    word_breaks: tuple[str, ...] = ()
+    word_parens: tuple[str, ...] = ()
+    line_endings: tuple[str, ...] = ()
+
+    @property
+    def a_series(self) -> bool:
+        """Whether the row declares a documentation practice: doc markers or keywords.
+
+        A language with neither, such as YAML or TOML, has no `a` series at all
+        -- not an empty one -- since an `a0` there could never be filled.
+        """
+        return bool(self.doc_line or self.doc_block or self.declares)
+
+    @property
+    def closing_docstring(self) -> bool:
+        """Whether the module's documentation can sit at the file's foot: a doc marker.
+
+        A run after the last line of code documents the module only when it is
+        doc-marked, so a row with no doc marker, such as Go or Ruby, has no
+        closing docstring, and a comment written there is back matter.
+        """
+        return bool(self.doc_line or self.doc_block)
+
+    def interpreter_line(self, lines: Sequence[str]) -> str | None:
+        """The file's first line when it opens with `shebang`, exactly, or None.
+
+        `lines` is the file's lines, as `constants.text_lines` gives them. A
+        byte-order mark before the shebang is part of the line returned, and
+        not part of what is matched.
+        """
+        if lines and constants.without_mark(lines[0]).startswith(self.shebang):
+            return lines[0]
+        return None
 
 
 # ! Line-comment openers are matched longest-first whatever order a row
@@ -102,14 +152,13 @@ LANGUAGES: tuple[Language, ...] = (
         (".go",),
         ("//",),
         (("/*", "*/"),),
-        doc_is_structural=True,
         # ! A rune literal is one character.
         char_quotes=("'",),
         # !! THE BACKTICK IS A STRING DELIMITER AND MUST BE BLANKED. Leaving it
         # out on the ground that a raw string takes no escapes was reasoning
         # about the wrong cost: `return `http://example.com/a`` then read as
         # a TRAILING COMMENT carrying the URL as prose, the `return` line left
-        # `return `http:` and dropped out of `code_lines`, and every `b`/`c`
+        # `return `http:` and dropped out of `code_text`, and every `b`/`c`
         # below it renumbered.
         # ! This blanking is imperfect here: `_strip_strings` honours a
         # backslash, and a raw string ending in one (`` `C:\` ``) runs past its
@@ -123,10 +172,15 @@ LANGUAGES: tuple[Language, ...] = (
         # documentation, which is `a0`. Naming it gave the same prose two
         # places, `a0` and `a1`.
         declares=("func", "type", "var", "const"),
+        annotations=(),
+        # ! The Go spec's `newline` is U+000A alone.
+        line_endings=(),
     ),
-    # !! C AND C++ GET NO `a`. A C function is introduced by its RETURN TYPE --
-    # `size_t f(void)`, `MyRec f(void)` -- and `_declares_here` reads only a
-    # line's first two words, so no keyword list can reach the name.
+    # !! C AND C++ DECLARE NO KEYWORDS, so no declaration gets an `a`. A C
+    # function is introduced by its RETURN TYPE -- `size_t f(void)`, `MyRec
+    # f(void)` -- and `_declares_here` reads only a line's first two words, so
+    # no keyword list can reach the name. Their doc marker still gives the
+    # module its `a0` and `<eof>` `a` -- see `Language.a_series`.
     # ! A wrong `a` is worse than no `a`: a spurious match renumbers every `a`
     # below it, and an instruction is then invited on something that cannot hold one.
     Language(
@@ -137,6 +191,12 @@ LANGUAGES: tuple[Language, ...] = (
         doc_block=("/**",),
         char_quotes=("'",),
         quotes=('"', "'"),
+        # ! C23's attribute specifier `[[...]]` may stand on its own line
+        # before a declaration.
+        annotations=("[[",),
+        # ! C leaves the end of a physical line to the implementation; GCC and
+        # Clang end one at LF, CR or CRLF.
+        line_endings=(),
     ),
     Language(
         "cpp",
@@ -153,6 +213,12 @@ LANGUAGES: tuple[Language, ...] = (
         # strings do not.
         spanning_quotes=('R"',),
         quotes=('"', "'"),
+        # ! C++11's attribute specifier `[[...]]` may stand on its own line
+        # before a declaration.
+        annotations=("[[",),
+        # ! C++ leaves the end of a physical line to the implementation; GCC,
+        # Clang and MSVC end one at LF, CR or CRLF.
+        line_endings=(),
     ),
     Language(
         "java",
@@ -195,6 +261,11 @@ LANGUAGES: tuple[Language, ...] = (
         # not a comment.
         spanning_quotes=('"""',),
         quotes=('"', "'"),
+        # ! An annotation, `@Override` or `@Ann(x = 1)`, modifies the
+        # declaration it precedes.
+        annotations=("@",),
+        # ! JLS 3.4: LF, CR and CRLF, and nothing else.
+        line_endings=(),
     ),
     Language(
         "csharp",
@@ -235,6 +306,15 @@ LANGUAGES: tuple[Language, ...] = (
         # contain `@"`.
         spanning_quotes=('"""', '@"'),
         quotes=('"', "'"),
+        # ! .NET's file-based programs read `#!` on line 1 as an interpreter
+        # line; a project build refuses it.
+        shebang=("#!",),
+        # ! EMPTY: `[` opens an attribute section, `[Serializable]`, and also
+        # a collection-expression line, `[1, 2];`, and a line's opening
+        # character cannot tell the two apart.
+        annotations=(),
+        # ! The C# spec's `new_line`: U+0085, U+2028 and U+2029 beside CR and LF.
+        line_endings=("\x85", "\u2028", "\u2029"),
     ),
     Language(
         "swift",
@@ -272,6 +352,13 @@ LANGUAGES: tuple[Language, ...] = (
         ),
         spanning_quotes=('"""',),
         quotes=('"',),
+        # ! `swift` skips a `#!` line at the head of a script.
+        shebang=("#!",),
+        # ! An attribute, `@objc` or `@available(...)`, applies to the
+        # declaration it precedes.
+        annotations=("@",),
+        # ! The Swift reference's `line-break`: U+000A, U+000D and the pair.
+        line_endings=(),
     ),
     Language(
         "kotlin",
@@ -311,6 +398,14 @@ LANGUAGES: tuple[Language, ...] = (
         ),
         spanning_quotes=('"""',),
         quotes=('"', "'"),
+        # ! The Kotlin grammar opens `kotlinFile` and `script` alike with an
+        # optional `shebangLine`, so `.kt` and `.kts` read line 1 the same.
+        shebang=("#!",),
+        # ! An annotation, `@JvmStatic` or `@Suppress(...)`, applies to the
+        # declaration it precedes.
+        annotations=("@",),
+        # ! The Kotlin grammar's `NL`: LF, CR and CRLF.
+        line_endings=(),
     ),
     Language(
         "javascript",
@@ -323,6 +418,14 @@ LANGUAGES: tuple[Language, ...] = (
         declares=("function", "class", "export", "async"),
         quotes=('"', "'", "`"),
         spanning_quotes=("`",),
+        # ! Node and the ECMAScript hashbang grammar read `#!` on line 1 as an
+        # interpreter line, not as code and not as a comment.
+        shebang=("#!",),
+        # ! ECMAScript's grammar defines no decorator; the `@` form is a
+        # proposal, not the language.
+        annotations=(),
+        # ! ECMA-262 `LineTerminator`: U+2028 and U+2029 beside LF and CR.
+        line_endings=("\u2028", "\u2029"),
     ),
     Language(
         "typescript",
@@ -347,24 +450,41 @@ LANGUAGES: tuple[Language, ...] = (
         ),
         quotes=('"', "'", "`"),
         spanning_quotes=("`",),
+        # ! TypeScript's scanner reads `#!` on line 1 as an interpreter line
+        # and emits it unchanged.
+        shebang=("#!",),
+        # ! A decorator, `@Component(...)`, applies to the declaration it
+        # precedes.
+        annotations=("@",),
+        # ! TypeScript's scanner, `isLineBreak`: U+2028 and U+2029 beside LF and
+        # CR. It reads U+0085 as white space.
+        line_endings=("\u2028", "\u2029"),
     ),
     Language(
         "ruby",
         (".rb",),
         ("#",),
         (("=begin", "=end"),),
-        doc_is_structural=True,
+        # ! `ruby` reads `#!` on line 1 for its switches, and the kernel reads it
+        # to run the file, though the grammar makes it a comment.
+        shebang=("#!",),
         declares=("def", "class", "module"),
         # ! A HEREDOC CROSSES LINES BY DEFINITION. Declared so a file holding
         # one is refused rather than having a line inside it stripped as a
         # comment.
         spanning_quotes=("<<~", "<<-"),
         quotes=('"', "'"),
+        annotations=(),
+        # ! The Ruby spec's `line-terminator`: LF and CRLF.
+        line_endings=(),
     ),
     Language(
         "shell",
         (".sh", ".bash", ".zsh"),
         ("#",),
+        # ! The kernel reads `#!` on line 1 to choose the program that runs the
+        # file, though the shell's grammar makes it a comment.
+        shebang=("#!",),
         declares=("function",),
         # ! A HEREDOC CROSSES LINES, and in shell `<<` is one almost always -- the
         # only other reading is an arithmetic left shift inside `$(( ))`. A `#`
@@ -372,7 +492,17 @@ LANGUAGES: tuple[Language, ...] = (
         # delete it from both fingerprints. ! `<<<` (herestring) and `<<-` both
         # contain `<<`.
         spanning_quotes=("<<",),
-        quotes=('"', "'"),
+        # ! A backtick substitution is read as a literal: a `#` in one ends at
+        # the closing backtick, and a line comment here runs to the line's end.
+        quotes=('"', "'", "`"),
+        annotations=(),
+        # ! Bash's blanks and metacharacters. `#` opens a comment only as the
+        # first character of a word, and these are what end one.
+        word_breaks=(" ", "\t", ";", "&", "|", "(", ")", "<", ">"),
+        # ! Substitutions and an array assignment are part of their word.
+        word_parens=("$(", "<(", ">(", "=("),
+        # ! POSIX: a newline is LF.
+        line_endings=(),
     ),
     Language(
         "sql",
@@ -380,6 +510,10 @@ LANGUAGES: tuple[Language, ...] = (
         ("--",),
         (("/*", "*/"),),
         quotes=("'", '"'),
+        annotations=(),
+        # ! The standard leaves it to the implementation; PostgreSQL's and
+        # MySQL's scanners end a `--` comment at LF or CR.
+        line_endings=(),
     ),
     Language(
         "lua",
@@ -415,6 +549,12 @@ LANGUAGES: tuple[Language, ...] = (
         # costing; it is stated because a silent bound reads as completeness.
         spanning_quotes=("[[", "[=[", "[==["),
         quotes=('"', "'"),
+        # ! `lua` skips line 1 when it opens with `#`, and the kernel reads `#!`
+        # there to run the file. Any other `#` line 1 stays code on this row.
+        shebang=("#!",),
+        annotations=(),
+        # ! The Lua lexer's newline is LF or CR.
+        line_endings=(),
     ),
     # !! TOML AND INI ARE TWO LANGUAGES AND TWO ROWS. They share `#` and
     # nothing else: INI also takes `;`, and TOML's multi-line strings do not
@@ -429,6 +569,9 @@ LANGUAGES: tuple[Language, ...] = (
         # every `.toml` file is refused before this field is consulted.
         spanning_quotes=('"""', "'''"),
         quotes=('"', "'"),
+        annotations=(),
+        # ! The TOML spec's newline: LF and CRLF.
+        line_endings=(),
     ),
     # ! `;` is INI's original comment marker and `#` the later convention; both
     # are live, so both are listed. There is no multi-line string in INI.
@@ -437,12 +580,18 @@ LANGUAGES: tuple[Language, ...] = (
         (".ini", ".cfg"),
         ("#", ";"),
         quotes=(),
+        annotations=(),
+        # ! INI has no grammar that names one beyond LF and CR.
+        line_endings=(),
     ),
     Language(
         "yaml",
         (".yaml", ".yml"),
         ("#",),
         quotes=('"', "'"),
+        annotations=(),
+        # ! YAML 1.2 `b-break`: LF and CR, and it retired U+0085.
+        line_endings=(),
     ),
 )
 
@@ -549,6 +698,11 @@ def validate_language_definition(
             expected = installed.rules[key]
             if isinstance(expected, bool):
                 valid = type(value) is bool
+            elif key == "line_endings":
+                valid = isinstance(value, tuple) and all(
+                    isinstance(token, str) and len(token) == 1 and token not in "\r\n"
+                    for token in value
+                )
             elif key == "block_comment":
                 valid = isinstance(value, tuple) and all(
                     isinstance(pair, tuple)

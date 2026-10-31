@@ -22,6 +22,8 @@ import pytest
 from helpers import a_binder_over
 from test_mark_brief import BRIEF
 
+from comment_review.binder.page import Page
+from comment_review.constants import EMPTY_PATCH
 from comment_review.desk.marks.rules import allowed, derived_change
 from comment_review.desk.marks.table import INSTRUCTIONS
 from comment_review.desk.proof.mark import (
@@ -37,6 +39,8 @@ from comment_review.desk.proof.mark import (
     without_location,
 )
 from comment_review.desk.proof.sheet import Sheet
+from comment_review.flows.page_for import page_of
+from comment_review.machine.repo import Source
 
 
 def problems(where: str, entry: object) -> list[str]:
@@ -409,15 +413,16 @@ class TestTheRulesBite:
         bad["change"] = ""
         assert problems("here", bad)
 
-    def test_a_WHITESPACE_ONLY_change_is_not_an_answer(self):
+    @pytest.mark.parametrize("instruction", ["correct", "patch", "add", "drop"])
+    def test_a_WHITESPACE_ONLY_change_is_not_an_answer(self, instruction):
         """!! THE SAME GAP `filled` CLOSES FOR A `claim` KEY -- see
         `test_an_empty_claim_key_is_not_an_answer`, above. `may_empty` decides
         whether NO content is acceptable; it says nothing about whether
         whitespace counts as content, and a bare `not change` let it through
         for a row that does not allow an empty change at all."""
-        bad = well_formed("correct")
+        bad = well_formed(instruction)
         bad["change"] = "   "
-        assert any("change" in p for p in problems("here", bad))
+        assert any(EMPTY_PATCH in p for p in problems("here", bad))
 
     def test_a_change_carrying_the_anchors_own_code_line_is_refused(self):
         """`collator-defects` T35: a change is the paragraph alone, so one
@@ -432,6 +437,25 @@ class TestTheRulesBite:
         good = well_formed("correct")
         good["anchor"] = anchor
         good["change"] = "    #: the corrected comment"
+        assert problems("here", good) == []
+
+    @pytest.mark.parametrize("line", ["@Override", "public void run() {"])
+    def test_a_change_carrying_either_line_of_a_unit_is_refused(self, line):
+        """A unit's anchor is every line of it, read here from a real page."""
+        text = "class C {\n    @Override\n    public void run() {\n    }\n}\n"
+        page = page_of(Path("C.java"), source=Source(text, "held"))
+        assert isinstance(page, Page)
+        anchor = page.cues.anchor_of("a2")
+        assert anchor.splitlines() == ["    @Override", "    public void run() {"]
+
+        bad = well_formed("correct")
+        bad["anchor"] = anchor
+        bad["change"] = f"    /** Runs it. */\n    {line}"
+        assert any(repr(line) in p for p in problems("here", bad))
+
+        good = well_formed("correct")
+        good["anchor"] = anchor
+        good["change"] = "    /** Runs it. */"
         assert problems("here", good) == []
 
     def test_a_mark_owing_sources_that_cites_nothing_is_refused(self):

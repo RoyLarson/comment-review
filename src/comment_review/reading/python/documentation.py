@@ -1,5 +1,6 @@
 """Identify documentation expressions and decode their complete prose."""
 
+from bisect import bisect_left
 from collections.abc import Iterator, Mapping
 from typing import cast
 from unicodedata import lookup
@@ -9,7 +10,6 @@ from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, Read
 from comment_review.reading.python.definition import validate_python
 from comment_review.reading.python.records import (
     DocumentationExpression,
-    DocumentationPayload,
     LogicalLine,
     PythonPlacement,
     PythonScan,
@@ -25,7 +25,9 @@ def documentation_in(
     """Retain the first complete plain-string statement in each documentation body.
 
     Declaration indices and first positions come from preserved source placement.
-    Component spans identify only literals; the section also owns its closing tail.
+    Component spans identify only literals; the statement also owns its closing
+    tail: a trailing comment and, when the statement ends its logical line, the
+    rest of the physical line -- blanks and a continuation marker.
     """
     failure = validate_python(definition)
     if failure is not None:
@@ -42,6 +44,9 @@ def documentation_in(
     separator = cast(str, layout["statement_separator"])
     case_insensitive = cast(bool, literals["case_insensitive_prefixes"])
     expressions: list[DocumentationExpression] = []
+    # The scan's tokens are ordered, so the first at or after an offset is a
+    # bisection over their starts.
+    starts = [token.span.start for token in scan.tokens]
     for declaration, line, insertion in _bodies(scan, structure, owners):
         indices = tuple(
             index for index in line.tokens if scan.tokens[index].span.start >= insertion
@@ -69,8 +74,8 @@ def documentation_in(
         trailing = next(
             (
                 token
-                for token in scan.tokens
-                if token.kind == "comment" and token.span.start >= end
+                for token in _tokens_from(scan, starts, end)
+                if token.kind == "comment"
             ),
             None,
         )
@@ -78,12 +83,40 @@ def documentation_in(
             " \t\f"
         ):
             end = trailing.span.end
+        if stop is None or stop == line.tokens[-1]:
+            end = _line_end(scan, starts, end)
         expressions.append(
             DocumentationExpression(
                 SourceSpan(tokens[0].span.start, end), components, declaration
             )
         )
     return tuple(sorted(expressions, key=lambda expression: expression.statement.start))
+
+
+def _line_end(scan: PythonScan, starts: list[int], end: int) -> int:
+    """Where the physical line holding `end` ends, past blanks and continuation.
+
+    Called only when the documentation ends its logical line, so the rest of
+    the physical line is blanks and at most a continuation marker. `starts` is
+    each token's start, in the scan's order.
+    """
+    newline = next(
+        (
+            token
+            for token in _tokens_from(scan, starts, end)
+            if token.kind != "continuation"
+        ),
+        None,
+    )
+    return len(scan.text) if newline is None else newline.span.start
+
+
+def _tokens_from(
+    scan: PythonScan, starts: list[int], offset: int
+) -> Iterator[PythonToken]:
+    """The scan's tokens in order, from the first that starts at or after `offset`."""
+    for index in range(bisect_left(starts, offset), len(scan.tokens)):
+        yield scan.tokens[index]
 
 
 def _bodies(
@@ -167,8 +200,12 @@ def decode_documentation(
     scan: PythonScan,
     expression: DocumentationExpression,
     definition: LanguageDefinition,
-) -> DocumentationPayload | ReadFailure:
-    """Concatenate complete literal contents, decoding escapes and physical newlines."""
+) -> DocumentationExpression | ReadFailure:
+    """Admit the expression once every escape in its literals decodes.
+
+    A raw literal preserves its escapes, so only the others are decoded; an
+    escape the definition refuses is the `ReadFailure`.
+    """
     failure = validate_python(definition)
     if failure is not None:
         return failure
@@ -178,7 +215,6 @@ def decode_documentation(
     quotes = cast(tuple[str, ...], literals["short_quotes"])
     triples = cast(tuple[str, ...], literals["triple_quotes"])
     escape = cast(str, literals["escape_marker"])
-    chunks: list[str] = []
     text = scan.text
     for component in expression.components:
         quote_start = next(
@@ -193,41 +229,37 @@ def decode_documentation(
             (quote for quote in triples if text.startswith(quote, quote_start)),
             text[quote_start],
         )
-        raw = prefix in prefixes["raw"] and decoding["raw_escape"] == "preserve"
+        if prefix in prefixes["raw"] and decoding["raw_escape"] == "preserve":
+            continue
         start = quote_start + len(quote)
         end = component.end - len(quote)
         while start < end:
-            if text[start] in "\r\n":
-                following = _newline_end(text, start, end)
-                decoded = "\n"
-            elif not raw and text.startswith(escape, start):
-                result = _decode_escape(text, start, end, escape, decoding)
-                if isinstance(result, ReadFailure):
-                    return result
-                decoded, following = result
-            else:
-                following = start + 1
-                while following < end and text[following] not in "\r\n":
-                    if not raw and text.startswith(escape, following):
-                        break
-                    following += 1
-                decoded = text[start:following]
-            chunks.append(decoded)
-            start = following
-    return DocumentationPayload(expression, "".join(chunks))
+            if not text.startswith(escape, start):
+                start += 1
+                continue
+            result = decode_escape(text, start, end, escape, decoding)
+            if isinstance(result, ReadFailure):
+                return result
+            start = result[1]
+    return expression
 
 
 def _newline_end(text: str, start: int, end: int) -> int:
     return start + (2 if text.startswith("\r\n", start, end) else 1)
 
 
-def _decode_escape(
+def decode_escape(
     text: str,
     start: int,
     end: int,
     marker: str,
     decoding: Mapping[str, object],
 ) -> tuple[str, int] | ReadFailure:
+    """The characters the escape at `start` stands for, and the offset after it.
+
+    `decoding` is the definition's `literals.decoding` table; an escape it
+    refuses is a `ReadFailure`.
+    """
     suffix = start + len(marker)
     if suffix == end:
         return _payload_failure("invalid-documentation-escape", start, end)

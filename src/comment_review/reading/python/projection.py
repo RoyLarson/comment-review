@@ -1,16 +1,17 @@
 """Project retained Python records into whole editable source sections."""
 
-import re
+from bisect import bisect_right
 from pathlib import Path
 
 from comment_review import constants
 from comment_review.reading.coordinates import SourceCoordinates
 from comment_review.reading.definitions import LanguageDefinition
 from comment_review.reading.diagnostics import ReadFailure
+from comment_review.reading.matter import file_matter
 from comment_review.reading.paragraph import Paragraph
 from comment_review.reading.python.definition import validate_python
 from comment_review.reading.python.records import (
-    DocumentationPayload,
+    DocumentationExpression,
     ProtectedSource,
     PythonPlacement,
     PythonRead,
@@ -18,19 +19,21 @@ from comment_review.reading.python.records import (
 )
 from comment_review.reading.series import Kind
 from comment_review.reading.source import (
+    CodeLine,
+    DocPlace,
     DocumentationOwner,
-    DocumentationPlace,
     RegionKind,
     SourceSection,
     SourceSpan,
     SourceStructure,
+    lines_of_code,
 )
 
 
 def sections_for(
     scan: PythonScan,
     structure: PythonPlacement,
-    documentation: tuple[DocumentationPayload, ...],
+    documentation: tuple[DocumentationExpression, ...],
     definition: LanguageDefinition,
     directives: tuple[ProtectedSource, ...],
 ) -> PythonRead | ReadFailure:
@@ -51,14 +54,16 @@ def sections_for(
         if token.kind != "comment":
             continue
         if any(
-            payload.expression.statement.start <= token.span.start
-            and token.span.end <= payload.expression.statement.end
+            payload.statement.start <= token.span.start
+            and token.span.end <= payload.statement.end
             for payload in documentation
         ):
             continue
         start = token.span.start
         line_start = start - coordinates.position(start).column
-        whole = not scan.text[line_start:start].strip(" \t\f\ufeff")
+        whole = not scan.text[line_start:start].strip(
+            " \t\f" + constants.BYTE_ORDER_MARK
+        )
         if whole:
             start = line_start
         end = token.span.end
@@ -80,7 +85,7 @@ def sections_for(
             (
                 *comments,
                 *(
-                    SourceSection(payload.expression.statement, "docstring")
+                    SourceSection(payload.statement, "docstring")
                     for payload in documentation
                 ),
             ),
@@ -94,31 +99,51 @@ def sections_for(
     }
     owners = tuple(
         DocumentationOwner(
-            documentation_sections[payload.expression.statement],
-            payload.expression.declaration,
+            documentation_sections[payload.statement],
+            payload.declaration,
         )
         for payload in documentation
     )
     source = SourceStructure(
         scan.text, scan.regions, sections, structure.declarations, owners
     )
-    return PythonRead(source, documentation, protected, structure.insertions)
+    return PythonRead(source, documentation, protected)
 
 
 def paragraphs_for(path: Path, read: PythonRead) -> list[Paragraph] | ReadFailure:
-    """Adapt retained sections, splitting comment runs only at file-matter edges."""
+    """Adapt retained sections, cutting comment runs only at file-matter edges.
+
+    A comment section with code before it on its first line is TRAILING. Every
+    other comment section is cut at the edges `reading.matter` gives, and each
+    part is MATTER inside the file's own matter and COMMENT outside it.
+    """
     text = read.source.text
     coordinates = SourceCoordinates(text)
     lines = constants.text_lines(text)
-    payloads = {payload.expression.statement: payload for payload in read.payloads}
+    # A Python shebang or encoding line is a comment, so the matter opens on
+    # line 1. A closing string is code, so Python has no closing docstring.
+    prose = _prose(read, coordinates)
+    matter = file_matter(
+        len(lines),
+        1,
+        prose,
+        module_doc=_module_doc(read, coordinates),
+        codeless=not _code(read),
+    )
+    payloads = {payload.statement: payload for payload in read.payloads}
     paragraphs: list[Paragraph] = []
     for section in read.source.sections:
         span = section.span
         first = coordinates.position(span.start)
         last = coordinates.position(max(span.start, span.end - 1))
         if section.form == "docstring":
-            payload = payloads[span]
-            ordinal = payload.expression.declaration
+            ordinal = payloads[span].declaration
+            # None for the module's own docstring.
+            declaring = (
+                None
+                if ordinal is None
+                else read.source.declaring_line(read.source.declarations[ordinal])
+            )
             line_start = span.start - first.column
             raw_start = (
                 line_start
@@ -131,85 +156,89 @@ def paragraphs_for(path: Path, read: PythonRead) -> list[Paragraph] | ReadFailur
                     first.line,
                     last.line,
                     Kind.DOCSTRING,
-                    re.sub(r"\s+", " ", payload.text).strip(),
-                    address=f"a{0 if ordinal is None else ordinal + 1}",
+                    declares_line=declaring,
                     raw_lines=constants.text_lines(text[raw_start : span.end]),
                 )
             )
             continue
-        comments = [
-            region
-            for region in read.source.regions
-            if region.kind == RegionKind.COMMENT
-            and span.start <= region.span.start < span.end
-        ]
-        groups = [comments]
-        first_comment = coordinates.position(comments[0].span.start)
-        first_whole = not lines[first_comment.line - 1][: first_comment.column].strip(
-            " \t\f\ufeff"
-        )
-        if first_whole and first.line == 1:
-            split = next(
-                (
-                    i
-                    for i in range(1, len(comments))
-                    if coordinates.position(comments[i].span.start).line
-                    > coordinates.position(comments[i - 1].span.start).line + 1
-                ),
-                None,
-            )
-            if split is not None:
-                groups = [comments[:split], comments[split:]]
-        tail = groups[-1]
-        tail_start = coordinates.position(tail[0].span.start)
-        tail_whole = not lines[tail_start.line - 1][: tail_start.column].strip(
-            " \t\f\ufeff"
-        )
-        if tail_whole and coordinates.position(tail[-1].span.start).line == len(lines):
-            split = next(
-                (
-                    i
-                    for i in range(len(tail) - 1, 0, -1)
-                    if coordinates.position(tail[i].span.start).line
-                    > coordinates.position(tail[i - 1].span.start).line + 1
-                ),
-                None,
-            )
-            if split is not None:
-                groups[-1:] = [tail[:split], tail[split:]]
-        for group in groups:
-            start = coordinates.position(group[0].span.start)
-            end = coordinates.position(group[-1].span.end)
-            before = lines[start.line - 1][: start.column]
-            trailing = bool(before.strip(" \t\f\ufeff"))
-            kind = Kind.TRAILING if trailing else Kind.COMMENT
-            if not trailing and (start.line == 1 or end.line == len(lines)):
-                kind = Kind.MATTER
-            raw = lines[start.line - 1 : end.line]
-            if trailing:
-                raw[0] = raw[0][len(before.rstrip()) :]
+        before = lines[first.line - 1][: first.column]
+        if before.strip(" \t\f" + constants.BYTE_ORDER_MARK):
+            raw = lines[first.line - 1 : last.line]
+            raw[0] = raw[0][len(before.rstrip()) :]
             paragraphs.append(
                 Paragraph(
                     path.as_posix(),
-                    start.line,
-                    end.line,
-                    kind,
-                    re.sub(
-                        r"\s+",
-                        " ",
-                        " ".join(
-                            text[region.span.start + 1 : region.span.end].strip()
-                            for region in group
-                        ),
-                    ).strip(),
-                    anchor=before.rstrip() if trailing else "",
+                    first.line,
+                    last.line,
+                    Kind.TRAILING,
+                    anchor=before.rstrip(),
                     raw_lines=raw,
+                )
+            )
+            continue
+        for start, end, is_matter in matter.parts(first.line, last.line, prose):
+            paragraphs.append(
+                Paragraph(
+                    path.as_posix(),
+                    start,
+                    end,
+                    Kind.MATTER if is_matter else Kind.COMMENT,
+                    raw_lines=lines[start - 1 : end],
                 )
             )
     return paragraphs
 
 
-def code_for(read: PythonRead) -> dict[int, str]:
+def _module_doc(read: PythonRead, coordinates: SourceCoordinates) -> range | None:
+    """The lines of the module's docstring, or None when it has none."""
+    for payload in read.payloads:
+        if payload.declaration is None:
+            span = payload.statement
+            return range(
+                coordinates.position(span.start).line,
+                coordinates.position(max(span.start, span.end - 1)).line + 1,
+            )
+    return None
+
+
+def _prose(read: PythonRead, coordinates: SourceCoordinates) -> set[int]:
+    """The prose lines, for `reading.matter`: each line a whole-line comment is on.
+
+    A docstring is a statement, so no comment is documentation.
+    """
+    text = read.source.text
+    spans = [s.span for s in read.source.sections if s.form == "#"]
+    starts = [span.start for span in spans]
+    prose: set[int] = set()
+    for region in read.source.regions:
+        if region.kind != RegionKind.COMMENT:
+            continue
+        at = bisect_right(starts, region.span.start) - 1
+        if at < 0 or region.span.start >= spans[at].end:
+            continue
+        position = coordinates.position(region.span.start)
+        head = text[region.span.start - position.column : region.span.start]
+        if not head.strip(" \t\f" + constants.BYTE_ORDER_MARK):
+            prose.add(position.line)
+    return prose
+
+
+def code_lines_for(read: PythonRead) -> list[CodeLine]:
+    """Each code line, with a docstring's place on the line that declares it.
+
+    A docstring is set after the code line that ends its declaration's
+    signature: the line its header's closing colon is on.
+    """
+    source = read.source
+    declared: dict[int, DocPlace] = {}
+    for declaration in source.declarations:
+        declared[source.declaring_line(declaration)] = DocPlace(
+            source.position(declaration.header.end - 1).line, False
+        )
+    return lines_of_code(_code(read), declared)
+
+
+def _code(read: PythonRead) -> dict[int, str]:
     """Project place anchors from executable text and trailing-comment context."""
     text = read.source.text
     sections = read.source.sections
@@ -229,21 +258,7 @@ def code_for(read: PythonRead) -> dict[int, str]:
             boundary = min(end, span.end)
         chunks.append(text[boundary:end])
         anchor = "".join(chunks).rstrip()
-        if not anchor.strip(" \t\f\ufeff"):
-            # A documentation-only line can still anchor its separate c place.
-            # Its retained comment boundary preserves the physical prefix without
-            # assigning the documentation's characters to the comment section.
-            trailing = next(
-                (
-                    section.span.start
-                    for section in sections
-                    if section.form == "#" and offset < section.span.start < end
-                ),
-                None,
-            )
-            if trailing is not None:
-                anchor = text[offset:trailing].rstrip()
-        if anchor.strip(" \t\f\ufeff"):
+        if anchor.strip(" \t\f" + constants.BYTE_ORDER_MARK):
             code[number] = anchor
         offset = end
         if text.startswith("\r\n", offset):
@@ -251,18 +266,3 @@ def code_for(read: PythonRead) -> dict[int, str]:
         elif offset < len(text) and text[offset] in "\r\n":
             offset += 1
     return code
-
-
-def declarations_for(read: PythonRead) -> list[DocumentationPlace]:
-    """Translate retained declaration and insertion offsets into page coordinates."""
-    source = read.source
-    return [
-        DocumentationPlace(
-            source.position(declaration.anchor).line,
-            source.position(insertion).line,
-            False,
-        )
-        for declaration, insertion in zip(
-            source.declarations, read.insertions, strict=True
-        )
-    ]

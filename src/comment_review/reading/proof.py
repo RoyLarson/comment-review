@@ -4,18 +4,16 @@ Every reader returns a record of the file it read, and the record compares
 itself with a second read of the same file. A proof asks that question of the
 page's `read` and never of the language: `PythonRead` compares lexical source
 structure, and `StrippedRead` compares the source with its comments removed.
-`ReaderRecord` adds what the page builder reads from the same record: its
-paragraphs, code lines, documentation places and warnings.
+`ReaderRecord` is a read that also carries its source, which the page builder
+takes the page's text from.
 """
 
 from collections.abc import Collection
 from dataclasses import dataclass
-from pathlib import Path
 from typing import Protocol, Self
 
-from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure
-from comment_review.reading.paragraph import Paragraph
-from comment_review.reading.source import DocumentationPlace, SourceStructure
+from comment_review.reading.diagnostics import ReadDiagnostic
+from comment_review.reading.source import SourceStructure
 
 #: The diagnostic code a read reports when it cannot separate prose from code,
 #: so sameness is neither shown nor refuted.
@@ -60,6 +58,11 @@ class SourceRead(Protocol):
         """The comparison's name, as a proof report prints it."""
         ...
 
+    @property
+    def warnings(self) -> tuple[ReadDiagnostic, ...]:
+        """What the read noted without refusing the file."""
+        ...
+
     def preserved(
         self,
         after: Self,
@@ -78,35 +81,13 @@ class SourceRead(Protocol):
 
 
 class ReaderRecord(SourceRead, Protocol):
-    """A reader's record of one file, as the page builder reads it."""
+    """A read that carries the source it was made of.
+
+    The page builder takes the page's text from `source`, which a reader may
+    have rewritten, and keeps the record as the page's `read`.
+    """
 
     @property
     def source(self) -> SourceStructure:
         """The exact source and its reader-supplied structure."""
-        ...
-
-    @property
-    def warnings(self) -> tuple[ReadDiagnostic, ...]:
-        """What the read noted without refusing the file."""
-        ...
-
-    @property
-    def warning_owners(self) -> tuple[int | None, ...]:
-        """The owner of each `detached-documentation` warning, aligned with `warnings`.
-
-        An owner is the index of the declaration the detached documentation
-        would document, or None for the module.
-        """
-        ...
-
-    def paragraphs(self, path: Path) -> list[Paragraph] | ReadFailure:
-        """Every prose section of the file as a page paragraph."""
-        ...
-
-    def code(self) -> dict[int, str]:
-        """Each 1-based line's code; a line with none is absent."""
-        ...
-
-    def declarations(self) -> list[DocumentationPlace]:
-        """Each declaration's documentation place, in source order."""
         ...

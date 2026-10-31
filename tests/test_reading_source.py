@@ -8,6 +8,7 @@ import pytest
 
 from comment_review.reading.coordinates import SourceCoordinates
 from comment_review.reading.source import (
+    DocPlace,
     DocumentationOwner,
     RegionKind,
     SourceDeclaration,
@@ -41,6 +42,24 @@ def test_coordinates_share_positions_without_a_source_partition():
         SourcePosition(3, 1),
         SourcePosition(4, 0),
     ]
+
+
+@pytest.mark.parametrize(
+    "text,spans",
+    [
+        ("", []),
+        ("a", [(0, 1)]),
+        ("a\n", [(0, 1)]),
+        ("a\r\n\nb\rc", [(0, 1), (3, 3), (4, 5), (6, 7)]),
+        ("a\r\rb\r", [(0, 1), (2, 2), (3, 4)]),
+    ],
+)
+def test_coordinates_line_span_leaves_out_the_line_break(text, spans):
+    coordinates = SourceCoordinates(text)
+    assert [coordinates.line_span(n) for n in range(1, len(spans) + 1)] == spans
+    for number in (0, len(spans) + 1):
+        with pytest.raises(ValueError):
+            coordinates.line_span(number)
 
 
 @pytest.mark.parametrize("text", [None, b"", 1, True])
@@ -176,6 +195,20 @@ def test_partition_preserves_exact_source_and_classifications():
 
 def test_partition_accepts_empty_text():
     assert structure("", []).regions == ()
+
+
+def test_a_declaration_is_declared_on_its_anchors_line():
+    # The header opens on line 1 and its anchor, past the attribute, is on line 2.
+    text = "@d\ndef f(): pass\n"
+    declaration = SourceDeclaration(SourceSpan(0, 16), 3, "def")
+    source = SourceStructure(
+        text,
+        (SourceRegion(SourceSpan(0, len(text)), RegionKind.CODE),),
+        (),
+        (declaration,),
+        (),
+    )
+    assert source.declaring_line(declaration) == 2
 
 
 def test_classification_reference_distinguishes_literal_comment_and_directive():
@@ -956,6 +989,77 @@ def test_boundary_constructor_rejects_mutable_list_collections(field, empty):
     values[field] = [] if empty else list(values[field])
     with pytest.raises(ValueError, match=rf"^{field} must be a tuple$"):
         SourceStructure(**values)
+
+
+def test_code_lines_carry_the_documentation_place_of_their_line():
+    from comment_review.reading.source import CodeLine, DocPlace, lines_of_code
+
+    code = {1: "def f(", 2: "):", 4: "    pass"}
+    assert lines_of_code(code, {1: DocPlace(2, False)}) == [
+        CodeLine(1, "def f(", DocPlace(2, False)),
+        CodeLine(2, "):", None),
+        CodeLine(4, "    pass", None),
+    ]
+
+
+@pytest.mark.parametrize(
+    ("line", "at"), [(2, 2), (1, 3)], ids=["declaring-line", "documentation-line"]
+)
+def test_a_documentation_place_off_the_code_lines_is_refused(line, at):
+    from comment_review.reading.source import DocPlace, lines_of_code
+
+    with pytest.raises(ValueError, match="not a code line"):
+        lines_of_code({1: "def f():", 4: "    pass"}, {line: DocPlace(at, False)})
+
+
+def test_a_joined_line_is_marked_as_one_unit_with_the_code_line_above():
+    from comment_review.reading.source import CodeLine, DocPlace, lines_of_code
+
+    code = {1: "@Ann", 2: "@Other", 3: "class A {}", 5: "int x;"}
+    assert lines_of_code(code, {3: DocPlace(1, True)}, [2, 3]) == [
+        CodeLine(1, "@Ann", None, False),
+        CodeLine(2, "@Other", None, True),
+        CodeLine(3, "class A {}", DocPlace(1, True), True),
+        CodeLine(5, "int x;", None, False),
+    ]
+
+
+@pytest.mark.parametrize(
+    "joined", [[5], [4], [1]], ids=["under-a-blank", "not-code", "first-line"]
+)
+def test_a_joined_line_with_no_code_line_directly_above_is_refused(joined):
+    from comment_review.reading.source import lines_of_code
+
+    with pytest.raises(ValueError, match="joins no code line"):
+        lines_of_code({1: "@Ann", 2: "class A {}", 5: "int x;"}, {}, joined)
+
+
+@pytest.mark.parametrize(
+    ("declared", "joined", "match"),
+    [
+        ({3: DocPlace(2, True)}, [2, 3], "end on"),
+        ({3: DocPlace(1, True)}, [2], "joined"),
+        ({3: DocPlace(1, True)}, [], "joined"),
+        ({}, [2], "end on"),
+    ],
+    ids=[
+        "unit-ends-on-a-place-not-at-its-first-line",
+        "place-above-is-not-reached-through-joined-lines",
+        "place-above-with-no-joined-lines",
+        "joined-run-ends-on-no-declaration",
+    ],
+)
+def test_a_joined_run_and_the_place_it_is_set_above_must_agree(declared, joined, match):
+    from comment_review.reading.source import lines_of_code
+
+    with pytest.raises(ValueError, match=match):
+        lines_of_code({1: "@Ann", 2: "@Other", 3: "class A {}"}, declared, joined)
+
+
+def test_a_place_above_its_own_line_needs_no_joined_lines():
+    from comment_review.reading.source import lines_of_code
+
+    lines_of_code({1: "#[a]", 2: "fn f() {}"}, {2: DocPlace(2, True)})
 
 
 def test_boundary_source_import_does_not_load_workflow_modules():

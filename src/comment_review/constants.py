@@ -27,6 +27,19 @@ import sys
 #: The three things that end a line of a FILE: CRLF, CR, LF. Nothing else.
 LINE_BREAK = re.compile(r"\r\n|\r|\n")
 
+#: The byte-order mark a file may open with. It belongs to the file's encoding,
+#: not to the text of line 1, so a reader matches a marker after it.
+BYTE_ORDER_MARK = "\N{ZERO WIDTH NO-BREAK SPACE}"
+
+
+#: The error code of a replacement that holds no text.
+EMPTY_PATCH = "empty-patch"
+
+
+def holds_text(text: str) -> bool:
+    """Whether any character is left once this text's white space is removed."""
+    return bool(text.strip())
+
 
 def text_lines(text: str) -> list[str]:
     """This text as lines, split ONLY where a file's line actually ends.
@@ -60,6 +73,30 @@ def text_lines(text: str) -> list[str]:
     if out and out[-1] == "":
         out.pop()
     return out
+
+
+def without_mark(text: str) -> str:
+    """The text without a byte-order mark opening it."""
+    return text.removeprefix(BYTE_ORDER_MARK)
+
+
+def mark_of(text: str) -> str:
+    """The byte-order mark opening the text, or "" when it has none."""
+    return text[: len(text) - len(without_mark(text))]
+
+
+def scan_lines(text: str) -> list[str]:
+    """`text_lines` with the byte-order mark removed from line 1.
+
+    The mark is the file's encoding, not line 1's text, so a question about
+    what line 1 holds -- blank, code, or a comment marker first -- is asked of
+    these lines. The paragraphs and code lines a reader hands over keep the
+    mark, since `text_lines` is what the file is.
+    """
+    lines = text_lines(text)
+    if lines:
+        lines[0] = without_mark(lines[0])
+    return lines
 
 
 def utf8_console() -> None:

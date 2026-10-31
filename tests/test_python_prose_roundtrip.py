@@ -7,7 +7,7 @@ from comment_review.results.compositor import set_page
 from comment_review.results.galley import reset
 
 
-def assert_documentation(page, raw, prose, owner, decoded):
+def assert_documentation(page, raw, prose, owner):
     docs = [p for p in page if p.kind == Kind.DOCSTRING]
     assert len(docs) == 1
     doc = docs[0]
@@ -16,7 +16,6 @@ def assert_documentation(page, raw, prose, owner, decoded):
     assert doc.text == prose
     assert [p for p in page if p.raw_text == raw] == [doc]
     assert isinstance(page.read, PythonRead)
-    assert [p.text for p in page.read.payloads] == [decoded]
     assert [p.declaration for p in page.read.source.documentation] == [owner]
     return doc
 
@@ -41,7 +40,6 @@ def test_closing_comment_roundtrip_and_combined_replacement(
         if multiline
         else indent + '"""first""" # closing note'
     )
-    decoded = "first\n" + indent + "second" if multiline else "first"
     prose = "first second" if multiline else "first"
     following = indent + '"ordinary literal"\n' + indent
     following += "return 7  # detail\n" if function else "value = 7  # detail\n"
@@ -54,7 +52,7 @@ def test_closing_comment_roundtrip_and_combined_replacement(
     page = build(text)
     assert set_page(page) == text
     for current in (page, build(set_page(page))):
-        doc = assert_documentation(current, raw, prose, owner, decoded)
+        doc = assert_documentation(current, raw, prose, owner)
         assert [p for p in current if "# closing note" in p.raw_text] == [doc]
         assert sum(p.raw_text.count("# closing note") for p in current) == 1
         assert code_anchors(current) == expected_anchors
@@ -64,7 +62,6 @@ def test_closing_comment_roundtrip_and_combined_replacement(
         if multiline
         else indent + '"""changed\n' + indent + 'prose""" # edited note'
     )
-    edited_decoded = "changed" if multiline else "changed\n" + indent + "prose"
     edited_prose = "changed" if multiline else "changed prose"
     assert reset(page, {cue(doc): replacement}) == []
     composed = set_page(page)
@@ -74,9 +71,7 @@ def test_closing_comment_roundtrip_and_combined_replacement(
     assert composed.count("# edited note") == 1
     compile(composed, "m.py", "exec")
     reread = build(composed)
-    edited_doc = assert_documentation(
-        reread, replacement, edited_prose, owner, edited_decoded
-    )
+    edited_doc = assert_documentation(reread, replacement, edited_prose, owner)
     assert [p for p in reread if "# edited note" in p.raw_text] == [edited_doc]
     assert code_anchors(reread) == expected_anchors
     assert set_page(reread) == expected
@@ -84,12 +79,11 @@ def test_closing_comment_roundtrip_and_combined_replacement(
 
 @pytest.mark.parametrize("ending", ["\n", "\r\n"], ids=["lf", "crlf"])
 @pytest.mark.parametrize(
-    "header, raw, prose, decoded, following, owner",
+    "header, raw, prose, following, owner",
     [
         (
             "",
             '"complete " r"module"',
-            "complete module",
             "complete module",
             '"ordinary"\nvalue = 1\n',
             None,
@@ -98,14 +92,12 @@ def test_closing_comment_roundtrip_and_combined_replacement(
             "def f():\n",
             '    ("complete\\n"\n     "function")',
             "complete function",
-            "complete\nfunction",
             '    "ordinary"\n    return 1\n',
             0,
         ),
         (
             "class C:\n",
             '    (("complete " "class"))',
-            "complete class",
             "complete class",
             '    "ordinary"\n    value = 1\n',
             0,
@@ -114,7 +106,6 @@ def test_closing_comment_roundtrip_and_combined_replacement(
             "async def f():\n",
             '    (r"""complete\n    async """ "function")',
             "complete async function",
-            "complete\n    async function",
             '    "ordinary"\n    return 1\n',
             0,
         ),
@@ -127,7 +118,7 @@ def test_closing_comment_roundtrip_and_combined_replacement(
     ],
 )
 def test_complete_literal_expression_survives_writer_and_reread(
-    ending, header, raw, prose, decoded, following, owner
+    ending, header, raw, prose, following, owner
 ):
     text = (header + raw + "\n" + following).replace("\n", ending)
     compile(text, "m.py", "exec")
@@ -136,7 +127,7 @@ def test_complete_literal_expression_survives_writer_and_reread(
     assert composed == text
     expected_anchors = header.splitlines() + following.splitlines()
     for current in (page, build(composed)):
-        assert_documentation(current, raw, prose, owner, decoded)
+        assert_documentation(current, raw, prose, owner)
         assert code_anchors(current) == expected_anchors
         assert set_page(current) == text
 
@@ -172,13 +163,6 @@ def test_nested_lexical_owners_survive_replacement_and_reread():
             cue(p): p.text for p in current if p.kind == Kind.DOCSTRING
         } == expected_docs
         assert isinstance(current.read, PythonRead)
-        assert [p.text for p in current.read.payloads] == [
-            "module docs",
-            "class docs",
-            "method docs",
-            "nested\n            docs",
-            "sibling docs",
-        ]
         assert [p.declaration for p in current.read.source.documentation] == [
             None,
             0,
@@ -196,12 +180,5 @@ def test_nested_lexical_owners_survive_replacement_and_reread():
     expected_docs["a2"] = "changed method"
     assert {cue(p): p.text for p in reread if p.kind == Kind.DOCSTRING} == expected_docs
     assert isinstance(reread.read, PythonRead)
-    assert [p.text for p in reread.read.payloads] == [
-        "module docs",
-        "class docs",
-        "changed method",
-        "nested\n            docs",
-        "sibling docs",
-    ]
     assert code_anchors(reread) == anchors
     assert set_page(reread) == composed

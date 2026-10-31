@@ -1,4 +1,5 @@
 from copy import deepcopy
+from pathlib import Path
 
 import pytest
 from conftest import build
@@ -16,6 +17,7 @@ from comment_review.reading.language import (
     INSTALLED_DEFINITIONS,
     language_from_definition,
 )
+from comment_review.reading.stripped import code_fingerprint
 from comment_review.results import compositor, galley
 
 
@@ -212,6 +214,13 @@ def test_docstring_quotes_and_prefixes_survive_removal(quote):
     assert changed.startswith("    " + quote)
     assert changed.endswith(close)
     assert comment_at(paragraph.address, changed).text == "Keep. Ending stays."
+
+
+def test_a_docstring_continued_by_a_backslash_wraps_inside_its_quotes():
+    raw = '    """Keep. Move.""" \\'
+    form = comment_at("m.py@a1", raw)
+    assert form.fragments[0].wrap("New doc.") == '    """New doc.""" \\'
+    assert form.without_once("Move.") == '    """Keep.""" \\'
 
 
 @pytest.mark.parametrize("instruction", ["move", "drop"])
@@ -412,6 +421,175 @@ def test_removal_keeps_each_comment_fragment(instruction, raw, snippet, expected
         ).address
         == paragraph.address
     )
+
+
+@pytest.mark.parametrize(
+    "name, raw, snippet, expected",
+    [
+        (
+            "m.js",
+            "/* Keep. Move. */ /* More. */\n// Ending stays.",
+            "Move.",
+            "/* Keep. */ /* More. */\n// Ending stays.",
+        ),
+        (
+            "m.js",
+            "/* Keep. */ /* Move. */\n// Ending stays.",
+            "Move.",
+            "/* Keep. */\n// Ending stays.",
+        ),
+        (
+            "m.js",
+            "/* Move. */ /* Keep. */\n// Ending stays.",
+            "Move.",
+            "/* Keep. */\n// Ending stays.",
+        ),
+        (
+            "m.js",
+            "/* Keep.\n   Move. */ // Ending stays.",
+            "Move.",
+            "/* Keep. */ // Ending stays.",
+        ),
+        (
+            "m.lua",
+            "--[[ Keep. Move. ]]-- Ending stays.",
+            "Move.",
+            "--[[ Keep. ]]-- Ending stays.",
+        ),
+        (
+            "m.lua",
+            "--[[\n Keep. Move.\n]]--\n-- Ending stays.",
+            "Move.",
+            "--[[\n Keep.\n]]--\n-- Ending stays.",
+        ),
+    ],
+    ids=[
+        "inside-the-first",
+        "the-whole-second",
+        "the-whole-first",
+        "closer-then-line",
+        "lua-one-line",
+        "lua-empty-line-comment",
+    ],
+)
+def test_removal_keeps_each_comment_on_a_line(name, raw, snippet, expected):
+    code = ("let x = 1;", "let y = 2;") if name == "m.js" else ("x = 1", "y = 2")
+    page = build(f"{code[0]}\n{raw}\n{code[1]}\n", name)
+    paragraph = next(p for p in page if snippet in p.raw_text)
+    changed = comment_at(paragraph.address, paragraph.raw_text).without_once(snippet)
+    assert changed == expected
+    assert galley.reset(page, {paragraph.address.split("@")[1]: changed}) == []
+    assert compositor.set_page(page) == f"{code[0]}\n{expected}\n{code[1]}\n"
+
+
+@pytest.mark.parametrize(
+    "name, source, expected",
+    [
+        (
+            "m.c",
+            "int x = a / /* Move. */ /* Keep. */\n    b;\n",
+            "int x = a / /* Keep. */\n    b;\n",
+        ),
+        (
+            "m.c",
+            "int x; /* Move. */ /* Keep. */\n",
+            "int x; /* Keep. */\n",
+        ),
+        (
+            "m.js",
+            "function f() {\n    /* Move. */ /* Keep. */\n    // Ending stays.\n}\n",
+            "function f() {\n    /* Keep. */\n    // Ending stays.\n}\n",
+        ),
+        (
+            "m.lua",
+            "local x = 1\n  --[[ Move. ]]-- Keep.\nlocal y = 2\n",
+            "local x = 1\n  -- Keep.\nlocal y = 2\n",
+        ),
+    ],
+    ids=["after-an-operator", "after-code", "indented", "lua-indented"],
+)
+def test_removing_the_first_comment_of_a_line_keeps_the_space_before_it(
+    name, source, expected
+):
+    page = build(source, name)
+    paragraph = next(p for p in page if "Move." in p.raw_text)
+    changed = comment_at(
+        paragraph.address, paragraph.raw_text, anchor=paragraph.anchor
+    ).without_once("Move.")
+    assert galley.reset(page, {paragraph.address.split("@")[1]: changed}) == []
+    output = compositor.set_page(page)
+    assert output == expected
+    kind, before = code_fingerprint(source, Path(name))
+    if name == "m.lua":
+        # Lua's long comment spells the long string's `[[`, a spanning quote,
+        # so the source is not provable; the output holds none, and its code
+        # is the source's two lines.
+        assert kind == "unprovable"
+        kind, before = "stripped", "local x = 1\nlocal y = 2"
+    assert kind == "stripped"
+    assert code_fingerprint(output, Path(name)) == (kind, before)
+
+
+@pytest.mark.parametrize(
+    "source, snippet, expected",
+    [
+        (
+            "int x; /* A. */ /* B. */ /* C. */\nint y;\n",
+            "B.",
+            "int x; /* A. */ /* C. */\nint y;\n",
+        ),
+        (
+            "int x; /* A. */ /* B. */ /* C. */\nint y;\n",
+            "C.",
+            "int x; /* A. */ /* B. */\nint y;\n",
+        ),
+        (
+            "int x;\n    /* A. */ /* B. */ /* C. */\nint y;\n",
+            "B.",
+            "int x;\n    /* A. */ /* C. */\nint y;\n",
+        ),
+    ],
+    ids=["the-middle", "the-last", "the-middle-of-a-whole-line"],
+)
+def test_removing_one_of_three_comments_on_a_line_keeps_the_others_apart(
+    source, snippet, expected
+):
+    page = build(source, "m.c")
+    paragraph = next(p for p in page if snippet in p.raw_text)
+    changed = comment_at(
+        paragraph.address, paragraph.raw_text, anchor=paragraph.anchor
+    ).without_once(snippet)
+    assert galley.reset(page, {paragraph.address.split("@")[1]: changed}) == []
+    output = compositor.set_page(page)
+    assert output == expected
+    kind, before = code_fingerprint(source, Path("m.c"))
+    assert kind == "stripped"
+    assert code_fingerprint(output, Path("m.c")) == (kind, before)
+
+
+@pytest.mark.parametrize(
+    "raw, snippet, expected",
+    [
+        (
+            "/* a */ /* b */ /* c */\n// next\n",
+            "b c",
+            "/* a */\n// next\n",
+        ),
+        (
+            "/* a */ /* b */ /* c */",
+            "b c",
+            "/* a */",
+        ),
+        (
+            "    /* a */ /* b */\n    // next\n",
+            "a b",
+            "    // next\n",
+        ),
+    ],
+    ids=["two-emptied-end-the-line", "at-the-end-of-the-text", "whole-line-emptied"],
+)
+def test_two_emptied_comments_leave_the_lines_around_them(raw, snippet, expected):
+    assert comment_at("m.js@b1", raw).without_once(snippet) == expected
 
 
 @pytest.mark.parametrize("instruction", ["move", "drop"])

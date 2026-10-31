@@ -13,9 +13,10 @@ sacrifice rather than the property.
 
 import pytest
 from conftest import REPLACEMENT, SAMPLE, build, by_cue, cue
+from helpers import FORMS
 
 from comment_review import exceptions
-from comment_review.results import compositor
+from comment_review.results import compositor, galley
 from comment_review.results.compositor import line_endings, set_page
 
 
@@ -207,125 +208,6 @@ FILLED_CUES = [
     c for c, b in by_cue(build(SAMPLE)).items() if any(x.strip() for x in b.raw_lines)
 ]
 
-#: Every shape worth putting through it. Each is a file some checkout really
-#: has; none has front matter below line 1.
-FORMS = {
-    "bare statement": ("m.py", "x = 1\n"),
-    "no final newline": ("m.py", "x = 1"),
-    "module docstring": ("m.py", '"""Doc."""\nx = 1\n'),
-    "docstring then code": ("m.py", '"""Doc."""\n\n\nx = 1\n'),
-    "comment above code": ("m.py", "# note\nx = 1\n"),
-    "two comments": ("m.py", "# one\n# two\nx = 1\n"),
-    "trailing comment": ("m.py", "x = 1  # beside\n"),
-    "comment and trailing": ("m.py", "# above\nx = 1  # beside\n"),
-    "blank between": ("m.py", "x = 1\n\n\ny = 2\n"),
-    "leading blanks": ("m.py", "\n\nx = 1\n"),
-    "trailing blanks": ("m.py", "x = 1\n\n\n"),
-    "blanks both ends": ("m.py", "\n\nx = 1\n\n\n"),
-    "shebang": ("m.py", "#!/usr/bin/env python\nx = 1\n"),
-    "coding line": ("m.py", "# -*- coding: utf-8 -*-\nx = 1\n"),
-    "shebang and docstring": ("m.py", '#!/usr/bin/env python\n"""D."""\nx = 1\n'),
-    # !! MATTER, A BLANK, THEN A GAP COMMENT -- the shape the two tiers
-    # disagreed about until 2026-08-26. The tokenized reader ran the comment run
-    # THROUGH the blank, so all three lines became one `matter` paragraph at
-    # `f0` and the gap comment lost its address; the lexical reader split it
-    # correctly. Roy: *"It is supposed to stop f0 at the first blank line."*
-    "matter then a gap comment": ("m.py", "#!/usr/bin/env python\n\n# note\nx = 1\n"),
-    "licence then a gap comment": ("m.py", "# (c) me\n\n# note\nx = 1\n"),
-    "matter, blank, two comments": ("m.py", "# (c) me\n\n# one\n# two\nx = 1\n"),
-    "function": ("m.py", 'def f():\n    """D."""\n    return 1\n'),
-    # !! A DOCSTRING'S CLOSING DELIMITER CARRYING A TRAILING COMMENT. The
-    # tokenizer sees a comment with non-blank characters before it and types it
-    # `trailing-comment`; the AST gives the same line to the docstring. Two
-    # paragraphs then claimed one line, and `page.code_lines` handed it to the
-    # `c` series as well -- the line was set TWICE, `lossless` reported *line
-    # invented*, and the duplicate delimiter reopened a string literal, so
-    # `stripped.code_fingerprint` fell from `ast` to `unprovable` and the
-    # write chain refused the docket. Reproduced 2026-08-29; the shape was in
-    # none of the sources this file or `test_reading.py` carried.
-    "docstring closed with a comment": (
-        "m.py",
-        'def f():\n    """D.\n    """  # NOQA\n    return 1\n',
-    ),
-    "module docstring closed with a comment": ("m.py", '"""D.\n"""  # NOQA\nx = 1\n'),
-    # ! THE ONE-LINE FORM ANSWERED CORRECTLY BEFORE THE FIX, and only because
-    # both paragraphs share a `start` and the stable sort ran the comment first.
-    # It is kept so the two forms are asserted to agree.
-    "one-line docstring with a comment": (
-        "m.py",
-        'def f():\n    """D."""  # type: ignore\n    return 1\n',
-    ),
-    "function no doc": ("m.py", "def f():\n    return 1\n"),
-    "two functions": ("m.py", "def f():\n    return 1\n\n\ndef g():\n    return 2\n"),
-    "nested def": ("m.py", "def f():\n    def g():\n        return 1\n    return g\n"),
-    "class": ("m.py", 'class A:\n    """D."""\n\n    x = 1\n'),
-    "class with method": ("m.py", "class A:\n    def m(self):\n        return 1\n"),
-    "decorator": ("m.py", "@dec\ndef f():\n    return 1\n"),
-    "only comments": ("m.py", "# one\n# two\n"),
-    "only blanks": ("m.py", "\n\n\n"),
-    "one blank": ("m.py", "\n"),
-    "empty file": ("m.py", ""),
-    "CRLF": ("m.py", "x = 1\r\ny = 2\r\n"),
-    "CRLF with comment": ("m.py", "# note\r\nx = 1\r\n"),
-    "CRLF no final": ("m.py", "x = 1\r\ny = 2"),
-    "tabs": ("m.py", "def f():\n\treturn 1\n"),
-    "unicode prose": ("m.py", "# caf\u00e9 na\u00efve \u2014 dash\nx = 1\n"),
-    "long code run": ("m.py", "".join(f"x{i} = {i}\n" for i in range(20))),
-    "deep indent": (
-        "m.py",
-        "def f():\n    if x:\n        if y:\n            return 1\n",
-    ),
-    "string with hash": ("m.py", 'x = "# not a comment"\n'),
-    "C block": ("m.c", "/* head */\nint a;\n"),
-    "C line comment": ("m.c", "// note\nint a;\n"),
-    "C both": ("m.c", "/* one */\n// two\nint a;\n"),
-    # !! A TRAILING BLOCK COMMENT THAT WRAPS -- code first, then an opener that
-    # runs on. Every block-comment case above puts the comment on its OWN line,
-    # so this shape was in no test in the suite until 2026-08-31, and it is the
-    # one `original_column` existed for: a single int can say where line 1's
-    # prose begins and has no slot for lines 2..N, which own themselves whole.
-    # `decision-log.md Process: #69`.
-    "C trailing block wrapped": (
-        "m.c",
-        "int x = 1; /* this comment\n"
-        "              wraps onto a second line\n"
-        "              and a third */\n"
-        "int y = 2;\n",
-    ),
-    "C trailing block one line": ("m.c", "int x = 1; /* note */\nint y = 2;\n"),
-    "cpp": ("m.cpp", "// note\nint a = 1;\n"),
-    "rust trailing block wrapped": (
-        "m.rs",
-        "let x = 1; /* this comment\n"
-        "              wraps onto a second line */\n"
-        "let y = 2;\n",
-    ),
-    "java trailing block wrapped": (
-        "m.java",
-        "int x = 1; /* wraps\n              here */\nint y = 2;\n",
-    ),
-    "ts trailing block wrapped": (
-        "m.ts",
-        "const x = 1; /* wraps\n                here */\nconst y = 2;\n",
-    ),
-    "rust doc": ("m.rs", "/// Doc.\npub fn f() {}\n"),
-    "rust inner doc": ("m.rs", "//! Module doc.\npub fn f() {}\n"),
-    "rust shebang": ("m.rs", "#!/usr/bin/env rust-script\nfn main() {}\n"),
-    "rust inner doc in a body": ("m.rs", "fn f() {\n    //! Inner.\n}\n"),
-    "go": ("m.go", "// Doc.\nfunc f() {}\n"),
-    "java": ("m.java", "/** Doc. */\npublic void f() {}\n"),
-    "cs": ("m.cs", "/// <summary>D</summary>\npublic void F() {}\n"),
-    "kotlin": ("m.kt", "/** Doc. */\nfun f() {}\n"),
-    "swift": ("m.swift", "/// Doc.\nfunc f() {}\n"),
-    "ts": ("m.ts", "/** Doc. */\nfunction f(): void {}\n"),
-    "js": ("m.js", "// note\nlet a = 1;\n"),
-    "ruby": ("m.rb", "# Doc.\ndef f\nend\n"),
-    "lua": ("m.lua", "--- Doc.\nlocal function f() end\n"),
-    "shell": ("m.sh", "#!/bin/sh\n# note\necho hi\n"),
-    "jsx": ("m.jsx", "// note\nconst card = <Card />;\n"),
-    "tsx": ("m.TSX", "// note\nconst card = <Card />;\n"),
-    "sql": ("m.sql", "-- note\nSELECT 1;\n"),
-}
 FORM_CASES = pytest.mark.parametrize(
     ("name", "text"),
     [
@@ -374,11 +256,57 @@ def test_the_trailing_newline_is_the_FILE_S(name, text):
     assert set_page(build(text, name)).endswith("\n") == text.endswith("\n")
 
 
+@pytest.mark.parametrize(
+    ("text", "where", "replacement", "expected"),
+    [
+        ("let x;", "a0", "// a\n\n", "// a\n\nlet x;"),
+        ("let x;\n// b", "f1", "// b\n\n", "let x;\n// b\n\n"),
+        ("let x;\n// b", "f1", "// b\n\n\n", "let x;\n// b\n\n\n"),
+        ("let x;\n// b", "f1", "// b\n// c", "let x;\n// b\n// c"),
+    ],
+    ids=["above-code", "file-ends-in-it", "two-blanks", "no-blank"],
+)
+def test_a_trailing_blank_stands_in_a_file_with_no_final_newline(
+    text, where, replacement, expected
+):
+    page = build(text, "m.js")
+    galley.reset(page, {where: replacement})
+    assert set_page(page) == expected
+
+
 @FORM_CASES
 def test_no_line_is_invented_or_lost(name, text):
     """A weaker check than the identity, and it isolates the failure: a
     mismatch here is a COUNT problem rather than a content one."""
     assert len(set_page(build(text, name)).splitlines()) == len(text.splitlines())
+
+
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        ("// a\nlet x;\n\n// b\n// c\nlet y; // d\n", {"b1": (4, 5), "c1": (6, 6)}),
+        ("/* f\n */\nlet x;\n", {"f0": (1, 2)}),
+        ("", {}),
+    ],
+    ids=["gap-and-margin", "matter", "empty"],
+)
+def test_spans_name_the_lines_each_place_is_set_on(text, expected):
+    page = build(text, "m.js")
+    spans = compositor.spans(page)
+    assert {c: spans[c] for c in expected} == expected
+    lines = text.splitlines()
+    for first, last in spans.values():
+        assert 1 <= first <= last <= len(lines)
+    assert set_page(page) == text
+
+
+def test_spans_follow_a_place_that_grew():
+    page = build("let w;\n// a\nlet x;\n// b\nlet y;\n", "m.js")
+    gaps = [c for c, b in by_cue(page).items() if b.raw_lines == ["// a"]]
+    below = [c for c, b in by_cue(page).items() if b.raw_lines == ["// b"]]
+    assert compositor.spans(page)[below[0]] == (4, 4)
+    galley.reset(page, {gaps[0]: "// a\n// more"})
+    assert compositor.spans(page)[below[0]] == (5, 5)
 
 
 class TestLineEndings:
@@ -603,3 +531,211 @@ class TestADocstringSharingItsLineIsSetBroken:
             for b in build(broken)
             if b.kind != "docstring"
         ]
+
+
+def test_a_docstring_continued_by_a_backslash_is_set_back_with_its_continuation():
+    from comment_review.results.galley import reset
+
+    page = build('def f():\n    """D.""" \\\n    \n    return 1\n')
+    doc = next(b for b in page if b.kind == "docstring")
+    assert reset(page, {cue(doc): '    """New doc.""" \\'}) == []
+    out = set_page(page)
+    assert out == 'def f():\n    """New doc.""" \\\n    \n    return 1\n'
+    compile(out, "m.py", "exec")
+
+
+@pytest.mark.parametrize("name", ["m.js", "m.ts"])
+@pytest.mark.parametrize(
+    ("place", "prose", "expected"),
+    [
+        (
+            "f0",
+            "#!/usr/bin/env node\n// Licence.",
+            "#!/usr/bin/env node\n// Licence.\nfunction main() {}\n",
+        ),
+        (
+            "a0",
+            "/** Module. */",
+            "#!/usr/bin/env node\n/** Module. */\nfunction main() {}\n",
+        ),
+    ],
+    ids=["f0", "a0"],
+)
+def test_filling_the_head_of_a_shebang_file_keeps_the_shebang_on_line_one(
+    name, place, prose, expected
+):
+    from comment_review.results.galley import reset
+
+    page = build("#!/usr/bin/env node\nfunction main() {}\n", name)
+    assert reset(page, {place: prose}) == []
+    assert set_page(page) == expected
+
+
+@pytest.mark.parametrize(
+    ("text", "places", "expected"),
+    [
+        ("/** One. */\n", {"a1": "/** Two. */"}, "/** One. */\n/** Two. */\n"),
+        ("/** One. */\n", {"a0": None, "a1": "/** Two. */"}, "/** Two. */\n"),
+        (
+            "// Licence.\n\n/** Doc. */\n",
+            {"b0": "// Note.", "a1": "/** End. */"},
+            "// Licence.\n\n/** Doc. */\n// Note.\n/** End. */\n",
+        ),
+        ("class A {}\n", {"a2": "/** Two. */"}, "class A {}\n/** Two. */\n"),
+        (
+            "class A {}\n",
+            {"b1": "// Gap.", "a2": "/** End. */"},
+            "class A {}\n// Gap.\n/** End. */\n",
+        ),
+        (
+            "class A {}\n/** End. */\n",
+            {"b1": "// Gap."},
+            "class A {}\n// Gap.\n/** End. */\n",
+        ),
+    ],
+    ids=[
+        "below-a0",
+        "a0-empty",
+        "gap-and-closing",
+        "below-code",
+        "gap-and-closing-below-code",
+        "gap-above-a-held-closing",
+    ],
+)
+def test_an_added_closing_docstring_is_set_in_reading_order_and_nothing_more(
+    text, places, expected
+):
+    # The places are set f0 a0 b0 a1 f1, and no line is set that no place
+    # holds.
+    from comment_review.results.galley import reset
+
+    page = build(text, "m.js")
+    assert reset(page, places) == []
+    assert set_page(page) == expected
+
+
+@pytest.mark.parametrize(
+    ("name", "text", "place", "prose", "replaced"),
+    [
+        (
+            "m.js",
+            "y = 0;\n/* a\n b */ x = 1;\n// c\nfunction g() {}\n",
+            "a1",
+            "/** G */",
+            "// c",
+        ),
+        (
+            "m.js",
+            "function f() {}\n/** a\n b */ x = 1;\n/** D */\nfunction g() {}\n",
+            "a2",
+            "/** G */",
+            "/** D */",
+        ),
+        (
+            "m.js",
+            "/** a\n b */ x = 1;\n/** D */\nfunction g() {}\n",
+            "a1",
+            "/** G */",
+            "/** D */",
+        ),
+        (
+            "m.lua",
+            "local a = 1\n--[[ a\n b ]] x = 1\n-- c\nlocal function g() end\n",
+            "a1",
+            "--- G",
+            "-- c",
+        ),
+        (
+            "m.js",
+            "function f() {}\n/* a\n b */ x = 1;\n\n// c\nfunction g() {}\n",
+            "a2",
+            "/** G */",
+            "// c",
+        ),
+    ],
+    ids=["plain-facing", "doc-facing", "doc-facing-head", "lua", "blank-between"],
+)
+def test_filling_the_a_below_a_closing_line_with_code_keeps_that_line(
+    name, text, place, prose, replaced
+):
+    # The `a` holds only its own run's lines, so the closing line and its
+    # statement above it are set back as they were.
+    from comment_review.results.galley import reset
+
+    page = build(text, name)
+    assert reset(page, {place: prose}) == []
+    assert set_page(page) == text.replace(replaced, prose)
+
+
+@pytest.mark.parametrize(
+    ("name", "text", "places", "expected"),
+    [
+        ("m.js", "/** Doc. */\n", {"f0": "// licence"}, "// licence\n/** Doc. */\n"),
+        ("m.js", "// licence\n", {"a0": "/** Doc. */"}, "// licence\n/** Doc. */\n"),
+        (
+            "m.js",
+            "let x = 1;\n",
+            {"f0": "// licence", "a0": "/** Doc. */"},
+            "// licence\n/** Doc. */\nlet x = 1;\n",
+        ),
+        (
+            "m.js",
+            "#!/usr/bin/env node\nlet x = 1;\n",
+            {"f0": "#!/usr/bin/env node\n// licence", "a0": "/** Doc. */"},
+            "#!/usr/bin/env node\n// licence\n/** Doc. */\nlet x = 1;\n",
+        ),
+        (
+            "m.py",
+            "x = 1\n",
+            {"f0": "# licence", "a0": '"""Doc."""'},
+            '# licence\n"""Doc."""\nx = 1\n',
+        ),
+    ],
+    ids=["doc-only", "matter-only", "code-only", "shebang", "python"],
+)
+def test_the_head_places_are_filled_and_set_back_in_reading_order(
+    name, text, places, expected
+):
+    # f0 then a0, each set where it was filled. That the written text is read
+    # back at the same places is the page's, in `tests/test_page_for.py`.
+    from comment_review.results.galley import reset
+
+    page = build(text, name)
+    assert reset(page, places) == []
+    assert set_page(page) == expected
+
+
+@pytest.mark.parametrize("ending", ["\n", "\r\n"])
+@pytest.mark.parametrize(
+    ("text", "places"),
+    [
+        ('x=f"{value # note\n}"; after()\n', ("c0",)),
+        ('x=f"""{\n    # note\n    value\n}"""; after()\n', ("b1",)),
+        ('x=f"""{value # first\n\n    # second\n}"""; after()\n', ("c0", "b1")),
+        ('x=f"""{\n    # first\n\n    # second\n    value\n}"""; after()\n', ("b1",)),
+        ('x=f"""{f\'{\n    # note\n    value\n}\'}"""; after()\n', ("b1",)),
+        ('x=f"{before}{value # note\n}{after}"; work()\n', ("c0",)),
+        ('x=f"{value:{width # note\n}}"; work()\n', ("c0",)),
+        ('x=f"{value # note } f\' x\n}"; after()\n', ("c0",)),
+    ],
+)
+def test_a_comment_inside_an_expression_is_set_and_edited_around_the_expression(
+    ending, text, places
+):
+    from comment_review.results.galley import reset
+
+    text = text.replace("\n", ending)
+    assert set_page(build(text)) == text
+    for place in places:
+        own = ending.join(by_cue(build(text))[place].raw_lines) + ending
+        start = text.index(own)
+        end = start + len(own)
+        replacement = own.replace("# note", "# edited").replace("# first", "# edited")
+        replacement += "    # added" + ending
+        page = build(text)
+        assert reset(page, {place: replacement}) == []
+        assert set_page(page) == text[:start] + replacement + text[end:]
+        page = build(text)
+        assert reset(page, {place: None}) == []
+        vacated = ending if place.startswith("c") else ""
+        assert set_page(page) == text[:start] + vacated + text[end:]

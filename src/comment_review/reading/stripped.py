@@ -14,11 +14,16 @@ from typing import Self
 from comment_review import constants
 from comment_review.reading.diagnostics import ReadDiagnostic, ReadStage
 from comment_review.reading.lexer import (
+    BLANK,
     Language,
+    after_closer,
     language_for,
     paragraphs_lexical,
 )
 from comment_review.reading.proof import UNPROVABLE, PreservationResult
+
+#: Annotations saying a paragraph can hold code the read did not see as code.
+_UNPROVABLE_MARKS = {"unterminated-paragraph-comment", "line-ending-in-comment"}
 
 
 def _delimiter_shares_the_line(line: str, lang: Language) -> bool:
@@ -34,12 +39,20 @@ def _delimiter_shares_the_line(line: str, lang: Language) -> bool:
     A delimiter spelled inside a string literal on the same line trips this and
     routes a safe line to `unprovable` -- the SAFE direction for a proof to
     fail, so it stands in place of a second copy of gather's quoting logic.
+
+    Comments are not code: text after a closer that `after_closer` reads as
+    comments only, and text before an opener that holds a closer -- the tail
+    of the comment closing there -- leave the line whole prose.
     """
     for opener, closer in lang.block_comment:
-        if opener in line and line[: line.index(opener)].strip():
-            return True
-        if closer in line and line[line.index(closer) + len(closer) :].strip():
-            return True
+        if opener in line:
+            before = line[: line.index(opener)]
+            if before.strip() and closer not in before:
+                return True
+        if closer in line:
+            rest = line[line.index(closer) + len(closer) :]
+            if rest.strip() and not after_closer(rest, lang).comment:
+                return True
     return False
 
 
@@ -57,7 +70,9 @@ def _without_comments(text: str, path: Path) -> str | None:
     `unterminated-paragraph-comment` annotation. The lexer swallows every line below
     the opener into that run, so code below it never reaches the comparison and
     the stripped text is merely SHORT -- short, plausible, and equal on two
-    files whose executable code differs.
+    files whose executable code differs. A line ending the row states inside a
+    comment is refused the same way, on `line-ending-in-comment`: what follows it
+    is a line of code to the language.
     """
     lang = language_for(path)
     if lang is None:
@@ -66,8 +81,32 @@ def _without_comments(text: str, path: Path) -> str | None:
         paragraphs = paragraphs_lexical(path, text, lang)
     except Exception:  # noqa: BLE001  -- an unprovable file is reported, not passed
         return None
-    if any("unterminated-paragraph-comment" in b.annotations for b in paragraphs):
+    if any(_UNPROVABLE_MARKS & b.annotations for b in paragraphs):
         return None
+    lines = constants.text_lines(text)
+    scanned = constants.scan_lines(text)
+    # Pre-seed every line as itself; a paragraph below either drops its entry
+    # (None) or replaces it with the code prefix it proved survives.
+    kept: dict[int, str | None] = {
+        i + 1: ln.rstrip(BLANK) for i, ln in enumerate(lines)
+    }
+    for paragraph in paragraphs:
+        for offset, n in enumerate(range(paragraph.start, paragraph.end + 1)):
+            if n not in kept or offset >= len(paragraph.raw_lines):
+                return None  # a paragraph naming a line this text does not have
+            # Both sides are right-stripped, as `kept` holds the source lines.
+            actual = lines[n - 1].rstrip(BLANK)
+            stored = paragraph.raw_lines[offset].rstrip(BLANK)
+            if actual == stored:
+                if _delimiter_shares_the_line(scanned[n - 1].rstrip(), lang):
+                    return None
+                kept[n] = None
+            elif stored and actual.endswith(stored):
+                kept[n] = actual[: len(actual) - len(stored)].rstrip(BLANK)
+            else:
+                return None  # binder and the file disagree; do not reconcile
+    survivors = [v for v in kept.values() if v is not None]
+    code = [v for v in survivors if v.strip(BLANK)]
     # !! A LITERAL THAT SPANS LINES MAKES THIS FILE UNPROVABLE. `_strip_strings`
     # is per-line and carries no open-quote state, so a line INSIDE a JS
     # template literal or a Java text block that begins with the language's
@@ -81,29 +120,12 @@ def _without_comments(text: str, path: Path) -> str | None:
     # the per-line lexer already cannot compute, so trusting it here would be
     # the same mistake one layer up. A proof that refuses costs a report; a
     # proof that lies costs the claim.
-    if any(q in text for q in lang.spanning_quotes):
+    #
+    # ! A literal opens on a line of code, so a file with none has no literal,
+    # and a delimiter spelled in one of its comments is prose.
+    if code and any(q in text for q in lang.spanning_quotes):
         return None
-
-    lines = constants.text_lines(text)
-    # Pre-seed every line as itself; a paragraph below either drops its entry
-    # (None) or replaces it with the code prefix it proved survives.
-    kept: dict[int, str | None] = {i + 1: ln.rstrip() for i, ln in enumerate(lines)}
-    for paragraph in paragraphs:
-        for offset, n in enumerate(range(paragraph.start, paragraph.end + 1)):
-            if n not in kept or offset >= len(paragraph.raw_lines):
-                return None  # a paragraph naming a line this text does not have
-            actual = lines[n - 1].rstrip()
-            stored = paragraph.raw_lines[offset]
-            if actual == stored:
-                if _delimiter_shares_the_line(actual, lang):
-                    return None
-                kept[n] = None
-            elif stored and actual.endswith(stored):
-                kept[n] = actual[: len(actual) - len(stored)].rstrip()
-            else:
-                return None  # binder and the file disagree; do not reconcile
-    survivors = [v for v in kept.values() if v is not None]
-    return "\n".join(v for v in survivors if v.strip())
+    return "\n".join(code)
 
 
 def code_fingerprint(text: str, path: Path) -> tuple[str, str]:
@@ -117,16 +139,31 @@ def code_fingerprint(text: str, path: Path) -> tuple[str, str]:
         `(kind, fingerprint)`. `kind` is "stripped" or "unprovable". A path no
         lexical row covers -- Python among them -- returns "unprovable". An
         unprovable file carries an empty fingerprint and cannot be proven.
+
+        An empty fingerprint of kind "stripped" is a file its row reads as
+        holding no code line. Two of those compare equal because neither holds
+        code, whatever their comments say, and `preserved` reads `kind` before
+        it compares the strings. "No code line" is the row's reading: a path
+        with no row is never "stripped", and neither is a file with an
+        unterminated comment or a line ending the row states inside a comment.
+        A row sees comment delimiters and nothing a language does before them,
+        so a directive held in a comment, or a closer spelled by an escape or a
+        line splice, is a comment here.
     """
     stripped = _without_comments(text, path)
     if stripped is None:
         return "unprovable", ""
-    if not stripped.strip() and text.strip():
-        # An all-comment file reaches here STRIPPED to nothing while the source
-        # held text. `"" == ""` would "prove" any two such files identical
-        # whatever code either one carried.
-        return "unprovable", ""
     return "stripped", stripped
+
+
+def _shebang(text: str, path: Path) -> str | None:
+    """The interpreter line the language row names, exactly, or None.
+
+    The reader hands it over as matter, which `_without_comments` removes, so
+    the comparison checks it here on its own.
+    """
+    lang = language_for(path)
+    return None if lang is None else lang.interpreter_line(constants.text_lines(text))
 
 
 @dataclass(frozen=True)
@@ -145,13 +182,33 @@ class StrippedRead:
         """The comparison's name, as a proof report prints it."""
         return "stripped"
 
+    @property
+    def warnings(self) -> tuple[ReadDiagnostic, ...]:
+        """The read's warnings: a lexical read reports none."""
+        return ()
+
     def preserved(
         self,
         after: Self,
         *,
         documented: Collection[tuple[int | None, int | None]] | None = None,
     ) -> PreservationResult:
-        """Whether `after`'s comment-stripped source equals this one's."""
+        """Whether `after` keeps this read's interpreter line and stripped source.
+
+        The interpreter line is compared first, exactly, so any change to it,
+        adding it or removing it is `protected-source-changed`.
+        """
+        if _shebang(self.text, self.path) != _shebang(after.text, after.path):
+            return PreservationResult(
+                False,
+                (
+                    ReadDiagnostic(
+                        ReadStage.PLACE,
+                        "protected-source-changed",
+                        "the interpreter line or its presence changed",
+                    ),
+                ),
+            )
         kind, want = code_fingerprint(self.text, self.path)
         got_kind, got = code_fingerprint(after.text, after.path)
         if kind != "stripped" or got_kind != "stripped":

@@ -33,7 +33,7 @@ superseding ruling applied rather than annotated.
 | field | what it is | who fills it |
 | --- | --- | --- |
 | `address` | `path@cue`. WHICH PLACE | **seeded** -- copied from the row, never built |
-| `anchor` | the line of code the place sits on | seeded |
+| `anchor` | a line of code, or every line of a unit | seeded |
 | `raw_text` | the paragraph as it stands, verbatim -- what the role's `change` is a rewrite OF | **seeded** -- copied from the row |
 | `instruction` | one of the seven | the role |
 | `claim` | the surgical spec -- structured keys, per instruction | the role |

@@ -3,6 +3,7 @@
 from collections.abc import Mapping
 from typing import cast
 
+from comment_review import constants
 from comment_review.reading.definitions import LanguageDefinition
 from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, ReadStage
 from comment_review.reading.python.definition import validate_python
@@ -111,7 +112,7 @@ def _indentation(text: str, start: int, layout: Mapping[str, object]) -> int:
     """Read leading source spacing only for declaration/documentation placement."""
     width = cast(int, layout["tab_width"])
     indent = 0
-    end = 1 if start == 0 and text.startswith("\ufeff") else start
+    end = 1 if start == 0 and text.startswith(constants.BYTE_ORDER_MARK) else start
     while end < len(text) and text[end] in " \t\f":
         char = text[end]
         if char == "\t":

@@ -16,6 +16,7 @@ from comment_review.flows.distribute import assigned_binder
 from comment_review.flows.fan_out import fan
 from comment_review.reading.context import ReadingContext
 from comment_review.reading.context_io import context_to_wire
+from comment_review.reading.lexer import LexicalRead
 
 
 def mixed_binder(monkeypatch=None):
@@ -39,7 +40,7 @@ def mixed_binder(monkeypatch=None):
             "1",
             ("comments",),
             "fixture",
-            lambda *_: [],
+            lambda *_: LexicalRead([], [], False, False),
             lambda _: None,
         )
         monkeypatch.setattr(

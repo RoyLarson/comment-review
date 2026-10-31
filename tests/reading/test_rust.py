@@ -1,4 +1,3 @@
-import re
 from importlib import import_module
 from importlib.resources import files
 from pathlib import Path
@@ -6,11 +5,18 @@ from pathlib import Path
 import pytest
 
 from comment_review.reading.definitions import LanguageDefinition, decode_definition
-from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, ReadStage
+from comment_review.reading.diagnostics import (
+    DetachedDocumentation,
+    ReadDiagnostic,
+    ReadFailure,
+    ReadStage,
+)
 from comment_review.reading.paragraph import Paragraph
 from comment_review.reading.rust import records
 from comment_review.reading.series import Kind
 from comment_review.reading.source import (
+    CodeLine,
+    DocPlace,
     DocumentationOwner,
     RegionKind,
     SourceDeclaration,
@@ -58,28 +64,17 @@ def source(*, declarations=(), text=TEXT, found=None) -> SourceStructure:
 
 
 def read(protected=(DIRECTIVE,), warnings=(), declarations=()):
-    detached = tuple(
-        records.DetachedRun(w.span, None) for w in warnings if w.span is not None
-    )
-    return records.RustRead(
-        source(declarations=declarations),
-        protected,
-        warnings,
-        detached,
-        ((SourceSpan(2, 7),),),
-    )
+    return records.RustRead(source(declarations=declarations), protected, warnings)
 
 
 def rust_scan(text, found, scanned_tokens):
-    """A RustScan whose comments' prose is each comment's whole span."""
-    prose = tuple(
-        (token.span,) for token in scanned_tokens if token.kind in records.COMMENT_KINDS
-    )
-    return records.RustScan(text, found, scanned_tokens, prose)
+    return records.RustScan(text, found, scanned_tokens)
 
 
 def warning(span=COMMENT, code="detached-documentation", stage=ReadStage.PLACE):
-    return ReadDiagnostic(stage, code, "documentation cannot be placed", span)
+    return DetachedDocumentation(
+        stage, code, "documentation cannot be placed", span, owner_line=None
+    )
 
 
 def test_records_token_kinds_spell_the_six_comment_forms():
@@ -212,18 +207,11 @@ def test_records_scan_rejects_a_non_attribute_token_enclosing_another():
         rust_scan(TEXT, regions(), (outer, inner))
 
 
-def test_records_placement_accepts_detached_owners_that_exist():
+def test_records_placement_accepts_declarations():
     one = declaration()
-    records.RustPlacement((one,), (records.DetachedRun(COMMENT, 0),))
-    records.RustPlacement((), ())
-    records.RustPlacement((one, declaration(10)), ())
-
-
-def test_records_placement_rejects_detached_owner_out_of_range():
-    with pytest.raises(ValueError):
-        records.RustPlacement((declaration(),), (records.DetachedRun(COMMENT, 1),))
-    with pytest.raises(ValueError):
-        records.RustPlacement((declaration(),), (records.DetachedRun(COMMENT, -1),))
+    records.RustPlacement((one,))
+    records.RustPlacement(())
+    records.RustPlacement((one, declaration(10)))
 
 
 def test_records_read_accepts_a_consistent_read():
@@ -891,7 +879,6 @@ def placed(text, definition):
     """Each placed owner as (kind, head first line)."""
     placement = placement_of(text, definition)
     assert not isinstance(placement, ReadFailure), placement
-    assert placement.detached == ()
     found = [
         (owner.kind, text.count("\n", 0, owner.anchor) + 1)
         for owner in placement.declarations
@@ -1387,29 +1374,42 @@ def owners_of(text, result):
 
 
 def detached_of(text, result):
-    """Each detached run's text, its owner's head line, and its warning's lines."""
-    declarations = result.placement.declarations
-    runs = [
-        (
-            text[run.span.start : run.span.end],
-            None
-            if run.owner is None
-            else line_of(text, declarations[run.owner].anchor),
-        )
-        for run in result.placement.detached
-    ]
+    """Each warning's text and lines: its own, then its owner's head line.
+
+    The owner's line is absent for the module.
+    """
     notes = []
     for warning in result.warnings:
         assert warning.stage is ReadStage.PLACE
         assert warning.code == "detached-documentation"
         assert warning.span is not None
+        owner = [] if warning.owner_line is None else [warning.owner_line]
         notes.append(
             (
                 text[warning.span.start : warning.span.end],
-                [int(n) for n in re.findall(r"line (\d+)", warning.message)],
+                [line_of(text, warning.span.start), *owner],
             )
         )
-    return runs, notes
+    return notes
+
+
+def test_sections_comments_and_a_detached_doc_with_no_code_between_are_one(
+    rust_definition,
+):
+    text = "fn a() {}\n// one\n/// two\n// three\nfn b() {}\n"
+    result = documentation_of(text, rust_definition)
+    assert sections_of(text, result) == [("comment", "// one\n/// two\n// three")]
+    # The detached run keeps its own record and warning.
+    assert detached_of(text, result) == [("/// two", [3, 5])]
+
+
+def test_sections_code_between_comments_ends_a_section(rust_definition):
+    text = "fn a() {}\n// one\n\n// two\nfn b() {}\n// three\nfn c() {}\n"
+    result = documentation_of(text, rust_definition)
+    assert sections_of(text, result) == [
+        ("comment", "// one\n\n// two"),
+        ("comment", "// three"),
+    ]
 
 
 def test_attachment_doc_above_a_multi_line_attribute_across_blank_lines(
@@ -1420,7 +1420,6 @@ def test_attachment_doc_above_a_multi_line_attribute_across_blank_lines(
     assert sections_of(text, result) == [("outer_doc", "/// Doc.")]
     assert owners_of(text, result) == [("/// Doc.", ("item", 3))]
     assert anchor_lines(text, result.placement) == (3,)
-    assert result.placement.detached == ()
     assert result.warnings == ()
 
 
@@ -1462,7 +1461,6 @@ def test_attachment_doc_with_no_following_owner_is_ordinary(rust_definition, tex
     result = documentation_of(text, rust_definition)
     assert sections_of(text, result) == [("comment", "/// stray")]
     assert result.owners == ()
-    assert result.placement.detached == ()
     assert result.warnings == ()
 
 
@@ -1481,10 +1479,7 @@ def test_detached_inner_doc_after_an_inner_attribute(rust_definition):
     result = documentation_of(text, rust_definition)
     assert sections_of(text, result) == [("comment", "/*! Crate doc. */")]
     assert result.owners == ()
-    assert detached_of(text, result) == (
-        [("/*! Crate doc. */", None)],
-        [("/*! Crate doc. */", [2])],
-    )
+    assert detached_of(text, result) == [("/*! Crate doc. */", [2])]
     assert anchor_lines(text, result.placement) == (3,)
 
 
@@ -1510,9 +1505,24 @@ def test_detached_inner_doc_in_a_body_names_the_item_that_holds_it(
     result = documentation_of(text, rust_definition)
     assert sections_of(text, result) == [("comment", doc)]
     assert result.owners == ()
-    assert detached_of(text, result) == ([(doc, 1)], [(doc, [doc_line, 1])])
+    assert detached_of(text, result) == [(doc, [doc_line, 1])]
     # The item that holds the doc is the first declaration, on line 1.
     assert anchor_lines(text, result.placement)[0] == 1
+
+
+@pytest.mark.parametrize(
+    ("text", "owner_line"),
+    [
+        ("mod a {\n    fn b() {}\n    //! x\n    fn c() {}\n}\n", 1),
+        ("mod a {\n    fn b() {\n        //! x\n    }\n}\n", 2),
+    ],
+    ids=["after-a-closed-nested-item", "inside-a-nested-fn"],
+)
+def test_detached_inner_doc_in_a_body_names_the_innermost_item_holding_it(
+    rust_definition, text, owner_line
+):
+    result = documentation_of(text, rust_definition)
+    assert detached_of(text, result) == [("//! x", [3, owner_line])]
 
 
 def test_attachment_ordinary_comment_above_an_item_is_not_documentation(
@@ -1558,8 +1568,8 @@ def test_attachment_module_not_in_owners_leaves_the_head_inner_doc_ordinary(
     )
     text = "//! Crate doc.\nfn f() {}\n"
     result = documentation_of(text, narrowed)
-    # Documenting nothing, the run opening the file is its matter.
-    assert sections_of(text, result) == [("matter", "//! Crate doc.")]
+    # Documenting nothing, the inner doc is an ordinary comment.
+    assert sections_of(text, result) == [("comment", "//! Crate doc.")]
     assert result.owners == ()
     assert anchor_lines(text, result.placement) == (2,)
     assert result.warnings == ()
@@ -1583,8 +1593,8 @@ def test_attachment_inline_module_inner_doc_follows_its_declaration_kind(
     [
         (
             "/// a\n// b\nfn f() {}\n",
-            # Both open the file, so both are its matter.
-            [("matter", "/// a"), ("matter", "// b")],
+            # Detached, the doc is an ordinary comment in one section with `b`.
+            [("comment", "/// a\n// b")],
             [],
             ("/// a", 3, 1),
         ),
@@ -1610,24 +1620,15 @@ def test_detached_documentation_is_ordinary_with_a_warning(
     result = documentation_of(text, rust_definition)
     assert sections_of(text, result) == sections
     assert owners_of(text, result) == owners
-    assert detached_of(text, result) == (
-        [(run, head_line)],
-        [(run, [run_line, head_line])],
-    )
+    assert detached_of(text, result) == [(run, [run_line, head_line])]
 
 
 def test_detached_inner_doc_behind_a_comment_in_its_body(rust_definition):
     text = "fn f() {\n    // a\n    //! inner\n}\n"
     result = documentation_of(text, rust_definition)
-    assert sections_of(text, result) == [
-        ("comment", "// a"),
-        ("comment", "//! inner"),
-    ]
+    assert sections_of(text, result) == [("comment", "// a\n    //! inner")]
     assert result.owners == ()
-    assert detached_of(text, result) == (
-        [("//! inner", 1)],
-        [("//! inner", [3, 1])],
-    )
+    assert detached_of(text, result) == [("//! inner", [3, 1])]
     assert anchor_lines(text, result.placement) == (1,)
 
 
@@ -1636,30 +1637,25 @@ def test_detached_inner_doc_on_its_owner_head_line(rust_definition):
     result = documentation_of(text, rust_definition)
     assert sections_of(text, result) == [("comment", "//! same line")]
     assert result.owners == ()
-    assert detached_of(text, result) == (
-        [("//! same line", 1)],
-        [("//! same line", [1, 1])],
-    )
+    assert detached_of(text, result) == [("//! same line", [1, 1])]
 
 
-def test_detached_module_doc_behind_a_comment_that_is_not_matter(rust_definition):
-    text = "\n// a\n//! m\n// c\nfn f() {}\n"
+@pytest.mark.parametrize(
+    "text",
+    ["\n// a\n//! m\nfn f() {}\n", "// a\n\n// b\n\n//! m\nfn f() {}\n"],
+    ids=["below-a-blank-opening-line", "below-a-blank-line"],
+)
+def test_module_doc_behind_any_comment_documents_the_module(rust_definition, text):
     result = documentation_of(text, rust_definition)
-    assert sections_of(text, result) == [
-        ("comment", "// a"),
-        ("comment", "//! m"),
-        ("comment", "// c"),
-    ]
-    assert result.owners == ()
-    assert detached_of(text, result) == ([("//! m", None)], [("//! m", [3])])
-    assert anchor_lines(text, result.placement) == (5,)
+    assert owners_of(text, result) == [("//! m", None)]
+    assert detached_of(text, result) == []
 
 
 def test_detached_module_doc_behind_a_trailing_comment(rust_definition):
     text = "#![allow(x)] // c\n//! m\nfn f() {}\n"
     result = documentation_of(text, rust_definition)
     assert sections_of(text, result) == [("comment", "// c"), ("comment", "//! m")]
-    assert detached_of(text, result) == ([("//! m", None)], [("//! m", [2])])
+    assert detached_of(text, result) == [("//! m", [2])]
 
 
 @pytest.mark.parametrize(
@@ -1673,30 +1669,28 @@ def test_detached_module_doc_behind_a_trailing_comment(rust_definition):
 def test_attachment_module_doc_behind_front_matter(rust_definition, text, lines):
     result = documentation_of(text, rust_definition)
     assert sections_of(text, result) == [
-        ("matter", "// Copyright"),
+        ("comment", "// Copyright"),
         ("inner_doc", "//! m"),
     ]
     assert owners_of(text, result) == [("//! m", None)]
-    assert result.placement.detached == ()
     assert anchor_lines(text, result.placement) == lines
 
 
-def test_matter_opening_detached_doc_is_matter(rust_definition):
+def test_detached_doc_opening_the_file_sections_with_the_comment_below(
+    rust_definition,
+):
     text = "/** Doc. */\n// c\nfn f() {}\n"
     result = documentation_of(text, rust_definition)
-    assert sections_of(text, result) == [("matter", "/** Doc. */"), ("matter", "// c")]
-    assert detached_of(text, result) == (
-        [("/** Doc. */", 3)],
-        [("/** Doc. */", [1, 3])],
-    )
+    assert sections_of(text, result) == [("comment", "/** Doc. */\n// c")]
+    assert detached_of(text, result) == [("/** Doc. */", [1, 3])]
     assert anchor_lines(text, result.placement) == (3,)
 
 
-def test_matter_ends_at_the_module_doc(rust_definition):
+def test_module_doc_below_the_opening_comment_documents_the_module(rust_definition):
     text = "// Copyright\n//! m\n// c\nfn f() {}\n"
     result = documentation_of(text, rust_definition)
     assert sections_of(text, result) == [
-        ("matter", "// Copyright"),
+        ("comment", "// Copyright"),
         ("inner_doc", "//! m"),
         ("comment", "// c"),
     ]
@@ -1708,10 +1702,7 @@ def test_detached_inner_doc_first_in_its_body_after_a_blank_line(
     text = "fn f() {\n\n    //! inner\n    // after\n}\n"
     result = documentation_of(text, rust_definition)
     assert result.owners == ()
-    assert detached_of(text, result) == (
-        [("//! inner", 1)],
-        [("//! inner", [3, 1])],
-    )
+    assert detached_of(text, result) == [("//! inner", [3, 1])]
 
 
 def test_detached_second_inner_doc_in_an_inline_module(rust_definition):
@@ -1722,10 +1713,7 @@ def test_detached_second_inner_doc_in_an_inline_module(rust_definition):
         ("comment", "//! Inner."),
     ]
     assert owners_of(text, result) == [("/// Outer.", ("item", 2))]
-    assert detached_of(text, result) == (
-        [("//! Inner.", 2)],
-        [("//! Inner.", [3, 2])],
-    )
+    assert detached_of(text, result) == [("//! Inner.", [3, 2])]
 
 
 def test_detached_second_inner_doc_for_the_module(
@@ -1738,7 +1726,7 @@ def test_detached_second_inner_doc_for_the_module(
         ("comment", "//! b"),
     ]
     assert owners_of(text, result) == [("//! a", None)]
-    assert detached_of(text, result) == ([("//! b", None)], [("//! b", [3])])
+    assert detached_of(text, result) == [("//! b", [3])]
     assert anchor_lines(text, result.placement) == (4,)
 
 
@@ -1747,7 +1735,7 @@ def test_attachment_doc_on_its_owner_head_line_is_code(rust_definition):
     result = documentation_of(text, rust_definition)
     assert sections_of(text, result) == []
     assert result.owners == ()
-    assert detached_of(text, result) == ([], [])
+    assert detached_of(text, result) == []
 
 
 def test_detached_trailing_doc_above_an_owner(rust_definition):
@@ -1755,36 +1743,17 @@ def test_detached_trailing_doc_above_an_owner(rust_definition):
     result = documentation_of(text, rust_definition)
     assert sections_of(text, result) == [("comment", "/// t")]
     assert result.owners == ()
-    assert detached_of(text, result) == ([("/// t", 2)], [("/// t", [1, 2])])
+    assert detached_of(text, result) == [("/// t", [1, 2])]
 
 
-def documentation_record(detached, warned):
-    """A RustDocumentation over two comment sections, `a` and `b`, and one item."""
-    spans = {"a": SourceSpan(0, 5), "b": SourceSpan(6, 11)}
-    placement = records.RustPlacement(
-        (SourceDeclaration(SourceSpan(12, 14), 12, "item"),),
-        tuple(records.DetachedRun(spans[name], 0) for name in detached),
-    )
-    return records.RustDocumentation(
-        tuple(SourceSection(span, "comment") for span in spans.values()),
+def test_detached_records_accept_a_warning_on_each_comment_section():
+    spans = (SourceSpan(0, 5), SourceSpan(6, 11))
+    records.RustDocumentation(
+        tuple(SourceSection(span, "comment") for span in spans),
         (),
-        placement,
-        tuple(warning(spans[name]) for name in warned),
+        records.RustPlacement((SourceDeclaration(SourceSpan(12, 14), 12, "item"),)),
+        tuple(warning(span) for span in spans),
     )
-
-
-def test_detached_records_accept_warnings_aligned_with_runs():
-    documentation_record("ab", "ab")
-
-
-@pytest.mark.parametrize(
-    ("detached", "warned"),
-    [("ab", "a"), ("a", "ab"), ("ab", "ba")],
-    ids=["extra-run", "missing-run", "reordered"],
-)
-def test_detached_records_refuse_misaligned_warnings(detached, warned):
-    with pytest.raises(ValueError):
-        documentation_record(detached, warned)
 
 
 @pytest.mark.parametrize(
@@ -1794,7 +1763,7 @@ def test_detached_records_let_an_inner_doc_document_only_the_module(
     declaration, refused
 ):
     placement = records.RustPlacement(
-        (SourceDeclaration(SourceSpan(12, 14), 12, "item"),), ()
+        (SourceDeclaration(SourceSpan(12, 14), 12, "item"),)
     )
 
     def made():
@@ -1819,41 +1788,21 @@ def test_matter_excludes_a_comment_with_code_after_it_on_its_line(rust_definitio
     assert anchor_lines(text, result.placement) == (1,)
 
 
-def test_matter_opening_ordinary_run_is_not_the_item_doc(rust_definition):
+def test_ordinary_run_opening_the_file_is_not_the_item_doc(rust_definition):
     text = "// Copyright 2026 Someone.\n// Licensed.\nfn main() {}\n"
     result = documentation_of(text, rust_definition)
     assert sections_of(text, result) == [
-        ("matter", "// Copyright 2026 Someone.\n// Licensed."),
+        ("comment", "// Copyright 2026 Someone.\n// Licensed."),
     ]
     assert result.owners == ()
     assert anchor_lines(text, result.placement) == (3,)
 
 
-def test_matter_follows_a_shebang(rust_definition):
-    """The run directly below the shebang opens the file, so it is matter."""
-    text = "#!/usr/bin/env run-cargo-script\n// Copyright.\n\nfn main() {}\n"
-    result = documentation_of(text, rust_definition)
-    assert sections_of(text, result) == [("matter", "// Copyright.")]
-    assert anchor_lines(text, result.placement) == (4,)
-
-
-def test_comment_below_a_shebang_and_a_blank_line_is_not_matter(rust_definition):
-    text = "#!/usr/bin/env run-cargo-script\n\n// Copyright.\nfn main() {}\n"
-    result = documentation_of(text, rust_definition)
-    assert sections_of(text, result) == [("comment", "// Copyright.")]
-
-
-def test_comment_below_a_blank_line_one_is_not_matter(rust_definition):
-    text = "\n// Copyright.\nfn main() {}\n"
-    result = documentation_of(text, rust_definition)
-    assert sections_of(text, result) == [("comment", "// Copyright.")]
-
-
-def test_matter_then_a_doc_gives_the_item_its_doc(rust_definition):
+def test_opening_comment_then_a_doc_gives_the_item_its_doc(rust_definition):
     text = "// Copyright.\n/// Doc.\nfn main() {}\n"
     result = documentation_of(text, rust_definition)
     assert sections_of(text, result) == [
-        ("matter", "// Copyright."),
+        ("comment", "// Copyright."),
         ("outer_doc", "/// Doc."),
     ]
     assert owners_of(text, result) == [("/// Doc.", ("item", 3))]
@@ -1918,24 +1867,32 @@ def rust_read(text, definition):
     return result
 
 
+def test_rust_read_has_an_a_series_and_no_closing_docstring(rust_definition):
+    result = rust_read("fn f() {}\n/// after\n", rust_definition)
+    assert (result.a_series, result.closing_docstring) == (True, False)
+
+
 def projection_of(text, definition):
-    """The read's paragraphs, code lines and declaration places."""
+    """The read's paragraphs and its code lines."""
     result = rust_read(text, definition)
     paragraphs = result.paragraphs(PAGE)
     assert not isinstance(paragraphs, ReadFailure), paragraphs
-    return paragraphs, result.code(), result.declarations()
+    return paragraphs, result.code_lines()
 
 
-def paragraph(start, end, kind, text, raw, *, address="", anchor="", notes=()):
+def code_of(lines):
+    """Each code line's number and code, for tests that check only the code."""
+    return {line.line: line.code for line in lines}
+
+
+def paragraph(start, end, kind, raw, *, declares_line=None, anchor=""):
     return Paragraph(
         PAGE.as_posix(),
         start,
         end,
         kind,
-        text,
         anchor=anchor,
-        address=address,
-        annotations=set(notes),
+        declares_line=declares_line,
         raw_lines=raw,
     )
 
@@ -1954,78 +1911,43 @@ def test_projection_of_docs_comments_code_and_declarations(rust_definition):
         "fn go() -> u8 { 1 } // tail\n"
         "fn mix() -> u8 { 2 /* why */ + 3 }\n"
     )
-    paragraphs, code, declarations = projection_of(text, rust_definition)
+    paragraphs, lines = projection_of(text, rust_definition)
     assert paragraphs == [
-        paragraph(1, 1, Kind.DOCSTRING, "Crate doc.", ["//! Crate doc."], address="a0"),
-        paragraph(3, 3, Kind.DOCSTRING, "A point.", ["/// A point."], address="a1"),
-        paragraph(6, 6, Kind.DOCSTRING, "Across.", ["    /// Across."], address="a2"),
+        # The inner doc is the module's and names no line; each item doc names
+        # its item's declaring line, the attribute above `struct P` included.
+        paragraph(1, 1, Kind.DOCSTRING, ["//! Crate doc."]),
+        paragraph(3, 3, Kind.DOCSTRING, ["/// A point."], declares_line=4),
+        paragraph(6, 6, Kind.DOCSTRING, ["    /// Across."], declares_line=7),
+        paragraph(10, 10, Kind.TRAILING, [" // tail"], anchor="fn go() -> u8 { 1 }"),
+    ]
+    assert lines == [
+        CodeLine(4, "#[derive(Debug)]", DocPlace(4, True)),
+        CodeLine(5, "struct P {", None),
+        CodeLine(7, "    x: u8,", DocPlace(7, True)),
+        CodeLine(8, "}", None),
+        CodeLine(10, "fn go() -> u8 { 1 }", DocPlace(10, True)),
+        CodeLine(11, "fn mix() -> u8 { 2 /* why */ + 3 }", DocPlace(11, True)),
+    ]
+
+
+@pytest.mark.parametrize("final", [True, False], ids=["final-break", "no-final-break"])
+@pytest.mark.parametrize("newline", ["\n", "\r\n", "\r"], ids=["lf", "crlf", "cr"])
+def test_projection_cuts_lines_at_lf_crlf_and_cr(rust_definition, newline, final):
+    # The shebang line, like a `//` comment, ends at LF in the Rust scan, so a
+    # lone CR is tested on block comments alone.
+    shebang = ["#!/bin/x"] if newline != "\r" else []
+    rows = [*shebang, "/*! Doc. */", "fn go() {} /* a */"]
+    text = newline.join(rows) + (newline if final else "")
+    first = len(shebang) + 1
+    paragraphs, lines = projection_of(text, rust_definition)
+    assert paragraphs == [
+        *(paragraph(1, 1, Kind.MATTER, shebang) for _ in shebang),
+        paragraph(first, first, Kind.DOCSTRING, ["/*! Doc. */"]),
         paragraph(
-            10, 10, Kind.TRAILING, "tail", [" // tail"], anchor="fn go() -> u8 { 1 }"
+            first + 1, first + 1, Kind.TRAILING, [" /* a */"], anchor="fn go() {}"
         ),
     ]
-    assert code == {
-        4: "#[derive(Debug)]",
-        5: "struct P {",
-        7: "    x: u8,",
-        8: "}",
-        10: "fn go() -> u8 { 1 }",
-        11: "fn mix() -> u8 { 2 /* why */ + 3 }",
-    }
-    assert declarations == [
-        (4, 4, True),
-        (7, 7, True),
-        (10, 10, True),
-        (11, 11, True),
-    ]
-
-
-def test_projection_doc_text_drops_the_markers_and_collapses_space(rust_definition):
-    text = "/// One\n///   two.\nfn f() {}\n"
-    paragraphs, _, _ = projection_of(text, rust_definition)
-    assert [(p.text, p.raw_lines) for p in paragraphs] == [
-        ("One two.", ["/// One", "///   two."])
-    ]
-    text = "/**   Spread\n   over   lines. */\nfn f() {}\n"
-    paragraphs, _, _ = projection_of(text, rust_definition)
-    assert [(p.kind, p.text, p.address, p.raw_lines) for p in paragraphs] == [
-        (
-            Kind.DOCSTRING,
-            "Spread over lines.",
-            "a1",
-            ["/**   Spread", "   over   lines. */"],
-        ),
-    ]
-
-
-@pytest.mark.parametrize(
-    "text",
-    [
-        "/**\n * First line\n * second.\n */\nfn f() {}\n",
-        "/*!\n   * First line\n   * second.\n   */\nfn f() {}\n",
-    ],
-    ids=["outer", "inner"],
-)
-def test_projection_doc_text_drops_the_continuation_decoration(rust_definition, text):
-    paragraphs, _, _ = projection_of(text, rust_definition)
-    assert [(p.kind, p.text, p.raw_text) for p in paragraphs] == [
-        (Kind.DOCSTRING, "First line second.", text[: text.index("*/") + 2])
-    ]
-
-
-def test_projection_doc_decoration_stays_unless_every_line_carries_it(
-    rust_definition,
-):
-    text = "/**\n * First\n   second\n */\nfn f() {}\n"
-    paragraphs, _, _ = projection_of(text, rust_definition)
-    assert [(p.kind, p.text) for p in paragraphs] == [
-        (Kind.DOCSTRING, "* First second")
-    ]
-
-
-def test_projection_doc_decoration_stays_when_its_column_varies(rust_definition):
-    text = "/**\n * a\n  * b\n */\nfn f() {}\n"
-    paragraphs, _, _ = projection_of(text, rust_definition)
-    assert [(p.kind, p.text) for p in paragraphs] == [(Kind.DOCSTRING, "* a * b")]
+    assert lines == [CodeLine(first + 1, "fn go() {}", DocPlace(first + 1, True))]
 
 
 @pytest.mark.parametrize(
@@ -2033,11 +1955,11 @@ def test_projection_doc_decoration_stays_when_its_column_varies(rust_definition)
     [
         (
             "x; /** a */ // b\n",
-            [paragraph(1, 1, Kind.TRAILING, "a b", [" /** a */ // b"], anchor="x;")],
+            [paragraph(1, 1, Kind.TRAILING, [" /** a */ // b"], anchor="x;")],
         ),
         (
             "x; /* a */ /** b */\n",
-            [paragraph(1, 1, Kind.TRAILING, "a b", [" /* a */ /** b */"], anchor="x;")],
+            [paragraph(1, 1, Kind.TRAILING, [" /* a */ /** b */"], anchor="x;")],
         ),
         (
             # The outer doc has a comment after it on its line, the inner doc
@@ -2048,9 +1970,7 @@ def test_projection_doc_decoration_stays_when_its_column_varies(rust_definition)
                     1,
                     1,
                     Kind.MATTER,
-                    "a b c",
                     ["/** a */ /*! b */ /* c */"],
-                    notes={"detached-documentation"},
                 )
             ],
         ),
@@ -2062,18 +1982,16 @@ def test_projection_doc_decoration_stays_when_its_column_varies(rust_definition)
                     1,
                     2,
                     Kind.TRAILING,
-                    "one two three four",
                     [" /* one", " two */ /** three */ // four"],
                     anchor="fn a() {}",
-                    notes={"detached-documentation"},
                 )
             ],
         ),
         (
             "/// a\n/** b */ // c\n//! d\n",
             [
-                paragraph(1, 2, Kind.MATTER, "a b c", ["/// a", "/** b */ // c"]),
-                paragraph(3, 3, Kind.DOCSTRING, "d", ["//! d"], address="a0"),
+                paragraph(1, 2, Kind.MATTER, ["/// a", "/** b */ // c"]),
+                paragraph(3, 3, Kind.DOCSTRING, ["//! d"]),
             ],
         ),
     ],
@@ -2081,46 +1999,34 @@ def test_projection_doc_decoration_stays_when_its_column_varies(rust_definition)
 def test_projection_sections_sharing_a_line_are_one_paragraph(
     rust_definition, text, expected
 ):
-    paragraphs, _, _ = projection_of(text, rust_definition)
+    paragraphs, _ = projection_of(text, rust_definition)
     assert paragraphs == expected
     lines = [line for p in paragraphs for line in range(p.start, p.end + 1)]
     assert len(lines) == len(set(lines))
 
 
 @pytest.mark.parametrize(
-    ("text", "expected", "code", "owners"),
+    ("text", "expected", "code"),
     [
         (
             "// x\n/* y */ fn f() {}\n",
-            [paragraph(1, 1, Kind.MATTER, "x", ["// x"])],
+            [paragraph(1, 1, Kind.MATTER, ["// x"])],
             {2: "/* y */ fn f() {}"},
-            [],
         ),
         (
             "/// a\n/** b */ fn f() {}\n",
-            [
-                paragraph(
-                    1, 1, Kind.MATTER, "a", ["/// a"], notes={"detached-documentation"}
-                )
-            ],
+            [paragraph(1, 1, Kind.MATTER, ["/// a"])],
             {2: "/** b */ fn f() {}"},
-            [0],
         ),
         (
             "#[x]\n/// a\n/** b */ fn f() {}\n",
-            [
-                paragraph(
-                    2, 2, Kind.COMMENT, "a", ["/// a"], notes={"detached-documentation"}
-                )
-            ],
+            [paragraph(2, 2, Kind.COMMENT, ["/// a"])],
             {1: "#[x]", 3: "/** b */ fn f() {}"},
-            [0],
         ),
         (
             "fn z() {}\n// a\n// b /* c */\n/* d */ fn f() {}\n",
-            [paragraph(2, 3, Kind.COMMENT, "a b /* c */", ["// a", "// b /* c */"])],
+            [paragraph(2, 3, Kind.COMMENT, ["// a", "// b /* c */"])],
             {1: "fn z() {}", 4: "/* d */ fn f() {}"},
-            [],
         ),
     ],
     ids=[
@@ -2131,13 +2037,11 @@ def test_projection_sections_sharing_a_line_are_one_paragraph(
     ],
 )
 def test_projection_only_the_code_bounded_comment_is_code(
-    rust_definition, text, expected, code, owners
+    rust_definition, text, expected, code
 ):
     result = rust_read(text, rust_definition)
     assert result.paragraphs(PAGE) == expected
-    assert result.code() == code
-    assert [run.owner for run in result.detached] == owners
-    assert [w.span for w in result.warnings] == [r.span for r in result.detached]
+    assert code_of(result.code_lines()) == code
 
 
 def test_projection_read_refuses_a_doc_section_sharing_a_line(rust_definition):
@@ -2153,23 +2057,13 @@ def test_projection_read_refuses_a_doc_section_sharing_a_line(rust_definition):
         replace(result, source=replace(result.source, sections=(shared, comment)))
 
 
-def test_projection_ordinary_delimited_comment_keeps_its_stars(rust_definition):
-    text = "fn z() {}\n/*\n * kept\n */\nfn f() {}\n"
-    paragraphs, _, _ = projection_of(text, rust_definition)
-    assert [p.text for p in paragraphs] == ["* kept"]
-
-
 @pytest.mark.parametrize(
     ("text", "paragraphs", "code"),
     [
         ("let_x /* c */ + 1;\n", [], {1: "let_x /* c */ + 1;"}),
         (
             "/* a */ fn f() {} // b\n",
-            [
-                paragraph(
-                    1, 1, Kind.TRAILING, "b", [" // b"], anchor="/* a */ fn f() {}"
-                )
-            ],
+            [paragraph(1, 1, Kind.TRAILING, [" // b"], anchor="/* a */ fn f() {}")],
             {1: "/* a */ fn f() {}"},
         ),
         (
@@ -2183,19 +2077,17 @@ def test_projection_ordinary_delimited_comment_keeps_its_stars(rust_definition):
 def test_projection_delimited_comment_with_code_after_it_stays_code(
     rust_definition, text, paragraphs, code
 ):
-    found, lines, _ = projection_of(text, rust_definition)
+    found, lines = projection_of(text, rust_definition)
     assert found == paragraphs
-    assert lines == code
+    assert code_of(lines) == code
 
 
 def test_projection_delimited_comment_with_only_a_comment_after_it_is_prose(
     rust_definition,
 ):
-    found, lines, _ = projection_of("x; /** a */ // b\n", rust_definition)
-    assert found == [
-        paragraph(1, 1, Kind.TRAILING, "a b", [" /** a */ // b"], anchor="x;")
-    ]
-    assert lines == {1: "x;"}
+    found, lines = projection_of("x; /** a */ // b\n", rust_definition)
+    assert found == [paragraph(1, 1, Kind.TRAILING, [" /** a */ // b"], anchor="x;")]
+    assert code_of(lines) == {1: "x;"}
 
 
 @pytest.mark.parametrize(
@@ -2213,18 +2105,45 @@ def test_projection_delimited_comment_with_only_a_comment_after_it_is_prose(
     ids=["blank", "whitespace-only"],
 )
 def test_projection_literal_line_with_no_code_is_absent(rust_definition, text, code):
-    _, lines, _ = projection_of(text, rust_definition)
-    assert lines == code
+    _, lines = projection_of(text, rust_definition)
+    assert code_of(lines) == code
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        'fn f() {\n    let s = "a   \nb";\n}\n',
+        'fn f() {\n    let s = r"a \t\n  b  "; // c\n}\n',
+        'let s = "a  \n" ;  \n',
+    ],
+    ids=["literal-ends-its-line", "literal-then-trailing-comment", "spaces-after"],
+)
+def test_projection_code_and_its_c_text_rebuild_the_line(rust_definition, text):
+    """A line's code is what it holds before its prose, right-trimmed: the code
+    plus the trailing paragraph's first raw line, or plus the whitespace after
+    the code when no paragraph trails it, is the source line."""
+    paragraphs, lines = projection_of(text, rust_definition)
+    source = text.split("\n")
+    trailing = {p.start: p for p in paragraphs if p.kind == Kind.TRAILING}
+    for line in lines:
+        whole = source[line.line - 1]
+        assert line.code == line.code.rstrip()
+        if line.line in trailing:
+            assert trailing[line.line].anchor == line.code
+            rest = trailing[line.line].raw_lines[0]
+        else:
+            rest = whole[len(whole.rstrip()) :]
+        assert line.code + rest == whole
 
 
 def test_projection_delimited_comment_with_code_only_before_it_trails(
     rust_definition,
 ):
-    paragraphs, code, _ = projection_of("fn f() {} /* t */\n", rust_definition)
+    paragraphs, lines = projection_of("fn f() {} /* t */\n", rust_definition)
     assert paragraphs == [
-        paragraph(1, 1, Kind.TRAILING, "t", [" /* t */"], anchor="fn f() {}")
+        paragraph(1, 1, Kind.TRAILING, [" /* t */"], anchor="fn f() {}")
     ]
-    assert code == {1: "fn f() {}"}
+    assert code_of(lines) == {1: "fn f() {}"}
 
 
 @pytest.mark.parametrize(
@@ -2237,36 +2156,59 @@ def test_projection_doc_with_code_after_it_is_code_and_documents_nothing(
 ):
     result = rust_read(text, rust_definition)
     assert result.paragraphs(PAGE) == []
-    assert result.code() == {1: text.rstrip("\n")}
+    assert code_of(result.code_lines()) == {1: text.rstrip("\n")}
     assert result.source.sections == ()
     assert result.source.documentation == ()
     assert result.warnings == ()
-    assert result.detached == ()
 
 
 def test_projection_rust_whitespace_is_not_code(rust_definition):
     text = "fn f() {}\v// t\nfn z() {}\n/* a */ \t\nfn g() {}\n"
-    paragraphs, code, _ = projection_of(text, rust_definition)
+    paragraphs, lines = projection_of(text, rust_definition)
     assert paragraphs == [
-        paragraph(1, 1, Kind.TRAILING, "t", ["\v// t"], anchor="fn f() {}"),
-        paragraph(3, 3, Kind.COMMENT, "a", ["/* a */ \t"]),
+        paragraph(1, 1, Kind.TRAILING, ["\v// t"], anchor="fn f() {}"),
+        paragraph(3, 3, Kind.COMMENT, ["/* a */ \t"]),
     ]
-    assert code == {1: "fn f() {}", 2: "fn z() {}", 4: "fn g() {}"}
+    assert code_of(lines) == {1: "fn f() {}", 2: "fn z() {}", 4: "fn g() {}"}
 
 
-def test_projection_scanner_records_each_comment_prose(rust_definition):
-    text = "/// a\n/* b */\n/**/\n/**\n * c\n */\n"
-    result = scanned(text, rust_definition)
-    assert [
-        [text[piece.start : piece.end] for piece in pieces] for pieces in result.prose
-    ] == [[" a"], [" b "], [""], ["", " c", " "]]
+def test_projection_a_byte_order_mark_before_a_comment_is_not_code(rust_definition):
+    text = "\ufeff// Copyright 2024\n// Licensed MIT.\n\nfn main() {}\n"
+    paragraphs, lines = projection_of(text, rust_definition)
+    assert paragraphs == [
+        paragraph(1, 2, Kind.MATTER, ["\ufeff// Copyright 2024", "// Licensed MIT."])
+    ]
+    assert lines == [CodeLine(4, "fn main() {}", DocPlace(4, True))]
 
 
-def test_projection_scan_refuses_prose_outside_its_comment():
-    with pytest.raises(ValueError, match="prose"):
-        records.RustScan(TEXT, regions(), tokens(), ((SourceSpan(5, 9),),))
-    with pytest.raises(ValueError, match="prose"):
-        records.RustScan(TEXT, regions(), tokens(), ())
+@pytest.mark.parametrize(
+    ("text", "code"),
+    [
+        (
+            "struct S {\n\u00a0\n    x: i32,\n}\n",
+            {1: "struct S {", 2: "\u00a0", 3: "    x: i32,", 4: "}"},
+        ),
+        ("fn f() {}\u3000\nfn g() {}\n", {1: "fn f() {}\u3000", 2: "fn g() {}"}),
+        ("fn f() {}\u200f\nfn g() {}\n", {1: "fn f() {}", 2: "fn g() {}"}),
+    ],
+    ids=["no-break-space-line", "ideographic-space", "left-to-right-mark"],
+)
+def test_projection_code_is_trimmed_by_the_scanners_whitespace(
+    rust_definition, text, code
+):
+    _, lines = projection_of(text, rust_definition)
+    assert code_of(lines) == code
+
+
+@pytest.mark.parametrize("mark", ["\u200f", "\u3000"])
+def test_projection_a_trailing_comment_after_exotic_space_rebuilds_its_line(
+    rust_definition, mark
+):
+    text = f"fn f() {{\n    let x = 1;{mark}// note\n}}\n"
+    paragraphs, lines = projection_of(text, rust_definition)
+    trailing = next(p for p in paragraphs if p.kind == Kind.TRAILING)
+    assert trailing.anchor + trailing.raw_lines[0] == f"    let x = 1;{mark}// note"
+    assert code_of(lines)[2] == trailing.anchor
 
 
 def test_projection_opening_run_is_matter_up_to_its_first_blank_line(
@@ -2275,106 +2217,166 @@ def test_projection_opening_run_is_matter_up_to_its_first_blank_line(
     """The place rules divide a section that spans the first blank line: the
     part above it is the file's matter, the part below an ordinary comment."""
     text = "// Copyright 2026 Someone.\n\n// note on f\nfn f() {}\n"
-    paragraphs, code, declarations = projection_of(text, rust_definition)
+    paragraphs, lines = projection_of(text, rust_definition)
     assert paragraphs == [
         paragraph(
             1,
             1,
             Kind.MATTER,
-            "Copyright 2026 Someone.",
             ["// Copyright 2026 Someone."],
         ),
-        paragraph(3, 3, Kind.COMMENT, "note on f", ["// note on f"]),
+        paragraph(3, 3, Kind.COMMENT, ["// note on f"]),
     ]
-    assert code == {4: "fn f() {}"}
-    assert declarations == [(4, 4, True)]
+    assert lines == [CodeLine(4, "fn f() {}", DocPlace(4, True))]
 
 
 def test_projection_opening_matter_takes_every_form_up_to_the_first_blank(
     rust_definition,
 ):
     text = "/* a */\n/// b\n// c\n\n// d\nfn f() {}\n"
-    paragraphs, _, declarations = projection_of(text, rust_definition)
+    paragraphs, lines = projection_of(text, rust_definition)
     assert paragraphs == [
         paragraph(
             1,
             3,
             Kind.MATTER,
-            "a b c",
             ["/* a */", "/// b", "// c"],
-            notes={"detached-documentation"},
         ),
-        paragraph(5, 5, Kind.COMMENT, "d", ["// d"]),
+        paragraph(5, 5, Kind.COMMENT, ["// d"]),
     ]
-    assert declarations == [(6, 6, True)]
+    assert lines == [CodeLine(6, "fn f() {}", DocPlace(6, True))]
 
 
 def test_projection_opening_and_closing_matter_of_a_codeless_file(rust_definition):
     text = "// a\n\n// b\n"
-    paragraphs, _, _ = projection_of(text, rust_definition)
+    paragraphs, _ = projection_of(text, rust_definition)
     assert paragraphs == [
-        paragraph(1, 1, Kind.MATTER, "a", ["// a"]),
-        paragraph(3, 3, Kind.MATTER, "b", ["// b"]),
+        paragraph(1, 1, Kind.MATTER, ["// a"]),
+        paragraph(3, 3, Kind.MATTER, ["// b"]),
     ]
 
 
 def test_projection_closing_run_at_end_of_file_is_matter(rust_definition):
     text = "fn f() {}\n// end one\n// end two\n"
-    paragraphs, _, _ = projection_of(text, rust_definition)
-    assert paragraphs == [
-        paragraph(2, 3, Kind.MATTER, "end one end two", ["// end one", "// end two"])
-    ]
+    paragraphs, _ = projection_of(text, rust_definition)
+    assert paragraphs == [paragraph(2, 3, Kind.MATTER, ["// end one", "// end two"])]
 
 
 def test_projection_closing_run_of_two_forms_is_one_matter(rust_definition):
     text = "fn f() {}\n/// a\n// b\n"
-    paragraphs, _, _ = projection_of(text, rust_definition)
-    assert paragraphs == [paragraph(2, 3, Kind.MATTER, "a b", ["/// a", "// b"])]
+    paragraphs, _ = projection_of(text, rust_definition)
+    assert paragraphs == [paragraph(2, 3, Kind.MATTER, ["/// a", "// b"])]
 
 
 def test_projection_closing_run_splits_at_its_last_blank_line(rust_definition):
     text = "fn f() {}\n// a\n\n// b\n/// c\n"
-    paragraphs, _, _ = projection_of(text, rust_definition)
+    paragraphs, _ = projection_of(text, rust_definition)
     assert paragraphs == [
-        paragraph(2, 2, Kind.COMMENT, "a", ["// a"]),
-        paragraph(4, 5, Kind.MATTER, "b c", ["// b", "/// c"]),
+        paragraph(2, 2, Kind.COMMENT, ["// a"]),
+        paragraph(4, 5, Kind.MATTER, ["// b", "/// c"]),
+    ]
+
+
+def test_projection_closing_comment_with_a_blank_line_inside_is_one_matter(
+    rust_definition,
+):
+    text = "fn f() {}\n// x\n/* a\n\n b */\n"
+    paragraphs, _ = projection_of(text, rust_definition)
+    assert paragraphs == [paragraph(2, 5, Kind.MATTER, ["// x", "/* a", "", " b */"])]
+
+
+def test_projection_opening_matter_takes_the_run_below_a_shebang(rust_definition):
+    shebang = "#!/usr/bin/env run-cargo-script"
+    text = f"{shebang}\n// Copyright.\n\nfn main() {{}}\n"
+    paragraphs, _ = projection_of(text, rust_definition)
+    assert paragraphs == [paragraph(1, 2, Kind.MATTER, [shebang, "// Copyright."])]
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "#!/usr/bin/env run-cargo-script\n\n// Copyright.\nfn main() {}\n",
+        "\n// Copyright.\nfn main() {}\n",
+    ],
+    ids=["below-a-shebang-and-a-blank", "below-a-blank-line-one"],
+)
+def test_projection_comment_below_a_blank_line_is_not_opening_matter(
+    rust_definition, text
+):
+    paragraphs, _ = projection_of(text, rust_definition)
+    comment = next(p for p in paragraphs if p.raw_lines == ["// Copyright."])
+    assert comment.kind == Kind.COMMENT
+
+
+def test_projection_opening_matter_ends_at_the_module_doc(rust_definition):
+    text = "// Copyright\n//! m\n// c\nfn f() {}\n"
+    paragraphs, _ = projection_of(text, rust_definition)
+    assert paragraphs == [
+        paragraph(1, 1, Kind.MATTER, ["// Copyright"]),
+        paragraph(2, 2, Kind.DOCSTRING, ["//! m"]),
+        paragraph(3, 3, Kind.COMMENT, ["// c"]),
     ]
 
 
 def test_projection_comments_in_one_gap_with_a_detached_module_doc_are_one(
     rust_definition,
 ):
-    text = "\n// a\n//! m\n// c\nfn f() {}\n"
-    paragraphs, _, declarations = projection_of(text, rust_definition)
+    text = "#![no_std]\n// a\n//! m\n// c\nfn f() {}\n"
+    paragraphs, lines = projection_of(text, rust_definition)
     assert paragraphs == [
         paragraph(
             2,
             4,
             Kind.COMMENT,
-            "a m c",
             ["// a", "//! m", "// c"],
-            notes={"detached-documentation"},
         ),
     ]
-    assert declarations == [(5, 5, True)]
+    assert lines[-1] == CodeLine(5, "fn f() {}", DocPlace(5, True))
+
+
+def test_projection_comment_and_detached_doc_after_code_are_one_comment(
+    rust_definition,
+):
+    text = "fn a() {}\n// one\n/// two\n// three\nfn b() {}\n"
+    paragraphs, _ = projection_of(text, rust_definition)
+    assert paragraphs == [
+        paragraph(
+            2,
+            4,
+            Kind.COMMENT,
+            ["// one", "/// two", "// three"],
+        )
+    ]
+
+
+def test_projection_code_ends_a_comment_section(rust_definition):
+    # The first section joins three runs (comment, detached doc, comment).
+    text = "fn a() {}\n// one\n/// two\n// three\nfn b() {}\n// four\nfn c() {}\n"
+    paragraphs, _ = projection_of(text, rust_definition)
+    assert [(p.start, p.end, p.kind) for p in paragraphs] == [
+        (2, 4, Kind.COMMENT),
+        (6, 6, Kind.COMMENT),
+    ]
 
 
 def test_projection_ordinary_comment_above_an_item_is_a_comment(rust_definition):
     text = "fn z() {}\n// note\nfn f() {}\n"
-    paragraphs, _, _ = projection_of(text, rust_definition)
-    assert paragraphs == [paragraph(2, 2, Kind.COMMENT, "note", ["// note"])]
+    paragraphs, _ = projection_of(text, rust_definition)
+    assert paragraphs == [paragraph(2, 2, Kind.COMMENT, ["// note"])]
 
 
 def test_projection_docs_and_comments_never_merge(rust_definition):
     text = "fn z() {}\n// note\n/// Doc.\nfn f() {}\n"
-    paragraphs, _, _ = projection_of(text, rust_definition)
-    assert [(p.kind, p.text, p.address) for p in paragraphs] == [
-        (Kind.COMMENT, "note", ""),
-        (Kind.DOCSTRING, "Doc.", "a2"),
+    paragraphs, _ = projection_of(text, rust_definition)
+    assert [(p.kind, p.raw_lines, p.declares_line) for p in paragraphs] == [
+        (Kind.COMMENT, ["// note"], None),
+        (Kind.DOCSTRING, ["/// Doc."], 4),
     ]
 
 
-def test_projection_detached_run_is_an_annotated_comment(rust_definition):
+def test_projection_detached_run_joins_its_gap_comment_with_one_warning(
+    rust_definition,
+):
     text = "fn z() {}\n/// a\n// b\nfn f() {}\n"
     result = rust_read(text, rust_definition)
     paragraphs = result.paragraphs(PAGE)
@@ -2384,73 +2386,62 @@ def test_projection_detached_run_is_an_annotated_comment(rust_definition):
             2,
             3,
             Kind.COMMENT,
-            "a b",
             ["/// a", "// b"],
-            notes={"detached-documentation"},
         ),
     ]
-    assert len(result.warnings) == 1
-    assert result.detached == (records.DetachedRun(result.warnings[0].span, 1),)
-    projection = import_module("comment_review.reading.rust.projection")
-    assert projection.documented_address(result.detached[0].owner) == "a2"
+    assert [text[w.span.start : w.span.end] for w in result.warnings] == ["/// a"]
 
 
 def test_projection_detached_trailing_run_keeps_its_anchor(rust_definition):
     text = "fn z() {} /// t\nfn f() {}\n"
-    paragraphs, _, _ = projection_of(text, rust_definition)
+    paragraphs, _ = projection_of(text, rust_definition)
     assert paragraphs == [
         paragraph(
             1,
             1,
             Kind.TRAILING,
-            "t",
             [" /// t"],
             anchor="fn z() {}",
-            notes={"detached-documentation"},
         )
     ]
 
 
-def test_projection_module_owned_detached_run_names_a0(rust_definition):
+def test_projection_module_doc_behind_an_attribute_has_one_warning(rust_definition):
     text = "//! a\n#![allow(x)]\n//! b\nfn f() {}\n"
     result = rust_read(text, rust_definition)
-    assert [run.owner for run in result.detached] == [None]
-    assert [w.span for w in result.warnings] == [r.span for r in result.detached]
-    projection = import_module("comment_review.reading.rust.projection")
-    assert projection.documented_address(result.detached[0].owner) == "a0"
+    assert [text[w.span.start : w.span.end] for w in result.warnings] == ["//! b"]
 
 
-@pytest.mark.parametrize(
-    ("change", "message"),
-    [
-        ({"detached": ()}, "align"),
-        ({"warnings": ()}, "align"),
-        ({"prose": ()}, "prose"),
-    ],
-    ids=["run-without-warning", "warning-without-run", "missing-prose"],
-)
-def test_projection_read_refuses_misaligned_records(rust_definition, change, message):
-    result = rust_read("//! a\n#![allow(x)]\n//! b\nfn f() {}\n", rust_definition)
-    fields = {
-        "source": result.source,
-        "protected": result.protected,
-        "warnings": result.warnings,
-        "detached": result.detached,
-        "prose": result.prose,
-    }
-    with pytest.raises(ValueError, match=message):
-        records.RustRead(**{**fields, **change})
+def test_projection_detached_run_is_divided_from_the_back_matter_at_the_blank(
+    rust_definition,
+):
+    text = "//! a\n#![allow(x)]\n//! b\n\n//! c\n"
+    paragraphs, _ = projection_of(text, rust_definition)
+    assert paragraphs == [
+        paragraph(1, 1, Kind.DOCSTRING, ["//! a"]),
+        paragraph(3, 3, Kind.COMMENT, ["//! b"]),
+        paragraph(5, 5, Kind.MATTER, ["//! c"]),
+    ]
+
+
+def test_projection_two_detached_runs_in_one_gap_are_one_comment(rust_definition):
+    # Detached runs are ordinary comments, and comments with no code between
+    # them are one section.
+    text = "fn g() {}\n/// a\n// x\n/// b\n// y\nfn f() {}\n"
+    paragraphs, _ = projection_of(text, rust_definition)
+    assert paragraphs == [
+        paragraph(2, 5, Kind.COMMENT, ["/// a", "// x", "/// b", "// y"]),
+    ]
 
 
 def test_projection_shebang_line_is_not_code(rust_definition):
     text = "#!/usr/bin/env run-cargo-script\nfn main() {}\n"
     result = rust_read(text, rust_definition)
     assert result.protected == (SourceSpan(0, 31),)
-    paragraphs, code, declarations = projection_of(text, rust_definition)
+    paragraphs, lines = projection_of(text, rust_definition)
     shebang = "#!/usr/bin/env run-cargo-script"
-    assert paragraphs == [paragraph(1, 1, Kind.MATTER, shebang, [shebang])]
-    assert code == {2: "fn main() {}"}
-    assert declarations == [(2, 2, True)]
+    assert paragraphs == [paragraph(1, 1, Kind.MATTER, [shebang])]
+    assert lines == [CodeLine(2, "fn main() {}", DocPlace(2, True))]
 
 
 @pytest.mark.parametrize(
@@ -2464,12 +2455,9 @@ def test_projection_shebang_line_is_not_code(rust_definition):
 def test_projection_body_inner_doc_leaves_its_item_inserting_at_its_head(
     rust_definition, text, inner
 ):
-    paragraphs, _, declarations = projection_of(text, rust_definition)
-    assert declarations[0] == (1, 1, True)
-    detached = [p for p in paragraphs if p.annotations]
-    assert [(p.start, p.kind, p.annotations) for p in detached] == [
-        (inner, Kind.COMMENT, {"detached-documentation"})
-    ]
+    paragraphs, lines = projection_of(text, rust_definition)
+    assert lines[0].documents == DocPlace(1, True)
+    assert [(p.start, p.kind) for p in paragraphs] == [(inner, Kind.COMMENT)]
 
 
 def test_projection_read_rust_refuses_an_unterminated_comment(rust_definition):
@@ -2493,19 +2481,33 @@ def test_projection_reader_record_is_satisfied_by_a_python_read():
     result = read_python('"""Doc."""\n\ndef f():\n    pass\n', definition)
     assert isinstance(result, PythonRead)
     assert warned(result) == 0
-    assert result.code() == {3: "def f():", 4: "    pass"}
+    assert result.code_lines() == [
+        CodeLine(3, "def f():", DocPlace(3, False)),
+        CodeLine(4, "    pass", None),
+    ]
     paragraphs = result.paragraphs(Path("x.py"))
     assert not isinstance(paragraphs, ReadFailure)
-    assert [p.address for p in paragraphs] == ["a0"]
-    assert result.declarations() == [(3, 4, False)]
+    assert [(p.kind, p.declares_line) for p in paragraphs] == [(Kind.DOCSTRING, None)]
 
 
 def test_projection_rust_read_answers_the_record_methods(rust_definition):
     result = rust_read("fn f() {}\n", rust_definition)
     assert result.warnings == ()
     assert result.paragraphs(PAGE) == []
-    assert result.code() == {1: "fn f() {}"}
-    assert result.declarations() == [(1, 1, True)]
+    assert result.code_lines() == [CodeLine(1, "fn f() {}", DocPlace(1, True))]
+
+
+def test_projection_a_line_declaring_two_items_documents_the_first(
+    rust_definition,
+):
+    text = "/// Doc.\nfn a() {} fn b() {}\n"
+    result = rust_read(text, rust_definition)
+    paragraphs, lines = projection_of(text, rust_definition)
+    assert lines == [CodeLine(2, "fn a() {} fn b() {}", DocPlace(2, True))]
+    assert paragraphs == [
+        paragraph(1, 1, Kind.DOCSTRING, ["/// Doc."], declares_line=2)
+    ]
+    assert result.warnings == ()
 
 
 def test_projection_read_source_returns_the_rust_record():
@@ -2513,6 +2515,12 @@ def test_projection_read_source_returns_the_rust_record():
 
     result = read_source(PAGE, "// note\nfn f() {}\n")
     assert isinstance(result, records.RustRead)
-    assert result.paragraphs(PAGE) == [
-        paragraph(1, 1, Kind.MATTER, "note", ["// note"])
-    ]
+    assert result.paragraphs(PAGE) == [paragraph(1, 1, Kind.MATTER, ["// note"])]
+
+
+def test_a_rust_page_always_has_an_a_series():
+    from comment_review.reading.readers import read_source
+
+    result = read_source(PAGE, "")
+    assert isinstance(result, records.RustRead)
+    assert result.a_series is True

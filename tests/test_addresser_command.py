@@ -211,6 +211,24 @@ class TestByLine:
         assert code == 2
         assert "gone.py" in out
 
+    def test_a_line_that_is_neither_a_number_nor_a_sentinel_is_a_usage_error(
+        self, monkeypatch, capsys, a_default_binder
+    ):
+        binder, name = a_default_binder
+        with pytest.raises(SystemExit) as exited:
+            self._ask(
+                monkeypatch,
+                capsys,
+                binder,
+                "--file",
+                name,
+                "--line",
+                "end",
+                "--series",
+                "a",
+            )
+        assert exited.value.code == 2
+
     def test_line_without_file_or_series_is_a_usage_error(
         self, monkeypatch, capsys, a_default_binder
     ):
@@ -218,3 +236,73 @@ class TestByLine:
         code, out = self._ask(monkeypatch, capsys, binder, "--line", "11")
         assert code == 2
         assert "--file" in out and "--series" in out
+
+
+@pytest.fixture
+def a_closing_binder(tmp_path):
+    """`class A {}` and a foot comment, gathered: its `<eof>` `a` is `a2`, which
+    no line of the file names."""
+    root = tmp_path / "repo"
+    root.mkdir()
+    (root / "A.java").write_text("class A {}\n// foot\n", encoding="utf-8", newline="")
+    page = page_of(root / "A.java", rel="A.java")
+    assert not isinstance(page, ReadFailure), page
+    binder = bind([page], read_from={"root": str(root), "revise": 0})
+    where = tmp_path / "binder.json"
+    where.write_text(json.dumps(binder.serialize()), encoding="utf-8")
+    return where
+
+
+class TestBySentinel:
+    """`--line` takes `<module>` or `<eof>` in place of a number, and names the
+    places each series emitted at that end of the file."""
+
+    def _ask(self, monkeypatch, capsys, binder, line, series):
+        return run_command(
+            monkeypatch,
+            capsys,
+            addresser,
+            *("--binder", str(binder), "--file", "A.java"),
+            *("--line", line, "--series", series),
+        )
+
+    def test_the_closing_a_answers_at_eof(self, monkeypatch, capsys, a_closing_binder):
+        code, out = self._ask(monkeypatch, capsys, a_closing_binder, "<eof>", "a")
+        assert code == 0, out
+        assert out.split() == ["A.java@a2", "'<eof>'", "ABSENT"]
+
+    def test_the_modules_a_answers_at_module(
+        self, monkeypatch, capsys, a_closing_binder
+    ):
+        code, out = self._ask(monkeypatch, capsys, a_closing_binder, "<module>", "a")
+        assert code == 0, out
+        assert out.split() == ["A.java@a0", "'<module>'", "ABSENT"]
+
+    @pytest.mark.parametrize(("line", "place"), [("<module>", "f0"), ("<eof>", "f1")])
+    def test_a_sentinel_names_one_end_of_the_files_matter(
+        self, monkeypatch, capsys, a_closing_binder, line, place
+    ):
+        code, out = self._ask(monkeypatch, capsys, a_closing_binder, line, "f")
+        assert code == 0, out
+        assert out.split()[0] == f"A.java@{place}"
+        assert len(out.splitlines()) == 1
+
+    def test_a_series_with_no_place_at_a_sentinel_says_so(
+        self, monkeypatch, capsys, a_closing_binder
+    ):
+        code, out = self._ask(monkeypatch, capsys, a_closing_binder, "<module>", "c")
+        assert code == 1
+        assert "<module>" in out and "no `c` place" in out
+
+    def test_the_usage_line_names_both_sentinels(self, monkeypatch, capsys):
+        monkeypatch.setattr("sys.argv", ["addresser", "--help"])
+        with pytest.raises(SystemExit):
+            addresser.main()
+        usage = capsys.readouterr().out.split("\n\n")[0]
+        assert "--line N|<module>|<eof>" in " ".join(usage.split())
+
+    def test_the_binder_still_checks(self, monkeypatch, capsys, a_closing_binder):
+        code, out = run_command(
+            monkeypatch, capsys, addresser, "--binder", str(a_closing_binder), "--check"
+        )
+        assert code == 0, out

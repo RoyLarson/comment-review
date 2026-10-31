@@ -133,7 +133,14 @@ class Comment:
     def _without_range(self, start: int, end: int) -> str | None:
         rendered = []
         offset = 0
-        for part in self.fragments:
+        # The space an emptied comment stood on, owed to the next comment on its
+        # line.
+        carried = ""
+        for at, part in enumerate(self.fragments):
+            # The comment ends its line: a line break follows it, or nothing.
+            ends_line = at == len(self.fragments) - 1 or part.raw_text.endswith(
+                ("\n", "\r")
+            )
             remaining = []
             kept_indices = []
             for n, paragraph in enumerate(part.paragraphs):
@@ -146,7 +153,31 @@ class Comment:
                     remaining.append(kept)
                     kept_indices.append(n)
                 offset += len(paragraph) + 1
-            rendered.append(part.wrap("\n\n".join(remaining), tuple(kept_indices)))
+            text = part.wrap("\n\n".join(remaining), tuple(kept_indices))
+            previous = rendered[-1] if rendered else ""
+            shares_line = bool(previous) and not previous.endswith(("\n", "\r"))
+            if not text and shares_line and ends_line:
+                # The comment shared its line with the one before it and ended
+                # the line, so the line stays and keeps its end; only the space
+                # before the removed comment goes.
+                rendered[-1] = rendered[-1].rstrip(" \t")
+                text = part.ending
+            elif not text and not shares_line and not ends_line:
+                # The comment shared its line with the one after it, which takes
+                # the indent or the space after code the removed one stood on.
+                leading = part.raw_text[
+                    : len(part.raw_text) - len(part.raw_text.lstrip(" \t"))
+                ]
+                carried = carried or leading
+            elif text and carried:
+                text = carried + text
+                carried = ""
+            if ends_line:
+                carried = ""
+            # An emptied comment leaves nothing, so `rendered[-1]` is always the
+            # last text kept, and it ends in a line break unless its line is open.
+            if text:
+                rendered.append(text)
         found = re.search(r"[\r\n]+$", self.raw_text)
         ending = found.group(0) if found else ""
-        return "".join(rendered).rstrip("\r\n") + (ending if any(rendered) else "")
+        return "".join(rendered).rstrip("\r\n") + (ending if rendered else "")
