@@ -13,6 +13,7 @@ neighbour fails even though its own place is right.
 import pytest
 from conftest import REPLACEMENT, SAMPLE, build, by_cue
 
+from comment_review.constants import EMPTY_PATCH
 from comment_review.reading.series import Kind
 from comment_review.results.compositor import set_page
 from comment_review.results.galley import reset
@@ -293,7 +294,9 @@ class TestWhatTheGalleyRefuses:
         assert len(problems) == 1
         assert "no such place" in problems[0]
 
-    @pytest.mark.parametrize("value", [0, 123, [], {}, ["# a line"], True, ""])
+    @pytest.mark.parametrize(
+        "value", [0, 123, [], {}, ["# a line"], True, "", "   ", "\n\n"]
+    )
     def test_a_replacement_that_is_not_TEXT(self, sample, value):
         """Only `None` is a drop. A `""` arriving from a key that failed to
         serialise would otherwise be read as a deletion, at exit 0."""
@@ -301,10 +304,11 @@ class TestWhatTheGalleyRefuses:
         assert len(problems) == 1
         if isinstance(value, str):
             assert "not a delete" in problems[0]
+            assert EMPTY_PATCH in problems[0]
         else:
             assert "must be text" in problems[0]
 
-    @pytest.mark.parametrize("value", [0, 123, [], {}, ""])
+    @pytest.mark.parametrize("value", [0, 123, [], {}, "", "   "])
     def test_a_refused_replacement_changes_NOTHING(self, sample, value):
         before = lines_by_cue(build(SAMPLE))
         reset(sample, {FILLED["b"][0]: value})

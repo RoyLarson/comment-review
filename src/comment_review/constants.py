@@ -32,6 +32,15 @@ LINE_BREAK = re.compile(r"\r\n|\r|\n")
 BYTE_ORDER_MARK = "\N{ZERO WIDTH NO-BREAK SPACE}"
 
 
+#: The error code of a replacement that holds no text.
+EMPTY_PATCH = "empty-patch"
+
+
+def holds_text(text: str) -> bool:
+    """Whether any character is left once this text's white space is removed."""
+    return bool(text.strip())
+
+
 def text_lines(text: str) -> list[str]:
     """This text as lines, split ONLY where a file's line actually ends.
 

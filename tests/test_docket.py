@@ -48,6 +48,7 @@ from helpers import (
     returned_copies,
 )
 
+from comment_review.constants import EMPTY_PATCH
 from comment_review.desk import report as events
 from comment_review.desk.proof.master_proof import MasterProof
 from comment_review.desk.work.fold import Fold
@@ -203,7 +204,9 @@ def test_None_is_the_delete():
         (a_docket([("m.py", "a", [("", "# x")])]), "needs a `cue`"),
         (a_docket([("m.py", "a", [("b1", 123)])]), "must be text or null"),
         (a_docket([("m.py", "a", [("b1", ["a"])])]), "must be text or null"),
-        (a_docket([("m.py", "a", [("b1", "")])]), "empty string"),
+        (a_docket([("m.py", "a", [("b1", "")])]), EMPTY_PATCH),
+        (a_docket([("m.py", "a", [("b1", "   ")])]), EMPTY_PATCH),
+        (a_docket([("m.py", "a", [("b1", "\n\t\n")])]), EMPTY_PATCH),
         (
             json.dumps(
                 {

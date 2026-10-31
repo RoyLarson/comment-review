@@ -76,11 +76,12 @@ notations."* The trade calls those PROOF CORRECTION MARKS, and `mark` is already
 this system's word for what a role emits. What needed a name was what the DESK
 makes of those marks. `decision-log.md Vocabulary: #14`.
 
-!! `None` IS THE DELETE AND AN EMPTY STRING IS REFUSED. Roy, 2026-08-25: *"None
+!! `None` IS THE DELETE AND AN EMPTY PATCH IS REFUSED. Roy, 2026-08-25: *"None
 is explicit enough."* ! The galley took `""` as its vacation signal until this
 landed, and a key whose value failed to serialise arrives looking exactly like
 a deliberate deletion. Two spellings for one act is how a bug upstream becomes
-a deletion downstream at exit 0.
+a deletion downstream at exit 0. A replacement is measured with its white space
+removed, so `"   "` is the same empty patch as `""`.
 
 ! `role` IS OPTIONAL AND, WHEN PRESENT, ONE PER PAGE -- since `P55`, the role
 of the `edit_copy` this docket was transcribed from.
@@ -103,6 +104,7 @@ went with the function that could read it.
 
 from dataclasses import dataclass, field
 
+from comment_review import constants
 from comment_review.reading.context import ReadingContext
 from comment_review.reading.context_io import context_from_wire, context_to_wire
 
@@ -126,7 +128,7 @@ class Alteration:
             here (`decision-log.md Process: #134`), and refuses None
             (`#135`).
 
-    !! `None` IS THE DELETE AND AN EMPTY STRING IS REFUSED -- see this module's
+    !! `None` IS THE DELETE AND AN EMPTY PATCH IS REFUSED -- see this module's
     header. Two spellings for one act is how a serialisation bug upstream
     becomes a deletion downstream at exit 0.
 
@@ -177,11 +179,11 @@ class Alteration:
                 f"{where}@{cue}: a replacement must be text or null, not"
                 f" {type(text).__name__}"
             ]
-        if not text:
+        if not constants.holds_text(text):
             return None, [
-                f"{where}@{cue}: an empty string is not a delete -- null is."
-                " Two spellings for one act is how a serialisation bug"
-                " becomes a deletion"
+                f"{where}@{cue}: {constants.EMPTY_PATCH}: text with no characters"
+                " is not a delete -- null is. Two spellings for one act is how a"
+                " serialisation bug becomes a deletion"
             ]
         return cls(cue=cue, text=text, anchor=anchor), []
 

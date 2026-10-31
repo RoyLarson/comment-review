@@ -104,10 +104,11 @@ def reset(page, edits: dict[str, str | None]) -> list[str]:
     page, the cues-new text or a delete."* A page names its own file, so the
     path half of an address is a fact the caller already had.
 
-    !! `None` IS THE DELETE AND `""` IS REFUSED. Roy, 2026-08-25: *"None is
-    explicit enough."* ! An empty string was the vacation signal until then,
-    which made a failed serialisation upstream indistinguishable from a
-    deliberate deletion.
+    !! `None` IS THE DELETE AND AN EMPTY PATCH IS REFUSED. Roy, 2026-08-25:
+    *"None is explicit enough."* ! An empty string was the vacation signal
+    until then, which made a failed serialisation upstream indistinguishable
+    from a deliberate deletion. A replacement is measured with its white
+    space removed, so `"   "` is the same empty patch as `""`.
 
     !! THE ADDRESS IS THE WHOLE OF THE PLACEMENT. A paragraph knows which place
     it sits in, and the compositor sets the places in order, so a replacement is
@@ -167,8 +168,11 @@ def reset(page, edits: dict[str, str | None]) -> list[str]:
                 f" {type(replacement).__name__}"
             )
             continue
-        if not replacement:
-            refused.append(f"{where}: an empty string is not a delete -- None is")
+        if not constants.holds_text(replacement):
+            refused.append(
+                f"{where}: {constants.EMPTY_PATCH}: text with no characters is not"
+                " a delete -- None is"
+            )
             continue
         found.raw_lines = constants.text_lines(replacement)
     return refused

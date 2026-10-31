@@ -23,6 +23,7 @@ from helpers import a_binder_over
 from test_mark_brief import BRIEF
 
 from comment_review.binder.page import Page
+from comment_review.constants import EMPTY_PATCH
 from comment_review.desk.marks.rules import allowed, derived_change
 from comment_review.desk.marks.table import INSTRUCTIONS
 from comment_review.desk.proof.mark import (
@@ -412,15 +413,16 @@ class TestTheRulesBite:
         bad["change"] = ""
         assert problems("here", bad)
 
-    def test_a_WHITESPACE_ONLY_change_is_not_an_answer(self):
+    @pytest.mark.parametrize("instruction", ["correct", "patch", "add"])
+    def test_a_WHITESPACE_ONLY_change_is_not_an_answer(self, instruction):
         """!! THE SAME GAP `filled` CLOSES FOR A `claim` KEY -- see
         `test_an_empty_claim_key_is_not_an_answer`, above. `may_empty` decides
         whether NO content is acceptable; it says nothing about whether
         whitespace counts as content, and a bare `not change` let it through
         for a row that does not allow an empty change at all."""
-        bad = well_formed("correct")
+        bad = well_formed(instruction)
         bad["change"] = "   "
-        assert any("change" in p for p in problems("here", bad))
+        assert any(EMPTY_PATCH in p for p in problems("here", bad))
 
     def test_a_change_carrying_the_anchors_own_code_line_is_refused(self):
         """`collator-defects` T35: a change is the paragraph alone, so one

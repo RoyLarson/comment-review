@@ -42,6 +42,7 @@ from dataclasses import dataclass, fields
 from enum import StrEnum, auto
 from typing import Any, ClassVar, Self, TypeGuard, TypeVar
 
+from comment_review import constants
 from comment_review.desk.proof.source import problems as source_entry_problems
 from comment_review.reading.addresser import cue_of, folded
 
@@ -775,7 +776,7 @@ def filled(value: object) -> TypeGuard[str]:
     `if filled(x): use(x)` gets the same narrowing an inline
     `isinstance(x, str) and x.strip()` would have given it.
     """
-    return isinstance(value, str) and bool(value.strip())
+    return isinstance(value, str) and constants.holds_text(value)
 
 
 def without_location(where: str, message: str) -> str:
@@ -881,7 +882,10 @@ def _change_problems(
             "RAW TEXT"
         ]
     if not filled(change) and not may_empty:
-        return [f"{where}: {instruction} needs `change` to hold the new text"]
+        return [
+            f"{where}: {constants.EMPTY_PATCH}: {instruction} needs `change` to"
+            " hold the new text"
+        ]
     anchored = {line.strip() for line in anchor.splitlines() if filled(line)}
     carried = next(
         (line.strip() for line in change.splitlines() if line.strip() in anchored),

@@ -13,6 +13,7 @@ from conftest import PKG, SAMPLE, build, by_cue, cue, docket_from
 from helpers import a_move, copies_over, entries_of, returned
 
 from comment_review.binder.binder import bind
+from comment_review.constants import EMPTY_PATCH
 from comment_review.desk.proof.edit_copy import EditCopy
 from comment_review.docket.docket import Alteration, Docket, Schedule
 from comment_review.flows import page_for as page_for_mod
@@ -2077,9 +2078,21 @@ def test_a_drop_beside_blank_separated_comments_is_accepted(
     ids=["doc", "comment", "docstring", "empty-place", "margin"],
 )
 def test_white_space_is_not_a_way_to_spell_a_drop(tmp_path, name, text, alterations):
-    drafted, refused = _chain(tmp_path, name, text, alterations)
+    # Past the docket's own refusal, so the write chain is what is asked.
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    (repo / name).write_text(text, encoding="utf-8", newline="")
+    binder = bind([build(text, name)], read_from={"root": str(repo), "revise": 0})
+    docket = docket_from({f"{name}@{at}": "x" for at in alterations}, binder)
+    only = docket.schedules[0]
+    held = tuple(
+        dataclasses.replace(one, text=alterations[one.cue]) for one in only.alterations
+    )
+    held_docket = Docket((dataclasses.replace(only, alterations=held),))
+    drafted, refused = proof_setter.run(held_docket, repo, tmp_path / "out")
     assert drafted == []
-    assert refused[0].step == "reread"
+    assert refused[0].step == "edit"
+    assert EMPTY_PATCH in refused[0].why
 
 
 def test_a_directory_THAT_WAS_THERE_BEFORE_the_run_survives_it(tmp_path, monkeypatch):
