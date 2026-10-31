@@ -4,7 +4,7 @@
 Status:   in-progress
 Progress: 25 of 69 tasks closed
 Owner:    backend
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-22 (/simplify rounds 1 and 2 and /code-review high round 3,
           2026-08-22 -- the ones touching the two reader modules, filed because
           those modules are settled and will not shift under front-half-undetermined)
@@ -383,5 +383,6 @@ would.
 - [ ] T66 | Test a line ending on a paragraph's later line
 - [ ] T67 | Confirm the CR notes at `language.py:190`, `:492` and
       `nests_comments`
-- [?] T68 | Refuse the `.rs` draft rustc cannot read at `rust/records.py:350`
+- [ ] T68 | Refuse the `.rs` draft rustc cannot read at `rust/records.py:350`
+        > 2026-10-31 Outcome: refuse in `RustRead.preserved`, #256
 - [ ] T69 | Add `RecursionError` to `PARSE_ERRORS` at `exceptions.py:80`

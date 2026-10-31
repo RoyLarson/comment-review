@@ -5964,3 +5964,12 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   sets it, and the next reading holds it as leading. The error code is the string `empty-patch` in
   the refusal, with no new exit number.
 
+- **#256.** **A Rust doc marker with nothing to attach to is refused** (Roy, 2026-10-31, shown
+  that `/// A note.` added at `b1` under `fn f() {}` proves while rustc goes from exit 0 to exit 1,
+  and asked where it refuses: *"Agree it gets an error"*).
+
+  **What it settles.** `RustRead.preserved` refuses it, so `proof` and `prove_unchanged` both stop;
+  a read does not. It compares both sides: a page that was fine and a draft holding a marker with no
+  item to attach to, or `//!` where no inner doc is allowed. A plain comment between a doc and its
+  item stays allowed under #235.
+
