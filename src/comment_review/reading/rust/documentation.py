@@ -140,7 +140,8 @@ class _Assigner:
             declaration.header.start for declaration in placement.declarations
         ]
         self.item_starts = [self._item_start(d) for d in placement.declarations]
-        # From `_nesting` and `_bodies`, built the first time `_holder` asks.
+        # From `_nesting` and `_bodies`, built by `_nest`
+        # the first time `_holder` or `_lists_fields` asks.
         self.open_at: list[int | None] | None = None
         self.enclosing: dict[int, int | None] = {}
         self.bodies: dict[int, int] = {}
@@ -280,8 +281,9 @@ class _Assigner:
         """Whether rustc rejects inner doc run `index`, the code token `before` it.
 
         It is accepted first in its scope: at the file head, after an inner
-        attribute, or after the `{` of a body that is not a field or variant
-        list. An outer doc run since `before` rejects it too.
+        attribute, or after the `{` of a body other than that of a struct,
+        enum or union item. A variant's own field list is not checked. An
+        outer doc run since `before` rejects it too.
         """
         since = self.code[before].span.end if before >= 0 else 0
         if any(
