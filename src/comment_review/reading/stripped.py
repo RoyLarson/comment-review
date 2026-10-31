@@ -19,6 +19,7 @@ from comment_review.reading.lexer import (
     after_closer,
     language_for,
     paragraphs_lexical,
+    scan_strings,
 )
 from comment_review.reading.proof import UNPROVABLE, PreservationResult
 
@@ -59,6 +60,31 @@ def _delimiter_shares_the_line(line: str, lang: Language) -> bool:
 def _continues(line: str, lang: Language) -> bool:
     """Whether the line ends in an odd run of one of the row's continuations."""
     return any((len(line) - len(line.rstrip(c))) % 2 for c in lang.line_continuations)
+
+
+def _comment_in_a_string(
+    kept: dict[int, str | None], partial: set[int], lang: Language
+) -> bool:
+    """Whether a comment stands where a string literal is still open.
+
+    The gather reads each line with no quote carried from the line above, so a
+    line inside a literal that spans lines and begins with the row's comment
+    marker is read as a comment. `kept` holds each line as the comparison keeps
+    it: whole, as its code prefix (the lines in `partial`), or None for a line
+    a comment holds whole. Walking it with the open quote carried finds that
+    line: a comment line reached with a quote open is string text, and so is a
+    comment trailing a prefix that leaves a quote open.
+    """
+    quote = ""
+    for n, v in kept.items():
+        if v is None:
+            if quote:
+                return True
+            continue
+        _, quote = scan_strings(v, lang, quote)
+        if quote and n in partial:
+            return True
+    return False
 
 
 def _without_comments(text: str, path: Path) -> str | None:
@@ -128,6 +154,8 @@ def _without_comments(text: str, path: Path) -> str | None:
                 partial.add(n)
             else:
                 return None  # binder and the file disagree; do not reconcile
+    if _comment_in_a_string(kept, partial, lang):
+        return None
     code = []
     joined = False
     for n, v in kept.items():
@@ -135,15 +163,15 @@ def _without_comments(text: str, path: Path) -> str | None:
             # The line a continuation joins is code whatever it holds.
             code.append(lines[n - 1].rstrip(BLANK) if v is None else v)
         joined = v is not None and n not in partial and _continues(lines[n - 1], lang)
-    # !! A LITERAL THAT SPANS LINES MAKES THIS FILE UNPROVABLE. `scan_strings`
-    # takes an open quote, but the gather carries none from line to line, so a
-    # line INSIDE a JS template literal or a Java text block that begins with the
-    # language's
-    # comment marker is read as a comment and deleted from BOTH
-    # fingerprints. Measured 2026-08-17: a template literal whose body changed
-    # from `// alpha` to `// omega` produced identical fingerprints and the file
-    # was reported PROVEN -- a fail-OPEN in the one gate whose whole claim is
-    # that executable code is byte-identical.
+    # !! A LITERAL THAT SPANS LINES THE ROW CANNOT TRACK MAKES THIS FILE
+    # UNPROVABLE. The gather carries no quote from line to line, so a line INSIDE
+    # a JS template literal or a Java text block that begins with the language's
+    # comment marker is read as a comment and deleted from BOTH fingerprints:
+    # a template literal whose body changed from `// alpha` to `// omega`
+    # produced identical fingerprints and the file was reported PROVEN -- a
+    # fail-OPEN in the one gate whose whole claim is that executable code is
+    # byte-identical. `_comment_in_a_string` catches this for the quotes
+    # `scan_strings` tracks; the row's `spanning_quotes` are the ones it does not.
     #
     # ! This refuses on the delimiter's PRESENCE, not on parity: parity is what
     # the per-line lexer already cannot compute, so trusting it here would be

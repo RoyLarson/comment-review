@@ -204,3 +204,35 @@ def test_a_sql_double_quote_holding_an_escaped_quote_is_unprovable():
     text = 'SELECT "it\\"s -- x";\n'
 
     assert _preserved(text, text.replace("-- x", "-- y"), "a.sql").unprovable
+
+
+@pytest.mark.parametrize(
+    "name, text",
+    [
+        ("a.sh", 'echo "a\n# b\nc"\n'),
+        ("a.rb", 'x = "a\n# b\nc"\n'),
+        ("a.sql", "SELECT 'a\n-- b\nc';\n"),
+        ("a.lua", 'x = "a\\\n-- b\nc"\n'),
+        ("a.js", 'x = "a\\\n// b\nc";\n'),
+    ],
+)
+def test_a_comment_inside_an_open_string_is_unprovable(name, text):
+    assert _preserved(text, text, name).unprovable
+
+
+def test_a_string_spanning_lines_with_no_comment_in_it_proves():
+    text = 'echo "a\nb"\n'
+
+    assert _preserved(text, text, "a.sh").unchanged
+
+
+def test_a_comment_after_the_string_closes_proves():
+    before = 'echo "a\nb"\n# one\n'
+
+    assert _preserved(before, before.replace("one", "two"), "a.sh").unchanged
+
+
+def test_an_apostrophe_in_a_comment_opens_nothing():
+    before = "# it's\necho a\n# two\n"
+
+    assert _preserved(before, before.replace("two", "three"), "a.sh").unchanged

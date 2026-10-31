@@ -54,7 +54,7 @@ A comment edit that changes what the language runs never reports PROVEN
       the interpreter line with its ending
 - [x] P3 | verbatim_quotes read backslash as text; scan_strings built; full suite passes | 694f4fed772a4024be3f1199d5925f755dd30000 | Read
       a backslash in a verbatim quote as text
-- [ ] P4 | Refuse a comment standing inside an open string
+- [~] P4 | Refuse a comment standing inside an open string
 - [ ] P5 | Refuse a comment inside JSX text
 - [ ] P6 | Refuse a Rust doc marker with nothing to attach to
 - [ ] P7 | State what the stripped comparison holds
