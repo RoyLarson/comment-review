@@ -327,3 +327,4 @@ files in `corpora/` are in that state today.
       written text that joins a neighbouring paragraph (#254)
 - [ ] T71 | Refuse a white-space-only replacement with its own error code (#255)
 - [ ] T72 | Test a paragraph split through the real chain (#255)
+        > 2026-10-30 Scoped review: `// a\n\n// b` at `a0` refuses today
