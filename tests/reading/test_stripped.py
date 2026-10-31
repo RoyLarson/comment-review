@@ -183,3 +183,10 @@ def test_a_row_with_no_continuation_reads_its_comment_as_prose():
     before = "x = a \\\n-- one\n"
 
     assert _preserved(before, before.replace("one", "two"), "a.lua").unchanged
+
+
+def test_a_sql_file_holding_an_escaped_quote_is_unprovable():
+    # standard SQL and MySQL end this literal in different places
+    text = "SELECT 'it\\'s -- x';\n"
+
+    assert _preserved(text, text.replace("-- x", "-- y"), "a.sql").unprovable

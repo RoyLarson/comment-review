@@ -548,33 +548,33 @@ def _closes_a_character(line: str, at: int, quote: str) -> bool:
 BLANK = " \t\f\v"
 
 
-def _strip_strings(
-    line: str, quotes: tuple[str, ...], char_quotes: tuple[str, ...] = ()
-) -> str:
+def scan_strings(line: str, lang: Language, quote: str = "") -> tuple[str, str]:
     """Blank out string literals so a marker inside one stays out of the binder.
 
     `url = "http://x"` holds `//` in most C-family languages. It handles
-    single-line literals with backslash escapes; raw strings, heredocs and
-    template nesting are what this function does not handle.
+    literals with backslash escapes, except in the row's `verbatim_quotes`,
+    where a backslash is text; heredocs and template nesting are what this
+    function does not handle.
 
     Args:
         line: the physical line.
-        quotes: this language's string delimiters.
-        char_quotes: the subset holding exactly ONE character, which is checked
-            for a closer before it is believed. Empty where the language has
-            none, and then every quote in `quotes` opens a literal.
+        lang: the row; its `quotes`, `char_quotes` and `verbatim_quotes` decide
+            what opens, closes and escapes a literal.
+        quote: the delimiter still open from the line above, or "" when the
+            line starts outside a literal.
 
     Returns:
         The line, its literals blanked, THE SAME LENGTH -- callers cut it at a
-        column.
+        column -- and the delimiter still open at its end, "" when none is.
     """
-    out, quote, esc = [], "", False
+    quotes, char_quotes = lang.quotes, lang.char_quotes
+    out, esc = [], False
     for i, ch in enumerate(line):
         if esc:
             out.append(" " if quote else ch)
             esc = False
             continue
-        if ch == "\\":
+        if ch == "\\" and quote not in lang.verbatim_quotes:
             esc = True
             out.append(" " if quote else ch)
             continue
@@ -593,7 +593,7 @@ def _strip_strings(
             out.append(" ")
             continue
         out.append(ch)
-    return "".join(out)
+    return "".join(out), quote
 
 
 def run_ends(
@@ -1036,7 +1036,7 @@ def read_lexical(path: Path, text: str, lang: Language) -> "LexicalRead":
             # becomes of them.
             pending.append((n, ""))
             continue
-        code = _strip_strings(raw_line, lang.quotes, lang.char_quotes)
+        code, _ = scan_strings(raw_line, lang)
         line_at = _line_comment_at(raw_line, code, openers, lang)
         opened = next((p for p in lang.block_comment if p[0] in code), None)
         # !! WHICHEVER OPENER COMES FIRST on the line owns it.
@@ -1130,7 +1130,7 @@ def read_lexical(path: Path, text: str, lang: Language) -> "LexicalRead":
                 # line, which must not absorb the prose beneath it.
                 flush()
             continue
-        # !! ASKED OF THE RAW LINE, NOT THE BLANKED ONE. `_strip_strings` replaces
+        # !! ASKED OF THE RAW LINE, NOT THE BLANKED ONE. `scan_strings` replaces
         # a literal with spaces, which erases the evidence that code came first:
         # `  "b" // the last one` blanks to `      // the last one`, whose strip
         # starts with the opener, so a JS array element would read as a
@@ -1580,7 +1580,7 @@ def _after_annotations(line: str, lang: Language) -> str | None:
     """
     if not lang.annotations:
         return None
-    code = _strip_strings(line, lang.quotes, lang.char_quotes)
+    code, _ = scan_strings(line, lang)
     at = len(code) - len(code.lstrip())
     found = False
     while True:

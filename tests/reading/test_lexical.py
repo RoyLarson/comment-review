@@ -1016,3 +1016,34 @@ def test_declarations_hold_only_the_declaring_lines():
     assert declarations(go, {1: "package m", 3: "func f() {}"}) == {
         3: DocPlace(3, True)
     }
+
+
+def _paragraphs(name: str, text: str):
+    return read(name, text).paragraphs(Path(name))
+
+
+def test_a_shell_single_quote_ends_at_its_backslash():
+    assert not _paragraphs("a.sh", "echo 'a\\' 'b # c'\n")
+
+
+def test_a_go_raw_string_ends_at_its_backslash():
+    assert not _paragraphs("a.go", "x := `a\\` + `b // c`\n")
+
+
+def test_a_shell_double_quote_keeps_its_escape():
+    assert not _paragraphs("a.sh", 'echo "a\\" # c"\n')
+
+
+def test_a_sql_single_quote_ends_at_its_backslash():
+    assert not _paragraphs("a.sql", "SELECT 'a\\', 'b -- c';\n")
+
+
+def test_a_quote_open_at_a_lines_end_carries_to_the_next():
+    from comment_review.reading.lexer import scan_strings
+
+    lang = language_for(Path("a.sh"))
+    assert lang is not None
+    blanked, open_at_end = scan_strings("echo 'a # b", lang)
+    assert (blanked, open_at_end) == ("echo" + " " * 7, "'")
+    blanked, open_at_end = scan_strings("c # d' # e", lang, open_at_end)
+    assert (blanked, open_at_end) == (" " * 7 + "# e", "")

@@ -135,7 +135,7 @@ def _without_comments(text: str, path: Path) -> str | None:
             # The line a continuation joins is code whatever it holds.
             code.append(lines[n - 1].rstrip(BLANK) if v is None else v)
         joined = v is not None and n not in partial and _continues(lines[n - 1], lang)
-    # !! A LITERAL THAT SPANS LINES MAKES THIS FILE UNPROVABLE. `_strip_strings`
+    # !! A LITERAL THAT SPANS LINES MAKES THIS FILE UNPROVABLE. `scan_strings`
     # is per-line and carries no open-quote state, so a line INSIDE a JS
     # template literal or a Java text block that begins with the language's
     # comment marker is read as a comment and deleted from BOTH

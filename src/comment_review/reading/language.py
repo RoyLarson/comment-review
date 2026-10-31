@@ -49,10 +49,17 @@ class Language:
             zero prose paragraphs, because `'static` opens a literal that
             never closes and blanks the comment with the rest of the line.
         spanning_quotes: delimiters whose literal may cross LINES -- a JS
-            template literal, a Java text block. ! `_strip_strings` is per-line
-            and carries no open-quote state, so a comment marker INSIDE one of
+            template literal, a Java text block. ! the gather scans each line
+            with no open quote carried over, so a comment marker INSIDE one of
             these reads as a comment; `prove_unchanged` refuses such a file
-            rather than proving it. Empty where a language has none.
+            rather than proving it. Empty where a language has none. ! Also
+            where dialects of one language end a literal in different places
+            (SQL's backslash before a quote): the entry is a shape the file is
+            refused on.
+        verbatim_quotes: the delimiters in which a backslash is ordinary text,
+            so it neither escapes the next character nor keeps the literal
+            open: Go's raw string, a shell single quote. Empty where every
+            quote honours the backslash.
         declares: the KEYWORDS this language uses to introduce something that
             can carry documentation. Empty, the language still has an `a`
             series when it has doc markers -- see `a_series`.
@@ -108,6 +115,7 @@ class Language:
     word_parens: tuple[str, ...] = ()
     line_endings: tuple[str, ...] = ()
     line_continuations: tuple[str, ...] = ()
+    verbatim_quotes: tuple[str, ...] = ()
 
     @property
     def a_series(self) -> bool:
@@ -165,10 +173,9 @@ LANGUAGES: tuple[Language, ...] = (
         # a TRAILING COMMENT carrying the URL as prose, the `return` line left
         # `return `http:` and dropped out of `code_text`, and every `b`/`c`
         # below it renumbered.
-        # ! This blanking is imperfect here: `_strip_strings` honours a
-        # backslash, and a raw string ending in one (`` `C:\` ``) runs past its
-        # closer. That shape is rarer than a URL by a wide margin.
         quotes=('"', "'", "`"),
+        # ! A raw string takes no escapes, so `` `C:\` `` ends at its backslash.
+        verbatim_quotes=("`",),
         # !! AND IT CROSSES LINES, which is a separate claim with a separate
         # consumer: `prove_unchanged` REFUSES a file holding one rather than
         # trusting a per-line read of it.
@@ -506,6 +513,8 @@ LANGUAGES: tuple[Language, ...] = (
         # ! A backtick substitution is read as a literal: a `#` in one ends at
         # the closing backtick, and a line comment here runs to the line's end.
         quotes=('"', "'", "`"),
+        # ! A single quote takes no escapes: `'a\'` is a complete word.
+        verbatim_quotes=("'",),
         annotations=(),
         # ! Bash's blanks and metacharacters. `#` opens a comment only as the
         # first character of a word, and these are what end one.
@@ -523,7 +532,12 @@ LANGUAGES: tuple[Language, ...] = (
         (".sql",),
         ("--",),
         (("/*", "*/"),),
+        # ! Standard SQL ends `'it\'s'` at the quote after the backslash and
+        # MySQL reads the backslash as an escape, so a file holding `\'` is
+        # refused (`spanning_quotes`).
+        spanning_quotes=("\\'",),
         quotes=("'", '"'),
+        verbatim_quotes=("'", '"'),
         annotations=(),
         # ! The standard leaves it to the implementation; PostgreSQL's and
         # MySQL's scanners end a `--` comment at LF or CR.

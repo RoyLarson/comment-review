@@ -30,6 +30,6 @@ Worked when it is asked for -- decision-log.md Process: #222.
 - [x] T4 | word_breaks row field; bash-checked inputs in tests | 5b0f9fbf | Read
       a shell `#` as a comment only at a word start, at `lexer.py:973`
 - [ ] T5 | Read a line opening `#` after a `\` continuation as code
-- [ ] T6 | Read a backslash inside a single-quoted string as literal
+- [~] T6 | Read a backslash inside a single-quoted string as literal
 - [x] T7 | Glued `)` and backtick read as code, checked against bash | 46943d65 | Read
       `#` glued to a closing `)` or backtick as code, at `lexer.py:812`

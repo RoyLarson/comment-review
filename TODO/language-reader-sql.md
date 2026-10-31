@@ -22,4 +22,4 @@ Worked when it is asked for -- decision-log.md Process: #222.
         > 2026-10-25 Check: spec states modes, directive bounds, doc owners, fixtures
 - [ ] T2 | Implement the SQL reader from its definition
         > 2026-10-25 Check: uv run pytest -q tests/reading/test_sql.py
-- [ ] T3 | Read a backslash inside a single-quoted string as literal
+- [~] T3 | Read a backslash inside a single-quoted string as literal
