@@ -239,6 +239,9 @@ def _project(
         exact[start:end] = [False] * (end - start)
         documentation[start] = str(expression.declaration)
         documentation_ends.add(end - 1)
+    if constants.mark_of(text):
+        # The mark is compared on its own, by `compare_preservation`.
+        keep[0] = exact[0] = False
     for comment in ordinary_comments:
         cursor = comment.start
         while cursor and text[cursor - 1] in _HORIZONTAL and not exact[cursor - 1]:

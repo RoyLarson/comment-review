@@ -772,3 +772,20 @@ def test_a_mark_inside_a_later_string_stays():
     out = set_page(page)
     assert out.startswith(MARK + "// added")
     assert out.count(MARK) == 2
+
+
+def test_a_patched_head_does_not_edit_a_later_paragraph_holding_a_mark():
+    from comment_review.results.galley import reset
+
+    text = MARK + "// c\nint x;\n/* one\n" + MARK + "two */\nint y;\n"
+    page = build(text, "a.c")
+    assert reset(page, {"f0": "// patched"}) == []
+    assert set_page(page) == text.replace("// c", "// patched")
+
+
+def test_an_emptied_marked_file_is_the_mark_alone():
+    from comment_review.results.galley import reset
+
+    page = build(MARK + "// c\n", "a.c")
+    assert reset(page, {"f0": None}) == []
+    assert set_page(page) == MARK

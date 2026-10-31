@@ -284,12 +284,47 @@ def test_a_ts_file_holds_no_elements():
     assert _preserved(before, before.replace("one", "two"), "a.ts").unchanged
 
 
-@pytest.mark.parametrize("name", ["a.sh"])
-def test_a_lost_or_moved_mark_is_protected_source(name):
+def test_a_lost_or_moved_mark_is_protected_source():
     text = "\ufeffx=1\n"
-    lost = _preserved(text, "x=1\n", name)
-    moved = _preserved(text, "\n\ufeffx=1\n", name)
+    for after in ("x=1\n", "\n\ufeffx=1\n"):
+        result = _preserved(text, after, "a.sh")
 
-    for result in (lost, moved):
         assert not result.unchanged
         assert [d.code for d in result.diagnostics] == ["protected-source-changed"]
+
+
+@pytest.mark.parametrize(
+    ("text", "places"),
+    [
+        ("\ufeffx=1\n", {"f0": "# added"}),
+        ("\ufeffx=1\n", {"b0": "# added"}),
+        ("\ufeff# c\nx=1\n", {"f0": None}),
+        ("\ufeff# c\nx=1\n", {"f0": "# new"}),
+        ("\ufeff# c\n", {"f0": None}),
+    ],
+)
+def test_a_head_edit_on_a_marked_page_sets_and_proves(text, places):
+    from conftest import build
+
+    from comment_review.results.compositor import set_page
+    from comment_review.results.galley import reset
+
+    page = build(text, "a.sh")
+    assert reset(page, places) == []
+
+    assert _preserved(text, set_page(page), "a.sh").unchanged
+
+
+def test_an_added_comment_carrying_its_own_mark_is_changed_code():
+    from conftest import build
+
+    from comment_review.results.compositor import set_page
+    from comment_review.results.galley import reset
+
+    text = "\ufeffint x;\n"
+    page = build(text, "a.c")
+    assert reset(page, {"f0": "\ufeff// added"}) == []
+
+    result = _preserved(text, set_page(page), "a.c")
+    assert not result.unchanged
+    assert [d.code for d in result.diagnostics] == ["code-changed"]

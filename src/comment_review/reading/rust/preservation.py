@@ -74,10 +74,14 @@ def _code_lines(read: RustRead) -> tuple[str, ...]:
         if read.is_prose(region) or span in protected:
             finish()
             continue
+        # The byte-order mark is compared on its own, by `compare_preservation`.
+        chunk = text[span.start : span.end]
+        if span.start == 0:
+            chunk = constants.without_mark(chunk)
         if region.kind is not RegionKind.WHITESPACE:
-            pieces.append((True, text[span.start : span.end]))
+            pieces.append((True, chunk))
             continue
-        layout = constants.LINE_BREAK.split(text[span.start : span.end])
+        layout = constants.LINE_BREAK.split(chunk)
         pieces.append((False, layout[0]))
         for following in layout[1:]:
             finish()

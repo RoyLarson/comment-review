@@ -3695,18 +3695,33 @@ def test_a_docstring_sharing_its_line_reads_as_its_broken_source(shared, broken)
 
 
 def test_a_lost_or_moved_mark_is_protected_source():
-    from pathlib import Path
+    from conftest import build
 
-    from comment_review.reading.readers import read_source
+    before = build("\ufeffx = 1\n", "a.py").read
+    for after in ("x = 1\n", "\n\ufeffx = 1\n"):
+        result = before.preserved(build(after, "a.py").read)
 
-    text = "\ufeffx = 1\n"
-    from comment_review.reading.python.records import PythonRead
-
-    before = read_source(Path("a.py"), text)
-    assert isinstance(before, PythonRead)
-    for text_after in ("x = 1\n", "\n\ufeffx = 1\n"):
-        after = read_source(Path("a.py"), text_after)
-        assert isinstance(after, PythonRead)
-        result = before.preserved(after)
         assert not result.unchanged
         assert [d.code for d in result.diagnostics] == ["protected-source-changed"]
+
+
+@pytest.mark.parametrize(
+    ("text", "places"),
+    [
+        ("\ufeffx = 1\n", {"f0": "# added"}),
+        ("\ufeffx = 1\n", {"b0": "# added"}),
+        ("\ufeff# c\nx = 1\n", {"f0": None}),
+        ("\ufeff# c\nx = 1\n", {"f0": "# new"}),
+        ("\ufeff# c\n", {"f0": None}),
+    ],
+)
+def test_a_head_edit_on_a_marked_page_sets_and_proves(text, places):
+    from conftest import build
+
+    from comment_review.results.compositor import set_page
+    from comment_review.results.galley import reset
+
+    page = build(text, "a.py")
+    assert reset(page, places) == []
+
+    assert page.read.preserved(build(set_page(page), "a.py").read).unchanged

@@ -2527,18 +2527,33 @@ def test_a_rust_page_always_has_an_a_series():
 
 
 def test_a_lost_or_moved_mark_is_protected_source():
-    from pathlib import Path
+    from conftest import build
 
-    from comment_review.reading.readers import read_source
+    before = build("\ufefffn f() {}\n", "a.rs").read
+    for after in ("fn f() {}\n", "\n\ufefffn f() {}\n"):
+        result = before.preserved(build(after, "a.rs").read)
 
-    text = "\ufefffn f() {}\n"
-    from comment_review.reading.rust.records import RustRead
-
-    before = read_source(Path("a.rs"), text)
-    assert isinstance(before, RustRead)
-    for text_after in ("fn f() {}\n", "\n\ufefffn f() {}\n"):
-        after = read_source(Path("a.rs"), text_after)
-        assert isinstance(after, RustRead)
-        result = before.preserved(after)
         assert not result.unchanged
         assert [d.code for d in result.diagnostics] == ["protected-source-changed"]
+
+
+@pytest.mark.parametrize(
+    ("text", "places"),
+    [
+        ("\ufefffn f() {}\n", {"f0": "// added"}),
+        ("\ufefffn f() {}\n", {"b0": "// added"}),
+        ("\ufeff// c\nfn f() {}\n", {"f0": None}),
+        ("\ufeff// c\nfn f() {}\n", {"f0": "// new"}),
+        ("\ufeff// c\n", {"f0": None}),
+    ],
+)
+def test_a_head_edit_on_a_marked_page_sets_and_proves(text, places):
+    from conftest import build
+
+    from comment_review.results.compositor import set_page
+    from comment_review.results.galley import reset
+
+    page = build(text, "a.rs")
+    assert reset(page, places) == []
+
+    assert page.read.preserved(build(set_page(page), "a.rs").read).unchanged

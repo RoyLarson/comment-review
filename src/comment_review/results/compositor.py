@@ -140,6 +140,9 @@ def _set(page: Page, newline: str | None) -> tuple[str, dict[str, tuple[int, int
     """
     ending = newline if newline is not None else line_endings(page.text)
     held = _held(page)
+    mark = constants.mark_of(page.text)
+    if mark:
+        _take_mark(page, held)
     out: list[str] = []
     lines_of: dict[str, tuple[int, int]] = {}
     # !! LEADING IS SET BETWEEN TWO PLACES, NOT AT ONE. It is an edge -- see
@@ -214,6 +217,7 @@ def _set(page: Page, newline: str | None) -> tuple[str, dict[str, tuple[int, int
     last_code = max((i for i, c in enumerate(reading) if c.startswith(ON)), default=-1)
     previous = ""
     closing_gap = False
+    anchor_seen = False
     for at, cue in enumerate(reading):
         prose = held.get(cue, [])
         # ! ASKED OF THE CUE DIRECTLY. `series_of` reads a paragraph's address
@@ -299,6 +303,10 @@ def _set(page: Page, newline: str | None) -> tuple[str, dict[str, tuple[int, int
             # opened in that room and closed on a later line owns those lines
             # outright, because no code is on them.
             code = page.cues.anchor_of(cue)
+            if mark and not anchor_seen:
+                # Only the first code line can be line 1.
+                code = constants.without_mark(code)
+            anchor_seen = True
             out.append(f"{code}{prose[0] if prose else ''}")
             out.extend(prose[1:])
             continue
@@ -323,15 +331,16 @@ def _set(page: Page, newline: str | None) -> tuple[str, dict[str, tuple[int, int
         raise exceptions.Refused(
             f"{page.path}: the page has no places -- its source was never read"
         )
-    out = _marked_first(out, constants.mark_of(page.text))
     if not out:
-        # !! AN EMPTY PAGE IS EMPTY TEXT -- and returning `page.text` here is how
-        # this whole instrument would come to lie. A model that had lost every
-        # line would set the original file back and the identity would pass over
-        # the top of it.
-        return "", lines_of
+        # !! AN EMPTY PAGE IS EMPTY TEXT, PLUS THE MARK -- and returning
+        # `page.text` here is how this whole instrument would come to lie. A model
+        # that had lost every line would set the original file back and the
+        # identity would pass over the top of it. The mark is the file's encoding,
+        # not a line of it, so it is all that remains.
+        return mark, lines_of
     # A closing-gap insertion, or text ending in a blank, needs a physical blank
     # below its prose, whether or not the file ended on a line break.
+    out[0] = mark + out[0]
     held_blank = not out[-1]
     tail = (
         ending if closing_gap or held_blank or page.text.endswith(("\n", "\r")) else ""
@@ -339,23 +348,23 @@ def _set(page: Page, newline: str | None) -> tuple[str, dict[str, tuple[int, int
     return ending.join(out) + tail, lines_of
 
 
-def _marked_first(out: list[str], mark: str) -> list[str]:
-    """`out` with the file's byte-order mark at the head of its first line.
+def _take_mark(page: Page, held: dict[str, list[str]]) -> None:
+    """Remove the byte-order mark from the paragraph that starts on line 1.
 
-    The mark is the file's encoding, so it opens byte 0 whichever place now
-    holds line 1. A paragraph or code line carries the mark as line 1 had it,
-    and that copy is the first line opening with it: it is moved, so the mark
-    stands once. A mark opening a later line is text inside a literal and stays.
+    A paragraph or code line carries the mark as line 1 had it, and `_set` sets
+    the mark once, ahead of the first line it writes. Only line 1 owns the mark:
+    a paragraph starting later, or a code line other than the first, keeps any
+    mark it holds, since that is text inside a literal.
     """
-    if not mark:
-        return out
-    if not out:
-        return [mark]
-    held = next((i for i, line in enumerate(out) if line.startswith(mark)), None)
-    if held is not None:
-        out[held] = out[held].removeprefix(mark)
-    out[0] = mark + out[0]
-    return out
+    for paragraph in page.paragraphs:
+        if paragraph.start == 1:
+            # Keyed as `_held` keys it: a leading run has no address.
+            cue = (
+                cue_of(paragraph.address).cue if paragraph.address else paragraph.symbol
+            )
+            lines = held.get(cue)
+            if lines:
+                lines[0] = constants.without_mark(lines[0])
 
 
 def draft(page: Page, into: Path) -> Path:

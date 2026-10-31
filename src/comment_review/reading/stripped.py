@@ -204,9 +204,13 @@ def _without_comments(text: str, path: Path) -> str | None:
     code = []
     joined = False
     for n, v in kept.items():
+        # The byte-order mark is compared on its own, by `preserved`.
+        if n == 1 and v is not None:
+            v = constants.without_mark(v)
         if joined or (v is not None and v.strip(BLANK)):
             # The line a continuation joins is code whatever it holds.
-            code.append(lines[n - 1].rstrip(BLANK) if v is None else v)
+            line = lines[n - 1].rstrip(BLANK) if v is None else v
+            code.append(constants.without_mark(line) if n == 1 else line)
         joined = v is not None and n not in partial and _continues(lines[n - 1], lang)
     # !! A LITERAL THAT SPANS LINES THE ROW CANNOT TRACK MAKES THIS FILE
     # UNPROVABLE. The gather carries no quote from line to line, so a line INSIDE
