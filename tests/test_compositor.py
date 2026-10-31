@@ -789,3 +789,15 @@ def test_an_emptied_marked_file_is_the_mark_alone():
     page = build(MARK + "// c\n", "a.c")
     assert reset(page, {"f0": None}) == []
     assert set_page(page) == MARK
+
+
+@pytest.mark.parametrize(
+    ("text", "name"),
+    [
+        (MARK + "// c\n" + MARK + "int x;\n", "a.c"),
+        (MARK + "\n" + MARK + "int x;\n", "a.c"),
+        (MARK + "# c\n" + MARK + "x=1\n", "a.sh"),
+    ],
+)
+def test_a_mark_opening_a_later_code_line_stays(text, name):
+    assert set_page(build(text, name)) == text

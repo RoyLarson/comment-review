@@ -303,8 +303,8 @@ def _set(page: Page, newline: str | None) -> tuple[str, dict[str, tuple[int, int
             # opened in that room and closed on a later line owns those lines
             # outright, because no code is on them.
             code = page.cues.anchor_of(cue)
-            if mark and not anchor_seen:
-                # Only the first code line can be line 1.
+            if mark and not anchor_seen and page.text.startswith(code):
+                # Line 1 is this code line only when the file opens with it.
                 code = constants.without_mark(code)
             anchor_seen = True
             out.append(f"{code}{prose[0] if prose else ''}")
@@ -338,9 +338,9 @@ def _set(page: Page, newline: str | None) -> tuple[str, dict[str, tuple[int, int
         # identity would pass over the top of it. The mark is the file's encoding,
         # not a line of it, so it is all that remains.
         return mark, lines_of
+    out[0] = mark + out[0]
     # A closing-gap insertion, or text ending in a blank, needs a physical blank
     # below its prose, whether or not the file ended on a line break.
-    out[0] = mark + out[0]
     held_blank = not out[-1]
     tail = (
         ending if closing_gap or held_blank or page.text.endswith(("\n", "\r")) else ""
@@ -353,7 +353,7 @@ def _take_mark(page: Page, held: dict[str, list[str]]) -> None:
 
     A paragraph or code line carries the mark as line 1 had it, and `_set` sets
     the mark once, ahead of the first line it writes. Only line 1 owns the mark:
-    a paragraph starting later, or a code line other than the first, keeps any
+    a paragraph starting later, or a code line other than line 1, keeps any
     mark it holds, since that is text inside a literal.
     """
     for paragraph in page.paragraphs:

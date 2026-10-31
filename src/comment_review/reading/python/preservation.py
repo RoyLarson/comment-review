@@ -131,6 +131,8 @@ def _documentation_span(read: PythonRead, index: int) -> SourceSpan:
     statement = read.payloads[index].statement
     start, end = statement.start, statement.end
     line_start = max(text.rfind("\n", 0, start), text.rfind("\r", 0, start)) + 1
+    # The byte-order mark is not text of line 1, so a line it opens starts after it.
+    line_start = max(line_start, len(constants.mark_of(text)))
     line_end = end
     while line_end < len(text) and text[line_end] not in "\r\n":
         line_end += 1
