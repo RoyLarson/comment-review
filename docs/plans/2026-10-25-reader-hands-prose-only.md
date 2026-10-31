@@ -1,7 +1,7 @@
 # A reader hands over only what parsing finds
 
 ```
-Status:   in-progress
+Status:   closed
 Progress: 46 of 46 TODO tasks closed
 Plan-tasks: 24 of 24 plan tasks closed
 Owner:    backend
