@@ -333,8 +333,12 @@ def _set(page: Page, newline: str | None) -> tuple[str, dict[str, tuple[int, int
         # line would set the original file back and the identity would pass over
         # the top of it.
         return "", lines_of
-    # A closing-gap insertion needs a physical blank below its prose.
-    tail = ending if closing_gap or page.text.endswith(("\n", "\r")) else ""
+    # A closing-gap insertion, or text ending in a blank, needs a physical blank
+    # below its prose, whether or not the file ended on a line break.
+    held_blank = not out[-1]
+    tail = (
+        ending if closing_gap or held_blank or page.text.endswith(("\n", "\r")) else ""
+    )
     return ending.join(out) + tail, lines_of
 
 

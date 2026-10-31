@@ -256,6 +256,24 @@ def test_the_trailing_newline_is_the_FILE_S(name, text):
     assert set_page(build(text, name)).endswith("\n") == text.endswith("\n")
 
 
+@pytest.mark.parametrize(
+    ("text", "where", "replacement", "expected"),
+    [
+        ("let x;", "a0", "// a\n\n", "// a\n\nlet x;"),
+        ("let x;\n// b", "f1", "// b\n\n", "let x;\n// b\n\n"),
+        ("let x;\n// b", "f1", "// b\n\n\n", "let x;\n// b\n\n\n"),
+        ("let x;\n// b", "f1", "// b\n// c", "let x;\n// b\n// c"),
+    ],
+    ids=["above-code", "file-ends-in-it", "two-blanks", "no-blank"],
+)
+def test_a_trailing_blank_stands_in_a_file_with_no_final_newline(
+    text, where, replacement, expected
+):
+    page = build(text, "m.js")
+    galley.reset(page, {where: replacement})
+    assert set_page(page) == expected
+
+
 @FORM_CASES
 def test_no_line_is_invented_or_lost(name, text):
     """A weaker check than the identity, and it isolates the failure: a
