@@ -34,7 +34,8 @@ python <skill>/scripts/comment-review.py gather --repo . --out <run-dir>/after.j
 python <skill>/scripts/comment-review.py addresser --binder <run-dir>/after.json --resolve <address>
 ```
 
-An address counts code lines, so it names the same place it named before the edit. Where two
+The file was read again after the edit, so text can stand at a different address than it did
+before. Check its location relative to the code and the prose around it. Where two
 ranges come back, a docstring and the comment run beneath it share the place; both are real.
 
 ## Report

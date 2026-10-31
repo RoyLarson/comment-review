@@ -233,7 +233,7 @@ where prose would go. Given the declaration's own range instead, a module's abse
 spanned lines 1-4 and the locator answered `a0` for the comment at 3 and the `def` at 4, both of
 which belong to other blocks.
 
-## What makes an address stable
+## What keeps text where it was
 
 **Stage 7b's CODE CHECK.** Python compares retained lexical source, including literal spelling,
 executable indentation and protected directives. Other languages use the existing stripped-text
