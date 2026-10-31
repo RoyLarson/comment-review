@@ -95,8 +95,11 @@ def _without_comments(text: str, path: Path) -> str | None:
     scanned = constants.scan_lines(text)
     # Pre-seed every line as itself; a paragraph below either drops its entry
     # (None) or replaces it with the code prefix it proved survives.
+    # Blanks after a continuation character keep it from continuing, so a line
+    # ending in one keeps them.
     kept: dict[int, str | None] = {
-        i + 1: ln.rstrip(BLANK) for i, ln in enumerate(lines)
+        i + 1: ln if _continues(ln.rstrip(BLANK), lang) else ln.rstrip(BLANK)
+        for i, ln in enumerate(lines)
     }
     partial: set[int] = set()  # lines kept as a code prefix before a comment
     for paragraph in paragraphs:
@@ -115,7 +118,13 @@ def _without_comments(text: str, path: Path) -> str | None:
                 # Blanks between a continuation character and the comment keep
                 # it from joining the next line, so they are code.
                 gap = stored[: len(stored) - len(stored.lstrip(BLANK))]
-                kept[n] = prefix + gap if _continues(prefix, lang) else prefix
+                if _continues(prefix, lang):
+                    if not gap:
+                        # The comment touches the character, so removing it
+                        # would make a continuation the stripped text cannot show.
+                        return None
+                    prefix += gap
+                kept[n] = prefix
                 partial.add(n)
             else:
                 return None  # binder and the file disagree; do not reconcile

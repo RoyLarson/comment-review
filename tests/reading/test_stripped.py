@@ -148,6 +148,25 @@ def test_an_edit_at_a_continuation_is_changed_code(before, after):
     assert [d.code for d in result.diagnostics] == ["code-changed"]
 
 
+@pytest.mark.parametrize(
+    ("before", "after"),
+    [
+        ("echo a \\ \n  b\n", "echo a \\\n  b\n"),
+        ("echo a \\\n  b\n", "echo a \\ \n  b\n"),
+    ],
+)
+def test_blanks_after_a_continuation_are_code(before, after):
+    result = _preserved(before, after, "a.sh")
+
+    assert [d.code for d in result.diagnostics] == ["code-changed"]
+
+
+def test_a_comment_touching_a_continuation_is_unprovable():
+    before = "#define A 1 \\\nint x;\n"
+
+    assert _preserved(before, "#define A 1 \\// n\nint x;\n", "a.c").unprovable
+
+
 def test_rewording_a_comment_past_a_broken_continuation_proves():
     before = "echo a \\  # one\n  b\n"
 

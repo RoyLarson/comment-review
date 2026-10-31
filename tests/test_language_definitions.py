@@ -1195,6 +1195,16 @@ def test_rust_definition_leaves_other_definitions_unchanged() -> None:
     ]
 
 
+def test_line_continuations_are_stated_by_exactly_four_rows() -> None:
+    from comment_review.reading.language import INSTALLED_DEFINITIONS
+
+    by_name = {value.language: value.rules for value in INSTALLED_DEFINITIONS}
+    assert {name: rules["line_continuations"] for name, rules in by_name.items()} == {
+        name: ("\\",) if name in {"c", "cpp", "ruby", "shell"} else ()
+        for name in by_name
+    }
+
+
 def test_annotation_openers_are_validated_and_pinned_per_row() -> None:
     from dataclasses import replace
 
