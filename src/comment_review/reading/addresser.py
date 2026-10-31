@@ -147,6 +147,7 @@ drift from.
 """
 
 from dataclasses import dataclass, field
+from functools import cached_property
 from typing import NamedTuple
 
 from comment_review.reading.series import ADDRESSED, Series, cue_for
@@ -446,16 +447,6 @@ class Cues:
     # `CodeLine`, and `cue` turns it into a position in this list -- so
     # nothing downstream asks the question again.
     reading: list[str] = field(default_factory=list)
-    # `documents`' index of the `a` places by every line of the unit each was
-    # emitted at, with the count of `a` places it was built over.
-    _declared: tuple[int, dict[int, str]] | None = field(
-        default=None, init=False, repr=False, compare=False
-    )
-    # `above`'s index of the `b` places by the trigger each fired at, with the
-    # count of `b` places it was built over.
-    _gap_at: tuple[int, dict[int, str]] | None = field(
-        default=None, init=False, repr=False, compare=False
-    )
     # ! LEADING IS NOT HERE, and was for one evening. It is `Page.leading` --
     # `cue` never filled it and never read it, because `cue` runs before
     # any prose exists and leading is only where the LEXER found a blank run.
@@ -509,28 +500,27 @@ class Cues:
         line above it takes no `b`, so a line inside a unit answers the gap
         above the unit's first line.
         """
-        gaps = self._gaps()
+        gaps = self._gaps
         for step, trigger in enumerate(self.triggers):
             if isinstance(trigger, int) and line <= trigger:
                 return gaps.get(self._unit_head(step), "")
         return gaps.get(len(self.triggers) - 1, "")
 
+    @cached_property
     def _gaps(self) -> dict[int, str]:
-        """Each trigger a `b` fired at -> that `b`."""
-        walker = self.addressers[GAP]
-        if self._gap_at is None or self._gap_at[0] != len(walker.places):
-            self._gap_at = (
-                len(walker.places),
-                {step: c for c, step in walker.trigger.items()},
-            )
-        return self._gap_at[1]
+        """Each trigger a `b` fired at -> that `b`.
+
+        Built on first use. `cue` emits every place before it returns the
+        `Cues`, and nothing emits one after.
+        """
+        return {step: c for c, step in self.addressers[GAP].trigger.items()}
 
     def _unit_head(self, step: int) -> int:
         """The trigger that opens the unit this trigger is in.
 
         It is the nearest trigger at or before this one that a `b` fired at.
         """
-        gaps = self._gaps()
+        gaps = self._gaps
         while step > 0 and step not in gaps:
             step -= 1
         return step
@@ -556,24 +546,24 @@ class Cues:
         documentation is `a0`. "" when the line declares nothing documentable,
         or the page has no `a` series.
         """
-        walker = self.addressers[DECLARED]
         if line is None:
-            return walker.at(0)
-        # Indexed once, the first time a line is asked for; `cue` has emitted
-        # every place by then, and the count says if one was emitted since.
-        if self._declared is None or self._declared[0] != len(walker.places):
-            gaps = self._gaps()
-            index: dict[int, str] = {}
-            for c, step in walker.trigger.items():
-                # The unit's lines run from the trigger the `a` fired at to the
-                # next trigger a `b` fired at.
-                while isinstance(line_at := self.triggers[step], int):
-                    index.setdefault(line_at, c)
-                    step += 1
-                    if step in gaps:
-                        break
-            self._declared = (len(walker.places), index)
-        return self._declared[1].get(line, "")
+            return self.addressers[DECLARED].at(0)
+        return self._declared.get(line, "")
+
+    @cached_property
+    def _declared(self) -> dict[int, str]:
+        """Each line of a unit with an `a` -> that `a`, built as `_gaps` is."""
+        gaps = self._gaps
+        index: dict[int, str] = {}
+        for c, step in self.addressers[DECLARED].trigger.items():
+            # The unit's lines run from the trigger the `a` fired at to the
+            # next trigger a `b` fired at.
+            while isinstance(line_at := self.triggers[step], int):
+                index.setdefault(line_at, c)
+                step += 1
+                if step in gaps:
+                    break
+        return index
 
     def closing_documentation(self) -> str:
         """The `a` emitted at EOF, for the module's closing documentation.
