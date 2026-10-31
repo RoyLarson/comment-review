@@ -5960,4 +5960,7 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   **What it settles.** Text is measured with its white space removed. At 0 characters a read
   paragraph is leading or empty, and a replacement is an empty patch, refused with its own error
   code. A blank line inside text that still holds words is untouched, so a paragraph can be split.
+  A trailing blank is accepted as written (Roy, 2026-10-30): the mark carries it, the compositor
+  sets it, and the next reading holds it as leading. The error code is the string `empty-patch` in
+  the refusal, with no new exit number.
 
