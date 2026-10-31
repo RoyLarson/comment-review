@@ -538,6 +538,10 @@ def test_a_shell_hash_inside_a_word_is_code(line):
         ("echo a#b # c", "# c"),
         ("echo $# # c", "# c"),
         ("n=${#arr} # count", "# count"),
+        ("echo $(echo a) # c", "# c"),
+        ("echo `echo a` # c", "# c"),
+        ("echo \\` # c", "# c"),
+        ("(echo a) $(echo b) (echo c)# d", "# d"),
     ],
 )
 def test_a_shell_hash_at_a_word_start_opens_a_comment(line, comment):
@@ -545,6 +549,26 @@ def test_a_shell_hash_at_a_word_start_opens_a_comment(line, comment):
     assert [(p.kind, p.raw_lines[0].strip()) for p in found] == [
         (Kind.TRAILING, comment)
     ]
+
+
+@pytest.mark.parametrize(
+    "line",
+    [
+        "echo $(echo a)#b",
+        "echo $((1+1))#b",
+        "echo $( (echo a) )#b",
+        "echo $(echo ')')#b",
+        "echo <(true)#b",
+        "echo >(true)#b",
+        "a=(1 2)#b",
+        "echo `echo a`#b",
+        "echo `echo a # b`",
+        "echo `echo a # b` c",
+    ],
+)
+def test_a_shell_hash_bash_keeps_in_the_word_or_the_substitution_is_code(line):
+    # Each row checked against bash: the `#` and what follows are not a comment.
+    assert read("m.sh", f"{line}\n").paragraphs(Path("m.sh")) == []
 
 
 def test_a_shell_hash_opening_a_line_is_a_comment():

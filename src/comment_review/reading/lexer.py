@@ -798,18 +798,41 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
     return read_lexical(path, text, lang).found
 
 
-def _opens_word(line: str, at: int, breaks: tuple[str, ...]) -> bool:
+def _joins_its_word(code: str, close: int, parens: tuple[str, ...]) -> bool:
+    """Whether the `)` at column `close` closes one of the row's `word_parens`.
+
+    shortcut: pairs parens on this line alone, so a `)` closing a `$(` opened on
+    an earlier line reads as a break. Upgrade when the lexer carries shell state
+    across lines.
+
+    Args:
+        code: the line with its literals blanked, so a quoted paren is not one.
+        close: the column of that `)`.
+        parens: the row's `word_parens`.
+    """
+    opened: list[bool] = []
+    for at, char in enumerate(code[:close]):
+        if char == "(":
+            opened.append(any(code.endswith(p, 0, at + 1) for p in parens))
+        elif char == ")" and opened:
+            opened.pop()
+    return bool(opened) and opened[-1]
+
+
+def _opens_word(line: str, code: str, at: int, lang: Language) -> bool:
     """Whether column `at` of `line` starts a word: line start, or after a break.
 
     Asked of the raw line, because a blanked literal reads as a break and a
     literal joins the word beside it. A break after an odd run of backslashes
-    is escaped, and is word text.
+    is escaped, and is word text, and so is a `)` that `_joins_its_word`.
     """
     if at == 0:
         return True
     head = line[: at - 1]
     escaped = (len(head) - len(head.rstrip("\\"))) % 2 == 1
-    return line[at - 1] in breaks and not escaped
+    if line[at - 1] not in lang.word_breaks or escaped:
+        return False
+    return line[at - 1] != ")" or not _joins_its_word(code, at - 1, lang.word_parens)
 
 
 def _line_comment_at(
@@ -830,7 +853,7 @@ def _line_comment_at(
             found.start()
             for opener in openers
             for found in re.finditer(re.escape(opener), code)
-            if _opens_word(line, found.start(), lang.word_breaks)
+            if _opens_word(line, code, found.start(), lang)
         ),
         default=-1,
     )

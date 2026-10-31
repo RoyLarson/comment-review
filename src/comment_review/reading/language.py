@@ -77,6 +77,8 @@ class Language:
             line start. They end a word, and an opener inside a word is that
             word's text (shell `$#`). A backslash before one takes its meaning
             away. Empty where an opener opens wherever it stands.
+        word_parens: the openers whose closing `)` leaves the word open, where
+            `)` is a word break otherwise (shell `$(`: `$(x)#y` is one word).
         line_endings: the characters beyond LF and CR that end a line in this
             language's grammar. `constants.text_lines` does not split on them, so
             a line comment holding one is a comment here and two lines to the
@@ -99,6 +101,7 @@ class Language:
     shebang: tuple[str, ...] = ()
     annotations: tuple[str, ...] = ()
     word_breaks: tuple[str, ...] = ()
+    word_parens: tuple[str, ...] = ()
     line_endings: tuple[str, ...] = ()
 
     @property
@@ -489,11 +492,15 @@ LANGUAGES: tuple[Language, ...] = (
         # delete it from both fingerprints. ! `<<<` (herestring) and `<<-` both
         # contain `<<`.
         spanning_quotes=("<<",),
-        quotes=('"', "'"),
+        # ! A backtick substitution is read as a literal: a `#` in one ends at
+        # the closing backtick, and a line comment here runs to the line's end.
+        quotes=('"', "'", "`"),
         annotations=(),
         # ! Bash's blanks and metacharacters. `#` opens a comment only as the
         # first character of a word, and these are what end one.
         word_breaks=(" ", "\t", ";", "&", "|", "(", ")", "<", ">"),
+        # ! Substitutions and an array assignment are part of their word.
+        word_parens=("$(", "<(", ">(", "=("),
         # ! POSIX: a newline is LF.
         line_endings=(),
     ),
