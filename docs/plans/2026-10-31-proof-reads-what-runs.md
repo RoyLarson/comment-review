@@ -2,8 +2,8 @@
 
 ```
 Status:   in-progress
-Progress: 7 of 9 TODO tasks closed
-Plan-tasks: 6 of 9 plan tasks closed
+Progress: 8 of 9 TODO tasks closed
+Plan-tasks: 7 of 9 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-31 (code-review max, 2026-10-31)
@@ -40,7 +40,7 @@ A comment edit that changes what the language runs never reports PROVEN
 
 ### F - [bom-is-read-as-source](../../TODO/bom-is-read-as-source.md)
 
-- [~] T5 | Write the byte-order mark ahead of f0, a0 or b0 when the head is set
+- [x] T5 | Write the byte-order mark ahead of f0, a0 or b0 when the head is set
 
 ### G - [language-reader-javascript](../../TODO/language-reader-javascript.md)
 
@@ -62,4 +62,5 @@ A comment edit that changes what the language runs never reports PROVEN
 - [ ] P7 | State what the stripped comparison holds
 - [x] P8 | Stripped comparison holds line_continuations; covered by tests/reading/test_stripped.py and test_language_definitions.py. | a57c7015ed721c3fa4f08758c47da59f56f7c9c8 | Compare
       a backslash continuation in the stripped comparison
-- [~] P9 | Set the byte-order mark at byte 0
+- [x] P9 | Compositor sets the byte-order mark at byte 0; tests/test_compositor.py, tests/reading/test_stripped.py, test_rust.py, test_python.py; full suite 6432 passed | dd155ab83501f5ff98b7772a98a79094a1e89929 | Set
+      the byte-order mark at byte 0

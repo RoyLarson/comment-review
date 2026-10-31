@@ -204,7 +204,7 @@ that changed a published name or rule:
 | [versioning-at-v1](versioning-at-v1.md) | systems | -- | 3/12 | v1.x wants a concrete versioning system on everything that ships |
 | [check-passes-a-shared-address](check-passes-a-shared-address.md) | backend | -- | 0/4 | addresser --check prints SHARED and exits 0 |
 | [a-series-never-fills-outside-python](a-series-never-fills-outside-python.md) | backend | -- | 17/22 | Outside Python the `a` place is emitted and never filled |
-| [bom-is-read-as-source](bom-is-read-as-source.md) | backend | -- | 2/7 | A UTF-8 BOM is censused as a line of code |
+| [bom-is-read-as-source](bom-is-read-as-source.md) | backend | -- | 3/7 | A UTF-8 BOM is censused as a line of code |
 | [a-malformed-page-drops-its-records](a-malformed-page-drops-its-records.md) | backend | -- | 1/5 | A page entry that is not an object loses every record under it, silently |
 | [unaddressed-is-quadratic](unaddressed-is-quadratic.md) | backend | -- | 0/4 | unaddressed() groups by path for a question that needs one flat pass |
 | [stale-claims-after-the-envelope](stale-claims-after-the-envelope.md) | backend | -- | 2/8 | Shipped prose still describes formats and flags this branch deleted |
