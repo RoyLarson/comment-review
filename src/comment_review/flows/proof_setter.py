@@ -637,13 +637,32 @@ def _reread(
             kept += _prose_lines([held_by[at]], was_above)
     came_back = _prose_lines(read, now_above, lines_written)
     if came_back != kept:
-        return None, Refusal(
-            "reread",
-            rel,
-            f"the draft reads {came_back!r} where the page with its"
-            f" alterations reads {kept!r}",
-        )
+        return None, Refusal("reread", rel, _first_difference(came_back, kept))
     return draft, None
+
+
+def _first_difference(
+    found: list[tuple[int, str]], expected: list[tuple[int, str]]
+) -> str:
+    """Name where two differing prose lists part: the line and its code count."""
+    at = next(
+        (
+            i
+            for i, pair in enumerate(zip(found, expected, strict=False))
+            if pair[0] != pair[1]
+        ),
+        min(len(found), len(expected)),
+    )
+    draft, page = (
+        f"{side[at][1]!r} under {side[at][0]} code lines"
+        if at < len(side)
+        else "nothing"
+        for side in (found, expected)
+    )
+    return (
+        f"line {at + 1} of the prose: the draft reads {draft} where the page"
+        f" with its alterations reads {page}"
+    )
 
 
 def _holds_prose(paragraph: Paragraph) -> bool:

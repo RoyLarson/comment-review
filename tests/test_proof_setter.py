@@ -1762,6 +1762,34 @@ def test_a_docstring_set_above_the_comment_it_stood_under_is_refused(tmp_path):
     assert "the draft reads" in refused[0].why
 
 
+@pytest.mark.parametrize(
+    ("found", "expected", "named"),
+    [
+        (
+            [(0, "same"), (1, "x")],
+            [(0, "same"), (2, "y")],
+            "line 2 of the prose: the draft reads 'x' under 1 code lines where the"
+            " page with its alterations reads 'y' under 2 code lines",
+        ),
+        (
+            [(0, "same")],
+            [(0, "same"), (2, "y")],
+            "line 2 of the prose: the draft reads nothing where the page with"
+            " its alterations reads 'y' under 2 code lines",
+        ),
+        (
+            [(0, "same"), (1, "x")],
+            [(0, "same")],
+            "line 2 of the prose: the draft reads 'x' under 1 code lines where the"
+            " page with its alterations reads nothing",
+        ),
+    ],
+    ids=["differs", "short", "long"],
+)
+def test_the_first_difference_is_named(found, expected, named):
+    assert proof_setter._first_difference(found, expected) == named
+
+
 def test_a_drop_beside_other_statements_still_lands(tmp_path):
     text = ONLY_A_DOCSTRING.replace('"""x"""\n', '"""x"""\n    y = 1\n')
     drafted, refused = _chain(tmp_path, "m.py", text, {"a1": None})
