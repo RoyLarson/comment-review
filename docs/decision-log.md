@@ -5985,3 +5985,14 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   already there reads there. The `AddressesMoved` gate stays as it is and refuses this case until
   the change lands with `TODO/one-reader-builder.md`.
 
+- **#258.** **The stripped proof refuses JSX text and a `\'` in SQL rather than reading them** (Roy,
+  2026-10-31, approving plan `2026-10-31-proof-reads-what-runs`, shown that a `// text` line inside
+  a JSX element and SQL's `'a\'` both reach PROVEN on changed code).
+
+  **What it settles.** A comment reached inside an open JSX element makes the page unprovable. The
+  reader goes on reading it as a comment, because a stuck tag count in the reader would hide real
+  comments from review, where at the proof it costs a report. A `.sql` file holding `\'` is
+  unprovable, because standard SQL and MySQL end that literal in different places. A language's
+  lines are held by one check per shape; a token comparison waits for the per-language readers
+  under #222.
+
