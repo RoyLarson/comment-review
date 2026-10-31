@@ -5973,3 +5973,15 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   item to attach to, or `//!` where no inner doc is allowed. A plain comment between a doc and its
   item stays allowed under #235.
 
+- **#257.** **A place inside a unit stays, marked unassignable** (Roy, 2026-10-31, shown that a
+  comment dropped between `@Override` and its declaration removes a `b`, so `AddressesMoved` refuses
+  the docket; he proposed *"put those back in there as an \"unassignable\" designation like thing
+  and the system still returns the assignable address"* and *"if it is a legal b location maybe we
+  made the collapsed places incorrect"*, then *"T74 yes option 2"*).
+
+  **What it settles.** Whether a place exists depends on the code, not on the comments around it.
+  Every spot between code lines keeps its `b`. An empty one inside a unit is unassignable, and
+  asking for it returns the unit's assignable `b`, so #238 still offers one `b` for the unit. Text
+  already there reads there. The `AddressesMoved` gate stays as it is and refuses this case until
+  the change lands with `TODO/one-reader-builder.md`.
+
