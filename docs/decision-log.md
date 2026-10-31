@@ -5940,3 +5940,15 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   `#!`, still refuses. The raise itself is plan `0.2.4-an-f-correction-is-raised-alone`, not yet
   built, so the refusal is lifted when that raise exists.
 
+- **#254.** **Addresses are not the invariant; location is** (Roy, 2026-10-30, on `a1` added under
+  a filled `a0` in a no-code file reading back inside `a0`: *"If the agents put in a1 and it comes
+  back as a0 that is fine addresses are not the invariant. Locations relative to code are the
+  invariant. And locations relative to other comment types are invariant because that is what it
+  takes to ensure edits are put in the correct spots."* and *"what would be broken is if that text
+  came back above the a0 text which is impossible in the current implementation"*).
+
+  **What it settles.** Supersedes #247's "one paragraph holding exactly that text". Written text
+  has landed when the written lines hold it, under the same count of code lines, in the same order
+  against the prose around it. It may join a neighbouring paragraph and read at another address.
+  No place stops being offered for this.
+
