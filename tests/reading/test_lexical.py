@@ -7,7 +7,12 @@ from conftest import kinds
 from helpers import GO, LEXICAL_INPUTS
 
 from comment_review.reading.language import Language, language_for
-from comment_review.reading.lexer import LexicalRead, declarations, leading_between
+from comment_review.reading.lexer import (
+    LexicalRead,
+    declarations,
+    leading_between,
+    scan_strings,
+)
 from comment_review.reading.readers import read_source
 from comment_review.reading.series import Kind
 from comment_review.reading.source import CodeLine, DocPlace
@@ -1039,8 +1044,6 @@ def test_a_sql_single_quote_ends_at_its_backslash():
 
 
 def test_a_quote_open_at_a_lines_end_carries_to_the_next():
-    from comment_review.reading.lexer import scan_strings
-
     lang = language_for(Path("a.sh"))
     assert lang is not None
     blanked, open_at_end = scan_strings("echo 'a # b", lang)

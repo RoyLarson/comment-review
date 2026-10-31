@@ -190,3 +190,17 @@ def test_a_sql_file_holding_an_escaped_quote_is_unprovable():
     text = "SELECT 'it\\'s -- x';\n"
 
     assert _preserved(text, text.replace("-- x", "-- y"), "a.sql").unprovable
+
+
+def test_a_shell_ansi_c_string_holding_an_escaped_quote_is_unprovable():
+    # bash reads `\'` in `$'...'` as an escape, so the literal runs to the end
+    text = "echo $'it\\'s # x'\n"
+
+    assert _preserved(text, text.replace("# x", "# y"), "a.sh").unprovable
+
+
+def test_a_sql_double_quote_holding_an_escaped_quote_is_unprovable():
+    # MySQL reads `\"` in a double-quoted string as an escape
+    text = 'SELECT "it\\"s -- x";\n'
+
+    assert _preserved(text, text.replace("-- x", "-- y"), "a.sql").unprovable

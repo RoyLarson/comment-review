@@ -103,7 +103,7 @@ built.
 | ANTLR | grammars, must generate and compile | Java toolchain |
 
 Pygments fits the existing ladder: it upgrades `lexical` -> `tokenized` for
-every language, replacing `blocks_lexical` and `_strip_strings` rather than
+every language, replacing `blocks_lexical` and `scan_strings` rather than
 adding a layer. Measured 2026-08-14 across eight languages, it correctly
 ignored `"http://x"` in Go, `"// not"` in Rust and a TypeScript backtick
 template.

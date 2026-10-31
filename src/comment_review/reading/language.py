@@ -54,8 +54,8 @@ class Language:
             these reads as a comment; `prove_unchanged` refuses such a file
             rather than proving it. Empty where a language has none. ! Also
             where dialects of one language end a literal in different places
-            (SQL's backslash before a quote): the entry is a shape the file is
-            refused on.
+            (SQL's backslash before a quote, shell's `$'`): the entry is a shape
+            the file is refused on.
         verbatim_quotes: the delimiters in which a backslash is ordinary text,
             so it neither escapes the next character nor keeps the literal
             open: Go's raw string, a shell single quote. Empty where every
@@ -509,7 +509,11 @@ LANGUAGES: tuple[Language, ...] = (
         # line inside a heredoc body is DATA, and reading it as a comment would
         # delete it from both fingerprints. ! `<<<` (herestring) and `<<-` both
         # contain `<<`.
-        spanning_quotes=("<<",),
+        # !! `$'` IS A QUOTE THAT HONOURS THE BACKSLASH, unlike `'`: in
+        # `$'it\'s # x'` the `\'` is an escaped quote and the literal runs on, but
+        # the per-line scan ends it there. Declared so a file holding one is
+        # refused rather than proved.
+        spanning_quotes=("<<", "$'"),
         # ! A backtick substitution is read as a literal: a `#` in one ends at
         # the closing backtick, and a line comment here runs to the line's end.
         quotes=('"', "'", "`"),
@@ -533,9 +537,10 @@ LANGUAGES: tuple[Language, ...] = (
         ("--",),
         (("/*", "*/"),),
         # ! Standard SQL ends `'it\'s'` at the quote after the backslash and
-        # MySQL reads the backslash as an escape, so a file holding `\'` is
-        # refused (`spanning_quotes`).
-        spanning_quotes=("\\'",),
+        # MySQL reads the backslash as an escape, in a double-quoted string as
+        # well as a single-quoted one, so a file holding `\'` or `\"` is refused
+        # (`spanning_quotes`).
+        spanning_quotes=("\\'", '\\"'),
         quotes=("'", '"'),
         verbatim_quotes=("'", '"'),
         annotations=(),
