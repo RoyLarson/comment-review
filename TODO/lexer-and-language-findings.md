@@ -378,6 +378,7 @@ would.
 - [ ] T63 | Read one definition of a blank line in `lexer.py:967` and
       `stripped.py:26`
         > 2026-10-31 Also `lexer.py:1055`, `:1076`, `:1131`; U+3000 refuses wrongly
+        > 2026-10-31 U+3000 refusal fixed in d64cd55f; reader `BLANK` differs from proof
 - [ ] T64 | Let `a0` hold a plain comment flush under a bare shebang
 - [ ] T65 | Test a line ending carried through a `c` place
 - [ ] T66 | Test a line ending on a paragraph's later line

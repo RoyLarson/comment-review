@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 62 of 80 tasks closed
+Progress: 70 of 80 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (code-review high round 3 and /simplify round 2, 2026-08-22 -- the
@@ -313,8 +313,8 @@ files in `corpora/` are in that state today.
 - [x] T65 | Ruled #254 | 309a02122fb45a18e0793511b703d2a952bd389b | Decide
       whether `a1` may fill alone behind a filled `a0` in a no-code file
         > 2026-10-30 Outcome: stays offered; landed test changes, #254
-- [ ] T66 | Correct the front-matter comments at `results/compositor.py:26`,
-      `:119`, `:385`
+- [x] T66 | Compositor comments corrected to the code | e3e138fa | Correct the
+      front-matter comments at `results/compositor.py:26`, `:119`, `:385`
 - [ ] T67 | State `_reread`'s four whitespace passes in its docstring
 - [ ] T68 | Classify the seven other mutants surviving final review 3
         > 2026-10-30 landed-text-only head-ignores-a-series foot-any-a code-between-le
@@ -330,17 +330,20 @@ files in `corpora/` are in that state today.
 - [x] T72 | Split lands: 39 chain rows, 18 pinned by tests | b663954d | Test a
       paragraph split through the real chain (#255)
         > 2026-10-30 Scoped review: `// a\n\n// b` at `a0` refuses today
-- [ ] T73 | Build `_reread`'s expected order from the file, at
-      `proof_setter.py:622`
+- [x] T73 | Expected order built from the file; the T9 shape refuses | 7001940d | Build
+      `_reread`'s expected order from the file, at `proof_setter.py:622`
 - [x] T74 | Ruled #257; work filed on one-reader-builder | b44d12e7b45c844d290955cf674b8dd412c6f67c | Decide
       whether `AddressesMoved` refuses after #254, at `revise.py:85`
         > 2026-10-31 Outcome: option 2, #257; lands with one-reader-builder
-- [ ] T75 | Name the first difference in the unchanged refusal, at
-      `proof_setter.py:636`
-- [ ] T76 | Refuse a white-space-only `drop` text at `desk/proof/mark.py:884`
-- [ ] T77 | Land a trailing blank in a file with no final newline, at
-      `compositor.py:337`
-- [ ] T78 | Correct the statements at `addresser.py:193`, `page.py:461`
-- [ ] T79 | Make the tests at `test_proof_setter.py:1712`, `:1726` able to fail
-- [ ] T80 | Parse with only the AST flag in `_parse_error`,
-      `python/records.py:30`
+- [x] T75 | Refusal names the first difference | 3883dd5a | Name the first
+      difference in the unchanged refusal, at `proof_setter.py:636`
+- [x] T76 | White-space drop text refused at mark as empty-patch | 152dc631 | Refuse
+      a white-space-only `drop` text at `desk/proof/mark.py:884`
+- [x] T77 | Trailing blank lands with no final newline | 6b57df21 | Land a
+      trailing blank in a file with no final newline, at `compositor.py:337`
+- [x] T78 | Statements corrected to the code | e3e138fa | Correct the statements
+      at `addresser.py:193`, `page.py:461`
+- [x] T79 | Tests can fail; mutants shown | 4abac5f6 | Make the tests at
+      `test_proof_setter.py:1712`, `:1726` able to fail
+- [x] T80 | AST-only parse; compile-stage forms now refuse | 680d6c63 | Parse
+      with only the AST flag in `_parse_error`, `python/records.py:30`
