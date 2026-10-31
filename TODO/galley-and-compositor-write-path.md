@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 61 of 80 tasks closed
+Progress: 62 of 80 tasks closed
 Owner:    backend
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-22 (code-review high round 3 and /simplify round 2, 2026-08-22 -- the
           write path, which is the one place a defect reaches disk)
 RE-VERIFIED: 2026-08-23 — 2026-08-23. Task 1 is FIXED and ticked -- the destructive case
@@ -332,8 +332,9 @@ files in `corpora/` are in that state today.
         > 2026-10-30 Scoped review: `// a\n\n// b` at `a0` refuses today
 - [ ] T73 | Build `_reread`'s expected order from the file, at
       `proof_setter.py:622`
-- [?] T74 | Decide whether `AddressesMoved` refuses after #254, at
-      `revise.py:85`
+- [x] T74 | Ruled #257; work filed on one-reader-builder | b44d12e7b45c844d290955cf674b8dd412c6f67c | Decide
+      whether `AddressesMoved` refuses after #254, at `revise.py:85`
+        > 2026-10-31 Outcome: option 2, #257; lands with one-reader-builder
 - [ ] T75 | Name the first difference in the unchanged refusal, at
       `proof_setter.py:636`
 - [ ] T76 | Refuse a white-space-only `drop` text at `desk/proof/mark.py:884`
