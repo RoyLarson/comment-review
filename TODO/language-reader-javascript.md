@@ -27,4 +27,4 @@ Worked when it is asked for -- decision-log.md Process: #222.
         > 2026-10-25 Check: `/[//]/` yields no comment paragraph
 - [-] T4 | Refused at the proof, not read: #258; reissued as a new task | 3e2a87a0799543c84093b6811f382313885c8852 | Read
       JSX text as code, not a line comment
-- [ ] T5 | Refuse a comment inside JSX text in the stripped proof
+- [~] T5 | Refuse a comment inside JSX text in the stripped proof

@@ -1215,6 +1215,15 @@ def test_verbatim_quotes_are_stated_by_exactly_three_rows() -> None:
     }
 
 
+def test_element_text_is_stated_by_exactly_two_rows() -> None:
+    from comment_review.reading.language import INSTALLED_DEFINITIONS
+
+    by_name = {value.language: value.rules for value in INSTALLED_DEFINITIONS}
+    assert {name: rules["element_text"] for name, rules in by_name.items()} == {
+        name: name in {"javascript", "typescript"} for name in by_name
+    }
+
+
 def test_annotation_openers_are_validated_and_pinned_per_row() -> None:
     from dataclasses import replace
 

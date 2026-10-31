@@ -6,6 +6,7 @@ spanning literals make this comparison unprovable. `StrippedRead` is the record
 a page carries for every language the lexical reader reads.
 """
 
+import re
 from collections.abc import Collection
 from dataclasses import dataclass
 from pathlib import Path
@@ -87,6 +88,41 @@ def _comment_in_a_string(
     return False
 
 
+#: An element opens at `<Name` or `<>` that no word, `)` or `]` precedes (else it
+#: is a comparison or a type argument), and closes at `</` or `/>`.
+_ELEMENT_EDGE = re.compile(r"(?<![\w)\]])<(?:[A-Za-z_$]|>)|</|/>")
+
+
+def _comment_in_an_element(
+    kept: dict[int, str | None], partial: set[int], lang: Language
+) -> bool:
+    """Whether a comment stands between the tags of a markup element.
+
+    Text between tags is neither code nor comment, so `// text` there is text.
+    The walk counts elements still open over each line's code, string literals
+    blanked: a line a comment holds whole answers at the depth it is reached,
+    a line trailing one at the depth its code leaves. A count the code never
+    closes (an arrow function's `<T>(x)`) refuses the comments below it, which
+    is the safe direction.
+    """
+    depth = 0
+    for n, v in kept.items():
+        if v is None:
+            if depth:
+                return True
+            continue
+        blanked, _ = scan_strings(v, lang)
+        for edge in _ELEMENT_EDGE.finditer(blanked):
+            depth = (
+                depth + 1
+                if edge[0].startswith("<") and edge[0] != "</"
+                else max(depth - 1, 0)
+            )
+        if depth and n in partial:
+            return True
+    return False
+
+
 def _without_comments(text: str, path: Path) -> str | None:
     """The file with every comment paragraph removed, or None if unprovable here.
 
@@ -104,7 +140,8 @@ def _without_comments(text: str, path: Path) -> str | None:
     files whose executable code differs. A line ending the row states inside a
     comment is refused the same way, on `line-ending-in-comment`: what follows it
     is a line of code to the language. A comment standing where a string literal
-    is still open is refused too, see `_comment_in_a_string`.
+    is still open is refused too, see `_comment_in_a_string`, and so is one between
+    the tags of a markup element, see `_comment_in_an_element`.
 
     Text holding a lone CR is refused first: the lexer ends a line there, and a
     shell or compiler may not, so the comment may run on into code.
@@ -156,6 +193,8 @@ def _without_comments(text: str, path: Path) -> str | None:
             else:
                 return None  # binder and the file disagree; do not reconcile
     if _comment_in_a_string(kept, partial, lang):
+        return None
+    if lang.element_text and _comment_in_an_element(kept, partial, lang):
         return None
     code = []
     joined = False

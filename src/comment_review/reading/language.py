@@ -60,6 +60,11 @@ class Language:
             so it neither escapes the next character nor keeps the literal
             open: Go's raw string, a shell single quote. Empty where every
             quote honours the backslash.
+        element_text: markup elements stand in expressions, and the text between
+            their tags is not code or comment: `// text` there is text. The
+            read cannot tell it from a comment without a parser, so a file with
+            a comment inside an element is refused. False where the grammar has
+            no such element.
         declares: the KEYWORDS this language uses to introduce something that
             can carry documentation. Empty, the language still has an `a`
             series when it has doc markers -- see `a_series`.
@@ -116,6 +121,7 @@ class Language:
     line_endings: tuple[str, ...] = ()
     line_continuations: tuple[str, ...] = ()
     verbatim_quotes: tuple[str, ...] = ()
+    element_text: bool = False
 
     @property
     def a_series(self) -> bool:
@@ -437,6 +443,8 @@ LANGUAGES: tuple[Language, ...] = (
         # ! Node and the ECMAScript hashbang grammar read `#!` on line 1 as an
         # interpreter line, not as code and not as a comment.
         shebang=("#!",),
+        # ! JSX, which `.jsx` files hold, puts elements in expressions.
+        element_text=True,
         # ! ECMAScript's grammar defines no decorator; the `@` form is a
         # proposal, not the language.
         annotations=(),
@@ -469,6 +477,8 @@ LANGUAGES: tuple[Language, ...] = (
         # ! TypeScript's scanner reads `#!` on line 1 as an interpreter line
         # and emits it unchanged.
         shebang=("#!",),
+        # ! TSX, which `.tsx` files hold, puts elements in expressions.
+        element_text=True,
         # ! A decorator, `@Component(...)`, applies to the declaration it
         # precedes.
         annotations=("@",),

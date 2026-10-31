@@ -242,3 +242,33 @@ def test_an_apostrophe_in_a_comment_opens_nothing():
     before = "# it's\necho a\n# two\n"
 
     assert _preserved(before, before.replace("two", "three"), "a.sh").unchanged
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "const a = <p>\n  // text\n</p>;\n",
+        "const a = <div\n  id='a'\n>\n  // text\n</div>;\n",
+        "const a = <>\n  // text\n</>;\n",
+        "const a = <p>\n  b // text\n</p>;\n",
+        "const a = <p> // text\n</p>;\n",
+    ],
+)
+def test_a_comment_inside_an_element_is_unprovable(text):
+    assert _preserved(text, text, "a.jsx").unprovable
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "const a = <p>b</p>;\n// text\n",
+        "const a = <br />;\n// text\n",
+        "const a = <p>b</p>; // text\n",
+        "const a: Array<string> = [];\n// text\n",
+        "if (a < b) {}\n// text\n",
+        "const f = (a) => a;\n// text\n",
+        "const a = '<p>';\n// text\n",
+    ],
+)
+def test_a_comment_outside_any_element_proves(text):
+    assert _preserved(text, text.replace("text", "other"), "a.tsx").unchanged
