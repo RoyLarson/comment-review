@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 0 of 2 tasks closed
+Progress: 0 of 3 tasks closed
 Owner:    backend
-Requires-Roy: false
+Requires-Roy: true
 Raised:   2026-10-25 (decision-log.md Process: #222)
 ```
 
@@ -22,3 +22,4 @@ Worked when it is asked for -- decision-log.md Process: #222.
         > 2026-10-25 Check: spec states modes, directive bounds, doc owners, fixtures
 - [ ] T2 | Implement the C# reader from its definition
         > 2026-10-25 Check: uv run pytest -q tests/reading/test_csharp.py
+- [?] T3 | Decide whether C# holds `#!` as an interpreter line

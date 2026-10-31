@@ -72,5 +72,6 @@ the first statement rather than as a `trailing-comment`, and no anchor is the BO
       `.c`, `.cs`, `.cpp` and `.ps1`.
 - [ ] T5 | Write the byte-order mark ahead of f0, a0 or b0 when the head is set
         > 2026-10-27 compositor.py:96, galley.py:99; proof passes a lost mark
+        > 2026-10-30 Final review 3 M5: mark moves to line 2 on add f0; 338 dockets
 - [ ] T6 | Give a declaration on a marked line 1 its a
         > 2026-10-30 A7: \ufeffclass A {} gets no a; same at 0abe0010

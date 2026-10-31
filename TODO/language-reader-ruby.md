@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 4 tasks closed
+Progress: 0 of 7 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-25 (decision-log.md Process: #222)
@@ -29,3 +29,6 @@ Worked when it is asked for -- decision-log.md Process: #222.
 - [ ] T4 | Decide whether a Ruby `=begin`/`=end` block has its markers stripped
         > 2026-10-25 Moved from block-comment-markers-survive-into-the-prose T9
         > 2026-10-25 Check: the answer and its measurement are written into this file
+- [ ] T5 | Read Ruby's `$#` and `/#/` as code
+- [ ] T6 | List the plain `<<ID` heredoc in Ruby's spanning quotes
+- [ ] T7 | Match Ruby's `=begin` at column 0 only

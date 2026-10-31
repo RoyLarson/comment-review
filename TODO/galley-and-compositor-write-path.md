@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 55 of 62 tasks closed
+Progress: 55 of 68 tasks closed
 Owner:    backend
-Requires-Roy: false
+Requires-Roy: true
 Raised:   2026-08-22 (code-review high round 3 and /simplify round 2, 2026-08-22 -- the
           write path, which is the one place a defect reaches disk)
 RE-VERIFIED: 2026-08-23 — 2026-08-23. Task 1 is FIXED and ticked -- the destructive case
@@ -304,3 +304,14 @@ files in `corpora/` are in that state today.
 - [ ] T61 | Set an added b0 below matter in a file with no code, adding no blank
 - [ ] T62 | Stop an add and drop at b0 growing blanks at the file head
         > 2026-10-30 W6: compositor.py:228-251; each cycle adds one blank
+- [ ] T63 | Refuse a Python draft that no longer parses at prove, at
+      `flows/proof_setter.py:700`
+- [?] T64 | Decide what a drop of a body's only docstring does
+- [?] T65 | Decide whether `a1` may fill alone behind a filled `a0` in a no-code
+      file
+- [ ] T66 | Correct the front-matter comments at `results/compositor.py:26`,
+      `:119`, `:385`
+- [ ] T67 | State `_reread`'s four whitespace passes in its docstring
+- [ ] T68 | Classify the seven other mutants surviving final review 3
+        > 2026-10-30 landed-text-only head-ignores-a-series foot-any-a code-between-le
+        > 2026-10-30 matter-part-no-raw cut-part-no-raw shares-any

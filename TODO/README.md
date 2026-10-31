@@ -210,7 +210,7 @@ that changed a published name or rule:
 | [stale-claims-after-the-envelope](stale-claims-after-the-envelope.md) | backend | -- | 2/8 | Shipped prose still describes formats and flags this branch deleted |
 | [one-stem-four-jobs](one-stem-four-jobs.md) | backend | -- | 7/15 | one stem, four jobs -- and the vocabulary sweep cannot see it |
 | [census-walks-and-flushes](census-walks-and-flushes.md) | backend | -- | 3/7 | census.py walks the whole repo, runs git twice, and its run-flush never fires |
-| [galley-and-compositor-write-path](galley-and-compositor-write-path.md) | backend | -- | 55/62 | The galley can overwrite the file under review, and the compositor reads through a normaliser |
+| [galley-and-compositor-write-path](galley-and-compositor-write-path.md) | backend | yes | 55/68 | The galley can overwrite the file under review, and the compositor reads through a normaliser |
 | [record-and-verdicts-disagree](record-and-verdicts-disagree.md) | backend | -- | 4/8 | record.py and verdicts.py disagree about what a valid record is, in four places |
 | [exception-hierarchy](exception-hierarchy.md) | backend | -- | 2/10 | Named tuples give us the seam; the hierarchy that catches our own types is not built |
 | [language-rows-in-toml](language-rows-in-toml.md) | backend | -- | 11/18 | 18 rows of pure data sit in shipped Python; references/vocabulary.toml is the pattern |
@@ -286,7 +286,7 @@ that changed a published name or rule:
 | [only-a-flow-reaches-the-machine](only-a-flow-reaches-the-machine.md) | backend | -- | 2/10 | Route every machine read and write through a flow |
 | [a-non-code-document-has-no-read-review-resolve-or-write-chain-of-its-own](a-non-code-document-has-no-read-review-resolve-or-write-chain-of-its-own.md) | backend | -- | 0/2 | A non-code document has no read, review, resolve or write chain of its own |
 | [re-review-is-retired-for-revise](re-review-is-retired-for-revise.md) | agents | -- | 4/6 | re-review is retired for revise |
-| [agents-files-name-the-new-cli](agents-files-name-the-new-cli.md) | agents | -- | 34/46 | The agents files name the new CLI and say how to use it |
+| [agents-files-name-the-new-cli](agents-files-name-the-new-cli.md) | agents | -- | 34/47 | The agents files name the new CLI and say how to use it |
 | [reviewer-prose-is-rules-not-guidance](reviewer-prose-is-rules-not-guidance.md) | agents | -- | 10/17 | The reviewer prose is rules and punishments, not guidance toward a good result |
 | [a-machine-context-raises-query-and-clean](a-machine-context-raises-query-and-clean.md) | backend | yes | 0/8 | annotate carries two subjects -- it extracts index keys, and it flags claims it cannot settle. The second half becomes a context that marks like a role. |
 | [the-chief-has-no-recast-workflow](the-chief-has-no-recast-workflow.md) | backend | yes | 8/14 | cap applies the chief's rulings and closes the stage, but a recast is written out as a correct, so a recast of an add at an empty place writes nothing and exits 0. |
@@ -309,15 +309,15 @@ that changed a published name or rule:
 | [language-reader-c](language-reader-c.md) | backend | -- | 0/2 | C lexical reader |
 | [language-reader-cpp](language-reader-cpp.md) | backend | -- | 0/2 | C++ lexical reader |
 | [language-reader-java](language-reader-java.md) | backend | -- | 0/5 | Java lexical reader |
-| [language-reader-csharp](language-reader-csharp.md) | backend | -- | 0/2 | C# lexical reader |
-| [language-reader-swift](language-reader-swift.md) | backend | -- | 0/3 | Swift lexical reader |
-| [language-reader-kotlin](language-reader-kotlin.md) | backend | -- | 0/2 | Kotlin lexical reader |
+| [language-reader-csharp](language-reader-csharp.md) | backend | yes | 0/3 | C# lexical reader |
+| [language-reader-swift](language-reader-swift.md) | backend | -- | 0/4 | Swift lexical reader |
+| [language-reader-kotlin](language-reader-kotlin.md) | backend | -- | 0/3 | Kotlin lexical reader |
 | [language-reader-javascript](language-reader-javascript.md) | backend | -- | 0/3 | JavaScript lexical reader |
 | [language-reader-typescript](language-reader-typescript.md) | backend | -- | 0/2 | TypeScript lexical reader |
-| [language-reader-ruby](language-reader-ruby.md) | backend | -- | 0/4 | Ruby lexical reader |
-| [language-reader-shell](language-reader-shell.md) | backend | -- | 0/3 | Shell lexical reader |
+| [language-reader-ruby](language-reader-ruby.md) | backend | -- | 0/7 | Ruby lexical reader |
+| [language-reader-shell](language-reader-shell.md) | backend | -- | 0/4 | Shell lexical reader |
 | [language-reader-sql](language-reader-sql.md) | backend | -- | 0/2 | SQL lexical reader |
-| [language-reader-lua](language-reader-lua.md) | backend | -- | 0/7 | Lua lexical reader |
+| [language-reader-lua](language-reader-lua.md) | backend | -- | 0/8 | Lua lexical reader |
 | [edit-path-isolation](edit-path-isolation.md) | backend | -- | 0/2 | Isolate the edit path from comment reading |
 | [one-reader-builder](one-reader-builder.md) | backend | -- | 0/8 | One reader builder from each language's definition |
 
@@ -340,7 +340,7 @@ that changed a published name or rule:
 | [the-parser-merges-across-boundaries-it-cannot-read](the-parser-merges-across-boundaries-it-cannot-read.md) | backend | -- | 2/4 | The collator merges across a boundary it cannot read, and blames the neighbour |
 | [the-read-only-contract-is-enforced-by-nothing](the-read-only-contract-is-enforced-by-nothing.md) | agents | yes | 2/8 | The read-only contract is enforced by nothing, and four reviewers wrote files |
 | [the-shipped-python-does-not-pass-its-own-review](the-shipped-python-does-not-pass-its-own-review.md) | backend | yes | 7/12 | **Our own scripts spend a sixth of their prose on what the code does NOT do.** ! **Roy's reason, 2026-08-16: *"I don't want the system picking up bad cues from the documentation in the code."*** An agent reads these files and then writes in them. Re-measured after that day's rewrites: **136 of 697 (20%)** comment and docstring lines carry `cannot` / `never` / `does not` / `is not` / `nothing` -- UP from 123/714, because the prose written that day carries the same defect -- `census.py` worst at 52/284. Roy: *"census.py creates the pCST and that is it. Comments about 'cannot answer OWNERSHIP' are not helpful."* ! Not every negative is wrong -- an output (*"reports UNPROVABLE rather than passing"*) and a refusal aimed at a future editor both earn their place -- so the first task is writing the test that tells them apart !! **The hand-pass rule is STRUCK, 2026-08-18.** It told itself not to run `/comment-review` on this repo; Roy: *"By definition the code has to go through the review to state that it has passed."* A hand pass produces a rewrite, and this file's title is a claim about what the review RETURNS -- so it now closes on a run graded from the diff. ! The harness does not gate that: running the skill needs the skill |
-| [lexer-and-language-findings](lexer-and-language-findings.md) | backend | -- | 25/62 | Ten findings in lexer.py and language.py, from three review rounds |
+| [lexer-and-language-findings](lexer-and-language-findings.md) | backend | -- | 25/67 | Ten findings in lexer.py and language.py, from three review rounds |
 | [board-predates-task-ids](board-predates-task-ids.md) | systems | yes | 2/6 | task lines carry no ids, so a plan cannot name one; a trial migration was reverted because it silently cleared 57 `Requires-Roy` flags and refused nine files whose task labels carry a literal pipe |
 
 ### decision-needed  (23)

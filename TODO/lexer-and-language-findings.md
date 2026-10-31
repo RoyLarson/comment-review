@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 25 of 62 tasks closed
+Progress: 25 of 67 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (/simplify rounds 1 and 2 and /code-review high round 3,
@@ -343,6 +343,8 @@ would.
         > 2026-10-26 decision-log #238; CodeLine.joins from P18; b falls inside today
         > 2026-10-27 Lands with one-reader-builder (#244); fix once for every reader
         > 2026-10-30 W5: with a Rust attribute the fn line declares nothing, says a0
+        > 2026-10-30 Check: `owner_at` gets the trigger line; decorated drafts refuse
+        > 2026-10-30 Fix: `_documented_line` returns a line `owner_at` matches (D5)
 - [ ] T52 | Match a C# attribute section apart from a collection expression
 - [x] T53 | FINISHED: #240 for all three readers; pymc sets back identical | 70f1f028 | Make
       every comment above a module docstring front matter, per #240
@@ -373,3 +375,10 @@ would.
 - [x] T62 | FINISHED: shell and Ruby rows name their shebang | 34c14a05 | Name
       the shebang on the shell row
         > 2026-10-30 language.py:434: a shebang can be dropped or altered in .sh
+- [ ] T63 | Read one definition of a blank line in `lexer.py:967` and
+      `stripped.py:26`
+- [ ] T64 | Let `a0` hold a plain comment flush under a bare shebang
+- [ ] T65 | Test a line ending carried through a `c` place
+- [ ] T66 | Test a line ending on a paragraph's later line
+- [ ] T67 | Confirm the CR notes at `language.py:190`, `:492` and
+      `nests_comments`
