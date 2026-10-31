@@ -530,10 +530,12 @@ def _reread(
       lines the page no longer holds, which the third question refuses, and
       counting lines there is what lets the same words stand elsewhere.
     - unchanged: every line of prose the page holds reads back with the same
-      text, in the same order, under the same count of code lines. It is compared
-      by line: a neighbour merged into written text is still checked, and so is
-      where the written text stands against it. A drop can leave two paragraphs
-      touching, and the reader then finds one run holding both.
+      text, in the file's own order, under the same count of code lines. The
+      reading order the compositor sets from is not the expected order, so a
+      line that order moved is refused. It is compared by line: a neighbour
+      merged into written text is still checked, and so is where the written
+      text stands against it. A drop can leave two paragraphs touching, and the
+      reader then finds one run holding both.
 
     The count is safe because `_prove` holds the code lines themselves. Within
     one stretch between two code lines the order holds and the blanks are not
@@ -618,16 +620,21 @@ def _reread(
                     f" under {was_above[where]} on the page",
                 )
     held_by = {cue_of(b.address).cue: b for b in page if b.address}
+    # A place the file holds prose at keeps the file's order. An empty place
+    # has no line, so what fills it stands where the reading order puts it.
+    on_a_line = {cue: b.start for cue, b in held_by.items() if b.start}
+    in_file = iter(sorted(on_a_line, key=on_a_line.__getitem__))
     kept: list[tuple[int, str]] = []
     for cue in page.cues.reading:
-        if cue in edits:
+        at = next(in_file) if cue in on_a_line else cue
+        if at in edits:
             kept += [
-                (was_above[cue], line)
-                for line in constants.text_lines(edits[cue] or "")
+                (was_above[at], line)
+                for line in constants.text_lines(edits[at] or "")
                 if line.strip()
             ]
-        elif cue in held_by:
-            kept += _prose_lines([held_by[cue]], was_above)
+        elif at in held_by:
+            kept += _prose_lines([held_by[at]], was_above)
     came_back = _prose_lines(read, now_above, lines_written)
     if came_back != kept:
         return None, Refusal(
