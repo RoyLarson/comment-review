@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 55 of 68 tasks closed
+Progress: 56 of 68 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-22 (code-review high round 3 and /simplify round 2, 2026-08-22 -- the
@@ -306,7 +306,9 @@ files in `corpora/` are in that state today.
         > 2026-10-30 W6: compositor.py:228-251; each cycle adds one blank
 - [ ] T63 | Refuse a Python draft that no longer parses at prove, at
       `flows/proof_setter.py:700`
-- [?] T64 | Decide what a drop of a body's only docstring does
+- [x] T64 | Refuse ruled, #251; repair is T63 | 207d733bcd76762e6fe72d77618c45e68c11ad42 | Decide
+      what a drop of a body's only docstring does
+        > 2026-10-30 Outcome: refuse; no pass is added (#251)
 - [?] T65 | Decide whether `a1` may fill alone behind a filled `a0` in a no-code
       file
 - [ ] T66 | Correct the front-matter comments at `results/compositor.py:26`,

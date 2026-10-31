@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 34 of 47 tasks closed
+Progress: 35 of 47 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-09-04 (Roy, 2026-09-04, superseding the-flow-lives-in-the-command T4)
@@ -169,4 +169,5 @@ The agents files name the new CLI and say how to use it.
         > 2026-10-27 reviewer-brief.md:99-105, SKILL.md:158, ownership-context.md:87-90
 - [ ] T46 | Remove --anchor-line from the reviewer brief, which nothing reads
         > 2026-10-30 D11: reviewer-brief.md:177-178
-- [ ] T47 | Correct `CLAUDE.md:81` to `--from-docket`
+- [x] T47 | CLAUDE.md names --from-docket; Roy approved the wording | 207d733bcd76762e6fe72d77618c45e68c11ad42 | Correct
+      `CLAUDE.md:81` to `--from-docket`
