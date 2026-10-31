@@ -1,10 +1,12 @@
 """Immutable Python reader stages with character spans and explicit references."""
 
+import warnings
 from collections.abc import Collection
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Self, final
 
+from comment_review import constants, exceptions
 from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, ReadStage
 from comment_review.reading.paragraph import Paragraph
 from comment_review.reading.proof import UNIDENTIFIED_OWNER, PreservationResult
@@ -15,6 +17,20 @@ from comment_review.reading.source import (
     SourceSpan,
     SourceStructure,
 )
+
+#: What `compile` raises for a source it will not take.
+_COMPILE_ERRORS = exceptions.PARSE_ERRORS + (RecursionError, MemoryError)
+
+
+def _parse_error(text: str) -> str | None:
+    """Why this interpreter's parser refuses `text`, or None where it takes it."""
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        try:
+            compile(constants.without_mark(text), "draft", "exec", dont_inherit=True)
+        except _COMPILE_ERRORS as err:
+            return str(err)
+    return None
 
 
 def _index(value: object, name: str) -> None:
@@ -310,6 +326,10 @@ class PythonRead:
 
         A docstring is code in Python, so each approved alteration must name the
         same single declaration on both sides before its docstring is set aside.
+
+        A draft this interpreter cannot parse is refused when it can parse this
+        read's source, which a drop of a body's only statement leaves. Source
+        newer than the interpreter gets the comparison alone.
         """
         # Imported here because `preservation` reads this module's records.
         from comment_review.reading.python.preservation import compare_preservation
@@ -331,4 +351,18 @@ class PythonRead:
                     ),
                 )
             owners.add(before_owner[0])
-        return compare_preservation(self, after, allowed_documentation_owners=owners)
+        result = compare_preservation(self, after, allowed_documentation_owners=owners)
+        if result.unchanged:
+            error = _parse_error(after.source.text)
+            if error is not None and _parse_error(self.source.text) is None:
+                return PreservationResult(
+                    False,
+                    (
+                        ReadDiagnostic(
+                            ReadStage.PLACE,
+                            "draft-does-not-parse",
+                            f"the page parses and this does not: {error}",
+                        ),
+                    ),
+                )
+        return result

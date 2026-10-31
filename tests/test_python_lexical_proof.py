@@ -39,16 +39,26 @@ MODERN_SOURCE = (
 
 
 def forbid_host_parsers(patch):
+    """Forbid the host's parsers, and leave `compile` unable to read any page.
+
+    The comparison stands without them. `compile` answers only whether a page
+    the host reads still reads as a draft, so a page it cannot read proves.
+    """
+
     def forbidden(*args, **kwargs):
         raise AssertionError("Python proof invoked a host parser")
+
+    def unreadable(*args, **kwargs):
+        raise SyntaxError("newer than this host")
 
     for owner, names in (
         (ast, ("parse", "literal_eval", "dump")),
         (tokenize, ("tokenize", "generate_tokens")),
-        (builtins, ("compile", "eval")),
+        (builtins, ("eval",)),
     ):
         for name in names:
             patch.setattr(owner, name, forbidden)
+    patch.setattr(builtins, "compile", unreadable)
 
 
 @pytest.mark.parametrize("suffix", [".py", ".pyi", ".PY"])
@@ -132,6 +142,26 @@ def test_both_python_proof_gates_refuse_retained_source_mutations(
     report = prove_unchanged.run(repo, "HEAD", [target])
     assert report.failures == 1
     assert "PROVEN" not in " ".join(report.messages)
+
+
+def test_standalone_proof_refuses_a_draft_that_no_longer_parses(tmp_path):
+    before = 'class E(Exception):\n    """x"""\n\n\ndef f():\n    return 1\n'
+    repo, target = proof_repository(tmp_path, before.replace("\n", "\r\n"), ".py")
+    target.write_bytes(b"class E(Exception):\r\n\r\n\r\ndef f():\r\n    return 1\r\n")
+    report = prove_unchanged.run(repo, "HEAD", [target])
+    text = " ".join(report.messages)
+    assert report.failures == 1
+    assert "PROVEN" not in text
+    assert "source.py" in text and "expected an indented block" in text
+
+
+def test_a_page_the_host_cannot_parse_gets_no_parse_check(monkeypatch):
+    def unreadable(*args, **kwargs):
+        raise SyntaxError("newer than this host")
+
+    before = 'class E(Exception):\n    """x"""\n'
+    monkeypatch.setattr(builtins, "compile", unreadable)
+    assert proof_setter._prove("m.py", before, before, Path("m.py")) is None
 
 
 @pytest.mark.parametrize("owner", ["a0", "a1"])

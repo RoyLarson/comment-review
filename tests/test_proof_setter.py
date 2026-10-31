@@ -1722,6 +1722,26 @@ def test_dropping_the_matter_cannot_take_the_interpreter_line(tmp_path, name):
     assert refused
 
 
+ONLY_A_DOCSTRING = 'class E(Exception):\n    """x"""\n\n\ndef f():\n    return 1\n'
+
+
+@pytest.mark.parametrize("opening", ["", chr(0xFEFF)], ids=["plain", "byte-order-mark"])
+def test_a_drop_that_leaves_python_unparsable_is_refused(tmp_path, opening):
+    text = opening + ONLY_A_DOCSTRING
+    drafted, refused = _chain(tmp_path, "m.py", text, {"a1": None})
+    assert drafted == []
+    assert refused[0].step == "prove"
+    assert "m.py" in refused[0].why
+    assert "expected an indented block" in refused[0].why
+
+
+def test_a_drop_beside_other_statements_still_lands(tmp_path):
+    text = ONLY_A_DOCSTRING.replace('"""x"""\n', '"""x"""\n    y = 1\n')
+    drafted, refused = _chain(tmp_path, "m.py", text, {"a1": None})
+    assert refused == []
+    assert drafted
+
+
 class TestAnEmptyPackageInit:
     """An empty `__init__.py`, the no-code file Python reads and proves itself."""
 
