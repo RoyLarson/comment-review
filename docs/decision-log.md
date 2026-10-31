@@ -5916,3 +5916,18 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   one the reader does not split on is refused, in the source and in a replacement, so a line
   comment cannot carry code past its real end. The C and C++ `// a \` splice waits for a C reader.
 
+- **#251.** **A drop that leaves Python unparseable is refused** (Roy, 2026-10-30, shown that a
+  drop of a body's only docstring writes `class E(Exception):` over `def f():` and proves it, asked
+  whether to refuse or set `pass`, answered for the recommendation to refuse).
+
+  **What it settles.** The write chain adds no code to make a drop legal. A Python draft that does
+  not parse, set from a page that did, is refused at prove.
+
+- **#252.** **C# names its interpreter line** (Roy, 2026-10-30: *"okay on recommendation"*, on
+  naming `shebang` on the C# row alongside Lua, Kotlin and Swift). The recommendation rested on
+  .NET file-based apps allowing `#!`, from memory and not run.
+
+  **What it settles.** The C# row states `#!` as an interpreter line, as those three rows do from
+  their own grammars. Roy also let stand the refusal of `/* a<U+2028>b */` at gather, which #250
+  states.
+

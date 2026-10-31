@@ -78,7 +78,7 @@ uv run python src/comment-review.py prove_unchanged --base <merge-base> --repo .
 
 # The write chain: a docket -> a REVISE. `--out` must not exist yet; the chain's
 # own shutil.copytree requires it fresh. The order lives in flows/revise.py.
-uv run python src/comment-review.py proof --docket <docket>.json --repo . --out <dir>
+uv run python src/comment-review.py proof --from-docket <docket>.json --repo . --out <dir>
 
 # What one stage's revise changed, against the tree it was pulled from
 uv run python src/comment-review.py taken_in --original <root> --revise <root> [paths...]
