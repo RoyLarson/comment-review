@@ -35,7 +35,7 @@ from types import MappingProxyType
 from typing import NamedTuple
 
 from comment_review import constants
-from comment_review.reading.addresser import EOF
+from comment_review.reading.addresser import EOF, MODULE
 from comment_review.reading.comment import Comment, CommentSpan, Fragment
 from comment_review.reading.definitions import LanguageDefinition
 
@@ -68,8 +68,6 @@ __all__ = [
 
 NAMED_DEFS = (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)
 
-
-MODULE_ANCHOR = "<module>"
 
 # -- Annotations ---------------------------------------------------------------
 # This module stamps one -- `unterminated-paragraph-comment`; the citation
@@ -852,7 +850,7 @@ def read_lexical(path: Path, text: str, lang: Language) -> "LexicalRead":
         """Take the blanks held since the last prose line into the run.
 
         !! ONE RULE FOR BOTH COMMENT SYNTAXES: `/* one */`, a blank and `/* two */`
-        are one paragraph, exactly as `// one`, a blank and `// two` are.
+        are one run, exactly as `// one`, a blank and `// two` are.
         """
         if not run:
             # !! BLANKS ABOVE A RUN THAT HAS NOT STARTED ARE NOT ITS OWN. They
@@ -912,7 +910,7 @@ def read_lexical(path: Path, text: str, lang: Language) -> "LexicalRead":
             end=1,
             kind=Kind.MATTER,
             raw_lines=[interpreter],
-            anchor=MODULE_ANCHOR,
+            anchor=MODULE,
         )
 
     for n, raw_line in enumerate(scanned, 1):
@@ -944,7 +942,7 @@ def read_lexical(path: Path, text: str, lang: Language) -> "LexicalRead":
                     in_block, layers = after.still_open, after.layers
                     continue
                 # !! THE SAME RULE AS THE SINGLE-LINE CLOSE BELOW: a closer ends
-                # the COMMENT, not the paragraph. This one opened on an earlier
+                # the COMMENT, not the run. This one opened on an earlier
                 # line, so code cannot precede it here -- `partial_first` records
                 # whether code preceded it THERE, which is what makes the run a
                 # `c`. ! Code after the closer does reach this branch, unlike the
@@ -952,8 +950,9 @@ def read_lexical(path: Path, text: str, lang: Language) -> "LexicalRead":
                 if partial_first[0] or not after.comment:
                     flush()
             continue
-        # !! ONLY CODE ENDS A PARAGRAPH -- a blank line does not. Split on blanks,
-        # a 9-line paragraph would read as `6 + 3` and pass a cap of 6.
+        # !! ONLY CODE ENDS A RUN -- a blank line does not -- and `_cut_by_place`
+        # then cuts each gap's runs into paragraphs by place. Split on blanks, a
+        # 9-line run would read as `6 + 3` and pass a cap of 6.
         #
         # ! The blank JOINS the run rather than being skipped, so `raw_lines`
         # stays index-aligned with `start..end` -- `prove_unchanged` walks the
@@ -963,7 +962,7 @@ def read_lexical(path: Path, text: str, lang: Language) -> "LexicalRead":
         # NOT extend it. They are held here and committed only when another
         # comment line arrives. A run's `end` must stay on its last comment
         # line, because `document_declarations` counts the blank lines between
-        # a run's end and the declaration below it -- extend the paragraph over
+        # a run's end and the declaration below it -- extend the run over
         # the gap and a run held off its declaration reads as flush against it.
         if not raw_line.strip():
             # ! HELD WHETHER OR NOT A RUN IS OPEN; `carry` and `flush` decide what
@@ -978,7 +977,7 @@ def read_lexical(path: Path, text: str, lang: Language) -> "LexicalRead":
             opened = None
         if opened is not None:
             # !! OPENING A DELIMITED COMMENT DOES NOT END THE RUN BEFORE IT, so
-            # `/* one */`, a blank and `/* two */` are one paragraph, as `// one`, a
+            # `/* one */`, a blank and `/* two */` are one run, as `// one`, a
             # blank and `// two` are. ! It ends the run only when code precedes the
             # opener, which is not known until `opens_at` below -- so that decision is
             # made there.
@@ -1032,9 +1031,9 @@ def read_lexical(path: Path, text: str, lang: Language) -> "LexicalRead":
             # ! Only the run's FIRST line decides it, and a run continuing from
             # an earlier comment already answered 0 -- which is what this sets
             # when no code precedes the opener, so it stays a no-op there.
-            # ! THE RAW LINE, for the reason the whole-line test below gives:
-            # a blanked literal is whitespace, so a line whose only prefix is a
-            # string reported column 0 and left the code set.
+            # ! The column is measured on the raw line; `beside_code` above is
+            # asked of the blanked one, so a string alone before the opener
+            # reads as no code.
             partial_first[0] = (
                 len(raw_line[:opens_at].rstrip()) + 1 if beside_code else 0
             )
@@ -1056,7 +1055,7 @@ def read_lexical(path: Path, text: str, lang: Language) -> "LexicalRead":
             elif after.still_open is not None:
                 in_block, layers = after.still_open, after.layers
             elif beside_code:
-                # !! ONLY CODE ENDS A PARAGRAPH, AND A CLOSER IS NOT CODE. ! Code
+                # !! ONLY CODE ENDS A RUN, AND A CLOSER IS NOT CODE. ! Code
                 # AFTER the closer cannot reach here -- such a line is not
                 # gathered at all, by the intermediate-comment ruling above -- so
                 # code BEFORE the opener is the only thing left, and that makes
@@ -1084,7 +1083,7 @@ def read_lexical(path: Path, text: str, lang: Language) -> "LexicalRead":
                 if n - 1 not in doc_line_comments:
                     doc_opens.add(n)
             continue
-        flush()  # ! CODE ends a paragraph; a blank line does not
+        flush()  # ! CODE ends a run; a blank line does not
         at = line_at
         if at >= 0:
             # ! `flush()` above emptied the run, so this line is the first
@@ -1201,7 +1200,7 @@ def _file_edges(
                         end=end,
                         kind=kind,
                         raw_lines=p.raw_lines[start - p.start : end - p.start + 1],
-                        anchor=MODULE_ANCHOR if kind == Kind.MATTER else p.anchor,
+                        anchor=MODULE if kind == Kind.MATTER else p.anchor,
                         declares_line=p.declares_line,
                     )
                 )
@@ -1274,7 +1273,7 @@ def _one_matter_per_end(
                         raw.get(n, lines[n - 1])
                         for n in range(parts[0].start, parts[-1].end + 1)
                     ],
-                    anchor=MODULE_ANCHOR,
+                    anchor=MODULE,
                 )
             )
     return sorted(out, key=lambda p: p.start)
@@ -1344,8 +1343,9 @@ def _cut_by_place(
     """Cut each gap's prose into the places the gap holds: `a0`, one `b`, an `a`.
 
     A gap lies between two lines of code, or a sentinel and code. It holds one
-    run, or more where a line that is not code parts them -- a delimited
-    comment closing on a line with code after it. Its prose reads as GROUPS:
+    run, or more where a run ends with no code line below it -- a delimited
+    comment closing on a line with code after it, which the run holds whole
+    and which is not a code line. Its prose reads as GROUPS:
     the doc-marked lines and the plain comment lines, each stretch of one kind
     a group, a blank it took in `between` joining nothing.
 

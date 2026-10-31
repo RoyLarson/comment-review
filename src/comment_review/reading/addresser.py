@@ -712,10 +712,10 @@ class Cues:
         holding the two in step.
 
         !! IT IS THE TRIGGER BEFORE THIS GAP AND THE ONE IT FIRED AT, read off
-        `cue`. A gap is emitted at the trigger BELOW it -- `b_n` fires with
-        `c_n` -- so the pair either side of it is `triggers[at - 1]` and `triggers[at]`,
-        and a sentinel on either end answers 0 because the file's own edge is
-        not a line of code.
+        `cue`. A gap is emitted at the trigger BELOW it -- the first line
+        of the unit under it -- so the pair either side of it is
+        `triggers[at - 1]` and `triggers[at]`, and a sentinel on either end
+        answers 0 because the file's own edge is not a line of code.
 
         ! WHICH IS WHY THE CLOSING GAP STILL BOUNDS CORRECTLY while being
         anchored to `EOF`: it fires at the EOF trigger, so its pair is the last
@@ -767,7 +767,7 @@ def cue(
             sentinel where the language can document the module there. A line
             it cannot emit for takes no number, so `a1` is the first
             declaration however much code precedes it.
-        b   the MODULE, then the gap above every line of code, then the gap
+        b   the MODULE, then the gap above every unit of code, then the gap
             after the last one.
         c   every line of code. The module takes no `c`, because a module has
             no line to sit beside.

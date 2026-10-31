@@ -43,8 +43,8 @@ def counted_lines(raw: list[str]) -> int:
     The exemption is one line wide. A run stays one run across a marker, and a
     marker's continuation lines are charged: six lines plus a `TODO:` is six.
     """
-    # ! A BLANK LINE IS FREE TOO. It sits inside the paragraph by the interval
-    # definition -- only code bounds a paragraph -- and is leading, not prose.
+    # ! A BLANK LINE IS FREE TOO. A run holds the blanks between its comments,
+    # and a paragraph cut from it keeps them. They are leading, not prose.
     return sum(
         1 for ln in raw if ln.strip() and not WORK_MARKER.match(LEAD_PUNCT.sub("", ln))
     )
