@@ -139,6 +139,9 @@ class _Assigner:
         self.forms = [run.written for run in self.runs]
         self.links: dict[int, int | None] = {}
         self.warnings: list[DetachedDocumentation] = []
+        # Runs of doc that rustc rejects: no item follows an outer doc, or
+        # code precedes an inner doc.
+        self.unattached: list[SourceSpan] = []
 
     def run(self) -> RustDocumentation:
         for index, run in enumerate(self.runs):
@@ -168,7 +171,13 @@ class _Assigner:
             DocumentationOwner(section_of[index], declaration)
             for index, declaration in sorted(self.links.items())
         )
-        return RustDocumentation(sections, owners, self.placement, tuple(self.warnings))
+        return RustDocumentation(
+            sections,
+            owners,
+            self.placement,
+            tuple(self.warnings),
+            tuple(self.unattached),
+        )
 
     def _continues(self, group: list, index: int) -> bool:
         """Whether run `index` is part of the COMMENT section `group`.
@@ -205,6 +214,11 @@ class _Assigner:
     def _outer(self, index: int, run: _Run) -> None:
         """Attach a run directly above a head; detach one inside or behind it."""
         following = bisect_left(self.starts, run.span.end)
+        if following == len(self.code) or (
+            self.code[following].kind is RustTokenKind.CLOSE
+            and self._spelled(self.code[following]) == "}"
+        ):
+            self.unattached.append(run.span)
         if following == len(self.code):
             self.forms[index] = RustSectionForm.COMMENT
             return
@@ -232,6 +246,8 @@ class _Assigner:
         # Code before the run -- an inner attribute -- keeps it from `a0`,
         # which the page sets at the file head.
         preceded = before >= 0
+        if preceded and not self._opens_scope(self.code[before]):
+            self.unattached.append(run.span)
         while before >= 0 and self.code[before].kind is RustTokenKind.INNER_ATTRIBUTE:
             before -= 1
         if before < 0:
@@ -249,6 +265,12 @@ class _Assigner:
             self.forms[index] = RustSectionForm.COMMENT
         else:
             self._detach(index, run, owner)
+
+    def _opens_scope(self, token: RustToken) -> bool:
+        """Whether an inner doc may follow `token`: a body `{` or an inner attribute."""
+        return token.kind is RustTokenKind.INNER_ATTRIBUTE or (
+            token.kind is RustTokenKind.OPEN and self._spelled(token) == self.body_open
+        )
 
     def _attach(self, index: int, run: _Run, owner: int | None) -> None:
         """Link the run to its owner, or detach it.

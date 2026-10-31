@@ -2557,3 +2557,49 @@ def test_a_head_edit_on_a_marked_page_sets_and_proves(text, places):
     assert reset(page, places) == []
 
     assert page.read.preserved(build(set_page(page), "a.rs").read).unchanged
+
+
+def unattached_read(text):
+    from conftest import build
+
+    return build(text, "a.rs").read
+
+
+def before_of(draft):
+    return "".join(line for line in draft.splitlines(True) if "A note." not in line)
+
+
+@pytest.mark.parametrize(
+    "draft",
+    [
+        "fn f() {}\n/// A note.\n",
+        "fn f() {\n    /// A note.\n}\n",
+        "struct S {\n    a: u8,\n    /// A note.\n}\n",
+        "fn f() {}\n//! A note.\nfn g() {}\n",
+        "fn f() {\n    let _a = 1;\n    //! A note.\n}\n",
+    ],
+)
+def test_a_draft_adding_an_unattached_doc_is_refused(draft):
+    result = unattached_read(before_of(draft)).preserved(unattached_read(draft))
+
+    assert [d.code for d in result.diagnostics] == ["doc-without-item"]
+
+
+@pytest.mark.parametrize(
+    "draft",
+    [
+        "fn f() {\n    /// A note.\n    let _a = 1;\n}\n",
+        "fn f() {\n    //! A note.\n}\n",
+        "/// A\n// b\nfn f() {}\n",
+        "#![allow(unused)]\n//! A note.\nfn f() {}\n",
+    ],
+)
+def test_a_doc_rustc_accepts_is_not_refused(draft):
+    assert unattached_read(before_of(draft)).preserved(unattached_read(draft)).unchanged
+
+
+def test_a_page_already_holding_one_is_not_refused():
+    text = "fn f() {}\n/// A note.\n"
+    after = unattached_read(text.replace("A note", "B note"))
+
+    assert unattached_read(text).preserved(after).unchanged

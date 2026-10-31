@@ -36,7 +36,7 @@ A comment edit that changes what the language runs never reports PROVEN
 
 ### E - [lexer-and-language-findings](../../TODO/lexer-and-language-findings.md)
 
-- [ ] T68 | Refuse the `.rs` draft rustc cannot read at `rust/records.py:350`
+- [~] T68 | Refuse the `.rs` draft rustc cannot read at `rust/records.py:350`
 
 ### F - [bom-is-read-as-source](../../TODO/bom-is-read-as-source.md)
 
@@ -58,7 +58,7 @@ A comment edit that changes what the language runs never reports PROVEN
       a comment standing inside an open string
 - [x] P5 | Stripped proof refuses a comment inside a markup element on the JS and .tsx suffixes; covered by test_stripped.py and the row pin test | 57fa9b77c34e7197b1a8ede890cca5d242a01d67 | Refuse
       a comment inside JSX text
-- [ ] P6 | Refuse a Rust doc marker with nothing to attach to
+- [~] P6 | Refuse a Rust doc marker with nothing to attach to
 - [ ] P7 | State what the stripped comparison holds
 - [x] P8 | Stripped comparison holds line_continuations; covered by tests/reading/test_stripped.py and test_language_definitions.py. | a57c7015ed721c3fa4f08758c47da59f56f7c9c8 | Compare
       a backslash continuation in the stripped comparison

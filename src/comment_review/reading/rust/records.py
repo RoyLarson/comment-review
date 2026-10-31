@@ -207,6 +207,7 @@ class RustDocumentation:
     owners: tuple[DocumentationOwner, ...]
     placement: RustPlacement
     warnings: tuple[DetachedDocumentation, ...]
+    unattached: tuple[SourceSpan, ...] = ()
 
     def __post_init__(self) -> None:
         """Require ordered sections, owners that index them, and place warnings."""
@@ -243,6 +244,7 @@ class RustDocumentation:
         ):
             raise ValueError("an inner doc section may document only the module")
         _tuple(self.warnings, DetachedDocumentation, "warnings")
+        _tuple(self.unattached, SourceSpan, "unattached")
         comments = [
             section.span
             for section in self.sections
@@ -278,6 +280,7 @@ class RustRead:
     source: SourceStructure
     protected: tuple[SourceSpan, ...]
     warnings: tuple[DetachedDocumentation, ...]
+    unattached: tuple[SourceSpan, ...] = ()
 
     def __post_init__(self) -> None:
         """Check declaration lines, protected spans and warnings."""
@@ -315,6 +318,9 @@ class RustRead:
                 raise ValueError("warnings must be detached-documentation place notes")
             if warning.span is None or warning.span.end > len(self.source.text):
                 raise ValueError("warning span must lie inside source")
+        _tuple(self.unattached, SourceSpan, "unattached")
+        if any(span.end > len(self.source.text) for span in self.unattached):
+            raise ValueError("unattached span must lie inside source")
 
     @property
     def proof(self) -> str:

@@ -17,8 +17,10 @@ def compare_preservation(before: RustRead, after: RustRead) -> PreservationResul
 
     The byte-order mark and the shebang are compared first, exactly, so any
     change to either, adding it or removing it is `protected-source-changed`.
-    Code is then compared as the logical lines `_code_lines` returns, and any
-    difference is `code-changed`.
+    An edit that leaves a doc comment where rustc rejects one -- no item
+    follows it, or code precedes an inner doc -- is `doc-without-item`,
+    unless the page already held one. Code is then compared as the logical
+    lines `_code_lines` returns, and any difference is `code-changed`.
     """
     if constants.mark_of(before.source.text) != constants.mark_of(
         after.source.text
@@ -26,6 +28,8 @@ def compare_preservation(before: RustRead, after: RustRead) -> PreservationResul
         return _changed(
             "protected-source-changed", "Protected source text or its presence changed"
         )
+    if after.unattached and not before.unattached:
+        return _changed("doc-without-item", "A doc comment has no item to document")
     if _code_lines(before) != _code_lines(after):
         return _changed("code-changed", "Code outside prose comments changed")
     return PreservationResult(True, ())
