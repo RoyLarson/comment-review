@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 59 of 72 tasks closed
+Progress: 61 of 72 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (code-review high round 3 and /simplify round 2, 2026-08-22 -- the
@@ -325,6 +325,8 @@ files in `corpora/` are in that state today.
         > 2026-10-30 Check: `a0` above `#!` still refuses; approved `f0` drop proves
 - [x] T70 | Landed by written lines; 53 corpus accepts pull cleanly | 05c8a067 | Accept
       written text that joins a neighbouring paragraph (#254)
-- [ ] T71 | Refuse a white-space-only replacement with its own error code (#255)
-- [ ] T72 | Test a paragraph split through the real chain (#255)
+- [x] T71 | empty-patch refused at mark and docket; add counts | 58b7f165 | Refuse
+      a white-space-only replacement with its own error code (#255)
+- [x] T72 | Split lands: 39 chain rows, 18 pinned by tests | b663954d | Test a
+      paragraph split through the real chain (#255)
         > 2026-10-30 Scoped review: `// a\n\n// b` at `a0` refuses today
