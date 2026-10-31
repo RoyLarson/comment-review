@@ -73,9 +73,12 @@ def _without_comments(text: str, path: Path) -> str | None:
     files whose executable code differs. A line ending the row states inside a
     comment is refused the same way, on `line-ending-in-comment`: what follows it
     is a line of code to the language.
+
+    Text holding a lone CR is refused first: the lexer ends a line there, and a
+    shell or compiler may not, so the comment may run on into code.
     """
     lang = language_for(path)
-    if lang is None:
+    if lang is None or constants.holds_lone_cr(text):
         return None
     try:
         paragraphs = paragraphs_lexical(path, text, lang)

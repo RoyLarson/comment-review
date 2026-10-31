@@ -110,8 +110,8 @@ def test_standalone_cli_preserves_exact_mixed_unicode_snapshots(
     from comment_review.commands import prove_unchanged as command
     from comment_review.flows import page_for
 
-    before = "# caf\u00e9\r\nx = '\u03bb'\rx += 'e\u0301'\n"
-    after = "# changed\r\nx = '\u03bb'\rx += 'e\u0301'\n"
+    before = "# caf\u00e9\r\nx = '\u03bb'\r\nx += 'e\u0301'\n"
+    after = "# changed\r\nx = '\u03bb'\r\nx += 'e\u0301'\n"
     repo, target = proof_repository(tmp_path, before, ".py")
     target.write_bytes(after.encode("utf-8"))
     real_page_for = page_for.page_for

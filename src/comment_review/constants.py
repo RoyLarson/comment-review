@@ -27,6 +27,9 @@ import sys
 #: The three things that end a line of a FILE: CRLF, CR, LF. Nothing else.
 LINE_BREAK = re.compile(r"\r\n|\r|\n")
 
+#: A CR that is not half of a CRLF.
+_LONE_CR = re.compile(r"\r(?!\n)")
+
 #: The byte-order mark a file may open with. It belongs to the file's encoding,
 #: not to the text of line 1, so a reader matches a marker after it.
 BYTE_ORDER_MARK = "\N{ZERO WIDTH NO-BREAK SPACE}"
@@ -39,6 +42,15 @@ EMPTY_PATCH = "empty-patch"
 def holds_text(text: str) -> bool:
     """Whether any character is left once this text's white space is removed."""
     return bool(text.strip())
+
+
+def holds_lone_cr(text: str) -> bool:
+    """Whether this text holds a CR that no LF follows.
+
+    A reader counts a lone CR as a line end; a shell, a compiler or an
+    interpreter may not, so the two disagree on where a comment stops.
+    """
+    return _LONE_CR.search(text) is not None
 
 
 def text_lines(text: str) -> list[str]:

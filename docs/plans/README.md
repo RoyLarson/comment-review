@@ -30,4 +30,4 @@
 | [2026-10-11-lexical-source-contract](2026-10-11-lexical-source-contract.md) | closed | 3/3 | 14/14 |
 | [2026-10-22-lexer-rust](2026-10-22-lexer-rust.md) | closed | 6/6 | 13/13 |
 | [2026-10-25-reader-hands-prose-only](2026-10-25-reader-hands-prose-only.md) | closed | 46/46 | 24/24 |
-| [2026-10-31-proof-reads-what-runs](2026-10-31-proof-reads-what-runs.md) | open | 0/9 | 0/9 |
+| [2026-10-31-proof-reads-what-runs](2026-10-31-proof-reads-what-runs.md) | in-progress | 0/9 | 0/9 |

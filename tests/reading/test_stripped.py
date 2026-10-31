@@ -2,6 +2,7 @@ from pathlib import Path
 
 import pytest
 
+from comment_review import constants
 from comment_review.reading.stripped import StrippedRead
 
 BODY = "// Licence MIT\n\nfunction f() {}\n"
@@ -94,3 +95,15 @@ def test_the_matter_below_an_interpreter_line_may_change(name):
     result = _preserved(before, before.replace("MIT", "Apache-2.0"), name)
 
     assert result.unchanged
+
+
+def test_a_draft_holding_a_lone_cr_is_unprovable():
+    before = "# x\ntouch PWNED\n"
+    after = "# y\rtouch PWNED\n"
+
+    assert _preserved(before, after, "m.sh").unprovable
+
+
+def test_a_crlf_file_is_no_lone_cr():
+    assert not constants.holds_lone_cr("a\r\nb\r\n")
+    assert constants.holds_lone_cr("a\rb\n")

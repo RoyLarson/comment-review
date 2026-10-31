@@ -1,7 +1,7 @@
 # The proof reads what runs
 
 ```
-Status:   open
+Status:   in-progress
 Progress: 0 of 9 TODO tasks closed
 Plan-tasks: 0 of 9 plan tasks closed
 Owner:    backend
@@ -17,7 +17,7 @@ A comment edit that changes what the language runs never reports PROVEN
 
 ### A - [one-line-ending-per-file](../../TODO/one-line-ending-per-file.md)
 
-- [ ] T2 | Refuse a file holding a lone CR at the gather
+- [~] T2 | Refuse a file holding a lone CR at the gather
 
 ### B - [lexical-code-identity](../../TODO/lexical-code-identity.md)
 
@@ -48,7 +48,7 @@ A comment edit that changes what the language runs never reports PROVEN
 
 ## Plan Tasks
 
-- [ ] P1 | Refuse a lone CR at every read
+- [~] P1 | Refuse a lone CR at every read
 - [ ] P2 | Compare the interpreter line with its ending
 - [ ] P3 | Read a backslash in a verbatim quote as text
 - [ ] P4 | Refuse a comment standing inside an open string
