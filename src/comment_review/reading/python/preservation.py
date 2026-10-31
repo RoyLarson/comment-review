@@ -3,6 +3,7 @@
 from collections.abc import Collection, Iterator
 from dataclasses import dataclass
 
+from comment_review import constants
 from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, ReadStage
 from comment_review.reading.proof import PreservationResult
 from comment_review.reading.python.records import PythonRead
@@ -325,6 +326,10 @@ def _protection(
         (
             item.kind,
             read.source.slice(item.span),
+            # The interpreter name includes the shebang's line ending.
+            constants.line_ending_at(read.source.text, item.span.end)
+            if item.kind == "shebang"
+            else "",
             context(item.span),
             None if item.attachment is None else context(item.attachment),
             documentation_context(item.span, item.attachment),

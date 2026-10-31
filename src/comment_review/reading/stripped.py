@@ -160,13 +160,21 @@ def code_fingerprint(text: str, path: Path) -> tuple[str, str]:
 
 
 def _shebang(text: str, path: Path) -> str | None:
-    """The interpreter line the language row names, exactly, or None.
+    """The interpreter line the language row names, with its ending, or None.
 
     The reader hands it over as matter, which `_without_comments` removes, so
-    the comparison checks it here on its own.
+    the comparison checks it here on its own. The ending is part of the line:
+    a CRLF interpreter line names a different interpreter than an LF one. A
+    lone CR is refused before this runs, so line 1 ends in LF, CRLF or the end
+    of the file.
     """
     lang = language_for(path)
-    return None if lang is None else lang.interpreter_line(constants.text_lines(text))
+    if lang is None:
+        return None
+    line = lang.interpreter_line(constants.text_lines(text))
+    if line is None:
+        return None
+    return line + constants.line_ending_at(text, len(line))
 
 
 @dataclass(frozen=True)

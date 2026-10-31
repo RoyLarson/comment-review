@@ -21,7 +21,7 @@ A comment edit that changes what the language runs never reports PROVEN
 
 ### B - [lexical-code-identity](../../TODO/lexical-code-identity.md)
 
-- [ ] T11 | Compare the interpreter line by bytes at `stripped.py:169`
+- [~] T11 | Compare the interpreter line by bytes at `stripped.py:169`
 - [ ] T13 | Hold a backslash continuation in the stripped comparison,
       `stripped.py:108`
 - [ ] T10 | Refuse an ordinary string spanning lines at `stripped.py:129`
@@ -50,7 +50,7 @@ A comment edit that changes what the language runs never reports PROVEN
 
 - [x] P1 | Lone CR refused at source_of, revision_source_of and _without_comments; tests fail first then pass | d506ea66c3357750b4bcf27375d4716a7d32abca | Refuse
       a lone CR at every read
-- [ ] P2 | Compare the interpreter line with its ending
+- [~] P2 | Compare the interpreter line with its ending
 - [ ] P3 | Read a backslash in a verbatim quote as text
 - [ ] P4 | Refuse a comment standing inside an open string
 - [ ] P5 | Refuse a comment inside JSX text

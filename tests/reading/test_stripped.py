@@ -97,6 +97,29 @@ def test_the_matter_below_an_interpreter_line_may_change(name):
     assert result.unchanged
 
 
+def test_a_shebang_gaining_a_cr_is_protected_source():
+    before = "#!/bin/sh\necho a\n"
+
+    result = _preserved(before, before.replace("sh\n", "sh\r\n"), "a.sh")
+
+    assert not result.unchanged
+    assert [d.code for d in result.diagnostics] == ["protected-source-changed"]
+
+
+def test_a_crlf_shebang_that_stays_proves():
+    before = "#!/bin/sh\r\necho a\r\n"
+
+    assert _preserved(before, before, "a.sh").unchanged
+
+
+def test_a_crlf_shebang_with_changed_code_is_code_changed():
+    before = "#!/bin/sh\r\necho a\r\n"
+
+    result = _preserved(before, before.replace("a", "b"), "a.sh")
+
+    assert [d.code for d in result.diagnostics] == ["code-changed"]
+
+
 def test_a_draft_holding_a_lone_cr_is_unprovable():
     before = "# x\ntouch PWNED\n"
     after = "# y\rtouch PWNED\n"

@@ -53,6 +53,12 @@ def holds_lone_cr(text: str) -> bool:
     return _LONE_CR.search(text) is not None
 
 
+def line_ending_at(text: str, at: int) -> str:
+    """The line ending that starts at `at`: CRLF, CR, LF, or "" at none."""
+    match = LINE_BREAK.match(text, at)
+    return match.group() if match else ""
+
+
 def text_lines(text: str) -> list[str]:
     """This text as lines, split ONLY where a file's line actually ends.
 

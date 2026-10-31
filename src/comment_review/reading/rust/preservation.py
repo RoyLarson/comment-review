@@ -33,7 +33,12 @@ def _changed(code: str, message: str) -> PreservationResult:
 
 
 def _protected(read: RustRead) -> tuple[str, ...]:
-    return tuple(read.source.slice(span) for span in read.protected)
+    # The scanner ends the shebang span before its line ending, which the
+    # interpreter name includes.
+    return tuple(
+        read.source.slice(span) + constants.line_ending_at(read.source.text, span.end)
+        for span in read.protected
+    )
 
 
 def _code_lines(read: RustRead) -> tuple[str, ...]:
