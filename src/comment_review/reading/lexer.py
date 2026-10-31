@@ -833,11 +833,8 @@ def read_lexical(path: Path, text: str, lang: Language) -> "LexicalRead":
     layers = 1
     # !! WHERE THE RUN'S FIRST LINE STOPS BEING CODE -- one past the last
     # character of code, or 0 when the run owns its lines whole. It cuts
-    # `raw_lines[0]` and is not carried on the paragraph.
-    #
-    # ! `trailing` does not answer it: a MULTI-LINE paragraph comment opened after a
-    # statement flushes with `trailing=False`, because by then the run spans
-    # several lines. A list because `flush` is a closure and rebinds nothing.
+    # `raw_lines[0]` and makes the run trailing, and is not carried on the
+    # paragraph. A list because `flush` is a closure and rebinds nothing.
     partial_first = [0]
     # The blank lines a run took in between two of its comments. Every other
     # line of a run has a comment on it; `_file_edges` reads the two apart.
@@ -868,7 +865,7 @@ def read_lexical(path: Path, text: str, lang: Language) -> "LexicalRead":
         run.extend(pending)
         pending.clear()
 
-    def flush(trailing: bool = False) -> None:
+    def flush() -> None:
         # ! The blanks held since the run's last prose line are LEADING, not the
         # run's -- `leading_between` collects them once every paragraph exists.
         pending.clear()
@@ -888,18 +885,13 @@ def read_lexical(path: Path, text: str, lang: Language) -> "LexicalRead":
         # then runs for, and whatever marker opens it. A `c` is the room beside
         # a line of code, so prose occupying that room IS a trailing comment
         # and the kind must say so: never a docstring, never matter, never the
-        # module's documentation. ! `trailing` alone answers only the
-        # single-line case: a paragraph comment opened after a statement
-        # flushes with `trailing=False`, because by then the run spans several
-        # lines -- so `int b = 2; /* opens` would read as a plain `comment`
-        # sitting at a `c` place, and kind and series would disagree. Every
-        # other run is a `comment` until `_cut_gap` says which place it holds.
-        trails = trailing or partial_first[0]
+        # module's documentation. Every other run is a `comment` until
+        # `_cut_gap` says which place it holds.
         paragraph = Paragraph(
             path=path.as_posix(),
             start=run[0][0],
             end=run[-1][0],
-            kind=Kind.TRAILING if trails else Kind.COMMENT,
+            kind=Kind.TRAILING if column else Kind.COMMENT,
             raw_lines=span,
             # !! THE LEXER ALREADY HAS THIS STRING. It found the opener in order
             # to cut there, so the characters before it are known here.
@@ -1023,13 +1015,9 @@ def read_lexical(path: Path, text: str, lang: Language) -> "LexicalRead":
                 # first owns the line and `opened` was cleared above.
                 closed_at = opens_at + len(opened[0]) + ends_at
                 if line_at >= closed_at:
-                    partial_first[0] = (
-                        len(raw_line[:line_at].rstrip()) + 1
-                        if raw_line[:line_at].strip()
-                        else 0
-                    )
+                    partial_first[0] = len(raw_line[:line_at].rstrip()) + 1
                     run.append((n, raw_line[line_at:].rstrip()))
-                    flush(trailing=True)
+                    flush()
                 continue
             beside_code = bool(code[:opens_at].strip())
             if beside_code:
@@ -1074,7 +1062,7 @@ def read_lexical(path: Path, text: str, lang: Language) -> "LexicalRead":
                 # code BEFORE the opener is the only thing left, and that makes
                 # this a trailing comment: prose about the statement on its own
                 # line, which must not absorb the prose beneath it.
-                flush(trailing=True)
+                flush()
             continue
         # !! ASKED OF THE RAW LINE, NOT THE BLANKED ONE. `_strip_strings` replaces
         # a literal with spaces, which erases the evidence that code came first:
@@ -1103,11 +1091,9 @@ def read_lexical(path: Path, text: str, lang: Language) -> "LexicalRead":
             # one and the code before `at` is what makes it trailing. A line
             # comment runs to end of line, so there is no other side to test.
             # ! THE RAW LINE, not the blanked one -- same reason as above.
-            partial_first[0] = (
-                len(raw_line[:at].rstrip()) + 1 if raw_line[:at].strip() else 0
-            )
+            partial_first[0] = len(raw_line[:at].rstrip()) + 1
             run.append((n, raw_line[at:].rstrip()))
-            flush(trailing=True)  # its own paragraph, anchored to the code on that line
+            flush()  # its own paragraph, anchored to the code on that line
     flush()
     found, code_lines = _file_edges(
         out, text, lang, between, documentation, doc_opens, shebang
