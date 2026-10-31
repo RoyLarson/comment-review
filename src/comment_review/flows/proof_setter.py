@@ -523,7 +523,9 @@ def _reread(
       in prose, under as many code lines as its place has on the page. The text
       may share a paragraph with a neighbour and read at another address
       (`decision-log.md Process: #254`). The lines come from the compositor; what
-      stands on them, and the count, come from the reader.
+      stands on them, and the count, come from the reader. A blank in the text
+      can stand between two paragraphs, where no paragraph holds it, so a blank
+      no paragraph holds is read from the draft's own line.
     - dropped: the dropped text is gone. Dropped lines still in the draft are
       lines the page no longer holds, which the third question refuses, and
       counting lines there is what lets the same words stand elsewhere.
@@ -559,6 +561,7 @@ def _reread(
             "reread", rel, f"the draft: {format_failure(draft, path=rel)}"
         )
     written = compositor.spans(page)
+    lines = constants.text_lines(draft.text)
     was_above, now_above = _code_above(page), _code_above(draft)
     read = sorted(
         (b for b in draft if b.address and _holds_prose(b)), key=lambda b: b.start
@@ -580,6 +583,15 @@ def _reread(
             for at, line in enumerate(b.raw_lines, b.start)
             if first <= at <= last
         ]
+        in_a_paragraph = {at for at, _ in held}
+        held = sorted(
+            held
+            + [
+                (at, line)
+                for at, line in enumerate(lines[first - 1 : last], first)
+                if at not in in_a_paragraph and not line.strip()
+            ]
+        )
         if held != list(enumerate(want, first)) or last - first + 1 != len(want):
             return None, Refusal(
                 "reread",

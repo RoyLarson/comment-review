@@ -2067,6 +2067,124 @@ def test_a_drop_beside_blank_separated_comments_is_accepted(
 
 
 @pytest.mark.parametrize(
+    ("name", "text", "cue", "words", "expected"),
+    [
+        (
+            "m.js",
+            "function f() {}\n",
+            "a0",
+            "// a\n\n// b",
+            "// a\n\n// b\nfunction f() {}\n",
+        ),
+        (
+            "m.js",
+            "/** D */\nfunction f() {}\n",
+            "a1",
+            "/** a */\n\n/** b */",
+            "/** a */\n\n/** b */\nfunction f() {}\n",
+        ),
+        (
+            "m.js",
+            "let x;\nlet y;\n",
+            "b1",
+            "// a\n\n// b",
+            "let x;\n\n// a\n\n// b\nlet y;\n",
+        ),
+        (
+            "m.js",
+            "let x;\n// o\nlet y;\n",
+            "b1",
+            "// a\n\n// b",
+            "let x;\n// a\n\n// b\nlet y;\n",
+        ),
+        ("m.js", "let x;\n", "f0", "// a\n\n// b", "// a\n\n// b\nlet x;\n"),
+        ("m.js", "// o\n\nlet x;\n", "f0", "// a\n\n// b", "// a\n\n// b\n\nlet x;\n"),
+        (
+            "m.py",
+            "def f():\n    return 1\n",
+            "a1",
+            '    """A.\n\n    B.\n    """',
+            'def f():\n    """A.\n\n    B.\n    """\n    return 1\n',
+        ),
+        (
+            "m.py",
+            'def f():\n    """D."""\n    return 1\n',
+            "a1",
+            '    """A.\n\n    B.\n    """',
+            'def f():\n    """A.\n\n    B.\n    """\n    return 1\n',
+        ),
+        ("m.py", "x = 1\ny = 2\n", "b1", "# a\n\n# b", "x = 1\n\n# a\n\n# b\ny = 2\n"),
+        (
+            "m.py",
+            "x = 1\n# o\ny = 2\n",
+            "b1",
+            "# a\n\n# b",
+            "x = 1\n# a\n\n# b\ny = 2\n",
+        ),
+        ("m.py", "x = 1\n", "f0", "# a\n\n# b", "# a\n\n# b\nx = 1\n"),
+        ("m.py", "# o\n\nx = 1\n", "f0", "# a\n\n# b", "# a\n\n# b\n\nx = 1\n"),
+        ("m.js", "function f() {}\n", "a0", "// a\n\n", "// a\n\nfunction f() {}\n"),
+        ("m.js", "function f() {}\n", "a0", "\n// a", "\n// a\nfunction f() {}\n"),
+        (
+            "m.js",
+            "let x;\n// o\nlet y;\n",
+            "b1",
+            "// a\n\n",
+            "let x;\n// a\n\nlet y;\n",
+        ),
+        ("m.js", "let x;\n// o\nlet y;\n", "b1", "\n// a", "let x;\n\n// a\nlet y;\n"),
+        ("m.js", "let x;\n// t\n", "f1", "// a\n\n", "let x;\n// a\n\n"),
+        ("m.js", "let x; // m\n", "c0", " // a\n\n// b", "let x; // a\n\n// b\n"),
+    ],
+    ids=[
+        "js-add-a",
+        "js-patch-a",
+        "js-add-b",
+        "js-patch-b",
+        "js-add-f",
+        "js-patch-f",
+        "py-add-a",
+        "py-patch-a",
+        "py-add-b",
+        "py-patch-b",
+        "py-add-f",
+        "py-patch-f",
+        "trailing-blank-a",
+        "leading-blank-a",
+        "trailing-blank-b",
+        "leading-blank-b",
+        "trailing-blank-at-the-foot",
+        "split-below-a-margin",
+    ],
+)
+def test_written_text_holding_a_blank_lands(tmp_path, name, text, cue, words, expected):
+    drafted, refused = _chain(tmp_path, name, text, {cue: words})
+    assert refused == []
+    assert drafted[0].draft.read_bytes().decode("utf-8") == expected
+
+
+@pytest.mark.parametrize(
+    "wrong",
+    [
+        "// a\n   \n// b\nfunction f() {}\n",
+        "// a\nlet z;\n// b\nfunction f() {}\n",
+        "// a\n// c\n// b\nfunction f() {}\n",
+    ],
+    ids=["white-space", "code", "comment"],
+)
+def test_a_written_blank_is_compared_with_the_drafts_own_line(
+    tmp_path, monkeypatch, wrong
+):
+    _draft_written_as(monkeypatch, wrong)
+    drafted, refused = _chain(
+        tmp_path, "m.js", "function f() {}\n", {"a0": "// a\n\n// b"}
+    )
+    assert drafted == []
+    assert refused[0].step == "reread"
+    assert "a0: on lines 1-3 the draft holds" in refused[0].why
+
+
+@pytest.mark.parametrize(
     ("name", "text", "alterations"),
     [
         ("m.js", "/** F */\nfunction f() {}\n", {"a1": "   "}),
