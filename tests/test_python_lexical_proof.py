@@ -74,7 +74,9 @@ def test_python_fingerprint_requires_admitted_lexical_records(
     assert result == ("unprovable", "")
 
 
-def test_modern_python_read_and_proof_do_not_use_host_parsers(monkeypatch):
+def test_modern_python_the_host_cannot_compile_proves_without_its_parsers(
+    monkeypatch,
+):
     after = MODERN_SOURCE.replace("Describe the envelope.", "Explain this envelope.")
     after = after.replace("Return the entry.", "Expose the enclosed entry.")
     with monkeypatch.context() as patch:

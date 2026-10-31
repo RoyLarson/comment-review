@@ -82,12 +82,12 @@ class Pulled(NamedTuple):
 class AddressesMoved(Exception):
     """A docket page in `pulled.root` does not address the places it did in `original`.
 
-    !! THE WHOLE SAFETY ARGUMENT FOR THE STAGED DESIGN -- `docs/decision-log.md
-    Process: #35`. Everything downstream assumes a mark written at a later
-    stage against `foo.py@b7` names the place an earlier stage saw, which is
-    true only while the executable code is byte-identical. This names the one
-    way that stops holding: a revise whose code moved, so a place below the
-    change renumbers under it.
+    A page's places follow from its code, so a revise that keeps the code
+    byte-identical keeps them (`docs/decision-log.md Process: #35`). An address
+    holds for one reading and text may read back at another place (`#254`),
+    which this leaves alone: it compares the sets of places, not where any text
+    reads. This names the one way those sets change: a revise whose code moved,
+    so a place below the change renumbers under it.
     """
 
 

@@ -537,7 +537,8 @@ def _reread(
 
     The count is safe because `_prove` holds the code lines themselves. Within
     one stretch between two code lines the order holds and the blanks are not
-    compared.
+    compared. A comment moved off its code line onto the line below, or back,
+    keeps its text and its count, so it passes.
 
     A failed page read becomes a reread refusal before any of the three.
 
@@ -632,7 +633,8 @@ def _reread(
         return None, Refusal(
             "reread",
             rel,
-            f"the draft reads {came_back!r} where nobody edited {kept!r}",
+            f"the draft reads {came_back!r} where the page with its"
+            f" alterations reads {kept!r}",
         )
     return draft, None
 

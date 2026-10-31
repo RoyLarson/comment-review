@@ -2164,6 +2164,27 @@ def test_written_text_holding_a_blank_lands(tmp_path, name, text, cue, words, ex
 
 
 @pytest.mark.parametrize(
+    ("text", "cue", "expected"),
+    [
+        ("def f():\n    x = 1\n", "a1", 'def f():\n    """W\n\n    Wx"""\n    x = 1\n'),
+        (
+            'def f():\n    """A\n\n    B"""\n    x = 1\n',
+            "a1",
+            'def f():\n    """W\n\n    Wx"""\n    x = 1\n',
+        ),
+    ],
+    ids=["add", "patch"],
+)
+def test_a_blank_in_a_written_docstring_is_not_read_as_the_pages_own(
+    tmp_path, text, cue, expected
+):
+    written = '    """W\n\n    Wx"""'
+    drafted, refused = _chain(tmp_path, "m.py", text, {cue: written})
+    assert refused == []
+    assert drafted[0].draft.read_bytes().decode("utf-8") == expected
+
+
+@pytest.mark.parametrize(
     "wrong",
     [
         "// a\n   \n// b\nfunction f() {}\n",
