@@ -201,7 +201,7 @@ deliberately separate stages/actors.
 
 An address says one thing: change the text here and it is set in the right
 spot relative to its anchor. Each reading may parse back the comments to
-different locations if surrounding comments or code is inserted or deleted.
+different addresses if surrounding comments or code is inserted or deleted.
 The address is specific to the anchor not to the comment. Text set at `a1` may
 read back at `a0` when the addresses do not need to express that location.
 
