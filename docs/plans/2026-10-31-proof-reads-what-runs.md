@@ -2,8 +2,8 @@
 
 ```
 Status:   in-progress
-Progress: 6 of 9 TODO tasks closed
-Plan-tasks: 5 of 9 plan tasks closed
+Progress: 7 of 9 TODO tasks closed
+Plan-tasks: 6 of 9 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-31 (code-review max, 2026-10-31)
@@ -44,7 +44,7 @@ A comment edit that changes what the language runs never reports PROVEN
 
 ### G - [language-reader-javascript](../../TODO/language-reader-javascript.md)
 
-- [~] T5 | Refuse a comment inside JSX text in the stripped proof
+- [x] T5 | Refuse a comment inside JSX text in the stripped proof
 
 ## Plan Tasks
 
@@ -56,7 +56,8 @@ A comment edit that changes what the language runs never reports PROVEN
       a backslash in a verbatim quote as text
 - [x] P4 | A comment inside an open string makes the file unprovable; tests and corpus count verified | 4092d634d1a4f31403fa12a4ef728ba86dc70b58 | Refuse
       a comment standing inside an open string
-- [~] P5 | Refuse a comment inside JSX text
+- [x] P5 | Stripped proof refuses a comment inside a markup element on the JS and .tsx suffixes; covered by test_stripped.py and the row pin test | 57fa9b77c34e7197b1a8ede890cca5d242a01d67 | Refuse
+      a comment inside JSX text
 - [ ] P6 | Refuse a Rust doc marker with nothing to attach to
 - [ ] P7 | State what the stripped comparison holds
 - [x] P8 | Stripped comparison holds line_continuations; covered by tests/reading/test_stripped.py and test_language_definitions.py. | a57c7015ed721c3fa4f08758c47da59f56f7c9c8 | Compare
