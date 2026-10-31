@@ -197,6 +197,22 @@ Reviewers are read-only and never see SKILL.md directly; they read the shared
 `references/reviewer-brief.md`. Fixing what you find destroys the finding -- MARK and APPLY are
 deliberately separate stages/actors.
 
+### An address holds for one reading of the file
+
+An address says one thing: change the text here and it is set in the right
+spot relative to its anchor. It promises nothing about the next reading. Text
+set at `a1` may read back at `a0` when the addresses do not need to express
+that location.
+
+The invariant is location: where text stands relative to the code, and
+relative to the other comments and documents around it. A check compares those.
+A changed address is not a defect.
+
+An empty place stays open for writing even when text written there would read
+back at another address.
+
+-> [docs/decision-log.md](docs/decision-log.md), *Process*: #254.
+
 ### The binder -- the only thing the reviewers depend on
 
 It is built from the standard library alone, at a per-language tier:
