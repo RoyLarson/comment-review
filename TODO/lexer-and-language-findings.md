@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 26 of 69 tasks closed
+Progress: 26 of 70 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (/simplify rounds 1 and 2 and /code-review high round 3,
@@ -388,3 +388,7 @@ would.
       the `.rs` draft rustc cannot read at `rust/records.py:350`
         > 2026-10-31 Outcome: refuse in `RustRead.preserved`, #256
 - [ ] T69 | Add `RecursionError` to `PARSE_ERRORS` at `exceptions.py:80`
+- [ ] T70 | Refuse a Rust doc marker in a position with no item
+        > 2026-10-31 Proves, rustc rejects: `if`, `else`, parameter, expression
+        > 2026-10-31 Also struct literal, variant field list, const generic default
+        > 2026-10-31 Check: each shape refuses `doc-without-item`, as rustc rejects it
