@@ -1,7 +1,7 @@
 # The proof reads what runs
 
 ```
-Status:   in-progress
+Status:   closed
 Progress: 9 of 9 TODO tasks closed
 Plan-tasks: 9 of 9 plan tasks closed
 Owner:    backend
