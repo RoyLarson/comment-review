@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 4 of 13 tasks closed
+Progress: 5 of 13 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-10 (live-run)
@@ -49,7 +49,8 @@ Use lexical code identity at both proof boundaries.
 - [ ] T9 | Add per-row directive forms the proof protects inside comments
         > 2026-10-30 /// <reference> in .d.ts; /*!50000 DROP TABLE */ in .sql; design
 - [ ] T10 | Refuse an ordinary string spanning lines at `stripped.py:129`
-- [~] T11 | Compare the interpreter line by bytes at `stripped.py:169`
+- [x] T11 | A shebang gaining a CR is no longer proven in the stripped, Rust and Python readers; full suite passes | 0033936561c21255827f51a1e592a3cb7912dd0f | Compare
+      the interpreter line by bytes at `stripped.py:169`
 - [ ] T12 | Read only code for a spanning delimiter at `stripped.py:129`
 - [ ] T13 | Hold a backslash continuation in the stripped comparison,
       `stripped.py:108`
