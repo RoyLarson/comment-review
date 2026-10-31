@@ -5952,3 +5952,12 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   against the prose around it. It may join a neighbouring paragraph and read at another address.
   No place stops being offered for this.
 
+- **#255.** **An empty patch is an error** (Roy, 2026-10-30, shown that `{a1: "   "}` replaces a
+  docstring with blanks and records a patch: *"I see the problem- malicious agents, yeah we can
+  filter white space and if something comes back as 0 chars then it is either a leading or it is
+  empty and an empty patch gets and error code"*).
+
+  **What it settles.** Text is measured with its white space removed. At 0 characters a read
+  paragraph is leading or empty, and a replacement is an empty patch, refused with its own error
+  code. A blank line inside text that still holds words is untouched, so a paragraph can be split.
+
