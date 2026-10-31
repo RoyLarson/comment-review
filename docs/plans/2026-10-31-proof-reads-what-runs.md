@@ -2,8 +2,8 @@
 
 ```
 Status:   in-progress
-Progress: 2 of 9 TODO tasks closed
-Plan-tasks: 2 of 9 plan tasks closed
+Progress: 3 of 9 TODO tasks closed
+Plan-tasks: 3 of 9 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-31 (code-review max, 2026-10-31)
@@ -22,7 +22,7 @@ A comment edit that changes what the language runs never reports PROVEN
 ### B - [lexical-code-identity](../../TODO/lexical-code-identity.md)
 
 - [x] T11 | Compare the interpreter line by bytes at `stripped.py:169`
-- [ ] T13 | Hold a backslash continuation in the stripped comparison,
+- [x] T13 | Hold a backslash continuation in the stripped comparison,
       `stripped.py:108`
 - [ ] T10 | Refuse an ordinary string spanning lines at `stripped.py:129`
 
@@ -57,5 +57,6 @@ A comment edit that changes what the language runs never reports PROVEN
 - [ ] P5 | Refuse a comment inside JSX text
 - [ ] P6 | Refuse a Rust doc marker with nothing to attach to
 - [ ] P7 | State what the stripped comparison holds
-- [~] P8 | Compare a backslash continuation in the stripped comparison
+- [x] P8 | Stripped comparison holds line_continuations; covered by tests/reading/test_stripped.py and test_language_definitions.py. | a57c7015ed721c3fa4f08758c47da59f56f7c9c8 | Compare
+      a backslash continuation in the stripped comparison
 - [ ] P9 | Set the byte-order mark at byte 0
