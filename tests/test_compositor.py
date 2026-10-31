@@ -739,3 +739,36 @@ def test_a_comment_inside_an_expression_is_set_and_edited_around_the_expression(
         assert reset(page, {place: None}) == []
         vacated = ending if place.startswith("c") else ""
         assert set_page(page) == text[:start] + vacated + text[end:]
+
+
+MARK = "\ufeff"
+
+
+@pytest.mark.parametrize("cue", ["f0", "a0", "b0"])
+def test_a_head_add_sets_the_mark_first(cue):
+    from comment_review.results.galley import reset
+
+    page = build(MARK + "class A {}\n", "a.java")
+    assert reset(page, {cue: "// added"}) == []
+    text = set_page(page)
+    assert text.startswith(MARK)
+    assert text.count(MARK) == 1
+
+
+def test_a_dropped_first_paragraph_keeps_the_mark():
+    from comment_review.results.galley import reset
+
+    page = build(MARK + "// c\nint x;\n", "a.c")
+    assert reset(page, {"f0": None}) == []
+    assert set_page(page) == MARK + "int x;\n"
+
+
+def test_a_mark_inside_a_later_string_stays():
+    from comment_review.results.galley import reset
+
+    text = MARK + 'int x;\nchar *s = "' + MARK + '";\n'
+    page = build(text, "a.c")
+    assert reset(page, {"f0": "// added"}) == []
+    out = set_page(page)
+    assert out.startswith(MARK + "// added")
+    assert out.count(MARK) == 2

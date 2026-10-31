@@ -323,6 +323,7 @@ def _set(page: Page, newline: str | None) -> tuple[str, dict[str, tuple[int, int
         raise exceptions.Refused(
             f"{page.path}: the page has no places -- its source was never read"
         )
+    out = _marked_first(out, constants.mark_of(page.text))
     if not out:
         # !! AN EMPTY PAGE IS EMPTY TEXT -- and returning `page.text` here is how
         # this whole instrument would come to lie. A model that had lost every
@@ -336,6 +337,25 @@ def _set(page: Page, newline: str | None) -> tuple[str, dict[str, tuple[int, int
         ending if closing_gap or held_blank or page.text.endswith(("\n", "\r")) else ""
     )
     return ending.join(out) + tail, lines_of
+
+
+def _marked_first(out: list[str], mark: str) -> list[str]:
+    """`out` with the file's byte-order mark at the head of its first line.
+
+    The mark is the file's encoding, so it opens byte 0 whichever place now
+    holds line 1. A paragraph or code line carries the mark as line 1 had it,
+    and that copy is the first line opening with it: it is moved, so the mark
+    stands once. A mark opening a later line is text inside a literal and stays.
+    """
+    if not mark:
+        return out
+    if not out:
+        return [mark]
+    held = next((i for i, line in enumerate(out) if line.startswith(mark)), None)
+    if held is not None:
+        out[held] = out[held].removeprefix(mark)
+    out[0] = mark + out[0]
+    return out
 
 
 def draft(page: Page, into: Path) -> Path:

@@ -3692,3 +3692,21 @@ def test_a_docstring_sharing_its_line_reads_as_its_broken_source(shared, broken)
     assert [(p.address, p.kind, p.raw_text, p.anchor) for p in page] == [
         (p.address, p.kind, p.raw_text, p.anchor) for p in expected
     ]
+
+
+def test_a_lost_or_moved_mark_is_protected_source():
+    from pathlib import Path
+
+    from comment_review.reading.readers import read_source
+
+    text = "\ufeffx = 1\n"
+    from comment_review.reading.python.records import PythonRead
+
+    before = read_source(Path("a.py"), text)
+    assert isinstance(before, PythonRead)
+    for text_after in ("x = 1\n", "\n\ufeffx = 1\n"):
+        after = read_source(Path("a.py"), text_after)
+        assert isinstance(after, PythonRead)
+        result = before.preserved(after)
+        assert not result.unchanged
+        assert [d.code for d in result.diagnostics] == ["protected-source-changed"]

@@ -2524,3 +2524,21 @@ def test_a_rust_page_always_has_an_a_series():
     result = read_source(PAGE, "")
     assert isinstance(result, records.RustRead)
     assert result.a_series is True
+
+
+def test_a_lost_or_moved_mark_is_protected_source():
+    from pathlib import Path
+
+    from comment_review.reading.readers import read_source
+
+    text = "\ufefffn f() {}\n"
+    from comment_review.reading.rust.records import RustRead
+
+    before = read_source(Path("a.rs"), text)
+    assert isinstance(before, RustRead)
+    for text_after in ("fn f() {}\n", "\n\ufefffn f() {}\n"):
+        after = read_source(Path("a.rs"), text_after)
+        assert isinstance(after, RustRead)
+        result = before.preserved(after)
+        assert not result.unchanged
+        assert [d.code for d in result.diagnostics] == ["protected-source-changed"]

@@ -302,19 +302,23 @@ class StrippedRead:
         *,
         documented: Collection[tuple[int | None, int | None]] | None = None,
     ) -> PreservationResult:
-        """Whether `after` keeps this read's interpreter line and stripped source.
+        """Whether `after` keeps this read's mark, interpreter line and source.
 
-        The interpreter line is compared first, exactly, so any change to it,
-        adding it or removing it is `protected-source-changed`.
+        The byte-order mark and the interpreter line are compared first,
+        exactly, so any change to either, adding it or removing it is
+        `protected-source-changed`.
         """
-        if _shebang(self.text, self.path) != _shebang(after.text, after.path):
+        if constants.mark_of(self.text) != constants.mark_of(after.text) or (
+            _shebang(self.text, self.path) != _shebang(after.text, after.path)
+        ):
             return PreservationResult(
                 False,
                 (
                     ReadDiagnostic(
                         ReadStage.PLACE,
                         "protected-source-changed",
-                        "the interpreter line or its presence changed",
+                        "the byte-order mark, the interpreter line or their "
+                        "presence changed",
                     ),
                 ),
             )

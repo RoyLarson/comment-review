@@ -15,11 +15,14 @@ from comment_review.reading.source import RegionKind
 def compare_preservation(before: RustRead, after: RustRead) -> PreservationResult:
     """Whether `after` holds `before`'s protected source and code unchanged.
 
-    The shebang is compared first, exactly, so any change to it, adding it or
-    removing it is `protected-source-changed`. Code is then compared as the
-    logical lines `_code_lines` returns, and any difference is `code-changed`.
+    The byte-order mark and the shebang are compared first, exactly, so any
+    change to either, adding it or removing it is `protected-source-changed`.
+    Code is then compared as the logical lines `_code_lines` returns, and any
+    difference is `code-changed`.
     """
-    if _protected(before) != _protected(after):
+    if constants.mark_of(before.source.text) != constants.mark_of(
+        after.source.text
+    ) or _protected(before) != _protected(after):
         return _changed(
             "protected-source-changed", "Protected source text or its presence changed"
         )

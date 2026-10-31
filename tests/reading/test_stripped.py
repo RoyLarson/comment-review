@@ -282,3 +282,14 @@ def test_a_ts_file_holds_no_elements():
     before = "type F = <T>(x: T) => T;\n// one\n"
 
     assert _preserved(before, before.replace("one", "two"), "a.ts").unchanged
+
+
+@pytest.mark.parametrize("name", ["a.sh"])
+def test_a_lost_or_moved_mark_is_protected_source(name):
+    text = "\ufeffx=1\n"
+    lost = _preserved(text, "x=1\n", name)
+    moved = _preserved(text, "\n\ufeffx=1\n", name)
+
+    for result in (lost, moved):
+        assert not result.unchanged
+        assert [d.code for d in result.diagnostics] == ["protected-source-changed"]

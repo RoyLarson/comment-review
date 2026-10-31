@@ -40,7 +40,7 @@ A comment edit that changes what the language runs never reports PROVEN
 
 ### F - [bom-is-read-as-source](../../TODO/bom-is-read-as-source.md)
 
-- [ ] T5 | Write the byte-order mark ahead of f0, a0 or b0 when the head is set
+- [~] T5 | Write the byte-order mark ahead of f0, a0 or b0 when the head is set
 
 ### G - [language-reader-javascript](../../TODO/language-reader-javascript.md)
 
@@ -62,4 +62,4 @@ A comment edit that changes what the language runs never reports PROVEN
 - [ ] P7 | State what the stripped comparison holds
 - [x] P8 | Stripped comparison holds line_continuations; covered by tests/reading/test_stripped.py and test_language_definitions.py. | a57c7015ed721c3fa4f08758c47da59f56f7c9c8 | Compare
       a backslash continuation in the stripped comparison
-- [ ] P9 | Set the byte-order mark at byte 0
+- [~] P9 | Set the byte-order mark at byte 0

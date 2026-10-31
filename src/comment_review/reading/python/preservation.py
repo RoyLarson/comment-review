@@ -49,6 +49,10 @@ def compare_preservation(
     if failures:
         return PreservationResult(False, failures)
     assert isinstance(before, PythonRead) and isinstance(after, PythonRead)
+    if constants.mark_of(before.source.text) != constants.mark_of(after.source.text):
+        return _changed(
+            "protected-source-changed", "The byte-order mark or its presence changed"
+        )
     if any(
         owner is not None
         and (
