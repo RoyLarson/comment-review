@@ -312,7 +312,7 @@ that changed a published name or rule:
 | [language-reader-csharp](language-reader-csharp.md) | backend | -- | 1/3 | C# lexical reader |
 | [language-reader-swift](language-reader-swift.md) | backend | -- | 1/4 | Swift lexical reader |
 | [language-reader-kotlin](language-reader-kotlin.md) | backend | -- | 1/3 | Kotlin lexical reader |
-| [language-reader-javascript](language-reader-javascript.md) | backend | -- | 2/5 | JavaScript lexical reader |
+| [language-reader-javascript](language-reader-javascript.md) | backend | -- | 2/7 | JavaScript lexical reader |
 | [language-reader-typescript](language-reader-typescript.md) | backend | -- | 0/2 | TypeScript lexical reader |
 | [language-reader-ruby](language-reader-ruby.md) | backend | -- | 0/7 | Ruby lexical reader |
 | [language-reader-shell](language-reader-shell.md) | backend | -- | 3/7 | Shell lexical reader |

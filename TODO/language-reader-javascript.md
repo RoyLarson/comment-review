@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 2 of 5 tasks closed
+Progress: 2 of 7 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-25 (decision-log.md Process: #222)
@@ -29,3 +29,5 @@ Worked when it is asked for -- decision-log.md Process: #222.
       JSX text as code, not a line comment
 - [x] T5 | A comment between the tags of a JSX element makes the stripped proof unprovable; JS states element_suffixes for all its suffixes and TS for .tsx only; tests fail on the prior code; corpus 17 JS/TS files, none newly refused | 57fa9b77c34e7197b1a8ede890cca5d242a01d67 | Refuse
       a comment inside JSX text in the stripped proof
+- [ ] T6 | Count a JSX tag glued to `return` in the stripped proof
+- [ ] T7 | Ignore a `/>` inside a regex in the JSX element count
