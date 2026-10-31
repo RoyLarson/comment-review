@@ -1683,6 +1683,37 @@ def test_the_interpreter_line_is_protected(name, before, after):
     assert "protected-source-changed" in refused.why
 
 
+@pytest.mark.parametrize(
+    ("name", "comment", "code"),
+    [
+        ("m.lua", "-- doc", "print(1)"),
+        ("m.kts", "// doc", 'println("x")'),
+        ("m.kt", "// doc", "fun main() {}"),
+        ("m.swift", "// doc", 'print("x")'),
+        ("m.cs", "// doc", "int x = 1;"),
+    ],
+)
+class TestAnInterpreterLineTheRowNames:
+    SHEBANG = "#!/usr/bin/env x"
+
+    def test_a_comment_above_it_is_refused(self, name, comment, code):
+        before = f"{self.SHEBANG}\n{code}\n"
+        refused = proof_setter._prove(name, before, f"{comment}\n{before}", Path(name))
+        assert refused is not None
+        assert "protected-source-changed" in refused.why
+
+    @pytest.mark.parametrize("where", ["a0", "f0", "b0"])
+    def test_an_add_at_the_head_keeps_it_on_line_one(
+        self, tmp_path, name, comment, code, where
+    ):
+        text = f"{self.SHEBANG}\n{code}\n"
+        drafted, refused = _chain(tmp_path, name, text, {where: comment})
+        assert drafted or refused
+        for draft in drafted:
+            written = draft.draft.read_text(encoding="utf-8")
+            assert written.startswith(self.SHEBANG + "\n")
+
+
 @pytest.mark.parametrize("name", ["m.sh", "m.rb"])
 def test_dropping_the_matter_cannot_take_the_interpreter_line(tmp_path, name):
     text = "#!/bin/sh\n# lic\n\nx=1\n"

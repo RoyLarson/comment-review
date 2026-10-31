@@ -67,9 +67,8 @@ class Language:
         shebang: what line 1 opens with when it is an interpreter line (`#!`),
             which runs the file whether or not the language reads it as a
             comment. The line is the file's own matter, the matter rule opens on
-            the line below it, and the comparison holds it exactly. Empty where
-            the language has none, or where the row reads the line as code, so
-            the comparison already holds it.
+            the line below it, and the comparison holds it exactly, on line 1.
+            Empty where the language has none.
         annotations: what a line of code opens with when it is an annotation,
             attribute or decorator, which belongs to the declaration below it
             (Java `@Override`, C# `[Serializable]`). The run above such lines
@@ -299,6 +298,9 @@ LANGUAGES: tuple[Language, ...] = (
         # contain `@"`.
         spanning_quotes=('"""', '@"'),
         quotes=('"', "'"),
+        # ! .NET's file-based programs read `#!` on line 1 as an interpreter
+        # line; a project build refuses it.
+        shebang=("#!",),
         # ! EMPTY: `[` opens an attribute section, `[Serializable]`, and also
         # a collection-expression line, `[1, 2];`, and a line's opening
         # character cannot tell the two apart.
@@ -342,6 +344,8 @@ LANGUAGES: tuple[Language, ...] = (
         ),
         spanning_quotes=('"""',),
         quotes=('"',),
+        # ! `swift` skips a `#!` line at the head of a script.
+        shebang=("#!",),
         # ! An attribute, `@objc` or `@available(...)`, applies to the
         # declaration it precedes.
         annotations=("@",),
@@ -386,6 +390,9 @@ LANGUAGES: tuple[Language, ...] = (
         ),
         spanning_quotes=('"""',),
         quotes=('"', "'"),
+        # ! The Kotlin grammar opens `kotlinFile` and `script` alike with an
+        # optional `shebangLine`, so `.kt` and `.kts` read line 1 the same.
+        shebang=("#!",),
         # ! An annotation, `@JvmStatic` or `@Suppress(...)`, applies to the
         # declaration it precedes.
         annotations=("@",),
@@ -527,6 +534,9 @@ LANGUAGES: tuple[Language, ...] = (
         # costing; it is stated because a silent bound reads as completeness.
         spanning_quotes=("[[", "[=[", "[==["),
         quotes=('"', "'"),
+        # ! `lua` skips line 1 when it opens with `#`, and the kernel reads `#!`
+        # there to run the file. Any other `#` line 1 stays code on this row.
+        shebang=("#!",),
         annotations=(),
         # ! The Lua lexer's newline is LF or CR.
         line_endings=(),

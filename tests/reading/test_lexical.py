@@ -486,6 +486,14 @@ def test_a_shebang_does_not_document_the_declaration_below_it():
     assert [(p.kind, p.declares_line) for p in found] == [(Kind.MATTER, None)]
 
 
+@pytest.mark.parametrize("name", ["m.lua", "m.kt", "m.kts", "m.swift", "m.cs"])
+def test_a_row_naming_a_shebang_takes_line_one_from_the_code(name):
+    lexical = read(name, "#!/usr/bin/env x\nfoo\n")
+    found = lexical.paragraphs(Path(name))
+    assert [(p.start, p.kind) for p in found] == [(1, Kind.MATTER)]
+    assert [c.line for c in lexical.code_lines()] == [2]
+
+
 def test_a_row_without_a_shebang_reads_hash_bang_as_its_language_does():
     # Go names no shebang, so `#!` on line 1 is code.
     lexical = read("m.go", "#!/x\npackage p\n")
