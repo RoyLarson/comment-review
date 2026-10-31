@@ -797,6 +797,13 @@ def test_an_emptied_marked_file_is_the_mark_alone():
         (MARK + "// c\n" + MARK + "int x;\n", "a.c"),
         (MARK + "\n" + MARK + "int x;\n", "a.c"),
         (MARK + "# c\n" + MARK + "x=1\n", "a.sh"),
+        (MARK + "// c\n" + MARK + "// d\nint x;\n", "a.c"),
+        (MARK + "// c\n" + MARK + "// d\nfn f() {}\n", "a.rs"),
+        (MARK + "// c\n" + MARK + "// d\nclass A {}\n", "a.java"),
+        (MARK + "// c\n" + MARK + "\nint x;\n", "a.c"),
+        (MARK + "\n" + MARK + "\nint x;\n", "a.c"),
+        (MARK + "/* c */\n" + MARK + "\nint x;\n", "a.c"),
+        (MARK + "# c\n" + MARK + "#\nx=1\n", "a.sh"),
     ],
 )
 def test_a_mark_opening_a_later_code_line_stays(text, name):

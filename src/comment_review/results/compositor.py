@@ -217,7 +217,6 @@ def _set(page: Page, newline: str | None) -> tuple[str, dict[str, tuple[int, int
     last_code = max((i for i, c in enumerate(reading) if c.startswith(ON)), default=-1)
     previous = ""
     closing_gap = False
-    anchor_seen = False
     for at, cue in enumerate(reading):
         prose = held.get(cue, [])
         # ! ASKED OF THE CUE DIRECTLY. `series_of` reads a paragraph's address
@@ -303,10 +302,9 @@ def _set(page: Page, newline: str | None) -> tuple[str, dict[str, tuple[int, int
             # opened in that room and closed on a later line owns those lines
             # outright, because no code is on them.
             code = page.cues.anchor_of(cue)
-            if mark and not anchor_seen and page.text.startswith(code):
-                # Line 1 is this code line only when the file opens with it.
+            # Only the code on line 1 carries the mark.
+            if mark and page.cues.anchor_line(cue) == 1:
                 code = constants.without_mark(code)
-            anchor_seen = True
             out.append(f"{code}{prose[0] if prose else ''}")
             out.extend(prose[1:])
             continue

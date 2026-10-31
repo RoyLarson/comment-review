@@ -301,6 +301,7 @@ def test_a_lost_or_moved_mark_is_protected_source():
         ("\ufeff# c\nx=1\n", {"f0": None}),
         ("\ufeff# c\nx=1\n", {"f0": "# new"}),
         ("\ufeff# c\n", {"f0": None}),
+        ("\ufeff# c\n\ufeff# d\nx=1\n", {"f0": "# new"}),
     ],
 )
 def test_a_head_edit_on_a_marked_page_sets_and_proves(text, places):
