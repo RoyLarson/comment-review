@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 25 of 69 tasks closed
+Progress: 26 of 69 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (/simplify rounds 1 and 2 and /code-review high round 3,
@@ -384,6 +384,7 @@ would.
 - [ ] T66 | Test a line ending on a paragraph's later line
 - [ ] T67 | Confirm the CR notes at `language.py:190`, `:492` and
       `nests_comments`
-- [~] T68 | Refuse the `.rs` draft rustc cannot read at `rust/records.py:350`
+- [x] T68 | Doc comments rustc rejects (no item, before a close or inner attribute, misplaced inner doc) are refused as doc-without-item; 47 drafts checked against rustc, 1646 registry files read without self-refusal | 2768a650fa090ad37529962456288862a55676f6 | Refuse
+      the `.rs` draft rustc cannot read at `rust/records.py:350`
         > 2026-10-31 Outcome: refuse in `RustRead.preserved`, #256
 - [ ] T69 | Add `RecursionError` to `PARSE_ERRORS` at `exceptions.py:80`
