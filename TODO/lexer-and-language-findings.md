@@ -2,9 +2,9 @@
 
 ```
 Status:   in-progress
-Progress: 25 of 67 tasks closed
+Progress: 25 of 69 tasks closed
 Owner:    backend
-Requires-Roy: false
+Requires-Roy: true
 Raised:   2026-08-22 (/simplify rounds 1 and 2 and /code-review high round 3,
           2026-08-22 -- the ones touching the two reader modules, filed because
           those modules are settled and will not shift under front-half-undetermined)
@@ -377,8 +377,11 @@ would.
         > 2026-10-30 language.py:434: a shebang can be dropped or altered in .sh
 - [ ] T63 | Read one definition of a blank line in `lexer.py:967` and
       `stripped.py:26`
+        > 2026-10-31 Also `lexer.py:1055`, `:1076`, `:1131`; U+3000 refuses wrongly
 - [ ] T64 | Let `a0` hold a plain comment flush under a bare shebang
 - [ ] T65 | Test a line ending carried through a `c` place
 - [ ] T66 | Test a line ending on a paragraph's later line
 - [ ] T67 | Confirm the CR notes at `language.py:190`, `:492` and
       `nests_comments`
+- [?] T68 | Refuse the `.rs` draft rustc cannot read at `rust/records.py:350`
+- [ ] T69 | Add `RecursionError` to `PARSE_ERRORS` at `exceptions.py:80`

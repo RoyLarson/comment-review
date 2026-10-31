@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 1 of 5 tasks closed
+Progress: 1 of 7 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-25 (decision-log.md Process: #222)
@@ -30,3 +30,6 @@ Worked when it is asked for -- decision-log.md Process: #222.
 - [x] T4 | word_breaks row field; bash-checked inputs in tests | 5b0f9fbf | Read
       a shell `#` as a comment only at a word start, at `lexer.py:973`
 - [ ] T5 | Read a line opening `#` after a `\` continuation as code
+- [ ] T6 | Read a backslash inside a single-quoted string as literal
+- [ ] T7 | Read `#` glued to a closing `)` or backtick as code, at
+      `lexer.py:812`

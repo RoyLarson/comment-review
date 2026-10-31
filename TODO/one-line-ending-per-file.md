@@ -42,6 +42,8 @@ current corpus supplies.
         > 2026-10-25 Check: a test per case (one, lone CR, mixed, none) fails first
 - [ ] T2 | Refuse a file holding a lone CR at the gather
         > 2026-10-25 Check: a lone-CR fixture makes gather exit nonzero, naming it
+        > 2026-10-31 Code review: `# x<CR>touch PWNED` proves with a c0 edit
+        > 2026-10-31 Code review: `# x<CR>touch PWNED` proves with a c0 edit
 - [ ] T3 | Write every line break with the ending decided at the read
         > 2026-10-25 Check: a CRLF page sets back CRLF on drop, move, patch, docstring
 - [ ] T4 | Check a written file's ending against its own pre-edit read

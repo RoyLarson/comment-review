@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 61 of 72 tasks closed
+Progress: 61 of 80 tasks closed
 Owner:    backend
-Requires-Roy: false
+Requires-Roy: true
 Raised:   2026-08-22 (code-review high round 3 and /simplify round 2, 2026-08-22 -- the
           write path, which is the one place a defect reaches disk)
 RE-VERIFIED: 2026-08-23 — 2026-08-23. Task 1 is FIXED and ticked -- the destructive case
@@ -330,3 +330,16 @@ files in `corpora/` are in that state today.
 - [x] T72 | Split lands: 39 chain rows, 18 pinned by tests | b663954d | Test a
       paragraph split through the real chain (#255)
         > 2026-10-30 Scoped review: `// a\n\n// b` at `a0` refuses today
+- [ ] T73 | Build `_reread`'s expected order from the file, at
+      `proof_setter.py:622`
+- [?] T74 | Decide whether `AddressesMoved` refuses after #254, at
+      `revise.py:85`
+- [ ] T75 | Name the first difference in the unchanged refusal, at
+      `proof_setter.py:636`
+- [ ] T76 | Refuse a white-space-only `drop` text at `desk/proof/mark.py:884`
+- [ ] T77 | Land a trailing blank in a file with no final newline, at
+      `compositor.py:337`
+- [ ] T78 | Correct the statements at `addresser.py:193`, `page.py:461`
+- [ ] T79 | Make the tests at `test_proof_setter.py:1712`, `:1726` able to fail
+- [ ] T80 | Parse with only the AST flag in `_parse_error`,
+      `python/records.py:30`

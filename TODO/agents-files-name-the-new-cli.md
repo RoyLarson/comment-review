@@ -164,6 +164,8 @@ The agents files name the new CLI and say how to use it.
 - [ ] T44 | Restate agent prose that takes an anchor to be one line of code
         > 2026-10-26 decision-log #238: an a/b anchor may span the unit's lines
         > 2026-10-26 reviewer-brief.md:259 and :177-178 state a one-line anchor
+        > 2026-10-31 Also `references/review.md:38`: two ranges claim unchecked
+        > 2026-10-31 Also `references/review.md:38`: two ranges unchecked
 - [ ] T45 | Name the addresser's --line '<module>' and '<eof>' in the agent
       prose
         > 2026-10-27 reviewer-brief.md:99-105, SKILL.md:158, ownership-context.md:87-90
