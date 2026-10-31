@@ -104,6 +104,11 @@ def documentation_in(
         frozenset(cast(tuple[str, ...], documentation["owners"])),
         cast(str, declarations["body_open"]),
         cast(str, declarations["terminator"]),
+        cast(str, declarations["visibility"]),
+        frozenset(
+            cast(tuple[str, ...], declarations["member_lists"])
+            + cast(tuple[str, ...], declarations["variant_lists"])
+        ),
     )
     return assigner.run()
 
@@ -118,12 +123,16 @@ class _Assigner:
         owner_kinds: frozenset[str],
         body_open: str,
         terminator: str,
+        visibility: str,
+        field_lists: frozenset[str],
     ) -> None:
         self.scan = scan
         self.placement = placement
         self.owner_kinds = owner_kinds
         self.body_open = body_open
         self.terminator = terminator
+        self.visibility = visibility
+        self.field_lists = field_lists
         self.coordinates = SourceCoordinates(scan.text)
         self.code = significant_tokens(scan.tokens)
         self.starts = [token.span.start for token in self.code]
@@ -139,8 +148,8 @@ class _Assigner:
         self.forms = [run.written for run in self.runs]
         self.links: dict[int, int | None] = {}
         self.warnings: list[DetachedDocumentation] = []
-        # Runs of doc that rustc rejects: no item follows an outer doc, or
-        # code precedes an inner doc.
+        # The runs of doc comment that rustc rejects: an outer doc with no
+        # item after it, and an inner doc not first in its scope.
         self.unattached: list[SourceSpan] = []
 
     def run(self) -> RustDocumentation:
@@ -214,14 +223,15 @@ class _Assigner:
     def _outer(self, index: int, run: _Run) -> None:
         """Attach a run directly above a head; detach one inside or behind it."""
         following = bisect_left(self.starts, run.span.end)
-        if following == len(self.code) or (
-            self.code[following].kind is RustTokenKind.CLOSE
-            and self._spelled(self.code[following]) == "}"
-        ):
-            self.unattached.append(run.span)
         if following == len(self.code):
+            self.unattached.append(run.span)
             self.forms[index] = RustSectionForm.COMMENT
             return
+        if self.code[following].kind in (
+            RustTokenKind.CLOSE,
+            RustTokenKind.INNER_ATTRIBUTE,
+        ):
+            self.unattached.append(run.span)
         start = self.code[following].span.start
         owner = bisect_left(self.heads, start)
         if owner < len(self.heads) and self.heads[owner] == start:
@@ -246,7 +256,7 @@ class _Assigner:
         # Code before the run -- an inner attribute -- keeps it from `a0`,
         # which the page sets at the file head.
         preceded = before >= 0
-        if preceded and not self._opens_scope(self.code[before]):
+        if self._misplaced_inner(index, before):
             self.unattached.append(run.span)
         while before >= 0 and self.code[before].kind is RustTokenKind.INNER_ATTRIBUTE:
             before -= 1
@@ -266,11 +276,50 @@ class _Assigner:
         else:
             self._detach(index, run, owner)
 
-    def _opens_scope(self, token: RustToken) -> bool:
-        """Whether an inner doc may follow `token`: a body `{` or an inner attribute."""
-        return token.kind is RustTokenKind.INNER_ATTRIBUTE or (
-            token.kind is RustTokenKind.OPEN and self._spelled(token) == self.body_open
-        )
+    def _misplaced_inner(self, index: int, before: int) -> bool:
+        """Whether rustc rejects inner doc run `index`, the code token `before` it.
+
+        It is accepted first in its scope: at the file head, after an inner
+        attribute, or after the `{` of a body that is not a field or variant
+        list. An outer doc run since `before` rejects it too.
+        """
+        since = self.code[before].span.end if before >= 0 else 0
+        if any(
+            run.written is RustSectionForm.OUTER_DOC and run.span.start >= since
+            for run in self.runs[:index]
+        ):
+            return True
+        if before < 0:
+            return False
+        token = self.code[before]
+        if token.kind is RustTokenKind.INNER_ATTRIBUTE:
+            return False
+        if token.kind is not RustTokenKind.OPEN or (
+            self._spelled(token) != self.body_open
+        ):
+            return True
+        return self._lists_fields(before)
+
+    def _lists_fields(self, opener: int) -> bool:
+        """Whether the body opened at `opener` is a struct, union or enum list.
+
+        The item's keyword is its first word past visibility.
+        """
+        self._nest()
+        owner = self.bodies.get(opener)
+        if owner is None:
+            return False
+        depth = 0
+        for token in self.code[
+            bisect_left(self.starts, self.item_starts[owner]) : opener
+        ]:
+            if token.kind is RustTokenKind.OPEN:
+                depth += 1
+            elif token.kind is RustTokenKind.CLOSE:
+                depth -= 1
+            elif depth == 0 and self._spelled(token) != self.visibility:
+                return self._spelled(token) in self.field_lists
+        return False
 
     def _attach(self, index: int, run: _Run, owner: int | None) -> None:
         """Link the run to its owner, or detach it.
@@ -309,9 +358,8 @@ class _Assigner:
         It walks out through the delimiters still open at `offset`, innermost
         first, and returns the owner of the first one that is an owner's body.
         """
-        if self.open_at is None:
-            self.open_at, self.enclosing = _nesting(self.code)
-            self.bodies = self._bodies()
+        self._nest()
+        assert self.open_at is not None
         before = bisect_left(self.starts, offset) - 1
         at = self.open_at[before] if before >= 0 else None
         while at is not None:
@@ -320,6 +368,12 @@ class _Assigner:
                 return owner
             at = self.enclosing[at]
         return None
+
+    def _nest(self) -> None:
+        """Build the delimiter nesting and the owners' bodies once."""
+        if self.open_at is None:
+            self.open_at, self.enclosing = _nesting(self.code)
+            self.bodies = self._bodies()
 
     def _bodies(self) -> dict[int, int]:
         """Each owner's body, as the index into `self.code` of its opener.

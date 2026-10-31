@@ -200,7 +200,9 @@ class RustDocumentation:
     OUTER_DOC section to its declaration and each INNER_DOC section to the
     module, as declaration None: an inner doc in a body documents no owner.
     `placement` carries the declarations. Each warning marks one COMMENT
-    section that is detached documentation.
+    section that is detached documentation. Each `unattached` span is a doc
+    comment run that rustc rejects: an outer doc with no item after it, or
+    an inner doc that is not first in its scope.
     """
 
     sections: tuple[SourceSection, ...]
@@ -210,7 +212,7 @@ class RustDocumentation:
     unattached: tuple[SourceSpan, ...] = ()
 
     def __post_init__(self) -> None:
-        """Require ordered sections, owners that index them, and place warnings."""
+        """Require ordered sections, owners that index them, warnings and spans."""
         _tuple(self.sections, SourceSection, "sections")
         _tuple(self.owners, DocumentationOwner, "owners")
         if not isinstance(self.placement, RustPlacement):
@@ -274,7 +276,8 @@ class RustRead:
     that line. A documentation section shares no
     physical line with another section, so an `a` place holds its doc alone;
     other sections may share a line, and the projection makes them one
-    paragraph.
+    paragraph. Each `unattached` span is a doc comment run that rustc
+    rejects, which an edit may not add.
     """
 
     source: SourceStructure
@@ -283,7 +286,7 @@ class RustRead:
     unattached: tuple[SourceSpan, ...] = ()
 
     def __post_init__(self) -> None:
-        """Check declaration lines, protected spans and warnings."""
+        """Check declaration lines, protected spans, warnings and unattached."""
         if not isinstance(self.source, SourceStructure):
             raise ValueError("read source must be a SourceStructure")
         lines = [

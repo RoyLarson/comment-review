@@ -2577,6 +2577,17 @@ def before_of(draft):
         "struct S {\n    a: u8,\n    /// A note.\n}\n",
         "fn f() {}\n//! A note.\nfn g() {}\n",
         "fn f() {\n    let _a = 1;\n    //! A note.\n}\n",
+        "fn f(\n    _a: u8,\n    /// A note.\n) {}\n",
+        "const A: [u8; 1] = [\n    1,\n    /// A note.\n];\n",
+        "/// A note.\n#![allow(unused)]\nfn f() {}\n",
+        "fn f() {\n    /// A note.\n    #![allow(unused)]\n}\n",
+        "/// a\n//! A note.\nfn f() {}\n",
+        "//! m\n/// a\n//! A note.\nfn f() {}\n",
+        "fn f() {\n    /// a\n    //! A note.\n    let _a = 1;\n}\n",
+        "struct S {\n    //! A note.\n    a: u8,\n}\n",
+        "pub(crate) struct S {\n    //! A note.\n    a: u8,\n}\n",
+        "enum E {\n    //! A note.\n    A,\n}\n",
+        "union U {\n    //! A note.\n    a: u8,\n}\n",
     ],
 )
 def test_a_draft_adding_an_unattached_doc_is_refused(draft):
@@ -2590,8 +2601,13 @@ def test_a_draft_adding_an_unattached_doc_is_refused(draft):
     [
         "fn f() {\n    /// A note.\n    let _a = 1;\n}\n",
         "fn f() {\n    //! A note.\n}\n",
-        "/// A\n// b\nfn f() {}\n",
+        "/// A note.\n// b\nfn f() {}\n",
         "#![allow(unused)]\n//! A note.\nfn f() {}\n",
+        "struct S;\nimpl S {\n    //! A note.\n}\n",
+        "trait T {\n    //! A note.\n}\n",
+        "mod m {\n    //! A note.\n}\n",
+        "fn union() {\n    //! A note.\n}\n",
+        "fn f() {\n    loop {\n        //! A note.\n    }\n}\n",
     ],
 )
 def test_a_doc_rustc_accepts_is_not_refused(draft):
@@ -2603,3 +2619,10 @@ def test_a_page_already_holding_one_is_not_refused():
     after = unattached_read(text.replace("A note", "B note"))
 
     assert unattached_read(text).preserved(after).unchanged
+
+
+def test_an_unattached_span_outside_the_source_is_refused():
+    outside = (SourceSpan(0, len(TEXT) + 1),)
+
+    with pytest.raises(ValueError, match="unattached span must lie inside source"):
+        records.RustRead(source(), (DIRECTIVE,), (), outside)
