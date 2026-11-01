@@ -5996,3 +5996,22 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   lines are held by one check per shape; a token comparison waits for the per-language readers
   under #222.
 
+- **#259.** **A language with no reader of its own leaves the system, and agents edit it freeform**
+  (Roy, 2026-11-01: *"I am tired of chasing bugs in the lexical reader - so any language that
+  doesn't have a Reader is dropped from the system and the agents are asked to freeform their edits.
+  Effectively V1.0 all over again. We can give them the cheat sheet of how to deal with the edits
+  properly but it is up to the agents to figure it out."*). Shown the proposal, he agreed it, adding
+  of the reviewers *"in the order that the project graph thing says"* and of the check *"the task
+  agent runs formater and compiler to verify and prove_unchanged returns UNCHECKED"*.
+
+  **What it settles.** Python and Rust keep their readers, proof and write chain. Every other
+  language loses them. The gather reads the Python and Rust files, lists the rest as freeform and
+  exits 0. The four reviewers still read a freeform file and raise findings as `path:line` with
+  proposed text, the human approves them and an agent applies them. The task agent runs the repo's
+  formatter and compiler on those files, and `prove_unchanged` answers `UNCHECKED` for them, never
+  `PROVEN`. A cheat sheet tells the agents how to make such an edit safely. The code lands and is
+  tested before the agents are told.
+
+  This supersedes #222's readers-on-request plan for those languages, and #258's refusals go with
+  the comparison they live in.
+
