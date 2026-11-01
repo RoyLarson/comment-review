@@ -3,6 +3,7 @@
 from collections.abc import Collection, Iterator
 from dataclasses import dataclass
 
+from comment_review import constants
 from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, ReadStage
 from comment_review.reading.proof import PreservationResult
 from comment_review.reading.python.records import PythonRead
@@ -48,6 +49,10 @@ def compare_preservation(
     if failures:
         return PreservationResult(False, failures)
     assert isinstance(before, PythonRead) and isinstance(after, PythonRead)
+    if constants.mark_of(before.source.text) != constants.mark_of(after.source.text):
+        return _changed(
+            "protected-source-changed", "The byte-order mark or its presence changed"
+        )
     if any(
         owner is not None
         and (
@@ -126,6 +131,8 @@ def _documentation_span(read: PythonRead, index: int) -> SourceSpan:
     statement = read.payloads[index].statement
     start, end = statement.start, statement.end
     line_start = max(text.rfind("\n", 0, start), text.rfind("\r", 0, start)) + 1
+    # The byte-order mark is not text of line 1, so a line it opens starts after it.
+    line_start = max(line_start, len(constants.mark_of(text)))
     line_end = end
     while line_end < len(text) and text[line_end] not in "\r\n":
         line_end += 1
@@ -234,6 +241,9 @@ def _project(
         exact[start:end] = [False] * (end - start)
         documentation[start] = str(expression.declaration)
         documentation_ends.add(end - 1)
+    if constants.mark_of(text):
+        # The mark is compared on its own, by `compare_preservation`.
+        keep[0] = exact[0] = False
     for comment in ordinary_comments:
         cursor = comment.start
         while cursor and text[cursor - 1] in _HORIZONTAL and not exact[cursor - 1]:
@@ -325,6 +335,10 @@ def _protection(
         (
             item.kind,
             read.source.slice(item.span),
+            # The interpreter name includes the shebang's line ending.
+            constants.line_ending_at(read.source.text, item.span.end)
+            if item.kind == "shebang"
+            else "",
             context(item.span),
             None if item.attachment is None else context(item.attachment),
             documentation_context(item.span, item.attachment),

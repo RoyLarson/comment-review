@@ -54,6 +54,19 @@ def test_a_reader_failure_is_reported_without_a_successful_page(tmp_path):
     ]
 
 
+def test_a_lone_cr_is_unreadable_at_the_gather(tmp_path):
+    from comment_review.flows.gather import Gathering, _pages
+
+    path = tmp_path / "m.sh"
+    path.write_bytes(b"# x\rtouch PWNED\n")
+    gathered = Gathering(tmp_path, [path], 0, files=[path])
+    _pages(gathered)
+    assert gathered.pages == []
+    assert len(gathered.unreadable) == 1
+    assert "m.sh" in gathered.unreadable[0]
+    assert "decode/lone-cr" in gathered.unreadable[0]
+
+
 def test_unexpected_page_errors_propagate_from_gather(tmp_path, monkeypatch):
     import pytest
 

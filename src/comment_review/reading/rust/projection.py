@@ -49,7 +49,7 @@ def sections_for(
         placement.declarations,
         documentation.owners,
     )
-    return RustRead(source, protected, documentation.warnings)
+    return RustRead(source, protected, documentation.warnings, documentation.unattached)
 
 
 def paragraphs_for(path: Path, read: RustRead) -> list[Paragraph] | ReadFailure:

@@ -49,10 +49,22 @@ class Language:
             zero prose paragraphs, because `'static` opens a literal that
             never closes and blanks the comment with the rest of the line.
         spanning_quotes: delimiters whose literal may cross LINES -- a JS
-            template literal, a Java text block. ! `_strip_strings` is per-line
-            and carries no open-quote state, so a comment marker INSIDE one of
+            template literal, a Java text block. ! the gather scans each line
+            with no open quote carried over, so a comment marker INSIDE one of
             these reads as a comment; `prove_unchanged` refuses such a file
-            rather than proving it. Empty where a language has none.
+            rather than proving it. Empty where a language has none. ! Also
+            where dialects of one language end a literal in different places
+            (SQL's backslash before a quote, shell's `$'`): the entry is a shape
+            the file is refused on.
+        verbatim_quotes: the delimiters in which a backslash is ordinary text,
+            so it neither escapes the next character nor keeps the literal
+            open: Go's raw string, a shell single quote. Empty where every
+            quote honours the backslash.
+        element_suffixes: the suffixes of files that may hold markup elements,
+            which stand in expressions. The text between their tags is not code
+            or comment: `// text` there is text. The read cannot tell it from
+            a comment without a parser, so a file with a comment inside an
+            element is refused. Empty where the grammar has no such element.
         declares: the KEYWORDS this language uses to introduce something that
             can carry documentation. Empty, the language still has an `a`
             series when it has doc markers -- see `a_series`.
@@ -84,6 +96,10 @@ class Language:
             a line comment holding one is a comment here and two lines to the
             language, and the read refuses it. Empty where the grammar defines
             none.
+        line_continuations: the single characters that, as the last character
+            of a line in an odd-length run, continue it onto the next line. Two
+            in a row are an escaped character, so the run's parity decides.
+            Empty where the grammar has no such continuation.
     """
 
     name: str
@@ -103,6 +119,9 @@ class Language:
     word_breaks: tuple[str, ...] = ()
     word_parens: tuple[str, ...] = ()
     line_endings: tuple[str, ...] = ()
+    line_continuations: tuple[str, ...] = ()
+    verbatim_quotes: tuple[str, ...] = ()
+    element_suffixes: tuple[str, ...] = ()
 
     @property
     def a_series(self) -> bool:
@@ -160,10 +179,9 @@ LANGUAGES: tuple[Language, ...] = (
         # a TRAILING COMMENT carrying the URL as prose, the `return` line left
         # `return `http:` and dropped out of `code_text`, and every `b`/`c`
         # below it renumbered.
-        # ! This blanking is imperfect here: `_strip_strings` honours a
-        # backslash, and a raw string ending in one (`` `C:\` ``) runs past its
-        # closer. That shape is rarer than a URL by a wide margin.
         quotes=('"', "'", "`"),
+        # ! A raw string takes no escapes, so `` `C:\` `` ends at its backslash.
+        verbatim_quotes=("`",),
         # !! AND IT CROSSES LINES, which is a separate claim with a separate
         # consumer: `prove_unchanged` REFUSES a file holding one rather than
         # trusting a per-line read of it.
@@ -197,6 +215,8 @@ LANGUAGES: tuple[Language, ...] = (
         # ! C leaves the end of a physical line to the implementation; GCC and
         # Clang end one at LF, CR or CRLF.
         line_endings=(),
+        # ! A backslash before the newline splices the lines (translation phase 2).
+        line_continuations=("\\",),
     ),
     Language(
         "cpp",
@@ -219,6 +239,8 @@ LANGUAGES: tuple[Language, ...] = (
         # ! C++ leaves the end of a physical line to the implementation; GCC,
         # Clang and MSVC end one at LF, CR or CRLF.
         line_endings=(),
+        # ! A backslash before the newline splices the lines (translation phase 2).
+        line_continuations=("\\",),
     ),
     Language(
         "java",
@@ -421,6 +443,8 @@ LANGUAGES: tuple[Language, ...] = (
         # ! Node and the ECMAScript hashbang grammar read `#!` on line 1 as an
         # interpreter line, not as code and not as a comment.
         shebang=("#!",),
+        # ! JSX puts elements in expressions, and every suffix here may hold it.
+        element_suffixes=(".js", ".jsx", ".mjs", ".cjs"),
         # ! ECMAScript's grammar defines no decorator; the `@` form is a
         # proposal, not the language.
         annotations=(),
@@ -453,6 +477,9 @@ LANGUAGES: tuple[Language, ...] = (
         # ! TypeScript's scanner reads `#!` on line 1 as an interpreter line
         # and emits it unchanged.
         shebang=("#!",),
+        # ! TSX puts elements in expressions; `.ts`, `.mts` and `.cts` hold none,
+        # and read `<T>(x) => x` as a type argument.
+        element_suffixes=(".tsx",),
         # ! A decorator, `@Component(...)`, applies to the declaration it
         # precedes.
         annotations=("@",),
@@ -477,6 +504,8 @@ LANGUAGES: tuple[Language, ...] = (
         annotations=(),
         # ! The Ruby spec's `line-terminator`: LF and CRLF.
         line_endings=(),
+        # ! A backslash before the newline continues the line onto the next.
+        line_continuations=("\\",),
     ),
     Language(
         "shell",
@@ -491,10 +520,16 @@ LANGUAGES: tuple[Language, ...] = (
         # line inside a heredoc body is DATA, and reading it as a comment would
         # delete it from both fingerprints. ! `<<<` (herestring) and `<<-` both
         # contain `<<`.
-        spanning_quotes=("<<",),
+        # !! `$'` IS A QUOTE THAT HONOURS THE BACKSLASH, unlike `'`: in
+        # `$'it\'s # x'` the `\'` is an escaped quote and the literal runs on, but
+        # the per-line scan ends it there. Declared so a file holding one is
+        # refused rather than proved.
+        spanning_quotes=("<<", "$'"),
         # ! A backtick substitution is read as a literal: a `#` in one ends at
         # the closing backtick, and a line comment here runs to the line's end.
         quotes=('"', "'", "`"),
+        # ! A single quote takes no escapes: `'a\'` is a complete word.
+        verbatim_quotes=("'",),
         annotations=(),
         # ! Bash's blanks and metacharacters. `#` opens a comment only as the
         # first character of a word, and these are what end one.
@@ -503,13 +538,22 @@ LANGUAGES: tuple[Language, ...] = (
         word_parens=("$(", "<(", ">(", "=("),
         # ! POSIX: a newline is LF.
         line_endings=(),
+        # ! An unquoted backslash before the newline is removed with it, and the
+        # next line continues the command.
+        line_continuations=("\\",),
     ),
     Language(
         "sql",
         (".sql",),
         ("--",),
         (("/*", "*/"),),
+        # ! Standard SQL ends `'it\'s'` at the quote after the backslash and
+        # MySQL reads the backslash as an escape, in a double-quoted string as
+        # well as a single-quoted one, so a file holding `\'` or `\"` is refused
+        # (`spanning_quotes`).
+        spanning_quotes=("\\'", '\\"'),
         quotes=("'", '"'),
+        verbatim_quotes=("'", '"'),
         annotations=(),
         # ! The standard leaves it to the implementation; PostgreSQL's and
         # MySQL's scanners end a `--` comment at LF or CR.

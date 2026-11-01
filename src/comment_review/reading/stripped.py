@@ -1,11 +1,21 @@
 """The comment-stripped read of a non-Python file, and its code comparison.
 
 The comment lexer removes admitted prose and compares the remaining lines,
-right-stripped with blank lines dropped. Ambiguous comment boundaries and
-spanning literals make this comparison unprovable. `StrippedRead` is the record
-a page carries for every language the lexical reader reads.
+right-stripped with blank lines dropped. A line ending in a continuation keeps
+its trailing blanks, and a line a continuation joins to the line above is code
+whatever it holds, a blank one included. The byte-order mark and the interpreter
+line, with its ending, are compared on their own, outside the stripped text.
+
+A file is unprovable when the lexer cannot tell prose from code in it: a lone
+CR, an unterminated paragraph comment, a line ending the row states inside a
+comment, a paragraph-comment delimiter sharing a line with code, a comment in
+a string literal still open or between the tags of a markup element, a comment
+touching a continuation character, or a file holding code and a delimiter
+the row's `spanning_quotes` name. `StrippedRead` is the record a page carries
+for every language the lexical reader reads.
 """
 
+import re
 from collections.abc import Collection
 from dataclasses import dataclass
 from pathlib import Path
@@ -19,6 +29,7 @@ from comment_review.reading.lexer import (
     after_closer,
     language_for,
     paragraphs_lexical,
+    scan_strings,
 )
 from comment_review.reading.proof import UNPROVABLE, PreservationResult
 
@@ -56,6 +67,74 @@ def _delimiter_shares_the_line(line: str, lang: Language) -> bool:
     return False
 
 
+def _continues(line: str, lang: Language) -> bool:
+    """Whether the line ends in an odd run of one of the row's continuations."""
+    return any((len(line) - len(line.rstrip(c))) % 2 for c in lang.line_continuations)
+
+
+def _comment_in_a_string(
+    kept: dict[int, str | None], partial: set[int], lang: Language
+) -> bool:
+    """Whether a comment stands where a string literal is still open.
+
+    The gather reads each line with no quote carried from the line above, so a
+    line inside a literal that spans lines and begins with the row's comment
+    marker is read as a comment. `kept` holds each line as the comparison keeps
+    it: whole, as its code prefix (the lines in `partial`), or None for a line
+    a comment holds whole. Walking it with the open quote carried finds that
+    line: a comment line reached with a quote open is string text, and so is a
+    comment trailing a prefix that leaves a quote open.
+    """
+    quote = ""
+    for n, v in kept.items():
+        if v is None:
+            if quote:
+                return True
+            continue
+        _, quote = scan_strings(v, lang, quote)
+        if quote and n in partial:
+            return True
+    return False
+
+
+#: An element opens at `<Name` or `<>` and closes at `</` or `/>`. Outside an
+#: element a word, `)` or `]` before the `<` makes it a comparison or a type
+#: argument; inside one it is text beside a child element.
+_ELEMENT_EDGE = re.compile(r"</|/>|<(?:[^\W\d]|\$|>)")
+_BEFORE_COMPARISON = re.compile(r"[\w)\]]")
+
+
+def _comment_in_an_element(
+    kept: dict[int, str | None], partial: set[int], lang: Language
+) -> bool:
+    """Whether a comment stands between the tags of a markup element.
+
+    Text between tags is neither code nor comment, so `// text` there is text.
+    The walk counts elements still open over each line's code, string literals
+    blanked: a line a comment holds whole answers at the depth it is reached,
+    a line trailing one at the depth its code leaves. A count the code never
+    closes (an arrow function's `<T>(x)`) refuses the comments below it, which
+    is the safe direction.
+    """
+    depth = 0
+    for n, v in kept.items():
+        if v is None:
+            if depth:
+                return True
+            continue
+        blanked, _ = scan_strings(v, lang)
+        for edge in _ELEMENT_EDGE.finditer(blanked):
+            if edge[0] in ("</", "/>"):
+                depth = max(depth - 1, 0)
+            elif depth or not (
+                edge.start() and _BEFORE_COMPARISON.match(blanked[edge.start() - 1])
+            ):
+                depth += 1
+        if depth and n in partial:
+            return True
+    return False
+
+
 def _without_comments(text: str, path: Path) -> str | None:
     """The file with every comment paragraph removed, or None if unprovable here.
 
@@ -72,10 +151,15 @@ def _without_comments(text: str, path: Path) -> str | None:
     the stripped text is merely SHORT -- short, plausible, and equal on two
     files whose executable code differs. A line ending the row states inside a
     comment is refused the same way, on `line-ending-in-comment`: what follows it
-    is a line of code to the language.
+    is a line of code to the language. A comment standing where a string literal
+    is still open is refused too, see `_comment_in_a_string`, and so is one between
+    the tags of a markup element, see `_comment_in_an_element`.
+
+    Text holding a lone CR is refused first: the lexer ends a line there, and a
+    shell or compiler may not, so the comment may run on into code.
     """
     lang = language_for(path)
-    if lang is None:
+    if lang is None or constants.holds_lone_cr(text):
         return None
     try:
         paragraphs = paragraphs_lexical(path, text, lang)
@@ -87,9 +171,13 @@ def _without_comments(text: str, path: Path) -> str | None:
     scanned = constants.scan_lines(text)
     # Pre-seed every line as itself; a paragraph below either drops its entry
     # (None) or replaces it with the code prefix it proved survives.
+    # Blanks after a continuation character keep it from continuing, so a line
+    # ending in one keeps them.
     kept: dict[int, str | None] = {
-        i + 1: ln.rstrip(BLANK) for i, ln in enumerate(lines)
+        i + 1: ln if _continues(ln.rstrip(BLANK), lang) else ln.rstrip(BLANK)
+        for i, ln in enumerate(lines)
     }
+    partial: set[int] = set()  # lines kept as a code prefix before a comment
     for paragraph in paragraphs:
         for offset, n in enumerate(range(paragraph.start, paragraph.end + 1)):
             if n not in kept or offset >= len(paragraph.raw_lines):
@@ -102,19 +190,45 @@ def _without_comments(text: str, path: Path) -> str | None:
                     return None
                 kept[n] = None
             elif stored and actual.endswith(stored):
-                kept[n] = actual[: len(actual) - len(stored)].rstrip(BLANK)
+                prefix = actual[: len(actual) - len(stored)].rstrip(BLANK)
+                # Blanks between a continuation character and the comment keep
+                # it from joining the next line, so they are code.
+                gap = stored[: len(stored) - len(stored.lstrip(BLANK))]
+                if _continues(prefix, lang):
+                    if not gap:
+                        # The comment touches the character, so removing it
+                        # would make a continuation the stripped text cannot show.
+                        return None
+                    prefix += gap
+                kept[n] = prefix
+                partial.add(n)
             else:
                 return None  # binder and the file disagree; do not reconcile
-    survivors = [v for v in kept.values() if v is not None]
-    code = [v for v in survivors if v.strip(BLANK)]
-    # !! A LITERAL THAT SPANS LINES MAKES THIS FILE UNPROVABLE. `_strip_strings`
-    # is per-line and carries no open-quote state, so a line INSIDE a JS
-    # template literal or a Java text block that begins with the language's
-    # comment marker is read as a comment and deleted from BOTH
-    # fingerprints. Measured 2026-08-17: a template literal whose body changed
-    # from `// alpha` to `// omega` produced identical fingerprints and the file
-    # was reported PROVEN -- a fail-OPEN in the one gate whose whole claim is
-    # that executable code is byte-identical.
+    if _comment_in_a_string(kept, partial, lang):
+        return None
+    if path.suffix.lower() in lang.element_suffixes and _comment_in_an_element(
+        kept, partial, lang
+    ):
+        return None
+    code = []
+    joined = False
+    for n, v in kept.items():
+        # The byte-order mark is compared on its own, by `preserved`.
+        if n == 1 and v is not None:
+            v = constants.without_mark(v)
+        if joined or (v is not None and v.strip(BLANK)):
+            # The line a continuation joins is code whatever it holds.
+            line = lines[n - 1].rstrip(BLANK) if v is None else v
+            code.append(constants.without_mark(line) if n == 1 else line)
+        joined = v is not None and n not in partial and _continues(lines[n - 1], lang)
+    # !! A LITERAL THAT SPANS LINES THE ROW CANNOT TRACK MAKES THIS FILE
+    # UNPROVABLE. The gather carries no quote from line to line, so a line INSIDE
+    # a JS template literal or a Java text block that begins with the language's
+    # comment marker is read as a comment and deleted from BOTH fingerprints, so
+    # a changed literal body compares equal and the file reports PROVEN, where
+    # the claim is that executable code is byte-identical.
+    # `_comment_in_a_string` catches this for the quotes `scan_strings` tracks;
+    # the row's `spanning_quotes` are the ones it does not.
     #
     # ! This refuses on the delimiter's PRESENCE, not on parity: parity is what
     # the per-line lexer already cannot compute, so trusting it here would be
@@ -146,9 +260,10 @@ def code_fingerprint(text: str, path: Path) -> tuple[str, str]:
         it compares the strings. "No code line" is the row's reading: a path
         with no row is never "stripped", and neither is a file with an
         unterminated comment or a line ending the row states inside a comment.
-        A row sees comment delimiters and nothing a language does before them,
-        so a directive held in a comment, or a closer spelled by an escape or a
-        line splice, is a comment here.
+        A row models comment delimiters, not escapes, line splices or
+        directives. Two shapes are not answered: a closer spelled by an escape
+        or a line splice, and a directive held in a comment, are both a
+        comment here.
     """
     stripped = _without_comments(text, path)
     if stripped is None:
@@ -157,13 +272,21 @@ def code_fingerprint(text: str, path: Path) -> tuple[str, str]:
 
 
 def _shebang(text: str, path: Path) -> str | None:
-    """The interpreter line the language row names, exactly, or None.
+    """The interpreter line the language row names, with its ending, or None.
 
     The reader hands it over as matter, which `_without_comments` removes, so
-    the comparison checks it here on its own.
+    the comparison checks it here on its own. The ending is part of the line:
+    a CRLF interpreter line names a different interpreter than an LF one. A
+    lone CR is refused before this runs, so line 1 ends in LF, CRLF or the end
+    of the file.
     """
     lang = language_for(path)
-    return None if lang is None else lang.interpreter_line(constants.text_lines(text))
+    if lang is None:
+        return None
+    line = lang.interpreter_line(constants.text_lines(text))
+    if line is None:
+        return None
+    return line + constants.line_ending_at(text, len(line))
 
 
 @dataclass(frozen=True)
@@ -193,19 +316,23 @@ class StrippedRead:
         *,
         documented: Collection[tuple[int | None, int | None]] | None = None,
     ) -> PreservationResult:
-        """Whether `after` keeps this read's interpreter line and stripped source.
+        """Whether `after` keeps this read's mark, interpreter line and source.
 
-        The interpreter line is compared first, exactly, so any change to it,
-        adding it or removing it is `protected-source-changed`.
+        The byte-order mark and the interpreter line are compared first,
+        exactly, so any change to either, adding it or removing it is
+        `protected-source-changed`.
         """
-        if _shebang(self.text, self.path) != _shebang(after.text, after.path):
+        if constants.mark_of(self.text) != constants.mark_of(after.text) or (
+            _shebang(self.text, self.path) != _shebang(after.text, after.path)
+        ):
             return PreservationResult(
                 False,
                 (
                     ReadDiagnostic(
                         ReadStage.PLACE,
                         "protected-source-changed",
-                        "the interpreter line or its presence changed",
+                        "the byte-order mark, the interpreter line or their "
+                        "presence changed",
                     ),
                 ),
             )

@@ -739,3 +739,72 @@ def test_a_comment_inside_an_expression_is_set_and_edited_around_the_expression(
         assert reset(page, {place: None}) == []
         vacated = ending if place.startswith("c") else ""
         assert set_page(page) == text[:start] + vacated + text[end:]
+
+
+MARK = "\ufeff"
+
+
+@pytest.mark.parametrize("cue", ["f0", "a0", "b0"])
+def test_a_head_add_sets_the_mark_first(cue):
+    from comment_review.results.galley import reset
+
+    page = build(MARK + "class A {}\n", "a.java")
+    assert reset(page, {cue: "// added"}) == []
+    text = set_page(page)
+    assert text.startswith(MARK)
+    assert text.count(MARK) == 1
+
+
+def test_a_dropped_first_paragraph_keeps_the_mark():
+    from comment_review.results.galley import reset
+
+    page = build(MARK + "// c\nint x;\n", "a.c")
+    assert reset(page, {"f0": None}) == []
+    assert set_page(page) == MARK + "int x;\n"
+
+
+def test_a_mark_inside_a_later_string_stays():
+    from comment_review.results.galley import reset
+
+    text = MARK + 'int x;\nchar *s = "' + MARK + '";\n'
+    page = build(text, "a.c")
+    assert reset(page, {"f0": "// added"}) == []
+    out = set_page(page)
+    assert out.startswith(MARK + "// added")
+    assert out.count(MARK) == 2
+
+
+def test_a_patched_head_does_not_edit_a_later_paragraph_holding_a_mark():
+    from comment_review.results.galley import reset
+
+    text = MARK + "// c\nint x;\n/* one\n" + MARK + "two */\nint y;\n"
+    page = build(text, "a.c")
+    assert reset(page, {"f0": "// patched"}) == []
+    assert set_page(page) == text.replace("// c", "// patched")
+
+
+def test_an_emptied_marked_file_is_the_mark_alone():
+    from comment_review.results.galley import reset
+
+    page = build(MARK + "// c\n", "a.c")
+    assert reset(page, {"f0": None}) == []
+    assert set_page(page) == MARK
+
+
+@pytest.mark.parametrize(
+    ("text", "name"),
+    [
+        (MARK + "// c\n" + MARK + "int x;\n", "a.c"),
+        (MARK + "\n" + MARK + "int x;\n", "a.c"),
+        (MARK + "# c\n" + MARK + "x=1\n", "a.sh"),
+        (MARK + "// c\n" + MARK + "// d\nint x;\n", "a.c"),
+        (MARK + "// c\n" + MARK + "// d\nfn f() {}\n", "a.rs"),
+        (MARK + "// c\n" + MARK + "// d\nclass A {}\n", "a.java"),
+        (MARK + "// c\n" + MARK + "\nint x;\n", "a.c"),
+        (MARK + "\n" + MARK + "\nint x;\n", "a.c"),
+        (MARK + "/* c */\n" + MARK + "\nint x;\n", "a.c"),
+        (MARK + "# c\n" + MARK + "#\nx=1\n", "a.sh"),
+    ],
+)
+def test_a_mark_opening_a_later_code_line_stays(text, name):
+    assert set_page(build(text, name)) == text

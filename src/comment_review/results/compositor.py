@@ -140,6 +140,9 @@ def _set(page: Page, newline: str | None) -> tuple[str, dict[str, tuple[int, int
     """
     ending = newline if newline is not None else line_endings(page.text)
     held = _held(page)
+    mark = constants.mark_of(page.text)
+    if mark:
+        _take_mark(page, held)
     out: list[str] = []
     lines_of: dict[str, tuple[int, int]] = {}
     # !! LEADING IS SET BETWEEN TWO PLACES, NOT AT ONE. It is an edge -- see
@@ -299,6 +302,9 @@ def _set(page: Page, newline: str | None) -> tuple[str, dict[str, tuple[int, int
             # opened in that room and closed on a later line owns those lines
             # outright, because no code is on them.
             code = page.cues.anchor_of(cue)
+            # Only the code on line 1 carries the mark.
+            if mark and page.cues.anchor_line(cue) == 1:
+                code = constants.without_mark(code)
             out.append(f"{code}{prose[0] if prose else ''}")
             out.extend(prose[1:])
             continue
@@ -324,11 +330,13 @@ def _set(page: Page, newline: str | None) -> tuple[str, dict[str, tuple[int, int
             f"{page.path}: the page has no places -- its source was never read"
         )
     if not out:
-        # !! AN EMPTY PAGE IS EMPTY TEXT -- and returning `page.text` here is how
-        # this whole instrument would come to lie. A model that had lost every
-        # line would set the original file back and the identity would pass over
-        # the top of it.
-        return "", lines_of
+        # !! AN EMPTY PAGE IS EMPTY TEXT, PLUS THE MARK -- and returning
+        # `page.text` here is how this whole instrument would come to lie. A model
+        # that had lost every line would set the original file back and the
+        # identity would pass over the top of it. The mark is the file's encoding,
+        # not a line of it, so it is all that remains.
+        return mark, lines_of
+    out[0] = mark + out[0]
     # A closing-gap insertion, or text ending in a blank, needs a physical blank
     # below its prose, whether or not the file ended on a line break.
     held_blank = not out[-1]
@@ -336,6 +344,25 @@ def _set(page: Page, newline: str | None) -> tuple[str, dict[str, tuple[int, int
         ending if closing_gap or held_blank or page.text.endswith(("\n", "\r")) else ""
     )
     return ending.join(out) + tail, lines_of
+
+
+def _take_mark(page: Page, held: dict[str, list[str]]) -> None:
+    """Remove the byte-order mark from the paragraph that starts on line 1.
+
+    A paragraph or code line carries the mark as line 1 had it, and `_set` sets
+    the mark once, ahead of the first line it writes. Only line 1 owns the mark:
+    a paragraph starting later, or a code line other than line 1, keeps any
+    mark it holds, since that is text inside a literal.
+    """
+    for paragraph in page.paragraphs:
+        if paragraph.start == 1:
+            # Keyed as `_held` keys it: a leading run has no address.
+            cue = (
+                cue_of(paragraph.address).cue if paragraph.address else paragraph.symbol
+            )
+            lines = held.get(cue)
+            if lines:
+                lines[0] = constants.without_mark(lines[0])
 
 
 def draft(page: Page, into: Path) -> Path:

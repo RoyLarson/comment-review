@@ -110,8 +110,8 @@ def test_standalone_cli_preserves_exact_mixed_unicode_snapshots(
     from comment_review.commands import prove_unchanged as command
     from comment_review.flows import page_for
 
-    before = "# caf\u00e9\r\nx = '\u03bb'\rx += 'e\u0301'\n"
-    after = "# changed\r\nx = '\u03bb'\rx += 'e\u0301'\n"
+    before = "# caf\u00e9\r\nx = '\u03bb'\r\nx += 'e\u0301'\n"
+    after = "# changed\r\nx = '\u03bb'\r\nx += 'e\u0301'\n"
     repo, target = proof_repository(tmp_path, before, ".py")
     target.write_bytes(after.encode("utf-8"))
     real_page_for = page_for.page_for
@@ -1040,3 +1040,19 @@ class TestTheCommand:
         )
         assert cmd.main() == 2
         assert "already exists" in capsys.readouterr().out
+
+
+def test_a_lone_cr_sibling_is_skipped_as_a_line_ending_reference(tmp_path):
+    from comment_review.flows.prove_unchanged import _sibling
+
+    target = tmp_path / "target.txt"
+    target.write_bytes(b"one\n")
+    (tmp_path / "a_lone.txt").write_bytes(b"one\rtwo\n")
+    (tmp_path / "b_ok.txt").write_bytes(b"one\r\ntwo\r\n")
+    edited = {target.resolve()}
+
+    both = _sibling(tmp_path, target.resolve(), edited, ["a_lone.txt", "b_ok.txt"])
+    only_lone = _sibling(tmp_path, target.resolve(), edited, ["a_lone.txt"])
+
+    assert both is not None and both[0].name == "b_ok.txt"
+    assert only_lone is None

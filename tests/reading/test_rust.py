@@ -2524,3 +2524,105 @@ def test_a_rust_page_always_has_an_a_series():
     result = read_source(PAGE, "")
     assert isinstance(result, records.RustRead)
     assert result.a_series is True
+
+
+def test_a_lost_or_moved_mark_is_protected_source():
+    from conftest import build
+
+    before = build("\ufefffn f() {}\n", "a.rs").read
+    for after in ("fn f() {}\n", "\n\ufefffn f() {}\n"):
+        result = before.preserved(build(after, "a.rs").read)
+
+        assert not result.unchanged
+        assert [d.code for d in result.diagnostics] == ["protected-source-changed"]
+
+
+@pytest.mark.parametrize(
+    ("text", "places"),
+    [
+        ("\ufefffn f() {}\n", {"f0": "// added"}),
+        ("\ufefffn f() {}\n", {"b0": "// added"}),
+        ("\ufeff// c\nfn f() {}\n", {"f0": None}),
+        ("\ufeff// c\nfn f() {}\n", {"f0": "// new"}),
+        ("\ufeff// c\n", {"f0": None}),
+    ],
+)
+def test_a_head_edit_on_a_marked_page_sets_and_proves(text, places):
+    from conftest import build
+
+    from comment_review.results.compositor import set_page
+    from comment_review.results.galley import reset
+
+    page = build(text, "a.rs")
+    assert reset(page, places) == []
+
+    assert page.read.preserved(build(set_page(page), "a.rs").read).unchanged
+
+
+def unattached_read(text):
+    from conftest import build
+
+    return build(text, "a.rs").read
+
+
+def before_of(draft):
+    return "".join(line for line in draft.splitlines(True) if "A note." not in line)
+
+
+@pytest.mark.parametrize(
+    "draft",
+    [
+        "fn f() {}\n/// A note.\n",
+        "fn f() {\n    /// A note.\n}\n",
+        "struct S {\n    a: u8,\n    /// A note.\n}\n",
+        "fn f() {}\n//! A note.\nfn g() {}\n",
+        "fn f() {\n    let _a = 1;\n    //! A note.\n}\n",
+        "fn f(\n    _a: u8,\n    /// A note.\n) {}\n",
+        "const A: [u8; 1] = [\n    1,\n    /// A note.\n];\n",
+        "/// A note.\n#![allow(unused)]\nfn f() {}\n",
+        "fn f() {\n    /// A note.\n    #![allow(unused)]\n}\n",
+        "/// a\n//! A note.\nfn f() {}\n",
+        "//! m\n/// a\n//! A note.\nfn f() {}\n",
+        "fn f() {\n    /// a\n    //! A note.\n    let _a = 1;\n}\n",
+        "struct S {\n    //! A note.\n    a: u8,\n}\n",
+        "pub(crate) struct S {\n    //! A note.\n    a: u8,\n}\n",
+        "enum E {\n    //! A note.\n    A,\n}\n",
+        "union U {\n    //! A note.\n    a: u8,\n}\n",
+    ],
+)
+def test_a_draft_adding_an_unattached_doc_is_refused(draft):
+    result = unattached_read(before_of(draft)).preserved(unattached_read(draft))
+
+    assert [d.code for d in result.diagnostics] == ["doc-without-item"]
+
+
+@pytest.mark.parametrize(
+    "draft",
+    [
+        "fn f() {\n    /// A note.\n    let _a = 1;\n}\n",
+        "fn f() {\n    //! A note.\n}\n",
+        "/// A note.\n// b\nfn f() {}\n",
+        "#![allow(unused)]\n//! A note.\nfn f() {}\n",
+        "struct S;\nimpl S {\n    //! A note.\n}\n",
+        "trait T {\n    //! A note.\n}\n",
+        "mod m {\n    //! A note.\n}\n",
+        "fn union() {\n    //! A note.\n}\n",
+        "fn f() {\n    loop {\n        //! A note.\n    }\n}\n",
+    ],
+)
+def test_a_doc_rustc_accepts_is_not_refused(draft):
+    assert unattached_read(before_of(draft)).preserved(unattached_read(draft)).unchanged
+
+
+def test_a_page_already_holding_one_is_not_refused():
+    text = "fn f() {}\n/// A note.\n"
+    after = unattached_read(text.replace("A note", "B note"))
+
+    assert unattached_read(text).preserved(after).unchanged
+
+
+def test_an_unattached_span_outside_the_source_is_refused():
+    outside = (SourceSpan(0, len(TEXT) + 1),)
+
+    with pytest.raises(ValueError, match="unattached span must lie inside source"):
+        records.RustRead(source(), (DIRECTIVE,), (), outside)

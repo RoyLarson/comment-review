@@ -2,6 +2,7 @@ from pathlib import Path
 
 import pytest
 
+from comment_review import constants
 from comment_review.reading.stripped import StrippedRead
 
 BODY = "// Licence MIT\n\nfunction f() {}\n"
@@ -94,3 +95,250 @@ def test_the_matter_below_an_interpreter_line_may_change(name):
     result = _preserved(before, before.replace("MIT", "Apache-2.0"), name)
 
     assert result.unchanged
+
+
+def test_a_shebang_gaining_a_cr_is_protected_source():
+    before = "#!/bin/sh\necho a\n"
+
+    result = _preserved(before, before.replace("sh\n", "sh\r\n"), "a.sh")
+
+    assert not result.unchanged
+    assert [d.code for d in result.diagnostics] == ["protected-source-changed"]
+
+
+def test_a_bom_prefixed_shebang_gaining_a_cr_is_protected_source():
+    before = chr(0xFEFF) + "#!/bin/sh\necho a\n"
+
+    result = _preserved(before, before.replace("sh\n", "sh\r\n"), "a.sh")
+
+    assert [d.code for d in result.diagnostics] == ["protected-source-changed"]
+
+
+def test_a_shebang_with_no_line_ending_proves_against_itself():
+    assert _preserved("#!/bin/sh", "#!/bin/sh", "a.sh").unchanged
+
+
+def test_a_crlf_shebang_that_stays_proves():
+    before = "#!/bin/sh\r\necho a\r\n"
+
+    assert _preserved(before, before, "a.sh").unchanged
+
+
+def test_a_crlf_shebang_with_changed_code_is_code_changed():
+    before = "#!/bin/sh\r\necho a\r\n"
+
+    result = _preserved(before, before.replace("a", "b"), "a.sh")
+
+    assert [d.code for d in result.diagnostics] == ["code-changed"]
+
+
+def test_a_draft_holding_a_lone_cr_is_unprovable():
+    before = "# x\ntouch PWNED\n"
+    after = "# y\rtouch PWNED\n"
+
+    assert _preserved(before, after, "m.sh").unprovable
+
+
+def test_a_crlf_file_is_no_lone_cr():
+    assert not constants.holds_lone_cr("a\r\nb\r\n")
+    assert constants.holds_lone_cr("a\rb\n")
+
+
+@pytest.mark.parametrize(
+    ("before", "after"),
+    [
+        ("echo a \\\n  b\n", "echo a \\  # n\n  b\n"),
+        ("echo a \\  # n\n  b\n", "echo a \\\n  b\n"),
+        ("echo a \\\n  b\n", "echo a \\\n# n\n  b\n"),
+        ("echo a \\\n# n\n  b\n", "echo a \\\n  b\n"),
+        ("echo a \\\n\n  b\n", "echo a \\\n  b\n"),
+    ],
+)
+def test_an_edit_at_a_continuation_is_changed_code(before, after):
+    result = _preserved(before, after, "a.sh")
+
+    assert [d.code for d in result.diagnostics] == ["code-changed"]
+
+
+@pytest.mark.parametrize(
+    ("before", "after"),
+    [
+        ("echo a \\ \n  b\n", "echo a \\\n  b\n"),
+        ("echo a \\\n  b\n", "echo a \\ \n  b\n"),
+    ],
+)
+def test_blanks_after_a_continuation_are_code(before, after):
+    result = _preserved(before, after, "a.sh")
+
+    assert [d.code for d in result.diagnostics] == ["code-changed"]
+
+
+def test_a_comment_touching_a_continuation_is_unprovable():
+    before = "#define A 1 \\\nint x;\n"
+
+    assert _preserved(before, "#define A 1 \\// n\nint x;\n", "a.c").unprovable
+
+
+def test_rewording_a_comment_past_a_broken_continuation_proves():
+    before = "echo a \\  # one\n  b\n"
+
+    assert _preserved(before, before.replace("one", "two"), "a.sh").unchanged
+
+
+def test_two_backslashes_do_not_continue():
+    before = "echo a\\\\\n# one\n"
+
+    assert _preserved(before, before.replace("one", "two"), "a.sh").unchanged
+
+
+def test_a_row_with_no_continuation_reads_its_comment_as_prose():
+    before = "x = a \\\n-- one\n"
+
+    assert _preserved(before, before.replace("one", "two"), "a.lua").unchanged
+
+
+def test_a_sql_file_holding_an_escaped_quote_is_unprovable():
+    # standard SQL and MySQL end this literal in different places
+    text = "SELECT 'it\\'s -- x';\n"
+
+    assert _preserved(text, text.replace("-- x", "-- y"), "a.sql").unprovable
+
+
+def test_a_shell_ansi_c_string_holding_an_escaped_quote_is_unprovable():
+    # bash reads `\'` in `$'...'` as an escape, so the literal runs to the end
+    text = "echo $'it\\'s # x'\n"
+
+    assert _preserved(text, text.replace("# x", "# y"), "a.sh").unprovable
+
+
+def test_a_sql_double_quote_holding_an_escaped_quote_is_unprovable():
+    # MySQL reads `\"` in a double-quoted string as an escape
+    text = 'SELECT "it\\"s -- x";\n'
+
+    assert _preserved(text, text.replace("-- x", "-- y"), "a.sql").unprovable
+
+
+@pytest.mark.parametrize(
+    "name, text",
+    [
+        ("a.sh", 'echo "a\n# b\nc"\n'),
+        ("a.rb", 'x = "a\n# b\nc"\n'),
+        ("a.sql", "SELECT 'a\n-- b\nc';\n"),
+        ("a.lua", 'x = "a\\\n-- b\nc"\n'),
+        ("a.js", 'x = "a\\\n// b\nc";\n'),
+    ],
+)
+def test_a_comment_inside_an_open_string_is_unprovable(name, text):
+    assert _preserved(text, text, name).unprovable
+
+
+def test_a_string_spanning_lines_with_no_comment_in_it_proves():
+    text = 'echo "a\nb"  # note\n'
+
+    assert _preserved(text, text, "a.sh").unchanged
+
+
+def test_a_comment_trailing_a_line_that_leaves_a_string_open_is_unprovable():
+    before = 'echo "a\nb # one\nc"\n'
+
+    assert _preserved(before, before.replace("one", "two"), "a.sh").unprovable
+
+
+def test_a_comment_after_the_string_closes_proves():
+    before = 'echo "a\nb"\n# one\n'
+
+    assert _preserved(before, before.replace("one", "two"), "a.sh").unchanged
+
+
+def test_an_apostrophe_in_a_comment_opens_nothing():
+    before = "# it's\necho a\n# two\n"
+
+    assert _preserved(before, before.replace("two", "three"), "a.sh").unchanged
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "const a = <p>\n  // text\n</p>;\n",
+        "const a = <div\n  id='a'\n>\n  // text\n</div>;\n",
+        "const a = <>\n  // text\n</>;\n",
+        "const a = <p>\n  b // text\n</p>;\n",
+        "const a = <p> // text\n</p>;\n",
+        "const a = <p>\n  Hello<br/>\n  // text\n</p>;\n",
+        "const a = <p>\n  see<b>x</b>\n  // text\n</p>;\n",
+        "const a = <p>see<b>x</b>\n  // text\n</p>;\n",
+        "const a = <p>\n  (x)<b>y</b>\n  // text\n</p>;\n",
+        "const a = <\u00dcnicode>\n// text\n</\u00dcnicode>;\n",
+    ],
+)
+def test_a_comment_inside_an_element_is_unprovable(text):
+    assert _preserved(text, text, "a.jsx").unprovable
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "const a = <p>b</p>;\n// text\n",
+        "const a = <br />;\n// text\n",
+        "const a = <p>b</p>; // text\n",
+        "const a: Array<string> = [];\n// text\n",
+        "if (a < b) {}\n// text\n",
+        "const f = (a) => a;\n// text\n",
+        "const a = '<p>';\n// text\n",
+    ],
+)
+def test_a_comment_outside_any_element_proves(text):
+    assert _preserved(text, text.replace("text", "other"), "a.tsx").unchanged
+
+
+def test_a_ts_file_holds_no_elements():
+    before = "type F = <T>(x: T) => T;\n// one\n"
+
+    assert _preserved(before, before.replace("one", "two"), "a.ts").unchanged
+
+
+def test_a_lost_or_moved_mark_is_protected_source():
+    text = "\ufeffx=1\n"
+    for after in ("x=1\n", "\n\ufeffx=1\n"):
+        result = _preserved(text, after, "a.sh")
+
+        assert not result.unchanged
+        assert [d.code for d in result.diagnostics] == ["protected-source-changed"]
+
+
+@pytest.mark.parametrize(
+    ("text", "places"),
+    [
+        ("\ufeffx=1\n", {"f0": "# added"}),
+        ("\ufeffx=1\n", {"b0": "# added"}),
+        ("\ufeff# c\nx=1\n", {"f0": None}),
+        ("\ufeff# c\nx=1\n", {"f0": "# new"}),
+        ("\ufeff# c\n", {"f0": None}),
+        ("\ufeff# c\n\ufeff# d\nx=1\n", {"f0": "# new"}),
+    ],
+)
+def test_a_head_edit_on_a_marked_page_sets_and_proves(text, places):
+    from conftest import build
+
+    from comment_review.results.compositor import set_page
+    from comment_review.results.galley import reset
+
+    page = build(text, "a.sh")
+    assert reset(page, places) == []
+
+    assert _preserved(text, set_page(page), "a.sh").unchanged
+
+
+def test_an_added_comment_carrying_its_own_mark_is_changed_code():
+    from conftest import build
+
+    from comment_review.results.compositor import set_page
+    from comment_review.results.galley import reset
+
+    text = "\ufeffint x;\n"
+    page = build(text, "a.c")
+    assert reset(page, {"f0": "\ufeff// added"}) == []
+
+    result = _preserved(text, set_page(page), "a.c")
+    assert not result.unchanged
+    assert [d.code for d in result.diagnostics] == ["code-changed"]
