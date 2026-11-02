@@ -110,9 +110,9 @@ Work from the git repository at the repo root, and pass `--repo` to every comman
    formatter config -- and how it counts. Record where you found each, and which work markers
    (`TODO`, `FIXME`, ...) it exempts. When the repo cites a test that enforces the cap, confirm
    the test exists, and report whether it does.
-4. **Style sheet.** Read `style` when given; otherwise start one. It records the repo's
-   dialect, the capitalisation of domain terms, its citation form, and one template for each
-   documentation format the tree actually uses: module docstring, function docstring and,
+4. **Style sheet.** Read `style` when given; otherwise start one. It records the width stage 1
+   found, the repo's dialect, the capitalisation of domain terms, its citation form, and one
+   template for each documentation format the tree actually uses: module docstring, function docstring and,
    where the repo is consistent, comments. Write each template out with its slots, measured
    from the docstrings in the tree.
 5. **Check and format commands.** Find how the repo proves its code compiles -- its CI config,
@@ -137,7 +137,8 @@ python <skill>/scripts/comment-review.py gather --repo . --out <run-dir>/binder.
 The gather reads the files a reader claims; `gather --languages` lists those languages. It lists
 every other source file under `freeform` in the binder, unopened, and prints the first twenty
 under `FREEFORM`. A named file that is neither exits nonzero, and a walked one prints under
-`PASSED OVER`. Report every gap it prints, and the freeform list.
+`PASSED OVER`. When the default scope named it, take it out of the paths, gather again, and report
+it as passed over. Report every gap it prints, and the freeform list.
 
 The gather also prints one line on stderr for each detached documentation it read, in the form
 `warning: <path>:<line>: detached documentation (owner on line <n>)`, or `(owner: module)` when
@@ -253,7 +254,7 @@ Act on the exit code first:
 
 | exit | meaning | what you do |
 |---|---|---|
-| `0` | every place settled | `proof0.json` is the closed proof; go to stage 6 or 7a |
+| `0` | every place settled | `proof0.json` is the closed proof; settle any freeform findings, below, then go to stage 6 or 7a |
 | `1` | the round rolled back; each line names `<role> <place>: <reason>` | send each line to its role, which withdraws with `mark --withdraw --address <place>` and marks again; re-check and re-run |
 | `2` | a file could not be read | correct the invocation |
 | `3`, `4` | places carried forward -- `composed`, `contested` or `open` | rule on them, below |
@@ -345,6 +346,8 @@ per comment, working from `references/freeform.md`:
 4. Take the findings on one comment together, `correct` before `patch`, and rule as above: one
    side's text, the original, or your own. Two roles changing one comment end as one replacement.
 5. Read each settled replacement against the code around it, and hold it to the cap.
+6. Read each freeform file for a comment over the cap that no finding reached, and settle a `patch`
+   that shortens it.
 
 Write the result to `<run-dir>/freeform/settled_<stage>.json`, a list of the findings' own shape
 with `role` added to each, holding only the replacements that stand. A run with no pages prints
@@ -414,7 +417,8 @@ When it refuses, it prints what refused and where; read that, fix the input, and
 
 The check passes when the second run passes everything the baseline passed. When it fails
 something the baseline passed, write nothing, and bring the author the output and the files it
-names. A language with no formatter or no check command is reported as not verified.
+names. A language with no formatter or no check command, one whose command cannot run in the
+worktree, or one whose baseline passes nothing is reported as not verified.
 
 Then audit each draft:
 
@@ -422,17 +426,20 @@ Then audit each draft:
 git diff --no-index -U0 <path> <run-dir>/freeform/draft/<path>
 ```
 
-Every hunk matches one settled finding. Any other hunk stops the run: write nothing, and bring the
-author the hunk.
+Every changed line belongs to a settled finding, and every settled finding has its change. Any
+other change stops the run: write nothing, and bring the author the hunk. The command exits 1 when
+the files differ.
 
 Present to the author, grouped by instruction, most consequential first. Use the
 closed proof's decided text and the drafts for the proposed result. The chief's
 copy supplies `INSTRUCTION / PARAGRAPH / CLAIM / REASON`; show the current
 `CHANGE` from the draft inline. A turn writes a proof without refreshing the
 chief's copy, so check its entries against the closed proof before presenting.
+Present each settled freeform replacement the same way, from `settled_<stage>.json`: its
+instruction, `at`, `source` and replacement.
 Then give:
 
-- one command per page and per freeform file, to read it beside its original:
+- one command per page and per drafted freeform file, to read it beside its original:
   `git diff --no-index <path> <draft>`
 - the count of places raised and places clean, and `N swept, M raised` per freeform file
 - which places you ruled, and how
