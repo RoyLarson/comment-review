@@ -53,6 +53,10 @@ def test_an_unsplit_role_gets_one_dispatch_with_no_paths():
         ("app/[!id]/page.tsx", "app/x/page.tsx"),
         ("app/file?.tsx", "app/file1.tsx"),
         ("app/file*.tsx", "app/file-more.tsx"),
+        ("app/[id]/page.rs", "app/i/page.rs"),
+        ("app/[!id]/page.rs", "app/x/page.rs"),
+        ("app/file?.rs", "app/file1.rs"),
+        ("app/file*.py", "app/file-more.py"),
     ],
 )
 def test_composed_dispatches_select_literal_paths_without_claiming_lookalikes(
