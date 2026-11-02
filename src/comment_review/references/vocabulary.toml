@@ -364,7 +364,6 @@ compact = [
   "clean",
   "comment run",
   "correct",
-  "declaration",
   "drop",
   "edit copy",
   "instruction",
