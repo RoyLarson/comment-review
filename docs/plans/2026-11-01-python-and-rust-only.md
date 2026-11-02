@@ -3,7 +3,7 @@
 ```
 Status:   in-progress
 Progress: 1 of 4 TODO tasks closed
-Plan-tasks: 3 of 9 plan tasks closed
+Plan-tasks: 4 of 9 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-11-01 (decision-log #259, #260)
@@ -34,7 +34,8 @@ are freeform and answer UNCHECKED
       NAMED_DEFS and leading_between to their users
 - [x] P3 | prove_unchanged answers UNCHECKED for a file no reader claims; summary never counts it proven; reader failure still exits 1; tests, ruff, ty, shipped syntax, vocabulary and pytest pass | 3531369c45f58d4b768c0336b76ab060ec994ea6 | Answer
       UNCHECKED for a file no reader claims
-- [ ] P4 | Add freeform paths to the binder
+- [x] P4 | Binder.freeform and VERSION 4 verified: 9 new tests red then green, full suite 6836 passed, ruff/ty/shipped-syntax/vocabulary pass | 30754af6f0450f69dfa82fa491e99305471bc928 | Add
+      freeform paths to the binder
 - [ ] P5 | Uninstall the lexical languages
 - [ ] P6 | Delete the lexical reader
 - [ ] P7 | Remove the closing docstring branch
