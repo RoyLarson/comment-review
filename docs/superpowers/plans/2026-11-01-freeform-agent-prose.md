@@ -23,7 +23,7 @@
 1. A run holding only freeform files reaches stage 8 with no docket: nothing in SKILL.md or `references/review.md` may assume one, and the proofreader needs no binder for those files.
 2. A formatter rewriting code the findings never named: the diff audit stops the run.
 3. A repo with no formatter or compiler for a language: the report says that language was not verified.
-4. A `move` from a Python page to a freeform file: refused at the write chain, raised as a `drop` plus a freeform add.
+4. A `move` from a Python page to a freeform file: refused at `mark`, raised as a `drop` plus a freeform add.
 5. Two roles in one stage changing one comment: the copy chief settles it, and a later stage never sees an unsettled pair.
 
 ---
@@ -58,11 +58,11 @@ Message: `Tell reviewers how to edit a freeform file`.
 
 ### Task 3: The stages
 
-**Files:** Modify `src/plugin/skills/comment-review/SKILL.md:133-134,144-150`, stages 4, 5, 7b and 8; `references/write.md:51-61`; `references/review.md`; the copy chief's brief; `references/compact.md:29` if it no longer holds
+**Files:** Modify `src/plugin/skills/comment-review/SKILL.md` stage 1 item 5, `:133-134,144-150`, stages 4, 5, 6 (`:321`), 7a, 7b and 8; `references/write.md`; `references/review.md`; `references/compact.md:29-31`, deleted; `src/comment_review/references/vocabulary.toml` lines 46 and 85 and a new `freeform` entry; `docs/limitations.md:78`. The task agent is the copy chief, so its wording goes in stage 5.
 
 - [ ] **Step 1: Draft and approve the wording**
 
-Stage 2: report the freeform list. Stage 4: roles in one stage work blind; a later stage's role starts from a straight copy of the files the stage before left, and the task agent hands it their paths in the packet, because a revise root holds pages only and that stage's binder lists no freeform file. Stage 5: the copy chief settles the findings, correct before patch, resolving each `source`. Stage 7a: an agent sets the settled text on a draft copy with the Edit tool, following `references/freeform.md`, and the task agent runs the compile baseline, the formatter and the stage 1 check command there. Diff audit: every hunk of `git diff --no-index` against the original matches one settled finding, and any other hunk stops the run. The author approves that diff beside the page diffs. Stage 7b: accepted files are copied over, and `prove_unchanged` prints `UNCHECKED`, which is expected and never reported as proven. Stage 8: the proofreader reads freeform files directly, with no binder.
+Stage 2: report the freeform list. Stage 4: roles in one stage work blind; a later stage's role starts from a straight copy of the files the stage before left, and the task agent hands it their paths in the packet, because a revise root holds pages only and that stage's binder lists no freeform file. Stage 5: the copy chief settles the findings, correct before patch, resolving each `source`. Stage 7a: an agent sets the settled text on a draft copy with the Edit tool, following `references/freeform.md`, and the task agent runs the compile baseline, the formatter and the stage 1 check command there. Diff audit: every hunk of `git diff --no-index -U0` against the original matches one settled finding, and any other hunk stops the run. The author reads that diff beside the page diffs and may edit the draft line by line, after the audit. Stage 7b: accepted drafts are copied over, and `prove_unchanged` prints `UNCHECKED`, which is expected and never reported as proven. Stage 8: the proofreader reads freeform files directly, with no binder.
 
 - [ ] **Step 2: Apply and commit**
 

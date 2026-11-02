@@ -43,7 +43,7 @@ add = "A constraint exists in code and nowhere in prose."
 move = "True, but it belongs SOMEWHERE ELSE. One relocation instruction -- ten lines down, another file, or out of the code entirely is the DESTINATION, not a second instruction."
 payload = "What an instruction must carry to be usable."
 finding = "One ruling on one sentence, emitted as a MARK."
-"edit copy" = "One role's own copy of the pages it was handed -- its role, the tree it was gathered from, and one SHEET per page. Seeded with a slot per prose paragraph; the role fills the slots in place and hands the copy back. The one file a reviewer writes."
+"edit copy" = "One role's own copy of the pages it was handed -- its role, the tree it was gathered from, and one SHEET per page. Seeded with a slot per prose paragraph; the role fills the slots in place and hands the copy back. The one file a reviewer writes for a page."
 sheet = "One page inside an edit copy: the file's path, the sha it was read at, and the marks on it."
 "copy chief" = "Who folds the roles' edit copies into one set of edits and rules where they disagree -- the task agent, at max turns. It rules only where the roles never settled, and there are two rulings: take one side's text in, the original being a side, or recast the paragraph in its own prose. No role may give either."
 remit ="The categories of claim a role rules on -- as against verifying, which is what it does to them."
@@ -79,10 +79,11 @@ series = "One of the three kinds of address, and which one says what the prose a
 
 # --- what the page is made of -----------------------------------------------
 page = "ONE FILE: its paragraphs in order, among the code they sit with. A page does not nest, which is why the binder is a flat list and needs no other shape. ! The BINDER is the enumeration across EVERY page in scope, not this one."
+freeform = "A source file no reader claims. It has no page and no address: reviewers read it and edit a copy, an agent sets the settled text on a draft, and `prove_unchanged` answers `UNCHECKED` for it."
 paragraph = "One unit of prose on the page: a comment run, a docstring, or the empty place where either could go. It answers to exactly one address. `block` was the older word for it and no longer means this: a `block` is the code symbols that say which series the lines they enclose belong to, never the prose between them."
 
 # --- what is SET, and who sets it --------------------------------------------
-compositor = "Who SETS a page as text. It walks the page's places in order and asks each one what it holds. It decides nothing, and it is the only thing that writes a file."
+compositor = "Who SETS a page as text. It walks the page's places in order and asks each one what it holds. It decides nothing, and it is the only thing that writes a page."
 proof = "Pages as set, pulled to be judged -- what a PROOFREADER reads. It is read as set: the proofreader reports, and moves nothing and writes no alteration or schedule for it."
 docket = "Every alteration the compositor is to set, as one SCHEDULE per page. `proof` transcribes it from a closed MASTER PROOF and sets it; `proof --to-docket` writes it out instead."
 schedule = "One page's ALTERATIONS, with the page's path and the sha of its text when it was read."
@@ -130,6 +131,7 @@ all = ["paragraph", "sentence", "clause", "finding", "move"]
   "drop",
   "edit copy",
   "editorial role",
+  "freeform",
   "gather",
   "instruction",
   "line of code",
@@ -192,6 +194,7 @@ all = ["paragraph", "sentence", "clause", "finding", "move"]
   "original",
   "owner",
   "page",
+  "freeform",
   "patch",
   "payload",
   "query",
@@ -238,6 +241,7 @@ all = ["paragraph", "sentence", "clause", "finding", "move"]
   "obituary",
   "original",
   "page",
+  "freeform",
   "patch",
   "payload",
   "query",
@@ -286,6 +290,7 @@ all = ["paragraph", "sentence", "clause", "finding", "move"]
   "mark",
   "original",
   "page",
+  "freeform",
   "patch",
   "payload",
   "query",
@@ -337,6 +342,7 @@ all = ["paragraph", "sentence", "clause", "finding", "move"]
   "original",
   "owner",
   "page",
+  "freeform",
   "patch",
   "payload",
   "query",
@@ -380,6 +386,7 @@ review = [
   "gather",
   "sheet",
   "page",
+  "freeform",
   "proofreader",
   "style sheet",
   "template",
