@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 26 of 70 tasks closed
+Progress: 27 of 70 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (/simplify rounds 1 and 2 and /code-review high round 3,
@@ -312,7 +312,8 @@ would.
 - [ ] T41 | Remove the grammar no reader reads from the toml, ini, yaml rows
         > 2026-10-17 Reason: none is in READER_METADATA; language_for skips them
         > 2026-10-17 Check: those rows carry only name and extensions
-- [ ] T42 | Move `NAMED_DEFS` into `concordance`
+- [x] T42 | NAMED_DEFS moved to concordance/names.py; both readers import it there; pytest 6823 passed | 3cdbe205743d9260e7f4cf763519c50f66de7258 | Move
+      `NAMED_DEFS` into `concordance`
         > 2026-10-17 Reason: only concordance reads it; it is lexer.py's last ast use
         > 2026-10-17 Check: grep finds no `import ast` in reading/lexer.py
 - [ ] T43 | Remove the Annotations banner from `lexer.py`
