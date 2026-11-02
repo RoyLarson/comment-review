@@ -6057,3 +6057,11 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   decorators and Rust attributes, which never got the unit: `@dec` keeps its own `b` today. That
   work stays open as `lexer-and-language-findings` T51. #236.2 and #237's `SKILL.md` wording stand.
 
+- **#263.** **Four rulings on how a freeform file runs** (Roy, 2026-11-02, shown four
+  recommendations from drafting the freeform prose: *"Yes to all 4"*).
+
+  **What it settles.** The copy chief holds the comment length cap on a freeform file, because
+  stage 6 takes none. A file that is not formatter-clean before the run stops the run, because the
+  diff audit could not tell a formatter's change from an agent's. The author accepts a freeform
+  file whole. A dispatched general-purpose agent sets the draft.
+
