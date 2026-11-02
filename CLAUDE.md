@@ -214,100 +214,21 @@ back at another address.
 
 -> [docs/decision-log.md](docs/decision-log.md), *Process*: #254.
 
+### Reading
+
+A language's own reader, `reading/python/` or `reading/rust/`, reads its files. Another language
+gets a reader when a use case asks for one. Until then its source files are listed as freeform and
+never opened, so they hold no places. A named file that is neither stops the gather.
+
+Adding a language means a reader package and a definition file.
+
+Every language carries every definition it needs, and no language ever inherits one.
+
+-> [docs/decision-log.md](docs/decision-log.md), *Addressing*.
+
 ### The binder -- the only thing the reviewers depend on
 
-It is built from the standard library alone, at a per-language tier:
-
-| tier        | needs                                 | answers                         | cannot answer     |
-| ----------- | ------------------------------------- | ------------------------------- | ----------------- |
-| `tokenized` | a lexer + AST (Python, stdlib)        | blocks, marks, docstring owners | a comment's owner |
-| `lexical`   | a comment-syntax record, nothing else | blocks, marks                   | any owner         |
-
-A language with no record is named and the gather exits nonzero: every file handed in is
-gathered or the run stops. Adding a LEXICAL language is a data row, not new code.
-
-AND A tokenized one is not, which this said otherwise until 2026-08-22. It read *"adding
-a language is a data row"* flat. MEASURED: `language.py` decides the tier as `return "tokenized"
-if lang.name == "python" else "lexical"`, and `page.py` dispatches the READER on that same name
-test while the same file STAMPS the tier from `tier_for` -- so a second tokenized language is
-three edits in two modules, and half a fix leaves a file read at one tier and labelled at the
-other. Three more sites decide *is this Python* three more ways.
-
-IT IS A claim about the cost of a change, which is the kind that invites someone to make the
-change and discover the cost.
-
-The row becomes true again when the AST goes. Roy, 2026-08-22: *"as much because we are
-going to remove the ast system from python coming up as it is not an accurate statement."* With
-Python read lexically there
-is one tier, the name test has nothing to answer, and adding any language is a row again. The
-sentence is not being corrected toward permanence; it is being made honest until the thing it
-describes is rebuilt.
-
-Which lines declare something documentable is a keyword list on the language row, per
-language, since 2026-08-20. Roy: *"the easy way is to supply the lexer with the list of keywords
-that a language/practice uses to say this can get a docstring. Then the lexer matches on that
-instead of having to have independent tooling."* So an `a` place resolves for Rust, Go, Java,
-C#, Swift, Kotlin, JS, TS, Ruby, Lua and shell -- not Python alone.
-
-Every language carries every definition it needs, and no language ever inherits one. Roy,
-2026-08-22, restating it *explicitly* after a session read the weaker form below and assumed he
-could not have meant literally every language: *"every language gets its own definition
-requirements in the file. No language ever inherits from the `a` family. The file can be grouped
-or sorted to make it easier to understand what is happening, but every language gets all of the
-definitions necessary to parse it specifically, because anything else is failing the SRP rules."*
-
-Grouping is presentation; sharing is the defect. Rows may sit together so a reader can see
-the family. What they may not do is take a rule from a neighbour.
-
-The machinery is shared; the definition is not. A two-word entry, an empty keyword list, a
-`spanning_quotes` tuple -- every row may use any of them. What goes IN one comes from that
-language's grammar and from nothing else. Roy, 2026-08-22: *"I am not against a two word entry
-`data class`. I just wanted to make certain that it wasn't assumed you could assemble two
-different definition systems together to get a correct one."*
-
-The tell is reasoning from a neighbour, and it is in the prose rather than the row. Measured
-2026-08-22: `data class` is right because KOTLIN'S grammar says so; `local function` is right
-because LUA'S does. Neither is evidence about the other. The failure was arguing *"Kotlin solved
-it this way, so Java should"* -- and Java's second word is the record's NAME, which varies, so the
-same shape broke a real declaration. A row is wrong the moment its justification cites another
-row, whether or not the value it lands on happens to be correct.
-
-And the rule was already here, with its operative sentence cut off. This file carried
-two-thirds of the 2026-08-20 ruling. The full quotation, recovered from `9ee38ea`:
-
-> *"don't try to make the list generic -- that is a failure of the single responsibility
-> principle. Each language could change on a new version invalidating the list for all of them.
-> Better an explicit precise list with duplicated words than an implicit word set hoping to
-> catch each."*
-
-The third sentence is the one that decides anything, and it is the one that went. The first
-two say a generic list is a risk; only the third says which way to resolve it -- explicit and
-duplicated beats implicit and shared -- which is the sentence that forbids borrowing a
-neighbour's rule. The `c-family` and `js-family` rows were split under it.
-
-A language has an `a` series when its row declares a documentation practice --
-doc markers or declaring keywords. `yaml`, `toml`, `ini` and `sql` declare
-neither and have no `a` series. The `a` series meets `<module>` as `a0`. A row
-that holds a closing docstring -- one with doc markers, outside Python and
-Rust -- also meets `<eof>` with one more `a`.
-
-C and C++ list no keywords yet; this is deferred support. They keep `a0` and
-the `<eof>` `a` through their `/` marker; their declaration `a`s wait on the
-matcher. A C declaration opens with its return type, and the matcher reads a
-line's first word, so no keyword matches and a spurious `a` would renumber
-every `a` below it. This is a limitation of the matcher. Roy, 2026-08-23: *"assumes you don't create a slightly
-smarter parser that looks for the correct keyword in the line instead of just the 'first' word. It
-is a simple fix."* Both languages plainly have documentable declarations; the list is empty until
-that lands.
-
-This sentence previously read *"the list could never be complete"*, which is the shape this
-file warns about two sections up -- a claim about the COST of a change, which invites someone to
-make the change and discover the cost.
-
-Only Python's doc sits INSIDE the declaration, so Python alone needs a parser to say WHERE the
-prose goes; everywhere else it goes on the declaring line's own line. An LSP `documentSymbol`
-enrichment still refines this when a language server answered stage 1.7's probe, and a reviewer
-reading the file is what supplies an anchor no keyword names.
+The gather binds what the readers return, and lists the freeform paths beside the pages.
 
 `references/` under the skill directory (`write.md`, `compact.md`, `residue-check.md`,
 `review.md`, `reviewer-brief.md`) are each single-sourced for one stage -- nothing pastes their
@@ -315,6 +236,12 @@ content elsewhere, and a change to a rule belongs in exactly one of these files 
 `docs/limitations.md` for orchestration-level rules).
 
 -> [docs/decision-log.md](docs/decision-log.md), *Addressing*.
+
+### The galley and the compositor
+
+`prove_unchanged` proves the code in each page written is unchanged from the pre-edit ref. A
+freeform file has no reader, so it answers `UNCHECKED`, and the formatter and compiler are the
+check.
 
 ### Repo layout
 
