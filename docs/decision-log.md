@@ -6063,5 +6063,16 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   **What it settles.** The copy chief holds the comment length cap on a freeform file, because
   stage 6 takes none. A file that is not formatter-clean before the run stops the run, because the
   diff audit could not tell a formatter's change from an agent's. The author accepts a freeform
-  file whole. A dispatched general-purpose agent sets the draft.
+  file whole. A dispatched general-purpose agent sets the draft. "Accepts whole" is **SUPERSEDED by
+  #264**; the other three stand.
+
+- **#264.** **The author edits a freeform draft line by line** (Roy, 2026-11-02, reversing #263's
+  third ruling: *"I am going to reverse my statement on 3. I should not have replied last night."*
+  *"The page git diff flow for the human review allows for the person to see the final draft and
+  edit line by line."* *"The final draft is then copied over like today when it is accepted"*).
+
+  **What it settles.** A freeform file goes through the same review as a page: the author reads the
+  final draft beside its original with `git diff --no-index`, edits the draft line by line, and
+  accepts it. The accepted draft is then copied over. Selecting part of a file needs no fresh draft
+  or second audit, which was the cost that made "whole file" the default.
 
