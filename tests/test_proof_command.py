@@ -1149,3 +1149,28 @@ def test_a_python_file_that_fails_to_read_still_fails(tmp_path, monkeypatch, cap
     )
     assert code == 1, out
     assert "PROVEN" not in out
+    assert "no reader" not in out and "FAIL" in out
+
+
+def test_a_failing_python_file_beside_a_freeform_one_exits_1(
+    tmp_path, monkeypatch, capsys
+):
+    from comment_review.commands import prove_unchanged as command
+
+    repo, target = proof_repository(tmp_path, "x = 1\r\n", ".py")
+    note = target.parent / "note.md"
+    note.write_bytes(b"# before\r\n")
+    for args in (
+        ("add", "."),
+        ("-c", "user.name=T", "-c", "user.email=t@e.invalid", "commit", "-m", "n"),
+    ):
+        subprocess.run(
+            ["git", "-C", str(repo), *args], capture_output=True, check=True, timeout=30
+        )
+    target.write_bytes(b"\xff")
+    note.write_bytes(b"# after\r\n")
+    base = ("--repo", str(repo), "--base", "HEAD")
+    code, out = run_command(monkeypatch, capsys, command, *base, str(target), str(note))
+    assert code == 1, out
+    assert "UNCHECKED  pkg/note.md: no reader" in out
+    assert "UNCHECKED (no reader)" not in out
