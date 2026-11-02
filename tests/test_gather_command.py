@@ -34,12 +34,10 @@ from comment_review.commands import gather as gather_command
 
 
 def test_languages_reports_validated_programming_coverage(monkeypatch, capsys):
-    from comment_review.flows.language_definitions import installed_registry
     from comment_review.reading import readers
-    from comment_review.reading.diagnostics import ReadFailure
+    from comment_review.reading.language import INSTALLED_REGISTRY
 
-    registry = installed_registry()
-    assert not isinstance(registry, ReadFailure)
+    registry = INSTALLED_REGISTRY
 
     status, output = run_command(monkeypatch, capsys, gather_command, "--languages")
     assert status == 0

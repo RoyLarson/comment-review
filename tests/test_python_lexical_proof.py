@@ -328,8 +328,7 @@ def test_python_context_identity_is_independent_of_host_parser_version(monkeypat
 
 
 def test_previous_python_binding_context_refuses_before_reading(monkeypatch):
-    registry = reading_context.installed_registry()
-    assert not isinstance(registry, ReadFailure)
+    registry = reading_context.INSTALLED_REGISTRY
     selected = readers.reader_for(Path("m.py"), registry)
     assert isinstance(selected, tuple)
     definition, _ = selected

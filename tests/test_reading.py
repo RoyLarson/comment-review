@@ -10,9 +10,9 @@ import pytest
 from conftest import SAMPLE, build, by_cue, occupied
 
 from comment_review.binder.page import page_for
-from comment_review.flows.language_definitions import installed_registry
 from comment_review.machine.repo import sha_of
 from comment_review.reading.diagnostics import ReadFailure
+from comment_review.reading.language import INSTALLED_REGISTRY
 from comment_review.reading.series import ADDRESSED, Kind, Series
 
 #: Sources chosen to reach a different shape each, across the languages the
@@ -213,8 +213,7 @@ class TestAPageCarriesTheShaItWasGiven:
         # A page built with a sha that does not describe its text keeps the sha
         # it was HANDED. If page.py hashed anything, this would disagree.
         path = Path("m.py")
-        registry = installed_registry()
-        assert not isinstance(registry, ReadFailure), registry
+        registry = INSTALLED_REGISTRY
         page = page_for(
             path,
             SAMPLE,
@@ -229,8 +228,7 @@ class TestAPageCarriesTheShaItWasGiven:
 
     def test_the_sha_is_required(self):
         path = Path("m.py")
-        registry = installed_registry()
-        assert not isinstance(registry, ReadFailure), registry
+        registry = INSTALLED_REGISTRY
         with pytest.raises(TypeError):
             # !! DELIBERATELY OMITS `sha` -- proves the keyword-only parameter
             # is enforced at runtime. ty: ignore[missing-argument] because the

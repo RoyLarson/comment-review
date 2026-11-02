@@ -19,11 +19,11 @@ from comment_review.binder.binder import bind
 from comment_review.binder.page import Page, leading_between, page_for
 from comment_review.flows import page_for as page_for_mod
 from comment_review.flows import proof_setter
-from comment_review.flows.language_definitions import installed_registry
 from comment_review.flows.read_diagnostics import LocatedReadFailure, format_failure
 from comment_review.machine.repo import Source
 from comment_review.reading.addresser import Cues
 from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, ReadStage
+from comment_review.reading.language import INSTALLED_REGISTRY
 from comment_review.reading.paragraph import Paragraph
 from comment_review.reading.python.records import PythonRead
 from comment_review.reading.rust.records import RustRead
@@ -164,18 +164,12 @@ def test_python_page_recognizes_once_and_retains_object_and_definition(monkeypat
     from comment_review.reading import readers
 
     text = '"module"\ndef f():\n    "doc"\n    pass\n'
-    registry = installed_registry()
-    assert not isinstance(registry, ReadFailure)
+    registry = INSTALLED_REGISTRY
     definition = registry.for_path(Path("m.py"))
-    acquired = []
     recognized = []
     contexts = []
     original_read = readers.read_python
     original_resolve = reading_context.resolve_context
-
-    def acquire():
-        acquired.append(True)
-        return registry
 
     def recognize(source, grammar):
         assert grammar is definition
@@ -187,12 +181,10 @@ def test_python_page_recognizes_once_and_retains_object_and_definition(monkeypat
         contexts.append(grammar)
         return original_resolve(grammar, *args, **kwargs)
 
-    monkeypatch.setattr(page_for_mod, "installed_registry", acquire)
     monkeypatch.setattr(readers, "read_python", recognize)
     monkeypatch.setattr(reading_context, "resolve_context", resolve)
     page = page_for_mod.page_of(Path("m.py"), source=Source(text, "held"))
     assert isinstance(page, Page)
-    assert acquired == [True]
     assert contexts == [definition]
     assert len(recognized) == 1
     assert page.read is recognized[0]
@@ -306,17 +298,6 @@ def test_python_page_failures_never_reach_paragraph_adaptation(
     assert result.text is text
 
 
-def test_python_page_definition_acquisition_failure_is_located(monkeypatch):
-    failure = ReadFailure(
-        (ReadDiagnostic(ReadStage.ACQUIRE, "io-error", "grammar absent"),)
-    )
-    monkeypatch.setattr(page_for_mod, "installed_registry", lambda: failure)
-    result = page_for_mod.page_of(Path("m.py"), source=Source("x=1\n", "held"))
-    assert isinstance(result, LocatedReadFailure)
-    assert result.path == "m.py"
-    assert result.diagnostics == failure.diagnostics
-
-
 def test_python_sections_projection_is_not_used_for_other_languages(monkeypatch):
     path = "m.rs"
     text = "const X: i32 = 1; // note\n"
@@ -333,8 +314,7 @@ def test_python_sections_projection_is_not_used_for_other_languages(monkeypatch)
 
 
 def test_empty_source_is_a_complete_page():
-    registry = installed_registry()
-    assert not isinstance(registry, ReadFailure)
+    registry = INSTALLED_REGISTRY
     page = page_for(
         Path("empty.py"),
         "",
@@ -348,8 +328,7 @@ def test_empty_source_is_a_complete_page():
 
 
 def test_malformed_python_is_a_read_failure():
-    registry = installed_registry()
-    assert not isinstance(registry, ReadFailure)
+    registry = INSTALLED_REGISTRY
     page = page_for(
         Path("bad.py"),
         "def broken(:\n",
@@ -411,8 +390,7 @@ def test_unavailable_binding_is_never_invoked_or_addressed(monkeypatch):
 
     from comment_review.reading import readers
 
-    registry = installed_registry()
-    assert not isinstance(registry, ReadFailure)
+    registry = INSTALLED_REGISTRY
     selected = readers.reader_for(Path("m.py"), registry)
     assert selected is not None and not isinstance(selected, ReadFailure)
     definition, binding = selected

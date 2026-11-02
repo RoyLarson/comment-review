@@ -5,7 +5,6 @@ from dataclasses import replace
 from pathlib import Path
 
 from comment_review.binder.page import Page, page_for
-from comment_review.flows.language_definitions import installed_registry
 from comment_review.flows.read_diagnostics import (
     ContextAdmissionFailure,
     LocatedReadFailure,
@@ -27,9 +26,6 @@ def page_of(
 ) -> Page | ReadFailure:
     """Build from the supplied snapshot, retaining available failure context."""
     where = rel if rel is not None else path.as_posix()
-    registry = installed_registry()
-    if isinstance(registry, ReadFailure):
-        return LocatedReadFailure(registry.diagnostics, where, None, None)
     context = context_for(
         path,
         settings
@@ -37,7 +33,6 @@ def page_of(
         else dict(reading_context.settings)
         if reading_context is not None
         else {},
-        registry=registry,
     )
     if isinstance(context, ReadFailure):
         if reading_context is not None:
@@ -74,7 +69,6 @@ def page_of(
         rel=rel,
         sha=acquired.sha,
         reading=context,
-        registry=registry,
     )
     if isinstance(page, ReadFailure):
         return LocatedReadFailure(

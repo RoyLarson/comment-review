@@ -4,7 +4,6 @@ from typing import Any, cast, get_args
 
 import pytest
 
-from comment_review.flows.language_definitions import installed_registry
 from comment_review.flows.read_diagnostics import LocatedReadFailure, format_failure
 from comment_review.reading import readers
 from comment_review.reading.diagnostics import (
@@ -14,6 +13,7 @@ from comment_review.reading.diagnostics import (
     ReadStage,
     SourceRead,
 )
+from comment_review.reading.language import INSTALLED_REGISTRY
 from comment_review.reading.paragraph import Paragraph
 from comment_review.reading.python.projection import paragraphs_for
 from comment_review.reading.python.records import PythonRead
@@ -29,8 +29,7 @@ from comment_review.reading.source import SourceSpan, SourceStructure
     ],
 )
 def test_read_source_reports_python_refusal(text):
-    registry = installed_registry()
-    assert not isinstance(registry, ReadFailure)
+    registry = INSTALLED_REGISTRY
     result = readers.read_source(Path("m.py"), text, registry=registry)
     assert isinstance(result, ReadFailure)
     assert result.diagnostics[0].stage == ReadStage.LEX
@@ -43,8 +42,7 @@ def test_read_source_reports_python_refusal(text):
 )
 def test_read_source_gives_python_its_lexical_read(text, expected):
     path = Path("m.py")
-    registry = installed_registry()
-    assert not isinstance(registry, ReadFailure)
+    registry = INSTALLED_REGISTRY
     result = readers.read_source(path, text, registry=registry)
     assert isinstance(result, PythonRead)
     assert result.source.text is text
@@ -54,8 +52,7 @@ def test_read_source_gives_python_its_lexical_read(text, expected):
 
 
 def test_read_paragraphs_come_from_the_one_python_read(monkeypatch):
-    registry = installed_registry()
-    assert not isinstance(registry, ReadFailure)
+    registry = INSTALLED_REGISTRY
     calls = []
     recognize = readers.read_python
 

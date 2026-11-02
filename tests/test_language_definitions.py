@@ -32,137 +32,6 @@ def failure(message: str) -> ReadFailure:
     )
 
 
-def load(paths: list[Path]) -> Any:
-    return import_module("comment_review.flows.language_definitions").load_definitions(
-        paths
-    )
-
-
-def test_load_empty_input_returns_empty_tuple() -> None:
-    assert load([]) == ()
-
-
-def test_load_files_preserves_input_order_and_nested_values(tmp_path: Path) -> None:
-    first = tmp_path / "first.toml"
-    second = tmp_path / "second.toml"
-    first.write_text(WIRE, encoding="utf-8")
-    second.write_text(WIRE.replace("Invented MIX", "Other Invented"), encoding="utf-8")
-
-    values = load([second, first])
-
-    assert isinstance(values, tuple)
-    assert tuple(value.language for value in values) == (
-        "Other Invented",
-        "Invented MIX",
-    )
-    assert values[0].rules == {
-        "tokens": ("", 2, True, False, {"end": ()}),
-        "empty": {},
-    }
-    assert values[1].choices == {"style": ("", "wide")}
-
-
-def test_load_missing_file_retains_acquisition_diagnostic(tmp_path: Path) -> None:
-    path = tmp_path / "missing.toml"
-
-    result = load([path])
-
-    assert isinstance(result, ReadFailure)
-    diagnostic = result.diagnostics[0]
-    assert diagnostic.stage == ReadStage.ACQUIRE
-    assert diagnostic.code == "io-error"
-    assert str(path) in diagnostic.message
-    assert diagnostic.byte_offset is None
-
-
-def test_load_invalid_utf8_retains_decode_byte_offset(tmp_path: Path) -> None:
-    path = tmp_path / "bad-bytes.toml"
-    path.write_bytes(b"format = 1\n\xff")
-
-    result = load([path])
-
-    assert isinstance(result, ReadFailure)
-    diagnostic = result.diagnostics[0]
-    assert diagnostic.stage == ReadStage.DECODE
-    assert diagnostic.code == "invalid-utf8"
-    assert str(path) in diagnostic.message
-    assert "invalid start byte" in diagnostic.message
-    assert diagnostic.byte_offset == 11
-
-
-@pytest.mark.parametrize(
-    ("text", "reason"),
-    [
-        ("", "missing fields:"),
-        ("format = [", "Invalid value"),
-        (WIRE.replace("format = 1", "format = 2"), "format must be integer 1"),
-    ],
-)
-def test_load_invalid_definition_retains_selection_failure(
-    tmp_path: Path, text: str, reason: str
-) -> None:
-    path = tmp_path / "invalid.toml"
-    path.write_text(text, encoding="utf-8")
-
-    result = load([path])
-
-    assert isinstance(result, ReadFailure)
-    diagnostic = result.diagnostics[0]
-    assert diagnostic.stage == ReadStage.SELECT
-    assert diagnostic.code == "invalid-language-definition"
-    assert str(path) in diagnostic.message
-    assert reason in diagnostic.message
-    assert diagnostic.byte_offset is None
-
-
-def test_load_later_file_failure_does_not_publish_partial_tuple(tmp_path: Path) -> None:
-    good = tmp_path / "good.toml"
-    bad = tmp_path / "bad.toml"
-    good.write_text(WIRE, encoding="utf-8")
-    bad.write_text("", encoding="utf-8")
-
-    result = load([good, bad])
-
-    assert isinstance(result, ReadFailure)
-    assert str(bad) in result.diagnostics[0].message
-
-
-def test_load_decodes_held_text_without_another_read(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    module = import_module("comment_review.flows.language_definitions")
-    source = import_module("comment_review.flows.source")
-    path = tmp_path / "held.toml"
-    path.write_text(WIRE, encoding="utf-8")
-
-    def acquire_then_remove(acquired_path: Path) -> Any:
-        value = source.source_of(acquired_path)
-        acquired_path.unlink()
-        return value
-
-    monkeypatch.setattr(module, "source_of", acquire_then_remove)
-
-    values = load([path])
-
-    assert isinstance(values, tuple)
-    assert len(values) == 1
-    assert values[0].language == "Invented MIX"
-    assert values[0].rules["tokens"] == ("", 2, True, False, {"end": ()})
-
-
-def test_load_unexpected_acquisition_defect_propagates(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    module = import_module("comment_review.flows.language_definitions")
-
-    def broken_acquisition(path: Path) -> Any:
-        raise RuntimeError("programming error")
-
-    monkeypatch.setattr(module, "source_of", broken_acquisition)
-    with pytest.raises(RuntimeError, match="programming error"):
-        load([tmp_path / "example.toml"])
-
-
 def test_decode_exact_definition_and_ordered_nested_rules() -> None:
     value = decode(WIRE)
     assert value == definition(
@@ -600,10 +469,6 @@ def registry(values: Any) -> Any:
     return import_module("comment_review.reading.registry").LanguageRegistry(values)
 
 
-def select_registry(values: Any) -> Any:
-    return import_module("comment_review.reading.registry").registry_for(values)
-
-
 @pytest.mark.parametrize("reverse", [False, True])
 def test_registry_selection_is_independent_of_registration_order(reverse: bool) -> None:
     demo = definition(**configuration(language="Demo MIX", suffixes=(".DEMO",)))
@@ -615,13 +480,11 @@ def test_registry_selection_is_independent_of_registration_order(reverse: bool) 
     assert value.for_path(Path("component.tsx")) is other
     assert value.for_path(Path("unknown.py")) is None
     assert value.for_path(Path("extensionless")) is None
-    assert select_registry(values) == value
 
 
 def test_empty_registry_has_no_matches() -> None:
     value = registry(())
     assert value.for_path(Path("name.demo")) is None
-    assert select_registry(()) == value
 
 
 def test_registry_and_registered_definitions_are_immutable() -> None:
@@ -641,23 +504,19 @@ def test_registry_and_registered_definitions_are_immutable() -> None:
 def test_registry_rejects_wrong_constructor_input(invalid: Any) -> None:
     with pytest.raises(ValueError, match="definitions"):
         registry(invalid)
-    result = select_registry(invalid)
-    assert isinstance(result, ReadFailure)
-    assert result.diagnostics[0].stage == ReadStage.SELECT
-    assert result.diagnostics[0].code == "invalid-language-definition"
 
 
 @pytest.mark.parametrize("reverse", [False, True])
 @pytest.mark.parametrize(
-    ("names", "suffixes", "code"),
+    ("names", "suffixes", "refusal"),
     [
-        (("Same", "Same"), ((".one",), (".two",)), "duplicate-language"),
-        (("First", "Second"), ((".demo",), (".demo",)), "ambiguous-language"),
-        (("First", "Second"), ((".DEMO",), (".demo",)), "ambiguous-language"),
+        (("Same", "Same"), ((".one",), (".two",)), "duplicate language"),
+        (("First", "Second"), ((".demo",), (".demo",)), "is claimed by"),
+        (("First", "Second"), ((".DEMO",), (".demo",)), "is claimed by"),
     ],
 )
 def test_registry_refuses_collisions_in_both_orders(
-    reverse: bool, names: tuple[str, str], suffixes: Any, code: str
+    reverse: bool, names: tuple[str, str], suffixes: Any, refusal: str
 ) -> None:
     values = tuple(
         definition(**configuration(language=name, suffixes=claimed))
@@ -665,14 +524,9 @@ def test_registry_refuses_collisions_in_both_orders(
     )
     if reverse:
         values = tuple(reversed(values))
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match=refusal) as refused:
         registry(values)
-    result = select_registry(values)
-    assert isinstance(result, ReadFailure)
-    diagnostic = result.diagnostics[0]
-    assert diagnostic.stage == ReadStage.SELECT
-    assert diagnostic.code == code
-    assert all(name in diagnostic.message for name in names)
+    assert all(name in str(refused.value) for name in names)
 
 
 def test_registry_preserves_distinct_exact_language_identities() -> None:
@@ -705,15 +559,8 @@ def test_registry_preserves_distinct_exact_language_identities() -> None:
 def test_registry_refuses_non_code_suffixes(suffix: str, uppercase: bool) -> None:
     claim = suffix.upper() if uppercase else suffix
     values = (definition(**configuration(language="Excluded", suffixes=(claim,))),)
-    with pytest.raises(ValueError, match="Excluded"):
+    with pytest.raises(ValueError, match=f"Excluded.*{claim}"):
         registry(values)
-    result = select_registry(values)
-    assert isinstance(result, ReadFailure)
-    diagnostic = result.diagnostics[0]
-    assert diagnostic.stage == ReadStage.SELECT
-    assert diagnostic.code == "invalid-language-definition"
-    assert "Excluded" in diagnostic.message
-    assert claim in diagnostic.message
 
 
 def test_python_is_defined_by_its_own_file() -> None:
@@ -786,9 +633,7 @@ def python_definition() -> Any:
         Path(__file__).parents[1]
         / "src/comment_review/references/languages/python.toml"
     )
-    values = load([path])
-    assert isinstance(values, tuple), values
-    return values[0]
+    return decode(path.read_text(encoding="utf-8"))
 
 
 def validate_python_definition(value: Any) -> Any:
@@ -798,7 +643,6 @@ def validate_python_definition(value: Any) -> Any:
 
 
 def test_python_definition_loads_complete_grammar_and_installs_lexical_reader() -> None:
-    from comment_review.flows.language_definitions import installed_registry
     from comment_review.reading.readers import INSTALLED_BINDINGS, supported_definitions
 
     value = python_definition()
@@ -807,9 +651,7 @@ def test_python_definition_loads_complete_grammar_and_installs_lexical_reader() 
     assert value.suffixes == (".py", ".pyi")
     assert value.defaults == value.choices == {}
     assert value.reader in INSTALLED_BINDINGS
-    registry = installed_registry()
-    assert not isinstance(registry, ReadFailure)
-    installed = {item.language: item for item in supported_definitions(registry)}
+    installed = {item.language: item for item in supported_definitions()}
     assert sorted(installed) == ["python", "rust"]
     assert installed["python"].reader == "python-lexical"
     assert value.rules["literals"]["prefixes"]["raw_template"] == ("tr", "rt")
@@ -928,9 +770,7 @@ def rust_definition() -> Any:
     path = (
         Path(__file__).parents[1] / "src/comment_review/references/languages/rust.toml"
     )
-    values = load([path])
-    assert isinstance(values, tuple), values
-    return values[0]
+    return decode(path.read_text(encoding="utf-8"))
 
 
 def validate_rust_definition(value: Any) -> Any:

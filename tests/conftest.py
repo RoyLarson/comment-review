@@ -66,11 +66,11 @@ sys.path.insert(0, str(SRC))
 from comment_review.binder.binder import Binder  # noqa: E402
 from comment_review.binder.page import page_for  # noqa: E402
 from comment_review.docket.docket import Docket  # noqa: E402
-from comment_review.flows.language_definitions import installed_registry  # noqa: E402
 from comment_review.flows.reading_context import context_for  # noqa: E402
 from comment_review.machine.repo import sha_of  # noqa: E402
 from comment_review.reading.addresser import cue_of, unflatten  # noqa: E402
 from comment_review.reading.diagnostics import ReadFailure  # noqa: E402
+from comment_review.reading.language import INSTALLED_REGISTRY  # noqa: E402
 from comment_review.reading.paragraph import Paragraph  # noqa: E402
 from comment_review.reading.readers import read_source  # noqa: E402
 
@@ -86,8 +86,7 @@ def build(text: str, name: str = "m.py"):
     a disk. `read_source` is what supplies it in the running system.
     """
     path = Path(name)
-    registry = installed_registry()
-    assert not isinstance(registry, ReadFailure), registry
+    registry = INSTALLED_REGISTRY
     assert registry.for_path(path) is not None, (
         f"no language definition for suffix {path.suffix!r}"
     )

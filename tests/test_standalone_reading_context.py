@@ -18,8 +18,7 @@ def installed_choices(monkeypatch):
 
     def selected(path, registry=None):
         if registry is None:
-            registry = reading_context.installed_registry()
-            assert not isinstance(registry, ReadFailure)
+            registry = reading_context.INSTALLED_REGISTRY
         result = actual(path, registry)
         assert result is not None and not isinstance(result, ReadFailure)
         definition, binding = result

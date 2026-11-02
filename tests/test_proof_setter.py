@@ -120,8 +120,7 @@ def test_saved_nondefault_settings_reach_original_and_draft(
     from comment_review.flows import reading_context as flow_context
 
     original_reader = flow_context.reader_for
-    registry = flow_context.installed_registry()
-    assert not isinstance(registry, ReadFailure)
+    registry = flow_context.INSTALLED_REGISTRY
     selected = original_reader(Path("m.py"), registry)
     assert selected is not None and not isinstance(selected, ReadFailure)
     definition, binding = selected

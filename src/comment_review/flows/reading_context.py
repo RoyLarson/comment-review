@@ -13,12 +13,12 @@ from comment_review.desk.proof.master_proof import (
 )
 from comment_review.desk.proof.sheet import Sheet
 from comment_review.docket.docket import Docket, Schedule
-from comment_review.flows.language_definitions import installed_registry
 from comment_review.flows.proof_io import load_value
 from comment_review.machine.digests import sha256_hex
 from comment_review.reading.context import ReadingContext, resolve_context
 from comment_review.reading.context_io import context_from_wire, context_to_wire
 from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, ReadStage
+from comment_review.reading.language import INSTALLED_REGISTRY
 from comment_review.reading.readers import reader_for
 from comment_review.reading.registry import LanguageRegistry
 
@@ -163,14 +163,12 @@ def _reading_contexts(
 
 
 def context_for(
-    path: Path, settings: Mapping[str, str], *, registry: LanguageRegistry | None = None
+    path: Path,
+    settings: Mapping[str, str],
+    *,
+    registry: LanguageRegistry = INSTALLED_REGISTRY,
 ) -> ReadingContext | ReadFailure:
     """Derive current context from installed definition and runtime metadata."""
-    if registry is None:
-        acquired = installed_registry()
-        if isinstance(acquired, ReadFailure):
-            return acquired
-        registry = acquired
     selected = reader_for(path, registry)
     if isinstance(selected, ReadFailure):
         return selected

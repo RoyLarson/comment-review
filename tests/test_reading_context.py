@@ -59,8 +59,7 @@ def test_saved_nondefault_per_file_settings_ignore_unrelated_language_change(
     from comment_review.commands import distribute, mark, proof
     from comment_review.reading.readers import ReaderBinding, reader_for
 
-    registry = flow_context.installed_registry()
-    assert not isinstance(registry, ReadFailure)
+    registry = flow_context.INSTALLED_REGISTRY
     installed_python = reader_for(Path("a.py"), registry)
     assert isinstance(installed_python, tuple)
     assert isinstance(installed_python[1], ReaderBinding)
@@ -615,8 +614,7 @@ def rust_context(**changes: str) -> ReadingContext:
     """The installed Rust context, re-resolved with definition fields changed."""
     from comment_review.reading.readers import ReaderBinding, reader_for
 
-    registry = flow_context.installed_registry()
-    assert not isinstance(registry, ReadFailure)
+    registry = flow_context.INSTALLED_REGISTRY
     selected = reader_for(Path("m.rs"), registry)
     assert isinstance(selected, tuple)
     rust, binding = selected

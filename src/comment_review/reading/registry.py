@@ -4,7 +4,6 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from comment_review.reading.definitions import LanguageDefinition
-from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, ReadStage
 
 _EXCLUDED_SUFFIXES = frozenset(
     {
@@ -65,15 +64,6 @@ def is_freeform(path: Path) -> bool:
     return path.suffix.lower() in _FREEFORM_SUFFIXES
 
 
-class _RegistryError(ValueError):
-    """A construction refusal carrying its selection diagnostic code."""
-
-    def __init__(self, code: str, message: str) -> None:
-        """Retain classification alongside the useful value error message."""
-        super().__init__(message)
-        self.code = code
-
-
 @dataclass(frozen=True)
 class LanguageRegistry:
     """Unique language definitions whose code suffix claims do not overlap."""
@@ -85,15 +75,13 @@ class LanguageRegistry:
         if not isinstance(self.definitions, tuple) or any(
             not isinstance(value, LanguageDefinition) for value in self.definitions
         ):
-            raise _RegistryError(
-                "invalid-language-definition",
+            raise ValueError(
                 "definitions must be a tuple of LanguageDefinition values",
             )
         identities: set[str] = set()
         for value in self.definitions:
             if value.language in identities:
-                raise _RegistryError(
-                    "duplicate-language",
+                raise ValueError(
                     f"duplicate language identity {value.language!r}",
                 )
             identities.add(value.language)
@@ -102,14 +90,12 @@ class LanguageRegistry:
             for suffix in value.suffixes:
                 normalized = suffix.lower()
                 if normalized in _EXCLUDED_SUFFIXES:
-                    raise _RegistryError(
-                        "invalid-language-definition",
+                    raise ValueError(
                         f"language {value.language!r} claims excluded "
                         f"suffix {suffix!r}",
                     )
                 if normalized in claims:
-                    raise _RegistryError(
-                        "ambiguous-language",
+                    raise ValueError(
                         f"suffix {normalized!r} is claimed by languages "
                         f"{claims[normalized]!r} and {value.language!r}",
                     )
@@ -126,13 +112,3 @@ class LanguageRegistry:
             ),
             None,
         )
-
-
-def registry_for(
-    definitions: tuple[LanguageDefinition, ...],
-) -> LanguageRegistry | ReadFailure:
-    """Construct a registry or report an expected selection refusal."""
-    try:
-        return LanguageRegistry(definitions)
-    except _RegistryError as error:
-        return ReadFailure((ReadDiagnostic(ReadStage.SELECT, error.code, str(error)),))

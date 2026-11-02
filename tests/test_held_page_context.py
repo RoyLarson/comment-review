@@ -13,8 +13,7 @@ def selectable_context(monkeypatch):
 
     from comment_review.flows import reading_context as metadata
 
-    registry = metadata.installed_registry()
-    assert not isinstance(registry, ReadFailure)
+    registry = metadata.INSTALLED_REGISTRY
     installed = metadata.reader_for(Path("m.py"), registry)
     assert installed is not None and not isinstance(installed, ReadFailure)
     definition, binding = installed
