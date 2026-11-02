@@ -111,7 +111,7 @@ def _report(args: argparse.Namespace) -> int:
     repo = Path(args.repo).resolve()
     got = gather(
         repo,
-        [Path(p) for p in args.paths],
+        [repo / p for p in args.paths],
         args.revise,
         absent=args.include_absent,
         settings=args.settings,
