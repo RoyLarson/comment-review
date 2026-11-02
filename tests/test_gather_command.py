@@ -416,7 +416,7 @@ def test_freeform_paths_are_sorted_repo_relative_and_listed_once(
     assert _binder(out)["freeform"] == ["a.js", "c.JS", "src/z.js"]
 
 
-@pytest.mark.parametrize("spelled", ["absolute", "dotted"])
+@pytest.mark.parametrize("spelled", ["absolute", "dotted", "from_above"])
 def test_a_freeform_file_outside_the_repo_stops_the_gather(
     tmp_path, monkeypatch, capsys, no_javascript_reader, spelled
 ):
@@ -425,8 +425,12 @@ def test_a_freeform_file_outside_the_repo_stops_the_gather(
     (tmp_path / "other").mkdir()
     outside = tmp_path / "other" / "x.js"
     outside.write_text("// x\n", encoding="utf-8")
-    monkeypatch.chdir(repo)
-    target = outside if spelled == "absolute" else "../other/x.js"
+    monkeypatch.chdir(tmp_path if spelled == "from_above" else repo)
+    target = {
+        "absolute": outside,
+        "dotted": "../other/x.js",
+        "from_above": "other/x.js",
+    }[spelled]
     code, printed, _ = _gather(repo, monkeypatch, capsys, target)
     assert code == 1, printed
     assert "x.js (outside the repository)" in printed

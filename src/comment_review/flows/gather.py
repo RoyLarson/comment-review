@@ -53,7 +53,6 @@ from comment_review.flows.read_diagnostics import format_failure
 from comment_review.flows.reading_context import context_for
 from comment_review.flows.source import source_of
 from comment_review.machine.repo import (
-    can_escape,
     path_index,
     relative_to,
     tracked_paths,
@@ -130,8 +129,9 @@ def _walk(g: Gathering) -> None:
         elif path.suffix.lower() in FREEFORM_SUFFIXES:
             rel = _repo_relative(path, g.repo)
             # A page outside the repo is refused at the write; nothing writes a
-            # freeform path through that check, so it is refused here.
-            if can_escape(rel):
+            # freeform path through that check, so it is refused here. Resolved,
+            # because a path relative to the cwd can read as inside the repo.
+            if not path.resolve().is_relative_to(g.repo):
                 g.unreadable.append(f"{rel} (outside the repository)")
             else:
                 freeform.add(rel)
