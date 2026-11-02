@@ -2,8 +2,8 @@
 
 ```
 Status:   in-progress
-Progress: 1 of 4 TODO tasks closed
-Plan-tasks: 6 of 9 plan tasks closed
+Progress: 3 of 4 TODO tasks closed
+Plan-tasks: 7 of 9 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-11-01 (decision-log #259, #260)
@@ -22,9 +22,9 @@ are freeform and answer UNCHECKED
 
 ### B - [lexer-and-language-findings](../../TODO/lexer-and-language-findings.md)
 
-- [ ] T40 | Remove `BY_EXT`, which nothing reads
+- [x] T40 | Remove `BY_EXT`, which nothing reads
 - [x] T42 | Move `NAMED_DEFS` into `concordance`
-- [ ] T44 | Move the comment-form readers out of `lexer.py` to the desk
+- [x] T44 | Move the comment-form readers out of `lexer.py` to the desk
 
 ## Plan Tasks
 
@@ -38,7 +38,8 @@ are freeform and answer UNCHECKED
       freeform paths to the binder
 - [x] P5 | Lexical languages uninstalled: READER_METADATA is empty, gather --languages lists language and extensions, every failing lexical test or row is deleted, and no Python or Rust row was lost by the per-function id check. uv run pytest -q: 5881 passed, 1 skipped. | e1bf4bfbf83e71c68589fe2707deb99a7fd5956f | Uninstall
       the lexical languages
-- [ ] P6 | Delete the lexical reader
+- [x] P6 | lexer.py and stripped.py deleted; language.py, readers.py, page.py reduced; pytest, ty, ruff, syntax and vocabulary gates passed; grep for lexical names empty | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | Delete
+      the lexical reader
 - [ ] P7 | Remove the closing docstring branch
 - [ ] P8 | Update the prose and the board for Python and Rust only
 - [x] P9 | gather lists source files with no reader on the binder, refuses one outside the repo, and passes over other walked files; partition and compose deal freeform paths; a freeform-only run passes topology, distribute, check and collate; full suite 6854 passed, 1 skipped | 27d3262931b68d602e97dcf33039d75c0e3f1b0b | Route

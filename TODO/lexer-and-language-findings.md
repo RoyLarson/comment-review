@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 27 of 70 tasks closed
+Progress: 29 of 70 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (/simplify rounds 1 and 2 and /code-review high round 3,
@@ -306,7 +306,8 @@ would.
       the Python `Language` row's grammar fields
         > 2026-10-17 Reason: `python.toml` states it; no Python read uses the row
         > 2026-10-17 Check: the Python row carries no grammar; reading suites pass
-- [ ] T40 | Remove `BY_EXT`, which nothing reads
+- [x] T40 | BY_EXT removed from reading/language.py; ty, ruff and pytest passed, 5825 passed | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | Remove
+      `BY_EXT`, which nothing reads
         > 2026-10-17 Reason: `language_for` rebuilds a Language on every call instead
         > 2026-10-17 Check: grep -rn BY_EXT src tests scripts finds nothing
 - [ ] T41 | Remove the grammar no reader reads from the toml, ini, yaml rows
@@ -319,7 +320,8 @@ would.
 - [ ] T43 | Remove the Annotations banner from `lexer.py`
         > 2026-10-17 Reason: nothing under it is an annotation
         > 2026-10-17 Check: grep finds no Annotations banner in reading/lexer.py
-- [ ] T44 | Move the comment-form readers out of `lexer.py` to the desk
+- [x] T44 | comment_form and its helpers moved out of lexer.py to reading/comment.py, not the desk, because paragraph.py cannot import the desk; pytest passed | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | Move
+      the comment-form readers out of `lexer.py` to the desk
         > 2026-10-17 Reason: only desk/marks/rules.py reads comment_form; Process #212
         > 2026-10-17 Check: lexer.py defines no comment_form or _comment_fragment
 - [ ] T45 | Inline `ESCAPE_WIDTH` into `_closes_a_character`
