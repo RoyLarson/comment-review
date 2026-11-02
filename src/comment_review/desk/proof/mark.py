@@ -886,8 +886,8 @@ def _change_problems(
             f"{where}: {constants.EMPTY_PATCH}: {instruction} needs `change` to"
             " hold the new text"
         ]
-    # One line of code still splits here at a form feed, NEL or line separator
-    # inside it, and each piece is refused on its own.
+    # splitlines also cuts one line of code at the non-line-ending separators
+    # constants.text_lines names; each piece is refused on its own.
     anchored = {line.strip() for line in anchor.splitlines() if filled(line)}
     carried = next(
         (line.strip() for line in change.splitlines() if line.strip() in anchored),
