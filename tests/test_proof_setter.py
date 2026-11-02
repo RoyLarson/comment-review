@@ -25,6 +25,8 @@ from comment_review.machine.repo import undraftable
 from comment_review.reading import stripped
 from comment_review.reading.addresser import cue_of
 from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, ReadStage
+from comment_review.reading.proof import UNPROVABLE, PreservationResult
+from comment_review.reading.rust.records import RustRead
 from comment_review.reading.stripped import code_fingerprint
 from comment_review.results import compositor, galley
 
@@ -327,6 +329,18 @@ def test_direct_proof_failed_fingerprint_kind_cannot_pass(monkeypatch, kind):
         "m.js", "const value = 1;\n", "const value = 1;\n", Path("m.js")
     )
     assert refusal is not None and refusal.step == "prove"
+
+
+def test_direct_proof_an_unprovable_comparison_cannot_pass(monkeypatch):
+    unprovable = PreservationResult(
+        False, (ReadDiagnostic(ReadStage.PLACE, UNPROVABLE, "not separated"),)
+    )
+    monkeypatch.setattr(RustRead, "preserved", lambda *_, **__: unprovable)
+    text = "const VALUE: i32 = 1;\n"
+    refusal = proof_setter._prove("m.rs", text, text, Path("m.rs"))
+    assert refusal is not None
+    assert refusal.step == "prove"
+    assert "cannot be proven unchanged" in refusal.why
 
 
 #: A replacement that is legal in each series -- a `c` carries its own
@@ -1741,8 +1755,9 @@ def test_a_replacement_cannot_carry_a_stated_line_ending(tmp_path, name, text, w
         ("m.js", "/** a */\n/** b\n\n    c */\n/** d */\nfunction f() {}\n", "a0"),
         ("m.java", "/** a */\n/** b\n\n    c */\n/** d */\nclass C {}\n", "a1"),
         ("m.py", '# x\n\n# y\n"""D"""\nx = 1\n', "a0"),
+        ("m.rs", "// x\n\n// y\n//! D\nfn f() {}\n", "a0"),
     ],
-    ids=["js", "ts", "go", "doc-js", "doc-java", "py"],
+    ids=["js", "ts", "go", "doc-js", "doc-java", "py", "rs"],
 )
 def test_a_drop_can_turn_a_neighbour_into_documentation(tmp_path, name, text, where):
     # The neighbour's kind changes between page and draft, and its text does not.
@@ -1776,6 +1791,18 @@ def test_the_interpreter_line_is_protected(name, comment, before, after):
     assert refused is not None
     assert refused.step == "prove"
     assert "protected-source-changed" in refused.why
+
+
+@pytest.mark.parametrize(
+    ("before", "after"),
+    [("#!/bin/sh\n# a\n", "#!/bin/rm\n# a\n"), ("# a\n", "#!/bin/rm\n# a\n")],
+    ids=["changed", "added"],
+)
+def test_python_reads_a_changed_interpreter_line_as_changed_code(before, after):
+    refused = proof_setter._prove("m.py", before, after, Path("m.py"))
+    assert refused is not None
+    assert refused.step == "prove"
+    assert "code-changed" in refused.why
 
 
 @pytest.mark.parametrize(
