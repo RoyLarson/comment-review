@@ -255,16 +255,21 @@ def test_zero_copies_accept_valid_empty_binders(tmp_path):
     assert verify.coverage_problems([], empty) == []
 
 
-def test_received_context_accepts_distinct_languages_and_empty_sheets(tmp_path):
+@pytest.mark.parametrize(
+    ("other", "language"), [("n.js", "javascript"), ("n.rs", "rust")], ids=["js", "rs"]
+)
+def test_received_context_accepts_distinct_languages_and_empty_sheets(
+    tmp_path, other, language
+):
     (tmp_path / "m.py").write_text("value = 1\n", encoding="utf-8")
-    (tmp_path / "n.js").write_text("const value = 1;\n", encoding="utf-8")
-    pages = [page_of(tmp_path / name, rel=name) for name in ("m.py", "n.js")]
+    (tmp_path / other).write_text("const value = 1;\n", encoding="utf-8")
+    pages = [page_of(tmp_path / name, rel=name) for name in ("m.py", other)]
     assert all(isinstance(page, Page) for page in pages)
     binder = bind(
         [page for page in pages if isinstance(page, Page)],
         read_from={"root": str(tmp_path), "revise": 0},
     )
-    assert {page.reading.language for page in binder.pages} == {"python", "javascript"}
+    assert {page.reading.language for page in binder.pages} == {"python", language}
     received = tuple(replace(binder, pages=(page,)) for page in binder.pages)
     copies = [returned(seed(shard, "block-context")) for shard in received]
     assert all(
