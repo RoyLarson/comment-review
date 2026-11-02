@@ -456,9 +456,27 @@ def test_direct_distribution_admits_context_before_saved_rows(
     assert path.read_bytes() == b"x = 1\n# old\ny = 2\n"
 
 
+@pytest.mark.parametrize(
+    ("other", "language", "reader", "compatibility"),
+    [
+        (
+            "n.js",
+            "javascript",
+            "javascript-lexical",
+            "4bd0cb92b7567787a95e70b289ba109084744cfcf6d2fb5b5a2da85d1ea822f4",
+        ),
+        (
+            "n.rs",
+            "rust",
+            "rust-lexical",
+            "31213f6e7cba0e4c21183f5be63d5cbafc4ffb1a900bbbe32d494f23dd83c26a",
+        ),
+    ],
+    ids=["js", "rs"],
+)
 @pytest.mark.parametrize("changed", [False, True])
 def test_saved_mixed_workflow_keeps_literal_context_through_proof(
-    tmp_path, monkeypatch, capsys, changed
+    tmp_path, monkeypatch, capsys, changed, other, language, reader, compatibility
 ):
     import json
 
@@ -468,7 +486,7 @@ def test_saved_mixed_workflow_keeps_literal_context_through_proof(
 
     root = tmp_path / "repo"
     root.mkdir()
-    sources = {"m.py": b"x = 1\n# old\ny = 2\n", "n.js": b""}
+    sources = {"m.py": b"x = 1\n# old\ny = 2\n", other: b""}
     for name, raw in sources.items():
         (root / name).write_bytes(raw)
     gathered = gather(root, [root / name for name in sources], 0)
@@ -478,13 +496,11 @@ def test_saved_mixed_workflow_keeps_literal_context_through_proof(
     wire = json.loads(binder_path.read_text(encoding="utf-8"))
     expected = {page["path"]: page["reading"] for page in wire["pages"]}
     assert expected["m.py"]["reader"] == "python-lexical"
-    assert expected["n.js"] == {
+    assert expected[other] == {
         "format": 1,
-        "language": "javascript",
-        "reader": "javascript-lexical",
-        "compatibility": (
-            "4bd0cb92b7567787a95e70b289ba109084744cfcf6d2fb5b5a2da85d1ea822f4"
-        ),
+        "language": language,
+        "reader": reader,
+        "compatibility": compatibility,
         "settings": {},
     }
     copies = []
@@ -529,7 +545,7 @@ def test_saved_mixed_workflow_keeps_literal_context_through_proof(
         assert code == 0, out
         wire = json.loads(copy.read_text(encoding="utf-8"))
         assert {sheet["path"]: sheet["reading"] for sheet in wire["sheets"]} == expected
-        assert next(s for s in wire["sheets"] if s["path"] == "n.js")["marks"] == []
+        assert next(s for s in wire["sheets"] if s["path"] == other)["marks"] == []
         copies += ["--edit-copy", str(copy)]
     proof_path = tmp_path / "proof.json"
     code, out = run_command(
@@ -968,7 +984,15 @@ def test_docket_refuses_contradictory_repeated_schedule_metadata():
     assert problems == ["m.py: two schedules for one page"]
 
 
-def test_saved_mixed_proof_transcribes_original_extra_destination(tmp_path):
+@pytest.mark.parametrize(
+    ("name", "text"),
+    [
+        ("other.js", "// old\nconst x = 1;\n"),
+        ("other.rs", "// old\nconst X: i32 = 1;\n"),
+    ],
+    ids=["js", "rs"],
+)
+def test_saved_mixed_proof_transcribes_original_extra_destination(tmp_path, name, text):
     import json
 
     from comment_review.desk.proof.master_proof import MasterProof
@@ -978,9 +1002,9 @@ def test_saved_mixed_proof_transcribes_original_extra_destination(tmp_path):
     from comment_review.flows.transcribe import docket_of_proof
 
     (tmp_path / "extra.py").write_text("# old\nx = 1\n", encoding="utf-8")
-    (tmp_path / "other.js").write_text("// old\nconst x = 1;\n", encoding="utf-8")
+    (tmp_path / name).write_text(text, encoding="utf-8")
     page = page_of(tmp_path / "extra.py", rel="extra.py")
-    other = page_of(tmp_path / "other.js", rel="other.js")
+    other = page_of(tmp_path / name, rel=name)
     assert not isinstance(page, ReadFailure)
     assert not isinstance(other, ReadFailure)
     place = Place(
