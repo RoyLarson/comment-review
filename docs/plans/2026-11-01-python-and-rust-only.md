@@ -3,7 +3,7 @@
 ```
 Status:   in-progress
 Progress: 1 of 4 TODO tasks closed
-Plan-tasks: 4 of 9 plan tasks closed
+Plan-tasks: 5 of 9 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-11-01 (decision-log #259, #260)
@@ -40,4 +40,5 @@ are freeform and answer UNCHECKED
 - [ ] P6 | Delete the lexical reader
 - [ ] P7 | Remove the closing docstring branch
 - [ ] P8 | Update the prose and the board for Python and Rust only
-- [ ] P9 | Route freeform files from gather to reviewers
+- [x] P9 | gather lists source files with no reader on the binder, refuses one outside the repo, and passes over other walked files; partition and compose deal freeform paths; a freeform-only run passes topology, distribute, check and collate; full suite 6854 passed, 1 skipped | 27d3262931b68d602e97dcf33039d75c0e3f1b0b | Route
+      freeform files from gather to reviewers
