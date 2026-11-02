@@ -49,7 +49,7 @@ class Held(NamedTuple):
 
     Attributes:
         text: the paragraph there, or "" where the place holds none.
-        anchor: a line of code, or every line of a unit, or "" if absent.
+        anchor: a line of code, or "" if absent.
     """
 
     text: str

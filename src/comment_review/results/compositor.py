@@ -53,7 +53,7 @@ from pathlib import Path
 from comment_review import constants, exceptions
 from comment_review.binder.page import Page
 from comment_review.machine.repo import write_raw
-from comment_review.reading.addresser import DECLARED, GAP, ON, cue_of
+from comment_review.reading.addresser import GAP, ON, cue_of
 from comment_review.reading.series import Kind
 
 CRLF = "\r\n"
@@ -258,17 +258,17 @@ def _set(page: Page, newline: str | None) -> tuple[str, dict[str, tuple[int, int
         # `f0` -- the defect this rule exists to close.
         adding_a_gap = bool(prose) and cue.startswith(GAP) and cue in absent
 
-        # !! THE CLOSING GAP IS EXEMPT, AND THE FOOT IS WHY. With no closing
-        # docstring, back matter is the run AFTER the last blank line -- the rule
-        # is `reading.matter`'s -- so a leading above an added closing `b`
+        # !! THE CLOSING GAP IS EXEMPT, AND THE FOOT IS WHY. Back matter is the
+        # run AFTER the last blank line -- the rule is `reading.matter`'s -- so a
+        # leading above an added closing `b`
         # pushes it INTO the matter it was meant to stay clear of: on `SAMPLE`,
         # `b4` with a leading still re-reads at `f1`, so the blank changes the
         # bytes and not the outcome.
         if adding_a_gap and not edge and at < last_code:
             out.append("")
         # !! AND AT THE FOOT IT GOES ON THE OTHER SIDE -- the head's rule in
-        # reverse. With no module or closing docstring, matter is the run that
-        # STARTS on line 1 or ENDS on the last one, so what pushes a gap out of it
+        # reverse. Matter is the run that STARTS on line 1 or ENDS on the last
+        # one, so what pushes a gap out of it
         # is a blank BEFORE at the head and a blank AFTER at the foot.
         # ! `...return y\n# ADDED\n` and
         # `...return y\n\n# ADDED\n` both re-read at `f1`;
@@ -277,18 +277,7 @@ def _set(page: Page, newline: str | None) -> tuple[str, dict[str, tuple[int, int
         #
         # ! OWED UNTIL THE PROSE IS SET, which is why it is held rather than
         # written here -- the blank belongs BELOW the paragraph.
-        #
-        # ! AND NOT OWED WHEN A CLOSING DOCSTRING IS SET BELOW IT: the gap then
-        # does not end on the last line, and the docstring is what parts it
-        # from the back matter.
-        trailing = (
-            adding_a_gap
-            and at > last_code
-            and not edges.get(cue)
-            and not any(
-                held.get(c) for c in reading[at + 1 :] if c.startswith(DECLARED)
-            )
-        )
+        trailing = adding_a_gap and at > last_code and not edges.get(cue)
         previous = cue
         # ! A `c` IS NEVER EMPTY IN THIS SENSE -- it sets its line of code
         # whether or not anything sits beside it.

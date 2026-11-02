@@ -436,6 +436,15 @@ class TestTheRulesBite:
         good["change"] = "    #: the corrected comment"
         assert problems("here", good) == []
 
+    @pytest.mark.parametrize("split", ["\x0c", "\x85", "\u2028"])
+    def test_a_change_carrying_a_piece_of_a_split_anchor_is_refused(self, split):
+        """One line of code holding one of these still splits at it, and a
+        change holding either piece is refused."""
+        bad = well_formed("correct")
+        bad["anchor"] = f'x = "a{split}b"'
+        bad["change"] = '# the corrected comment\nx = "a'
+        assert any("anchor's own line" in p for p in problems("here", bad))
+
     def test_a_mark_owing_sources_that_cites_nothing_is_refused(self):
         """! ADDED after a mutation survived: both source cases below pass a
         NON-EMPTY list, so the loop caught them and the guard above it was

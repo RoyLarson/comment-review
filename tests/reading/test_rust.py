@@ -1867,11 +1867,6 @@ def rust_read(text, definition):
     return result
 
 
-def test_rust_read_has_an_a_series_and_no_closing_docstring(rust_definition):
-    result = rust_read("fn f() {}\n/// after\n", rust_definition)
-    assert (result.a_series, result.closing_docstring) == (True, False)
-
-
 def projection_of(text, definition):
     """The read's paragraphs and its code lines."""
     result = rust_read(text, definition)
@@ -2516,14 +2511,6 @@ def test_projection_read_source_returns_the_rust_record():
     result = read_source(PAGE, "// note\nfn f() {}\n")
     assert isinstance(result, records.RustRead)
     assert result.paragraphs(PAGE) == [paragraph(1, 1, Kind.MATTER, ["// note"])]
-
-
-def test_a_rust_page_always_has_an_a_series():
-    from comment_review.reading.readers import read_source
-
-    result = read_source(PAGE, "")
-    assert isinstance(result, records.RustRead)
-    assert result.a_series is True
 
 
 def test_a_lost_or_moved_mark_is_protected_source():

@@ -297,22 +297,6 @@ class PythonRead:
 
         return code_lines_for(self)
 
-    @property
-    def a_series(self) -> bool:
-        """Whether the page has an `a` series: always, for Python.
-
-        Python documents its module, its classes and its functions.
-        """
-        return True
-
-    @property
-    def closing_docstring(self) -> bool:
-        """Whether the module's documentation can sit at the file's foot: never.
-
-        A string after the last statement is an expression, not `__doc__`.
-        """
-        return False
-
     def owner_at(self, declares_line: int | None) -> tuple[int | None, ...]:
         """The declaration documented from this anchor line; None for the module.
 

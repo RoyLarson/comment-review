@@ -69,8 +69,8 @@ class Paragraph:
     # an anchor has MANY addresses -- its own `a`, the `b` above it, the `c`
     # beside it, every `b` and `c` in its body -- and an address has ONE anchor.
     #
-    # !! IT IS ALWAYS CODE, VERBATIM -- a line of code, or every line of a unit,
-    # never a name and never a symbol. An `a` carries what DECLARES it,
+    # !! IT IS ALWAYS CODE, VERBATIM -- a line of code, never a name and never
+    # a symbol. An `a` carries what DECLARES it,
     # `def f():` and not `f`.
     anchor: str = ""
     # !! THE LINE THIS PLACE'S ANCHOR OPENS ON, so an anchor's OTHER places can
@@ -95,8 +95,7 @@ class Paragraph:
     # filling in for a missing value."*
     anchor_line: int | None = None
     # !! THE LINE A READER SAYS THIS DOC DECLARES FOR -- the declaration's own
-    # line, which can sit below the trigger line `anchor_line` holds (a Java
-    # unit's annotation opens above its `class`). `None` for the module's doc.
+    # line. `None` for the module's doc.
     # Only a reader sets it; the page reads it to choose the doc's place, then
     # sets `anchor_line` from that place.
     declares_line: int | None = None

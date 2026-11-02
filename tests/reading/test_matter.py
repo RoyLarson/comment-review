@@ -103,23 +103,7 @@ def test_with_no_module_docstring_a_blank_line_ends_the_front_matter():
     assert matter.front == range(1, 2)
 
 
-def test_with_a_closing_docstring_every_comment_below_it_is_back_matter():
-    # Line 5 is blank, and it ends nothing below the docstring on line 2.
-    matter = file_matter(6, 1, {3, 4, 6}, closing_doc=range(2, 3))
-    assert matter.back == range(3, 7)
-
-
-def test_a_blank_last_line_leaves_no_back_matter_below_a_closing_docstring():
-    matter = file_matter(5, 1, {3, 4}, closing_doc=range(2, 3))
-    assert matter.back == range(6, 6)
-
-
-def test_a_closing_docstring_on_the_last_line_leaves_no_back_matter():
-    matter = file_matter(4, 1, {3}, closing_doc=range(4, 5))
-    assert matter.back == range(5, 5)
-
-
-def test_with_no_closing_docstring_a_blank_line_ends_the_back_matter():
+def test_a_blank_line_ends_the_back_matter():
     matter = file_matter(6, 1, {2, 4, 6})
     assert matter.back == range(6, 7)
 

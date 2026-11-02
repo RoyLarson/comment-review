@@ -36,19 +36,19 @@ SHIPPED_DEFINITIONS = _shipped_definitions()
 INSTALLED_REGISTRY = LanguageRegistry(SHIPPED_DEFINITIONS)
 
 
-def line_comment_markers(path: Path) -> tuple[str, ...]:
-    """The markers that open a line comment in the path's language.
+def line_comment_marker(path: Path) -> str:
+    """The marker that opens a line comment in the path's language.
 
-    Python's definition file states its one `marker` under `comments`. Empty
+    Python's definition file states it as `marker` under `comments`. Empty
     when a definition does not: a language whose reader scans its own comments,
     as Rust's does, is split by that reader.
     """
     value = INSTALLED_REGISTRY.for_path(path)
     comments = value.rules.get("comments") if value is not None else None
     if not isinstance(comments, Mapping):
-        return ()
+        return ""
     marker = comments.get("marker")
-    return (marker,) if isinstance(marker, str) and marker else ()
+    return marker if isinstance(marker, str) else ""
 
 
 def documents_in_literals(path: Path) -> bool:

@@ -121,7 +121,7 @@ def paragraphs_for(path: Path, read: PythonRead) -> list[Paragraph] | ReadFailur
     coordinates = SourceCoordinates(text)
     lines = constants.text_lines(text)
     # A Python shebang or encoding line is a comment, so the matter opens on
-    # line 1. A closing string is code, so Python has no closing docstring.
+    # line 1.
     prose = _prose(read, coordinates)
     matter = file_matter(
         len(lines),

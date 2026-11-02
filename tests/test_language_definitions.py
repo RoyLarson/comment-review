@@ -721,13 +721,13 @@ def test_python_is_defined_by_its_own_file() -> None:
         INSTALLED_REGISTRY,
         SHIPPED_DEFINITIONS,
         documents_in_literals,
-        line_comment_markers,
+        line_comment_marker,
     )
 
     path = Path("m.py")
     assert [value.language for value in SHIPPED_DEFINITIONS] == ["python", "rust"]
     assert INSTALLED_REGISTRY.for_path(path) is SHIPPED_DEFINITIONS[0]
-    assert line_comment_markers(path) == ("#",)
+    assert line_comment_marker(path) == "#"
     assert documents_in_literals(path)
     assert not documents_in_literals(Path("m.rs"))
 

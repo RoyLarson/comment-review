@@ -45,7 +45,6 @@ from comment_review import constants
 from comment_review.reading.addresser import (
     COVERS,
     DECLARED,
-    EOF,
     GAP,
     LEAD,
     ON,
@@ -795,11 +794,7 @@ def page_for(
     code_lines = result.code_lines()
     got.extend(leading_between(got, text, [line.line for line in code_lines]))
     edges: dict[str, str] = {}
-    cues = cue(
-        code_lines,
-        a_series=result.a_series,
-        closing_docstring=result.closing_docstring,
-    )
+    cues = cue(code_lines)
     here = rel if rel is not None else path.as_posix()
     files = cues.file_places()
     last_line = len(constants.text_lines(text))
@@ -816,14 +811,8 @@ def page_for(
             place = files[0] if opens else files[-1]
         elif b.kind == Kind.DOCSTRING:
             # Documentation takes the `a` of the line its reader named; None is
-            # the module's, at `a0`, or at the `a` emitted at EOF when the
-            # reader anchors it there. A line that declares nothing is a reader
-            # bug.
-            place = (
-                cues.closing_documentation()
-                if b.anchor == EOF
-                else cues.documents(b.declares_line)
-            )
+            # the module's, at `a0`. A line that declares nothing is a reader bug.
+            place = cues.documents(b.declares_line)
             if not place:
                 return ReadFailure(
                     (

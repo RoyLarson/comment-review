@@ -143,7 +143,7 @@ class Mark:
         address: `path@cue`. WHICH PLACE -- seeded, copied from the row, never
             built. Empty only on a `clean`, the one type `substantive` is False
             for.
-        anchor: a line of code, or every line of a unit -- seeded, and empty
+        anchor: a line of code -- seeded, and empty
             where the gather resolved none.
         raw_text: the paragraph as it stands -- seeded -- or, on the types the
             marks table says carry their own, the paragraph as it will read.
@@ -687,7 +687,7 @@ class BlankMark:
 
     Attributes:
         address: `path@cue`, composed by `reading.addresser.address_for`.
-        anchor: a line of code, or every line of a unit, or "".
+        anchor: a line of code, or "".
         raw_text: the paragraph as it stands.
     """
 
@@ -873,9 +873,8 @@ def _change_problems(
     refused with the one message that names what is owed: the paragraph as
     RAW TEXT. The empty string is the edit only where `may_empty`; white space
     alone is an empty patch for every instruction. A `change` holding a line
-    equal to a line of the mark's `anchor`, whitespace aside, is refused: the
-    anchor is a line of code, or every line of a unit, and a change is the
-    paragraph alone.
+    equal to a piece of the mark's `anchor`, whitespace aside, is refused: the
+    anchor is a line of code, and a change is the paragraph alone.
     """
     if change is None:
         return [
@@ -887,6 +886,8 @@ def _change_problems(
             f"{where}: {constants.EMPTY_PATCH}: {instruction} needs `change` to"
             " hold the new text"
         ]
+    # One line of code still splits here at a form feed, NEL or line separator
+    # inside it, and each piece is refused on its own.
     anchored = {line.strip() for line in anchor.splitlines() if filled(line)}
     carried = next(
         (line.strip() for line in change.splitlines() if line.strip() in anchored),

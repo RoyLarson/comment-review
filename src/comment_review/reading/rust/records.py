@@ -378,20 +378,3 @@ class RustRead:
         from comment_review.reading.rust.projection import code_lines_for
 
         return code_lines_for(self)
-
-    @property
-    def a_series(self) -> bool:
-        """Whether the page has an `a` series: always, for Rust.
-
-        Rust documents its crate or module and its items.
-        """
-        return True
-
-    @property
-    def closing_docstring(self) -> bool:
-        """Whether the module's documentation can sit at the file's foot: never.
-
-        An inner doc after the first item, or an outer doc with no item after
-        it, does not compile.
-        """
-        return False

@@ -18,7 +18,7 @@ from comment_review.reading.definitions import LanguageDefinition
 from comment_review.reading.language import (
     INSTALLED_REGISTRY,
     documents_in_literals,
-    line_comment_markers,
+    line_comment_marker,
 )
 from comment_review.reading.series import Series
 
@@ -218,8 +218,8 @@ class _Grammar(NamedTuple):
     definition: LanguageDefinition | None
     #: Whether the language documents in string literals, as Python does.
     in_literals: bool
-    #: The markers that open a line comment.
-    markers: tuple[str, ...]
+    #: The marker that opens a line comment, or "" where the definition has none.
+    marker: str
     #: The reader's comment scanner, or None where the reader offers none.
     scanner: Callable[[str], tuple[CommentSpan, ...] | None] | None
 
@@ -242,7 +242,7 @@ def _grammar_for(suffix: str) -> _Grammar:
     return _Grammar(
         value,
         documents_in_literals(path),
-        tuple(sorted(line_comment_markers(path), key=len, reverse=True)),
+        line_comment_marker(path),
         scanner,
     )
 
@@ -344,7 +344,7 @@ def _comment_fragment(
 
     `marks` is the comment's opener, closer and the closer's offset in
     `raw_text`, as its reader scanned them, with an empty closer and -1 for a
-    line comment. Without them the language's line-comment markers apply.
+    line comment. Without them the language's line-comment marker applies.
     """
     definition, in_literals = grammar.definition, grammar.in_literals
     physical = raw_text.splitlines(keepends=True)
@@ -444,9 +444,9 @@ def _comment_fragment(
                 if found is not None:
                     body[n] = line[found.end() :]
                     starts[n] += found.end()
-    elif markers := (marks[:1] if marks is not None else grammar.markers):
-        marker = next((m for m in markers if lines[0].lstrip().startswith(m)), "")
-        if marker:
+    else:
+        marker = marks[0] if marks is not None else grammar.marker
+        if marker and lines[0].lstrip().startswith(marker):
             lead = indent + marker
             following = lines[0][len(lead) :]
             first = lead + following[: len(following) - len(following.lstrip())]
@@ -459,10 +459,11 @@ def _comment_fragment(
             body = []
             for n, line in enumerate(lines):
                 stripped = line.lstrip()
-                actual = next((m for m in markers if stripped.startswith(m)), "")
-                body.append(stripped[len(actual) :] if actual else line)
-                if actual:
-                    starts[n] += len(line) - len(stripped) + len(actual)
+                if stripped.startswith(marker):
+                    body.append(stripped[len(marker) :])
+                    starts[n] += len(line) - len(stripped) + len(marker)
+                else:
+                    body.append(line)
     sections = re.split(r"\n\s*\n", "\n".join(body))
     paragraphs = tuple(
         _join(section.splitlines()) for section in sections if section.strip()

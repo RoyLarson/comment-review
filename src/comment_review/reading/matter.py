@@ -2,25 +2,23 @@
 
 Every reader asks this one rule which of its runs are `Kind.MATTER`, and assigns
 the kind itself. What a reader hands in is its own: the line the matter may
-open on, the lines that are prose, the lines of its module and closing
-docstrings, and whether the file holds code. The rule learns no language.
+open on, the lines that are prose, the lines of its module docstring, and
+whether the file holds code. The rule learns no language.
 
 A PROSE line holds a comment that is not documentation and stands on its line
 alone, and holds no code. Every line such a comment stands on is prose, a blank
 line inside a delimited comment included, so a comment is never cut. A fully
 empty line between two comments is not prose, and neither is a line of a
-doc-marked run, so documentation ends a walk over prose lines. The module and
-closing docstrings are never matter. Other documentation is matter only where
-it lies inside a back matter below a closing docstring or in a file with no
-code, the two cases that take every line and not only prose lines.
+doc-marked run, so documentation ends a walk over prose lines. The module
+docstring is never matter. Other documentation is matter only in a file with no
+code, the one case that takes every line and not only prose lines.
 
 Front matter with a module docstring is every line from the opening line down
 to that docstring, whatever blank lines lie between. With none, it is the prose
 lines from the opening line down to the first line that is not prose.
 
-Back matter with a closing docstring is every line below it. With none, it is
-the prose lines from the file's last line upward to the first line that is not
-prose.
+Back matter is the prose lines from the file's last line upward to the first
+line that is not prose.
 
 In a file with no code, everything below the module docstring -- or below the
 front matter, with no docstring -- is one back matter, documentation inside it
@@ -74,7 +72,6 @@ def file_matter(
     prose: Collection[int],
     *,
     module_doc: range | None = None,
-    closing_doc: range | None = None,
     codeless: bool = False,
 ) -> Matter:
     """The front and back matter of a file of `total` lines.
@@ -86,7 +83,6 @@ def file_matter(
             a shebang that is not a comment.
         prose: the prose lines, as the module docstring defines them.
         module_doc: the lines of the docstring that opens the file's code.
-        closing_doc: the lines of the docstring that ends the file's code.
         codeless: the file holds no line of code; `module_doc` does not count
             as one.
     """
@@ -97,9 +93,7 @@ def file_matter(
         while line in prose:
             line += 1
         front = range(opens, line)
-    if closing_doc is not None:
-        below = closing_doc.stop
-    elif codeless:
+    if codeless:
         below = front.stop if module_doc is None else module_doc.stop
     else:
         below = total
