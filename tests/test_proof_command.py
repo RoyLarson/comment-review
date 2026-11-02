@@ -58,10 +58,11 @@ def proof_repository(tmp_path, before, suffix=".js"):
     return repo, target
 
 
+@pytest.mark.parametrize("suffix", [".js", ".rs"])
 @pytest.mark.parametrize("failed_side", ["current", "baseline", "both"])
 @pytest.mark.parametrize("stage", ["lex", "place"])
 def test_standalone_proof_admits_both_pages(
-    tmp_path, monkeypatch, capsys, failed_side, stage
+    tmp_path, monkeypatch, capsys, failed_side, stage, suffix
 ):
     from comment_review.commands import prove_unchanged as command
     from comment_review.flows import page_for
@@ -73,7 +74,7 @@ def test_standalone_proof_admits_both_pages(
     from comment_review.reading.source import SourceSpan
 
     before, after = "const value = 1; // before\r\n", "const value = 1; // after\r\n"
-    repo, target = proof_repository(tmp_path, before)
+    repo, target = proof_repository(tmp_path, before, suffix)
     target.write_bytes(after.encode("utf-8"))
     real_page_for = page_for.page_for
 
@@ -155,12 +156,13 @@ def test_standalone_cli_preserves_exact_mixed_unicode_snapshots(
     assert "PROVEN    source.py" in cli.stdout
 
 
+@pytest.mark.parametrize("suffix", [".c", ".rs"])
 def test_standalone_failed_or_unprovable_inputs_cannot_prove_equal(
-    tmp_path, monkeypatch, capsys
+    tmp_path, monkeypatch, capsys, suffix
 ):
     from comment_review.commands import prove_unchanged as command
 
-    repo, target = proof_repository(tmp_path, "int value = 1; /* open\r\n", ".c")
+    repo, target = proof_repository(tmp_path, "int value = 1; /* open\r\n", suffix)
     code, out = run_command(
         monkeypatch, capsys, command, "--repo", str(repo), "--base", "HEAD", str(target)
     )
@@ -182,12 +184,21 @@ def test_standalone_a_stated_line_ending_in_a_no_code_file_cannot_prove(
     assert "U+2028" in out
 
 
+@pytest.mark.parametrize(
+    ("text", "suffix"),
+    [
+        ("/* only prose */\r\n", ".c"),
+        ("/* only prose */\r\n", ".rs"),
+        ("# only prose\r\n", ".py"),
+    ],
+    ids=["c", "rs", "py"],
+)
 def test_standalone_a_file_with_no_code_line_proves_under_its_row(
-    tmp_path, monkeypatch, capsys
+    tmp_path, monkeypatch, capsys, text, suffix
 ):
     from comment_review.commands import prove_unchanged as command
 
-    repo, target = proof_repository(tmp_path, "/* only prose */\r\n", ".c")
+    repo, target = proof_repository(tmp_path, text, suffix)
     code, out = run_command(
         monkeypatch, capsys, command, "--repo", str(repo), "--base", "HEAD", str(target)
     )
@@ -210,13 +221,33 @@ def test_standalone_failed_fingerprint_kind_refuses_before_equality(
     assert any("UNPROVABLE" in message for message in report.messages)
 
 
+def test_standalone_an_unprovable_comparison_refuses_at_equal_text(
+    tmp_path, monkeypatch
+):
+    from comment_review.flows import prove_unchanged
+    from comment_review.reading.diagnostics import ReadDiagnostic, ReadStage
+    from comment_review.reading.proof import UNPROVABLE, PreservationResult
+    from comment_review.reading.rust.records import RustRead
+
+    repo, target = proof_repository(tmp_path, "const VALUE: i32 = 1;\r\n", ".rs")
+    unprovable = PreservationResult(
+        False, (ReadDiagnostic(ReadStage.PLACE, UNPROVABLE, "not separated"),)
+    )
+    monkeypatch.setattr(RustRead, "preserved", lambda *_, **__: unprovable)
+    report = prove_unchanged.run(repo, "HEAD", [target])
+    assert report.failures == 1
+    assert all("PROVEN" not in message for message in report.messages)
+    assert any("UNPROVABLE" in message for message in report.messages)
+
+
+@pytest.mark.parametrize("suffix", [".js", ".rs"])
 @pytest.mark.parametrize("failed_side", ["current", "baseline"])
 def test_standalone_strict_decode_failure_refuses(
-    tmp_path, monkeypatch, capsys, failed_side
+    tmp_path, monkeypatch, capsys, failed_side, suffix
 ):
     from comment_review.commands import prove_unchanged as command
 
-    repo, target = proof_repository(tmp_path, "const value = 1;\r\n")
+    repo, target = proof_repository(tmp_path, "const value = 1;\r\n", suffix)
     target.write_bytes(b"\xff")
     if failed_side == "baseline":
         for args in (
@@ -246,7 +277,9 @@ def test_standalone_strict_decode_failure_refuses(
     assert "decode/invalid-utf8" in out and "byte offset 0" in out
 
 
-@pytest.mark.parametrize("text,suffix", [("", ".js"), ("# comment\r\n", ".py")])
+@pytest.mark.parametrize(
+    "text,suffix", [("", ".js"), ("", ".rs"), ("# comment\r\n", ".py")]
+)
 def test_standalone_empty_and_supported_comment_only_success(
     tmp_path, monkeypatch, capsys, text, suffix
 ):
@@ -260,11 +293,12 @@ def test_standalone_empty_and_supported_comment_only_success(
     assert "PROVEN" in out
 
 
-def test_standalone_absent_baseline_is_explicit(tmp_path, monkeypatch, capsys):
+@pytest.mark.parametrize("suffix", [".js", ".rs"])
+def test_standalone_absent_baseline_is_explicit(tmp_path, monkeypatch, capsys, suffix):
     from comment_review.commands import prove_unchanged as command
 
-    repo, _ = proof_repository(tmp_path, "const value = 1;\r\n")
-    target = repo / "pkg" / "new.js"
+    repo, _ = proof_repository(tmp_path, "const value = 1;\r\n", suffix)
+    target = repo / "pkg" / f"new{suffix}"
     target.write_bytes(b"const value = 1;\r\n")
     code, out = run_command(
         monkeypatch,
@@ -277,13 +311,16 @@ def test_standalone_absent_baseline_is_explicit(tmp_path, monkeypatch, capsys):
         str(target),
     )
     assert code == 1
-    assert "no HEAD:./new.js" in out
+    assert f"no HEAD:./new{suffix}" in out
 
 
-def test_standalone_sibling_endings_refuse_mismatch(tmp_path, monkeypatch, capsys):
+@pytest.mark.parametrize("suffix", [".js", ".rs"])
+def test_standalone_sibling_endings_refuse_mismatch(
+    tmp_path, monkeypatch, capsys, suffix
+):
     from comment_review.commands import prove_unchanged as command
 
-    repo, target = proof_repository(tmp_path, "const value = 1;\r\n")
+    repo, target = proof_repository(tmp_path, "const value = 1;\r\n", suffix)
     target.write_bytes(b"const value = 1;\n")
     code, out = run_command(
         monkeypatch, capsys, command, "--repo", str(repo), "--base", "HEAD", str(target)
