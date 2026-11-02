@@ -3,7 +3,7 @@
 ```
 Status:   in-progress
 Progress: 1 of 4 TODO tasks closed
-Plan-tasks: 5 of 9 plan tasks closed
+Plan-tasks: 6 of 9 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-11-01 (decision-log #259, #260)
@@ -36,7 +36,8 @@ are freeform and answer UNCHECKED
       UNCHECKED for a file no reader claims
 - [x] P4 | Binder.freeform and VERSION 4 verified: 9 new tests red then green, full suite 6836 passed, ruff/ty/shipped-syntax/vocabulary pass | 30754af6f0450f69dfa82fa491e99305471bc928 | Add
       freeform paths to the binder
-- [ ] P5 | Uninstall the lexical languages
+- [x] P5 | Lexical languages uninstalled: READER_METADATA is empty, gather --languages lists language and extensions, every failing lexical test or row is deleted, and no Python or Rust row was lost by the per-function id check. uv run pytest -q: 5881 passed, 1 skipped. | e1bf4bfbf83e71c68589fe2707deb99a7fd5956f | Uninstall
+      the lexical languages
 - [ ] P6 | Delete the lexical reader
 - [ ] P7 | Remove the closing docstring branch
 - [ ] P8 | Update the prose and the board for Python and Rust only
