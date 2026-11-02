@@ -3,7 +3,7 @@
 ```
 Status:   in-progress
 Progress: 1 of 4 TODO tasks closed
-Plan-tasks: 2 of 9 plan tasks closed
+Plan-tasks: 3 of 9 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-11-01 (decision-log #259, #260)
@@ -32,7 +32,8 @@ are freeform and answer UNCHECKED
       the tests that lean on a lexical language
 - [x] P2 | NAMED_DEFS and leading_between moved to their users, two tests moved and run; ruff, ty, gates clean; pytest 6823 passed | 3cdbe205743d9260e7f4cf763519c50f66de7258 | Move
       NAMED_DEFS and leading_between to their users
-- [ ] P3 | Answer UNCHECKED for a file no reader claims
+- [x] P3 | prove_unchanged answers UNCHECKED for a file no reader claims; summary never counts it proven; reader failure still exits 1; tests, ruff, ty, shipped syntax, vocabulary and pytest pass | 3531369c45f58d4b768c0336b76ab060ec994ea6 | Answer
+      UNCHECKED for a file no reader claims
 - [ ] P4 | Add freeform paths to the binder
 - [ ] P5 | Uninstall the lexical languages
 - [ ] P6 | Delete the lexical reader
