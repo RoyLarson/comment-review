@@ -6090,3 +6090,38 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   without the `mark` and address machinery of the reviewer brief. Python and Rust reviewers keep
   filing marks on an edit copy.
 
+- **#267.** **A stop holds the run at its stage** (Roy, 2026-11-02, on how a run resumes after the
+  stage 7a audit stops: *"stops the run to me meant - doesn't move to the next stage until fixed,
+  not everything gets junked and retried. That would be a big waste of effort for something that
+  can be edited to be correct"*).
+
+  **What it settles.** #263's stop stands with this meaning. A change the audit cannot tie to a
+  settled finding is edited out of the draft and audited again; a failing check is edited and run
+  again, and reaches the author when the failure comes from code no finding touched. No commit
+  moves the pre-edit ref, and nothing is thrown away.
+
+- **#268.** **Human review is the check on freeform code** (Roy, 2026-11-02, on the audit matching
+  hunks by eye: *"so what, that is the risk of the freeform and why there is human review and a
+  final pass of the agents"*; on an author edit that changes code: *"they are the author they fix
+  what they want"*).
+
+  **What it settles.** The freeform audit stays a reading, with no tool behind it. An author's edit
+  takes no check beyond the compile step. The author's review and stage 8 carry that risk.
+
+- **#269.** **The copy chief composes a code concern's answer** (Roy, 2026-11-02, asking why three
+  roles cost three resumes: *"Why not one resume"*; on the chief composing it, after merge: *"should
+  work"*).
+
+  **What it settles.** A code concern on a page goes as one question to the author, and the copy
+  chief composes the result, as it already does for a freeform query. This amends #197 for code
+  concerns, and needs a backend change because `flows/human.py` matches answers by role and place.
+  It lands after the merge.
+
+- **#270.** **A freeform reviewer's edited copy is its finding** (Roy, 2026-11-02, shown that the
+  reviewers' edited copies go unread and that `current` and `at` fit neither an `add` nor a string:
+  *"yes"*).
+
+  **What it settles.** Extending #266, the reviewer edits its copy and returns reason and source per
+  line, and the diff supplies the text. `current` and `replacement` leave the findings. How the
+  chief merges two roles' diffs is open.
+

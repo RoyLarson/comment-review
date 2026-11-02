@@ -416,8 +416,9 @@ When it refuses, it prints what refused and where; read that, fix the input, and
    <run-dir>/freeform-build`.
 
 The check passes when the second run passes everything the baseline passed. When it fails
-something the baseline passed, write nothing, and bring the author the output and the files it
-names. A language with no formatter or no check command, one whose command cannot run in the
+something the baseline passed, hold the run at this stage: edit the draft until it passes, and run
+the check again. When the failure comes from code no finding touched, bring the author the output
+and the files it names. A language with no formatter or no check command, one whose command cannot run in the
 worktree, or one whose baseline passes nothing is reported as not verified.
 
 Then audit each draft:
@@ -427,8 +428,8 @@ git diff --no-index -U0 <path> <run-dir>/freeform/draft/<path>
 ```
 
 Every changed line belongs to a settled finding, and every settled finding has its change. Any
-other change stops the run: write nothing, and bring the author the hunk. The command exits 1 when
-the files differ.
+other change holds the run at this stage: edit the draft until the change is gone, and audit it
+again. Nothing is presented until the audit passes. The command exits 1 when the files differ.
 
 Present to the author, grouped by instruction, most consequential first. Use the
 closed proof's decided text and the drafts for the proposed result. The chief's
