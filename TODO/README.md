@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (138)
+### open  (140)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -320,6 +320,8 @@ that changed a published name or rule:
 | [language-reader-lua](language-reader-lua.md) | backend | -- | 1/9 | Lua lexical reader |
 | [edit-path-isolation](edit-path-isolation.md) | backend | -- | 0/2 | Isolate the edit path from comment reading |
 | [one-reader-builder](one-reader-builder.md) | backend | -- | 0/10 | One reader builder from each language's definition |
+| [python-and-rust-only](python-and-rust-only.md) | backend | -- | 0/1 | Remove the languages with no reader of their own |
+| [freeform-agent-prose](freeform-agent-prose.md) | agents | -- | 0/1 | Tell the agents how to work a freeform file |
 
 ### in-progress  (17)
 
