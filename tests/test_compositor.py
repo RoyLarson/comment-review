@@ -20,15 +20,12 @@ from comment_review.results import compositor, galley
 from comment_review.results.compositor import line_endings, set_page
 
 
-@pytest.mark.parametrize(
-    ("name", "message"),
-    [
-        ("broken.c", "Comment has no closing delimiter before end of source"),
-        ("broken.rs", "unterminated comment"),
-    ],
-    ids=["c", "rs"],
-)
-def test_failed_page_is_reported_before_setting(tmp_path, monkeypatch, name, message):
+def test_failed_page_is_reported_before_setting(
+    tmp_path,
+    monkeypatch,
+):
+    name = "broken.rs"
+    message = "unterminated comment"
     from comment_review.flows.compositor import round_trip
     from comment_review.reading.diagnostics import ReadFailure
 
@@ -164,15 +161,12 @@ def test_rendering_refusal_retains_context(tmp_path, monkeypatch, capsys):
     assert "place/unsupported-placement" in capsys.readouterr().out
 
 
-@pytest.mark.parametrize(
-    ("name", "raw"),
-    [
-        ("sample.c", b"int x;\r\n/* open"),
-        ("sample.rs", b"const X: i32 = 1;\r\n/* open"),
-    ],
-    ids=["c", "rs"],
-)
-def test_read_failure_reports_retained_location(tmp_path, capsys, name, raw):
+def test_read_failure_reports_retained_location(
+    tmp_path,
+    capsys,
+):
+    name = "sample.rs"
+    raw = b"const X: i32 = 1;\r\n/* open"
     from comment_review.commands.compositor import main
 
     path = tmp_path / name
@@ -273,11 +267,10 @@ def test_the_trailing_newline_is_the_FILE_S(name, text):
 @pytest.mark.parametrize(
     ("name", "code", "marker"),
     [
-        ("m.js", "let x;", "//"),
         ("m.rs", "const X: i32 = 1;", "//"),
         ("m.py", "x = 1", "#"),
     ],
-    ids=["js", "rs", "py"],
+    ids=["rs", "py"],
 )
 @pytest.mark.parametrize(
     ("text", "where", "replacement", "expected"),
@@ -311,13 +304,6 @@ def test_no_line_is_invented_or_lost(name, text):
     ("name", "text", "expected"),
     [
         (
-            "m.js",
-            "// a\nlet x;\n\n// b\n// c\nlet y; // d\n",
-            {"b1": (4, 5), "c1": (6, 6)},
-        ),
-        ("m.js", "/* f\n */\nlet x;\n", {"f0": (1, 2)}),
-        ("m.js", "", {}),
-        (
             "m.rs",
             "// a\nconst X: i32 = 1;\n\n// b\n// c\nconst Y: i32 = 2; // d\n",
             {"b1": (4, 5), "c1": (6, 6)},
@@ -326,9 +312,6 @@ def test_no_line_is_invented_or_lost(name, text):
         ("m.rs", "", {}),
     ],
     ids=[
-        "gap-and-margin",
-        "matter",
-        "empty",
         "rs-gap-and-margin",
         "rs-matter",
         "rs-empty",
@@ -344,15 +327,9 @@ def test_spans_name_the_lines_each_place_is_set_on(name, text, expected):
     assert set_page(page) == text
 
 
-@pytest.mark.parametrize(
-    ("name", "text"),
-    [
-        ("m.js", "let w;\n// a\nlet x;\n// b\nlet y;\n"),
-        ("m.rs", "fn w() {}\n// a\nfn x() {}\n// b\nfn y() {}\n"),
-    ],
-    ids=["js", "rs"],
-)
-def test_spans_follow_a_place_that_grew(name, text):
+def test_spans_follow_a_place_that_grew():
+    name = "m.rs"
+    text = "fn w() {}\n// a\nfn x() {}\n// b\nfn y() {}\n"
     page = build(text, name)
     gaps = [c for c, b in by_cue(page).items() if b.raw_lines == ["// a"]]
     below = [c for c, b in by_cue(page).items() if b.raw_lines == ["// b"]]
@@ -476,13 +453,6 @@ class TestAnEditedPageStillComposes:
     ("name", "text"),
     [
         (
-            "m.c",
-            "int x = 1; /* this comment\n"
-            "              wraps onto a second line\n"
-            "              and a third */\n"
-            "int y = 2;\n",
-        ),
-        (
             "m.rs",
             "const X: i32 = 1; /* this comment\n"
             "              wraps onto a second line\n"
@@ -490,7 +460,7 @@ class TestAnEditedPageStillComposes:
             "const Y: i32 = 2;\n",
         ),
     ],
-    ids=["c", "rs"],
+    ids=["rs"],
 )
 class TestAWrappedTrailingCommentIsONEPlace:
     """!! THE SHAPE THAT SETTLED `original_column` -- `decision-log.md Process:
@@ -498,7 +468,7 @@ class TestAWrappedTrailingCommentIsONEPlace:
     build or use a wrapped trailing comment. The Series/Cue system handles that
     case piece-of-cake."*
 
-        int x = 1; /* this comment
+        let x = 1; /* this comment
                       wraps onto a second line
                       and a third */
 
@@ -606,14 +576,6 @@ def test_a_docstring_continued_by_a_backslash_is_set_back_with_its_continuation(
 
 
 @pytest.mark.parametrize(
-    ("name", "code"),
-    [
-        ("m.js", "function main() {}"),
-        ("m.ts", "function main() {}"),
-        ("m.rs", "fn main() {}"),
-    ],
-)
-@pytest.mark.parametrize(
     ("place", "prose", "expected"),
     [
         (
@@ -630,8 +592,10 @@ def test_a_docstring_continued_by_a_backslash_is_set_back_with_its_continuation(
     ids=["f0", "a0"],
 )
 def test_filling_the_head_of_a_shebang_file_keeps_the_shebang_on_line_one(
-    name, code, place, prose, expected
+    place, prose, expected
 ):
+    name = "m.rs"
+    code = "fn main() {}"
     from comment_review.results.galley import reset
 
     page = build(f"#!/usr/bin/env node\n{code}\n", name)
@@ -640,124 +604,8 @@ def test_filling_the_head_of_a_shebang_file_keeps_the_shebang_on_line_one(
 
 
 @pytest.mark.parametrize(
-    ("text", "places", "expected"),
-    [
-        ("/** One. */\n", {"a1": "/** Two. */"}, "/** One. */\n/** Two. */\n"),
-        ("/** One. */\n", {"a0": None, "a1": "/** Two. */"}, "/** Two. */\n"),
-        (
-            "// Licence.\n\n/** Doc. */\n",
-            {"b0": "// Note.", "a1": "/** End. */"},
-            "// Licence.\n\n/** Doc. */\n// Note.\n/** End. */\n",
-        ),
-        ("class A {}\n", {"a2": "/** Two. */"}, "class A {}\n/** Two. */\n"),
-        (
-            "class A {}\n",
-            {"b1": "// Gap.", "a2": "/** End. */"},
-            "class A {}\n// Gap.\n/** End. */\n",
-        ),
-        (
-            "class A {}\n/** End. */\n",
-            {"b1": "// Gap."},
-            "class A {}\n// Gap.\n/** End. */\n",
-        ),
-    ],
-    ids=[
-        "below-a0",
-        "a0-empty",
-        "gap-and-closing",
-        "below-code",
-        "gap-and-closing-below-code",
-        "gap-above-a-held-closing",
-    ],
-)
-def test_an_added_closing_docstring_is_set_in_reading_order_and_nothing_more(
-    text, places, expected
-):
-    # The places are set f0 a0 b0 a1 f1, and no line is set that no place
-    # holds.
-    from comment_review.results.galley import reset
-
-    page = build(text, "m.js")
-    assert reset(page, places) == []
-    assert set_page(page) == expected
-
-
-@pytest.mark.parametrize(
-    ("name", "text", "place", "prose", "replaced"),
-    [
-        (
-            "m.js",
-            "y = 0;\n/* a\n b */ x = 1;\n// c\nfunction g() {}\n",
-            "a1",
-            "/** G */",
-            "// c",
-        ),
-        (
-            "m.js",
-            "function f() {}\n/** a\n b */ x = 1;\n/** D */\nfunction g() {}\n",
-            "a2",
-            "/** G */",
-            "/** D */",
-        ),
-        (
-            "m.js",
-            "/** a\n b */ x = 1;\n/** D */\nfunction g() {}\n",
-            "a1",
-            "/** G */",
-            "/** D */",
-        ),
-        (
-            "m.lua",
-            "local a = 1\n--[[ a\n b ]] x = 1\n-- c\nlocal function g() end\n",
-            "a1",
-            "--- G",
-            "-- c",
-        ),
-        (
-            "m.js",
-            "function f() {}\n/* a\n b */ x = 1;\n\n// c\nfunction g() {}\n",
-            "a2",
-            "/** G */",
-            "// c",
-        ),
-    ],
-    ids=[
-        "plain-facing",
-        "doc-facing",
-        "doc-facing-head",
-        "lua",
-        "blank-between",
-    ],
-)
-def test_filling_the_a_below_a_closing_line_with_code_keeps_that_line(
-    name, text, place, prose, replaced
-):
-    # The `a` holds only its own run's lines, so the closing line and its
-    # statement above it are set back as they were.
-    from comment_review.results.galley import reset
-
-    page = build(text, name)
-    assert reset(page, {place: prose}) == []
-    assert set_page(page) == text.replace(replaced, prose)
-
-
-@pytest.mark.parametrize(
     ("name", "text", "places", "expected"),
     [
-        ("m.js", "/** Doc. */\n", {"f0": "// licence"}, "// licence\n/** Doc. */\n"),
-        ("m.js", "// licence\n", {"a0": "/** Doc. */"}, "// licence\n/** Doc. */\n"),
-        (
-            "m.js",
-            "let x = 1;\n",
-            {"f0": "// licence", "a0": "/** Doc. */"},
-            "// licence\n/** Doc. */\nlet x = 1;\n",
-        ),
-        (
-            "m.js",
-            "#!/usr/bin/env node\nlet x = 1;\n",
-            {"f0": "#!/usr/bin/env node\n// licence", "a0": "/** Doc. */"},
-            "#!/usr/bin/env node\n// licence\n/** Doc. */\nlet x = 1;\n",
-        ),
         (
             "m.py",
             "x = 1\n",
@@ -779,10 +627,6 @@ def test_filling_the_a_below_a_closing_line_with_code_keeps_that_line(
         ),
     ],
     ids=[
-        "doc-only",
-        "matter-only",
-        "code-only",
-        "shebang",
         "python",
         "rs-matter-only",
         "rs-code-only",
@@ -843,11 +687,10 @@ MARK = "\ufeff"
 @pytest.mark.parametrize(
     ("name", "code", "added"),
     [
-        ("a.java", "class A {}", "// added"),
         ("a.rs", "fn f() {}", "// added"),
         ("a.py", "x = 1", "# added"),
     ],
-    ids=["java", "rs", "py"],
+    ids=["rs", "py"],
 )
 @pytest.mark.parametrize("cue", ["f0", "a0", "b0"])
 def test_a_head_add_sets_the_mark_first(cue, name, code, added):
@@ -860,12 +703,9 @@ def test_a_head_add_sets_the_mark_first(cue, name, code, added):
     assert text.count(MARK) == 1
 
 
-@pytest.mark.parametrize(
-    ("name", "code"),
-    [("a.c", "int x;"), ("a.rs", "const X: i32 = 1;")],
-    ids=["c", "rs"],
-)
-def test_a_dropped_first_paragraph_keeps_the_mark(name, code):
+def test_a_dropped_first_paragraph_keeps_the_mark():
+    name = "a.rs"
+    code = "const X: i32 = 1;"
     from comment_review.results.galley import reset
 
     page = build(f"{MARK}// c\n{code}\n", name)
@@ -873,15 +713,9 @@ def test_a_dropped_first_paragraph_keeps_the_mark(name, code):
     assert set_page(page) == f"{MARK}{code}\n"
 
 
-@pytest.mark.parametrize(
-    ("name", "text"),
-    [
-        ("a.c", MARK + 'int x;\nchar *s = "' + MARK + '";\n'),
-        ("a.rs", MARK + 'const X: i32 = 1;\nconst S: &str = "' + MARK + '";\n'),
-    ],
-    ids=["c", "rs"],
-)
-def test_a_mark_inside_a_later_string_stays(name, text):
+def test_a_mark_inside_a_later_string_stays():
+    name = "a.rs"
+    text = MARK + 'const X: i32 = 1;\nconst S: &str = "' + MARK + '";\n'
     from comment_review.results.galley import reset
 
     page = build(text, name)
@@ -891,12 +725,10 @@ def test_a_mark_inside_a_later_string_stays(name, text):
     assert out.count(MARK) == 2
 
 
-@pytest.mark.parametrize(
-    ("name", "x", "y"),
-    [("a.c", "int x;", "int y;"), ("a.rs", "const X: i32 = 1;", "const Y: i32 = 2;")],
-    ids=["c", "rs"],
-)
-def test_a_patched_head_does_not_edit_a_later_paragraph_holding_a_mark(name, x, y):
+def test_a_patched_head_does_not_edit_a_later_paragraph_holding_a_mark():
+    name = "a.rs"
+    x = "const X: i32 = 1;"
+    y = "const Y: i32 = 2;"
     from comment_review.results.galley import reset
 
     text = f"{MARK}// c\n{x}\n/* one\n{MARK}two */\n{y}\n"
@@ -905,8 +737,8 @@ def test_a_patched_head_does_not_edit_a_later_paragraph_holding_a_mark(name, x, 
     assert set_page(page) == text.replace("// c", "// patched")
 
 
-@pytest.mark.parametrize("name", ["a.c", "a.rs"])
-def test_an_emptied_marked_file_is_the_mark_alone(name):
+def test_an_emptied_marked_file_is_the_mark_alone():
+    name = "a.rs"
     from comment_review.results.galley import reset
 
     page = build(MARK + "// c\n", name)
@@ -917,16 +749,7 @@ def test_an_emptied_marked_file_is_the_mark_alone(name):
 @pytest.mark.parametrize(
     ("text", "name"),
     [
-        (MARK + "// c\n" + MARK + "int x;\n", "a.c"),
-        (MARK + "\n" + MARK + "int x;\n", "a.c"),
-        (MARK + "# c\n" + MARK + "x=1\n", "a.sh"),
-        (MARK + "// c\n" + MARK + "// d\nint x;\n", "a.c"),
         (MARK + "// c\n" + MARK + "// d\nfn f() {}\n", "a.rs"),
-        (MARK + "// c\n" + MARK + "// d\nclass A {}\n", "a.java"),
-        (MARK + "// c\n" + MARK + "\nint x;\n", "a.c"),
-        (MARK + "\n" + MARK + "\nint x;\n", "a.c"),
-        (MARK + "/* c */\n" + MARK + "\nint x;\n", "a.c"),
-        (MARK + "# c\n" + MARK + "#\nx=1\n", "a.sh"),
         (MARK + "// c\n" + MARK + "const X: i32 = 1;\n", "a.rs"),
         (MARK + "\n" + MARK + "const X: i32 = 1;\n", "a.rs"),
         (MARK + "// c\n" + MARK + "\nconst X: i32 = 1;\n", "a.rs"),

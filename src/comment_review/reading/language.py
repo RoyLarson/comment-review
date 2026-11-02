@@ -657,27 +657,7 @@ class ReaderMetadata:
         return self.capabilities[-1]
 
 
-READER_METADATA = MappingProxyType(
-    {
-        "go": ReaderMetadata("go-lexical", "1", ("comments", "lexical")),
-        "c": ReaderMetadata("c-lexical", "1", ("comments", "lexical")),
-        "cpp": ReaderMetadata("cpp-lexical", "1", ("comments", "lexical")),
-        "java": ReaderMetadata("java-lexical", "1", ("comments", "lexical")),
-        "csharp": ReaderMetadata("csharp-lexical", "1", ("comments", "lexical")),
-        "swift": ReaderMetadata("swift-lexical", "1", ("comments", "lexical")),
-        "kotlin": ReaderMetadata("kotlin-lexical", "1", ("comments", "lexical")),
-        "javascript": ReaderMetadata(
-            "javascript-lexical", "1", ("comments", "lexical")
-        ),
-        "typescript": ReaderMetadata(
-            "typescript-lexical", "1", ("comments", "lexical")
-        ),
-        "ruby": ReaderMetadata("ruby-lexical", "1", ("comments", "lexical")),
-        "shell": ReaderMetadata("shell-lexical", "1", ("comments", "lexical")),
-        "sql": ReaderMetadata("sql-lexical", "1", ("comments", "lexical")),
-        "lua": ReaderMetadata("lua-lexical", "1", ("comments", "lexical")),
-    }
-)
+READER_METADATA: Mapping[str, ReaderMetadata] = MappingProxyType({})
 
 INSTALLED_DEFINITIONS = tuple(
     LanguageDefinition(

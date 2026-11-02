@@ -53,7 +53,7 @@ def main() -> int:
     ap.add_argument(
         "--languages",
         action="store_true",
-        help="list known languages and the tier each reaches, then exit",
+        help="list known languages and their extensions, then exit",
     )
     ap.add_argument("--reading-settings", type=Path, metavar="FILE")
     args = ap.parse_args()
@@ -105,11 +105,10 @@ def _report(args: argparse.Namespace) -> int:
             for diagnostic in registry.diagnostics:
                 print(diagnostic.message, file=sys.stderr)
             return 2
-        print(f"{'language':<10} {'tier':<11} extensions")
+        print(f"{'language':<10} extensions")
         for definition in supported_definitions(registry):
             exts = " ".join(definition.suffixes)
-            tier = definition.capabilities[-1]
-            print(f"{definition.language:<10} {tier:<11} {exts}")
+            print(f"{definition.language:<10} {exts}")
         print(
             "\nA suffix not listed is freeform if it is source. Otherwise a named"
             " file stops the gather and a walked one is passed over."

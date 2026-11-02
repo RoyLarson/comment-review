@@ -456,28 +456,17 @@ def test_direct_distribution_admits_context_before_saved_rows(
     assert path.read_bytes() == b"x = 1\n# old\ny = 2\n"
 
 
-@pytest.mark.parametrize(
-    ("other", "language", "reader", "compatibility"),
-    [
-        (
-            "n.js",
-            "javascript",
-            "javascript-lexical",
-            "4bd0cb92b7567787a95e70b289ba109084744cfcf6d2fb5b5a2da85d1ea822f4",
-        ),
-        (
-            "n.rs",
-            "rust",
-            "rust-lexical",
-            "31213f6e7cba0e4c21183f5be63d5cbafc4ffb1a900bbbe32d494f23dd83c26a",
-        ),
-    ],
-    ids=["js", "rs"],
-)
 @pytest.mark.parametrize("changed", [False, True])
 def test_saved_mixed_workflow_keeps_literal_context_through_proof(
-    tmp_path, monkeypatch, capsys, changed, other, language, reader, compatibility
+    tmp_path,
+    monkeypatch,
+    capsys,
+    changed,
 ):
+    other = "n.rs"
+    language = "rust"
+    reader = "rust-lexical"
+    compatibility = "31213f6e7cba0e4c21183f5be63d5cbafc4ffb1a900bbbe32d494f23dd83c26a"
     import json
 
     from conftest import run_command
@@ -984,15 +973,11 @@ def test_docket_refuses_contradictory_repeated_schedule_metadata():
     assert problems == ["m.py: two schedules for one page"]
 
 
-@pytest.mark.parametrize(
-    ("name", "text"),
-    [
-        ("other.js", "// old\nconst x = 1;\n"),
-        ("other.rs", "// old\nconst X: i32 = 1;\n"),
-    ],
-    ids=["js", "rs"],
-)
-def test_saved_mixed_proof_transcribes_original_extra_destination(tmp_path, name, text):
+def test_saved_mixed_proof_transcribes_original_extra_destination(
+    tmp_path,
+):
+    name = "other.rs"
+    text = "// old\nconst X: i32 = 1;\n"
     import json
 
     from comment_review.desk.proof.master_proof import MasterProof

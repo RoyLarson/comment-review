@@ -44,11 +44,11 @@ reads = "revise:4a"
 """
 
 
-@pytest.mark.parametrize("later", ["b.js", "b.rs"])
 @pytest.mark.parametrize("incompatible", [False, True])
 def test_stage_admits_later_language_before_consuming_first_shard(
-    tmp_path, monkeypatch, capsys, incompatible, later
+    tmp_path, monkeypatch, capsys, incompatible
 ):
+    later = "b.rs"
     from comment_review.flows import reading_context
     from comment_review.reading.readers import ReaderBinding
 
@@ -430,7 +430,7 @@ def _freeform_run(root: Path, monkeypatch, capsys) -> tuple[Path, Path, Path]:
 
 
 def test_a_shard_keeps_its_freeform_paths_on_its_received_binder(
-    tmp_path, monkeypatch, capsys, no_javascript_reader
+    tmp_path, monkeypatch, capsys
 ):
     _, _, out = _freeform_run(tmp_path, monkeypatch, capsys)
     held = [
@@ -440,9 +440,7 @@ def test_a_shard_keeps_its_freeform_paths_on_its_received_binder(
     assert held == [["a.js"], ["b.js"]]
 
 
-def test_check_and_collate_accept_a_copy_with_no_sheets(
-    tmp_path, monkeypatch, capsys, no_javascript_reader
-):
+def test_check_and_collate_accept_a_copy_with_no_sheets(tmp_path, monkeypatch, capsys):
     binder, topology, out = _freeform_run(tmp_path, monkeypatch, capsys)
     copies = sorted(out.glob("*.json"))
     assert [json.loads(c.read_text(encoding="utf-8"))["sheets"] for c in copies] == [
@@ -488,7 +486,7 @@ def test_check_and_collate_accept_a_copy_with_no_sheets(
 
 
 def test_a_seeded_copy_says_how_many_freeform_paths_its_binder_holds(
-    tmp_path, monkeypatch, capsys, no_javascript_reader
+    tmp_path, monkeypatch, capsys
 ):
     binder, _, _ = _freeform_run(tmp_path, monkeypatch, capsys)
     code, printed = run_command(

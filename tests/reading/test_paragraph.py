@@ -50,7 +50,6 @@ def test_an_empty_place_counts_nothing():
             ["/// Adds one.", "/// Twice."],
             "Adds one. Twice.",
         ),
-        ("m.c", "m.c@c0", "int x = 1;", [" /* abi_only */"], "abi_only"),
         ("m.py", "m.py@a0", "<module>", ['"""Module doc."""'], "Module doc."),
         (
             "m.py",

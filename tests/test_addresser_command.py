@@ -239,28 +239,12 @@ class TestByLine:
 
 
 @pytest.fixture
-def a_closing_binder(tmp_path):
-    """`class A {}` and a foot comment, gathered: its `<eof>` `a` is `a2`, which
-    no line of the file names."""
-    root = tmp_path / "repo"
-    root.mkdir()
-    (root / "A.java").write_text("class A {}\n// foot\n", encoding="utf-8", newline="")
-    page = page_of(root / "A.java", rel="A.java")
-    assert not isinstance(page, ReadFailure), page
-    binder = bind([page], read_from={"root": str(root), "revise": 0})
-    where = tmp_path / "binder.json"
-    where.write_text(json.dumps(binder.serialize()), encoding="utf-8")
-    return where
-
-
-@pytest.fixture(params=["A.java", "A.rs"])
-def an_ends_binder(request, tmp_path):
+def an_ends_binder(tmp_path):
     """A declaration and a foot comment, gathered, and the file's name."""
-    name = request.param
-    code = "class A {}" if name == "A.java" else "fn a() {}"
+    name = "A.rs"
     root = tmp_path / "repo"
     root.mkdir()
-    (root / name).write_text(f"{code}\n// foot\n", encoding="utf-8", newline="")
+    (root / name).write_text("fn a() {}\n// foot\n", encoding="utf-8", newline="")
     page = page_of(root / name, rel=name)
     assert not isinstance(page, ReadFailure), page
     binder = bind([page], read_from={"root": str(root), "revise": 0})
@@ -273,7 +257,7 @@ class TestBySentinel:
     """`--line` takes `<module>` or `<eof>` in place of a number, and names the
     places each series emitted at that end of the file."""
 
-    def _ask(self, monkeypatch, capsys, binder, line, series, name="A.java"):
+    def _ask(self, monkeypatch, capsys, binder, line, series, name):
         return run_command(
             monkeypatch,
             capsys,
@@ -281,11 +265,6 @@ class TestBySentinel:
             *("--binder", str(binder), "--file", name),
             *("--line", line, "--series", series),
         )
-
-    def test_the_closing_a_answers_at_eof(self, monkeypatch, capsys, a_closing_binder):
-        code, out = self._ask(monkeypatch, capsys, a_closing_binder, "<eof>", "a")
-        assert code == 0, out
-        assert out.split() == ["A.java@a2", "'<eof>'", "ABSENT"]
 
     def test_the_modules_a_answers_at_module(self, monkeypatch, capsys, an_ends_binder):
         binder, name = an_ends_binder

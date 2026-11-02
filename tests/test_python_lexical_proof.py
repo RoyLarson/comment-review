@@ -326,10 +326,8 @@ def test_standalone_modern_python_uses_one_context_without_host_parsing(
     assert report.reading_contexts[target] is admitted[0]
 
 
-@pytest.mark.parametrize("name", ["m.js", "m.rs"])
-def test_python_unicode_database_change_invalidates_saved_context_only(
-    monkeypatch, name
-):
+def test_python_unicode_database_change_invalidates_saved_context_only(monkeypatch):
+    name = "m.rs"
     python = reading_context.context_for(Path("m.py"), {})
     other = reading_context.context_for(Path(name), {})
     assert isinstance(python, ReadingContext)

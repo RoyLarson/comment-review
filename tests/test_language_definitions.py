@@ -724,41 +724,6 @@ def test_registry_refuses_non_code_suffixes(suffix: str, uppercase: bool) -> Non
     assert claim in diagnostic.message
 
 
-def test_installed_code_definitions_have_exact_suffixes_and_independent_rules() -> None:
-    from dataclasses import fields
-
-    from comment_review.reading.language import INSTALLED_DEFINITIONS, LANGUAGES
-
-    expected = {
-        "go": (".go",),
-        "c": (".c", ".h"),
-        "cpp": (".cpp", ".hpp", ".cc", ".cxx"),
-        "java": (".java",),
-        "csharp": (".cs",),
-        "swift": (".swift",),
-        "kotlin": (".kt", ".kts"),
-        "javascript": (".js", ".jsx", ".mjs", ".cjs"),
-        "typescript": (".ts", ".tsx", ".mts", ".cts"),
-        "ruby": (".rb",),
-        "shell": (".sh", ".bash", ".zsh"),
-        "sql": (".sql",),
-        "lua": (".lua",),
-    }
-    assert {
-        value.language: value.suffixes for value in INSTALLED_DEFINITIONS
-    } == expected
-    rows = {row.name: row for row in LANGUAGES}
-    for value in INSTALLED_DEFINITIONS:
-        row = rows[value.language]
-        assert value.defaults == value.choices == {}
-        assert dict(value.rules) == {
-            field.name: getattr(row, field.name)
-            for field in fields(row)
-            if field.name not in {"name", "extensions"}
-        }
-    assert len({id(value.rules) for value in INSTALLED_DEFINITIONS}) == 13
-
-
 def test_python_is_defined_by_its_own_file_and_by_no_row() -> None:
     from comment_review.reading.language import (
         INSTALLED_REGISTRY,
@@ -779,92 +744,6 @@ def test_python_is_defined_by_its_own_file_and_by_no_row() -> None:
     assert not documents_in_literals(Path("m.rs"))
 
 
-def test_installed_bindings_validate_rules_and_host_identity() -> None:
-    import platform
-    import sys
-    from dataclasses import replace
-
-    from comment_review.reading.language import INSTALLED_DEFINITIONS, READER_METADATA
-    from comment_review.reading.readers import INSTALLED_BINDINGS
-
-    for value in INSTALLED_DEFINITIONS:
-        installed = INSTALLED_BINDINGS[value.reader]
-        assert bind(value, INSTALLED_BINDINGS) is installed
-        metadata = READER_METADATA[value.language]
-        assert installed.revision == value.revision == metadata.revision
-        assert installed.capabilities == value.capabilities == metadata.capabilities
-        assert metadata.tier in installed.capabilities
-        if value.language == "python":
-            assert platform.python_implementation() in installed.grammar_identity
-            assert platform.python_version() in installed.grammar_identity
-            assert sys.version in installed.grammar_identity
-        else:
-            assert installed.grammar_identity == ""
-        for rules in (
-            {},
-            {**value.rules, "unknown": ()},
-            {**value.rules, "quotes": False},
-            {**value.rules, "nests_comments": 1},
-            {**value.rules, "block_comment": ("/*", "*/")},
-            {**value.rules, "quotes": ("",)},
-            *(
-                {key: item for key, item in value.rules.items() if key != missing}
-                for missing in value.rules
-            ),
-        ):
-            assert isinstance(
-                bind(replace(value, rules=rules), INSTALLED_BINDINGS), ReadFailure
-            )
-        empty = {
-            key: False if isinstance(item, bool) else ()
-            for key, item in value.rules.items()
-        }
-        assert bind(replace(value, rules=empty), INSTALLED_BINDINGS) is installed
-        with pytest.raises(ValueError):
-            from comment_review.reading.language import language_from_definition
-
-            language_from_definition(replace(value, rules={}))
-        assert isinstance(
-            bind(replace(value, capabilities=("dialects",)), INSTALLED_BINDINGS),
-            ReadFailure,
-        )
-        assert isinstance(
-            bind(replace(value, reader="absent"), INSTALLED_BINDINGS), ReadFailure
-        )
-        assert isinstance(
-            bind(replace(value, language="other"), INSTALLED_BINDINGS), ReadFailure
-        )
-
-
-def test_installed_bindings_invoke_existing_engines(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    from comment_review.reading import readers
-    from comment_review.reading.language import (
-        INSTALLED_DEFINITIONS,
-    )
-
-    calls = []
-    monkeypatch.setattr(
-        readers,
-        "read_lexical",
-        lambda path, text, lang: (
-            calls.append((lang.name, path, text))
-            or readers.LexicalRead([], [], lang.a_series, lang.closing_docstring)
-        ),
-    )
-    for value in INSTALLED_DEFINITIONS:
-        path = Path("source" + value.suffixes[0])
-        result = readers.INSTALLED_BINDINGS[value.reader].read(path, "exact\r\n", value)
-        assert isinstance(result, readers.LexicalRead)
-        assert result.paragraphs(path) == []
-        assert calls[-1] == (
-            "stdlib" if value.language == "python" else value.language,
-            path,
-            "exact\r\n",
-        )
-
-
 @pytest.mark.parametrize(
     "suffix",
     [".toml", ".ini", ".cfg", ".yaml", ".json", ".md", ".html", ".css", ".unknown"],
@@ -881,27 +760,22 @@ def test_installed_selection_and_coverage_use_validated_bindings(monkeypatch) ->
     from dataclasses import replace
 
     from comment_review.reading import readers
-    from comment_review.reading.language import INSTALLED_REGISTRY, language_for
-    from comment_review.reading.readers import tier_for
+    from comment_review.reading.language import INSTALLED_REGISTRY
 
-    selected = readers.reader_for(Path("component.TSX"))
+    selected = readers.reader_for(Path("lib.RS"))
     assert selected is not None and not isinstance(selected, ReadFailure)
     value, installed = selected
-    assert value is INSTALLED_REGISTRY.for_path(Path("component.tsx"))
-    lang = language_for(Path("component.tsx"))
-    assert lang is not None
-    assert tier_for(lang) == "lexical"
+    assert value is INSTALLED_REGISTRY.for_path(Path("lib.rs"))
     assert value in readers.supported_definitions()
     monkeypatch.setattr(readers, "INSTALLED_BINDINGS", {})
-    assert tier_for(lang) == ""
-    assert isinstance(readers.reader_for(Path("component.TSX")), ReadFailure)
+    assert isinstance(readers.reader_for(Path("lib.RS")), ReadFailure)
     assert readers.supported_definitions() == ()
     monkeypatch.setattr(
         readers,
         "INSTALLED_BINDINGS",
         {value.reader: replace(installed, capabilities=("comments",))},
     )
-    assert isinstance(readers.reader_for(Path("component.TSX")), ReadFailure)
+    assert isinstance(readers.reader_for(Path("lib.RS")), ReadFailure)
     assert readers.supported_definitions() == ()
 
 
@@ -934,9 +808,8 @@ def test_python_definition_loads_complete_grammar_and_installs_lexical_reader() 
     registry = installed_registry()
     assert not isinstance(registry, ReadFailure)
     installed = {item.language: item for item in supported_definitions(registry)}
-    assert len(installed) == 15
+    assert sorted(installed) == ["python", "rust"]
     assert installed["python"].reader == "python-lexical"
-    assert installed["typescript"].suffixes == (".ts", ".tsx", ".mts", ".cts")
     assert value.rules["literals"]["prefixes"]["raw_template"] == ("tr", "rt")
     assert value.rules["documentation"]["literal_groups"] == ("plain", "raw")
 
@@ -1169,82 +1042,6 @@ def test_rust_comment_form_takes_its_markers_from_the_rust_scanner() -> None:
     assert block.fragments[0].first == "/* "
     assert block.fragments[0].last == " */"
     assert block.fragments[0].paragraphs == ("a /* b */ c",)
-
-
-def test_rust_definition_leaves_other_definitions_unchanged() -> None:
-    from comment_review.reading.language import (
-        INSTALLED_DEFINITIONS,
-        SHIPPED_DEFINITIONS,
-    )
-
-    assert [value.language for value in SHIPPED_DEFINITIONS] == ["python", "rust"]
-    assert [value.language for value in INSTALLED_DEFINITIONS] == [
-        "go",
-        "c",
-        "cpp",
-        "java",
-        "csharp",
-        "swift",
-        "kotlin",
-        "javascript",
-        "typescript",
-        "ruby",
-        "shell",
-        "sql",
-        "lua",
-    ]
-
-
-def test_line_continuations_are_stated_by_exactly_four_rows() -> None:
-    from comment_review.reading.language import INSTALLED_DEFINITIONS
-
-    by_name = {value.language: value.rules for value in INSTALLED_DEFINITIONS}
-    assert {name: rules["line_continuations"] for name, rules in by_name.items()} == {
-        name: ("\\",) if name in {"c", "cpp", "ruby", "shell"} else ()
-        for name in by_name
-    }
-
-
-def test_verbatim_quotes_are_stated_by_exactly_three_rows() -> None:
-    from comment_review.reading.language import INSTALLED_DEFINITIONS
-
-    by_name = {value.language: value.rules for value in INSTALLED_DEFINITIONS}
-    assert {name: rules["verbatim_quotes"] for name, rules in by_name.items()} == {
-        name: {"go": ("`",), "shell": ("'",), "sql": ("'", '"')}.get(name, ())
-        for name in by_name
-    }
-
-
-def test_element_suffixes_are_stated_by_exactly_two_rows() -> None:
-    from comment_review.reading.language import INSTALLED_DEFINITIONS
-
-    by_name = {value.language: value.rules for value in INSTALLED_DEFINITIONS}
-    assert {name: rules["element_suffixes"] for name, rules in by_name.items()} == {
-        name: {
-            "javascript": (".js", ".jsx", ".mjs", ".cjs"),
-            "typescript": (".tsx",),
-        }.get(name, ())
-        for name in by_name
-    }
-
-
-def test_annotation_openers_are_validated_and_pinned_per_row() -> None:
-    from dataclasses import replace
-
-    from comment_review.reading.language import INSTALLED_DEFINITIONS
-    from comment_review.reading.readers import INSTALLED_BINDINGS
-
-    for value in INSTALLED_DEFINITIONS:
-        for invalid in (("",), "@", (1,)):
-            rules = {**value.rules, "annotations": invalid}
-            assert isinstance(
-                bind(replace(value, rules=rules), INSTALLED_BINDINGS), ReadFailure
-            )
-    by_name = {value.language: value.rules for value in INSTALLED_DEFINITIONS}
-    assert by_name["java"]["annotations"] == ("@",)
-    assert by_name["typescript"]["annotations"] == ("@",)
-    assert by_name["csharp"]["annotations"] == ()
-    assert by_name["go"]["annotations"] == ()
 
 
 @pytest.mark.parametrize(

@@ -48,11 +48,8 @@ def test_languages_reports_validated_programming_coverage(monkeypatch, capsys):
         for line in output.splitlines()[1:]
         if line and not line.startswith("A suffix")
     ]
-    assert rows == [
-        [value.language, value.capabilities[-1], *value.suffixes]
-        for value in registry.definitions
-    ]
-    assert ["python", "lexical", ".py", ".pyi"] in rows
+    assert rows == [[value.language, *value.suffixes] for value in registry.definitions]
+    assert ["python", ".py", ".pyi"] in rows
     monkeypatch.setattr(readers, "INSTALLED_BINDINGS", {})
     status, output = run_command(monkeypatch, capsys, gather_command, "--languages")
     assert status == 0
@@ -180,7 +177,7 @@ def test_a_parse_failure_is_AS_LOUD_AS_a_decode_failure(tmp_path, monkeypatch, c
 def test_a_rust_file_whose_paragraphs_share_an_address_is_named_and_stops_the_run(
     tmp_path, monkeypatch, capsys
 ):
-    """The refusal holds over a reader record, as it does over the lexical read."""
+    """The refusal holds over a reader record."""
     from comment_review.reading.paragraph import Paragraph
     from comment_review.reading.rust.records import RustRead
     from comment_review.reading.series import Kind
@@ -203,45 +200,6 @@ def test_a_rust_file_whose_paragraphs_share_an_address_is_named_and_stops_the_ru
     )
     assert code != 0, printed
     assert "m.rs" in printed
-    assert "place/address-held-twice" in printed
-
-
-def test_a_file_whose_paragraphs_share_an_address_is_named_and_stops_the_run(
-    tmp_path, monkeypatch, capsys
-):
-    """The page refuses a mis-cut read, and the gather reports that refusal as
-    it reports any file it could not gather."""
-    from comment_review.binder import page as page_mod
-    from comment_review.reading.lexer import LexicalRead
-    from comment_review.reading.paragraph import Paragraph
-    from comment_review.reading.series import Kind
-    from comment_review.reading.source import CodeLine, DocPlace
-
-    found = [
-        Paragraph("m.go", 3, 3, Kind.COMMENT, raw_lines=["// one"]),
-        Paragraph("m.go", 3, 3, Kind.COMMENT, raw_lines=["// two"]),
-    ]
-    lines = [
-        CodeLine(2, "package m", None),
-        CodeLine(4, "func F() {}", DocPlace(4, True)),
-    ]
-    read = LexicalRead(found, lines, True, True)
-    monkeypatch.setattr(page_mod, "read_source", lambda *args, **kwargs: read)
-    target = tmp_path / "m.go"
-    target.write_text(
-        "// Package m.\npackage m\n// F.\nfunc F() {}\n", encoding="utf-8"
-    )
-    code, printed = run_command(
-        monkeypatch,
-        capsys,
-        gather_command,
-        "--repo",
-        str(tmp_path),
-        str(target),
-        with_stderr=True,
-    )
-    assert code != 0, printed
-    assert "m.go" in printed
     assert "place/address-held-twice" in printed
 
 
@@ -344,9 +302,7 @@ def _binder(out) -> dict:
     return json.loads(out.read_text(encoding="utf-8"))
 
 
-def test_a_named_js_file_is_freeform_and_gather_exits_0(
-    tmp_path, monkeypatch, capsys, no_javascript_reader
-):
+def test_a_named_js_file_is_freeform_and_gather_exits_0(tmp_path, monkeypatch, capsys):
     page = tmp_path / "a.py"
     page.write_text(CONTROL, encoding="utf-8")
     # Bytes no reader could decode: a freeform file is listed, never opened.
@@ -360,7 +316,7 @@ def test_a_named_js_file_is_freeform_and_gather_exits_0(
 
 
 def test_a_binary_in_a_walked_directory_stays_passed_over(
-    tmp_path, monkeypatch, capsys, no_javascript_reader
+    tmp_path, monkeypatch, capsys
 ):
     (tmp_path / "a.py").write_text(CONTROL, encoding="utf-8")
     (tmp_path / "b.js").write_text("// b\n", encoding="utf-8")
@@ -384,7 +340,7 @@ def test_a_named_file_that_is_neither_read_nor_source_stops_the_gather(
 
 
 def test_a_python_file_that_fails_to_read_still_stops_the_gather(
-    tmp_path, monkeypatch, capsys, no_javascript_reader
+    tmp_path, monkeypatch, capsys
 ):
     page = tmp_path / "a.py"
     page.write_bytes(b"\xff\xfe not utf-8\n")
@@ -396,7 +352,7 @@ def test_a_python_file_that_fails_to_read_still_stops_the_gather(
 
 
 def test_freeform_paths_are_sorted_repo_relative_and_listed_once(
-    tmp_path, monkeypatch, capsys, no_javascript_reader
+    tmp_path, monkeypatch, capsys
 ):
     (tmp_path / "src").mkdir()
     (tmp_path / "src" / "z.js").write_text("// z\n", encoding="utf-8")
@@ -418,7 +374,7 @@ def test_freeform_paths_are_sorted_repo_relative_and_listed_once(
 
 @pytest.mark.parametrize("spelled", ["absolute", "dotted", "from_above"])
 def test_a_freeform_file_outside_the_repo_stops_the_gather(
-    tmp_path, monkeypatch, capsys, no_javascript_reader, spelled
+    tmp_path, monkeypatch, capsys, spelled
 ):
     repo = tmp_path / "repo"
     repo.mkdir()

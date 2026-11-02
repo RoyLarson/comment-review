@@ -9,11 +9,10 @@ from comment_review.reading.series import Kind
 @pytest.mark.parametrize(
     ("name", "text"),
     [
-        ("m.kt", "// licence\n// more\n\nimport a.b\n\n// tail one\n\n// tail two\n"),
         ("m.rs", "// licence\n// more\n\nuse a::b;\n\n// tail one\n\n// tail two\n"),
         ("m.py", "# licence\n# more\n\nimport a.b\n\n# tail one\n\n# tail two\n"),
     ],
-    ids=["kt", "rs", "py"],
+    ids=["rs", "py"],
 )
 def test_readers_hand_back_matter_on_the_same_runs_for_a_licence_then_an_import(
     name, text

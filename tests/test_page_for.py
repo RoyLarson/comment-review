@@ -24,12 +24,10 @@ from comment_review.flows.read_diagnostics import LocatedReadFailure, format_fai
 from comment_review.machine.repo import Source
 from comment_review.reading.addresser import Cues
 from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, ReadStage
-from comment_review.reading.lexer import LexicalRead
 from comment_review.reading.paragraph import Paragraph
 from comment_review.reading.python.records import PythonRead
 from comment_review.reading.rust.records import RustRead
 from comment_review.reading.series import Kind
-from comment_review.reading.source import CodeLine, DocPlace
 
 
 def test_python_page_retains_complete_structured_read():
@@ -94,7 +92,13 @@ def test_a_margin_holds_what_follows_its_anchor_on_the_line():
     assert margin.raw_lines == [""]
 
 
-@pytest.mark.parametrize("name", ["m.rs", "m.py", "m.js"])
+@pytest.mark.parametrize(
+    "name",
+    [
+        "m.rs",
+        "m.py",
+    ],
+)
 @pytest.mark.parametrize("rest", ["x = 1\n", "# Licence\nx = 1\n"])
 def test_a_page_opening_with_a_line_holding_only_a_byte_order_mark_sets_back(
     name, rest
@@ -317,13 +321,12 @@ def test_python_page_definition_acquisition_failure_is_located(monkeypatch):
     assert result.diagnostics == failure.diagnostics
 
 
-@pytest.mark.parametrize(
-    "path, text",
-    [("m.c", "int x; // note\n"), ("m.rs", "const X: i32 = 1; // note\n")],
-)
 def test_python_sections_projection_is_not_used_for_other_languages(
-    monkeypatch, path, text
+    monkeypatch,
 ):
+    path = "m.rs"
+    text = "const X: i32 = 1; // note\n"
+
     def forbidden(*args):
         pytest.fail("Foundational section projection is not a production reader yet")
 
@@ -364,10 +367,12 @@ def test_malformed_python_is_a_read_failure():
     assert page.diagnostics[0].stage.value == "lex"
 
 
-@pytest.mark.parametrize(
-    ("name", "language"), [("broken.c", "c"), ("broken.rs", "rust")], ids=["c", "rs"]
-)
-def test_snapshot_is_retained_without_acquisition(monkeypatch, name, language):
+def test_snapshot_is_retained_without_acquisition(
+    monkeypatch,
+):
+    name = "broken.rs"
+    language = "rust"
+
     def unexpected_read(path):
         raise AssertionError("snapshot was acquired twice")
 
@@ -447,52 +452,15 @@ def test_unexpected_reader_exception_propagates(monkeypatch):
         page_for_mod.page_of(Path("m.py"), source=Source("v = 1\n", "held"))
 
 
-@pytest.mark.parametrize(
-    ("anchor", "place"),
-    [("<eof>", "a1"), ("", "a0")],
-    ids=["closing-at-eof", "opening-at-a0"],
-)
-def test_module_documentation_takes_the_a_its_anchor_names(monkeypatch, anchor, place):
-    from comment_review.results.compositor import set_page
-
-    text = "x;\n/** d */\n" if anchor else "/** d */\nx;\n"
-    line = 2 if anchor else 1
-    doc = Paragraph("m.c", line, line, Kind.DOCSTRING, anchor=anchor)
-    doc.raw_lines = ["/** d */"]
-    code = CodeLine(1 if anchor else 2, "x;", None)
-
-    def read(*args, **kwargs):
-        return LexicalRead([doc], [code], True, True)
-
-    monkeypatch.setattr(page_mod, "read_source", read)
-    page = page_for_mod.page_of(Path("m.c"), source=Source(text, "held"))
-    assert isinstance(page, Page)
-    assert (by_cue(page)[place].kind, by_cue(page)[place].raw_lines) == (
-        Kind.DOCSTRING,
-        ["/** d */"],
+def test_located_error_renders_after_file_is_removed(
+    tmp_path,
+):
+    name = "m.rs"
+    text = "const V: i32 = 1;\n/* open"
+    expected = (
+        "m.rs [rust] lex/unterminated-comment: unterminated comment "
+        "(line 2, one-based; column 0, zero-based)"
     )
-    assert set_page(page) == text
-
-
-@pytest.mark.parametrize(
-    ("name", "text", "expected"),
-    [
-        (
-            "m.c",
-            "int v;\n/* open",
-            "m.c [c] lex/unterminated-comment: Comment has no closing delimiter before "
-            "end of source (line 2, one-based; column 0, zero-based)",
-        ),
-        (
-            "m.rs",
-            "const V: i32 = 1;\n/* open",
-            "m.rs [rust] lex/unterminated-comment: unterminated comment "
-            "(line 2, one-based; column 0, zero-based)",
-        ),
-    ],
-    ids=["c", "rs"],
-)
-def test_located_error_renders_after_file_is_removed(tmp_path, name, text, expected):
     path = tmp_path / name
     path.write_text(text, encoding="utf-8", newline="")
     failure = page_for_mod.page_of(path, rel=name)
@@ -501,7 +469,6 @@ def test_located_error_renders_after_file_is_removed(tmp_path, name, text, expec
     assert format_failure(failure, path=name) == expected
 
 
-@pytest.mark.parametrize("name", ["m.c", "m.rs"])
 @pytest.mark.parametrize(
     ("series", "cue_name", "message"),
     [
@@ -514,9 +481,8 @@ def test_located_error_renders_after_file_is_removed(tmp_path, name, text, expec
         ),
     ],
 )
-def test_known_placement_refusal_is_an_outcome(
-    monkeypatch, series, cue_name, message, name
-):
+def test_known_placement_refusal_is_an_outcome(monkeypatch, series, cue_name, message):
+    name = "m.rs"
     cues = Cues()
     cues.addressers[series].places[cue_name] = "<module>"
     monkeypatch.setattr(page_mod, "cue", lambda *args, **kwargs: cues)
@@ -531,37 +497,23 @@ def test_known_placement_refusal_is_an_outcome(
     )
 
 
-GO_DOCUMENTED = "// Package m.\npackage m\n// F.\nfunc F() {}\n"
 RUST_DOCUMENTED = "//! Package m.\nm!();\n/// F.\nfn f() {}\n"
 
 
 def page_over_read(
-    monkeypatch, found: list[Paragraph], name: str = "m.go"
+    monkeypatch, found: list[Paragraph], name: str
 ) -> Page | ReadFailure:
-    """`page_for` over a documented page, handed these paragraphs and its code lines."""
+    """`page_for` over a documented page, handed these paragraphs."""
     reading = build("", name).reading
-    if name == "m.rs":
-        monkeypatch.setattr(RustRead, "paragraphs", lambda self, path: list(found))
-        return page_for(
-            Path(name), RUST_DOCUMENTED, rel=name, sha="held", reading=reading
-        )
-    lines = [
-        CodeLine(2, "package m", None),
-        CodeLine(4, "func F() {}", DocPlace(4, True)),
-    ]
-    read = LexicalRead(found, lines, True, True)
-    monkeypatch.setattr(page_mod, "read_source", lambda *args, **kwargs: read)
-    return page_for(
-        Path("m.go"), GO_DOCUMENTED, rel="m.go", sha="held", reading=reading
-    )
+    monkeypatch.setattr(RustRead, "paragraphs", lambda self, path: list(found))
+    return page_for(Path(name), RUST_DOCUMENTED, rel=name, sha="held", reading=reading)
 
 
-@pytest.mark.parametrize(
-    ("name", "declaration"), [("m.go", "func F() {}"), ("m.rs", "fn f() {}")]
-)
 def test_documentation_lands_at_the_a_of_the_line_it_names(
-    monkeypatch, name, declaration
+    monkeypatch,
 ):
+    name = "m.rs"
+    declaration = "fn f() {}"
     page = page_over_read(
         monkeypatch,
         [
@@ -576,9 +528,9 @@ def test_documentation_lands_at_the_a_of_the_line_it_names(
     ] == [("a0", None, "<module>"), ("a1", 4, declaration)]
 
 
-@pytest.mark.parametrize("name", ["m.go", "m.rs"])
 @pytest.mark.parametrize("line", [2, 3], ids=["code-declaring-nothing", "no-code"])
-def test_documentation_naming_no_declaring_line_is_refused(monkeypatch, line, name):
+def test_documentation_naming_no_declaring_line_is_refused(monkeypatch, line):
+    name = "m.rs"
     found = [
         Paragraph(name, 3, 3, Kind.DOCSTRING, declares_line=line, raw_lines=["// F."])
     ]
@@ -587,8 +539,8 @@ def test_documentation_naming_no_declaring_line_is_refused(monkeypatch, line, na
     assert [d.code for d in result.diagnostics] == ["documentation-declares-nothing"]
 
 
-@pytest.mark.parametrize("name", ["m.go", "m.rs"])
-def test_two_paragraphs_at_one_address_refuse_the_page(monkeypatch, name):
+def test_two_paragraphs_at_one_address_refuse_the_page(monkeypatch):
+    name = "m.rs"
     found = [
         Paragraph(name, 3, 3, Kind.COMMENT, raw_lines=["// one"]),
         Paragraph(name, 3, 3, Kind.COMMENT, raw_lines=["// two"]),
@@ -605,8 +557,8 @@ def test_two_paragraphs_at_one_address_refuse_the_page(monkeypatch, name):
     )
 
 
-@pytest.mark.parametrize("name", ["m.go", "m.rs"])
-def test_a_paragraph_alone_in_its_place_builds(monkeypatch, name):
+def test_a_paragraph_alone_in_its_place_builds(monkeypatch):
+    name = "m.rs"
     found = [Paragraph(name, 3, 3, Kind.COMMENT, raw_lines=["// one"])]
     assert isinstance(page_over_read(monkeypatch, found, name), Page)
 
@@ -619,8 +571,8 @@ def test_failed_acquisition_has_no_invented_context(tmp_path):
     assert result.diagnostics[0].stage == ReadStage.ACQUIRE
 
 
-@pytest.mark.parametrize("name", ["broken.c", "broken.rs"])
-def test_render_script_reports_failed_page_through_normal_invocation(tmp_path, name):
+def test_render_script_reports_failed_page_through_normal_invocation(tmp_path):
+    name = "broken.rs"
     path = tmp_path / name
     path.write_text("/* open", encoding="utf-8")
     script = Path(__file__).resolve().parents[1] / "scripts" / "render_page.py"
@@ -1086,10 +1038,9 @@ def test_rust_page_module_doc_after_an_inner_attribute_is_detached():
     ("name", "text", "doc"),
     [
         ("m.py", '# licence\n\n# note\n\n"""Doc."""\n\nx = 1\n', '"""Doc."""'),
-        ("m.js", "// licence\n\n// note\n\n/** Doc. */\n\nlet x = 1;\n", "/** Doc. */"),
         ("m.rs", "// licence\n\n// note\n\n//! Doc.\n\nfn f() {}\n", "//! Doc."),
     ],
-    ids=["python", "lexical", "rust"],
+    ids=["python", "rust"],
 )
 def test_every_comment_above_a_module_docstring_is_front_matter(name, text, doc):
     from comment_review.results.compositor import set_page
@@ -1138,22 +1089,6 @@ def test_a_comment_below_a_blank_opening_line_with_no_docstring_is_back_matter()
 )
 def test_a_run_above_everything_is_keyed_by_whether_f0_holds_lines(text, key):
     assert list(build(text, "m.py").leading) == [key]
-
-
-def test_lexical_every_comment_below_a_closing_docstring_is_back_matter():
-    from comment_review.results.compositor import set_page
-
-    text = "let x = 1;\n/** D1 */\n// C1\n\n// C2\n"
-    page = build(text, "m.js")
-    places = by_cue(page)
-    closing = next(p for c, p in places.items() if p.raw_lines == ["/** D1 */"])
-    assert closing.kind == "docstring"
-    assert cue(closing).startswith("a")
-    assert (places["f1"].kind, places["f1"].raw_lines) == (
-        "matter",
-        ["// C1", "", "// C2"],
-    )
-    assert set_page(page) == text
 
 
 @pytest.mark.parametrize(
@@ -1292,11 +1227,11 @@ def test_rust_page_added_module_doc_is_set_after_the_shebang():
     assert set_page(page) == ("#!/usr/bin/env rust-script\n//! Added.\nfn main() {}\n")
 
 
-@pytest.mark.parametrize("name", ["m.py", "m.lua", "m.rs"])
+@pytest.mark.parametrize("name", ["m.py", "m.rs"])
 def test_codeless_matter_below_line_one_is_back_matter(name):
     from comment_review.results.compositor import set_page
 
-    marker = {"m.py": "#", "m.lua": "--", "m.rs": "//"}[name]
+    marker = {"m.py": "#", "m.rs": "//"}[name]
     text = f"\n\n{marker} x\n"
     page = build(text, name)
     matter = next(b for b in page.paragraphs if b.kind == "matter")
@@ -1473,21 +1408,6 @@ def test_rust_fixture_licence_header_is_front_matter_and_first_item_undocumented
     ("name", "text", "places"),
     [
         (
-            "m.js",
-            "// licence\n/** Doc. */\n",
-            {"f0": ["// licence"], "a0": ["/** Doc. */"]},
-        ),
-        (
-            "m.js",
-            "// licence\n/** Doc. */\nlet x = 1;\n",
-            {"f0": ["// licence"], "a0": ["/** Doc. */"]},
-        ),
-        (
-            "m.js",
-            "#!/usr/bin/env node\n// licence\n/** Doc. */\nlet x = 1;\n",
-            {"f0": ["#!/usr/bin/env node", "// licence"], "a0": ["/** Doc. */"]},
-        ),
-        (
             "m.py",
             '# licence\n"""Doc."""\nx = 1\n',
             {"f0": ["# licence"], "a0": ['"""Doc."""']},
@@ -1504,7 +1424,7 @@ def test_rust_fixture_licence_header_is_front_matter_and_first_item_undocumented
             {"f0": ["#!/usr/bin/env run", "// licence"], "a0": ["//! Doc."]},
         ),
     ],
-    ids=["no-code", "code", "shebang", "python", "rs-no-code", "rs-code", "rs-shebang"],
+    ids=["python", "rs-no-code", "rs-code", "rs-shebang"],
 )
 def test_matter_then_a_doc_at_the_head_are_placed_at_f0_and_a0(name, text, places):
     found = by_cue(build(text, name))

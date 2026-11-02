@@ -19,7 +19,10 @@ PROSE = ("One wrapped claim that", "runs onto a second line.")
 
 @pytest.mark.parametrize(
     ("path", "marker"),
-    [("m.py", "#"), ("m.rs", "//"), ("m.go", "//")],
+    [
+        ("m.py", "#"),
+        ("m.rs", "//"),
+    ],
 )
 def test_one_comment_run_reads_as_one_text_in_every_language(path, marker):
     raw = "\n".join(f"    {marker} {line}" for line in PROSE)
@@ -29,7 +32,10 @@ def test_one_comment_run_reads_as_one_text_in_every_language(path, marker):
 
 @pytest.mark.parametrize(
     ("path", "marker"),
-    [("m.py", "#"), ("m.rs", "//"), ("m.js", "//"), ("m.c", "/*")],
+    [
+        ("m.py", "#"),
+        ("m.rs", "//"),
+    ],
 )
 def test_a_byte_order_mark_before_the_first_marker_is_not_prose(path, marker):
     mark = chr(0xFEFF)
@@ -40,12 +46,6 @@ def test_a_byte_order_mark_before_the_first_marker_is_not_prose(path, marker):
 @pytest.mark.parametrize(
     ("path", "raw", "text"),
     [
-        ("m.c", "/* abi_only */", "abi_only"),
-        (
-            "m.c",
-            "/** One wrapped claim that\n * runs on. */",
-            "One wrapped claim that runs on.",
-        ),
         (
             "m.rs",
             "/*\n * One wrapped claim\n * runs on.\n */",
@@ -61,24 +61,12 @@ def test_block_comment_markers_are_not_prose(path, raw, text):
 @pytest.mark.parametrize(
     ("path", "raw", "text"),
     [
-        ("m.c", "/* licence */ /* more */\n// note", "licence more note"),
-        ("m.c", "/* a\n b */ /* c\n d */", "a b c d"),
-        ("m.c", "/* a */ // b", "a b"),
-        ("m.c", "/* a\n b */ // c", "a b c"),
-        ("m.lua", "--[[ a ]]-- b", "a b"),
-        ("m.lua", "--[[\n  Licence MIT\n]]--\n-- Module foo", "Licence MIT Module foo"),
         ("m.rs", "/* licence */ /* more */\n// note", "licence more note"),
         ("m.rs", "/* a\n b */ /* c\n d */", "a b c d"),
         ("m.rs", "/* a */ // b", "a b"),
         ("m.rs", "/* a\n b */ // c", "a b c"),
     ],
     ids=[
-        "two-blocks",
-        "two-spanning-blocks",
-        "block-then-line",
-        "closer-then-line",
-        "lua-long-then-line",
-        "lua-empty-line-comment",
         "rs-two-blocks",
         "rs-two-spanning-blocks",
         "rs-block-then-line",

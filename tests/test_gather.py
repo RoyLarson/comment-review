@@ -40,27 +40,15 @@ def _pages(root):
     return pages
 
 
-@pytest.mark.parametrize(
-    ("name", "text", "expected"),
-    [
-        (
-            "m.c",
-            "int v;\n/* open",
-            "m.c [c] lex/unterminated-comment: Comment has no closing delimiter before "
-            "end of source (line 2, one-based; column 0, zero-based)",
-        ),
-        (
-            "m.rs",
-            "const V: i32 = 1;\n/* open",
-            "m.rs [rust] lex/unterminated-comment: unterminated comment "
-            "(line 2, one-based; column 0, zero-based)",
-        ),
-    ],
-    ids=["c", "rs"],
-)
 def test_a_reader_failure_is_reported_without_a_successful_page(
-    tmp_path, name, text, expected
+    tmp_path,
 ):
+    name = "m.rs"
+    text = "const V: i32 = 1;\n/* open"
+    expected = (
+        "m.rs [rust] lex/unterminated-comment: unterminated comment "
+        "(line 2, one-based; column 0, zero-based)"
+    )
     from comment_review.flows.gather import Gathering, _pages
 
     path = tmp_path / name
@@ -75,11 +63,10 @@ def test_a_reader_failure_is_reported_without_a_successful_page(
 @pytest.mark.parametrize(
     ("name", "raw"),
     [
-        ("m.sh", b"# x\rtouch PWNED\n"),
         ("m.rs", b"// x\rtouch PWNED\n"),
         ("m.py", b"# x\rtouch PWNED\n"),
     ],
-    ids=["sh", "rs", "py"],
+    ids=["rs", "py"],
 )
 def test_a_lone_cr_is_unreadable_at_the_gather(tmp_path, name, raw):
     from comment_review.flows.gather import Gathering, _pages

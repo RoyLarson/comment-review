@@ -56,10 +56,6 @@ def test_an_unsplit_role_gets_one_dispatch_with_no_paths():
 @pytest.mark.parametrize(
     ("literal", "lookalike"),
     [
-        ("app/[id]/page.tsx", "app/i/page.tsx"),
-        ("app/[!id]/page.tsx", "app/x/page.tsx"),
-        ("app/file?.tsx", "app/file1.tsx"),
-        ("app/file*.tsx", "app/file-more.tsx"),
         ("app/[id]/page.rs", "app/i/page.rs"),
         ("app/[!id]/page.rs", "app/x/page.rs"),
         ("app/file?.rs", "app/file1.rs"),

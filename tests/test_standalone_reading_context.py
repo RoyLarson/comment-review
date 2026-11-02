@@ -37,10 +37,10 @@ def installed_choices(monkeypatch):
     return selected
 
 
-@pytest.mark.parametrize("suffix", [".js", ".rs"])
 def test_standalone_cli_proves_mixed_paths_with_distinct_effective_choices(
-    tmp_path, monkeypatch, capsys, installed_choices, suffix
+    tmp_path, monkeypatch, capsys, installed_choices
 ):
+    suffix = ".rs"
     repo, js = proof_repository(tmp_path, "const value = 1; // old\r\n", suffix)
     py = js.with_suffix(".py")
     py.write_bytes(b"value = 1 # old\r\n")
@@ -113,11 +113,11 @@ def test_standalone_cli_proves_mixed_paths_with_distinct_effective_choices(
     assert admitted[2][2] == admitted[3][2]
 
 
-@pytest.mark.parametrize("suffix", [".js", ".rs"])
 @pytest.mark.parametrize("settings", [None, [], {"mode": "unsupported"}])
 def test_standalone_flow_refuses_invalid_choices_before_source(
-    tmp_path, monkeypatch, installed_choices, settings, suffix
+    tmp_path, monkeypatch, installed_choices, settings
 ):
+    suffix = ".rs"
     repo, target = proof_repository(tmp_path, "const value = 1;\r\n", suffix)
     monkeypatch.setattr(
         prove_unchanged,
@@ -130,11 +130,11 @@ def test_standalone_flow_refuses_invalid_choices_before_source(
     assert "PROVEN" not in " ".join(report.messages)
 
 
-@pytest.mark.parametrize("suffix", [".js", ".rs"])
 @pytest.mark.parametrize("field", ["settings", "revision", "grammar", "definition"])
 def test_standalone_equal_source_refuses_context_change_between_snapshot_reads(
-    tmp_path, monkeypatch, installed_choices, field, suffix
+    tmp_path, monkeypatch, installed_choices, field
 ):
+    suffix = ".rs"
     repo, target = proof_repository(tmp_path, "const value = 1;\r\n", suffix)
     before = prove_unchanged.revision_source_of
 
@@ -172,10 +172,8 @@ def test_standalone_equal_source_refuses_context_change_between_snapshot_reads(
     assert "PROVEN" not in " ".join(report.messages)
 
 
-@pytest.mark.parametrize("suffix", [".js", ".rs"])
-def test_standalone_empty_source_accepts_explicit_settings(
-    tmp_path, installed_choices, suffix
-):
+def test_standalone_empty_source_accepts_explicit_settings(tmp_path, installed_choices):
+    suffix = ".rs"
     repo, target = proof_repository(tmp_path, "", suffix)
     report = prove_unchanged.run(
         repo, "HEAD", [target], settings={target: {"mode": "wide"}}
@@ -185,10 +183,10 @@ def test_standalone_empty_source_accepts_explicit_settings(
     assert report.reading_contexts[target].settings == (("mode", "wide"),)
 
 
-@pytest.mark.parametrize("suffix", [".js", ".rs"])
 def test_standalone_other_language_change_does_not_invalidate_selected_path(
-    tmp_path, monkeypatch, installed_choices, suffix
+    tmp_path, monkeypatch, installed_choices
 ):
+    suffix = ".rs"
     repo, target = proof_repository(tmp_path, "const value = 1;\r\n", suffix)
     before = prove_unchanged.revision_source_of
 
@@ -212,7 +210,6 @@ def test_standalone_other_language_change_does_not_invalidate_selected_path(
     assert "PROVEN" in " ".join(report.messages)
 
 
-@pytest.mark.parametrize("suffix", [".js", ".rs"])
 @pytest.mark.parametrize(
     "contents,code,message",
     [
@@ -222,9 +219,8 @@ def test_standalone_other_language_change_does_not_invalidate_selected_path(
         (None, 2, "settings.json"),
     ],
 )
-def test_standalone_process_cli_settings_transport(
-    tmp_path, contents, code, message, suffix
-):
+def test_standalone_process_cli_settings_transport(tmp_path, contents, code, message):
+    suffix = ".rs"
     repo, target = proof_repository(tmp_path, "", suffix)
     settings = tmp_path / "settings.json"
     if contents is not None:

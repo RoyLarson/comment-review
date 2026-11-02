@@ -4,7 +4,6 @@
 `TODO/the-flow-assumes-every-role-reads-at-once.md` T6.
 """
 
-import pytest
 from helpers import a_docket_over, a_small_real_tree, binder_of
 
 from comment_review.commands.taken_in import main
@@ -17,16 +16,13 @@ def test_taken_in_prints_nothing_when_no_stage_has_set_anything(tmp_path, capsys
     assert capsys.readouterr().out.strip() == ""
 
 
-@pytest.mark.parametrize(
-    "name,text,diagnostic",
-    [
-        ("broken.py", "def broken(:\n", "lex/unfinished-continuation"),
-        ("broken.c", "/* open", "lex/unterminated-comment"),
-    ],
-)
 def test_identical_malformed_sources_are_not_compared(
-    tmp_path, capsys, name, text, diagnostic
+    tmp_path,
+    capsys,
 ):
+    name = "broken.py"
+    text = "def broken(:\n"
+    diagnostic = "lex/unfinished-continuation"
     original = tmp_path / "original"
     revise = tmp_path / "revise"
     for root in (original, revise):
@@ -41,10 +37,12 @@ def test_identical_malformed_sources_are_not_compared(
     assert "addresses not compared" in seen.err
 
 
-@pytest.mark.parametrize(
-    "name,text", [("valid.py", "value = 1\n"), ("valid.c", "int value;\n")]
-)
-def test_identical_valid_sources_print_nothing(tmp_path, capsys, name, text):
+def test_identical_valid_sources_print_nothing(
+    tmp_path,
+    capsys,
+):
+    name = "valid.py"
+    text = "value = 1\n"
     original = tmp_path / "original"
     revise = tmp_path / "revise"
     for root in (original, revise):
