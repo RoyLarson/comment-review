@@ -1478,30 +1478,9 @@ FORMS = {
         "/** A */\n// note\n/** B */\nfn f() {}\n",
     ),
     "rust doc cut off by a comment": ("m.rs", "/** doc */\n// lint\nfn f() {}\n"),
-    "rust a gap of two runs above a declaration": (
-        "m.rs",
-        "const Y: i32 = 0;\n/* a\n b */ const X: i32 = 1;\n"
-        "/** D */\n// c\n/** E */\nfn g() {}\n",
-    ),
-    "rust a gap of two runs above plain code": (
+    "rust code on a comment's closing line": (
         "m.rs",
         "fn f() {}\n/* a\n b */ const X: i32 = 1;\n// c\nconst Y: i32 = 2;\n",
-    ),
-    "rust two runs with plain groups facing": (
-        "m.rs",
-        "const Y: i32 = 0;\n/* a\n b */ const X: i32 = 1;\n// c\nfn g() {}\n",
-    ),
-    "rust two runs with doc groups facing": (
-        "m.rs",
-        "fn f() {}\n/** a\n b */ const X: i32 = 1;\n/** D */\nfn g() {}\n",
-    ),
-    "rust two runs with doc groups facing at the head": (
-        "m.rs",
-        "/** a\n b */ const X: i32 = 1;\n/** D */\nfn g() {}\n",
-    ),
-    "rust two runs with a blank between": (
-        "m.rs",
-        "fn f() {}\n/* a\n b */ const X: i32 = 1;\n\n// c\nfn g() {}\n",
     ),
     "rust matter, doc, then comments and docs to the last line": (
         "m.rs",

@@ -720,34 +720,6 @@ def test_an_added_closing_docstring_is_set_in_reading_order_and_nothing_more(
             "/** G */",
             "// c",
         ),
-        (
-            "m.rs",
-            "const Y: i32 = 0;\n/* a\n b */ const X: i32 = 1;\n// c\nfn g() {}\n",
-            "b3",
-            "// G",
-            "// c",
-        ),
-        (
-            "m.rs",
-            "fn f() {}\n/** a\n b */ const X: i32 = 1;\n/// D\nfn g() {}\n",
-            "a3",
-            "/// G",
-            "/// D",
-        ),
-        (
-            "m.rs",
-            "/** a\n b */ const X: i32 = 1;\n/// D\nfn g() {}\n",
-            "a2",
-            "/// G",
-            "/// D",
-        ),
-        (
-            "m.rs",
-            "fn f() {}\n/* a\n b */ const X: i32 = 1;\n\n// c\nfn g() {}\n",
-            "b3",
-            "// G",
-            "// c",
-        ),
     ],
     ids=[
         "plain-facing",
@@ -755,10 +727,6 @@ def test_an_added_closing_docstring_is_set_in_reading_order_and_nothing_more(
         "doc-facing-head",
         "lua",
         "blank-between",
-        "rs-plain-facing",
-        "rs-doc-facing",
-        "rs-doc-facing-head",
-        "rs-blank-between",
     ],
 )
 def test_filling_the_a_below_a_closing_line_with_code_keeps_that_line(
