@@ -1,9 +1,9 @@
 # Python and Rust only
 
 ```
-Status:   in-progress
-Progress: 3 of 4 TODO tasks closed
-Plan-tasks: 8 of 9 plan tasks closed
+Status:   closed
+Progress: 4 of 4 TODO tasks closed
+Plan-tasks: 9 of 9 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-11-01 (decision-log #259, #260)
@@ -16,9 +16,9 @@ are freeform and answer UNCHECKED
 
 ## TODO tasks this plan closes
 
-### A - [python-and-rust-only](../../TODO/python-and-rust-only.md)
+### A - [python-and-rust-only](../../TODO/completed/python-and-rust-only.md)
 
-- [ ] T1 | Remove every language with no reader from the system
+- [x] T1 | Remove every language with no reader from the system
 
 ### B - [lexer-and-language-findings](../../TODO/lexer-and-language-findings.md)
 
@@ -42,6 +42,7 @@ are freeform and answer UNCHECKED
       the lexical reader
 - [x] P7 | closing_docstring, a_series, the a at eof, CodeLine.joins and the unit loop are gone; suite 5803 passed; 2088 pages matched BASE, differ 0; probe of 1898 files read no multi-line anchor | d6304b69490e7eb6ada90890d25bb2e37ae8983a | Remove
       the closing docstring branch
-- [~] P8 | Update the prose and the board for Python and Rust only
+- [x] P8 | CLAUDE.md, vocabulary wording and the record of the rulings landed with Roy's approval | 78aca486 | Update
+      the prose and the board for Python and Rust only
 - [x] P9 | gather lists source files with no reader on the binder, refuses one outside the repo, and passes over other walked files; partition and compose deal freeform paths; a freeform-only run passes topology, distribute, check and collate; full suite 6854 passed, 1 skipped | 27d3262931b68d602e97dcf33039d75c0e3f1b0b | Route
       freeform files from gather to reviewers
