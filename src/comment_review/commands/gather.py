@@ -199,22 +199,21 @@ def _passed_over(got: Gathering) -> None:
         )
         _first_twenty(got.freeform)
     if got.no_record:
-        # !! SAID, NOT REFUSED, and it used to be neither. A file the walk came
-        # across with no language record simply vanished, so a directory target
-        # reported a complete binder of whatever it happened to understand --
-        # the false completeness this command's own contract exists to prevent.
+        # !! SAID, NOT REFUSED. A file the walk comes across with no reader would
+        # otherwise vanish, so a directory target would report a complete binder
+        # of whatever it happened to understand -- the false completeness this
+        # command's own contract exists to prevent.
         # ! A NAMED file still ERRORS: the caller asked for that one. This is the
         # other half, where the caller asked for a tree and cannot know what was
-        # in it. MEASURED 2026-08-22 on a two-file directory: named, exit 1;
-        # walked, gone at exit 0.
+        # in it.
         print(
             f"PASSED OVER -- {len(got.no_record)} file(s) under a directory target"
-            " have no language record, so nothing read them:",
+            " have no reader, so nothing read them:",
             file=sys.stderr,
         )
         _first_twenty(got.no_record)
         print(
             "  ! Name one on the command line to make it an ERROR instead --"
-            " `--languages` lists what is known.",
+            " `--languages` lists the readers.",
             file=sys.stderr,
         )

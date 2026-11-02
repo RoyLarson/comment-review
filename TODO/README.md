@@ -303,7 +303,7 @@ that changed a published name or rule:
 | [paragraph-is-a-passage](paragraph-is-a-passage.md) | backend | -- | 0/9 | The addressed unit of prose is a passage, not a paragraph |
 | [one-line-ending-per-file](one-line-ending-per-file.md) | backend | -- | 2/6 | One line ending per file |
 | [edit-path-isolation](edit-path-isolation.md) | backend | -- | 1/2 | Isolate the edit path from comment reading |
-| [one-reader-builder](one-reader-builder.md) | backend | -- | 1/10 | One reader builder from each language's definition |
+| [one-reader-builder](one-reader-builder.md) | backend | -- | 2/10 | One reader builder from each language's definition |
 | [python-and-rust-only](python-and-rust-only.md) | backend | -- | 0/1 | Remove the languages with no reader of their own |
 | [freeform-agent-prose](freeform-agent-prose.md) | agents | -- | 0/1 | Tell the agents how to work a freeform file |
 

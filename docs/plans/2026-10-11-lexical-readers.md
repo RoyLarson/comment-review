@@ -843,15 +843,21 @@ interfaces, inputs and checks, without internal development files or history.
         > 2026-10-11 Each language subplan supplies its own spec, definition and reader
 - [ ] P54 | Add Python and Rust facts to referrer discovery
         > 2026-11-01 Check: uv run pytest -q tests/test_referrers.py
+        > 2026-11-01 Path terms remain; unavailable harvesting is reported explicitly
 - [ ] P55 | Remove duplicated facts across both readers
         > 2026-11-01 Check: uv run pytest -q tests/test_reading.py
+        > 2026-11-01 Verify consumers use the shared result and diagnostics
 - [ ] P56 | Update agent references for Python and Rust coverage
         > 2026-11-01 Check: uv run python scripts/check_vocabulary.py
+        > 2026-11-01 Verify operational text holds only task-facing instructions
 - [ ] P57 | Update write instructions for UNCHECKED
         > 2026-11-01 Proof precedes formatting; local validation follows it
+        > 2026-11-01 Preserve the exact approved local-validation instruction
 - [ ] P58 | Rewrite obsolete fixture prescriptions as boundary cases
         > 2026-11-01 Python and Rust cases that can detect a wrong read
+        > 2026-11-01 Use the design TODO mapping; retain independent behavioral goals
 - [ ] P59 | Verify command smoke and regression with both readers
         > 2026-11-01 Check: uv run pytest -q
+        > 2026-11-01 Verify with all reader definitions and unchanged dependency gates
 - [ ] P60 | Verify lint, formatting, types, syntax and vocabulary
         > 2026-11-01 Run the existing CLAUDE.md completion commands

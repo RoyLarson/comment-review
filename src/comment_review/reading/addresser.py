@@ -889,10 +889,7 @@ def flatten(path: str) -> str:
     separator below carries that difference through into the address.
 
     !! THE EXTENSION STAYS. Dropping it reads better and reintroduces collisions
-    the moment a repo holds `b.py` beside `b.rs` -- which this gather supports by
-    design, eighteen languages in one run. Roy ruled it 2026-08-18: "we could have
-    mixed languages in the system with the same names that without that we are
-    back to collisions."
+    the moment a repo holds `b.py` beside `b.rs`, and one gather reads both.
 
     !! THE SEPARATOR IS A CHARACTER A PATH CANNOT HOLD, and that is what makes
     this INVERTIBLE. It was `.` until 2026-08-19, and a dot is ordinary in a
