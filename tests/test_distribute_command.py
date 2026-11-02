@@ -485,3 +485,24 @@ def test_check_and_collate_accept_a_copy_with_no_sheets(
         json.loads((tmp_path / "chief.json").read_text(encoding="utf-8"))["sheets"]
         == []
     )
+
+
+def test_a_seeded_copy_says_how_many_freeform_paths_its_binder_holds(
+    tmp_path, monkeypatch, capsys, no_javascript_reader
+):
+    binder, _, _ = _freeform_run(tmp_path, monkeypatch, capsys)
+    code, printed = run_command(
+        monkeypatch,
+        capsys,
+        distribute_command,
+        "--seed",
+        "--binder",
+        str(binder),
+        "--role",
+        "block-context",
+        "--out",
+        str(tmp_path / "seeded.json"),
+        with_stderr=True,
+    )
+    assert code == 0, printed
+    assert "0 places for block-context to rule on; 2 freeform" in printed

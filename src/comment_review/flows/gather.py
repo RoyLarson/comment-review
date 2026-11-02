@@ -53,6 +53,7 @@ from comment_review.flows.read_diagnostics import format_failure
 from comment_review.flows.reading_context import context_for
 from comment_review.flows.source import source_of
 from comment_review.machine.repo import (
+    can_escape,
     path_index,
     relative_to,
     tracked_paths,
@@ -127,7 +128,13 @@ def _walk(g: Gathering) -> None:
         if INSTALLED_REGISTRY.for_path(path) is not None:
             g.files.append(path)
         elif path.suffix.lower() in FREEFORM_SUFFIXES:
-            freeform.add(_repo_relative(path, g.repo))
+            rel = _repo_relative(path, g.repo)
+            # A page outside the repo is refused at the write; nothing writes a
+            # freeform path through that check, so it is refused here.
+            if can_escape(rel):
+                g.unreadable.append(f"{rel} (outside the repository)")
+            else:
+                freeform.add(rel)
         elif path.resolve() in named:
             g.files.append(path)
         else:
@@ -387,7 +394,7 @@ def unaddressed_report(missing: list[str]) -> str:
     )
 
 
-def not_gathered(files: list[Path], unreadable: list[str]) -> str:
+def not_gathered(handed_in: int, unreadable: list[str]) -> str:
     """The refusal, worded once.
 
     !! The reviewers are handed the binder, so a file missing from it is
@@ -400,6 +407,6 @@ def not_gathered(files: list[Path], unreadable: list[str]) -> str:
     listed = "\n".join(f"    {u}" for u in unreadable)
     return (
         f"NOT GATHERED -- these are gaps, not passes:\n{listed}\n"
-        f"ERROR: {len(unreadable)} of {len(files)} files handed in were not"
+        f"ERROR: {len(unreadable)} of {handed_in} files handed in were not"
         " gathered. Every file is gathered or this errors."
     )

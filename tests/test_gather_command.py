@@ -392,6 +392,7 @@ def test_a_python_file_that_fails_to_read_still_stops_the_gather(
     code, printed, _ = _gather(tmp_path, monkeypatch, capsys, page, tmp_path / "b.js")
     assert code == 1, printed
     assert "a.py" in printed
+    assert "1 of 2 files handed in" in printed
 
 
 def test_freeform_paths_are_sorted_repo_relative_and_listed_once(
@@ -400,9 +401,33 @@ def test_freeform_paths_are_sorted_repo_relative_and_listed_once(
     (tmp_path / "src").mkdir()
     (tmp_path / "src" / "z.js").write_text("// z\n", encoding="utf-8")
     (tmp_path / "a.js").write_text("// a\n", encoding="utf-8")
+    (tmp_path / "c.JS").write_text("// c\n", encoding="utf-8")
     monkeypatch.chdir(tmp_path)
     code, printed, out = _gather(
-        tmp_path, monkeypatch, capsys, tmp_path / "src" / "z.js", "src/z.js", "a.js"
+        tmp_path,
+        monkeypatch,
+        capsys,
+        tmp_path / "src" / "z.js",
+        "src/z.js",
+        "a.js",
+        "c.JS",
     )
     assert code == 0, printed
-    assert _binder(out)["freeform"] == ["a.js", "src/z.js"]
+    assert _binder(out)["freeform"] == ["a.js", "c.JS", "src/z.js"]
+
+
+@pytest.mark.parametrize("spelled", ["absolute", "dotted"])
+def test_a_freeform_file_outside_the_repo_stops_the_gather(
+    tmp_path, monkeypatch, capsys, no_javascript_reader, spelled
+):
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    (tmp_path / "other").mkdir()
+    outside = tmp_path / "other" / "x.js"
+    outside.write_text("// x\n", encoding="utf-8")
+    monkeypatch.chdir(repo)
+    target = outside if spelled == "absolute" else "../other/x.js"
+    code, printed, _ = _gather(repo, monkeypatch, capsys, target)
+    assert code == 1, printed
+    assert "x.js (outside the repository)" in printed
+    assert "1 of 1 files handed in" in printed

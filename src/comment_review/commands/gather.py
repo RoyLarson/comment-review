@@ -131,7 +131,8 @@ def _report(args: argparse.Namespace) -> int:
     # failed to parse, vanished, and the coverage check then certified "every
     # paragraph accounted for" over paragraphs never collected.
     if got.unreadable:
-        print(not_gathered(got.files, got.unreadable), file=sys.stderr)
+        handed_in = len(got.pages) + len(got.freeform) + len(got.unreadable)
+        print(not_gathered(handed_in, got.unreadable), file=sys.stderr)
         return 1
     # !! AN UNADDRESSED PARAGRAPH IS UNCITABLE, so a binder holding one is a
     # binder nobody can rule on -- and it fails SILENTLY: the collator builds
@@ -162,6 +163,14 @@ def _report(args: argparse.Namespace) -> int:
     return 0
 
 
+def _first_twenty(rows: list[str]) -> None:
+    """Print up to twenty rows on stderr and say how many more there were."""
+    for row in rows[:20]:
+        print(f"    {row}", file=sys.stderr)
+    if len(rows) > 20:
+        print(f"    ... and {len(rows) - 20} more", file=sys.stderr)
+
+
 def _passed_over(got: Gathering) -> None:
     """The gap reports and the read's warnings, all on stderr.
 
@@ -189,10 +198,7 @@ def _passed_over(got: Gathering) -> None:
             " lists them for the reviewers:",
             file=sys.stderr,
         )
-        for row in got.freeform[:20]:
-            print(f"    {row}", file=sys.stderr)
-        if len(got.freeform) > 20:
-            print(f"    ... and {len(got.freeform) - 20} more", file=sys.stderr)
+        _first_twenty(got.freeform)
     if got.no_record:
         # !! SAID, NOT REFUSED, and it used to be neither. A file the walk came
         # across with no language record simply vanished, so a directory target
@@ -207,10 +213,7 @@ def _passed_over(got: Gathering) -> None:
             " have no language record, so nothing read them:",
             file=sys.stderr,
         )
-        for row in got.no_record[:20]:
-            print(f"    {row}", file=sys.stderr)
-        if len(got.no_record) > 20:
-            print(f"    ... and {len(got.no_record) - 20} more", file=sys.stderr)
+        _first_twenty(got.no_record)
         print(
             "  ! Name one on the command line to make it an ERROR instead --"
             " `--languages` lists what is known.",

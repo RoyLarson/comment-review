@@ -56,9 +56,9 @@ class UncoveredPage(Exception):
 
 
 def _matches(path: str, patterns: tuple[str, ...]) -> bool:
-    """Does this page fall under a dispatch carrying these patterns?
+    """Does this file fall under a dispatch carrying these patterns?
 
-    Empty `patterns` means every page -- `desk/stages.py`'s own rule for a
+    Empty `patterns` means every file -- `desk/stages.py`'s own rule for a
     `Dispatch` with no `paths`.
     """
     return not patterns or any(fnmatch(path, pattern) for pattern in patterns)
