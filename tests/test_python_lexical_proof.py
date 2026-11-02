@@ -326,15 +326,18 @@ def test_standalone_modern_python_uses_one_context_without_host_parsing(
     assert report.reading_contexts[target] is admitted[0]
 
 
-def test_python_unicode_database_change_invalidates_saved_context_only(monkeypatch):
+@pytest.mark.parametrize("name", ["m.js", "m.rs"])
+def test_python_unicode_database_change_invalidates_saved_context_only(
+    monkeypatch, name
+):
     python = reading_context.context_for(Path("m.py"), {})
-    javascript = reading_context.context_for(Path("m.js"), {})
+    other = reading_context.context_for(Path(name), {})
     assert isinstance(python, ReadingContext)
-    assert isinstance(javascript, ReadingContext)
+    assert isinstance(other, ReadingContext)
     monkeypatch.setattr(unicodedata, "unidata_version", "99.0.0")
     changed = reading_context.context_for(Path("m.py"), {})
     assert isinstance(changed, ReadingContext) and changed != python
-    assert reading_context.context_for(Path("m.js"), {}) == javascript
+    assert reading_context.context_for(Path(name), {}) == other
     failed = page_for.page_of(
         Path("m.py"), source=Source("value = 1\n", "sha"), reading_context=python
     )
