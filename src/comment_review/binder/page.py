@@ -140,7 +140,7 @@ class Page:
     # the variant that emits only the places holding prose.
     #
     # ! `leading` IS THE PAGE'S, NOT `cue`'S: `cue` runs before any prose is
-    # read, and leading exists only where the LEXER found a blank run. `cue`
+    # read, and leading exists only where the PAGE found a blank run. `cue`
     # cannot know a `d` is there, so it cannot be `cue`'s to hold.
     #
     # !! ONE KEY, NOT A PAIR: the place a run follows. A second key naming the

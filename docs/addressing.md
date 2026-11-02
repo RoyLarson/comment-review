@@ -104,15 +104,13 @@ its body.
 isn't the technical symbols and their precise semantic meaning and code use. It is 'the line of
 code' -- the exact characters in that line of code."*
 
-**So it needs no parser, no language server and no build tool.** Every tier already finds where a
-comment opens in order to cut there, which means it already holds the characters before it. Roy:
-*"the lexer either knows what is before the trailing comment and can snag the whole string or it
-is broken."*
+**So it needs no language server and no build tool.** A reader already finds where a comment
+opens in order to cut there, which means it already holds the characters before it.
 
 | series | its anchor is |
 | --- | --- |
 | `a` | the LINE that declares it -- `def f():`, not `f`. The name is not carried: Roy, 2026-08-19, *"drop it -- the line is the anchor"* |
-| `b` | the code line BELOW the gap -- the statement the prose introduces. At the end of a file, the line above, because that is the bound the gap has |
+| `b` | the code line BELOW the gap -- the statement the prose introduces. At the end of a file, `<eof>`: the closing gap has no line below it |
 | `c` | the code on its own line, which is `line[:original_column - 1]` |
 
 !! **A RECORD WITH NO ANCHOR IS A BROKEN RECORD** -- Roy -- and `record.seeded_problems` says so.
@@ -120,8 +118,8 @@ Measured 2026-08-19 against the commit before that rule: **6,376 of 6,531 blocks
 own shipped scripts carried an EMPTY anchor, 98% of the census**, and every seeded record repeated
 it.
 
-! **It was invisible from both ends at once.** `census.py` printed *"NO COMMENT carries an anchor
-at either tier"* as a statement of intent, and `test_record.py` asserted which KEYS are seeded
+! **It was invisible from both ends at once.** `census.py` printed that no comment carries an
+anchor as a statement of intent, and `test_record.py` asserted which KEYS are seeded
 rather than that either held a value. The two agreed with each other and agreed on nothing.
 
 ! **A `b` copies its anchor from the `c` of each line it covers, never re-cutting one.** Every code line has
@@ -159,12 +157,8 @@ the LANGUAGE uses for module-level code: it is `co_name` on the module's code ob
 in every traceback, so it is a convention rather than something this system invented. Roy,
 2026-08-19: *"that is why in python it should be `<module>`."*
 
-! **Every other language gets its declared module name, wherever that line sits** -- Roy:
-*"the rest get their declared module name that sits wherever."* Measured the same day: Go
-(`package math`), Ruby (`module Foo`) and Java (`package com.example;`) all declare a module on a
-real line, and the census already anchors their module documentation to it. They emit no `a`
-series yet, so the rule waits on one -- which is Python plus any setup where a language server or
-CodeGraph answers.
+! **Rust takes the same address.** A Rust file has no line that declares its module, so its `//!`
+documentation answers `<module>` too.
 
 ! **Two alternatives were tried and are worse.** The FIRST LINE OF CODE reads true only where a
 language puts its module declaration first by rule; in Python the first statement is arbitrary, so
@@ -233,8 +227,9 @@ which belong to other blocks.
 ## What keeps text where it was
 
 **Stage 7b's CODE CHECK.** Python compares retained lexical source, including literal spelling,
-executable indentation and protected directives. Other languages use the existing stripped-text
-comparison. Code anchors remain in source order while prose may shift their physical line
+executable indentation and protected directives. Rust compares its code with every prose comment
+removed. A freeform file has no reader to compare, so `prove_unchanged` answers `UNCHECKED` for it,
+never `PROVEN`. Code anchors remain in source order while prose may shift their physical line
 numbers. Documentation additions and removals must preserve the original ordinary literals.
 
 !! **It rests on the census being a HASHED STATIC TABLE** -- Roy, 2026-08-18 -- exact, constant,

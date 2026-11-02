@@ -67,15 +67,13 @@ drop it. The session removed the MEMBER, a wider change than the answer covered.
 
 !! ADDING A STAGE IS A ROW, NOT A BRANCH. Nothing in this module or in
 `pulls_revise` asks a stage's or a role's NAME; `pulls_revise` reads only
-`stage.kind`. `CLAUDE.md` records what the other shape costs: `language.py`
-decided a tier as `"tokenized" if lang.name == "python" else "lexical"`, and a
-second tokenized language became three edits in two modules.
+`stage.kind`.
 
 ! `Kind`'s values are DERIVED from the member names via `_generate_next_value_`,
 never hand-typed, following `T1.15` of `docs/plans/0.2.4-the-mark-and-the-
 collator.md`. No site in this module asks membership of `Kind` itself --
-`x in SomeEnum` raises `TypeError` on Python 3.11, measured at `lexer.py:87`
--- so there is no companion frozenset here; nothing in this file needs one.
+`x in SomeEnum` raises `TypeError` on Python 3.11 -- so there is no companion
+frozenset here; nothing in this file needs one.
 
 !! `STAGE` GAINED THREE DEFAULTED FIELDS -- `reads`, `carries`, `dispatches` --
 for `desk/topology.py` to build. `docs/superpowers/specs/2026-08-29-the-
@@ -106,9 +104,10 @@ class Kind(StrEnum):
     !! DECLARED POLYSEMY, and it went undeclared until 2026-08-28. This is the
     SECOND `Kind` in this package: `reading.series.Kind` has nine members
     (DOCSTRING, INTERVAL, MARGIN, MATTER, LEADING, ...) and answers *what kind
-    of PLACE is this*, and it is imported by `binder/binder.py`, `binder/page.py`,
-    `commands/gather.py` and `reading/lexer.py`. This one answers
-    *what does a STAGE hand back*. ! A reader meeting `stage.kind` after
+    of PLACE is this*, and it is imported by `binder/page.py`,
+    `flows/proof_setter.py`, `results/compositor.py` and each reader's
+    `projection`. This one answers *what does a STAGE hand back*. ! A reader
+    meeting `stage.kind` after
     `paragraph.kind` has nothing telling them the word changed subject, and a
     module needing both must alias one -- `docs/vocabulary.md` is where this
     repo records a word carrying several meanings, and the undeclared one is
@@ -135,8 +134,8 @@ class Role(StrEnum):
     does not move when the schedule does.
 
     ! No site in this module asks membership of `Role` itself -- `x in
-    SomeEnum` raises `TypeError` on Python 3.11, measured at `lexer.py:87` --
-    `ROLES = tuple(Role)` below is the companion asked instead.
+    SomeEnum` raises `TypeError` on Python 3.11 -- `ROLES = tuple(Role)` below
+    is the companion asked instead.
     """
 
     @staticmethod

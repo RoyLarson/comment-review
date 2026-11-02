@@ -1,8 +1,8 @@
 # Kotlin lexical reader
 
 ```
-Status:   open
-Progress: 1 of 3 tasks closed
+Status:   closed
+Progress: 3 of 3 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-25 (decision-log.md Process: #222)
@@ -18,9 +18,11 @@ Worked when it is asked for -- decision-log.md Process: #222.
 
 ## Tasks
 
-- [ ] T1 | Specify the Kotlin lexical reader in its own dated spec
+- [-] T1 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | Specify
+      the Kotlin lexical reader in its own dated spec
         > 2026-10-25 Check: spec states modes, directive bounds, doc owners, fixtures
-- [ ] T2 | Implement the Kotlin reader from its definition
+- [-] T2 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | Implement
+      the Kotlin reader from its definition
         > 2026-10-25 Check: uv run pytest -q tests/reading/test_kotlin.py
 - [x] T3 | Row names shebang; refusal tested, Kotlin not run | 6e48bc46 | Name
       `shebang` on the Kotlin row from its own grammar

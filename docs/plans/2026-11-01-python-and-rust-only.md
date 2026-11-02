@@ -42,6 +42,6 @@ are freeform and answer UNCHECKED
       the lexical reader
 - [x] P7 | closing_docstring, a_series, the a at eof, CodeLine.joins and the unit loop are gone; suite 5803 passed; 2088 pages matched BASE, differ 0; probe of 1898 files read no multi-line anchor | d6304b69490e7eb6ada90890d25bb2e37ae8983a | Remove
       the closing docstring branch
-- [ ] P8 | Update the prose and the board for Python and Rust only
+- [~] P8 | Update the prose and the board for Python and Rust only
 - [x] P9 | gather lists source files with no reader on the binder, refuses one outside the repo, and passes over other walked files; partition and compose deal freeform paths; a freeform-only run passes topology, distribute, check and collate; full suite 6854 passed, 1 skipped | 27d3262931b68d602e97dcf33039d75c0e3f1b0b | Route
       freeform files from gather to reviewers

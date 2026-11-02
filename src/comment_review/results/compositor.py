@@ -260,16 +260,15 @@ def _set(page: Page, newline: str | None) -> tuple[str, dict[str, tuple[int, int
 
         # !! THE CLOSING GAP IS EXEMPT, AND THE FOOT IS WHY. Back matter is the
         # run AFTER the last blank line -- the rule is `reading.matter`'s -- so a
-        # leading above an added closing `b`
-        # pushes it INTO the matter it was meant to stay clear of: on `SAMPLE`,
-        # `b4` with a leading still re-reads at `f1`, so the blank changes the
-        # bytes and not the outcome.
+        # leading above an added closing `b` pushes it INTO the matter it was
+        # meant to stay clear of: on `SAMPLE`, `b4` with a leading still re-reads
+        # at `f1`, so the blank changes the bytes and not the outcome.
         if adding_a_gap and not edge and at < last_code:
             out.append("")
         # !! AND AT THE FOOT IT GOES ON THE OTHER SIDE -- the head's rule in
         # reverse. Matter is the run that STARTS on line 1 or ENDS on the last
-        # one, so what pushes a gap out of it
-        # is a blank BEFORE at the head and a blank AFTER at the foot.
+        # one, so what pushes a gap out of it is a blank BEFORE at the head and a
+        # blank AFTER at the foot.
         # ! `...return y\n# ADDED\n` and
         # `...return y\n\n# ADDED\n` both re-read at `f1`;
         # `...return y\n# ADDED\n\n` re-reads at the closing gap, so a leading

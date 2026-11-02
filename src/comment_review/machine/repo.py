@@ -422,19 +422,12 @@ def path_index(repo: Path) -> set[str]:
 def walk_files(root: Path):
     """Every file under `root`. It ENUMERATES; it classifies nothing.
 
-    !! IT FILTERED ON `BY_EXT` AND THAT WAS A SECOND POLICY. `main` already asks
-    `language_for(path) is None` and REFUSES at exit 1 -- the caller asked for
-    that file -- so the same question was answered in two places with two
-    different consequences, and the silent one won for a directory. MEASURED
-    2026-08-22 on a two-file directory: an unsupported file NAMED exits 1, the
-    same file WALKED vanished at exit 0. `every file handed in is gathered or
-    this errors` was true of explicit paths and false of directories.
-
-    ! SO THE WALK STOPPED DECIDING. Whether a file with no language record is a
-    refusal or a note is the GATHER's call, and it turns on something only the
-    gather knows: whether the path was NAMED or merely FOUND. A directory holds
-    READMEs, images and lockfiles; refusing on those makes the form unusable,
-    and skipping them in silence is the false completeness this warns about.
+    ! THE WALK DOES NOT DECIDE. What a file no reader claims becomes -- freeform,
+    a refusal or a note -- is the GATHER's call, and it turns on something only
+    the gather knows: whether the path was NAMED or merely FOUND. A directory
+    holds READMEs, images and lockfiles; refusing on those makes the form
+    unusable, and skipping them in silence is the false completeness this warns
+    about.
 
     ! `EXCLUDED_DIRS` IS THIS MODULE'S, which is why the walk sits here rather
     than in the gather that used to hold it. It is not the same question. It is about

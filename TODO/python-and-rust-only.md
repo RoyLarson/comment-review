@@ -14,4 +14,4 @@ Remove the languages with no reader of their own.
 
 ## Tasks
 
-- [ ] T1 | Remove every language with no reader from the system
+- [~] T1 | Remove every language with no reader from the system

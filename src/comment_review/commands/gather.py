@@ -126,7 +126,7 @@ def _report(args: argparse.Namespace) -> int:
 
     # !! THE GATE FIRST. `--out` is the route SKILL.md mandates for the binder
     # stage 5 parses, and this returned 0 with a SHORT array for a file that
-    # could not be read -- so a file with no language record, or one that
+    # could not be read -- so a named file no reader claims, or one that
     # failed to parse, vanished, and the coverage check then certified "every
     # paragraph accounted for" over paragraphs never collected.
     if got.unreadable:

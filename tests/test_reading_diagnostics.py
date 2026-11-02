@@ -53,7 +53,7 @@ def test_read_source_gives_python_its_lexical_read(text, expected):
     assert [(p.start, p.end, p.kind, p.raw_lines) for p in paragraphs] == expected
 
 
-def test_python_paragraph_adapter_recognizes_source_once(monkeypatch):
+def test_read_paragraphs_come_from_the_one_python_read(monkeypatch):
     registry = installed_registry()
     assert not isinstance(registry, ReadFailure)
     calls = []

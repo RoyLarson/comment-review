@@ -70,8 +70,7 @@ class Paragraph:
     # beside it, every `b` and `c` in its body -- and an address has ONE anchor.
     #
     # !! IT IS ALWAYS CODE, VERBATIM -- a line of code, never a name and never
-    # a symbol. An `a` carries what DECLARES it,
-    # `def f():` and not `f`.
+    # a symbol. An `a` carries what DECLARES it, `def f():` and not `f`.
     anchor: str = ""
     # !! THE LINE THIS PLACE'S ANCHOR OPENS ON, so an anchor's OTHER places can
     # be found: the `c` beside its `def`, the `b` above it, its own `a`. Without
@@ -95,9 +94,8 @@ class Paragraph:
     # filling in for a missing value."*
     anchor_line: int | None = None
     # !! THE LINE A READER SAYS THIS DOC DECLARES FOR -- the declaration's own
-    # line. `None` for the module's doc.
-    # Only a reader sets it; the page reads it to choose the doc's place, then
-    # sets `anchor_line` from that place.
+    # line. `None` for the module's doc. Only a reader sets it; the page reads it
+    # to choose the doc's place, then sets `anchor_line` from that place.
     declares_line: int | None = None
     # !! THE ORDINAL OF THAT ANCHOR AMONG THE LINES OF CODE, and
     # `flows.proof_setter` checks it, with `anchor` and `anchor_line`, against the
@@ -124,7 +122,7 @@ class Paragraph:
     #
     # ! WHICH FOLLOWS FROM WHERE IT COMES FROM. Every other place exists because
     # the WALK reached a trigger -- and the trigger IS the anchor. A `d` exists
-    # because the LEXER found blank lines, so there was never a trigger for it to
+    # because the PAGE found blank lines, so there was never a trigger for it to
     # be anchored to. `addresser.SERIES` holds four series; `LEAD` is a symbol.
     symbol: str = ""
     annotations: set[str] = field(default_factory=set)

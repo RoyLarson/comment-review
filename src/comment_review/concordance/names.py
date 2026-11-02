@@ -6,17 +6,8 @@ decide whether that token is a name worth looking up; `code_names` asks it of
 a string constant in the TREE, to decide whether to index one. **If the two
 disagreed about what a name looks like, a key could never hit.**
 
-!! IT LIVED IN `reading/lexer.py` UNTIL 2026-08-31, AND THE COMMENT THERE SAID
-WHY -- *"a leaf both may take is what stops one of them importing the other
-for a regex."* ! **Right about the need and wrong about the destination**: the
-lexer is the BUILDER, 1,600 lines of tokenising, and it had NO READER of this
-at all -- measured 2026-08-31, the only occurrence was its own definition
-line. It is the same misplacement `Paragraph` was in, made for the same
-reason on the same module. `decision-log.md Process: #70`.
-
-! **THE MOVE HAD TO WAIT FOR ITS TWO READERS TO BE ONE AREA.** They were
-`binder/annotate.py` and `concordance/code_names.py`; annotate came here the
-same day, because it builds the key for the index this package builds.
+!! IT IS A LEAF BECAUSE *"a leaf both may take is what stops one of them
+importing the other for a regex."* `decision-log.md Process: #70`.
 
 ! **IT IS NOT ASKED OF EVERY INDEX ENTRY**, and nothing said so before.
 `code_names` matches it on STRING CONSTANTS only -- a name harvested from an

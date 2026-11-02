@@ -2,8 +2,8 @@
 
 ```
 Status:   in-progress
-Progress: 83 of 182 TODO tasks closed
-Plan-tasks: 40 of 53 plan tasks closed
+Progress: 126 of 182 TODO tasks closed
+Plan-tasks: 48 of 60 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (founded by move-t from 0.2.4-the-middle-rebuilt)
@@ -54,9 +54,9 @@ interfaces, inputs and checks, without internal development files or history.
 
 ### D - [language-rows-in-toml](../../TODO/language-rows-in-toml.md)
 
-- [ ] T17 | Specify each supported language independently; verify each has its
+- [-] T17 | Specify each supported language independently; verify each has its
       own dated spec, references and fixtures
-- [ ] T18 | Implement one definition file per language; verify each configures
+- [-] T18 | Implement one definition file per language; verify each configures
       its parser without family defaults or language inheritance
 - [-] T1 | T1 -- Transcribe all 18 language rows into
       `references/languages.toml`, Python included, with `tier` as a field.
@@ -73,13 +73,13 @@ interfaces, inputs and checks, without internal development files or history.
 - [-] T5 | T5 -- Move `test_every_row_STATES_its_own_quotes` from parsing the
       Python AST to asking whether the key is present. Verify: the test reads
       the table, not the AST.
-- [ ] T12 | T12 -- Make `tier_for` (`language.py:546`) read the row's `tier`
+- [-] T12 | T12 -- Make `tier_for` (`language.py:546`) read the row's `tier`
       field instead of `lang.name == "python"`. Verify: `language.py` holds no
       comparison of `lang.name`.
-- [ ] T13 | T13 -- Dispatch the READER at `page.py:694` on the row, not on
+- [-] T13 | T13 -- Dispatch the READER at `page.py:694` on the row, not on
       `lang.name`. Verify: a file cannot be read at one tier and stamped at the
       other.
-- [ ] T15 | T15 -- Make `prove_unchanged.py:176` take the `(".py", ".pyi")`
+- [-] T15 | T15 -- Make `prove_unchanged.py:176` take the `(".py", ".pyi")`
       suffix tuple from `language.py:99`. Verify: the tuple is not re-spelled in
       `prove_unchanged.py`.
 - [ ] T16 | T16 -- Make `referrers.py:53` take the same suffix tuple from
@@ -125,7 +125,7 @@ interfaces, inputs and checks, without internal development files or history.
 
 ### G - [lexer-and-language-findings](../../TODO/lexer-and-language-findings.md)
 
-- [ ] T3 | T3 -- Exclude `Kind.MATTER` from the walk-up candidates. Verify: Ruby
+- [-] T3 | T3 -- Exclude `Kind.MATTER` from the walk-up candidates. Verify: Ruby
       front matter above a `def` leaves `f0.declares` unset, and only `a1`
       declares 1.
 - [-] T4 | T4 -- Let the shell row say `#` is inert after a dollar-brace.
@@ -134,7 +134,7 @@ interfaces, inputs and checks, without internal development files or history.
 - [-] T13 | T13 -- Give Java its own expression of a soft keyword: `record` at
       language.py:248. Verify: `record = lookup()` in a `.java` mints no `a`,
       and a real one still does.
-- [ ] T14 | T14 -- Give C# its own expression of a soft keyword: `record` at
+- [-] T14 | T14 -- Give C# its own expression of a soft keyword: `record` at
       language.py:283. Verify: `record = lookup()` in a `.cs` mints no `a`, and
       a real one still does.
 - [-] T15 | T15 -- Give Swift its own expression of soft keywords: `convenience`
@@ -143,7 +143,7 @@ interfaces, inputs and checks, without internal development files or history.
 - [x] T16 | MOVED to 2026-10-22-lexer-rust | T16 -- Declare Rust's spanning
       quotes; language.py:117-146 carries none. Verify: a Rust multi-line string
       is neither refused wholesale nor read as comments.
-- [ ] T17 | T17 -- Declare C's spanning quotes; language.py:185-193 carries
+- [-] T17 | T17 -- Declare C's spanning quotes; language.py:185-193 carries
       none. Verify: a C multi-line string is neither refused wholesale nor read
       as comments.
 - [-] T18 | T18 -- Bound Lua's long-bracket level, or read it; language.py:473
@@ -173,29 +173,29 @@ interfaces, inputs and checks, without internal development files or history.
       literal data
 - [-] T33 | Recognize JavaScript regex literals in lexer.py:1071; verify /[//]/
       yields no comment paragraph
-- [ ] T34 | Resume code scanning after block comments in lexer.py:1071; verify a
+- [-] T34 | Resume code scanning after block comments in lexer.py:1071; verify a
       quote in a block cannot hide a following line comment
 - [-] T35 | Select the earliest block opener in lexer.py:1072; verify mixed Lua
       delimiters inside a long comment preserve its full body
-- [ ] T6 | T6 -- Make language.py:9 name a file that exists, or drop the
+- [-] T6 | T6 -- Make language.py:9 name a file that exists, or drop the
       citation -- `scripts/check_language_leaf.py` does not. Verify: the path it
       names resolves.
-- [ ] T8 | T8 -- De-duplicate the sorted `line_comment` opener tuple,
+- [-] T8 | T8 -- De-duplicate the sorted `line_comment` opener tuple,
       byte-identical at lexer.py:999 and desk.py:379. Verify: the expression
       appears once.
-- [ ] T9 | T9 -- De-duplicate the `continues-a-trailing-comment` stamp,
+- [-] T9 | T9 -- De-duplicate the `continues-a-trailing-comment` stamp,
       copy-pasted at lexer.py:1168-1176 and :1772-1780. Verify: `grep -c` of its
       sentence returns 1.
-- [ ] T2 | T2 -- Stamp every paragraph an unterminated block comment swallowed,
+- [-] T2 | T2 -- Stamp every paragraph an unterminated block comment swallowed,
       not only the last. Verify: all of them carry
       `unterminated-paragraph-comment`.
-- [ ] T7 | T7 -- Gate the two-importer rule: fail when a third module reads a
+- [-] T7 | T7 -- Gate the two-importer rule: fail when a third module reads a
       language symbol. Verify: the gate exists and fails on a planted third
       importer of `language`.
-- [ ] T10 | T10 -- Use `bisect` at lexer.py:1614, where a list comprehension
+- [-] T10 | T10 -- Use `bisect` at lexer.py:1614, where a list comprehension
       scans the sorted `above_code` built one line earlier. Verify: the scan is
       gone and the suite green.
-- [ ] T11 | T11 -- Replace the four one-element lists standing in for `nonlocal`
+- [-] T11 | T11 -- Replace the four one-element lists standing in for `nonlocal`
       in lexer.py. Verify: no `[0]` subscript on a one-element accumulator
       remains in lexer.py.
 - [ ] T21 | T21 -- Record the `a1` -> `c` move in `docs/history.md` with the
@@ -216,14 +216,14 @@ interfaces, inputs and checks, without internal development files or history.
 - [ ] T51 | Make Python decorators and Rust attributes one unit with their item
 - [ ] T56 | Offer no place inside a string literal that spans lines
 
-### H - [a-doc-comment-is-cued-a-and-typed-b](../../TODO/a-doc-comment-is-cued-a-and-typed-b.md)
+### H - [a-doc-comment-is-cued-a-and-typed-b](../../TODO/completed/a-doc-comment-is-cued-a-and-typed-b.md)
 
-- [ ] T1 | Decide whether the lexer types by MARKER or by the place the walk
+- [-] T1 | Decide whether the lexer types by MARKER or by the place the walk
       gave it
-- [ ] T2 | Make the kind agree with the cue for go, ruby and lua
-- [ ] T3 | Remove the three strict xfails in tests/test_reading.py once they
+- [-] T2 | Make the kind agree with the cue for go, ruby and lua
+- [-] T3 | Remove the three strict xfails in tests/test_reading.py once they
       pass
-- [ ] T4 | Update the retype comment at page.py:1074-1081, which states that
+- [-] T4 | Update the retype comment at page.py:1074-1081, which states that
       kind and series must agree while its branch tests one kind of four
 
 ### I - [matter-misses-two-languages](../../TODO/matter-misses-two-languages.md)
@@ -240,7 +240,7 @@ interfaces, inputs and checks, without internal development files or history.
 - [ ] T2 | T2 -- Strip the interior continuation marker as well. Verify: a
       multi-line Javadoc's census `text` carries no leading `*` on any line
       after the first.
-- [ ] T7 | T7 -- Write the unit fixtures for the fix from INVENTED text, not
+- [-] T7 | T7 -- Write the unit fixtures for the fix from INVENTED text, not
       from the corpus. Verify: no assertion under `tests/` quotes a line from
       any file in the table above.
 - [-] T8 | T8 -- Add a multi-line Javadoc to `tests/fixtures/sample.java`.
@@ -259,7 +259,7 @@ interfaces, inputs and checks, without internal development files or history.
 - [ ] T3 | Add the shape to tests/test_reading.SOURCES and
       tests/test_compositor.FORMS. Verify: both go red before the two boxes
       above and green after.
-- [ ] T4 | Update the lexer so a docstring attaches to the line of code it
+- [-] T4 | Update the lexer so a docstring attaches to the line of code it
       shares, and the walk emits that line's places
 
 ### L - [closing-line-deletes-code](../../TODO/closing-line-deletes-code.md)
@@ -267,39 +267,39 @@ interfaces, inputs and checks, without internal development files or history.
 - [ ] T4 | T4 -- * RE-RULE the 2026-08-20 acceptance with the DELETED CODE on
       the table, and say which of the two contradicting notes stands. Verify:
       the answer is in this file.
-- [ ] T7 | T7 -- When the galley's composition step lands, take whichever option
+- [-] T7 | T7 -- When the galley's composition step lands, take whichever option
       T4 leaves standing. Verify: the Objective's C input refuses, or keeps `int
       x = 5;`.
-- [ ] T8 | T8 -- Pin T7 with a test on that same four-line C input. Verify: the
+- [-] T8 | T8 -- Pin T7 with a test on that same four-line C input. Verify: the
       test fails on the pre-change tree and passes after it.
 
-### M - [a-comment-inside-a-line-makes-the-file-unprovable](../../TODO/a-comment-inside-a-line-makes-the-file-unprovable.md)
+### M - [a-comment-inside-a-line-makes-the-file-unprovable](../../TODO/completed/a-comment-inside-a-line-makes-the-file-unprovable.md)
 
-- [ ] T2 | T2 -- Print a DIFFERENT named cause at each of the eight refusal
+- [-] T2 | T2 -- Print a DIFFERENT named cause at each of the eight refusal
       sites listed in the Objective. Verify: the eight causes are distinct, and
       none is the empty string.
-- [ ] T3 | T3 -- Assert the causes the CLI can reach. Verify: a test asserts the
+- [-] T3 | T3 -- Assert the causes the CLI can reach. Verify: a test asserts the
       four reachable causes named in the Objective, and fails if any two are the
       same.
-- [ ] T5 | T5 -- DEFERRED, only if the model moves: give a paragraph a COLUMN
+- [-] T5 | T5 -- DEFERRED, only if the model moves: give a paragraph a COLUMN
       SPAN. Verify: a paragraph names a span WITHIN a line, and both pinned test
       classes pass unweakened.
-- [ ] T6 | T6 -- DEFERRED, and in T5's commit: make `code_lines` and
+- [-] T6 | T6 -- DEFERRED, and in T5's commit: make `code_lines` and
       `_without_comments` read the span. Verify: `int x = /* why */ 5;` changed
       to `7` reports NOT PROVEN.
-- [ ] T4 | T4 -- DEFERRED. Count the shape across the corpora before building
+- [-] T4 | T4 -- DEFERRED. Count the shape across the corpora before building
       anything. Verify: a per-language rate of a closed `/* */` with code after
       it, over the corpus.
 
 ### N - [bom-is-read-as-source](../../TODO/bom-is-read-as-source.md)
 
-- [ ] T1 | T1 -- Read with `utf-8-sig` at `repo.py:52` and `census.py:336`, the
+- [-] T1 | T1 -- Read with `utf-8-sig` at `repo.py:52` and `census.py:336`, the
       lexical route. Verify: the BOM'd `.c` shows all three results named just
       above the task list.
 - [ ] T2 | T2 -- Read with `utf-8-sig` at `census.py:177`, which feeds
       `ast.parse`. Verify: a BOM'd `.py` censuses its module docstring, not one
       `unparsed` paragraph.
-- [ ] T5 | MOVED to 2026-10-31-proof-reads-what-runs | Write the byte-order mark
+- [x] T5 | MOVED to 2026-10-31-proof-reads-what-runs | Write the byte-order mark
       ahead of f0, a0 or b0 when the head is set
 
 ### O - [census-degrades-silently](../../TODO/census-degrades-silently.md)
@@ -335,7 +335,7 @@ interfaces, inputs and checks, without internal development files or history.
 
 ### R - [the-code-check-refuses-add-and-drop-on-a-docstring](../../TODO/the-code-check-refuses-add-and-drop-on-a-docstring.md)
 
-- [ ] T4 | T4 -- Measure the LEXICAL side: a `///` or `/**` doc comment ADDED
+- [-] T4 | T4 -- Measure the LEXICAL side: a `///` or `/**` doc comment ADDED
       and REMOVED, against the `stripped` comparison. Verify: this file records
       which way each goes.
 - [ ] T2 | T2 -- Report docstring-presence deltas SEPARATELY from executable
@@ -360,13 +360,13 @@ interfaces, inputs and checks, without internal development files or history.
 
 ### U - [page-and-addresser-scans](../../TODO/page-and-addresser-scans.md)
 
-- [ ] T5 | T5 -- Stop `page.declarations()` running TWICE per file
+- [-] T5 | T5 -- Stop `page.declarations()` running TWICE per file
       (`page.py:420`, `:726`). Verify: `grep -n 'declarations(' page.py` returns
       ONE call site, census unchanged.
 
 ### V - [name-corpus-sees-one-language](../../TODO/name-corpus-sees-one-language.md)
 
-- [ ] T1 | declarations() gains the identifier on the declaring line, per
+- [-] T1 | declarations() gains the identifier on the declaring line, per
       language row
 - [ ] T5 | referrers.tokens_for stops parsing Python for top-level defs, or says
       why it still must
@@ -406,25 +406,25 @@ interfaces, inputs and checks, without internal development files or history.
 - [ ] T10 | Move the git call out of results.prove_unchanged into the flow; grep
       finds no results import of machine.repo
 
-### Z - [fixtures-do-not-test-the-shape](../../TODO/fixtures-do-not-test-the-shape.md)
+### Z - [fixtures-do-not-test-the-shape](../../TODO/completed/fixtures-do-not-test-the-shape.md)
 
 - [x] T2 | MOVED to 2026-10-22-lexer-rust | T2 -- Make
       `tests/fixtures/sample.rs` open the way a licence header does, or add a
       `.rs` fixture that does. Verify: it reproduces
       `matter-misses-two-languages`.
-- [ ] T3 | T3 -- Audit the other sixteen fixtures -- for each language row, name
+- [-] T3 | T3 -- Audit the other sixteen fixtures -- for each language row, name
       the shape its open TODOs are about. Verify: a list of language -> shape ->
       does it exercise it.
-- [ ] T5 | T5 -- Say in `tests/fixtures/` what each file is a fixture OF, so a
+- [-] T5 | T5 -- Say in `tests/fixtures/` what each file is a fixture OF, so a
       reader can tell coverage from resemblance. Verify: every `sample.*` names
       what it exercises.
 
 ### AA - [assertions-that-gate-a-substring](../../TODO/assertions-that-gate-a-substring.md)
 
-- [ ] T3 | T3 -- Assert the EXTENT at `test_census_blocks.py:937` -- `(start,
+- [-] T3 | T3 -- Assert the EXTENT at `test_census_blocks.py:937` -- `(start,
       end)` and `raw_lines`, not `b.start`. Verify: ending `matter` at its first
       line goes red.
-- [ ] T8 | T8 -- Run the keyword scan over real lines in
+- [-] T8 | T8 -- Run the keyword scan over real lines in
       `test_declarations.py:313-319`, not `""`. Verify: `_declares_here`
       returning False always turns the class red.
 
@@ -457,7 +457,7 @@ interfaces, inputs and checks, without internal development files or history.
 
 ### AD - [docstrings-need-their-own-address-series](../../TODO/docstrings-need-their-own-address-series.md)
 
-- [ ] T8 | T8 -- Tell a role when its `a` series is empty, and why. Verify: a
+- [-] T8 | T8 -- Tell a role when its `a` series is empty, and why. Verify: a
       run over a `.sh` file hands the role that sentence.
 - [ ] T9 | T9 -- Correct the two "The three series" sentences at `SKILL.md:378`
       and `reviewer-brief.md:69`. Verify: neither states three series
@@ -484,15 +484,15 @@ interfaces, inputs and checks, without internal development files or history.
 
 ### AG - [a-series-never-fills-outside-python](../../TODO/a-series-never-fills-outside-python.md)
 
-- [ ] T18 | T18 -- Match a `declares` keyword ANYWHERE in the line, per the
+- [-] T18 | T18 -- Match a `declares` keyword ANYWHERE in the line, per the
       Objective's body. Verify: the ten cases in the Objective answer correctly,
       and `_FIRST_WORD` is gone.
 
 ### AH - [one-stem-four-jobs](../../TODO/one-stem-four-jobs.md)
 
-- [ ] T2 | T2 -- Rename `Language.declares` to `introduces`, on the field and on
+- [-] T2 | T2 -- Rename `Language.declares` to `introduces`, on the field and on
       every row. Verify: `grep -n declares` over `language.py` returns nothing.
-- [ ] T3 | T3 -- Rename `lexer._declares_here` to match `introduces`. Verify:
+- [-] T3 | T3 -- Rename `lexer._declares_here` to match `introduces`. Verify:
       `grep -n declares` over `lexer.py` returns no use of the language keyword
       tuple.
 
@@ -559,7 +559,7 @@ interfaces, inputs and checks, without internal development files or history.
 
 ### AL - [two-live-runs-proposed-fifteen-changes](../../TODO/two-live-runs-proposed-fifteen-changes.md)
 
-- [ ] T15 | T15 -- P1 (redacted-corpus) -- parse after every write, for the
+- [-] T15 | T15 -- P1 (redacted-corpus) -- parse after every write, for the
       NON-PYTHON cases. Verify: name what stands in for a parse at the `lexical`
       tier, or close this.
 
@@ -791,35 +791,43 @@ interfaces, inputs and checks, without internal development files or history.
 - [ ] P40 | Reread every set result; verify add, rewrite, drop and move reach
       intended places without consuming neighboring code
         > 2026-10-11 Check: uv run pytest -q tests/test_proof_setter.py
-- [ ] P41 | Unify both executable comparisons; verify token, literal, order,
-      structure, directive and significant-separator mutations refuse
+- [-] P41 | One comparison per reader stands under #259 | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | Unify
+      both executable comparisons; verify token, literal, order, structure,
+      directive and significant-separator mutations refuse
         > 2026-10-11 Check: uv run pytest -q tests/test_lexical_preservation.py
 - [ ] P42 | Apply documentation ownership rules in both comparisons; verify
       additions, removals and replacement owners preserve ordinary literals
         > 2026-10-11 Check: uv run pytest -q tests/test_proof_command.py
-- [ ] P43 | Supply declaration facts to referrer discovery; verify path terms
-      remain and unavailable wider harvesting is reported explicitly
+- [-] P43 | Reworded for Python and Rust only under #259 | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | Supply
+      declaration facts to referrer discovery; verify path terms remain and
+      unavailable wider harvesting is reported explicitly
         > 2026-10-11 Check: uv run pytest -q tests/test_referrers.py
-- [ ] P44 | Replace retired reader paths and duplicated language facts; verify
-      consumers use the shared result and diagnostics
+- [-] P44 | Reworded for Python and Rust only under #259 | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | Replace
+      retired reader paths and duplicated language facts; verify consumers use
+      the shared result and diagnostics
         > 2026-10-11 Check: uv run pytest -q tests/test_reading.py
 - [ ] P45 | Update source-selection instructions; verify generated output is
       excluded and maintained input reaches gathering
         > 2026-10-11 Mechanism first; TODO 2026-10-11-maintained-source-selection
-- [ ] P46 | Update agent references for current addresses and reader coverage;
-      verify operational text contains only task-facing instructions
+- [-] P46 | Reworded for Python and Rust only under #259 | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | Update
+      agent references for current addresses and reader coverage; verify
+      operational text contains only task-facing instructions
         > 2026-10-11 Check: uv run python scripts/check_vocabulary.py
-- [ ] P47 | Update write instructions; verify proof precedes formatting and
-      available local validation follows prove_unchanged
+- [-] P47 | Reworded for Python and Rust only under #259 | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | Update
+      write instructions; verify proof precedes formatting and available local
+      validation follows prove_unchanged
         > 2026-10-11 Preserve the exact approved local-validation instruction
-- [ ] P48 | Replace obsolete fixture prescriptions with invented boundary cases;
-      verify each expected classification can detect a wrong read
+- [-] P48 | Reworded for Python and Rust only under #259 | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | Replace
+      obsolete fixture prescriptions with invented boundary cases; verify each
+      expected classification can detect a wrong read
         > 2026-10-11 Use the design TODO mapping; retain independent behavioral goals
-- [ ] P49 | Verify the command smoke and full regression suite with all
-      supported reader definitions and unchanged dependency gates
+- [-] P49 | Reworded for Python and Rust only under #259 | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | Verify
+      the command smoke and full regression suite with all supported reader
+      definitions and unchanged dependency gates
         > 2026-10-11 Check: uv run pytest -q
-- [ ] P50 | Verify lint, formatting, types, shipped syntax and vocabulary for
-      the completed implementation
+- [-] P50 | Reworded for Python and Rust only under #259 | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | Verify
+      lint, formatting, types, shipped syntax and vocabulary for the completed
+      implementation
         > 2026-10-11 Run the existing CLAUDE.md completion commands
 - [x] P51 | Exact source acquisition writing and integrations verified | fd1e56a1 | Integrate
       exact source acquisition and writing; verify UTF-8 byte fixtures in
@@ -833,3 +841,17 @@ interfaces, inputs and checks, without internal development files or history.
       each language definition with its own spec and reader; verify independent
       rules without inherited configuration
         > 2026-10-11 Each language subplan supplies its own spec, definition and reader
+- [ ] P54 | Add Python and Rust facts to referrer discovery
+        > 2026-11-01 Check: uv run pytest -q tests/test_referrers.py
+- [ ] P55 | Remove duplicated facts across both readers
+        > 2026-11-01 Check: uv run pytest -q tests/test_reading.py
+- [ ] P56 | Update agent references for Python and Rust coverage
+        > 2026-11-01 Check: uv run python scripts/check_vocabulary.py
+- [ ] P57 | Update write instructions for UNCHECKED
+        > 2026-11-01 Proof precedes formatting; local validation follows it
+- [ ] P58 | Rewrite obsolete fixture prescriptions as boundary cases
+        > 2026-11-01 Python and Rust cases that can detect a wrong read
+- [ ] P59 | Verify command smoke and regression with both readers
+        > 2026-11-01 Check: uv run pytest -q
+- [ ] P60 | Verify lint, formatting, types, syntax and vocabulary
+        > 2026-11-01 Run the existing CLAUDE.md completion commands

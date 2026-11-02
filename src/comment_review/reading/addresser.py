@@ -43,21 +43,10 @@ those and the scheme collapses without saying so:
   exact             a heuristic that is usually right is a table that is
                     occasionally renumbered
 
-! What MAKES it constant across this tool's own work is stage 7b's CODE CHECK.
-It does NOT prove the code byte-identical, and saying so overstates it: for
-Python it compares an `ast.dump`, so the bytes may differ while the statements
-and their ORDER do not; elsewhere it compares the stripped text. Either way what
-holds is that the Nth code line is still the same statement -- which is exactly
-what an ordinal counts. The line numbers move with the prose; the ordinal does
-not.
-
-! `ast.dump` would carry every DOCSTRING into that fingerprint, so rewriting one
--- the commonest edit this system makes -- would read as a code change.
-`_blank_docstrings` empties each docstring's value before the dump: its CONTENT
-is out of the proof, its PRESENCE is not. ! So adding or deleting a docstring
-still changes the body's shape and still fails -- filed as
-`TODO/the-code-check-refuses-add-and-drop-on-a-docstring.md`, and the reason an
-`add` on a declaration cannot be written today.
+! What MAKES it constant across this tool's own work is stage 7b's CODE CHECK:
+the reader's record compares the code of two reads of a file, so the Nth code
+line is still the same statement -- which is exactly what an ordinal counts. The
+line numbers move with the prose; the ordinal does not.
 
 !! AND IT PROVES NOTHING AT ALL ON AN UNPROVABLE FILE, which is the hard
 exception this scheme rests on and must name. `prove_unchanged` returns
@@ -102,16 +91,10 @@ language that does the opposite: *"that was true for python and I messed up. We
 have a better discriminator now and the docstring and its position are
 determined by the language not my on-off statement."*
 
-!! SO NO POSITIONING RULE IS STATED IN THIS MODULE, OR ANYWHERE BUT ONE PLACE.
-Roy: *"All framing about positioning should come from the language and should be
-only in either the language definition file, or a reference to the language
-definition file in lexer and compositor. The language definition file should be
-a leaf separate from everything else and imported only by lexer and
-compositor."* So `language.py` says where a language puts its documentation, two
-modules read it, and every step after carries what they state. ! Which
-declaration a doc belongs to is stated by the LEXER and never inferred by this
-module's to infer, because it is language-dependent and a parser knows it while
-a position does not.
+!! SO NO POSITIONING RULE IS STATED IN THIS MODULE. A language's reader says
+where its documentation sits and which declaration a doc belongs to, because
+that is language-dependent and a reader knows it while a position does not.
+`DocPlace` carries what it states.
 
 !! THE `a` NUMBER COUNTS DECLARATIONS, NOT CODE LINES, AND THAT IS A RULING.
 Numbering each declaration by the `c` of its own `def` line would put all three
@@ -153,12 +136,8 @@ from typing import NamedTuple
 from comment_review.reading.series import ADDRESSED, Series, cue_for
 from comment_review.reading.source import CodeLine
 
-# !! THE LETTERS COME FROM THE SERIES DEFINITION, since 2026-08-25. Roy: *"The
-# present absent pairings is effectively what defines the series and the
-# identifier we give it should be right there with them."* They were spelled
-# here and the pairs were spelled in `lexer` -- two modules that cannot import
-# each other, tied only by MEMBER NAME and held equal by a test. That test
-# existed because there were two sources; there is one now.
+# !! THE LETTERS COME FROM THE SERIES DEFINITION, the one source of a series'
+# letter and its two kinds.
 #
 # ! `series` IS A LEAF and holds no notion of a place, so taking the letters
 # from it acquires no subject: this module still knows nothing about prose.
@@ -181,8 +160,8 @@ DECLARED = Series.DECLARED.value.letter
 # the day a second front-matter place is emitted.
 COVERS = Series.COVERS.value.letter
 
-# !! EVERY SERIES THERE IS, AND THE ONLY LIST OF THEM. Adding one is a row here
-# -- the same rule `lexer.LANGUAGES` follows. Roy, 2026-08-20: *"we may find
+# !! EVERY SERIES THERE IS, AND THE ONLY LIST OF THEM. Adding one is a row
+# here. Roy, 2026-08-20: *"we may find
 # another specific type that doesn't match these four's purposes, so keep the
 # code generic in how it picks it up even if we don't know the shape."*
 #
@@ -195,7 +174,7 @@ COVERS = Series.COVERS.value.letter
 #
 # ! ORDER IS THE ORDER A READER MEETS THEM: the file's own matter, then a
 # declaration's documentation, the gap above a line, the room beside it.
-# !! THE SPACE BETWEEN TWO PARAGRAPHS -- see `lexer.LEADING` for what it is and
+# !! THE SPACE BETWEEN TWO PARAGRAPHS -- see `Kind.LEADING` for what it is and
 # why. Roy ruled the letter 2026-08-21: *"and d works."*
 #
 # ! `l` WAS THE OBVIOUS CHOICE AND THE WORST POSSIBLE CHARACTER: `m.py@l0` reads
@@ -244,7 +223,7 @@ LEAD = Series.LEAD.value.letter
 #: ! AND THE CAUSE IS WHERE IT COMES FROM, which is what makes this a category
 #: error rather than a missing field. Every place here exists because `cue`
 #: reached a trigger, and the trigger IS the anchor. A `d` exists because the
-#: LEXER found blank lines -- so it was never anchored to anything, it was
+#: PAGE found blank lines -- so it was never anchored to anything, it was
 #: FOUND. It also never entered `reading`, so the compositor could not set from
 #: it the way it sets every other place; it is set as an EDGE, from
 #: `Page.leading`.
@@ -254,7 +233,7 @@ LEAD = Series.LEAD.value.letter
 #: anchored; only the thing measured can.
 #:
 #: ! `LEAD` SURVIVES AS A SYMBOL, on Roy's ruling that the page/symbol map is
-#: what shows every line is covered -- see `lexer.Paragraph.symbol`.
+#: what shows every line is covered -- see `Paragraph.symbol`.
 # ! DERIVED, NOT LISTED. Every series whose absence can be CITED -- which is
 # every series but `d`, and the definition says so by giving `d` no `absent`
 # rather than by an exclusion written here.
@@ -270,16 +249,9 @@ MODULE = "<module>"
 #: after the last statement is a place prose can go -- and so does `f`, for the
 #: file's own matter at the foot. `a` and `c` skip it.
 #:
-#: !! IT IS A TRIGGER AND NOT AN ARITHMETIC RULE. The alternative is `b`
-#: emitting N+1 places by definition, which is one line shorter and puts a
-#: special rule inside one series. ! `f` will almost certainly want this trigger
-#: too -- tail matter, an index or a glossary at the END of a file -- and then
-#: two series each carry a different special rule, and a reader has to know why
-#: one gets a +1 and the other gets some other treatment.
-#:
-#: ! So the cost is paid once, here: every series meets EOF and decides, exactly
-#: as it does at MODULE, and adding `f`'s tail place later is a row rather than a
-#: second arithmetic.
+#: !! IT IS A TRIGGER AND NOT AN ARITHMETIC RULE. `b` emitting N+1 places by
+#: definition would put a special rule inside one series, and `f` would need
+#: another. So every series meets EOF and decides, exactly as it does at MODULE.
 EOF = "<eof>"
 
 
@@ -398,7 +370,7 @@ class Cues:
     anything. That is the difference between line order driving `cue` and a
     line number computing a number.
     ! It ITERATES rather than SCANS, and the word matters here: scanning is what
-    the LEXER does, over characters, looking at what they are. Nothing in this
+    a READER does, over characters, looking at what they are. Nothing in this
     module reads a character -- it steps a sequence it was handed.
 
     !! IT KEEPS ITS ADDRESSERS RATHER THAN FLATTENING THEM. Roy, 2026-08-21:
@@ -446,7 +418,7 @@ class Cues:
     reading: list[str] = field(default_factory=list)
     # ! LEADING IS NOT HERE, and was for one evening. It is `Page.leading` --
     # `cue` never filled it and never read it, because `cue` runs before
-    # any prose exists and leading is only where the LEXER found a blank run.
+    # any prose exists and leading is only where the PAGE found a blank run.
     # Roy, 2026-08-21: *"I kind of expected that to be the pages job."*
 
     @property
@@ -683,8 +655,7 @@ class Cues:
         !! IT IS THE TRIGGER BEFORE THIS GAP AND THE ONE IT FIRED AT, read off
         `cue`. A gap is emitted at the trigger BELOW it, so the pair either
         side of it is `triggers[at - 1]` and `triggers[at]`, and a sentinel on
-        either end
-        answers 0 because the file's own edge is not a line of code.
+        either end answers 0 because the file's own edge is not a line of code.
 
         ! WHICH IS WHY THE CLOSING GAP STILL BOUNDS CORRECTLY while being
         anchored to `EOF`: it fires at the EOF trigger, so its pair is the last

@@ -26,18 +26,11 @@ place its missing sentence belongs in, and nobody owes them a record. Coverage
 is over the paragraphs that HOLD prose.
 
 **Every file handed in is gathered, or the command errors** -- a file it could
-not read or parse, or whose suffix has no language record, is named in
-`unreadable`, and the command exits nonzero on it, because a paragraph missing
-from the binder is a paragraph nobody reviews. The exception is a source file
-with no reader: the binder lists it as freeform, unopened, for the reviewers to
-read as it stands.
-
-! NO TIER IS REPORTED PER RUN OR STAMPED ON A PLACE, since 2026-08-24. This
-counted a `tier` field on every paragraph and printed one line from it; the
-field is gone -- Roy: *"their level gets dropped entirely. Not necessary and the
-parser tier isn't long for this world."* ! `--languages` still lists which tier
-each LANGUAGE reaches, which is a fact about the language rather than a fact
-about a place, and is where to look when a file's reader could not answer.
+not read or parse, or a named file no reader claims, is named in `unreadable`,
+and the command exits nonzero on it, because a paragraph missing from the binder
+is a paragraph nobody reviews. The exception is a source file with no reader:
+the binder lists it as freeform, unopened, for the reviewers to read as it
+stands.
 """
 
 from collections.abc import Callable, Iterable, Mapping

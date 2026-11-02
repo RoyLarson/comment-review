@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 3 of 7 tasks closed
+Progress: 4 of 7 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-21 (the /code-review xhigh of 2026-08-21, focused on the file-to-
@@ -58,9 +58,10 @@ the first statement rather than as a `trailing-comment`, and no anchor is the BO
 
 ## Tasks
 
-- [ ] T1 | T1 -- Read with `utf-8-sig` at `repo.py:52` and `census.py:336`, the
-      lexical route. Verify: the BOM'd `.c` shows all three results named just
-      above the task list.
+- [-] T1 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | T1
+      -- Read with `utf-8-sig` at `repo.py:52` and `census.py:336`, the lexical
+      route. Verify: the BOM'd `.c` shows all three results named just above the
+      task list.
 - [ ] T2 | T2 -- Read with `utf-8-sig` at `census.py:177`, which feeds
       `ast.parse`. Verify: a BOM'd `.py` censuses its module docstring, not one
       `unparsed` paragraph.

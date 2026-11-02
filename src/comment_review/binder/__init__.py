@@ -12,7 +12,7 @@ rather than patched because of it. See `TODO/nothing-makes-the-fair-copy.md`.
 ! `annotation` IS THE BINDER'S WORD and only one thing in this system may carry
 it -- the sticky note a page gets for information a reader needs. Ruled
 2026-08-24 by testing both candidates on agents; `docs/decision-log.md
-Vocabulary: #13`. The lexer's three diagnostics are ERRORS, not notes.
+Vocabulary: #13`. A reader's diagnostics are ERRORS, not notes.
 
 !! THE INVENTORY ABOVE LISTED `record` AND `held` UNTIL 2026-08-29, AND BOTH
 LEFT ON `b50e7a4` -- so `from comment_review.binder.record import seed`, written

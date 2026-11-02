@@ -31,7 +31,7 @@ page is normal and raises nothing: that is four roles reading one binder.
 package holds everywhere else -- no third-party dependency. `fnmatch`'s `*`
 is NOT path-aware: it matches any run of characters, including `/`, because
 `fnmatch` treats a path as one flat string rather than a sequence of
-segments. MEASURED: `fnmatch.fnmatch("src/reading/sub/lexer.py",
+segments. MEASURED: `fnmatch.fnmatch("src/reading/sub/other.py",
 "src/reading/*.py")` is `True` -- a single `*` already crosses a directory
 boundary. `**` therefore "works" only in the sense that it matches the same
 set `*` already does; there is no recursive-glob semantics to add, because

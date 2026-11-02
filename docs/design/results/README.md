@@ -91,7 +91,7 @@ Measured 2026-09-07 over `src/comment_review/binder/binder.py`, 176 places:
 
 Trailing whitespace on a code line does not move it. The anchor is the line right-stripped:
 `page.py`'s `code_lines` takes a code line's characters from that line's own `c` place, which
-the lexer has already cut, and the `margin` standing in for one stores `lines[n - 1].rstrip()`.
+the reader has already cut, and the `margin` standing in for one stores `lines[n - 1].rstrip()`.
 The `c` *"already states where the code stops"*, so whitespace past that point falls outside
 what this system calls code.
 

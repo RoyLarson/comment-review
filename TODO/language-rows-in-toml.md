@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 11 of 18 tasks closed
+Progress: 16 of 18 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (Roy, 2026-08-22: since tomllib is available the language
@@ -92,23 +92,27 @@ full name-harvester capability work remains separately scoped.
 - [x] T11 | FINISHED | unknown | T11 -- SUPERSEDED BY T1. It said give Python
       its definition *alongside the other 17*, which assumed they had moved.
       MEASURED 2026-08-23: none of them has.
-- [ ] T12 | T12 -- Make `tier_for` (`language.py:546`) read the row's `tier`
-      field instead of `lang.name == "python"`. Verify: `language.py` holds no
-      comparison of `lang.name`.
-- [ ] T13 | T13 -- Dispatch the READER at `page.py:694` on the row, not on
-      `lang.name`. Verify: a file cannot be read at one tier and stamped at the
-      other.
+- [-] T12 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | T12
+      -- Make `tier_for` (`language.py:546`) read the row's `tier` field instead
+      of `lang.name == "python"`. Verify: `language.py` holds no comparison of
+      `lang.name`.
+- [-] T13 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | T13
+      -- Dispatch the READER at `page.py:694` on the row, not on `lang.name`.
+      Verify: a file cannot be read at one tier and stamped at the other.
 - [ ] T14 | T14 -- Gate the name harvester at `census.py:172` on a row field,
       not on `lang.name != "python"`. Verify: `census.py` holds no comparison of
       `lang.name`.
-- [ ] T15 | T15 -- Make `prove_unchanged.py:176` take the `(".py", ".pyi")`
-      suffix tuple from `language.py:99`. Verify: the tuple is not re-spelled in
+- [-] T15 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | T15
+      -- Make `prove_unchanged.py:176` take the `(".py", ".pyi")` suffix tuple
+      from `language.py:99`. Verify: the tuple is not re-spelled in
       `prove_unchanged.py`.
 - [ ] T16 | T16 -- Make `referrers.py:53` take the same suffix tuple from
       `language.py:99`. Verify: the tuple is not re-spelled in `referrers.py`.
-- [ ] T17 | Specify each supported language independently; verify each has its
-      own dated spec, references and fixtures
+- [-] T17 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | Specify
+      each supported language independently; verify each has its own dated spec,
+      references and fixtures
         > 2026-10-11 Roy requires an independent specification for each language.
-- [ ] T18 | Implement one definition file per language; verify each configures
-      its parser without family defaults or language inheritance
+- [-] T18 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | Implement
+      one definition file per language; verify each configures its parser
+      without family defaults or language inheritance
         > 2026-10-11 Roy requires per-language definitions; engines may be reused.

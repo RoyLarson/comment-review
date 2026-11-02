@@ -143,8 +143,8 @@ class Mark:
         address: `path@cue`. WHICH PLACE -- seeded, copied from the row, never
             built. Empty only on a `clean`, the one type `substantive` is False
             for.
-        anchor: a line of code -- seeded, and empty
-            where the gather resolved none.
+        anchor: a line of code -- seeded, and empty where the gather resolved
+            none.
         raw_text: the paragraph as it stands -- seeded -- or, on the types the
             marks table says carry their own, the paragraph as it will read.
             ! CARRIED, NEVER TRUSTED AS THE BASE: the page's text at the

@@ -349,15 +349,12 @@ two reported `NEEDS-EYES` rather than clean, and any replacement owes the same r
 
 ### Languages
 
-The gather reads fifteen languages, all lexically (`gather --languages`).
+The gather reads Python and Rust, each with its own reader (`gather --languages`).
 
-- **Readers.** Python and Rust have their own readers. The other thirteen share one generic
-  reader driven by each language's row: comment syntax, string delimiters, declaring keywords.
-  Undeclared literals: [TODO/lexer-and-language-findings.md](TODO/lexer-and-language-findings.md).
+- **Freeform.** A source file in any other language is listed in the binder as freeform,
+  unopened, and `prove_unchanged` answers `UNCHECKED` for it.
 - **Documentation.** A reader marks prose that documents a declaration as `docstring` and
-  names the declaring line. The matcher reads a line's first word, so the C and C++ rows
-  list no keywords until it looks past the return type; documentation on their
-  declarations reads as comments meanwhile. SQL has no docstring practice.
+  names the declaring line.
 - **Comments.** A comment is anchored to the code below it (`b`) or beside it (`c`).
   Reviewers judge whether it is about that code.
 

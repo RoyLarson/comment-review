@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 10 tasks closed
+Progress: 1 of 10 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-27 (Roy, 2026-10-27, decision-log #244)
@@ -36,7 +36,8 @@ only they need.
         > 2026-10-30 A3: take _partner with the cut; A6: lexer.py is 1763 lines
         > 2026-10-30 file_matter runs twice while docs are decided after the cut
 - [ ] T2 | Write the design for the reader builder and its shared parts
-- [ ] T3 | Build the lexical reader through the builder
+- [-] T3 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | Build
+      the lexical reader through the builder
 - [ ] T4 | Rebuild the Python reader as a definition plus its own parts
 - [ ] T5 | Rebuild the Rust reader as a definition plus its own parts
 - [ ] T6 | Replace the three unchanged-code proofs with one

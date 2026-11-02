@@ -672,8 +672,8 @@ class TestPageOfReturnsEveryRefusalItPromises:
         assert refused[0].step == "read"
 
     def test_a_Refused_ON_THE_DRAFT_refuses_at_reread(self, tmp_path, monkeypatch):
-        """CRITICAL, measured 2026-08-26: `_reread` inlined `read_source`,
-        `language_for` and `page_for` with NO handler for either
+        """CRITICAL, measured 2026-08-26: `_reread` inlined `read_source`
+        and `page_for` with NO handler for either
         `exceptions.Refused` or `READ_ERRORS`, so a draft tripping `page_for`'s
         raise escaped `run()` as a traceback -- past its documented
         `(drafted, []) or ([], refusals)`.

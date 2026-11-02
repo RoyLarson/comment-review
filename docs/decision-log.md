@@ -6045,3 +6045,15 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   Roy also confirmed the reader machinery stands for Python and Rust: *"Yes this all earns its keep
   even with the complexity."*
 
+- **#262.** **What #259 left of the rulings on rows that went** (recorded 2026-11-01 from the code at
+  `e0da1c3a`; no ruling of Roy's, and nothing here reverses one).
+
+  **What it records.** Four rulings applied to the rows that left under #259, so each has no
+  subject in the code now. #234 and #236.1: a closing docstring was held only by rows with doc
+  markers, Python and Rust say no, and `closing_docstring` and the `<eof>` `a` are gone. #236.3: a
+  row naming its shebang went with the rows. #241: it never had a Python or Rust effect, since both
+  readers answered False before it (`6b675757`); a file with no code has no `<eof>` `a`. #238: only
+  the lexical reader passed `joined`, so `CodeLine.joins` went with it. The ruling also names Python
+  decorators and Rust attributes, which never got the unit: `@dec` keeps its own `b` today. That
+  work stays open as `lexer-and-language-findings` T51. #236.2 and #237's `SKILL.md` wording stand.
+

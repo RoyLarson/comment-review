@@ -1,8 +1,8 @@
 # A per-language fixture can pass without exercising the shape its language is measured on
 
 ```
-Status:   open
-Progress: 2 of 5 tasks closed
+Status:   closed
+Progress: 5 of 5 tasks closed
 Owner:    testing
 Requires-Roy: false
 Raised:   2026-08-23 (2026-08-23, triaging matter-misses-two-languages: censusing the
@@ -46,20 +46,23 @@ set -- which is what the ruling has to settle.
 
 ## Tasks
 
-- [ ] T1 | T1 -- Make `tests/fixtures/sample.ts` open the way a licence header
-      does, or add a `.ts` fixture that does. Verify: it reproduces
+- [-] T1 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | T1
+      -- Make `tests/fixtures/sample.ts` open the way a licence header does, or
+      add a `.ts` fixture that does. Verify: it reproduces
       `matter-misses-two-languages`.
 - [x] T2 | sample.rs did not exist; tests/fixtures/licensed.rs opens with a Copyright/SPDX header and gives f0 matter with an empty first a: test_rust_fixture_licence_header_is_front_matter_and_first_item_undocumented | b9c5ed1e | T2
       -- Make `tests/fixtures/sample.rs` open the way a licence header does, or
       add a `.rs` fixture that does. Verify: it reproduces
       `matter-misses-two-languages`.
-- [ ] T3 | T3 -- Audit the other sixteen fixtures -- for each language row, name
-      the shape its open TODOs are about. Verify: a list of language -> shape ->
+- [-] T3 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | T3
+      -- Audit the other sixteen fixtures -- for each language row, name the
+      shape its open TODOs are about. Verify: a list of language -> shape ->
       does it exercise it.
 - [-] T4 | SUPERSEDED -- the per-language fixtures and test_fixture_identity.py went with the 2026-08-25 suite replacement; tests/fixtures holds only topologies | b50e7a4 | T4
       -- * RULE what a per-language fixture is FOR -- an ordinary file for the
       round trip, or a defect probe. Verify: the ruling says whether a second
       set is needed.
-- [ ] T5 | T5 -- Say in `tests/fixtures/` what each file is a fixture OF, so a
-      reader can tell coverage from resemblance. Verify: every `sample.*` names
-      what it exercises.
+- [-] T5 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | T5
+      -- Say in `tests/fixtures/` what each file is a fixture OF, so a reader
+      can tell coverage from resemblance. Verify: every `sample.*` names what it
+      exercises.
