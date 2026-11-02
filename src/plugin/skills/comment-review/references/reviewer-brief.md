@@ -6,12 +6,12 @@ Every reviewer reads this brief, alongside its own role file. Read it first.
 
 You are an editor on an editorial board. You read the comments and docstrings in the files
 under review, check each one against the code it sits with, and record a ruling on every
-paragraph your role reads. Your rulings are marks, and the only file you write is your own
-edit copy.
+paragraph your role reads. Your rulings are marks in your own edit copy. A freeform file takes
+findings in your own directory instead; see *A freeform file*.
 
 The source files stay exactly as you found them. Later stages set the text from your marks,
 and the human decides what lands, so a question you raise reaches them intact. Everything you
-want kept goes into the copy: the copy is what the next stage reads.
+want kept goes into the copy or your findings: they are what the next stage reads.
 
 You file every mark yourself, in your one copy, with the `mark` command.
 
@@ -29,6 +29,10 @@ Your packet gives you:
   in the mark it bears on.
 - `STYLE SHEET` -- this repo's documentation templates and conventions.
 - `LANGUAGE SERVERS` -- which languages answered the task agent's probe.
+- `FREEFORM DIR` -- your own directory for freeform work.
+- `FREEFORM COPIES` -- the files the stage before left, or `UNAVAILABLE` at the first stage.
+- `FREEFORM SHEET` -- `references/freeform.md`, pasted whole when your binder lists a freeform
+  file.
 
 Read the binder and the copy from their paths. When your edit copy is missing from the packet,
 say so and stop.
@@ -276,7 +280,8 @@ python <skill>/scripts/comment-review.py mark --edit-copy <EDIT COPY> --repo <RE
 What stays at the origin is the paragraph with the snippet taken out -- nothing, when the
 snippet is the whole paragraph. A destination may be an empty place. For prose that belongs
 outside the code, or in a file this run did not gather, file a `query` of shape
-`human-review-necessary` at the origin, naming where it belongs.
+`human-review-necessary` at the origin, naming where it belongs. For a destination in a freeform
+file, see *A freeform file*.
 
 ### `clean`
 
@@ -342,6 +347,57 @@ Once the code changes, the TODO is a claim the next review checks like any other
 
 The four roles read the same code from different scopes and can rule differently on one
 sentence. Mark what your role sees; the copy chief rules on the rest.
+
+## A freeform file
+
+A freeform file is a source file your binder lists under `freeform`. It has no page, no address
+and no slot, so `mark`, `addresser` and `proof` take no path in it. You read it, rule on it with
+your role's remit, and edit a copy of it.
+
+1. **Copy the file** into `FREEFORM DIR`, keeping its path. Copy it from `FREEFORM COPIES` when
+   that lists it, and from `REPO ROOT` otherwise. Your citations resolve against the file you
+   copied.
+2. **List every comment in the file by line**, before you judge any. This list is `swept`.
+3. **Rule on each comment.** A comment with nothing to report takes no finding, and `swept`
+   records that you read it.
+4. **File each finding** in `FREEFORM DIR/findings.json`.
+5. **Set each replacement on your copy.** The sheet says how to compose and set one.
+6. **Return the paths** of `findings.json` and your copies, with one line per file:
+   `<path>: N swept, M raised`.
+
+```json
+{ "role": "block-context",
+  "files": [
+    { "path": "redacted_pkg/rates.js",
+      "swept": [12, 40, 88],
+      "findings": [
+        { "instruction": "correct",
+          "at": "redacted_pkg/rates.js:40",
+          "reason": "the limit is read from settings and is 100",
+          "source": [ { "cite": "redacted_pkg/settings.js:7",
+                        "verbatim": "const LIMIT = 100;" } ],
+          "current": "  // The limit is 40.\n",
+          "replacement": "  // The limit is 100.\n" } ] } ] }
+```
+
+| field | what it carries |
+| --- | --- |
+| `path` | the file, as your binder lists it |
+| `swept` | the line of every comment in the file |
+| `instruction` | `correct`, `patch`, `drop`, `add` or `query` |
+| `at` | `path:line` of the comment's first line |
+| `reason` | what you derived, as in a mark |
+| `source` | the entries a mark's `sources` holds, owed as a mark owes them |
+| `current` | the whole comment, exactly as it stands in your copy |
+| `replacement` | the one full replacement, as the sheet frames it |
+
+- **One finding per comment.** A comment with several edits takes one finding, and it is a
+  `correct` when any of those edits is.
+- **A `query`** carries `shape`, `attempted` and `settles` as a mark does, and no `replacement`.
+  A code concern is a `query` the same way, and the copy chief carries the author's answer.
+- **A relocation is two findings:** an `add` at the destination and a `drop` at the origin, each
+  naming the other in its `reason`. When one end is on a page, that end is a mark: `mark` refuses a
+  `--to` in a freeform file.
 
 ## When you are sent a batch
 
