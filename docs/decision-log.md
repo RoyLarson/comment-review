@@ -6015,3 +6015,15 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   This supersedes #222's readers-on-request plan for those languages, and #258's refusals go with
   the comparison they live in.
 
+- **#260.** **Freeform takes source files only, and its findings travel by reference** (Roy,
+  2026-11-01, asked what "the rest" of #259 holds and where findings live: *"yes only source files"*;
+  *"They go in the agents temporary directory and passed back up by reference to the copy-chief or
+  to the other agents after being completed"*; on a `move` into a freeform file: *"Yes - I am not
+  certain you would do that but then web projects right"*; and *"that was topology"*).
+
+  **What it settles.** A freeform file is one whose suffix the gather names as source; `.md`,
+  lockfiles and images stay passed over. Reviewers run over freeform files in topology order. A
+  reviewer writes its findings in its own temporary directory and passes the path up, to the copy
+  chief or to the agents after it. A `move` from a page into a freeform file is refused and raised
+  as a `drop` plus a freeform add.
+
