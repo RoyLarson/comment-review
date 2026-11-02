@@ -10,7 +10,6 @@ from comment_review.reading.language import Language, language_for
 from comment_review.reading.lexer import (
     LexicalRead,
     declarations,
-    leading_between,
     scan_strings,
 )
 from comment_review.reading.readers import read_source
@@ -674,12 +673,6 @@ def test_a_row_holds_a_closing_docstring_when_it_has_a_doc_marker(
     assert row.closing_docstring is closing
 
 
-def test_a_blank_looking_line_the_reader_gave_as_code_is_not_leading():
-    text = "a\n\u00a0\nb\n"
-    assert leading_between([], text, [1, 2, 3]) == []
-    assert [(p.start, p.end) for p in leading_between([], text, [1, 3])] == [(2, 2)]
-
-
 def test_a_byte_order_mark_before_a_line_comment_is_not_code():
     found = read("m.js", "\ufeff// Licence MIT\nconst x = 1;\n").paragraphs(
         Path("m.js")
@@ -687,12 +680,6 @@ def test_a_byte_order_mark_before_a_line_comment_is_not_code():
     assert [(p.start, p.kind, p.anchor, p.raw_lines) for p in found] == [
         (1, Kind.MATTER, "<module>", ["\ufeff// Licence MIT"])
     ]
-
-
-def test_a_line_holding_only_a_byte_order_mark_is_leading_and_keeps_the_mark():
-    mark = chr(0xFEFF)
-    found = leading_between([], mark + "\nx\n", [2])
-    assert [(p.start, p.end, p.raw_lines) for p in found] == [(1, 1, [mark])]
 
 
 def test_a_line_holding_only_a_byte_order_mark_is_not_a_code_line():

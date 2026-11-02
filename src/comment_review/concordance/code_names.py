@@ -11,10 +11,9 @@ import ast
 from pathlib import Path
 
 from comment_review import exceptions
-from comment_review.concordance.names import SYMBOLISH
+from comment_review.concordance.names import NAMED_DEFS, SYMBOLISH
 from comment_review.machine.repo import walk_files
 from comment_review.reading.language import INSTALLED_REGISTRY
-from comment_review.reading.lexer import NAMED_DEFS
 
 # The two gaps in the name corpus that are NOT read failures, named so a caller
 # can tell them apart from one. Every row `code_names` returns reads alike --

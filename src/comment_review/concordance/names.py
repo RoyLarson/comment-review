@@ -25,7 +25,11 @@ Python identifiers and would pass anyway, so this is not a live defect; it is
 a rule that governs every KEY and one branch of the INDEX.
 """
 
+import ast
 import re
 
 #: Does this string look like an identifier -- a purely lexical question.
 SYMBOLISH = re.compile(r"^[A-Za-z_][\w.]*$")
+
+#: The definitions whose names prose can refer to.
+NAMED_DEFS = (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)

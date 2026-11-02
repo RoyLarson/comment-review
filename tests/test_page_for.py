@@ -16,7 +16,7 @@ from helpers import RUST_ITEMS
 
 from comment_review.binder import page as page_mod
 from comment_review.binder.binder import bind
-from comment_review.binder.page import Page, page_for
+from comment_review.binder.page import Page, leading_between, page_for
 from comment_review.flows import page_for as page_for_mod
 from comment_review.flows import proof_setter
 from comment_review.flows.language_definitions import installed_registry
@@ -1509,3 +1509,15 @@ def test_rust_fixture_licence_header_is_front_matter_and_first_item_undocumented
 def test_matter_then_a_doc_at_the_head_are_placed_at_f0_and_a0(name, text, places):
     found = by_cue(build(text, name))
     assert {place: found[place].raw_lines for place in places} == places
+
+
+def test_a_blank_looking_line_the_reader_gave_as_code_is_not_leading():
+    text = "a\n\u00a0\nb\n"
+    assert leading_between([], text, [1, 2, 3]) == []
+    assert [(p.start, p.end) for p in leading_between([], text, [1, 3])] == [(2, 2)]
+
+
+def test_a_line_holding_only_a_byte_order_mark_is_leading_and_keeps_the_mark():
+    mark = chr(0xFEFF)
+    found = leading_between([], mark + "\nx\n", [2])
+    assert [(p.start, p.end, p.raw_lines) for p in found] == [(1, 1, [mark])]

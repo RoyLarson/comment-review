@@ -24,10 +24,9 @@ Beside the reader: `comment_form` parses a comment's markers and fragments for
 
 """
 
-import ast
 import re
 from bisect import bisect_left, bisect_right
-from collections.abc import Callable, Collection, Mapping
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from functools import cache
 from pathlib import Path
@@ -64,9 +63,6 @@ __all__ = [
     "Language",
     "language_for",
 ]
-
-
-NAMED_DEFS = (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)
 
 
 # -- Annotations ---------------------------------------------------------------
@@ -703,70 +699,6 @@ def _anchor_of(lines: list[str], line_no: int, column: int) -> str:
     if not column or not 1 <= line_no <= len(lines):
         return ""
     return lines[line_no - 1][: column - 1]
-
-
-def leading_between(
-    paragraphs: list["Paragraph"], text: str, code: Collection[int]
-) -> list["Paragraph"]:
-    """Every blank run no paragraph holds, as LEADING -- see `LEADING`.
-
-    !! ONE RULE FOR ALL READERS, and that is the point of it being a pass rather
-    than a branch inside each.
-
-    ! THE RULE IS SUBTRACTION, so it cannot disagree with either reader about
-    what prose or code is: a blank line a paragraph already holds is INSIDE it
-    and stays there, a line the reader gave as code is code whatever
-    `str.strip` makes of it, and every other blank line is the space between
-    two paragraphs.
-
-    Args:
-        paragraphs: what a reader produced, before any place is assigned.
-        text: the file, read for which lines are blank.
-        code: the numbers of the lines the reader gave as code.
-
-    Returns:
-        One paragraph per unheld blank run, in order.
-    """
-    lines = constants.text_lines(text)
-    held = set(code)
-    for b in paragraphs:
-        if b.original_start:
-            held.update(
-                range(b.original_start, (b.original_end or b.original_start) + 1)
-            )
-    out: list[Paragraph] = []
-    run: list[int] = []
-    for n, line in enumerate(constants.scan_lines(text), 1):
-        if not line.strip() and n not in held:
-            run.append(n)
-            continue
-        if run:
-            out.append(_leading(paragraphs, lines, run))
-            run = []
-    if run:
-        out.append(_leading(paragraphs, lines, run))
-    return out
-
-
-def _leading(
-    paragraphs: list["Paragraph"], lines: list[str], run: list[int]
-) -> "Paragraph":
-    """One blank run, as a paragraph. Its anchor is EMPTY on purpose.
-
-    ! Every other series answers to a line of code. This answers to nothing, and
-    its anchors are empty by design rather than by omission.
-
-    !! A BLANK LINE IS NOT ALWAYS AN EMPTY ONE, which is why `lines` is passed
-    rather than the count. A line holding a tab or three spaces is blank to
-    `str.strip` and not blank on disk, and `raw_lines` keeps what is on disk.
-    """
-    return Paragraph(
-        path=paragraphs[0].path if paragraphs else "",
-        start=run[0],
-        end=run[-1],
-        kind=Kind.LEADING,
-        raw_lines=[lines[n - 1] for n in run],
-    )
 
 
 def _is_doc(line: str, lang: Language) -> bool:
