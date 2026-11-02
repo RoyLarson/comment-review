@@ -1458,6 +1458,83 @@ FORMS = {
         "m.js",
         "/** A */\n/** B */\n/** C */\nfunction f() {}\n",
     ),
+    "rust block": ("m.rs", "/* head */\nconst A: i32 = 1;\n"),
+    "rust line comment": ("m.rs", "// note\nconst A: i32 = 1;\n"),
+    "rust both": ("m.rs", "/* one */\n// two\nconst A: i32 = 1;\n"),
+    "rust trailing block wrapped twice": (
+        "m.rs",
+        "let x = 1; /* this comment\n"
+        "              wraps onto a second line\n"
+        "              and a third */\n"
+        "let y = 2;\n",
+    ),
+    "rust trailing block one line": ("m.rs", "let x = 1; /* note */\nlet y = 2;\n"),
+    "rust docs and comments alternating, no code": (
+        "m.rs",
+        "/** A */\n// n1\n/** B */\n// n2\n/** C */\n",
+    ),
+    "rust docs and comments above a declaration": (
+        "m.rs",
+        "/** A */\n// note\n/** B */\nfn f() {}\n",
+    ),
+    "rust doc cut off by a comment": ("m.rs", "/** doc */\n// lint\nfn f() {}\n"),
+    "rust a gap of two runs above a declaration": (
+        "m.rs",
+        "const Y: i32 = 0;\n/* a\n b */ const X: i32 = 1;\n"
+        "/** D */\n// c\n/** E */\nfn g() {}\n",
+    ),
+    "rust a gap of two runs above plain code": (
+        "m.rs",
+        "fn f() {}\n/* a\n b */ const X: i32 = 1;\n// c\nconst Y: i32 = 2;\n",
+    ),
+    "rust two runs with plain groups facing": (
+        "m.rs",
+        "const Y: i32 = 0;\n/* a\n b */ const X: i32 = 1;\n// c\nfn g() {}\n",
+    ),
+    "rust two runs with doc groups facing": (
+        "m.rs",
+        "fn f() {}\n/** a\n b */ const X: i32 = 1;\n/** D */\nfn g() {}\n",
+    ),
+    "rust two runs with doc groups facing at the head": (
+        "m.rs",
+        "/** a\n b */ const X: i32 = 1;\n/** D */\nfn g() {}\n",
+    ),
+    "rust two runs with a blank between": (
+        "m.rs",
+        "fn f() {}\n/* a\n b */ const X: i32 = 1;\n\n// c\nfn g() {}\n",
+    ),
+    "rust matter, doc, then comments and docs to the last line": (
+        "m.rs",
+        "// M1\n/** D1 */\n// C1\n/** D2 */\n// C2\n/** D3 */\n// C3\n",
+    ),
+    "rust matter, doc, then comments and docs, blank last line": (
+        "m.rs",
+        "// M1\n/** D1 */\n// C1\n/** D2 */\n// C2\n/** D3 */\n// C3\n\n",
+    ),
+    "rust doc then a comment below code": (
+        "m.rs",
+        "const X: i32 = 1;\n/** D1 */\n// C1\n",
+    ),
+    "rust doc then a comment below code, blank last line": (
+        "m.rs",
+        "const X: i32 = 1;\n/** D1 */\n// C1\n\n",
+    ),
+    "rust docs and comments between declarations": (
+        "m.rs",
+        "fn f() {}\n\n/** A */\n// n1\n/** B */\n// n2\n/** C */\nfn g() {}\n",
+    ),
+    "rust two head docs over a declaration": (
+        "m.rs",
+        "/** M */\n/** F */\nfn f() {}\n",
+    ),
+    "rust two head docs apart over a declaration": (
+        "m.rs",
+        "/** M */\n\n/** F */\nfn f() {}\n",
+    ),
+    "rust two head docs over a documenting comment": (
+        "m.rs",
+        "/** M */\n/** F */\n// c\nfn f() {}\n",
+    ),
 }
 
 
