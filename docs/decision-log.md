@@ -6027,3 +6027,21 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   chief or to the agents after it. A `move` from a page into a freeform file is refused and raised
   as a `drop` plus a freeform add.
 
+- **#261.** **Freeform edits follow the topology on copies, and are approved as a real diff** (Roy,
+  2026-11-01, shown five version reviews finding that a hand-applied write to the working tree after
+  approval is what V2.1 and V2.2 ran, and that 0.2.2's run was rolled back with 31 defects and every
+  gate green: *"follows the topology - if the ownership context runs first the next contexts get its
+  edits to work from to make their own edits - straight copy from its files"*; *"yes the rest of the
+  changes"*).
+
+  **What it settles.** This replaces #259's order of approve then apply. Roles in one stage stay
+  blind to each other. A role in a later stage starts from a straight copy of the files the stage
+  before left. The edits are set on a draft copy, the formatter and compiler run there, and the
+  author approves the real diff; accepted files are then copied over. Every diff hunk must match one
+  approved finding, and any other hunk stops the run. A finding carries its instruction, its source
+  and one full replacement per comment in text framed for the file. Each reviewer reports `N swept,
+  M raised` per file. The cheat sheet is built from the measured failures.
+
+  Roy also confirmed the reader machinery stands for Python and Rust: *"Yes this all earns its keep
+  even with the complexity."*
+
