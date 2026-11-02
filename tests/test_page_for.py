@@ -27,6 +27,7 @@ from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, Read
 from comment_review.reading.lexer import LexicalRead
 from comment_review.reading.paragraph import Paragraph
 from comment_review.reading.python.records import PythonRead
+from comment_review.reading.rust.records import RustRead
 from comment_review.reading.series import Kind
 from comment_review.reading.source import CodeLine, DocPlace
 
@@ -318,7 +319,7 @@ def test_python_page_definition_acquisition_failure_is_located(monkeypatch):
 
 @pytest.mark.parametrize(
     "path, text",
-    [("m.c", "int x; // note\n")],
+    [("m.c", "int x; // note\n"), ("m.rs", "const X: i32 = 1; // note\n")],
 )
 def test_python_sections_projection_is_not_used_for_other_languages(
     monkeypatch, path, text
@@ -363,15 +364,18 @@ def test_malformed_python_is_a_read_failure():
     assert page.diagnostics[0].stage.value == "lex"
 
 
-def test_snapshot_is_retained_without_acquisition(monkeypatch):
+@pytest.mark.parametrize(
+    ("name", "language"), [("broken.c", "c"), ("broken.rs", "rust")], ids=["c", "rs"]
+)
+def test_snapshot_is_retained_without_acquisition(monkeypatch, name, language):
     def unexpected_read(path):
         raise AssertionError("snapshot was acquired twice")
 
     monkeypatch.setattr(page_for_mod, "source_of", unexpected_read)
-    failure = page_for_mod.page_of(Path("broken.c"), source=Source("/* open", "held"))
+    failure = page_for_mod.page_of(Path(name), source=Source("/* open", "held"))
     assert isinstance(failure, LocatedReadFailure)
-    assert failure.path == "broken.c"
-    assert failure.language == "c"
+    assert failure.path == name
+    assert failure.language == language
     assert failure.text == "/* open"
 
 
@@ -470,18 +474,34 @@ def test_module_documentation_takes_the_a_its_anchor_names(monkeypatch, anchor, 
     assert set_page(page) == text
 
 
-def test_located_error_renders_after_file_is_removed(tmp_path):
-    path = tmp_path / "m.c"
-    path.write_text("int v;\n/* open", encoding="utf-8", newline="")
-    failure = page_for_mod.page_of(path, rel="m.c")
+@pytest.mark.parametrize(
+    ("name", "text", "expected"),
+    [
+        (
+            "m.c",
+            "int v;\n/* open",
+            "m.c [c] lex/unterminated-comment: Comment has no closing delimiter before "
+            "end of source (line 2, one-based; column 0, zero-based)",
+        ),
+        (
+            "m.rs",
+            "const V: i32 = 1;\n/* open",
+            "m.rs [rust] lex/unterminated-comment: unterminated comment "
+            "(line 2, one-based; column 0, zero-based)",
+        ),
+    ],
+    ids=["c", "rs"],
+)
+def test_located_error_renders_after_file_is_removed(tmp_path, name, text, expected):
+    path = tmp_path / name
+    path.write_text(text, encoding="utf-8", newline="")
+    failure = page_for_mod.page_of(path, rel=name)
     assert isinstance(failure, LocatedReadFailure)
     path.unlink()
-    assert format_failure(failure, path="m.c") == (
-        "m.c [c] lex/unterminated-comment: Comment has no closing delimiter before "
-        "end of source (line 2, one-based; column 0, zero-based)"
-    )
+    assert format_failure(failure, path=name) == expected
 
 
+@pytest.mark.parametrize("name", ["m.c", "m.rs"])
 @pytest.mark.parametrize(
     ("series", "cue_name", "message"),
     [
@@ -494,11 +514,13 @@ def test_located_error_renders_after_file_is_removed(tmp_path):
         ),
     ],
 )
-def test_known_placement_refusal_is_an_outcome(monkeypatch, series, cue_name, message):
+def test_known_placement_refusal_is_an_outcome(
+    monkeypatch, series, cue_name, message, name
+):
     cues = Cues()
     cues.addressers[series].places[cue_name] = "<module>"
     monkeypatch.setattr(page_mod, "cue", lambda *args, **kwargs: cues)
-    result = page_for_mod.page_of(Path("m.c"), source=Source("", "held"))
+    result = page_for_mod.page_of(Path(name), source=Source("", "held"))
     assert isinstance(result, LocatedReadFailure)
     assert result.diagnostics == (
         ReadDiagnostic(
@@ -510,11 +532,19 @@ def test_known_placement_refusal_is_an_outcome(monkeypatch, series, cue_name, me
 
 
 GO_DOCUMENTED = "// Package m.\npackage m\n// F.\nfunc F() {}\n"
+RUST_DOCUMENTED = "//! Package m.\nm!();\n/// F.\nfn f() {}\n"
 
 
-def page_over_read(monkeypatch, found: list[Paragraph]) -> Page | ReadFailure:
-    """`page_for` over GO_DOCUMENTED, handed these paragraphs and its code lines."""
-    reading = build("", "m.go").reading
+def page_over_read(
+    monkeypatch, found: list[Paragraph], name: str = "m.go"
+) -> Page | ReadFailure:
+    """`page_for` over a documented page, handed these paragraphs and its code lines."""
+    reading = build("", name).reading
+    if name == "m.rs":
+        monkeypatch.setattr(RustRead, "paragraphs", lambda self, path: list(found))
+        return page_for(
+            Path(name), RUST_DOCUMENTED, rel=name, sha="held", reading=reading
+        )
     lines = [
         CodeLine(2, "package m", None),
         CodeLine(4, "func F() {}", DocPlace(4, True)),
@@ -526,52 +556,59 @@ def page_over_read(monkeypatch, found: list[Paragraph]) -> Page | ReadFailure:
     )
 
 
-def test_documentation_lands_at_the_a_of_the_line_it_names(monkeypatch):
+@pytest.mark.parametrize(
+    ("name", "declaration"), [("m.go", "func F() {}"), ("m.rs", "fn f() {}")]
+)
+def test_documentation_lands_at_the_a_of_the_line_it_names(
+    monkeypatch, name, declaration
+):
     page = page_over_read(
         monkeypatch,
         [
-            Paragraph("m.go", 1, 1, Kind.DOCSTRING, raw_lines=["// Package m."]),
-            Paragraph(
-                "m.go", 3, 3, Kind.DOCSTRING, declares_line=4, raw_lines=["// F."]
-            ),
+            Paragraph(name, 1, 1, Kind.DOCSTRING, raw_lines=["// Package m."]),
+            Paragraph(name, 3, 3, Kind.DOCSTRING, declares_line=4, raw_lines=["// F."]),
         ],
+        name,
     )
     assert isinstance(page, Page)
     assert [
         (cue(p), p.declares_line, p.anchor) for p in page if p.kind == Kind.DOCSTRING
-    ] == [("a0", None, "<module>"), ("a1", 4, "func F() {}")]
+    ] == [("a0", None, "<module>"), ("a1", 4, declaration)]
 
 
+@pytest.mark.parametrize("name", ["m.go", "m.rs"])
 @pytest.mark.parametrize("line", [2, 3], ids=["code-declaring-nothing", "no-code"])
-def test_documentation_naming_no_declaring_line_is_refused(monkeypatch, line):
+def test_documentation_naming_no_declaring_line_is_refused(monkeypatch, line, name):
     found = [
-        Paragraph("m.go", 3, 3, Kind.DOCSTRING, declares_line=line, raw_lines=["// F."])
+        Paragraph(name, 3, 3, Kind.DOCSTRING, declares_line=line, raw_lines=["// F."])
     ]
-    result = page_over_read(monkeypatch, found)
+    result = page_over_read(monkeypatch, found, name)
     assert isinstance(result, ReadFailure)
     assert [d.code for d in result.diagnostics] == ["documentation-declares-nothing"]
 
 
-def test_two_paragraphs_at_one_address_refuse_the_page(monkeypatch):
+@pytest.mark.parametrize("name", ["m.go", "m.rs"])
+def test_two_paragraphs_at_one_address_refuse_the_page(monkeypatch, name):
     found = [
-        Paragraph("m.go", 3, 3, Kind.COMMENT, raw_lines=["// one"]),
-        Paragraph("m.go", 3, 3, Kind.COMMENT, raw_lines=["// two"]),
+        Paragraph(name, 3, 3, Kind.COMMENT, raw_lines=["// one"]),
+        Paragraph(name, 3, 3, Kind.COMMENT, raw_lines=["// two"]),
     ]
-    result = page_over_read(monkeypatch, found)
+    result = page_over_read(monkeypatch, found, name)
     assert isinstance(result, ReadFailure)
     assert result.diagnostics == (
         ReadDiagnostic(
             ReadStage.PLACE,
             "address-held-twice",
-            "m.go@b1 is held by the paragraph on lines 3-3 and the paragraph on"
+            f"{name}@b1 is held by the paragraph on lines 3-3 and the paragraph on"
             " lines 3-3",
         ),
     )
 
 
-def test_a_paragraph_alone_in_its_place_builds(monkeypatch):
-    found = [Paragraph("m.go", 3, 3, Kind.COMMENT, raw_lines=["// one"])]
-    assert isinstance(page_over_read(monkeypatch, found), Page)
+@pytest.mark.parametrize("name", ["m.go", "m.rs"])
+def test_a_paragraph_alone_in_its_place_builds(monkeypatch, name):
+    found = [Paragraph(name, 3, 3, Kind.COMMENT, raw_lines=["// one"])]
+    assert isinstance(page_over_read(monkeypatch, found, name), Page)
 
 
 def test_failed_acquisition_has_no_invented_context(tmp_path):
@@ -582,8 +619,9 @@ def test_failed_acquisition_has_no_invented_context(tmp_path):
     assert result.diagnostics[0].stage == ReadStage.ACQUIRE
 
 
-def test_render_script_reports_failed_page_through_normal_invocation(tmp_path):
-    path = tmp_path / "broken.c"
+@pytest.mark.parametrize("name", ["broken.c", "broken.rs"])
+def test_render_script_reports_failed_page_through_normal_invocation(tmp_path, name):
+    path = tmp_path / name
     path.write_text("/* open", encoding="utf-8")
     script = Path(__file__).resolve().parents[1] / "scripts" / "render_page.py"
     result = subprocess.run(
@@ -1454,8 +1492,19 @@ def test_rust_fixture_licence_header_is_front_matter_and_first_item_undocumented
             '# licence\n"""Doc."""\nx = 1\n',
             {"f0": ["# licence"], "a0": ['"""Doc."""']},
         ),
+        ("m.rs", "// licence\n//! Doc.\n", {"f0": ["// licence"], "a0": ["//! Doc."]}),
+        (
+            "m.rs",
+            "// licence\n//! Doc.\nconst X: i32 = 1;\n",
+            {"f0": ["// licence"], "a0": ["//! Doc."]},
+        ),
+        (
+            "m.rs",
+            "#!/usr/bin/env run\n// licence\n//! Doc.\nconst X: i32 = 1;\n",
+            {"f0": ["#!/usr/bin/env run", "// licence"], "a0": ["//! Doc."]},
+        ),
     ],
-    ids=["no-code", "code", "shebang", "python"],
+    ids=["no-code", "code", "shebang", "python", "rs-no-code", "rs-code", "rs-shebang"],
 )
 def test_matter_then_a_doc_at_the_head_are_placed_at_f0_and_a0(name, text, places):
     found = by_cue(build(text, name))
