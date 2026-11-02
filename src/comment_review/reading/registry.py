@@ -25,6 +25,41 @@ _EXCLUDED_SUFFIXES = frozenset(
 )
 
 
+#: The suffixes of source files with no reader. The gather lists these for the
+#: reviewers to read as they stand; any other file with no reader is not source
+#: and no reviewer is handed it.
+FREEFORM_SUFFIXES = frozenset(
+    {
+        ".bash",
+        ".c",
+        ".cc",
+        ".cjs",
+        ".cpp",
+        ".cs",
+        ".cts",
+        ".cxx",
+        ".go",
+        ".h",
+        ".hpp",
+        ".java",
+        ".js",
+        ".jsx",
+        ".kt",
+        ".kts",
+        ".lua",
+        ".mjs",
+        ".mts",
+        ".rb",
+        ".sh",
+        ".sql",
+        ".swift",
+        ".ts",
+        ".tsx",
+        ".zsh",
+    }
+)
+
+
 class _RegistryError(ValueError):
     """A construction refusal carrying its selection diagnostic code."""
 

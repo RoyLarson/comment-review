@@ -24,6 +24,7 @@ chokes on.
 """
 
 import inspect
+import json
 import re
 
 import pytest
@@ -55,7 +56,8 @@ def test_languages_reports_validated_programming_coverage(monkeypatch, capsys):
     monkeypatch.setattr(readers, "INSTALLED_BINDINGS", {})
     status, output = run_command(monkeypatch, capsys, gather_command, "--languages")
     assert status == 0
-    assert all(value.language not in output for value in registry.definitions)
+    listed = {line.split()[0] for line in output.splitlines() if line}
+    assert listed.isdisjoint(value.language for value in registry.definitions)
 
 
 #: An ordinary nine-line Python page, and the CONTROL every case below is a
@@ -319,3 +321,88 @@ def test_the_command_builds_no_page_and_resolves_no_annotation():
     assert not re.search(r"\bpage_for\b", source)
     assert not re.search(r"\bannotate\b", source)
     assert "gather(" in source, "the command has to call the flow it exposes"
+
+
+def _gather(tmp_path, monkeypatch, capsys, *targets):
+    """One gather through argv, its binder as written, and its exit and stderr."""
+    out = tmp_path / "binder.json"
+    code, printed = run_command(
+        monkeypatch,
+        capsys,
+        gather_command,
+        "--repo",
+        str(tmp_path),
+        "--out",
+        str(out),
+        *[str(t) for t in targets],
+        with_stderr=True,
+    )
+    return code, printed, out
+
+
+def _binder(out) -> dict:
+    return json.loads(out.read_text(encoding="utf-8"))
+
+
+def test_a_named_js_file_is_freeform_and_gather_exits_0(
+    tmp_path, monkeypatch, capsys, no_javascript_reader
+):
+    page = tmp_path / "a.py"
+    page.write_text(CONTROL, encoding="utf-8")
+    # Bytes no reader could decode: a freeform file is listed, never opened.
+    (tmp_path / "b.js").write_bytes(b"\xff\xfe\x00")
+    code, printed, out = _gather(tmp_path, monkeypatch, capsys, page, tmp_path / "b.js")
+    assert code == 0, printed
+    wire = _binder(out)
+    assert [p["path"] for p in wire["pages"]] == ["a.py"]
+    assert wire["freeform"] == ["b.js"]
+    assert "FREEFORM -- 1 file(s)" in printed
+
+
+def test_a_binary_in_a_walked_directory_stays_passed_over(
+    tmp_path, monkeypatch, capsys, no_javascript_reader
+):
+    (tmp_path / "a.py").write_text(CONTROL, encoding="utf-8")
+    (tmp_path / "b.js").write_text("// b\n", encoding="utf-8")
+    (tmp_path / "logo.png").write_bytes(b"\x89PNG\x00")
+    (tmp_path / "uv.lock").write_text("lock\n", encoding="utf-8")
+    code, printed, out = _gather(tmp_path, monkeypatch, capsys, tmp_path)
+    assert code == 0, printed
+    assert _binder(out)["freeform"] == ["b.js"]
+    assert "PASSED OVER --" in printed
+    assert "logo.png" in printed and "uv.lock" in printed
+
+
+def test_a_named_file_that_is_neither_read_nor_source_stops_the_gather(
+    tmp_path, monkeypatch, capsys
+):
+    target = tmp_path / "logo.png"
+    target.write_bytes(b"\x89PNG\x00")
+    code, printed, _ = _gather(tmp_path, monkeypatch, capsys, target)
+    assert code == 1, printed
+    assert "logo.png" in printed
+
+
+def test_a_python_file_that_fails_to_read_still_stops_the_gather(
+    tmp_path, monkeypatch, capsys, no_javascript_reader
+):
+    page = tmp_path / "a.py"
+    page.write_bytes(b"\xff\xfe not utf-8\n")
+    (tmp_path / "b.js").write_text("// b\n", encoding="utf-8")
+    code, printed, _ = _gather(tmp_path, monkeypatch, capsys, page, tmp_path / "b.js")
+    assert code == 1, printed
+    assert "a.py" in printed
+
+
+def test_freeform_paths_are_sorted_repo_relative_and_listed_once(
+    tmp_path, monkeypatch, capsys, no_javascript_reader
+):
+    (tmp_path / "src").mkdir()
+    (tmp_path / "src" / "z.js").write_text("// z\n", encoding="utf-8")
+    (tmp_path / "a.js").write_text("// a\n", encoding="utf-8")
+    monkeypatch.chdir(tmp_path)
+    code, printed, out = _gather(
+        tmp_path, monkeypatch, capsys, tmp_path / "src" / "z.js", "src/z.js", "a.js"
+    )
+    assert code == 0, printed
+    assert _binder(out)["freeform"] == ["a.js", "src/z.js"]

@@ -110,7 +110,10 @@ def _report(args: argparse.Namespace) -> int:
             exts = " ".join(definition.suffixes)
             tier = definition.capabilities[-1]
             print(f"{definition.language:<10} {tier:<11} {exts}")
-        print("\nA suffix not listed is named, and the gather exits nonzero.")
+        print(
+            "\nA suffix not listed is freeform if it is source. Otherwise a named"
+            " file stops the gather and a walked one is passed over."
+        )
         return 0
 
     repo = Path(args.repo).resolve()
@@ -180,6 +183,16 @@ def _passed_over(got: Gathering) -> None:
             "      until this list is empty.",
             file=sys.stderr,
         )
+    if got.freeform:
+        print(
+            f"FREEFORM -- {len(got.freeform)} file(s) have no reader; the binder"
+            " lists them for the reviewers:",
+            file=sys.stderr,
+        )
+        for row in got.freeform[:20]:
+            print(f"    {row}", file=sys.stderr)
+        if len(got.freeform) > 20:
+            print(f"    ... and {len(got.freeform) - 20} more", file=sys.stderr)
     if got.no_record:
         # !! SAID, NOT REFUSED, and it used to be neither. A file the walk came
         # across with no language record simply vanished, so a directory target

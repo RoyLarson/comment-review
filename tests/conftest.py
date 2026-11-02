@@ -257,3 +257,18 @@ def run_command(monkeypatch, capsys, command, *argv, with_stderr: bool = False):
     code = command.main()
     got = capsys.readouterr()
     return code, got.out + got.err if with_stderr else got.out
+
+
+@pytest.fixture
+def no_javascript_reader(monkeypatch):
+    """A gather that holds no reader for `.js`, so `.js` is freeform."""
+    from comment_review.flows import gather
+    from comment_review.reading.language import INSTALLED_REGISTRY
+    from comment_review.reading.registry import LanguageRegistry
+
+    kept = tuple(
+        value
+        for value in INSTALLED_REGISTRY.definitions
+        if value.language != "javascript"
+    )
+    monkeypatch.setattr(gather, "INSTALLED_REGISTRY", LanguageRegistry(kept))

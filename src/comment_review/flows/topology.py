@@ -78,15 +78,15 @@ def compose(directives: list[Directive], binder: Binder) -> str:
 
     Every stage is `editorial`; the first reads `original` and each later one
     reads the revise of the stage before it. A role split `ways` > 1 gets
-    `ways` dispatches, each carrying explicit page paths -- the binder's pages
-    sorted and dealt round-robin -- so it fits by construction rather than by
-    a glob that happens to match.
+    `ways` dispatches, each carrying explicit paths -- the binder's page and
+    freeform paths sorted together and dealt round-robin -- so it fits by
+    construction rather than by a glob that happens to match.
 
     Raises:
         ValueError: a role outside the closed set, or a split the binder's
-            page count cannot honour.
+            file count cannot honour.
     """
-    pages = sorted(page.path for page in binder.pages)
+    paths = sorted([*(page.path for page in binder.pages), *binder.freeform])
     lines: list[str] = []
     previous: str | None = None
     for name, roles in directives:
@@ -97,13 +97,13 @@ def compose(directives: list[Directive], binder: Binder) -> str:
         for role, ways in roles:
             if role not in ROLES:
                 raise ValueError(f"stage {name!r}: {role!r} is not a known role")
-            if ways < 1 or ways > len(pages):
+            if ways < 1 or ways > len(paths):
                 where = f"stage {name!r}: {role!r}"
-                raise ValueError(f"{where} split {ways} ways over {len(pages)} pages")
+                raise ValueError(f"{where} split {ways} ways over {len(paths)} files")
             for i in range(ways):
                 lines += ["  [[stage.dispatch]]", f"  role = {_toml_string(role)}"]
                 if ways > 1:
-                    shard = ", ".join(_toml_string(escape(p)) for p in pages[i::ways])
+                    shard = ", ".join(_toml_string(escape(p)) for p in paths[i::ways])
                     lines.append(f"  paths = [{shard}]")
         lines.append("")
         previous = name

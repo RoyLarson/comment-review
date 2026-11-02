@@ -188,7 +188,7 @@ def main() -> int:
             places = sum(len(sheet["marks"]) for sheet in copy["sheets"])
             print(
                 f"{where}: {places} places for {dispatch.role} to rule on; "
-                f"binder {binder_path}"
+                f"{len(received.freeform)} freeform; binder {binder_path}"
             )
         return 0
 

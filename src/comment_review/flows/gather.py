@@ -28,7 +28,9 @@ is over the paragraphs that HOLD prose.
 **Every file handed in is gathered, or the command errors** -- a file it could
 not read or parse, or whose suffix has no language record, is named in
 `unreadable`, and the command exits nonzero on it, because a paragraph missing
-from the binder is a paragraph nobody reviews.
+from the binder is a paragraph nobody reviews. The exception is a source file
+with no reader: the binder lists it as freeform, unopened, for the reviewers to
+read as it stands.
 
 ! NO TIER IS REPORTED PER RUN OR STAMPED ON A PLACE, since 2026-08-24. This
 counted a `tier` field on every paragraph and printed one line from it; the
@@ -66,6 +68,7 @@ from comment_review.reading.diagnostics import (
 )
 from comment_review.reading.language import INSTALLED_REGISTRY
 from comment_review.reading.paragraph import Paragraph
+from comment_review.reading.registry import FREEFORM_SUFFIXES
 
 
 @dataclass
@@ -89,6 +92,8 @@ class Gathering:
     files: list[Path] = field(default_factory=list)
     #: files the walk came across with no record -- reported, never refused
     no_record: list[str] = field(default_factory=list)
+    #: source files with no reader, repo-relative posix, sorted, each once
+    freeform: list[str] = field(default_factory=list)
     #: a named file that produced no page, and why
     unreadable: list[str] = field(default_factory=list)
     #: files the name corpus could not read, from `code_names`
@@ -114,12 +119,20 @@ def _walk(g: Gathering) -> None:
     # A file the caller NAMED is refused when nothing can read it; a file the
     # walk came across is reported and skipped, because a directory holds
     # READMEs and lockfiles and refusing on those makes the form unusable.
+    # A source file with no reader is neither: it is listed for the reviewers,
+    # named or found, and never opened, so a binary cannot fail the gather.
     named = {t.resolve() for t in g.targets if t.is_file()}
+    freeform = set()
     for path in sorted({f for found in by_target.values() for f in found}):
-        if INSTALLED_REGISTRY.for_path(path) is None and path.resolve() not in named:
-            g.no_record.append(path.as_posix())
-        else:
+        if INSTALLED_REGISTRY.for_path(path) is not None:
             g.files.append(path)
+        elif path.suffix.lower() in FREEFORM_SUFFIXES:
+            freeform.add(_repo_relative(path, g.repo))
+        elif path.resolve() in named:
+            g.files.append(path)
+        else:
+            g.no_record.append(path.as_posix())
+    g.freeform = sorted(freeform)
     # A path argument that matched no file joins `unreadable`, so a typo errors
     # on the same rule every other gap does.
     g.unreadable.extend(
@@ -255,7 +268,10 @@ def _bind(g: Gathering) -> None:
     # measured there.
     root = relative_to(g.repo, Path.cwd()).as_posix()
     g.binder = bind(
-        g.pages, read_from={"root": root, "revise": g.revise}, absent=g.absent
+        g.pages,
+        read_from={"root": root, "revise": g.revise},
+        absent=g.absent,
+        freeform=tuple(g.freeform),
     )
 
 
