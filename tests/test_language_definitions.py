@@ -9,7 +9,6 @@ from typing import Any
 import pytest
 
 from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, ReadStage
-from comment_review.reading.language import Language
 
 WIRE = """format = 1
 language = "Invented MIX"
@@ -348,9 +347,7 @@ def binding(**changes: Any) -> Any:
         "revision": "1",
         "capabilities": ("comments",),
         "grammar_identity": "",
-        "read": lambda path, text, lang: import_module(
-            "comment_review.reading.lexer"
-        ).LexicalRead([], [], False, False),
+        "read": lambda path, text, lang: pytest.fail("the binding is not read"),
         "validate": lambda value: None,
     }
     values.update(changes)
@@ -425,8 +422,6 @@ def test_binding_validator_distinguishes_missing_invalid_and_empty_grammar(
 
 
 def test_binding_read_once_with_exact_source_and_retains_refusal() -> None:
-    from comment_review.reading.language import LANGUAGES
-
     calls = []
     refused = ReadFailure(
         (
@@ -440,9 +435,10 @@ def test_binding_read_once_with_exact_source_and_retains_refusal() -> None:
         return refused
 
     installed = binding(read=read)
-    path, text, lang = Path("source.py"), "# exact\r\n", LANGUAGES[0]
+    path, text = Path("source.py"), "# exact\r\n"
     registered = registry((definition(**configuration(suffixes=(".py",))),))
-    selected = bind(registered.for_path(path), {installed.reader: installed})
+    lang = registered.for_path(path)
+    selected = bind(lang, {installed.reader: installed})
     assert selected.read(path, text, lang) is refused
     assert calls == [(path, text, lang)]
     assert installed.grammar_identity == ""
@@ -617,9 +613,6 @@ def test_registry_selection_is_independent_of_registration_order(reverse: bool) 
     assert value.for_path(Path("nested/name.DeMo")) is demo
     assert value.for_path(Path("component.JSX")) is other
     assert value.for_path(Path("component.tsx")) is other
-    assert value.for_language("Demo MIX") is demo
-    assert value.for_language("demo mix") is None
-    assert value.for_language("Other") is other
     assert value.for_path(Path("unknown.py")) is None
     assert value.for_path(Path("extensionless")) is None
     assert select_registry(values) == value
@@ -628,7 +621,6 @@ def test_registry_selection_is_independent_of_registration_order(reverse: bool) 
 def test_empty_registry_has_no_matches() -> None:
     value = registry(())
     assert value.for_path(Path("name.demo")) is None
-    assert value.for_language("Demo") is None
     assert select_registry(()) == value
 
 
@@ -687,8 +679,8 @@ def test_registry_preserves_distinct_exact_language_identities() -> None:
     upper = definition(**configuration(language="Demo", suffixes=(".one",)))
     lower = definition(**configuration(language="demo", suffixes=(".two",)))
     value = registry((upper, lower))
-    assert value.for_language("Demo") is upper
-    assert value.for_language("demo") is lower
+    assert value.for_path(Path("name.one")) is upper
+    assert value.for_path(Path("name.two")) is lower
 
 
 @pytest.mark.parametrize(
@@ -724,21 +716,17 @@ def test_registry_refuses_non_code_suffixes(suffix: str, uppercase: bool) -> Non
     assert claim in diagnostic.message
 
 
-def test_python_is_defined_by_its_own_file_and_by_no_row() -> None:
+def test_python_is_defined_by_its_own_file() -> None:
     from comment_review.reading.language import (
         INSTALLED_REGISTRY,
-        LANGUAGES,
         SHIPPED_DEFINITIONS,
         documents_in_literals,
-        language_for,
         line_comment_markers,
     )
 
     path = Path("m.py")
-    assert [row.name for row in LANGUAGES if ".py" in row.extensions] == []
     assert [value.language for value in SHIPPED_DEFINITIONS] == ["python", "rust"]
     assert INSTALLED_REGISTRY.for_path(path) is SHIPPED_DEFINITIONS[0]
-    assert language_for(path) is None
     assert line_comment_markers(path) == ("#",)
     assert documents_in_literals(path)
     assert not documents_in_literals(Path("m.rs"))
@@ -749,10 +737,8 @@ def test_python_is_defined_by_its_own_file_and_by_no_row() -> None:
     [".toml", ".ini", ".cfg", ".yaml", ".json", ".md", ".html", ".css", ".unknown"],
 )
 def test_installed_selection_excludes_non_code(suffix: str) -> None:
-    from comment_review.reading.language import language_for
     from comment_review.reading.readers import reader_for
 
-    assert language_for(Path("source" + suffix.upper())) is None
     assert reader_for(Path("source" + suffix.upper())) is None
 
 
@@ -1022,15 +1008,8 @@ def test_rust_definition_is_installed_as_rust_lexical_revision_2() -> None:
     assert binding.grammar_identity == "Rust Reference lexical"
 
 
-def test_rust_definition_leaves_no_language_row() -> None:
-    from comment_review.reading.language import LANGUAGES
-
-    assert [row.name for row in LANGUAGES if row.name == "rust"] == []
-    assert [row.name for row in LANGUAGES if ".rs" in row.extensions] == []
-
-
 def test_rust_comment_form_takes_its_markers_from_the_rust_scanner() -> None:
-    from comment_review.reading.lexer import comment_form
+    from comment_review.reading.comment import comment_form
     from comment_review.reading.series import Series
 
     path = Path("x.rs")
@@ -1041,20 +1020,3 @@ def test_rust_comment_form_takes_its_markers_from_the_rust_scanner() -> None:
     assert block.fragments[0].first == "/* "
     assert block.fragments[0].last == " */"
     assert block.fragments[0].paragraphs == ("a /* b */ c",)
-
-
-@pytest.mark.parametrize(
-    ("shebang", "lines", "line"),
-    [
-        (("#!",), ["#!/bin/sh", "echo"], "#!/bin/sh"),
-        (("#!",), ["echo", "#!/bin/sh"], None),
-        (("#!",), [], None),
-        ((), ["#!/bin/sh"], None),
-    ],
-    ids=["first-line", "below-line-1", "empty-file", "no-marker"],
-)
-def test_a_rows_interpreter_line_is_line_1_opening_with_its_shebang(
-    shebang, lines, line
-) -> None:
-    row = Language("x", (".x",), ("#",), shebang=shebang)
-    assert row.interpreter_line(lines) == line

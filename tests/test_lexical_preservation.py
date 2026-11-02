@@ -5,7 +5,7 @@ import pytest
 
 from comment_review.reading.definitions import LanguageDefinition, decode_definition
 from comment_review.reading.diagnostics import ReadFailure
-from comment_review.reading.proof import UNPROVABLE, ReaderRecord
+from comment_review.reading.proof import UNPROVABLE, SourceRead
 from comment_review.reading.python import read_python
 from comment_review.reading.python.preservation import compare_preservation
 from comment_review.reading.python.records import PythonRead
@@ -601,7 +601,7 @@ def test_rust_foreign_after_is_unprovable(rust_definition, definition):
     assert [d.code for d in result.diagnostics] == [UNPROVABLE]
 
 
-def page_record(read: ReaderRecord) -> str:
+def page_record(read: SourceRead) -> str:
     return read.proof
 
 

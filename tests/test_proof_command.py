@@ -920,7 +920,7 @@ class TestTheCommand:
         text = (SRC / "comment_review" / "commands" / "proof.py").read_text(
             encoding="utf-8"
         )
-        for forbidden in ("page_for", "galley.reset", "set_page", "code_fingerprint"):
+        for forbidden in ("page_for", "galley.reset", "set_page"):
             assert forbidden not in text
 
     def test_proof_is_a_named_command(self):

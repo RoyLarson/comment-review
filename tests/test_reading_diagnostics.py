@@ -6,7 +6,7 @@ import pytest
 
 from comment_review.flows.language_definitions import installed_registry
 from comment_review.flows.read_diagnostics import LocatedReadFailure, format_failure
-from comment_review.reading import lexer, readers
+from comment_review.reading import readers
 from comment_review.reading.diagnostics import (
     DetachedDocumentation,
     ReadDiagnostic,
@@ -28,12 +28,10 @@ from comment_review.reading.source import SourceSpan, SourceStructure
         'x = """open',
     ],
 )
-def test_read_paragraphs_reports_python_refusal(text):
+def test_read_source_reports_python_refusal(text):
     registry = installed_registry()
     assert not isinstance(registry, ReadFailure)
-    result = readers.read_paragraphs(
-        Path("m.py"), text, lexer.LANGUAGES[0], registry=registry
-    )
+    result = readers.read_source(Path("m.py"), text, registry=registry)
     assert isinstance(result, ReadFailure)
     assert result.diagnostics[0].stage == ReadStage.LEX
     assert result.diagnostics[0].span is not None
@@ -69,9 +67,9 @@ def test_python_paragraph_adapter_recognizes_source_once(monkeypatch):
 
     monkeypatch.setattr(readers, "read_python", counted)
     text = 'def f(): "doc"; return 1\n'
-    result = readers.read_paragraphs(
-        Path("m.py"), text, lexer.LANGUAGES[0], registry=registry
-    )
+    read = readers.read_source(Path("m.py"), text, registry=registry)
+    assert isinstance(read, PythonRead)
+    result = read.paragraphs(Path("m.py"))
     assert isinstance(result, list)
     assert len(calls) == 1
     assert result == paragraphs_for(Path("m.py"), calls[0])
@@ -308,3 +306,10 @@ def test_located_failure_preserves_base_diagnostic_validation(records):
 def test_failure_renderer_rejects_non_failure_input():
     with pytest.raises(ValueError):
         format_failure(cast(Any, None), path="example.py")
+
+
+@pytest.mark.parametrize("name", ["m.py", "m.rs"])
+def test_a_comment_holding_a_line_separator_reads(name):
+    mark = "#" if name == "m.py" else "//"
+    text = f"{mark} a{chr(0x2028)}b\n"
+    assert not isinstance(readers.read_source(Path(name), text), ReadFailure)

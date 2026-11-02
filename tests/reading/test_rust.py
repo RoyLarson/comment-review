@@ -2467,13 +2467,13 @@ def test_projection_read_rust_refuses_an_unterminated_comment(rust_definition):
     assert result.diagnostics[0].span == SourceSpan(10, 12)
 
 
-def test_projection_reader_record_is_satisfied_by_a_python_read():
+def test_projection_source_read_is_satisfied_by_a_python_read():
     from comment_review.reading.language import INSTALLED_REGISTRY
-    from comment_review.reading.proof import ReaderRecord
+    from comment_review.reading.proof import SourceRead
     from comment_review.reading.python import read_python
     from comment_review.reading.python.records import PythonRead
 
-    def warned(record: ReaderRecord) -> int:
+    def warned(record: SourceRead) -> int:
         return len(record.warnings)
 
     definition = INSTALLED_REGISTRY.for_path(Path("x.py"))

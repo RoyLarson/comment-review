@@ -12,9 +12,8 @@ it follows.
 
 A page is all of the addresses in the file, which is what makes it a page and
 not a list.
-The read's `code_lines` -- every reader's, the generic lexical reader's
-included -- hands `cue` its lines of code, each carrying the documentation
-place it declares; `addresser` emits every place, filled or not, and
+The read's `code_lines` hands `cue` its lines of code, each carrying the
+documentation place it declares; `addresser` emits every place, filled or not, and
 `attach` says which one a given paragraph sits in. A paragraph does not compute
 its own cue -- if it did, a place would exist only when prose happened to fill
 it.
@@ -59,13 +58,11 @@ from comment_review.reading.context import ReadingContext
 from comment_review.reading.context_io import context_from_wire, context_to_wire
 from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, ReadStage
 from comment_review.reading.language import INSTALLED_REGISTRY
-from comment_review.reading.lexer import LexicalRead
 from comment_review.reading.paragraph import Paragraph
-from comment_review.reading.proof import ReaderRecord, SourceRead
+from comment_review.reading.proof import SourceRead
 from comment_review.reading.readers import read_source
 from comment_review.reading.registry import LanguageRegistry
 from comment_review.reading.series import Kind, Series
-from comment_review.reading.stripped import StrippedRead
 
 #: The five fields a place is carried by, in the order `Page.serialize` writes
 #: them. ! `path` IS NOT AMONG THEM: the page states it once, because repeating
@@ -689,7 +686,7 @@ def tie_leading(paragraphs: list[Paragraph], cues: Cues) -> dict[str, str]:
     X and **Y**, so the stored pair would name a place it no longer separates.
 
     ! WHICH IS WHY `cue` DOES NOT EMIT ONE. `cue` runs before any prose
-    is read and leading exists only where the lexer found a blank run, so the
+    is read and leading exists only where a read found a blank run, so the
     walk cannot know a `d` is there. An edge needs no position in `cue`'s
     list, so it does not have to.
 
@@ -790,14 +787,8 @@ def page_for(
     result = read_source(path, text, registry=registry)
     if isinstance(result, ReadFailure):
         return result
-    # Every read answers `paragraphs`, `code_lines`, `a_series` and
-    # `closing_docstring`. Only a reader record carries its own source text and
-    # proof, so the generic `LexicalRead` is the one read tested for by type.
-    record: ReaderRecord | None = None
-    if not isinstance(result, LexicalRead):
-        record = result
-        # The read may have broken a docstring's shared line; the page is that text.
-        text = record.source.text
+    # The read may have broken a docstring's shared line; the page is that text.
+    text = result.source.text
     got = result.paragraphs(path)
     if isinstance(got, ReadFailure):
         return got
@@ -875,7 +866,7 @@ def page_for(
         reading=reading,
         paragraphs=sorted(got, key=lambda b: (b.start, b.end)),
         cues=cues,
-        read=record if record is not None else StrippedRead(text, path),
+        read=result,
         leading=edges,
     )
 
@@ -928,7 +919,7 @@ def fill_the_gaps(text: str, paragraphs: list[Paragraph], cues: Cues) -> None:
     #
     # !! LEADING IS IN THAT LIST BY ITS SYMBOL, not by an address, because it
     # HAS none -- see `addresser.SERIES`. It owns its lines exactly for the same
-    # reason an `a` does: the lexer found them and said which they are. ! Read
+    # reason an `a` does: a read found them and said which they are. ! Read
     # from `address` alone a `d` answers "", and the gap would take the blank
     # lines a run of leading already holds -- setting them TWICE.
     exact: set[int] = set()

@@ -68,19 +68,6 @@ def page_of(
     acquired = source_of(path) if source is None else source
     if isinstance(acquired, ReadFailure):
         return LocatedReadFailure(acquired.diagnostics, where, None, None)
-    if registry.for_path(path) is None:
-        return LocatedReadFailure(
-            (
-                ReadDiagnostic(
-                    ReadStage.SELECT,
-                    "unsupported-language",
-                    "no language record for its suffix",
-                ),
-            ),
-            where,
-            None,
-            acquired.text,
-        )
     page = page_for(
         path,
         acquired.text,

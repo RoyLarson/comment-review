@@ -9,9 +9,9 @@ from pathlib import Path
 
 import pytest
 
+from comment_review.reading.comment import comment_form
 from comment_review.reading.docstring import Docstring
 from comment_review.reading.language import INSTALLED_REGISTRY
-from comment_review.reading.lexer import comment_form
 from comment_review.reading.series import Series
 
 PROSE = ("One wrapped claim that", "runs onto a second line.")

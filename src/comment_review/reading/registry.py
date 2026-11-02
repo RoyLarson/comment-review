@@ -122,12 +122,6 @@ class LanguageRegistry:
             None,
         )
 
-    def for_language(self, name: str) -> LanguageDefinition | None:
-        """Select an exact declared language identity."""
-        return next(
-            (value for value in self.definitions if value.language == name), None
-        )
-
 
 def registry_for(
     definitions: tuple[LanguageDefinition, ...],

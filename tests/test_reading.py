@@ -1,7 +1,7 @@
 """Reading a file into a page: what must hold of every page, for every file.
 
-Derived from `binder/page.py` and `reading/lexer.py` by reading them and by
-running them over real sources.
+Derived from `binder/page.py` by reading it and by running it over real
+sources.
 """
 
 from pathlib import Path

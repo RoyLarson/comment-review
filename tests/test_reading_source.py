@@ -1070,7 +1070,7 @@ import sys
 sys.path.insert(0, sys.argv[1])
 import comment_review.reading.source
 
-forbidden = {"binder", "desk", "flows", "results", "lexer", "paragraph", "addresser"}
+forbidden = {"binder", "desk", "flows", "results", "paragraph", "addresser"}
 loaded = sorted(
     name for name in sys.modules
     if name.startswith("comment_review.")

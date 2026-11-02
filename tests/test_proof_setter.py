@@ -26,7 +26,6 @@ from comment_review.reading.addresser import cue_of
 from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, ReadStage
 from comment_review.reading.proof import UNPROVABLE, PreservationResult
 from comment_review.reading.rust.records import RustRead
-from comment_review.reading.stripped import code_fingerprint
 from comment_review.results import compositor, galley
 
 
@@ -1492,14 +1491,6 @@ class TestOnlyCommentsChange:
         assert "code-changed" in refused.why
 
     @pytest.mark.parametrize(
-        ("name", "text"),
-        [("m.js", "`\n// a\n`\n"), ("m.js", "/* `a */\nlet x;\n")],
-        ids=["literal-of-comment-lines", "beside-code"],
-    )
-    def test_a_spanning_delimiter_beside_code_stays_unprovable(self, name, text):
-        assert code_fingerprint(text, Path(name)) == ("unprovable", "")
-
-    @pytest.mark.parametrize(
         ("name", "comment"),
         [("m.rs", "// a\n"), ("m.py", "# a\n")],
         ids=["rs", "py"],
@@ -1510,10 +1501,6 @@ class TestOnlyCommentsChange:
         refused = proof_setter._prove(name, before, comment, Path(name))
         assert refused is not None
         assert "code-changed" in refused.why
-
-    @pytest.mark.parametrize("suffix", [".md", ".rst", ".txt", ".html"])
-    def test_a_path_with_no_row_stays_unprovable(self, suffix):
-        assert code_fingerprint("# Title\n", Path("m" + suffix)) == ("unprovable", "")
 
 
 def _chain(tmp_path, name: str, text: str, alterations: dict):

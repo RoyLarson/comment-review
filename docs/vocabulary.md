@@ -59,6 +59,7 @@ here**, and `scripts/check_vocabulary.py` refuses a live term defined in both pl
 | `DiffMark` | -> **`Answer`**, `desk/proof/answer.py`. What a role hands back in a turn. The closed set is the same four on an escalation; it is read against the question the slot carries rather than against a set of its own, so the composition's four are separate rows |
 | `Collated` | -> the fold's **events**. It was what the old fold returned, carrying its escalations, rereads and unsettlable places as lists; `desk.work.fold.Fold` emits one event per place and commits or rolls back whole, and the commands print from the events alone |
 | `census` | -> **gather** for the stage, the act and the command; **binder** for what it hands over. `gather` has been stage 2's word since 2026-08-23 and a second `gather` had taken it for building the master proof, which `flows.bus` does now. `censused` -> gathered, and where the lexer classified a line, **read**. No alias. Roy, 2026-09-04; `decision-log.md Vocabulary: #34` |
+| `lexer` (`reading/lexer.py`, and the `lexical` tier) | -> the language's own **reader**, `reading/python/` or `reading/rust/`. The module read every language with no reader package of its own from a row of comment syntax, and it left with those languages. `comment_form` went to `reading/comment.py`. The reader ids `python-lexical` and `rust-lexical` are not this word: they name how those readers compare code. `decision-log.md Process: #259` |
 
 ## Held in reserve -- publishing's word for something we already have
 
@@ -529,18 +530,6 @@ word cannot return without a ruling behind it.
 
 ! **Do not add it to `vocabulary.toml`.** That file holds what agents are GIVEN, and the drift
 check refuses a term no role uses. Adding it to tidy the numbers is writing to the check.
-
-## `lexer` -- the module that reads characters against a language definition
-
-**`reading/lexer.py` is the lexer, and the name is literal.** For each language without a
-reader package of its own, it reads a source file's characters against that language's
-definition -- comment openers, quotes, spanning delimiters -- and cuts the prose from the code.
-That is lexical analysis, and `scan` is the word for it.
-
-It kept the name rather than taking `typecoder` because the reason to rename went away: the
-module once also read CPython's tokens and parse for Python, which is not lexing. Python is now
-read by `reading/python/`, so what is left in `lexer.py` lexes
-(`decision-log.md Vocabulary: #38`).
 
 ## Rules about the words themselves
 

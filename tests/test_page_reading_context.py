@@ -11,7 +11,6 @@ from comment_review.flows import page_for as page_flow
 from comment_review.flows.distribute import assigned_binder
 from comment_review.machine.repo import Source
 from comment_review.reading.context import ReadingContext
-from comment_review.reading.lexer import LexicalRead
 
 
 @pytest.mark.parametrize("text", ["", "x = 1\n", "# note\nx = 1\n"])
@@ -83,7 +82,7 @@ def test_fresh_flow_retains_admitted_settings_and_held_source(monkeypatch):
         "1",
         ("comments",),
         "fixture",
-        lambda *_: LexicalRead([], [], False, False),
+        lambda *_: pytest.fail("the fixture binding is not read"),
         lambda _: None,
     )
     monkeypatch.setattr(reading_context, "reader_for", lambda *_: (definition, binding))

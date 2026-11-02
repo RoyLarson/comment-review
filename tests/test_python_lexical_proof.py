@@ -26,7 +26,6 @@ from comment_review.reading import readers
 from comment_review.reading.context import ReadingContext, resolve_context
 from comment_review.reading.definitions import LanguageDefinition
 from comment_review.reading.diagnostics import ReadFailure
-from comment_review.reading.stripped import StrippedRead
 
 MODERN_SOURCE = (
     "# Describe the envelope.\n"
@@ -61,19 +60,6 @@ def forbid_host_parsers(patch):
     patch.setattr(builtins, "compile", unreadable)
 
 
-@pytest.mark.parametrize("suffix", [".py", ".pyi", ".PY"])
-@pytest.mark.parametrize("text", ["value = 1\n", "value = (\n", MODERN_SOURCE])
-def test_python_fingerprint_requires_admitted_lexical_records(
-    monkeypatch, suffix, text
-):
-    from comment_review.reading.stripped import code_fingerprint
-
-    with monkeypatch.context() as patch:
-        forbid_host_parsers(patch)
-        result = code_fingerprint(text, Path("m" + suffix))
-    assert result == ("unprovable", "")
-
-
 def test_modern_python_the_host_cannot_compile_proves_without_its_parsers(
     monkeypatch,
 ):
@@ -98,15 +84,6 @@ def test_admitted_proof_never_reacquires_python_records(monkeypatch):
         patch.setattr(page_model, "read_source", forbidden)
         refusal = proof_setter._prove("m.py", before, after, Path("m.py"))
     assert refusal is None
-
-
-def test_missing_python_records_refuse_without_host_fallback(monkeypatch):
-    page = build("value = 1\n")
-    page = replace(page, read=StrippedRead(page.text, Path("m.py")))
-    with monkeypatch.context() as patch:
-        forbid_host_parsers(patch)
-        refusal = proof_setter._prove("m.py", page, page, Path("m.py"))
-    assert refusal is not None and refusal.step == "prove"
 
 
 @pytest.mark.parametrize(
