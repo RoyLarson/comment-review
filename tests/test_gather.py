@@ -40,16 +40,15 @@ def _pages(root):
     return pages
 
 
-def test_a_reader_failure_is_reported_without_a_successful_page(
-    tmp_path,
-):
+def test_a_reader_failure_is_reported_without_a_successful_page(tmp_path):
+    from comment_review.flows.gather import Gathering, _pages
+
     name = "m.rs"
     text = "const V: i32 = 1;\n/* open"
     expected = (
         "m.rs [rust] lex/unterminated-comment: unterminated comment "
         "(line 2, one-based; column 0, zero-based)"
     )
-    from comment_review.flows.gather import Gathering, _pages
 
     path = tmp_path / name
     path.write_text(text, encoding="utf-8", newline="")

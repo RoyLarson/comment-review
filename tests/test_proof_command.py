@@ -63,7 +63,6 @@ def proof_repository(tmp_path, before, suffix):
 def test_standalone_proof_admits_both_pages(
     tmp_path, monkeypatch, capsys, failed_side, stage
 ):
-    suffix = ".rs"
     from comment_review.commands import prove_unchanged as command
     from comment_review.flows import page_for
     from comment_review.reading.diagnostics import (
@@ -72,6 +71,8 @@ def test_standalone_proof_admits_both_pages(
         ReadStage,
     )
     from comment_review.reading.source import SourceSpan
+
+    suffix = ".rs"
 
     before, after = "const value = 1; // before\r\n", "const value = 1; // after\r\n"
     repo, target = proof_repository(tmp_path, before, suffix)
@@ -159,8 +160,9 @@ def test_standalone_cli_preserves_exact_mixed_unicode_snapshots(
 def test_standalone_failed_or_unprovable_inputs_cannot_prove_equal(
     tmp_path, monkeypatch, capsys
 ):
-    suffix = ".rs"
     from comment_review.commands import prove_unchanged as command
+
+    suffix = ".rs"
 
     repo, target = proof_repository(tmp_path, "int value = 1; /* open\r\n", suffix)
     code, out = run_command(
@@ -214,8 +216,9 @@ def test_standalone_an_unprovable_comparison_refuses_at_equal_text(
 def test_standalone_strict_decode_failure_refuses(
     tmp_path, monkeypatch, capsys, failed_side
 ):
-    suffix = ".rs"
     from comment_review.commands import prove_unchanged as command
+
+    suffix = ".rs"
 
     repo, target = proof_repository(tmp_path, "const value = 1;\r\n", suffix)
     target.write_bytes(b"\xff")
@@ -262,8 +265,9 @@ def test_standalone_empty_and_supported_comment_only_success(
 
 
 def test_standalone_absent_baseline_is_explicit(tmp_path, monkeypatch, capsys):
-    suffix = ".rs"
     from comment_review.commands import prove_unchanged as command
+
+    suffix = ".rs"
 
     repo, _ = proof_repository(tmp_path, "const value = 1;\r\n", suffix)
     target = repo / "pkg" / f"new{suffix}"
@@ -283,8 +287,9 @@ def test_standalone_absent_baseline_is_explicit(tmp_path, monkeypatch, capsys):
 
 
 def test_standalone_sibling_endings_refuse_mismatch(tmp_path, monkeypatch, capsys):
-    suffix = ".rs"
     from comment_review.commands import prove_unchanged as command
+
+    suffix = ".rs"
 
     repo, target = proof_repository(tmp_path, "const value = 1;\r\n", suffix)
     target.write_bytes(b"const value = 1;\n")

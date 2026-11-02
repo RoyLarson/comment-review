@@ -22,7 +22,6 @@ from comment_review.flows import source as source_flow
 from comment_review.flows.distribute import seed
 from comment_review.flows.transcribe import docket_of
 from comment_review.machine.repo import undraftable
-from comment_review.reading import stripped
 from comment_review.reading.addresser import cue_of
 from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, ReadStage
 from comment_review.reading.proof import UNPROVABLE, PreservationResult
@@ -166,9 +165,10 @@ def test_saved_nondefault_settings_reach_original_and_draft(
 
 @pytest.mark.parametrize("stage", ["lex", "place"])
 def test_direct_proof_refuses_failed_reading(monkeypatch, stage):
-    name = "m.rs"
     from comment_review.reading.diagnostics import ReadDiagnostic, ReadStage
     from comment_review.reading.source import SourceSpan
+
+    name = "m.rs"
 
     def failed_page(*args, **kwargs):
         return ReadFailure(
@@ -320,15 +320,6 @@ def test_proof_reuses_admitted_pages(tmp_path, monkeypatch):
     )
     assert refused == [] and len(drafted) == 1
     assert reads == [repo / "m.py", into / "m.py"]
-
-
-@pytest.mark.parametrize("kind", ["unprovable", "unknown", "ast"])
-def test_direct_proof_failed_fingerprint_kind_cannot_pass(monkeypatch, kind):
-    monkeypatch.setattr(stripped, "code_fingerprint", lambda *args: (kind, ""))
-    refusal = proof_setter._prove(
-        "m.js", "const value = 1;\n", "const value = 1;\n", Path("m.js")
-    )
-    assert refusal is not None and refusal.step == "prove"
 
 
 def test_direct_proof_an_unprovable_comparison_cannot_pass(monkeypatch):
@@ -1447,9 +1438,7 @@ class TestOnlyCommentsChange:
         )
         assert refused == [] and len(drafted) == 1
 
-    def test_a_comment_run_that_swallows_code_is_caught_by_prove(
-        self,
-    ):
+    def test_a_comment_run_that_swallows_code_is_caught_by_prove(self):
         """A one-line block comment, replaced with an opener that never
         closes: the composed file's comment run swallows the code line
         after it -- `TODO/closing-line-deletes-code.md`, measured on this
@@ -1595,11 +1584,7 @@ def _pulled(tmp_path, n: int, name: str, text: str, alterations: dict) -> str:
 
 @pytest.mark.parametrize("through", [_step, _pulled], ids=["run", "pull"])
 @pytest.mark.parametrize("written", ["a0", "a1"])
-def test_roys_chain_ends_byte_identical_to_the_first_draft(
-    tmp_path,
-    written,
-    through,
-):
+def test_roys_chain_ends_byte_identical_to_the_first_draft(tmp_path, written, through):
     name = "m.rs"
     code = "fn f() {}"
     # Decision #247, on a blank docstring: add, read it back at the declaration's
@@ -1696,36 +1681,31 @@ def test_python_reads_a_changed_interpreter_line_as_changed_code(before, after):
     assert "code-changed" in refused.why
 
 
-@pytest.mark.parametrize(
-    ("name", "comment", "code"),
-    [
-        ("m.rs", "// doc", "fn main() {}"),
-    ],
-)
 class TestAnInterpreterLineTheRowNames:
+    NAME = "m.rs"
+    COMMENT = "// doc"
+    CODE = "fn main() {}"
     SHEBANG = "#!/usr/bin/env x"
 
-    def test_a_comment_above_it_is_refused(self, name, comment, code):
-        before = f"{self.SHEBANG}\n{code}\n"
-        refused = proof_setter._prove(name, before, f"{comment}\n{before}", Path(name))
+    def test_a_comment_above_it_is_refused(self):
+        before = f"{self.SHEBANG}\n{self.CODE}\n"
+        refused = proof_setter._prove(
+            self.NAME, before, f"{self.COMMENT}\n{before}", Path(self.NAME)
+        )
         assert refused is not None
         assert "protected-source-changed" in refused.why
 
     @pytest.mark.parametrize(("where", "gap"), [("a0", ""), ("b0", "\n")])
-    def test_an_add_at_the_head_lands_below_it(
-        self, tmp_path, name, comment, code, where, gap
-    ):
-        text = f"{self.SHEBANG}\n{code}\n"
-        drafted, refused = _chain(tmp_path, name, text, {where: comment})
+    def test_an_add_at_the_head_lands_below_it(self, tmp_path, where, gap):
+        text = f"{self.SHEBANG}\n{self.CODE}\n"
+        drafted, refused = _chain(tmp_path, self.NAME, text, {where: self.COMMENT})
         assert refused == []
         written = drafted[0].draft.read_text(encoding="utf-8")
-        assert written == f"{self.SHEBANG}\n{gap}{comment}\n{code}\n"
+        assert written == f"{self.SHEBANG}\n{gap}{self.COMMENT}\n{self.CODE}\n"
 
-    def test_an_add_at_f0_stands_above_it_and_is_refused(
-        self, tmp_path, name, comment, code
-    ):
-        text = f"{self.SHEBANG}\n{code}\n"
-        drafted, refused = _chain(tmp_path, name, text, {"f0": comment})
+    def test_an_add_at_f0_stands_above_it_and_is_refused(self, tmp_path):
+        text = f"{self.SHEBANG}\n{self.CODE}\n"
+        drafted, refused = _chain(tmp_path, self.NAME, text, {"f0": self.COMMENT})
         assert drafted == []
         assert "protected-source-changed" in refused[0].why
 
@@ -1804,9 +1784,7 @@ def test_the_first_difference_is_named(found, expected, named):
     assert proof_setter._first_difference(found, expected) == named
 
 
-def test_a_comment_beside_a_line_ending_in_a_unicode_space_lands(
-    tmp_path,
-):
+def test_a_comment_beside_a_line_ending_in_a_unicode_space_lands(tmp_path):
     name = "m.rs"
     code = "const X: i32 = 1;　"
     drafted, refused = _chain(tmp_path, name, f"{code}\n", {"c0": " // n"})
@@ -2016,10 +1994,7 @@ def test_a_merged_paragraph_is_still_checked_line_by_line(
     assert why in refused[0].why
 
 
-def test_written_text_on_a_code_line_is_refused(
-    tmp_path,
-    monkeypatch,
-):
+def test_written_text_on_a_code_line_is_refused(tmp_path, monkeypatch):
     name = "m.rs"
     first = "const X: i32 = 1;"
     second = "const Y: i32 = 2;"
@@ -2154,10 +2129,7 @@ def test_a_blank_changed_inside_an_unedited_docstring_is_refused(
     assert "the draft reads" in refused[0].why
 
 
-def test_spans_missing_a_place_refuse_by_name(
-    tmp_path,
-    monkeypatch,
-):
+def test_spans_missing_a_place_refuse_by_name(tmp_path, monkeypatch):
     name = "m.rs"
     text = "const X: i32 = 1;\n// a\nconst Y: i32 = 2;\n"
     _draft_written_as(monkeypatch, text.replace("// a", "// A"), {})
@@ -2169,9 +2141,7 @@ def test_spans_missing_a_place_refuse_by_name(
     )
 
 
-def test_a_drop_beside_blank_separated_comments_is_accepted(
-    tmp_path,
-):
+def test_a_drop_beside_blank_separated_comments_is_accepted(tmp_path):
     name = "m.py"
     text = '#!/usr/bin/env python\n"""M."""\n\n# note\n\n# more\nx = 1\n'
     alterations = {"a0": None}

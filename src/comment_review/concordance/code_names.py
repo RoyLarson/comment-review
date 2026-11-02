@@ -14,6 +14,7 @@ from comment_review import exceptions
 from comment_review.concordance.names import NAMED_DEFS, SYMBOLISH
 from comment_review.machine.repo import walk_files
 from comment_review.reading.language import INSTALLED_REGISTRY
+from comment_review.reading.registry import FREEFORM_SUFFIXES
 
 # The two gaps in the name corpus that are NOT read failures, named so a caller
 # can tell them apart from one. Every row `code_names` returns reads alike --
@@ -72,7 +73,12 @@ def code_names(
             # Liveness in these languages needs its own harvester; this names
             # the gap until there is one.
             if definition is None or definition.language != "python":
-                name = definition.language if definition else "unknown"
+                if definition is not None:
+                    name = definition.language
+                elif p.suffix.lower() in FREEFORM_SUFFIXES:
+                    name = "a freeform file"
+                else:
+                    name = "unknown"
                 unread.append(f"{p.as_posix()} ({NO_HARVESTER} {name})")
                 continue
             try:

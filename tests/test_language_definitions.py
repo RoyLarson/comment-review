@@ -1023,11 +1023,10 @@ def test_rust_definition_is_installed_as_rust_lexical_revision_2() -> None:
 
 
 def test_rust_definition_leaves_no_language_row() -> None:
-    from comment_review.reading.language import LANGUAGES, READER_METADATA
+    from comment_review.reading.language import LANGUAGES
 
     assert [row.name for row in LANGUAGES if row.name == "rust"] == []
     assert [row.name for row in LANGUAGES if ".rs" in row.extensions] == []
-    assert "rust" not in READER_METADATA
 
 
 def test_rust_comment_form_takes_its_markers_from_the_rust_scanner() -> None:

@@ -41,8 +41,8 @@ def test_standalone_cli_proves_mixed_paths_with_distinct_effective_choices(
     tmp_path, monkeypatch, capsys, installed_choices
 ):
     suffix = ".rs"
-    repo, js = proof_repository(tmp_path, "const value = 1; // old\r\n", suffix)
-    py = js.with_suffix(".py")
+    repo, rust = proof_repository(tmp_path, "const value = 1; // old\r\n", suffix)
+    py = rust.with_suffix(".py")
     py.write_bytes(b"value = 1 # old\r\n")
     subprocess.run(
         ["git", "-C", str(repo), "add", "."],
@@ -67,7 +67,7 @@ def test_standalone_cli_proves_mixed_paths_with_distinct_effective_choices(
         capture_output=True,
         timeout=30,
     )
-    js.write_bytes(b"const value = 1; // new\r\n")
+    rust.write_bytes(b"const value = 1; // new\r\n")
     py.write_bytes(b"value = 1 # new\r\n")
     settings = tmp_path / "settings.json"
     settings.write_text(f'{{"pkg/source{suffix}":{{"mode":"wide"}}}}', encoding="utf-8")
@@ -91,7 +91,7 @@ def test_standalone_cli_proves_mixed_paths_with_distinct_effective_choices(
         "HEAD",
         "--reading-settings",
         str(settings),
-        str(js),
+        str(rust),
         str(py),
     )
     assert code == 0, out

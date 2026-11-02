@@ -20,14 +20,12 @@ from comment_review.results import compositor, galley
 from comment_review.results.compositor import line_endings, set_page
 
 
-def test_failed_page_is_reported_before_setting(
-    tmp_path,
-    monkeypatch,
-):
-    name = "broken.rs"
-    message = "unterminated comment"
+def test_failed_page_is_reported_before_setting(tmp_path, monkeypatch):
     from comment_review.flows.compositor import round_trip
     from comment_review.reading.diagnostics import ReadFailure
+
+    name = "broken.rs"
+    message = "unterminated comment"
 
     path = tmp_path / name
     path.write_text("/* open", encoding="utf-8")
@@ -161,13 +159,11 @@ def test_rendering_refusal_retains_context(tmp_path, monkeypatch, capsys):
     assert "place/unsupported-placement" in capsys.readouterr().out
 
 
-def test_read_failure_reports_retained_location(
-    tmp_path,
-    capsys,
-):
+def test_read_failure_reports_retained_location(tmp_path, capsys):
+    from comment_review.commands.compositor import main
+
     name = "sample.rs"
     raw = b"const X: i32 = 1;\r\n/* open"
-    from comment_review.commands.compositor import main
 
     path = tmp_path / name
     path.write_bytes(raw)
@@ -449,28 +445,15 @@ class TestAnEditedPageStillComposes:
         assert "return x + 1\n\n\ndef g(y):" in out
 
 
-@pytest.mark.parametrize(
-    ("name", "text"),
-    [
-        (
-            "m.rs",
-            "const X: i32 = 1; /* this comment\n"
-            "              wraps onto a second line\n"
-            "              and a third */\n"
-            "const Y: i32 = 2;\n",
-        ),
-    ],
-    ids=["rs"],
-)
 class TestAWrappedTrailingCommentIsONEPlace:
     """!! THE SHAPE THAT SETTLED `original_column` -- `decision-log.md Process:
     #69`. Roy, 2026-08-31: those fields *"don't have a way to identify how to
     build or use a wrapped trailing comment. The Series/Cue system handles that
     case piece-of-cake."*
 
-        let x = 1; /* this comment
-                      wraps onto a second line
-                      and a third */
+        const X: i32 = 1; /* this comment
+              wraps onto a second line
+              and a third */
 
     ! IT WAS IN NO TEST IN THIS SUITE UNTIL 2026-08-31. Every block-comment case
     above puts the comment on its OWN line, and the one fixture holding code
@@ -480,10 +463,18 @@ class TestAWrappedTrailingCommentIsONEPlace:
     stopped being needed.
     """
 
-    def test_the_whole_run_is_ONE_c_place(self, name, text):
+    NAME = "m.rs"
+    TEXT = (
+        "const X: i32 = 1; /* this comment\n"
+        "              wraps onto a second line\n"
+        "              and a third */\n"
+        "const Y: i32 = 2;\n"
+    )
+
+    def test_the_whole_run_is_ONE_c_place(self):
         """The cue names the place; how many lines it spans is the place's own
         business. A per-line field would have to say something about each."""
-        page = build(text, name)
+        page = build(self.TEXT, self.NAME)
         trailing = [b for b in page if b.kind == "trailing-comment"]
         assert len(trailing) == 1
         (place,) = trailing
@@ -491,25 +482,27 @@ class TestAWrappedTrailingCommentIsONEPlace:
         assert cue(place).startswith("c")
         assert len(place.raw_lines) == 3
 
-    def test_the_lines_after_the_first_own_themselves_WHOLE(self, name, text):
+    def test_the_lines_after_the_first_own_themselves_WHOLE(self):
         """What a single column cannot express: line 1 begins after code, and
         lines 2..N are entire lines of the file."""
-        (place,) = [b for b in build(text, name) if b.kind == "trailing-comment"]
-        lines = text.split("\n")
+        (place,) = [
+            b for b in build(self.TEXT, self.NAME) if b.kind == "trailing-comment"
+        ]
+        lines = self.TEXT.split("\n")
         assert place.raw_lines[0] != lines[0]
         assert place.raw_lines[0] in lines[0]
         assert place.raw_lines[1:] == lines[1:3]
 
-    def test_the_SETTER_reconstructs_it_from_the_place_alone(self, name, text):
+    def test_the_SETTER_reconstructs_it_from_the_place_alone(self):
         """! THE NECESSITY TEST, and it can fail: break the place's own lines
         and the identity goes. What it proves is that the setter needs the
         place and its lines, and nothing about where the first one started."""
-        assert set_page(build(text, name)) == text
+        assert set_page(build(self.TEXT, self.NAME)) == self.TEXT
 
-        broken = build(text, name)
+        broken = build(self.TEXT, self.NAME)
         (place,) = [b for b in broken if b.kind == "trailing-comment"]
         place.raw_lines = place.raw_lines[:1]
-        assert set_page(broken) != text
+        assert set_page(broken) != self.TEXT
 
 
 SHARED_LINES = pytest.mark.parametrize(
@@ -594,9 +587,10 @@ def test_a_docstring_continued_by_a_backslash_is_set_back_with_its_continuation(
 def test_filling_the_head_of_a_shebang_file_keeps_the_shebang_on_line_one(
     place, prose, expected
 ):
+    from comment_review.results.galley import reset
+
     name = "m.rs"
     code = "fn main() {}"
-    from comment_review.results.galley import reset
 
     page = build(f"#!/usr/bin/env node\n{code}\n", name)
     assert reset(page, {place: prose}) == []
@@ -704,9 +698,10 @@ def test_a_head_add_sets_the_mark_first(cue, name, code, added):
 
 
 def test_a_dropped_first_paragraph_keeps_the_mark():
+    from comment_review.results.galley import reset
+
     name = "a.rs"
     code = "const X: i32 = 1;"
-    from comment_review.results.galley import reset
 
     page = build(f"{MARK}// c\n{code}\n", name)
     assert reset(page, {"f0": None}) == []
@@ -714,9 +709,10 @@ def test_a_dropped_first_paragraph_keeps_the_mark():
 
 
 def test_a_mark_inside_a_later_string_stays():
+    from comment_review.results.galley import reset
+
     name = "a.rs"
     text = MARK + 'const X: i32 = 1;\nconst S: &str = "' + MARK + '";\n'
-    from comment_review.results.galley import reset
 
     page = build(text, name)
     assert reset(page, {"f0": "// added"}) == []
@@ -726,10 +722,11 @@ def test_a_mark_inside_a_later_string_stays():
 
 
 def test_a_patched_head_does_not_edit_a_later_paragraph_holding_a_mark():
+    from comment_review.results.galley import reset
+
     name = "a.rs"
     x = "const X: i32 = 1;"
     y = "const Y: i32 = 2;"
-    from comment_review.results.galley import reset
 
     text = f"{MARK}// c\n{x}\n/* one\n{MARK}two */\n{y}\n"
     page = build(text, name)
@@ -738,8 +735,9 @@ def test_a_patched_head_does_not_edit_a_later_paragraph_holding_a_mark():
 
 
 def test_an_emptied_marked_file_is_the_mark_alone():
-    name = "a.rs"
     from comment_review.results.galley import reset
+
+    name = "a.rs"
 
     page = build(MARK + "// c\n", name)
     assert reset(page, {"f0": None}) == []

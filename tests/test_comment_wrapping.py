@@ -518,9 +518,7 @@ def test_removing_the_first_comment_of_a_line_keeps_the_space_before_it(
     ids=["the-middle", "the-last", "the-middle-of-a-whole-line"],
 )
 def test_removing_one_of_three_comments_on_a_line_keeps_the_others_apart(
-    source,
-    snippet,
-    expected,
+    source, snippet, expected
 ):
     name = "m.rs"
     x = "const X: i32 = 1;"
@@ -691,9 +689,7 @@ def test_empty_blocks_do_not_interrupt_a_snippet(empty):
 
 
 @pytest.mark.parametrize("instruction", ["move", "drop"])
-def test_literal_bullets_survive_removal(
-    instruction,
-):
+def test_literal_bullets_survive_removal(instruction):
     name = "m.py"
     source = 'def f():\n    """\n    * Keep. Move.\n    """\n    return 1\n'
     expected = '    """\n    * Keep.\n    """'

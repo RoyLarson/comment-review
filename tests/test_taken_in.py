@@ -16,10 +16,7 @@ def test_taken_in_prints_nothing_when_no_stage_has_set_anything(tmp_path, capsys
     assert capsys.readouterr().out.strip() == ""
 
 
-def test_identical_malformed_sources_are_not_compared(
-    tmp_path,
-    capsys,
-):
+def test_identical_malformed_sources_are_not_compared(tmp_path, capsys):
     name = "broken.py"
     text = "def broken(:\n"
     diagnostic = "lex/unfinished-continuation"
@@ -37,10 +34,7 @@ def test_identical_malformed_sources_are_not_compared(
     assert "addresses not compared" in seen.err
 
 
-def test_identical_valid_sources_print_nothing(
-    tmp_path,
-    capsys,
-):
+def test_identical_valid_sources_print_nothing(tmp_path, capsys):
     name = "valid.py"
     text = "value = 1\n"
     original = tmp_path / "original"

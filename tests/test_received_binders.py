@@ -255,9 +255,7 @@ def test_zero_copies_accept_valid_empty_binders(tmp_path):
     assert verify.coverage_problems([], empty) == []
 
 
-def test_received_context_accepts_distinct_languages_and_empty_sheets(
-    tmp_path,
-):
+def test_received_context_accepts_distinct_languages_and_empty_sheets(tmp_path):
     other = "n.rs"
     language = "rust"
     (tmp_path / "m.py").write_text("value = 1\n", encoding="utf-8")

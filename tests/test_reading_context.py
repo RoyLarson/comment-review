@@ -458,20 +458,18 @@ def test_direct_distribution_admits_context_before_saved_rows(
 
 @pytest.mark.parametrize("changed", [False, True])
 def test_saved_mixed_workflow_keeps_literal_context_through_proof(
-    tmp_path,
-    monkeypatch,
-    capsys,
-    changed,
+    tmp_path, monkeypatch, capsys, changed
 ):
-    other = "n.rs"
-    language = "rust"
-    reader = "rust-lexical"
-    compatibility = "31213f6e7cba0e4c21183f5be63d5cbafc4ffb1a900bbbe32d494f23dd83c26a"
     import json
 
     from conftest import run_command
 
     from comment_review.commands import collate, distribute, mark, proof
+
+    other = "n.rs"
+    language = "rust"
+    reader = "rust-lexical"
+    compatibility = "31213f6e7cba0e4c21183f5be63d5cbafc4ffb1a900bbbe32d494f23dd83c26a"
 
     root = tmp_path / "repo"
     root.mkdir()
@@ -973,11 +971,7 @@ def test_docket_refuses_contradictory_repeated_schedule_metadata():
     assert problems == ["m.py: two schedules for one page"]
 
 
-def test_saved_mixed_proof_transcribes_original_extra_destination(
-    tmp_path,
-):
-    name = "other.rs"
-    text = "// old\nconst X: i32 = 1;\n"
+def test_saved_mixed_proof_transcribes_original_extra_destination(tmp_path):
     import json
 
     from comment_review.desk.proof.master_proof import MasterProof
@@ -985,6 +979,9 @@ def test_saved_mixed_proof_transcribes_original_extra_destination(
     from comment_review.desk.proof.state import State
     from comment_review.flows.page_for import page_of
     from comment_review.flows.transcribe import docket_of_proof
+
+    name = "other.rs"
+    text = "// old\nconst X: i32 = 1;\n"
 
     (tmp_path / "extra.py").write_text("# old\nx = 1\n", encoding="utf-8")
     (tmp_path / name).write_text(text, encoding="utf-8")

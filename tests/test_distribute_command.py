@@ -48,9 +48,10 @@ reads = "revise:4a"
 def test_stage_admits_later_language_before_consuming_first_shard(
     tmp_path, monkeypatch, capsys, incompatible
 ):
-    later = "b.rs"
     from comment_review.flows import reading_context
     from comment_review.reading.readers import ReaderBinding
+
+    later = "b.rs"
 
     (tmp_path / "a.py").write_bytes(b"x = 1\n# first\ny = 2\n")
     (tmp_path / later).write_bytes(b"const x = 1;\n// later\nconst y = 2;\n")

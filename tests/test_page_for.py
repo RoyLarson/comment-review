@@ -321,9 +321,7 @@ def test_python_page_definition_acquisition_failure_is_located(monkeypatch):
     assert result.diagnostics == failure.diagnostics
 
 
-def test_python_sections_projection_is_not_used_for_other_languages(
-    monkeypatch,
-):
+def test_python_sections_projection_is_not_used_for_other_languages(monkeypatch):
     path = "m.rs"
     text = "const X: i32 = 1; // note\n"
 
@@ -367,9 +365,7 @@ def test_malformed_python_is_a_read_failure():
     assert page.diagnostics[0].stage.value == "lex"
 
 
-def test_snapshot_is_retained_without_acquisition(
-    monkeypatch,
-):
+def test_snapshot_is_retained_without_acquisition(monkeypatch):
     name = "broken.rs"
     language = "rust"
 
@@ -452,9 +448,7 @@ def test_unexpected_reader_exception_propagates(monkeypatch):
         page_for_mod.page_of(Path("m.py"), source=Source("v = 1\n", "held"))
 
 
-def test_located_error_renders_after_file_is_removed(
-    tmp_path,
-):
+def test_located_error_renders_after_file_is_removed(tmp_path):
     name = "m.rs"
     text = "const V: i32 = 1;\n/* open"
     expected = (
@@ -509,9 +503,7 @@ def page_over_read(
     return page_for(Path(name), RUST_DOCUMENTED, rel=name, sha="held", reading=reading)
 
 
-def test_documentation_lands_at_the_a_of_the_line_it_names(
-    monkeypatch,
-):
+def test_documentation_lands_at_the_a_of_the_line_it_names(monkeypatch):
     name = "m.rs"
     declaration = "fn f() {}"
     page = page_over_read(
