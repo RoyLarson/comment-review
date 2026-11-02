@@ -67,6 +67,10 @@ def test_block_comment_markers_are_not_prose(path, raw, text):
         ("m.c", "/* a\n b */ // c", "a b c"),
         ("m.lua", "--[[ a ]]-- b", "a b"),
         ("m.lua", "--[[\n  Licence MIT\n]]--\n-- Module foo", "Licence MIT Module foo"),
+        ("m.rs", "/* licence */ /* more */\n// note", "licence more note"),
+        ("m.rs", "/* a\n b */ /* c\n d */", "a b c d"),
+        ("m.rs", "/* a */ // b", "a b"),
+        ("m.rs", "/* a\n b */ // c", "a b c"),
     ],
     ids=[
         "two-blocks",
@@ -75,6 +79,10 @@ def test_block_comment_markers_are_not_prose(path, raw, text):
         "closer-then-line",
         "lua-long-then-line",
         "lua-empty-line-comment",
+        "rs-two-blocks",
+        "rs-two-spanning-blocks",
+        "rs-block-then-line",
+        "rs-closer-then-line",
     ],
 )
 def test_each_comment_on_a_line_gives_its_own_text(path, raw, text):
