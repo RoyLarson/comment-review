@@ -6122,6 +6122,8 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   *"yes"*).
 
   **What it settles.** Extending #266, the reviewer edits its copy and returns reason and source per
-  line, and the diff supplies the text. `current` and `replacement` leave the findings. How the
-  chief merges two roles' diffs is open.
+  line, and the diff supplies the text. `current` and `replacement` leave the findings. The chief
+  reads each role's copy and writes one draft, and a later stage starts from that draft (Roy, the
+  same day: *"Are you saying agents are not capable of copy/paste/rewrite?"*). Whether that retires
+  #263's dispatched setter, and whether #270 lands before the merge, are open.
 
