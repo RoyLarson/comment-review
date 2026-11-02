@@ -28,7 +28,7 @@ _EXCLUDED_SUFFIXES = frozenset(
 #: The suffixes of source files with no reader. The gather lists these for the
 #: reviewers to read as they stand; any other file with no reader is not source
 #: and no reviewer is handed it.
-FREEFORM_SUFFIXES = frozenset(
+_FREEFORM_SUFFIXES = frozenset(
     {
         ".bash",
         ".c",
@@ -58,6 +58,11 @@ FREEFORM_SUFFIXES = frozenset(
         ".zsh",
     }
 )
+
+
+def is_freeform(path: Path) -> bool:
+    """Whether `path` is a source file with no reader, ignoring suffix case."""
+    return path.suffix.lower() in _FREEFORM_SUFFIXES
 
 
 class _RegistryError(ValueError):

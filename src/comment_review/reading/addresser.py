@@ -161,9 +161,8 @@ DECLARED = Series.DECLARED.value.letter
 COVERS = Series.COVERS.value.letter
 
 # !! EVERY SERIES THERE IS, AND THE ONLY LIST OF THEM. Adding one is a row
-# here. Roy, 2026-08-20: *"we may find
-# another specific type that doesn't match these four's purposes, so keep the
-# code generic in how it picks it up even if we don't know the shape."*
+# here. A specific type that fits none of these four purposes may appear, so
+# the code stays generic in how it picks one up.
 #
 # !! THE FOURTH COST FOUR EDITS AND TWO BUGS, which is the argument for this
 # list. `cue` merged three addressers' places and not the fourth, so `f0` had

@@ -742,6 +742,22 @@ def test_installed_selection_excludes_non_code(suffix: str) -> None:
     assert reader_for(Path("source" + suffix.upper())) is None
 
 
+@pytest.mark.parametrize("name", ["a.js", "a.JS", "a.go", "dir/a.sh"])
+def test_a_source_suffix_with_no_reader_is_freeform(name: str) -> None:
+    from comment_review.reading.registry import is_freeform
+
+    assert is_freeform(Path(name))
+
+
+@pytest.mark.parametrize(
+    "name", ["a.py", "a.rs", "a.md", "a.toml", "a.png", "Makefile"]
+)
+def test_a_read_or_non_source_file_is_not_freeform(name: str) -> None:
+    from comment_review.reading.registry import is_freeform
+
+    assert not is_freeform(Path(name))
+
+
 def test_installed_selection_and_coverage_use_validated_bindings(monkeypatch) -> None:
     from dataclasses import replace
 

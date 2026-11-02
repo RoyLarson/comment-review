@@ -14,7 +14,7 @@ from comment_review import exceptions
 from comment_review.concordance.names import NAMED_DEFS, SYMBOLISH
 from comment_review.machine.repo import walk_files
 from comment_review.reading.language import INSTALLED_REGISTRY
-from comment_review.reading.registry import FREEFORM_SUFFIXES
+from comment_review.reading.registry import is_freeform
 
 # The two gaps in the name corpus that are NOT read failures, named so a caller
 # can tell them apart from one. Every row `code_names` returns reads alike --
@@ -75,7 +75,7 @@ def code_names(
             if definition is None or definition.language != "python":
                 if definition is not None:
                     name = definition.language
-                elif p.suffix.lower() in FREEFORM_SUFFIXES:
+                elif is_freeform(p):
                     name = "a freeform file"
                 else:
                     name = "unknown"

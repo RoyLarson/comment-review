@@ -12,7 +12,7 @@ from comment_review.flows.source import revision_source_of, source_of
 from comment_review.machine.repo import Source, git_ls_files
 from comment_review.reading.context import ReadingContext
 from comment_review.reading.diagnostics import ReadFailure
-from comment_review.reading.readers import reader_for
+from comment_review.reading.registry import is_freeform
 from comment_review.results.prove_unchanged import dominant_ending
 
 
@@ -84,7 +84,7 @@ def run(
             messages.append(f"FAIL      {raw}: outside --repo")
             failures += 1
             continue
-        if reader_for(target) is None:
+        if is_freeform(target):
             messages.append(
                 f"UNCHECKED  {rel}: no reader -- formatter and compiler are the check"
             )

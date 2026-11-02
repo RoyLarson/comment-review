@@ -61,7 +61,7 @@ from comment_review.reading.diagnostics import (
 )
 from comment_review.reading.language import INSTALLED_REGISTRY
 from comment_review.reading.paragraph import Paragraph
-from comment_review.reading.registry import FREEFORM_SUFFIXES
+from comment_review.reading.registry import is_freeform
 
 
 @dataclass
@@ -119,7 +119,7 @@ def _walk(g: Gathering) -> None:
     for path in sorted({f for found in by_target.values() for f in found}):
         if INSTALLED_REGISTRY.for_path(path) is not None:
             g.files.append(path)
-        elif path.suffix.lower() in FREEFORM_SUFFIXES:
+        elif is_freeform(path):
             rel = _repo_relative(path, g.repo)
             # A page outside the repo is refused at the write; nothing writes a
             # freeform path through that check, so it is refused here. Resolved,

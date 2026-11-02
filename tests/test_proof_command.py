@@ -1069,17 +1069,34 @@ def test_a_lone_cr_sibling_is_skipped_as_a_line_ending_reference(tmp_path):
 def test_a_file_no_reader_claims_is_unchecked(tmp_path, monkeypatch, capsys):
     from comment_review.commands import prove_unchanged as command
 
-    repo, target = proof_repository(tmp_path, "# before\r\n", ".md")
-    target.write_bytes(b"# after\r\n")
+    repo, target = proof_repository(tmp_path, "// before\r\n", ".js")
+    target.write_bytes(b"// after\r\n")
     code, out = run_command(
         monkeypatch, capsys, command, "--repo", str(repo), "--base", "HEAD", str(target)
     )
     assert code == 0, out
     assert (
-        "UNCHECKED  pkg/source.md: no reader -- formatter and compiler are the check"
+        "UNCHECKED  pkg/source.js: no reader -- formatter and compiler are the check"
         in out
     )
     assert "FAIL" not in out and "proven" not in out
+
+
+@pytest.mark.parametrize("suffix", [".md", ".toml", ".json", ".png"])
+def test_a_file_outside_the_source_suffixes_fails(
+    tmp_path, monkeypatch, capsys, suffix
+):
+    from comment_review.commands import prove_unchanged as command
+
+    repo, target = proof_repository(tmp_path, "# before\r\n", suffix)
+    target.write_bytes(b"# after\r\n")
+    code, out = run_command(
+        monkeypatch, capsys, command, "--repo", str(repo), "--base", "HEAD", str(target)
+    )
+    assert code == 1, out
+    assert f"FAIL      pkg/source{suffix}" in out
+    assert "unsupported-language" in out
+    assert "UNCHECKED" not in out and "PROVEN" not in out
 
 
 def test_the_summary_never_counts_a_freeform_path_as_proven(
@@ -1089,8 +1106,8 @@ def test_the_summary_never_counts_a_freeform_path_as_proven(
     from comment_review.flows import prove_unchanged
 
     repo, target = proof_repository(tmp_path, "x = 1  # before\r\n", ".py")
-    note = target.parent / "note.md"
-    note.write_bytes(b"# before\r\n")
+    note = target.parent / "note.js"
+    note.write_bytes(b"// before\r\n")
     for args in (
         ("add", "."),
         ("-c", "user.name=T", "-c", "user.email=t@e.invalid", "commit", "-m", "note"),
@@ -1098,7 +1115,7 @@ def test_the_summary_never_counts_a_freeform_path_as_proven(
         subprocess.run(
             ["git", "-C", str(repo), *args], capture_output=True, check=True, timeout=30
         )
-    note.write_bytes(b"# after\r\n")
+    note.write_bytes(b"// after\r\n")
     report = prove_unchanged.run(repo, "HEAD", [target, note])
     assert report.freeform == 1 and report.failures == 0
     base = ("--repo", str(repo), "--base", "HEAD")
@@ -1129,8 +1146,8 @@ def test_a_failing_python_file_beside_a_freeform_one_exits_1(
     from comment_review.commands import prove_unchanged as command
 
     repo, target = proof_repository(tmp_path, "x = 1\r\n", ".py")
-    note = target.parent / "note.md"
-    note.write_bytes(b"# before\r\n")
+    note = target.parent / "note.js"
+    note.write_bytes(b"// before\r\n")
     for args in (
         ("add", "."),
         ("-c", "user.name=T", "-c", "user.email=t@e.invalid", "commit", "-m", "n"),
@@ -1139,9 +1156,9 @@ def test_a_failing_python_file_beside_a_freeform_one_exits_1(
             ["git", "-C", str(repo), *args], capture_output=True, check=True, timeout=30
         )
     target.write_bytes(b"\xff")
-    note.write_bytes(b"# after\r\n")
+    note.write_bytes(b"// after\r\n")
     base = ("--repo", str(repo), "--base", "HEAD")
     code, out = run_command(monkeypatch, capsys, command, *base, str(target), str(note))
     assert code == 1, out
-    assert "UNCHECKED  pkg/note.md: no reader" in out
+    assert "UNCHECKED  pkg/note.js: no reader" in out
     assert "UNCHECKED (no reader)" not in out
