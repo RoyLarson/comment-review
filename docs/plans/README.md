@@ -32,4 +32,4 @@
 | [2026-10-25-reader-hands-prose-only](2026-10-25-reader-hands-prose-only.md) | closed | 46/46 | 24/24 |
 | [2026-10-31-proof-reads-what-runs](2026-10-31-proof-reads-what-runs.md) | closed | 9/9 | 9/9 |
 | [2026-11-01-freeform-agent-prose](2026-11-01-freeform-agent-prose.md) | open | 0/1 | 0/4 |
-| [2026-11-01-python-and-rust-only](2026-11-01-python-and-rust-only.md) | in-progress | 3/4 | 7/9 |
+| [2026-11-01-python-and-rust-only](2026-11-01-python-and-rust-only.md) | in-progress | 3/4 | 8/9 |

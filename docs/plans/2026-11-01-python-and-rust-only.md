@@ -3,7 +3,7 @@
 ```
 Status:   in-progress
 Progress: 3 of 4 TODO tasks closed
-Plan-tasks: 7 of 9 plan tasks closed
+Plan-tasks: 8 of 9 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-11-01 (decision-log #259, #260)
@@ -40,7 +40,8 @@ are freeform and answer UNCHECKED
       the lexical languages
 - [x] P6 | lexer.py and stripped.py deleted; language.py, readers.py, page.py reduced; pytest, ty, ruff, syntax and vocabulary gates passed; grep for lexical names empty | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | Delete
       the lexical reader
-- [ ] P7 | Remove the closing docstring branch
+- [x] P7 | closing_docstring, a_series, the a at eof, CodeLine.joins and the unit loop are gone; suite 5803 passed; 2088 pages matched BASE, differ 0; probe of 1898 files read no multi-line anchor | d6304b69490e7eb6ada90890d25bb2e37ae8983a | Remove
+      the closing docstring branch
 - [ ] P8 | Update the prose and the board for Python and Rust only
 - [x] P9 | gather lists source files with no reader on the binder, refuses one outside the repo, and passes over other walked files; partition and compose deal freeform paths; a freeform-only run passes topology, distribute, check and collate; full suite 6854 passed, 1 skipped | 27d3262931b68d602e97dcf33039d75c0e3f1b0b | Route
       freeform files from gather to reviewers
