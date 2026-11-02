@@ -18,6 +18,7 @@ What the first live freeform run showed.
       (reviewer-brief.md:320-327, SKILL.md:287); three roles cost three resumes
 - [ ] T2 | Stop pasting 613 lines into every role prompt (SKILL.md:206-217);
       four reviewers read about 600 lines for 90 lines of code
+        > 2026-11-02 Ruled by decision-log #266; wording still needs Roy's approval
 - [ ] T3 | Limit stage 5 step 3 to human-review-necessary queries, and state the
       fate of outside-my-role queries on pages (SKILL.md:344, 272, 488)
 - [ ] T4 | Say how a run resumes after stage 7a stops; a formatter fix moves the

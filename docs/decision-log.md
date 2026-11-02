@@ -6082,3 +6082,11 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   **What it settles.** New and changed prose takes no all-caps emphasis. The `anchor` and
   `declaration` entries follow it; other existing text is unchanged until it is next edited.
 
+- **#266.** **A freeform reviewer gets a file copy and makes the edits** (Roy, 2026-11-02, shown the
+  live run's 613 prompt lines per reviewer: *"They should get a file copy and should just make the
+  edits they are asked to make"*; asked whether that meant freeform files only or every file: *"A"*).
+
+  **What it settles.** A freeform-only dispatch carries a copy of the file and a short instruction,
+  without the `mark` and address machinery of the reviewer brief. Python and Rust reviewers keep
+  filing marks on an edit copy.
+
