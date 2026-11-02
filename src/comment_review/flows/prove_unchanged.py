@@ -12,6 +12,7 @@ from comment_review.flows.source import revision_source_of, source_of
 from comment_review.machine.repo import Source, git_ls_files
 from comment_review.reading.context import ReadingContext
 from comment_review.reading.diagnostics import ReadFailure
+from comment_review.reading.readers import reader_for
 from comment_review.results.prove_unchanged import dominant_ending
 
 
@@ -22,6 +23,7 @@ class ProofReport:
     messages: tuple[str, ...]
     failures: int
     unchecked: int
+    freeform: int = 0
     reading_contexts: Mapping[Path, ReadingContext] = field(default_factory=dict)
 
 
@@ -67,7 +69,7 @@ def run(
     edited = {path.resolve() for path in paths}
     tracked = git_ls_files(repo) or []
     messages: list[str] = []
-    failures = unchecked = 0
+    failures = unchecked = freeform = 0
     contexts: dict[Path, ReadingContext] = {}
     overrides = (
         {path.resolve(): value for path, value in settings.items()}
@@ -81,6 +83,12 @@ def run(
         except ValueError:
             messages.append(f"FAIL      {raw}: outside --repo")
             failures += 1
+            continue
+        if reader_for(target) is None:
+            messages.append(
+                f"UNCHECKED  {rel}: no reader -- formatter and compiler are the check"
+            )
+            freeform += 1
             continue
         context = context_for(target, overrides.get(target, {}))
         if isinstance(context, ReadFailure):
@@ -156,4 +164,4 @@ def run(
                     f"sibling {sibling.name} {want}"
                 )
                 failures += 1
-    return ProofReport(tuple(messages), failures, unchecked, contexts)
+    return ProofReport(tuple(messages), failures, unchecked, freeform, contexts)

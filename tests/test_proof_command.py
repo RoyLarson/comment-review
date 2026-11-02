@@ -1093,3 +1093,59 @@ def test_a_lone_cr_sibling_is_skipped_as_a_line_ending_reference(tmp_path):
 
     assert both is not None and both[0].name == "b_ok.txt"
     assert only_lone is None
+
+
+def test_a_file_no_reader_claims_is_unchecked(tmp_path, monkeypatch, capsys):
+    from comment_review.commands import prove_unchanged as command
+
+    repo, target = proof_repository(tmp_path, "# before\r\n", ".md")
+    target.write_bytes(b"# after\r\n")
+    code, out = run_command(
+        monkeypatch, capsys, command, "--repo", str(repo), "--base", "HEAD", str(target)
+    )
+    assert code == 0, out
+    assert (
+        "UNCHECKED  pkg/source.md: no reader -- formatter and compiler are the check"
+        in out
+    )
+    assert "FAIL" not in out and "proven" not in out
+
+
+def test_the_summary_never_counts_a_freeform_path_as_proven(
+    tmp_path, monkeypatch, capsys
+):
+    from comment_review.commands import prove_unchanged as command
+    from comment_review.flows import prove_unchanged
+
+    repo, target = proof_repository(tmp_path, "x = 1  # before\r\n", ".py")
+    note = target.parent / "note.md"
+    note.write_bytes(b"# before\r\n")
+    for args in (
+        ("add", "."),
+        ("-c", "user.name=T", "-c", "user.email=t@e.invalid", "commit", "-m", "note"),
+    ):
+        subprocess.run(
+            ["git", "-C", str(repo), *args], capture_output=True, check=True, timeout=30
+        )
+    note.write_bytes(b"# after\r\n")
+    report = prove_unchanged.run(repo, "HEAD", [target, note])
+    assert report.freeform == 1 and report.failures == 0
+    base = ("--repo", str(repo), "--base", "HEAD")
+    code, out = run_command(monkeypatch, capsys, command, *base, str(target), str(note))
+    assert code == 0, out
+    assert "1 proven, 1 UNCHECKED" in out
+    code, out = run_command(monkeypatch, capsys, command, *base, str(note))
+    assert code == 0, out
+    assert "proven" not in out and "1 UNCHECKED" in out
+
+
+def test_a_python_file_that_fails_to_read_still_fails(tmp_path, monkeypatch, capsys):
+    from comment_review.commands import prove_unchanged as command
+
+    repo, target = proof_repository(tmp_path, "x = 1\r\n", ".py")
+    target.write_bytes(b"\xff")
+    code, out = run_command(
+        monkeypatch, capsys, command, "--repo", str(repo), "--base", "HEAD", str(target)
+    )
+    assert code == 1, out
+    assert "PROVEN" not in out
