@@ -6076,3 +6076,9 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   accepts it. The accepted draft is then copied over. Selecting part of a file needs no fresh draft
   or second audit, which was the cost that made "whole file" the default.
 
+- **#265.** **All-caps words are for constants and enums** (Roy, 2026-11-02, reading the proposed
+  `anchor` entry: *"no all caps words unless they are constants or enums in the program."*).
+
+  **What it settles.** New and changed prose takes no all-caps emphasis. The `anchor` and
+  `declaration` entries follow it; other existing text is unchanged until it is next edited.
+
