@@ -10,6 +10,7 @@ from comment_review.commands import prove_unchanged as command
 from comment_review.flows import page_for, prove_unchanged, reading_context
 from comment_review.reading import stripped
 from comment_review.reading.diagnostics import ReadFailure
+from comment_review.reading.rust.records import RustRead
 
 
 @pytest.fixture
@@ -36,10 +37,11 @@ def installed_choices(monkeypatch):
     return selected
 
 
+@pytest.mark.parametrize("suffix", [".js", ".rs"])
 def test_standalone_cli_proves_mixed_paths_with_distinct_effective_choices(
-    tmp_path, monkeypatch, capsys, installed_choices
+    tmp_path, monkeypatch, capsys, installed_choices, suffix
 ):
-    repo, js = proof_repository(tmp_path, "const value = 1; // old\r\n")
+    repo, js = proof_repository(tmp_path, "const value = 1; // old\r\n", suffix)
     py = js.with_suffix(".py")
     py.write_bytes(b"value = 1 # old\r\n")
     subprocess.run(
@@ -68,7 +70,7 @@ def test_standalone_cli_proves_mixed_paths_with_distinct_effective_choices(
     js.write_bytes(b"const value = 1; // new\r\n")
     py.write_bytes(b"value = 1 # new\r\n")
     settings = tmp_path / "settings.json"
-    settings.write_text('{"pkg/source.js":{"mode":"wide"}}', encoding="utf-8")
+    settings.write_text(f'{{"pkg/source{suffix}":{{"mode":"wide"}}}}', encoding="utf-8")
     actual = page_for.page_for
     admitted = []
 
@@ -93,7 +95,7 @@ def test_standalone_cli_proves_mixed_paths_with_distinct_effective_choices(
         str(py),
     )
     assert code == 0, out
-    assert "PROVEN    pkg/source.js" in out
+    assert f"PROVEN    pkg/source{suffix}" in out
     assert "PROVEN    pkg/source.py" in out
     assert [item[1] for item in admitted] == [
         "const value = 1; // old\r\n",
@@ -111,11 +113,12 @@ def test_standalone_cli_proves_mixed_paths_with_distinct_effective_choices(
     assert admitted[2][2] == admitted[3][2]
 
 
+@pytest.mark.parametrize("suffix", [".js", ".rs"])
 @pytest.mark.parametrize("settings", [None, [], {"mode": "unsupported"}])
 def test_standalone_flow_refuses_invalid_choices_before_source(
-    tmp_path, monkeypatch, installed_choices, settings
+    tmp_path, monkeypatch, installed_choices, settings, suffix
 ):
-    repo, target = proof_repository(tmp_path, "const value = 1;\r\n")
+    repo, target = proof_repository(tmp_path, "const value = 1;\r\n", suffix)
     monkeypatch.setattr(
         prove_unchanged,
         "revision_source_of",
@@ -127,11 +130,12 @@ def test_standalone_flow_refuses_invalid_choices_before_source(
     assert "PROVEN" not in " ".join(report.messages)
 
 
+@pytest.mark.parametrize("suffix", [".js", ".rs"])
 @pytest.mark.parametrize("field", ["settings", "revision", "grammar", "definition"])
 def test_standalone_equal_source_refuses_context_change_between_snapshot_reads(
-    tmp_path, monkeypatch, installed_choices, field
+    tmp_path, monkeypatch, installed_choices, field, suffix
 ):
-    repo, target = proof_repository(tmp_path, "const value = 1;\r\n")
+    repo, target = proof_repository(tmp_path, "const value = 1;\r\n", suffix)
     before = prove_unchanged.revision_source_of
 
     def changed(path, registry):
@@ -157,14 +161,22 @@ def test_standalone_equal_source_refuses_context_change_between_snapshot_reads(
         "code_fingerprint",
         lambda *_: pytest.fail("compared equal text before context admission"),
     )
+    monkeypatch.setattr(
+        RustRead,
+        "preserved",
+        lambda *_, **__: pytest.fail("compared equal text before context admission"),
+    )
     report = prove_unchanged.run(repo, "HEAD", [target])
     assert report.failures == 1
     assert "reading-context-mismatch" in " ".join(report.messages)
     assert "PROVEN" not in " ".join(report.messages)
 
 
-def test_standalone_empty_source_accepts_explicit_settings(tmp_path, installed_choices):
-    repo, target = proof_repository(tmp_path, "")
+@pytest.mark.parametrize("suffix", [".js", ".rs"])
+def test_standalone_empty_source_accepts_explicit_settings(
+    tmp_path, installed_choices, suffix
+):
+    repo, target = proof_repository(tmp_path, "", suffix)
     report = prove_unchanged.run(
         repo, "HEAD", [target], settings={target: {"mode": "wide"}}
     )
@@ -173,10 +185,11 @@ def test_standalone_empty_source_accepts_explicit_settings(tmp_path, installed_c
     assert report.reading_contexts[target].settings == (("mode", "wide"),)
 
 
+@pytest.mark.parametrize("suffix", [".js", ".rs"])
 def test_standalone_other_language_change_does_not_invalidate_selected_path(
-    tmp_path, monkeypatch, installed_choices
+    tmp_path, monkeypatch, installed_choices, suffix
 ):
-    repo, target = proof_repository(tmp_path, "const value = 1;\r\n")
+    repo, target = proof_repository(tmp_path, "const value = 1;\r\n", suffix)
     before = prove_unchanged.revision_source_of
 
     def changed(path, registry):
@@ -199,20 +212,23 @@ def test_standalone_other_language_change_does_not_invalidate_selected_path(
     assert "PROVEN" in " ".join(report.messages)
 
 
+@pytest.mark.parametrize("suffix", [".js", ".rs"])
 @pytest.mark.parametrize(
     "contents,code,message",
     [
-        ('{"pkg/source.js":{}}', 0, "PROVEN"),
-        ('{"pkg/source.js":{"unknown":"on"}}', 2, "unknown setting"),
-        ('{"pkg/source.js":null}', 2, "settings must be an object"),
+        ('{"pkg/source<suffix>":{}}', 0, "PROVEN"),
+        ('{"pkg/source<suffix>":{"unknown":"on"}}', 2, "unknown setting"),
+        ('{"pkg/source<suffix>":null}', 2, "settings must be an object"),
         (None, 2, "settings.json"),
     ],
 )
-def test_standalone_process_cli_settings_transport(tmp_path, contents, code, message):
-    repo, target = proof_repository(tmp_path, "")
+def test_standalone_process_cli_settings_transport(
+    tmp_path, contents, code, message, suffix
+):
+    repo, target = proof_repository(tmp_path, "", suffix)
     settings = tmp_path / "settings.json"
     if contents is not None:
-        settings.write_text(contents, encoding="utf-8")
+        settings.write_text(contents.replace("<suffix>", suffix), encoding="utf-8")
     result = subprocess.run(
         [
             sys.executable,
