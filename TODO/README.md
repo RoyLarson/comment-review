@@ -304,7 +304,7 @@ that changed a published name or rule:
 | [one-line-ending-per-file](one-line-ending-per-file.md) | backend | -- | 2/6 | One line ending per file |
 | [edit-path-isolation](edit-path-isolation.md) | backend | -- | 1/2 | Isolate the edit path from comment reading |
 | [one-reader-builder](one-reader-builder.md) | backend | -- | 2/10 | One reader builder from each language's definition |
-| [freeform-agent-prose](freeform-agent-prose.md) | agents | -- | 0/1 | Tell the agents how to work a freeform file |
+| [freeform-run-findings](freeform-run-findings.md) | agents | -- | 0/16 | What the first live freeform run showed |
 
 ### in-progress  (17)
 
@@ -533,3 +533,4 @@ the reason is inside the file.
 | [a-comment-inside-a-line-makes-the-file-unprovable](completed/a-comment-inside-a-line-makes-the-file-unprovable.md) | 2 finished, 6 superseded |
 | [fixtures-do-not-test-the-shape](completed/fixtures-do-not-test-the-shape.md) | 1 finished, 4 superseded |
 | [python-and-rust-only](completed/python-and-rust-only.md) | 1 finished |
+| [freeform-agent-prose](completed/freeform-agent-prose.md) | 1 finished |

@@ -1,8 +1,8 @@
 # Tell the agents how to work a freeform file
 
 ```
-Status:   open
-Progress: 0 of 1 tasks closed
+Status:   closed
+Progress: 1 of 1 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-11-01 (decision-log #259-#261)
@@ -14,4 +14,5 @@ Tell the agents how to work a freeform file.
 
 ## Tasks
 
-- [ ] T1 | Write the freeform path into the agent prose
+- [x] T1 | Freeform path written and exercised live; suite green | 4b138f71 | Write
+      the freeform path into the agent prose
