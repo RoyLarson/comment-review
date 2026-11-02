@@ -22,7 +22,7 @@ def test_binding_and_decoding_retain_context(text, absent):
     binder = bind([page], read_from=READ_FROM, absent=absent)
     assert binder.pages[0].reading is page.reading
     wire = binder.serialize()
-    assert wire["version"] == "3"
+    assert wire["version"] == "4"
     assert wire["pages"][0]["reading"] == {
         "format": 1,
         "language": page.reading.language,
@@ -123,10 +123,11 @@ def test_decoded_rows_are_detached_from_wire():
     assert decoded.paragraphs[0].raw_text == before
 
 
-def test_literal_version_three_wire_needs_no_installed_language():
+def test_literal_version_four_wire_needs_no_installed_language():
     wire = {
-        "version": "3",
+        "version": "4",
         "read_from": {"root": "fixture", "revise": 0},
+        "freeform": [],
         "pages": [
             {
                 "path": "saved.unknown",

@@ -366,6 +366,7 @@ def _synthetic_binder(addresses: list[str]) -> Binder:
         {
             "version": VERSION,
             "read_from": {"root": str(REPO), "revise": 0},
+            "freeform": [],
             "pages": [
                 {
                     "path": path,
@@ -402,6 +403,7 @@ def a_binder_over(paragraphs: dict[str, str]) -> Binder:
         {
             "version": VERSION,
             "read_from": {"root": str(REPO), "revise": 0},
+            "freeform": [],
             "pages": [
                 {
                     "path": path,
