@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 52 of 70 tasks closed
+Progress: 52 of 73 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (/simplify rounds 1 and 2 and /code-review high round 3,
@@ -411,3 +411,9 @@ would.
         > 2026-10-31 Proves, rustc rejects: `if`, `else`, parameter, expression
         > 2026-10-31 Also struct literal, variant field list, const generic default
         > 2026-10-31 Check: each shape refuses `doc-without-item`, as rustc rejects it
+- [ ] T71 | Select a reader by capability, not by reader id string
+        > 2026-11-01 comment.py:237 and readers.py:166 compare the reader id string
+- [ ] T72 | Cut the registry generality two definition files don't need
+        > 2026-11-01 context_for and page_for take a registry no production caller sets
+- [ ] T73 | List the freeform suffixes in gather --languages
+        > 2026-11-01 gather --languages omits the set is_freeform reads
