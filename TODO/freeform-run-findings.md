@@ -81,5 +81,6 @@ What the first live freeform run showed.
       (module-context.md:66,73)
         > 2026-11-03 Pages only: a freeform reviewer places it with Edit, no address
         > 2026-11-03 Fix is the brief: name --line <module> and <eof> at :105
+        > 2026-11-03 Place half done at 895fc02e; the 'where useful' half is open
 - [ ] T22 | State the need-before-truth order once, in the freeform sheet too,
       and update README.md:212's drop row
