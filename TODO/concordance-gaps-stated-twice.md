@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 4 tasks closed
+Progress: 0 of 7 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-24 (Roy, 2026-08-24: are referrers and code_names one workflow?)
@@ -20,3 +20,9 @@ The concordance states its gaps twice, in two vocabularies.
       gap cannot be reclassified silently
 - [ ] T4 | Say whether referrers has a 'did not look here' state, or genuinely
       cannot
+- [ ] T5 | Print NOT CHECKED gaps with repo-relative paths and a cap, as
+      FREEFORM is capped; the list is 50 KB on this repo
+- [ ] T6 | Reword gather's NOT CHECKED footer; the symbol notes it qualifies
+      never reach the binder
+- [ ] T7 | Correct one_row_per_hole's docstring: the WALKED_TREE row is not a
+      failed file
