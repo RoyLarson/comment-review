@@ -62,7 +62,9 @@ To read a paragraph as your marks would leave it, pull your own draft:
 python <skill>/scripts/comment-review.py proof --copy <EDIT COPY> --repo <REPO ROOT> --out <a new directory>
 ```
 
-It sets each page your marks change into that directory, which is yours to read and discard.
+It sets each page your marks change into that directory, which is yours to read and discard. A
+copy holding a question for the author does not set; pull the draft once the task agent hands you
+the answer.
 
 ### Reading a paragraph
 

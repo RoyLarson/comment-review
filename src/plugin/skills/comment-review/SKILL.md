@@ -47,7 +47,7 @@ that sets the scope in place of the diff. `style` is the style sheet from an ear
 | 6 | compact, when a cap applies | the condenser | a closed proof whose text fits the cap |
 | 7a | set and present | `proof`, then you | the proof pages and the proposal in front of the author |
 | 7b | write | the author, then you | the accepted text in the working tree, its code proved unchanged |
-| 8 | review | the proofreader | a reading of the finished pages |
+| 8 | review | the proofreader | a reading of the finished pages and freeform files |
 
 ## What passes between the stages
 
@@ -66,6 +66,9 @@ Each stage hands the next one of these; your vocabulary defines each one:
 | **schedule**, one per page in the docket | `proof` | the compositor |
 | **alteration**, one per place in a schedule | `proof` | the compositor |
 | **proof**, the pages as set | the compositor, through `proof` | the author, stage 6, stage 7b |
+| a role's freeform copies and `findings.json` | the reviewers | you, at stage 5 |
+| `freeform/draft/<path>`, one per freeform file changed | you, at stage 5 | stage 7a, the author, stage 7b |
+| `freeform/settled_<stage>.json` | you, at stage 5 | you, at the 7a audit and when the author asks why |
 
 `proof` transcribes the closed proof into a docket, and the compositor sets each schedule's
 alterations onto a copy of its page. `proof --to-docket <file>` writes the docket out without
@@ -354,8 +357,8 @@ git diff --no-index -U0 <base> <FREEFORM DIR>/<path>
    anything unmatched back to its role.
 2. Open every `source` and confirm it says what the finding claims. Send a finding whose source
    fails back to its role.
-3. Ask each `query` as a human question, above. Settle it from the answer, writing the edit a role
-   would have made.
+3. Ask each `human-review-necessary` query as a human question, above. Settle it from the answer,
+   writing the edit a role would have made. A query of either other shape defers, as on a page.
 4. Copy the base of each file with a change that stands to `<run-dir>/freeform/draft/<path>`, unless
    a stage before already drafted it.
 5. Take the changes to one comment together, `correct` before `patch`, and rule as above: one side's
@@ -364,6 +367,9 @@ git diff --no-index -U0 <base> <FREEFORM DIR>/<path>
 6. Read each edit against the code around it, and hold it to the cap.
 7. Read each freeform file for a comment over the cap that no finding reached, and shorten it in
    the draft as a `patch`.
+
+A finding sent back that still fails on its second return is left out, and its role is reported as
+unanswered on that file.
 
 Write the result to `<run-dir>/freeform/settled_<stage>.json`, a list of the findings' own shape with
 `role` added to each and `at` the line in the draft, holding only the changes that stand. A run with
@@ -397,9 +403,11 @@ admits = ["patch", "drop", "add", "clean", "query"]
 Seed it with `distribute --topology <run-dir>/topology.toml --stage 6 --binder
 <run-dir>/binder6.json --revise <run-dir>/proof4 --out-dir <run-dir>/copies`.
 Each received binder and edit copy holds only the comment paragraphs over the
-cap. Dispatch `comment-review:comment-review-compact` with its edit copy and
-received binder, `references/compact.md` pasted whole, the style sheet and the
-cap. Check the copy against its received binder, then run `collate --stage 6`
+cap. When `distribute` prints `0 places` for every copy, nothing is over the
+cap: dispatch no condenser, and stage 7a sets the stage 5 closed proof.
+Otherwise dispatch `comment-review:comment-review-compact` with its edit copy and
+received binder, `references/compact.md` pasted whole, its vocabulary built as
+stage 4 builds one from the `compact` list, the style sheet and the cap. Check the copy against its received binder, then run `collate --stage 6`
 with the received binders paired with the copies and rule as in stage 5. The
 closed proof this produces is the one stage 7a sets.
 
@@ -474,9 +482,9 @@ unchanged. `git diff` then shows the author exactly what the run changed.
 
 ### Stage 8 -- review
 
-Dispatch `comment-review:comment-review-review` with the pages and freeform files written at 7b
-and the style sheet, and paste [`references/review.md`](references/review.md) into its prompt
-whole.
+Dispatch `comment-review:comment-review-review` with the pages and freeform files written at 7b,
+the style sheet and its vocabulary, built as stage 4 builds one from the `review` list, and paste
+[`references/review.md`](references/review.md) into its prompt whole.
 
 Bring its findings to the author, who chooses for each page: done, a new comment-review round
 with the findings as its input, or an immediate fix. Start the round or make the fix only on
@@ -499,7 +507,8 @@ copies. A mark carries one of seven instructions:
 | `move` | prose that belongs at another place | the text and its destination address |
 
 A `query` shaped `human-review-necessary` is a question for the author, which you ask at
-stage 5. Two marks on the same sentence in different files are one finding; rule them
+stage 5. A query of either other shape defers: the place is ruled from the other roles' marks,
+and no one is asked. Two marks on the same sentence in different files are one finding; rule them
 together.
 
 **The condenser** returns its edit copy, checked, each over-cap paragraph patched shorter,

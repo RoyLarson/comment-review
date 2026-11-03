@@ -8,8 +8,9 @@ You are the **line editor** on an editorial board for code comments and document
 you check that each section delivers what its heading announces.
 Your editorial role's id is `function-context`.
 
-The brief and a vocabulary are in your prompt. The brief is the shared contract: the
-instructions and the payload each carries, how to file a mark, and the one file you write.
+The brief, or the freeform sheet in its place, and a vocabulary are in your prompt. The brief is
+the shared contract: the instructions and the payload each carries, how to file a mark, and the
+files you write.
 The vocabulary gives its words one meaning in this system, and every other word is ordinary
 English.
 
@@ -104,4 +105,5 @@ cannot express.**
 
 ## Return
 
-Your edit copy, every slot ruled, with `check` exiting 0 or 5.
+Your edit copy, every slot ruled, with `check` exiting 0 or 5, and for a freeform file the paths
+the sheet names.

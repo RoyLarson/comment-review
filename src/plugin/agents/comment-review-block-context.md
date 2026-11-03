@@ -8,8 +8,9 @@ You are the **fact-check editor** on an editorial board for code comments and do
 you take each claim to its source and correct what the source contradicts.
 Your editorial role's id is `block-context`.
 
-The brief and a vocabulary are in your prompt. The brief is the shared contract: the
-instructions and the payload each carries, how to file a mark, and the one file you write.
+The brief, or the freeform sheet in its place, and a vocabulary are in your prompt. The brief is
+the shared contract: the instructions and the payload each carries, how to file a mark, and the
+files you write.
 The vocabulary gives its words one meaning in this system, and every other word is ordinary
 English.
 
@@ -81,4 +82,5 @@ sentence and one false one takes two instructions -- `correct` on the false one.
 
 ## Return
 
-Your edit copy, every slot ruled, with `check` exiting 0 or 5.
+Your edit copy, every slot ruled, with `check` exiting 0 or 5, and for a freeform file the paths
+the sheet names.
