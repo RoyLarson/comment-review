@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 2 of 10 tasks closed
+Progress: 4 of 10 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-09-03 (systems)
@@ -61,9 +61,10 @@ own.
       real file
 - [ ] T2 | Move the write in results.compositor.draft out to the flow that calls
       it
-- [ ] T3 | Move read_source out of results.compositor lossless and the identity
-      check
-- [ ] T4 | Move read_raw out of results.prove_unchanged
+- [x] T3 | lossless and identity take strings; read_source left the compositor | 9ae8fd94 | Move
+      read_source out of results.compositor lossless and the identity check
+- [x] T4 | results/prove_unchanged holds only dominant_ending | d8946e97 | Move
+      read_raw out of results.prove_unchanged
 - [ ] T5 | Move the cited-source read out of desk.collator into the flow
 - [x] T6 | Ruled: only flows import machine; recorded as Process #207 | 2150eafe | Decide
       whether commands may reach the machine, or only flows

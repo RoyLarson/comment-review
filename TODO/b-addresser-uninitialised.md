@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 13 of 18 tasks closed
+Progress: 16 of 18 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-19 (the python_edge_cases.md run, 2026-08-19 -- b1 unresolvable on the
@@ -223,12 +223,15 @@ run restamps that run as a licence header -- is the same run's second defect and
 - [?] T15 | T15 -- * RULE whether the marks in
       `tests/fixtures/python_edge_cases.md` shift to the current numbering.
       Verify: the ruling is recorded in `docs/decision-log.md`.
-- [ ] T16 | T16 -- Make `test_every_b_the_marks_name_exists`
+- [-] T16 | SUPERSEDED: test_edge_cases.py left with the old suite | b50e7a43 | T16
+      -- Make `test_every_b_the_marks_name_exists`
       (`tests/test_edge_cases.py:81`) assert each mark's ANCHOR. Verify: shift
       every `b` mark by one and it goes red.
-- [ ] T17 | T17 -- Make `test_every_a_and_c_the_marks_name_exists`
+- [-] T17 | SUPERSEDED: test_edge_cases.py left with the old suite | b50e7a43 | T17
+      -- Make `test_every_a_and_c_the_marks_name_exists`
       (`tests/test_edge_cases.py:106`) assert the ANCHOR. Verify: shift a `c`
       mark, red.
-- [ ] T18 | T18 -- Make `test_b1_is_the_gap_above_the_first_line_of_code` assert
-      the ANCHOR of the cue it names. Verify: it goes red today -- `b1` anchors
-      the SECOND line of code.
+- [-] T18 | SUPERSEDED: test_edge_cases.py left with the old suite | b50e7a43 | T18
+      -- Make `test_b1_is_the_gap_above_the_first_line_of_code` assert the
+      ANCHOR of the cue it names. Verify: it goes red today -- `b1` anchors the
+      SECOND line of code.

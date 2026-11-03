@@ -2,8 +2,8 @@
 
 ```
 Status:   in-progress
-Progress: 126 of 182 TODO tasks closed
-Plan-tasks: 48 of 60 plan tasks closed
+Progress: 154 of 182 TODO tasks closed
+Plan-tasks: 53 of 60 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (founded by move-t from 0.2.4-the-middle-rebuilt)
@@ -204,7 +204,7 @@ interfaces, inputs and checks, without internal development files or history.
 - [-] T26 | T26 -- Give the `Language` row an `inner_doc` field, defaulting
       empty so every existing opener stays outer. Verify: the field exists and
       no row's typing changes.
-- [ ] T29 | Correct `doc_is_structural`'s docstring so it matches what Python
+- [-] T29 | Correct `doc_is_structural`'s docstring so it matches what Python
       yields on the lexical tier. Verify: the prose names the empty result
 - [x] T12 | T12 -- Settle what `Paragraph.lines` counts: three rules fill it,
       one column reads it. Verify: one rule fills it, or the field is gone and
@@ -237,7 +237,7 @@ interfaces, inputs and checks, without internal development files or history.
 - [-] T1 | T1 -- Strip the `block_comment` and `doc_block` opener and closer in
       `_join`. Verify: a `.java` docstring's census `text` holds no `/**` and no
       `*/`.
-- [ ] T2 | T2 -- Strip the interior continuation marker as well. Verify: a
+- [-] T2 | T2 -- Strip the interior continuation marker as well. Verify: a
       multi-line Javadoc's census `text` carries no leading `*` on any line
       after the first.
 - [-] T7 | T7 -- Write the unit fixtures for the fix from INVENTED text, not
@@ -251,7 +251,7 @@ interfaces, inputs and checks, without internal development files or history.
 - [-] T10 | T10 -- Decide the same for a Lua `--[[ ]]` block, from Lua's own
       grammar and not Ruby's. Verify: the answer and its measurement are written
       into this file.
-- [ ] T3 | T3 -- Change `block_text` (`lexer.py:609`) in the SAME commit as each
+- [-] T3 | T3 -- Change `block_text` (`lexer.py:609`) in the SAME commit as each
       `_join` change. Verify: the round trip is green on that commit.
 
 ### K - [doc-on-the-declaring-line](../../TODO/doc-on-the-declaring-line.md)
@@ -307,7 +307,7 @@ interfaces, inputs and checks, without internal development files or history.
 - [ ] T7 | T7 -- Open the three readers with `utf-8-sig` -- `repo.py:52`,
       `census.py:336`, `census.py:177`. Verify: a BOM'd `.py` censuses its
       module docstring.
-- [ ] T5 | T5 -- Correct `references/compact.md:100` -- it says an `unparsed`
+- [-] T5 | T5 -- Correct `references/compact.md:100` -- it says an `unparsed`
       file was not censused, and it was. Verify: the row says the paragraphs
       carry no address.
 - [ ] T6 | T6 -- Refuse an `add` at the `a` place of a one-line declaration
@@ -323,12 +323,12 @@ interfaces, inputs and checks, without internal development files or history.
 
 ### Q - [the-cue-legend-and-its-round-trip](../../TODO/the-cue-legend-and-its-round-trip.md)
 
-- [ ] T2 | T2 -- Re-lex a written page and compare its cues against the
+- [-] T2 | T2 -- Re-lex a written page and compare its cues against the
       census's. Verify: an unedited page round-trips with every cue holding the
       same content.
-- [ ] T3 | T3 -- Refuse a page whose cues came back different. Verify: moving
+- [-] T3 | T3 -- Refuse a page whose cues came back different. Verify: moving
       one paragraph's text under a neighbouring cue is caught and named.
-- [ ] T4 | T4 -- Report the `f` series separately rather than as a disagreement.
+- [-] T4 | T4 -- Report the `f` series separately rather than as a disagreement.
       Verify: a file with front matter round-trips without a false finding.
 - [ ] T5 | T5 -- Prove the check can FAIL. Verify: with T3's refusal removed,
       T3's own case passes and the test goes red.
@@ -341,7 +341,7 @@ interfaces, inputs and checks, without internal development files or history.
 - [ ] T2 | T2 -- Report docstring-presence deltas SEPARATELY from executable
       ones. Verify: `prove_unchanged.py` prints them under their own heading
       with each declaration.
-- [ ] T3 | T3 -- Say in `write.md` what a docstring `add` does today, until T1
+- [-] T3 | T3 -- Say in `write.md` what a docstring `add` does today, until T1
       is settled. Verify: `write.md` states that it fails the CODE CHECK and
       that the rail restores.
 
@@ -349,7 +349,7 @@ interfaces, inputs and checks, without internal development files or history.
 
 - [ ] T4 | Update the gate so a NOT-CODE file is reported out of scope, naming
       the chain it waits on rather than a language record
-- [ ] T5 | Update the gate so a CODE file whose language has no record yet is
+- [x] T5 | Update the gate so a CODE file whose language has no record yet is
       reported out of scope, named apart from a not-code file
 
 ### T - [computed-and-never-read](../../TODO/computed-and-never-read.md)
@@ -400,9 +400,9 @@ interfaces, inputs and checks, without internal development files or history.
 
 ### Y - [only-a-flow-reaches-the-machine](../../TODO/only-a-flow-reaches-the-machine.md)
 
-- [ ] T3 | Move read_source out of results.compositor lossless and the identity
+- [x] T3 | Move read_source out of results.compositor lossless and the identity
       check
-- [ ] T4 | Move read_raw out of results.prove_unchanged
+- [x] T4 | Move read_raw out of results.prove_unchanged
 - [ ] T10 | Move the git call out of results.prove_unchanged into the flow; grep
       finds no results import of machine.repo
 
@@ -430,28 +430,28 @@ interfaces, inputs and checks, without internal development files or history.
 
 ### AB - [b-addresser-uninitialised](../../TODO/b-addresser-uninitialised.md)
 
-- [ ] T16 | T16 -- Make `test_every_b_the_marks_name_exists`
+- [-] T16 | T16 -- Make `test_every_b_the_marks_name_exists`
       (`tests/test_edge_cases.py:81`) assert each mark's ANCHOR. Verify: shift
       every `b` mark by one and it goes red.
-- [ ] T17 | T17 -- Make `test_every_a_and_c_the_marks_name_exists`
+- [-] T17 | T17 -- Make `test_every_a_and_c_the_marks_name_exists`
       (`tests/test_edge_cases.py:106`) assert the ANCHOR. Verify: shift a `c`
       mark, red.
-- [ ] T18 | T18 -- Make `test_b1_is_the_gap_above_the_first_line_of_code` assert
+- [-] T18 | T18 -- Make `test_b1_is_the_gap_above_the_first_line_of_code` assert
       the ANCHOR of the cue it names. Verify: it goes red today -- `b1` anchors
       the SECOND line of code.
 
 ### AC - [the-anchor-claims-are-inverted](../../TODO/the-anchor-claims-are-inverted.md)
 
-- [ ] T1 | T1 -- Take *"a comment's anchor"* out of the `tokenized` CANNOT
+- [x] T1 | T1 -- Take *"a comment's anchor"* out of the `tokenized` CANNOT
       ANSWER column at `SKILL.md:430`. Verify: no row of that table says a
       comment has no anchor.
-- [ ] T2 | T2 -- Drop the false premise at `SKILL.md:433-435`, keeping the
+- [x] T2 | T2 -- Drop the false premise at `SKILL.md:433-435`, keeping the
       CANDIDATE conclusion. Verify: no sentence in `SKILL.md` says a comment
       carries no anchor.
 - [ ] T3 | T3 -- Correct `reviewer-brief.md:126-127` to say a LINE OF CODE, not
       a declaration. Verify: `grep -rn "names the declaration" plugins/` comes
       back empty.
-- [ ] T4 | T4 -- Drop *"and is empty where none was"* from the same sentence --
+- [x] T4 | T4 -- Drop *"and is empty where none was"* from the same sentence --
       a reviewer's slot never is. Verify: `grep -rn "empty where none was"
       plugins/` comes back empty.
 
@@ -459,15 +459,15 @@ interfaces, inputs and checks, without internal development files or history.
 
 - [-] T8 | T8 -- Tell a role when its `a` series is empty, and why. Verify: a
       run over a `.sh` file hands the role that sentence.
-- [ ] T9 | T9 -- Correct the two "The three series" sentences at `SKILL.md:378`
+- [x] T9 | T9 -- Correct the two "The three series" sentences at `SKILL.md:378`
       and `reviewer-brief.md:69`. Verify: neither states three series
       unconditionally.
 
 ### AE - [the-cue-legend-was-never-written](../../TODO/the-cue-legend-was-never-written.md)
 
-- [ ] T1 | Write the legend: every series letter, what it names, and where its
+- [x] T1 | Write the legend: every series letter, what it names, and where its
       prose sits
-- [ ] T2 | Say where it lives -- the brief, a reference of its own, or each role
+- [x] T2 | Say where it lives -- the brief, a reference of its own, or each role
       file
 
 ### AF - [doc-is-structural-means-two-things](../../TODO/completed/doc-is-structural-means-two-things.md)
@@ -509,21 +509,21 @@ interfaces, inputs and checks, without internal development files or history.
 
 ### AJ - [the-lexer-reads-no-files](../../TODO/the-lexer-reads-no-files.md)
 
-- [ ] T9 | T9 -- **Create `io.py` and move `read_raw` into it from `repo.py`.**
+- [-] T9 | T9 -- **Create `io.py` and move `read_raw` into it from `repo.py`.**
       Verify: `io.read_raw` resolves, and `repo.py` defines no reader.
 - [ ] T10 | T10 -- **Move `text_lines` out of `constants.py` into `io.py`.**
       Verify: it resolves from `io.py`, and `constants.py` no longer defines it.
 - [ ] T11 | T11 -- **Move `utf8_console` out of `constants.py` into `io.py`.**
       Verify: it resolves from `io.py`, and `constants.py` exports `LINE_BREAK`
       and nothing else.
-- [ ] T12 | T12 -- **Move the `newline=""` write out of `compositor.py` into
+- [x] T12 | T12 -- **Move the `newline=""` write out of `compositor.py` into
       `io.py`.** Verify: `grep -n 'newline=' compositor.py` returns nothing.
 - [ ] T13 | T13 -- **Write the read/write gate**: a shipped
       `read_text\|write_text\|open(` outside `io.py` fails. Verify: it exits
       nonzero on the tree as it stands, naming each site.
 - [ ] T14 | T14 -- **Give `page_for` a PATH instead of text.** Verify: no caller
       of `page_for` passes text, and the signature takes a path.
-- [ ] T15 | T15 -- **Let the lexer open the file, with `io.read_raw` and
+- [-] T15 | T15 -- **Let the lexer open the file, with `io.read_raw` and
       `utf-8-sig`.** Verify: a CRLF file carrying a BOM reads back with both
       preserved.
 - [ ] T16 | T16 -- **Route the nine bypassing source reads through `io.py`.**
@@ -534,10 +534,10 @@ interfaces, inputs and checks, without internal development files or history.
 - [-] T18 | T18 -- **Test `identity` on a CRLF file, FAILING FIRST.** Verify: a
       file written `b'# a note\r\nx = 1\r\n'` reports a difference before the
       fix and `None` after.
-- [ ] T19 | T19 -- **Assert the READ chain as data**: it IS `[language,
+- [-] T19 | T19 -- **Assert the READ chain as data**: it IS `[language,
       read_text, lexer, addresser, page]`. Verify: the test fails when a step is
       removed from the list.
-- [ ] T20 | T20 -- **Assert the WRITE chain as data**, the seven steps named in
+- [x] T20 | T20 -- **Assert the WRITE chain as data**, the seven steps named in
       the Objective. Verify: the test fails when a step is removed from the
       list.
 - [x] T23 | MOVED to 2026-10-11-lexical-read-results | Acquire exact UTF-8
@@ -548,13 +548,13 @@ interfaces, inputs and checks, without internal development files or history.
 
 ### AK - [7a-can-prove-the-change-by-applying-it-to-a-copy](../../TODO/7a-can-prove-the-change-by-applying-it-to-a-copy.md)
 
-- [ ] T5 | T5 -- Derive the galley census from the splice's line deltas instead
+- [-] T5 | T5 -- Derive the galley census from the splice's line deltas instead
       of re-running `census.py`. Verify: derived and re-run agree on every
       range-replacement paragraph.
-- [ ] T6 | T6 -- Carry the `add` insertion out of the splice so an empty
+- [-] T6 | T6 -- Carry the `add` insertion out of the splice so an empty
       interval derives too. Verify: a derived census gives `(9, 9)` not `(9,
       11)`, with kind `comment`.
-- [ ] T7 | T7 -- Cut the cycle to ONE census on disk. Verify: `SKILL.md` names
+- [-] T7 | T7 -- Cut the cycle to ONE census on disk. Verify: `SKILL.md` names
       one census artifact, not both `census.json` and `galley-census.json`.
 
 ### AL - [two-live-runs-proposed-fifteen-changes](../../TODO/two-live-runs-proposed-fifteen-changes.md)
@@ -782,22 +782,27 @@ interfaces, inputs and checks, without internal development files or history.
       newer syntax works on Python 3.11
         > 2026-10-11 Complete the Python workflow before other language integration
         > 2026-10-11 Python child: docs/plans/2026-10-11-lexer-python.md
-- [ ] P38 | Share reader results with paragraphs, forms and declarations; verify
-      whole sections retain the existing a, b, c and f anchors
+- [x] P38 | Python sections and anchors (14c9f1ec); Rust pages via ReaderRecord | b9c5ed1e | Share
+      reader results with paragraphs, forms and declarations; verify whole
+      sections retain the existing a, b, c and f anchors
         > 2026-10-11 Check: uv run pytest -q tests/test_reading.py
-- [ ] P39 | Map decoded prose to raw payloads; verify escapes, adjacent
-      literals, marker recovery and binder raw_text reconstruction
+- [x] P39 | Python payload decoding (4cc2802c); Rust reads compose (239c0a77) | 4cc2802c | Map
+      decoded prose to raw payloads; verify escapes, adjacent literals, marker
+      recovery and binder raw_text reconstruction
         > 2026-10-11 Check: uv run pytest -q tests/test_comment_wrapping.py
-- [ ] P40 | Reread every set result; verify add, rewrite, drop and move reach
-      intended places without consuming neighboring code
+- [x] P40 | Writer rereads verified (839e1913); template growth rereads | a7054cf8 | Reread
+      every set result; verify add, rewrite, drop and move reach intended places
+      without consuming neighboring code
         > 2026-10-11 Check: uv run pytest -q tests/test_proof_setter.py
 - [-] P41 | One comparison per reader stands under #259 | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | Unify
       both executable comparisons; verify token, literal, order, structure,
       directive and significant-separator mutations refuse
         > 2026-10-11 Check: uv run pytest -q tests/test_lexical_preservation.py
-- [ ] P42 | Apply documentation ownership rules in both comparisons; verify
-      additions, removals and replacement owners preserve ordinary literals
+- [x] P42 | Ownership tests in test_lexical_preservation.py; Rust drops prose | 61b4ae19 | Apply
+      documentation ownership rules in both comparisons; verify additions,
+      removals and replacement owners preserve ordinary literals
         > 2026-10-11 Check: uv run pytest -q tests/test_proof_command.py
+        > 2026-11-03 Check: uv run pytest -q tests/test_lexical_preservation.py
 - [-] P43 | Reworded for Python and Rust only under #259 | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | Supply
       declaration facts to referrer discovery; verify path terms remain and
       unavailable wider harvesting is reported explicitly
@@ -847,7 +852,8 @@ interfaces, inputs and checks, without internal development files or history.
 - [ ] P55 | Remove duplicated facts across both readers
         > 2026-11-01 Check: uv run pytest -q tests/test_reading.py
         > 2026-11-01 Verify consumers use the shared result and diagnostics
-- [ ] P56 | Update agent references for Python and Rust coverage
+- [x] P56 | Prose states Python and Rust; vocabulary gate 0 drifted | 354236db | Update
+      agent references for Python and Rust coverage
         > 2026-11-01 Check: uv run python scripts/check_vocabulary.py
         > 2026-11-01 Verify operational text holds only task-facing instructions
 - [ ] P57 | Update write instructions for UNCHECKED

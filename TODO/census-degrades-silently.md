@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 5 of 8 tasks closed
+Progress: 6 of 8 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-19 (the seven-agent address review, 2026-08-19)
@@ -106,9 +106,10 @@ own file.
 - [x] T4 | FINISHED | unknown | T4 -- DONE 2026-08-20. An empty file now carries
       `a0`, `b0` and `b1`, so an empty `__init__.py` is citable. Closed by the
       lexer/page split.
-- [ ] T5 | T5 -- Correct `references/compact.md:100` -- it says an `unparsed`
-      file was not censused, and it was. Verify: the row says the paragraphs
-      carry no address.
+- [-] T5 | SUPERSEDED: no reference says unparsed any more | fd846264 | T5 --
+      Correct `references/compact.md:100` -- it says an `unparsed` file was not
+      censused, and it was. Verify: the row says the paragraphs carry no
+      address.
 - [ ] T6 | T6 -- Refuse an `add` at the `a` place of a one-line declaration
       instead of writing above the `def`. Verify: `galley.reset` returns a
       problem for that edit, not `[]`.

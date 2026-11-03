@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 6 of 12 tasks closed
+Progress: 8 of 12 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-17 (Roy: "use the github api to find a heavily documented file
@@ -156,11 +156,13 @@ grammar and never from a neighbour's, so the two are decided one at a time.
 - [-] T1 | Moved to language-reader-java.md | 42f3d3e5 | T1 -- Strip the
       `block_comment` and `doc_block` opener and closer in `_join`. Verify: a
       `.java` docstring's census `text` holds no `/**` and no `*/`.
-- [ ] T2 | T2 -- Strip the interior continuation marker as well. Verify: a
-      multi-line Javadoc's census `text` carries no leading `*` on any line
-      after the first.
-- [ ] T3 | T3 -- Change `block_text` (`lexer.py:609`) in the SAME commit as each
-      `_join` change. Verify: the round trip is green on that commit.
+- [-] T2 | SUPERSEDED by #259: Java and the lexical reader left | e2b34a22 | T2
+      -- Strip the interior continuation marker as well. Verify: a multi-line
+      Javadoc's census `text` carries no leading `*` on any line after the
+      first.
+- [-] T3 | SUPERSEDED by #259: block_text left with lexer.py | e2b34a22 | T3 --
+      Change `block_text` (`lexer.py:609`) in the SAME commit as each `_join`
+      change. Verify: the round trip is green on that commit.
 - [ ] T4 | T4 -- Add the eleven pinned files above to `corpora/corpora.toml` as
       a `public` corpus. Verify: `fetch_corpora.py` materialises all eleven.
 - [-] T5 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | T5

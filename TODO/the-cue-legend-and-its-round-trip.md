@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 5 tasks closed
+Progress: 3 of 5 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-24 (ruling three fields out because the cue letter already states them)
@@ -81,13 +81,16 @@ whenever they decide it.
       Verify: `vocabulary.py --reviewer <role>` emits the letters and
       `check_vocabulary.py` passes.
         > 2026-09-03 destination is open, not ruled -- Process 84
-- [ ] T2 | T2 -- Re-lex a written page and compare its cues against the
-      census's. Verify: an unedited page round-trips with every cue holding the
-      same content.
-- [ ] T3 | T3 -- Refuse a page whose cues came back different. Verify: moving
-      one paragraph's text under a neighbouring cue is caught and named.
-- [ ] T4 | T4 -- Report the `f` series separately rather than as a disagreement.
-      Verify: a file with front matter round-trips without a false finding.
+- [-] T2 | SUPERSEDED by #247/#254: the reread checks where text landed | 11793f5b | T2
+      -- Re-lex a written page and compare its cues against the census's.
+      Verify: an unedited page round-trips with every cue holding the same
+      content.
+- [-] T3 | SUPERSEDED by #247/#254: the reread refuses misplaced text | 11793f5b | T3
+      -- Refuse a page whose cues came back different. Verify: moving one
+      paragraph's text under a neighbouring cue is caught and named.
+- [-] T4 | SUPERSEDED by #247/#254: no address comparison remains | 11793f5b | T4
+      -- Report the `f` series separately rather than as a disagreement. Verify:
+      a file with front matter round-trips without a false finding.
 - [ ] T5 | T5 -- Prove the check can FAIL. Verify: with T3's refusal removed,
       T3's own case passes and the test goes red.
 

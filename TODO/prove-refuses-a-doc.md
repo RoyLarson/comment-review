@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 1 of 5 tasks closed
+Progress: 2 of 5 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-27 (2026-08-27 (the pulled/references ruling -- Roy: docs do not need
@@ -27,7 +27,8 @@ prove_unchanged refuses a documentation file for having no code.
 - [ ] T4 | Update the gate so a NOT-CODE file is reported out of scope, naming
       the chain it waits on rather than a language record
         > 2026-09-07 Verify: a docs file drafts at exit 0, out of scope not proven
-- [ ] T5 | Update the gate so a CODE file whose language has no record yet is
-      reported out of scope, named apart from a not-code file
+- [x] T5 | A code file with no reader prints UNCHECKED, apart from excluded files | c7ecf082 | Update
+      the gate so a CODE file whose language has no record yet is reported out
+      of scope, named apart from a not-code file
         > 2026-09-07 Verify: a .rs file with no row reads differently from a .md file
         > 2026-09-07 Verify: a .rs file with no row reads unlike a .md file

@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 6 of 9 tasks closed
+Progress: 7 of 9 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-18 (Roy, 2026-08-18, on splitting the census by editorial role)
@@ -134,6 +134,7 @@ still read *"The three series"*, and neither mentions an empty one.
 - [-] T8 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | T8
       -- Tell a role when its `a` series is empty, and why. Verify: a run over a
       `.sh` file hands the role that sentence.
-- [ ] T9 | T9 -- Correct the two "The three series" sentences at `SKILL.md:378`
-      and `reviewer-brief.md:69`. Verify: neither states three series
+- [x] T9 | 'The three series' left the brief; grep empty | a9d9de96 | T9 --
+      Correct the two "The three series" sentences at `SKILL.md:378` and
+      `reviewer-brief.md:69`. Verify: neither states three series
       unconditionally.

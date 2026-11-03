@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 52 of 73 tasks closed
+Progress: 53 of 73 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (/simplify rounds 1 and 2 and /code-review high round 3,
@@ -274,8 +274,9 @@ would.
 - [-] T28 | Moved to language-reader-lua.md | 42f3d3e5 | T28 -- Add `---` to
       Lua's `doc_line`, which T20's ruling authorises. Verify: `--- x` above
       `local function f()` types `docstring` anchored to it.
-- [ ] T29 | Correct `doc_is_structural`'s docstring so it matches what Python
-      yields on the lexical tier. Verify: the prose names the empty result
+- [-] T29 | SUPERSEDED: doc_is_structural was deleted | 20cbdbbd | Correct
+      `doc_is_structural`'s docstring so it matches what Python yields on the
+      lexical tier. Verify: the prose names the empty result
 - [x] T30 | All literals read; removals retain quotes and executable suffixes | b96af9f5bcbfa8f77d449dcc4b7ca9aa2e005ee9 | Read
       all concatenated docstring literals in lexer.py:313; test moving second.
       from adjacent Python literals succeeds
