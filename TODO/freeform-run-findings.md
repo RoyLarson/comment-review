@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 4 of 17 tasks closed
+Progress: 7 of 17 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-11-02 (freeform plan Task 4 live run and stage walk, 2026-11-02)
@@ -17,8 +17,9 @@ What the first live freeform run showed.
 - [ ] T1 | Collapse one concern raised by several roles before asking the author
       (reviewer-brief.md:320-327, SKILL.md:287); three roles cost three resumes
         > 2026-11-02 Ruled #269: chief composes; backend change after merge
-- [ ] T2 | Stop pasting 613 lines into every role prompt (SKILL.md:206-217);
-      four reviewers read about 600 lines for 90 lines of code
+- [x] T2 | A freeform-only dispatch takes freeform.md in place of the brief | 234c3a0c | Stop
+      pasting 613 lines into every role prompt (SKILL.md:206-217); four
+      reviewers read about 600 lines for 90 lines of code
         > 2026-11-02 Ruled by decision-log #266; wording still needs Roy's approval
         > 2026-11-02 Extended by #270: the edited copy is the finding
 - [ ] T3 | Limit stage 5 step 3 to human-review-necessary queries, and state the
@@ -41,16 +42,18 @@ What the first live freeform run showed.
         > 2026-11-02 Ruled: one line in the brief; preview once queries answered
 - [-] T10 | SUPERSEDED: a real run has the tool; only a test subagent lacked it | ca1c53bce0246b727b0beade267b54acc0a8e81c | Name
       a fallback when AskUserQuestion is missing (SKILL.md:146, 273)
-- [ ] T11 | Decide who consumes the reviewer's copy, and reconcile the
-      later-stage draft with 7a step 1 re-copying (SKILL.md:219, 235-238, 404)
+- [x] T11 | The chief writes one draft from the role copies; the 7a setter is retired | 234c3a0c | Decide
+      who consumes the reviewer's copy, and reconcile the later-stage draft with
+      7a step 1 re-copying (SKILL.md:219, 235-238, 404)
         > 2026-11-02 Ruled #270: the copy is the finding; 7a re-copy still open
         > 2026-11-02 Open: drop 7a setter? #270 before or after merge? See log
         > 2026-11-02 #270 lands before merge (Roy). 7a setter still open.
         > 2026-11-02 Ruled #270: the setter retires; plan the 7a change
 - [ ] T12 | Clear stale page-only text: write.md:5,72; SKILL.md:45-46,52-68;
       role files :12 and Return; comment-review-review.md:8,19
-- [ ] T13 | Fix current and at for an add and a string line
-      (reviewer-brief.md:386-392; freeform.md:24,27)
+- [x] T13 | current and replacement left the findings; at is a line in the copied file | 234c3a0c | Fix
+      current and at for an add and a string line (reviewer-brief.md:386-392;
+      freeform.md:24,27)
         > 2026-11-02 Goes away with #270: current leaves the findings
 - [ ] T14 | Report the line-endings UNCHECKED beside the freeform one
       (write.md:59-62) and limit stage 5 send-backs (SKILL.md:341-342)
