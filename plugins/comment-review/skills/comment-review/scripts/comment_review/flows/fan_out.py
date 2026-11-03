@@ -1,9 +1,9 @@
 """Split a binder by dispatch, so a stage's shards are structural, not counted.
 
     fan(binder, stage)        one seeded edit_copy per dispatch, in dispatch order
-    partition(binder, stage)  each dispatch with its pages, after the two guards
-    OverlappingShards         two dispatches of ONE role both claim a page
-    UncoveredPage             a role's dispatches, together, miss a page
+    partition(binder, stage)  each dispatch with its files, after the two guards
+    OverlappingShards         two dispatches of ONE role both claim a file
+    UncoveredPage             a role's dispatches, together, miss a file
 
 !! WHY FAN-OUT EXISTS AT ALL, AND IT IS MEASURED: a role handed too many rows
 inspects them less carefully, and the effect is largest for the role whose work
@@ -31,7 +31,7 @@ page is normal and raises nothing: that is four roles reading one binder.
 package holds everywhere else -- no third-party dependency. `fnmatch`'s `*`
 is NOT path-aware: it matches any run of characters, including `/`, because
 `fnmatch` treats a path as one flat string rather than a sequence of
-segments. MEASURED: `fnmatch.fnmatch("src/reading/sub/lexer.py",
+segments. MEASURED: `fnmatch.fnmatch("src/reading/sub/other.py",
 "src/reading/*.py")` is `True` -- a single `*` already crosses a directory
 boundary. `**` therefore "works" only in the sense that it matches the same
 set `*` already does; there is no recursive-glob semantics to add, because
@@ -44,21 +44,21 @@ from fnmatch import fnmatch
 from comment_review.binder.binder import Binder
 from comment_review.binder.page import Page, RedactedPage
 from comment_review.desk.stages import Dispatch, Stage
-from comment_review.flows.distribute import assigned_binder, seed
+from comment_review.flows.distribute import admit_binder, assigned_binder, seed
 
 
 class OverlappingShards(Exception):
-    """Two dispatches of the same role, in one stage, both claim a page."""
+    """Two dispatches of the same role, in one stage, both claim a file."""
 
 
 class UncoveredPage(Exception):
-    """A role's dispatches, together, do not reach every page in the binder."""
+    """A role's dispatches, together, do not reach every file in the binder."""
 
 
 def _matches(path: str, patterns: tuple[str, ...]) -> bool:
-    """Does this page fall under a dispatch carrying these patterns?
+    """Does this file fall under a dispatch carrying these patterns?
 
-    Empty `patterns` means every page -- `desk/stages.py`'s own rule for a
+    Empty `patterns` means every file -- `desk/stages.py`'s own rule for a
     `Dispatch` with no `paths`.
     """
     return not patterns or any(fnmatch(path, pattern) for pattern in patterns)
@@ -109,47 +109,58 @@ def fan(binder: Binder, stage: Stage) -> list[dict]:
 
 def dealt(binder: Binder, stage: Stage) -> list[tuple[Binder, dict]]:
     """Pair each dispatch's received binder with its seeded edit copy."""
+    admit_binder(binder)
     out = []
-    for dispatch, matched in partition(binder, stage):
-        received = assigned_binder(replace(binder, pages=tuple(matched)), stage)
+    for dispatch, matched, freeform in partition(binder, stage):
+        shard = replace(binder, pages=tuple(matched), freeform=tuple(freeform))
+        received = assigned_binder(shard, stage)
         out.append((received, seed(received, dispatch.role, stage)))
     return out
 
 
-Shard = tuple[Dispatch, list[Page | RedactedPage]]
+#: A dispatch, the pages it matched and the freeform paths it matched.
+Shard = tuple[Dispatch, list[Page | RedactedPage], list[str]]
 
 
 def partition(binder: Binder, stage: Stage) -> list[Shard]:
-    """Each dispatch with the pages its globs select, after the two guards.
+    """Each dispatch with the files its globs select, after the two guards.
+
+    A freeform path is dealt as a page is: the guards count both alike.
 
     ! ONE COMPUTATION, TWO READERS. `fan` seeds from this, and
     `flows.topology.fit` asks it whether a topology fits before any page is
     read -- so a topology `fit` passes is one `fan` will not refuse.
 
     Raises:
-        OverlappingShards: a page matches two dispatches of the SAME role.
-        UncoveredPage: a page matches NO dispatch of a role this stage
+        OverlappingShards: a file matches two dispatches of the SAME role.
+        UncoveredPage: a file matches NO dispatch of a role this stage
             dispatches at all.
     """
-    all_paths = [page.path for page in binder.pages]
+    all_paths = [*(page.path for page in binder.pages), *binder.freeform]
 
     # ! MATCHED ONCE PER DISPATCH, kept alongside it, so the guard pass below
     # and the seeding pass after it read the same computation rather than
     # matching twice and risking the two disagree.
     shards = [
-        (dispatch, [p for p in binder.pages if _matches(p.path, dispatch.paths)])
+        (
+            dispatch,
+            [p for p in binder.pages if _matches(p.path, dispatch.paths)],
+            [f for f in binder.freeform if _matches(f, dispatch.paths)],
+        )
         for dispatch in stage.dispatches
     ]
 
     by_role: dict = {}
-    for dispatch, matched in shards:
-        by_role.setdefault(dispatch.role, []).append(matched)
+    for dispatch, matched, freeform in shards:
+        by_role.setdefault(dispatch.role, []).append(
+            [*(page.path for page in matched), *freeform]
+        )
 
     for role, groups in by_role.items():
         counts: dict[str, int] = {}
         for group in groups:
-            for page in group:
-                counts[page.path] = counts.get(page.path, 0) + 1
+            for path in group:
+                counts[path] = counts.get(path, 0) + 1
         overlapping = sorted(path for path, n in counts.items() if n > 1)
         if overlapping:
             raise OverlappingShards(

@@ -12,6 +12,7 @@ re-read a raw entry. ! `Mark.sources` IS STILL `object` for the original
 reason; the two are no longer the same case.
 """
 
+from copy import deepcopy
 from dataclasses import dataclass, field
 from typing import NamedTuple
 
@@ -23,6 +24,8 @@ from comment_review.desk.proof.mark import (
     without_location,
 )
 from comment_review.desk.proof.wire import _written
+from comment_review.reading.context import ReadingContext
+from comment_review.reading.context_io import context_from_wire, context_to_wire
 
 
 class Refused(NamedTuple):
@@ -167,6 +170,7 @@ class Sheet:
         sha: that page's sha when it was gathered. Read by
             `flows.revise.docket_of`, which writes it onto the docket page so
             the setter can refuse a page that moved underneath the run.
+        reading: the page's saved language identity and effective settings.
         marks: one `Mark` per place a role RULED on, in the order they came
             back.
         unruled: the address of every place handed to the role and left
@@ -183,13 +187,16 @@ class Sheet:
     path: str
     sha: str
     marks: tuple[Mark, ...]
+    reading: ReadingContext
     #: ! OFF THE WIRE. Both are what the parse MADE of entries that are not
     #: marks, so no producer writes them and `_written` must not demand them.
     unruled: tuple[str, ...] = field(default=(), metadata={"wire": False})
     refused: tuple[Refused, ...] = field(default=(), metadata={"wire": False})
 
     @classmethod
-    def seed(cls, path: str, sha: object, marks: list) -> dict:
+    def seed(
+        cls, path: str, sha: object, marks: list, *, reading: ReadingContext
+    ) -> dict:
         """One sheet as the wire dict every producer writes.
 
         !! `sha` IS NORMALIZED HERE, AND THIS IS THE ONE PLACE THAT DOES IT.
@@ -204,16 +211,18 @@ class Sheet:
             sha: that page's sha, or anything that is not a `str` -- an absent
                 or null sha becomes "".
             marks: the entries for this page, carried as given.
+            reading: the context retained by the supplying page or sheet.
 
         Returns:
-            `{path, sha, marks}` -- what `Sheet.deserialize` reads back.
+            `{path, sha, marks, reading}` -- what `Sheet.deserialize` reads back.
         """
         return _written(
             cls,
             {
                 "path": path,
                 "sha": sha if isinstance(sha, str) else "",
-                "marks": list(marks),
+                "marks": deepcopy(marks),
+                "reading": context_to_wire(reading),
             },
         )
 
@@ -256,6 +265,9 @@ class Sheet:
         marks = data.get("marks")
         if not isinstance(marks, list):
             return None, [f"{where}: {path} needs a `marks` list"]
+        reading, why = context_from_wire(where, data.get("reading"))
+        if reading is None:
+            return None, why
         # ! `.get("sha", "")` DEFAULTS ONLY WHEN THE KEY IS ABSENT. A `"sha":
         # null` reaching here is a PRESENT key holding None, so `.get` returns
         # None and `str(None)` is the four-character word "None" -- folded into
@@ -281,12 +293,13 @@ class Sheet:
         # it from reading as the settled shape.
         raw_sha = data.get("sha")
         sha = raw_sha if isinstance(raw_sha, str) else ""
-        ruled, unruled, refused = _sorted_entries(path, marks)
+        ruled, unruled, refused = _sorted_entries(path, deepcopy(marks))
         return (
             Sheet(
                 path=path,
                 sha=sha,
                 marks=tuple(ruled),
+                reading=reading,
                 unruled=tuple(unruled),
                 refused=tuple(refused),
             ),
@@ -301,11 +314,12 @@ class Sheet:
         addresses and reasons rather than places, so there is nothing to write
         back; `flows/mark_errors.py` is where they go instead.
 
-        ! THE THREE WIRE KEYS ARE THE THREE `seed` WRITES. `unruled` and
+        The wire keys are the fields `seed` writes. `unruled` and
         `refused` are off the wire, which `_wire_fields` states once.
         """
         return {
             "path": self.path,
             "sha": self.sha,
-            "marks": [mark.serialize() for mark in self.marks],
+            "marks": deepcopy([mark.serialize() for mark in self.marks]),
+            "reading": context_to_wire(self.reading),
         }

@@ -74,18 +74,20 @@ setting it.
 ## The goals of the steps
 
 1. **Project determination** records the facts about this repo that every later stage uses.
-2. **Gather** turns each file into a page of numbered places. Every mark cites a place by its
-   address, such as `pkg:core.py@b3`.
+2. **Gather** turns each Python and Rust file into a page of numbered places, and lists every
+   other source file as freeform. Every mark cites a place by its address, such as
+   `pkg:core.py@b3`.
 3. **Find references** lists the files that name the files under review, so the reviewers can
    check what those files say about them.
 4. **Mark** gives each paragraph four independent readings. Each role reads alone, so two
    roles that agree corroborate each other.
 5. **Collate** settles what the roles agreed on. You rule on the rest, so every place ends
    with one text that is true of the code beside or below it, at whatever length that takes.
-6. **Compact** shortens the paragraphs that run over the cap, keeping every true, necessary
-   and checkable sentence.
+6. **Compact** shortens the paragraphs on pages that run over the cap, keeping every true,
+   necessary and checkable sentence. The copy chief holds a freeform comment to the cap at stage 5.
 7. **Set and present** puts the final text on copies of the pages, proves the code is
-   byte-identical, and gives the author a diff of each page against its original.
+   byte-identical, and gives the author a diff of each page against its original. A freeform file
+   is set on a draft, formatted and compiled there, and audited hunk by hunk instead of proved.
    **Write** puts what the author accepted into the working tree.
 8. **Review** reads the finished pages as a reader meets them, and catches anything the
    author and the run let through.
@@ -108,15 +110,17 @@ Work from the git repository at the repo root, and pass `--repo` to every comman
    formatter config -- and how it counts. Record where you found each, and which work markers
    (`TODO`, `FIXME`, ...) it exempts. When the repo cites a test that enforces the cap, confirm
    the test exists, and report whether it does.
-4. **Style sheet.** Read `style` when given; otherwise start one. It records the repo's
-   dialect, the capitalisation of domain terms, its citation form, and one template for each
-   documentation format the tree actually uses: module docstring, function docstring and,
+4. **Style sheet.** Read `style` when given; otherwise start one. It records the width stage 1
+   found, the repo's dialect, the capitalisation of domain terms, its citation form, and one
+   template for each documentation format the tree actually uses: module docstring, function docstring and,
    where the repo is consistent, comments. Write each template out with its slots, measured
    from the docstrings in the tree.
-5. **Check command.** Find how the repo proves its code compiles -- its CI config, Makefile,
-   `package.json` or `pyproject.toml` -- and record one command per language in scope, for
-   example `python -m compileall -q .`, `tsc --noEmit`, `cargo check`, `go build ./...`. Stage
-   7b runs it.
+5. **Check and format commands.** Find how the repo proves its code compiles -- its CI config,
+   Makefile, `package.json` or `pyproject.toml` -- and record one command per language in scope,
+   for example `python -m compileall -q .`, `tsc --noEmit`, `cargo check`, `go build ./...`.
+   Stages 7a and 7b run it. For each freeform language, record the repo's formatter as a command
+   that rewrites the files it is given, for example `prettier --write`, `gofmt -w`. Record `none`
+   where the repo has no such command.
 6. **Reviewers.** Confirm the agents `comment-review:comment-review-*` resolve. When they are
    unavailable, dispatch general-purpose agents in their place, giving each the absolute path
    of its role file from the installed plugin, and say so in the proposal.
@@ -130,11 +134,23 @@ Work from the git repository at the repo root, and pass `--repo` to every comman
 python <skill>/scripts/comment-review.py gather --repo . --out <run-dir>/binder.json <paths...>
 ```
 
-The gather reads every file handed to it and exits nonzero naming any language it has no
-record for; `gather --languages` lists the ones it reads. Report every gap it prints.
+The gather reads the files a reader claims; `gather --languages` lists those languages. It lists
+every other source file under `freeform` in the binder, unopened, and prints the first twenty
+under `FREEFORM`. A named file that is neither exits nonzero, and a walked one prints under
+`PASSED OVER`. When the default scope named it, take it out of the paths, gather again, and report
+it as passed over. Report every gap it prints, and the freeform list.
+
+The gather also prints one line on stderr for each detached documentation it read, in the form
+`warning: <path>:<line>: detached documentation (owner on line <n>)`, or `(owner: module)` when
+the owner is the module. The documentation starts at `<line>` and is
+read as a comment. Ask the author about each line with `AskUserQuestion`, showing that comment
+and its owner, the anchor it was written for, and offering two answers: move it to the owner's
+`a` cue, or leave it where it is. Record each answer in the style sheet, and continue the
+run whatever the answer is.
 
 Then build the topology: one stage, `4`, with every role split so each dispatch holds five
-files at most. `<n>` is the number of files divided by five, rounded up.
+files at most. `<n>` is the number of pages and freeform files together, divided by five, rounded
+up.
 
 ```bash
 python <skill>/scripts/comment-review.py topology --build --binder <run-dir>/binder.json --out <run-dir>/topology.toml \
@@ -171,7 +187,8 @@ python <skill>/scripts/comment-review.py distribute --topology <run-dir>/topolog
 ```
 
 It prints each edit copy, named `4_<role>_<n>.json`, and its received binder,
-saved as `copies/binders/4_<role>_<n>.json`. Dispatch one agent per edit copy:
+saved as `copies/binders/4_<role>_<n>.json`, with the count of freeform files dealt to it.
+Dispatch one agent per edit copy:
 
 | desk | agent | its question |
 |---|---|---|
@@ -193,8 +210,19 @@ All four roles run on every review. Each agent's prompt holds, in this order:
    - `FILES UNDER REVIEW` and `REFERENCE ONLY`
    - `STYLE SHEET`, templates included
    - `LANGUAGE SERVERS` -- which languages answered at stage 1
+   - `FREEFORM DIR` -- absolute path of `<run-dir>/freeform/4_<role>_<n>`, this agent's own
+     directory
+   - `FREEFORM COPIES` -- the paths a later stage starts from, below
+   - `FREEFORM SHEET` -- [`references/freeform.md`](references/freeform.md), pasted whole when the
+     received binder lists a freeform file
 
-Each agent fills its copy in place and runs `check` on it. When an agent returns, run the same
+An agent whose received binder lists no page takes a shorter prompt: `references/freeform.md` pasted
+whole in place of the brief, then its vocabulary, then a packet of `REPO ROOT`, `FILES UNDER REVIEW`,
+`REFERENCE ONLY`, `STYLE SHEET`, `FREEFORM DIR` and `FREEFORM COPIES`. It has no edit copy, so it has
+no `check` to run.
+
+Each agent fills its copy in place and runs `check` on it. An agent dealt a freeform file also
+returns the paths of its `findings.json` and its copies. When an agent returns, run the same
 check yourself:
 
 ```bash
@@ -205,6 +233,15 @@ Exit 0 means the copy is ready to fold. Exit 5 means its only findings are human
 which stage 5 asks. On any other exit, send the copy back to its own agent with the lines
 `check` printed; the agent corrects its own marks. When a copy still fails on its second
 return, fold without it and report that role as unanswered.
+
+For each freeform file, confirm the agent's `findings.json` holds that path with its `swept`
+list. Send a missing path back to its agent. When it is still missing on the second return, report
+that role as unanswered on that file.
+
+Roles in one stage work blind to each other. A role in a later stage starts from what the stage
+before left: settle that stage's findings as stage 5 says, copy `<run-dir>/freeform/draft/` to
+`<run-dir>/freeform/base_<stage>/`, and hand those paths in `FREEFORM COPIES`, because a revise root
+holds pages only and that stage's binder lists no freeform file.
 
 ### Stage 5 -- collate, and rule as copy chief
 
@@ -222,7 +259,7 @@ Act on the exit code first:
 
 | exit | meaning | what you do |
 |---|---|---|
-| `0` | every place settled | `proof0.json` is the closed proof; go to stage 6 or 7a |
+| `0` | every place settled | `proof0.json` is the closed proof; settle any freeform findings, below, then go to stage 6 or 7a |
 | `1` | the round rolled back; each line names `<role> <place>: <reason>` | send each line to its role, which withdraws with `mark --withdraw --address <place>` and marks again; re-check and re-run |
 | `2` | a file could not be read | correct the invocation |
 | `3`, `4` | places carried forward -- `composed`, `contested` or `open` | rule on them, below |
@@ -303,11 +340,41 @@ code at each end, and run `disposition` again with the proof it just wrote. Use 
 fresh output filename for each ruling round. Its proof becomes `<closed-proof>`
 once it exits `0`.
 
+**Freeform findings.** Read each role's `findings.json` from its path, and diff each of its copies
+against the file it copied:
+
+```bash
+git diff --no-index -U0 <base> <FREEFORM DIR>/<path>
+```
+
+`<base>` is the file's `base_<stage>` copy at a later stage and `<path>` otherwise. The command exits
+1 when the files differ. Then, working from `references/freeform.md`:
+
+1. Match each hunk to a finding at its old-side line, and each finding but a `query` to a hunk. Send
+   anything unmatched back to its role.
+2. Open every `source` and confirm it says what the finding claims. Send a finding whose source
+   fails back to its role.
+3. Ask each `query` as a human question, above. Settle it from the answer, writing the edit a role
+   would have made.
+4. Copy the base of each file with a change that stands to `<run-dir>/freeform/draft/<path>`, unless
+   a stage before already drafted it.
+5. Take the changes to one comment together, `correct` before `patch`, and rule as above: one side's
+   text, the original, or your own. Write the result into the draft. Two roles changing one comment
+   end as one edit.
+6. Read each edit against the code around it, and hold it to the cap.
+7. Read each freeform file for a comment over the cap that no finding reached, and shorten it in
+   the draft as a `patch`.
+
+Write the result to `<run-dir>/freeform/settled_<stage>.json`, a list of the findings' own shape with
+`role` added to each and `at` the line in the draft, holding only the changes that stand. A run with
+no pages prints `0 places` at `collate` and carries on.
+
 ### Stage 6 -- compact, when a cap applies
 
-Stage 6 runs as a second stage over the proof pages. Set them from the closed proof into
-`<run-dir>/proof4` with `proof --repo . --proof <closed-proof> --out
-<run-dir>/proof4`, then gather them as revise 1:
+Stage 6 runs as a second stage over the proof pages, and a run with no pages skips it. Set them
+from the closed proof into `<run-dir>/proof4` with `proof --repo . --proof <closed-proof> --out
+<run-dir>/proof4`, then gather them as revise 1, naming pages alone, because a revise root holds
+no freeform file:
 
 ```bash
 python <skill>/scripts/comment-review.py gather --repo <run-dir>/proof4 --revise 1 --out <run-dir>/binder6.json <paths...>
@@ -351,22 +418,53 @@ Use a fresh `--out` directory each time. `proof` prints one `<path> -> <draft>` 
 it set. It reads each drafted page back and proves its code byte-identical to the original.
 When it refuses, it prints what refused and where; read that, fix the input, and set again.
 
+**Freeform files.** Check the drafts stage 5 wrote, in this order:
+
+1. `git worktree add <run-dir>/freeform-build <pre-edit ref>`, run the stage 1 check command there,
+   and keep its result as the baseline.
+2. Copy each draft over its `<path>` in the worktree, run the formatter on those paths, and run the
+   check command again.
+3. Copy the formatted files back over the drafts, then `git worktree remove --force
+   <run-dir>/freeform-build`.
+
+The check passes when the second run passes everything the baseline passed. When it fails
+something the baseline passed, hold the run at this stage: edit the draft until it passes, and run
+the check again. When the failure comes from code no finding touched, bring the author the output
+and the files it names. A language with no formatter or no check command, one whose command cannot run in the
+worktree, or one whose baseline passes nothing is reported as not verified.
+
+Then audit each draft:
+
+```bash
+git diff --no-index -U0 <path> <run-dir>/freeform/draft/<path>
+```
+
+Every changed line belongs to a settled finding, and every settled finding has its change. Any
+other change holds the run at this stage: edit the draft until the change is gone, and audit it
+again. Nothing is presented until the audit passes. The command exits 1 when the files differ.
+
 Present to the author, grouped by instruction, most consequential first. Use the
 closed proof's decided text and the drafts for the proposed result. The chief's
 copy supplies `INSTRUCTION / PARAGRAPH / CLAIM / REASON`; show the current
 `CHANGE` from the draft inline. A turn writes a proof without refreshing the
 chief's copy, so check its entries against the closed proof before presenting.
+Show each freeform draft whole. When the author asks why a change was made, answer from
+`settled_<stage>.json`.
 Then give:
 
-- one command per page, to read it beside its original: `git diff --no-index <path> <draft>`
-- the count of places raised and places clean
+- one command per page and per drafted freeform file, to read it beside its original:
+  `git diff --no-index <path> <draft>`
+- the count of places raised and places clean, and `N swept, M raised` per freeform file
 - which places you ruled, and how
 - the longest paragraph that will remain
 - the scope source, the roles that ran, and the language servers that answered
+- for freeform files: the check baseline and result, the formatter, the hunks audited, and each
+  language not verified
 - the updated style sheet, holding every decision this run made
 
-Close by asking the author to accept all of it, accept the places they name by address, or
-accept none.
+The author may edit a freeform draft line by line. Close by asking the author to accept all of
+it, accept the places they name by address and the freeform files they name by path, or accept
+none.
 
 ### Stage 7b -- write
 
@@ -376,8 +474,9 @@ unchanged. `git diff` then shows the author exactly what the run changed.
 
 ### Stage 8 -- review
 
-Dispatch `comment-review:comment-review-review` with the pages written at 7b and the style
-sheet, and paste [`references/review.md`](references/review.md) into its prompt whole.
+Dispatch `comment-review:comment-review-review` with the pages and freeform files written at 7b
+and the style sheet, and paste [`references/review.md`](references/review.md) into its prompt
+whole.
 
 Bring its findings to the author, who chooses for each page: done, a new comment-review round
 with the findings as its input, or an immediate fix. Start the round or make the fix only on
@@ -386,7 +485,8 @@ the author's answer.
 ## What to expect from the other agents
 
 **The four reviewers** each return their edit copy filled in place, one mark per paragraph
-they read, and a clean `check` or exit 5. A mark carries one of seven instructions:
+they read, a clean `check` or exit 5, and for a freeform file the paths of their findings and
+copies. A mark carries one of seven instructions:
 
 | instruction | the reviewer found | its payload |
 |---|---|---|
