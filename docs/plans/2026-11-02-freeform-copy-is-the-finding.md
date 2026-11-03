@@ -1,7 +1,7 @@
 # A freeform copy is the finding
 
 ```
-Status:   in-progress
+Status:   closed
 Progress: 3 of 3 TODO tasks closed
 Plan-tasks: 0 of 0 plan tasks closed
 Owner:    agents
