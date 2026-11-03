@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 14 of 20 tasks closed
+Progress: 14 of 22 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-11-02 (freeform plan Task 4 live run and stage walk, 2026-11-02)
@@ -76,3 +76,8 @@ What the first live freeform run showed.
       paragraph; finding means one ruling (reviewer-brief.md:372)
 - [ ] T20 | Update ruling step 1's query line to say a non-human query defers
       (SKILL.md:308, 510)
+- [ ] T21 | Update module-context's module add to name its place, --line
+      <module>, and to apply only where no surface name is missing
+      (module-context.md:66,73)
+- [ ] T22 | State the need-before-truth order once, in the freeform sheet too,
+      and update README.md:212's drop row
