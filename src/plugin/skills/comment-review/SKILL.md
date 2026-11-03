@@ -372,8 +372,9 @@ A finding sent back that still fails on its second return is left out, and its r
 unanswered on that file.
 
 Write the result to `<run-dir>/freeform/settled_<stage>.json`, a list of the findings' own shape with
-`role` added to each and `at` the line in the draft, holding only the changes that stand. A run with
-no pages prints `0 places` at `collate` and carries on.
+`roles` added to each, naming every role whose change stands in it, and `at` the line in the
+draft, holding only the changes that stand. A run with no pages prints `0 places` at `collate` and
+carries on.
 
 ### Stage 6 -- compact, when a cap applies
 
@@ -500,7 +501,7 @@ copies. A mark carries one of seven instructions:
 |---|---|---|
 | `clean` | nothing to report from its role | -- |
 | `query` | a claim it could not settle | the question, what it attempted, what would settle it |
-| `drop` | a sentence that is true and unneeded | the sentence |
+| `drop` | a sentence that is not needed, true or false | the sentence |
 | `correct` | a false sentence | the false clause, the true clause, the source that settles it |
 | `patch` | a true sentence, badly worded | the old wording and the new |
 | `add` | prose that is missing | the text and the anchor it belongs to |

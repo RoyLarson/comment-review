@@ -6130,3 +6130,16 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   author each full draft, and reasons come when the author asks (Roy, the same day: *"the full draft
   - the human can ask for the reasons after the fact and the agents can respond"*).
 
+- **#271.** **Seven rulings from the first freeform run** (Roy, 2026-11-03, shown the Task 4
+  run's seven smaller ambiguities).
+
+  **What it settles.** A sentence that is not needed is a `drop`, true or false (*"yes drop
+  anything unnecessary"*). A composed freeform entry names every role whose change stands in it.
+  An `add` where a comment already stands is a `patch` of that comment. `withdraw` takes back the
+  whole finding (*"whole finding"*). `module-context` adds a module comment where it judges one
+  useful (*"add if they think it useful"*). A known gap in the name corpus prints once with its
+  files (*"print once with the list of files"*). Where `review.md` left a template departure
+  open, Roy left it to the agent (*"you read I don't know"*): a departure in text the run wrote is
+  something to fix, and one in text it did not change predates the run. A third sentence, that a
+  kind with no template has nothing to depart from, was cut as superfluous (Roy, the same day).
+

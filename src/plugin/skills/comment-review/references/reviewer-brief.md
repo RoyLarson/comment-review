@@ -233,7 +233,8 @@ instruction except `clean` and `query`, which propose no text.
 
 ### Choosing the instruction
 
-Settle whether the sentence is true first.
+Settle first whether the sentence is needed. One that is not, true or false, is a `drop`.
+Then settle whether it is true.
 
 - **False** -- `correct`, with the true clause and the source that settles it. `correct`
   asserts the sentence is wrong; the copy chief applies every `correct` before any `patch`, so
@@ -368,7 +369,7 @@ Answer every slot. Write your answers with your file-write tool, as a list of th
 were sent; `check --contract` prints the shape each answer takes.
 
 - **An `escalation`** asks whether your finding still stands. Answer with a `reason` and one
-  of: `hold` keeps your mark, `withdraw` takes it back, or `correct` or `patch` replaces its
+  of: `hold` keeps your mark, `withdraw` takes the whole finding back, or `correct` or `patch` replaces its
   text with `change`, the whole updated paragraph as raw text.
 - **A `composition`** asks whether the slot's `raw_text` is right. Answer `clean`, `query`,
   `correct` or `patch`, each with the fields and `claim` keys it takes in your copy. A

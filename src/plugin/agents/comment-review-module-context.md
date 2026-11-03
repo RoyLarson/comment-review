@@ -70,6 +70,9 @@ State in `reason` which population you enumerated -- public, private or both -- 
 A docstring accounts for a name when a reader can tell why it exists; one paragraph naming the
 module's job can cover several names.
 
+A file with no module comment takes an `add` where you judge one useful to a reader, and nothing
+otherwise.
+
 ## Module level: its state, its constants, and what it runs
 
 - **Each module-level mutable binding**: the docstring says who writes it, when, and what
