@@ -78,16 +78,22 @@ and rust (`startraders`, 2026-08-17).
 
 ### Fixed
 
-- The brief tells a reviewer to ask for a module's documentation with
-  `--line <module>`, and the closing gap with `--line <eof>`.
 - The copy chief matches a freeform hunk to the finding whose comment it falls
   within, so an `add` or an edit below a comment's first line is not sent back.
 - Anything sent back twice is left out alone; its role is reported unanswered on
   that finding, not the whole file.
-- A page whose line endings cannot be compared is reported as proven, with only
-  its line endings unchecked.
 - The stage table, the proofreader's report and the author's stage 8 choice name
   freeform files.
+
+### Reverted
+
+Every change beta.7 made to the page flow, which the freeform run's findings
+were never about: stage 6 skipping the condenser at `0 places`, the condenser's
+and proofreader's vocabularies, a non-human query deferring on a page, a copy
+holding a question not setting, the line-ending `UNCHECKED` report, `drop`
+including false sentences, `withdraw` taking the whole finding, module-context's
+module comment, the proofreader's template-departure rule, and `gather` printing
+each gap in the name corpus once.
 
 ## [0.2.4-beta.7] -- 2026-11-03
 

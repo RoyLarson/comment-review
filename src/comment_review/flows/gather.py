@@ -39,7 +39,7 @@ from pathlib import Path
 
 from comment_review.binder.binder import Binder, bind
 from comment_review.binder.page import Page
-from comment_review.concordance.code_names import NO_HARVESTER, code_names
+from comment_review.concordance.code_names import code_names
 from comment_review.flows.annotations_for import annotations_for
 from comment_review.flows.page_for import page_of
 from comment_review.flows.read_diagnostics import format_failure
@@ -231,29 +231,8 @@ def _owner(warning: ReadDiagnostic) -> str:
 
 def _annotations(g: Gathering) -> None:
     """Stage 3, over everything the pages carry."""
-    known, unread = code_names([g.repo], tracked_paths(g.repo))
-    g.unread = one_row_per_hole(unread)
+    known, g.unread = code_names([g.repo], tracked_paths(g.repo))
     annotations_for(g.paragraphs, known, path_index(g.repo), g.repo)
-
-
-def one_row_per_hole(unread: list[str]) -> list[str]:
-    """The gaps, with each known hole stated once and the files it covers under it.
-
-    A tree with hundreds of files no harvester reads printed the same reason on
-    every one of them. Any other row is a file that genuinely failed, kept as it is.
-    """
-    holes: dict[str, list[str]] = {}
-    rows: list[str] = []
-    for row in unread:
-        path, sep, why = row.rpartition(f" ({NO_HARVESTER} ")
-        if sep:
-            holes.setdefault(why.removesuffix(")"), []).append(path)
-        else:
-            rows.append(row)
-    for name, paths in holes.items():
-        listed = "".join(f"\n        {path}" for path in paths)
-        rows.append(f"{NO_HARVESTER} {name}, {len(paths)} file(s):{listed}")
-    return rows
 
 
 def _bind(g: Gathering) -> None:

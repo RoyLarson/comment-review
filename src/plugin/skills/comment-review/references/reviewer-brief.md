@@ -62,9 +62,7 @@ To read a paragraph as your marks would leave it, pull your own draft:
 python <skill>/scripts/comment-review.py proof --copy <EDIT COPY> --repo <REPO ROOT> --out <a new directory>
 ```
 
-It sets each page your marks change into that directory, which is yours to read and discard. A
-copy holding a question for the author does not set; pull the draft once the task agent hands you
-the answer.
+It sets each page your marks change into that directory, which is yours to read and discard.
 
 ### Reading a paragraph
 
@@ -108,8 +106,7 @@ python <skill>/scripts/comment-review.py addresser --binder <BINDER> --file <pat
 It prints one line per place: its address, its anchor, and `HELD` or `ABSENT` -- `ABSENT` is a
 place your binder leaves out, which a mark may still cite. `--series f` prints both of the
 file's own places; choose between them by address. You ask with a line number and answer with
-an address. The module's documentation and the file's closing gap have no line: ask for them
-with `--line <module>` and `--line <eof>`.
+an address.
 
 Your copy carries no `f` slot. The notes editor, `ownership-context`, checks every file's `f`
 places, and the human approves each change to one individually.
@@ -234,8 +231,7 @@ instruction except `clean` and `query`, which propose no text.
 
 ### Choosing the instruction
 
-Settle first whether the sentence is needed. One that is not, true or false, is a `drop`.
-Then settle whether it is true.
+Settle whether the sentence is true first.
 
 - **False** -- `correct`, with the true clause and the source that settles it. `correct`
   asserts the sentence is wrong; the copy chief applies every `correct` before any `patch`, so
@@ -370,7 +366,7 @@ Answer every slot. Write your answers with your file-write tool, as a list of th
 were sent; `check --contract` prints the shape each answer takes.
 
 - **An `escalation`** asks whether your finding still stands. Answer with a `reason` and one
-  of: `hold` keeps your mark, `withdraw` takes the whole finding back, or `correct` or `patch` replaces its
+  of: `hold` keeps your mark, `withdraw` takes it back, or `correct` or `patch` replaces its
   text with `change`, the whole updated paragraph as raw text.
 - **A `composition`** asks whether the slot's `raw_text` is right. Answer `clean`, `query`,
   `correct` or `patch`, each with the fields and `claim` keys it takes in your copy. A

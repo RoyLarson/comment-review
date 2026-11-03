@@ -405,11 +405,9 @@ admits = ["patch", "drop", "add", "clean", "query"]
 Seed it with `distribute --topology <run-dir>/topology.toml --stage 6 --binder
 <run-dir>/binder6.json --revise <run-dir>/proof4 --out-dir <run-dir>/copies`.
 Each received binder and edit copy holds only the comment paragraphs over the
-cap. When `distribute` prints `0 places` for every copy, nothing is over the
-cap: dispatch no condenser, and stage 7a sets the stage 5 closed proof.
-Otherwise dispatch `comment-review:comment-review-compact` with its edit copy and
-received binder, `references/compact.md` pasted whole, its vocabulary built as
-stage 4 builds one from the `compact` list, the style sheet and the cap. Check the copy against its received binder, then run `collate --stage 6`
+cap. Dispatch `comment-review:comment-review-compact` with its edit copy and
+received binder, `references/compact.md` pasted whole, the style sheet and the
+cap. Check the copy against its received binder, then run `collate --stage 6`
 with the received binders paired with the copies and rule as in stage 5. The
 closed proof this produces is the one stage 7a sets.
 
@@ -484,9 +482,9 @@ unchanged. `git diff` then shows the author exactly what the run changed.
 
 ### Stage 8 -- review
 
-Dispatch `comment-review:comment-review-review` with the pages and freeform files written at 7b,
-the style sheet and its vocabulary, built as stage 4 builds one from the `review` list, and paste
-[`references/review.md`](references/review.md) into its prompt whole.
+Dispatch `comment-review:comment-review-review` with the pages and freeform files written at 7b
+and the style sheet, and paste [`references/review.md`](references/review.md) into its prompt
+whole.
 
 Bring its findings to the author, who chooses for each page and freeform file: done, a new comment-review round
 with the findings as its input, or an immediate fix. Start the round or make the fix only on
@@ -502,15 +500,14 @@ copies. A mark carries one of seven instructions:
 |---|---|---|
 | `clean` | nothing to report from its role | -- |
 | `query` | a claim it could not settle | the question, what it attempted, what would settle it |
-| `drop` | a sentence that is not needed, true or false | the sentence |
+| `drop` | a sentence that is true and unneeded | the sentence |
 | `correct` | a false sentence | the false clause, the true clause, the source that settles it |
 | `patch` | a true sentence, badly worded | the old wording and the new |
 | `add` | prose that is missing | the text and the anchor it belongs to |
 | `move` | prose that belongs at another place | the text and its destination address |
 
 A `query` shaped `human-review-necessary` is a question for the author, which you ask at
-stage 5. A query of either other shape defers: the place is ruled from the other roles' marks,
-and no one is asked. Two marks on the same sentence in different files are one finding; rule them
+stage 5. Two marks on the same sentence in different files are one finding; rule them
 together.
 
 **The condenser** returns its edit copy, checked, each over-cap paragraph patched shorter,

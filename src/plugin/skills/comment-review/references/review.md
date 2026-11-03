@@ -12,8 +12,7 @@ working tree, with no binder.
 
 Of every comment and docstring:
 
-- It follows the style sheet's template for its kind. A departure in text this run wrote is
-  something to fix; one in text it did not change predates the run.
+- It follows the style sheet's template for its kind.
 - It fits the code it is attached to.
 - Its sentences are checkable claims about that code.
 - It states the reasons, constraints and worked examples that code needs.

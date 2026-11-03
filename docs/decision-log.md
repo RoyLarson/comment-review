@@ -6143,3 +6143,12 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   something to fix, and one in text it did not change predates the run. A third sentence, that a
   kind with no template has nothing to depart from, was cut as superfluous (Roy, the same day).
 
+  **REVOKED for the page flow the same day.** The seven came from a freeform run, and their
+  wording reached the page flow's text; so had the page halves of T3, T6, T7, T9 and T14 and
+  the brief's `--line <module>` sentence. Roy: *"All changes that are about the normal comment
+  review path are revoked"*, and, on module-context, the proofreader and `gather`: *"agree to
+  remove from normal flow"*. What stands is freeform-only: `freeform.md`'s `drop` and `add` rows,
+  `roles` on a settled entry, the freeform query and send-back rules, and the hunk match. Roy
+  on the page flow's `withdraw`: a mark can be withdrawn, and only what that mark edits is
+  undone.
+
