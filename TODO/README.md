@@ -304,7 +304,7 @@ that changed a published name or rule:
 | [one-line-ending-per-file](one-line-ending-per-file.md) | backend | -- | 2/6 | One line ending per file |
 | [edit-path-isolation](edit-path-isolation.md) | backend | -- | 1/2 | Isolate the edit path from comment reading |
 | [one-reader-builder](one-reader-builder.md) | backend | -- | 2/10 | One reader builder from each language's definition |
-| [freeform-run-findings](freeform-run-findings.md) | agents | -- | 7/17 | What the first live freeform run showed |
+| [freeform-run-findings](freeform-run-findings.md) | agents | -- | 13/17 | What the first live freeform run showed |
 
 ### in-progress  (17)
 
