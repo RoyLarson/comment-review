@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 15 of 22 tasks closed
+Progress: 19 of 22 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-11-02 (freeform plan Task 4 live run and stage walk, 2026-11-02)
@@ -25,21 +25,22 @@ What the first live freeform run showed.
 - [x] T3 | Only human-review-necessary queries are asked; the other shapes defer, on pages and freeform | 231d58c1 | Limit
       stage 5 step 3 to human-review-necessary queries, and state the fate of
       outside-my-role queries on pages (SKILL.md:344, 272, 488)
+        > 2026-11-03 Page half revoked at a75f0638 (#271); freeform half stands
 - [x] T4 | A stop holds the run at its stage; SKILL.md says so, #267 | ca1c53bce0246b727b0beade267b54acc0a8e81c | Say
       how a run resumes after stage 7a stops; a formatter fix moves the pre-edit
       ref (SKILL.md:429-431, 411)
 - [-] T5 | SUPERSEDED by #268: the audit stays a reading | ca1c53bce0246b727b0beade267b54acc0a8e81c | Mechanise
       the freeform audit; hunks were matched to findings by eye, and check has
       no freeform mode (SKILL.md:429)
-- [x] T6 | Stage 6 dispatches no condenser when distribute prints 0 places | 231d58c1 | State
+- [-] T6 | Revoked: the page flow is out of this TODO's scope (#271) | a75f0638 | State
       that an empty stage 6 skips the condenser (SKILL.md:358, 381-388)
-- [x] T7 | Stages 6 and 8 dispatch with the compact and review vocabularies | 231d58c1 | Give
+- [-] T7 | Revoked: the page flow is out of this TODO's scope (#271) | a75f0638 | Give
       stage 8 and stage 6 the vocabulary their role files claim
       (SKILL.md:464-466, 384-386)
 - [-] T8 | SUPERSEDED by #268: the author owns their edit | ca1c53bce0246b727b0beade267b54acc0a8e81c | Decide
       what checks an author edit that changes code; it skips formatter and
       audit, and prove_unchanged answers UNCHECKED (write.md:29-30)
-- [x] T9 | The brief says a copy holding a question does not set until answered | 231d58c1 | Let
+- [-] T9 | Revoked: the page flow is out of this TODO's scope (#271) | a75f0638 | Let
       a reviewer read its own draft at exit 5, or stop offering proof for that
       (reviewer-brief.md:59-65)
         > 2026-11-02 Ruled: one line in the brief; preview once queries answered
@@ -63,25 +64,30 @@ What the first live freeform run showed.
 - [x] T14 | Send-backs end at the second return; the line-ending UNCHECKED is reported | 231d58c1 | Report
       the line-endings UNCHECKED beside the freeform one (write.md:59-62) and
       limit stage 5 send-backs (SKILL.md:341-342)
+        > 2026-11-03 Page half revoked at a75f0638 (#271); freeform half stands
 - [x] T15 | Ruled #271: seven rulings in the agent prose; gather states each gap once | c85b5132 | Work
       the smaller ambiguities listed in the Task 4 report: withdraw scope,
       correct or drop, add at a held place, role value on a composed entry,
       module-less JS, review.md template departures, NOT CHECKED noise
+        > 2026-11-03 Page half revoked at a75f0638 (#271); freeform half stands
 - [ ] T16 | Exercise what Task 4 left out: stage 6 on real over-cap text, turns,
       partial acceptance, no formatter, a failing check
 - [ ] T17 | Plant an audit stop and a failing check in the T16 runs
 - [-] T18 | Ruled: the proofreader diffs the written file against the original | bd59da92 | Hand
       the proofreader the pre-edit ref, so it can sort a template departure by
       what the run wrote (review.md:15, SKILL.md:486)
-- [ ] T19 | Reword the escalation's withdraw to every mark you filed on the
-      paragraph; finding means one ruling (reviewer-brief.md:372)
-- [ ] T20 | Update ruling step 1's query line to say a non-human query defers
-      (SKILL.md:308, 510)
-- [ ] T21 | Update module-context's module add to name its place, --line
-      <module>, and to apply only where no surface name is missing
-      (module-context.md:66,73)
+- [-] T19 | Revoked: the page flow is out of this TODO's scope (#271) | a75f0638 | Reword
+      the escalation's withdraw to every mark you filed on the paragraph;
+      finding means one ruling (reviewer-brief.md:372)
+- [-] T20 | Revoked: the page flow is out of this TODO's scope (#271) | a75f0638 | Update
+      ruling step 1's query line to say a non-human query defers (SKILL.md:308,
+      510)
+- [-] T21 | Revoked: the page flow is out of this TODO's scope (#271) | a75f0638 | Update
+      module-context's module add to name its place, --line <module>, and to
+      apply only where no surface name is missing (module-context.md:66,73)
         > 2026-11-03 Pages only: a freeform reviewer places it with Edit, no address
         > 2026-11-03 Fix is the brief: name --line <module> and <eof> at :105
         > 2026-11-03 Place half done at 895fc02e; the 'where useful' half is open
-- [ ] T22 | State the need-before-truth order once, in the freeform sheet too,
-      and update README.md:212's drop row
+- [-] T22 | Revoked: the page flow is out of this TODO's scope (#271) | a75f0638 | State
+      the need-before-truth order once, in the freeform sheet too, and update
+      README.md:212's drop row
