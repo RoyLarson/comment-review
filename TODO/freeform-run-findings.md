@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 13 of 17 tasks closed
+Progress: 14 of 17 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-11-02 (freeform plan Task 4 live run and stage walk, 2026-11-02)
@@ -62,9 +62,10 @@ What the first live freeform run showed.
 - [x] T14 | Send-backs end at the second return; the line-ending UNCHECKED is reported | 231d58c1 | Report
       the line-endings UNCHECKED beside the freeform one (write.md:59-62) and
       limit stage 5 send-backs (SKILL.md:341-342)
-- [ ] T15 | Work the smaller ambiguities listed in the Task 4 report: withdraw
-      scope, correct or drop, add at a held place, role value on a composed
-      entry, module-less JS, review.md template departures, NOT CHECKED noise
+- [x] T15 | Ruled #271: seven rulings in the agent prose; gather states each gap once | c85b5132 | Work
+      the smaller ambiguities listed in the Task 4 report: withdraw scope,
+      correct or drop, add at a held place, role value on a composed entry,
+      module-less JS, review.md template departures, NOT CHECKED noise
 - [ ] T16 | Exercise what Task 4 left out: stage 6 on real over-cap text, turns,
       partial acceptance, no formatter, a failing check
 - [ ] T17 | Plant an audit stop and a failing check in the T16 runs
