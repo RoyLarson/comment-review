@@ -78,6 +78,8 @@ and rust (`startraders`, 2026-08-17).
 
 ### Fixed
 
+- The brief tells a reviewer to ask for a module's documentation with
+  `--line <module>`, and the closing gap with `--line <eof>`.
 - The copy chief matches a freeform hunk to the finding whose comment it falls
   within, so an `add` or an edit below a comment's first line is not sent back.
 - Anything sent back twice is left out alone; its role is reported unanswered on

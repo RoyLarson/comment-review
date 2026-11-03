@@ -108,7 +108,8 @@ python <skill>/scripts/comment-review.py addresser --binder <BINDER> --file <pat
 It prints one line per place: its address, its anchor, and `HELD` or `ABSENT` -- `ABSENT` is a
 place your binder leaves out, which a mark may still cite. `--series f` prints both of the
 file's own places; choose between them by address. You ask with a line number and answer with
-an address.
+an address. The module's documentation and the file's closing gap have no line: ask for them
+with `--line <module>` and `--line <eof>`.
 
 Your copy carries no `f` slot. The notes editor, `ownership-context`, checks every file's `f`
 places, and the human approves each change to one individually.
