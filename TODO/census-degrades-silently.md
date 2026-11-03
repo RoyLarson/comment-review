@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 6 of 9 tasks closed
+Progress: 7 of 9 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-19 (the seven-agent address review, 2026-08-19)
@@ -113,7 +113,8 @@ own file.
 - [ ] T6 | T6 -- Refuse an `add` at the `a` place of a one-line declaration
       instead of writing above the `def`. Verify: `galley.reset` returns a
       problem for that edit, not `[]`.
-- [ ] T7 | T7 -- Open the three readers with `utf-8-sig` -- `repo.py:52`,
+- [-] T7 | SUPERSEDED by T9: concordance is shelved from the lexical plan | c0b5b211 | T7
+      -- Open the three readers with `utf-8-sig` -- `repo.py:52`,
       `census.py:336`, `census.py:177`. Verify: a BOM'd `.py` censuses its
       module docstring.
 - [x] T8 | FINISHED | unknown | T8 -- DONE 2026-08-22. `census.py:566-568`

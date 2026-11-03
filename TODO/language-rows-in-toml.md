@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 16 of 19 tasks closed
+Progress: 17 of 19 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (Roy, 2026-08-22: since tomllib is available the language
@@ -106,7 +106,8 @@ full name-harvester capability work remains separately scoped.
       -- Make `prove_unchanged.py:176` take the `(".py", ".pyi")` suffix tuple
       from `language.py:99`. Verify: the tuple is not re-spelled in
       `prove_unchanged.py`.
-- [ ] T16 | T16 -- Make `referrers.py:53` take the same suffix tuple from
+- [-] T16 | SUPERSEDED by T19: concordance is shelved from the lexical plan | c0b5b211 | T16
+      -- Make `referrers.py:53` take the same suffix tuple from
       `language.py:99`. Verify: the tuple is not re-spelled in `referrers.py`.
 - [-] T17 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | Specify
       each supported language independently; verify each has its own dated spec,

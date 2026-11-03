@@ -2,8 +2,8 @@
 
 ```
 Status:   in-progress
-Progress: 154 of 182 TODO tasks closed
-Plan-tasks: 53 of 60 plan tasks closed
+Progress: 158 of 182 TODO tasks closed
+Plan-tasks: 55 of 60 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (founded by move-t from 0.2.4-the-middle-rebuilt)
@@ -82,7 +82,7 @@ interfaces, inputs and checks, without internal development files or history.
 - [-] T15 | T15 -- Make `prove_unchanged.py:176` take the `(".py", ".pyi")`
       suffix tuple from `language.py:99`. Verify: the tuple is not re-spelled in
       `prove_unchanged.py`.
-- [ ] T16 | T16 -- Make `referrers.py:53` take the same suffix tuple from
+- [-] T16 | T16 -- Make `referrers.py:53` take the same suffix tuple from
       `language.py:99`. Verify: the tuple is not re-spelled in `referrers.py`.
 
 ### E - [doc-does-not-fill-its-a](../../TODO/completed/doc-does-not-fill-its-a.md)
@@ -296,7 +296,7 @@ interfaces, inputs and checks, without internal development files or history.
 - [-] T1 | T1 -- Read with `utf-8-sig` at `repo.py:52` and `census.py:336`, the
       lexical route. Verify: the BOM'd `.c` shows all three results named just
       above the task list.
-- [ ] T2 | T2 -- Read with `utf-8-sig` at `census.py:177`, which feeds
+- [-] T2 | T2 -- Read with `utf-8-sig` at `census.py:177`, which feeds
       `ast.parse`. Verify: a BOM'd `.py` censuses its module docstring, not one
       `unparsed` paragraph.
 - [x] T5 | MOVED to 2026-10-31-proof-reads-what-runs | Write the byte-order mark
@@ -304,7 +304,7 @@ interfaces, inputs and checks, without internal development files or history.
 
 ### O - [census-degrades-silently](../../TODO/census-degrades-silently.md)
 
-- [ ] T7 | T7 -- Open the three readers with `utf-8-sig` -- `repo.py:52`,
+- [-] T7 | T7 -- Open the three readers with `utf-8-sig` -- `repo.py:52`,
       `census.py:336`, `census.py:177`. Verify: a BOM'd `.py` censuses its
       module docstring.
 - [-] T5 | T5 -- Correct `references/compact.md:100` -- it says an `unparsed`
@@ -368,7 +368,7 @@ interfaces, inputs and checks, without internal development files or history.
 
 - [-] T1 | declarations() gains the identifier on the declaring line, per
       language row
-- [ ] T5 | referrers.tokens_for stops parsing Python for top-level defs, or says
+- [-] T5 | referrers.tokens_for stops parsing Python for top-level defs, or says
       why it still must
 
 ### W - [galley-and-compositor-write-path](../../TODO/galley-and-compositor-write-path.md)
@@ -846,10 +846,12 @@ interfaces, inputs and checks, without internal development files or history.
       each language definition with its own spec and reader; verify independent
       rules without inherited configuration
         > 2026-10-11 Each language subplan supplies its own spec, definition and reader
-- [ ] P54 | Add Python and Rust facts to referrer discovery
+- [-] P54 | Shelved with concordance; name-corpus-sees-one-language T7 | c0b5b211 | Add
+      Python and Rust facts to referrer discovery
         > 2026-11-01 Check: uv run pytest -q tests/test_referrers.py
         > 2026-11-01 Path terms remain; unavailable harvesting is reported explicitly
-- [ ] P55 | Remove duplicated facts across both readers
+- [-] P55 | Shelved with concordance; language-rows-in-toml T19 | c0b5b211 | Remove
+      duplicated facts across both readers
         > 2026-11-01 Check: uv run pytest -q tests/test_reading.py
         > 2026-11-01 Verify consumers use the shared result and diagnostics
 - [x] P56 | Prose states Python and Rust; vocabulary gate 0 drifted | 354236db | Update

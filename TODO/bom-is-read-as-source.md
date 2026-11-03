@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 4 of 8 tasks closed
+Progress: 5 of 8 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-21 (the /code-review xhigh of 2026-08-21, focused on the file-to-
@@ -62,9 +62,10 @@ the first statement rather than as a `trailing-comment`, and no anchor is the BO
       -- Read with `utf-8-sig` at `repo.py:52` and `census.py:336`, the lexical
       route. Verify: the BOM'd `.c` shows all three results named just above the
       task list.
-- [ ] T2 | T2 -- Read with `utf-8-sig` at `census.py:177`, which feeds
-      `ast.parse`. Verify: a BOM'd `.py` censuses its module docstring, not one
-      `unparsed` paragraph.
+- [-] T2 | SUPERSEDED by T8: concordance is shelved from the lexical plan | c0b5b211 | T2
+      -- Read with `utf-8-sig` at `census.py:177`, which feeds `ast.parse`.
+      Verify: a BOM'd `.py` censuses its module docstring, not one `unparsed`
+      paragraph.
 - [x] T3 | FINISHED | unknown | T3 -- MEASUREMENT, not a checkpoint. The `@b0
       interval` / `@c0 trailing-comment` result, both anchored on the BOM, is in
       the Objective, re-measured 2026-08-23.
