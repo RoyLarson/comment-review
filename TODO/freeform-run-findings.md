@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 14 of 22 tasks closed
+Progress: 15 of 22 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-11-02 (freeform plan Task 4 live run and stage walk, 2026-11-02)
@@ -70,8 +70,9 @@ What the first live freeform run showed.
 - [ ] T16 | Exercise what Task 4 left out: stage 6 on real over-cap text, turns,
       partial acceptance, no formatter, a failing check
 - [ ] T17 | Plant an audit stop and a failing check in the T16 runs
-- [ ] T18 | Hand the proofreader the pre-edit ref, so it can sort a template
-      departure by what the run wrote (review.md:15, SKILL.md:486)
+- [-] T18 | Ruled: the proofreader diffs the written file against the original | bd59da92 | Hand
+      the proofreader the pre-edit ref, so it can sort a template departure by
+      what the run wrote (review.md:15, SKILL.md:486)
 - [ ] T19 | Reword the escalation's withdraw to every mark you filed on the
       paragraph; finding means one ruling (reviewer-brief.md:372)
 - [ ] T20 | Update ruling step 1's query line to say a non-human query defers
