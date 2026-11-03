@@ -216,6 +216,11 @@ All four roles run on every review. Each agent's prompt holds, in this order:
    - `FREEFORM SHEET` -- [`references/freeform.md`](references/freeform.md), pasted whole when the
      received binder lists a freeform file
 
+An agent whose received binder lists no page takes a shorter prompt: `references/freeform.md` pasted
+whole in place of the brief, then its vocabulary, then a packet of `REPO ROOT`, `FILES UNDER REVIEW`,
+`REFERENCE ONLY`, `STYLE SHEET`, `FREEFORM DIR` and `FREEFORM COPIES`. It has no edit copy, so it has
+no `check` to run.
+
 Each agent fills its copy in place and runs `check` on it. An agent dealt a freeform file also
 returns the paths of its `findings.json` and its copies. When an agent returns, run the same
 check yourself:
@@ -233,10 +238,10 @@ For each freeform file, confirm the agent's `findings.json` holds that path with
 list. Send a missing path back to its agent. When it is still missing on the second return, report
 that role as unanswered on that file.
 
-Roles in one stage work blind to each other. A role in a later stage starts from a straight copy
-of the files the stage before left: settle that stage's findings as stage 5 says, set them as stage
-7a says, and hand the draft paths in `FREEFORM COPIES`, because a revise root holds pages only and
-that stage's binder lists no freeform file.
+Roles in one stage work blind to each other. A role in a later stage starts from what the stage
+before left: settle that stage's findings as stage 5 says, copy `<run-dir>/freeform/draft/` to
+`<run-dir>/freeform/base_<stage>/`, and hand those paths in `FREEFORM COPIES`, because a revise root
+holds pages only and that stage's binder lists no freeform file.
 
 ### Stage 5 -- collate, and rule as copy chief
 
@@ -335,23 +340,34 @@ code at each end, and run `disposition` again with the proof it just wrote. Use 
 fresh output filename for each ruling round. Its proof becomes `<closed-proof>`
 once it exits `0`.
 
-**Freeform findings.** Read each role's `findings.json` from its path, and settle one replacement
-per comment, working from `references/freeform.md`:
+**Freeform findings.** Read each role's `findings.json` from its path, and diff each of its copies
+against the file it copied:
 
-1. Open every `source` and confirm it says what the finding claims. Send a finding whose source
+```bash
+git diff --no-index -U0 <base> <FREEFORM DIR>/<path>
+```
+
+`<base>` is the file's `base_<stage>` copy at a later stage and `<path>` otherwise. The command exits
+1 when the files differ. Then, working from `references/freeform.md`:
+
+1. Match each hunk to a finding at its old-side line, and each finding but a `query` to a hunk. Send
+   anything unmatched back to its role.
+2. Open every `source` and confirm it says what the finding claims. Send a finding whose source
    fails back to its role.
-2. Confirm each `current` stands at its `at` in the file. Send one that does not back to its role.
-3. Ask each `query` as a human question, above. Settle it from the answer, composing what a role
-   would have filed.
-4. Take the findings on one comment together, `correct` before `patch`, and rule as above: one
-   side's text, the original, or your own. Two roles changing one comment end as one replacement.
-5. Read each settled replacement against the code around it, and hold it to the cap.
-6. Read each freeform file for a comment over the cap that no finding reached, and settle a `patch`
-   that shortens it.
+3. Ask each `query` as a human question, above. Settle it from the answer, writing the edit a role
+   would have made.
+4. Copy the base of each file with a change that stands to `<run-dir>/freeform/draft/<path>`, unless
+   a stage before already drafted it.
+5. Take the changes to one comment together, `correct` before `patch`, and rule as above: one side's
+   text, the original, or your own. Write the result into the draft. Two roles changing one comment
+   end as one edit.
+6. Read each edit against the code around it, and hold it to the cap.
+7. Read each freeform file for a comment over the cap that no finding reached, and shorten it in
+   the draft as a `patch`.
 
-Write the result to `<run-dir>/freeform/settled_<stage>.json`, a list of the findings' own shape
-with `role` added to each, holding only the replacements that stand. A run with no pages prints
-`0 places` at `collate` and carries on.
+Write the result to `<run-dir>/freeform/settled_<stage>.json`, a list of the findings' own shape with
+`role` added to each and `at` the line in the draft, holding only the changes that stand. A run with
+no pages prints `0 places` at `collate` and carries on.
 
 ### Stage 6 -- compact, when a cap applies
 
@@ -402,17 +418,13 @@ Use a fresh `--out` directory each time. `proof` prints one `<path> -> <draft>` 
 it set. It reads each drafted page back and proves its code byte-identical to the original.
 When it refuses, it prints what refused and where; read that, fix the input, and set again.
 
-**Freeform files.** Set them on a draft, in this order:
+**Freeform files.** Check the drafts stage 5 wrote, in this order:
 
-1. Copy each file with a settled replacement to `<run-dir>/freeform/draft/<path>`.
-2. Dispatch one general-purpose agent with `references/freeform.md` pasted whole, the settled
-   findings and the draft directory. It sets each replacement on its draft. Send anything it
-   returns unset back through stage 5.
-3. `git worktree add <run-dir>/freeform-build <pre-edit ref>`, run the stage 1 check command there,
+1. `git worktree add <run-dir>/freeform-build <pre-edit ref>`, run the stage 1 check command there,
    and keep its result as the baseline.
-4. Copy each draft over its `<path>` in the worktree, run the formatter on those paths, and run the
+2. Copy each draft over its `<path>` in the worktree, run the formatter on those paths, and run the
    check command again.
-5. Copy the formatted files back over the drafts, then `git worktree remove --force
+3. Copy the formatted files back over the drafts, then `git worktree remove --force
    <run-dir>/freeform-build`.
 
 The check passes when the second run passes everything the baseline passed. When it fails
@@ -436,8 +448,8 @@ closed proof's decided text and the drafts for the proposed result. The chief's
 copy supplies `INSTRUCTION / PARAGRAPH / CLAIM / REASON`; show the current
 `CHANGE` from the draft inline. A turn writes a proof without refreshing the
 chief's copy, so check its entries against the closed proof before presenting.
-Present each settled freeform replacement the same way, from `settled_<stage>.json`: its
-instruction, `at`, `source` and replacement.
+Show each freeform draft whole. When the author asks why a change was made, answer from
+`settled_<stage>.json`.
 Then give:
 
 - one command per page and per drafted freeform file, to read it beside its original:

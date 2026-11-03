@@ -6064,7 +6064,7 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   stage 6 takes none. A file that is not formatter-clean before the run stops the run, because the
   diff audit could not tell a formatter's change from an agent's. The author accepts a freeform
   file whole. A dispatched general-purpose agent sets the draft. "Accepts whole" is **SUPERSEDED by
-  #264**; the other three stand.
+  #264**, and the dispatched setter is **SUPERSEDED by #270**; the other two stand.
 
 - **#264.** **The author edits a freeform draft line by line** (Roy, 2026-11-02, reversing #263's
   third ruling: *"I am going to reverse my statement on 3. I should not have replied last night."*
@@ -6124,6 +6124,9 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   **What it settles.** Extending #266, the reviewer edits its copy and returns reason and source per
   line, and the diff supplies the text. `current` and `replacement` leave the findings. The chief
   reads each role's copy and writes one draft, and a later stage starts from that draft (Roy, the
-  same day: *"Are you saying agents are not capable of copy/paste/rewrite?"*). Whether that retires
-  #263's dispatched setter, and whether #270 lands before the merge, are open.
+  same day: *"Are you saying agents are not capable of copy/paste/rewrite?"*). #270 lands before the
+  merge (Roy, the same day: *"1 before"*). The chief's draft retires #263's dispatched setter (Roy,
+  the same day, told that the setter's read-back goes with it: *"Yes retire"*). Stage 7a shows the
+  author each full draft, and reasons come when the author asks (Roy, the same day: *"the full draft
+  - the human can ask for the reasons after the fact and the agents can respond"*).
 

@@ -7,7 +7,7 @@ Every reviewer reads this brief, alongside its own role file. Read it first.
 You are an editor on an editorial board. You read the comments and docstrings in the files
 under review, check each one against the code it sits with, and record a ruling on every
 paragraph your role reads. Your rulings are marks in your own edit copy. A freeform file takes
-findings in your own directory instead; see *A freeform file*.
+an edited copy and findings instead; see *A freeform file*.
 
 The source files stay exactly as you found them. Later stages set the text from your marks,
 and the human decides what lands, so a question you raise reaches them intact. Everything you
@@ -350,54 +350,8 @@ sentence. Mark what your role sees; the copy chief rules on the rest.
 
 ## A freeform file
 
-A freeform file is a source file your binder lists under `freeform`. It has no page, no address
-and no slot, so `mark`, `addresser` and `proof` take no path in it. You read it, rule on it with
-your role's remit, and edit a copy of it.
-
-1. **Copy the file** into `FREEFORM DIR`, keeping its path. Copy it from `FREEFORM COPIES` when
-   that lists it, and from `REPO ROOT` otherwise. Your citations resolve against the file you
-   copied.
-2. **List every comment in the file by line**, before you judge any. This list is `swept`.
-3. **Rule on each comment.** A comment with nothing to report takes no finding, and `swept`
-   records that you read it.
-4. **File each finding** in `FREEFORM DIR/findings.json`.
-5. **Set each replacement on your copy.** The sheet says how to compose and set one.
-6. **Return the paths** of `findings.json` and your copies, with one line per file:
-   `<path>: N swept, M raised`.
-
-```json
-{ "role": "block-context",
-  "files": [
-    { "path": "redacted_pkg/rates.js",
-      "swept": [12, 40, 88],
-      "findings": [
-        { "instruction": "correct",
-          "at": "redacted_pkg/rates.js:40",
-          "reason": "the limit is read from settings and is 100",
-          "source": [ { "cite": "redacted_pkg/settings.js:7",
-                        "verbatim": "const LIMIT = 100;" } ],
-          "current": "  // The limit is 40.\n",
-          "replacement": "  // The limit is 100.\n" } ] } ] }
-```
-
-| field | what it carries |
-| --- | --- |
-| `path` | the file, as your binder lists it |
-| `swept` | the line of every comment in the file |
-| `instruction` | `correct`, `patch`, `drop`, `add` or `query` |
-| `at` | `path:line` of the comment's first line |
-| `reason` | what you derived, as in a mark |
-| `source` | the entries a mark's `sources` holds, owed as a mark owes them |
-| `current` | the whole comment, exactly as it stands in your copy |
-| `replacement` | the one full replacement, as the sheet frames it |
-
-- **One finding per comment.** A comment with several edits takes one finding, and it is a
-  `correct` when any of those edits is.
-- **A `query`** carries `shape`, `attempted` and `settles` as a mark does, and no `replacement`.
-  A code concern is a `query` the same way, and the copy chief carries the author's answer.
-- **A relocation is two findings:** an `add` at the destination and a `drop` at the origin, each
-  naming the other in its `reason`. When one end is on a page, that end is a mark: `mark` refuses a
-  `--to` in a freeform file.
+A file your binder lists under `freeform` follows `FREEFORM SHEET`, which is in your prompt whenever
+your binder lists one.
 
 ## When you are sent a batch
 

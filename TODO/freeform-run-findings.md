@@ -45,6 +45,8 @@ What the first live freeform run showed.
       later-stage draft with 7a step 1 re-copying (SKILL.md:219, 235-238, 404)
         > 2026-11-02 Ruled #270: the copy is the finding; 7a re-copy still open
         > 2026-11-02 Open: drop 7a setter? #270 before or after merge? See log
+        > 2026-11-02 #270 lands before merge (Roy). 7a setter still open.
+        > 2026-11-02 Ruled #270: the setter retires; plan the 7a change
 - [ ] T12 | Clear stale page-only text: write.md:5,72; SKILL.md:45-46,52-68;
       role files :12 and Return; comment-review-review.md:8,19
 - [ ] T13 | Fix current and at for an add and a string line
