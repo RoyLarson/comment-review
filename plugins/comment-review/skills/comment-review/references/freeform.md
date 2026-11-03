@@ -46,8 +46,8 @@ edit copy or `check`, read this sheet's finding, copy and return.
 | --- | --- |
 | `correct` | a claim is false. `source` carries the line that settles it |
 | `patch` | the claim is true and the wording is not. No source is needed |
-| `drop` | the comment or a sentence in it should go |
-| `add` | a comment is missing |
+| `drop` | the comment or a sentence in it is not needed, true or false |
+| `add` | a comment is missing. Where a comment already stands, it is a `patch` of that comment |
 | `query` | you cannot rule, below |
 
 - **One finding per comment.** A comment with several edits takes one finding, and it is a `correct`

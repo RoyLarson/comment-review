@@ -1,6 +1,6 @@
 # Stage 7b -- write
 
-The author has read each page beside its original and accepted all of it, some places, or
+The author has read each page and freeform draft beside its original and accepted all of it, some places, or
 none. This stage proves the accepted text still compiles, writes it into the working tree,
 and proves the code in every page it wrote is unchanged.
 
@@ -59,7 +59,8 @@ python <skill>/scripts/comment-review.py prove_unchanged --base <pre-edit ref> -
 It prints `PROVEN` for each page whose code is unchanged. Report any page it refuses to the
 author, with what it printed. For a freeform file it prints `UNCHECKED  <path>: no reader --
 formatter and compiler are the check`. That is the expected answer, and the report states it as
-unchecked, never as proven.
+unchecked, never as proven. A page whose line endings it cannot compare prints `UNCHECKED  <path>:
+no readable untouched sibling -- line endings`; report that one the same way.
 
 ## Report
 
@@ -69,4 +70,4 @@ unchecked, never as proven.
 - each freeform language not verified
 - `git diff`, which the author reads to see exactly what the run changed
 
-Stage 8 follows, on the pages written.
+Stage 8 follows, on the pages and freeform files written.

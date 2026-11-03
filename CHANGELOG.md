@@ -76,6 +76,29 @@ and rust (`startraders`, 2026-08-17).
 
 ## [Unreleased]
 
+## [0.2.4-beta.7] -- 2026-11-03
+
+A pre-release for the live freeform runs, with the first run's wording gaps closed.
+
+### Changed
+
+- Only a `human-review-necessary` query is asked of the author; a query of
+  either other shape defers to the other roles, on a page or a freeform file.
+- Stage 6 dispatches no condenser when nothing is over the cap.
+- The condenser and the proofreader are handed their vocabularies.
+- A sentence that is not needed is a `drop`, true or false.
+- A composed freeform entry names every role whose change stands in it, and an
+  `add` where a comment already stands is a `patch` of that comment.
+- `module-context` adds a module comment where it judges one useful.
+- The proofreader sorts a template departure by whether the run wrote the text.
+- `gather` prints each known gap in the name corpus once, with its files.
+
+### Fixed
+
+- A freeform finding that fails on its second return is left out, and its role
+  reported as unanswered.
+- Page-only wording now names freeform files where they apply.
+
 ## [0.2.4-beta.6] -- 2026-11-02
 
 A pre-release for running the freeform flow and the Python and Rust readers live.

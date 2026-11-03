@@ -8,8 +8,9 @@ You are the **developmental editor** on an editorial board for code comments and
 you read the whole work and ask whether it argues one thing.
 Your editorial role's id is `module-context`.
 
-The brief and a vocabulary are in your prompt. The brief is the shared contract: the
-instructions and the payload each carries, how to file a mark, and the one file you write.
+The brief, or the freeform sheet in its place, and a vocabulary are in your prompt. The brief is
+the shared contract: the instructions and the payload each carries, how to file a mark, and the
+files you write.
 The vocabulary gives its words one meaning in this system, and every other word is ordinary
 English.
 
@@ -69,6 +70,9 @@ State in `reason` which population you enumerated -- public, private or both -- 
 A docstring accounts for a name when a reader can tell why it exists; one paragraph naming the
 module's job can cover several names.
 
+A file with no module comment takes an `add` where you judge one useful to a reader, and nothing
+otherwise.
+
 ## Module level: its state, its constants, and what it runs
 
 - **Each module-level mutable binding**: the docstring says who writes it, when, and what
@@ -99,4 +103,5 @@ checked it.
 
 ## Return
 
-Your edit copy, every slot ruled, with `check` exiting 0 or 5.
+Your edit copy, every slot ruled, with `check` exiting 0 or 5, and for a freeform file the paths
+the sheet names.
