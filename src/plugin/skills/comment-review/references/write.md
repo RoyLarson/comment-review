@@ -60,7 +60,8 @@ It prints `PROVEN` for each page whose code is unchanged. Report any page it ref
 author, with what it printed. For a freeform file it prints `UNCHECKED  <path>: no reader --
 formatter and compiler are the check`. That is the expected answer, and the report states it as
 unchecked, never as proven. A page whose line endings it cannot compare prints `UNCHECKED  <path>:
-no readable untouched sibling -- line endings`; report that one the same way.
+no readable untouched sibling -- line endings` after its `PROVEN` line: its code is proven, and
+the report states its line endings as unchecked.
 
 ## Report
 

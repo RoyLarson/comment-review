@@ -42,8 +42,8 @@ that sets the scope in place of the diff. `style` is the style sheet from an ear
 | 1 | project determination | you | scope, cap, style sheet, run context |
 | 2 | gather | `gather`, `topology` | the binder and a verified topology |
 | 3 | find references | `referrers` | the `REFERENCE ONLY` list |
-| 4 | mark | the four reviewers | four checked edit copies |
-| 5 | collate and rule | `collate`, you, `disposition` | a closed proof and the chief's copy |
+| 4 | mark | the four reviewers | four checked edit copies, and each role's freeform copies and findings |
+| 5 | collate and rule | `collate`, you, `disposition` | a closed proof, the chief's copy and the freeform drafts |
 | 6 | compact, when a cap applies | the condenser | a closed proof whose text fits the cap |
 | 7a | set and present | `proof`, then you | the proof pages and the proposal in front of the author |
 | 7b | write | the author, then you | the accepted text in the working tree, its code proved unchanged |
@@ -353,8 +353,9 @@ git diff --no-index -U0 <base> <FREEFORM DIR>/<path>
 `<base>` is the file's `base_<stage>` copy at a later stage and `<path>` otherwise. The command exits
 1 when the files differ. Then, working from `references/freeform.md`:
 
-1. Match each hunk to a finding at its old-side line, and each finding but a `query` to a hunk. Send
-   anything unmatched back to its role.
+1. Match each hunk to a finding, and each finding but a `query` to a hunk. A hunk belongs to the
+   finding whose comment its old-side lines fall within. An insertion, `-N,0`, belongs to the `add`
+   whose `at` is line N or N+1. Send anything unmatched back to its role.
 2. Open every `source` and confirm it says what the finding claims. Send a finding whose source
    fails back to its role.
 3. Ask each `human-review-necessary` query as a human question, above. Settle it from the answer,
@@ -368,8 +369,8 @@ git diff --no-index -U0 <base> <FREEFORM DIR>/<path>
 7. Read each freeform file for a comment over the cap that no finding reached, and shorten it in
    the draft as a `patch`.
 
-A finding sent back that still fails on its second return is left out, and its role is reported as
-unanswered on that file.
+Anything sent back that still fails on its second return is left out, and its role is reported as
+unanswered on that finding.
 
 Write the result to `<run-dir>/freeform/settled_<stage>.json`, a list of the findings' own shape with
 `roles` added to each, naming every role whose change stands in it, and `at` the line in the
@@ -487,7 +488,7 @@ Dispatch `comment-review:comment-review-review` with the pages and freeform file
 the style sheet and its vocabulary, built as stage 4 builds one from the `review` list, and paste
 [`references/review.md`](references/review.md) into its prompt whole.
 
-Bring its findings to the author, who chooses for each page: done, a new comment-review round
+Bring its findings to the author, who chooses for each page and freeform file: done, a new comment-review round
 with the findings as its input, or an immediate fix. Start the round or make the fix only on
 the author's answer.
 
@@ -515,5 +516,5 @@ together.
 **The condenser** returns its edit copy, checked, each over-cap paragraph patched shorter,
 marked `clean` with what holds it at length, or holding a question for the author.
 
-**The proofreader** returns each page as done or with the sections to bring to the author,
+**The proofreader** returns each page and freeform file as done or with the sections to bring to the author,
 and lists separately every defect that predates this run.

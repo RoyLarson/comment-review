@@ -76,6 +76,17 @@ and rust (`startraders`, 2026-08-17).
 
 ## [Unreleased]
 
+### Fixed
+
+- The copy chief matches a freeform hunk to the finding whose comment it falls
+  within, so an `add` or an edit below a comment's first line is not sent back.
+- Anything sent back twice is left out alone; its role is reported unanswered on
+  that finding, not the whole file.
+- A page whose line endings cannot be compared is reported as proven, with only
+  its line endings unchecked.
+- The stage table, the proofreader's report and the author's stage 8 choice name
+  freeform files.
+
 ## [0.2.4-beta.7] -- 2026-11-03
 
 A pre-release for the live freeform runs, with the first run's wording gaps closed.
@@ -97,7 +108,13 @@ A pre-release for the live freeform runs, with the first run's wording gaps clos
 
 - A freeform finding that fails on its second return is left out, and its role
   reported as unanswered.
-- Page-only wording now names freeform files where they apply.
+- `write.md`, the role files, the proofreader, and `SKILL.md`'s stage 8 row and
+  hand-off table name freeform files where they apply.
+- `withdraw` takes back the role's whole finding at a place.
+- A reviewer's copy holding a question for the author does not set until the
+  question is answered.
+- A page whose line endings cannot be compared is reported beside the freeform
+  `UNCHECKED`.
 
 ## [0.2.4-beta.6] -- 2026-11-02
 
