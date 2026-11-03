@@ -52,9 +52,10 @@ What the first live freeform run showed.
         > 2026-11-02 Open: drop 7a setter? #270 before or after merge? See log
         > 2026-11-02 #270 lands before merge (Roy). 7a setter still open.
         > 2026-11-02 Ruled #270: the setter retires; plan the 7a change
-- [x] T12 | write.md, SKILL.md, the role files and the proofreader name freeform files | 231d58c1 | Clear
+- [x] T12 | Page-only text names freeform files, the stage table and stage 8 included | a9d5c5a3 | Clear
       stale page-only text: write.md:5,72; SKILL.md:45-46,52-68; role files :12
       and Return; comment-review-review.md:8,19
+        > 2026-11-03 Reopened: review found SKILL.md:45-46, 490 and 518 still page-only
 - [x] T13 | current and replacement left the findings; at is a line in the copied file | 234c3a0c | Fix
       current and at for an add and a string line (reviewer-brief.md:386-392;
       freeform.md:24,27)
