@@ -79,5 +79,6 @@ What the first live freeform run showed.
 - [ ] T21 | Update module-context's module add to name its place, --line
       <module>, and to apply only where no surface name is missing
       (module-context.md:66,73)
+        > 2026-11-03 Pages only: a freeform reviewer places it with Edit, no address
 - [ ] T22 | State the need-before-truth order once, in the freeform sheet too,
       and update README.md:212's drop row
