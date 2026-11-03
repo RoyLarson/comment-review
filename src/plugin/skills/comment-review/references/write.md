@@ -1,6 +1,6 @@
 # Stage 7b -- write
 
-The author has read each page beside its original and accepted all of it, some places, or
+The author has read each page and freeform draft beside its original and accepted all of it, some places, or
 none. This stage proves the accepted text still compiles, writes it into the working tree,
 and proves the code in every page it wrote is unchanged.
 
@@ -26,11 +26,16 @@ and proves the code in every page it wrote is unchanged.
 
   The same sentence marked in two files is one finding. When the author accepted it in one
   file and left the other, ask which they want in both.
+- **Freeform files.** An accepted file's draft is `<run-dir>/freeform/draft/<path>`, as the author
+  left it. The author's edits come after the audit, and step 1 checks them.
+- **A `drop` and an `add` that name each other** are approved as a whole. When a selection holds
+  one half, show the author both and ask.
 - **None.** The run ends here, with the tree as it was.
 
 ## Step 1 -- compile
 
-Build the accepted pages in a temporary worktree, with the check command stage 1 recorded:
+Build the accepted pages and freeform drafts in a temporary worktree, with the check command
+stage 1 recorded:
 
 1. `git worktree add <run-dir>/build <pre-edit ref>`
 2. Run the check command in `<run-dir>/build`, and keep its result as the baseline.
@@ -52,13 +57,16 @@ python <skill>/scripts/comment-review.py prove_unchanged --base <pre-edit ref> -
 ```
 
 It prints `PROVEN` for each page whose code is unchanged. Report any page it refuses to the
-author, with what it printed.
+author, with what it printed. For a freeform file it prints `UNCHECKED  <path>: no reader --
+formatter and compiler are the check`. That is the expected answer, and the report states it as
+unchecked, never as proven.
 
 ## Report
 
-- the pages written, and the places accepted and left
+- the pages and freeform files written, and the places accepted and left
 - the check command, its baseline, and its result with the drafts
 - what `prove_unchanged` printed
+- each freeform language not verified
 - `git diff`, which the author reads to see exactly what the run changed
 
-Stage 8 follows, on the pages written.
+Stage 8 follows, on the pages and freeform files written.

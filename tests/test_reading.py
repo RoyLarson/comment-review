@@ -1,7 +1,7 @@
 """Reading a file into a page: what must hold of every page, for every file.
 
-Derived from `binder/page.py` and `reading/lexer.py` by reading them and by
-running them over real sources.
+Derived from `binder/page.py` by reading it and by running it over real
+sources.
 """
 
 from pathlib import Path
@@ -10,13 +10,13 @@ import pytest
 from conftest import SAMPLE, build, by_cue, occupied
 
 from comment_review.binder.page import page_for
-from comment_review.flows.language_definitions import installed_registry
 from comment_review.machine.repo import sha_of
 from comment_review.reading.diagnostics import ReadFailure
+from comment_review.reading.language import INSTALLED_REGISTRY
 from comment_review.reading.series import ADDRESSED, Kind, Series
 
-#: Sources chosen to reach a different shape each, across the tiers and
-#: languages the reader claims to handle.
+#: Sources chosen to reach a different shape each, across the languages the
+#: reader claims to handle.
 SOURCES = {
     "bare statement": ("m.py", "x = 1\n"),
     "no final newline": ("m.py", "x = 1"),
@@ -28,7 +28,7 @@ SOURCES = {
     "trailing blanks": ("m.py", "x = 1\n\n\n"),
     "shebang": ("m.py", "#!/usr/bin/env python\nx = 1\n"),
     "function": ("m.py", 'def f():\n    """D."""\n    return 1\n'),
-    # !! THE SHAPE NONE OF THE OTHER 22 COULD EXPRESS. A docstring's closing
+    # !! THE SHAPE NONE OF THE OTHERS COULD EXPRESS. A docstring's closing
     # delimiter carrying a trailing comment is claimed by BOTH readers -- the
     # tokenizer types it `trailing-comment`, the AST gives the line to the
     # docstring -- so the partition below is exactly what it breaks. The gate
@@ -45,12 +45,7 @@ SOURCES = {
     "class": ("m.py", 'class A:\n    """D."""\n\n    x = 1\n'),
     "only comments": ("m.py", "# one\n# two\n"),
     "only blanks": ("m.py", "\n\n\n"),
-    "C block": ("m.c", "/* head */\nint a;\n"),
     "rust": ("m.rs", "/// Doc.\npub fn f() {}\n"),
-    "go": ("m.go", "// Doc.\nfunc f() {}\n"),
-    "typescript JSX": ("m.tsx", "// note\nconst card = <Card />;\n"),
-    "shell": ("m.sh", "#!/bin/sh\necho hi\n"),
-    "js": ("m.js", "// note\nlet a = 1;\n"),
     "unicode": ("m.py", "# caf\u00e9\nx = 1\n"),
     "tabs": ("m.py", "def f():\n\treturn 1\n"),
 }
@@ -166,17 +161,7 @@ def test_an_empty_place_stands_on_no_line(name, text):
             assert b.raw_lines == []
 
 
-@pytest.mark.parametrize(
-    ("name", "text"),
-    [
-        pytest.param(n, t, id=k)
-        for k, (n, t) in {
-            **SOURCES,
-            "ruby doc": ("m.rb", "# Doc.\ndef f\nend\n"),
-            "lua doc": ("m.lua", "--- Doc.\nlocal function f() end\n"),
-        }.items()
-    ],
-)
+@CASES
 def test_the_kind_agrees_with_the_series_the_cue_names(name, text):
     """A row states its series TWICE and the two must agree.
 
@@ -186,10 +171,6 @@ def test_the_kind_agrees_with_the_series_the_cue_names(name, text):
     itself, and every consumer that pairs them sees a contradiction:
     `record.prose_paragraphs` filters on the KIND while `series_of` reads the
     CUE.
-
-    ! Go, Ruby and Lua document with an ordinary comment marker, so the reader
-    types such a run `docstring` when it decides the run documents a
-    declaration, and the page cues it `a` from that.
     """
     for c, b in by_cue(build(text, name)).items():
         definition = Series.of(c)
@@ -232,8 +213,7 @@ class TestAPageCarriesTheShaItWasGiven:
         # A page built with a sha that does not describe its text keeps the sha
         # it was HANDED. If page.py hashed anything, this would disagree.
         path = Path("m.py")
-        registry = installed_registry()
-        assert not isinstance(registry, ReadFailure), registry
+        registry = INSTALLED_REGISTRY
         page = page_for(
             path,
             SAMPLE,
@@ -248,8 +228,7 @@ class TestAPageCarriesTheShaItWasGiven:
 
     def test_the_sha_is_required(self):
         path = Path("m.py")
-        registry = installed_registry()
-        assert not isinstance(registry, ReadFailure), registry
+        registry = INSTALLED_REGISTRY
         with pytest.raises(TypeError):
             # !! DELIBERATELY OMITS `sha` -- proves the keyword-only parameter
             # is enforced at runtime. ty: ignore[missing-argument] because the

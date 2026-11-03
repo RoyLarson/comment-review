@@ -7,22 +7,23 @@ page's: the path it is on, the place it occupies, and the empty places where
 prose could go and does not.
 
 !! WHY NOT WITH `Page`, WHICH IS THE OBVIOUS HOME. `binder` imports `reading` in
-three modules, so `reading.lexer` -- which BUILDS paragraphs -- would have to
+three modules, so a reader -- which BUILDS paragraphs -- would have to
 import `binder` back. That edge is the cycle, and it is not about a paragraph:
 it is where the page's own dependencies already point. A page adds its leadings
 and a few load-bearing attributes to its paragraphs, so `Page` stays where it is
 and this sits beneath both.
 
-! BENEATH EVERY MODULE THAT MAKES OR READS ONE. At import it takes only
-`series`, so every module that makes one and every module that reads one take
+! BENEATH EVERY MODULE THAT MAKES OR READS ONE. It takes only `series` and
+`comment`, so every module that makes one and every module that reads one take
 it from the same declaration instead of from each other; `text` calls
-`lexer.comment_form` when it is first read.
+`comment_form` when it is first read.
 """
 
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from comment_review.reading.comment import comment_form
 from comment_review.reading.series import Series
 
 MARKERS = ("TODO", "FIXME", "HACK", "XXX", "BUG")
@@ -68,9 +69,8 @@ class Paragraph:
     # an anchor has MANY addresses -- its own `a`, the `b` above it, the `c`
     # beside it, every `b` and `c` in its body -- and an address has ONE anchor.
     #
-    # !! IT IS ALWAYS CODE, VERBATIM -- a line of code, or every line of a unit,
-    # never a name and never a symbol. An `a` carries what DECLARES it,
-    # `def f():` and not `f`; see `_anchor_of`.
+    # !! IT IS ALWAYS CODE, VERBATIM -- a line of code, never a name and never
+    # a symbol. An `a` carries what DECLARES it, `def f():` and not `f`.
     anchor: str = ""
     # !! THE LINE THIS PLACE'S ANCHOR OPENS ON, so an anchor's OTHER places can
     # be found: the `c` beside its `def`, the `b` above it, its own `a`. Without
@@ -94,10 +94,8 @@ class Paragraph:
     # filling in for a missing value."*
     anchor_line: int | None = None
     # !! THE LINE A READER SAYS THIS DOC DECLARES FOR -- the declaration's own
-    # line, which can sit below the trigger line `anchor_line` holds (a Java
-    # unit's annotation opens above its `class`). `None` for the module's doc.
-    # Only a reader sets it; the page reads it to choose the doc's place, then
-    # sets `anchor_line` from that place.
+    # line. `None` for the module's doc. Only a reader sets it; the page reads it
+    # to choose the doc's place, then sets `anchor_line` from that place.
     declares_line: int | None = None
     # !! THE ORDINAL OF THAT ANCHOR AMONG THE LINES OF CODE, and
     # `flows.proof_setter` checks it, with `anchor` and `anchor_line`, against the
@@ -124,7 +122,7 @@ class Paragraph:
     #
     # ! WHICH FOLLOWS FROM WHERE IT COMES FROM. Every other place exists because
     # the WALK reached a trigger -- and the trigger IS the anchor. A `d` exists
-    # because the LEXER found blank lines, so there was never a trigger for it to
+    # because the PAGE found blank lines, so there was never a trigger for it to
     # be anchored to. `addresser.SERIES` holds four series; `LEAD` is a symbol.
     symbol: str = ""
     annotations: set[str] = field(default_factory=set)
@@ -163,7 +161,7 @@ class Paragraph:
     def text(self) -> str:
         """The prose JOINED, so a wrapped claim matches as one string.
 
-        Derived by `lexer.comment_form` -- the one derivation of a paragraph's
+        Derived by `comment_form` -- the one derivation of a paragraph's
         prose -- from `raw_lines`, the cue's series, `anchor` and the path's
         language, the first time it is asked for, and again only when one of
         those has changed. "" where the paragraph holds no prose.
@@ -174,9 +172,6 @@ class Paragraph:
             return self._text[1]
         text = ""
         if self.raw_text.strip():
-            # Imported here: `lexer` builds paragraphs, so it imports this module.
-            from comment_review.reading.lexer import comment_form
-
             text = comment_form(
                 Path(self.path), Series.of(cue), self.raw_text, self.anchor
             ).text

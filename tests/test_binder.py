@@ -70,6 +70,55 @@ def test_the_binder_names_its_own_version(binder):
     assert binder.version == VERSION
 
 
+def test_freeform_paths_round_trip():
+    bound = bind([build(SAMPLE)], read_from=READ_FROM, freeform=("a.js", "b.md"))
+    wire = json.loads(json.dumps(bound.serialize()))
+    assert wire["freeform"] == ["a.js", "b.md"]
+    got, why = Binder.deserialize("m.py", wire)
+    assert why == []
+    assert got is not None
+    assert got.freeform == ("a.js", "b.md")
+
+
+def test_a_binder_with_no_freeform_files_carries_an_empty_tuple(binder):
+    assert binder.freeform == ()
+    assert binder.serialize()["freeform"] == []
+
+
+def test_a_version_3_binder_is_refused(binder):
+    wire = binder.serialize()
+    wire["version"] = "3"
+    got, why = Binder.deserialize("m.py", wire)
+    assert got is None
+    assert "unsupported binder version '3'" in " ".join(why)
+    assert "regather" in " ".join(why)
+
+
+@pytest.mark.parametrize("value", ["a.js", {"a.js": 1}, None, 7])
+def test_a_freeform_field_that_is_not_a_list_is_refused(binder, value):
+    wire = binder.serialize()
+    wire["freeform"] = value
+    got, why = Binder.deserialize("m.py", wire)
+    assert got is None
+    assert "`freeform`" in " ".join(why)
+
+
+def test_a_freeform_list_holding_a_non_string_is_refused(binder):
+    wire = binder.serialize()
+    wire["freeform"] = ["a.js", 3]
+    got, why = Binder.deserialize("m.py", wire)
+    assert got is None
+    assert "`freeform`" in " ".join(why)
+
+
+def test_a_binder_with_no_freeform_field_is_refused(binder):
+    wire = binder.serialize()
+    del wire["freeform"]
+    got, why = Binder.deserialize("m.py", wire)
+    assert got is None
+    assert "`freeform`" in " ".join(why)
+
+
 def test_the_binder_names_its_root_as_a_path(binder):
     """The commands resolve a cite against `binder.root`; there is no fallback
     to `"."`, because a binder with no root is refused before it is one."""
@@ -232,6 +281,7 @@ class TestAPlaceKnowsThePageThatHoldsIt:
                 {
                     "version": VERSION,
                     "read_from": READ_FROM,
+                    "freeform": [],
                     "pages": [{"path": "m.py", "sha": "", "rows": [{"cue": ""}]}],
                 }
             )
@@ -377,6 +427,7 @@ class TestAReaderRefusesRatherThanCoping:
                 {
                     "version": VERSION,
                     "read_from": READ_FROM,
+                    "freeform": [],
                     "pages": [
                         {
                             "path": "m.py",

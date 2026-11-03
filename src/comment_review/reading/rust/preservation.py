@@ -15,14 +15,21 @@ from comment_review.reading.source import RegionKind
 def compare_preservation(before: RustRead, after: RustRead) -> PreservationResult:
     """Whether `after` holds `before`'s protected source and code unchanged.
 
-    The shebang is compared first, exactly, so any change to it, adding it or
-    removing it is `protected-source-changed`. Code is then compared as the
-    logical lines `_code_lines` returns, and any difference is `code-changed`.
+    The byte-order mark and the shebang are compared first, exactly, so any
+    change to either, adding it or removing it is `protected-source-changed`.
+    An edit that leaves a doc comment where rustc rejects one -- no item
+    follows it, or code precedes an inner doc -- is `doc-without-item`,
+    unless the page already held one. Code is then compared as the logical
+    lines `_code_lines` returns, and any difference is `code-changed`.
     """
-    if _protected(before) != _protected(after):
+    if constants.mark_of(before.source.text) != constants.mark_of(
+        after.source.text
+    ) or _protected(before) != _protected(after):
         return _changed(
             "protected-source-changed", "Protected source text or its presence changed"
         )
+    if after.unattached and not before.unattached:
+        return _changed("doc-without-item", "A doc comment has no item to document")
     if _code_lines(before) != _code_lines(after):
         return _changed("code-changed", "Code outside prose comments changed")
     return PreservationResult(True, ())
@@ -33,7 +40,12 @@ def _changed(code: str, message: str) -> PreservationResult:
 
 
 def _protected(read: RustRead) -> tuple[str, ...]:
-    return tuple(read.source.slice(span) for span in read.protected)
+    # The scanner ends the shebang span before its line ending, which the
+    # interpreter name includes.
+    return tuple(
+        read.source.slice(span) + constants.line_ending_at(read.source.text, span.end)
+        for span in read.protected
+    )
 
 
 def _code_lines(read: RustRead) -> tuple[str, ...]:
@@ -66,10 +78,14 @@ def _code_lines(read: RustRead) -> tuple[str, ...]:
         if read.is_prose(region) or span in protected:
             finish()
             continue
+        # The byte-order mark is compared on its own, by `compare_preservation`.
+        chunk = text[span.start : span.end]
+        if span.start == 0:
+            chunk = constants.without_mark(chunk)
         if region.kind is not RegionKind.WHITESPACE:
-            pieces.append((True, text[span.start : span.end]))
+            pieces.append((True, chunk))
             continue
-        layout = constants.LINE_BREAK.split(text[span.start : span.end])
+        layout = constants.LINE_BREAK.split(chunk)
         pieces.append((False, layout[0]))
         for following in layout[1:]:
             finish()

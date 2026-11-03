@@ -10,10 +10,16 @@ from dataclasses import replace
 from pathlib import Path
 
 import pytest
-from conftest import SAMPLE, run_command
+from conftest import SAMPLE, build, run_command
 
+from comment_review.binder.binder import bind
+from comment_review.commands import check as check_command
+from comment_review.commands import collate as collate_command
 from comment_review.commands import distribute as distribute_command
 from comment_review.commands import gather as gather_command
+from comment_review.commands import topology as topology_command
+from comment_review.desk.topology import read as read_topology
+from comment_review.flows.fan_out import partition
 
 FOUR_C = """
 [[stage]]
@@ -45,8 +51,10 @@ def test_stage_admits_later_language_before_consuming_first_shard(
     from comment_review.flows import reading_context
     from comment_review.reading.readers import ReaderBinding
 
+    later = "b.rs"
+
     (tmp_path / "a.py").write_bytes(b"x = 1\n# first\ny = 2\n")
-    (tmp_path / "b.js").write_bytes(b"const x = 1;\n// later\nconst y = 2;\n")
+    (tmp_path / later).write_bytes(b"const x = 1;\n// later\nconst y = 2;\n")
     code, printed = run_command(
         monkeypatch,
         capsys,
@@ -56,14 +64,14 @@ def test_stage_admits_later_language_before_consuming_first_shard(
         "--out",
         str(tmp_path / "binder.json"),
         str(tmp_path / "a.py"),
-        str(tmp_path / "b.js"),
+        str(tmp_path / later),
         with_stderr=True,
     )
     assert code == 0, printed
     (tmp_path / "t.toml").write_text(
         '[[stage]]\nname = "4a"\nkind = "editorial"\nreads = "original"\n'
         '[[stage.dispatch]]\nrole = "block-context"\npaths = ["a.py"]\n'
-        '[[stage.dispatch]]\nrole = "block-context"\npaths = ["b.js"]\n'
+        f'[[stage.dispatch]]\nrole = "block-context"\npaths = ["{later}"]\n'
     )
     before = {path: path.read_bytes() for path in tmp_path.rglob("*") if path.is_file()}
     if incompatible:
@@ -76,7 +84,7 @@ def test_stage_admits_later_language_before_consuming_first_shard(
             assert isinstance(binding, ReaderBinding)
             return definition, (
                 replace(binding, revision="later-changed")
-                if path.suffix == ".js"
+                if path.name == later
                 else binding
             )
 
@@ -91,7 +99,7 @@ def test_stage_admits_later_language_before_consuming_first_shard(
     code, printed = _stage(tmp_path, monkeypatch, capsys, "4a", out)
     if incompatible:
         assert code == 2, printed
-        assert "b.js" in printed and "regather" in printed
+        assert later in printed and "regather" in printed
         assert not out.exists()
         assert {
             path: path.read_bytes() for path in tmp_path.rglob("*") if path.is_file()
@@ -103,7 +111,7 @@ def test_stage_admits_later_language_before_consuming_first_shard(
                 "path"
             ]
             for n in (1, 2)
-        ] == ["a.py", "b.js"]
+        ] == ["a.py", later]
 
 
 @pytest.mark.parametrize("route", ["seed", "stage"])
@@ -361,3 +369,139 @@ def test_a_stage_reading_the_original_takes_no_revise(tmp_path, monkeypatch, cap
     assert code == 2, printed
     assert "4a" in printed and "original" in printed
     assert not out.exists()
+
+
+def test_a_binder_with_no_freeform_path_deals_shards_with_none():
+    binder = bind([build(SAMPLE, "a.py")], read_from={"root": ".", "revise": 0})
+    stage, _ = read_topology(FOUR_C)
+    assert [free for _, _, free in partition(binder, stage[0])] == [[]]
+
+
+def _freeform_run(root: Path, monkeypatch, capsys) -> tuple[Path, Path, Path]:
+    """Gather two freeform files, build a topology over them, and deal it."""
+    for name in ("a.js", "b.js"):
+        (root / name).write_text("// one\n", encoding="utf-8")
+    binder = root / "binder.json"
+    code, printed = run_command(
+        monkeypatch,
+        capsys,
+        gather_command,
+        "--repo",
+        str(root),
+        "--out",
+        str(binder),
+        str(root / "a.js"),
+        str(root / "b.js"),
+        with_stderr=True,
+    )
+    assert code == 0, printed
+    topology = root / "t.toml"
+    code, printed = run_command(
+        monkeypatch,
+        capsys,
+        topology_command,
+        "--build",
+        "--binder",
+        str(binder),
+        "--out",
+        str(topology),
+        "--stage",
+        "4a=ownership-context/2",
+        with_stderr=True,
+    )
+    assert code == 0, printed
+    out = root / "copies"
+    code, printed = run_command(
+        monkeypatch,
+        capsys,
+        distribute_command,
+        "--topology",
+        str(topology),
+        "--stage",
+        "4a",
+        "--binder",
+        str(binder),
+        "--out-dir",
+        str(out),
+        with_stderr=True,
+    )
+    assert code == 0, printed
+    assert "0 places for ownership-context to rule on; 1 freeform" in printed
+    return binder, topology, out
+
+
+def test_a_shard_keeps_its_freeform_paths_on_its_received_binder(
+    tmp_path, monkeypatch, capsys
+):
+    _, _, out = _freeform_run(tmp_path, monkeypatch, capsys)
+    held = [
+        json.loads((out / "binders" / name).read_text(encoding="utf-8"))["freeform"]
+        for name in ("4a_ownership-context_1.json", "4a_ownership-context_2.json")
+    ]
+    assert held == [["a.js"], ["b.js"]]
+
+
+def test_check_and_collate_accept_a_copy_with_no_sheets(tmp_path, monkeypatch, capsys):
+    binder, topology, out = _freeform_run(tmp_path, monkeypatch, capsys)
+    copies = sorted(out.glob("*.json"))
+    assert [json.loads(c.read_text(encoding="utf-8"))["sheets"] for c in copies] == [
+        [],
+        [],
+    ]
+    for copy in copies:
+        code, printed = run_command(
+            monkeypatch,
+            capsys,
+            check_command,
+            "--edit-copy",
+            str(copy),
+            "--binder",
+            str(out / "binders" / copy.name),
+            "--repo",
+            str(tmp_path),
+            with_stderr=True,
+        )
+        assert code == 0, printed
+    argv = [
+        "--stage",
+        "4a",
+        "--binder",
+        str(binder),
+        "--topology",
+        str(topology),
+        "--repo",
+        str(tmp_path),
+        "--out",
+        str(tmp_path / "chief.json"),
+    ]
+    for copy in copies:
+        argv += ["--edit-copy", str(copy)]
+    code, printed = run_command(
+        monkeypatch, capsys, collate_command, *argv, with_stderr=True
+    )
+    assert code == 0, printed
+    assert (
+        json.loads((tmp_path / "chief.json").read_text(encoding="utf-8"))["sheets"]
+        == []
+    )
+
+
+def test_a_seeded_copy_says_how_many_freeform_paths_its_binder_holds(
+    tmp_path, monkeypatch, capsys
+):
+    binder, _, _ = _freeform_run(tmp_path, monkeypatch, capsys)
+    code, printed = run_command(
+        monkeypatch,
+        capsys,
+        distribute_command,
+        "--seed",
+        "--binder",
+        str(binder),
+        "--role",
+        "block-context",
+        "--out",
+        str(tmp_path / "seeded.json"),
+        with_stderr=True,
+    )
+    assert code == 0, printed
+    assert "0 places for block-context to rule on; 2 freeform" in printed

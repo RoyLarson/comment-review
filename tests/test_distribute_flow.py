@@ -157,6 +157,7 @@ def test_a_NULL_sha_is_seeded_as_absent_not_the_word_None():
     wire = {
         "version": VERSION,
         "read_from": {"root": "tests/test_distribute_flow.py", "revise": 0},
+        "freeform": [],
         "pages": [
             {
                 "path": "m.py",

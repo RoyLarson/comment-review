@@ -16,7 +16,7 @@ sentence there.
 ! **WHICH ROLES EXIST STAYS IN CODE; WHICH ROLE RUNS WHEN MOVES HERE.** `Role`
 and `ROLES` are `desk/stages.py`'s closed set -- a dispatch's `role` key is
 validated against `ROLES`, never against `Role` itself, because `x in
-SomeEnum` raises `TypeError` on Python 3.11, measured at `lexer.py:87`.
+SomeEnum` raises `TypeError` on Python 3.11.
 
 ! **`Stage` AND `Dispatch` ARE IMPORTED, NOT DEFINED HERE.** The design section
 this module implements specifies a `Stage` NamedTuple of its own; `Stage`

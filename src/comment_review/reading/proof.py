@@ -3,9 +3,7 @@
 Every reader returns a record of the file it read, and the record compares
 itself with a second read of the same file. A proof asks that question of the
 page's `read` and never of the language: `PythonRead` compares lexical source
-structure, and `StrippedRead` compares the source with its comments removed.
-`ReaderRecord` is a read that also carries its source, which the page builder
-takes the page's text from.
+structure.
 """
 
 from collections.abc import Collection
@@ -13,7 +11,6 @@ from dataclasses import dataclass
 from typing import Protocol, Self
 
 from comment_review.reading.diagnostics import ReadDiagnostic
-from comment_review.reading.source import SourceStructure
 
 #: The diagnostic code a read reports when it cannot separate prose from code,
 #: so sameness is neither shown nor refuted.
@@ -77,17 +74,4 @@ class SourceRead(Protocol):
                 each as the anchor line of its declaration before and after, with
                 None for the module. None allows every docstring to change.
         """
-        ...
-
-
-class ReaderRecord(SourceRead, Protocol):
-    """A read that carries the source it was made of.
-
-    The page builder takes the page's text from `source`, which a reader may
-    have rewritten, and keeps the record as the page's `read`.
-    """
-
-    @property
-    def source(self) -> SourceStructure:
-        """The exact source and its reader-supplied structure."""
         ...

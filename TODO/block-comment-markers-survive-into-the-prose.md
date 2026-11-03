@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 4 of 12 tasks closed
+Progress: 6 of 12 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-17 (Roy: "use the github api to find a heavily documented file
@@ -163,15 +163,17 @@ grammar and never from a neighbour's, so the two are decided one at a time.
       `_join` change. Verify: the round trip is green on that commit.
 - [ ] T4 | T4 -- Add the eleven pinned files above to `corpora/corpora.toml` as
       a `public` corpus. Verify: `fetch_corpora.py` materialises all eleven.
-- [ ] T5 | T5 -- Make the round trip a test over that corpus, one case per
-      language record. Verify: it fails while a marker survives into `text` and
-      passes once T1 to T3 land.
+- [-] T5 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | T5
+      -- Make the round trip a test over that corpus, one case per language
+      record. Verify: it fails while a marker survives into `text` and passes
+      once T1 to T3 land.
 - [ ] T6 | T6 -- Make that test SKIP when the corpus has not been fetched.
       Verify: with the corpus directory absent, `uv run pytest -q` reports a
       skip and no failure.
-- [ ] T7 | T7 -- Write the unit fixtures for the fix from INVENTED text, not
-      from the corpus. Verify: no assertion under `tests/` quotes a line from
-      any file in the table above.
+- [-] T7 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | T7
+      -- Write the unit fixtures for the fix from INVENTED text, not from the
+      corpus. Verify: no assertion under `tests/` quotes a line from any file in
+      the table above.
 - [-] T8 | Moved to language-reader-java.md | 42f3d3e5 | T8 -- Add a multi-line
       Javadoc to `tests/fixtures/sample.java`. Verify: the fixture carries a
       continuation `*` on three or more lines.

@@ -4,9 +4,8 @@ from typing import Any, cast, get_args
 
 import pytest
 
-from comment_review.flows.language_definitions import installed_registry
 from comment_review.flows.read_diagnostics import LocatedReadFailure, format_failure
-from comment_review.reading import lexer, readers
+from comment_review.reading import readers
 from comment_review.reading.diagnostics import (
     DetachedDocumentation,
     ReadDiagnostic,
@@ -14,6 +13,7 @@ from comment_review.reading.diagnostics import (
     ReadStage,
     SourceRead,
 )
+from comment_review.reading.language import INSTALLED_REGISTRY
 from comment_review.reading.paragraph import Paragraph
 from comment_review.reading.python.projection import paragraphs_for
 from comment_review.reading.python.records import PythonRead
@@ -28,81 +28,12 @@ from comment_review.reading.source import SourceSpan, SourceStructure
         'x = """open',
     ],
 )
-def test_read_paragraphs_reports_python_refusal(text):
-    registry = installed_registry()
-    assert not isinstance(registry, ReadFailure)
-    result = readers.read_paragraphs(
-        Path("m.py"), text, lexer.LANGUAGES[0], registry=registry
-    )
+def test_read_source_reports_python_refusal(text):
+    registry = INSTALLED_REGISTRY
+    result = readers.read_source(Path("m.py"), text, registry=registry)
     assert isinstance(result, ReadFailure)
     assert result.diagnostics[0].stage == ReadStage.LEX
     assert result.diagnostics[0].span is not None
-
-
-def test_read_paragraphs_unterminated_comment_stops_the_read():
-    path = Path("m.c")
-    text = "int x;\r\n/* open\r\nstill open"
-    lang = lexer.language_for(path)
-    assert lang is not None
-    result = readers.read_paragraphs(path, text, lang)
-    assert isinstance(result, ReadFailure)
-    assert [(d.stage, d.code, d.span) for d in result.diagnostics] == [
-        (ReadStage.LEX, "unterminated-comment", SourceSpan(8, len(text)))
-    ]
-
-
-def test_read_paragraphs_retains_signal_order(monkeypatch):
-    records = [
-        Paragraph("m.py", 1, 1, "unparsed", raw_lines=["unsupported reading"]),
-        Paragraph("m.py", 2, 2, "comment"),
-    ]
-    records[1].annotations.add("unterminated-paragraph-comment")
-    monkeypatch.setattr(
-        readers,
-        "read_lexical",
-        lambda *args: lexer.LexicalRead(records, [], False, False),
-    )
-    lang = lexer.language_for(Path("m.c"))
-    assert lang is not None
-    result = readers.read_paragraphs(Path("m.c"), "code\n# open", lang)
-    assert isinstance(result, ReadFailure)
-    assert [(d.code, d.span) for d in result.diagnostics] == [
-        ("incomplete-read", None),
-        ("unterminated-comment", SourceSpan(5, 11)),
-    ]
-
-
-def test_read_paragraphs_invalid_record_and_unexpected_error_propagate(monkeypatch):
-    def broken(*args):
-        raise RuntimeError("reader defect")
-
-    lang = lexer.language_for(Path("m.c"))
-    assert lang is not None
-    monkeypatch.setattr(readers, "read_lexical", broken)
-    with pytest.raises(RuntimeError, match="reader defect"):
-        readers.read_paragraphs(Path("m.c"), "", lang)
-    record = Paragraph("m.py", 3, 3, "comment")
-    record.annotations.add("unterminated-paragraph-comment")
-    monkeypatch.setattr(
-        readers,
-        "read_lexical",
-        lambda *args: lexer.LexicalRead([record], [], False, False),
-    )
-    with pytest.raises(ValueError, match="source lines"):
-        readers.read_paragraphs(Path("m.c"), "# open", lang)
-
-
-@pytest.mark.parametrize("text", ["", "/* note */\nint x;\n"])
-def test_read_paragraphs_preserves_supported_readings(text):
-    path = Path("m.c")
-    lang = lexer.language_for(path)
-    assert lang is not None
-    expected = lexer.paragraphs_lexical(path, text, lang)
-    registry = installed_registry()
-    assert not isinstance(registry, ReadFailure)
-    result = readers.read_source(path, text, registry=registry)
-    assert isinstance(result, lexer.LexicalRead)
-    assert result.paragraphs(path) == expected
 
 
 @pytest.mark.parametrize(
@@ -111,20 +42,17 @@ def test_read_paragraphs_preserves_supported_readings(text):
 )
 def test_read_source_gives_python_its_lexical_read(text, expected):
     path = Path("m.py")
-    registry = installed_registry()
-    assert not isinstance(registry, ReadFailure)
+    registry = INSTALLED_REGISTRY
     result = readers.read_source(path, text, registry=registry)
     assert isinstance(result, PythonRead)
     assert result.source.text is text
-    assert result.a_series is True
     paragraphs = paragraphs_for(path, result)
     assert not isinstance(paragraphs, ReadFailure)
     assert [(p.start, p.end, p.kind, p.raw_lines) for p in paragraphs] == expected
 
 
-def test_python_paragraph_adapter_recognizes_source_once(monkeypatch):
-    registry = installed_registry()
-    assert not isinstance(registry, ReadFailure)
+def test_read_paragraphs_come_from_the_one_python_read(monkeypatch):
+    registry = INSTALLED_REGISTRY
     calls = []
     recognize = readers.read_python
 
@@ -135,9 +63,9 @@ def test_python_paragraph_adapter_recognizes_source_once(monkeypatch):
 
     monkeypatch.setattr(readers, "read_python", counted)
     text = 'def f(): "doc"; return 1\n'
-    result = readers.read_paragraphs(
-        Path("m.py"), text, lexer.LANGUAGES[0], registry=registry
-    )
+    read = readers.read_source(Path("m.py"), text, registry=registry)
+    assert isinstance(read, PythonRead)
+    result = read.paragraphs(Path("m.py"))
     assert isinstance(result, list)
     assert len(calls) == 1
     assert result == paragraphs_for(Path("m.py"), calls[0])
@@ -374,3 +302,10 @@ def test_located_failure_preserves_base_diagnostic_validation(records):
 def test_failure_renderer_rejects_non_failure_input():
     with pytest.raises(ValueError):
         format_failure(cast(Any, None), path="example.py")
+
+
+@pytest.mark.parametrize("name", ["m.py", "m.rs"])
+def test_a_comment_holding_a_line_separator_reads(name):
+    mark = "#" if name == "m.py" else "//"
+    text = f"{mark} a{chr(0x2028)}b\n"
+    assert not isinstance(readers.read_source(Path(name), text), ReadFailure)

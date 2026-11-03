@@ -9,7 +9,6 @@ from typing import Any
 import pytest
 
 from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, ReadStage
-from comment_review.reading.language import Language
 
 WIRE = """format = 1
 language = "Invented MIX"
@@ -31,137 +30,6 @@ def failure(message: str) -> ReadFailure:
     return ReadFailure(
         (ReadDiagnostic(ReadStage.SELECT, "invalid-language-definition", message),)
     )
-
-
-def load(paths: list[Path]) -> Any:
-    return import_module("comment_review.flows.language_definitions").load_definitions(
-        paths
-    )
-
-
-def test_load_empty_input_returns_empty_tuple() -> None:
-    assert load([]) == ()
-
-
-def test_load_files_preserves_input_order_and_nested_values(tmp_path: Path) -> None:
-    first = tmp_path / "first.toml"
-    second = tmp_path / "second.toml"
-    first.write_text(WIRE, encoding="utf-8")
-    second.write_text(WIRE.replace("Invented MIX", "Other Invented"), encoding="utf-8")
-
-    values = load([second, first])
-
-    assert isinstance(values, tuple)
-    assert tuple(value.language for value in values) == (
-        "Other Invented",
-        "Invented MIX",
-    )
-    assert values[0].rules == {
-        "tokens": ("", 2, True, False, {"end": ()}),
-        "empty": {},
-    }
-    assert values[1].choices == {"style": ("", "wide")}
-
-
-def test_load_missing_file_retains_acquisition_diagnostic(tmp_path: Path) -> None:
-    path = tmp_path / "missing.toml"
-
-    result = load([path])
-
-    assert isinstance(result, ReadFailure)
-    diagnostic = result.diagnostics[0]
-    assert diagnostic.stage == ReadStage.ACQUIRE
-    assert diagnostic.code == "io-error"
-    assert str(path) in diagnostic.message
-    assert diagnostic.byte_offset is None
-
-
-def test_load_invalid_utf8_retains_decode_byte_offset(tmp_path: Path) -> None:
-    path = tmp_path / "bad-bytes.toml"
-    path.write_bytes(b"format = 1\n\xff")
-
-    result = load([path])
-
-    assert isinstance(result, ReadFailure)
-    diagnostic = result.diagnostics[0]
-    assert diagnostic.stage == ReadStage.DECODE
-    assert diagnostic.code == "invalid-utf8"
-    assert str(path) in diagnostic.message
-    assert "invalid start byte" in diagnostic.message
-    assert diagnostic.byte_offset == 11
-
-
-@pytest.mark.parametrize(
-    ("text", "reason"),
-    [
-        ("", "missing fields:"),
-        ("format = [", "Invalid value"),
-        (WIRE.replace("format = 1", "format = 2"), "format must be integer 1"),
-    ],
-)
-def test_load_invalid_definition_retains_selection_failure(
-    tmp_path: Path, text: str, reason: str
-) -> None:
-    path = tmp_path / "invalid.toml"
-    path.write_text(text, encoding="utf-8")
-
-    result = load([path])
-
-    assert isinstance(result, ReadFailure)
-    diagnostic = result.diagnostics[0]
-    assert diagnostic.stage == ReadStage.SELECT
-    assert diagnostic.code == "invalid-language-definition"
-    assert str(path) in diagnostic.message
-    assert reason in diagnostic.message
-    assert diagnostic.byte_offset is None
-
-
-def test_load_later_file_failure_does_not_publish_partial_tuple(tmp_path: Path) -> None:
-    good = tmp_path / "good.toml"
-    bad = tmp_path / "bad.toml"
-    good.write_text(WIRE, encoding="utf-8")
-    bad.write_text("", encoding="utf-8")
-
-    result = load([good, bad])
-
-    assert isinstance(result, ReadFailure)
-    assert str(bad) in result.diagnostics[0].message
-
-
-def test_load_decodes_held_text_without_another_read(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    module = import_module("comment_review.flows.language_definitions")
-    source = import_module("comment_review.flows.source")
-    path = tmp_path / "held.toml"
-    path.write_text(WIRE, encoding="utf-8")
-
-    def acquire_then_remove(acquired_path: Path) -> Any:
-        value = source.source_of(acquired_path)
-        acquired_path.unlink()
-        return value
-
-    monkeypatch.setattr(module, "source_of", acquire_then_remove)
-
-    values = load([path])
-
-    assert isinstance(values, tuple)
-    assert len(values) == 1
-    assert values[0].language == "Invented MIX"
-    assert values[0].rules["tokens"] == ("", 2, True, False, {"end": ()})
-
-
-def test_load_unexpected_acquisition_defect_propagates(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    module = import_module("comment_review.flows.language_definitions")
-
-    def broken_acquisition(path: Path) -> Any:
-        raise RuntimeError("programming error")
-
-    monkeypatch.setattr(module, "source_of", broken_acquisition)
-    with pytest.raises(RuntimeError, match="programming error"):
-        load([tmp_path / "example.toml"])
 
 
 def test_decode_exact_definition_and_ordered_nested_rules() -> None:
@@ -348,9 +216,7 @@ def binding(**changes: Any) -> Any:
         "revision": "1",
         "capabilities": ("comments",),
         "grammar_identity": "",
-        "read": lambda path, text, lang: import_module(
-            "comment_review.reading.lexer"
-        ).LexicalRead([], [], False, False),
+        "read": lambda path, text, lang: pytest.fail("the binding is not read"),
         "validate": lambda value: None,
     }
     values.update(changes)
@@ -425,8 +291,6 @@ def test_binding_validator_distinguishes_missing_invalid_and_empty_grammar(
 
 
 def test_binding_read_once_with_exact_source_and_retains_refusal() -> None:
-    from comment_review.reading.language import LANGUAGES
-
     calls = []
     refused = ReadFailure(
         (
@@ -440,9 +304,10 @@ def test_binding_read_once_with_exact_source_and_retains_refusal() -> None:
         return refused
 
     installed = binding(read=read)
-    path, text, lang = Path("source.py"), "# exact\r\n", LANGUAGES[0]
+    path, text = Path("source.py"), "# exact\r\n"
     registered = registry((definition(**configuration(suffixes=(".py",))),))
-    selected = bind(registered.for_path(path), {installed.reader: installed})
+    lang = registered.for_path(path)
+    selected = bind(lang, {installed.reader: installed})
     assert selected.read(path, text, lang) is refused
     assert calls == [(path, text, lang)]
     assert installed.grammar_identity == ""
@@ -604,10 +469,6 @@ def registry(values: Any) -> Any:
     return import_module("comment_review.reading.registry").LanguageRegistry(values)
 
 
-def select_registry(values: Any) -> Any:
-    return import_module("comment_review.reading.registry").registry_for(values)
-
-
 @pytest.mark.parametrize("reverse", [False, True])
 def test_registry_selection_is_independent_of_registration_order(reverse: bool) -> None:
     demo = definition(**configuration(language="Demo MIX", suffixes=(".DEMO",)))
@@ -617,19 +478,13 @@ def test_registry_selection_is_independent_of_registration_order(reverse: bool) 
     assert value.for_path(Path("nested/name.DeMo")) is demo
     assert value.for_path(Path("component.JSX")) is other
     assert value.for_path(Path("component.tsx")) is other
-    assert value.for_language("Demo MIX") is demo
-    assert value.for_language("demo mix") is None
-    assert value.for_language("Other") is other
     assert value.for_path(Path("unknown.py")) is None
     assert value.for_path(Path("extensionless")) is None
-    assert select_registry(values) == value
 
 
 def test_empty_registry_has_no_matches() -> None:
     value = registry(())
     assert value.for_path(Path("name.demo")) is None
-    assert value.for_language("Demo") is None
-    assert select_registry(()) == value
 
 
 def test_registry_and_registered_definitions_are_immutable() -> None:
@@ -649,23 +504,19 @@ def test_registry_and_registered_definitions_are_immutable() -> None:
 def test_registry_rejects_wrong_constructor_input(invalid: Any) -> None:
     with pytest.raises(ValueError, match="definitions"):
         registry(invalid)
-    result = select_registry(invalid)
-    assert isinstance(result, ReadFailure)
-    assert result.diagnostics[0].stage == ReadStage.SELECT
-    assert result.diagnostics[0].code == "invalid-language-definition"
 
 
 @pytest.mark.parametrize("reverse", [False, True])
 @pytest.mark.parametrize(
-    ("names", "suffixes", "code"),
+    ("names", "suffixes", "refusal"),
     [
-        (("Same", "Same"), ((".one",), (".two",)), "duplicate-language"),
-        (("First", "Second"), ((".demo",), (".demo",)), "ambiguous-language"),
-        (("First", "Second"), ((".DEMO",), (".demo",)), "ambiguous-language"),
+        (("Same", "Same"), ((".one",), (".two",)), "duplicate language"),
+        (("First", "Second"), ((".demo",), (".demo",)), "is claimed by"),
+        (("First", "Second"), ((".DEMO",), (".demo",)), "is claimed by"),
     ],
 )
 def test_registry_refuses_collisions_in_both_orders(
-    reverse: bool, names: tuple[str, str], suffixes: Any, code: str
+    reverse: bool, names: tuple[str, str], suffixes: Any, refusal: str
 ) -> None:
     values = tuple(
         definition(**configuration(language=name, suffixes=claimed))
@@ -673,22 +524,17 @@ def test_registry_refuses_collisions_in_both_orders(
     )
     if reverse:
         values = tuple(reversed(values))
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match=refusal) as refused:
         registry(values)
-    result = select_registry(values)
-    assert isinstance(result, ReadFailure)
-    diagnostic = result.diagnostics[0]
-    assert diagnostic.stage == ReadStage.SELECT
-    assert diagnostic.code == code
-    assert all(name in diagnostic.message for name in names)
+    assert all(name in str(refused.value) for name in names)
 
 
 def test_registry_preserves_distinct_exact_language_identities() -> None:
     upper = definition(**configuration(language="Demo", suffixes=(".one",)))
     lower = definition(**configuration(language="demo", suffixes=(".two",)))
     value = registry((upper, lower))
-    assert value.for_language("Demo") is upper
-    assert value.for_language("demo") is lower
+    assert value.for_path(Path("name.one")) is upper
+    assert value.for_path(Path("name.two")) is lower
 
 
 @pytest.mark.parametrize(
@@ -713,156 +559,24 @@ def test_registry_preserves_distinct_exact_language_identities() -> None:
 def test_registry_refuses_non_code_suffixes(suffix: str, uppercase: bool) -> None:
     claim = suffix.upper() if uppercase else suffix
     values = (definition(**configuration(language="Excluded", suffixes=(claim,))),)
-    with pytest.raises(ValueError, match="Excluded"):
+    with pytest.raises(ValueError, match=f"Excluded.*{claim}"):
         registry(values)
-    result = select_registry(values)
-    assert isinstance(result, ReadFailure)
-    diagnostic = result.diagnostics[0]
-    assert diagnostic.stage == ReadStage.SELECT
-    assert diagnostic.code == "invalid-language-definition"
-    assert "Excluded" in diagnostic.message
-    assert claim in diagnostic.message
 
 
-def test_installed_code_definitions_have_exact_suffixes_and_independent_rules() -> None:
-    from dataclasses import fields
-
-    from comment_review.reading.language import INSTALLED_DEFINITIONS, LANGUAGES
-
-    expected = {
-        "go": (".go",),
-        "c": (".c", ".h"),
-        "cpp": (".cpp", ".hpp", ".cc", ".cxx"),
-        "java": (".java",),
-        "csharp": (".cs",),
-        "swift": (".swift",),
-        "kotlin": (".kt", ".kts"),
-        "javascript": (".js", ".jsx", ".mjs", ".cjs"),
-        "typescript": (".ts", ".tsx", ".mts", ".cts"),
-        "ruby": (".rb",),
-        "shell": (".sh", ".bash", ".zsh"),
-        "sql": (".sql",),
-        "lua": (".lua",),
-    }
-    assert {
-        value.language: value.suffixes for value in INSTALLED_DEFINITIONS
-    } == expected
-    rows = {row.name: row for row in LANGUAGES}
-    for value in INSTALLED_DEFINITIONS:
-        row = rows[value.language]
-        assert value.defaults == value.choices == {}
-        assert dict(value.rules) == {
-            field.name: getattr(row, field.name)
-            for field in fields(row)
-            if field.name not in {"name", "extensions"}
-        }
-    assert len({id(value.rules) for value in INSTALLED_DEFINITIONS}) == 13
-
-
-def test_python_is_defined_by_its_own_file_and_by_no_row() -> None:
+def test_python_is_defined_by_its_own_file() -> None:
     from comment_review.reading.language import (
         INSTALLED_REGISTRY,
-        LANGUAGES,
         SHIPPED_DEFINITIONS,
         documents_in_literals,
-        language_for,
-        line_comment_markers,
+        line_comment_marker,
     )
 
     path = Path("m.py")
-    assert [row.name for row in LANGUAGES if ".py" in row.extensions] == []
     assert [value.language for value in SHIPPED_DEFINITIONS] == ["python", "rust"]
     assert INSTALLED_REGISTRY.for_path(path) is SHIPPED_DEFINITIONS[0]
-    assert language_for(path) is None
-    assert line_comment_markers(path) == ("#",)
+    assert line_comment_marker(path) == "#"
     assert documents_in_literals(path)
     assert not documents_in_literals(Path("m.rs"))
-
-
-def test_installed_bindings_validate_rules_and_host_identity() -> None:
-    import platform
-    import sys
-    from dataclasses import replace
-
-    from comment_review.reading.language import INSTALLED_DEFINITIONS, READER_METADATA
-    from comment_review.reading.readers import INSTALLED_BINDINGS
-
-    for value in INSTALLED_DEFINITIONS:
-        installed = INSTALLED_BINDINGS[value.reader]
-        assert bind(value, INSTALLED_BINDINGS) is installed
-        metadata = READER_METADATA[value.language]
-        assert installed.revision == value.revision == metadata.revision
-        assert installed.capabilities == value.capabilities == metadata.capabilities
-        assert metadata.tier in installed.capabilities
-        if value.language == "python":
-            assert platform.python_implementation() in installed.grammar_identity
-            assert platform.python_version() in installed.grammar_identity
-            assert sys.version in installed.grammar_identity
-        else:
-            assert installed.grammar_identity == ""
-        for rules in (
-            {},
-            {**value.rules, "unknown": ()},
-            {**value.rules, "quotes": False},
-            {**value.rules, "nests_comments": 1},
-            {**value.rules, "block_comment": ("/*", "*/")},
-            {**value.rules, "quotes": ("",)},
-            *(
-                {key: item for key, item in value.rules.items() if key != missing}
-                for missing in value.rules
-            ),
-        ):
-            assert isinstance(
-                bind(replace(value, rules=rules), INSTALLED_BINDINGS), ReadFailure
-            )
-        empty = {
-            key: False if isinstance(item, bool) else ()
-            for key, item in value.rules.items()
-        }
-        assert bind(replace(value, rules=empty), INSTALLED_BINDINGS) is installed
-        with pytest.raises(ValueError):
-            from comment_review.reading.language import language_from_definition
-
-            language_from_definition(replace(value, rules={}))
-        assert isinstance(
-            bind(replace(value, capabilities=("dialects",)), INSTALLED_BINDINGS),
-            ReadFailure,
-        )
-        assert isinstance(
-            bind(replace(value, reader="absent"), INSTALLED_BINDINGS), ReadFailure
-        )
-        assert isinstance(
-            bind(replace(value, language="other"), INSTALLED_BINDINGS), ReadFailure
-        )
-
-
-def test_installed_bindings_invoke_existing_engines(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    from comment_review.reading import readers
-    from comment_review.reading.language import (
-        INSTALLED_DEFINITIONS,
-    )
-
-    calls = []
-    monkeypatch.setattr(
-        readers,
-        "read_lexical",
-        lambda path, text, lang: (
-            calls.append((lang.name, path, text))
-            or readers.LexicalRead([], [], lang.a_series, lang.closing_docstring)
-        ),
-    )
-    for value in INSTALLED_DEFINITIONS:
-        path = Path("source" + value.suffixes[0])
-        result = readers.INSTALLED_BINDINGS[value.reader].read(path, "exact\r\n", value)
-        assert isinstance(result, readers.LexicalRead)
-        assert result.paragraphs(path) == []
-        assert calls[-1] == (
-            "stdlib" if value.language == "python" else value.language,
-            path,
-            "exact\r\n",
-        )
 
 
 @pytest.mark.parametrize(
@@ -870,38 +584,47 @@ def test_installed_bindings_invoke_existing_engines(
     [".toml", ".ini", ".cfg", ".yaml", ".json", ".md", ".html", ".css", ".unknown"],
 )
 def test_installed_selection_excludes_non_code(suffix: str) -> None:
-    from comment_review.reading.language import language_for
     from comment_review.reading.readers import reader_for
 
-    assert language_for(Path("source" + suffix.upper())) is None
     assert reader_for(Path("source" + suffix.upper())) is None
+
+
+@pytest.mark.parametrize("name", ["a.js", "a.JS", "a.go", "dir/a.sh"])
+def test_a_source_suffix_with_no_reader_is_freeform(name: str) -> None:
+    from comment_review.reading.registry import is_freeform
+
+    assert is_freeform(Path(name))
+
+
+@pytest.mark.parametrize(
+    "name", ["a.py", "a.rs", "a.md", "a.toml", "a.png", "Makefile"]
+)
+def test_a_read_or_non_source_file_is_not_freeform(name: str) -> None:
+    from comment_review.reading.registry import is_freeform
+
+    assert not is_freeform(Path(name))
 
 
 def test_installed_selection_and_coverage_use_validated_bindings(monkeypatch) -> None:
     from dataclasses import replace
 
     from comment_review.reading import readers
-    from comment_review.reading.language import INSTALLED_REGISTRY, language_for
-    from comment_review.reading.readers import tier_for
+    from comment_review.reading.language import INSTALLED_REGISTRY
 
-    selected = readers.reader_for(Path("component.TSX"))
+    selected = readers.reader_for(Path("lib.RS"))
     assert selected is not None and not isinstance(selected, ReadFailure)
     value, installed = selected
-    assert value is INSTALLED_REGISTRY.for_path(Path("component.tsx"))
-    lang = language_for(Path("component.tsx"))
-    assert lang is not None
-    assert tier_for(lang) == "lexical"
+    assert value is INSTALLED_REGISTRY.for_path(Path("lib.rs"))
     assert value in readers.supported_definitions()
     monkeypatch.setattr(readers, "INSTALLED_BINDINGS", {})
-    assert tier_for(lang) == ""
-    assert isinstance(readers.reader_for(Path("component.TSX")), ReadFailure)
+    assert isinstance(readers.reader_for(Path("lib.RS")), ReadFailure)
     assert readers.supported_definitions() == ()
     monkeypatch.setattr(
         readers,
         "INSTALLED_BINDINGS",
         {value.reader: replace(installed, capabilities=("comments",))},
     )
-    assert isinstance(readers.reader_for(Path("component.TSX")), ReadFailure)
+    assert isinstance(readers.reader_for(Path("lib.RS")), ReadFailure)
     assert readers.supported_definitions() == ()
 
 
@@ -910,9 +633,7 @@ def python_definition() -> Any:
         Path(__file__).parents[1]
         / "src/comment_review/references/languages/python.toml"
     )
-    values = load([path])
-    assert isinstance(values, tuple), values
-    return values[0]
+    return decode(path.read_text(encoding="utf-8"))
 
 
 def validate_python_definition(value: Any) -> Any:
@@ -922,7 +643,6 @@ def validate_python_definition(value: Any) -> Any:
 
 
 def test_python_definition_loads_complete_grammar_and_installs_lexical_reader() -> None:
-    from comment_review.flows.language_definitions import installed_registry
     from comment_review.reading.readers import INSTALLED_BINDINGS, supported_definitions
 
     value = python_definition()
@@ -931,12 +651,9 @@ def test_python_definition_loads_complete_grammar_and_installs_lexical_reader() 
     assert value.suffixes == (".py", ".pyi")
     assert value.defaults == value.choices == {}
     assert value.reader in INSTALLED_BINDINGS
-    registry = installed_registry()
-    assert not isinstance(registry, ReadFailure)
-    installed = {item.language: item for item in supported_definitions(registry)}
-    assert len(installed) == 15
+    installed = {item.language: item for item in supported_definitions()}
+    assert sorted(installed) == ["python", "rust"]
     assert installed["python"].reader == "python-lexical"
-    assert installed["typescript"].suffixes == (".ts", ".tsx", ".mts", ".cts")
     assert value.rules["literals"]["prefixes"]["raw_template"] == ("tr", "rt")
     assert value.rules["documentation"]["literal_groups"] == ("plain", "raw")
 
@@ -1053,9 +770,7 @@ def rust_definition() -> Any:
     path = (
         Path(__file__).parents[1] / "src/comment_review/references/languages/rust.toml"
     )
-    values = load([path])
-    assert isinstance(values, tuple), values
-    return values[0]
+    return decode(path.read_text(encoding="utf-8"))
 
 
 def validate_rust_definition(value: Any) -> Any:
@@ -1149,16 +864,8 @@ def test_rust_definition_is_installed_as_rust_lexical_revision_2() -> None:
     assert binding.grammar_identity == "Rust Reference lexical"
 
 
-def test_rust_definition_leaves_no_language_row() -> None:
-    from comment_review.reading.language import LANGUAGES, READER_METADATA
-
-    assert [row.name for row in LANGUAGES if row.name == "rust"] == []
-    assert [row.name for row in LANGUAGES if ".rs" in row.extensions] == []
-    assert "rust" not in READER_METADATA
-
-
 def test_rust_comment_form_takes_its_markers_from_the_rust_scanner() -> None:
-    from comment_review.reading.lexer import comment_form
+    from comment_review.reading.comment import comment_form
     from comment_review.reading.series import Series
 
     path = Path("x.rs")
@@ -1169,63 +876,3 @@ def test_rust_comment_form_takes_its_markers_from_the_rust_scanner() -> None:
     assert block.fragments[0].first == "/* "
     assert block.fragments[0].last == " */"
     assert block.fragments[0].paragraphs == ("a /* b */ c",)
-
-
-def test_rust_definition_leaves_other_definitions_unchanged() -> None:
-    from comment_review.reading.language import (
-        INSTALLED_DEFINITIONS,
-        SHIPPED_DEFINITIONS,
-    )
-
-    assert [value.language for value in SHIPPED_DEFINITIONS] == ["python", "rust"]
-    assert [value.language for value in INSTALLED_DEFINITIONS] == [
-        "go",
-        "c",
-        "cpp",
-        "java",
-        "csharp",
-        "swift",
-        "kotlin",
-        "javascript",
-        "typescript",
-        "ruby",
-        "shell",
-        "sql",
-        "lua",
-    ]
-
-
-def test_annotation_openers_are_validated_and_pinned_per_row() -> None:
-    from dataclasses import replace
-
-    from comment_review.reading.language import INSTALLED_DEFINITIONS
-    from comment_review.reading.readers import INSTALLED_BINDINGS
-
-    for value in INSTALLED_DEFINITIONS:
-        for invalid in (("",), "@", (1,)):
-            rules = {**value.rules, "annotations": invalid}
-            assert isinstance(
-                bind(replace(value, rules=rules), INSTALLED_BINDINGS), ReadFailure
-            )
-    by_name = {value.language: value.rules for value in INSTALLED_DEFINITIONS}
-    assert by_name["java"]["annotations"] == ("@",)
-    assert by_name["typescript"]["annotations"] == ("@",)
-    assert by_name["csharp"]["annotations"] == ()
-    assert by_name["go"]["annotations"] == ()
-
-
-@pytest.mark.parametrize(
-    ("shebang", "lines", "line"),
-    [
-        (("#!",), ["#!/bin/sh", "echo"], "#!/bin/sh"),
-        (("#!",), ["echo", "#!/bin/sh"], None),
-        (("#!",), [], None),
-        ((), ["#!/bin/sh"], None),
-    ],
-    ids=["first-line", "below-line-1", "empty-file", "no-marker"],
-)
-def test_a_rows_interpreter_line_is_line_1_opening_with_its_shebang(
-    shebang, lines, line
-) -> None:
-    row = Language("x", (".x",), ("#",), shebang=shebang)
-    assert row.interpreter_line(lines) == line

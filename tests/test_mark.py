@@ -22,7 +22,6 @@ import pytest
 from helpers import a_binder_over
 from test_mark_brief import BRIEF
 
-from comment_review.binder.page import Page
 from comment_review.constants import EMPTY_PATCH
 from comment_review.desk.marks.rules import allowed, derived_change
 from comment_review.desk.marks.table import INSTRUCTIONS
@@ -39,8 +38,6 @@ from comment_review.desk.proof.mark import (
     without_location,
 )
 from comment_review.desk.proof.sheet import Sheet
-from comment_review.flows.page_for import page_of
-from comment_review.machine.repo import Source
 
 
 def problems(where: str, entry: object) -> list[str]:
@@ -439,24 +436,14 @@ class TestTheRulesBite:
         good["change"] = "    #: the corrected comment"
         assert problems("here", good) == []
 
-    @pytest.mark.parametrize("line", ["@Override", "public void run() {"])
-    def test_a_change_carrying_either_line_of_a_unit_is_refused(self, line):
-        """A unit's anchor is every line of it, read here from a real page."""
-        text = "class C {\n    @Override\n    public void run() {\n    }\n}\n"
-        page = page_of(Path("C.java"), source=Source(text, "held"))
-        assert isinstance(page, Page)
-        anchor = page.cues.anchor_of("a2")
-        assert anchor.splitlines() == ["    @Override", "    public void run() {"]
-
+    @pytest.mark.parametrize("split", ["\x0c", "\x85", "\u2028"])
+    def test_a_change_carrying_a_piece_of_a_split_anchor_is_refused(self, split):
+        """One line of code holding one of these still splits at it, and a
+        change holding either piece is refused."""
         bad = well_formed("correct")
-        bad["anchor"] = anchor
-        bad["change"] = f"    /** Runs it. */\n    {line}"
-        assert any(repr(line) in p for p in problems("here", bad))
-
-        good = well_formed("correct")
-        good["anchor"] = anchor
-        good["change"] = "    /** Runs it. */"
-        assert problems("here", good) == []
+        bad["anchor"] = f'x = "a{split}b"'
+        bad["change"] = '# the corrected comment\nx = "a'
+        assert any("anchor's own line" in p for p in problems("here", bad))
 
     def test_a_mark_owing_sources_that_cites_nothing_is_refused(self):
         """! ADDED after a mutation survived: both source cases below pass a

@@ -239,58 +239,54 @@ class TestByLine:
 
 
 @pytest.fixture
-def a_closing_binder(tmp_path):
-    """`class A {}` and a foot comment, gathered: its `<eof>` `a` is `a2`, which
-    no line of the file names."""
+def an_ends_binder(tmp_path):
+    """A declaration and a foot comment, gathered, and the file's name."""
+    name = "A.rs"
     root = tmp_path / "repo"
     root.mkdir()
-    (root / "A.java").write_text("class A {}\n// foot\n", encoding="utf-8", newline="")
-    page = page_of(root / "A.java", rel="A.java")
+    (root / name).write_text("fn a() {}\n// foot\n", encoding="utf-8", newline="")
+    page = page_of(root / name, rel=name)
     assert not isinstance(page, ReadFailure), page
     binder = bind([page], read_from={"root": str(root), "revise": 0})
     where = tmp_path / "binder.json"
     where.write_text(json.dumps(binder.serialize()), encoding="utf-8")
-    return where
+    return where, name
 
 
 class TestBySentinel:
     """`--line` takes `<module>` or `<eof>` in place of a number, and names the
     places each series emitted at that end of the file."""
 
-    def _ask(self, monkeypatch, capsys, binder, line, series):
+    def _ask(self, monkeypatch, capsys, binder, line, series, name):
         return run_command(
             monkeypatch,
             capsys,
             addresser,
-            *("--binder", str(binder), "--file", "A.java"),
+            *("--binder", str(binder), "--file", name),
             *("--line", line, "--series", series),
         )
 
-    def test_the_closing_a_answers_at_eof(self, monkeypatch, capsys, a_closing_binder):
-        code, out = self._ask(monkeypatch, capsys, a_closing_binder, "<eof>", "a")
+    def test_the_modules_a_answers_at_module(self, monkeypatch, capsys, an_ends_binder):
+        binder, name = an_ends_binder
+        code, out = self._ask(monkeypatch, capsys, binder, "<module>", "a", name)
         assert code == 0, out
-        assert out.split() == ["A.java@a2", "'<eof>'", "ABSENT"]
-
-    def test_the_modules_a_answers_at_module(
-        self, monkeypatch, capsys, a_closing_binder
-    ):
-        code, out = self._ask(monkeypatch, capsys, a_closing_binder, "<module>", "a")
-        assert code == 0, out
-        assert out.split() == ["A.java@a0", "'<module>'", "ABSENT"]
+        assert out.split() == [f"{name}@a0", "'<module>'", "ABSENT"]
 
     @pytest.mark.parametrize(("line", "place"), [("<module>", "f0"), ("<eof>", "f1")])
     def test_a_sentinel_names_one_end_of_the_files_matter(
-        self, monkeypatch, capsys, a_closing_binder, line, place
+        self, monkeypatch, capsys, an_ends_binder, line, place
     ):
-        code, out = self._ask(monkeypatch, capsys, a_closing_binder, line, "f")
+        binder, name = an_ends_binder
+        code, out = self._ask(monkeypatch, capsys, binder, line, "f", name)
         assert code == 0, out
-        assert out.split()[0] == f"A.java@{place}"
+        assert out.split()[0] == f"{name}@{place}"
         assert len(out.splitlines()) == 1
 
     def test_a_series_with_no_place_at_a_sentinel_says_so(
-        self, monkeypatch, capsys, a_closing_binder
+        self, monkeypatch, capsys, an_ends_binder
     ):
-        code, out = self._ask(monkeypatch, capsys, a_closing_binder, "<module>", "c")
+        binder, name = an_ends_binder
+        code, out = self._ask(monkeypatch, capsys, binder, "<module>", "c", name)
         assert code == 1
         assert "<module>" in out and "no `c` place" in out
 
@@ -301,8 +297,9 @@ class TestBySentinel:
         usage = capsys.readouterr().out.split("\n\n")[0]
         assert "--line N|<module>|<eof>" in " ".join(usage.split())
 
-    def test_the_binder_still_checks(self, monkeypatch, capsys, a_closing_binder):
+    def test_the_binder_still_checks(self, monkeypatch, capsys, an_ends_binder):
+        binder, _ = an_ends_binder
         code, out = run_command(
-            monkeypatch, capsys, addresser, "--binder", str(a_closing_binder), "--check"
+            monkeypatch, capsys, addresser, "--binder", str(binder), "--check"
         )
         assert code == 0, out

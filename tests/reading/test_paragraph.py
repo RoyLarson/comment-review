@@ -4,8 +4,8 @@ from pathlib import Path
 
 import pytest
 
-from comment_review.reading import lexer
-from comment_review.reading.lexer import comment_form
+from comment_review.reading import paragraph as paragraph_module
+from comment_review.reading.comment import comment_form
 from comment_review.reading.paragraph import MARKERS, Paragraph
 from comment_review.reading.series import Series
 
@@ -50,7 +50,6 @@ def test_an_empty_place_counts_nothing():
             ["/// Adds one.", "/// Twice."],
             "Adds one. Twice.",
         ),
-        ("m.c", "m.c@c0", "int x = 1;", [" /* abi_only */"], "abi_only"),
         ("m.py", "m.py@a0", "<module>", ['"""Module doc."""'], "Module doc."),
         (
             "m.py",
@@ -82,13 +81,13 @@ def test_text_is_derived_when_read_and_again_only_when_its_inputs_change(
     monkeypatch,
 ):
     calls = []
-    real = lexer.comment_form
+    real = comment_form
 
     def counting(*args):
         calls.append(args)
         return real(*args)
 
-    monkeypatch.setattr(lexer, "comment_form", counting)
+    monkeypatch.setattr(paragraph_module, "comment_form", counting)
     one = paragraph("# one")
     assert calls == []
     assert (one.text, one.text) == ("one", "one")

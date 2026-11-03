@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 25 of 69 tasks closed
+Progress: 52 of 73 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (/simplify rounds 1 and 2 and /code-review high round 3,
@@ -169,12 +169,12 @@ would.
 - [x] T1 | FINISHED | unknown | T1 -- FINISHED. lexer.py's unparsed fallback
       catches `tokenize.TokenError` and `IndentationError`, not `SyntaxError`
       alone. Verified at lexer.py:1783-1789.
-- [ ] T2 | T2 -- Stamp every paragraph an unterminated block comment swallowed,
-      not only the last. Verify: all of them carry
-      `unterminated-paragraph-comment`.
-- [ ] T3 | T3 -- Exclude `Kind.MATTER` from the walk-up candidates. Verify: Ruby
-      front matter above a `def` leaves `f0.declares` unset, and only `a1`
-      declares 1.
+- [-] T2 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | T2
+      -- Stamp every paragraph an unterminated block comment swallowed, not only
+      the last. Verify: all of them carry `unterminated-paragraph-comment`.
+- [-] T3 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | T3
+      -- Exclude `Kind.MATTER` from the walk-up candidates. Verify: Ruby front
+      matter above a `def` leaves `f0.declares` unset, and only `a1` declares 1.
 - [-] T4 | Moved to language-reader-shell.md | 42f3d3e5 | T4 -- Let the shell
       row say `#` is inert after a dollar-brace. Verify: `n=${#arr} # count`
       censuses as ONE trailing comment at `# count`, not at column 5.
@@ -182,24 +182,29 @@ would.
 - [x] T5 | FINISHED | unknown | T5 -- FIXED FOR KOTLIN 2026-08-22: the soft
       keywords are two-word entries at language.py:342-376, with the reason at
       :348-361. Java, C# and Swift are T13-T15.
-- [ ] T6 | T6 -- Make language.py:9 name a file that exists, or drop the
-      citation -- `scripts/check_language_leaf.py` does not. Verify: the path it
-      names resolves.
-- [ ] T7 | T7 -- Gate the two-importer rule: fail when a third module reads a
-      language symbol. Verify: the gate exists and fails on a planted third
-      importer of `language`.
-- [ ] T8 | T8 -- De-duplicate the sorted `line_comment` opener tuple,
-      byte-identical at lexer.py:999 and desk.py:379. Verify: the expression
-      appears once.
-- [ ] T9 | T9 -- De-duplicate the `continues-a-trailing-comment` stamp,
-      copy-pasted at lexer.py:1168-1176 and :1772-1780. Verify: `grep -c` of its
-      sentence returns 1.
-- [ ] T10 | T10 -- Use `bisect` at lexer.py:1614, where a list comprehension
-      scans the sorted `above_code` built one line earlier. Verify: the scan is
-      gone and the suite green.
-- [ ] T11 | T11 -- Replace the four one-element lists standing in for `nonlocal`
-      in lexer.py. Verify: no `[0]` subscript on a one-element accumulator
-      remains in lexer.py.
+- [-] T6 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | T6
+      -- Make language.py:9 name a file that exists, or drop the citation --
+      `scripts/check_language_leaf.py` does not. Verify: the path it names
+      resolves.
+- [-] T7 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | T7
+      -- Gate the two-importer rule: fail when a third module reads a language
+      symbol. Verify: the gate exists and fails on a planted third importer of
+      `language`.
+- [-] T8 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | T8
+      -- De-duplicate the sorted `line_comment` opener tuple, byte-identical at
+      lexer.py:999 and desk.py:379. Verify: the expression appears once.
+- [-] T9 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | T9
+      -- De-duplicate the `continues-a-trailing-comment` stamp, copy-pasted at
+      lexer.py:1168-1176 and :1772-1780. Verify: `grep -c` of its sentence
+      returns 1.
+- [-] T10 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | T10
+      -- Use `bisect` at lexer.py:1614, where a list comprehension scans the
+      sorted `above_code` built one line earlier. Verify: the scan is gone and
+      the suite green.
+- [-] T11 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | T11
+      -- Replace the four one-element lists standing in for `nonlocal` in
+      lexer.py. Verify: no `[0]` subscript on a one-element accumulator remains
+      in lexer.py.
 - [x] T12 | One rule: Paragraph.lines derives from counted_lines | b30cc510 | T12
       -- Settle what `Paragraph.lines` counts: three rules fill it, one column
       reads it. Verify: one rule fills it, or the field is gone and the column
@@ -208,7 +213,8 @@ would.
 - [-] T13 | Moved to language-reader-java.md | 42f3d3e5 | T13 -- Give Java its
       own expression of a soft keyword: `record` at language.py:248. Verify:
       `record = lookup()` in a `.java` mints no `a`, and a real one still does.
-- [ ] T14 | T14 -- Give C# its own expression of a soft keyword: `record` at
+- [-] T14 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | T14
+      -- Give C# its own expression of a soft keyword: `record` at
       language.py:283. Verify: `record = lookup()` in a `.cs` mints no `a`, and
       a real one still does.
 - [-] T15 | Moved to language-reader-swift.md | 42f3d3e5 | T15 -- Give Swift its
@@ -219,9 +225,9 @@ would.
       Verify: a Rust multi-line string is neither refused wholesale nor read as
       comments.
         > 2026-10-10 Multiline Rust literal edits compare equal as stripped code
-- [ ] T17 | T17 -- Declare C's spanning quotes; language.py:185-193 carries
-      none. Verify: a C multi-line string is neither refused wholesale nor read
-      as comments.
+- [-] T17 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | T17
+      -- Declare C's spanning quotes; language.py:185-193 carries none. Verify:
+      a C multi-line string is neither refused wholesale nor read as comments.
 - [-] T18 | Moved to language-reader-lua.md | 42f3d3e5 | T18 -- Bound Lua's
       long-bracket level, or read it; language.py:473 stops at two `=` so
       `--[===[` reads as code. Verify: a fixture with `--[===[` fails before the
@@ -284,13 +290,14 @@ would.
 - [-] T33 | Moved to language-reader-javascript.md | 42f3d3e5 | Recognize
       JavaScript regex literals in lexer.py:1071; verify /[//]/ yields no
       comment paragraph
-- [ ] T34 | Resume code scanning after block comments in lexer.py:1071; verify a
-      quote in a block cannot hide a following line comment
+- [-] T34 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | Resume
+      code scanning after block comments in lexer.py:1071; verify a quote in a
+      block cannot hide a following line comment
 - [-] T35 | Moved to language-reader-lua.md | 42f3d3e5 | Select the earliest
       block opener in lexer.py:1072; verify mixed Lua delimiters inside a long
       comment preserve its full body
-- [ ] T36 | Replace `doc_inside` with a documentation position every language
-      row states
+- [-] T36 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | Replace
+      `doc_inside` with a documentation position every language row states
         > 2026-10-16 Reason: 17 of 18 rows inherit above from a default; 11 declare
         > 2026-10-16 Reason: a bool states inside; above is only its absence
         > 2026-10-16 Check: Language has no default position; every row names one
@@ -306,25 +313,32 @@ would.
       the Python `Language` row's grammar fields
         > 2026-10-17 Reason: `python.toml` states it; no Python read uses the row
         > 2026-10-17 Check: the Python row carries no grammar; reading suites pass
-- [ ] T40 | Remove `BY_EXT`, which nothing reads
+- [x] T40 | BY_EXT removed from reading/language.py; ty, ruff and pytest passed, 5825 passed | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | Remove
+      `BY_EXT`, which nothing reads
         > 2026-10-17 Reason: `language_for` rebuilds a Language on every call instead
         > 2026-10-17 Check: grep -rn BY_EXT src tests scripts finds nothing
-- [ ] T41 | Remove the grammar no reader reads from the toml, ini, yaml rows
+- [-] T41 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | Remove
+      the grammar no reader reads from the toml, ini, yaml rows
         > 2026-10-17 Reason: none is in READER_METADATA; language_for skips them
         > 2026-10-17 Check: those rows carry only name and extensions
-- [ ] T42 | Move `NAMED_DEFS` into `concordance`
+- [x] T42 | NAMED_DEFS moved to concordance/names.py; both readers import it there; pytest 6823 passed | 3cdbe205743d9260e7f4cf763519c50f66de7258 | Move
+      `NAMED_DEFS` into `concordance`
         > 2026-10-17 Reason: only concordance reads it; it is lexer.py's last ast use
         > 2026-10-17 Check: grep finds no `import ast` in reading/lexer.py
-- [ ] T43 | Remove the Annotations banner from `lexer.py`
+- [-] T43 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | Remove
+      the Annotations banner from `lexer.py`
         > 2026-10-17 Reason: nothing under it is an annotation
         > 2026-10-17 Check: grep finds no Annotations banner in reading/lexer.py
-- [ ] T44 | Move the comment-form readers out of `lexer.py` to the desk
+- [x] T44 | comment_form and its helpers moved out of lexer.py to reading/comment.py, not the desk, because paragraph.py cannot import the desk; pytest passed | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | Move
+      the comment-form readers out of `lexer.py` to the desk
         > 2026-10-17 Reason: only desk/marks/rules.py reads comment_form; Process #212
         > 2026-10-17 Check: lexer.py defines no comment_form or _comment_fragment
-- [ ] T45 | Inline `ESCAPE_WIDTH` into `_closes_a_character`
+- [-] T45 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | Inline
+      `ESCAPE_WIDTH` into `_closes_a_character`
         > 2026-10-17 Reason: it is a module constant one function reads
         > 2026-10-17 Check: grep finds ESCAPE_WIDTH nowhere in src
-- [ ] T46 | Move the galley-defect account out of the lexer's loop
+- [-] T46 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | Move
+      the galley-defect account out of the lexer's loop
         > 2026-10-17 Reason: it documents results/galley.py, not this loop
         > 2026-10-17 Check: the loop comment states only what the loop does
 - [x] T47 | FINISHED: doc-kind-unresolved and flag_structural_docs retired (#231) | 79cf418f | Remove
@@ -345,7 +359,8 @@ would.
         > 2026-10-30 W5: with a Rust attribute the fn line declares nothing, says a0
         > 2026-10-30 Check: `owner_at` gets the trigger line; decorated drafts refuse
         > 2026-10-30 Fix: `_documented_line` returns a line `owner_at` matches (D5)
-- [ ] T52 | Match a C# attribute section apart from a collection expression
+- [-] T52 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | Match
+      a C# attribute section apart from a collection expression
 - [x] T53 | FINISHED: #240 for all three readers; pymc sets back identical | 70f1f028 | Make
       every comment above a module docstring front matter, per #240
         > 2026-10-26 py: lic, blank, # note, blank, doc sets back reordered; at ef037f20
@@ -355,8 +370,10 @@ would.
         > 2026-10-27 Also: let y; /** D */ // c, blank, // m: eof a fill reads as f1
         > 2026-10-27 Also let y; /** D */ // c, blank, // m: eof a fill reads as f1
         > 2026-10-30 W4: comments both sides of a py module doc now refuse the gather
-- [ ] T54 | Add Kotlin's property keywords to its declares list
-- [ ] T55 | Join an annotation whose arguments run onto a second line
+- [-] T54 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | Add
+      Kotlin's property keywords to its declares list
+- [-] T55 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | Join
+      an annotation whose arguments run onto a second line
 - [ ] T56 | Offer no place inside a string literal that spans lines
         > 2026-10-27 C backslash strings get c; Python triple quotes get b
 - [ ] T57 | Place a doc comment whole when another opens on its first line
@@ -364,26 +381,39 @@ would.
         > 2026-10-30 I7: lexer.py:948 same cut on another comment's closing line
 - [ ] T58 | Allow an add at the b directly above a declaration
         > 2026-10-30 W2: refused in TS Go Ruby Lua Kotlin C# Swift
-- [ ] T59 | Read a delimited comment after a string-only prefix as trailing
+- [-] T59 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | Read
+      a delimited comment after a string-only prefix as trailing
         > 2026-10-30 I1: lexer.py:1037; "b" /* c */ becomes prose, file unprovable
 - [x] T60 | FINISHED: each row states its line endings; text holding one refuses (#250) | 23f96926 | Refuse
       a line separator inside a comment that ends at the line break
         > 2026-10-30 // a U+2028 evil(); accepted in js/ts, node ran it; cs too
-- [ ] T61 | Refuse a C comment ending in a backslash splice
+- [-] T61 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | Refuse
+      a C comment ending in a backslash splice
         > 2026-10-30 C/C++ '// a \' splices the next code line; not compiled here
         > 2026-10-30 Roy: waits for a C specific reader (#250)
 - [x] T62 | FINISHED: shell and Ruby rows name their shebang | 34c14a05 | Name
       the shebang on the shell row
         > 2026-10-30 language.py:434: a shebang can be dropped or altered in .sh
-- [ ] T63 | Read one definition of a blank line in `lexer.py:967` and
-      `stripped.py:26`
+- [-] T63 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | Read
+      one definition of a blank line in `lexer.py:967` and `stripped.py:26`
         > 2026-10-31 Also `lexer.py:1055`, `:1076`, `:1131`; U+3000 refuses wrongly
         > 2026-10-31 U+3000 refusal fixed in d64cd55f; reader `BLANK` differs from proof
 - [ ] T64 | Let `a0` hold a plain comment flush under a bare shebang
 - [ ] T65 | Test a line ending carried through a `c` place
 - [ ] T66 | Test a line ending on a paragraph's later line
-- [ ] T67 | Confirm the CR notes at `language.py:190`, `:492` and
-      `nests_comments`
-- [ ] T68 | Refuse the `.rs` draft rustc cannot read at `rust/records.py:350`
+- [-] T67 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | Confirm
+      the CR notes at `language.py:190`, `:492` and `nests_comments`
+- [x] T68 | Doc comments rustc rejects (no item, before a close or inner attribute, misplaced inner doc) are refused as doc-without-item; 47 drafts checked against rustc, 1646 registry files read without self-refusal | 2768a650fa090ad37529962456288862a55676f6 | Refuse
+      the `.rs` draft rustc cannot read at `rust/records.py:350`
         > 2026-10-31 Outcome: refuse in `RustRead.preserved`, #256
 - [ ] T69 | Add `RecursionError` to `PARSE_ERRORS` at `exceptions.py:80`
+- [ ] T70 | Refuse a Rust doc marker in a position with no item
+        > 2026-10-31 Proves, rustc rejects: `if`, `else`, parameter, expression
+        > 2026-10-31 Also struct literal, variant field list, const generic default
+        > 2026-10-31 Check: each shape refuses `doc-without-item`, as rustc rejects it
+- [ ] T71 | Select a reader by capability, not by reader id string
+        > 2026-11-01 comment.py:237 and readers.py:166 compare the reader id string
+- [ ] T72 | Cut the registry generality two definition files don't need
+        > 2026-11-01 context_for and page_for take a registry no production caller sets
+- [ ] T73 | List the freeform suffixes in gather --languages
+        > 2026-11-01 gather --languages omits the set is_freeform reads

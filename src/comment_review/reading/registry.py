@@ -4,7 +4,6 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from comment_review.reading.definitions import LanguageDefinition
-from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, ReadStage
 
 _EXCLUDED_SUFFIXES = frozenset(
     {
@@ -25,13 +24,44 @@ _EXCLUDED_SUFFIXES = frozenset(
 )
 
 
-class _RegistryError(ValueError):
-    """A construction refusal carrying its selection diagnostic code."""
+#: The suffixes of source files with no reader. The gather lists these for the
+#: reviewers to read as they stand; any other file with no reader is not source
+#: and no reviewer is handed it.
+_FREEFORM_SUFFIXES = frozenset(
+    {
+        ".bash",
+        ".c",
+        ".cc",
+        ".cjs",
+        ".cpp",
+        ".cs",
+        ".cts",
+        ".cxx",
+        ".go",
+        ".h",
+        ".hpp",
+        ".java",
+        ".js",
+        ".jsx",
+        ".kt",
+        ".kts",
+        ".lua",
+        ".mjs",
+        ".mts",
+        ".rb",
+        ".sh",
+        ".sql",
+        ".swift",
+        ".ts",
+        ".tsx",
+        ".zsh",
+    }
+)
 
-    def __init__(self, code: str, message: str) -> None:
-        """Retain classification alongside the useful value error message."""
-        super().__init__(message)
-        self.code = code
+
+def is_freeform(path: Path) -> bool:
+    """Whether `path` is a source file with no reader, ignoring suffix case."""
+    return path.suffix.lower() in _FREEFORM_SUFFIXES
 
 
 @dataclass(frozen=True)
@@ -45,15 +75,13 @@ class LanguageRegistry:
         if not isinstance(self.definitions, tuple) or any(
             not isinstance(value, LanguageDefinition) for value in self.definitions
         ):
-            raise _RegistryError(
-                "invalid-language-definition",
+            raise ValueError(
                 "definitions must be a tuple of LanguageDefinition values",
             )
         identities: set[str] = set()
         for value in self.definitions:
             if value.language in identities:
-                raise _RegistryError(
-                    "duplicate-language",
+                raise ValueError(
                     f"duplicate language identity {value.language!r}",
                 )
             identities.add(value.language)
@@ -62,14 +90,12 @@ class LanguageRegistry:
             for suffix in value.suffixes:
                 normalized = suffix.lower()
                 if normalized in _EXCLUDED_SUFFIXES:
-                    raise _RegistryError(
-                        "invalid-language-definition",
+                    raise ValueError(
                         f"language {value.language!r} claims excluded "
                         f"suffix {suffix!r}",
                     )
                 if normalized in claims:
-                    raise _RegistryError(
-                        "ambiguous-language",
+                    raise ValueError(
                         f"suffix {normalized!r} is claimed by languages "
                         f"{claims[normalized]!r} and {value.language!r}",
                     )
@@ -86,19 +112,3 @@ class LanguageRegistry:
             ),
             None,
         )
-
-    def for_language(self, name: str) -> LanguageDefinition | None:
-        """Select an exact declared language identity."""
-        return next(
-            (value for value in self.definitions if value.language == name), None
-        )
-
-
-def registry_for(
-    definitions: tuple[LanguageDefinition, ...],
-) -> LanguageRegistry | ReadFailure:
-    """Construct a registry or report an expected selection refusal."""
-    try:
-        return LanguageRegistry(definitions)
-    except _RegistryError as error:
-        return ReadFailure((ReadDiagnostic(ReadStage.SELECT, error.code, str(error)),))

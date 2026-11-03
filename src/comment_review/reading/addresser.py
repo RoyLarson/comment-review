@@ -43,21 +43,10 @@ those and the scheme collapses without saying so:
   exact             a heuristic that is usually right is a table that is
                     occasionally renumbered
 
-! What MAKES it constant across this tool's own work is stage 7b's CODE CHECK.
-It does NOT prove the code byte-identical, and saying so overstates it: for
-Python it compares an `ast.dump`, so the bytes may differ while the statements
-and their ORDER do not; elsewhere it compares the stripped text. Either way what
-holds is that the Nth code line is still the same statement -- which is exactly
-what an ordinal counts. The line numbers move with the prose; the ordinal does
-not.
-
-! `ast.dump` would carry every DOCSTRING into that fingerprint, so rewriting one
--- the commonest edit this system makes -- would read as a code change.
-`_blank_docstrings` empties each docstring's value before the dump: its CONTENT
-is out of the proof, its PRESENCE is not. ! So adding or deleting a docstring
-still changes the body's shape and still fails -- filed as
-`TODO/the-code-check-refuses-add-and-drop-on-a-docstring.md`, and the reason an
-`add` on a declaration cannot be written today.
+! What MAKES it constant across this tool's own work is stage 7b's CODE CHECK:
+the reader's record compares the code of two reads of a file, so the Nth code
+line is still the same statement -- which is exactly what an ordinal counts. The
+line numbers move with the prose; the ordinal does not.
 
 !! AND IT PROVES NOTHING AT ALL ON AN UNPROVABLE FILE, which is the hard
 exception this scheme rests on and must name. `prove_unchanged` returns
@@ -102,16 +91,10 @@ language that does the opposite: *"that was true for python and I messed up. We
 have a better discriminator now and the docstring and its position are
 determined by the language not my on-off statement."*
 
-!! SO NO POSITIONING RULE IS STATED IN THIS MODULE, OR ANYWHERE BUT ONE PLACE.
-Roy: *"All framing about positioning should come from the language and should be
-only in either the language definition file, or a reference to the language
-definition file in lexer and compositor. The language definition file should be
-a leaf separate from everything else and imported only by lexer and
-compositor."* So `language.py` says where a language puts its documentation, two
-modules read it, and every step after carries what they state. ! Which
-declaration a doc belongs to is stated by the LEXER and never inferred by this
-module's to infer, because it is language-dependent and a parser knows it while
-a position does not.
+!! SO NO POSITIONING RULE IS STATED IN THIS MODULE. A language's reader says
+where its documentation sits and which declaration a doc belongs to, because
+that is language-dependent and a reader knows it while a position does not.
+`DocPlace` carries what it states.
 
 !! THE `a` NUMBER COUNTS DECLARATIONS, NOT CODE LINES, AND THAT IS A RULING.
 Numbering each declaration by the `c` of its own `def` line would put all three
@@ -153,12 +136,8 @@ from typing import NamedTuple
 from comment_review.reading.series import ADDRESSED, Series, cue_for
 from comment_review.reading.source import CodeLine
 
-# !! THE LETTERS COME FROM THE SERIES DEFINITION, since 2026-08-25. Roy: *"The
-# present absent pairings is effectively what defines the series and the
-# identifier we give it should be right there with them."* They were spelled
-# here and the pairs were spelled in `lexer` -- two modules that cannot import
-# each other, tied only by MEMBER NAME and held equal by a test. That test
-# existed because there were two sources; there is one now.
+# !! THE LETTERS COME FROM THE SERIES DEFINITION, the one source of a series'
+# letter and its two kinds.
 #
 # ! `series` IS A LEAF and holds no notion of a place, so taking the letters
 # from it acquires no subject: this module still knows nothing about prose.
@@ -181,10 +160,9 @@ DECLARED = Series.DECLARED.value.letter
 # the day a second front-matter place is emitted.
 COVERS = Series.COVERS.value.letter
 
-# !! EVERY SERIES THERE IS, AND THE ONLY LIST OF THEM. Adding one is a row here
-# -- the same rule `lexer.LANGUAGES` follows. Roy, 2026-08-20: *"we may find
-# another specific type that doesn't match these four's purposes, so keep the
-# code generic in how it picks it up even if we don't know the shape."*
+# !! EVERY SERIES THERE IS, AND THE ONLY LIST OF THEM. Adding one is a row
+# here. A specific type that fits none of these four purposes may appear, so
+# the code stays generic in how it picks one up.
 #
 # !! THE FOURTH COST FOUR EDITS AND TWO BUGS, which is the argument for this
 # list. `cue` merged three addressers' places and not the fourth, so `f0` had
@@ -195,7 +173,7 @@ COVERS = Series.COVERS.value.letter
 #
 # ! ORDER IS THE ORDER A READER MEETS THEM: the file's own matter, then a
 # declaration's documentation, the gap above a line, the room beside it.
-# !! THE SPACE BETWEEN TWO PARAGRAPHS -- see `lexer.LEADING` for what it is and
+# !! THE SPACE BETWEEN TWO PARAGRAPHS -- see `Kind.LEADING` for what it is and
 # why. Roy ruled the letter 2026-08-21: *"and d works."*
 #
 # ! `l` WAS THE OBVIOUS CHOICE AND THE WORST POSSIBLE CHARACTER: `m.py@l0` reads
@@ -244,7 +222,7 @@ LEAD = Series.LEAD.value.letter
 #: ! AND THE CAUSE IS WHERE IT COMES FROM, which is what makes this a category
 #: error rather than a missing field. Every place here exists because `cue`
 #: reached a trigger, and the trigger IS the anchor. A `d` exists because the
-#: LEXER found blank lines -- so it was never anchored to anything, it was
+#: PAGE found blank lines -- so it was never anchored to anything, it was
 #: FOUND. It also never entered `reading`, so the compositor could not set from
 #: it the way it sets every other place; it is set as an EDGE, from
 #: `Page.leading`.
@@ -254,7 +232,7 @@ LEAD = Series.LEAD.value.letter
 #: anchored; only the thing measured can.
 #:
 #: ! `LEAD` SURVIVES AS A SYMBOL, on Roy's ruling that the page/symbol map is
-#: what shows every line is covered -- see `lexer.Paragraph.symbol`.
+#: what shows every line is covered -- see `Paragraph.symbol`.
 # ! DERIVED, NOT LISTED. Every series whose absence can be CITED -- which is
 # every series but `d`, and the definition says so by giving `d` no `absent`
 # rather than by an exclusion written here.
@@ -267,20 +245,12 @@ SERIES = ADDRESSED
 MODULE = "<module>"
 
 #: The LAST TRIGGER, past the final line of code. `b` emits for it -- the gap
-#: after the last statement is a place prose can go -- and so do `a`, for the
-#: module's closing documentation where the language can hold it, and `f`, for
-#: the file's own matter at the foot. `c` skips it.
+#: after the last statement is a place prose can go -- and so does `f`, for the
+#: file's own matter at the foot. `a` and `c` skip it.
 #:
-#: !! IT IS A TRIGGER AND NOT AN ARITHMETIC RULE. The alternative is `b`
-#: emitting N+1 places by definition, which is one line shorter and puts a
-#: special rule inside one series. ! `f` will almost certainly want this trigger
-#: too -- tail matter, an index or a glossary at the END of a file -- and then
-#: two series each carry a different special rule, and a reader has to know why
-#: one gets a +1 and the other gets some other treatment.
-#:
-#: ! So the cost is paid once, here: every series meets EOF and decides, exactly
-#: as it does at MODULE, and adding `f`'s tail place later is a row rather than a
-#: second arithmetic.
+#: !! IT IS A TRIGGER AND NOT AN ARITHMETIC RULE. `b` emitting N+1 places by
+#: definition would put a special rule inside one series, and `f` would need
+#: another. So every series meets EOF and decides, exactly as it does at MODULE.
 EOF = "<eof>"
 
 
@@ -331,8 +301,7 @@ class Addresser:
 
     Attributes:
         series: `a`, `b`, `c` or `f`.
-        places: cue -> the LINE OF CODE it is attached to, in emission order;
-            for a unit's `a` and `b`, every line of the unit, one per line.
+        places: cue -> the LINE OF CODE it is attached to, in emission order.
     """
 
     series: str
@@ -359,8 +328,7 @@ class Addresser:
         """Take this trigger's number, record what it is, and return the cue.
 
         Args:
-            anchor: the code this place is attached to -- a line, or every
-                line of a unit, one per line -- or `MODULE`.
+            anchor: the line of code this place is attached to, or a sentinel.
             trigger: which trigger this is, indexing `triggers()`.
         """
         got = cue_for(self.series, self._step)
@@ -401,7 +369,7 @@ class Cues:
     anything. That is the difference between line order driving `cue` and a
     line number computing a number.
     ! It ITERATES rather than SCANS, and the word matters here: scanning is what
-    the LEXER does, over characters, looking at what they are. Nothing in this
+    a READER does, over characters, looking at what they are. Nothing in this
     module reads a character -- it steps a sequence it was handed.
 
     !! IT KEEPS ITS ADDRESSERS RATHER THAN FLATTENING THEM. Roy, 2026-08-21:
@@ -449,12 +417,12 @@ class Cues:
     reading: list[str] = field(default_factory=list)
     # ! LEADING IS NOT HERE, and was for one evening. It is `Page.leading` --
     # `cue` never filled it and never read it, because `cue` runs before
-    # any prose exists and leading is only where the LEXER found a blank run.
+    # any prose exists and leading is only where the PAGE found a blank run.
     # Roy, 2026-08-21: *"I kind of expected that to be the pages job."*
 
     @property
     def places(self) -> dict[str, str]:
-        """Every place in the file -> a line of code, or every line of a unit.
+        """Every place in the file -> its line of code, or a sentinel.
 
         ! DERIVED FROM THE ADDRESSERS, in `SERIES` order. It was a field `cue`
         assigned by flattening the walkers on its last line, which is what made
@@ -472,7 +440,7 @@ class Cues:
         }
 
     def anchor_of(self, cue: str, default: str = "") -> str:
-        """This place's line of code, or every line of its unit; else `default`.
+        """This place's line of code, or sentinel; else `default`.
 
         !! ONE LOOKUP, NOT A REBUILT DICT. `places` composes the walkers into a
         fresh mapping on every read, so asking it for ONE place inside a loop is
@@ -496,14 +464,12 @@ class Cues:
         the `b` fired at the EOF trigger.
 
         ! IT READS `cue` DIRECTLY. A `b` fires at the trigger BELOW it, and
-        the closing gap is the one at the EOF trigger. A line that joins the
-        line above it takes no `b`, so a line inside a unit answers the gap
-        above the unit's first line.
+        the closing gap is the one at the EOF trigger.
         """
         gaps = self._gaps
         for step, trigger in enumerate(self.triggers):
             if isinstance(trigger, int) and line <= trigger:
-                return gaps.get(self._unit_head(step), "")
+                return gaps.get(step, "")
         return gaps.get(len(self.triggers) - 1, "")
 
     @cached_property
@@ -514,16 +480,6 @@ class Cues:
         `Cues`, and nothing emits one after.
         """
         return {step: c for c, step in self.addressers[GAP].trigger.items()}
-
-    def _unit_head(self, step: int) -> int:
-        """The trigger that opens the unit this trigger is in.
-
-        It is the nearest trigger at or before this one that a `b` fired at.
-        """
-        gaps = self._gaps
-        while step > 0 and step not in gaps:
-            step -= 1
-        return step
 
     def beside(self, line: int) -> str:
         """The `c` on this line of code, or "" if the line holds no code.
@@ -542,9 +498,8 @@ class Cues:
     def documents(self, line: int | None) -> str:
         """The `a` documenting the declaration on this code line.
 
-        Every line of a unit answers the unit's `a`. None is the module, whose
-        documentation is `a0`. "" when the line declares nothing documentable,
-        or the page has no `a` series.
+        None is the module, whose documentation is `a0`. "" when the line
+        declares nothing documentable.
         """
         if line is None:
             return self.addressers[DECLARED].at(0)
@@ -552,26 +507,12 @@ class Cues:
 
     @cached_property
     def _declared(self) -> dict[int, str]:
-        """Each line of a unit with an `a` -> that `a`, built as `_gaps` is."""
-        gaps = self._gaps
-        index: dict[int, str] = {}
-        for c, step in self.addressers[DECLARED].trigger.items():
-            # The unit's lines run from the trigger the `a` fired at to the
-            # next trigger a `b` fired at.
-            while isinstance(line_at := self.triggers[step], int):
-                index.setdefault(line_at, c)
-                step += 1
-                if step in gaps:
-                    break
-        return index
-
-    def closing_documentation(self) -> str:
-        """The `a` emitted at EOF, for the module's closing documentation.
-
-        "" when the page has no `a` series.
-        """
-        walker = self.addressers[DECLARED]
-        return next((c for c, anchor in walker.places.items() if anchor == EOF), "")
+        """Each declaring line -> its `a`, built as `_gaps` is."""
+        return {
+            line: c
+            for c, step in self.addressers[DECLARED].trigger.items()
+            if isinstance(line := self.triggers[step], int)
+        }
 
     def at_line(self, line: int | str, series: str) -> list[str]:
         """The places of one SERIES that a line NUMBER or a SENTINEL names.
@@ -587,14 +528,13 @@ class Cues:
 
             b   the gap a paragraph inserting at `line` falls into
             c   the room beside `line`, if it holds code
-            a   the documentation of a declaration on `line`, or of the
-                unit `line` is a line of
+            a   the documentation of a declaration on `line`
             f   both of the file's own places -- no line tells the head from
                 the foot, so the caller chooses by address
 
         A sentinel, `MODULE` or `EOF`, names the places the series emitted at
-        that trigger: `a0` and `f0` at `MODULE`; the closing `b`, the `<eof>`
-        `a` and the last `f` at `EOF`. No line number reaches those.
+        that trigger: `a0` and `f0` at `MODULE`; the closing `b` and the last
+        `f` at `EOF`. No line number reaches those.
 
         Returns:
             The cues, in emission order. Empty when the series has no place at
@@ -712,10 +652,9 @@ class Cues:
         holding the two in step.
 
         !! IT IS THE TRIGGER BEFORE THIS GAP AND THE ONE IT FIRED AT, read off
-        `cue`. A gap is emitted at the trigger BELOW it -- the first line
-        of the unit under it -- so the pair either side of it is
-        `triggers[at - 1]` and `triggers[at]`, and a sentinel on either end
-        answers 0 because the file's own edge is not a line of code.
+        `cue`. A gap is emitted at the trigger BELOW it, so the pair either
+        side of it is `triggers[at - 1]` and `triggers[at]`, and a sentinel on
+        either end answers 0 because the file's own edge is not a line of code.
 
         ! WHICH IS WHY THE CLOSING GAP STILL BOUNDS CORRECTLY while being
         anchored to `EOF`: it fires at the EOF trigger, so its pair is the last
@@ -747,9 +686,7 @@ class Cues:
         return list(self.addressers[COVERS].places)
 
 
-def cue(
-    code: list[CodeLine], a_series: bool = True, closing_docstring: bool = True
-) -> Cues:
+def cue(code: list[CodeLine]) -> Cues:
     """Walk the anchors of one file; return every cue and its code.
 
     !! `cue` IS WHAT MAKES EVERY PLACE EXIST. A place is emitted because
@@ -763,12 +700,10 @@ def cue(
 
     ! The four rules differ, and each is measured rather than chosen:
 
-        a   the MODULE, then every documentable declaration, then the EOF
-            sentinel where the language can document the module there. A line
-            it cannot emit for takes no number, so `a1` is the first
-            declaration however much code precedes it.
-        b   the MODULE, then the gap above every unit of code, then the gap
-            after the last one.
+        a   the MODULE, then every documentable declaration. A line it cannot
+            emit for takes no number, so `a1` is the first declaration however
+            much code precedes it.
+        b   the gap above every line of code, then the gap after the last one.
         c   every line of code. The module takes no `c`, because a module has
             no line to sit beside.
         f   the MODULE and the EOF sentinel, and nothing in between. It is
@@ -797,12 +732,6 @@ def cue(
             the next `a`, and its `DocPlace` says where that `a` is set: above
             the line `at` names, between its gap and its code, or after that
             line's `c`.
-        a_series: whether the page has an `a` series. False when the language
-            has no documentation practice at all -- then there is no `a`
-            series, not an empty one.
-        closing_docstring: whether the language can hold the module's
-            documentation at the file's foot. Where it cannot, `a` does not
-            emit at EOF.
 
     Returns:
         The `Cues`: every place, and both directions between them.
@@ -825,12 +754,6 @@ def cue(
     a, b, c, f = (out.addressers[s] for s in (DECLARED, GAP, ON, COVERS))
     # ! Each code line's step, so a `DocPlace` naming a line is filed against it.
     step_of = {line.line: step for step, line in enumerate(code)}
-    # !! NO `a` SERIES AT ALL WHEN THE LANGUAGE HAS NO DOCUMENTATION PRACTICE.
-    # A language with no docstring practice -- YAML, TOML -- would otherwise be
-    # given an `a0`, a place for a module docstring it cannot have, and no
-    # instruction could ever fill it. `a_series` says whether the series exists;
-    # when it does, the module's own doc opens it at `a0`, and closes it at EOF
-    # where `closing_docstring` says the language can hold it there.
     # !! `cue` READS `triggers()`, WHICH IS THE WHOLE POINT OF THERE BEING ONE.
     # A loop written out by hand beside it makes the list that claims *"ONE LIST,
     # SO THE FOUR SERIES CANNOT DRIFT APART"* a list no series walks.
@@ -866,12 +789,7 @@ def cue(
                 # ! THE HEAD OF THE PAGE, in the order a reader meets it: the
                 # file's own matter, then the module's own documentation.
                 out.reading.append(f.emit(MODULE, at))
-                # ! ONE TEST OF ONE CONDITION. The emit was bound above and then
-                # tested for truth here, which is the same question asked twice
-                # -- `emit` returns `a0` at the least, so it is never falsy when
-                # the language has an `a` series.
-                if a_series:
-                    out.reading.append(a.emit(MODULE, at))
+                out.reading.append(a.emit(MODULE, at))
                 # !! `b` AND `c` SKIP THE MODULE ENTIRELY -- no place, and no
                 # number. It has no gap above it and no line to sit beside. Roy,
                 # 2026-08-20: *"let's initiate all of them at 0 ... bs and cs
@@ -912,12 +830,6 @@ def cue(
                         + ", ".join(name for held in release.values() for name in held)
                     )
                 out.reading.append(closing)
-                # The module's closing documentation, after the closing gap and
-                # before the file's own matter at the foot. It takes the next
-                # number, so no `a` above it moves. Only where the language can
-                # hold documentation there.
-                if a_series and closing_docstring:
-                    out.reading.append(a.emit(EOF, at))
                 # ! `EOF` FOR THE SAME REASON THE GAP TAKES IT: the anchor names
                 # the trigger. `f0` answers `<module>` because that is where it
                 # was emitted, not because the file's matter belongs to the
@@ -925,33 +837,19 @@ def cue(
                 out.reading.append(f.emit(EOF, at))
             continue
         line = code[seen]
-        if not line.joins:
-            # !! A UNIT IS THIS LINE AND EVERY LINE BELOW IT THAT JOINS IT, and
-            # it is one line for `a` and `b`: one gap above it, one `a` for the
-            # declaration in it, both anchored to every line of it. Each line
-            # still takes its own `c`. A line that joins nothing is a unit of
-            # one.
-            unit = [line]
-            while seen + len(unit) < len(code) and code[seen + len(unit)].joins:
-                unit.append(code[seen + len(unit)])
-            anchor = "\n".join(member.code for member in unit)
-            for member in unit:
-                if member.documents is None:
-                    continue
-                # ! 0 is the module, so a declaration's ordinal is its position
-                # among the documentable ones, counting from 1.
-                declared = a.emit(anchor, at)
-                # !! THE READER STATED WHERE THE DOC IS SET, as a code line and
-                # a side. `cue` holds the place until that line's step and
-                # compares nothing.
-                place = member.documents
-                release.setdefault((step_of[place.at], place.above), []).append(
-                    declared
-                )
-            out.reading.append(b.emit(anchor, at))
+        if line.documents is not None:
+            # ! 0 is the module, so a declaration's ordinal is its position
+            # among the documentable ones, counting from 1.
+            declared = a.emit(line.code, at)
+            # !! THE READER STATED WHERE THE DOC IS SET, as a code line and a
+            # side. `cue` holds the place until that line's step and compares
+            # nothing.
+            place = line.documents
+            release.setdefault((step_of[place.at], place.above), []).append(declared)
+        out.reading.append(b.emit(line.code, at))
         beside = c.emit(line.code, at)
-        # !! THE ORDER A READER MEETS THEM: the gap above this line's unit,
-        # appended above, then any declaration documented above it, then the
+        # !! THE ORDER A READER MEETS THEM: the gap above this line, appended
+        # above, then any declaration documented above it, then the
         # line itself with the room beside it, then any declaration documented
         # after it.
         #
@@ -990,10 +888,7 @@ def flatten(path: str) -> str:
     separator below carries that difference through into the address.
 
     !! THE EXTENSION STAYS. Dropping it reads better and reintroduces collisions
-    the moment a repo holds `b.py` beside `b.rs` -- which this gather supports by
-    design, eighteen languages in one run. Roy ruled it 2026-08-18: "we could have
-    mixed languages in the system with the same names that without that we are
-    back to collisions."
+    the moment a repo holds `b.py` beside `b.rs`, and one gather reads both.
 
     !! THE SEPARATOR IS A CHARACTER A PATH CANNOT HOLD, and that is what makes
     this INVERTIBLE. It was `.` until 2026-08-19, and a dot is ordinary in a

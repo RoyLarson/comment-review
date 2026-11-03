@@ -26,8 +26,7 @@ from comment_review.desk.proof.mark import (
 )
 from comment_review.desk.proof.source import contract as source_contract
 from comment_review.reading.addresser import cue_of
-from comment_review.reading.comment import Comment
-from comment_review.reading.lexer import comment_form
+from comment_review.reading.comment import Comment, comment_form
 from comment_review.reading.series import Series
 
 

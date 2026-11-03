@@ -104,10 +104,11 @@ def reset(page, edits: dict[str, str | None]) -> list[str]:
     page, the cues-new text or a delete."* A page names its own file, so the
     path half of an address is a fact the caller already had.
 
-    !! `None` IS THE DELETE AND `""` IS REFUSED. Roy, 2026-08-25: *"None is
-    explicit enough."* ! An empty string was the vacation signal until then,
-    which made a failed serialisation upstream indistinguishable from a
-    deliberate deletion.
+    !! `None` IS THE DELETE AND AN EMPTY PATCH IS REFUSED. Roy, 2026-08-25:
+    *"None is explicit enough."* ! An empty string was the vacation signal
+    until then, which made a failed serialisation upstream indistinguishable
+    from a deliberate deletion. A replacement is measured with its white
+    space removed, so `"   "` is the same empty patch as `""`.
 
     !! THE ADDRESS IS THE WHOLE OF THE PLACEMENT. A paragraph knows which place
     it sits in, and the compositor sets the places in order, so a replacement is
@@ -151,29 +152,15 @@ def reset(page, edits: dict[str, str | None]) -> list[str]:
         One sentence per edit that could not be placed. Empty means every one
         landed.
     """
-    by_place: dict[str, list] = {}
-    for b in page:
-        if b.address:
-            by_place.setdefault(cue_of(b.address).cue, []).append(b)
+    by_place = {cue_of(b.address).cue: b for b in page if b.address}
     refused = []
     for where, replacement in edits.items():
         found = by_place.get(where)
-        if not found:
+        if found is None:
             refused.append(f"{where}: this page carries no such place")
             continue
-        # !! ONE PLACE, ONE PARAGRAPH. Two paragraphs sharing an address was a
-        # real defect until 2026-08-21 -- 157 of them in one tree -- and it is
-        # the one shape that would make a replacement ambiguous here. It is
-        # reported rather than resolved: picking either would write the author's
-        # approved text over prose nobody looked at.
-        if len(found) > 1:
-            refused.append(
-                f"{where}: {len(found)} paragraphs share this place, so no"
-                " replacement can be placed against it"
-            )
-            continue
         if replacement is None:
-            _vacate(found[0])
+            _vacate(found)
             continue
         if not isinstance(replacement, str):
             refused.append(
@@ -181,10 +168,13 @@ def reset(page, edits: dict[str, str | None]) -> list[str]:
                 f" {type(replacement).__name__}"
             )
             continue
-        if not replacement:
-            refused.append(f"{where}: an empty string is not a delete -- None is")
+        if not constants.holds_text(replacement):
+            refused.append(
+                f"{where}: {constants.EMPTY_PATCH}: text with no characters is not"
+                " a delete -- None is"
+            )
             continue
-        found[0].raw_lines = constants.text_lines(replacement)
+        found.raw_lines = constants.text_lines(replacement)
     return refused
 
 

@@ -13,6 +13,7 @@ supply that.
 
 import re
 
+import pytest
 from conftest import PKG
 from helpers import a_small_real_tree
 
@@ -42,21 +43,44 @@ def _pages(root):
 def test_a_reader_failure_is_reported_without_a_successful_page(tmp_path):
     from comment_review.flows.gather import Gathering, _pages
 
-    path = tmp_path / "m.c"
-    path.write_text("int v;\n/* open", encoding="utf-8", newline="")
+    name = "m.rs"
+    text = "const V: i32 = 1;\n/* open"
+    expected = (
+        "m.rs [rust] lex/unterminated-comment: unterminated comment "
+        "(line 2, one-based; column 0, zero-based)"
+    )
+
+    path = tmp_path / name
+    path.write_text(text, encoding="utf-8", newline="")
     gathered = Gathering(tmp_path, [path], 0, files=[path])
     _pages(gathered)
     assert gathered.pages == []
     assert gathered.paragraphs == []
-    assert gathered.unreadable == [
-        "m.c [c] lex/unterminated-comment: Comment has no closing delimiter before "
-        "end of source (line 2, one-based; column 0, zero-based)"
-    ]
+    assert gathered.unreadable == [expected]
+
+
+@pytest.mark.parametrize(
+    ("name", "raw"),
+    [
+        ("m.rs", b"// x\rtouch PWNED\n"),
+        ("m.py", b"# x\rtouch PWNED\n"),
+    ],
+    ids=["rs", "py"],
+)
+def test_a_lone_cr_is_unreadable_at_the_gather(tmp_path, name, raw):
+    from comment_review.flows.gather import Gathering, _pages
+
+    path = tmp_path / name
+    path.write_bytes(raw)
+    gathered = Gathering(tmp_path, [path], 0, files=[path])
+    _pages(gathered)
+    assert gathered.pages == []
+    assert len(gathered.unreadable) == 1
+    assert name in gathered.unreadable[0]
+    assert "decode/lone-cr" in gathered.unreadable[0]
 
 
 def test_unexpected_page_errors_propagate_from_gather(tmp_path, monkeypatch):
-    import pytest
-
     from comment_review.flows import gather as gather_mod
 
     path = tmp_path / "m.py"

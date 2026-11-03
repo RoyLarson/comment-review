@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 2 of 4 tasks closed
+Progress: 3 of 4 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-29 (found while fixing the docstring-closing-comment double emission,
@@ -160,8 +160,9 @@ back. `systems` owns whether the two are one file.
         > 2026-09-03 so the tripwire never sees b0 holding a docstring kind
         > 2026-09-03 Addressing 20 makes this the live box -- the behaviour CHANGES
         > 2026-09-03 so it needs pinning, and nothing sees b0 until the shape is added
-- [ ] T4 | Update the lexer so a docstring attaches to the line of code it
-      shares, and the walk emits that line's places
+- [-] T4 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | Update
+      the lexer so a docstring attaches to the line of code it shares, and the
+      walk emits that line's places
         > 2026-09-03 ROOT CAUSE: page.py:567 keeps a line only for the ON series
         > 2026-09-03 the full reading is in the Objective, under The root cause
         > 2026-09-03 Roy: the 69 removal is still safe -- fix it in the lexer

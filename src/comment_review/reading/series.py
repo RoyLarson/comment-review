@@ -3,9 +3,9 @@
 A place in a series is one of two kinds: its `present`, when prose fills it, and
 its `absent`, when nothing does.
 
-! WHAT IT COST TO HAVE THE LETTER APART FROM ITS PAIR: the letters were
-`addresser`'s constants and the pairs were `lexer`'s enum, tied only by MEMBER
-NAME and held equal by a test. `Kind`'s own docstring drew the table --
+! WHAT IT COST TO HAVE THE LETTER APART FROM ITS PAIR: the letters and the pairs
+were spelled in two modules, tied only by MEMBER NAME and held equal by a test.
+`Kind`'s own docstring drew the table --
 
     a   docstring          undocumented
     b   comment            interval
@@ -54,8 +54,8 @@ class Kind(StrEnum):
     # Matter runs from the file's opening line down, or from its closing line up,
     # until an empty line or a docstring -- so a shebang, a blank and a comment
     # are two runs, and the comment below the blank is a `b`, not part of `f0`.
-    # A module or closing docstring takes in every comment beyond it, and a file
-    # with no code has one more rule: `reading.matter` states them.
+    # A module docstring takes in every comment above it, and a file with no
+    # code has one more rule: `reading.matter` states them.
     #
     # !! `matter` NAMES THE SPACE AND NOT A POSITION, which is what the `f`
     # series needs: a file can carry its own prose at the head and at the tail.

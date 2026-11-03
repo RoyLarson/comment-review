@@ -2,7 +2,7 @@
 
 ```
 Status:   deferred
-Progress: 7 of 15 tasks closed
+Progress: 10 of 15 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-21 (Roy, 2026-08-21, reading a census entry: 'in a system that is a
@@ -124,18 +124,20 @@ ruling is why this file is `deferred` and what it waits on:
       -- Rename `Paragraph.declares` to `documents` at the sites above. Verify:
       `grep -rn declares plugins/` shows no paragraph-field use; the round trip
       holds.
-- [ ] T2 | T2 -- Rename `Language.declares` to `introduces`, on the field and on
-      every row. Verify: `grep -n declares` over `language.py` returns nothing.
-- [ ] T3 | T3 -- Rename `lexer._declares_here` to match `introduces`. Verify:
-      `grep -n declares` over `lexer.py` returns no use of the language keyword
-      tuple.
+- [-] T2 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | T2
+      -- Rename `Language.declares` to `introduces`, on the field and on every
+      row. Verify: `grep -n declares` over `language.py` returns nothing.
+- [-] T3 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | T3
+      -- Rename `lexer._declares_here` to match `introduces`. Verify: `grep -n
+      declares` over `lexer.py` returns no use of the language keyword tuple.
 - [ ] T4 | T4 -- Rename `desk.declares_scope` to `reports_remit`. Verify: `grep
       -rn declares_scope plugins/` returns nothing.
 - [ ] T5 | T5 -- Rename `record.can_declare_scope` to match, at its
       `verdicts.py` call sites too. Verify: `grep -rn can_declare_scope
       plugins/` returns nothing.
-- [ ] T6 | T6 -- Make `declares` internal to the lexer. Verify: it is absent
-      from the paragraph JSON `census.py` emits.
+- [-] T6 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | T6
+      -- Make `declares` internal to the lexer. Verify: it is absent from the
+      paragraph JSON `census.py` emits.
 - [ ] T7 | T7 -- * Check whether any shipped agent file or reference gives a
       role the term `declares`. Verify: the grep over `agents/` and
       `references/` is recorded here.

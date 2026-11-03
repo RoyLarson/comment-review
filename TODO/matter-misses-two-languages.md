@@ -3,7 +3,7 @@
 ```
 Status:   open (T5's ruling deferred to a prose classifier; T2, the Rust half, does not
           wait on it)
-Progress: 3 of 5 tasks closed
+Progress: 4 of 5 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-23 (2026-08-23, re-measuring `front-matter-protection-is-python-only`
@@ -88,9 +88,10 @@ the head of a file is. The Rust fix does not.
       -- Stop a Rust file's opening `//` run being claimed as a declaration's
       doc. Verify: a `.rs` opening `// Copyright` types `f0 matter` and an empty
       `a1`.
-- [ ] T3 | T3 -- Make a TypeScript licence header written in `/** */`
-      protectable, per T5's ruling. Verify: a `.ts` opening `/** ... */` above a
-      declaration types `f0 matter`.
+- [-] T3 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | T3
+      -- Make a TypeScript licence header written in `/** */` protectable, per
+      T5's ruling. Verify: a `.ts` opening `/** ... */` above a declaration
+      types `f0 matter`.
 - [x] T4 | FINISHED | unknown | T4 -- NOT A TASK. What is already right -- the
       rule is POSITIONAL, and C proves the mechanism reaches beyond Python -- is
       recorded in the Objective.

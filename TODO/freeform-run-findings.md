@@ -1,0 +1,93 @@
+# What the first live freeform run showed
+
+```
+Status:   open
+Progress: 19 of 22 tasks closed
+Owner:    agents
+Requires-Roy: false
+Raised:   2026-11-02 (freeform plan Task 4 live run and stage walk, 2026-11-02)
+```
+
+## Objective
+
+What the first live freeform run showed.
+
+## Tasks
+
+- [ ] T1 | Collapse one concern raised by several roles before asking the author
+      (reviewer-brief.md:320-327, SKILL.md:287); three roles cost three resumes
+        > 2026-11-02 Ruled #269: chief composes; backend change after merge
+- [x] T2 | A freeform-only dispatch takes freeform.md in place of the brief | 234c3a0c | Stop
+      pasting 613 lines into every role prompt (SKILL.md:206-217); four
+      reviewers read about 600 lines for 90 lines of code
+        > 2026-11-02 Ruled by decision-log #266; wording still needs Roy's approval
+        > 2026-11-02 Extended by #270: the edited copy is the finding
+- [x] T3 | Only human-review-necessary queries are asked; the other shapes defer, on pages and freeform | 231d58c1 | Limit
+      stage 5 step 3 to human-review-necessary queries, and state the fate of
+      outside-my-role queries on pages (SKILL.md:344, 272, 488)
+        > 2026-11-03 Page half revoked at a75f0638 (#271); freeform half stands
+- [x] T4 | A stop holds the run at its stage; SKILL.md says so, #267 | ca1c53bce0246b727b0beade267b54acc0a8e81c | Say
+      how a run resumes after stage 7a stops; a formatter fix moves the pre-edit
+      ref (SKILL.md:429-431, 411)
+- [-] T5 | SUPERSEDED by #268: the audit stays a reading | ca1c53bce0246b727b0beade267b54acc0a8e81c | Mechanise
+      the freeform audit; hunks were matched to findings by eye, and check has
+      no freeform mode (SKILL.md:429)
+- [-] T6 | Revoked: the page flow is out of this TODO's scope (#271) | a75f0638 | State
+      that an empty stage 6 skips the condenser (SKILL.md:358, 381-388)
+- [-] T7 | Revoked: the page flow is out of this TODO's scope (#271) | a75f0638 | Give
+      stage 8 and stage 6 the vocabulary their role files claim
+      (SKILL.md:464-466, 384-386)
+- [-] T8 | SUPERSEDED by #268: the author owns their edit | ca1c53bce0246b727b0beade267b54acc0a8e81c | Decide
+      what checks an author edit that changes code; it skips formatter and
+      audit, and prove_unchanged answers UNCHECKED (write.md:29-30)
+- [-] T9 | Revoked: the page flow is out of this TODO's scope (#271) | a75f0638 | Let
+      a reviewer read its own draft at exit 5, or stop offering proof for that
+      (reviewer-brief.md:59-65)
+        > 2026-11-02 Ruled: one line in the brief; preview once queries answered
+- [-] T10 | SUPERSEDED: a real run has the tool; only a test subagent lacked it | ca1c53bce0246b727b0beade267b54acc0a8e81c | Name
+      a fallback when AskUserQuestion is missing (SKILL.md:146, 273)
+- [x] T11 | The chief writes one draft from the role copies; the 7a setter is retired | 234c3a0c | Decide
+      who consumes the reviewer's copy, and reconcile the later-stage draft with
+      7a step 1 re-copying (SKILL.md:219, 235-238, 404)
+        > 2026-11-02 Ruled #270: the copy is the finding; 7a re-copy still open
+        > 2026-11-02 Open: drop 7a setter? #270 before or after merge? See log
+        > 2026-11-02 #270 lands before merge (Roy). 7a setter still open.
+        > 2026-11-02 Ruled #270: the setter retires; plan the 7a change
+- [x] T12 | Page-only text names freeform files, the stage table and stage 8 included | a9d5c5a3 | Clear
+      stale page-only text: write.md:5,72; SKILL.md:45-46,52-68; role files :12
+      and Return; comment-review-review.md:8,19
+        > 2026-11-03 Reopened: review found SKILL.md:45-46, 490 and 518 still page-only
+- [x] T13 | current and replacement left the findings; at is a line in the copied file | 234c3a0c | Fix
+      current and at for an add and a string line (reviewer-brief.md:386-392;
+      freeform.md:24,27)
+        > 2026-11-02 Goes away with #270: current leaves the findings
+- [x] T14 | Send-backs end at the second return; the line-ending UNCHECKED is reported | 231d58c1 | Report
+      the line-endings UNCHECKED beside the freeform one (write.md:59-62) and
+      limit stage 5 send-backs (SKILL.md:341-342)
+        > 2026-11-03 Page half revoked at a75f0638 (#271); freeform half stands
+- [x] T15 | Ruled #271: seven rulings in the agent prose; gather states each gap once | c85b5132 | Work
+      the smaller ambiguities listed in the Task 4 report: withdraw scope,
+      correct or drop, add at a held place, role value on a composed entry,
+      module-less JS, review.md template departures, NOT CHECKED noise
+        > 2026-11-03 Page half revoked at a75f0638 (#271); freeform half stands
+- [ ] T16 | Exercise what Task 4 left out: stage 6 on real over-cap text, turns,
+      partial acceptance, no formatter, a failing check
+- [ ] T17 | Plant an audit stop and a failing check in the T16 runs
+- [-] T18 | Ruled: the proofreader diffs the written file against the original | bd59da92 | Hand
+      the proofreader the pre-edit ref, so it can sort a template departure by
+      what the run wrote (review.md:15, SKILL.md:486)
+- [-] T19 | Revoked: the page flow is out of this TODO's scope (#271) | a75f0638 | Reword
+      the escalation's withdraw to every mark you filed on the paragraph;
+      finding means one ruling (reviewer-brief.md:372)
+- [-] T20 | Revoked: the page flow is out of this TODO's scope (#271) | a75f0638 | Update
+      ruling step 1's query line to say a non-human query defers (SKILL.md:308,
+      510)
+- [-] T21 | Revoked: the page flow is out of this TODO's scope (#271) | a75f0638 | Update
+      module-context's module add to name its place, --line <module>, and to
+      apply only where no surface name is missing (module-context.md:66,73)
+        > 2026-11-03 Pages only: a freeform reviewer places it with Edit, no address
+        > 2026-11-03 Fix is the brief: name --line <module> and <eof> at :105
+        > 2026-11-03 Place half done at 895fc02e; the 'where useful' half is open
+- [-] T22 | Revoked: the page flow is out of this TODO's scope (#271) | a75f0638 | State
+      the need-before-truth order once, in the freeform sheet too, and update
+      README.md:212's drop row

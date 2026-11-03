@@ -24,6 +24,7 @@ chokes on.
 """
 
 import inspect
+import json
 import re
 
 import pytest
@@ -33,12 +34,10 @@ from comment_review.commands import gather as gather_command
 
 
 def test_languages_reports_validated_programming_coverage(monkeypatch, capsys):
-    from comment_review.flows.language_definitions import installed_registry
     from comment_review.reading import readers
-    from comment_review.reading.diagnostics import ReadFailure
+    from comment_review.reading.language import INSTALLED_REGISTRY
 
-    registry = installed_registry()
-    assert not isinstance(registry, ReadFailure)
+    registry = INSTALLED_REGISTRY
 
     status, output = run_command(monkeypatch, capsys, gather_command, "--languages")
     assert status == 0
@@ -47,15 +46,13 @@ def test_languages_reports_validated_programming_coverage(monkeypatch, capsys):
         for line in output.splitlines()[1:]
         if line and not line.startswith("A suffix")
     ]
-    assert rows == [
-        [value.language, value.capabilities[-1], *value.suffixes]
-        for value in registry.definitions
-    ]
-    assert ["python", "lexical", ".py", ".pyi"] in rows
+    assert rows == [[value.language, *value.suffixes] for value in registry.definitions]
+    assert ["python", ".py", ".pyi"] in rows
     monkeypatch.setattr(readers, "INSTALLED_BINDINGS", {})
     status, output = run_command(monkeypatch, capsys, gather_command, "--languages")
     assert status == 0
-    assert all(value.language not in output for value in registry.definitions)
+    listed = {line.split()[0] for line in output.splitlines() if line}
+    assert listed.isdisjoint(value.language for value in registry.definitions)
 
 
 #: An ordinary nine-line Python page, and the CONTROL every case below is a
@@ -175,31 +172,21 @@ def test_a_parse_failure_is_AS_LOUD_AS_a_decode_failure(tmp_path, monkeypatch, c
     )
 
 
-def test_a_file_whose_paragraphs_share_an_address_is_named_and_stops_the_run(
+def test_a_rust_file_whose_paragraphs_share_an_address_is_named_and_stops_the_run(
     tmp_path, monkeypatch, capsys
 ):
-    """The page refuses a mis-cut read, and the gather reports that refusal as
-    it reports any file it could not gather."""
-    from comment_review.binder import page as page_mod
-    from comment_review.reading.lexer import LexicalRead
+    """The refusal holds over a reader record."""
     from comment_review.reading.paragraph import Paragraph
+    from comment_review.reading.rust.records import RustRead
     from comment_review.reading.series import Kind
-    from comment_review.reading.source import CodeLine, DocPlace
 
     found = [
-        Paragraph("m.go", 3, 3, Kind.COMMENT, raw_lines=["// one"]),
-        Paragraph("m.go", 3, 3, Kind.COMMENT, raw_lines=["// two"]),
+        Paragraph("m.rs", 3, 3, Kind.COMMENT, raw_lines=["// one"]),
+        Paragraph("m.rs", 3, 3, Kind.COMMENT, raw_lines=["// two"]),
     ]
-    lines = [
-        CodeLine(2, "package m", None),
-        CodeLine(4, "func F() {}", DocPlace(4, True)),
-    ]
-    read = LexicalRead(found, lines, True, True)
-    monkeypatch.setattr(page_mod, "read_source", lambda *args, **kwargs: read)
-    target = tmp_path / "m.go"
-    target.write_text(
-        "// Package m.\npackage m\n// F.\nfunc F() {}\n", encoding="utf-8"
-    )
+    monkeypatch.setattr(RustRead, "paragraphs", lambda self, path: list(found))
+    target = tmp_path / "m.rs"
+    target.write_text("//! Package m.\nm!();\n/// F.\nfn f() {}\n", encoding="utf-8")
     code, printed = run_command(
         monkeypatch,
         capsys,
@@ -210,7 +197,7 @@ def test_a_file_whose_paragraphs_share_an_address_is_named_and_stops_the_run(
         with_stderr=True,
     )
     assert code != 0, printed
-    assert "m.go" in printed
+    assert "m.rs" in printed
     assert "place/address-held-twice" in printed
 
 
@@ -290,3 +277,114 @@ def test_the_command_builds_no_page_and_resolves_no_annotation():
     assert not re.search(r"\bpage_for\b", source)
     assert not re.search(r"\bannotate\b", source)
     assert "gather(" in source, "the command has to call the flow it exposes"
+
+
+def _gather(tmp_path, monkeypatch, capsys, *targets):
+    """One gather through argv, its binder as written, and its exit and stderr."""
+    out = tmp_path / "binder.json"
+    code, printed = run_command(
+        monkeypatch,
+        capsys,
+        gather_command,
+        "--repo",
+        str(tmp_path),
+        "--out",
+        str(out),
+        *[str(t) for t in targets],
+        with_stderr=True,
+    )
+    return code, printed, out
+
+
+def _binder(out) -> dict:
+    return json.loads(out.read_text(encoding="utf-8"))
+
+
+def test_a_named_js_file_is_freeform_and_gather_exits_0(tmp_path, monkeypatch, capsys):
+    page = tmp_path / "a.py"
+    page.write_text(CONTROL, encoding="utf-8")
+    # Bytes no reader could decode: a freeform file is listed, never opened.
+    (tmp_path / "b.js").write_bytes(b"\xff\xfe\x00")
+    code, printed, out = _gather(tmp_path, monkeypatch, capsys, page, tmp_path / "b.js")
+    assert code == 0, printed
+    wire = _binder(out)
+    assert [p["path"] for p in wire["pages"]] == ["a.py"]
+    assert wire["freeform"] == ["b.js"]
+    assert "FREEFORM -- 1 file(s)" in printed
+
+
+def test_a_binary_in_a_walked_directory_stays_passed_over(
+    tmp_path, monkeypatch, capsys
+):
+    (tmp_path / "a.py").write_text(CONTROL, encoding="utf-8")
+    (tmp_path / "b.js").write_text("// b\n", encoding="utf-8")
+    (tmp_path / "logo.png").write_bytes(b"\x89PNG\x00")
+    (tmp_path / "uv.lock").write_text("lock\n", encoding="utf-8")
+    code, printed, out = _gather(tmp_path, monkeypatch, capsys, tmp_path)
+    assert code == 0, printed
+    assert _binder(out)["freeform"] == ["b.js"]
+    assert "PASSED OVER --" in printed
+    assert "logo.png" in printed and "uv.lock" in printed
+
+
+def test_a_named_file_that_is_neither_read_nor_source_stops_the_gather(
+    tmp_path, monkeypatch, capsys
+):
+    target = tmp_path / "logo.png"
+    target.write_bytes(b"\x89PNG\x00")
+    code, printed, _ = _gather(tmp_path, monkeypatch, capsys, target)
+    assert code == 1, printed
+    assert "logo.png" in printed
+
+
+def test_a_python_file_that_fails_to_read_still_stops_the_gather(
+    tmp_path, monkeypatch, capsys
+):
+    page = tmp_path / "a.py"
+    page.write_bytes(b"\xff\xfe not utf-8\n")
+    (tmp_path / "b.js").write_text("// b\n", encoding="utf-8")
+    code, printed, _ = _gather(tmp_path, monkeypatch, capsys, page, tmp_path / "b.js")
+    assert code == 1, printed
+    assert "a.py" in printed
+    assert "1 of 2 files handed in" in printed
+
+
+def test_freeform_paths_are_sorted_repo_relative_and_listed_once(
+    tmp_path, monkeypatch, capsys
+):
+    (tmp_path / "src").mkdir()
+    (tmp_path / "src" / "z.js").write_text("// z\n", encoding="utf-8")
+    (tmp_path / "a.js").write_text("// a\n", encoding="utf-8")
+    (tmp_path / "c.JS").write_text("// c\n", encoding="utf-8")
+    monkeypatch.chdir(tmp_path)
+    code, printed, out = _gather(
+        tmp_path,
+        monkeypatch,
+        capsys,
+        tmp_path / "src" / "z.js",
+        "src/z.js",
+        "a.js",
+        "c.JS",
+    )
+    assert code == 0, printed
+    assert _binder(out)["freeform"] == ["a.js", "c.JS", "src/z.js"]
+
+
+@pytest.mark.parametrize("spelled", ["absolute", "dotted"])
+def test_a_freeform_file_outside_the_repo_stops_the_gather(
+    tmp_path, monkeypatch, capsys, spelled
+):
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    (tmp_path / "other").mkdir()
+    outside = tmp_path / "other" / "x.js"
+    outside.write_text("// x\n", encoding="utf-8")
+    monkeypatch.chdir(repo)
+    target = {
+        "absolute": outside,
+        "dotted": "../other/x.js",
+    }[spelled]
+    code, printed, _ = _gather(repo, monkeypatch, capsys, target)
+    assert code == 1, printed
+    assert "x.js (outside the repository)" in printed
+    assert "1 of 1 files handed in" in printed

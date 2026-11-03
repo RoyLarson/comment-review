@@ -26,27 +26,25 @@ place its missing sentence belongs in, and nobody owes them a record. Coverage
 is over the paragraphs that HOLD prose.
 
 **Every file handed in is gathered, or the command errors** -- a file it could
-not read or parse, or whose suffix has no language record, is named in
-`unreadable`, and the command exits nonzero on it, because a paragraph missing
-from the binder is a paragraph nobody reviews.
-
-! NO TIER IS REPORTED PER RUN OR STAMPED ON A PLACE, since 2026-08-24. This
-counted a `tier` field on every paragraph and printed one line from it; the
-field is gone -- Roy: *"their level gets dropped entirely. Not necessary and the
-parser tier isn't long for this world."* ! `--languages` still lists which tier
-each LANGUAGE reaches, which is a fact about the language rather than a fact
-about a place, and is where to look when a file's reader could not answer.
+not read or parse, or a named file no reader claims, is named in `unreadable`,
+and the command exits nonzero on it, because a paragraph missing from the binder
+is a paragraph nobody reviews. The exception is a source file with no reader:
+the binder lists it as freeform, unopened, for the reviewers to read as it
+stands.
 """
 
-from collections.abc import Callable, Iterable
+from collections.abc import Callable, Iterable, Mapping
 from dataclasses import dataclass, field
 from pathlib import Path
 
 from comment_review.binder.binder import Binder, bind
 from comment_review.binder.page import Page
-from comment_review.concordance.code_names import code_names
+from comment_review.concordance.code_names import NO_HARVESTER, code_names
 from comment_review.flows.annotations_for import annotations_for
-from comment_review.flows.page_for import page_of, source_of
+from comment_review.flows.page_for import page_of
+from comment_review.flows.read_diagnostics import format_failure
+from comment_review.flows.reading_context import context_for
+from comment_review.flows.source import source_of
 from comment_review.machine.repo import (
     path_index,
     relative_to,
@@ -54,8 +52,16 @@ from comment_review.machine.repo import (
     walk_files,
 )
 from comment_review.reading.addresser import SEPARATOR
-from comment_review.reading.lexer import language_for
+from comment_review.reading.context import ReadingContext
+from comment_review.reading.coordinates import SourceCoordinates
+from comment_review.reading.diagnostics import (
+    DetachedDocumentation,
+    ReadDiagnostic,
+    ReadFailure,
+)
+from comment_review.reading.language import INSTALLED_REGISTRY
 from comment_review.reading.paragraph import Paragraph
+from comment_review.reading.registry import is_freeform
 
 
 @dataclass
@@ -79,14 +85,22 @@ class Gathering:
     files: list[Path] = field(default_factory=list)
     #: files the walk came across with no record -- reported, never refused
     no_record: list[str] = field(default_factory=list)
+    #: source files with no reader, repo-relative posix, sorted, each once
+    freeform: list[str] = field(default_factory=list)
     #: a named file that produced no page, and why
     unreadable: list[str] = field(default_factory=list)
     #: files the name corpus could not read, from `code_names`
     unread: list[str] = field(default_factory=list)
+    #: what a read noted without refusing the file, one printable line per
+    #: warning of the read, naming its file and line; the run proceeds and the
+    #: command prints them
+    warnings: list[str] = field(default_factory=list)
     pages: list[Page] = field(default_factory=list)
     #: what the pages carry, flat, in page order -- see `carried`
     paragraphs: list[Paragraph] = field(default_factory=list)
     binder: Binder = field(init=False)
+    settings: Mapping[Path, Mapping[str, str]] = field(default_factory=dict)
+    reading_contexts: dict[Path, ReadingContext] = field(default_factory=dict)
 
 
 def _walk(g: Gathering) -> None:
@@ -98,12 +112,27 @@ def _walk(g: Gathering) -> None:
     # A file the caller NAMED is refused when nothing can read it; a file the
     # walk came across is reported and skipped, because a directory holds
     # READMEs and lockfiles and refusing on those makes the form unusable.
+    # A source file with no reader is neither: it is listed for the reviewers,
+    # named or found, and never opened, so a binary cannot fail the gather.
     named = {t.resolve() for t in g.targets if t.is_file()}
+    freeform = set()
     for path in sorted({f for found in by_target.values() for f in found}):
-        if language_for(path) is None and path.resolve() not in named:
-            g.no_record.append(path.as_posix())
-        else:
+        if INSTALLED_REGISTRY.for_path(path) is not None:
             g.files.append(path)
+        elif is_freeform(path):
+            rel = _repo_relative(path, g.repo)
+            # A page outside the repo is refused at the write; nothing writes a
+            # freeform path through that check, so it is refused here. Resolved,
+            # because a path relative to the cwd can read as inside the repo.
+            if not path.resolve().is_relative_to(g.repo):
+                g.unreadable.append(f"{rel} (outside the repository)")
+            else:
+                freeform.add(rel)
+        elif path.resolve() in named:
+            g.files.append(path)
+        else:
+            g.no_record.append(path.as_posix())
+    g.freeform = sorted(freeform)
     # A path argument that matched no file joins `unreadable`, so a typo errors
     # on the same rule every other gap does.
     g.unreadable.extend(
@@ -121,9 +150,14 @@ def _pages(g: Gathering) -> None:
     # same walk, which is what stops the two disagreeing about what was
     # gathered.
     for path in g.files:
-        source, why = source_of(path)
-        if source is None:
-            g.unreadable.append(f"{path.as_posix()} ({why})")
+        context = context_for(path, g.settings.get(path.resolve(), {}))
+        if isinstance(context, ReadFailure):
+            g.unreadable.append(format_failure(context, path=path.as_posix()))
+            continue
+        g.reading_contexts[path.resolve()] = context
+        source = source_of(path)
+        if isinstance(source, ReadFailure):
+            g.unreadable.append(format_failure(source, path=path.as_posix()))
             continue
         # !! EVERY PARAGRAPH'S PATH IS REPO-RELATIVE. It is what `--repo` is for:
         # the binder, the file lists and every citation a reviewer writes all
@@ -167,51 +201,59 @@ def _pages(g: Gathering) -> None:
         # against the root every citation resolves to. It was stamped afterwards
         # for as long as `page_for` returned an unaddressed page, which is
         # the split that let a direct caller receive half a page.
-        try:
-            got, why = page_of(path, rel=rel, source=source)
-        except Exception as e:  # a parse failure is REPORTED, as a gap
-            g.unreadable.append(f"{path.as_posix()} ({type(e).__name__}: {e})")
-            continue
-        if got is None:
-            g.unreadable.append(f"{path.as_posix()} ({why})")
-            continue
-        # !! AN UNPARSED PAGE IS NOT A GATHERED FILE, AND IT ARRIVED AS ONE.
-        # The `except` above cannot see this: `paragraphs_stdlib` CATCHES the
-        # parse failure and returns a single `unparsed` paragraph rather than
-        # raising, `page_for` then gives that page no cues and no addresses,
-        # and `carried` hands over only paragraphs that HAVE one -- so even the
-        # paragraph reporting the refusal is filtered away. The file was read,
-        # produced nothing, and the run said success.
-        #
-        # !! MEASURED 2026-08-29, one file per run over one nine-line control:
-        # the control gathered 11 paragraphs at exit 0, while a UTF-8 BOM, a
-        # syntax error, a NUL byte and an unterminated string each gathered
-        # **0 paragraphs AT EXIT 0**. The same control's DECODE failures --
-        # latin-1 bytes, a UTF-16 BOM -- correctly exited 1, caught upstream.
-        #
-        # !! SO THE RUN REFUSED WHAT IT COULD NOT DECODE AND SILENTLY SKIPPED
-        # WHAT IT COULD NOT PARSE. `CLAUDE.md` states the contract the
-        # asymmetry breaks -- *every file handed in is gathered or the run
-        # stops* -- and a file mid-refactor with a real syntax error is the
-        # common case, not an exotic one: its prose reached no reviewer while
-        # stdout reported a complete run.
-        #
-        # ! IT JOINS `unreadable`, which is what makes it as loud as the decode
-        # failure: named on stderr, and exit 1. The reader's own message is the
-        # reason, so the file
-        # says WHY it could not be read rather than merely that it was skipped.
-        refused = next((b for b in got.paragraphs if b.kind == "unparsed"), None)
-        if refused is not None:
-            g.unreadable.append(f"{path.as_posix()} ({refused.text})")
+        got = page_of(path, rel=rel, source=source, reading_context=context)
+        if isinstance(got, ReadFailure):
+            g.unreadable.append(format_failure(got, path=rel))
             continue
         g.pages.append(got)
+        # The phrase is the warning's code as words, then the owner a
+        # detached doc was written for.
+        located = [w for w in got.read.warnings if w.span is not None]
+        if located:
+            coordinates = SourceCoordinates(got.text)
+            g.warnings.extend(
+                f"warning: {rel}:{coordinates.position(w.span.start).line}:"
+                f" {w.code.replace('-', ' ')}{_owner(w)}"
+                for w in located
+                if w.span is not None
+            )
         g.paragraphs.extend(carried(got))
+
+
+def _owner(warning: ReadDiagnostic) -> str:
+    """The owner a detached doc was written for, as the warning line ends it."""
+    if not isinstance(warning, DetachedDocumentation):
+        return ""
+    if warning.owner_line is None:
+        return " (owner: module)"
+    return f" (owner on line {warning.owner_line})"
 
 
 def _annotations(g: Gathering) -> None:
     """Stage 3, over everything the pages carry."""
-    known, g.unread = code_names([g.repo], tracked_paths(g.repo))
+    known, unread = code_names([g.repo], tracked_paths(g.repo))
+    g.unread = one_row_per_hole(unread)
     annotations_for(g.paragraphs, known, path_index(g.repo), g.repo)
+
+
+def one_row_per_hole(unread: list[str]) -> list[str]:
+    """The gaps, with each known hole stated once and the files it covers under it.
+
+    A tree with hundreds of files no harvester reads printed the same reason on
+    every one of them. Any other row is a file that genuinely failed, kept as it is.
+    """
+    holes: dict[str, list[str]] = {}
+    rows: list[str] = []
+    for row in unread:
+        path, sep, why = row.rpartition(f" ({NO_HARVESTER} ")
+        if sep:
+            holes.setdefault(why.removesuffix(")"), []).append(path)
+        else:
+            rows.append(row)
+    for name, paths in holes.items():
+        listed = "".join(f"\n        {path}" for path in paths)
+        rows.append(f"{NO_HARVESTER} {name}, {len(paths)} file(s):{listed}")
+    return rows
 
 
 def _bind(g: Gathering) -> None:
@@ -247,7 +289,10 @@ def _bind(g: Gathering) -> None:
     # measured there.
     root = relative_to(g.repo, Path.cwd()).as_posix()
     g.binder = bind(
-        g.pages, read_from={"root": root, "revise": g.revise}, absent=g.absent
+        g.pages,
+        read_from={"root": root, "revise": g.revise},
+        absent=g.absent,
+        freeform=tuple(g.freeform),
     )
 
 
@@ -257,7 +302,12 @@ STEPS: tuple[Callable[[Gathering], None], ...] = (_walk, _pages, _annotations, _
 
 
 def gather(
-    repo: Path, targets: list[Path], revise: int, absent: bool = False
+    repo: Path,
+    targets: list[Path],
+    revise: int,
+    absent: bool = False,
+    *,
+    settings: Mapping[Path, Mapping[str, str]] | None = None,
 ) -> Gathering:
     """Every page under `targets`, annotated and bound, with the gaps named.
 
@@ -268,11 +318,17 @@ def gather(
             number for a revise root pulled after it. Stamped into `read_from`.
         absent: carry the EMPTY places too -- see the command's
             `--include-absent`.
+        settings: fresh per-file overrides keyed by source path.
 
     Returns:
         The `Gathering` every step has written to. `binder` is set.
     """
     g = Gathering(repo, targets, revise, absent)
+    g.settings = (
+        {path.resolve(): value for path, value in settings.items()}
+        if settings is not None
+        else {}
+    )
     for step in STEPS:
         step(g)
     return g
@@ -352,7 +408,7 @@ def unaddressed_report(missing: list[str]) -> str:
     )
 
 
-def not_gathered(files: list[Path], unreadable: list[str]) -> str:
+def not_gathered(handed_in: int, unreadable: list[str]) -> str:
     """The refusal, worded once.
 
     !! The reviewers are handed the binder, so a file missing from it is
@@ -365,6 +421,6 @@ def not_gathered(files: list[Path], unreadable: list[str]) -> str:
     listed = "\n".join(f"    {u}" for u in unreadable)
     return (
         f"NOT GATHERED -- these are gaps, not passes:\n{listed}\n"
-        f"ERROR: {len(unreadable)} of {len(files)} files handed in were not"
+        f"ERROR: {len(unreadable)} of {handed_in} files handed in were not"
         " gathered. Every file is gathered or this errors."
     )

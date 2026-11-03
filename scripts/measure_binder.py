@@ -38,7 +38,7 @@ sys.path.insert(0, str(SRC))
 # inherits the environment rather than this process's `sys.path`.
 os.environ["PYTHONPATH"] = str(SRC)
 
-from comment_review.reading.lexer import Kind  # noqa: E402
+from comment_review.reading.series import Kind  # noqa: E402
 
 # The four roles stage 4 dispatches. Every per-page figure is paid once each.
 ROLES = 4

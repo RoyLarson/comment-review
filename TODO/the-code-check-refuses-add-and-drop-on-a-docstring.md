@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 9 of 12 tasks closed
+Progress: 10 of 12 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-17, on the FIRST run ever to reach stage 7b. A docstring `add` failed the
@@ -93,8 +93,9 @@ being ADDED or REMOVED -- only rewritten, which is the case that passes.
 - [ ] T3 | T3 -- Say in `write.md` what a docstring `add` does today, until T1
       is settled. Verify: `write.md` states that it fails the CODE CHECK and
       that the rail restores.
-- [ ] T4 | T4 -- Measure the LEXICAL side: a `///` or `/**` doc comment ADDED
-      and REMOVED, against the `stripped` comparison. Verify: this file records
+- [-] T4 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | T4
+      -- Measure the LEXICAL side: a `///` or `/**` doc comment ADDED and
+      REMOVED, against the `stripped` comparison. Verify: this file records
       which way each goes.
 - [x] T5 | FINISHED | unknown | T5 -- Add a docstring-ADDED case and a
       docstring-REMOVED case to `tests/test_prove_unchanged.py`. Verify: both

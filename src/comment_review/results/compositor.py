@@ -53,7 +53,7 @@ from pathlib import Path
 from comment_review import constants, exceptions
 from comment_review.binder.page import Page
 from comment_review.machine.repo import write_raw
-from comment_review.reading.addresser import DECLARED, GAP, ON, cue_of
+from comment_review.reading.addresser import GAP, ON, cue_of
 from comment_review.reading.series import Kind
 
 CRLF = "\r\n"
@@ -140,6 +140,9 @@ def _set(page: Page, newline: str | None) -> tuple[str, dict[str, tuple[int, int
     """
     ending = newline if newline is not None else line_endings(page.text)
     held = _held(page)
+    mark = constants.mark_of(page.text)
+    if mark:
+        _take_mark(page, held)
     out: list[str] = []
     lines_of: dict[str, tuple[int, int]] = {}
     # !! LEADING IS SET BETWEEN TWO PLACES, NOT AT ONE. It is an edge -- see
@@ -255,18 +258,17 @@ def _set(page: Page, newline: str | None) -> tuple[str, dict[str, tuple[int, int
         # `f0` -- the defect this rule exists to close.
         adding_a_gap = bool(prose) and cue.startswith(GAP) and cue in absent
 
-        # !! THE CLOSING GAP IS EXEMPT, AND THE FOOT IS WHY. With no closing
-        # docstring, back matter is the run AFTER the last blank line -- the rule
-        # is `reading.matter`'s -- so a leading above an added closing `b`
-        # pushes it INTO the matter it was meant to stay clear of: on `SAMPLE`,
-        # `b4` with a leading still re-reads at `f1`, so the blank changes the
-        # bytes and not the outcome.
+        # !! THE CLOSING GAP IS EXEMPT, AND THE FOOT IS WHY. Back matter is the
+        # run AFTER the last blank line -- the rule is `reading.matter`'s -- so a
+        # leading above an added closing `b` pushes it INTO the matter it was
+        # meant to stay clear of: on `SAMPLE`, `b4` with a leading still re-reads
+        # at `f1`, so the blank changes the bytes and not the outcome.
         if adding_a_gap and not edge and at < last_code:
             out.append("")
         # !! AND AT THE FOOT IT GOES ON THE OTHER SIDE -- the head's rule in
-        # reverse. With no module or closing docstring, matter is the run that
-        # STARTS on line 1 or ENDS on the last one, so what pushes a gap out of it
-        # is a blank BEFORE at the head and a blank AFTER at the foot.
+        # reverse. Matter is the run that STARTS on line 1 or ENDS on the last
+        # one, so what pushes a gap out of it is a blank BEFORE at the head and a
+        # blank AFTER at the foot.
         # ! `...return y\n# ADDED\n` and
         # `...return y\n\n# ADDED\n` both re-read at `f1`;
         # `...return y\n# ADDED\n\n` re-reads at the closing gap, so a leading
@@ -274,18 +276,7 @@ def _set(page: Page, newline: str | None) -> tuple[str, dict[str, tuple[int, int
         #
         # ! OWED UNTIL THE PROSE IS SET, which is why it is held rather than
         # written here -- the blank belongs BELOW the paragraph.
-        #
-        # ! AND NOT OWED WHEN A CLOSING DOCSTRING IS SET BELOW IT: the gap then
-        # does not end on the last line, and the docstring is what parts it
-        # from the back matter.
-        trailing = (
-            adding_a_gap
-            and at > last_code
-            and not edges.get(cue)
-            and not any(
-                held.get(c) for c in reading[at + 1 :] if c.startswith(DECLARED)
-            )
-        )
+        trailing = adding_a_gap and at > last_code and not edges.get(cue)
         previous = cue
         # ! A `c` IS NEVER EMPTY IN THIS SENSE -- it sets its line of code
         # whether or not anything sits beside it.
@@ -299,6 +290,9 @@ def _set(page: Page, newline: str | None) -> tuple[str, dict[str, tuple[int, int
             # opened in that room and closed on a later line owns those lines
             # outright, because no code is on them.
             code = page.cues.anchor_of(cue)
+            # Only the code on line 1 carries the mark.
+            if mark and page.cues.anchor_line(cue) == 1:
+                code = constants.without_mark(code)
             out.append(f"{code}{prose[0] if prose else ''}")
             out.extend(prose[1:])
             continue
@@ -324,11 +318,13 @@ def _set(page: Page, newline: str | None) -> tuple[str, dict[str, tuple[int, int
             f"{page.path}: the page has no places -- its source was never read"
         )
     if not out:
-        # !! AN EMPTY PAGE IS EMPTY TEXT -- and returning `page.text` here is how
-        # this whole instrument would come to lie. A model that had lost every
-        # line would set the original file back and the identity would pass over
-        # the top of it.
-        return "", lines_of
+        # !! AN EMPTY PAGE IS EMPTY TEXT, PLUS THE MARK -- and returning
+        # `page.text` here is how this whole instrument would come to lie. A model
+        # that had lost every line would set the original file back and the
+        # identity would pass over the top of it. The mark is the file's encoding,
+        # not a line of it, so it is all that remains.
+        return mark, lines_of
+    out[0] = mark + out[0]
     # A closing-gap insertion, or text ending in a blank, needs a physical blank
     # below its prose, whether or not the file ended on a line break.
     held_blank = not out[-1]
@@ -336,6 +332,25 @@ def _set(page: Page, newline: str | None) -> tuple[str, dict[str, tuple[int, int
         ending if closing_gap or held_blank or page.text.endswith(("\n", "\r")) else ""
     )
     return ending.join(out) + tail, lines_of
+
+
+def _take_mark(page: Page, held: dict[str, list[str]]) -> None:
+    """Remove the byte-order mark from the paragraph that starts on line 1.
+
+    A paragraph or code line carries the mark as line 1 had it, and `_set` sets
+    the mark once, ahead of the first line it writes. Only line 1 owns the mark:
+    a paragraph starting later, or a code line other than line 1, keeps any
+    mark it holds, since that is text inside a literal.
+    """
+    for paragraph in page.paragraphs:
+        if paragraph.start == 1:
+            # Keyed as `_held` keys it: a leading run has no address.
+            cue = (
+                cue_of(paragraph.address).cue if paragraph.address else paragraph.symbol
+            )
+            lines = held.get(cue)
+            if lines:
+                lines[0] = constants.without_mark(lines[0])
 
 
 def draft(page: Page, into: Path) -> Path:

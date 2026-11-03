@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 2 of 14 tasks closed
+Progress: 4 of 14 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (C:/Program Files/Git/simplify rounds 1 and 2 and /code-review high
@@ -76,9 +76,10 @@ a run.
       the steps are not the product and the fixture census is byte-identical.
 - [ ] T4 | T4 -- Stop `page.tie_leading` being O(code x paragraphs). Verify: the
       steps are not the product and the fixture census is byte-identical.
-- [ ] T5 | T5 -- Stop `page.declarations()` running TWICE per file
-      (`page.py:420`, `:726`). Verify: `grep -n 'declarations(' page.py` returns
-      ONE call site, census unchanged.
+- [-] T5 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | T5
+      -- Stop `page.declarations()` running TWICE per file (`page.py:420`,
+      `:726`). Verify: `grep -n 'declarations(' page.py` returns ONE call site,
+      census unchanged.
 - [ ] T6 | T6 -- Stop `addresser.for_anchor` reading census-entry fields its own
       rule does not name. Verify: it reads only what `series_of(address)` names.
 - [x] T7 | FINISHED | unknown | T7 -- FIXED 2026-08-23. `documentable` is
@@ -96,7 +97,8 @@ a run.
         > 2026-10-30 W3 D7: shared-line docstring; compositor says LOSSY
 - [ ] T12 | Refuse a trailing paragraph with no c instead of an empty address
         > 2026-10-30 D2: address '' bypasses held_twice; synthetic input only
-- [ ] T13 | Declare what page_for reads from a lexical read in a Protocol
+- [-] T13 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | Declare
+      what page_for reads from a lexical read in a Protocol
         > 2026-10-30 A5 D8: isinstance(LexicalRead) in page; proof.py:3 is false
 - [ ] T14 | Type Paragraph.kind as Kind
         > 2026-10-30 D10: str, literals in empty_places; attach MATTER unreachable

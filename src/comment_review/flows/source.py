@@ -3,6 +3,7 @@
 import subprocess
 from pathlib import Path
 
+from comment_review import constants
 from comment_review.machine.repo import Source, git, read_revision_source, read_source
 from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, ReadStage
 
@@ -32,10 +33,18 @@ def _acquire_failure(error: Exception, code: str = "io-error") -> ReadFailure:
     return ReadFailure((ReadDiagnostic(ReadStage.ACQUIRE, code, message),))
 
 
+def _without_lone_cr(source: Source) -> Source | ReadFailure:
+    """The source, or a decode failure when it holds a lone CR."""
+    if not constants.holds_lone_cr(source.text):
+        return source
+    message = "the text holds a CR that no LF follows"
+    return ReadFailure((ReadDiagnostic(ReadStage.DECODE, "lone-cr", message),))
+
+
 def source_of(path: Path) -> Source | ReadFailure:
     """Read a filesystem source or report an expected acquisition/decode failure."""
     try:
-        return read_source(path)
+        return _without_lone_cr(read_source(path))
     except UnicodeDecodeError as error:
         return _decode_failure(error)
     except ACQUIRE_ERRORS as error:
@@ -45,7 +54,7 @@ def source_of(path: Path) -> Source | ReadFailure:
 def revision_source_of(repo: Path, ref: str, rel: str) -> Source | ReadFailure:
     """Read a Git blob or report its expected acquisition/decode failure."""
     try:
-        return read_revision_source(repo, ref, rel)
+        return _without_lone_cr(read_revision_source(repo, ref, rel))
     except UnicodeDecodeError as error:
         return _decode_failure(error)
     except subprocess.CalledProcessError as error:

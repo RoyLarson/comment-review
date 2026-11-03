@@ -178,52 +178,50 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (138)
+### open  (123)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
-| [a-comment-inside-a-line-makes-the-file-unprovable](a-comment-inside-a-line-makes-the-file-unprovable.md) | backend | -- | 3/8 | A comment INSIDE a line makes the whole file unprovable |
 | [a-role-can-reverse-itself-between-runs](a-role-can-reverse-itself-between-runs.md) | agents | yes | 1/6 | A role can reverse itself between runs, and nothing measures it |
 | [a-scope-declaration-costs-as-much-as-a-finding](a-scope-declaration-costs-as-much-as-a-finding.md) | agents | yes | 2/7 | A scope declaration costs as much as a finding |
-| [block-comment-markers-survive-into-the-prose](block-comment-markers-survive-into-the-prose.md) | backend | -- | 4/12 | Block-comment markers survive into the prose the reviewers read |
+| [block-comment-markers-survive-into-the-prose](block-comment-markers-survive-into-the-prose.md) | backend | -- | 6/12 | Block-comment markers survive into the prose the reviewers read |
 | [move-and-correct-compose](move-and-correct-compose.md) | agents | -- | 4/6 | `move` and `correct` COMPOSE, and the gate calls them a contradiction |
 | [only-census-got-out-and-the-skill-instructs-a-redirect](only-census-got-out-and-the-skill-instructs-a-redirect.md) | agents | -- | 3/5 | Only `census.py` got `--out`, and `SKILL.md` instructs the redirect it forbids |
 | [referrers-matches-on-any-public-name-and-surfaces-the-whole-repo](referrers-matches-on-any-public-name-and-surfaces-the-whole-repo.md) | backend | -- | 0/6 | `referrers.py` matches on any public name, and surfaced the whole repo |
 | [stage-5-is-the-only-stage-with-no-independent-reader](stage-5-is-the-only-stage-with-no-independent-reader.md) | agents | -- | 10/14 | Stage 5 is the only stage whose writer is also its checker |
-| [the-code-check-refuses-add-and-drop-on-a-docstring](the-code-check-refuses-add-and-drop-on-a-docstring.md) | backend | -- | 9/12 | The CODE CHECK refuses `add` and `drop` when the prose is a docstring |
+| [the-code-check-refuses-add-and-drop-on-a-docstring](the-code-check-refuses-add-and-drop-on-a-docstring.md) | backend | -- | 10/12 | The CODE CHECK refuses `add` and `drop` when the prose is a docstring |
 | [the-emitted-vocabulary-can-collide-with-the-repo](the-emitted-vocabulary-can-collide-with-the-repo.md) | agents | yes | 1/6 | The emitted vocabulary can collide with the reviewed repo's own terms |
-| [docstrings-need-their-own-address-series](docstrings-need-their-own-address-series.md) | backend | -- | 5/9 | A docstring needs its own address series, and it names what it documents |
+| [docstrings-need-their-own-address-series](docstrings-need-their-own-address-series.md) | backend | -- | 6/9 | A docstring needs its own address series, and it names what it documents |
 | [line-0-places-are-unreachable](line-0-places-are-unreachable.md) | backend | -- | 4/6 | **An empty place sits at line 0 by ruling, and both tools that answer by LINE filter on `start &lt;= line &lt;= end`.** So the places an `add` exists to cite are the ones no line lookup can name -- while the brief forbids the only remaining route, counting. |
 | [filtered-measurement-unrecorded](filtered-measurement-unrecorded.md) | testing | -- | 3/5 | The filtered-census measurement exists only in run history |
 | [six-mutations-survive-the-suite](six-mutations-survive-the-suite.md) | testing | -- | 1/8 | 720 tests green against six deliberate defects in shipped code |
 | [the-anchor-claims-are-inverted](the-anchor-claims-are-inverted.md) | agents | -- | 0/4 | shipped prose says an anchor is often empty; it is never empty |
 | [stale-measurements-in-shipped-prose](stale-measurements-in-shipped-prose.md) | testing | yes | 1/6 | every one re-derivable by a command, and every one wrong |
-| [assertions-that-gate-a-substring](assertions-that-gate-a-substring.md) | testing | -- | 3/10 | each passes in the buggy state its own comment forbids |
+| [assertions-that-gate-a-substring](assertions-that-gate-a-substring.md) | testing | -- | 5/10 | each passes in the buggy state its own comment forbids |
 | [move-across-an-uncued-file](move-across-an-uncued-file.md) | backend | -- | 5/6 | the address form spans files; the census does not |
-| [closing-line-deletes-code](closing-line-deletes-code.md) | backend | -- | 5/8 | An edit to a comment whose run closes mid-line DELETES the code after the closer |
+| [closing-line-deletes-code](closing-line-deletes-code.md) | backend | -- | 7/8 | An edit to a comment whose run closes mid-line DELETES the code after the closer |
 | [versioning-at-v1](versioning-at-v1.md) | systems | -- | 3/12 | v1.x wants a concrete versioning system on everything that ships |
 | [check-passes-a-shared-address](check-passes-a-shared-address.md) | backend | -- | 0/4 | addresser --check prints SHARED and exits 0 |
-| [a-series-never-fills-outside-python](a-series-never-fills-outside-python.md) | backend | -- | 17/22 | Outside Python the `a` place is emitted and never filled |
-| [bom-is-read-as-source](bom-is-read-as-source.md) | backend | -- | 2/7 | A UTF-8 BOM is censused as a line of code |
+| [a-series-never-fills-outside-python](a-series-never-fills-outside-python.md) | backend | -- | 21/22 | Outside Python the `a` place is emitted and never filled |
+| [bom-is-read-as-source](bom-is-read-as-source.md) | backend | -- | 4/7 | A UTF-8 BOM is censused as a line of code |
 | [a-malformed-page-drops-its-records](a-malformed-page-drops-its-records.md) | backend | -- | 1/5 | A page entry that is not an object loses every record under it, silently |
 | [unaddressed-is-quadratic](unaddressed-is-quadratic.md) | backend | -- | 0/4 | unaddressed() groups by path for a question that needs one flat pass |
 | [stale-claims-after-the-envelope](stale-claims-after-the-envelope.md) | backend | -- | 2/8 | Shipped prose still describes formats and flags this branch deleted |
-| [one-stem-four-jobs](one-stem-four-jobs.md) | backend | -- | 7/15 | one stem, four jobs -- and the vocabulary sweep cannot see it |
+| [one-stem-four-jobs](one-stem-four-jobs.md) | backend | -- | 10/15 | one stem, four jobs -- and the vocabulary sweep cannot see it |
 | [census-walks-and-flushes](census-walks-and-flushes.md) | backend | -- | 3/7 | census.py walks the whole repo, runs git twice, and its run-flush never fires |
 | [galley-and-compositor-write-path](galley-and-compositor-write-path.md) | backend | -- | 70/80 | The galley can overwrite the file under review, and the compositor reads through a normaliser |
 | [record-and-verdicts-disagree](record-and-verdicts-disagree.md) | backend | -- | 4/8 | record.py and verdicts.py disagree about what a valid record is, in four places |
 | [exception-hierarchy](exception-hierarchy.md) | backend | -- | 2/10 | Named tuples give us the seam; the hierarchy that catches our own types is not built |
-| [language-rows-in-toml](language-rows-in-toml.md) | backend | -- | 11/18 | 18 rows of pure data sit in shipped Python; references/vocabulary.toml is the pattern |
+| [language-rows-in-toml](language-rows-in-toml.md) | backend | -- | 16/18 | 18 rows of pure data sit in shipped Python; references/vocabulary.toml is the pattern |
 | [computed-and-never-read](computed-and-never-read.md) | backend | -- | 7/17 | The insert line, the matter branch, the paragraph index and two repeated full-file scans -- each needs more than a comment fix |
 | [dangling-links-resolve-nowhere](dangling-links-resolve-nowhere.md) | systems | yes | 0/6 | 31 relative links resolve nowhere, and two of them are in a live TODO |
-| [fixtures-do-not-test-the-shape](fixtures-do-not-test-the-shape.md) | testing | -- | 2/5 | A per-language fixture can pass without exercising the shape its language is measured on |
 | [drop-the-column](drop-the-column.md) | backend | -- | 7/9 | the column is len(anchor)+1 everywhere; the address system answers what it was added for |
 | [held-runs-need-a-one-off-migration](held-runs-need-a-one-off-migration.md) | testing | -- | 2/5 | the report cannot name a place, but the recorded hash can -- a script, not a feature |
 | [the-roles-are-named-for-what-they-read](the-roles-are-named-for-what-they-read.md) | agents | -- | 1/6 | block-context etc. become the editorial desks; unlike `block` these ARE on the wire |
 | [lookup-parses-whole-census](lookup-parses-whole-census.md) | backend | -- | 4/14 | A lookup is O(project), not O(file) -- 1.1s per lookup extrapolated at 500k lines; sharding or batching fixes it, re-lexing trades away staleness detection |
 | [verdicts-is-the-join](verdicts-is-the-join.md) | backend | -- | 8/12 | The VERDICTS table lives in record.py; verdicts.py is the collator and 43 sites say so |
 | [census-row-carries-empty-fields](census-row-carries-empty-fields.md) | backend | -- | 12/17 | A census row carries 19 fields and an empty place fills 7, with three different spellings of absent |
-| [matter-misses-two-languages](matter-misses-two-languages.md) | backend | yes | 3/5 | C and Python type a licence header as matter; Rust loses the run to the `a` series and TypeScript types it a docstring |
+| [matter-misses-two-languages](matter-misses-two-languages.md) | backend | yes | 4/5 | C and Python type a licence header as matter; Rust loses the run to the `a` series and TypeScript types it a docstring |
 | [nothing-runs-the-whole-chain](nothing-runs-the-whole-chain.md) | backend | -- | 0/7 | Every stage of the backend has its own tests and nothing runs census -> seed -> record -> join -> galley -> compositor -> prove in one pass. So the redesign phase has no measurement to hold constant, and a defect that lives BETWEEN two stages is invisible to every gate this repo has. |
 | [nothing-makes-the-fair-copy](nothing-makes-the-fair-copy.md) | backend | yes | 1/13 | Nothing turns the collated marks into the paragraph the galley writes |
 | [settle-carries-two-meanings](settle-carries-two-meanings.md) | systems | yes | 0/6 | settle carries two meanings in what an agent is handed, and neither is declared to it |
@@ -231,10 +229,9 @@ that changed a published name or rule:
 | [the-cue-legend-and-its-round-trip](the-cue-legend-and-its-round-trip.md) | backend | -- | 0/5 | The cue letter carries what three fields used to say, and nothing gives the agents the legend or checks they followed it |
 | [the-flow-lives-in-the-command](the-flow-lives-in-the-command.md) | backend | -- | 7/13 | Lifting main() out showed the orchestration was always inside it: commands/census.py took 446 lines and calls page_for, while flows/census.py kept 261 lines of helpers. A command is meant to EXPOSE a flow, not be one. |
 | [two-areas-have-no-tests](two-areas-have-no-tests.md) | backend | -- | 0/4 | tests/ mirrors the package, so an area with no directory is a visible hole. machine/ (repo, constants, exceptions) and commands/ (all ten) have none. repo is exercised only through flows/test_census_names.py, which tests something else. |
-| [concordance-gaps-stated-twice](concordance-gaps-stated-twice.md) | backend | -- | 0/4 | Both encode 'a gap is not a pass' and spell it differently: code_names returns unread rows keyed by NO_HARVESTER/WALKED_TREE, referrers collects unreadable and unsearched under NOT CHECKED. Three states, one idea, two vocabularies. The EXTRACTIONS stay separate -- code_names must be structural so a comment mentioning a symbol cannot prove it exists, and referrers must be textual to see mentions in files nothing parses. |
-| [name-corpus-sees-one-language](name-corpus-sees-one-language.md) | backend | -- | 0/5 | MEASURED 2026-08-24 on this checkout: 278 of 369 tracked files (75%) contribute NO names, every one NO_HARVESTER, zero read failures. code_names harvests via ast.parse, so it covers Python alone -- and on a checkout with syntax newer than the floor interpreter it goes blind to Python too, turning symbols defined only there into false obituaries. lexer.declarations() already finds every documentable declaration in eleven languages lexically; it returns positions, not identifiers. Harvesting from it instead of the AST makes the corpus polyglot and drops the floor limit in one change. |
+| [concordance-gaps-stated-twice](concordance-gaps-stated-twice.md) | backend | -- | 2/8 | Both encode 'a gap is not a pass' and spell it differently: code_names returns unread rows keyed by NO_HARVESTER/WALKED_TREE, referrers collects unreadable and unsearched under NOT CHECKED. Three states, one idea, two vocabularies. The EXTRACTIONS stay separate -- code_names must be structural so a comment mentioning a symbol cannot prove it exists, and referrers must be textual to see mentions in files nothing parses. |
+| [name-corpus-sees-one-language](name-corpus-sees-one-language.md) | backend | -- | 3/5 | MEASURED 2026-08-24 on this checkout: 278 of 369 tracked files (75%) contribute NO names, every one NO_HARVESTER, zero read failures. code_names harvests via ast.parse, so it covers Python alone -- and on a checkout with syntax newer than the floor interpreter it goes blind to Python too, turning symbols defined only there into false obituaries. lexer.declarations() already finds every documentable declaration in eleven languages lexically; it returns positions, not identifiers. Harvesting from it instead of the AST makes the corpus polyglot and drops the floor limit in one change. |
 | [stage-7b-cannot-be-run](stage-7b-cannot-be-run.md) | backend | -- | 0/3 | SKILL.md stage 7b says the compositor puts the approved draft over the real file wholesale, and compositor.approve(drafted, real) implements exactly that. NOTHING CALLS IT: no shipped code, and the compositor command takes only positional paths -- no --approve, no --draft. The galley command writes a directory and stops. So the one step that puts approved text on disk is documented, implemented, and unreachable. PRE-EXISTING: approve was equally uncalled at b3d79d2, before the package move. dead_sweep has reported it as held-by-prose-only; it always exits 0, so nothing was failing. |
-| [a-doc-comment-is-cued-a-and-typed-b](a-doc-comment-is-cued-a-and-typed-b.md) | backend | -- | 0/4 | MEASURED across thirteen languages: go, ruby and lua place a declaration's documentation at an a cue and type it comment -- which is the b series' kind. Rust, Java, C#, Kotlin, Swift, TS and JS all answer docstring, and they are the ones with a DISTINCT doc marker (/// or /** */). The three that break it use an ordinary line-comment marker as their doc form, so the lexer cannot tell the two apart by token and types it comment while the walk still cues it a. One row makes two claims about itself, and every consumer pairing them sees a contradiction: record.prose_paragraphs filters on the KIND while series_of reads the CUE. |
 | [two-filters-for-one-fence-rule](two-filters-for-one-fence-rule.md) | backend | -- | 0/2 | binder.bind() filters fences with 'if b.address' and flows.census.carried() filters them with the same predicate. Two statements of one rule: removing either leaves the binder correct, which is how a mutation removing carried() changed nothing an agent receives. One of them owns the rule; the other should call it or go. |
 | [the-skill-names-commands-that-moved-to-prototype](the-skill-names-commands-that-moved-to-prototype.md) | agents | -- | 3/4 | Stages 4-7 of the shipped skill cannot be followed as written: SKILL.md invokes record (x2), run_context (x2), verdicts and vocabulary, and all four moved to prototype/ on 2026-08-25. The dispatcher lists six commands now, not ten. This is deliberate rather than an oversight -- the agent-facing design is what is being reconsidered, and rewriting the stages before deciding the new one would be inventing the answer. It is filed so the breakage is a known state and not a discovery. |
 | [the-cue-legend-was-never-written](the-cue-legend-was-never-written.md) | agents | yes | 0/4 | Addressing #12 cut kind, declares and symbol on the grounds that 'they are stating something that the cue letter states. So we just give the agents the legend for the cue letters and let them run with it.' The fields went; the legend did not arrive. MEASURED 2026-08-25: nothing in the shipped prose is one. reviewer-brief.md names a, b and c in passing at line 225 -- 'an a is a declaration's documentation, a b is a gap, a c is the room beside a line of code' -- and never f, never the present/absent pairing, and not as the deliberate artefact the ruling named. So agents are handed LESS than the ruling intended rather than differently. Roy, 2026-08-25: it 'is going to change a lot of things in that lane', which is why it is filed here rather than written in passing. |
@@ -255,19 +252,19 @@ that changed a published name or rule:
 | [prototype-move-orphaned-tasks](prototype-move-orphaned-tasks.md) | systems | -- | 0/4 | 25 open TODOs carry an unchecked task naming a module that moved to `prototype/` on 2026-08-25, so the task's site is gone and its verification cannot be run |
 | [revise-copies-everything](revise-copies-everything.md) | backend | yes | 0/4 | `pull` copies `.git`, `.venv` and `corpora` into every revise root -- 284MB measured on this repo, per editorial stage, to set a docket over ~4MB of source |
 | [sheet-rename-gate-cannot-see-the-source](sheet-rename-gate-cannot-see-the-source.md) | systems | -- | 0/2 | the gate's scope excludes the tree the retired sense actually survived in -- docs/gates.md: a check that could not have failed is not evidence |
-| [doc-on-the-declaring-line](doc-on-the-declaring-line.md) | backend | -- | 2/4 | A docstring written on its declaration's own line takes no address, and the round trip invents a blank line |
+| [doc-on-the-declaring-line](doc-on-the-declaring-line.md) | backend | -- | 3/4 | A docstring written on its declaration's own line takes no address, and the round trip invents a blank line |
 | [brief-says-prose-is-withheld](brief-says-prose-is-withheld.md) | agents | yes | 0/3 | reviewer-brief.md:113 says the record withholds the prose so a role cannot rule without reading the code; flows/marks.py:81 puts raw_text on every mark and collator.py makes it load-bearing |
 | [brief-says-three-series](brief-says-three-series.md) | agents | yes | 2/8 | reviewer-brief.md:69 and :221 say three series; reading/series.py ADDRESSED is ('a','b','c','f') and SKILL.md:378 says four, so a role cannot resolve the @f0 place the same brief tells it to cite |
 | [skill-inverts-the-anchor-line](skill-inverts-the-anchor-line.md) | agents | -- | 0/2 | SKILL.md's CANDIDATE paragraph describes the opposite of the line commands/census.py prints, and the reasoning built on it is what the task agent carries into every proposal |
 | [external-address-cites-dead-modules](external-address-cites-dead-modules.md) | backend | -- | 0/2 | desk/external_address.py says the address is declared in binder/record.py and resolved in desk/desk.py; record.py left on b50e7a4 and desk.py is in no directory of this tree |
-| [no-command-for-the-middle](no-command-for-the-middle.md) | backend | -- | 86/99 | `gather`, `places`, `reconcile` and `docket_from` have no CLI face, so nothing turns checked marks into the docket `proof --docket` requires. Measured 2026-08-29 on a real run: every other step of the chain is a command; this one had to be driven from a hand-written script |
+| [no-command-for-the-middle](no-command-for-the-middle.md) | backend | -- | 86/102 | `gather`, `places`, `reconcile` and `docket_from` have no CLI face, so nothing turns checked marks into the docket `proof --docket` requires. Measured 2026-08-29 on a real run: every other step of the chain is a command; this one had to be driven from a hand-written script |
 | [query-names-no-sentence](query-names-no-sentence.md) | backend | yes | 0/3 | every other substantive instruction names the sentence it rules on through a `claim` key -- `false` for `correct`, `drop` for `drop`, `from` for `patch` -- and `query` has none, so `_sentence_key` falls back to an identity and two queries at one place read as two different sentences |
 | [brief-example-and-scope](brief-example-and-scope.md) | agents | -- | 0/3 | the brief's worked example shows a 40-character `sha` where `bind` writes 16, and the brief says a source resolves against 'the repo' without saying whether that is the scoped tree or the checkout it was cut from |
 | [rows-of-derives-no-type](rows-of-derives-no-type.md) | backend | -- | 0/4 | `binder.rows_of` returns `list[dict]` where `docket.schedules_of` returns `list[Schedule]`; the codebase holds one example of each pattern, the typed one is the one that catches things, and `rows_of` has 8 callers and no covering tests |
 | [strip-before-review-experiment](strip-before-review-experiment.md) | agents | yes | 0/5 | the `collator.py` prose was deleted whole and rewritten by an agent that could read only the code -- it found three defects the old prose never mentioned and named two things the code cannot say; whether that beats editing in place is untested |
 | [collator-defects](collator-defects.md) | backend | -- | 19/43 | four defects in `desk/collator.py`, all found by an agent writing the file's prose from the code alone: a `move` onto its own address becomes a bare delete, a multi-line `verbatim` from a CRLF file can never match, the source cache is keyed without its root, and a malformed cite raises where the half is meant to report |
 | [staged-chain-untested](staged-chain-untested.md) | backend | -- | 4/6 | the four-stage chain runs and the edits accumulate, proven 2026-08-30 -- but no test in the suite drives it, and the only committed fan-out topology refuses any tree but this repo's |
-| [containers-and-verification-are-unwired](containers-and-verification-are-unwired.md) | backend | -- | 37/60 | The containers and the source-verification half are wired to nothing |
+| [containers-and-verification-are-unwired](containers-and-verification-are-unwired.md) | backend | -- | 38/60 | The containers and the source-verification half are wired to nothing |
 | [mark-holds-spec-and-parse](mark-holds-spec-and-parse.md) | backend | -- | 0/6 | mark.py holds the instruction spec and the boundary parse at one scope |
 | [ty-cannot-see-the-tests](ty-cannot-see-the-tests.md) | systems (the gate) - backend (the test fixes) | -- | 1/5 | The type gate is scoped to src and cannot see the tests |
 | [null-becomes-the-word-none](null-becomes-the-word-none.md) | backend | -- | 0/6 | A present-but-null key becomes the four characters None |
@@ -298,28 +295,16 @@ that changed a published name or rule:
 | [r2-preexisting-prose](r2-preexisting-prose.md) | backend | -- | 0/2 | Correct pre-existing move and fold-helper prose |
 | [mark-stance-metadata-prose](mark-stance-metadata-prose.md) | backend | -- | 0/2 | Clarify mark stance and reading metadata prose |
 | [smoke-fixture-defects](smoke-fixture-defects.md) | systems | -- | 0/1 | Align the command smoke with paragraph rewrapping |
-| [lexical-code-identity](lexical-code-identity.md) | backend | -- | 4/13 | Use lexical code identity at both proof boundaries |
+| [lexical-code-identity](lexical-code-identity.md) | backend | -- | 12/15 | Use lexical code identity at both proof boundaries |
 | [collate-file-input](collate-file-input.md) | backend | -- | 0/1 | Read collation inputs from a file |
 | [2026-10-11-maintained-source-selection](2026-10-11-maintained-source-selection.md) | agents | -- | 0/1 | Select maintained source for review |
 | [2026-10-13-human-question-list](2026-10-13-human-question-list.md) | backend | -- | 0/1 | Expose human questions across edit copies |
 | [empty-comment-gets-a-drop](empty-comment-gets-a-drop.md) | backend | -- | 0/1 | An empty comment gets a drop mark |
 | [paragraph-is-a-passage](paragraph-is-a-passage.md) | backend | -- | 0/9 | The addressed unit of prose is a passage, not a paragraph |
-| [one-line-ending-per-file](one-line-ending-per-file.md) | backend | -- | 1/6 | One line ending per file |
-| [language-reader-go](language-reader-go.md) | backend | -- | 0/3 | Go lexical reader |
-| [language-reader-c](language-reader-c.md) | backend | -- | 0/2 | C lexical reader |
-| [language-reader-cpp](language-reader-cpp.md) | backend | -- | 0/2 | C++ lexical reader |
-| [language-reader-java](language-reader-java.md) | backend | -- | 0/5 | Java lexical reader |
-| [language-reader-csharp](language-reader-csharp.md) | backend | -- | 1/3 | C# lexical reader |
-| [language-reader-swift](language-reader-swift.md) | backend | -- | 1/4 | Swift lexical reader |
-| [language-reader-kotlin](language-reader-kotlin.md) | backend | -- | 1/3 | Kotlin lexical reader |
-| [language-reader-javascript](language-reader-javascript.md) | backend | -- | 0/4 | JavaScript lexical reader |
-| [language-reader-typescript](language-reader-typescript.md) | backend | -- | 0/2 | TypeScript lexical reader |
-| [language-reader-ruby](language-reader-ruby.md) | backend | -- | 0/7 | Ruby lexical reader |
-| [language-reader-shell](language-reader-shell.md) | backend | -- | 2/7 | Shell lexical reader |
-| [language-reader-sql](language-reader-sql.md) | backend | -- | 0/3 | SQL lexical reader |
-| [language-reader-lua](language-reader-lua.md) | backend | -- | 1/9 | Lua lexical reader |
-| [edit-path-isolation](edit-path-isolation.md) | backend | -- | 0/2 | Isolate the edit path from comment reading |
-| [one-reader-builder](one-reader-builder.md) | backend | -- | 0/10 | One reader builder from each language's definition |
+| [one-line-ending-per-file](one-line-ending-per-file.md) | backend | -- | 2/6 | One line ending per file |
+| [edit-path-isolation](edit-path-isolation.md) | backend | -- | 1/2 | Isolate the edit path from comment reading |
+| [one-reader-builder](one-reader-builder.md) | backend | -- | 2/10 | One reader builder from each language's definition |
+| [freeform-run-findings](freeform-run-findings.md) | agents | -- | 19/22 | What the first live freeform run showed |
 
 ### in-progress  (17)
 
@@ -328,19 +313,19 @@ that changed a published name or rule:
 | [compact-can-buy-lines-with-width](compact-can-buy-lines-with-width.md) | agents | -- | 2/8 | COMPACT can buy lines with width, and nothing stops it |
 | [stage-1-is-re-derived-every-run](stage-1-is-re-derived-every-run.md) | agents | yes | 1/15 | Stage 1 is re-derived every run, asks one question twice, and knows one structure source |
 | [the-bridge-landed-and-the-rewrite-did-not](the-bridge-landed-and-the-rewrite-did-not.md) | backend | -- | 8/11 | The bridge landed and the rewrite did not |
-| [corpora-are-all-python](corpora-are-all-python.md) | testing | -- | 3/10 | The corpora are nine Python projects, so every per-language rule is measured on Python and C alone |
+| [corpora-are-all-python](corpora-are-all-python.md) | testing | -- | 9/10 | The corpora are nine Python projects, so every per-language rule is measured on Python and C alone |
 | [7a-can-prove-the-change-by-applying-it-to-a-copy](7a-can-prove-the-change-by-applying-it-to-a-copy.md) | agents | yes | 3/8 | 7a can PROVE the change by applying it to a copy and diffing |
 | [b-addresser-uninitialised](b-addresser-uninitialised.md) | backend | yes | 13/18 | The b addresser is never initialised at the module trigger, and computes its cue from line numbers |
 | [census-degrades-silently](census-degrades-silently.md) | backend | -- | 5/8 | **Four inputs produce a census that is wrong rather than refused, each exiting 0.** The run reads as complete and the addresses are nonsense. |
 | [census-owns-addressing](census-owns-addressing.md) | backend | -- | 4/8 | The census owns addressing, and four modules share one subject between them |
-| [page-and-addresser-scans](page-and-addresser-scans.md) | backend | -- | 2/14 | page.py and addresser.py carry four scans that grow with the file and one CLI that contradicts the gate |
+| [page-and-addresser-scans](page-and-addresser-scans.md) | backend | -- | 4/14 | page.py and addresser.py carry four scans that grow with the file and one CLI that contradicts the gate |
 | [record-verdict-desk-findings](record-verdict-desk-findings.md) | backend | -- | 9/14 | Round-4 findings in record/verdict/desk, including two that certify a run at exit 0 |
 | [the-census-is-mostly-intervals-nobody-rules-on](the-census-is-mostly-intervals-nobody-rules-on.md) | backend | -- | 26/27 | **The census is 67% of what it costs to start a reviewer, and 966 of its 1,120 blocks are intervals nobody rules on.** 131,353 bytes of 195,243, paid four times. Roy ruled the design 2026-08-18: the census stays fully enumerated ON DISK, the agents get a FILTERED view, and a destination outside their set comes from a TOOL answering one question -- what is the ADDRESS of this line of code. ! It does not reverse the 2026-08-17 enumeration; it is a projection of it, and `add` was not expressible before it. ! Rule 4 buys a check as well as bytes: `move`'s `to` is free text nothing resolves, and an index is resolvable exactly as an address already is |
 | [the-lexer-reads-no-files](the-lexer-reads-no-files.md) | backend | -- | 13/25 | one decision -- bytes into text -- made in nine places, none of them the lexer |
 | [the-parser-merges-across-boundaries-it-cannot-read](the-parser-merges-across-boundaries-it-cannot-read.md) | backend | -- | 2/4 | The collator merges across a boundary it cannot read, and blames the neighbour |
 | [the-read-only-contract-is-enforced-by-nothing](the-read-only-contract-is-enforced-by-nothing.md) | agents | yes | 2/8 | The read-only contract is enforced by nothing, and four reviewers wrote files |
 | [the-shipped-python-does-not-pass-its-own-review](the-shipped-python-does-not-pass-its-own-review.md) | backend | yes | 7/12 | **Our own scripts spend a sixth of their prose on what the code does NOT do.** ! **Roy's reason, 2026-08-16: *"I don't want the system picking up bad cues from the documentation in the code."*** An agent reads these files and then writes in them. Re-measured after that day's rewrites: **136 of 697 (20%)** comment and docstring lines carry `cannot` / `never` / `does not` / `is not` / `nothing` -- UP from 123/714, because the prose written that day carries the same defect -- `census.py` worst at 52/284. Roy: *"census.py creates the pCST and that is it. Comments about 'cannot answer OWNERSHIP' are not helpful."* ! Not every negative is wrong -- an output (*"reports UNPROVABLE rather than passing"*) and a refusal aimed at a future editor both earn their place -- so the first task is writing the test that tells them apart !! **The hand-pass rule is STRUCK, 2026-08-18.** It told itself not to run `/comment-review` on this repo; Roy: *"By definition the code has to go through the review to state that it has passed."* A hand pass produces a rewrite, and this file's title is a claim about what the review RETURNS -- so it now closes on a run graded from the diff. ! The harness does not gate that: running the skill needs the skill |
-| [lexer-and-language-findings](lexer-and-language-findings.md) | backend | -- | 25/69 | Ten findings in lexer.py and language.py, from three review rounds |
+| [lexer-and-language-findings](lexer-and-language-findings.md) | backend | -- | 52/73 | Ten findings in lexer.py and language.py, from three review rounds |
 | [board-predates-task-ids](board-predates-task-ids.md) | systems | yes | 2/6 | task lines carry no ids, so a plan cannot name one; a trial migration was reverted because it silently cleared 57 `Requires-Roy` flags and refused nine files whose task labels carry a literal pipe |
 
 ### decision-needed  (23)
@@ -365,7 +350,7 @@ that changed a published name or rule:
 | [the-harness-cannot-run-the-system-it-grades](the-harness-cannot-run-the-system-it-grades.md) | testing | yes | 10/31 | **Nothing in this repo runs the documented eval format, and no measurement exists that a human did not perform.** `grade_hazards.py` scores worktrees a person built by hand against twelve planted defects, from a base hardcoded to another repository. Ruled 2026-08-18: a reduced role set is supported with `ownership-context` never dropped, and a fixture is a CHECKOUT AT A HASH -- this repo's own history included, since a fix commit is an answer key. ! NOT a release candidate: nothing here is under `plugins/`. * Unruled: the suite layout, which the fixture model narrows to one option |
 | [the-strongest-precedence-has-the-weakest-support](the-strongest-precedence-has-the-weakest-support.md) | agents | yes | 2/4 | The role with verdict precedence has the least mechanical support |
 | [the-two-lists-were-tuned-to-one-diff](the-two-lists-were-tuned-to-one-diff.md) | agents | yes | 3/9 | **Both lists are DELETED from the brief; this holds what was inside them.** The acquittal list matched a prose SHAPE and claimed to be *"the ONLY reasons to pass a block over"* -- but what decides `clean` is stated per role and is a TRUTH assertion at that role's scope, so the two disagreed outright. Its measurement was `evidence/ga/`: ten candidates over SIX `redacted_pkg` files, scored on F1 against what one later commit rewrote -- and the search itself concluded *"the acquittal RATE is the trait; the acquittal LIST is just vocabulary."* The suppression list had no provenance at all. ! Three entries were CHECKS wearing an exemption's name, one CONTRADICTS `function-context`, and `detector` -- a settled term -- lost its only definition |
-| [two-live-runs-proposed-fifteen-changes](two-live-runs-proposed-fifteen-changes.md) | agents | yes | 11/21 | Two live runs proposed fifteen changes |
+| [two-live-runs-proposed-fifteen-changes](two-live-runs-proposed-fifteen-changes.md) | agents | yes | 12/21 | Two live runs proposed fifteen changes |
 | [null-is-not-a-decision](null-is-not-a-decision.md) | backend | yes | 0/2 | `null` is the delete signal, and it is also what a failed serialisation writes |
 | [strip-and-fill-the-markers](strip-and-fill-the-markers.md) | backend | yes | 0/9 | A role is handed the paragraph with its `#`/`"""` markers and indentation, and must reproduce them exactly in `change`. Measured 2026-08-29: three consecutive attempts by an agent with full context broke the file, and each failure read as a defect in the setter |
 | [task-agent-vocabulary-home](task-agent-vocabulary-home.md) | agents (the instructions) - backend (the enum they derive from) | yes | 2/6 | The task agent has no vocabulary home and is never told the command set |
@@ -531,3 +516,21 @@ the reason is inside the file.
 | [doc-is-structural-means-two-things](completed/doc-is-structural-means-two-things.md) | 3 superseded |
 | [a-reader-finds-prose-only](completed/a-reader-finds-prose-only.md) | 23 finished, 6 superseded |
 | [reader-review-repairs](completed/reader-review-repairs.md) | 13 finished, 5 superseded |
+| [language-reader-c](completed/language-reader-c.md) | 2 superseded |
+| [language-reader-cpp](completed/language-reader-cpp.md) | 2 superseded |
+| [language-reader-csharp](completed/language-reader-csharp.md) | 1 finished, 2 superseded |
+| [language-reader-go](completed/language-reader-go.md) | 3 superseded |
+| [language-reader-java](completed/language-reader-java.md) | 5 superseded |
+| [language-reader-javascript](completed/language-reader-javascript.md) | 1 finished, 6 superseded |
+| [language-reader-kotlin](completed/language-reader-kotlin.md) | 1 finished, 2 superseded |
+| [language-reader-lua](completed/language-reader-lua.md) | 1 finished, 8 superseded |
+| [language-reader-ruby](completed/language-reader-ruby.md) | 7 superseded |
+| [language-reader-shell](completed/language-reader-shell.md) | 3 finished, 4 superseded |
+| [language-reader-sql](completed/language-reader-sql.md) | 1 finished, 2 superseded |
+| [language-reader-swift](completed/language-reader-swift.md) | 1 finished, 3 superseded |
+| [language-reader-typescript](completed/language-reader-typescript.md) | 2 superseded |
+| [a-doc-comment-is-cued-a-and-typed-b](completed/a-doc-comment-is-cued-a-and-typed-b.md) | 4 superseded |
+| [a-comment-inside-a-line-makes-the-file-unprovable](completed/a-comment-inside-a-line-makes-the-file-unprovable.md) | 2 finished, 6 superseded |
+| [fixtures-do-not-test-the-shape](completed/fixtures-do-not-test-the-shape.md) | 1 finished, 4 superseded |
+| [python-and-rust-only](completed/python-and-rust-only.md) | 1 finished |
+| [freeform-agent-prose](completed/freeform-agent-prose.md) | 1 finished |

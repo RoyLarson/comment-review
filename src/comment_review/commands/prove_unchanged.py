@@ -38,13 +38,16 @@ def main() -> int:
     if report.failures:
         print(f"{report.failures} unproven. WRITE's claim does NOT hold.")
         return 1
+    proven = len(args.paths) - report.freeform
+    counts = []
+    if proven:
+        counts.append(f"{proven} proven")
+    if report.freeform:
+        counts.append(f"{report.freeform} UNCHECKED (no reader)")
+    print(", ".join(counts) + ".")
     if report.unchecked:
         print(
-            f"{len(args.paths)} paths proven; {report.unchecked} with line "
-            "endings UNCHECKED (no readable untouched sibling to compare against)."
-        )
-    else:
-        print(
-            f"{len(args.paths)} paths proven: prose changed, the rest reads the same."
+            f"{report.unchecked} with line endings UNCHECKED "
+            "(no readable untouched sibling to compare against)."
         )
     return 0

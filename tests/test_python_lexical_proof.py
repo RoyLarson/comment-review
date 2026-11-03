@@ -26,7 +26,6 @@ from comment_review.reading import readers
 from comment_review.reading.context import ReadingContext, resolve_context
 from comment_review.reading.definitions import LanguageDefinition
 from comment_review.reading.diagnostics import ReadFailure
-from comment_review.reading.stripped import StrippedRead
 
 MODERN_SOURCE = (
     "# Describe the envelope.\n"
@@ -61,19 +60,6 @@ def forbid_host_parsers(patch):
     patch.setattr(builtins, "compile", unreadable)
 
 
-@pytest.mark.parametrize("suffix", [".py", ".pyi", ".PY"])
-@pytest.mark.parametrize("text", ["value = 1\n", "value = (\n", MODERN_SOURCE])
-def test_python_fingerprint_requires_admitted_lexical_records(
-    monkeypatch, suffix, text
-):
-    from comment_review.reading.stripped import code_fingerprint
-
-    with monkeypatch.context() as patch:
-        forbid_host_parsers(patch)
-        result = code_fingerprint(text, Path("m" + suffix))
-    assert result == ("unprovable", "")
-
-
 def test_modern_python_the_host_cannot_compile_proves_without_its_parsers(
     monkeypatch,
 ):
@@ -98,15 +84,6 @@ def test_admitted_proof_never_reacquires_python_records(monkeypatch):
         patch.setattr(page_model, "read_source", forbidden)
         refusal = proof_setter._prove("m.py", before, after, Path("m.py"))
     assert refusal is None
-
-
-def test_missing_python_records_refuse_without_host_fallback(monkeypatch):
-    page = build("value = 1\n")
-    page = replace(page, read=StrippedRead(page.text, Path("m.py")))
-    with monkeypatch.context() as patch:
-        forbid_host_parsers(patch)
-        refusal = proof_setter._prove("m.py", page, page, Path("m.py"))
-    assert refusal is not None and refusal.step == "prove"
 
 
 @pytest.mark.parametrize(
@@ -327,14 +304,15 @@ def test_standalone_modern_python_uses_one_context_without_host_parsing(
 
 
 def test_python_unicode_database_change_invalidates_saved_context_only(monkeypatch):
+    name = "m.rs"
     python = reading_context.context_for(Path("m.py"), {})
-    javascript = reading_context.context_for(Path("m.js"), {})
+    other = reading_context.context_for(Path(name), {})
     assert isinstance(python, ReadingContext)
-    assert isinstance(javascript, ReadingContext)
+    assert isinstance(other, ReadingContext)
     monkeypatch.setattr(unicodedata, "unidata_version", "99.0.0")
     changed = reading_context.context_for(Path("m.py"), {})
     assert isinstance(changed, ReadingContext) and changed != python
-    assert reading_context.context_for(Path("m.js"), {}) == javascript
+    assert reading_context.context_for(Path(name), {}) == other
     failed = page_for.page_of(
         Path("m.py"), source=Source("value = 1\n", "sha"), reading_context=python
     )
@@ -350,8 +328,7 @@ def test_python_context_identity_is_independent_of_host_parser_version(monkeypat
 
 
 def test_previous_python_binding_context_refuses_before_reading(monkeypatch):
-    registry = reading_context.installed_registry()
-    assert not isinstance(registry, ReadFailure)
+    registry = reading_context.INSTALLED_REGISTRY
     selected = readers.reader_for(Path("m.py"), registry)
     assert isinstance(selected, tuple)
     definition, _ = selected

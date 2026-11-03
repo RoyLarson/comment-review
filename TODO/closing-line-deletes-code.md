@@ -2,7 +2,7 @@
 
 ```
 Status:   deferred
-Progress: 5 of 8 tasks closed
+Progress: 7 of 8 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-21 (the /code-review xhigh of 2026-08-21; measured in-session)
@@ -112,8 +112,10 @@ of the two notes stands.
       unchanged and are named in the Objective.
 - [x] T6 | FINISHED | unknown | T6 -- RECORD, not a task. Close this with the
       galley, not before -- the sequencing reason, kept in the Objective.
-- [ ] T7 | T7 -- When the galley's composition step lands, take whichever option
-      T4 leaves standing. Verify: the Objective's C input refuses, or keeps `int
-      x = 5;`.
-- [ ] T8 | T8 -- Pin T7 with a test on that same four-line C input. Verify: the
-      test fails on the pre-change tree and passes after it.
+- [-] T7 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | T7
+      -- When the galley's composition step lands, take whichever option T4
+      leaves standing. Verify: the Objective's C input refuses, or keeps `int x
+      = 5;`.
+- [-] T8 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | T8
+      -- Pin T7 with a test on that same four-line C input. Verify: the test
+      fails on the pre-change tree and passes after it.

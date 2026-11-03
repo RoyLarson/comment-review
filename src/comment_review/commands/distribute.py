@@ -125,7 +125,10 @@ def main() -> int:
             return 2
         Path(args.out).write_text(_as_json(edit_copy), encoding="utf-8", newline="")
         places = sum(len(sheet["marks"]) for sheet in edit_copy["sheets"])
-        print(f"{args.out}: {places} places for {args.role} to rule on")
+        print(
+            f"{args.out}: {places} places for {args.role} to rule on; "
+            f"{len(binder.freeform)} freeform"
+        )
         return 0
 
     if args.stage:
@@ -188,7 +191,7 @@ def main() -> int:
             places = sum(len(sheet["marks"]) for sheet in copy["sheets"])
             print(
                 f"{where}: {places} places for {dispatch.role} to rule on; "
-                f"binder {binder_path}"
+                f"{len(received.freeform)} freeform; binder {binder_path}"
             )
         return 0
 

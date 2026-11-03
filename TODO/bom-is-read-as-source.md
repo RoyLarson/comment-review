@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 2 of 7 tasks closed
+Progress: 4 of 7 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-21 (the /code-review xhigh of 2026-08-21, focused on the file-to-
@@ -58,9 +58,10 @@ the first statement rather than as a `trailing-comment`, and no anchor is the BO
 
 ## Tasks
 
-- [ ] T1 | T1 -- Read with `utf-8-sig` at `repo.py:52` and `census.py:336`, the
-      lexical route. Verify: the BOM'd `.c` shows all three results named just
-      above the task list.
+- [-] T1 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | T1
+      -- Read with `utf-8-sig` at `repo.py:52` and `census.py:336`, the lexical
+      route. Verify: the BOM'd `.c` shows all three results named just above the
+      task list.
 - [ ] T2 | T2 -- Read with `utf-8-sig` at `census.py:177`, which feeds
       `ast.parse`. Verify: a BOM'd `.py` censuses its module docstring, not one
       `unparsed` paragraph.
@@ -70,7 +71,8 @@ the first statement rather than as a `trailing-comment`, and no anchor is the BO
 - [x] T4 | FINISHED | unknown | T4 -- A statement about the platform, in the
       Objective: BOM is the Visual Studio and Windows PowerShell default for
       `.c`, `.cs`, `.cpp` and `.ps1`.
-- [ ] T5 | Write the byte-order mark ahead of f0, a0 or b0 when the head is set
+- [x] T5 | Head edits on a marked page set the mark at byte 0 and prove in the lexical, Rust and Python readers; a lost or moved mark is protected-source-changed; full suite 6432 passed | dd155ab83501f5ff98b7772a98a79094a1e89929 | Write
+      the byte-order mark ahead of f0, a0 or b0 when the head is set
         > 2026-10-27 compositor.py:96, galley.py:99; proof passes a lost mark
         > 2026-10-30 Final review 3 M5: mark moves to line 2 on add f0; 338 dockets
         > 2026-10-30 Outcome 2026-10-30: edits moving the mark stay refused until T5, T6

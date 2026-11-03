@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 11 of 21 tasks closed
+Progress: 12 of 21 tasks closed
 Owner:    agents
 Requires-Roy: true
 Raised:   2026-08-17, from `evidence/todo-tool-full-v0_2/proposals.md` (5) and
@@ -203,9 +203,10 @@ raised in conversation.
       address. Verify: `verdicts.py` prints that section.
 - [ ] T14 | T14 -- Test that a record with no address reaches that section.
       Verify: the test fails on today's code first.
-- [ ] T15 | T15 -- P1 (redacted-corpus) -- parse after every write, for the
-      NON-PYTHON cases. Verify: name what stands in for a parse at the `lexical`
-      tier, or close this.
+- [-] T15 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | T15
+      -- P1 (redacted-corpus) -- parse after every write, for the NON-PYTHON
+      cases. Verify: name what stands in for a parse at the `lexical` tier, or
+      close this.
 - [x] T16 | FINISHED | unknown | T16 -- SUPERSEDED HERE, tracked in its own
       file. **RELEASE REQUIREMENT -- STAGE 4 SERIALISES**, at
       `ownership-is-read-first-but-nothing-makes-it-so.md`.

@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 10 tasks closed
+Progress: 2 of 10 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-27 (Roy, 2026-10-27, decision-log #244)
@@ -36,13 +36,15 @@ only they need.
         > 2026-10-30 A3: take _partner with the cut; A6: lexer.py is 1763 lines
         > 2026-10-30 file_matter runs twice while docs are decided after the cut
 - [ ] T2 | Write the design for the reader builder and its shared parts
-- [ ] T3 | Build the lexical reader through the builder
+- [-] T3 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | Build
+      the lexical reader through the builder
 - [ ] T4 | Rebuild the Python reader as a definition plus its own parts
 - [ ] T5 | Rebuild the Rust reader as a definition plus its own parts
 - [ ] T6 | Replace the three unchanged-code proofs with one
 - [ ] T7 | Remove the reader's anchor text once the page places paragraphs
         > 2026-10-30 Page overwrites it at page.py:780; only use is the EOF flag :763
-- [ ] T8 | Remove CodeLine.joins once a unit has one statement
+- [x] T8 | CodeLine.joins removed; T51 derives a unit from DocPlace.at | e0da1c3a2a39e797c69ae351e76d296d5156ad5f | Remove
+      CodeLine.joins once a unit has one statement
         > 2026-10-30 Derive it from DocPlace.at; Rust units land then (T51)
 - [ ] T9 | Mark an empty `b` inside a unit unassignable (#257)
 - [ ] T10 | Resolve an unassignable `b` to its unit's assignable `b` (#257)

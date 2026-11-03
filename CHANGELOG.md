@@ -76,6 +76,73 @@ and rust (`startraders`, 2026-08-17).
 
 ## [Unreleased]
 
+### Fixed
+
+- The copy chief matches a freeform hunk to the finding whose comment it falls
+  within, so an `add` or an edit below a comment's first line is not sent back.
+- Anything sent back twice is left out alone; its role is reported unanswered on
+  that finding, not the whole file.
+- The stage table, the proofreader's report and the author's stage 8 choice name
+  freeform files.
+
+### Reverted
+
+Every change beta.7 made to the page flow, which the freeform run's findings
+were never about: stage 6 skipping the condenser at `0 places`, the condenser's
+and proofreader's vocabularies, a non-human query deferring on a page, a copy
+holding a question not setting, the line-ending `UNCHECKED` report, `drop`
+including false sentences, `withdraw` taking the whole finding, module-context's
+module comment, the proofreader's template-departure rule, and `gather` printing
+each gap in the name corpus once.
+
+## [0.2.4-beta.7] -- 2026-11-03
+
+A pre-release for the live freeform runs, with the first run's wording gaps closed.
+
+### Changed
+
+- Only a `human-review-necessary` query is asked of the author; a query of
+  either other shape defers to the other roles, on a page or a freeform file.
+- Stage 6 dispatches no condenser when nothing is over the cap.
+- The condenser and the proofreader are handed their vocabularies.
+- A sentence that is not needed is a `drop`, true or false.
+- A composed freeform entry names every role whose change stands in it, and an
+  `add` where a comment already stands is a `patch` of that comment.
+- `module-context` adds a module comment where it judges one useful.
+- The proofreader sorts a template departure by whether the run wrote the text.
+- `gather` prints each known gap in the name corpus once, with its files.
+
+### Fixed
+
+- A freeform finding that fails on its second return is left out, and its role
+  reported as unanswered.
+- `write.md`, the role files, the proofreader, and `SKILL.md`'s stage 8 row and
+  hand-off table name freeform files where they apply.
+- `withdraw` takes back the role's whole finding at a place.
+- A reviewer's copy holding a question for the author does not set until the
+  question is answered.
+- A page whose line endings cannot be compared is reported beside the freeform
+  `UNCHECKED`.
+
+## [0.2.4-beta.6] -- 2026-11-02
+
+A pre-release for running the freeform flow and the Python and Rust readers live.
+
+### Changed
+
+- Python and Rust each have a lexical reader of their own. Every other source
+  file is freeform: it is never opened by a reader, holds no places, and
+  `prove_unchanged` answers `UNCHECKED` for it.
+- A reader hands over only what parsing finds: span, raw lines, kind and anchor.
+- A comment edit that changes what the language runs is never reported PROVEN.
+- Reviewers review and edit freeform files. A reviewer edits a copy and files
+  reason and source per finding, and the diff supplies the text. The copy chief
+  writes one draft from the role copies; no agent is dispatched to set it.
+- A freeform-only dispatch takes `references/freeform.md` in place of the brief.
+- A freeform draft is formatted and checked in a worktree against a baseline.
+  A failure the baseline did not have holds the run at that stage.
+- The author sees each freeform draft whole, and may edit it line by line.
+
 ## [0.2.4-beta.5]
 
 A pre-release for running the rebuilt editorial middle in another repository.

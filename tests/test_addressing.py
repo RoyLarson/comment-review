@@ -173,7 +173,7 @@ class TestTheWalkOverCodeLines:
         cues = self.walk({1: DocPlace(3, False)})
         assert cues.reading == [
             *("f0", "a0", "b0", "c0", "b1", "c1", "b2", "c2"),
-            *("a1", "b3", "c3", "b4", "a2", "f1"),
+            *("a1", "b3", "c3", "b4", "f1"),
         ]
         assert cues.anchor_line("a1") == 1
         assert cues.anchor_of("a1") == "line 1"
@@ -182,7 +182,7 @@ class TestTheWalkOverCodeLines:
         cues = self.walk({3: DocPlace(3, True)})
         assert cues.reading == [
             *("f0", "a0", "b0", "c0", "b1", "c1", "b2", "a1", "c2"),
-            *("b3", "c3", "b4", "a2", "f1"),
+            *("b3", "c3", "b4", "f1"),
         ]
         assert cues.anchor_line("a1") == 3
 
@@ -197,7 +197,6 @@ class TestTheWalkOverCodeLines:
             "c1",
             "a1",
             "b2",
-            "a2",
             "f1",
         ]
 
@@ -205,20 +204,13 @@ class TestTheWalkOverCodeLines:
         """The one reading-order change `CodeLine`s made: the `a` of a
         declaration whose body shares its line follows that line's `c`."""
         cues = cue([CodeLine(1, "def f(): return 1", DocPlace(1, False))])
-        assert cues.reading == ["f0", "a0", "b0", "c0", "a1", "b1", "a2", "f1"]
-
-    def test_the_a_series_meets_eof_between_the_closing_gap_and_the_foot(self):
-        cues = cue([CodeLine(1, "x", DocPlace(1, True)), CodeLine(2, "y", None)])
-        assert cues.reading[-3:] == ["b2", "a2", "f1"]
-        assert cues.anchor_of("a2") == "<eof>"
-        assert cues.anchor_line("a2") is None
-        assert cues.anchor_num("a2") == 3
+        assert cues.reading == ["f0", "a0", "b0", "c0", "a1", "b1", "f1"]
 
     @pytest.mark.parametrize(
         ("sentinel", "expected"),
         [
             ("<module>", [["a0"], [], [], ["f0"]]),
-            ("<eof>", [["a2"], ["b2"], [], ["f1"]]),
+            ("<eof>", [[], ["b2"], [], ["f1"]]),
         ],
     )
     def test_a_sentinel_names_the_places_each_series_emitted_there(
@@ -227,69 +219,9 @@ class TestTheWalkOverCodeLines:
         cues = cue([CodeLine(1, "x", DocPlace(1, True)), CodeLine(2, "y", None)])
         assert [cues.at_line(sentinel, s) for s in "abcf"] == expected
 
-    def test_without_an_a_series_nothing_meets_eof_but_the_gap_and_the_foot(self):
-        cues = cue([CodeLine(1, "x", None)], a_series=False)
-        assert cues.reading == ["f0", "b0", "c0", "b1", "f1"]
-
-    def test_a_language_with_no_closing_docstring_has_no_a_at_eof(self):
-        cues = cue([CodeLine(1, "x", None)], closing_docstring=False)
-        assert cues.reading == ["f0", "a0", "b0", "c0", "b1", "f1"]
-
     def test_a_doc_set_before_its_own_declaration_is_refused(self):
         with pytest.raises(ValueError, match="a1"):
             self.walk({3: DocPlace(2, False)})
-
-
-class TestAUnitOfJoinedLines:
-    """Lines joined to the code line above are one line for `a` and `b`."""
-
-    UNIT = "@Ann\n@Other(x = 1)\nclass App {}"
-
-    @staticmethod
-    def walk():
-        return cue(
-            [
-                CodeLine(1, "class A {}", None),
-                CodeLine(3, "@Ann", None),
-                CodeLine(4, "@Other(x = 1)", None, True),
-                CodeLine(5, "class App {}", DocPlace(3, True), True),
-                CodeLine(6, "int x;", None),
-            ]
-        )
-
-    def test_a_unit_takes_one_gap_and_one_a_above_its_first_line(self):
-        assert self.walk().reading == [
-            *("f0", "a0", "b0", "c0", "b1", "a1", "c1", "c2", "c3"),
-            *("b2", "c4", "b3", "a2", "f1"),
-        ]
-
-    def test_the_units_gap_and_a_are_anchored_to_every_line_of_it(self):
-        cues = self.walk()
-        assert cues.anchor_of("b1") == cues.anchor_of("a1") == self.UNIT
-        assert cues.anchor_line("a1") == cues.anchor_line("b1") == 3
-
-    def test_each_line_of_a_unit_keeps_its_own_c(self):
-        cues = self.walk()
-        assert [cues.anchor_of(c) for c in ("c1", "c2", "c3")] == [
-            "@Ann",
-            "@Other(x = 1)",
-            "class App {}",
-        ]
-        assert [cues.at_line(n, "c") for n in (3, 4, 5)] == [["c1"], ["c2"], ["c3"]]
-
-    @pytest.mark.parametrize("line", [3, 4, 5])
-    def test_every_line_of_a_unit_answers_the_units_a_and_gap(self, line):
-        cues = self.walk()
-        assert cues.at_line(line, "a") == ["a1"]
-        assert cues.at_line(line, "b") == ["b1"]
-
-    def test_the_gaps_around_a_unit_answer_by_line(self):
-        cues = self.walk()
-        assert cues.above(2) == "b1"
-        assert cues.above(6) == "b2"
-        assert cues.above(7) == "b3"
-        assert cues.gap_bounds("b1") == (1, 3)
-        assert cues.gap_bounds("b2") == (5, 6)
 
 
 class TestAddressesOnARealPage:

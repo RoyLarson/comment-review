@@ -15,13 +15,18 @@ from comment_review.binder.binder import Binder
 from comment_review.constants import text_lines
 from comment_review.flows.page_for import page_of
 from comment_review.flows.proof_io import load_binder
+from comment_review.flows.read_diagnostics import format_failure
+from comment_review.flows.reading_context import binder_reading_contexts
 from comment_review.reading.addresser import (
     DECLARED,
+    EOF,
+    MODULE,
     SERIES,
     address_for,
     cue_of,
     unflatten,
 )
+from comment_review.reading.diagnostics import ReadFailure
 from comment_review.reading.paragraph import Paragraph
 
 
@@ -52,9 +57,11 @@ def main() -> int:
     )
     ap.add_argument(
         "--line",
-        type=int,
-        metavar="N",
-        help="a line NUMBER of that file as it was gathered",
+        type=_line,
+        metavar=f"N|{MODULE}|{EOF}",
+        help=f"a line NUMBER of that file as it was gathered, or {MODULE} or {EOF}"
+        " for the places no line names: the module's documentation and front"
+        " matter, and the closing gap, documentation and back matter",
     )
     ap.add_argument(
         "--series",
@@ -81,6 +88,11 @@ def main() -> int:
     if binder is None:
         for line in problems:
             print(line)
+        return 2
+    _, problems = binder_reading_contexts(binder, str(args.binder))
+    if problems:
+        for problem in problems:
+            print(problem)
         return 2
     paragraphs = binder.paragraphs
     if not paragraphs:
@@ -159,6 +171,18 @@ def main() -> int:
     return 1 if missing else 0
 
 
+def _line(given: str) -> int | str:
+    """`--line`'s value: a line number, or the sentinel `MODULE` or `EOF`."""
+    if given in (MODULE, EOF):
+        return given
+    try:
+        return int(given)
+    except ValueError:
+        raise argparse.ArgumentTypeError(
+            f"{given!r} is neither a line number nor {MODULE} or {EOF}"
+        ) from None
+
+
 def _resolve_one(address: str, paragraphs: Sequence[Paragraph]) -> int:
     """An address in, the LINES that now cover it out.
 
@@ -166,12 +190,14 @@ def _resolve_one(address: str, paragraphs: Sequence[Paragraph]) -> int:
     already written. Roy, 2026-08-18: *"in goes an address out comes the line
     numbers that cover that address ... particularly important after 7b and
     stage 8 wants to look something up to double check."* Every line number a
-    record carried is stale by then; the ADDRESS is not, so a binder of the
-    file AS IT IS NOW turns it back into lines to read.
+    record carried is stale by then, so a binder of the file AS IT IS NOW turns
+    an address into lines to read.
 
     ! Gather the CURRENT file, not the one the run started from. The address is
-    what survives an edit; the lines are what moved, and reading a pre-edit
-    binder here would hand back exactly the numbers 7b invalidated.
+    read as that file places it, which need not be the place the text was
+    written at: written text can share a neighbour's paragraph and read at
+    another address. A pre-edit binder would hand back exactly the numbers 7b
+    invalidated.
 
     ! Several entries can answer to one address -- a docstring and the comment
     run beneath it sit in the same gap -- so every match is printed. Measured
@@ -200,8 +226,11 @@ def _resolve_one(address: str, paragraphs: Sequence[Paragraph]) -> int:
     return 0
 
 
-def _at_line(binder: Binder, file: str, line: int, series: str) -> int:
+def _at_line(binder: Binder, file: str, line: int | str, series: str) -> int:
     """Print the address of one series' place at one line of one file.
+
+    `line` is a line number, or a sentinel naming the places at the file's head
+    or foot that no line number reaches -- see `Cues.at_line`.
 
     !! ANSWERED FROM THE PAGE, NOT FROM THE BINDER'S ROWS. The binder is a
     filtered view and a filter is not the set of places a page has --
@@ -214,14 +243,19 @@ def _at_line(binder: Binder, file: str, line: int, series: str) -> int:
     prose, and a mark may still cite it -- the write end reads the page, not
     the binder (`Process: #97`).
 
-    ! THE FILE'S OWN MATTER ANSWERS TWICE, head and foot, since no line tells
-    them apart; a caller chooses by address, the same rule an anchor spelled
-    twice already follows.
+    ! AT A LINE NUMBER THE FILE'S OWN MATTER ANSWERS TWICE, head and foot,
+    since no line tells them apart; a caller chooses by address, the same rule
+    an anchor spelled twice already follows, or asks at a sentinel.
 
     Returns:
         0 when a place was named, 1 when the page has no such place at that
         line, 2 when the file could not be read as a page.
     """
+    contexts, problems = binder_reading_contexts(binder)
+    if problems:
+        for problem in problems:
+            print(problem)
+        return 2
     given = Path(file)
     try:
         rel = (
@@ -232,22 +266,28 @@ def _at_line(binder: Binder, file: str, line: int, series: str) -> int:
     except ValueError:
         print(f"{file} is not under the binder's root {binder.root}")
         return 2
-    page, why = page_of(binder.root / rel, rel=rel)
-    if page is None:
-        print(f"{rel} {why}")
+    if rel not in contexts:
+        print(f"{rel}: the binder carries no saved reading context; regather")
+        return 2
+    page = page_of(binder.root / rel, rel=rel, reading_context=contexts[rel])
+    if isinstance(page, ReadFailure):
+        print(format_failure(page, path=rel))
         return 2
     count = len(text_lines(page.text))
-    if not 1 <= line <= count:
+    if isinstance(line, int) and not 1 <= line <= count:
         print(f"{rel} has {count} lines; line {line} is not one of them")
         return 1
     found = page.cues.at_line(line, series)
+    if not found and isinstance(line, str):
+        print(f"{line} of {rel} has no `{series}` place")
+        return 1
     if not found:
         what = "holds no code"
         if series == DECLARED:
             what = "declares nothing documentable"
         print(f"line {line} of {rel} {what}, so it has no `{series}` place")
-        if series == DECLARED and page.cues.documents(0):
-            head = address_for(rel, page.cues.documents(0))
+        if series == DECLARED and page.cues.documents(None):
+            head = address_for(rel, page.cues.documents(None))
             print(f"  the module's own documentation is {head}")
         return 1
     held = {b.address for b in binder.paragraphs}

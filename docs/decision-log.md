@@ -5985,3 +5985,170 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   already there reads there. The `AddressesMoved` gate stays as it is and refuses this case until
   the change lands with `TODO/one-reader-builder.md`.
 
+- **#258.** **The stripped proof refuses JSX text and a `\'` in SQL rather than reading them** (Roy,
+  2026-10-31, approving plan `2026-10-31-proof-reads-what-runs`, shown that a `// text` line inside
+  a JSX element and SQL's `'a\'` both reach PROVEN on changed code).
+
+  **What it settles.** A comment reached inside an open JSX element makes the page unprovable. The
+  reader goes on reading it as a comment, because a stuck tag count in the reader would hide real
+  comments from review, where at the proof it costs a report. A `.sql` file holding `\'` is
+  unprovable, because standard SQL and MySQL end that literal in different places. A language's
+  lines are held by one check per shape; a token comparison waits for the per-language readers
+  under #222.
+
+- **#259.** **A language with no reader of its own leaves the system, and agents edit it freeform**
+  (Roy, 2026-11-01: *"I am tired of chasing bugs in the lexical reader - so any language that
+  doesn't have a Reader is dropped from the system and the agents are asked to freeform their edits.
+  Effectively V1.0 all over again. We can give them the cheat sheet of how to deal with the edits
+  properly but it is up to the agents to figure it out."*). Shown the proposal, he agreed it, adding
+  of the reviewers *"in the order that the project graph thing says"* and of the check *"the task
+  agent runs formater and compiler to verify and prove_unchanged returns UNCHECKED"*.
+
+  **What it settles.** Python and Rust keep their readers, proof and write chain. Every other
+  language loses them. The gather reads the Python and Rust files, lists the rest as freeform and
+  exits 0. The four reviewers still read a freeform file and raise findings as `path:line` with
+  proposed text, the human approves them and an agent applies them. The task agent runs the repo's
+  formatter and compiler on those files, and `prove_unchanged` answers `UNCHECKED` for them, never
+  `PROVEN`. A cheat sheet tells the agents how to make such an edit safely. The code lands and is
+  tested before the agents are told.
+
+  This supersedes #222's readers-on-request plan for those languages, and #258's refusals go with
+  the comparison they live in.
+
+- **#260.** **Freeform takes source files only, and its findings travel by reference** (Roy,
+  2026-11-01, asked what "the rest" of #259 holds and where findings live: *"yes only source files"*;
+  *"They go in the agents temporary directory and passed back up by reference to the copy-chief or
+  to the other agents after being completed"*; on a `move` into a freeform file: *"Yes - I am not
+  certain you would do that but then web projects right"*; and *"that was topology"*).
+
+  **What it settles.** A freeform file is one whose suffix the gather names as source; `.md`,
+  lockfiles and images stay passed over. Reviewers run over freeform files in topology order. A
+  reviewer writes its findings in its own temporary directory and passes the path up, to the copy
+  chief or to the agents after it. A `move` from a page into a freeform file is refused and raised
+  as a `drop` plus a freeform add.
+
+- **#261.** **Freeform edits follow the topology on copies, and are approved as a real diff** (Roy,
+  2026-11-01, shown five version reviews finding that a hand-applied write to the working tree after
+  approval is what V2.1 and V2.2 ran, and that 0.2.2's run was rolled back with 31 defects and every
+  gate green: *"follows the topology - if the ownership context runs first the next contexts get its
+  edits to work from to make their own edits - straight copy from its files"*; *"yes the rest of the
+  changes"*).
+
+  **What it settles.** This replaces #259's order of approve then apply. Roles in one stage stay
+  blind to each other. A role in a later stage starts from a straight copy of the files the stage
+  before left. The edits are set on a draft copy, the formatter and compiler run there, and the
+  author approves the real diff; accepted files are then copied over. Every diff hunk must match one
+  approved finding, and any other hunk stops the run. A finding carries its instruction, its source
+  and one full replacement per comment in text framed for the file. Each reviewer reports `N swept,
+  M raised` per file. The cheat sheet is built from the measured failures.
+
+  Roy also confirmed the reader machinery stands for Python and Rust: *"Yes this all earns its keep
+  even with the complexity."*
+
+- **#262.** **What #259 left of the rulings on rows that went** (recorded 2026-11-01 from the code at
+  `e0da1c3a`; no ruling of Roy's, and nothing here reverses one).
+
+  **What it records.** Four rulings applied to the rows that left under #259, so each has no
+  subject in the code now. #234 and #236.1: a closing docstring was held only by rows with doc
+  markers, Python and Rust say no, and `closing_docstring` and the `<eof>` `a` are gone. #236.3: a
+  row naming its shebang went with the rows. #241: it never had a Python or Rust effect, since both
+  readers answered False before it (`6b675757`); a file with no code has no `<eof>` `a`. #238: only
+  the lexical reader passed `joined`, so `CodeLine.joins` went with it. The ruling also names Python
+  decorators and Rust attributes, which never got the unit: `@dec` keeps its own `b` today. That
+  work stays open as `lexer-and-language-findings` T51. #236.2 and #237's `SKILL.md` wording stand.
+
+- **#263.** **Four rulings on how a freeform file runs** (Roy, 2026-11-02, shown four
+  recommendations from drafting the freeform prose: *"Yes to all 4"*).
+
+  **What it settles.** The copy chief holds the comment length cap on a freeform file, because
+  stage 6 takes none. A file that is not formatter-clean before the run stops the run, because the
+  diff audit could not tell a formatter's change from an agent's. The author accepts a freeform
+  file whole. A dispatched general-purpose agent sets the draft. "Accepts whole" is **SUPERSEDED by
+  #264**, and the dispatched setter is **SUPERSEDED by #270**; the other two stand.
+
+- **#264.** **The author edits a freeform draft line by line** (Roy, 2026-11-02, reversing #263's
+  third ruling: *"I am going to reverse my statement on 3. I should not have replied last night."*
+  *"The page git diff flow for the human review allows for the person to see the final draft and
+  edit line by line."* *"The final draft is then copied over like today when it is accepted"*).
+
+  **What it settles.** A freeform file goes through the same review as a page: the author reads the
+  final draft beside its original with `git diff --no-index`, edits the draft line by line, and
+  accepts it. The accepted draft is then copied over. Selecting part of a file needs no fresh draft
+  or second audit, which was the cost that made "whole file" the default.
+
+- **#265.** **All-caps words are for constants and enums** (Roy, 2026-11-02, reading the proposed
+  `anchor` entry: *"no all caps words unless they are constants or enums in the program."*).
+
+  **What it settles.** New and changed prose takes no all-caps emphasis. The `anchor` and
+  `declaration` entries follow it; other existing text is unchanged until it is next edited.
+
+- **#266.** **A freeform reviewer gets a file copy and makes the edits** (Roy, 2026-11-02, shown the
+  live run's 613 prompt lines per reviewer: *"They should get a file copy and should just make the
+  edits they are asked to make"*; asked whether that meant freeform files only or every file: *"A"*).
+
+  **What it settles.** A freeform-only dispatch carries a copy of the file and a short instruction,
+  without the `mark` and address machinery of the reviewer brief. Python and Rust reviewers keep
+  filing marks on an edit copy.
+
+- **#267.** **A stop holds the run at its stage** (Roy, 2026-11-02, on how a run resumes after the
+  stage 7a audit stops: *"stops the run to me meant - doesn't move to the next stage until fixed,
+  not everything gets junked and retried. That would be a big waste of effort for something that
+  can be edited to be correct"*).
+
+  **What it settles.** #263's stop stands with this meaning. A change the audit cannot tie to a
+  settled finding is edited out of the draft and audited again; a failing check is edited and run
+  again, and reaches the author when the failure comes from code no finding touched. No commit
+  moves the pre-edit ref, and nothing is thrown away.
+
+- **#268.** **Human review is the check on freeform code** (Roy, 2026-11-02, on the audit matching
+  hunks by eye: *"so what, that is the risk of the freeform and why there is human review and a
+  final pass of the agents"*; on an author edit that changes code: *"they are the author they fix
+  what they want"*).
+
+  **What it settles.** The freeform audit stays a reading, with no tool behind it. An author's edit
+  takes no check beyond the compile step. The author's review and stage 8 carry that risk.
+
+- **#269.** **The copy chief composes a code concern's answer** (Roy, 2026-11-02, asking why three
+  roles cost three resumes: *"Why not one resume"*; on the chief composing it, after merge: *"should
+  work"*).
+
+  **What it settles.** A code concern on a page goes as one question to the author, and the copy
+  chief composes the result, as it already does for a freeform query. This amends #197 for code
+  concerns, and needs a backend change because `flows/human.py` matches answers by role and place.
+  It lands after the merge.
+
+- **#270.** **A freeform reviewer's edited copy is its finding** (Roy, 2026-11-02, shown that the
+  reviewers' edited copies go unread and that `current` and `at` fit neither an `add` nor a string:
+  *"yes"*).
+
+  **What it settles.** Extending #266, the reviewer edits its copy and returns reason and source per
+  line, and the diff supplies the text. `current` and `replacement` leave the findings. The chief
+  reads each role's copy and writes one draft, and a later stage starts from that draft (Roy, the
+  same day: *"Are you saying agents are not capable of copy/paste/rewrite?"*). #270 lands before the
+  merge (Roy, the same day: *"1 before"*). The chief's draft retires #263's dispatched setter (Roy,
+  the same day, told that the setter's read-back goes with it: *"Yes retire"*). Stage 7a shows the
+  author each full draft, and reasons come when the author asks (Roy, the same day: *"the full draft
+  - the human can ask for the reasons after the fact and the agents can respond"*).
+
+- **#271.** **Seven rulings from the first freeform run** (Roy, 2026-11-03, shown the Task 4
+  run's seven smaller ambiguities).
+
+  **What it settles.** A sentence that is not needed is a `drop`, true or false (*"yes drop
+  anything unnecessary"*). A composed freeform entry names every role whose change stands in it.
+  An `add` where a comment already stands is a `patch` of that comment. `withdraw` takes back the
+  whole finding (*"whole finding"*). `module-context` adds a module comment where it judges one
+  useful (*"add if they think it useful"*). A known gap in the name corpus prints once with its
+  files (*"print once with the list of files"*). Where `review.md` left a template departure
+  open, Roy left it to the agent (*"you read I don't know"*): a departure in text the run wrote is
+  something to fix, and one in text it did not change predates the run. A third sentence, that a
+  kind with no template has nothing to depart from, was cut as superfluous (Roy, the same day).
+
+  **REVOKED for the page flow the same day.** The seven came from a freeform run, and their
+  wording reached the page flow's text; so had the page halves of T3, T6, T7, T9 and T14 and
+  the brief's `--line <module>` sentence. Roy: *"All changes that are about the normal comment
+  review path are revoked"*, and, on module-context, the proofreader and `gather`: *"agree to
+  remove from normal flow"*. What stands is freeform-only: `freeform.md`'s `drop` and `add` rows,
+  `roles` on a settled entry, the freeform query and send-back rules, and the hunk match. Roy
+  on the page flow's `withdraw`: a mark can be withdrawn, and only what that mark edits is
+  undone.
+

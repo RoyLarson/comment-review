@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 17 of 22 tasks closed
+Progress: 21 of 22 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-21 (the /code-review xhigh of 2026-08-21, focused on the file-to-
@@ -199,16 +199,20 @@ a row is wrong the moment its justification cites another row.
       Evidence, kept in the Objective.
 - [x] T17 | FINISHED | unknown | T17 -- ARGUMENT: SUPERSEDED by T7 landing --
       the wire is in, so the matcher change lands alone.
-- [ ] T18 | T18 -- Match a `declares` keyword ANYWHERE in the line, per the
-      Objective's body. Verify: the ten cases in the Objective answer correctly,
-      and `_FIRST_WORD` is gone.
-- [ ] T19 | T19 -- Give `c` a `declares` keyword list. Verify: a `.c` file
-      resolves an `a` place for `struct`, `enum`, `union` and a function
-      definition, and gains no SPURIOUS `a`.
-- [ ] T20 | T20 -- Give `cpp` a `declares` keyword list, from C++'s own grammar.
-      Verify: a `.cpp` file resolves an `a` for a class and a function, and
-      gains no SPURIOUS `a`.
-- [ ] T21 | Make a0 fillable on rows whose module doc is a plain comment
+- [-] T18 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | T18
+      -- Match a `declares` keyword ANYWHERE in the line, per the Objective's
+      body. Verify: the ten cases in the Objective answer correctly, and
+      `_FIRST_WORD` is gone.
+- [-] T19 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | T19
+      -- Give `c` a `declares` keyword list. Verify: a `.c` file resolves an `a`
+      place for `struct`, `enum`, `union` and a function definition, and gains
+      no SPURIOUS `a`.
+- [-] T20 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | T20
+      -- Give `cpp` a `declares` keyword list, from C++'s own grammar. Verify: a
+      `.cpp` file resolves an `a` for a class and a function, and gains no
+      SPURIOUS `a`.
+- [-] T21 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | Make
+      a0 fillable on rows whose module doc is a plain comment
         > 2026-10-26 Go a0 // Package p does. reads back as f0 matter
 - [ ] T22 | Make a0 fillable when a module doc sits above the first declaration
         > 2026-10-26 Java a0 /** Module. */ above class A reads back as a1

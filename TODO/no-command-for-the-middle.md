@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 86 of 99 tasks closed
+Progress: 86 of 102 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-29 (2026-08-29, running the chain end to end for the first time with a
@@ -469,3 +469,6 @@ Reconciliation has no command, so the chain cannot be driven end to end.
         > 2026-09-14 self-run: 23 destinations passed check; collate refused all 23
         > 2026-09-14 _resolution_problems runs only inside collate()
         > 2026-09-14 evidence: OneDrive/comment-review-feedback/2026-09-14-self-run
+- [ ] T100 | Update smoke_middle's stale wrap expectation
+- [ ] T101 | Reconcile smoke_middle's one-end move stage with the refusal
+- [ ] T102 | Reconcile smoke_middle's compacting check stage with check

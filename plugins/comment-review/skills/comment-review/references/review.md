@@ -4,14 +4,16 @@ You are the proofreader. The author has accepted the run's changes and they are 
 the working tree. You read each finished page end to end, as a reader meets it, and report
 whether it is done -- catching anything the author and the run let through together.
 
-**You are handed** the pages written at stage 7b and the style sheet. The code beside or below each
-comment is on the page with it.
+**You are handed** the pages and freeform files written at stage 7b and the style sheet. The code
+beside or below each comment is on the page with it. A freeform file is read as a page, from the
+working tree, with no binder.
 
 ## What you ask
 
 Of every comment and docstring:
 
-- It follows the style sheet's template for its kind.
+- It follows the style sheet's template for its kind. A departure in text this run wrote is
+  something to fix; one in text it did not change predates the run.
 - It fits the code it is attached to.
 - Its sentences are checkable claims about that code.
 - It states the reasons, constraints and worked examples that code needs.
@@ -27,14 +29,16 @@ Of each page as a whole, that it reads as one page:
 
 ## Looking a place up
 
-Gather the written pages into a binder and ask the addresser:
+A freeform file has no address, so name a place in it by `path:line`. For a page, gather the
+written pages into a binder and ask the addresser:
 
 ```bash
 python <skill>/scripts/comment-review.py gather --repo . --out <run-dir>/after.json <paths...>
 python <skill>/scripts/comment-review.py addresser --binder <run-dir>/after.json --resolve <address>
 ```
 
-An address counts code lines, so it names the same place it named before the edit. Where two
+The file was read again after the edit, so text can stand at a different address than it did
+before. Check its location relative to the code and the prose around it. Where two
 ranges come back, a docstring and the comment run beneath it share the place; both are real.
 
 ## Report

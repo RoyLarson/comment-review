@@ -49,7 +49,7 @@ def sections_for(
         placement.declarations,
         documentation.owners,
     )
-    return RustRead(source, protected, documentation.warnings)
+    return RustRead(source, protected, documentation.warnings, documentation.unattached)
 
 
 def paragraphs_for(path: Path, read: RustRead) -> list[Paragraph] | ReadFailure:
@@ -134,13 +134,12 @@ def _file_edges_and_shared_lines(
     A prose line, for `reading.matter`, is one a COMMENT paragraph's comment
     stands on and no code does; the matter opens on `opens`. The module's
     documentation is the `//!` the documentation stage attached, a DOCSTRING
-    with no `declares_line`, and Rust has no closing docstring; a doc comment
-    that documents no owner is a COMMENT, so its lines are prose. Each COMMENT
-    paragraph is cut at the matter's edges, and the parts
-    inside the front matter, with the shebang, are one MATTER paragraph, as
-    are the parts inside the back matter. Then a paragraph starting on a line
-    the paragraph before it ends on is part of that paragraph, which keeps its
-    kind and anchor.
+    with no `declares_line`; a doc comment that documents no owner is a
+    COMMENT, so its lines are prose. Each COMMENT paragraph is cut at the
+    matter's edges, and the parts inside the front matter, with the shebang,
+    are one MATTER paragraph, as are the parts inside the back matter. Then a
+    paragraph starting on a line the paragraph before it ends on is part of
+    that paragraph, which keeps its kind and anchor.
     """
     covered = layout.comment_lines()
     prose = {

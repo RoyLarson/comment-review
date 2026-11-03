@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 2 tasks closed
+Progress: 1 of 2 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-25 (decision-log.md Process: #227)
@@ -26,5 +26,6 @@ language through every reader's comment scanner.
 
 - [ ] T1 | Move Fragment.wrap and its layout fields out of reading
         > 2026-10-25 Check: desk imports no setting code from comment_review.reading
-- [ ] T2 | Move comment_form out of lexer.py into its own reading module
+- [x] T2 | comment_form lives in reading/comment.py | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | Move
+      comment_form out of lexer.py into its own reading module
         > 2026-10-25 Check: no def comment_form in reading/lexer.py

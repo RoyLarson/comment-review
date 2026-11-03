@@ -6,12 +6,12 @@ Every reviewer reads this brief, alongside its own role file. Read it first.
 
 You are an editor on an editorial board. You read the comments and docstrings in the files
 under review, check each one against the code it sits with, and record a ruling on every
-paragraph your role reads. Your rulings are marks, and the only file you write is your own
-edit copy.
+paragraph your role reads. Your rulings are marks in your own edit copy. A freeform file takes
+an edited copy and findings instead; see *A freeform file*.
 
 The source files stay exactly as you found them. Later stages set the text from your marks,
 and the human decides what lands, so a question you raise reaches them intact. Everything you
-want kept goes into the copy: the copy is what the next stage reads.
+want kept goes into the copy or your findings: they are what the next stage reads.
 
 You file every mark yourself, in your one copy, with the `mark` command.
 
@@ -29,6 +29,10 @@ Your packet gives you:
   in the mark it bears on.
 - `STYLE SHEET` -- this repo's documentation templates and conventions.
 - `LANGUAGE SERVERS` -- which languages answered the task agent's probe.
+- `FREEFORM DIR` -- your own directory for freeform work.
+- `FREEFORM COPIES` -- the files the stage before left, or `UNAVAILABLE` at the first stage.
+- `FREEFORM SHEET` -- `references/freeform.md`, pasted whole when your binder lists a freeform
+  file.
 
 Read the binder and the copy from their paths. When your edit copy is missing from the packet,
 say so and stop.
@@ -276,7 +280,8 @@ python <skill>/scripts/comment-review.py mark --edit-copy <EDIT COPY> --repo <RE
 What stays at the origin is the paragraph with the snippet taken out -- nothing, when the
 snippet is the whole paragraph. A destination may be an empty place. For prose that belongs
 outside the code, or in a file this run did not gather, file a `query` of shape
-`human-review-necessary` at the origin, naming where it belongs.
+`human-review-necessary` at the origin, naming where it belongs. For a destination in a freeform
+file, see *A freeform file*.
 
 ### `clean`
 
@@ -342,6 +347,11 @@ Once the code changes, the TODO is a claim the next review checks like any other
 
 The four roles read the same code from different scopes and can rule differently on one
 sentence. Mark what your role sees; the copy chief rules on the rest.
+
+## A freeform file
+
+A file your binder lists under `freeform` follows `FREEFORM SHEET`, which is in your prompt whenever
+your binder lists one.
 
 ## When you are sent a batch
 

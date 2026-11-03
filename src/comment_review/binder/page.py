@@ -12,9 +12,8 @@ it follows.
 
 A page is all of the addresses in the file, which is what makes it a page and
 not a list.
-The read's `code_lines` -- every reader's, the generic lexical reader's
-included -- hands `cue` its lines of code, each carrying the documentation
-place it declares; `addresser` emits every place, filled or not, and
+The read's `code_lines` hands `cue` its lines of code, each carrying the
+documentation place it declares; `addresser` emits every place, filled or not, and
 `attach` says which one a given paragraph sits in. A paragraph does not compute
 its own cue -- if it did, a place would exist only when prose happened to fill
 it.
@@ -36,6 +35,7 @@ COVERS): it imports no `Paragraph`. `attach` reads paragraphs, so it is a page
 question and lives here.
 """
 
+from collections.abc import Collection
 from dataclasses import dataclass
 from dataclasses import field as dataclass_field
 from itertools import pairwise
@@ -45,7 +45,6 @@ from comment_review import constants
 from comment_review.reading.addresser import (
     COVERS,
     DECLARED,
-    EOF,
     GAP,
     LEAD,
     ON,
@@ -58,16 +57,11 @@ from comment_review.reading.context import ReadingContext
 from comment_review.reading.context_io import context_from_wire, context_to_wire
 from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, ReadStage
 from comment_review.reading.language import INSTALLED_REGISTRY
-from comment_review.reading.lexer import (
-    LexicalRead,
-    leading_between,
-)
 from comment_review.reading.paragraph import Paragraph
-from comment_review.reading.proof import ReaderRecord, SourceRead
+from comment_review.reading.proof import SourceRead
 from comment_review.reading.readers import read_source
 from comment_review.reading.registry import LanguageRegistry
 from comment_review.reading.series import Kind, Series
-from comment_review.reading.stripped import StrippedRead
 
 #: The five fields a place is carried by, in the order `Page.serialize` writes
 #: them. ! `path` IS NOT AMONG THEM: the page states it once, because repeating
@@ -146,7 +140,7 @@ class Page:
     # the variant that emits only the places holding prose.
     #
     # ! `leading` IS THE PAGE'S, NOT `cue`'S: `cue` runs before any prose is
-    # read, and leading exists only where the LEXER found a blank run. `cue`
+    # read, and leading exists only where the PAGE found a blank run. `cue`
     # cannot know a `d` is there, so it cannot be `cue`'s to hold.
     #
     # !! ONE KEY, NOT A PAIR: the place a run follows. A second key naming the
@@ -612,6 +606,70 @@ def empty_places(
     return out
 
 
+def leading_between(
+    paragraphs: list["Paragraph"], text: str, code: Collection[int]
+) -> list["Paragraph"]:
+    """Every blank run no paragraph holds, as LEADING -- see `LEADING`.
+
+    !! ONE RULE FOR ALL READERS, and that is the point of it being a pass rather
+    than a branch inside each.
+
+    ! THE RULE IS SUBTRACTION, so it cannot disagree with either reader about
+    what prose or code is: a blank line a paragraph already holds is INSIDE it
+    and stays there, a line the reader gave as code is code whatever
+    `str.strip` makes of it, and every other blank line is the space between
+    two paragraphs.
+
+    Args:
+        paragraphs: what a reader produced, before any place is assigned.
+        text: the file, read for which lines are blank.
+        code: the numbers of the lines the reader gave as code.
+
+    Returns:
+        One paragraph per unheld blank run, in order.
+    """
+    lines = constants.text_lines(text)
+    held = set(code)
+    for b in paragraphs:
+        if b.original_start:
+            held.update(
+                range(b.original_start, (b.original_end or b.original_start) + 1)
+            )
+    out: list[Paragraph] = []
+    run: list[int] = []
+    for n, line in enumerate(constants.scan_lines(text), 1):
+        if not line.strip() and n not in held:
+            run.append(n)
+            continue
+        if run:
+            out.append(_leading(paragraphs, lines, run))
+            run = []
+    if run:
+        out.append(_leading(paragraphs, lines, run))
+    return out
+
+
+def _leading(
+    paragraphs: list["Paragraph"], lines: list[str], run: list[int]
+) -> "Paragraph":
+    """One blank run, as a paragraph. Its anchor is EMPTY on purpose.
+
+    ! Every other series answers to a line of code. This answers to nothing, and
+    its anchors are empty by design rather than by omission.
+
+    !! A BLANK LINE IS NOT ALWAYS AN EMPTY ONE, which is why `lines` is passed
+    rather than the count. A line holding a tab or three spaces is blank to
+    `str.strip` and not blank on disk, and `raw_lines` keeps what is on disk.
+    """
+    return Paragraph(
+        path=paragraphs[0].path if paragraphs else "",
+        start=run[0],
+        end=run[-1],
+        kind=Kind.LEADING,
+        raw_lines=[lines[n - 1] for n in run],
+    )
+
+
 def tie_leading(paragraphs: list[Paragraph], cues: Cues) -> dict[str, str]:
     """Tie each run of leading to the place it FOLLOWS.
 
@@ -627,7 +685,7 @@ def tie_leading(paragraphs: list[Paragraph], cues: Cues) -> dict[str, str]:
     X and **Y**, so the stored pair would name a place it no longer separates.
 
     ! WHICH IS WHY `cue` DOES NOT EMIT ONE. `cue` runs before any prose
-    is read and leading exists only where the lexer found a blank run, so the
+    is read and leading exists only where a read found a blank run, so the
     walk cannot know a `d` is there. An edge needs no position in `cue`'s
     list, so it does not have to.
 
@@ -728,25 +786,15 @@ def page_for(
     result = read_source(path, text, registry=registry)
     if isinstance(result, ReadFailure):
         return result
-    # Every read answers `paragraphs`, `code_lines`, `a_series` and
-    # `closing_docstring`. Only a reader record carries its own source text and
-    # proof, so the generic `LexicalRead` is the one read tested for by type.
-    record: ReaderRecord | None = None
-    if not isinstance(result, LexicalRead):
-        record = result
-        # The read may have broken a docstring's shared line; the page is that text.
-        text = record.source.text
+    # The read may have broken a docstring's shared line; the page is that text.
+    text = result.source.text
     got = result.paragraphs(path)
     if isinstance(got, ReadFailure):
         return got
     code_lines = result.code_lines()
     got.extend(leading_between(got, text, [line.line for line in code_lines]))
     edges: dict[str, str] = {}
-    cues = cue(
-        code_lines,
-        a_series=result.a_series,
-        closing_docstring=result.closing_docstring,
-    )
+    cues = cue(code_lines)
     here = rel if rel is not None else path.as_posix()
     files = cues.file_places()
     last_line = len(constants.text_lines(text))
@@ -763,14 +811,8 @@ def page_for(
             place = files[0] if opens else files[-1]
         elif b.kind == Kind.DOCSTRING:
             # Documentation takes the `a` of the line its reader named; None is
-            # the module's, at `a0`, or at the `a` emitted at EOF when the
-            # reader anchors it there. A line that declares nothing is a reader
-            # bug.
-            place = (
-                cues.closing_documentation()
-                if b.anchor == EOF
-                else cues.documents(b.declares_line)
-            )
+            # the module's, at `a0`. A line that declares nothing is a reader bug.
+            place = cues.documents(b.declares_line)
             if not place:
                 return ReadFailure(
                     (
@@ -813,7 +855,7 @@ def page_for(
         reading=reading,
         paragraphs=sorted(got, key=lambda b: (b.start, b.end)),
         cues=cues,
-        read=record if record is not None else StrippedRead(text, path),
+        read=result,
         leading=edges,
     )
 
@@ -866,7 +908,7 @@ def fill_the_gaps(text: str, paragraphs: list[Paragraph], cues: Cues) -> None:
     #
     # !! LEADING IS IN THAT LIST BY ITS SYMBOL, not by an address, because it
     # HAS none -- see `addresser.SERIES`. It owns its lines exactly for the same
-    # reason an `a` does: the lexer found them and said which they are. ! Read
+    # reason an `a` does: a read found them and said which they are. ! Read
     # from `address` alone a `d` answers "", and the gap would take the blank
     # lines a run of leading already holds -- setting them TWICE.
     exact: set[int] = set()

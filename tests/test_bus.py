@@ -309,10 +309,12 @@ def test_initial_context_accepts_mixed_languages_empty_sources_and_no_copies(tmp
     from comment_review.binder.binder import bind
     from comment_review.flows.distribute import seed
 
+    other = "n.rs"
+
     (tmp_path / "m.py").write_text("", encoding="utf-8")
-    (tmp_path / "n.js").write_text("const value = 1;\n", encoding="utf-8")
+    (tmp_path / other).write_text("const value = 1;\n", encoding="utf-8")
     pages: list[Page] = []
-    for path in ("m.py", "n.js"):
+    for path in ("m.py", other):
         page = page_of(tmp_path / path, path)
         assert isinstance(page, Page)
         pages.append(page)

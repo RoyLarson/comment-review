@@ -366,6 +366,7 @@ def _synthetic_binder(addresses: list[str]) -> Binder:
         {
             "version": VERSION,
             "read_from": {"root": str(REPO), "revise": 0},
+            "freeform": [],
             "pages": [
                 {
                     "path": path,
@@ -402,6 +403,7 @@ def a_binder_over(paragraphs: dict[str, str]) -> Binder:
         {
             "version": VERSION,
             "read_from": {"root": str(REPO), "revise": 0},
+            "freeform": [],
             "pages": [
                 {
                     "path": path,
@@ -1248,17 +1250,6 @@ def the_chief(tmp_path) -> EditCopy:
     return returned(loaded, "chief")
 
 
-GO = (
-    "package m\n"
-    "\n"
-    "// F does a thing.\n"
-    "func F() { // why\n"
-    "\t/* inside\n"
-    "\t   still */\n"
-    "}\n"
-)
-
-
 #: Every shape worth putting through it. Each is a file some checkout really
 #: has; none has front matter below line 1.
 FORMS = {
@@ -1325,138 +1316,71 @@ FORMS = {
         "def f():\n    if x:\n        if y:\n            return 1\n",
     ),
     "string with hash": ("m.py", 'x = "# not a comment"\n'),
-    "C block": ("m.c", "/* head */\nint a;\n"),
-    "C line comment": ("m.c", "// note\nint a;\n"),
-    "C both": ("m.c", "/* one */\n// two\nint a;\n"),
-    # A trailing block comment that wraps: code first, then an opener that runs
-    # on. Lines 2..N of the comment are whole lines of prose.
-    "C trailing block wrapped": (
-        "m.c",
-        "int x = 1; /* this comment\n"
-        "              wraps onto a second line\n"
-        "              and a third */\n"
-        "int y = 2;\n",
-    ),
-    "C trailing block one line": ("m.c", "int x = 1; /* note */\nint y = 2;\n"),
-    "cpp": ("m.cpp", "// note\nint a = 1;\n"),
     "rust trailing block wrapped": (
         "m.rs",
         "let x = 1; /* this comment\n"
         "              wraps onto a second line */\n"
         "let y = 2;\n",
     ),
-    "java trailing block wrapped": (
-        "m.java",
-        "int x = 1; /* wraps\n              here */\nint y = 2;\n",
-    ),
-    "ts trailing block wrapped": (
-        "m.ts",
-        "const x = 1; /* wraps\n                here */\nconst y = 2;\n",
-    ),
     "rust doc": ("m.rs", "/// Doc.\npub fn f() {}\n"),
     "rust inner doc": ("m.rs", "//! Module doc.\npub fn f() {}\n"),
     "rust shebang": ("m.rs", "#!/usr/bin/env rust-script\nfn main() {}\n"),
     "rust inner doc in a body": ("m.rs", "fn f() {\n    //! Inner.\n}\n"),
-    "go": ("m.go", "// Doc.\nfunc f() {}\n"),
-    "java": ("m.java", "/** Doc. */\npublic void f() {}\n"),
-    "cs": ("m.cs", "/// <summary>D</summary>\npublic void F() {}\n"),
-    "kotlin": ("m.kt", "/** Doc. */\nfun f() {}\n"),
-    "swift": ("m.swift", "/// Doc.\nfunc f() {}\n"),
-    "ts": ("m.ts", "/** Doc. */\nfunction f(): void {}\n"),
-    "js": ("m.js", "// note\nlet a = 1;\n"),
-    "js shebang": ("m.js", "#!/usr/bin/env node\n// Licence\n\nlet a = 1;\n"),
-    "ts shebang": ("m.ts", "#!/usr/bin/env node\nlet a = 1;\n"),
-    "ruby": ("m.rb", "# Doc.\ndef f\nend\n"),
-    "lua": ("m.lua", "--- Doc.\nlocal function f() end\n"),
-    "shell": ("m.sh", "#!/bin/sh\n# note\necho hi\n"),
-    "jsx": ("m.jsx", "// note\nconst card = <Card />;\n"),
-    "tsx": ("m.TSX", "// note\nconst card = <Card />;\n"),
-    "sql": ("m.sql", "-- note\nSELECT 1;\n"),
-    # A gap whose run alternates doc and comment is cut into its places.
-    "js docs and comments alternating, no code": (
-        "m.js",
+    "rust block": ("m.rs", "/* head */\nconst A: i32 = 1;\n"),
+    "rust line comment": ("m.rs", "// note\nconst A: i32 = 1;\n"),
+    "rust both": ("m.rs", "/* one */\n// two\nconst A: i32 = 1;\n"),
+    "rust trailing block wrapped twice": (
+        "m.rs",
+        "let x = 1; /* this comment\n"
+        "              wraps onto a second line\n"
+        "              and a third */\n"
+        "let y = 2;\n",
+    ),
+    "rust trailing block one line": ("m.rs", "let x = 1; /* note */\nlet y = 2;\n"),
+    "rust docs and comments alternating, no code": (
+        "m.rs",
         "/** A */\n// n1\n/** B */\n// n2\n/** C */\n",
     ),
-    "js docs and comments above a declaration": (
-        "m.js",
-        "/** A */\n// note\n/** B */\nfunction f() {}\n",
+    "rust docs and comments above a declaration": (
+        "m.rs",
+        "/** A */\n// note\n/** B */\nfn f() {}\n",
     ),
-    "js doc cut off by a comment": (
-        "m.js",
-        "/** doc */\n// eslint-disable-next-line\nfunction f() {}\n",
+    "rust doc cut off by a comment": ("m.rs", "/** doc */\n// lint\nfn f() {}\n"),
+    "rust code on a comment's closing line": (
+        "m.rs",
+        "fn f() {}\n/* a\n b */ const X: i32 = 1;\n// c\nconst Y: i32 = 2;\n",
     ),
-    "js a gap of two runs above a declaration": (
-        "m.js",
-        "y = 0;\n/* a\n b */ x = 1;\n/** D */\n// c\n/** E */\nfunction g() {}\n",
-    ),
-    "js a gap of two runs above plain code": (
-        "m.js",
-        "function f() {}\n/* a\n b */ x = 1;\n// c\ny = 2;\n",
-    ),
-    "js two runs with plain groups facing": (
-        "m.js",
-        "y = 0;\n/* a\n b */ x = 1;\n// c\nfunction g() {}\n",
-    ),
-    "js two runs with doc groups facing": (
-        "m.js",
-        "function f() {}\n/** a\n b */ x = 1;\n/** D */\nfunction g() {}\n",
-    ),
-    "js two runs with doc groups facing at the head": (
-        "m.js",
-        "/** a\n b */ x = 1;\n/** D */\nfunction g() {}\n",
-    ),
-    "lua two runs": (
-        "m.lua",
-        "local a = 1\n--[[ a\n b ]] x = 1\n-- c\nlocal function g() end\n",
-    ),
-    "js matter, doc, then comments and docs to the last line": (
-        "m.js",
+    "rust matter, doc, then comments and docs to the last line": (
+        "m.rs",
         "// M1\n/** D1 */\n// C1\n/** D2 */\n// C2\n/** D3 */\n// C3\n",
     ),
-    "js matter, doc, then comments and docs, blank last line": (
-        "m.js",
+    "rust matter, doc, then comments and docs, blank last line": (
+        "m.rs",
         "// M1\n/** D1 */\n// C1\n/** D2 */\n// C2\n/** D3 */\n// C3\n\n",
     ),
-    "js closing doc then a comment below code": (
-        "m.js",
-        "let x = 1;\n/** D1 */\n// C1\n",
+    "rust doc then a comment below code": (
+        "m.rs",
+        "const X: i32 = 1;\n/** D1 */\n// C1\n",
     ),
-    "js closing doc then comments and docs below code": (
-        "m.js",
-        "let x = 1;\n/** D1 */\n// C1\n/** D2 */\n// C2\n",
+    "rust doc then a comment below code, blank last line": (
+        "m.rs",
+        "const X: i32 = 1;\n/** D1 */\n// C1\n\n",
     ),
-    "js closing doc then a comment below code, blank last line": (
-        "m.js",
-        "let x = 1;\n/** D1 */\n// C1\n\n",
+    "rust docs and comments between declarations": (
+        "m.rs",
+        "fn f() {}\n\n/** A */\n// n1\n/** B */\n// n2\n/** C */\nfn g() {}\n",
     ),
-    "js closing doc then comments and docs below code, blank last line": (
-        "m.js",
-        "let x = 1;\n/** D1 */\n// C1\n/** D2 */\n// C2\n\n",
+    "rust two head docs over a declaration": (
+        "m.rs",
+        "/** M */\n/** F */\nfn f() {}\n",
     ),
-    "js two runs with a blank between": (
-        "m.js",
-        "function f() {}\n/* a\n b */ x = 1;\n\n// c\nfunction g() {}\n",
+    "rust two head docs apart over a declaration": (
+        "m.rs",
+        "/** M */\n\n/** F */\nfn f() {}\n",
     ),
-    "js docs and comments between declarations": (
-        "m.js",
-        "function f() {}\n\n/** A */\n// n1\n/** B */\n// n2\n/** C */\n"
-        "function g() {}\n",
-    ),
-    "js two head docs over a declaration": (
-        "m.js",
-        "/** M */\n/** F */\nfunction f() {}\n",
-    ),
-    "js two head docs apart over a declaration": (
-        "m.js",
-        "/** M */\n\n/** F */\nfunction f() {}\n",
-    ),
-    "js two head docs over a documenting comment": (
-        "m.js",
-        "/** M */\n/** F */\n// c\nfunction f() {}\n",
-    ),
-    "js three head docs over a declaration": (
-        "m.js",
-        "/** A */\n/** B */\n/** C */\nfunction f() {}\n",
+    "rust two head docs over a documenting comment": (
+        "m.rs",
+        "/** M */\n/** F */\n// c\nfn f() {}\n",
     ),
 }
 
@@ -1473,128 +1397,3 @@ RUST_ITEMS = (
     "\n"
     "fn helper() {} // trailing\n"
 )
-
-
-#: The `(file name, text)` of each input the lexical reader's tests read,
-#: keyed by `test/case`. The page's address test builds a page from every one.
-LEXICAL_INPUTS = {
-    "two-runs/two-runs-above-a-declaration": (
-        "m.js",
-        "y = 0;\n/* a\n b */ x = 1;\n/** D */\n// c\n/** E */\nfunction g() {}\n",
-    ),
-    "two-runs/two-runs-above-plain-code": (
-        "m.js",
-        "function f() {}\n/* a\n b */ x = 1;\n// c\ny = 2;\n",
-    ),
-    "two-runs/plain-groups-facing": (
-        "m.js",
-        "y = 0;\n/* a\n b */ x = 1;\n// c\nfunction g() {}\n",
-    ),
-    "two-runs/doc-groups-facing-mid-file": (
-        "m.js",
-        "function f() {}\n/** a\n b */ x = 1;\n/** D */\nfunction g() {}\n",
-    ),
-    "two-runs/doc-groups-facing-at-the-head": (
-        "m.js",
-        "/** a\n b */ x = 1;\n/** D */\nfunction g() {}\n",
-    ),
-    "two-runs/lua": (
-        "m.lua",
-        "local a = 1\n--[[ a\n b ]] x = 1\n-- c\nlocal function g() end\n",
-    ),
-    "two-runs/blank-between-the-runs": (
-        "m.js",
-        "function f() {}\n/* a\n b */ x = 1;\n\n// c\nfunction g() {}\n",
-    ),
-    "a-series/keywords": ("m.go", GO),
-    "a-series/doc-markers-alone": (
-        "m.c",
-        "int x; // n\n",
-    ),
-    "a-series/neither": (
-        "m.sql",
-        "select 1; -- n\n",
-    ),
-    "doc-trailing/above-a-declaration": (
-        "m.js",
-        "const a = 1; /** note */\nfunction f() {}\n",
-    ),
-    "doc-trailing/at-the-head": (
-        "m.js",
-        "const a = 1; /** note */\nconst b = 2;\n",
-    ),
-    "doc-trailing/java": (
-        "m.java",
-        "int a = 1; /** note */\nclass A {}\n",
-    ),
-    "doc-trailing/spanning-lines": (
-        "m.java",
-        "int a = 1; /** note\n   more */\nclass A {}\n",
-    ),
-    "closer/closer-then-block-comment": (
-        "m.c",
-        "int x;\n/* a\n b */ /* c */\n// d\nint y;\n",
-    ),
-    "closer/closer-then-open-block": (
-        "m.c",
-        "int x;\n/* a\n b */ /* c\n d */\nint y;\n",
-    ),
-    "closer/one-line-then-open-block": (
-        "m.c",
-        "int x;\n/* a */ /* b\n c */\nint y;\n",
-    ),
-    "closer/one-line-then-line-comment": (
-        "m.c",
-        "/* a */ // b\nint y;\n",
-    ),
-    "closer/beside-code": (
-        "m.c",
-        "int x; /* a */ // b\n",
-    ),
-    "closer/lua-long-closer": (
-        "m.lua",
-        "--[[\n lic\n]]--\n-- more\nlocal x = 1\n",
-    ),
-    "closer/lua-one-line": (
-        "m.lua",
-        "--[[ lic ]]--\nlocal x = 1\n",
-    ),
-    "closer/lua-one-line-with-text": (
-        "m.lua",
-        "-- a\n--[[ b ]]-- tail\nlocal x = 1\n",
-    ),
-    "annotated-doc/one": (
-        "m.java",
-        "/** App. */\n@Ann\nclass App {}\n",
-    ),
-    "annotated-doc/two": (
-        "m.java",
-        "/** App. */\n@Ann\n@Other\nclass App {}\n",
-    ),
-    "annotated-doc/with-arguments": (
-        "m.java",
-        "/** App. */\n@Ann(x = 1)\nclass App {}\n",
-    ),
-    "annotated-doc/typescript-decorator": (
-        "m.ts",
-        "/** C. */\n@Component({})\nexport class C {}\n",
-    ),
-    "annotation-join/kotlin-annotated-members": (
-        "m.kt",
-        "class A {\n    @Inject lateinit var a: Foo\n"
-        "    @Inject lateinit var b: Bar\n    private val c = 1\n}\n",
-    ),
-    "annotation-join/java-annotated-method": (
-        "m.java",
-        "class A {\n  @Override public int hashCode() { return 1; }\n"
-        '  public String toString() { return ""; }\n}\n',
-    ),
-    "annotation-join/annotation-above-an-annotated-declaration": (
-        "m.java",
-        "@Ann\n@Override public void f() {}\n",
-    ),
-    "annotation-join/annotations-with-arguments": (
-        "m.java",
-        '@Ann(x = "a)")\n@Other({1, 2})\npublic void f() {}\n',
-    ),
-}

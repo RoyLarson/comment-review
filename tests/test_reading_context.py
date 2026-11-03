@@ -14,7 +14,6 @@ from comment_review.reading.context import ReadingContext, compatible_contexts
 from comment_review.reading.context_io import context_to_wire
 from comment_review.reading.definitions import LanguageDefinition, decode_definition
 from comment_review.reading.diagnostics import ReadFailure
-from comment_review.reading.lexer import LexicalRead
 from comment_review.reading.registry import LanguageRegistry
 
 
@@ -60,8 +59,7 @@ def test_saved_nondefault_per_file_settings_ignore_unrelated_language_change(
     from comment_review.commands import distribute, mark, proof
     from comment_review.reading.readers import ReaderBinding, reader_for
 
-    registry = flow_context.installed_registry()
-    assert not isinstance(registry, ReadFailure)
+    registry = flow_context.INSTALLED_REGISTRY
     installed_python = reader_for(Path("a.py"), registry)
     assert isinstance(installed_python, tuple)
     assert isinstance(installed_python[1], ReaderBinding)
@@ -466,9 +464,14 @@ def test_saved_mixed_workflow_keeps_literal_context_through_proof(
 
     from comment_review.commands import collate, distribute, mark, proof
 
+    other = "n.rs"
+    language = "rust"
+    reader = "rust-lexical"
+    compatibility = "31213f6e7cba0e4c21183f5be63d5cbafc4ffb1a900bbbe32d494f23dd83c26a"
+
     root = tmp_path / "repo"
     root.mkdir()
-    sources = {"m.py": b"x = 1\n# old\ny = 2\n", "n.js": b""}
+    sources = {"m.py": b"x = 1\n# old\ny = 2\n", other: b""}
     for name, raw in sources.items():
         (root / name).write_bytes(raw)
     gathered = gather(root, [root / name for name in sources], 0)
@@ -478,13 +481,11 @@ def test_saved_mixed_workflow_keeps_literal_context_through_proof(
     wire = json.loads(binder_path.read_text(encoding="utf-8"))
     expected = {page["path"]: page["reading"] for page in wire["pages"]}
     assert expected["m.py"]["reader"] == "python-lexical"
-    assert expected["n.js"] == {
+    assert expected[other] == {
         "format": 1,
-        "language": "javascript",
-        "reader": "javascript-lexical",
-        "compatibility": (
-            "4705871e23b205e53064695b2e1bf93e969bbe6e70a0fe85f8a81e3fbcdf74bb"
-        ),
+        "language": language,
+        "reader": reader,
+        "compatibility": compatibility,
         "settings": {},
     }
     copies = []
@@ -529,7 +530,7 @@ def test_saved_mixed_workflow_keeps_literal_context_through_proof(
         assert code == 0, out
         wire = json.loads(copy.read_text(encoding="utf-8"))
         assert {sheet["path"]: sheet["reading"] for sheet in wire["sheets"]} == expected
-        assert next(s for s in wire["sheets"] if s["path"] == "n.js")["marks"] == []
+        assert next(s for s in wire["sheets"] if s["path"] == other)["marks"] == []
         copies += ["--edit-copy", str(copy)]
     proof_path = tmp_path / "proof.json"
     code, out = run_command(
@@ -613,8 +614,7 @@ def rust_context(**changes: str) -> ReadingContext:
     """The installed Rust context, re-resolved with definition fields changed."""
     from comment_review.reading.readers import ReaderBinding, reader_for
 
-    registry = flow_context.installed_registry()
-    assert not isinstance(registry, ReadFailure)
+    registry = flow_context.INSTALLED_REGISTRY
     selected = reader_for(Path("m.rs"), registry)
     assert isinstance(selected, tuple)
     rust, binding = selected
@@ -977,10 +977,13 @@ def test_saved_mixed_proof_transcribes_original_extra_destination(tmp_path):
     from comment_review.flows.page_for import page_of
     from comment_review.flows.transcribe import docket_of_proof
 
+    name = "other.rs"
+    text = "// old\nconst X: i32 = 1;\n"
+
     (tmp_path / "extra.py").write_text("# old\nx = 1\n", encoding="utf-8")
-    (tmp_path / "other.js").write_text("// old\nconst x = 1;\n", encoding="utf-8")
+    (tmp_path / name).write_text(text, encoding="utf-8")
     page = page_of(tmp_path / "extra.py", rel="extra.py")
-    other = page_of(tmp_path / "other.js", rel="other.js")
+    other = page_of(tmp_path / name, rel=name)
     assert not isinstance(page, ReadFailure)
     assert not isinstance(other, ReadFailure)
     place = Place(
@@ -1173,7 +1176,7 @@ def test_settings_normalize_without_discovering_source(tmp_path, monkeypatch):
         "reader-1",
         ("comments",),
         "grammar-1",
-        lambda *_: LexicalRead([], [], False, False),
+        lambda *_: pytest.fail("the fixture binding is not read"),
         lambda _: None,
     )
     monkeypatch.setattr(
@@ -1225,7 +1228,7 @@ def test_mixed_contexts_derive_independent_installed_binding_metadata(monkeypatc
         "reader-1",
         ("comments",),
         "grammar-1",
-        lambda *_: LexicalRead([], [], False, False),
+        lambda *_: pytest.fail("the fixture binding is not read"),
         lambda _: None,
     )
     monkeypatch.setattr(
@@ -1299,7 +1302,7 @@ def test_cli_settings_reach_actual_fresh_flow(tmp_path, monkeypatch, capsys, com
         "reader-1",
         ("comments",),
         "grammar-1",
-        lambda *_: LexicalRead([], [], False, False),
+        lambda *_: pytest.fail("the fixture binding is not read"),
         lambda _: None,
     )
     monkeypatch.setattr(
@@ -1476,7 +1479,7 @@ def test_compatibility_accepts_only_definition_and_relevant_revisions():
     before = identity(original)
     unrelated = replace(original, language="Other", suffixes=(".other",))
     registry = LanguageRegistry((original, unrelated))
-    selected = registry.for_language("Invented")
+    selected = registry.for_path(Path("m" + original.suffixes[0]))
     assert isinstance(selected, LanguageDefinition)
     assert identity(selected) == before
 
