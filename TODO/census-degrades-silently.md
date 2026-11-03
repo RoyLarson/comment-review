@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 6 of 8 tasks closed
+Progress: 6 of 9 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-19 (the seven-agent address review, 2026-08-19)
@@ -119,3 +119,5 @@ own file.
 - [x] T8 | FINISHED | unknown | T8 -- DONE 2026-08-22. `census.py:566-568`
       flushes `--filtered` at a file boundary; three fixtures print three
       headings. Measurement in the Objective.
+- [ ] T9 | Open every reader that feeds ast.parse with utf-8-sig. Verify: a
+      BOM'd .py harvests its names

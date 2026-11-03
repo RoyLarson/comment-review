@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 16 of 18 tasks closed
+Progress: 16 of 19 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (Roy, 2026-08-22: since tomllib is available the language
@@ -116,3 +116,5 @@ full name-harvester capability work remains separately scoped.
       one definition file per language; verify each configures its parser
       without family defaults or language inheritance
         > 2026-10-11 Roy requires per-language definitions; engines may be reused.
+- [ ] T19 | Make concordance/referrers.py take its suffix tuple from the Python
+      language definition. Verify: the tuple is not re-spelled in referrers.py

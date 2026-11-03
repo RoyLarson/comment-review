@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 3 of 5 tasks closed
+Progress: 3 of 7 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-24 (Roy, 2026-08-24: 'If python could parse python code names would be
@@ -26,3 +26,7 @@ The name corpus sees one language, and the AST is why.
       matcher
 - [ ] T5 | referrers.tokens_for stops parsing Python for top-level defs, or says
       why it still must
+- [ ] T6 | Make referrers.tokens_for stop parsing Python for top-level defs, or
+      say why it still must
+- [ ] T7 | Add Python and Rust declaration facts to referrer discovery. Verify:
+      path terms remain; unharvested Rust is reported

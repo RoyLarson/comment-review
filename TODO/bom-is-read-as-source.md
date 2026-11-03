@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 4 of 7 tasks closed
+Progress: 4 of 8 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-21 (the /code-review xhigh of 2026-08-21, focused on the file-to-
@@ -81,3 +81,5 @@ the first statement rather than as a `trailing-comment`, and no anchor is the BO
 - [ ] T6 | Give a declaration on a marked line 1 its a
         > 2026-10-30 A7: \ufeffclass A {} gets no a; same at 0abe0010
 - [ ] T7 | Test the mark in the docstring branch at `python/projection.py:150`
+- [ ] T8 | Read with utf-8-sig at concordance/code_names.py:85, which feeds
+      ast.parse. Verify: a BOM'd .py is not listed as SyntaxError
