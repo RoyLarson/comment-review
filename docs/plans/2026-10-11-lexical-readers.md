@@ -3,7 +3,7 @@
 ```
 Status:   in-progress
 Progress: 158 of 189 TODO tasks closed
-Plan-tasks: 55 of 60 plan tasks closed
+Plan-tasks: 55 of 61 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (founded by move-t from 0.2.4-the-middle-rebuilt)
@@ -625,16 +625,23 @@ interfaces, inputs and checks, without internal development files or history.
 
 ### AR - [an-empty-place-is-not-citable](../../TODO/an-empty-place-is-not-citable.md)
 
-- [ ] T2 | Implement it. Verify: asking for the empty b place above a line of
-      code answers its address
-- [ ] T3 | Make bind's docstring true -- either the mechanism works, or the
-      sentence stops promising it
-- [ ] T5 | Make addresser --line read the page from the repo and a path, with no
-      binder. Verify: a file with no prose answers its b place
-- [ ] T6 | Move --check out of the address lookup command
-- [ ] T7 | Rename commands/addresser to commands/look_up_address
-- [ ] T8 | Update the reviewer brief's lookup command to the binderless form
-- [ ] T9 | Remove HELD and ABSENT from the reviewer brief's lookup output
+- [ ] T2 | MOVED to 2026-11-04-look-up-address-reads-the-page | Implement it.
+      Verify: asking for the empty b place above a line of code answers its
+      address
+- [ ] T3 | MOVED to 2026-11-04-look-up-address-reads-the-page | Make bind's
+      docstring true -- either the mechanism works, or the sentence stops
+      promising it
+- [ ] T5 | MOVED to 2026-11-04-look-up-address-reads-the-page | Make addresser
+      --line read the page from the repo and a path, with no binder. Verify: a
+      file with no prose answers its b place
+- [ ] T6 | MOVED to 2026-11-04-look-up-address-reads-the-page | Move --check out
+      of the address lookup command
+- [ ] T7 | MOVED to 2026-11-04-look-up-address-reads-the-page | Rename
+      commands/addresser to commands/look_up_address
+- [ ] T8 | MOVED to 2026-11-04-look-up-address-reads-the-page | Update the
+      reviewer brief's lookup command to the binderless form
+- [ ] T9 | MOVED to 2026-11-04-look-up-address-reads-the-page | Remove HELD and
+      ABSENT from the reviewer brief's lookup output
 
 ## Plan Tasks
 
@@ -882,3 +889,5 @@ interfaces, inputs and checks, without internal development files or history.
         > 2026-11-01 Verify with all reader definitions and unchanged dependency gates
 - [ ] P60 | Verify lint, formatting, types, syntax and vocabulary
         > 2026-11-01 Run the existing CLAUDE.md completion commands
+- [ ] P61 | Merge the look-up-address child plan
+        > 2026-11-04 Child: docs/plans/2026-11-04-look-up-address-reads-the-page.md
