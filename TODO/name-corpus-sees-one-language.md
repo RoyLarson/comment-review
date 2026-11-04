@@ -4,7 +4,7 @@
 Status:   open
 Progress: 5 of 9 tasks closed
 Owner:    backend
-Requires-Roy: false
+Requires-Roy: true
 Raised:   2026-08-24 (Roy, 2026-08-24: 'If python could parse python code names would be
           useful')
 ```
@@ -32,5 +32,5 @@ The name corpus sees one language, and the AST is why.
 - [ ] T7 | Add Python and Rust declaration facts to referrer discovery. Verify:
       path terms remain; unharvested Rust is reported
 - [ ] T8 | Make referrers.tokens_for stop parsing Python for top-level defs
-- [ ] T9 | Decide whether concordance/code_names.py is renamed references, per
+- [?] T9 | Decide whether concordance/code_names.py is renamed references, per
       Addressing #17
