@@ -1525,6 +1525,7 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   used to write from the galley, but the galley only really needs this address gets this
   paragraph ... So we have a missing piece in the chain."* The galley's contract was always
   right -- `{address: text}` -- and **nothing in the tree produces that file.**
+  **FULFILLED (#276): the docket is the piece #14 built.**
 
   ! **TWO SHIPPED SENTENCES DESCRIBED THE HOLE DIFFERENTLY**: `SKILL.md:925` says *"nothing
   between stage 5 and the galley converts"*, and `galley.py:173` says `--edits` is
@@ -4525,6 +4526,7 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   2026-08-17: stage 8 reads fresh but only after the write, and the objection that *"a proposal
   is not a page"* no longer holds, since 7a now puts the final text set as pages before the
   author).
+  **SUPERSEDED by #276: the draft is set in a temporary folder and reviewed there.**
 
   Asked -- stage 8 reads the drafted pages before 7a, its findings in the proposal, a selective
   approval re-reading the pages it changes (T6); or stage 8 stays after the write -- Roy: *"Yes,
@@ -4727,6 +4729,7 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
 - **#160.** **Stage 7b runs no `prove_unchanged` check** (Roy, 2026-09-14, after asking whether
   `prove_unchanged` is still tied to Python, since a session on `0.2.4-beta.2` saw a docstring
   change come back as a code change through the Python AST).
+  **SUPERSEDED by #276: 7b runs prove_unchanged, and that works.**
 
   What was read: the proof has two tiers -- Python through its own `ast`, every other language
   through this repo's comment lexer. The Python tier blanks a docstring's text and keeps its
@@ -4808,6 +4811,7 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   T21, which set 3 built as `python -m py_compile` on each drafted Python page at 7a: it covers
   Python only, and for Python it repeats `proof`, which parses each drafted page and refuses one
   it cannot prove unchanged).
+  **Still to confirm (#276): what write.md runs as the compile step.**
 
   Offered -- `proof` is the compile step; keep `py_compile`; or have stage 1 find the repo's own
   compiler -- Roy chose *"`proof` is the compile step"*. So the `py_compile` step comes out, and
@@ -6212,3 +6216,20 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   `row-was-never-retired` T5 closes on it. Vocabulary #30's round tally is superseded (*"yes
   superseded"*): a round advances only by a command someone runs, as Process #51 and #272 say.
   The rest of #30 -- the copy chief's `edit_copy` has the same shape -- stands.
+
+- **#276.** **Five rulings settled against the 2026-09-27 rewrite, and two restated** (Roy,
+  2026-11-04, shown each ruling beside what the tree does now).
+
+  **What it settles.** #144 is superseded: *"Now the draft goes in a temporary folder and
+  reviewed before being accepted so this is no longer necessary."* #160 is superseded: *"the
+  current functionality works."* #8 is fulfilled. #159 stands -- nothing is written over the
+  real files *"until everything and every review stage is accepted"* -- and `write.md` writes
+  at 7b before stage 8 reads, which it does not allow. #104 stands, restated: *"it is not
+  supposed to. This has been stated several times. The SHA256 hash of the file created in
+  machine/ is supposed to follow the file, edit copies, and docket through the entire process.
+  ... The files should not need to be committed to run this."* `prove_unchanged --base`, the
+  git read behind it and `write.md`'s `git worktree add <pre-edit ref>` all break it. A withdraw
+  takes back one mark: *"a withdrawal on the mark is specific to the mark. The rest of that was
+  an extension added by the agent"* -- #271's address-wide reading and the CLI that implements
+  it are not his. #265 is a global rule (*"yes that is supposed to be a global rule"*) and now
+  stands in `CLAUDE.md`. #166 waits on confirming what `write.md` runs as the compile step.
