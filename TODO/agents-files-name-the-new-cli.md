@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 35 of 47 tasks closed
+Progress: 36 of 47 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-09-04 (Roy, 2026-09-04, superseding the-flow-lives-in-the-command T4)
@@ -48,8 +48,9 @@ The agents files name the new CLI and say how to use it.
       the four role files so the body opens with the remit the description
       states, in the same words. Verify: grep Your remit hits four
         > 2026-09-05 the description reaches the dispatcher, never the reviewer
-- [ ] T10 | Decide whether the brief and the vocabulary reach a role by path as
-      the binder does, since four verbatim pastes did not fit one message
+- [x] T10 | Ruled #272 and #170: by path | e0a31457 | Decide whether the brief
+      and the vocabulary reach a role by path as the binder does, since four
+      verbatim pastes did not fit one message
 - [ ] T11 | Update reviewer-brief.md's move text to say a move relocates a whole
       place, never part of a paragraph. Verify: the from and to text says so
 - [-] T12 | SUPERSEDED by Process 96: an add needs no include-absent binder once the lookup reads the page | 473afdba | Update
