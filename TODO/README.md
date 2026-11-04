@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (122)
+### open  (123)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -209,7 +209,7 @@ that changed a published name or rule:
 | [stale-claims-after-the-envelope](stale-claims-after-the-envelope.md) | backend | -- | 2/8 | Shipped prose still describes formats and flags this branch deleted |
 | [one-stem-four-jobs](one-stem-four-jobs.md) | backend | -- | 10/15 | one stem, four jobs -- and the vocabulary sweep cannot see it |
 | [census-walks-and-flushes](census-walks-and-flushes.md) | backend | -- | 3/7 | census.py walks the whole repo, runs git twice, and its run-flush never fires |
-| [galley-and-compositor-write-path](galley-and-compositor-write-path.md) | backend | -- | 70/80 | The galley can overwrite the file under review, and the compositor reads through a normaliser |
+| [galley-and-compositor-write-path](galley-and-compositor-write-path.md) | backend | -- | 70/82 | The galley can overwrite the file under review, and the compositor reads through a normaliser |
 | [record-and-verdicts-disagree](record-and-verdicts-disagree.md) | backend | -- | 4/8 | record.py and verdicts.py disagree about what a valid record is, in four places |
 | [exception-hierarchy](exception-hierarchy.md) | backend | -- | 2/10 | Named tuples give us the seam; the hierarchy that catches our own types is not built |
 | [language-rows-in-toml](language-rows-in-toml.md) | backend | -- | 17/19 | 18 rows of pure data sit in shipped Python; references/vocabulary.toml is the pattern |
@@ -264,12 +264,12 @@ that changed a published name or rule:
 | [collator-defects](collator-defects.md) | backend | -- | 19/43 | four defects in `desk/collator.py`, all found by an agent writing the file's prose from the code alone: a `move` onto its own address becomes a bare delete, a multi-line `verbatim` from a CRLF file can never match, the source cache is keyed without its root, and a malformed cite raises where the half is meant to report |
 | [staged-chain-untested](staged-chain-untested.md) | backend | -- | 4/6 | the four-stage chain runs and the edits accumulate, proven 2026-08-30 -- but no test in the suite drives it, and the only committed fan-out topology refuses any tree but this repo's |
 | [containers-and-verification-are-unwired](containers-and-verification-are-unwired.md) | backend | -- | 38/60 | The containers and the source-verification half are wired to nothing |
-| [mark-holds-spec-and-parse](mark-holds-spec-and-parse.md) | backend | -- | 0/6 | mark.py holds the instruction spec and the boundary parse at one scope |
+| [mark-holds-spec-and-parse](mark-holds-spec-and-parse.md) | backend | -- | 0/8 | mark.py holds the instruction spec and the boundary parse at one scope |
 | [ty-cannot-see-the-tests](ty-cannot-see-the-tests.md) | systems (the gate) - backend (the test fixes) | -- | 1/5 | The type gate is scoped to src and cannot see the tests |
 | [null-becomes-the-word-none](null-becomes-the-word-none.md) | backend | -- | 0/6 | A present-but-null key becomes the four characters None |
 | [collate-flow-defects](collate-flow-defects.md) | backend | -- | 4/25 | Twelve defects in `flows/collate.py`, from a review of one file |
 | [mark-defects](mark-defects.md) | backend | -- | 23/38 | Eleven defects in `desk/mark.py`, found by running its parse against its own prose |
-| [binder-defects](binder-defects.md) | backend | -- | 9/33 | Eighteen defects in binder.py, and `read` admits four shapes it exists to refuse |
+| [binder-defects](binder-defects.md) | backend | -- | 9/36 | Eighteen defects in binder.py, and `read` admits four shapes it exists to refuse |
 | [docket-defects](docket-defects.md) | backend | -- | 5/11 | Six defects in docket.py, and one discards an approved page at exit 0 |
 | [collate-command-defects](collate-command-defects.md) | backend | -- | 6/23 | Sixteen defects in `commands/collate.py`, measured by running it |
 | [differences-defects](differences-defects.md) | backend | -- | 0/10 | Ten defects in `results/differences.py`, none of them in its arithmetic |
@@ -294,16 +294,17 @@ that changed a published name or rule:
 | [r2-preexisting-prose](r2-preexisting-prose.md) | backend | -- | 0/2 | Correct pre-existing move and fold-helper prose |
 | [mark-stance-metadata-prose](mark-stance-metadata-prose.md) | backend | -- | 0/2 | Clarify mark stance and reading metadata prose |
 | [smoke-fixture-defects](smoke-fixture-defects.md) | systems | -- | 0/1 | Align the command smoke with paragraph rewrapping |
-| [lexical-code-identity](lexical-code-identity.md) | backend | -- | 12/15 | Use lexical code identity at both proof boundaries |
+| [lexical-code-identity](lexical-code-identity.md) | backend | -- | 12/17 | Use lexical code identity at both proof boundaries |
 | [collate-file-input](collate-file-input.md) | backend | -- | 0/1 | Read collation inputs from a file |
 | [2026-10-11-maintained-source-selection](2026-10-11-maintained-source-selection.md) | agents | -- | 0/1 | Select maintained source for review |
-| [2026-10-13-human-question-list](2026-10-13-human-question-list.md) | backend | -- | 0/1 | Expose human questions across edit copies |
+| [2026-10-13-human-question-list](2026-10-13-human-question-list.md) | backend | -- | 0/2 | Expose human questions across edit copies |
 | [empty-comment-gets-a-drop](empty-comment-gets-a-drop.md) | backend | -- | 0/1 | An empty comment gets a drop mark |
 | [paragraph-is-a-passage](paragraph-is-a-passage.md) | backend | -- | 0/9 | The addressed unit of prose is a passage, not a paragraph |
 | [one-line-ending-per-file](one-line-ending-per-file.md) | backend | -- | 2/6 | One line ending per file |
 | [edit-path-isolation](edit-path-isolation.md) | backend | -- | 1/2 | Isolate the edit path from comment reading |
 | [one-reader-builder](one-reader-builder.md) | backend | -- | 2/10 | One reader builder from each language's definition |
-| [freeform-run-findings](freeform-run-findings.md) | agents | -- | 19/22 | What the first live freeform run showed |
+| [freeform-run-findings](freeform-run-findings.md) | agents | -- | 19/23 | What the first live freeform run showed |
+| [topology-defects](topology-defects.md) | backend | -- | 0/1 | Topology defects |
 
 ### in-progress  (17)
 
@@ -346,7 +347,7 @@ that changed a published name or rule:
 | [nothing-checks-that-four-reviewers-were-launched](nothing-checks-that-four-reviewers-were-launched.md) | agents | yes | 3/6 | Nothing checks that four reviewers were LAUNCHED |
 | [reference-only-misses-the-documentation](reference-only-misses-the-documentation.md) | agents | yes | 0/4 | REFERENCE ONLY misses the project's own documentation |
 | [the-author-approves-blocks-and-never-sees-the-page](the-author-approves-blocks-and-never-sees-the-page.md) | agents | yes | 5/9 | * **Pipeline, not vocabulary.** 7a shows the author a per-block LIST; stage 8 is the only pass that reads the PAGE, and it runs AFTER 7b has written to disk. So every defect `review.md` exists to catch -- a block that is no longer a proposition, two runs merged across a blank line, the same sentence in two places -- is found after approval and after the write. Roy wants a whole-document read BEFORE the person sees it, and floated a temporary branch with the diff so they can accept it in git's own tools. Stage 8 then becomes a verification with two outcomes: good, or raise to human as a new review. ! Already done: the 7b paragraph claiming *"this pass cuts, and it can cut a lot"* is deleted -- self-contradicting since the import |
-| [the-harness-cannot-run-the-system-it-grades](the-harness-cannot-run-the-system-it-grades.md) | testing | yes | 10/31 | **Nothing in this repo runs the documented eval format, and no measurement exists that a human did not perform.** `grade_hazards.py` scores worktrees a person built by hand against twelve planted defects, from a base hardcoded to another repository. Ruled 2026-08-18: a reduced role set is supported with `ownership-context` never dropped, and a fixture is a CHECKOUT AT A HASH -- this repo's own history included, since a fix commit is an answer key. ! NOT a release candidate: nothing here is under `plugins/`. * Unruled: the suite layout, which the fixture model narrows to one option |
+| [the-harness-cannot-run-the-system-it-grades](the-harness-cannot-run-the-system-it-grades.md) | testing | yes | 10/32 | **Nothing in this repo runs the documented eval format, and no measurement exists that a human did not perform.** `grade_hazards.py` scores worktrees a person built by hand against twelve planted defects, from a base hardcoded to another repository. Ruled 2026-08-18: a reduced role set is supported with `ownership-context` never dropped, and a fixture is a CHECKOUT AT A HASH -- this repo's own history included, since a fix commit is an answer key. ! NOT a release candidate: nothing here is under `plugins/`. * Unruled: the suite layout, which the fixture model narrows to one option |
 | [the-strongest-precedence-has-the-weakest-support](the-strongest-precedence-has-the-weakest-support.md) | agents | yes | 2/4 | The role with verdict precedence has the least mechanical support |
 | [the-two-lists-were-tuned-to-one-diff](the-two-lists-were-tuned-to-one-diff.md) | agents | yes | 3/9 | **Both lists are DELETED from the brief; this holds what was inside them.** The acquittal list matched a prose SHAPE and claimed to be *"the ONLY reasons to pass a block over"* -- but what decides `clean` is stated per role and is a TRUTH assertion at that role's scope, so the two disagreed outright. Its measurement was `evidence/ga/`: ten candidates over SIX `redacted_pkg` files, scored on F1 against what one later commit rewrote -- and the search itself concluded *"the acquittal RATE is the trait; the acquittal LIST is just vocabulary."* The suppression list had no provenance at all. ! Three entries were CHECKS wearing an exemption's name, one CONTRADICTS `function-context`, and `detector` -- a settled term -- lost its only definition |
 | [two-live-runs-proposed-fifteen-changes](two-live-runs-proposed-fifteen-changes.md) | agents | yes | 12/21 | Two live runs proposed fifteen changes |

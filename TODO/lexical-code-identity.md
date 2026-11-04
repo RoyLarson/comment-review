@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 12 of 15 tasks closed
+Progress: 12 of 17 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-10 (live-run)
@@ -64,3 +64,8 @@ Use lexical code identity at both proof boundaries.
         > 2026-11-01 `.py`, `.rs`: refuses at prove, protected-source-changed
 - [ ] T15 | Name a changed interpreter line one way in both readers
         > 2026-11-01 Python: code-changed. Rust: protected-source-changed
+- [ ] T16 | Remove --base and the git read from prove_unchanged, per Process
+      #104. Verify: commands/prove_unchanged.py takes no --base
+        > 2026-11-04 Overlaps Roy's open question on the 2026-09-27 rewrite
+- [ ] T17 | Remove the sibling line-ending lookup from prove_unchanged, per
+      Process #104

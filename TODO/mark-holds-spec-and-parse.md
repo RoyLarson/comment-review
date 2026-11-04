@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 6 tasks closed
+Progress: 0 of 8 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, Roy ruling on a review finding that mark.py announces
@@ -92,3 +92,5 @@ change -- `conventions.md`, *The vocabulary is shared*.
       `add`'s claim anchor. Verify: `TICKED` carries the sentence and
       `docs/vocabulary.md` records why it admits what it admits.
         > 2026-09-03 new location: concordance/annotate.py, not binder/
+- [ ] T7 | Remove ANCHOR_NAME from desk/proof/mark.py, per Process #61
+- [ ] T8 | Update the Objective to the single definition Process #61 settled

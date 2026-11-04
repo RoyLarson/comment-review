@@ -78,3 +78,4 @@ own.
       that calls it; grep finds no concordance import of machine
 - [ ] T10 | Move the git call out of results.prove_unchanged into the flow; grep
       finds no results import of machine.repo
+        > 2026-11-04 Process #104 removes the git call; see lexical-code-identity T16

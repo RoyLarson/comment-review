@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 70 of 80 tasks closed
+Progress: 70 of 82 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (code-review high round 3 and /simplify round 2, 2026-08-22 -- the
@@ -347,3 +347,6 @@ files in `corpora/` are in that state today.
       `test_proof_setter.py:1712`, `:1726` able to fail
 - [x] T80 | AST-only parse; compile-stage forms now refuse | 680d6c63 | Parse
       with only the AST flag in `_parse_error`, `python/records.py:30`
+- [ ] T81 | Record each page's write state as pending, written, verified or
+      failed, per Process #20
+- [ ] T82 | Make a write retry only its failed pages, per Process #20

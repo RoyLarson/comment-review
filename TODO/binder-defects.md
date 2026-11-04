@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 9 of 33 tasks closed
+Progress: 9 of 36 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, a code review of `binder/binder.py` run against its
@@ -231,3 +231,9 @@ task 5's, but the fix for these two lands in `binder/binder.py`.
         > 2026-10-17 Reason: a Python-only field on the general Page; added in fcd2f0f8
         > 2026-10-17 Reason: both proof flows branch on Python to compare it
         > 2026-10-17 Check: Page has no python_read; proof flows test no language name
+- [ ] T34 | Remove bind's absent parameter, per Process #107. Verify:
+      binder/binder.py bind takes no absent
+- [ ] T35 | Add a named classmethod that emits the redacted binder, per Process
+      #107
+- [ ] T36 | Change Shard's pages to list[Page], per Process #107. Verify:
+      flows/fan_out.py names no RedactedPage
