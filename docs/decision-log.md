@@ -4811,7 +4811,7 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   T21, which set 3 built as `python -m py_compile` on each drafted Python page at 7a: it covers
   Python only, and for Python it repeats `proof`, which parses each drafted page and refuses one
   it cannot prove unchanged).
-  **Still to confirm (#276): what write.md runs as the compile step.**
+  **SUPERSEDED by #277: prove_unchanged first, then the repo's own tools.**
 
   Offered -- `proof` is the compile step; keep `py_compile`; or have stage 1 find the repo's own
   compiler -- Roy chose *"`proof` is the compile step"*. So the `py_compile` step comes out, and
@@ -6233,3 +6233,19 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   an extension added by the agent"* -- #271's address-wide reading and the CLI that implements
   it are not his. #265 is a global rule (*"yes that is supposed to be a global rule"*) and now
   stands in `CLAUDE.md`. #166 waits on confirming what `write.md` runs as the compile step.
+
+- **#277.** **`prove_unchanged` runs first; the repo's own tools validate after it** (Roy,
+  2026-11-04, on #166, shown that `write.md` compiles with the repo's check command before
+  `prove_unchanged` while #166 said nothing but `proof` compiles: *"The goal is to first be able
+  to run prove_unchanged on the changed documents and then use the system tools to verify that
+  the program will still compile or run. Why this order, because prove unchanged shows that the
+  order of operations should be the same and everything should at most take indentation/bracket
+  edits to make it compile. Formatting and compiling after states which comments or indentation
+  needs those changes which requires no actual code checks"*; then *"Agree"* to superseding #166).
+
+  **What it settles.** #166 is superseded. On the drafts in the temporary folder,
+  `prove_unchanged` runs first against the machine/ sha; then the agent runs the project's own
+  formatter and compiler, which no program enforces, and reports the two results separately --
+  the instruction the lexical-readers design approved (`2026-10-11-lexical-readers-design.md`,
+  *Formatting and local validation*). Nothing is written over the working tree until every review
+  is accepted (#159). The work is the lexical plan's P57.

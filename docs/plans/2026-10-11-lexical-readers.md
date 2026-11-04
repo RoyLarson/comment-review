@@ -874,6 +874,7 @@ interfaces, inputs and checks, without internal development files or history.
 - [ ] P57 | Update write instructions for UNCHECKED
         > 2026-11-01 Proof precedes formatting; local validation follows it
         > 2026-11-01 Preserve the exact approved local-validation instruction
+        > 2026-11-04 Ruled #277: prove_unchanged, then the repo's tools
 - [ ] P58 | Rewrite obsolete fixture prescriptions as boundary cases
         > 2026-11-01 Python and Rust cases that can detect a wrong read
         > 2026-11-01 Use the design TODO mapping; retain independent behavioral goals
