@@ -6186,3 +6186,17 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   vocabulary and `SKILL.md` say so (*"yes into vocab and its skill brief"*). Whether
   `concordance/code_names.py` becomes `references`, left open by Addressing #17, is filed as a
   decision still owed.
+
+- **#274.** **A mark on an `f` place asks the human, and the other roles mark against an
+  accepted move** (Roy, 2026-11-04, shown that the brief gives the `f` places to
+  `ownership-context` alone while Addressing #26 lets any role ask for one).
+
+  *"#26 is correct, it is excluded by default, amy mark using the matter series is expected to get
+  a query to the human to verify that a change is acceptable. If ownership context moves it or
+  part of it to the appropriate b spot and that is accepted by the person, then the rest of the
+  agents mark against the update"*
+
+  **What it settles.** The `f` places stay out of a role's copy by default. Any role may look up
+  an `f` address and mark it, and every such mark raises a query to the human. When
+  `ownership-context` moves matter, or part of it, to a `b` place and the human accepts the move,
+  the other roles mark against the moved text. `brief-says-three-series` T1 and T3 close on it.
