@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 12 of 15 tasks closed
+Progress: 12 of 17 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-10 (live-run)
@@ -34,18 +34,18 @@ Use lexical code identity at both proof boundaries.
         > 2026-10-14 Check: multiline doc removal retains closing-line code indentation
         > 2026-10-14 Reason: _documentation_span loses the retained suffix context
 - [-] T5 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | Compare
-      a shebang no language row names in the stripped proof
+      a shebang no language definition names in the stripped proof
         > 2026-10-26 Check: dropping a .rb, .sh or .lua shebang is refused
         > 2026-10-26 Reason: pre-existing; .js, .rs and .py already refuse it
 - [-] T6 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | Prove
       a Lua file whose [[ only opens a --[[ comment
         > 2026-10-26 stripped.py:84: any [[ in text is unprovable; each --[[ hits it
         > 2026-10-30 Part met 91c8e885: a no-code Lua file with --[[ now proves
-- [x] T7 | FINISHED: no-code file proves under a language row (#248) | 435fed79 | Prove
+- [x] T7 | FINISHED: no-code file proves under a language definition (#248) | 435fed79 | Prove
       a lexical file that has no line of code
         > 2026-10-27 code_fingerprint: an empty strip is unprovable; at ef037f20
         > 2026-10-27 Blocks #241: filling a no-code file's <eof> a refuses at prove
-        > 2026-10-30 #248: only under a language row; no row stays unprovable
+        > 2026-10-30 #248: only under a language definition; none stays unprovable
 - [-] T8 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | Refuse
       an escape that ends a comment in a row's grammar
         > 2026-10-30 Java \u000a, C *\ newline /, trigraphs; pass beside code too
@@ -64,3 +64,9 @@ Use lexical code identity at both proof boundaries.
         > 2026-11-01 `.py`, `.rs`: refuses at prove, protected-source-changed
 - [ ] T15 | Name a changed interpreter line one way in both readers
         > 2026-11-01 Python: code-changed. Rust: protected-source-changed
+- [ ] T16 | Remove --base and the git read from prove_unchanged, per Process
+      #104. Verify: commands/prove_unchanged.py takes no --base
+        > 2026-11-04 Overlaps Roy's open question on the 2026-09-27 rewrite
+        > 2026-11-04 Prove against the machine/ sha; nothing need be committed
+- [ ] T17 | Remove the sibling line-ending lookup from prove_unchanged, per
+      Process #104

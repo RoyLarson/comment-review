@@ -501,6 +501,8 @@ that first recorded it as the source. Locate that commit with
 - Never attribute assumptions about Q unless they stated them in this session or they are
   recorded in a cited file. Cite the source inline.
 - Prefer a glossary entry over repeated inline definitions.
+- No all-caps words in prose unless they name a constant or an enum in the program. Existing
+  text changes when it is next edited.
 - Do not write subjective statements about properties of the project -- "robust", "elegant",
   "carefully designed", "solid", "maintainable", "intuitive", "works well" -- in comments,
   docstrings, README prose, or commit messages. A false *measurement* can be re-derived and

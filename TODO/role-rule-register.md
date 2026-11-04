@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 0 of 6 tasks closed
+Progress: 1 of 6 tasks closed
 Owner:    agents
 Requires-Roy: true
 Raised:   2026-08-18 (Roy, 2026-08-18: keep track of these and have a place to decide on
@@ -130,9 +130,10 @@ focus for them gets a lot easier. ! The dependency is discharged: `cue` emits fo
 - [?] T2 | T2 -- * RULE ON THE `module-context` ENTRY -- the VERDICT a module
       announcing more than one subject earns. Verify: the role file names it and
       the eval case passes.
-- [?] T3 | T3 -- * RULE ON THE every-role ENTRY -- what to do with a paragraph
-      marked `doc-kind-unresolved`. Verify: it is in the role files or the
-      brief, currency named.
+- [-] T3 | SUPERSEDED by #231 and #272: doc-kind-unresolved is retired | e0a31457 | T3
+      -- * RULE ON THE every-role ENTRY -- what to do with a paragraph marked
+      `doc-kind-unresolved`. Verify: it is in the role files or the brief,
+      currency named.
 - [?] T4 | T4 -- * RULE where `function-context` and `module-context` START now
       the a-series has landed. Verify: each names its starting series, and says
       ORDER not filter.

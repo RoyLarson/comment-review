@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 19 of 22 tasks closed
+Progress: 19 of 23 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-11-02 (freeform plan Task 4 live run and stage walk, 2026-11-02)
@@ -29,6 +29,7 @@ What the first live freeform run showed.
 - [x] T4 | A stop holds the run at its stage; SKILL.md says so, #267 | ca1c53bce0246b727b0beade267b54acc0a8e81c | Say
       how a run resumes after stage 7a stops; a formatter fix moves the pre-edit
       ref (SKILL.md:429-431, 411)
+        > 2026-11-04 Its label's ref move is forbidden by #267
 - [-] T5 | SUPERSEDED by #268: the audit stays a reading | ca1c53bce0246b727b0beade267b54acc0a8e81c | Mechanise
       the freeform audit; hunks were matched to findings by eye, and check has
       no freeform mode (SKILL.md:429)
@@ -91,3 +92,5 @@ What the first live freeform run showed.
 - [-] T22 | Revoked: the page flow is out of this TODO's scope (#271) | a75f0638 | State
       the need-before-truth order once, in the freeform sheet too, and update
       README.md:212's drop row
+- [ ] T23 | Stop the run when a freeform file is not formatter-clean before it
+      starts, per Process #263

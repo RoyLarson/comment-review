@@ -719,6 +719,7 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   carry the word** (Roy, 2026-08-24: *"Sticky notes for making the pages pages for important
   information. Directly relevant. May need a different term than annotations though or the other
   annotations get different terms"*, then: *"Only one is allowed"*). It goes to the binder.
+  **SUPERSEDED by Process #273.**
 
   !! **IT WAS SETTLED BY EXPERIMENT RATHER THAN BY ARGUMENT, which is new here.** Roy: *"Can you
   give a couple of subagents a record and then split one and give it one annotation labeled as
@@ -1229,6 +1230,7 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   2026-08-30): *"I felt (maybe wrongly) that these would end up being the same shape and the
   master-proof would go from multiple edit-copies to one edit-copy in the copy-chief step."* **Not
   wrongly.**
+  **The round tally is SUPERSEDED by Process #275.**
 
       master_proof { edit_copies: [ role_a, role_b, role_c, role_d ] }
           -> gather / places / reconcile  ==> Reconciled(settled, escalations, rereads)
@@ -1436,6 +1438,7 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
 
 - **#38.** **`lexer` keeps its name** (Roy, 2026-10-25, asked whether to keep `lexer` now that
   Python is read by `reading/python/` and `paragraphs_stdlib` is gone: *"Sure"*).
+  **SUPERSEDED by Process #273.**
 
   **What it settles.** `reading/lexer.py` reads characters against a language definition --
   comment openers, quotes, spanning delimiters -- for each language without its own reader
@@ -1522,6 +1525,7 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   used to write from the galley, but the galley only really needs this address gets this
   paragraph ... So we have a missing piece in the chain."* The galley's contract was always
   right -- `{address: text}` -- and **nothing in the tree produces that file.**
+  **FULFILLED (#276): the docket is the piece #14 built.**
 
   ! **TWO SHIPPED SENTENCES DESCRIBED THE HOLE DIFFERENTLY**: `SKILL.md:925` says *"nothing
   between stage 5 and the galley converts"*, and `galley.py:173` says `--edits` is
@@ -4522,6 +4526,7 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   2026-08-17: stage 8 reads fresh but only after the write, and the objection that *"a proposal
   is not a page"* no longer holds, since 7a now puts the final text set as pages before the
   author).
+  **SUPERSEDED by #276: the draft is set in a temporary folder and reviewed there.**
 
   Asked -- stage 8 reads the drafted pages before 7a, its findings in the proposal, a selective
   approval re-reading the pages it changes (T6); or stage 8 stays after the write -- Roy: *"Yes,
@@ -4724,6 +4729,7 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
 - **#160.** **Stage 7b runs no `prove_unchanged` check** (Roy, 2026-09-14, after asking whether
   `prove_unchanged` is still tied to Python, since a session on `0.2.4-beta.2` saw a docstring
   change come back as a code change through the Python AST).
+  **SUPERSEDED by #276: 7b runs prove_unchanged, and that works.**
 
   What was read: the proof has two tiers -- Python through its own `ast`, every other language
   through this repo's comment lexer. The Python tier blanks a docstring's text and keeps its
@@ -4805,6 +4811,7 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   T21, which set 3 built as `python -m py_compile` on each drafted Python page at 7a: it covers
   Python only, and for Python it repeats `proof`, which parses each drafted page and refuses one
   it cannot prove unchanged).
+  **SUPERSEDED by #277: prove_unchanged first, then the repo's own tools.**
 
   Offered -- `proof` is the compile step; keep `py_compile`; or have stage 1 find the repo's own
   compiler -- Roy chose *"`proof` is the compile step"*. So the `py_compile` step comes out, and
@@ -6152,3 +6159,93 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   on the page flow's `withdraw`: a mark can be withdrawn, and only what that mark edits is
   undone.
 
+
+- **#272.** **Eight open decision boxes answered** (Roy, 2026-11-04, shown each box beside the
+  ruling that seemed to answer it).
+
+  **What it settles.** A send-back has no bound in code; the agents follow the instructions
+  (*"it is up to the agents to follow the instructions. I am not worried about them running away
+  and trying infinite times"*). Nothing checks that the reviewers were launched; the host's task
+  system does (*"the Claude code or codex program handles this correctly and the task system in
+  those programs check that it happened"*). A missing role is not fatal: *"the task agent is told
+  to spin up another instance"*. Every composition of edits at one address goes back for review,
+  a `correct` with a `patch` included (*"the blanket ruling that all places that edit a same
+  address needs to go back for review, even assuming the answer is merged stands"*). A role is
+  told that absent places are filtered out of the binder and are looked up with the command, as
+  #96 said (*"lets make certain it gets implemented this time"*). The brief and the vocabulary
+  reach a role by path (*"It is still read but that is easier for the agents at this time"*). A
+  code concern is reported at an address, as now (*"the current system of how the code concerns
+  get reported on an appropriate address seems to be working"*). `doc-kind-unresolved` is
+  retired, so its role rule is moot, and a doc-shaped opener is the module docstring, as #232
+  and #233 say. Whether the collator owns the set questions (`front-half-undetermined` T6) is
+  left open for review (*"I don't know - lets review"*).
+
+- **#273.** **Four vocabulary rulings from the decision-log sweep** (Roy, 2026-11-04, shown the
+  Vocabulary and Addressing rulings the tree no longer agrees with).
+
+  **What it settles.** `lexer` is retired in favour of `reader`; Vocabulary #38's keeping of it
+  is superseded (*"yes superseded"*). `annotation` names the code construct -- a type annotation,
+  a decorator, an attribute -- and not the binder's note; Vocabulary #13 is superseded (*"the
+  code versions because they control- moves out of concordance when we get to building a
+  glossary and index"*). The task agent is the `managing editor`, as Vocabulary #18 said, and the
+  vocabulary and `SKILL.md` say so (*"yes into vocab and its skill brief"*). Whether
+  `concordance/code_names.py` becomes `references`, left open by Addressing #17, is filed as a
+  decision still owed.
+
+- **#274.** **A mark on an `f` place asks the human, and the other roles mark against an
+  accepted move** (Roy, 2026-11-04, shown that the brief gives the `f` places to
+  `ownership-context` alone while Addressing #26 lets any role ask for one).
+
+  *"#26 is correct, it is excluded by default, amy mark using the matter series is expected to get
+  a query to the human to verify that a change is acceptable. If ownership context moves it or
+  part of it to the appropriate b spot and that is accepted by the person, then the rest of the
+  agents mark against the update"*
+
+  **What it settles.** The `f` places stay out of a role's copy by default. Any role may look up
+  an `f` address and mark it, and every such mark raises a query to the human. When
+  `ownership-context` moves matter, or part of it, to a `b` place and the human accepts the move,
+  the other roles mark against the moved text. `brief-says-three-series` T1 and T3 close on it.
+
+- **#275.** **A language's rules are its `language definition`, and no round tally is kept**
+  (Roy, 2026-11-04, shown that the old language table's rows became `LanguageDefinition`, read
+  from `references/languages/<lang>.toml`, and that the round tally Vocabulary #30 put on the
+  container was never built and was refused by Process #51).
+
+  **What it settles.** The language-row sense of `row` is retired; the term is `language
+  definition`, and the live board prose says so (*"update locations to definition"*).
+  `row-was-never-retired` T5 closes on it. Vocabulary #30's round tally is superseded (*"yes
+  superseded"*): a round advances only by a command someone runs, as Process #51 and #272 say.
+  The rest of #30 -- the copy chief's `edit_copy` has the same shape -- stands.
+
+- **#276.** **Five rulings settled against the 2026-09-27 rewrite, and two restated** (Roy,
+  2026-11-04, shown each ruling beside what the tree does now).
+
+  **What it settles.** #144 is superseded: *"Now the draft goes in a temporary folder and
+  reviewed before being accepted so this is no longer necessary."* #160 is superseded: *"the
+  current functionality works."* #8 is fulfilled. #159 stands -- nothing is written over the
+  real files *"until everything and every review stage is accepted"* -- and `write.md` writes
+  at 7b before stage 8 reads, which it does not allow. #104 stands, restated: *"it is not
+  supposed to. This has been stated several times. The SHA256 hash of the file created in
+  machine/ is supposed to follow the file, edit copies, and docket through the entire process.
+  ... The files should not need to be committed to run this."* `prove_unchanged --base`, the
+  git read behind it and `write.md`'s `git worktree add <pre-edit ref>` all break it. A withdraw
+  takes back one mark: *"a withdrawal on the mark is specific to the mark. The rest of that was
+  an extension added by the agent"* -- #271's address-wide reading and the CLI that implements
+  it are not his. #265 is a global rule (*"yes that is supposed to be a global rule"*) and now
+  stands in `CLAUDE.md`. #166 waits on confirming what `write.md` runs as the compile step.
+
+- **#277.** **`prove_unchanged` runs first; the repo's own tools validate after it** (Roy,
+  2026-11-04, on #166, shown that `write.md` compiles with the repo's check command before
+  `prove_unchanged` while #166 said nothing but `proof` compiles: *"The goal is to first be able
+  to run prove_unchanged on the changed documents and then use the system tools to verify that
+  the program will still compile or run. Why this order, because prove unchanged shows that the
+  order of operations should be the same and everything should at most take indentation/bracket
+  edits to make it compile. Formatting and compiling after states which comments or indentation
+  needs those changes which requires no actual code checks"*; then *"Agree"* to superseding #166).
+
+  **What it settles.** #166 is superseded. On the drafts in the temporary folder,
+  `prove_unchanged` runs first against the machine/ sha; then the agent runs the project's own
+  formatter and compiler, which no program enforces, and reports the two results separately --
+  the instruction the lexical-readers design approved (`2026-10-11-lexical-readers-design.md`,
+  *Formatting and local validation*). Nothing is written over the working tree until every review
+  is accepted (#159). The work is the lexical plan's P57.

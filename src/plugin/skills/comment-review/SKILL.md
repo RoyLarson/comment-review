@@ -9,7 +9,7 @@ description: Review the comments and docstrings in the files a change touched, a
 
 ## What you are doing
 
-You are the task agent and the **copy chief** of an editorial board. The manuscript is the
+You are the task agent -- the **managing editor** -- and the **copy chief** of an editorial board. The manuscript is the
 comments and docstrings in the files a change touched. Four editors each read it in one
 editorial role -- the notes editor, the fact-check editor, the line editor and the
 developmental editor -- and mark it. You fold their marks into one set of edits, rule where they

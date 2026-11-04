@@ -60,6 +60,7 @@ here**, and `scripts/check_vocabulary.py` refuses a live term defined in both pl
 | `Collated` | -> the fold's **events**. It was what the old fold returned, carrying its escalations, rereads and unsettlable places as lists; `desk.work.fold.Fold` emits one event per place and commits or rolls back whole, and the commands print from the events alone |
 | `census` | -> **gather** for the stage, the act and the command; **binder** for what it hands over. `gather` has been stage 2's word since 2026-08-23 and a second `gather` had taken it for building the master proof, which `flows.bus` does now. `censused` -> gathered, and where the lexer classified a line, **read**. No alias. Roy, 2026-09-04; `decision-log.md Vocabulary: #34` |
 | `lexer` (`reading/lexer.py`, and the `lexical` tier) | -> the language's own **reader**, `reading/python/` or `reading/rust/`. The module read every language with no reader package of its own from a row of comment syntax, and it left with those languages. `comment_form` went to `reading/comment.py`. The reader ids `python-lexical` and `rust-lexical` are not this word: they name how those readers compare code. `decision-log.md Process: #259` |
+| `language row` (a row of the language table) | -> the **language definition**, `LanguageDefinition`, read from `references/languages/<lang>.toml`. The table it was a row of became one TOML file per language. `decision-log.md Process: #275` |
 
 ## Held in reserve -- publishing's word for something we already have
 

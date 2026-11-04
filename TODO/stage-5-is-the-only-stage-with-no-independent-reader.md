@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 10 of 14 tasks closed
+Progress: 10 of 15 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-08-17, by the session that ran all eight stages and rolled its own work back.
@@ -210,3 +210,5 @@ answered. A rail read and not run is a shape problem, and it was measured twice 
       SKILL.md so stage 8's whole-page read runs on the drafted pages before 7a
       and its findings join the proposal, per Process 144
         > 2026-09-13 T6 then says a selective approval re-reads the pages it changes
+- [ ] T15 | Move the 7b write after stage 8, so nothing is written before every
+      review is accepted, per #159

@@ -5,9 +5,9 @@ Status:   blocked (on the * ruling in a-role-with-no-code-out-damages-the-prose,
           decides the shape this must carry; and on a working grader -- 'effectiveness
           unchanged' is a comparison and the-harness-cannot-run-the-system-it-grades is
           open)
-Progress: 0 of 9 tasks closed
+Progress: 1 of 9 tasks closed
 Owner:    backend
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-23 (2026-08-23, splitting a-role-with-no-code-out-damages-the-prose:
           Roy, 'there is giving the machinery to surface them properly, that is the
           backend lane')
@@ -127,9 +127,10 @@ is carried below as a `*` box because it finishes the day it is answered.
       silently.
 - [ ] T6 | T6 -- Prove the stage-5 gate CAN fail on a code concern. Verify: a
       test refuses a bad concern, and fails when the new check is removed.
-- [?] T7 | T7 -- * RULE whether a code concern gets an ADDRESS from the census
-      the way a finding does. Verify: the answer is here -- addressed, or
-      deliberately not.
+- [x] T7 | Ruled #272: a code concern is reported at an address, as now | e0a31457 | T7
+      -- * RULE whether a code concern gets an ADDRESS from the census the way a
+      finding does. Verify: the answer is here -- addressed, or deliberately
+      not.
 - [ ] T8 | T8 -- Write into `references/review.md` what stage 8 does with a code
       concern. Verify: `review.md` names the handling, and `check_vocabulary.py`
       still passes.

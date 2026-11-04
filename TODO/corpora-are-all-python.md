@@ -30,7 +30,7 @@ RE-VERIFIED: 2026-08-23 — 2026-08-23. `ls corpora/` returns corpora.toml, cpyt
              for kotlin (corpora.toml:336) and swift (:353) do exist, so the old wording
              *"no corpus file at all"* is now half wrong and T2 says which half.
 Split:    2026-08-23 -- the one FETCH box named four languages and is now four boxes,
-          because a language row takes its definition from its own grammar and never
+          because a language definition takes its values from its own grammar and never
           from a neighbour's. A second pass found a FETCH task nobody had written: the
           rust row landed and nothing fetches the tree, so rust gained its own box
 ```

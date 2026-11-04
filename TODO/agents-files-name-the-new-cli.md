@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 35 of 47 tasks closed
+Progress: 36 of 49 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-09-04 (Roy, 2026-09-04, superseding the-flow-lives-in-the-command T4)
@@ -48,8 +48,9 @@ The agents files name the new CLI and say how to use it.
       the four role files so the body opens with the remit the description
       states, in the same words. Verify: grep Your remit hits four
         > 2026-09-05 the description reaches the dispatcher, never the reviewer
-- [ ] T10 | Decide whether the brief and the vocabulary reach a role by path as
-      the binder does, since four verbatim pastes did not fit one message
+- [x] T10 | Ruled #272 and #170: by path | e0a31457 | Decide whether the brief
+      and the vocabulary reach a role by path as the binder does, since four
+      verbatim pastes did not fit one message
 - [ ] T11 | Update reviewer-brief.md's move text to say a move relocates a whole
       place, never part of a paragraph. Verify: the from and to text says so
 - [-] T12 | SUPERSEDED by Process 96: an add needs no include-absent binder once the lookup reads the page | 473afdba | Update
@@ -173,3 +174,7 @@ The agents files name the new CLI and say how to use it.
         > 2026-10-30 D11: reviewer-brief.md:177-178
 - [x] T47 | CLAUDE.md names --from-docket; Roy approved the wording | 207d733bcd76762e6fe72d77618c45e68c11ad42 | Correct
       `CLAUDE.md:81` to `--from-docket`
+- [ ] T48 | Update reviewer-brief.md's withdraw line so it takes back one mark,
+      per #276
+- [ ] T49 | Replace write.md's git worktree with a copy of the gathered files,
+      per #104
