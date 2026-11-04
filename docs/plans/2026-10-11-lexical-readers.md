@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 158 of 182 TODO tasks closed
+Progress: 158 of 189 TODO tasks closed
 Plan-tasks: 55 of 60 plan tasks closed
 Owner:    backend
 Requires-Roy: false
@@ -622,6 +622,19 @@ interfaces, inputs and checks, without internal development files or history.
       section per gap in the Rust reader
 - [x] T15 | MOVED to 2026-10-25-reader-hands-prose-only | Remove the page's
       detached-documentation placement
+
+### AR - [an-empty-place-is-not-citable](../../TODO/an-empty-place-is-not-citable.md)
+
+- [ ] T2 | Implement it. Verify: asking for the empty b place above a line of
+      code answers its address
+- [ ] T3 | Make bind's docstring true -- either the mechanism works, or the
+      sentence stops promising it
+- [ ] T5 | Make addresser --line read the page from the repo and a path, with no
+      binder. Verify: a file with no prose answers its b place
+- [ ] T6 | Move --check out of the address lookup command
+- [ ] T7 | Rename commands/addresser to commands/look_up_address
+- [ ] T8 | Update the reviewer brief's lookup command to the binderless form
+- [ ] T9 | Remove HELD and ABSENT from the reviewer brief's lookup output
 
 ## Plan Tasks
 
