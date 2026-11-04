@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 0 of 7 TODO tasks closed
+Progress: 0 of 9 TODO tasks closed
 Plan-tasks: 0 of 7 plan tasks closed
 Owner:    backend
 Requires-Roy: true
@@ -28,6 +28,15 @@ binder, as rulings #96 and #111 require
 - [ ] T7 | Rename commands/addresser to commands/look_up_address
 - [ ] T8 | Update the reviewer brief's lookup command to the binderless form
 - [ ] T9 | Remove HELD and ABSENT from the reviewer brief's lookup output
+
+### B - [the-cue-legend-was-never-written](../../TODO/the-cue-legend-was-never-written.md)
+
+- [ ] T4 | Say how a role asks for an absent place it wants to add to
+
+### C - [agents-files-name-the-new-cli](../../TODO/agents-files-name-the-new-cli.md)
+
+- [ ] T14 | Update SKILL.md and the brief to say absent places are filtered out
+      of the binder and are looked up with addresser. Verify: both say so
 
 ## Plan Tasks
 
