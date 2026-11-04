@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 4 of 9 tasks closed
+Progress: 4 of 10 tasks closed
 Owner:    agents
 Requires-Roy: true
 Raised:   2026-08-29 (found sweeping reviewer-brief.md against its consumers on
@@ -49,3 +49,5 @@ place the same brief tells it to cite at `:74`.
       human, and what the human is shown
 - [ ] T9 | Make the other roles mark against an f-to-b move the human accepted,
       per #274
+- [ ] T10 | Update reviewer-brief.md so any role may mark an f place it looks
+      up, per #274
