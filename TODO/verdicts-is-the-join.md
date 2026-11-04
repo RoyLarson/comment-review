@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 8 of 12 tasks closed
+Progress: 10 of 12 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (Roy, 2026-08-22: the term the agent keeps saying is the collator but
@@ -115,8 +115,9 @@ the boxes below track that it is owed.
 - [ ] T10 | T10 -- Give the copy chief its own agent file, separate from the
       task agent. Verify: `plugins/comment-review/agents/` holds a copy-chief
       agent.
-- [ ] T11 | T11 -- Define `copy chief` in the shipped vocabulary. Verify: `uv
-      run python scripts/check_vocabulary.py` passes with the term defined and
-      used.
-- [ ] T12 | T12 -- Name the copy chief at stage 5 in `SKILL.md`. Verify: stage 5
-      names it as the role that rules on what the collator hands up.
+- [x] T11 | vocabulary.toml defines copy chief; the gate passes | 717a35cb | T11
+      -- Define `copy chief` in the shipped vocabulary. Verify: `uv run python
+      scripts/check_vocabulary.py` passes with the term defined and used.
+- [x] T12 | SKILL.md stage 5 is 'collate, and rule as copy chief' | c68a61a4 | T12
+      -- Name the copy chief at stage 5 in `SKILL.md`. Verify: stage 5 names it
+      as the role that rules on what the collator hands up.

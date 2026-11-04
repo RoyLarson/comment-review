@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 9 of 36 tasks closed
+Progress: 9 of 37 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, a code review of `binder/binder.py` run against its
@@ -237,3 +237,5 @@ task 5's, but the fix for these two lands in `binder/binder.py`.
       #107
 - [ ] T36 | Change Shard's pages to list[Page], per Process #107. Verify:
       flows/fan_out.py names no RedactedPage
+- [ ] T37 | Add a pulled section to the binder for code pages a mark needs
+      mid-run, per Vocabulary #16
