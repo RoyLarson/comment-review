@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 36 of 47 tasks closed
+Progress: 36 of 49 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-09-04 (Roy, 2026-09-04, superseding the-flow-lives-in-the-command T4)
@@ -174,3 +174,7 @@ The agents files name the new CLI and say how to use it.
         > 2026-10-30 D11: reviewer-brief.md:177-178
 - [x] T47 | CLAUDE.md names --from-docket; Roy approved the wording | 207d733bcd76762e6fe72d77618c45e68c11ad42 | Correct
       `CLAUDE.md:81` to `--from-docket`
+- [ ] T48 | Update reviewer-brief.md's withdraw line so it takes back one mark,
+      per #276
+- [ ] T49 | Replace write.md's git worktree with a copy of the gathered files,
+      per #104

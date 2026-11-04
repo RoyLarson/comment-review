@@ -67,5 +67,6 @@ Use lexical code identity at both proof boundaries.
 - [ ] T16 | Remove --base and the git read from prove_unchanged, per Process
       #104. Verify: commands/prove_unchanged.py takes no --base
         > 2026-11-04 Overlaps Roy's open question on the 2026-09-27 rewrite
+        > 2026-11-04 Prove against the machine/ sha; nothing need be committed
 - [ ] T17 | Remove the sibling line-ending lookup from prove_unchanged, per
       Process #104

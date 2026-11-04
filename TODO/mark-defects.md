@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 23 of 38 tasks closed
+Progress: 23 of 39 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, a code review of `desk/mark.py` that ran `parse`
@@ -296,3 +296,5 @@ cites as its measured example of a field answering neither necessary nor purpose
         > 2026-10-16 Check: a rewrapped clause quoted on one line is accepted
         > 2026-10-16 Reason: Roy ruled an exact snippet pedantic; Process #212
         > 2026-10-16 Check: a move is checked against its destination at creation
+- [ ] T39 | Make mark --withdraw take back one mark, not every ruling at the
+      address, per #276
