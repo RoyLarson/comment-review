@@ -47,3 +47,4 @@ senses: 736 uses in 57 files under `src/comment_review`, 88 in 8 under
         > 2026-10-18 limitations.md is agents-lane: name the lane and ask first
 - [ ] T9 | Retire `paragraph` as a term in the vocabulary gate, keeping its
       English sense
+        > 2026-11-04 Repoint retired_words.toml's block entry to passage
