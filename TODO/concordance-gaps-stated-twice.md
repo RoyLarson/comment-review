@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 2 of 8 tasks closed
+Progress: 2 of 9 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-24 (Roy, 2026-08-24: are referrers and code_names one workflow?)
@@ -29,3 +29,5 @@ The concordance states its gaps twice, in two vocabularies.
 - [-] T8 | Revoked: one_row_per_hole is gone (#271) | a75f0638 | Group known
       holes inside code_names, where path and name are data, and test gather's
       printed output
+- [ ] T9 | Rename the paragraph annotations when the glossary and index are
+      built, per Process #273
