@@ -58,7 +58,7 @@ interfaces, inputs and checks, without internal development files or history.
       own dated spec, references and fixtures
 - [-] T18 | Implement one definition file per language; verify each configures
       its parser without family defaults or language inheritance
-- [-] T1 | T1 -- Transcribe all 18 language rows into
+- [-] T1 | T1 -- Transcribe all 18 language definitions into
       `references/languages.toml`, Python included, with `tier` as a field.
       Verify: the file holds 18 tables, one per row.
 - [-] T2 | T2 -- Build `Language` from that table at runtime, the way
@@ -226,7 +226,7 @@ interfaces, inputs and checks, without internal development files or history.
 - [-] T4 | Update the retype comment at page.py:1074-1081, which states that
       kind and series must agree while its branch tests one kind of four
 
-### I - [matter-misses-two-languages](../../TODO/matter-misses-two-languages.md)
+### I - [matter-misses-two-languages](../../TODO/completed/matter-misses-two-languages.md)
 
 - [x] T2 | MOVED to 2026-10-22-lexer-rust | T2 -- Stop a Rust file's opening
       `//` run being claimed as a declaration's doc. Verify: a `.rs` opening `//
@@ -367,7 +367,7 @@ interfaces, inputs and checks, without internal development files or history.
 ### V - [name-corpus-sees-one-language](../../TODO/name-corpus-sees-one-language.md)
 
 - [-] T1 | declarations() gains the identifier on the declaring line, per
-      language row
+      language definition
 - [-] T5 | referrers.tokens_for stops parsing Python for top-level defs, or says
       why it still must
 

@@ -9,7 +9,7 @@ Raised:   2026-08-21 (the /code-review xhigh of 2026-08-21, focused on the file-
           census route)
 Traced:   2026-08-21 — 2026-08-21 -- IT IS A MISSING WIRE, and both halves already
           exist. The lexer gets the KIND right (it reads doc_line and doc_block off the
-          Language row, so '/// The name.' censuses as kind=docstring) and
+          Language definition, so '/// The name.' censuses as kind=docstring) and
           page.documentable() already computes which declaration a doc belongs to.
           Nothing joined the two: paragraphs_lexical never set Paragraph.declares, so
           attach() fell past its FIRST branch and landed on above() -> a b place.

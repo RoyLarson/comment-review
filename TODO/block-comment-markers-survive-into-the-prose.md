@@ -8,7 +8,7 @@ Requires-Roy: false
 Raised:   2026-08-17 (Roy: "use the github api to find a heavily documented file
           for each of the languages so we can verify that the lexers work for the
           11 languages we claim")
-Renamed:  2026-08-20 -- the language rows measured here were SPLIT, so the names in the
+Renamed:  2026-08-20 -- the language definitions measured here were SPLIT, so the names in the
           tables below no longer resolve. `c-family` became `c`, `cpp`, `java`,
           `csharp`, `swift` and `kotlin`; `js-family` became `javascript` and
           `typescript`. The measurements stand as taken -- the `.java` sample is now the
@@ -148,7 +148,7 @@ One heavily-documented file per record, each at a pinned tag. ! None of them is 
 
 Both declare a block form -- `=begin`/`=end` and `--[[ ]]` -- and **neither appeared in the
 sampled files**, so the measurement says nothing about them. ! An unmeasured fix is how this
-defect got here, and this repo's rule is that a language row takes its definition from its own
+defect got here, and this repo's rule is that a language definition takes its values from its own
 grammar and never from a neighbour's, so the two are decided one at a time.
 
 ## Tasks

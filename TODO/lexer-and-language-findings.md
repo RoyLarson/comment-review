@@ -298,7 +298,7 @@ would.
       block opener in lexer.py:1072; verify mixed Lua delimiters inside a long
       comment preserve its full body
 - [-] T36 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | Replace
-      `doc_inside` with a documentation position every language row states
+      `doc_inside` with a documentation position every language definition states
         > 2026-10-16 Reason: 17 of 18 rows inherit above from a default; 11 declare
         > 2026-10-16 Reason: a bool states inside; above is only its absence
         > 2026-10-16 Check: Language has no default position; every row names one

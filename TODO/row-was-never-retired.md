@@ -59,7 +59,7 @@ whole design"*, on Roy, 2026-08-20. **13 uses in that module alone** are that
 sense. A `RETIRED` entry cannot tell two senses apart: `check_retired` matches
 the bare word with a letter boundary and prints one remedy, so it would report
 `language.py`'s own design claim and tell a reader to *say `paragraph`* -- which
-is false for a language row.
+is false for a language definition.
 
 !! **THE REPO HAS ALREADY MEASURED THIS EXACT FAILURE, WITH `block`.**
 [`vocabulary-gate-is-red`](vocabulary-gate-is-red.md): the rename that followed

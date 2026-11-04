@@ -1,4 +1,4 @@
-# The language rows are data and live in code
+# The language definitions are data and live in code
 
 ```
 Status:   open
@@ -57,7 +57,7 @@ full name-harvester capability work remains separately scoped.
 ## Tasks
 
 - [-] T1 | One combined table; each language gets its own file (T17, T18) | 9e376f5f | T1
-      -- Transcribe all 18 language rows into `references/languages.toml`,
+      -- Transcribe all 18 language definitions into `references/languages.toml`,
       Python included, with `tier` as a field. Verify: the file holds 18 tables,
       one per row.
 - [-] T2 | One combined table; each language gets its own file (T17, T18) | 9e376f5f | T2

@@ -1230,6 +1230,7 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   2026-08-30): *"I felt (maybe wrongly) that these would end up being the same shape and the
   master-proof would go from multiple edit-copies to one edit-copy in the copy-chief step."* **Not
   wrongly.**
+  **The round tally is SUPERSEDED by Process #275.**
 
       master_proof { edit_copies: [ role_a, role_b, role_c, role_d ] }
           -> gather / places / reconcile  ==> Reconciled(settled, escalations, rereads)
@@ -6200,3 +6201,14 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   an `f` address and mark it, and every such mark raises a query to the human. When
   `ownership-context` moves matter, or part of it, to a `b` place and the human accepts the move,
   the other roles mark against the moved text. `brief-says-three-series` T1 and T3 close on it.
+
+- **#275.** **A language's rules are its `language definition`, and no round tally is kept**
+  (Roy, 2026-11-04, shown that the old language table's rows became `LanguageDefinition`, read
+  from `references/languages/<lang>.toml`, and that the round tally Vocabulary #30 put on the
+  container was never built and was refused by Process #51).
+
+  **What it settles.** The language-row sense of `row` is retired; the term is `language
+  definition`, and the live board prose says so (*"update locations to definition"*).
+  `row-was-never-retired` T5 closes on it. Vocabulary #30's round tally is superseded (*"yes
+  superseded"*): a round advances only by a command someone runs, as Process #51 and #272 say.
+  The rest of #30 -- the copy chief's `edit_copy` has the same shape -- stands.
