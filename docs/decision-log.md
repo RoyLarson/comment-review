@@ -6152,3 +6152,23 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   on the page flow's `withdraw`: a mark can be withdrawn, and only what that mark edits is
   undone.
 
+
+- **#272.** **Eight open decision boxes answered** (Roy, 2026-11-04, shown each box beside the
+  ruling that seemed to answer it).
+
+  **What it settles.** A send-back has no bound in code; the agents follow the instructions
+  (*"it is up to the agents to follow the instructions. I am not worried about them running away
+  and trying infinite times"*). Nothing checks that the reviewers were launched; the host's task
+  system does (*"the Claude code or codex program handles this correctly and the task system in
+  those programs check that it happened"*). A missing role is not fatal: *"the task agent is told
+  to spin up another instance"*. Every composition of edits at one address goes back for review,
+  a `correct` with a `patch` included (*"the blanket ruling that all places that edit a same
+  address needs to go back for review, even assuming the answer is merged stands"*). A role is
+  told that absent places are filtered out of the binder and are looked up with the command, as
+  #96 said (*"lets make certain it gets implemented this time"*). The brief and the vocabulary
+  reach a role by path (*"It is still read but that is easier for the agents at this time"*). A
+  code concern is reported at an address, as now (*"the current system of how the code concerns
+  get reported on an appropriate address seems to be working"*). `doc-kind-unresolved` is
+  retired, so its role rule is moot, and a doc-shaped opener is the module docstring, as #232
+  and #233 say. Whether the collator owns the set questions (`front-half-undetermined` T6) is
+  left open for review (*"I don't know - lets review"*).
