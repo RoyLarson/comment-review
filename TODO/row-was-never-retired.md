@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 0 of 5 tasks closed
+Progress: 1 of 5 tasks closed
 Owner:    backend
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-09-02 (systems)
 ```
 
@@ -85,5 +85,6 @@ Those are the record of what was decided and are not rewritten.
 - [ ] T3 | Update src/ prose that calls a paragraph a row
 - [ ] T4 | Add row and rows to check_vocabulary.py's RETIRED, once T5 rules the
       language-row sense and the rename lands
-- [?] T5 | Decide whether the LANGUAGE-ROW sense is retired too, or is declared
-      polysemy. Verify: the answer is in `docs/vocabulary.md`
+- [x] T5 | Ruled #275: retired; the term is language definition | 9812bd0c | Decide
+      whether the LANGUAGE-ROW sense is retired too, or is declared polysemy.
+      Verify: the answer is in `docs/vocabulary.md`
