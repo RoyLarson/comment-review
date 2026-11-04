@@ -719,6 +719,7 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   carry the word** (Roy, 2026-08-24: *"Sticky notes for making the pages pages for important
   information. Directly relevant. May need a different term than annotations though or the other
   annotations get different terms"*, then: *"Only one is allowed"*). It goes to the binder.
+  **SUPERSEDED by Process #273.**
 
   !! **IT WAS SETTLED BY EXPERIMENT RATHER THAN BY ARGUMENT, which is new here.** Roy: *"Can you
   give a couple of subagents a record and then split one and give it one annotation labeled as
@@ -1436,6 +1437,7 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
 
 - **#38.** **`lexer` keeps its name** (Roy, 2026-10-25, asked whether to keep `lexer` now that
   Python is read by `reading/python/` and `paragraphs_stdlib` is gone: *"Sure"*).
+  **SUPERSEDED by Process #273.**
 
   **What it settles.** `reading/lexer.py` reads characters against a language definition --
   comment openers, quotes, spanning delimiters -- for each language without its own reader
@@ -6172,3 +6174,15 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   retired, so its role rule is moot, and a doc-shaped opener is the module docstring, as #232
   and #233 say. Whether the collator owns the set questions (`front-half-undetermined` T6) is
   left open for review (*"I don't know - lets review"*).
+
+- **#273.** **Four vocabulary rulings from the decision-log sweep** (Roy, 2026-11-04, shown the
+  Vocabulary and Addressing rulings the tree no longer agrees with).
+
+  **What it settles.** `lexer` is retired in favour of `reader`; Vocabulary #38's keeping of it
+  is superseded (*"yes superseded"*). `annotation` names the code construct -- a type annotation,
+  a decorator, an attribute -- and not the binder's note; Vocabulary #13 is superseded (*"the
+  code versions because they control- moves out of concordance when we get to building a
+  glossary and index"*). The task agent is the `managing editor`, as Vocabulary #18 said, and the
+  vocabulary and `SKILL.md` say so (*"yes into vocab and its skill brief"*). Whether
+  `concordance/code_names.py` becomes `references`, left open by Addressing #17, is filed as a
+  decision still owed.
