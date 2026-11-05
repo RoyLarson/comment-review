@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (121)
+### open  (122)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -303,6 +303,7 @@ that changed a published name or rule:
 | [freeform-run-findings](freeform-run-findings.md) | agents | -- | 19/23 | What the first live freeform run showed |
 | [topology-defects](topology-defects.md) | backend | -- | 0/1 | Topology defects |
 | [reading-settings-have-no-setting](reading-settings-have-no-setting.md) | backend | -- | 0/4 | Reading settings have no setting |
+| [one-obvious-way](one-obvious-way.md) | backend | -- | 0/21 | One obvious way |
 
 ### in-progress  (17)
 
