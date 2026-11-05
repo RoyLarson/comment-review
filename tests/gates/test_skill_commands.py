@@ -32,9 +32,12 @@ AGENT_FACING = (
 )
 
 #: `comment-review.py <name>` -- the name is the first token after the
-#: script, never a flag (a flag starts with `-`). The word after it, when it is
-#: a bare lowercase word, is the subcommand of a command that has subcommands.
-INVOCATION = re.compile(r"comment-review\.py\s+(\S+)(?:\s+([a-z][\w-]*)\b)?")
+#: script, never a flag (a flag starts with `-`).
+INVOCATION = re.compile(r"comment-review\.py\s+(\S+)")
+
+#: The bare lowercase word after the name, continuation lines joined in: the
+#: subcommand of a command that has subcommands.
+WORD = re.compile(r"\s*([a-z][\w-]*)\b")
 
 #: A long flag anywhere after the name -- `--repo`, `--out`, and so on.
 FLAG = re.compile(r"--[\w-]+")
@@ -60,13 +63,22 @@ def _invocations(
             if not match:
                 i += 1
                 continue
-            name, word = match.group(1), match.group(2)
+            name = match.group(1)
             start = i
             text = lines[i][match.end() :]
             while lines[i].rstrip().endswith("\\") and i + 1 < len(lines):
                 i += 1
                 text += " " + lines[i]
-            found.append((name, word, FLAG.findall(text), path.name, start + 1))
+            word = WORD.match(text.replace("\\", " "))
+            found.append(
+                (
+                    name,
+                    word.group(1) if word else None,
+                    FLAG.findall(text),
+                    path.name,
+                    start + 1,
+                )
+            )
             i += 1
     return found
 
@@ -169,6 +181,20 @@ def test_a_flag_on_the_wrong_subcommand_is_refused():
         ("--file", "addresses", "probe", 1),
         ("subcommand 'lookup'", "addresses", "probe", 3),
     ]
+
+
+def test_a_subcommand_on_a_continuation_line_is_read(tmp_path):
+    """A command name ending its line still has its subcommand read from the
+    next, as its flags are."""
+    prose = tmp_path / "prose.md"
+    prose.write_text(
+        "python <skill>/scripts/comment-review.py addresses \\\n"
+        "  find --repo <R> --file <p> --line 1 --series f\n",
+        encoding="utf-8",
+    )
+    found = _invocations([prose])
+    assert [word for _, word, *_ in found] == ["find"]
+    assert _unaccepted(found) == []
 
 
 #: The files the task agent reads. Stages 7a and 7b set pages from the closed
