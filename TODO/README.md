@@ -302,7 +302,7 @@ that changed a published name or rule:
 | [one-reader-builder](one-reader-builder.md) | backend | -- | 2/10 | One reader builder from each language's definition |
 | [freeform-run-findings](freeform-run-findings.md) | agents | -- | 19/23 | What the first live freeform run showed |
 | [topology-defects](topology-defects.md) | backend | -- | 0/1 | Topology defects |
-| [an-empty-place-is-not-citable](an-empty-place-is-not-citable.md) | backend | -- | 9/13 | An empty place is not citable, and the row cut's safety argument says it is |
+| [an-empty-place-is-not-citable](an-empty-place-is-not-citable.md) | backend | -- | 10/13 | An empty place is not citable, and the row cut's safety argument says it is |
 
 ### in-progress  (17)
 

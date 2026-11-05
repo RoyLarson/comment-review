@@ -2,8 +2,8 @@
 
 ```
 Status:   in-progress
-Progress: 8 of 9 TODO tasks closed
-Plan-tasks: 8 of 10 plan tasks closed
+Progress: 10 of 13 TODO tasks closed
+Plan-tasks: 10 of 11 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-11-04 (founded by move-t from 2026-10-11-lexical-readers)
@@ -25,9 +25,15 @@ binder, as rulings #96 and #111 require
 - [x] T5 | Make addresser --line read the page from the repo and a path, with no
       binder. Verify: a file with no prose answers its b place
 - [x] T6 | Move --check out of the address lookup command
-- [ ] T7 | Rename commands/addresser to commands/look_up_address
+- [-] T7 | Rename commands/addresser to commands/look_up_address
 - [x] T8 | Update the reviewer brief's lookup command to the binderless form
 - [x] T9 | Remove HELD and ABSENT from the reviewer brief's lookup output
+- [x] T10 | Decide the lookup's subcommand names, per #279
+- [ ] T11 | Split the lookup command into one subcommand per question, per #279
+- [ ] T12 | Move the lookup's logic into a flow sharing gather's page reading,
+      per #279
+- [ ] T13 | Update SKILL.md so stage 1 records reading settings for gather and
+      the lookup, per #279
 
 ### B - [the-cue-legend-was-never-written](../../TODO/completed/the-cue-legend-was-never-written.md)
 
@@ -47,7 +53,8 @@ binder, as rulings #96 and #111 require
 - [x] P3 | --check and its two tests deleted | 3a1f14c7 | Move --check out of
       the lookup command
         > 2026-11-04 Ruled #278: delete --check and its two tests
-- [ ] P4 | Rename the command to look_up_address
+- [-] P4 | SUPERSEDED by #279: subcommands, not a rename | bd77199a | Rename the
+      command to look_up_address
 - [x] P5 | The brief asks with --repo; HELD and ABSENT are gone | 3a1f14c7 | Update
       the reviewer brief for the binderless lookup
 - [x] P6 | bind's docstring: an empty place answers from the page | 3a1f14c7 | Make
@@ -58,4 +65,6 @@ binder, as rulings #96 and #111 require
       the page from the repo, with no binder
 - [x] P9 | The listing mode and --binder are deleted | 3a1f14c7 | Delete the
       listing mode and the --binder flag
-- [ ] P10 | Verify the full suite and the gates
+- [-] P10 | Moved last as P11, after the #279 work | bd77199a | Verify the full
+      suite and the gates
+- [ ] P11 | Verify the full suite and the gates

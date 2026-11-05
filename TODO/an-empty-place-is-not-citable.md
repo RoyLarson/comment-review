@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 9 of 13 tasks closed
+Progress: 10 of 13 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-25 (backend, 2026-08-25, while cleaning up after the write-chain
@@ -122,7 +122,8 @@ An empty place is not citable, and the row cut's safety argument says it is.
       reviewer brief's lookup command to the binderless form
 - [x] T9 | HELD and ABSENT are removed from the brief | 3a1f14c7 | Remove HELD
       and ABSENT from the reviewer brief's lookup output
-- [ ] T10 | Decide the lookup's subcommand names, per #279
+- [x] T10 | Ruled #279: addresses find and addresses resolve | bd77199a | Decide
+      the lookup's subcommand names, per #279
 - [ ] T11 | Split the lookup command into one subcommand per question, per #279
 - [ ] T12 | Move the lookup's logic into a flow sharing gather's page reading,
       per #279
