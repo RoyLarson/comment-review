@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 2 of 9 tasks closed
+Progress: 4 of 9 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-25 (backend, 2026-08-25, while cleaning up after the write-chain
@@ -102,14 +102,16 @@ An empty place is not citable, and the row cut's safety argument says it is.
       neighbouring rows original_start and original_end, or by re-reading the
       page. Requires-Roy: it decides whether the addresser needs the repo as
       well as the census
-- [ ] T2 | Implement it. Verify: asking for the empty b place above a line of
-      code answers its address
+- [x] T2 | test_an_empty_gap_answers: an empty b place answers its address | c43d6fca | Implement
+      it. Verify: asking for the empty b place above a line of code answers its
+      address
 - [ ] T3 | Make bind's docstring true -- either the mechanism works, or the
       sentence stops promising it
 - [x] T4 | FINISHED | unknown | A test over a real binder for a place the binder
       does NOT carry. Verify: it fails against the current code
-- [ ] T5 | Make addresser --line read the page from the repo and a path, with no
-      binder. Verify: a file with no prose answers its b place
+- [x] T5 | --line reads the page with no binder; a file with no prose answers | c43d6fca | Make
+      addresser --line read the page from the repo and a path, with no binder.
+      Verify: a file with no prose answers its b place
 - [ ] T6 | Move --check out of the address lookup command
         > 2026-11-04 Ruled #278: moved out by deleting it
 - [ ] T7 | Rename commands/addresser to commands/look_up_address

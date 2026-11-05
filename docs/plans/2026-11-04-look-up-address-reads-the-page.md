@@ -2,8 +2,8 @@
 
 ```
 Status:   in-progress
-Progress: 0 of 9 TODO tasks closed
-Plan-tasks: 1 of 7 plan tasks closed
+Progress: 2 of 9 TODO tasks closed
+Plan-tasks: 2 of 7 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-11-04 (founded by move-t from 2026-10-11-lexical-readers)
@@ -18,11 +18,11 @@ binder, as rulings #96 and #111 require
 
 ### A - [an-empty-place-is-not-citable](../../TODO/an-empty-place-is-not-citable.md)
 
-- [ ] T2 | Implement it. Verify: asking for the empty b place above a line of
+- [x] T2 | Implement it. Verify: asking for the empty b place above a line of
       code answers its address
 - [ ] T3 | Make bind's docstring true -- either the mechanism works, or the
       sentence stops promising it
-- [ ] T5 | Make addresser --line read the page from the repo and a path, with no
+- [x] T5 | Make addresser --line read the page from the repo and a path, with no
       binder. Verify: a file with no prose answers its b place
 - [ ] T6 | Move --check out of the address lookup command
 - [ ] T7 | Rename commands/addresser to commands/look_up_address
@@ -40,8 +40,8 @@ binder, as rulings #96 and #111 require
 
 ## Plan Tasks
 
-- [ ] P1 | Make the lookup read the page from the repo and a path, with no
-      binder
+- [x] P1 | addresser --line reads the page from --repo; suite 5806 passed | c43d6fca | Make
+      the lookup read the page from the repo and a path, with no binder
 - [x] P2 | Ruled #278: --check is deleted, not moved | c572fb52 | Decide where
       the --check verification moves
 - [ ] P3 | Move --check out of the lookup command
