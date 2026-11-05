@@ -6249,3 +6249,12 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   the instruction the lexical-readers design approved (`2026-10-11-lexical-readers-design.md`,
   *Formatting and local validation*). Nothing is written over the working tree until every review
   is accepted (#159). The work is the lexical plan's P57.
+
+- **#278.** **`addresser --check` is deleted, not moved** (Roy, 2026-11-04, shown that no stage
+  runs it, that `gather` already refuses an unaddressed paragraph with the same `unaddressed()`,
+  and that its SHARED report checks a binder for what #254 says is not a defect: *"Agree deleted.
+  Love deleting code. Anything not necessary to accomplish the goals of the project should go"*).
+
+  **What it settles.** The 2026-08-25 direction that `--check` leaves the lookup command is
+  answered by deleting it with its two tests. `check-passes-a-shared-address` T1-T4, which fix
+  the command, are superseded. Code a goal of the project does not need is removed.
