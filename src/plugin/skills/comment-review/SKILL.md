@@ -163,12 +163,12 @@ python <skill>/scripts/comment-review.py topology --build --binder <run-dir>/bin
 `--build` verifies what it writes and exits 0 when the topology fits the binder. On exit 1 it
 prints one misfit per line; change the `--stage` value and build again.
 
-The binder holds only the places that hold prose. To look up any place, ask the addresser,
+The binder holds only the places that hold prose. To look up any place, ask `addresses`,
 which reads the file; each series is counted separately:
 
 ```bash
-python <skill>/scripts/comment-review.py addresser --repo <stage-root> --file <path> --line <n> --series a|b|c|f
-python <skill>/scripts/comment-review.py addresser --repo <stage-root> --resolve <address>
+python <skill>/scripts/comment-review.py addresses find --repo <stage-root> --file <path> --line <n> --series a|b|c|f
+python <skill>/scripts/comment-review.py addresses resolve <address> --repo <stage-root>
 ```
 
 ### Stage 3 -- find references

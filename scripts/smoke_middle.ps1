@@ -29,7 +29,7 @@ $PSNativeCommandUseErrorActionPreference = $false
 $Cmd = @{
     gather = 'gather'; topology = 'topology'; distribute = 'distribute'
     mark = 'mark'; check = 'check'; collate = 'collate'; turn = 'turn'
-    disposition = 'disposition'; proof = 'proof'; addresser = 'addresser'
+    disposition = 'disposition'; proof = 'proof'; addresses = 'addresses'
 }
 
 # The launcher every comment-review command runs through, written once so
@@ -420,7 +420,7 @@ $Stages = [ordered]@{
     # planted place makes land. An empty place is in no copy, since a copy
     # is seeded with the places that hold prose, so an add there creates its
     # slot in its own role's copy and no other role has one to rule on:
-    # fib.py's a2, b8, b17 and c3 and the addresser row's place take one call
+    # fib.py's a2, b8, b17 and c3 and the addresses row's place take one call
     # each. A row's comment names a fib.py place by its cue alone; the three
     # rate.py rows, last, name their page.
     mark = {
@@ -439,8 +439,8 @@ $Stages = [ordered]@{
         # correction names two files, its false clause and its true clause,
         # and so does the patch, its from clause and its to clause. Every
         # name carries the page as well as the cue, which is what
-        # `smoke_fixture.file_for` spells. The addresser row's file is not
-        # here: it is named at that row from the address `addresser` returns.
+        # `smoke_fixture.file_for` spells. The addresses row's file is not
+        # here: it is named at that row from the address `addresses find` returns.
         $LandingFile = @{
             fib_c6_false = Join-Path $Run 'fib-c6-false.txt'
             fib_c6_true = Join-Path $Run 'fib-c6-true.txt'
@@ -768,15 +768,15 @@ $Stages = [ordered]@{
             '--reason', 'wrapper is the declared function; logged only wraps it',
             '--cite', 'fib.py:13', '--repo', $OriginalDir
         ))
-        # The addresser row -- one add whose address this script does not
-        # spell. It asks `addresser` for the `b` place at the line
+        # The addresses row -- one add whose address this script does not
+        # spell. It asks `addresses find` for the `b` place at the line
         # `write_texts` put in addresser-row.json, and stops unless the
-        # address that comes back is the one beside it there. `addresser`
+        # address that comes back is the one beside it there. `addresses`
         # reads the page from the repo and prints one tab-separated line: the
         # address and the line of code as Python's repr quotes it.
         $row = Get-Content -LiteralPath (Join-Path $Run 'addresser-row.json') -Raw | ConvertFrom-Json
         $addresserCommand = $Launcher + @(
-            $Cmd.addresser, '--repo', $OriginalDir, '--file', 'fib.py',
+            $Cmd.addresses, 'find', '--repo', $OriginalDir, '--file', 'fib.py',
             '--line', $row.line, '--series', 'b'
         )
         $found = Invoke-Checked -Stage 'addresser' -Capture -CommandLine $addresserCommand

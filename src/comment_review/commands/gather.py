@@ -43,7 +43,7 @@ def main() -> int:
         action="store_true",
         help="carry the EMPTY places too -- a place where prose could go but does"
         " not. Dropped by default: they are 91%% of the rows and a reviewer rules"
-        " on prose that is there. Ask the addresser for one instead, by its line",
+        " on prose that is there. Ask `addresses find` for one instead, by its line",
     )
     ap.add_argument(
         "--out", metavar="PATH", help="write the binder to PATH, not stdout"

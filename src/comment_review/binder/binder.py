@@ -104,7 +104,7 @@ def bind(
     walk emits every place, filled or not, so a reviewer that wants to `add`
     ASKS for the one it means:
 
-        comment_review addresser --repo R --file m.py --line N --series b
+        comment_review addresses find --repo R --file m.py --line N --series b
 
     -- which answers `m.py@b1` from the page, and reads no binder
     (`decision-log.md Process: #96`, `#111`). The place is

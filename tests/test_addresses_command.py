@@ -1,15 +1,15 @@
-"""`commands/addresser.py`: the CLI's console face, over a real file in a repo.
+"""`commands/addresses.py`: the CLI's console face, over a real file in a repo.
 
 Both lookups read the page from the file under `--repo` and no binder
 (`binder-defects` T22, `an-empty-place-is-not-citable` T5, Process #96 and
-#111): a place that holds no prose answers like any other, and a mark may cite
+#111, #279): a place that holds no prose answers like any other, and a mark may cite
 it.
 """
 
 import pytest
 from conftest import SAMPLE, build, cue, run_command
 
-from comment_review.commands import addresser
+from comment_review.commands import addresses
 
 
 class TestResolve:
@@ -17,7 +17,7 @@ class TestResolve:
 
     def _ask(self, monkeypatch, capsys, repo, address):
         return run_command(
-            monkeypatch, capsys, addresser, "--repo", str(repo), "--resolve", address
+            monkeypatch, capsys, addresses, "resolve", address, "--repo", str(repo)
         )
 
     def test_a_filled_place_prints_its_lines(self, monkeypatch, capsys, a_repo):
@@ -67,7 +67,9 @@ class TestByLine:
     prose."""
 
     def _ask(self, monkeypatch, capsys, repo, *flags):
-        return run_command(monkeypatch, capsys, addresser, "--repo", str(repo), *flags)
+        return run_command(
+            monkeypatch, capsys, addresses, "find", "--repo", str(repo), *flags
+        )
 
     def test_an_empty_gap_answers(self, monkeypatch, capsys, a_repo):
         """The FitPlan run lost four `add`s to this: the command read the
@@ -183,9 +185,11 @@ class TestByLine:
         self, monkeypatch, capsys, a_repo
     ):
         repo, _ = a_repo
-        code, out = self._ask(monkeypatch, capsys, repo, "--line", "11")
-        assert code == 2
-        assert "--file" in out and "--series" in out
+        with pytest.raises(SystemExit) as exited:
+            self._ask(monkeypatch, capsys, repo, "--line", "11")
+        assert exited.value.code == 2
+        err = capsys.readouterr().err
+        assert "--file" in err and "--series" in err
 
     def test_a_file_with_no_prose_answers_its_gap(self, monkeypatch, capsys, tmp_path):
         """A file holding no comment gathers to a binder with no paragraphs, and
@@ -219,8 +223,8 @@ class TestBySentinel:
         return run_command(
             monkeypatch,
             capsys,
-            addresser,
-            *("--repo", str(repo), "--file", name),
+            addresses,
+            *("find", "--repo", str(repo), "--file", name),
             *("--line", line, "--series", series),
         )
 
@@ -249,8 +253,8 @@ class TestBySentinel:
         assert "<module>" in out and "no `c` place" in out
 
     def test_the_usage_line_names_both_sentinels(self, monkeypatch, capsys):
-        monkeypatch.setattr("sys.argv", ["addresser", "--help"])
+        monkeypatch.setattr("sys.argv", ["addresses", "find", "--help"])
         with pytest.raises(SystemExit):
-            addresser.main()
+            addresses.main()
         usage = capsys.readouterr().out.split("\n\n")[0]
         assert "--line N|<module>|<eof>" in " ".join(usage.split())

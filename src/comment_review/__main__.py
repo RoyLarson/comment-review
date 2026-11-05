@@ -39,7 +39,7 @@ class Command(StrEnum):
     ) -> str:
         return name.lower()
 
-    ADDRESSER = auto()
+    ADDRESSES = auto()
     CARRY = auto()
     CHECK = auto()
     COLLATE = auto()
