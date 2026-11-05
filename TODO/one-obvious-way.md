@@ -4,7 +4,7 @@
 Status:   open
 Progress: 0 of 21 tasks closed
 Owner:    backend
-Requires-Roy: false
+Requires-Roy: true
 Raised:   2026-11-05 (Process #281 and the three flow audits, 2026-11-05)
 ```
 
@@ -50,4 +50,5 @@ evidence is checked when the task is worked.
 - [ ] T18 | Remove stable() from binder/addresses
 - [ ] T19 | Add load_docket to proof_io
 - [ ] T20 | Make proof load its proof, copy and docket through proof_io
-- [ ] T21 | Decide how a flow reports a refusal
+- [?] T21 | Decide how a flow reports a refusal
+        > 2026-11-05 Today: raise, return a reason tuple, or emit events
