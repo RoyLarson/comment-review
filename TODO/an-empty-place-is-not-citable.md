@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 10 of 13 tasks closed
+Progress: 12 of 13 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-25 (backend, 2026-08-25, while cleaning up after the write-chain
@@ -124,8 +124,9 @@ An empty place is not citable, and the row cut's safety argument says it is.
       and ABSENT from the reviewer brief's lookup output
 - [x] T10 | Ruled #279: addresses find and addresses resolve | bd77199a | Decide
       the lookup's subcommand names, per #279
-- [ ] T11 | Split the lookup command into one subcommand per question, per #279
-- [ ] T12 | Move the lookup's logic into a flow sharing gather's page reading,
-      per #279
+- [x] T11 | addresses find and addresses resolve replace addresser | 4031e8ce | Split
+      the lookup command into one subcommand per question, per #279
+- [x] T12 | flows/addresses.py reads pages through gather.page_in | 4031e8ce | Move
+      the lookup's logic into a flow sharing gather's page reading, per #279
 - [ ] T13 | Update SKILL.md so stage 1 records reading settings for gather and
       the lookup, per #279

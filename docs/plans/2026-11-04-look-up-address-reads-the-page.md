@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 10 of 13 TODO tasks closed
+Progress: 12 of 13 TODO tasks closed
 Plan-tasks: 10 of 11 plan tasks closed
 Owner:    backend
 Requires-Roy: false
@@ -29,8 +29,8 @@ binder, as rulings #96 and #111 require
 - [x] T8 | Update the reviewer brief's lookup command to the binderless form
 - [x] T9 | Remove HELD and ABSENT from the reviewer brief's lookup output
 - [x] T10 | Decide the lookup's subcommand names, per #279
-- [ ] T11 | Split the lookup command into one subcommand per question, per #279
-- [ ] T12 | Move the lookup's logic into a flow sharing gather's page reading,
+- [x] T11 | Split the lookup command into one subcommand per question, per #279
+- [x] T12 | Move the lookup's logic into a flow sharing gather's page reading,
       per #279
 - [ ] T13 | Update SKILL.md so stage 1 records reading settings for gather and
       the lookup, per #279
