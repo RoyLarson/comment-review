@@ -1,8 +1,8 @@
 # The address lookup reads the page
 
 ```
-Status:   closed
-Progress: 13 of 13 TODO tasks closed
+Status:   in-progress
+Progress: 13 of 22 TODO tasks closed
 Plan-tasks: 11 of 11 plan tasks closed
 Owner:    backend
 Requires-Roy: false
@@ -16,7 +16,7 @@ binder, as rulings #96 and #111 require
 
 ## TODO tasks this plan closes
 
-### A - [an-empty-place-is-not-citable](../../TODO/completed/an-empty-place-is-not-citable.md)
+### A - [an-empty-place-is-not-citable](../../TODO/an-empty-place-is-not-citable.md)
 
 - [x] T2 | Implement it. Verify: asking for the empty b place above a line of
       code answers its address
@@ -34,6 +34,19 @@ binder, as rulings #96 and #111 require
       per #279
 - [-] T13 | Update SKILL.md so stage 1 records reading settings for gather and
       the lookup, per #279
+- [ ] T14 | Make resolve print an empty place as its address and anchor at exit
+      0, per #281
+- [ ] T15 | Correct the prose and docstrings that still name addresser,
+      --resolve or --check
+- [ ] T16 | Define <stage-root> in SKILL.md's placeholder legend
+- [ ] T17 | Add lookup tests for a subdirectory, relative and absolute roots,
+      and an escaping path
+- [ ] T18 | Fix the skill-commands gate reading a subcommand on a continuation
+      line
+- [ ] T19 | Correct the false docstrings on unaddressed and page_in
+- [ ] T20 | Make the addresses lookup read its page through page_named, per #281
+- [ ] T21 | Make page_in return a page or the reason there is none
+- [ ] T22 | Remove the duplicated work in lines_of and the command's re-dispatch
 
 ### B - [the-cue-legend-was-never-written](../../TODO/completed/the-cue-legend-was-never-written.md)
 
