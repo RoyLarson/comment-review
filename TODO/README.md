@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (123)
+### open  (122)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -201,7 +201,6 @@ that changed a published name or rule:
 | [move-across-an-uncued-file](move-across-an-uncued-file.md) | backend | -- | 5/6 | the address form spans files; the census does not |
 | [closing-line-deletes-code](closing-line-deletes-code.md) | backend | -- | 7/8 | An edit to a comment whose run closes mid-line DELETES the code after the closer |
 | [versioning-at-v1](versioning-at-v1.md) | systems | -- | 3/12 | v1.x wants a concrete versioning system on everything that ships |
-| [check-passes-a-shared-address](check-passes-a-shared-address.md) | backend | -- | 0/4 | addresser --check prints SHARED and exits 0 |
 | [a-series-never-fills-outside-python](a-series-never-fills-outside-python.md) | backend | -- | 21/22 | Outside Python the `a` place is emitted and never filled |
 | [bom-is-read-as-source](bom-is-read-as-source.md) | backend | -- | 5/8 | A UTF-8 BOM is censused as a line of code |
 | [a-malformed-page-drops-its-records](a-malformed-page-drops-its-records.md) | backend | -- | 1/5 | A page entry that is not an object loses every record under it, silently |
@@ -535,3 +534,4 @@ the reason is inside the file.
 | [python-and-rust-only](completed/python-and-rust-only.md) | 1 finished |
 | [freeform-agent-prose](completed/freeform-agent-prose.md) | 1 finished |
 | [matter-misses-two-languages](completed/matter-misses-two-languages.md) | 4 finished, 1 superseded |
+| [check-passes-a-shared-address](completed/check-passes-a-shared-address.md) | 4 superseded |

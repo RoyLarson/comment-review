@@ -1,11 +1,11 @@
 # The address lookup reads the page
 
 ```
-Status:   decision-needed
+Status:   in-progress
 Progress: 0 of 9 TODO tasks closed
-Plan-tasks: 0 of 7 plan tasks closed
+Plan-tasks: 1 of 7 plan tasks closed
 Owner:    backend
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-11-04 (founded by move-t from 2026-10-11-lexical-readers)
 ```
 
@@ -42,8 +42,10 @@ binder, as rulings #96 and #111 require
 
 - [ ] P1 | Make the lookup read the page from the repo and a path, with no
       binder
-- [?] P2 | Decide where the --check verification moves
+- [x] P2 | Ruled #278: --check is deleted, not moved | c572fb52 | Decide where
+      the --check verification moves
 - [ ] P3 | Move --check out of the lookup command
+        > 2026-11-04 Ruled #278: delete --check and its two tests
 - [ ] P4 | Rename the command to look_up_address
 - [ ] P5 | Update the reviewer brief for the binderless lookup
 - [ ] P6 | Make bind's docstring true

@@ -111,6 +111,7 @@ An empty place is not citable, and the row cut's safety argument says it is.
 - [ ] T5 | Make addresser --line read the page from the repo and a path, with no
       binder. Verify: a file with no prose answers its b place
 - [ ] T6 | Move --check out of the address lookup command
+        > 2026-11-04 Ruled #278: moved out by deleting it
 - [ ] T7 | Rename commands/addresser to commands/look_up_address
 - [ ] T8 | Update the reviewer brief's lookup command to the binderless form
 - [ ] T9 | Remove HELD and ABSENT from the reviewer brief's lookup output
