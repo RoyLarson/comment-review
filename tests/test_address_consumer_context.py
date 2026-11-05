@@ -8,7 +8,7 @@ from conftest import SAMPLE, build, run_command
 from comment_review.binder.binder import bind
 from comment_review.commands import carry as carry_command
 from comment_review.commands import taken_in
-from comment_review.flows import addresses, reading_context, revise
+from comment_review.flows import reading_context, revise
 from comment_review.flows.carry import carry
 from comment_review.reading.diagnostics import ReadFailure
 
@@ -178,7 +178,7 @@ def installed_modes(monkeypatch):
     monkeypatch.setattr(reading_context, "reader_for", selected)
 
 
-@pytest.mark.parametrize("consumer", ["line", "carry", "pull"])
+@pytest.mark.parametrize("consumer", ["carry", "pull"])
 def test_saved_consumers_retain_effective_settings(
     tmp_path, monkeypatch, capsys, installed_modes, consumer
 ):
@@ -200,13 +200,7 @@ def test_saved_consumers_retain_effective_settings(
         return result
 
     monkeypatch.setattr(page_for, "page_for", observe)
-    if consumer == "line":
-        settings = tmp_path / "settings.json"
-        settings.write_text(json.dumps({"m.py": {"mode": "wide"}}), encoding="utf-8")
-        assert not isinstance(
-            addresses.place_at(root, "m.py", 1, "b", settings), addresses.Refused
-        )
-    elif consumer == "carry":
+    if consumer == "carry":
         artifact = tmp_path / "binder.json"
         artifact.write_text(json.dumps(binder.serialize()), encoding="utf-8")
         empty = next(

@@ -49,19 +49,13 @@ def main() -> int:
 
     for each in (find, res):
         each.add_argument("--repo", default=".", help="the repo root the file is under")
-        each.add_argument(
-            "--reading-settings",
-            type=Path,
-            metavar="FILE",
-            help="the reading settings stage 1 recorded, as gather was given them",
-        )
     args = ap.parse_args()
 
     repo = Path(args.repo)
     if args.question == "find":
-        got = place_at(repo, args.file, args.line, args.series, args.reading_settings)
+        got = place_at(repo, args.file, args.line, args.series)
     else:
-        got = lines_of(repo, args.address, args.reading_settings)
+        got = lines_of(repo, args.address)
     if isinstance(got, Refused):
         print("\n".join(got.lines))
         return got.code

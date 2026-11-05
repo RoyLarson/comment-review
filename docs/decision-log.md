@@ -6278,3 +6278,15 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   agent passes them to gather and to the lookup. No settings file lives in the user's repo. The
   command is `addresses`, with `addresses find --file <path> --line N --series s` and
   `addresses resolve <address>` (*"Yes the command names look good"*).
+
+- **#280.** **Reading settings go: no language has one** (Roy, 2026-11-04, shown that both
+  language definitions state `defaults = {}` and `choices = {}`, so the stage-1 instruction #279
+  asked for would record a value that cannot exist; choosing to drop the flag from `addresses`
+  and to remove the whole mechanism as its own work).
+
+  **What it settles.** #279's settings instruction is withdrawn before it was written, and
+  `addresses` takes no `--reading-settings`. The mechanism -- the flag on `gather`, `compositor`
+  and `prove_unchanged`, `flows/reading_context.load_settings`, and the definitions'
+  `defaults` and `choices` with the settings a reading context carries -- is removed as its own
+  work. If a language gains a choice, the setting and the instruction that carries it are
+  written then, against a real value.

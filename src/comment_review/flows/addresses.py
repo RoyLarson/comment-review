@@ -12,7 +12,6 @@ from comment_review.binder.addresses import resolve
 from comment_review.binder.page import Page
 from comment_review.constants import text_lines
 from comment_review.flows.gather import page_in
-from comment_review.flows.reading_context import load_settings
 from comment_review.reading.addresser import DECLARED, SEPARATOR, address_for, cue_of
 
 
@@ -44,15 +43,9 @@ class Spans:
     found: tuple[tuple[str, int | None, int | None, str], ...]
 
 
-def _page(repo: Path, rel: str, reading_settings: Path | None) -> Page | Refused:
-    """The page for `rel` under `repo`, read with the run's reading settings."""
-    settings: dict[Path, dict[str, str]] = {}
-    if reading_settings is not None:
-        settings, problems = load_settings(reading_settings, repo)
-        if problems:
-            return Refused(2, tuple(problems))
-    path = repo / rel
-    page, _, why = page_in(path, repo, settings.get(path.resolve(), {}))
+def _page(repo: Path, rel: str) -> Page | Refused:
+    """The page for `rel` under `repo`, read as gather reads it."""
+    page, _, why = page_in(repo / rel, repo, {})
     return page if page is not None else Refused(2, (why,))
 
 
@@ -61,7 +54,6 @@ def place_at(
     file: str,
     line: int | str,
     series: str,
-    reading_settings: Path | None = None,
 ) -> Places | Refused:
     """The address of one series' place at one line of one file.
 
@@ -71,7 +63,7 @@ def place_at(
     apart; a caller chooses by address, or asks at a sentinel.
     """
     rel = Path(file).as_posix()
-    page = _page(repo, rel, reading_settings)
+    page = _page(repo, rel)
     if isinstance(page, Refused):
         return page
     count = len(text_lines(page.text))
@@ -96,9 +88,7 @@ def place_at(
     )
 
 
-def lines_of(
-    repo: Path, address: str, reading_settings: Path | None = None
-) -> Spans | Refused:
+def lines_of(repo: Path, address: str) -> Spans | Refused:
     """An address in, the lines that cover it now out.
 
     Stage 8 needs this direction after the write: every line number a record
@@ -113,7 +103,7 @@ def lines_of(
     # The separator is a character a path cannot hold, so the flattened path
     # inverts by substitution; see `reading.addresser.flatten`.
     rel = path.replace(SEPARATOR, "/")
-    page = _page(repo, rel, reading_settings)
+    page = _page(repo, rel)
     if isinstance(page, Refused):
         return page
     hits = resolve(address, page.paragraphs)
