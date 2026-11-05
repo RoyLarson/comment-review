@@ -10,10 +10,10 @@ Every row here comes from `bind()` over a page `page_for` actually built, never
 a hand-written dict -- a fixture written in the shape the code expects can only
 confirm.
 
-`TestByLine` is `binder-defects` T22, `decision-log.md Process: #96`: the
-lookup takes a line NUMBER of the original file and a series, opens the file at
-the binder's root and answers from the PAGE -- so a place the default binder
-filtered out as holding no prose still answers, and a mark may cite it.
+`TestByLine` is `binder-defects` T22 and `an-empty-place-is-not-citable` T5:
+the lookup takes a repo, a file in it, a line NUMBER and a series, and answers
+from the PAGE alone -- no binder is read, so a place that holds no prose answers
+like any other, and a mark may cite it.
 """
 
 import io
@@ -77,149 +77,124 @@ def test_check_reports_the_real_span_for_a_shared_address():
 
 
 @pytest.fixture
-def a_default_binder(tmp_path):
-    """`SAMPLE` on disk under a root, and the DEFAULT binder over it -- the one
-    a role is handed, with every place holding no prose filtered out.
-
-    Returns the binder's path and the file's repo-relative name.
-    """
+def a_repo(tmp_path):
+    """`SAMPLE` on disk under a root. Returns the root and the file's name."""
     root = tmp_path / "repo"
     root.mkdir()
     (root / "m.py").write_text(SAMPLE, encoding="utf-8", newline="")
-    page = page_of(root / "m.py", rel="m.py")
-    assert not isinstance(page, ReadFailure), page
-    binder = bind([page], read_from={"root": str(root), "revise": 0})
-    where = tmp_path / "binder.json"
-    where.write_text(json.dumps(binder.serialize()), encoding="utf-8")
-    return where, "m.py"
+    return root, "m.py"
 
 
 class TestByLine:
     """`SAMPLE`'s lines, as the probe over `page_for` numbers them: code on 6,
     8, 11 and 12; `def g(y):` on 11 opens with an EMPTY gap above it (`b2`), no
-    docstring (`a2`) and nothing beside it (`c2`) -- three places the default
-    binder does not carry."""
+    docstring (`a2`) and nothing beside it (`c2`) -- three places that hold no
+    prose."""
 
-    def _ask(self, monkeypatch, capsys, binder, *flags):
-        return run_command(
-            monkeypatch, capsys, addresser, "--binder", str(binder), *flags
-        )
+    def _ask(self, monkeypatch, capsys, repo, *flags):
+        return run_command(monkeypatch, capsys, addresser, "--repo", str(repo), *flags)
 
-    def test_an_absent_gap_answers_on_a_default_binder(
-        self, monkeypatch, capsys, a_default_binder
-    ):
+    def test_an_empty_gap_answers(self, monkeypatch, capsys, a_repo):
         """The FitPlan run lost four `add`s to this: the command read the
         filtered binder and reported *"no `b` place"* for a gap the file has."""
-        binder, name = a_default_binder
+        repo, name = a_repo
         code, out = self._ask(
-            monkeypatch, capsys, binder, "--file", name, "--line", "11", "--series", "b"
+            monkeypatch, capsys, repo, "--file", name, "--line", "11", "--series", "b"
         )
         assert code == 0, out
         assert "m.py@b2" in out
-        assert "ABSENT" in out
 
     def test_a_blank_line_inside_the_gap_names_the_same_gap(
-        self, monkeypatch, capsys, a_default_binder
+        self, monkeypatch, capsys, a_repo
     ):
-        binder, name = a_default_binder
+        repo, name = a_repo
         code, out = self._ask(
-            monkeypatch, capsys, binder, "--file", name, "--line", "9", "--series", "b"
+            monkeypatch, capsys, repo, "--file", name, "--line", "9", "--series", "b"
         )
         assert code == 0, out
         assert "m.py@b2" in out
 
-    def test_a_held_place_says_so(self, monkeypatch, capsys, a_default_binder):
-        binder, name = a_default_binder
+    def test_a_filled_place_answers(self, monkeypatch, capsys, a_repo):
+        repo, name = a_repo
         code, out = self._ask(
-            monkeypatch, capsys, binder, "--file", name, "--line", "6", "--series", "a"
+            monkeypatch, capsys, repo, "--file", name, "--line", "6", "--series", "a"
         )
         assert code == 0, out
         assert "m.py@a1" in out
-        assert "HELD" in out
 
     def test_an_undocumented_declaration_has_an_absent_a(
-        self, monkeypatch, capsys, a_default_binder
+        self, monkeypatch, capsys, a_repo
     ):
-        binder, name = a_default_binder
+        repo, name = a_repo
         code, out = self._ask(
-            monkeypatch, capsys, binder, "--file", name, "--line", "11", "--series", "a"
+            monkeypatch, capsys, repo, "--file", name, "--line", "11", "--series", "a"
         )
         assert code == 0, out
         assert "m.py@a2" in out
-        assert "ABSENT" in out
 
-    def test_a_line_that_declares_nothing_has_no_a(
-        self, monkeypatch, capsys, a_default_binder
-    ):
-        binder, name = a_default_binder
+    def test_a_line_that_declares_nothing_has_no_a(self, monkeypatch, capsys, a_repo):
+        repo, name = a_repo
         code, out = self._ask(
-            monkeypatch, capsys, binder, "--file", name, "--line", "8", "--series", "a"
+            monkeypatch, capsys, repo, "--file", name, "--line", "8", "--series", "a"
         )
         assert code == 1
         assert "declares nothing" in out
 
-    def test_the_room_beside_a_line_of_code(
-        self, monkeypatch, capsys, a_default_binder
-    ):
-        binder, name = a_default_binder
+    def test_the_room_beside_a_line_of_code(self, monkeypatch, capsys, a_repo):
+        repo, name = a_repo
         code, out = self._ask(
-            monkeypatch, capsys, binder, "--file", name, "--line", "8", "--series", "c"
+            monkeypatch, capsys, repo, "--file", name, "--line", "8", "--series", "c"
         )
         assert code == 0, out
         assert "m.py@c1" in out
-        assert "HELD" in out
 
-    def test_a_blank_line_has_no_room_beside_it(
-        self, monkeypatch, capsys, a_default_binder
-    ):
-        binder, name = a_default_binder
+    def test_a_blank_line_has_no_room_beside_it(self, monkeypatch, capsys, a_repo):
+        repo, name = a_repo
         code, out = self._ask(
-            monkeypatch, capsys, binder, "--file", name, "--line", "9", "--series", "c"
+            monkeypatch, capsys, repo, "--file", name, "--line", "9", "--series", "c"
         )
         assert code == 1
         assert "holds no code" in out
 
-    def test_the_file_matter_answers_both_ends(
-        self, monkeypatch, capsys, a_default_binder
-    ):
+    def test_the_file_matter_answers_both_ends(self, monkeypatch, capsys, a_repo):
         """A file's own matter has exactly two places and no line tells them
         apart; both are printed and the caller chooses by ADDRESS."""
-        binder, name = a_default_binder
+        repo, name = a_repo
         code, out = self._ask(
-            monkeypatch, capsys, binder, "--file", name, "--line", "1", "--series", "f"
+            monkeypatch, capsys, repo, "--file", name, "--line", "1", "--series", "f"
         )
         assert code == 0, out
         assert "m.py@f0" in out
         assert "m.py@f1" in out
 
     def test_a_line_the_file_does_not_have_is_refused(
-        self, monkeypatch, capsys, a_default_binder
+        self, monkeypatch, capsys, a_repo
     ):
-        binder, name = a_default_binder
+        repo, name = a_repo
         code, out = self._ask(
-            monkeypatch, capsys, binder, "--file", name, "--line", "99", "--series", "b"
+            monkeypatch, capsys, repo, "--file", name, "--line", "99", "--series", "b"
         )
         assert code == 1
         assert "12 lines" in out
 
     def test_a_file_the_root_does_not_hold_is_refused(
-        self, monkeypatch, capsys, a_default_binder
+        self, monkeypatch, capsys, a_repo
     ):
-        binder, _ = a_default_binder
+        repo, _ = a_repo
         gone = ("--file", "gone.py", "--line", "1", "--series", "b")
-        code, out = self._ask(monkeypatch, capsys, binder, *gone)
+        code, out = self._ask(monkeypatch, capsys, repo, *gone)
         assert code == 2
         assert "gone.py" in out
 
     def test_a_line_that_is_neither_a_number_nor_a_sentinel_is_a_usage_error(
-        self, monkeypatch, capsys, a_default_binder
+        self, monkeypatch, capsys, a_repo
     ):
-        binder, name = a_default_binder
+        repo, name = a_repo
         with pytest.raises(SystemExit) as exited:
             self._ask(
                 monkeypatch,
                 capsys,
-                binder,
+                repo,
                 "--file",
                 name,
                 "--line",
@@ -230,12 +205,25 @@ class TestByLine:
         assert exited.value.code == 2
 
     def test_line_without_file_or_series_is_a_usage_error(
-        self, monkeypatch, capsys, a_default_binder
+        self, monkeypatch, capsys, a_repo
     ):
-        binder, _ = a_default_binder
-        code, out = self._ask(monkeypatch, capsys, binder, "--line", "11")
+        repo, _ = a_repo
+        code, out = self._ask(monkeypatch, capsys, repo, "--line", "11")
         assert code == 2
         assert "--file" in out and "--series" in out
+
+    def test_a_file_with_no_prose_answers_its_gap(self, monkeypatch, capsys, tmp_path):
+        """A file holding no comment gathers to a binder with no paragraphs, and
+        the lookup refused it before reading the page (2026-11-04). It reads no
+        binder now."""
+        repo = tmp_path / "bare"
+        repo.mkdir()
+        (repo / "n.py").write_text("x = 1\ny = 2\n", encoding="utf-8", newline="")
+        code, out = self._ask(
+            monkeypatch, capsys, repo, "--file", "n.py", "--line", "2", "--series", "b"
+        )
+        assert code == 0, out
+        assert "n.py@b1" in out
 
 
 @pytest.fixture
@@ -250,34 +238,34 @@ def an_ends_binder(tmp_path):
     binder = bind([page], read_from={"root": str(root), "revise": 0})
     where = tmp_path / "binder.json"
     where.write_text(json.dumps(binder.serialize()), encoding="utf-8")
-    return where, name
+    return root, where, name
 
 
 class TestBySentinel:
     """`--line` takes `<module>` or `<eof>` in place of a number, and names the
     places each series emitted at that end of the file."""
 
-    def _ask(self, monkeypatch, capsys, binder, line, series, name):
+    def _ask(self, monkeypatch, capsys, repo, line, series, name):
         return run_command(
             monkeypatch,
             capsys,
             addresser,
-            *("--binder", str(binder), "--file", name),
+            *("--repo", str(repo), "--file", name),
             *("--line", line, "--series", series),
         )
 
     def test_the_modules_a_answers_at_module(self, monkeypatch, capsys, an_ends_binder):
-        binder, name = an_ends_binder
-        code, out = self._ask(monkeypatch, capsys, binder, "<module>", "a", name)
+        repo, _, name = an_ends_binder
+        code, out = self._ask(monkeypatch, capsys, repo, "<module>", "a", name)
         assert code == 0, out
-        assert out.split() == [f"{name}@a0", "'<module>'", "ABSENT"]
+        assert out.split() == [f"{name}@a0", "'<module>'"]
 
     @pytest.mark.parametrize(("line", "place"), [("<module>", "f0"), ("<eof>", "f1")])
     def test_a_sentinel_names_one_end_of_the_files_matter(
         self, monkeypatch, capsys, an_ends_binder, line, place
     ):
-        binder, name = an_ends_binder
-        code, out = self._ask(monkeypatch, capsys, binder, line, "f", name)
+        repo, _, name = an_ends_binder
+        code, out = self._ask(monkeypatch, capsys, repo, line, "f", name)
         assert code == 0, out
         assert out.split()[0] == f"{name}@{place}"
         assert len(out.splitlines()) == 1
@@ -285,8 +273,8 @@ class TestBySentinel:
     def test_a_series_with_no_place_at_a_sentinel_says_so(
         self, monkeypatch, capsys, an_ends_binder
     ):
-        binder, name = an_ends_binder
-        code, out = self._ask(monkeypatch, capsys, binder, "<module>", "c", name)
+        repo, _, name = an_ends_binder
+        code, out = self._ask(monkeypatch, capsys, repo, "<module>", "c", name)
         assert code == 1
         assert "<module>" in out and "no `c` place" in out
 
@@ -298,7 +286,7 @@ class TestBySentinel:
         assert "--line N|<module>|<eof>" in " ".join(usage.split())
 
     def test_the_binder_still_checks(self, monkeypatch, capsys, an_ends_binder):
-        binder, _ = an_ends_binder
+        _, binder, _ = an_ends_binder
         code, out = run_command(
             monkeypatch, capsys, addresser, "--binder", str(binder), "--check"
         )

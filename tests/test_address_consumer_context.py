@@ -46,13 +46,6 @@ def test_addresser_refuses_installed_identity_change(
     assert "paragraphs addressed" not in out
 
 
-def test_direct_line_lookup_refuses_saved_context(tmp_path, capsys):
-    _, _, binder = held_tree(tmp_path)
-    binder = replace(binder, pages=(replace(binder.pages[0], reading=None),))
-    assert addresser._at_line(binder, "m.py", 1, "b") == 2
-    assert "regather" in capsys.readouterr().out
-
-
 @pytest.mark.parametrize("side", ["binder", "page"])
 def test_direct_carry_admits_both_in_memory_contexts(tmp_path, side):
     _, page, binder = held_tree(tmp_path)
@@ -232,7 +225,7 @@ def test_saved_consumers_retain_effective_settings(
 
     monkeypatch.setattr(page_for, "page_for", observe)
     if consumer == "line":
-        assert addresser._at_line(binder, "m.py", 1, "b") == 0
+        assert addresser._at_line(root, "m.py", 1, "b", {"mode": "wide"}) == 0
     elif consumer == "carry":
         artifact = tmp_path / "binder.json"
         artifact.write_text(json.dumps(binder.serialize()), encoding="utf-8")

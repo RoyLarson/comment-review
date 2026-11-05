@@ -772,12 +772,11 @@ $Stages = [ordered]@{
         # spell. It asks `addresser` for the `b` place at the line
         # `write_texts` put in addresser-row.json, and stops unless the
         # address that comes back is the one beside it there. `addresser`
-        # prints one tab-separated line: the address, the line of code as
-        # Python's repr quotes it, and whether the binder holds the place.
-        # Only the first two fields are read.
+        # reads the page from the repo and prints one tab-separated line: the
+        # address and the line of code as Python's repr quotes it.
         $row = Get-Content -LiteralPath (Join-Path $Run 'addresser-row.json') -Raw | ConvertFrom-Json
         $addresserCommand = $Launcher + @(
-            $Cmd.addresser, '--binder', $BinderFile, '--file', 'fib.py',
+            $Cmd.addresser, '--repo', $OriginalDir, '--file', 'fib.py',
             '--line', $row.line, '--series', 'b'
         )
         $found = Invoke-Checked -Stage 'addresser' -Capture -CommandLine $addresserCommand

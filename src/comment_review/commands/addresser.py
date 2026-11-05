@@ -7,16 +7,15 @@ A COMMAND EXPOSES A FLOW. Ruled 2026-08-24 -- `decision-log.md Process: #12`.
 """
 
 import argparse
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from pathlib import Path
 
 from comment_review.binder.addresses import _by_path, resolve, stable, unaddressed
-from comment_review.binder.binder import Binder
 from comment_review.constants import text_lines
 from comment_review.flows.page_for import page_of
 from comment_review.flows.proof_io import load_binder
 from comment_review.flows.read_diagnostics import format_failure
-from comment_review.flows.reading_context import binder_reading_contexts
+from comment_review.flows.reading_context import binder_reading_contexts, load_settings
 from comment_review.reading.addresser import (
     DECLARED,
     EOF,
@@ -38,12 +37,15 @@ def main() -> int:
 
     Returns:
         0 when every entry was addressed, 1 when any could not be, 2 when the
-        binder could not be read. ! Only `--line` opens a source file -- the one
-        it asks about, at the binder's root; every other question reads the
-        binder alone.
+        binder could not be read. `--line` reads the file it asks about from
+        `--repo` and no binder; every other question reads the binder alone.
     """
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("--binder", required=True, help="the binder JSON")
+    ap.add_argument("--binder", help="the binder JSON, for --check and --resolve")
+    ap.add_argument(
+        "--repo", default=".", help="the repo root --file is under, with --line"
+    )
+    ap.add_argument("--reading-settings", type=Path, metavar="FILE")
     ap.add_argument(
         "--check",
         action="store_true",
@@ -52,14 +54,14 @@ def main() -> int:
     ap.add_argument(
         "--file",
         metavar="PATH",
-        help="a file of the binder's root, as the binder names it -- with --line"
-        " and --series, the address of the place at that line",
+        help="a file under --repo, relative to it -- with --line and --series,"
+        " the address of the place at that line",
     )
     ap.add_argument(
         "--line",
         type=_line,
         metavar=f"N|{MODULE}|{EOF}",
-        help=f"a line NUMBER of that file as it was gathered, or {MODULE} or {EOF}"
+        help=f"a line NUMBER of that file, or {MODULE} or {EOF}"
         " for the places no line names: the module's documentation and front"
         " matter, and the closing gap, documentation and back matter",
     )
@@ -77,6 +79,28 @@ def main() -> int:
         "binder of the file as it is NOW",
     )
     args = ap.parse_args()
+
+    if args.line is not None or args.file:
+        if not (args.file and args.line is not None and args.series):
+            # ! THE SET IS DERIVED from the `Series` enum, so adding a series
+            # carries this sentence with it.
+            print(f"--line needs --file and --series: {', '.join(SERIES)}")
+            return 2
+        repo = Path(args.repo)
+        settings: dict[Path, dict[str, str]] = {}
+        if args.reading_settings is not None:
+            settings, problems = load_settings(args.reading_settings, repo)
+            if problems:
+                for problem in problems:
+                    print(problem)
+                return 2
+        given = (repo / args.file).resolve()
+        return _at_line(
+            repo, args.file, args.line, args.series, settings.get(given, {})
+        )
+    if not args.binder:
+        print("--binder is required unless --line is given")
+        return 2
 
     # !! THE LOAD IS THE FLOW'S AND THE DESERIALIZE IS THE CONTAINER'S --
     # `decision-log.md Process: #67`. `flows.proof_io.load_binder` is the read,
@@ -107,44 +131,10 @@ def main() -> int:
     # nothing. ! **A CONTAINER EARNS ITS KEEP BY DELETING THE RE-CHECKS**, not
     # by sitting beside them: this is the second reader that stopped asking.
 
-    # !! NO STALENESS SWEEP. This module answers about the BINDER IT WAS GIVEN,
-    # and every question it takes but one is binder-internal: does each address
-    # resolve to one paragraph, what lines does this binder say an address
-    # names. Neither reads the tree.
-    #
-    # !! `--line` IS THE ONE EXCEPTION, AND THE BINDER IS WHY. A role is handed
-    # the binder FILTERED to the places holding prose, because ruling on empty
-    # places is noise -- so the place an `add` wants is exactly the one the
-    # binder does not carry. `decision-log.md Process: #96`: the lookup opens
-    # the file at the binder's root and answers from the page. It read the
-    # binder's rows until 2026-09-05, and a live run lost four `add`s to
-    # *"no `b` place"* on gaps the file plainly had.
-    #
-    # !! CHECKING THE FILE WOULD ASSERT THAT LINE NUMBERS STILL MATTER, which is
-    # the thing an address exists to stop mattering. So long as the binder is
-    # the document the caller means, it does not matter that the file has
-    # changed lines underneath it.
-    #
-    # ! STALENESS MATTERS WHERE A FILE IS WRITTEN, and `galley.drifted` used to
-    # refuse a moved anchor there -- retired, see `docs/history.md`. A sweep
-    # here refuses a binder built seconds earlier on every non-Python file
-    # carrying a trailing comment, with a message re-running never fixes, and
-    # masks the collisions `--check` exists to report.
-    #
-    # ! THE CALLER CHOOSES THE BINDER, which is what makes this safe. Stage 8
-    # gathers the file as it now stands and resolves against that, so the two
-    # agree by construction rather than by inspection.
+    # No staleness sweep: the questions below are about the binder given, and
+    # the caller chooses it. Stage 8 gathers the file as it now stands and
+    # resolves against that, so the two agree by construction.
 
-    if args.line is not None or args.file:
-        if not (args.file and args.line is not None and args.series):
-            # ! THE SET IS DERIVED, and this line hand-wrote "a, b, c or f"
-            # until 2026-08-28 -- the defect `T1.16` names, surviving in a
-            # RUNTIME message after it was removed from every help string.
-            # `SERIES` comes from the `Series` enum, so adding a series carries
-            # this sentence with it.
-            print(f"--line needs --file and --series: {', '.join(SERIES)}")
-            return 2
-        return _at_line(binder, args.file, args.line, args.series)
     if args.resolve:
         return _resolve_one(args.resolve, paragraphs)
     if args.check:
@@ -226,50 +216,26 @@ def _resolve_one(address: str, paragraphs: Sequence[Paragraph]) -> int:
     return 0
 
 
-def _at_line(binder: Binder, file: str, line: int | str, series: str) -> int:
+def _at_line(
+    repo: Path, file: str, line: int | str, series: str, settings: Mapping[str, str]
+) -> int:
     """Print the address of one series' place at one line of one file.
 
     `line` is a line number, or a sentinel naming the places at the file's head
     or foot that no line number reaches -- see `Cues.at_line`.
 
-    !! ANSWERED FROM THE PAGE, NOT FROM THE BINDER'S ROWS. The binder is a
-    filtered view and a filter is not the set of places a page has --
-    `decision-log.md Process: #96`. The file is opened at the binder's root,
-    the tree the binder was gathered from, so the line a role reads off the
-    binder is the line this takes.
+    The page is read from the file under `repo`, and no binder is read: an
+    address is looked up from the page it names, filled or empty.
 
-    ! EACH LINE PRINTED SAYS WHETHER THE BINDER HOLDS THE PLACE. `HELD` means a
-    row was seeded there; `ABSENT` means the filter dropped it as holding no
-    prose, and a mark may still cite it -- the write end reads the page, not
-    the binder (`Process: #97`).
-
-    ! AT A LINE NUMBER THE FILE'S OWN MATTER ANSWERS TWICE, head and foot,
-    since no line tells them apart; a caller chooses by address, the same rule
-    an anchor spelled twice already follows, or asks at a sentinel.
+    At a line number the file's own matter answers twice, head and foot, since
+    no line tells them apart; a caller chooses by address, or asks at a sentinel.
 
     Returns:
         0 when a place was named, 1 when the page has no such place at that
         line, 2 when the file could not be read as a page.
     """
-    contexts, problems = binder_reading_contexts(binder)
-    if problems:
-        for problem in problems:
-            print(problem)
-        return 2
-    given = Path(file)
-    try:
-        rel = (
-            given.relative_to(binder.root).as_posix()
-            if given.is_absolute()
-            else given.as_posix()
-        )
-    except ValueError:
-        print(f"{file} is not under the binder's root {binder.root}")
-        return 2
-    if rel not in contexts:
-        print(f"{rel}: the binder carries no saved reading context; regather")
-        return 2
-    page = page_of(binder.root / rel, rel=rel, reading_context=contexts[rel])
+    rel = Path(file).as_posix()
+    page = page_of(repo / rel, rel=rel, settings=settings)
     if isinstance(page, ReadFailure):
         print(format_failure(page, path=rel))
         return 2
@@ -290,11 +256,8 @@ def _at_line(binder: Binder, file: str, line: int | str, series: str) -> int:
             head = address_for(rel, page.cues.documents(None))
             print(f"  the module's own documentation is {head}")
         return 1
-    held = {b.address for b in binder.paragraphs}
     for c in found:
-        address = address_for(rel, c)
-        state = "HELD" if address in held else "ABSENT"
-        print(f"{address}\t{page.cues.anchor_of(c)!r}\t{state}")
+        print(f"{address_for(rel, c)}\t{page.cues.anchor_of(c)!r}")
     if len(found) > 1:
         print(
             f"\n{len(found)} places answer to line {line} in `{series}`."
