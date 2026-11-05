@@ -1,9 +1,9 @@
 # The address lookup reads the page
 
 ```
-Status:   in-progress
+Status:   closed
 Progress: 13 of 13 TODO tasks closed
-Plan-tasks: 10 of 11 plan tasks closed
+Plan-tasks: 11 of 11 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-11-04 (founded by move-t from 2026-10-11-lexical-readers)
@@ -67,4 +67,5 @@ binder, as rulings #96 and #111 require
       listing mode and the --binder flag
 - [-] P10 | Moved last as P11, after the #279 work | bd77199a | Verify the full
       suite and the gates
-- [ ] P11 | Verify the full suite and the gates
+- [x] P11 | Suite 5804 passed, 1 skipped; ruff, format, ty, syntax, vocabulary pass | ebfe7256 | Verify
+      the full suite and the gates
