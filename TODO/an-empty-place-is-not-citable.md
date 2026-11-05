@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 8 of 9 tasks closed
+Progress: 9 of 13 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-25 (backend, 2026-08-25, while cleaning up after the write-chain
@@ -116,8 +116,15 @@ An empty place is not citable, and the row cut's safety argument says it is.
 - [x] T6 | --check is deleted (#278) | 3a1f14c7 | Move --check out of the
       address lookup command
         > 2026-11-04 Ruled #278: moved out by deleting it
-- [ ] T7 | Rename commands/addresser to commands/look_up_address
+- [-] T7 | SUPERSEDED by #279: subcommands, not a rename | 215b89a7 | Rename
+      commands/addresser to commands/look_up_address
 - [x] T8 | The brief's lookup reads --repo <REPO ROOT> | 3a1f14c7 | Update the
       reviewer brief's lookup command to the binderless form
 - [x] T9 | HELD and ABSENT are removed from the brief | 3a1f14c7 | Remove HELD
       and ABSENT from the reviewer brief's lookup output
+- [ ] T10 | Decide the lookup's subcommand names, per #279
+- [ ] T11 | Split the lookup command into one subcommand per question, per #279
+- [ ] T12 | Move the lookup's logic into a flow sharing gather's page reading,
+      per #279
+- [ ] T13 | Update SKILL.md so stage 1 records reading settings for gather and
+      the lookup, per #279

@@ -6276,4 +6276,5 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   flow that reads a page the way gather's flow does, and the command only turns arguments into
   that flow's inputs. Reading settings are written into the skill: stage 1 records them, and the
   agent passes them to gather and to the lookup. No settings file lives in the user's repo. The
-  subcommand names are a decision still owed.
+  command is `addresses`, with `addresses find --file <path> --line N --series s` and
+  `addresses resolve <address>` (*"Yes the command names look good"*).
