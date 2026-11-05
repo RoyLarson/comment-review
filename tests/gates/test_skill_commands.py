@@ -32,22 +32,26 @@ AGENT_FACING = (
 )
 
 #: `comment-review.py <name>` -- the name is the first token after the
-#: script, never a flag (a flag starts with `-`).
-INVOCATION = re.compile(r"comment-review\.py\s+(\S+)")
+#: script, never a flag (a flag starts with `-`). The word after it, when it is
+#: a bare lowercase word, is the subcommand of a command that has subcommands.
+INVOCATION = re.compile(r"comment-review\.py\s+(\S+)(?:\s+([a-z][\w-]*)\b)?")
 
 #: A long flag anywhere after the name -- `--repo`, `--out`, and so on.
 FLAG = re.compile(r"--[\w-]+")
 
 
-def _invocations(paths=AGENT_FACING) -> list[tuple[str, list[str], str, int]]:
-    """`(command name, flags found beside it, filename, 1-based line)` for
-    every invocation in `paths`, the agent-facing files by default.
+def _invocations(
+    paths=AGENT_FACING,
+) -> list[tuple[str, str | None, list[str], str, int]]:
+    """`(command name, the word after it, flags found beside it, filename,
+    1-based line)` for every invocation in `paths`, the agent-facing files by
+    default.
 
     ! A CONTINUATION LINE (ending `\\`) IS JOINED IN, so a flag on the second
     line of a two-line invocation -- `proof --repo . --from-docket D.json \\` then
     `  --out DIR` -- is not missed.
     """
-    found: list[tuple[str, list[str], str, int]] = []
+    found: list[tuple[str, str | None, list[str], str, int]] = []
     for path in paths:
         lines = path.read_text(encoding="utf-8").splitlines()
         i = 0
@@ -56,20 +60,25 @@ def _invocations(paths=AGENT_FACING) -> list[tuple[str, list[str], str, int]]:
             if not match:
                 i += 1
                 continue
-            name = match.group(1)
+            name, word = match.group(1), match.group(2)
             start = i
             text = lines[i][match.end() :]
             while lines[i].rstrip().endswith("\\") and i + 1 < len(lines):
                 i += 1
                 text += " " + lines[i]
-            found.append((name, FLAG.findall(text), path.name, start + 1))
+            found.append((name, word, FLAG.findall(text), path.name, start + 1))
             i += 1
     return found
 
 
-def _flags_of(command: str) -> set[str]:
+def _flags_of(command: str, word: str | None = None) -> set[str] | None:
     """The long option strings `commands.<command>.main`'s own parser
     accepts, read from the parser itself rather than re-typed here.
+
+    ! A COMMAND WITH SUBCOMMANDS is answered from the subcommand `word` names,
+    so a flag is checked against the parser that takes it -- `addresses find
+    --file` passes, and `addresses resolve --file` does not. `None` when the
+    command has subcommands and `word` names none of them.
 
     !! CAPTURED BY MONKEYPATCHING `parse_args`, NOT BY RUNNING THE COMMAND.
     Every one of these `main()` functions builds its `ArgumentParser`, calls
@@ -95,7 +104,38 @@ def _flags_of(command: str) -> set[str]:
         argparse.ArgumentParser.parse_args = real_parse_args
     assert len(captured) == 1, f"{command}.main() built {len(captured)} parsers"
     (parser,) = captured
+    subcommands = [
+        a for a in parser._actions if isinstance(a, argparse._SubParsersAction)
+    ]
+    if subcommands:
+        if word not in subcommands[0].choices:
+            return None
+        chosen = subcommands[0].choices[word]
+        assert isinstance(chosen, argparse.ArgumentParser)
+        parser = chosen
     return {opt for opt in parser._option_string_actions if opt.startswith("--")}
+
+
+def _unaccepted(invocations) -> list[tuple[str, str, str, int]]:
+    """`(flag, command, filename, line)` for each flag its command refuses.
+
+    A subcommand the command does not have is reported as its own row, with the
+    word in place of a flag.
+    """
+    from comment_review.__main__ import COMMANDS
+
+    bad = []
+    for name, word, flags, path, line in invocations:
+        if name not in COMMANDS:
+            continue  # the other test already reports this invocation
+        accepted = _flags_of(name, word)
+        if accepted is None:
+            bad.append((f"subcommand {word!r}", name, path, line))
+            continue
+        for flag in flags:
+            if flag not in accepted:
+                bad.append((flag, name, path, line))
+    return bad
 
 
 def test_every_command_named_in_agent_facing_prose_exists():
@@ -103,24 +143,32 @@ def test_every_command_named_in_agent_facing_prose_exists():
 
     bad = [
         (name, path, line)
-        for name, _flags, path, line in _invocations()
+        for name, _word, _flags, path, line in _invocations()
         if name not in COMMANDS
     ]
     assert not bad, f"named a command not in COMMANDS: {bad}"
 
 
 def test_every_flag_named_beside_it_is_accepted_by_that_command():
-    from comment_review.__main__ import COMMANDS
-
-    bad = []
-    for name, flags, path, line in _invocations():
-        if name not in COMMANDS:
-            continue  # the other test already reports this invocation
-        accepted = _flags_of(name)
-        for flag in flags:
-            if flag not in accepted:
-                bad.append((flag, name, path, line))
+    bad = _unaccepted(_invocations())
     assert not bad, f"flag not accepted by its command's own parser: {bad}"
+
+
+def test_a_flag_on_the_wrong_subcommand_is_refused():
+    """The subcommand reading can fail: `--file` belongs to `addresses find`,
+    so naming it beside `addresses resolve` is a row, and so is a subcommand
+    the command does not have."""
+    bad = _unaccepted(
+        [
+            ("addresses", "resolve", ["--file"], "probe", 1),
+            ("addresses", "find", ["--file", "--line", "--series"], "probe", 2),
+            ("addresses", "lookup", [], "probe", 3),
+        ]
+    )
+    assert bad == [
+        ("--file", "addresses", "probe", 1),
+        ("subcommand 'lookup'", "addresses", "probe", 3),
+    ]
 
 
 #: The files the task agent reads. Stages 7a and 7b set pages from the closed
@@ -137,7 +185,7 @@ def proof_from_a_copy(paths=TASK_AGENT_FILES) -> list[tuple[list[str], str, int]
     other than the master proof: `(its flags, filename, 1-based line)`."""
     return [
         (flags, path, line)
-        for name, flags, path, line in _invocations(paths)
+        for name, _word, flags, path, line in _invocations(paths)
         if name == "proof" and ("--proof" not in flags or "--copy" in flags)
     ]
 
