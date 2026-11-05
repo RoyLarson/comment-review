@@ -6290,3 +6290,18 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   `defaults` and `choices` with the settings a reading context carries -- is removed as its own
   work. If a language gains a choice, the setting and the instruction that carries it are
   written then, against a real value.
+
+- **#281.** **One obvious way: the lookup reads through `page_named`, and an empty place prints
+  as one** (Roy, 2026-11-05, shown a review of the `addresses` lookup that found it deciding a
+  file's path twice -- once in `page_in`, once from the raw argument -- with no escape check and a
+  wrong inversion of `flatten`, where `flows/on_the_page.page_named` already does all three).
+
+  *"yes one flow to maintain correctly not multiple ways of doing the same thing. Have subagents
+  check the other flows to make certain they adhere to 'There should be one - and preferably only
+  one -- obvious way to do it.'"*
+
+  **What it settles.** `addresses find` and `addresses resolve` read their page through
+  `page_named`, the reader the write end uses; #279's "the way gather's flow does" is superseded
+  for the lookup. Where two code paths do one job, one is kept and the other goes. An empty place
+  that `resolve` names prints as itself -- its address and the line of code it stands beside --
+  at exit 0, never a line span it does not have (*"option A"*).
