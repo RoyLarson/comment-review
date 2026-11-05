@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (122)
+### open  (121)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -303,7 +303,6 @@ that changed a published name or rule:
 | [freeform-run-findings](freeform-run-findings.md) | agents | -- | 19/23 | What the first live freeform run showed |
 | [topology-defects](topology-defects.md) | backend | -- | 0/1 | Topology defects |
 | [reading-settings-have-no-setting](reading-settings-have-no-setting.md) | backend | -- | 0/4 | Reading settings have no setting |
-| [an-empty-place-is-not-citable](an-empty-place-is-not-citable.md) | backend | -- | 13/22 | An empty place is not citable, and the row cut's safety argument says it is |
 
 ### in-progress  (17)
 
@@ -536,3 +535,4 @@ the reason is inside the file.
 | [matter-misses-two-languages](completed/matter-misses-two-languages.md) | 4 finished, 1 superseded |
 | [check-passes-a-shared-address](completed/check-passes-a-shared-address.md) | 4 superseded |
 | [the-cue-legend-was-never-written](completed/the-cue-legend-was-never-written.md) | 4 finished |
+| [an-empty-place-is-not-citable](completed/an-empty-place-is-not-citable.md) | 20 finished, 2 superseded |

@@ -1,8 +1,8 @@
 # An empty place is not citable, and the row cut's safety argument says it is
 
 ```
-Status:   open
-Progress: 13 of 22 tasks closed
+Status:   closed
+Progress: 22 of 22 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-25 (backend, 2026-08-25, while cleaning up after the write-chain
@@ -131,16 +131,22 @@ An empty place is not citable, and the row cut's safety argument says it is.
 - [-] T13 | SUPERSEDED by #280: no language has a reading setting | ebfe7256 | Update
       SKILL.md so stage 1 records reading settings for gather and the lookup,
       per #279
-- [ ] T14 | Make resolve print an empty place as its address and anchor at exit
-      0, per #281
-- [ ] T15 | Correct the prose and docstrings that still name addresser,
-      --resolve or --check
-- [ ] T16 | Define <stage-root> in SKILL.md's placeholder legend
-- [ ] T17 | Add lookup tests for a subdirectory, relative and absolute roots,
-      and an escaping path
-- [ ] T18 | Fix the skill-commands gate reading a subcommand on a continuation
-      line
-- [ ] T19 | Correct the false docstrings on unaddressed and page_in
-- [ ] T20 | Make the addresses lookup read its page through page_named, per #281
-- [ ] T21 | Make page_in return a page or the reason there is none
-- [ ] T22 | Remove the duplicated work in lines_of and the command's re-dispatch
+- [x] T14 | resolve prints an empty place as empty, beside its anchor | 2d3683c0 | Make
+      resolve print an empty place as its address and anchor at exit 0, per #281
+- [x] T15 | addresser, --resolve and --check mentions corrected | 2d3683c0 | Correct
+      the prose and docstrings that still name addresser, --resolve or --check
+- [x] T16 | <stage-root> is defined in SKILL.md's placeholder legend | 2d3683c0 | Define
+      <stage-root> in SKILL.md's placeholder legend
+- [x] T17 | TestPaths: subdirectory, absolute, relative, escaping, round trip | 2d3683c0 | Add
+      lookup tests for a subdirectory, relative and absolute roots, and an
+      escaping path
+- [x] T18 | The gate reads a subcommand across a continuation line | 4f0b1644 | Fix
+      the skill-commands gate reading a subcommand on a continuation line
+- [x] T19 | unaddressed names one caller; page_in claims no sharing | 2d3683c0 | Correct
+      the false docstrings on unaddressed and page_in
+- [x] T20 | find and resolve read through printed_name and page_named | 2d3683c0 | Make
+      the addresses lookup read its page through page_named, per #281
+- [x] T21 | page_in returns a page or the reason | 2d3683c0 | Make page_in
+      return a page or the reason there is none
+- [x] T22 | lines_of walks the matches once; the command does not re-dispatch | 2d3683c0 | Remove
+      the duplicated work in lines_of and the command's re-dispatch
