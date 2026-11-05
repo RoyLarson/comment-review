@@ -2,8 +2,8 @@
 
 ```
 Status:   in-progress
-Progress: 158 of 189 TODO tasks closed
-Plan-tasks: 55 of 61 plan tasks closed
+Progress: 165 of 189 TODO tasks closed
+Plan-tasks: 56 of 61 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (founded by move-t from 0.2.4-the-middle-rebuilt)
@@ -463,7 +463,7 @@ interfaces, inputs and checks, without internal development files or history.
       and `reviewer-brief.md:69`. Verify: neither states three series
       unconditionally.
 
-### AE - [the-cue-legend-was-never-written](../../TODO/the-cue-legend-was-never-written.md)
+### AE - [the-cue-legend-was-never-written](../../TODO/completed/the-cue-legend-was-never-written.md)
 
 - [x] T1 | Write the legend: every series letter, what it names, and where its
       prose sits
@@ -623,24 +623,24 @@ interfaces, inputs and checks, without internal development files or history.
 - [x] T15 | MOVED to 2026-10-25-reader-hands-prose-only | Remove the page's
       detached-documentation placement
 
-### AR - [an-empty-place-is-not-citable](../../TODO/an-empty-place-is-not-citable.md)
+### AR - [an-empty-place-is-not-citable](../../TODO/completed/an-empty-place-is-not-citable.md)
 
-- [ ] T2 | MOVED to 2026-11-04-look-up-address-reads-the-page | Implement it.
+- [x] T2 | MOVED to 2026-11-04-look-up-address-reads-the-page | Implement it.
       Verify: asking for the empty b place above a line of code answers its
       address
-- [ ] T3 | MOVED to 2026-11-04-look-up-address-reads-the-page | Make bind's
+- [x] T3 | MOVED to 2026-11-04-look-up-address-reads-the-page | Make bind's
       docstring true -- either the mechanism works, or the sentence stops
       promising it
-- [ ] T5 | MOVED to 2026-11-04-look-up-address-reads-the-page | Make addresser
+- [x] T5 | MOVED to 2026-11-04-look-up-address-reads-the-page | Make addresser
       --line read the page from the repo and a path, with no binder. Verify: a
       file with no prose answers its b place
-- [ ] T6 | MOVED to 2026-11-04-look-up-address-reads-the-page | Move --check out
+- [x] T6 | MOVED to 2026-11-04-look-up-address-reads-the-page | Move --check out
       of the address lookup command
-- [ ] T7 | MOVED to 2026-11-04-look-up-address-reads-the-page | Rename
+- [-] T7 | MOVED to 2026-11-04-look-up-address-reads-the-page | Rename
       commands/addresser to commands/look_up_address
-- [ ] T8 | MOVED to 2026-11-04-look-up-address-reads-the-page | Update the
+- [x] T8 | MOVED to 2026-11-04-look-up-address-reads-the-page | Update the
       reviewer brief's lookup command to the binderless form
-- [ ] T9 | MOVED to 2026-11-04-look-up-address-reads-the-page | Remove HELD and
+- [x] T9 | MOVED to 2026-11-04-look-up-address-reads-the-page | Remove HELD and
       ABSENT from the reviewer brief's lookup output
 
 ## Plan Tasks
@@ -890,5 +890,6 @@ interfaces, inputs and checks, without internal development files or history.
         > 2026-11-01 Verify with all reader definitions and unchanged dependency gates
 - [ ] P60 | Verify lint, formatting, types, syntax and vocabulary
         > 2026-11-01 Run the existing CLAUDE.md completion commands
-- [ ] P61 | Merge the look-up-address child plan
+- [x] P61 | Child closed 22/22 T, 11/11 P and merged | 5ec27003 | Merge the
+      look-up-address child plan
         > 2026-11-04 Child: docs/plans/2026-11-04-look-up-address-reads-the-page.md
