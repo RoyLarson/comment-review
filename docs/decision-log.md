@@ -6258,3 +6258,22 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   **What it settles.** The 2026-08-25 direction that `--check` leaves the lookup command is
   answered by deleting it with its two tests. `check-passes-a-shared-address` T1-T4, which fix
   the command, are superseded. Code a goal of the project does not need is removed.
+
+- **#279.** **The lookup is subcommands over a flow, and reading settings are an instruction**
+  (Roy, 2026-11-04, shown the lookup command reading the page, loading reading settings and
+  resolving addresses itself, after its binder was removed).
+
+  On the name: *"I don't think we should rename the command and instead just make these
+  appropriate subcommands"*. On where the logic lives: *"That means that there is logic in the
+  command and not in the flow or the modules where it belongs. The flow is where the logic is
+  pulled together and flows are composable and so if there is a flow that does the right logic
+  it can be used in other flows and never allow the disagreement"*. On where settings come from:
+  *"Instructions to the agent not special things that wouldn't follow the plugin/skill"*, then
+  choosing that the skill instructs them.
+
+  **What it settles.** The command is not renamed `look_up_address`; it takes a subcommand for
+  each question -- a place by line, and the lines of an address. The lookup's logic moves into a
+  flow that reads a page the way gather's flow does, and the command only turns arguments into
+  that flow's inputs. Reading settings are written into the skill: stage 1 records them, and the
+  agent passes them to gather and to the lookup. No settings file lives in the user's repo. The
+  subcommand names are a decision still owed.
