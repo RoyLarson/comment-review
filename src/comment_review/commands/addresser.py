@@ -7,50 +7,40 @@ A COMMAND EXPOSES A FLOW. Ruled 2026-08-24 -- `decision-log.md Process: #12`.
 """
 
 import argparse
-from collections.abc import Mapping, Sequence
+from collections.abc import Mapping
 from pathlib import Path
 
-from comment_review.binder.addresses import _by_path, resolve, stable, unaddressed
+from comment_review.binder.addresses import resolve
 from comment_review.constants import text_lines
 from comment_review.flows.page_for import page_of
-from comment_review.flows.proof_io import load_binder
 from comment_review.flows.read_diagnostics import format_failure
-from comment_review.flows.reading_context import binder_reading_contexts, load_settings
+from comment_review.flows.reading_context import load_settings
 from comment_review.reading.addresser import (
     DECLARED,
     EOF,
     MODULE,
+    SEPARATOR,
     SERIES,
     address_for,
     cue_of,
-    unflatten,
 )
 from comment_review.reading.diagnostics import ReadFailure
-from comment_review.reading.paragraph import Paragraph
 
 
 def main() -> int:
-    """Print every binder entry's ADDRESS and the kind of place it names.
+    """Look a place up on the page it names: by line, or by address.
 
-    ! One address column, not two. The LINE form it once printed beside this one
-    was deleted 2026-08-20; see `docs/history.md`.
+    Both read the file under `--repo` and no binder: an address is looked up
+    from the page it names, filled or empty (`decision-log.md Process: #96`,
+    `#111`).
 
     Returns:
-        0 when every entry was addressed, 1 when any could not be, 2 when the
-        binder could not be read. `--line` reads the file it asks about from
-        `--repo` and no binder; every other question reads the binder alone.
+        0 when a place was named, 1 when the page has no such place, 2 when the
+        question was malformed or the file could not be read as a page.
     """
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("--binder", help="the binder JSON, for --check and --resolve")
-    ap.add_argument(
-        "--repo", default=".", help="the repo root --file is under, with --line"
-    )
+    ap.add_argument("--repo", default=".", help="the repo root the file is under")
     ap.add_argument("--reading-settings", type=Path, metavar="FILE")
-    ap.add_argument(
-        "--check",
-        action="store_true",
-        help="verify every address resolves back to its own paragraph, and stop",
-    )
     ap.add_argument(
         "--file",
         metavar="PATH",
@@ -75,90 +65,29 @@ def main() -> int:
     ap.add_argument(
         "--resolve",
         metavar="ADDRESS",
-        help="an address in, the LINES that cover it out -- read it against a "
-        "binder of the file as it is NOW",
+        help="an address in, the LINES that cover it out, read from the file as"
+        " it is now",
     )
     args = ap.parse_args()
 
-    if args.line is not None or args.file:
-        if not (args.file and args.line is not None and args.series):
-            # ! THE SET IS DERIVED from the `Series` enum, so adding a series
-            # carries this sentence with it.
-            print(f"--line needs --file and --series: {', '.join(SERIES)}")
+    repo = Path(args.repo)
+    settings: dict[Path, dict[str, str]] = {}
+    if args.reading_settings is not None:
+        settings, problems = load_settings(args.reading_settings, repo)
+        if problems:
+            for problem in problems:
+                print(problem)
             return 2
-        repo = Path(args.repo)
-        settings: dict[Path, dict[str, str]] = {}
-        if args.reading_settings is not None:
-            settings, problems = load_settings(args.reading_settings, repo)
-            if problems:
-                for problem in problems:
-                    print(problem)
-                return 2
-        given = (repo / args.file).resolve()
-        return _at_line(
-            repo, args.file, args.line, args.series, settings.get(given, {})
-        )
-    if not args.binder:
-        print("--binder is required unless --line is given")
-        return 2
-
-    # !! THE LOAD IS THE FLOW'S AND THE DESERIALIZE IS THE CONTAINER'S --
-    # `decision-log.md Process: #67`. `flows.proof_io.load_binder` is the read,
-    # the decode and `Binder.deserialize`'s refusal, as three steps.
-    #
-    # ! REFUSED BY NAME, not read as empty. An empty binder is indistinguishable
-    # downstream from a run with nothing in scope.
-    binder, problems = load_binder(Path(args.binder))
-    if binder is None:
-        for line in problems:
-            print(line)
-        return 2
-    _, problems = binder_reading_contexts(binder, str(args.binder))
-    if problems:
-        for problem in problems:
-            print(problem)
-        return 2
-    paragraphs = binder.paragraphs
-    if not paragraphs:
-        print(f"{args.binder} carries no paragraphs")
-        return 2
-    # !! THE PER-ENTRY MAPPING CHECK IS GONE, AND THE CONTAINER IS WHY. It read
-    # `[b for b in raw if isinstance(b, dict)]` and refused a binder whose rows
-    # were not mappings -- a check every reader below needed because the flat
-    # row walk
-    # handed back whatever it found. `Binder.deserialize` refuses that artifact
-    # at the boundary and by name, so what reaches here is `Paragraph`s or
-    # nothing. ! **A CONTAINER EARNS ITS KEEP BY DELETING THE RE-CHECKS**, not
-    # by sitting beside them: this is the second reader that stopped asking.
-
-    # No staleness sweep: the questions below are about the binder given, and
-    # the caller chooses it. Stage 8 gathers the file as it now stands and
-    # resolves against that, so the two agree by construction.
 
     if args.resolve:
-        return _resolve_one(args.resolve, paragraphs)
-    if args.check:
-        return _check(paragraphs)
-
-    # !! ASKED, NOT RE-DERIVED -- the rule `_check` states below, which this
-    # report was the one caller to break. It counted every entry with an empty
-    # address as UNPLACED, while `--check` on the SAME binder answered that
-    # every paragraph was addressed. MEASURED 2026-08-22 on
-    # `tests/fixtures/sample.py`: "3 entries could not be addressed", exit 1,
-    # beside "18 of 18 paragraphs addressed", exit 0.
-    missing = unaddressed(paragraphs)
-    for i, paragraph in enumerate(paragraphs, 1):
-        # ! UNPLACED names an entry nothing can cite -- the fault this exit code
-        # is about. It was preceded by a `symbol` fallback for a paragraph owing
-        # no address; leading is the only such paragraph and `bind()` emits no
-        # row for one, so the fallback could not fire.
-        where = stable(paragraph) or "UNPLACED"
-        print(f"{i:4d}  {where:<34} {cue_of(paragraph.address).cue}")
-    if missing:
-        print(f"\n{len(missing)} entries could not be addressed:")
-        for line in missing:
-            print(f"  {line}")
-    return 1 if missing else 0
+        return _resolve_one(repo, args.resolve, settings)
+    if not (args.file and args.line is not None and args.series):
+        # ! THE SET IS DERIVED from the `Series` enum, so adding a series
+        # carries this sentence with it.
+        print(f"--line needs --file and --series: {', '.join(SERIES)}, or --resolve")
+        return 2
+    given = (repo / args.file).resolve()
+    return _at_line(repo, args.file, args.line, args.series, settings.get(given, {}))
 
 
 def _line(given: str) -> int | str:
@@ -173,46 +102,45 @@ def _line(given: str) -> int | str:
         ) from None
 
 
-def _resolve_one(address: str, paragraphs: Sequence[Paragraph]) -> int:
+def _resolve_one(
+    repo: Path, address: str, settings: Mapping[Path, Mapping[str, str]]
+) -> int:
     """An address in, the LINES that now cover it out.
 
-    !! THIS IS THE DIRECTION STAGE 8 NEEDS, and it needs it because 7b has
-    already written. Roy, 2026-08-18: *"in goes an address out comes the line
-    numbers that cover that address ... particularly important after 7b and
-    stage 8 wants to look something up to double check."* Every line number a
-    record carried is stale by then, so a binder of the file AS IT IS NOW turns
-    an address into lines to read.
+    Stage 8 needs this direction after the write: every line number a record
+    carried is stale by then, so the file as it is now turns an address into
+    lines to read. The address is read as that file places it, which need not
+    be the place the text was written at -- written text can share a
+    neighbour's paragraph and read at another address.
 
-    ! Gather the CURRENT file, not the one the run started from. The address is
-    read as that file places it, which need not be the place the text was
-    written at: written text can share a neighbour's paragraph and read at
-    another address. A pre-edit binder would hand back exactly the numbers 7b
-    invalidated.
-
-    ! Several entries can answer to one address -- a docstring and the comment
-    run beneath it sit in the same gap -- so every match is printed. Measured
-    2026-08-18: 12 such places in this repo's own 13 shipped scripts.
+    Several paragraphs can answer to one address -- a docstring and the comment
+    run beneath it sit in the same gap -- so every match is printed.
 
     Returns:
-        0 when the address named something, 1 when nothing carries it.
+        0 when the address named something, 1 when nothing on the page carries
+        it, 2 when it is not an address or the file could not be read.
     """
     path, where = cue_of(address)
     if not where:
         print(f"{address!r} is not an address -- it needs a `@place`")
         return 2
-    real = unflatten(path, sorted({b.path for b in paragraphs}))
-    if not real:
-        print(f"no file in this binder flattens to {path!r}")
-        return 1
-    mine = [b for b in paragraphs if b.path == real]
-    hits = resolve(address, mine)
+    # The separator is a character a path cannot hold, so the flattened path
+    # inverts by substitution; see `reading.addresser.flatten`.
+    rel = path.replace(SEPARATOR, "/")
+    page = page_of(
+        repo / rel, rel=rel, settings=settings.get((repo / rel).resolve(), {})
+    )
+    if isinstance(page, ReadFailure):
+        print(format_failure(page, path=rel))
+        return 2
+    hits = resolve(address, page.paragraphs)
     if not hits:
-        print(f"{address} names no entry in this binder")
+        print(f"{address} names no place on {rel}")
         return 1
     for i in hits:
-        paragraph = mine[i - 1]
+        paragraph = page.paragraphs[i - 1]
         span = f"{paragraph.original_start}-{paragraph.original_end}"
-        print(f"{real}:{span}\t{cue_of(paragraph.address).cue}")
+        print(f"{rel}:{span}\t{cue_of(paragraph.address).cue}")
     return 0
 
 
@@ -223,9 +151,6 @@ def _at_line(
 
     `line` is a line number, or a sentinel naming the places at the file's head
     or foot that no line number reaches -- see `Cues.at_line`.
-
-    The page is read from the file under `repo`, and no binder is read: an
-    address is looked up from the page it names, filled or empty.
 
     At a line number the file's own matter answers twice, head and foot, since
     no line tells them apart; a caller chooses by address, or asks at a sentinel.
@@ -264,75 +189,3 @@ def _at_line(
             " Choose by ADDRESS."
         )
     return 0
-
-
-def _check(paragraphs: Sequence[Paragraph]) -> int:
-    """Does every address resolve back to the one paragraph that carries it?
-
-    !! THE REFERENCE HAS TO MATCH THE ANCHOR, and that is the whole worth of an
-    address. Roy, 2026-08-18: an agent will grep and read the file anyway, so
-    the lookup is convenience -- what a citation buys is that it names the place
-    it claims. An address two paragraphs answer to resolves to the wrong prose, and
-    nothing downstream can tell.
-
-    ! THE SAME SHAPE `source_problem` ALREADY ENFORCES ON `SOURCES`. Roy: "same
-    on the sources". There a citation carries `file:line | verbatim` and the
-    check resolves the line and looks for the words; here an address carries a
-    place and the check resolves it back to the entry. Both say: the reference
-    is only worth what re-reading it proves.
-
-    ! Two reports, and only the first is a fault. UNADDRESSED means the binder
-    cannot name the place at all -- no `original_start`, or no position -- and
-    nothing can cite it.
-
-    !! SHARED IS NOW A FAULT TOO, AND ITS OLD REMEDY IS GONE. It meant several
-    paragraphs sat in one gap, and the advice was to cite the binder INDEX
-    alongside the address -- a field retired 2026-08-19, so a record carries an
-    address and an anchor and nothing that tells two such paragraphs apart. The
-    one shape that produced it is fixed: a licence header and the run below the
-    module docstring both answered to `b0`, and `b0` is now the file's own front
-    matter alone.
-
-    Returns:
-        1 when anything is UNADDRESSED, 0 otherwise. ! A shared place does not
-        fail the check -- it is a fact about the file, and refusing it would
-        refuse every docstring with a comment beneath it.
-    """
-    # ! ASKED, NOT RE-DERIVED. `unaddressed` is the one implementation, and
-    # `gather` and the collator ask the same one.
-    missing = unaddressed(paragraphs)
-    shared: dict[str, list[str]] = {}
-    # ! The path is not read here -- an address already names its own file, and
-    # this only needs each file's paragraphs grouped to resolve within one.
-    for mine in _by_path(paragraphs).values():
-        for paragraph in mine:
-            where = stable(paragraph)
-            if where and len(resolve(where, mine)) > 1:
-                shared.setdefault(where, []).append(
-                    f"{paragraph.original_start}-{paragraph.original_end}"
-                    f" {cue_of(paragraph.address).cue}"
-                )
-    for line in missing:
-        print(f"UNADDRESSED  {line}")
-    for where, rows in sorted(shared.items()):
-        print(f"SHARED       {where}  <- {' | '.join(rows)}")
-    # !! THE SAME POPULATION `unaddressed` ASKED ABOUT. Counting every paragraph
-    # here and only some of them there is what made the sentence false: MEASURED
-    # 2026-08-22 over this repo's own scripts, `8542 of 8542 paragraphs
-    # addressed` while 392 of them carried no address at all. It is one
-    # population now because every row `bind()` emits carries an address --
-    # leading is the paragraph that owed none, and no row is made for one.
-    named = len(paragraphs) - len(missing)
-    files = len(_by_path(paragraphs))
-    print(f"\n{named} of {len(paragraphs)} paragraphs addressed over {files} files.")
-    if shared:
-        print(
-            f"{len(shared)} places hold more than one paragraph"
-            f" ({sum(len(v) for v in shared.values())} paragraphs)."
-        )
-    if missing:
-        print(
-            f"{len(missing)} paragraphs could not be addressed at all."
-            " A binder with no `original_start` cannot name a gap; re-run gather."
-        )
-    return 1 if missing else 0

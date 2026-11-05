@@ -100,13 +100,13 @@ Each series is counted by its own addresser, so ask for an address by the line o
 belongs to:
 
 ```bash
-python <skill>/scripts/comment-review.py addresser --binder <BINDER> --file <path> --line LINE --series a|b|c|f
+python <skill>/scripts/comment-review.py addresser --repo <REPO ROOT> --file <path> --line LINE --series a|b|c|f
 ```
 
-It prints one line per place: its address, its anchor, and `HELD` or `ABSENT` -- `ABSENT` is a
-place your binder leaves out, which a mark may still cite. `--series f` prints both of the
-file's own places; choose between them by address. You ask with a line number and answer with
-an address.
+It prints one line per place: its address and its anchor. Your binder holds only the places
+that hold prose; the command reads the file, so it answers for the places the binder leaves out,
+and a mark may cite them. `--series f` prints both of the file's own places; choose between them
+by address. You ask with a line number and answer with an address.
 
 Your copy carries no `f` slot. The notes editor, `ownership-context`, checks every file's `f`
 places, and the human approves each change to one individually.

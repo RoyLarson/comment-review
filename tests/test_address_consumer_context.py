@@ -22,30 +22,6 @@ def held_tree(tmp_path):
     return root, page, binder
 
 
-@pytest.mark.parametrize("args", [[], ["--check"], ["--resolve", "m.py@a1"]])
-def test_addresser_refuses_installed_identity_change(
-    tmp_path, monkeypatch, capsys, args
-):
-    _, _, binder = held_tree(tmp_path)
-    binder = replace(
-        binder,
-        pages=(
-            replace(
-                binder.pages[0],
-                reading=replace(binder.pages[0].reading, reader="uninstalled-reader"),
-            ),
-        ),
-    )
-    artifact = tmp_path / "binder.json"
-    artifact.write_text(json.dumps(binder.serialize()), encoding="utf-8")
-    code, out = run_command(
-        monkeypatch, capsys, addresser, "--binder", str(artifact), *args
-    )
-    assert code == 2
-    assert "regather" in out
-    assert "paragraphs addressed" not in out
-
-
 @pytest.mark.parametrize("side", ["binder", "page"])
 def test_direct_carry_admits_both_in_memory_contexts(tmp_path, side):
     _, page, binder = held_tree(tmp_path)

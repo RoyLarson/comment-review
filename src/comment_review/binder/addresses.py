@@ -150,10 +150,9 @@ def unaddressed(paragraphs: Sequence[Paragraph]) -> list[str]:
 
     !! ONE SOURCE OF TRUTH, and the reason is the failure it prevents. Roy,
     2026-08-20: *"one source of truth, else something will parse that something
-    else will fail."* Three callers ask this question -- `gather` before it
-    writes, the collator before it certifies, and `addresser.py --check` -- and
-    a second implementation of "is this addressed" is a second answer waiting to
-    disagree with the first.
+    else will fail."* Two callers ask this question -- `gather` before it
+    writes and the collator before it certifies -- and a second implementation
+    of "is this addressed" is a second answer waiting to disagree with the first.
 
     !! IT IS ASKED AT BOTH ENDS ON PURPOSE. The gather refusing on EMIT catches
     its own degradation where it happens; the gate refusing on READ catches a

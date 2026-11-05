@@ -85,7 +85,7 @@ x = 1
 Your copy carries no `f` slot, so check both places yourself, on every file:
 
 ```bash
-python <skill>/scripts/comment-review.py addresser --binder <BINDER> --file <path> --line 1 --series f
+python <skill>/scripts/comment-review.py addresser --repo <REPO ROOT> --file <path> --line 1 --series f
 ```
 
 It prints both places; `--resolve` gives the lines each covers. Read what each holds, and read

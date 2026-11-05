@@ -1,79 +1,54 @@
-"""`commands/addresser.py`: the CLI's console face, exercised over a REAL binder.
+"""`commands/addresser.py`: the CLI's console face, over a real file in a repo.
 
-`commands/` ran at 0.0% coverage -- 537 statements -- before this file: nothing
-had ever watched `_resolve_one` or `_check` run. Filed against
-`TODO/addresser-answers-wrongly-at-exit-0.md`, which found them answering
-wrongly at exit 0 after the eleven-field row cut (`e56bea9`) removed `start`,
-`end`, `kind` and `declares` -- fields they still read.
-
-Every row here comes from `bind()` over a page `page_for` actually built, never
-a hand-written dict -- a fixture written in the shape the code expects can only
-confirm.
-
-`TestByLine` is `binder-defects` T22 and `an-empty-place-is-not-citable` T5:
-the lookup takes a repo, a file in it, a line NUMBER and a series, and answers
-from the PAGE alone -- no binder is read, so a place that holds no prose answers
-like any other, and a mark may cite it.
+Both lookups read the page from the file under `--repo` and no binder
+(`binder-defects` T22, `an-empty-place-is-not-citable` T5, Process #96 and
+#111): a place that holds no prose answers like any other, and a mark may cite
+it.
 """
 
-import io
-import json
-from contextlib import redirect_stdout
-from dataclasses import replace
-
 import pytest
-from conftest import READ_FROM, SAMPLE, build, cue, run_command
+from conftest import SAMPLE, build, cue, run_command
 
-from comment_review.binder.binder import bind
 from comment_review.commands import addresser
-from comment_review.commands.addresser import _check, _resolve_one
-from comment_review.flows.page_for import page_of
-from comment_review.reading.diagnostics import ReadFailure
 
 
-def _rows():
-    page = build(SAMPLE)
-    return bind([page], read_from=READ_FROM).paragraphs
+class TestResolve:
+    """An address in, the lines that cover it out, read from the file now."""
 
+    def _ask(self, monkeypatch, capsys, repo, address):
+        return run_command(
+            monkeypatch, capsys, addresser, "--repo", str(repo), "--resolve", address
+        )
 
-def test_resolve_prints_the_real_lines_not_none_none():
-    """`_resolve_one` used to read `start`/`end`, fields no row carries since
-    `e56bea9` -- printing `alpha.py:None-None` at exit 0 for every address."""
-    rows = _rows()
-    target = next(r for r in rows if r.anchor == "def f(x):" and cue(r) == "a1")
-    address = target.address
+    def test_a_filled_place_prints_its_lines(self, monkeypatch, capsys, a_repo):
+        repo, name = a_repo
+        target = next(
+            p for p in build(SAMPLE) if p.anchor == "def f(x):" and cue(p) == "a1"
+        )
+        code, out = self._ask(monkeypatch, capsys, repo, f"{name}@a1")
+        assert code == 0, out
+        assert f"{target.original_start}-{target.original_end}" in out
+        assert "None-None" not in out
 
-    out = io.StringIO()
-    with redirect_stdout(out):
-        code = _resolve_one(address, rows)
+    def test_an_empty_place_answers(self, monkeypatch, capsys, a_repo):
+        repo, name = a_repo
+        code, out = self._ask(monkeypatch, capsys, repo, f"{name}@b2")
+        assert code == 0, out
+        assert out.startswith(f"{name}:")
 
-    assert code == 0
-    printed = out.getvalue()
-    assert "None-None" not in printed
-    assert f"{target.original_start}-{target.original_end}" in printed
+    def test_a_place_the_page_lacks_says_so(self, monkeypatch, capsys, a_repo):
+        repo, name = a_repo
+        code, out = self._ask(monkeypatch, capsys, repo, f"{name}@b99")
+        assert code == 1
+        assert "names no place" in out
 
-
-def test_check_reports_the_real_span_for_a_shared_address():
-    """`_check`'s SHARED report read `paragraph.get('start')`/`.get('end')`,
-    fields no row carries since `e56bea9` -- so a shared address always
-    reported `None-None` regardless of where it actually sits.
-
-    Two real rows made to share one address by duplicating a row `bind()`
-    produced -- not a hand-written dict -- so the values checked are the ones a
-    binder would actually carry for a comment run and the interval it fills.
-    """
-    rows = _rows()
-    target = next(r for r in rows if r.anchor == "def f(x):" and cue(r) == "a1")
-    mine = [*rows, replace(target)]
-
-    out = io.StringIO()
-    with redirect_stdout(out):
-        _check(mine)
-
-    printed = out.getvalue()
-    assert "SHARED" in printed
-    assert "None-None" not in printed
-    assert f"{target.original_start}-{target.original_end}" in printed
+    def test_a_string_with_no_place_is_not_an_address(
+        self, monkeypatch, capsys, a_repo
+    ):
+        repo, name = a_repo
+        code, out = self._ask(monkeypatch, capsys, repo, name)
+        assert code == 2
+        assert "not an address" in out
 
 
 @pytest.fixture
@@ -227,18 +202,13 @@ class TestByLine:
 
 
 @pytest.fixture
-def an_ends_binder(tmp_path):
-    """A declaration and a foot comment, gathered, and the file's name."""
+def an_ends_repo(tmp_path):
+    """A declaration and a foot comment on disk. Returns the root and the name."""
     name = "A.rs"
     root = tmp_path / "repo"
     root.mkdir()
     (root / name).write_text("fn a() {}\n// foot\n", encoding="utf-8", newline="")
-    page = page_of(root / name, rel=name)
-    assert not isinstance(page, ReadFailure), page
-    binder = bind([page], read_from={"root": str(root), "revise": 0})
-    where = tmp_path / "binder.json"
-    where.write_text(json.dumps(binder.serialize()), encoding="utf-8")
-    return root, where, name
+    return root, name
 
 
 class TestBySentinel:
@@ -254,26 +224,26 @@ class TestBySentinel:
             *("--line", line, "--series", series),
         )
 
-    def test_the_modules_a_answers_at_module(self, monkeypatch, capsys, an_ends_binder):
-        repo, _, name = an_ends_binder
+    def test_the_modules_a_answers_at_module(self, monkeypatch, capsys, an_ends_repo):
+        repo, name = an_ends_repo
         code, out = self._ask(monkeypatch, capsys, repo, "<module>", "a", name)
         assert code == 0, out
         assert out.split() == [f"{name}@a0", "'<module>'"]
 
     @pytest.mark.parametrize(("line", "place"), [("<module>", "f0"), ("<eof>", "f1")])
     def test_a_sentinel_names_one_end_of_the_files_matter(
-        self, monkeypatch, capsys, an_ends_binder, line, place
+        self, monkeypatch, capsys, an_ends_repo, line, place
     ):
-        repo, _, name = an_ends_binder
+        repo, name = an_ends_repo
         code, out = self._ask(monkeypatch, capsys, repo, line, "f", name)
         assert code == 0, out
         assert out.split()[0] == f"{name}@{place}"
         assert len(out.splitlines()) == 1
 
     def test_a_series_with_no_place_at_a_sentinel_says_so(
-        self, monkeypatch, capsys, an_ends_binder
+        self, monkeypatch, capsys, an_ends_repo
     ):
-        repo, _, name = an_ends_binder
+        repo, name = an_ends_repo
         code, out = self._ask(monkeypatch, capsys, repo, "<module>", "c", name)
         assert code == 1
         assert "<module>" in out and "no `c` place" in out
@@ -284,10 +254,3 @@ class TestBySentinel:
             addresser.main()
         usage = capsys.readouterr().out.split("\n\n")[0]
         assert "--line N|<module>|<eof>" in " ".join(usage.split())
-
-    def test_the_binder_still_checks(self, monkeypatch, capsys, an_ends_binder):
-        _, binder, _ = an_ends_binder
-        code, out = run_command(
-            monkeypatch, capsys, addresser, "--binder", str(binder), "--check"
-        )
-        assert code == 0, out

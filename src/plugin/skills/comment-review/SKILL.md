@@ -55,7 +55,7 @@ Each stage hands the next one of these; your vocabulary defines each one:
 
 | structure | made by | read by |
 |---|---|---|
-| **binder** | `gather` | `topology`, `distribute`, `check`, `collate`, `addresser` |
+| **binder** | `gather` | `topology`, `distribute`, `check`, `collate` |
 | **topology** | `topology` | `distribute`, `collate` |
 | **edit copy**, one per dispatch | `distribute`, filled with `mark` | `check`, `collate` |
 | **master proof** | `collate`, `turn`, `disposition` | `turn`, `disposition`, `proof` |
@@ -163,11 +163,12 @@ python <skill>/scripts/comment-review.py topology --build --binder <run-dir>/bin
 `--build` verifies what it writes and exits 0 when the topology fits the binder. On exit 1 it
 prints one misfit per line; change the `--stage` value and build again.
 
-To look up a place, ask the addresser; each series is counted separately:
+The binder holds only the places that hold prose. To look up any place, ask the addresser,
+which reads the file; each series is counted separately:
 
 ```bash
-python <skill>/scripts/comment-review.py addresser --binder <run-dir>/binder.json --file <path> --line <n> --series a|b|c|f
-python <skill>/scripts/comment-review.py addresser --binder <run-dir>/binder.json --resolve <address>
+python <skill>/scripts/comment-review.py addresser --repo <stage-root> --file <path> --line <n> --series a|b|c|f
+python <skill>/scripts/comment-review.py addresser --repo <stage-root> --resolve <address>
 ```
 
 ### Stage 3 -- find references
