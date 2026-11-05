@@ -77,9 +77,8 @@ of code, takes a number at every trigger, and emits or does not: `a` and `b` emi
 `c` steps past it. That any two series line up on a given file is an OUTCOME of that walk, not a
 rule -- and nothing in this system reads one cue to derive another.
 
-! **ASK. DO NOT COUNT.** `addresser --file PATH --line N --series a|b|c|f`, which opens the file
-at the binder's root and answers from the page -- so a place the filtered binder does not carry
-still answers (`decision-log.md Process: #96`). The only supported way to learn a cue is to be
+! **ASK. DO NOT COUNT.** `addresses find --file PATH --line N --series a|b|c|f` reads the
+page and answers from it, so a place the filtered binder does not carry still answers. The only supported way to learn a cue is to be
 told it.
 
 !! **The `a` series counts DECLARATIONS, not code lines, and that is a ruling.** Numbering each
@@ -144,7 +143,7 @@ cites. But `X=2` is TWO anchors spelled alike, so it answers with **two `c` plac
 places**, drawn from two different statements: the first gap is anchored to line 1, the other two
 to line 5. ! Those cues are what THIS walk emits on THIS file. Nothing may count them out from
 the lines -- see the ruling above.
-A line NUMBER names one trigger, so `addresser --line` answers one place per series -- except
+A line NUMBER names one trigger, so `addresses find` answers one place per series -- except
 `f`, whose two places no line tells apart; there it prints both and the CALLER chooses by
 address. Taking the first rules on the wrong end of the file.
 
@@ -261,7 +260,6 @@ Measured on this repo's own shipped scripts, 2026-08-18 and 2026-08-19:
 
 **After, re-measured 2026-08-19 over 18 files in four languages -- `.py`, `.go`, `.rs`, `.rb`:
 7,436 lines, each with exactly ONE address. 0 with none, 0 with more than one, 0 shared.**
-`addresser.py --check` re-reads that claim on every run.
 
 ! **The first measurement was PYTHON-ONLY and overstated.** It read 6,873 lines, 0 shared -- true
 of Python, where a comment cannot open after a statement and run on. In every C-family language
@@ -289,29 +287,24 @@ against the format that replaced it.
 
 ## Asking for an address
 
-**Do not count.** A filtered census collapses runs of empty places into one row, and counting
-inside one is how a citation lands a place off.
+**Do not count.** The binder carries only the places that hold prose, and counting places
+is how a citation lands a place off. Ask the page:
 
 ```bash
-# by ANCHOR -- which place of this declaration
-addresser.py --census <FULL CENSUS> --anchor LINE --series a|b|c
+# by LINE of the file as gathered -- which place of this series
+addresses find --repo <ROOT> --file <path> --line N --series a|b|c|f
 
-# by LINE, when what you have is a line of the original document
-locator.py --census <FULL CENSUS> --at path:LINE
-
-# an address in, the lines THIS CENSUS says it names out
-addresser.py --census <CENSUS> --resolve <ADDRESS>
+# an address in, the lines that cover it in the file now out
+addresses resolve <ADDRESS> --repo <ROOT>
 ```
 
-!! **THE ADDRESSER READS THE CENSUS, NEVER THE TREE.** It takes no `--repo`: every question it
-answers is census-internal, and checking the file would assert that line numbers still matter --
-which is what an address exists to stop. The CALLER chooses which census, so a post-write lookup
-censuses the file first and the two agree by construction. ! Staleness belongs where a file is
-WRITTEN: `galley.block_matches` refuses a stale range before it splices.
+Both read the page from the file under `--repo` through `on_the_page.page_named`, the reader the
+write end uses, and read no binder. A path outside the root is refused. `resolve` prints an empty
+place as empty, beside the line of code it is anchored to.
 
-!! **Prefer the anchor.** Asking by position -- "the block above the `def`" -- is right in Python
-and wrong in Rust, whose `///` sits before its `fn` where Python's docstring sits after. The
-census parsed the file and knows which is which; a count does not.
+!! **Ask, do not position.** "The place above the `def`" is right in Python and wrong in Rust,
+whose `///` sits before its `fn` where Python's docstring sits after. The reader knows which is
+which; a count does not.
 
 ## What is NOT addressed
 

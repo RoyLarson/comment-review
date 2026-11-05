@@ -1,15 +1,94 @@
 """`commands/addresses.py`: the CLI's console face, over a real file in a repo.
 
-Both lookups read the page from the file under `--repo` and no binder
-(`binder-defects` T22, `an-empty-place-is-not-citable` T5, Process #96 and
-#111, #279): a place that holds no prose answers like any other, and a mark may cite
-it.
+Both lookups read the page from the file under `--repo` and no binder: a place
+that holds no prose answers like any other, and a mark may cite it.
 """
 
 import pytest
 from conftest import SAMPLE, build, cue, run_command
 
 from comment_review.commands import addresses
+
+
+@pytest.fixture
+def a_package(tmp_path):
+    """`SAMPLE` at `pkg/m.py` under a root, and a file beside the root."""
+    root = tmp_path / "repo"
+    (root / "pkg").mkdir(parents=True)
+    (root / "pkg" / "m.py").write_text(SAMPLE, encoding="utf-8", newline="")
+    (tmp_path / "outside.py").write_text("SECRET = 1\n", encoding="utf-8")
+    return root
+
+
+class TestPaths:
+    """Where the file is and how its path is spelled must not change the address.
+
+    The address is the page's own: what `find` prints, `resolve` reads back, and
+    nothing outside the root is read.
+    """
+
+    def _find(self, monkeypatch, capsys, repo, file, line="11", series="b"):
+        return run_command(
+            monkeypatch,
+            capsys,
+            addresses,
+            *("find", "--repo", str(repo), "--file", file),
+            *("--line", line, "--series", series),
+        )
+
+    def _resolve(self, monkeypatch, capsys, repo, address):
+        return run_command(
+            monkeypatch, capsys, addresses, "resolve", address, "--repo", str(repo)
+        )
+
+    def test_a_file_in_a_subdirectory(self, monkeypatch, capsys, a_package):
+        code, out = self._find(monkeypatch, capsys, a_package, "pkg/m.py")
+        assert code == 0, out
+        assert out.split()[0] == "pkg:m.py@b2"
+
+    def test_an_absolute_file_prints_the_same_address(
+        self, monkeypatch, capsys, a_package
+    ):
+        absolute = str(a_package / "pkg" / "m.py")
+        code, out = self._find(monkeypatch, capsys, a_package, absolute)
+        assert code == 0, out
+        assert out.split()[0] == "pkg:m.py@b2"
+
+    def test_a_relative_root_reads_the_same_page(self, monkeypatch, capsys, a_package):
+        monkeypatch.chdir(a_package.parent)
+        code, out = self._resolve(monkeypatch, capsys, "repo", "pkg:m.py@a1")
+        assert code == 0, out
+        assert "None" not in out
+
+    def test_what_find_prints_resolve_reads_back(self, monkeypatch, capsys, a_package):
+        code, out = self._find(monkeypatch, capsys, a_package, "pkg/m.py", "6", "a")
+        assert code == 0, out
+        address = out.split()[0]
+        code, out = self._resolve(monkeypatch, capsys, a_package, address)
+        assert code == 0, out
+        assert address in out
+
+    @pytest.mark.parametrize("file", ["../outside.py", "pkg/../../outside.py"])
+    def test_a_file_outside_the_root_is_refused(
+        self, monkeypatch, capsys, a_package, file
+    ):
+        code, out = self._find(monkeypatch, capsys, a_package, file, "1", "c")
+        assert code == 2
+        assert "SECRET" not in out
+
+    def test_an_address_outside_the_root_is_refused(
+        self, monkeypatch, capsys, a_package
+    ):
+        code, out = self._resolve(monkeypatch, capsys, a_package, "..:outside.py@c0")
+        assert code == 2
+        assert "SECRET" not in out
+
+    def test_an_address_with_no_path_is_not_an_address(
+        self, monkeypatch, capsys, a_package
+    ):
+        code, out = self._resolve(monkeypatch, capsys, a_package, "@a1")
+        assert code == 2
+        assert "not an address" in out
 
 
 class TestResolve:
@@ -30,11 +109,14 @@ class TestResolve:
         assert f"{target.original_start}-{target.original_end}" in out
         assert "None-None" not in out
 
-    def test_an_empty_place_answers(self, monkeypatch, capsys, a_repo):
+    def test_an_empty_place_prints_as_one(self, monkeypatch, capsys, a_repo):
+        """An empty place stands on no line: it prints as empty, beside the line
+        of code it is anchored to, never as a span it does not have."""
         repo, name = a_repo
         code, out = self._ask(monkeypatch, capsys, repo, f"{name}@b2")
         assert code == 0, out
-        assert out.startswith(f"{name}:")
+        assert out.startswith(f"{name}: empty, beside 'def g(y):'")
+        assert "None" not in out
 
     def test_a_place_the_page_lacks_says_so(self, monkeypatch, capsys, a_repo):
         repo, name = a_repo

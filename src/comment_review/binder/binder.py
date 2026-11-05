@@ -106,9 +106,8 @@ def bind(
 
         comment_review addresses find --repo R --file m.py --line N --series b
 
-    -- which answers `m.py@b1` from the page, and reads no binder
-    (`decision-log.md Process: #96`, `#111`). The place is
-    citable without being carried, so `add` stays expressible and nothing pays
+    -- which answers `m.py@b1` from the page, and reads no binder. The place
+    is citable without being carried, so `add` stays expressible and nothing pays
     for the other 5,201.
 
     ! A FENCE IS NEVER CARRIED, asked for or not. It names no place, so there is

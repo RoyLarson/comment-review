@@ -25,6 +25,8 @@ A helper program does the mechanical work. `<skill>` is the directory holding th
 take it from the absolute path you were given. Every command runs through
 `<skill>/scripts/comment-review.py`, and `--help` after a command's name gives its flags.
 Give each run its own `<run-dir>`, and write every file with the command's `--out` flag.
+`<stage-root>` is the absolute root a stage's binder was gathered from: the repo root
+through stage 4, and the proof pages root for stage 6.
 
 **Your vocabulary.** Read the `[definitions]` entries of
 `<skill>/scripts/comment_review/references/vocabulary.toml` whose keys are listed under
@@ -418,8 +420,7 @@ closed proof this produces is the one stage 7a sets.
 python <skill>/scripts/comment-review.py proof --repo <stage-root> --proof <closed-proof> --out <run-dir>/proof
 ```
 
-`<stage-root>` is the root the closed proof's binder was gathered from: the repo
-root for stage 4, or the proof pages root for stage 6. Keep the drafts from every
+Use the `<stage-root>` the closed proof's binder was gathered from. Keep the drafts from every
 stage; when a later stage drafts a page again, its draft is the one to present
 and write. Pages unchanged by that stage keep their earlier drafts.
 

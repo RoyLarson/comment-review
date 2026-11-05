@@ -22,7 +22,7 @@ those tables describe.
 
 `LANDINGS` names, per planted address, a `Landing`: what lands there and
 what decides it. `ADDRESSER_ROW` is the entry the smoke script finds through
-`addresser` rather than by its address. `ANSWERS` and `ANSWERS2` are each
+`addresses find` rather than by its address. `ANSWERS` and `ANSWERS2` are each
 role's answers to the batches of the two turns the smoke script runs, and
 `write_answers` and `write_answers2` write one file of them per role.
 `HUMAN` is the author's answers to the human questions the roles put, which
@@ -354,7 +354,7 @@ class Landing(NamedTuple):
 #: `docs/superpowers/specs/2026-09-08-the-middle-chain-smoke-design.md`'s
 #: "The scenario matrix" lists paths through the middle, not addresses; each
 #: of its rows is planted at one or more of these. It asks for an `add` at an
-#: empty place and one fed by the addresser lookup -- `a2` and `b15` -- and the
+#: empty place and one fed by the addresses lookup -- `a2` and `b15` -- and the
 #: plant adds at five places more: the empty `b8`, `b17` and `c3`, and the
 #: filled `a0` and `c12`, where `mark` accepts `a0`'s add and refuses
 #: `c12`'s. Its `patch`, `unable-to-determine` query and
@@ -797,7 +797,7 @@ LANDINGS: dict[str, Landing] = {
 }
 
 #: The `LANDINGS` entry smoke_middle.ps1 marks without spelling its address:
-#: it asks `addresser` for the `b` place at this entry's `line`, and stops
+#: it asks `addresses find` for the `b` place at this entry's `line`, and stops
 #: unless the address that comes back is this one.
 ADDRESSER_ROW = "fib.py@b15"
 
@@ -1416,7 +1416,7 @@ def write_texts(run: Path) -> dict[str, Path]:
     `DISPOSITIONS` and `dispositions-ends.json` holds `ENDS`, the chief's
     first and second rulings. `addresser-row.json` holds
     `ADDRESSER_ROW` and its `line`, which the smoke script reads to ask
-    `addresser` and to check what it answers.
+    `addresses find` and to check what it answers.
 
     Args:
         run: the run directory the smoke script writes into. Not created

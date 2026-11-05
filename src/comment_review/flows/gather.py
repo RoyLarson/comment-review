@@ -150,12 +150,11 @@ def _pages(g: Gathering) -> None:
     # same walk, which is what stops the two disagreeing about what was
     # gathered.
     for path in g.files:
-        got, context, why = page_in(path, g.repo, g.settings.get(path.resolve(), {}))
-        if context is not None:
-            g.reading_contexts[path.resolve()] = context
-        if got is None:
-            g.unreadable.append(why)
+        got = page_in(path, g.repo, g.settings.get(path.resolve(), {}))
+        if isinstance(got, str):
+            g.unreadable.append(got)
             continue
+        g.reading_contexts[path.resolve()] = got.reading
         g.pages.append(got)
         rel = got.path
         # The phrase is the warning's code as words, then the owner a
@@ -172,33 +171,23 @@ def _pages(g: Gathering) -> None:
         g.paragraphs.extend(carried(got))
 
 
-def page_in(
-    path: Path, repo: Path, settings: Mapping[str, str]
-) -> tuple[Page | None, ReadingContext | None, str]:
-    """One file under `repo` read as a page, the way every flow reads one.
-
-    Gather reads each file in scope through this, and so does the address
-    lookup, so the two cannot read a file differently.
+def page_in(path: Path, repo: Path, settings: Mapping[str, str]) -> Page | str:
+    """One file in scope read as a page, addressed against `repo`.
 
     Returns:
-        The page, the reading context it was read under (when one could be
-        derived), and, when there is no page, the reason as the gather prints it.
+        The page, or the reason there is none as the gather prints it.
     """
     context = context_for(path, settings)
     if isinstance(context, ReadFailure):
-        return None, None, format_failure(context, path=path.as_posix())
+        return format_failure(context, path=path.as_posix())
     source = source_of(path)
     if isinstance(source, ReadFailure):
-        return None, context, format_failure(source, path=path.as_posix())
+        return format_failure(source, path=path.as_posix())
     # !! EVERY PARAGRAPH'S PATH IS REPO-RELATIVE. It is what `--repo` is for: the
     # binder, the file lists and every citation a reviewer writes all resolve
     # against that root, so a paragraph carrying an absolute path is a paragraph
-    # no consumer can place.
-    #
-    # !! Measured 2026-08-17 on the galley command -- `docs/history.md`: it
-    # joined `out / paragraph["path"]`, and in Python an absolute right-hand side
-    # WINS, so it wrote over the source file, put nothing under `--out`, and
-    # printed that it had succeeded.
+    # no consumer can place: joined to another root, an absolute right-hand side
+    # wins, and a write lands on the source file.
     #
     # ! A file outside the repo keeps the path AS IT WAS PASSED -- see
     # `_repo_relative`. `flows/proof_setter.py` refuses such a page rather than
@@ -214,13 +203,13 @@ def page_in(
     # path holds a colon on every Windows run -- the drive letter -- so checking
     # `path` here refuses the whole tree.
     if SEPARATOR in rel:
-        return None, context, f"{rel} (a path may not hold '{SEPARATOR}')"
+        return f"{rel} (a path may not hold '{SEPARATOR}')"
     # ! THE REPO-RELATIVE PATH GOES IN, so the page comes back addressed against
     # the root every citation resolves to.
     got = page_of(path, rel=rel, source=source, reading_context=context)
     if isinstance(got, ReadFailure):
-        return None, context, format_failure(got, path=rel)
-    return got, context, ""
+        return format_failure(got, path=rel)
+    return got
 
 
 def _owner(warning: ReadDiagnostic) -> str:

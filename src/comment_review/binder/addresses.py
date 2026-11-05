@@ -148,33 +148,9 @@ def handed(paragraphs: Sequence[Paragraph]) -> list[Paragraph]:
 def unaddressed(paragraphs: Sequence[Paragraph]) -> list[str]:
     """Which paragraphs carry NO address, described one per line.
 
-    !! ONE SOURCE OF TRUTH, and the reason is the failure it prevents. Roy,
-    2026-08-20: *"one source of truth, else something will parse that something
-    else will fail."* Two callers ask this question -- `gather` before it
-    writes and the collator before it certifies -- and a second implementation
-    of "is this addressed" is a second answer waiting to disagree with the first.
-
-    !! IT IS ASKED AT BOTH ENDS ON PURPOSE. The gather refusing on EMIT catches
-    its own degradation where it happens; the gate refusing on READ catches a
-    file that reached it some other way -- a binder from an older version, one
-    edited by hand, one written by a run that crashed. The collator takes a
-    PATH and trusts what it parses, so nothing but this stands between a stale
-    file and a certified review.
-
-    !! WHAT IT COSTS TO SKIP: an unaddressed binder yields an EMPTY
-    accountability set, so every paragraph is unaccounted and none is
-    ACCOUNTABLE. Measured 2026-08-20 on a 5-paragraph binder with its addresses
-    stripped and a report ruling on nothing: `0 findings ... over 0 prose
-    paragraphs` and **"Every finding is admissible. Stage 5 may rule."** at exit
-    0. The run reads as complete because there was nothing to be incomplete
-    about.
-
-    Args:
-        paragraphs: the binder, as `gather` emits it.
-
-    Returns:
-        One sentence per unaddressed paragraph, naming its file and its lines.
-        Empty when every paragraph carries an address.
+    `gather` refuses to write a binder holding any. A paragraph with no address
+    cannot be cited, so a review over it would rule on nothing and report itself
+    complete.
     """
     out: list[str] = []
     for path, mine in sorted(_by_path(paragraphs).items()):

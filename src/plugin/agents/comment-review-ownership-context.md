@@ -88,7 +88,7 @@ Your copy carries no `f` slot, so check both places yourself, on every file:
 python <skill>/scripts/comment-review.py addresses find --repo <REPO ROOT> --file <path> --line 1 --series f
 ```
 
-It prints both places; `--resolve` gives the lines each covers. Read what each holds, and read
+It prints both places; `addresses resolve <address>` gives the lines each covers. Read what each holds, and read
 the `b` place nearest each end of the file:
 
 - **A comment at an `f` place** -- prose about the code, like the example above -- is a `move`

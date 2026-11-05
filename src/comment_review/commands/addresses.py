@@ -8,7 +8,7 @@ flow's inputs and prints what it returns.
 import argparse
 from pathlib import Path
 
-from comment_review.flows.addresses import Places, Refused, lines_of, place_at
+from comment_review.flows.addresses import Refused, lines_of, place_at
 from comment_review.reading.addresser import EOF, MODULE, SERIES
 
 
@@ -31,9 +31,9 @@ def main() -> int:
         required=True,
         type=_line,
         metavar=f"N|{MODULE}|{EOF}",
-        help=f"a line NUMBER of that file, or {MODULE} or {EOF} for the places no"
-        " line names: the module's documentation and front matter, and the"
-        " closing gap, documentation and back matter",
+        help=f"a line NUMBER of that file as it was gathered, or {MODULE} or {EOF}"
+        " for the places no line names: the module's documentation and front"
+        " matter, and the closing gap, documentation and back matter",
     )
     find.add_argument(
         "--series",
@@ -54,22 +54,28 @@ def main() -> int:
     repo = Path(args.repo)
     if args.question == "find":
         got = place_at(repo, args.file, args.line, args.series)
-    else:
-        got = lines_of(repo, args.address)
+        if isinstance(got, Refused):
+            print("\n".join(got.lines))
+            return got.code
+        for place in got:
+            print(f"{place.address}\t{place.anchor!r}")
+        if len(got) > 1:
+            print(
+                f"\n{len(got)} places answer to line {args.line} in"
+                f" `{args.series}`. Choose by ADDRESS."
+            )
+        return 0
+    got = lines_of(repo, args.address)
     if isinstance(got, Refused):
         print("\n".join(got.lines))
         return got.code
-    if isinstance(got, Places):
-        for address, anchor in got.found:
-            print(f"{address}\t{anchor!r}")
-        if len(got.found) > 1:
-            print(
-                f"\n{len(got.found)} places answer to line {got.line} in"
-                f" `{got.series}`. Choose by ADDRESS."
-            )
-        return 0
-    for rel, start, end, cue in got.found:
-        print(f"{rel}:{start}-{end}\t{cue}")
+    for place in got:
+        where = (
+            f"{place.path}:{place.lines[0]}-{place.lines[1]}"
+            if place.lines
+            else f"{place.path}: empty, beside {place.anchor!r}"
+        )
+        print(f"{where}\t{place.address}")
     return 0
 
 

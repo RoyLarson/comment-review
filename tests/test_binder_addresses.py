@@ -4,7 +4,7 @@ Filed against the xhigh wave-B review of `feat/the-write-chain-of-command`:
 `unaddressed` still read a field the eleven-field row cut
 (`e56bea9`) removed -- `start`/`end` and `anchor_line`. Every row here comes
 from `bind()` over a page `page_for` actually built, never a hand-written dict,
-matching `tests/test_addresser_command.py`'s own rule: a fixture written in the
+matching `tests/test_addresses_command.py`'s own rule: a fixture written in the
 shape the code expects can only confirm.
 """
 
