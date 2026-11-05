@@ -1,8 +1,8 @@
 # An empty place is not citable, and the row cut's safety argument says it is
 
 ```
-Status:   closed
-Progress: 13 of 13 tasks closed
+Status:   open
+Progress: 13 of 22 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-25 (backend, 2026-08-25, while cleaning up after the write-chain
@@ -131,3 +131,16 @@ An empty place is not citable, and the row cut's safety argument says it is.
 - [-] T13 | SUPERSEDED by #280: no language has a reading setting | ebfe7256 | Update
       SKILL.md so stage 1 records reading settings for gather and the lookup,
       per #279
+- [ ] T14 | Make resolve print an empty place as its address and anchor at exit
+      0, per #281
+- [ ] T15 | Correct the prose and docstrings that still name addresser,
+      --resolve or --check
+- [ ] T16 | Define <stage-root> in SKILL.md's placeholder legend
+- [ ] T17 | Add lookup tests for a subdirectory, relative and absolute roots,
+      and an escaping path
+- [ ] T18 | Fix the skill-commands gate reading a subcommand on a continuation
+      line
+- [ ] T19 | Correct the false docstrings on unaddressed and page_in
+- [ ] T20 | Make the addresses lookup read its page through page_named, per #281
+- [ ] T21 | Make page_in return a page or the reason there is none
+- [ ] T22 | Remove the duplicated work in lines_of and the command's re-dispatch
