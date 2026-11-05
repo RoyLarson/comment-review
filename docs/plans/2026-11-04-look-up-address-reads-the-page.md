@@ -3,7 +3,7 @@
 ```
 Status:   in-progress
 Progress: 2 of 9 TODO tasks closed
-Plan-tasks: 2 of 7 plan tasks closed
+Plan-tasks: 3 of 10 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-11-04 (founded by move-t from 2026-10-11-lexical-readers)
@@ -49,4 +49,8 @@ binder, as rulings #96 and #111 require
 - [ ] P4 | Rename the command to look_up_address
 - [ ] P5 | Update the reviewer brief for the binderless lookup
 - [ ] P6 | Make bind's docstring true
-- [ ] P7 | Verify the full suite and the gates
+- [-] P7 | Moved last as P10, after the two steps Roy added | 356ea695 | Verify
+      the full suite and the gates
+- [ ] P8 | Make --resolve read the page from the repo, with no binder
+- [ ] P9 | Delete the listing mode and the --binder flag
+- [ ] P10 | Verify the full suite and the gates
