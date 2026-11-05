@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 4 of 9 tasks closed
+Progress: 8 of 9 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-25 (backend, 2026-08-25, while cleaning up after the write-chain
@@ -105,15 +105,19 @@ An empty place is not citable, and the row cut's safety argument says it is.
 - [x] T2 | test_an_empty_gap_answers: an empty b place answers its address | c43d6fca | Implement
       it. Verify: asking for the empty b place above a line of code answers its
       address
-- [ ] T3 | Make bind's docstring true -- either the mechanism works, or the
-      sentence stops promising it
+- [x] T3 | bind's promise holds: a file with no prose answers its places | 3a1f14c7 | Make
+      bind's docstring true -- either the mechanism works, or the sentence stops
+      promising it
 - [x] T4 | FINISHED | unknown | A test over a real binder for a place the binder
       does NOT carry. Verify: it fails against the current code
 - [x] T5 | --line reads the page with no binder; a file with no prose answers | c43d6fca | Make
       addresser --line read the page from the repo and a path, with no binder.
       Verify: a file with no prose answers its b place
-- [ ] T6 | Move --check out of the address lookup command
+- [x] T6 | --check is deleted (#278) | 3a1f14c7 | Move --check out of the
+      address lookup command
         > 2026-11-04 Ruled #278: moved out by deleting it
 - [ ] T7 | Rename commands/addresser to commands/look_up_address
-- [ ] T8 | Update the reviewer brief's lookup command to the binderless form
-- [ ] T9 | Remove HELD and ABSENT from the reviewer brief's lookup output
+- [x] T8 | The brief's lookup reads --repo <REPO ROOT> | 3a1f14c7 | Update the
+      reviewer brief's lookup command to the binderless form
+- [x] T9 | HELD and ABSENT are removed from the brief | 3a1f14c7 | Remove HELD
+      and ABSENT from the reviewer brief's lookup output
