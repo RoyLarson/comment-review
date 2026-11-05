@@ -85,10 +85,10 @@ x = 1
 Your copy carries no `f` slot, so check both places yourself, on every file:
 
 ```bash
-python <skill>/scripts/comment-review.py addresser --binder <BINDER> --file <path> --line 1 --series f
+python <skill>/scripts/comment-review.py addresses find --repo <REPO ROOT> --file <path> --line 1 --series f
 ```
 
-It prints both places; `--resolve` gives the lines each covers. Read what each holds, and read
+It prints both places; `addresses resolve <address>` gives the lines each covers. Read what each holds, and read
 the `b` place nearest each end of the file:
 
 - **A comment at an `f` place** -- prose about the code, like the example above -- is a `move`
@@ -97,7 +97,7 @@ the `b` place nearest each end of the file:
   separated from the file's edge -- is a `move` to the file's `f` place: `f0` for front
   matter, `f1` for back matter.
 
-File each at its origin's address, as the addresser prints it. The author approves each change
+File each at its origin's address, as `addresses find` prints it. The author approves each change
 to an `f` place individually.
 
 ## What your `clean` asserts

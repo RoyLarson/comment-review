@@ -25,6 +25,8 @@ A helper program does the mechanical work. `<skill>` is the directory holding th
 take it from the absolute path you were given. Every command runs through
 `<skill>/scripts/comment-review.py`, and `--help` after a command's name gives its flags.
 Give each run its own `<run-dir>`, and write every file with the command's `--out` flag.
+`<stage-root>` is the absolute root a stage's binder was gathered from: the repo root
+through stage 4, and the proof pages root for stage 6.
 
 **Your vocabulary.** Read the `[definitions]` entries of
 `<skill>/scripts/comment_review/references/vocabulary.toml` whose keys are listed under
@@ -55,7 +57,7 @@ Each stage hands the next one of these; your vocabulary defines each one:
 
 | structure | made by | read by |
 |---|---|---|
-| **binder** | `gather` | `topology`, `distribute`, `check`, `collate`, `addresser` |
+| **binder** | `gather` | `topology`, `distribute`, `check`, `collate` |
 | **topology** | `topology` | `distribute`, `collate` |
 | **edit copy**, one per dispatch | `distribute`, filled with `mark` | `check`, `collate` |
 | **master proof** | `collate`, `turn`, `disposition` | `turn`, `disposition`, `proof` |
@@ -163,11 +165,12 @@ python <skill>/scripts/comment-review.py topology --build --binder <run-dir>/bin
 `--build` verifies what it writes and exits 0 when the topology fits the binder. On exit 1 it
 prints one misfit per line; change the `--stage` value and build again.
 
-To look up a place, ask the addresser; each series is counted separately:
+The binder holds only the places that hold prose. To look up any place, ask `addresses`,
+which reads the file; each series is counted separately:
 
 ```bash
-python <skill>/scripts/comment-review.py addresser --binder <run-dir>/binder.json --file <path> --line <n> --series a|b|c|f
-python <skill>/scripts/comment-review.py addresser --binder <run-dir>/binder.json --resolve <address>
+python <skill>/scripts/comment-review.py addresses find --repo <stage-root> --file <path> --line <n> --series a|b|c|f
+python <skill>/scripts/comment-review.py addresses resolve <address> --repo <stage-root>
 ```
 
 ### Stage 3 -- find references
@@ -417,8 +420,7 @@ closed proof this produces is the one stage 7a sets.
 python <skill>/scripts/comment-review.py proof --repo <stage-root> --proof <closed-proof> --out <run-dir>/proof
 ```
 
-`<stage-root>` is the root the closed proof's binder was gathered from: the repo
-root for stage 4, or the proof pages root for stage 6. Keep the drafts from every
+Use the `<stage-root>` the closed proof's binder was gathered from. Keep the drafts from every
 stage; when a later stage drafts a page again, its draft is the one to present
 and write. Pages unchanged by that stage keep their earlier drafts.
 

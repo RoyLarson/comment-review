@@ -6,8 +6,8 @@ import pytest
 from conftest import SAMPLE, build, run_command
 
 from comment_review.binder.binder import bind
-from comment_review.commands import addresser, taken_in
 from comment_review.commands import carry as carry_command
+from comment_review.commands import taken_in
 from comment_review.flows import reading_context, revise
 from comment_review.flows.carry import carry
 from comment_review.reading.diagnostics import ReadFailure
@@ -20,37 +20,6 @@ def held_tree(tmp_path):
     page = build(SAMPLE)
     binder = bind([page], read_from={"root": str(root), "revise": 0})
     return root, page, binder
-
-
-@pytest.mark.parametrize("args", [[], ["--check"], ["--resolve", "m.py@a1"]])
-def test_addresser_refuses_installed_identity_change(
-    tmp_path, monkeypatch, capsys, args
-):
-    _, _, binder = held_tree(tmp_path)
-    binder = replace(
-        binder,
-        pages=(
-            replace(
-                binder.pages[0],
-                reading=replace(binder.pages[0].reading, reader="uninstalled-reader"),
-            ),
-        ),
-    )
-    artifact = tmp_path / "binder.json"
-    artifact.write_text(json.dumps(binder.serialize()), encoding="utf-8")
-    code, out = run_command(
-        monkeypatch, capsys, addresser, "--binder", str(artifact), *args
-    )
-    assert code == 2
-    assert "regather" in out
-    assert "paragraphs addressed" not in out
-
-
-def test_direct_line_lookup_refuses_saved_context(tmp_path, capsys):
-    _, _, binder = held_tree(tmp_path)
-    binder = replace(binder, pages=(replace(binder.pages[0], reading=None),))
-    assert addresser._at_line(binder, "m.py", 1, "b") == 2
-    assert "regather" in capsys.readouterr().out
 
 
 @pytest.mark.parametrize("side", ["binder", "page"])
@@ -209,7 +178,7 @@ def installed_modes(monkeypatch):
     monkeypatch.setattr(reading_context, "reader_for", selected)
 
 
-@pytest.mark.parametrize("consumer", ["line", "carry", "pull"])
+@pytest.mark.parametrize("consumer", ["carry", "pull"])
 def test_saved_consumers_retain_effective_settings(
     tmp_path, monkeypatch, capsys, installed_modes, consumer
 ):
@@ -231,9 +200,7 @@ def test_saved_consumers_retain_effective_settings(
         return result
 
     monkeypatch.setattr(page_for, "page_for", observe)
-    if consumer == "line":
-        assert addresser._at_line(binder, "m.py", 1, "b") == 0
-    elif consumer == "carry":
+    if consumer == "carry":
         artifact = tmp_path / "binder.json"
         artifact.write_text(json.dumps(binder.serialize()), encoding="utf-8")
         empty = next(

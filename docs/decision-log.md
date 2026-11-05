@@ -6249,3 +6249,59 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   the instruction the lexical-readers design approved (`2026-10-11-lexical-readers-design.md`,
   *Formatting and local validation*). Nothing is written over the working tree until every review
   is accepted (#159). The work is the lexical plan's P57.
+
+- **#278.** **`addresser --check` is deleted, not moved** (Roy, 2026-11-04, shown that no stage
+  runs it, that `gather` already refuses an unaddressed paragraph with the same `unaddressed()`,
+  and that its SHARED report checks a binder for what #254 says is not a defect: *"Agree deleted.
+  Love deleting code. Anything not necessary to accomplish the goals of the project should go"*).
+
+  **What it settles.** The 2026-08-25 direction that `--check` leaves the lookup command is
+  answered by deleting it with its two tests. `check-passes-a-shared-address` T1-T4, which fix
+  the command, are superseded. Code a goal of the project does not need is removed.
+
+- **#279.** **The lookup is subcommands over a flow, and reading settings are an instruction**
+  (Roy, 2026-11-04, shown the lookup command reading the page, loading reading settings and
+  resolving addresses itself, after its binder was removed).
+
+  On the name: *"I don't think we should rename the command and instead just make these
+  appropriate subcommands"*. On where the logic lives: *"That means that there is logic in the
+  command and not in the flow or the modules where it belongs. The flow is where the logic is
+  pulled together and flows are composable and so if there is a flow that does the right logic
+  it can be used in other flows and never allow the disagreement"*. On where settings come from:
+  *"Instructions to the agent not special things that wouldn't follow the plugin/skill"*, then
+  choosing that the skill instructs them.
+
+  **What it settles.** The command is not renamed `look_up_address`; it takes a subcommand for
+  each question -- a place by line, and the lines of an address. The lookup's logic moves into a
+  flow that reads a page the way gather's flow does, and the command only turns arguments into
+  that flow's inputs. Reading settings are written into the skill: stage 1 records them, and the
+  agent passes them to gather and to the lookup. No settings file lives in the user's repo. The
+  command is `addresses`, with `addresses find --file <path> --line N --series s` and
+  `addresses resolve <address>` (*"Yes the command names look good"*).
+
+- **#280.** **Reading settings go: no language has one** (Roy, 2026-11-04, shown that both
+  language definitions state `defaults = {}` and `choices = {}`, so the stage-1 instruction #279
+  asked for would record a value that cannot exist; choosing to drop the flag from `addresses`
+  and to remove the whole mechanism as its own work).
+
+  **What it settles.** #279's settings instruction is withdrawn before it was written, and
+  `addresses` takes no `--reading-settings`. The mechanism -- the flag on `gather`, `compositor`
+  and `prove_unchanged`, `flows/reading_context.load_settings`, and the definitions'
+  `defaults` and `choices` with the settings a reading context carries -- is removed as its own
+  work. If a language gains a choice, the setting and the instruction that carries it are
+  written then, against a real value.
+
+- **#281.** **One obvious way: the lookup reads through `page_named`, and an empty place prints
+  as one** (Roy, 2026-11-05, shown a review of the `addresses` lookup that found it deciding a
+  file's path twice -- once in `page_in`, once from the raw argument -- with no escape check and a
+  wrong inversion of `flatten`, where `flows/on_the_page.page_named` already does all three).
+
+  *"yes one flow to maintain correctly not multiple ways of doing the same thing. Have subagents
+  check the other flows to make certain they adhere to 'There should be one - and preferably only
+  one -- obvious way to do it.'"*
+
+  **What it settles.** `addresses find` and `addresses resolve` read their page through
+  `page_named`, the reader the write end uses; #279's "the way gather's flow does" is superseded
+  for the lookup. Where two code paths do one job, one is kept and the other goes. An empty place
+  that `resolve` names prints as itself -- its address and the line of code it stands beside --
+  at exit 0, never a line span it does not have (*"option A"*).

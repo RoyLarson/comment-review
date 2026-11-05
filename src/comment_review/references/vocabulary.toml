@@ -384,7 +384,6 @@ review = [
   "address",
   "binder",
   "comment run",
-  "gather",
   "sheet",
   "page",
   "freeform",

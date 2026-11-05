@@ -1,8 +1,8 @@
 # An empty place is not citable, and the row cut's safety argument says it is
 
 ```
-Status:   open
-Progress: 2 of 9 tasks closed
+Status:   closed
+Progress: 22 of 22 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-25 (backend, 2026-08-25, while cleaning up after the write-chain
@@ -102,15 +102,51 @@ An empty place is not citable, and the row cut's safety argument says it is.
       neighbouring rows original_start and original_end, or by re-reading the
       page. Requires-Roy: it decides whether the addresser needs the repo as
       well as the census
-- [ ] T2 | Implement it. Verify: asking for the empty b place above a line of
-      code answers its address
-- [ ] T3 | Make bind's docstring true -- either the mechanism works, or the
-      sentence stops promising it
+- [x] T2 | test_an_empty_gap_answers: an empty b place answers its address | c43d6fca | Implement
+      it. Verify: asking for the empty b place above a line of code answers its
+      address
+- [x] T3 | bind's promise holds: a file with no prose answers its places | 3a1f14c7 | Make
+      bind's docstring true -- either the mechanism works, or the sentence stops
+      promising it
 - [x] T4 | FINISHED | unknown | A test over a real binder for a place the binder
       does NOT carry. Verify: it fails against the current code
-- [ ] T5 | Make addresser --line read the page from the repo and a path, with no
-      binder. Verify: a file with no prose answers its b place
-- [ ] T6 | Move --check out of the address lookup command
-- [ ] T7 | Rename commands/addresser to commands/look_up_address
-- [ ] T8 | Update the reviewer brief's lookup command to the binderless form
-- [ ] T9 | Remove HELD and ABSENT from the reviewer brief's lookup output
+- [x] T5 | --line reads the page with no binder; a file with no prose answers | c43d6fca | Make
+      addresser --line read the page from the repo and a path, with no binder.
+      Verify: a file with no prose answers its b place
+- [x] T6 | --check is deleted (#278) | 3a1f14c7 | Move --check out of the
+      address lookup command
+        > 2026-11-04 Ruled #278: moved out by deleting it
+- [-] T7 | SUPERSEDED by #279: subcommands, not a rename | 215b89a7 | Rename
+      commands/addresser to commands/look_up_address
+- [x] T8 | The brief's lookup reads --repo <REPO ROOT> | 3a1f14c7 | Update the
+      reviewer brief's lookup command to the binderless form
+- [x] T9 | HELD and ABSENT are removed from the brief | 3a1f14c7 | Remove HELD
+      and ABSENT from the reviewer brief's lookup output
+- [x] T10 | Ruled #279: addresses find and addresses resolve | bd77199a | Decide
+      the lookup's subcommand names, per #279
+- [x] T11 | addresses find and addresses resolve replace addresser | 4031e8ce | Split
+      the lookup command into one subcommand per question, per #279
+- [x] T12 | flows/addresses.py reads pages through gather.page_in | 4031e8ce | Move
+      the lookup's logic into a flow sharing gather's page reading, per #279
+- [-] T13 | SUPERSEDED by #280: no language has a reading setting | ebfe7256 | Update
+      SKILL.md so stage 1 records reading settings for gather and the lookup,
+      per #279
+- [x] T14 | resolve prints an empty place as empty, beside its anchor | 2d3683c0 | Make
+      resolve print an empty place as its address and anchor at exit 0, per #281
+- [x] T15 | addresser, --resolve and --check mentions corrected | 2d3683c0 | Correct
+      the prose and docstrings that still name addresser, --resolve or --check
+- [x] T16 | <stage-root> is defined in SKILL.md's placeholder legend | 2d3683c0 | Define
+      <stage-root> in SKILL.md's placeholder legend
+- [x] T17 | TestPaths: subdirectory, absolute, relative, escaping, round trip | 2d3683c0 | Add
+      lookup tests for a subdirectory, relative and absolute roots, and an
+      escaping path
+- [x] T18 | The gate reads a subcommand across a continuation line | 4f0b1644 | Fix
+      the skill-commands gate reading a subcommand on a continuation line
+- [x] T19 | unaddressed names one caller; page_in claims no sharing | 2d3683c0 | Correct
+      the false docstrings on unaddressed and page_in
+- [x] T20 | find and resolve read through printed_name and page_named | 2d3683c0 | Make
+      the addresses lookup read its page through page_named, per #281
+- [x] T21 | page_in returns a page or the reason | 2d3683c0 | Make page_in
+      return a page or the reason there is none
+- [x] T22 | lines_of walks the matches once; the command does not re-dispatch | 2d3683c0 | Remove
+      the duplicated work in lines_of and the command's re-dispatch

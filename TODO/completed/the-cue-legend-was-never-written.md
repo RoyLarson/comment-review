@@ -1,8 +1,8 @@
 # The cue legend was traded for three fields and never written
 
 ```
-Status:   open
-Progress: 3 of 4 tasks closed
+Status:   closed
+Progress: 4 of 4 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-08-25 (the binder audit, 2026-08-25)
@@ -21,4 +21,5 @@ The cue legend was traded for three fields and never written.
 - [x] T3 | Ruled #272 and #96: absent places are filtered out and looked up | e0a31457 | Decide
       what a role is told about an ABSENT place, now that one is not sent unless
       asked for
-- [ ] T4 | Say how a role asks for an absent place it wants to add to
+- [x] T4 | The brief says absent places are looked up with addresser | 3a1f14c7 | Say
+      how a role asks for an absent place it wants to add to

@@ -100,13 +100,13 @@ Each series is counted by its own addresser, so ask for an address by the line o
 belongs to:
 
 ```bash
-python <skill>/scripts/comment-review.py addresser --binder <BINDER> --file <path> --line LINE --series a|b|c|f
+python <skill>/scripts/comment-review.py addresses find --repo <REPO ROOT> --file <path> --line LINE --series a|b|c|f
 ```
 
-It prints one line per place: its address, its anchor, and `HELD` or `ABSENT` -- `ABSENT` is a
-place your binder leaves out, which a mark may still cite. `--series f` prints both of the
-file's own places; choose between them by address. You ask with a line number and answer with
-an address.
+It prints one line per place: its address and its anchor. Your binder holds only the places
+that hold prose; the command reads the file, so it answers for the places the binder leaves out,
+and a mark may cite them. `--series f` prints both of the file's own places; choose between them
+by address. You ask with a line number and answer with an address.
 
 Your copy carries no `f` slot. The notes editor, `ownership-context`, checks every file's `f`
 places, and the human approves each change to one individually.
@@ -178,7 +178,7 @@ python <skill>/scripts/comment-review.py mark --edit-copy <EDIT COPY> --repo <RE
 - **A value that spans lines is a file**: write it with your file-write tool and pass `@path`.
 - **Two rulings on one paragraph are two invocations** at the same `--address`. Rulings on
   different sentences compose; a second ruling on the same sentence is refused, naming both.
-- **An `add` at an empty place** carries `--anchor-line`, the line of code the addresser
+- **An `add` at an empty place** carries `--anchor-line`, the line of code `addresses find`
   printed for it, and the slot is created.
 
 `mark` refuses exactly what the fold would refuse, writes nothing when it does, and says why.
@@ -259,7 +259,7 @@ is a `patch` to the general rule.
 ### `add`
 
 An `add` cites the empty place the prose belongs in, and its finding is a constraint the code
-holds that no prose states. Ask the addresser for that place by the line of code it belongs to
+holds that no prose states. Ask `addresses find` for that place by the line of code it belongs to
 -- an anchor is a line of code, `def f():` -- and file the mark at that address with
 `--anchor-line`. Its `anchor` claim names the declaration in backticks.
 

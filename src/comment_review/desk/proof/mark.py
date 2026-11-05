@@ -616,8 +616,9 @@ class MoveMark(Amendment):
         if destination.strip() and not _names_a_place(destination):
             return [
                 f"{where}: `claim.{key}` {destination!r} is not a `path@cue` place"
-                " -- a destination on a gathered page is its full address, as the"
-                " addresser prints it, and one outside the code is not carried yet"
+                " -- a destination on a gathered page is its full address, as"
+                " `addresses find` prints it, and one outside the code is not"
+                " carried yet"
                 " (`decision-log.md Process: #173`): file a `human-review-necessary`"
                 " query here naming it instead"
             ]

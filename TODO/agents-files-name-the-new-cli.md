@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 36 of 49 tasks closed
+Progress: 37 of 49 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-09-04 (Roy, 2026-09-04, superseding the-flow-lives-in-the-command T4)
@@ -58,8 +58,9 @@ The agents files name the new CLI and say how to use it.
       address for a gap. Verify: the gather line has the flag
 - [ ] T13 | Update SKILL.md stage 6 to take a paragraph's kind from its binder
       row, not the listing, once the row carries it. Verify: no listing parse
-- [ ] T14 | Update SKILL.md and the brief to say absent places are filtered out
-      of the binder and are looked up with addresser. Verify: both say so
+- [x] T14 | SKILL.md and the brief say absent places are looked up | 3a1f14c7 | Update
+      SKILL.md and the brief to say absent places are filtered out of the binder
+      and are looked up with addresser. Verify: both say so
         > 2026-09-05 waits on binder-defects T22; the text would promise what fails now
         > 2026-09-05 the default filter stays; absent places are noise for a role
         > 2026-09-05 the brief asks by line number, no longer with the line's text

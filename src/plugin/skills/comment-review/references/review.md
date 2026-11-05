@@ -28,12 +28,11 @@ Of each page as a whole, that it reads as one page:
 
 ## Looking a place up
 
-A freeform file has no address, so name a place in it by `path:line`. For a page, gather the
-written pages into a binder and ask the addresser:
+A freeform file has no address, so name a place in it by `path:line`. For a page, ask
+`addresses resolve`; it reads the written file:
 
 ```bash
-python <skill>/scripts/comment-review.py gather --repo . --out <run-dir>/after.json <paths...>
-python <skill>/scripts/comment-review.py addresser --binder <run-dir>/after.json --resolve <address>
+python <skill>/scripts/comment-review.py addresses resolve <address> --repo .
 ```
 
 The file was read again after the edit, so text can stand at a different address than it did
