@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 12 of 13 TODO tasks closed
+Progress: 13 of 13 TODO tasks closed
 Plan-tasks: 10 of 11 plan tasks closed
 Owner:    backend
 Requires-Roy: false
@@ -16,7 +16,7 @@ binder, as rulings #96 and #111 require
 
 ## TODO tasks this plan closes
 
-### A - [an-empty-place-is-not-citable](../../TODO/an-empty-place-is-not-citable.md)
+### A - [an-empty-place-is-not-citable](../../TODO/completed/an-empty-place-is-not-citable.md)
 
 - [x] T2 | Implement it. Verify: asking for the empty b place above a line of
       code answers its address
@@ -32,7 +32,7 @@ binder, as rulings #96 and #111 require
 - [x] T11 | Split the lookup command into one subcommand per question, per #279
 - [x] T12 | Move the lookup's logic into a flow sharing gather's page reading,
       per #279
-- [ ] T13 | Update SKILL.md so stage 1 records reading settings for gather and
+- [-] T13 | Update SKILL.md so stage 1 records reading settings for gather and
       the lookup, per #279
 
 ### B - [the-cue-legend-was-never-written](../../TODO/completed/the-cue-legend-was-never-written.md)

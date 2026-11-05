@@ -1,8 +1,8 @@
 # An empty place is not citable, and the row cut's safety argument says it is
 
 ```
-Status:   open
-Progress: 12 of 13 tasks closed
+Status:   closed
+Progress: 13 of 13 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-25 (backend, 2026-08-25, while cleaning up after the write-chain
@@ -128,5 +128,6 @@ An empty place is not citable, and the row cut's safety argument says it is.
       the lookup command into one subcommand per question, per #279
 - [x] T12 | flows/addresses.py reads pages through gather.page_in | 4031e8ce | Move
       the lookup's logic into a flow sharing gather's page reading, per #279
-- [ ] T13 | Update SKILL.md so stage 1 records reading settings for gather and
-      the lookup, per #279
+- [-] T13 | SUPERSEDED by #280: no language has a reading setting | ebfe7256 | Update
+      SKILL.md so stage 1 records reading settings for gather and the lookup,
+      per #279
