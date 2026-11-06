@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (119)
+### open  (118)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -288,7 +288,6 @@ that changed a published name or rule:
 | [p5-self-run-findings](p5-self-run-findings.md) | systems | -- | 1/5 | The P5 self-run findings |
 | [r2-preexisting-prose](r2-preexisting-prose.md) | backend | -- | 0/2 | Correct pre-existing move and fold-helper prose |
 | [mark-stance-metadata-prose](mark-stance-metadata-prose.md) | backend | -- | 0/2 | Clarify mark stance and reading metadata prose |
-| [smoke-fixture-defects](smoke-fixture-defects.md) | systems | -- | 0/1 | Align the command smoke with paragraph rewrapping |
 | [lexical-code-identity](lexical-code-identity.md) | backend | -- | 12/17 | Use lexical code identity at both proof boundaries |
 | [collate-file-input](collate-file-input.md) | backend | -- | 0/1 | Read collation inputs from a file |
 | [2026-10-13-human-question-list](2026-10-13-human-question-list.md) | backend | -- | 0/2 | Expose human questions across edit copies |
@@ -537,3 +536,4 @@ the reason is inside the file.
 | [2026-10-11-maintained-source-selection](completed/2026-10-11-maintained-source-selection.md) | 1 finished |
 | [the-code-check-refuses-add-and-drop-on-a-docstring](completed/the-code-check-refuses-add-and-drop-on-a-docstring.md) | 7 finished, 5 superseded |
 | [doc-on-the-declaring-line](completed/doc-on-the-declaring-line.md) | 4 superseded |
+| [smoke-fixture-defects](completed/smoke-fixture-defects.md) | 1 finished |
