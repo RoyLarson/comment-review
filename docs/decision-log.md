@@ -6305,3 +6305,19 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   for the lookup. Where two code paths do one job, one is kept and the other goes. An empty place
   that `resolve` names prints as itself -- its address and the line of code it stands beside --
   at exit 0, never a line span it does not have (*"option A"*).
+
+- **#282.** **A docstring added to a one-line declaration with no useful body is never raised
+  again** (Roy, 2026-11-06, shown a P58 probe reporting that an `add` at `a1` on `def g(): pass`
+  or `class C: pass` sets `"""D."""` at column 0 after the declaration, and that
+  `census-degrades-silently` T6 was kept open for it).
+
+  *"This has been rejected as a valid problem case several times now ... No real program has that
+  case. While it is valid python it is not the focus of this system to consider something that
+  has no useful output as worthy of comments or documentation, and it is considered unlikely that
+  agents are going to want to add a docstring to such a line. Finally if they do and the task
+  agent doesn't catch it, when the task agent runs the compile step that will break and then it
+  can fix it. I ban that case or any such case from ever being raised again"*
+
+  **What it settles.** `census-degrades-silently` T6 is superseded. Code with no useful output is
+  not a subject for documentation, so an edit placed on it is not a defect to file, test or
+  report; the task agent's compile step is the backstop.
