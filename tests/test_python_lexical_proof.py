@@ -353,3 +353,21 @@ def test_previous_python_binding_context_refuses_before_reading(monkeypatch):
     )
     assert isinstance(failed, ReadFailure)
     assert failed.diagnostics[0].code == "reading-context-mismatch"
+
+
+@pytest.mark.parametrize(
+    ("after", "proves"),
+    [
+        ('def g():\n    """d."""\nx = 1\n', True),
+        ('def g():\n    """d."""\nx = 2\n', False),
+    ],
+    ids=["moved", "moved-and-code-changed"],
+)
+def test_a_same_line_docstring_moved_below_its_declaration_proves(
+    tmp_path, after, proves
+):
+    before = 'def g(): """d."""\nx = 1\n'
+    repo, target = proof_repository(tmp_path, before.replace("\n", "\r\n"), ".py")
+    target.write_bytes(after.replace("\n", "\r\n").encode())
+    report = prove_unchanged.run(repo, "HEAD", [target])
+    assert (report.failures == 0) is proves, report.messages

@@ -759,3 +759,27 @@ def test_an_emptied_marked_file_is_the_mark_alone():
 )
 def test_a_mark_opening_a_later_code_line_stays(text, name):
     assert set_page(build(text, name)) == text
+
+
+@pytest.mark.parametrize(
+    ("text", "cue", "expected"),
+    [
+        ('def g(): """d."""\nx = 1\n', "a1", 'def g():\n    """d."""\nx = 1\n'),
+        (
+            'class C:\n    def g(self): """d."""\n',
+            "a2",
+            'class C:\n    def g(self):\n        """d."""\n',
+        ),
+    ],
+    ids=["function", "method"],
+)
+def test_a_same_line_docstring_is_set_on_its_own_line_below_the_declaration(
+    text, cue, expected
+):
+    """The one shape the identity above does not hold for, by design: the
+    docstring is the declaration's `a` place and is set below it, indented."""
+    page = build(text, "m.py")
+    doc = [line for line in expected.splitlines() if '"""' in line]
+    assert by_cue(page)[cue].raw_lines == doc
+    assert set_page(page) == expected
+    assert set_page(build(expected, "m.py")) == expected
