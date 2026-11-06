@@ -2,8 +2,8 @@
 
 ```
 Status:   in-progress
-Progress: 165 of 189 TODO tasks closed
-Plan-tasks: 56 of 61 plan tasks closed
+Progress: 166 of 189 TODO tasks closed
+Plan-tasks: 57 of 61 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (founded by move-t from 0.2.4-the-middle-rebuilt)
@@ -589,9 +589,9 @@ interfaces, inputs and checks, without internal development files or history.
       page and proof admission; verify either-side failures, empty success and
       cleanup
 
-### AP - [2026-10-11-maintained-source-selection](../../TODO/2026-10-11-maintained-source-selection.md)
+### AP - [2026-10-11-maintained-source-selection](../../TODO/completed/2026-10-11-maintained-source-selection.md)
 
-- [ ] T1 | Exclude generated and preprocessed output from review targets; verify
+- [x] T1 | Exclude generated and preprocessed output from review targets; verify
       the task instructions select maintained source
 
 ### AQ - [a-reader-finds-prose-only](../../TODO/completed/a-reader-finds-prose-only.md)
@@ -831,8 +831,9 @@ interfaces, inputs and checks, without internal development files or history.
       retired reader paths and duplicated language facts; verify consumers use
       the shared result and diagnostics
         > 2026-10-11 Check: uv run pytest -q tests/test_reading.py
-- [ ] P45 | Update source-selection instructions; verify generated output is
-      excluded and maintained input reaches gathering
+- [x] P45 | Stage 1 scope removes generated files | b12104bd | Update
+      source-selection instructions; verify generated output is excluded and
+      maintained input reaches gathering
         > 2026-10-11 Mechanism first; TODO 2026-10-11-maintained-source-selection
 - [-] P46 | Reworded for Python and Rust only under #259 | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | Update
       agent references for current addresses and reader coverage; verify

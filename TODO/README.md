@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (122)
+### open  (121)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -293,7 +293,6 @@ that changed a published name or rule:
 | [smoke-fixture-defects](smoke-fixture-defects.md) | systems | -- | 0/1 | Align the command smoke with paragraph rewrapping |
 | [lexical-code-identity](lexical-code-identity.md) | backend | -- | 12/17 | Use lexical code identity at both proof boundaries |
 | [collate-file-input](collate-file-input.md) | backend | -- | 0/1 | Read collation inputs from a file |
-| [2026-10-11-maintained-source-selection](2026-10-11-maintained-source-selection.md) | agents | -- | 0/1 | Select maintained source for review |
 | [2026-10-13-human-question-list](2026-10-13-human-question-list.md) | backend | -- | 0/2 | Expose human questions across edit copies |
 | [empty-comment-gets-a-drop](empty-comment-gets-a-drop.md) | backend | -- | 0/1 | An empty comment gets a drop mark |
 | [paragraph-is-a-passage](paragraph-is-a-passage.md) | backend | -- | 0/9 | The addressed unit of prose is a passage, not a paragraph |
@@ -537,3 +536,4 @@ the reason is inside the file.
 | [check-passes-a-shared-address](completed/check-passes-a-shared-address.md) | 4 superseded |
 | [the-cue-legend-was-never-written](completed/the-cue-legend-was-never-written.md) | 4 finished |
 | [an-empty-place-is-not-citable](completed/an-empty-place-is-not-citable.md) | 20 finished, 2 superseded |
+| [2026-10-11-maintained-source-selection](completed/2026-10-11-maintained-source-selection.md) | 1 finished |
