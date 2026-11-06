@@ -3,7 +3,7 @@
 ```
 Status:   in-progress
 Progress: 166 of 189 TODO tasks closed
-Plan-tasks: 57 of 61 plan tasks closed
+Plan-tasks: 58 of 61 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (founded by move-t from 0.2.4-the-middle-rebuilt)
@@ -879,7 +879,8 @@ interfaces, inputs and checks, without internal development files or history.
       agent references for Python and Rust coverage
         > 2026-11-01 Check: uv run python scripts/check_vocabulary.py
         > 2026-11-01 Verify operational text holds only task-facing instructions
-- [ ] P57 | Update write instructions for UNCHECKED
+- [x] P57 | write.md proves drafts, then runs the repo check | 67994b0f | Update
+      write instructions for UNCHECKED
         > 2026-11-01 Proof precedes formatting; local validation follows it
         > 2026-11-01 Preserve the exact approved local-validation instruction
         > 2026-11-04 Ruled #277: prove_unchanged, then the repo's tools
