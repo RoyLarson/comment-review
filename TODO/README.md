@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (120)
+### open  (119)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -223,7 +223,7 @@ that changed a published name or rule:
 | [nothing-makes-the-fair-copy](nothing-makes-the-fair-copy.md) | backend | yes | 1/13 | Nothing turns the collated marks into the paragraph the galley writes |
 | [settle-carries-two-meanings](settle-carries-two-meanings.md) | systems | yes | 0/6 | settle carries two meanings in what an agent is handed, and neither is declared to it |
 | [no-stage-agrees-the-terms](no-stage-agrees-the-terms.md) | systems | yes | 0/7 | No stage establishes what the words mean before the roles are asked to use them |
-| [the-cue-legend-and-its-round-trip](the-cue-legend-and-its-round-trip.md) | backend | -- | 3/5 | The cue letter carries what three fields used to say, and nothing gives the agents the legend or checks they followed it |
+| [the-cue-legend-and-its-round-trip](the-cue-legend-and-its-round-trip.md) | backend | -- | 4/5 | The cue letter carries what three fields used to say, and nothing gives the agents the legend or checks they followed it |
 | [the-flow-lives-in-the-command](the-flow-lives-in-the-command.md) | backend | -- | 7/13 | Lifting main() out showed the orchestration was always inside it: commands/census.py took 446 lines and calls page_for, while flows/census.py kept 261 lines of helpers. A command is meant to EXPOSE a flow, not be one. |
 | [two-areas-have-no-tests](two-areas-have-no-tests.md) | backend | -- | 0/4 | tests/ mirrors the package, so an area with no directory is a visible hole. machine/ (repo, constants, exceptions) and commands/ (all ten) have none. repo is exercised only through flows/test_census_names.py, which tests something else. |
 | [concordance-gaps-stated-twice](concordance-gaps-stated-twice.md) | backend | -- | 2/9 | Both encode 'a gap is not a pass' and spell it differently: code_names returns unread rows keyed by NO_HARVESTER/WALKED_TREE, referrers collects unreadable and unsearched under NOT CHECKED. Three states, one idea, two vocabularies. The EXTRACTIONS stay separate -- code_names must be structural so a comment mentioning a symbol cannot prove it exists, and referrers must be textual to see mentions in files nothing parses. |
@@ -239,7 +239,7 @@ that changed a published name or rule:
 | [into-is-never-resolved](into-is-never-resolved.md) | backend | -- | 2/3 | flows/proof_setter.py resolves TARGET but never resolves INTO, then asks whether target is relative to it. A relative or symlinked into would weaken the containment guard that stops a draft escaping the output directory. NOT REACHABLE TODAY: commands/proof.py resolves out before calling in, and every test hands an absolute tmp_path. This is library hardening, not a live defect. FOUND BY THE IMPLEMENTER OF THE GUARD, WHO REPORTED IT RATHER THAN WIDENING ITS OWN SCOPE. Worth recording because the guard it weakens was itself introduced to close an escape that the previous fix opened -- proof_setter copied the collator half of the galley command's pattern and not the guard half, and wrote a draft onto the original source file at exit 0. Two rounds of path handling on the same function, each fixing the last. |
 | [empty-edits-fails-a-stage](empty-edits-fails-a-stage.md) | agents | -- | 0/2 | an all-clean run writes {} to --edits, which notations.read refuses at exit 2 |
 | [an-alteration-carries-its-own-indentation](an-alteration-carries-its-own-indentation.md) | backend | -- | 1/3 | An alteration carries its own indentation and nothing says so |
-| [prove-refuses-a-doc](prove-refuses-a-doc.md) | backend | -- | 2/5 | prove_unchanged refuses a documentation file for having no code |
+| [prove-refuses-a-doc](prove-refuses-a-doc.md) | backend | -- | 3/5 | prove_unchanged refuses a documentation file for having no code |
 | [a-reference-needs-its-own-write-chain](a-reference-needs-its-own-write-chain.md) | backend | -- | 0/3 | A reference needs its own write chain, and it is NOT YET |
 | [the-fields-do-not-say-a-mark-may-cite-across](the-fields-do-not-say-a-mark-may-cite-across.md) | agents | yes | 5/8 | The mark's fields permit a cross-citation and never say so |
 | [a-conflict-has-no-rendering](a-conflict-has-no-rendering.md) | backend | -- | 3/4 | A conflict is detected and nothing renders it |
@@ -247,7 +247,6 @@ that changed a published name or rule:
 | [prototype-move-orphaned-tasks](prototype-move-orphaned-tasks.md) | systems | -- | 0/4 | 25 open TODOs carry an unchecked task naming a module that moved to `prototype/` on 2026-08-25, so the task's site is gone and its verification cannot be run |
 | [revise-copies-everything](revise-copies-everything.md) | backend | yes | 0/4 | `pull` copies `.git`, `.venv` and `corpora` into every revise root -- 284MB measured on this repo, per editorial stage, to set a docket over ~4MB of source |
 | [sheet-rename-gate-cannot-see-the-source](sheet-rename-gate-cannot-see-the-source.md) | systems | -- | 0/2 | the gate's scope excludes the tree the retired sense actually survived in -- docs/gates.md: a check that could not have failed is not evidence |
-| [doc-on-the-declaring-line](doc-on-the-declaring-line.md) | backend | -- | 3/4 | A docstring written on its declaration's own line takes no address, and the round trip invents a blank line |
 | [brief-says-prose-is-withheld](brief-says-prose-is-withheld.md) | agents | yes | 0/3 | reviewer-brief.md:113 says the record withholds the prose so a role cannot rule without reading the code; flows/marks.py:81 puts raw_text on every mark and collator.py makes it load-bearing |
 | [brief-says-three-series](brief-says-three-series.md) | agents | yes | 4/10 | reviewer-brief.md:69 and :221 say three series; reading/series.py ADDRESSED is ('a','b','c','f') and SKILL.md:378 says four, so a role cannot resolve the @f0 place the same brief tells it to cite |
 | [skill-inverts-the-anchor-line](skill-inverts-the-anchor-line.md) | agents | -- | 0/2 | SKILL.md's CANDIDATE paragraph describes the opposite of the line commands/census.py prints, and the reasoning built on it is what the task agent carries into every proposal |
@@ -275,7 +274,7 @@ that changed a published name or rule:
 | [stage-4b-is-undefined](stage-4b-is-undefined.md) | agents | -- | 1/6 | the 4a/4c split promises a resolved placement that nothing produces |
 | [citations-resolve-to-no-object](citations-resolve-to-no-object.md) | systems | -- | 0/1 | Find the four commit citations that resolve to no object |
 | [row-was-never-retired](row-was-never-retired.md) | backend | -- | 1/5 | Retire row everywhere -- the type, the wire key and the prose |
-| [only-a-flow-reaches-the-machine](only-a-flow-reaches-the-machine.md) | backend | -- | 4/10 | Route every machine read and write through a flow |
+| [only-a-flow-reaches-the-machine](only-a-flow-reaches-the-machine.md) | backend | -- | 5/10 | Route every machine read and write through a flow |
 | [a-non-code-document-has-no-read-review-resolve-or-write-chain-of-its-own](a-non-code-document-has-no-read-review-resolve-or-write-chain-of-its-own.md) | backend | -- | 0/2 | A non-code document has no read, review, resolve or write chain of its own |
 | [re-review-is-retired-for-revise](re-review-is-retired-for-revise.md) | agents | -- | 4/6 | re-review is retired for revise |
 | [agents-files-name-the-new-cli](agents-files-name-the-new-cli.md) | agents | -- | 37/49 | The agents files name the new CLI and say how to use it |
@@ -537,3 +536,4 @@ the reason is inside the file.
 | [an-empty-place-is-not-citable](completed/an-empty-place-is-not-citable.md) | 20 finished, 2 superseded |
 | [2026-10-11-maintained-source-selection](completed/2026-10-11-maintained-source-selection.md) | 1 finished |
 | [the-code-check-refuses-add-and-drop-on-a-docstring](completed/the-code-check-refuses-add-and-drop-on-a-docstring.md) | 7 finished, 5 superseded |
+| [doc-on-the-declaring-line](completed/doc-on-the-declaring-line.md) | 4 superseded |

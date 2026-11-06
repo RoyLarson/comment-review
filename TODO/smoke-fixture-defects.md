@@ -17,3 +17,5 @@ Align the command smoke with paragraph rewrapping.
 - [ ] T1 | Update wrapped-drop expected text for paragraph rewrapping and verify
       the full command smoke passes
         > 2026-10-04 Wrapped drop keeps the words but differs from WRAP_RATE_DRAFT
+        > 2026-11-06 Wrap stage passes at 8d66c9b4; smoke now stops at one end approved
+        > 2026-11-06 transcribe.py refuses one move end; smoke and write.md disagree

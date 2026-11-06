@@ -1,8 +1,8 @@
 # A docstring written on its declaration's own line takes no address, and the round trip invents a blank line
 
 ```
-Status:   open
-Progress: 3 of 4 tasks closed
+Status:   closed
+Progress: 4 of 4 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-29 (found while fixing the docstring-closing-comment double emission,
@@ -153,9 +153,9 @@ back. `systems` owns whether the two are one file.
         > 2026-09-03 MEASURED: lossless None, set_page byte-exact
         > 2026-09-03 on all three shapes -- one line, one line plus trailing, two line
         > 2026-09-03 held open pending the ruling; Addressing 20 then closed it
-- [ ] T3 | Add the shape to tests/test_reading.SOURCES and
-      tests/test_compositor.FORMS. Verify: both go red before the two boxes
-      above and green after.
+- [-] T3 | SUPERSEDED: tested in test_compositor and test_python_lexical_proof; FORMS asserts identity, which this shape does not keep | 9576766a | Add
+      the shape to tests/test_reading.SOURCES and tests/test_compositor.FORMS.
+      Verify: both go red before the two boxes above and green after.
         > 2026-09-03 the live one -- the shape is in neither SOURCES nor FORMS
         > 2026-09-03 so the tripwire never sees b0 holding a docstring kind
         > 2026-09-03 Addressing 20 makes this the live box -- the behaviour CHANGES

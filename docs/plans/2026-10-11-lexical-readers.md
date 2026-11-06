@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 179 of 189 TODO tasks closed
+Progress: 183 of 189 TODO tasks closed
 Plan-tasks: 61 of 61 plan tasks closed
 Owner:    backend
 Requires-Roy: false
@@ -254,9 +254,9 @@ interfaces, inputs and checks, without internal development files or history.
 - [-] T3 | T3 -- Change `block_text` (`lexer.py:609`) in the SAME commit as each
       `_join` change. Verify: the round trip is green on that commit.
 
-### K - [doc-on-the-declaring-line](../../TODO/doc-on-the-declaring-line.md)
+### K - [doc-on-the-declaring-line](../../TODO/completed/doc-on-the-declaring-line.md)
 
-- [ ] T3 | Add the shape to tests/test_reading.SOURCES and
+- [-] T3 | Add the shape to tests/test_reading.SOURCES and
       tests/test_compositor.FORMS. Verify: both go red before the two boxes
       above and green after.
 - [-] T4 | Update the lexer so a docstring attaches to the line of code it
@@ -330,7 +330,7 @@ interfaces, inputs and checks, without internal development files or history.
       one paragraph's text under a neighbouring cue is caught and named.
 - [-] T4 | T4 -- Report the `f` series separately rather than as a disagreement.
       Verify: a file with front matter round-trips without a false finding.
-- [ ] T5 | T5 -- Prove the check can FAIL. Verify: with T3's refusal removed,
+- [-] T5 | T5 -- Prove the check can FAIL. Verify: with T3's refusal removed,
       T3's own case passes and the test goes red.
 
 ### R - [the-code-check-refuses-add-and-drop-on-a-docstring](../../TODO/completed/the-code-check-refuses-add-and-drop-on-a-docstring.md)
@@ -347,7 +347,7 @@ interfaces, inputs and checks, without internal development files or history.
 
 ### S - [prove-refuses-a-doc](../../TODO/prove-refuses-a-doc.md)
 
-- [ ] T4 | Update the gate so a NOT-CODE file is reported out of scope, naming
+- [-] T4 | Update the gate so a NOT-CODE file is reported out of scope, naming
       the chain it waits on rather than a language record
 - [x] T5 | Update the gate so a CODE file whose language has no record yet is
       reported out of scope, named apart from a not-code file
@@ -403,7 +403,7 @@ interfaces, inputs and checks, without internal development files or history.
 - [x] T3 | Move read_source out of results.compositor lossless and the identity
       check
 - [x] T4 | Move read_raw out of results.prove_unchanged
-- [ ] T10 | Move the git call out of results.prove_unchanged into the flow; grep
+- [x] T10 | Move the git call out of results.prove_unchanged into the flow; grep
       finds no results import of machine.repo
 
 ### Z - [fixtures-do-not-test-the-shape](../../TODO/completed/fixtures-do-not-test-the-shape.md)

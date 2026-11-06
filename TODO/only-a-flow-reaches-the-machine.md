@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 4 of 10 tasks closed
+Progress: 5 of 10 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-09-03 (systems)
@@ -76,6 +76,7 @@ own.
       grep finds no commands module importing machine
 - [ ] T9 | Move concordance's machine reads, walk_files and git, into the flow
       that calls it; grep finds no concordance import of machine
-- [ ] T10 | Move the git call out of results.prove_unchanged into the flow; grep
-      finds no results import of machine.repo
+- [x] T10 | results/prove_unchanged imports nothing from machine and runs no git | d8946e97 | Move
+      the git call out of results.prove_unchanged into the flow; grep finds no
+      results import of machine.repo
         > 2026-11-04 Process #104 removes the git call; see lexical-code-identity T16
