@@ -3,7 +3,7 @@
 ```
 Status:   in-progress
 Progress: 174 of 189 TODO tasks closed
-Plan-tasks: 59 of 61 plan tasks closed
+Plan-tasks: 61 of 61 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (founded by move-t from 0.2.4-the-middle-rebuilt)
@@ -888,10 +888,12 @@ interfaces, inputs and checks, without internal development files or history.
       obsolete fixture prescriptions as boundary cases
         > 2026-11-01 Python and Rust cases that can detect a wrong read
         > 2026-11-01 Use the design TODO mapping; retain independent behavioral goals
-- [ ] P59 | Verify command smoke and regression with both readers
+- [x] P59 | pytest 5813 passed, 1 symlink skip; smoke gate and both readers | 8405294f | Verify
+      command smoke and regression with both readers
         > 2026-11-01 Check: uv run pytest -q
         > 2026-11-01 Verify with all reader definitions and unchanged dependency gates
-- [ ] P60 | Verify lint, formatting, types, syntax and vocabulary
+- [x] P60 | ruff, format, ty, 3.11 syntax and vocabulary pass; format changed nothing | 8405294f | Verify
+      lint, formatting, types, syntax and vocabulary
         > 2026-11-01 Run the existing CLAUDE.md completion commands
 - [x] P61 | Child closed 22/22 T, 11/11 P and merged | 5ec27003 | Merge the
       look-up-address child plan
