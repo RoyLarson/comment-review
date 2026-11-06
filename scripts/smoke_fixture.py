@@ -2148,13 +2148,13 @@ WRAP_DROP = " nothing\n    # was asked of the cache."
 
 #: What `proof --copy` drafts of `rate.py` from a fresh ownership-context copy
 #: holding that one drop and nothing else, written out by hand from
-#: `RATE_FIXTURE`: the joined line rewrapped to 42 columns, under its own
+#: `RATE_FIXTURE`: the paragraph rewrapped to 42 columns, under its own
 #: indent and marker, and every other line as the fixture has it.
 WRAP_RATE_DRAFT = (
     "def rate(hits, total):\n"
     "    # Zero calls give a zero rate: The\n"
-    "    # rate is\n"
-    "    # hits over total, never above one.\n"
+    "    # rate is hits over total, never above\n"
+    "    # one.\n"
     "    if total == 0:\n"
     "        return 0.0\n"
     "    return hits / total  # share of calls the cache answered\n"

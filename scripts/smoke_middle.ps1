@@ -1270,7 +1270,7 @@ $Stages = [ordered]@{
         # either side onto one line. Copies distributed again hold no rulings,
         # so ownership-context's fresh copy carries this one drop alone, and
         # its draft of rate.py is compared with smoke_fixture.py's
-        # WRAP_RATE_DRAFT: the joined line rewrapped to b1's widest before it.
+        # WRAP_RATE_DRAFT: the paragraph rewrapped to b1's widest before it.
         Invoke-Checked -Stage 'wrap distribute' -CommandLine ($Launcher + @(
             $Cmd.distribute, '--topology', $TopologyFile, '--stage', '4',
             '--binder', $BinderFile, '--out-dir', $WrapCopiesDir
