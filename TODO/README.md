@@ -313,7 +313,7 @@ that changed a published name or rule:
 | [corpora-are-all-python](corpora-are-all-python.md) | testing | -- | 9/10 | The corpora are nine Python projects, so every per-language rule is measured on Python and C alone |
 | [7a-can-prove-the-change-by-applying-it-to-a-copy](7a-can-prove-the-change-by-applying-it-to-a-copy.md) | agents | yes | 6/8 | 7a can PROVE the change by applying it to a copy and diffing |
 | [b-addresser-uninitialised](b-addresser-uninitialised.md) | backend | yes | 16/18 | The b addresser is never initialised at the module trigger, and computes its cue from line numbers |
-| [census-degrades-silently](census-degrades-silently.md) | backend | -- | 8/10 | **Four inputs produce a census that is wrong rather than refused, each exiting 0.** The run reads as complete and the addresses are nonsense. |
+| [census-degrades-silently](census-degrades-silently.md) | backend | -- | 9/10 | **Four inputs produce a census that is wrong rather than refused, each exiting 0.** The run reads as complete and the addresses are nonsense. |
 | [census-owns-addressing](census-owns-addressing.md) | backend | -- | 4/8 | The census owns addressing, and four modules share one subject between them |
 | [page-and-addresser-scans](page-and-addresser-scans.md) | backend | -- | 4/14 | page.py and addresser.py carry four scans that grow with the file and one CLI that contradicts the gate |
 | [record-verdict-desk-findings](record-verdict-desk-findings.md) | backend | -- | 9/14 | Round-4 findings in record/verdict/desk, including two that certify a run at exit 0 |

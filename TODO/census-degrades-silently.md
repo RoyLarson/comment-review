@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 8 of 10 tasks closed
+Progress: 9 of 10 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-19 (the seven-agent address review, 2026-08-19)
@@ -110,9 +110,10 @@ own file.
       Correct `references/compact.md:100` -- it says an `unparsed` file was not
       censused, and it was. Verify: the row says the paragraphs carry no
       address.
-- [ ] T6 | T6 -- Refuse an `add` at the `a` place of a one-line declaration
-      instead of writing above the `def`. Verify: `galley.reset` returns a
-      problem for that edit, not `[]`.
+- [-] T6 | SUPERSEDED by Process #282: the case is banned; compile is the backstop | 27cb343a | T6
+      -- Refuse an `add` at the `a` place of a one-line declaration instead of
+      writing above the `def`. Verify: `galley.reset` returns a problem for that
+      edit, not `[]`.
         > 2026-11-06 Probed 32501183: a1 add on def g(): pass gives no problem
         > 2026-11-06 It sets the docstring at column 0 after the def
         > 2026-11-06 prove_unchanged then FAILs it: code DIFFERS

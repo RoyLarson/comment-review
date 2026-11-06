@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 174 of 189 TODO tasks closed
+Progress: 175 of 189 TODO tasks closed
 Plan-tasks: 61 of 61 plan tasks closed
 Owner:    backend
 Requires-Roy: false
@@ -310,7 +310,7 @@ interfaces, inputs and checks, without internal development files or history.
 - [-] T5 | T5 -- Correct `references/compact.md:100` -- it says an `unparsed`
       file was not censused, and it was. Verify: the row says the paragraphs
       carry no address.
-- [ ] T6 | T6 -- Refuse an `add` at the `a` place of a one-line declaration
+- [-] T6 | T6 -- Refuse an `add` at the `a` place of a one-line declaration
       instead of writing above the `def`. Verify: `galley.reset` returns a
       problem for that edit, not `[]`.
 
