@@ -204,7 +204,6 @@ $ApprovalFile = Join-Path $Run 'approval.json'
 $PartialDir = Join-Path $Run 'partial'
 $PartialExpectedDir = Join-Path $Run 'partial-expected'
 $OneEndDir = Join-Path $Run 'one-end'
-$OneEndExpectedDir = Join-Path $Run 'one-end-expected'
 # The author's answers to the roles' human questions (Process #197, #198):
 # the TOML answers file `collate`, `turn` and `check` read with --human, and
 # the places whose query the asking role replaces once it is answered.
@@ -1692,28 +1691,17 @@ $Stages = [ordered]@{
             Write-Host 'what the partial approval did -- the original against it:'
             & git -c core.autocrlf=false --no-pager diff --no-index -- $OriginalDir $PartialDir | Out-Host
         }
-        # One end of the agreed move alone. Its two ends are two places,
-        # each decided and approved on its own (Process #205, #195 item 5),
-        # so `proof --only` sets the arrival it names and leaves the
-        # departure it does not, and the diff is against the fixture with
-        # that one place set.
-        Invoke-Checked -Stage 'one end approved' -CommandLine ($Launcher + @(
+        # One end of the agreed move alone. A move is approved whole or not
+        # at all (Process #283), so `proof --only` refuses it, naming the
+        # move, and writes nothing.
+        $oneEnd = $Launcher + @(
             $Cmd.proof, '--proof', $FinalFile, '--repo', $OriginalDir,
             '--only', $approval.'one-end', '--out', $OneEndDir
-        ))
-        New-Item -ItemType Directory -Path $OneEndExpectedDir | Out-Null
-        Invoke-Checked -Stage 'one end expected' -CommandLine @(
-            'uv', 'run', 'python', '-c',
-            'import sys; sys.path.insert(0, "scripts"); from pathlib import Path; from smoke_fixture import write_one_end_expected; write_one_end_expected(Path(sys.argv[1]))',
-            $OneEndExpectedDir
         )
-        Invoke-Checked -Stage 'one end diff' -CommandLine @(
-            'git', '-c', 'core.autocrlf=false', '--no-pager', 'diff', '--no-index', '--',
-            $OneEndExpectedDir, $OneEndDir
-        ) -OnFailure {
-            Write-Host 'what approving one end did -- the original against it:'
-            & git -c core.autocrlf=false --no-pager diff --no-index -- $OriginalDir $OneEndDir | Out-Host
-        }
+        $refused = Invoke-Checked -Stage 'one end refused' -Expect 1 -Capture -AndErrors -CommandLine $oneEnd
+        Assert-Lines -Stage 'one end refused' -Printed $refused -CommandLine $oneEnd -Expected @(
+            'copy-chief store.py@b9 -> store.py@b8: approve both ends of this move together'
+        )
     }
     # The second stage, which reads what the first one pulled. Its topology row
     # says `reads = "revise:4"`, so `distribute` is handed that revise root and

@@ -204,7 +204,7 @@ only the filings a final placement no longer stands on.
 | **source-verification** | both ends are checked; a failure at either refuses the mark |
 | **the fold** | while the placement is undecided both places are `to-come` and decide no text (`desk.evaluate.move.hold_ends`); once agreed, each end is decided against the move filed there. The fold is one unit of work: any refusal -- at either end, or at the move -- rolls the whole round back, so neither end is saved without the other |
 | **the revise step** | a role answers a move's placement once, for the pair, in one slot. There is no half `hold` |
-| **the write chain** | a proof holding an undecided move is not closed (`flows.transcribe._open_moves`), so neither end is set; once agreed, each end is set as its own place |
+| **the write chain** | a proof holding an undecided move is not closed (`flows.transcribe._open_moves`), so neither end is set; once agreed, each end is set as its own place, and the two are approved together: `proof --only` naming one end alone is refused (`flows.transcribe`, `Process: #283`) |
 
 ! **THIS IS WHAT [`collate-buckets-a-move-at-one-end`](../TODO/completed/collate-buckets-a-move-at-one-end.md)
 IS ABOUT**, and it is now a rule rather than a bug report: a `move` is grouped by every place it

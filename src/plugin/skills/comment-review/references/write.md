@@ -21,8 +21,9 @@ check on the drafts, and writes them into the working tree.
   the original and confirm every difference is among the author's accepted
   changes before writing it.
 
-  A move is approved as a whole. Naming either end includes both ends in the
-  draft; show the author both before treating that selection as approval.
+  A move is approved as a whole: name both of its ends, or neither. `proof`
+  refuses one end named alone. When the author accepts one end, show them both
+  and ask.
 
   The same sentence marked in two files is one finding. When the author accepted it in one
   file and left the other, ask which they want in both.
