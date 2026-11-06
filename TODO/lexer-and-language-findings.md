@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 53 of 73 tasks closed
+Progress: 54 of 73 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (/simplify rounds 1 and 2 and /code-review high round 3,
@@ -237,9 +237,9 @@ would.
 - [x] T20 | FINISHED | unknown | T20 -- RULED 2026-08-23: placement decides -- a
       doc run is a docstring when a declaration follows it, a comment when
       nothing does. Evidence in the Objective.
-- [ ] T21 | T21 -- Record the `a1` -> `c` move in `docs/history.md` with the
-      ruling that predicted it. Verify: the entry names both tiers and the
-      ruling's date.
+- [-] T21 | SUPERSEDED by T22: an address fixture replaces the predicted history | 32501183 | T21
+      -- Record the `a1` -> `c` move in `docs/history.md` with the ruling that
+      predicted it. Verify: the entry names both tiers and the ruling's date.
 - [ ] T22 | T22 -- Pin the address the CURRENT tier produces, so the move
       arrives as a failing test. Verify: a test asserts `a1` for a same-line
       docstring today.

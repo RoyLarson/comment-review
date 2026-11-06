@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 18 of 25 tasks closed
+Progress: 23 of 25 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-21 (Roy, 2026-08-21: 'The lexer reads zero files - this is also a
@@ -141,25 +141,30 @@ is at `docs/superpowers/specs/2026-08-23-io-and-the-chain-design.md:17`.
 - [-] T9 | SUPERSEDED: machine/repo.py is the I/O module | fb8c29bc | T9 --
       **Create `io.py` and move `read_raw` into it from `repo.py`.** Verify:
       `io.read_raw` resolves, and `repo.py` defines no reader.
-- [ ] T10 | T10 -- **Move `text_lines` out of `constants.py` into `io.py`.**
-      Verify: it resolves from `io.py`, and `constants.py` no longer defines it.
-- [ ] T11 | T11 -- **Move `utf8_console` out of `constants.py` into `io.py`.**
-      Verify: it resolves from `io.py`, and `constants.py` exports `LINE_BREAK`
-      and nothing else.
+- [-] T10 | SUPERSEDED by the design: machine/ is the I/O area; no io.py | 32501183 | T10
+      -- **Move `text_lines` out of `constants.py` into `io.py`.** Verify: it
+      resolves from `io.py`, and `constants.py` no longer defines it.
+- [-] T11 | SUPERSEDED by the design: machine/ is the I/O area; no io.py | 32501183 | T11
+      -- **Move `utf8_console` out of `constants.py` into `io.py`.** Verify: it
+      resolves from `io.py`, and `constants.py` exports `LINE_BREAK` and nothing
+      else.
 - [x] T12 | The newline='' write moved to machine write_raw | fb8c29bc | T12 --
       **Move the `newline=""` write out of `compositor.py` into `io.py`.**
       Verify: `grep -n 'newline=' compositor.py` returns nothing.
-- [ ] T13 | T13 -- **Write the read/write gate**: a shipped
-      `read_text\|write_text\|open(` outside `io.py` fails. Verify: it exits
-      nonzero on the tree as it stands, naming each site.
-- [ ] T14 | T14 -- **Give `page_for` a PATH instead of text.** Verify: no caller
-      of `page_for` passes text, and the signature takes a path.
+- [-] T13 | SUPERSEDED by the design: byte identity, BOM and CRLF checked end to end in test_source_io.py and test_page_for.py, not a fixed READ list | 32501183 | T13
+      -- **Write the read/write gate**: a shipped `read_text\|write_text\|open(`
+      outside `io.py` fails. Verify: it exits nonzero on the tree as it stands,
+      naming each site.
+- [-] T14 | SUPERSEDED by the design: readers take supplied source; page_for(path, text) is that contract | 32501183 | T14
+      -- **Give `page_for` a PATH instead of text.** Verify: no caller of
+      `page_for` passes text, and the signature takes a path.
 - [-] T15 | SUPERSEDED by #259: the lexer was deleted | e2b34a22 | T15 -- **Let
       the lexer open the file, with `io.read_raw` and `utf-8-sig`.** Verify: a
       CRLF file carrying a BOM reads back with both preserved.
-- [ ] T16 | T16 -- **Route the nine bypassing source reads through `io.py`.**
-      Verify: T13's gate exits 0 on the tree, and every source read in the
-      shipped scripts is the lexer's.
+- [-] T16 | SUPERSEDED by the design: byte identity, BOM and CRLF checked end to end in test_source_io.py and test_page_for.py, not a fixed READ list | 32501183 | T16
+      -- **Route the nine bypassing source reads through `io.py`.** Verify:
+      T13's gate exits 0 on the tree, and every source read in the shipped
+      scripts is the lexer's.
 - [-] T17 | Replaced by galley-and-compositor-write-path T51-T52 and T23: exact byte comparisons and acquisition | b03adaa8 | T17
       -- **Fix `compositor.identity` so the round trip is compared in BYTES.**
       Verify: it reads through `io.read_raw` and not `read_text`.

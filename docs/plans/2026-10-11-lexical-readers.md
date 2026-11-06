@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 166 of 189 TODO tasks closed
+Progress: 174 of 189 TODO tasks closed
 Plan-tasks: 58 of 61 plan tasks closed
 Owner:    backend
 Requires-Roy: false
@@ -198,7 +198,7 @@ interfaces, inputs and checks, without internal development files or history.
 - [-] T11 | T11 -- Replace the four one-element lists standing in for `nonlocal`
       in lexer.py. Verify: no `[0]` subscript on a one-element accumulator
       remains in lexer.py.
-- [ ] T21 | T21 -- Record the `a1` -> `c` move in `docs/history.md` with the
+- [-] T21 | T21 -- Record the `a1` -> `c` move in `docs/history.md` with the
       ruling that predicted it. Verify: the entry names both tiers and the
       ruling's date.
 - [-] T26 | T26 -- Give the `Language` row an `inner_doc` field, defaulting
@@ -333,12 +333,12 @@ interfaces, inputs and checks, without internal development files or history.
 - [ ] T5 | T5 -- Prove the check can FAIL. Verify: with T3's refusal removed,
       T3's own case passes and the test goes red.
 
-### R - [the-code-check-refuses-add-and-drop-on-a-docstring](../../TODO/the-code-check-refuses-add-and-drop-on-a-docstring.md)
+### R - [the-code-check-refuses-add-and-drop-on-a-docstring](../../TODO/completed/the-code-check-refuses-add-and-drop-on-a-docstring.md)
 
 - [-] T4 | T4 -- Measure the LEXICAL side: a `///` or `/**` doc comment ADDED
       and REMOVED, against the `stripped` comparison. Verify: this file records
       which way each goes.
-- [ ] T2 | T2 -- Report docstring-presence deltas SEPARATELY from executable
+- [-] T2 | T2 -- Report docstring-presence deltas SEPARATELY from executable
       ones. Verify: `prove_unchanged.py` prints them under their own heading
       with each declaration.
 - [-] T3 | T3 -- Say in `write.md` what a docstring `add` does today, until T1
@@ -511,22 +511,22 @@ interfaces, inputs and checks, without internal development files or history.
 
 - [-] T9 | T9 -- **Create `io.py` and move `read_raw` into it from `repo.py`.**
       Verify: `io.read_raw` resolves, and `repo.py` defines no reader.
-- [ ] T10 | T10 -- **Move `text_lines` out of `constants.py` into `io.py`.**
+- [-] T10 | T10 -- **Move `text_lines` out of `constants.py` into `io.py`.**
       Verify: it resolves from `io.py`, and `constants.py` no longer defines it.
-- [ ] T11 | T11 -- **Move `utf8_console` out of `constants.py` into `io.py`.**
+- [-] T11 | T11 -- **Move `utf8_console` out of `constants.py` into `io.py`.**
       Verify: it resolves from `io.py`, and `constants.py` exports `LINE_BREAK`
       and nothing else.
 - [x] T12 | T12 -- **Move the `newline=""` write out of `compositor.py` into
       `io.py`.** Verify: `grep -n 'newline=' compositor.py` returns nothing.
-- [ ] T13 | T13 -- **Write the read/write gate**: a shipped
+- [-] T13 | T13 -- **Write the read/write gate**: a shipped
       `read_text\|write_text\|open(` outside `io.py` fails. Verify: it exits
       nonzero on the tree as it stands, naming each site.
-- [ ] T14 | T14 -- **Give `page_for` a PATH instead of text.** Verify: no caller
+- [-] T14 | T14 -- **Give `page_for` a PATH instead of text.** Verify: no caller
       of `page_for` passes text, and the signature takes a path.
 - [-] T15 | T15 -- **Let the lexer open the file, with `io.read_raw` and
       `utf-8-sig`.** Verify: a CRLF file carrying a BOM reads back with both
       preserved.
-- [ ] T16 | T16 -- **Route the nine bypassing source reads through `io.py`.**
+- [-] T16 | T16 -- **Route the nine bypassing source reads through `io.py`.**
       Verify: T13's gate exits 0 on the tree, and every source read in the
       shipped scripts is the lexer's.
 - [-] T17 | T17 -- **Fix `compositor.identity` so the round trip is compared in
@@ -565,7 +565,7 @@ interfaces, inputs and checks, without internal development files or history.
 
 ### AM - [exception-hierarchy](../../TODO/exception-hierarchy.md)
 
-- [ ] T4 | T4 -- Retire `TOKENIZE_ERRORS` -- each site re-raises `Unparsable`
+- [x] T4 | T4 -- Retire `TOKENIZE_ERRORS` -- each site re-raises `Unparsable`
       with `from e`. Verify: `grep -rn exceptions.TOKENIZE_ERRORS plugins/` is
       empty and pytest is green.
 

@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 7 of 9 tasks closed
+Progress: 8 of 10 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-19 (the seven-agent address review, 2026-08-19)
@@ -113,6 +113,10 @@ own file.
 - [ ] T6 | T6 -- Refuse an `add` at the `a` place of a one-line declaration
       instead of writing above the `def`. Verify: `galley.reset` returns a
       problem for that edit, not `[]`.
+        > 2026-11-06 Probed 32501183: a1 add on def g(): pass gives no problem
+        > 2026-11-06 It sets the docstring at column 0 after the def
+        > 2026-11-06 prove_unchanged then FAILs it: code DIFFERS
+        > 2026-11-06 Rust fn g() {} sets /// above, correctly
 - [-] T7 | SUPERSEDED by T9: concordance is shelved from the lexical plan | c0b5b211 | T7
       -- Open the three readers with `utf-8-sig` -- `repo.py:52`,
       `census.py:336`, `census.py:177`. Verify: a BOM'd `.py` censuses its
@@ -122,3 +126,5 @@ own file.
       headings. Measurement in the Objective.
 - [ ] T9 | Open every reader that feeds ast.parse with utf-8-sig. Verify: a
       BOM'd .py harvests its names
+- [-] T10 | SUPERSEDED by T6, filed in error: same work | 32501183 | Refuse an
+      add at the a place of a Python one-line declaration

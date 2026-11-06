@@ -1,8 +1,8 @@
 # The CODE CHECK refuses `add` and `drop` when the prose is a docstring
 
 ```
-Status:   open
-Progress: 11 of 12 tasks closed
+Status:   closed
+Progress: 12 of 12 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-17, on the FIRST run ever to reach stage 7b. A docstring `add` failed the
@@ -87,9 +87,10 @@ being ADDED or REMOVED -- only rewritten, which is the case that passes.
       -- * Rule whether 7b compares against the approved SET or nothing-changed.
       Verify: `docs/decision-log.md` records the answer and `write.md` states
       it.
-- [ ] T2 | T2 -- Report docstring-presence deltas SEPARATELY from executable
-      ones. Verify: `prove_unchanged.py` prints them under their own heading
-      with each declaration.
+- [-] T2 | SUPERSEDED by the design: probed 32501183, a dropped or added doc in .py and .rs PROVES; a code change FAILS | 32501183 | T2
+      -- Report docstring-presence deltas SEPARATELY from executable ones.
+      Verify: `prove_unchanged.py` prints them under their own heading with each
+      declaration.
 - [-] T3 | SUPERSEDED by T1's fix: an approved add now passes | cd7d2c94 | T3 --
       Say in `write.md` what a docstring `add` does today, until T1 is settled.
       Verify: `write.md` states that it fails the CODE CHECK and that the rail
