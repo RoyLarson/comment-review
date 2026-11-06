@@ -3,7 +3,7 @@
 ```
 Status:   in-progress
 Progress: 174 of 189 TODO tasks closed
-Plan-tasks: 58 of 61 plan tasks closed
+Plan-tasks: 59 of 61 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-11 (founded by move-t from 0.2.4-the-middle-rebuilt)
@@ -884,7 +884,8 @@ interfaces, inputs and checks, without internal development files or history.
         > 2026-11-01 Proof precedes formatting; local validation follows it
         > 2026-11-01 Preserve the exact approved local-validation instruction
         > 2026-11-04 Ruled #277: prove_unchanged, then the repo's tools
-- [ ] P58 | Rewrite obsolete fixture prescriptions as boundary cases
+- [x] P58 | Superseded tasks probed and closed; census T6 stays open | d0096a17 | Rewrite
+      obsolete fixture prescriptions as boundary cases
         > 2026-11-01 Python and Rust cases that can detect a wrong read
         > 2026-11-01 Use the design TODO mapping; retain independent behavioral goals
 - [ ] P59 | Verify command smoke and regression with both readers
