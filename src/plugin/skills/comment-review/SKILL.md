@@ -109,8 +109,11 @@ Work from the git repository at the repo root, and pass `--repo` to every comman
    the commit `git stash create` prints otherwise. Stage 7b proves the code against it.
 2. **Scope.** Use `target` when given. Otherwise take `git merge-base HEAD <upstream>` and list
    `git diff --name-only <base>..HEAD`, plus `git diff --name-only HEAD` for uncommitted work.
-   When there is no upstream, scope from `git diff --name-only HEAD`. Say in the proposal which
-   scope you used.
+   When there is no upstream, scope from `git diff --name-only HEAD`.
+   Remove every programmatically generated file or document, including any file
+   `.gitattributes` marks `linguist-generated`.
+   In the proposal, state which scope you used, and list each file removed with the file it is
+   generated from when the repo names one.
 3. **Cap and width.** Find what the repo publishes -- a contributing guide, `.editorconfig`, a
    formatter config -- and how it counts. Record where you found each, and which work markers
    (`TODO`, `FIXME`, ...) it exempts. When the repo cites a test that enforces the cap, confirm
