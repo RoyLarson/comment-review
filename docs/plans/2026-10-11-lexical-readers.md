@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 175 of 189 TODO tasks closed
+Progress: 179 of 189 TODO tasks closed
 Plan-tasks: 61 of 61 plan tasks closed
 Owner:    backend
 Requires-Roy: false
@@ -149,14 +149,14 @@ interfaces, inputs and checks, without internal development files or history.
 - [-] T18 | T18 -- Bound Lua's long-bracket level, or read it; language.py:473
       stops at two `=` so `--[===[` reads as code. Verify: a fixture with
       `--[===[` fails before the fix.
-- [ ] T19 | T19 -- Make `def g(): """d."""` census instead of failing the file.
+- [x] T19 | T19 -- Make `def g(): """d."""` census instead of failing the file.
       Verify: it types `a1 kind=docstring anchor=g` and `census.py` exits 0.
-- [ ] T22 | T22 -- Pin the address the CURRENT tier produces, so the move
+- [x] T22 | T22 -- Pin the address the CURRENT tier produces, so the move
       arrives as a failing test. Verify: a test asserts `a1` for a same-line
       docstring today.
-- [ ] T23 | T23 -- Set a same-line docstring on its own line below the
+- [x] T23 | T23 -- Set a same-line docstring on its own line below the
       declaration. Verify: `def g(): """d."""` round-trips to the two-line form.
-- [ ] T24 | T24 -- Make `prove_unchanged` admit that one move. Verify: PROVEN on
+- [x] T24 | T24 -- Make `prove_unchanged` admit that one move. Verify: PROVEN on
       the two-line form, and still FAILS when any other token on that line
       moves.
 - [-] T25 | T25 -- Make `_is_doc` consult placement, not only the opener string.

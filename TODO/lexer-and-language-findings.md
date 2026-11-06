@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 54 of 73 tasks closed
+Progress: 58 of 73 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (/simplify rounds 1 and 2 and /code-review high round 3,
@@ -232,19 +232,21 @@ would.
       long-bracket level, or read it; language.py:473 stops at two `=` so
       `--[===[` reads as code. Verify: a fixture with `--[===[` fails before the
       fix.
-- [ ] T19 | T19 -- Make `def g(): """d."""` census instead of failing the file.
-      Verify: it types `a1 kind=docstring anchor=g` and `census.py` exits 0.
+- [x] T19 | Reads; a1 is the docstring (test_python.py:2871, test_compositor) | 9576766a | T19
+      -- Make `def g(): """d."""` census instead of failing the file. Verify: it
+      types `a1 kind=docstring anchor=g` and `census.py` exits 0.
 - [x] T20 | FINISHED | unknown | T20 -- RULED 2026-08-23: placement decides -- a
       doc run is a docstring when a declaration follows it, a comment when
       nothing does. Evidence in the Objective.
 - [-] T21 | SUPERSEDED by T22: an address fixture replaces the predicted history | 32501183 | T21
       -- Record the `a1` -> `c` move in `docs/history.md` with the ruling that
       predicted it. Verify: the entry names both tiers and the ruling's date.
-- [ ] T22 | T22 -- Pin the address the CURRENT tier produces, so the move
-      arrives as a failing test. Verify: a test asserts `a1` for a same-line
-      docstring today.
-- [ ] T23 | T23 -- Set a same-line docstring on its own line below the
-      declaration. Verify: `def g(): """d."""` round-trips to the two-line form.
+- [x] T22 | a1 pinned for a function, a2 for a method, in test_compositor | 9576766a | T22
+      -- Pin the address the CURRENT tier produces, so the move arrives as a
+      failing test. Verify: a test asserts `a1` for a same-line docstring today.
+- [x] T23 | Set on its own line below, a fixed point, in test_compositor | 9576766a | T23
+      -- Set a same-line docstring on its own line below the declaration.
+      Verify: `def g(): """d."""` round-trips to the two-line form.
         > 2026-09-03 MEASURED 2026-09-03: the one-line form round-trips byte-exact today
         > 2026-09-03 lossless returns None; this would make it return a message
         > 2026-09-03 and it moves a CODE line, which is why T24 exists beside it
@@ -254,9 +256,9 @@ would.
         > 2026-09-03 so this must create one first -- nothing to move into
         > 2026-09-03 MEASURED: the ast reader is right; the page assembly loses it
         > 2026-09-03 MEASURED: the ast reader is right, the page loses it
-- [ ] T24 | T24 -- Make `prove_unchanged` admit that one move. Verify: PROVEN on
-      the two-line form, and still FAILS when any other token on that line
-      moves.
+- [x] T24 | The move PROVES; beside a code change it FAILS (test_python_lexical_proof) | 9576766a | T24
+      -- Make `prove_unchanged` admit that one move. Verify: PROVEN on the
+      two-line form, and still FAILS when any other token on that line moves.
         > 2026-09-03 needed with T23: admit that one move, fail on any other token
         > 2026-09-03 ast.dump has no lineno, so it already admits every move
         > 2026-09-03 second clause already false under ast; Process 82 rules the rebuild
