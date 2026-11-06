@@ -5201,6 +5201,7 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
      them to be isolated and restated in a consistent manor by saying they both have to be
      applied or neither."* **`#192`'s pair refusal narrows to a move still held as one mark**,
      `#155`, where the author rules placement.
+     **Superseded 2026-11-06 by `#283`: a move is approved whole, both ends or neither.**
   6. Placement is a third question, beside `composition` and `escalation`, put once per move
      to every role that read either page, with verbs of its own. Shown that a reader other
      than the mover had no answer refusing a move short of a human-review query -- `withdraw`
@@ -6321,3 +6322,19 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   **What it settles.** `census-degrades-silently` T6 is superseded. Code with no useful output is
   not a subject for documentation, so an edit placed on it is not a defect to file, test or
   report; the task agent's compile step is the backstop.
+
+- **#283.** **A move is approved whole; its ends are split afterwards for further marks** (Roy,
+  2026-10-01 and 2026-11-06). In the R2 author review, asked whether naming one end of an agreed
+  move to `proof --only` expands to the move or is refused: *"a move is either approved and split
+  or not approved"* (`TODO/completed/r2-whole-move-approval.md`, `ac4a0658`). It was implemented
+  as a refusal in `9e7532b5` and recorded nowhere in this log. Shown on 2026-11-06 that `#195`
+  item 5 and the smoke still had each end approved on its own:
+
+  *"Yes - the both approved first and then the pieces are split on the turn for further
+  modification (a correct, patch, ...) to allow for the moved statement to be updated and become
+  more correct"*
+
+  **What it settles.** `#195` item 5 is superseded. A move's two ends are approved together or
+  not at all; `proof --only` naming one end alone is refused, naming the move. After the move is
+  approved its ends are split on the turn, so a `correct` or `patch` can make the moved statement
+  more correct at either end.
