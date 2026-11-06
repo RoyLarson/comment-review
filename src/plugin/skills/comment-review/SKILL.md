@@ -481,9 +481,9 @@ none.
 
 ### Stage 7b -- write
 
-Load [`references/write.md`](references/write.md) and follow it. It compiles the accepted
-drafts in a temporary worktree, writes them into the working tree, and proves their code
-unchanged. `git diff` then shows the author exactly what the run changed.
+Load [`references/write.md`](references/write.md) and follow it. It proves the accepted
+drafts' code unchanged in a temporary worktree, runs the repo's check on them there, and writes
+them into the working tree. `git diff` then shows the author exactly what the run changed.
 
 ### Stage 8 -- review
 
