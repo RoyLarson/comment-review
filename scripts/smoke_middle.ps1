@@ -1900,8 +1900,11 @@ $Stages = [ordered]@{
             Write-Host "command: $(Format-CommandLine $notAdmitted)"
             exit 1
         }
+        # The binder the role received holds the dealt places alone, and is
+        # the one `check` reads (references/compact.md).
+        $received = Join-Path (Join-Path $CompactingCopiesDir 'binders') (Split-Path -Leaf $copy)
         Invoke-Checked -Stage 'compacting check' -CommandLine ($Launcher + @(
-            $Cmd.check, '--edit-copy', $copy, '--binder', $CompactingBinderFile,
+            $Cmd.check, '--edit-copy', $copy, '--binder', $received,
             '--repo', $ProofDir
         ))
         # One role read each place, so each proposal stands with nothing to
