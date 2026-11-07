@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 86 of 102 tasks closed
+Progress: 86 of 103 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-29 (2026-08-29, running the chain end to end for the first time with a
@@ -472,3 +472,7 @@ Reconciliation has no command, so the chain cannot be driven end to end.
 - [ ] T100 | Update smoke_middle's stale wrap expectation
 - [ ] T101 | Reconcile smoke_middle's one-end move stage with the refusal
 - [ ] T102 | Reconcile smoke_middle's compacting check stage with check
+- [ ] T103 | Print the next command on each carried-forward and refused line
+      (#286)
+        > 2026-11-07 Exit 3/4 names disposition; exit 1 names mark --withdraw (#286)
+        > 2026-11-07 Check: collate, turn, check; update smoke_middle's expected lines
