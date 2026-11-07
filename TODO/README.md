@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (117)
+### open  (116)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -197,7 +197,6 @@ that changed a published name or rule:
 | [stale-measurements-in-shipped-prose](stale-measurements-in-shipped-prose.md) | testing | yes | 1/6 | every one re-derivable by a command, and every one wrong |
 | [assertions-that-gate-a-substring](assertions-that-gate-a-substring.md) | testing | -- | 5/10 | each passes in the buggy state its own comment forbids |
 | [move-across-an-uncued-file](move-across-an-uncued-file.md) | backend | -- | 5/6 | the address form spans files; the census does not |
-| [closing-line-deletes-code](closing-line-deletes-code.md) | backend | -- | 7/8 | An edit to a comment whose run closes mid-line DELETES the code after the closer |
 | [versioning-at-v1](versioning-at-v1.md) | systems | -- | 3/12 | v1.x wants a concrete versioning system on everything that ships |
 | [a-series-never-fills-outside-python](a-series-never-fills-outside-python.md) | backend | -- | 21/22 | Outside Python the `a` place is emitted and never filled |
 | [bom-is-read-as-source](bom-is-read-as-source.md) | backend | -- | 5/8 | A UTF-8 BOM is censused as a line of code |
@@ -537,3 +536,4 @@ the reason is inside the file.
 | [doc-on-the-declaring-line](completed/doc-on-the-declaring-line.md) | 4 superseded |
 | [smoke-fixture-defects](completed/smoke-fixture-defects.md) | 1 finished |
 | [the-anchor-claims-are-inverted](completed/the-anchor-claims-are-inverted.md) | 4 finished |
+| [closing-line-deletes-code](completed/closing-line-deletes-code.md) | 5 finished, 3 superseded |

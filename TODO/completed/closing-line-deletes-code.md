@@ -1,8 +1,8 @@
 # An edit to a comment whose run closes mid-line DELETES the code after the closer
 
 ```
-Status:   deferred
-Progress: 7 of 8 tasks closed
+Status:   closed
+Progress: 8 of 8 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-21 (the /code-review xhigh of 2026-08-21; measured in-session)
@@ -104,9 +104,10 @@ of the two notes stands.
 - [x] T3 | FINISHED | unknown | T3 -- RECORD, not a task. `prove_unchanged`
       catches it (:79, called at :153) only AFTER stage 7b has written.
       Re-verified 2026-08-23.
-- [ ] T4 | T4 -- * RE-RULE the 2026-08-20 acceptance with the DELETED CODE on
-      the table, and say which of the two contradicting notes stands. Verify:
-      the answer is in this file.
+- [-] T4 | No re-ruling owed: C left (#259), Rust reads it as code (#284) | c526ef23 | T4
+      -- * RE-RULE the 2026-08-20 acceptance with the DELETED CODE on the table,
+      and say which of the two contradicting notes stands. Verify: the answer is
+      in this file.
         > 2026-10-27 At the head too: a closing line with code lands in f0 (P20 probe)
 - [x] T5 | FINISHED | unknown | T5 -- RECORD, not a task. The three options are
       unchanged and are named in the Objective.
