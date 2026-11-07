@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 8 of 22 tasks closed
+Progress: 23 of 25 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-21 (Roy, 2026-08-21: 'The lexer reads zero files - this is also a
@@ -138,43 +138,63 @@ is at `docs/superpowers/specs/2026-08-23-io-and-the-chain-design.md:17`.
 - [x] T8 | FINISHED | unknown | T8 -- RULING, 2026-08-23: the lexer reads, the
       compositor writes and verifies, and `page_for` takes a PATH. Stated in the
       Objective as *The shape of the fix*.
-- [ ] T9 | T9 -- **Create `io.py` and move `read_raw` into it from `repo.py`.**
-      Verify: `io.read_raw` resolves, and `repo.py` defines no reader.
-- [ ] T10 | T10 -- **Move `text_lines` out of `constants.py` into `io.py`.**
-      Verify: it resolves from `io.py`, and `constants.py` no longer defines it.
-- [ ] T11 | T11 -- **Move `utf8_console` out of `constants.py` into `io.py`.**
-      Verify: it resolves from `io.py`, and `constants.py` exports `LINE_BREAK`
-      and nothing else.
-- [ ] T12 | T12 -- **Move the `newline=""` write out of `compositor.py` into
-      `io.py`.** Verify: `grep -n 'newline=' compositor.py` returns nothing.
-- [ ] T13 | T13 -- **Write the read/write gate**: a shipped
-      `read_text\|write_text\|open(` outside `io.py` fails. Verify: it exits
-      nonzero on the tree as it stands, naming each site.
-- [ ] T14 | T14 -- **Give `page_for` a PATH instead of text.** Verify: no caller
-      of `page_for` passes text, and the signature takes a path.
-- [ ] T15 | T15 -- **Let the lexer open the file, with `io.read_raw` and
-      `utf-8-sig`.** Verify: a CRLF file carrying a BOM reads back with both
-      preserved.
-- [ ] T16 | T16 -- **Route the nine bypassing source reads through `io.py`.**
-      Verify: T13's gate exits 0 on the tree, and every source read in the
-      shipped scripts is the lexer's.
-- [ ] T17 | T17 -- **Fix `compositor.identity` so the round trip is compared in
-      BYTES.** Verify: it reads through `io.read_raw` and not `read_text`.
-- [ ] T18 | T18 -- **Test `identity` on a CRLF file, FAILING FIRST.** Verify: a
-      file written `b'# a note\r\nx = 1\r\n'` reports a difference before the
-      fix and `None` after.
-- [ ] T19 | T19 -- **Assert the READ chain as data**: it IS `[language,
-      read_text, lexer, addresser, page]`. Verify: the test fails when a step is
-      removed from the list.
-- [ ] T20 | T20 -- **Assert the WRITE chain as data**, the seven steps named in
-      the Objective. Verify: the test fails when a step is removed from the
+- [-] T9 | SUPERSEDED: machine/repo.py is the I/O module | fb8c29bc | T9 --
+      **Create `io.py` and move `read_raw` into it from `repo.py`.** Verify:
+      `io.read_raw` resolves, and `repo.py` defines no reader.
+- [-] T10 | SUPERSEDED by the design: machine/ is the I/O area; no io.py | 32501183 | T10
+      -- **Move `text_lines` out of `constants.py` into `io.py`.** Verify: it
+      resolves from `io.py`, and `constants.py` no longer defines it.
+- [-] T11 | SUPERSEDED by the design: machine/ is the I/O area; no io.py | 32501183 | T11
+      -- **Move `utf8_console` out of `constants.py` into `io.py`.** Verify: it
+      resolves from `io.py`, and `constants.py` exports `LINE_BREAK` and nothing
+      else.
+- [x] T12 | The newline='' write moved to machine write_raw | fb8c29bc | T12 --
+      **Move the `newline=""` write out of `compositor.py` into `io.py`.**
+      Verify: `grep -n 'newline=' compositor.py` returns nothing.
+- [-] T13 | SUPERSEDED by the design: byte identity, BOM and CRLF checked end to end in test_source_io.py and test_page_for.py, not a fixed READ list | 32501183 | T13
+      -- **Write the read/write gate**: a shipped `read_text\|write_text\|open(`
+      outside `io.py` fails. Verify: it exits nonzero on the tree as it stands,
+      naming each site.
+- [-] T14 | SUPERSEDED by the design: readers take supplied source; page_for(path, text) is that contract | 32501183 | T14
+      -- **Give `page_for` a PATH instead of text.** Verify: no caller of
+      `page_for` passes text, and the signature takes a path.
+- [-] T15 | SUPERSEDED by #259: the lexer was deleted | e2b34a22 | T15 -- **Let
+      the lexer open the file, with `io.read_raw` and `utf-8-sig`.** Verify: a
+      CRLF file carrying a BOM reads back with both preserved.
+- [-] T16 | SUPERSEDED by the design: byte identity, BOM and CRLF checked end to end in test_source_io.py and test_page_for.py, not a fixed READ list | 32501183 | T16
+      -- **Route the nine bypassing source reads through `io.py`.** Verify:
+      T13's gate exits 0 on the tree, and every source read in the shipped
+      scripts is the lexer's.
+- [-] T17 | Replaced by galley-and-compositor-write-path T51-T52 and T23: exact byte comparisons and acquisition | b03adaa8 | T17
+      -- **Fix `compositor.identity` so the round trip is compared in BYTES.**
+      Verify: it reads through `io.read_raw` and not `read_text`.
+- [-] T18 | Replaced by galley-and-compositor-write-path T52: invented independent byte fixtures | b03adaa8 | T18
+      -- **Test `identity` on a CRLF file, FAILING FIRST.** Verify: a file
+      written `b'# a note\r\nx = 1\r\n'` reports a difference before the fix and
+      `None` after.
+- [-] T19 | SUPERSEDED by #259: the chain named the deleted lexer | e2b34a22 | T19
+      -- **Assert the READ chain as data**: it IS `[language, read_text, lexer,
+      addresser, page]`. Verify: the test fails when a step is removed from the
       list.
+- [x] T20 | test_the_chain_IS_this_list asserts the seven STEPS | 4290bfef | T20
+      -- **Assert the WRITE chain as data**, the seven steps named in the
+      Objective. Verify: the test fails when a step is removed from the list.
 - [ ] T21 | T21 -- **Re-take the losslessness number through the raw reader.**
       Verify: the re-run reports its population and names the reader that
       produced it.
 - [ ] T22 | T22 -- **Correct the spec's `read_raw` row, cited in the
       Objective.** Verify: the row names the nine bypassing source reads rather
       than an absence of callers.
+- [x] T23 | Exact filesystem and Git snapshots with named failures verified | 1c16426e | Acquire
+      exact UTF-8 source from files and Git; verify BOM, line endings, Unicode,
+      identity and named failures
+- [x] T24 | Byte writes and pre-truncation encoding refusal verified | 1c16426e | Write
+      exact UTF-8 bytes; verify unchanged round trips and encoding failure
+      before target truncation
+- [x] T25 | Missing repository classified separately from missing revision | 1c16426e | Classify
+      Git repository acquisition errors as io-error; verify missing repository
+      differs from an unavailable revision source
+        > 2026-10-11 Review: flows/source.py:49 classifies every Git exit as missing
 ## Related
 
 - [`bom-is-read-as-source`](bom-is-read-as-source.md) -- the same nine sites, the same one

@@ -27,7 +27,6 @@ hold, because it suppresses the report and not the rewrite.
 """
 
 import subprocess
-import tokenize
 import tomllib
 
 
@@ -61,12 +60,6 @@ READ_ERRORS = (OSError, UnicodeDecodeError)
 #: caller that wanted "could not read it" should not be told the same thing.
 TOML_ERRORS = READ_ERRORS + (tomllib.TOMLDecodeError,)
 
-#: Turning Python SOURCE ALREADY IN HAND into tokens.
-#: !! `tokenize.TokenError` IS NOT A `SyntaxError`, which is the whole reason
-#: both are named: `ast.parse` raises the second and `generate_tokens` raises the
-#: first, so a handler written for one never saw the other.
-TOKENIZE_ERRORS = (tokenize.TokenError, SyntaxError)
-
 #: Reading a Python file AND parsing it -- both failures, under one name,
 #: because a caller that wants a tree cannot use the file either way.
 #:
@@ -75,11 +68,9 @@ TOKENIZE_ERRORS = (tokenize.TokenError, SyntaxError)
 #: as valid UTF-8 and passed `READ_ERRORS` cleanly. `code_names` walks a whole
 #: repository, so one such file aborted the entire gather rather than degrading
 #: one file's harvest.
-#: ! And `TokenError` arrives through `TOKENIZE_ERRORS` above: an unterminated
-#: triple-quote or bracket anywhere in a corpus ended a run with a traceback.
 #: ! Every caller treats a parse failure as ONE FILE DEGRADING, never as the run
 #: ending, which is why the read failures are folded in here too.
-PARSE_ERRORS = READ_ERRORS + TOKENIZE_ERRORS + (ValueError,)
+PARSE_ERRORS = READ_ERRORS + (SyntaxError, ValueError)
 
 #: Asking GIT for something, and not getting an answer.
 #: ! `UnicodeDecodeError` is deliberate: `git()` pins `encoding="utf-8"` with the

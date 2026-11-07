@@ -10,7 +10,7 @@ Raised:   2026-08-29 (2026-08-29, Roy, watching three failed edits in a row: "ha
           may need to rethink this and strip/fill in the comment marks ourselves else
           the agents are seeing noise and potentially creating trouble.")
 Corrected: 2026-08-29 — the '#:' marker question was struck -- the comment token is '#'
-           per the language row, and ':' is prose; a session had asserted a semantic the
+           per the language definition, and ':' is prose; a session had asserted a semantic the
            lexer does not implement
 Measured: 2026-08-29 — the a-place indent rule: anchor+1 level is exact at 276 of 276
           over 52 real files, while the next-b it was to back up is unavailable at 62
@@ -83,7 +83,7 @@ because it rebuilt each file from positions it had just read out of that file.
    glyphs to indicate that this is a special comment."* ! `language.py` agrees -- Python's row is
    `line_comment = ("#",)`, and NOTHING in `reading/lexer.py` treats `#:` as anything. The 140
    hits are this repo's own source USING that style; a session read a convention off the corpus
-   and asserted it as a semantic the system implements. **The token is what the language row says;
+   and asserted it as a semantic the system implements. **The token is what the language definition says;
    everything after it is prose, `:` and `!!` included.**
 2. **What does `a` fill at when there is no next `b`?** Roy, 2026-08-29: *"Python gives us the
    second backup for free on this and that is the docstring is in one level from the anchor
@@ -216,7 +216,7 @@ one thing safe to take first -- it is evidence FOR the ruling, not work under it
       FAIL -- run it over fetched corpora, not hand-written fixtures, per
       `docs/gates.md`.
 - [ ] T3 | The prose is EVERYTHING after the comment token, and the token is
-      what the language row says it is. Verify: `#: x` strips to `: x` and fills
+      what the language definition says it is. Verify: `#: x` strips to `: x` and fills
       back to `#: x`; `# x` strips to ` x` and fills back to `# x`. ! Stripping
       an optional space after the token is what breaks this -- `#: x` has none,
       so a fill that re-adds one writes `# : x`.

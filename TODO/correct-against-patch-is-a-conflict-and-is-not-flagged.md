@@ -2,9 +2,9 @@
 
 ```
 Status:   decision-needed
-Progress: 0 of 3 tasks closed
+Progress: 1 of 3 tasks closed
 Owner:    agents
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-17 (the first end-to-end cycle run; block 1 of galley.py)
 Unblocked: 2026-08-19 — Requires-Roy cleared: its own Owner field reads 'the widening is
            a cost decision Roy has already ruled on once'. The flag means a DECISION is
@@ -60,7 +60,8 @@ finding total matched. It is owed whichever way T1 is ruled.
 
 ## Tasks
 
-- [?] T1 | T1 -- * Rule whether `correct` + `patch` on ONE SENTENCE enters the
+- [x] T1 | Ruled #272: every edit composed at one address goes back for review | e0a31457 | T1
+      -- * Rule whether `correct` + `patch` on ONE SENTENCE enters the
       `RE-REVIEW` set; the three answers are in the Objective. Verify: recorded
       in `docs/decision-log.md`.
 - [ ] T2 | T2 -- Count blocks where `correct` and `patch` overlap, against the 8

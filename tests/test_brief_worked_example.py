@@ -99,40 +99,9 @@ def test_tally_names_the_instruction_the_brief_wrote():
     assert tally(PARSED) == {ENTRY["instruction"]: 1}
 
 
-def test_collate_reads_it_as_a_ruled_mark_and_reports_only_what_it_cannot_resolve(
+def test_collate_refuses_the_examples_fictional_installed_context(
     tmp_path, capsys, monkeypatch
 ):
-    """The command a role's output actually meets, end to end.
-
-    ! THE ADDRESS NAMES ITS PAGE SINCE `mark-defects` T1. The example carried
-    the bare cue `b47`, which names a place on no page and which the mark's
-    parse now refuses; the seeder writes the full address, so the example
-    does too. The page is `redacted_pkg`'s, which this tree does not hold, so
-    the fold reports the address as resolving against no page -- the same
-    fact as the citations below, about the example and not the flow.
-
-    !! IT ASSERTED `code == 0` UNTIL 2026-08-31, AND THAT ONLY HELD WHILE
-    SOURCE VERIFICATION WAS UNWIRED. `P25` put `desk.collator.verify_report`
-    into the flow, and it reports two true things about this input:
-
-        `claim.false` is not in the paragraph this row seeded -- there is no paragraph
-        two `cite`s do not resolve                          -- see below
-
-    ! IT REPORTED A THIRD UNTIL 2026-09-05 -- `'b47' names no place the binder
-    carries` -- and `Process: #97` retired that check: the binder is filtered,
-    so an address it lacks is not a fault.
-
-    !! THE CITATIONS CAN NEVER RESOLVE IN THIS TREE, BY DESIGN. The brief's
-    worked example cites `redacted_pkg/...`, a package this repo does not ship
-    and will not -- so the example is not verifiable HERE, and that is a fact
-    about the example rather than a defect in the flow.
-
-    ! SO WHAT THIS TEST NOW ASSERTS IS THE PART THAT IS ABOUT THE BRIEF: the
-    example is a WELL-FORMED ruled mark -- `problems_in` returns `([], 1)`, in
-    the test above -- and every finding the command reports is a
-    source-verification one, not a shape one. A `code == 0` here would now mean
-    verification had stopped running.
-    """
     copy_path = tmp_path / "edit_copy.json"
     copy_path.write_text(json.dumps(EXAMPLE), encoding="utf-8")
     binder_path = tmp_path / "binder.json"
@@ -155,20 +124,11 @@ def test_collate_reads_it_as_a_ruled_mark_and_reports_only_what_it_cannot_resolv
     code = collate_main()
     printed = capsys.readouterr().out
     assert code == 1, printed
-    # ! EVERY LINE IS A SOURCE-VERIFICATION FINDING. If a SHAPE problem ever
-    # appears here, the brief's worked example has stopped being a well-formed
-    # mark, which is the thing this file exists to notice.
     lines = [line for line in printed.splitlines() if line.strip()]
     assert lines
     for line in lines:
-        assert any(
-            claim in line
-            for claim in (
-                "is not in the paragraph",
-                "does not resolve",
-                "resolves against no page",
-            )
-        ), line
+        assert "reading context" in line and "regather" in line, line
+    assert not (tmp_path / "chief.json").exists()
 
 
 @pytest.mark.parametrize("key", ["claim", "reason", "sources", "change"])

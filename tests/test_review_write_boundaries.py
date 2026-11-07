@@ -13,7 +13,8 @@ from comment_review.flows.bus import (
 )
 from comment_review.flows.page_for import page_of
 from comment_review.flows.proof_setter import run
-from comment_review.flows.transcribe import CannotTranscribe, docket_of_proof
+from comment_review.flows.transcribe import docket_of_proof
+from comment_review.reading.diagnostics import ReadFailure
 from comment_review.results import compositor, galley
 
 
@@ -69,14 +70,16 @@ def test_unchanged_destination_identity_survives_a_committed_transition(tmp_path
 
 
 def test_a_legacy_proof_cannot_invent_an_ungathered_destination_identity(tmp_path):
-    result, repo = _move_into_ungathered_page(tmp_path)
+    result, _ = _move_into_ungathered_page(tmp_path)
     proof = result.proof
     wire = proof.serialize()
     wire.pop("page_shas", None)
     proof, problems = MasterProof.deserialize("legacy", wire)
-    assert proof is not None and not problems
-    with pytest.raises(CannotTranscribe, match="recorded.*sha"):
-        docket_of_proof(proof, repo)
+    assert proof is None
+    assert any(
+        "n.py" in reason and "page_shas" in reason and "regather" in reason
+        for reason in problems
+    )
 
 
 def test_destination_identity_survives_an_answer_turn(tmp_path):
@@ -149,21 +152,22 @@ def test_inserted_closing_gap_survives_proof_and_rereading(tmp_path, text):
     repo.mkdir()
     source = repo / "m.py"
     source.write_text(text, encoding="utf-8", newline="")
-    page, problems = page_of(source, rel="m.py")
-    assert page is not None, problems
+    page = page_of(source, rel="m.py")
+    assert not isinstance(page, ReadFailure), page
     docket = Docket(
         (
             Schedule(
                 "m.py",
                 page.sha,
                 (Alteration("b1", "# new", page.cues.anchor_of("b1")),),
+                page.reading,
             ),
         )
     )
     drafted, refused = run(docket, repo, tmp_path / "draft")
     assert not refused and len(drafted) == 1
-    reread, problems = page_of(tmp_path / "draft" / "m.py", rel="m.py")
-    assert reread is not None, problems
+    reread = page_of(tmp_path / "draft" / "m.py", rel="m.py")
+    assert not isinstance(reread, ReadFailure), reread
     assert next(p for p in reread.paragraphs if p.address == "m.py@b1").text == "new"
     if "# after" in text:
         assert (
@@ -200,10 +204,13 @@ def test_all_concatenated_docstring_literals_are_prose(expression):
 
 def test_dropping_concatenated_docstrings_keeps_the_adjacent_statement():
     source = 'def f():\n    "First " "second."; print("other")\n    return 1\n'
-    paragraph = next(p for p in build(source, "m.py") if p.address == "m.py@a1")
+    page = build(source, "m.py")
+    paragraph = next(p for p in page if p.address == "m.py@a1")
     form = comment_at(paragraph.address, paragraph.raw_text)
     assert form.text == "First second."
-    assert form.without_once("First second.") == '    print("other")'
+    assert form.without_once("First second.") == ""
+    assert not galley.reset(page, {"a1": None})
+    assert compositor.set_page(page) == 'def f():\n    print("other")\n    return 1\n'
 
 
 @pytest.mark.parametrize(

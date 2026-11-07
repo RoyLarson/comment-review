@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 2 of 4 tasks closed
+Progress: 5 of 8 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-21 (the /code-review xhigh of 2026-08-21, focused on the file-to-
@@ -58,15 +58,29 @@ the first statement rather than as a `trailing-comment`, and no anchor is the BO
 
 ## Tasks
 
-- [ ] T1 | T1 -- Read with `utf-8-sig` at `repo.py:52` and `census.py:336`, the
-      lexical route. Verify: the BOM'd `.c` shows all three results named just
-      above the task list.
-- [ ] T2 | T2 -- Read with `utf-8-sig` at `census.py:177`, which feeds
-      `ast.parse`. Verify: a BOM'd `.py` censuses its module docstring, not one
-      `unparsed` paragraph.
+- [-] T1 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | T1
+      -- Read with `utf-8-sig` at `repo.py:52` and `census.py:336`, the lexical
+      route. Verify: the BOM'd `.c` shows all three results named just above the
+      task list.
+- [-] T2 | SUPERSEDED by T8: concordance is shelved from the lexical plan | c0b5b211 | T2
+      -- Read with `utf-8-sig` at `census.py:177`, which feeds `ast.parse`.
+      Verify: a BOM'd `.py` censuses its module docstring, not one `unparsed`
+      paragraph.
 - [x] T3 | FINISHED | unknown | T3 -- MEASUREMENT, not a checkpoint. The `@b0
       interval` / `@c0 trailing-comment` result, both anchored on the BOM, is in
       the Objective, re-measured 2026-08-23.
 - [x] T4 | FINISHED | unknown | T4 -- A statement about the platform, in the
       Objective: BOM is the Visual Studio and Windows PowerShell default for
       `.c`, `.cs`, `.cpp` and `.ps1`.
+- [x] T5 | Head edits on a marked page set the mark at byte 0 and prove in the lexical, Rust and Python readers; a lost or moved mark is protected-source-changed; full suite 6432 passed | dd155ab83501f5ff98b7772a98a79094a1e89929 | Write
+      the byte-order mark ahead of f0, a0 or b0 when the head is set
+        > 2026-10-27 compositor.py:96, galley.py:99; proof passes a lost mark
+        > 2026-10-30 Final review 3 M5: mark moves to line 2 on add f0; 338 dockets
+        > 2026-10-30 Outcome 2026-10-30: edits moving the mark stay refused until T5, T6
+        > 2026-10-31 Code review: a head add over a marked code line still lands
+        > 2026-10-31 Code review: a head add over a marked code line still lands
+- [ ] T6 | Give a declaration on a marked line 1 its a
+        > 2026-10-30 A7: \ufeffclass A {} gets no a; same at 0abe0010
+- [ ] T7 | Test the mark in the docstring branch at `python/projection.py:150`
+- [ ] T8 | Read with utf-8-sig at concordance/code_names.py:85, which feeds
+      ast.parse. Verify: a BOM'd .py is not listed as SyntaxError

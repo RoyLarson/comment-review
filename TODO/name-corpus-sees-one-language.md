@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 0 of 5 tasks closed
+Progress: 5 of 9 tasks closed
 Owner:    backend
-Requires-Roy: false
+Requires-Roy: true
 Raised:   2026-08-24 (Roy, 2026-08-24: 'If python could parse python code names would be
           useful')
 ```
@@ -15,12 +15,22 @@ The name corpus sees one language, and the AST is why.
 
 ## Tasks
 
-- [ ] T1 | declarations() gains the identifier on the declaring line, per
-      language row
+- [-] T1 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | declarations()
+      gains the identifier on the declaring line, per language definition
 - [ ] T2 | code_names harvests from that instead of ast.parse
-- [ ] T3 | Measure the corpus again: the NO_HARVESTER list holds only languages
-      with an empty keyword list
-- [ ] T4 | Say what C and C++ do, whose keyword lists are empty pending the
-      first-word matcher
-- [ ] T5 | referrers.tokens_for stops parsing Python for top-level defs, or says
-      why it still must
+- [-] T3 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | Measure
+      the corpus again: the NO_HARVESTER list holds only languages with an empty
+      keyword list
+- [-] T4 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | Say
+      what C and C++ do, whose keyword lists are empty pending the first-word
+      matcher
+- [-] T5 | SUPERSEDED by T6: concordance is shelved from the lexical plan | c0b5b211 | referrers.tokens_for
+      stops parsing Python for top-level defs, or says why it still must
+- [-] T6 | SUPERSEDED by T8: one act; a reason to keep parsing goes in a note | b5bcfd27 | Make
+      referrers.tokens_for stop parsing Python for top-level defs, or say why it
+      still must
+- [ ] T7 | Add Python and Rust declaration facts to referrer discovery. Verify:
+      path terms remain; unharvested Rust is reported
+- [ ] T8 | Make referrers.tokens_for stop parsing Python for top-level defs
+- [?] T9 | Decide whether concordance/code_names.py is renamed references, per
+      Addressing #17

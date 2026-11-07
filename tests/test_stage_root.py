@@ -38,7 +38,26 @@ def _gather_args(repo, revise: int, paths: list[str]) -> argparse.Namespace:
         repo=str(repo),
         include_absent=False,
         revise=revise,
+        settings=None,
     )
+
+
+def test_a_relative_path_reads_from_the_named_root(tmp_path, capsys, monkeypatch):
+    # Standing in the original, where a file of the same name holds other text.
+    repo = a_small_real_tree(tmp_path)
+    pulled = pull(
+        a_docket_that_rewrites(repo, "mark.py"), repo, tmp_path / "r1", revise=1
+    )
+    monkeypatch.chdir(repo)
+    exit_code = gather_command._report(
+        _gather_args(pulled.root, revise=1, paths=["mark.py"])
+    )
+    assert exit_code == 0
+    binder, problems = Binder.deserialize("stdout", json.loads(capsys.readouterr().out))
+    assert binder is not None, problems
+    row = the_row_for(binder, "mark.py")
+    assert row.raw_text in (pulled.root / "mark.py").read_text(encoding="utf-8")
+    assert row.raw_text not in (repo / "mark.py").read_text(encoding="utf-8")
 
 
 def test_the_gather_command_states_the_revise_it_read(tmp_path, capsys, monkeypatch):

@@ -13,16 +13,324 @@ from conftest import PKG, SAMPLE, build, by_cue, cue, docket_from
 from helpers import a_move, copies_over, entries_of, returned
 
 from comment_review.binder.binder import bind
+from comment_review.constants import EMPTY_PATCH
 from comment_review.desk.proof.edit_copy import EditCopy
 from comment_review.docket.docket import Alteration, Docket, Schedule
 from comment_review.flows import page_for as page_for_mod
-from comment_review.flows import proof_setter
+from comment_review.flows import proof_setter, revise
+from comment_review.flows import source as source_flow
 from comment_review.flows.distribute import seed
 from comment_review.flows.transcribe import docket_of
 from comment_review.machine.repo import undraftable
 from comment_review.reading.addresser import cue_of
+from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, ReadStage
+from comment_review.reading.proof import UNPROVABLE, PreservationResult
+from comment_review.reading.rust.records import RustRead
 from comment_review.results import compositor, galley
-from comment_review.results.prove_unchanged import code_fingerprint
+
+
+@pytest.mark.parametrize("fault", ["digest", "malformed", "duplicate-settings"])
+def test_saved_context_refuses_before_setting(tmp_path, monkeypatch, fault):
+    repo, binder, _ = _tree(tmp_path)
+    docket = docket_from({address(binder, "m.py"): "# replacement"}, binder)
+    saved = docket.schedules[0].reading
+    if fault == "digest":
+        saved = dataclasses.replace(saved, compatibility="0" * 64)
+    elif fault == "malformed":
+        saved = []
+    else:
+        object.__setattr__(saved, "settings", (("mode", "on"), ("mode", "off")))
+    schedule = dataclasses.replace(docket.schedules[0], reading=saved)
+
+    def forbidden_set(*args, **kwargs):
+        pytest.fail("incompatible context reached the setter")
+
+    monkeypatch.setattr(galley, "reset", forbidden_set)
+    drafted, refused = proof_setter.run(Docket((schedule,)), repo, tmp_path / "out")
+    assert drafted == []
+    assert refused and "reading" in refused[0].why
+
+
+@pytest.mark.parametrize("different", ["same", "sha", "reading"])
+def test_direct_duplicate_paths_refuse_before_drafting(
+    tmp_path, monkeypatch, different
+):
+    repo, binder, _ = _tree(tmp_path)
+    docket = docket_from({address(binder, "m.py"): "# replacement"}, binder)
+    first = docket.schedules[0]
+    second = first
+    if different == "sha":
+        second = dataclasses.replace(first, sha="different")
+    elif different == "reading":
+        second = dataclasses.replace(
+            first, reading=dataclasses.replace(first.reading, compatibility="0" * 64)
+        )
+
+    def forbidden_set(*args, **kwargs):
+        pytest.fail("duplicate paths reached the setter")
+
+    monkeypatch.setattr(galley, "reset", forbidden_set)
+    drafted, refused = proof_setter.run(Docket((first, second)), repo, tmp_path / "out")
+    assert drafted == []
+    assert "two schedules" in refused[0].why
+
+
+def test_later_saved_context_mismatch_discards_nested_draft(tmp_path, monkeypatch):
+    repo, into = tmp_path / "repo", tmp_path / "out"
+    originals = {
+        "a/deep/first.py": b"x = 1\r\n\r\n# note\r\ny = 2\r\n",
+        "z.py": b"x = 1\n\n# note\ny = 2\n",
+    }
+    pages = []
+    for rel, raw in originals.items():
+        path = repo / rel
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(raw)
+        page = proof_setter.page_of(path, rel=rel)
+        assert not isinstance(page, ReadFailure)
+        pages.append(page)
+    binder = bind(pages, read_from={"root": str(repo), "revise": 0})
+    docket = docket_from(
+        {address(binder, rel): "# replacement" for rel in originals}, binder
+    )
+    first, second = docket.schedules
+    second = dataclasses.replace(
+        second, reading=dataclasses.replace(second.reading, compatibility="0" * 64)
+    )
+    real_page = proof_setter.page_of
+    observed = []
+
+    def observing_page(path, *args, **kwargs):
+        if path == repo / "z.py":
+            observed.append((into / "a/deep/first.py").is_file())
+        return real_page(path, *args, **kwargs)
+
+    monkeypatch.setattr(proof_setter, "page_of", observing_page)
+    drafted, refused = proof_setter.run(Docket((first, second)), repo, into)
+    assert drafted == [] and refused
+    assert observed == [True]
+    assert list(into.iterdir()) == []
+    assert {rel: (repo / rel).read_bytes() for rel in originals} == originals
+
+
+@pytest.mark.parametrize("text", ["x = 1\n\n# note\ny = 2\n", ""])
+def test_saved_nondefault_settings_reach_original_and_draft(
+    tmp_path, monkeypatch, text
+):
+    from comment_review.flows import reading_context as flow_context
+
+    original_reader = flow_context.reader_for
+    registry = flow_context.INSTALLED_REGISTRY
+    selected = original_reader(Path("m.py"), registry)
+    assert selected is not None and not isinstance(selected, ReadFailure)
+    definition, binding = selected
+    configured = dataclasses.replace(
+        definition, defaults={"mode": "default"}, choices={"mode": ("default", "saved")}
+    )
+    monkeypatch.setattr(
+        flow_context, "reader_for", lambda path, registry: (configured, binding)
+    )
+    repo, into = tmp_path / "repo", tmp_path / "out"
+    repo.mkdir()
+    path = repo / "m.py"
+    path.write_text(text, encoding="utf-8")
+    page = proof_setter.page_of(path, rel="m.py", settings={"mode": "saved"})
+    assert not isinstance(page, ReadFailure)
+    if text:
+        binder = bind([page], read_from={"root": str(repo), "revise": 0})
+        docket = docket_from({address(binder, "m.py"): "# replacement"}, binder)
+        docket = Docket(
+            (dataclasses.replace(docket.schedules[0], reading=page.reading),)
+        )
+    else:
+        docket = Docket((Schedule("m.py", page.sha, (), page.reading),))
+    real_page = page_for_mod.page_for
+    observed = []
+
+    def require_saved(path, *args, **kwargs):
+        reading = kwargs["reading"]
+        observed.append((Path(path), reading.settings))
+        return real_page(path, *args, **kwargs)
+
+    monkeypatch.setattr(page_for_mod, "page_for", require_saved)
+    drafted, refused = proof_setter.run(docket, repo, into)
+    assert refused == [] and len(drafted) == 1
+    assert observed == [
+        (path, (("mode", "saved"),)),
+        (into / "m.py", (("mode", "saved"),)),
+    ]
+
+
+@pytest.mark.parametrize("stage", ["lex", "place"])
+def test_direct_proof_refuses_failed_reading(monkeypatch, stage):
+    from comment_review.reading.diagnostics import ReadDiagnostic, ReadStage
+    from comment_review.reading.source import SourceSpan
+
+    name = "m.rs"
+
+    def failed_page(*args, **kwargs):
+        return ReadFailure(
+            (
+                ReadDiagnostic(
+                    ReadStage(stage),
+                    "refused-input",
+                    "source refused",
+                    SourceSpan(0, 1),
+                ),
+            )
+        )
+
+    monkeypatch.setattr(page_for_mod, "page_for", failed_page)
+    refusal = proof_setter._prove(
+        name, "const value = 1;\n", "const value = 1;\n", Path(name)
+    )
+    assert refusal is not None
+    assert refusal.step == "prove"
+    assert f"{stage}/refused-input" in refusal.why
+
+
+def test_failed_draft_read_rejects_and_rolls_back(tmp_path, monkeypatch):
+    from comment_review.reading.diagnostics import ReadDiagnostic, ReadStage
+
+    repo, binder, _ = _tree(tmp_path)
+    into = tmp_path / "out"
+    real_page = page_for_mod.page_for
+
+    def failed_draft(path, *args, **kwargs):
+        if Path(path).is_relative_to(into):
+            return ReadFailure(
+                (ReadDiagnostic(ReadStage.PLACE, "draft-placement", "draft refused"),)
+            )
+        return real_page(path, *args, **kwargs)
+
+    monkeypatch.setattr(page_for_mod, "page_for", failed_draft)
+    drafted, refused = proof_setter.run(
+        docket_from({address(binder, "m.py"): "# replacement"}, binder), repo, into
+    )
+    assert drafted == []
+    assert refused[0].step == "reread"
+    assert "place/draft-placement" in refused[0].why
+    assert not (into / "m.py").exists()
+
+
+@pytest.mark.parametrize("side", ["source", "draft"])
+@pytest.mark.parametrize("stage", ["acquire", "decode", "lex", "place", "programming"])
+def test_second_file_read_failure_discards_all_nested_drafts(
+    tmp_path, monkeypatch, side, stage
+):
+    originals = {
+        "a/first.py": b"value = 1\r\n\r\n# first note\r\nother = 2\r\n",
+        "z/deep/second.py": b"value = 3\n\n# second note\nother = 4\n",
+    }
+    repo = tmp_path / "repo"
+    into = tmp_path / "out"
+    into.mkdir()
+    pages = []
+    for rel, raw in originals.items():
+        path = repo / rel
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(raw)
+        page = proof_setter.page_of(path, rel=rel)
+        assert not isinstance(page, ReadFailure), page
+        pages.append(page)
+    binder = bind(pages, read_from={"root": str(repo), "revise": 0})
+    docket = docket_from(
+        {address(binder, rel): "# replacement" for rel in originals}, binder
+    )
+    target = (repo if side == "source" else into) / "z/deep/second.py"
+    observed = []
+    bug = RuntimeError("reader implementation failed")
+
+    def check_staged():
+        assert (into / "a/first.py").is_file()
+        assert (into / "a/first.py").read_bytes() != originals["a/first.py"]
+        if side == "draft":
+            assert target.is_file()
+        observed.append(target)
+
+    if stage in ("acquire", "decode"):
+        real_read = source_flow.read_source
+
+        def failing_source(path):
+            if path == target:
+                check_staged()
+                if stage == "acquire":
+                    raise PermissionError("source acquisition refused")
+                raise UnicodeDecodeError("utf-8", b"\xff", 0, 1, "invalid start byte")
+            return real_read(path)
+
+        monkeypatch.setattr(source_flow, "read_source", failing_source)
+    else:
+        real_page = page_for_mod.page_for
+
+        def failing_page(path, *args, **kwargs):
+            if Path(path) == target:
+                check_staged()
+                if stage == "programming":
+                    raise bug
+                return ReadFailure(
+                    (
+                        ReadDiagnostic(
+                            ReadStage(stage), "refused-input", "source refused"
+                        ),
+                    )
+                )
+            return real_page(path, *args, **kwargs)
+
+        monkeypatch.setattr(page_for_mod, "page_for", failing_page)
+
+    if stage == "programming":
+        with pytest.raises(
+            RuntimeError, match="^reader implementation failed$"
+        ) as raised:
+            proof_setter.run(docket, repo, into)
+        assert raised.value is bug
+    else:
+        drafted, refused = proof_setter.run(docket, repo, into)
+        assert drafted == []
+        assert len(refused) == 1
+        assert (refused[0].step, refused[0].path) == (
+            "read" if side == "source" else "reread",
+            "z/deep/second.py",
+        )
+        code = {"acquire": "io-error", "decode": "invalid-utf8"}.get(
+            stage, "refused-input"
+        )
+        assert f"{stage}/{code}" in refused[0].why
+    assert observed == [target]
+    assert list(into.iterdir()) == []
+    assert {rel: (repo / rel).read_bytes() for rel in originals} == originals
+
+
+def test_proof_reuses_admitted_pages(tmp_path, monkeypatch):
+    repo, binder, _ = _tree(tmp_path)
+    real_page = proof_setter.page_of
+    reads = []
+
+    def watching_page(path, *args, **kwargs):
+        reads.append(path)
+        return real_page(path, *args, **kwargs)
+
+    monkeypatch.setattr(proof_setter, "page_of", watching_page)
+    into = tmp_path / "out"
+    drafted, refused = proof_setter.run(
+        docket_from({address(binder, "m.py"): "# replacement"}, binder), repo, into
+    )
+    assert refused == [] and len(drafted) == 1
+    assert reads == [repo / "m.py", into / "m.py"]
+
+
+def test_direct_proof_an_unprovable_comparison_cannot_pass(monkeypatch):
+    unprovable = PreservationResult(
+        False, (ReadDiagnostic(ReadStage.PLACE, UNPROVABLE, "not separated"),)
+    )
+    monkeypatch.setattr(RustRead, "preserved", lambda *_, **__: unprovable)
+    text = "const VALUE: i32 = 1;\n"
+    refusal = proof_setter._prove("m.rs", text, text, Path("m.rs"))
+    assert refusal is not None
+    assert refusal.step == "prove"
+    assert "cannot be proven unchanged" in refusal.why
+
 
 #: A replacement that is legal in each series -- a `c` carries its own
 #: separator, an `a` its indentation. Same table as `tests/test_galley.py`,
@@ -183,6 +491,7 @@ def test_a_page_the_REPO_DOES_NOT_HAVE_refuses_at_read_and_names_it(tmp_path):
                 {
                     "path": "pkg/nowhere.py",
                     "sha": "whatever",
+                    "reading": build("", "pkg/nowhere.py").serialize()["reading"],
                     "alterations": [{"cue": "b0", "text": "# x"}],
                 }
             ]
@@ -529,6 +838,7 @@ class TestEveryAlterationCarriesAnAnchor:
                     {
                         "path": "m.py",
                         "sha": page.sha,
+                        "reading": page.serialize()["reading"],
                         "alterations": [{"cue": cue_of(where).cue, "text": "# x"}],
                     }
                 ]
@@ -575,14 +885,15 @@ class TestOnePlaceTakesOneAlteration:
         where = address(binder, "m.py")
         at = cue_of(where).cue
         (page,) = binder.pages
-        held, why = page_for_mod.page_of(repo / "m.py", rel="m.py")
-        assert held is not None, why
+        held = page_for_mod.page_of(repo / "m.py", rel="m.py")
+        assert not isinstance(held, ReadFailure), held
         anchor = held.cues.places[at]
         docket = Docket(
             schedules=(
                 Schedule(
                     path="m.py",
                     sha=page.sha,
+                    reading=page.reading,
                     alterations=(
                         Alteration(cue=at, text="# one", anchor=anchor),
                         Alteration(cue=at, text=None, anchor=anchor),
@@ -918,6 +1229,11 @@ class TestEveryVerdictThePlacesCanEXPRESSGetsThroughTheChain:
         "c1: holds [''], was given []")` -- the galley, the compositor and the
         draft on disk all correct, and the draft then discarded."""
         drafted, refused = self._run(tmp_path, {f"m.py@{where}": None})
+        if where == "f0":
+            assert drafted == []
+            assert refused and refused[0].step == "prove"
+            assert "code-changed" in refused[0].why
+            return
         assert refused == []
         assert len(drafted) == 1
         again = build(drafted[0].draft.read_text(encoding="utf-8"))
@@ -994,13 +1310,25 @@ class TestEveryVerdictThePlacesCanEXPRESSGetsThroughTheChain:
         which no alteration names, so the proof refuses it: a docstring binds
         `__doc__`, and a module reading `ArgumentParser(description=__doc__)`
         behaves differently without one."""
-        held = by_cue(build(SAMPLE))["a1"].raw_lines
+        was = by_cue(build(SAMPLE))
+        held = was["a1"].raw_lines
         assert len(held) == 1
+        page = build(SAMPLE)
+        galley.reset(page, {"a2": ADDED["a"]})
+        after = compositor.set_page(page).replace(held[0] + "\n", "")
+        now = by_cue(build(after))
+        refused = proof_setter._prove(
+            "m.py", SAMPLE, after, Path("m.py"), [(was["a2"], now["a2"])]
+        )
+        assert refused is not None
+        assert refused.step == "prove"
+        assert "not what it was" in refused.why
+
+        # The whole chain stops one step sooner: nobody edited `a1`.
         _the_draft_also(monkeypatch, held[0] + "\n", "")
-        drafted, refused = self._run(tmp_path, {"m.py@a2": ADDED["a"]})
+        drafted, chain = self._run(tmp_path, {"m.py@a2": ADDED["a"]})
         assert drafted == []
-        assert refused[0].step == "prove"
-        assert "not what it was" in refused[0].why
+        assert chain[0].step == "reread"
 
     @pytest.mark.parametrize(
         "alterations",
@@ -1081,10 +1409,10 @@ class TestOnlyCommentsChange:
     just after the human review edit piece just to be certain we only changed
     only comments."* This is the first of those two.
 
-    ! `_prove` IS TESTED DIRECTLY BELOW, NOT THROUGH `run()`. For Python's
-    AST tier, `_reread` already requires exact `raw_lines` equality at every
-    edited cue, so an alteration surviving it was -- by construction -- read back
-    as prose at that cue, and a COMMENT never enters the AST.
+    ! `_prove` IS TESTED DIRECTLY BELOW, NOT THROUGH `run()`. `_reread` already
+    requires each alteration's exact text on the lines written for it and every
+    other paragraph's text unchanged, so a draft surviving it changed only the
+    prose it was asked to.
 
     A docstring is the other prose that reaches the comparison: its presence
     is in the fingerprint except at a declaration an approved alteration
@@ -1109,84 +1437,833 @@ class TestOnlyCommentsChange:
         assert refused == [] and len(drafted) == 1
 
     def test_a_comment_run_that_swallows_code_is_caught_by_prove(self):
-        """A one-line C block comment, replaced with an opener that never
+        """A one-line block comment, replaced with an opener that never
         closes: the composed file's comment run swallows the code line
         after it -- `TODO/closing-line-deletes-code.md`, measured on this
         exact shape."""
-        before = "int a = 1;\n/* note */\nint b = 2;\n"
-        page = build(before, "m.c")
+        name = "m.rs"
+        first = "const A: i32 = 1;"
+        second = "const B: i32 = 2;"
+        before = f"{first}\n/* note */\n{second}\n"
+        page = build(before, name)
         cue = next(c for c, b in by_cue(page).items() if b.raw_lines == ["/* note */"])
         galley.reset(page, {cue: "/* note"})
         after = compositor.set_page(page)
-        assert after == "int a = 1;\n/* note\nint b = 2;\n"
+        assert after == f"{first}\n/* note\n{second}\n"
 
-        refused = proof_setter._prove("m.c", before, after, Path("m.c"))
+        refused = proof_setter._prove(name, before, after, Path(name))
         assert refused is not None
         assert refused.step == "prove"
 
-    def test_TWO_UNPROVABLE_files_are_not_reported_identical(self):
-        """The hazard named at the top of `code_fingerprint`'s own docstring:
-        an unprovable file's fingerprint is the empty string, and two empty
-        strings compare equal. These two files hold different code and are
-        each unprovable for a different reason -- an all-comment file with no
-        code at all, and one whose comment never closes -- so a `_prove` that
-        compared `want != got` without reading `kind` first would report them
-        IDENTICAL."""
+    def test_code_under_an_unclosed_comment_refuses_a_file_with_no_code_line(self):
         before = "// just a comment\n"
-        after = "int y = 999; /* oops\n"
-        assert code_fingerprint(before, Path("m.c")) == ("unprovable", "")
-        assert code_fingerprint(after, Path("m.c")) == ("unprovable", "")
-
-        refused = proof_setter._prove("m.c", before, after, Path("m.c"))
+        after = "const Y: i32 = 999; /* oops\n"
+        refused = proof_setter._prove("m.rs", before, after, Path("m.rs"))
         assert refused is not None
         assert refused.step == "prove"
 
-
-def test_a_CUE_COLLISION_in_the_draft_is_REFUSED_and_not_last_one_wins(
-    tmp_path, monkeypatch
-):
-    """IMPORTANT, measured 2026-08-25: `_reread` built
-    `placed = {cue_of(b.address).cue: b for b in page if b.address}`, so two
-    paragraphs sharing a cue silently kept the LAST and checked the alteration
-    against it -- a draft holding the approved text at one and prose nobody
-    looked at at the other passed. `galley.reset` refuses that shape BY NAME
-    (157 of them measured in one tree on 2026-08-21), so the verification step
-    was weaker than the edit step it exists to check.
-
-    ! THE COLLISION IS THE INPUT, which is why it is made rather than found: no
-    file in this tree produces one today, and `_reread` reads the DRAFT, so the
-    only way in is the reader it calls. The page is a real page over the real
-    draft; one paragraph's address is copied onto another so the shape under
-    test is the shape being asserted about.
-
-    ! IT IS CONDITIONED ON THE PATH because `_reread` reads through `page_of`,
-    the same step `_one` reads the SOURCE through. Colliding both would refuse
-    at `edit` -- `galley.reset`'s own collision check -- and never reach the
-    step under test."""
-    repo, binder, _ = _tree(tmp_path)
-    into = tmp_path / "out"
-    where = address(binder, "m.py")
-    cue = cue_of(where).cue
-    real_page_for = page_for_mod.page_for
-
-    def colliding_page_for(path, *args, **kwargs):
-        page = real_page_for(path, *args, **kwargs)
-        if not Path(path).resolve().is_relative_to(into.resolve()):
-            return page
-        addressed = [b for b in page if b.address]
-        held = next(b for b in addressed if cue_of(b.address).cue == cue)
-        other = next(b for b in addressed if b is not held)
-        other.address = held.address
-        return page
-
-    monkeypatch.setattr(page_for_mod, "page_for", colliding_page_for)
-    drafted, refused = proof_setter.run(
-        docket_from({where: "# REPLACED"}, binder), repo, into
+    @pytest.mark.parametrize(
+        ("name", "before", "after"),
+        [
+            ("m.rs", "// one\n", "/* two */\n// three\n"),
+            ("m.py", "# one\n", "# two\n# three\n"),
+        ],
+        ids=["rs", "py"],
     )
+    def test_two_files_with_no_code_line_prove_equal_because_neither_holds_code(
+        self, name, before, after
+    ):
+        assert proof_setter._prove(name, before, after, Path(name)) is None
+
+    @pytest.mark.parametrize(
+        ("name", "before", "after"),
+        [
+            ("m.rs", "// one\n", "// one\nconst X: i32 = 1;\n"),
+            ("m.py", "# one\n", "# one\nx = 1\n"),
+        ],
+        ids=["rs", "py"],
+    )
+    def test_code_added_to_a_file_with_no_code_line_refuses(self, name, before, after):
+        refused = proof_setter._prove(name, before, after, Path(name))
+        assert refused is not None
+        assert refused.step == "prove"
+        assert "code-changed" in refused.why
+
+    @pytest.mark.parametrize(
+        ("name", "comment"),
+        [("m.rs", "// a\n"), ("m.py", "# a\n")],
+        ids=["rs", "py"],
+    )
+    @pytest.mark.parametrize("line", ["\x1c", "\x1d", "\xa0", "\u2003"])
+    def test_a_line_the_language_can_run_is_not_blank(self, line, name, comment):
+        before = comment + line + "\n"
+        refused = proof_setter._prove(name, before, comment, Path(name))
+        assert refused is not None
+        assert "code-changed" in refused.why
+
+
+def _chain(tmp_path, name: str, text: str, alterations: dict):
+    """The chain over a one-file repo holding `text` as `name`."""
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    (repo / name).write_text(text, encoding="utf-8", newline="")
+    binder = bind([build(text, name)], read_from={"root": str(repo), "revise": 0})
+    flat = {f"{name}@{where}": prose for where, prose in alterations.items()}
+    return proof_setter.run(docket_from(flat, binder), repo, tmp_path / "out")
+
+
+@pytest.mark.parametrize(
+    ("name", "text", "alterations", "expected"),
+    [
+        (
+            "m.rs",
+            "fn f() {}\n",
+            {"a0": "/** Module. */"},
+            "/** Module. */\nfn f() {}\n",
+        ),
+        (
+            "m.rs",
+            "fn f() {}\n",
+            {"a0": "/** Module. */", "a1": "/** F. */"},
+            "/** Module. */\n/** F. */\nfn f() {}\n",
+        ),
+    ],
+    ids=[
+        "rs-a0-over-a-declaration",
+        "rs-a0-and-a1",
+    ],
+)
+def test_an_alteration_read_back_at_its_partner_place_is_accepted(
+    tmp_path, name, text, alterations, expected
+):
+    # `a0` filled alone above a declaration reads back as that declaration's `a`.
+    drafted, refused = _chain(tmp_path, name, text, alterations)
+    assert refused == []
+    assert drafted[0].draft.read_text(encoding="utf-8") == expected
+
+
+def _step(tmp_path, n: int, name: str, text: str, alterations: dict) -> str:
+    """One step of a chain of runs: what the draft holds after these alterations."""
+    drafted, refused = _chain(tmp_path / str(n), name, text, alterations)
+    assert refused == []
+    return drafted[0].draft.read_bytes().decode("utf-8")
+
+
+def _at(text: str, name: str, words: str) -> str:
+    """The cue that holds `words` on a read of `text`."""
+    return next(
+        c for c, b in by_cue(build(text, name)).items() if b.raw_lines == [words]
+    )
+
+
+def _pulled(tmp_path, n: int, name: str, text: str, alterations: dict) -> str:
+    """`_step` through `revise.pull`, the flow the `proof` command calls."""
+    repo = tmp_path / str(n) / "repo"
+    repo.mkdir()
+    (repo / name).write_text(text, encoding="utf-8", newline="")
+    binder = bind([build(text, name)], read_from={"root": str(repo), "revise": 0})
+    flat = {f"{name}@{where}": prose for where, prose in alterations.items()}
+    pulled = revise.pull(docket_from(flat, binder), repo, tmp_path / str(n) / "out", 1)
+    assert pulled.refusals == []
+    return (pulled.root / name).read_bytes().decode("utf-8")
+
+
+@pytest.mark.parametrize("through", [_step, _pulled], ids=["run", "pull"])
+@pytest.mark.parametrize("written", ["a0", "a1"])
+def test_roys_chain_ends_byte_identical_to_the_first_draft(tmp_path, written, through):
+    name = "m.rs"
+    code = "fn f() {}"
+    # Decision #247, on a blank docstring: add, read it back at the declaration's
+    # `a`, run it through unchanged, move it to the other place.
+    for path in (tmp_path / "1", tmp_path / "2", tmp_path / "3"):
+        path.mkdir()
+    words = "/** Doc. */"
+    first = through(tmp_path, 1, name, f"{code}\n", {written: words})
+    assert first == f"/** Doc. */\n{code}\n"
+    assert _at(first, name, words) == "a1"
+    assert through(tmp_path, 2, name, first, {"a1": words}) == first
+    assert through(tmp_path, 3, name, first, {"a1": None, "a0": words}) == first
+
+
+@pytest.mark.parametrize(
+    ("name", "text", "words", "alteration", "expected"),
+    [
+        ("m.rs", "", "", {"a0": "// A note."}, "// A note."),
+        ("m.py", "", "", {"a0": "# A note."}, "# A note."),
+        ("m.rs", "// a tpyo\n", "// a tpyo", {"": "// a typo"}, "// a typo\n"),
+        ("m.py", "# a tpyo\n", "# a tpyo", {"": "# a typo"}, "# a typo\n"),
+        (
+            "m.rs",
+            "/** Teh doc. */\n",
+            "/** Teh doc. */",
+            {"": "/** The doc. */"},
+            "/** The doc. */\n",
+        ),
+    ],
+    ids=[
+        "rs-blank-gets-a-comment",
+        "py-blank-gets-a-comment",
+        "rs-typo-fixed",
+        "py-typo-fixed",
+        "rs-header-of-docs",
+    ],
+)
+def test_a_file_with_no_code_line_takes_a_comment_change(
+    tmp_path, name, text, words, alteration, expected
+):
+    alterations = {
+        (_at(text, name, words) if not where else where): prose
+        for where, prose in alteration.items()
+    }
+    drafted, refused = _chain(tmp_path, name, text, alterations)
+    assert refused == []
+    assert drafted[0].draft.read_bytes().decode("utf-8") == expected
+
+
+@pytest.mark.parametrize(
+    ("name", "text", "where"),
+    [
+        ("m.py", '# x\n\n# y\n"""D"""\nx = 1\n', "a0"),
+        ("m.rs", "// x\n\n// y\n//! D\nfn f() {}\n", "a0"),
+    ],
+    ids=["py", "rs"],
+)
+def test_a_drop_can_turn_a_neighbour_from_matter_into_a_comment(
+    tmp_path, name, text, where
+):
+    # The neighbour's kind changes between page and draft, and its text does not.
+    drafted, refused = _chain(tmp_path, name, text, {where: None})
+    assert refused == []
+    assert drafted
+
+
+@pytest.mark.parametrize(
+    ("before", "after"),
+    [
+        ("#!/bin/sh\n", "#!/bin/rm\n"),
+        ("#!/bin/sh\n", ""),
+        ("", "#!/bin/rm\n"),
+    ],
+    ids=["changed", "removed", "added"],
+)
+def test_the_interpreter_line_is_protected(before, after):
+    name = "m.rs"
+    comment = "// a\n"
+    refused = proof_setter._prove(name, before + comment, after + comment, Path(name))
+    assert refused is not None
+    assert refused.step == "prove"
+    assert "protected-source-changed" in refused.why
+
+
+@pytest.mark.parametrize(
+    ("before", "after"),
+    [("#!/bin/sh\n# a\n", "#!/bin/rm\n# a\n"), ("# a\n", "#!/bin/rm\n# a\n")],
+    ids=["changed", "added"],
+)
+def test_python_reads_a_changed_interpreter_line_as_changed_code(before, after):
+    refused = proof_setter._prove("m.py", before, after, Path("m.py"))
+    assert refused is not None
+    assert refused.step == "prove"
+    assert "code-changed" in refused.why
+
+
+class TestAnInterpreterLineTheRowNames:
+    NAME = "m.rs"
+    COMMENT = "// doc"
+    CODE = "fn main() {}"
+    SHEBANG = "#!/usr/bin/env x"
+
+    def test_a_comment_above_it_is_refused(self):
+        before = f"{self.SHEBANG}\n{self.CODE}\n"
+        refused = proof_setter._prove(
+            self.NAME, before, f"{self.COMMENT}\n{before}", Path(self.NAME)
+        )
+        assert refused is not None
+        assert "protected-source-changed" in refused.why
+
+    @pytest.mark.parametrize(("where", "gap"), [("a0", ""), ("b0", "\n")])
+    def test_an_add_at_the_head_lands_below_it(self, tmp_path, where, gap):
+        text = f"{self.SHEBANG}\n{self.CODE}\n"
+        drafted, refused = _chain(tmp_path, self.NAME, text, {where: self.COMMENT})
+        assert refused == []
+        written = drafted[0].draft.read_text(encoding="utf-8")
+        assert written == f"{self.SHEBANG}\n{gap}{self.COMMENT}\n{self.CODE}\n"
+
+    def test_an_add_at_f0_stands_above_it_and_is_refused(self, tmp_path):
+        text = f"{self.SHEBANG}\n{self.CODE}\n"
+        drafted, refused = _chain(tmp_path, self.NAME, text, {"f0": self.COMMENT})
+        assert drafted == []
+        assert "protected-source-changed" in refused[0].why
+
+
+@pytest.mark.parametrize(
+    ("name", "code"),
+    [
+        ("m.py", "# lic\n\nx = 1"),
+        ("m.rs", "// lic\n\nfn main() {}"),
+    ],
+    ids=["py", "rs"],
+)
+def test_dropping_the_matter_cannot_take_the_interpreter_line(tmp_path, name, code):
+    text = f"#!/bin/sh\n{code}\n"
+    drafted, refused = _chain(tmp_path, name, text, {"f0": None})
     assert drafted == []
-    assert len(refused) == 1
+    assert refused
+
+
+ONLY_A_DOCSTRING = 'class E(Exception):\n    """x"""\n\n\ndef f():\n    return 1\n'
+
+
+@pytest.mark.parametrize("opening", ["", chr(0xFEFF)], ids=["plain", "byte-order-mark"])
+def test_a_drop_that_leaves_python_unparsable_is_refused(tmp_path, opening):
+    text = opening + ONLY_A_DOCSTRING
+    drafted, refused = _chain(tmp_path, "m.py", text, {"a1": None})
+    assert drafted == []
+    assert refused[0].step == "prove"
+    assert "m.py" in refused[0].why
+    assert "expected an indented block" in refused[0].why
+
+
+def test_a_page_only_the_compiler_refuses_still_counts_as_parsing(tmp_path):
+    # `return` outside a function parses; only compilation refuses it.
+    text = 'def f():\n    """Doc."""\nreturn 1\n'
+    drafted, refused = _chain(tmp_path, "m.py", text, {"a1": None})
+    assert drafted == []
+    assert refused[0].step == "prove"
+    assert "draft-does-not-parse" in refused[0].why
+
+
+def test_a_docstring_set_above_the_comment_it_stood_under_is_refused(tmp_path):
+    # The compositor sets `a1` before `b1`, which is not this file's order.
+    text = 'def f():\n    # note\n    """Doc."""\n    return 1  # beside\n'
+    drafted, refused = _chain(tmp_path, "m.py", text, {"c1": "  # changed"})
+    assert drafted == []
     assert refused[0].step == "reread"
-    assert "2 paragraphs share this place" in refused[0].why
+    assert "the draft reads" in refused[0].why
+
+
+@pytest.mark.parametrize(
+    ("found", "expected", "named"),
+    [
+        (
+            [(0, "same"), (1, "x")],
+            [(0, "same"), (2, "y")],
+            "line 2 of the prose: the draft reads 'x' under 1 code lines where the"
+            " page with its alterations reads 'y' under 2 code lines",
+        ),
+        (
+            [(0, "same")],
+            [(0, "same"), (2, "y")],
+            "line 2 of the prose: the draft reads nothing where the page with"
+            " its alterations reads 'y' under 2 code lines",
+        ),
+        (
+            [(0, "same"), (1, "x")],
+            [(0, "same")],
+            "line 2 of the prose: the draft reads 'x' under 1 code lines where the"
+            " page with its alterations reads nothing",
+        ),
+    ],
+    ids=["differs", "short", "long"],
+)
+def test_the_first_difference_is_named(found, expected, named):
+    assert proof_setter._first_difference(found, expected) == named
+
+
+def test_a_comment_beside_a_line_ending_in_a_unicode_space_lands(tmp_path):
+    name = "m.rs"
+    code = "const X: i32 = 1;　"
+    drafted, refused = _chain(tmp_path, name, f"{code}\n", {"c0": " // n"})
+    assert refused == []
+    written = drafted[0].draft.read_bytes().decode("utf-8")
+    assert written == f"{code} // n\n"
+
+
+def test_a_drop_beside_other_statements_still_lands(tmp_path):
+    text = ONLY_A_DOCSTRING.replace('"""x"""\n', '"""x"""\n    y = 1\n')
+    drafted, refused = _chain(tmp_path, "m.py", text, {"a1": None})
+    assert refused == []
+    assert drafted
+
+
+class TestAnEmptyPackageInit:
+    """An empty `__init__.py`, the no-code file Python reads and proves itself."""
+
+    NAME = "__init__.py"
+
+    def test_an_add_at_a0_is_accepted_and_runs_through_unchanged(self, tmp_path):
+        for path in (tmp_path / "1", tmp_path / "2"):
+            path.mkdir()
+        words = '"""The package."""'
+        first = _step(tmp_path, 1, self.NAME, "", {"a0": words})
+        assert first == words
+        assert _step(tmp_path, 2, self.NAME, first, {"a0": words}) == first
+
+    def test_adding_code_to_it_refuses(self):
+        refused = proof_setter._prove(self.NAME, "", "value = 1\n", Path(self.NAME), [])
+        assert refused is not None
+        assert refused.step == "prove"
+        assert "code-changed" in refused.why
+
+
+@pytest.mark.parametrize(
+    ("name", "text", "alterations", "expected"),
+    [
+        ("m.rs", "//! M\n/// F\nfn f() {}\n", {"a1": None}, "//! M\nfn f() {}\n"),
+        ("m.rs", "//! M\n/// F\nfn f() {}\n", {"a0": None}, "/// F\nfn f() {}\n"),
+        ("m.rs", "/** F */\nfn f() {}\n", {"a1": None}, "fn f() {}\n"),
+        (
+            "m.rs",
+            "fn f() {}\n/** G */\nfn g() {}\n",
+            {"a0": "/** G */"},
+            "/** G */\nfn f() {}\n/** G */\nfn g() {}\n",
+        ),
+        (
+            "m.rs",
+            "/** F */\nfn f() {}\n",
+            {"a0": "/** M */", "a1": None},
+            "/** M */\nfn f() {}\n",
+        ),
+    ],
+    ids=[
+        "rs-drop-a1",
+        "rs-drop-a0",
+        "rs-lone-doc",
+        "rs-same-words-stand-below",
+        "rs-doc-replaced-by-a-new-a0",
+    ],
+)
+def test_a_draft_is_accepted_on_where_its_text_landed(
+    tmp_path, name, text, alterations, expected
+):
+    drafted, refused = _chain(tmp_path, name, text, alterations)
+    assert refused == []
+    assert drafted[0].draft.read_text(encoding="utf-8") == expected
+
+
+@pytest.mark.parametrize("through", [_step, _pulled], ids=["run", "pull"])
+@pytest.mark.parametrize(
+    ("name", "text", "alterations", "expected"),
+    [
+        (
+            "m.rs",
+            "/** D */\nfn f() {}\n",
+            {"a0": "/** E */"},
+            "/** E */\n/** D */\nfn f() {}\n",
+        ),
+        (
+            "m.rs",
+            "// M\n\n/** D */\nfn f() {}\n",
+            {"a0": "/** E */"},
+            "// M\n\n/** E */\n/** D */\nfn f() {}\n",
+        ),
+        (
+            "m.rs",
+            "#!/bin/sh\nfn main() {}\n",
+            {"a0": "// doc"},
+            "#!/bin/sh\n// doc\nfn main() {}\n",
+        ),
+        (
+            "m.py",
+            "#!/bin/sh\nx = 1\n",
+            {"a0": "# doc"},
+            "#!/bin/sh\n# doc\nx = 1\n",
+        ),
+        (
+            "m.rs",
+            "const Y: i32 = 1;\n/** D */\n// c\n\n// m\n",
+            {"b1": "// X"},
+            "const Y: i32 = 1;\n// X\n\n// m\n",
+        ),
+        (
+            "m.rs",
+            "fn f() {}\n",
+            {"a0": "/** M */\n/** N */"},
+            "/** M */\n/** N */\nfn f() {}\n",
+        ),
+    ],
+    ids=[
+        "rs-over-a-doc",
+        "rs-over-a-doc-below-a-blank",
+        "rs-under-a-shebang",
+        "py-under-a-shebang",
+        "rs-foot",
+        "rs-as-two",
+    ],
+)
+def test_written_text_may_join_a_neighbour_or_read_elsewhere(
+    tmp_path, name, text, alterations, expected, through
+):
+    (tmp_path / "1").mkdir()
+    assert through(tmp_path, 1, name, text, alterations) == expected
+
+
+def _draft_written_as(monkeypatch, wrong: str, spans: dict | None = None) -> None:
+    """The compositor writes `wrong`, and reports `spans` if handed any."""
+
+    def write(page, into):
+        into.parent.mkdir(parents=True, exist_ok=True)
+        into.write_bytes(wrong.encode("utf-8"))
+        return into
+
+    monkeypatch.setattr(compositor, "draft", write)
+    if spans is not None:
+        monkeypatch.setattr(compositor, "spans", lambda page: spans)
+
+
+RS_MERGED = ("m.rs", "/** D */\nfn f() {}\n", {"a0": "/** E */"})
+
+
+@pytest.mark.parametrize(
+    ("page", "wrong", "spans", "why"),
+    [
+        (RS_MERGED, "/** E */\n/** X */\nfn f() {}\n", None, "the draft reads"),
+        (RS_MERGED, "/** E */\n\nfn f() {}\n", None, "the draft reads"),
+        (
+            RS_MERGED,
+            "/** E */\n/** D */\n/** D */\nfn f() {}\n",
+            None,
+            "the draft reads",
+        ),
+        (RS_MERGED, "/** E */\nfn f() {}\n/** D */\n", None, "the draft reads"),
+        (
+            RS_MERGED,
+            "/** E */\n/** E */\n/** D */\nfn f() {}\n",
+            None,
+            "the draft reads",
+        ),
+        (
+            RS_MERGED,
+            "/** Z */\n/** D */\nfn f() {}\n",
+            None,
+            "a0: on lines 1-1 the draft holds",
+        ),
+        (
+            RS_MERGED,
+            "const Z: i32 = 1;\n/** D */\nfn f() {}\n",
+            None,
+            "a0: on lines 1-1 the draft holds",
+        ),
+        (
+            RS_MERGED,
+            "const Z: i32 = 1;\n/** E */\n/** D */\nfn f() {}\n",
+            {"a0": (2, 2)},
+            "code lines in the draft",
+        ),
+        (
+            RS_MERGED,
+            "/** E */\n/** D */\nfn f() {}\n",
+            {"a0": (1, 2)},
+            "a0: on lines 1-2 the draft holds",
+        ),
+    ],
+    ids=[
+        "rs-neighbour-changed",
+        "rs-neighbour-lost",
+        "rs-neighbour-doubled",
+        "rs-neighbour-moved-below",
+        "rs-text-doubled",
+        "rs-text-absent",
+        "rs-code-on-its-line",
+        "rs-code-count-changed",
+        "rs-spans-wider-than-the-text",
+    ],
+)
+def test_a_merged_paragraph_is_still_checked_line_by_line(
+    tmp_path, monkeypatch, page, wrong, spans, why
+):
+    name, text, alterations = page
+    _draft_written_as(monkeypatch, wrong, spans)
+    drafted, refused = _chain(tmp_path, name, text, alterations)
+    assert drafted == []
+    assert refused[0].step == "reread"
+    assert why in refused[0].why
+
+
+def test_written_text_on_a_code_line_is_refused(tmp_path, monkeypatch):
+    name = "m.rs"
+    first = "const X: i32 = 1;"
+    second = "const Y: i32 = 2;"
+    # The text is where the spans say, under the right count, and in the margin,
+    # whose read holds the blank before it.
+    text = f"// a\n{first}\n// b\n{second}\n"
+    _draft_written_as(monkeypatch, f"// a\n\n{first} // B\n{second}\n")
+    drafted, refused = _chain(tmp_path, name, text, {"b1": " // B"})
+    assert drafted == []
+    assert refused[0].step == "reread"
+    assert "b1: on lines 3-3 the text stands on a code line" in refused[0].why
+
+
+@pytest.mark.parametrize(
+    ("alterations", "wrong", "why"),
+    [
+        (
+            {"b1": "// new"},
+            "// a\n{x}\n{y}\n// new\n// c\n{z}\n",
+            "b1: on lines",
+        ),
+        ({"b1": "// new"}, "// a\n{x}\n// new\n{y}\n{z}\n", "the draft reads"),
+        ({"b1": None}, "// a\n{x}\n// b\n{y}\n// c\n{z}\n", "the draft reads"),
+        ({"b1": None}, "// a\n{x}\n{y}\n// changed\n{z}\n", "the draft reads"),
+        ({"b1": None}, "// c\n{x}\n{y}\n// a\n{z}\n", "the draft reads"),
+    ],
+    ids=[
+        "landed-on-other-lines",
+        "neighbour-gone",
+        "dropped-text-still-there",
+        "neighbour-changed",
+        "neighbours-swapped",
+    ],
+)
+def test_the_reread_asks_the_file_on_disk_not_the_compositor(
+    tmp_path, monkeypatch, alterations, wrong, why
+):
+    name = "m.rs"
+    x = "const X: i32 = 1;"
+    y = "const Y: i32 = 2;"
+    z = "const Z: i32 = 3;"
+    text = f"// a\n{x}\n// b\n{y}\n// c\n{z}\n"
+    assert _at(text, name, "// b") == "b1"
+    _draft_written_as(monkeypatch, wrong.format(x=x, y=y, z=z))
+    drafted, refused = _chain(tmp_path, name, text, alterations)
+    assert drafted == []
+    assert refused[0].step == "reread"
+    assert why in refused[0].why
+
+
+@pytest.mark.parametrize(
+    ("name", "text", "wrong"),
+    [
+        (
+            "m.py",
+            "# a\nx = 1\n# b\ny = 2\n",
+            "# A\nx = 1\ny = 2\n# b\n",
+        ),
+        (
+            "m.rs",
+            "// a\nconst X: i32 = 1;\n// b\nconst Y: i32 = 2;\n",
+            "// A\nconst X: i32 = 1;\nconst Y: i32 = 2;\n// b\n",
+        ),
+    ],
+    ids=["py", "rs"],
+)
+def test_an_unedited_comment_moved_across_a_code_line_is_refused(
+    tmp_path, monkeypatch, name, text, wrong
+):
+    upper = wrong.splitlines()[0]
+    alteration = {_at(text, name, upper.lower()): upper}
+    _draft_written_as(monkeypatch, wrong)
+    drafted, refused = _chain(tmp_path, name, text, alteration)
+    assert drafted == []
+    assert refused[0].step == "reread"
+    assert "the draft reads" in refused[0].why
+
+
+@pytest.mark.parametrize(
+    ("name", "text", "alterations", "wrong", "spans"),
+    [
+        (
+            "m.rs",
+            "// a\nconst X: i32 = 1;\n// b\nconst Y: i32 = 2;\n"
+            "// c\nconst Z: i32 = 3; // d\nconst W: i32 = 4;\n",
+            {"b1": "// B", "b2": "// C"},
+            "// a\nconst X: i32 = 1;\n// C\nconst Y: i32 = 2;\n"
+            "// B\nconst Z: i32 = 3; // d\nconst W: i32 = 4;\n",
+            {"b1": (5, 5), "b2": (3, 3)},
+        ),
+        (
+            "m.rs",
+            "fn f() {}\nfn g() {}\n",
+            {"a2": "/** G */"},
+            "/** G */\nfn f() {}\nfn g() {}\n",
+            {"a2": (1, 1)},
+        ),
+    ],
+    ids=[
+        "rs-two-edits-swapped",
+        "rs-set-on-the-wrong-declaration",
+    ],
+)
+def test_text_where_the_spans_say_is_refused_if_that_is_not_its_place(
+    tmp_path, monkeypatch, name, text, alterations, wrong, spans
+):
+    # Draft and spans agree, so only the count of code lines above can object.
+    _draft_written_as(monkeypatch, wrong, spans)
+    drafted, refused = _chain(tmp_path, name, text, alterations)
+    assert drafted == []
+    assert refused[0].step == "reread"
+    assert "code lines in the draft" in refused[0].why
+
+
+@pytest.mark.parametrize(
+    "wrong",
+    [
+        '# TOP\n"""Head.\n    Body.\n    """\nx = 1\n',
+        '# TOP\n"""Head.\n\n\n    Body.\n    """\nx = 1\n',
+    ],
+    ids=["removed", "added"],
+)
+def test_a_blank_changed_inside_an_unedited_docstring_is_refused(
+    tmp_path, monkeypatch, wrong
+):
+    text = '# top\n"""Head.\n\n    Body.\n    """\nx = 1\n'
+    alteration = {_at(text, "m.py", "# top"): "# TOP"}
+    _draft_written_as(monkeypatch, wrong)
+    drafted, refused = _chain(tmp_path, "m.py", text, alteration)
+    assert drafted == []
+    assert refused[0].step == "reread"
+    assert "the draft reads" in refused[0].why
+
+
+def test_spans_missing_a_place_refuse_by_name(tmp_path, monkeypatch):
+    name = "m.rs"
+    text = "const X: i32 = 1;\n// a\nconst Y: i32 = 2;\n"
+    _draft_written_as(monkeypatch, text.replace("// a", "// A"), {})
+    drafted, refused = _chain(tmp_path, name, text, {"b1": "// A"})
+    assert drafted == []
+    assert (refused[0].step, refused[0].why) == (
+        "reread",
+        "b1: the compositor set no lines for this place",
+    )
+
+
+def test_a_drop_beside_blank_separated_comments_is_accepted(tmp_path):
+    name = "m.py"
+    text = '#!/usr/bin/env python\n"""M."""\n\n# note\n\n# more\nx = 1\n'
+    alterations = {"a0": None}
+    drafted, refused = _chain(tmp_path, name, text, alterations)
+    assert refused == []
+    assert drafted
+
+
+@pytest.mark.parametrize(
+    ("name", "text", "cue", "words", "expected"),
+    [
+        (
+            "m.py",
+            "def f():\n    return 1\n",
+            "a1",
+            '    """A.\n\n    B.\n    """',
+            'def f():\n    """A.\n\n    B.\n    """\n    return 1\n',
+        ),
+        (
+            "m.py",
+            'def f():\n    """D."""\n    return 1\n',
+            "a1",
+            '    """A.\n\n    B.\n    """',
+            'def f():\n    """A.\n\n    B.\n    """\n    return 1\n',
+        ),
+        ("m.py", "x = 1\ny = 2\n", "b1", "# a\n\n# b", "x = 1\n\n# a\n\n# b\ny = 2\n"),
+        (
+            "m.py",
+            "x = 1\n# o\ny = 2\n",
+            "b1",
+            "# a\n\n# b",
+            "x = 1\n# a\n\n# b\ny = 2\n",
+        ),
+        ("m.py", "x = 1\n", "f0", "# a\n\n# b", "# a\n\n# b\nx = 1\n"),
+        ("m.py", "# o\n\nx = 1\n", "f0", "# a\n\n# b", "# a\n\n# b\n\nx = 1\n"),
+        ("m.py", "x = 1\n", "a0", "# a\n\n", "# a\n\nx = 1\n"),
+        ("m.py", "x = 1\n", "a0", "\n# a", "\n# a\nx = 1\n"),
+        ("m.py", "x = 1\n# o\ny = 2\n", "b1", "# a\n\n", "x = 1\n# a\n\ny = 2\n"),
+        ("m.py", "x = 1\n# o\ny = 2\n", "b1", "\n# a", "x = 1\n\n# a\ny = 2\n"),
+        ("m.py", "x = 1\n# t\n", "f1", "# a\n\n", "x = 1\n# a\n\n"),
+        ("m.py", "x = 1  # m\n", "c0", "  # a\n\n# b", "x = 1  # a\n\n# b\n"),
+    ],
+    ids=[
+        "py-add-a",
+        "py-patch-a",
+        "py-add-b",
+        "py-patch-b",
+        "py-add-f",
+        "py-patch-f",
+        "py-trailing-blank-a",
+        "py-leading-blank-a",
+        "py-trailing-blank-b",
+        "py-leading-blank-b",
+        "py-trailing-blank-at-the-foot",
+        "py-split-below-a-margin",
+    ],
+)
+def test_written_text_holding_a_blank_lands(tmp_path, name, text, cue, words, expected):
+    drafted, refused = _chain(tmp_path, name, text, {cue: words})
+    assert refused == []
+    assert drafted[0].draft.read_bytes().decode("utf-8") == expected
+
+
+@pytest.mark.parametrize(
+    ("text", "cue", "expected"),
+    [
+        ("def f():\n    x = 1\n", "a1", 'def f():\n    """W\n\n    Wx"""\n    x = 1\n'),
+        (
+            'def f():\n    """A\n\n    B"""\n    x = 1\n',
+            "a1",
+            'def f():\n    """W\n\n    Wx"""\n    x = 1\n',
+        ),
+    ],
+    ids=["add", "patch"],
+)
+def test_a_blank_in_a_written_docstring_is_not_read_as_the_pages_own(
+    tmp_path, text, cue, expected
+):
+    written = '    """W\n\n    Wx"""'
+    drafted, refused = _chain(tmp_path, "m.py", text, {cue: written})
+    assert refused == []
+    assert drafted[0].draft.read_bytes().decode("utf-8") == expected
+
+
+@pytest.mark.parametrize(
+    ("name", "code", "wrong"),
+    [
+        ("m.rs", "fn f() {}", "// a\n   \n// b\nfn f() {}\n"),
+        ("m.rs", "fn f() {}", "// a\nconst Z: i32 = 1;\n// b\nfn f() {}\n"),
+        ("m.rs", "fn f() {}", "// a\n// c\n// b\nfn f() {}\n"),
+    ],
+    ids=["rs-white-space", "rs-code", "rs-comment"],
+)
+def test_a_written_blank_is_compared_with_the_drafts_own_line(
+    tmp_path, monkeypatch, name, code, wrong
+):
+    _draft_written_as(monkeypatch, wrong)
+    drafted, refused = _chain(tmp_path, name, f"{code}\n", {"a0": "// a\n\n// b"})
+    assert drafted == []
+    assert refused[0].step == "reread"
+    assert "a0: on lines 1-3 the draft holds" in refused[0].why
+
+
+@pytest.mark.parametrize(
+    ("name", "text", "alterations"),
+    [
+        ("m.py", 'def f():\n    """D."""\n    return 1\n', {"a1": "    "}),
+        ("m.rs", "/** F */\nfn f() {}\n", {"a1": "   "}),
+        ("m.rs", "const X: i32 = 1;\n// a\nconst Y: i32 = 2;\n", {"b1": "\n\n"}),
+        ("m.rs", "fn f() {}\n", {"a0": "   "}),
+        ("m.rs", "const X: i32 = 1; // m\n", {"c0": "   "}),
+    ],
+    ids=[
+        "docstring",
+        "rs-doc",
+        "rs-comment",
+        "rs-empty-place",
+        "rs-margin",
+    ],
+)
+def test_white_space_is_not_a_way_to_spell_a_drop(tmp_path, name, text, alterations):
+    # Past the docket's own refusal, so the write chain is what is asked.
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    (repo / name).write_text(text, encoding="utf-8", newline="")
+    binder = bind([build(text, name)], read_from={"root": str(repo), "revise": 0})
+    docket = docket_from({f"{name}@{at}": "x" for at in alterations}, binder)
+    only = docket.schedules[0]
+    held = tuple(
+        dataclasses.replace(one, text=alterations[one.cue]) for one in only.alterations
+    )
+    held_docket = Docket((dataclasses.replace(only, alterations=held),))
+    drafted, refused = proof_setter.run(held_docket, repo, tmp_path / "out")
+    assert drafted == []
+    assert refused[0].step == "edit"
+    assert EMPTY_PATCH in refused[0].why
 
 
 def test_a_directory_THAT_WAS_THERE_BEFORE_the_run_survives_it(tmp_path, monkeypatch):

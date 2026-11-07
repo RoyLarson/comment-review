@@ -2,9 +2,9 @@
 
 ```
 Status:   decision-needed
-Progress: 2 of 7 tasks closed
+Progress: 3 of 7 tasks closed
 Owner:    agents
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-16 (Roy, on the re-sweep's `gap`: "looks like a different form of the
           SUPPRESSED or acquittal list - and should be dropped - if comment blocks are
           missed by a reviewer then they are returned to the reviewer to rule on")
@@ -70,9 +70,10 @@ COVERAGE GAP, on every run, for as long as the file has a licence."*
       -- * RULE how the return happens: re-dispatch the reviewer with only the
       missed addresses, or with the whole census. Verify: the choice is recorded
       here.
-- [?] T2 | T2 -- * RULE what bounds it -- with no bound, *"send it back"* is a
-      loop, and the second failure IS what the gate handles today. Verify: the
-      bound is written here.
+- [x] T2 | Ruled #272: no bound in code; the agents follow the instructions | e0a31457 | T2
+      -- * RULE what bounds it -- with no bound, *"send it back"* is a loop, and
+      the second failure IS what the gate handles today. Verify: the bound is
+      written here.
 - [ ] T3 | T3 -- Send missed addresses back to the reviewer that skipped them,
       once T1/T2 rule. Touches `verdicts.py:117-134`, `:520-529`. Verify: a
       skipped paragraph ends RULED.

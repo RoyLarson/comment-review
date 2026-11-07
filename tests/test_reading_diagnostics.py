@@ -1,0 +1,311 @@
+from dataclasses import FrozenInstanceError
+from pathlib import Path
+from typing import Any, cast, get_args
+
+import pytest
+
+from comment_review.flows.read_diagnostics import LocatedReadFailure, format_failure
+from comment_review.reading import readers
+from comment_review.reading.diagnostics import (
+    DetachedDocumentation,
+    ReadDiagnostic,
+    ReadFailure,
+    ReadStage,
+    SourceRead,
+)
+from comment_review.reading.language import INSTALLED_REGISTRY
+from comment_review.reading.paragraph import Paragraph
+from comment_review.reading.python.projection import paragraphs_for
+from comment_review.reading.python.records import PythonRead
+from comment_review.reading.source import SourceSpan, SourceStructure
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "x = [1,",
+        "def f(:\n    pass\n",
+        'x = """open',
+    ],
+)
+def test_read_source_reports_python_refusal(text):
+    registry = INSTALLED_REGISTRY
+    result = readers.read_source(Path("m.py"), text, registry=registry)
+    assert isinstance(result, ReadFailure)
+    assert result.diagnostics[0].stage == ReadStage.LEX
+    assert result.diagnostics[0].span is not None
+
+
+@pytest.mark.parametrize(
+    "text,expected",
+    [("", []), ("# note\nx=1\n", [(1, 1, "matter", ["# note"])])],
+)
+def test_read_source_gives_python_its_lexical_read(text, expected):
+    path = Path("m.py")
+    registry = INSTALLED_REGISTRY
+    result = readers.read_source(path, text, registry=registry)
+    assert isinstance(result, PythonRead)
+    assert result.source.text is text
+    paragraphs = paragraphs_for(path, result)
+    assert not isinstance(paragraphs, ReadFailure)
+    assert [(p.start, p.end, p.kind, p.raw_lines) for p in paragraphs] == expected
+
+
+def test_read_paragraphs_come_from_the_one_python_read(monkeypatch):
+    registry = INSTALLED_REGISTRY
+    calls = []
+    recognize = readers.read_python
+
+    def counted(text, definition):
+        result = recognize(text, definition)
+        calls.append(result)
+        return result
+
+    monkeypatch.setattr(readers, "read_python", counted)
+    text = 'def f(): "doc"; return 1\n'
+    read = readers.read_source(Path("m.py"), text, registry=registry)
+    assert isinstance(read, PythonRead)
+    result = read.paragraphs(Path("m.py"))
+    assert isinstance(result, list)
+    assert len(calls) == 1
+    assert result == paragraphs_for(Path("m.py"), calls[0])
+    assert isinstance(result[0], Paragraph)
+    assert result[0].raw_lines == ['    "doc"']
+
+
+def test_stage_values_and_source_read_alternatives():
+    assert [(stage.name, stage.value) for stage in ReadStage] == [
+        ("ACQUIRE", "acquire"),
+        ("DECODE", "decode"),
+        ("SELECT", "select"),
+        ("LEX", "lex"),
+        ("PLACE", "place"),
+    ]
+    assert get_args(SourceRead) == (SourceStructure, ReadFailure)
+    success = SourceStructure("", (), (), (), ())
+    failure = ReadFailure((ReadDiagnostic(ReadStage.ACQUIRE, "io-error", "Oops"),))
+    assert success.text == ""
+    assert not isinstance(success, ReadFailure)
+    assert success != failure
+
+
+@pytest.mark.parametrize("stage", ["decode", None, 1, True])
+def test_diagnostic_rejects_invalid_stage(stage):
+    with pytest.raises(ValueError):
+        ReadDiagnostic(stage, "code", "message")
+
+
+@pytest.mark.parametrize("field", ["code", "message"])
+@pytest.mark.parametrize("value", ["", " ", "\t\r\n", None, 1, True, b"text"])
+def test_diagnostic_requires_nonblank_strings(field, value):
+    values: dict[str, Any] = {
+        "stage": ReadStage.LEX,
+        "code": "code",
+        "message": "message",
+    }
+    values[field] = value
+    with pytest.raises(ValueError):
+        ReadDiagnostic(**values)
+
+
+@pytest.mark.parametrize("span", [(0, 1), 0, True, "span"])
+def test_diagnostic_rejects_invalid_span(span):
+    with pytest.raises(ValueError):
+        ReadDiagnostic(ReadStage.LEX, "code", "message", span=span)
+
+
+@pytest.mark.parametrize("offset", [-1, True, False, 0.0, "0", b"0"])
+def test_diagnostic_rejects_invalid_byte_offset(offset):
+    with pytest.raises(ValueError):
+        ReadDiagnostic(ReadStage.DECODE, "code", "message", byte_offset=offset)
+
+
+@pytest.mark.parametrize("stage", list(ReadStage))
+def test_locations_obey_stage_boundaries(stage):
+    assert ReadDiagnostic(stage, "code", "message").span is None
+    if stage in (ReadStage.LEX, ReadStage.PLACE):
+        span = SourceSpan(100, 100)
+        assert ReadDiagnostic(stage, "code", "message", span).span is span
+    else:
+        with pytest.raises(ValueError):
+            ReadDiagnostic(stage, "code", "message", SourceSpan(0, 1))
+    if stage == ReadStage.DECODE:
+        for offset in (0, 100):
+            assert (
+                ReadDiagnostic(stage, "code", "message", byte_offset=offset).byte_offset
+                == offset
+            )
+    else:
+        with pytest.raises(ValueError):
+            ReadDiagnostic(stage, "code", "message", byte_offset=0)
+    with pytest.raises(ValueError):
+        ReadDiagnostic(stage, "code", "message", SourceSpan(0, 1), 0)
+
+
+def test_diagnostic_preserves_supplied_values():
+    span = SourceSpan(3, 99)
+    diagnostic = ReadDiagnostic(ReadStage.LEX, " custom/code\t", " message \n", span)
+    assert diagnostic.stage is ReadStage.LEX
+    assert diagnostic.code == " custom/code\t"
+    assert diagnostic.message == " message \n"
+    assert diagnostic.span is span
+    assert diagnostic.byte_offset is None
+
+
+@pytest.mark.parametrize("field", ["stage", "code", "message", "span", "byte_offset"])
+def test_diagnostic_is_frozen(field):
+    diagnostic = ReadDiagnostic(ReadStage.LEX, "code", "message")
+    with pytest.raises(FrozenInstanceError):
+        setattr(diagnostic, field, None)
+
+
+@pytest.mark.parametrize("owner_line", [None, 5])
+def test_detached_documentation_carries_its_owner_line(owner_line):
+    warning = DetachedDocumentation(
+        ReadStage.PLACE, "code", "message", SourceSpan(0, 1), owner_line=owner_line
+    )
+    assert warning.owner_line == owner_line
+
+
+@pytest.mark.parametrize("owner_line", [0, -1, True, "5"])
+def test_detached_documentation_rejects_an_invalid_owner_line(owner_line):
+    with pytest.raises(ValueError):
+        DetachedDocumentation(
+            ReadStage.PLACE, "code", "message", SourceSpan(0, 1), owner_line=owner_line
+        )
+
+
+@pytest.mark.parametrize("records", [[], (), None, "diagnostics", (None,), ("bad",)])
+def test_failure_rejects_invalid_diagnostics(records):
+    with pytest.raises(ValueError):
+        ReadFailure(records)
+
+
+def test_failure_preserves_order_duplicates_and_immutable_tuple():
+    first = ReadDiagnostic(ReadStage.LEX, "unterminated-comment", "Open comment")
+    second = ReadDiagnostic(ReadStage.PLACE, "unsupported-placement", "No owner")
+    records = (second, first, second)
+    failure = ReadFailure(records)
+    assert failure.diagnostics is records
+    assert failure.diagnostics == (second, first, second)
+    with pytest.raises(FrozenInstanceError):
+        cast(Any, failure).diagnostics = (first,)
+    with pytest.raises(TypeError):
+        cast(Any, failure.diagnostics)[0] = first
+
+
+def test_failure_renderer_uses_retained_context_and_encounter_order():
+    text = "\t\u0065\u0301\r\nZ"
+    diagnostics = (
+        ReadDiagnostic(ReadStage.PLACE, "owner", "No owner", SourceSpan(5, 6)),
+        ReadDiagnostic(ReadStage.LEX, "open", "Open literal", SourceSpan(4, 4)),
+    )
+    failure = LocatedReadFailure(diagnostics, "missing/example.py", "python", text)
+    assert failure.text is text
+    assert failure.diagnostics is diagnostics
+    assert isinstance(failure, ReadFailure)
+    assert format_failure(failure, path=failure.path).splitlines() == [
+        "missing/example.py [python] place/owner: No owner "
+        "(line 2, one-based; column 0, zero-based)",
+        "missing/example.py [python] lex/open: Open literal "
+        "(line 1, one-based; column 4, zero-based)",
+    ]
+
+
+def test_failure_renderer_distinguishes_bytes_and_omitted_context():
+    failure = ReadFailure(
+        (ReadDiagnostic(ReadStage.DECODE, "utf8", "Bad byte", byte_offset=7),)
+    )
+    assert format_failure(failure, path="example.py") == (
+        "example.py decode/utf8: Bad byte (byte offset 7, zero-based)"
+    )
+    acquire = ReadFailure((ReadDiagnostic(ReadStage.ACQUIRE, "io", "Missing file"),))
+    assert (
+        format_failure(acquire, path="example.py")
+        == "example.py acquire/io: Missing file"
+    )
+
+
+def test_failure_renderer_requires_text_for_character_spans_and_allows_empty_eof():
+    failure = ReadFailure(
+        (ReadDiagnostic(ReadStage.LEX, "open", "Open", SourceSpan(0, 0)),)
+    )
+    with pytest.raises(ValueError):
+        format_failure(failure, path="example.py")
+    assert "line 1, one-based; column 0, zero-based" in format_failure(
+        failure, path="example.py", text=""
+    )
+    assert LocatedReadFailure(failure.diagnostics, "example.py", None, "").text == ""
+
+
+@pytest.mark.parametrize("text", [None, "", "x"])
+def test_character_failure_rejects_spans_outside_retained_text(text):
+    failure = ReadFailure(
+        (ReadDiagnostic(ReadStage.LEX, "open", "Open", SourceSpan(1, 2)),)
+    )
+    with pytest.raises(ValueError):
+        LocatedReadFailure(failure.diagnostics, "example.py", None, text)
+    with pytest.raises(ValueError):
+        format_failure(failure, path="example.py", text=text)
+
+
+@pytest.mark.parametrize(
+    "field,value", [("path", None), ("path", 1), ("language", 1), ("text", b"x")]
+)
+def test_located_failure_rejects_invalid_context_types(field, value):
+    values: dict[str, Any] = dict(path="example.py", language=None, text=None)
+    values[field] = value
+    records = (ReadDiagnostic(ReadStage.ACQUIRE, "io", "Missing"),)
+    with pytest.raises(ValueError):
+        LocatedReadFailure(records, **values)
+    with pytest.raises(ValueError):
+        format_failure(ReadFailure(records), **values)
+
+
+@pytest.mark.parametrize("field", ["diagnostics", "path", "language", "text"])
+def test_located_failure_is_frozen(field):
+    failure = LocatedReadFailure(
+        (ReadDiagnostic(ReadStage.ACQUIRE, "io", "Missing"),), "example.py", None, None
+    )
+    with pytest.raises(FrozenInstanceError):
+        setattr(failure, field, None)
+
+
+def test_failure_renderer_explicit_context_overrides_retained_values():
+    failure = LocatedReadFailure(
+        (ReadDiagnostic(ReadStage.LEX, "open", "Open", SourceSpan(1, 1)),),
+        "old.py",
+        "python",
+        "\nx",
+    )
+    rendered = format_failure(failure, path="new.js", language="javascript", text="ab")
+    assert rendered == (
+        "new.js [javascript] lex/open: Open (line 1, one-based; column 1, zero-based)"
+    )
+    with pytest.raises(ValueError):
+        format_failure(failure, path="new.py", text="")
+
+
+def test_failure_renderer_keeps_multiline_messages_on_one_report_line():
+    failure = ReadFailure((ReadDiagnostic(ReadStage.ACQUIRE, "io", "Missing\nfile\r"),))
+    assert format_failure(failure, path="example.py").splitlines() == [
+        "example.py acquire/io: Missing\\nfile\\r"
+    ]
+
+
+@pytest.mark.parametrize("records", [[], (), (None,)])
+def test_located_failure_preserves_base_diagnostic_validation(records):
+    with pytest.raises(ValueError):
+        LocatedReadFailure(records, "example.py", None, None)
+
+
+def test_failure_renderer_rejects_non_failure_input():
+    with pytest.raises(ValueError):
+        format_failure(cast(Any, None), path="example.py")
+
+
+@pytest.mark.parametrize("name", ["m.py", "m.rs"])
+def test_a_comment_holding_a_line_separator_reads(name):
+    mark = "#" if name == "m.py" else "//"
+    text = f"{mark} a{chr(0x2028)}b\n"
+    assert not isinstance(readers.read_source(Path(name), text), ReadFailure)

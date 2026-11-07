@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 3 of 10 tasks closed
+Progress: 9 of 10 tasks closed
 Owner:    testing
 Requires-Roy: false
 Raised:   2026-08-21 (Roy, 2026-08-21, on the boundary table: 'Was this language
@@ -30,7 +30,7 @@ RE-VERIFIED: 2026-08-23 — 2026-08-23. `ls corpora/` returns corpora.toml, cpyt
              for kotlin (corpora.toml:336) and swift (:353) do exist, so the old wording
              *"no corpus file at all"* is now half wrong and T2 says which half.
 Split:    2026-08-23 -- the one FETCH box named four languages and is now four boxes,
-          because a language row takes its definition from its own grammar and never
+          because a language definition takes its values from its own grammar and never
           from a neighbour's. A second pass found a FETCH task nobody had written: the
           rust row landed and nothing fetches the tree, so rust gained its own box
 ```
@@ -71,16 +71,18 @@ boundaries, c 494 / 244,778, yaml 104, toml-ini 46, javascript 12, typescript 5,
 
 - [x] T1 | FINISHED | unknown | T1 -- RECORD, not a task. The 2026-08-21
       per-language file and boundary counts are restated in the Objective.
-- [ ] T2 | T2 -- Fetch the java corpus. Verify: `fetch_corpora.py --only
-      elasticsearch` completes and `corpora/elasticsearch/` holds `.java` files.
-- [ ] T3 | T3 -- Fetch the csharp corpus. Verify: `fetch_corpora.py --only
+- [-] T2 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | T2
+      -- Fetch the java corpus. Verify: `fetch_corpora.py --only elasticsearch`
+      completes and `corpora/elasticsearch/` holds `.java` files.
+- [-] T3 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | T3
+      -- Fetch the csharp corpus. Verify: `fetch_corpora.py --only
       dotnet-runtime` completes and `corpora/dotnet-runtime/` holds `.cs` files.
-- [ ] T4 | T4 -- Fetch the kotlin corpus (`corpora.toml:336`). Verify:
-      `fetch_corpora.py --only kotlin` completes and `corpora/kotlin/` holds
-      `.kt` files.
-- [ ] T5 | T5 -- Fetch the swift corpus (`corpora.toml:353`). Verify:
-      `fetch_corpora.py --only swift` completes and `corpora/swift/` holds
-      `.swift` files.
+- [-] T4 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | T4
+      -- Fetch the kotlin corpus (`corpora.toml:336`). Verify: `fetch_corpora.py
+      --only kotlin` completes and `corpora/kotlin/` holds `.kt` files.
+- [-] T5 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | T5
+      -- Fetch the swift corpus (`corpora.toml:353`). Verify: `fetch_corpora.py
+      --only swift` completes and `corpora/swift/` holds `.swift` files.
 - [ ] T6 | T6 -- Fetch the rust corpus (`corpora.toml:204-208`). Verify:
       `fetch_corpora.py --only rust` completes and `corpora/rust/` holds `.rs`
       files.
@@ -88,9 +90,11 @@ boundaries, c 494 / 244,778, yaml 104, toml-ini 46, javascript 12, typescript 5,
       at `corpora.toml:204-208`.
 - [x] T8 | FINISHED | unknown | T8 -- FINISHED. Rows for go, ruby, java, csharp,
       kotlin and swift are all in `corpora.toml`.
-- [ ] T9 | T9 -- Re-take the boundary distribution per language once the corpora
-      are on disk. Verify: a per-language table in this file, each row naming
-      its file count.
-- [ ] T10 | T10 -- Re-take the leading-edge count over the languages it has
-      never seen. Verify: an edge count per language for all 17, or a named list
-      of languages it cannot cover.
+- [-] T9 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | T9
+      -- Re-take the boundary distribution per language once the corpora are on
+      disk. Verify: a per-language table in this file, each row naming its file
+      count.
+- [-] T10 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | T10
+      -- Re-take the leading-edge count over the languages it has never seen.
+      Verify: an edge count per language for all 17, or a named list of
+      languages it cannot cover.

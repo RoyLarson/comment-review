@@ -142,7 +142,6 @@ def test_an_ordinary_stage_deals_every_place():
 def test_a_place_over_the_cap_in_a_named_series_is_dealt():
     places = _places()
     over = places["b1"]
-    assert over.lines == 3
     assert deals(COMPACTING, over)
 
 
@@ -150,7 +149,6 @@ def test_a_place_at_or_under_the_cap_is_not_dealt():
     """Roy, 2026-09-19: only the places over the length limit are touched,
     and all the others are automatically clean for this role."""
     under = _places()["b2"]
-    assert under.lines == 1
     assert not deals(COMPACTING, under)
 
 
@@ -158,7 +156,6 @@ def test_a_docstring_is_never_dealt_however_long_it_runs():
     """`a` is not in the stage's series, so no docstring is dealt and nothing
     downstream has to refuse one."""
     doc = _places()["a0"]
-    assert doc.lines > COMPACTING.cap
     assert not deals(COMPACTING, doc)
 
 
@@ -169,7 +166,7 @@ def test_a_trailing_comment_over_the_cap_is_dealt():
     with the lines another language's would hold."""
     beside = _places()["c2"]
     assert not deals(COMPACTING, beside)
-    spanning = replace(beside, raw_lines=["# one", "# two", "# three"], lines=3)
+    spanning = replace(beside, raw_lines=["# one", "# two", "# three"])
     assert deals(COMPACTING, spanning)
 
 

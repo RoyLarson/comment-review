@@ -1,8 +1,8 @@
-# The language rows are data and live in code
+# The language definitions are data and live in code
 
 ```
 Status:   open
-Progress: 6 of 16 tasks closed
+Progress: 17 of 19 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (Roy, 2026-08-22: since tomllib is available the language
@@ -32,77 +32,49 @@ Triaged:  2026-08-23 -- !! THE FIRST BOX WAS TICKED AND THE WORK IS NOT DONE. ME
 
 ## Objective
 
-**The 18 language rows are data and live in code.** Roy, 2026-08-22: *"since tomllib is
-available, the language definitions should live in a toml file not in code."* ! The pattern
-already ships -- `references/vocabulary.toml` is read at runtime by `vocabulary.py` with
-`tomllib`, stdlib since 3.11, which is the floor, resolving the path from
-`Path(__file__).parent.parent`.
+Each supported programming language has its own specification and definition
+file. The definition owns its lexical forms, declaration and documentation
+rules, supported dialects, and the configuration that makes its parser correct.
+Declarative settings remain TOML, in a separate file for each language.
+Procedural recognition can use language-owned code selected by that definition.
 
-!! **NONE OF IT HAS MOVED YET.** MEASURED 2026-08-23: there is no `languages.toml` anywhere
-outside `corpora/`, and `language.py:96` declares `LANGUAGES: tuple[Language, ...]` built from 18
-`Language(...)` calls in Python source. This file recorded the move as done; it is not.
+Parsing engines and mechanical helpers may be reused. Language families must not
+supply definitions, default rules or inherited configuration. Each language's
+rules are established independently from its own authoritative references and
+tested with fixtures for that language.
 
-!! **IT MAKES THE MODULE'S OWN CLAIM TRUE.** `language.py` says *adding a language is a row,
-not code* -- and today a row is a Python call in a Python file, so adding one means editing
-shipped source that ruff, the floor gate and the shipped-syntax check all have to police. A
-data file has no syntax anyone else's formatter can rewrite, which is the whole reason `except`
-clauses in this tree may not hold tuple literals.
+Roy's instruction:
 
-!! **AND IT TAKES THE PYTHON SPECIAL CASE WITH IT.** Roy, 2026-08-23: *"once the
-languages.toml goes in the Python special case falls."* MEASURED 2026-08-23: `language.py:546`
-is literally `return "tokenized" if lang.name == "python" else "lexical"`, and `page.py:694`
-dispatches the READER on the same test while `page.py:847` and `page.py:857` stamp the tier from `tier_for`
--- so a file can be READ at one tier and LABELLED at the other, and half a fix does exactly
-that. Three more sites decide *is this Python* three more ways: `census.py:172` gates its name
-harvester on `lang.name != "python"`, and `prove_unchanged.py:176` and `referrers.py:53` each
-re-spell the suffix tuple `(".py", ".pyi")` that `language.py:99` already owns.
+> A strong rule of mine is that each langauage gets its own spec. Any ideas, thoughts or other combining the languages into families is a strong failure of the Single Responsibility Principle and must not happen. How the code runs, the engines that parse the code correctly can be reused but the configuration pieces and how the engine is built to parse correctly needs to be configurable by language and each language must have its own definition file
 
-! **THE TIER BECOMES A FIELD ON THE ROW**, so the dispatch reads the row like every other
-per-language rule.
-
-! **READING `lang.name` IS NOT THE DEFECT** -- `census.py:302` and `:446` print it and
-`lexer.py:1491` names it in a message. What must go is the COMPARISON, which is why both halves
-of the removal are greppable and a stranger can close them.
-
-! **WHAT MUST SURVIVE THE MOVE.** ORDER IS SIGNIFICANT within a field -- openers match
-longest-first, so `///` precedes `//` and `--[==[` precedes `--[[`; TOML arrays are ordered, so
-this holds, but a test should say so. `block_comment` is a list of PAIRS. An EMPTY list means
-the language has no `a` series at all -- C, C++, `yaml`, `toml`, `ini` and `sql` -- which is not
-the same as a missing key, and a missing key would mean nobody decided.
-
-! **VALIDATION GETS STRONGER, NOT WEAKER.** `test_every_row_STATES_its_own_quotes` parses the
-Python AST today to tell a DECISION from an inherited default, because both look identical at
-runtime. Against a TOML table it is just *is the key present*, which is easier to check and
-harder to get wrong. ! Every per-language rule Roy has stated -- no row inherits from another,
-every language carries all of its own definitions -- becomes a schema check over the table
-rather than a reading of source.
-
-! **THEN CHECK WHAT ELSE IS DATA WEARING CODE.** The verdict table in `record.py` makes the
-same claim in its own docstring -- *adding or changing a verdict is a row, not new code* -- and
-is a Python dataclass table for the same reasons this one was. Not necessarily the same answer,
-since a verdict row carries behaviour a language row does not, but the question is the same one
-and should be asked deliberately. ! Where it becomes work, it is its own TODO, not a box here.
-
-! **SUPERSEDES [`tier-dispatched-on-name`](completed/tier-dispatched-on-name-SUPERSEDED.md)**,
-whose measurements are folded in above.
+T17 and T18 state the separate-specification and separate-definition goals. The
+lexical-reader design maps the older combined-table and two-tier tasks to their
+proposed replacements. Those old tasks require board supersession when the
+implementation plan reconciles ownership; they are not completion evidence. Keep
+delimiter precedence, explicit capabilities and registry dispatch checks. The
+full name-harvester capability work remains separately scoped.
 
 ## Tasks
 
-- [ ] T1 | T1 -- Transcribe all 18 language rows into
-      `references/languages.toml`, Python included, with `tier` as a field.
-      Verify: the file holds 18 tables, one per row.
-- [ ] T2 | T2 -- Build `Language` from that table at runtime, the way
-      `vocabulary.py` reads `vocabulary.toml`. Verify: `grep -c "Language("
-      language.py` returns 1.
-- [ ] T3 | T3 -- Pin the order-significant fields, since openers match
-      longest-first. Verify: a test fails if `///` follows `//`, or `--[==[`
-      follows `--[[`.
-- [ ] T4 | T4 -- Pin that an EMPTY list is not a missing key. Verify: `declares
-      = []` loads as *no `a` series at all*, and a row with no `declares` key is
+- [-] T1 | One combined table; each language gets its own file (T17, T18) | 9e376f5f | T1
+      -- Transcribe all 18 language definitions into `references/languages.toml`,
+      Python included, with `tier` as a field. Verify: the file holds 18 tables,
+      one per row.
+- [-] T2 | One combined table; each language gets its own file (T17, T18) | 9e376f5f | T2
+      -- Build `Language` from that table at runtime, the way `vocabulary.py`
+      reads `vocabulary.toml`. Verify: `grep -c "Language(" language.py` returns
+      1.
+- [-] T3 | One combined table; each language gets its own file (T17, T18) | 9e376f5f | T3
+      -- Pin the order-significant fields, since openers match longest-first.
+      Verify: a test fails if `///` follows `//`, or `--[==[` follows `--[[`.
+- [-] T4 | One combined table; each language gets its own file (T17, T18) | 9e376f5f | T4
+      -- Pin that an EMPTY list is not a missing key. Verify: `declares = []`
+      loads as *no `a` series at all*, and a row with no `declares` key is
       refused as undecided.
-- [ ] T5 | T5 -- Move `test_every_row_STATES_its_own_quotes` from parsing the
-      Python AST to asking whether the key is present. Verify: the test reads
-      the table, not the AST.
+- [-] T5 | One combined table; each language gets its own file (T17, T18) | 9e376f5f | T5
+      -- Move `test_every_row_STATES_its_own_quotes` from parsing the Python AST
+      to asking whether the key is present. Verify: the test reads the table,
+      not the AST.
 - [x] T6 | FINISHED | unknown | T6 -- NOT A TASK, restated in the Objective: the
       move makes `language.py`'s own claim -- *adding a language is a row, not
       code* -- true.
@@ -120,17 +92,30 @@ whose measurements are folded in above.
 - [x] T11 | FINISHED | unknown | T11 -- SUPERSEDED BY T1. It said give Python
       its definition *alongside the other 17*, which assumed they had moved.
       MEASURED 2026-08-23: none of them has.
-- [ ] T12 | T12 -- Make `tier_for` (`language.py:546`) read the row's `tier`
-      field instead of `lang.name == "python"`. Verify: `language.py` holds no
-      comparison of `lang.name`.
-- [ ] T13 | T13 -- Dispatch the READER at `page.py:694` on the row, not on
-      `lang.name`. Verify: a file cannot be read at one tier and stamped at the
-      other.
+- [-] T12 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | T12
+      -- Make `tier_for` (`language.py:546`) read the row's `tier` field instead
+      of `lang.name == "python"`. Verify: `language.py` holds no comparison of
+      `lang.name`.
+- [-] T13 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | T13
+      -- Dispatch the READER at `page.py:694` on the row, not on `lang.name`.
+      Verify: a file cannot be read at one tier and stamped at the other.
 - [ ] T14 | T14 -- Gate the name harvester at `census.py:172` on a row field,
       not on `lang.name != "python"`. Verify: `census.py` holds no comparison of
       `lang.name`.
-- [ ] T15 | T15 -- Make `prove_unchanged.py:176` take the `(".py", ".pyi")`
-      suffix tuple from `language.py:99`. Verify: the tuple is not re-spelled in
+- [-] T15 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | T15
+      -- Make `prove_unchanged.py:176` take the `(".py", ".pyi")` suffix tuple
+      from `language.py:99`. Verify: the tuple is not re-spelled in
       `prove_unchanged.py`.
-- [ ] T16 | T16 -- Make `referrers.py:53` take the same suffix tuple from
+- [-] T16 | SUPERSEDED by T19: concordance is shelved from the lexical plan | c0b5b211 | T16
+      -- Make `referrers.py:53` take the same suffix tuple from
       `language.py:99`. Verify: the tuple is not re-spelled in `referrers.py`.
+- [-] T17 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | Specify
+      each supported language independently; verify each has its own dated spec,
+      references and fixtures
+        > 2026-10-11 Roy requires an independent specification for each language.
+- [-] T18 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | Implement
+      one definition file per language; verify each configures its parser
+      without family defaults or language inheritance
+        > 2026-10-11 Roy requires per-language definitions; engines may be reused.
+- [ ] T19 | Make concordance/referrers.py take its suffix tuple from the Python
+      language definition. Verify: the tuple is not re-spelled in referrers.py

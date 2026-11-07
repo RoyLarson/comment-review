@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 10 of 31 tasks closed
+Progress: 10 of 32 tasks closed
 Owner:    testing
 Requires-Roy: true
 Raised:   2026-08-18, after a run whose only question needed one role and cost four
@@ -382,6 +382,8 @@ to end, so the dominance claim waits on something that can disagree with it.
 - [ ] T31 | T31 -- Score the page against BOTH prior formats, on the dominance
       criterion. Verify: more info than filtered, fewer tokens than unfiltered,
       recall >= filtered.
+- [ ] T32 | Measure whether a topology's carries gives better answers, per
+      Process #50
 
 ## What this costs today
 

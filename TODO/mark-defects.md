@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 23 of 34 tasks closed
+Progress: 23 of 39 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, a code review of `desk/mark.py` that ran `parse`
@@ -282,3 +282,19 @@ cites as its measured example of a field answering neither necessary nor purpose
         > 2026-09-30 Criteria: docs/reviews/2026-09-30-r6-r7-r8.md, 06:6
 - [ ] T34 | Reject overlapping quoted ranges in desk/marks/rules.py:131; test
       dropping aaa from aaaa refuses an ambiguous clause
+- [ ] T35 | Fix structured docstring drops so Args and Returns retain sections;
+      verify disjoint drops compose
+- [ ] T36 | Accept disjoint clause edits within one docstring; verify separate
+      findings file without same-sentence refusals
+- [ ] T37 | Refuse a derived drop whose change equals the paragraph it was
+      derived from
+        > 2026-10-16 Check: drop of quoted "" on raw "" returns a problem, not raw
+        > 2026-10-16 Reason: rules.py derived_change reports success for a no-op drop
+- [ ] T38 | Match a quoted fragment against a paragraph's prose with whitespace
+      removed
+        > 2026-10-16 Reason: removes the split-literal ast read behind comment_form
+        > 2026-10-16 Check: a rewrapped clause quoted on one line is accepted
+        > 2026-10-16 Reason: Roy ruled an exact snippet pedantic; Process #212
+        > 2026-10-16 Check: a move is checked against its destination at creation
+- [ ] T39 | Make mark --withdraw take back one mark, not every ruling at the
+      address, per #276

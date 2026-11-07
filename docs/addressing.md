@@ -77,9 +77,8 @@ of code, takes a number at every trigger, and emits or does not: `a` and `b` emi
 `c` steps past it. That any two series line up on a given file is an OUTCOME of that walk, not a
 rule -- and nothing in this system reads one cue to derive another.
 
-! **ASK. DO NOT COUNT.** `addresser --file PATH --line N --series a|b|c|f`, which opens the file
-at the binder's root and answers from the page -- so a place the filtered binder does not carry
-still answers (`decision-log.md Process: #96`). The only supported way to learn a cue is to be
+! **ASK. DO NOT COUNT.** `addresses find --file PATH --line N --series a|b|c|f` reads the
+page and answers from it, so a place the filtered binder does not carry still answers. The only supported way to learn a cue is to be
 told it.
 
 !! **The `a` series counts DECLARATIONS, not code lines, and that is a ruling.** Numbering each
@@ -96,23 +95,21 @@ not matter that Python's sits after its `def` and Rust's `///` before its `fn`. 
 
 !! **AN ANCHOR HAS MANY ADDRESSES. AN ADDRESS HAS ONE ANCHOR.** Roy, 2026-08-19:
 *"a, b, c are the address -- each has an anchor. An anchor can be tied to multiple
-addresses ... anchors have many, an address has one."* One line of code carries the `b` above it
-and the `c` beside it; one declaration carries those plus its own `a` and every `b` and `c` in
+addresses ... anchors have many, an address has one."* One line of code carries the `c` beside
+it and the `b` above it. One declaration carries those plus its own `a` and every `b` and `c` in
 its body.
 
 !! **THE ANCHOR IS THE LINE OF CODE -- the exact characters.** Roy, the same day: *"the anchor
 isn't the technical symbols and their precise semantic meaning and code use. It is 'the line of
 code' -- the exact characters in that line of code."*
 
-**So it needs no parser, no language server and no build tool.** Every tier already finds where a
-comment opens in order to cut there, which means it already holds the characters before it. Roy:
-*"the lexer either knows what is before the trailing comment and can snag the whole string or it
-is broken."*
+**So it needs no language server and no build tool.** A reader already finds where a comment
+opens in order to cut there, which means it already holds the characters before it.
 
 | series | its anchor is |
 | --- | --- |
 | `a` | the LINE that declares it -- `def f():`, not `f`. The name is not carried: Roy, 2026-08-19, *"drop it -- the line is the anchor"* |
-| `b` | the code line BELOW the gap -- the statement the prose introduces. At the end of a file, the line above, because that is the bound the gap has |
+| `b` | the code line BELOW the gap -- the statement the prose introduces. At the end of a file, `<eof>`: the closing gap has no line below it |
 | `c` | the code on its own line, which is `line[:original_column - 1]` |
 
 !! **A RECORD WITH NO ANCHOR IS A BROKEN RECORD** -- Roy -- and `record.seeded_problems` says so.
@@ -120,11 +117,11 @@ Measured 2026-08-19 against the commit before that rule: **6,376 of 6,531 blocks
 own shipped scripts carried an EMPTY anchor, 98% of the census**, and every seeded record repeated
 it.
 
-! **It was invisible from both ends at once.** `census.py` printed *"NO COMMENT carries an anchor
-at either tier"* as a statement of intent, and `test_record.py` asserted which KEYS are seeded
+! **It was invisible from both ends at once.** `census.py` printed that no comment carries an
+anchor as a statement of intent, and `test_record.py` asserted which KEYS are seeded
 rather than that either held a value. The two agreed with each other and agreed on nothing.
 
-! **A `b` copies its anchor from that line's `c`, never re-cutting the line.** Every code line has
+! **A `b` copies its anchor from the `c` of each line it covers, never re-cutting one.** Every code line has
 exactly one `c` and it already states where the code stops. Cutting again answered
 `'    return os  # why'` where the `c` for the same line answered `'    return os'` -- two
 computations of one fact, which is what `whole_lines` was removed for.
@@ -146,11 +143,11 @@ cites. But `X=2` is TWO anchors spelled alike, so it answers with **two `c` plac
 places**, drawn from two different statements: the first gap is anchored to line 1, the other two
 to line 5. ! Those cues are what THIS walk emits on THIS file. Nothing may count them out from
 the lines -- see the ruling above.
-A line NUMBER names one trigger, so `addresser --line` answers one place per series -- except
+A line NUMBER names one trigger, so `addresses find` answers one place per series -- except
 `f`, whose two places no line tells apart; there it prints both and the CALLER chooses by
 address. Taking the first rules on the wrong end of the file.
 
-! **An anchor has ONE spelling: the line of code.** A declaration's `a`, the `b` above it and the
+! **An anchor has ONE spelling: a line of code.** A declaration's `a`, the `b` above it and the
 `c` beside it all carry `def f():`. The NAME is not carried at all.
 
 
@@ -159,12 +156,8 @@ the LANGUAGE uses for module-level code: it is `co_name` on the module's code ob
 in every traceback, so it is a convention rather than something this system invented. Roy,
 2026-08-19: *"that is why in python it should be `<module>`."*
 
-! **Every other language gets its declared module name, wherever that line sits** -- Roy:
-*"the rest get their declared module name that sits wherever."* Measured the same day: Go
-(`package math`), Ruby (`module Foo`) and Java (`package com.example;`) all declare a module on a
-real line, and the census already anchors their module documentation to it. They emit no `a`
-series yet, so the rule waits on one -- which is Python plus any setup where a language server or
-CodeGraph answers.
+! **Rust takes the same address.** A Rust file has no line that declares its module, so its `//!`
+documentation answers `<module>` too.
 
 ! **Two alternatives were tried and are worse.** The FIRST LINE OF CODE reads true only where a
 language puts its module declaration first by rule; in Python the first statement is arbitrary, so
@@ -230,12 +223,13 @@ where prose would go. Given the declaration's own range instead, a module's abse
 spanned lines 1-4 and the locator answered `a0` for the comment at 3 and the `def` at 4, both of
 which belong to other blocks.
 
-## What makes an address stable
+## What keeps text where it was
 
-**Stage 7b's CODE CHECK.** It does not prove the file byte-identical -- for Python it compares an
-`ast.dump`, elsewhere the stripped text -- but it proves the Nth code line is still the same
-statement, which is exactly what an ordinal counts. The line numbers move with the prose; the
-ordinal does not.
+**Stage 7b's CODE CHECK.** Python compares retained lexical source, including literal spelling,
+executable indentation and protected directives. Rust compares its code with every prose comment
+removed. A freeform file has no reader to compare, so `prove_unchanged` answers `UNCHECKED` for it,
+never `PROVEN`. Code anchors remain in source order while prose may shift their physical line
+numbers. Documentation additions and removals must preserve the original ordinary literals.
 
 !! **It rests on the census being a HASHED STATIC TABLE** -- Roy, 2026-08-18 -- exact, constant,
 FULLY ENUMERATED. A code line missed anywhere above a place does not fail: it RENAMES every place
@@ -266,7 +260,6 @@ Measured on this repo's own shipped scripts, 2026-08-18 and 2026-08-19:
 
 **After, re-measured 2026-08-19 over 18 files in four languages -- `.py`, `.go`, `.rs`, `.rb`:
 7,436 lines, each with exactly ONE address. 0 with none, 0 with more than one, 0 shared.**
-`addresser.py --check` re-reads that claim on every run.
 
 ! **The first measurement was PYTHON-ONLY and overstated.** It read 6,873 lines, 0 shared -- true
 of Python, where a comment cannot open after a statement and run on. In every C-family language
@@ -294,29 +287,24 @@ against the format that replaced it.
 
 ## Asking for an address
 
-**Do not count.** A filtered census collapses runs of empty places into one row, and counting
-inside one is how a citation lands a place off.
+**Do not count.** The binder carries only the places that hold prose, and counting places
+is how a citation lands a place off. Ask the page:
 
 ```bash
-# by ANCHOR -- which place of this declaration
-addresser.py --census <FULL CENSUS> --anchor LINE --series a|b|c
+# by LINE of the file as gathered -- which place of this series
+addresses find --repo <ROOT> --file <path> --line N --series a|b|c|f
 
-# by LINE, when what you have is a line of the original document
-locator.py --census <FULL CENSUS> --at path:LINE
-
-# an address in, the lines THIS CENSUS says it names out
-addresser.py --census <CENSUS> --resolve <ADDRESS>
+# an address in, the lines that cover it in the file now out
+addresses resolve <ADDRESS> --repo <ROOT>
 ```
 
-!! **THE ADDRESSER READS THE CENSUS, NEVER THE TREE.** It takes no `--repo`: every question it
-answers is census-internal, and checking the file would assert that line numbers still matter --
-which is what an address exists to stop. The CALLER chooses which census, so a post-write lookup
-censuses the file first and the two agree by construction. ! Staleness belongs where a file is
-WRITTEN: `galley.block_matches` refuses a stale range before it splices.
+Both read the page from the file under `--repo` through `on_the_page.page_named`, the reader the
+write end uses, and read no binder. A path outside the root is refused. `resolve` prints an empty
+place as empty, beside the line of code it is anchored to.
 
-!! **Prefer the anchor.** Asking by position -- "the block above the `def`" -- is right in Python
-and wrong in Rust, whose `///` sits before its `fn` where Python's docstring sits after. The
-census parsed the file and knows which is which; a count does not.
+!! **Ask, do not position.** "The place above the `def`" is right in Python and wrong in Rust,
+whose `///` sits before its `fn` where Python's docstring sits after. The reader knows which is
+which; a count does not.
 
 ## What is NOT addressed
 

@@ -9,7 +9,7 @@
         -> galley          the marks are put on the page
         -> compositor      the page is set as text
         -> draft           a temporary file, never the original
-        -> read it back    each alteration is at the cue it was given
+        -> read it back    each alteration's text landed where it was written
         -> prove           only comments changed
         -> the human
 
@@ -41,7 +41,7 @@ second literal, so a step dropped from the tuple shows up as a diff against
 that pin, not as a call somebody forgot to make.
 """
 
-from collections.abc import Sequence
+from collections.abc import Collection, Iterable, Sequence
 from enum import StrEnum, auto
 from pathlib import Path
 from typing import NamedTuple
@@ -49,13 +49,18 @@ from typing import NamedTuple
 from comment_review import constants
 from comment_review.binder.page import Page
 from comment_review.docket.docket import Alteration, Docket, Schedule
-from comment_review.flows.page_for import page_of, source_of
-from comment_review.machine.repo import can_escape, undraftable
-from comment_review.reading.addresser import address_for, cue_of
+from comment_review.flows.page_for import page_of
+from comment_review.flows.read_diagnostics import format_failure
+from comment_review.flows.source import source_of
+from comment_review.machine.repo import Source, can_escape, sha_of, undraftable
+from comment_review.reading.addresser import MODULE, address_for, cue_of
+from comment_review.reading.context import ReadingContext
+from comment_review.reading.diagnostics import ReadFailure
+from comment_review.reading.language import documents_in_literals
 from comment_review.reading.paragraph import Paragraph
-from comment_review.reading.series import Series
+from comment_review.reading.proof import UNIDENTIFIED_OWNER
+from comment_review.reading.series import Kind, Series
 from comment_review.results import compositor, galley
-from comment_review.results.prove_unchanged import code_fingerprint_setting_aside
 
 
 class Step(StrEnum):
@@ -199,6 +204,11 @@ def run(docket: Docket, repo: Path, into: Path) -> tuple[list[Drafted], list[Ref
             )
             for p in outside
         ]
+    seen: set[str] = set()
+    for schedule in schedules:
+        if schedule.path in seen:
+            return [], [Refusal("verify", schedule.path, "two schedules for one page")]
+        seen.add(schedule.path)
     into.mkdir(parents=True, exist_ok=True)
     drafted: list[Drafted] = []
     refusals: list[Refusal] = []
@@ -215,16 +225,9 @@ def run(docket: Docket, repo: Path, into: Path) -> tuple[list[Drafted], list[Ref
     # and a name that resolved to nothing was its own refusal. A schedule
     # carries the repo's own path, so both went with the shape change.
     for schedule in sorted(schedules, key=lambda s: s.path):
-        repeated = _repeated(schedule)
-        if repeated is not None:
-            refusals.append(repeated)
-            break
         try:
             made, why = _one(
-                schedule.path,
-                schedule.edits,
-                schedule.anchors,
-                schedule.sha,
+                schedule,
                 repo,
                 into,
                 created,
@@ -334,15 +337,13 @@ def _discard(draft: Path, created: set[Path]) -> None:
 
 
 def _one(
-    rel: str,
-    edits: dict[str, str | None],
-    anchors: dict[str, str],
-    recorded: str,
+    schedule: Schedule,
     repo: Path,
     into: Path,
     created: set[Path],
 ) -> tuple[Drafted | None, Refusal | None]:
     """One page through every step, or the first step that refused."""
+    rel, recorded = schedule.path, schedule.sha
     # !! LEXICAL CONTAINMENT IS `run`'s, ONE STEP UP: `can_escape` has already
     # refused an absolute, drive-relative, rooted or `..`-walking page path for
     # the whole run. What is left to the two comparisons in this function is the
@@ -374,9 +375,9 @@ def _one(
     # This is also the only check in the tree that catches a reviewer editing
     # the file it was reading: no agent file declares `tools:`, so all six
     # inherit Edit and Write, and "read-only" is prose until this compares.
-    held, why = source_of(source)
-    if held is None:
-        return None, Refusal("read", rel, why)
+    held = source_of(source)
+    if isinstance(held, ReadFailure):
+        return None, Refusal("read", rel, format_failure(held, path=rel))
     if not recorded or held.sha != recorded:
         return None, Refusal(
             "verify",
@@ -385,9 +386,22 @@ def _one(
             f" {recorded or '<nothing recorded>'}, reads now as {held.sha}",
         )
 
-    page, why = page_of(source, rel=rel, source=held)
-    if page is None:
-        return None, Refusal("read", rel, why)
+    reading = schedule.reading
+    if not isinstance(reading, ReadingContext):
+        return None, Refusal("read", rel, "malformed saved reading context; regather")
+    try:
+        ReadingContext(
+            reading.language, reading.reader, reading.compatibility, reading.settings
+        )
+    except (TypeError, ValueError):
+        return None, Refusal("read", rel, "malformed saved reading context; regather")
+    page = page_of(source, rel=rel, source=held, reading_context=reading)
+    if isinstance(page, ReadFailure):
+        return None, Refusal("read", rel, format_failure(page, path=rel))
+    repeated = _repeated(schedule)
+    if repeated is not None:
+        return None, repeated
+    edits, anchors = schedule.edits, schedule.anchors
 
     # Every alteration carries the page's anchor at its place, and each is
     # checked against the page's own anchor there, which is what
@@ -472,14 +486,12 @@ def _one(
         # `_prove` takes its text and the places the alterations name on it,
         # the approved changes it compares against (`decision-log.md Process:
         # #113`).
-        draft, off = _reread(rel, target, edits)
+        draft, off = _reread(rel, target, page, edits, reading)
         if draft is None:
             _discard(target, created)
             return None, off
 
-        unproven = _prove(
-            rel, page.text, draft.text, target, _approved(page, draft, edits)
-        )
+        unproven = _prove(rel, page, draft, target, _approved(page, draft, edits))
     except Exception:
         _discard(target, created)
         raise
@@ -490,9 +502,13 @@ def _one(
 
 
 def _reread(
-    rel: str, target: Path, edits: dict[str, str | None]
+    rel: str,
+    target: Path,
+    page: Page,
+    edits: dict[str, str | None],
+    reading: ReadingContext,
 ) -> tuple[Page | None, Refusal | None]:
-    """Read the draft back as a page: is each alteration at the cue it was given?
+    """Read the draft back as a page: did the text land where it was written?
 
     !! IT IS READ FROM DISK, NOT FROM THE PAGE IN HAND. Roy, 2026-08-24: the
     workflow *"Sends that through the page system again to make certain that
@@ -500,15 +516,40 @@ def _reread(
     memory would be agreeing with itself -- the shape `docs/gates.md` records
     the round trip scoring 699 of 699 on.
 
-    !! IT ASKS `page_of`, AND INLINED THE SAME FOUR CALLS UNTIL 2026-08-26 --
-    without the `Refused` and `READ_ERRORS` handling `page_of` supplies. A draft
-    tripping `page_for`'s `raise exceptions.Refused` escaped `run()` as a
-    traceback, against its documented `(drafted, []) or ([], refusals)`.
+    It asks three things of that read, none of them about an address, because
+    an alteration can read back at another place (`decision-log.md Process:
+    #247`):
+    - landed: the exact lines written for an alteration hold exactly that text,
+      in prose, under as many code lines as its place has on the page. The text
+      may share a paragraph with a neighbour and read at another address
+      (`decision-log.md Process: #254`). The lines come from the compositor; what
+      stands on them, and the count, come from the reader. A blank in the text
+      can stand between two paragraphs, where no paragraph holds it, so a blank
+      no paragraph holds is read from the draft's own line.
+    - dropped: the dropped text is gone. Dropped lines still in the draft are
+      lines the page no longer holds, which the third question refuses, and
+      counting lines there is what lets the same words stand elsewhere.
+    - unchanged: every line of prose the page holds reads back with the same
+      text, in the file's own order, under the same count of code lines. The
+      reading order the compositor sets from is not the expected order, so a
+      line that order moved is refused. It is compared by line: a neighbour
+      merged into written text is still checked, and so is where the written
+      text stands against it. A drop can leave two paragraphs touching, and the
+      reader then finds one run holding both.
+
+    The count is safe because `_prove` holds the code lines themselves. Within
+    one stretch between two code lines the order holds and the blanks are not
+    compared. A comment moved off its code line onto the line below, or back,
+    keeps its text and its count, so it passes.
+
+    A failed page read becomes a reread refusal before any of the three.
 
     Args:
         rel: how the repo names the page this draft was set from.
         target: the draft on disk.
+        page: the page the draft was set from, with the alterations on it.
         edits: cue -> replacement text, or None where the place was dropped.
+        reading: the saved context used to admit the original page.
 
     Returns:
         `(the draft's page, None)`, or `(None, the first refusal)`. The page's
@@ -517,110 +558,154 @@ def _reread(
         `_prove` finds, in the draft, the declaration each approved `a`
         alteration documents.
     """
-    page, why = page_of(target, rel=rel)
-    if page is None:
-        return None, Refusal("reread", rel, f"the draft: {why}")
-    # !! COLLECTED AS A LIST PER CUE, BECAUSE A COLLISION IS A REFUSAL AND NOT A
-    # LAST-ONE-WINS. This was `{cue_of(b.address).cue: b for b in page ...}`,
-    # which keeps the LAST paragraph at a cue two paragraphs share and checks
-    # the alteration against it -- so a draft holding the approved text at one of
-    # them and prose nobody looked at at the other passed. `galley.reset`
-    # refuses that shape by name (157 of them measured in one tree on
-    # 2026-08-21), and a verification step weaker than the edit step it exists
-    # to check cannot report the edit step being wrong.
-    placed: dict[str, list] = {}
-    for b in page:
-        if b.address:
-            placed.setdefault(cue_of(b.address).cue, []).append(b)
+    draft = page_of(target, rel=rel, reading_context=reading)
+    if isinstance(draft, ReadFailure):
+        return None, Refusal(
+            "reread", rel, f"the draft: {format_failure(draft, path=rel)}"
+        )
+    written = compositor.spans(page)
+    lines = constants.text_lines(draft.text)
+    was_above, now_above = _code_above(page), _code_above(draft)
+    read = sorted(
+        (b for b in draft if b.address and _holds_prose(b)), key=lambda b: b.start
+    )
+    lines_written: set[int] = set()
     for where, replacement in edits.items():
-        found = placed.get(where)
-        if not found:
+        if replacement is None:
+            continue
+        if where not in written:
             return None, Refusal(
-                "reread", rel, f"{where}: the draft carries no such place"
+                "reread", rel, f"{where}: the compositor set no lines for this place"
             )
-        if len(found) > 1:
+        want = constants.text_lines(replacement)
+        first, last = written[where]
+        on_those_lines = [b for b in read if b.start <= last and first <= b.end]
+        held = [
+            (at, line)
+            for b in on_those_lines
+            for at, line in enumerate(b.raw_lines, b.start)
+            if first <= at <= last
+        ]
+        in_a_paragraph = {at for at, _ in held}
+        held = sorted(
+            held
+            + [
+                (at, line)
+                for at, line in enumerate(lines[first - 1 : last], first)
+                if at not in in_a_paragraph and not line.strip()
+            ]
+        )
+        if held != list(enumerate(want, first)) or last - first + 1 != len(want):
             return None, Refusal(
                 "reread",
                 rel,
-                f"{where}: {len(found)} paragraphs share this place in the draft,"
-                " so no alteration can be checked against it",
+                f"{where}: on lines {first}-{last} the draft holds"
+                f" {[line for _, line in held]!r}, was given {want!r}",
             )
-        got = found[0]
-        if replacement is None:
-            # !! A VACATED `c` READS BACK AS `['']`, NOT AS `[]`, so this asked
-            # for a shape no drop can produce. `page.empty_places` stores a
-            # margin's prose as `[lines[n - 1][len(code):]]` -- the room beside
-            # the statement, which is the empty string when nothing sits there
-            # -- while this built `want = []` and compared exactly. MEASURED
-            # 2026-08-25 on `tests/conftest.SAMPLE`: `c0`, `c1` and `c2` each
-            # refused with "holds [''], was given []", so `drop` was
-            # unreachable for the whole `c` series while the galley, the
-            # compositor and the draft on disk were all correct.
-            #
-            # ! WHAT A DROP ASSERTS IS THAT THE PLACE HOLDS NO PROSE, which is
-            # the question asked here. It can still fail: a place that kept its
-            # paragraph reads back with that paragraph's text in it.
-            if any(line.strip() for line in got.raw_lines):
+        if Series.of(where) is not Series.ON and any(
+            Series.of(cue_of(b.address).cue) is Series.ON for b in on_those_lines
+        ):
+            return None, Refusal(
+                "reread",
+                rel,
+                f"{where}: on lines {first}-{last} the text stands on a code line",
+            )
+        lines_written.update(range(first, last + 1))
+        for below in {now_above[cue_of(b.address).cue] for b in on_those_lines}:
+            if below != was_above[where]:
                 return None, Refusal(
                     "reread",
                     rel,
-                    f"{where}: was dropped, but the draft holds {got.raw_lines!r}",
+                    f"{where}: stands under {below} code lines in the draft, and"
+                    f" under {was_above[where]} on the page",
                 )
-            continue
-        want = constants.text_lines(replacement)
-        if got.raw_lines != want:
-            return None, Refusal(
-                "reread",
-                rel,
-                f"{where}: holds {got.raw_lines!r}, was given {want!r}"
-                f"{_elsewhere(placed, where, want)}",
-            )
-    return page, None
+    held_by = {cue_of(b.address).cue: b for b in page if b.address}
+    # A place the file holds prose at keeps the file's order. An empty place
+    # has no line, so what fills it stands where the reading order puts it.
+    on_a_line = {cue: b.start for cue, b in held_by.items() if b.start}
+    in_file = iter(sorted(on_a_line, key=on_a_line.__getitem__))
+    kept: list[tuple[int, str]] = []
+    for cue in page.cues.reading:
+        at = next(in_file) if cue in on_a_line else cue
+        if at in edits:
+            kept += [
+                (was_above[at], line)
+                for line in constants.text_lines(edits[at] or "")
+                if line.strip()
+            ]
+        elif at in held_by:
+            kept += _prose_lines([held_by[at]], was_above)
+    came_back = _prose_lines(read, now_above, lines_written)
+    if came_back != kept:
+        return None, Refusal("reread", rel, _first_difference(came_back, kept))
+    return draft, None
 
 
-def _elsewhere(placed: dict[str, list], where: str, want: list[str]) -> str:
-    """Which OTHER place in the draft holds this text, as a trailing clause.
+def _first_difference(
+    found: list[tuple[int, str]], expected: list[tuple[int, str]]
+) -> str:
+    """Name where two differing prose lists part: the line and its code count."""
+    at = next(
+        (
+            i
+            for i, pair in enumerate(zip(found, expected, strict=False))
+            if pair[0] != pair[1]
+        ),
+        min(len(found), len(expected)),
+    )
+    draft, page = (
+        f"{side[at][1]!r} under {side[at][0]} code lines"
+        if at < len(side)
+        else "nothing"
+        for side in (found, expected)
+    )
+    return (
+        f"line {at + 1} of the prose: the draft reads {draft} where the page"
+        f" with its alterations reads {page}"
+    )
 
-    !! TWO PLACES CAN NAME ONE POSITION, and the refusal above named neither
-    when they disagreed. `addresser.cue` emits the closing gap and the file's
-    back matter at the SAME `<eof>` trigger -- its own comment says so:
-    *"both sentinels are shared -- `a0` with `f0` at the head, the closing gap
-    with `f1` at the foot."* Which of the two a paragraph attaches to is the
-    LEXER's `matter` rule, so an `add` of an ordinary comment at the closing
-    gap is set exactly where it was asked for and read back at `f1`.
 
-    ! MEASURED 2026-08-25 on `tests/conftest.SAMPLE`: `{'m.py@b4': '# ADDED'}`
-    and `{'m.py@f1': '# ADDED'}` compose the SAME bytes, and the second passes
-    the whole chain while the first refused with `b4: holds [], was given
-    ['# ADDED']` -- a message that named neither the collision nor the place
-    that does hold the text.
+def _holds_prose(paragraph: Paragraph) -> bool:
+    """Whether any of this paragraph's lines hold more than white space."""
+    return any(line.strip() for line in paragraph.raw_lines)
 
-    ! IT REPORTS; IT DOES NOT ACCEPT. Naming the other place is what makes the
-    refusal actionable. Deciding which of two co-located places owns prose at
-    the foot of a file is a page-model ruling -- see
-    `TODO/foot-of-file-two-places.md` -- and reading the alteration as
-    satisfied because the text is SOMEWHERE would be this step agreeing with
-    the edit step instead of checking it.
 
-    ! IT READS THE TABLE `_reread` ALREADY BUILT, rather than walking the page a
-    second time and recomputing `cue_of` for every paragraph on it. ! Where
-    SEVERAL places hold the text it now names the first such CUE down the page
-    rather than the first matching PARAGRAPH; the two differ only when an
-    earlier cue's match sits below a later cue's paragraph, and either answers
-    the question this returns a clause for.
+def _code_above(page: Page) -> dict[str, int]:
+    """How many code lines stand at or above each place, by cue."""
+    seen = 0
+    above: dict[str, int] = {}
+    for cue in page.cues.reading:
+        seen += Series.of(cue) is Series.ON
+        above[cue] = seen
+    return above
 
-    Args:
-        placed: the draft's paragraphs, grouped by cue, as `_reread` built it.
-        where: the cue whose alteration did not read back.
-        want: the lines that were asked for there.
 
-    Returns:
-        `" -- <cue> holds it"`, or "" when no other place does.
+def _prose_lines(
+    paragraphs: Iterable[Paragraph],
+    above: dict[str, int],
+    written: Collection[int] = (),
+) -> list[tuple[int, str]]:
+    """The lines of those paragraphs holding prose, each with its count of code.
+
+    A blank inside a string a language documents with is that string's value and
+    is kept. A blank in a comment is not compared: a drop can re-cut comment runs
+    or turn a comment into documentation, so the same blank can stand inside a
+    paragraph on one side and between two on the other. A blank on a line in
+    `written` is alteration text, compared where the alteration is, and how a
+    reader takes it says nothing about the page.
     """
-    for cue, found in placed.items():
-        if cue != where and any(b.raw_lines == want for b in found):
-            return f" -- {cue} holds it"
-    return ""
+    return [
+        (above[cue_of(b.address).cue], line)
+        for b in paragraphs
+        if _holds_prose(b)
+        for at, line in enumerate(b.raw_lines, b.start)
+        if line.strip()
+        or (
+            at not in written
+            and b.kind == Kind.DOCSTRING
+            and documents_in_literals(Path(b.path))
+        )
+    ]
 
 
 def _approved(
@@ -631,10 +716,11 @@ def _approved(
     `_prove` compares the draft against these approved changes, not against
     nothing changed (`decision-log.md Process: #113`).
 
-    Keying each page by cue is safe for the cues read here: by the time this
-    runs, every cue in `edits` is held by exactly one paragraph on the page --
-    `galley.reset` refuses a cue that no paragraph, or more than one, holds --
-    and in the draft, where `_reread` refuses the same two shapes.
+    Keying each page by cue is safe for the cues read here: a page holds one
+    paragraph per address, and by the time this runs every cue in `edits` is
+    held on the page -- `galley.reset` refuses a cue no paragraph holds. A cue
+    the draft does not carry is left out, and the comparison then refuses any
+    docstring change it would have set aside.
 
     Args:
         page: the page the draft was set from. `galley.reset` changes its
@@ -648,90 +734,88 @@ def _approved(
     """
     was = {cue_of(b.address).cue: b for b in page if b.address}
     now = {cue_of(b.address).cue: b for b in draft if b.address}
-    return [(was[where], now[where]) for where in edits]
+    return [(was[where], now[where]) for where in edits if where in now]
 
 
 def _prove(
     rel: str,
-    before: str,
-    after: str,
+    before: str | Page,
+    after: str | Page,
     path: Path,
     approved: Sequence[tuple[Paragraph, Paragraph]] = (),
 ) -> Refusal | None:
-    """Is the executable code in the draft the code that was there before?
+    """Prove retained source unchanged after the approved prose alterations.
 
-    !! AN UNPROVABLE FILE IS REFUSED, NOT PASSED. `code_fingerprint` returns an
-    EMPTY fingerprint for a file it cannot strip, and two empty strings compare
-    equal -- so reading its instruction without reading its KIND proves every
-    unprovable file identical to every other.
+    Text inputs first enter page admission. The before page's read then compares
+    itself with the after page's, given the anchor line of each approved `a`
+    pair; each pair must be the page's own place, carrying the anchor its cues
+    give it. Which docstrings a read may set aside, and how it identifies their
+    owners, is the read's: see `reading.proof.SourceRead`.
 
-    ! WHAT THIS CATCHES THAT `_reread` CANNOT. `_reread` checks only the cues a
-    alteration named, so an alteration surviving it was -- by construction -- read
-    back as a comment: for the AST tier a comment never enters the fingerprint,
-    so a still-a-COMMENT edit can never trip the `want != got` branch below.
-
-    It compares against the approved changes, not against nothing changed --
-    `decision-log.md Process: #113`. A docstring's presence is in the
-    fingerprint, because a docstring binds `__doc__` and the commands in this
-    package read `ArgumentParser(description=__doc__)`. At each declaration an
-    approved alteration in the `a` series documents, that presence is left out
-    of both texts, so an approved `add` or `drop` of a docstring passes. Every
-    other declaration keeps its docstring's presence in the comparison, and
-    all code is compared.
-
-    An approved rewrite at an `a` place has its presence set aside the same
-    way, so whether the docstring is still there is left to `_reread`, which
-    refuses a draft whose text at that cue is not the approved text.
-
-    The declaration is identified from the place, never from the `a` ordinal:
-    in the text before, at the line the page the draft was set from puts the
-    place's anchor on; in the draft, at the line the draft's own page puts the
-    same anchor on. Where either names no single declaration the proof
-    refuses. `test_an_approved_docstring_ADD_reaches_a_draft`,
-    `test_an_approved_docstring_DROP_reaches_a_draft` and the refusals beside
-    them in `tests/test_proof_setter.py` pin it. The comment-stripped
-    comparison other languages take reads no declaration.
-
-    The residual hazard this branch is for is an alteration that breaks its
-    comment's RUN and swallows code BEYOND the edited cue -- an edit whose
-    comment run closes mid-line, or never closes at all, can delete the code
-    that followed it. `_reread` cannot see that: the swallowed code was never
-    one of the cues it was asked about. `_prove` compares the WHOLE file's
-    fingerprint, which is what catches it. See
-    `TODO/closing-line-deletes-code.md`.
-
-    Args:
-        rel: how the repo names the page.
-        before: the text the draft was set from.
-        after: the draft's text.
-        path: used for its suffix, which picks the comparison.
-        approved: each approved alteration's place, on the page the draft was
-            set from and in the draft, as `_approved` pairs them. Empty keeps
-            every docstring's presence in the comparison.
+    `_reread` checks the prose of the draft; this comparison covers the
+    retained source. Failed admission, a changed
+    proof kind, unidentified owners and unprovable comparisons all refuse.
     """
-    documented = [
-        (was, now)
-        for was, now in approved
-        if Series.of(cue_of(was.address).cue) is Series.DECLARED
-    ]
-    # The draft's line is looked up with the anchor from the page the draft was
-    # set from, so both texts set aside a declaration with the same declaring
-    # line.
-    kind, want = code_fingerprint_setting_aside(
-        before, path, [(was.anchor, was.anchor_line) for was, _ in documented]
-    )
-    got_kind, got = code_fingerprint_setting_aside(
-        after, path, [(was.anchor, now.anchor_line) for was, now in documented]
-    )
-    if kind == "unprovable" or got_kind == "unprovable":
-        return Refusal("prove", rel, "the code in this file cannot be proven unchanged")
-    if kind == "unidentified" or got_kind == "unidentified":
-        return Refusal(
-            "prove",
-            rel,
-            "the declaration an approved docstring alteration documents cannot be"
-            " identified in the code, so its docstring cannot be set aside",
+    admitted: list[Page] = []
+    for side, value in (("before", before), ("after", after)):
+        page = (
+            value
+            if isinstance(value, Page)
+            else page_of(path, rel=rel, source=Source(value, sha_of(value)))
         )
-    if want != got:
-        return Refusal("prove", rel, "the executable code is not what it was")
-    return None
+        if isinstance(page, ReadFailure):
+            return Refusal("prove", rel, f"{side}: {format_failure(page, path=rel)}")
+        admitted.append(page)
+    page_before, page_after = admitted
+    if page_before.read.proof != page_after.read.proof:
+        return Refusal("prove", rel, "the proof kind is not what it was")
+    unidentified = Refusal(
+        "prove",
+        rel,
+        "the declaration an approved docstring alteration documents "
+        "cannot be identified in the code, so its docstring cannot "
+        "be set aside",
+    )
+    documented: list[tuple[int | None, int | None]] = []
+    for was, now in approved:
+        if Series.of(cue_of(was.address).cue) is not Series.DECLARED:
+            continue
+        before_line = _documented_line(page_before, was)
+        after_line = _documented_line(page_after, now)
+        if before_line is None or after_line is None:
+            return unidentified
+        documented.append((before_line[0], after_line[0]))
+    result = page_before.read.preserved(page_after.read, documented=documented)
+    if result.unchanged:
+        return None
+    if result.unprovable:
+        return Refusal("prove", rel, "the code in this file cannot be proven unchanged")
+    if any(d.code == UNIDENTIFIED_OWNER for d in result.diagnostics):
+        return unidentified
+    return Refusal(
+        "prove",
+        rel,
+        "the executable code is not what it was: "
+        + format_failure(ReadFailure(result.diagnostics), path=rel),
+    )
+
+
+def _documented_line(page: Page, paragraph: Paragraph) -> tuple[int | None] | None:
+    """The anchor line an approved `a` place documents, `(None,)` for the module.
+
+    None unless the paragraph is the page's single place at its address and
+    carries the anchor the page's cues give that place.
+    """
+    places = [place for place in page if place.address == paragraph.address]
+    cue = cue_of(paragraph.address).cue
+    if len(places) != 1 or Series.of(cue) is not Series.DECLARED:
+        return None
+    if (paragraph.anchor, paragraph.anchor_line, paragraph.anchor_num) != (
+        page.cues.anchor_of(cue),
+        page.cues.anchor_line(cue),
+        page.cues.anchor_num(cue),
+    ):
+        return None
+    if paragraph.anchor == MODULE and paragraph.anchor_line is None:
+        return (None,)
+    return (paragraph.anchor_line,)

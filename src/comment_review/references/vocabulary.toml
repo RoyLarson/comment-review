@@ -16,7 +16,7 @@
 [definitions]
 
 # --- what a comment sits on -------------------------------------------------
-anchor = "The LINE OF CODE that an address is attached to -- the exact characters on it. An `a` is attached to the line that OPENS the thing it documents, a `b` to the line of code below the gap, a `c` to the code on its own line. Mechanical -- whatever is there. An anchor has MANY addresses and an address has ONE anchor, so two identical lines are two anchors spelled alike."
+anchor = "The line of code an address is attached to -- the exact characters. An `a` is attached to what opens the thing it documents, a `b` to the code below the gap, a `c` to the code on its own line alone. Mechanical -- whatever is there. An anchor has many addresses and an address has one anchor, so two identical lines are two different anchors with the same characters."
 owner = "The anchor with the best justification for holding the comment. Where several compete it is the site that ENFORCES the constraint, or, where nothing enforces it, the code still expected to hold the invariant."
 gather = "Stage 2, and the command that runs it: every page in scope read, every paragraph addressed, and the pages bound into the BINDER. The act; the binder is what it hands over."
 binder = "The artifact the gather hands over: every PAGE in scope, each paragraph carrying its ADDRESS, its ANCHOR, its start and end line and its text, and nothing else. ! It spans the files; one page is one of them. ! Flat, because a page is: paragraphs run down a page and do not nest. What every later command reads."
@@ -26,7 +26,7 @@ sentence = "The unit an instruction rules on. A container of six sentences can h
 clause = "A part of a sentence. `correct` carries a false clause and a true one; `REASON` is one clause."
 statement = "A line of CODE. Never a piece of prose -- prose is a sentence or a clause."
 expression = "A piece of CODE that evaluates to a value."
-declaration = "Something that can carry DOCUMENTATION -- a module, class, function, method, struct -- and so what an `a` place is about. ! NOT every line that introduces a name: `x = 1` and `let x = 1;` get no `a`. Which kinds a language offers is whatever its tier can resolve. Four of the eighteen have no docstring practice at all -- sql, toml, ini, yaml. ! c and cpp carry an EMPTY LIST TODAY because the matcher reads a line FIRST word and a C declaration opens with its return type -- a matcher that looks for the keyword anywhere in the line resolves it, so this is deferred and not a property of the languages."
+declaration = "Something that can carry documentation -- a module, class, function, method, struct -- and so what an `a` place is about."
 assignment = "A piece of CODE that binds a value to a name."
 annotation = "A type annotation in code -- `x: int` -- which is part of the line of code, not prose. The gather attaches none to a paragraph: a binder row holds its address, its anchor, its start and end line and its text, and nothing else."
 "comment run" = "The contiguous comment lines between the two lines of code that bound them. The prose INSIDE a paragraph, which may instead hold a docstring or nothing at all."
@@ -43,8 +43,9 @@ add = "A constraint exists in code and nowhere in prose."
 move = "True, but it belongs SOMEWHERE ELSE. One relocation instruction -- ten lines down, another file, or out of the code entirely is the DESTINATION, not a second instruction."
 payload = "What an instruction must carry to be usable."
 finding = "One ruling on one sentence, emitted as a MARK."
-"edit copy" = "One role's own copy of the pages it was handed -- its role, the tree it was gathered from, and one SHEET per page. Seeded with a slot per prose paragraph; the role fills the slots in place and hands the copy back. The one file a reviewer writes."
+"edit copy" = "One role's own copy of the pages it was handed -- its role, the tree it was gathered from, and one SHEET per page. Seeded with a slot per prose paragraph; the role fills the slots in place and hands the copy back. The one file a reviewer writes for a page."
 sheet = "One page inside an edit copy: the file's path, the sha it was read at, and the marks on it."
+"managing editor" = "The task agent: it runs the review -- dispatches the roles, sends the revises, decides the proof is done and hands it to the human. The copy chief rules on marks at a place; the managing editor runs the process that ruling sits inside."
 "copy chief" = "Who folds the roles' edit copies into one set of edits and rules where they disagree -- the task agent, at max turns. It rules only where the roles never settled, and there are two rulings: take one side's text in, the original being a side, or recast the paragraph in its own prose. No role may give either."
 remit ="The categories of claim a role rules on -- as against verifying, which is what it does to them."
 "editorial role" = "One of the four desks a reviewer sits at, each named by its role id: the notes editor (ownership-context), the fact-check editor (block-context), the line editor (function-context) and the developmental editor (module-context)."
@@ -72,17 +73,18 @@ original = "The text as it stood when THIS RUN began -- not the first version ev
 proofreader = "Who reads the finished PROOF and decides whether the document deserves more marks."
 
 # --- how a place is NAMED ---------------------------------------------------
-address = "The name of a place: `pkg:mod.py@b3` -- a path, an `@`, and a cue. Counted against the CODE and not against the lines, which is what makes it survive this tool's own edits: every prose edit moves the line numbers below it, and an ordinal counts statements instead. It is what a record cites."
+address = "The name of a place: `pkg:mod.py@b3` -- a path, an `@`, and a cue. It holds for one reading of the file: change the text at this address and it is set in the right spot relative to its anchor. The next reading may give that text a different address; what must hold is its location relative to the code and to other prose. It is what a record cites."
 cue = "The `b3` half of an address, after the `@`. The mark that says prose belongs at this place -- it carries no content, only the position. A reference mark in publishing, which is what it is here."
 series = "One of the three kinds of address, and which one says what the prose answers to: `a` a declaration's documentation, `b` the gap above a line of code, `c` the room beside one."
-"line of code" = "A line the gather counts as CODE, and the exact characters on it that are code -- anything that is neither blank nor prose. A trailing comment is NOT part of it; a comment fenced by code on both sides IS. Right-stripped, and not unique: two identical statements are two anchors spelled alike."
+"line of code" = "A line the gather counts as CODE, and the exact characters on it that are code -- anything that is neither blank nor prose. A trailing comment is NOT part of it; a comment fenced by code on both sides IS. Right-stripped, and not unique: two identical statements are two lines spelled alike."
 
 # --- what the page is made of -----------------------------------------------
 page = "ONE FILE: its paragraphs in order, among the code they sit with. A page does not nest, which is why the binder is a flat list and needs no other shape. ! The BINDER is the enumeration across EVERY page in scope, not this one."
+freeform = "A source file no reader claims. It has no page and no address: reviewers read it and edit a copy, the copy chief writes one draft from those copies, and `prove_unchanged` answers `UNCHECKED` for it."
 paragraph = "One unit of prose on the page: a comment run, a docstring, or the empty place where either could go. It answers to exactly one address. `block` was the older word for it and no longer means this: a `block` is the code symbols that say which series the lines they enclose belong to, never the prose between them."
 
 # --- what is SET, and who sets it --------------------------------------------
-compositor = "Who SETS a page as text. It walks the page's places in order and asks each one what it holds. It decides nothing, and it is the only thing that writes a file."
+compositor = "Who SETS a page as text. It walks the page's places in order and asks each one what it holds. It decides nothing, and it is the only thing that writes a page."
 proof = "Pages as set, pulled to be judged -- what a PROOFREADER reads. It is read as set: the proofreader reports, and moves nothing and writes no alteration or schedule for it."
 docket = "Every alteration the compositor is to set, as one SCHEDULE per page. `proof` transcribes it from a closed MASTER PROOF and sets it; `proof --to-docket` writes it out instead."
 schedule = "One page's ALTERATIONS, with the page's path and the sha of its text when it was read."
@@ -103,7 +105,8 @@ undocumented = "A declaration with no docstring -- an `a` place with nothing in 
 
 # --- comments that share a line with code ------------------------------------
 "trailing comment" = "Prose after the statement on its own line, about that statement. Its address is a `c`, and its anchor is the code before it."
-"intermediate comment" = "A comment with code on BOTH sides of it -- `int x = /* why */ 5;`. It is NOT gathered and has no address, because it is part of the line of code rather than prose about it. Raise one as a code concern."
+"detached documentation" = "A doc comment the language attaches to an owner but the place model cannot hold as that owner's `a` place: one behind an ordinary comment, between an attribute and its item, a second doc run in one head, or an inner doc that does not come first in its body or that trails code on its line. It is read as part of the ordinary paragraph at the place its position gives it, which it shares with any other comment there, and the gather prints a warning for it. One paragraph can carry more than one warning."
+"intermediate comment" ="A comment with code on BOTH sides of it -- `int x = /* why */ 5;`. It is NOT gathered and has no address, because it is part of the line of code rather than prose about it. Raise one as a code concern."
 
 [roles]
 # Every agent gets these.
@@ -122,17 +125,22 @@ all = ["paragraph", "sentence", "clause", "finding", "move"]
   "compositor",
   "copy chief",
   "correct",
+  "cue",
+  "detached documentation",
   "dispositions",
   "docket",
   "drop",
   "edit copy",
   "editorial role",
+  "freeform",
   "gather",
   "instruction",
   "line of code",
+  "managing editor",
   "mark",
   "master proof",
   "original",
+  "owner",
   "page",
   "patch",
   "payload",
@@ -188,6 +196,7 @@ all = ["paragraph", "sentence", "clause", "finding", "move"]
   "original",
   "owner",
   "page",
+  "freeform",
   "patch",
   "payload",
   "query",
@@ -234,6 +243,7 @@ all = ["paragraph", "sentence", "clause", "finding", "move"]
   "obituary",
   "original",
   "page",
+  "freeform",
   "patch",
   "payload",
   "query",
@@ -282,6 +292,7 @@ all = ["paragraph", "sentence", "clause", "finding", "move"]
   "mark",
   "original",
   "page",
+  "freeform",
   "patch",
   "payload",
   "query",
@@ -333,6 +344,7 @@ all = ["paragraph", "sentence", "clause", "finding", "move"]
   "original",
   "owner",
   "page",
+  "freeform",
   "patch",
   "payload",
   "query",
@@ -354,7 +366,6 @@ compact = [
   "clean",
   "comment run",
   "correct",
-  "declaration",
   "drop",
   "edit copy",
   "instruction",
@@ -373,9 +384,9 @@ review = [
   "address",
   "binder",
   "comment run",
-  "gather",
   "sheet",
   "page",
+  "freeform",
   "proofreader",
   "style sheet",
   "template",

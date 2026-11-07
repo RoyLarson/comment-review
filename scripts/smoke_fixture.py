@@ -22,7 +22,7 @@ those tables describe.
 
 `LANDINGS` names, per planted address, a `Landing`: what lands there and
 what decides it. `ADDRESSER_ROW` is the entry the smoke script finds through
-`addresser` rather than by its address. `ANSWERS` and `ANSWERS2` are each
+`addresses find` rather than by its address. `ANSWERS` and `ANSWERS2` are each
 role's answers to the batches of the two turns the smoke script runs, and
 `write_answers` and `write_answers2` write one file of them per role.
 `HUMAN` is the author's answers to the human questions the roles put, which
@@ -45,8 +45,8 @@ what `proof --copy` drafts from `DRAFTED_ROLE`'s own copy before the fold, and
 `write_role_draft` writes them for the smoke script's `draft` stage.
 
 `APPROVED` is the partial approval `proof --only` sets alone,
-`PARTIAL_EXPECTED` is the one page that run must leave, `ONE_END` and
-`ONE_END_EXPECTED` are the same for one end of an agreed move, and
+`PARTIAL_EXPECTED` is the one page that run must leave, `ONE_END` is one end of
+an agreed move, whose approval alone is refused, and
 `write_approval` writes the addresses for the script to read rather than
 have it spell them itself.
 """
@@ -354,7 +354,7 @@ class Landing(NamedTuple):
 #: `docs/superpowers/specs/2026-09-08-the-middle-chain-smoke-design.md`'s
 #: "The scenario matrix" lists paths through the middle, not addresses; each
 #: of its rows is planted at one or more of these. It asks for an `add` at an
-#: empty place and one fed by the addresser lookup -- `a2` and `b15` -- and the
+#: empty place and one fed by the addresses lookup -- `a2` and `b15` -- and the
 #: plant adds at five places more: the empty `b8`, `b17` and `c3`, and the
 #: filled `a0` and `c12`, where `mark` accepts `a0`'s add and refuses
 #: `c12`'s. Its `patch`, `unable-to-determine` query and
@@ -797,7 +797,7 @@ LANDINGS: dict[str, Landing] = {
 }
 
 #: The `LANDINGS` entry smoke_middle.ps1 marks without spelling its address:
-#: it asks `addresser` for the `b` place at this entry's `line`, and stops
+#: it asks `addresses find` for the `b` place at this entry's `line`, and stops
 #: unless the address that comes back is this one.
 ADDRESSER_ROW = "fib.py@b15"
 
@@ -1416,7 +1416,7 @@ def write_texts(run: Path) -> dict[str, Path]:
     `DISPOSITIONS` and `dispositions-ends.json` holds `ENDS`, the chief's
     first and second rulings. `addresser-row.json` holds
     `ADDRESSER_ROW` and its `line`, which the smoke script reads to ask
-    `addresser` and to check what it answers.
+    `addresses find` and to check what it answers.
 
     Args:
         run: the run directory the smoke script writes into. Not created
@@ -2148,13 +2148,13 @@ WRAP_DROP = " nothing\n    # was asked of the cache."
 
 #: What `proof --copy` drafts of `rate.py` from a fresh ownership-context copy
 #: holding that one drop and nothing else, written out by hand from
-#: `RATE_FIXTURE`: the joined line rewrapped to 42 columns, under its own
+#: `RATE_FIXTURE`: the paragraph rewrapped to 42 columns, under its own
 #: indent and marker, and every other line as the fixture has it.
 WRAP_RATE_DRAFT = (
     "def rate(hits, total):\n"
     "    # Zero calls give a zero rate: The\n"
-    "    # rate is\n"
-    "    # hits over total, never above one.\n"
+    "    # rate is hits over total, never above\n"
+    "    # one.\n"
     "    if total == 0:\n"
     "        return 0.0\n"
     "    return hits / total  # share of calls the cache answered\n"
@@ -2416,11 +2416,9 @@ def write_second_expected(root: Path) -> Path:
 APPROVED = ("store.py@b7", "store.py@c5")
 
 #: And the second partial approval: one end of the agreed move alone, its
-#: arrival at `store.py@b8` without its departure from `store.py@b9`. An
-#: agreed move's two ends are two places of the proof, each decided on its
-#: own (`decision-log.md Process: #205`), so each is approved on its own and
-#: the approval is set as named rather than refused for the end it leaves
-#: out.
+#: arrival at `store.py@b8` without its departure from `store.py@b9`. A move
+#: is approved whole or not at all (`decision-log.md Process: #283`), so this
+#: approval is refused, naming the move.
 ONE_END = "store.py@b8"
 
 
@@ -2479,19 +2477,6 @@ PARTIAL_EXPECTED = (
     "    # together: a count with no share says nothing about the store,\n"
     "    # and a share with no count says nothing about the day.\n"
     "    return counted, share  # both, in order\n"
-)
-
-
-#: What `proof --only ONE_END` must leave as `store.py`: `STORE_FIXTURE` with
-#: the agreed move's arrival set above `def total` at the declaration's own
-#: indentation, and every other line untouched -- including the paragraph at
-#: `b9` the move departs from, whose empty remainder is not approved here.
-#: The paragraph therefore stands twice, which is what approving one end of
-#: an agreed move alone sets (`decision-log.md Process: #195` item 5).
-ONE_END_EXPECTED = STORE_FIXTURE.replace(
-    "def total(log):\n",
-    "# The number of lookups the store has seen.\ndef total(log):\n",
-    1,
 )
 
 
@@ -2735,23 +2720,6 @@ def write_partial_expected(root: Path) -> Path:
     """
     path = root / "store.py"
     path.write_text(PARTIAL_EXPECTED, encoding="utf-8", newline="\n")
-    return path
-
-
-def write_one_end_expected(root: Path) -> Path:
-    """Write `ONE_END_EXPECTED` to `root / "store.py"`, as `write_expected` writes.
-
-    One page and no other, for the reason `write_partial_expected` gives.
-
-    Args:
-        root: the directory to write into. Not created here -- the smoke
-            script creates its run's `one-end-expected` directory first.
-
-    Returns:
-        The path written.
-    """
-    path = root / "store.py"
-    path.write_text(ONE_END_EXPECTED, encoding="utf-8", newline="\n")
     return path
 
 

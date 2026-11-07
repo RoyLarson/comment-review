@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 5 of 10 tasks closed
+Progress: 7 of 17 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (simplify round 7, 2026-08-22 -- found by Pyright and by reading,
@@ -100,9 +100,10 @@ page.py:793-794 for `_SHEBANG`/`_CODING`, which round 7 deleted; those citations
 
 ## Tasks
 
-- [ ] T1 | T1 -- Drop the insert line from `page.documentable`'s tuple and from
-      both consumers. Verify: a 2-tuple return, both consumers unpacking two,
-      and `uv run ty check` green.
+- [x] T1 | FINISHED: documentable and DocumentationPlace deleted; DocPlace carries no insert line | 94c67d21 | T1
+      -- Drop the insert line from `page.documentable`'s tuple and from both
+      consumers. Verify: a 2-tuple return, both consumers unpacking two, and `uv
+      run ty check` green.
 - [x] T2 | FINISHED | unknown | T2 -- RECORD, not a task. The
       `page.documented_by` citation was corrected in round 7 to
       `lexer.document_declarations`; the tuple it exposed is T1. In the
@@ -116,9 +117,10 @@ page.py:793-794 for `_SHEBANG`/`_CODING`, which round 7 deleted; those citations
 - [ ] T5 | T5 -- Drop the index from `record.prose_paragraphs`' return type
       (record.py:645). Verify: the return type carries no index and the suite is
       green.
-- [ ] T6 | T6 -- Compute `code_lines` and `declarations` once per page, not at
-      :419-420 and again at :725-726. Verify: each is computed once and the four
-      test callers pass.
+- [x] T6 | FINISHED: code lines and declarations computed once, in the lexical reader | 94c67d21 | T6
+      -- Compute `code_lines` and `declarations` once per page, not at :419-420
+      and again at :725-726. Verify: each is computed once and the four test
+      callers pass.
 - [x] T7 | FINISHED | unknown | T7 -- RECORD, not a task. The 21 ms double
       `prose_numbers` pass, measured and deliberately not counted. In the
       Objective.
@@ -131,3 +133,16 @@ page.py:793-794 for `_SHEBANG`/`_CODING`, which round 7 deleted; those citations
 - [x] T10 | FINISHED | unknown | T10 -- FINISHED. Two TODOs describing a
       function that no longer exists are superseded and their stale citations
       resolved. In the Objective.
+- [ ] T11 | Delete the unparsed-kind branch in reading/readers.py
+        > 2026-10-25 readers.py:145-147; nothing in src produces kind "unparsed"
+        > 2026-10-25 Check: git grep unparsed -- src/comment_review returns none
+- [ ] T12 | Delete readers.read_paragraphs, which has no production caller
+        > 2026-10-25 readers.py:98; only test_reading_diagnostics calls it
+- [ ] T13 | Drop page_for's dead edges assignment and its duplicate path
+- [ ] T14 | Delete the unparsed branch in readers.py, which no reader produces
+- [ ] T15 | Remove the reader and placement revisions and the compatibility hash
+        > 2026-10-26 decision-log #239: reads are ephemeral; reading/context.py, flows
+- [ ] T16 | Remove the page's anchor_num and _documented_line checks
+        > 2026-10-30 D6: refusals have no production route and no test
+- [ ] T17 | Compute each c anchor once in the Python and Rust readers
+        > 2026-10-30 D12: twice, 0 of 9,623 disagreed, nothing asserts it

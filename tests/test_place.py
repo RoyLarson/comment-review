@@ -8,7 +8,7 @@ refuse and so belongs where the reasons are read.
 """
 
 import pytest
-from helpers import a_typed_answer, a_typed_mark, a_typed_ruling
+from helpers import a_binder_over, a_typed_answer, a_typed_mark, a_typed_ruling
 
 from comment_review.desk.proof.answer import Question
 from comment_review.desk.proof.disposition import ORIGINAL
@@ -67,7 +67,14 @@ def test_a_place_round_trips_through_serialize():
         EditCopy(
             role=role,
             read_from={"root": ".", "revise": 0},
-            sheets=(Sheet(path="m.py", sha="0" * 40, marks=(mark,)),),
+            sheets=(
+                Sheet(
+                    path="m.py",
+                    sha="0" * 40,
+                    marks=(mark,),
+                    reading=a_binder_over({"m.py@b1": BASE}).pages[0].reading,
+                ),
+            ),
         )
         for role, mark in (("a", corr), ("b", drop))
     )

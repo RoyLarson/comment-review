@@ -26,10 +26,6 @@ and checkable sentence.
 4. Count the result. A work marker line (`TODO`, `FIXME`, `HACK`, `XXX`, `BUG`, or the markers
    the repo exempts) is free; each line after it counts.
 
-A comment run directly above a declaration, in a language that documents a declaration by
-the comment above it (Go, Ruby), is that declaration's documentation. Mark it `clean` with
-that reason.
-
 ## How you record it
 
 File one ruling for every review place in your received binder with `mark`.

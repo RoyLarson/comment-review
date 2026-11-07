@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 6 of 13 tasks closed
+Progress: 7 of 13 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-24 (P2 of refactor/the-boundaries-are-not-real, 2026-08-24)
@@ -33,8 +33,9 @@ The flow lives in the command, not in flows/.
       mark_errors have rows. Verify: every module under flows/ is listed
 - [ ] T7 | Update Gathering so the binder is the one population: bind before
       annotate, drop paragraphs, both gates ask the binder. Verify: one list
-- [ ] T8 | Update page_of to return (None, reason) for an unparsed page so
-      _pages drops its bare except and kind scan. Verify: one call in _pages
+- [-] T8 | Replaced by source-reading-contract T6: structured page failure admission | b03adaa8 | Update
+      page_of to return (None, reason) for an unparsed page so _pages drops its
+      bare except and kind scan. Verify: one call in _pages
 - [ ] T9 | Implement flows.gather.refusal(got) deciding the refusal order once;
       the command prints it. Verify: gather.py decides no order
 - [ ] T10 | Update _annotations to call git ls-files once and code_names to walk

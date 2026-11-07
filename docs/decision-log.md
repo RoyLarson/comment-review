@@ -524,6 +524,112 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   automate it. We can have the task-agent run a compile step on the set page to verify that the
   stuff is set correctly"*
 
+- **#28.** **A language's own documentation rule decides which places can take a doc** (Roy,
+  2026-10-18, asked while specifying the Rust reader whether struct fields and enum variants
+  are documentation places of their own; the Rust Reference lets fields and variants accept
+  outer attributes, which is what a `///` is).
+
+  *"Yep - if the standard implementation has them as able to get docs then they can gets docs"*
+
+  *"This goes for all languages"*
+
+  **What it settles.** In every language specification, a construct is a documentation owner,
+  with its own `a` place, exactly when that language's standard implementation attaches
+  documentation to it. A reader's keyword list is no longer what decides it. For Rust this
+  covers items, associated items, fields and variants, and leaves out statements, match arms and
+  parameters, where rustdoc does not use a doc.
+
+- **#29.** **Documentation the place model cannot hold is read as a flagged ordinary comment,
+  with a warning, and the run proceeds** (Roy, 2026-10-21, asked whether a Rust doc run that a
+  place cannot hold -- one separated from its item by an ordinary comment, or a second run split
+  from the first by an attribute -- should refuse the file or be read as an ordinary `b` comment
+  flagged as documentation).
+
+  *"I would go with a warning and a thing to the task agent to ask but allow to proceed with"*
+
+  *"Because maybe the human wants it like that and dropping the file always completely would
+  just be annoying for being pedantic. Also the system and agents could move things around so
+  prove_unchanged would be true but the exact placement of the comments could change. Also like
+  the python tool Black we are making the decision on formatting."*
+
+  **What it settles.** Such a run is not a read failure. It takes the ordinary place its position
+  gives it, is flagged as documentation, and gather reports a warning naming it. The task agent
+  asks the human about it and continues whatever the answer. Moving the run to its owner's `a`
+  is an ordinary placement change that `prove_unchanged` permits, and the system decides
+  comment placement the way a formatter decides layout.
+
+- **#30.** **An attributed Rust item declares on its first attribute line, so the change stays in
+  reading** (Roy, 2026-10-21, after a proposal to anchor the `a` to the keyword line and set it
+  above the attributes through a change to `cue`).
+
+  *"I am not certain I like this. It causes a significant change is how the binder, the
+  edit-copies/master copy, the docket, and the galley"*
+
+  He quoted the proposal's three lines on anchor and position, then:
+
+  *"That is a large blast radius for this and a lot of changes that was supposed to be just the
+  lexer/reading section"*
+
+  Asked whether the reader should report the head's first line as the declaring line, accepting
+  the attribute line as the `a`'s anchor: *"Yes"*
+
+  **What it settles.** The Rust reader reports an owner's declaration as opening on its first
+  outer attribute, or on its keyword line where it has none. The addresser, binder, edit copies,
+  master proof, docket and galley take it unchanged. An attributed item's `a` is anchored to the
+  attribute line, and a doc between an attribute and its item is detached documentation under
+  `#29`.
+
+- **#31.** **A place holds one paragraph, so comment sections of different forms that share a
+  place join into one** (Roy, 2026-10-23, asked whether a detached Rust doc and the ordinary
+  comment beside it in one gap -- `/// My function to do things` above `// I made this up` above
+  the item -- should join into one paragraph or stay apart, which the galley cannot place).
+
+  *"Yes the detached docs get a b1 place and the warning. There is not a good way to know how to
+  interleave them after they have been modified if there are multiple b types per place (at
+  least without added another layer to the system)"*
+
+  **What it settles.** The place, not the comment's written form, decides the paragraph. Sections
+  that fall in one place are one paragraph there. It keeps the `detached-documentation`
+  annotation and the warning when any part of it is detached. A doc attached to its owner has its
+  own `a` place and never shares one. The Rust spec's sentence that the forms "never merge into
+  one paragraph" holds only where each form has a place of its own. Measured the same day over
+  the 312 crates in the local Cargo registry: 257 sites in 76 crates put an ordinary `//` line
+  directly after a doc line (a line-based count, not string-aware).
+
+- **#32.** **A reader's job is to place every comment where it sits, not to classify every
+  comment exactly** (Roy, 2026-10-23, on the final review's finding that a Rust module doc after
+  an inner attribute -- `#![no_std]` then `//! Docs.` -- was set back above the attribute).
+
+  *"The goal is to be able to place the comments correctly not absolutely correctly classify
+  every comment/documentation."*
+
+  **What it settles.** Where a reader cannot hold a comment at the place its kind would give it,
+  it reads the comment at the place its position gives it, so the page sets it back where it
+  was. A misclassified comment is acceptable; a moved one is a defect. The `#![no_std]` case is
+  read as detached documentation under `#29`, which leaves it in place.
+
+- **#33.** **A Rust inner doc inside a body is read at its `b` place, detached, and gives no
+  owner an `a`** (Roy, 2026-10-23, shown `mod shapes {` / `//! Shapes on the board.` and asked
+  whether the `//!` is the module's docstring or part of the gap's `b` place).
+
+  *"I feel putting that as the b place is the better answer. It keeps things consistent and
+  makes reseting things easier. I might have to change my mind later if other languages cause
+  similar issues so leave a note somewhere but for now documentation is also only found where
+  it is normal and expected to be found and the agents can fix the comment if it is ambiguous.
+  Also keeping the displaced docs warming allows the task agent to ask the human if an agent
+  want to move the lines"*
+
+  **What it settles.** An inner doc (`//!`, `/*!`) inside an inline module or function body is
+  an ordinary comment at the `b` place its position gives it, annotated
+  `detached-documentation`, with the warning that lets the task agent ask the human before a
+  role moves it. The owner's `a` is empty. A file-level inner doc on the file's first code line
+  is still the file's `a0`. Documentation is held at an `a` only where the language normally
+  puts it, and the roles correct a comment whose kind is ambiguous.
+
+  **Open to revision.** Roy expects to revisit this if another language's reader meets the same
+  shape -- documentation held inside the body it documents -- and the `b` answer stops being
+  consistent across languages.
+
 ## Vocabulary
 
 - **#1.** **The metaphor is EDITORIAL, and a new term is checked against the register BEFORE it is
@@ -613,6 +719,7 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   carry the word** (Roy, 2026-08-24: *"Sticky notes for making the pages pages for important
   information. Directly relevant. May need a different term than annotations though or the other
   annotations get different terms"*, then: *"Only one is allowed"*). It goes to the binder.
+  **SUPERSEDED by Process #273.**
 
   !! **IT WAS SETTLED BY EXPERIMENT RATHER THAN BY ARGUMENT, which is new here.** Roy: *"Can you
   give a couple of subagents a record and then split one and give it one annotation labeled as
@@ -1123,6 +1230,7 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   2026-08-30): *"I felt (maybe wrongly) that these would end up being the same shape and the
   master-proof would go from multiple edit-copies to one edit-copy in the copy-chief step."* **Not
   wrongly.**
+  **The round tally is SUPERSEDED by Process #275.**
 
       master_proof { edit_copies: [ role_a, role_b, role_c, role_d ] }
           -> gather / places / reconcile  ==> Reconciled(settled, escalations, rereads)
@@ -1314,6 +1422,31 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   `tests/gates/test_skill_commands.py`, `COMMANDS`, and `vocabulary.toml`, and anything under
   `plugins/` is a version-bumping change to the installed plugin. It is filed rather than done.
 
+- **#37.** **The addressed unit of prose is a `passage`, and `paragraph` returns to plain
+  English** (Roy, 2026-10-18: *"Create a todo to change all improper instances of Paragraph to
+  Passage. This is starting to drive me crazy that we used the wrong word. Then `paragraph` can
+  mean the common form for paragraph and `passage` means the common proper for for passage"*).
+
+  **What it settles.** The term of art `vocabulary.toml` defines as `paragraph` -- one unit of
+  prose on the page, a comment run, a docstring, or the empty place either could go, answering
+  to exactly one address -- is renamed `passage`, in code, wire keys and prose. `paragraph`
+  keeps its ordinary meaning: a paragraph of English inside a comment or docstring.
+
+  **What it leaves standing.** `block` stays retired for this unit; the word it was retired in
+  favour of moves on. The rename is filed rather than done:
+  [`paragraph-is-a-passage`](../TODO/paragraph-is-a-passage.md).
+
+- **#38.** **`lexer` keeps its name** (Roy, 2026-10-25, asked whether to keep `lexer` now that
+  Python is read by `reading/python/` and `paragraphs_stdlib` is gone: *"Sure"*).
+  **SUPERSEDED by Process #273.**
+
+  **What it settles.** `reading/lexer.py` reads characters against a language definition --
+  comment openers, quotes, spanning delimiters -- for each language without its own reader
+  package, which is lexical analysis, so the name is true. The objection in
+  [`lexer-does-not-lex`](../TODO/lexer-does-not-lex.md) was that the module also read CPython's
+  parse; that half left with the Python reader. No rename follows, so that TODO's rename and
+  retirement tasks are superseded.
+
 ## Metaphor and its limits
 
 - **#1.** **A category doing two jobs gets asked what the trade calls the half that does not fit**
@@ -1392,6 +1525,7 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   used to write from the galley, but the galley only really needs this address gets this
   paragraph ... So we have a missing piece in the chain."* The galley's contract was always
   right -- `{address: text}` -- and **nothing in the tree produces that file.**
+  **FULFILLED (#276): the docket is the piece #14 built.**
 
   ! **TWO SHIPPED SENTENCES DESCRIBED THE HOLE DIFFERENTLY**: `SKILL.md:925` says *"nothing
   between stage 5 and the galley converts"*, and `galley.py:173` says `--edits` is
@@ -4392,6 +4526,7 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   2026-08-17: stage 8 reads fresh but only after the write, and the objection that *"a proposal
   is not a page"* no longer holds, since 7a now puts the final text set as pages before the
   author).
+  **SUPERSEDED by #276: the draft is set in a temporary folder and reviewed there.**
 
   Asked -- stage 8 reads the drafted pages before 7a, its findings in the proposal, a selective
   approval re-reading the pages it changes (T6); or stage 8 stays after the write -- Roy: *"Yes,
@@ -4594,6 +4729,7 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
 - **#160.** **Stage 7b runs no `prove_unchanged` check** (Roy, 2026-09-14, after asking whether
   `prove_unchanged` is still tied to Python, since a session on `0.2.4-beta.2` saw a docstring
   change come back as a code change through the Python AST).
+  **SUPERSEDED by #276: 7b runs prove_unchanged, and that works.**
 
   What was read: the proof has two tiers -- Python through its own `ast`, every other language
   through this repo's comment lexer. The Python tier blanks a docstring's text and keeps its
@@ -4675,6 +4811,7 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   T21, which set 3 built as `python -m py_compile` on each drafted Python page at 7a: it covers
   Python only, and for Python it repeats `proof`, which parses each drafted page and refuses one
   it cannot prove unchanged).
+  **SUPERSEDED by #277: prove_unchanged first, then the repo's own tools.**
 
   Offered -- `proof` is the compile step; keep `py_compile`; or have stage 1 find the repo's own
   compiler -- Roy chose *"`proof` is the compile step"*. So the `py_compile` step comes out, and
@@ -5064,6 +5201,7 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
      them to be isolated and restated in a consistent manor by saying they both have to be
      applied or neither."* **`#192`'s pair refusal narrows to a move still held as one mark**,
      `#155`, where the author rules placement.
+     **Superseded 2026-11-06 by `#283`: a move is approved whole, both ends or neither.**
   6. Placement is a third question, beside `composition` and `escalation`, put once per move
      to every role that read either page, with verbs of its own. Shown that a reader other
      than the mover had no answer refusing a move short of a human-review query -- `withdraw`
@@ -5282,3 +5420,966 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   Roy: *"For P64 - I authorize you to manually update the description this one time"*.
   This exception permits correcting the R3 dependency description while job-board lacks
   that command; task closures and all other plan writes continue through job-board.
+
+- **#210.** **A comment or docstring holding no prose gets a `drop` mark automatically**
+  (Roy, 2026-10-16). Shown that the lexical Python reader finds five empty `""` docstrings
+  in numpy's `lib/_user_array_impl.py` that the `ast` reader had reported as undocumented
+  places, and that no instruction removes one: `drop ""` is refused for an empty claim,
+  and `drop '""'` returns the paragraph unchanged with no problem reported. Roy: *"This
+  looks like a reason for this system to exist"*, *"that there are empty strings maybe
+  not bad but sloppy"*, then *"The reality is that an empty comment should get a drop
+  mark automatically"*.
+
+- **#211.** **Python code sharing a physical line with a docstring is split onto its own
+  line at the read** (Roy, 2026-10-16, ruling the lexer plan's P37). Shown that the 41
+  failing writer tests exercise `"""Doc."""; x = 1`, and that the pattern occurs in none of
+  4,697 docstrings across 2,305 corpus files. Roy: *"Where does the block (b) type go from
+  the `; y=42` if the docstring on `def fn(): "docstring"` becomes more than one line. e.g.,
+  the docstring needs the full google/numpy/other template."*, then *"My answer inclination
+  is that if that example ever shows up the system breaks the line and makes the stuff after
+  the ; a new line and address so the system works correctly."* and *"That would give the
+  'y=42' its own set of B, and C addresses"*. Offered addressing from the read or splitting
+  only at write: *"Yes split at the read. If the human wants it back (which would be poor
+  programming practice) they can see it in the review and request the agents to manually
+  change it"*. So the page is read and addressed as split, the written page carries the
+  split, and the change is shown in the review like any other. Shown that Python allows no
+  compound statement after a `;` or a one-line suite's `:`, so a split line sits at most one
+  level deeper than its header, and offered taking that level from the file's own first
+  indented block, falling back to 4 spaces: *"yes, take the level from the file, but really
+  you could probably scan all of github for that pattern in a .py file and not find any."*
+
+- **#212.** **Replacing the middle's `ast` read of a split-literal docstring is outside the
+  lexer's scope** (Roy, 2026-10-16, ruling the lexer plan's T51 and P44). Shown that P44
+  needs the acquired Python definition threaded into `comment_at`/`comment_form`, which the
+  middle calls with an address and raw text: *"Why does the middle need the comment_form?
+  ... I don't think that has to do with changing the lexer. I think that was an expansion of
+  changing the lexer. e.g., if we went back to the python AST did it need this
+  information?"* Shown that `comment_at` (2026-10-02) and `docstring.concatenated`
+  (2026-10-03) predate the lexer plan and read their snippet with `ast` and no definition:
+  *"So the middle since the middle rewrite the middle has reached for the ast to do this
+  job? I thought that the middle only delt with raw_text and relied on the agents to supply
+  the exact snippet that needed to be removed which does cause problems on the other side
+  to add it into the new address, but maybe we are being pedantic by forcing it to be an
+  exact change. Instead we could just verify that the sentence/fragment after subtraction
+  of the white space does align with a spot in the destination raw_text which could be
+  checked on the creation of the move. That makes it simpler"*. Offered superseding T51 and
+  P44, filing the matching idea for backend, reverting the uncommitted P44 work, and
+  narrowing P41 to the reading path: *"yes do all four"*.
+
+- **#213.** **`Page.python_read` is replaced on this branch, before the lexer plan
+  closes** (Roy, 2026-10-17). Reading the comment-review run's draft of `Page`'s
+  docstring, which documents the field: *"That seems pretty specific for a tool that is
+  supposed to be a general language tool"*. Shown that `fcd2f0f8` added it and only the
+  Python branches of `proof_setter` and `prove_unchanged` read it, and offered joining
+  the lexer plan, a backlog task, or leaving it; Roy chose joining the lexer plan, where
+  the page carries a read any reader produces and that reader supplies the comparison.
+  Filed as binder-defects T33 and lexer-python P51.
+
+- **#214.** **Framing that hides what a sentence is about is `module-context`'s and
+  `function-context`'s to find and correct** (Roy, 2026-10-18, on a lexer.py comment that
+  opened *"This module stamps three -- `continues-trailing-comment`, ..."*: *"Lets add a todo to
+  make the agent's roles look for framing like this and correct it. I think that belongs in
+  Module and Function context. Since ownership context is mostly about where comments belong
+  and block context is about truthiness"*).
+
+  **What it names.** A count standing in for the thing counted, with the things themselves
+  held back behind a dash, and a passive verb that leaves the actor out or puts it last.
+  Both make a reader hold an unanswered question while reading the rest of the sentence.
+
+  **What it leaves open.** The wording, and what it displaces in each role file, are ruled
+  with the other entries in `role-rule-register`.
+
+- **#215.** **Python's `Language` row is removed on this branch, and the tasks that put grammar
+  in one table or on the in-code rows are superseded** (Roy, 2026-10-18: *"I noticed that in
+  language.py all of the constants and declares keywords are in the file specifically instead of
+  in a toml file which I explicitly stated where these should end up. I think the python.toml
+  was the attempt to start that process but then the agents ignored it after the fact."* Offered
+  widening lexer-and-language-findings T39 to removing the Python row, so `python.toml` is
+  Python's only definition, then superseding language-rows-in-toml T1-T5, which put all 18 rows
+  in one `languages.toml`, and lexer-and-language-findings T26, which adds a field to the in-code
+  row, reissuing T26 against Rust's own definition: *"yes"*).
+
+  **What it settles.** Each language's grammar goes in that language's own definition file,
+  as language-rows-in-toml T17 and T18 state. Python is the first: its row leaves
+  `LANGUAGES`, and `language_for` answers `.py` from `python.toml`.
+
+- **#216.** **`reading/` loads the shipped language definition files itself** (Roy,
+  2026-10-18, asked where they load once Python's row is gone -- `reading/` loading them from
+  package data at import, or `flows/` loading them and passing a registry into every caller --
+  chose the first, offered as recommended).
+
+  **What it settles.** The installed registry holds every shipped definition file, so a
+  caller anywhere asks one registry. The files are this program's own data, not the
+  checkout, so `machine` is not involved.
+
+- **#217.** **No test guards that neither reader imports the other's package** (Roy,
+  2026-10-24, shown rust-reader-findings T7, which would add one for the Rust spec's acceptance
+  row: *"T7 doesn't need a test. It would be silly to put a test there."*).
+
+  **What it settles.** The spec's independence row stays an acceptance statement, checked by
+  reading the imports; T7 is superseded.
+
+- **#218.** **`declarations()` returns only declaration places, as a named type, and the
+  module's `a` series is stated on its own** (Roy, 2026-10-24, shown module-insertion-slot-unread
+  T1: the bare `tuple[int, int, bool]` spelled at eight sites, its first entry `(0, 1, True)`
+  read only for whether it exists, and the change reaching `binder/page.py` and the
+  `ReaderRecord` contract; asked *"Shall I make C the ruling for module-insertion T1, with the
+  NamedTuple included?"*: *"Yes"*).
+
+  **What it settles.** A documentation place is a NamedTuple of its declaring line, its
+  insertion line and whether the doc sits above. `declarations()` holds one per declaration and
+  no module entry; whether a file has an `a` series is a separate answer, which `cue` and the
+  page read in place of `decls[0][1]`. Both readers drop `insertions[0]` and the check on it.
+  Roy approved the reach past Reading in the same answer.
+
+- **#219.** **The `backend` session on `feat/lexer-rust` writes stage-two-detached-warnings T1
+  in SKILL.md, crossing into `agents`** (Roy, 2026-10-24, offered three ways to close the
+  `agents`-owned TODO filed on this branch -- the `backend` session crossing for T1 with the
+  exact wording shown first, an `agents` session doing it before merge, or ruling it no gate on
+  this branch: *"1"*).
+
+  **What it settles.** The TODO closes on this branch, and SKILL.md's new stage 2 wording is
+  shown to Roy before it is applied.
+
+- **#220.** **A file with a lone CR is refused at gather, and a file's line ending is decided in
+  one place, in `machine/`, and passed through the flows to what needs it** (Roy, 2026-10-24,
+  shown galley-and-compositor-write-path T60 -- `set_page` turns every lone CR into LF, the proof
+  refuses it for Rust and Python and passes it for a lexical page, and no file in 4,621 sampled
+  holds one -- and offered keeping each line's ending, refusing such a file at gather, or
+  keeping the normalising; then told the normalising rule had no ruling behind it and that
+  three modules decide a file's ending three ways: *"Option 2 is fine, but your statements
+  state there are 3 different places that line endings are determined. This should be one
+  place, preferably in the machine/ area. And the appropriate line endings are passed to the
+  functions through the flows for what needs them"*).
+
+  **What it settles.** The gather names a file holding a lone CR as unreadable. One function in
+  `machine/` answers a file's line ending; no reader, desk or results module decides one, and a
+  function that writes line breaks takes the ending as an argument.
+
+- **#221.** **What the one line-ending function answers for a mixed file and an unbroken one,
+  and where the work is done** (Roy, 2026-10-25, asked three questions: a file mixing CRLF and
+  bare LF with no lone CR, none in about 6,000 sampled, offered refusing it, CRLF if any, or the
+  majority; a file with no line break, offered LF or the platform's ending; and the branch,
+  offered its own plan and branch, `feat/lexer-rust`, or a split). His answers: mixed -- *"Do what
+  git does"*; no break -- *"LF (Recommended)"*; branch -- *"Its own plan and branch
+  (Recommended)"*.
+
+  **What it settles.** Lines added to a file with no line break take LF. The change is planned on
+  its own branch, and galley-and-compositor-write-path T60 is superseded on `feat/lexer-rust` by
+  the TODO that holds it. A mixed file follows git; what that means on a checkout whose git
+  configuration varies is stated in the plan for Roy to approve.
+
+- **#222.** **The remaining language readers leave the lexical-readers plan and wait to be asked
+  for** (Roy, 2026-10-25, after Rust's P9 and P10 closed and Go's spec was offered as the next
+  step: *"create new todos (one per language) for the other languages and supersede the current
+  tasks. We can wait till later to implement them when they get asked for."*).
+
+  **What it settles.** Python and Rust are the readers this plan delivers. Each other language
+  with a row -- Go, C, C++, Java, C#, Swift, Kotlin, JavaScript, TypeScript, Ruby, Shell, SQL and
+  Lua -- has its own TODO holding its spec and its reader, and is worked when it is asked for.
+  The plan's per-language steps P11-P36 and the all-languages step P53 are superseded.
+
+- **#223.** **`Paragraph.lines` stays, and the lexer's count is the one that is right** (Roy,
+  2026-10-25, shown that `desk/stages.py` `deals` compares `lines` against a stage's cap, and
+  that `counted_lines` in `reading/lexer.py`, `len(raw_lines)` in `binder/page.py` and the
+  Python reader's span length count it three ways; asked whether it has a place as the count the
+  cap compares: *"Yes - The only one that is correct is the reading/lexer.py version."*).
+
+  **What it settles.** `lines` is the count a stage's cap compares, and it is counted as
+  `counted_lines` counts it: blank lines and a work-marker line are free. Every other way of
+  filling it is a defect to repair.
+
+  **Where the rule comes from.** It predates this log: workout_organizer `c7558601`
+  (2026-08-12), `tests/test_docstring_hygiene.py` -- *"Roy's approved markers (2026-08-11) --
+  the whole list; anything absent COUNTS"* (`TODO`, `FIXME`, `HACK`, `XXX`, `BUG`), *"Only CODE
+  ends a run"*, and *"A `# TODO` line is treated exactly like a blank one -- not counted, and
+  not a separator either."* Roy confirmed it the same day, asked whether a blank line inside a
+  run is free as leading: *"I can go with yes on that."*
+
+- **#224.** **A reader finds prose; it does not rebuild the paragraph, the page or the addresser**
+  (Roy, 2026-10-25, shown that the lexer, the Python reader and the Rust reader each compute a
+  paragraph's `lines` and `text` their own way and two of them stamp `address`: *"The goal was
+  to make the system act exactly the same as the original python AST version post lexer. It was
+  not to reimplement all of the Paragraph and Page and Addresser for each language type. That
+  was a mistake"*).
+
+  **What it settles.** A reader supplies what only parsing can find -- each paragraph's span,
+  its raw lines, its kind and its anchor. What follows from those is derived once, for every
+  language: `Paragraph` derives its own fields, the page places it and the addresser addresses
+  it, as they did for Python before the lexical readers.
+
+- **#225.** **Matter is a kind, and the reader assigns it** (Roy, 2026-10-25, asked whether
+  matter is a kind a reader assigns or a place the page works out from position: *"Matter is a
+  Kind which from src\comment_review\reading\series.py::Kind It should be assigned by the
+  Reader like the other Kinds are assigned by the Reader. The Page and the Addresser fill out
+  the addresses for them points"*).
+
+  **What it settles.** `Kind.MATTER` is assigned by the reader, as every other kind is. The page
+  and the addresser give a matter paragraph its `f` address and do not change its kind.
+
+- **#226.** **A detached doc is a comment, and only the reader knows it was a doc** (Roy,
+  2026-10-25, shown that the Rust reader detaches a doc an `a` place cannot hold and the page
+  then places a `detached-documentation` warning at an address: *"I would have thought that the
+  Reader would have already specified all of the detached document places as Kind::COMMENT and
+  that the page would then never have to know about that specifically. The warning would be
+  there for the agent's to pick up if they can watch the terminal or whatever but the fact that
+  the whole section was already specified as Kind::COMMENT would not need logic in the Page to
+  refigure out what is happening. Just because it is a documentation thing doesn't mean it gets
+  its own paragraph and anchor."* Asked whether the warning may name a file and line instead of
+  addresses: *"I think this is actually clearer ... it would name a file and line"*).
+
+  **What it settles.** The reader decides a doc is detached and gives it `Kind.COMMENT`; it then
+  joins the same-type comment section it sits in like any other comment. The page holds no
+  detached-documentation logic. The warning reaches the terminal from the read, naming a file
+  and line.
+
+- **#227.** **`comment_form` is the one derivation of a paragraph's text** (Roy, 2026-10-25,
+  offered `comment_form(...).text` -- what the desk already matches a role's claims against --
+  or a new function decoding docstring escapes as the AST reader did: *"comment_form becomes the
+  one function"*, and on its reading and setting halves sharing one module: *"Yes with a todo on
+  the edit path isolation"*).
+
+  **What it settles.** `Paragraph.text` is `comment_form(...).text`, computed once after the
+  reader and again on a binder read-back, so a paragraph and the desk read the same prose. A
+  docstring's escapes keep their source spelling; a block comment's markers, `*` continuation
+  marks included, are not prose. Separating the setting half (`Fragment.wrap`) from the reading
+  half is filed, not done here.
+
+- **#228.** **A reader hands back its code lines, each saying whether it declares something
+  documentable and where the doc is set** (Roy, 2026-10-25, shown that `declarations()` is a
+  list beside `code()` joined to it by line number in `page.documentable` and again in `cue`,
+  and that P2 had added a `documents` ordinal to `Paragraph`: *"I agree that it should go back
+  to using anchor line ... Seems pretty simple to change this so that code -> CodeLine"*;
+  agreeing a line's prose belongs to `Paragraph` -- *"that may be reaching into what Paragraph is
+  for"*; on a Python docstring's position being recomputed from its insert line: *"the DocPlace
+  could hold the correct placement value because it already holds above/inside ... this is just
+  recalculating that fact"*; and on two declarations on one line: *"one line - one documentable
+  thing ... this is a bad design pattern"*, *"The first gets it and the rest of the line is
+  included in the docstring as part of the first docstring"*, with a warning -- *"Yes but I
+  expect the agents know"*).
+
+  **What it settles.** A reader returns `CodeLine`s -- each line's number, its code right-trimmed,
+  and, when it declares something documentable, a `DocPlace` naming the code line the doc is set
+  against and whether it sits above that line or after it. A doc paragraph names its
+  declaration by `anchor_line`; `Paragraph` gains no ordinal. A line declares at most one
+  documentable thing: the first declaration on it takes the `a` place, documentation for the
+  rest of the line joins that docstring, and the read prints a `file:line` warning. Design:
+  `docs/superpowers/specs/2026-10-25-code-lines-design.md`.
+
+- **#229.** **The kind says a paragraph documents something** (Roy, 2026-10-25, offered that a
+  reader gives every paragraph it decides documents a declaration or the module
+  `Kind.DOCSTRING` -- a Go or Ruby comment run above a declaration included -- with
+  `anchor_line` naming which, and `None` with the `<module>` anchor meaning the module: *"Looks
+  good"*).
+
+  **What it settles.** `Kind.DOCSTRING` is the one mark that a paragraph documents something;
+  `anchor_line` names its declaration. Matter and the module's doc hang off the `<module>` and
+  `<eof>` sentinels, not off a code line.
+
+- **#230.** **A warning reports what is, not what could be** (Roy, 2026-10-25, shown that the
+  Rust read warned of several declarations on one line from the code alone -- 352 times over
+  1,647 crate files, on lines such as `struct Meters(f64);` with no documentation at all -- and
+  that in scope no documentation can join another's on such a line, since a doc above a line
+  documents its first item, as rustdoc reads it, and Python cannot put two declarations on one
+  line: *"I agree. I was expecting that the warning would be on an 'is' not on a 'could be'"*).
+
+  **What it settles.** #228's warning is withdrawn. The first declaration on a line still takes
+  its `a` place, silently. A warning is printed only when documentation is actually joined,
+  which needs a doc comment between code on one line -- out of scope until that work is taken up.
+
+- **#231.** **`doc-kind-unresolved` is retired** (Roy, 2026-10-25, shown that under #229 the
+  lexical reader decides a Go or Ruby run's kind from the declaring-keyword list, so the
+  annotation contradicted the reader's own kind on every run it marked -- a run above `func F`
+  read `docstring` and "kind unresolved"; a run above `x := 1` read `comment` and "may be
+  documentation" -- and that its adjacency rule chose different runs from
+  `document_declarations`: *"Agree -- retire the mark entirely"*).
+
+  **What it settles.** The reader's kind is the answer. `flag_structural_docs` and the
+  annotation go; a run above code that declares nothing is a comment and is counted against the
+  cap like any other. A declaration form missing from a language's keyword list is fixed in
+  that row.
+
+- **#232.** **The matter rule, for every reader** (Roy, 2026-10-25, correcting a ruling that a
+  doc-marked run documenting nothing at a file's head is matter: *"A docstring at the top or
+  bottom of the file is the modules docstring not matter"*, restating the original Python rule,
+  and for the foot: *"the same rules stacked in reverse"*).
+
+  **What it settles.** Front matter: when line 1 is a shebang or a comment, that run is matter,
+  running down until a fully empty line (no comment marker) or code. When the opening run is a
+  docstring, there is no front matter and the module gets that docstring; matter followed by a
+  docstring gives both. A blank line 1 means no front matter; a comment after a fully empty line
+  is an ordinary comment. Back matter is the same rule from the last line upward: a comment on
+  the last line opens it, a fully empty line or code ends it, a closing docstring is the
+  module's docstring, and a blank last line means none. A blank line inside a delimited comment
+  is part of that comment and ends nothing (#223).
+
+- **#233.** **The `a` series meets `<eof>`, and a language has one when it documents at all**
+  (Roy, 2026-10-26, shown that `cue` offers every trigger to every series and `a` skips
+  `<eof>`, so a file's closing docstring had no place: *"Yes that matches my intent, and I think
+  it fixes the C and C++ question you just gave me as well, though maybe we messed up a
+  little"*; then, on splitting the `a` series' existence from the keyword list: *"Yes that looks
+  like a better solution in multiple ways"*).
+
+  **What it settles.** `a` emits at `<eof>` as `f` does, numbered next after the last
+  declaration and read after the closing `b` and before the last `f`; a closing docstring
+  attaches there, so a head and a foot docstring never compete. A language has an `a` series
+  when its row declares a documentation practice -- doc markers or declaring keywords; an empty
+  keyword list no longer removes it. C and C++ therefore have `a0` and the `<eof>` `a`, and a
+  doc-marked run on their line 1 is the module's docstring, not front matter (withdrawing the
+  answer given the same morning, which rested on C having no `a` series). SQL, TOML, INI and
+  YAML declare neither, so they have no `a` series and a comment on line 1 is front matter.
+
+- **#234.** **Each reader states whether its language has a closing docstring** (Roy,
+  2026-10-26, shown that the `<eof>` `a` could never be filled on a Python or Rust page -- an
+  approved `add` there was refused at re-read -- and offered a reader-stated answer or a desk
+  refusal: *"Agree with a - on the language specific a series places"*).
+
+  **What it settles.** `a` emits at `<eof>` only where the reader says its language can hold a
+  closing docstring. The generic lexical rows say yes. Python says no: a string after the last
+  statement is a string literal, not `__doc__`, so it reads back as code. Rust says no: an inner
+  or outer doc comment after the last item does not compile. Amends #233.
+
+- **#235.** **A detached doc need not match the compiler's attachment** (Roy, 2026-10-26, shown
+  that the Rust reader calls `/** Doc. */` detached when an ordinary comment sits between it and
+  `fn f`, where rustc ignores the plain comment and attaches the doc: *"Our detached docs
+  currently do not need to match the compiler's version. This is due to the limits of being able
+  to put the docs exactly back in place and in order, and the current method works simply and is
+  mostly simple to understand so I don't want to give that up yet"*).
+
+  **What it settles.** A doc is detached when an ordinary comment sits between it and the item,
+  whatever the compiler attaches; #226 and #232 then apply to it as a comment.
+
+- **#236.** **Three repairs from the branch's final review** (Roy, 2026-10-26, choosing the
+  recommended answer to each).
+
+  **What it settles.** (1) A generic lexical row can hold a closing docstring only when it has a
+  doc marker (`doc_line` or `doc_block`); Go, Ruby, Shell and Lua carry none, so a comment written
+  at their `<eof>` `a` read back as back matter, and they emit no `<eof>` `a`. Amends #234. (2)
+  The detached-documentation warning names the owner the reader states:
+  `warning: <path>:<line>: detached documentation (owner on line <n>)`, or `(owner: module)`, so
+  the task agent's instruction to show the owner and offer its `a` cue has what it needs. Amends
+  #226's printed form. (3) A row may name its shebang; the generic reader then passes the line
+  after it to the matter rule as #232 states for every reader. JavaScript and TypeScript name
+  `#!`, each in its own row.
+
+- **#237.** **The wording that follows #236** (Roy, 2026-10-26: *"CLAUDE update approved"*;
+  *"SKILL option A is better"*).
+
+  **What it settles.** `CLAUDE.md` states the `<eof>` `a` per #236.1: the `a` series meets
+  `<module>` as `a0`, and a row that holds a closing docstring -- one with doc markers, outside
+  Python and Rust -- also meets `<eof>` with one more `a`. `SKILL.md` gives the agent both printed
+  forms of #236.2, `(owner on line <n>)` and `(owner: module)`.
+
+- **#238.** **A declaration's annotations and its declaring line are one unit for `a` and `b`**
+  (Roy, 2026-10-26: *"It should document the whole line of code and nothing less than the whole
+  line of code. We are not stating that this documents that, we are stating that something in
+  this line allows for a docstring and that allows us to put the doc string back next to the
+  line of code where it belongs. Nothing more nothing less"*; *"i think the answer maybe as
+  simple as being able to adjust the triggers on a, b lines to treat those two lines as one
+  line and still let them have individual c lines"*; on adopting it, *"yes - this does fix a big
+  potential problem which only because agents are relatively smart hasn't caused problems
+  yet"*).
+
+  **What it settles.** A reader marks the annotation lines above a declaring line as joined to
+  it. The addresser gives the unit one `b` and one `a` above its first line, both anchored to the
+  whole unit, and each line its own `c`; no `b` falls inside the unit. Python decorators and Rust
+  attributes have the same shape (*"yes those have the same problem"*). C# and JavaScript list
+  no annotation openers for now (Roy does not code in either and took the recommendation).
+
+- **#239.** **Reads are ephemeral; readers keep no revisions** (Roy, 2026-10-26: *"All of the
+  runs and the results are to be considered ephemeral"*; *"We do not need to keep revisions of
+  the readers. If a past read needs to be pulled into the current system a standalone script can
+  make the convers[ion]"*; on removing the revisions and the compatibility hash, *"yes"*).
+
+  **What it settles.** A reading change bumps nothing. The reader and placement revisions and
+  the compatibility hash that refuses a saved binder are to be removed.
+
+- **#240.** **Every comment above a module docstring is matter** (Roy, 2026-10-26, shown that a
+  comment between the front matter and the module docstring is written back below the
+  docstring, three pymc files: *"The fix is all comments above a module docstring become matter.
+  Which is kind of a pain in the butt, but that would fix it. If there is not a module docstring
+  then the space splits the matter from the normal comment"*).
+
+  **What it settles.** Amends #232's front matter. When a module docstring opens the file's
+  code, every comment above it is front matter, whatever blank lines lie between. With no module
+  docstring, a fully empty line still ends the matter and a comment after it is an ordinary
+  comment. The foot mirrors it (Roy, the same day: *"On the back matter, the answer is yes,
+  same as front matter in reverse"*): when a closing docstring ends the file's code, every
+  comment below it is back matter; with none, a fully empty line ends the back matter.
+
+- **#241.** **A file with no code keeps its `<eof>` `a`, empty** (Roy, 2026-10-27, refusing both
+  a blank-line rule that split `a0` from the `<eof>` `a` and a proposal to emit no `<eof>` `a` in
+  a file with no code: *"No that is not necessary all of the docs can can be assigned to a0 and
+  a1 gets an empty it will be able to be modified and reset correctly and your solution would
+  preclude an add that while stupid would be allowed"*, with the case MATTER, DOCS, `<eof>`;
+  add `b0`, add `a1`; giving MATTER, DOC, COMMENT, DOC, `<eof>`).
+
+  **What it settles.** In a file with no code line, the docs at the top are the module's `a0`;
+  the `<eof>` `a` is still emitted, empty, and may be filled. Places are written in reading
+  order (`f0 a0 b0 a1 f1`), so an add at `b0` and `a1` gives matter, doc, comment, doc. No blank
+  line or other marker is invented to tell `a0` from the `<eof>` `a`.
+
+- **#242.** **Paragraphs are cut by place** (Roy, 2026-10-27, correcting "only code ends a
+  paragraph" with *"Or new paragraph Kind"*, then asking for a rule that holds against
+  DOC, COMMENT, DOC, COMMENT, DOC...: *"This needs a general rule that fixes this ... Is
+  pathological and silly and hopefully would never be found in reality. But I can see someone
+  trying to break their own system with these edge cases."*; approving the rule below: *"Yes"*).
+
+  **What it settles.** A gap -- between two lines of code, or a sentinel and code -- holds a
+  fixed set of places. The run touching its lower edge (a declaration, or `<eof>`) is that `a`;
+  a plain comment run touching a declaration still documents it. At the file's head, the doc
+  run opening it, after any matter, is `a0`. Everything else in the gap, whatever kinds it
+  alternates, is the gap's one `b`, a comment. No gap holds more than three paragraphs. A doc
+  that documents nothing is a comment, and a doc cut off from its item by an ordinary comment
+  is detached (#235).
+
+- **#243.** **Each place holds one paragraph; extras go to the `b`** (Roy, 2026-10-27, after a
+  repair let an `a` take in a neighbouring run: *"Just a general rule each place gets an
+  allowed but single one of 'a', 'c', or 'f', All extras are wrapped up into the appropriate
+  'b'"*, with the case Matter 1, Doc 1, Comment 1, Doc 2, Comment 2, Doc 3, Comment 3:
+  *"Comment 1->Comment 3 would end up in b0, or f1 (depending on the trailing empty line)"*).
+
+  **What it settles.** Generalises #242. An `a`, a `c` and an `f` place each hold at most one
+  paragraph; whatever else falls in a gap is that gap's one `b`. In the case above, with no
+  code: `f0` Matter 1, `a0` Doc 1, and Comment 1 through Comment 3 -- the docs between them
+  included -- are one paragraph: `b0` when a blank last line leaves no back matter, otherwise
+  back matter `f1` (#232).
+
+- **#244.** **One reader builder takes each language's definition** (Roy, 2026-10-27,
+  clarifying the 2026-08-22 rule that no language shares another's definition: *"That was not
+  meant to be that the machinery that parses the files shouldn't be shared. It would be better
+  if there was one Strategy/Builder/Visitor system that could take the configuration and
+  create the pieces that understand how to take the different pieces in the system and builds
+  the correct Reader. Then we can fix this once and that fixes every language implementation
+  after"*; approving the split below: *"I like your split"*).
+
+  **What it settles.** Definitions stay per language; the reading machinery is shared. A rule
+  such as #243 is written once and reaches every language. The builder is a design objective
+  filed after this plan merges; its first step moves the cut by place out of `lexer.py` so
+  the rule has one home. Until then, the page refuses two paragraphs at one address (P22).
+
+- **#245.** **A lone head doc over a declaration is the declaration's; two split** (Roy,
+  2026-10-27, shown that an add at `a0` in `function f() {}` reads back at `a1` and the write
+  chain refuses it: *"Okay to 1 & 2 together"*).
+
+  **What it settles.** Orders #242's two head rules. A lone doc run at the file's head that
+  touches a declaration is that declaration's `a`. Two or more doc comments above the first
+  declaration split: the first is `a0`, the one touching the declaration is its `a`. The write
+  chain accepts an alteration that reads back at the other of the two places when its text sits
+  exactly where it was written -- `a0` filled alone above a declaration reads back as that
+  declaration's `a`, as #241 accepts for the `<eof>` `a` in a file with no code.
+
+- **#246.** **One matter rule for every reader; #240 overrides #235 in Rust** (Roy, 2026-10-30,
+  on where #240 and the foot of #243 live: *"B is what I meant. It seems pretty easy to make the
+  lexical reader and only the lexical reader to read and label the matters"*; asked whether that
+  meant every reader, and how it meets #235: *"meaning 1, and #240 overrides #235 for Rust"*).
+
+  **What it settles.** A reader labels matter, for all three readers, by the one rule in
+  `reading/matter.py`, which states #240 and #243 at both ends. A comment above a Rust module doc
+  is therefore matter, and that doc is no longer detached; #235 stands for a doc above an item.
+
+- **#247.** **A draft is checked by where its text landed, not by its address** (Roy, 2026-10-30,
+  on the question "did this text land where it was written, and is everything else unchanged?":
+  *"This is the right question and I am glad you got that"*; then the acceptance test: *"A a1 is
+  added to the blank doc, it is written the read brings it back as a0, the a0 is run through the
+  system and comes back unchanged, then a move happens to move it back to a1 and it comes back to
+  the original again. That covers the while expected chain of reasoning and keeps the 'did this
+  set where is was supposed regardless of what the address ended up being"*).
+
+  **What it settles.** The re-read of a draft asks three things: on the exact lines written, the
+  reader finds one paragraph holding exactly that text, whatever address it gives; dropped text
+  is gone; every paragraph nobody edited reads back with the same text in the same order. The
+  check stays independent of the compositor: the draft is read from disk. Amends #245's and
+  #241's acceptance, which no longer needs a named pair of places. "The original" in the test
+  is the draft written at the first step (Roy, the same day: *"We mean to the draft after writing
+  the first a1"*): the move ends byte-identical to that draft, not to the file before the add.
+  "The blank doc" is a blank docstring on a file with code (Roy, the same day: *"Sorry I meant
+  blank doc strings and your example function f() {}"*), not a file with no code.
+
+- **#248.** **A no-code file proves only under a language row; documents keep their own chain**
+  (Roy, 2026-10-30, on proving a file with no code line: *"this is super important ... We need to
+  be super careful in how we do this because all of the text files fall into this and we do want
+  to be able to update them, *.md, *.rst, *.txt, the various html templates probably, i am
+  certain I am missing a pile here"*; on narrowing it: *"Yes"*).
+
+  **What it settles.** A file in a language with a row proves unchanged with no code line when
+  the reader finds none on either side and neither side holds an unterminated comment: the row
+  says what code is. A path with no row stays unprovable. Documents come through their own chain;
+  fenced code, front matter, directives and template tags are what a document reader must protect,
+  and #247's three questions are the proposed proof there.
+
+- **#249.** **Repeated text and combined head edits are accepted** (Roy, 2026-10-30, shown five
+  edits the check by address refused and #247's check accepts: *"1 yes 2 yes 3 - yes 4 - yes
+  5 - yes"*).
+
+  **What it settles.** Text that also stands elsewhere is accepted, at the foot, in a mid-file `b`,
+  or at `f0` beside `a0`. On `/** F */` over `function f`, an add at `a0` with a drop at `a1` in one
+  docket is accepted, as is an add at `a0` with one at `b0`. Repeated text is not an error.
+
+- **#250.** **Each row states its own line endings** (Roy, 2026-10-30, shown that
+  `// note<U+2028>evil();` is accepted as a comment in `.js` and Node runs the text after the
+  separator: *"T60 yes"*; on the C backslash splice: *"T61 no waits for a C specific reader"*).
+
+  **What it settles.** A language row states the line endings its grammar defines. Text holding
+  one the reader does not split on is refused, in the source and in a replacement, so a line
+  comment cannot carry code past its real end. The C and C++ `// a \` splice waits for a C reader.
+
+- **#251.** **A drop that leaves Python unparseable is refused** (Roy, 2026-10-30, shown that a
+  drop of a body's only docstring writes `class E(Exception):` over `def f():` and proves it, asked
+  whether to refuse or set `pass`, answered for the recommendation to refuse).
+
+  **What it settles.** The write chain adds no code to make a drop legal. A Python draft that does
+  not parse, set from a page that did, is refused at prove.
+
+- **#252.** **C# names its interpreter line** (Roy, 2026-10-30: *"okay on recommendation"*, on
+  naming `shebang` on the C# row alongside Lua, Kotlin and Swift). The recommendation rested on
+  .NET file-based apps allowing `#!`, from memory and not run.
+
+  **What it settles.** The C# row states `#!` as an interpreter line, as those three rows do from
+  their own grammars. Roy also let stand the refusal of `/* a<U+2028>b */` at gather, which #250
+  states.
+
+- **#253.** **A matter transform is the human's to approve** (Roy, 2026-10-30, on a `.sh` drop of
+  `f0` losing the interpreter line: *"all matter transforms are supposed to be raised to the human
+  for review so if the human says okay it is okay"*).
+
+  **What it settles.** An approved alteration at an `f` place may change the interpreter line. The
+  proof's refusal does not apply to it. An alteration at any other place, such as an `a0` add above
+  `#!`, still refuses. The raise itself is plan `0.2.4-an-f-correction-is-raised-alone`, not yet
+  built, so the refusal is lifted when that raise exists.
+
+- **#254.** **Addresses are not the invariant; location is** (Roy, 2026-10-30, on `a1` added under
+  a filled `a0` in a no-code file reading back inside `a0`: *"If the agents put in a1 and it comes
+  back as a0 that is fine addresses are not the invariant. Locations relative to code are the
+  invariant. And locations relative to other comment types are invariant because that is what it
+  takes to ensure edits are put in the correct spots."* and *"what would be broken is if that text
+  came back above the a0 text which is impossible in the current implementation"*).
+
+  **What it settles.** Supersedes #247's "one paragraph holding exactly that text". Written text
+  has landed when the written lines hold it, under the same count of code lines, in the same order
+  against the prose around it. It may join a neighbouring paragraph and read at another address.
+  No place stops being offered for this.
+
+- **#255.** **An empty patch is an error** (Roy, 2026-10-30, shown that `{a1: "   "}` replaces a
+  docstring with blanks and records a patch: *"I see the problem- malicious agents, yeah we can
+  filter white space and if something comes back as 0 chars then it is either a leading or it is
+  empty and an empty patch gets and error code"*).
+
+  **What it settles.** Text is measured with its white space removed. At 0 characters a read
+  paragraph is leading or empty, and a replacement is an empty patch, refused with its own error
+  code. A blank line inside text that still holds words is untouched, so a paragraph can be split.
+  A trailing blank is accepted as written (Roy, 2026-10-30): the mark carries it, the compositor
+  sets it, and the next reading holds it as leading. The error code is the string `empty-patch` in
+  the refusal, with no new exit number.
+
+- **#256.** **A Rust doc marker with nothing to attach to is refused** (Roy, 2026-10-31, shown
+  that `/// A note.` added at `b1` under `fn f() {}` proves while rustc goes from exit 0 to exit 1,
+  and asked where it refuses: *"Agree it gets an error"*).
+
+  **What it settles.** `RustRead.preserved` refuses it, so `proof` and `prove_unchanged` both stop;
+  a read does not. It compares both sides: a page that was fine and a draft holding a marker with no
+  item to attach to, or `//!` where no inner doc is allowed. A plain comment between a doc and its
+  item stays allowed under #235.
+
+- **#257.** **A place inside a unit stays, marked unassignable** (Roy, 2026-10-31, shown that a
+  comment dropped between `@Override` and its declaration removes a `b`, so `AddressesMoved` refuses
+  the docket; he proposed *"put those back in there as an \"unassignable\" designation like thing
+  and the system still returns the assignable address"* and *"if it is a legal b location maybe we
+  made the collapsed places incorrect"*, then *"T74 yes option 2"*).
+
+  **What it settles.** Whether a place exists depends on the code, not on the comments around it.
+  Every spot between code lines keeps its `b`. An empty one inside a unit is unassignable, and
+  asking for it returns the unit's assignable `b`, so #238 still offers one `b` for the unit. Text
+  already there reads there. The `AddressesMoved` gate stays as it is and refuses this case until
+  the change lands with `TODO/one-reader-builder.md`.
+
+- **#258.** **The stripped proof refuses JSX text and a `\'` in SQL rather than reading them** (Roy,
+  2026-10-31, approving plan `2026-10-31-proof-reads-what-runs`, shown that a `// text` line inside
+  a JSX element and SQL's `'a\'` both reach PROVEN on changed code).
+
+  **What it settles.** A comment reached inside an open JSX element makes the page unprovable. The
+  reader goes on reading it as a comment, because a stuck tag count in the reader would hide real
+  comments from review, where at the proof it costs a report. A `.sql` file holding `\'` is
+  unprovable, because standard SQL and MySQL end that literal in different places. A language's
+  lines are held by one check per shape; a token comparison waits for the per-language readers
+  under #222.
+
+- **#259.** **A language with no reader of its own leaves the system, and agents edit it freeform**
+  (Roy, 2026-11-01: *"I am tired of chasing bugs in the lexical reader - so any language that
+  doesn't have a Reader is dropped from the system and the agents are asked to freeform their edits.
+  Effectively V1.0 all over again. We can give them the cheat sheet of how to deal with the edits
+  properly but it is up to the agents to figure it out."*). Shown the proposal, he agreed it, adding
+  of the reviewers *"in the order that the project graph thing says"* and of the check *"the task
+  agent runs formater and compiler to verify and prove_unchanged returns UNCHECKED"*.
+
+  **What it settles.** Python and Rust keep their readers, proof and write chain. Every other
+  language loses them. The gather reads the Python and Rust files, lists the rest as freeform and
+  exits 0. The four reviewers still read a freeform file and raise findings as `path:line` with
+  proposed text, the human approves them and an agent applies them. The task agent runs the repo's
+  formatter and compiler on those files, and `prove_unchanged` answers `UNCHECKED` for them, never
+  `PROVEN`. A cheat sheet tells the agents how to make such an edit safely. The code lands and is
+  tested before the agents are told.
+
+  This supersedes #222's readers-on-request plan for those languages, and #258's refusals go with
+  the comparison they live in.
+
+- **#260.** **Freeform takes source files only, and its findings travel by reference** (Roy,
+  2026-11-01, asked what "the rest" of #259 holds and where findings live: *"yes only source files"*;
+  *"They go in the agents temporary directory and passed back up by reference to the copy-chief or
+  to the other agents after being completed"*; on a `move` into a freeform file: *"Yes - I am not
+  certain you would do that but then web projects right"*; and *"that was topology"*).
+
+  **What it settles.** A freeform file is one whose suffix the gather names as source; `.md`,
+  lockfiles and images stay passed over. Reviewers run over freeform files in topology order. A
+  reviewer writes its findings in its own temporary directory and passes the path up, to the copy
+  chief or to the agents after it. A `move` from a page into a freeform file is refused and raised
+  as a `drop` plus a freeform add.
+
+- **#261.** **Freeform edits follow the topology on copies, and are approved as a real diff** (Roy,
+  2026-11-01, shown five version reviews finding that a hand-applied write to the working tree after
+  approval is what V2.1 and V2.2 ran, and that 0.2.2's run was rolled back with 31 defects and every
+  gate green: *"follows the topology - if the ownership context runs first the next contexts get its
+  edits to work from to make their own edits - straight copy from its files"*; *"yes the rest of the
+  changes"*).
+
+  **What it settles.** This replaces #259's order of approve then apply. Roles in one stage stay
+  blind to each other. A role in a later stage starts from a straight copy of the files the stage
+  before left. The edits are set on a draft copy, the formatter and compiler run there, and the
+  author approves the real diff; accepted files are then copied over. Every diff hunk must match one
+  approved finding, and any other hunk stops the run. A finding carries its instruction, its source
+  and one full replacement per comment in text framed for the file. Each reviewer reports `N swept,
+  M raised` per file. The cheat sheet is built from the measured failures.
+
+  Roy also confirmed the reader machinery stands for Python and Rust: *"Yes this all earns its keep
+  even with the complexity."*
+
+- **#262.** **What #259 left of the rulings on rows that went** (recorded 2026-11-01 from the code at
+  `e0da1c3a`; no ruling of Roy's, and nothing here reverses one).
+
+  **What it records.** Four rulings applied to the rows that left under #259, so each has no
+  subject in the code now. #234 and #236.1: a closing docstring was held only by rows with doc
+  markers, Python and Rust say no, and `closing_docstring` and the `<eof>` `a` are gone. #236.3: a
+  row naming its shebang went with the rows. #241: it never had a Python or Rust effect, since both
+  readers answered False before it (`6b675757`); a file with no code has no `<eof>` `a`. #238: only
+  the lexical reader passed `joined`, so `CodeLine.joins` went with it. The ruling also names Python
+  decorators and Rust attributes, which never got the unit: `@dec` keeps its own `b` today. That
+  work stays open as `lexer-and-language-findings` T51. #236.2 and #237's `SKILL.md` wording stand.
+
+- **#263.** **Four rulings on how a freeform file runs** (Roy, 2026-11-02, shown four
+  recommendations from drafting the freeform prose: *"Yes to all 4"*).
+
+  **What it settles.** The copy chief holds the comment length cap on a freeform file, because
+  stage 6 takes none. A file that is not formatter-clean before the run stops the run, because the
+  diff audit could not tell a formatter's change from an agent's. The author accepts a freeform
+  file whole. A dispatched general-purpose agent sets the draft. "Accepts whole" is **SUPERSEDED by
+  #264**, and the dispatched setter is **SUPERSEDED by #270**; the other two stand.
+
+- **#264.** **The author edits a freeform draft line by line** (Roy, 2026-11-02, reversing #263's
+  third ruling: *"I am going to reverse my statement on 3. I should not have replied last night."*
+  *"The page git diff flow for the human review allows for the person to see the final draft and
+  edit line by line."* *"The final draft is then copied over like today when it is accepted"*).
+
+  **What it settles.** A freeform file goes through the same review as a page: the author reads the
+  final draft beside its original with `git diff --no-index`, edits the draft line by line, and
+  accepts it. The accepted draft is then copied over. Selecting part of a file needs no fresh draft
+  or second audit, which was the cost that made "whole file" the default.
+
+- **#265.** **All-caps words are for constants and enums** (Roy, 2026-11-02, reading the proposed
+  `anchor` entry: *"no all caps words unless they are constants or enums in the program."*).
+
+  **What it settles.** New and changed prose takes no all-caps emphasis. The `anchor` and
+  `declaration` entries follow it; other existing text is unchanged until it is next edited.
+
+- **#266.** **A freeform reviewer gets a file copy and makes the edits** (Roy, 2026-11-02, shown the
+  live run's 613 prompt lines per reviewer: *"They should get a file copy and should just make the
+  edits they are asked to make"*; asked whether that meant freeform files only or every file: *"A"*).
+
+  **What it settles.** A freeform-only dispatch carries a copy of the file and a short instruction,
+  without the `mark` and address machinery of the reviewer brief. Python and Rust reviewers keep
+  filing marks on an edit copy.
+
+- **#267.** **A stop holds the run at its stage** (Roy, 2026-11-02, on how a run resumes after the
+  stage 7a audit stops: *"stops the run to me meant - doesn't move to the next stage until fixed,
+  not everything gets junked and retried. That would be a big waste of effort for something that
+  can be edited to be correct"*).
+
+  **What it settles.** #263's stop stands with this meaning. A change the audit cannot tie to a
+  settled finding is edited out of the draft and audited again; a failing check is edited and run
+  again, and reaches the author when the failure comes from code no finding touched. No commit
+  moves the pre-edit ref, and nothing is thrown away.
+
+- **#268.** **Human review is the check on freeform code** (Roy, 2026-11-02, on the audit matching
+  hunks by eye: *"so what, that is the risk of the freeform and why there is human review and a
+  final pass of the agents"*; on an author edit that changes code: *"they are the author they fix
+  what they want"*).
+
+  **What it settles.** The freeform audit stays a reading, with no tool behind it. An author's edit
+  takes no check beyond the compile step. The author's review and stage 8 carry that risk.
+
+- **#269.** **The copy chief composes a code concern's answer** (Roy, 2026-11-02, asking why three
+  roles cost three resumes: *"Why not one resume"*; on the chief composing it, after merge: *"should
+  work"*).
+
+  **What it settles.** A code concern on a page goes as one question to the author, and the copy
+  chief composes the result, as it already does for a freeform query. This amends #197 for code
+  concerns, and needs a backend change because `flows/human.py` matches answers by role and place.
+  It lands after the merge.
+
+- **#270.** **A freeform reviewer's edited copy is its finding** (Roy, 2026-11-02, shown that the
+  reviewers' edited copies go unread and that `current` and `at` fit neither an `add` nor a string:
+  *"yes"*).
+
+  **What it settles.** Extending #266, the reviewer edits its copy and returns reason and source per
+  line, and the diff supplies the text. `current` and `replacement` leave the findings. The chief
+  reads each role's copy and writes one draft, and a later stage starts from that draft (Roy, the
+  same day: *"Are you saying agents are not capable of copy/paste/rewrite?"*). #270 lands before the
+  merge (Roy, the same day: *"1 before"*). The chief's draft retires #263's dispatched setter (Roy,
+  the same day, told that the setter's read-back goes with it: *"Yes retire"*). Stage 7a shows the
+  author each full draft, and reasons come when the author asks (Roy, the same day: *"the full draft
+  - the human can ask for the reasons after the fact and the agents can respond"*).
+
+- **#271.** **Seven rulings from the first freeform run** (Roy, 2026-11-03, shown the Task 4
+  run's seven smaller ambiguities).
+
+  **What it settles.** A sentence that is not needed is a `drop`, true or false (*"yes drop
+  anything unnecessary"*). A composed freeform entry names every role whose change stands in it.
+  An `add` where a comment already stands is a `patch` of that comment. `withdraw` takes back the
+  whole finding (*"whole finding"*). `module-context` adds a module comment where it judges one
+  useful (*"add if they think it useful"*). A known gap in the name corpus prints once with its
+  files (*"print once with the list of files"*). Where `review.md` left a template departure
+  open, Roy left it to the agent (*"you read I don't know"*): a departure in text the run wrote is
+  something to fix, and one in text it did not change predates the run. A third sentence, that a
+  kind with no template has nothing to depart from, was cut as superfluous (Roy, the same day).
+
+  **REVOKED for the page flow the same day.** The seven came from a freeform run, and their
+  wording reached the page flow's text; so had the page halves of T3, T6, T7, T9 and T14 and
+  the brief's `--line <module>` sentence. Roy: *"All changes that are about the normal comment
+  review path are revoked"*, and, on module-context, the proofreader and `gather`: *"agree to
+  remove from normal flow"*. What stands is freeform-only: `freeform.md`'s `drop` and `add` rows,
+  `roles` on a settled entry, the freeform query and send-back rules, and the hunk match. Roy
+  on the page flow's `withdraw`: a mark can be withdrawn, and only what that mark edits is
+  undone.
+
+
+- **#272.** **Eight open decision boxes answered** (Roy, 2026-11-04, shown each box beside the
+  ruling that seemed to answer it).
+
+  **What it settles.** A send-back has no bound in code; the agents follow the instructions
+  (*"it is up to the agents to follow the instructions. I am not worried about them running away
+  and trying infinite times"*). Nothing checks that the reviewers were launched; the host's task
+  system does (*"the Claude code or codex program handles this correctly and the task system in
+  those programs check that it happened"*). A missing role is not fatal: *"the task agent is told
+  to spin up another instance"*. Every composition of edits at one address goes back for review,
+  a `correct` with a `patch` included (*"the blanket ruling that all places that edit a same
+  address needs to go back for review, even assuming the answer is merged stands"*). A role is
+  told that absent places are filtered out of the binder and are looked up with the command, as
+  #96 said (*"lets make certain it gets implemented this time"*). The brief and the vocabulary
+  reach a role by path (*"It is still read but that is easier for the agents at this time"*). A
+  code concern is reported at an address, as now (*"the current system of how the code concerns
+  get reported on an appropriate address seems to be working"*). `doc-kind-unresolved` is
+  retired, so its role rule is moot, and a doc-shaped opener is the module docstring, as #232
+  and #233 say. Whether the collator owns the set questions (`front-half-undetermined` T6) is
+  left open for review (*"I don't know - lets review"*).
+
+- **#273.** **Four vocabulary rulings from the decision-log sweep** (Roy, 2026-11-04, shown the
+  Vocabulary and Addressing rulings the tree no longer agrees with).
+
+  **What it settles.** `lexer` is retired in favour of `reader`; Vocabulary #38's keeping of it
+  is superseded (*"yes superseded"*). `annotation` names the code construct -- a type annotation,
+  a decorator, an attribute -- and not the binder's note; Vocabulary #13 is superseded (*"the
+  code versions because they control- moves out of concordance when we get to building a
+  glossary and index"*). The task agent is the `managing editor`, as Vocabulary #18 said, and the
+  vocabulary and `SKILL.md` say so (*"yes into vocab and its skill brief"*). Whether
+  `concordance/code_names.py` becomes `references`, left open by Addressing #17, is filed as a
+  decision still owed.
+
+- **#274.** **A mark on an `f` place asks the human, and the other roles mark against an
+  accepted move** (Roy, 2026-11-04, shown that the brief gives the `f` places to
+  `ownership-context` alone while Addressing #26 lets any role ask for one).
+
+  *"#26 is correct, it is excluded by default, amy mark using the matter series is expected to get
+  a query to the human to verify that a change is acceptable. If ownership context moves it or
+  part of it to the appropriate b spot and that is accepted by the person, then the rest of the
+  agents mark against the update"*
+
+  **What it settles.** The `f` places stay out of a role's copy by default. Any role may look up
+  an `f` address and mark it, and every such mark raises a query to the human. When
+  `ownership-context` moves matter, or part of it, to a `b` place and the human accepts the move,
+  the other roles mark against the moved text. `brief-says-three-series` T1 and T3 close on it.
+
+- **#275.** **A language's rules are its `language definition`, and no round tally is kept**
+  (Roy, 2026-11-04, shown that the old language table's rows became `LanguageDefinition`, read
+  from `references/languages/<lang>.toml`, and that the round tally Vocabulary #30 put on the
+  container was never built and was refused by Process #51).
+
+  **What it settles.** The language-row sense of `row` is retired; the term is `language
+  definition`, and the live board prose says so (*"update locations to definition"*).
+  `row-was-never-retired` T5 closes on it. Vocabulary #30's round tally is superseded (*"yes
+  superseded"*): a round advances only by a command someone runs, as Process #51 and #272 say.
+  The rest of #30 -- the copy chief's `edit_copy` has the same shape -- stands.
+
+- **#276.** **Five rulings settled against the 2026-09-27 rewrite, and two restated** (Roy,
+  2026-11-04, shown each ruling beside what the tree does now).
+
+  **What it settles.** #144 is superseded: *"Now the draft goes in a temporary folder and
+  reviewed before being accepted so this is no longer necessary."* #160 is superseded: *"the
+  current functionality works."* #8 is fulfilled. #159 stands -- nothing is written over the
+  real files *"until everything and every review stage is accepted"* -- and `write.md` writes
+  at 7b before stage 8 reads, which it does not allow. #104 stands, restated: *"it is not
+  supposed to. This has been stated several times. The SHA256 hash of the file created in
+  machine/ is supposed to follow the file, edit copies, and docket through the entire process.
+  ... The files should not need to be committed to run this."* `prove_unchanged --base`, the
+  git read behind it and `write.md`'s `git worktree add <pre-edit ref>` all break it. A withdraw
+  takes back one mark: *"a withdrawal on the mark is specific to the mark. The rest of that was
+  an extension added by the agent"* -- #271's address-wide reading and the CLI that implements
+  it are not his. #265 is a global rule (*"yes that is supposed to be a global rule"*) and now
+  stands in `CLAUDE.md`. #166 waits on confirming what `write.md` runs as the compile step.
+
+- **#277.** **`prove_unchanged` runs first; the repo's own tools validate after it** (Roy,
+  2026-11-04, on #166, shown that `write.md` compiles with the repo's check command before
+  `prove_unchanged` while #166 said nothing but `proof` compiles: *"The goal is to first be able
+  to run prove_unchanged on the changed documents and then use the system tools to verify that
+  the program will still compile or run. Why this order, because prove unchanged shows that the
+  order of operations should be the same and everything should at most take indentation/bracket
+  edits to make it compile. Formatting and compiling after states which comments or indentation
+  needs those changes which requires no actual code checks"*; then *"Agree"* to superseding #166).
+
+  **What it settles.** #166 is superseded. On the drafts in the temporary folder,
+  `prove_unchanged` runs first against the machine/ sha; then the agent runs the project's own
+  formatter and compiler, which no program enforces, and reports the two results separately --
+  the instruction the lexical-readers design approved (`2026-10-11-lexical-readers-design.md`,
+  *Formatting and local validation*). Nothing is written over the working tree until every review
+  is accepted (#159). The work is the lexical plan's P57.
+
+- **#278.** **`addresser --check` is deleted, not moved** (Roy, 2026-11-04, shown that no stage
+  runs it, that `gather` already refuses an unaddressed paragraph with the same `unaddressed()`,
+  and that its SHARED report checks a binder for what #254 says is not a defect: *"Agree deleted.
+  Love deleting code. Anything not necessary to accomplish the goals of the project should go"*).
+
+  **What it settles.** The 2026-08-25 direction that `--check` leaves the lookup command is
+  answered by deleting it with its two tests. `check-passes-a-shared-address` T1-T4, which fix
+  the command, are superseded. Code a goal of the project does not need is removed.
+
+- **#279.** **The lookup is subcommands over a flow, and reading settings are an instruction**
+  (Roy, 2026-11-04, shown the lookup command reading the page, loading reading settings and
+  resolving addresses itself, after its binder was removed).
+
+  On the name: *"I don't think we should rename the command and instead just make these
+  appropriate subcommands"*. On where the logic lives: *"That means that there is logic in the
+  command and not in the flow or the modules where it belongs. The flow is where the logic is
+  pulled together and flows are composable and so if there is a flow that does the right logic
+  it can be used in other flows and never allow the disagreement"*. On where settings come from:
+  *"Instructions to the agent not special things that wouldn't follow the plugin/skill"*, then
+  choosing that the skill instructs them.
+
+  **What it settles.** The command is not renamed `look_up_address`; it takes a subcommand for
+  each question -- a place by line, and the lines of an address. The lookup's logic moves into a
+  flow that reads a page the way gather's flow does, and the command only turns arguments into
+  that flow's inputs. Reading settings are written into the skill: stage 1 records them, and the
+  agent passes them to gather and to the lookup. No settings file lives in the user's repo. The
+  command is `addresses`, with `addresses find --file <path> --line N --series s` and
+  `addresses resolve <address>` (*"Yes the command names look good"*).
+
+- **#280.** **Reading settings go: no language has one** (Roy, 2026-11-04, shown that both
+  language definitions state `defaults = {}` and `choices = {}`, so the stage-1 instruction #279
+  asked for would record a value that cannot exist; choosing to drop the flag from `addresses`
+  and to remove the whole mechanism as its own work).
+
+  **What it settles.** #279's settings instruction is withdrawn before it was written, and
+  `addresses` takes no `--reading-settings`. The mechanism -- the flag on `gather`, `compositor`
+  and `prove_unchanged`, `flows/reading_context.load_settings`, and the definitions'
+  `defaults` and `choices` with the settings a reading context carries -- is removed as its own
+  work. If a language gains a choice, the setting and the instruction that carries it are
+  written then, against a real value.
+
+- **#281.** **One obvious way: the lookup reads through `page_named`, and an empty place prints
+  as one** (Roy, 2026-11-05, shown a review of the `addresses` lookup that found it deciding a
+  file's path twice -- once in `page_in`, once from the raw argument -- with no escape check and a
+  wrong inversion of `flatten`, where `flows/on_the_page.page_named` already does all three).
+
+  *"yes one flow to maintain correctly not multiple ways of doing the same thing. Have subagents
+  check the other flows to make certain they adhere to 'There should be one - and preferably only
+  one -- obvious way to do it.'"*
+
+  **What it settles.** `addresses find` and `addresses resolve` read their page through
+  `page_named`, the reader the write end uses; #279's "the way gather's flow does" is superseded
+  for the lookup. Where two code paths do one job, one is kept and the other goes. An empty place
+  that `resolve` names prints as itself -- its address and the line of code it stands beside --
+  at exit 0, never a line span it does not have (*"option A"*).
+
+- **#282.** **A docstring added to a one-line declaration with no useful body is never raised
+  again** (Roy, 2026-11-06, shown a P58 probe reporting that an `add` at `a1` on `def g(): pass`
+  or `class C: pass` sets `"""D."""` at column 0 after the declaration, and that
+  `census-degrades-silently` T6 was kept open for it).
+
+  *"This has been rejected as a valid problem case several times now ... No real program has that
+  case. While it is valid python it is not the focus of this system to consider something that
+  has no useful output as worthy of comments or documentation, and it is considered unlikely that
+  agents are going to want to add a docstring to such a line. Finally if they do and the task
+  agent doesn't catch it, when the task agent runs the compile step that will break and then it
+  can fix it. I ban that case or any such case from ever being raised again"*
+
+  **What it settles.** `census-degrades-silently` T6 is superseded. Code with no useful output is
+  not a subject for documentation, so an edit placed on it is not a defect to file, test or
+  report; the task agent's compile step is the backstop.
+
+- **#283.** **A move is approved whole; its ends are split afterwards for further marks** (Roy,
+  2026-10-01 and 2026-11-06). In the R2 author review, asked whether naming one end of an agreed
+  move to `proof --only` expands to the move or is refused: *"a move is either approved and split
+  or not approved"* (`TODO/completed/r2-whole-move-approval.md`, `ac4a0658`). It was implemented
+  as a refusal in `9e7532b5` and recorded nowhere in this log. Shown on 2026-11-06 that `#195`
+  item 5 and the smoke still had each end approved on its own:
+
+  *"Yes - the both approved first and then the pieces are split on the turn for further
+  modification (a correct, patch, ...) to allow for the moved statement to be updated and become
+  more correct"*
+
+  **What it settles.** `#195` item 5 is superseded. A move's two ends are approved together or
+  not at all; `proof --only` naming one end alone is refused, naming the move. After the move is
+  approved its ends are split on the turn, so a `correct` or `patch` can make the moved statement
+  more correct at either end.
+
+- **#284.** **A block comment that closes before code on its line is not re-ruled** (Roy,
+  2026-11-07). `closing-line-deletes-code` T4 asked to re-rule the 2026-08-20 acceptance with
+  the cost on the table: on C, a `patch` to `/* note
+   more */ int x = 5;` deleted
+  `int x = 5;`. Shown that C left the system under `#259`, that Python has no block comment, that
+  the Rust reader reads both lines as code (`c2`, `c3`) so no place holds that comment, and that
+  stage 7b proves the drafts in a worktree before the write:
+
+  *"Supersede"*
+
+  **What it settles.** T4 is superseded and no re-ruling is owed. The 2026-08-21 note that cleared
+  `Requires-Roy` stands, for the reasons above rather than the galley.
+
+- **#285.** **Every place keeps its address, and `Cues` maps each to the place it is written at**
+  (Roy, 2026-11-07, on `lexer-and-language-findings` T51 and T56 and `one-reader-builder` T9 and
+  T10, shown a decorated function holding a multi-line string, whose page offers a `b` between
+  the decorators and a `b` and `c` inside the string):
+
+  *"I think T51, T56 are the same implementation requirement, which is a combined line as an
+  anchor that states that some positions are not available to be written to and that the reason
+  we just redid address—line was so that the system could return the address that that comment
+  can be written to."*
+
+  *"What I am thinking on this is that each line still gets its address like now, but then there
+  is a reference table in the page or address that states which addresses are writable in the
+  lookup and if the address isn’t writeable it returns the location that is"*
+
+  *"It could be a simple dict where in most places the address just references its self but for
+  point to unwrittable spots those reference the correct address to put that comment at"*
+
+  Asked where a place inside a string points, whether `c` is covered, and where the table lives:
+  *"1 agree / 2 agree with moving to the end / 3 Cues works"*.
+
+  **What it settles.** It widens `#257` from a `b` inside a unit to every place the code makes
+  unwritable. Each line keeps its address. `Cues` holds a table built at read, from each address
+  to the address text there is written at; most map to themselves. A `b` inside an annotation
+  unit maps to the unit's `b`; a `b` inside a string that spans lines maps to the `b` above the
+  statement holding it; a `c` on a line that ends inside a string maps to the `c` of the line the
+  string closes on. The lookup answers with the mapped address.
+
+  Widened the same day to `a`: *"This goes for ‘a’ places as well. Particularly Rust and its
+  markers like Derive …"* Shown that `addresses find --series a` on a Rust item's declaring line,
+  or on any attribute line but the first, answers that the line declares nothing documentable;
+  so every line of an annotation unit maps its `a` to the unit's `a`.

@@ -63,7 +63,7 @@ can come up with a closed set of failure modes is silly."* See
     docs/design/
       README.md        this file -- the rule
       machine/         the floor: constants, exceptions, json_object, repo
-      reading/         addresser, language, lexer, paragraph, series
+      reading/         addresser, language, paragraph, readers, series
       binder/          addresses, binder, page
       concordance/     annotate, code_names, names, referrers
       desk/            collator, containers, external_address, mark, proof,

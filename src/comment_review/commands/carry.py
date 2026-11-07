@@ -18,7 +18,10 @@ from pathlib import Path
 from comment_review.flows.carry import carry
 from comment_review.flows.page_for import page_of
 from comment_review.flows.proof_io import load_binder
+from comment_review.flows.read_diagnostics import format_failure
+from comment_review.flows.reading_context import binder_reading_contexts
 from comment_review.reading.addresser import SERIES
+from comment_review.reading.diagnostics import ReadFailure
 
 
 def main() -> int:
@@ -58,9 +61,17 @@ def main() -> int:
         print(f"CANNOT READ THE BINDER: {'; '.join(problems)} -- nothing written")
         return 2
 
-    page, why = page_of(repo / args.path, rel=args.path)
-    if page is None:
-        print(f"CANNOT READ {args.path}: {why} -- nothing written")
+    contexts, problems = binder_reading_contexts(held, str(args.binder))
+    if problems or args.path not in contexts:
+        why = "; ".join(problems) or f"{args.path}: no saved reading context; regather"
+        print(f"CANNOT READ THE BINDER: {why} -- nothing written")
+        return 2
+    page = page_of(repo / args.path, rel=args.path, reading_context=contexts[args.path])
+    if isinstance(page, ReadFailure):
+        print(
+            f"CANNOT READ {args.path}: {format_failure(page, path=args.path)}"
+            " -- nothing written"
+        )
         return 2
 
     updated, added, why = carry(

@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 1 of 6 tasks closed
+Progress: 3 of 6 tasks closed
 Owner:    agents
 Requires-Roy: true
 Raised:   2026-08-17, on a MISREADING that turned out to sharpen the task -- see below
@@ -108,7 +108,8 @@ was looking straight at it.
 
 ## Tasks
 
-- [?] T1 | T1 -- * Rule on WHERE the check goes, from the four candidates in the
+- [x] T1 | Ruled #272: no check; the host's task system confirms a launch | e0a31457 | T1
+      -- * Rule on WHERE the check goes, from the four candidates in the
       Objective. Verify: the ruling names the candidate and is written in
       `docs/decision-log.md`.
 - [ ] T2 | T2 -- Make `--reviewers` default to the four editorial roles rather
@@ -120,9 +121,9 @@ was looking straight at it.
 - [ ] T4 | T4 -- In `SKILL.md` stage 4, say the dispatch is COUNTED and four is
       the number. Verify: the sentence sits under `## Stage 4` (SKILL.md:544)
       and names the count.
-- [?] T5 | T5 -- * Rule on whether a missing role is FATAL at stage 5 or a
-      stated degradation. Verify: the ruling is written in
-      `docs/decision-log.md`.
+- [x] T5 | Ruled #272: not fatal; the task agent spins up another instance | e0a31457 | T5
+      -- * Rule on whether a missing role is FATAL at stage 5 or a stated
+      degradation. Verify: the ruling is written in `docs/decision-log.md`.
 - [x] T6 | FINISHED | unknown | T6 -- NOT A TASK. RECORD that four WERE
       dispatched on 2026-08-17 and the display lagged; the evidence is in the
       Objective.

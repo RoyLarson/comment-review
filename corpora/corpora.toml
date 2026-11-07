@@ -185,8 +185,8 @@ afford, and these hold the C that matters.
 # corpora that we could get and that has got to be a decent one."*
 #
 # !! SEVENTEEN LANGUAGE ROWS SHIP AND TWO HAVE EVER BEEN MEASURED. Everything
-# above is Python except `cpython`, which is C -- so `doc_line`, `doc_block` and
-# `doc_is_structural` are asserted for fifteen languages against nothing but
+# above is Python except `cpython`, which is C -- so `doc_line` and `doc_block`
+# are asserted for fifteen languages against nothing but
 # fixtures this repo wrote itself. A fixture proves the reader does what its
 # author expected; a corpus is the only thing that can disagree.
 #

@@ -29,9 +29,16 @@ from pathlib import Path
 
 from comment_review.binder.binder import bind
 from comment_review.differences import unified
-from comment_review.flows.page_for import page_of, source_of
+from comment_review.flows.page_for import page_of
+from comment_review.flows.read_diagnostics import (
+    ContextAdmissionFailure,
+    format_failure,
+)
+from comment_review.flows.reading_context import context_for
+from comment_review.flows.source import source_of
 from comment_review.machine.repo import walk_files
-from comment_review.reading.lexer import language_for
+from comment_review.reading.diagnostics import ReadFailure
+from comment_review.reading.language import INSTALLED_REGISTRY
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -67,33 +74,49 @@ def main(argv: list[str] | None = None) -> int:
     rels = args.paths or _every_page(revise)
 
     changed_addresses: list[str] = []
-    # !! A PAGE THIS CANNOT READ IS NAMED, AND WAS SILENTLY SKIPPED UNTIL
-    # 2026-08-28. `source_of` and `page_of` each return a reason and both were
-    # discarded into `_` before a bare `continue`, so an unreadable or
-    # unparseable page produced NO OUTPUT AND EXIT 0 -- which is this command's
-    # own success condition (`T2.6`: *"it prints nothing when no stage has set
-    # anything"*). A page that could not be compared and a page that did not
-    # change were indistinguishable.
-    #
-    # ! TO STDERR, SO THE CRITERION STILL HOLDS. What T2.6 requires to be empty
-    # is the DIFF, on stdout; a reason a page was not compared belongs beside it
-    # rather than in it. ! Exit stays 0 -- the rule is nonzero when a ROOT is
-    # unreadable, and one bad page is not a bad root.
+    # Report acquisition and page admission failures on stderr even when the
+    # texts match. Exit stays 0: an unreadable page is not an unreadable root.
     skipped: list[str] = []
     for rel in rels:
-        before_source, why_before = source_of(original / rel)
-        after_source, why_after = source_of(revise / rel)
-        if before_source is None or after_source is None:
-            skipped.append(f"{rel}: {why_before or why_after}")
+        context = context_for(original / rel, {})
+        before_source = source_of(original / rel)
+        after_source = source_of(revise / rel)
+        if isinstance(before_source, ReadFailure) or isinstance(
+            after_source, ReadFailure
+        ):
+            failure = (
+                before_source
+                if isinstance(before_source, ReadFailure)
+                else after_source
+            )
+            assert isinstance(failure, ReadFailure)
+            skipped.append(format_failure(failure, path=rel))
+            continue
+        if isinstance(context, ReadFailure):
+            before_page = after_page = context
+        else:
+            before_page = page_of(
+                original / rel, rel=rel, source=before_source, reading_context=context
+            )
+            after_page = page_of(
+                revise / rel, rel=rel, source=after_source, reading_context=context
+            )
+        context_refused = any(
+            isinstance(page, ContextAdmissionFailure)
+            for page in (before_page, after_page)
+        )
+        if before_source.text != after_source.text and not context_refused:
+            print("".join(unified(before_source.text, after_source.text, rel)), end="")
+        if isinstance(before_page, ReadFailure) or isinstance(after_page, ReadFailure):
+            failure = (
+                before_page if isinstance(before_page, ReadFailure) else after_page
+            )
+            assert isinstance(failure, ReadFailure)
+            skipped.append(
+                f"{format_failure(failure, path=rel)} (addresses not compared)"
+            )
             continue
         if before_source.text == after_source.text:
-            continue
-        print("".join(unified(before_source.text, after_source.text, rel)), end="")
-
-        before_page, why_before = page_of(original / rel, rel=rel, source=before_source)
-        after_page, why_after = page_of(revise / rel, rel=rel, source=after_source)
-        if before_page is None or after_page is None:
-            skipped.append(f"{rel}: {why_before or why_after} (addresses not compared)")
             continue
         before_binder = bind(
             [before_page], read_from={"root": str(original), "revise": 0}
@@ -136,7 +159,7 @@ def _every_page(root: Path) -> list[str]:
     """
     rels = []
     for path in walk_files(root):
-        if language_for(path) is None:
+        if INSTALLED_REGISTRY.for_path(path) is None:
             continue
         rels.append(path.resolve().relative_to(root.resolve()).as_posix())
     return sorted(rels)

@@ -70,10 +70,15 @@ from comment_review.reading.paragraph import Paragraph
 # rather than what any one caller happens to consume. `decision-log.md Process:
 # #67`. ! `seed` no longer raises; it cannot be handed a binder without the
 # field.
-VERSION = "2"
+VERSION = "4"
 
 
-def bind(pages: list[Page], read_from: dict, absent: bool = False) -> "Binder":
+def bind(
+    pages: list[Page],
+    read_from: dict,
+    absent: bool = False,
+    freeform: tuple[str, ...] = (),
+) -> "Binder":
     """Every page in scope, as the binder that is handed over.
 
     !! `read_from` IS REQUIRED, NOT DEFAULTED. A binder that cannot say which
@@ -99,11 +104,10 @@ def bind(pages: list[Page], read_from: dict, absent: bool = False) -> "Binder":
     walk emits every place, filled or not, so a reviewer that wants to `add`
     ASKS for the one it means:
 
-        comment_review addresser --binder B --file m.py --line N --series b
+        comment_review addresses find --repo R --file m.py --line N --series b
 
-    -- which answers `m.py@b1` from the page at the binder's root, never from
-    the rows this filter kept (`decision-log.md Process: #96`). The place is
-    citable without being carried, so `add` stays expressible and nothing pays
+    -- which answers `m.py@b1` from the page, and reads no binder. The place
+    is citable without being carried, so `add` stays expressible and nothing pays
     for the other 5,201.
 
     ! A FENCE IS NEVER CARRIED, asked for or not. It names no place, so there is
@@ -117,6 +121,8 @@ def bind(pages: list[Page], read_from: dict, absent: bool = False) -> "Binder":
         absent: carry the empty places too. For the caller that specifically
             asks -- a reviewer surveying where prose COULD go rather than
             ruling on prose that is there.
+        freeform: repo-relative posix paths of the files in scope that no
+            reader claims. They have no page; the binder only names them.
 
     Raises:
         ValueError: `read_from` is not `{"root": str, "revise": int}`.
@@ -144,6 +150,7 @@ def bind(pages: list[Page], read_from: dict, absent: bool = False) -> "Binder":
         version=VERSION,
         read_from={**read_from},
         pages=tuple(page if absent else RedactedPage.of(page) for page in pages),
+        freeform=tuple(freeform),
     )
 
 
@@ -200,6 +207,8 @@ class Binder:
         version: the format's own number -- `VERSION` for one this tree wrote.
         read_from: `{"root": str, "revise": int}` -- which tree was gathered.
         pages: one per file in scope, in the order they were bound.
+        freeform: sorted repo-relative posix paths of files in scope that no
+            reader claims; they have no page.
 
     !! THE LOAD IS NOT HERE, ruled `decision-log.md Process: #67`. Roy,
     2026-08-31: *"all flows start with a load step - not the modules code."*
@@ -214,6 +223,7 @@ class Binder:
     version: str
     read_from: dict
     pages: tuple[Page | RedactedPage, ...]
+    freeform: tuple[str, ...]
 
     @property
     def root(self) -> Path:
@@ -266,6 +276,11 @@ class Binder:
         # annotation is a declaration and survives. Same reason, same spelling
         # as `desk.proof.edit_copy.EditCopy.deserialize`.
         checked: dict = data
+        if checked.get("version") == "2":
+            return None, [
+                f"{where}: binder version '2' carries no saved reading context; "
+                f'regather to save a version "{VERSION}" binder'
+            ]
         if "pages" not in checked:
             return None, [
                 f"{where}: carries no `pages` -- is this the output of `gather`?"
@@ -291,6 +306,19 @@ class Binder:
         if why_header:
             return None, [f"{where}: {why_header}"]
         raw_version = checked.get("version")
+        if raw_version != VERSION:
+            return None, [
+                f"{where}: unsupported binder version {raw_version!r}; "
+                f'regather to save a version "{VERSION}" binder with reading context'
+            ]
+        raw_freeform = checked.get("freeform")
+        if not isinstance(raw_freeform, list) or not all(
+            isinstance(path, str) for path in raw_freeform
+        ):
+            return None, [
+                f"{where}: `freeform` is not a list of path strings; "
+                f'regather to save a version "{VERSION}" binder'
+            ]
         return (
             cls(
                 version=raw_version if isinstance(raw_version, str) else "",
@@ -299,6 +327,7 @@ class Binder:
                 # change what a deserialized binder already holds.
                 read_from={**checked["read_from"]},
                 pages=tuple(pages),
+                freeform=tuple(raw_freeform),
             ),
             [],
         )
@@ -309,6 +338,7 @@ class Binder:
             "version": self.version,
             "read_from": {**self.read_from},
             "pages": [page.serialize() for page in self.pages],
+            "freeform": list(self.freeform),
         }
 
     @property

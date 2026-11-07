@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 2 of 10 tasks closed
+Progress: 3 of 10 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (Roy, 2026-08-22, on the exceptions.py layer: a human would have
@@ -95,9 +95,10 @@ either they take it through the path shim two of them already use (`render_brief
 - [ ] T3 | T3 -- Retire `TOML_ERRORS` -- each decode site re-raises
       `Undecodable` from `e`. Verify: `grep -rn exceptions.TOML_ERRORS plugins/`
       is empty and pytest is green.
-- [ ] T4 | T4 -- Retire `TOKENIZE_ERRORS` -- each site re-raises `Unparsable`
-      with `from e`. Verify: `grep -rn exceptions.TOKENIZE_ERRORS plugins/` is
-      empty and pytest is green.
+- [x] T4 | TOKENIZE_ERRORS deleted; nothing imports tokenize | 32501183 | T4 --
+      Retire `TOKENIZE_ERRORS` -- each site re-raises `Unparsable` with `from
+      e`. Verify: `grep -rn exceptions.TOKENIZE_ERRORS plugins/` is empty and
+      pytest is green.
 - [ ] T5 | T5 -- Retire `PARSE_ERRORS` -- each parse site re-raises `Unparsable`
       with `from e`. Verify: `grep -rn exceptions.PARSE_ERRORS plugins/` is
       empty and pytest is green.

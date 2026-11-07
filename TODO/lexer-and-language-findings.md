@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 5 of 31 tasks closed
+Progress: 61 of 75 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (/simplify rounds 1 and 2 and /code-review high round 3,
@@ -169,70 +169,84 @@ would.
 - [x] T1 | FINISHED | unknown | T1 -- FINISHED. lexer.py's unparsed fallback
       catches `tokenize.TokenError` and `IndentationError`, not `SyntaxError`
       alone. Verified at lexer.py:1783-1789.
-- [ ] T2 | T2 -- Stamp every paragraph an unterminated block comment swallowed,
-      not only the last. Verify: all of them carry
-      `unterminated-paragraph-comment`.
-- [ ] T3 | T3 -- Exclude `Kind.MATTER` from the walk-up candidates. Verify: Ruby
-      front matter above a `def` leaves `f0.declares` unset, and only `a1`
-      declares 1.
-- [ ] T4 | T4 -- Let the shell row say `#` is inert after a dollar-brace.
-      Verify: `n=${#arr} # count` censuses as ONE trailing comment at `# count`,
-      not at column 5.
+- [-] T2 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | T2
+      -- Stamp every paragraph an unterminated block comment swallowed, not only
+      the last. Verify: all of them carry `unterminated-paragraph-comment`.
+- [-] T3 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | T3
+      -- Exclude `Kind.MATTER` from the walk-up candidates. Verify: Ruby front
+      matter above a `def` leaves `f0.declares` unset, and only `a1` declares 1.
+- [-] T4 | Moved to language-reader-shell.md | 42f3d3e5 | T4 -- Let the shell
+      row say `#` is inert after a dollar-brace. Verify: `n=${#arr} # count`
+      censuses as ONE trailing comment at `# count`, not at column 5.
+        > 2026-10-10 Parameter expansion value=${value#prefix} becomes a comment
 - [x] T5 | FINISHED | unknown | T5 -- FIXED FOR KOTLIN 2026-08-22: the soft
       keywords are two-word entries at language.py:342-376, with the reason at
       :348-361. Java, C# and Swift are T13-T15.
-- [ ] T6 | T6 -- Make language.py:9 name a file that exists, or drop the
-      citation -- `scripts/check_language_leaf.py` does not. Verify: the path it
-      names resolves.
-- [ ] T7 | T7 -- Gate the two-importer rule: fail when a third module reads a
-      language symbol. Verify: the gate exists and fails on a planted third
-      importer of `language`.
-- [ ] T8 | T8 -- De-duplicate the sorted `line_comment` opener tuple,
-      byte-identical at lexer.py:999 and desk.py:379. Verify: the expression
-      appears once.
-- [ ] T9 | T9 -- De-duplicate the `continues-a-trailing-comment` stamp,
-      copy-pasted at lexer.py:1168-1176 and :1772-1780. Verify: `grep -c` of its
-      sentence returns 1.
-- [ ] T10 | T10 -- Use `bisect` at lexer.py:1614, where a list comprehension
-      scans the sorted `above_code` built one line earlier. Verify: the scan is
-      gone and the suite green.
-- [ ] T11 | T11 -- Replace the four one-element lists standing in for `nonlocal`
-      in lexer.py. Verify: no `[0]` subscript on a one-element accumulator
-      remains in lexer.py.
-- [ ] T12 | T12 -- Settle what `Paragraph.lines` counts: three rules fill it,
-      one column reads it. Verify: one rule fills it, or the field is gone and
-      the column computes it.
-- [ ] T13 | T13 -- Give Java its own expression of a soft keyword: `record` at
-      language.py:248. Verify: `record = lookup()` in a `.java` mints no `a`,
-      and a real one still does.
-- [ ] T14 | T14 -- Give C# its own expression of a soft keyword: `record` at
+- [-] T6 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | T6
+      -- Make language.py:9 name a file that exists, or drop the citation --
+      `scripts/check_language_leaf.py` does not. Verify: the path it names
+      resolves.
+- [-] T7 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | T7
+      -- Gate the two-importer rule: fail when a third module reads a language
+      symbol. Verify: the gate exists and fails on a planted third importer of
+      `language`.
+- [-] T8 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | T8
+      -- De-duplicate the sorted `line_comment` opener tuple, byte-identical at
+      lexer.py:999 and desk.py:379. Verify: the expression appears once.
+- [-] T9 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | T9
+      -- De-duplicate the `continues-a-trailing-comment` stamp, copy-pasted at
+      lexer.py:1168-1176 and :1772-1780. Verify: `grep -c` of its sentence
+      returns 1.
+- [-] T10 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | T10
+      -- Use `bisect` at lexer.py:1614, where a list comprehension scans the
+      sorted `above_code` built one line earlier. Verify: the scan is gone and
+      the suite green.
+- [-] T11 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | T11
+      -- Replace the four one-element lists standing in for `nonlocal` in
+      lexer.py. Verify: no `[0]` subscript on a one-element accumulator remains
+      in lexer.py.
+- [x] T12 | One rule: Paragraph.lines derives from counted_lines | b30cc510 | T12
+      -- Settle what `Paragraph.lines` counts: three rules fill it, one column
+      reads it. Verify: one rule fills it, or the field is gone and the column
+      computes it.
+        > 2026-10-25 Rule settled: counted_lines; decision-log.md Process: #223
+- [-] T13 | Moved to language-reader-java.md | 42f3d3e5 | T13 -- Give Java its
+      own expression of a soft keyword: `record` at language.py:248. Verify:
+      `record = lookup()` in a `.java` mints no `a`, and a real one still does.
+- [-] T14 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | T14
+      -- Give C# its own expression of a soft keyword: `record` at
       language.py:283. Verify: `record = lookup()` in a `.cs` mints no `a`, and
       a real one still does.
-- [ ] T15 | T15 -- Give Swift its own expression of soft keywords: `convenience`
-      and `required`. Verify: `required = f()` in a `.swift` mints no `a`, and a
-      real init still does.
-- [ ] T16 | T16 -- Declare Rust's spanning quotes; language.py:117-146 carries
-      none. Verify: a Rust multi-line string is neither refused wholesale nor
-      read as comments.
-- [ ] T17 | T17 -- Declare C's spanning quotes; language.py:185-193 carries
-      none. Verify: a C multi-line string is neither refused wholesale nor read
-      as comments.
-- [ ] T18 | T18 -- Bound Lua's long-bracket level, or read it; language.py:473
-      stops at two `=` so `--[===[` reads as code. Verify: a fixture with
-      `--[===[` fails before the fix.
-- [ ] T19 | T19 -- Make `def g(): """d."""` census instead of failing the file.
-      Verify: it types `a1 kind=docstring anchor=g` and `census.py` exits 0.
+- [-] T15 | Moved to language-reader-swift.md | 42f3d3e5 | T15 -- Give Swift its
+      own expression of soft keywords: `convenience` and `required`. Verify:
+      `required = f()` in a `.swift` mints no `a`, and a real init still does.
+- [x] T16 | FINISHED: the Rust scanner reads a multi-line string as one literal token, neither a read failure nor comments (tests/reading/test_rust.py) | b239c6ca | T16
+      -- Declare Rust's spanning quotes; language.py:117-146 carries none.
+      Verify: a Rust multi-line string is neither refused wholesale nor read as
+      comments.
+        > 2026-10-10 Multiline Rust literal edits compare equal as stripped code
+- [-] T17 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | T17
+      -- Declare C's spanning quotes; language.py:185-193 carries none. Verify:
+      a C multi-line string is neither refused wholesale nor read as comments.
+- [-] T18 | Moved to language-reader-lua.md | 42f3d3e5 | T18 -- Bound Lua's
+      long-bracket level, or read it; language.py:473 stops at two `=` so
+      `--[===[` reads as code. Verify: a fixture with `--[===[` fails before the
+      fix.
+- [x] T19 | Reads; a1 is the docstring (test_python.py:2871, test_compositor) | 9576766a | T19
+      -- Make `def g(): """d."""` census instead of failing the file. Verify: it
+      types `a1 kind=docstring anchor=g` and `census.py` exits 0.
 - [x] T20 | FINISHED | unknown | T20 -- RULED 2026-08-23: placement decides -- a
       doc run is a docstring when a declaration follows it, a comment when
       nothing does. Evidence in the Objective.
-- [ ] T21 | T21 -- Record the `a1` -> `c` move in `docs/history.md` with the
-      ruling that predicted it. Verify: the entry names both tiers and the
-      ruling's date.
-- [ ] T22 | T22 -- Pin the address the CURRENT tier produces, so the move
-      arrives as a failing test. Verify: a test asserts `a1` for a same-line
-      docstring today.
-- [ ] T23 | T23 -- Set a same-line docstring on its own line below the
-      declaration. Verify: `def g(): """d."""` round-trips to the two-line form.
+- [-] T21 | SUPERSEDED by T22: an address fixture replaces the predicted history | 32501183 | T21
+      -- Record the `a1` -> `c` move in `docs/history.md` with the ruling that
+      predicted it. Verify: the entry names both tiers and the ruling's date.
+- [x] T22 | a1 pinned for a function, a2 for a method, in test_compositor | 9576766a | T22
+      -- Pin the address the CURRENT tier produces, so the move arrives as a
+      failing test. Verify: a test asserts `a1` for a same-line docstring today.
+- [x] T23 | Set on its own line below, a fixed point, in test_compositor | 9576766a | T23
+      -- Set a same-line docstring on its own line below the declaration.
+      Verify: `def g(): """d."""` round-trips to the two-line form.
         > 2026-09-03 MEASURED 2026-09-03: the one-line form round-trips byte-exact today
         > 2026-09-03 lossless returns None; this would make it return a message
         > 2026-09-03 and it moves a CODE line, which is why T24 exists beside it
@@ -242,26 +256,29 @@ would.
         > 2026-09-03 so this must create one first -- nothing to move into
         > 2026-09-03 MEASURED: the ast reader is right; the page assembly loses it
         > 2026-09-03 MEASURED: the ast reader is right, the page loses it
-- [ ] T24 | T24 -- Make `prove_unchanged` admit that one move. Verify: PROVEN on
-      the two-line form, and still FAILS when any other token on that line
-      moves.
+- [x] T24 | The move PROVES; beside a code change it FAILS (test_python_lexical_proof) | 9576766a | T24
+      -- Make `prove_unchanged` admit that one move. Verify: PROVEN on the
+      two-line form, and still FAILS when any other token on that line moves.
         > 2026-09-03 needed with T23: admit that one move, fail on any other token
         > 2026-09-03 ast.dump has no lineno, so it already admits every move
         > 2026-09-03 second clause already false under ast; Process 82 rules the rebuild
-- [ ] T25 | T25 -- Make `_is_doc` consult placement, not only the opener string.
-      Verify: a Lua `---` run above `local function f()` types `docstring`,
-      above nothing `comment`.
-- [ ] T26 | T26 -- Give the `Language` row an `inner_doc` field, defaulting
-      empty so every existing opener stays outer. Verify: the field exists and
-      no row's typing changes.
-- [ ] T27 | T27 -- Declare Rust's `//!` inner; `///` stays outer. Verify: a
-      `.rs` opening `//!` above nothing types `docstring`, and `///` above
-      nothing types `comment`.
-- [ ] T28 | T28 -- Add `---` to Lua's `doc_line`, which T20's ruling authorises.
-      Verify: `--- x` above `local function f()` types `docstring` anchored to
-      it.
-- [ ] T29 | Correct `doc_is_structural`'s docstring so it matches what Python
-      yields on the lexical tier. Verify: the prose names the empty result
+- [-] T25 | Moved to language-reader-lua.md | 42f3d3e5 | T25 -- Make `_is_doc`
+      consult placement, not only the opener string. Verify: a Lua `---` run
+      above `local function f()` types `docstring`, above nothing `comment`.
+- [-] T26 | A field on the in-code row; reissued against Rust's definition | 9e376f5f | T26
+      -- Give the `Language` row an `inner_doc` field, defaulting empty so every
+      existing opener stays outer. Verify: the field exists and no row's typing
+      changes.
+- [x] T27 | Rust //! above nothing is the a0 docstring and /// above nothing is a comment: test_rust_page_inner_doc_above_nothing_is_the_module_docstring, test_rust_page_outer_doc_above_nothing_is_a_comment | b9c5ed1e | T27
+      -- Declare Rust's `//!` inner; `///` stays outer. Verify: a `.rs` opening
+      `//!` above nothing types `docstring`, and `///` above nothing types
+      `comment`.
+- [-] T28 | Moved to language-reader-lua.md | 42f3d3e5 | T28 -- Add `---` to
+      Lua's `doc_line`, which T20's ruling authorises. Verify: `--- x` above
+      `local function f()` types `docstring` anchored to it.
+- [-] T29 | SUPERSEDED: doc_is_structural was deleted | 20cbdbbd | Correct
+      `doc_is_structural`'s docstring so it matches what Python yields on the
+      lexical tier. Verify: the prose names the empty result
 - [x] T30 | All literals read; removals retain quotes and executable suffixes | b96af9f5bcbfa8f77d449dcc4b7ca9aa2e005ee9 | Read
       all concatenated docstring literals in lexer.py:313; test moving second.
       from adjacent Python literals succeeds
@@ -270,3 +287,145 @@ would.
       docstring.py without_raw contract; test empty-expression removal and
       invalid-edit refusal
         > 2026-10-03 Review: full removal deletes literals; invalid edits return None
+- [x] T32 | FINISHED: the Rust scanner reads raw strings to their exact guard count, so a comment marker inside stays literal data (tests/reading/test_rust.py) | b239c6ca | Recognize
+      raw string delimiters in lexer.py:510; verify a quoted marker inside a
+      Rust raw string stays literal data
+- [-] T33 | Moved to language-reader-javascript.md | 42f3d3e5 | Recognize
+      JavaScript regex literals in lexer.py:1071; verify /[//]/ yields no
+      comment paragraph
+- [-] T34 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | Resume
+      code scanning after block comments in lexer.py:1071; verify a quote in a
+      block cannot hide a following line comment
+- [-] T35 | Moved to language-reader-lua.md | 42f3d3e5 | Select the earliest
+      block opener in lexer.py:1072; verify mixed Lua delimiters inside a long
+      comment preserve its full body
+- [-] T36 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | Replace
+      `doc_inside` with a documentation position every language definition states
+        > 2026-10-16 Reason: 17 of 18 rows inherit above from a default; 11 declare
+        > 2026-10-16 Reason: a bool states inside; above is only its absence
+        > 2026-10-16 Check: Language has no default position; every row names one
+        > 2026-10-16 Check: `doc_inside` is gone from src; page and compositor pass
+- [ ] T37 | Rename the side `documentable` returns for a doc set above its
+      declaration
+        > 2026-10-16 Reason: it is `ON`, the c letter, used for between gap and code
+        > 2026-10-16 Check: documentable returns no series letter for a doc side
+- [ ] T38 | Rewrite the CLAUDE.md doc-position sentence to the stated field
+        > 2026-10-16 Reason: Roy, 2026-10-16: on Rust it goes above, not on the line
+        > 2026-10-16 Check: the sentence names the field T36 adds; Roy approves it
+- [-] T39 | Widened to removing the Python row; reissued as a new task | 9e376f5f | Remove
+      the Python `Language` row's grammar fields
+        > 2026-10-17 Reason: `python.toml` states it; no Python read uses the row
+        > 2026-10-17 Check: the Python row carries no grammar; reading suites pass
+- [x] T40 | BY_EXT removed from reading/language.py; ty, ruff and pytest passed, 5825 passed | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | Remove
+      `BY_EXT`, which nothing reads
+        > 2026-10-17 Reason: `language_for` rebuilds a Language on every call instead
+        > 2026-10-17 Check: grep -rn BY_EXT src tests scripts finds nothing
+- [-] T41 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | Remove
+      the grammar no reader reads from the toml, ini, yaml rows
+        > 2026-10-17 Reason: none is in READER_METADATA; language_for skips them
+        > 2026-10-17 Check: those rows carry only name and extensions
+- [x] T42 | NAMED_DEFS moved to concordance/names.py; both readers import it there; pytest 6823 passed | 3cdbe205743d9260e7f4cf763519c50f66de7258 | Move
+      `NAMED_DEFS` into `concordance`
+        > 2026-10-17 Reason: only concordance reads it; it is lexer.py's last ast use
+        > 2026-10-17 Check: grep finds no `import ast` in reading/lexer.py
+- [-] T43 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | Remove
+      the Annotations banner from `lexer.py`
+        > 2026-10-17 Reason: nothing under it is an annotation
+        > 2026-10-17 Check: grep finds no Annotations banner in reading/lexer.py
+- [x] T44 | comment_form and its helpers moved out of lexer.py to reading/comment.py, not the desk, because paragraph.py cannot import the desk; pytest passed | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | Move
+      the comment-form readers out of `lexer.py` to the desk
+        > 2026-10-17 Reason: only desk/marks/rules.py reads comment_form; Process #212
+        > 2026-10-17 Check: lexer.py defines no comment_form or _comment_fragment
+- [-] T45 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | Inline
+      `ESCAPE_WIDTH` into `_closes_a_character`
+        > 2026-10-17 Reason: it is a module constant one function reads
+        > 2026-10-17 Check: grep finds ESCAPE_WIDTH nowhere in src
+- [-] T46 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | Move
+      the galley-defect account out of the lexer's loop
+        > 2026-10-17 Reason: it documents results/galley.py, not this loop
+        > 2026-10-17 Check: the loop comment states only what the loop does
+- [x] T47 | FINISHED: doc-kind-unresolved and flag_structural_docs retired (#231) | 79cf418f | Remove
+      the `doc-kind-unresolved` annotation, which nothing reads
+        > 2026-10-17 Reason: grep over src and tests finds it only where it is stamped
+        > 2026-10-17 Check: grep -rn doc-kind-unresolved src finds nothing
+- [x] T48 | Python row removed; python.toml is its only definition | 064bd62d | Remove
+      the Python `Language` row from `LANGUAGES`
+- [x] T49 | rust.toml states //! and /*! as inner doc openers | 3f1a4817 | State
+      Rust's inner doc openers in Rust's own definition file
+- [ ] T50 | Read a line-1 comment run above a declaration as f0 matter, not an a
+      docstring (#232)
+        > 2026-10-26 js: // Licence, blank, function f() {} -> a1; over const x -> f0
+        > 2026-10-26 At ef037f20 too; document_declarations claims before the matter cut
+- [-] T51 | #285: one-reader-builder T11-T12; Rust owner is T74 | 9e513b91 | Make
+      Python decorators and Rust attributes one unit with their item
+        > 2026-10-26 decision-log #238; CodeLine.joins from P18; b falls inside today
+        > 2026-10-27 Lands with one-reader-builder (#244); fix once for every reader
+        > 2026-10-30 W5: with a Rust attribute the fn line declares nothing, says a0
+        > 2026-10-30 Check: `owner_at` gets the trigger line; decorated drafts refuse
+        > 2026-10-30 Fix: `_documented_line` returns a line `owner_at` matches (D5)
+- [-] T52 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | Match
+      a C# attribute section apart from a collection expression
+- [x] T53 | FINISHED: #240 for all three readers; pymc sets back identical | 70f1f028 | Make
+      every comment above a module docstring front matter, per #240
+        > 2026-10-26 py: lic, blank, # note, blank, doc sets back reordered; at ef037f20
+        > 2026-10-26 js twin hides it: // note + /** Doc. */ read as one b0 comment
+        > 2026-10-26 pymc _version.py, distributions/continuous.py, setupegg.py
+        > 2026-10-26 Foot mirrors it (#240): comments under a closing doc are matter
+        > 2026-10-27 Also: let y; /** D */ // c, blank, // m: eof a fill reads as f1
+        > 2026-10-27 Also let y; /** D */ // c, blank, // m: eof a fill reads as f1
+        > 2026-10-30 W4: comments both sides of a py module doc now refuse the gather
+- [-] T54 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | Add
+      Kotlin's property keywords to its declares list
+- [-] T55 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | Join
+      an annotation whose arguments run onto a second line
+- [-] T56 | #285: one-reader-builder T11-T12 map string places | 9e513b91 | Offer
+      no place inside a string literal that spans lines
+        > 2026-10-27 C backslash strings get c; Python triple quotes get b
+- [ ] T57 | Place a doc comment whole when another opens on its first line
+        > 2026-10-27 /** M */ /** F, newline, */ over f is cut over a0 and a1
+        > 2026-10-30 I7: lexer.py:948 same cut on another comment's closing line
+- [ ] T58 | Allow an add at the b directly above a declaration
+        > 2026-10-30 W2: refused in TS Go Ruby Lua Kotlin C# Swift
+- [-] T59 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | Read
+      a delimited comment after a string-only prefix as trailing
+        > 2026-10-30 I1: lexer.py:1037; "b" /* c */ becomes prose, file unprovable
+- [x] T60 | FINISHED: each row states its line endings; text holding one refuses (#250) | 23f96926 | Refuse
+      a line separator inside a comment that ends at the line break
+        > 2026-10-30 // a U+2028 evil(); accepted in js/ts, node ran it; cs too
+- [-] T61 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | Refuse
+      a C comment ending in a backslash splice
+        > 2026-10-30 C/C++ '// a \' splices the next code line; not compiled here
+        > 2026-10-30 Roy: waits for a C specific reader (#250)
+- [x] T62 | FINISHED: shell and Ruby rows name their shebang | 34c14a05 | Name
+      the shebang on the shell row
+        > 2026-10-30 language.py:434: a shebang can be dropped or altered in .sh
+- [-] T63 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | Read
+      one definition of a blank line in `lexer.py:967` and `stripped.py:26`
+        > 2026-10-31 Also `lexer.py:1055`, `:1076`, `:1131`; U+3000 refuses wrongly
+        > 2026-10-31 U+3000 refusal fixed in d64cd55f; reader `BLANK` differs from proof
+- [ ] T64 | Let `a0` hold a plain comment flush under a bare shebang
+- [ ] T65 | Test a line ending carried through a `c` place
+- [ ] T66 | Test a line ending on a paragraph's later line
+- [-] T67 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | Confirm
+      the CR notes at `language.py:190`, `:492` and `nests_comments`
+- [x] T68 | Doc comments rustc rejects (no item, before a close or inner attribute, misplaced inner doc) are refused as doc-without-item; 47 drafts checked against rustc, 1646 registry files read without self-refusal | 2768a650fa090ad37529962456288862a55676f6 | Refuse
+      the `.rs` draft rustc cannot read at `rust/records.py:350`
+        > 2026-10-31 Outcome: refuse in `RustRead.preserved`, #256
+- [ ] T69 | Add `RecursionError` to `PARSE_ERRORS` at `exceptions.py:80`
+- [ ] T70 | Refuse a Rust doc marker in a position with no item
+        > 2026-10-31 Proves, rustc rejects: `if`, `else`, parameter, expression
+        > 2026-10-31 Also struct literal, variant field list, const generic default
+        > 2026-10-31 Check: each shape refuses `doc-without-item`, as rustc rejects it
+- [ ] T71 | Select a reader by capability, not by reader id string
+        > 2026-11-01 comment.py:237 and readers.py:166 compare the reader id string
+- [ ] T72 | Cut the registry generality two definition files don't need
+        > 2026-11-01 context_for and page_for take a registry no production caller sets
+- [ ] T73 | List the freeform suffixes in gather --languages
+        > 2026-11-01 gather --languages omits the set is_freeform reads
+- [ ] T74 | Name the fn line as the declaration when a Rust attribute is above
+      it
+        > 2026-11-07 From T51 (#285): W5 says a0 when an attribute is above fn
+        > 2026-11-07 Check: owner_at gets the trigger line; decorated drafts prove
+        > 2026-11-07 #285: the lookup half is T11-T12; this is the proof's owner_at
+- [-] T75 | Filed in error: duplicate of T74 | 9e513b91 | Name the fn line as
+      declaring when a Rust attribute is above it

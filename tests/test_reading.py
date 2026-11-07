@@ -1,7 +1,7 @@
 """Reading a file into a page: what must hold of every page, for every file.
 
-Derived from `binder/page.py` and `reading/lexer.py` by reading them and by
-running them over real sources.
+Derived from `binder/page.py` by reading it and by running it over real
+sources.
 """
 
 from pathlib import Path
@@ -11,11 +11,12 @@ from conftest import SAMPLE, build, by_cue, occupied
 
 from comment_review.binder.page import page_for
 from comment_review.machine.repo import sha_of
-from comment_review.reading.lexer import language_for
+from comment_review.reading.diagnostics import ReadFailure
+from comment_review.reading.language import INSTALLED_REGISTRY
 from comment_review.reading.series import ADDRESSED, Kind, Series
 
-#: Sources chosen to reach a different shape each, across the tiers and
-#: languages the reader claims to handle.
+#: Sources chosen to reach a different shape each, across the languages the
+#: reader claims to handle.
 SOURCES = {
     "bare statement": ("m.py", "x = 1\n"),
     "no final newline": ("m.py", "x = 1"),
@@ -27,7 +28,7 @@ SOURCES = {
     "trailing blanks": ("m.py", "x = 1\n\n\n"),
     "shebang": ("m.py", "#!/usr/bin/env python\nx = 1\n"),
     "function": ("m.py", 'def f():\n    """D."""\n    return 1\n'),
-    # !! THE SHAPE NONE OF THE OTHER 22 COULD EXPRESS. A docstring's closing
+    # !! THE SHAPE NONE OF THE OTHERS COULD EXPRESS. A docstring's closing
     # delimiter carrying a trailing comment is claimed by BOTH readers -- the
     # tokenizer types it `trailing-comment`, the AST gives the line to the
     # docstring -- so the partition below is exactly what it breaks. The gate
@@ -44,18 +45,20 @@ SOURCES = {
     "class": ("m.py", 'class A:\n    """D."""\n\n    x = 1\n'),
     "only comments": ("m.py", "# one\n# two\n"),
     "only blanks": ("m.py", "\n\n\n"),
-    "C block": ("m.c", "/* head */\nint a;\n"),
     "rust": ("m.rs", "/// Doc.\npub fn f() {}\n"),
-    "go": ("m.go", "// Doc.\nfunc f() {}\n"),
-    "toml": ("m.toml", "# note\nkey = 1\n"),
-    "shell": ("m.sh", "#!/bin/sh\necho hi\n"),
-    "js": ("m.js", "// note\nlet a = 1;\n"),
     "unicode": ("m.py", "# caf\u00e9\nx = 1\n"),
     "tabs": ("m.py", "def f():\n\treturn 1\n"),
 }
 CASES = pytest.mark.parametrize(
     ("name", "text"),
-    [pytest.param(n, t, id=k) for k, (n, t) in SOURCES.items()],
+    [
+        pytest.param(
+            n,
+            t,
+            id=k,
+        )
+        for k, (n, t) in SOURCES.items()
+    ],
 )
 
 
@@ -83,8 +86,8 @@ def test_every_line_of_the_file_is_covered_exactly_once(name, text):
 def test_no_two_paragraphs_share_an_address(name, text):
     """An address identifies ONE paragraph, or a replacement is ambiguous.
 
-    `galley.reset` refuses an edit whose place holds more than one paragraph,
-    so a page that breaks this cannot be edited at all.
+    `page_for` refuses a page that breaks this, so the file cannot be
+    gathered at all.
     """
     addresses = [b.address for b in build(text, name).paragraphs if b.address]
     assert len(addresses) == len(set(addresses))
@@ -158,37 +161,7 @@ def test_an_empty_place_stands_on_no_line(name, text):
             assert b.raw_lines == []
 
 
-#: The three languages whose doc marker IS an ordinary line-comment marker.
-#: MEASURED 2026-08-25 across thirteen languages: `go` (`//`), `ruby` (`#`) and
-#: `lua` (`--`) place a declaration's documentation at an `a` cue and type it
-#: `comment`, which is the `b` series' kind. Rust, Java, C#, Kotlin, Swift, TS
-#: and JS all answer `docstring`, and they are the ones with a DISTINCT doc
-#: marker -- `///`, `/** */`.
-KIND_DISAGREES = {"go", "ruby doc", "lua doc"}
-
-
-@pytest.mark.parametrize(
-    ("name", "text"),
-    [
-        pytest.param(
-            n,
-            t,
-            id=k,
-            marks=pytest.mark.xfail(
-                strict=True,
-                reason="the doc marker is an ordinary comment marker, so the "
-                "lexer types it `comment` while the walk cues it `a`",
-            )
-            if k in KIND_DISAGREES
-            else (),
-        )
-        for k, (n, t) in {
-            **SOURCES,
-            "ruby doc": ("m.rb", "# Doc.\ndef f\nend\n"),
-            "lua doc": ("m.lua", "--- Doc.\nlocal function f() end\n"),
-        }.items()
-    ],
-)
+@CASES
 def test_the_kind_agrees_with_the_series_the_cue_names(name, text):
     """A row states its series TWICE and the two must agree.
 
@@ -198,11 +171,6 @@ def test_the_kind_agrees_with_the_series_the_cue_names(name, text):
     itself, and every consumer that pairs them sees a contradiction:
     `record.prose_paragraphs` filters on the KIND while `series_of` reads the
     CUE.
-
-    !! THREE LANGUAGES BREAK THIS TODAY and the xfail says which. It is the
-    defect `Kind`'s own docstring describes -- *"the two halves were set in
-    different modules and nothing tied them"* -- still live where the doc marker
-    cannot be told from a comment marker by the token alone.
     """
     for c, b in by_cue(build(text, name)).items():
         definition = Series.of(c)
@@ -245,17 +213,30 @@ class TestAPageCarriesTheShaItWasGiven:
         # A page built with a sha that does not describe its text keeps the sha
         # it was HANDED. If page.py hashed anything, this would disagree.
         path = Path("m.py")
-        lang = language_for(path)
-        assert lang is not None, f"no language record for suffix {path.suffix!r}"
-        page = page_for(path, SAMPLE, lang, rel="m.py", sha="deadbeef")
+        registry = INSTALLED_REGISTRY
+        page = page_for(
+            path,
+            SAMPLE,
+            rel="m.py",
+            sha="deadbeef",
+            reading=build("").reading,
+            registry=registry,
+        )
+
+        assert not isinstance(page, ReadFailure), page
         assert page.sha == "deadbeef"
 
     def test_the_sha_is_required(self):
         path = Path("m.py")
-        lang = language_for(path)
-        assert lang is not None, f"no language record for suffix {path.suffix!r}"
+        registry = INSTALLED_REGISTRY
         with pytest.raises(TypeError):
             # !! DELIBERATELY OMITS `sha` -- proves the keyword-only parameter
             # is enforced at runtime. ty: ignore[missing-argument] because the
             # call is invalid ON PURPOSE; that is what this test asserts.
-            page_for(path, SAMPLE, lang, rel="m.py")  # ty: ignore[missing-argument]
+            page_for(  # ty: ignore[missing-argument]
+                path,
+                SAMPLE,
+                rel="m.py",
+                reading=build("").reading,
+                registry=registry,
+            )

@@ -58,13 +58,21 @@ from comment_review.flows.human import (
 from comment_review.flows.mark_errors import mark_errors
 from comment_review.flows.on_the_page import PageCache, held_at
 from comment_review.flows.places import bases_and_anchors, chief_copy_of, places_of
+from comment_review.flows.reading_context import (
+    binder_reading_contexts,
+    copy_reading_contexts,
+    proof_reading_problems,
+)
 from comment_review.flows.verify import (
+    context_problems,
     copy_problems,
     coverage_problems,
     received_problems,
     required_places,
     stage_problems,
 )
+from comment_review.machine.repo import Source
+from comment_review.reading.diagnostics import ReadFailure
 
 
 class CopiesReturned(NamedTuple):
@@ -150,6 +158,7 @@ class Result(NamedTuple):
     proof: MasterProof
     chief: EditCopy | None
     batch: dict | None
+    page_snapshots: PageCache
 
 
 def handle(message) -> tuple[list, Result | None]:
@@ -184,6 +193,43 @@ def _on_copies(message: CopiesReturned) -> tuple[list, Result | None]:
     the paragraph already there rather than first at the write end.
     """
     binder, root, copies = message.binder, message.root, message.copies
+    roles = sorted({copy.role for copy in copies}) or [""]
+    _, why = binder_reading_contexts(binder, "stage binder")
+    problems = [Problem(role, "", reason) for role in roles for reason in why]
+    received = message.binders
+    if received is not None:
+        for index, one in enumerate(received):
+            _, why = binder_reading_contexts(one, "received binder")
+            role = copies[index].role if index < len(copies) else ""
+            problems.extend(Problem(role, "", reason) for reason in why)
+        if len(received) != len(copies):
+            problems.append(Problem("", "", "each edit copy needs one received binder"))
+    for index, copy in enumerate(copies):
+        assigned = (
+            received[index]
+            if received is not None and index < len(received)
+            else binder
+        )
+        problems.extend(context_problems(copy, assigned, binder))
+    contexts, _ = binder_reading_contexts(binder, "stage binder")
+    sheet_shas: dict[str, str] = {page.path: page.sha for page in binder.pages}
+    for copy in copies:
+        returned_contexts, why = copy_reading_contexts(copy)
+        problems.extend(Problem(copy.role, "", reason) for reason in why)
+        for path, context in returned_contexts.items():
+            if path in contexts and contexts[path] != context:
+                problems.append(
+                    Problem(copy.role, path, "conflicting reading contexts; regather")
+                )
+            contexts[path] = context
+        for sheet in copy.sheets:
+            if sheet.path in sheet_shas and sheet_shas[sheet.path] != sheet.sha:
+                problems.append(
+                    Problem(copy.role, sheet.path, "conflicting sheet shas; regather")
+                )
+            sheet_shas[sheet.path] = sheet.sha
+    if problems:
+        return _rolled_back(problems, [])
     paths = [page.path for page in binder.pages]
     out: list = []
     # ! ONE CACHE OF EACH FOR THE WHOLE STAGE, not one per copy: the roles cite
@@ -191,9 +237,11 @@ def _on_copies(message: CopiesReturned) -> tuple[list, Result | None]:
     # file once per citing role.
     cache: Cache = {}
     page_cache: PageCache = {}
-    problems: list[Problem] = []
+    problems = []
     for copy in copies:
-        problems += copy_problems(copy, paths, root, cache, page_cache)
+        problems += copy_problems(
+            copy, paths, root, cache, page_cache, contexts=contexts
+        )
     # ! `where` RATHER THAN `address`, and the two differ in one case only:
     # an entry that named no place. `where` is that entry's own address
     # wherever it has one, and the page and the entry's position where it has
@@ -221,9 +269,47 @@ def _on_copies(message: CopiesReturned) -> tuple[list, Result | None]:
     if problems or asks:
         return _rolled_back(problems, asks)
 
-    bases, anchors = bases_and_anchors(
-        copies, lambda address: held_at(address, paths, root, page_cache)
+    held = bases_and_anchors(
+        copies,
+        lambda address: held_at(address, paths, root, page_cache, contexts=contexts),
     )
+    if isinstance(held, ReadFailure):
+        return _rolled_back(
+            [
+                Problem(copy.role, "", d.message)
+                for copy in copies
+                for d in held.diagnostics
+            ],
+            [],
+        )
+    bases, anchors = held
+    sheet_paths = {sheet.path for copy in copies for sheet in copy.sheets}
+    snapshots = {
+        path: snapshot
+        for path, snapshot in page_cache.items()
+        if path not in sheet_paths and not isinstance(snapshot.result, ReadFailure)
+    }
+    missing = [
+        path
+        for path, snapshot in snapshots.items()
+        if snapshot.context is None
+        or not isinstance(snapshot.source, Source)
+        or isinstance(snapshot.result, ReadFailure)
+        or snapshot.context != snapshot.result.reading
+        or snapshot.source.sha != snapshot.result.sha
+    ]
+    if missing:
+        return _rolled_back(
+            [
+                Problem(
+                    "",
+                    path,
+                    "destination snapshot lacks consistent source and reading"
+                    " context; regather",
+                )
+                for path in missing
+            ]
+        )
     places = places_of(copies, bases, anchors)
     fold = Fold(places, turn=0).run()
     out += fold.events
@@ -234,17 +320,38 @@ def _on_copies(message: CopiesReturned) -> tuple[list, Result | None]:
         stage=message.stage,
         read_from={**read_from},
         edit_copies=tuple(copies),
+        page_readings={
+            **contexts,
+            **{
+                path: snapshot.context
+                for path, snapshot in snapshots.items()
+                if snapshot.context is not None
+            },
+        },
         places=tuple(fold.decided.values()),
         moves=tuple(move.recorded() for move in fold.decided_moves.values()),
         page_shas={
-            path: page.sha
-            for path, page in page_cache.items()
-            if page is not None
-            and path not in {sheet.path for copy in copies for sheet in copy.sheets}
+            **{
+                page.path: page.sha
+                for page in binder.pages
+                if page.path not in sheet_paths
+            },
+            **{
+                path: snapshot.source.sha
+                for path, snapshot in snapshots.items()
+                if isinstance(snapshot.source, Source)
+            },
         },
     )
-    chief = chief_copy_of(fold.decided, "copy-chief", read_from, _pages_of(copies))
-    return out, Result(proof, chief, _batch_or_none(fold, read_from))
+    chief = chief_copy_of(
+        fold.decided,
+        "copy-chief",
+        read_from,
+        _pages_of(copies),
+        proof.page_readings,
+        proof.page_shas,
+    )
+    return out, Result(proof, chief, _batch_or_none(fold, read_from), snapshots)
 
 
 def _root_problems(copies: list[EditCopy]) -> list[Problem]:
@@ -428,6 +535,9 @@ def _on_answers(message: AnswersReturned) -> tuple[list, Result | None]:
     move (`flows.answers.slot_key`); the answer is written onto the move, not
     onto either end (`decision-log.md Process: #195`).
     """
+    why = proof_reading_problems(message.proof)
+    if why:
+        return _rolled_back([Problem("", "", reason) for reason in why])
     places = _places_on(message.proof)
     moves = moves_in(places, _moves_on(message.proof))
     problems: list[Problem] = []
@@ -511,6 +621,9 @@ def _on_dispositions(message: DispositionsWritten) -> tuple[list, Result | None]
     needs words is carried forward in what this commits, for the chief to
     rule on the proof it writes.
     """
+    why = proof_reading_problems(message.proof)
+    if why:
+        return _rolled_back([Problem(CHIEF, "", reason) for reason in why])
     places = _places_on(message.proof)
     moves = moves_in(places, _moves_on(message.proof))
     problems: list[Problem] = []
@@ -629,14 +742,20 @@ def _commit(
         stage=proof.stage,
         read_from={**proof.read_from},
         edit_copies=proof.edit_copies,
+        page_readings=dict(proof.page_readings),
         places=tuple(fold.decided.values()),
         moves=tuple(move.recorded() for move in fold.decided_moves.values()),
         page_shas=dict(proof.page_shas),
     )
     chief = chief_copy_of(
-        fold.decided, CHIEF, proof.read_from, _pages_of(list(proof.edit_copies))
+        fold.decided,
+        CHIEF,
+        proof.read_from,
+        _pages_of(list(proof.edit_copies)),
+        proof.page_readings,
+        proof.page_shas,
     )
-    return out, Result(next_proof, chief, _batch_or_none(fold, proof.read_from))
+    return out, Result(next_proof, chief, _batch_or_none(fold, proof.read_from), {})
 
 
 def _undecided(fold: Fold) -> list[Move]:

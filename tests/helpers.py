@@ -29,7 +29,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-from conftest import ROOT, cue, run_command
+from conftest import ROOT, build, cue, run_command
 
 from comment_review.binder.binder import VERSION, Binder, bind
 from comment_review.commands import collate as collate_command
@@ -69,8 +69,10 @@ from comment_review.docket.docket import Docket
 from comment_review.flows.bus import CopiesReturned, handle
 from comment_review.flows.distribute import seed
 from comment_review.flows.fill import fill
-from comment_review.flows.page_for import page_of, source_of
+from comment_review.flows.page_for import page_of
 from comment_review.flows.proof_io import load_proof
+from comment_review.flows.source import source_of
+from comment_review.reading.diagnostics import ReadFailure
 
 #: `src/comment_review/desk/` -- the source `a_small_real_tree` copies from.
 #: Any package with a handful of ordinary Python files would do; this one was
@@ -109,13 +111,13 @@ def pages_of(root: Path) -> list:
     """Every `.py` page under `root`, through the real reader."""
     pages = []
     for path in sorted(root.rglob("*.py")):
-        source, why = source_of(path)
-        if why:
-            continue
+        source = source_of(path)
+        if isinstance(source, ReadFailure):
+            raise AssertionError(source)
         rel = str(path.relative_to(root))
-        page, why = page_of(path, rel=rel, source=source)
-        if page is not None:
-            pages.append(page)
+        page = page_of(path, rel=rel, source=source)
+        assert not isinstance(page, ReadFailure), page
+        pages.append(page)
     return pages
 
 
@@ -229,6 +231,7 @@ def a_docket_over(repo: Path, names: list[str]) -> Docket:
             {
                 "path": page.path,
                 "sha": page.sha,
+                "reading": page.serialize()["reading"],
                 "alterations": [
                     {
                         "cue": cue(found),
@@ -271,6 +274,7 @@ def a_docket_whose_claim_is_not_in_the_page(repo: Path, name: str) -> Docket:
                         {
                             "path": page.path,
                             "sha": page.sha,
+                            "reading": page.serialize()["reading"],
                             "alterations": [
                                 {
                                     "cue": "zzz9999",
@@ -362,10 +366,12 @@ def _synthetic_binder(addresses: list[str]) -> Binder:
         {
             "version": VERSION,
             "read_from": {"root": str(REPO), "revise": 0},
+            "freeform": [],
             "pages": [
                 {
                     "path": path,
                     "sha": "0" * 40,
+                    "reading": build("", name=path).serialize()["reading"],
                     "rows": [_row(cue, "") for cue in cues],
                 }
                 for path, cues in by_path.items()
@@ -397,10 +403,12 @@ def a_binder_over(paragraphs: dict[str, str]) -> Binder:
         {
             "version": VERSION,
             "read_from": {"root": str(REPO), "revise": 0},
+            "freeform": [],
             "pages": [
                 {
                     "path": path,
                     "sha": "0" * 40,
+                    "reading": build("", name=path).serialize()["reading"],
                     "rows": [_row(cue, text) for cue, text in rows],
                 }
                 for path, rows in by_path.items()
@@ -450,8 +458,8 @@ def a_real_binder_over(root: Path, paragraphs: dict[str, str]) -> Binder:
         (root / path).write_text(
             "\n".join(lines) + "\n", encoding="utf-8", newline="\n"
         )
-        page, why = page_of(root / path, rel=path)
-        assert page is not None, why
+        page = page_of(root / path, rel=path)
+        assert not isinstance(page, ReadFailure), page
         pages.append(page)
     binder = bind(pages, read_from={"root": str(root), "revise": 0})
     held = {p.address: p.raw_text for p in binder.paragraphs}
@@ -1240,3 +1248,152 @@ def the_chief(tmp_path) -> EditCopy:
     """`disposition`'s chief.json, as the ordinary edit_copy it must be."""
     loaded = json.loads((tmp_path / "chief.json").read_text(encoding="utf-8"))
     return returned(loaded, "chief")
+
+
+#: Every shape worth putting through it. Each is a file some checkout really
+#: has; none has front matter below line 1.
+FORMS = {
+    "bare statement": ("m.py", "x = 1\n"),
+    "no final newline": ("m.py", "x = 1"),
+    "module docstring": ("m.py", '"""Doc."""\nx = 1\n'),
+    "docstring then code": ("m.py", '"""Doc."""\n\n\nx = 1\n'),
+    "comment above code": ("m.py", "# note\nx = 1\n"),
+    "two comments": ("m.py", "# one\n# two\nx = 1\n"),
+    "trailing comment": ("m.py", "x = 1  # beside\n"),
+    "comment and trailing": ("m.py", "# above\nx = 1  # beside\n"),
+    "blank between": ("m.py", "x = 1\n\n\ny = 2\n"),
+    "leading blanks": ("m.py", "\n\nx = 1\n"),
+    "trailing blanks": ("m.py", "x = 1\n\n\n"),
+    "blanks both ends": ("m.py", "\n\nx = 1\n\n\n"),
+    "shebang": ("m.py", "#!/usr/bin/env python\nx = 1\n"),
+    "coding line": ("m.py", "# -*- coding: utf-8 -*-\nx = 1\n"),
+    "shebang and docstring": ("m.py", '#!/usr/bin/env python\n"""D."""\nx = 1\n'),
+    # Matter, a blank, then a gap comment: the matter ends at the first blank
+    # line, and the comment after the blank is its own paragraph with an
+    # address.
+    "matter then a gap comment": ("m.py", "#!/usr/bin/env python\n\n# note\nx = 1\n"),
+    "licence then a gap comment": ("m.py", "# (c) me\n\n# note\nx = 1\n"),
+    "matter, blank, two comments": ("m.py", "# (c) me\n\n# one\n# two\nx = 1\n"),
+    "function": ("m.py", 'def f():\n    """D."""\n    return 1\n'),
+    # A docstring whose closing delimiter carries a trailing comment. The line
+    # belongs to the docstring alone: one paragraph claims it, and it is set
+    # once.
+    "docstring closed with a comment": (
+        "m.py",
+        'def f():\n    """D.\n    """  # NOQA\n    return 1\n',
+    ),
+    "module docstring closed with a comment": ("m.py", '"""D.\n"""  # NOQA\nx = 1\n'),
+    # The one-line form of the same shape, so the two forms are asserted to
+    # agree.
+    "one-line docstring with a comment": (
+        "m.py",
+        'def f():\n    """D."""  # type: ignore\n    return 1\n',
+    ),
+    "docstring continued by a backslash": ("m.py", 'def f():\n    """D.""" \\\n    \n'),
+    "docstring with blanks after it": (
+        "m.py",
+        'def f():\n    """D."""   \n    return 1\n',
+    ),
+    "module docstring continued by a backslash": ("m.py", '"""D.""" \\\n\nx = 1\n'),
+    "function no doc": ("m.py", "def f():\n    return 1\n"),
+    "two functions": ("m.py", "def f():\n    return 1\n\n\ndef g():\n    return 2\n"),
+    "nested def": ("m.py", "def f():\n    def g():\n        return 1\n    return g\n"),
+    "class": ("m.py", 'class A:\n    """D."""\n\n    x = 1\n'),
+    "class with method": ("m.py", "class A:\n    def m(self):\n        return 1\n"),
+    "decorator": ("m.py", "@dec\ndef f():\n    return 1\n"),
+    "only comments": ("m.py", "# one\n# two\n"),
+    "only blanks": ("m.py", "\n\n\n"),
+    "one blank": ("m.py", "\n"),
+    "empty file": ("m.py", ""),
+    "CRLF": ("m.py", "x = 1\r\ny = 2\r\n"),
+    "CRLF with comment": ("m.py", "# note\r\nx = 1\r\n"),
+    "CRLF no final": ("m.py", "x = 1\r\ny = 2"),
+    "tabs": ("m.py", "def f():\n\treturn 1\n"),
+    "unicode prose": ("m.py", "# caf\u00e9 na\u00efve \u2014 dash\nx = 1\n"),
+    "long code run": ("m.py", "".join(f"x{i} = {i}\n" for i in range(20))),
+    "deep indent": (
+        "m.py",
+        "def f():\n    if x:\n        if y:\n            return 1\n",
+    ),
+    "string with hash": ("m.py", 'x = "# not a comment"\n'),
+    "rust trailing block wrapped": (
+        "m.rs",
+        "let x = 1; /* this comment\n"
+        "              wraps onto a second line */\n"
+        "let y = 2;\n",
+    ),
+    "rust doc": ("m.rs", "/// Doc.\npub fn f() {}\n"),
+    "rust inner doc": ("m.rs", "//! Module doc.\npub fn f() {}\n"),
+    "rust shebang": ("m.rs", "#!/usr/bin/env rust-script\nfn main() {}\n"),
+    "rust inner doc in a body": ("m.rs", "fn f() {\n    //! Inner.\n}\n"),
+    "rust block": ("m.rs", "/* head */\nconst A: i32 = 1;\n"),
+    "rust line comment": ("m.rs", "// note\nconst A: i32 = 1;\n"),
+    "rust both": ("m.rs", "/* one */\n// two\nconst A: i32 = 1;\n"),
+    "rust trailing block wrapped twice": (
+        "m.rs",
+        "let x = 1; /* this comment\n"
+        "              wraps onto a second line\n"
+        "              and a third */\n"
+        "let y = 2;\n",
+    ),
+    "rust trailing block one line": ("m.rs", "let x = 1; /* note */\nlet y = 2;\n"),
+    "rust docs and comments alternating, no code": (
+        "m.rs",
+        "/** A */\n// n1\n/** B */\n// n2\n/** C */\n",
+    ),
+    "rust docs and comments above a declaration": (
+        "m.rs",
+        "/** A */\n// note\n/** B */\nfn f() {}\n",
+    ),
+    "rust doc cut off by a comment": ("m.rs", "/** doc */\n// lint\nfn f() {}\n"),
+    "rust code on a comment's closing line": (
+        "m.rs",
+        "fn f() {}\n/* a\n b */ const X: i32 = 1;\n// c\nconst Y: i32 = 2;\n",
+    ),
+    "rust matter, doc, then comments and docs to the last line": (
+        "m.rs",
+        "// M1\n/** D1 */\n// C1\n/** D2 */\n// C2\n/** D3 */\n// C3\n",
+    ),
+    "rust matter, doc, then comments and docs, blank last line": (
+        "m.rs",
+        "// M1\n/** D1 */\n// C1\n/** D2 */\n// C2\n/** D3 */\n// C3\n\n",
+    ),
+    "rust doc then a comment below code": (
+        "m.rs",
+        "const X: i32 = 1;\n/** D1 */\n// C1\n",
+    ),
+    "rust doc then a comment below code, blank last line": (
+        "m.rs",
+        "const X: i32 = 1;\n/** D1 */\n// C1\n\n",
+    ),
+    "rust docs and comments between declarations": (
+        "m.rs",
+        "fn f() {}\n\n/** A */\n// n1\n/** B */\n// n2\n/** C */\nfn g() {}\n",
+    ),
+    "rust two head docs over a declaration": (
+        "m.rs",
+        "/** M */\n/** F */\nfn f() {}\n",
+    ),
+    "rust two head docs apart over a declaration": (
+        "m.rs",
+        "/** M */\n\n/** F */\nfn f() {}\n",
+    ),
+    "rust two head docs over a documenting comment": (
+        "m.rs",
+        "/** M */\n/** F */\n// c\nfn f() {}\n",
+    ),
+}
+
+
+RUST_ITEMS = (
+    "//! Module doc.\n"
+    "\n"
+    "/// A point.\n"
+    "#[derive(Debug)]\n"
+    "pub struct Point {\n"
+    "    /// The x.\n"
+    "    pub x: i32,\n"
+    "}\n"
+    "\n"
+    "fn helper() {} // trailing\n"
+)

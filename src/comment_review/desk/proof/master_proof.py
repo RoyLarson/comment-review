@@ -1,12 +1,16 @@
 """Every edit_copy of one stage, held in one master_proof."""
 
 from dataclasses import dataclass, field
+from typing import cast
 
 from comment_review.binder.binder import _read_from_problem
 from comment_review.desk.proof.edit_copy import EditCopy
 from comment_review.desk.proof.mark import filled, read_text
 from comment_review.desk.proof.move import Move
 from comment_review.desk.proof.place import Place
+from comment_review.reading.addresser import cue_of, flatten, unflatten
+from comment_review.reading.context import ReadingContext
+from comment_review.reading.context_io import context_from_wire, context_to_wire
 
 
 @dataclass(frozen=True)
@@ -36,9 +40,104 @@ class MasterProof:
     stage: str
     read_from: dict
     edit_copies: tuple[EditCopy, ...]
+    page_readings: dict[str, ReadingContext]
     places: tuple[Place, ...] = ()
     moves: tuple[Move, ...] = ()
     page_shas: dict[str, str] = field(default_factory=dict)
+
+    def __post_init__(self) -> None:
+        """Detach caller-owned metadata mappings."""
+        object.__setattr__(self, "page_readings", dict(self.page_readings))
+        object.__setattr__(self, "page_shas", dict(self.page_shas))
+
+    def reading_problems(self, where: str) -> list[str]:
+        """Check saved page metadata without reading source or registry state."""
+        problems: list[str] = []
+        problems.extend(
+            referenced_reading_problems(
+                {
+                    "page_readings": self.page_readings,
+                    "page_shas": self.page_shas,
+                    "places": [{"address": place.address} for place in self.places],
+                    "moves": [
+                        {"origin": move.origin, "destination": move.destination}
+                        for move in self.moves
+                    ],
+                    "edit_copies": [
+                        {
+                            "sheets": [
+                                {
+                                    "path": sheet.path,
+                                    "sha": sheet.sha,
+                                    "marks": [mark.serialize() for mark in sheet.marks],
+                                }
+                                for sheet in copy.sheets
+                            ]
+                        }
+                        for copy in self.edit_copies
+                    ],
+                },
+                where,
+            )
+        )
+        if any(
+            not isinstance(path, str)
+            or not path.strip()
+            or not isinstance(sha, str)
+            or not sha.strip()
+            for path, sha in self.page_shas.items()
+        ):
+            problems.append(
+                f"{where}: master_proof's `page_shas` must map nonempty paths"
+                " to nonempty shas; regather"
+            )
+        for path, context in self.page_readings.items():
+            if (
+                not isinstance(path, str)
+                or not path.strip()
+                or not isinstance(context, ReadingContext)
+            ):
+                problems.append(f"{where}: malformed page_readings; regather")
+                continue
+            try:
+                validated = ReadingContext(
+                    context.language,
+                    context.reader,
+                    context.compatibility,
+                    context.settings,
+                )
+            except (TypeError, ValueError):
+                problems.append(f"{where}: {path}: malformed reading context; regather")
+                continue
+            _, why = context_from_wire(f"{where}: {path}", context_to_wire(validated))
+            problems.extend(why)
+        shas: dict[str, object] = {}
+        for copy in self.edit_copies:
+            for sheet in copy.sheets:
+                if self.page_readings.get(sheet.path) != sheet.reading:
+                    problems.append(
+                        f"{where}: {sheet.path}: sheet reading context disagrees"
+                        " with page_readings; regather"
+                    )
+                if sheet.path in shas and shas[sheet.path] != sheet.sha:
+                    problems.append(
+                        f"{where}: {sheet.path}: conflicting sheet shas; regather"
+                    )
+                shas[sheet.path] = sheet.sha
+        for path, sha in self.page_shas.items():
+            if path not in self.page_readings:
+                problems.append(
+                    f"{where}: {path}: destination page_readings is missing; regather"
+                )
+            if path in shas and shas[path] != sha:
+                problems.append(
+                    f"{where}: {path}: destination sha disagrees with sheet; regather"
+                )
+        for path in self.page_readings.keys() - shas.keys() - self.page_shas.keys():
+            problems.append(
+                f"{where}: {path}: page_readings lacks matching page_shas; regather"
+            )
+        return problems
 
     @classmethod
     def deserialize(
@@ -80,6 +179,9 @@ class MasterProof:
         raw_copies = data.get("edit_copies")
         if not isinstance(raw_copies, list):
             return None, [f"{where}: a master_proof needs an `edit_copies` list"]
+        missing = referenced_reading_problems(data, where)
+        if missing:
+            return None, missing
         copies: list[EditCopy] = []
         problems: list[str] = []
         for i, raw in enumerate(raw_copies, 1):
@@ -99,6 +201,39 @@ class MasterProof:
             for one in sheet.refused
             for reason in one.reasons
         ]
+        if problems:
+            return None, problems
+        raw_readings = data.get("page_readings")
+        if not isinstance(raw_readings, dict):
+            return None, [
+                f"{where}: page_readings must map paths to reading contexts; regather"
+            ]
+        page_readings: dict[str, ReadingContext] = {}
+        for path, raw in raw_readings.items():
+            if not isinstance(path, str) or not path.strip():
+                problems.append(
+                    f"{where}: page_readings needs nonempty path keys; regather"
+                )
+                continue
+            context, why = context_from_wire(f"{where}: page_readings {path}", raw)
+            problems.extend(why)
+            if context is not None:
+                page_readings[path] = context
+        raw_shas = data.get("page_shas", {})
+        if not isinstance(raw_shas, dict):
+            problems.append(
+                f"{where}: master_proof's `page_shas` must map paths to shas; regather"
+            )
+        if problems:
+            return None, problems
+        metadata = cls(
+            "",
+            {},
+            tuple(copies),
+            page_readings,
+            page_shas=cast(dict[str, str], raw_shas),
+        )
+        problems.extend(metadata.reading_problems(where))
         if problems:
             return None, problems
         read_from = data.get("read_from")
@@ -157,16 +292,6 @@ class MasterProof:
         problems += why
         raw_shas = data.get("page_shas", {})
         page_shas: dict = raw_shas if isinstance(raw_shas, dict) else {}
-        if not isinstance(raw_shas, dict) or any(
-            not isinstance(path, str)
-            or not path.strip()
-            or not isinstance(sha, str)
-            or not sha.strip()
-            for path, sha in page_shas.items()
-        ):
-            problems.append(
-                f"{where}: master_proof's `page_shas` must map paths to shas"
-            )
         if problems:
             return None, problems
         return (
@@ -174,6 +299,7 @@ class MasterProof:
                 stage=stage,
                 read_from={**read_from} if isinstance(read_from, dict) else {},
                 edit_copies=tuple(copies),
+                page_readings=page_readings,
                 places=places,
                 moves=moves,
                 page_shas=dict(page_shas),
@@ -190,7 +316,70 @@ class MasterProof:
             "places": [place.serialize() for place in self.places],
             "moves": [move.serialize() for move in self.moves],
             "page_shas": dict(self.page_shas),
+            "page_readings": {
+                path: context_to_wire(context)
+                for path, context in self.page_readings.items()
+            },
         }
+
+
+def referenced_reading_problems(data: dict, where: str) -> list[str]:
+    """Require reference metadata before proof decoding or downstream resolution."""
+    contexts = data.get("page_readings")
+    shas = data.get("page_shas", {})
+    if not isinstance(contexts, dict) or not isinstance(shas, dict):
+        return [f"{where}: page_readings/page_shas are missing or malformed; regather"]
+    sources = dict(shas)
+    references: set[str] = set()
+
+    def collect(record: object, keys: tuple[str, ...]) -> None:
+        if not isinstance(record, dict):
+            return
+        for key in keys:
+            address = record.get(key)
+            if isinstance(address, str):
+                path = cue_of(address).path
+                if path:
+                    references.add(flatten(path))
+
+    for key, fields in (("places", ("address",)), ("moves", ("origin", "destination"))):
+        records = data.get(key, [])
+        if isinstance(records, list):
+            for record in records:
+                collect(record, fields)
+    copies = data.get("edit_copies", [])
+    if isinstance(copies, list):
+        for copy in copies:
+            sheets = copy.get("sheets", []) if isinstance(copy, dict) else []
+            if not isinstance(sheets, list):
+                continue
+            for sheet in sheets:
+                if not isinstance(sheet, dict):
+                    continue
+                path, sha = sheet.get("path"), sheet.get("sha")
+                if isinstance(path, str):
+                    references.add(flatten(path))
+                    sources.setdefault(path, sha)
+                marks = sheet.get("marks", [])
+                if isinstance(marks, list):
+                    for mark in marks:
+                        collect(mark, ("address",))
+                        if isinstance(mark, dict) and mark.get("instruction") == "move":
+                            collect(mark.get("claim"), ("to",))
+    problems: list[str] = []
+    known = [path for path in contexts.keys() | sources.keys() if isinstance(path, str)]
+    for reference in sorted(references):
+        path = unflatten(reference, known) or reference
+        if path not in contexts:
+            problems.append(
+                f"{where}: {path}: referenced page_readings is missing; regather"
+            )
+        if path not in sources:
+            problems.append(
+                f"{where}: {path}: referenced original sha in page_shas or sheets"
+                " is missing; regather"
+            )
+    return problems
 
 
 def _places_in(

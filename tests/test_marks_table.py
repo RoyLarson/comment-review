@@ -214,8 +214,8 @@ def test_a_refusal_about_the_destination_names_the_types_own_key(tmp_path):
         "w: `claim.to` is this mark's own `address` -- a move to where the"
         " paragraph already is deletes it and writes nothing back",
         "w: `claim.to` 'b9' is not a `path@cue` place -- a destination on a"
-        " gathered page is its full address, as the addresser prints it, and one"
-        " outside the code is not carried yet (`decision-log.md Process: #173`):"
+        " gathered page is its full address, as `addresses find` prints it, and"
+        " one outside the code is not carried yet (`decision-log.md Process: #173`):"
         " file a `human-review-necessary` query here naming it instead",
     ]
 

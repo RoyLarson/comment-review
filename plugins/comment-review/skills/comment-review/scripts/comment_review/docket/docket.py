@@ -76,11 +76,12 @@ notations."* The trade calls those PROOF CORRECTION MARKS, and `mark` is already
 this system's word for what a role emits. What needed a name was what the DESK
 makes of those marks. `decision-log.md Vocabulary: #14`.
 
-!! `None` IS THE DELETE AND AN EMPTY STRING IS REFUSED. Roy, 2026-08-25: *"None
+!! `None` IS THE DELETE AND AN EMPTY PATCH IS REFUSED. Roy, 2026-08-25: *"None
 is explicit enough."* ! The galley took `""` as its vacation signal until this
 landed, and a key whose value failed to serialise arrives looking exactly like
 a deliberate deletion. Two spellings for one act is how a bug upstream becomes
-a deletion downstream at exit 0.
+a deletion downstream at exit 0. A replacement is measured with its white space
+removed, so `"   "` is the same empty patch as `""`.
 
 ! `role` IS OPTIONAL AND, WHEN PRESENT, ONE PER PAGE -- since `P55`, the role
 of the `edit_copy` this docket was transcribed from.
@@ -103,6 +104,10 @@ went with the function that could read it.
 
 from dataclasses import dataclass, field
 
+from comment_review import constants
+from comment_review.reading.context import ReadingContext
+from comment_review.reading.context_io import context_from_wire, context_to_wire
+
 
 def _not_a(where: str, noun: str, value: object) -> str:
     """One refusal, naming the JSON type that arrived instead of `noun`."""
@@ -123,7 +128,7 @@ class Alteration:
             here (`decision-log.md Process: #134`), and refuses None
             (`#135`).
 
-    !! `None` IS THE DELETE AND AN EMPTY STRING IS REFUSED -- see this module's
+    !! `None` IS THE DELETE AND AN EMPTY PATCH IS REFUSED -- see this module's
     header. Two spellings for one act is how a serialisation bug upstream
     becomes a deletion downstream at exit 0.
 
@@ -174,11 +179,11 @@ class Alteration:
                 f"{where}@{cue}: a replacement must be text or null, not"
                 f" {type(text).__name__}"
             ]
-        if not text:
+        if not constants.holds_text(text):
             return None, [
-                f"{where}@{cue}: an empty string is not a delete -- null is."
-                " Two spellings for one act is how a serialisation bug"
-                " becomes a deletion"
+                f"{where}@{cue}: {constants.EMPTY_PATCH}: text with no characters"
+                " is not a delete -- null is. Two spellings for one act is how a"
+                " serialisation bug becomes a deletion"
             ]
         return cls(cue=cue, text=text, anchor=anchor), []
 
@@ -202,6 +207,7 @@ class Schedule:
             it against the file it is about to set.
         alterations: one `Alteration` per place, in the order the docket lists
             them.
+        reading: the original context that assigned the saved cues.
         role: the role whose mark settled every alteration here, or "" when
             the docket carries none. `proof_setter` does not read this --
             `flows.revise._set_by` does; carried here so a caller unwinding a
@@ -211,6 +217,7 @@ class Schedule:
     path: str
     sha: str
     alterations: tuple[Alteration, ...]
+    reading: ReadingContext
     role: str = ""
 
     @classmethod
@@ -233,6 +240,8 @@ class Schedule:
         if not isinstance(path, str) or not path:
             return None, [f"{where}: every page needs a `path`, as the repo names it"]
         problems: list[str] = []
+        reading, why = context_from_wire(path, data.get("reading"))
+        problems.extend(why)
         sha = data.get("sha")
         if not isinstance(sha, str) or not sha:
             problems.append(f"{path}: every page needs the `sha` it was read at")
@@ -257,13 +266,14 @@ class Schedule:
                 continue
             seen.add(got.cue)
             alterations.append(got)
-        if problems:
+        if problems or reading is None:
             return None, problems
         return (
             cls(
                 path=path,
                 sha=sha if isinstance(sha, str) else "",
                 alterations=tuple(alterations),
+                reading=reading,
                 role=raw_role if isinstance(raw_role, str) else "",
             ),
             [],
@@ -284,6 +294,7 @@ class Schedule:
             "path": self.path,
             "sha": self.sha,
             "alterations": [one.serialize() for one in self.alterations],
+            "reading": context_to_wire(self.reading),
         }
         if self.role:
             out["role"] = self.role

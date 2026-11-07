@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 2 of 10 tasks closed
+Progress: 5 of 10 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-09-03 (systems)
@@ -61,9 +61,10 @@ own.
       real file
 - [ ] T2 | Move the write in results.compositor.draft out to the flow that calls
       it
-- [ ] T3 | Move read_source out of results.compositor lossless and the identity
-      check
-- [ ] T4 | Move read_raw out of results.prove_unchanged
+- [x] T3 | lossless and identity take strings; read_source left the compositor | 9ae8fd94 | Move
+      read_source out of results.compositor lossless and the identity check
+- [x] T4 | results/prove_unchanged holds only dominant_ending | d8946e97 | Move
+      read_raw out of results.prove_unchanged
 - [ ] T5 | Move the cited-source read out of desk.collator into the flow
 - [x] T6 | Ruled: only flows import machine; recorded as Process #207 | 2150eafe | Decide
       whether commands may reach the machine, or only flows
@@ -75,5 +76,7 @@ own.
       grep finds no commands module importing machine
 - [ ] T9 | Move concordance's machine reads, walk_files and git, into the flow
       that calls it; grep finds no concordance import of machine
-- [ ] T10 | Move the git call out of results.prove_unchanged into the flow; grep
-      finds no results import of machine.repo
+- [x] T10 | results/prove_unchanged imports nothing from machine and runs no git | d8946e97 | Move
+      the git call out of results.prove_unchanged into the flow; grep finds no
+      results import of machine.repo
+        > 2026-11-04 Process #104 removes the git call; see lexical-code-identity T16

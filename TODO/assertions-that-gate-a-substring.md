@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 3 of 10 tasks closed
+Progress: 5 of 10 tasks closed
 Owner:    testing
 Requires-Roy: false
 Raised:   2026-08-20 (the branch review of 2026-08-20)
@@ -105,9 +105,10 @@ the removed check has no replacement.
       deleted.
 - [x] T2 | FINISHED | unknown | T2 -- SUPERSEDED 2026-08-23. The named test does
       not exist and the corrupted paragraph it was about is no longer produced.
-- [ ] T3 | T3 -- Assert the EXTENT at `test_census_blocks.py:937` -- `(start,
-      end)` and `raw_lines`, not `b.start`. Verify: ending `matter` at its first
-      line goes red.
+- [-] T3 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | T3
+      -- Assert the EXTENT at `test_census_blocks.py:937` -- `(start, end)` and
+      `raw_lines`, not `b.start`. Verify: ending `matter` at its first line goes
+      red.
 - [x] T4 | FINISHED | unknown | T4 -- SUPERSEDED 2026-08-23. The test and the
       text-report parser it exercised were removed in `2a86573`; the malformed
       cases are covered by `held.load_report`.
@@ -120,9 +121,10 @@ the removed check has no replacement.
 - [ ] T7 | T7 -- Match the UNIT in `test_todo_counts_agree.py:64-66`, so a
       non-`tasks` unit cannot skip both checks. Verify: change a `Progress:`
       unit and a test goes red.
-- [ ] T8 | T8 -- Run the keyword scan over real lines in
-      `test_declarations.py:313-319`, not `""`. Verify: `_declares_here`
-      returning False always turns the class red.
+- [-] T8 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | T8
+      -- Run the keyword scan over real lines in `test_declarations.py:313-319`,
+      not `""`. Verify: `_declares_here` returning False always turns the class
+      red.
 - [ ] T9 | T9 -- Make `TestAStaleCensusIsRefused` assert the exit code its
       docstring claims, or stop the docstring claiming it. Verify: `--check`
       exits 2, or `2` is not named.

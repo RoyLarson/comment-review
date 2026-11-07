@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 33 of 41 tasks closed
+Progress: 37 of 49 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-09-04 (Roy, 2026-09-04, superseding the-flow-lives-in-the-command T4)
@@ -48,8 +48,9 @@ The agents files name the new CLI and say how to use it.
       the four role files so the body opens with the remit the description
       states, in the same words. Verify: grep Your remit hits four
         > 2026-09-05 the description reaches the dispatcher, never the reviewer
-- [ ] T10 | Decide whether the brief and the vocabulary reach a role by path as
-      the binder does, since four verbatim pastes did not fit one message
+- [x] T10 | Ruled #272 and #170: by path | e0a31457 | Decide whether the brief
+      and the vocabulary reach a role by path as the binder does, since four
+      verbatim pastes did not fit one message
 - [ ] T11 | Update reviewer-brief.md's move text to say a move relocates a whole
       place, never part of a paragraph. Verify: the from and to text says so
 - [-] T12 | SUPERSEDED by Process 96: an add needs no include-absent binder once the lookup reads the page | 473afdba | Update
@@ -57,8 +58,9 @@ The agents files name the new CLI and say how to use it.
       address for a gap. Verify: the gather line has the flag
 - [ ] T13 | Update SKILL.md stage 6 to take a paragraph's kind from its binder
       row, not the listing, once the row carries it. Verify: no listing parse
-- [ ] T14 | Update SKILL.md and the brief to say absent places are filtered out
-      of the binder and are looked up with addresser. Verify: both say so
+- [x] T14 | SKILL.md and the brief say absent places are looked up | 3a1f14c7 | Update
+      SKILL.md and the brief to say absent places are filtered out of the binder
+      and are looked up with addresser. Verify: both say so
         > 2026-09-05 waits on binder-defects T22; the text would promise what fails now
         > 2026-09-05 the default filter stays; absent places are noise for a role
         > 2026-09-05 the brief asks by line number, no longer with the line's text
@@ -156,3 +158,24 @@ The agents files name the new CLI and say how to use it.
         > 2026-09-14 evidence: OneDrive/comment-review-feedback/2026-09-14-self-run
 - [ ] T41 | Update SKILL.md stage 4's packet and the four role files to hand a
       reviewer the brief and vocabulary by path, per Process 170
+- [x] T42 | Withdrawal brief matches removal and binder obligations; 8 focused tests pass; wording review clean | e5c05a63 | Correct
+      withdrawal instructions to remove marks and require replacement for
+      received places; verify the brief matches check
+- [ ] T43 | Restate SKILL.md's detached-doc step: matter, and the printed owner
+        > 2026-10-26 Detached doc in matter is read as matter; warning now names owner
+- [ ] T44 | Restate agent prose that takes an anchor to be one line of code
+        > 2026-10-26 decision-log #238: an a/b anchor may span the unit's lines
+        > 2026-10-26 reviewer-brief.md:259 and :177-178 state a one-line anchor
+        > 2026-10-31 Also `references/review.md:38`: two ranges claim unchecked
+        > 2026-10-31 Also `references/review.md:38`: two ranges unchecked
+- [ ] T45 | Name the addresser's --line '<module>' and '<eof>' in the agent
+      prose
+        > 2026-10-27 reviewer-brief.md:99-105, SKILL.md:158, ownership-context.md:87-90
+- [ ] T46 | Remove --anchor-line from the reviewer brief, which nothing reads
+        > 2026-10-30 D11: reviewer-brief.md:177-178
+- [x] T47 | CLAUDE.md names --from-docket; Roy approved the wording | 207d733bcd76762e6fe72d77618c45e68c11ad42 | Correct
+      `CLAUDE.md:81` to `--from-docket`
+- [ ] T48 | Update reviewer-brief.md's withdraw line so it takes back one mark,
+      per #276
+- [ ] T49 | Replace write.md's git worktree with a copy of the gathered files,
+      per #104

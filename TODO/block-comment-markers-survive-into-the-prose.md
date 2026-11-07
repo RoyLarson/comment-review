@@ -2,13 +2,13 @@
 
 ```
 Status:   open
-Progress: 0 of 10 tasks closed
+Progress: 8 of 12 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-17 (Roy: "use the github api to find a heavily documented file
           for each of the languages so we can verify that the lexers work for the
           11 languages we claim")
-Renamed:  2026-08-20 -- the language rows measured here were SPLIT, so the names in the
+Renamed:  2026-08-20 -- the language definitions measured here were SPLIT, so the names in the
           tables below no longer resolve. `c-family` became `c`, `cpp`, `java`,
           `csharp`, `swift` and `kotlin`; `js-family` became `javascript` and
           `typescript`. The measurements stand as taken -- the `.java` sample is now the
@@ -148,38 +148,49 @@ One heavily-documented file per record, each at a pinned tag. ! None of them is 
 
 Both declare a block form -- `=begin`/`=end` and `--[[ ]]` -- and **neither appeared in the
 sampled files**, so the measurement says nothing about them. ! An unmeasured fix is how this
-defect got here, and this repo's rule is that a language row takes its definition from its own
+defect got here, and this repo's rule is that a language definition takes its values from its own
 grammar and never from a neighbour's, so the two are decided one at a time.
 
 ## Tasks
 
-- [ ] T1 | T1 -- Strip the `block_comment` and `doc_block` opener and closer in
-      `_join`. Verify: a `.java` docstring's census `text` holds no `/**` and no
-      `*/`.
-- [ ] T2 | T2 -- Strip the interior continuation marker as well. Verify: a
-      multi-line Javadoc's census `text` carries no leading `*` on any line
-      after the first.
-- [ ] T3 | T3 -- Change `block_text` (`lexer.py:609`) in the SAME commit as each
-      `_join` change. Verify: the round trip is green on that commit.
+- [-] T1 | Moved to language-reader-java.md | 42f3d3e5 | T1 -- Strip the
+      `block_comment` and `doc_block` opener and closer in `_join`. Verify: a
+      `.java` docstring's census `text` holds no `/**` and no `*/`.
+- [-] T2 | SUPERSEDED by #259: Java and the lexical reader left | e2b34a22 | T2
+      -- Strip the interior continuation marker as well. Verify: a multi-line
+      Javadoc's census `text` carries no leading `*` on any line after the
+      first.
+- [-] T3 | SUPERSEDED by #259: block_text left with lexer.py | e2b34a22 | T3 --
+      Change `block_text` (`lexer.py:609`) in the SAME commit as each `_join`
+      change. Verify: the round trip is green on that commit.
 - [ ] T4 | T4 -- Add the eleven pinned files above to `corpora/corpora.toml` as
       a `public` corpus. Verify: `fetch_corpora.py` materialises all eleven.
-- [ ] T5 | T5 -- Make the round trip a test over that corpus, one case per
-      language record. Verify: it fails while a marker survives into `text` and
-      passes once T1 to T3 land.
+- [-] T5 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | T5
+      -- Make the round trip a test over that corpus, one case per language
+      record. Verify: it fails while a marker survives into `text` and passes
+      once T1 to T3 land.
 - [ ] T6 | T6 -- Make that test SKIP when the corpus has not been fetched.
       Verify: with the corpus directory absent, `uv run pytest -q` reports a
       skip and no failure.
-- [ ] T7 | T7 -- Write the unit fixtures for the fix from INVENTED text, not
-      from the corpus. Verify: no assertion under `tests/` quotes a line from
-      any file in the table above.
-- [ ] T8 | T8 -- Add a multi-line Javadoc to `tests/fixtures/sample.java`.
-      Verify: the fixture carries a continuation `*` on three or more lines.
-- [ ] T9 | T9 -- Decide whether a Ruby `=begin`/`=end` block gets the same
-      stripping. Verify: the answer and its measurement are written into this
-      file.
-- [ ] T10 | T10 -- Decide the same for a Lua `--[[ ]]` block, from Lua's own
-      grammar and not Ruby's. Verify: the answer and its measurement are written
-      into this file.
+- [-] T7 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | T7
+      -- Write the unit fixtures for the fix from INVENTED text, not from the
+      corpus. Verify: no assertion under `tests/` quotes a line from any file in
+      the table above.
+- [-] T8 | Moved to language-reader-java.md | 42f3d3e5 | T8 -- Add a multi-line
+      Javadoc to `tests/fixtures/sample.java`. Verify: the fixture carries a
+      continuation `*` on three or more lines.
+- [-] T9 | Moved to language-reader-ruby.md | 42f3d3e5 | T9 -- Decide whether a
+      Ruby `=begin`/`=end` block gets the same stripping. Verify: the answer and
+      its measurement are written into this file.
+- [-] T10 | Moved to language-reader-lua.md | 42f3d3e5 | T10 -- Decide the same
+      for a Lua `--[[ ]]` block, from Lua's own grammar and not Ruby's. Verify:
+      the answer and its measurement are written into this file.
+- [ ] T11 | Stop comment_form leaving a stray asterisk from a double-star closer
+        > 2026-10-25 lexer._comment_fragment closer handling; reaches Paragraph.text
+        > 2026-10-25 Check: comment_form text of /** Assembly **/ is "Assembly"
+- [ ] T12 | Stop comment_form stripping a markdown bullet from Rust doc prose
+        > 2026-10-25 A leading `* ` item in a /// doc is lost from Paragraph.text (#227)
+        > 2026-10-25 Check: /// * item reads "* item" as comment_form text
 ## Related
 
 - [`a-prose-file-has-no-blocks`](a-prose-file-has-no-blocks.md) -- the other half of "what this

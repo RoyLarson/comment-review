@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 3 of 8 tasks closed
+Progress: 6 of 8 tasks closed
 Owner:    agents
 Requires-Roy: true
 Raised:   2026-08-17, while ruling on what CLAIM and CHANGE each carry
@@ -128,14 +128,17 @@ filed, and still two.
 - [x] T4 | FINISHED | unknown | T4 -- DONE. The splice-failure case is answered
       in the program and in the prose -- eight named refusals in `galley.py`,
       and `SKILL.md:935-944`.
-- [ ] T5 | T5 -- Derive the galley census from the splice's line deltas instead
-      of re-running `census.py`. Verify: derived and re-run agree on every
+- [-] T5 | SUPERSEDED: the census was deleted; the galley resets | 68bfc548 | T5
+      -- Derive the galley census from the splice's line deltas instead of
+      re-running `census.py`. Verify: derived and re-run agree on every
       range-replacement paragraph.
-- [ ] T6 | T6 -- Carry the `add` insertion out of the splice so an empty
-      interval derives too. Verify: a derived census gives `(9, 9)` not `(9,
-      11)`, with kind `comment`.
-- [ ] T7 | T7 -- Cut the cycle to ONE census on disk. Verify: `SKILL.md` names
-      one census artifact, not both `census.json` and `galley-census.json`.
+- [-] T6 | SUPERSEDED: the galley no longer splices | 68bfc548 | T6 -- Carry the
+      `add` insertion out of the splice so an empty interval derives too.
+      Verify: a derived census gives `(9, 9)` not `(9, 11)`, with kind
+      `comment`.
+- [-] T7 | SUPERSEDED: no census remains on disk | 68bfc548 | T7 -- Cut the
+      cycle to ONE census on disk. Verify: `SKILL.md` names one census artifact,
+      not both `census.json` and `galley-census.json`.
 - [?] T8 | Rule what the proof setter does with a seeded place the role has not
       filled, when it sets a partly filled copy.
 ## Related

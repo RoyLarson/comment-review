@@ -1,0 +1,156 @@
+# A reader finds prose and rebuilds nothing after it
+
+```
+Status:   closed
+Progress: 29 of 29 tasks closed
+Owner:    backend
+Requires-Roy: false
+Raised:   2026-10-25 (decision-log.md Process: #224)
+```
+
+## Objective
+
+A reader supplies what only parsing can find -- each paragraph's span, its raw
+lines, its kind and its anchor. Everything that follows from those is derived
+once for every language: `Paragraph` derives its own fields, the page places it,
+and the addresser addresses it, as they did for Python before the lexical
+readers. decision-log.md Process: #224.
+
+Measured 2026-10-25: the lexer (`_join`), the Python reader
+(`reading/python/projection.py`) and the Rust reader
+(`reading/rust/projection.py`) each build `Paragraph.text` their own way, and
+the Python and Rust readers stamp `address` themselves. `lines` was the same
+defect and is repaired (lexer-and-language-findings T12, b30cc510).
+
+## Tasks
+
+- [x] T1 | Paragraph.text is comment_form text, set once after the reader | d8a5666a | Derive
+      Paragraph.text in one place for every reader
+        > 2026-10-25 Check: one comment in .py, .rs and .go reads the same text
+        > 2026-10-25 Check: no reader passes text to Paragraph
+- [x] T2 | FINISHED: readers mark docs Kind.DOCSTRING with anchor_line; page assigns every address | 20cbdbbd | Assign
+      each paragraph's address in the page instead of in a reader
+        > 2026-10-25 Check: git grep finds no address= in reading/python or reading/rust
+- [x] T3 | Nine duties filed as T4-T12, each naming file:line | 17c030f6 | List
+      each Paragraph, Page or Addresser duty a reader still performs
+        > 2026-10-25 Check: each duty is a task on this file naming its file:line
+- [-] T4 | Readers own code text (#228); reissued as T18 | 56d0e3d1 | Derive
+      each line's code in the page for every reader
+        > 2026-10-25 python/projection.py:212 and rust/projection.py:327 code_for
+        > 2026-10-25 Rust keeps a literal's trailing space: c0 anchor+raw breaks line 1
+        > 2026-10-25 Check: no def code_for under reading/python or reading/rust
+        > 2026-10-25 Check: every margin anchor + raw_lines[0] equals its line, .rs
+- [x] T5 | FINISHED: docstring span runs to its line end; backslash case sets back byte-identical | 6a6f8659 | Give
+      a Python docstring paragraph its whole source lines
+        > 2026-10-25 python/projection.py:136 cuts raw_lines at the statement end
+        > 2026-10-25 Reason: in """doc""" \ the \ belongs to no place; set drops it
+        > 2026-10-25 Check: that input sets back identical through set_page
+        > 2026-10-25 Repro: def f(): newline then indented doc with trailing backslash
+- [x] T6 | FINISHED: stamp, note, trailing_end and _NO_TRAILING deleted; lexical dump identical | 40f55321 | Delete
+      the continues-a-trailing-comment stamp from lexer.py
+        > 2026-10-25 lexer.py:846; the Python and Rust readers never stamp it
+        > 2026-10-25 Reason: nothing in src or src/plugin reads the annotation
+        > 2026-10-25 Check: git grep continues-a-trailing-comment -- src returns none
+- [x] T7 | Ruled: matter is a Kind the reader assigns | c59b3424 | Decide
+      whether matter is a kind a reader assigns or a page place
+        > 2026-10-25 Reason: #224 gives kind to the reader; matter is position-only
+        > 2026-10-25 Copies: lexer.py:765-823, python/projection.py:146-187
+        > 2026-10-25 Copies: rust/projection.py:185-254, rust/documentation.py:372
+        > 2026-10-25 Roy: the reader assigns matter; decision-log.md Process: #225
+- [x] T8 | FINISHED: reading/matter.py file_matter states #232 once; every reader calls it | 58727f6f | Move
+      the front and back matter rule to one shared place
+        > 2026-10-25 Waits on the matter ruling in this file
+        > 2026-10-25 Rust holds two copies: documentation.py:182 and projection.py:205
+        > 2026-10-25 Check: .rs and .kt give the same f places on matter-only input
+        > 2026-10-25 Per #225 the reader assigns matter; a helper may share the rule
+        > 2026-10-25 Matter ruling made: Process #225; T7 closed
+- [-] T9 | #226: sectioning is the reader's; reissued as T14 | cf911ec9 | Move
+      the one-paragraph-per-place rule from the Rust reader to the page
+        > 2026-10-25 rust/projection.py:139 _one_per_place; Rust spec lines 227-232
+        > 2026-10-25 Reason: page.py:904-910 assigns cues and never checks for a clash
+        > 2026-10-25 Check: no _one_per_place under reading/rust; Rust tests pass
+- [-] T10 | #226: detaching a doc assigns a kind; reader's | cf911ec9 | Move the
+      Rust reader's a-place capacity rules to the page
+        > 2026-10-25 rust/documentation.py:211-247,281-290: _beside, _outer, _attach
+        > 2026-10-25 Reason: which item owns a doc is grammar; what a place holds is not
+        > 2026-10-25 Suspected, not shown to disagree; Rust spec lines 202-221
+        > 2026-10-25 Check: the three detach reasons are decided outside reading/rust
+- [-] T11 | #226: page drops it; reissued as T15 | cf911ec9 | Carry detached
+      documentation as one fact instead of two
+        > 2026-10-25 rust/projection.py:132 annotation and page.py:940-976 warning
+        > 2026-10-25 Suspected redundant; no input found where the two disagree
+        > 2026-10-25 Check: one of the two is gone; the gather warning still prints
+- [x] T12 | FINISHED: _Lines deleted; Rust uses SourceCoordinates.line_span; dump identical | 943ec462 | Replace
+      the Rust reader's _Lines with the shared line splitter
+        > 2026-10-25 rust/projection.py:368-389 copies constants.text_lines
+        > 2026-10-25 Check: git grep "class _Lines" -- src returns none
+- [x] T13 | FINISHED: the page's MATTER->COMMENT retype is deleted; binder assigns no kind | 9ac42812 | Stop
+      the page changing a reader's matter kind to comment
+        > 2026-10-25 page.py:898-899 turns MATTER into COMMENT when it has an a address
+        > 2026-10-25 Reason: #225, the reader assigns the kind; the page only addresses
+        > 2026-10-25 Check: git grep "b.kind = Kind" -- src/comment_review/binder: none
+- [x] T14 | Rust sections formed once in documentation.py; reviewed clean | 431d1614 | Form
+      one comment section per gap in the Rust reader
+        > 2026-10-25 A detached doc joins the comments around it; #226
+        > 2026-10-25 Replaces rust/projection.py:139 _one_per_place merging afterward
+        > 2026-10-25 Check: a detached /// between // lines reads as one b comment
+        > 2026-10-25 Check: no _one_per_place under reading/rust
+- [x] T15 | Page holds no detached-doc logic; gather prints path:line | 2d9c6652 | Remove
+      the page's detached-documentation placement
+        > 2026-10-25 page.py:940-976 _warnings, PageWarning; rust/projection.py:132
+        > 2026-10-25 Reason: #226, the warning names a file and line from the read
+        > 2026-10-25 Check: git grep -E "PageWarning|DETACHED_DOCUMENTATION" -- src
+        > 2026-10-25 Check: gather prints the warning as file:line
+        > 2026-10-25 Reason: several detached docs merged at one b cue read the same
+- [-] T16 | Filed with another task's notes; reissued as T20 | cb6a5005 | Move
+      the lexical path's code lines and declarations into its reader
+        > 2026-10-25 Design: docs/superpowers/specs/2026-10-25-code-lines-design.md
+        > 2026-10-25 Check: no def documentable in binder/page.py
+        > 2026-10-25 Check: fn a() {} fn b() {} gives one documented line, one warning
+- [-] T17 | Filed with another task's notes; reissued as T18 | cb6a5005 | Correct
+      each reader's code text
+        > 2026-10-25 Check: page builds places without code_lines or declarations
+        > 2026-10-25 Check: corpus address dump unchanged for two lexical languages
+- [x] T18 | FINISHED: Rust code right-trimmed (573eb183); the Python backslash case is T5's | 573eb183 | Correct
+      each reader's code text
+        > 2026-10-25 Check: every .rs margin anchor + raw_lines[0] equals its line
+        > 2026-10-25 Check: the Python backslash docstring sets back byte-identical
+- [x] T19 | FINISHED: readers return CodeLines carrying their DocPlace; documentable deleted; one-per-line silent (#230) | 7962289d | Return
+      CodeLines from the Python and Rust readers
+        > 2026-10-25 Design: docs/superpowers/specs/2026-10-25-code-lines-design.md
+        > 2026-10-25 Check: no def documentable in binder/page.py
+        > 2026-10-25 Check: fn a() {} fn b() {} gives one documented line, one warning
+- [x] T20 | FINISHED: LexicalRead hands paragraphs, CodeLines and a_series; page computes no code lines | 456902d3 | Move
+      the lexical path's code lines and declarations into its reader
+        > 2026-10-25 Check: page builds places without code_lines or declarations
+        > 2026-10-25 Check: corpus address dump unchanged for two lexical languages
+- [x] T21 | FINISHED: Rust code lines trimmed by scanner whitespace; BOM line sets back | c2b565fb | Trim
+      each Rust code line by the scanner's whitespace regions
+        > 2026-10-26 Check: BOM + // licence (.rs) and an NBSP line set back identical
+- [x] T22 | FINISHED: a doc that trails code is a trailing comment | 60bd218d | Read
+      a doc comment that trails code as a trailing comment
+        > 2026-10-26 Check: js 'const a = 1; /** note */' sets back identical
+        > 2026-10-26 Reason: flush kinds it docstring; set_page deletes 'const a = 1;'
+- [x] T23 | FINISHED: runs after a closer stay whole; one matter per end | 2894dc59 | Cut
+      file matter from the reader's runs, not a per-line prose mask
+        > 2026-10-26 Reason: two runs share one matter range; one moves or is dropped
+        > 2026-10-26 Check: lua --[[ ]]-- then a -- line, at head or foot, sets back
+- [x] T24 | FINISHED: no-code file keeps an empty <eof> a (#241); places cut by place (#242/#243) | 4535709f | Give
+      the <eof> a its own position in a file with no code line
+        > 2026-10-26 Check: add at a1 of '/** @typedef */' reads back at a1, not a0
+- [x] T25 | FINISHED: addresser --line takes '<module>' and '<eof>' | e2dae290 | Resolve
+      the <eof> a through the addresser command
+        > 2026-10-26 Check: addresser on 'class A {}' + foot comment can name A.java@a2
+- [x] T26 | FINISHED: concatenated reads one parenthesised literal | f53ceefb | Derive
+      a parenthesised Python docstring's text from its literal
+        > 2026-10-26 Check: def f(): ("doc")  # c gives a1 text 'doc'
+- [x] T27 | FINISHED: one BOM rule in constants; marker matched after the mark | f821db13 | Match
+      a comment marker after a leading byte-order mark
+        > 2026-10-26 Check: BOM + '# Licence MIT' (.py) gives f0 text 'Licence MIT'
+- [x] T28 | FINISHED: stripped proof keeps prose trailing whitespace | bb6ed118 | Prove
+      a lexical file whose prose lines end in whitespace
+        > 2026-10-26 Check: '#!/usr/bin/env node  ' file proves against itself
+        > 2026-10-26 Reason: raw prose is compared to a right-stripped line
+- [x] T29 | FINISHED: annotations join their declaration as one a/b unit (#238) | 09e5c721 | Attach
+      a doc run above an annotation line to the declaration below
+        > 2026-10-26 Check: java /** App. */ @Ann class App {} documents a1, not a0

@@ -13,9 +13,196 @@ sacrifice rather than the property.
 
 import pytest
 from conftest import REPLACEMENT, SAMPLE, build, by_cue, cue
+from helpers import FORMS
 
 from comment_review import exceptions
+from comment_review.results import compositor, galley
 from comment_review.results.compositor import line_endings, set_page
+
+
+def test_failed_page_is_reported_before_setting(tmp_path, monkeypatch):
+    from comment_review.flows.compositor import round_trip
+    from comment_review.reading.diagnostics import ReadFailure
+
+    name = "broken.rs"
+    message = "unterminated comment"
+
+    path = tmp_path / name
+    path.write_text("/* open", encoding="utf-8")
+
+    def unexpected_set(page):
+        raise AssertionError("failed page reached the setter")
+
+    monkeypatch.setattr(compositor, "set_page", unexpected_set)
+    result = round_trip(path)
+    assert isinstance(result, ReadFailure)
+    assert result.diagnostics[0].message == message
+
+
+def test_unexpected_page_exception_propagates(tmp_path, monkeypatch):
+    from comment_review.flows import compositor as flow
+
+    path = tmp_path / "sample.py"
+    path.write_text("value = 1\n", encoding="utf-8")
+
+    def broken_page(*args, **kwargs):
+        raise exceptions.Refused("unexpected page error")
+
+    monkeypatch.setattr(flow, "page_of", broken_page)
+    with pytest.raises(exceptions.Refused, match="unexpected page error"):
+        flow.round_trip(path)
+
+
+@pytest.mark.parametrize(
+    "original,rendered",
+    [("a\r\n", "a\n"), ("a\n", "a"), ("\ufeffa\n", "a\n"), ("a\nb\n", "b\na\n")],
+)
+def test_identity_compares_literal_bytes(original, rendered):
+    assert compositor.identity(original, rendered) is not None
+
+
+@pytest.mark.parametrize("separator", ["\u2028", "\u2029", "\x85", "\x0b", "\x0c"])
+@pytest.mark.parametrize("ending", ["\r\n", "\r", "\n"])
+def test_identity_reports_physical_lines_with_literal_separators(separator, ending):
+    original = f"s = '{separator}'{ending}x = 1{ending}"
+    rendered = f"s = '{separator}'{ending}x = 2{ending}"
+    expected = {
+        "\r\n": "line 2: was 'x = 1\\r\\n', set 'x = 2\\r\\n'",
+        "\r": "line 2: was 'x = 1\\r', set 'x = 2\\r'",
+        "\n": "line 2: was 'x = 1\\n', set 'x = 2\\n'",
+    }
+    assert compositor.identity(original, rendered) == expected[ending]
+
+
+@pytest.mark.parametrize(
+    "original,rendered,expected",
+    [
+        ("a\r\n", "a\n", "line 1: was 'a\\r\\n', set 'a\\n'"),
+        ("a\r", "a\n", "line 1: was 'a\\r', set 'a\\n'"),
+        ("a\n", "a", "line 1: was 'a\\n', set 'a'"),
+        ("a\n", "a\nb\n", "1 lines in, 2 out"),
+        ("", "a\n", "0 lines in, 1 out"),
+    ],
+)
+def test_identity_retains_line_endings_in_diagnostics(original, rendered, expected):
+    assert compositor.identity(original, rendered) == expected
+
+
+def test_retained_lines_are_weaker_than_identity():
+    assert compositor.lossless("a\r\nb\n", "b\na\n") is None
+    assert compositor.lossless("a\na\n", "a\n") == "line lost: 'a'"
+
+
+def test_identity_requires_strict_utf8():
+    with pytest.raises(UnicodeEncodeError):
+        compositor.identity("\ud800", "\ud800")
+
+
+def test_identical_literal_text_passes_both_comparisons():
+    text = "\ufeffa\r\nb\n"
+    assert compositor.identity(text, text) is None
+    assert compositor.lossless(text, text) is None
+
+
+@pytest.mark.parametrize("raw", [b"", b"x = 1\r\n"])
+def test_command_sets_actual_empty_and_crlf_files(tmp_path, capsys, raw):
+    from comment_review.commands.compositor import main
+
+    path = tmp_path / "sample.py"
+    path.write_bytes(raw)
+    assert main([str(path)]) == 0
+    assert "1 identical, 0 normalised, 0 LOSSY" in capsys.readouterr().out
+
+
+def test_command_acquires_admits_and_sets_once(tmp_path, monkeypatch):
+    from comment_review.commands.compositor import main
+    from comment_review.flows import compositor as flow
+
+    path = tmp_path / "sample.py"
+    path.write_bytes(b"x = 1\r\n")
+    calls = []
+    for name, module in [
+        ("source_of", flow),
+        ("page_of", flow),
+        ("set_page", compositor),
+    ]:
+        original = getattr(module, name)
+
+        def counted(*args, _name=name, _original=original, **kwargs):
+            calls.append(_name)
+            return _original(*args, **kwargs)
+
+        monkeypatch.setattr(module, name, counted)
+    assert main([str(path)]) == 0
+    assert calls == ["source_of", "page_of", "set_page"]
+
+
+def test_rendering_refusal_retains_context(tmp_path, monkeypatch, capsys):
+    from comment_review.commands.compositor import main
+    from comment_review.flows.compositor import round_trip
+    from comment_review.flows.read_diagnostics import LocatedReadFailure
+
+    path = tmp_path / "sample.py"
+    path.write_bytes(b"x = 1\r\n")
+
+    def refused(page):
+        raise exceptions.Refused("cannot set these places")
+
+    monkeypatch.setattr(compositor, "set_page", refused)
+    result = round_trip(path)
+    assert isinstance(result, LocatedReadFailure)
+    assert result.text == "x = 1\r\n"
+    assert result.path == path.as_posix()
+    assert result.language == "python"
+    assert result.diagnostics[0].span is None
+    assert main([str(path)]) == 1
+    assert "place/unsupported-placement" in capsys.readouterr().out
+
+
+def test_read_failure_reports_retained_location(tmp_path, capsys):
+    from comment_review.commands.compositor import main
+
+    name = "sample.rs"
+    raw = b"const X: i32 = 1;\r\n/* open"
+
+    path = tmp_path / name
+    path.write_bytes(raw)
+    assert main([str(path)]) == 1
+    output = capsys.readouterr().out
+    assert "lex/unterminated-comment" in output
+    assert "line 2, one-based; column 0, zero-based" in output
+
+
+def test_python_bom_is_preserved_exactly(tmp_path, capsys):
+    from comment_review.commands.compositor import main
+    from comment_review.flows.compositor import RoundTrip, round_trip
+
+    path = tmp_path / "sample.py"
+    original = b"\xef\xbb\xbfx = 1\n"
+    path.write_bytes(original)
+    result = round_trip(path)
+    assert isinstance(result, RoundTrip)
+    assert result.original.encode("utf-8") == original
+    assert result.rendered.encode("utf-8") == original
+    assert main([str(path)]) == 0
+    output = capsys.readouterr().out
+    assert "1 identical, 0 normalised, 0 LOSSY" in output
+    assert path.read_bytes() == original
+
+
+def test_mixed_endings_set_as_crlf(tmp_path, capsys):
+    from comment_review.commands.compositor import main
+    from comment_review.flows.compositor import RoundTrip, round_trip
+
+    path = tmp_path / "sample.py"
+    path.write_bytes(b"x = 1\r\ny = 2\n")
+    result = round_trip(path)
+    assert isinstance(result, RoundTrip)
+    assert result.original.encode("utf-8") == b"x = 1\r\ny = 2\n"
+    assert result.rendered.encode("utf-8") == b"x = 1\r\ny = 2\r\n"
+    assert main([str(path)]) == 0
+    assert "0 identical, 1 normalised, 0 LOSSY" in capsys.readouterr().out
+
 
 #: Every addressed place on the sample, and the subset holding prose. Discovered
 #: from the page rather than listed, so a change to the walk is visible here as
@@ -25,127 +212,16 @@ FILLED_CUES = [
     c for c, b in by_cue(build(SAMPLE)).items() if any(x.strip() for x in b.raw_lines)
 ]
 
-#: Every shape worth putting through it. Each is a file some checkout really
-#: has; none has front matter below line 1.
-FORMS = {
-    "bare statement": ("m.py", "x = 1\n"),
-    "no final newline": ("m.py", "x = 1"),
-    "module docstring": ("m.py", '"""Doc."""\nx = 1\n'),
-    "docstring then code": ("m.py", '"""Doc."""\n\n\nx = 1\n'),
-    "comment above code": ("m.py", "# note\nx = 1\n"),
-    "two comments": ("m.py", "# one\n# two\nx = 1\n"),
-    "trailing comment": ("m.py", "x = 1  # beside\n"),
-    "comment and trailing": ("m.py", "# above\nx = 1  # beside\n"),
-    "blank between": ("m.py", "x = 1\n\n\ny = 2\n"),
-    "leading blanks": ("m.py", "\n\nx = 1\n"),
-    "trailing blanks": ("m.py", "x = 1\n\n\n"),
-    "blanks both ends": ("m.py", "\n\nx = 1\n\n\n"),
-    "shebang": ("m.py", "#!/usr/bin/env python\nx = 1\n"),
-    "coding line": ("m.py", "# -*- coding: utf-8 -*-\nx = 1\n"),
-    "shebang and docstring": ("m.py", '#!/usr/bin/env python\n"""D."""\nx = 1\n'),
-    # !! MATTER, A BLANK, THEN A GAP COMMENT -- the shape the two tiers
-    # disagreed about until 2026-08-26. The tokenized reader ran the comment run
-    # THROUGH the blank, so all three lines became one `matter` paragraph at
-    # `f0` and the gap comment lost its address; the lexical reader split it
-    # correctly. Roy: *"It is supposed to stop f0 at the first blank line."*
-    "matter then a gap comment": ("m.py", "#!/usr/bin/env python\n\n# note\nx = 1\n"),
-    "licence then a gap comment": ("m.py", "# (c) me\n\n# note\nx = 1\n"),
-    "matter, blank, two comments": ("m.py", "# (c) me\n\n# one\n# two\nx = 1\n"),
-    "function": ("m.py", 'def f():\n    """D."""\n    return 1\n'),
-    # !! A DOCSTRING'S CLOSING DELIMITER CARRYING A TRAILING COMMENT. The
-    # tokenizer sees a comment with non-blank characters before it and types it
-    # `trailing-comment`; the AST gives the same line to the docstring. Two
-    # paragraphs then claimed one line, and `page.code_lines` handed it to the
-    # `c` series as well -- the line was set TWICE, `lossless` reported *line
-    # invented*, and the duplicate delimiter reopened a string literal, so
-    # `prove_unchanged.code_fingerprint` fell from `ast` to `unprovable` and the
-    # write chain refused the docket. Reproduced 2026-08-29; the shape was in
-    # none of the sources this file or `test_reading.py` carried.
-    "docstring closed with a comment": (
-        "m.py",
-        'def f():\n    """D.\n    """  # NOQA\n    return 1\n',
-    ),
-    "module docstring closed with a comment": ("m.py", '"""D.\n"""  # NOQA\nx = 1\n'),
-    # ! THE ONE-LINE FORM ANSWERED CORRECTLY BEFORE THE FIX, and only because
-    # both paragraphs share a `start` and the stable sort ran the comment first.
-    # It is kept so the two forms are asserted to agree.
-    "one-line docstring with a comment": (
-        "m.py",
-        'def f():\n    """D."""  # type: ignore\n    return 1\n',
-    ),
-    "function no doc": ("m.py", "def f():\n    return 1\n"),
-    "two functions": ("m.py", "def f():\n    return 1\n\n\ndef g():\n    return 2\n"),
-    "nested def": ("m.py", "def f():\n    def g():\n        return 1\n    return g\n"),
-    "class": ("m.py", 'class A:\n    """D."""\n\n    x = 1\n'),
-    "class with method": ("m.py", "class A:\n    def m(self):\n        return 1\n"),
-    "decorator": ("m.py", "@dec\ndef f():\n    return 1\n"),
-    "only comments": ("m.py", "# one\n# two\n"),
-    "only blanks": ("m.py", "\n\n\n"),
-    "one blank": ("m.py", "\n"),
-    "empty file": ("m.py", ""),
-    "CRLF": ("m.py", "x = 1\r\ny = 2\r\n"),
-    "CRLF with comment": ("m.py", "# note\r\nx = 1\r\n"),
-    "CRLF no final": ("m.py", "x = 1\r\ny = 2"),
-    "tabs": ("m.py", "def f():\n\treturn 1\n"),
-    "unicode prose": ("m.py", "# caf\u00e9 na\u00efve \u2014 dash\nx = 1\n"),
-    "long code run": ("m.py", "".join(f"x{i} = {i}\n" for i in range(20))),
-    "deep indent": (
-        "m.py",
-        "def f():\n    if x:\n        if y:\n            return 1\n",
-    ),
-    "string with hash": ("m.py", 'x = "# not a comment"\n'),
-    "C block": ("m.c", "/* head */\nint a;\n"),
-    "C line comment": ("m.c", "// note\nint a;\n"),
-    "C both": ("m.c", "/* one */\n// two\nint a;\n"),
-    # !! A TRAILING BLOCK COMMENT THAT WRAPS -- code first, then an opener that
-    # runs on. Every block-comment case above puts the comment on its OWN line,
-    # so this shape was in no test in the suite until 2026-08-31, and it is the
-    # one `original_column` existed for: a single int can say where line 1's
-    # prose begins and has no slot for lines 2..N, which own themselves whole.
-    # `decision-log.md Process: #69`.
-    "C trailing block wrapped": (
-        "m.c",
-        "int x = 1; /* this comment\n"
-        "              wraps onto a second line\n"
-        "              and a third */\n"
-        "int y = 2;\n",
-    ),
-    "C trailing block one line": ("m.c", "int x = 1; /* note */\nint y = 2;\n"),
-    "cpp": ("m.cpp", "// note\nint a = 1;\n"),
-    "rust trailing block wrapped": (
-        "m.rs",
-        "let x = 1; /* this comment\n"
-        "              wraps onto a second line */\n"
-        "let y = 2;\n",
-    ),
-    "java trailing block wrapped": (
-        "m.java",
-        "int x = 1; /* wraps\n              here */\nint y = 2;\n",
-    ),
-    "ts trailing block wrapped": (
-        "m.ts",
-        "const x = 1; /* wraps\n                here */\nconst y = 2;\n",
-    ),
-    "rust doc": ("m.rs", "/// Doc.\npub fn f() {}\n"),
-    "rust inner doc": ("m.rs", "//! Module doc.\npub fn f() {}\n"),
-    "go": ("m.go", "// Doc.\nfunc f() {}\n"),
-    "java": ("m.java", "/** Doc. */\npublic void f() {}\n"),
-    "cs": ("m.cs", "/// <summary>D</summary>\npublic void F() {}\n"),
-    "kotlin": ("m.kt", "/** Doc. */\nfun f() {}\n"),
-    "swift": ("m.swift", "/// Doc.\nfunc f() {}\n"),
-    "ts": ("m.ts", "/** Doc. */\nfunction f(): void {}\n"),
-    "js": ("m.js", "// note\nlet a = 1;\n"),
-    "ruby": ("m.rb", "# Doc.\ndef f\nend\n"),
-    "lua": ("m.lua", "--- Doc.\nlocal function f() end\n"),
-    "shell": ("m.sh", "#!/bin/sh\n# note\necho hi\n"),
-    "toml": ("m.toml", "# note\nkey = 1\n"),
-    "yaml": ("m.yaml", "# note\nkey: 1\n"),
-    "ini": ("m.ini", "; note\n[a]\nb = 1\n"),
-    "sql": ("m.sql", "-- note\nSELECT 1;\n"),
-}
 FORM_CASES = pytest.mark.parametrize(
     ("name", "text"),
-    [pytest.param(n, t, id=k) for k, (n, t) in FORMS.items()],
+    [
+        pytest.param(
+            n,
+            t,
+            id=k,
+        )
+        for k, (n, t) in FORMS.items()
+    ],
 )
 
 
@@ -184,11 +260,78 @@ def test_the_trailing_newline_is_the_FILE_S(name, text):
     assert set_page(build(text, name)).endswith("\n") == text.endswith("\n")
 
 
+@pytest.mark.parametrize(
+    ("name", "code", "marker"),
+    [
+        ("m.rs", "const X: i32 = 1;", "//"),
+        ("m.py", "x = 1", "#"),
+    ],
+    ids=["rs", "py"],
+)
+@pytest.mark.parametrize(
+    ("text", "where", "replacement", "expected"),
+    [
+        ("{code}", "a0", "{m} a\n\n", "{m} a\n\n{code}"),
+        ("{code}\n{m} b", "f1", "{m} b\n\n", "{code}\n{m} b\n\n"),
+        ("{code}\n{m} b", "f1", "{m} b\n\n\n", "{code}\n{m} b\n\n\n"),
+        ("{code}\n{m} b", "f1", "{m} b\n{m} c", "{code}\n{m} b\n{m} c"),
+    ],
+    ids=["above-code", "file-ends-in-it", "two-blanks", "no-blank"],
+)
+def test_a_trailing_blank_stands_in_a_file_with_no_final_newline(
+    text, where, replacement, expected, name, code, marker
+):
+    text = text.format(code=code, m=marker)
+    replacement = replacement.format(m=marker)
+    expected = expected.format(code=code, m=marker)
+    page = build(text, name)
+    galley.reset(page, {where: replacement})
+    assert set_page(page) == expected
+
+
 @FORM_CASES
 def test_no_line_is_invented_or_lost(name, text):
     """A weaker check than the identity, and it isolates the failure: a
     mismatch here is a COUNT problem rather than a content one."""
     assert len(set_page(build(text, name)).splitlines()) == len(text.splitlines())
+
+
+@pytest.mark.parametrize(
+    ("name", "text", "expected"),
+    [
+        (
+            "m.rs",
+            "// a\nconst X: i32 = 1;\n\n// b\n// c\nconst Y: i32 = 2; // d\n",
+            {"b1": (4, 5), "c1": (6, 6)},
+        ),
+        ("m.rs", "/* f\n */\nconst X: i32 = 1;\n", {"f0": (1, 2)}),
+        ("m.rs", "", {}),
+    ],
+    ids=[
+        "rs-gap-and-margin",
+        "rs-matter",
+        "rs-empty",
+    ],
+)
+def test_spans_name_the_lines_each_place_is_set_on(name, text, expected):
+    page = build(text, name)
+    spans = compositor.spans(page)
+    assert {c: spans[c] for c in expected} == expected
+    lines = text.splitlines()
+    for first, last in spans.values():
+        assert 1 <= first <= last <= len(lines)
+    assert set_page(page) == text
+
+
+def test_spans_follow_a_place_that_grew():
+    name = "m.rs"
+    text = "fn w() {}\n// a\nfn x() {}\n// b\nfn y() {}\n"
+    page = build(text, name)
+    gaps = [c for c, b in by_cue(page).items() if b.raw_lines == ["// a"]]
+    below = [c for c, b in by_cue(page).items() if b.raw_lines == ["// b"]]
+    assert compositor.spans(page)[below[0]] == (4, 4)
+    galley.reset(page, {gaps[0]: "// a\n// more"})
+    assert compositor.spans(page)[below[0]] == (5, 5)
 
 
 class TestLineEndings:
@@ -308,9 +451,9 @@ class TestAWrappedTrailingCommentIsONEPlace:
     build or use a wrapped trailing comment. The Series/Cue system handles that
     case piece-of-cake."*
 
-        int x = 1; /* this comment
-                      wraps onto a second line
-                      and a third */
+        const X: i32 = 1; /* this comment
+              wraps onto a second line
+              and a third */
 
     ! IT WAS IN NO TEST IN THIS SUITE UNTIL 2026-08-31. Every block-comment case
     above puts the comment on its OWN line, and the one fixture holding code
@@ -320,19 +463,18 @@ class TestAWrappedTrailingCommentIsONEPlace:
     stopped being needed.
     """
 
-    WRAPPED = (
-        "m.c",
-        "int x = 1; /* this comment\n"
+    NAME = "m.rs"
+    TEXT = (
+        "const X: i32 = 1; /* this comment\n"
         "              wraps onto a second line\n"
         "              and a third */\n"
-        "int y = 2;\n",
+        "const Y: i32 = 2;\n"
     )
 
     def test_the_whole_run_is_ONE_c_place(self):
         """The cue names the place; how many lines it spans is the place's own
         business. A per-line field would have to say something about each."""
-        name, text = self.WRAPPED
-        page = build(text, name)
+        page = build(self.TEXT, self.NAME)
         trailing = [b for b in page if b.kind == "trailing-comment"]
         assert len(trailing) == 1
         (place,) = trailing
@@ -343,9 +485,10 @@ class TestAWrappedTrailingCommentIsONEPlace:
     def test_the_lines_after_the_first_own_themselves_WHOLE(self):
         """What a single column cannot express: line 1 begins after code, and
         lines 2..N are entire lines of the file."""
-        name, text = self.WRAPPED
-        (place,) = [b for b in build(text, name) if b.kind == "trailing-comment"]
-        lines = text.split("\n")
+        (place,) = [
+            b for b in build(self.TEXT, self.NAME) if b.kind == "trailing-comment"
+        ]
+        lines = self.TEXT.split("\n")
         assert place.raw_lines[0] != lines[0]
         assert place.raw_lines[0] in lines[0]
         assert place.raw_lines[1:] == lines[1:3]
@@ -354,10 +497,289 @@ class TestAWrappedTrailingCommentIsONEPlace:
         """! THE NECESSITY TEST, and it can fail: break the place's own lines
         and the identity goes. What it proves is that the setter needs the
         place and its lines, and nothing about where the first one started."""
-        name, text = self.WRAPPED
-        assert set_page(build(text, name)) == text
+        assert set_page(build(self.TEXT, self.NAME)) == self.TEXT
 
-        broken = build(text, name)
+        broken = build(self.TEXT, self.NAME)
         (place,) = [b for b in broken if b.kind == "trailing-comment"]
         place.raw_lines = place.raw_lines[:1]
-        assert set_page(broken) != text
+        assert set_page(broken) != self.TEXT
+
+
+SHARED_LINES = pytest.mark.parametrize(
+    ("shared", "broken"),
+    [
+        ('def fn(): "doc"; y = 42\n', 'def fn():\n    "doc"\n    y = 42\n'),
+        ('def fn(): "doc"\n', 'def fn():\n    "doc"\n'),
+        (
+            'class C:\n  def m(self): "doc"; y = 42  # note\n',
+            'class C:\n  def m(self):\n    "doc"\n    y = 42  # note\n',
+        ),
+        ('def f():\n\t"""Doc."""; y = 42\n', 'def f():\n\t"""Doc."""\n\ty = 42\n'),
+        ('"""Mod."""; y = 42\n', '"""Mod."""\ny = 42\n'),
+        (
+            'def f():\r\n    """Doc.""" ; y = 42\r\n',
+            'def f():\r\n    """Doc."""\r\n    y = 42\r\n',
+        ),
+    ],
+)
+
+
+class TestADocstringSharingItsLineIsSetBroken:
+    """The read breaks the line, so the page sets the broken source."""
+
+    @SHARED_LINES
+    def test_the_unedited_page_sets_the_broken_source(self, shared, broken):
+        assert set_page(build(shared)) == broken
+
+    @SHARED_LINES
+    def test_a_docstring_grown_to_a_template_keeps_every_other_place(
+        self, shared, broken
+    ):
+        from comment_review.results.galley import reset
+
+        page = build(shared)
+        doc = next(b for b in page if b.kind == "docstring")
+        first = doc.raw_lines[0]
+        pad = first[: len(first) - len(first.lstrip())]
+        template = f'{pad}"""Summary.\n\n{pad}Returns:\n{pad}    A value.\n{pad}"""'
+        assert reset(page, {cue(doc): template}) == []
+        out = set_page(page)
+        compile(out, "m.py", "exec")
+        again = build(out)
+        assert {cue(b) for b in again} == {cue(b) for b in build(broken)}
+        assert by_cue(again)[cue(doc)].text == "Summary. Returns: A value."
+        assert [
+            (b.address, b.raw_text, b.anchor) for b in again if b.kind != "docstring"
+        ] == [
+            (b.address, b.raw_text, b.anchor)
+            for b in build(broken)
+            if b.kind != "docstring"
+        ]
+
+
+def test_a_docstring_continued_by_a_backslash_is_set_back_with_its_continuation():
+    from comment_review.results.galley import reset
+
+    page = build('def f():\n    """D.""" \\\n    \n    return 1\n')
+    doc = next(b for b in page if b.kind == "docstring")
+    assert reset(page, {cue(doc): '    """New doc.""" \\'}) == []
+    out = set_page(page)
+    assert out == 'def f():\n    """New doc.""" \\\n    \n    return 1\n'
+    compile(out, "m.py", "exec")
+
+
+@pytest.mark.parametrize(
+    ("place", "prose", "expected"),
+    [
+        (
+            "f0",
+            "#!/usr/bin/env node\n// Licence.",
+            "#!/usr/bin/env node\n// Licence.\n{code}\n",
+        ),
+        (
+            "a0",
+            "/** Module. */",
+            "#!/usr/bin/env node\n/** Module. */\n{code}\n",
+        ),
+    ],
+    ids=["f0", "a0"],
+)
+def test_filling_the_head_of_a_shebang_file_keeps_the_shebang_on_line_one(
+    place, prose, expected
+):
+    from comment_review.results.galley import reset
+
+    name = "m.rs"
+    code = "fn main() {}"
+
+    page = build(f"#!/usr/bin/env node\n{code}\n", name)
+    assert reset(page, {place: prose}) == []
+    assert set_page(page) == expected.format(code=code)
+
+
+@pytest.mark.parametrize(
+    ("name", "text", "places", "expected"),
+    [
+        (
+            "m.py",
+            "x = 1\n",
+            {"f0": "# licence", "a0": '"""Doc."""'},
+            '# licence\n"""Doc."""\nx = 1\n',
+        ),
+        ("m.rs", "// licence\n", {"a0": "/** Doc. */"}, "// licence\n/** Doc. */\n"),
+        (
+            "m.rs",
+            "const X: i32 = 1;\n",
+            {"f0": "// licence", "a0": "/** Doc. */"},
+            "// licence\n/** Doc. */\nconst X: i32 = 1;\n",
+        ),
+        (
+            "m.rs",
+            "#!/usr/bin/env run\nconst X: i32 = 1;\n",
+            {"f0": "#!/usr/bin/env run\n// licence", "a0": "/** Doc. */"},
+            "#!/usr/bin/env run\n// licence\n/** Doc. */\nconst X: i32 = 1;\n",
+        ),
+    ],
+    ids=[
+        "python",
+        "rs-matter-only",
+        "rs-code-only",
+        "rs-shebang",
+    ],
+)
+def test_the_head_places_are_filled_and_set_back_in_reading_order(
+    name, text, places, expected
+):
+    # f0 then a0, each set where it was filled. That the written text is read
+    # back at the same places is the page's, in `tests/test_page_for.py`.
+    from comment_review.results.galley import reset
+
+    page = build(text, name)
+    assert reset(page, places) == []
+    assert set_page(page) == expected
+
+
+@pytest.mark.parametrize("ending", ["\n", "\r\n"])
+@pytest.mark.parametrize(
+    ("text", "places"),
+    [
+        ('x=f"{value # note\n}"; after()\n', ("c0",)),
+        ('x=f"""{\n    # note\n    value\n}"""; after()\n', ("b1",)),
+        ('x=f"""{value # first\n\n    # second\n}"""; after()\n', ("c0", "b1")),
+        ('x=f"""{\n    # first\n\n    # second\n    value\n}"""; after()\n', ("b1",)),
+        ('x=f"""{f\'{\n    # note\n    value\n}\'}"""; after()\n', ("b1",)),
+        ('x=f"{before}{value # note\n}{after}"; work()\n', ("c0",)),
+        ('x=f"{value:{width # note\n}}"; work()\n', ("c0",)),
+        ('x=f"{value # note } f\' x\n}"; after()\n', ("c0",)),
+    ],
+)
+def test_a_comment_inside_an_expression_is_set_and_edited_around_the_expression(
+    ending, text, places
+):
+    from comment_review.results.galley import reset
+
+    text = text.replace("\n", ending)
+    assert set_page(build(text)) == text
+    for place in places:
+        own = ending.join(by_cue(build(text))[place].raw_lines) + ending
+        start = text.index(own)
+        end = start + len(own)
+        replacement = own.replace("# note", "# edited").replace("# first", "# edited")
+        replacement += "    # added" + ending
+        page = build(text)
+        assert reset(page, {place: replacement}) == []
+        assert set_page(page) == text[:start] + replacement + text[end:]
+        page = build(text)
+        assert reset(page, {place: None}) == []
+        vacated = ending if place.startswith("c") else ""
+        assert set_page(page) == text[:start] + vacated + text[end:]
+
+
+MARK = "\ufeff"
+
+
+@pytest.mark.parametrize(
+    ("name", "code", "added"),
+    [
+        ("a.rs", "fn f() {}", "// added"),
+        ("a.py", "x = 1", "# added"),
+    ],
+    ids=["rs", "py"],
+)
+@pytest.mark.parametrize("cue", ["f0", "a0", "b0"])
+def test_a_head_add_sets_the_mark_first(cue, name, code, added):
+    from comment_review.results.galley import reset
+
+    page = build(f"{MARK}{code}\n", name)
+    assert reset(page, {cue: added}) == []
+    text = set_page(page)
+    assert text.startswith(MARK)
+    assert text.count(MARK) == 1
+
+
+def test_a_dropped_first_paragraph_keeps_the_mark():
+    from comment_review.results.galley import reset
+
+    name = "a.rs"
+    code = "const X: i32 = 1;"
+
+    page = build(f"{MARK}// c\n{code}\n", name)
+    assert reset(page, {"f0": None}) == []
+    assert set_page(page) == f"{MARK}{code}\n"
+
+
+def test_a_mark_inside_a_later_string_stays():
+    from comment_review.results.galley import reset
+
+    name = "a.rs"
+    text = MARK + 'const X: i32 = 1;\nconst S: &str = "' + MARK + '";\n'
+
+    page = build(text, name)
+    assert reset(page, {"f0": "// added"}) == []
+    out = set_page(page)
+    assert out.startswith(MARK + "// added")
+    assert out.count(MARK) == 2
+
+
+def test_a_patched_head_does_not_edit_a_later_paragraph_holding_a_mark():
+    from comment_review.results.galley import reset
+
+    name = "a.rs"
+    x = "const X: i32 = 1;"
+    y = "const Y: i32 = 2;"
+
+    text = f"{MARK}// c\n{x}\n/* one\n{MARK}two */\n{y}\n"
+    page = build(text, name)
+    assert reset(page, {"f0": "// patched"}) == []
+    assert set_page(page) == text.replace("// c", "// patched")
+
+
+def test_an_emptied_marked_file_is_the_mark_alone():
+    from comment_review.results.galley import reset
+
+    name = "a.rs"
+
+    page = build(MARK + "// c\n", name)
+    assert reset(page, {"f0": None}) == []
+    assert set_page(page) == MARK
+
+
+@pytest.mark.parametrize(
+    ("text", "name"),
+    [
+        (MARK + "// c\n" + MARK + "// d\nfn f() {}\n", "a.rs"),
+        (MARK + "// c\n" + MARK + "const X: i32 = 1;\n", "a.rs"),
+        (MARK + "\n" + MARK + "const X: i32 = 1;\n", "a.rs"),
+        (MARK + "// c\n" + MARK + "\nconst X: i32 = 1;\n", "a.rs"),
+        (MARK + "\n" + MARK + "\nconst X: i32 = 1;\n", "a.rs"),
+        (MARK + "/* c */\n" + MARK + "\nconst X: i32 = 1;\n", "a.rs"),
+        (MARK + "# c\n" + MARK + "x=1\n", "a.py"),
+        (MARK + "# c\n" + MARK + "#\nx=1\n", "a.py"),
+    ],
+)
+def test_a_mark_opening_a_later_code_line_stays(text, name):
+    assert set_page(build(text, name)) == text
+
+
+@pytest.mark.parametrize(
+    ("text", "cue", "expected"),
+    [
+        ('def g(): """d."""\nx = 1\n', "a1", 'def g():\n    """d."""\nx = 1\n'),
+        (
+            'class C:\n    def g(self): """d."""\n',
+            "a2",
+            'class C:\n    def g(self):\n        """d."""\n',
+        ),
+    ],
+    ids=["function", "method"],
+)
+def test_a_same_line_docstring_is_set_on_its_own_line_below_the_declaration(
+    text, cue, expected
+):
+    """The one shape the identity above does not hold for, by design: the
+    docstring is the declaration's `a` place and is set below it, indented."""
+    page = build(text, "m.py")
+    doc = [line for line in expected.splitlines() if '"""' in line]
+    assert by_cue(page)[cue].raw_lines == doc
+    assert set_page(page) == expected
+    assert set_page(build(expected, "m.py")) == expected
