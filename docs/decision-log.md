@@ -6396,3 +6396,29 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   **What it settles.** `#51`'s first half stands done. Its second half is one task on
   `no-command-for-the-middle`: a carried-forward place and a refused round print the command that
   continues the run. P22 is superseded by that task.
+
+- **#287.** **Five rulings from the 2026-11-07 open-plan audit** (Roy, 2026-11-07, shown an
+  agent's report on each open plan and seven questions drawn from them):
+
+  *"AT8 - the desk raises it as an exit code on the collate"*
+
+  *"2 - ‘git merge’ should not have been part of any plan. Go ahead and supersede those"*
+
+  *"3 - yes they count"*
+
+  *"5 - supersede it. It is not part of the plan and the file stays."*
+
+  *"7 - they should close (superseded or finished) when the other plan finishes them. If the
+  other plan finished them and they didn’t get marked then we can correct them. If they are not
+  finished in the other plan then they stay open"*
+
+  **What it settles.**
+  - `brief-says-three-series` T8: a correction to an `f` place reaches the human from the desk,
+    as a `collate` exit code, not from a query the role files. T7 is backend work.
+  - A plan step that merges a branch is not plan work. `the-agents-read-the-cli` P19 and
+    `the-cli-carries-a-real-run` P12 and P15 are superseded.
+  - `the-agents-read-the-cli` P5: the October workout_organizer runs count toward it.
+  - `the-middle-rebuilt` P21 and `external-address-cites-dead-modules` T2 are superseded;
+    `desk/external_address.py` stays.
+  - A task one plan moves to another holds the first plan open until the second finishes or
+    supersedes it. One the second already finished but left unmarked is corrected.
