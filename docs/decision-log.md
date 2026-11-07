@@ -6422,3 +6422,16 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
     `desk/external_address.py` stays.
   - A task one plan moves to another holds the first plan open until the second finishes or
     supersedes it. One the second already finished but left unmarked is corrected.
+
+- **#288.** **A `correct` answer owes sources; a `patch` answer owes only its change** (Roy,
+  2026-11-07, on `the-chief-has-no-recast-workflow` T14, shown that a first `correct` mark owes
+  `false`, `true` and sources and a first `patch` owes `from` and `to`, while either answer in a
+  turn owes only `change` and a reason, so the two answers differ only in name; offered three
+  options, the second being that a `correct` answer owes sources, a `patch` answer stays as it is,
+  and no `false`/`true` quote is owed because the text answered is the composed text):
+
+  *"B looks good"*
+
+  **What it settles.** `CorrectAnswer` owes `sources`, checked as a `correct` mark's are;
+  `PatchAnswer` is unchanged. Neither owes a quote. `tests/test_answers.py`, which pins the empty
+  claim, is updated with the change.
