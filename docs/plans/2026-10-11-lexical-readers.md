@@ -1,8 +1,8 @@
 # Lexical readers implementation
 
 ```
-Status:   in-progress
-Progress: 183 of 189 TODO tasks closed
+Status:   closed
+Progress: 189 of 189 TODO tasks closed
 Plan-tasks: 61 of 61 plan tasks closed
 Owner:    backend
 Requires-Roy: false
@@ -37,14 +37,14 @@ interfaces, inputs and checks, without internal development files or history.
 - [x] T1 | MOVED to 2026-10-11-lexer-python | Replace Python AST identity checks
       with lexical comparison; verify docstring add and removal agree at both
       gates
-- [ ] T2 | Preserve literal whitespace in prove_unchanged.py:191-207; verify
+- [x] T2 | Preserve literal whitespace in prove_unchanged.py:191-207; verify
       blank-line and trailing-space edits change the fingerprint
 - [x] T7 | MOVED to 2026-10-25-reader-hands-prose-only | Prove a lexical file
       that has no line of code
 
-### B - [smoke-fixture-defects](../../TODO/smoke-fixture-defects.md)
+### B - [smoke-fixture-defects](../../TODO/completed/smoke-fixture-defects.md)
 
-- [ ] T1 | Update wrapped-drop expected text for paragraph rewrapping and verify
+- [x] T1 | Update wrapped-drop expected text for paragraph rewrapping and verify
       the full command smoke passes
 
 ### C - [the-flow-lives-in-the-command](../../TODO/the-flow-lives-in-the-command.md)
@@ -213,8 +213,8 @@ interfaces, inputs and checks, without internal development files or history.
       Rust's own definition file
 - [x] T53 | MOVED to 2026-10-25-reader-hands-prose-only | Make every comment
       above a module docstring front matter, per #240
-- [ ] T51 | Make Python decorators and Rust attributes one unit with their item
-- [ ] T56 | Offer no place inside a string literal that spans lines
+- [-] T51 | Make Python decorators and Rust attributes one unit with their item
+- [-] T56 | Offer no place inside a string literal that spans lines
 
 ### H - [a-doc-comment-is-cued-a-and-typed-b](../../TODO/completed/a-doc-comment-is-cued-a-and-typed-b.md)
 
@@ -262,9 +262,9 @@ interfaces, inputs and checks, without internal development files or history.
 - [-] T4 | Update the lexer so a docstring attaches to the line of code it
       shares, and the walk emits that line's places
 
-### L - [closing-line-deletes-code](../../TODO/closing-line-deletes-code.md)
+### L - [closing-line-deletes-code](../../TODO/completed/closing-line-deletes-code.md)
 
-- [ ] T4 | T4 -- * RE-RULE the 2026-08-20 acceptance with the DELETED CODE on
+- [-] T4 | T4 -- * RE-RULE the 2026-08-20 acceptance with the DELETED CODE on
       the table, and say which of the two contradicting notes stands. Verify:
       the answer is in this file.
 - [-] T7 | T7 -- When the galley's composition step lands, take whichever option
@@ -440,7 +440,7 @@ interfaces, inputs and checks, without internal development files or history.
       the ANCHOR of the cue it names. Verify: it goes red today -- `b1` anchors
       the SECOND line of code.
 
-### AC - [the-anchor-claims-are-inverted](../../TODO/the-anchor-claims-are-inverted.md)
+### AC - [the-anchor-claims-are-inverted](../../TODO/completed/the-anchor-claims-are-inverted.md)
 
 - [x] T1 | T1 -- Take *"a comment's anchor"* out of the `tokenized` CANNOT
       ANSWER column at `SKILL.md:430`. Verify: no row of that table says a
@@ -448,7 +448,7 @@ interfaces, inputs and checks, without internal development files or history.
 - [x] T2 | T2 -- Drop the false premise at `SKILL.md:433-435`, keeping the
       CANDIDATE conclusion. Verify: no sentence in `SKILL.md` says a comment
       carries no anchor.
-- [ ] T3 | T3 -- Correct `reviewer-brief.md:126-127` to say a LINE OF CODE, not
+- [x] T3 | T3 -- Correct `reviewer-brief.md:126-127` to say a LINE OF CODE, not
       a declaration. Verify: `grep -rn "names the declaration" plugins/` comes
       back empty.
 - [x] T4 | T4 -- Drop *"and is empty where none was"* from the same sentence --
