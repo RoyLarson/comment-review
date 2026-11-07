@@ -6378,3 +6378,8 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   unit maps to the unit's `b`; a `b` inside a string that spans lines maps to the `b` above the
   statement holding it; a `c` on a line that ends inside a string maps to the `c` of the line the
   string closes on. The lookup answers with the mapped address.
+
+  Widened the same day to `a`: *"This goes for ‘a’ places as well. Particularly Rust and its
+  markers like Derive …"* Shown that `addresses find --series a` on a Rust item's declaring line,
+  or on any attribute line but the first, answers that the line declares nothing documentable;
+  so every line of an annotation unit maps its `a` to the unit's `a`.
