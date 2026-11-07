@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 2 of 10 tasks closed
+Progress: 2 of 12 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-27 (Roy, 2026-10-27, decision-log #244)
@@ -48,3 +48,9 @@ only they need.
         > 2026-10-30 Derive it from DocPlace.at; Rust units land then (T51)
 - [ ] T9 | Mark an empty `b` inside a unit unassignable (#257)
 - [ ] T10 | Resolve an unassignable `b` to its unit's assignable `b` (#257)
+- [ ] T11 | Map every place on Cues to the address it is written at (#285)
+        > 2026-11-07 Unit b -> unit's b; string b -> b above; string c -> closing c
+        > 2026-11-07 Most map to themselves; built at read, held on Cues (#285)
+- [ ] T12 | Resolve the lookup to the mapped address (#285)
+        > 2026-11-07 Check: find at b2 inside a decorator unit answers the unit's b
+        > 2026-11-07 Check: b and c inside a multi-line string answer per T11
