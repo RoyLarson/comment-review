@@ -261,7 +261,7 @@ is a `patch` to the general rule.
 An `add` cites the empty place the prose belongs in, and its finding is a constraint the code
 holds that no prose states. Ask `addresses find` for that place by the line of code it belongs to
 -- an anchor is a line of code, `def f():` -- and file the mark at that address with
-`--anchor-line`. Its `anchor` claim names the declaration in backticks.
+`--anchor-line`. Its `anchor` claim names that line of code in backticks.
 
 ### `move`
 
