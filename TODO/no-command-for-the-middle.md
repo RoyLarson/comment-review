@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 86 of 103 tasks closed
+Progress: 91 of 103 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-29 (2026-08-29, running the chain end to end for the first time with a
@@ -127,28 +127,32 @@ Reconciliation has no command, so the chain cannot be driven end to end.
 - [x] T19 | FINISHED -- run_turn returns one Collated with its Revisits folded into revisit; turn.py merges no lists | 0611de3e | Update
       run_turn to fold its Revisits into Collated.revisit and return the
       Collated alone. Verify: turn.py merges no lists
-- [ ] T20 | Implement a Turn record container with seed, serialize and
-      deserialize, written by the flow. Verify: turn.py composes no record dict
-- [ ] T21 | Implement a typed Unsettlable record held by Collated and
-      MasterProof. Verify: proof_after strips nothing
-- [ ] T22 | Implement a Ruling container and a rulings_at_cap flow that stacks
-      refusals. Verify: cap.py parses no ruling by hand; check --rulings
+- [-] T20 | The old turn record went with the fold (0e2ff82a); proof is state | 0e2ff82a | Implement
+      a Turn record container with seed, serialize and deserialize, written by
+      the flow. Verify: turn.py composes no record dict
+- [-] T21 | Unsettlable, Collated and proof_after deleted with the old fold | 0e2ff82a | Implement
+      a typed Unsettlable record held by Collated and MasterProof. Verify:
+      proof_after strips nothing
+- [-] T22 | cap is disposition (c5080996); it folds through flows.bus | c5080996 | Implement
+      a Ruling container and a rulings_at_cap flow that stacks refusals. Verify:
+      cap.py parses no ruling by hand; check --rulings
 - [x] T23 | FINISHED -- flows.turn.close returns the closed proof and the chief; cap.py calls replace nowhere | 7f59a7f4 | Update
       determined_chief or a close flow to return the closed MasterProof. Verify:
       cap.py calls replace nowhere
 - [x] T24 | FINISHED -- Binder.root; the four sites read Path(args.repo) if args.repo else binder.root; the lint delta is the commit after | 231d5cf9 | Implement
       Binder.root and drop the args.repo-or-root-or-dot fallback at four
       commands. Verify: one resolution of the root
-- [ ] T25 | Update turn and cap to fold without re-serializing the proof's
-      copies, and cap without a refold. Verify: each mark parses once per
-      command
+- [-] T25 | The fold it names was deleted; turn and disposition use the bus | 0e2ff82a | Update
+      turn and cap to fold without re-serializing the proof's copies, and cap
+      without a refold. Verify: each mark parses once per command
 - [x] T26 | FINISHED -- the hand driver lives in tests/helpers.py over conftest.run_command; test_turn_command, test_cap_command and test_gather_command drive main() through it | 171bfdb8 | Update
       test_turn_command, test_cap_command and test_gather_command to drive
       main() through run_command, with the hand driver in helpers.py
 - [ ] T27 | Update the command tests to deal each distinct hand once per module
       and gather each case once. Verify: 9 collate runs become 2
-- [ ] T28 | Implement the outcome once: exit codes, _report, the Revisit
-      printer, the refused handler and the batch write, shared by three commands
+- [x] T28 | Exit codes, printer, refusals and save_batch shared via collate | 144acecc | Implement
+      the outcome once: exit codes, _report, the Revisit printer, the refused
+      handler and the batch write, shared by three commands
 - [x] T29 | a composition answer at a real place seeds a slot, as fill does | 30071cf1 | Update
       turn so a role answering a composition re-read at an add's empty place is
       not refused for having no slot
