@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (118)
+### open  (117)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -194,7 +194,6 @@ that changed a published name or rule:
 | [line-0-places-are-unreachable](line-0-places-are-unreachable.md) | backend | -- | 4/6 | **An empty place sits at line 0 by ruling, and both tools that answer by LINE filter on `start &lt;= line &lt;= end`.** So the places an `add` exists to cite are the ones no line lookup can name -- while the brief forbids the only remaining route, counting. |
 | [filtered-measurement-unrecorded](filtered-measurement-unrecorded.md) | testing | -- | 3/5 | The filtered-census measurement exists only in run history |
 | [six-mutations-survive-the-suite](six-mutations-survive-the-suite.md) | testing | -- | 1/8 | 720 tests green against six deliberate defects in shipped code |
-| [the-anchor-claims-are-inverted](the-anchor-claims-are-inverted.md) | agents | -- | 3/4 | shipped prose says an anchor is often empty; it is never empty |
 | [stale-measurements-in-shipped-prose](stale-measurements-in-shipped-prose.md) | testing | yes | 1/6 | every one re-derivable by a command, and every one wrong |
 | [assertions-that-gate-a-substring](assertions-that-gate-a-substring.md) | testing | -- | 5/10 | each passes in the buggy state its own comment forbids |
 | [move-across-an-uncued-file](move-across-an-uncued-file.md) | backend | -- | 5/6 | the address form spans files; the census does not |
@@ -537,3 +536,4 @@ the reason is inside the file.
 | [the-code-check-refuses-add-and-drop-on-a-docstring](completed/the-code-check-refuses-add-and-drop-on-a-docstring.md) | 7 finished, 5 superseded |
 | [doc-on-the-declaring-line](completed/doc-on-the-declaring-line.md) | 4 superseded |
 | [smoke-fixture-defects](completed/smoke-fixture-defects.md) | 1 finished |
+| [the-anchor-claims-are-inverted](completed/the-anchor-claims-are-inverted.md) | 4 finished |

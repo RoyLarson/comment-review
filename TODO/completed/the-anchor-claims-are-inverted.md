@@ -1,8 +1,8 @@
 # The anchor claims in SKILL.md and the brief are inverted
 
 ```
-Status:   open
-Progress: 3 of 4 tasks closed
+Status:   closed
+Progress: 4 of 4 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-08-20 (the branch review of 2026-08-20)
@@ -56,8 +56,9 @@ emits, which is why this is worth fixing rather than tolerating.
       Drop the false premise at `SKILL.md:433-435`, keeping the CANDIDATE
       conclusion. Verify: no sentence in `SKILL.md` says a comment carries no
       anchor.
-- [ ] T3 | T3 -- Correct `reviewer-brief.md:126-127` to say a LINE OF CODE, not
-      a declaration. Verify: `grep -rn "names the declaration" plugins/` comes
+- [x] T3 | Brief names the anchor as a line of code; grep src/ empty | 7b9ebe3c | T3
+      -- Correct `reviewer-brief.md:126-127` to say a LINE OF CODE, not a
+      declaration. Verify: `grep -rn "names the declaration" plugins/` comes
       back empty.
 - [x] T4 | 'empty where none was' left the brief; grep empty | 717a35cb | T4 --
       Drop *"and is empty where none was"* from the same sentence -- a
