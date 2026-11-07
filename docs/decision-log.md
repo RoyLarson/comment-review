@@ -6338,3 +6338,16 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   not at all; `proof --only` naming one end alone is refused, naming the move. After the move is
   approved its ends are split on the turn, so a `correct` or `patch` can make the moved statement
   more correct at either end.
+
+- **#284.** **A block comment that closes before code on its line is not re-ruled** (Roy,
+  2026-11-07). `closing-line-deletes-code` T4 asked to re-rule the 2026-08-20 acceptance with
+  the cost on the table: on C, a `patch` to `/* note
+   more */ int x = 5;` deleted
+  `int x = 5;`. Shown that C left the system under `#259`, that Python has no block comment, that
+  the Rust reader reads both lines as code (`c2`, `c3`) so no place holds that comment, and that
+  stage 7b proves the drafts in a worktree before the write:
+
+  *"Supersede"*
+
+  **What it settles.** T4 is superseded and no re-ruling is owed. The 2026-08-21 note that cleared
+  `Requires-Roy` stands, for the reasons above rather than the galley.
