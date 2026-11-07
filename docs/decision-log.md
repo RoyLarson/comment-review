@@ -6383,3 +6383,16 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   markers like Derive …"* Shown that `addresses find --series a` on a Rust item's declaring line,
   or on any attribute line but the first, answers that the line declares nothing documentable;
   so every line of an annotation unit maps its `a` to the unit's `a`.
+
+- **#286.** **Each line a middle command leaves unresolved names the command that continues it**
+  (Roy, 2026-11-07, on `0.2.4-the-commands-for-the-middle` P22, shown that `collate`, `turn` and
+  `check` name every unresolved place and who owes it, but only a human question says what to do
+  next, while a carried-forward place and a refused round leave the next command to SKILL.md's
+  exit-code table; recommended keeping the remainder as one task, so each line or a closing line
+  names its next step as the human-question line does):
+
+  *"Agree with you recommendation"*
+
+  **What it settles.** `#51`'s first half stands done. Its second half is one task on
+  `no-command-for-the-middle`: a carried-forward place and a refused round print the command that
+  continues the run. P22 is superseded by that task.
