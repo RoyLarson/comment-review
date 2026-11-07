@@ -6351,3 +6351,30 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
 
   **What it settles.** T4 is superseded and no re-ruling is owed. The 2026-08-21 note that cleared
   `Requires-Roy` stands, for the reasons above rather than the galley.
+
+- **#285.** **Every place keeps its address, and `Cues` maps each to the place it is written at**
+  (Roy, 2026-11-07, on `lexer-and-language-findings` T51 and T56 and `one-reader-builder` T9 and
+  T10, shown a decorated function holding a multi-line string, whose page offers a `b` between
+  the decorators and a `b` and `c` inside the string):
+
+  *"I think T51, T56 are the same implementation requirement, which is a combined line as an
+  anchor that states that some positions are not available to be written to and that the reason
+  we just redid address—line was so that the system could return the address that that comment
+  can be written to."*
+
+  *"What I am thinking on this is that each line still gets its address like now, but then there
+  is a reference table in the page or address that states which addresses are writable in the
+  lookup and if the address isn’t writeable it returns the location that is"*
+
+  *"It could be a simple dict where in most places the address just references its self but for
+  point to unwrittable spots those reference the correct address to put that comment at"*
+
+  Asked where a place inside a string points, whether `c` is covered, and where the table lives:
+  *"1 agree / 2 agree with moving to the end / 3 Cues works"*.
+
+  **What it settles.** It widens `#257` from a `b` inside a unit to every place the code makes
+  unwritable. Each line keeps its address. `Cues` holds a table built at read, from each address
+  to the address text there is written at; most map to themselves. A `b` inside an annotation
+  unit maps to the unit's `b`; a `b` inside a string that spans lines maps to the `b` above the
+  statement holding it; a `c` on a line that ends inside a string maps to the `c` of the line the
+  string closes on. The lookup answers with the mapped address.
