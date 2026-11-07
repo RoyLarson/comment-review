@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 8 of 14 tasks closed
+Progress: 9 of 15 tasks closed
 Owner:    backend
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-09-08 (Roy 2026-09-08: implementing the recast workflow for the cli the
           copy-chief uses to resolve the final pieces is a good todo, and cap is a bad
           name for it)
@@ -60,6 +60,7 @@ The copy chief has no workflow for recasting the places that never settled.
 - [ ] T13 | Generate the chief ruling contract from ruling types and publish it
       through check
         > 2026-09-30 Criteria: docs/reviews/2026-09-30-r4.md, D
-- [?] T14 | Decide whether correct and patch answers require initial-mark claims
-      and evidence
+- [x] T14 | #288: correct answers owe sources; patch answers do not | 13440508 | Decide
+      whether correct and patch answers require initial-mark claims and evidence
         > 2026-09-30 Decision: docs/reviews/2026-09-30-r4.md, Genuine ruling
+- [ ] T15 | Require sources on a correct answer, as on a correct mark (#288)
