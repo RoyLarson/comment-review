@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 2 of 12 tasks closed
+Progress: 4 of 12 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-27 (Roy, 2026-10-27, decision-log #244)
@@ -46,8 +46,10 @@ only they need.
 - [x] T8 | CodeLine.joins removed; T51 derives a unit from DocPlace.at | e0da1c3a2a39e797c69ae351e76d296d5156ad5f | Remove
       CodeLine.joins once a unit has one statement
         > 2026-10-30 Derive it from DocPlace.at; Rust units land then (T51)
-- [ ] T9 | Mark an empty `b` inside a unit unassignable (#257)
-- [ ] T10 | Resolve an unassignable `b` to its unit's assignable `b` (#257)
+- [-] T9 | Widened by #285 into T11 | 5ca5f8f1 | Mark an empty `b` inside a unit
+      unassignable (#257)
+- [-] T10 | Widened by #285 into T12 | 5ca5f8f1 | Resolve an unassignable `b` to
+      its unit's assignable `b` (#257)
 - [ ] T11 | Map every place on Cues to the address it is written at (#285)
         > 2026-11-07 Unit b -> unit's b; string b -> b above; string c -> closing c
         > 2026-11-07 Most map to themselves; built at read, held on Cues (#285)

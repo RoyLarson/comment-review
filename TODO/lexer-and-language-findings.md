@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 58 of 75 tasks closed
+Progress: 61 of 75 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (/simplify rounds 1 and 2 and /code-review high round 3,
@@ -356,7 +356,8 @@ would.
       docstring (#232)
         > 2026-10-26 js: // Licence, blank, function f() {} -> a1; over const x -> f0
         > 2026-10-26 At ef037f20 too; document_declarations claims before the matter cut
-- [ ] T51 | Make Python decorators and Rust attributes one unit with their item
+- [-] T51 | #285: one-reader-builder T11-T12; Rust owner is T74 | 9e513b91 | Make
+      Python decorators and Rust attributes one unit with their item
         > 2026-10-26 decision-log #238; CodeLine.joins from P18; b falls inside today
         > 2026-10-27 Lands with one-reader-builder (#244); fix once for every reader
         > 2026-10-30 W5: with a Rust attribute the fn line declares nothing, says a0
@@ -377,7 +378,8 @@ would.
       Kotlin's property keywords to its declares list
 - [-] T55 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | Join
       an annotation whose arguments run onto a second line
-- [ ] T56 | Offer no place inside a string literal that spans lines
+- [-] T56 | #285: one-reader-builder T11-T12 map string places | 9e513b91 | Offer
+      no place inside a string literal that spans lines
         > 2026-10-27 C backslash strings get c; Python triple quotes get b
 - [ ] T57 | Place a doc comment whole when another opens on its first line
         > 2026-10-27 /** M */ /** F, newline, */ over f is cut over a0 and a1
@@ -424,4 +426,5 @@ would.
       it
         > 2026-11-07 From T51 (#285): W5 says a0 when an attribute is above fn
         > 2026-11-07 Check: owner_at gets the trigger line; decorated drafts prove
-- [ ] T75 | Name the fn line as declaring when a Rust attribute is above it
+- [-] T75 | Filed in error: duplicate of T74 | 9e513b91 | Name the fn line as
+      declaring when a Rust attribute is above it
