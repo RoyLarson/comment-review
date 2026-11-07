@@ -206,6 +206,24 @@ def test_both_gates_preserve_promoted_ordinary_literal(
 
 
 @pytest.mark.parametrize(
+    ("suffix", "before"),
+    [
+        (".py", 'X = """a\nb\n"""\nY = 1\n'),
+        (".rs", 'const X: &str = "a\nb\n";\nfn f() {}\n'),
+    ],
+)
+@pytest.mark.parametrize("edit", ["a\n\nb", "a  \nb"])
+def test_whitespace_inside_a_string_literal_is_code(tmp_path, suffix, before, edit):
+    """A blank line or trailing space added inside a string changes its value."""
+    repo, target = proof_repository(tmp_path, before.replace("\n", "\r\n"), suffix)
+    after = before.replace("a\nb", edit, 1)
+    target.write_bytes(after.replace("\n", "\r\n").encode())
+    report = prove_unchanged.run(repo, "HEAD", [target])
+    assert report.failures == 1, report.messages
+    assert any("DIFFERS" in message for message in report.messages)
+
+
+@pytest.mark.parametrize(
     "forgery", ["position", "anchor", "owner", "missing", "ambiguous"]
 )
 def test_selected_owner_requires_unique_retained_correspondence(forgery):
