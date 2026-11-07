@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 12 of 17 tasks closed
+Progress: 13 of 17 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-10 (live-run)
@@ -23,8 +23,9 @@ Use lexical code identity at both proof boundaries.
         > 2026-10-10 Reader scope: all languages currently listed by gather --languages
         > 2026-10-10 Code-reader scope excludes config, data and document formats
         > 2026-10-14 Check: both gates accept doc add/drop; proof also requires approval
-- [ ] T2 | Preserve literal whitespace in prove_unchanged.py:191-207; verify
-      blank-line and trailing-space edits change the fingerprint
+- [x] T2 | Lexical proof refuses string whitespace edits; pinned | 1b165861 | Preserve
+      literal whitespace in prove_unchanged.py:191-207; verify blank-line and
+      trailing-space edits change the fingerprint
 - [x] T3 | Selected documentation retains protected directive context; reviewed | 09df3de4 | Retain
       protected directive context when selecting documentation
         > 2026-10-14 Check: selected docs refuse directive spacing or placement changes

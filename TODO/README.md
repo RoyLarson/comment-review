@@ -287,7 +287,7 @@ that changed a published name or rule:
 | [p5-self-run-findings](p5-self-run-findings.md) | systems | -- | 1/5 | The P5 self-run findings |
 | [r2-preexisting-prose](r2-preexisting-prose.md) | backend | -- | 0/2 | Correct pre-existing move and fold-helper prose |
 | [mark-stance-metadata-prose](mark-stance-metadata-prose.md) | backend | -- | 0/2 | Clarify mark stance and reading metadata prose |
-| [lexical-code-identity](lexical-code-identity.md) | backend | -- | 12/17 | Use lexical code identity at both proof boundaries |
+| [lexical-code-identity](lexical-code-identity.md) | backend | -- | 13/17 | Use lexical code identity at both proof boundaries |
 | [collate-file-input](collate-file-input.md) | backend | -- | 0/1 | Read collation inputs from a file |
 | [2026-10-13-human-question-list](2026-10-13-human-question-list.md) | backend | -- | 0/2 | Expose human questions across edit copies |
 | [empty-comment-gets-a-drop](empty-comment-gets-a-drop.md) | backend | -- | 0/1 | An empty comment gets a drop mark |
