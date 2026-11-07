@@ -53,6 +53,8 @@ only they need.
 - [ ] T11 | Map every place on Cues to the address it is written at (#285)
         > 2026-11-07 Unit b -> unit's b; string b -> b above; string c -> closing c
         > 2026-11-07 Most map to themselves; built at read, held on Cues (#285)
+        > 2026-11-07 Unit a: every line of the unit maps to the unit's a (#285)
 - [ ] T12 | Resolve the lookup to the mapped address (#285)
         > 2026-11-07 Check: find at b2 inside a decorator unit answers the unit's b
         > 2026-11-07 Check: b and c inside a multi-line string answer per T11
+        > 2026-11-07 Check: Rust a at pub struct S under #[derive] answers the unit's a

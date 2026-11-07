@@ -426,5 +426,6 @@ would.
       it
         > 2026-11-07 From T51 (#285): W5 says a0 when an attribute is above fn
         > 2026-11-07 Check: owner_at gets the trigger line; decorated drafts prove
+        > 2026-11-07 #285: the lookup half is T11-T12; this is the proof's owner_at
 - [-] T75 | Filed in error: duplicate of T74 | 9e513b91 | Name the fn line as
       declaring when a Rust attribute is above it
