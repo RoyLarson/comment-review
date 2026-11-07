@@ -2,7 +2,7 @@
 | --- | --- | ---: | ---: |
 | [0.2.4-a-move-is-a-placement-claim](0.2.4-a-move-is-a-placement-claim.md) | closed | 25/25 | 12/12 |
 | [0.2.4-a-move-owns-its-lifecycle](0.2.4-a-move-owns-its-lifecycle.md) | closed | 9/9 | 9/9 |
-| [0.2.4-an-f-correction-is-raised-alone](0.2.4-an-f-correction-is-raised-alone.md) | decision-needed | 0/3 | 0/5 |
+| [0.2.4-an-f-correction-is-raised-alone](0.2.4-an-f-correction-is-raised-alone.md) | in-progress | 1/3 | 0/5 |
 | [0.2.4-block-is-two-senses](0.2.4-block-is-two-senses.md) | closed | 7/7 | 7/7 |
 | [0.2.4-comment-unwrap-rewrap](0.2.4-comment-unwrap-rewrap.md) | closed | 17/17 | 38/38 |
 | [0.2.4-plugins-is-a-release-artifact](0.2.4-plugins-is-a-release-artifact.md) | closed | 6/6 | 7/7 |
@@ -17,7 +17,7 @@
 | [0.2.4-the-commands-for-the-middle](0.2.4-the-commands-for-the-middle.md) | in-progress | 10/11 | 54/61 |
 | [0.2.4-the-listing-goes](0.2.4-the-listing-goes.md) | closed | 7/7 | 4/4 |
 | [0.2.4-the-mark-and-the-collator](0.2.4-the-mark-and-the-collator.md) | closed | 31/31 | 21/21 |
-| [0.2.4-the-middle-rebuilt](0.2.4-the-middle-rebuilt.md) | decision-needed | 63/86 | 28/33 |
+| [0.2.4-the-middle-rebuilt](0.2.4-the-middle-rebuilt.md) | decision-needed | 64/86 | 28/33 |
 | [0.2.4-the-placement-branch-runs](0.2.4-the-placement-branch-runs.md) | closed | 22/22 | 12/12 |
 | [0.2.4-the-proof-is-one-unit](0.2.4-the-proof-is-one-unit.md) | closed | 15/15 | 15/15 |
 | [0.2.4-the-turn-as-commands](0.2.4-the-turn-as-commands.md) | closed | 14/14 | 10/10 |

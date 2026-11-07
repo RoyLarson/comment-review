@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 4 of 10 tasks closed
+Progress: 5 of 10 tasks closed
 Owner:    agents
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-29 (found sweeping reviewer-brief.md against its consumers on
           feat/the-mark-and-the-collator, 2026-08-29)
 ```
@@ -45,8 +45,10 @@ place the same brief tells it to cite at `:74`.
         > 2026-09-12 Roy 2026-09-12: its own plan and branch, not set 4
         > 2026-09-12 reviewer-brief :86-90 states the routing since 7627b266
         > 2026-11-04 Per #274, every mark on an f place raises this query
-- [?] T8 | Decide at which stage each correction to an f place is raised to the
-      human, and what the human is shown
+        > 2026-11-07 #287: backend -- the desk raises an f correction as a collate exit
+- [x] T8 | #287: the desk raises it as a collate exit code | 4c9bf66d | Decide
+      at which stage each correction to an f place is raised to the human, and
+      what the human is shown
 - [ ] T9 | Make the other roles mark against an f-to-b move the human accepted,
       per #274
 - [ ] T10 | Update reviewer-brief.md so any role may mark an f place it looks
