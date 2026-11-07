@@ -64,3 +64,4 @@ The copy chief has no workflow for recasting the places that never settled.
       whether correct and patch answers require initial-mark claims and evidence
         > 2026-09-30 Decision: docs/reviews/2026-09-30-r4.md, Genuine ruling
 - [ ] T15 | Require sources on a correct answer, as on a correct mark (#288)
+        > 2026-11-07 Check: a correct answer without sources refuses; patch does not
