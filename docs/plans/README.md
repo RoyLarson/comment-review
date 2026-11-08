@@ -14,7 +14,7 @@
 | [0.2.4-source-contract](0.2.4-source-contract.md) | closed | 1/1 | 16/16 |
 | [0.2.4-the-agents-read-the-cli](0.2.4-the-agents-read-the-cli.md) | in-progress | 263/263 | 17/19 |
 | [0.2.4-the-cli-carries-a-real-run](0.2.4-the-cli-carries-a-real-run.md) | in-progress | 21/26 | 10/15 |
-| [0.2.4-the-commands-for-the-middle](0.2.4-the-commands-for-the-middle.md) | in-progress | 10/11 | 54/61 |
+| [0.2.4-the-commands-for-the-middle](0.2.4-the-commands-for-the-middle.md) | closed | 11/11 | 61/61 |
 | [0.2.4-the-listing-goes](0.2.4-the-listing-goes.md) | closed | 7/7 | 4/4 |
 | [0.2.4-the-mark-and-the-collator](0.2.4-the-mark-and-the-collator.md) | closed | 31/31 | 21/21 |
 | [0.2.4-the-middle-rebuilt](0.2.4-the-middle-rebuilt.md) | in-progress | 65/87 | 29/33 |

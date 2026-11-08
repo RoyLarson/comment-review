@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 91 of 103 tasks closed
+Progress: 92 of 103 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-29 (2026-08-29, running the chain end to end for the first time with a
@@ -53,9 +53,9 @@ Reconciliation has no command, so the chain cannot be driven end to end.
       the three outcomes. Verify: a stage that settles everything, one that
       escalates and one that owes a re-read do not share a code. ! Narrowed
       2026-08-30 from "distinguishable by exit code alone"; see the note.
-- [ ] T4 | `tests/gates/test_skill_commands.py` sees it. Verify: the command
-      appears in `COMMANDS`, `--help` names it, and the gate that checks
-      SKILL.md's commands resolve covers this one.
+- [x] T4 | collate is in COMMANDS and the skill-commands gate covers it | 4f0b1644 | `tests/gates/test_skill_commands.py`
+      sees it. Verify: the command appears in `COMMANDS`, `--help` names it, and
+      the gate that checks SKILL.md's commands resolve covers this one.
 - [-] T5 | SUPERSEDED by Process #73 -- the task agent sequences the stages from SKILL.md; no command dispatches an agent, so none can drive the horizontal | 7ef790d | A
       command SEQUENCES the stages a topology names. Verify: one invocation runs
       stage 1, pulls revise-1, runs stage 2 against that revise, and stops --
