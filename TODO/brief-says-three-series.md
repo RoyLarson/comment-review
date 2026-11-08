@@ -46,6 +46,7 @@ place the same brief tells it to cite at `:74`.
         > 2026-09-12 reviewer-brief :86-90 states the routing since 7627b266
         > 2026-11-04 Per #274, every mark on an f place raises this query
         > 2026-11-07 #287: backend -- the desk raises an f correction as a collate exit
+        > 2026-11-07 #289: raised on ASKS_THE_HUMAN, a pause; no new exit code
 - [x] T8 | #287: the desk raises it as a collate exit code | 4c9bf66d | Decide
       at which stage each correction to an f place is raised to the human, and
       what the human is shown
