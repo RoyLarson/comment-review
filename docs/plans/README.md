@@ -2,7 +2,7 @@
 | --- | --- | ---: | ---: |
 | [0.2.4-a-move-is-a-placement-claim](0.2.4-a-move-is-a-placement-claim.md) | closed | 25/25 | 12/12 |
 | [0.2.4-a-move-owns-its-lifecycle](0.2.4-a-move-owns-its-lifecycle.md) | closed | 9/9 | 9/9 |
-| [0.2.4-an-f-correction-is-raised-alone](0.2.4-an-f-correction-is-raised-alone.md) | in-progress | 1/3 | 1/5 |
+| [0.2.4-an-f-correction-is-raised-alone](0.2.4-an-f-correction-is-raised-alone.md) | in-progress | 3/3 | 3/5 |
 | [0.2.4-block-is-two-senses](0.2.4-block-is-two-senses.md) | closed | 7/7 | 7/7 |
 | [0.2.4-comment-unwrap-rewrap](0.2.4-comment-unwrap-rewrap.md) | closed | 17/17 | 38/38 |
 | [0.2.4-plugins-is-a-release-artifact](0.2.4-plugins-is-a-release-artifact.md) | closed | 6/6 | 7/7 |
@@ -12,7 +12,7 @@
 | [0.2.4-review-write-boundaries](0.2.4-review-write-boundaries.md) | closed | 4/4 | 4/4 |
 | [0.2.4-rework-the-binder-hands-the-repo](0.2.4-rework-the-binder-hands-the-repo.md) | closed | 6/6 | 5/5 |
 | [0.2.4-source-contract](0.2.4-source-contract.md) | closed | 1/1 | 16/16 |
-| [0.2.4-the-agents-read-the-cli](0.2.4-the-agents-read-the-cli.md) | in-progress | 261/263 | 17/19 |
+| [0.2.4-the-agents-read-the-cli](0.2.4-the-agents-read-the-cli.md) | in-progress | 263/263 | 17/19 |
 | [0.2.4-the-cli-carries-a-real-run](0.2.4-the-cli-carries-a-real-run.md) | in-progress | 21/26 | 10/15 |
 | [0.2.4-the-commands-for-the-middle](0.2.4-the-commands-for-the-middle.md) | in-progress | 10/11 | 54/61 |
 | [0.2.4-the-listing-goes](0.2.4-the-listing-goes.md) | closed | 7/7 | 4/4 |

@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 5 of 10 tasks closed
+Progress: 7 of 10 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-08-29 (found sweeping reviewer-brief.md against its consumers on
@@ -36,11 +36,13 @@ place the same brief tells it to cite at `:74`.
 - [x] T5 | RULED Addressing: #25 -- move to a b place, human asked first | dd5dc235 | Decide
       which instructions an f place takes, and whether a licence or a shebang
       keeps any protection
-- [ ] T6 | Update SKILL.md so the task agent asks the human before a move out of
-      the f series goes ahead
+- [x] T6 | SKILL.md asks the author before an f move or correction | f279f3a1 | Update
+      SKILL.md so the task agent asks the human before a move out of the f
+      series goes ahead
         > 2026-09-12 Roy 2026-09-12: goes with T7's plan, not set 4
-- [ ] T7 | Implement a workflow that raises each correction to an f place to the
-      human on its own for approval
+- [x] T7 | collate raises each f correction on ASKS_THE_HUMAN | f279f3a1 | Implement
+      a workflow that raises each correction to an f place to the human on its
+      own for approval
         > 2026-09-11 Addressing 26, Roy: that probably needs its own workflow
         > 2026-09-12 Roy 2026-09-12: its own plan and branch, not set 4
         > 2026-09-12 reviewer-brief :86-90 states the routing since 7627b266
