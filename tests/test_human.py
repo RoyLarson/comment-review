@@ -4,7 +4,9 @@
 """
 
 from helpers import (
+    a_binder_over,
     a_clean,
+    a_move,
     a_query,
     a_real_binder_over,
     a_typed_answer,
@@ -18,6 +20,7 @@ from comment_review.flows.human import (
     HumanAnswer,
     HumanQuery,
     answered,
+    corrections_to_matter,
     queries_in_answers,
     queries_in_copies,
     read_answers,
@@ -134,3 +137,21 @@ def test_each_query_is_paired_with_its_own_roles_answer():
         ("m.py@b1", "a1"),
         ("m.py@b2", None),
     ]
+
+
+def test_a_move_into_the_matter_is_put_to_the_human_until_answered():
+    """`decision-log.md Process: #274`, `#289`."""
+    binder = a_binder_over({"m.py@b1": "# one", "m.py@b2": "# two"})
+    wire = copies_over(
+        binder,
+        {
+            "ownership-context": {
+                "m.py@b1": a_move("m.py@b1", "m.py@f0"),
+                "m.py@b2": a_clean("m.py@b2"),
+            }
+        },
+    )[0]
+    copies = [returned(wire)]
+    assert [q.at for q in corrections_to_matter(copies, ())] == ["m.py@b1"]
+    yes = HumanAnswer("ownership-context", "m.py@b1", "q", "yes")
+    assert corrections_to_matter(copies, (yes,)) == []

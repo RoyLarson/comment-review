@@ -48,7 +48,9 @@ BROKEN = 1
 UNREADABLE = 2
 REREADS = 3
 ESCALATIONS = 4
-# A rollback holding human questions and nothing else (`Process: #197`).
+# The run paused for the person: human questions and nothing else, nothing
+# saved, and the round runs again once each role has the answer
+# (`Process: #197`, `#289`).
 ASKS_THE_HUMAN = 5
 
 
@@ -156,8 +158,9 @@ def _code_for(out: list) -> int:
     """The exit code one fold's events come to.
 
     A rollback is `BROKEN` where any `Refused` is in `out`, and
-    `ASKS_THE_HUMAN` where it holds human questions and no refusal: nothing
-    was saved, and every reason is on stdout beside the role that owes it.
+    `ASKS_THE_HUMAN` where it holds human questions and no refusal: the run
+    is paused for the person, nothing was saved, and every question is on
+    stdout beside the role that owes it.
     Otherwise the strongest claim on a person's attention wins -- an
     escalation over a contested placement over a composition or an open
     placement, and `OK` where the fold carried nothing forward.

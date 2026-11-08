@@ -23,6 +23,8 @@ from comment_review.desk.answers.table import asks_human
 from comment_review.desk.marks.table import INSTRUCTIONS, Stance
 from comment_review.desk.proof.answer import Answer
 from comment_review.desk.proof.edit_copy import EditCopy
+from comment_review.desk.proof.mark import MoveMark
+from comment_review.reading.addresser import COVERS, cue_of
 
 
 class HumanQuery(NamedTuple):
@@ -55,6 +57,45 @@ def queries_in_copies(copies: list[EditCopy]) -> list[HumanQuery]:
         for mark in sheet.marks
         if INSTRUCTIONS[mark.instruction].pairs(mark) is Stance.UNSETTLABLE
     ]
+
+
+def _in_matter(address: str) -> bool:
+    """Whether `address` names an `f` place, the file's own matter."""
+    cue = cue_of(address).cue
+    return bool(cue) and cue_of(address).series == COVERS
+
+
+def corrections_to_matter(
+    copies: list[EditCopy], human: tuple[HumanAnswer, ...]
+) -> list[HumanQuery]:
+    """Every mark that changes an `f` place, or moves text into one, not yet answered.
+
+    `decision-log.md Process: #274`, `#287`: each correction to the file's
+    matter is put to the human on its own before the fold. Once the human has
+    answered it, the role holds the answer and its mark stands as it now
+    reads, so it is not asked again. A query is asked by `queries_in_copies`.
+    """
+    given = {(one.role, one.at) for one in human}
+    out = []
+    for copy in copies:
+        for sheet in copy.sheets:
+            for mark in sheet.marks:
+                if INSTRUCTIONS[mark.instruction].pairs(mark) is not Stance.PROPOSES:
+                    continue
+                into = isinstance(mark, MoveMark) and _in_matter(mark.to)
+                if not (_in_matter(mark.address) or into):
+                    continue
+                if (copy.role, mark.address) in given:
+                    continue
+                out.append(
+                    HumanQuery(
+                        copy.role,
+                        mark.address,
+                        f"approve this {mark.instruction} to the file's matter: "
+                        f"{mark.reason}",
+                    )
+                )
+    return out
 
 
 def queries_in_answers(given: dict[str, dict[str, Answer]]) -> list[HumanQuery]:

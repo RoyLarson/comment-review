@@ -1159,3 +1159,47 @@ def test_an_undecided_move_prints_one_line_and_sets_the_exit_code():
     assert _lines(opened) == ["open m.py@b1 -> m.py@b5: b (placement)"]
     assert _code_for([opened, events.Committed(2)]) == REREADS
     assert _code_for([contested, events.Committed(2)]) == ESCALATIONS
+
+
+class TestACorrectionToTheMatterAsksTheHuman:
+    """`decision-log.md Process: #274`, `#287`, `#289`: a mark that changes an
+    `f` place is put to the human on its own, and the run pauses for the answer."""
+
+    MARKS = {"ownership-context": {"m.py@b1": a_clean("m.py@b1")}}
+
+    def test_an_add_at_f0_pauses_for_the_human(self, tmp_path, monkeypatch, capsys):
+        def must_not_fold(*args, **kwargs):
+            pytest.fail("an unapproved correction to the matter reached Fold")
+
+        monkeypatch.setattr("comment_review.flows.bus.Fold", must_not_fold)
+        code, out = run(
+            tmp_path,
+            self.MARKS,
+            monkeypatch,
+            capsys,
+            appended=[an_add("m.py@f0")],
+        )
+        assert code == command.ASKS_THE_HUMAN, out
+        assert "m.py@f0" in out
+        assert not (tmp_path / "chief.json").exists()
+
+    def test_an_answered_add_at_f0_is_not_asked_again(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        human = tmp_path / "human.toml"
+        human.write_text(
+            '[[answer]]\nrole = "ownership-context"\nat = "m.py@f0"\n'
+            'question = "q"\nanswer = "yes"\n',
+            encoding="utf-8",
+        )
+        code, out = run(
+            tmp_path,
+            self.MARKS,
+            monkeypatch,
+            capsys,
+            "--human",
+            str(human),
+            appended=[an_add("m.py@f0")],
+        )
+        assert code != command.ASKS_THE_HUMAN, out
+        assert "file's matter" not in out
