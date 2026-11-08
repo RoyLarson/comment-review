@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 23 of 45 tasks closed
+Progress: 27 of 45 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, a code review of `desk/mark.py` that ran `parse`
@@ -302,11 +302,12 @@ cites as its measured example of a field answering neither necessary nor purpose
       copy
 - [ ] T41 | Type `Mark.sources` as source pairs, since `read` refuses anything
       else
-- [ ] T42 | Fix `derived_change`, which rewraps a drop's whole paragraph and
-      flattens docstring layout
-- [ ] T43 | Let two drops on different sentences of one paragraph compose, as
-      the brief says they do
-- [ ] T44 | Make `mark --withdraw` hand the seeded slot back rather than delete
-      it
-- [ ] T45 | Fix `mark --withdraw`, which also removes the role's other marks at
-      that address
+- [-] T42 | SUPERSEDED by T35: filed twice in error | 4db8b52f | Fix
+      `derived_change`, which rewraps a drop's whole paragraph and flattens
+      docstring layout
+- [-] T43 | SUPERSEDED by T36: filed twice in error | 4db8b52f | Let two drops
+      on different sentences of one paragraph compose, as the brief says they do
+- [-] T44 | SUPERSEDED: filed in error; T33 ruled the slot is removed by design | 4db8b52f | Make
+      `mark --withdraw` hand the seeded slot back rather than delete it
+- [-] T45 | SUPERSEDED by T39: filed twice in error | 4db8b52f | Fix `mark
+      --withdraw`, which also removes the role's other marks at that address

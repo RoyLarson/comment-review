@@ -261,7 +261,7 @@ that changed a published name or rule:
 | [ty-cannot-see-the-tests](ty-cannot-see-the-tests.md) | systems (the gate) - backend (the test fixes) | -- | 1/5 | The type gate is scoped to src and cannot see the tests |
 | [null-becomes-the-word-none](null-becomes-the-word-none.md) | backend | -- | 0/6 | A present-but-null key becomes the four characters None |
 | [collate-flow-defects](collate-flow-defects.md) | backend | -- | 4/25 | Twelve defects in `flows/collate.py`, from a review of one file |
-| [mark-defects](mark-defects.md) | backend | -- | 23/45 | Eleven defects in `desk/mark.py`, found by running its parse against its own prose |
+| [mark-defects](mark-defects.md) | backend | -- | 27/45 | Eleven defects in `desk/mark.py`, found by running its parse against its own prose |
 | [binder-defects](binder-defects.md) | backend | -- | 9/39 | Eighteen defects in binder.py, and `read` admits four shapes it exists to refuse |
 | [docket-defects](docket-defects.md) | backend | -- | 5/12 | Six defects in docket.py, and one discards an approved page at exit 0 |
 | [collate-command-defects](collate-command-defects.md) | backend | -- | 6/27 | Sixteen defects in `commands/collate.py`, measured by running it |
@@ -300,7 +300,7 @@ that changed a published name or rule:
 | [one-obvious-way](one-obvious-way.md) | backend | yes | 0/21 | One obvious way |
 | [page-defects](page-defects.md) | backend | -- | 0/3 | binder/page.py carries unread names and a branch nothing reaches |
 | [addresser-defects](addresser-defects.md) | backend | -- | 0/2 | reading/addresser.py answers a miss with a real position |
-| [bus-defects](bus-defects.md) | backend | -- | 0/2 | flows/bus.py carries an unread field and lets a ruling be overwritten |
+| [bus-defects](bus-defects.md) | backend | -- | 1/2 | flows/bus.py carries an unread field and lets a ruling be overwritten |
 | [command-entry-points](command-entry-points.md) | backend | -- | 0/2 | The commands keep entry points of their own beside __main__ |
 
 ### in-progress  (17)
