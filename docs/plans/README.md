@@ -2,7 +2,7 @@
 | --- | --- | ---: | ---: |
 | [0.2.4-a-move-is-a-placement-claim](0.2.4-a-move-is-a-placement-claim.md) | closed | 25/25 | 12/12 |
 | [0.2.4-a-move-owns-its-lifecycle](0.2.4-a-move-owns-its-lifecycle.md) | closed | 9/9 | 9/9 |
-| [0.2.4-an-f-correction-is-raised-alone](0.2.4-an-f-correction-is-raised-alone.md) | in-progress | 3/3 | 4/5 |
+| [0.2.4-an-f-correction-is-raised-alone](0.2.4-an-f-correction-is-raised-alone.md) | closed | 3/3 | 5/5 |
 | [0.2.4-block-is-two-senses](0.2.4-block-is-two-senses.md) | closed | 7/7 | 7/7 |
 | [0.2.4-comment-unwrap-rewrap](0.2.4-comment-unwrap-rewrap.md) | closed | 17/17 | 38/38 |
 | [0.2.4-plugins-is-a-release-artifact](0.2.4-plugins-is-a-release-artifact.md) | closed | 6/6 | 7/7 |
