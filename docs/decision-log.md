@@ -6480,3 +6480,18 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   **What it settles.** A move into an `f` place stays admitted and is asked, as a move out is.
   #290's move-only rule limits what a role may file at an `f` place; it does not refuse a move
   whose destination is one. `flows.human.corrections_to_matter` already asks both.
+
+- **#292.** **A plan names no particular project to test on, and carries no step to close
+  itself** (Roy, 2026-11-08, closing `0.2.4-the-agents-read-the-cli`, whose P5 named two of his
+  own projects for a live run and whose P6 was the plan's own close):
+
+  *"This is done - the-agents-read-the-cli P5) It should not have asked for specific projects I
+  don't know how difficult it is going to be to remove those names again. and P6) the plan
+  shouldn't mention closing itself because that ends up in a circular loop where it can't be
+  closed by the commit that closes it - so this gets superseded the plan gets closed and
+  commited"*
+
+  **What it settles.** A live-run step says what the run must show, not which of the person's
+  repositories it runs on. A plan's close is `plan close` and its commit, never a step of the
+  plan: a step is closed against the commit holding its work, and the closing commit cannot
+  cite itself. P5 is finished on the runs; P6 is superseded.
