@@ -284,8 +284,10 @@ cites as its measured example of a field answering neither necessary nor purpose
       dropping aaa from aaaa refuses an ambiguous clause
 - [ ] T35 | Fix structured docstring drops so Args and Returns retain sections;
       verify disjoint drops compose
+        > 2026-11-08 Self-run: derived drops flattened 9 docstrings; refiled by hand
 - [ ] T36 | Accept disjoint clause edits within one docstring; verify separate
       findings file without same-sentence refusals
+        > 2026-11-08 Self-run: 3 roles refused a second drop in one paragraph
 - [ ] T37 | Refuse a derived drop whose change equals the paragraph it was
       derived from
         > 2026-10-16 Check: drop of quoted "" on raw "" returns a problem, not raw
