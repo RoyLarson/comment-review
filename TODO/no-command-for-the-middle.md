@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 92 of 103 tasks closed
+Progress: 93 of 103 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-29 (2026-08-29, running the chain end to end for the first time with a
@@ -463,8 +463,9 @@ Reconciliation has no command, so the chain cannot be driven end to end.
 - [x] T97 | the batch where two moves land is the same under every hash seed; _join_moves walks its pairs in sorted order | f8e5e2e8 | Update
       the collator so the batch's text where two moves land does not depend on
       the hash seed
-- [ ] T98 | Implement a command that lists a role's copy, each slot's address,
-      anchor and lines, so no role writes its own lister
+- [-] T98 | SUPERSEDED by #294: the roles run without a slot lister | f49426a9 | Implement
+      a command that lists a role's copy, each slot's address, anchor and lines,
+      so no role writes its own lister
         > 2026-09-14 self-run: fc1, bc2, fc2 and oc2 each wrote a slot lister
         > 2026-09-14 evidence: OneDrive/comment-review-feedback/2026-09-14-self-run
 - [x] T99 | FINISHED -- check runs the fold's resolution_problems; test and smoke | 42987afd | Update
