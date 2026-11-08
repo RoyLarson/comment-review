@@ -34,7 +34,7 @@ line read out of the checkout by the flow.
 
 ! `--anchor-line` IS NOT `--anchor`. The first is the line of code a slot
 CREATED here sits on -- an `add` at an empty place, which the binder does not
-carry -- as the addresser printed it. The second is `add`'s claim key: the
+carry -- as `addresses find` printed it. The second is `add`'s claim key: the
 anchor NAMED in backticks.
 
 `--change` is the text that moves or arrives and `--raw-text` is the
@@ -223,7 +223,8 @@ def main() -> int:
     )
     ap.add_argument(
         "--anchor-line",
-        help="the line of code a slot created here sits on, as addresser printed it",
+        help="the line of code a slot created here sits on, as `addresses find`"
+        " printed it",
     )
     ap.add_argument("--repo", help="the checkout a bare --cite is read from")
     argv, why = _expanded(sys.argv[1:])

@@ -19,6 +19,10 @@ You file every mark yourself, in your one copy, with the `mark` command.
 
 Your packet gives you:
 
+- `BRIEF` -- this file.
+- `VOCABULARY` -- the vocabulary file. Read the `[definitions]` entries whose keys are listed
+  under your role in `[roles]`, plus the `all` list.
+- `SKILL DIR` -- the directory holding the helper script, written `<skill>` in the commands below.
 - `REPO ROOT` -- the checkout every path resolves against.
 - `BINDER` -- your assigned review places, each with its address, anchor, start
   and end line and text. Every review place in this binder requires your ruling.
@@ -30,15 +34,13 @@ Your packet gives you:
 - `STYLE SHEET` -- this repo's documentation templates and conventions.
 - `LANGUAGE SERVERS` -- which languages answered the task agent's probe.
 - `FREEFORM DIR` -- your own directory for freeform work.
-- `FREEFORM COPIES` -- the files the stage before left, or `UNAVAILABLE` at the first stage.
-- `FREEFORM SHEET` -- `references/freeform.md`, pasted whole when your binder lists a freeform
-  file.
+- `FREEFORM SHEET` -- the path of `references/freeform.md`, given when your binder lists a
+  freeform file.
 
 Read the binder and the copy from their paths. When your edit copy is missing from the packet,
 say so and stop.
 
-`<skill>` in the commands below is the directory holding the helper script,
-`<skill>/scripts/comment-review.py`, and every command runs from the repo root.
+Every command below runs `<skill>/scripts/comment-review.py` from the repo root.
 
 ## How you work
 
@@ -62,9 +64,7 @@ To read a paragraph as your marks would leave it, pull your own draft:
 python <skill>/scripts/comment-review.py proof --copy <EDIT COPY> --repo <REPO ROOT> --out <a new directory>
 ```
 
-It sets each page your marks change into that directory, which is yours to read and discard. A
-copy holding a question for the author does not set; pull the draft once the task agent hands you
-the answer.
+It sets each page your marks change into that directory, which is yours to read and discard.
 
 ### Reading a paragraph
 
@@ -102,13 +102,13 @@ Each series is counted by its own addresser, so ask for an address by the line o
 belongs to:
 
 ```bash
-python <skill>/scripts/comment-review.py addresser --binder <BINDER> --file <path> --line LINE --series a|b|c|f
+python <skill>/scripts/comment-review.py addresses find --repo <REPO ROOT> --file <path> --line LINE --series a|b|c|f
 ```
 
-It prints one line per place: its address, its anchor, and `HELD` or `ABSENT` -- `ABSENT` is a
-place your binder leaves out, which a mark may still cite. `--series f` prints both of the
-file's own places; choose between them by address. You ask with a line number and answer with
-an address.
+It prints one line per place: its address and its anchor. Your binder holds only the places
+that hold prose; the command reads the file, so it answers for the places the binder leaves out,
+and a mark may cite them. `--series f` prints both of the file's own places; choose between them
+by address. You ask with a line number and answer with an address.
 
 Your copy carries no `f` slot. The notes editor, `ownership-context`, checks every file's `f`
 places, and the human approves each change to one individually.
@@ -180,7 +180,7 @@ python <skill>/scripts/comment-review.py mark --edit-copy <EDIT COPY> --repo <RE
 - **A value that spans lines is a file**: write it with your file-write tool and pass `@path`.
 - **Two rulings on one paragraph are two invocations** at the same `--address`. Rulings on
   different sentences compose; a second ruling on the same sentence is refused, naming both.
-- **An `add` at an empty place** carries `--anchor-line`, the line of code the addresser
+- **An `add` at an empty place** carries `--anchor-line`, the line of code `addresses find`
   printed for it, and the slot is created.
 
 `mark` refuses exactly what the fold would refuse, writes nothing when it does, and says why.
@@ -233,8 +233,7 @@ instruction except `clean` and `query`, which propose no text.
 
 ### Choosing the instruction
 
-Settle first whether the sentence is needed. One that is not, true or false, is a `drop`.
-Then settle whether it is true.
+Settle whether the sentence is true first.
 
 - **False** -- `correct`, with the true clause and the source that settles it. `correct`
   asserts the sentence is wrong; the copy chief applies every `correct` before any `patch`, so
@@ -262,9 +261,9 @@ is a `patch` to the general rule.
 ### `add`
 
 An `add` cites the empty place the prose belongs in, and its finding is a constraint the code
-holds that no prose states. Ask the addresser for that place by the line of code it belongs to
+holds that no prose states. Ask `addresses find` for that place by the line of code it belongs to
 -- an anchor is a line of code, `def f():` -- and file the mark at that address with
-`--anchor-line`. Its `anchor` claim names the declaration in backticks.
+`--anchor-line`. Its `anchor` claim names that line of code in backticks.
 
 ### `move`
 
@@ -353,7 +352,7 @@ sentence. Mark what your role sees; the copy chief rules on the rest.
 
 ## A freeform file
 
-A file your binder lists under `freeform` follows `FREEFORM SHEET`, which is in your prompt whenever
+A file your binder lists under `freeform` follows `FREEFORM SHEET`, which your packet names whenever
 your binder lists one.
 
 ## When you are sent a batch
@@ -369,7 +368,7 @@ Answer every slot. Write your answers with your file-write tool, as a list of th
 were sent; `check --contract` prints the shape each answer takes.
 
 - **An `escalation`** asks whether your finding still stands. Answer with a `reason` and one
-  of: `hold` keeps your mark, `withdraw` takes the whole finding back, or `correct` or `patch` replaces its
+  of: `hold` keeps your mark, `withdraw` takes it back, or `correct` or `patch` replaces its
   text with `change`, the whole updated paragraph as raw text.
 - **A `composition`** asks whether the slot's `raw_text` is right. Answer `clean`, `query`,
   `correct` or `patch`, each with the fields and `claim` keys it takes in your copy. A

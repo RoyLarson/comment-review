@@ -12,8 +12,7 @@ working tree, with no binder.
 
 Of every comment and docstring:
 
-- It follows the style sheet's template for its kind. A departure in text this run wrote is
-  something to fix; one in text it did not change predates the run.
+- It follows the style sheet's template for its kind.
 - It fits the code it is attached to.
 - Its sentences are checkable claims about that code.
 - It states the reasons, constraints and worked examples that code needs.
@@ -29,12 +28,11 @@ Of each page as a whole, that it reads as one page:
 
 ## Looking a place up
 
-A freeform file has no address, so name a place in it by `path:line`. For a page, gather the
-written pages into a binder and ask the addresser:
+A freeform file has no address, so name a place in it by `path:line`. For a page, ask
+`addresses resolve`; it reads the written file:
 
 ```bash
-python <skill>/scripts/comment-review.py gather --repo . --out <run-dir>/after.json <paths...>
-python <skill>/scripts/comment-review.py addresser --binder <run-dir>/after.json --resolve <address>
+python <skill>/scripts/comment-review.py addresses resolve <address> --repo .
 ```
 
 The file was read again after the edit, so text can stand at a different address than it did

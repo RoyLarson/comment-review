@@ -1,16 +1,15 @@
 # A freeform file
 
 A freeform file is a source file no reader claims. It has no page and no address, so `mark`,
-`addresser` and `proof` take no path in it. The text in your copy is the text the copy chief reads.
+`addresses` and `proof` take no path in it. The text in your copy is the text the copy chief reads.
 Everyone who edits a copy or a draft follows this sheet.
 
-When your prompt holds no brief, this sheet is your contract. Where your role file names a mark, an
+When your packet names no brief, this sheet is your contract. Where your role file names a mark, an
 edit copy or `check`, read this sheet's finding, copy and return.
 
 ## Reviewing a file
 
-1. **Copy the file** into `FREEFORM DIR`, keeping its path. Copy it from `FREEFORM COPIES` when that
-   lists it, and from `REPO ROOT` otherwise. Your citations resolve against the file you copied.
+1. **Copy the file** into `FREEFORM DIR`, keeping its path, from `REPO ROOT`. Your citations resolve against the file you copied.
 2. **List every comment in the file by line**, before you judge any. This list is `swept`.
 3. **Rule on each comment** with your role's remit. A comment with nothing to report takes no
    finding, and `swept` records that you read it.

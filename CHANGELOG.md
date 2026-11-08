@@ -76,8 +76,32 @@ and rust (`startraders`, 2026-08-17).
 
 ## [Unreleased]
 
+## [0.2.4-beta.8] -- 2026-11-08
+
+A pre-release with stage 4 run in two stages, and each correction to a file's matter put to
+the author.
+
+### Changed
+
+- Stage 4 runs as two stages: `ownership-context` alone at `4a`, then the other three roles
+  at `4c`, over a worktree root holding what `4a` left. Each role's dispatches are sized near
+  100 places.
+- `topology --build` deals a role's pages so its dispatches hold near-equal places, and
+  `gather` prints the place count.
+- A reviewer is handed the brief, its vocabulary, the freeform sheet and the skill directory
+  by path, not pasted. `FREEFORM COPIES` leaves the packet.
+- Each correction to an `f` place, a move into one or out of one included, is put to the
+  author on its own, and is approved only by an answer to its own question.
+- The address lookup is `addresses find` and `addresses resolve`, which read the page from
+  the repo with no binder.
+- Stage 1 removes generated files from the review scope.
+- Stage 7b proves the drafts' code unchanged before the repo's check runs.
+
 ### Fixed
 
+- One end of a move approved alone is refused.
+- The brief's `add` names its anchor as a line of code, not a declaration.
+- A reviewer is told how to ask for the module's place.
 - The copy chief matches a freeform hunk to the finding whose comment it falls
   within, so an `add` or an edit below a comment's first line is not sent back.
 - Anything sent back twice is left out alone; its role is reported unanswered on

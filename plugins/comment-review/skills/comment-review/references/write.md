@@ -1,8 +1,8 @@
 # Stage 7b -- write
 
 The author has read each page and freeform draft beside its original and accepted all of it, some places, or
-none. This stage proves the accepted text still compiles, writes it into the working tree,
-and proves the code in every page it wrote is unchanged.
+none. This stage proves the code in every accepted draft is unchanged, runs the repo's own
+check on the drafts, and writes them into the working tree.
 
 ## Choose the drafts
 
@@ -21,8 +21,9 @@ and proves the code in every page it wrote is unchanged.
   the original and confirm every difference is among the author's accepted
   changes before writing it.
 
-  A move is approved as a whole. Naming either end includes both ends in the
-  draft; show the author both before treating that selection as approval.
+  A move is approved as a whole: name both of its ends, or neither. `proof`
+  refuses one end named alone. When the author accepts one end, show them both
+  and ask.
 
   The same sentence marked in two files is one finding. When the author accepted it in one
   file and left the other, ask which they want in both.
@@ -32,41 +33,46 @@ and proves the code in every page it wrote is unchanged.
   one half, show the author both and ask.
 - **None.** The run ends here, with the tree as it was.
 
-## Step 1 -- compile
+## Step 1 -- prove unchanged
 
-Build the accepted pages and freeform drafts in a temporary worktree, with the check command
-stage 1 recorded:
+Set the accepted drafts over the pre-edit tree in a temporary worktree:
 
 1. `git worktree add <run-dir>/build <pre-edit ref>`
-2. Run the check command in `<run-dir>/build`, and keep its result as the baseline.
+2. Run the check command stage 1 recorded in `<run-dir>/build`, and keep its result as the
+   baseline.
 3. Copy each draft over its `<path>` in `<run-dir>/build`.
-4. Run the check command again.
-5. `git worktree remove --force <run-dir>/build`
 
-The drafts compile when the second run passes everything the baseline passed. Where the
-second run fails something the baseline passed, write nothing: bring the author the check's
-output and the pages it names.
-
-## Step 2 -- write and prove unchanged
-
-Copy each draft over its `<path>` in the working tree, then prove the code in every page you
-wrote reads the same as at the pre-edit ref:
+Then, from `<run-dir>/build`, prove the code in every draft reads the same as at the pre-edit
+ref:
 
 ```bash
-python <skill>/scripts/comment-review.py prove_unchanged --base <pre-edit ref> --repo . <paths written>
+python <skill>/scripts/comment-review.py prove_unchanged --base <pre-edit ref> --repo . <paths>
 ```
 
-It prints `PROVEN` for each page whose code is unchanged. Report any page it refuses to the
-author, with what it printed. For a freeform file it prints `UNCHECKED  <path>: no reader --
+It prints `PROVEN` for each page whose code is unchanged. When it refuses a page, write nothing:
+bring the author what it printed. For a freeform file it prints `UNCHECKED  <path>: no reader --
 formatter and compiler are the check`. That is the expected answer, and the report states it as
-unchecked, never as proven. A page whose line endings it cannot compare prints `UNCHECKED  <path>:
-no readable untouched sibling -- line endings`; report that one the same way.
+unchecked, never as proven.
+
+## Step 2 -- validate locally
+
+After `prove_unchanged` succeeds, check whether the project's local tools support compilation or
+syntax validation. If available, run the applicable check on the edited result and report the
+outcome.
+
+Run it in `<run-dir>/build`. The drafts pass when it passes everything the baseline passed. Where
+it fails something the baseline passed, write nothing: bring the author the check's output and
+the pages it names. Then `git worktree remove --force <run-dir>/build`.
+
+## Step 3 -- write
+
+Copy each draft over its `<path>` in the working tree.
 
 ## Report
 
 - the pages and freeform files written, and the places accepted and left
-- the check command, its baseline, and its result with the drafts
 - what `prove_unchanged` printed
+- separately, the check command, its baseline, and its result with the drafts
 - each freeform language not verified
 - `git diff`, which the author reads to see exactly what the run changed
 

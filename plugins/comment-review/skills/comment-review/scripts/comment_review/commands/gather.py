@@ -43,7 +43,7 @@ def main() -> int:
         action="store_true",
         help="carry the EMPTY places too -- a place where prose could go but does"
         " not. Dropped by default: they are 91%% of the rows and a reviewer rules"
-        " on prose that is there. Ask the addresser for one instead, by its anchor",
+        " on prose that is there. Ask `addresses find` for one instead, by its line",
     )
     ap.add_argument(
         "--out", metavar="PATH", help="write the binder to PATH, not stdout"
@@ -150,7 +150,11 @@ def _report(args: argparse.Namespace) -> int:
     # !! THE SERIALIZE IS THE CONTAINER'S AND THE DUMP IS THE FLOW'S --
     # `decision-log.md Process: #67`. This is the read flow's save end, and
     # the only place a binder becomes text.
-    print(json.dumps(got.binder.serialize(), indent=1, default=str))
+    wire = got.binder.serialize()
+    print(json.dumps(wire, indent=1, default=str))
+    # Stage 2 sizes a role's dispatches from this count of the places carried.
+    places = sum(len(page["rows"]) for page in wire["pages"])
+    print(f"GATHERED -- {places} places on {len(wire['pages'])} pages", file=sys.stderr)
     _passed_over(got)
     return 0
 

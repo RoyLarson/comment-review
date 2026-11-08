@@ -1,6 +1,6 @@
 """THE ADDRESSER: numbering the places on a page, and reading the number back.
 
-    python addresser.py --binder binder.json --file m.py --line 12 --series a
+    python comment-review.py addresses find --file m.py --line 12 --series a
 
 FOUR ADDRESSERS walk one trigger list -- the MODULE, every line of code, then
 EOF -- each holding its own counter and the places it emitted. `cue()` runs
@@ -120,7 +120,6 @@ than for the declaration it is about. With `a` the docstring leaves the `b`
 series: re-measured over 10,744 paragraphs, 0 shared places.
 
 ! So an address alone identifies a place, and a record needs nothing beside it.
-`--check` re-reads that claim on every run rather than trusting this paragraph.
 
 !! ONE NAMING LIVES HERE, and the module is named for owning it. The LINE form
 it replaced was kept beside it for a while, because one owner is what stops two

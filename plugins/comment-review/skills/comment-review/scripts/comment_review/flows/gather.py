@@ -39,7 +39,7 @@ from pathlib import Path
 
 from comment_review.binder.binder import Binder, bind
 from comment_review.binder.page import Page
-from comment_review.concordance.code_names import NO_HARVESTER, code_names
+from comment_review.concordance.code_names import code_names
 from comment_review.flows.annotations_for import annotations_for
 from comment_review.flows.page_for import page_of
 from comment_review.flows.read_diagnostics import format_failure
@@ -150,62 +150,13 @@ def _pages(g: Gathering) -> None:
     # same walk, which is what stops the two disagreeing about what was
     # gathered.
     for path in g.files:
-        context = context_for(path, g.settings.get(path.resolve(), {}))
-        if isinstance(context, ReadFailure):
-            g.unreadable.append(format_failure(context, path=path.as_posix()))
+        got = page_in(path, g.repo, g.settings.get(path.resolve(), {}))
+        if isinstance(got, str):
+            g.unreadable.append(got)
             continue
-        g.reading_contexts[path.resolve()] = context
-        source = source_of(path)
-        if isinstance(source, ReadFailure):
-            g.unreadable.append(format_failure(source, path=path.as_posix()))
-            continue
-        # !! EVERY PARAGRAPH'S PATH IS REPO-RELATIVE. It is what `--repo` is for:
-        # the binder, the file lists and every citation a reviewer writes all
-        # resolve against that root, so a paragraph carrying an absolute path is a
-        # paragraph no consumer can place. It happened whenever the run was handed
-        # absolute file arguments, which is how a task agent that resolved its
-        # own paths would call this.
-        #
-        # !! Measured 2026-08-17 on the galley command -- `docs/history.md`: it
-        # joined `out / paragraph["path"]`, and in Python an absolute right-hand
-        # side WINS, so it wrote over the source file, put nothing under
-        # `--out`, and printed that it had succeeded. The module whose one
-        # promise is "nothing under `--repo` is touched" was editing the tree
-        # under review.
-        #
-        # ! A file outside the repo keeps the path AS IT WAS PASSED -- see
-        # `_repo_relative`, which says what that means. `flows/proof_setter.py`
-        # refuses such a page rather than guessing where it belongs:
-        # `repo.can_escape` reads the binder's page paths before any file is
-        # opened.
-        # ! HOISTED. `_repo_relative` calls `Path.resolve()`, a filesystem
-        # call, and both arguments are the same for every paragraph of a file.
-        # Measured 2026-08-18: 120 us a call, so one 793-paragraph file spent
-        # 95 ms resolving one path 793 times.
-        rel = _repo_relative(path, g.repo)
-        # !! A PATH HOLDING THE SEPARATOR CANNOT BE ADDRESSED, so it is a GAP
-        # and not a paragraph with a broken name. `flatten` joins segments on `:`,
-        # which Windows forbids in a filename; POSIX forbids only `/` and NUL,
-        # so a POSIX checkout can hold `a:b.py`, whose address would be the
-        # address of `a/b.py`. That is the collision the separator was chosen to
-        # end -- it was `.` until 2026-08-19, and `a/b.py` and `a.b.py` shared
-        # every address they had.
-        #
-        # ! IT READS THE REPO-RELATIVE PATH, WHICH IS THE ONE ADDRESSED. The
-        # absolute path holds a colon on every Windows run -- the drive letter
-        # -- so checking `path` here refuses the whole tree.
-        if SEPARATOR in rel:
-            g.unreadable.append(f"{rel} (a path may not hold '{SEPARATOR}')")
-            continue
-        # ! THE REPO-RELATIVE PATH GOES IN, so the page comes back addressed
-        # against the root every citation resolves to. It was stamped afterwards
-        # for as long as `page_for` returned an unaddressed page, which is
-        # the split that let a direct caller receive half a page.
-        got = page_of(path, rel=rel, source=source, reading_context=context)
-        if isinstance(got, ReadFailure):
-            g.unreadable.append(format_failure(got, path=rel))
-            continue
+        g.reading_contexts[path.resolve()] = got.reading
         g.pages.append(got)
+        rel = got.path
         # The phrase is the warning's code as words, then the owner a
         # detached doc was written for.
         located = [w for w in got.read.warnings if w.span is not None]
@@ -220,6 +171,47 @@ def _pages(g: Gathering) -> None:
         g.paragraphs.extend(carried(got))
 
 
+def page_in(path: Path, repo: Path, settings: Mapping[str, str]) -> Page | str:
+    """One file in scope read as a page, addressed against `repo`.
+
+    Returns:
+        The page, or the reason there is none as the gather prints it.
+    """
+    context = context_for(path, settings)
+    if isinstance(context, ReadFailure):
+        return format_failure(context, path=path.as_posix())
+    source = source_of(path)
+    if isinstance(source, ReadFailure):
+        return format_failure(source, path=path.as_posix())
+    # !! EVERY PARAGRAPH'S PATH IS REPO-RELATIVE. It is what `--repo` is for: the
+    # binder, the file lists and every citation a reviewer writes all resolve
+    # against that root, so a paragraph carrying an absolute path is a paragraph
+    # no consumer can place: joined to another root, an absolute right-hand side
+    # wins, and a write lands on the source file.
+    #
+    # ! A file outside the repo keeps the path AS IT WAS PASSED -- see
+    # `_repo_relative`. `flows/proof_setter.py` refuses such a page rather than
+    # guessing where it belongs: `repo.can_escape` reads the binder's page paths
+    # before any file is opened.
+    rel = _repo_relative(path, repo)
+    # !! A PATH HOLDING THE SEPARATOR CANNOT BE ADDRESSED, so it is a GAP and not
+    # a paragraph with a broken name. `flatten` joins segments on `:`, which
+    # Windows forbids in a filename; POSIX forbids only `/` and NUL, so a POSIX
+    # checkout can hold `a:b.py`, whose address would be the address of `a/b.py`.
+    #
+    # ! IT READS THE REPO-RELATIVE PATH, WHICH IS THE ONE ADDRESSED. The absolute
+    # path holds a colon on every Windows run -- the drive letter -- so checking
+    # `path` here refuses the whole tree.
+    if SEPARATOR in rel:
+        return f"{rel} (a path may not hold '{SEPARATOR}')"
+    # ! THE REPO-RELATIVE PATH GOES IN, so the page comes back addressed against
+    # the root every citation resolves to.
+    got = page_of(path, rel=rel, source=source, reading_context=context)
+    if isinstance(got, ReadFailure):
+        return format_failure(got, path=rel)
+    return got
+
+
 def _owner(warning: ReadDiagnostic) -> str:
     """The owner a detached doc was written for, as the warning line ends it."""
     if not isinstance(warning, DetachedDocumentation):
@@ -231,29 +223,8 @@ def _owner(warning: ReadDiagnostic) -> str:
 
 def _annotations(g: Gathering) -> None:
     """Stage 3, over everything the pages carry."""
-    known, unread = code_names([g.repo], tracked_paths(g.repo))
-    g.unread = one_row_per_hole(unread)
+    known, g.unread = code_names([g.repo], tracked_paths(g.repo))
     annotations_for(g.paragraphs, known, path_index(g.repo), g.repo)
-
-
-def one_row_per_hole(unread: list[str]) -> list[str]:
-    """The gaps, with each known hole stated once and the files it covers under it.
-
-    A tree with hundreds of files no harvester reads printed the same reason on
-    every one of them. Any other row is a file that genuinely failed, kept as it is.
-    """
-    holes: dict[str, list[str]] = {}
-    rows: list[str] = []
-    for row in unread:
-        path, sep, why = row.rpartition(f" ({NO_HARVESTER} ")
-        if sep:
-            holes.setdefault(why.removesuffix(")"), []).append(path)
-        else:
-            rows.append(row)
-    for name, paths in holes.items():
-        listed = "".join(f"\n        {path}" for path in paths)
-        rows.append(f"{NO_HARVESTER} {name}, {len(paths)} file(s):{listed}")
-    return rows
 
 
 def _bind(g: Gathering) -> None:

@@ -52,6 +52,7 @@ from comment_review.flows.human import (
     HumanAnswer,
     HumanQuery,
     answered,
+    corrections_to_matter,
     queries_in_answers,
     queries_in_copies,
 )
@@ -266,6 +267,7 @@ def _on_copies(message: CopiesReturned) -> tuple[list, Result | None]:
     if message.topology is not None:
         problems += stage_problems(message.topology, copies)
     asks = _asks(queries_in_copies(copies), message.human)
+    asks += _asks(corrections_to_matter(copies, message.human), ())
     if problems or asks:
         return _rolled_back(problems, asks)
 
