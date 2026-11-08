@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 5 of 11 tasks closed
+Progress: 5 of 12 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, a code review of `docket/docket.py` run end to end
@@ -140,3 +140,5 @@ caller.
       drafting one and losing the other
         > 2026-09-14 self-run: a move into compositor a5, clean there too; text gone
         > 2026-09-14 evidence: OneDrive/comment-review-feedback/2026-09-14-self-run
+- [ ] T12 | Let `proof --copy` set a draft while the copy holds an open human
+      question

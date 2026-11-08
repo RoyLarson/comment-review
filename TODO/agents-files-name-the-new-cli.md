@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 40 of 49 tasks closed
+Progress: 40 of 52 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-09-04 (Roy, 2026-09-04, superseding the-flow-lives-in-the-command T4)
@@ -182,3 +182,9 @@ The agents files name the new CLI and say how to use it.
       per #276
 - [ ] T49 | Replace write.md's git worktree with a copy of the gathered files,
       per #104
+- [ ] T50 | Update the brief's add-a-TODO answer for a repo that keeps its TODOs
+      on a board
+- [ ] T51 | Update SKILL.md's commands so every stage runs under the interpreter
+      `gather` ran under
+- [ ] T52 | Correct review.md's two-ranges sentence, which `resolve` and
+      `lines_of` now contradict

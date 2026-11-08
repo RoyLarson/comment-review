@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 2 of 6 tasks closed
+Progress: 2 of 7 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-25 (decision-log Process #220, #221)
@@ -54,3 +54,5 @@ current corpus supplies.
         > 2026-10-25 Check: no "\r\n"-vs-"\n" choice in src/ outside machine/
 - [ ] T6 | Delete each line-ending guess made outside machine/
         > 2026-10-25 Check: no "\r\n"-vs-"\n" choice in src/ outside machine/
+- [ ] T7 | Decide what `prove_unchanged` does with a file whose ending already
+      differs from its siblings

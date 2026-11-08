@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 46 of 50 tasks closed
+Progress: 46 of 51 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, Roy ruling that a move is a composite mark rather than
@@ -337,3 +337,5 @@ and now there is one object that cannot be half-held.
       a move's snippet at the origin by its words, then rewrap the remainder
       with the language's comment markers (review 04:1, 01:3)
         > 2026-09-30 Evidence and checks: docs/reviews/2026-09-30-r4.md, move tasks
+- [ ] T51 | Fix `Comment.without_once`, which rewraps the text a move leaves at
+      its origin

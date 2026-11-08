@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 7 of 13 tasks closed
+Progress: 7 of 15 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-24 (P2 of refactor/the-boundaries-are-not-real, 2026-08-24)
@@ -47,3 +47,7 @@ The flow lives in the command, not in flows/.
       Verify: one pass keeps the pairs
 - [ ] T13 | Update flows.gather so a step that found a gap ends the chain,
       Process 93. Verify: a refused gather runs no stage 3 in either mode
+- [ ] T14 | Move `unaddressed_report` and `not_gathered`, the gather command's
+      wording, out of `flows/gather.py`
+- [ ] T15 | Delete the module-does-one-job paragraph from the 30 command modules
+      that restate it

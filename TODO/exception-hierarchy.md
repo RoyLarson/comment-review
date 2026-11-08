@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 3 of 10 tasks closed
+Progress: 3 of 12 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (Roy, 2026-08-22, on the exceptions.py layer: a human would have
@@ -117,3 +117,6 @@ either they take it through the path shim two of them already use (`render_brief
 - [ ] T10 | T10 -- Settle the five `scripts/` files holding their own
       `READ_ERRORS` -- shim or declare. Verify: `grep -rn ^READ_ERRORS scripts/`
       is empty, or all five say why.
+- [ ] T11 | Derive `GIT_ERRORS` from `READ_ERRORS` instead of restating its
+      members
+- [ ] T12 | Delete `TOML_ERRORS`, whose only reader is under `prototype/`

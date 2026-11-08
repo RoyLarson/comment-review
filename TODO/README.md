@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (116)
+### open  (120)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -205,9 +205,9 @@ that changed a published name or rule:
 | [stale-claims-after-the-envelope](stale-claims-after-the-envelope.md) | backend | -- | 2/8 | Shipped prose still describes formats and flags this branch deleted |
 | [one-stem-four-jobs](one-stem-four-jobs.md) | backend | -- | 10/15 | one stem, four jobs -- and the vocabulary sweep cannot see it |
 | [census-walks-and-flushes](census-walks-and-flushes.md) | backend | -- | 3/7 | census.py walks the whole repo, runs git twice, and its run-flush never fires |
-| [galley-and-compositor-write-path](galley-and-compositor-write-path.md) | backend | -- | 70/82 | The galley can overwrite the file under review, and the compositor reads through a normaliser |
+| [galley-and-compositor-write-path](galley-and-compositor-write-path.md) | backend | -- | 70/83 | The galley can overwrite the file under review, and the compositor reads through a normaliser |
 | [record-and-verdicts-disagree](record-and-verdicts-disagree.md) | backend | -- | 4/8 | record.py and verdicts.py disagree about what a valid record is, in four places |
-| [exception-hierarchy](exception-hierarchy.md) | backend | -- | 3/10 | Named tuples give us the seam; the hierarchy that catches our own types is not built |
+| [exception-hierarchy](exception-hierarchy.md) | backend | -- | 3/12 | Named tuples give us the seam; the hierarchy that catches our own types is not built |
 | [language-rows-in-toml](language-rows-in-toml.md) | backend | -- | 17/19 | 18 rows of pure data sit in shipped Python; references/vocabulary.toml is the pattern |
 | [computed-and-never-read](computed-and-never-read.md) | backend | -- | 7/17 | The insert line, the matter branch, the paragraph index and two repeated full-file scans -- each needs more than a comment fix |
 | [dangling-links-resolve-nowhere](dangling-links-resolve-nowhere.md) | systems | yes | 0/6 | 31 relative links resolve nowhere, and two of them are in a live TODO |
@@ -222,7 +222,7 @@ that changed a published name or rule:
 | [settle-carries-two-meanings](settle-carries-two-meanings.md) | systems | yes | 0/6 | settle carries two meanings in what an agent is handed, and neither is declared to it |
 | [no-stage-agrees-the-terms](no-stage-agrees-the-terms.md) | systems | yes | 0/7 | No stage establishes what the words mean before the roles are asked to use them |
 | [the-cue-legend-and-its-round-trip](the-cue-legend-and-its-round-trip.md) | backend | -- | 4/5 | The cue letter carries what three fields used to say, and nothing gives the agents the legend or checks they followed it |
-| [the-flow-lives-in-the-command](the-flow-lives-in-the-command.md) | backend | -- | 7/13 | Lifting main() out showed the orchestration was always inside it: commands/census.py took 446 lines and calls page_for, while flows/census.py kept 261 lines of helpers. A command is meant to EXPOSE a flow, not be one. |
+| [the-flow-lives-in-the-command](the-flow-lives-in-the-command.md) | backend | -- | 7/15 | Lifting main() out showed the orchestration was always inside it: commands/census.py took 446 lines and calls page_for, while flows/census.py kept 261 lines of helpers. A command is meant to EXPOSE a flow, not be one. |
 | [two-areas-have-no-tests](two-areas-have-no-tests.md) | backend | -- | 0/4 | tests/ mirrors the package, so an area with no directory is a visible hole. machine/ (repo, constants, exceptions) and commands/ (all ten) have none. repo is exercised only through flows/test_census_names.py, which tests something else. |
 | [concordance-gaps-stated-twice](concordance-gaps-stated-twice.md) | backend | -- | 2/9 | Both encode 'a gap is not a pass' and spell it differently: code_names returns unread rows keyed by NO_HARVESTER/WALKED_TREE, referrers collects unreadable and unsearched under NOT CHECKED. Three states, one idea, two vocabularies. The EXTRACTIONS stay separate -- code_names must be structural so a comment mentioning a symbol cannot prove it exists, and referrers must be textual to see mentions in files nothing parses. |
 | [name-corpus-sees-one-language](name-corpus-sees-one-language.md) | backend | yes | 5/9 | MEASURED 2026-08-24 on this checkout: 278 of 369 tracked files (75%) contribute NO names, every one NO_HARVESTER, zero read failures. code_names harvests via ast.parse, so it covers Python alone -- and on a checkout with syntax newer than the floor interpreter it goes blind to Python too, turning symbols defined only there into false obituaries. lexer.declarations() already finds every documentable declaration in eleven languages lexically; it returns positions, not identifiers. Harvesting from it instead of the AST makes the corpus polyglot and drops the floor limit in one change. |
@@ -257,14 +257,14 @@ that changed a published name or rule:
 | [collator-defects](collator-defects.md) | backend | -- | 19/43 | four defects in `desk/collator.py`, all found by an agent writing the file's prose from the code alone: a `move` onto its own address becomes a bare delete, a multi-line `verbatim` from a CRLF file can never match, the source cache is keyed without its root, and a malformed cite raises where the half is meant to report |
 | [staged-chain-untested](staged-chain-untested.md) | backend | -- | 5/6 | the four-stage chain runs and the edits accumulate, proven 2026-08-30 -- but no test in the suite drives it, and the only committed fan-out topology refuses any tree but this repo's |
 | [containers-and-verification-are-unwired](containers-and-verification-are-unwired.md) | backend | -- | 38/60 | The containers and the source-verification half are wired to nothing |
-| [mark-holds-spec-and-parse](mark-holds-spec-and-parse.md) | backend | -- | 0/8 | mark.py holds the instruction spec and the boundary parse at one scope |
+| [mark-holds-spec-and-parse](mark-holds-spec-and-parse.md) | backend | -- | 0/9 | mark.py holds the instruction spec and the boundary parse at one scope |
 | [ty-cannot-see-the-tests](ty-cannot-see-the-tests.md) | systems (the gate) - backend (the test fixes) | -- | 1/5 | The type gate is scoped to src and cannot see the tests |
 | [null-becomes-the-word-none](null-becomes-the-word-none.md) | backend | -- | 0/6 | A present-but-null key becomes the four characters None |
 | [collate-flow-defects](collate-flow-defects.md) | backend | -- | 4/25 | Twelve defects in `flows/collate.py`, from a review of one file |
-| [mark-defects](mark-defects.md) | backend | -- | 23/39 | Eleven defects in `desk/mark.py`, found by running its parse against its own prose |
-| [binder-defects](binder-defects.md) | backend | -- | 9/37 | Eighteen defects in binder.py, and `read` admits four shapes it exists to refuse |
-| [docket-defects](docket-defects.md) | backend | -- | 5/11 | Six defects in docket.py, and one discards an approved page at exit 0 |
-| [collate-command-defects](collate-command-defects.md) | backend | -- | 6/23 | Sixteen defects in `commands/collate.py`, measured by running it |
+| [mark-defects](mark-defects.md) | backend | -- | 23/45 | Eleven defects in `desk/mark.py`, found by running its parse against its own prose |
+| [binder-defects](binder-defects.md) | backend | -- | 9/39 | Eighteen defects in binder.py, and `read` admits four shapes it exists to refuse |
+| [docket-defects](docket-defects.md) | backend | -- | 5/12 | Six defects in docket.py, and one discards an approved page at exit 0 |
+| [collate-command-defects](collate-command-defects.md) | backend | -- | 6/27 | Sixteen defects in `commands/collate.py`, measured by running it |
 | [differences-defects](differences-defects.md) | backend | -- | 0/10 | Ten defects in `results/differences.py`, none of them in its arithmetic |
 | [plans-name-no-todo-tasks](plans-name-no-todo-tasks.md) | systems | yes | 0/4 | Six 0.2.4 plans carry no heading naming the TODO tasks they close |
 | [index-and-glossary-for-roles](index-and-glossary-for-roles.md) | agents | yes | 0/1 | Hand a reviewer the name index and the glossary rather than leaving it to grep |
@@ -275,7 +275,7 @@ that changed a published name or rule:
 | [only-a-flow-reaches-the-machine](only-a-flow-reaches-the-machine.md) | backend | -- | 5/10 | Route every machine read and write through a flow |
 | [a-non-code-document-has-no-read-review-resolve-or-write-chain-of-its-own](a-non-code-document-has-no-read-review-resolve-or-write-chain-of-its-own.md) | backend | -- | 0/2 | A non-code document has no read, review, resolve or write chain of its own |
 | [re-review-is-retired-for-revise](re-review-is-retired-for-revise.md) | agents | -- | 4/6 | re-review is retired for revise |
-| [agents-files-name-the-new-cli](agents-files-name-the-new-cli.md) | agents | -- | 40/49 | The agents files name the new CLI and say how to use it |
+| [agents-files-name-the-new-cli](agents-files-name-the-new-cli.md) | agents | -- | 40/52 | The agents files name the new CLI and say how to use it |
 | [reviewer-prose-is-rules-not-guidance](reviewer-prose-is-rules-not-guidance.md) | agents | -- | 10/17 | The reviewer prose is rules and punishments, not guidance toward a good result |
 | [a-machine-context-raises-query-and-clean](a-machine-context-raises-query-and-clean.md) | backend | yes | 0/8 | annotate carries two subjects -- it extracts index keys, and it flags claims it cannot settle. The second half becomes a context that marks like a role. |
 | [the-chief-has-no-recast-workflow](the-chief-has-no-recast-workflow.md) | backend | -- | 9/15 | cap applies the chief's rulings and closes the stage, but a recast is written out as a correct, so a recast of an add at an empty place writes nothing and exits 0. |
@@ -291,13 +291,17 @@ that changed a published name or rule:
 | [2026-10-13-human-question-list](2026-10-13-human-question-list.md) | backend | -- | 0/2 | Expose human questions across edit copies |
 | [empty-comment-gets-a-drop](empty-comment-gets-a-drop.md) | backend | -- | 0/1 | An empty comment gets a drop mark |
 | [paragraph-is-a-passage](paragraph-is-a-passage.md) | backend | -- | 0/9 | The addressed unit of prose is a passage, not a paragraph |
-| [one-line-ending-per-file](one-line-ending-per-file.md) | backend | -- | 2/6 | One line ending per file |
+| [one-line-ending-per-file](one-line-ending-per-file.md) | backend | -- | 2/7 | One line ending per file |
 | [edit-path-isolation](edit-path-isolation.md) | backend | -- | 1/2 | Isolate the edit path from comment reading |
 | [one-reader-builder](one-reader-builder.md) | backend | -- | 4/12 | One reader builder from each language's definition |
 | [freeform-run-findings](freeform-run-findings.md) | agents | -- | 19/23 | What the first live freeform run showed |
-| [topology-defects](topology-defects.md) | backend | -- | 0/1 | Topology defects |
+| [topology-defects](topology-defects.md) | backend | -- | 0/3 | Topology defects |
 | [reading-settings-have-no-setting](reading-settings-have-no-setting.md) | backend | -- | 0/4 | Reading settings have no setting |
 | [one-obvious-way](one-obvious-way.md) | backend | yes | 0/21 | One obvious way |
+| [page-defects](page-defects.md) | backend | -- | 0/3 | binder/page.py carries unread names and a branch nothing reaches |
+| [addresser-defects](addresser-defects.md) | backend | -- | 0/2 | reading/addresser.py answers a miss with a real position |
+| [bus-defects](bus-defects.md) | backend | -- | 0/2 | flows/bus.py carries an unread field and lets a ruling be overwritten |
+| [command-entry-points](command-entry-points.md) | backend | -- | 0/2 | The commands keep entry points of their own beside __main__ |
 
 ### in-progress  (17)
 
@@ -347,7 +351,7 @@ that changed a published name or rule:
 | [null-is-not-a-decision](null-is-not-a-decision.md) | backend | yes | 0/2 | `null` is the delete signal, and it is also what a failed serialisation writes |
 | [strip-and-fill-the-markers](strip-and-fill-the-markers.md) | backend | yes | 0/9 | A role is handed the paragraph with its `#`/`"""` markers and indentation, and must reproduce them exactly in `change`. Measured 2026-08-29: three consecutive attempts by an agent with full context broke the file, and each failure read as a defect in the setter |
 | [task-agent-vocabulary-home](task-agent-vocabulary-home.md) | agents (the instructions) - backend (the enum they derive from) | yes | 2/6 | The task agent has no vocabulary home and is never told the command set |
-| [move-is-a-composite-mark](move-is-a-composite-mark.md) | backend | -- | 46/50 | A move is a composite mark and the code cannot express one |
+| [move-is-a-composite-mark](move-is-a-composite-mark.md) | backend | -- | 46/51 | A move is a composite mark and the code cannot express one |
 
 ### in flight  (0)
 

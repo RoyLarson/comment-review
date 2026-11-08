@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 70 of 82 tasks closed
+Progress: 70 of 83 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (code-review high round 3 and /simplify round 2, 2026-08-22 -- the
@@ -350,3 +350,5 @@ files in `corpora/` are in that state today.
 - [ ] T81 | Record each page's write state as pending, written, verified or
       failed, per Process #20
 - [ ] T82 | Make a write retry only its failed pages, per Process #20
+- [ ] T83 | Fix the compositor, which loses a paragraph's blank lines when it is
+      dropped whole

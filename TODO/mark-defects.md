@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 23 of 39 tasks closed
+Progress: 23 of 45 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, a code review of `desk/mark.py` that ran `parse`
@@ -298,3 +298,15 @@ cites as its measured example of a field answering neither necessary nor purpose
         > 2026-10-16 Check: a move is checked against its destination at creation
 - [ ] T39 | Make mark --withdraw take back one mark, not every ruling at the
       address, per #276
+- [ ] T40 | Import `ROLE_FIELDS` in `flows/fill.py` instead of defining a second
+      copy
+- [ ] T41 | Type `Mark.sources` as source pairs, since `read` refuses anything
+      else
+- [ ] T42 | Fix `derived_change`, which rewraps a drop's whole paragraph and
+      flattens docstring layout
+- [ ] T43 | Let two drops on different sentences of one paragraph compose, as
+      the brief says they do
+- [ ] T44 | Make `mark --withdraw` hand the seeded slot back rather than delete
+      it
+- [ ] T45 | Fix `mark --withdraw`, which also removes the role's other marks at
+      that address

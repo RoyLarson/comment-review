@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 9 of 37 tasks closed
+Progress: 9 of 39 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, a code review of `binder/binder.py` run against its
@@ -239,3 +239,7 @@ task 5's, but the fix for these two lands in `binder/binder.py`.
       flows/fan_out.py names no RedactedPage
 - [ ] T37 | Add a pulled section to the binder for code pages a mark needs
       mid-run, per Vocabulary #16
+- [ ] T38 | Fix gather's unaddressed gate, which reads `Binder.paragraphs` and
+      so never finds a row
+- [ ] T39 | Narrow `_read_from_problem`'s use by the desk, which imports it
+      though it is private
