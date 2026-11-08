@@ -6470,3 +6470,13 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   and an accepted move is set on the page and a new binder bound, so every role marks the text at
   its `b` place. That is how `brief-says-three-series` T9's "mark against the accepted move" is
   met.
+
+- **#291.** **Every change to an `f` place asks the human, a move in as well as a move out**
+  (Roy, 2026-11-07, asked whether #290's move-only rule still lets a move into an `f` place):
+
+  *"Modifications in general to an f place gets the ask human. Including moves in and out. It
+  hopefully isn't a big deal"*
+
+  **What it settles.** A move into an `f` place stays admitted and is asked, as a move out is.
+  #290's move-only rule limits what a role may file at an `f` place; it does not refuse a move
+  whose destination is one. `flows.human.corrections_to_matter` already asks both.

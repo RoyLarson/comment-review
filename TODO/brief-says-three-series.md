@@ -58,5 +58,6 @@ place the same brief tells it to cite at `:74`.
 - [ ] T10 | Update reviewer-brief.md so any role may mark an f place it looks
       up, per #274
 - [ ] T11 | Refuse every instruction but move on an f place, per #290
+        > 2026-11-07 #291: a move into an f place stays admitted and asked
 - [ ] T12 | Implement re-setting the page with an accepted f move and binding a
       new binder, per #290
