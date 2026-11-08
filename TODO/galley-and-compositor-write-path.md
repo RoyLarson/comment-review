@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 70 of 83 tasks closed
+Progress: 71 of 84 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (code-review high round 3 and /simplify round 2, 2026-08-22 -- the
@@ -352,3 +352,5 @@ files in `corpora/` are in that state today.
 - [ ] T82 | Make a write retry only its failed pages, per Process #20
 - [ ] T83 | Fix the compositor, which loses a paragraph's blank lines when it is
       dropped whole
+- [-] T84 | SUPERSEDED by T83: filed twice in error | 4db8b52f | Fix the
+      compositor, which loses a paragraph's blank lines when it is dropped whole
