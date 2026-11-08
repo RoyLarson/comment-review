@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 39 of 49 tasks closed
+Progress: 40 of 49 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-09-04 (Roy, 2026-09-04, superseding the-flow-lives-in-the-command T4)
@@ -153,8 +153,9 @@ The agents files name the new CLI and say how to use it.
         > 2026-09-14 12 pasted prompts came to about 540 KB, sent over several turns
         > 2026-09-14 evidence: OneDrive/comment-review-feedback/2026-09-14-self-run
         > 2026-09-14 RULED Process 170: by path; the roles read it in pieces
-- [ ] T40 | Update SKILL.md 1.9 to order the roles in stages and size each
-      role's ways to its pages, per Process 168
+- [x] T40 | FINISHED; stage 2 builds 4a then 4c, ways = places / 100, per #295 | 57a45615 | Update
+      SKILL.md 1.9 to order the roles in stages and size each role's ways to its
+      pages, per Process 168
         > 2026-09-14 a later stage reads a revise; docket-defects T10 first
         > 2026-09-14 evidence: OneDrive/comment-review-feedback/2026-09-14-self-run
 - [x] T41 | FINISHED; the packet names BRIEF, VOCABULARY and FREEFORM SHEET by path | f49426a9 | Update
