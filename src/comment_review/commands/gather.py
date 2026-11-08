@@ -150,7 +150,11 @@ def _report(args: argparse.Namespace) -> int:
     # !! THE SERIALIZE IS THE CONTAINER'S AND THE DUMP IS THE FLOW'S --
     # `decision-log.md Process: #67`. This is the read flow's save end, and
     # the only place a binder becomes text.
-    print(json.dumps(got.binder.serialize(), indent=1, default=str))
+    wire = got.binder.serialize()
+    print(json.dumps(wire, indent=1, default=str))
+    # Stage 2 sizes a role's dispatches from this count of the places carried.
+    places = sum(len(page["rows"]) for page in wire["pages"])
+    print(f"GATHERED -- {places} places on {len(wire['pages'])} pages", file=sys.stderr)
     _passed_over(got)
     return 0
 

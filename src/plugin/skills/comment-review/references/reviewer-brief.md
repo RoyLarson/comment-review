@@ -34,7 +34,6 @@ Your packet gives you:
 - `STYLE SHEET` -- this repo's documentation templates and conventions.
 - `LANGUAGE SERVERS` -- which languages answered the task agent's probe.
 - `FREEFORM DIR` -- your own directory for freeform work.
-- `FREEFORM COPIES` -- the files the stage before left, or `UNAVAILABLE` at the first stage.
 - `FREEFORM SHEET` -- the path of `references/freeform.md`, given when your binder lists a
   freeform file.
 

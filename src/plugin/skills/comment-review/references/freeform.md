@@ -9,8 +9,7 @@ edit copy or `check`, read this sheet's finding, copy and return.
 
 ## Reviewing a file
 
-1. **Copy the file** into `FREEFORM DIR`, keeping its path. Copy it from `FREEFORM COPIES` when that
-   lists it, and from `REPO ROOT` otherwise. Your citations resolve against the file you copied.
+1. **Copy the file** into `FREEFORM DIR`, keeping its path, from `REPO ROOT`. Your citations resolve against the file you copied.
 2. **List every comment in the file by line**, before you judge any. This list is `swept`.
 3. **Rule on each comment** with your role's remit. A comment with nothing to report takes no
    finding, and `swept` records that you read it.

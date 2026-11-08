@@ -6519,3 +6519,20 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   **What it settles.** T98 is superseded: the roles have run without a slot lister, and P8 goes
   with it. T27 is done with T41, in the packet. P11 is met by the October runs, as `#287` met
   another plan's live-run step.
+
+- **#295.** **Stage 4 runs as `4a` then `4c`, each dispatch near 100 places, and `4c` reads a
+  whole tree** (Roy, 2026-11-08, implementing `#168` under agents-files T40):
+
+  Asked what order stage 2 builds, Roy chose *"4a then 4c (Recommended)"*: `ownership-context`
+  alone at `4a`, the other three roles at `4c` against the placement `4a` settled. Asked what
+  size replaces "five files at most", he chose *"~100 places (Recommended)"*: a role's ways are
+  the places `gather` prints divided by 100, rounded up. Then, told that under `#117` `4a`'s
+  revise root holds only the pages `4a` changed, so a `4c` seeded from it would never read the
+  pages `ownership-context` left alone or any freeform file, he chose *"Agent assembles root
+  (Recommended)"*.
+
+  **What it settles.** `#117` stands. The task agent builds `<run-dir>/root4c` as a worktree of
+  `HEAD`, copies the files under review from the checkout over it, then `4a`'s proof pages and
+  freeform drafts, and gathers it as revise 1. `4c`'s roles read their freeform files from that
+  root, so the packet no longer carries `FREEFORM COPIES`. `gather` prints `GATHERED -- <n>
+  places on <m> pages` for the sizing.

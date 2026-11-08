@@ -25,8 +25,8 @@ A helper program does the mechanical work. `<skill>` is the directory holding th
 take it from the absolute path you were given. Every command runs through
 `<skill>/scripts/comment-review.py`, and `--help` after a command's name gives its flags.
 Give each run its own `<run-dir>`, and write every file with the command's `--out` flag.
-`<stage-root>` is the absolute root a stage's binder was gathered from: the repo root
-through stage 4, and the proof pages root for stage 6.
+`<stage-root>` is the absolute root a stage's binder was gathered from: the repo root for
+stage `4a`, `<run-dir>/root4c` for stage `4c`, and the proof pages root for stage 6.
 
 **Your vocabulary.** Read the `[definitions]` entries of
 `<skill>/scripts/comment_review/references/vocabulary.toml` whose keys are listed under
@@ -44,8 +44,8 @@ that sets the scope in place of the diff. `style` is the style sheet from an ear
 | 1 | project determination | you | scope, cap, style sheet, run context |
 | 2 | gather | `gather`, `topology` | the binder and a verified topology |
 | 3 | find references | `referrers` | the `REFERENCE ONLY` list |
-| 4 | mark | the four reviewers | four checked edit copies, and each role's freeform copies and findings |
-| 5 | collate and rule | `collate`, you, `disposition` | a closed proof, the chief's copy and the freeform drafts |
+| 4 | mark, in stages `4a` then `4c` | the four reviewers | each stage's checked edit copies, and each role's freeform copies and findings |
+| 5 | collate and rule, once per stage | `collate`, you, `disposition` | a closed proof, the chief's copy and the freeform drafts |
 | 6 | compact, when a cap applies | the condenser | a closed proof whose text fits the cap |
 | 7a | set and present | `proof`, then you | the proof pages and the proposal in front of the author |
 | 7b | write | the author, then you | the accepted text in the working tree, its code proved unchanged |
@@ -156,13 +156,16 @@ and its owner, the anchor it was written for, and offering two answers: move it 
 `a` cue, or leave it where it is. Record each answer in the style sheet, and continue the
 run whatever the answer is.
 
-Then build the topology: one stage, `4`, with every role split so each dispatch holds five
-files at most. `<n>` is the number of pages and freeform files together, divided by five, rounded
-up.
+Then build the topology: two stages. Stage `4a` runs `ownership-context` alone, so that every
+paragraph is settled where it belongs; stage `4c` runs the other three roles against that
+placement. `<n>` is the places on the gather's `GATHERED` line divided by 100, rounded up, and
+at most the number of pages and freeform files together. `--build` deals each role's pages so
+its dispatches hold near-equal places.
 
 ```bash
 python <skill>/scripts/comment-review.py topology --build --binder <run-dir>/binder.json --out <run-dir>/topology.toml \
-  --stage 4=ownership-context/<n>,block-context/<n>,function-context/<n>,module-context/<n>
+  --stage 4a=ownership-context/<n> \
+  --stage 4c=block-context/<n>,function-context/<n>,module-context/<n>
 ```
 
 `--build` verifies what it writes and exits 0 when the topology fits the binder. On exit 1 it
@@ -188,16 +191,17 @@ under review, choose the `REFERENCE ONLY` list.
 
 ### Stage 4 -- mark
 
-Seed one edit copy and one received binder per dispatch:
+Stage 4 runs twice: `4a`, then stages 4 and 5 again for `4c`. `<stage>` is the one running. Seed
+one edit copy and one received binder per dispatch of `4a`:
 
 ```bash
-python <skill>/scripts/comment-review.py distribute --topology <run-dir>/topology.toml --stage 4 \
+python <skill>/scripts/comment-review.py distribute --topology <run-dir>/topology.toml --stage 4a \
   --binder <run-dir>/binder.json --out-dir <run-dir>/copies
 ```
 
-It prints each edit copy, named `4_<role>_<n>.json`, and its received binder,
-saved as `copies/binders/4_<role>_<n>.json`, with the count of freeform files dealt to it.
-Dispatch one agent per edit copy:
+It prints each edit copy, named `<stage>_<role>_<n>.json`, and its received binder,
+saved as `copies/binders/<stage>_<role>_<n>.json`, with the count of freeform files dealt to it.
+Dispatch one agent per edit copy of the stage:
 
 | desk | agent | its question |
 |---|---|---|
@@ -206,7 +210,8 @@ Dispatch one agent per edit copy:
 | line editor | `comment-review:comment-review-function-context` | does the commentary match what the function is for? |
 | developmental editor | `comment-review:comment-review-module-context` | do the comments say this is one module? |
 
-All four roles run on every review. Each agent's prompt is its packet, every section filled --
+All four roles run on every review, `ownership-context` at `4a` and the other three at `4c`.
+Each agent's prompt is its packet, every section filled --
 `UNAVAILABLE` is a complete answer. The agent reads each file the packet names from its path:
 
    - `BRIEF` -- absolute path of [`references/reviewer-brief.md`](references/reviewer-brief.md)
@@ -214,29 +219,27 @@ All four roles run on every review. Each agent's prompt is its packet, every sec
      the role reads the `[definitions]` entries whose keys are listed under it in `[roles]`, plus
      the `all` list
    - `SKILL DIR` -- absolute path of `<skill>`
-   - `REPO ROOT` -- absolute path
+   - `REPO ROOT` -- `<stage-root>`, absolute
    - `BINDER` -- absolute path of this agent's received binder
    - `EDIT COPY` -- absolute path of this agent's own copy
    - `FILES UNDER REVIEW` and `REFERENCE ONLY`
    - `STYLE SHEET`, templates included
    - `LANGUAGE SERVERS` -- which languages answered at stage 1
-   - `FREEFORM DIR` -- absolute path of `<run-dir>/freeform/4_<role>_<n>`, this agent's own
+   - `FREEFORM DIR` -- absolute path of `<run-dir>/freeform/<stage>_<role>_<n>`, this agent's own
      directory
-   - `FREEFORM COPIES` -- the paths a later stage starts from, below
    - `FREEFORM SHEET` -- absolute path of [`references/freeform.md`](references/freeform.md), when
      the received binder lists a freeform file
 
 An agent whose received binder lists no page takes a shorter packet: `FREEFORM SHEET` in place of
 `BRIEF`, then `VOCABULARY`, `SKILL DIR`, `REPO ROOT`, `FILES UNDER REVIEW`, `REFERENCE ONLY`,
-`STYLE SHEET`, `FREEFORM DIR` and `FREEFORM COPIES`. It has no edit copy, so it has no `check` to
-run.
+`STYLE SHEET` and `FREEFORM DIR`. It has no edit copy, so it has no `check` to run.
 
 Each agent fills its copy in place and runs `check` on it. An agent dealt a freeform file also
 returns the paths of its `findings.json` and its copies. When an agent returns, run the same
 check yourself:
 
 ```bash
-python <skill>/scripts/comment-review.py check --edit-copy <run-dir>/copies/<file> --binder <run-dir>/copies/binders/<file> --repo .
+python <skill>/scripts/comment-review.py check --edit-copy <run-dir>/copies/<file> --binder <run-dir>/copies/binders/<file> --repo <stage-root>
 ```
 
 Exit 0 means the copy is ready to fold. Exit 5 means its only findings are human questions,
@@ -248,10 +251,26 @@ For each freeform file, confirm the agent's `findings.json` holds that path with
 list. Send a missing path back to its agent. When it is still missing on the second return, report
 that role as unanswered on that file.
 
-Roles in one stage work blind to each other. A role in a later stage starts from what the stage
-before left: settle that stage's findings as stage 5 says, copy `<run-dir>/freeform/draft/` to
-`<run-dir>/freeform/base_<stage>/`, and hand those paths in `FREEFORM COPIES`, because a revise root
-holds pages only and that stage's binder lists no freeform file.
+Roles in one stage work blind to each other. Stage `4c` starts from what `4a` left. When stage 5
+has closed `4a`'s proof, set it with `proof --repo . --proof <closed-proof> --out
+<run-dir>/proof4a`. That root holds only the pages `4a` changed, so build `4c`'s root from the whole
+tree:
+
+1. `git worktree add --detach <run-dir>/root4c HEAD`.
+2. Copy each file under review from the checkout over its path in `root4c`, so uncommitted work
+   is reviewed.
+3. Copy each page in `<run-dir>/proof4a` and each file in `<run-dir>/freeform/draft/` over its
+   path in `root4c`.
+
+Then gather it, naming the same paths as stage 2, and seed `4c` from it:
+
+```bash
+python <skill>/scripts/comment-review.py gather --repo <run-dir>/root4c --revise 1 --out <run-dir>/binder4c.json <paths...>
+python <skill>/scripts/comment-review.py distribute --topology <run-dir>/topology.toml --stage 4c \
+  --binder <run-dir>/binder4c.json --revise <run-dir>/root4c --out-dir <run-dir>/copies
+```
+
+Remove `root4c` with `git worktree remove --force <run-dir>/root4c` after stage 7b.
 
 ### Stage 5 -- collate, and rule as copy chief
 
@@ -259,17 +278,17 @@ Repeat `--edit-copy` and `--received-binder` for each pair, keeping the binder
 paths in the same order as the copy paths.
 
 ```bash
-python <skill>/scripts/comment-review.py collate --stage 4 --binder <run-dir>/binder.json --repo . \
+python <skill>/scripts/comment-review.py collate --stage <stage> --binder <the stage's binder> --repo <stage-root> \
   --topology <run-dir>/topology.toml \
   --edit-copy <one returned copy> --received-binder <its received binder> \
-  --out <run-dir>/chief0.json --proof-out <run-dir>/proof0.json --batch-out <run-dir>/batch1.json
+  --out <run-dir>/<stage>_chief0.json --proof-out <run-dir>/<stage>_proof0.json --batch-out <run-dir>/<stage>_batch1.json
 ```
 
 Act on the exit code first:
 
 | exit | meaning | what you do |
 |---|---|---|
-| `0` | every place settled | `proof0.json` is the closed proof; settle any freeform findings, below, then go to stage 6 or 7a |
+| `0` | every place settled | `<stage>_proof0.json` is the closed proof; settle any freeform findings, below, then go on to `4c`, or after `4c` to stage 6 or 7a |
 | `1` | the round rolled back; each line names `<role> <place>: <reason>` | send each line to its role, which withdraws with `mark --withdraw --address <place>` and marks again; re-check and re-run |
 | `2` | a file could not be read | correct the invocation |
 | `3`, `4` | places carried forward -- `composed`, `contested` or `open` | rule on them, below |
@@ -363,7 +382,7 @@ against the file it copied:
 git diff --no-index -U0 <base> <FREEFORM DIR>/<path>
 ```
 
-`<base>` is the file's `base_<stage>` copy at a later stage and `<path>` otherwise. The command exits
+`<base>` is the file at `<stage-root>/<path>`. The command exits
 1 when the files differ. Then, working from `references/freeform.md`:
 
 1. Match each hunk to a finding, and each finding but a `query` to a hunk. A hunk belongs to the
@@ -392,13 +411,13 @@ carries on.
 
 ### Stage 6 -- compact, when a cap applies
 
-Stage 6 runs as a second stage over the proof pages, and a run with no pages skips it. Set them
-from the closed proof into `<run-dir>/proof4` with `proof --repo . --proof <closed-proof> --out
-<run-dir>/proof4`, then gather them as revise 1, naming pages alone, because a revise root holds
-no freeform file:
+Stage 6 runs as a third stage over the proof pages, and a run with no pages skips it. Set them
+from `4c`'s closed proof into `<run-dir>/proof4c` with `proof --repo <run-dir>/root4c --proof
+<closed-proof> --out <run-dir>/proof4c`, then gather them as revise 2, naming pages alone, because
+a revise root holds no freeform file:
 
 ```bash
-python <skill>/scripts/comment-review.py gather --repo <run-dir>/proof4 --revise 1 --out <run-dir>/binder6.json <paths...>
+python <skill>/scripts/comment-review.py gather --repo <run-dir>/proof4c --revise 2 --out <run-dir>/binder6.json <paths...>
 ```
 
 Add this stage to `topology.toml`, with `cap` set to the run's cap:
@@ -407,7 +426,7 @@ Add this stage to `topology.toml`, with `cap` set to the run's cap:
 [[stage]]
 name = "6"
 kind = "editorial"
-reads = "revise:4"
+reads = "revise:4c"
 cap = <cap>
 series = ["b", "c"]
 admits = ["patch", "drop", "add", "clean", "query"]
@@ -416,7 +435,7 @@ admits = ["patch", "drop", "add", "clean", "query"]
 ```
 
 Seed it with `distribute --topology <run-dir>/topology.toml --stage 6 --binder
-<run-dir>/binder6.json --revise <run-dir>/proof4 --out-dir <run-dir>/copies`.
+<run-dir>/binder6.json --revise <run-dir>/proof4c --out-dir <run-dir>/copies`.
 Each received binder and edit copy holds only the comment paragraphs over the
 cap. Dispatch `comment-review:comment-review-compact` with its edit copy and
 received binder, `references/compact.md` pasted whole, the style sheet and the

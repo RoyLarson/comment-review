@@ -311,6 +311,9 @@ def test_a_named_js_file_is_freeform_and_gather_exits_0(tmp_path, monkeypatch, c
     assert [p["path"] for p in wire["pages"]] == ["a.py"]
     assert wire["freeform"] == ["b.js"]
     assert "FREEFORM -- 1 file(s)" in printed
+    places = sum(len(page["rows"]) for page in wire["pages"])
+    assert places > 0
+    assert f"GATHERED -- {places} places on 1 pages" in printed
 
 
 def test_a_binary_in_a_walked_directory_stays_passed_over(
