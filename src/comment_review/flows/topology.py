@@ -78,15 +78,15 @@ def compose(directives: list[Directive], binder: Binder) -> str:
 
     Every stage is `editorial`; the first reads `original` and each later one
     reads the revise of the stage before it. A role split `ways` > 1 gets
-    `ways` dispatches, each carrying explicit paths -- the binder's page and
-    freeform paths sorted together and dealt round-robin -- so it fits by
-    construction rather than by a glob that happens to match.
+    `ways` dispatches, each carrying explicit paths -- see `_deal` -- so it
+    fits by construction rather than by a glob that happens to match.
 
     Raises:
         ValueError: a role outside the closed set, or a split the binder's
             file count cannot honour.
     """
     paths = sorted([*(page.path for page in binder.pages), *binder.freeform])
+    shards: dict[int, list[list[str]]] = {}
     lines: list[str] = []
     previous: str | None = None
     for name, roles in directives:
@@ -103,8 +103,31 @@ def compose(directives: list[Directive], binder: Binder) -> str:
             for i in range(ways):
                 lines += ["  [[stage.dispatch]]", f"  role = {_toml_string(role)}"]
                 if ways > 1:
-                    shard = ", ".join(_toml_string(escape(p)) for p in paths[i::ways])
+                    if ways not in shards:
+                        shards[ways] = _deal(binder, ways)
+                    dealt = shards[ways][i]
+                    shard = ", ".join(_toml_string(escape(p)) for p in dealt)
                     lines.append(f"  paths = [{shard}]")
         lines.append("")
         previous = name
     return "\n".join(lines)
+
+
+def _deal(binder: Binder, ways: int) -> list[list[str]]:
+    """The binder's files dealt into `ways` shards holding near-equal places.
+
+    Pages go heaviest first, each to the shard holding the fewest places, ties
+    to the one holding the fewest files. A freeform file holds no place, so
+    each goes after the pages to the shard holding the fewest files. Every
+    shard gets a file when `ways` is at most the file count.
+    """
+    places = [0] * ways
+    dealt: list[list[str]] = [[] for _ in range(ways)]
+    pages = sorted(binder.pages, key=lambda page: (-len(page.paragraphs), page.path))
+    for page in pages:
+        i = min(range(ways), key=lambda n: (places[n], len(dealt[n])))
+        places[i] += len(page.paragraphs)
+        dealt[i].append(page.path)
+    for path in sorted(binder.freeform):
+        dealt[min(range(ways), key=lambda n: len(dealt[n]))].append(path)
+    return [sorted(shard) for shard in dealt]

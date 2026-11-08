@@ -206,13 +206,14 @@ Dispatch one agent per edit copy:
 | line editor | `comment-review:comment-review-function-context` | does the commentary match what the function is for? |
 | developmental editor | `comment-review:comment-review-module-context` | do the comments say this is one module? |
 
-All four roles run on every review. Each agent's prompt holds, in this order:
+All four roles run on every review. Each agent's prompt is its packet, every section filled --
+`UNAVAILABLE` is a complete answer. The agent reads each file the packet names from its path:
 
-1. [`references/reviewer-brief.md`](references/reviewer-brief.md), pasted whole.
-2. That role's vocabulary: the `[definitions]` entries of
-   `<skill>/scripts/comment_review/references/vocabulary.toml` whose keys are listed under the
-   role in `[roles]`, plus the `all` list, read fresh from that file.
-3. The packet, every section filled -- `UNAVAILABLE` is a complete answer:
+   - `BRIEF` -- absolute path of [`references/reviewer-brief.md`](references/reviewer-brief.md)
+   - `VOCABULARY` -- absolute path of `<skill>/scripts/comment_review/references/vocabulary.toml`;
+     the role reads the `[definitions]` entries whose keys are listed under it in `[roles]`, plus
+     the `all` list
+   - `SKILL DIR` -- absolute path of `<skill>`
    - `REPO ROOT` -- absolute path
    - `BINDER` -- absolute path of this agent's received binder
    - `EDIT COPY` -- absolute path of this agent's own copy
@@ -222,13 +223,13 @@ All four roles run on every review. Each agent's prompt holds, in this order:
    - `FREEFORM DIR` -- absolute path of `<run-dir>/freeform/4_<role>_<n>`, this agent's own
      directory
    - `FREEFORM COPIES` -- the paths a later stage starts from, below
-   - `FREEFORM SHEET` -- [`references/freeform.md`](references/freeform.md), pasted whole when the
-     received binder lists a freeform file
+   - `FREEFORM SHEET` -- absolute path of [`references/freeform.md`](references/freeform.md), when
+     the received binder lists a freeform file
 
-An agent whose received binder lists no page takes a shorter prompt: `references/freeform.md` pasted
-whole in place of the brief, then its vocabulary, then a packet of `REPO ROOT`, `FILES UNDER REVIEW`,
-`REFERENCE ONLY`, `STYLE SHEET`, `FREEFORM DIR` and `FREEFORM COPIES`. It has no edit copy, so it has
-no `check` to run.
+An agent whose received binder lists no page takes a shorter packet: `FREEFORM SHEET` in place of
+`BRIEF`, then `VOCABULARY`, `SKILL DIR`, `REPO ROOT`, `FILES UNDER REVIEW`, `REFERENCE ONLY`,
+`STYLE SHEET`, `FREEFORM DIR` and `FREEFORM COPIES`. It has no edit copy, so it has no `check` to
+run.
 
 Each agent fills its copy in place and runs `check` on it. An agent dealt a freeform file also
 returns the paths of its `findings.json` and its copies. When an agent returns, run the same

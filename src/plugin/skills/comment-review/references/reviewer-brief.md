@@ -19,6 +19,10 @@ You file every mark yourself, in your one copy, with the `mark` command.
 
 Your packet gives you:
 
+- `BRIEF` -- this file.
+- `VOCABULARY` -- the vocabulary file. Read the `[definitions]` entries whose keys are listed
+  under your role in `[roles]`, plus the `all` list.
+- `SKILL DIR` -- the directory holding the helper script, written `<skill>` in the commands below.
 - `REPO ROOT` -- the checkout every path resolves against.
 - `BINDER` -- your assigned review places, each with its address, anchor, start
   and end line and text. Every review place in this binder requires your ruling.
@@ -31,14 +35,13 @@ Your packet gives you:
 - `LANGUAGE SERVERS` -- which languages answered the task agent's probe.
 - `FREEFORM DIR` -- your own directory for freeform work.
 - `FREEFORM COPIES` -- the files the stage before left, or `UNAVAILABLE` at the first stage.
-- `FREEFORM SHEET` -- `references/freeform.md`, pasted whole when your binder lists a freeform
-  file.
+- `FREEFORM SHEET` -- the path of `references/freeform.md`, given when your binder lists a
+  freeform file.
 
 Read the binder and the copy from their paths. When your edit copy is missing from the packet,
 say so and stop.
 
-`<skill>` in the commands below is the directory holding the helper script,
-`<skill>/scripts/comment-review.py`, and every command runs from the repo root.
+Every command below runs `<skill>/scripts/comment-review.py` from the repo root.
 
 ## How you work
 
@@ -350,7 +353,7 @@ sentence. Mark what your role sees; the copy chief rules on the rest.
 
 ## A freeform file
 
-A file your binder lists under `freeform` follows `FREEFORM SHEET`, which is in your prompt whenever
+A file your binder lists under `freeform` follows `FREEFORM SHEET`, which your packet names whenever
 your binder lists one.
 
 ## When you are sent a batch

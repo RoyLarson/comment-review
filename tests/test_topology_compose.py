@@ -40,11 +40,12 @@ def test_a_composed_topology_reads_and_fits():
     assert fit(stages, binder) == []
 
 
-def test_a_split_role_gets_that_many_dispatches_dealing_the_pages_round_robin():
-    text = compose([("4c", [("block-context", 2)])], a_binder_over(FOUR))
-    stages, _ = read(text)
+def test_a_split_role_gets_that_many_dispatches_dealing_the_pages_by_place_count():
+    heavy = {f"a.py@b{n}": f"# {n}" for n in range(3)}
+    binder = a_binder_over({**heavy, **{f"{n}.py@a0": "Doc." for n in "bcd"}})
+    stages, _ = read(compose([("4c", [("block-context", 2)])], binder))
     paths = [d.paths for d in stages[0].dispatches]
-    assert paths == [("a.py", "c.py"), ("b.py", "d.py")]
+    assert paths == [("a.py",), ("b.py", "c.py", "d.py")]
 
 
 def test_an_unsplit_role_gets_one_dispatch_with_no_paths():
@@ -147,14 +148,14 @@ def test_a_binder_holding_nothing_says_why_no_topology_builds(
     assert "over 0 files" in printed
 
 
-def test_compose_sorts_page_and_freeform_paths_together():
+def test_compose_deals_freeform_paths_after_the_pages_by_file_count():
     binder = replace(a_binder_over(FOUR), freeform=("a.js", "c.js"))
     stages, why = read(compose([("4c", [("block-context", 2)])], binder))
     assert not why, why
     assert fit(stages, binder) == []
     assert [d.paths for d in stages[0].dispatches] == [
-        ("a.js", "b.py", "c.py"),
-        ("a.py", "c.js", "d.py"),
+        ("a.js", "a.py", "c.py"),
+        ("b.py", "c.js", "d.py"),
     ]
 
 

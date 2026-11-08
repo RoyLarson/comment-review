@@ -4,7 +4,7 @@ A freeform file is a source file no reader claims. It has no page and no address
 `addresses` and `proof` take no path in it. The text in your copy is the text the copy chief reads.
 Everyone who edits a copy or a draft follows this sheet.
 
-When your prompt holds no brief, this sheet is your contract. Where your role file names a mark, an
+When your packet names no brief, this sheet is your contract. Where your role file names a mark, an
 edit copy or `check`, read this sheet's finding, copy and return.
 
 ## Reviewing a file

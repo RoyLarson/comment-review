@@ -6503,6 +6503,19 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   (or at least there used to be a rule about that there)"*, then *"Clean them up."*
 
   **What it settles.** A run on another of Roy's projects is "a live run", and a quoted ruling
-  that named one carries a bracketed stand-in. The rule is not in the global CLAUDE.md as of this
-  date. `README.md` and `CLAUDE.md` now describe `corpora/corpora.toml` as it has stood since
+  that named one carries a bracketed stand-in. The global CLAUDE.md states the rule: a repository
+  names no other personal project. `README.md` and `CLAUDE.md` now describe `corpora/corpora.toml` as it has stood since
   `ae749ddf`: public repositories only, with no over-fitting control.
+
+- **#294.** **Three answers on `0.2.4-the-cli-carries-a-real-run`** (Roy, 2026-11-08, shown that
+  none of its five open tasks was done):
+
+  Asked whether the tasks ruled at `#168` and `#170` (agents-files T40 and T41, staged T5) are
+  implemented now, Roy chose *"Implement now"*. Asked what becomes of middle T98, a command that
+  lists a role's slots, and agents-files T27, the packet naming `<skill>`, he chose *"ET27
+  only"*. Asked whether the October live runs satisfy P11's self-run, he chose *"October runs
+  count"*.
+
+  **What it settles.** T98 is superseded: the roles have run without a slot lister, and P8 goes
+  with it. T27 is done with T41, in the packet. P11 is met by the October runs, as `#287` met
+  another plan's live-run step.
