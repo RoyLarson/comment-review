@@ -153,5 +153,9 @@ def test_a_move_into_the_matter_is_put_to_the_human_until_answered():
     )[0]
     copies = [returned(wire)]
     assert [q.at for q in corrections_to_matter(copies, ())] == ["m.py@b1"]
-    yes = HumanAnswer("ownership-context", "m.py@b1", "q", "yes")
+    (asked,) = corrections_to_matter(copies, ())
+    assert "-> m.py@f0" in asked.question
+    other = HumanAnswer("ownership-context", "m.py@b1", "another question", "yes")
+    assert corrections_to_matter(copies, (other,)) == [asked]
+    yes = HumanAnswer("ownership-context", "m.py@b1", asked.question, "yes")
     assert corrections_to_matter(copies, (yes,)) == []

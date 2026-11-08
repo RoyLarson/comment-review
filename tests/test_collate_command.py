@@ -1183,22 +1183,42 @@ class TestACorrectionToTheMatterAsksTheHuman:
         assert "m.py@f0" in out
         assert not (tmp_path / "chief.json").exists()
 
-    def test_an_answered_add_at_f0_is_not_asked_again(
-        self, tmp_path, monkeypatch, capsys
-    ):
+    ASKED = "approve this add to the file's matter: written for the mark helpers (add)"
+
+    def _human(self, tmp_path, question):
         human = tmp_path / "human.toml"
         human.write_text(
             '[[answer]]\nrole = "ownership-context"\nat = "m.py@f0"\n'
-            'question = "q"\nanswer = "yes"\n',
+            f'question = "{question}"\nanswer = "yes"\n',
             encoding="utf-8",
         )
+        return str(human)
+
+    def test_an_answer_to_another_question_at_f0_does_not_approve_it(
+        self, tmp_path, monkeypatch, capsys
+    ):
         code, out = run(
             tmp_path,
             self.MARKS,
             monkeypatch,
             capsys,
             "--human",
-            str(human),
+            self._human(tmp_path, "Is the licence current?"),
+            appended=[an_add("m.py@f0")],
+        )
+        assert code == command.ASKS_THE_HUMAN, out
+        assert "file's matter" in out
+
+    def test_an_answered_add_at_f0_is_not_asked_again(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        code, out = run(
+            tmp_path,
+            self.MARKS,
+            monkeypatch,
+            capsys,
+            "--human",
+            self._human(tmp_path, self.ASKED),
             appended=[an_add("m.py@f0")],
         )
         assert code != command.ASKS_THE_HUMAN, out

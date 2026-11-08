@@ -298,7 +298,7 @@ question = "<question>"
 answer = "<the human's answer>"
 ```
 
-A question reading `approve this <instruction> to the file's matter` is a mark that changes an
+A question reading `approve this <instruction> ... to the file's matter` is a mark that changes an
 `f` place, moves text out of one, or moves text into one. Each is asked on its own. Show the
 author the text at `<at>` (both ends for a move) and the mark's `change`, and ask whether it goes
 ahead. Where the author approves, the mark stands and the role keeps it. Where they refuse, the

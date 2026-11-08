@@ -71,11 +71,14 @@ def corrections_to_matter(
     """Every mark that changes an `f` place, or moves text into one, not yet answered.
 
     `decision-log.md Process: #274`, `#287`: each correction to the file's
-    matter is put to the human on its own before the fold. Once the human has
-    answered it, the role holds the answer and its mark stands as it now
-    reads, so it is not asked again. A query is asked by `queries_in_copies`.
+    matter is put to the human on its own before the fold. An answer whose
+    role, place and question are this one's answers it: the role holds the
+    answer and its mark stands as it now reads, so it is not asked again. A
+    mark changed after the answer -- its reason, or a move's destination --
+    asks a different question and is asked again. A query is asked by
+    `queries_in_copies`.
     """
-    given = {(one.role, one.at) for one in human}
+    given = {(one.role, one.at, one.question) for one in human}
     out = []
     for copy in copies:
         for sheet in copy.sheets:
@@ -85,16 +88,15 @@ def corrections_to_matter(
                 into = isinstance(mark, MoveMark) and _in_matter(mark.to)
                 if not (_in_matter(mark.address) or into):
                     continue
-                if (copy.role, mark.address) in given:
-                    continue
-                out.append(
-                    HumanQuery(
-                        copy.role,
-                        mark.address,
-                        f"approve this {mark.instruction} to the file's matter: "
-                        f"{mark.reason}",
-                    )
+                to = f" -> {mark.to}" if isinstance(mark, MoveMark) else ""
+                query = HumanQuery(
+                    copy.role,
+                    mark.address,
+                    f"approve this {mark.instruction}{to} to the file's matter: "
+                    f"{mark.reason}",
                 )
+                if (query.role, query.at, query.question) not in given:
+                    out.append(query)
     return out
 
 
