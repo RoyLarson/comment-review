@@ -1,17 +1,11 @@
-"""The one entry point. `python -m comment_review <command> [args...]`.
+"""The package's entry point. `python -m comment_review <command> [args...]`.
 
-!! A FILE INSIDE A PACKAGE CANNOT BE RUN BY PATH, which is what forces this.
+A file inside a package cannot be run by path, which is what forces this.
 The modules import each other by the package name, so `python .../gather.py`
 fails at the first import: run by path, the file's own directory goes on
-`sys.path` and `comment_review` is not on it. Roy,
-2026-08-24: *"The entry points get an actual entry point .py file and the
-commands run through it not through the scripts that are doing double or triple
-duty."*
+`sys.path` and `comment_review` is not on it.
 
-! IT DISPATCHES BY REPLACING `argv` AND CALLS THE COMMAND'S OWN `main()`. Each
-command still parses its own arguments exactly as it did as a loose script, so
-no command's interface changed when it stopped being one -- which is what makes
-the `SKILL.md` rewrite a one-for-one substitution rather than a new instruction.
+It dispatches by replacing `argv` and calling the command's own `main()`.
 """
 
 import importlib
@@ -24,13 +18,9 @@ from comment_review import constants
 class Command(StrEnum):
     """A command name typed on the console, closed.
 
-    `T1.15` of `docs/plans/0.2.4-the-mark-and-the-collator.md`: value DERIVED
-    from the member name via `_generate_next_value_`, never hand-typed.
-    `reading.series.Kind` set the StrEnum precedent but hand-types its own
-    member values (`TRAILING = "trailing-comment"` is not `name.lower()`), so
-    it is not itself an example of this derivation. A value carries an
-    underscore where the module it names does (`prove_unchanged`, `taken_in`),
-    so `.lower()` alone is what derives it.
+    Each value is derived from the member name via `_generate_next_value_`, never
+    hand-typed. A value carries an underscore where the module it names does
+    (`prove_unchanged`, `taken_in`), so `.lower()` alone is what derives it.
     """
 
     @staticmethod
@@ -56,9 +46,10 @@ class Command(StrEnum):
     TURN = auto()
 
 
-#: The command modules, by the name typed on the console -- `Command`'s
-#: companion tuple, in definition order. Membership is asked of this, never
-#: of the `Command` class itself.
+#: The command names typed on the console -- `Command`'s companion tuple, in
+#: definition order. Membership is asked of this, never of the `Command` class
+#: itself: on Python 3.11, `in` over an enum class raises `TypeError` for a
+#: string that is not a member.
 COMMANDS = tuple(Command)
 
 
@@ -70,12 +61,13 @@ def main(argv: list[str] | None = None) -> int:
             `sys.argv[1:]`, which is what `python -m` supplies.
 
     Returns:
-        The command's exit code, or 2 when no command was named or the name is
-        not one -- the same code every command uses for a usage error.
+        The command's exit code, 0 for `-h` or `--help`, or 2 when no command
+        was named or the name is not one -- the same code every command uses
+        for a usage error.
     """
-    # ! ONCE, HERE. A Windows console is cp1252 and one non-ASCII glyph in a
-    # report kills the run; every command emits prose, so the guard belongs at
-    # the entry rather than in each of them.
+    # A Windows console is cp1252 and one non-ASCII glyph in a report kills the
+    # run; every command emits prose, so the guard runs here, at the entry.
+    # `commands/topology.py` calls it a second time in its own `main`.
     constants.utf8_console()
     args = sys.argv[1:] if argv is None else argv
     if not args or args[0] in ("-h", "--help"):

@@ -2,10 +2,7 @@
 
 The work is `flows.gather`; this is only the console face of it. It builds no
 page and resolves no annotation -- `tests/test_gather_command.py` reads this
-file to say so.
-
-!! A MODULE DOES ONE JOB AND HAS NO CLI; A FLOW CALLS MODULES;
-A COMMAND EXPOSES A FLOW. Ruled 2026-08-24 -- `decision-log.md Process: #12`.
+file for the names of the flow's two steps, and so must not find them here.
 """
 
 import argparse
@@ -26,7 +23,13 @@ from comment_review.reading.readers import supported_definitions
 
 
 def main() -> int:
-    """Gather the pages in scope, then print the binder."""
+    """Gather the pages in scope, then print the binder.
+
+    Returns:
+        The exit code: 0 with the binder or the language list printed, 1 when
+        a file handed in was not gathered or a paragraph has no address, 2 on a
+        usage error -- no paths, or reading settings that do not load.
+    """
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("paths", nargs="*")
     ap.add_argument("--repo", default=".", help="repo root for citation resolution")
@@ -96,7 +99,7 @@ def main() -> int:
 
 
 def _report(args: argparse.Namespace) -> int:
-    """Everything the run prints, so `--out` can wrap it in one place."""
+    """What the run prints after `main`'s refusals, so `--out` wraps it in one place."""
     if args.languages:
         print(f"{'language':<10} extensions")
         for definition in supported_definitions():
@@ -132,24 +135,14 @@ def _report(args: argparse.Namespace) -> int:
     # simply not accountable and the run reads as complete. Measured 2026-08-20:
     # a 5-paragraph binder with its addresses stripped certified "Every finding
     # is admissible. Stage 5 may rule." at exit 0.
-    #
-    # ! ASKED AT BOTH ENDS. This is the EMIT side, catching the binder where it
-    # is built; the collator asks the same function on READ, for a file that
-    # reached it some other way. ONE implementation, in `addresser` -- Roy,
-    # 2026-08-20: *"one source of truth, else something will parse that
-    # something else will fail."*
-    # !! THE GATE READS THE BINDER BACK, rather than checking the list that
-    # was about to be written. `Binder.paragraphs` is what every consumer
-    # reads, so a shape it cannot read is caught HERE -- at the one moment
-    # the writer and the reader are both present -- instead of at whichever
-    # command opens the file next.
     missing = unaddressed(got.binder.paragraphs)
     if missing:
         print(unaddressed_report(missing), file=sys.stderr)
         return 1
     # !! THE SERIALIZE IS THE CONTAINER'S AND THE DUMP IS THE FLOW'S --
     # `decision-log.md Process: #67`. This is the read flow's save end, and
-    # the only place a binder becomes text.
+    # one of three places a binder becomes text, with `commands/distribute.py`
+    # and `commands/carry.py`.
     wire = got.binder.serialize()
     print(json.dumps(wire, indent=1, default=str))
     # Stage 2 sizes a role's dispatches from this count of the places carried.

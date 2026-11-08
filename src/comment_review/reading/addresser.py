@@ -12,6 +12,9 @@ makes the path half, `emit` makes the cue, `address_for` is the only site that
 puts them together, `cue_of` splits one back and `unflatten` recovers the real
 path.
 
+`folded` trims and case-folds an address, or either half, so two spellings of
+one place compare equal; nothing stores the folded form.
+
 !! IT ADDRESSES EVERY PLACE AND EVERY POTENTIAL PLACE. The empty places are what
 an `add` cites, so giving them addresses is what makes `add` expressible at all.
 
@@ -50,8 +53,8 @@ line numbers move with the prose; the ordinal does not.
 
 !! AND IT PROVES NOTHING AT ALL ON AN UNPROVABLE FILE, which is the hard
 exception this scheme rests on and must name. `prove_unchanged` returns
-`unprovable` for a comment delimiter sharing a line with code, for an
-unterminated paragraph comment, and for a binder that disagrees with the file. Such
+`UNPROVABLE` for a file with no copy at the base ref -- a new file or a bad
+ref -- and for two reads whose reader cannot separate prose from code. Such
 a run is REPORTED and counted a failure rather than passed -- so there is no
 stage 8 to hand an address to, and the guarantee above is never claimed for a
 file it does not cover.
@@ -66,30 +69,11 @@ Four series, because prose answers to one of exactly four subjects:
     package:core.py@b3    a GAP between two lines of code
     package:core.py@f0    the FILE'S OWN matter, at either end
 
-!! NO CUE IS COMPUTABLE FROM ANOTHER, OR FROM A LINE'S ORDINAL. Where two
-series happen to line up on a file that is a happenstance and may change at any
-point. FOUR ADDRESSERS walk one trigger
-list -- the MODULE, every line of code, then EOF -- and EACH OWNS ITS RULE about
-which triggers are its own. A series that does not emit for a trigger does not
-take a number for it either, so **every series starts at 0**: `a` skips what is
-not documentable, `b` and `c` skip the MODULE, `f` skips everything that is not
-the MODULE or the file's own matter. Two series lining up on a file is an
-OUTCOME of `cue`. ! `f0` is the FILE'S OWN MATTER, in its own series -- not
-the gap above the first line of code, which is `b0`. The two were one address
-until the addressers split them, and one SERIES until 2026-08-20.
-
 !! `a` IS SEPARATE FOR A DIFFERENT REASON: IT NAMES A SUBJECT, NOT A POSITION.
 A docstring is about its DECLARATION, and `a0` is the module with `a1..aN` its
 declarations in source order. The direction question disappears here: Python's
 docstring after its `def` and Rust's `///` before its `fn` number alike, because
 the number counts declarations rather than positions.
-
-!! SUPERSEDED 2026-08-21 -- THE REASON GIVEN FOR THAT WAS A RULING, AND IT WAS
-WRONG. This paragraph cited Roy, 2026-08-18: *"a docstring is about the thing
-above not the thing below."* He struck it the same day it was tested against a
-language that does the opposite: *"that was true for python and I messed up. We
-have a better discriminator now and the docstring and its position are
-determined by the language not my on-off statement."*
 
 !! SO NO POSITIONING RULE IS STATED IN THIS MODULE. A language's reader says
 where its documentation sits and which declaration a doc belongs to, because
@@ -150,28 +134,13 @@ DECLARED = Series.DECLARED.value.letter
 # then reads as an `interval` -- a place holding no prose -- because the gap it
 # sits in re-cuts it.
 #
-# ! A SINGLETON SERIES IS STILL A SERIES, and the rule then needs no clause
-# about which `b` is not really a `b`.
+# A series of two places is still a series, so `b` owning every line that is not
+# another series' lines needs no clause about which `b` is not really a `b`.
 #
-# ! AND IT IS COUNTED RATHER THAN HARDCODED TO ONE PLACE, because it may not stay
-# a singleton -- a copyright or another piece in a docs file would want one.
-# `f0` today, because `cue` emits it at the module and nowhere else; `f1..fN`
-# the day a second front-matter place is emitted.
+# It is counted rather than hardcoded to one place, because a file's matter sits
+# at both ends: `cue` emits `f0` at the module and `f1` at EOF.
 COVERS = Series.COVERS.value.letter
 
-# !! EVERY SERIES THERE IS, AND THE ONLY LIST OF THEM. Adding one is a row
-# here. A specific type that fits none of these four purposes may appear, so
-# the code stays generic in how it picks one up.
-#
-# !! THE FOURTH COST FOUR EDITS AND TWO BUGS, which is the argument for this
-# list. `cue` merged three addressers' places and not the fourth, so `f0` had
-# no anchor and no paragraph; `_series_of` inferred the series from two fields
-# that a fourth fits neither of, so front matter answered as a `b`; and the CLI's
-# `--series` refused `f` outright -- the one route a reviewer has to ask for the
-# file's own place.
-#
-# ! ORDER IS THE ORDER A READER MEETS THEM: the file's own matter, then a
-# declaration's documentation, the gap above a line, the room beside it.
 # !! THE SPACE BETWEEN TWO PARAGRAPHS -- see `Kind.LEADING` for what it is and
 # why. Roy ruled the letter 2026-08-21: *"and d works."*
 #
@@ -213,10 +182,10 @@ LEAD = Series.LEAD.value.letter
 #: !! IT FAILED THE SUBSTITUTION THE OTHER FOUR SATISFY. Roy: *"it has no
 #: anchor, and so by the LSR -- any child class has to be able to answer its
 #: parent class's answers as well, correctly -- it breaks that rule."* `places`
-#: is `cue -> the code it is attached to`; `a0` and every `f` answer
-#: `<module>`, every `b` and `c` answer a line, and a `d` answered `""`. That is
-#: the absence of an answer, not a different one, so a consumer could not use a
-#: `d` where it expected a place.
+#: is `cue -> the code it is attached to`; `a0` and `f0` answer `<module>`, the
+#: closing `b` and `f1` answer `<eof>`, every other `b` and every `c` answer a
+#: line, and a `d` answered `""`. That is the absence of an answer, not a
+#: different one, so a consumer could not use a `d` where it expected a place.
 #:
 #: ! AND THE CAUSE IS WHERE IT COMES FROM, which is what makes this a category
 #: error rather than a missing field. Every place here exists because `cue`
@@ -239,7 +208,7 @@ SERIES = ADDRESSED
 
 
 #: The FIRST TRIGGER every addresser steps past: the file itself, before any line
-#: of code. It is what `a0` and `f0` name, and the one trigger `c` does not emit
+#: of code. It is what `a0` and `f0` name, and a trigger neither `b` nor `c` emits
 #: for -- a module has front matter and a docstring, and no line to sit beside.
 MODULE = "<module>"
 
@@ -291,9 +260,9 @@ class Addresser:
 
     !! A SERIES OWNS ITS OWN RULE ABOUT WHAT IT SKIPS, AND SKIPPING TAKES NO
     NUMBER. Every trigger is offered to every series -- `a` skips what cannot be
-    documented, `b` and `c` skip `<module>`, `f` skips everything but the module
-    and matter -- and a series that does not emit for a trigger does not advance
-    either, so **every series starts at 0**.
+    documented and `EOF`, `b` skips `<module>`, `c` skips both sentinels, `f`
+    skips every line of code -- and a series that does not emit for a trigger
+    does not advance either, so **every series starts at 0**.
 
     ! A skip that INCREMENTED would burn `b0` and make the first line of code
     `c1`, starting two series at 1 for no reason a reader could derive.
@@ -307,12 +276,6 @@ class Addresser:
     places: dict[str, str] = field(default_factory=dict)
     #: cue -> WHICH TRIGGER it was emitted at, as an index into `triggers()`:
     #: 0 is the MODULE, 1..N are the lines of code, N+1 is EOF.
-    #:
-    #: !! `cue` KNOWS THIS AND USED TO THROW IT AWAY, which is the same
-    #: mistake the discarded addressers were. `anchor_num` rebuilt it afterwards
-    #: with three separate arithmetics -- `n + 1` for a gap, `len(code) + 1` for
-    #: the file's foot, `code.index(line) + 1` for the rest -- and each was a
-    #: GUESS about which trigger a place had come from.
     #:
     #: ! THE ANCHOR CANNOT ANSWER IT. TWO IDENTICAL LINES OF CODE ARE TWO
     #: TRIGGERS WITH ONE ANCHOR, because lines of code are not unique -- looking
@@ -338,12 +301,6 @@ class Addresser:
 
     def at(self, step: int) -> str:
         """This series' cue at `step`, or "" if `cue` never emitted one.
-
-        !! THE QUERY THAT REPLACED SIX TABLES. Roy, 2026-08-21: the old fields
-        were *"1 object type flattened into a special case with different
-        names."* Each held a place keyed its own way -- by the line below a gap,
-        by the line beside a `c`, by a declaration's ordinal -- and each was an
-        index into this collection. Asking THIS is what the caller wanted.
 
         ! THE EMPTY ANSWER IS LOAD-BEARING. A page whose reader refused the
         source has emitted nothing, so every position is unfilled; the old
@@ -379,10 +336,7 @@ class Cues:
     had just discarded. The walkers survive now, so an accessor is a QUERY over
     one collection instead of a lookup in a table of its own.
 
-    ! Each of the three fields is documented where it is DECLARED, below. An
-    `Attributes:` section here said the same things a second time and drifted from
-    both: it described this first field under the name of the second, and said
-    `places` flattens "all five" when `SERIES` has four.
+    ! Each of the three fields is documented where it is DECLARED, below.
     """
 
     # !! SERIES LETTER -> THE `Addresser` THAT EMITTED IT, holding its places in
@@ -414,18 +368,12 @@ class Cues:
     # `CodeLine`, and `cue` turns it into a position in this list -- so
     # nothing downstream asks the question again.
     reading: list[str] = field(default_factory=list)
-    # ! LEADING IS NOT HERE, and was for one evening. It is `Page.leading` --
-    # `cue` never filled it and never read it, because `cue` runs before
-    # any prose exists and leading is only where the PAGE found a blank run.
-    # Roy, 2026-08-21: *"I kind of expected that to be the pages job."*
 
     @property
     def places(self) -> dict[str, str]:
         """Every place in the file -> its line of code, or a sentinel.
 
-        ! DERIVED FROM THE ADDRESSERS, in `SERIES` order. It was a field `cue`
-        assigned by flattening the walkers on its last line, which is what made
-        every other projection an index into something already discarded.
+        ! DERIVED FROM THE ADDRESSERS, in `SERIES` order.
 
         !! IT IS A FRESH DICT EACH TIME, so writing into it changes nothing.
         `page.py` used to number the `d` series by assigning here, and numbers
@@ -444,11 +392,11 @@ class Cues:
         !! ONE LOOKUP, NOT A REBUILT DICT. `places` composes the walkers into a
         fresh mapping on every read, so asking it for ONE place inside a loop is
         quadratic -- MEASURED 2026-08-22, a corpus sweep that ran in under three
-        minutes did not finish in ten. The two callers that ask per paragraph
+        minutes did not finish in ten. The six callers that ask for one place
         ask here; the ones that want the whole mapping still take `places`.
 
-        ! IT TAKES A DEFAULT because "" is a real anchor: every `d` place has
-        one, so absence cannot be spelled the same way as an empty answer.
+        It takes a default so a caller can keep the anchor it already holds when
+        the cue names no place: `binder/page.py` passes the paragraph's own.
         """
         walker = self.addressers.get(cue[:1])
         if walker is None:
@@ -481,12 +429,7 @@ class Cues:
         return {step: c for c, step in self.addressers[GAP].trigger.items()}
 
     def beside(self, line: int) -> str:
-        """The `c` on this line of code, or "" if the line holds no code.
-
-        ! ONE ITERATION, and it was two. `.index` iterates the list ONCE; asking
-        `line not in self._code` first and then `.index(line)` iterated it TWICE
-        to answer one question.
-        """
+        """The `c` on this line of code, or "" if the line holds no code."""
         try:
             return self.addressers[ON].at(self.triggers.index(line) - 1)
         except ValueError:
@@ -522,7 +465,7 @@ class Cues:
         one it cannot find there; this answers from the file `cue` walked.
 
         ! EACH SERIES IS A DIFFERENT QUESTION OF THE SAME LINE, and each is a
-        lookup this object already answers -- `above`, `beside`, `anchor_line`,
+        lookup this object already answers -- `above`, `beside`, `documents`,
         `file_places` -- never a count.
 
             b   the gap a paragraph inserting at `line` falls into
@@ -574,9 +517,7 @@ class Cues:
         ! ZERO WAS A POSITION FOR THE HEAD AND A NULL FOR THE FOOT. Line 0 is
         genuinely above line 1, so it sorted first and rendered at the head and
         both were right; the foot inherited those two behaviours and both were
-        wrong. One number doing two jobs is what this repo's own `repo.py` warns
-        against: *"a caller that reads a non-answer as an empty answer produces
-        the failure this whole skill exists to catch."*
+        wrong.
 
         ! MEASURED before choosing between `None` and `0`/`-1`: both branching
         consumers already handle `None` and neither handles `-1`.
@@ -622,21 +563,16 @@ class Cues:
             f_n         -> 0, or len(code) + 1
             everything  -> code.index(anchor_line) + 1
 
-        ! EACH WAS A GUESS ABOUT WHICH TRIGGER A PLACE CAME FROM, and the anchor
-        cannot settle it: two identical lines of code are two triggers with one
-        anchor, and a sentinel is shared across series -- `a0` and `f0` both
-        answer `<module>`, the closing gap and `f1` both answer `<eof>`.
-        `Addresser.emit` records the trigger, so this is a lookup.
-
         ! THE VALUES ARE UNCHANGED, and that is checkable: 0 for the MODULE,
         1..N for the lines of code, N+1 for EOF, which is what the three
         expressions computed. What changed is that a place now SAYS where it
         came from instead of being asked to prove it afterwards.
 
-        ! 0 IS THE MODULE, which is a real position and not a miss -- the first
-        trigger every addresser steps past. `a0` and `f0` answer it because a
-        licence header and a module docstring sit above everything the file
-        declares.
+        0 is the module, which is a real position -- and also what a cue no
+        addresser emitted answers, so the two cannot be told apart here. It is
+        the first trigger every addresser steps past. `a0` and `f0` answer it
+        because a licence header and a module docstring sit above everything the
+        file declares.
         """
         walker = self.addressers.get(cue[:1])
         if walker is None:
@@ -711,13 +647,6 @@ def cue(code: list[CodeLine]) -> Cues:
 
     ! Line ORDER drives `cue`; no line NUMBER is arithmetic here.
 
-    !! A SKIPPED TRIGGER TAKES NO NUMBER, so every series starts at 0. Each
-    series owns its rule about what it skips and records and increments
-    independently: `c` does not emit for the MODULE and takes no number for
-    it, so its first line of code is `c0`. ! Reading it the other way --
-    that a series takes a number at every trigger it is offered -- burns `b0`
-    and starts `c` at 1.
-
     !! NOTHING READS ONE CUE TO COMPUTE ANOTHER, and no cue follows from a
     line's ordinal. Whether two series happen to line up on a given file is not
     stated anywhere, deliberately: the edge cases where it breaks are not known,
@@ -739,6 +668,10 @@ def cue(code: list[CodeLine]) -> Cues:
         ValueError: when a `DocPlace` names a line `cue` has already passed,
             which would leave its `a` out of the reading order.
     """
+    # ! THE `Cues` KEEPS THE ADDRESSERS IT MADE, so every position a place reports
+    # indexes something the object still holds.
+    out = Cues(triggers=triggers([line.line for line in code]))
+
     # ! ONE PER SERIES, AND THEY BELONG TO THE `Cues`. The names below are
     # for `cue`, which is genuinely per-series -- each emits at different
     # triggers -- but nothing downstream has to know how many there are.
@@ -747,39 +680,35 @@ def cue(code: list[CodeLine]) -> Cues:
     # function, which left every accessor on `Cues` rebuilding an index
     # into a collection that no longer existed. They belong to it now, so
     # `cue` fills the object it returns rather than a set of side tables.
-    # ! THE `Cues` KEEPS THE ADDRESSERS IT MADE, so every position a place reports
-    # indexes something the object still holds.
-    out = Cues(triggers=triggers([line.line for line in code]))
     a, b, c, f = (out.addressers[s] for s in (DECLARED, GAP, ON, COVERS))
     # ! Each code line's step, so a `DocPlace` naming a line is filed against it.
     step_of = {line.line: step for step, line in enumerate(code)}
-    # !! `cue` READS `triggers()`, WHICH IS THE WHOLE POINT OF THERE BEING ONE.
-    # A loop written out by hand beside it makes the list that claims *"ONE LIST,
-    # SO THE FOUR SERIES CANNOT DRIFT APART"* a list no series walks.
-    #
-    # ! Each series decides at each trigger, and that rule is now complete --
-    # there is no step a place comes from except one of these.
     seen = 0
     # ! Which `a` places are set at which step and on which side, keyed
     # `(step, above)` from each `DocPlace` and released in the loop below. An
     # above-doc language files an `a` against its declaration's own step;
     # Python files it against the step that ends the signature.
     release: dict[tuple[int, bool], list[str]] = {}
-    # !! EVERY EMIT NAMES THE TRIGGER IT FIRED AT, and `at` is that position --
+    # Every emit names the trigger it fired at, and `at` is that position --
     # 0 the MODULE, 1..N the lines of code, N+1 the EOF. `cue` knew it and
     # threw it away until 2026-08-22, leaving `anchor_num` to guess afterwards.
-    # ! It cannot be recovered from the anchor: two identical lines of code are
-    # two triggers with one anchor, and both sentinels are shared -- `a0` with
-    # `f0` at the head, the closing gap with `f1` at the foot.
-    # ! ITS OWN LIST, not a second call. `out.triggers` IS what
-    # `triggers()` returned above, and building it twice is the drift the
-    # function's own docstring forbids -- *"ONE LIST, SO THE FOUR SERIES CANNOT
-    # DRIFT APART."* Two calls agree today and are two things that can stop
-    # agreeing, which is the whole reason the list exists.
+    #
+    # The loop walks `out.triggers`, the list `triggers()` returned above, not a
+    # second call: two calls agree today and are two things that can stop
+    # agreeing, which is the drift `triggers` exists to prevent -- *"ONE LIST, SO
+    # THE FOUR SERIES CANNOT DRIFT APART."*
+    #
+    # Each series decides at each trigger, and that rule is now complete --
+    # there is no step a place comes from except one of these.
     for at, trigger in enumerate(out.triggers):
         # ! A SENTINEL IS A STRING AND A LINE IS AN INT. Neither sentinel is a
         # line, which is what makes them sentinels.
         if isinstance(trigger, str):
+            # !! `b` AND `c` SKIP THE MODULE ENTIRELY -- no place, and no
+            # number. It has no gap above it and no line to sit beside. Roy,
+            # 2026-08-20: *"let's initiate all of them at 0 ... bs and cs
+            # will stay aligned until there is some specific reason to split
+            # them."*
             if trigger == MODULE:
                 # ! `f0` is the FILE'S OWN matter, bounded by nothing: the head
                 # of the file on both sides. It is not the gap above the first
@@ -789,11 +718,6 @@ def cue(code: list[CodeLine]) -> Cues:
                 # file's own matter, then the module's own documentation.
                 out.reading.append(f.emit(MODULE, at))
                 out.reading.append(a.emit(MODULE, at))
-                # !! `b` AND `c` SKIP THE MODULE ENTIRELY -- no place, and no
-                # number. It has no gap above it and no line to sit beside. Roy,
-                # 2026-08-20: *"let's initiate all of them at 0 ... bs and cs
-                # will stay aligned until there is some specific reason to split
-                # them."*
             else:
                 # !! A PLACE'S ANCHOR IS THE TRIGGER IT WAS EMITTED AT. One rule,
                 # no series exempt: `MODULE` at the head, the line of code in
@@ -811,15 +735,6 @@ def cue(code: list[CodeLine]) -> Cues:
                 # sets is not `cue`'s business, and `gap_bounds` already
                 # answers it from the ordinal without reading an anchor at all.
                 closing = b.emit(EOF, at)
-                # !! `f` EMITS ITS SECOND PLACE HERE, and this is the reason the
-                # EOF trigger is a trigger rather than an N+1 rule. A file's
-                # matter sits at BOTH ends and neither end belongs to a gap:
-                # `f0` is bounded by the head of the file on both sides, `f1` by
-                # the foot. ! Bounded by nothing, exactly as `f0` is -- a licence
-                # at the foot is the FILE's, not the last gap's, which is where
-                # it landed while this place did not exist.
-                # ! THE FOOT OF THE PAGE: the gap after the last statement, then
-                # the file's own matter, which is bounded by nothing.
                 if release:
                     # !! EVERY FILED `a` IS RELEASED BY NOW, unless its
                     # `DocPlace` named a line before its own declaration --
@@ -829,6 +744,15 @@ def cue(code: list[CodeLine]) -> Cues:
                         + ", ".join(name for held in release.values() for name in held)
                     )
                 out.reading.append(closing)
+                # !! `f` EMITS ITS SECOND PLACE HERE, and this is the reason the
+                # EOF trigger is a trigger rather than an N+1 rule. A file's
+                # matter sits at BOTH ends and neither end belongs to a gap:
+                # `f0` is bounded by the head of the file on both sides, `f1` by
+                # the foot. ! Bounded by nothing, exactly as `f0` is -- a licence
+                # at the foot is the FILE's, not the last gap's, which is where
+                # it landed while this place did not exist.
+                # ! THE FOOT OF THE PAGE: the gap after the last statement, then
+                # the file's own matter, which is bounded by nothing.
                 # ! `EOF` FOR THE SAME REASON THE GAP TAKES IT: the anchor names
                 # the trigger. `f0` answers `<module>` because that is where it
                 # was emitted, not because the file's matter belongs to the
@@ -864,11 +788,6 @@ def cue(code: list[CodeLine]) -> Cues:
         out.reading.append(beside)
         out.reading.extend(release.pop((seen, False), ()))
         seen += 1
-    # !! NOTHING IS COLLECTED AT THE END ANY MORE. This function closed by
-    # flattening the walkers into `out.places` and dropping them, so a
-    # place existed twice -- once in the walker that emitted it and once in the
-    # flat dict -- and every accessor had to be given its own table because the
-    # emitter was gone. `Cues.places` reads the walkers instead.
     return out
 
 
@@ -912,11 +831,6 @@ def address_for(path: str, cue: str) -> str:
     already owns both halves and the whole take-apart: `flatten` makes the path
     half, `emit` makes the cue, `cue_of` splits one back, and `unflatten` recovers
     the real path. Putting them together was the one direction that had leaked.
-
-    ! IT LEAKED TO TWO MODULES, and `record.address_for` -- which this is --
-    carried the claim *"the only place the two halves are put back together"*
-    while `page.py` composed its own with an f-string at two sites. Ruled by Roy,
-    2026-08-23: *"Something else owns addressing -- the Addresser."*
 
     ! BOTH HALVES OR NOTHING. An address missing either half resolves nowhere,
     so a blank is returned rather than `pkg:mod.py@` or `@a5`, both of which read
@@ -966,10 +880,6 @@ class Address(NamedTuple):
     means *the cue* and nothing in it says so; a reader has to know the
     tuple's order to know what was asked for.
 
-    ! IT IS THE `0`-FOR-A-MISSING-LINE DEFECT ONE FIELD OVER, and I wrote fifteen
-    of them an hour after recording that one -- a bare number carrying a meaning
-    the number does not hold.
-
     ! ADDITIVE, NOT A MIGRATION. A `NamedTuple` unpacks and subscripts exactly
     as the tuple did, so nothing that already worked had to change; the sites
     that read better by name were changed and the rest are free to follow.
@@ -987,7 +897,7 @@ class Address(NamedTuple):
         does not hold -- the defect recorded above, one field down. Roy,
         2026-08-24: *"cue.series is the Right answer."*
 
-        !! IT RAISES ON A STRING THAT NAMES NO PLACE, and that is deliberate.
+        It raises on an address with no cue, and that is deliberate.
         It was `self.cue[:1]` for one commit, which answered `""` -- and the
         only thing that ever reached it blank was LEADING. Roy, 2026-08-24:
         *"Series d are walked because they have to be but they are not cues."*
@@ -995,14 +905,8 @@ class Address(NamedTuple):
         it names no place; asking it which series it is in is a category error,
         not a case to absorb.
 
-        ! THE BLANK WAS THE MACHINERY THAT LET IT PRETEND. Two sites sent a `d`
-        through here and read the empty answer as their signal to go ask
-        `symbol` instead -- a round trip that bought nothing, since both already
-        knew. `galley.py` and `page.py` never did: they test `b.address` and
-        branch, which is the idiom this now requires of everyone.
-
         Raises:
-            IndexError: when the address names no place. The caller asked a
+            IndexError: when the address has no cue. The caller asked a
                 question about a cue of something that is not one.
         """
         return self.cue[0]

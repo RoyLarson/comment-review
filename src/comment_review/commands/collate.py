@@ -2,11 +2,15 @@
 
 The report includes `Refused`, `Settled`, `CarriedForward` and
 `PlacementCarried` events. Human questions are reported as `AsksTheHuman`
-before folding.
+before folding. `Advised` notes print last, under `FOR_THE_CHIEF`.
 
 After a committed fold, the command writes the chief's copy to `--out`.
 Use `--proof-out` to save the master proof and `--batch-out` to save the
 next turn's batch.
+
+The report and the exit codes are shared: `turn`, `disposition` and `check`
+import its helpers -- `_print`, `_lines`, `_code_for`, `_counted`, `_refused`,
+`_human_answers` -- and its exit codes, so a change here changes four commands.
 """
 
 import argparse
@@ -30,19 +34,12 @@ from comment_review.flows.proof_io import (
     save_proof,
 )
 
-#: Exit codes, extending `distribute`'s own 0/1/2 with the two outcomes a
-#: caller branches on. `main` checks the escalation before the composition, so
-#: a run holding both reports the escalation: it is the stronger claim on a
-#: person's attention. `turn` and `disposition` exit these same codes, since
-#: all three fold through the Unit of Work and a caller branching on a code
-#: branches once.
-#: !! THERE WERE THREE MORE UNTIL THE FOLD BECAME A UNIT OF WORK -- `DRIFT` 5,
-#: `COVERAGE` 6 and `CARRIED_AND_UNRULED` 7. Each named a finding that routed
-#: back to a role without voiding the round, and there is no such finding left.
-#: Drift is not measured at all (`decision-log.md Process: #185`). A short
-#: shard, a place a role left unruled and a slot a role left unanswered are
-#: found before the fold opens, so each is a `Refused` and the round rolls back
-#: (`Process: #186`).
+#: Exit codes, extending the 0/1/2 that `check` also declares with the two
+#: outcomes a caller branches on. `turn` and `disposition` exit these same
+#: codes, since all three fold through the Unit of Work and a caller branching
+#: on a code branches once. A short shard, a place a role left unruled and a
+#: slot a role left unanswered are found before the fold opens, so each is a
+#: `Refused` and the round rolls back (`Process: #186`).
 OK = 0
 BROKEN = 1
 UNREADABLE = 2
@@ -92,8 +89,6 @@ def _lines(event: object) -> list[str]:
 
     `Committed` and `RolledBack` carry a count of the places decided or the
     reasons refused, and every one of those has already printed its own line.
-    `Advised` has a line and a heading of its own, which `_print` writes
-    after the places.
     """
     if isinstance(event, events.AsksTheHuman):
         if event.answer:
@@ -139,7 +134,7 @@ def _print(out: list) -> None:
 
     A note is for the chief and changes nothing, so it sits under its own
     heading below the places rather than between them. Only a committed fold
-    emits one (`desk.report`), so the heading prints only over a
+    emits one (`desk.work.fold`), so the heading prints only over a
     committed round.
     """
     for event in out:
@@ -162,8 +157,8 @@ def _code_for(out: list) -> int:
     is paused for the person, nothing was saved, and every question is on
     stdout beside the role that owes it.
     Otherwise the strongest claim on a person's attention wins -- an
-    escalation over a contested placement over a composition or an open
-    placement, and `OK` where the fold carried nothing forward.
+    escalation or a contested placement (`ESCALATIONS`) over a composition or
+    an open placement (`REREADS`), and `OK` where the fold carried nothing forward.
     """
     if any(isinstance(one, events.RolledBack) for one in out):
         if any(isinstance(one, events.Refused) for one in out):
@@ -185,10 +180,9 @@ def _code_for(out: list) -> int:
 def _counted(places: tuple[Place, ...]) -> str:
     """What the written proof holds, by the state each of its places came to.
 
-    ! IT READ `N determined, M unsettlable` OFF THE OLD FOLD'S OWN LISTS, and
-    said only `N places` for one commit. A reader of the console has no other
-    summary of what the round did with the places it carries, so the counts
-    are read back off the states the proof records.
+    A reader of the console has no other summary of what the round did with
+    the places it carries, so the counts are read back off the states the
+    proof records.
 
     Args:
         places: `MasterProof.places`.
@@ -196,11 +190,9 @@ def _counted(places: tuple[Place, ...]) -> str:
     Returns:
         `"N places -- S settled, C carried forward, T to come"`.
 
-    Settled is counted rather than subtracted, since `decision-log.md
-    Process: #193`'s round. It read `len(states) - carried - unsettlable`,
-    which is a third statement of which states are settled --
-    `desk.proof.state.SETTLED` is the one both this and
-    `flows.transcribe._unclosed` read.
+    Settled is counted rather than subtracted, and `desk.proof.state.SETTLED`
+    is the one set of settled states both this and `flows.transcribe._unclosed`
+    read.
     """
     states = [str(place.state or "") for place in places]
     carried = sum(1 for state in states if state in CARRIED)
@@ -254,7 +246,8 @@ def main() -> int:
     Returns:
         One of `OK`, `BROKEN`, `UNREADABLE`, `REREADS`, `ESCALATIONS` or
         `ASKS_THE_HUMAN`. `UNREADABLE` is a file or an argument that is not
-        what it says, and nothing is read past it. `BROKEN` is a rollback: a
+        what it says, and nothing is read past it; a `--topology` file that
+        cannot be opened raises `OSError` instead. `BROKEN` is a rollback: a
         document that is not a copy, or a place the fold refused.
         `ASKS_THE_HUMAN` is a rollback holding human questions and nothing
         else. The chief's copy, the proof and the batch are written only on a
@@ -288,10 +281,6 @@ def main() -> int:
         help="the run's topology defining stage filters and dispatches; required"
         " for filtered stages and to detect missing dispatches",
     )
-    # !! THE ROOT SOURCE VERIFICATION RESOLVES A `cite` AGAINST -- `P25`. It
-    # defaults to the binder's own `read_from.root`, which is the tree the
-    # copies were gathered from and therefore the one their citations were
-    # written against.
     ap.add_argument(
         "--repo",
         help="the checkout a `sources` cite resolves against "
@@ -341,6 +330,9 @@ def main() -> int:
     # not pass it twice. `read_from` is refused as absent or malformed further
     # up the chain, and `.` is what a binder read from the working directory
     # says, so it is a fallback rather than a guess.
+    # `root` is where source verification resolves a `cite` (`P25`): the
+    # binder's tree is the one the copies were gathered from, and so the one
+    # their citations were written against.
     root = Path(args.repo) if args.repo else binder.root
 
     # ! THE TOPOLOGY IS OPTIONAL HERE AND THE STAGE LABEL IS NOT: without a
@@ -397,18 +389,18 @@ def main() -> int:
     # !! THE SERIALIZE IS THE CONTAINER'S AND THE DUMP IS THE FLOW'S --
     # `decision-log.md Process: #65`, `#67`. The fold returns containers; the
     # wire dict is made at the save, and nowhere between.
-    # ! A COMMITTED `CopiesReturned` ALWAYS CARRIES A CHIEF COPY -- the field
-    # is optional because a later handler on this bus may have no copy to
-    # write, and the guard is what says so rather than an assertion.
+    # A committed `CopiesReturned` always carries a chief copy -- every handler
+    # on this bus builds it with `flows.places.chief_copy_of`, which returns an
+    # `EditCopy`, so the guard's other branch is not reached.
     if result.chief is not None:
         save_copy(Path(args.out), result.chief)
         resolved = sum(len(sheet.marks) for sheet in result.chief.sheets)
         print(f"{args.out}: {resolved} places resolved")
 
-    # !! THE STATE BETWEEN TURNS IS WRITTEN WITH THE CHIEF, NOT INSTEAD OF IT.
+    # The state between turns is written with the chief, not instead of it.
     # `Process: #87`: the master proof carries the copies as they stand and
     # every place this fold decided, so the turn verb can answer them and fold
-    # again; the chief's copy is what the write end reads today.
+    # again; the master proof is also what the write end reads, by `proof --proof`.
     if args.proof_out:
         save_proof(Path(args.proof_out), result.proof)
         print(f"{args.proof_out}: the master proof -- {_counted(result.proof.places)}")

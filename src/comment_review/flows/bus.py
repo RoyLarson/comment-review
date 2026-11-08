@@ -9,6 +9,9 @@ Fold, and on commit builds what the stage saves. A command sends one message
 and prints the events; nothing here writes a file, and nothing here names a
 row of the three tables.
 
+`turn_of` reads the turn a proof stands at, for the turn and disposition
+handlers and for the `turn` and `disposition` commands that report it.
+
 What each handler reads. The collate handler reads the pages its copies'
 marks touch: to check an address and a quote against the page
 (`decision-log.md Process: #119`, `#122`) and to take each place's base text
@@ -154,6 +157,8 @@ class Result(NamedTuple):
         chief: the copy chief's own edit_copy, one mark per decided place.
         batch: role -> the slots a turn asks it about, or None where the
             fold carried nothing forward.
+        page_snapshots: the pages the collate handler read beyond the copies'
+            own sheets, by path; empty after a turn or a disposition.
     """
 
     proof: MasterProof
@@ -243,15 +248,16 @@ def _on_copies(message: CopiesReturned) -> tuple[list, Result | None]:
         problems += copy_problems(
             copy, paths, root, cache, page_cache, contexts=contexts
         )
+    required = [required_places(binder, message.topology)] * len(copies)
+    if message.binders is not None and len(message.binders) == len(copies):
+        required = [required_places(b) for b in message.binders]
+
     # ! `where` RATHER THAN `address`, and the two differ in one case only:
     # an entry that named no place. `where` is that entry's own address
     # wherever it has one, and the page and the entry's position where it has
     # none -- so a reader always has somewhere to look. A `Refused` carrying
     # "" would print as a finding about the whole copy, which is a different
     # fact (`collate-command-defects`, measured 2026-09-01).
-    required = [required_places(binder, message.topology)] * len(copies)
-    if message.binders is not None and len(message.binders) == len(copies):
-        required = [required_places(b) for b in message.binders]
     problems += [
         Problem(one.role, one.where, "; ".join(one.reasons))
         for one in mark_errors(copies, required)
@@ -611,8 +617,8 @@ def _unsent(
 def _on_dispositions(message: DispositionsWritten) -> tuple[list, Result | None]:
     """The chief's rulings written onto the moves and places, then folded.
 
-    Nothing survives the chief's ruling unruled, and nothing is ruled on
-    twice. A ruling naming a move (`to`) rules its placement, and every move
+    Nothing survives the chief's ruling unruled, and a later ruling at one
+    place wins. A ruling naming a move (`to`) rules its placement, and every move
     still undecided takes one (`decision-log.md Process: #195` item 4). A
     place carried forward takes a ruling on its words, and one with none is
     refused by name and with the roles it was put to. A ruling at a place the

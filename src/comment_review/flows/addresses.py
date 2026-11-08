@@ -35,7 +35,7 @@ class Place:
     """One place: its page, its address, and the line of code it is anchored to.
 
     `lines` is the span of the file the place's text stands on, or None for an
-    empty place, which stands on no line.
+    empty place, which stands on no line, and for every place `place_at` returns.
     """
 
     path: str
@@ -100,8 +100,8 @@ def lines_of(repo: Path, address: str) -> list[Place] | Refused:
 
     Every line number a record carried is stale after the write, so stage 8
     turns an address into lines with this. Written text can share a
-    neighbour's paragraph and read at another address, and several paragraphs
-    can answer to one address, so every match is returned.
+    neighbour's paragraph and read at another address, and `page_of` refuses a
+    page where two paragraphs hold one address, so at most one matches.
     """
     name, where = cue_of(address)
     if not name or not where:

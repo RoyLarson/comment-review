@@ -1,21 +1,12 @@
-"""What can go wrong getting at a file, each named for the question it answers.
+"""What this package raises, and what it catches reading a file or asking git.
 
 !! A LEAF, LIKE `constants`. It imports nothing from this package, so any module
 may take it without acquiring a subject.
 
-!! ONE NAME MEANT TWO THINGS. `READ_ERRORS` was defined in four shipped modules
-and five development scripts, and TWO of those definitions were a different
-tuple: they added `tomllib.TOMLDecodeError`. A file that will not DECODE is not a
-file that will not READ -- so a caller catching "read errors" was catching a
-parse failure in two places and not in the other seven, under one name.
-
-! THAT IS THE BUG THIS PREVENTS, and it is silent in both directions. Catching
-too much turns a malformed TOML into "could not read your file"; catching too
-little lets a decode failure escape a handler whose name says it is covered.
-
-!! THE TUPLES ARE DERIVED, NOT RESTATED. Every question here is *reading, plus
-what else can fail once the bytes are in hand*, so each name says which. Written
-out separately they drift: that is exactly what happened to `READ_ERRORS`.
+`TOML_ERRORS` and `PARSE_ERRORS` are derived from `READ_ERRORS`, not restated:
+each is *reading, plus what else can fail once the bytes are in hand*, so each
+name says which. Written out separately they drift. `GIT_ERRORS` asks git rather
+than reading a file, and lists its members itself.
 
 ! WHY A NAME AT ALL, rather than a tuple in the `except` clause: everything under
 `plugins/` is copied into other people's repositories and formatted by THEIR
@@ -31,15 +22,14 @@ import tomllib
 
 
 class Refused(ValueError):
-    """This page cannot be built or set, and the message says why.
+    """A page cannot be set or a binder distributed, and the message says why.
 
-    !! IT IS WHAT WE RAISE, and until 2026-08-22 that was a bare `ValueError` --
-    the same class `ast.parse` raises on a source string holding a NUL byte, and
-    a member of `PARSE_ERRORS` below. So a caller writing `except ValueError` to
-    report OUR refusal also swallowed anything else that went wrong inside, and
-    printed it as though the model had declined the file on purpose.
+    This is what we raise, rather than a bare `ValueError`, which is a member
+    of `PARSE_ERRORS` below. A caller writing `except ValueError` to report our
+    refusal would also swallow anything else that went wrong inside, and print
+    it as though the model had declined the file on purpose.
 
-    ! THE TUPLES ABOVE SAY WHAT WE CATCH; THIS SAYS WHAT WE RAISE. Naming one
+    The tuples below say what we catch; this says what we raise. Naming one
     and not the other leaves half the question answered, and it is the half a
     caller cannot work around -- a tuple can be narrowed at the call site, an
     over-broad raise cannot.
@@ -63,12 +53,12 @@ TOML_ERRORS = READ_ERRORS + (tomllib.TOMLDecodeError,)
 #: Reading a Python file AND parsing it -- both failures, under one name,
 #: because a caller that wants a tree cannot use the file either way.
 #:
-#: ! `ValueError` IS THE ONE NOBODY EXPECTS: `ast.parse` raises it, not
-#: `SyntaxError`, on a source string holding a NUL byte -- a file that decoded
-#: as valid UTF-8 and passed `READ_ERRORS` cleanly. `code_names` walks a whole
-#: repository, so one such file aborted the entire gather rather than degrading
-#: one file's harvest.
-#: ! Every caller treats a parse failure as ONE FILE DEGRADING, never as the run
+#: On Python 3.11.18 `ast.parse` raises `SyntaxError` on a source string
+#: holding a NUL byte -- a file that decoded as valid UTF-8 and passed
+#: `READ_ERRORS` cleanly. `code_names` walks a whole repository, so one such
+#: file degrades one file's harvest rather than ending the gather. `ValueError`
+#: is caught as well; nothing in this tree is known to raise it on a parse path.
+#: Every caller treats a parse failure as one file degrading, never as the run
 #: ending, which is why the read failures are folded in here too.
 PARSE_ERRORS = READ_ERRORS + (SyntaxError, ValueError)
 

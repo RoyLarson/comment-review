@@ -12,7 +12,9 @@
     read_mark()        an entry read as the type its instruction names, or
                        named problems
     BlankMark          a seeded slot no role has written in
-    untouched()        whether an entry is still exactly a `BlankMark`'s entry
+    untouched()        whether an entry's `instruction` is null and no
+                       `ROLE_FIELDS` filled
+    ROLE_FIELDS        the fields a role fills, which `untouched` reads
     ANCHOR_NAME        the form an `add`'s anchor is named in, and its example
     filled()           a string with something in it
     as_text()          a string field as a record holds it
@@ -30,11 +32,10 @@ The wire entry is the same for every type: `docs/the-mark.md`'s eight fields,
 with the per-instruction claim written as one `claim` object. `Mark.FIELDS` is
 that list, in order, and `serialize` writes exactly those keys.
 
-! `INSTRUCTION` NAMES THE ENUM. Each member's value is DERIVED from its name
-via `_generate_next_value_`, never hand-typed. No site here asks membership of
-an enum class directly (`x in SomeEnum` raises `TypeError` on Python 3.11) --
-`INSTRUCTION_NAMES` is the membership check for `Instruction`, and
-`QUERY_SHAPES` is `Shape`'s companion tuple.
+Membership is asked of a tuple. No site here asks membership of an enum class
+directly (`x in SomeEnum` raises `TypeError` on Python 3.11) --
+`INSTRUCTION_NAMES` is the membership check for `Instruction`, and `QUERY_SHAPES`
+is `Shape`'s companion tuple.
 """
 
 import re
@@ -78,12 +79,6 @@ INSTRUCTION_NAMES = tuple(Instruction)
 class Shape(StrEnum):
     """The three shapes a `query`'s claim must name, KEYED ON WHO RESOLVES IT.
 
-    `decision-log.md Process: #33`, Roy 2026-08-27. The set they replaced --
-    `outside the checkout`, `outside the code` -- was keyed on WHERE the missing
-    evidence lived, and rested on a reviewer in a FRESH CHECKOUT reaching the
-    same evidence later. Roy: *"this really is not expected to be a repeatable
-    event."*
-
     ! A cause belongs in `reason`, which a human reads. A SHAPE is read by the
     flow, and the flow can do nothing with a cause.
 
@@ -99,7 +94,7 @@ class Shape(StrEnum):
         return name.lower().replace("_", "-")
 
     OUTSIDE_MY_ROLE = auto()
-    #: ! The one a collate step can ACT on: another role may have settled this place.
+    #: Deferred like `OUTSIDE_MY_ROLE`: another role may have settled this place.
     UNABLE_TO_DETERMINE = auto()
     HUMAN_REVIEW_NECESSARY = auto()
 
@@ -151,9 +146,8 @@ class Mark:
             place is.
         reason: WHY, in prose. No checker settles it.
         sources: `{cite, verbatim}` pairs, each optionally carrying `ran`.
-            ! TYPED `object` AND NOT `dict` ON PURPOSE: on a type that owes no
-            sources an entry that is not a pair is carried, not dropped, so
-            `desk.collator.source_problems` can refuse it by name.
+            `read` checks each entry as a pair on every type, so a mark
+            that exists holds only pairs.
     """
 
     address: str
@@ -175,6 +169,9 @@ class Mark:
     owes_destination: ClassVar[bool] = False
     #: Whether a `change` is owed -- True on every `Amendment`.
     owes_change: ClassVar[bool] = False
+
+    #: Whether at least one source is owed. False on `clean` and `patch`, whose
+    #: sources are still each checked as a `{cite, verbatim}` pair.
     owes_sources: ClassVar[bool] = True
     #: Whether an `address` and a `reason` are owed. False on `clean` alone.
     substantive: ClassVar[bool] = True
@@ -259,7 +256,8 @@ class Mark:
         Every field is read as the type the mark holds, and a field of another
         type is read as absent. A field this type does not take is ignored,
         never refused (`decision-log.md Process: #204`). Then every check that
-        needs no page is asked, in the order a reader meets the fields.
+        needs no page is asked: address, reason, claim, destination, sources,
+        then change.
 
         What is NOT checked here, because it needs the page the role read:
         whether the address resolves, and whether a quoted clause is really in
@@ -808,21 +806,22 @@ def without_location(where: str, message: str) -> str:
 def untouched(entry: object) -> bool:
     """A seeded slot no role has written in -- the COVERAGE GAP.
 
-    !! THIS IS NOT "HAS NO INSTRUCTION". An entry a role HAS filled in but that
-    names no instruction -- or names it under a key the code does not read --
-    is a ruling, and goes to `read_mark`, which refuses it by name. Reading it
-    as untouched would drop it before any check saw it and count it as a place
-    nobody looked at.
+    This is not "has no instruction". An entry a role has filled in but that
+    names no instruction -- or names it under a key the code does not read
+    beside a filled `ROLE_FIELDS` key -- is a ruling, and goes to `read_mark`,
+    which refuses it by name. Reading it as untouched would drop it before any
+    check saw it and count it as a place nobody looked at.
 
-    ! So an untouched slot is BOTH things at once: `instruction` present and
-    null -- the key `BlankMark.serialize` writes -- AND none of `ROLE_FIELDS`
+    So an untouched slot is both things at once: `instruction` present and
+    null -- the key `BlankMark.serialize` writes -- and none of `ROLE_FIELDS`
     filled.
 
     Args:
         entry: one entry of a sheet's `marks`, as it came back.
 
     Returns:
-        True only for a slot that is still exactly as it was seeded.
+        True for an entry whose `instruction` is present and null and whose
+        `ROLE_FIELDS` are all empty; no other key is read.
     """
     if not isinstance(entry, dict):
         return False
@@ -835,10 +834,10 @@ def untouched(entry: object) -> bool:
 def _names_a_place(value: object) -> bool:
     """Whether `value` is a `path@cue` address -- a page, and a place on it.
 
-    `reading.addresser.cue_of` is the one parse of an address, and it answers
-    two blanks for anything that is not one, a bare cue included. Whether it is
-    spelled as the page prints it is `flows.verify.resolution_problems`'
-    question.
+    `reading.addresser.cue_of` is the parse of an address used here, and it
+    answers two blanks for anything that is not one, a bare cue included.
+    Whether it is spelled as the page prints it is
+    `flows.verify.resolution_problems`' question.
     """
     if not isinstance(value, str):
         return False
@@ -847,7 +846,7 @@ def _names_a_place(value: object) -> bool:
 
 
 def _source_problems(where: str, sources: tuple[object, ...]) -> list[str]:
-    """Each source is a `{cite, verbatim}` pair, and may carry `ran`.
+    """At least one source, each a `{cite, verbatim}` pair that may carry `ran`.
 
     !! PAIRS, NOT STRINGS. A `path:line | text` string reads for a human and
     cannot be checked -- nothing can confirm the verbatim string sits near the

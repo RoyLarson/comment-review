@@ -5,22 +5,18 @@
         --reason "..." --cite pkg/mod.py:12 [--ran "rg -n ..."] [--repo ROOT]
     comment_review mark --edit-copy COPY --address ADDRESS --withdraw
 
-`--withdraw` takes back every ruling the copy holds at `--address`, handing a
-seeded slot back as it was seeded, so a role places its ruling again rather
-than editing the JSON (`mark-defects` T24, `flows.fill.withdraw`).
+`--withdraw` takes back every ruling the copy holds at `--address`, deleting
+every entry there, so `check` reads the place from the binder as still owed and
+a role places its ruling again rather than editing the JSON
+(`flows.fill.withdraw`).
 
-!! A MODULE DOES ONE JOB AND HAS NO CLI; A FLOW CALLS MODULES;
-A COMMAND EXPOSES A FLOW. `decision-log.md Process: #12`. The flow is
-`flows.fill`; this parses the console and reads and writes the copy.
+The flow is `flows.fill`; this parses the console and reads and writes the copy.
 
-!! ONE INVOCATION PER RULING, ONE FLAG PER FIELD, AND ANY VALUE MAY BE
-`@path`. Roy, 2026-09-07, extending the 2026-08-17 ruling that no multi-line
-value passes through a shell: *"Can we just tell the cli which file to read
-for the text? And leave everything else in the cli pieces?"* A value spelled
-`@path` is read from that file, so a clause that wraps a comment line or a
-`change` that is a whole paragraph never crosses the shell; a one-line clause
-goes inline. And *"a false clause is one statement not multiple paragraphs"*,
-so the ordinary case is inline.
+One invocation per ruling, one flag per field, and any value may be `@path`. A
+value spelled `@path` is read from that file, so a clause that wraps a comment
+line or a `change` that is a whole paragraph never crosses the shell; a
+one-line clause goes inline. A false clause is one statement, not several
+paragraphs, so the ordinary case is inline.
 
 ! THE CLAIM'S KEYS ARE FLAGS BY NAME -- `--false --true` for a `correct`,
 `--from --to` for a `patch` or a `move`, `--drop`, `--missing --anchor` for an
@@ -28,9 +24,9 @@ so the ordinary case is inline.
 type does not carry is refused by name, and a missing one is named by the
 type's own read, so a role learns the contract from the refusal.
 
-! A SOURCE IS `--cite`, AND `--verbatim` OR `--ran` BINDS TO THE `--cite`
-BEFORE IT. Ruled 2026-09-07. A `--cite` with no `--verbatim` has the cited
-line read out of the checkout by the flow.
+A source is `--cite`, and `--verbatim` or `--ran` binds to the `--cite`
+before it. A `--cite` with no `--verbatim` has the cited line read out of the
+checkout by the flow.
 
 ! `--anchor-line` IS NOT `--anchor`. The first is the line of code a slot
 CREATED here sits on -- an `add` at an empty place, which the binder does not
@@ -44,11 +40,15 @@ An `add` gives the snippet in `--change` and the paragraph as it will read in
 destination paragraph as it will read. `--raw-text` is owed on every `move`
 and on an `add` at a place that already holds prose; at an empty place the
 two are the same text and it may be left off. Every other instruction takes
-its paragraph from the page and is refused a `--raw-text`.
+its paragraph from the page, and a `--raw-text` given to it is ignored.
 
-! NO BULK PASS OF ANY KIND. Roy, 2026-09-07: a flag that marks every null
-slot `clean` *"invites skipping reviewing each paragraph"*; each role
-certifies each paragraph under its remit, one invocation at a time.
+Exits `OK` with the placed mark named on stdout, `BROKEN` with the flow's
+reasons on stdout and the copy untouched, and `UNREADABLE` when the copy or an
+`@path` cannot be read -- the same 0, 1 and 2 as `check`.
+
+There is no bulk pass of any kind. A flag that marks every null slot `clean`
+would invite skipping the review of each paragraph; each role certifies each
+paragraph under its remit, one invocation at a time.
 """
 
 import argparse
@@ -124,9 +124,9 @@ def _expanded(argv: list[str]) -> tuple[list[str], list[str]]:
 
     A value is read from its file whether it stands as its own token or
     follows a flag's `=` -- `--true=@path`, which argparse reads as it reads
-    `--true @path`. Only the first form was read until `mark-defects` T23,
-    so the second saved the literal path as the clause and inside the derived
-    change. A flag is never a path, and neither is a lone `@`.
+    `--true @path`. A flag is never a path, and neither is a lone `@`.
+    A value that opens with `@` and has more after it is always read as a
+    path; a literal one is passed in a file.
     """
     out: list[str] = []
     problems: list[str] = []
@@ -175,7 +175,7 @@ def _entry(args: argparse.Namespace) -> tuple[dict, list[str]]:
 
 
 def main() -> int:
-    """Place one ruling on the copy and say so, or say why it was refused.
+    """Place one ruling, or withdraw those at `--address`; say so, or say why not.
 
     Returns:
         `OK` with the placed mark named on stdout; `BROKEN` with every reason

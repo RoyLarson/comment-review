@@ -14,6 +14,10 @@ TOML file, one `[[answer]]` table per query, naming the role that asked.
 
 A query is found by what its row makes of it -- the stance a mark takes, the
 effect an answer has -- so no row is named here.
+
+`corrections_to_matter` asks a second kind of question: every proposed mark that
+changes the file's own matter, an `f` place, or moves text into one, is put to the
+human for approval before the fold.
 """
 
 import tomllib
@@ -44,7 +48,7 @@ class HumanAnswer(NamedTuple):
     answer: str
 
 
-#: The keys every `[[answer]]` carries, each a non-empty string.
+#: The keys every `[[answer]]` carries, each a string holding more than whitespace.
 FIELDS = ("role", "at", "question", "answer")
 
 
@@ -129,7 +133,7 @@ def read_answers(text: str, where: str) -> tuple[list[HumanAnswer], list[str]]:
     Returns:
         `(the answers, [])`, or `([], problems)` where the file is not TOML or
         `answer` is not an array of tables, or `(the good ones, problems)` where
-        some sections lack a field.
+        some sections are not tables or lack a non-blank string field.
     """
     try:
         doc = tomllib.loads(text)

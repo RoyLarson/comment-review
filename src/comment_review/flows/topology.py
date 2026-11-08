@@ -6,14 +6,6 @@
 ! WHY A FLOW AND NOT `desk/topology.py`: `read` takes text and has no binder,
 so it cannot ask whether a dispatch reaches a page -- `Process: #55` puts that
 question in a command with a repo, and a command exposes a flow (`#12`).
-
-! THE GUARDS ARE `fan_out.partition`'s, NOT A SECOND COPY. `fit` runs the same
-partition `fan` will run and turns its two refusals into misfits, so a topology
-`fit` passes is one `fan` will not refuse. A glob that matches no page is NOT
-a third kind -- `Process: #100`: it either leaves a page uncovered, which the
-guard names, or costs nothing, and the agent that wrote it reads the result.
-What `fit` adds is the stage's globs on an `uncovered` detail, so that agent
-sees which glob missed.
 """
 
 import json
@@ -34,11 +26,11 @@ class Misfit(NamedTuple):
 
     Attributes:
         kind: `overlap` (a page in two shards of one role), `uncovered` (a
-            page no shard of a role reaches), `reads` (the file's own order
-            refuses it -- reported by the command from `read`'s reason, never
-            produced here).
+            page no shard of a role reaches), never `reads`, the label
+            `commands.topology` prints `read`'s refusal under.
         stage: the stage's name.
-        detail: what to look at -- the role, the pages, and the stage's globs.
+        detail: what to look at -- the role, the pages, and, on an
+            `uncovered`, the stage's globs.
     """
 
     kind: str
@@ -48,6 +40,14 @@ class Misfit(NamedTuple):
 
 def fit(stages: list[Stage], binder: Binder) -> list[Misfit]:
     """Every misfit between these stages and this binder; `[]` when it fits.
+
+    ! THE GUARDS ARE `fan_out.partition`'s, NOT A SECOND COPY. `fit` runs the same
+    partition `fan` will run and turns its two refusals into misfits, so a topology
+    `fit` passes is one `fan` will not refuse. A glob that matches no page is NOT
+    a third kind -- `Process: #100`: it either leaves a page uncovered, which the
+    guard names, or costs nothing, and the agent that wrote it reads the result.
+    What `fit` adds is the stage's globs on an `uncovered` detail, so that agent
+    sees which glob missed.
 
     ! ONE MISFIT PER STAGE AT MOST: `partition` raises on the first role that
     fails, and the caller fixes the topology and runs it again.
@@ -68,8 +68,9 @@ def fit(stages: list[Stage], binder: Binder) -> list[Misfit]:
 
 def _toml_string(s: str) -> str:
     # ! JSON's string escaping is a subset of TOML's basic-string escaping for
-    # every character a path may carry, and the stdlib has a JSON encoder and
-    # no TOML one. A test round-trips a quote through `read`.
+    # every character in the Basic Multilingual Plane; one above it is escaped
+    # as a surrogate pair, which TOML refuses, and the stdlib has a JSON encoder
+    # and no TOML one. A test round-trips a quote through `read`.
     return json.dumps(s)
 
 
@@ -80,6 +81,10 @@ def compose(directives: list[Directive], binder: Binder) -> str:
     reads the revise of the stage before it. A role split `ways` > 1 gets
     `ways` dispatches, each carrying explicit paths -- see `_deal` -- so it
     fits by construction rather than by a glob that happens to match.
+
+    Each stage names at least one role and no role twice; neither is refused
+    here, and the text built from either fails -- an empty stage in `read`, a
+    repeated role in `fit`, as an `overlap`.
 
     Raises:
         ValueError: a role outside the closed set, or a split the binder's
