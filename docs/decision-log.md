@@ -6435,3 +6435,19 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   **What it settles.** `CorrectAnswer` owes `sources`, checked as a `correct` mark's are;
   `PatchAnswer` is unchanged. Neither owes a quote. `tests/test_answers.py`, which pins the empty
   claim, is updated with the change.
+
+- **#289.** **A question for the person pauses the run; it does not roll it back** (Roy,
+  2026-11-07, on `brief-says-three-series` T7, shown that `ASKS_THE_HUMAN` reads as "rolled back,
+  nothing saved" and asked whether an `f` correction needs a code of its own):
+
+  *"This should change ASKS_THE_HUMAN means "rolled back, nothing saved" Because everything is
+  isolated from the code in the branch and in temporary files there is no harm in just pausing
+  the run to wait for the person to respond. As of now when the agents get that message they have
+  gone through the process of asking me. They send that answer back to the appropriate agent, the
+  agent modifies the marks and the run continues. That seems to work pretty well. It should
+  continue"*
+
+  **What it settles.** `ASKS_THE_HUMAN` means the run is paused for the person, and it is stated
+  that way. The loop #197 set stays: the task agent asks, sends the answer to the role that owes
+  it, the role changes its marks, and the run continues. An `f` correction is raised on that same
+  code (#287 item 1), not on a new one.
