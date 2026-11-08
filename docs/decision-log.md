@@ -6451,3 +6451,22 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   that way. The loop #197 set stays: the task agent asks, sends the answer to the role that owes
   it, the role changes its marks, and the run continues. An `f` correction is raised on that same
   code (#287 item 1), not on a new one.
+
+- **#290.** **Only a `move` is admitted on an `f` place, and an accepted move re-sets the page
+  for a new binder** (Roy, 2026-11-07, after the `f`-correction raise landed in `f279f3a1` and
+  `778f2a8b`, shown that an approval holds for any later wording of a mark whose reason is
+  unchanged):
+
+  *"Yeah What I would prefer but it is bigger is that only a move is allowed on an f, because the
+  reason is that it can be either a 'b' or an 'f' and that causes problems. That is yes/no and
+  easy even the agents are almost certainly going to get that correct every time. It is the codes
+  failure not a protection from rogue agents we are trying to stop. If the f had a move only and
+  then you could re-set the page with the move and run a new binder then all of the agents would
+  be working on an appropriate'b' spot for the f spot"*
+
+  **What it settles.** The approval stays as `778f2a8b` left it: the system guards against its
+  own failures, not against a role that ignores the person's answer. The design Roy prefers
+  replaces it: the desk admits only a `move` on an `f` place, the person answers it yes or no,
+  and an accepted move is set on the page and a new binder bound, so every role marks the text at
+  its `b` place. That is how `brief-says-three-series` T9's "mark against the accepted move" is
+  met.
