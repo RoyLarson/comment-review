@@ -315,8 +315,7 @@ python scripts/fetch_corpora.py --list     # the manifest
 python scripts/fetch_corpora.py            # materialise everything missing
 ```
 
-Nine repositories at pinned refs -- seven third-party, plus the two personal projects the
-tool was developed against, kept as the over-fitting control. Chosen for **variety of prose
+Public repositories at pinned refs, chosen for **variety of prose
 convention**, not popularity, so that Google, numpydoc and Sphinx styles are all exercised
 and a rule that only works on one house style has somewhere to fail.
 

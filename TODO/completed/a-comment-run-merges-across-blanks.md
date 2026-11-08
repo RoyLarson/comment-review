@@ -54,7 +54,7 @@ It does not reopen the address or comment-section boundary rule.
       -- * RULE whether a blank line ends a comment run in the MIDDLE of a file.
       Verify: the ruling is recorded in `docs/decision-log.md`.
         > 2026-08-31 3 in this repo's own Python -- page.py b28, mark.py b27
-        > 2026-09-05 FitPlan 09-05: two places each held two paragraphs; no mark fits
+        > 2026-09-05 Live run 09-05: two places each held two paragraphs; no mark fits
         > 2026-10-11 Roy: same-type comments stay together; blank lines add no anchor.
 - [x] T6 | Ruled: lines stays, counted by counted_lines | d86fa272 | Decide
       whether Paragraph.lines still has a place, given the mark changes and the

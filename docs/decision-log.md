@@ -3672,7 +3672,7 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   system does on a real codebase with the naive implementation"*; and, asked whether the
   baseline runs zero turns with the cap after the first fold, *"Yes on 1"*). Tested live: *"We
   are going to put the current code in the plugins directory and the updates to the agents
-  files. This will make it live and I will test it out on workout_organizer and job_board."*
+  files. This will make it live and I will test it out on [my own projects]."*
 
   **What it settles.** Stage 4 is v0.2.0's shape again -- the four roles in one message, each
   reading once -- and stages 5b and 6b are gone with `references/re-review.md`. Stage 5 is one
@@ -3685,19 +3685,19 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   turns earn their cost -- that is what the baseline exists to measure.
 
 - **#95.** **A REVIEWER IS TOLD WHERE THE BINDER, THE LISTING AND ITS EDIT COPY ARE, AND READS
-  THEM FROM DISK** (Roy, 2026-09-05, during the first live run of `0.2.4-beta` on job_board:
+  THEM FROM DISK** (Roy, 2026-09-05, during the first live run of `0.2.4-beta`:
   *"The agents need to be told where the binder and their marks are at, and they can read from
   there."*). The stage-4 packet carries `BINDER`, `LISTING` and `EDIT COPY` as absolute paths,
   and nothing from those three files is pasted into a prompt.
 
-  **The case that asked.** The job_board run gathered 16,158 paragraphs into a 337 KB listing,
+  **The case that asked.** That run gathered 16,158 paragraphs into a 337 KB listing,
   and the packet named no binder at all -- so the brief's `addresser --binder` and
   `check --binder` lines pointed at a file the role had no path to. `#83`'s *"given, never sent
   looking"* stands for the installed plugin; the run's own files are what a role reads and
   fills, and they were always meant to arrive as the copy already did, by path.
 
 - **#96.** **AN ADDRESS IS LOOKED UP FROM THE CODE, NOT FROM THE BINDER, AND A MARK MAY ADD THE
-  ABSENT PLACE THE BINDER FILTERED OUT** (Roy, 2026-09-05, on the FitPlan run's four lost
+  ABSENT PLACE THE BINDER FILTERED OUT** (Roy, 2026-09-05, on a second live run's four lost
   `add`s: *"The cli that looks up addresses doesn't look up the address from the file, it
   looks up the address in the binder and that is faulty, because the binder filters the
   addresses. The address lookup is supposed to look it up from the code and allow that absent
@@ -4616,7 +4616,7 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   with T6 and T7 moved to it -- Roy chose *"Approve the draft"*.
 
   On what `P5` closes against: *"A fresh run at the end"*. After the other sets land,
-  `plugins/` is built and Roy runs the plugin on `workout_organizer` and `job_board` again;
+  `plugins/` is built and Roy runs the plugin on his own projects again;
   `P5` closes on that run's findings, not on the 2026-09-05 and 2026-09-07 runs.
 
   On the order: *"Approve as listed"*. Five sets, each a sub-branch off
@@ -5589,7 +5589,7 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   `counted_lines` counts it: blank lines and a work-marker line are free. Every other way of
   filling it is a defect to repair.
 
-  **Where the rule comes from.** It predates this log: workout_organizer `c7558601`
+  **Where the rule comes from.** It predates this log: another of Roy's repositories, `c7558601`
   (2026-08-12), `tests/test_docstring_hygiene.py` -- *"Roy's approved markers (2026-08-11) --
   the whole list; anything absent COUNTS"* (`TODO`, `FIXME`, `HACK`, `XXX`, `BUG`), *"Only CODE
   ends a run"*, and *"A `# TODO` line is treated exactly like a blank one -- not counted, and
@@ -6417,7 +6417,7 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
     as a `collate` exit code, not from a query the role files. T7 is backend work.
   - A plan step that merges a branch is not plan work. `the-agents-read-the-cli` P19 and
     `the-cli-carries-a-real-run` P12 and P15 are superseded.
-  - `the-agents-read-the-cli` P5: the October workout_organizer runs count toward it.
+  - `the-agents-read-the-cli` P5: the October live runs count toward it.
   - `the-middle-rebuilt` P21 and `external-address-cites-dead-modules` T2 are superseded;
     `desk/external_address.py` stays.
   - A task one plan moves to another holds the first plan open until the second finishes or
@@ -6495,3 +6495,14 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   repositories it runs on. A plan's close is `plan close` and its commit, never a step of the
   plan: a step is closed against the commit holding its work, and the closing commit cannot
   cite itself. P5 is finished on the runs; P6 is superseded.
+
+- **#293.** **This repo names none of Roy's other projects** (Roy, 2026-11-08, shown the project
+  names left in plans, TODOs, the log, a test, `CHANGELOG.md` and the corpora prose):
+
+  *"All of the references to other projects violate the reference rule in the global CLAUDE.md
+  (or at least there used to be a rule about that there)"*, then *"Clean them up."*
+
+  **What it settles.** A run on another of Roy's projects is "a live run", and a quoted ruling
+  that named one carries a bracketed stand-in. The rule is not in the global CLAUDE.md as of this
+  date. `README.md` and `CLAUDE.md` now describe `corpora/corpora.toml` as it has stood since
+  `ae749ddf`: public repositories only, with no over-fitting control.

@@ -280,9 +280,8 @@ codebase:
 
 ### Corpora are fetched, never vendored
 
-`corpora/corpora.toml` pins nine repositories at specific refs (seven third-party, plus two
-personal projects used as an over-fitting control), chosen for variety of prose convention. A
-`local` corpus becomes a `git worktree` of a repo already on the machine; a `public` one is a
+`corpora/corpora.toml` pins public repositories at specific refs, chosen for variety of prose
+convention. A `local` corpus becomes a `git worktree` of a repo already on the machine; a `public` one is a
 sparse clone at a tag. `corpora/*/` is gitignored -- only the manifest and the fetch script are
 tracked. Corpora used with `evals/generator_split.py` must be fetched with `depth = 0` (full
 history) since it depends on `git blame`.

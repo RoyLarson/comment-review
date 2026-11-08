@@ -247,7 +247,7 @@ and now there is one object that cannot be half-held.
         > 2026-09-03 blocked -- ExternalAddress waits on the sketch's 4 open questions
         > 2026-09-14 self-run: 4 bare-cue destinations passed mark and check
 - [ ] T23 | Implement proof over a move whose destination is not a gathered
-      page, so an out-of-code move sets. Verify: the 13 in the job_board run set
+      page, so an out-of-code move sets. Verify: the 13 in the live run set
         > 2026-09-14 self-run: 19 of 35 moves left the code; collate, proof refused
         > 2026-09-14 Process 169: until one sets, it becomes a human-review query
 - [-] T24 | SUPERSEDED by Process 172 -- the change is the snippet, no labelled form; refiled as T25 | 35d2fcd9 | Make

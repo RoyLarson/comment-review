@@ -154,7 +154,7 @@ class TestByLine:
         )
 
     def test_an_empty_gap_answers(self, monkeypatch, capsys, a_repo):
-        """The FitPlan run lost four `add`s to this: the command read the
+        """A live run lost four `add`s to this: the command read the
         filtered binder and reported *"no `b` place"* for a gap the file has."""
         repo, name = a_repo
         code, out = self._ask(

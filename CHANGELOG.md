@@ -350,7 +350,7 @@ Decision log `Process: #98` to `#101` and `Vocabulary: #35` are this cut's rulin
 
 !! **A LIVE BUILD FOR A BASELINE, NOT THE RELEASE.** Roy, 2026-09-04: *"We are going to put the
 current code in the plugins directory and the updates to the agents files. This will make it
-live and I will test it out on workout_organizer and job_board."* The number keeps this tree
+live and I will test it out on [my own projects]."* The number keeps this tree
 from sharing a cache directory with the alpha, which held a materially older program.
 
 ### Changed

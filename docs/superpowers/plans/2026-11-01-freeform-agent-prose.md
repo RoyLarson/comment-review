@@ -34,7 +34,7 @@
 
 - [ ] **Step 1: Read the measured failures**
 
-`evidence__workout-builder-full-v0_2/ROLLBACK.md` in the OneDrive archive named by the `onedrive-evidence-archive` memory: the 31 run-caused defects, 12 of them one composition shape.
+The full v0.2 run's `ROLLBACK.md` in the OneDrive archive named by the `onedrive-evidence-archive` memory: the 31 run-caused defects, 12 of them one composition shape.
 
 - [ ] **Step 2: Draft it from those failures and bring Roy the exact wording**
 
