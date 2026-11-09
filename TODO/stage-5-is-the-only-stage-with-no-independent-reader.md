@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 10 of 16 tasks closed
+Progress: 11 of 17 tasks closed
 Owner:    agents
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-17, by the session that ran all eight stages and rolled its own work back.
           Its words: "the synthesis -- where four verdicts become one sentence -- is written
           by the same agent that then decides it's correct."
@@ -212,7 +212,10 @@ answered. A rail read and not run is a shape problem, and it was measured twice 
         > 2026-09-13 T6 then says a selective approval re-reads the pages it changes
 - [ ] T15 | Move the 7b write after stage 8, so nothing is written before every
       review is accepted, per #159
-- [?] T16 | Decide whether a collate that composes runs one turn by default, so
-      each role reads the text composed from its mark
+- [x] T16 | FINISHED -- ruled #298 | 813b3550 | Decide whether a collate that
+      composes runs one turn by default, so each role reads the text composed
+      from its mark
         > 2026-11-08 Outside run: 0 turns; 177 composed places ruled unread by roles
         > 2026-11-09 Outcome #298: yes, one turn by default after composing
+- [ ] T17 | Update SKILL.md stage 5 to run one turn by default when collate
+      composes (#298)

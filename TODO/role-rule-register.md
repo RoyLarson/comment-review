@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 1 of 7 tasks closed
+Progress: 2 of 8 tasks closed
 Owner:    agents
 Requires-Roy: true
 Raised:   2026-08-18 (Roy, 2026-08-18: keep track of these and have a place to decide on
@@ -143,7 +143,9 @@ focus for them gets a lot easier. ! The dependency is discharged: `cue` emits fo
 - [?] T6 | Rule on the sentence-framing entry for `module-context` with
       `function-context`
         > 2026-10-18 Shape: "stamps three -- a, b and c"; a passive that drops the actor
-- [?] T7 | Decide which role or stage owns the style-sheet sweep: dialect,
-      review labels, wrap and templates
+- [x] T7 | FINISHED -- ruled #302 | 813b3550 | Decide which role or stage owns
+      the style-sheet sweep: dialect, review labels, wrap and templates
         > 2026-11-08 Outside run: each of the four was nobody's remit
         > 2026-11-09 Outcome #302: the copy chief owns the sweep
+- [ ] T8 | Update SKILL.md stage 5 so the copy chief sweeps dialect, review
+      labels, wrap and templates (#302)

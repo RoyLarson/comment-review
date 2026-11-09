@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 9 of 16 tasks closed
+Progress: 10 of 17 tasks closed
 Owner:    backend
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-09-08 (Roy 2026-09-08: implementing the recast workflow for the cli the
           copy-chief uses to resolve the final pieces is a good todo, and cap is a bad
           name for it)
@@ -65,7 +65,9 @@ The copy chief has no workflow for recasting the places that never settled.
         > 2026-09-30 Decision: docs/reviews/2026-09-30-r4.md, Genuine ruling
 - [ ] T15 | Require sources on a correct answer, as on a correct mark (#288)
         > 2026-11-07 Check: a correct answer without sources refuses; patch does not
-- [?] T16 | Decide whether a recast may set an empty paragraph, which
-      disposition refuses as needing prose
+- [x] T16 | FINISHED -- ruled #299 | 813b3550 | Decide whether a recast may set
+      an empty paragraph, which disposition refuses as needing prose
         > 2026-11-08 Outside run: 4 refused; the chief took in the empty side instead
         > 2026-11-09 Outcome #299: yes, an empty recast drops the paragraph whole
+- [ ] T17 | Implement an empty recast in disposition as a drop of the whole
+      paragraph (#299)

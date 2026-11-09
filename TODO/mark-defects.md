@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 30 of 47 tasks closed
+Progress: 32 of 49 tasks closed
 Owner:    backend
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, a code review of `desk/mark.py` that ran `parse`
           against the claims in `docs/the-mark.md` and the module's own docstrings --
           eleven defects in one module, with no per-module TODO to hold them)
@@ -316,11 +316,15 @@ cites as its measured example of a field answering neither necessary nor purpose
       `mark --withdraw` hand the seeded slot back rather than delete it
 - [-] T45 | SUPERSEDED by T39: filed twice in error | 4db8b52f | Fix `mark
       --withdraw`, which also removes the role's other marks at that address
-- [?] T46 | Decide whether a correct or patch that changes a number, a name or
-      an error type must carry the line or command that settles it
+- [x] T46 | FINISHED -- ruled #300 | 813b3550 | Decide whether a correct or
+      patch that changes a number, a name or an error type must carry the line
+      or command that settles it
         > 2026-11-08 Outside run: an inverted numeric claim and a wrong name shipped
         > 2026-11-09 Outcome #300: such a patch owes a source, so the role inspects
-- [?] T47 | Decide whether a clean carries a source naming the code its role
-      read
+- [x] T47 | FINISHED -- ruled #301 | 813b3550 | Decide whether a clean carries a
+      source naming the code its role read
         > 2026-11-08 Outside run: 5 roles said they marked most places clean unread
         > 2026-11-09 Outcome #301: a clean owes a source naming the code read
+- [ ] T48 | Require a source on a patch whose change alters a number, a name or
+      an error type (#300)
+- [ ] T49 | Require a source on a clean, naming the code its role read (#301)
