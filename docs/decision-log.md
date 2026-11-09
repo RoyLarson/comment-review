@@ -6550,3 +6550,17 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   **What it settles.** `mark-defects` T39 is built to this. A withdrawn mark leaves the role's
   other marks at the address as they were. The slot's removal when the last mark goes stands as
   `received-binder-checks` T3 ruled it.
+
+- **#297.** **Removed history goes to an external address, after the code section works** (Roy,
+  2026-11-08, asked `dropped-history-has-no-home` T1 -- where a drop of a dated, quoted or ruling
+  sentence sends it, and what a run does where the repo names no home):
+
+  *"As soon as we have the external_address piece this will be resolved, but the code section has
+  to work first"*
+
+  **What it settles.** The sentence is not dropped but moved, to an external address, the
+  destination `Addressing: #21` allows a move. That needs the non-code document chain
+  (`a-non-code-document-has-no-read-review-resolve-or-write-chain-of-its-own`), and the chain
+  waits until the code section works. `dropped-history-has-no-home` T2-T4 wait on it. What a run
+  does where the repo names no home is not settled here; it is the external-address design's to
+  answer.
