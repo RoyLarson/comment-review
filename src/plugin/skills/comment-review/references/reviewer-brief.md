@@ -184,9 +184,11 @@ python <skill>/scripts/comment-review.py mark --edit-copy <EDIT COPY> --repo <RE
   printed for it, and the slot is created.
 
 `mark` refuses exactly what the fold would refuse, writes nothing when it does, and says why.
-`mark --withdraw --address <address>` removes every ruling at that address from
-your copy. Every review place in your received binder still requires a ruling;
-file its replacement before returning the copy.
+`mark --withdraw --address <address> --instruction <instruction>` takes back that one
+ruling from your copy; your other rulings at the address stay. Where you placed two of
+that instruction there, add `--quote` with the clause the one you mean quotes, or its
+change for an `add` or a `move`. Every review place in your received binder still
+requires a ruling; file its replacement before returning the copy.
 
 ### What makes a mark stand
 
@@ -414,6 +416,6 @@ it until it exits 0 or 5.
 
 **When the task agent hands you the author's answer to your query** -- an `[[answer]]` section
 naming your role, the place or move `at`, your question and the answer -- replace that query
-with the ruling the answer settles. In a copy, run `mark --withdraw --address <at>` and file
-every ruling at that address again; in a batch, rewrite your answer at that slot. Then run the
-check again.
+with the ruling the answer settles. In a copy, run
+`mark --withdraw --address <at> --instruction query` and file the ruling the answer settles;
+in a batch, rewrite your answer at that slot. Then run the check again.
