@@ -659,7 +659,7 @@ $Stages = [ordered]@{
         ))
         Invoke-Checked -Stage 'mark b9 block-context withdraw' -CommandLine ($Launcher + @(
             $Cmd.mark, '--edit-copy', $CopyFile['block-context'], '--address', 'fib.py@b9',
-            '--withdraw'
+            '--withdraw', '--instruction', 'correct'
         ))
         Invoke-Checked -Stage 'mark b9 block-context correct' -CommandLine ($Launcher + @(
             $Cmd.mark, '--edit-copy', $CopyFile['block-context'], '--address', 'fib.py@b9',
@@ -1332,7 +1332,7 @@ $Stages = [ordered]@{
         foreach ($one in (Get-Content -LiteralPath $HumanReplacedFile -Raw | ConvertFrom-Json)) {
             Invoke-Checked -Stage "replace $($one.query) $($one.role) query" -CommandLine ($Launcher + @(
                 $Cmd.mark, '--edit-copy', $CopyFile[$one.role], '--address', $one.query,
-                '--withdraw'
+                '--withdraw', '--instruction', 'query'
             ))
             foreach ($placed in $one.marks) {
                 Invoke-Checked -Stage "replace $($one.query) $($one.role) at $($placed.address)" -CommandLine ($Launcher + @(
