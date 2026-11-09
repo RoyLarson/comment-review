@@ -10,10 +10,11 @@ from comment_review.desk.answers.table import (
 )
 from comment_review.desk.dispositions.table import DISPOSITIONS
 from comment_review.desk.evaluate.move import hold_ends, placement_pass, settle_ends
+from comment_review.desk.marks.rules import derived_change
 from comment_review.desk.marks.table import INSTRUCTIONS, Stance
 from comment_review.desk.proof.answer import QueryAnswer, Question, Rewrite
 from comment_review.desk.proof.disposition import CHIEF, ORIGINAL
-from comment_review.desk.proof.mark import Touch
+from comment_review.desk.proof.mark import Touch, mark_type
 from comment_review.desk.proof.move import Move
 from comment_review.desk.proof.place import Filed, Place
 from comment_review.desk.proof.state import CARRIED, State
@@ -70,6 +71,9 @@ def composed_side(
     if len(filed) == 1:
         one = filed[0]
         return INSTRUCTIONS[one.mark.instruction].sets(one.mark, one.touch, base), []
+    by_clause = _by_clause(filed, base)
+    if by_clause is not None:
+        return by_clause, []
     # Keyed by position, not by what `_named` calls the mark: two of a role's
     # corrections at one address are named the same, and one key would drop
     # one of them into the other and compose a pair with itself.
@@ -100,6 +104,52 @@ def composed_side(
             f"{role}: its marks here edit the same sentence and do not compose"
             f" -- {', '.join(_named(one) for one in filed)}; {ask}"
         ]
+
+
+def _by_clause(filed: list[Filed], base: str) -> str | None:
+    """The base with each mark's quoted clause edited, or None to compose by line.
+
+    A `drop`, `correct` or `patch` names the clause it edits, so marks on
+    different sentences compose even where the sentences share a line, which a
+    line-by-line composition reads as one edit. Applied from the last clause
+    back, each through `derived_change`, so the clauses before it keep their
+    place. None where a mark quotes no clause, its `change` is not what its
+    claim derives, or two clauses overlap -- those compose by line, which
+    refuses a shared sentence.
+    """
+    edits = []
+    for one in filed:
+        quotes = mark_type(one.mark.instruction).quotes_original
+        if not quotes or one.touch is not Touch.OWN:
+            return None
+        claim = one.mark.serialize()["claim"]
+        derived, why = derived_change(
+            one.mark.instruction,
+            claim,
+            base,
+            address=one.mark.address,
+            anchor=one.mark.anchor,
+        )
+        if why or derived != getattr(one.mark, "change", None):
+            return None
+        at = base.index(claim[quotes])
+        edits.append((at, at + len(claim[quotes]), one.mark, claim))
+    edits.sort(key=lambda edit: edit[:2])
+    if any(
+        later[0] < earlier[1] for earlier, later in zip(edits, edits[1:], strict=False)
+    ):
+        return None
+    text = base
+    for at, end, mark, claim in reversed(edits):
+        quoted = claim[mark_type(mark.instruction).quotes_original]
+        if text[at:end] != quoted:
+            return None
+        text, why = derived_change(
+            mark.instruction, claim, text, address=mark.address, anchor=mark.anchor
+        )
+        if why or text is None:
+            return None
+    return text
 
 
 def sides_of(place: Place) -> tuple[dict[str, str | None], tuple[str, ...]]:

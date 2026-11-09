@@ -127,6 +127,16 @@ def _marks(copy: dict) -> list[dict]:
     return copy["sheets"][0]["marks"]
 
 
+def _a_drop(clause: str) -> dict:
+    return {
+        "address": "m.py@b1",
+        "instruction": "drop",
+        "claim": {"drop": clause},
+        "reason": "the sentence is not true of the code",
+        "sources": [{"cite": "m.py:5"}],
+    }
+
+
 def _a_correct(**overrides) -> dict:
     entry = {
         "address": "m.py@b1",
@@ -230,6 +240,16 @@ class TestASecondRulingComposesWithTheFirstOrIsRefused:
         assert "m.py@b1" in why[0] and "do not compose" in why[0]
         assert "withdraw one" in why[0]
         assert json.dumps(copy) == before
+
+    def test_two_drops_on_adjacent_lines_are_both_placed(self, copy, root):
+        """Two sentences on neighbouring lines, which a line-by-line
+        composition reads as one edit; each drop names its own clause, so the
+        pair composes (`mark-defects` T36)."""
+        for clause in ("one", "two"):
+            placed, why = fill(copy, _a_drop(clause), root)
+            assert why == [] and placed is not None
+        marks = [m for m in _marks(copy) if m["address"] == "m.py@b1"]
+        assert [m["claim"] for m in marks] == [{"drop": "one"}, {"drop": "two"}]
 
     def test_an_add_after_the_paragraph_composes_with_a_correct_in_it(self, root):
         """`mark-defects` T28, the shape a code-concern TODO takes: a role
