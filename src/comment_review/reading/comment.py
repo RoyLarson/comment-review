@@ -7,6 +7,7 @@ prose into that form.
 
 import re
 import textwrap
+from bisect import bisect_left
 from collections.abc import Callable
 from dataclasses import dataclass
 from functools import cache
@@ -93,6 +94,121 @@ class Fragment:
         separator = "\r\n" if "\r\n" in self.raw_text else "\n"
         return separator.join(out) + self.ending
 
+    def cut(self, start: int, end: int) -> str | None:
+        """This fragment's raw text with its prose `[start, end)` taken out.
+
+        Only the lines holding the removed prose are rewritten. Each run of them
+        between blank lines is set again from its first line's lead, its second
+        line's lead for any line after, and its last line's trail, at the
+        paragraph's own width; every other line is kept byte for byte. A run
+        left with no prose goes, with a blank line beside it. None where the
+        prose cannot be mapped back onto the raw text.
+        """
+        text, at, raw = self.text, self.positions, self.raw_text
+        if len(at) != len(text):
+            return None
+        marks = [i for i in range(start, end) if not text[i].isspace()]
+        if not marks:
+            return raw
+        lo, hi = at[marks[0]], at[marks[-1]] + 1
+        lines = raw.split("\n")
+        bounds, offset = [], 0
+        for line in lines:
+            bounds.append((offset, offset + len(line)))
+            offset += len(line) + 1
+        first = raw.count("\n", 0, lo)
+        last = raw.count("\n", 0, hi - 1)
+        # Each line keeps its own `\r`, so a CRLF paragraph stays CRLF.
+        cr = "\r" if "\r\n" in raw else ""
+        width = max(
+            [
+                len(lines[0].rstrip("\r")) + self.anchor_width,
+                *(len(line.rstrip("\r")) for line in lines[1:]),
+            ]
+        )
+
+        def prose_on(n: int) -> list[int]:
+            begin, finish = bounds[n]
+            return [
+                i
+                for i in range(bisect_left(at, begin), bisect_left(at, finish))
+                if not text[i].isspace()
+            ]
+
+        out = lines[:first]
+        run: list[int] = []
+        for n in [*range(first, last + 1), None]:
+            if n is not None and prose_on(n):
+                run.append(n)
+                continue
+            if run:
+                wrapped, lead, trail = self._set_run(
+                    run, lines, bounds, prose_on, start, end, width
+                )
+                trail = trail.removesuffix("\r")
+                if not wrapped and run[0] == 0 and lead.strip() != self.rest.strip():
+                    # The opener stood on the emptied line, with nothing to
+                    # carry it onto.
+                    return None
+                if not wrapped and trail.strip():
+                    if not (out and out[-1].strip()):
+                        return None
+                    # A closer on an emptied line moves up onto the line above,
+                    # or stands on a line of its own where that line has no room.
+                    joined = out[-1].rstrip() + trail
+                    if len(joined.rstrip()) <= width:
+                        out[-1] = joined + cr
+                    else:
+                        wrapped = [lead + trail.lstrip() + cr]
+                out.extend(wrapped)
+                run = []
+            if n is not None:
+                out.append(lines[n])
+        out.extend(lines[last + 1 :])
+        out = _without_doubled_blanks(out, first)
+        return "\n".join(out)
+
+    def _set_run(
+        self, run, lines, bounds, prose_on, start, end, width
+    ) -> tuple[list[str], str, str]:
+        """One run of touched lines set again, with its lead and its trail.
+
+        The lines are `[]` where the run keeps no prose.
+        """
+        text, at = self.text, self.positions
+        b0, b1 = prose_on(run[0])[0], prose_on(run[-1])[-1]
+        before = text[b0:start].rstrip() if start > b0 else ""
+        after = text[max(end, b0) : b1 + 1].lstrip() if end <= b1 else ""
+        kept = re.sub(r"\s+", " ", f"{before} {after}").strip()
+        lead = lines[run[0]][: at[b0] - bounds[run[0]][0]]
+        tail_line = run[-1]
+        trail = lines[tail_line][at[b1] + 1 - bounds[tail_line][0] :]
+        if not trail.endswith("\r") and lines[run[0]].endswith("\r"):
+            trail += "\r"
+        if not kept:
+            return [], lead, trail
+        if len(run) > 1:
+            follow = lines[run[1]][: at[prose_on(run[1])[0]] - bounds[run[1]][0]]
+        elif run[0] == 0:
+            follow = self.rest
+        else:
+            follow = lead
+        padding = " " * self.anchor_width if run[0] == 0 else ""
+        wrapped = textwrap.wrap(
+            kept,
+            width=max(width - len(trail), len(lead) + 1, len(follow) + 1),
+            initial_indent=padding + lead,
+            subsequent_indent=follow,
+            break_long_words=False,
+            break_on_hyphens=False,
+        ) or [padding + lead + kept]
+        if padding:
+            wrapped[0] = wrapped[0][len(padding) :]
+        cr = "\r" if trail.endswith("\r") else ""
+        trail = trail.removesuffix("\r")
+        wrapped = [*(line + cr for line in wrapped[:-1]), wrapped[-1] + trail + cr]
+        return wrapped, lead, trail + cr
+
 
 @dataclass(frozen=True)
 class Comment:
@@ -159,6 +275,7 @@ class Comment:
             ends_line = at == len(self.fragments) - 1 or part.raw_text.endswith(
                 ("\n", "\r")
             )
+            begun = offset
             remaining = []
             kept_indices = []
             for n, paragraph in enumerate(part.paragraphs):
@@ -171,7 +288,10 @@ class Comment:
                     remaining.append(kept)
                     kept_indices.append(n)
                 offset += len(paragraph) + 1
-            text = part.wrap("\n\n".join(remaining), tuple(kept_indices))
+            local = (max(0, start - begun), max(0, min(len(part.text), end - begun)))
+            text = part.cut(*local) if remaining and local[0] < local[1] else None
+            if text is None:
+                text = part.wrap("\n\n".join(remaining), tuple(kept_indices))
             previous = rendered[-1] if rendered else ""
             shares_line = bool(previous) and not previous.endswith(("\n", "\r"))
             if not text and shares_line and ends_line:
@@ -199,6 +319,14 @@ class Comment:
         found = re.search(r"[\r\n]+$", self.raw_text)
         ending = found.group(0) if found else ""
         return "".join(rendered).rstrip("\r\n") + (ending if rendered else "")
+
+
+def _without_doubled_blanks(lines: list[str], at: int) -> list[str]:
+    """`lines` with a blank line removed where a removal at `at` left two."""
+    blank = [not line.strip() for line in lines]
+    if 0 < at < len(lines) and blank[at] and blank[at - 1]:
+        return lines[:at] + lines[at + 1 :]
+    return lines
 
 
 def _join(lines: list[str]) -> str:
