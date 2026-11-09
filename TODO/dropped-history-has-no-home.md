@@ -2,10 +2,12 @@
 
 ```
 Status:   open
-Progress: 0 of 4 tasks closed
+Progress: 1 of 4 tasks closed
 Owner:    agents
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-11-08 (2026-11-08 run on another repository, plugin 0.2.4-beta.7)
+Waiting on: 2026-11-08 -- external addresses (Addressing #21) and the non-code document
+            chain, which follow the code section working -- #297
 ```
 
 ## Objective
@@ -24,10 +26,14 @@ rule with no check that the prose arrived, leaves the loss in place.
 
 ## Tasks
 
-- [?] T1 | Decide where a drop of a dated, quoted or ruling sentence sends it,
-      and what a run does where the repo names no home
+- [x] T1 | FINISHED -- #297: moved to an external address once that chain lands | 2255e7c9 | Decide
+      where a drop of a dated, quoted or ruling sentence sends it, and what a
+      run does where the repo names no home
 - [ ] T2 | Record in stage 1 the repo's home for removed history, or none
+        > 2026-11-08 Waits on external addresses, after the code section works (#297)
 - [ ] T3 | Update the brief so a drop of history names its destination, or
       queries the author where none is recorded
+        > 2026-11-08 Waits on external addresses, after the code section works (#297)
 - [ ] T4 | Implement a 7a list of every removed sentence the write leaves in no
       file, matched exactly
+        > 2026-11-08 Waits on external addresses, after the code section works (#297)

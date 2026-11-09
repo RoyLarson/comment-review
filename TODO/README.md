@@ -302,7 +302,7 @@ that changed a published name or rule:
 | [addresser-defects](addresser-defects.md) | backend | -- | 0/3 | reading/addresser.py answers a miss with a real position |
 | [bus-defects](bus-defects.md) | backend | -- | 1/2 | flows/bus.py carries an unread field and lets a ruling be overwritten |
 | [command-entry-points](command-entry-points.md) | backend | -- | 0/2 | The commands keep entry points of their own beside __main__ |
-| [dropped-history-has-no-home](dropped-history-has-no-home.md) | agents | yes | 0/4 | A dropped history sentence has no home |
+| [dropped-history-has-no-home](dropped-history-has-no-home.md) | agents | -- | 1/4 | A dropped history sentence has no home |
 
 ### in-progress  (17)
 
