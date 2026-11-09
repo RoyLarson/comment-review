@@ -14,6 +14,7 @@ from comment_review.desk.evaluate.passes import (
     marks_pass,
     sides_of,
 )
+from comment_review.desk.marks.rules import derived_change
 from comment_review.desk.proof.answer import Question
 from comment_review.desk.proof.disposition import ORIGINAL
 from comment_review.desk.proof.mark import Instruction, Mark, Shape, Touch
@@ -265,6 +266,49 @@ class TestSeveralOfOneRolesMarksAtOnePlace:
             _place(Filed("a", corr, Touch.OWN), Filed("a", patch, Touch.OWN))
         )
         assert len(why) == 1 and "withdraw one" in why[0]
+
+    def _a_clause_mark(self, instruction, claim, base):
+        change, why = derived_change(instruction, claim, base, address="m.py@b1")
+        assert why == [] and change is not None
+        return _mark(instruction, change=change, raw_text=base, claim=claim)
+
+    def _side(self, base, *marks):
+        filed = [Filed("a", mark, Touch.OWN) for mark in marks]
+        return sides_of(_place(*filed, base=base))
+
+    def test_two_drops_of_different_sentences_on_one_line_compose(self):
+        base = "# One stays. Two goes. Three goes too.\n"
+        got = self._side(
+            base,
+            self._a_clause_mark(Instruction.DROP, {"drop": " Two goes."}, base),
+            self._a_clause_mark(Instruction.DROP, {"drop": " Three goes too."}, base),
+        )
+        assert got == ({"a": "# One stays.\n"}, ())
+
+    def test_a_drop_and_a_correct_on_adjacent_lines_compose(self):
+        base = "# One stays here.\n# Two is wrong. Three goes.\n# Four stays.\n"
+        got = self._side(
+            base,
+            self._a_clause_mark(
+                Instruction.CORRECT, {"false": "One", "true": "1"}, base
+            ),
+            self._a_clause_mark(Instruction.DROP, {"drop": " Three goes."}, base),
+        )
+        assert got == (
+            {"a": "# 1 stays here.\n# Two is wrong.\n# Four stays.\n"},
+            (),
+        )
+
+    def test_two_clause_marks_quoting_overlapping_text_are_refused(self):
+        base = "# One stays. Two goes.\n"
+        _sides, why = self._side(
+            base,
+            self._a_clause_mark(Instruction.DROP, {"drop": " Two goes."}, base),
+            self._a_clause_mark(
+                Instruction.CORRECT, {"false": "Two", "true": "2"}, base
+            ),
+        )
+        assert len(why) == 1 and "same sentence" in why[0]
 
 
 def _a_correct(change="# one\n# 2\n# three\n", false="two", true="2"):

@@ -746,17 +746,24 @@ class TestTheChangeDerivedFromAClaim:
     """
 
     BASE = "# one\n# two\n# three\n"
+    AT = "m.py@b1"
 
     def test_a_correct_substitutes_the_false_clause_with_the_true_one(self):
         change, why = derived_change(
-            Instruction.CORRECT, {"false": "two", "true": "2"}, self.BASE
+            Instruction.CORRECT,
+            {"false": "two", "true": "2"},
+            self.BASE,
+            address=self.AT,
         )
         assert why == []
         assert change == "# one\n# 2\n# three\n"
 
     def test_a_patch_substitutes_from_with_to(self):
         change, why = derived_change(
-            Instruction.PATCH, {"from": "# three", "to": "# 3"}, self.BASE
+            Instruction.PATCH,
+            {"from": "# three", "to": "# 3"},
+            self.BASE,
+            address=self.AT,
         )
         assert why == []
         assert change == "# one\n# two\n# 3\n"
@@ -766,19 +773,25 @@ class TestTheChangeDerivedFromAClaim:
             Instruction.CORRECT,
             {"false": "two\n# three", "true": "two and three"},
             self.BASE,
+            address=self.AT,
         )
         assert why == []
         assert change == "# one\n# two and three\n"
 
     def test_a_drop_removes_the_sentence(self):
         change, why = derived_change(
-            Instruction.DROP, {"drop": " Narrow it later."}, "# Kept. Narrow it later."
+            Instruction.DROP,
+            {"drop": " Narrow it later."},
+            "# Kept. Narrow it later.",
+            address=self.AT,
         )
         assert why == []
         assert change == "# Kept."
 
     def test_a_drop_of_the_whole_paragraph_is_the_empty_string(self):
-        change, why = derived_change(Instruction.DROP, {"drop": self.BASE}, self.BASE)
+        change, why = derived_change(
+            Instruction.DROP, {"drop": self.BASE}, self.BASE, address=self.AT
+        )
         assert why == []
         assert change == ""
 
@@ -796,6 +809,7 @@ class TestTheChangeDerivedFromAClaim:
             Instruction.DROP,
             {"drop": " The second one goes\n    # away entirely."},
             base,
+            address=self.AT,
         )
         assert why == []
         assert change == (
@@ -810,23 +824,33 @@ class TestTheChangeDerivedFromAClaim:
     def test_a_row_that_quotes_nothing_derives_nothing_and_reports_nothing(
         self, instruction
     ):
-        assert derived_change(instruction, {"to": "m.py@b8"}, self.BASE) == (None, [])
+        assert derived_change(
+            instruction, {"to": "m.py@b8"}, self.BASE, address=self.AT
+        ) == (None, [])
 
     def test_a_clause_not_in_the_paragraph_is_refused(self):
         change, why = derived_change(
-            Instruction.CORRECT, {"false": "four", "true": "4"}, self.BASE
+            Instruction.CORRECT,
+            {"false": "four", "true": "4"},
+            self.BASE,
+            address=self.AT,
         )
         assert change is None
         assert len(why) == 1 and "`claim.false`" in why[0] and "not in" in why[0]
 
     def test_a_clause_the_paragraph_holds_twice_is_refused(self):
         change, why = derived_change(
-            Instruction.CORRECT, {"false": "# t", "true": "# T"}, self.BASE
+            Instruction.CORRECT,
+            {"false": "# t", "true": "# T"},
+            self.BASE,
+            address=self.AT,
         )
         assert change is None
         assert len(why) == 1 and "`claim.false`" in why[0] and "2 times" in why[0]
 
     def test_a_missing_counterpart_is_refused(self):
-        change, why = derived_change(Instruction.CORRECT, {"false": "two"}, self.BASE)
+        change, why = derived_change(
+            Instruction.CORRECT, {"false": "two"}, self.BASE, address=self.AT
+        )
         assert change is None
         assert len(why) == 1 and "`claim.true`" in why[0]

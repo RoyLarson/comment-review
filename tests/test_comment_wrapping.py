@@ -144,13 +144,13 @@ def test_move_matching_keeps_case_and_punctuation_and_word_boundaries(snippet):
     assert form.without_once(snippet) is None
 
 
-def test_a_drop_rewraps_rust_inner_documentation():
+def test_a_drop_in_rust_inner_documentation_rewrites_only_its_line():
     raw = "//! Kept. Remove this one.\n//! The ending also stays.\n"
     changed, problems = derived_change(
         Instruction.DROP, {"drop": " Remove this one."}, raw, address="m.rs@a1"
     )
     assert problems == []
-    assert changed == "//! Kept. The ending also\n//! stays.\n"
+    assert changed == "//! Kept.\n//! The ending also stays.\n"
 
 
 def test_removing_a_sentence_retains_a_blank_between_paragraphs():
@@ -203,10 +203,9 @@ def test_docstring_quotes_and_prefixes_survive_removal(quote):
     assert comment_at(paragraph.address, changed).text == "Keep. Ending stays."
 
 
-def test_a_docstring_continued_by_a_backslash_wraps_inside_its_quotes():
+def test_a_drop_in_a_docstring_continued_by_a_backslash_stays_inside_its_quotes():
     raw = '    """Keep. Move.""" \\'
     form = comment_at("m.py@a1", raw)
-    assert form.fragments[0].wrap("New doc.") == '    """New doc.""" \\'
     assert form.without_once("Move.") == '    """Keep.""" \\'
 
 
@@ -985,3 +984,123 @@ def test_refused_move_leaves_the_edit_copy_unchanged(tmp_path, prose):
     assert any("snippet is not in the origin's paragraph" in p for p in problems)
     assert copy == before
     assert (tmp_path / "m.py").read_text(encoding="utf-8") == source
+
+
+# `0.2.4-a-mark-lands-as-written` P1, mark-defects T35: a removal rewrites only
+# the lines it touches. The 2026-11-08 self-run lost an `Args:` section, an
+# indented usage block and a `#:` run's prefixes to a whole-paragraph rewrap.
+
+ARGS_DOCSTRING = (
+    '    """Summary line of the function.\n'
+    "\n"
+    "    A rule paragraph that stays. A sentence that goes away.\n"
+    "\n"
+    "    Args:\n"
+    "        name: what it is, and any constraint the signature\n"
+    "            cannot express.\n"
+    '    """'
+)
+
+
+def test_a_drop_in_a_docstring_keeps_its_args_section():
+    changed, problems = derived_change(
+        Instruction.DROP,
+        {"drop": " A sentence that goes away."},
+        ARGS_DOCSTRING,
+        address="m.py@a1",
+    )
+    assert problems == []
+    assert changed == ARGS_DOCSTRING.replace(" A sentence that goes away.", "")
+
+
+USAGE_DOCSTRING = (
+    '"""The `mark` command: one ruling, placed from the console.\n'
+    "\n"
+    "    comment_review mark --edit-copy COPY --address ADDRESS \\n"
+    '        --reason "..." --cite pkg/mod.py:12\n'
+    "\n"
+    "The flow is `flows.fill`. A rule paragraph, with history. It parses the\n"
+    "console.\n"
+    '"""'
+)
+
+
+def test_a_drop_beside_a_usage_block_leaves_the_block_byte_identical():
+    changed, problems = derived_change(
+        Instruction.DROP,
+        {"drop": " A rule paragraph, with history."},
+        USAGE_DOCSTRING,
+        address="m.py@a0",
+    )
+    assert problems == []
+    kept, rest = USAGE_DOCSTRING.split("The flow is", 1)
+    assert changed is not None
+    assert changed.startswith(kept)
+    assert changed.endswith('"""')
+    assert comment_at("m.py@a0", changed).text.endswith(
+        "The flow is `flows.fill`. It parses the console."
+    )
+
+
+COLON_RUN = (
+    "#: Exit codes a caller branches on. A sentence of history goes. The\n"
+    "#: second line stays as it is.\n"
+    "#: And so does the third.\n"
+)
+
+
+def test_a_drop_in_a_colon_comment_run_keeps_every_prefix():
+    changed, problems = derived_change(
+        Instruction.DROP,
+        {"drop": " A sentence of history goes."},
+        COLON_RUN,
+        address="m.py@b1",
+    )
+    assert problems == []
+    assert changed is not None
+    lines = changed.splitlines()
+    assert all(line.startswith("#: ") for line in lines)
+    assert lines[1:] == COLON_RUN.splitlines()[1:]
+    assert lines[0] == "#: Exit codes a caller branches on. The"
+
+
+def test_a_removal_rewritten_across_lines_keeps_crlf_on_every_line():
+    raw = (
+        "# The first sentence here stays. Remove this one. The\r\n"
+        "# second line runs on to a long and wordy end of the comment.\r\n"
+    )
+    changed = comment_at("m.py@b1", raw).without_once("Remove this one. The second")
+    assert changed is not None
+    assert changed.count("\n") == changed.count("\r\n")
+    assert comment_at("m.py@b1", changed).text == (
+        "The first sentence here stays. line runs on to a long and wordy end of the"
+        " comment."
+    )
+
+
+def test_a_drop_of_a_block_comments_first_line_brings_the_next_line_up():
+    raw = "/* Gone.\n * Kept here.\n * And here. */\n"
+    changed = comment_at("m.rs@b1", raw).without_once("Gone.")
+    assert changed == "/* Kept here.\n * And here. */\n"
+
+
+def test_a_drop_of_a_block_comments_first_line_takes_the_blank_below_it():
+    raw = "/* Gone.\n *\n * Kept. */\n"
+    changed = comment_at("m.rs@b1", raw).without_once("Gone.")
+    assert changed == "/* Kept. */\n"
+
+
+def test_a_drop_of_a_docstrings_last_paragraph_takes_the_blank_above_it():
+    raw = '    """Head.\n\n    Tail paragraph.\n    """\n'
+    changed = comment_at("m.py@a1", raw).without_once("Tail paragraph.")
+    assert changed == '    """Head.\n    """\n'
+
+
+def test_a_drop_of_a_comments_last_paragraph_takes_the_blank_above_it():
+    changed = comment_at("m.py@b1", "# Kept.\n#\n# Gone.\n").without_once("Gone.")
+    assert changed == "# Kept.\n"
+
+
+def test_a_drop_of_a_comments_first_paragraph_takes_the_blank_below_it():
+    changed = comment_at("m.py@b1", "# Gone.\n#\n# Kept.\n").without_once("Gone.")
+    assert changed == "# Kept.\n"

@@ -616,20 +616,28 @@ def fill(copy: dict, entry: dict, root: Path | None) -> tuple[dict | None, list[
     return mark, []
 
 
-def withdraw(copy: dict, address: str) -> tuple[dict | None, list[str]]:
-    """Every ruling the copy holds at `address`, taken back.
+def withdraw(
+    copy: dict, address: str, instruction: str, quote: str | None = None
+) -> tuple[dict | None, list[str]]:
+    """One ruling the copy holds at `address`, taken back.
 
-    Remove every ruling at the address. Check uses the received binder to
+    The ruling is the one placed there with this instruction; where two are,
+    `quote` names it. The other rulings at the address stay as they were, and
+    the slot goes with the last one. Check uses the received binder to
     determine whether that place still requires a ruling.
 
     Args:
         copy: a role's edit_copy as its wire dict. MUTATED on success, and only
             then.
         address: `path@cue`, as the slot carries it.
+        instruction: which of the seven the ruling is.
+        quote: the clause a `drop`, `correct` or `patch` quotes, or the
+            `change` of an instruction that quotes none.
 
     Returns:
         `({}, [])` on removal, or `(None, [message])` with the copy untouched
-        where nothing is placed.
+        where nothing is placed, no ruling of the instruction is, or the
+        rulings there are not one the quote names.
     """
     problems = copy_reading_problems(copy)
     if problems:
@@ -644,6 +652,31 @@ def withdraw(copy: dict, address: str) -> tuple[dict | None, list[str]]:
     ]
     if all(untouched(marks[i]) for i in here):
         return None, [f"{address}: nothing is placed there to withdraw"]
-    for i in reversed(here):
-        del marks[i]
+    named = [
+        i
+        for i in here
+        if not untouched(marks[i]) and marks[i].get("instruction") == instruction
+    ]
+    if not named:
+        return None, [f"{address}: no {instruction} is placed there to withdraw"]
+    if quote is not None:
+        named = [i for i in named if _quote_of(marks[i]) == quote]
+        if not named:
+            return None, [f"{address}: no {instruction} there quotes {quote!r}"]
+    if len(named) > 1:
+        quotes = ", ".join(repr(_quote_of(marks[i])) for i in named)
+        return None, [
+            f"{address}: {len(named)} rulings of {instruction} are placed there"
+            f" ({quotes}); name one with --quote"
+        ]
+    del marks[named[0]]
     return {}, []
+
+
+def _quote_of(entry: dict) -> str:
+    """What names one placed ruling among others of its instruction."""
+    key = mark_type(Instruction(entry["instruction"])).quotes_original
+    claim = entry.get("claim")
+    if key and isinstance(claim, dict):
+        return str(claim.get(key, ""))
+    return str(entry.get("change", ""))

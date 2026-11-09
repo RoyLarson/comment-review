@@ -289,7 +289,7 @@ Act on the exit code first:
 | exit | meaning | what you do |
 |---|---|---|
 | `0` | every place settled | `<stage>_proof0.json` is the closed proof; settle any freeform findings, below, then go on to `4c`, or after `4c` to stage 6 or 7a |
-| `1` | the round rolled back; each line names `<role> <place>: <reason>` | send each line to its role, which withdraws with `mark --withdraw --address <place>` and marks again; re-check and re-run |
+| `1` | the round rolled back; each line names `<role> <place>: <reason>` | send each line to its role, which withdraws the mark the line names with `mark --withdraw --address <place> --instruction <instruction>` and marks again; re-check and re-run |
 | `2` | a file could not be read | correct the invocation |
 | `3`, `4` | places carried forward -- `composed`, `contested` or `open` | rule on them, below |
 | `5` | human questions are owed | ask them, below, then re-run with `--human` |

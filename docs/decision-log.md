@@ -6536,3 +6536,17 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   freeform drafts, and gathers it as revise 1. `4c`'s roles read their freeform files from that
   root, so the packet no longer carries `FREEFORM COPIES`. `gather` prints `GATHERED -- <n>
   places on <m> pages` for the sizing.
+
+- **#296.** **`mark --withdraw` takes back one mark, named by its instruction and, where
+  needed, its quote** (Roy, 2026-11-08, planning `0.2.4-a-mark-lands-as-written` after the
+  self-run of `8198f716`, in which about ten roles re-filed their other rulings by hand because
+  `--withdraw` took every mark at the address):
+
+  Asked how `--withdraw` names the one mark it takes back when a role holds several at one
+  address, Roy chose *"--instruction, plus its quote (Recommended)"*: `--withdraw --address A
+  --instruction drop`; where the role holds two marks of that instruction there, it also gives
+  the quoted clause, and the command refuses rather than guess.
+
+  **What it settles.** `mark-defects` T39 is built to this. A withdrawn mark leaves the role's
+  other marks at the address as they were. The slot's removal when the last mark goes stands as
+  `received-binder-checks` T3 ruled it.

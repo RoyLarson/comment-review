@@ -870,9 +870,7 @@ def test_rust_comment_form_takes_its_markers_from_the_rust_scanner() -> None:
 
     path = Path("x.rs")
     line = comment_form(path, Series.DECLARED, "/// Adds one.\n")
-    assert line.fragments[0].first == "/// "
+    assert line.fragments[0].rest == "/// "
     assert line.fragments[0].paragraphs == ("Adds one.",)
     block = comment_form(path, Series.DECLARED, "/* a /* b */ c */\n")
-    assert block.fragments[0].first == "/* "
-    assert block.fragments[0].last == " */"
     assert block.fragments[0].paragraphs == ("a /* b */ c",)

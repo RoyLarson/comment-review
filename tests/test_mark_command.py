@@ -80,7 +80,8 @@ def test_mark_context_refusal_leaves_exact_file_bytes(
         pytest.fail("address lookup before context admission")
 
     monkeypatch.setattr(flow, "_slot_at", forbidden)
-    flags = ("--address", "m.py@b1", "--withdraw") if withdraw else CORRECT
+    withdrawing = ("--address", "m.py@b1", "--withdraw", "--instruction", "correct")
+    flags = withdrawing if withdraw else CORRECT
     code, out = run(*flags)
     assert code == command.BROKEN
     assert "regather" in out and "block-context" in out
@@ -218,7 +219,9 @@ class TestARulingIsPlaced:
         """`mark-defects` T24, through the command: the slot is handed back as
         it was seeded, and the role places its ruling again."""
         run(*CORRECT)
-        code, out = run("--address", "m.py@b1", "--withdraw")
+        code, out = run(
+            "--address", "m.py@b1", "--withdraw", "--instruction", "correct"
+        )
         assert code == command.OK, out
         assert "m.py@b1" in out and "withdrawn" in out
         assert all(
@@ -226,9 +229,30 @@ class TestARulingIsPlaced:
         )
 
     def test_withdraw_where_nothing_is_placed_is_refused(self, run):
-        code, out = run("--address", "m.py@b1", "--withdraw")
+        code, out = run(
+            "--address", "m.py@b1", "--withdraw", "--instruction", "correct"
+        )
         assert code == command.BROKEN
         assert "nothing is placed" in out
+
+    def test_withdraw_passes_its_quote_through(self, run):
+        run(*CORRECT)
+        code, out = run(
+            "--address",
+            "m.py@b1",
+            "--withdraw",
+            "--instruction",
+            "correct",
+            "--quote",
+            "not in any mark",
+        )
+        assert code == command.BROKEN
+        assert "'not in any mark'" in out
+
+    def test_withdraw_without_an_instruction_is_a_usage_error(self, run):
+        with pytest.raises(SystemExit) as exited:
+            run("--address", "m.py@b1", "--withdraw")
+        assert exited.value.code == 2
 
     def test_ran_binds_to_the_cite_before_it(self, run):
         code, out = run(*CORRECT, "--cite", "m.py:1", "--ran", "rg -n x m.py")

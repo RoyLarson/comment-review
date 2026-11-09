@@ -3,12 +3,14 @@
     comment_review mark --edit-copy COPY --address ADDRESS --instruction correct \
         --false "the clause as it stands" --true "the clause as it should read" \
         --reason "..." --cite pkg/mod.py:12 [--ran "rg -n ..."] [--repo ROOT]
-    comment_review mark --edit-copy COPY --address ADDRESS --withdraw
+    comment_review mark --edit-copy COPY --address ADDRESS --withdraw \
+        --instruction drop [--quote "the clause it quotes"]
 
-`--withdraw` takes back every ruling the copy holds at `--address`, deleting
-every entry there, so `check` reads the place from the binder as still owed and
-a role places its ruling again rather than editing the JSON
-(`flows.fill.withdraw`).
+`--withdraw` takes back the one ruling of `--instruction` the copy holds at
+`--address`, so a role places it again rather than editing the JSON; where two
+of that instruction are placed there, `--quote` names the one. The other
+rulings at the address stay. With the last one gone, `check` reads the place
+from the binder as still owed (`flows.fill.withdraw`).
 
 The flow is `flows.fill`; this parses the console and reads and writes the copy.
 
@@ -175,7 +177,7 @@ def _entry(args: argparse.Namespace) -> tuple[dict, list[str]]:
 
 
 def main() -> int:
-    """Place one ruling, or withdraw those at `--address`; say so, or say why not.
+    """Place one ruling, or withdraw one at `--address`; say so, or say why not.
 
     Returns:
         `OK` with the placed mark named on stdout; `BROKEN` with every reason
@@ -192,12 +194,17 @@ def main() -> int:
     ap.add_argument(
         "--instruction",
         choices=sorted(INSTRUCTIONS),
-        help="one of the seven; required unless --withdraw",
+        help="one of the seven; with --withdraw, the one taken back",
     )
     ap.add_argument(
         "--withdraw",
         action="store_true",
-        help="take back every ruling placed at --address, and place nothing",
+        help="take back the --instruction placed at --address, and place nothing",
+    )
+    ap.add_argument(
+        "--quote",
+        help="with --withdraw, where two of --instruction are placed: the clause"
+        " the one taken back quotes, or its change where it quotes none",
     )
     for key in CLAIM_FLAGS:
         ap.add_argument(f"--{key}", help=f"claim.{key}")
@@ -233,10 +240,10 @@ def main() -> int:
             print(line, file=sys.stderr)
         return UNREADABLE
     args = ap.parse_args(argv)
-    if args.withdraw and args.instruction:
-        ap.error("--withdraw takes back what is placed; it takes no --instruction")
-    if not args.withdraw and not args.instruction:
-        ap.error("--instruction is required, unless --withdraw")
+    if not args.instruction:
+        ap.error("--instruction is required, and with --withdraw names what goes")
+    if args.quote is not None and not args.withdraw:
+        ap.error("--quote names a ruling to withdraw; it takes --withdraw")
 
     copy_path = Path(args.edit_copy)
     copy, why = load_copy(copy_path)
@@ -245,7 +252,7 @@ def main() -> int:
             print(line, file=sys.stderr)
         return UNREADABLE
     if args.withdraw:
-        _, why = withdraw(copy, args.address)
+        _, why = withdraw(copy, args.address, args.instruction, args.quote)
         if why:
             for line in why:
                 print(line)
