@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 27 of 45 tasks closed
+Progress: 29 of 45 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, a code review of `desk/mark.py` that ran `parse`
@@ -282,11 +282,13 @@ cites as its measured example of a field answering neither necessary nor purpose
         > 2026-09-30 Criteria: docs/reviews/2026-09-30-r6-r7-r8.md, 06:6
 - [ ] T34 | Reject overlapping quoted ranges in desk/marks/rules.py:131; test
       dropping aaa from aaaa refuses an ambiguous clause
-- [ ] T35 | Fix structured docstring drops so Args and Returns retain sections;
-      verify disjoint drops compose
+- [x] T35 | FINISHED -- drops keep untouched lines (P1, P2); disjoint drops compose | 4e67fa3d | Fix
+      structured docstring drops so Args and Returns retain sections; verify
+      disjoint drops compose
         > 2026-11-08 Self-run: derived drops flattened 9 docstrings; refiled by hand
-- [ ] T36 | Accept disjoint clause edits within one docstring; verify separate
-      findings file without same-sentence refusals
+- [x] T36 | FINISHED -- disjoint clause edits compose by clause, same line too | 4e67fa3d | Accept
+      disjoint clause edits within one docstring; verify separate findings file
+      without same-sentence refusals
         > 2026-11-08 Self-run: 3 roles refused a second drop in one paragraph
 - [ ] T37 | Refuse a derived drop whose change equals the paragraph it was
       derived from
