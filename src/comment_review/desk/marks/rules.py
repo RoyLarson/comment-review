@@ -13,7 +13,6 @@ with `desk.marks.table`'s own import of `first_word_dropped` from here.
 """
 
 import re
-import textwrap
 from pathlib import Path
 
 from comment_review.desk.proof.mark import (
@@ -65,7 +64,7 @@ def derived_change(
     claim: object,
     base: str,
     *,
-    address: str = "",
+    address: str,
     anchor: str = "",
 ) -> tuple[str | None, list[str]]:
     """The `change` this claim implies, built from the paragraph it rules on.
@@ -136,60 +135,15 @@ def derived_change(
             f"`claim.{key}` occurs {found} times in the paragraph -- a clause "
             "names one statement"
         ]
-    changed = base.replace(quoted, replacement)
-    if not others:
-        # `mark-defects` T25: a dropped clause that spans a line break leaves
-        # the text either side of it joined on one line.
-        if address:
-            form = comment_at(address, base, anchor=anchor)
-            at = base.index(quoted)
-            changed = form.without_raw(at, at + len(quoted))
-            if changed is None:
-                return None, [
-                    f"`claim.{key}` cannot be removed within its comment form"
-                ]
-        else:
-            changed = _within(changed, _widest(base))
+    if others:
+        return base.replace(quoted, replacement), []
+    # A drop is removed within the comment form, which rewrites only the lines
+    # the clause stood on.
+    at = base.index(quoted)
+    changed = comment_at(address, base, anchor=anchor).without_raw(at, at + len(quoted))
+    if changed is None:
+        return None, [f"`claim.{key}` cannot be removed within its comment form"]
     return changed, []
-
-
-#: A line's lead: its indent, then a comment marker and the space after it. No
-#: quote mark is a marker, so a docstring's opening line leads with its indent.
-_LEAD = re.compile(r"^(\s*(?:[#/*;%:-]+ ?)?)")
-
-
-def _widest(text: str) -> int:
-    """The length of `text`'s longest line."""
-    return max((len(line) for line in text.split("\n")), default=0)
-
-
-def _within(text: str, width: int) -> str:
-    """`text` with every line longer than `width` rewrapped under its own lead.
-
-    `mark-defects` T25. A `drop` whose clause spans a line break joins the
-    text either side onto one line, which can run past every line the
-    paragraph had -- eleven changes on the 2026-09-14 self-run ran past 88
-    columns, up to 126. The joined line is rewrapped to the paragraph's own
-    widest line, each new line carrying the lead the joined one had. A single
-    word longer than that is left whole.
-    """
-    out: list[str] = []
-    for line in text.split("\n"):
-        if len(line) <= width:
-            out.append(line)
-            continue
-        found = _LEAD.match(line)
-        lead = found.group(1) if found else ""
-        wrapped = textwrap.wrap(
-            line[len(lead) :],
-            width=width,
-            initial_indent=lead,
-            subsequent_indent=lead,
-            break_long_words=False,
-            break_on_hyphens=False,
-        )
-        out += wrapped or [line]
-    return "\n".join(out)
 
 
 def allowed() -> dict:

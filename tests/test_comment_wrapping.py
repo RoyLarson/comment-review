@@ -203,10 +203,9 @@ def test_docstring_quotes_and_prefixes_survive_removal(quote):
     assert comment_at(paragraph.address, changed).text == "Keep. Ending stays."
 
 
-def test_a_docstring_continued_by_a_backslash_wraps_inside_its_quotes():
+def test_a_drop_in_a_docstring_continued_by_a_backslash_stays_inside_its_quotes():
     raw = '    """Keep. Move.""" \\'
     form = comment_at("m.py@a1", raw)
-    assert form.fragments[0].wrap("New doc.") == '    """New doc.""" \\'
     assert form.without_once("Move.") == '    """Keep.""" \\'
 
 
@@ -1077,3 +1076,31 @@ def test_a_removal_rewritten_across_lines_keeps_crlf_on_every_line():
         "The first sentence here stays. line runs on to a long and wordy end of the"
         " comment."
     )
+
+
+def test_a_drop_of_a_block_comments_first_line_brings_the_next_line_up():
+    raw = "/* Gone.\n * Kept here.\n * And here. */\n"
+    changed = comment_at("m.rs@b1", raw).without_once("Gone.")
+    assert changed == "/* Kept here.\n * And here. */\n"
+
+
+def test_a_drop_of_a_block_comments_first_line_takes_the_blank_below_it():
+    raw = "/* Gone.\n *\n * Kept. */\n"
+    changed = comment_at("m.rs@b1", raw).without_once("Gone.")
+    assert changed == "/* Kept. */\n"
+
+
+def test_a_drop_of_a_docstrings_last_paragraph_takes_the_blank_above_it():
+    raw = '    """Head.\n\n    Tail paragraph.\n    """\n'
+    changed = comment_at("m.py@a1", raw).without_once("Tail paragraph.")
+    assert changed == '    """Head.\n    """\n'
+
+
+def test_a_drop_of_a_comments_last_paragraph_takes_the_blank_above_it():
+    changed = comment_at("m.py@b1", "# Kept.\n#\n# Gone.\n").without_once("Gone.")
+    assert changed == "# Kept.\n"
+
+
+def test_a_drop_of_a_comments_first_paragraph_takes_the_blank_below_it():
+    changed = comment_at("m.py@b1", "# Gone.\n#\n# Kept.\n").without_once("Gone.")
+    assert changed == "# Kept.\n"

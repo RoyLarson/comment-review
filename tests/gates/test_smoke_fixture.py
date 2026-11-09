@@ -169,7 +169,10 @@ class TestTheLandingTableAgreesWithTheFixture(unittest.TestCase):
             path, cue = address.split("@")
             by_cue = {cue_of(p): p for p in self.pages[path].paragraphs if p.text}
             changed, why = derived_change(
-                DERIVED_BY[tuple(landing.claim)], landing.claim, by_cue[cue].raw_text
+                DERIVED_BY[tuple(landing.claim)],
+                landing.claim,
+                by_cue[cue].raw_text,
+                address=address,
             )
             self.assertEqual(why, [], address)
             if address in WIDER:
@@ -200,7 +203,7 @@ class TestTheLandingTableAgreesWithTheFixture(unittest.TestCase):
             by_cue = {cue_of(p): p for p in self.pages[path].paragraphs if p.text}
             base = by_cue[cue].raw_text
             changed, why = derived_change(
-                DERIVED_BY[tuple(landing.claim)], landing.claim, base
+                DERIVED_BY[tuple(landing.claim)], landing.claim, base, address=address
             )
             self.assertEqual(why, [], address)
             self.assertNotEqual(changed, landing.text, address)

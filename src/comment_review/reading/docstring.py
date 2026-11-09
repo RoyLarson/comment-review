@@ -149,7 +149,7 @@ def concatenated(raw: str, definition: LanguageDefinition) -> Docstring | None:
         newline = "\r\n" if "\r\n" in raw else "\n"
         suffix = newline if re.search(r"[\r\n]", source[:last]) else ""
         suffix += indent + tail + (ending.group() if ending else "")
-    fragment = Fragment(raw, prose, (prose,), "", "", "")
+    fragment = Fragment(raw, prose, (prose,), "")
     return Docstring(raw, (fragment,), tuple(payloads), suffix, definition)
 
 
