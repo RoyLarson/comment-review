@@ -341,7 +341,13 @@ def test_withdrawal_obligation_comes_from_the_received_binder(
     address = "m.py@b1" if assigned else "n.py@b1"
     if not assigned:
         wire["sheets"].extend(wires[1]["sheets"])
-    removed, why = withdraw(wire, address)
+    named = next(
+        m["instruction"]
+        for s in wire["sheets"]
+        for m in s["marks"]
+        if m["address"] == address
+    )
+    removed, why = withdraw(wire, address, named)
     assert removed == {} and not why
     assert all(m["address"] != address for s in wire["sheets"] for m in s["marks"])
     path = tmp_path / "copy.json"

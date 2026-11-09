@@ -51,7 +51,7 @@ def test_context_refusal_precedes_address_lookup(
     if operation == "fill":
         placed, why = fill(copy, _a_correct(), root)
     elif operation == "withdraw":
-        placed, why = withdraw(copy, "m.py@b1")
+        placed, why = withdraw(copy, "m.py@b1", "correct")
     else:
         placed, _, why = flow.place_on_the_page([copy], "m.py@b1", root)
     assert placed is None
@@ -289,17 +289,58 @@ class TestAWithdrawnMarkIsRemoved:
     sends a refused mark back to the role that wrote it. On the 2026-09-14
     self-run one role edited its copy's JSON by hand to repair eight."""
 
-    def test_withdraw_removes_all_rulings_at_the_address(self, copy, root):
+    def test_the_last_mark_withdrawn_takes_the_slot_with_it(self, copy, root):
         fill(copy, _a_correct(), root)
-        fill(copy, _a_correct(claim={"false": "one", "true": "1"}), root)
-        left, why = withdraw(copy, "m.py@b1")
-        assert why == []
+        left, why = withdraw(copy, "m.py@b1", "correct")
+        assert why == [] and left == {}
         assert [m for m in _marks(copy) if m["address"] == "m.py@b1"] == []
-        assert left == {}
+
+    def test_of_a_correct_and_a_drop_only_the_one_named_goes(self, copy, root):
+        """`decision-log.md Process: #296`. On the 2026-11-08 self-run about
+        ten roles re-filed their other rulings by hand because a withdraw took
+        every mark at the address."""
+        kept, _ = fill(copy, _a_correct(claim={"false": "one", "true": "1"}), root)
+        fill(copy, _a_drop("three"), root)
+        kept_before = json.dumps(kept)
+        left, why = withdraw(copy, "m.py@b1", "drop")
+        assert why == [] and left == {}
+        here = [m for m in _marks(copy) if m["address"] == "m.py@b1"]
+        assert [json.dumps(m) for m in here] == [kept_before]
+
+    def test_two_of_one_instruction_are_told_apart_by_the_quote(self, copy, root):
+        fill(copy, _a_correct(claim={"false": "one", "true": "1"}), root)
+        fill(copy, _a_correct(claim={"false": "three", "true": "3"}), root)
+        left, why = withdraw(copy, "m.py@b1", "correct", quote="three")
+        assert why == [] and left == {}
+        here = [m for m in _marks(copy) if m["address"] == "m.py@b1"]
+        assert [m["claim"] for m in here] == [{"false": "one", "true": "1"}]
+
+    def test_two_of_one_instruction_without_a_quote_are_refused(self, copy, root):
+        fill(copy, _a_correct(claim={"false": "one", "true": "1"}), root)
+        fill(copy, _a_correct(claim={"false": "three", "true": "3"}), root)
+        before = json.dumps(copy)
+        left, why = withdraw(copy, "m.py@b1", "correct")
+        assert left is None and len(why) == 1
+        assert "--quote" in why[0] and "'one'" in why[0] and "'three'" in why[0]
+        assert json.dumps(copy) == before
+
+    def test_a_quote_no_mark_holds_is_refused(self, copy, root):
+        fill(copy, _a_correct(), root)
+        before = json.dumps(copy)
+        left, why = withdraw(copy, "m.py@b1", "correct", quote="four")
+        assert left is None and "'four'" in why[0]
+        assert json.dumps(copy) == before
+
+    def test_an_instruction_not_placed_there_is_refused(self, copy, root):
+        fill(copy, _a_correct(), root)
+        before = json.dumps(copy)
+        left, why = withdraw(copy, "m.py@b1", "drop")
+        assert left is None and "no drop is placed" in why[0]
+        assert json.dumps(copy) == before
 
     def test_a_ruling_placed_again_is_the_only_one(self, copy, root):
         fill(copy, _a_correct(), root)
-        withdraw(copy, "m.py@b1")
+        withdraw(copy, "m.py@b1", "correct")
         placed, why = fill(copy, _a_correct(claim={"false": "one", "true": "1"}), root)
         assert why == []
         assert [m for m in _marks(copy) if m["address"] == "m.py@b1"] == [placed]
@@ -315,7 +356,7 @@ class TestAWithdrawnMarkIsRemoved:
         }
         placed, why = fill(copy, entry, root)
         assert why == [] and placed is not None
-        left, why = withdraw(copy, "m.py@b3")
+        left, why = withdraw(copy, "m.py@b3", "add")
         assert why == [] and left == {}
         assert all(m["address"] != "m.py@b3" for m in _marks(copy))
 
@@ -335,7 +376,7 @@ class TestAWithdrawnMarkIsRemoved:
         placed, why = fill(copy, entry, root)
         assert why == [] and placed is not None
         (root / "m.py").unlink()
-        left, why = withdraw(copy, slot["address"])
+        left, why = withdraw(copy, slot["address"], "add")
         assert why == [] and left == {}
         assert all(m["address"] != slot["address"] for m in _marks(copy))
 
@@ -354,13 +395,13 @@ class TestAWithdrawnMarkIsRemoved:
         placed, why = fill(copy, entry, root)
         assert why == [] and placed is not None
         (root / "m.py").unlink()
-        left, why = withdraw(copy, slot["address"])
+        left, why = withdraw(copy, slot["address"], "move")
         assert why == [] and left == {}
         assert all(m["address"] != slot["address"] for m in _marks(copy))
 
     def test_nothing_placed_is_refused_and_the_copy_is_untouched(self, copy):
         before = json.dumps(copy)
-        left, why = withdraw(copy, "m.py@b1")
+        left, why = withdraw(copy, "m.py@b1", "correct")
         assert left is None and "nothing is placed" in why[0], why
         assert json.dumps(copy) == before
 
