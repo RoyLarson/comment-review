@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 30 of 45 tasks closed
+Progress: 30 of 47 tasks closed
 Owner:    backend
-Requires-Roy: false
+Requires-Roy: true
 Raised:   2026-08-30 (2026-08-30, a code review of `desk/mark.py` that ran `parse`
           against the claims in `docs/the-mark.md` and the module's own docstrings --
           eleven defects in one module, with no per-module TODO to hold them)
@@ -316,3 +316,9 @@ cites as its measured example of a field answering neither necessary nor purpose
       `mark --withdraw` hand the seeded slot back rather than delete it
 - [-] T45 | SUPERSEDED by T39: filed twice in error | 4db8b52f | Fix `mark
       --withdraw`, which also removes the role's other marks at that address
+- [?] T46 | Decide whether a correct or patch that changes a number, a name or
+      an error type must carry the line or command that settles it
+        > 2026-11-08 Outside run: an inverted numeric claim and a wrong name shipped
+- [?] T47 | Decide whether a clean carries a source naming the code its role
+      read
+        > 2026-11-08 Outside run: 5 roles said they marked most places clean unread

@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 40 of 52 tasks closed
+Progress: 41 of 54 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-09-04 (Roy, 2026-09-04, superseding the-flow-lives-in-the-command T4)
@@ -178,8 +178,8 @@ The agents files name the new CLI and say how to use it.
         > 2026-10-30 D11: reviewer-brief.md:177-178
 - [x] T47 | CLAUDE.md names --from-docket; Roy approved the wording | 207d733bcd76762e6fe72d77618c45e68c11ad42 | Correct
       `CLAUDE.md:81` to `--from-docket`
-- [ ] T48 | Update reviewer-brief.md's withdraw line so it takes back one mark,
-      per #276
+- [x] T48 | FINISHED -- the brief withdraws one mark by --instruction | 258d7a3f | Update
+      reviewer-brief.md's withdraw line so it takes back one mark, per #276
 - [ ] T49 | Replace write.md's git worktree with a copy of the gathered files,
       per #104
 - [ ] T50 | Update the brief's add-a-TODO answer for a repo that keeps its TODOs
@@ -188,3 +188,9 @@ The agents files name the new CLI and say how to use it.
       `gather` ran under
 - [ ] T52 | Correct review.md's two-ranges sentence, which `resolve` and
       `lines_of` now contradict
+- [ ] T53 | Update the brief so a role keeps its scratch files under its
+      FREEFORM DIR
+        > 2026-11-08 Outside run: roles collided on one shared /tmp address list
+- [ ] T54 | Update SKILL.md stage 4 to dispatch in batches when copies outnumber
+      the session's agent limit
+        > 2026-11-08 Outside run: 92 dispatches against a limit of 20

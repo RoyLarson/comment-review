@@ -19,9 +19,11 @@ The P5 self-run findings.
       reread finds each section reads as one
 - [ ] T2 | Implement rewrapping of a paragraph whose correct or drop leaves a
       ragged line or stub; backend
+        > 2026-11-08 Outside run, beta.7: a 4-space join gap and a fragment were written
 - [ ] T3 | Update the brief so a code-concern TODO names an action and the
       paragraph ruling does not restate it; agents
 - [ ] T4 | Update SKILL.md so the chief reads each composed paragraph whole
       before ruling; agents
+        > 2026-11-08 Outside run, beta.7: 7 lost referents in composed text got past
 - [ ] T5 | Fix referrers matching every file that mentions main when a page
       defines a public main; backend

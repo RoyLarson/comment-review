@@ -56,3 +56,4 @@ current corpus supplies.
         > 2026-10-25 Check: no "\r\n"-vs-"\n" choice in src/ outside machine/
 - [ ] T7 | Decide what `prove_unchanged` does with a file whose ending already
       differs from its siblings
+        > 2026-11-08 Outside run: 22 false FAILs on all-LF files in a CRLF repo

@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 1 of 6 tasks closed
+Progress: 1 of 7 tasks closed
 Owner:    agents
 Requires-Roy: true
 Raised:   2026-08-18 (Roy, 2026-08-18: keep track of these and have a place to decide on
@@ -143,3 +143,6 @@ focus for them gets a lot easier. ! The dependency is discharged: `cue` emits fo
 - [?] T6 | Rule on the sentence-framing entry for `module-context` with
       `function-context`
         > 2026-10-18 Shape: "stamps three -- a, b and c"; a passive that drops the actor
+- [?] T7 | Decide which role or stage owns the style-sheet sweep: dialect,
+      review labels, wrap and templates
+        > 2026-11-08 Outside run: each of the four was nobody's remit
