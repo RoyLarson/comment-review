@@ -6564,3 +6564,69 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   waits until the code section works. `dropped-history-has-no-home` T2-T4 wait on it. What a run
   does where the repo names no home is not settled here; it is the external-address design's to
   answer.
+
+- **#298.** **A collate that composes runs one turn by default** (Roy, 2026-11-09, asked
+  `stage-5-is-the-only-stage-with-no-independent-reader` T16 -- whether a collate that composes
+  runs one turn by default, so each role reads the text composed from its mark; an outside run on
+  plugin 0.2.4-beta.7 ran 0 turns and 177 composed places went unread by the roles):
+
+  *"Yes - we need to make that change. It significantly improves the system even if it doesn't
+  significantly improve the updates"*
+
+  **What it settles.** Where `collate` composes, stage 5 runs one turn without being told a
+  number, so every role reads the composed text before the chief rules. The reason given is the
+  system's: each composed place gets an independent reader. The change it makes to the text
+  itself is not claimed.
+
+- **#299.** **A recast may set an empty paragraph, dropping it whole** (Roy, 2026-11-09, asked
+  `the-chief-has-no-recast-workflow` T16 -- whether a recast may set an empty paragraph, which
+  `disposition` refuses as needing prose; in the outside run 4 were refused and the chief took in
+  the empty side instead):
+
+  *"yes may drop the entire paragraph"*
+
+  **What it settles.** `disposition` admits a recast whose text is empty, and the place is
+  dropped whole.
+
+- **#300.** **A `patch` that changes a number, a name or an error type carries a source** (Roy,
+  2026-11-09, asked `mark-defects` T46 -- whether a `correct` or `patch` that changes a number, a
+  name or an error type must carry the line or command that settles it; a `correct` already owes
+  sources, so the open case is the `patch`; the outside run shipped an inverted numeric claim and a
+  wrong name):
+
+  *"does the result help the agent make a better decision (uncertain) the goal was to ensure that
+  the agent had to actually inspect something to make the claim"*
+
+  **What it settles.** Such a `patch` owes a `sources` entry, checked as a `correct` mark's are.
+  The purpose is that the role must have inspected something to make the change. Whether it
+  improves the role's decision is not known, and the ruling does not claim it.
+
+- **#301.** **A `clean` carries a source naming the code its role read** (Roy, 2026-11-09, asked
+  `mark-defects` T47; in the outside run 5 roles said they marked most places clean unread):
+
+  *"same reasoning, ensure that the agent had to read the code to make the statement"*
+
+  **What it settles.** A `clean` owes a `sources` entry, for the reason #300 gives: the role must
+  have read the code to say nothing is wrong.
+
+- **#302.** **The copy chief owns the style-sheet sweep** (Roy, 2026-11-09, asked
+  `role-rule-register` T7 -- which role or stage owns the sweep for dialect, review labels, wrap
+  and templates, each of which was nobody's remit in the outside run):
+
+  *"copy-chief"*
+
+  **What it settles.** The copy chief sweeps the style sheet at stage 5: dialect, review labels,
+  wrap and templates.
+
+- **#303.** **Where removed history goes is the repo's to say, asked at the start** (Roy,
+  2026-11-09, on the part of #297 left open -- what a run does where the repo names no home for
+  removed history):
+
+  *"still waiting on external addresses- but really depends on repo rules. If the program owner
+  wants it they can define a place to put them. If they don't they can be dropped. We should ask
+  the question at the start if it isn't already established. How will be the external address and
+  modification system."*
+
+  **What it settles.** Stage 1 records the repo's home for removed history; where the repo has
+  not established one, the run asks the author. A home named is where such a sentence is moved,
+  through the external-address system of #297. No home named means the sentence is dropped.

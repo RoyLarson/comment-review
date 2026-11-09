@@ -146,3 +146,4 @@ focus for them gets a lot easier. ! The dependency is discharged: `cue` emits fo
 - [?] T7 | Decide which role or stage owns the style-sheet sweep: dialect,
       review labels, wrap and templates
         > 2026-11-08 Outside run: each of the four was nobody's remit
+        > 2026-11-09 Outcome #302: the copy chief owns the sweep

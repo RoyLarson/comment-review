@@ -68,3 +68,4 @@ The copy chief has no workflow for recasting the places that never settled.
 - [?] T16 | Decide whether a recast may set an empty paragraph, which
       disposition refuses as needing prose
         > 2026-11-08 Outside run: 4 refused; the chief took in the empty side instead
+        > 2026-11-09 Outcome #299: yes, an empty recast drops the paragraph whole

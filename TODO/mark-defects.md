@@ -319,6 +319,8 @@ cites as its measured example of a field answering neither necessary nor purpose
 - [?] T46 | Decide whether a correct or patch that changes a number, a name or
       an error type must carry the line or command that settles it
         > 2026-11-08 Outside run: an inverted numeric claim and a wrong name shipped
+        > 2026-11-09 Outcome #300: such a patch owes a source, so the role inspects
 - [?] T47 | Decide whether a clean carries a source naming the code its role
       read
         > 2026-11-08 Outside run: 5 roles said they marked most places clean unread
+        > 2026-11-09 Outcome #301: a clean owes a source naming the code read

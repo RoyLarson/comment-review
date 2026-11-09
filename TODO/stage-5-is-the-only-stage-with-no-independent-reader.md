@@ -215,3 +215,4 @@ answered. A rail read and not run is a shape problem, and it was measured twice 
 - [?] T16 | Decide whether a collate that composes runs one turn by default, so
       each role reads the text composed from its mark
         > 2026-11-08 Outside run: 0 turns; 177 composed places ruled unread by roles
+        > 2026-11-09 Outcome #298: yes, one turn by default after composing

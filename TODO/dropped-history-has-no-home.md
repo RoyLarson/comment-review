@@ -31,6 +31,7 @@ rule with no check that the prose arrived, leaves the loss in place.
       run does where the repo names no home
 - [ ] T2 | Record in stage 1 the repo's home for removed history, or none
         > 2026-11-08 Waits on external addresses, after the code section works (#297)
+        > 2026-11-09 #303: ask the author when the repo names no home; none drops
 - [ ] T3 | Update the brief so a drop of history names its destination, or
       queries the author where none is recorded
         > 2026-11-08 Waits on external addresses, after the code section works (#297)
