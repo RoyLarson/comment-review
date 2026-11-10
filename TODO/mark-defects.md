@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 32 of 49 tasks closed
+Progress: 33 of 50 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, a code review of `desk/mark.py` that ran `parse`
@@ -325,6 +325,8 @@ cites as its measured example of a field answering neither necessary nor purpose
       source naming the code its role read
         > 2026-11-08 Outside run: 5 roles said they marked most places clean unread
         > 2026-11-09 Outcome #301: a clean owes a source naming the code read
-- [ ] T48 | Require a source on a patch whose change alters a number, a name or
-      an error type (#300)
+- [-] T48 | SUPERSEDED by T50: #304 widens it to every patch | b3e29557 | Require
+      a source on a patch whose change alters a number, a name or an error type
+      (#300)
 - [ ] T49 | Require a source on a clean, naming the code its role read (#301)
+- [ ] T50 | Require a source on every patch (#304)

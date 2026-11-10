@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 41 of 55 tasks closed
+Progress: 42 of 56 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-09-04 (Roy, 2026-09-04, superseding the-flow-lives-in-the-command T4)
@@ -194,5 +194,8 @@ The agents files name the new CLI and say how to use it.
 - [ ] T54 | Update SKILL.md stage 4 to dispatch in batches when copies outnumber
       the session's agent limit
         > 2026-11-08 Outside run: 92 dispatches against a limit of 20
-- [ ] T55 | Update the brief to say a clean and a patch altering a number, name
-      or error type owe a source (#300, #301)
+- [-] T55 | SUPERSEDED by T56: #304 widens it to every patch | b3e29557 | Update
+      the brief to say a clean and a patch altering a number, name or error type
+      owe a source (#300, #301)
+- [ ] T56 | Update the brief to say a clean and every patch owe a source (#301,
+      #304)
