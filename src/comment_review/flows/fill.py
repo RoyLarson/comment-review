@@ -77,6 +77,7 @@ from comment_review.desk.evaluate.passes import composed_side, proposing
 from comment_review.desk.marks.rules import derived_change
 from comment_review.desk.marks.table import INSTRUCTIONS, Row
 from comment_review.desk.proof.mark import (
+    ROLE_FIELDS,
     BlankMark,
     Instruction,
     Mark,
@@ -99,13 +100,6 @@ from comment_review.flows.reading_context import (
 from comment_review.machine.repo import can_escape, read_raw
 from comment_review.reading.addresser import cue_of, unflatten
 from comment_review.reading.diagnostics import ReadFailure
-
-#: The fields a role decides, in the order a mark carries them. `address` is
-#: how the entry is placed; `anchor` is never read off the entry at all --
-#: a slot that must be created takes its anchor from the page. `raw_text` is
-#: read only for a row whose `carries_raw_text` is True, and ignored on every
-#: other row -- see `_composed_text`.
-ROLE_FIELDS = ("claim", "reason", "sources", "change")
 
 
 def _slot_at(copy: dict, address: str) -> tuple[list | None, int]:
@@ -536,6 +530,8 @@ def fill(copy: dict, entry: dict, root: Path | None) -> tuple[dict | None, list[
         in_place = untouched(marks[at])
 
     mark: dict = {**seeded, "instruction": named}
+    # `raw_text` is not a role's field: `_composed_text` reads it off the
+    # entry only for a row whose `carries_raw_text` is True.
     for key in ROLE_FIELDS:
         if key in entry and entry[key] is not None:
             mark[key] = entry[key]

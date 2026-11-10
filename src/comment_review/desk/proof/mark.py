@@ -44,6 +44,7 @@ from enum import StrEnum, auto
 from typing import Any, ClassVar, Self, TypeGuard, TypeVar
 
 from comment_review import constants
+from comment_review.desk.proof.source import Source, checked
 from comment_review.desk.proof.source import problems as source_entry_problems
 from comment_review.reading.addresser import cue_of, folded
 
@@ -154,7 +155,7 @@ class Mark:
     anchor: str
     raw_text: str
     reason: str
-    sources: tuple[object, ...]
+    sources: tuple[Source, ...]
 
     #: Which of the seven this type is.
     instruction: ClassVar[Instruction]
@@ -316,7 +317,7 @@ class Mark:
                 anchor=anchor,
                 raw_text=as_text(data.get("raw_text")),
                 reason=reason,
-                sources=sources,
+                sources=checked(sources),
                 **own,
             ),
             [],
