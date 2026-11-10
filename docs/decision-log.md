@@ -6630,3 +6630,15 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   **What it settles.** Stage 1 records the repo's home for removed history; where the repo has
   not established one, the run asks the author. A home named is where such a sentence is moved,
   through the external-address system of #297. No home named means the sentence is dropped.
+
+- **#304.** **Every `patch` owes a source** (Roy, 2026-11-09, on how #300 is told apart -- offered
+  (a) detecting a patch that changes a number, a name or an error type, by changed digits or a
+  changed identifier the code holds, or (b) requiring a source on every patch):
+
+  *"b - because I don't want to be so pedantic about changes. The goal is to get them to look at
+  the numbers and say does this make sense given the code as it is."*
+
+  **What it settles.** A `patch` owes a `sources` entry, checked as a `correct` mark's are,
+  whatever its change. It supersedes #300's narrower case: nothing detects what a patch changes.
+  The source is there to make the role look at the code as it is and ask whether the text makes
+  sense of it.
