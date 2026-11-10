@@ -73,8 +73,8 @@ class Answer:
     asked: ClassVar[tuple[Question, ...]]
     #: Whether a `change` is owed -- True on every `Rewrite`.
     owes_change: ClassVar[bool] = False
-    #: Whether at least one source is owed -- True on `correct` alone, as on a
-    #: `correct` mark (`decision-log.md Process: #288`).
+    #: Whether at least one source is owed -- True on `correct`, `patch` and
+    #: `clean`, as on their marks (`decision-log.md Process: #288`, `#306`).
     owes_sources: ClassVar[bool] = False
     #: Every key the wire `claim` must carry, filled.
     claim_all: ClassVar[tuple[str, ...]] = ()
@@ -220,6 +220,7 @@ class PatchAnswer(Rewrite):
 
     name: ClassVar[str] = "patch"
     asked: ClassVar[tuple[Question, ...]] = (Question.ESCALATION, Question.COMPOSITION)
+    owes_sources: ClassVar[bool] = True
 
 
 @dataclass(frozen=True)
@@ -228,6 +229,7 @@ class CleanAnswer(Answer):
 
     name: ClassVar[str] = "clean"
     asked: ClassVar[tuple[Question, ...]] = (Question.COMPOSITION,)
+    owes_sources: ClassVar[bool] = True
 
 
 @dataclass(frozen=True)

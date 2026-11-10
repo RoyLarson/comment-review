@@ -837,6 +837,12 @@ def _mark(instruction: Instruction, address: str, claim: dict) -> dict:
     return mark
 
 
+def a_source() -> list[dict]:
+    """The one source a built mark or answer cites. It resolves against `REPO`
+    and against any root `a_real_binder_over` wrote."""
+    return [{"cite": _MARK_PY_CITE, "verbatim": _MARK_PY_LINE_1}]
+
+
 def a_correct_citing(address: str, cite: str) -> dict:
     """A `correct` whose one source cites `cite`.
 
@@ -1139,6 +1145,7 @@ def deal(
 
 def answer(tmp_path, n: int, role: str, address: str, **fields) -> str:
     """This role's sent slot at `address` on batch<n>, with `fields` laid over.
+    A `clean` or `patch` carries the source it owes unless `fields` names one.
 
     Returns:
         The `ROLE=PATH` spec `turn --answers` takes.
@@ -1146,7 +1153,9 @@ def answer(tmp_path, n: int, role: str, address: str, **fields) -> str:
     batch = json.loads((tmp_path / f"batch{n}.json").read_text(encoding="utf-8"))
     slot = next(s for s in batch[role] if s["address"] == address)
     path = tmp_path / f"answers{n}_{role}.json"
-    path.write_text(json.dumps([{**slot, **fields}]), encoding="utf-8")
+    owed = fields.get("instruction") in ("clean", "patch")
+    entry = {**({"sources": a_source()} if owed else {}), **slot, **fields}
+    path.write_text(json.dumps([entry]), encoding="utf-8")
     return f"{role}={path}"
 
 

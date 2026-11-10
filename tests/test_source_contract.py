@@ -72,7 +72,9 @@ def test_source_presence_is_the_carrying_types_requirement():
         change="# Changed.",
     )
     assert "at least one" in read_answer("m.py@b1", wire)[1][0]
-    assert read_answer("m.py@b1", {**wire, "instruction": "patch"})[1] == []
+    for name, question in (("patch", "escalation"), ("clean", "composition")):
+        bare = {**wire, "instruction": name, "question": question}
+        assert "at least one" in read_answer("m.py@b1", bare)[1][0]
 
 
 def test_mixed_entries_keep_positions_and_resolve_valid_evidence(tmp_path):

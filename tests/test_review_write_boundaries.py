@@ -1,6 +1,13 @@
 import pytest
 from conftest import build
-from helpers import a_clean, a_move, a_real_binder_over, copies_over, returned
+from helpers import (
+    a_clean,
+    a_move,
+    a_real_binder_over,
+    a_source,
+    copies_over,
+    returned,
+)
 
 from comment_review.desk.marks.rules import comment_at
 from comment_review.desk.proof.master_proof import MasterProof
@@ -109,6 +116,7 @@ def test_destination_identity_survives_an_answer_turn(tmp_path):
                 "anchor": slot["anchor"],
                 "instruction": "clean",
                 "reason": "Accept the remaining text.",
+                "sources": a_source(),
             }
             for slot in slots
         ]

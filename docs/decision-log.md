@@ -6653,3 +6653,12 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   **What it settles.** `check` refuses an edit copy holding a `clean` without a `sources` entry,
   and the copy goes back to its role as any other refusal does. A seeded `clean` slot left
   unsourced is refused the same way.
+
+- **#306.** **A `clean` or `patch` answer owes sources, as its mark does** (Roy, 2026-11-10,
+  asked whether #301 and #304, which ruled on marks, also hold for a role's answer in a turn,
+  where only a `correct` answer owed sources under #288):
+
+  *"Yes to the return marks having evidence"*
+
+  **What it settles.** `CleanAnswer` and `PatchAnswer` owe a `sources` entry, checked as a
+  `correct` answer's are. It extends #288, which left `PatchAnswer` owing only its change.

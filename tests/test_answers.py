@@ -437,8 +437,14 @@ def test_a_placement_and_a_composition_at_one_origin_are_two_answers(tmp_path):
             "anchor": "x = 1",
         },
     }
+    (tmp_path / "m.py").write_text("x = 1\n")
     returned = [
-        {"address": "m.py@b1", "instruction": "clean", "reason": "r"},
+        {
+            "address": "m.py@b1",
+            "instruction": "clean",
+            "reason": "r",
+            "sources": [{"cite": "m.py:1", "verbatim": "x = 1"}],
+        },
         {"address": "m.py@b1", "to": "m.py@b5", "instruction": "agree", "reason": "r"},
     ]
     got, problems = answers_of("b", sent, returned, lambda a: "not sent", tmp_path, {})
@@ -498,26 +504,29 @@ def _rewrite_entry(question: str, name: str, sources: list) -> dict:
     }
 
 
-@pytest.mark.parametrize("question", ["escalation", "composition"])
-def test_a_correct_answer_with_no_source_is_refused(question):
-    """#288: a `correct` answer owes sources, as a `correct` mark does."""
-    got, why = read_answer("m.py@b1", _rewrite_entry(question, "correct", []))
+@pytest.mark.parametrize(
+    ("question", "name"),
+    [
+        ("escalation", "correct"),
+        ("composition", "correct"),
+        ("escalation", "patch"),
+        ("composition", "patch"),
+        ("composition", "clean"),
+    ],
+)
+def test_an_answer_with_no_source_is_refused(question, name):
+    """A `correct` (#288), `patch` or `clean` (#306) answer owes sources, as
+    its mark does."""
+    got, why = read_answer("m.py@b1", _rewrite_entry(question, name, []))
     assert got is None
-    assert why == ["m.py@b1: correct needs at least one source"]
+    assert why == [f"m.py@b1: {name} needs at least one source"]
     cited = [{"cite": "m.py:1", "verbatim": "x = 1"}]
-    got, why = read_answer("m.py@b1", _rewrite_entry(question, "correct", cited))
-    assert why == [] and got is not None
-
-
-@pytest.mark.parametrize("question", ["escalation", "composition"])
-def test_a_patch_answer_owes_no_source(question):
-    """#288 leaves a `patch` answer owing only its change."""
-    got, why = read_answer("m.py@b1", _rewrite_entry(question, "patch", []))
+    got, why = read_answer("m.py@b1", _rewrite_entry(question, name, cited))
     assert why == [] and got is not None
 
 
 def test_the_contracts_name_the_answers_that_owe_sources():
     got = contracts()
-    assert got["escalation"]["owes_sources"] == ["correct"]
-    assert got["composition"]["owes_sources"] == ["correct"]
+    assert got["escalation"]["owes_sources"] == ["correct", "patch"]
+    assert got["composition"]["owes_sources"] == ["clean", "correct", "patch"]
     assert got["placement"]["owes_sources"] == []

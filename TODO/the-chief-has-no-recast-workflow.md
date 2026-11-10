@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 11 of 17 tasks closed
+Progress: 11 of 18 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-09-08 (Roy 2026-09-08: implementing the recast workflow for the cli the
@@ -72,3 +72,4 @@ The copy chief has no workflow for recasting the places that never settled.
         > 2026-11-09 Outcome #299: yes, an empty recast drops the paragraph whole
 - [ ] T17 | Implement an empty recast in disposition as a drop of the whole
       paragraph (#299)
+- [ ] T18 | Require sources on a clean or patch answer, as on its mark (#306)

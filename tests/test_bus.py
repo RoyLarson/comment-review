@@ -13,6 +13,7 @@ from helpers import (
     a_patch,
     a_query,
     a_real_binder_over,
+    a_source,
     an_add,
     copies_over,
     returned,
@@ -831,8 +832,20 @@ def _collated(tmp_path, by_role=None):
 
 
 def _answer(address, instruction, reason, **fields):
-    """One role's answer entry, as a role writes one: no `question` on it."""
-    return {"address": address, "instruction": instruction, "reason": reason, **fields}
+    """One role's answer entry, as a role writes one: no `question` on it.
+    A `clean` or `patch` carries the source it owes."""
+    return {
+        "address": address,
+        "instruction": instruction,
+        "reason": reason,
+        **_owed(instruction),
+        **fields,
+    }
+
+
+def _owed(instruction):
+    """The `sources` an answer of `instruction` owes, as fields."""
+    return {"sources": a_source()} if instruction in ("clean", "patch") else {}
 
 
 def _both_hold(address=PLACE):
@@ -1967,7 +1980,7 @@ def _answering(batch_slots, answer_for):
     out = []
     for slot in batch_slots:
         name = answer_for(slot)
-        out.append({**slot, "instruction": name, "reason": "r"})
+        out.append({**slot, "instruction": name, "reason": "r", **_owed(name)})
     return out
 
 
@@ -2302,7 +2315,7 @@ class TestAHumanQuestionIsAskedBeforeTheFold:
                         "reason": "ask the author",
                         "claim": human_query,
                     }
-                return {**slot, "instruction": "clean", "reason": "r"}
+                return {**slot, "instruction": "clean", "reason": "r", **_owed("clean")}
 
             return answer_for
 
