@@ -34,7 +34,8 @@ a file with your file-write tool and pass it as `@path`:
 
 ```bash
 python <script> mark --edit-copy <copy> --address <address> --instruction patch \
-  --from @<file holding the paragraph> --to @<file holding the condensed text> --reason "<why>"
+  --from @<file holding the paragraph> --to @<file holding the condensed text> --reason "<why>" \
+  --cite <path>:<line>
 ```
 
 When every review place in your received binder has a ruling, check the copy;
@@ -46,9 +47,9 @@ python <script> check --edit-copy <copy> --binder <binder> --repo <proof pages r
 
 | the paragraph | your instruction |
 |---|---|
-| condensed within the cap | `patch`, with `--from` the whole paragraph and `--to` the condensed text, each as `@path` |
+| condensed within the cap | `patch`, with `--from` the whole paragraph and `--to` the condensed text, each as `@path`, and `--cite` the code the paragraph describes |
 | a sentence that the rest already states | `drop`, with the sentence |
-| held at length by what it must keep | `clean`, with a reason naming what holds it there |
+| held at length by what it must keep | `clean`, with a reason naming what holds it there, and `--cite` the code that needs it |
 | held at length by a question only the author can answer | `query`, below |
 
 A paragraph that stays over the cap because every sentence is evidence is usually a rule the

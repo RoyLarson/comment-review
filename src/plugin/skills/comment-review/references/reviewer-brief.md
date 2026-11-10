@@ -223,11 +223,11 @@ instruction except `clean` and `query`, which propose no text.
 
 | instruction | `claim` keys | what they carry |
 | --- | --- | --- |
-| `clean` | none | nothing; `clean` proposes no text |
+| `clean` | none | nothing; `clean` proposes no text, and carries a `sources` entry naming the code you read |
 | `query` | `shape`, `attempted`, `settles` | the shape, in exactly one of its three names; the check you attempted; and what would settle it. These three are what stand behind the ruling |
 | `drop` | `drop` | the sentence, verbatim, as it stands in the paragraph, where it is checked |
 | `correct` | `false`, `true` | the false clause and the true one, with a `sources` entry carrying the line that settles it. The false clause is checked against the paragraph |
-| `patch` | `from`, `to` | the sentence as it stands and its rewrite; `from` is checked against the paragraph. The claim is already true, so a `patch` needs no source |
+| `patch` | `from`, `to` | the sentence as it stands and its rewrite; `from` is checked against the paragraph, with a `sources` entry naming the code you read to judge the rewrite |
 | `add` | `missing`, `anchor` | the text that is missing, and the declaration it belongs to, named in backticks. The address says which side of the declaration |
 | `move` | `from`, `to` | the origin's address and the destination's -- places, not text. The text that leaves is `change`, and `raw_text` is the destination paragraph as it will read |
 
@@ -291,7 +291,8 @@ file, see *A freeform file*.
 
 `clean` is your role's certificate that the paragraph holds nothing for your role to report,
 as your role file defines it. It is a decision you make on every paragraph you read, from the
-code.
+code. It carries a `sources` entry naming the code you read, and `check` sends back a copy
+holding a `clean` that cites none.
 
 ### `query`
 
