@@ -171,8 +171,9 @@ class Mark:
     #: Whether a `change` is owed -- True on every `Amendment`.
     owes_change: ClassVar[bool] = False
 
-    #: Whether at least one source is owed. False on `clean` and `patch`, whose
-    #: sources are still each checked as a `{cite, verbatim}` pair.
+    #: Whether at least one source is owed. True on every type: a role cites
+    #: the code it read, whatever it rules (`decision-log.md Process: #301`,
+    #: `#304`).
     owes_sources: ClassVar[bool] = True
     #: Whether an `address` and a `reason` are owed. False on `clean` alone.
     substantive: ClassVar[bool] = True
@@ -370,11 +371,11 @@ class Amendment(Mark):
 class CleanMark(Mark):
     """`clean`: the role read the paragraph and has nothing to report.
 
-    The one type that owes no address, no reason, no claim and no sources.
+    The one type that owes no address, no reason and no claim. It owes a
+    source, naming the code the role read.
     """
 
     instruction: ClassVar[Instruction] = Instruction.CLEAN
-    owes_sources: ClassVar[bool] = False
     substantive: ClassVar[bool] = False
 
 
@@ -482,7 +483,7 @@ class CorrectMark(Amendment):
 
 @dataclass(frozen=True)
 class PatchMark(Amendment):
-    """`patch`: a true clause is reworded. It owes no sources.
+    """`patch`: a true clause is reworded.
 
     Attributes:
         from_: the clause as it stands, verbatim -- the wire's `claim.from`.
@@ -495,7 +496,6 @@ class PatchMark(Amendment):
     instruction: ClassVar[Instruction] = Instruction.PATCH
     claim_all: ClassVar[tuple[str, ...]] = ("from", "to")
     quotes_original: ClassVar[str] = "from"
-    owes_sources: ClassVar[bool] = False
 
     @property
     def quoted(self) -> str:

@@ -321,8 +321,18 @@ ADDED = "# the gap wants a sentence\n"
 #: The chief's own paragraph for that place.
 RECAST_THERE = "# the chief's own sentence for the gap\n"
 
-_CLEAN_ABOVE = {"address": "m.py@b1", "instruction": "clean", "reason": "reads true"}
-_CLEAN_BELOW = {"address": "m.py@b3", "instruction": "clean", "reason": "reads true"}
+_CLEAN_ABOVE = {
+    "address": "m.py@b1",
+    "instruction": "clean",
+    "reason": "reads true",
+    "sources": [{"cite": "m.py:1"}],
+}
+_CLEAN_BELOW = {
+    "address": "m.py@b3",
+    "instruction": "clean",
+    "reason": "reads true",
+    "sources": [{"cite": "m.py:1"}],
+}
 THE_ADD = {
     "address": EMPTY_PLACE,
     "instruction": "add",
@@ -380,6 +390,7 @@ class TestTheChiefRecastsAnAdd:
                     "claim": {"from": "wants", "to": "needs"},
                     "change": ADDED.replace("wants", "needs"),
                     "reason": "the fixture says needs",
+                    "sources": [{"cite": "m.py:1", "verbatim": "# one"}],
                 },
                 id="a-patch-first",
             ),

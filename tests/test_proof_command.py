@@ -686,8 +686,7 @@ class TestProofTakesAClosedProof:
     """`--proof` is the write end's input: the decided places the fold closed
     on, transcribed straight -- `decision-log.md Process: #184`.
 
-    The text these cases land is one no filed mark sets and that no
-    synthesized mark could carry, since `patch` owes no sources.
+    The text these cases land is one no filed mark sets.
     """
 
     def test_a_closed_proof_pulls_a_revise(self, tmp_path, monkeypatch, capsys):

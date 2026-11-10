@@ -151,6 +151,8 @@ class TestAStageAdmitsSomeInstructionsAndNotOthers:
             "# one and two",
             "--reason",
             "three lines where one says it",
+            "--cite",
+            "m.py:1",
             "--change",
             "# one and two",
         )

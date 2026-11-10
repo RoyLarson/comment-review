@@ -161,6 +161,17 @@ class TestTheChainRunsOnCommandsAlone:
         assert (repo / "m.py").read_text(encoding="utf-8") == SAMPLE
 
 
+def _cited() -> list[dict]:
+    """A source inside this run's own repo: the page's first line.
+
+    !! THE CITE MUST RESOLVE INSIDE THE RUN'S OWN REPO. The helpers' marks
+    cite `src/comment_review/desk/proof/mark.py`, which is real in this
+    checkout and absent from a tmp tree, and `collate` resolves a cite
+    against the binder's `read_from.root`.
+    """
+    return [{"cite": "m.py:1", "verbatim": SAMPLE.splitlines()[0]}]
+
+
 def _rule_every_place(document: dict) -> None:
     """`clean` in every seeded slot -- this role read the page and reports nothing.
 
@@ -172,7 +183,7 @@ def _rule_every_place(document: dict) -> None:
     """
     for sheet in document["sheets"]:
         for slot in sheet["marks"]:
-            slot.update(a_clean(slot["address"]))
+            slot.update(a_clean(slot["address"]), sources=_cited())
 
 
 def _correct_one_place(document: dict, address: str) -> None:
@@ -192,14 +203,7 @@ def _correct_one_place(document: dict, address: str) -> None:
                 "false": (slot.get("raw_text") or "").strip().splitlines()[0],
                 "true": "the corrected sentence",
             }
-            # !! THE CITE MUST RESOLVE INSIDE THIS RUN'S OWN REPO. `a_correct`
-            # seeds one naming `src/comment_review/desk/proof/mark.py`, which
-            # is real in this checkout and absent from a tmp tree -- and `collate`
-            # resolves a cite against the binder's `read_from.root`, so it
-            # reports "does not resolve -- the file cannot be read" and exits
-            # nonzero. Source verification is doing its job; the fixture was
-            # pointing outside the world the run was given.
-            mark["sources"] = [{"cite": "m.py:1", "verbatim": SAMPLE.splitlines()[0]}]
+            mark["sources"] = _cited()
             mark["change"] = "# set by the chain test\n"
             slot.update(mark)
             return

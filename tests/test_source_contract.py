@@ -1,5 +1,5 @@
 import pytest
-from helpers import a_correct, a_patch
+from helpers import a_clean, a_correct, a_patch
 
 from comment_review.desk.collator import cited_problems
 from comment_review.desk.marks.rules import allowed
@@ -57,7 +57,10 @@ def test_optional_mark_sources_still_require_complete_entries(source):
 def test_source_presence_is_the_carrying_types_requirement():
     patch = a_patch("m.py@b1", "Old.", "New.", "# New.")
     patch.pop("sources", None)
-    assert read_mark("m.py@b1", patch)[1] == []
+    assert "at least one" in read_mark("m.py@b1", patch)[1][0]  # #304
+    clean = a_clean("m.py@b1")
+    clean.pop("sources", None)
+    assert "at least one" in read_mark("m.py@b1", clean)[1][0]  # #301, #305
     correct = a_correct("m.py@b1")
     correct.pop("sources", None)
     assert "at least one" in read_mark("m.py@b1", correct)[1][0]

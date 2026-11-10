@@ -850,8 +850,8 @@ def a_correct_citing(address: str, cite: str) -> dict:
 
 
 def a_clean(address: str) -> dict:
-    """A `clean` mark -- the null mark. `INSTRUCTIONS[Instruction.CLEAN]` owes
-    no `claim`, no `sources`, no `change`."""
+    """A `clean` mark -- the null mark. It owes no `claim` and no `change`,
+    and a source naming the code read (`decision-log.md Process: #301`)."""
     return _mark(Instruction.CLEAN, address, {})
 
 
@@ -895,10 +895,6 @@ def a_patch(address: str, was: str, now: str, change: str) -> dict:
     `change` is the whole paragraph as it will read, the way every row that
     owes one carries it.
 
-    The row owes no sources, which is what makes it the input
-    `decision-log.md Process: #184` was ruled on: a text decided over patches
-    alone has none behind it, and a mark synthesized to carry that text is one
-    the parse refuses.
     """
     mark = _mark(Instruction.PATCH, address, {"from": was, "to": now})
     mark["change"] = change
@@ -1054,10 +1050,9 @@ BOTH_FIXED = "# the count\n# of the items\n# and the sum"
 def patched(address: str) -> dict:
     """Two roles patching different lines of one paragraph.
 
-    `patch` is the row that owes no sources, so the composition these two come
-    to has none behind it -- the hand `decision-log.md Process: #184` was
-    ruled on. Composed, accepted and read from the decided place, that text
-    reaches the docket; restated as one mark, it carried no source.
+    They compose to a text no filed mark sets -- the hand
+    `decision-log.md Process: #184` was ruled on. Composed, accepted and read
+    from the decided place, that text reaches the docket.
     """
     return {
         "block-context": {address: a_patch(address, "teh", "the", FIRST_FIXED)},

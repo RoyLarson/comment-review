@@ -105,7 +105,7 @@ substantive, **unless its row says otherwise.**
 ```
            claim carries    verbatim   destination   change   sources   the row's own flags
 ----------------------------------------------------------------------------------------------------
-clean      --               --         --            no       no        not substantive. The NULL
+clean      --               --         --            no       yes       not substantive. The NULL
                                                                         mark, and the coverage record
 query      shape,           --         --            no       YES       --
            attempted,
@@ -114,9 +114,7 @@ drop       drop             drop       --            yes      yes       an empty
                                                                         where the claim names the
                                                                         whole paragraph
 correct    false, true      false      --            yes      yes       --
-patch      from, to         from       --            yes      NO        wording alone -- nothing
-                                                                        outside the paragraph
-                                                                        settles it
+patch      from, to         from       --            yes      yes       --
 add        missing,         --         --            yes      yes       the anchor is named in
            anchor                                                       backticks
 move       from, to         --         to            yes      yes       the `to` must be ADDRESSABLE

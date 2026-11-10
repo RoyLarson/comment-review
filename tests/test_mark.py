@@ -111,10 +111,6 @@ CHANGE: dict[str, object] = {
     "move": "# the paragraph as it reads at its destination",
 }
 
-#: Verdicts whose payload cites no source: `clean` rules on nothing, `patch`
-#: rules on wording alone -- reviewer-brief.md:286.
-NO_SOURCE = ("clean", "patch")
-
 
 def well_formed(instruction: str) -> dict:
     """A literal entry that satisfies `instruction`'s row in the brief.
@@ -137,8 +133,7 @@ def well_formed(instruction: str) -> dict:
         entry["claim"] = dict(CLAIM[instruction])
     if instruction in CHANGE:
         entry["change"] = CHANGE[instruction]
-    if instruction not in NO_SOURCE:
-        entry["sources"] = [dict(SOURCE)]
+    entry["sources"] = [dict(SOURCE)]
     return entry
 
 
@@ -377,7 +372,14 @@ class TestTheRulesBite:
 
     def test_clean_needs_no_address(self):
         """A role returns `clean` over most of the binder."""
-        assert problems("here", {"instruction": "clean"}) == []
+        clean = {"instruction": "clean", "sources": [dict(SOURCE)]}
+        assert problems("here", clean) == []
+
+    def test_clean_needs_a_source(self):
+        """#301, #305: a clean names the code its role read."""
+        assert problems("here", {"instruction": "clean"}) == [
+            "here: needs at least one source"
+        ]
 
     def test_an_empty_claim_key_is_not_an_answer(self):
         bad = well_formed("correct")
@@ -474,12 +476,11 @@ class TestTheRulesBite:
         good["sources"] = [dict(SOURCE, ran="uv run pytest -q")]
         assert problems("here", good) == []
 
-    def test_patch_needs_no_source(self):
-        """reviewer-brief.md:286 -- the claim is already true; only the
-        wording is at issue."""
-        good = well_formed("patch")
-        assert "sources" not in good
-        assert problems("here", good) == []
+    def test_patch_needs_a_source(self):
+        """#304: a patch cites the code it read, whatever its change."""
+        bad = well_formed("patch")
+        del bad["sources"]
+        assert problems("here", bad) == ["here: needs at least one source"]
 
     def test_an_add_whose_anchor_is_not_named_is_refused(self):
         bad = well_formed("add")
@@ -521,6 +522,7 @@ def test_the_mark_carries_the_raw_text_the_row_seeded():
         "anchor": "def f(x):",
         "raw_text": "# the paragraph as it stands\n",
         "instruction": "clean",
+        "sources": [dict(SOURCE)],
     }
     mark, why = read_mark("m.py@b1", entry)
     assert why == []
@@ -532,7 +534,8 @@ def test_a_mark_that_lost_its_raw_text_still_parses():
     """An absent `raw_text` is not a shape problem. It is seeded, and the base
     a mark is measured against is never this field, so the boundary has
     nothing to refuse (`decision-log.md Process: #185`)."""
-    mark, why = read_mark("m.py@b1", {"address": "m.py@b1", "instruction": "clean"})
+    entry = {"address": "m.py@b1", "instruction": "clean", "sources": [dict(SOURCE)]}
+    mark, why = read_mark("m.py@b1", entry)
     assert why == []
     assert mark is not None
     assert mark.raw_text == ""
@@ -554,7 +557,8 @@ def test_a_filled_slot_reads_back_the_fields_it_was_seeded_with():
     an entry the mark's read takes those three from."""
     slot = BlankMark("m.py@b1", "def f(x):", "# as it stands\n").serialize()
     assert untouched(slot)
-    mark, why = read_mark("m.py@b1", {**slot, "instruction": "clean"})
+    filled_in = {**slot, "instruction": "clean", "sources": [dict(SOURCE)]}
+    mark, why = read_mark("m.py@b1", filled_in)
     assert why == [] and mark is not None
     assert (mark.address, mark.anchor, mark.raw_text) == (
         "m.py@b1",
