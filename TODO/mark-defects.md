@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 35 of 50 tasks closed
+Progress: 37 of 50 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, a code review of `desk/mark.py` that ran `parse`
@@ -328,6 +328,8 @@ cites as its measured example of a field answering neither necessary nor purpose
 - [-] T48 | SUPERSEDED by T50: #304 widens it to every patch | b3e29557 | Require
       a source on a patch whose change alters a number, a name or an error type
       (#300)
-- [ ] T49 | Require a source on a clean, naming the code its role read (#301)
+- [x] T49 | FINISHED -- a clean owes a source; check refuses one without | c042a9ce | Require
+      a source on a clean, naming the code its role read (#301)
         > 2026-11-09 #305: an unsourced clean refuses at check, seeded slots too
-- [ ] T50 | Require a source on every patch (#304)
+- [x] T50 | FINISHED -- every patch owes a source | c042a9ce | Require a source
+      on every patch (#304)
