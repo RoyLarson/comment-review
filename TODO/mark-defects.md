@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 33 of 50 tasks closed
+Progress: 35 of 50 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, a code review of `desk/mark.py` that ran `parse`
@@ -303,10 +303,10 @@ cites as its measured example of a field answering neither necessary nor purpose
 - [x] T39 | FINISHED -- --withdraw takes back the one ruling #296 names | ba90ccb4 | Make
       mark --withdraw take back one mark, not every ruling at the address, per
       #276
-- [ ] T40 | Import `ROLE_FIELDS` in `flows/fill.py` instead of defining a second
-      copy
-- [ ] T41 | Type `Mark.sources` as source pairs, since `read` refuses anything
-      else
+- [x] T40 | FINISHED -- fill imports desk.proof.mark's ROLE_FIELDS | 61aa9fd7 | Import
+      `ROLE_FIELDS` in `flows/fill.py` instead of defining a second copy
+- [x] T41 | FINISHED -- Mark.sources is tuple[Source, ...] | 61aa9fd7 | Type
+      `Mark.sources` as source pairs, since `read` refuses anything else
 - [-] T42 | SUPERSEDED by T35: filed twice in error | 4db8b52f | Fix
       `derived_change`, which rewraps a drop's whole paragraph and flattens
       docstring layout
