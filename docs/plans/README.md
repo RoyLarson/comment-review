@@ -1,6 +1,6 @@
 | plan | status | T closed | P closed |
 | --- | --- | ---: | ---: |
-| [0.2.4-a-mark-cites-what-it-read](0.2.4-a-mark-cites-what-it-read.md) | in-progress | 5/7 | 4/6 |
+| [0.2.4-a-mark-cites-what-it-read](0.2.4-a-mark-cites-what-it-read.md) | in-progress | 6/7 | 5/6 |
 | [0.2.4-a-mark-lands-as-written](0.2.4-a-mark-lands-as-written.md) | closed | 4/4 | 6/6 |
 | [0.2.4-a-move-is-a-placement-claim](0.2.4-a-move-is-a-placement-claim.md) | closed | 25/25 | 12/12 |
 | [0.2.4-a-move-owns-its-lifecycle](0.2.4-a-move-owns-its-lifecycle.md) | closed | 9/9 | 9/9 |
