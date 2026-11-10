@@ -104,6 +104,8 @@ def test_a_whole_paragraph_is_condensed_with_one_patch(tmp_path, monkeypatch, ca
         "@" + str(tmp_path / "to.txt"),
         "--reason",
         "five lines state what two state",
+        "--cite",
+        "m.py:1",
     )
     assert code == mark_command.OK, out
     placed = json.loads(copy.read_text(encoding="utf-8"))["sheets"][0]["marks"][0]
@@ -164,6 +166,8 @@ def test_the_condensed_text_folds_and_is_set(tmp_path, monkeypatch, capsys):
         "@" + str(tmp_path / "to.txt"),
         "--reason",
         "five lines state what two state",
+        "--cite",
+        "m.py:1",
     )
     assert code == mark_command.OK, out
 

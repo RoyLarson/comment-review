@@ -8,8 +8,7 @@
 an entry that is not an object was CARRIED so the mark parse could refuse it
 by name rather than have it vanish. `_sorted_entries` refuses it at the parse
 instead, into `Sheet.refused`, so nothing vanishes and nothing downstream has to
-re-read a raw entry. ! `Mark.sources` IS STILL `object` for the original
-reason; the two are no longer the same case.
+re-read a raw entry.
 """
 
 from copy import deepcopy

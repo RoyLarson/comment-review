@@ -116,6 +116,20 @@ class TestACopy:
         assert "m.py@b1" in out
         assert "reason" in out and "source" in out
 
+    def test_a_clean_with_no_source_is_sent_back(self, tmp_path, monkeypatch, capsys):
+        """#305: a role that marks a place clean without citing what it read
+        has its copy refused, as any other broken mark is."""
+        unread = a_clean("m.py@b5")
+        del unread["sources"]
+        path, binder = _copy_file(
+            tmp_path, {"m.py@b1": a_correct("m.py@b1"), "m.py@b5": unread}
+        )
+        code, out, _ = _run(
+            monkeypatch, capsys, "--edit-copy", path, "--binder", binder
+        )
+        assert code == 1
+        assert "m.py@b5" in out and "needs at least one source" in out
+
     def test_with_a_binder_a_bad_citation_is_named(self, tmp_path, monkeypatch, capsys):
         mark = a_correct("m.py@b1")
         mark["sources"] = [{"cite": "nowhere/at/all.py:1", "verbatim": "x"}]

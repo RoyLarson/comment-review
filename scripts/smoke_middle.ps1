@@ -486,7 +486,7 @@ $Stages = [ordered]@{
         foreach ($role in @('ownership-context', 'function-context', 'module-context')) {
             Invoke-Checked -Stage "mark a0 $role clean" -CommandLine ($Launcher + @(
                 $Cmd.mark, '--edit-copy', $CopyFile[$role], '--address', 'fib.py@a0',
-                '--instruction', 'clean', '--repo', $OriginalDir
+                '--instruction', 'clean', '--cite', 'fib.py:1', '--repo', $OriginalDir
             ))
         }
         # c12 -- beside `if n < 2:`, already filled with `# base case`.
@@ -518,7 +518,7 @@ $Stages = [ordered]@{
         foreach ($role in $Roles) {
             Invoke-Checked -Stage "mark c12 $role clean" -CommandLine ($Launcher + @(
                 $Cmd.mark, '--edit-copy', $CopyFile[$role], '--address', 'fib.py@c12',
-                '--instruction', 'clean', '--repo', $OriginalDir
+                '--instruction', 'clean', '--cite', 'fib.py:1', '--repo', $OriginalDir
             ))
         }
         # b8 -- the empty gap above `return wrapper`, absent b.
@@ -569,7 +569,7 @@ $Stages = [ordered]@{
         foreach ($role in @('ownership-context', 'function-context', 'module-context')) {
             Invoke-Checked -Stage "mark a1 $role clean" -CommandLine ($Launcher + @(
                 $Cmd.mark, '--edit-copy', $CopyFile[$role], '--address', 'fib.py@a1',
-                '--instruction', 'clean', '--repo', $OriginalDir
+                '--instruction', 'clean', '--cite', 'fib.py:1', '--repo', $OriginalDir
             ))
         }
         # c6 -- the lone mark. block-context settles it alone; the other three
@@ -614,7 +614,7 @@ $Stages = [ordered]@{
         foreach ($role in @('ownership-context', 'module-context')) {
             Invoke-Checked -Stage "mark c1 $role clean" -CommandLine ($Launcher + @(
                 $Cmd.mark, '--edit-copy', $CopyFile[$role], '--address', 'fib.py@c1',
-                '--instruction', 'clean', '--repo', $OriginalDir
+                '--instruction', 'clean', '--cite', 'fib.py:1', '--repo', $OriginalDir
             ))
         }
         # a3 -- three differ. block-, function- and module-context each correct
@@ -642,7 +642,7 @@ $Stages = [ordered]@{
         ))
         Invoke-Checked -Stage 'mark a3 ownership-context clean' -CommandLine ($Launcher + @(
             $Cmd.mark, '--edit-copy', $CopyFile['ownership-context'], '--address', 'fib.py@a3',
-            '--instruction', 'clean', '--repo', $OriginalDir
+            '--instruction', 'clean', '--cite', 'fib.py:1', '--repo', $OriginalDir
         ))
         # b9 -- the recast. block-context and module-context each correct the
         # same clause a different way; ownership-context and function-context
@@ -678,7 +678,7 @@ $Stages = [ordered]@{
         foreach ($role in @('ownership-context', 'function-context')) {
             Invoke-Checked -Stage "mark b9 $role clean" -CommandLine ($Launcher + @(
                 $Cmd.mark, '--edit-copy', $CopyFile[$role], '--address', 'fib.py@b9',
-                '--instruction', 'clean', '--repo', $OriginalDir
+                '--instruction', 'clean', '--cite', 'fib.py:1', '--repo', $OriginalDir
             ))
         }
         # b14 -- the drop. ownership-context drops the paragraph; the other
@@ -827,11 +827,11 @@ $Stages = [ordered]@{
         foreach ($role in @('ownership-context', 'module-context')) {
             Invoke-Checked -Stage "mark rate.py@b1 $role clean" -CommandLine ($Launcher + @(
                 $Cmd.mark, '--edit-copy', $CopyFile[$role], '--address', 'rate.py@b1',
-                '--instruction', 'clean', '--repo', $OriginalDir
+                '--instruction', 'clean', '--cite', 'rate.py:1', '--repo', $OriginalDir
             ))
         }
         # rate.py@c3 -- the patch. module-context rewords the trailing
-        # comment and cites nothing, since a patch owes no source.
+        # comment, citing the page as every patch does.
         # function-context cannot tell whether the wording wants changing and
         # defers with an unable-to-determine query; ownership-context and
         # block-context defer with a scope-declaring query. A query of either
@@ -839,8 +839,10 @@ $Stages = [ordered]@{
         Invoke-Checked -Stage 'mark rate.py@c3 module-context patch' -CommandLine ($Launcher + @(
             $Cmd.mark, '--edit-copy', $CopyFile['module-context'], '--address', 'rate.py@c3',
             '--instruction', 'patch',
+            '--cite', 'rate.py:1',
             '--from', "@$($LandingFile.rate_c3_from)", '--to', "@$($LandingFile.rate_c3_to)",
-            '--reason', 'fraction names the ratio the division returns'
+            '--reason', 'fraction names the ratio the division returns',
+            '--repo', $OriginalDir
         ))
         Invoke-Checked -Stage 'mark rate.py@c3 function-context query' -CommandLine ($Launcher + @(
             $Cmd.mark, '--edit-copy', $CopyFile['function-context'], '--address', 'rate.py@c3',
@@ -910,7 +912,7 @@ $Stages = [ordered]@{
         # other three defer.
         Invoke-Checked -Stage 'mark store.py@b3 ownership-context clean' -CommandLine ($Launcher + @(
             $Cmd.mark, '--edit-copy', $CopyFile['ownership-context'], '--address', 'store.py@b3',
-            '--instruction', 'clean', '--repo', $OriginalDir
+            '--instruction', 'clean', '--cite', 'store.py:1', '--repo', $OriginalDir
         ))
         foreach ($role in @('block-context', 'function-context', 'module-context')) {
             Invoke-Checked -Stage "mark store.py@b3 $role query" -CommandLine ($Launcher + @(
@@ -971,7 +973,7 @@ $Stages = [ordered]@{
         foreach ($role in @('ownership-context', 'block-context', 'function-context')) {
             Invoke-Checked -Stage "mark store.py@b7 $role clean" -CommandLine ($Launcher + @(
                 $Cmd.mark, '--edit-copy', $CopyFile[$role], '--address', 'store.py@b7',
-                '--instruction', 'clean', '--repo', $OriginalDir
+                '--instruction', 'clean', '--cite', 'store.py:1', '--repo', $OriginalDir
             ))
         }
         # store.py@c5 -- the correct whose change is wider than its claim.
@@ -1075,7 +1077,7 @@ $Stages = [ordered]@{
             foreach ($role in $Roles) {
                 Invoke-Checked -Stage "mark $address $role clean" -CommandLine ($Launcher + @(
                     $Cmd.mark, '--edit-copy', $CopyFile[$role], '--address', $address,
-                    '--instruction', 'clean', '--repo', $OriginalDir
+                    '--instruction', 'clean', '--cite', "$(($address -split '@')[0]):1", '--repo', $OriginalDir
                 ))
             }
         }
@@ -1097,7 +1099,7 @@ $Stages = [ordered]@{
         ))
         Invoke-Checked -Stage 'mark tally.py@b3 module-context clean' -CommandLine ($Launcher + @(
             $Cmd.mark, '--edit-copy', $CopyFile['module-context'], '--address', 'tally.py@b3',
-            '--instruction', 'clean', '--repo', $OriginalDir
+            '--instruction', 'clean', '--cite', 'tally.py:1', '--repo', $OriginalDir
         ))
         Invoke-Checked -Stage 'mark tally.py@b3 function-context correct' -CommandLine ($Launcher + @(
             $Cmd.mark, '--edit-copy', $CopyFile['function-context'], '--address', 'tally.py@b3',
@@ -1108,12 +1110,12 @@ $Stages = [ordered]@{
         ))
         Invoke-Checked -Stage 'mark tally.py@b1 function-context clean' -CommandLine ($Launcher + @(
             $Cmd.mark, '--edit-copy', $CopyFile['function-context'], '--address', 'tally.py@b1',
-            '--instruction', 'clean', '--repo', $OriginalDir
+            '--instruction', 'clean', '--cite', 'tally.py:1', '--repo', $OriginalDir
         ))
         foreach ($address in @('tally.py@b1', 'tally.py@b3')) {
             Invoke-Checked -Stage "mark $address block-context clean" -CommandLine ($Launcher + @(
                 $Cmd.mark, '--edit-copy', $CopyFile['block-context'], '--address', $address,
-                '--instruction', 'clean', '--repo', $OriginalDir
+                '--instruction', 'clean', '--cite', "$(($address -split '@')[0]):1", '--repo', $OriginalDir
             ))
             Invoke-Checked -Stage "mark $address ownership-context query" -CommandLine ($Launcher + @(
                 $Cmd.mark, '--edit-copy', $CopyFile['ownership-context'], '--address', $address,
@@ -1756,7 +1758,7 @@ $Stages = [ordered]@{
         foreach ($address in $secondClean) {
             Invoke-Checked -Stage "second clean $address" -CommandLine ($Launcher + @(
                 $Cmd.mark, '--edit-copy', $secondCopy, '--address', $address,
-                '--instruction', 'clean', '--repo', $ProofDir
+                '--instruction', 'clean', '--cite', "$(($address -split '@')[0]):1", '--repo', $ProofDir
             ))
         }
         Invoke-Checked -Stage 'second check' -CommandLine ($Launcher + @(
@@ -1847,7 +1849,7 @@ $Stages = [ordered]@{
         ))
         Invoke-Checked -Stage 'widened clean placed' -CommandLine ($Launcher + @(
             $Cmd.mark, '--edit-copy', $WidenedCopyFile, '--address', $plant.kept,
-            '--instruction', 'clean', '--reason', $plant.reason, '--repo', $ProofDir
+            '--instruction', 'clean', '--reason', $plant.reason, '--cite', "$(($plant.kept -split '@')[0]):1", '--repo', $ProofDir
         ))
         $widened = $Launcher + @(
             $Cmd.collate, '--stage', $CompactingStage, '--binder', $CompactingBinderFile,
@@ -1873,6 +1875,7 @@ $Stages = [ordered]@{
         Invoke-Checked -Stage 'compacting patch' -CommandLine ($Launcher + @(
             $Cmd.mark, '--edit-copy', $copy, '--address', $plant.patched,
             '--instruction', 'patch',
+            '--cite', "$(($plant.patched -split '@')[0]):1",
             '--from', "@$(Join-Path $Run 'compacting-from.txt')",
             '--to', "@$(Join-Path $Run 'compacting-to.txt')",
             '--reason', 'three lines state what two state, and the cap is two',
@@ -1880,7 +1883,7 @@ $Stages = [ordered]@{
         ))
         Invoke-Checked -Stage 'compacting clean' -CommandLine ($Launcher + @(
             $Cmd.mark, '--edit-copy', $copy, '--address', $plant.kept,
-            '--instruction', 'clean', '--reason', $plant.reason, '--repo', $ProofDir
+            '--instruction', 'clean', '--reason', $plant.reason, '--cite', "$(($plant.kept -split '@')[0]):1", '--repo', $ProofDir
         ))
         # The instruction the row does not admit. `mark` refuses it as it
         # places, so the copy is left exactly as the two rulings above left

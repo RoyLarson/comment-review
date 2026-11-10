@@ -580,8 +580,18 @@ THE_ADD = {
     "sources": [{"cite": "m.py:1"}],
     "change": ADDED,
 }
-_CLEAN_ABOVE = {"address": "m.py@b1", "instruction": "clean", "reason": "reads true"}
-_CLEAN_BELOW = {"address": "m.py@b3", "instruction": "clean", "reason": "reads true"}
+_CLEAN_ABOVE = {
+    "address": "m.py@b1",
+    "instruction": "clean",
+    "reason": "reads true",
+    "sources": [{"cite": "m.py:1"}],
+}
+_CLEAN_BELOW = {
+    "address": "m.py@b3",
+    "instruction": "clean",
+    "reason": "reads true",
+    "sources": [{"cite": "m.py:1"}],
+}
 
 #: One role moves the middle line of `m.py@b1` into `m.py@b2` and certifies
 #: the destination, so every place it was handed is ruled.
@@ -615,10 +625,8 @@ class TestDocketOfProof:
     def test_two_patches_that_compose_reach_the_docket(
         self, tmp_path, monkeypatch, capsys
     ):
-        """The decided text is a composition no filed mark sets, and every
-        mark behind it is a row that owes no sources. Read from the place, the
-        text reaches the docket; restated as a mark, it carried no source and
-        the parse refused it."""
+        """The decided text is a composition no filed mark sets. Read from the
+        place, the text reaches the docket."""
         assert deal(tmp_path, monkeypatch, capsys, TWO_PATCHES, TYPO_TEXTS) == (
             collate_command.REREADS
         )

@@ -315,7 +315,7 @@ and `disposition` write it with `--out`; no command loads one. It restates each 
 mark -- the side taken in, or one synthesized where no side set the decided text -- and folding
 those marks a second time made the docket depend on that restatement reproducing the fold.
 Measured 2026-09-18: two roles patching one paragraph settle on a composition no filed mark
-sets, `patch` owes no sources, and the synthesized `correct` carried none -- so `proof --copy`
+sets, `patch` then owed no sources, and the synthesized `correct` carried none -- so `proof --copy`
 over the chief's copy answered *"copy-chief m.py@b1: needs at least one source"* and the
 decided text reached no docket.
 

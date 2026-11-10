@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 33 of 50 tasks closed
+Progress: 37 of 50 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, a code review of `desk/mark.py` that ran `parse`
@@ -303,10 +303,10 @@ cites as its measured example of a field answering neither necessary nor purpose
 - [x] T39 | FINISHED -- --withdraw takes back the one ruling #296 names | ba90ccb4 | Make
       mark --withdraw take back one mark, not every ruling at the address, per
       #276
-- [ ] T40 | Import `ROLE_FIELDS` in `flows/fill.py` instead of defining a second
-      copy
-- [ ] T41 | Type `Mark.sources` as source pairs, since `read` refuses anything
-      else
+- [x] T40 | FINISHED -- fill imports desk.proof.mark's ROLE_FIELDS | 61aa9fd7 | Import
+      `ROLE_FIELDS` in `flows/fill.py` instead of defining a second copy
+- [x] T41 | FINISHED -- Mark.sources is tuple[Source, ...] | 61aa9fd7 | Type
+      `Mark.sources` as source pairs, since `read` refuses anything else
 - [-] T42 | SUPERSEDED by T35: filed twice in error | 4db8b52f | Fix
       `derived_change`, which rewraps a drop's whole paragraph and flattens
       docstring layout
@@ -328,6 +328,8 @@ cites as its measured example of a field answering neither necessary nor purpose
 - [-] T48 | SUPERSEDED by T50: #304 widens it to every patch | b3e29557 | Require
       a source on a patch whose change alters a number, a name or an error type
       (#300)
-- [ ] T49 | Require a source on a clean, naming the code its role read (#301)
+- [x] T49 | FINISHED -- a clean owes a source; check refuses one without | c042a9ce | Require
+      a source on a clean, naming the code its role read (#301)
         > 2026-11-09 #305: an unsourced clean refuses at check, seeded slots too
-- [ ] T50 | Require a source on every patch (#304)
+- [x] T50 | FINISHED -- every patch owes a source | c042a9ce | Require a source
+      on every patch (#304)

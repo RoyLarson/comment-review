@@ -47,7 +47,8 @@ ANSWER_FIELDS = {
     " `owes_change` names and absent for the others",
     "claim": "the keys `claim` names for this answer, each filled",
     "sources": "the evidence, each `{cite, verbatim}`, resolved against the tree"
-    " the slot was read from",
+    " the slot was read from; at least one is owed by the answers"
+    " `owes_sources` names",
 }
 
 #: The field whose value is itself a closed set, and that set. The mark's own
@@ -198,10 +199,10 @@ def contracts() -> dict:
 
     Returns:
         `stage_4c_mark` -> the mark's own shape; one entry per question,
-        naming the answers that question admits, which of them owe a `change`,
-        the `claim` keys each owes, the closed value sets, and what each field
-        is. An answer owing no claim keys carries an empty list, so a reader
-        can tell "none" from "not published".
+        naming the answers that question admits, which of them owe a `change`
+        and which a source, the `claim` keys each owes, the closed value
+        sets, and what each field is. An answer owing no claim keys carries an
+        empty list, so a reader can tell "none" from "not published".
     """
     out: dict = {"stage_4c_mark": allowed()}
     for question in Question:
@@ -216,6 +217,9 @@ def contracts() -> dict:
             "instruction": sorted(kinds),
             "owes_change": sorted(
                 name for name, kind in kinds.items() if kind.owes_change
+            ),
+            "owes_sources": sorted(
+                name for name, kind in kinds.items() if kind.owes_sources
             ),
             "claim": claims,
             "values": {

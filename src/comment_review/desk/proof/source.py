@@ -1,7 +1,17 @@
 """The fields and intrinsic checks of a supplied source entry."""
 
+from typing import NotRequired, TypedDict, cast
+
 REQUIRED = ("cite", "verbatim")
 OPTIONAL = ("ran",)
+
+
+class Source(TypedDict):
+    """One source as a mark holds it, once `problems` has found none."""
+
+    cite: str
+    verbatim: str
+    ran: NotRequired[str]
 
 
 def contract() -> dict[str, list[str]]:
@@ -32,3 +42,8 @@ def problems(where: str, sources: tuple[object, ...]) -> list[str]:
         for i, source in enumerate(sources, 1)
         for problem in entry_problems(f"{where}: source {i}", source)
     ]
+
+
+def checked(sources: tuple[object, ...]) -> tuple[Source, ...]:
+    """`sources` as `Source`s. The caller has had no `problems` from them."""
+    return cast(tuple[Source, ...], sources)

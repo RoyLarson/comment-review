@@ -24,6 +24,15 @@ def selectable_context(monkeypatch):
     return metadata.context_for(Path("m.py"), {"mode": "wide"})
 
 
+def _clean_here(address: str) -> dict:
+    """A `clean` citing its own tmp page's first line, which every page here
+    opens with -- the helpers' cite names a file this tmp tree does not hold."""
+    from helpers import a_clean
+
+    path = address.partition("@")[0]
+    return {**a_clean(address), "sources": [{"cite": f"{path}:1", "verbatim": "x = 0"}]}
+
+
 def test_same_path_two_settings_retains_first_valid_read(tmp_path, selectable_context):
     path = tmp_path / "m.py"
     path.write_bytes(b"# note\r\nx = 1\r\n")
@@ -46,7 +55,7 @@ def test_same_path_two_settings_retains_first_valid_read(tmp_path, selectable_co
 def test_saved_nondefault_context_reaches_shared_read_routes(
     tmp_path, monkeypatch, selectable_context, route
 ):
-    from helpers import a_clean, returned
+    from helpers import returned
 
     from comment_review.commands import check
     from comment_review.desk.proof.sheet import Sheet
@@ -59,7 +68,7 @@ def test_saved_nondefault_context_reaches_shared_read_routes(
         "role": "block-context",
         "read_from": {"root": str(tmp_path), "revise": 0},
         "sheets": [
-            Sheet.seed("m.py", "", [a_clean("m.py@b1")], reading=selectable_context)
+            Sheet.seed("m.py", "", [_clean_here("m.py@b1")], reading=selectable_context)
         ],
     }
     copy = returned(wire)
@@ -238,7 +247,7 @@ def test_disjoint_shard_move_uses_full_stage_settings(
 ):
     from dataclasses import replace
 
-    from helpers import a_clean, a_move, returned
+    from helpers import a_move, returned
 
     from comment_review.binder.binder import bind
     from comment_review.flows.bus import CopiesReturned, handle
@@ -269,7 +278,7 @@ def test_disjoint_shard_move_uses_full_stage_settings(
                     )
                     mark["sources"] = [{"cite": "m.py:5", "verbatim": "x = 1"}]
                 else:
-                    mark.update(a_clean(mark["address"]))
+                    mark.update(_clean_here(mark["address"]))
         copies.append(returned(wire))
     seen = {}
     actual = flow.page_of
@@ -289,7 +298,7 @@ def test_context_merge_conflict_refuses_before_source(
 ):
     from pathlib import Path
 
-    from helpers import a_clean, returned
+    from helpers import returned
 
     from comment_review.desk.proof.sheet import Sheet
     from comment_review.flows.reading_context import context_for
@@ -300,7 +309,9 @@ def test_context_merge_conflict_refuses_before_source(
             "role": "block-context",
             "read_from": {"root": str(tmp_path), "revise": 0},
             "sheets": [
-                Sheet.seed("m.py", "", [a_clean("m.py@b1")], reading=selectable_context)
+                Sheet.seed(
+                    "m.py", "", [_clean_here("m.py@b1")], reading=selectable_context
+                )
             ],
         }
     )

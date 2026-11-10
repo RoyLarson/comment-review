@@ -327,7 +327,9 @@ role withdraws it and marks the place again without that change.
 Send the asking role its `[[answer]]` sections with its copy; it replaces its query with a
 mark. Then re-run `collate` with the same inputs plus `--human <run-dir>/human.toml`.
 
-**Turns.** Run turns only when you are told a number above zero. Each turn sends `batch<t>.json`
+**Turns.** When `collate` carries a place forward as `composed`, run one turn even when you
+are told no number, so every role reads the text composed from its mark before you rule.
+Run more turns only when you are told a number above one. Each turn sends `batch<t>.json`
 to every role it names, with the proof and a path for its answers; checks each returned file
 with `check --answers <file> --sent <batch> --role <role> --repo .`; and folds them with
 `turn --proof <last proof> --answers <role>=<file> ... --proof-out <run-dir>/proof<t>.json

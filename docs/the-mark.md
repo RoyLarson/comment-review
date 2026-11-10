@@ -105,7 +105,7 @@ substantive, **unless its row says otherwise.**
 ```
            claim carries    verbatim   destination   change   sources   the row's own flags
 ----------------------------------------------------------------------------------------------------
-clean      --               --         --            no       no        not substantive. The NULL
+clean      --               --         --            no       yes       not substantive. The NULL
                                                                         mark, and the coverage record
 query      shape,           --         --            no       YES       --
            attempted,
@@ -114,9 +114,7 @@ drop       drop             drop       --            yes      yes       an empty
                                                                         where the claim names the
                                                                         whole paragraph
 correct    false, true      false      --            yes      yes       --
-patch      from, to         from       --            yes      NO        wording alone -- nothing
-                                                                        outside the paragraph
-                                                                        settles it
+patch      from, to         from       --            yes      yes       --
 add        missing,         --         --            yes      yes       the anchor is named in
            anchor                                                       backticks
 move       from, to         --         to            yes      yes       the `to` must be ADDRESSABLE
@@ -223,11 +221,11 @@ instruction set and the cli help."* This file is the instruction set.
 
 | instruction | what the `claim` carries |
 | --- | --- |
-| `clean` | nothing; `clean` proposes no text |
+| `clean` | nothing; `clean` proposes no text, and carries a `sources` entry naming the code you read |
 | `query` | the shape, in exactly one of its three names; the check you attempted; and what would settle it. These three are what stand behind the ruling |
 | `drop` | the sentence, verbatim, as it stands in the paragraph, where it is checked |
 | `correct` | the false clause and the true one, with a `sources` entry carrying the line that settles it. The false clause is checked against the paragraph |
-| `patch` | the sentence as it stands and its rewrite; `from` is checked against the paragraph. The claim is already true, so a `patch` needs no source |
+| `patch` | the sentence as it stands and its rewrite; `from` is checked against the paragraph, with a `sources` entry naming the code you read to judge the rewrite |
 | `add` | the text that is missing, and the declaration it belongs to, named in backticks. The address says which side of the declaration |
 | `move` | the origin's address and the destination's -- places, not text. The text that leaves is `change`, and `raw_text` is the destination paragraph as it will read |
 

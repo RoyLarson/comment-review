@@ -44,7 +44,7 @@ edit copy or `check`, read this sheet's finding, copy and return.
 | instruction | use it when |
 | --- | --- |
 | `correct` | a claim is false. `source` carries the line that settles it |
-| `patch` | the claim is true and the wording is not. No source is needed |
+| `patch` | the claim is true and the wording is not. `source` carries the code you read |
 | `drop` | the comment or a sentence in it is not needed, true or false |
 | `add` | a comment is missing. Where a comment already stands, it is a `patch` of that comment |
 | `query` | you cannot rule, below |

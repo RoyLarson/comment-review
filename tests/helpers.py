@@ -837,6 +837,12 @@ def _mark(instruction: Instruction, address: str, claim: dict) -> dict:
     return mark
 
 
+def a_source() -> list[dict]:
+    """The one source a built mark or answer cites. It resolves against `REPO`
+    and against any root `a_real_binder_over` wrote."""
+    return [{"cite": _MARK_PY_CITE, "verbatim": _MARK_PY_LINE_1}]
+
+
 def a_correct_citing(address: str, cite: str) -> dict:
     """A `correct` whose one source cites `cite`.
 
@@ -850,8 +856,8 @@ def a_correct_citing(address: str, cite: str) -> dict:
 
 
 def a_clean(address: str) -> dict:
-    """A `clean` mark -- the null mark. `INSTRUCTIONS[Instruction.CLEAN]` owes
-    no `claim`, no `sources`, no `change`."""
+    """A `clean` mark -- the null mark. It owes no `claim` and no `change`,
+    and a source naming the code read (`decision-log.md Process: #301`)."""
     return _mark(Instruction.CLEAN, address, {})
 
 
@@ -895,10 +901,6 @@ def a_patch(address: str, was: str, now: str, change: str) -> dict:
     `change` is the whole paragraph as it will read, the way every row that
     owes one carries it.
 
-    The row owes no sources, which is what makes it the input
-    `decision-log.md Process: #184` was ruled on: a text decided over patches
-    alone has none behind it, and a mark synthesized to carry that text is one
-    the parse refuses.
     """
     mark = _mark(Instruction.PATCH, address, {"from": was, "to": now})
     mark["change"] = change
@@ -1054,10 +1056,9 @@ BOTH_FIXED = "# the count\n# of the items\n# and the sum"
 def patched(address: str) -> dict:
     """Two roles patching different lines of one paragraph.
 
-    `patch` is the row that owes no sources, so the composition these two come
-    to has none behind it -- the hand `decision-log.md Process: #184` was
-    ruled on. Composed, accepted and read from the decided place, that text
-    reaches the docket; restated as one mark, it carried no source.
+    They compose to a text no filed mark sets -- the hand
+    `decision-log.md Process: #184` was ruled on. Composed, accepted and read
+    from the decided place, that text reaches the docket.
     """
     return {
         "block-context": {address: a_patch(address, "teh", "the", FIRST_FIXED)},
@@ -1144,6 +1145,7 @@ def deal(
 
 def answer(tmp_path, n: int, role: str, address: str, **fields) -> str:
     """This role's sent slot at `address` on batch<n>, with `fields` laid over.
+    A `clean` or `patch` carries the source it owes unless `fields` names one.
 
     Returns:
         The `ROLE=PATH` spec `turn --answers` takes.
@@ -1151,7 +1153,9 @@ def answer(tmp_path, n: int, role: str, address: str, **fields) -> str:
     batch = json.loads((tmp_path / f"batch{n}.json").read_text(encoding="utf-8"))
     slot = next(s for s in batch[role] if s["address"] == address)
     path = tmp_path / f"answers{n}_{role}.json"
-    path.write_text(json.dumps([{**slot, **fields}]), encoding="utf-8")
+    owed = fields.get("instruction") in ("clean", "patch")
+    entry = {**({"sources": a_source()} if owed else {}), **slot, **fields}
+    path.write_text(json.dumps([entry]), encoding="utf-8")
     return f"{role}={path}"
 
 
