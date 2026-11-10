@@ -39,6 +39,9 @@ from comment_review.commands import turn as turn_command
 
 ROLES = HAND_ROLES
 
+#: The source a `correct` answer owes (#288): the fixture page's first line.
+CITED = [{"cite": "m.py:1", "verbatim": "# one"}]
+
 
 @pytest.mark.parametrize("fault", ["missing", "contradictory", "installed"])
 def test_saved_context_refusal_preserves_turn_artifacts(
@@ -91,6 +94,7 @@ class TestOneTurn:
                 "m.py@b1",
                 instruction="correct",
                 reason="met",
+                sources=CITED,
                 change=DOS,
             ),
             answer(
@@ -127,6 +131,7 @@ class TestOneTurn:
                 "m.py@b1",
                 instruction="correct",
                 reason="met",
+                sources=CITED,
                 change=DOS,
             ),
             answer(
@@ -213,6 +218,7 @@ class TestOneTurn:
                 "m.py@b1",
                 instruction="correct",
                 reason="met",
+                sources=CITED,
                 change=DOS,
             ),
             answer(
@@ -263,6 +269,7 @@ class TestOnceSettledAlwaysSettled:
                 "m.py@b2",
                 instruction="correct",
                 reason="met",
+                sources=CITED,
                 change=cinco,
             ),
             answer(

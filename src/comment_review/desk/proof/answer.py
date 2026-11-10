@@ -73,6 +73,9 @@ class Answer:
     asked: ClassVar[tuple[Question, ...]]
     #: Whether a `change` is owed -- True on every `Rewrite`.
     owes_change: ClassVar[bool] = False
+    #: Whether at least one source is owed -- True on `correct` alone, as on a
+    #: `correct` mark (`decision-log.md Process: #288`).
+    owes_sources: ClassVar[bool] = False
     #: Every key the wire `claim` must carry, filled.
     claim_all: ClassVar[tuple[str, ...]] = ()
 
@@ -138,6 +141,8 @@ class Answer:
             if not filled(claim.get(key))
         ]
         out += cls._value_problems(where, claim)
+        if cls.owes_sources and not sources:
+            out.append(f"{where}: {cls.name} needs at least one source")
         out += source_entry_problems(where, sources)
         if out:
             return None, out
@@ -206,6 +211,7 @@ class CorrectAnswer(Rewrite):
 
     name: ClassVar[str] = "correct"
     asked: ClassVar[tuple[Question, ...]] = (Question.ESCALATION, Question.COMPOSITION)
+    owes_sources: ClassVar[bool] = True
 
 
 @dataclass(frozen=True)

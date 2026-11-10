@@ -414,6 +414,8 @@ def test_every_claim_key_the_contract_names_is_one_the_parse_demands():
         entry = {**given, "instruction": name, "claim": claim}
         if _kind(name).owes_change:
             entry["change"] = "# x"
+        if name in published["owes_sources"]:
+            entry["sources"] = [{"cite": "m.py:1", "verbatim": "x = 1"}]
         got, why = read_answer("m.py@b1", entry)
         assert why == [], (name, why)
         assert got is not None
@@ -483,3 +485,39 @@ def test_a_placement_answer_built_from_the_contract_is_taken_at_its_move(tmp_pat
     )
     assert problems == []
     assert got["m.py@b1 -> m.py@b5"].name == "agree"
+
+
+def _rewrite_entry(question: str, name: str, sources: list) -> dict:
+    return {
+        "address": "m.py@b1",
+        "question": question,
+        "instruction": name,
+        "reason": "r",
+        "change": "# x",
+        "sources": sources,
+    }
+
+
+@pytest.mark.parametrize("question", ["escalation", "composition"])
+def test_a_correct_answer_with_no_source_is_refused(question):
+    """#288: a `correct` answer owes sources, as a `correct` mark does."""
+    got, why = read_answer("m.py@b1", _rewrite_entry(question, "correct", []))
+    assert got is None
+    assert why == ["m.py@b1: correct needs at least one source"]
+    cited = [{"cite": "m.py:1", "verbatim": "x = 1"}]
+    got, why = read_answer("m.py@b1", _rewrite_entry(question, "correct", cited))
+    assert why == [] and got is not None
+
+
+@pytest.mark.parametrize("question", ["escalation", "composition"])
+def test_a_patch_answer_owes_no_source(question):
+    """#288 leaves a `patch` answer owing only its change."""
+    got, why = read_answer("m.py@b1", _rewrite_entry(question, "patch", []))
+    assert why == [] and got is not None
+
+
+def test_the_contracts_name_the_answers_that_owe_sources():
+    got = contracts()
+    assert got["escalation"]["owes_sources"] == ["correct"]
+    assert got["composition"]["owes_sources"] == ["correct"]
+    assert got["placement"]["owes_sources"] == []

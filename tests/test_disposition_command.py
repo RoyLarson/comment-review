@@ -370,6 +370,7 @@ class TestTheChiefRecastsAnAdd:
                     "claim": {"false": "wants", "true": "needs"},
                     "change": ADDED.replace("wants", "needs"),
                     "reason": "the fixture says needs",
+                    "sources": [{"cite": "m.py:1", "verbatim": "# one"}],
                 },
                 id="a-correct-first",
             ),
