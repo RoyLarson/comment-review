@@ -6642,3 +6642,8 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   whatever its change. It supersedes #300's narrower case: nothing detects what a patch changes.
   The source is there to make the role look at the code as it is and ask whether the text makes
   sense of it.
+
+  Roy added, the same minute: *"Not that agents actually understand - does this make sense for
+  everything else that llms are good at - that is pretty far down the list"*. So the source is
+  not relied on as the role's judgement. What it guarantees is that a line of the code was read,
+  and its `verbatim` is checked against that line.
