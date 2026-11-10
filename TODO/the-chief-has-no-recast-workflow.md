@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 10 of 17 tasks closed
+Progress: 11 of 17 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-09-08 (Roy 2026-09-08: implementing the recast workflow for the cli the
@@ -63,7 +63,8 @@ The copy chief has no workflow for recasting the places that never settled.
 - [x] T14 | #288: correct answers owe sources; patch answers do not | 13440508 | Decide
       whether correct and patch answers require initial-mark claims and evidence
         > 2026-09-30 Decision: docs/reviews/2026-09-30-r4.md, Genuine ruling
-- [ ] T15 | Require sources on a correct answer, as on a correct mark (#288)
+- [x] T15 | FINISHED -- CorrectAnswer owes sources; contract names it | 784d74fb | Require
+      sources on a correct answer, as on a correct mark (#288)
         > 2026-11-07 Check: a correct answer without sources refuses; patch does not
 - [x] T16 | FINISHED -- ruled #299 | 813b3550 | Decide whether a recast may set
       an empty paragraph, which disposition refuses as needing prose
