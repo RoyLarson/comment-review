@@ -329,4 +329,5 @@ cites as its measured example of a field answering neither necessary nor purpose
       a source on a patch whose change alters a number, a name or an error type
       (#300)
 - [ ] T49 | Require a source on a clean, naming the code its role read (#301)
+        > 2026-11-09 #305: an unsourced clean refuses at check, seeded slots too
 - [ ] T50 | Require a source on every patch (#304)

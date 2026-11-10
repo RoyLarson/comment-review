@@ -6642,3 +6642,14 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   whatever its change. It supersedes #300's narrower case: nothing detects what a patch changes.
   The source is there to make the role look at the code as it is and ask whether the text makes
   sense of it.
+
+- **#305.** **A `clean` with no source makes `check` refuse the copy** (Roy, 2026-11-09, asked
+  whether a `clean` with no source refuses at `check`, sending the copy back to its role, or only
+  warns; the project named in the answer is replaced by a bracketed description, per #293):
+
+  *"Yes - lazy agents. The [run on another project] had a couple that sampled the comments and
+  then whole-saled the rest as clean"*
+
+  **What it settles.** `check` refuses an edit copy holding a `clean` without a `sources` entry,
+  and the copy goes back to its role as any other refusal does. A seeded `clean` slot left
+  unsourced is refused the same way.
