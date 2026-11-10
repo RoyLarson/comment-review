@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 11 of 17 tasks closed
+Progress: 12 of 17 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-08-17, by the session that ran all eight stages and rolled its own work back.
@@ -217,5 +217,5 @@ answered. A rail read and not run is a shape problem, and it was measured twice 
       from its mark
         > 2026-11-08 Outside run: 0 turns; 177 composed places ruled unread by roles
         > 2026-11-09 Outcome #298: yes, one turn by default after composing
-- [ ] T17 | Update SKILL.md stage 5 to run one turn by default when collate
-      composes (#298)
+- [x] T17 | FINISHED -- SKILL.md stage 5 runs one turn after composing | d2f34057 | Update
+      SKILL.md stage 5 to run one turn by default when collate composes (#298)
