@@ -1,6 +1,6 @@
 | plan | status | T closed | P closed |
 | --- | --- | ---: | ---: |
-| [0.2.4-a-chief-ruling-is-recorded-whole](0.2.4-a-chief-ruling-is-recorded-whole.md) | decision-needed | 0/9 | 0/9 |
+| [0.2.4-a-chief-ruling-is-recorded-whole](0.2.4-a-chief-ruling-is-recorded-whole.md) | open | 0/9 | 0/9 |
 | [0.2.4-a-mark-cites-what-it-read](0.2.4-a-mark-cites-what-it-read.md) | closed | 8/8 | 6/6 |
 | [0.2.4-a-mark-lands-as-written](0.2.4-a-mark-lands-as-written.md) | closed | 4/4 | 6/6 |
 | [0.2.4-a-move-is-a-placement-claim](0.2.4-a-move-is-a-placement-claim.md) | closed | 25/25 | 12/12 |

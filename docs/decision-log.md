@@ -6662,3 +6662,16 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
 
   **What it settles.** `CleanAnswer` and `PatchAnswer` owe a `sources` entry, checked as a
   `correct` answer's are. It extends #288, which left `PatchAnswer` owing only its change.
+
+- **#307.** **The chief copy carries the chief's reason only on a mark the chief writes** (Roy,
+  2026-11-10, on `collate-flow-defects` T23, asked which reason the chief copy shows on a role's
+  mark the chief adopts unchanged; offered (a) the chief's reason on every mark of the chief
+  copy, adopted ones included, or (b) the chief's reason only on marks the chief writes, the
+  adopted mark keeping the role's reason and the chief's reason for adopting it kept in the
+  proof alone):
+
+  *"P7 - b"*
+
+  **What it settles.** A mark `chief_mark` synthesizes carries the disposition's reason in place
+  of the generic one. A role's mark the chief adopts unchanged keeps the role's reason, and the
+  chief's reason for adopting it is the one the proof's place records.
