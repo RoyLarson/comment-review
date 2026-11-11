@@ -278,7 +278,11 @@ Remove `root4c` with `git worktree remove --force <run-dir>/root4c` after stage 
 ### Stage 5 -- collate, and rule as copy chief
 
 Repeat `--edit-copy` and `--received-binder` for each pair, keeping the binder
-paths in the same order as the copy paths.
+paths in the same order as the copy paths. For a large dispatch set, write the pairs to
+`<run-dir>/<stage>_pairs.json` as `[{"edit_copy": "<one returned copy>", "received_binder":
+"<its received binder>"}, ...]`, with absolute paths, and pass `--pairs
+<run-dir>/<stage>_pairs.json` in place of the repeated `--edit-copy` and `--received-binder`
+flags; a long command line fails on Windows.
 
 ```bash
 python <skill>/scripts/comment-review.py collate --stage <stage> --binder <the stage's binder> --repo <stage-root> \
@@ -370,9 +374,9 @@ review labels, the width stage 1 recorded, and its templates. Where a place brea
 entry in the `reason`. A settled place takes only a `recast`. Write these with your other
 rulings, and run `disposition` for them even when `collate` exited `0`.
 
-Write the rulings to `<run-dir>/dispositions.json` as a list of
-`{"address", "answer", "side", "reason", "prose"}`, with a `reason` on each and `"to"` added on
-a placement ruling (`address` the origin, `to` the destination), then close the proof:
+Write the rulings to `<run-dir>/dispositions.json` as a list of entries in the shape `check
+--contract` prints under `chief`, with `"to"` added on a placement ruling (`address` the origin,
+`to` the destination), then close the proof:
 
 ```bash
 python <skill>/scripts/comment-review.py disposition --proof <last proof written> \
