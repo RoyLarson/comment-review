@@ -1,6 +1,6 @@
 | plan | status | T closed | P closed |
 | --- | --- | ---: | ---: |
-| [0.2.4-a-chief-ruling-is-recorded-whole](0.2.4-a-chief-ruling-is-recorded-whole.md) | in-progress | 2/11 | 2/11 |
+| [0.2.4-a-chief-ruling-is-recorded-whole](0.2.4-a-chief-ruling-is-recorded-whole.md) | closed | 11/11 | 11/11 |
 | [0.2.4-a-mark-cites-what-it-read](0.2.4-a-mark-cites-what-it-read.md) | closed | 8/8 | 6/6 |
 | [0.2.4-a-mark-lands-as-written](0.2.4-a-mark-lands-as-written.md) | closed | 4/4 | 6/6 |
 | [0.2.4-a-move-is-a-placement-claim](0.2.4-a-move-is-a-placement-claim.md) | closed | 25/25 | 12/12 |
@@ -20,7 +20,7 @@
 | [0.2.4-the-commands-for-the-middle](0.2.4-the-commands-for-the-middle.md) | closed | 11/11 | 61/61 |
 | [0.2.4-the-listing-goes](0.2.4-the-listing-goes.md) | closed | 7/7 | 4/4 |
 | [0.2.4-the-mark-and-the-collator](0.2.4-the-mark-and-the-collator.md) | closed | 31/31 | 21/21 |
-| [0.2.4-the-middle-rebuilt](0.2.4-the-middle-rebuilt.md) | in-progress | 80/106 | 35/41 |
+| [0.2.4-the-middle-rebuilt](0.2.4-the-middle-rebuilt.md) | in-progress | 87/106 | 35/41 |
 | [0.2.4-the-placement-branch-runs](0.2.4-the-placement-branch-runs.md) | closed | 22/22 | 12/12 |
 | [0.2.4-the-proof-is-one-unit](0.2.4-the-proof-is-one-unit.md) | closed | 15/15 | 15/15 |
 | [0.2.4-the-turn-as-commands](0.2.4-the-turn-as-commands.md) | closed | 14/14 | 10/10 |

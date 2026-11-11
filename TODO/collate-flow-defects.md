@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 6 of 26 tasks closed
+Progress: 14 of 26 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, a code review of `flows/collate.py` on the collate-
@@ -187,32 +187,39 @@ eight acts while `Collated` has eight attributes, so the two it omits -- `unrule
 - [x] T16 | collate.py _page_cues and the test_collate class docstring state why the page is read, with no history | 7097ee5a | Update
       the history narration in added lines at collate.py:802 and
       test_collate.py:1107
-- [ ] T17 | Publish the complete chief resolution at close, including arrivals
-      outside gathered pages
+- [x] T17 | FINISHED -- pinned by a test; chief copy keeps the arrival | 2251abf7 | Publish
+      the complete chief resolution at close, including arrivals outside
+      gathered pages
         > 2026-09-30 Criteria: docs/reviews/2026-09-30-r6-r7-r8.md, item 1
 - [-] T18 | SUPERSEDED by #304: every patch cites, the correct inherits | c042a9ce | Represent
       a chief resolution over patch-only evidence without writing an unreadable
       correct
         > 2026-09-30 Criteria: docs/reviews/2026-09-30-r6-r7-r8.md, item 2
-- [ ] T19 | Represent a chief arrival without a populated anchor without writing
-      an unreadable add
+- [x] T19 | FINISHED -- anchorless arrival refused, no name invented | fec722de | Represent
+      a chief arrival without a populated anchor without writing an unreadable
+      add
         > 2026-09-30 Criteria: docs/reviews/2026-09-30-r6-r7-r8.md, item 3
-- [ ] T20 | Refuse duplicate chief rulings for the same place or move before
-      applying either
+- [x] T20 | FINISHED -- a repeated chief ruling is refused, neither applies | 872f4a5c | Refuse
+      duplicate chief rulings for the same place or move before applying either
         > 2026-09-30 Criteria: docs/reviews/2026-09-30-r6-r7-r8.md, item 6
 - [-] T21 | SUPERSEDED by T26 (#308) | f9d974cd | Refuse duplicate role answers
       at one slot while retaining distinct questions at one address
         > 2026-09-30 Criteria: docs/reviews/2026-09-30-r6-r7-r8.md, item 7
-- [ ] T22 | Match human answers to their exact question and refuse duplicate
-      matching sections
+- [x] T22 | FINISHED -- matched by role, place and question | fc9878925 | Match
+      human answers to their exact question and refuse duplicate matching
+      sections
         > 2026-09-30 Criteria: docs/reviews/2026-09-30-r6-r7-r8.md, item 8
-- [ ] T23 | Record the chief ruling reason in its readable resolved record
+- [x] T23 | FINISHED -- the chief's reason on marks it writes (#307) | 2c6e73b3 | Record
+      the chief ruling reason in its readable resolved record
         > 2026-09-30 Criteria: docs/reviews/2026-09-30-r6-r7-r8.md, item 5
-- [ ] T24 | Validate returned mark anchors without discarding any role before
-      reporting a mismatch
+- [x] T24 | FINISHED -- differing anchors refused by role and address | c58510a0 | Validate
+      returned mark anchors without discarding any role before reporting a
+      mismatch
         > 2026-09-30 Criteria: docs/reviews/2026-09-30-r6-r7-r8.md, item 9
-- [ ] T25 | Correct the flow module map and live-path docstrings identified by
-      the September review
+- [x] T25 | FINISHED -- flows map and docstrings state current owners | 249b474c | Correct
+      the flow module map and live-path docstrings identified by the September
+      review
         > 2026-09-30 Criteria: docs/reviews/2026-09-30-r6-r7-r8.md, standalone
-- [ ] T26 | Implement several role answers at one slot, composed, refusing only
-      contradictory ones (#308)
+- [x] T26 | FINISHED -- answers compose; contradictions refused (#308, #309) | 48a9966b | Implement
+      several role answers at one slot, composed, refusing only contradictory
+      ones (#308)
