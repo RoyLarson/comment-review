@@ -5,6 +5,7 @@
     load_proof(path)  -> (MasterProof | None, problems)
     load_batch(path)  -> (role -> slots, problems)
     load_value(path)  -> (any JSON value, problems)      a role's answers, the rulings
+    load_text(path)   -> (the text | None, problems)     a topology, read as text
     save_proof(path, proof), save_copy(path, copy), save_batch(path, batch)
     save_wire(path, copy)   a role's copy mid-fill, every slot kept
 
@@ -39,7 +40,7 @@ from comment_review.machine.json_object import object_of
 from comment_review.machine.repo import write_raw
 
 
-def _text(path: Path) -> tuple[str | None, list[str]]:
+def load_text(path: Path) -> tuple[str | None, list[str]]:
     """The file's text, or the one reason there is none."""
     try:
         return path.read_text(encoding="utf-8"), []
@@ -49,7 +50,7 @@ def _text(path: Path) -> tuple[str | None, list[str]]:
 
 def _object(path: Path, noun: str) -> tuple[dict | None, list[str]]:
     """The file as a JSON object, or every reason it is not one -- read, then decode."""
-    text, why = _text(path)
+    text, why = load_text(path)
     if text is None:
         return None, why
     loaded, problem = object_of(text, noun)
@@ -68,7 +69,7 @@ def load_value(
     A role's answered batch and the chief's rulings are lists, which
     `object_of` refuses by design; the shape is the caller's question.
     """
-    text, why = _text(path)
+    text, why = load_text(path)
     if text is None:
         return None, why
     try:

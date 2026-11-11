@@ -38,7 +38,7 @@ import argparse
 import sys
 from pathlib import Path
 
-from comment_review.commands.collate import OK, _code_for, _counted, _print, _refused
+from comment_review.commands.report import OK, code_for, counted, print_report, refused
 from comment_review.flows.bus import DispositionsWritten, handle, turn_of
 from comment_review.flows.proof_io import (
     load_proof,
@@ -75,10 +75,10 @@ def main() -> int:
 
     proof, why = load_proof(Path(args.proof))
     if proof is None:
-        return _refused(why)
+        return refused(why)
     rulings, why = load_value(Path(args.dispositions))
     if why:
-        return _refused(why)
+        return refused(why)
     # The shape of the file is this command's and the shape of a ruling is the
     # table's: a list of objects is what the flag promises, and what each
     # object owes is its ruling type's own read, which the fold
@@ -87,34 +87,28 @@ def main() -> int:
         [r for r in rulings if isinstance(r, dict)] if isinstance(rulings, list) else []
     )
     if not isinstance(rulings, list) or len(rows) != len(rulings):
-        return _refused(
-            [f"{args.dispositions}: the dispositions are a list of objects"]
-        )
+        return refused([f"{args.dispositions}: the dispositions are a list of objects"])
 
     out, result = handle(DispositionsWritten(proof, rows))
-    _print(out)
+    print_report(out)
     if result is None:
-        return _code_for(out)
+        return code_for(out)
 
     # The serialize is the container's and the dump is the flow's
-    # (`decision-log.md Process: #65`, `#67`), as `collate` saves. A committed
-    # `DispositionsWritten` always carries a chief copy; the field is optional
-    # because another handler on this bus may have no copy to write, and the
-    # guard is what says so rather than an assertion.
-    if result.chief is not None:
-        save_copy(Path(args.out), result.chief)
-        places = sum(len(sheet.marks) for sheet in result.chief.sheets)
-        print(f"{args.out}: the chief's copy, {places} places")
+    # (`decision-log.md Process: #65`, `#67`), as `collate` saves.
+    save_copy(Path(args.out), result.chief)
+    places = sum(len(sheet.marks) for sheet in result.chief.sheets)
+    print(f"{args.out}: the chief's copy, {places} places")
     save_proof(Path(args.proof_out), result.proof)
-    code = _code_for(out)
+    code = code_for(out)
     # A placement ruling can leave its move's ends carried forward, for the
     # chief to rule by running this again on the proof it just wrote.
-    turn, counted = turn_of(result.proof), _counted(result.proof.places)
+    turn, held = turn_of(result.proof), counted(result.proof.places)
     if code == OK:
-        print(f"{args.proof_out}: the proof closed at turn {turn} -- {counted}")
+        print(f"{args.proof_out}: the proof closed at turn {turn} -- {held}")
     else:
         print(
-            f"{args.proof_out}: the proof at turn {turn} is not closed -- {counted};"
+            f"{args.proof_out}: the proof at turn {turn} is not closed -- {held};"
             " rule what it carries and run disposition again on it"
         )
     return code

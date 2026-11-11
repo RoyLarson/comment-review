@@ -18,6 +18,7 @@ from helpers import a_real_binder_over
 from comment_review.commands import collate as collate_command
 from comment_review.commands import mark as mark_command
 from comment_review.commands import proof as proof_command
+from comment_review.commands import report
 from comment_review.desk.stages import Kind, Stage
 from comment_review.flows.distribute import seed
 
@@ -191,7 +192,7 @@ def test_the_condensed_text_folds_and_is_set(tmp_path, monkeypatch, capsys):
         "--proof-out",
         str(tmp_path / "proof.json"),
     )
-    assert code == collate_command.OK, out
+    assert code == report.OK, out
     assert "stet m.py@b1" in out
 
     code, out = run_command(

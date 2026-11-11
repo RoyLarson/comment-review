@@ -58,17 +58,12 @@ import sys
 from pathlib import Path
 
 from comment_review import constants, exceptions
+from comment_review.commands.report import BROKEN, OK, UNREADABLE
 from comment_review.desk.marks.table import INSTRUCTIONS
 from comment_review.desk.proof.mark import Instruction, mark_type
 from comment_review.flows.fill import fill, withdraw
 from comment_review.flows.proof_io import load_copy, save_wire
 from comment_review.machine.repo import read_raw
-
-#: Exit codes -- `check`'s. `BROKEN` is a ruling the flow refused, with the
-#: reasons on stdout; `UNREADABLE` is a copy that is not one, or a usage error.
-OK = 0
-BROKEN = 1
-UNREADABLE = 2
 
 #: Every claim key any type names, in the order `docs/the-mark.md` lists the
 #: instructions. Each is a flag; which ones an instruction accepts is its

@@ -29,7 +29,7 @@ from helpers import (
     turn,
 )
 
-from comment_review.commands import collate as collate_command
+from comment_review.commands import report
 from comment_review.desk.proof.disposition import ORIGINAL
 from comment_review.desk.proof.mark import Instruction
 from comment_review.flows.proof_io import load_proof
@@ -84,7 +84,7 @@ def test_saved_context_refusal_preserves_disposition_artifacts(
         "--proof-out",
         str(tmp_path / "final.json"),
     )
-    assert code == collate_command.UNREADABLE, out
+    assert code == report.UNREADABLE, out
     assert {
         path: path.read_bytes() for path in tmp_path.rglob("*") if path.is_file()
     } == before
@@ -121,7 +121,7 @@ class TestTheChiefRules:
             capsys,
             [_taken_in("m.py@b1", "function-context", "theirs reads better")],
         )
-        assert code == collate_command.OK, out
+        assert code == report.OK, out
         assert "taken_in m.py@b1: function-context -- theirs reads better" in out
         assert "stet m.py@b2" in out
         assert "stet m.py@b1" not in out
@@ -143,7 +143,7 @@ class TestTheChiefRules:
                 }
             ],
         )
-        assert code == collate_command.OK, out
+        assert code == report.OK, out
         assert "taken_in m.py@b1: function-context -- theirs reads better" in out
         assert "stet m.py@b1" not in out
         chief = the_chief(tmp_path)
@@ -171,7 +171,7 @@ class TestTheChiefRules:
                 }
             ],
         )
-        assert code == collate_command.OK, out
+        assert code == report.OK, out
         assert "taken_in m.py@b1: original -- neither improves it" in out
         assert "stet m.py@b1" not in out
         assert entries_of(the_chief(tmp_path)) == []
@@ -194,7 +194,7 @@ class TestTheChiefRules:
                 }
             ],
         )
-        assert code == collate_command.OK, out
+        assert code == report.OK, out
         assert "recast m.py@b1: copy-chief -- both half right" in out
         assert "stet m.py@b1" not in out
         assert changes_of(entries_of(the_chief(tmp_path))) == [RECAST]
@@ -219,7 +219,7 @@ class TestTheChiefRules:
                 }
             ],
         )
-        assert code == collate_command.OK, out
+        assert code == report.OK, out
         assert place_on(_closed(tmp_path), "m.py@b1")["text"] == ""
         (entry,) = entries_of(the_chief(tmp_path))
         assert entry.instruction == "drop"
@@ -264,7 +264,7 @@ class TestTheChiefRecastsASettledPlace:
                 "prose": self.PROSE,
             },
         )
-        assert code == collate_command.OK, out
+        assert code == report.OK, out
         assert f"recast m.py@b2: copy-chief -- {self.STYLE}" in out
         assert "stet m.py@b2" not in out
         place = place_on(_closed(tmp_path), "m.py@b2")
@@ -287,7 +287,7 @@ class TestTheChiefRecastsASettledPlace:
                 "prose": "",
             },
         )
-        assert code == collate_command.OK, out
+        assert code == report.OK, out
         assert place_on(_closed(tmp_path), "m.py@b2")["text"] == ""
         marks = {one.address: one for one in entries_of(the_chief(tmp_path))}
         assert marks["m.py@b2"].instruction == "drop"
@@ -312,7 +312,7 @@ class TestTheChiefRecastsASettledPlace:
                 },
             ],
         )
-        assert code == collate_command.BROKEN, out
+        assert code == report.BROKEN, out
         assert "copy-chief m.py@b2: nothing to recast" in out
         assert not (tmp_path / "final.json").exists()
 
@@ -366,7 +366,7 @@ class TestTheChiefRulesAMoveThenItsEnds:
         self, tmp_path, monkeypatch, capsys
     ):
         code, out = self._placed(tmp_path, monkeypatch, capsys)
-        assert code in (collate_command.REREADS, collate_command.ESCALATIONS), out
+        assert code in (report.REREADS, report.ESCALATIONS), out
         # The ends are carried, so the proof it writes is not closed yet.
         assert "the proof closed" not in out, out
         assert "the proof at turn 0 is not closed" in out, out
@@ -394,7 +394,7 @@ class TestTheChiefRulesAMoveThenItsEnds:
             ],
             proof="final.json",
         )
-        assert code == collate_command.OK, out
+        assert code == report.OK, out
         closed = _closed(tmp_path)
         assert place_on(closed, "m.py@b1")["text"] == self.REMAINDER
         assert place_on(closed, "m.py@b2")["text"] == self.CHIEFS_OWN
@@ -410,7 +410,7 @@ class TestTheChiefRulesAMoveThenItsEnds:
     ):
         deal(tmp_path, monkeypatch, capsys, self.PLANT, self.TEXTS)
         code, out = disposition(tmp_path, monkeypatch, capsys, [], proof="proof0.json")
-        assert code == collate_command.BROKEN, out
+        assert code == report.BROKEN, out
         assert "copy-chief m.py@b1 -> m.py@b2: the placement of this move" in out
         assert not (tmp_path / "final.json").exists()
 
@@ -425,7 +425,7 @@ class TestTheChiefRulesAMoveThenItsEnds:
             [self.PLACEMENT, _taken_in("m.py@b2", "block-context", "too soon")],
             proof="proof0.json",
         )
-        assert code == collate_command.BROKEN, out
+        assert code == report.BROKEN, out
         assert "copy-chief m.py@b2: an end of an undecided move" in out
 
 
@@ -526,11 +526,11 @@ class TestTheChiefRecastsAnAdd:
                 "function-context": [_CLEAN_ABOVE, _CLEAN_BELOW],
             },
         )
-        assert code == collate_command.REREADS
+        assert code == report.REREADS
         code, out = turn(
             tmp_path, monkeypatch, capsys, 1, *_answer_every_slot(tmp_path, 1, **answer)
         )
-        assert code == collate_command.ESCALATIONS, out
+        assert code == report.ESCALATIONS, out
         code, out = turn(
             tmp_path,
             monkeypatch,
@@ -538,7 +538,7 @@ class TestTheChiefRecastsAnAdd:
             2,
             *_answer_every_slot(tmp_path, 2, instruction="hold", reason="mine"),
         )
-        assert code == collate_command.ESCALATIONS, out
+        assert code == report.ESCALATIONS, out
         code, out = disposition(
             tmp_path,
             monkeypatch,
@@ -553,7 +553,7 @@ class TestTheChiefRecastsAnAdd:
             ],
             proof="proof2.json",
         )
-        assert code == collate_command.OK, out
+        assert code == report.OK, out
         marks = entries_of(the_chief(tmp_path))
         assert [(m.address, m.instruction) for m in marks] == [
             (EMPTY_PLACE, Instruction.ADD)
@@ -568,7 +568,7 @@ class TestRefusals:
     ):
         held_open(tmp_path, monkeypatch, capsys)
         code, out = disposition(tmp_path, monkeypatch, capsys, [])
-        assert code == collate_command.BROKEN
+        assert code == report.BROKEN
         assert "copy-chief m.py@b1: carried forward and not ruled on" in out
         assert "block-context, function-context" in out
         assert not (tmp_path / "chief.json").exists()
@@ -604,7 +604,7 @@ class TestRefusals:
                 },
             ],
         )
-        assert code == collate_command.BROKEN
+        assert code == report.BROKEN
         assert (
             "copy-chief m.py@b2: not carried forward -- a place the roles settled"
             " takes only a recast" in out
@@ -619,7 +619,7 @@ class TestRefusals:
             capsys,
             [{"address": "m.py@b1", "answer": "recast", "reason": "r"}],
         )
-        assert code == collate_command.BROKEN
+        assert code == report.BROKEN
         assert "needs `prose`" in out
         assert not (tmp_path / "final.json").exists()
 
@@ -631,7 +631,7 @@ class TestRefusals:
             capsys,
             [{"address": "m.py@b1", "answer": "correct", "reason": "r"}],
         )
-        assert code == collate_command.BROKEN
+        assert code == report.BROKEN
         assert "the chief's ruling is owed here" in out
 
     def test_rulings_that_are_not_a_list_are_UNREADABLE(
@@ -639,7 +639,7 @@ class TestRefusals:
     ):
         held_open(tmp_path, monkeypatch, capsys)
         code, _out = disposition(tmp_path, monkeypatch, capsys, {"address": "m.py@b1"})
-        assert code == collate_command.UNREADABLE
+        assert code == report.UNREADABLE
 
 
 class TestTheGateSeesIt:
@@ -665,7 +665,7 @@ class TestTheGateSeesIt:
                 }
             ],
         )
-        assert code == collate_command.OK, out
+        assert code == report.OK, out
         assert changes_of(entries_of(the_chief(tmp_path))) == [TWO]
 
 

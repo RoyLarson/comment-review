@@ -18,8 +18,8 @@ The turn number is the record's and nothing here names it: a proof fresh from
 `collate` has no place carrying an answer, so its first turn is 1, and a
 caller cannot replay a turn under a number the places already record.
 
-The exit codes and the report are `collate`'s, imported rather than
-re-spelled, so a caller branching on a code branches once; every file is read
+The exit codes and the report are `commands.report`'s, shared with `collate`,
+so a caller branching on a code branches once; every file is read
 through `flows.proof_io`, so a refusal has one wording.
 
 Neither the binder nor the batch is read here. The places on the proof carry
@@ -36,12 +36,12 @@ import argparse
 import sys
 from pathlib import Path
 
-from comment_review.commands.collate import (
-    _code_for,
-    _counted,
-    _human_answers,
-    _print,
-    _refused,
+from comment_review.commands.report import (
+    code_for,
+    counted,
+    human_answers,
+    print_report,
+    refused,
 )
 from comment_review.flows.bus import AnswersReturned, handle, turn_of
 from comment_review.flows.proof_io import (
@@ -56,7 +56,7 @@ def main() -> int:
     """Fold one turn's answers into the proof, report, and say what is left.
 
     Returns:
-        One of `collate`'s codes. `UNREADABLE` is a file or an argument that
+        One of `commands.report`'s codes. `UNREADABLE` is a file or an argument that
         is not what it says, and nothing is read past it. `BROKEN` is a
         rollback: an answer the fold refused, a place a role left unanswered,
         or a place the fold could not decide -- nothing is written.
@@ -103,34 +103,34 @@ def main() -> int:
 
     proof, why = load_proof(Path(args.proof))
     if proof is None:
-        return _refused(why)
+        return refused(why)
     answers: dict[str, object] = {}
     for spec in args.answers:
         role, sep, path = spec.partition("=")
         if not sep or not role or not path:
-            return _refused([f"--answers wants ROLE=PATH, got {spec!r}"])
+            return refused([f"--answers wants ROLE=PATH, got {spec!r}"])
         value, why = load_value(Path(path))
         if why:
-            return _refused(why)
+            return refused(why)
         answers[role] = value
-    human, why = _human_answers(args.human)
+    human, why = human_answers(args.human)
     if why:
-        return _refused(why)
+        return refused(why)
 
     # The proof names the tree its copies were gathered from, which is the one
     # their citations were written against, so a caller that passed it to
     # `gather` does not pass it again.
     root = Path(args.repo) if args.repo else Path(str(proof.read_from.get("root", ".")))
     out, result = handle(AnswersReturned(proof, answers, root, human))
-    _print(out)
+    print_report(out)
     if result is None:
-        return _code_for(out)
+        return code_for(out)
 
     turn = turn_of(result.proof)
     save_proof(Path(args.proof_out), result.proof)
     print(
         f"{args.proof_out}: the master proof after turn {turn} --"
-        f" {_counted(result.proof.places)}"
+        f" {counted(result.proof.places)}"
     )
     # Nothing carried forward is no batch rather than an empty one, as
     # `collate` has it: a file holding `{}` would be handed to roles as a turn
@@ -142,7 +142,7 @@ def main() -> int:
         )
         print(f"{args.batch_out}: turn {turn + 1}'s batch -- {sizes}")
 
-    return _code_for(out)
+    return code_for(out)
 
 
 if __name__ == "__main__":

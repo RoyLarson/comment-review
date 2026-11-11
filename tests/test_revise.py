@@ -39,8 +39,8 @@ from helpers import (
     turn,
 )
 
-from comment_review.commands import collate as collate_command
 from comment_review.commands import proof as proof_command
+from comment_review.commands import report
 from comment_review.desk.proof.edit_copy import EditCopy
 from comment_review.desk.proof.mark import Shape
 from comment_review.desk.proof.master_proof import MasterProof
@@ -619,7 +619,7 @@ class TestDocketOfProof:
     def _closed(self, tmp_path, monkeypatch, capsys, by_role=None, **kwargs):
         """collate over one hand that settles at the first fold."""
         code = deal(tmp_path, monkeypatch, capsys, by_role, **kwargs)
-        assert code == collate_command.OK
+        assert code == report.OK
         return proof_at(tmp_path, 0), tmp_path / "repo"
 
     def test_two_patches_that_compose_reach_the_docket(
@@ -628,7 +628,7 @@ class TestDocketOfProof:
         """The decided text is a composition no filed mark sets. Read from the
         place, the text reaches the docket."""
         assert deal(tmp_path, monkeypatch, capsys, TWO_PATCHES, TYPO_TEXTS) == (
-            collate_command.REREADS
+            report.REREADS
         )
         code, out = turn(
             tmp_path,
@@ -652,7 +652,7 @@ class TestDocketOfProof:
                 reason="that reads right",
             ),
         )
-        assert code == collate_command.OK, out
+        assert code == report.OK, out
         docket = docket_of_proof(proof_at(tmp_path, 1), tmp_path / "repo")
         (schedule,) = docket.schedules
         assert [(one.cue, one.text) for one in schedule.alterations] == [
@@ -666,7 +666,7 @@ class TestDocketOfProof:
         compose, the chief writes its own paragraph, and nothing filed here
         brought a source for a synthesized mark to carry."""
         assert deal(tmp_path, monkeypatch, capsys, SAME_LINE, TYPO_TEXTS) == (
-            collate_command.ESCALATIONS
+            report.ESCALATIONS
         )
         code, out = disposition(
             tmp_path,
@@ -682,7 +682,7 @@ class TestDocketOfProof:
             ],
             proof="proof0.json",
         )
-        assert code == collate_command.OK, out
+        assert code == report.OK, out
         docket = docket_of_proof(the_closed_proof(tmp_path), tmp_path / "repo")
         (schedule,) = docket.schedules
         assert [(one.cue, one.text) for one in schedule.alterations] == [
@@ -694,7 +694,7 @@ class TestDocketOfProof:
     ):
         """`decision-log.md Process: #299`."""
         assert deal(tmp_path, monkeypatch, capsys, SAME_LINE, TYPO_TEXTS) == (
-            collate_command.ESCALATIONS
+            report.ESCALATIONS
         )
         code, out = disposition(
             tmp_path,
@@ -710,7 +710,7 @@ class TestDocketOfProof:
             ],
             proof="proof0.json",
         )
-        assert code == collate_command.OK, out
+        assert code == report.OK, out
         docket = docket_of_proof(the_closed_proof(tmp_path), tmp_path / "repo")
         (schedule,) = docket.schedules
         # A None text deletes the paragraph.
@@ -742,7 +742,7 @@ class TestDocketOfProof:
             ],
             proof="proof0.json",
         )
-        assert code == collate_command.OK, out
+        assert code == report.OK, out
         docket = docket_of_proof(the_closed_proof(tmp_path), tmp_path / "repo")
         (schedule,) = docket.schedules
         assert [(one.cue, one.text) for one in schedule.alterations] == [
@@ -890,8 +890,8 @@ class TestDocketOfProof:
     @pytest.mark.parametrize(
         ("by_role", "code", "state"),
         [
-            (TWO_PATCHES, collate_command.REREADS, "composed"),
-            (SAME_LINE, collate_command.ESCALATIONS, "contested"),
+            (TWO_PATCHES, report.REREADS, "composed"),
+            (SAME_LINE, report.ESCALATIONS, "contested"),
         ],
     )
     def test_a_proof_still_carrying_a_place_forward_is_a_refusal(
@@ -974,7 +974,7 @@ class TestOnlyTheApprovedPlaces:
 
     def _closed(self, tmp_path, monkeypatch, capsys, by_role, texts):
         code = deal(tmp_path, monkeypatch, capsys, by_role, texts)
-        assert code == collate_command.OK
+        assert code == report.OK
         return proof_at(tmp_path, 0), tmp_path / "repo"
 
     def _closed_move(self, tmp_path, monkeypatch, capsys, destination="m.py@b2"):

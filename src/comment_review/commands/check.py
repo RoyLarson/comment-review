@@ -60,7 +60,15 @@ import json
 import sys
 from pathlib import Path
 
-from comment_review.commands.collate import ASKS_THE_HUMAN, _human_answers, _lines
+from comment_review.commands.report import (
+    ASKS_THE_HUMAN,
+    BROKEN,
+    OK,
+    UNREADABLE,
+    human_answers,
+    lines,
+    refused,
+)
 from comment_review.desk.collator import Cache, Problem
 from comment_review.desk.marks.table import INSTRUCTIONS
 from comment_review.desk.proof.edit_copy import EditCopy
@@ -94,21 +102,6 @@ from comment_review.flows.verify import (
     required_places,
 )
 from comment_review.reading.context import ReadingContext
-
-#: Exit codes -- `distribute`'s 0/1/2, and `collate`'s `ASKS_THE_HUMAN`.
-#: `BROKEN` is anything the fold would refuse or send back; `UNREADABLE` is a
-#: file that is not an object at all; `ASKS_THE_HUMAN` is human questions and
-#: nothing else.
-OK = 0
-BROKEN = 1
-UNREADABLE = 2
-
-
-def _refused(why: list[str]) -> int:
-    """A file that is not what it says: every reason on stderr, `UNREADABLE`."""
-    for line in why:
-        print(line, file=sys.stderr)
-    return UNREADABLE
 
 
 def _row_problems(
@@ -187,7 +180,7 @@ def _for_the_role(query: HumanQuery) -> str:
     """An unanswered human question, as the role that filed it reads it.
 
     `collate` and `turn` print the same question for the task agent, whose
-    part is to ask it and record the answer (`commands.collate._lines`). The
+    part is to ask it and record the answer (`commands.report.lines`). The
     reader of `check` is the role, which cannot ask the human: its part ends
     at filing the question, so this line says so rather than handing it the
     task agent's instruction (`decision-log.md Process: #197`).
@@ -211,7 +204,7 @@ def _asks_the_human(queries: list[HumanQuery], human: tuple[HumanAnswer, ...]) -
             print(_for_the_role(query))
             continue
         event = AsksTheHuman(query.role, query.at, query.question, answer.answer)
-        for line in _lines(event):
+        for line in lines(event):
             print(line)
     return len(queries)
 
@@ -235,7 +228,7 @@ def _check_copy(
 ) -> int:
     loaded, why = load_copy(Path(path))
     if why:
-        return _refused(why)
+        return refused(why)
     problems = copy_reading_problems(loaded, path)
     if problems:
         for line in problems:
@@ -247,16 +240,16 @@ def _check_copy(
             print(line)
         return BROKEN
     if not binder_path:
-        return _refused(["check --edit-copy needs --binder to check required rulings"])
+        return refused(["check --edit-copy needs --binder to check required rulings"])
     binder, why = load_binder(Path(binder_path))
     if binder is None:
-        return _refused(why)
+        return refused(why)
     contexts, why = binder_reading_contexts(binder, "received binder")
     if why:
-        return _refused(why)
+        return refused(why)
     contexts, why = lookup_contexts(copy, contexts)
     if why:
-        return _refused(why)
+        return refused(why)
     found = 0
     required = [required_places(binder)]
     for one in mark_errors([copy], required):
@@ -343,10 +336,10 @@ def _check_answers(
 ) -> int:
     loaded, why = load_value(Path(path))
     if why:
-        return _refused(why)
+        return refused(why)
     batch, why = load_batch(Path(sent_path))
     if why:
-        return _refused(why)
+        return refused(why)
     slots = slots_of(batch, role)
     if not slots:
         print(f"{sent_path}: no slots were sent to {role}")
@@ -420,9 +413,9 @@ def main() -> int:
         # contract by hand and got `query` wrong.
         print(json.dumps(contracts(), indent=2))
         return OK
-    human, why = _human_answers(args.human)
+    human, why = human_answers(args.human)
     if why:
-        return _refused(why)
+        return refused(why)
     if args.answers:
         if not args.role or not args.sent:
             print("check --answers needs --role and --sent", file=sys.stderr)

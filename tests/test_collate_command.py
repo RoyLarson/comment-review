@@ -27,6 +27,7 @@ from helpers import (
 )
 
 from comment_review.commands import collate as command
+from comment_review.commands import report
 from comment_review.desk import report as events
 from comment_review.desk.proof.answer import Question
 from comment_review.desk.proof.mark import Shape
@@ -82,7 +83,7 @@ def test_loaded_initial_context_refusal_preserves_files(
     monkeypatch.setattr("comment_review.flows.bus.required_places", forbidden)
     code = command.main()
     printed = capsys.readouterr()
-    assert code in (command.BROKEN, command.UNREADABLE)
+    assert code in (report.BROKEN, report.UNREADABLE)
     assert "regather" in printed.out + printed.err
     assert "m.py" in printed.out + printed.err
     assert {path: path.read_bytes() for path in before} == before
@@ -164,7 +165,7 @@ class TestTheDroppedList:
             capsys,
         )
         assert code == 0, out
-        assert command.FOR_THE_CHIEF in out
+        assert report.FOR_THE_CHIEF in out
         assert (
             "block-context m.py@b1: its change drops 'three', which its claim never"
             " names" in out
@@ -184,7 +185,7 @@ class TestTheDroppedList:
             monkeypatch,
             capsys,
         )
-        assert code == command.OK, out
+        assert code == report.OK, out
         assert "stet m.py@b1" in out
         chief = json.loads((tmp_path / "chief.json").read_text(encoding="utf-8"))
         assert [m["address"] for s in chief["sheets"] for m in s["marks"]] == [
@@ -200,7 +201,7 @@ class TestTheDroppedList:
             monkeypatch,
             capsys,
         )
-        assert command.FOR_THE_CHIEF not in out
+        assert report.FOR_THE_CHIEF not in out
 
 
 class TestStageCoverage:
@@ -222,7 +223,7 @@ class TestStageCoverage:
             "--topology",
             str(tmp_path / "t.toml"),
         )
-        assert code == command.BROKEN, out
+        assert code == report.BROKEN, out
         assert "stage 4c: function-context returned 0 of 1 dispatches" in out
         assert not (tmp_path / "chief.json").exists()
 
@@ -257,7 +258,24 @@ class TestStageCoverage:
             "--topology",
             str(tmp_path / "t.toml"),
         )
-        assert code == command.UNREADABLE
+        assert code == report.UNREADABLE
+
+    def test_a_topology_file_that_cannot_be_read_is_unreadable_by_name(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        missing = tmp_path / "missing.toml"
+        code, out = run(
+            tmp_path,
+            {"block-context": {"m.py@b1": a_correct("m.py@b1")}},
+            monkeypatch,
+            capsys,
+            "--topology",
+            str(missing),
+            with_stderr=True,
+        )
+        assert code == report.UNREADABLE, out
+        assert "missing.toml" in out
+        assert not (tmp_path / "chief.json").exists()
 
 
 #: A compacting stage's row over the same page: dealt the `b` places over two
@@ -291,7 +309,7 @@ class TestWhatTheStageAdmits:
             str(tmp_path / "t.toml"),
             on_copy={"stage": "4c", "admits": ["patch", "correct"]},
         )
-        assert code == command.BROKEN, out
+        assert code == report.BROKEN, out
         assert "stage 4c admits patch, drop, add, clean, and not correct" in out
         assert "block-context (the copy):" in out
         assert not (tmp_path / "chief.json").exists()
@@ -309,7 +327,7 @@ class TestWhatTheStageAdmits:
             capsys,
             on_copy={"stage": "6", "admits": ["patch", "drop", "add", "clean"]},
         )
-        assert code == command.BROKEN, out
+        assert code == report.BROKEN, out
         assert "stage 6 admits patch, drop, add, clean, and not correct" in out
 
 
@@ -533,7 +551,7 @@ class TestExitCodes:
         monkeypatch.setattr("sys.argv", argv)
         code = command.main()
         out = capsys.readouterr().out
-        assert code == command.BROKEN
+        assert code == report.BROKEN
         assert "somewhere/else" in out
         assert "function-context (the copy):" in out
         assert not (tmp_path / "chief.json").exists()
@@ -657,7 +675,7 @@ class TestExitCodes:
         )
         code = command.main()
         out = capsys.readouterr().out
-        assert code == command.BROKEN
+        assert code == report.BROKEN
         assert "missing m.py@b5" in out
         assert not out_path.exists()
 
@@ -755,8 +773,8 @@ class TestExitCodes:
         )
         code = command.main()
         out = capsys.readouterr().out
-        assert code == command.BROKEN
-        assert code != command.OK, "a silently short round used to exit 0"
+        assert code == report.BROKEN
+        assert code != report.OK, "a silently short round used to exit 0"
         # ! THE ADDRESS AND THE ROLE, so the task agent can send it back.
         assert "block-context m.py@b5: handed to this role and not ruled on" in out
         # ! AND THE PLACE THAT *WAS* RULED ON IS NOT NAMED -- a report that
@@ -812,8 +830,8 @@ class TestExitCodes:
         code = command.main()
         out = capsys.readouterr().out
         assert "function-context m.py@b5: handed to this role and not ruled on" in out
-        assert code != command.ESCALATIONS, out
-        assert code == command.BROKEN
+        assert code != report.ESCALATIONS, out
+        assert code == report.BROKEN
         assert "contested m.py@b1" not in out
         assert not (tmp_path / "chief.json").exists()
 
@@ -885,7 +903,7 @@ class TestTheReport:
             capsys,
             places={"m.py@b1": BASE, "m.py@b2": BASE},
         )
-        assert code == command.BROKEN, out
+        assert code == report.BROKEN, out
         assert "block-context m.py@b2: the text does not keep 'two'" in out
         assert "stet" not in out
 
@@ -926,14 +944,14 @@ class TestTheReport:
             capsys,
             places=places,
         )
-        assert code == command.ESCALATIONS, out
+        assert code == report.ESCALATIONS, out
         assert "stet m.py@b1" in out
         assert "contested m.py@b2" in out
-        assert command.FOR_THE_CHIEF in out
+        assert report.FOR_THE_CHIEF in out
 
         dropping = an_add("m.py@b4", reads="# one\n# three\n")
         code, out = run(tmp_path, marks(dropping), monkeypatch, capsys, places=places)
-        assert code == command.BROKEN, out
+        assert code == report.BROKEN, out
         assert out.splitlines() == [
             "block-context m.py@b4: the text does not keep 'two'"
         ]
@@ -956,7 +974,7 @@ def test_an_address_spelled_otherwise_than_printed_rolls_the_round_back(
         places=places,
         appended=appended,
     )
-    assert code == command.BROKEN, out
+    assert code == report.BROKEN, out
     assert named in out, out
     assert not (tmp_path / "chief.json").exists()
 
@@ -986,7 +1004,7 @@ class TestTheStateBetweenTurnsOnDisk:
         code, out = run(
             tmp_path, self.ONE, monkeypatch, capsys, "--proof-out", str(proof_path)
         )
-        assert code == command.OK, out
+        assert code == report.OK, out
         # ! THE SUMMARY COUNTS THE PLACES BY WHAT THEY CAME TO. A bare place
         # count says nothing a reader can act on, which is what it said for
         # one commit.
@@ -1031,7 +1049,7 @@ class TestTheStateBetweenTurnsOnDisk:
             "--batch-out",
             str(batch_path),
         )
-        assert code == command.ESCALATIONS, out
+        assert code == report.ESCALATIONS, out
         batch = json.loads(batch_path.read_text(encoding="utf-8"))
         assert sorted(batch) == ["block-context", "function-context"]
         for slots in batch.values():
@@ -1052,7 +1070,7 @@ class TestTheStateBetweenTurnsOnDisk:
         code, out = run(
             tmp_path, self.ONE, monkeypatch, capsys, "--batch-out", str(batch_path)
         )
-        assert code == command.OK, out
+        assert code == report.OK, out
         assert not batch_path.exists()
 
 
@@ -1083,7 +1101,7 @@ class TestAHumanQuestion:
             "--batch-out",
             str(batch_path),
         )
-        assert code == command.ASKS_THE_HUMAN, out
+        assert code == report.ASKS_THE_HUMAN, out
         assert "asks the human m.py@b1: block-context -- " in out
         assert not (tmp_path / "chief.json").exists()
         assert not proof_path.exists()
@@ -1104,7 +1122,7 @@ class TestAHumanQuestion:
             str(human),
             with_stderr=True,
         )
-        assert code == command.UNREADABLE, out
+        assert code == report.UNREADABLE, out
         assert f"{human}: not TOML" in out
         assert not (tmp_path / "chief.json").exists()
 
@@ -1126,7 +1144,7 @@ class TestAHumanQuestion:
             str(human),
             with_stderr=True,
         )
-        assert code == command.UNREADABLE, out
+        assert code == report.UNREADABLE, out
         assert f"{human}: answer 2 answers block-context at m.py@b1 'q'" in out
         assert not (tmp_path / "chief.json").exists()
 
@@ -1142,45 +1160,50 @@ class TestAHumanQuestion:
             str(tmp_path / "missing.toml"),
             with_stderr=True,
         )
-        assert code == command.UNREADABLE, out
+        assert code == report.UNREADABLE, out
         assert out.count("missing.toml") == 1, out
         assert not (tmp_path / "chief.json").exists()
 
 
 def test_a_human_question_prints_what_to_do_and_exits_asks_the_human():
-    from comment_review.commands.collate import (
+    from comment_review.commands.report import (
         ASKS_THE_HUMAN,
         BROKEN,
-        _code_for,
-        _lines,
+        code_for,
+        lines,
     )
 
     open_ = events.AsksTheHuman("block-context", "m.py@b1", "Is it true?")
     done = events.AsksTheHuman("block-context", "m.py@b1", "Is it true?", "Yes.")
-    assert _lines(open_) == [
+    assert lines(open_) == [
         "asks the human m.py@b1: block-context -- Is it true?; ask it, record the"
         " answer in the answers file, and send it back to block-context"
     ]
-    assert _lines(done) == [
+    assert lines(done) == [
         "answered by the human m.py@b1: block-context -- Yes.; block-context"
         " replaces this query with its mark or answer"
     ]
-    assert _code_for([open_, events.RolledBack(1)]) == ASKS_THE_HUMAN
+    assert code_for([open_, events.RolledBack(1)]) == ASKS_THE_HUMAN
     refused = events.Refused("module-context", "m.py@b1", ("bad",))
-    assert _code_for([refused, open_, events.RolledBack(2)]) == BROKEN
+    assert code_for([refused, open_, events.RolledBack(2)]) == BROKEN
 
 
 def test_an_undecided_move_prints_one_line_and_sets_the_exit_code():
-    from comment_review.commands.collate import ESCALATIONS, REREADS, _code_for, _lines
+    from comment_review.commands.report import (
+        ESCALATIONS,
+        REREADS,
+        code_for,
+        lines,
+    )
     from comment_review.desk.proof.move import Placement
 
     opened = events.PlacementCarried("m.py@b1", "m.py@b5", Placement.OPEN, ("b",))
     contested = events.PlacementCarried(
         "m.py@b1", "m.py@b5", Placement.CONTESTED, ("a", "b")
     )
-    assert _lines(opened) == ["open m.py@b1 -> m.py@b5: b (placement)"]
-    assert _code_for([opened, events.Committed(2)]) == REREADS
-    assert _code_for([contested, events.Committed(2)]) == ESCALATIONS
+    assert lines(opened) == ["open m.py@b1 -> m.py@b5: b (placement)"]
+    assert code_for([opened, events.Committed(2)]) == REREADS
+    assert code_for([contested, events.Committed(2)]) == ESCALATIONS
 
 
 class TestACorrectionToTheMatterAsksTheHuman:
@@ -1201,7 +1224,7 @@ class TestACorrectionToTheMatterAsksTheHuman:
             capsys,
             appended=[an_add("m.py@f0")],
         )
-        assert code == command.ASKS_THE_HUMAN, out
+        assert code == report.ASKS_THE_HUMAN, out
         assert "m.py@f0" in out
         assert not (tmp_path / "chief.json").exists()
 
@@ -1228,7 +1251,7 @@ class TestACorrectionToTheMatterAsksTheHuman:
             self._human(tmp_path, "Is the licence current?"),
             appended=[an_add("m.py@f0")],
         )
-        assert code == command.ASKS_THE_HUMAN, out
+        assert code == report.ASKS_THE_HUMAN, out
         assert "file's matter" in out
 
     def test_an_answered_add_at_f0_is_not_asked_again(
@@ -1243,5 +1266,5 @@ class TestACorrectionToTheMatterAsksTheHuman:
             self._human(tmp_path, self.ASKED),
             appended=[an_add("m.py@f0")],
         )
-        assert code != command.ASKS_THE_HUMAN, out
+        assert code != report.ASKS_THE_HUMAN, out
         assert "file's matter" not in out

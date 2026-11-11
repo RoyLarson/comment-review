@@ -26,8 +26,8 @@ from helpers import (
 )
 
 from comment_review.binder.binder import bind
-from comment_review.commands import collate as collate_command
 from comment_review.commands import proof as proof_command
+from comment_review.commands import report
 from comment_review.commands import turn as turn_command
 from comment_review.docket.docket import Docket
 
@@ -598,7 +598,7 @@ def a_closed_proof(tmp_path, monkeypatch, capsys):
     Returns:
         `(the closed proof, the repo its addresses answer to)`.
     """
-    assert a_stage_dealt(tmp_path, monkeypatch, capsys) == collate_command.REREADS
+    assert a_stage_dealt(tmp_path, monkeypatch, capsys) == report.REREADS
     code, out = turn(
         tmp_path,
         monkeypatch,
@@ -616,7 +616,7 @@ def a_closed_proof(tmp_path, monkeypatch, capsys):
             for role in HANDS
         ],
     )
-    assert code == collate_command.OK, out
+    assert code == report.OK, out
     return tmp_path / "proof1.json", tmp_path / "repo"
 
 
@@ -638,7 +638,7 @@ def a_closed_proof_with_a_place_that_stands(tmp_path, monkeypatch, capsys):
         },
         {"m.py@b1": BASE, "m.py@b2": "# four\n"},
     )
-    assert code == collate_command.OK
+    assert code == report.OK
     return tmp_path / "proof0.json", tmp_path / "repo"
 
 
@@ -647,7 +647,7 @@ def test_a_bad_place_is_named_the_same_by_every_command_that_reads_the_proof(
 ):
     """A place that will not read is named where the proof is read, so `turn`
     and `proof` refuse the same file with the same line."""
-    assert a_stage_dealt(tmp_path, monkeypatch, capsys) == collate_command.REREADS
+    assert a_stage_dealt(tmp_path, monkeypatch, capsys) == report.REREADS
     path = tmp_path / "proof0.json"
     wire = json.loads(path.read_text(encoding="utf-8"))
     assert len(wire["places"]) == 1
@@ -734,7 +734,7 @@ class TestProofTakesAClosedProof:
     ):
         """The fold has not settled that text, so there is nothing to set and
         no revise is pulled. The place is named on stdout."""
-        assert a_stage_dealt(tmp_path, monkeypatch, capsys) == collate_command.REREADS
+        assert a_stage_dealt(tmp_path, monkeypatch, capsys) == report.REREADS
         code, out = run_command(
             monkeypatch,
             capsys,

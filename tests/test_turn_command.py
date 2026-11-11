@@ -31,10 +31,10 @@ from helpers import (
     turn,
 )
 
-# ! THE EXIT CODES ARE `collate`'s, and this reads them there. All three
-# commands fold through the Unit of Work and exit the same five, so a test
+# ! THE EXIT CODES ARE `commands.report`'s, and this reads them there. The
+# commands that fold through the Unit of Work exit the same codes, so a test
 # naming them anywhere else would be asserting a second copy of the contract.
-from comment_review.commands import collate as collate_command
+from comment_review.commands import report
 from comment_review.commands import turn as turn_command
 
 ROLES = HAND_ROLES
@@ -71,7 +71,7 @@ def test_saved_context_refusal_preserves_turn_artifacts(
 
     monkeypatch.setattr("comment_review.flows.bus._places_on", forbidden)
     code, out = turn(tmp_path, monkeypatch, capsys, 1, spec)
-    assert code == collate_command.UNREADABLE, out
+    assert code == report.UNREADABLE, out
     assert {
         path: path.read_bytes() for path in tmp_path.rglob("*") if path.is_file()
     } == before
@@ -106,7 +106,7 @@ class TestOneTurn:
                 reason="stands",
             ),
         )
-        assert code == collate_command.OK, out
+        assert code == report.OK, out
         place = place_on(proof_at(tmp_path, 1), "m.py@b1")
         assert place["state"] == "agreed"
         assert place["text"] == DOS
@@ -174,7 +174,7 @@ class TestOneTurn:
                 reason="mine",
             ),
         )
-        assert code == collate_command.ESCALATIONS, out
+        assert code == report.ESCALATIONS, out
         assert "contested m.py@b1" in out
         assert place_on(proof_at(tmp_path, 1), "m.py@b1")["state"] == "contested"
         batch2 = json.loads((tmp_path / "batch2.json").read_text(encoding="utf-8"))
@@ -230,7 +230,7 @@ class TestOneTurn:
                 reason="stands",
             ),
         )
-        assert code == collate_command.OK, out
+        assert code == report.OK, out
         assert "after turn 2" in out
         place = place_on(proof_at(tmp_path, 2), "m.py@b1")
         assert sorted(place["answers"]) == ["1", "2"]
@@ -281,7 +281,7 @@ class TestOnceSettledAlwaysSettled:
                 reason="stands",
             ),
         )
-        assert code == collate_command.OK, out
+        assert code == report.OK, out
         after = proof_at(tmp_path, 1)
         assert place_on(after, "m.py@b1") == before
         assert place_on(after, "m.py@b2")["text"] == cinco
@@ -314,7 +314,7 @@ class TestRefusals:
                 reason="stands",
             ),
         )
-        assert code == collate_command.BROKEN, out
+        assert code == report.BROKEN, out
         assert "block-context m.py@b1" in out
         assert not (tmp_path / "proof1.json").exists()
         assert not (tmp_path / "batch2.json").exists()
@@ -340,7 +340,7 @@ class TestRefusals:
                 reason="stands",
             ),
         )
-        assert code == collate_command.BROKEN, out
+        assert code == report.BROKEN, out
         assert "block-context m.py@b1: unanswered" in out
         assert not (tmp_path / "proof1.json").exists()
 
@@ -378,7 +378,7 @@ class TestRefusals:
                 reason="mine",
             ),
         )
-        assert code == collate_command.BROKEN, out
+        assert code == report.BROKEN, out
         assert "function-context m.py@b2: unanswered" in out
         assert not (tmp_path / "proof1.json").exists()
 
@@ -394,13 +394,13 @@ class TestRefusals:
             ),
             proof=str(tmp_path / "binder.json"),
         )
-        assert code == collate_command.UNREADABLE
+        assert code == report.UNREADABLE
 
     def test_answers_without_a_role_is_UNREADABLE(self, tmp_path, monkeypatch, capsys):
         deal(tmp_path, monkeypatch, capsys, contested("m.py@b1"))
         # ! A bare path where `ROLE=PATH` is owed.
         code, _out = turn(tmp_path, monkeypatch, capsys, 1, str(tmp_path / "nope.json"))
-        assert code == collate_command.UNREADABLE
+        assert code == report.UNREADABLE
 
 
 class TestAHumanQuestion:
@@ -424,7 +424,7 @@ class TestAHumanQuestion:
         code = deal(
             tmp_path, monkeypatch, capsys, patched("m.py@b1"), {"m.py@b1": TYPOS}
         )
-        assert code == collate_command.REREADS
+        assert code == report.REREADS
         return [
             answer(tmp_path, 1, "block-context", "m.py@b1", **self.QUERY),
             answer(
@@ -447,7 +447,7 @@ class TestAHumanQuestion:
 
         monkeypatch.setattr("comment_review.flows.bus.Fold", must_not_fold)
         code, out = turn(tmp_path, monkeypatch, capsys, 1, *answers)
-        assert code == collate_command.ASKS_THE_HUMAN, out
+        assert code == report.ASKS_THE_HUMAN, out
         assert "asks the human m.py@b1: block-context -- " in out
         assert not (tmp_path / "proof1.json").exists()
         assert not (tmp_path / "batch2.json").exists()
@@ -473,7 +473,7 @@ class TestAHumanQuestion:
         code, out = run_command(
             monkeypatch, capsys, turn_command, *argv, with_stderr=True
         )
-        assert code == collate_command.UNREADABLE, out
+        assert code == report.UNREADABLE, out
         assert f"{human}: not TOML" in out
         assert not (tmp_path / "proof1.json").exists()
 

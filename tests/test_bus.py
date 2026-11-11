@@ -550,7 +550,6 @@ def test_the_proof_holds_the_composed_places_text_the_chief_copy_does_not(tmp_pa
     place's own state was never one of them."""
     _out, result = handle(_message(tmp_path, TWO_ROLES))
     assert result is not None
-    assert result.chief is not None
     marks = [mark for sheet in result.chief.sheets for mark in sheet.marks]
     assert marks == []
     place = next(p for p in result.proof.places if p.address == "m.py@b1")
@@ -588,7 +587,6 @@ def test_a_composed_place_carries_no_mark_on_the_chief_copy(tmp_path):
         )
         in out
     )
-    assert result.chief is not None
     marks = [mark for sheet in result.chief.sheets for mark in sheet.marks]
     assert [mark.address for mark in marks] == []
     place = next(p for p in result.proof.places if p.address == "m.py@b1")
@@ -958,7 +956,6 @@ def test_a_recast_at_a_still_contested_place_puts_the_chiefs_prose_on_its_copy(
         )
     )
     assert closed is not None, out
-    assert closed.chief is not None
     assert _changes_on(closed.chief) == [RECAST]
     assert _state_at(closed.proof, PLACE) == "stands"
 
@@ -1577,7 +1574,6 @@ def test_a_recast_at_a_place_the_answers_settled_sets_the_chiefs_prose(tmp_path)
     assert _state_at(closed.proof, PLACE) == "stands"
     (place,) = [one for one in closed.proof.places if one.address == PLACE]
     assert place.text == RECAST
-    assert closed.chief is not None
     assert _changes_on(closed.chief) == [RECAST]
     assert [m.reason for sheet in closed.chief.sheets for m in sheet.marks] == [STYLE]
 
@@ -1766,7 +1762,6 @@ def test_the_chief_copy_keeps_an_arrival_on_an_ungathered_page(tmp_path):
 
     out, result = handle(_moved_into_n(tmp_path, "# seven\n# eight\n# two"))
     assert result is not None, _refusals(out)
-    assert result.chief is not None
     on = {
         sheet.path: [mark.address for mark in sheet.marks]
         for sheet in result.chief.sheets
@@ -1833,7 +1828,6 @@ def test_extra_returned_sheet_survives_collation_and_admission(tmp_path, marked)
     save_proof(saved, result.proof)
     loaded, why = load_proof(saved)
     assert loaded == result.proof, why
-    assert result.chief is not None
     extras = [sheet for sheet in result.chief.sheets if sheet.path == "n.py"]
     assert bool(extras) is marked
     if marked:
@@ -2183,7 +2177,6 @@ class TestAMovesPlacementIsAskedOnce:
         answers = _answered(agreed, _placement_or_clean("agree"))
         out, result = handle(AnswersReturned(agreed.proof, answers, root))
         assert result is not None, out
-        assert result.chief is not None
         texts = {p.address: p.text for p in result.proof.places}
         assert texts["m.py@b1"] == "# one\n# three"
         assert texts["m.py@b2"] == ARRIVAL

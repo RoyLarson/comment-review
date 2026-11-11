@@ -162,7 +162,7 @@ class Result(NamedTuple):
     """
 
     proof: MasterProof
-    chief: EditCopy | None
+    chief: EditCopy
     batch: dict | None
 
 

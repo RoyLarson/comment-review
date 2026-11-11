@@ -8,7 +8,7 @@ from helpers import a_clean, a_patch, a_real_binder_over, returned
 
 from comment_review.binder.binder import bind
 from comment_review.binder.page import Page
-from comment_review.commands import check, collate, distribute
+from comment_review.commands import check, collate, distribute, report
 from comment_review.desk import report as events
 from comment_review.desk.stages import Dispatch, Kind, Role, Stage
 from comment_review.flows import reading_context, verify
@@ -473,8 +473,94 @@ def test_cli_collation_accepts_paired_received_binders(tmp_path, monkeypatch, ca
         shard.write_text(json.dumps(b.serialize()), encoding="utf-8")
         args.extend(["--edit-copy", str(path), "--received-binder", str(shard)])
     code, out = run_command(monkeypatch, capsys, collate, *args)
-    assert code == collate.OK, out
+    assert code == report.OK, out
     assert (tmp_path / "chief.json").exists()
+
+
+#: The longest command line `CreateProcess` accepts on Windows, in characters.
+WINDOWS_COMMAND_LINE = 32767
+
+
+def test_cli_collation_reads_a_large_dispatch_set_from_a_pairs_file(
+    tmp_path, monkeypatch, capsys
+):
+    count = 120
+    binder = a_real_binder_over(
+        tmp_path / "repo", {f"m{i}.py@b1": f"# line {i}" for i in range(count)}
+    )
+    received = [assigned_binder(replace(binder, pages=(p,))) for p in binder.pages]
+    deep = (tmp_path / ("dispatches" * 6)).resolve()
+    deep.mkdir()
+    pairs = []
+    for i, shard in enumerate(received):
+        wire = seed(shard, "block-context")
+        for sheet in wire["sheets"]:
+            for slot in sheet["marks"]:
+                slot.update(a_clean(slot["address"]))
+        copy_path = deep / f"4c_block-context_{i}.json"
+        copy_path.write_text(json.dumps(wire), encoding="utf-8")
+        binder_path = deep / f"4c_block-context_{i}.binder.json"
+        binder_path.write_text(json.dumps(shard.serialize()), encoding="utf-8")
+        pairs.append({"edit_copy": str(copy_path), "received_binder": str(binder_path)})
+    flags = " ".join(
+        f"--edit-copy {p['edit_copy']} --received-binder {p['received_binder']}"
+        for p in pairs
+    )
+    assert len(flags) > WINDOWS_COMMAND_LINE
+    pairs_path = tmp_path / "pairs.json"
+    pairs_path.write_text(json.dumps(pairs), encoding="utf-8")
+    binder_path = tmp_path / "binder.json"
+    binder_path.write_text(json.dumps(binder.serialize()), encoding="utf-8")
+    code, out = run_command(
+        monkeypatch,
+        capsys,
+        collate,
+        "--stage",
+        "",
+        "--binder",
+        str(binder_path),
+        "--pairs",
+        str(pairs_path),
+        "--out",
+        str(tmp_path / "chief.json"),
+    )
+    assert code == report.OK, out
+    assert out.count("stet ") == count, out
+
+
+@pytest.mark.parametrize(
+    "pairs",
+    [
+        {"edit_copy": "c.json", "received_binder": "b.json"},
+        [{"edit_copy": "c.json"}],
+        [{"edit_copy": "c.json", "received_binder": 3}],
+    ],
+)
+def test_a_pairs_file_that_is_not_a_list_of_pairs_is_unreadable(
+    tmp_path, monkeypatch, capsys, pairs
+):
+    binder = a_real_binder_over(tmp_path / "repo", {"m.py@b1": "# one"})
+    binder_path = tmp_path / "binder.json"
+    binder_path.write_text(json.dumps(binder.serialize()), encoding="utf-8")
+    pairs_path = tmp_path / "pairs.json"
+    pairs_path.write_text(json.dumps(pairs), encoding="utf-8")
+    code, out = run_command(
+        monkeypatch,
+        capsys,
+        collate,
+        "--stage",
+        "",
+        "--binder",
+        str(binder_path),
+        "--pairs",
+        str(pairs_path),
+        "--out",
+        str(tmp_path / "chief.json"),
+        with_stderr=True,
+    )
+    assert code == report.UNREADABLE, out
+    assert "pairs.json" in out
+    assert not (tmp_path / "chief.json").exists()
 
 
 def test_distribution_through_fold_and_turn_preserves_received_binders(
@@ -546,7 +632,7 @@ def test_distribution_through_fold_and_turn_preserves_received_binders(
         assert code == check.OK, out
         args.extend(["--edit-copy", str(path), "--received-binder", str(received)])
     code, out = run_command(monkeypatch, capsys, collate, *args)
-    assert code == collate.ESCALATIONS, out
+    assert code == report.ESCALATIONS, out
     proof, why = load_proof(tmp_path / "proof.json")
     assert proof is not None, why
     out, result = handle(

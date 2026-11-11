@@ -34,6 +34,7 @@ from conftest import ROOT, build, cue, run_command
 from comment_review.binder.binder import VERSION, Binder, bind
 from comment_review.commands import collate as collate_command
 from comment_review.commands import disposition as disposition_command
+from comment_review.commands import report
 from comment_review.commands import turn as turn_command
 from comment_review.desk.marks.table import INSTRUCTIONS
 from comment_review.desk.proof.answer import (
@@ -1199,7 +1200,7 @@ def held_open(
             tmp_path, 1, "function-context", "m.py@b1", instruction="hold", reason="b"
         ),
     )
-    assert code == collate_command.ESCALATIONS, out
+    assert code == report.ESCALATIONS, out
 
 
 def disposition(

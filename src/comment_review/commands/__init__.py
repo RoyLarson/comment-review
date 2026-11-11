@@ -3,6 +3,9 @@
 One module per command. Each holds the `argparse` for that command and nothing
 else -- the work it calls lives in the package it names.
 
+`report` is the one module here that is not a command: the exit codes and the
+console report the fold's commands share.
+
 !! A MODULE DOES ONE JOB AND HAS NO CLI; A FLOW CALLS MODULES; A
 COMMAND EXPOSES A FLOW. Ruled 2026-08-24 -- `docs/decision-log.md Process: #12`.
 Before it, TEN of nineteen modules carried a `main()` and four of those were

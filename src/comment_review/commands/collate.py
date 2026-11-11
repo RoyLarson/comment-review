@@ -8,200 +8,40 @@ After a committed fold, the command writes the chief's copy to `--out`.
 Use `--proof-out` to save the master proof and `--batch-out` to save the
 next turn's batch.
 
-The report and the exit codes are shared: `turn`, `disposition` and `check`
-import its helpers -- `_print`, `_lines`, `_code_for`, `_counted`, `_refused`,
-`_human_answers` -- and its exit codes, so a change here changes four commands.
+The report and the exit codes are `commands.report`'s, shared with `turn`,
+`disposition` and `check`.
+
+`--pairs` names a JSON file holding the copies and their received binders,
+`[{"edit_copy": PATH, "received_binder": PATH}, ...]`, for a dispatch set
+too large to spell as flags on one command line. Each path is read as
+written, as a flag's is.
 """
 
 import argparse
 import sys
 from pathlib import Path
 
+from comment_review.commands.report import (
+    UNREADABLE,
+    code_for,
+    counted,
+    human_answers,
+    print_report,
+    refused,
+)
 from comment_review.desk import report as events
-from comment_review.desk.proof.answer import Question
 from comment_review.desk.proof.edit_copy import EditCopy
-from comment_review.desk.proof.move import Placement
-from comment_review.desk.proof.place import Place
-from comment_review.desk.proof.state import CARRIED, SETTLED, State
 from comment_review.desk.topology import read as read_topology
 from comment_review.flows.bus import CopiesReturned, handle
-from comment_review.flows.human import HumanAnswer, read_answers
 from comment_review.flows.proof_io import (
     load_binder,
     load_copy,
+    load_text,
+    load_value,
     save_batch,
     save_copy,
     save_proof,
 )
-
-#: Exit codes, extending the 0/1/2 that `check` also declares with the two
-#: outcomes a caller branches on. `turn` and `disposition` exit these same
-#: codes, since all three fold through the Unit of Work and a caller branching
-#: on a code branches once. A short shard, a place a role left unruled and a
-#: slot a role left unanswered are found before the fold opens, so each is a
-#: `Refused` and the round rolls back (`Process: #186`).
-OK = 0
-BROKEN = 1
-UNREADABLE = 2
-REREADS = 3
-ESCALATIONS = 4
-# The run paused for the person: human questions and nothing else, nothing
-# saved, and the round runs again once each role has the answer
-# (`Process: #197`, `#289`).
-ASKS_THE_HUMAN = 5
-
-
-def _refused(why: list[str]) -> int:
-    """A file that is not what it says: every reason on stderr, `UNREADABLE`."""
-    for line in why:
-        print(line, file=sys.stderr)
-    return UNREADABLE
-
-
-def _human_answers(path: str | None) -> tuple[tuple[HumanAnswer, ...], list[str]]:
-    """The `--human` answers file, read, or the reasons it will not read.
-
-    Shared with `turn` and `check`, which take the same flag.
-
-    Args:
-        path: what `--human` said, or None where it was not given.
-
-    Returns:
-        `(the answers, [])`; `((), [])` for None; `((), problems)` where the
-        file cannot be opened or any section will not read -- a caller hands
-        the problems to `_refused`.
-    """
-    if path is None:
-        return (), []
-    try:
-        text = Path(path).read_text(encoding="utf-8")
-    except OSError as exc:
-        # An OSError's own string names the file it could not open.
-        return (), [str(exc)]
-    answers, problems = read_answers(text, path)
-    if problems:
-        return (), problems
-    return tuple(answers), []
-
-
-def _lines(event: object) -> list[str]:
-    """One event as the lines a reader sees, or none where it reports nothing.
-
-    `Committed` and `RolledBack` carry a count of the places decided or the
-    reasons refused, and every one of those has already printed its own line.
-    """
-    if isinstance(event, events.AsksTheHuman):
-        if event.answer:
-            return [
-                f"answered by the human {event.at}: {event.role} -- {event.answer};"
-                f" {event.role} replaces this query with its mark or answer"
-            ]
-        return [
-            f"asks the human {event.at}: {event.role} -- {event.question}; ask it,"
-            f" record the answer in the answers file, and send it back to {event.role}"
-        ]
-    if isinstance(event, events.Refused):
-        where = event.address or "(the copy)"
-        return [f"{event.role} {where}: {reason}" for reason in event.reasons]
-    if isinstance(event, events.CarriedForward):
-        roles = ", ".join(event.roles)
-        return [f"{event.state} {event.address}: {roles} ({event.question})"]
-    if isinstance(event, events.PlacementCarried):
-        roles = ", ".join(event.roles)
-        return [
-            f"{event.placement} {event.origin} -> {event.destination}:"
-            f" {roles} (placement)"
-        ]
-    if isinstance(event, events.Settled):
-        ruling = event.disposition
-        if ruling is not None:
-            return [
-                f"{ruling.name} {event.address}: {ruling.taken_side} -- {ruling.reason}"
-            ]
-        return [f"stet {event.address}"]
-    # `Advised` prints under its own heading, after the places -- see `_print`.
-    return []
-
-
-#: The heading the advisory notes print under. It names the one rule that
-#: produces a note today -- `desk.marks.table`'s `correct` row, which is what
-#: `decision-log.md Process: #163` asked for and `#177` kept advisory.
-FOR_THE_CHIEF = "for the chief -- each correct below drops words its claim never named:"
-
-
-def _print(out: list) -> None:
-    """Every event's own lines on stdout, the advisory notes last.
-
-    A note is for the chief and changes nothing, so it sits under its own
-    heading below the places rather than between them. Only a committed fold
-    emits one (`desk.work.fold`), so the heading prints only over a
-    committed round.
-    """
-    for event in out:
-        for line in _lines(event):
-            print(line)
-    advised = [one for one in out if isinstance(one, events.Advised)]
-    if advised:
-        print(FOR_THE_CHIEF)
-        for one in advised:
-            where = one.address or "(the copy)"
-            for note in one.notes:
-                print(f"{one.role} {where}: {note}")
-
-
-def _code_for(out: list) -> int:
-    """The exit code one fold's events come to.
-
-    A rollback is `BROKEN` where any `Refused` is in `out`, and
-    `ASKS_THE_HUMAN` where it holds human questions and no refusal: the run
-    is paused for the person, nothing was saved, and every question is on
-    stdout beside the role that owes it.
-    Otherwise the strongest claim on a person's attention wins -- an
-    escalation or a contested placement (`ESCALATIONS`) over a composition or
-    an open placement (`REREADS`), and `OK` where the fold carried nothing forward.
-    """
-    if any(isinstance(one, events.RolledBack) for one in out):
-        if any(isinstance(one, events.Refused) for one in out):
-            return BROKEN
-        if any(isinstance(one, events.AsksTheHuman) for one in out):
-            return ASKS_THE_HUMAN
-        return BROKEN
-    carried = [one for one in out if isinstance(one, events.CarriedForward)]
-    placements = [one for one in out if isinstance(one, events.PlacementCarried)]
-    if any(one.question is Question.ESCALATION for one in carried):
-        return ESCALATIONS
-    if any(one.placement is Placement.CONTESTED for one in placements):
-        return ESCALATIONS
-    if placements or any(one.question is Question.COMPOSITION for one in carried):
-        return REREADS
-    return OK
-
-
-def _counted(places: tuple[Place, ...]) -> str:
-    """What the written proof holds, by the state each of its places came to.
-
-    A reader of the console has no other summary of what the round did with
-    the places it carries, so the counts are read back off the states the
-    proof records.
-
-    Args:
-        places: `MasterProof.places`.
-
-    Returns:
-        `"N places -- S settled, C carried forward, T to come"`.
-
-    Settled is counted rather than subtracted, and `desk.proof.state.SETTLED`
-    is the one set of settled states both this and `flows.transcribe._unclosed`
-    read.
-    """
-    states = [str(place.state or "") for place in places]
-    carried = sum(1 for state in states if state in CARRIED)
-    settled = sum(1 for state in states if state in SETTLED)
-    to_come = sum(1 for state in states if state == State.TO_COME)
-    return (
-        f"{len(states)} places -- {settled} settled,"
-        f" {carried} carried forward, {to_come} to come"
-    )
 
 
 def _envelope(documents: list) -> tuple[list[EditCopy], list]:
@@ -228,16 +68,47 @@ def _envelope(documents: list) -> tuple[list[EditCopy], list]:
         missing one role's.
     """
     copies: list[EditCopy] = []
-    refused: list = []
+    refusals: list = []
     for path, document in documents:
         parsed, why = EditCopy.deserialize(path, document)
         if why:
             named = document.get("role") if isinstance(document, dict) else None
             who = named if isinstance(named, str) and named else path
-            refused += [events.Refused(who, "", (message,)) for message in why]
+            refusals += [events.Refused(who, "", (message,)) for message in why]
         if parsed is not None:
             copies.append(parsed)
-    return copies, refused
+    return copies, refusals
+
+
+def _pairs(path: str) -> tuple[list[str], list[str] | None, list[str]]:
+    """The `--pairs` file as copy paths and received-binder paths, in order.
+
+    Returns:
+        `(copy paths, binder paths, [])`, or `([], None, problems)` where
+        the file will not read or is not a list of objects each naming an
+        `edit_copy` and a `received_binder` path.
+    """
+    value, why = load_value(Path(path))
+    if why:
+        return [], None, why
+    keys = ("edit_copy", "received_binder")
+    # Annotated `list` because a JSON value's dict has no key type to check.
+    rows: list = (
+        [row for row in value if isinstance(row, dict)]
+        if isinstance(value, list)
+        else []
+    )
+    if (
+        not isinstance(value, list)
+        or len(rows) != len(value)
+        or not all(isinstance(row.get(k), str) for row in rows for k in keys)
+    ):
+        return [], None, [f"{path}: --pairs is a list of {{{', '.join(keys)}}} paths"]
+    return (
+        [row["edit_copy"] for row in rows],
+        [row["received_binder"] for row in rows],
+        [],
+    )
 
 
 def main() -> int:
@@ -246,8 +117,7 @@ def main() -> int:
     Returns:
         One of `OK`, `BROKEN`, `UNREADABLE`, `REREADS`, `ESCALATIONS` or
         `ASKS_THE_HUMAN`. `UNREADABLE` is a file or an argument that is not
-        what it says, and nothing is read past it; a `--topology` file that
-        cannot be opened raises `OSError` instead. `BROKEN` is a rollback: a
+        what it says, and nothing is read past it. `BROKEN` is a rollback: a
         document that is not a copy, or a place the fold refused.
         `ASKS_THE_HUMAN` is a rollback holding human questions and nothing
         else. The chief's copy, the proof and the batch are written only on a
@@ -264,6 +134,12 @@ def main() -> int:
         default=[],
         metavar="PATH",
         help="one role's returned edit_copy; repeat for each",
+    )
+    ap.add_argument(
+        "--pairs",
+        metavar="PATH",
+        help="a JSON list of {edit_copy, received_binder} paths, in place of"
+        " --edit-copy and --received-binder",
     )
     ap.add_argument(
         "--received-binder",
@@ -307,7 +183,16 @@ def main() -> int:
     )
     args = ap.parse_args()
 
-    if not args.edit_copy:
+    copy_paths, binder_paths = args.edit_copy, args.received_binder
+    if args.pairs:
+        if copy_paths or binder_paths is not None:
+            return refused(
+                ["--pairs replaces --edit-copy and --received-binder; give one"]
+            )
+        copy_paths, binder_paths, why = _pairs(args.pairs)
+        if why:
+            return refused(why)
+    if not copy_paths:
         print("collate needs at least one --edit-copy", file=sys.stderr)
         return UNREADABLE
 
@@ -318,12 +203,12 @@ def main() -> int:
     # reasons it is not one.
     binder, why = load_binder(Path(args.binder))
     if binder is None:
-        return _refused(why)
+        return refused(why)
     documents = []
-    for path in args.edit_copy:
+    for path in copy_paths:
         document, why = load_copy(Path(path))
         if why:
-            return _refused(why)
+            return refused(why)
         documents.append((path, document))
 
     # ! THE BINDER NAMES ITS OWN TREE, so a caller that already passed one does
@@ -340,35 +225,38 @@ def main() -> int:
     # unknown (`P26`).
     dispatches = None
     if args.topology:
-        stages, why = read_topology(Path(args.topology).read_text(encoding="utf-8"))
+        text, unread = load_text(Path(args.topology))
+        if text is None:
+            return refused(unread)
+        stages, why = read_topology(text)
         if why:
-            return _refused([why])
+            return refused([why])
         dispatches = next((s for s in stages if s.name == args.stage), None)
         if dispatches is None:
             known = ", ".join(s.name for s in stages)
-            return _refused(
+            return refused(
                 [f"stage {args.stage!r} is not in the topology -- it holds: {known}"]
             )
 
-    human, why = _human_answers(args.human)
+    human, why = human_answers(args.human)
     if why:
-        return _refused(why)
+        return refused(why)
 
-    copies, refused = _envelope(documents)
-    if refused:
-        out = [*refused, events.RolledBack(len(refused))]
-        _print(out)
-        return _code_for(out)
+    copies, refusals = _envelope(documents)
+    if refusals:
+        out = [*refusals, events.RolledBack(len(refusals))]
+        print_report(out)
+        return code_for(out)
 
     received = None
-    if args.received_binder is not None:
-        if len(args.received_binder) != len(copies):
-            return _refused(["each edit copy needs one received binder"])
+    if binder_paths is not None:
+        if len(binder_paths) != len(copies):
+            return refused(["each edit copy needs one received binder"])
         received = []
-        for path in args.received_binder:
+        for path in binder_paths:
             one, why = load_binder(Path(path))
             if one is None:
-                return _refused(why)
+                return refused(why)
             received.append(one)
 
     out, result = handle(
@@ -382,20 +270,16 @@ def main() -> int:
             tuple(received) if received is not None else None,
         )
     )
-    _print(out)
+    print_report(out)
     if result is None:
-        return _code_for(out)
+        return code_for(out)
 
     # !! THE SERIALIZE IS THE CONTAINER'S AND THE DUMP IS THE FLOW'S --
     # `decision-log.md Process: #65`, `#67`. The fold returns containers; the
     # wire dict is made at the save, and nowhere between.
-    # A committed `CopiesReturned` always carries a chief copy -- every handler
-    # on this bus builds it with `flows.places.chief_copy_of`, which returns an
-    # `EditCopy`, so the guard's other branch is not reached.
-    if result.chief is not None:
-        save_copy(Path(args.out), result.chief)
-        resolved = sum(len(sheet.marks) for sheet in result.chief.sheets)
-        print(f"{args.out}: {resolved} places resolved")
+    save_copy(Path(args.out), result.chief)
+    resolved = sum(len(sheet.marks) for sheet in result.chief.sheets)
+    print(f"{args.out}: {resolved} places resolved")
 
     # The state between turns is written with the chief, not instead of it.
     # `Process: #87`: the master proof carries the copies as they stand and
@@ -403,7 +287,7 @@ def main() -> int:
     # again; the master proof is also what the write end reads, by `proof --proof`.
     if args.proof_out:
         save_proof(Path(args.proof_out), result.proof)
-        print(f"{args.proof_out}: the master proof -- {_counted(result.proof.places)}")
+        print(f"{args.proof_out}: the master proof -- {counted(result.proof.places)}")
     # ! NOTHING CARRIED FORWARD IS NO BATCH, NOT AN EMPTY ONE. A file holding
     # `{}` would be handed to roles as a turn with nothing in it.
     if args.batch_out and result.batch:
@@ -413,7 +297,7 @@ def main() -> int:
         )
         print(f"{args.batch_out}: turn 1's batch -- {sizes}")
 
-    return _code_for(out)
+    return code_for(out)
 
 
 if __name__ == "__main__":
