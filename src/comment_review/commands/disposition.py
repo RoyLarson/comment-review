@@ -25,9 +25,6 @@ Nothing survives the chief's ruling unruled. A carried-forward place with no
 ruling is refused by name, with the roles it was put to, and nothing is
 written -- the refusal is the whole answer, so the caller rules and runs
 again.
-
-The human answers the question. The role that asked replaces its query with
-a mark or answer reflecting that response. Folding waits for this replacement.
 """
 
 import argparse
@@ -50,7 +47,10 @@ def main() -> int:
     Returns:
         `UNREADABLE` when a file is not what it says; `BROKEN` when a ruling
         cannot be applied or a place is left unruled, each named, nothing
-        written; `OK` with the chief's copy and the closed proof written.
+        written; `OK` with the chief's copy and the closed proof written;
+        `REREADS` or `ESCALATIONS` with both written when a placement ruling
+        leaves its move's ends carried forward, for the chief to rule by
+        running this again on that proof.
     """
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument(
