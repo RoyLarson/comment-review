@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 12 of 18 tasks closed
+Progress: 13 of 18 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-09-08 (Roy 2026-09-08: implementing the recast workflow for the cli the
@@ -70,7 +70,7 @@ The copy chief has no workflow for recasting the places that never settled.
       an empty paragraph, which disposition refuses as needing prose
         > 2026-11-08 Outside run: 4 refused; the chief took in the empty side instead
         > 2026-11-09 Outcome #299: yes, an empty recast drops the paragraph whole
-- [ ] T17 | Implement an empty recast in disposition as a drop of the whole
-      paragraph (#299)
+- [x] T17 | FINISHED -- an empty recast drops the paragraph | 6d4c9b42 | Implement
+      an empty recast in disposition as a drop of the whole paragraph (#299)
 - [x] T18 | FINISHED -- clean and patch answers owe sources; 5853 passed | 59188f1f | Require
       sources on a clean or patch answer, as on its mark (#306)
