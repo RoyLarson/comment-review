@@ -1,6 +1,7 @@
 """MARK ERRORS -- every place a role must go back to, as addresses and reasons.
 
-    mark_errors(edit_copies)   one `Revisit` per place a role still owes
+    mark_errors(edit_copies, required=None)
+                               one `Revisit` per place a role still owes
 
 !! ADDRESSES AND REASONS, NEVER A REBUILT COPY -- `decision-log.md Process: #72`.
 Roy, 2026-09-01: *"I think the return is a list of addresses and a statement of
@@ -27,8 +28,9 @@ WHAT is owed; how many times it may be asked for is the briefing's.
 
 ! WHAT IT DOES NOT DO IS VERIFICATION. `desk.collator.verify_report` asks
 whether a well-formed mark's claims hold against the tree; this asks only about
-places that produced no usable mark at all. The two are separate lists on
-the fold's own report for that reason.
+places that produced no usable mark at all. `flows.verify.copy_problems`
+calls `verify_report`; `flows.bus` turns each `Revisit` into a `Problem` and
+puts both into the one `problems` list it rolls back with.
 """
 
 from typing import NamedTuple

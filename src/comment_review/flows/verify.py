@@ -1,8 +1,12 @@
 """What one stage's returned copies can be wrong about against the pages.
 
+    lookup_contexts      a copy's saved readings merged with admitted contexts
     copy_problems        one copy against the pages and the files it cites
     texts_at             every text a quote on one copy may be in
     resolution_problems  a ruled mark whose address resolves against no page
+    required_places      the review addresses a binder (and stage) requires
+    context_problems     shared page contexts admitted before coverage work
+    received_problems    each copy against the binder its role received
     coverage_problems    a role whose copies do not carry the binder's addresses
     stage_problems       a dispatch the topology named that never came back
 
@@ -11,8 +15,11 @@ binder, no page and no filesystem, so whether an address names a place a real
 page carries, and whether a role carried back everything it was handed, are
 settled here instead.
 
-`flows.bus` runs `copy_problems` over every copy, then the two coverage
-checks, before it opens a fold; `commands/check.py` runs `copy_problems` over
+`flows.bus` runs `copy_problems` over every copy, then `mark_errors`, then
+`received_problems` when the message carries one received binder per copy and
+`coverage_problems` over each copy otherwise, then `stage_problems` when it
+carries a topology, all before it opens a fold; `commands/check.py` runs
+`copy_problems` over
 the one copy it is handed, so a role learns before it returns its copy what
 the fold would refuse. Every finding is a `desk.collator.Problem` -- reported,
 never raised, so the findings stack and each can be sent back to the role

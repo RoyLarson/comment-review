@@ -61,11 +61,9 @@ is `flows/revise.py::docket_of`, which takes an `EditCopy`, because a FLOW may
 reach both ends and neither end may reach the other. `decision-log.md Process:
 #76`.
 
-!! AND THE THREE VERIFICATION QUESTIONS ARE ASKED IN PRODUCTION, which
-this file's prose assumed the opposite of until 2026-08-31.
-`flows.bus` calls `verify_report` per copy; `grep -rn "verify_report" src/`
-returns a caller outside this module, where before it returned only sentences
-inside it. `decision-log.md Process: #58`, `P25`.
+`flows.verify.copy_problems` calls `verify_report` per copy; `flows.bus`
+calls `copy_problems` over every copy it receives, and `commands/check.py`
+calls it over the one copy it is handed.
 """
 
 from collections.abc import Mapping
