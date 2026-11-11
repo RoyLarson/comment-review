@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 10 of 27 tasks closed
+Progress: 10 of 29 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, a code review of `commands/collate.py` driven by
@@ -203,3 +203,7 @@ under `utf8_console()`.
 - [x] T27 | Result.chief typed EditCopy; the None guards are gone | 7346304b | Drop
       the `Result.chief is not None` guard, whose other branch no handler
       reaches
+- [ ] T28 | Return UNREADABLE for a --topology file distribute cannot read,
+      instead of raising OSError
+- [ ] T29 | Resolve the paths in a collate --pairs file against the file's own
+      folder

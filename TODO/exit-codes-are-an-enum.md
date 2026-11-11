@@ -21,8 +21,10 @@ Exit codes are written in thirteen places.
         > 2026-09-26 ASKS_THE_HUMAN = 5 lands in collate.py first (Process 197)
 - [ ] T2 | Update check, collate, mark, turn and disposition to return the enum,
       deleting their own OK, BROKEN and UNREADABLE constants
+        > 2026-11-10 2026-11-10 7346304b moved the constants to commands/report.py
 - [ ] T3 | Update the ten commands that return bare 0, 1 and 2 to return the
       enum members
+        > 2026-11-10 7346304b: five commands share commands/report.py; the rest are bare
 - [ ] T4 | Update the exits to pass the member, with .value only where
       SystemExit needs the int
 - [ ] T5 | Implement a gate that fails when a command returns a bare integer or

@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 14 of 19 tasks closed
+Progress: 15 of 19 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-09-08 (Roy 2026-09-08: implementing the recast workflow for the cli the
@@ -57,8 +57,8 @@ The copy chief has no workflow for recasting the places that never settled.
 - [x] T12 | rule_at_max_turns parses the chief recast when it builds it and refuses one that does not parse, so disposition exits BROKEN and writes nothing, per Process 161 | e381df74 | Update
       disposition so a chief's recast that does not parse is refused rather than
       written at exit 0, per Process 161
-- [ ] T13 | Generate the chief ruling contract from ruling types and publish it
-      through check
+- [x] T13 | contract() from ruling types under chief; SKILL.md points at it | 175408d2 | Generate
+      the chief ruling contract from ruling types and publish it through check
         > 2026-09-30 Criteria: docs/reviews/2026-09-30-r4.md, D
 - [x] T14 | #288: correct answers owe sources; patch answers do not | 13440508 | Decide
       whether correct and patch answers require initial-mark claims and evidence
