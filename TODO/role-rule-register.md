@@ -149,3 +149,4 @@ focus for them gets a lot easier. ! The dependency is discharged: `cue` emits fo
         > 2026-11-09 Outcome #302: the copy chief owns the sweep
 - [ ] T8 | Update SKILL.md stage 5 so the copy chief sweeps dialect, review
       labels, wrap and templates (#302)
+        > 2026-11-10 #310: the chief recasts a settled place for style
