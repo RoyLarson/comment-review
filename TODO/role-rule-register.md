@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 2 of 8 tasks closed
+Progress: 3 of 8 tasks closed
 Owner:    agents
 Requires-Roy: true
 Raised:   2026-08-18 (Roy, 2026-08-18: keep track of these and have a place to decide on
@@ -147,6 +147,7 @@ focus for them gets a lot easier. ! The dependency is discharged: `cue` emits fo
       the style-sheet sweep: dialect, review labels, wrap and templates
         > 2026-11-08 Outside run: each of the four was nobody's remit
         > 2026-11-09 Outcome #302: the copy chief owns the sweep
-- [ ] T8 | Update SKILL.md stage 5 so the copy chief sweeps dialect, review
-      labels, wrap and templates (#302)
+- [x] T8 | FINISHED -- SKILL.md stage 5 sweeps the style sheet | 21cc283e | Update
+      SKILL.md stage 5 so the copy chief sweeps dialect, review labels, wrap and
+      templates (#302)
         > 2026-11-10 #310: the chief recasts a settled place for style

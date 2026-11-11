@@ -275,10 +275,10 @@ that changed a published name or rule:
 | [only-a-flow-reaches-the-machine](only-a-flow-reaches-the-machine.md) | backend | -- | 5/10 | Route every machine read and write through a flow |
 | [a-non-code-document-has-no-read-review-resolve-or-write-chain-of-its-own](a-non-code-document-has-no-read-review-resolve-or-write-chain-of-its-own.md) | backend | -- | 0/2 | A non-code document has no read, review, resolve or write chain of its own |
 | [re-review-is-retired-for-revise](re-review-is-retired-for-revise.md) | agents | -- | 4/6 | re-review is retired for revise |
-| [agents-files-name-the-new-cli](agents-files-name-the-new-cli.md) | agents | -- | 45/57 | The agents files name the new CLI and say how to use it |
+| [agents-files-name-the-new-cli](agents-files-name-the-new-cli.md) | agents | -- | 46/57 | The agents files name the new CLI and say how to use it |
 | [reviewer-prose-is-rules-not-guidance](reviewer-prose-is-rules-not-guidance.md) | agents | -- | 10/17 | The reviewer prose is rules and punishments, not guidance toward a good result |
 | [a-machine-context-raises-query-and-clean](a-machine-context-raises-query-and-clean.md) | backend | yes | 0/8 | annotate carries two subjects -- it extracts index keys, and it flags claims it cannot settle. The second half becomes a context that marks like a role. |
-| [the-chief-has-no-recast-workflow](the-chief-has-no-recast-workflow.md) | backend | -- | 13/19 | cap applies the chief's rulings and closes the stage, but a recast is written out as a correct, so a recast of an add at an empty place writes nothing and exits 0. |
+| [the-chief-has-no-recast-workflow](the-chief-has-no-recast-workflow.md) | backend | -- | 14/19 | cap applies the chief's rulings and closes the stage, but a recast is written out as a correct, so a recast of an add at an empty place writes nothing and exits 0. |
 | [rebuilt-middle-final-review](rebuilt-middle-final-review.md) | backend | -- | 30/52 | Every finding of the final review of the rebuilt middle, Broken first. The three Broken ones hold the branch from merging out. |
 | [exit-codes-are-an-enum](exit-codes-are-an-enum.md) | backend | -- | 0/5 | Exit codes are written in thirteen places |
 | [command-help-carries-history](command-help-carries-history.md) | backend | -- | 0/1 | Command help carries development history |
@@ -331,7 +331,7 @@ that changed a published name or rule:
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
 | [correct-against-patch-is-a-conflict-and-is-not-flagged](correct-against-patch-is-a-conflict-and-is-not-flagged.md) | agents | -- | 1/3 | `correct` against `patch` is a conflict, and the gate does not flag it |
-| [role-rule-register](role-rule-register.md) | agents | yes | 2/8 | The register of proposed additions and amendments to the four editorial role files. ! Role prose is BUDGET-FIXED, so a candidate is not judged alone -- it is judged against what it would replace, which is why they collect here instead of landing one at a time. |
+| [role-rule-register](role-rule-register.md) | agents | yes | 3/8 | The register of proposed additions and amendments to the four editorial role files. ! Role prose is BUDGET-FIXED, so a candidate is not judged alone -- it is judged against what it would replace, which is why they collect here instead of landing one at a time. |
 | [evidence-still-names-places-by-line](evidence-still-names-places-by-line.md) | testing | yes | 0/14 | **The address reached the record key and a `move`'s destination and stopped.** `SOURCES` -- the field the evidentiary contract rests on -- is 100% line-form, and Roy's `address:lines` ruling is unimplemented. Four other artifacts name a place by nothing at all. |
 | [no-mark-for-let-it-stand](no-mark-for-let-it-stand.md) | agents | -- | 13/16 | There is no mark for LET IT STAND -- a declined proposal is not recorded, so the next run proposes it again |
 | [front-half-undetermined](front-half-undetermined.md) | testing | yes | 5/11 | The census to findings to verdicts path has never been determined against a backend that works |

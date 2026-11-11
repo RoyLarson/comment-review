@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 45 of 57 tasks closed
+Progress: 46 of 57 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-09-04 (Roy, 2026-09-04, superseding the-flow-lives-in-the-command T4)
@@ -182,8 +182,8 @@ The agents files name the new CLI and say how to use it.
       reviewer-brief.md's withdraw line so it takes back one mark, per #276
 - [ ] T49 | Replace write.md's git worktree with a copy of the gathered files,
       per #104
-- [ ] T50 | Update the brief's add-a-TODO answer for a repo that keeps its TODOs
-      on a board
+- [x] T50 | FINISHED -- stage 1 records where code concerns go | 21cc283e | Update
+      the brief's add-a-TODO answer for a repo that keeps its TODOs on a board
         > 2026-11-10 #311: stage 1 records where code concerns go
 - [-] T51 | SUPERSEDED by #312: predates the current CLI | a419ac11 | Update
       SKILL.md's commands so every stage runs under the interpreter `gather` ran
