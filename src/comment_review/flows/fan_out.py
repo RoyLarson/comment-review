@@ -2,6 +2,8 @@
 
     fan(binder, stage)        one seeded edit_copy per dispatch, in dispatch order
     partition(binder, stage)  each dispatch with its files, after the two guards
+    dealt(binder, stage)      each dispatch's received binder with its seeded
+                              edit_copy; `fan` returns the copies alone
     OverlappingShards         two dispatches of ONE role both claim a file
     UncoveredPage             a role's dispatches, together, miss a file
 
@@ -83,26 +85,11 @@ def fan(binder: Binder, stage: Stage) -> list[dict]:
         UncoveredPage: a page in `binder` matches NO dispatch of some role
             that this stage dispatches at all -- that role would never see it.
 
-    !! THE SHARD CARRIES THE BINDER'S OWN `read_from`, AND REBUILT IT WITH A
-    `{}` DEFAULT UNTIL 2026-08-29. `seed` refuses a binder that cannot say
-    which tree it read -- the refusal `bind` added on 2026-08-28 and `seed`
-    carried one step further the same day -- and this function rebuilt the
-    argument with the fallback that refusal exists to remove, so `seed`'s
-    refusal could never fire through fan-out. MEASURED: `fan` over a binder
-    with no `read_from` returned shards carrying `read_from={}` and raised
-    nothing, while `seed(binder, role)` on the same binder raised `KeyError`.
-
-    ! AND EVERY SHARD AGREED ON `{}`, so the root comparison
-    (`flows.bus._root_problems`) could not fire either -- the ambiguity surfaced
-    four steps later at the per-copy check, blamed on the role, after four
-    agents had read and filled the shards.
-
-    !! `replace` IS WHAT MAKES THAT UNAVAILABLE NOW, rather than a rule to
-    remember. A shard is THIS binder over fewer pages, so it is built by
-    replacing the pages and nothing else -- `read_from` and `version` come
-    along because they were never restated. ! The hand-built
-    `{"read_from": ..., "pages": ...}` was a THIRD spelling of the binder
-    shape, and it silently dropped `version`.
+    The shard carries the binder's own `read_from` and `version`: it is the
+    binder with fewer pages, built by `dataclasses.replace`, so neither is
+    restated. `distribute.admit_binder` runs first and raises
+    `distribute.IncompatibleBinder` for a binder whose saved reading metadata
+    is incompatible.
     """
     return [copy for _received, copy in dealt(binder, stage)]
 

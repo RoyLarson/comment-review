@@ -493,6 +493,228 @@ def test_a_placement_answer_built_from_the_contract_is_taken_at_its_move(tmp_pat
     assert got["m.py@b1 -> m.py@b5"].name == "agree"
 
 
+#: The paragraph a composition slot asks about, and two sources that resolve
+#: against the `m.py` `_several_at_one_slot` writes.
+SLOT_TEXT = "# one\n# two\n# three"
+FIRST = {"cite": "m.py:1", "verbatim": "x = 1"}
+SECOND = {"cite": "m.py:2", "verbatim": "y = 2"}
+
+
+def _several_at_one_slot(tmp_path, entries, slot=None):
+    """`answers_of` over one role's entries, all at `m.py@b1`."""
+    from comment_review.flows.answers import answers_of
+
+    (tmp_path / "m.py").write_text("x = 1\ny = 2\n")
+    sent = {
+        "m.py@b1": slot
+        or {"question": "composition", "anchor": "x = 1", "raw_text": SLOT_TEXT}
+    }
+    returned = [{"address": "m.py@b1", "reason": "r", **one} for one in entries]
+    return answers_of("b", sent, returned, lambda a: "not sent", tmp_path, {})
+
+
+def test_two_patches_to_different_sentences_compose_into_one_answer(tmp_path):
+    """`decision-log.md Process: #308`: a role answers one slot twice, each
+    answer mending its own sentence, and the slot takes both mends."""
+    got, problems = _several_at_one_slot(
+        tmp_path,
+        [
+            {
+                "instruction": "patch",
+                "change": "# ONE\n# two\n# three",
+                "sources": [FIRST],
+            },
+            {
+                "instruction": "patch",
+                "change": "# one\n# two\n# THREE",
+                "sources": [SECOND, FIRST],
+            },
+        ],
+    )
+    assert problems == []
+    answer = got["m.py@b1"]
+    assert answer.name == "patch"
+    assert isinstance(answer, Rewrite)
+    assert answer.change == "# ONE\n# two\n# THREE"
+    assert answer.sources == (FIRST, SECOND)
+
+
+def test_a_correct_and_a_patch_compose_into_a_correct(tmp_path):
+    got, problems = _several_at_one_slot(
+        tmp_path,
+        [
+            {
+                "instruction": "patch",
+                "change": "# ONE\n# two\n# three",
+                "sources": [FIRST],
+            },
+            {
+                "instruction": "correct",
+                "change": "# one\n# two\n# THREE",
+                "sources": [SECOND],
+            },
+        ],
+    )
+    assert problems == []
+    answer = got["m.py@b1"]
+    assert answer.name == "correct"
+    assert isinstance(answer, Rewrite) and answer.change == "# ONE\n# two\n# THREE"
+
+
+def test_an_escalation_slot_composes_against_the_roles_own_side(tmp_path):
+    """A single rewrite at an escalation replaces the role's side, so several
+    are edits of that side. Against the place's text the two edits below
+    would each span the line the side already changed, and meet."""
+    side = "# one\n# TWO\n# three"
+    slot = {
+        "question": "escalation",
+        "anchor": "x = 1",
+        "raw_text": SLOT_TEXT,
+        "sides": {"b": side, "c": "# one\n# dos\n# three"},
+    }
+    got, problems = _several_at_one_slot(
+        tmp_path,
+        [
+            {
+                "instruction": "patch",
+                "change": "# ONE\n# TWO\n# three",
+                "sources": [FIRST],
+            },
+            {
+                "instruction": "patch",
+                "change": "# one\n# TWO\n# THREE",
+                "sources": [FIRST],
+            },
+        ],
+        slot,
+    )
+    assert problems == []
+    answer = got["m.py@b1"]
+    assert isinstance(answer, Rewrite) and answer.change == "# ONE\n# TWO\n# THREE"
+
+
+def test_two_rewrites_of_one_sentence_that_differ_are_refused(tmp_path):
+    got, problems = _several_at_one_slot(
+        tmp_path,
+        [
+            {
+                "instruction": "patch",
+                "change": "# one\n# TWO\n# three",
+                "sources": [FIRST],
+            },
+            {
+                "instruction": "patch",
+                "change": "# one\n# dos\n# three",
+                "sources": [FIRST],
+            },
+        ],
+    )
+    assert got == {}
+    assert [(one.role, one.address) for one in problems] == [("b", "m.py@b1")]
+    assert "base lines 2-2 were edited by answer 1, answer 2" in problems[0].message
+
+
+def test_a_clean_beside_a_rewrite_is_refused(tmp_path):
+    got, problems = _several_at_one_slot(
+        tmp_path,
+        [
+            {"instruction": "clean", "sources": [FIRST]},
+            {
+                "instruction": "patch",
+                "change": "# ONE\n# two\n# three",
+                "sources": [FIRST],
+            },
+        ],
+    )
+    assert got == {}
+    assert [(one.role, one.address) for one in problems] == [("b", "m.py@b1")]
+    assert "clean" in problems[0].message and "patch" in problems[0].message
+
+
+def test_a_hold_beside_a_withdraw_is_refused(tmp_path):
+    slot = {"question": "escalation", "anchor": "x = 1", "raw_text": SLOT_TEXT}
+    got, problems = _several_at_one_slot(
+        tmp_path, [{"instruction": "hold"}, {"instruction": "withdraw"}], slot
+    )
+    assert got == {}
+    assert [(one.role, one.address) for one in problems] == [("b", "m.py@b1")]
+    assert "hold" in problems[0].message and "withdraw" in problems[0].message
+
+
+@pytest.mark.parametrize(
+    ("first", "second"),
+    [("agree", "stet"), ("withdraw", "agree"), ("stet", "withdraw")],
+)
+def test_contradicting_placement_answers_are_refused(tmp_path, first, second):
+    from comment_review.flows.answers import answers_of, slot_key
+
+    key = slot_key({"address": "m.py@b1", "to": "m.py@b5"})
+    returned = [
+        {"address": "m.py@b1", "to": "m.py@b5", "instruction": name, "reason": "r"}
+        for name in (first, second)
+    ]
+    got, problems = answers_of(
+        "b",
+        {key: {"question": "placement", "anchor": "x = 1"}},
+        returned,
+        lambda a: "not sent",
+        tmp_path,
+        {},
+    )
+    assert got == {}
+    assert [(one.role, one.address) for one in problems] == [("b", key)]
+
+
+def test_two_identical_cleans_collapse_to_one_answer(tmp_path):
+    got, problems = _several_at_one_slot(
+        tmp_path,
+        [
+            {"instruction": "clean", "sources": [FIRST]},
+            {"instruction": "clean", "sources": [FIRST]},
+        ],
+    )
+    assert problems == []
+    assert got["m.py@b1"].name == "clean"
+
+
+def test_two_queries_with_different_claims_are_refused(tmp_path):
+    """`decision-log.md Process: #309`: a repeat collapses only when it says
+    what the first says; two queries naming different shapes contradict."""
+
+    def query(shape):
+        claim = {"shape": shape, "attempted": "read it", "settles": "the author"}
+        return {"instruction": "query", "claim": claim}
+
+    got, problems = _several_at_one_slot(
+        tmp_path, [query("outside-my-role"), query("human-review-necessary")]
+    )
+    assert got == {}
+    assert [(one.role, one.address) for one in problems] == [("b", "m.py@b1")]
+    assert "query" in problems[0].message
+
+
+def test_each_of_several_answers_is_checked_on_its_own(tmp_path):
+    """A source that does not resolve refuses the slot even when another
+    answer beside it cites one that does."""
+    got, problems = _several_at_one_slot(
+        tmp_path,
+        [
+            {
+                "instruction": "patch",
+                "change": "# one\n# two\n# THREE",
+                "sources": [{"cite": "m.py:1", "verbatim": "nothing like it"}],
+            },
+            {
+                "instruction": "patch",
+                "change": "# ONE\n# two\n# three",
+                "sources": [FIRST],
+            },
+        ],
+    )
+    assert got == {}
+    assert problems and all(one.address == "m.py@b1" for one in problems)
+
+
 def _rewrite_entry(question: str, name: str, sources: list) -> dict:
     return {
         "address": "m.py@b1",

@@ -561,7 +561,12 @@ def _on_answers(message: AnswersReturned) -> tuple[list, Result | None]:
     cache: Cache = {}
     for role in sorted(roles | set(message.answers)):
         sent = {
-            address: {"question": str(place.question), "anchor": place.anchor}
+            address: {
+                "question": str(place.question),
+                "anchor": place.anchor,
+                "raw_text": place.text if place.text is not None else place.base,
+                "sides": dict(place.sides),
+            }
             for address, place in carried.items()
             if role in asked(place)
         }
@@ -617,8 +622,11 @@ def _unsent(
 def _on_dispositions(message: DispositionsWritten) -> tuple[list, Result | None]:
     """The chief's rulings written onto the moves and places, then folded.
 
-    Nothing survives the chief's ruling unruled, and a later ruling at one
-    place wins. A ruling naming a move (`to`) rules its placement, and every move
+    Nothing survives the chief's ruling unruled, and each place and each move
+    takes one ruling: a second ruling at the same place or on the same move,
+    identical or not, is refused by name and neither is applied, since the
+    chief has not said which one stands. A ruling naming a move (`to`) rules
+    its placement, and every move
     still undecided takes one (`decision-log.md Process: #195` item 4). A
     place carried forward takes a ruling on its words, and one with none is
     refused by name and with the roles it was put to. A ruling at a place the
@@ -635,6 +643,8 @@ def _on_dispositions(message: DispositionsWritten) -> tuple[list, Result | None]
     places = _places_on(message.proof)
     moves = moves_in(places, _moves_on(message.proof))
     problems: list[Problem] = []
+    # A place's address and a move's key never coincide, so one set holds both.
+    ruled: set[str] = set()
     for i, entry in enumerate(message.dispositions, 1):
         named = str(entry.get("address") or "") if isinstance(entry, dict) else ""
         where = named or f"ruling {i}"
@@ -644,8 +654,19 @@ def _on_dispositions(message: DispositionsWritten) -> tuple[list, Result | None]
                 Problem(CHIEF, where, one.removeprefix(f"{where}: ")) for one in why
             ]
             continue
+        slot = (
+            key_of(disposition.address, disposition.to)
+            if disposition.to
+            else disposition.address
+        )
+        if slot in ruled:
+            problems.append(
+                Problem(CHIEF, slot, "ruled more than once in this message")
+            )
+            continue
+        ruled.add(slot)
         if disposition.to:
-            key = key_of(disposition.address, disposition.to)
+            key = slot
             move = moves.get(key)
             if move is None or not is_open(move):
                 problems.append(Problem(CHIEF, key, "not an open move"))

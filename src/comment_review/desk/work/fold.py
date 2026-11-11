@@ -20,6 +20,8 @@ from dataclasses import dataclass, field
 from comment_review.desk import report as events
 from comment_review.desk.evaluate.move import moves_in
 from comment_review.desk.evaluate.passes import decide
+from comment_review.desk.marks.table import chief_mark
+from comment_review.desk.proof.disposition import CHIEF
 from comment_review.desk.proof.move import Move, Placement, is_open
 from comment_review.desk.proof.place import Place
 from comment_review.desk.proof.state import CARRIED, State
@@ -86,6 +88,9 @@ class Fold:
                             address, place.state, place.question, asked(place)
                         )
                     )
+            elif why := _unwritable(place):
+                for role in _answerable(place):
+                    refusals.append(events.Refused(role, address, (why,)))
             else:
                 on_commit.append(events.Settled(address, place.text, place.disposition))
             # A place's notes go with what a commit reports, whatever state
@@ -135,6 +140,32 @@ def asked(place: Place) -> tuple[str, ...]:
         why the batch and the unanswered check both read this one function.
     """
     return place.owed
+
+
+def _unwritable(place: Place) -> str:
+    """Why the chief could not write a mark for this settled place, or "".
+
+    The chief's copy carries a mark for every settled place with a text, so a
+    place `chief_mark` cannot write one for is refused here, by name, rather
+    than raising later while the copy is built.
+    """
+    if place.text is None:
+        return ""
+    try:
+        chief_mark(place)
+    except ValueError as error:
+        return str(error)
+    return ""
+
+
+def _answerable(place: Place) -> tuple[str, ...]:
+    """Who answers for a settled place's text.
+
+    The chief where it ruled the place, else the roles that filed there.
+    """
+    if place.disposition is not None:
+        return (CHIEF,)
+    return tuple(sorted({one.role for one in place.filed}))
 
 
 def _by_role(reasons: tuple[str, ...]) -> dict[str, tuple[str, ...]]:

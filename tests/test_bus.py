@@ -919,6 +919,24 @@ def test_a_hold_and_a_withdraw_settle_the_place_where_nobody_else_read_it(tmp_pa
     assert result.batch is None
 
 
+def test_two_patches_at_one_slot_compose_onto_the_proof(tmp_path):
+    """`decision-log.md Process: #308`: block-context mends two sentences of
+    its own side in two answers; function-context withdraws, and the place
+    settles on block-context's side carrying both mends."""
+    collated = _collated(tmp_path, JUST_THE_TWO)
+    answers = {
+        "block-context": [
+            _answer(PLACE, "patch", "first", change="# ONE\n# TWO\n# three"),
+            _answer(PLACE, "patch", "third", change="# one\n# TWO\n# THREE"),
+        ],
+        "function-context": [_answer(PLACE, "withdraw", "theirs is better")],
+    }
+    out, result = handle(AnswersReturned(collated.proof, answers, tmp_path / "repo"))
+    assert result is not None, out
+    assert events.Settled(PLACE, "# ONE\n# TWO\n# THREE") in out
+    assert _state_at(result.proof, PLACE) == "stands"
+
+
 def test_a_recast_at_a_still_contested_place_puts_the_chiefs_prose_on_its_copy(
     tmp_path,
 ):
@@ -1298,6 +1316,84 @@ def test_a_ruling_at_an_end_of_an_undecided_move_is_refused(tmp_path):
     ) in _refusals(out)
 
 
+def _placed(tmp_path):
+    """`_stetted` with the move agreed, both its ends carried to the chief."""
+    turned = _stetted(tmp_path)
+    out, placed = handle(
+        DispositionsWritten(
+            turned.proof,
+            [_ruling(PLACE, "taken_in", to="m.py@b2", side="block-context")],
+        )
+    )
+    assert placed is not None, out
+    return placed
+
+
+@pytest.mark.parametrize(
+    "second",
+    [
+        _ruling(PLACE, "taken_in", side="block-context"),
+        _ruling(PLACE, "recast", prose=REMAINDER),
+    ],
+    ids=["identical", "contradictory"],
+)
+def test_a_second_ruling_at_one_place_is_refused_and_neither_applies(tmp_path, second):
+    placed = _placed(tmp_path)
+    before = deepcopy(placed.proof)
+    out, closed = handle(
+        DispositionsWritten(
+            placed.proof,
+            [
+                _ruling(PLACE, "taken_in", side="block-context"),
+                second,
+                _ruling("m.py@b2", "recast", prose=CHIEFS_OWN),
+            ],
+        )
+    )
+    assert closed is None
+    assert _refusals(out) == [
+        ("copy-chief", PLACE, "ruled more than once in this message")
+    ]
+    assert placed.proof == before
+
+
+def test_a_second_ruling_on_one_move_is_refused_and_neither_applies(tmp_path):
+    turned = _stetted(tmp_path)
+    before = deepcopy(turned.proof)
+    out, placed = handle(
+        DispositionsWritten(
+            turned.proof,
+            [
+                _ruling(PLACE, "taken_in", to="m.py@b2", side="block-context"),
+                _ruling(PLACE, "taken_in", to="m.py@b2", side="original"),
+            ],
+        )
+    )
+    assert placed is None
+    assert _refusals(out) == [
+        ("copy-chief", f"{PLACE} -> m.py@b2", "ruled more than once in this message")
+    ]
+    assert turned.proof == before
+
+
+def test_rulings_at_two_distinct_places_both_apply(tmp_path):
+    out, closed = handle(
+        DispositionsWritten(
+            _placed(tmp_path).proof,
+            [
+                _ruling(PLACE, "taken_in", side="block-context"),
+                _ruling("m.py@b2", "recast", prose=CHIEFS_OWN),
+            ],
+        )
+    )
+    assert closed is not None, out
+    ruled = {
+        p.address: p.disposition.name for p in closed.proof.places if p.disposition
+    }
+    assert ruled[PLACE] == "taken_in"
+    assert ruled["m.py@b2"] == "recast"
+
+
 def test_an_undecided_move_with_no_placement_ruling_is_refused_by_name(tmp_path):
     turned = _stetted(tmp_path)
     out, closed = handle(DispositionsWritten(turned.proof, []))
@@ -1584,6 +1680,25 @@ def test_a_move_into_an_ungathered_file_that_keeps_every_word_folds(tmp_path):
     place = next(one for one in result.proof.places if one.address == "n.py@b1")
     assert place.base == UNGATHERED
     assert place.anchor == "v1 = 1"
+
+
+def test_the_chief_copy_keeps_an_arrival_on_an_ungathered_page(tmp_path):
+    """A move into a page no copy supplied puts both of its ends on the chief
+    copy, each on its own page's sheet, and the copy reads back whole."""
+    from comment_review.desk.proof.edit_copy import EditCopy
+
+    out, result = handle(_moved_into_n(tmp_path, "# seven\n# eight\n# two"))
+    assert result is not None, _refusals(out)
+    assert result.chief is not None
+    on = {
+        sheet.path: [mark.address for mark in sheet.marks]
+        for sheet in result.chief.sheets
+    }
+    assert PLACE in on["m.py"]
+    assert on["n.py"] == ["n.py@b1"]
+    again, why = EditCopy.deserialize("chief", result.chief.serialize())
+    assert why == []
+    assert again == result.chief
 
 
 def test_extra_destination_retains_the_acquired_snapshot(tmp_path):
@@ -2272,7 +2387,8 @@ class TestAHumanQuestionIsAskedBeforeTheFold:
 
     def test_an_answered_query_still_rolls_back_and_carries_the_answer(self, tmp_path):
         binder, root, copies = _with_a_human_query(tmp_path)
-        human = (HumanAnswer("block-context", "m.py@b1", "q", "Keep it."),)
+        asked = a_query("m.py@b1", Shape.HUMAN_REVIEW_NECESSARY)["reason"]
+        human = (HumanAnswer("block-context", "m.py@b1", asked, "Keep it."),)
         out, result = handle(CopiesReturned("4c", copies, binder, root, None, human))
         assert result is None
         (ask,) = [e for e in out if isinstance(e, events.AsksTheHuman)]

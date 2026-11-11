@@ -6662,3 +6662,43 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
 
   **What it settles.** `CleanAnswer` and `PatchAnswer` owe a `sources` entry, checked as a
   `correct` answer's are. It extends #288, which left `PatchAnswer` owing only its change.
+
+- **#307.** **The chief copy carries the chief's reason only on a mark the chief writes** (Roy,
+  2026-11-10, on `collate-flow-defects` T23, asked which reason the chief copy shows on a role's
+  mark the chief adopts unchanged; offered (a) the chief's reason on every mark of the chief
+  copy, adopted ones included, or (b) the chief's reason only on marks the chief writes, the
+  adopted mark keeping the role's reason and the chief's reason for adopting it kept in the
+  proof alone):
+
+  *"P7 - b"*
+
+  **What it settles.** A mark `chief_mark` synthesizes carries the disposition's reason in place
+  of the generic one. A role's mark the chief adopts unchanged keeps the role's reason, and the
+  chief's reason for adopting it is the one the proof's place records.
+
+- **#308.** **A role may answer one slot more than once, and the answers compose** (Roy,
+  2026-11-10, on `collate-flow-defects` T21, after objecting that refusing a second answer at a
+  slot would stop a role correcting two different sentences; offered (a) several answers at one
+  slot, each naming its own sentence and sources, composed against the slot's text as marks at
+  one place are, refusing only answers that contradict, or (b) one answer per slot carrying one
+  claim per sentence, a second answer refused):
+
+  *"a"*
+
+  **What it settles.** A slot takes several answers from one role. Their changes compose against
+  the slot's text by the same merge `collate` uses for marks. The slot is refused, by role and
+  address, only for a contradiction: two rewrites of one sentence that differ, a `clean` beside a
+  rewrite, or `hold` beside `withdraw`. It supersedes T21's refusal of a second answer.
+
+- **#309.** **Every mix of answers at one slot is a contradiction, and so is a repeat that
+  differs** (Roy, 2026-11-10, asked whether #308's three named contradictions are the whole list,
+  shown that a slot ends as one answer, so the code also refuses `hold` or `withdraw` beside a
+  rewrite, `query` beside any other answer, and `agree` beside `stet` or `withdraw`; and
+  recommended that two answers of one kind whose claims differ, such as two `query`s naming
+  different shapes, be refused rather than collapsed to the first):
+
+  *"Okay"*
+
+  **What it settles.** At one slot, only rewrites compose and only repeats with one claim
+  collapse. Any other pair of answers is refused by role and address. #308's three cases are
+  examples of the rule, not its whole list.

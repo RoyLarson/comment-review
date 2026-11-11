@@ -20,10 +20,11 @@ it, and `flows.fill` mutates the dicts in place; a loader that parsed them
 here would parse them twice and refuse them once, in the wrong place.
 
 ! THE SAVE IS `machine.repo.write_raw`, the tree's one `newline=""` writer.
-`Process: #87`: the master proof is the state between turns -- the copies as
-they stand and every place the fold decided, each carrying its own answers,
-its state and who it is asked of -- so `collate` saves it and the verbs that
-advance and close a turn load it.
+The master proof is the state between turns -- the copies as they stand,
+every place the fold decided (each carrying its own answers, its state and who
+it is asked of), every move with its placement answers, and each page's
+reading and sha -- so `collate` saves it and the verbs that advance and close
+a turn load it.
 """
 
 import json

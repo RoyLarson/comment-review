@@ -270,12 +270,13 @@ class TestAHumanQuestionInACopy:
         self, tmp_path, monkeypatch, capsys
     ):
         path, binder = self._asking(tmp_path)
+        asked = a_query("m.py@b1", Shape.HUMAN_REVIEW_NECESSARY)["reason"]
         human = tmp_path / "human.toml"
         human.write_text(
             "[[answer]]\n"
             'role = "block-context"\n'
             'at = "m.py@b1"\n'
-            'question = "q"\n'
+            f'question = "{asked}"\n'
             'answer = "Keep it."\n',
             encoding="utf-8",
         )
