@@ -256,7 +256,10 @@ def chief_mark(place: "Place") -> Mark:
     Raises:
         ValueError: `place.text` is None -- the caller's contract is a place
             the fold already decided a text for; `chief_copy_of` filters
-            those out before calling this.
+            those out before calling this. Or the mark would be an add and
+            the place has no anchor, so its claim could name none and the
+            read would refuse it; `desk.work.fold.Fold.run` refuses such a
+            place before any chief's copy is written.
     """
     text = place.text
     if text is None:
@@ -300,6 +303,10 @@ def chief_mark(place: "Place") -> Mark:
             change=text,
             false=place.base,
             true=text,
+        )
+    if not place.anchor.strip():
+        raise ValueError(
+            f"chief_mark has no anchor to name for an add at {place.address!r}"
         )
     return AddMark(
         address=place.address,

@@ -1,6 +1,7 @@
 """places_of derives places from the roles' copies; chief_copy_of derives the
 copy chief's own copy from what the fold decided at each place."""
 
+import pytest
 from helpers import (
     a_binder_over,
     a_clean,
@@ -8,6 +9,8 @@ from helpers import (
     a_correct_setting,
     a_move,
     a_real_binder_over,
+    a_typed_ruling,
+    an_add,
     copies_over,
     returned,
     seed,
@@ -130,6 +133,43 @@ def test_identical_anchors_with_differing_edits_still_fold():
         fold = _folded_with_anchors(anchors, order)
         assert fold.committed, fold.events
         assert fold.decided["m.py@b1"].anchor == "x = 1"
+
+
+def test_chief_mark_refuses_an_arrival_with_no_anchor_to_name():
+    place = Place(address="m.py@b1", anchor="", base="", text="# new\n")
+    with pytest.raises(ValueError, match="m.py@b1"):
+        chief_mark(place)
+
+
+def _recast_with_no_anchor(prose: str = "# c\n", reason: str = "neither") -> dict:
+    """Two roles' adds at an empty place whose marks carry no anchor, contested,
+    then recast by the chief: the places, ready to fold again."""
+    binder = a_binder_over({"m.py@b1": ""})
+    wire = copies_over(
+        binder,
+        {
+            role: {"m.py@b1": {**an_add("m.py@b1", text), "change": text, "anchor": ""}}
+            for role, text in (("block-context", "# a"), ("function-context", "# b"))
+        },
+    )
+    places = places_of([returned(w) for w in wire], {"m.py@b1": ""}, {"m.py@b1": ""})
+    first = Fold(places).run()
+    assert first.committed, first.events
+    assert places["m.py@b1"].state is State.CONTESTED
+    places["m.py@b1"].disposition = a_typed_ruling(
+        address="m.py@b1", name="recast", prose=prose, reason=reason
+    )
+    return places
+
+
+def test_a_recast_at_a_place_with_no_anchor_is_refused_by_the_fold():
+    """No filed mark sets the chief's prose, so the chief would have to write
+    an add naming an anchor the place does not have."""
+    fold = Fold(_recast_with_no_anchor()).run()
+    assert not fold.committed
+    refused = [one for one in fold.events if isinstance(one, events.Refused)]
+    assert [(one.role, one.address) for one in refused] == [("copy-chief", "m.py@b1")]
+    assert "anchor" in refused[0].reasons[0]
 
 
 def test_chief_copy_of_synthesizes_a_correct_for_a_decided_place():
