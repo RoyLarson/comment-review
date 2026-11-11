@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 93 of 103 tasks closed
+Progress: 94 of 103 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-29 (2026-08-29, running the chain end to end for the first time with a
@@ -148,8 +148,9 @@ Reconciliation has no command, so the chain cannot be driven end to end.
 - [x] T26 | FINISHED -- the hand driver lives in tests/helpers.py over conftest.run_command; test_turn_command, test_cap_command and test_gather_command drive main() through it | 171bfdb8 | Update
       test_turn_command, test_cap_command and test_gather_command to drive
       main() through run_command, with the hand driver in helpers.py
-- [ ] T27 | Update the command tests to deal each distinct hand once per module
-      and gather each case once. Verify: 9 collate runs become 2
+- [-] T27 | Roy 2026-11-10: reverted 849bdc3d; ~3.5s saved; the smoke run covers it | 2ba35bf3 | Update
+      the command tests to deal each distinct hand once per module and gather
+      each case once. Verify: 9 collate runs become 2
 - [x] T28 | Exit codes, printer, refusals and save_batch shared via collate | 144acecc | Implement
       the outcome once: exit codes, _report, the Revisit printer, the refused
       handler and the batch write, shared by three commands
