@@ -1,7 +1,7 @@
 r"""The `disposition` command: the chief's rulings close a stage's fold.
 
     comment_review disposition --proof P.json --dispositions D.json \\
-        --out chief.json --proof-out final.json
+        --out chief.json --proof-out final.json [--human answers.toml]
 
 The work is `flows.bus`: this loads the proof and the rulings, sends one
 `DispositionsWritten`, prints the events the fold produced, and saves the
@@ -24,14 +24,22 @@ A COMMAND EXPOSES A FLOW. `decision-log.md Process: #12`.
 Nothing survives the chief's ruling unruled. A carried-forward place with no
 ruling is refused by name, with the roles it was put to, and nothing is
 written -- the refusal is the whole answer, so the caller rules and runs
-again.
+again. A `recast` of an `f` place asks the human for approval, as a mark
+there does; `--human` is the answers file that carries the approval.
 """
 
 import argparse
 import sys
 from pathlib import Path
 
-from comment_review.commands.report import OK, code_for, counted, print_report, refused
+from comment_review.commands.report import (
+    OK,
+    code_for,
+    counted,
+    human_answers,
+    print_report,
+    refused,
+)
 from comment_review.flows.bus import DispositionsWritten, handle, turn_of
 from comment_review.flows.proof_io import (
     load_proof,
@@ -47,7 +55,9 @@ def main() -> int:
     Returns:
         `UNREADABLE` when a file is not what it says; `BROKEN` when a ruling
         cannot be applied or a place is left unruled, each named, nothing
-        written; `OK` with the chief's copy and the closed proof written;
+        written; `ASKS_THE_HUMAN` when a recast of an `f` place waits on the
+        human's approval, nothing written; `OK` with the chief's copy and the
+        closed proof written;
         `REREADS` or `ESCALATIONS` with both written when a placement ruling
         leaves its move's ends carried forward, for the chief to rule by
         running this again on that proof.
@@ -67,6 +77,11 @@ def main() -> int:
         required=True,
         help="where to write the closed proof -- every place as the chief left it",
     )
+    ap.add_argument(
+        "--human",
+        metavar="PATH",
+        help="the human's answers file, TOML, one [[answer]] per question",
+    )
     args = ap.parse_args()
 
     proof, why = load_proof(Path(args.proof))
@@ -84,8 +99,11 @@ def main() -> int:
     )
     if not isinstance(rulings, list) or len(rows) != len(rulings):
         return refused([f"{args.dispositions}: the dispositions are a list of objects"])
+    human, why = human_answers(args.human)
+    if why:
+        return refused(why)
 
-    out, result = handle(DispositionsWritten(proof, rows))
+    out, result = handle(DispositionsWritten(proof, rows, human))
     print_report(out)
     if result is None:
         return code_for(out)

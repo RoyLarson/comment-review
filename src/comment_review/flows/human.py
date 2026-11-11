@@ -17,7 +17,8 @@ effect an answer has -- so no row is named here.
 
 `corrections_to_matter` asks a second kind of question: every proposed mark that
 changes the file's own matter, an `f` place, or moves text into one, is put to the
-human for approval before the fold.
+human for approval before the fold. `corrections_in_answers` asks it of a turn's
+rewriting answers, and `corrections_in_rulings` of the chief's recasts.
 """
 
 import tomllib
@@ -26,6 +27,7 @@ from typing import NamedTuple
 from comment_review.desk.answers.table import asks_human
 from comment_review.desk.marks.table import INSTRUCTIONS, Stance
 from comment_review.desk.proof.answer import Answer
+from comment_review.desk.proof.disposition import CHIEF, Disposition, RecastRuling
 from comment_review.desk.proof.edit_copy import EditCopy
 from comment_review.desk.proof.mark import MoveMark
 from comment_review.reading.addresser import COVERS, cue_of
@@ -82,7 +84,6 @@ def corrections_to_matter(
     asks a different question and is asked again. A query is asked by
     `queries_in_copies`.
     """
-    given = {(one.role, one.at, one.question) for one in human}
     out = []
     for copy in copies:
         for sheet in copy.sheets:
@@ -93,15 +94,62 @@ def corrections_to_matter(
                 if not (_in_matter(mark.address) or into):
                     continue
                 to = f" -> {mark.to}" if isinstance(mark, MoveMark) else ""
-                query = HumanQuery(
-                    copy.role,
-                    mark.address,
-                    f"approve this {mark.instruction}{to} to the file's matter: "
-                    f"{mark.reason}",
-                )
-                if (query.role, query.at, query.question) not in given:
-                    out.append(query)
-    return out
+                name = f"{mark.instruction}{to}"
+                out.append(_approval(copy.role, mark.address, name, mark.reason))
+    return _unanswered(out, human)
+
+
+def corrections_in_answers(
+    given: dict[str, dict[str, Answer]], human: tuple[HumanAnswer, ...]
+) -> list[HumanQuery]:
+    """Every turn's answer that rewrites an `f` place, not yet answered.
+
+    `decision-log.md Process: #291`: a change to the file's matter is put to
+    the human wherever it is made, so an answer that owes a `change` at an
+    `f` place asks as a mark there does. A placement answer is keyed by its
+    move and owes no change; a move into an `f` place asked when it was
+    marked.
+
+    Args:
+        given: role -> slot key -> answer, as `queries_in_answers` takes them.
+        human: the human's answers; one whose role, place and question are a
+            query's answers it.
+    """
+    out = []
+    for role in sorted(given):
+        for at, answer in sorted(given[role].items()):
+            if answer.owes_change and _in_matter(at):
+                out.append(_approval(role, at, answer.name, answer.reason))
+    return _unanswered(out, human)
+
+
+def corrections_in_rulings(
+    rulings: list[Disposition], human: tuple[HumanAnswer, ...]
+) -> list[HumanQuery]:
+    """Every chief's `recast` of an `f` place, not yet answered.
+
+    A `taken_in` sets a role's text, or keeps the original; a role's text at
+    an `f` place asked when the role proposed it.
+    """
+    out = [
+        _approval(CHIEF, ruling.address, ruling.name, ruling.reason)
+        for ruling in rulings
+        if isinstance(ruling, RecastRuling) and _in_matter(ruling.address)
+    ]
+    return _unanswered(out, human)
+
+
+def _approval(role: str, at: str, name: str, reason: str) -> HumanQuery:
+    """The question that puts one change to the file's matter to the human."""
+    return HumanQuery(role, at, f"approve this {name} to the file's matter: {reason}")
+
+
+def _unanswered(
+    queries: list[HumanQuery], human: tuple[HumanAnswer, ...]
+) -> list[HumanQuery]:
+    """`queries` less those an answer's role, place and question answer."""
+    given = {(one.role, one.at, one.question) for one in human}
+    return [q for q in queries if (q.role, q.at, q.question) not in given]
 
 
 def queries_in_answers(given: dict[str, dict[str, Answer]]) -> list[HumanQuery]:

@@ -41,6 +41,7 @@ from comment_review.desk.evaluate.move import moves_in
 from comment_review.desk.proof.answer import Answer, Question
 from comment_review.desk.proof.disposition import (
     CHIEF,
+    Disposition,
     RecastRuling,
     read_disposition,
 )
@@ -57,6 +58,8 @@ from comment_review.flows.human import (
     HumanAnswer,
     HumanQuery,
     answered,
+    corrections_in_answers,
+    corrections_in_rulings,
     corrections_to_matter,
     queries_in_answers,
     queries_in_copies,
@@ -145,10 +148,13 @@ class DispositionsWritten(NamedTuple):
         dispositions: one ruling per place still carried forward, as the
             chief wrote them. A place left unruled is refused by name, and a
             ruling at a place nothing carries forward is refused too.
+        human: the human's answers file, read -- a `recast` of an `f` place
+            waits on the human's approval as a mark there does.
     """
 
     proof: MasterProof
     dispositions: list
+    human: tuple[HumanAnswer, ...] = ()
 
 
 class Result(NamedTuple):
@@ -590,6 +596,7 @@ def _on_answers(message: AnswersReturned) -> tuple[list, Result | None]:
         problems += why
         given[role] = answers
     asks = _asks(queries_in_answers(given), message.human)
+    asks += _asks(corrections_in_answers(given, message.human), ())
     if problems or asks:
         return _rolled_back(problems, asks)
     for role, answers in given.items():
@@ -634,7 +641,8 @@ def _on_dispositions(message: DispositionsWritten) -> tuple[list, Result | None]
     recast whose prose is the settled text changes nothing and is refused. A
     ruling at a place that rides to the human, or that waits on its move, is
     refused as well. Which states each ruling closes is its row's `closes`,
-    in `desk.dispositions.table`.
+    in `desk.dispositions.table`. A recast of an `f` place the human has not
+    approved rolls the message back as one `AsksTheHuman`.
 
     A placement ruling agrees or withdraws its move, and an end that then
     needs words is carried forward in what this commits, for the chief to
@@ -648,6 +656,7 @@ def _on_dispositions(message: DispositionsWritten) -> tuple[list, Result | None]
     problems: list[Problem] = []
     # A place's address and a move's key never coincide, so one set holds both.
     ruled: set[str] = set()
+    applied: list[Disposition] = []
     for i, entry in enumerate(message.dispositions, 1):
         named = str(entry.get("address") or "") if isinstance(entry, dict) else ""
         where = named or f"ruling {i}"
@@ -707,6 +716,7 @@ def _on_dispositions(message: DispositionsWritten) -> tuple[list, Result | None]
             )
             continue
         place.disposition = disposition
+        applied.append(disposition)
     for key in sorted(moves):
         move = moves[key]
         if is_open(move) and move.disposition is None:
@@ -728,8 +738,9 @@ def _on_dispositions(message: DispositionsWritten) -> tuple[list, Result | None]
                     f"{', '.join(asked(place))}",
                 )
             )
-    if problems:
-        return _rolled_back(problems)
+    asks = _asks(corrections_in_rulings(applied, message.human), ())
+    if problems or asks:
+        return _rolled_back(problems, asks)
     return _commit(message.proof, places, moves, turn_of(message.proof))
 
 
