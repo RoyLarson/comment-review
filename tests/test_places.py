@@ -5,6 +5,7 @@ from helpers import (
     a_binder_over,
     a_clean,
     a_correct,
+    a_correct_setting,
     a_move,
     a_real_binder_over,
     copies_over,
@@ -12,6 +13,7 @@ from helpers import (
     seed,
 )
 
+from comment_review.desk import report as events
 from comment_review.desk.evaluate.move import _is_this_move, moves_in
 from comment_review.desk.marks.table import Row, chief_mark
 from comment_review.desk.proof.mark import (
@@ -22,11 +24,13 @@ from comment_review.desk.proof.mark import (
 from comment_review.desk.proof.place import Place
 from comment_review.desk.proof.sheet import Sheet
 from comment_review.desk.proof.state import State
+from comment_review.desk.work.fold import Fold
 from comment_review.flows.fill import composition_problems, fill, row_problems
 from comment_review.flows.on_the_page import Held
 from comment_review.flows.places import bases_and_anchors, chief_copy_of, places_of
 from comment_review.flows.transcribe import _touched_by_page
 from comment_review.flows.verify import resolution_problems
+from comment_review.reading.diagnostics import ReadFailure
 
 BASE = "# one\n# two\n# three\n"
 
@@ -82,6 +86,50 @@ def test_readers_are_every_role_whose_copy_holds_a_sheet_for_the_page():
     copies = [returned(w) for w in wire]
     places = places_of(copies, _binder_bases(binder), {})
     assert places["m.py@b1"].readers == ("block-context", "function-context")
+
+
+def _folded_with_anchors(anchors: dict[str, str], order: list[str]) -> Fold:
+    """Two roles' differing corrects at `m.py@b1`, each carrying `anchors[role]`,
+    handed to the places in `order` and folded."""
+    binder = a_binder_over({"m.py@b1": BASE})
+    marks = {
+        "block-context": a_correct_setting("m.py@b1", "two", "# one\n# 2\n# three\n"),
+        "function-context": a_correct_setting("m.py@b1", "three", "# one\n# 3\n"),
+    }
+    wire = copies_over(
+        binder,
+        {role: {"m.py@b1": {**marks[role], "anchor": anchors[role]}} for role in order},
+    )
+    copies = [returned(w) for w in wire]
+    held = bases_and_anchors(copies, lambda address: Held(BASE, "x = 1"))
+    assert not isinstance(held, ReadFailure), held
+    bases, anchors_held = held
+    return Fold(places_of(copies, bases, anchors_held)).run()
+
+
+ROLES = ["block-context", "function-context"]
+
+
+def test_differing_anchors_at_one_place_are_refused_by_role_and_address():
+    anchors = {"block-context": "x = 1", "function-context": "y = 2"}
+    for order in (ROLES, ROLES[::-1]):
+        fold = _folded_with_anchors(anchors, order)
+        assert not fold.committed
+        refused = [one for one in fold.events if isinstance(one, events.Refused)]
+        assert [(one.role, one.address) for one in refused] == [
+            ("block-context", "m.py@b1"),
+            ("function-context", "m.py@b1"),
+        ]
+        for one in refused:
+            assert "'x = 1'" in one.reasons[0] and "'y = 2'" in one.reasons[0]
+
+
+def test_identical_anchors_with_differing_edits_still_fold():
+    anchors = {"block-context": "x = 1", "function-context": "x = 1"}
+    for order in (ROLES, ROLES[::-1]):
+        fold = _folded_with_anchors(anchors, order)
+        assert fold.committed, fold.events
+        assert fold.decided["m.py@b1"].anchor == "x = 1"
 
 
 def test_chief_copy_of_synthesizes_a_correct_for_a_decided_place():

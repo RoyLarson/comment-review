@@ -31,7 +31,10 @@ def bases_and_anchors(
     one the role returned: the write end checks an alteration's anchor
     against the page's and refuses one that differs (`Process: #134`), which
     it can only do while what reaches it is the role's. A move's destination
-    has no mark of its own, so it takes the page's.
+    has no mark of its own, so it takes the page's. Where two marks at one
+    address carry different anchors the one kept here is arbitrary, and the
+    fold refuses that place naming every role's
+    (`desk.evaluate.passes._anchor_reasons`), so no fold commits on it.
 
     Args:
         copies: the roles' returned copies, or the one copy a draft folds.

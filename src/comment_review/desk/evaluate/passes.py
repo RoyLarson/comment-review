@@ -265,6 +265,29 @@ def owed_a_say(
     return tuple(sorted(out))
 
 
+def _anchor_reasons(place: Place) -> list[str]:
+    """One reason per role whose mark at its own address disagrees on the anchor.
+
+    A place carries one anchor, and the write end checks it against the page's
+    (`decision-log.md Process: #134`). Where the marks filed at their own
+    address carry different anchors, keeping any one of them discards the
+    rest unchecked, so every role holding one is refused, each reason naming
+    every role's anchor. A move filed at its destination is not counted: its
+    anchor is its origin's.
+    """
+    own = sorted(
+        (one for one in place.filed if one.mark.address == place.address),
+        key=lambda one: (one.role, one.mark.anchor),
+    )
+    if len({one.mark.anchor for one in own}) < 2:
+        return []
+    held = ", ".join(dict.fromkeys(f"{one.role} {one.mark.anchor!r}" for one in own))
+    return [
+        f"{role}: the marks at {place.address} carry differing anchors -- {held}"
+        for role in dict.fromkeys(one.role for one in own)
+    ]
+
+
 def marks_pass(place: Place) -> Place:
     """The place's state from the marks filed there, and what to advise on them.
 
@@ -284,7 +307,7 @@ def marks_pass(place: Place) -> Place:
             one.mark, one.touch, place.base
         )
     )
-    reasons = []
+    reasons = _anchor_reasons(place)
     for one in place.filed:
         row = INSTRUCTIONS[one.mark.instruction]
         if row.pairs(one.mark) is Stance.UNSETTLABLE:
