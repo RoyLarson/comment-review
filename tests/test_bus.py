@@ -919,6 +919,24 @@ def test_a_hold_and_a_withdraw_settle_the_place_where_nobody_else_read_it(tmp_pa
     assert result.batch is None
 
 
+def test_two_patches_at_one_slot_compose_onto_the_proof(tmp_path):
+    """`decision-log.md Process: #308`: block-context mends two sentences of
+    its own side in two answers; function-context withdraws, and the place
+    settles on block-context's side carrying both mends."""
+    collated = _collated(tmp_path, JUST_THE_TWO)
+    answers = {
+        "block-context": [
+            _answer(PLACE, "patch", "first", change="# ONE\n# TWO\n# three"),
+            _answer(PLACE, "patch", "third", change="# one\n# TWO\n# THREE"),
+        ],
+        "function-context": [_answer(PLACE, "withdraw", "theirs is better")],
+    }
+    out, result = handle(AnswersReturned(collated.proof, answers, tmp_path / "repo"))
+    assert result is not None, out
+    assert events.Settled(PLACE, "# ONE\n# TWO\n# THREE") in out
+    assert _state_at(result.proof, PLACE) == "stands"
+
+
 def test_a_recast_at_a_still_contested_place_puts_the_chiefs_prose_on_its_copy(
     tmp_path,
 ):

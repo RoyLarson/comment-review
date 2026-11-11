@@ -561,7 +561,12 @@ def _on_answers(message: AnswersReturned) -> tuple[list, Result | None]:
     cache: Cache = {}
     for role in sorted(roles | set(message.answers)):
         sent = {
-            address: {"question": str(place.question), "anchor": place.anchor}
+            address: {
+                "question": str(place.question),
+                "anchor": place.anchor,
+                "raw_text": place.text if place.text is not None else place.base,
+                "sides": dict(place.sides),
+            }
             for address, place in carried.items()
             if role in asked(place)
         }
