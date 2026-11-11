@@ -6702,3 +6702,35 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   **What it settles.** At one slot, only rewrites compose and only repeats with one claim
   collapse. Any other pair of answers is refused by role and address. #308's three cases are
   examples of the rule, not its whole list.
+
+- **#310.** **The copy chief may recast a settled place to follow the style sheet** (Roy,
+  2026-11-10, on `role-rule-register` T8, shown that the chief cannot rule a place the roles
+  settled, so #302's sweep could not touch most of the text; offered (a) sweep only the places the
+  chief already rules, (b) let the chief recast a settled place for style alone, its reason naming
+  the style-sheet entry, or (c) report the sweep's findings to the author at stage 7a):
+
+  *"b"*
+
+  **What it settles.** `disposition` admits a `recast` at a place the roles settled. Its reason
+  names the style-sheet entry it follows. A `taken_in` at a settled place is still refused.
+
+- **#311.** **Stage 1 records where the repo keeps code concerns** (Roy, 2026-11-10, on
+  `agents-files-name-the-new-cli` T50, after an outside run on a repo that files code concerns on
+  a board and forbids `TODO:` comments; offered that stage 1 records where code concerns go,
+  asking the author where the repo does not say, and that a concern bound for a board is reported
+  to the author at stage 7a instead of added as a comment):
+
+  *"agree"*
+
+  **What it settles.** The `add a TODO` answer files a `TODO:` comment only where the repo keeps
+  its code concerns in comments. Where it keeps them elsewhere, the concern is reported at stage
+  7a for the author to file.
+
+- **#312.** **The interpreter task is dropped** (Roy, 2026-11-10, asked what failure
+  `agents-files-name-the-new-cli` T51 -- run every stage under the interpreter `gather` ran
+  under -- was filed against, since the outside run's review records none):
+
+  *"no but it was probably <V1.0 so not a concern anymore anyways. This program barely looks
+  like the one that started it"*
+
+  **What it settles.** T51 is superseded; nothing in the current CLI is known to need it.

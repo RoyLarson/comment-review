@@ -355,7 +355,7 @@ Each ruling is one of two answers:
 | answer | use it when | it carries |
 |---|---|---|
 | `taken_in` | one side is right | `side`: the role whose text stands, or `original` to keep the paragraph as it was |
-| `recast` | you write the paragraph yourself | `prose`: your paragraph, as raw text |
+| `recast` | you write the paragraph yourself | `prose`: your paragraph, as raw text; empty `prose` drops the paragraph whole |
 
 A `correct` outranks any number of `clean`s. Where two placements name different destinations,
 `ownership-context`'s governs. Verify every clause you keep: each path it cites is tracked,
