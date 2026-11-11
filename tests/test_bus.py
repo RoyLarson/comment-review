@@ -1778,25 +1778,22 @@ def test_the_chief_copy_keeps_an_arrival_on_an_ungathered_page(tmp_path):
     assert again == result.chief
 
 
-def test_extra_destination_retains_the_acquired_snapshot(tmp_path):
+def test_extra_destination_records_the_page_it_read(tmp_path):
+    """The proof keeps the sha, reading and base of the ungathered page the
+    move lands in, as that page read when the collate ran."""
+    from comment_review.flows.page_for import page_of
+
     message = _moved_into_n(tmp_path, "# seven\n# eight\n# two")
+    page = page_of(message.root / "n.py", rel="n.py")
+    assert isinstance(page, Page)
     out, result = handle(message)
     assert result is not None, _refusals(out)
-    held = result.page_snapshots["n.py"]
-    from comment_review.machine.repo import Source
-
-    assert isinstance(held.result, Page)
-    assert isinstance(held.source, Source)
-    assert held.context == held.result.reading
-    assert held.source.sha == held.result.sha == result.proof.page_shas["n.py"]
-    assert result.proof.page_readings["n.py"] is held.context
+    assert result.proof.page_shas["n.py"] == page.sha
+    assert result.proof.page_readings["n.py"] == page.reading
     destination = next(p for p in result.proof.places if p.address == "n.py@b1")
     assert destination.base == next(
-        p.raw_text for p in held.result.paragraphs if p.address == "n.py@b1"
+        p.raw_text for p in page.paragraphs if p.address == "n.py@b1"
     )
-    original = held.source.text
-    (message.root / "n.py").write_text("# replacement\nv1 = 1\n")
-    assert held.source.text == original
 
 
 @pytest.mark.parametrize("marked", [False, True])
@@ -1946,41 +1943,6 @@ def test_missing_both_destination_records_refuses_before_saved_work(
     assert (message.root / "n.py").read_bytes() == source
 
 
-@pytest.mark.parametrize("change", ["context", "source"])
-def test_extra_destination_capture_survives_incompatible_reuse(tmp_path, change):
-    from dataclasses import replace
-
-    from comment_review.flows.on_the_page import page_named
-    from comment_review.flows.source import source_of
-    from comment_review.reading.diagnostics import ReadFailure
-
-    message = _moved_into_n(tmp_path, "# seven\n# eight\n# two")
-    out, result = handle(message)
-    assert result is not None, _refusals(out)
-    held = result.page_snapshots["n.py"]
-    original = held.context
-    assert original is not None
-    requested = original
-    source = None
-    if change == "context":
-        requested = replace(original, settings=(("changed", "yes"),))
-    else:
-        (message.root / "n.py").write_text("# replacement\nv1 = 1\n")
-        source = source_of(message.root / "n.py")
-        assert not isinstance(source, ReadFailure)
-    _, refused = page_named(
-        "n.py",
-        [],
-        message.root,
-        result.page_snapshots,
-        reading_context=requested,
-        source=source,
-    )
-    assert isinstance(refused, ReadFailure)
-    assert result.page_snapshots["n.py"] is held
-    assert held.context is original
-
-
 def test_extra_destination_with_missing_captured_context_refuses(tmp_path, monkeypatch):
     from dataclasses import replace
 
@@ -2037,11 +1999,7 @@ def test_destination_context_is_captured_before_installed_rules_change(
     out, result = handle(message)
     assert result is not None, _refusals(out)
     assert reads.count("n.py") == 1
-    held = result.page_snapshots["n.py"]
-    assert held.context == captured[0]
-    _, refused = on_the_page.page_named("n.py", [], message.root, result.page_snapshots)
-    assert isinstance(refused, ReadFailure)
-    assert result.page_snapshots["n.py"] is held
+    assert result.proof.page_readings["n.py"] == captured[0]
 
 
 def test_an_add_over_prose_in_an_ungathered_file_that_drops_a_word_is_refused(

@@ -159,14 +159,11 @@ class Result(NamedTuple):
         chief: the copy chief's own edit_copy, one mark per decided place.
         batch: role -> the slots a turn asks it about, or None where the
             fold carried nothing forward.
-        page_snapshots: the pages the collate handler read beyond the copies'
-            own sheets, by path; empty after a turn or a disposition.
     """
 
     proof: MasterProof
     chief: EditCopy | None
     batch: dict | None
-    page_snapshots: PageCache
 
 
 def handle(message) -> tuple[list, Result | None]:
@@ -361,7 +358,7 @@ def _on_copies(message: CopiesReturned) -> tuple[list, Result | None]:
         proof.page_readings,
         proof.page_shas,
     )
-    return out, Result(proof, chief, _batch_or_none(fold, read_from), snapshots)
+    return out, Result(proof, chief, _batch_or_none(fold, read_from))
 
 
 def _root_problems(copies: list[EditCopy]) -> list[Problem]:
@@ -806,7 +803,7 @@ def _commit(
         proof.page_readings,
         proof.page_shas,
     )
-    return out, Result(next_proof, chief, _batch_or_none(fold, proof.read_from), {})
+    return out, Result(next_proof, chief, _batch_or_none(fold, proof.read_from))
 
 
 def _undecided(fold: Fold) -> list[Move]:
