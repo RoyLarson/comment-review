@@ -93,7 +93,7 @@ system has a different problem with each.
 
 | publishing's word | what it names there | ours |
 | --- | --- | --- |
-| **collating** | transferring every hand's marks onto ONE proof. Where two marks conflict, both go down and the conflict is left visible. It decides nothing | ruled 2026-08-23 (`decision-log.md Vocabulary: #11`), and built 2026-09-18 as `flows.places.places_of` with the fold over the places it builds. The 2026-08-23 row said `collator.py` and *"still to be built"*; `desk/collator.py` keeps the source-verification and drift half alone, and its name is the open half of that ruling |
+| **collating** | transferring every hand's marks onto ONE proof. Where two marks conflict, both go down and the conflict is left visible. It decides nothing | ruled 2026-08-23 (`decision-log.md Vocabulary: #11`), and built 2026-09-18 as `flows.places.places_of` with the fold over the places it builds. The 2026-08-23 row said `collator.py` and *"still to be built"*; `desk/collator.py` keeps the source-verification half alone, and its name is the open half of that ruling |
 | **master proof** | the single copy every mark has been collated onto, and the one the house then works from | **`master_proof`**, ruled 2026-08-29 (`decision-log.md Vocabulary: #28`). It is what `verdicts.py` printed before that module left for `prototype/` |
 | **editor** | who reads the master proof and decides what stands | **the COPY CHIEF**, ruled 2026-08-23. Stage 5 APPLY, performed by the task agent today and getting an agent file of its own |
 
@@ -168,7 +168,9 @@ sets:
 - **`touch`** -- which of the places a mark writes is being asked about: `own`, `origin`,
   `destination`. A `move` touches two; every other instruction touches one, its own.
 - **`stance`** -- how a mark stands toward the other marks at its place: `proposes` (a change is
-  on the table), `abstains` (nothing to add here), `unsettlable` (a human decides). What the
+  on the table), `abstains` (nothing to add here, and still owed a say), `defers` (a query that
+  hands the place on), `unsettlable` (a question for the human, which stops the round before the
+  fold). What the
   evaluator built on later tasks asks of a row.
 
 Same rule as `copy chief` above: do not add either to `vocabulary.toml` until a role's own text
@@ -431,8 +433,9 @@ SUPERSEDED. All three are ADOPTED rather than held in reserve. None is a `Mark` 
 since no role may give any of them.
 
 **Two of the three are rows of `desk/dispositions/table.py` and the third is not.** `taken in`
-and `recast` are what the chief writes at a place the fold carried forward, and
-`Disposition.deserialize` refuses any other name. `stet` has no row: it is what the console
+is what the chief writes at a place the fold carried forward, `recast` at a carried-forward
+place or at one the roles settled (`Process: #310`), and
+`desk.proof.disposition.read_disposition` refuses any other name. `stet` has no row: it is what the console
 prints for a place the fold settled on its own, which is the program setting it on the chief's
 behalf, and a `stet` the chief writes waits on
 [`TODO/no-mark-for-let-it-stand.md`](../TODO/no-mark-for-let-it-stand.md). The chief-only object
@@ -443,7 +446,7 @@ that carried all three answers, `Determined`, went with the old middle on 2026-0
 | --- | --- | --- |
 | **`stet`** | *let this stand.* The roles agreed, on a turn or at once, and the chief lets what they agreed on stand. The program sets this one on the chief's behalf | the **copy chief**, and no one else |
 | **`taken in`** | they never agreed; at max turns the chief takes one side's text into the page. The original author is a side, so the original is a `taken in` too. *Taking in corrections* is the compositor's own phrase for making the marked changes on a proof | the **copy chief** at max turns; the compositor, mechanically, about every mark that reaches the text |
-| **`recast`** | they never agreed; the chief writes its own prose over every side. The trade's word for rewriting a passage in a different form | the **copy chief**, and no one else |
+| **`recast`** | the chief writes its own prose over every side -- where the roles never agreed, or at a place they settled, to bring its text into line with the style sheet (`Process: #310`). Empty prose drops the paragraph (`Process: #299`). The trade's word for rewriting a passage in a different form | the **copy chief**, and no one else |
 
 !! **SUPERSEDED 2026-09-04, `Process: #87`, and kept so the change is legible.** The 2026-08-24
 row read `stet` as *"emitted where two roles could not agree, and it points at what stands --
@@ -488,7 +491,8 @@ Vocabulary: #32` and `#33`; `turn` is ADOPTED rather than held in reserve.
 | **`turn`** | one batch-answer-fold: every place carried forward goes out to the roles it is owed to, comes back as answers, and the places are folded again | INSIDE one collate, before any pull. A round may hold several turns |
 
 !! **THE COUNTER IS `turn`, AND THE CAP IS NOT IN THE CODE.** Turn one, turn two; how many are
-allowed is what the task agent is told -- `decision-log.md Process: #78`. `read_from.revise`
+allowed is what the task agent is told -- `decision-log.md Process: #78` -- and one runs by
+default where `collate` composes (`Process: #298`). `read_from.revise`
 numbers pulled trees and is a different count; the two never share a field.
 
 ! **Checked against the register before it was proposed.** Editing workflows say it -- *the
