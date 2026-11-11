@@ -886,6 +886,28 @@ def slot_of(key: str, fields: dict) -> dict:
     return {"address": key, **fields}
 
 
+def page_source(address: str) -> list[dict[str, str]]:
+    """The source a `clean`, `patch` or `correct` with no evidence of its own cites.
+
+    Each owes one (`decision-log.md Process: #288`, `#306`), and the first
+    line of the page the place is on is one the tree holds.
+
+    Args:
+        address: a place on one of the four fixture pages.
+
+    Returns:
+        One `{cite, verbatim}` naming that page's first line.
+    """
+    page = address.partition("@")[0]
+    text = {
+        "fib.py": FIXTURE,
+        "rate.py": RATE_FIXTURE,
+        "store.py": STORE_FIXTURE,
+        "tally.py": TALLY_FIXTURE,
+    }[page]
+    return [{"cite": f"{page}:1", "verbatim": text.splitlines()[0]}]
+
+
 #: Each role's answers to the batch `collate` sends for the turn, keyed by
 #: address -- or by move, `origin -> destination`, for a placement -- and
 #: holding only the fields the role fills; `turn` lays them over the place or
@@ -928,6 +950,7 @@ ANSWERS: dict[str, dict[str, dict]] = {
         "fib.py@c1": {
             "instruction": "correct",
             "reason": "the counter counts calls, and entry says less than that",
+            "sources": page_source("fib.py@c1"),
             "change": LANDINGS["fib.py@c1"].text,
         },
         "fib.py@b9": {
@@ -998,6 +1021,7 @@ ANSWERS: dict[str, dict[str, dict]] = {
         "fib.py@c1": {
             "instruction": "patch",
             "reason": "every call reads closer to what wrapper increments on",
+            "sources": page_source("fib.py@c1"),
             "change": LANDINGS["fib.py@c1"].text,
         },
         "fib.py@a3": {
@@ -1018,6 +1042,7 @@ ANSWERS: dict[str, dict[str, dict]] = {
                 "to": "was put to the cache",
             },
             "reason": "put to reads more plainly than asked of",
+            "sources": page_source("rate.py@b1"),
             "change": LANDINGS["rate.py@b1"].text,
         },
         # The agreed move's placement, which this role agrees to, so the move
@@ -1044,6 +1069,7 @@ ANSWERS: dict[str, dict[str, dict]] = {
             "instruction": "patch",
             "claim": {"from": "matching fn's own", "to": "in step with fn's own"},
             "reason": "in step with reads more plainly than matching",
+            "sources": page_source("fib.py@c3"),
             "change": "  # keeps wrapper's name and doc in step with fn's own",
         },
         "rate.py@b1": {
@@ -1150,6 +1176,7 @@ ANSWERS2: dict[str, dict[str, dict]] = {
             "instruction": "correct",
             "claim": {"false": "logged watches", "true": "logged records"},
             "reason": "records is what the counter does; watches says nothing is kept",
+            "sources": page_source("fib.py@b9"),
             "change": (
                 "# The cache sits inside the decorator stack on purpose:"
                 " logged records\n"
@@ -1171,6 +1198,7 @@ ANSWERS2: dict[str, dict[str, dict]] = {
         "store.py@b8": {
             "instruction": "clean",
             "reason": "the paragraph reads correctly where the move puts it",
+            "sources": page_source("store.py@b8"),
         },
     },
     "module-context": {
@@ -1178,6 +1206,7 @@ ANSWERS2: dict[str, dict[str, dict]] = {
             "instruction": "correct",
             "claim": {"false": "every call", "true": "each call"},
             "reason": "each call is one call at a time, which is what the counter adds",
+            "sources": page_source("fib.py@c1"),
             "change": "  # each call, cached or not",
         },
         "fib.py@b8": {
@@ -1199,6 +1228,7 @@ ANSWERS2: dict[str, dict[str, dict]] = {
         "store.py@b8": {
             "instruction": "clean",
             "reason": "what total counts reads as the declaration's own note",
+            "sources": page_source("store.py@b8"),
         },
         "tally.py@b1 -> tally.py@b3": {
             "instruction": "agree",
@@ -1209,15 +1239,18 @@ ANSWERS2: dict[str, dict[str, dict]] = {
         "fib.py@c1": {
             "instruction": "clean",
             "reason": "the two roles' wording says what the counter counts",
+            "sources": page_source("fib.py@c1"),
         },
         "fib.py@b9": {
             "instruction": "clean",
             "reason": "the paragraph reads as one, whichever verb it takes",
+            "sources": page_source("fib.py@b9"),
         },
         "fib.py@a3": {
             "instruction": "patch",
             "claim": {"from": "beginning at", "to": "counted from"},
             "reason": "counted from is the phrase the module docstring uses",
+            "sources": page_source("fib.py@a3"),
             "change": '    """The nth Fibonacci number, counted from fib(0) = 0."""',
         },
         "fib.py@b8": {
@@ -1231,6 +1264,7 @@ ANSWERS2: dict[str, dict[str, dict]] = {
         "store.py@b8": {
             "instruction": "clean",
             "reason": "the paragraph sits above the declaration it is about",
+            "sources": page_source("store.py@b8"),
         },
     },
 }
@@ -1500,7 +1534,12 @@ def answers_for(role: str) -> list[dict]:
     given = ANSWERS.get(role, {})
     answers = [slot_of(key, fields) for key, fields in given.items()]
     return answers + [
-        {"address": address, "instruction": "clean", "reason": CLEAN_REASON}
+        {
+            "address": address,
+            "instruction": "clean",
+            "reason": CLEAN_REASON,
+            "sources": page_source(address),
+        }
         for address, proposer in PROPOSED.items()
         if address not in given and role != proposer
     ]
@@ -1659,7 +1698,12 @@ REPLACED_MARKS: dict[str, tuple[dict, ...]] = {
             },
         },
     ),
-    "store.py@b5": ({"address": "store.py@b5", "flags": {"--instruction": "clean"}},),
+    "store.py@b5": (
+        {
+            "address": "store.py@b5",
+            "flags": {"--instruction": "clean", "--cite": "store.py:1"},
+        },
+    ),
 }
 
 #: And what it answers in place of the query it gave in the first turn: the
@@ -1669,6 +1713,7 @@ REPLACED_ANSWERS: dict[str, dict[str, dict]] = {
         "fib.py@b15": {
             "instruction": "clean",
             "reason": "the author wants the note, and it says what running prints",
+            "sources": page_source("fib.py@b15"),
         },
     },
 }
@@ -2148,13 +2193,15 @@ WRAP_DROP = " nothing\n    # was asked of the cache."
 
 #: What `proof --copy` drafts of `rate.py` from a fresh ownership-context copy
 #: holding that one drop and nothing else, written out by hand from
-#: `RATE_FIXTURE`: the paragraph rewrapped to 42 columns, under its own
-#: indent and marker, and every other line as the fixture has it.
+#: `RATE_FIXTURE`: the two lines the clause stood on set again to 42 columns,
+#: under their own indent and marker, and every other line as the fixture has
+#: it. The short second line is what re-setting only those lines leaves;
+#: `p5-self-run-findings` T2 is the rewrap that would fill it.
 WRAP_RATE_DRAFT = (
     "def rate(hits, total):\n"
     "    # Zero calls give a zero rate: The\n"
-    "    # rate is hits over total, never above\n"
-    "    # one.\n"
+    "    # rate is\n"
+    "    # hits over total, never above one.\n"
     "    if total == 0:\n"
     "        return 0.0\n"
     "    return hits / total  # share of calls the cache answered\n"
@@ -2819,6 +2866,12 @@ def write_ungathered_plant(copy: Path, root: Path) -> Path:
                     }
                 )
             else:
-                slot.update({"instruction": "clean", "reason": CLEAN_REASON})
+                slot.update(
+                    {
+                        "instruction": "clean",
+                        "reason": CLEAN_REASON,
+                        "sources": page_source(slot["address"]),
+                    }
+                )
     copy.write_text(json.dumps(held, indent=2), encoding="utf-8", newline="\n")
     return copy
