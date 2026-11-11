@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 5 of 26 tasks closed
+Progress: 6 of 26 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, a code review of `flows/collate.py` on the collate-
@@ -190,8 +190,9 @@ eight acts while `Collated` has eight attributes, so the two it omits -- `unrule
 - [ ] T17 | Publish the complete chief resolution at close, including arrivals
       outside gathered pages
         > 2026-09-30 Criteria: docs/reviews/2026-09-30-r6-r7-r8.md, item 1
-- [ ] T18 | Represent a chief resolution over patch-only evidence without
-      writing an unreadable correct
+- [-] T18 | SUPERSEDED by #304: every patch cites, the correct inherits | c042a9ce | Represent
+      a chief resolution over patch-only evidence without writing an unreadable
+      correct
         > 2026-09-30 Criteria: docs/reviews/2026-09-30-r6-r7-r8.md, item 2
 - [ ] T19 | Represent a chief arrival without a populated anchor without writing
       an unreadable add
