@@ -6675,3 +6675,17 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   **What it settles.** A mark `chief_mark` synthesizes carries the disposition's reason in place
   of the generic one. A role's mark the chief adopts unchanged keeps the role's reason, and the
   chief's reason for adopting it is the one the proof's place records.
+
+- **#308.** **A role may answer one slot more than once, and the answers compose** (Roy,
+  2026-11-10, on `collate-flow-defects` T21, after objecting that refusing a second answer at a
+  slot would stop a role correcting two different sentences; offered (a) several answers at one
+  slot, each naming its own sentence and sources, composed against the slot's text as marks at
+  one place are, refusing only answers that contradict, or (b) one answer per slot carrying one
+  claim per sentence, a second answer refused):
+
+  *"a"*
+
+  **What it settles.** A slot takes several answers from one role. Their changes compose against
+  the slot's text by the same merge `collate` uses for marks. The slot is refused, by role and
+  address, only for a contradiction: two rewrites of one sentence that differ, a `clean` beside a
+  rewrite, or `hold` beside `withdraw`. It supersedes T21's refusal of a second answer.
