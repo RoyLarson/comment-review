@@ -133,7 +133,9 @@ def read_answers(text: str, where: str) -> tuple[list[HumanAnswer], list[str]]:
     Returns:
         `(the answers, [])`, or `([], problems)` where the file is not TOML or
         `answer` is not an array of tables, or `(the good ones, problems)` where
-        some sections are not tables or lack a non-blank string field.
+        some sections are not tables, lack a non-blank string field, or answer
+        a role, place and question an earlier section already answers -- the
+        file does not say which of the two stands, so the later one is refused.
     """
     try:
         doc = tomllib.loads(text)
@@ -144,6 +146,7 @@ def read_answers(text: str, where: str) -> tuple[list[HumanAnswer], list[str]]:
         return [], [f"{where}: `answer` must be an array of tables, [[answer]]"]
     out: list[HumanAnswer] = []
     problems: list[str] = []
+    first: dict[tuple[str, str, str], int] = {}
     for i, row in enumerate(rows, 1):
         if not isinstance(row, dict):
             problems.append(f"{where}: answer {i} is not a table")
@@ -158,7 +161,16 @@ def read_answers(text: str, where: str) -> tuple[list[HumanAnswer], list[str]]:
         if missing:
             problems.append(f"{where}: answer {i} needs {', '.join(missing)}")
             continue
-        out.append(HumanAnswer(*(str(checked.get(key)) for key in FIELDS)))
+        answer = HumanAnswer(*(str(checked.get(key)) for key in FIELDS))
+        key = (answer.role, answer.at, answer.question)
+        if key in first:
+            problems.append(
+                f"{where}: answer {i} answers {answer.role} at {answer.at}"
+                f" {answer.question!r}, which answer {first[key]} already answers"
+            )
+            continue
+        first[key] = i
+        out.append(answer)
     return out, problems
 
 
@@ -167,9 +179,14 @@ def answered(
 ) -> list[tuple[HumanQuery, HumanAnswer | None]]:
     """Each query with the human's answer to it, or None where there is none yet.
 
-    A section is the answer to a query where its role and its `at` are the
-    query's; a section for a question no copy still holds is left alone -- it
-    is the record of a question already worked through.
+    A section is the answer to a query where its role, its `at` and its
+    question are the query's, as `corrections_to_matter` matches them: an
+    answer to an earlier question at the same place does not answer a new one.
+    A section for a question no copy still holds is left alone -- it is the
+    record of a question already worked through. `read_answers` refuses two
+    sections for one role, place and question, so each key here has one.
     """
-    by = {(one.role, one.at): one for one in answers}
-    return [(query, by.get((query.role, query.at))) for query in queries]
+    by = {(one.role, one.at, one.question): one for one in answers}
+    return [
+        (query, by.get((query.role, query.at, query.question))) for query in queries
+    ]

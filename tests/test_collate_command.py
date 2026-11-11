@@ -1108,6 +1108,28 @@ class TestAHumanQuestion:
         assert f"{human}: not TOML" in out
         assert not (tmp_path / "chief.json").exists()
 
+    def test_a_human_file_answering_one_question_twice_is_unreadable(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        section = (
+            '[[answer]]\nrole = "block-context"\nat = "m.py@b1"\n'
+            'question = "q"\nanswer = "yes"\n'
+        )
+        human = tmp_path / "human.toml"
+        human.write_text(section + section, encoding="utf-8")
+        code, out = run(
+            tmp_path,
+            self.ASKED,
+            monkeypatch,
+            capsys,
+            "--human",
+            str(human),
+            with_stderr=True,
+        )
+        assert code == command.UNREADABLE, out
+        assert f"{human}: answer 2 answers block-context at m.py@b1 'q'" in out
+        assert not (tmp_path / "chief.json").exists()
+
     def test_a_human_file_that_is_missing_is_unreadable_and_named_once(
         self, tmp_path, monkeypatch, capsys
     ):

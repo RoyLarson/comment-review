@@ -2369,7 +2369,8 @@ class TestAHumanQuestionIsAskedBeforeTheFold:
 
     def test_an_answered_query_still_rolls_back_and_carries_the_answer(self, tmp_path):
         binder, root, copies = _with_a_human_query(tmp_path)
-        human = (HumanAnswer("block-context", "m.py@b1", "q", "Keep it."),)
+        asked = a_query("m.py@b1", Shape.HUMAN_REVIEW_NECESSARY)["reason"]
+        human = (HumanAnswer("block-context", "m.py@b1", asked, "Keep it."),)
         out, result = handle(CopiesReturned("4c", copies, binder, root, None, human))
         assert result is None
         (ask,) = [e for e in out if isinstance(e, events.AsksTheHuman)]

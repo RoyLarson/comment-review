@@ -139,6 +139,50 @@ def test_each_query_is_paired_with_its_own_roles_answer():
     ]
 
 
+def test_an_answer_to_another_question_at_the_place_leaves_the_query_open():
+    """An answer settles the query whose role, place and question it names; one
+    recorded for an earlier question there answers nothing new."""
+    queries = [HumanQuery("block-context", "m.py@b1", "the new question")]
+    answers = [HumanAnswer("block-context", "m.py@b1", "the old question", "old")]
+    assert answered(queries, answers) == [(queries[0], None)]
+
+
+def test_answers_to_distinct_questions_at_one_place_each_find_their_query():
+    queries = [
+        HumanQuery("block-context", "m.py@b1", "q1"),
+        HumanQuery("block-context", "m.py@b1", "q2"),
+    ]
+    answers = [
+        HumanAnswer("block-context", "m.py@b1", "q2", "a2"),
+        HumanAnswer("block-context", "m.py@b1", "q1", "a1"),
+    ]
+    got = answered(queries, answers)
+    assert [(q.question, a.answer if a else None) for q, a in got] == [
+        ("q1", "a1"),
+        ("q2", "a2"),
+    ]
+
+
+def _section(question, answer):
+    return (
+        f'[[answer]]\nrole = "block-context"\nat = "m.py@b1"\n'
+        f'question = "{question}"\nanswer = "{answer}"\n'
+    )
+
+
+def test_two_answers_to_one_question_are_refused_by_name():
+    text = _section("q", "yes") + _section("q", "no") + _section("other", "x")
+    got, why = read_answers(text, "human.toml")
+    assert why == [
+        "human.toml: answer 2 answers block-context at m.py@b1 'q',"
+        " which answer 1 already answers"
+    ]
+    assert got == [
+        HumanAnswer("block-context", "m.py@b1", "q", "yes"),
+        HumanAnswer("block-context", "m.py@b1", "other", "x"),
+    ]
+
+
 def test_a_move_into_the_matter_is_put_to_the_human_until_answered():
     """`decision-log.md Process: #274`, `#289`."""
     binder = a_binder_over({"m.py@b1": "# one", "m.py@b2": "# two"})
