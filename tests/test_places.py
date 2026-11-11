@@ -23,6 +23,7 @@ from comment_review.desk.proof.mark import (
     CorrectMark,
     DropMark,
     Touch,
+    read_mark,
 )
 from comment_review.desk.proof.place import Place
 from comment_review.desk.proof.sheet import Sheet
@@ -141,35 +142,61 @@ def test_chief_mark_refuses_an_arrival_with_no_anchor_to_name():
         chief_mark(place)
 
 
-def _recast_with_no_anchor(prose: str = "# c\n", reason: str = "neither") -> dict:
-    """Two roles' adds at an empty place whose marks carry no anchor, contested,
-    then recast by the chief: the places, ready to fold again."""
+def _ruled(anchor: str, **ruling) -> dict:
+    """Two roles' adds at an empty place whose marks carry `anchor`, contested,
+    then ruled by the chief: the places, ready to fold again."""
     binder = a_binder_over({"m.py@b1": ""})
     wire = copies_over(
         binder,
         {
-            role: {"m.py@b1": {**an_add("m.py@b1", text), "change": text, "anchor": ""}}
+            role: {
+                "m.py@b1": {**an_add("m.py@b1", text), "change": text, "anchor": anchor}
+            }
             for role, text in (("block-context", "# a"), ("function-context", "# b"))
         },
     )
-    places = places_of([returned(w) for w in wire], {"m.py@b1": ""}, {"m.py@b1": ""})
+    places = places_of(
+        [returned(w) for w in wire], {"m.py@b1": ""}, {"m.py@b1": anchor}
+    )
     first = Fold(places).run()
     assert first.committed, first.events
     assert places["m.py@b1"].state is State.CONTESTED
-    places["m.py@b1"].disposition = a_typed_ruling(
-        address="m.py@b1", name="recast", prose=prose, reason=reason
-    )
+    places["m.py@b1"].disposition = a_typed_ruling(address="m.py@b1", **ruling)
     return places
 
 
 def test_a_recast_at_a_place_with_no_anchor_is_refused_by_the_fold():
     """No filed mark sets the chief's prose, so the chief would have to write
     an add naming an anchor the place does not have."""
-    fold = Fold(_recast_with_no_anchor()).run()
+    fold = Fold(_ruled("", name="recast", prose="# c\n", reason="neither")).run()
     assert not fold.committed
     refused = [one for one in fold.events if isinstance(one, events.Refused)]
     assert [(one.role, one.address) for one in refused] == [("copy-chief", "m.py@b1")]
     assert "anchor" in refused[0].reasons[0]
+
+
+def test_a_mark_the_chief_writes_carries_its_rulings_reason():
+    fold = Fold(
+        _ruled("x = 1", name="recast", prose="# c\n", reason="neither says it")
+    ).run()
+    assert fold.committed, fold.events
+    mark = chief_mark(fold.decided["m.py@b1"])
+    assert mark.reason == "neither says it"
+    read, why = read_mark("m.py@b1", mark.serialize())
+    assert why == [] and read is not None
+    assert read.reason == "neither says it"
+
+
+def test_a_mark_the_chief_takes_in_keeps_the_roles_reason():
+    fold = Fold(
+        _ruled("x = 1", name="taken_in", side="function-context", reason="theirs")
+    ).run()
+    assert fold.committed, fold.events
+    place = fold.decided["m.py@b1"]
+    mark = chief_mark(place)
+    taken = next(one.mark for one in place.filed if one.role == "function-context")
+    assert mark is taken
+    assert mark.reason == taken.reason != "theirs"
 
 
 def test_chief_copy_of_synthesizes_a_correct_for_a_decided_place():

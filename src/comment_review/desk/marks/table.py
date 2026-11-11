@@ -250,8 +250,9 @@ def chief_mark(place: "Place") -> Mark:
         place: a decided place -- `place.text` is not None.
 
     Returns:
-        The taken-in `Mark`, or a synthesized one whose `reason` names the
-        copy chief.
+        The taken-in `Mark`, keeping its role's `reason`, or a synthesized
+        one whose `reason` is the chief's ruling's where the place has one,
+        and otherwise names the copy chief.
 
     Raises:
         ValueError: `place.text` is None -- the caller's contract is a place
@@ -275,7 +276,14 @@ def chief_mark(place: "Place") -> Mark:
         if row.sets(filed.mark, filed.touch, place.base) == place.text:
             return filed.mark
 
-    reason = f"{CHIEF}: decided at this place"
+    # The chief's ruling says why it set this text. A place settled without
+    # one -- a move's end, or a composition the roles accepted -- has no
+    # reason of the chief's to carry.
+    reason = (
+        place.disposition.reason
+        if place.disposition is not None
+        else f"{CHIEF}: decided at this place"
+    )
     # The evidence the filed marks brought, carried onto the synthesized one:
     # every row that owes a change owes sources too, so a mark handed back
     # without them is one the parse refuses -- and the chief read those marks
