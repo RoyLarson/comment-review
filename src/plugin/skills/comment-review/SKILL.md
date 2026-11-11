@@ -383,6 +383,11 @@ python <skill>/scripts/comment-review.py disposition --proof <last proof written
   --dispositions <run-dir>/dispositions.json --out <run-dir>/chief.json --proof-out <run-dir>/final.json
 ```
 
+A `recast` of an `f` place asks the author first: `disposition` exits `5` and prints the
+question. Ask it with `AskUserQuestion`, showing the paragraph and your prose, record the
+answer in `<run-dir>/human.toml` with `role = "copy-chief"`, and run `disposition` again with
+`--human <run-dir>/human.toml`. Where the author refuses, change the ruling.
+
 It names any move or carried-forward place still unruled, and writes when every one has a ruling.
 A placement ruling moves the paragraph or keeps it, and each end is then read as an ordinary
 place; when `disposition` exits `3` or `4`, those ends are carried forward. Rule them from the
