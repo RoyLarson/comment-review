@@ -36,15 +36,21 @@ from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from comment_review import exceptions
 from comment_review.binder.binder import Binder, bind
 from comment_review.binder.page import Page
-from comment_review.concordance.code_names import code_names
+from comment_review.concordance.code_names import (
+    WALKED_TREE_ROW,
+    names_in,
+    no_harvester,
+)
 from comment_review.flows.annotations_for import annotations_for
 from comment_review.flows.page_for import page_of
 from comment_review.flows.read_diagnostics import format_failure
 from comment_review.flows.reading_context import context_for
 from comment_review.flows.source import source_of
 from comment_review.machine.repo import (
+    git_ls_files,
     path_index,
     relative_to,
     tracked_paths,
@@ -210,8 +216,50 @@ def _owner(warning: ReadDiagnostic) -> str:
 
 def _annotations(g: Gathering) -> None:
     """Stage 3, over every paragraph the binder holds."""
-    known, g.unread = code_names([g.repo], tracked_paths(g.repo))
-    annotations_for(g.binder.paragraphs, known, path_index(g.repo), g.repo)
+    # The gather's one `git ls-files`; both indexes are built from it.
+    rels = git_ls_files(g.repo)
+    known, g.unread = _name_corpus(g.repo, tracked_paths(g.repo, rels))
+    annotations_for(g.binder.paragraphs, known, path_index(g.repo, rels), g.repo)
+
+
+def _name_corpus(repo: Path, tracked: set[Path] | None) -> tuple[set[str], list[str]]:
+    """Every name the tree defines, and the rows naming every gap in it.
+
+    A corpus built from raw text contains the comments being checked, so every
+    obituary resolves against itself and the check always passes; the names
+    come from each Python file's AST instead. A file that cannot be read or
+    parsed is a gap row, because a hole in the corpus turns every symbol
+    defined only there into a false obituary.
+
+    ! Tracked files only, when git can say which. A vendored, generated or
+    gitignored tree under the repo root otherwise donates its whole namespace,
+    so a symbol the repo defines nowhere resolves alive. That failure is silent
+    and one-sided: it can hide an obituary, and manufactures none.
+
+    Args:
+        repo: the root to harvest.
+        tracked: absolute paths git reports as tracked, or None when git could
+            not answer -- then the whole tree is walked and a gap row says so.
+
+    Returns:
+        The defined names, and the gap rows: `NO_HARVESTER` rows are known
+        holes, the `WALKED_TREE` row is a caveat about the whole corpus, and
+        any other row is a file that could not be read or parsed.
+    """
+    names: set[str] = set()
+    unread = [WALKED_TREE_ROW] if tracked is None else []
+    for path in walk_files(repo):
+        if tracked is not None and path.resolve() not in tracked:
+            continue
+        gap = no_harvester(path)
+        if gap is not None:
+            unread.append(gap)
+            continue
+        try:
+            names |= names_in(path, path.read_text(encoding="utf-8"))
+        except exceptions.PARSE_ERRORS as e:
+            unread.append(f"{path.as_posix()} ({type(e).__name__})")
+    return names, unread
 
 
 def _bind(g: Gathering) -> None:

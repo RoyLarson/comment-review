@@ -193,7 +193,7 @@ class TestGather:
             raise AssertionError("stage 3 ran past a gap")
 
         monkeypatch.setattr(flow, "annotations_for", not_reached)
-        monkeypatch.setattr(flow, "code_names", not_reached)
+        monkeypatch.setattr(flow, "_name_corpus", not_reached)
         target = tmp_path / "m.py"
         if gap == "unreadable":
             target.write_bytes(b"\xff\xfe" + "x = 1\n".encode("utf-16-le"))

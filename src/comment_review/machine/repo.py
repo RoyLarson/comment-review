@@ -369,15 +369,14 @@ def remove_tree(root: Path, *, ignore_errors: bool = False) -> None:
     shutil.rmtree(root, onerror=clear_and_retry)
 
 
-def tracked_paths(repo: Path) -> set[Path] | None:
-    """`git_ls_files` as resolved absolute paths, for membership tests."""
-    rels = git_ls_files(repo)
+def tracked_paths(repo: Path, rels: list[str] | None) -> set[Path] | None:
+    """`git_ls_files` output as resolved absolute paths, for membership tests."""
     if rels is None:
         return None
     return {(repo / rel).resolve() for rel in rels}
 
 
-def path_index(repo: Path) -> set[str]:
+def path_index(repo: Path, rels: list[str] | None) -> set[str]:
     """Every tracked path, plus every suffix of it, for citation resolution.
 
     Prose cites package-relative (`summary.py`, `billing/rates.py`) far more
@@ -398,7 +397,6 @@ def path_index(repo: Path) -> set[str]:
     out: set[str] = set()
     if not repo.is_dir():
         return out
-    rels = git_ls_files(repo)
     # ! Written out rather than collapsed to `if not rels`. The two states DO
     # take the same fallback here -- an index that tracks nothing indexes the
     # same set as no index at all -- and `git_ls_files` documents None as a

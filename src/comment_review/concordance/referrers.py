@@ -19,7 +19,6 @@ from pathlib import Path
 # clause here holds a tuple literal; `exceptions.py` carries that reason once.
 from comment_review import exceptions
 from comment_review.concordance.names import NAMED_DEFS
-from comment_review.machine.repo import git
 
 
 def tokens_for(path: Path, text: str) -> set[str]:
@@ -55,27 +54,3 @@ def tokens_for(path: Path, text: str) -> set[str]:
             if isinstance(node, NAMED_DEFS) and not node.name.startswith("_"):
                 out.add(node.name)
     return {t for t in out if len(t) > 2}
-
-
-def _grep(repo: Path, token: str) -> tuple[list[str] | None, str]:
-    """Tracked files containing `token` as a fixed string.
-
-    ! `git grep` exits 1 for a genuine ZERO-MATCH search; any other nonzero (a
-    bad pathspec, a corrupt index, a timeout) means the search never completed.
-    Collapsing both into `[]` reads a failed search as "nothing found", so None
-    is a THIRD state here, the same as in `git_ls_files`.
-
-    Returns:
-        `(files, "")` on a completed search -- `files` is `[]` for a real
-        zero-match result. `(None, reason)` when the search itself failed,
-        naming why.
-    """
-    try:
-        got = git(repo, "grep", "-l", "-F", "--", token, timeout=60)
-    except exceptions.GIT_ERRORS as e:
-        return None, type(e).__name__
-    if got.returncode == 0:
-        return got.stdout.splitlines(), ""
-    if got.returncode == 1:
-        return [], ""
-    return None, f"git grep exit {got.returncode}"
