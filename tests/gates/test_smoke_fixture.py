@@ -666,6 +666,7 @@ class TestWriteAnswersWritesWhatTheScriptReads(unittest.TestCase):
                 address: {
                     "instruction": "clean",
                     "reason": smoke_fixture.CLEAN_REASON,
+                    "sources": smoke_fixture.page_source(address),
                 }
                 for address, proposer in smoke_fixture.PROPOSED.items()
                 if address not in given and role != proposer
