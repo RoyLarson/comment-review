@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 7 of 15 tasks closed
+Progress: 10 of 15 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-24 (P2 of refactor/the-boundaries-are-not-real, 2026-08-24)
@@ -31,13 +31,15 @@ The flow lives in the command, not in flows/.
       the same question of verdicts, galley and record
 - [ ] T6 | Update flows/__init__.py's inventory so collate, distribute and
       mark_errors have rows. Verify: every module under flows/ is listed
-- [ ] T7 | Update Gathering so the binder is the one population: bind before
-      annotate, drop paragraphs, both gates ask the binder. Verify: one list
+- [x] T7 | Binder is the one population; Gathering.paragraphs and carried deleted | e2ffd747 | Update
+      Gathering so the binder is the one population: bind before annotate, drop
+      paragraphs, both gates ask the binder. Verify: one list
 - [-] T8 | Replaced by source-reading-contract T6: structured page failure admission | b03adaa8 | Update
       page_of to return (None, reason) for an unparsed page so _pages drops its
       bare except and kind scan. Verify: one call in _pages
-- [ ] T9 | Implement flows.gather.refusal(got) deciding the refusal order once;
-      the command prints it. Verify: gather.py decides no order
+- [-] T9 | Roy 2026-11-10: not needed; the command's two checks already state the order | e2ffd747 | Implement
+      flows.gather.refusal(got) deciding the refusal order once; the command
+      prints it. Verify: gather.py decides no order
 - [ ] T10 | Update _annotations to call git ls-files once and code_names to walk
       the tracked list, not an rglob. Verify: one subprocess per gather
 - [x] T11 | RULED Process 93 -- a step that fails stops the chain there; nothing downstream runs over it | 4545531e | Decide
@@ -45,8 +47,9 @@ The flow lives in the command, not in flows/.
       Verify: the flow matches the ruling
 - [ ] T12 | Update _repeated_literals to run prose_numbers once per paragraph.
       Verify: one pass keeps the pairs
-- [ ] T13 | Update flows.gather so a step that found a gap ends the chain,
-      Process 93. Verify: a refused gather runs no stage 3 in either mode
+- [x] T13 | A step that names a gap is the last that runs; tested both gap kinds | e2ffd747 | Update
+      flows.gather so a step that found a gap ends the chain, Process 93.
+      Verify: a refused gather runs no stage 3 in either mode
 - [ ] T14 | Move `unaddressed_report` and `not_gathered`, the gather command's
       wording, out of `flows/gather.py`
 - [ ] T15 | Delete the module-does-one-job paragraph from the 30 command modules

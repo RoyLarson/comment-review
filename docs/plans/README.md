@@ -20,12 +20,12 @@
 | [0.2.4-the-commands-for-the-middle](0.2.4-the-commands-for-the-middle.md) | closed | 11/11 | 61/61 |
 | [0.2.4-the-listing-goes](0.2.4-the-listing-goes.md) | closed | 7/7 | 4/4 |
 | [0.2.4-the-mark-and-the-collator](0.2.4-the-mark-and-the-collator.md) | closed | 31/31 | 21/21 |
-| [0.2.4-the-middle-rebuilt](0.2.4-the-middle-rebuilt.md) | in-progress | 92/107 | 41/45 |
+| [0.2.4-the-middle-rebuilt](0.2.4-the-middle-rebuilt.md) | in-progress | 95/107 | 41/45 |
 | [0.2.4-the-placement-branch-runs](0.2.4-the-placement-branch-runs.md) | closed | 22/22 | 12/12 |
 | [0.2.4-the-proof-is-one-unit](0.2.4-the-proof-is-one-unit.md) | closed | 15/15 | 15/15 |
 | [0.2.4-the-turn-as-commands](0.2.4-the-turn-as-commands.md) | closed | 14/14 | 10/10 |
 | [0.2.4-the-vocabulary-gate-is-asserted](0.2.4-the-vocabulary-gate-is-asserted.md) | closed | 1/1 | 2/2 |
-| [0.2.4-what-a-reviewer-is-handed](0.2.4-what-a-reviewer-is-handed.md) | in-progress | 18/24 | 4/4 |
+| [0.2.4-what-a-reviewer-is-handed](0.2.4-what-a-reviewer-is-handed.md) | in-progress | 21/24 | 4/4 |
 | [2026-10-11-lexer-python](2026-10-11-lexer-python.md) | closed | 36/36 | 53/53 |
 | [2026-10-11-lexical-read-results](2026-10-11-lexical-read-results.md) | closed | 17/17 | 14/14 |
 | [2026-10-11-lexical-readers](2026-10-11-lexical-readers.md) | closed | 189/189 | 61/61 |
