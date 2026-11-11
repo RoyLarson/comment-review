@@ -246,6 +246,7 @@ task 9 of [`move-is-a-composite-mark`](move-is-a-composite-mark.md).
       returns a container rather than a dict
         > 2026-08-31 measured 2026-08-31: 29 signatures in the middle carry a raw dict
         > 2026-08-31 3 lines in the whole middle construct a container object
+        > 2026-11-10 7532381b: rulings and answers still reach the bus as raw dicts
 - [ ] T27 | Implement the serialize half on each container, so the save step is
       json.dumps over what a container hands out
 - [x] T28 | SUPERSEDED by Process #66 -- a seed is an empty form, so it cannot be the container | df7e0da | Update

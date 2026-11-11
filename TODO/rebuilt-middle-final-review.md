@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 30 of 52 tasks closed
+Progress: 30 of 56 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-09-18 (final whole-branch review of feat/the-middle-rebuilt, 2026-09-18)
@@ -91,6 +91,7 @@ The rebuilt middle's final review.
       commands/collate.py a third (C3)
 - [ ] T28 | Carry the counts and the turn on an event; two commands re-derive
       them from serialized places (C4)
+        > 2026-11-10 7532381b: turn_of at bus.py:509; turn.py, disposition.py redo it
 - [ ] T29 | Make one renderer for a refusal line; it is spelled at seven sites
       (C5)
 - [ ] T30 | Decide what the chief's copy is on a turn; it is built every turn
@@ -160,3 +161,11 @@ The rebuilt middle's final review.
       undecided chief-synthesis input before selecting a filed clean or query
       mark
         > 2026-09-30 Criteria: docs/reviews/2026-09-30-r6-r7-r8.md, item 4
+- [ ] T53 | Build a turn's slot once, as a typed Slot both _batch_of and
+      _on_answers use
+- [ ] T54 | Run pre-fold admission once per collate; reading contexts are
+      checked four times
+- [ ] T55 | Build the first proof through _commit instead of a second copy in
+      _on_copies
+- [ ] T56 | Decide whether Fold._unwritable refuses a place through the chief
+      copy or the docket
