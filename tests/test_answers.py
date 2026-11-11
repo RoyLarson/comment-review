@@ -677,6 +677,22 @@ def test_two_identical_cleans_collapse_to_one_answer(tmp_path):
     assert got["m.py@b1"].name == "clean"
 
 
+def test_two_queries_with_different_claims_are_refused(tmp_path):
+    """`decision-log.md Process: #309`: a repeat collapses only when it says
+    what the first says; two queries naming different shapes contradict."""
+
+    def query(shape):
+        claim = {"shape": shape, "attempted": "read it", "settles": "the author"}
+        return {"instruction": "query", "claim": claim}
+
+    got, problems = _several_at_one_slot(
+        tmp_path, [query("outside-my-role"), query("human-review-necessary")]
+    )
+    assert got == {}
+    assert [(one.role, one.address) for one in problems] == [("b", "m.py@b1")]
+    assert "query" in problems[0].message
+
+
 def test_each_of_several_answers_is_checked_on_its_own(tmp_path):
     """A source that does not resolve refuses the slot even when another
     answer beside it cites one that does."""

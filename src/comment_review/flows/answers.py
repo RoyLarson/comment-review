@@ -213,9 +213,10 @@ def _one_answer(
 
     Rewrites compose against the text the role was asked about: at an
     escalation its own side, which a single rewrite there replaces, and
-    otherwise the slot's `raw_text`. Repeats of one other answer collapse to
-    the first. Anything else -- rewrites whose edits meet, or two different
-    answers beside each other -- is a contradiction, and nothing is answered.
+    otherwise the slot's `raw_text`. Repeats of one other answer with one
+    claim collapse to the first. Anything else -- rewrites whose edits meet,
+    two different answers beside each other, or repeats whose claims differ --
+    is a contradiction, and nothing is answered.
 
     Returns:
         `(answer, "")`, or `(None, the contradiction)`.
@@ -225,9 +226,14 @@ def _one_answer(
     names = sorted({answer.name for _, answer in read})
     rewrites = [(i, answer) for i, answer in read if isinstance(answer, Rewrite)]
     if len(rewrites) < len(read):
-        if len(names) == 1:
-            return read[0][1], ""
-        return None, f"{' and '.join(names)} contradict each other at one slot"
+        if len(names) > 1:
+            return None, f"{' and '.join(names)} contradict each other at one slot"
+        # A repeat says the same thing only when its claim does; its reason
+        # and sources may differ without changing the answer.
+        claims = [answer.serialize()["claim"] for _, answer in read]
+        if any(claim != claims[0] for claim in claims):
+            return None, f"two {names[0]} answers at one slot say different things"
+        return read[0][1], ""
     base = str(slot.get("raw_text") or "")
     if slot.get("question") == str(Question.ESCALATION):
         sides = slot.get("sides")

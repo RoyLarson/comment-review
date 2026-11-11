@@ -6689,3 +6689,16 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   the slot's text by the same merge `collate` uses for marks. The slot is refused, by role and
   address, only for a contradiction: two rewrites of one sentence that differ, a `clean` beside a
   rewrite, or `hold` beside `withdraw`. It supersedes T21's refusal of a second answer.
+
+- **#309.** **Every mix of answers at one slot is a contradiction, and so is a repeat that
+  differs** (Roy, 2026-11-10, asked whether #308's three named contradictions are the whole list,
+  shown that a slot ends as one answer, so the code also refuses `hold` or `withdraw` beside a
+  rewrite, `query` beside any other answer, and `agree` beside `stet` or `withdraw`; and
+  recommended that two answers of one kind whose claims differ, such as two `query`s naming
+  different shapes, be refused rather than collapsed to the first):
+
+  *"Okay"*
+
+  **What it settles.** At one slot, only rewrites compose and only repeats with one claim
+  collapse. Any other pair of answers is refused by role and address. #308's three cases are
+  examples of the rule, not its whole list.
