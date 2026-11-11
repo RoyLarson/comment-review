@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 10 of 15 tasks closed
+Progress: 12 of 15 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-24 (P2 of refactor/the-boundaries-are-not-real, 2026-08-24)
@@ -40,13 +40,15 @@ The flow lives in the command, not in flows/.
 - [-] T9 | Roy 2026-11-10: not needed; the command's two checks already state the order | e2ffd747 | Implement
       flows.gather.refusal(got) deciding the refusal order once; the command
       prints it. Verify: gather.py decides no order
-- [ ] T10 | Update _annotations to call git ls-files once and code_names to walk
-      the tracked list, not an rglob. Verify: one subprocess per gather
+- [-] T10 | Into only-a-flow-reaches-the-machine T9: concordance's git and walk_files | d7e32adb | Update
+      _annotations to call git ls-files once and code_names to walk the tracked
+      list, not an rglob. Verify: one subprocess per gather
 - [x] T11 | RULED Process 93 -- a step that fails stops the chain there; nothing downstream runs over it | 4545531e | Decide
       whether a gather that will refuse still runs stage 3 for the text listing.
       Verify: the flow matches the ruling
-- [ ] T12 | Update _repeated_literals to run prose_numbers once per paragraph.
-      Verify: one pass keeps the pairs
+- [-] T12 | Roy 2026-11-10: concordance work; move filed on concordance-module T1 | d7e32adb | Update
+      _repeated_literals to run prose_numbers once per paragraph. Verify: one
+      pass keeps the pairs
 - [x] T13 | A step that names a gap is the last that runs; tested both gap kinds | e2ffd747 | Update
       flows.gather so a step that found a gap ends the chain, Process 93.
       Verify: a refused gather runs no stage 3 in either mode
