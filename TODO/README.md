@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (122)
+### open  (121)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -300,7 +300,6 @@ that changed a published name or rule:
 | [one-obvious-way](one-obvious-way.md) | backend | yes | 0/21 | One obvious way |
 | [page-defects](page-defects.md) | backend | -- | 0/3 | binder/page.py carries unread names and a branch nothing reaches |
 | [addresser-defects](addresser-defects.md) | backend | -- | 0/3 | reading/addresser.py answers a miss with a real position |
-| [bus-defects](bus-defects.md) | backend | -- | 1/2 | flows/bus.py carries an unread field and lets a ruling be overwritten |
 | [command-entry-points](command-entry-points.md) | backend | -- | 0/2 | The commands keep entry points of their own beside __main__ |
 | [dropped-history-has-no-home](dropped-history-has-no-home.md) | agents | -- | 1/4 | A dropped history sentence has no home |
 | [concordance-module](concordance-module.md) | backend | -- | 0/1 | Keep concordance logic in concordance/ |
@@ -543,3 +542,4 @@ the reason is inside the file.
 | [smoke-fixture-defects](completed/smoke-fixture-defects.md) | 1 finished |
 | [the-anchor-claims-are-inverted](completed/the-anchor-claims-are-inverted.md) | 4 finished |
 | [closing-line-deletes-code](completed/closing-line-deletes-code.md) | 5 finished, 3 superseded |
+| [bus-defects](completed/bus-defects.md) | 1 finished, 1 superseded |
