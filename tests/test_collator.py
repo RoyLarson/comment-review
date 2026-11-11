@@ -180,6 +180,26 @@ class TestClaimVerbatimProblems:
         source-verification has nothing to compare and says nothing."""
         assert claim_verbatim_problems("here", a_mark(false=""), (RAW_TEXT,)) == []
 
+    def test_a_clause_the_paragraph_holds_twice_is_refused(self):
+        """A quote that occurs twice names two statements, whether the change
+        was derived or supplied, so the mark is refused rather than guessed at."""
+        problems = claim_verbatim_problems(
+            "here", a_mark(false="same"), ("# same same",)
+        )
+        assert problems == [
+            "here: `claim.false` occurs 2 times in the paragraph at this place --"
+            " a clause names one statement"
+        ]
+
+    def test_one_text_holding_the_clause_once_names_it(self):
+        """The texts are separate bases -- the page's and the one a turn sent --
+        so one occurrence in each is not two, and a base holding it once is
+        the statement the mark names."""
+        once_each = ("# same here", "# same there")
+        twice_then_once = ("# same same", "# same here")
+        for texts in (once_each, twice_then_once):
+            assert claim_verbatim_problems("here", a_mark(false="same"), texts) == []
+
 
 class TestSourceProblems:
     """T3.2 -- every `source` resolves, `verbatim` within reach of the cite."""

@@ -85,9 +85,9 @@ def derived_change(
     !! THE QUOTED CLAUSE IS ONE STATEMENT. Roy, 2026-09-07: *"a false clause is
     one statement not multiple paragraphs."* A clause the paragraph holds twice
     names two statements and one it holds nowhere names none; both are refused
-    rather than guessed at. The nowhere case is the substring test
-    `desk.collator.claim_verbatim_problems` runs at the fold, asked here before
-    anything is written.
+    rather than guessed at. `desk.collator.claim_verbatim_problems` asks the
+    same of every quoting mark at the fold, a supplied change included; this
+    asks it before anything is written.
 
     Args:
         instruction: which of the seven, already resolved to a member.

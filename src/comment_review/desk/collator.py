@@ -115,9 +115,11 @@ def claim_verbatim_problems(
     `claim.from` for a `patch`. A type that quotes no existing sentence quotes
     "", and is passed over here entirely.
 
-    It passes when one of `texts` holds the quote, by a substring test over
+    It passes when one of `texts` holds the quote exactly once, counted over
     each whole text: the quoted text may run across several of its lines, and
-    is anchored at neither end.
+    is anchored at neither end. A quote no text holds names no statement, and
+    one every holding text holds more than once names several; both are
+    refused, whether the mark's change was derived or supplied.
 
     Args:
         where: how to name this mark in a message -- its address, or a position.
@@ -137,12 +139,17 @@ def claim_verbatim_problems(
     value = mark.quoted
     if not filled(value):
         return []
-    if not any(value in text for text in texts):
+    counts = [text.count(value) for text in texts]
+    if 1 in counts:
+        return []
+    if any(counts):
         return [
-            f"{where}: `claim.{mark.quotes_original}` is not in the paragraph at"
-            " this place"
+            f"{where}: `claim.{mark.quotes_original}` occurs {max(counts)} times in"
+            " the paragraph at this place -- a clause names one statement"
         ]
-    return []
+    return [
+        f"{where}: `claim.{mark.quotes_original}` is not in the paragraph at this place"
+    ]
 
 
 def cite_at(cite: str) -> tuple[str, int] | None:
