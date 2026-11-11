@@ -357,7 +357,14 @@ def test_the_contracts_are_the_tables_own_sets():
     so a row added to it reaches `check --contract` with no edit here or
     there."""
     got = contracts()
-    assert set(got) == {"stage_4c_mark", "escalation", "composition", "placement"}
+    assert set(got) == {
+        "stage_4c_mark",
+        "escalation",
+        "composition",
+        "placement",
+        "chief",
+    }
+    assert got["chief"]["answer"] == ["recast", "taken_in"]
     assert got["escalation"]["instruction"] == ["correct", "hold", "patch", "withdraw"]
     assert got["escalation"]["owes_change"] == ["correct", "patch"]
     assert got["composition"]["instruction"] == ["clean", "correct", "patch", "query"]

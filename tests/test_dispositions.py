@@ -10,6 +10,7 @@ from comment_review.desk.proof.disposition import (
     RULINGS,
     RecastRuling,
     TakenInRuling,
+    contract,
     disposition_type,
     read_disposition,
 )
@@ -138,3 +139,34 @@ def test_a_taken_in_with_no_side_is_refused():
         "m.py@b1", {"address": "m.py@b1", "answer": "taken_in", "reason": "r"}
     )
     assert got is None and "needs `side`" in why[0]
+
+
+class TestTheChiefContract:
+    """What `check --contract` publishes under `chief`, from the ruling types."""
+
+    def test_it_names_each_ruling_and_what_it_owes(self):
+        got = contract()
+        assert got["answer"] == ["recast", "taken_in"]
+        assert got["owes"] == {
+            "recast": ["address", "reason"],
+            "taken_in": ["address", "reason", "side"],
+        }
+        assert got["owes_given"] == {"recast": ["prose"], "taken_in": []}
+        assert got["default_side"] == {"recast": CHIEF}
+        assert set(got["fields"]) == {"address", "side", "prose", "reason", "to"}
+
+    @pytest.mark.parametrize("name", ["taken_in", "recast"])
+    def test_a_minimal_entry_built_from_it_reads_and_each_owed_field_bites(self, name):
+        published = contract()
+        owed = published["owes"][name] + published["owes_given"][name]
+        entry = {
+            "answer": name,
+            **{key: "m.py@b1" for key in published["owes"][name]},
+            **{key: "" for key in published["owes_given"][name]},
+        }
+        ruling, why = read_disposition("here", entry)
+        assert why == [] and ruling is not None
+        assert ruling.serialize()["answer"] == name
+        for key in owed:
+            without = {k: v for k, v in entry.items() if k != key}
+            assert read_disposition("here", without)[0] is None, key

@@ -32,6 +32,7 @@ from comment_review.desk.proof.answer import (
     answer_type,
     read_answer,
 )
+from comment_review.desk.proof.disposition import contract as ruling_contract
 from comment_review.desk.proof.mark import QUERY_SHAPES, filled
 from comment_review.desk.proof.move import key_of
 from comment_review.desk.proof.source import contract as source_contract
@@ -280,13 +281,14 @@ def contracts() -> dict:
     a rule, and the half it leaves out is the one a role cannot guess.
 
     Returns:
-        `stage_4c_mark` -> the mark's own shape; one entry per question,
+        `stage_4c_mark` -> the mark's own shape; `chief` -> the chief's
+        rulings, from `desk.proof.disposition.contract`; one entry per question,
         naming the answers that question admits, which of them owe a `change`
         and which a source, the `claim` keys each owes, the closed value
         sets, and what each field is. An answer owing no claim keys carries an
         empty list, so a reader can tell "none" from "not published".
     """
-    out: dict = {"stage_4c_mark": allowed()}
+    out: dict = {"stage_4c_mark": allowed(), "chief": ruling_contract()}
     for question in Question:
         kinds = {
             name: kind
