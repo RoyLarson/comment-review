@@ -1298,6 +1298,84 @@ def test_a_ruling_at_an_end_of_an_undecided_move_is_refused(tmp_path):
     ) in _refusals(out)
 
 
+def _placed(tmp_path):
+    """`_stetted` with the move agreed, both its ends carried to the chief."""
+    turned = _stetted(tmp_path)
+    out, placed = handle(
+        DispositionsWritten(
+            turned.proof,
+            [_ruling(PLACE, "taken_in", to="m.py@b2", side="block-context")],
+        )
+    )
+    assert placed is not None, out
+    return placed
+
+
+@pytest.mark.parametrize(
+    "second",
+    [
+        _ruling(PLACE, "taken_in", side="block-context"),
+        _ruling(PLACE, "recast", prose=REMAINDER),
+    ],
+    ids=["identical", "contradictory"],
+)
+def test_a_second_ruling_at_one_place_is_refused_and_neither_applies(tmp_path, second):
+    placed = _placed(tmp_path)
+    before = deepcopy(placed.proof)
+    out, closed = handle(
+        DispositionsWritten(
+            placed.proof,
+            [
+                _ruling(PLACE, "taken_in", side="block-context"),
+                second,
+                _ruling("m.py@b2", "recast", prose=CHIEFS_OWN),
+            ],
+        )
+    )
+    assert closed is None
+    assert _refusals(out) == [
+        ("copy-chief", PLACE, "ruled more than once in this message")
+    ]
+    assert placed.proof == before
+
+
+def test_a_second_ruling_on_one_move_is_refused_and_neither_applies(tmp_path):
+    turned = _stetted(tmp_path)
+    before = deepcopy(turned.proof)
+    out, placed = handle(
+        DispositionsWritten(
+            turned.proof,
+            [
+                _ruling(PLACE, "taken_in", to="m.py@b2", side="block-context"),
+                _ruling(PLACE, "taken_in", to="m.py@b2", side="original"),
+            ],
+        )
+    )
+    assert placed is None
+    assert _refusals(out) == [
+        ("copy-chief", f"{PLACE} -> m.py@b2", "ruled more than once in this message")
+    ]
+    assert turned.proof == before
+
+
+def test_rulings_at_two_distinct_places_both_apply(tmp_path):
+    out, closed = handle(
+        DispositionsWritten(
+            _placed(tmp_path).proof,
+            [
+                _ruling(PLACE, "taken_in", side="block-context"),
+                _ruling("m.py@b2", "recast", prose=CHIEFS_OWN),
+            ],
+        )
+    )
+    assert closed is not None, out
+    ruled = {
+        p.address: p.disposition.name for p in closed.proof.places if p.disposition
+    }
+    assert ruled[PLACE] == "taken_in"
+    assert ruled["m.py@b2"] == "recast"
+
+
 def test_an_undecided_move_with_no_placement_ruling_is_refused_by_name(tmp_path):
     turned = _stetted(tmp_path)
     out, closed = handle(DispositionsWritten(turned.proof, []))
