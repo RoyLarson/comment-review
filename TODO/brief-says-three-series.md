@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 7 of 13 tasks closed
+Progress: 8 of 13 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-08-29 (found sweeping reviewer-brief.md against its consumers on
@@ -61,5 +61,6 @@ place the same brief tells it to cite at `:74`.
         > 2026-11-07 #291: a move into an f place stays admitted and asked
 - [ ] T12 | Implement re-setting the page with an accepted f move and binding a
       new binder, per #290
-- [ ] T13 | Ask the human before a turn answer, a chief ruling or a copy's
-      docket changes an f place, as collate does per #291
+- [x] T13 | Turn answers and chief recasts at f places ask; disposition --human | 9d9cedac | Ask
+      the human before a turn answer, a chief ruling or a copy's docket changes
+      an f place, as collate does per #291
