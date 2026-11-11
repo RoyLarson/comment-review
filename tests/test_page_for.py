@@ -140,8 +140,6 @@ def test_python_page_whole_comments_and_matter_boundaries():
 def test_python_page_documentation_closing_comment_keeps_one_wire_owner(
     text, doc_cue, raw
 ):
-    from comment_review.flows.gather import carried
-
     page = page_for_mod.page_of(Path("m.py"), source=Source(text, "held"))
     assert isinstance(page, Page)
     assert isinstance(page.read, PythonRead)
@@ -150,7 +148,9 @@ def test_python_page_documentation_closing_comment_keeps_one_wire_owner(
     assert doc.raw_text == raw
     assert doc.text == ("doc continued" if "continued" in text else "doc")
     assert not any(p.kind == "trailing-comment" and p.raw_text.strip() for p in page)
-    assert {p.address for p in carried(page) if p.raw_text.strip()} == {doc.address}
+    assert {p.address for p in page if p.address and p.raw_text.strip()} == {
+        doc.address
+    }
     wire = {row["cue"]: row for row in page.serialize()["rows"]}
     assert wire[doc_cue]["raw_text"] == doc.raw_text
     sections = page.read.source.sections

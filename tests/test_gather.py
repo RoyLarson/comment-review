@@ -17,7 +17,7 @@ import pytest
 from conftest import PKG
 from helpers import a_small_real_tree
 
-from comment_review.binder.binder import Binder
+from comment_review.binder.binder import Binder, bind
 from comment_review.concordance.annotate import annotate
 from comment_review.flows import gather as flow
 from comment_review.flows.annotations_for import annotations_for
@@ -27,6 +27,8 @@ from comment_review.reading.diagnostics import ReadFailure
 #: The same sentence in two files -- a backticked name `annotate` resolves and a
 #: number the repeated-literal pass pairs.
 A_PAGE = '"""See `budget`. The cap is 3."""\n'
+
+READ_FROM = {"root": ".", "revise": 0}
 
 
 def _pages(root):
@@ -55,7 +57,6 @@ def test_a_reader_failure_is_reported_without_a_successful_page(tmp_path):
     gathered = Gathering(tmp_path, [path], 0, files=[path])
     _pages(gathered)
     assert gathered.pages == []
-    assert gathered.paragraphs == []
     assert gathered.unreadable == [expected]
 
 
@@ -98,10 +99,10 @@ def test_unexpected_page_errors_propagate_from_gather(tmp_path, monkeypatch):
 class TestAnnotationsFor:
     def test_it_sets_what_annotate_sets_plus_the_repeated_literal_pair(self, tmp_path):
         """`annotate` alone sees one paragraph; the step sees the pair."""
-        alone = [b for p in _pages(tmp_path) for b in flow.carried(p)]
+        alone = bind(_pages(tmp_path), read_from=READ_FROM).paragraphs
         for b in alone:
             annotate(b, known=set(), paths=set(), repo=tmp_path)
-        stepped = [b for p in _pages(tmp_path) for b in flow.carried(p)]
+        stepped = bind(_pages(tmp_path), read_from=READ_FROM).paragraphs
         annotations_for(stepped, known=set(), paths=set(), repo=tmp_path)
 
         prose = [b for b in stepped if b.text]
@@ -137,7 +138,6 @@ class TestGather:
 
         assert isinstance(got.binder, Binder)
         assert [p.path for p in got.binder.pages] == [p.path for p in got.pages]
-        assert got.paragraphs == [b for p in got.pages for b in flow.carried(p)]
         assert got.binder.read_from["revise"] == 0
         assert got.unreadable == []
         assert got.no_record == [(repo / "notes.lock").as_posix()]
@@ -153,7 +153,6 @@ class TestGather:
         bad.write_bytes(b"\xff\xfe" + "x = 1\n".encode("utf-16-le"))
         got = flow.gather(tmp_path, [bad], 0)
         assert got.pages == []
-        assert not got.binder.pages
         assert len(got.unreadable) == 1 and "m.py" in got.unreadable[0]
 
     def test_a_target_that_matched_no_file_is_a_gap(self, tmp_path):
@@ -168,9 +167,36 @@ class TestGather:
         seen = []
 
         def references_for(g):
-            seen.append((g, len(g.paragraphs), hasattr(g, "binder")))
+            seen.append((g, hasattr(g, "binder")))
 
         monkeypatch.setattr(flow, "STEPS", (*flow.STEPS, references_for))
         got = flow.gather(a_small_real_tree(tmp_path), [tmp_path / "repo"], 0)
-        assert seen == [(got, len(got.paragraphs), True)]
-        assert got.paragraphs, "the step ran over nothing"
+        assert seen == [(got, True)]
+        assert got.binder.paragraphs, "the step ran over nothing"
+
+    def test_stage_3_annotates_the_paragraphs_the_binder_holds(self, tmp_path):
+        """The binder is the one population: no second list beside it."""
+        _pages(tmp_path)
+        got = flow.gather(tmp_path, [tmp_path], 0)
+        prose = [b for b in got.binder.paragraphs if b.text]
+        assert len(prose) == 2
+        assert all("repeated-literal" in b.annotations for b in prose)
+        assert not hasattr(got, "paragraphs")
+
+    @pytest.mark.parametrize("gap", ["unreadable", "matched-nothing"])
+    def test_a_step_that_found_a_gap_is_the_last_that_runs(
+        self, tmp_path, monkeypatch, gap
+    ):
+        """Neither stage 3 nor the bind runs over a gather that will be refused."""
+
+        def not_reached(*args, **kwargs):
+            raise AssertionError("stage 3 ran past a gap")
+
+        monkeypatch.setattr(flow, "annotations_for", not_reached)
+        monkeypatch.setattr(flow, "code_names", not_reached)
+        target = tmp_path / "m.py"
+        if gap == "unreadable":
+            target.write_bytes(b"\xff\xfe" + "x = 1\n".encode("utf-16-le"))
+        got = flow.gather(tmp_path, [target], 0)
+        assert len(got.unreadable) == 1
+        assert not hasattr(got, "binder")

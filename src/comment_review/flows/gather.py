@@ -2,12 +2,11 @@
 
     gather(repo, targets, revise) -> Gathering
     page_in(path, repo, settings) -> the page one file reads as, or why not
-    carried(page) -> the paragraphs a gather hands over
     unaddressed_report(missing), not_gathered(handed_in, unreadable) -> text
 
 A page is one file -- its paragraphs in order among the code they sit with --
 and `flows.page_for.page_of` builds one. This walks the files in scope, builds
-their pages, runs stage 3 over the paragraphs they carry, and binds the pages.
+their pages, binds them, and runs stage 3 over the paragraphs the binder holds.
 The command prints and decides the exit code; nothing here does either.
 
 !! THE CHAIN IS DATA. `STEPS` is the sequence, each step reads and writes one
@@ -33,7 +32,7 @@ the binder lists it as freeform, unopened, for the reviewers to read as it
 stands.
 """
 
-from collections.abc import Callable, Iterable, Mapping
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -60,7 +59,6 @@ from comment_review.reading.diagnostics import (
     ReadFailure,
 )
 from comment_review.reading.language import INSTALLED_REGISTRY
-from comment_review.reading.paragraph import Paragraph
 from comment_review.reading.registry import is_freeform
 
 
@@ -72,9 +70,10 @@ class Gathering:
     named in `unreadable` and the command decides the exit code, so the emit
     refuses on one record rather than the walk raising mid-way.
 
-    ! `binder` IS SET BY THE LAST STEP AND HAS NO DEFAULT. Reading it before
-    the chain has run is an `AttributeError`, which is the honest answer; a
-    placeholder binder would be one that says nothing was gathered.
+    ! `binder` IS SET BY THE BIND STEP AND HAS NO DEFAULT. A gather that
+    stopped at a gap before it has none, and reading it is an
+    `AttributeError`, which is the honest answer; a placeholder binder would
+    be one that says nothing was gathered.
     """
 
     repo: Path
@@ -97,8 +96,6 @@ class Gathering:
     #: command prints them
     warnings: list[str] = field(default_factory=list)
     pages: list[Page] = field(default_factory=list)
-    #: what the pages carry, flat, in page order -- see `carried`
-    paragraphs: list[Paragraph] = field(default_factory=list)
     binder: Binder = field(init=False)
     settings: Mapping[Path, Mapping[str, str]] = field(default_factory=dict)
     reading_contexts: dict[Path, ReadingContext] = field(default_factory=dict)
@@ -144,12 +141,6 @@ def _walk(g: Gathering) -> None:
 
 def _pages(g: Gathering) -> None:
     """One page per file in scope, or the reason there is none."""
-    # The pages are kept, not only their paragraphs. A binder names the file
-    # once per page and the rows sit under it, so the bind needs the page, and
-    # `paragraphs` is every addressed paragraph as one flat run, the empty
-    # places included, which the binder carries only when `absent` is set. Both
-    # are built from this same walk, which is what stops the two disagreeing
-    # about what was gathered.
     for path in g.files:
         got = page_in(path, g.repo, g.settings.get(path.resolve(), {}))
         if isinstance(got, str):
@@ -170,7 +161,6 @@ def _pages(g: Gathering) -> None:
                 for w in located
                 if w.span is not None
             )
-        g.paragraphs.extend(carried(got))
 
 
 def page_in(path: Path, repo: Path, settings: Mapping[str, str]) -> Page | str:
@@ -219,9 +209,9 @@ def _owner(warning: ReadDiagnostic) -> str:
 
 
 def _annotations(g: Gathering) -> None:
-    """Stage 3, over everything the pages carry."""
+    """Stage 3, over every paragraph the binder holds."""
     known, g.unread = code_names([g.repo], tracked_paths(g.repo))
-    annotations_for(g.paragraphs, known, path_index(g.repo), g.repo)
+    annotations_for(g.binder.paragraphs, known, path_index(g.repo), g.repo)
 
 
 def _bind(g: Gathering) -> None:
@@ -252,7 +242,8 @@ def _bind(g: Gathering) -> None:
 
 #: The chain, in the order it runs. Each step reads the `Gathering` the steps
 #: before it filled and writes its own fields; a new producer is a new element.
-STEPS: tuple[Callable[[Gathering], None], ...] = (_walk, _pages, _annotations, _bind)
+#: A step that names a gap in `unreadable` is the last one that runs.
+STEPS: tuple[Callable[[Gathering], None], ...] = (_walk, _pages, _bind, _annotations)
 
 
 def gather(
@@ -275,7 +266,8 @@ def gather(
         settings: fresh per-file overrides keyed by source path.
 
     Returns:
-        The `Gathering` every step has written to. `binder` is set.
+        The `Gathering` the steps wrote to, up to the first that named a gap
+        in `unreadable`. `binder` is set when no step did.
     """
     g = Gathering(repo, targets, revise, absent)
     g.settings = (
@@ -285,40 +277,9 @@ def gather(
     )
     for step in STEPS:
         step(g)
+        if g.unreadable:
+            break
     return g
-
-
-def carried(page: Iterable[Paragraph]) -> list[Paragraph]:
-    """The paragraphs a gather HANDS OVER. A fence is not one of them.
-
-    !! LEADING IS NOT PASSED TO THE AGENTS, and it was until 2026-08-24. Roy:
-    *"The leading is not something that will be passed to the agents. The same
-    as the extra record attributes. It gets dropped because there is nothing to
-    rule on. It is for white space."*
-
-    A fence takes no address, which is why it leaked in the first place. Roy,
-    2026-08-24: *"You don't put an address on a fence because it is what divides
-    properties. The only thing we can do is say well there was a fence here
-    before we did this there should be a fence here after we did this."* An
-    address is postal -- *"The cue is the street name and number, the file is
-    the city, and the rest is the folder structure and computer"* -- and the
-    fence between two properties has no street number.
-
-    MEASURED, before this: `gather` over a ten-line file emitted three rows with
-    no address, and the report printed them as `@` with no cue after it. Over
-    this repo's own `src/`, 422 of 9,459 paragraphs -- every one leading.
-
-    The page keeps them. A fence still has to be set back, so `Page.leading`
-    holds it as the edge it is, keyed by the place it follows, and the
-    compositor reaches it there by symbol. Nothing is lost by dropping it
-    here, because nothing transfers from the binder to the end -- the write path
-    reloads the page from disk and takes only the address as a key.
-
-    The gate never reads this list: `gather` runs `unaddressed` over
-    `Binder.paragraphs`, built from the pages, which drops a fence by the same
-    test as the filter below.
-    """
-    return [b for b in page if b.address]
 
 
 def _repo_relative(path: Path, repo: Path) -> str:

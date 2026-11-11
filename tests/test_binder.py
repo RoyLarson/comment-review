@@ -10,8 +10,6 @@ import pytest
 from conftest import PKG, READ_FROM, SAMPLE, build, by_cue, cue
 
 from comment_review.binder.binder import VERSION, Binder, bind
-from comment_review.binder.page import _place
-from comment_review.flows.gather import carried
 from comment_review.machine.json_object import object_of
 from comment_review.reading.series import Kind
 
@@ -227,14 +225,6 @@ def test_an_empty_place_is_still_ADDRESSED_on_the_page(binder):
     empty = [b for b in page.paragraphs if b.address and not b.raw_lines]
     assert empty
     assert all(b.address for b in empty)
-
-
-def test_carried_drops_fences_and_keeps_everything_else():
-    """`carried` is the one statement of what a gather hands over."""
-    page = build(SAMPLE)
-    kept = carried(page)
-    assert all(b.address for b in kept)
-    assert len(kept) == len([b for b in page.paragraphs if b.address])
 
 
 class TestAPlaceKnowsThePageThatHoldsIt:
@@ -500,7 +490,7 @@ class TestAReaderRefusesRatherThanCoping:
         """The shape the gather emitted before the envelope. Three commands each
         guessed at it a different way and a fourth did not guess at all."""
         page = build(SAMPLE)
-        old = json.dumps([_place(b) for b in carried(page)])
+        old = json.dumps(page.serialize()["rows"])
         got, why = read(old)
         assert got is None
         assert why
