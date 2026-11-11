@@ -107,6 +107,17 @@ def _run(tmp_path, monkeypatch, capsys, data: bytes) -> tuple[int, str]:
     )
 
 
+#: `_run_once`'s result for each input it has gathered.
+_GATHERED: dict[bytes, tuple[int, str]] = {}
+
+
+def _run_once(tmp_path, monkeypatch, capsys, data: bytes) -> tuple[int, str]:
+    """`_run`, once per distinct `data` in a module run; later calls read its result."""
+    if data not in _GATHERED:
+        _GATHERED[data] = _run(tmp_path, monkeypatch, capsys, data)
+    return _GATHERED[data]
+
+
 UNREADABLE = pytest.mark.parametrize(
     ("why", "data"),
     [pytest.param(w, d, id=w) for w, d in {**CANNOT_DECODE, **CANNOT_PARSE}.items()],
@@ -142,7 +153,7 @@ def test_a_file_that_produced_no_paragraphs_stops_the_run(
     naming the file leaves the caller unable to act, and a run that names it at
     exit 0 is read as a success by everything downstream.
     """
-    code, printed = _run(tmp_path, monkeypatch, capsys, data)
+    code, printed = _run_once(tmp_path, monkeypatch, capsys, data)
     assert code != 0, f"{why}: gathered nothing and reported success\n{printed}"
 
 
@@ -151,7 +162,7 @@ def test_the_file_that_stopped_the_run_is_NAMED(
     tmp_path, monkeypatch, capsys, why, data
 ):
     """Exit 1 over a run of many files says nothing about WHICH one to fix."""
-    _, printed = _run(tmp_path, monkeypatch, capsys, data)
+    _, printed = _run_once(tmp_path, monkeypatch, capsys, data)
     assert "m.py" in printed, f"{why}: not named\n{printed}"
 
 
@@ -163,7 +174,9 @@ def test_a_parse_failure_is_AS_LOUD_AS_a_decode_failure(tmp_path, monkeypatch, c
     """
 
     def codes(cases: dict[str, bytes]) -> dict[str, int]:
-        return {w: _run(tmp_path, monkeypatch, capsys, d)[0] for w, d in cases.items()}
+        return {
+            w: _run_once(tmp_path, monkeypatch, capsys, d)[0] for w, d in cases.items()
+        }
 
     decode, parse = codes(CANNOT_DECODE), codes(CANNOT_PARSE)
     assert set(decode.values()) == set(parse.values()), (

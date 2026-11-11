@@ -11,6 +11,7 @@ from pathlib import Path
 
 import pytest
 from conftest import SAMPLE, build, run_command
+from helpers import built_once
 
 from comment_review.binder.binder import bind
 from comment_review.commands import check as check_command
@@ -202,8 +203,18 @@ def _tree(tmp_path, monkeypatch, capsys) -> Path:
 
     The revise stands in for what stage `4a`'s `proof` pulls: `4c` reads it,
     so the copies it seeds are cut from the revise's binder rather than the
-    original's.
+    original's. Built once per module run, through `built_once`.
     """
+    built_once(
+        tmp_path,
+        "test_distribute_command._tree",
+        lambda root: _planted(root, monkeypatch, capsys),
+    )
+    return tmp_path
+
+
+def _planted(tmp_path, monkeypatch, capsys) -> None:
+    """`_tree`'s files, written into `tmp_path` by two gathers."""
     pulled = tmp_path / "revise"
     pulled.mkdir()
     for name in ("a.py", "b.py"):
@@ -212,7 +223,6 @@ def _tree(tmp_path, monkeypatch, capsys) -> Path:
     _bind(tmp_path, monkeypatch, capsys, tmp_path, tmp_path / "binder.json", 0)
     _bind(tmp_path, monkeypatch, capsys, pulled, tmp_path / "revise-binder.json", 1)
     (tmp_path / "t.toml").write_text(FOUR_C, encoding="utf-8")
-    return tmp_path
 
 
 def _stage(
@@ -378,7 +388,20 @@ def test_a_binder_with_no_freeform_path_deals_shards_with_none():
 
 
 def _freeform_run(root: Path, monkeypatch, capsys) -> tuple[Path, Path, Path]:
-    """Gather two freeform files, build a topology over them, and deal it."""
+    """Gather two freeform files, build a topology over them, and deal it.
+
+    Built once per module run, through `built_once`.
+    """
+    built_once(
+        root,
+        "test_distribute_command._freeform_run",
+        lambda where: _freeform_dealt(where, monkeypatch, capsys),
+    )
+    return root / "binder.json", root / "t.toml", root / "copies"
+
+
+def _freeform_dealt(root: Path, monkeypatch, capsys) -> None:
+    """`_freeform_run`'s files, written into `root` by the three commands."""
     for name in ("a.js", "b.js"):
         (root / name).write_text("// one\n", encoding="utf-8")
     binder = root / "binder.json"
@@ -427,7 +450,6 @@ def _freeform_run(root: Path, monkeypatch, capsys) -> tuple[Path, Path, Path]:
     )
     assert code == 0, printed
     assert "0 places for ownership-context to rule on; 1 freeform" in printed
-    return binder, topology, out
 
 
 def test_a_shard_keeps_its_freeform_paths_on_its_received_binder(

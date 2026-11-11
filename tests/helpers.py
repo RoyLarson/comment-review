@@ -25,9 +25,13 @@ for the fold's own cases; `tests/test_bus.py` and `tests/test_verify.py` are
 what drive them now.
 """
 
+import atexit
 import json
+import shutil
+import tempfile
+from collections.abc import Callable
 from pathlib import Path
-from typing import Any
+from typing import Any, TypeVar
 
 from conftest import ROOT, build, cue, run_command
 
@@ -73,6 +77,7 @@ from comment_review.flows.fill import fill
 from comment_review.flows.page_for import page_of
 from comment_review.flows.proof_io import load_proof
 from comment_review.flows.source import source_of
+from comment_review.machine.repo import relative_to
 from comment_review.reading.diagnostics import ReadFailure
 
 #: `src/comment_review/desk/` -- the source `a_small_real_tree` copies from.
@@ -1076,6 +1081,67 @@ def merged(*by_roles: dict) -> dict:
     return out
 
 
+_Built = TypeVar("_Built")
+
+#: The directory `built_once` built for each distinct input, and what the
+#: build returned.
+_BUILT: dict[str, tuple[Path, Any]] = {}
+
+
+def built_once(tmp_path: Path, key: object, build: Callable[[Path], _Built]) -> _Built:
+    """`build` run once per distinct `key` and starting tree; its files copied in.
+
+    The first call runs `build` in a directory of its own, seeded with a copy
+    of what `tmp_path` holds. Every call copies that directory's files into
+    `tmp_path`, with the directory's path rewritten to `tmp_path` inside each
+    file, so each test reads and writes its own copy.
+
+    Args:
+        tmp_path: the test's directory. The files already in it are part of
+            the key.
+        key: everything else `build` reads, as JSON. A module attribute a test
+            monkeypatches is not in it, so a test patches after the call.
+        build: writes the files into the directory it is given.
+
+    Returns:
+        What `build` returned on the first call.
+    """
+    held = sorted(
+        (path.relative_to(tmp_path).as_posix(), path.read_bytes().hex())
+        for path in tmp_path.rglob("*")
+        if path.is_file()
+    )
+    entry = json.dumps([key, held], sort_keys=True, default=repr)
+    if entry not in _BUILT:
+        where = Path(tempfile.mkdtemp(prefix="built-once-"))
+        atexit.register(shutil.rmtree, where, ignore_errors=True)
+        shutil.copytree(tmp_path, where, dirs_exist_ok=True)
+        _BUILT[entry] = (where, build(where))
+    where, result = _BUILT[entry]
+    spellings = [
+        (json.dumps(str(where))[1:-1], json.dumps(str(tmp_path))[1:-1]),
+        (str(where), str(tmp_path)),
+        (where.as_posix(), tmp_path.as_posix()),
+        # A gathered binder's `read_from.root`, relative to the working directory.
+        (
+            relative_to(where, Path.cwd()).as_posix(),
+            relative_to(tmp_path, Path.cwd()).as_posix(),
+        ),
+    ]
+    for source in where.rglob("*"):
+        target = tmp_path / source.relative_to(where)
+        if source.is_dir():
+            target.mkdir(parents=True, exist_ok=True)
+            continue
+        data = source.read_bytes()
+        for built, own in spellings:
+            data = data.replace(built.encode(), own.encode())
+        assert where.name.encode() not in data, f"{source}: a path left unrewritten"
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(data)
+    return result
+
+
 def deal(
     tmp_path,
     monkeypatch,
@@ -1088,6 +1154,10 @@ def deal(
 
     The binder is over real pages written to `tmp_path / "repo"`, which the
     commands read as its root.
+
+    ! DEALT ONCE PER DISTINCT HAND, through `built_once`: a second test dealt
+    the same hand over the same starting tree gets a copy of the first one's
+    files, and `collate` does not run again.
 
     ! ONE FOLD, THE COMMAND'S OWN. `collate --proof-out --batch-out` writes
     the state between turns and the first turn's batch, and `turn` reads both
@@ -1110,6 +1180,15 @@ def deal(
     Returns:
         `collate`'s exit code, which is what a caller of it reads.
     """
+    return built_once(
+        tmp_path,
+        ["deal", by_role, texts, placed],
+        lambda where: _dealt(where, monkeypatch, capsys, by_role, texts, placed),
+    )
+
+
+def _dealt(tmp_path, monkeypatch, capsys, by_role, texts, placed) -> int:
+    """`deal`'s files, written into `tmp_path` by running `collate`."""
     root = tmp_path / "repo"
     binder = a_real_binder_over(root, texts or {"m.py@b1": BASE})
     roles = list(by_role or {})
@@ -1185,7 +1264,19 @@ def turn(
 def held_open(
     tmp_path, monkeypatch, capsys, extra: dict | None = None, texts=None
 ) -> None:
-    """Deal a contested place and hold it through one turn: proof1.json."""
+    """Deal a contested place and hold it through one turn: proof1.json.
+
+    Built once per distinct `extra` and `texts`, as `deal` is.
+    """
+    built_once(
+        tmp_path,
+        ["held_open", extra, texts],
+        lambda where: _held(where, monkeypatch, capsys, extra, texts),
+    )
+
+
+def _held(tmp_path, monkeypatch, capsys, extra, texts) -> None:
+    """`held_open`'s files, written into `tmp_path` by `collate` and `turn`."""
     by_role = contested("m.py@b1")
     if extra:
         by_role = merged(by_role, extra)
