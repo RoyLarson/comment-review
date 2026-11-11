@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 5 of 10 tasks closed
+Progress: 6 of 10 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-09-03 (systems)
@@ -74,8 +74,9 @@ own.
       (Process 207); machine keeps repo and json_object
 - [ ] T8 | Route every command's machine import through a flow (Process 207);
       grep finds no commands module importing machine
-- [ ] T9 | Move concordance's machine reads, walk_files and git, into the flow
-      that calls it; grep finds no concordance import of machine
+- [x] T9 | concordance imports no machine; the gather flow walks and reads | 034a5fec | Move
+      concordance's machine reads, walk_files and git, into the flow that calls
+      it; grep finds no concordance import of machine
 - [x] T10 | results/prove_unchanged imports nothing from machine and runs no git | d8946e97 | Move
       the git call out of results.prove_unchanged into the flow; grep finds no
       results import of machine.repo

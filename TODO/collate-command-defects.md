@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 6 of 27 tasks closed
+Progress: 10 of 27 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, a code review of `commands/collate.py` driven by
@@ -192,11 +192,14 @@ under `utf8_console()`.
 - [x] T23 | Chief rulings print name, side and reason; four command cases pass; full suite 2171 passed | 86841547 | Report
       a chief-resolved place with its ruling rather than stet
         > 2026-09-30 Criteria: docs/reviews/2026-09-30-r6-r7-r8.md, 03:6
-- [ ] T24 | Give `OK`, `BROKEN` and `UNREADABLE` one owner instead of three
-      command modules
-- [ ] T25 | Move the shared report and exit-code policy out of
-      `commands/collate.py`, which three commands import as private names
-- [ ] T26 | Return `UNREADABLE` for a `--topology` file that cannot be read,
-      instead of raising `OSError`
-- [ ] T27 | Drop the `Result.chief is not None` guard, whose other branch no
-      handler reaches
+- [x] T24 | commands/report.py owns OK, BROKEN, UNREADABLE and the other fold codes | 7346304b | Give
+      `OK`, `BROKEN` and `UNREADABLE` one owner instead of three command modules
+- [x] T25 | Shared report moved to commands/report.py; imported by public name | 7346304b | Move
+      the shared report and exit-code policy out of `commands/collate.py`, which
+      three commands import as private names
+- [x] T26 | Unreadable --topology exits UNREADABLE by name; tested | 7346304b | Return
+      `UNREADABLE` for a `--topology` file that cannot be read, instead of
+      raising `OSError`
+- [x] T27 | Result.chief typed EditCopy; the None guards are gone | 7346304b | Drop
+      the `Result.chief is not None` guard, whose other branch no handler
+      reaches

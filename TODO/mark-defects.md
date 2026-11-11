@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 37 of 50 tasks closed
+Progress: 39 of 50 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, a code review of `desk/mark.py` that ran `parse`
@@ -268,11 +268,11 @@ cites as its measured example of a field answering neither necessary nor purpose
       supplied source entries through one source contract before resolving mark
       and answer citations
         > 2026-09-30 Criteria: docs/reviews/2026-09-30-r4.md, A
-- [ ] T30 | Enforce one quoted statement consistently for derived and supplied
-      mark changes
+- [x] T30 | A supplied change quoting a clause twice is refused at the fold | cf6ae6f1 | Enforce
+      one quoted statement consistently for derived and supplied mark changes
         > 2026-09-30 Criteria: docs/reviews/2026-09-30-r4.md, B
-- [ ] T31 | Publish stage and admits in the edit-copy contract from their owning
-      type
+- [x] T31 | EditCopy publishes role, read_from, stage and admits | 6ef5751e | Publish
+      stage and admits in the edit-copy contract from their owning type
         > 2026-09-30 Criteria: docs/reviews/2026-09-30-r4.md, C
 - [x] T32 | Derived raw drops retain language-specific comment forms and adjacent code | 0b6629b2a966d54a570e3b42655eb5f33d5fd6d9 | Use
       language-specific comment markers when rewrapping derived mark changes
