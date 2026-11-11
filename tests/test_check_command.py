@@ -699,5 +699,12 @@ class TestTheContract:
         code, out, _ = _run(monkeypatch, capsys, "--contract")
         assert code == 0
         got = json.loads(out)
-        assert set(got) == {"stage_4c_mark", "escalation", "composition", "placement"}
+        assert set(got) == {
+            "stage_4c_mark",
+            "escalation",
+            "composition",
+            "placement",
+            "chief",
+        }
+        assert got["chief"]["answer"] == ["recast", "taken_in"]
         assert "hold" in got["escalation"]["instruction"]
