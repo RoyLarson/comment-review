@@ -689,6 +689,33 @@ class TestDocketOfProof:
             ("b1", RECAST_THERE)
         ]
 
+    def test_an_empty_recast_reaches_the_docket_as_the_paragraph_removed(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        """`decision-log.md Process: #299`."""
+        assert deal(tmp_path, monkeypatch, capsys, SAME_LINE, TYPO_TEXTS) == (
+            collate_command.ESCALATIONS
+        )
+        code, out = disposition(
+            tmp_path,
+            monkeypatch,
+            capsys,
+            [
+                {
+                    "address": "m.py@b1",
+                    "answer": "recast",
+                    "reason": "the paragraph is not needed",
+                    "prose": "",
+                }
+            ],
+            proof="proof0.json",
+        )
+        assert code == collate_command.OK, out
+        docket = docket_of_proof(the_closed_proof(tmp_path), tmp_path / "repo")
+        (schedule,) = docket.schedules
+        # A None text deletes the paragraph.
+        assert [(one.cue, one.text) for one in schedule.alterations] == [("b1", None)]
+
     def test_a_settled_correction_is_one_alteration(
         self, tmp_path, monkeypatch, capsys
     ):

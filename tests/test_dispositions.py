@@ -89,8 +89,18 @@ def test_recast_sets_the_chiefs_prose():
         reason="r",
     )
     assert row.sets(recast, "# base\n", {}) == "# mine\n"
-    assert RecastRuling.owes == ("prose",)
+    assert RecastRuling.owes_given == ("prose",)
     assert TakenInRuling.owes == ("side",)
+
+
+def test_a_recast_with_empty_prose_is_read():
+    """`decision-log.md Process: #299`: empty prose drops the paragraph whole."""
+    got, why = read_disposition(
+        "m.py@b1",
+        {"address": "m.py@b1", "answer": "recast", "prose": "", "reason": "r"},
+    )
+    assert why == [] and got is not None
+    assert DISPOSITIONS["recast"].sets(got, "# base\n", {}) == ""
 
 
 def test_no_disposition_closes_a_refused_place():

@@ -53,6 +53,8 @@ class Disposition:
     name: ClassVar[str]
     #: The fields that must be filled, besides `address` and `reason`.
     owes: ClassVar[tuple[str, ...]]
+    #: The fields that must be given as text, which may be empty.
+    owes_given: ClassVar[tuple[str, ...]] = ()
     #: The side taken where the entry names none -- `CHIEF` on `recast`, ""
     #: where the ruling must name its own.
     default_side: ClassVar[str] = ""
@@ -101,6 +103,11 @@ class Disposition:
             for key in cls.owes
             if not filled(values[key])
         ]
+        out += [
+            f"{where}: {cls.name} needs `{key}`"
+            for key in cls.owes_given
+            if not isinstance(data.get(key), str)
+        ]
         if out:
             return None, out
         return (
@@ -133,13 +140,15 @@ class RecastRuling(Disposition):
     """`recast`: the chief's own prose stands.
 
     Attributes:
-        prose: the paragraph as the chief sets it.
+        prose: the paragraph as the chief sets it; empty drops the paragraph
+            whole (`decision-log.md Process: #299`).
     """
 
     prose: str
 
     name: ClassVar[str] = "recast"
-    owes: ClassVar[tuple[str, ...]] = ("prose",)
+    owes: ClassVar[tuple[str, ...]] = ()
+    owes_given: ClassVar[tuple[str, ...]] = ("prose",)
     default_side: ClassVar[str] = CHIEF
 
     def _prose(self) -> str:

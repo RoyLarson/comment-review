@@ -199,6 +199,30 @@ class TestTheChiefRules:
         assert changes_of(entries_of(the_chief(tmp_path))) == [RECAST]
         assert place_on(_closed(tmp_path), "m.py@b1")["text"] == RECAST
 
+    def test_an_empty_recast_drops_the_whole_paragraph(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        """`decision-log.md Process: #299`: the chief's empty prose is the
+        paragraph removed, and the chief's copy says so with a `drop`."""
+        held_open(tmp_path, monkeypatch, capsys)
+        code, out = disposition(
+            tmp_path,
+            monkeypatch,
+            capsys,
+            [
+                {
+                    "address": "m.py@b1",
+                    "answer": "recast",
+                    "reason": "neither half belongs here",
+                    "prose": "",
+                }
+            ],
+        )
+        assert code == collate_command.OK, out
+        assert place_on(_closed(tmp_path), "m.py@b1")["text"] == ""
+        (entry,) = entries_of(the_chief(tmp_path))
+        assert entry.instruction == "drop"
+
 
 class TestTheChiefRulesAMoveThenItsEnds:
     """The chief rules an undecided move's placement once, then its ends.
