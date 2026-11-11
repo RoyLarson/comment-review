@@ -370,6 +370,11 @@ add your answer.
 Answer every slot. Write your answers with your file-write tool, as a list of the slots you
 were sent; `check --contract` prints the shape each answer takes.
 
+You may answer one slot more than once, one answer for each sentence you rule on; the turn
+composes your rewrites against the slot's text. Answers that contradict each other -- two
+different rewrites of one sentence, a `clean` beside a rewrite, or `hold` beside `withdraw` --
+are refused, and the slot comes back to you.
+
 - **An `escalation`** asks whether your finding still stands. Answer with a `reason` and one
   of: `hold` keeps your mark, `withdraw` takes it back, or `correct` or `patch` replaces its
   text with `change`, the whole updated paragraph as raw text.
