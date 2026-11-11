@@ -1586,6 +1586,25 @@ def test_a_move_into_an_ungathered_file_that_keeps_every_word_folds(tmp_path):
     assert place.anchor == "v1 = 1"
 
 
+def test_the_chief_copy_keeps_an_arrival_on_an_ungathered_page(tmp_path):
+    """A move into a page no copy supplied puts both of its ends on the chief
+    copy, each on its own page's sheet, and the copy reads back whole."""
+    from comment_review.desk.proof.edit_copy import EditCopy
+
+    out, result = handle(_moved_into_n(tmp_path, "# seven\n# eight\n# two"))
+    assert result is not None, _refusals(out)
+    assert result.chief is not None
+    on = {
+        sheet.path: [mark.address for mark in sheet.marks]
+        for sheet in result.chief.sheets
+    }
+    assert PLACE in on["m.py"]
+    assert on["n.py"] == ["n.py@b1"]
+    again, why = EditCopy.deserialize("chief", result.chief.serialize())
+    assert why == []
+    assert again == result.chief
+
+
 def test_extra_destination_retains_the_acquired_snapshot(tmp_path):
     message = _moved_into_n(tmp_path, "# seven\n# eight\n# two")
     out, result = handle(message)
