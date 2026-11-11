@@ -25,6 +25,7 @@ from test_mark_brief import BRIEF
 from comment_review.constants import EMPTY_PATCH
 from comment_review.desk.marks.rules import allowed, derived_change
 from comment_review.desk.marks.table import INSTRUCTIONS
+from comment_review.desk.proof.edit_copy import EditCopy
 from comment_review.desk.proof.mark import (
     ANCHOR_EXAMPLE,
     QUERY_SHAPES,
@@ -357,6 +358,19 @@ class TestWhatAllowedPublishes:
         keys = allowed()["source_keys"]
         assert keys["required"] == ["cite", "verbatim"]
         assert "ran" in keys["optional"]
+
+    def test_the_header_names_every_key_a_seeded_copy_carries(self):
+        """A staged copy carries `stage` and `admits` beside `role` and
+        `read_from`, so the published header names all four."""
+        seeded = EditCopy.seed(
+            "r", {"root": ".", "revise": 0}, [], stage="4c", admits=["clean"]
+        )
+        header = allowed()["edit_copy_header"]
+        assert sorted(header) == ["admits", "read_from", "role", "stage"]
+        assert sorted(header) == sorted(set(seeded) - {"sheets"})
+
+    def test_admits_is_published_as_a_closed_set_of_the_seven(self):
+        assert allowed()["values"]["admits"] == sorted(BRIEF)
 
 
 class TestTheRulesBite:

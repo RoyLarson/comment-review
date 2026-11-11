@@ -15,6 +15,7 @@ with `desk.marks.table`'s own import of `first_word_dropped` from here.
 import re
 from pathlib import Path
 
+from comment_review.desk.proof.edit_copy import EditCopy
 from comment_review.desk.proof.mark import (
     ANCHOR_EXAMPLE,
     QUERY_SHAPES,
@@ -185,7 +186,10 @@ def allowed() -> dict:
     return {
         "instruction": sorted(INSTRUCTIONS),
         "claim": claims,
-        "values": {"shape": list(QUERY_SHAPES)},
+        "values": {
+            "shape": list(QUERY_SHAPES),
+            "admits": sorted(str(member) for member in Instruction),
+        },
         "scope_shape": Shape.OUTSIDE_MY_ROLE,
         # ! A FORM, not a value set, and it is stated for the same reason the sets
         # are: a template that constrains a field without saying what is allowed
@@ -203,12 +207,5 @@ def allowed() -> dict:
             ),
         },
         "source_keys": source_contract(),
-        "edit_copy_header": {
-            "role": "the role this edit_copy was seeded for",
-            "read_from": (
-                "the tree this edit_copy was gathered from -- "
-                '`{"root": "<path>", "revise": <number>}`, '
-                "where revise 0 is the original"
-            ),
-        },
+        "edit_copy_header": EditCopy.header_contract(),
     }

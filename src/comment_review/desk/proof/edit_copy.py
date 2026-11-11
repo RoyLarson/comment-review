@@ -52,6 +52,30 @@ class EditCopy:
     stage: str = ""
     admits: tuple[str, ...] = ()
 
+    @staticmethod
+    def header_contract() -> dict:
+        """The keys an edit_copy carries beside its sheets, and what each holds.
+
+        `desk.marks.rules.allowed` publishes it as `edit_copy_header`; the
+        closed set `admits` draws from is `Instruction`'s members.
+        """
+        return {
+            "role": "the role this edit_copy was seeded for",
+            "read_from": (
+                "the tree this edit_copy was gathered from -- "
+                '`{"root": "<path>", "revise": <number>}`, '
+                "where revise 0 is the original"
+            ),
+            "stage": (
+                "the stage this edit_copy was dealt in, a string; absent or null"
+                " where no stage was named. Keep it as it was seeded"
+            ),
+            "admits": (
+                "the instructions this stage admits, a list of instruction names;"
+                " absent, null or empty admits all seven. Keep it as it was seeded"
+            ),
+        }
+
     @classmethod
     def seed(
         cls,
