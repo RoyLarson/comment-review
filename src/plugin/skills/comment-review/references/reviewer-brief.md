@@ -331,6 +331,10 @@ what it asks for:
 | not a concern | the ruling that makes the paragraph true of the code as it stands; where the prose leaves out why the code is this way, a `patch` or `add` that says why |
 | leave it | the ruling that makes the paragraph true of the code as it stands |
 
+Where the style sheet says the repo keeps code concerns outside its comments, `add a TODO` asks
+only for the ruling that makes the paragraph true of the code; the copy chief reports the
+concern to the author.
+
 A TODO reads as one statement, next to the whole of its subject. A concern about one line goes
 in that line's margin. A concern that spans lines or subjects goes in the comment above them,
 where one reading covers all of it:

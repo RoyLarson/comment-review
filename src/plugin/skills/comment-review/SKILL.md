@@ -119,8 +119,11 @@ Work from the git repository at the repo root, and pass `--repo` to every comman
    (`TODO`, `FIXME`, ...) it exempts. When the repo cites a test that enforces the cap, confirm
    the test exists, and report whether it does.
 4. **Style sheet.** Read `style` when given; otherwise start one. It records the width stage 1
-   found, the repo's dialect, the capitalisation of domain terms, its citation form, and one
-   template for each documentation format the tree actually uses: module docstring, function docstring and,
+   found, the repo's dialect, the capitalisation of domain terms, its citation form, where the
+   repo keeps code concerns -- in `TODO:` comments, or on a board or tracker its own
+   instructions name -- asking the author with `AskUserQuestion` when the repo does not say,
+   and one template for each documentation format the tree actually uses: module docstring,
+   function docstring and,
    where the repo is consistent, comments. Write each template out with its slots, measured
    from the docstrings in the tree.
 5. **Check and format commands.** Find how the repo proves its code compiles -- its CI config,
@@ -361,6 +364,12 @@ A `correct` outranks any number of `clean`s. Where two placements name different
 `ownership-context`'s governs. Verify every clause you keep: each path it cites is tracked,
 each name exists, and each count re-derives.
 
+**The style sheet.** Then read every settled place against the style sheet: its dialect, its
+review labels, the width stage 1 recorded, and its templates. Where a place breaks one,
+`recast` it into line with the sheet, keeping every claim it makes, and name the style-sheet
+entry in the `reason`. A settled place takes only a `recast`. Write these with your other
+rulings, and run `disposition` for them even when `collate` exited `0`.
+
 Write the rulings to `<run-dir>/dispositions.json` as a list of
 `{"address", "answer", "side", "reason", "prose"}`, with a `reason` on each and `"to"` added on
 a placement ruling (`address` the origin, `to` the destination), then close the proof:
@@ -458,6 +467,10 @@ and write. Pages unchanged by that stage keep their earlier drafts.
 Use a fresh `--out` directory each time. `proof` prints one `<path> -> <draft>` line per page
 it set. It reads each drafted page back and proves its code byte-identical to the original.
 When it refuses, it prints what refused and where; read that, fix the input, and set again.
+
+**Code concerns.** Where the repo keeps code concerns outside its comments, list each one the
+author answered `add a TODO`, with its place and the role's question, so the author can file
+it.
 
 **Freeform files.** Check the drafts stage 5 wrote, in this order:
 

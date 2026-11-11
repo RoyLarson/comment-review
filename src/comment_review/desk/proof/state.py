@@ -27,6 +27,4 @@ CARRIED = frozenset({State.COMPOSED, State.CONTESTED})
 #: The states a place has settled in. One side's proposal that every reader
 #: accepted `stands`; several roles' identical proposals are `agreed`, and a
 #: place the roles left alone stands on the paragraph already there.
-#: `commands.collate._counted` and `flows.transcribe._unclosed` read this
-#: same set to count settled places and refuse an unfinished proof.
 SETTLED = frozenset({State.STANDS, State.AGREED})
