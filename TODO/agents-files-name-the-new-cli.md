@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 43 of 56 tasks closed
+Progress: 43 of 57 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-09-04 (Roy, 2026-09-04, superseding the-flow-lives-in-the-command T4)
@@ -199,3 +199,5 @@ The agents files name the new CLI and say how to use it.
       owe a source (#300, #301)
 - [x] T56 | FINISHED -- brief, compact and freeform say clean and patch cite | d2f34057 | Update
       the brief to say a clean and every patch owe a source (#301, #304)
+- [ ] T57 | Update the brief to say a role may answer one slot more than once
+      (#308)

@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 4 of 25 tasks closed
+Progress: 5 of 26 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, a code review of `flows/collate.py` on the collate-
@@ -199,8 +199,8 @@ eight acts while `Collated` has eight attributes, so the two it omits -- `unrule
 - [ ] T20 | Refuse duplicate chief rulings for the same place or move before
       applying either
         > 2026-09-30 Criteria: docs/reviews/2026-09-30-r6-r7-r8.md, item 6
-- [ ] T21 | Refuse duplicate role answers at one slot while retaining distinct
-      questions at one address
+- [-] T21 | SUPERSEDED by T26 (#308) | f9d974cd | Refuse duplicate role answers
+      at one slot while retaining distinct questions at one address
         > 2026-09-30 Criteria: docs/reviews/2026-09-30-r6-r7-r8.md, item 7
 - [ ] T22 | Match human answers to their exact question and refuse duplicate
       matching sections
@@ -213,3 +213,5 @@ eight acts while `Collated` has eight attributes, so the two it omits -- `unrule
 - [ ] T25 | Correct the flow module map and live-path docstrings identified by
       the September review
         > 2026-09-30 Criteria: docs/reviews/2026-09-30-r6-r7-r8.md, standalone
+- [ ] T26 | Implement several role answers at one slot, composed, refusing only
+      contradictory ones (#308)
