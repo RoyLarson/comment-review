@@ -1542,6 +1542,83 @@ def test_a_disposition_at_a_place_the_answers_settled_is_refused(tmp_path):
         )
     )
     assert result is None
+    assert (
+        "copy-chief",
+        PLACE,
+        "not carried forward -- a place the roles settled takes only a recast",
+    ) in _refusals(out)
+
+
+#: The chief's reason for recasting a settled place: the style-sheet entry.
+STYLE = "the style sheet: one sentence per line"
+
+
+def _settled(tmp_path):
+    collated = _collated(tmp_path, JUST_THE_TWO)
+    _out, settled = handle(
+        AnswersReturned(collated.proof, _held_and_withdrawn(), tmp_path / "repo")
+    )
+    assert settled is not None
+    assert _state_at(settled.proof, PLACE) == "stands"
+    return settled.proof
+
+
+def test_a_recast_at_a_place_the_answers_settled_sets_the_chiefs_prose(tmp_path):
+    """`decision-log.md Process: #310`: the chief brings a settled place into
+    line with the style sheet, and the mark it writes carries its reason
+    (`#307`)."""
+    out, closed = handle(
+        DispositionsWritten(
+            _settled(tmp_path),
+            [{"address": PLACE, "answer": "recast", "prose": RECAST, "reason": STYLE}],
+        )
+    )
+    assert closed is not None, out
+    assert _state_at(closed.proof, PLACE) == "stands"
+    (place,) = [one for one in closed.proof.places if one.address == PLACE]
+    assert place.text == RECAST
+    assert closed.chief is not None
+    assert _changes_on(closed.chief) == [RECAST]
+    assert [m.reason for sheet in closed.chief.sheets for m in sheet.marks] == [STYLE]
+
+
+def test_a_recast_repeating_the_settled_text_is_refused(tmp_path):
+    out, result = handle(
+        DispositionsWritten(
+            _settled(tmp_path),
+            [
+                {
+                    "address": PLACE,
+                    "answer": "recast",
+                    "prose": CORRECTED,
+                    "reason": STYLE,
+                }
+            ],
+        )
+    )
+    assert result is None
+    assert (
+        "copy-chief",
+        PLACE,
+        "nothing to recast -- the prose is the text the roles settled",
+    ) in _refusals(out)
+
+
+def test_a_recast_at_a_place_riding_to_the_human_is_refused(tmp_path):
+    """A committed proof holds no refused place, since a human query rolls
+    the stage back; the state is planted to show the ruling still cannot
+    reach one."""
+    proof = deepcopy(_settled(tmp_path))
+    (place,) = [one for one in proof.places if one.address == PLACE]
+    place.state = State.REFUSED
+    place.reasons = ("block-context: human query must be replaced before folding",)
+    out, result = handle(
+        DispositionsWritten(
+            proof,
+            [{"address": PLACE, "answer": "recast", "prose": RECAST, "reason": STYLE}],
+        )
+    )
+    assert result is None
     assert ("copy-chief", PLACE, "not carried forward") in _refusals(out)
 
 

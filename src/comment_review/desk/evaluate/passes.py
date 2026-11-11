@@ -408,7 +408,7 @@ def answers_pass(place: Place, turn: int) -> Place:
 
 
 def dispositions_pass(place: Place) -> Place:
-    """Close a carried-forward place on the chief's ruling.
+    """Close a place on the chief's ruling, where its row closes the place's state.
 
     A ruling that names the chief's own side (`CHIEF`) where its row does not
     fix that side -- every row but `recast` -- is refused by name, rather than

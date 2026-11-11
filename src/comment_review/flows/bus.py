@@ -36,10 +36,12 @@ from typing import NamedTuple
 from comment_review.binder.binder import Binder
 from comment_review.desk import report as events
 from comment_review.desk.collator import Cache, Problem
+from comment_review.desk.dispositions.table import DISPOSITIONS
 from comment_review.desk.evaluate.move import moves_in
 from comment_review.desk.proof.answer import Answer, Question
 from comment_review.desk.proof.disposition import (
     CHIEF,
+    RecastRuling,
     read_disposition,
 )
 from comment_review.desk.proof.edit_copy import EditCopy
@@ -47,7 +49,7 @@ from comment_review.desk.proof.master_proof import MasterProof
 from comment_review.desk.proof.move import Move, is_open, key_of
 from comment_review.desk.proof.place import Place
 from comment_review.desk.proof.sheet import Sheet
-from comment_review.desk.proof.state import CARRIED, State
+from comment_review.desk.proof.state import CARRIED, SETTLED, State
 from comment_review.desk.stages import Stage, not_admitted
 from comment_review.desk.work.fold import Fold, asked
 from comment_review.flows.answers import answers_of, slots_of
@@ -629,9 +631,13 @@ def _on_dispositions(message: DispositionsWritten) -> tuple[list, Result | None]
     its placement, and every move
     still undecided takes one (`decision-log.md Process: #195` item 4). A
     place carried forward takes a ruling on its words, and one with none is
-    refused by name and with the roles it was put to. A ruling at a place the
-    roles settled, that rides to the human, or that waits on its move is
-    refused as well.
+    refused by name and with the roles it was put to. A place the roles
+    settled takes a recast and no other ruling, so the chief can bring its
+    text into line with the style sheet (`decision-log.md Process: #310`); a
+    recast whose prose is the settled text changes nothing and is refused. A
+    ruling at a place that rides to the human, or that waits on its move, is
+    refused as well. Which states each ruling closes is its row's `closes`,
+    in `desk.dispositions.table`.
 
     A placement ruling agrees or withdraws its move, and an end that then
     needs words is carried forward in what this commits, for the chief to
@@ -684,8 +690,24 @@ def _on_dispositions(message: DispositionsWritten) -> tuple[list, Result | None]
                 )
             )
             continue
-        if place is None or place.state not in CARRIED:
-            problems.append(Problem(CHIEF, disposition.address, "not carried forward"))
+        if place is None or place.state not in DISPOSITIONS[disposition.name].closes:
+            why = "not carried forward"
+            if place is not None and place.state in SETTLED:
+                why += " -- a place the roles settled takes only a recast"
+            problems.append(Problem(CHIEF, disposition.address, why))
+            continue
+        if (
+            place.state in SETTLED
+            and isinstance(disposition, RecastRuling)
+            and disposition.prose == (place.base if place.text is None else place.text)
+        ):
+            problems.append(
+                Problem(
+                    CHIEF,
+                    disposition.address,
+                    "nothing to recast -- the prose is the text the roles settled",
+                )
+            )
             continue
         place.disposition = disposition
     for key in sorted(moves):

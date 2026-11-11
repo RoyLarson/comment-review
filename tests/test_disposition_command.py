@@ -24,6 +24,7 @@ from helpers import (
     entries_of,
     held_open,
     place_on,
+    proof_at,
     the_chief,
     turn,
 )
@@ -222,6 +223,98 @@ class TestTheChiefRules:
         assert place_on(_closed(tmp_path), "m.py@b1")["text"] == ""
         (entry,) = entries_of(the_chief(tmp_path))
         assert entry.instruction == "drop"
+
+
+class TestTheChiefRecastsASettledPlace:
+    """`decision-log.md Process: #310`: the chief may recast a place the
+    roles settled, to bring it into line with the style sheet.
+
+    `m.py@b2` is cleaned by both roles, so it stands on its paragraph; `m.py@b1`
+    is held open and ruled as usual.
+    """
+
+    TEXTS = {"m.py@b1": BASE, "m.py@b2": "# four\n# five\n# six\n"}
+    SETTLED = {
+        role: {"m.py@b2": a_clean("m.py@b2")}
+        for role in ("block-context", "function-context")
+    }
+    STYLE = "the style sheet: sentences end with a full stop"
+    PROSE = "# Four.\n# Five.\n# Six.\n"
+
+    def _ruled(self, tmp_path, monkeypatch, capsys, ruling):
+        held_open(tmp_path, monkeypatch, capsys, self.SETTLED, self.TEXTS)
+        return disposition(
+            tmp_path,
+            monkeypatch,
+            capsys,
+            [_taken_in("m.py@b1", "function-context", "theirs reads better"), ruling],
+        )
+
+    def test_the_recast_sets_the_place_and_the_chief_marks_it(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        code, out = self._ruled(
+            tmp_path,
+            monkeypatch,
+            capsys,
+            {
+                "address": "m.py@b2",
+                "answer": "recast",
+                "reason": self.STYLE,
+                "prose": self.PROSE,
+            },
+        )
+        assert code == collate_command.OK, out
+        assert f"recast m.py@b2: copy-chief -- {self.STYLE}" in out
+        assert "stet m.py@b2" not in out
+        place = place_on(_closed(tmp_path), "m.py@b2")
+        assert (place["state"], place["text"]) == ("stands", self.PROSE)
+        marks = [m for m in entries_of(the_chief(tmp_path)) if m.address == "m.py@b2"]
+        assert changes_of(marks) == [self.PROSE]
+        assert [m.reason for m in marks] == [self.STYLE]
+
+    def test_an_empty_recast_drops_the_settled_paragraph(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        code, out = self._ruled(
+            tmp_path,
+            monkeypatch,
+            capsys,
+            {
+                "address": "m.py@b2",
+                "answer": "recast",
+                "reason": self.STYLE,
+                "prose": "",
+            },
+        )
+        assert code == collate_command.OK, out
+        assert place_on(_closed(tmp_path), "m.py@b2")["text"] == ""
+        marks = {one.address: one for one in entries_of(the_chief(tmp_path))}
+        assert marks["m.py@b2"].instruction == "drop"
+
+    def test_a_recast_repeating_the_paragraph_is_BROKEN(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        held_open(tmp_path, monkeypatch, capsys, self.SETTLED, self.TEXTS)
+        settled = place_on(proof_at(tmp_path, 1), "m.py@b2")
+        assert (settled["state"], settled["text"]) == ("stands", None)
+        code, out = disposition(
+            tmp_path,
+            monkeypatch,
+            capsys,
+            [
+                _taken_in("m.py@b1", "function-context", "theirs reads better"),
+                {
+                    "address": "m.py@b2",
+                    "answer": "recast",
+                    "reason": self.STYLE,
+                    "prose": settled["base"],
+                },
+            ],
+        )
+        assert code == collate_command.BROKEN, out
+        assert "copy-chief m.py@b2: nothing to recast" in out
+        assert not (tmp_path / "final.json").exists()
 
 
 class TestTheChiefRulesAMoveThenItsEnds:
@@ -484,8 +577,8 @@ class TestRefusals:
     def test_a_ruling_at_a_place_nothing_carries_forward_is_BROKEN(
         self, tmp_path, monkeypatch, capsys
     ):
-        """A place the roles settled is closed, so it is not the chief's to
-        rule."""
+        """A place the roles settled takes no `taken_in`: the chief rules it
+        only with a recast (`decision-log.md Process: #310`)."""
         texts = {"m.py@b1": BASE, "m.py@b2": "# four\n# five\n# six\n"}
         settled = {
             "block-context": {"m.py@b2": a_clean("m.py@b2")},
@@ -512,7 +605,10 @@ class TestRefusals:
             ],
         )
         assert code == collate_command.BROKEN
-        assert "copy-chief m.py@b2: not carried forward" in out
+        assert (
+            "copy-chief m.py@b2: not carried forward -- a place the roles settled"
+            " takes only a recast" in out
+        )
         assert not (tmp_path / "final.json").exists()
 
     def test_a_recast_without_prose_is_BROKEN(self, tmp_path, monkeypatch, capsys):

@@ -716,6 +716,39 @@ class TestDocketOfProof:
         # A None text deletes the paragraph.
         assert [(one.cue, one.text) for one in schedule.alterations] == [("b1", None)]
 
+    def test_a_recast_at_a_settled_place_reaches_the_docket(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        """`decision-log.md Process: #310`: the roles settle the correction at
+        the first fold, and the chief recasts it to follow the style sheet."""
+        self._closed(
+            tmp_path,
+            monkeypatch,
+            capsys,
+            {"block-context": {"m.py@b1": a_correct_setting("m.py@b1", "two", TWO)}},
+            texts={"m.py@b1": BASE},
+        )
+        code, out = disposition(
+            tmp_path,
+            monkeypatch,
+            capsys,
+            [
+                {
+                    "address": "m.py@b1",
+                    "answer": "recast",
+                    "reason": "the style sheet's wrap",
+                    "prose": RECAST_THERE,
+                }
+            ],
+            proof="proof0.json",
+        )
+        assert code == collate_command.OK, out
+        docket = docket_of_proof(the_closed_proof(tmp_path), tmp_path / "repo")
+        (schedule,) = docket.schedules
+        assert [(one.cue, one.text) for one in schedule.alterations] == [
+            ("b1", RECAST_THERE)
+        ]
+
     def test_a_settled_correction_is_one_alteration(
         self, tmp_path, monkeypatch, capsys
     ):
