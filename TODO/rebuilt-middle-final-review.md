@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 39 of 56 tasks closed
+Progress: 40 of 56 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-09-18 (final whole-branch review of feat/the-middle-rebuilt, 2026-09-18)
@@ -26,8 +26,9 @@ The rebuilt middle's final review.
 - [x] T4 | Row.places and Row.names_destination are the one statement of which places a mark writes at; touched_by, _touched and the claim.to reads are gone; the gate holds the doc's key to the row | e0a39ccb | Make
       the marks row say where a two-place mark's other end is; five sites read
       claim.to and one function is written twice (A1, A2)
-- [ ] T5 | Move who owes raw_text from flows/fill.py into the two rows that
-      carry it, so check applies it to a hand-written copy (A3)
+- [-] T5 | The add and move rows already own raw_text validation. Mark enforces required input, and check and collate apply the row rules against the page. 317 focused tests passed. | 770bce5ce0c06c08ae0c7e95069605127396b2dd | Move
+      who owes raw_text from flows/fill.py into the two rows that carry it, so
+      check applies it to a hand-written copy (A3)
 - [x] T6 | a taken_in naming copy-chief is refused by name, not a KeyError | 2a5e2730cee1049f22ecf0bc8f2e243c204afb98 | Fix
       a taken_in naming copy-chief: disposition exits on a KeyError; the row
       should say which sides it admits (A4)
