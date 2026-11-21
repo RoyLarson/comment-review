@@ -42,3 +42,4 @@
 | [2026-11-02-freeform-copy-is-the-finding](2026-11-02-freeform-copy-is-the-finding.md) | closed | 3/3 | 0/0 |
 | [2026-11-04-look-up-address-reads-the-page](2026-11-04-look-up-address-reads-the-page.md) | closed | 22/22 | 11/11 |
 | [retire-chief-copy](retire-chief-copy.md) | closed | 2/2 | 2/2 |
+| [shared-rollback-report](shared-rollback-report.md) | open | 0/1 | 0/1 |

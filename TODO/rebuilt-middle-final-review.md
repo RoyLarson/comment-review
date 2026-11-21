@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 36 of 56 tasks closed
+Progress: 37 of 56 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-09-18 (final whole-branch review of feat/the-middle-rebuilt, 2026-09-18)
@@ -73,8 +73,9 @@ The rebuilt middle's final review.
       row (A5)
 - [ ] T21 | Note what the tables gate does not catch: single quotes, instruction
       strings, Shape, Touch, a one-row property (A6)
-- [ ] T22 | Move chief_mark out of the gate-exempt table module or narrow the
-      exemption; ninety lines of non-row logic (A7)
+- [-] T22 | Chief mark synthesis was removed with the chief copy artifact. | 4d43e9fe | Move
+      chief_mark out of the gate-exempt table module or narrow the exemption;
+      ninety lines of non-row logic (A7)
         > 2026-09-30 Criteria: docs/reviews/2026-09-30-r6-r7-r8.md, item 4
 - [ ] T23 | Define stands once; it means nothing proposed, a lone proposal
       nobody is owed, and closed by the chief (B5)
