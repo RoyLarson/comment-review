@@ -117,6 +117,7 @@ The rebuilt middle's final review.
 - [ ] T32 | Delete what nothing reads: AnswerRow.question, three event fields,
       desk/proof.py, diff3, tally, mark --anchor-line (E2)
         > 2026-09-30 R3 retired AnswerRow.question; other named dead fields remain
+        > 2026-11-21 Keep diff3 for a-conflict-has-no-rendering T5.
 - [x] T33 | Shared gathered-tree comparison, chief role constant, mark grouping, and ruling eligibility. Full suite passed. | 258048c5863fd33081db05a70ca46c690665e682 | Reduce
       rules stated twice: mismatched roots, the copy-chief string, marks by
       role, a ruling refused twice (E3)

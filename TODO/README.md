@@ -240,7 +240,7 @@ that changed a published name or rule:
 | [prove-refuses-a-doc](prove-refuses-a-doc.md) | backend | -- | 3/5 | prove_unchanged refuses a documentation file for having no code |
 | [a-reference-needs-its-own-write-chain](a-reference-needs-its-own-write-chain.md) | backend | -- | 0/3 | A reference needs its own write chain, and it is NOT YET |
 | [the-fields-do-not-say-a-mark-may-cite-across](the-fields-do-not-say-a-mark-may-cite-across.md) | agents | yes | 5/8 | The mark's fields permit a cross-citation and never say so |
-| [a-conflict-has-no-rendering](a-conflict-has-no-rendering.md) | backend | -- | 3/4 | A conflict is detected and nothing renders it |
+| [a-conflict-has-no-rendering](a-conflict-has-no-rendering.md) | backend | -- | 3/5 | A conflict is detected and nothing renders it |
 | [shape-is-three-words](shape-is-three-words.md) | backend | yes | 0/6 | `shape` carries three senses, only one reaches an agent as a field name; and the axis it names is on `query` alone while `clean` has a recorded, unfilled need for the same thing |
 | [prototype-move-orphaned-tasks](prototype-move-orphaned-tasks.md) | systems | -- | 0/4 | 25 open TODOs carry an unchecked task naming a module that moved to `prototype/` on 2026-08-25, so the task's site is gone and its verification cannot be run |
 | [revise-copies-everything](revise-copies-everything.md) | backend | yes | 0/4 | `pull` copies `.git`, `.venv` and `corpora` into every revise root -- 284MB measured on this repo, per editorial stage, to set a docket over ~4MB of source |
