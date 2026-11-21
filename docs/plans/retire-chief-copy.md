@@ -3,7 +3,7 @@
 ```
 Status:   open
 Progress: 0 of 2 TODO tasks closed
-Plan-tasks: 0 of 1 plan tasks closed
+Plan-tasks: 0 of 2 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-11-21 (rebuilt-middle-final-review.md)
@@ -26,3 +26,4 @@ output
 ## Plan Tasks
 
 - [ ] P1 | Remove chief-copy synthesis from the fold and bus
+- [ ] P2 | Remove chief-copy output from the CLI workflow
