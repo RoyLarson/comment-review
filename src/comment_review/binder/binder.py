@@ -34,15 +34,9 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from comment_review.binder.page import Page, RedactedPage
+from comment_review.read_from import BINDER_VERSION as VERSION
+from comment_review.read_from import read_from_problem
 from comment_review.reading.paragraph import Paragraph
-
-# The shape's own version, so a reader can say which format it refused rather
-# than only that it could not read one.
-#
-# `Binder.deserialize` refuses on it: a binder whose `version` is not `VERSION`
-# is refused by name, and one at version "2" is told it carries no saved
-# reading context.
-VERSION = "4"
 
 
 def bind(
@@ -88,7 +82,7 @@ def bind(
         ValueError: `read_from` is not `{"root": str, "revise": int}`.
 
     The shape of `read_from` is checked here and on the way back in, by
-    `_read_from_problem`.
+    `read_from_problem`.
 
     And it is copied, not aliased. The stored dict was the caller's own until
     2026-08-28, so a binder, every `edit_copy` seeded from it, and whatever the
@@ -96,7 +90,7 @@ def bind(
     = 1`, which is how a revise test is naturally written, would have changed
     what every later test in the session saw, with no gate able to attribute it.
     """
-    why = _read_from_problem({"read_from": read_from})
+    why = read_from_problem({"read_from": read_from})
     if why:
         raise ValueError(why)
     # !! `absent` CHOOSES THE PAGE TYPE, IT DOES NOT FILTER A ROW LIST --
@@ -109,40 +103,6 @@ def bind(
         pages=tuple(page if absent else RedactedPage.of(page) for page in pages),
         freeform=tuple(freeform),
     )
-
-
-def _read_from_problem(loaded: dict) -> str:
-    """Why a `read_from` cannot be used, or `""`: a binder's, an edit copy's, a proof's.
-
-    MEASURED 2026-08-28, and it is why the check moved here from `seed` alone:
-    `distribute --seed` over a version-"1" binder exited 1 with `KeyError:
-    'read_from'` and an eight-frame traceback on stderr and nothing on stdout,
-    past `main`'s own promise of *"2 when an input could not be read"*.
-    `commands/distribute.py:122` calls `seed` immediately after `load_binder`
-    returns a binder, and `Binder.deserialize` runs this function first, so a
-    field `seed` requires could only surface as a crash. Raising is not
-    refusing: a refusal in this module is a named reason, which a command turns
-    into an exit code, which is what a reader can act on.
-
-    ! AND THE SHAPE IS CHECKED, NOT ONLY THE PRESENCE. MEASURED the same day:
-    `read_from="oops"`, `None`, `[]` and `{"root": 7}` each built a binder, each
-    passed `ty`, and `seed` copied the value verbatim onto the `edit_copy`
-    handed to an editorial role.
-    """
-    if "read_from" not in loaded:
-        return (
-            "carries no `read_from` -- a binder written before 2026-08-28 "
-            f'(version "1"); re-run `gather` to get a version "{VERSION}" one'
-        )
-    read_from = loaded["read_from"]
-    if not isinstance(read_from, dict):
-        kind = type(read_from).__name__
-        return f"`read_from` is a JSON {kind}, not a mapping of `root` and `revise`"
-    if not isinstance(read_from.get("root"), str):
-        return "`read_from` carries no `root` string -- which tree was gathered?"
-    if not isinstance(read_from.get("revise"), int):
-        return "`read_from` carries no `revise` number -- 0 is the original"
-    return ""
 
 
 def _not_a(where: str, noun: str, value: object) -> str:
@@ -181,7 +141,7 @@ class Binder:
     def root(self) -> Path:
         """The tree this binder was gathered from, as a path.
 
-        `read_from["root"]` is what `_read_from_problem` requires of every
+        `read_from["root"]` is what `read_from_problem` requires of every
         binder, so a `Binder` always has one -- which is why the commands ask
         the container rather than re-deriving a fallback for a case `bind` and
         `deserialize` already refuse.
@@ -250,7 +210,7 @@ class Binder:
         # Put first, it answered every malformed-`pages` artifact with "carries
         # no `read_from`" -- true, and not the reason the file is unreadable.
         # `pages` is what a binder IS; the header says which tree it came from.
-        why_header = _read_from_problem(checked)
+        why_header = read_from_problem(checked)
         if why_header:
             return None, [f"{where}: {why_header}"]
         raw_version = checked.get("version")
@@ -302,3 +262,16 @@ class Binder:
         memory and what it writes are the same set.**
         """
         return [b for page in self.pages for b in page.paragraphs if b.address]
+
+
+def known_addresses(binder: Binder) -> frozenset[str]:
+    """Every address the binder's rows carry, as a set to test membership on.
+
+    Args:
+        binder: the deserialized binder. Each row already knows its own path
+            and address -- a page rejoins them when it is read back.
+
+    Returns:
+        The addresses. A row carrying an empty one is dropped.
+    """
+    return frozenset(b.address for b in binder.paragraphs if b.address)

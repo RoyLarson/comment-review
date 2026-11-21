@@ -29,9 +29,9 @@ from helpers import (
     returned,
 )
 
+from comment_review.binder.binder import known_addresses
 from comment_review.desk.collator import (
     claim_verbatim_problems,
-    known_addresses,
     source_problems,
     source_verification,
     tally,

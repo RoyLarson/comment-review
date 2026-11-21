@@ -3,11 +3,11 @@
 from dataclasses import dataclass, field
 from typing import cast
 
-from comment_review.binder.binder import _read_from_problem
 from comment_review.desk.proof.edit_copy import EditCopy
 from comment_review.desk.proof.mark import filled, read_text
 from comment_review.desk.proof.move import Move
 from comment_review.desk.proof.place import Place
+from comment_review.read_from import read_from_problem
 from comment_review.reading.addresser import cue_of, flatten, unflatten
 from comment_review.reading.context import ReadingContext
 from comment_review.reading.context_io import context_from_wire, context_to_wire
@@ -151,7 +151,7 @@ class MasterProof:
 
         Returns:
             `(MasterProof, [])` or `(None, [messages])`. Every bad copy is
-            reported, and so is a `read_from` that fails `_read_from_problem` --
+            reported, and so is a `read_from` that fails `read_from_problem` --
             the same check `EditCopy.deserialize` runs on an edit_copy's own field --
             and every edit_copy whose `read_from` disagrees with the proof's is
             named, as `edit_copy {i}`: the bus's `_on_copies` takes a proof's
@@ -238,13 +238,13 @@ class MasterProof:
             return None, problems
         read_from = data.get("read_from")
         # !! THE HEADER IS HELD TO A SHAPE WHETHER OR NOT THERE ARE COPIES, and was
-        # not until 2026-08-31. `_read_from_problem` ran inside the `if copies:`
+        # not until 2026-08-31. `read_from_problem` ran inside the `if copies:`
         # below, so a proof carrying none admitted ANY value: MEASURED with
         # `edit_copies: []`, all of `'oops'`, None, 7, [], {'root': 7} and
         # {'junk': 1} returned `problems == []`, and the two dict-shaped ones were
         # carried into `MasterProof.read_from` VERBATIM.
         #
-        # ! AND THOSE TWO VALUES ARE THE REASON `_read_from_problem` IS REUSED
+        # ! AND THOSE TWO VALUES ARE THE REASON `read_from_problem` IS REUSED
         # RATHER THAN HAND-ROLLED. A weaker `isinstance(..., dict) and truthy`
         # let `{"junk": 1}` and `{"root": 7, "revise": "x"}` through at exit 0
         # while `bind` REFUSED the identical value -- two spellings of one rule,
@@ -269,7 +269,7 @@ class MasterProof:
         # admit the null, which is the four-characters-of-"None" class of defect
         # `Sheet.deserialize` and `MasterProof.deserialize` each already guard.
         if copies or data.get("read_from", {}) != {}:
-            why_header = _read_from_problem(data)
+            why_header = read_from_problem(data)
             if why_header:
                 return None, [f"{where}: master_proof's {why_header}"]
         # Every copy is held to the proof's `read_from`, not the first alone. An

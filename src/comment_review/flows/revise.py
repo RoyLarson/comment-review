@@ -35,8 +35,7 @@ from collections.abc import Mapping
 from pathlib import Path
 from typing import NamedTuple
 
-from comment_review.binder.binder import Binder, bind
-from comment_review.desk.collator import known_addresses
+from comment_review.binder.binder import Binder, bind, known_addresses
 from comment_review.docket.docket import Docket
 from comment_review.flows import proof_setter
 from comment_review.flows.page_for import page_of

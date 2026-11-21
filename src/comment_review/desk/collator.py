@@ -1,6 +1,5 @@
 """SOURCE-VERIFICATION: one role's marks against the tree they were read from.
 
-    known_addresses()          every address the binder carries
     claim_verbatim_problems()  the sentence the claim quotes is really in a
                                text at its place
     source_problems()          every `cite` resolves inside the checkout, and
@@ -24,8 +23,6 @@ THE BINDER CARRIES IS NOT ASKED, since 2026-09-05 -- `decision-log.md Process:
 place it dropped and a `move` may cite a file it never held;
 `flows.verify.resolution_problems` opens the page and says whether the place
 exists.
-`known_addresses` stays for the revise diff; the coverage count asks what came
-back against what was handed out, and reads `binder.addresses.handed` for that.
 One kind needs only the report itself, and nothing outside it (`Problem`,
 `tally`) -- `decision-log.md Process: #54` put them here because they ask
 about the SET, and one mark cannot answer for the set alone. ! TWO MORE
@@ -71,7 +68,6 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from comment_review import constants
-from comment_review.binder.binder import Binder
 from comment_review.desk.marks.table import INSTRUCTIONS
 from comment_review.desk.proof.edit_copy import EditCopy
 from comment_review.desk.proof.mark import Instruction, Mark, filled, without_location
@@ -89,19 +85,6 @@ WITHIN = 3
 #: None where it could not be read. ! KEYED ON THE PATH ALONE, so one cache
 #: belongs to one root.
 Cache = dict[str, tuple[str, ...] | None]
-
-
-def known_addresses(binder: Binder) -> frozenset[str]:
-    """Every address the binder's rows carry, as a set to test membership on.
-
-    Args:
-        binder: the deserialized binder. Each row already knows its own path
-            and address -- a page rejoins them when it is read back.
-
-    Returns:
-        The addresses. A row carrying an empty one is dropped.
-    """
-    return frozenset(b.address for b in binder.paragraphs if b.address)
 
 
 def claim_verbatim_problems(

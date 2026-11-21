@@ -8,7 +8,6 @@ There is no second shape and no second parse.
 from copy import deepcopy
 from dataclasses import dataclass
 
-from comment_review.binder.binder import _read_from_problem
 from comment_review.desk.proof.mark import (
     Instruction,
     a_type,
@@ -18,6 +17,7 @@ from comment_review.desk.proof.mark import (
 )
 from comment_review.desk.proof.sheet import Sheet
 from comment_review.desk.proof.wire import _written
+from comment_review.read_from import read_from_problem
 
 
 @dataclass(frozen=True)
@@ -143,7 +143,7 @@ class EditCopy:
         role = checked.get("role")
         if not filled(role):
             return None, [f"{where}: an edit_copy needs the `role` that wrote it"]
-        why_header = _read_from_problem(checked)
+        why_header = read_from_problem(checked)
         if why_header:
             return None, [f"{where}: {role}'s {why_header}"]
         raw_sheets = checked.get("sheets")

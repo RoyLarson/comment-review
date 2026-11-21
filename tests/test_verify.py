@@ -25,7 +25,8 @@ from helpers import (
     seed,
 )
 
-from comment_review.desk.collator import Cache, known_addresses, verify_report
+from comment_review.binder.binder import known_addresses
+from comment_review.desk.collator import Cache, verify_report
 from comment_review.desk.proof.mark import BlankMark
 from comment_review.desk.proof.sheet import Sheet
 from comment_review.desk.stages import Kind, Stage

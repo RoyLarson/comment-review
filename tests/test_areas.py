@@ -57,17 +57,6 @@ FORBIDDEN = {
 #: `P55`: the middle no longer builds the write end's artifact, because
 #: `flows/revise.py::docket_of` does.
 KNOWN = {
-    # MIDDLE -> READ END. `desk/collator.py` takes a `Binder` as a PARAMETER and
-    # never builds one, which is still the middle knowing the read end's
-    # artifact. What it needs is a set of addresses and a map of base texts,
-    # which the FLOW can derive and hand over.
-    "desk/collator.py: comment_review.binder.binder",
-    # MIDDLE -> READ END. `_read_from_problem` is PRIVATE to `binder` while
-    # `read_from` sits on a binder, on every `edit_copy` and on a `master_proof`
-    # -- one definition, reachable by only one of its three owners. Both proof
-    # objects that parse a `read_from` import it.
-    "desk/proof/edit_copy.py: comment_review.binder.binder",
-    "desk/proof/master_proof.py: comment_review.binder.binder",
     # WRITE END -> READ END. `results/compositor.py` reads `Page` and `page_for`.
     "results/compositor.py: comment_review.binder.page",
 }
@@ -114,7 +103,9 @@ def test_a_leaf_file_crossing_is_detected(tmp_path, monkeypatch):
     }
 
 
-@pytest.mark.parametrize("leaf", ("differences", "constants", "exceptions"))
+@pytest.mark.parametrize(
+    "leaf", ("differences", "constants", "exceptions", "read_from")
+)
 def test_pure_helpers_reach_no_higher_area(leaf):
     assert (SRC / f"{leaf}.py").is_file()
     assert (
@@ -136,7 +127,7 @@ def test_pure_helpers_reach_no_higher_area(leaf):
     )
 
 
-def test_no_area_reaches_across_except_the_three_still_open(found):
+def test_no_area_reaches_across_except_known_crossings(found):
     assert found == KNOWN
 
 
