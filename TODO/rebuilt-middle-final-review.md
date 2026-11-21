@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 46 of 56 tasks closed
+Progress: 54 of 56 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-09-18 (final whole-branch review of feat/the-middle-rebuilt, 2026-09-18)
@@ -51,8 +51,9 @@ The rebuilt middle's final review.
 - [x] T12 | Binder owns address lookup. Binder, copy and proof use one neutral header validator. 253 focused tests passed. | ef172e66dda3df740e85bfb28e51531076424b18 | Move
       desk's two binder imports out: collator.py takes a Binder, containers.py a
       private binder name (D1)
-- [ ] T13 | Correct 'no handler reads a page' in flows/bus.py and
-      docs/the-turn.md; the collate path reads pages under review (D2)
+- [x] T13 | Bus and turn guide already describe the pages collate opens. | 5667fb38 | Correct
+      'no handler reads a page' in flows/bus.py and docs/the-turn.md; the
+      collate path reads pages under review (D2)
 - [x] T14 | Process 186: the prose says a short shard and an unruled place roll the round back; verify.py and mark_errors.py corrected | b4846ba9 | Decide
       whether coverage and an unruled place void the round; Process 63, 112 and
       133 are reversed with no ruling (D4)
@@ -67,16 +68,18 @@ The rebuilt middle's final review.
       Row.answers or give it a reader; three docs call it a rule and only a test
       reads it (E1)
         > 2026-09-30 Criteria: docs/reviews/2026-09-30-r6-r7-r8.md, Row.answers
-- [ ] T18 | Correct docstrings that describe the old design as live:
-      master_proof_of, mark.parse, Revisit.unreadable (F1)
+- [x] T18 | Stale docstrings were corrected or removed with the old symbols. | d608664a | Correct
+      docstrings that describe the old design as live: master_proof_of,
+      mark.parse, Revisit.unreadable (F1)
         > 2026-09-25 Revisit.unreadable went with T43; the rest of F1 stands
 - [x] T19 | disposition docstring and help say taken_in | 2a5e2730cee1049f22ecf0bc8f2e243c204afb98 | Correct
       disposition --help: it says taken-in and the parse accepts taken_in only
       (G1)
-- [ ] T20 | Correct the advisory heading in commands/collate.py so it names no
-      row (A5)
-- [ ] T21 | Note what the tables gate does not catch: single quotes, instruction
-      strings, Shape, Touch, a one-row property (A6)
+- [x] T20 | Advisory heading is instruction-neutral and covered by a CLI test. | 6a9c61768401adaa12c31066fbc882e570a49e9e | Correct
+      the advisory heading in commands/collate.py so it names no row (A5)
+- [x] T21 | Tables gate documentation describes the regex blind spots. | 6a9c61768401adaa12c31066fbc882e570a49e9e | Note
+      what the tables gate does not catch: single quotes, instruction strings,
+      Shape, Touch, a one-row property (A6)
 - [-] T22 | Chief mark synthesis was removed with the chief copy artifact. | 4d43e9fe | Move
       chief_mark out of the gate-exempt table module or narrow the exemption;
       ninety lines of non-row logic (A7)
@@ -117,16 +120,21 @@ The rebuilt middle's final review.
 - [x] T33 | Shared gathered-tree comparison, chief role constant, mark grouping, and ruling eligibility. Full suite passed. | 258048c5863fd33081db05a70ca46c690665e682 | Reduce
       rules stated twice: mismatched roots, the copy-chief string, marks by
       role, a ruling refused twice (E3)
-- [ ] T34 | Correct flows.revise.docket_of to flows.transcribe.docket_of on five
-      lines of four shipped files and two tests (F2)
-- [ ] T35 | Correct scripts/render_brief.py lines 7 and 103: INSTRUCTIONS is in
+- [x] T34 | Live docket_of cross-references now point to flows.transcribe. | 6a9c61768401adaa12c31066fbc882e570a49e9e | Correct
+      flows.revise.docket_of to flows.transcribe.docket_of on five lines of four
+      shipped files and two tests (F2)
+- [x] T35 | Both render_brief references already point to desk/marks/table.py. | d608664a | Correct
+      scripts/render_brief.py lines 7 and 103: INSTRUCTIONS is in
       desk/marks/table.py (F3, systems lane)
 - [ ] T36 | Correct the nine imprecise statements in docs/the-turn.md that the
       final review lists (G2)
-- [ ] T37 | Correct docs/the-mark.md line 237: sixteen things is fifteen since
-      rereads went (G3)
-- [ ] T38 | Delete the-turn.md's 'a run cannot spin'; no code holds a cap, so
-      nothing can check it (G4)
+        > 2026-11-21 Live prose audited. Original nine findings still need tracing.
+- [x] T37 | The mark guide already counts fifteen fields. | 72e6eac3 | Correct
+      docs/the-mark.md line 237: sixteen things is fifteen since rereads went
+      (G3)
+- [x] T38 | Turn guide assigns the cap to the task agent and drops the guarantee. | 6a9c61768401adaa12c31066fbc882e570a49e9e | Delete
+      the-turn.md's 'a run cannot spin'; no code holds a cap, so nothing can
+      check it (G4)
 - [x] T39 | check --contract names raw_text and the rows that write it | 2a5e2730cee1049f22ecf0bc8f2e243c204afb98 | Publish
       raw_text in the mark's contract for add and move; check --contract omits
       it (G5)
