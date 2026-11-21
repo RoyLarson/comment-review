@@ -75,14 +75,14 @@ no module holds a maximum.
 **When max turns is reached, the chief rules.** Not "the run fails", not "it escalates to a
 human", not "the place is dropped": *"the copy-chief or the task agent acting as copy chief
 applies its own ruling to the final piece and puts that in the copy-chiefs edit copy."*
+The current command records that ruling on the master proof (Process #313).
 
 **The chief may be the task agent wearing that hat.** The role is a seat, not a separate
 dispatch. Its name is `desk.proof.disposition.CHIEF`, the string `copy-chief`.
 
-**This is what makes the loop terminate without a code cap.** The bound is the instruction; the
-terminator is the chief's ruling. A run cannot spin, because the last turn always ends in
-somebody deciding -- and `flows.bus._on_dispositions` refuses a carried-forward place or an
-undecided move the chief left unruled, so the close cannot happen with one outstanding.
+**The task agent applies the turn cap.** The commands have no maximum turn count.
+`disposition` refuses a carried-forward place or an undecided move the chief
+left unruled, so a proof cannot close while either is outstanding.
 
 ---
 
@@ -392,20 +392,21 @@ and on commit builds what the stage saves.
 | `AnswersReturned` | the last proof, each role's answers, the checkout a cite resolves against, and the human's answers | the next proof and the next batch |
 | `DispositionsWritten` | the last proof and the chief's rulings | the next proof -- closed, or carrying a ruled move's ends forward -- |
 
-**`collate` takes each copy with its received binder**, by `--edit-copy` and
+**`collate` can take each copy with its received binder**, by `--edit-copy` and
 `--received-binder` repeated in one order, or by `--pairs`, a JSON list of
 `{edit_copy, received_binder}` paths, in place of both.
 
-**Everything a copy can be wrong about on its own is found before the fold opens.** A quote
+**Collate checks admission before the fold opens.** A quote
 that is not in its paragraph, a cite that resolves against nothing, an address no page carries,
 a place a role left unruled, a role short of its shard, a received binder or reading context
 that disagrees with the stage's, a copy dealt in another stage, a mark its stage does not admit,
-and a copy gathered from a tree the others were not (`Process: #178`) each become one
+and a copy gathered from a tree other than the binder's (`Process: #178`) each become one
 `Refused`, and the fold never runs. None of them is a question about how the roles' rulings
-meet. A short shard and an unruled place roll the whole round back like the rest: the role is
+meet. The fold then applies mark-row rules against each place's base. A short shard and
+an unruled place roll the whole round back like the rest: the role is
 named, nothing is written, and `collate` runs again over the repaired copies (`Process: #186`).
-`flows.verify.copy_problems` is the list one copy is held to against the pages, and
-`check --edit-copy` runs the same call before the send.
+`flows.verify.admitted_copy_problems` checks addresses and evidence against the pages.
+`check --edit-copy` uses it through `copy_problems` and applies the mark rows directly.
 
 **What each handler reads.**
 
@@ -432,8 +433,8 @@ them alone.
 
 ## What each command prints, and what it exits
 
-**Six exit codes, declared in `commands/report.py`**, and `collate`, `turn` and `disposition`
-all return them, so a caller branching on a code branches once. `check` exits them too.
+**Six exit codes are declared in `commands/report.py`.** `collate`, `turn` and
+`disposition` share them. `check` uses 0, 1, 2 and 5.
 
 | code | name | what it means |
 | --- | --- | --- |
@@ -459,7 +460,7 @@ notes after them; what was written prints last.**
 | `<placement> <origin> -> <destination>: <roles> (placement)` | `PlacementCarried` |
 | `stet <address>` | `Settled`, by the fold alone |
 | `<ruling> <address>: <side> -- <reason>` | `Settled`, by the chief's ruling |
-| the `for the chief` heading, then `<role> <address>: <note>` | `Advised`, printed last, and only over a commit: `Fold.run` reports a rollback's refusals and nothing else. A note itself still rolls nothing back (`Process: #177`) |
+| the `for the chief -- advisory notes:` heading, then `<role> <address>: <note>` | `Advised`, printed last, and only over a commit: `Fold.run` reports a rollback's refusals and nothing else. A note itself still rolls nothing back (`Process: #177`) |
 
 **Then the files, one line each, and only on a commit** (`commands/collate.py`,
 `commands/turn.py`, `commands/disposition.py`; the counts are `commands.report.counted`):
@@ -577,7 +578,7 @@ batch slot and on the proof.
 | a lone owing mark goes back to every role that marked but a query | `Process: #89` | a case of `#180`; no row is asked |
 | an `add` goes back to every role that read the page | `Process: #116` | a case of `#180`; no row is asked |
 | a human query is asked before the fold; the other shapes defer | `Process: #121`, `#197` | `flows.human`, `flows.bus._asks`, `desk.marks.table._query_stance`, `desk.answers.table.asks_human` |
-| once settled, always settled, for the review; nothing persists across runs | `Process: #91` | `desk.evaluate.passes.answers_pass`, which narrows only a carried-forward place |
+| ordinary turn answers apply only to carried-forward places | `Process: #91` | `desk.evaluate.passes.answers_pass`; the chief may recast a settled place under #310 |
 | a text settles only once every reader has proposed or accepted it | `Process: #180` | `desk.evaluate.passes.owed_a_say` |
 | one role's marks at one place compose | `Process: #179` | `desk.evaluate.passes.composed_side` |
 | an answer's sources are verified before the fold | `Process: #181` | `flows.answers.answers_of` |
@@ -585,7 +586,7 @@ batch slot and on the proof.
 | one end of a move settles with the move, not before it | `Process: #190`, `#200`, `#201` | `desk.evaluate.move.hold_ends`, the `to-come` state |
 | the chief rules an undecided move's placement once, then its ends | `Process: #195` item 4, `#201` | `desk.evaluate.move._ruled`, `flows.bus._on_dispositions` |
 | the dropped-words list is advisory | `Process: #163`, `#177` | `desk.marks.table._correct_notes`, `events.Advised` |
-| copies from different trees are refused | `Process: #178` | `flows.bus._root_problems` |
+| copies from different trees are refused | `Process: #178` | `flows.verify.gathered_tree_problem`, `flows.verify.admitted_received_problems` |
 | the write end reads the proof's decided places | `Process: #184` | `flows.transcribe.docket_of_proof`, `commands/proof.py` |
 | no drift check: nothing asks whether a page changed | `Process: #62`, `#185` | nothing |
 | a short shard or an unruled place rolls the round back | `Process: #186` | `flows.verify.coverage_problems`, `flows.mark_errors`, `flows.bus._on_copies` |

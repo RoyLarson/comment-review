@@ -85,7 +85,7 @@ removed, so `"   "` is the same empty patch as `""`.
 
 ! `role` IS OPTIONAL AND, WHEN PRESENT, ONE PER PAGE -- since `P55`, the role
 of the `edit_copy` this docket was transcribed from.
-`flows.revise.docket_of` is what writes it; `flows.revise.pull._set_by` reads
+`flows.transcribe.docket_of` is what writes it; `flows.revise._set_by` reads
 it back into `address -> role`, the provenance a reversal pairs against. A
 docket with no `role` field maps every one of its addresses to `""`.
 
@@ -283,7 +283,7 @@ class Schedule:
         """This schedule as the wire dict.
 
         ! `role` IS OMITTED WHEN EMPTY, so an absent field and an empty one
-        stay ONE thing rather than two. `flows.revise.docket_of` writes the
+        stay ONE thing rather than two. `flows.transcribe.docket_of` writes the
         source copy's own role and an `edit_copy` always carries one, so an
         empty `role` reaches here only from a `Schedule` built directly.
         Emitting

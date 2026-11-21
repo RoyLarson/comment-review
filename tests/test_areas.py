@@ -55,7 +55,7 @@ FORBIDDEN = {
 #: !! A ROW LEAVES THIS SET WHEN THE IMPORT GOES, NEVER TO MAKE A TEST PASS.
 #: `desk/collator.py -> comment_review.docket.docket` was the fourth and left at
 #: `P55`: the middle no longer builds the write end's artifact, because
-#: `flows/revise.py::docket_of` does.
+#: `flows/transcribe.py::docket_of` does.
 KNOWN = {
     # WRITE END -> READ END. `results/compositor.py` reads `Page` and `page_for`.
     "results/compositor.py: comment_review.binder.page",

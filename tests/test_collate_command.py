@@ -163,7 +163,7 @@ class TestTheDroppedList:
             capsys,
         )
         assert code == 0, out
-        assert report.FOR_THE_CHIEF in out
+        assert "for the chief -- advisory notes:" in out
         assert (
             "block-context m.py@b1: its change drops 'three', which its claim never"
             " names" in out

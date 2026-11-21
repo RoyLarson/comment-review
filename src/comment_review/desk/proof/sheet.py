@@ -167,7 +167,7 @@ class Sheet:
     Attributes:
         path: the page's real repo path, as the binder stated it.
         sha: that page's sha when it was gathered. Read by
-            `flows.revise.docket_of`, which writes it onto the docket page so
+            `flows.transcribe.docket_of`, which writes it onto the docket page so
             the setter can refuse a page that moved underneath the run.
         reading: the page's saved language identity and effective settings.
         marks: one `Mark` per place a role RULED on, in the order they came

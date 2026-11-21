@@ -5,9 +5,13 @@ place; `desk/proof/mark.py` states what each instruction's mark is,
 `desk/proof/answer.py` what each answer is and `desk/proof/disposition.py` what
 each ruling is, one type per name and the one `match` that picks it
 (`decision-log.md Process: #206`). The
-whole tree is held to it. An exemption list carried the old middle while its
-replacement was built, and it emptied when the last of those modules was
-deleted; a module exempted again is the defect this gate exists to refuse.
+gate searches shipped Python source for the spellings in `NAMES`.
+It does not catch single-quoted ruling and answer names, plain instruction
+strings, references through `Shape` or `Touch`, or properties that identify
+only one row. The text search also sees comments and docstrings.
+
+An exemption list carried the old middle while its replacement was built.
+It emptied when the last of those modules was deleted.
 """
 
 import re

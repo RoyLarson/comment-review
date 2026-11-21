@@ -13,7 +13,7 @@ drafting rather than about the format. Most of this file does not use it.
 !! `desk.collator.docket_from` IS GONE, since `P55`. It was the desk's own
 production code and it built the WRITE END's artifact from inside the MIDDLE --
 the only such import in the tree. What replaces it is
-`flows/revise.py::docket_of`, which takes an `EditCopy`, and its cases live in
+`flows/transcribe.py::docket_of`, which takes an `EditCopy`, and its cases live in
 `tests/test_revise.py::TestDocketOf` beside it.
 
 ! SO THE CASES THAT USED IT SPLIT IN TWO, and neither claim was dropped. What

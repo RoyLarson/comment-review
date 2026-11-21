@@ -105,10 +105,8 @@ def lines(event: object) -> list[str]:
     return []
 
 
-#: The heading the advisory notes print under. It names the one rule that
-#: produces a note today -- `desk.marks.table`'s `correct` row, which is what
-#: `decision-log.md Process: #163` asked for and `#177` kept advisory.
-FOR_THE_CHIEF = "for the chief -- each correct below drops words its claim never named:"
+#: The heading for advisory notes the chief reads after a committed fold.
+FOR_THE_CHIEF = "for the chief -- advisory notes:"
 
 
 def print_report(out: list) -> None:

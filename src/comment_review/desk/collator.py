@@ -54,7 +54,7 @@ nothing in the message naming a mark at all.
 !! AND THE DOCKET IS NOT BUILT HERE, since `P55`. `docket_from` and
 `_real_pages` lived in this file and imported `Alteration`, `Schedule` and
 `Docket` -- the only MIDDLE-to-WRITE-END import in the tree. The transcription
-is `flows/revise.py::docket_of`, which takes an `EditCopy`, because a FLOW may
+is `flows/transcribe.py::docket_of`, which takes an `EditCopy`, because a FLOW may
 reach both ends and neither end may reach the other. `decision-log.md Process:
 #76`.
 
