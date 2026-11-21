@@ -1163,6 +1163,15 @@ class TestAHumanQuestion:
         assert not (tmp_path / "proof.json").exists()
 
 
+def test_rollback_counts_grouped_refusals_and_human_questions():
+    refused = events.Refused("block-context", "m.py@b1", ("first", "second"))
+    question = events.AsksTheHuman("function-context", "m.py@b2", "which?")
+    out = events.rollback([refused, question])
+    assert out == [refused, question, events.RolledBack(3)]
+    assert report.code_for(out) == report.BROKEN
+    assert report.code_for(events.rollback([question])) == report.ASKS_THE_HUMAN
+
+
 def test_a_human_question_prints_what_to_do_and_exits_asks_the_human():
     from comment_review.commands.report import (
         ASKS_THE_HUMAN,

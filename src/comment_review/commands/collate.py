@@ -240,7 +240,7 @@ def main() -> int:
 
     copies, refusals = _envelope(documents)
     if refusals:
-        out = [*refusals, events.RolledBack(len(refusals))]
+        out = events.rollback(refusals)
         print_report(out)
         return code_for(out)
 

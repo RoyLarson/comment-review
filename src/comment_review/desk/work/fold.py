@@ -68,7 +68,7 @@ class Fold:
         commit reports, and only a commit reports the second list.
         """
         decide(self.places, self.moves, self.turn)
-        refusals: list = []
+        refusals: list[events.Refused] = []
         on_commit: list = []
         for address in sorted(self.places):
             place = self.places[address]
@@ -106,10 +106,8 @@ class Fold:
                         move.origin, move.destination, move.placement, move.owed
                     )
                 )
-        self.events += refusals
         if refusals:
-            reasons = sum(len(one.reasons) for one in refusals)
-            self.events.append(events.RolledBack(reasons))
+            self.events.extend(events.rollback(refusals))
             return self
         self.events += on_commit
         self.committed = True

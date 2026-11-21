@@ -664,12 +664,10 @@ def _rolled_back(
     Nothing is saved. The rollback counts one reason per problem and one per
     human question.
     """
-    out: list = [
+    refusals = [
         events.Refused(one.role, one.address, (one.message,)) for one in problems
     ]
-    out += asks
-    out.append(events.RolledBack(len(problems) + len(asks)))
-    return out, None
+    return events.rollback([*refusals, *asks]), None
 
 
 def _asks(

@@ -7,6 +7,7 @@ A committed fold reports settled and carried-forward places, move
 placements and advisory notes.
 """
 
+from collections.abc import Iterable
 from typing import NamedTuple
 
 from comment_review.desk.proof.answer import Question
@@ -99,11 +100,23 @@ class RolledBack(NamedTuple):
     """The fold rolled back: at least one refusal or human question, nothing saved.
 
     `reasons` counts the reasons across the `Refused` events before it and one
-    per `AsksTheHuman`, which is what every producer counts: the fold,
-    `flows.bus` and the collate command's envelope check.
+    per `AsksTheHuman`.
     """
 
     reasons: int
+
+
+def rollback(
+    blockers: Iterable[Refused | AsksTheHuman],
+) -> list[Refused | AsksTheHuman | RolledBack]:
+    """Report the blockers in order, then the rollback they caused."""
+    report: list[Refused | AsksTheHuman | RolledBack] = []
+    reasons = 0
+    for event in blockers:
+        report.append(event)
+        reasons += len(event.reasons) if isinstance(event, Refused) else 1
+    report.append(RolledBack(reasons))
+    return report
 
 
 Event = (
