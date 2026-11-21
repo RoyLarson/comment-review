@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 33 of 56 tasks closed
+Progress: 34 of 56 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-09-18 (final whole-branch review of feat/the-middle-rebuilt, 2026-09-18)
@@ -168,7 +168,7 @@ The rebuilt middle's final review.
 - [x] T54 | One context admission per collate input; verified for ordinary copies and real shards | 82cee747 | Run
       pre-fold admission once per collate; reading contexts are checked four
       times
-- [ ] T55 | Build the first proof through _commit instead of a second copy in
-      _on_copies
+- [x] T55 | The initial fold uses the shared commit path and retains destination metadata | 058acefa | Build
+      the first proof through _commit instead of a second copy in _on_copies
 - [ ] T56 | Decide whether Fold._unwritable refuses a place through the chief
       copy or the docket

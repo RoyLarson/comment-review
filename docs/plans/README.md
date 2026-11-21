@@ -20,7 +20,7 @@
 | [0.2.4-the-agents-read-the-cli](0.2.4-the-agents-read-the-cli.md) | closed | 263/263 | 19/19 |
 | [0.2.4-the-cli-carries-a-real-run](0.2.4-the-cli-carries-a-real-run.md) | closed | 26/26 | 15/15 |
 | [0.2.4-the-commands-for-the-middle](0.2.4-the-commands-for-the-middle.md) | closed | 11/11 | 61/61 |
-| [0.2.4-the-first-proof-uses-commit](0.2.4-the-first-proof-uses-commit.md) | open | 0/1 | 0/1 |
+| [0.2.4-the-first-proof-uses-commit](0.2.4-the-first-proof-uses-commit.md) | closed | 1/1 | 1/1 |
 | [0.2.4-the-listing-goes](0.2.4-the-listing-goes.md) | closed | 7/7 | 4/4 |
 | [0.2.4-the-mark-and-the-collator](0.2.4-the-mark-and-the-collator.md) | closed | 31/31 | 21/21 |
 | [0.2.4-the-middle-rebuilt](0.2.4-the-middle-rebuilt.md) | closed | 109/109 | 45/45 |
