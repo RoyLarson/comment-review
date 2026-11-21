@@ -45,6 +45,7 @@
 | [desk-boundaries-and-rules](desk-boundaries-and-rules.md) | closed | 2/2 | 2/2 |
 | [final-review-docs](final-review-docs.md) | in-progress | 8/9 | 1/1 |
 | [retire-chief-copy](retire-chief-copy.md) | closed | 2/2 | 2/2 |
+| [retire-unused-review-code](retire-unused-review-code.md) | open | 0/1 | 0/2 |
 | [shared-refusal-formatter](shared-refusal-formatter.md) | closed | 1/1 | 1/1 |
 | [shared-rollback-report](shared-rollback-report.md) | closed | 1/1 | 1/1 |
 | [stands-and-composition](stands-and-composition.md) | closed | 2/2 | 2/2 |
