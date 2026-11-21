@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 43 of 56 tasks closed
+Progress: 44 of 56 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-09-18 (final whole-branch review of feat/the-middle-rebuilt, 2026-09-18)
@@ -112,8 +112,9 @@ The rebuilt middle's final review.
 - [ ] T32 | Delete what nothing reads: AnswerRow.question, three event fields,
       desk/proof.py, diff3, tally, mark --anchor-line (E2)
         > 2026-09-30 R3 retired AnswerRow.question; other named dead fields remain
-- [ ] T33 | Reduce rules stated twice: mismatched roots, the copy-chief string,
-      marks by role, a ruling refused twice (E3)
+- [x] T33 | Shared gathered-tree comparison, chief role constant, mark grouping, and ruling eligibility. Full suite passed. | 258048c5863fd33081db05a70ca46c690665e682 | Reduce
+      rules stated twice: mismatched roots, the copy-chief string, marks by
+      role, a ruling refused twice (E3)
 - [ ] T34 | Correct flows.revise.docket_of to flows.transcribe.docket_of on five
       lines of four shipped files and two tests (F2)
 - [ ] T35 | Correct scripts/render_brief.py lines 7 and 103: INSTRUCTIONS is in
