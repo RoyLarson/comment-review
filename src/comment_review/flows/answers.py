@@ -13,11 +13,12 @@ file the turn takes, and a refusal has one wording.
 The sent slot carries the question and the returned one never does: an
 `Answer` belongs to one of three questions and a role writes none of them. A
 returned entry contributes its answer fields alone; the question comes from
-the place the turn is asking about, or from the slot the batch sent, which is
-the same question written down twice.
+the typed `Slot` the bus builds from the proof, or from the serialized slot
+`check --answers` reads from the batch.
 """
 
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
+from dataclasses import dataclass, field
 from pathlib import Path
 
 from comment_review.desk.answers.table import ANSWERS
@@ -33,7 +34,7 @@ from comment_review.desk.proof.answer import (
     read_answer,
 )
 from comment_review.desk.proof.disposition import contract as ruling_contract
-from comment_review.desk.proof.mark import QUERY_SHAPES, filled
+from comment_review.desk.proof.mark import QUERY_SHAPES, MoveMark, filled
 from comment_review.desk.proof.move import key_of
 from comment_review.desk.proof.source import contract as source_contract
 from comment_review.differences import CannotCompose, compose
@@ -60,6 +61,44 @@ ANSWER_FIELDS = {
 #: contract publishes the same one under the same name (`desk.marks.rules.
 #: allowed`), and both read `QUERY_SHAPES` rather than spelling it twice.
 ANSWER_VALUES = {"shape": [str(one) for one in QUERY_SHAPES]}
+
+
+@dataclass(frozen=True)
+class Slot:
+    """The question sent to a role and the context for reading its answer."""
+
+    address: str
+    anchor: str
+    question: str
+    raw_text: str = ""
+    sides: dict[str, str] = field(default_factory=dict)
+    to: str = ""
+    movers: tuple[tuple[str, MoveMark], ...] = ()
+
+    @property
+    def key(self) -> str:
+        """The place address or the move's two-address key."""
+        return key_of(self.address, self.to) if self.to else self.address
+
+    def answer_context(self) -> dict:
+        """The fields the answer reader and rewrite composer use."""
+        context = {"anchor": self.anchor, "question": self.question}
+        if self.to:
+            return context
+        return {**context, "raw_text": self.raw_text, "sides": dict(self.sides)}
+
+    def serialize(self, read_from: dict) -> dict:
+        """Write the batch slot with its reading context and move proposals."""
+        slot: dict = {"address": self.address}
+        if self.to:
+            slot["to"] = self.to
+        slot.update(self.answer_context())
+        if self.to:
+            slot["movers"] = [
+                {"role": role, "snippet": mark.change, "raw_text": mark.raw_text}
+                for role, mark in self.movers
+            ]
+        return {**slot, "instruction": None, "read_from": dict(read_from)}
 
 
 def slot_key(entry: dict) -> str:
@@ -103,7 +142,7 @@ def slots_of(loaded: object, role: str) -> list:
 
 def answers_of(
     role: str,
-    sent: dict[str, dict],
+    sent: Mapping[str, Slot | dict],
     returned: list,
     unsent: Callable[[str], str],
     root: Path,
@@ -158,7 +197,8 @@ def answers_of(
         answered.setdefault(address, []).append((i, entry))
 
     out: dict[str, Answer] = {}
-    for address, slot in sent.items():
+    for address, sent_slot in sent.items():
+        slot = sent_slot.answer_context() if isinstance(sent_slot, Slot) else sent_slot
         entries = [
             (i, entry)
             for i, entry in answered.get(address, [])

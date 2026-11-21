@@ -2239,6 +2239,48 @@ class TestAMovesPlacementIsAskedOnce:
                 "m.py@b2"
             ]
 
+    @pytest.mark.parametrize("placement", [True, False])
+    def test_turn_checks_against_the_slots_written_in_the_batch(
+        self, tmp_path, monkeypatch, placement
+    ):
+        from comment_review.flows import bus
+        from comment_review.flows.answers import Slot, slot_key
+
+        message, root = _a_move_two_roles_read(tmp_path)
+        _out, first = handle(message)
+        assert first is not None and first.batch is not None
+        if not placement:
+            agreeing = _answered(first, _placement_or_clean("agree"))
+            out, first = handle(AnswersReturned(first.proof, agreeing, root))
+            assert first is not None and first.batch is not None, out
+        assert all(
+            (slot["question"] == "placement") == placement
+            for slots in first.batch.values()
+            for slot in slots
+        )
+        proof_path = tmp_path / "round-trip.json"
+        save_proof(proof_path, first.proof)
+        proof, why = load_proof(proof_path)
+        assert not why and proof is not None
+
+        validate = bus.answers_of
+        batch = first.batch
+
+        def check_slots(role, sent, *args):
+            written = {slot_key(slot): slot for slot in batch[role]}
+            assert sent.keys() == written.keys()
+            for key, slot in sent.items():
+                assert isinstance(slot, Slot)
+                assert slot.key == key
+                context = slot.answer_context()
+                assert context == {field: written[key][field] for field in context}
+            return validate(role, sent, *args)
+
+        monkeypatch.setattr(bus, "answers_of", check_slots)
+        answers = _answered(first, _placement_or_clean("stet"))
+        out, second = handle(AnswersReturned(proof, answers, root))
+        assert second is not None, out
+
     def test_a_turn_that_asks_only_placements_is_counted(self, tmp_path):
         """The second turn's slots are the contested move's alone, so its
         answers are recorded on the move and on no place; the proof stands at

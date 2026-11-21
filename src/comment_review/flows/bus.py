@@ -53,7 +53,7 @@ from comment_review.desk.proof.sheet import Sheet
 from comment_review.desk.proof.state import CARRIED, SETTLED, State
 from comment_review.desk.stages import Stage, not_admitted
 from comment_review.desk.work.fold import Fold, asked
-from comment_review.flows.answers import answers_of, slots_of
+from comment_review.flows.answers import Slot, answers_of, slots_of
 from comment_review.flows.human import (
     HumanAnswer,
     HumanQuery,
@@ -554,35 +554,17 @@ def _on_answers(message: AnswersReturned) -> tuple[list, Result | None]:
     places = _places_on(message.proof)
     moves = moves_in(places, _moves_on(message.proof))
     problems: list[Problem] = []
-    open_moves = {key: move for key, move in moves.items() if is_open(move)}
-    carried = {a: p for a, p in places.items() if p.state in CARRIED}
+    carried = [place for place in places.values() if place.state in CARRIED]
+    open_moves = [move for move in moves.values() if is_open(move)]
+    slots = _turn_slots(carried, open_moves, places)
     turn = turn_of(message.proof) + 1
     given: dict[str, dict[str, Answer]] = {}
-    roles = {role for place in carried.values() for role in asked(place)}
-    roles |= {role for move in open_moves.values() for role in move.owed}
     # One cache for the whole turn, as the collate handler keeps one for the
     # whole stage: the roles answer at the same places and cite the same
     # evidence, so a per-role cache reads one file once per answering role.
     cache: Cache = {}
-    for role in sorted(roles | set(message.answers)):
-        sent = {
-            address: {
-                "question": str(place.question),
-                "anchor": place.anchor,
-                "raw_text": place.text if place.text is not None else place.base,
-                "sides": dict(place.sides),
-            }
-            for address, place in carried.items()
-            if role in asked(place)
-        }
-        sent |= {
-            key: {
-                "question": str(Question.PLACEMENT),
-                "anchor": places[move.origin].anchor if move.origin in places else "",
-            }
-            for key, move in open_moves.items()
-            if role in move.owed
-        }
+    for role in sorted(slots.keys() | message.answers.keys()):
+        sent = {slot.key: slot for slot in slots.get(role, [])}
         returned = slots_of(message.answers.get(role, []), role)
         # A file handed in for a role this turn asked nothing of, holding
         # nothing: every other case names a place, and this one has none to
@@ -873,39 +855,39 @@ def _batch_of(
     Returns:
         role -> its slots. A role nothing is asked of is absent.
     """
-    batch: dict[str, list[dict]] = {}
+    return {
+        role: [slot.serialize(read_from) for slot in sent]
+        for role, sent in _turn_slots(carried, moves, places).items()
+    }
+
+
+def _turn_slots(
+    carried: list[Place], moves: list[Move], places: dict[str, Place]
+) -> dict[str, list[Slot]]:
+    """Build each question once and share it among the roles it was put to."""
+    slots: dict[str, list[Slot]] = {}
     for place in carried:
+        slot = Slot(
+            place.address,
+            place.anchor,
+            str(place.question),
+            raw_text=place.text if place.text is not None else place.base,
+            sides=dict(place.sides),
+        )
         for role in asked(place):
-            batch.setdefault(role, []).append(
-                {
-                    "address": place.address,
-                    "anchor": place.anchor,
-                    "question": str(place.question),
-                    "raw_text": place.text if place.text is not None else place.base,
-                    "sides": dict(place.sides),
-                    "instruction": None,
-                    "read_from": {**read_from},
-                }
-            )
+            slots.setdefault(role, []).append(slot)
     for move in moves:
-        movers = [
-            {"role": role, "snippet": mark.change, "raw_text": mark.raw_text}
-            for role, mark in sorted(move.movers.items())
-        ]
         origin = places.get(move.origin)
+        slot = Slot(
+            move.origin,
+            origin.anchor if origin else "",
+            str(Question.PLACEMENT),
+            to=move.destination,
+            movers=tuple(sorted(move.movers.items())),
+        )
         for role in move.owed:
-            batch.setdefault(role, []).append(
-                {
-                    "address": move.origin,
-                    "to": move.destination,
-                    "anchor": origin.anchor if origin else "",
-                    "question": str(Question.PLACEMENT),
-                    "movers": [dict(one) for one in movers],
-                    "instruction": None,
-                    "read_from": {**read_from},
-                }
-            )
-    return batch
+            slots.setdefault(role, []).append(slot)
+    return slots
 
 
 HANDLERS = {
