@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 42 of 56 tasks closed
+Progress: 43 of 56 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-09-18 (final whole-branch review of feat/the-middle-rebuilt, 2026-09-18)
@@ -48,8 +48,9 @@ The rebuilt middle's final review.
 - [x] T11 | flows/transcribe.py docket_of_proof and proof --proof read the closed proof's decided places (Process 184); dockets byte-identical to --copy on the smoke | 8f6d0fd3 | Make
       docket_of read the proof's decided places, as the design says, not re-fold
       the chief's marks (C2)
-- [ ] T12 | Move desk's two binder imports out: collator.py takes a Binder,
-      containers.py a private binder name (D1)
+- [x] T12 | Binder owns address lookup. Binder, copy and proof use one neutral header validator. 253 focused tests passed. | ef172e66dda3df740e85bfb28e51531076424b18 | Move
+      desk's two binder imports out: collator.py takes a Binder, containers.py a
+      private binder name (D1)
 - [ ] T13 | Correct 'no handler reads a page' in flows/bus.py and
       docs/the-turn.md; the collate path reads pages under review (D2)
 - [x] T14 | Process 186: the prose says a short shard and an unruled place roll the round back; verify.py and mark_errors.py corrected | b4846ba9 | Decide
