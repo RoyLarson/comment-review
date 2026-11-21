@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 41 of 56 tasks closed
+Progress: 42 of 56 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-09-18 (final whole-branch review of feat/the-middle-rebuilt, 2026-09-18)
@@ -58,8 +58,9 @@ The rebuilt middle's final review.
 - [x] T15 | the fold's base is the page's text per Process 187; flows/on_the_page.py is the one page reader; mark, check and collate refuse the ungathered move | 2cc1dfed | Decide
       which base the fold composes over; Process 125 says the page and the bus
       hands it the binder's text (D5)
-- [ ] T16 | Move the ten rules held in flows and commands into desk, and hold
-      check's pre-fold list equal to the bus's (D6)
+- [x] T16 | Check reports pending matter approval. Collate refuses a copy from a different gathered tree even without a received binder. 469 focused tests passed. | 62e54ef4efc7993d11c2b542835efbcc4a034c8a | Move
+      the ten rules held in flows and commands into desk, and hold check's
+      pre-fold list equal to the bus's (D6)
         > 2026-11-21 Scope: pending matter approval and copy-to-binder tree identity.
 - [x] T17 | Unused field, constant and declaration test removed; schema aligned; full suite 2170 passed | 72e6eac3 | Delete
       Row.answers or give it a reader; three docs call it a rule and only a test

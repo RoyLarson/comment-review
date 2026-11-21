@@ -1,9 +1,9 @@
 # Align single-copy validation
 
 ```
-Status:   open
-Progress: 0 of 1 TODO tasks closed
-Plan-tasks: 0 of 2 plan tasks closed
+Status:   closed
+Progress: 1 of 1 TODO tasks closed
+Plan-tasks: 2 of 2 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-11-21 (rebuilt-middle-final-review.md)
@@ -18,10 +18,12 @@ collate
 
 ### A - [rebuilt-middle-final-review](../../TODO/rebuilt-middle-final-review.md)
 
-- [ ] T16 | Move the ten rules held in flows and commands into desk, and hold
+- [x] T16 | Move the ten rules held in flows and commands into desk, and hold
       check's pre-fold list equal to the bus's (D6)
 
 ## Plan Tasks
 
-- [ ] P1 | Report pending file matter approvals in check
-- [ ] P2 | Refuse a copy from a different gathered tree in collate
+- [x] P1 | Check pauses for pending matter approval and passes when the matching answer is supplied. | 62e54ef4efc7993d11c2b542835efbcc4a034c8a | Report
+      pending file matter approvals in check
+- [x] P2 | Collate refuses a single copy whose gathered tree differs from the binder and writes no proof. | 62e54ef4efc7993d11c2b542835efbcc4a034c8a | Refuse
+      a copy from a different gathered tree in collate
