@@ -21,7 +21,6 @@ from helpers import (
 
 from comment_review.binder.page import Page
 from comment_review.desk import report as events
-from comment_review.desk.marks.table import INSTRUCTIONS
 from comment_review.desk.proof.answer import Question
 from comment_review.desk.proof.mark import BlankMark, MoveMark, Shape, Touch
 from comment_review.desk.proof.master_proof import MasterProof
@@ -561,20 +560,9 @@ def test_a_committed_fold_carries_its_places_on_the_proof(tmp_path):
         assert place == entry
 
 
-def test_the_proof_holds_the_composed_places_text_the_chief_copy_does_not(tmp_path):
-    """`m.py@b1` is `composed`, not settled -- block-context proposes
-    `CORRECTED` and function-context, having only cleaned it, is still owed a
-    say (`decision-log.md Process: #184`) -- so the chief's copy carries no
-    mark there; its text is the closed proof's.
-
-    SUPERSEDES `test_the_chief_copy_holds_one_mark_at_the_settled_place`,
-    which asserted this composed place's mark on the chief's copy -- true
-    before T10 filtered `chief_copy_of` to `SETTLED` places, and this
-    place's own state was never one of them."""
+def test_the_proof_holds_a_proposal_awaiting_another_role(tmp_path):
     _out, result = handle(_message(tmp_path, TWO_ROLES))
     assert result is not None
-    marks = [mark for sheet in result.chief.sheets for mark in sheet.marks]
-    assert marks == []
     place = next(p for p in result.proof.places if p.address == "m.py@b1")
     assert place.state == "composed"
     assert place.text == CORRECTED
@@ -593,12 +581,7 @@ COMPOSE_ROLES = {
 COMPOSED = "# ONE\n# two\n# THREE"
 
 
-def test_a_composed_place_carries_no_mark_on_the_chief_copy(tmp_path):
-    """`decision-log.md Process: #184`: a composed place's working text is the
-    closed proof's, not the chief's copy's -- the two roles here correct
-    different sentences of the same paragraph, compose to one text, and are
-    both still owed a say on it, so the place is `composed` rather than
-    settled."""
+def test_the_proof_holds_the_composed_text(tmp_path):
     out, result = handle(_message(tmp_path, COMPOSE_ROLES))
     assert result is not None
     assert (
@@ -610,8 +593,6 @@ def test_a_composed_place_carries_no_mark_on_the_chief_copy(tmp_path):
         )
         in out
     )
-    marks = [mark for sheet in result.chief.sheets for mark in sheet.marks]
-    assert [mark.address for mark in marks] == []
     place = next(p for p in result.proof.places if p.address == "m.py@b1")
     assert place.state == "composed"
     assert place.text == COMPOSED
@@ -892,10 +873,6 @@ def _answers_at(proof, address):
     raise AssertionError(f"{address} is not on the proof")
 
 
-def _changes_on(copy):
-    return [mark.change for sheet in copy.sheets for mark in sheet.marks]
-
-
 def _refusals(out):
     return [
         (one.role, one.address, reason)
@@ -979,7 +956,7 @@ def test_a_recast_at_a_still_contested_place_puts_the_chiefs_prose_on_its_copy(
         )
     )
     assert closed is not None, out
-    assert _changes_on(closed.chief) == [RECAST]
+    assert next(p for p in closed.proof.places if p.address == PLACE).text == RECAST
     assert _state_at(closed.proof, PLACE) == "stands"
 
 
@@ -1597,8 +1574,8 @@ def test_a_recast_at_a_place_the_answers_settled_sets_the_chiefs_prose(tmp_path)
     assert _state_at(closed.proof, PLACE) == "stands"
     (place,) = [one for one in closed.proof.places if one.address == PLACE]
     assert place.text == RECAST
-    assert _changes_on(closed.chief) == [RECAST]
-    assert [m.reason for sheet in closed.chief.sheets for m in sheet.marks] == [STYLE]
+    assert place.disposition is not None
+    assert place.disposition.reason == STYLE
 
 
 def test_a_recast_repeating_the_settled_text_is_refused(tmp_path):
@@ -1778,24 +1755,6 @@ def test_a_move_into_an_ungathered_file_that_keeps_every_word_folds(tmp_path):
     assert place.anchor == "v1 = 1"
 
 
-def test_the_chief_copy_keeps_an_arrival_on_an_ungathered_page(tmp_path):
-    """A move into a page no copy supplied puts both of its ends on the chief
-    copy, each on its own page's sheet, and the copy reads back whole."""
-    from comment_review.desk.proof.edit_copy import EditCopy
-
-    out, result = handle(_moved_into_n(tmp_path, "# seven\n# eight\n# two"))
-    assert result is not None, _refusals(out)
-    on = {
-        sheet.path: [mark.address for mark in sheet.marks]
-        for sheet in result.chief.sheets
-    }
-    assert PLACE in on["m.py"]
-    assert on["n.py"] == ["n.py@b1"]
-    again, why = EditCopy.deserialize("chief", result.chief.serialize())
-    assert why == []
-    assert again == result.chief
-
-
 def test_extra_destination_records_the_page_it_read(tmp_path, monkeypatch):
     """The proof keeps the sha, reading and base of the ungathered page the
     move lands in, as that page read when the collate ran."""
@@ -1818,9 +1777,6 @@ def test_extra_destination_records_the_page_it_read(tmp_path, monkeypatch):
     assert turns == [0]
     assert result.proof.page_shas["n.py"] == page.sha
     assert result.proof.page_readings["n.py"] == page.reading
-    sheet = next(sheet for sheet in result.chief.sheets if sheet.path == "n.py")
-    assert sheet.sha == page.sha
-    assert sheet.reading == page.reading
     destination = next(p for p in result.proof.places if p.address == "n.py@b1")
     assert destination.base == next(
         p.raw_text for p in page.paragraphs if p.address == "n.py@b1"
@@ -1864,12 +1820,6 @@ def test_extra_returned_sheet_survives_collation_and_admission(tmp_path, marked)
     save_proof(saved, result.proof)
     loaded, why = load_proof(saved)
     assert loaded == result.proof, why
-    extras = [sheet for sheet in result.chief.sheets if sheet.path == "n.py"]
-    assert bool(extras) is marked
-    if marked:
-        assert extras[0].sha == page.sha
-        assert extras[0].reading == page.reading
-        assert extras[0].marks
 
 
 def test_extra_returned_sheet_sha_disagreement_refuses_before_fold(
@@ -1935,7 +1885,7 @@ def test_missing_both_destination_records_refuses_before_saved_work(
             "missing destination metadata reached saved address/fold/chief work"
         )
 
-    for name in ("_places_on", "_moves_on", "Fold", "chief_copy_of"):
+    for name in ("_places_on", "_moves_on", "Fold"):
         monkeypatch.setattr(f"comment_review.flows.bus.{name}", forbidden)
     if route == "mark":
         why = proof_reading_problems(proof)
@@ -2216,14 +2166,6 @@ class TestAMovesPlacementIsAskedOnce:
         texts = {p.address: p.text for p in result.proof.places}
         assert texts["m.py@b1"] == "# one\n# three"
         assert texts["m.py@b2"] == ARRIVAL
-        # The chief's copy carries one mark per end, each setting that end's
-        # decided text at its own place.
-        chief = {m.address: m for s in result.chief.sheets for m in s.marks}
-        assert set(chief) == {"m.py@b1", "m.py@b2"}
-        bases = {p.address: p.base for p in result.proof.places}
-        for address, mark in chief.items():
-            row = INSTRUCTIONS[mark.instruction]
-            assert row.sets(mark, Touch.OWN, bases[address]) == texts[address]
 
     def test_every_mover_of_a_move_is_in_its_placement_slot(self, tmp_path):
         """Two roles move text between the same two places, each taking its

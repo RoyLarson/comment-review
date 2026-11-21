@@ -126,24 +126,24 @@ class TestTheChainRunsOnCommandsAlone:
             _correct_one_place(document, addresses[0])
             one.write_text(json.dumps(document), encoding="utf-8", newline="")
 
-        # 3 COLLATE -- the four returned copies folded into the chief's.
-        chief = tmp_path / "chief.json"
+        # 3 COLLATE -- the four returned copies folded into a master proof.
+        closed = tmp_path / "closed.json"
         argv = ["--stage", "4c", "--binder", str(binder_path)]
         for one in copies:
             argv += ["--edit-copy", str(one)]
         code, out = run_command(
-            monkeypatch, capsys, collate_command, *argv, "--out", str(chief)
+            monkeypatch, capsys, collate_command, *argv, "--proof-out", str(closed)
         )
         assert code == 0, out
-        assert chief.exists()
+        assert closed.exists()
 
-        # 4 PROOF -- the chief's copy, transcribed and set into a revise.
+        # 4 PROOF -- the master proof, transcribed and set into a revise.
         code, out = run_command(
             monkeypatch,
             capsys,
             proof_command,
-            "--copy",
-            str(chief),
+            "--proof",
+            str(closed),
             "--repo",
             str(repo),
             "--out",

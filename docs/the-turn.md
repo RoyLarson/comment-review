@@ -77,8 +77,7 @@ human", not "the place is dropped": *"the copy-chief or the task agent acting as
 applies its own ruling to the final piece and puts that in the copy-chiefs edit copy."*
 
 **The chief may be the task agent wearing that hat.** The role is a seat, not a separate
-dispatch. Its name is `desk.proof.disposition.CHIEF`, the string `copy-chief`, which is the
-role `flows.places.chief_copy_of` writes the chief's copy for.
+dispatch. Its name is `desk.proof.disposition.CHIEF`, the string `copy-chief`.
 
 **This is what makes the loop terminate without a code cap.** The bound is the instruction; the
 terminator is the chief's ruling. A run cannot spin, because the last turn always ends in
@@ -300,12 +299,7 @@ has not said which stands -- and a carried-forward place or an undecided move le
 naming the roles a place was put to. Any refusal rolls the round back and nothing is written,
 so neither of two rulings at one place is applied.
 
-**The chief's reason is on the marks the chief writes** -- `Process: #307`. The chief's copy
-holds one mark per settled place with a text (`flows.places.chief_copy_of`,
-`desk.marks.table.chief_mark`): the role's mark that sets the decided text, unchanged and with
-the role's reason, where one does; otherwise a mark synthesized for the place, carrying the
-chief's ruling's reason where the place has one. The chief's reason for taking a role's mark in
-unchanged is on the proof, in the place's `disposition`.
+**The proof records the chief's reason.** A settled place holds its decided text, filed marks and any disposition. The disposition carries the chief's reason, and each filed mark keeps its reviewer's reason.
 
 **The chief rules an undecided move's placement once, then its ends** --
 `decision-log.md Process: #195` item 4, `#200` and `#201`. While a move's placement is open or
@@ -350,11 +344,7 @@ approved with nothing to set rather than refused. `--only` without `--proof` is 
 error: a copy holds marks and a docket holds alterations already chosen, so neither has places
 to filter.
 
-**The chief's copy is the record of what was decided, and nothing reads it back.** `collate`
-and `disposition` write it with `--out`; no command loads one. It restates each decision as a
-mark -- the side taken in, or one synthesized where no side set the decided text -- and the
-docket is set from the proof's places so that it does not depend on that restatement
-reproducing the fold.
+**The master proof is the record of the decisions.** Both `collate` and `disposition` write it to `--proof-out`. The docket reads the closed proof's decided places.
 
 **`proof --copy` stays, for a role's own draft.** A role's copy holds that role's marks and
 nobody else's, and drafting it is how one stage's output becomes the revise the next stage
@@ -393,17 +383,13 @@ and on commit builds what the stage saves.
 
 | message | what it reads | what a commit leaves |
 | --- | --- | --- |
-| `CopiesReturned` | one stage's parsed copies, the binder, each copy's received binder where given, the checkout, the topology where there is one, and the human's answers | the master proof at turn 0, the chief's copy, the first batch |
-| `AnswersReturned` | the last proof, each role's answers, the checkout a cite resolves against, and the human's answers | the next proof, a chief's copy, and the next batch |
-| `DispositionsWritten` | the last proof and the chief's rulings | the next proof -- closed, or carrying a ruled move's ends forward -- and the chief's copy |
+| `CopiesReturned` | one stage's parsed copies, the binder, each copy's received binder where given, the checkout, the topology where there is one, and the human's answers | the master proof at turn 0 and the first batch |
+| `AnswersReturned` | the last proof, each role's answers, the checkout a cite resolves against, and the human's answers | the next proof and the next batch |
+| `DispositionsWritten` | the last proof and the chief's rulings | the next proof -- closed, or carrying a ruled move's ends forward -- |
 
 **`collate` takes each copy with its received binder**, by `--edit-copy` and
 `--received-binder` repeated in one order, or by `--pairs`, a JSON list of
 `{edit_copy, received_binder}` paths, in place of both.
-
-**A turn builds a chief's copy and saves none.** `flows.bus._on_answers` returns one on its
-`Result`, the way the other two handlers do, and `commands/turn.py` has no `--out` to write it
-with. `collate` and `disposition` are the two commands that save one.
 
 **Everything a copy can be wrong about on its own is found before the fold opens.** A quote
 that is not in its paragraph, a cite that resolves against nothing, an address no page carries,
@@ -473,14 +459,12 @@ notes after them; what was written prints last.**
 **Then the files, one line each, and only on a commit** (`commands/collate.py`,
 `commands/turn.py`, `commands/disposition.py`; the counts are `commands.report.counted`):
 
-    <out>: <n> places resolved                                              collate
     <proof-out>: the master proof -- <n> places -- <s> settled, <c> carried forward, <t> to come
     <batch-out>: turn 1's batch -- <role> <slots>, ...
 
     <proof-out>: the master proof after turn <t> -- <counts>               turn
     <batch-out>: turn <t+1>'s batch -- <role> <slots>, ...
 
-    <out>: the chief's copy, <n> places                                     disposition
     <proof-out>: the proof closed at turn <t> -- <counts>
     <proof-out>: the proof at turn <t> is not closed -- <counts>; rule what it carries and run disposition again on it
 
@@ -553,7 +537,6 @@ batch slot and on the proof.
 | | |
 | --- | --- |
 | disagreements collected at the fold | `flows.places.places_of`, `desk.evaluate.passes.marks_pass` |
-| the chief's edit copy | `flows.places.chief_copy_of`, from the decided places -- the record, read by nothing |
 | the docket the write end sets from | `flows.transcribe.docket_of_proof`, from the closed proof's places |
 | the author's partial approval | `flows.transcribe._approved`, reached through `docket_of_proof`'s `only`; the flag is `proof --only` |
 | what a page holds at an address -- the base and anchor a place is built on | `flows.on_the_page.held_at`, read by `flows.places.bases_and_anchors`, `flows.verify`, `flows.fill.page_text_at` and `commands/check.py` |
@@ -606,6 +589,6 @@ batch slot and on the proof.
 | compaction is a stage, dealt the places over its cap | `Process: #193` | `desk/topology.py`'s three keys, `desk.stages.deals` and `not_admitted` |
 | an empty recast drops the paragraph | `Process: #299` | `desk.proof.disposition.RecastRuling` |
 | a `clean`, `correct` or `patch` answer owes a source | `Process: #306` | `desk.proof.answer`'s `owes_sources` |
-| the chief's reason is on the marks the chief writes | `Process: #307` | `desk.marks.table.chief_mark` |
+| the chief's reason is on the place's disposition | `Process: #313` | `desk.proof.place.Place` |
 | several answers at one slot compose, and any other mix is refused | `Process: #308`, `#309` | `flows.answers._one_answer` |
 | the chief may recast a settled place for the style sheet | `Process: #310` | `desk.dispositions.table`'s `recast` row, `flows.bus._on_dispositions` |

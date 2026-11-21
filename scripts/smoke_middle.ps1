@@ -176,7 +176,6 @@ $CopiesDir = Join-Path $Run 'copies'
 $Roles = @('ownership-context', 'block-context', 'function-context', 'module-context')
 $CopyFile = @{}
 
-$ChiefFile = Join-Path $Run 'chief.json'
 $Proof0File = Join-Path $Run 'proof0.json'
 $Batch1File = Join-Path $Run 'batch1.json'
 $Proof1File = Join-Path $Run 'proof1.json'
@@ -188,10 +187,8 @@ $Batch3File = Join-Path $Run 'batch3.json'
 $DispositionsFile = Join-Path $Run 'dispositions.json'
 # The chief's first ruling leaves the ends of the move it agreed carried: what
 # that call writes, and the rulings the second call takes on its proof.
-$ChiefPlacedFile = Join-Path $Run 'chief-placed.json'
 $PlacedFile = Join-Path $Run 'placed.json'
 $EndsFile = Join-Path $Run 'dispositions-ends.json'
-$ChiefFinalFile = Join-Path $Run 'chief-final.json'
 $FinalFile = Join-Path $Run 'final.json'
 $DocketFile = Join-Path $Run 'docket.json'
 $ProofDir = Join-Path $Run 'proof'
@@ -225,7 +222,6 @@ $CollideExpectedDir = Join-Path $Run 'collide-expected'
 $OtherDir = Join-Path $Run 'other'
 $OtherBinderFile = Join-Path $Run 'other-binder.json'
 $OtherCopiesDir = Join-Path $Run 'other-copies'
-$OtherChiefFile = Join-Path $Run 'other-chief.json'
 $OtherProofFile = Join-Path $Run 'other-proof.json'
 $OtherBatchFile = Join-Path $Run 'other-batch.json'
 
@@ -235,7 +231,6 @@ $OtherBatchFile = Join-Path $Run 'other-batch.json'
 # collate must not write.
 $UngatheredDir = Join-Path $Run 'ungathered'
 $UngatheredCopyFile = Join-Path $Run 'ungathered-copy.json'
-$UngatheredChiefFile = Join-Path $Run 'ungathered-chief.json'
 $UngatheredProofFile = Join-Path $Run 'ungathered-proof.json'
 $UngatheredBatchFile = Join-Path $Run 'ungathered-batch.json'
 
@@ -251,7 +246,6 @@ $SecondStage = '5'
 $SecondRole = 'ownership-context'
 $SecondBinderFile = Join-Path $Run 'binder2.json'
 $SecondCopiesDir = Join-Path $Run 'copies2'
-$SecondChiefFile = Join-Path $Run 'chief2.json'
 $SecondProofFile = Join-Path $Run 'proof2.json'
 $SecondDocketFile = Join-Path $Run 'docket2.json'
 $SecondProofDir = Join-Path $Run 'proof2'
@@ -265,15 +259,13 @@ $CompactingStage = '6'
 $CompactingFile = Join-Path $Run 'compacting.json'
 $CompactingBinderFile = Join-Path $Run 'binder3.json'
 $CompactingCopiesDir = Join-Path $Run 'copies3'
-$CompactingChiefFile = Join-Path $Run 'chief3.json'
 $CompactingProofFile = Join-Path $Run 'proof3.json'
 $CompactingDocketFile = Join-Path $Run 'docket3.json'
 $CompactingProofDir = Join-Path $Run 'proof3'
 $CompactingExpectedDir = Join-Path $Run 'compacted-expected'
 # The widened-copy sub-plant (Process #193): a copy that added `correct` to
-# what it says it admits, and the two paths a refused collate must not write.
+# what it says it admits, and the proof path a refused collate must not write.
 $WidenedCopyFile = Join-Path $Run 'copy3-widened.json'
-$WidenedChiefFile = Join-Path $Run 'chief3-widened.json'
 $WidenedProofFile = Join-Path $Run 'proof3-widened.json'
 
 # The one-liner that writes the four fixture files into a directory, used by
@@ -1318,7 +1310,7 @@ $Stages = [ordered]@{
         $collateLine = $Launcher + @(
             $Cmd.collate, '--stage', '4', '--binder', $BinderFile, '--topology', $TopologyFile
         ) + $copies + @(
-            '--out', $ChiefFile, '--proof-out', $Proof0File, '--batch-out', $Batch1File,
+            '--proof-out', $Proof0File, '--batch-out', $Batch1File,
             '--human', $HumanFile
         )
         Invoke-Checked -Stage 'plant-human' -CommandLine @(
@@ -1330,7 +1322,7 @@ $Stages = [ordered]@{
         Assert-Lines -Stage 'collate asks the human' -Printed $printed -CommandLine $collateLine -Expected @(
             Get-HumanLines -Stage 'collate' -As 'answered' -Tail '{role} replaces this query with its mark or answer'
         )
-        Assert-NotWritten -Stage 'collate asks the human' -Paths @($ChiefFile, $Proof0File, $Batch1File)
+        Assert-NotWritten -Stage 'collate asks the human' -Paths @($Proof0File, $Batch1File)
         foreach ($one in (Get-Content -LiteralPath $HumanReplacedFile -Raw | ConvertFrom-Json)) {
             Invoke-Checked -Stage "replace $($one.query) $($one.role) query" -CommandLine ($Launcher + @(
                 $Cmd.mark, '--edit-copy', $CopyFile[$one.role], '--address', $one.query,
@@ -1375,7 +1367,7 @@ $Stages = [ordered]@{
         $mismatched = $Launcher + @(
             $Cmd.collate, '--stage', '4', '--binder', $BinderFile
         ) + $copies + @('--edit-copy', $otherCopy) + @(
-            '--out', $OtherChiefFile, '--proof-out', $OtherProofFile,
+            '--proof-out', $OtherProofFile,
             '--batch-out', $OtherBatchFile
         )
         $refused = Invoke-Checked -Stage 'collate from two trees refused' -Expect 1 -Capture -CommandLine $mismatched
@@ -1386,7 +1378,7 @@ $Stages = [ordered]@{
             Write-Host "command: $(Format-CommandLine $mismatched)"
             exit 1
         }
-        foreach ($written in @($OtherChiefFile, $OtherProofFile, $OtherBatchFile)) {
+        foreach ($written in @($OtherProofFile, $OtherBatchFile)) {
             if (Test-Path -LiteralPath $written) {
                 Write-Host 'stage failed: collate from two trees refused'
                 Write-Host "a rolled-back collate wrote $written"
@@ -1420,7 +1412,7 @@ $Stages = [ordered]@{
         $ungathered = $Launcher + @(
             $Cmd.collate, '--stage', '4', '--binder', $BinderFile,
             '--repo', $UngatheredDir, '--edit-copy', $UngatheredCopyFile,
-            '--out', $UngatheredChiefFile, '--proof-out', $UngatheredProofFile,
+            '--proof-out', $UngatheredProofFile,
             '--batch-out', $UngatheredBatchFile
         )
         $refused = Invoke-Checked -Stage 'collate a move into an ungathered file refused' -Expect 1 -Capture -CommandLine $ungathered
@@ -1432,7 +1424,7 @@ $Stages = [ordered]@{
             Write-Host "command: $(Format-CommandLine $ungathered)"
             exit 1
         }
-        foreach ($written in @($UngatheredChiefFile, $UngatheredProofFile, $UngatheredBatchFile)) {
+        foreach ($written in @($UngatheredProofFile, $UngatheredBatchFile)) {
             if (Test-Path -LiteralPath $written) {
                 Write-Host 'stage failed: collate a move into an ungathered file refused'
                 Write-Host "a rolled-back collate wrote $written"
@@ -1612,22 +1604,18 @@ $Stages = [ordered]@{
     disposition = {
         Invoke-Checked -Stage 'disposition placements' -Expect 3 -CommandLine ($Launcher + @(
             $Cmd.disposition, '--proof', $TurnTwoProofFile,
-            '--dispositions', $DispositionsFile, '--out', $ChiefPlacedFile,
-            '--proof-out', $PlacedFile
+            '--dispositions', $DispositionsFile, '--proof-out', $PlacedFile
         ))
         Invoke-Checked -Stage 'disposition ends' -CommandLine ($Launcher + @(
             $Cmd.disposition, '--proof', $PlacedFile,
-            '--dispositions', $EndsFile, '--out', $ChiefFinalFile,
-            '--proof-out', $FinalFile
+            '--dispositions', $EndsFile, '--proof-out', $FinalFile
         ))
     }
     # `proof --to-docket` transcribes the closed proof's decided places into a
     # docket and stops (ruling #184). `proof --from-docket` then reads that
     # docket as the write end reads one, and pulls it into a revise of the
     # original tree at $ProofDir, which must not exist yet -- so a docket the
-    # write end refuses stops the smoke at proof-from-docket. $ChiefFinalFile
-    # is still written by the disposition stage above, as the record of what
-    # was decided; nothing downstream reads it back.
+    # write end refuses stops the smoke at proof-from-docket.
     proof = {
         Invoke-Checked -Stage 'proof-to-docket' -CommandLine ($Launcher + @(
             $Cmd.proof, '--proof', $FinalFile, '--repo', $OriginalDir,
@@ -1769,8 +1757,7 @@ $Stages = [ordered]@{
         Invoke-Checked -Stage 'second collate' -CommandLine ($Launcher + @(
             $Cmd.collate, '--stage', $SecondStage, '--binder', $SecondBinderFile,
             '--topology', $TopologyFile, '--repo', $ProofDir,
-            '--edit-copy', $secondCopy, '--out', $SecondChiefFile,
-            '--proof-out', $SecondProofFile
+            '--edit-copy', $secondCopy, '--proof-out', $SecondProofFile
         ))
         Invoke-Checked -Stage 'second proof-to-docket' -CommandLine ($Launcher + @(
             $Cmd.proof, '--proof', $SecondProofFile, '--repo', $ProofDir,
@@ -1854,8 +1841,7 @@ $Stages = [ordered]@{
         $widened = $Launcher + @(
             $Cmd.collate, '--stage', $CompactingStage, '--binder', $CompactingBinderFile,
             '--topology', $TopologyFile, '--repo', $ProofDir,
-            '--edit-copy', $WidenedCopyFile, '--out', $WidenedChiefFile,
-            '--proof-out', $WidenedProofFile
+            '--edit-copy', $WidenedCopyFile, '--proof-out', $WidenedProofFile
         )
         $refused = Invoke-Checked -Stage 'collate over a widened copy refused' -Expect 1 -Capture -CommandLine $widened
         if (-not (($refused -join "`n").Contains("stage $CompactingStage admits"))) {
@@ -1865,13 +1851,7 @@ $Stages = [ordered]@{
             Write-Host "command: $(Format-CommandLine $widened)"
             exit 1
         }
-        foreach ($written in @($WidenedChiefFile, $WidenedProofFile)) {
-            if (Test-Path -LiteralPath $written) {
-                Write-Host 'stage failed: collate over a widened copy refused'
-                Write-Host "a refused collate wrote $written"
-                exit 1
-            }
-        }
+        Assert-NotWritten -Stage 'collate over a widened copy refused' -Paths @($WidenedProofFile)
         Invoke-Checked -Stage 'compacting patch' -CommandLine ($Launcher + @(
             $Cmd.mark, '--edit-copy', $copy, '--address', $plant.patched,
             '--instruction', 'patch',
@@ -1915,8 +1895,7 @@ $Stages = [ordered]@{
         Invoke-Checked -Stage 'compacting collate' -CommandLine ($Launcher + @(
             $Cmd.collate, '--stage', $CompactingStage, '--binder', $CompactingBinderFile,
             '--topology', $TopologyFile, '--repo', $ProofDir,
-            '--edit-copy', $copy, '--out', $CompactingChiefFile,
-            '--proof-out', $CompactingProofFile
+            '--edit-copy', $copy, '--proof-out', $CompactingProofFile
         ))
         Invoke-Checked -Stage 'compacting proof-to-docket' -CommandLine ($Launcher + @(
             $Cmd.proof, '--proof', $CompactingProofFile, '--repo', $ProofDir,

@@ -187,8 +187,6 @@ def test_the_condensed_text_folds_and_is_set(tmp_path, monkeypatch, capsys):
         str(root),
         "--edit-copy",
         str(copy),
-        "--out",
-        str(tmp_path / "chief.json"),
         "--proof-out",
         str(tmp_path / "proof.json"),
     )

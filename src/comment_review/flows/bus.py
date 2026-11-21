@@ -50,7 +50,6 @@ from comment_review.desk.proof.edit_copy import EditCopy
 from comment_review.desk.proof.master_proof import MasterProof
 from comment_review.desk.proof.move import Move, is_open, key_of
 from comment_review.desk.proof.place import Place
-from comment_review.desk.proof.sheet import Sheet
 from comment_review.desk.proof.state import CARRIED, SETTLED, State
 from comment_review.desk.stages import Stage, not_admitted
 from comment_review.desk.work.fold import Fold, asked
@@ -67,7 +66,7 @@ from comment_review.flows.human import (
 )
 from comment_review.flows.mark_errors import mark_errors
 from comment_review.flows.on_the_page import PageCache, held_at
-from comment_review.flows.places import bases_and_anchors, chief_copy_of, places_of
+from comment_review.flows.places import bases_and_anchors, places_of
 from comment_review.flows.reading_context import (
     proof_reading_problems,
 )
@@ -161,13 +160,11 @@ class Result(NamedTuple):
 
     Attributes:
         proof: the copies as they stand, carrying every decided place.
-        chief: the copy chief's own edit_copy, one mark per decided place.
         batch: role -> the slots a turn asks it about, or None where the
             fold carried nothing forward.
     """
 
     proof: MasterProof
-    chief: EditCopy
     batch: dict | None
 
 
@@ -433,25 +430,6 @@ def _admitted_problems(copies: list[EditCopy], stage: Stage | None) -> list[Prob
 def _named(admits: tuple[str, ...]) -> str:
     """What a set of admitted instructions is called in a reason."""
     return ", ".join(admits) if admits else "every instruction"
-
-
-def _pages_of(copies: list[EditCopy]) -> list[Sheet]:
-    """One sheet per page the stage holds, in the order the copies name them.
-
-    Every role was seeded from one binder, so four copies carry four sheets
-    for one page. `chief_copy_of` writes one output sheet per sheet it is
-    handed, so handing it all of them would write that page's marks once per
-    role; the first sheet for a path is kept, with that path's real `path`
-    and `sha`.
-    """
-    out: list[Sheet] = []
-    seen: set[str] = set()
-    for copy in copies:
-        for sheet in copy.sheets:
-            if sheet.path not in seen:
-                seen.add(sheet.path)
-                out.append(sheet)
-    return out
 
 
 def _places_on(proof: MasterProof) -> dict[str, Place]:
@@ -736,15 +714,7 @@ def _commit(
         places=tuple(fold.decided.values()),
         moves=tuple(move.recorded() for move in fold.decided_moves.values()),
     )
-    chief = chief_copy_of(
-        fold.decided,
-        CHIEF,
-        proof.read_from,
-        _pages_of(list(proof.edit_copies)),
-        proof.page_readings,
-        proof.page_shas,
-    )
-    return out, Result(next_proof, chief, _batch_or_none(fold, proof.read_from))
+    return out, Result(next_proof, _batch_or_none(fold, proof.read_from))
 
 
 def _undecided(fold: Fold) -> list[Move]:

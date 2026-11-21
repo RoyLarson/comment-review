@@ -363,8 +363,6 @@ def test_saved_turn_and_disposition_keep_original_context_through_docket(
         str(tmp_path / "proof1.json"),
         "--dispositions",
         str(ruling),
-        "--out",
-        str(tmp_path / "chief.json"),
         "--proof-out",
         str(tmp_path / "final.json"),
         with_stderr=True,
@@ -545,8 +543,6 @@ def test_saved_mixed_workflow_keeps_literal_context_through_proof(
         "4c",
         "--binder",
         str(binder_path),
-        "--out",
-        str(tmp_path / "chief.json"),
         "--proof-out",
         str(proof_path),
         *copies,
@@ -792,8 +788,6 @@ def test_saved_rust_workflow_keeps_context_through_the_draft(
         "4c",
         "--binder",
         str(binder_path),
-        "--out",
-        str(tmp_path / "chief.json"),
         "--proof-out",
         str(proof_path),
         *copies,
@@ -868,32 +862,6 @@ def test_saved_rust_binder_from_before_the_rust_reader_refuses_distribution(
     assert code != 0, out
     assert "regather" in out
     assert not copy.exists()
-
-
-def test_chief_extra_destination_carries_original_context_and_sha():
-    from comment_review.desk.proof.place import Place
-    from comment_review.desk.proof.state import State
-    from comment_review.flows.places import chief_copy_of
-
-    original = ReadingContext("python", "lexical", "a" * 64, ())
-    place = Place("extra.py@b1", "x = 1", "old", text="new", state=State.STANDS)
-    chief = chief_copy_of(
-        {place.address: place},
-        "copy-chief",
-        {},
-        [],
-        {"extra.py": original},
-        {"extra.py": "original-sha"},
-    )
-    assert chief.sheets[0].reading is original
-    assert chief.sheets[0].sha == "original-sha"
-    assert chief.sheets[0].serialize()["reading"] == {
-        "format": 1,
-        "language": "python",
-        "reader": "lexical",
-        "compatibility": "a" * 64,
-        "settings": {},
-    }
 
 
 def test_proof_transcription_admits_extra_context_before_saved_places(

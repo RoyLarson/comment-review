@@ -1,14 +1,13 @@
 r"""The `disposition` command: the chief's rulings close a stage's fold.
 
     comment_review disposition --proof P.json --dispositions D.json \\
-        --out chief.json --proof-out final.json [--human answers.toml]
+        --proof-out final.json [--human answers.toml]
 
 The work is `flows.bus`: this loads the proof and the rulings, sends one
 `DispositionsWritten`, prints the events the fold produced, and saves the
-chief's copy and the closed proof. `Process: #78`: the task agent's max turns
+resulting proof. `Process: #78`: the task agent's max turns
 ends the roles' part; `#87`: every place still carried forward takes the
-chief's own ruling, and the chief's `edit_copy` is derived from every place
-the fold decided.
+chief's own ruling.
 
     dispositions.json  a list of rulings in the shape `check --contract`
                    prints under `chief`, generated from the ruling types.
@@ -44,21 +43,19 @@ from comment_review.flows.bus import DispositionsWritten, handle, turn_of
 from comment_review.flows.proof_io import (
     load_proof,
     load_value,
-    save_copy,
     save_proof,
 )
 
 
 def main() -> int:
-    """Rule every carried-forward place, derive the chief's copy, close the proof.
+    """Rule every carried-forward place, close the proof.
 
     Returns:
         `UNREADABLE` when a file is not what it says; `BROKEN` when a ruling
         cannot be applied or a place is left unruled, each named, nothing
         written; `ASKS_THE_HUMAN` when a recast of an `f` place waits on the
-        human's approval, nothing written; `OK` with the chief's copy and the
-        closed proof written;
-        `REREADS` or `ESCALATIONS` with both written when a placement ruling
+        human's approval, nothing written; `OK` with the closed proof written;
+        `REREADS` or `ESCALATIONS` with a proof written when a placement ruling
         leaves its move's ends carried forward, for the chief to rule by
         running this again on that proof.
     """
@@ -71,7 +68,6 @@ def main() -> int:
         required=True,
         help="the chief's rulings, one per carried-forward place",
     )
-    ap.add_argument("--out", required=True, help="where to write the chief's edit_copy")
     ap.add_argument(
         "--proof-out",
         required=True,
@@ -110,9 +106,6 @@ def main() -> int:
 
     # The serialize is the container's and the dump is the flow's
     # (`decision-log.md Process: #65`, `#67`), as `collate` saves.
-    save_copy(Path(args.out), result.chief)
-    places = sum(len(sheet.marks) for sheet in result.chief.sheets)
-    print(f"{args.out}: the chief's copy, {places} places")
     save_proof(Path(args.proof_out), result.proof)
     code = code_for(out)
     # A placement ruling can leave its move's ends carried forward, for the

@@ -6734,3 +6734,13 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   like the one that started it"*
 
   **What it settles.** T51 is superseded; nothing in the current CLI is known to need it.
+
+- **#313.** **Retire the chief copy artifact** (Roy, 2026-11-21, on
+  `rebuilt-middle-final-review` T56 and T30).
+
+  The fold checked whether it could synthesize a chief's mark for a settled
+  place, even though the write end reads the proof's decided places under
+  #184. Keep the master proof as the record for presentation and writing.
+  The chief's ruling and reason stay on the place's disposition, and the
+  reviewer's reason stays on the filed mark. This supersedes the artifact
+  and its reason-copying rule in #307.

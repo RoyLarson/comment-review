@@ -274,7 +274,7 @@ def main() -> int:
 
     # !! THE SERIALIZE IS THE CONTAINER'S AND THE DUMP IS THE COMMAND'S --
     # `decision-log.md Process: #65`, `#67`, and the same shape
-    # `commands/collate.py` writes its chief copy with. Raw JSON at the save and
+    # `commands/collate.py` writes its master proof with. Raw JSON at the save and
     # nowhere between.
     #
     # ! THE SAME FORK AS THE `--out` BRANCH ABOVE, AND ITS OTHER SIDE. `out` is

@@ -471,8 +471,8 @@ def test_check_and_collate_accept_a_copy_with_no_sheets(tmp_path, monkeypatch, c
         str(topology),
         "--repo",
         str(tmp_path),
-        "--out",
-        str(tmp_path / "chief.json"),
+        "--proof-out",
+        str(tmp_path / "proof.json"),
     ]
     for copy in copies:
         argv += ["--edit-copy", str(copy)]
@@ -481,7 +481,7 @@ def test_check_and_collate_accept_a_copy_with_no_sheets(tmp_path, monkeypatch, c
     )
     assert code == 0, printed
     assert (
-        json.loads((tmp_path / "chief.json").read_text(encoding="utf-8"))["sheets"]
+        json.loads((tmp_path / "proof.json").read_text(encoding="utf-8"))["places"]
         == []
     )
 

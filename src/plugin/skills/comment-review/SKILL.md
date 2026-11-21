@@ -24,7 +24,7 @@ that settles it.
 A helper program does the mechanical work. `<skill>` is the directory holding this file;
 take it from the absolute path you were given. Every command runs through
 `<skill>/scripts/comment-review.py`, and `--help` after a command's name gives its flags.
-Give each run its own `<run-dir>`, and write every file with the command's `--out` flag.
+Give each run its own `<run-dir>`, and write every file with the command's output flag.
 `<stage-root>` is the absolute root a stage's binder was gathered from: the repo root for
 stage `4a`, `<run-dir>/root4c` for stage `4c`, and the proof pages root for stage 6.
 
@@ -45,7 +45,7 @@ that sets the scope in place of the diff. `style` is the style sheet from an ear
 | 2 | gather | `gather`, `topology` | the binder and a verified topology |
 | 3 | find references | `referrers` | the `REFERENCE ONLY` list |
 | 4 | mark, in stages `4a` then `4c` | the four reviewers | each stage's checked edit copies, and each role's freeform copies and findings |
-| 5 | collate and rule, once per stage | `collate`, you, `disposition` | a closed proof, the chief's copy and the freeform drafts |
+| 5 | collate and rule, once per stage | `collate`, you, `disposition` | a closed proof and the freeform drafts |
 | 6 | compact, when a cap applies | the condenser | a closed proof whose text fits the cap |
 | 7a | set and present | `proof`, then you | the proof pages and the proposal in front of the author |
 | 7b | write | the author, then you | the accepted text in the working tree, its code proved unchanged |
@@ -60,10 +60,9 @@ Each stage hands the next one of these; your vocabulary defines each one:
 | **binder** | `gather` | `topology`, `distribute`, `check`, `collate` |
 | **topology** | `topology` | `distribute`, `collate` |
 | **edit copy**, one per dispatch | `distribute`, filled with `mark` | `check`, `collate` |
-| **master proof** | `collate`, `turn`, `disposition` | `turn`, `disposition`, `proof` |
+| **master proof** | `collate`, `turn`, `disposition` | `turn`, `disposition`, `proof`, you when presenting |
 | **batch** | `collate`, `turn` | the roles, in a turn |
 | **dispositions** | you | `disposition` |
-| the copy chief's **edit copy**, one mark per resolved place | `collate`, `disposition` | you, when you present |
 | **docket** | `proof`, from a closed master proof | the compositor |
 | **schedule**, one per page in the docket | `proof` | the compositor |
 | **alteration**, one per place in a schedule | `proof` | the compositor |
@@ -288,7 +287,7 @@ flags; a long command line fails on Windows.
 python <skill>/scripts/comment-review.py collate --stage <stage> --binder <the stage's binder> --repo <stage-root> \
   --topology <run-dir>/topology.toml \
   --edit-copy <one returned copy> --received-binder <its received binder> \
-  --out <run-dir>/<stage>_chief0.json --proof-out <run-dir>/<stage>_proof0.json --batch-out <run-dir>/<stage>_batch1.json
+  --proof-out <run-dir>/<stage>_proof0.json --batch-out <run-dir>/<stage>_batch1.json
 ```
 
 Act on the exit code first:
@@ -301,7 +300,7 @@ Act on the exit code first:
 | `3`, `4` | places carried forward -- `composed`, `contested` or `open` | rule on them, below |
 | `5` | human questions are owed | ask them, below, then re-run with `--human` |
 
-Keep the path of the latest committed proof and the chief's copy. A closed proof
+Keep the path of the latest committed proof. A closed proof
 can come from `collate`, `turn` or `disposition`; use that file wherever
 `<closed-proof>` appears below. A refused round supplies no new proof.
 
@@ -380,7 +379,7 @@ Write the rulings to `<run-dir>/dispositions.json` as a list of entries in the s
 
 ```bash
 python <skill>/scripts/comment-review.py disposition --proof <last proof written> \
-  --dispositions <run-dir>/dispositions.json --out <run-dir>/chief.json --proof-out <run-dir>/final.json
+  --dispositions <run-dir>/dispositions.json --proof-out <run-dir>/final.json
 ```
 
 A `recast` of an `f` place asks the author first: `disposition` exits `5` and prints the
@@ -507,10 +506,10 @@ other change holds the run at this stage: edit the draft until the change is gon
 again. Nothing is presented until the audit passes. The command exits 1 when the files differ.
 
 Present to the author, grouped by instruction, most consequential first. Use the
-closed proof's decided text and the drafts for the proposed result. The chief's
-copy supplies `INSTRUCTION / PARAGRAPH / CLAIM / REASON`; show the current
-`CHANGE` from the draft inline. A turn writes a proof without refreshing the
-chief's copy, so check its entries against the closed proof before presenting.
+closed proof's decided text and the drafts for the proposed result. For each settled place, follow
+its filed references to the reviewer marks in the proof and read any disposition on the place.
+Use those for the instruction, paragraph, claim and reason. Show the decided change from the
+draft inline.
 Show each freeform draft whole. When the author asks why a change was made, answer from
 `settled_<stage>.json`.
 Then give:

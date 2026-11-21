@@ -1,4 +1,4 @@
-"""Places from copies, and the chief's copy from decided places.
+"""Build places from reviewer copies.
 
 The flow's half of the middle: it knows EditCopy and Sheet, which desk does
 not, and hands desk plain places.
@@ -6,15 +6,11 @@ not, and hands desk plain places.
 
 from collections.abc import Callable
 
-from comment_review.desk.marks.table import INSTRUCTIONS, chief_mark
+from comment_review.desk.marks.table import INSTRUCTIONS
 from comment_review.desk.proof.edit_copy import EditCopy
-from comment_review.desk.proof.mark import Mark
 from comment_review.desk.proof.place import Filed, Place
-from comment_review.desk.proof.sheet import Sheet
-from comment_review.desk.proof.state import SETTLED
 from comment_review.flows.on_the_page import Held
 from comment_review.reading.addresser import cue_of, flatten
-from comment_review.reading.context import ReadingContext
 from comment_review.reading.diagnostics import ReadFailure
 
 
@@ -110,62 +106,3 @@ def places_of(
             sorted(role for role, pages in pages_by_role.items() if page in pages)
         )
     return places
-
-
-def chief_copy_of(
-    decided: dict[str, Place],
-    role: str,
-    read_from: dict,
-    sheets: list[Sheet],
-    page_readings: dict[str, ReadingContext],
-    page_shas: dict[str, str],
-) -> EditCopy:
-    """The copy chief's edit_copy, one mark per SETTLED place the fold decided.
-
-    An agreed move reaches this as its two ends, each an ordinary settled
-    place (`decision-log.md Process: #205`): `chief_mark` writes each end from
-    its own decided text, on its own page.
-
-    !! A COMPOSED OR CONTESTED PLACE CARRIES NO MARK HERE. Its working text is
-    the proof's, not the chief's copy's: the write end reads the closed
-    proof's places (`decision-log.md Process: #184`), so filtering this copy
-    to `SETTLED` places changes no docket, and it is what the field this
-    function fills is answerable for -- a place still owed a say from some
-    role is not the chief's ruling to publish as one.
-
-    Args:
-        decided: address -> the `Place` the fold settled it at.
-        role: the role this copy is written for -- "copy-chief".
-        read_from: `{root, revise}`, carried onto the copy.
-        sheets: original source identities for pages held by returned copies.
-        page_readings: original contexts recorded by the master proof.
-        page_shas: original source identities for pages absent from the sheets.
-
-    Returns:
-        The chief's `EditCopy`, one sheet per recorded page that holds a mark, for
-        every place whose `state` is in `SETTLED` and whose `text` is not
-        None.
-    """
-    by_path: dict[str, list[Mark]] = {}
-    for address in sorted(decided):
-        place = decided[address]
-        if place.state not in SETTLED or place.text is None:
-            continue
-        mark = chief_mark(place)
-        by_path.setdefault(cue_of(mark.address).path, []).append(mark)
-
-    identities = {sheet.path: sheet.sha for sheet in sheets}
-    identities.update(page_shas)
-    out = []
-    for path, reading in page_readings.items():
-        marks = by_path.get(flatten(path), [])
-        if marks:
-            out.append(
-                Sheet(
-                    path=path,
-                    sha=identities[path],
-                    marks=tuple(marks),
-                    reading=reading,
-                )
-            )
-    return EditCopy(role=role, read_from={**read_from}, sheets=tuple(out))

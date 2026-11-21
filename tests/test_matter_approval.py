@@ -195,8 +195,6 @@ def test_the_disposition_command_takes_the_approval_with_human(
         str(proof),
         "--dispositions",
         str(rulings),
-        "--out",
-        str(tmp_path / "chief.json"),
         "--proof-out",
         str(tmp_path / "final.json"),
     ]

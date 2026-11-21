@@ -486,8 +486,8 @@ def test_cli_collation_accepts_paired_received_binders(tmp_path, monkeypatch, ca
         "",
         "--binder",
         str(binder_path),
-        "--out",
-        str(tmp_path / "chief.json"),
+        "--proof-out",
+        str(tmp_path / "proof.json"),
     ]
     for i, (b, wire) in enumerate(zip(received, wires, strict=True)):
         path = tmp_path / f"copy{i}.json"
@@ -497,7 +497,7 @@ def test_cli_collation_accepts_paired_received_binders(tmp_path, monkeypatch, ca
         args.extend(["--edit-copy", str(path), "--received-binder", str(shard)])
     code, out = run_command(monkeypatch, capsys, collate, *args)
     assert code == report.OK, out
-    assert (tmp_path / "chief.json").exists()
+    assert (tmp_path / "proof.json").exists()
 
 
 #: The longest command line `CreateProcess` accepts on Windows, in characters.
@@ -544,8 +544,8 @@ def test_cli_collation_reads_a_large_dispatch_set_from_a_pairs_file(
         str(binder_path),
         "--pairs",
         str(pairs_path),
-        "--out",
-        str(tmp_path / "chief.json"),
+        "--proof-out",
+        str(tmp_path / "proof.json"),
     )
     assert code == report.OK, out
     assert out.count("stet ") == count, out
@@ -577,13 +577,13 @@ def test_a_pairs_file_that_is_not_a_list_of_pairs_is_unreadable(
         str(binder_path),
         "--pairs",
         str(pairs_path),
-        "--out",
-        str(tmp_path / "chief.json"),
+        "--proof-out",
+        str(tmp_path / "proof.json"),
         with_stderr=True,
     )
     assert code == report.UNREADABLE, out
     assert "pairs.json" in out
-    assert not (tmp_path / "chief.json").exists()
+    assert not (tmp_path / "proof.json").exists()
 
 
 def test_distribution_through_fold_and_turn_preserves_received_binders(
@@ -622,8 +622,6 @@ def test_distribution_through_fold_and_turn_preserves_received_binders(
         str(original),
         "--topology",
         str(topology),
-        "--out",
-        str(tmp_path / "chief.json"),
         "--proof-out",
         str(tmp_path / "proof.json"),
     ]

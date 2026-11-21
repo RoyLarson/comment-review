@@ -4,9 +4,8 @@ The report includes `Refused`, `Settled`, `CarriedForward` and
 `PlacementCarried` events. Human questions are reported as `AsksTheHuman`
 before folding. `Advised` notes print last, under `FOR_THE_CHIEF`.
 
-After a committed fold, the command writes the chief's copy to `--out`.
-Use `--proof-out` to save the master proof and `--batch-out` to save the
-next turn's batch.
+After a committed fold, the command saves the master proof to `--proof-out`.
+Use `--batch-out` to save the next turn's batch.
 
 The report and the exit codes are `commands.report`'s, shared with `turn`,
 `disposition` and `check`.
@@ -39,7 +38,6 @@ from comment_review.flows.proof_io import (
     load_text,
     load_value,
     save_batch,
-    save_copy,
     save_proof,
 )
 
@@ -64,8 +62,8 @@ def _envelope(documents: list) -> tuple[list[EditCopy], list]:
     Returns:
         `(the parsed copies, the refusals)`. A non-empty second half means
         the stage cannot be folded: a copy that is not a copy has rulings
-        nobody can read, and folding the rest would write a chief silently
-        missing one role's.
+        nobody can read. Folding the rest would leave one role's rulings out
+        of the proof.
     """
     copies: list[EditCopy] = []
     refusals: list = []
@@ -120,8 +118,7 @@ def main() -> int:
         what it says, and nothing is read past it. `BROKEN` is a rollback: a
         document that is not a copy, or a place the fold refused.
         `ASKS_THE_HUMAN` is a rollback holding human questions and nothing
-        else. The chief's copy, the proof and the batch are written only on a
-        commit, so neither rollback writes any of them.
+        else. The proof and the batch are written only on a commit.
     """
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--stage", required=True, help="the stage label, e.g. 4c")
@@ -150,7 +147,6 @@ def main() -> int:
         "required for shards;"
         " without these, each copy must cover the whole stage assignment",
     )
-    ap.add_argument("--out", required=True, help="where to write the chief's edit_copy")
     ap.add_argument(
         "--topology",
         metavar="PATH",
@@ -164,10 +160,10 @@ def main() -> int:
     )
     ap.add_argument(
         "--proof-out",
+        required=True,
         metavar="PATH",
         help="where to write the master proof -- the state between turns: the"
-        " copies as they stand and every place this fold decided. Written"
-        " beside the chief's copy, so not on BROKEN",
+        " copies as they stand and every place this fold decided.",
     )
     ap.add_argument(
         "--batch-out",
@@ -277,17 +273,8 @@ def main() -> int:
     # !! THE SERIALIZE IS THE CONTAINER'S AND THE DUMP IS THE FLOW'S --
     # `decision-log.md Process: #65`, `#67`. The fold returns containers; the
     # wire dict is made at the save, and nowhere between.
-    save_copy(Path(args.out), result.chief)
-    resolved = sum(len(sheet.marks) for sheet in result.chief.sheets)
-    print(f"{args.out}: {resolved} places resolved")
-
-    # The state between turns is written with the chief, not instead of it.
-    # `Process: #87`: the master proof carries the copies as they stand and
-    # every place this fold decided, so the turn verb can answer them and fold
-    # again; the master proof is also what the write end reads, by `proof --proof`.
-    if args.proof_out:
-        save_proof(Path(args.proof_out), result.proof)
-        print(f"{args.proof_out}: the master proof -- {counted(result.proof.places)}")
+    save_proof(Path(args.proof_out), result.proof)
+    print(f"{args.proof_out}: the master proof -- {counted(result.proof.places)}")
     # ! NOTHING CARRIED FORWARD IS NO BATCH, NOT AN EMPTY ONE. A file holding
     # `{}` would be handed to roles as a turn with nothing in it.
     if args.batch_out and result.batch:

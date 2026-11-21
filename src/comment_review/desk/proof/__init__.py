@@ -18,8 +18,7 @@ AUTHORS a mark, so a mark's shape must be published to a role. No agent ever
 authors a container, so the type is where the shape lives, the way
 `desk/proof/mark.py` defines `Mark`.
 
-    write   flows.distribute.seed, flows.places.chief_copy_of,
-            flows.bus
+    write   flows.distribute.seed
     read    commands/collate.py, at its inbound boundary, and
             flows.proof_io.load_proof
 

@@ -51,7 +51,7 @@ def test_loaded_initial_context_refusal_preserves_files(
     inputs = {"binder": binder_wire, "received": received_wire, "copy": copy}
     for name, value in inputs.items():
         (tmp_path / f"{name}.json").write_text(json.dumps(value), encoding="utf-8")
-    outputs = [tmp_path / f"{name}.json" for name in ("chief", "proof", "batch")]
+    outputs = [tmp_path / f"{name}.json" for name in ("proof", "batch")]
     for path in outputs:
         path.write_bytes(b"existing state")
     before = {path: path.read_bytes() for path in tmp_path.glob("*.json")}
@@ -67,12 +67,10 @@ def test_loaded_initial_context_refusal_preserves_files(
             str(tmp_path / "received.json"),
             "--edit-copy",
             str(tmp_path / "copy.json"),
-            "--out",
-            str(outputs[0]),
             "--proof-out",
-            str(outputs[1]),
+            str(outputs[0]),
             "--batch-out",
-            str(outputs[2]),
+            str(outputs[1]),
         ],
     )
 
@@ -123,8 +121,8 @@ def run(
         "4c",
         "--binder",
         str(binder_path),
-        "--out",
-        str(tmp_path / "chief.json"),
+        "--proof-out",
+        str(tmp_path / "proof.json"),
         *extra,
     ]
     for path in paths:
@@ -171,7 +169,7 @@ class TestTheDroppedList:
             " names" in out
         )
 
-    def test_the_place_still_settles_and_the_chief_copy_is_written(
+    def test_the_place_still_settles_and_the_proof_is_written(
         self, tmp_path, monkeypatch, capsys
     ):
         """A note is not a refusal: the round commits over it."""
@@ -187,10 +185,11 @@ class TestTheDroppedList:
         )
         assert code == report.OK, out
         assert "stet m.py@b1" in out
-        chief = json.loads((tmp_path / "chief.json").read_text(encoding="utf-8"))
-        assert [m["address"] for s in chief["sheets"] for m in s["marks"]] == [
-            "m.py@b1"
-        ]
+        proof = json.loads((tmp_path / "proof.json").read_text(encoding="utf-8"))
+        assert any(
+            p["address"] == "m.py@b1" and p["text"].strip() == "# one\n# TWO"
+            for p in proof["places"]
+        )
 
     def test_the_heading_is_absent_where_nothing_is_advised(
         self, tmp_path, monkeypatch, capsys
@@ -225,7 +224,7 @@ class TestStageCoverage:
         )
         assert code == report.BROKEN, out
         assert "stage 4c: function-context returned 0 of 1 dispatches" in out
-        assert not (tmp_path / "chief.json").exists()
+        assert not (tmp_path / "proof.json").exists()
 
     def test_every_dispatch_returned_is_no_report(self, tmp_path, monkeypatch, capsys):
         (tmp_path / "t.toml").write_text(TWO_ROLES, encoding="utf-8")
@@ -275,7 +274,7 @@ class TestStageCoverage:
         )
         assert code == report.UNREADABLE, out
         assert "missing.toml" in out
-        assert not (tmp_path / "chief.json").exists()
+        assert not (tmp_path / "proof.json").exists()
 
 
 #: A compacting stage's row over the same page: dealt the `b` places over two
@@ -312,7 +311,7 @@ class TestWhatTheStageAdmits:
         assert code == report.BROKEN, out
         assert "stage 4c admits patch, drop, add, clean, and not correct" in out
         assert "block-context (the copy):" in out
-        assert not (tmp_path / "chief.json").exists()
+        assert not (tmp_path / "proof.json").exists()
 
     def test_the_same_copy_under_no_topology_is_held_to_its_own_admits(
         self, tmp_path, monkeypatch, capsys
@@ -425,8 +424,8 @@ class TestExitCodes:
             "4c",
             "--binder",
             str(binder_path),
-            "--out",
-            str(tmp_path / "chief.json"),
+            "--proof-out",
+            str(tmp_path / "proof.json"),
         ]
         for path in paths:
             argv += ["--edit-copy", path]
@@ -457,8 +456,8 @@ class TestExitCodes:
                 "4c",
                 "--binder",
                 str(binder_path),
-                "--out",
-                str(tmp_path / "chief.json"),
+                "--proof-out",
+                str(tmp_path / "proof.json"),
                 "--edit-copy",
                 str(copy_path),
             ],
@@ -479,7 +478,7 @@ class TestExitCodes:
         a report at all. Then `P21` made the envelope parse report it as a
         `Problem` first, and `P42` deleted `UnnamedRole` outright. ! WHAT THE
         TEST ASSERTS -- the exit code, the reason on the reader's screen, and
-        no chief copy on disk -- is the same claim through all three, which is
+        no proof on disk -- is the same claim through all three, which is
         why it is a CLI test and not a test of whichever door is current.
         """
         binder = a_binder_over({"m.py@b1": BASE})
@@ -499,8 +498,8 @@ class TestExitCodes:
                 "4c",
                 "--binder",
                 str(binder_path),
-                "--out",
-                str(tmp_path / "chief.json"),
+                "--proof-out",
+                str(tmp_path / "proof.json"),
                 "--edit-copy",
                 str(copy_path),
             ],
@@ -514,7 +513,7 @@ class TestExitCodes:
         # Process: #57`. A refusal that raises empties the report for every
         # OTHER role, which is what the report path fixes.
         assert "role" in out.out.lower()
-        assert not (tmp_path / "chief.json").exists()
+        assert not (tmp_path / "proof.json").exists()
 
     def test_mismatched_roots_exit_one_naming_the_reason(
         self, tmp_path, monkeypatch, capsys
@@ -541,8 +540,8 @@ class TestExitCodes:
             "4c",
             "--binder",
             str(binder_path),
-            "--out",
-            str(tmp_path / "chief.json"),
+            "--proof-out",
+            str(tmp_path / "proof.json"),
         ]
         for i, copy in enumerate(copies):
             path = tmp_path / f"copy{i}.json"
@@ -554,7 +553,7 @@ class TestExitCodes:
         assert code == report.BROKEN
         assert "somewhere/else" in out
         assert "function-context (the copy):" in out
-        assert not (tmp_path / "chief.json").exists()
+        assert not (tmp_path / "proof.json").exists()
 
     def test_every_copys_findings_are_printed_not_just_the_first(
         self, tmp_path, monkeypatch, capsys
@@ -582,8 +581,8 @@ class TestExitCodes:
             "4c",
             "--binder",
             str(binder_path),
-            "--out",
-            str(tmp_path / "chief.json"),
+            "--proof-out",
+            str(tmp_path / "proof.json"),
         ]
         for i, copy in enumerate(copies):
             path = tmp_path / f"copy{i}.json"
@@ -595,7 +594,7 @@ class TestExitCodes:
         assert code == 1
         assert "block-context m.py@b1:" in out.out
         assert "function-context m.py@b1:" in out.out
-        assert not (tmp_path / "chief.json").exists()
+        assert not (tmp_path / "proof.json").exists()
 
     def test_a_copy_missing_read_from_exits_one_not_a_traceback(
         self, tmp_path, monkeypatch, capsys
@@ -621,8 +620,8 @@ class TestExitCodes:
                 "4c",
                 "--binder",
                 str(binder_path),
-                "--out",
-                str(tmp_path / "chief.json"),
+                "--proof-out",
+                str(tmp_path / "proof.json"),
                 "--edit-copy",
                 str(copy_path),
             ],
@@ -631,7 +630,7 @@ class TestExitCodes:
         out = capsys.readouterr()
         assert code == 1
         assert "read_from" in out.out
-        assert not (tmp_path / "chief.json").exists()
+        assert not (tmp_path / "proof.json").exists()
 
     def test_a_short_shard_is_named_and_refuses_the_round(
         self, tmp_path, monkeypatch, capsys
@@ -656,7 +655,7 @@ class TestExitCodes:
         binder_path.write_text(json.dumps(binder.serialize()), encoding="utf-8")
         copy_path = tmp_path / "copy.json"
         copy_path.write_text(json.dumps(short), encoding="utf-8")
-        out_path = tmp_path / "chief.json"
+        out_path = tmp_path / "proof.json"
         monkeypatch.setattr(
             "sys.argv",
             [
@@ -665,7 +664,7 @@ class TestExitCodes:
                 "4c",
                 "--binder",
                 str(binder_path),
-                "--out",
+                "--proof-out",
                 str(out_path),
                 "--edit-copy",
                 str(copy_path),
@@ -708,8 +707,8 @@ class TestExitCodes:
                 "4c",
                 "--binder",
                 str(binder_path),
-                "--out",
-                str(tmp_path / "chief.json"),
+                "--proof-out",
+                str(tmp_path / "proof.json"),
                 "--edit-copy",
                 str(copy_path),
                 "--repo",
@@ -730,7 +729,7 @@ class TestExitCodes:
         `_coverage_problems` asks whether the copy came BACK with the binder's
         addresses, and an untouched slot still carries its address. So over a
         three-place binder with `module-context` ruling one, `got.problems` and
-        `got.coverage` were both EMPTY, the chief copy was written, and stdout
+        `got.coverage` were both EMPTY, a successful output was written, and stdout
         said `0 places resolved` -- **which is also what an all-`clean` round
         prints**. Nothing separated *everyone read it and had nothing to say*
         from *a role skipped two thirds of its work*.
@@ -754,7 +753,7 @@ class TestExitCodes:
         binder_path.write_text(json.dumps(binder.serialize()), encoding="utf-8")
         copy_path = tmp_path / "copy.json"
         copy_path.write_text(json.dumps(copies[0]), encoding="utf-8")
-        out_path = tmp_path / "chief.json"
+        out_path = tmp_path / "proof.json"
         monkeypatch.setattr(
             "sys.argv",
             [
@@ -763,7 +762,7 @@ class TestExitCodes:
                 "4c",
                 "--binder",
                 str(binder_path),
-                "--out",
+                "--proof-out",
                 str(out_path),
                 "--edit-copy",
                 str(copy_path),
@@ -819,8 +818,8 @@ class TestExitCodes:
             "4c",
             "--binder",
             str(binder_path),
-            "--out",
-            str(tmp_path / "chief.json"),
+            "--proof-out",
+            str(tmp_path / "proof.json"),
         ]
         for i, copy in enumerate(copies):
             path = tmp_path / f"copy{i}.json"
@@ -833,7 +832,7 @@ class TestExitCodes:
         assert code != report.ESCALATIONS, out
         assert code == report.BROKEN
         assert "contested m.py@b1" not in out
-        assert not (tmp_path / "chief.json").exists()
+        assert not (tmp_path / "proof.json").exists()
 
     def test_an_unreadable_input_exits_two(self, tmp_path, monkeypatch, capsys):
         monkeypatch.setattr(
@@ -844,8 +843,8 @@ class TestExitCodes:
                 "4c",
                 "--binder",
                 str(tmp_path / "nowhere.json"),
-                "--out",
-                str(tmp_path / "chief.json"),
+                "--proof-out",
+                str(tmp_path / "proof.json"),
                 "--edit-copy",
                 str(tmp_path / "nowhere-either.json"),
             ],
@@ -910,7 +909,7 @@ class TestTheReport:
     def test_a_rolled_back_round_prints_its_refusals_and_nothing_else(
         self, tmp_path, monkeypatch, capsys
     ):
-        """A rollback writes no chief's copy, no proof and no batch, so a
+        """A rollback writes neither a proof nor a batch, so a
         settled and a contested place are not reported: each line would say
         something happens that does not.
 
@@ -955,14 +954,14 @@ class TestTheReport:
         assert out.splitlines() == [
             "block-context m.py@b4: the text does not keep 'two'"
         ]
-        assert not (tmp_path / "chief.json").exists()
+        assert not (tmp_path / "proof.json").exists()
 
 
 @pytest.mark.parametrize("kind", MISSPELLINGS)
 def test_an_address_spelled_otherwise_than_printed_rolls_the_round_back(
     tmp_path, monkeypatch, capsys, kind
 ):
-    """Each misspelling is refused by name and nothing reaches a chief's copy:
+    """Each misspelling is refused by name and no proof is written:
     the case slip reached the docket as a second page, and the bare cue filed
     a place with no base and no readers."""
     places, marks, appended, named = a_misspelled_address(kind)
@@ -976,7 +975,7 @@ def test_an_address_spelled_otherwise_than_printed_rolls_the_round_back(
     )
     assert code == report.BROKEN, out
     assert named in out, out
-    assert not (tmp_path / "chief.json").exists()
+    assert not (tmp_path / "proof.json").exists()
 
 
 class TestTheGateSeesIt:
@@ -1103,7 +1102,6 @@ class TestAHumanQuestion:
         )
         assert code == report.ASKS_THE_HUMAN, out
         assert "asks the human m.py@b1: block-context -- " in out
-        assert not (tmp_path / "chief.json").exists()
         assert not proof_path.exists()
         assert not batch_path.exists()
 
@@ -1124,7 +1122,7 @@ class TestAHumanQuestion:
         )
         assert code == report.UNREADABLE, out
         assert f"{human}: not TOML" in out
-        assert not (tmp_path / "chief.json").exists()
+        assert not (tmp_path / "proof.json").exists()
 
     def test_a_human_file_answering_one_question_twice_is_unreadable(
         self, tmp_path, monkeypatch, capsys
@@ -1146,7 +1144,7 @@ class TestAHumanQuestion:
         )
         assert code == report.UNREADABLE, out
         assert f"{human}: answer 2 answers block-context at m.py@b1 'q'" in out
-        assert not (tmp_path / "chief.json").exists()
+        assert not (tmp_path / "proof.json").exists()
 
     def test_a_human_file_that_is_missing_is_unreadable_and_named_once(
         self, tmp_path, monkeypatch, capsys
@@ -1162,7 +1160,7 @@ class TestAHumanQuestion:
         )
         assert code == report.UNREADABLE, out
         assert out.count("missing.toml") == 1, out
-        assert not (tmp_path / "chief.json").exists()
+        assert not (tmp_path / "proof.json").exists()
 
 
 def test_a_human_question_prints_what_to_do_and_exits_asks_the_human():
@@ -1226,7 +1224,7 @@ class TestACorrectionToTheMatterAsksTheHuman:
         )
         assert code == report.ASKS_THE_HUMAN, out
         assert "m.py@f0" in out
-        assert not (tmp_path / "chief.json").exists()
+        assert not (tmp_path / "proof.json").exists()
 
     ASKED = "approve this add to the file's matter: written for the mark helpers (add)"
 

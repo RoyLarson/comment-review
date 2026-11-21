@@ -1084,7 +1084,7 @@ def deal(
     texts: dict | None = None,
     placed: dict | None = None,
 ) -> int:
-    """`collate` over the hand: binder.json, chief0.json, proof0.json, batch1.json.
+    """`collate` over the hand: binder.json, proof0.json, batch1.json.
 
     The binder is over real pages written to `tmp_path / "repo"`, which the
     commands read as its root.
@@ -1129,8 +1129,6 @@ def deal(
         "4c",
         "--binder",
         str(tmp_path / "binder.json"),
-        "--out",
-        str(tmp_path / "chief0.json"),
         "--proof-out",
         str(tmp_path / "proof0.json"),
         "--batch-out",
@@ -1206,7 +1204,7 @@ def held_open(
 def disposition(
     tmp_path, monkeypatch, capsys, rulings: object, proof: str = "proof1.json"
 ) -> tuple[int, str]:
-    """`disposition` over `proof`: chief.json and final.json out."""
+    """`disposition` over `proof`: final.json out."""
     (tmp_path / "dispositions.json").write_text(json.dumps(rulings), encoding="utf-8")
     return run_command(
         monkeypatch,
@@ -1216,8 +1214,6 @@ def disposition(
         str(tmp_path / proof),
         "--dispositions",
         str(tmp_path / "dispositions.json"),
-        "--out",
-        str(tmp_path / "chief.json"),
         "--proof-out",
         str(tmp_path / "final.json"),
     )
@@ -1247,12 +1243,6 @@ def place_on(proof: MasterProof, address: str) -> dict:
         if entry.address == address:
             return entry.serialize()
     raise AssertionError(f"{address} is not on this proof")
-
-
-def the_chief(tmp_path) -> EditCopy:
-    """`disposition`'s chief.json, as the ordinary edit_copy it must be."""
-    loaded = json.loads((tmp_path / "chief.json").read_text(encoding="utf-8"))
-    return returned(loaded, "chief")
 
 
 #: Every shape worth putting through it. Each is a file some checkout really

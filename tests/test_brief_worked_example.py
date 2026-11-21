@@ -115,8 +115,8 @@ def test_collate_refuses_the_examples_fictional_installed_context(
             "4c",
             "--binder",
             str(binder_path),
-            "--out",
-            str(tmp_path / "chief.json"),
+            "--proof-out",
+            str(tmp_path / "proof.json"),
             "--edit-copy",
             str(copy_path),
         ],
@@ -128,7 +128,7 @@ def test_collate_refuses_the_examples_fictional_installed_context(
     assert lines
     for line in lines:
         assert "reading context" in line and "regather" in line, line
-    assert not (tmp_path / "chief.json").exists()
+    assert not (tmp_path / "proof.json").exists()
 
 
 @pytest.mark.parametrize("key", ["claim", "reason", "sources", "change"])

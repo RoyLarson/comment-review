@@ -24,8 +24,7 @@
     fill            places one role's ruling on its edit copy, refusing any
                     ruling a mark's own rules would refuse
     topology        whether a topology fits a binder, and writes one that does
-    places          places from copies, and the chief's copy from decided
-                    places
+    places          places from reviewer copies
     answers         reads one role's answers against the slots that went out
                     to it
     mark_errors     every place a role must go back to, as addresses and

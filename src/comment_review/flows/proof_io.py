@@ -6,7 +6,7 @@
     load_batch(path)  -> (role -> slots, problems)
     load_value(path)  -> (any JSON value, problems)      a role's answers, the rulings
     load_text(path)   -> (the text | None, problems)     a topology, read as text
-    save_proof(path, proof), save_copy(path, copy), save_batch(path, batch)
+    save_proof(path, proof), save_batch(path, batch)
     save_wire(path, copy)   a role's copy mid-fill, every slot kept
 
 `decision-log.md Process: #65`, `#67`: raw JSON exists at the load and the
@@ -34,7 +34,6 @@ from pathlib import Path
 
 from comment_review import exceptions
 from comment_review.binder.binder import Binder
-from comment_review.desk.proof.edit_copy import EditCopy
 from comment_review.desk.proof.master_proof import MasterProof
 from comment_review.machine.json_object import object_of
 from comment_review.machine.repo import write_raw
@@ -133,11 +132,6 @@ def _dump(path: Path, data: object) -> None:
 def save_proof(path: Path, proof: MasterProof) -> None:
     """The proof as JSON at `path` -- the container's own `serialize`, dumped here."""
     _dump(path, proof.serialize())
-
-
-def save_copy(path: Path, copy: EditCopy) -> None:
-    """An edit_copy as JSON at `path` -- the chief's, from collate or disposition."""
-    _dump(path, copy.serialize())
 
 
 def save_batch(path: Path, batch: dict[str, list[dict]]) -> None:

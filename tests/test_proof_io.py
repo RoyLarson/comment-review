@@ -28,8 +28,8 @@ from comment_review.flows.proof_io import (
     load_proof,
     load_value,
     save_batch,
-    save_copy,
     save_proof,
+    save_wire,
 )
 
 
@@ -260,7 +260,7 @@ class TestTheOtherArtifacts:
         assert got is None
         assert why
 
-    def test_a_copy_loads_as_its_wire_dict_and_save_copy_writes_the_same(
+    def test_a_copy_loads_as_its_wire_dict_and_save_wire_writes_the_same(
         self, tmp_path
     ):
         binder = a_binder_over({"m.py@b1": "# one\n"})
@@ -269,7 +269,7 @@ class TestTheOtherArtifacts:
         )
         copy, why = EditCopy.deserialize("c", wire)
         assert copy is not None, why
-        save_copy(tmp_path / "c.json", copy)
+        save_wire(tmp_path / "c.json", copy.serialize())
         loaded, why = load_copy(tmp_path / "c.json")
         assert why == []
         assert loaded == copy.serialize()

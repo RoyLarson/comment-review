@@ -27,18 +27,14 @@ from enum import StrEnum, auto
 from typing import Any
 
 from comment_review.desk.marks.rules import comment_at, first_word_dropped
-from comment_review.desk.proof.disposition import CHIEF
 from comment_review.desk.proof.mark import (
-    AddMark,
     CorrectMark,
-    DropMark,
     Instruction,
     Mark,
     QueryMark,
     Shape,
     Touch,
 )
-from comment_review.desk.proof.place import Place
 
 
 class Stance(StrEnum):
@@ -203,135 +199,3 @@ INSTRUCTIONS: dict[Instruction, Row] = {
         carries_raw_text=True,
     ),
 }
-
-
-def _in_role_order(place: "Place") -> list:
-    """This place's filed marks, by role, then as that role filed them.
-
-    !! THE ORDER IS A PROPERTY OF THE DATA, NOT OF THE DISPATCH.
-    `flows.places.places_of` appends in the order the copies were handed over,
-    which is the order a command's `--edit-copy` flags happened to be typed in.
-    Reading `place.filed` as it stands makes both of `chief_mark`'s answers
-    turn on that: which of two marks setting the same text is returned, and
-    the order of the sources carried onto a synthesized mark.
-
-    ! IT REPLACES A CHECK THE OLD FOLD HAD. `tests/test_collate.py::
-    TestTheChiefsCopy::test_sources_and_reason_AGREE_on_the_roles_ORDER`
-    asserted the same thing of the composed mark that flow built, against
-    "the order `edit_copies` happened to be handed in, which is not a
-    property of the data".
-
-    Args:
-        place: the place whose marks are being read.
-
-    Returns:
-        The `Filed` entries, sorted by role. `sorted` is stable, so each
-        role's own marks keep the order it filed them in.
-    """
-    return sorted(place.filed, key=lambda one: one.role)
-
-
-def chief_mark(place: "Place") -> Mark:
-    """The chief's mark at one decided place -- the side taken in, or synthesized.
-
-    Returns the filed mark whose row sets `place.text` at this place, where
-    one of the filed marks does -- the side the fold took in, returned
-    unchanged. Otherwise synthesizes one: a drop where the decided text is
-    empty, a correct where the base held a paragraph, an add where it did
-    not.
-
-    The marks are read in role order, so which mark is returned and which
-    order its sources stand in are the same on every run -- see
-    `_in_role_order`. A mark writing two places is never returned: an agreed
-    move stays filed at both ends (`Process: #205`), and each end is written
-    from its own decided text.
-
-    Args:
-        place: a decided place -- `place.text` is not None.
-
-    Returns:
-        The taken-in `Mark`, keeping its role's `reason`, or a synthesized
-        one whose `reason` is the chief's ruling's where the place has one,
-        and otherwise names the copy chief.
-
-    Raises:
-        ValueError: `place.text` is None -- the caller's contract is a place
-            the fold already decided a text for; `chief_copy_of` filters
-            those out before calling this. Or the mark would be an add and
-            the place has no anchor, so its claim could name none and the
-            read would refuse it; `desk.work.fold.Fold.run` refuses such a
-            place before any chief's copy is written.
-    """
-    text = place.text
-    if text is None:
-        raise ValueError(
-            "chief_mark needs a place the fold decided a text for, "
-            f"got None at {place.address!r}"
-        )
-    filed_marks = _in_role_order(place)
-    for filed in filed_marks:
-        row = INSTRUCTIONS[filed.mark.instruction]
-        if len(row.places(filed.mark)) > 1:
-            continue
-        if row.sets(filed.mark, filed.touch, place.base) == place.text:
-            return filed.mark
-
-    # The chief's ruling says why it set this text. A place settled without
-    # one -- a move's end, or a composition the roles accepted -- has no
-    # reason of the chief's to carry.
-    reason = (
-        place.disposition.reason
-        if place.disposition is not None
-        else f"{CHIEF}: decided at this place"
-    )
-    # The evidence the filed marks brought, carried onto the synthesized one:
-    # every row that owes a change owes sources too, so a mark handed back
-    # without them is one the parse refuses -- and the chief read those marks
-    # to decide the text, so they are what stands behind it. Deduped in
-    # place, since a source is a dict and cannot go through a set.
-    cited = [source for one in filed_marks for source in one.mark.sources]
-    sources = tuple(s for i, s in enumerate(cited) if s not in cited[:i])
-    if text == "":
-        return DropMark(
-            address=place.address,
-            anchor=place.anchor,
-            raw_text=place.base,
-            reason=reason,
-            sources=sources,
-            change="",
-            drop=place.base,
-        )
-    if place.base:
-        return CorrectMark(
-            address=place.address,
-            anchor=place.anchor,
-            raw_text=place.base,
-            reason=reason,
-            sources=sources,
-            change=text,
-            false=place.base,
-            true=text,
-        )
-    if not place.anchor.strip():
-        raise ValueError(
-            f"chief_mark has no anchor to name for an add at {place.address!r}"
-        )
-    return AddMark(
-        address=place.address,
-        anchor=place.anchor,
-        # An `add`'s `raw_text` is the paragraph as it will read, which its
-        # own row sets at the place (`decision-log.md Process: #176`). The
-        # base here is empty, so that is the decided text itself; writing ""
-        # would make the row set nothing where the fold decided something.
-        raw_text=text,
-        reason=reason,
-        sources=sources,
-        change=text,
-        missing=text.splitlines()[0],
-        # The anchor NAMED in backticks, which is what the read requires --
-        # and a place's anchor is a line of code, indented where the code is.
-        # Backticked as it stands, a mark at any indented place is one the
-        # read refuses, and the chief's own decision is then carried on a
-        # mark nothing downstream can read.
-        named_anchor=f"`{place.anchor.strip()}`",
-    )

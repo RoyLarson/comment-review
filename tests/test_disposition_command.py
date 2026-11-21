@@ -18,20 +18,16 @@ from helpers import (
     a_clean,
     a_correct_setting,
     a_move,
-    changes_of,
     deal,
     disposition,
-    entries_of,
     held_open,
     place_on,
     proof_at,
-    the_chief,
     turn,
 )
 
 from comment_review.commands import report
 from comment_review.desk.proof.disposition import ORIGINAL
-from comment_review.desk.proof.mark import Instruction
 from comment_review.flows.proof_io import load_proof
 from comment_review.flows.transcribe import docket_of_proof
 
@@ -63,8 +59,7 @@ def test_saved_context_refusal_preserves_disposition_artifacts(
         json.dumps([_taken_in("m.py@b1", "function-context", "stands")]),
         encoding="utf-8",
     )
-    for name in ("chief.json", "final.json"):
-        (tmp_path / name).write_bytes(b"previous output")
+    (tmp_path / "final.json").write_bytes(b"previous output")
     before = {path: path.read_bytes() for path in tmp_path.rglob("*") if path.is_file()}
 
     def forbidden(*args, **kwargs):
@@ -79,8 +74,6 @@ def test_saved_context_refusal_preserves_disposition_artifacts(
         str(proof_path),
         "--dispositions",
         str(ruling_path),
-        "--out",
-        str(tmp_path / "chief.json"),
         "--proof-out",
         str(tmp_path / "final.json"),
     )
@@ -146,9 +139,6 @@ class TestTheChiefRules:
         assert code == report.OK, out
         assert "taken_in m.py@b1: function-context -- theirs reads better" in out
         assert "stet m.py@b1" not in out
-        chief = the_chief(tmp_path)
-        assert chief.role == "copy-chief"
-        assert changes_of(entries_of(chief)) == [DOS]
         place = place_on(_closed(tmp_path), "m.py@b1")
         assert place["state"] == "stands"
         assert place["text"] == DOS
@@ -174,7 +164,6 @@ class TestTheChiefRules:
         assert code == report.OK, out
         assert "taken_in m.py@b1: original -- neither improves it" in out
         assert "stet m.py@b1" not in out
-        assert entries_of(the_chief(tmp_path)) == []
         place = place_on(_closed(tmp_path), "m.py@b1")
         assert place["disposition"]["side"] == ORIGINAL
         assert place["text"] is None
@@ -197,7 +186,6 @@ class TestTheChiefRules:
         assert code == report.OK, out
         assert "recast m.py@b1: copy-chief -- both half right" in out
         assert "stet m.py@b1" not in out
-        assert changes_of(entries_of(the_chief(tmp_path))) == [RECAST]
         assert place_on(_closed(tmp_path), "m.py@b1")["text"] == RECAST
 
     def test_an_empty_recast_drops_the_whole_paragraph(
@@ -221,8 +209,6 @@ class TestTheChiefRules:
         )
         assert code == report.OK, out
         assert place_on(_closed(tmp_path), "m.py@b1")["text"] == ""
-        (entry,) = entries_of(the_chief(tmp_path))
-        assert entry.instruction == "drop"
 
 
 class TestTheChiefRecastsASettledPlace:
@@ -269,9 +255,6 @@ class TestTheChiefRecastsASettledPlace:
         assert "stet m.py@b2" not in out
         place = place_on(_closed(tmp_path), "m.py@b2")
         assert (place["state"], place["text"]) == ("stands", self.PROSE)
-        marks = [m for m in entries_of(the_chief(tmp_path)) if m.address == "m.py@b2"]
-        assert changes_of(marks) == [self.PROSE]
-        assert [m.reason for m in marks] == [self.STYLE]
 
     def test_an_empty_recast_drops_the_settled_paragraph(
         self, tmp_path, monkeypatch, capsys
@@ -289,8 +272,6 @@ class TestTheChiefRecastsASettledPlace:
         )
         assert code == report.OK, out
         assert place_on(_closed(tmp_path), "m.py@b2")["text"] == ""
-        marks = {one.address: one for one in entries_of(the_chief(tmp_path))}
-        assert marks["m.py@b2"].instruction == "drop"
 
     def test_a_recast_repeating_the_paragraph_is_BROKEN(
         self, tmp_path, monkeypatch, capsys
@@ -554,11 +535,6 @@ class TestTheChiefRecastsAnAdd:
             proof="proof2.json",
         )
         assert code == report.OK, out
-        marks = entries_of(the_chief(tmp_path))
-        assert [(m.address, m.instruction) for m in marks] == [
-            (EMPTY_PLACE, Instruction.ADD)
-        ]
-        assert changes_of(marks) == [RECAST_THERE]
         assert place_on(_closed(tmp_path), EMPTY_PLACE)["text"] == RECAST_THERE
 
 
@@ -571,7 +547,6 @@ class TestRefusals:
         assert code == report.BROKEN
         assert "copy-chief m.py@b1: carried forward and not ruled on" in out
         assert "block-context, function-context" in out
-        assert not (tmp_path / "chief.json").exists()
         assert not (tmp_path / "final.json").exists()
 
     def test_a_ruling_at_a_place_nothing_carries_forward_is_BROKEN(
@@ -666,7 +641,7 @@ class TestTheGateSeesIt:
             ],
         )
         assert code == report.OK, out
-        assert changes_of(entries_of(the_chief(tmp_path))) == [TWO]
+        assert place_on(_closed(tmp_path), "m.py@b1")["text"] == TWO
 
 
 def test_the_help_names_the_answer_the_parse_accepts():
