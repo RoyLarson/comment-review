@@ -515,13 +515,28 @@ class TestExitCodes:
         assert "role" in out.out.lower()
         assert not (tmp_path / "proof.json").exists()
 
+    def test_single_copy_from_a_different_tree_is_refused(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        code, out = run(
+            tmp_path,
+            {"block-context": {"m.py@b1": a_clean("m.py@b1")}},
+            monkeypatch,
+            capsys,
+            on_copy={"read_from": {"root": "somewhere/else", "revise": 0}},
+        )
+        assert code == report.BROKEN, out
+        assert "different gathered trees" in out
+        assert "somewhere/else" in out
+        assert not (tmp_path / "proof.json").exists()
+
     def test_mismatched_roots_exit_one_naming_the_reason(
         self, tmp_path, monkeypatch, capsys
     ):
         """`decision-log.md Process: #178`: two copies gathered from different
         trees share no address space, so the handler refuses the round.
 
-        The comparison is `flows.bus._root_problems`, and the reason routes to
+        Each copy is compared with the binder, and the reason routes to
         the role that owes it, on stdout, like every other finding."""
         binder = a_binder_over({"m.py@b1": BASE})
         copies = copies_over(

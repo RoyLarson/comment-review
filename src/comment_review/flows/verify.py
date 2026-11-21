@@ -67,6 +67,18 @@ def lookup_contexts(
     return ({}, why) if why else (combined, [])
 
 
+def gathered_tree_problem(copy: EditCopy, binder: Binder) -> Problem | None:
+    """Name a copy whose gathered tree differs from the binder's."""
+    if copy.read_from == binder.read_from:
+        return None
+    return Problem(
+        copy.role,
+        "",
+        f"copy and binder name different gathered trees: "
+        f"{copy.read_from!r} and {binder.read_from!r}",
+    )
+
+
 def copy_problems(
     copy: EditCopy,
     paths: list[str],

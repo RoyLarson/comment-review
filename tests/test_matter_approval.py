@@ -19,6 +19,7 @@ from helpers import (
 
 from comment_review.binder.binder import bind
 from comment_review.binder.page import Page
+from comment_review.commands import check as check_command
 from comment_review.commands import disposition as disposition_command
 from comment_review.commands import report
 from comment_review.desk import report as events
@@ -72,6 +73,35 @@ def _collated(tmp_path: Path, at_f0: dict):
     out, result = handle(CopiesReturned("4c", copies, binder, root, None, approved))
     assert result is not None, out
     return root, result.proof
+
+
+def test_check_reports_pending_matter_approval(tmp_path, monkeypatch, capsys):
+    root = _root(tmp_path)
+    page = page_of(root / "m.py", rel="m.py")
+    assert isinstance(page, Page), page
+    binder = bind([page], read_from={"root": str(root), "revise": 0})
+    copy = copies_over(binder, {"block-context": {B0: a_clean(B0)}})[0]
+    copy["sheets"][0]["marks"].append(a_correct_setting(F0, LICENCE, SAMPLE))
+    binder_path = tmp_path / "binder.json"
+    binder_path.write_text(json.dumps(binder.serialize()), encoding="utf-8")
+    copy_path = tmp_path / "copy.json"
+    copy_path.write_text(json.dumps(copy), encoding="utf-8")
+    args = ("--edit-copy", str(copy_path), "--binder", str(binder_path))
+    code, out = run_command(monkeypatch, capsys, check_command, *args)
+    assert code == report.ASKS_THE_HUMAN, out
+    assert "approve this correct to the file's matter" in out
+
+    (question,) = corrections_to_matter([returned(copy)], ())
+    human_path = tmp_path / "human.toml"
+    human_path.write_text(
+        f'[[answer]]\nrole = "{question.role}"\nat = "{question.at}"\n'
+        f'question = {json.dumps(question.question)}\nanswer = "yes"\n',
+        encoding="utf-8",
+    )
+    code, out = run_command(
+        monkeypatch, capsys, check_command, *args, "--human", str(human_path)
+    )
+    assert code == report.OK, out
 
 
 def _asked(out) -> list[tuple[str, str, str]]:

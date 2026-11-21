@@ -412,8 +412,9 @@ python <skill>/scripts/comment-review.py check --edit-copy <EDIT COPY> --binder 
 
 It names every slot still `null`, every mark that will not read, every `claim` quoting a
 sentence outside its paragraph, and every cite whose line does not match. Fix the copy and run
-it again until it exits 0. Exit 5 means your only findings are `human-review-necessary`
-queries: your part is done, and you hand the copy back.
+it again until it exits 0. Exit 5 means only human input is pending: a
+`human-review-necessary` query or approval of a change to the file's matter. Hand the copy
+back so the task agent can ask the author.
 
 For a batch's answers:
 

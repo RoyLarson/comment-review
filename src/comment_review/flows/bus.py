@@ -75,6 +75,7 @@ from comment_review.flows.verify import (
     admitted_copy_problems,
     admitted_coverage_problems,
     admitted_received_problems,
+    gathered_tree_problem,
     required_places,
     stage_problems,
 )
@@ -235,7 +236,8 @@ def _on_copies(message: CopiesReturned) -> tuple[list, Result | None]:
     else:
         for copy in copies:
             problems += admitted_coverage_problems([copy], binder, message.topology)
-    problems += _root_problems(copies)
+            if problem := gathered_tree_problem(copy, binder):
+                problems.append(problem)
     problems += _dealt_problems(copies, message.stage)
     problems += _admitted_problems(copies, message.topology)
     if message.topology is not None:
@@ -314,40 +316,6 @@ def _on_copies(message: CopiesReturned) -> tuple[list, Result | None]:
         },
     )
     return _commit(proof, places, {}, turn=0)
-
-
-def _root_problems(copies: list[EditCopy]) -> list[Problem]:
-    """One `Problem` per copy gathered from a tree the first copy disagrees with.
-
-    Two copies from different trees have no fold between them: their
-    addresses answer to different address spaces, so an `a0` in one tells
-    nothing about the `a0` in the other. `_on_copies` takes the proof's
-    `read_from` from the first copy, so the comparison is here --
-    `decision-log.md Process: #178`.
-
-    Reported rather than raised, like everything else the handler finds: a
-    refusal that raises empties the report for every other role, measured
-    2026-08-30 as exit 1 with an empty stdout.
-
-    Returns:
-        One `Problem` per odd copy, naming both `read_from` values, with no
-        address -- the finding is about the document. Empty where the copies
-        agree, and for a stage with fewer than two.
-    """
-    if not copies:
-        return []
-    first = copies[0].read_from
-    return [
-        Problem(
-            copy.role,
-            "",
-            f"was gathered from {copy.read_from!r}, disagreeing with the first"
-            f" edit_copy's {first!r} -- copies from different trees share no"
-            " address space",
-        )
-        for copy in copies[1:]
-        if copy.read_from != first
-    ]
 
 
 def _dealt_problems(copies: list[EditCopy], stage: str) -> list[Problem]:

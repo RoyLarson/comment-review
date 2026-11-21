@@ -21,9 +21,9 @@ class MasterProof:
         stage: the label the copies were dispatched under -- `SKILL.md`'s "4a",
             "4c".
         read_from: taken from the first copy by the bus's `_on_copies`, and `{}`
-            where there is none; `flows.bus._root_problems` refuses a set of
-            copies that disagree, and `deserialize` a proof any of whose copies
-            disagrees with its own `read_from`.
+            where there is none. The bus holds each copy to the binder's tree,
+            and `deserialize` refuses a proof whose copies disagree with its
+            own `read_from`.
         edit_copies: one per role, or one per SHARD under fan-out.
         places: every place one fold of this stage decided. `flows.bus`
             writes it; empty until such a fold has run. Each is read by

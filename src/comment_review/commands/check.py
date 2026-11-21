@@ -80,6 +80,7 @@ from comment_review.flows.human import (
     HumanAnswer,
     HumanQuery,
     answered,
+    corrections_to_matter,
     queries_in_answers,
     queries_in_copies,
 )
@@ -98,6 +99,7 @@ from comment_review.flows.reading_context import (
 from comment_review.flows.verify import (
     copy_problems,
     coverage_problems,
+    gathered_tree_problem,
     lookup_contexts,
     required_places,
 )
@@ -278,12 +280,11 @@ def _check_copy(
             where = problem.address or "(the copy)"
             print(refusal_line(problem.role, where, problem.message))
             found += 1
-        if copy.read_from != binder.read_from:
-            print(
-                f"{copy.role}: copy and received binder name different gathered trees"
-            )
+        if problem := gathered_tree_problem(copy, binder):
+            print(refusal_line(problem.role, "(the copy)", problem.message))
             found += 1
     asked = _asks_the_human(queries_in_copies([copy]), human)
+    asked += _asks_the_human(corrections_to_matter([copy], human), ())
     print(
         f"{path}: {found} thing(s) the fold would send back, {asked} question(s)"
         " for the human"
