@@ -158,10 +158,10 @@ def test_initial_context_refusal_precedes_address_work(
         pytest.fail("address-dependent work preceded context admission")
 
     for name in (
-        "copy_problems",
+        "admitted_copy_problems",
         "required_places",
-        "coverage_problems",
-        "received_problems",
+        "admitted_coverage_problems",
+        "admitted_received_problems",
         "bases_and_anchors",
         "held_at",
         "places_of",
@@ -238,7 +238,7 @@ def test_initial_context_refuses_installed_changes_with_unchanged_source(
     def forbidden(*args, **kwargs):
         pytest.fail("changed installed metadata reached source verification")
 
-    monkeypatch.setattr("comment_review.flows.bus.copy_problems", forbidden)
+    monkeypatch.setattr("comment_review.flows.bus.admitted_copy_problems", forbidden)
     monkeypatch.setattr("comment_review.flows.bus.required_places", forbidden)
     out, result = handle(CopiesReturned("4c", copies, binder, tmp_path))
     assert result is None
@@ -293,7 +293,9 @@ def test_initial_context_compares_saved_settings_before_fold(
         def forbidden(*args, **kwargs):
             pytest.fail("contradictory settings reached source verification")
 
-        monkeypatch.setattr("comment_review.flows.bus.copy_problems", forbidden)
+        monkeypatch.setattr(
+            "comment_review.flows.bus.admitted_copy_problems", forbidden
+        )
     out, result = handle(CopiesReturned("4c", copies, binder, tmp_path))
     if matching:
         assert result is not None, _refusals(out)
@@ -508,6 +510,27 @@ TWO_ROLES = {
         "m.py@b2": a_clean("m.py@b2"),
     },
 }
+
+
+def test_collate_admits_each_input_context_once(tmp_path, monkeypatch):
+    from collections import Counter
+
+    from comment_review.flows import reading_context
+
+    message = _message(tmp_path, TWO_ROLES)
+    admitted = Counter()
+    read_contexts = reading_context._reading_contexts
+
+    def count(sheets, location):
+        admitted[location] += 1
+        return read_contexts(sheets, location)
+
+    monkeypatch.setattr(reading_context, "_reading_contexts", count)
+    out, result = handle(message)
+    assert result is not None, out
+    expected = {"stage binder": 1}
+    expected.update({f"edit_copy: {copy.role}": 1 for copy in message.copies})
+    assert admitted == expected
 
 
 def test_a_committed_fold_says_what_it_settled_and_what_it_carries(tmp_path):

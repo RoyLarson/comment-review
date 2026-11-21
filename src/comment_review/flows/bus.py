@@ -68,15 +68,13 @@ from comment_review.flows.mark_errors import mark_errors
 from comment_review.flows.on_the_page import PageCache, held_at
 from comment_review.flows.places import bases_and_anchors, chief_copy_of, places_of
 from comment_review.flows.reading_context import (
-    binder_reading_contexts,
-    copy_reading_contexts,
     proof_reading_problems,
 )
 from comment_review.flows.verify import (
-    context_problems,
-    copy_problems,
-    coverage_problems,
-    received_problems,
+    admit_collate_contexts,
+    admitted_copy_problems,
+    admitted_coverage_problems,
+    admitted_received_problems,
     required_places,
     stage_problems,
 )
@@ -204,41 +202,7 @@ def _on_copies(message: CopiesReturned) -> tuple[list, Result | None]:
     the paragraph already there rather than first at the write end.
     """
     binder, root, copies = message.binder, message.root, message.copies
-    roles = sorted({copy.role for copy in copies}) or [""]
-    _, why = binder_reading_contexts(binder, "stage binder")
-    problems = [Problem(role, "", reason) for role in roles for reason in why]
-    received = message.binders
-    if received is not None:
-        for index, one in enumerate(received):
-            _, why = binder_reading_contexts(one, "received binder")
-            role = copies[index].role if index < len(copies) else ""
-            problems.extend(Problem(role, "", reason) for reason in why)
-        if len(received) != len(copies):
-            problems.append(Problem("", "", "each edit copy needs one received binder"))
-    for index, copy in enumerate(copies):
-        assigned = (
-            received[index]
-            if received is not None and index < len(received)
-            else binder
-        )
-        problems.extend(context_problems(copy, assigned, binder))
-    contexts, _ = binder_reading_contexts(binder, "stage binder")
-    sheet_shas: dict[str, str] = {page.path: page.sha for page in binder.pages}
-    for copy in copies:
-        returned_contexts, why = copy_reading_contexts(copy)
-        problems.extend(Problem(copy.role, "", reason) for reason in why)
-        for path, context in returned_contexts.items():
-            if path in contexts and contexts[path] != context:
-                problems.append(
-                    Problem(copy.role, path, "conflicting reading contexts; regather")
-                )
-            contexts[path] = context
-        for sheet in copy.sheets:
-            if sheet.path in sheet_shas and sheet_shas[sheet.path] != sheet.sha:
-                problems.append(
-                    Problem(copy.role, sheet.path, "conflicting sheet shas; regather")
-                )
-            sheet_shas[sheet.path] = sheet.sha
+    contexts, problems = admit_collate_contexts(binder, copies, message.binders)
     if problems:
         return _rolled_back(problems, [])
     paths = [page.path for page in binder.pages]
@@ -250,7 +214,7 @@ def _on_copies(message: CopiesReturned) -> tuple[list, Result | None]:
     page_cache: PageCache = {}
     problems = []
     for copy in copies:
-        problems += copy_problems(
+        problems += admitted_copy_problems(
             copy, paths, root, cache, page_cache, contexts=contexts
         )
     required = [required_places(binder, message.topology)] * len(copies)
@@ -268,10 +232,12 @@ def _on_copies(message: CopiesReturned) -> tuple[list, Result | None]:
         for one in mark_errors(copies, required)
     ]
     if message.binders is not None:
-        problems += received_problems(copies, message.binders, binder, message.topology)
+        problems += admitted_received_problems(
+            copies, message.binders, binder, message.topology
+        )
     else:
         for copy in copies:
-            problems += coverage_problems([copy], binder, message.topology)
+            problems += admitted_coverage_problems([copy], binder, message.topology)
     problems += _root_problems(copies)
     problems += _dealt_problems(copies, message.stage)
     problems += _admitted_problems(copies, message.topology)

@@ -31,8 +31,8 @@ For a COPY: the envelope (`EditCopy.deserialize`), missing required rulings
 against the received binder, every assigned place the role left unruled or
 wrote unreadably (`flows.mark_errors`), source
 verification and whether each address and each move's destination names a
-place its page carries (`flows.verify.copy_problems`, the call the fold makes
-for every copy), and what each mark's row finds against the page's text at
+place its page carries (`flows.verify.copy_problems`, which applies the same
+rules as collate), and what each mark's row finds against the page's text at
 the places it writes (`flows.fill.row_problems`, `composition_problems`). For a
 BATCH: `flows.answers.answers_of`, the call the turn makes for each role --
 every answer paired to the slot that went out at its address, and read against

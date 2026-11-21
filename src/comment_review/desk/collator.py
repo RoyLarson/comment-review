@@ -61,9 +61,9 @@ is `flows/revise.py::docket_of`, which takes an `EditCopy`, because a FLOW may
 reach both ends and neither end may reach the other. `decision-log.md Process:
 #76`.
 
-`flows.verify.copy_problems` calls `verify_report` per copy; `flows.bus`
-calls `copy_problems` over every copy it receives, and `commands/check.py`
-calls it over the one copy it is handed.
+`flows.verify.admitted_copy_problems` calls `verify_report` per copy.
+`flows.bus` admits all returned copies together. `commands/check.py`
+uses `flows.verify.copy_problems` to admit the one copy it is handed.
 """
 
 from collections.abc import Mapping

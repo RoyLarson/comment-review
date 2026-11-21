@@ -15,13 +15,10 @@ binder, no page and no filesystem, so whether an address names a place a real
 page carries, and whether a role carried back everything it was handed, are
 settled here instead.
 
-`flows.bus` runs `copy_problems` over every copy, then `mark_errors`, then
-`received_problems` when the message carries one received binder per copy and
-`coverage_problems` over each copy otherwise, then `stage_problems` when it
-carries a topology, all before it opens a fold; `commands/check.py` runs
-`copy_problems` over
-the one copy it is handed, so a role learns before it returns its copy what
-the fold would refuse. Every finding is a `desk.collator.Problem` -- reported,
+`flows.bus` runs `admit_collate_contexts` once, then verifies each copy's
+sources, addresses, and coverage against the admitted inputs before folding.
+`commands/check.py` admits its own inputs and runs the same verification
+rules on the copy it is handed. Every finding is a `desk.collator.Problem` -- reported,
 never raised, so the findings stack and each can be sent back to the role
 that owes it.
 
@@ -101,11 +98,24 @@ def copy_problems(
     admitted, why = lookup_contexts(copy, contexts)
     if why:
         return [Problem(copy.role, "", reason) for reason in why]
+    return admitted_copy_problems(copy, paths, root, cache, pages, contexts=admitted)
+
+
+def admitted_copy_problems(
+    copy: EditCopy,
+    paths: list[str],
+    root: Path,
+    cache: Cache,
+    pages: PageCache,
+    *,
+    contexts: Mapping[str, ReadingContext],
+) -> list[Problem]:
+    """Verify sources and addresses using the contexts already admitted."""
     return [
         *verify_report(
-            copy, texts_at(copy, paths, root, pages, contexts=admitted), root, cache
+            copy, _texts_at(copy, paths, root, pages, contexts), root, cache
         ),
-        *resolution_problems(copy, paths, root, pages, contexts=admitted),
+        *_resolution_problems(copy, paths, root, pages, contexts),
     ]
 
 
@@ -159,6 +169,17 @@ def resolution_problems(
     contexts, why = lookup_contexts(copy, contexts)
     if why:
         return [Problem(copy.role, "", reason) for reason in why]
+    return _resolution_problems(copy, paths, root, cache, contexts)
+
+
+def _resolution_problems(
+    copy: EditCopy,
+    paths: list[str],
+    root: Path,
+    cache: PageCache,
+    contexts: Mapping[str, ReadingContext],
+) -> list[Problem]:
+    """Resolve mark addresses against pages read in the admitted contexts."""
     out: list[Problem] = []
     for sheet in copy.sheets:
         for mark in sheet.marks:
@@ -188,7 +209,7 @@ def _unresolved(
     paths: list[str],
     root: Path,
     cache: PageCache,
-    contexts: dict[str, ReadingContext] | None = None,
+    contexts: Mapping[str, ReadingContext] | None = None,
 ) -> str:
     """Why `address` resolves against no page, or "" where it resolves.
 
@@ -252,10 +273,19 @@ def texts_at(
         tuple holding the page's text. Metadata admission failure returns an
         empty mapping; callers use copy_problems for diagnostic presentation.
     """
-    out: dict[str, tuple[str, ...]] = {}
     contexts, why = lookup_contexts(copy, contexts)
-    if why:
-        return out
+    return {} if why else _texts_at(copy, paths, root, pages, contexts)
+
+
+def _texts_at(
+    copy: EditCopy,
+    paths: list[str],
+    root: Path,
+    pages: PageCache,
+    contexts: Mapping[str, ReadingContext],
+) -> dict[str, tuple[str, ...]]:
+    """Read the marked text using the contexts already admitted."""
+    out: dict[str, tuple[str, ...]] = {}
     for sheet in copy.sheets:
         for mark in sheet.marks:
             if mark.address in out:
@@ -280,43 +310,81 @@ def context_problems(
     returned, why = copy_reading_contexts(copy)
     assigned, received_why = binder_reading_contexts(received, "received binder")
     why.extend(received_why)
+    staged = None
     if binder is not None:
         staged, stage_why = binder_reading_contexts(binder, "stage binder")
         why.extend(stage_why)
-        why.extend(
-            f"received binder: {problem}; regather"
-            for problem in reading_problems(
-                {
-                    Path(path): context
-                    for path, context in assigned.items()
-                    if path in staged
-                },
-                {Path(path): context for path, context in staged.items()},
-            )
-        )
-        why.extend(
-            f"returned copy against stage binder: {problem}; regather"
-            for problem in reading_problems(
-                {
-                    Path(path): context
-                    for path, context in returned.items()
-                    if path in staged
-                },
-                {Path(path): context for path, context in staged.items()},
-            )
-        )
-    why.extend(
-        f"returned copy: {problem}; regather"
+    why.extend(_context_mismatches(returned, assigned, staged))
+    return [Problem(copy.role, "", problem) for problem in why]
+
+
+def _context_mismatches(
+    returned: dict[str, ReadingContext],
+    assigned: dict[str, ReadingContext],
+    staged: dict[str, ReadingContext] | None,
+) -> list[str]:
+    """Compare saved contexts only on paths the reference also holds."""
+    comparisons = [("returned copy", returned, assigned)]
+    if staged is not None:
+        comparisons = [
+            ("received binder", assigned, staged),
+            ("returned copy against stage binder", returned, staged),
+            *comparisons,
+        ]
+    return [
+        f"{label}: {problem}; regather"
+        for label, saved, reference in comparisons
         for problem in reading_problems(
             {
                 Path(path): context
-                for path, context in returned.items()
-                if path in assigned
+                for path, context in saved.items()
+                if path in reference
             },
-            {Path(path): context for path, context in assigned.items()},
+            {Path(path): context for path, context in reference.items()},
         )
-    )
-    return [Problem(copy.role, "", problem) for problem in why]
+    ]
+
+
+def admit_collate_contexts(
+    binder: Binder, copies: list[EditCopy], received: tuple[Binder, ...] | None
+) -> tuple[dict[str, ReadingContext], list[Problem]]:
+    """Admit the input metadata once before collate resolves any address."""
+    staged, why = binder_reading_contexts(binder, "stage binder")
+    roles = sorted({copy.role for copy in copies}) or [""]
+    problems = [Problem(role, "", reason) for role in roles for reason in why]
+    assigned_contexts = []
+    if received is not None:
+        for index, one in enumerate(received):
+            assigned, why = binder_reading_contexts(one, "received binder")
+            assigned_contexts.append(assigned)
+            role = copies[index].role if index < len(copies) else ""
+            problems.extend(Problem(role, "", reason) for reason in why)
+        if len(received) != len(copies):
+            problems.append(Problem("", "", "each edit copy needs one received binder"))
+
+    contexts = dict(staged)
+    sheet_shas = {page.path: page.sha for page in binder.pages}
+    for index, copy in enumerate(copies):
+        returned, why = copy_reading_contexts(copy)
+        assigned = (
+            assigned_contexts[index] if index < len(assigned_contexts) else staged
+        )
+        reference = staged if assigned is not staged else None
+        why.extend(_context_mismatches(returned, assigned, reference))
+        problems.extend(Problem(copy.role, "", reason) for reason in why)
+        for path, context in returned.items():
+            if path in contexts and contexts[path] != context:
+                problems.append(
+                    Problem(copy.role, path, "conflicting reading contexts; regather")
+                )
+            contexts[path] = context
+        for sheet in copy.sheets:
+            if sheet.path in sheet_shas and sheet_shas[sheet.path] != sheet.sha:
+                problems.append(
+                    Problem(copy.role, sheet.path, "conflicting sheet shas; regather")
+                )
+            sheet_shas[sheet.path] = sheet.sha
+    return contexts, problems
 
 
 def _binder_context_problems(
@@ -346,6 +414,16 @@ def received_problems(
     ]
     if contexts:
         return contexts
+    return admitted_received_problems(copies, binders, binder, stage)
+
+
+def admitted_received_problems(
+    copies: list[EditCopy],
+    binders: tuple[Binder, ...],
+    binder: Binder,
+    stage: Stage | None = None,
+) -> list[Problem]:
+    """Check assignments and coverage after the paired inputs are admitted."""
     known = required_places(binder, stage)
     paths = {page.path for page in binder.pages}
     by_role: dict[str, set[str]] = {}
@@ -377,7 +455,7 @@ def received_problems(
             )
         covered.update(assigned)
         covered_pages.update(received_paths)
-        out.extend(coverage_problems([copy], received))
+        out.extend(admitted_coverage_problems([copy], received))
     for role, covered in by_role.items():
         missing = sorted(known - covered)
         missing_pages = sorted(paths - pages_by_role[role])
@@ -445,6 +523,13 @@ def coverage_problems(
     ]
     if contexts:
         return contexts
+    return admitted_coverage_problems(edit_copies, binder, stage)
+
+
+def admitted_coverage_problems(
+    edit_copies: list[EditCopy], binder: Binder, stage: Stage | None = None
+) -> list[Problem]:
+    """Check addressed coverage after the copy and binder are admitted."""
     # ! THE PLACES A ROLE WAS HANDED, not every address the binder carries --
     # `binder.addresses.handed` is the one definition, and the seed reads it too.
     # And narrowed by the same `deals` the seed used, so the two cannot

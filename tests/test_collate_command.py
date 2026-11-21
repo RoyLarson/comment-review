@@ -79,7 +79,7 @@ def test_loaded_initial_context_refusal_preserves_files(
     def forbidden(*args, **kwargs):
         pytest.fail("loaded stale context reached address-dependent work")
 
-    monkeypatch.setattr("comment_review.flows.bus.copy_problems", forbidden)
+    monkeypatch.setattr("comment_review.flows.bus.admitted_copy_problems", forbidden)
     monkeypatch.setattr("comment_review.flows.bus.required_places", forbidden)
     code = command.main()
     printed = capsys.readouterr()

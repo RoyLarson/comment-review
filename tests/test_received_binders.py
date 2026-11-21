@@ -1,4 +1,5 @@
 import json
+from collections import Counter
 from dataclasses import replace
 from pathlib import Path
 
@@ -409,6 +410,28 @@ def test_collation_checks_each_copy_against_its_received_binder(tmp_path, with_b
     )
     assert result is None
     assert any(isinstance(e, events.Refused) and "m.py@b1" in str(e) for e in out)
+
+
+def test_shards_admit_each_input_context_once(tmp_path, monkeypatch):
+    binder, received, wires, stage = _shards(tmp_path)
+    admitted = Counter()
+    read_contexts = reading_context._reading_contexts
+
+    def count(sheets, location):
+        admitted[location, id(sheets)] += 1
+        return read_contexts(sheets, location)
+
+    monkeypatch.setattr(reading_context, "_reading_contexts", count)
+    copies = [returned(wire) for wire in wires]
+    out, result = handle(
+        CopiesReturned(stage.name, copies, binder, binder.root, stage, binders=received)
+    )
+    assert result is not None, out
+    assert admitted == {
+        ("stage binder", id(binder.pages)): 1,
+        **{("received binder", id(one.pages)): 1 for one in received},
+        **{(f"edit_copy: {copy.role}", id(copy.sheets)): 1 for copy in copies},
+    }
 
 
 def test_complete_shards_commit_without_changing_binders(tmp_path):
