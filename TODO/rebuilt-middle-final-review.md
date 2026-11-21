@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 44 of 56 tasks closed
+Progress: 46 of 56 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-09-18 (final whole-branch review of feat/the-middle-rebuilt, 2026-09-18)
@@ -81,10 +81,12 @@ The rebuilt middle's final review.
       chief_mark out of the gate-exempt table module or narrow the exemption;
       ninety lines of non-row logic (A7)
         > 2026-09-30 Criteria: docs/reviews/2026-09-30-r6-r7-r8.md, item 4
-- [ ] T23 | Define stands once; it means nothing proposed, a lone proposal
-      nobody is owed, and closed by the chief (B5)
-- [ ] T24 | Decide whether a reader that answered clean becomes a side and is
-      then asked an escalation (B6)
+- [x] T23 | Kept the settled state and defined its meaning at State.STANDS. | 61faae9e1b4e4a934dad63ecf4ac3219a1521cf2 | Define
+      stands once; it means nothing proposed, a lone proposal nobody is owed,
+      and closed by the chief (B5)
+- [x] T24 | Kept composition acceptance as a side. Regression verifies accepting readers join escalation and deferring readers do not. | 61faae9e1b4e4a934dad63ecf4ac3219a1521cf2 | Decide
+      whether a reader that answered clean becomes a side and is then asked an
+      escalation (B6)
 - [-] T25 | Human-held state removed under human-questions T8 | 340997703708b016c5505bbb1c31c4eb067bec76 | Make
       answers_pass keep the sides on unsettlable as marks_pass does (B7)
         > 2026-09-30 Process 197 conflicts; see docs/reviews/2026-09-30-r2-r3.md
