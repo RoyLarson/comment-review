@@ -46,3 +46,4 @@
 | [retire-chief-copy](retire-chief-copy.md) | closed | 2/2 | 2/2 |
 | [shared-refusal-formatter](shared-refusal-formatter.md) | closed | 1/1 | 1/1 |
 | [shared-rollback-report](shared-rollback-report.md) | closed | 1/1 | 1/1 |
+| [stands-and-composition](stands-and-composition.md) | open | 0/2 | 0/2 |
