@@ -60,6 +60,7 @@ The rebuilt middle's final review.
       hands it the binder's text (D5)
 - [ ] T16 | Move the ten rules held in flows and commands into desk, and hold
       check's pre-fold list equal to the bus's (D6)
+        > 2026-11-21 Scope: pending matter approval and copy-to-binder tree identity.
 - [x] T17 | Unused field, constant and declaration test removed; schema aligned; full suite 2170 passed | 72e6eac3 | Delete
       Row.answers or give it a reader; three docs call it a rule and only a test
       reads it (E1)
