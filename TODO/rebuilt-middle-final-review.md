@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 34 of 56 tasks closed
+Progress: 36 of 56 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-09-18 (final whole-branch review of feat/the-middle-rebuilt, 2026-09-18)
@@ -96,8 +96,9 @@ The rebuilt middle's final review.
         > 2026-11-21 Roy: CLI reporting does not justify adding fields to the event.
 - [ ] T29 | Make one renderer for a refusal line; it is spelled at seven sites
       (C5)
-- [ ] T30 | Decide what the chief's copy is on a turn; it is built every turn
-      and never saved (C6)
+- [x] T30 | Chief copy generation and output retired. The CLI and presentation use the proof. | 4d43e9fef2460f704c2084d2a189a100eef7b115 | Decide
+      what the chief's copy is on a turn; it is built every turn and never saved
+      (C6)
         > 2026-09-30 Purpose ruled 184; implementation: collate-flow-defects T17
 - [x] T31 | places and moves typed, read once, every bad entry named; tests failed first | cfec876a | Make
       MasterProof.places typed, and stop encoding a role into reasons, notes and
@@ -170,5 +171,6 @@ The rebuilt middle's final review.
       times
 - [x] T55 | The initial fold uses the shared commit path and retains destination metadata | 058acefa | Build
       the first proof through _commit instead of a second copy in _on_copies
-- [ ] T56 | Decide whether Fold._unwritable refuses a place through the chief
-      copy or the docket
+- [x] T56 | The fold commits settled places directly to the proof. Recast regression and smoke passed. | 4d43e9fef2460f704c2084d2a189a100eef7b115 | Decide
+      whether Fold._unwritable refuses a place through the chief copy or the
+      docket

@@ -41,4 +41,4 @@
 | [2026-11-01-python-and-rust-only](2026-11-01-python-and-rust-only.md) | closed | 4/4 | 9/9 |
 | [2026-11-02-freeform-copy-is-the-finding](2026-11-02-freeform-copy-is-the-finding.md) | closed | 3/3 | 0/0 |
 | [2026-11-04-look-up-address-reads-the-page](2026-11-04-look-up-address-reads-the-page.md) | closed | 22/22 | 11/11 |
-| [retire-chief-copy](retire-chief-copy.md) | open | 0/2 | 0/1 |
+| [retire-chief-copy](retire-chief-copy.md) | closed | 2/2 | 2/2 |
