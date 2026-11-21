@@ -576,7 +576,7 @@ def _on_dispositions(message: DispositionsWritten) -> tuple[list, Result | None]
                 )
             )
             continue
-        if place is None or place.state not in DISPOSITIONS[disposition.name].closes:
+        if place is None or not DISPOSITIONS[disposition.name].can_close(place.state):
             why = "not carried forward"
             if place is not None and place.state in SETTLED:
                 why += " -- a place the roles settled takes only a recast"

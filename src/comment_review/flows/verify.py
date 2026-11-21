@@ -444,17 +444,16 @@ def admitted_received_problems(
     for copy, received in zip(copies, binders, strict=True):
         assigned = required_places(received)
         received_paths = {page.path for page in received.pages}
-        if (
-            received.read_from != binder.read_from
-            or copy.read_from != received.read_from
-        ):
+        if received.read_from != binder.read_from:
             out.append(
                 Problem(
                     copy.role,
                     "",
-                    "received binder and copy name different gathered trees",
+                    "received binder and stage binder name different gathered trees",
                 )
             )
+        elif problem := gathered_tree_problem(copy, received):
+            out.append(problem)
         if assigned - known or received_paths - paths:
             out.append(
                 Problem(copy.role, "", "received binder exceeds the stage assignment")

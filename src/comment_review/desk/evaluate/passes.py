@@ -165,12 +165,9 @@ def sides_of(place: Place) -> tuple[dict[str, str | None], tuple[str, ...]]:
         nothing there; a role whose marks would not compose is left out and
         named in the reasons instead.
     """
-    by_role: dict[str, list[Filed]] = {}
-    for one in place.filed:
-        by_role.setdefault(one.role, []).append(one)
     sides: dict[str, str | None] = {}
     reasons: list[str] = []
-    for role, filed in by_role.items():
+    for role, filed in _by_role(place).items():
         here = proposing(filed)
         if not here:
             continue
@@ -419,13 +416,13 @@ def dispositions_pass(place: Place) -> Place:
         return place
     row = DISPOSITIONS[place.disposition.name]
     side = place.disposition.taken_side
-    if place.state not in row.closes:
+    if not row.can_close(place.state):
         return _set(
             place,
             State.REFUSED,
             reasons=(
                 *place.reasons,
-                f"copy-chief: {place.disposition.name} cannot close a place "
+                f"{CHIEF}: {place.disposition.name} cannot close a place "
                 f"that is {place.state}",
             ),
         )
@@ -434,7 +431,7 @@ def dispositions_pass(place: Place) -> Place:
             place,
             State.REFUSED,
             reasons=(
-                f"copy-chief: {place.disposition.name} takes a role's side or the"
+                f"{CHIEF}: {place.disposition.name} takes a role's side or the"
                 f" original; the chief's own prose is a recast",
             ),
         )
@@ -442,7 +439,7 @@ def dispositions_pass(place: Place) -> Place:
         return _set(
             place,
             State.REFUSED,
-            reasons=(f"copy-chief: {side!r} proposed nothing here",),
+            reasons=(f"{CHIEF}: {side!r} proposed nothing here",),
         )
     text = row.sets(place.disposition, place.base, place.sides)
     return _set(place, State.STANDS, text=text)

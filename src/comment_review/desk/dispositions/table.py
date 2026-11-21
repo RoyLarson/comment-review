@@ -31,6 +31,10 @@ class DispositionRow:
     closes: frozenset[State]
     sets: Sets
 
+    def can_close(self, state: State | None) -> bool:
+        """Whether this ruling can close a place in the given state."""
+        return state in self.closes
+
 
 DISPOSITIONS: dict[str, DispositionRow] = {
     "taken_in": DispositionRow(CARRIED, _a_sides_text),
