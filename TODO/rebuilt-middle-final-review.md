@@ -92,6 +92,7 @@ The rebuilt middle's final review.
 - [ ] T28 | Carry the counts and the turn on an event; two commands re-derive
       them from serialized places (C4)
         > 2026-11-10 7532381b: turn_of at bus.py:509; turn.py, disposition.py redo it
+        > 2026-11-21 Roy: CLI reporting does not justify adding fields to the event.
 - [ ] T29 | Make one renderer for a refusal line; it is spelled at seven sites
       (C5)
 - [ ] T30 | Decide what the chief's copy is on a turn; it is built every turn
