@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 40 of 56 tasks closed
+Progress: 41 of 56 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-09-18 (final whole-branch review of feat/the-middle-rebuilt, 2026-09-18)
@@ -124,8 +124,9 @@ The rebuilt middle's final review.
 - [x] T39 | check --contract names raw_text and the rows that write it | 2a5e2730cee1049f22ecf0bc8f2e243c204afb98 | Publish
       raw_text in the mark's contract for add and move; check --contract omits
       it (G5)
-- [ ] T40 | Measure a place the binder does not hold: an add or move there
-      passes collate and is first refused at proof (H2)
+- [-] T40 | Collate already refuses adds and moves that lose prose on ungathered pages. Valid arrivals retain destination metadata in the proof. Covered by bus tests. | 83dc84acd07de94f18d03bf41c9c1a1c7b2e0868 | Measure
+      a place the binder does not hold: an add or move there passes collate and
+      is first refused at proof (H2)
 - [x] T41 | the smoke's main line runs a second turn; store.py plants a contested move its mover withdraws, the sentence landing once | baed3d73 | Add
       a smoke plant of a move answered by its mover across two turns; B1, B2 and
       B4 sat outside the smoke (H3)
