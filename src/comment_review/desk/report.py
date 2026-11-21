@@ -24,6 +24,11 @@ class Refused(NamedTuple):
     reasons: tuple[str, ...]
 
 
+def refusal_line(role: str, where: str, reason: str) -> str:
+    """Render one refusal using the location label supplied by its caller."""
+    return f"{role} {where}: {reason}"
+
+
 class AsksTheHuman(NamedTuple):
     """One question a role put to the human, found before the fold ran.
 

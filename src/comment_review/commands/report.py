@@ -82,7 +82,9 @@ def lines(event: object) -> list[str]:
         ]
     if isinstance(event, events.Refused):
         where = event.address or "(the copy)"
-        return [f"{event.role} {where}: {reason}" for reason in event.reasons]
+        return [
+            events.refusal_line(event.role, where, reason) for reason in event.reasons
+        ]
     if isinstance(event, events.CarriedForward):
         roles = ", ".join(event.roles)
         return [f"{event.state} {event.address}: {roles} ({event.question})"]

@@ -72,7 +72,7 @@ from comment_review.commands.report import (
 from comment_review.desk.collator import Cache, Problem
 from comment_review.desk.marks.table import INSTRUCTIONS
 from comment_review.desk.proof.edit_copy import EditCopy
-from comment_review.desk.report import AsksTheHuman
+from comment_review.desk.report import AsksTheHuman, refusal_line
 from comment_review.desk.stages import not_admitted
 from comment_review.flows.answers import answers_of, contracts, slot_key, slots_of
 from comment_review.flows.fill import composition_problems, row_problems
@@ -254,7 +254,7 @@ def _check_copy(
     required = [required_places(binder)]
     for one in mark_errors([copy], required):
         for reason in one.reasons:
-            print(f"{one.role} {one.where}: {reason}")
+            print(refusal_line(one.role, one.where, reason))
             found += 1
     # What the stage admits, asked of a copy written by hand -- the same
     # `desk.stages.not_admitted` `flows.fill` asks as a ruling is placed
@@ -263,7 +263,7 @@ def _check_copy(
         for one in sheet.marks:
             why = not_admitted(copy.stage, copy.admits, str(one.instruction))
             if why:
-                print(f"{copy.role} {one.address}: {why}")
+                print(refusal_line(copy.role, one.address, why))
                 found += 1
     if binder is not None:
         root = Path(repo) if repo else binder.root
@@ -275,9 +275,8 @@ def _check_copy(
             *_row_problems(copy, paths, root, pages, contexts=contexts),
             *coverage_problems([copy], binder),
         ):
-            print(
-                f"{problem.role} {problem.address or '(the copy)'}: {problem.message}"
-            )
+            where = problem.address or "(the copy)"
+            print(refusal_line(problem.role, where, problem.message))
             found += 1
         if copy.read_from != binder.read_from:
             print(
@@ -354,7 +353,8 @@ def _check_answers(
         role, sent, slots_of(loaded, role), _never_sent, _root_of(repo, sent), cache
     )
     for one in problems:
-        print(f"{one.role} {one.address or '(the batch)'}: {one.message}")
+        where = one.address or "(the batch)"
+        print(refusal_line(one.role, where, one.message))
     asked = _asks_the_human(queries_in_answers({role: answers}), human)
     print(
         f"{path}: {len(answers)} answered, {len(problems)} the fold would refuse,"
