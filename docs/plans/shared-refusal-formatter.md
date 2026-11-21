@@ -1,9 +1,9 @@
 # Share refusal line formatting
 
 ```
-Status:   open
-Progress: 0 of 1 TODO tasks closed
-Plan-tasks: 0 of 1 plan tasks closed
+Status:   closed
+Progress: 1 of 1 TODO tasks closed
+Plan-tasks: 1 of 1 plan tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-11-21 (rebuilt-middle-final-review.md)
@@ -18,9 +18,10 @@ wording and context labels
 
 ### A - [rebuilt-middle-final-review](../../TODO/rebuilt-middle-final-review.md)
 
-- [ ] T29 | Make one renderer for a refusal line; it is spelled at seven sites
+- [x] T29 | Make one renderer for a refusal line; it is spelled at seven sites
       (C5)
 
 ## Plan Tasks
 
-- [ ] P1 | Move refusal line formatting into the shared report module
+- [x] P1 | The CLI reporter, check and proof transcription use one formatter. | cd7e51498f42f8aeafd4f27448883de92963d653 | Move
+      refusal line formatting into the shared report module

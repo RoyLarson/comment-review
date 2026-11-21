@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 38 of 56 tasks closed
+Progress: 39 of 56 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-09-18 (final whole-branch review of feat/the-middle-rebuilt, 2026-09-18)
@@ -96,8 +96,8 @@ The rebuilt middle's final review.
       serialized places (C4)
         > 2026-11-10 7532381b: turn_of at bus.py:509; turn.py, disposition.py redo it
         > 2026-11-21 Roy: CLI reporting does not justify adding fields to the event.
-- [ ] T29 | Make one renderer for a refusal line; it is spelled at seven sites
-      (C5)
+- [x] T29 | Seven refusal paths share one formatter with existing locations and wording. 238 focused tests passed. | cd7e51498f42f8aeafd4f27448883de92963d653 | Make
+      one renderer for a refusal line; it is spelled at seven sites (C5)
 - [x] T30 | Chief copy generation and output retired. The CLI and presentation use the proof. | 4d43e9fef2460f704c2084d2a189a100eef7b115 | Decide
       what the chief's copy is on a turn; it is built every turn and never saved
       (C6)
