@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 31 of 56 tasks closed
+Progress: 32 of 56 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-09-18 (final whole-branch review of feat/the-middle-rebuilt, 2026-09-18)
@@ -89,8 +89,9 @@ The rebuilt middle's final review.
         > 2026-09-26 Process 195: apart on words, once on placement
 - [ ] T27 | Give rollback one producer; the bus builds two without a Fold and
       commands/collate.py a third (C3)
-- [ ] T28 | Carry the counts and the turn on an event; two commands re-derive
-      them from serialized places (C4)
+- [-] T28 | SUPERSEDED by Roy decision: turn and counts are CLI reporting details | 216653e8cb0425e279b80cdc99b6384eaae4b7e1 | Carry
+      the counts and the turn on an event; two commands re-derive them from
+      serialized places (C4)
         > 2026-11-10 7532381b: turn_of at bus.py:509; turn.py, disposition.py redo it
         > 2026-11-21 Roy: CLI reporting does not justify adding fields to the event.
 - [ ] T29 | Make one renderer for a refusal line; it is spelled at seven sites
