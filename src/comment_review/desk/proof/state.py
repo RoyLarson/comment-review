@@ -10,6 +10,9 @@ class State(StrEnum):
     def _generate_next_value_(name, start, count, last_values):
         return name.lower()
 
+    #: Settled on the base when nobody proposed text, on a lone proposal
+    #: when nobody is owed a say, or on the outcome of a chief ruling.
+    #: The proof's text and disposition record how it settled.
     STANDS = auto()
     AGREED = auto()
     COMPOSED = auto()
@@ -24,7 +27,6 @@ class State(StrEnum):
 #: The states a fold carries forward for a turn or the chief.
 CARRIED = frozenset({State.COMPOSED, State.CONTESTED})
 
-#: The states a place has settled in. One side's proposal that every reader
-#: accepted `stands`; several roles' identical proposals are `agreed`, and a
-#: place the roles left alone stands on the paragraph already there.
+#: The states a place has settled in. Multiple sides holding the same text
+#: with nobody left to ask are `agreed`.
 SETTLED = frozenset({State.STANDS, State.AGREED})

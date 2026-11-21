@@ -102,7 +102,7 @@ its own, over its two places -- `desk/proof/move.py`, and the passes that decide
 
 | state | when a place is in it | what becomes of it |
 | --- | --- | --- |
-| `stands` | no role proposed a text here; or one role did and no role that read the place is still owed a say; or the chief ruled it | settled, on that text, on the base, or on the text the ruling sets |
+| `stands` | see [the definition on `State.STANDS`](../src/comment_review/desk/proof/state.py) | settled |
 | `agreed` | two or more roles' proposals come to one text and every role owed a say has accepted it | settled on that text |
 | `composed` | proposals on different sentences compose, or one text is not yet accepted by every role owed a say | carried forward, asking a `composition` |
 | `contested` | proposals that will not compose against the base | carried forward, asking an `escalation` |
@@ -236,6 +236,11 @@ code's name is `escalation`. The third, `placement`, is asked of a move (`Proces
     clean       accepts    the side becomes the text that was put to it
     query       defers     removes the role's side; a `human-review-necessary`
                            query is a human question instead, above
+
+A filed `clean` proposes no text. A `clean` answer to a composition accepts the specific
+text in the slot and makes it the reader's side. If another answer introduces a conflicting
+rewrite, that reader is asked in the escalation. A reader who has no position can defer with
+an `outside-my-role` or `unable-to-determine` query (`Process: #314`).
 
 **A move is answered on the move, once, for the pair** -- `decision-log.md Process: #195`.
 The placement slot names both addresses and every mover's snippet and arrival, and its answer is

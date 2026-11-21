@@ -406,6 +406,29 @@ class TestATextEveryReaderMustHaveSeen:
         assert got.state is State.AGREED and got.text == "# one\n# 2\n# three\n"
         assert got.owed == ()
 
+    def test_composition_acceptance_joins_escalation_but_deferral_does_not(self):
+        place = marks_pass(self._three_cleans())
+        assert set(place.sides) == {"a"}
+        assert place.owed == ("b", "c", "d")
+        accepted = place.text
+        rewrite = "# one\n# dos\n# three\n"
+        place.answers[1] = {
+            "b": _answer("clean", question=Question.COMPOSITION),
+            "c": _answer("correct", change=rewrite, question=Question.COMPOSITION),
+            "d": _answer(
+                "query",
+                claim={"shape": str(Shape.OUTSIDE_MY_ROLE)},
+                question=Question.COMPOSITION,
+            ),
+        }
+
+        got = answers_pass(place, 1)
+
+        assert got.state is State.CONTESTED
+        assert got.question is Question.ESCALATION
+        assert got.sides == {"a": accepted, "b": accepted, "c": rewrite}
+        assert got.owed == ("a", "b", "c")
+
     def test_a_role_that_filed_only_a_query_is_not_waited_on(self):
         place = _place(
             Filed("a", _a_correct(), Touch.OWN),

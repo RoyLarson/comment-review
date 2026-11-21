@@ -6744,3 +6744,12 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   The chief's ruling and reason stay on the place's disposition, and the
   reviewer's reason stays on the filed mark. This supersedes the artifact
   and its reason-copying rule in #307.
+
+- **#314.** **Keep `stands` and treat composition acceptance as a side** (Roy,
+  2026-11-21, on `rebuilt-middle-final-review` T23 and T24).
+
+  Keep one `stands` state. The proof's decided text and disposition preserve
+  the outcome without adding states. A clean reading of the original
+  paragraph differs from accepting the modified text in a composition.
+  Acceptance gives the reader a side and a say if that text is contested.
+  A reader who has no position can defer with a query for the others to resolve.
