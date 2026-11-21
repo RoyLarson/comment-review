@@ -8,6 +8,7 @@
 | [0.2.4-a-turn-shares-its-slots](0.2.4-a-turn-shares-its-slots.md) | closed | 1/1 | 1/1 |
 | [0.2.4-an-f-correction-is-raised-alone](0.2.4-an-f-correction-is-raised-alone.md) | closed | 3/3 | 5/5 |
 | [0.2.4-block-is-two-senses](0.2.4-block-is-two-senses.md) | closed | 7/7 | 7/7 |
+| [0.2.4-collate-admits-contexts-once](0.2.4-collate-admits-contexts-once.md) | open | 0/1 | 0/1 |
 | [0.2.4-comment-unwrap-rewrap](0.2.4-comment-unwrap-rewrap.md) | closed | 17/17 | 38/38 |
 | [0.2.4-plugins-is-a-release-artifact](0.2.4-plugins-is-a-release-artifact.md) | closed | 6/6 | 7/7 |
 | [0.2.4-r2-human-questions-before-the-fold](0.2.4-r2-human-questions-before-the-fold.md) | closed | 29/29 | 32/32 |
