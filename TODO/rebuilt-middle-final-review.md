@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 32 of 56 tasks closed
+Progress: 33 of 56 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-09-18 (final whole-branch review of feat/the-middle-rebuilt, 2026-09-18)
@@ -165,8 +165,9 @@ The rebuilt middle's final review.
         > 2026-09-30 Criteria: docs/reviews/2026-09-30-r6-r7-r8.md, item 4
 - [x] T53 | Shared typed slots preserve batch entries and validate place and placement answers after proof reload | d1b80ef1 | Build
       a turn's slot once, as a typed Slot both _batch_of and _on_answers use
-- [ ] T54 | Run pre-fold admission once per collate; reading contexts are
-      checked four times
+- [x] T54 | One context admission per collate input; verified for ordinary copies and real shards | 82cee747 | Run
+      pre-fold admission once per collate; reading contexts are checked four
+      times
 - [ ] T55 | Build the first proof through _commit instead of a second copy in
       _on_copies
 - [ ] T56 | Decide whether Fold._unwritable refuses a place through the chief
