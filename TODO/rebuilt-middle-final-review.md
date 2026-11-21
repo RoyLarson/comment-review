@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 37 of 56 tasks closed
+Progress: 38 of 56 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-09-18 (final whole-branch review of feat/the-middle-rebuilt, 2026-09-18)
@@ -88,7 +88,8 @@ The rebuilt middle's final review.
       the design's 'never ruled apart'; Process 139 lets the chief rule a move's
       ends apart (B8)
         > 2026-09-26 Process 195: apart on words, once on placement
-- [ ] T27 | Give rollback one producer; the bus builds two without a Fold and
+- [x] T27 | The fold, bus and collate use one rollback producer. Reason counts and human-only exit verified. | 7326755ae0dc31e83d42cabad89df80cbfadd529 | Give
+      rollback one producer; the bus builds two without a Fold and
       commands/collate.py a third (C3)
 - [-] T28 | SUPERSEDED by Roy decision: turn and counts are CLI reporting details | 216653e8cb0425e279b80cdc99b6384eaae4b7e1 | Carry
       the counts and the turn on an event; two commands re-derive them from
