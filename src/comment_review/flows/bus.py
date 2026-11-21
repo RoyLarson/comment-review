@@ -30,6 +30,7 @@ answers file (`#198`) rides on the message, and each answer rides on the
 
 from collections.abc import Callable, Mapping, Sequence
 from copy import deepcopy
+from dataclasses import replace
 from pathlib import Path
 from typing import NamedTuple
 
@@ -206,7 +207,6 @@ def _on_copies(message: CopiesReturned) -> tuple[list, Result | None]:
     if problems:
         return _rolled_back(problems, [])
     paths = [page.path for page in binder.pages]
-    out: list = []
     # ! ONE CACHE OF EACH FOR THE WHOLE STAGE, not one per copy: the roles cite
     # the same evidence and mark the same pages, so a per-copy cache reads one
     # file once per citing role.
@@ -290,10 +290,6 @@ def _on_copies(message: CopiesReturned) -> tuple[list, Result | None]:
             ]
         )
     places = places_of(copies, bases, anchors)
-    fold = Fold(places, turn=0).run()
-    out += fold.events
-    if not fold.committed:
-        return out, None
     read_from = copies[0].read_from if copies else {}
     proof = MasterProof(
         stage=message.stage,
@@ -307,8 +303,6 @@ def _on_copies(message: CopiesReturned) -> tuple[list, Result | None]:
                 if snapshot.context is not None
             },
         },
-        places=tuple(fold.decided.values()),
-        moves=tuple(move.recorded() for move in fold.decided_moves.values()),
         page_shas={
             **{
                 page.path: page.sha
@@ -322,15 +316,7 @@ def _on_copies(message: CopiesReturned) -> tuple[list, Result | None]:
             },
         },
     )
-    chief = chief_copy_of(
-        fold.decided,
-        "copy-chief",
-        read_from,
-        _pages_of(copies),
-        proof.page_readings,
-        proof.page_shas,
-    )
-    return out, Result(proof, chief, _batch_or_none(fold, read_from))
+    return _commit(proof, places, {}, turn=0)
 
 
 def _root_problems(copies: list[EditCopy]) -> list[Problem]:
@@ -727,9 +713,8 @@ def _commit(
     """The fold over the places and moves as they now stand, and what a commit saves.
 
     Args:
-        proof: the proof these places were read from. Its stage, its
-            `read_from` and its copies are carried onto the next one; what
-            the fold decided replaces its places and its moves.
+        proof: the stage metadata prepared at collate, or the proof read by
+            a later message. The fold replaces its places and moves.
         places: the places, each carrying whatever this message wrote onto
             it. `Fold` evaluates every one of them from its own record.
         recorded: the moves as the proof recorded them, each carrying the
@@ -745,14 +730,11 @@ def _commit(
     out += fold.events
     if not fold.committed:
         return out, None
-    next_proof = MasterProof(
-        stage=proof.stage,
-        read_from={**proof.read_from},
-        edit_copies=proof.edit_copies,
-        page_readings=dict(proof.page_readings),
+    next_proof = replace(
+        proof,
+        read_from=dict(proof.read_from),
         places=tuple(fold.decided.values()),
         moves=tuple(move.recorded() for move in fold.decided_moves.values()),
-        page_shas=dict(proof.page_shas),
     )
     chief = chief_copy_of(
         fold.decided,

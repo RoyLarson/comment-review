@@ -1796,18 +1796,31 @@ def test_the_chief_copy_keeps_an_arrival_on_an_ungathered_page(tmp_path):
     assert again == result.chief
 
 
-def test_extra_destination_records_the_page_it_read(tmp_path):
+def test_extra_destination_records_the_page_it_read(tmp_path, monkeypatch):
     """The proof keeps the sha, reading and base of the ungathered page the
     move lands in, as that page read when the collate ran."""
-    from comment_review.flows.page_for import page_of
+    from comment_review.flows import bus
 
+    commit = bus._commit
+    turns = []
+
+    def record(proof, places, recorded, turn):
+        assert not recorded
+        turns.append(turn)
+        return commit(proof, places, recorded, turn)
+
+    monkeypatch.setattr(bus, "_commit", record)
     message = _moved_into_n(tmp_path, "# seven\n# eight\n# two")
     page = page_of(message.root / "n.py", rel="n.py")
     assert isinstance(page, Page)
     out, result = handle(message)
     assert result is not None, _refusals(out)
+    assert turns == [0]
     assert result.proof.page_shas["n.py"] == page.sha
     assert result.proof.page_readings["n.py"] == page.reading
+    sheet = next(sheet for sheet in result.chief.sheets if sheet.path == "n.py")
+    assert sheet.sha == page.sha
+    assert sheet.reading == page.reading
     destination = next(p for p in result.proof.places if p.address == "n.py@b1")
     assert destination.base == next(
         p.raw_text for p in page.paragraphs if p.address == "n.py@b1"
