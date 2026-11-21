@@ -5,6 +5,7 @@
 | [0.2.4-a-mark-lands-as-written](0.2.4-a-mark-lands-as-written.md) | closed | 4/4 | 6/6 |
 | [0.2.4-a-move-is-a-placement-claim](0.2.4-a-move-is-a-placement-claim.md) | closed | 25/25 | 12/12 |
 | [0.2.4-a-move-owns-its-lifecycle](0.2.4-a-move-owns-its-lifecycle.md) | closed | 9/9 | 9/9 |
+| [0.2.4-a-turn-shares-its-slots](0.2.4-a-turn-shares-its-slots.md) | open | 0/1 | 0/1 |
 | [0.2.4-an-f-correction-is-raised-alone](0.2.4-an-f-correction-is-raised-alone.md) | closed | 3/3 | 5/5 |
 | [0.2.4-block-is-two-senses](0.2.4-block-is-two-senses.md) | closed | 7/7 | 7/7 |
 | [0.2.4-comment-unwrap-rewrap](0.2.4-comment-unwrap-rewrap.md) | closed | 17/17 | 38/38 |
