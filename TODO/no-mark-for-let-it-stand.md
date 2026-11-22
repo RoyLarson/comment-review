@@ -2,9 +2,9 @@
 
 ```
 Status:   decision-needed
-Progress: 15 of 22 tasks closed
+Progress: 16 of 22 tasks closed
 Owner:    agents
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-21 (Roy, 2026-08-21, on leading and matter both being categories
           publishing already had: 'this is twice now that we have realized we were
           categorically wrong about something that the publishing industry already knew
@@ -177,8 +177,9 @@ the five series; this is the verdict vocabulary. It wants 0.2.4 or its own branc
 - [ ] T18 | Rewrite CLAUDE.md:477-482's stet paragraph to the copy chief's stet
       that Process #87 re-ruled
         > 2026-11-22 Check: CLAUDE.md glosses stet as the chief's agreed case
-- [?] T19 | Decide whether the copy chief writes a stet, which
-      docs/vocabulary.md:438-441 defers to this file
+- [x] T19 | Ruled: taken_in is the chief's stet and no stet ruling is added; Process #332 | 423884a9b2e97856444d0685f48ee97b4b3163be | Decide
+      whether the copy chief writes a stet, which docs/vocabulary.md:438-441
+      defers to this file
         > 2026-11-22 Check: the ruling is recorded in docs/decision-log.md
         > 2026-11-22 Outcome: taken_in is the chief's stet; none added (Process #332)
 - [ ] T20 | Correct docs/vocabulary.md:438-441 and :479, which defer a
