@@ -109,8 +109,7 @@ uv run python scripts/render_page.py <paths...> [--show margin|prose|rows]
 
 ### The board
 
-Use installed `job-board`, not the vendored `scripts/todo_tool.py`, for board
-operations. Follow the global workflow and job-board procedure for board
+Use installed `job-board` for board operations. Follow the global workflow and job-board procedure for board
 writes, including Roy's express-approval requirement for hand edits.
 
 ### The suite

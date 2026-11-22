@@ -65,7 +65,7 @@ It does not own the gates that run in CI -- those are `systems`.
 ### `systems` -- whether it installs, and whether the gates bite
 
 `scripts/**` (the dev tools), the manifests, the release, `.gitignore`, `CHANGELOG.md`, and
-`docs/gates.md`. It owns `check_shipped_syntax.py`, `check_vocabulary.py`, `todo_tool.py`,
+`docs/gates.md`. It owns `check_shipped_syntax.py`, `check_vocabulary.py`,
 `fetch_corpora.py`, `dead_sweep.py` and the floor-interpreter rules.
 
 !! **A lane that trips a gate fixes its own code. It does not edit the gate to let the code
