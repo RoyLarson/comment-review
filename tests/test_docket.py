@@ -422,6 +422,23 @@ def test_an_EMPTY_role_is_OMITTED_from_the_wire_and_reads_back_as_empty():
     assert read(json.dumps(docket.serialize()))[1] == ""
 
 
+def test_a_null_role_reads_as_absent_not_the_word_None():
+    """A page carrying `"role": null` reads back as a page with no `role`.
+
+    The key is present and holds None, so a `.get` default never applies; a
+    `str()` of it would be the word "None", which reads as a role name.
+    """
+    wire = json.loads(a_docket([("m.py", "abc123", [("b1", "# new")])]))
+    absent, _ = read(json.dumps(wire))
+    wire["pages"][0]["role"] = None
+    got, why = read(json.dumps(wire))
+    assert why == ""
+    assert got is not None and absent is not None
+    assert got.schedules[0].role == ""
+    assert got == absent
+    assert set(_set_by(got).values()) == {""}
+
+
 def test_a_settled_move_DELETES_its_origin_and_writes_its_destination():
     """!! A `move` IS A DELETE AT ONE END AND AN ADD AT THE OTHER
     (`docs/the-mark.md`): *"a move = a delete at the origin + an add at the
