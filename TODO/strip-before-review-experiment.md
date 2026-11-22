@@ -38,3 +38,4 @@ Does stripping a file's prose produce better comments than editing them.
 - [?] T5 | Rule whether this becomes a step in the review flow. Verify: either a
       stage names it with the conditions it runs under, or this file records why
       it stays a one-off.
+        > 2026-11-22 Note: no ruling owed until T1-T4 produce a grade

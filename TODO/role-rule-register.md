@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 4 of 8 tasks closed
+Progress: 4 of 11 tasks closed
 Owner:    agents
 Requires-Roy: true
 Raised:   2026-08-18 (Roy, 2026-08-18: keep track of these and have a place to decide on
@@ -127,9 +127,11 @@ focus for them gets a lot easier. ! The dependency is discharged: `cue` emits fo
 - [?] T1 | T1 -- * RULE ON THE `block-context` ENTRY -- a constraint false by
       ARITHMETIC with no enforcing line. Verify: it is in the role file with its
       currency, or refused.
+        > 2026-11-22 Outcome: check a bound on its own terms (Process #356)
 - [?] T2 | T2 -- * RULE ON THE `module-context` ENTRY -- the VERDICT a module
       announcing more than one subject earns. Verify: the role file names it and
       the eval case passes.
+        > 2026-11-22 Outcome: raise the split as a code concern (Process #357)
 - [-] T3 | SUPERSEDED by #231 and #272: doc-kind-unresolved is retired | e0a31457 | T3
       -- * RULE ON THE every-role ENTRY -- what to do with a paragraph marked
       `doc-kind-unresolved`. Verify: it is in the role files or the brief,
@@ -145,6 +147,7 @@ focus for them gets a lot easier. ! The dependency is discharged: `cue` emits fo
 - [?] T6 | Rule on the sentence-framing entry for `module-context` with
       `function-context`
         > 2026-10-18 Shape: "stamps three -- a, b and c"; a passive that drops the actor
+        > 2026-11-22 Outcome: a count or a hidden actor is a patch (Process #358)
 - [x] T7 | FINISHED -- ruled #302 | 813b3550 | Decide which role or stage owns
       the style-sheet sweep: dialect, review labels, wrap and templates
         > 2026-11-08 Outside run: each of the four was nobody's remit
@@ -153,3 +156,12 @@ focus for them gets a lot easier. ! The dependency is discharged: `cue` emits fo
       SKILL.md stage 5 so the copy chief sweeps dialect, review labels, wrap and
       templates (#302)
         > 2026-11-10 #310: the chief recasts a settled place for style
+- [ ] T9 | Add block-context's rule for a bound no line enforces under
+      block-context.md:58
+        > 2026-11-22 Check: the role file checks such a bound's units and sign
+- [ ] T10 | Add Process #358's count-and-actor sentence to
+      comment-review-module-context.md
+        > 2026-11-22 Check: module-context.md holds the #358 sentence
+- [ ] T11 | Add Process #358's count-and-actor sentence to
+      comment-review-function-context.md
+        > 2026-11-22 Check: function-context.md holds the #358 sentence

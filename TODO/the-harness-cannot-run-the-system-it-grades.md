@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 18 of 33 tasks closed
+Progress: 18 of 36 tasks closed
 Owner:    testing
 Requires-Roy: true
 Raised:   2026-08-18, after a run whose only question needed one role and cost four
@@ -342,6 +342,7 @@ to end, so the dominance claim waits on something that can disagree with it.
 - [?] T15 | T15 -- * Rule what executes a `test-cases.jsonl` row: a script in
       this repo or `skill-creator`. Verify: the answer is written into this
       file.
+        > 2026-11-22 Outcome: claude plugin eval, if two checks pass (Process #359)
 - [ ] T16 | T16 -- Build that runner. Verify: one command runs one row by `id`
       and exits nonzero on a miss.
 - [x] T17 | FINISHED | unknown | T17 -- SUPERSEDED: `evals/evals.json` is gone
@@ -392,6 +393,14 @@ to end, so the dominance claim waits on something that can disagree with it.
       Process #50
 - [ ] T33 | Give a mark-level case its terminus in writing: stage 4's edit copy
         > 2026-11-22 Check: a case reads one; git status --short is empty
+- [ ] T34 | Measure whether a claude plugin eval case can grade from the diff
+      with a free grader
+        > 2026-11-22 Check: a dated note records the probe's outcome
+- [ ] T35 | Measure whether a claude plugin eval suite stays out of plugins/ at
+      release
+        > 2026-11-22 Check: a dated note records the probe's outcome
+- [ ] T36 | Run the six evals/test-cases.jsonl cases through claude plugin eval
+        > 2026-11-22 Check: the run reports a with/without-plugin delta
 
 ## What this costs today
 

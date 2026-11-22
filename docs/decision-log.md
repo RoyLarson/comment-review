@@ -7118,3 +7118,48 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
 
   **What it settles.** The skip goes; `_x_` hook names such as `_generate_next_value_` are
   exempt.
+
+- **#355.** **No coverage floor gates the build** (Roy, 2026-11-22, on `coverage-is-not-measured`
+  T5, shown that `pyproject.toml:67` records coverage as "a deletion instrument here, not a
+  score"; offered (a) no gate, (b) a no-drop floor after the deletion pass, or (c) per-module
+  floors):
+
+  *"a"*
+
+- **#356.** **block-context checks a bound no line enforces on its own terms** (Roy, 2026-11-22,
+  on `role-rule-register` T1, shown that `comment-review-block-context.md:58-62` checks a bound
+  only against its enforcing line, with one measured instance of a bound false by arithmetic):
+
+  *"yes"*
+
+  **What it settles.** One sentence under `comment-review-block-context.md:58`: a bound with no
+  enforcing line is checked for its units, whole numbers and sign.
+
+- **#357.** **A module announcing more than one subject is raised as a code concern** (Roy,
+  2026-11-22, on `role-rule-register` T2, shown that module-context names no action for the three
+  signs and that the measured failure widened the docstring):
+
+  *"raise the split as a code concern - they have been pretty good at doing this alread on a
+  couple of projects - making it explicit will be helpful"*
+
+  **What it settles.** module-context raises the split as a #199 code concern and does not widen
+  the docstring, as `comment-review-function-context.md:24-28` does for a function.
+  `a-role-with-no-code-out-damages-the-prose` T9 and T13-T15 carry it.
+
+- **#358.** **A count standing for its items, or a passive that hides the actor, is a `patch`**
+  (Roy, 2026-11-22, on `role-rule-register` T6, the wording #214 left to the register, offered as
+  one sentence for both module-context and function-context: "A count standing in for the things
+  it counts, or a passive that drops or delays the actor, is a `patch`: name the things, and the
+  actor first."):
+
+  *"okay"*
+
+- **#359.** **`claude plugin eval` runs a test case** (Roy, 2026-11-22, on
+  `the-harness-cannot-run-the-system-it-grades` T15, offered (a) a script in this repo,
+  (b) `skill-creator`, or (c) `claude plugin eval`, conditional on a case grading from the diff
+  with a non-model grader and the suite staying out of `plugins/`, with (a) if either fails):
+
+  *"c"*
+
+  **What it settles.** The two conditions are checked before the runner is built. T18, which
+  named `skill-creator`, is reissued for `claude plugin eval`.

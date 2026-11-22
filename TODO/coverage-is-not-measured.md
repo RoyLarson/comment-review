@@ -43,3 +43,4 @@ Nothing measures which code the suite actually runs.
 - [?] T5 | Decide whether a coverage floor becomes a gate. Verify: if it does,
       it is systems-owned and it can FAIL -- a floor set at the current number
       can never fail
+        > 2026-11-22 Outcome: no coverage gate (Process #355)
