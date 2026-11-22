@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 74 of 85 tasks closed
+Progress: 75 of 85 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (code-review high round 3 and /simplify round 2, 2026-08-22 -- the
@@ -245,8 +245,9 @@ files in `corpora/` are in that state today.
       the docstring of test_taken_in.py's no-paths test (:41) so it states the
       rule, not what Process 117 narrowed
         > 2026-09-11 introduced in 7a514831; no history narration, per the brief
-- [ ] T45 | Implement what a later stage reads, per Process 118: the original,
-      plus a new binder with the edits and a revised set of code
+- [x] T45 | SKILL.md builds root4c and binder4c at --revise 1 since 57a45615; Process #367 | 718944e14524f963b93cc5c8fcca2e7948fb0a67 | Implement
+      what a later stage reads, per Process 118: the original, plus a new binder
+      with the edits and a revised set of code
         > 2026-09-11 this release runs one stage, SKILL.md:329-332
 - [x] T46 | a mark whose anchor is not the page's is refused at verify | 72470b0f | Update
       the write end to refuse a mark whose anchor is not the page's anchor at

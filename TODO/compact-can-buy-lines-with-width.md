@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 3 of 8 tasks closed
+Progress: 4 of 8 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-08-17, on the FIRST exercise of stage 6 -- it returned two blocks at
@@ -138,9 +138,10 @@ for this case.
 - [ ] T2 | T2 -- Say in `compact.md` that a block may not change KIND to escape
       the cap. Verify: the words are there and `scripts/check_vocabulary.py`
       still passes.
-- [ ] T3 | T3 -- State in `compact.md` the test that separates a legitimate
-      `move` into a docstring from cap-dodging. Verify: the file names both
-      sides of that line.
+- [-] T3 | Moot: stage 6 admits no move; Process #369 | 718944e14524f963b93cc5c8fcca2e7948fb0a67 | T3
+      -- State in `compact.md` the test that separates a legitimate `move` into
+      a docstring from cap-dodging. Verify: the file names both sides of that
+      line.
 - [ ] T4 | T4 -- Say in `compact.md` that lines may not be widened to buy a
       line, under T1. Verify: `width` occurs in the file and the sentence states
       WHICHEVER IS LESS.

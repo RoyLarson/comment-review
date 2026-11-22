@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 37 of 52 tasks closed
+Progress: 41 of 52 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, from the blind rewrite of collator.py -- the prose was
@@ -30,23 +30,27 @@ Four defects in collator.py, found by reading only the code.
       the neighbouring shapes. Verify: a `move` across files, and one whose `to`
       names a place the binder does not carry, each reach a named outcome rather
       than a silent delete.
-- [ ] T4 | Reproduce the CRLF mismatch as a failing test over a real CRLF file.
-      Verify: a two-line `verbatim` taken verbatim from that file is reported as
-      not found. MEASURED: the window is rejoined with a newline while `_lines`
+- [-] T4 | SUPERSEDED by T50: the exact-line rewrite carries the CRLF case; Process #369 | 718944e14524f963b93cc5c8fcca2e7948fb0a67 | Reproduce
+      the CRLF mismatch as a failing test over a real CRLF file. Verify: a
+      two-line `verbatim` taken verbatim from that file is reported as not
+      found. MEASURED: the window is rejoined with a newline while `_lines`
       preserved the carriage returns.
         > 2026-09-13 since then _lines drops the endings; only the quote keeps them
 - [x] T5 | settled by Addressing #12: lines drop endings, so the quote does too | b3d79d2d | Decide
       which side normalises -- the window, the `verbatim`, or both at the
       boundary. Verify: a single-line `verbatim` still matches, and the choice
       is stated where `_lines` says it preserves the endings.
-- [ ] T6 | Check the same rejoin elsewhere. Verify: no other comparison in `src/`
-      splits on real line endings and rejoins with one spelling.
-- [ ] T7 | Reproduce the cache collision: one cache, two roots holding the same
-      path with different text. Verify: the second read returns the first root's
-      lines, and the test fails today.
-- [ ] T8 | Key the cache on the root as well, or refuse a cache handed a second
-      root. Verify: the staged design cannot answer from the wrong tree -- a run
-      reads an original at one stage and a revise at the next.
+- [-] T6 | SUPERSEDED by T50: the exact-line rewrite carries the CRLF case; Process #369 | 718944e14524f963b93cc5c8fcca2e7948fb0a67 | Check
+      the same rejoin elsewhere. Verify: no other comparison in `src/` splits on
+      real line endings and rejoins with one spelling.
+- [-] T7 | No run hands a cache a second root; Process #369 | 718944e14524f963b93cc5c8fcca2e7948fb0a67 | Reproduce
+      the cache collision: one cache, two roots holding the same path with
+      different text. Verify: the second read returns the first root's lines,
+      and the test fails today.
+- [-] T8 | No run hands a cache a second root; Process #369 | 718944e14524f963b93cc5c8fcca2e7948fb0a67 | Key
+      the cache on the root as well, or refuse a cache handed a second root.
+      Verify: the staged design cannot answer from the wrong tree -- a run reads
+      an original at one stage and a revise at the next.
 - [-] T9 | SUPERSEDED by T44: _cite_at is now the public desk/collator.cite_at | 22c3a0abcbc86509c74296319ce5b719a43338ca | Reproduce
       the cite guard. Verify: `_cite_at` raises `ValueError` on a superscript
       line number today, and a test asserts a named problem instead.
