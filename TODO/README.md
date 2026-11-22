@@ -202,7 +202,7 @@ that changed a published name or rule:
 | [exception-hierarchy](exception-hierarchy.md) | backend | -- | 3/12 | Named tuples give us the seam; the hierarchy that catches our own types is not built |
 | [language-rows-in-toml](language-rows-in-toml.md) | backend | -- | 17/19 | 18 rows of pure data sit in shipped Python; references/vocabulary.toml is the pattern |
 | [computed-and-never-read](computed-and-never-read.md) | backend | -- | 12/17 | The insert line, the matter branch, the paragraph index and two repeated full-file scans -- each needs more than a comment fix |
-| [dangling-links-resolve-nowhere](dangling-links-resolve-nowhere.md) | systems | yes | 3/6 | 31 relative links resolve nowhere, and two of them are in a live TODO |
+| [dangling-links-resolve-nowhere](dangling-links-resolve-nowhere.md) | systems | -- | 5/6 | 31 relative links resolve nowhere, and two of them are in a live TODO |
 | [drop-the-column](drop-the-column.md) | backend | -- | 8/9 | the column is len(anchor)+1 everywhere; the address system answers what it was added for |
 | [held-runs-need-a-one-off-migration](held-runs-need-a-one-off-migration.md) | testing | -- | 3/5 | the report cannot name a place, but the recorded hash can -- a script, not a feature |
 | [the-roles-are-named-for-what-they-read](the-roles-are-named-for-what-they-read.md) | agents | -- | 1/6 | block-context etc. become the editorial desks; unlike `block` these ARE on the wire |

@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 3 of 6 tasks closed
+Progress: 5 of 6 tasks closed
 Owner:    systems
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-23 (2026-08-23, from scripts/dead_sweep.py --links after the history
           purge; Roy: 'not important right now')
 GROWING:  2026-08-23 — 2026-08-23: 31 at filing, 40 after two closures, 41 re-measured the
@@ -82,13 +82,15 @@ archival pattern the stance already covers, and it is what produced the third li
       -- Fix `the-census-is-mostly-intervals-nobody-rules-on.md`'s link to a
       sibling now in `completed/`. Verify: `--links` names no path under a live
       `TODO/*.md`.
-- [?] T3 | T3 -- * Rule whether `dead_sweep.py:288-289`'s stance still holds for
-      the 38 links, or narrows. Verify: the answer is written into
-      `dead_sweep.py` beside that sentence.
+- [x] T3 | Ruled: the dead_sweep.py:288-289 stance holds; outcome recorded on T3 | da187004b8eb7277a5259e3c0175c8bbbe47dc06 | T3
+      -- * Rule whether `dead_sweep.py:288-289`'s stance still holds for the 38
+      links, or narrows. Verify: the answer is written into `dead_sweep.py`
+      beside that sentence.
         > 2026-11-22 Outcome: stance holds; closed records are not rewritten (Roy)
-- [?] T4 | T4 -- * If archived links are to be repaired, rule HOW; only if T3
-      narrows the stance. Verify: the rule is written into `dead_sweep.py`
-      beside what it revises.
+- [-] T4 | Moot: T3 ruled the stance holds, so no repair rule is needed | da187004b8eb7277a5259e3c0175c8bbbe47dc06 | T4
+      -- * If archived links are to be repaired, rule HOW; only if T3 narrows
+      the stance. Verify: the rule is written into `dead_sweep.py` beside what
+      it revises.
 - [-] T5 | Board ops moved to installed job-board (b418c973); vendored todo_tool complete_todo no longer closes TODOs | b418c973 | T5
       -- Make `complete_todo` (todo_tool.py:1021) rewrite the moved file's own
       links. Verify: close a TODO citing a live sibling; `--links` reports no
