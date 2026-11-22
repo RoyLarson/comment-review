@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 3 tasks closed
+Progress: 1 of 3 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-29 (2026-08-29, the first end-to-end run with a real block-context
@@ -23,6 +23,7 @@ A `query` names no sentence, so two marks on one place cannot be told apart.
 - [ ] T2 | A reviewer can say WHICH sentence it is querying without using
       `reason`. Verify: a mark written from the brief puts the queried sentence
       in a field a checker reads, not in prose.
-- [ ] T3 | `_sentence_key` is correct for `query` either way. Verify: two
-      queries at one place resolve the same way the ruling says they should --
-      today each gets `id(mark)` and can never be found to share a sentence.
+- [-] T3 | _sentence_key and the old fold deleted in 0e2ff82a; queries pair by stance (table.py:146-149) | 0e2ff82a | `_sentence_key`
+      is correct for `query` either way. Verify: two queries at one place
+      resolve the same way the ruling says they should -- today each gets
+      `id(mark)` and can never be found to share a sentence.

@@ -1,10 +1,10 @@
 # Nothing checks that four reviewers were LAUNCHED
 
 ```
-Status:   decision-needed
-Progress: 3 of 6 tasks closed
+Status:   closed
+Progress: 6 of 6 tasks closed
 Owner:    agents
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-17, on a MISREADING that turned out to sharpen the task -- see below
 TRIAGED:  2026-08-23 -- RE-VERIFIED against the shipped tree, and ONE PREMISE MOVED.
           `--reviewers` is still OPTIONAL (verdicts.py:296) and its absence is still only
@@ -112,15 +112,18 @@ was looking straight at it.
       -- * Rule on WHERE the check goes, from the four candidates in the
       Objective. Verify: the ruling names the candidate and is written in
       `docs/decision-log.md`.
-- [ ] T2 | T2 -- Make `--reviewers` default to the four editorial roles rather
-      than to `""`. Verify: three reports and no `--reviewers` exits nonzero,
-      naming the fourth role.
-- [?] T3 | T3 -- * Rule on whether a DELIBERATE single-role run survives
-      `--reviewers` defaulting to four, and how it is declared. Verify: the
-      answer is in `SKILL.md`.
-- [ ] T4 | T4 -- In `SKILL.md` stage 4, say the dispatch is COUNTED and four is
-      the number. Verify: the sentence sits under `## Stage 4` (SKILL.md:544)
-      and names the count.
+- [-] T2 | No --reviewers flag in src; Process #272: the host's task system checks launches; verified at HEAD | 67184ac1 | T2
+      -- Make `--reviewers` default to the four editorial roles rather than to
+      `""`. Verify: three reports and no `--reviewers` exits nonzero, naming the
+      fourth role.
+- [-] T3 | Moot: Process #272 answered it; a missing role is relaunched, subsets via the topology; verified at HEAD | 67184ac1 | T3
+      -- * Rule on whether a DELIBERATE single-role run survives `--reviewers`
+      defaulting to four, and how it is declared. Verify: the answer is in
+      `SKILL.md`.
+- [-] T4 | Process #272 rules out a dispatch count; SKILL.md:215 runs all four roles; verified at HEAD | 67184ac1 | T4
+      -- In `SKILL.md` stage 4, say the dispatch is COUNTED and four is the
+      number. Verify: the sentence sits under `## Stage 4` (SKILL.md:544) and
+      names the count.
 - [x] T5 | Ruled #272: not fatal; the task agent spins up another instance | e0a31457 | T5
       -- * Rule on whether a missing role is FATAL at stage 5 or a stated
       degradation. Verify: the ruling is written in `docs/decision-log.md`.

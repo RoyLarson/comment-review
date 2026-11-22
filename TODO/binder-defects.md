@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 9 of 40 tasks closed
+Progress: 19 of 40 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, a code review of `binder/binder.py` run against its
@@ -75,34 +75,38 @@ task 5's, but the fix for these two lands in `binder/binder.py`.
       address, and `drift_in` reports a role as drifted for returning the
       `raw_text` it was handed, on which `commands/collate.py` exits DRIFT (5).
       The test goes red today.
-- [ ] T2 | Implement the `path` check in `binder.read`, requiring a non-empty
-      string on every page, on the terms `pages` already has at `binder.py:253`.
-      Verify: a page carrying `{"sha": "abc", "rows": [...]}` and no `path` is
-      refused by name; today `read` answers `''`, `rows_of` composes `""` for
-      every address via `address_for("", cue)`, `known_addresses` is empty,
-      `drift_in` is a no- op, and a substantive mark refuses with `mark 1:
-      correct needs the address, copied from the row` -- which blames the ROLE
-      for an address `seed` never gave it.
+- [x] T2 | binder/page.py:320-322 refuses a page with no non-empty path; verified at HEAD | 67184ac1 | Implement
+      the `path` check in `binder.read`, requiring a non-empty string on every
+      page, on the terms `pages` already has at `binder.py:253`. Verify: a page
+      carrying `{"sha": "abc", "rows": [...]}` and no `path` is refused by name;
+      today `read` answers `''`, `rows_of` composes `""` for every address via
+      `address_for("", cue)`, `known_addresses` is empty, `drift_in` is a no-
+      op, and a substantive mark refuses with `mark 1: correct needs the
+      address, copied from the row` -- which blames the ROLE for an address
+      `seed` never gave it.
 - [ ] T3 | Implement the `rows` presence check in `binder.read` at
       `binder.py:261`, so a page whose `rows` key is absent is refused rather
       than defaulting to `[]`. Verify: `read('{"read_from": {"root": ".",
       "revise": 0}, "pages": [{"path": "m.py"}]}')` is refused by name; today it
       returns `(binder, '')` and a page whose rows array was lost reviews as a
       page with no prose, at exit 0.
-- [ ] T4 | Update the "WHAT IS CHECKED IS WHAT IS CONSUMED" paragraph at
+- [-] T4 | The WHAT IS CHECKED paragraph was removed in 1d9314d8; binder.py:169-172 rules on every field | 1d9314d8 | Update
+      the "WHAT IS CHECKED IS WHAT IS CONSUMED" paragraph at
       `binder.py:239-242`, which names `proof_setter.run` as a binder consumer.
       Verify: every consumer the paragraph names resolves --
       `flows/proof_setter.py:116` is `def run(docket: dict, repo: Path, into:
       Path)` and takes no binder -- and the live readers of a page's
       `path`/`sha` are named instead: `flows/distribute.py:88,98`,
       `flows/carry.py:125,137` and `flows/fan_out.py:99,120`.
-- [ ] T5 | Update the citation in the same paragraph to `commands/proof.py`'s
-      promise to print `CANNOT READ THE BINDER: {why}`. Verify: `grep -rn
-      "CANNOT READ THE BINDER" src/` returns the file the sentence names --
-      today the only hit is `commands/carry.py:61`.
-- [ ] T6 | Update the `VERSION` comment at `binder.py:55-58`, which says `read`
-      consumes no field and that `seed` is what raises on a missing `read_from`.
-      Verify: it agrees with `binder.py:272`, where `read` calls
+- [-] T5 | The paragraph and its citation were removed in 1d9314d8 | 1d9314d8 | Update
+      the citation in the same paragraph to `commands/proof.py`'s promise to
+      print `CANNOT READ THE BINDER: {why}`. Verify: `grep -rn "CANNOT READ THE
+      BINDER" src/` returns the file the sentence names -- today the only hit is
+      `commands/carry.py:61`.
+- [x] T6 | VERSION is read_from.BINDER_VERSION; its comment (read_from.py:3-8) matches binder.py:216-221; verified at HEAD | 67184ac1 | Update
+      the `VERSION` comment at `binder.py:55-58`, which says `read` consumes no
+      field and that `seed` is what raises on a missing `read_from`. Verify: it
+      agrees with `binder.py:272`, where `read` calls
       `_read_from_problem(loaded)` and returns a named refusal, and with that
       function's own docstring at `binder.py:188-190`; no two comments in the
       file state opposite rules for one code path.
@@ -120,16 +124,18 @@ task 5's, but the fix for these two lands in `binder/binder.py`.
       and `desk/containers.py:228` no longer passes a master_proof stamped
       `revise: true` against a first edit_copy stamped `revise: 1`, which
       compare equal in Python.
-- [ ] T9 | Implement the read-side `unaddressed` call the collate path is
-      missing, at `binder.read` or at `commands/collate.py`'s binder load.
-      Verify: `grep -rn unaddressed src/comment_review/` returns a caller on the
-      collate path -- today only `commands/census.py:334` and
-      `commands/addresser.py:131,257` -- and a binder row whose address composes
-      to `""` is reported rather than dropped by `desk/collator.py:99,122`.
-- [ ] T10 | Update the module header at `binder.py:33`, which says an agent gets
-      SIX fields. Verify: it agrees with `page_row`'s "FIVE FIELDS, RULED ONE BY
-      ONE" at `binder.py:65` and the five keys at `:75-103`, and states what a
-      role is actually handed -- the four keys `{address, anchor, raw_text,
+- [-] T9 | Collate path gone (#183); a row without a non-empty cue is refused (page.py:365-367); verified at HEAD | 67184ac1 | Implement
+      the read-side `unaddressed` call the collate path is missing, at
+      `binder.read` or at `commands/collate.py`'s binder load. Verify: `grep -rn
+      unaddressed src/comment_review/` returns a caller on the collate path --
+      today only `commands/census.py:334` and `commands/addresser.py:131,257` --
+      and a binder row whose address composes to `""` is reported rather than
+      dropped by `desk/collator.py:99,122`.
+- [-] T10 | The SIX fields header is gone; WIRE_FIELDS names five; verified at HEAD | 67184ac1 | Update
+      the module header at `binder.py:33`, which says an agent gets SIX fields.
+      Verify: it agrees with `page_row`'s "FIVE FIELDS, RULED ONE BY ONE" at
+      `binder.py:65` and the five keys at `:75-103`, and states what a role is
+      actually handed -- the four keys `{address, anchor, raw_text,
       instruction}` that `desk/mark.py:326-356` builds.
 - [ ] T11 | Update `_read_from_problem` to refuse an empty `root`. Verify:
       `_read_from_problem({"read_from": {"root": "", "revise": 0}})` is refused
@@ -149,11 +155,12 @@ task 5's, but the fix for these two lands in `binder/binder.py`.
       `"sha": "b"`, is refused by name; today it reads with no refusal and
       `seed` produces `[('m.py', 'a'), ('m.py', 'b')]`, while
       `flows/carry.py:124-128` breaks on the FIRST match and silently picks one.
-- [ ] T15 | Update `rows_of`'s docstring at `binder.py:294-297` to say it
-      OVERRIDES a row's `path` and `address` rather than putting them back.
-      Verify: the sentence matches `row \| {"path": path, "address": ...}`,
-      whose dict-union order turns a row carrying `{"path": "other.py",
-      "address": "other.py@b9"}` into `{'path': 'm.py', 'address': 'm.py@b1'}`.
+- [-] T15 | rows_of deleted in 1d9314d8; _paragraph builds the address from the page path | 1d9314d8 | Update
+      `rows_of`'s docstring at `binder.py:294-297` to say it OVERRIDES a row's
+      `path` and `address` rather than putting them back. Verify: the sentence
+      matches `row \| {"path": path, "address": ...}`, whose dict-union order
+      turns a row carrying `{"path": "other.py", "address": "other.py@b9"}` into
+      `{'path': 'm.py', 'address': 'm.py@b1'}`.
 - [-] T16 | RULED Process 96: the lookup reads the page, so the binder's filter never governs an address | 473afdba | Decide
       whether `--include-absent` describes the binder ARTIFACT, or only the
       invocation that produced it? Verify: the answer is recorded in
@@ -168,7 +175,8 @@ task 5's, but the fix for these two lands in `binder/binder.py`.
       importable boundary function, the way `flows/carry.py:97-99` states
       "UNREACHABLE BY CONSTRUCTION ... It is here so a future lookup added
       without its own branch fails loudly".
-- [ ] T18 | Update `commands/collate.py:69-81` (`_load`) to call
+- [x] T18 | commands/collate.py loads through flows.proof_io; no _load preamble; verified at HEAD | 67184ac1 | Update
+      `commands/collate.py:69-81` (`_load`) to call
       `machine.json_object.object_of` instead of restating the
       parse-plus-object- guard preamble. Verify: `grep -rn "not an object"
       src/comment_review/` shows the refusal sentence stated once, and
@@ -181,8 +189,9 @@ task 5's, but the fix for these two lands in `binder/binder.py`.
 - [-] T20 | duplicate of T19, filed twice in one batch | dfe7ca56 | Update the
       addresser's no-place refusal to name --include-absent when the binder
       holds no absent place. Verify: the message names the flag
-- [ ] T21 | Implement kind on every binder JSON row. Verify: gather --json rows
-      carry kind and stage 6 reads it there
+- [-] T21 | Process #158 (fd846264): a row carries five fields and no kind | fd846264 | Implement
+      kind on every binder JSON row. Verify: gather --json rows carry kind and
+      stage 6 reads it there
         > 2026-09-05 compact.md routes on kind; a live run read it off the listing
 - [x] T22 | FINISHED -- --file --line --series answer from the page at the binder root; for_anchor deleted | 5bead16e | Update
       commands/addresser so --anchor resolves from the page, not from binder
@@ -241,8 +250,9 @@ task 5's, but the fix for these two lands in `binder/binder.py`.
       mid-run, per Vocabulary #16
 - [ ] T38 | Fix gather's unaddressed gate, which reads `Binder.paragraphs` and
       so never finds a row
-- [ ] T39 | Narrow `_read_from_problem`'s use by the desk, which imports it
-      though it is private
+- [x] T39 | ef172e66 made read_from.py public | ef172e66 | Narrow
+      `_read_from_problem`'s use by the desk, which imports it though it is
+      private
 - [ ] T40 | Correct the loop back-edge comment at binder.py:181-185 to name ty's
       real cause
         > 2026-11-22 Check: a loop-free function shows the same ty diagnostic

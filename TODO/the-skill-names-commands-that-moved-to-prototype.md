@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 3 of 5 tasks closed
+Progress: 4 of 5 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-08-25 (the prototype move, 2026-08-25)
@@ -24,8 +24,9 @@ SKILL.md names six commands that moved to prototype.
 
 ## Tasks
 
-- [ ] T1 | Decide what replaces the record as what a role hands back --
-      alterations, per decision-log Process #14
+- [-] T1 | Decided by Vocabulary #28 (edit_copy) and #14 (docket); brief and roles moved onto it in 717a35cb | 717a35cb | Decide
+      what replaces the record as what a role hands back -- alterations, per
+      decision-log Process #14
 - [x] T2 | FINISHED | unknown | Rewrite the stages that invoke the four moved
       commands
 - [x] T3 | FINISHED | unknown | Say what regenerates the brief verdict table, or

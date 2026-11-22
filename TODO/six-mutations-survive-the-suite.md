@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 1 of 8 tasks closed
+Progress: 6 of 8 tasks closed
 Owner:    testing
 Requires-Roy: false
 Raised:   2026-08-20 (the branch review of 2026-08-20)
@@ -74,24 +74,27 @@ landing on a licence header -- and it left 720 tests OK.
 - [x] T1 | FINISHED | unknown | T1 -- FINISHED. The front-matter to `query`
       conversion is gated by two end-to-end tests that run the collator and read
       its output; verified by disabling the guard.
-- [ ] T2 | T2 -- Re-apply the `c`-from-`b` cue mutation against the rewritten
+- [x] T2 | Re-run 2026-11-22: c cue built from the b cue at addresser.py:773 survives; 5897 passed; verified at HEAD | 67184ac1 | T2
+      -- Re-apply the `c`-from-`b` cue mutation against the rewritten
       `tests/test_cues.py:1127`. Verify: whether it survives is recorded here,
       dated.
 - [ ] T3 | T3 -- Gate the `c` cue against being DERIVED from the `b` cue.
       Verify: with `beside` derived from `b`, `uv run pytest -q` FAILS and names
       the test.
-- [ ] T4 | T4 -- Gate the retired-word detector against being unable to fire.
-      Verify: a test drives `cv.check_retired()` and fails with `hits = 0`
-      forced.
-- [ ] T5 | T5 -- Gate `record.slot()` to the address and nothing else. Verify: a
-      test asserts the exact key set it returns and fails when a sixth key is
-      added.
-- [ ] T6 | T6 -- Gate the JSON-mode refusal. Verify: a test asserts the refusal
-      on STDERR and the exit code of `census.py --json`, and fails without the
+- [x] T4 | tests/gates/test_vocabulary_gate_bites.py:63-80 fails if hits is forced to 0 (32bbc856, 2d9eb630) | 2d9eb630 | T4
+      -- Gate the retired-word detector against being unable to fire. Verify: a
+      test drives `cv.check_retired()` and fails with `hits = 0` forced.
+- [x] T5 | Successor form: BlankMark.serialize pinned by tests/test_mark.py:558-565; record.slot gone; verified at HEAD | 67184ac1 | T5
+      -- Gate `record.slot()` to the address and nothing else. Verify: a test
+      asserts the exact key set it returns and fails when a sixth key is added.
+- [-] T6 | census.py --json is gone; gather writes with --out, refusal gated in test_gather_command.py; verified at HEAD | 67184ac1 | T6
+      -- Gate the JSON-mode refusal. Verify: a test asserts the refusal on
+      STDERR and the exit code of `census.py --json`, and fails without the
       print.
-- [ ] T7 | T7 -- Re-apply the local-binding verdict mutation against the
-      rewritten `tests/test_verdicts.py:1273-1291`. Verify: the result is
-      recorded here, dated.
+- [-] T7 | tests/test_verdicts.py and its test are gone; nothing to re-apply the mutation to; verified at HEAD | 67184ac1 | T7
+      -- Re-apply the local-binding verdict mutation against the rewritten
+      `tests/test_verdicts.py:1273-1291`. Verify: the result is recorded here,
+      dated.
 - [ ] T8 | T8 -- Close the one-line escape from the verdict-name ban. Verify:
       adding `v = f.verdict` then `if v == "drop"` to `desk.payload_problem`
       fails the suite.

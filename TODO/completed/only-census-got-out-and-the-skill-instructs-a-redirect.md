@@ -1,8 +1,8 @@
 # Only `census.py` got `--out`, and `SKILL.md` instructs the redirect it forbids
 
 ```
-Status:   open
-Progress: 3 of 5 tasks closed
+Status:   closed
+Progress: 5 of 5 tasks closed
 Owner:    agents
 Raised:   2026-08-17 (the 0.2.0 builder run, at the collator: "verdicts.py has no --out
           (the census scripts do) -- and this session refuses shell redirects")
@@ -81,11 +81,12 @@ class this repo already tests for elsewhere, and it would have caught this the d
 - [x] T2 | FINISHED | unknown | T2 -- Add `--out` to `referrers.py`, copied from
       `census.py:276`. Verify: it appears in the argparse, and the `REFERENCE
       ONLY` candidates land in the named file.
-- [ ] T3 | T3 -- Fix `SKILL.md:617` to use the flag once it exists. Verify: no
-      `python <skill>/scripts/...` line in `SKILL.md` carries a `>`.
+- [x] T3 | run_context.py redirect removed with the dead command invocations in d6ae622a; no comment-review.py line redirects | d6ae622a | T3
+      -- Fix `SKILL.md:617` to use the flag once it exists. Verify: no `python
+      <skill>/scripts/...` line in `SKILL.md` carries a `>`.
 - [x] T4 | FINISHED | unknown | T4 -- Keep `verdicts.py` writing its report to
       stdout AS WELL AS `--out`. Verify: with `--out` given, the file is written
       and stdout is non-empty.
-- [ ] T5 | T5 -- Test that no `python <skill>/scripts/...` line in `SKILL.md`
-      carries a `>`. Verify: it fails on `SKILL.md:617` today and passes after
-      T3.
+- [-] T5 | Verify target SKILL.md:617 and run_context.py are gone (d6ae622a); no redirect left to gate | d6ae622a | T5
+      -- Test that no `python <skill>/scripts/...` line in `SKILL.md` carries a
+      `>`. Verify: it fails on `SKILL.md:617` today and passes after T3.

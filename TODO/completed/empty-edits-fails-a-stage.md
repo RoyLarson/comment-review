@@ -1,8 +1,8 @@
 # An empty --edits file now REFUSES, and SKILL.md still wires a live stage to that command
 
 ```
-Status:   open
-Progress: 0 of 2 tasks closed
+Status:   closed
+Progress: 2 of 2 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-08-26 (xhigh wave-D review of feat/the-write-chain-of-command,
@@ -33,7 +33,9 @@ stage is live until the skill is rewired.
 
 ## Tasks
 
-- [ ] T1 | SKILL.md: the stage that calls commands/galley.py SKIPS the call when
-      the edits object would be empty
-- [ ] T2 | SKILL.md: say that an empty --edits is an exit-2 refusal, so a reader
-      does not read it as a run with nothing to do
+- [-] T1 | No stage calls galley; command and alias gone (1119cb32, 5ad6d47d); all-clean proof --proof exits 0 | 5ad6d47d | SKILL.md:
+      the stage that calls commands/galley.py SKIPS the call when the edits
+      object would be empty
+- [-] T2 | No --edits flag exists in src/plugin or src/comment_review/commands (grep); verified at HEAD | 67184ac1 | SKILL.md:
+      say that an empty --edits is an exit-2 refusal, so a reader does not read
+      it as a run with nothing to do

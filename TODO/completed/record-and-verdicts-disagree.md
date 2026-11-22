@@ -1,8 +1,8 @@
 # record.py and verdicts.py disagree about what a valid record is, in four places
 
 ```
-Status:   deferred
-Progress: 4 of 8 tasks closed
+Status:   closed
+Progress: 8 of 8 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (/code-review high round 3, 2026-08-22, and Roy: the record/verdict
@@ -91,18 +91,19 @@ never report. By the rule in `docs/gates.md` -- could it fail -- no.
 - [x] T3 | FINISHED | unknown | T3 -- Stop `load_report` dropping a bare-string
       source before `source_problem` runs. Verify: one report carrying a
       bare-string source, and both tools agreeing on it.
-- [ ] T4 | T4 -- Require `claim.shape` instead of a substring test on the claim
-      text. Verify: a `query` with no `shape` and *outside my role* in its prose
+- [x] T4 | One reader parses every mark (167c7f13); a query without claim.shape is refused, mark.py:414-423 | 167c7f13 | T4
+      -- Require `claim.shape` instead of a substring test on the claim text.
+      Verify: a `query` with no `shape` and *outside my role* in its prose
       reaches stage 5.
-- [ ] T5 | T5 -- Make `_answered` use `filled()` like every sibling at
-      `record.py:453`. Verify: a record with a JSON null in that slot is
-      refused.
-- [ ] T6 | T6 -- Extend the present-and-empty test at `desk.py:170-172` to
-      `_extras`. Verify: a record with a present-and-empty EXTRA is refused by
-      both tools.
-- [ ] T7 | T7 -- Make `held.py:118` check the TYPE of `pages`, not just the key.
-      Verify: a report whose `pages` is a dict is refused with the shape
-      diagnostic.
+- [-] T5 | No str().strip() slot coercion remains; as_text reads non-strings as empty, settles null refused; verified at HEAD | 67184ac1 | T5
+      -- Make `_answered` use `filled()` like every sibling at `record.py:453`.
+      Verify: a record with a JSON null in that slot is refused.
+- [-] T6 | Process #204: a field a row does not take is ignored, not refused; one reader, so moot; verified at HEAD | 67184ac1 | T6
+      -- Extend the present-and-empty test at `desk.py:170-172` to `_extras`.
+      Verify: a record with a present-and-empty EXTRA is refused by both tools.
+- [x] T7 | EditCopy.deserialize refuses a non-list sheets, desk/proof/edit_copy.py:149-151; verified at HEAD | 67184ac1 | T7
+      -- Make `held.py:118` check the TYPE of `pages`, not just the key. Verify:
+      a report whose `pages` is a dict is refused with the shape diagnostic.
 - [x] T8 | FINISHED | unknown | T8 -- Replace `address_problem` with a check
       that can fire. Verify: whatever replaces it can be made to fail on a
       crafted record.

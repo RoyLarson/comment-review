@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 8 of 12 tasks closed
+Progress: 11 of 12 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-17 (Roy: "use the github api to find a heavily documented file
@@ -163,15 +163,17 @@ grammar and never from a neighbour's, so the two are decided one at a time.
 - [-] T3 | SUPERSEDED by #259: block_text left with lexer.py | e2b34a22 | T3 --
       Change `block_text` (`lexer.py:609`) in the SAME commit as each `_join`
       change. Verify: the round trip is green on that commit.
-- [ ] T4 | T4 -- Add the eleven pinned files above to `corpora/corpora.toml` as
-      a `public` corpus. Verify: `fetch_corpora.py` materialises all eleven.
+- [-] T4 | Obsolete: #259 removed every language but Python and Rust; e2b34a22 deleted the lexical reader | e2b34a22 | T4
+      -- Add the eleven pinned files above to `corpora/corpora.toml` as a
+      `public` corpus. Verify: `fetch_corpora.py` materialises all eleven.
 - [-] T5 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | T5
       -- Make the round trip a test over that corpus, one case per language
       record. Verify: it fails while a marker survives into `text` and passes
       once T1 to T3 land.
-- [ ] T6 | T6 -- Make that test SKIP when the corpus has not been fetched.
-      Verify: with the corpus directory absent, `uv run pytest -q` reports a
-      skip and no failure.
+- [-] T6 | The T5 corpus round-trip test it would skip was superseded by #259 at e2b34a22 | e2b34a22 | T6
+      -- Make that test SKIP when the corpus has not been fetched. Verify: with
+      the corpus directory absent, `uv run pytest -q` reports a skip and no
+      failure.
 - [-] T7 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | T7
       -- Write the unit fixtures for the fix from INVENTED text, not from the
       corpus. Verify: no assertion under `tests/` quotes a line from any file in
@@ -188,7 +190,8 @@ grammar and never from a neighbour's, so the two are decided one at a time.
 - [ ] T11 | Stop comment_form leaving a stray asterisk from a double-star closer
         > 2026-10-25 lexer._comment_fragment closer handling; reaches Paragraph.text
         > 2026-10-25 Check: comment_form text of /** Assembly **/ is "Assembly"
-- [ ] T12 | Stop comment_form stripping a markdown bullet from Rust doc prose
+- [x] T12 | '/// * item' reads '* item' through comment_form and page_of (probe); fixing commit unknown; verified at HEAD | 67184ac1 | Stop
+      comment_form stripping a markdown bullet from Rust doc prose
         > 2026-10-25 A leading `* ` item in a /// doc is lost from Paragraph.text (#227)
         > 2026-10-25 Check: /// * item reads "* item" as comment_form text
 ## Related

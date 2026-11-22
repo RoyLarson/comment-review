@@ -1,8 +1,8 @@
 # Three different things are called `declares`, in a repo built on one name per thing
 
 ```
-Status:   deferred
-Progress: 10 of 15 tasks closed
+Status:   closed
+Progress: 15 of 15 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-21 (Roy, 2026-08-21, reading a census entry: 'in a system that is a
@@ -130,21 +130,25 @@ ruling is why this file is `deferred` and what it waits on:
 - [-] T3 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | T3
       -- Rename `lexer._declares_here` to match `introduces`. Verify: `grep -n
       declares` over `lexer.py` returns no use of the language keyword tuple.
-- [ ] T4 | T4 -- Rename `desk.declares_scope` to `reports_remit`. Verify: `grep
-      -rn declares_scope plugins/` returns nothing.
-- [ ] T5 | T5 -- Rename `record.can_declare_scope` to match, at its
-      `verdicts.py` call sites too. Verify: `grep -rn can_declare_scope
-      plugins/` returns nothing.
+- [-] T4 | desk.declares_scope left with the middle in b50e7a43; no use in src, tests, plugins, scripts | b50e7a43 | T4
+      -- Rename `desk.declares_scope` to `reports_remit`. Verify: `grep -rn
+      declares_scope plugins/` returns nothing.
+- [-] T5 | record.can_declare_scope left with the middle in b50e7a43; no use in src, tests, plugins, scripts | b50e7a43 | T5
+      -- Rename `record.can_declare_scope` to match, at its `verdicts.py` call
+      sites too. Verify: `grep -rn can_declare_scope plugins/` returns nothing.
 - [-] T6 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | T6
       -- Make `declares` internal to the lexer. Verify: it is absent from the
       paragraph JSON `census.py` emits.
-- [ ] T7 | T7 -- * Check whether any shipped agent file or reference gives a
-      role the term `declares`. Verify: the grep over `agents/` and
-      `references/` is recorded here.
-- [ ] T8 | T8 -- Keep the vocabulary gate green across the renames in T1 to T6.
-      Verify: `uv run python scripts/check_vocabulary.py` exits 0.
-- [ ] T9 | T9 -- Keep the suite green across the renames in T1 to T6. Verify:
-      `uv run pytest -q` exits 0 after the last of them lands.
+- [x] T7 | Checked: git grep -w declares/declared in src/plugin is empty; only 'declaration' remains; verified at HEAD | 67184ac1 | T7
+      -- * Check whether any shipped agent file or reference gives a role the
+      term `declares`. Verify: the grep over `agents/` and `references/` is
+      recorded here.
+- [-] T8 | No renames remain (T4, T5 obsolete); check_vocabulary.py exits 0; verified at HEAD | 67184ac1 | T8
+      -- Keep the vocabulary gate green across the renames in T1 to T6. Verify:
+      `uv run python scripts/check_vocabulary.py` exits 0.
+- [-] T9 | No renames remain (T4, T5 obsolete); uv run pytest -q 5897 passed; verified at HEAD | 67184ac1 | T9
+      -- Keep the suite green across the renames in T1 to T6. Verify: `uv run
+      pytest -q` exits 0 after the last of them lands.
 - [x] T10 | FINISHED | unknown | T10 -- NOT A TASK. MEASUREMENT, in the
       Objective: THIRTEEN spellings on the stem across the shipped tree, and the
       vocabulary defines exactly ONE of them.

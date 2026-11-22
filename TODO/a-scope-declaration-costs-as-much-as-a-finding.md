@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 2 of 7 tasks closed
+Progress: 3 of 7 tasks closed
 Owner:    agents
 Requires-Roy: true
 Raised:   2026-08-17, the day the query contract landed. `module-context`'s report on a
@@ -146,8 +146,9 @@ do the thing we ruled out"*. It carried a box until 2026-08-23 and is recorded h
         > 2026-08-31 clean CERTIFIES and query ASKS; collapsing them trades down
         > 2026-08-31 measured NECESSARY BUT NOT SUFFICIENT: it guards the wrong failure
         > 2026-08-31 the role stopped ATTEMPTING settlement, which T6 does not describe
-- [ ] T7 | Reword clean as an ACTIVE assertion -- I checked the claims at my
-      scope and they hold -- distinct from silence and from I could not settle it
+- [x] T7 | Each role file states what its clean asserts; brief makes clean a sourced certificate (a9d9de96, 29d906fc, 5acef67e) | 5acef67e | Reword
+      clean as an ACTIVE assertion -- I checked the claims at my scope and they
+      hold -- distinct from silence and from I could not settle it
         > 2026-08-31 placement-only wording made the role stop checking truth at all
         > 2026-09-02 T6's distinction is folded in here: clean must not read as
         > 2026-09-02 silence, and must not read as I could not settle it either

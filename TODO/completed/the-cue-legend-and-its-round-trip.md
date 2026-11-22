@@ -1,8 +1,8 @@
 # The cue letter carries what three fields used to say, and nothing gives the agents the legend or checks they followed it
 
 ```
-Status:   open
-Progress: 4 of 5 tasks closed
+Status:   closed
+Progress: 5 of 5 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-24 (ruling three fields out because the cue letter already states them)
@@ -77,8 +77,9 @@ whenever they decide it.
 
 ## Tasks
 
-- [ ] T1 | T1 -- Give a role the cue legend from where its terms already come.
-      Verify: `vocabulary.py --reviewer <role>` emits the letters and
+- [x] T1 | Legend written into reviewer-brief.md:94-99 at a9d9de96 (series a, b, c, f); d correctly omitted | a9d9de96 | T1
+      -- Give a role the cue legend from where its terms already come. Verify:
+      `vocabulary.py --reviewer <role>` emits the letters and
       `check_vocabulary.py` passes.
         > 2026-09-03 destination is open, not ruled -- Process 84
 - [-] T2 | SUPERSEDED by #247/#254: the reread checks where text landed | 11793f5b | T2

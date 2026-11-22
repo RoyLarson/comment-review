@@ -1,10 +1,10 @@
 # The board predates task ids, and migrating it clears the decision queue
 
 ```
-Status:   in-progress
-Progress: 2 of 6 tasks closed
+Status:   closed
+Progress: 6 of 6 tasks closed
 Owner:    systems
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-29 (2026-08-29, trialling the migration so a plan could name its tasks
           -- reverted the same session. The pipe handling is a fix in the tool rather
           than in this board, and is tracked where that tool is developed)
@@ -32,28 +32,31 @@ The board predates task ids, and migrating it clears the decision queue.
       pipe and the pipe is the column separator -- every one is legitimate
       content (a shell pipe, a regex alternation, a `--series` alternation), so
       the labels are not the thing to change.
-- [ ] T2 | Restore the decision queue the migration clears. Verify: the
-      requires-Roy query names the same files it named before the run. !
-      MEASURED 2026-08-29 on a trial that was reverted the same session: 57
-      files carried `Requires-Roy: true`, the flag is DERIVED from a task mark
-      rather than a header field, and the migration creates no such marks -- so
-      every one of them came back false and nothing errored.
-- [ ] T3 | Mark the ruling task in each of those 57 files rather than restoring
-      a header field. Verify: each file's flag is true BECAUSE a task carries
-      the mark, so the query answers from the boxes and cannot drift from them
-      again.
+- [-] T2 | Overtaken by 51ef147f, which rebuilt the decision queue by reading every task, not restoring flags | 51ef147f | Restore
+      the decision queue the migration clears. Verify: the requires-Roy query
+      names the same files it named before the run. ! MEASURED 2026-08-29 on a
+      trial that was reverted the same session: 57 files carried `Requires-Roy:
+      true`, the flag is DERIVED from a task mark rather than a header field,
+      and the migration creates no such marks -- so every one of them came back
+      false and nothing errored.
+- [x] T3 | 46 files say Requires-Roy true, 46 carry a [?] task, 0 headers disagree (scan); verified at HEAD | 67184ac1 | Mark
+      the ruling task in each of those 57 files rather than restoring a header
+      field. Verify: each file's flag is true BECAUSE a task carries the mark,
+      so the query answers from the boxes and cannot drift from them again.
 - [x] T4 | FINISHED -- the board reads docs/plans; EXCLUDED FROM THE BOARD is 0 | 9876ff9 | Convert
       the six legacy plans in `docs/plans/` to the format the board reads.
       Verify: the board reads that directory without erroring -- it stops today
       at `0.2.4-rework-the-binder-hands-the-repo`, which has no `## TODO tasks
       this plan closes` heading. ! `0.2.4-the-commands-for-the-middle` already
       validates, so the format is proven against this repo.
-- [?] T5 | Decide whether the board tool is a committed dependency here. Verify:
-      either `pyproject.toml` names it WITHOUT a machine-specific absolute path,
-      or it does not name it and the tool is invoked from its own checkout. It
-      was left uncommitted on 2026-08-29 for exactly that reason.
-- [ ] T6 | Unblock the writes the board tool now refuses. Verify: `job-board
-      todo supersede-remaining` completes on this board. MEASURED 2026-08-30: it
+- [-] T5 | Moot: Process #149 uses job-board as an installed command; pyproject.toml does not name it; verified at HEAD | 67184ac1 | Decide
+      whether the board tool is a committed dependency here. Verify: either
+      `pyproject.toml` names it WITHOUT a machine-specific absolute path, or it
+      does not name it and the tool is invoked from its own checkout. It was
+      left uncommitted on 2026-08-29 for exactly that reason.
+- [x] T6 | The refusal's condition (header disagrees with its boxes) matches 0 files (scan); verified at HEAD | 67184ac1 | Unblock
+      the writes the board tool now refuses. Verify: `job-board todo
+      supersede-remaining` completes on this board. MEASURED 2026-08-30: it
       refuses with "56 file(s) state what their own boxes cannot, so a write
       would silently drop it" -- each carrying a hand-set Requires-Roy true with
       no task marked as owing a decision. The flag is DERIVED in that tool, so

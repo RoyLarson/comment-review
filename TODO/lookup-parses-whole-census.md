@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 4 of 14 tasks closed
+Progress: 11 of 14 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-23 (Roy, 2026-08-23: if we pulled on a BIG project and had to do this
@@ -85,29 +85,35 @@ one, written where `addresser.py` states the hashed-static-table dependency.
 - [ ] T1 | T1 -- Batch the lookups: `--anchor` and `--resolve` take one value
       each. Verify: one invocation answers N addresses, and N=10 costs less than
       10 calls.
-- [ ] T2 | T2 -- Give the binder a CLI that is not the census builder. Verify: a
-      command returns ONE page without building the other 18 files' pages.
-- [ ] T3 | T3 -- Retire address lookup from the census builder once T2 lands.
-      Verify: `census.py --help` no longer advertises address lookup.
-- [ ] T4 | T4 -- Stop the chain as soon as the addresser can answer. Verify:
-      resolving one address in a 19-file scope reads fewer than 19 files, reads
-      counted.
+- [x] T2 | flows/addresses.py:47-55 _page reads one page; no binder is read; verified at HEAD | 67184ac1 | T2
+      -- Give the binder a CLI that is not the census builder. Verify: a command
+      returns ONE page without building the other 18 files' pages.
+- [x] T3 | census.py deleted in 68bfc548; address lookup is its own command, commands/addresses.py | 68bfc548 | T3
+      -- Retire address lookup from the census builder once T2 lands. Verify:
+      `census.py --help` no longer advertises address lookup.
+- [x] T4 | Resolving one address reads only the file it names (flows/addresses.py:111-117); verified at HEAD | 67184ac1 | T4
+      -- Stop the chain as soon as the addresser can answer. Verify: resolving
+      one address in a 19-file scope reads fewer than 19 files, reads counted.
 - [ ] T5 | T5 -- Substep the LEXER so it stops at the requested spot inside a
       file. Verify: an address near the top of a 987-line file lexes fewer lines
       than a late one.
 - [ ] T6 | T6 -- Substep the ADDRESSER so it stops walking at the requested
       place. Verify: resolving an early address builds fewer places than a late
       one.
-- [ ] T7 | T7 -- Return the page's whole address list in ONE call. Verify: one
+- [x] T7 | page_for builds every place with no records; gather --include-absent returns them all; verified at HEAD | 67184ac1 | T7
+      -- Return the page's whole address list in ONE call. Verify: one
       invocation returns every address on a page, and builds no records.
-- [ ] T8 | T8 -- Filter the reviewers' records from T7's list, not inside the
-      walk. Verify: a reviewer gets a subset of the one-call list.
-- [ ] T9 | T9 -- Write what happens when the early chain disagrees with the
-      census, beside `addresser.py`'s hashed-static-table dependency. Verify:
-      the rule is in that file.
-- [ ] T10 | T10 -- Test the rule T9 states. Verify: a test changes a file
-      between census and lookup and asserts the stated behaviour, and fails if
-      the behaviour changes.
+- [x] T8 | bind redacts empty places by default (RedactedPage.of, binder.py:96-103, Process #15); verified at HEAD | 67184ac1 | T8
+      -- Filter the reviewers' records from T7's list, not inside the walk.
+      Verify: a reviewer gets a subset of the one-call list.
+- [-] T9 | No census to disagree with; lookup reads the file now (#96, #111); no drift check (#62); verified at HEAD | 67184ac1 | T9
+      -- Write what happens when the early chain disagrees with the census,
+      beside `addresser.py`'s hashed-static-table dependency. Verify: the rule
+      is in that file.
+- [-] T10 | T9 is obsolete, so there is no rule for T10 to test; verified at HEAD | 67184ac1 | T10
+      -- Test the rule T9 states. Verify: a test changes a file between census
+      and lookup and asserts the stated behaviour, and fails if the behaviour
+      changes.
 - [x] T11 | FINISHED | unknown | T11 -- MEASUREMENT, not a checkpoint. The 0.28
       s lookup and its split are in the Objective, with the tree they were taken
       on.

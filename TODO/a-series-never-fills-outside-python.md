@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 21 of 23 tasks closed
+Progress: 22 of 23 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-21 (the /code-review xhigh of 2026-08-21, focused on the file-to-
@@ -214,7 +214,8 @@ a row is wrong the moment its justification cites another row.
 - [-] T21 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | Make
       a0 fillable on rows whose module doc is a plain comment
         > 2026-10-26 Go a0 // Package p does. reads back as f0 matter
-- [ ] T22 | Make a0 fillable when a module doc sits above the first declaration
+- [-] T22 | Java evidence left with #259 (e2b34a22); a0 above a first declaration reads back at a0 in Python and Rust | e2b34a22 | Make
+      a0 fillable when a module doc sits above the first declaration
         > 2026-10-26 Java a0 /** Module. */ above class A reads back as a1
 - [ ] T23 | Refuse Rust text set at a0 that does not open with the module-doc
       form `//!`

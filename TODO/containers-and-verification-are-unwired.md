@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 38 of 61 tasks closed
+Progress: 47 of 61 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, Roy ruling that containers are wired and that the
@@ -143,7 +143,8 @@ task 9 of [`move-is-a-composite-mark`](move-is-a-composite-mark.md).
       censused from revise 1 while the first names revise 0 is refused by name
       -- today it returns zero problems, while `gather` raises `MismatchedRoot`
       on the identical two copies.
-- [ ] T8 | Update the two sentences in `desk/containers.py` that describe
+- [x] T8 | master_proof.py:23-26 attributes first-copy to the bus and states the no-copies case; verified at HEAD | 67184ac1 | Update
+      the two sentences in `desk/containers.py` that describe
       `desk.proof.gather`'s check as this parse's -- the prose at lines 197-202
       and the `MasterProof.read_from` declaration at 94-96. Verify: no sentence
       in the file says the parse takes `read_from` from the first copy or
@@ -158,28 +159,30 @@ task 9 of [`move-is-a-composite-mark`](move-is-a-composite-mark.md).
         > 2026-08-31 Roy: sha_of is hashlib over the TEXT, not a git sha
         > 2026-08-31 a non-repo tree is NOT why an empty sha exists
         > 2026-08-31 open: admit an absent key at all? no producer writes one
-- [ ] T10 | Update `desk/containers.py` so its stated contract and its behaviour
-      agree: either report one message per broken header rule the way
-      `desk.mark.parse` does, or amend the module docstring at lines 17-20.
-      Verify: `parse_sheet("s", {"path": None, "marks": "nope"})` returns two
-      messages, or no sentence in the file claims `desk.mark.parse`'s
-      accumulating contract -- today it returns one message under a docstring
-      claiming the other.
-- [ ] T11 | Update `parse_edit_copy` and `flows.collate._chief_copy` so an empty
-      `read_from` is decided in one place. Verify: the chief that
-      `collate(stage, [], binder)` builds round-trips through `parse_edit_copy`
-      with no problems, and the proof `desk.proof.gather("4c", [])` writes still
-      parses -- today the first is refused by name and the second accepted, one
-      stage apart.
+- [x] T10 | No sentence in sheet.py claims an accumulating contract, which the Verify accepts; verified at HEAD | 67184ac1 | Update
+      `desk/containers.py` so its stated contract and its behaviour agree:
+      either report one message per broken header rule the way `desk.mark.parse`
+      does, or amend the module docstring at lines 17-20. Verify:
+      `parse_sheet("s", {"path": None, "marks": "nope"})` returns two messages,
+      or no sentence in the file claims `desk.mark.parse`'s accumulating
+      contract -- today it returns one message under a docstring claiming the
+      other.
+- [-] T11 | The chief copy _chief_copy built was retired in 4d43e9fe (#184); rule now in read_from.py:12-43 | 4d43e9fe | Update
+      `parse_edit_copy` and `flows.collate._chief_copy` so an empty `read_from`
+      is decided in one place. Verify: the chief that `collate(stage, [],
+      binder)` builds round-trips through `parse_edit_copy` with no problems,
+      and the proof `desk.proof.gather("4c", [])` writes still parses -- today
+      the first is refused by name and the second accepted, one stage apart.
 - [ ] T12 | Update `tests/test_containers.py:167` so it derives the
       field-earns-itself property instead of asserting `"rounds" not in names`.
       Verify: adding `Sheet.round_count: int = 0` that nothing reads turns the
       test red -- today it passes.
-- [ ] T13 | Implement the test that hands a real `flows.collate._chief_copy`
-      output to `desk.containers.parse_edit_copy`. Verify: the test exists and
-      goes red today on the empty-`read_from` refusal;
-      `tests/test_containers.py:56` builds its chief by relabelling a seed copy,
-      so nothing in the suite parses a chief the flow actually built.
+- [-] T13 | flows.collate._chief_copy no longer exists (#183, #184, 4d43e9fe) | 4d43e9fe | Implement
+      the test that hands a real `flows.collate._chief_copy` output to
+      `desk.containers.parse_edit_copy`. Verify: the test exists and goes red
+      today on the empty-`read_from` refusal; `tests/test_containers.py:56`
+      builds its chief by relabelling a seed copy, so nothing in the suite
+      parses a chief the flow actually built.
 - [ ] T14 | Update `parse_master_proof` so `MasterProof.stage` is held to the
       same rule as `Sheet.path` and `EditCopy.role`, or delete the field where
       the `where` argument already carries the label. Verify:
@@ -217,16 +220,18 @@ task 9 of [`move-is-a-composite-mark`](move-is-a-composite-mark.md).
       message. Verify: a proof whose `read_from` carries an extra key but the
       same `root` and `revise` is accepted, and the refusal names what has to
       match -- today `!=` refuses it and says only "disagrees".
-- [ ] T21 | Update the module docstring's builder list at lines 13-14 to name
+- [-] T21 | The builder enumeration went with containers.py in the split at 64d8931c | 64d8931c | Update
+      the module docstring's builder list at lines 13-14 to name
       `flows.collate._chief_copy`. Verify: every builder of an `EditCopy` in
       `src/` appears in that closed enumeration, checked with `grep -rn
       '"sheets"' src/comment_review/`.
-- [ ] T22 | Update `Sheet.marks`' declaration, which reads "one entry per place
-      on the page, as they came back". Verify: the sentence says what a move
-      does to that count today -- `desk.collator._join_moves` carries one `Mark`
-      under two keys and `_chief_copy` dedups on `id(mark)`, so the sheet holds
-      `n` entries for `n+1` ruled places -- and names `move-is-a-composite-mark`
-      as what makes it true again.
+- [-] T22 | _join_moves is gone (grep); verified at HEAD | 67184ac1 | Update
+      `Sheet.marks`' declaration, which reads "one entry per place on the page,
+      as they came back". Verify: the sentence says what a move does to that
+      count today -- `desk.collator._join_moves` carries one `Mark` under two
+      keys and `_chief_copy` dedups on `id(mark)`, so the sheet holds `n`
+      entries for `n+1` ruled places -- and names `move-is-a-composite-mark` as
+      what makes it true again.
 - [x] T23 | the read_from shape check no longer hides inside if copies; six junk values refused | 6bb8f8e | Update
       `parse_master_proof` so `_read_from_problem` runs when `edit_copies` is
       empty, where any value is admitted today
@@ -248,8 +253,9 @@ task 9 of [`move-is-a-composite-mark`](move-is-a-composite-mark.md).
         > 2026-08-31 measured 2026-08-31: 29 signatures in the middle carry a raw dict
         > 2026-08-31 3 lines in the whole middle construct a container object
         > 2026-11-10 7532381b: rulings and answers still reach the bus as raw dicts
-- [ ] T27 | Implement the serialize half on each container, so the save step is
-      json.dumps over what a container hands out
+- [x] T27 | Every container in desk/proof has serialize (8 counted); verified at HEAD | 67184ac1 | Implement
+      the serialize half on each container, so the save step is json.dumps over
+      what a container hands out
 - [x] T28 | SUPERSEDED by Process #66 -- a seed is an empty form, so it cannot be the container | df7e0da | Update
       Sheet.seed, EditCopy.seed and MasterProof.seed to return the container,
       splitting seed from serialize as Mark already does
@@ -265,9 +271,10 @@ task 9 of [`move-is-a-composite-mark`](move-is-a-composite-mark.md).
       Docket
         > 2026-08-31 Roy 2026-08-31: flows reach into containers, containers do not
         > 2026-08-31 Includes the Binder TYPE on collator, not only the construction
-- [ ] T31 | Move the read_from shape check off binder.binder, where it is
-      private, so the desk containers stop importing another area's underscore
-      name for a rule three areas own
+- [x] T31 | ef172e66 moved the check to public comment_review/read_from.py; no desk module imports a binder _name | ef172e66 | Move
+      the read_from shape check off binder.binder, where it is private, so the
+      desk containers stop importing another area's underscore name for a rule
+      three areas own
         > 2026-08-31 read_from sits on a binder, an edit_copy and a master_proof
 - [ ] T32 | Update the compositor so a flow hands it the page, not
       results/compositor.py importing Page and page_for from the read end
@@ -332,8 +339,9 @@ task 9 of [`move-is-a-composite-mark`](move-is-a-composite-mark.md).
         > 2026-09-01 Roy 2026-09-01, on why the master_proof question cannot be settled
         > 2026-09-01 yet: we have not fully specified the intermediate stage artifacts
         > 2026-09-01 and how that is resolved. T37 waits on this, not the other way.
-- [ ] T43 | Implement the Reconciled entry the way T36 rules it -- a container,
-      or a dict whose staying is recorded
+- [-] T43 | Old middle deleted (#183); re-read and escalation are Place/State and Question in desk/proof; verified at HEAD | 67184ac1 | Implement
+      the Reconciled entry the way T36 rules it -- a container, or a dict whose
+      staying is recorded
         > 2026-09-02 Follows T36's ruling; it cannot start before the answer exists
         > 2026-09-02 Process 71 filed the type as needing its purpose named before code
         > 2026-09-13 Process 141: a container; the purpose is recorded there

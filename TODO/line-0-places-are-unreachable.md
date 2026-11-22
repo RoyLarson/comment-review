@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 4 of 7 tasks closed
+Progress: 5 of 7 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-19 (the seven-agent address review, 2026-08-19)
@@ -89,9 +89,10 @@ it.
 - [ ] T5 | T5 -- Print each place where it belongs, not where its span sorts.
       Verify: on `sample.py` `@b0` prints above `@a0`'s anchor, and no `0-0` row
       sorts first.
-- [ ] T6 | T6 -- Stop `--filtered` collapsing scattered places into a range
-      naming a place it excludes. Verify: it lists the addresses, or names a
-      range holding only those.
+- [-] T6 | --filtered does not exist in src or src/plugin; the listing went with census.py; verified at HEAD | 67184ac1 | T6
+      -- Stop `--filtered` collapsing scattered places into a range naming a
+      place it excludes. Verify: it lists the addresses, or names a range
+      holding only those.
 - [ ] T7 | Correct the 'as gathered' wording for `addresses find --line` to the
       file as read now
         > 2026-11-22 Check: --help and place_at's docstring say the file is read now

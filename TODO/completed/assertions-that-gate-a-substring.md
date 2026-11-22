@@ -1,8 +1,8 @@
 # Ten assertions gate a substring or an incidental field, not the property
 
 ```
-Status:   open
-Progress: 5 of 10 tasks closed
+Status:   closed
+Progress: 10 of 10 tasks closed
 Owner:    testing
 Requires-Roy: false
 Raised:   2026-08-20 (the branch review of 2026-08-20)
@@ -112,22 +112,26 @@ the removed check has no replacement.
 - [x] T4 | FINISHED | unknown | T4 -- SUPERSEDED 2026-08-23. The test and the
       text-report parser it exercised were removed in `2a86573`; the malformed
       cases are covered by `held.load_report`.
-- [ ] T5 | T5 -- Gate the COUNT, not the digit, at `test_run_context.py:99`.
-      Verify: the docstring mutation recorded in the Objective turns the test
-      red.
-- [ ] T6 | T6 -- Gate the READS, not the spelling of one call, at
-      `test_cues.py:666`. Verify: a second `open()` read of an arbitrary path in
-      `addresser.py` turns the test red.
-- [ ] T7 | T7 -- Match the UNIT in `test_todo_counts_agree.py:64-66`, so a
-      non-`tasks` unit cannot skip both checks. Verify: change a `Progress:`
-      unit and a test goes red.
+- [-] T5 | test_run_context.py and run_context are gone (grep); no count left to gate; verified at HEAD | 67184ac1 | T5
+      -- Gate the COUNT, not the digit, at `test_run_context.py:99`. Verify: the
+      docstring mutation recorded in the Objective turns the test red.
+- [-] T6 | test_cues.py and the census are gone; reading/addresser.py does no file I/O; verified at HEAD | 67184ac1 | T6
+      -- Gate the READS, not the spelling of one call, at `test_cues.py:666`.
+      Verify: a second `open()` read of an arbitrary path in `addresser.py`
+      turns the test red.
+- [-] T7 | 853efd88 deleted test_todo_counts_agree.py; the tool owns the invariant | 853efd88 | T7
+      -- Match the UNIT in `test_todo_counts_agree.py:64-66`, so a non-`tasks`
+      unit cannot skip both checks. Verify: change a `Progress:` unit and a test
+      goes red.
 - [-] T8 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | T8
       -- Run the keyword scan over real lines in `test_declarations.py:313-319`,
       not `""`. Verify: `_declares_here` returning False always turns the class
       red.
-- [ ] T9 | T9 -- Make `TestAStaleCensusIsRefused` assert the exit code its
-      docstring claims, or stop the docstring claiming it. Verify: `--check`
-      exits 2, or `2` is not named.
-- [ ] T10 | T10 -- Write `TestClaimAgainstTheCensus`, or stop
-      `test_verdicts.py:664-668` naming it. Verify: the class fails on a
-      misattached finding, or the name is gone.
+- [-] T9 | TestAStaleCensusIsRefused and the census are gone; the middle has no drift check (Process #62); verified at HEAD | 67184ac1 | T9
+      -- Make `TestAStaleCensusIsRefused` assert the exit code its docstring
+      claims, or stop the docstring claiming it. Verify: `--check` exits 2, or
+      `2` is not named.
+- [-] T10 | TestClaimAgainstTheCensus is named nowhere; misattached marks refused at flows/verify.py:134-258; verified at HEAD | 67184ac1 | T10
+      -- Write `TestClaimAgainstTheCensus`, or stop `test_verdicts.py:664-668`
+      naming it. Verify: the class fails on a misattached finding, or the name
+      is gone.

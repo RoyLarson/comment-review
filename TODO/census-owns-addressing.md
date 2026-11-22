@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 4 of 8 tasks closed
+Progress: 5 of 8 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-19 (Roy, 2026-08-19: 'this is because the census is doing the
@@ -94,9 +94,10 @@ reading code it must search anyway.
 - [ ] T6 | T6 -- Run `module-context` over `page.py`, which says what a page and
       a paragraph are. Verify: the report returns no more-than-one-subject
       finding for that module.
-- [ ] T7 | T7 -- Run `module-context` over `census.py` -- which prose occupies
-      which address. Verify: the report returns no more-than-one-subject finding
-      for that module.
+- [-] T7 | census.py was deleted in 68bfc548; nothing left to review | 68bfc548 | T7
+      -- Run `module-context` over `census.py` -- which prose occupies which
+      address. Verify: the report returns no more-than-one-subject finding for
+      that module.
 - [ ] T8 | T8 -- Run `module-context` over `galley.py`, which sets the proposed
       text. Verify: the report returns no more-than-one-subject finding for that
       module.

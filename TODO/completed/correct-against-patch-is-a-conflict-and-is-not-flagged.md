@@ -1,8 +1,8 @@
 # `correct` against `patch` is a conflict, and the gate does not flag it
 
 ```
-Status:   decision-needed
-Progress: 1 of 3 tasks closed
+Status:   closed
+Progress: 3 of 3 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-08-17 (the first end-to-end cycle run; block 1 of galley.py)
@@ -64,11 +64,13 @@ finding total matched. It is owed whichever way T1 is ruled.
       -- * Rule whether `correct` + `patch` on ONE SENTENCE enters the
       `RE-REVIEW` set; the three answers are in the Objective. Verify: recorded
       in `docs/decision-log.md`.
-- [ ] T2 | T2 -- Count blocks where `correct` and `patch` overlap, against the 8
-      the current rule flags. Verify: both numbers written here, naming the run.
-- [ ] T3 | T3 -- Make the collator print a discarded edit and the role that lost
-      it. Verify: the report names the dropped edit, with a test that fails
-      without it.
+- [-] T2 | contradictions() is gone; Process #272 sends every same-address edit back for review; verified at HEAD | 67184ac1 | T2
+      -- Count blocks where `correct` and `patch` overlap, against the 8 the
+      current rule flags. Verify: both numbers written here, naming the run.
+- [-] T3 | Nothing discarded: correct vs patch is CONTESTED, both kept and owed (passes.py:521-533); verified at HEAD | 67184ac1 | T3
+      -- Make the collator print a discarded edit and the role that lost it.
+      Verify: the report names the dropped edit, with a test that fails without
+      it.
 
 ## Related
 

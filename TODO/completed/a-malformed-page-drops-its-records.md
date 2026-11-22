@@ -1,8 +1,8 @@
 # A page entry that is not an object loses every record under it, silently
 
 ```
-Status:   open
-Progress: 1 of 5 tasks closed
+Status:   closed
+Progress: 5 of 5 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-21 (the /code-review xhigh of 2026-08-21, focused on the file-to-
@@ -42,18 +42,21 @@ fixer to the record's `place` field, which is where the fix goes.
 
 ## Tasks
 
-- [ ] T1 | T1 -- Report a page entry that is not an object instead of skipping
-      it at `record.py:829`. Verify: `record.py --check` prints a named line and
-      exits nonzero.
-- [ ] T2 | T2 -- Make `verdicts.py` name the PAGE for a malformed page entry.
-      Verify: it no longer charges the reviewer a coverage gap for the records
-      under it.
-- [ ] T3 | T3 -- Pin both with a test, the treatment `held.py:136` already gives
-      a non-object RECORD. Verify: the test fails against `record.py:829` as it
+- [x] T1 | Non-object sheet refused by name, desk/proof/sheet.py:259-260 and edit_copy.py:149-165; verified at HEAD | 67184ac1 | T1
+      -- Report a page entry that is not an object instead of skipping it at
+      `record.py:829`. Verify: `record.py --check` prints a named line and exits
+      nonzero.
+- [-] T2 | verdicts.py is gone; a copy with a bad sheet is refused whole at parse (edit_copy.py:164-165); verified at HEAD | 67184ac1 | T2
+      -- Make `verdicts.py` name the PAGE for a malformed page entry. Verify: it
+      no longer charges the reviewer a coverage gap for the records under it.
+- [x] T3 | Pinned by tests/test_containers.py:216 and :292 (every bad sheet reported); verified at HEAD | 67184ac1 | T3
+      -- Pin both with a test, the treatment `held.py:136` already gives a
+      non-object RECORD. Verify: the test fails against `record.py:829` as it
       reads today.
-- [ ] T4 | T4 -- Make `held.held_records`' docstring account for the PAGE level,
-      not the record level alone. Verify: it states what the function does at
-      both, and matches T1.
+- [-] T4 | held.py and every_record are gone (grep empty); verified at HEAD | 67184ac1 | T4
+      -- Make `held.held_records`' docstring account for the PAGE level, not the
+      record level alone. Verify: it states what the function does at both, and
+      matches T1.
 - [x] T5 | FINISHED | unknown | T5 -- NOT A TASK. A record under a page with no
       `page` key is already handled correctly; the box ended *"which is fine"*.
       Moved to the Objective.

@@ -1,8 +1,8 @@
 # A census row carries 19 fields and an empty place fills 7, with three different spellings of absent
 
 ```
-Status:   open
-Progress: 12 of 17 tasks closed
+Status:   closed
+Progress: 17 of 17 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (Roy, 2026-08-22, reading a census JSON: there are a lot of extra
@@ -250,14 +250,19 @@ re-parse. A set chosen for size alone would have refused it.
 - [x] T12 | MEASURED 2026-09-01: page.serialize gives keys path, rows, sha and a row gives anchor, cue, original_start, original_end, raw_text -- the path is on the envelope, stated once, and no row carries one. | cc23732 | T12
       -- Move `path` to a page envelope, stated once. Verify: no census row
       carries a `path`.
-- [ ] T13 | T13 -- Delete the nine other ruled fields. Verify: a `--json` row
-      holds only `cue`, `anchor`, `anchor_num`, `original_start`,
-      `original_end`, `raw_text`.
-- [ ] T14 | T14 -- Rename `raw_lines` to `raw_text` and make it ONE STRING.
-      Verify: a CRLF fixture keeps its line endings through a census and back.
-- [ ] T15 | T17 -- Assert no shipped emit hands a reviewer a paragraph as
-      fragments. Verify: no field a role reads holds a list of lines.
-- [ ] T16 | T15 -- Reduce `address` to the cue. Verify: no row repeats the file
-      the page envelope already names.
-- [ ] T17 | T16 -- Move `compositor`'s five `text` readers onto `raw_text`.
-      Verify: no shipped script reads a `text` field.
+- [x] T13 | Rows carry exactly WIRE_FIELDS (binder/page.py:62-65), written by _place (Addressing #16); verified at HEAD | 67184ac1 | T13
+      -- Delete the nine other ruled fields. Verify: a `--json` row holds only
+      `cue`, `anchor`, `anchor_num`, `original_start`, `original_end`,
+      `raw_text`.
+- [x] T14 | raw_text is one string (page.py:178, test_binder.py:172-177); CRLF comes back from page.text; verified at HEAD | 67184ac1 | T14
+      -- Rename `raw_lines` to `raw_text` and make it ONE STRING. Verify: a CRLF
+      fixture keeps its line endings through a census and back.
+- [x] T15 | tests/test_binder.py:172-177 asserts each row's raw_text is a str; no raw_lines in desk/; verified at HEAD | 67184ac1 | T17
+      -- Assert no shipped emit hands a reviewer a paragraph as fragments.
+      Verify: no field a role reads holds a list of lines.
+- [x] T16 | Rows carry cue, path sits once on the page; tests/test_binder.py:150-151 asserts no row path; verified at HEAD | 67184ac1 | T15
+      -- Reduce `address` to the cue. Verify: no row repeats the file the page
+      envelope already names.
+- [x] T17 | results/compositor.py reads no paragraph text field, only page.text (:141, :143, :307, :332); verified at HEAD | 67184ac1 | T16
+      -- Move `compositor`'s five `text` readers onto `raw_text`. Verify: no
+      shipped script reads a `text` field.

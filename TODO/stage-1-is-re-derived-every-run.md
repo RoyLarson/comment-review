@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 1 of 15 tasks closed
+Progress: 5 of 15 tasks closed
 Owner:    agents
 Requires-Roy: true
 Raised:   2026-08-17 (two full runs in one session, on two repos; stage 1 was established
@@ -129,11 +129,12 @@ ways -- a cap published since the last run, a `docs/` tree deleted since.
 
 ## Tasks
 
-- [?] T1 | T1 -- * Decide whether 1.7 and 1.8 collapse into ONE substep, which renumbers
+- [-] T1 | Moot: substep 1.8 was removed in c68a61a4, so there is nothing to collapse | c68a61a4 | T1
+      -- * Decide whether 1.7 and 1.8 collapse into ONE substep, which renumbers
       every substep below them. Verify: the answer is in `docs/decision-log.md`.
-- [ ] T2 | T2 -- Re-resolve every citation of the old substep numbers once T1
-      lands. Verify: `grep -rn "1\.8" plugins/` is empty or points at the new
-      number.
+- [-] T2 | No 1.7/1.8 citation under src/plugin or plugins after c68a61a4 (git grep empty) | c68a61a4 | T2
+      -- Re-resolve every citation of the old substep numbers once T1 lands.
+      Verify: `grep -rn "1\.8" plugins/` is empty or points at the new number.
 - [?] T3 | T3 -- * Rule whether the skill probes for `.codegraph/` alongside the
       LSP probe. Verify: the probe is in `SKILL.md`, or this file records the
       refusal and why.
@@ -143,9 +144,10 @@ ways -- a cap published since the last run, a `docs/` tree deleted since.
 - [?] T5 | T5 -- * Rule whether `codegraph_explore` is a sanctioned way to
       settle a LIVENESS claim. Verify: the answer is recorded in `SKILL.md` or
       in this file.
-- [ ] T6 | T6 -- State the three structure states PER SOURCE rather than per
-      run. Verify: every row of the `SKILL.md` structure table names the source
-      it is about.
+- [-] T6 | The per-run structure-state table was removed in c68a61a4 | c68a61a4 | T6
+      -- State the three structure states PER SOURCE rather than per run.
+      Verify: every row of the `SKILL.md` structure table names the source it is
+      about.
 - [ ] T7 | T7 -- Name `.claude/comment-review/` in `SKILL.md` 1.5 as where a
       sheet is found and written. Verify: `grep -rn "\.claude/comment-review"
       plugins/` returns that line.
@@ -168,5 +170,5 @@ ways -- a cap published since the last run, a `docs/` tree deleted since.
 - [x] T14 | FINISHED | unknown | T14 -- RULED 2026-08-17, in the Objective:
       `.claude/comment-review/` in the repo under review, Roy's words. The
       ruling is made; implementing it is T7.
-- [ ] T15 | Collapse 1.7 and 1.8 into one substep named for what it does, once
-      T1 rules it
+- [-] T15 | The 1.7/1.8 collapse happened in c68a61a4 | c68a61a4 | Collapse 1.7
+      and 1.8 into one substep named for what it does, once T1 rules it

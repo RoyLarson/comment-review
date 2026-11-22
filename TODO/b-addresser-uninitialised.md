@@ -2,9 +2,9 @@
 
 ```
 Status:   in-progress
-Progress: 16 of 18 tasks closed
+Progress: 17 of 18 tasks closed
 Owner:    backend
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-19 (the python_edge_cases.md run, 2026-08-19 -- b1 unresolvable on the
           finished file)
 Ruled:    2026-08-19 — the cues -- not the census -- makes the full address. Roy:
@@ -220,9 +220,10 @@ run restamps that run as a licence header -- is the same run's second defect and
       the application order is f0, a0, then a -> b -> c. Kept in the Objective.
 - [x] T14 | FINISHED | unknown | T14 -- DONE, by deletion. `grep -n overlaps
       galley.py` finds only the `--out`/ `--repo` path check.
-- [?] T15 | T15 -- * RULE whether the marks in
-      `tests/fixtures/python_edge_cases.md` shift to the current numbering.
-      Verify: the ruling is recorded in `docs/decision-log.md`.
+- [-] T15 | Moot: tests/fixtures/python_edge_cases.md was deleted in b50e7a43; no marks left to shift | b50e7a43 | T15
+      -- * RULE whether the marks in `tests/fixtures/python_edge_cases.md` shift
+      to the current numbering. Verify: the ruling is recorded in
+      `docs/decision-log.md`.
 - [-] T16 | SUPERSEDED: test_edge_cases.py left with the old suite | b50e7a43 | T16
       -- Make `test_every_b_the_marks_name_exists`
       (`tests/test_edge_cases.py:81`) assert each mark's ANCHOR. Verify: shift

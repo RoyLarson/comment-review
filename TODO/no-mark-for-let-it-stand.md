@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 13 of 16 tasks closed
+Progress: 14 of 16 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-08-21 (Roy, 2026-08-21, on leading and matter both being categories
@@ -133,8 +133,9 @@ the five series; this is the verdict vocabulary. It wants 0.2.4 or its own branc
 - [-] T5 | SUPERSEDED -- stet is the copy chief's, not a role's. Vocabulary 29 gives the chief taken_in, stet and recast; Process 22 gives a role hold, withdraw, correct and patch. Process 79: Process 9 named this box and was wrong to leave it open | 5369f8a | T5
       -- Make `verdicts.py` admit a `stet` record. Verify: a report carrying
       `stet` joins against the census without exiting nonzero.
-- [ ] T6 | T6 -- Measure the cost before building. Verify: the same page is run
-      twice and the number of identical proposals returned on the second run is
+- [-] T6 | Process #91: only accepted text persists, so a re-raised decline is by design; nothing to measure; verified at HEAD | 67184ac1 | T6
+      -- Measure the cost before building. Verify: the same page is run twice
+      and the number of identical proposals returned on the second run is
       written into this file.
 - [ ] T7 | T7 -- Check whether stage 8 REVIEW re-raises what 7a declined.
       Verify: a run with a mark declined at 7a is read at stage 8, and the

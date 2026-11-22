@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 5 of 9 tasks closed
+Progress: 6 of 9 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-21 (the /code-review xhigh of 2026-08-21, focused on the file-to-
@@ -79,7 +79,8 @@ the first statement rather than as a `trailing-comment`, and no anchor is the BO
         > 2026-10-30 Outcome 2026-10-30: edits moving the mark stay refused until T5, T6
         > 2026-10-31 Code review: a head add over a marked code line still lands
         > 2026-10-31 Code review: a head add over a marked code line still lands
-- [ ] T6 | Give a declaration on a marked line 1 its a
+- [x] T6 | BOM'd line-1 declarations have a1 and set and prove in Python and Rust (probe bom_a1.py); verified at HEAD | 67184ac1 | Give
+      a declaration on a marked line 1 its a
         > 2026-10-30 A7: \ufeffclass A {} gets no a; same at 0abe0010
 - [ ] T7 | Test the mark in the docstring branch at `python/projection.py:150`
 - [ ] T8 | Read with utf-8-sig at concordance/code_names.py:85, which feeds

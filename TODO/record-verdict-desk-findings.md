@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 9 of 14 tasks closed
+Progress: 13 of 14 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (/code-review high round 4, 2026-08-22 -- the findings OUTSIDE the
@@ -157,18 +157,22 @@ attributable to the edit rather than to the model. ! NOT RE-RUN 2026-08-23.
 - [x] T5 | FINISHED | unknown | T5 -- `verdicts.py` -- refuse an empty census
       instead of certifying it COMPLETE. Verify: the collator over an empty
       census exits nonzero and says what was missing.
-- [ ] T6 | T6 -- `desk.py` -- keep a blank line inside the SOURCE window from
-      collapsing to two spaces. Verify: an honest verbatim quote spanning a
-      blank line is admitted.
-- [ ] T7 | T7 -- `desk.py` -- stop reading a prose `to:` that names a decorated
-      accessor as an address claim. Verify: such a `move` is admitted.
-- [ ] T8 | T8 -- `desk.py` -- accept a real front-matter address in a `move`'s
-      `to:`. Verify: it passes the address check instead of being rejected.
+- [x] T6 | desk/collator.py:264-268 joins window lines without normalising (a3876c6e); blank-line quote passes | a3876c6e | T6
+      -- `desk.py` -- keep a blank line inside the SOURCE window from collapsing
+      to two spaces. Verify: an honest verbatim quote spanning a blank line is
+      admitted.
+- [-] T7 | Ruling #173 refuses a destination not path@cue (mark.py:613-622); the Verify contradicts it; verified at HEAD | 67184ac1 | T7
+      -- `desk.py` -- stop reading a prose `to:` that names a decorated accessor
+      as an address claim. Verify: such a `move` is admitted.
+- [x] T8 | m.py@f0 and pkg:m.py@f1 pass _names_a_place (mark.py:835-846), from 167c7f13 | 167c7f13 | T8
+      -- `desk.py` -- accept a real front-matter address in a `move`'s `to:`.
+      Verify: it passes the address check instead of being rejected.
 - [x] T9 | FINISHED | unknown | T9 -- `record.py` -- validate the verdict's
       shape before the `not in VERDICTS` test. Verify:
       `record_problems({"verdict": ["patch"]}, None)` returns a problem.
-- [ ] T10 | T10 -- `compositor.draft` -- identity-check the page BEFORE any
-      verdict is applied. Verify: `draft` refuses a page that does not set back
+- [-] T10 | Overtaken: proof_setter.py:483-500 rereads and proves every draft after writing; verified at HEAD | 67184ac1 | T10
+      -- `compositor.draft` -- identity-check the page BEFORE any verdict is
+      applied. Verify: `draft` refuses a page that does not set back
       identically.
 - [x] T11 | FINISHED | unknown | T11 -- FIXED 2026-08-23, re-confirmed.
       `record.py:1074` guards `report.get('pages')` with `isinstance(...,

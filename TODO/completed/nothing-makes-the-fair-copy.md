@@ -1,10 +1,10 @@
 # Nothing turns the collated marks into the paragraph the galley writes
 
 ```
-Status:   open
-Progress: 1 of 13 tasks closed
+Status:   closed
+Progress: 13 of 13 tasks closed
 Owner:    backend
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-24 (Roy: the galley only really needs this address gets this paragraph,
           and the system assumes verdicts and records are what it writes from)
 Updated:  2026-08-24 — THE CHAIN IS RULED END TO END -- decision-log.md Process: #14.
@@ -176,38 +176,48 @@ copy chief that ruled, so no single role is ever in a position to file it. ! Tha
 
 ## Tasks
 
-- [?] T1 | T1 -- * Decide the artifact's name and the module that makes it. Verify: the
+- [-] T1 | Moot: Vocabulary #14 named the artifact docket, made by flows/transcribe.py; fair copy not adopted; verified at HEAD | 67184ac1 | T1
+      -- * Decide the artifact's name and the module that makes it. Verify: the
       name is in `docs/vocabulary.md` and the file is renamed to it.
-- [ ] T2 | T2 -- Compose the marks on one address in the synthesis order.
-      Verify: two non-conflicting marks on one paragraph produce one text
-      carrying both.
-- [ ] T3 | T3 -- Send a contradiction to revise instead of composing it. Verify:
+- [x] T2 | Marks on one place compose: tests/test_bus.py:925, tests/test_answers.py:523, :549; verified at HEAD | 67184ac1 | T2
+      -- Compose the marks on one address in the synthesis order. Verify: two
+      non-conflicting marks on one paragraph produce one text carrying both.
+- [x] T3 | Conflicting proposals contest and go back: tests/test_passes.py:514, place.py:70-75; verified at HEAD | 67184ac1 | T3
+      -- Send a contradiction to revise instead of composing it. Verify:
       `correct` against `patch` on one sentence goes back to its filers and
       composes nothing.
-- [ ] T4 | T4 -- Carry the marks each paragraph answers. Verify: a mark that
-      reaches the collator and is named by no paragraph refuses the run.
-- [ ] T5 | T5 -- Emit what the galley already takes. Verify: the output is
-      `{address: text}` and the galley consumes it unmodified.
-- [ ] T6 | T6 -- Correct `galley.py:173`, which claims `--edits` is
-      machine-written. Verify: the sentence describes what exists.
-- [ ] T7 | T7 -- `agents` -- correct `SKILL.md:925`, *nothing between stage 5
-      and the galley converts*. Verify: it names the piece that does.
+- [x] T4 | Places built from every mark (flows/places.py:17-55); transcribe refuses unread marks; verified at HEAD | 67184ac1 | T4
+      -- Carry the marks each paragraph answers. Verify: a mark that reaches the
+      collator and is named by no paragraph refuses the run.
+- [x] T5 | Docket alterations are {cue, text} per schedule (docket/docket.py:1-8), consumed by proof; verified at HEAD | 67184ac1 | T5
+      -- Emit what the galley already takes. Verify: the output is `{address:
+      text}` and the galley consumes it unmodified.
+- [x] T6 | No machine-written sentence remains in src or plugins (git grep); verified at HEAD | 67184ac1 | T6
+      -- Correct `galley.py:173`, which claims `--edits` is machine-written.
+      Verify: the sentence describes what exists.
+- [x] T7 | No 'nothing between stage 5 and the galley converts' sentence in src/plugin (git grep); verified at HEAD | 67184ac1 | T7
+      -- `agents` -- correct `SKILL.md:925`, *nothing between stage 5 and the
+      galley converts*. Verify: it names the piece that does.
 - [x] T8 | FINISHED | unknown | T8 -- NAMED 2026-08-24: a mark carried into the
       text is `taken in`. In `docs/vocabulary.md` and `decision-log.md
       Vocabulary: #12`.
-- [ ] T9 | T9 -- Record `taken in` or not, for every mark on the artifact.
-      Verify: a mark that is neither taken in nor covered by a `stet` refuses
-      the run.
-- [ ] T10 | T10 -- Carry a `stet` onto the artifact. Verify: a paragraph the
-      copy chief ruled says so and names the marks that ruling settled.
-- [ ] T11 | T11 -- Rename `re-review` to `revise` in the 7 shipped files, 23
-      sites. Verify: `grep -rc re-review plugins/` returns nothing.
-- [ ] T12 | The desk takes each page sha FROM THE BINDER the agents read and
-      copies it onto that page schedule -- never from the file at docket-writing
-      time, which would make proof_setter staleness check compare the file
-      against itself
-- [ ] T13 | Pin that with a test the desk fails if it recomputes: build a
-      docket, change the file underneath, and assert the run REFUSES at verify
+- [-] T9 | Process #87 re-ruled taken in; the per-mark record is the master proof Place (place.py:57-63); verified at HEAD | 67184ac1 | T9
+      -- Record `taken in` or not, for every mark on the artifact. Verify: a
+      mark that is neither taken in nor covered by a `stet` refuses the run.
+- [-] T10 | Process #87 re-ruled stet; chief stet tracked in no-mark-for-let-it-stand.md; disposition on proof; verified at HEAD | 67184ac1 | T10
+      -- Carry a `stet` onto the artifact. Verify: a paragraph the copy chief
+      ruled says so and names the marks that ruling settled.
+- [-] T11 | Duplicate of re-review-is-retired-for-revise.md T4 and T5, which own the rename (Vocabulary #32); verified at HEAD | 67184ac1 | T11
+      -- Rename `re-review` to `revise` in the 7 shipped files, 23 sites.
+      Verify: `grep -rc re-review plugins/` returns nothing.
+- [x] T12 | docket_of takes the sha from the sheet; docket_of_proof refuses a page with none (transcribe.py); verified at HEAD | 67184ac1 | The
+      desk takes each page sha FROM THE BINDER the agents read and copies it
+      onto that page schedule -- never from the file at docket-writing time,
+      which would make proof_setter staleness check compare the file against
+      itself
+- [x] T13 | tests/test_review_write_boundaries.py:54-63 refuses a file changed after collation; verified at HEAD | 67184ac1 | Pin
+      that with a test the desk fails if it recomputes: build a docket, change
+      the file underneath, and assert the run REFUSES at verify
 
 ## Related
 

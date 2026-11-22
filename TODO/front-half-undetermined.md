@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 5 of 11 tasks closed
+Progress: 8 of 11 tasks closed
 Owner:    testing
 Requires-Roy: true
 Raised:   2026-08-22 (Roy, 2026-08-22: that whole system of from census to findings to
@@ -80,18 +80,21 @@ statement is one per boundary, with the fields NAMED, and every named field is e
 - [x] T3 | FINISHED | unknown | T3 -- NOT A TASK: the record/verdicts findings
       are filed on `record-and-verdicts-disagree` and deferred there. Restated
       in the Objective.
-- [?] T4 | T4 -- * **RULE WHAT A REVIEWER IS HANDED** -- which of the census
-      row's 19 fields the four roles need. Verify: the ruling names them and is
-      recorded in this file.
+- [x] T4 | Answered by Process #99 (reviewer gets binder and seeded copy) and #158 (row fields); verified at HEAD | 67184ac1 | T4
+      -- * **RULE WHAT A REVIEWER IS HANDED** -- which of the census row's 19
+      fields the four roles need. Verify: the ruling names them and is recorded
+      in this file.
 - [?] T5 | T5 -- * **RULE WHAT A FINDING IS**, `claim` included. Verify: the
       ruling is recorded in this file and `claim-fallback-is-unreachable` can
       move on it.
 - [?] T6 | T6 -- * **RULE WHAT THE COLLATOR CERTIFIES**, and where a coverage
       gap goes. Verify: the ruling is recorded in this file.
-- [?] T7 | T7 -- * Rule which of `record.py --check` and `verdicts.py` is right
-      where they disagree. Verify: the ruling is recorded in this file.
-- [ ] T8 | T8 -- **State what crosses CENSUS -> REVIEWER, with the fields
-      named.** Verify: each field is a key `census.py --json` emits or one this
+- [-] T7 | Moot: record.py --check and verdicts.py are prototype-only; marks go through one parse; verified at HEAD | 67184ac1 | T7
+      -- * Rule which of `record.py --check` and `verdicts.py` is right where
+      they disagree. Verify: the ruling is recorded in this file.
+- [-] T8 | No census.py --json; binder-row fields named by Addressing #12 and Process #158; verified at HEAD | 67184ac1 | T8
+      -- **State what crosses CENSUS -> REVIEWER, with the fields named.**
+      Verify: each field is a key `census.py --json` emits or one this
       determination adds.
 - [-] T9 | SUPERSEDED -- the RECORD end left src/ for prototype/original/; decision-log 14 replaced reviewer-record-verdict with the alteration chain | b50e7a4 | T9
       -- **State what crosses REVIEWER -> RECORD, with the fields named.**

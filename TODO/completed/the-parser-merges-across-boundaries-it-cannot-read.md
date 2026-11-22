@@ -1,8 +1,8 @@
 # The collator merges across a boundary it cannot read, and blames the neighbour
 
 ```
-Status:   in-progress
-Progress: 2 of 4 tasks closed
+Status:   closed
+Progress: 4 of 4 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-17, after three defects of one shape landed in a single day
@@ -94,12 +94,14 @@ from sloppiness, and a reviewer disagreeing with the gate ALONE is not it.
 - [x] T1 | FINISHED | unknown | T1 -- SUPERSEDED, not a task. The continuation
       branch it named was retired with the text record format. Kept in the
       Objective.
-- [ ] T2 | T2 -- Say what `removed_spans` does with a token it cannot align;
-      today `desk.py:831-837` absorbs it. Verify: the message names the
-      alignment, not a word.
-- [ ] T3 | T3 -- Add a test asserting the ERROR NAMES THE RIGHT THING, not
-      merely that one occurred. Verify: a test in `tests/test_verdicts.py` fails
-      if a neighbour is named.
+- [-] T2 | Token alignment gone; claims quote raw text, change derived by exact substring (rules.py:131-147); verified at HEAD | 67184ac1 | T2
+      -- Say what `removed_spans` does with a token it cannot align; today
+      `desk.py:831-837` absorbs it. Verify: the message names the alignment, not
+      a word.
+- [x] T3 | Tests pin the word named: test_marks_table.py:112, test_fold.py:256, test_passes.py:1053; verified at HEAD | 67184ac1 | T3
+      -- Add a test asserting the ERROR NAMES THE RIGHT THING, not merely that
+      one occurred. Verify: a test in `tests/test_verdicts.py` fails if a
+      neighbour is named.
 - [x] T4 | FINISHED | unknown | T4 -- FINISHED. The corroboration rule ships at
       `verdicts.py:62-65`. Kept in the Objective.
 ## Related

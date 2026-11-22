@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 12 of 21 tasks closed
+Progress: 18 of 21 tasks closed
 Owner:    agents
 Requires-Roy: true
 Raised:   2026-08-17, from `evidence/todo-tool-full-v0_2/proposals.md` (5) and
@@ -164,17 +164,21 @@ raised in conversation.
 
 ! In the order the evidence argues for.
 
-- [ ] T1 | T1 -- * Re-read P6's PLACEHOLDER HANDLING against the shipped galley.
-      Verify: a file:line here, and it is closed or filed to
-      `galley-and-compositor-write-path`.
-- [ ] T2 | T2 -- * Re-read P6's DROP SCOPING against the shipped galley. Verify:
+- [-] T1 | A quoting mark's change is derived from its claim (rules.py:63-107); a whole drop is empty; verified at HEAD | 67184ac1 | T1
+      -- * Re-read P6's PLACEHOLDER HANDLING against the shipped galley. Verify:
       a file:line here, and it is closed or filed to
       `galley-and-compositor-write-path`.
-- [ ] T3 | T3 -- * Re-read P6's COMMENT PREFIXES against the shipped compositor.
-      Verify: a file:line here, and it is closed or filed to
+- [-] T2 | SUPERSEDED by mark-defects.md T51: the defect lives on in flows/fill.py:535-539 | 393e3585 | T2
+      -- * Re-read P6's DROP SCOPING against the shipped galley. Verify: a
+      file:line here, and it is closed or filed to
       `galley-and-compositor-write-path`.
-- [ ] T4 | T4 -- * Re-read P6's INDENT FRAMING against the shipped compositor.
-      Verify: a file:line here, and it is closed or filed to
+- [x] T3 | Done on the closed plan 0.2.4-comment-unwrap-rewrap (mark-defects T32); verified at HEAD | 67184ac1 | T3
+      -- * Re-read P6's COMMENT PREFIXES against the shipped compositor. Verify:
+      a file:line here, and it is closed or filed to
+      `galley-and-compositor-write-path`.
+- [x] T4 | Done on a-block-does-not-say-where-its-text-starts, now in TODO/completed; verified at HEAD | 67184ac1 | T4
+      -- * Re-read P6's INDENT FRAMING against the shipped compositor. Verify: a
+      file:line here, and it is closed or filed to
       `galley-and-compositor-write-path`.
 - [?] T5 | T5 -- * Rule the two typed SOURCE shapes, `absence` and `count`,
       before the build. Verify: `docs/decision-log.md` records both shapes, key
@@ -182,11 +186,12 @@ raised in conversation.
 - [x] T6 | FINISHED | unknown | T6 -- SUPERSEDED. **P5 -- run the
       is-it-still-a-proposition check BEFORE the write.** It landed on both
       halves; the citations are in the Objective.
-- [ ] T7 | T7 -- Add a `scope` key to a `drop` record. Verify: `record.SHAPES`
-      declares it and a `drop` carries `"scope": "block"` or `"scope":
-      "sentence"`.
-- [ ] T8 | T8 -- Make the desk refuse a `drop` carrying no `scope`. Verify: a
-      test asserts the refusal and fails on today's code first.
+- [-] T7 | record.SHAPES is gone and no scope key is needed; the live defect is this file's T2; verified at HEAD | 67184ac1 | T7
+      -- Add a `scope` key to a `drop` record. Verify: `record.SHAPES` declares
+      it and a `drop` carries `"scope": "block"` or `"scope": "sentence"`.
+- [-] T8 | record.SHAPES is gone and no scope key is needed; the live defect is this file's T2; verified at HEAD | 67184ac1 | T8
+      -- Make the desk refuse a `drop` carrying no `scope`. Verify: a test
+      asserts the refusal and fails on today's code first.
 - [x] T9 | FINISHED | unknown | T9 -- SUPERSEDED. **P7 -- an `add` on an empty
       interval is an INSERTION.** The ruling and the measurement are in the
       Objective.

@@ -1,8 +1,8 @@
 # The bridge landed and the rewrite did not
 
 ```
-Status:   in-progress
-Progress: 8 of 11 tasks closed
+Status:   closed
+Progress: 11 of 11 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-17, by /simplify over the 0.2.3 branch
@@ -98,14 +98,16 @@ PASSED, because the cited line contained it. Fixed 2026-08-18 by putting both ha
       got wrong, so T10 is the copy that stays.
 - [x] T7 | FINISHED | unknown | T7 -- FINISHED `0599091`. `ANCHOR_EXAMPLE` is
       one string, held equal by two tests and verified by mutation.
-- [ ] T8 | T8 -- Move the census dict-unwrap into `census.py`, the module that
-      owns the format. Verify: no module outside `census.py` spells
-      `isinstance(..., dict)` on a census.
-- [ ] T9 | T9 -- Make all four census readers agree on a `{"paragraphs": [...]}`
-      census. Verify: all four load it, or all four refuse it with one message.
-- [ ] T10 | T10 -- Make `Finding.sources` a typed pair instead of a flattened
-      string. Verify: nothing splits on `\|`, and a cite containing `\|`
-      round-trips.
+- [x] T8 | Binder format has one owner, binder/binder.py; Binder.deserialize is its only reader (594b0045) | 594b0045 | T8
+      -- Move the census dict-unwrap into `census.py`, the module that owns the
+      format. Verify: no module outside `census.py` spells `isinstance(...,
+      dict)` on a census.
+- [x] T9 | Every flow loads through flows.proof_io.load_binder -> Binder.deserialize (594b0045) | 594b0045 | T9
+      -- Make all four census readers agree on a `{"paragraphs": [...]}` census.
+      Verify: all four load it, or all four refuse it with one message.
+- [-] T10 | Finding deleted with the old middle; a source is the TypedDict Source{cite, verbatim, ran} (61aa9fd7) | 61aa9fd7 | T10
+      -- Make `Finding.sources` a typed pair instead of a flattened string.
+      Verify: nothing splits on `\|`, and a cite containing `\|` round-trips.
 - [x] T11 | FINISHED | unknown | T11 -- Not a task, and its content is now in
       the Objective above: "IT IS FIVE READERS, NOT THREE" was a MEASUREMENT,
       and it was overtaken by the count of four.

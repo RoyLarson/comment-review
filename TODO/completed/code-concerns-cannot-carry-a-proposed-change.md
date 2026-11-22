@@ -1,11 +1,8 @@
 # code_concerns is a bare list of strings, so a code problem reaches no gate
 
 ```
-Status:   blocked (on the * ruling in a-role-with-no-code-out-damages-the-prose, which
-          decides the shape this must carry; and on a working grader -- 'effectiveness
-          unchanged' is a comparison and the-harness-cannot-run-the-system-it-grades is
-          open)
-Progress: 1 of 9 tasks closed
+Status:   closed
+Progress: 9 of 9 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-23 (2026-08-23, splitting a-role-with-no-code-out-damages-the-prose:
@@ -111,29 +108,36 @@ is carried below as a `*` box because it finishes the day it is answered.
 
 ## Tasks
 
-- [ ] T1 | T1 -- Define a code-concern SHAPE that carries a located proposal --
-      where, what and why. Verify: the shape is defined in exactly one file and
-      nothing else redefines it.
-- [ ] T2 | T2 -- Make `record.py --check` validate that shape. Verify: a
-      malformed `code_concerns` entry is refused and a well-formed one passes.
-- [ ] T3 | T3 -- Publish the same shape in the brief, where
-      `reviewer-brief.md:255` today says *"a list of strings, one line each, no
-      verdict"*. Verify: the brief matches T2.
-- [ ] T4 | T4 -- Remove the `str(c)` coercion at `held.py:190`, which flattens
-      an entry to its repr. Verify: a T1-shaped concern leaves
-      `held.parse_report` unflattened.
-- [ ] T5 | T5 -- Make `verdicts.py` read `code_concerns` and report every one it
-      was handed. Verify: two concerns in, two reported, and none dropped
-      silently.
-- [ ] T6 | T6 -- Prove the stage-5 gate CAN fail on a code concern. Verify: a
-      test refuses a bad concern, and fails when the new check is removed.
+- [-] T1 | Rejected by Process #199: a code change is never proposed as a mark; a concern is a query; verified at HEAD | 67184ac1 | T1
+      -- Define a code-concern SHAPE that carries a located proposal -- where,
+      what and why. Verify: the shape is defined in exactly one file and nothing
+      else redefines it.
+- [x] T2 | QueryMark validates claim.shape (desk/proof/mark.py:415-423); no code_concerns field; verified at HEAD | 67184ac1 | T2
+      -- Make `record.py --check` validate that shape. Verify: a malformed
+      `code_concerns` entry is refused and a well-formed one passes.
+- [x] T3 | reviewer-brief.md:318-347 publishes the query shape and its three answers; verified at HEAD | 67184ac1 | T3
+      -- Publish the same shape in the brief, where `reviewer-brief.md:255`
+      today says *"a list of strings, one line each, no verdict"*. Verify: the
+      brief matches T2.
+- [-] T4 | held.py exists only in prototype/original; verified at HEAD | 67184ac1 | T4
+      -- Remove the `str(c)` coercion at `held.py:190`, which flattens an entry
+      to its repr. Verify: a T1-shaped concern leaves `held.parse_report`
+      unflattened.
+- [x] T5 | Human-review query is UNSETTLABLE and carried (passes.py:310-314); listed at 7a (SKILL.md:479); verified at HEAD | 67184ac1 | T5
+      -- Make `verdicts.py` read `code_concerns` and report every one it was
+      handed. Verify: two concerns in, two reported, and none dropped silently.
+- [x] T6 | Pinned by tests/gates/test_smoke_fixture.py:724-730 and the refusal tests in test_bus.py; verified at HEAD | 67184ac1 | T6
+      -- Prove the stage-5 gate CAN fail on a code concern. Verify: a test
+      refuses a bad concern, and fails when the new check is removed.
 - [x] T7 | Ruled #272: a code concern is reported at an address, as now | e0a31457 | T7
       -- * RULE whether a code concern gets an ADDRESS from the census the way a
       finding does. Verify: the answer is here -- addressed, or deliberately
       not.
-- [ ] T8 | T8 -- Write into `references/review.md` what stage 8 does with a code
+- [-] T8 | Code concerns are answered at stage 5 and listed at 7a; stage 8 has no role in them; verified at HEAD | 67184ac1 | T8
+      -- Write into `references/review.md` what stage 8 does with a code
       concern. Verify: `review.md` names the handling, and `check_vocabulary.py`
       still passes.
-- [ ] T9 | T9 -- PASS CRITERION: run the graded set before and after this lands,
-      with NO agent file touched. Verify: the findings and verdicts are the same
-      in both runs.
+- [-] T9 | No graded set or grader exists (CLAUDE.md, There is no end-to-end grade); verified at HEAD | 67184ac1 | T9
+      -- PASS CRITERION: run the graded set before and after this lands, with NO
+      agent file touched. Verify: the findings and verdicts are the same in both
+      runs.

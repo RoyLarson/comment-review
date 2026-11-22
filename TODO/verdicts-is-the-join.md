@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 10 of 12 tasks closed
+Progress: 11 of 12 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (Roy, 2026-08-22: the term the agent keeps saying is the collator but
@@ -94,9 +94,10 @@ the boxes below track that it is owed.
 - [x] T3 | FINISHED -- tests/test_collator.py exists, tests/test_verdicts.py does not | a3876c6 | T3
       -- Rename `tests/test_verdicts.py` to match. Verify: discovery collects it
       under the new name and no file named `test_verdicts.py` remains.
-- [ ] T4 | T4 -- Update the command lines and citations in `SKILL.md`,
-      `CLAUDE.md` and `docs/`. Verify: `grep -rn "verdicts.py" plugins/ docs/
-      CLAUDE.md` returns nothing.
+- [-] T4 | verdicts.py moved to prototype/ in b50e7a43; no file left to rename | b50e7a43 | T4
+      -- Update the command lines and citations in `SKILL.md`, `CLAUDE.md` and
+      `docs/`. Verify: `grep -rn "verdicts.py" plugins/ docs/ CLAUDE.md` returns
+      nothing.
 - [x] T5 | FINISHED | unknown | T5 -- FINISHED 2026-08-22. The register was
       asked first, per `CLAUDE.md`'s rule that a new term comes from publishing
       before anywhere else; `join` is a database word.

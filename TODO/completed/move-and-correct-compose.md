@@ -1,8 +1,8 @@
 # `move` and `correct` COMPOSE, and the gate calls them a contradiction
 
 ```
-Status:   open
-Progress: 4 of 6 tasks closed
+Status:   closed
+Progress: 6 of 6 tasks closed
 Owner:    agents
 Raised:   2026-08-17 (the first full run of 0.1.7: 8 blocks flagged as contradictions,
           2 of them genuine)
@@ -85,12 +85,14 @@ is silent.
 
 ## Tasks
 
-- [ ] T1 | T1 -- Re-measure on a live `/comment-review` run over blocks holding
-      both `move` and `correct`. Verify: it reports 2 re-reviews where the
-      2026-08-17 run reported 8.
-- [ ] T2 | T2 -- Write T1's count into the re-review TODO linked in the
-      Objective, as the load that procedure carries. Verify: that file names the
-      count and the date it was taken.
+- [-] T1 | Re-review retired by Process #94; a move is a placement (desk/evaluate/move.py:73), no contradiction path; verified at HEAD | 67184ac1 | T1
+      -- Re-measure on a live `/comment-review` run over blocks holding both
+      `move` and `correct`. Verify: it reports 2 re-reviews where the 2026-08-17
+      run reported 8.
+- [-] T2 | Needs T1's count; the re-review TODO is completed and the procedure retired (Process #94); verified at HEAD | 67184ac1 | T2
+      -- Write T1's count into the re-review TODO linked in the Objective, as
+      the load that procedure carries. Verify: that file names the count and the
+      date it was taken.
 - [x] T3 | FINISHED | unknown | T3 -- DONE by group A, 2026-08-17, re-verified
       2026-08-23. `move` against `correct`/`patch` is not fatal and not a
       re-review. In the Objective.

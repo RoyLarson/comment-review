@@ -1,10 +1,10 @@
 # Nine measurements in shipped prose no longer match the tree
 
 ```
-Status:   open
-Progress: 1 of 6 tasks closed
+Status:   closed
+Progress: 6 of 6 tasks closed
 Owner:    testing
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-20 (the branch review of 2026-08-20)
 DOGFOOD:  2026-08-23 -- Same cluster as docstrings-that-contradict-themselves. A stale
           COUNT in shipped prose is block-context's state case by name -- a claim about
@@ -70,18 +70,23 @@ loses the reason the sentence exists.
 - [x] T1 | FINISHED | unknown | T1 -- FINISHED. The language count is corrected
       everywhere it shipped -- `vocabulary.toml:34`, `desk.py:384`, the tests.
       Kept in the Objective.
-- [ ] T2 | T2 -- Freeze the inventory above as the SCORING KEY before the run.
-      Verify: each row names its file:line, the claim verbatim, and a command
-      runnable from the repo root.
-- [ ] T3 | T3 -- Once v0.2.4 ships, run the shipped review over the five shipped
-      files holding the inventory's sites. Verify: a run dir holds a record per
-      role, naming those five.
-- [ ] T4 | T4 -- Score that run against T2's key -- sites flagged, sites missed,
-      and flags not in the key. Verify: the three numbers are written in this
-      file, with the run named.
-- [ ] T5 | T5 -- Apply what the run proposes and the human approves, through the
-      normal stages. Verify: each key site matches its command's output, and `uv
-      run pytest -q` is green.
-- [?] T6 | T6 -- Decide whether the dogfood run covers `tests/`, holding two of
-      the ten sites. Verify: `tests/` is under review, or `grep -rn
-      census.address tests/` is empty.
+- [-] T2 | Every inventory site is gone from src, tests, plugins (grep; cb4e740d, e94a200e); verified at HEAD | 67184ac1 | T2
+      -- Freeze the inventory above as the SCORING KEY before the run. Verify:
+      each row names its file:line, the claim verbatim, and a command runnable
+      from the repo root.
+- [-] T3 | Four of the five target files no longer exist and the SKILL.md sites are gone; verified at HEAD | 67184ac1 | T3
+      -- Once v0.2.4 ships, run the shipped review over the five shipped files
+      holding the inventory's sites. Verify: a run dir holds a record per role,
+      naming those five.
+- [-] T4 | Depends on T2 and T3, both obsolete; no key and no run to score; verified at HEAD | 67184ac1 | T4
+      -- Score that run against T2's key -- sites flagged, sites missed, and
+      flags not in the key. Verify: the three numbers are written in this file,
+      with the run named.
+- [-] T5 | No stale inventory site remains to correct (grep over src, tests, plugins); verified at HEAD | 67184ac1 | T5
+      -- Apply what the run proposes and the human approves, through the normal
+      stages. Verify: each key site matches its command's output, and `uv run
+      pytest -q` is green.
+- [-] T6 | Moot: its verify (grep census.address tests/ is empty) holds; test_page.py is deleted; verified at HEAD | 67184ac1 | T6
+      -- Decide whether the dogfood run covers `tests/`, holding two of the ten
+      sites. Verify: `tests/` is under review, or `grep -rn census.address
+      tests/` is empty.

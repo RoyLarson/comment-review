@@ -1,8 +1,8 @@
 # A move to a file the run never cued is refused as though it were malformed
 
 ```
-Status:   open
-Progress: 5 of 6 tasks closed
+Status:   closed
+Progress: 6 of 6 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-20 (Roy, 2026-08-20: 'we have an addresser back, but that is because
@@ -98,6 +98,7 @@ line-numbered destination, or the same message `_in_scope` gives a `move` -- nev
 - [x] T5 | FINISHED | unknown | T5 -- SUPERSEDED. The caution that held the
       address form back is spent, verified 2026-08-23 at `galley.py:5` and
       `galley.py:341-344`. Evidence in the Objective.
-- [ ] T6 | T6 -- Do the `add` half; `address_problem` refuses an `add` naming an
-      uncued file. Verify: a test pins it accepted with a line destination, or
-      refused as `move` is.
+- [-] T6 | Overtaken by Process #97: an add into an ungathered file is held to that page (tests/test_bus.py:1998, 522d8bcb) | 522d8bcb | T6
+      -- Do the `add` half; `address_problem` refuses an `add` naming an uncued
+      file. Verify: a test pins it accepted with a line destination, or refused
+      as `move` is.

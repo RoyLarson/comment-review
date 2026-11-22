@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 7 of 17 tasks closed
+Progress: 12 of 17 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (simplify round 7, 2026-08-22 -- found by Pyright and by reading,
@@ -108,13 +108,15 @@ page.py:793-794 for `_SHEBANG`/`_CODING`, which round 7 deleted; those citations
       `page.documented_by` citation was corrected in round 7 to
       `lexer.document_declarations`; the tuple it exposed is T1. In the
       Objective.
-- [ ] T3 | T3 -- Find out whether anything reaches the `Kind.MATTER` branch,
+- [x] T3 | Answer: nothing reaches attach's Kind.MATTER branch; page_for routes MATTER at page.py:767; verified at HEAD | 67184ac1 | T3
+      -- Find out whether anything reaches the `Kind.MATTER` branch,
       page.py:332-333. Verify: this file records whether a `test_cues.py`
       fixture is its only caller.
 - [ ] T4 | T4 -- If T3 finds no caller, cut the branch. Verify: page.py:332-333
       is gone and the suite is green. ! If a test IS the only caller, that is a
       finding, not a cut.
-- [ ] T5 | T5 -- Drop the index from `record.prose_paragraphs`' return type
+- [-] T5 | record.prose_paragraphs moved to prototype/ at b50e7a43; no src function returns indexed tuples | b50e7a43 | T5
+      -- Drop the index from `record.prose_paragraphs`' return type
       (record.py:645). Verify: the return type carries no index and the suite is
       green.
 - [x] T6 | FINISHED: code lines and declarations computed once, in the lexical reader | 94c67d21 | T6
@@ -133,13 +135,16 @@ page.py:793-794 for `_SHEBANG`/`_CODING`, which round 7 deleted; those citations
 - [x] T10 | FINISHED | unknown | T10 -- FINISHED. Two TODOs describing a
       function that no longer exists are superseded and their stale citations
       resolved. In the Objective.
-- [ ] T11 | Delete the unparsed-kind branch in reading/readers.py
+- [x] T11 | e2b34a22 deleted the lexical reader and its unparsed branch; git grep unparsed in src is empty | e2b34a22 | Delete
+      the unparsed-kind branch in reading/readers.py
         > 2026-10-25 readers.py:145-147; nothing in src produces kind "unparsed"
         > 2026-10-25 Check: git grep unparsed -- src/comment_review returns none
-- [ ] T12 | Delete readers.read_paragraphs, which has no production caller
+- [x] T12 | e2b34a22 deleted read_paragraphs; no hits in src | e2b34a22 | Delete
+      readers.read_paragraphs, which has no production caller
         > 2026-10-25 readers.py:98; only test_reading_diagnostics calls it
 - [ ] T13 | Drop page_for's dead edges assignment and its duplicate path
-- [ ] T14 | Delete the unparsed branch in readers.py, which no reader produces
+- [-] T14 | Duplicate of computed-and-never-read.md T11; closed by the same commit e2b34a22 | e2b34a22 | Delete
+      the unparsed branch in readers.py, which no reader produces
 - [ ] T15 | Remove the reader and placement revisions and the compatibility hash
         > 2026-10-26 decision-log #239: reads are ephemeral; reading/context.py, flows
 - [ ] T16 | Remove the page's anchor_num and _documented_line checks
