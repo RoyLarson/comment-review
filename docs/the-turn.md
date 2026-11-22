@@ -26,7 +26,8 @@ Roy, 2026-09-02, verbatim and unelided:
 
 What the quotation calls a `DiffMark` is an `Answer` (`desk/proof/answer.py`); *recollated* is
 the fold run again over the same places, which is what `flows.bus` does with each turn's
-answers written onto them.
+answers written onto them. The current escalation slot carries the base paragraph and
+role-labeled sides. The fold saves its decisions to the master proof.
 
 ## The loop, as steps
 
@@ -61,8 +62,8 @@ and say it can be 1000 revises or 0 revises to the task agent then that is what 
 task agent to do not what the code enforces."*
 
 **One turn runs by default where `collate` composes** -- `decision-log.md Process: #298`. A
-`composed` place holds a text no single role filed, so each role it is put to reads that text
-before the chief rules on it. `SKILL.md` tells the task agent so; nothing in the code requires
+`composed` place may hold a merge of several sides or a lone proposal that other readers
+still need to see. The turn sends that text to the roles owed a say before the chief rules. `SKILL.md` tells the task agent so; nothing in the code requires
 the turn.
 
 **So a code-enforced cap is wrong and a turn counter is not.** The counter is derived rather
@@ -119,22 +120,23 @@ dispositions table's `taken_in` closes that same set. **Settled is `stands` and 
 
 **No state holds a place for the human** -- `decision-log.md Process: #197`. A query of shape
 `human-review-necessary`, filed as a mark (`flows.human.queries_in_copies`) or given as an
-answer (`flows.human.queries_in_answers`), and a mark that changes the file's own matter and
-has no answer yet (`flows.human.corrections_to_matter`), each become one `AsksTheHuman`. The
+answer (`flows.human.queries_in_answers`), and a change to the file's own matter that
+still needs approval each become one `AsksTheHuman`. The bus checks for pending approval
+when it receives marks, answers, or chief rulings. The
 round rolls back with nothing written, and the command exits `ASKS_THE_HUMAN` where no refusal
 stands beside them.
 
-**The human's answers file rides on the message** -- `Process: #198`. `collate --human` and
-`turn --human` read it, and each answer is printed beside the question it answers. The asking
+**The human's answers file rides on the message** -- `Process: #198`. `collate`, `turn` and `disposition` accept `--human`. An answered query is printed with
+the response. A matching approval clears the pending matter question. The asking
 role replaces its query with a mark or an answer that reflects the response, and the round runs
 again. A human query that reaches a pass is refused there (`marks_pass`, `answers_pass`,
 `placement_pass`).
 
 ## The three tables
 
-**Three actors write with three vocabularies, so there are three tables and one shape of row.**
-Nothing outside the three names an instruction, an answer or a disposition, which
-`tests/gates/test_tables_name_the_rows.py` holds over the tree.
+**The mark, answer and disposition tables define how each row acts.**
+`tests/gates/test_tables_name_the_rows.py` checks selected row-name spellings outside the
+tables and their associated proof types. Its docstring lists the patterns it misses.
 
 | table | rows | what a row answers |
 | --- | --- | --- |
@@ -209,7 +211,7 @@ invariant, so no row of the marks table is asked.
 there make one side: `desk.evaluate.passes.composed_side` sets the side from the one mark where
 there is one, and composes several against the base -- clause by clause where each quotes the
 clause it edits and its `change` is what its claim derives (`_by_clause`), line by line
-otherwise. Marks that edit the same sentence do not compose and are refused back to that role
+otherwise. Marks with incompatible overlapping edits are refused back to that role
 naming each: the reason asks it to withdraw one, or, where every one of them sets its own
 `raw_text` and none is a move's origin, to restate the paragraph with both texts. A `clean` or a
 deferring `query` proposes no text and stands beside them.
@@ -349,7 +351,7 @@ approved with nothing to set rather than refused. `--only` without `--proof` is 
 error: a copy holds marks and a docket holds alterations already chosen, so neither has places
 to filter.
 
-**The master proof is the record of the decisions.** Both `collate` and `disposition` write it to `--proof-out`. The docket reads the closed proof's decided places.
+**The master proof is the record of the decisions.** The `collate`, `turn` and `disposition` commands write it to `--proof-out` on commit. The docket reads the closed proof's decided places.
 
 **`proof --copy` stays, for a role's own draft.** A role's copy holds that role's marks and
 nobody else's, and drafting it is how one stage's output becomes the revise the next stage
@@ -363,7 +365,8 @@ address order and then the moves, and either commits -- every place decided, non
 move refused -- or rolls back, in which case `Fold.decided` is empty and the flow saves nothing.
 It opens no file and knows no container of the read or write end.
 
-**The events are the report, and the commands print from nothing else** -- `desk/report.py`:
+**The events describe the fold outcome** -- `desk/report.py`. The commands also report
+the files they save and derive proof counts from its places.
 
 | event | what it says |
 | --- | --- |
@@ -390,7 +393,7 @@ and on commit builds what the stage saves.
 | --- | --- | --- |
 | `CopiesReturned` | one stage's parsed copies, the binder, each copy's received binder where given, the checkout, the topology where there is one, and the human's answers | the master proof at turn 0 and the first batch |
 | `AnswersReturned` | the last proof, each role's answers, the checkout a cite resolves against, and the human's answers | the next proof and the next batch |
-| `DispositionsWritten` | the last proof and the chief's rulings | the next proof -- closed, or carrying a ruled move's ends forward -- |
+| `DispositionsWritten` | the last proof, the chief's rulings, and any human approvals | the next proof -- closed, or carrying a ruled move's ends forward -- |
 
 **`collate` can take each copy with its received binder**, by `--edit-copy` and
 `--received-binder` repeated in one order, or by `--pairs`, a JSON list of
@@ -494,7 +497,8 @@ admit every instruction.
 `reading.series`, an instruction name against the marks table -- so a row naming something
 outside either is refused by the value it typed.
 
-**A place is dealt where its series is one the stage names and its own lines run over the cap.**
+**Each supplied filter restricts the places dealt.** A supplied series list limits the
+eligible addresses. A positive cap deals only places whose line count exceeds it.
 The count is the page's own `lines`, which `binder.page` fills from the paragraph's raw text
 when a binder is read back and the lexer fills when a page is built; a place holding no prose
 counts none, so it is never over a cap.
@@ -530,9 +534,8 @@ for, not the only row they fit.
 ## What this does to stages 4 and 5
 
 **A role states what it wants the paragraph to read like**, because a mark's `change` is the
-updated paragraph as raw text ([`the-mark.md`](the-mark.md)). So the chief is choosing between
-texts rather than composing one, and `place.sides` is that choice laid out, role by role, on the
-batch slot and on the proof.
+updated paragraph as raw text ([`the-mark.md`](the-mark.md)). The chief can take in a role's text, keep the original, or recast the paragraph.
+`place.sides` records the role-labeled proposals on the proof and supplies them to the batch.
 
 **What remains of stage 5 is the choosing and the chief's own ruling**, not transcription.
 
