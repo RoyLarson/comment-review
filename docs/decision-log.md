@@ -7234,3 +7234,14 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
 
   **What it settles.** `collator-defects` T50 carries the CRLF case; T4, T6, T7, T8 and
   `compact-can-buy-lines-with-width` T3 are superseded.
+
+- **#370.** **Reading the raw wire is no exception to asking the row** (Roy, 2026-11-22, on
+  `six-mutations-survive-the-suite` T9, shown that `desk/proof/master_proof.py:367` compares
+  `mark.get("instruction") == "move"` on unparsed JSON to find a move's `to`; offered (a) it is a
+  violation, and the table says which claim keys hold an address, or (b) unparsed reads are
+  exempt from the gate):
+
+  *"a"*
+
+  **What it settles.** `master_proof.py:367` asks the instruction table which claim keys carry an
+  address, and the gate takes no exception for it.

@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 7 of 9 tasks closed
+Progress: 7 of 10 tasks closed
 Owner:    testing
 Requires-Roy: false
 Raised:   2026-08-20 (the branch review of 2026-08-20)
@@ -102,3 +102,7 @@ landing on a licence header -- and it left 720 tests OK.
 - [ ] T9 | Add a gate failing on shipped code that compares an instruction name
       instead of asking INSTRUCTIONS
         > 2026-11-22 Check: a planted == 'drop' comparison in desk/ fails the gate
+        > 2026-11-22 Note: lands after T10; no exemption for raw reads (Process #370)
+- [ ] T10 | Make master_proof.py:367 ask the instruction table which claim keys
+      carry an address
+        > 2026-11-22 Check: master_proof.py compares no instruction by name

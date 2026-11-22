@@ -191,7 +191,7 @@ that changed a published name or rule:
 | [docstrings-need-their-own-address-series](docstrings-need-their-own-address-series.md) | backend | -- | 11/13 | A docstring needs its own address series, and it names what it documents |
 | [line-0-places-are-unreachable](line-0-places-are-unreachable.md) | backend | -- | 5/7 | **An empty place sits at line 0 by ruling, and both tools that answer by LINE filter on `start &lt;= line &lt;= end`.** So the places an `add` exists to cite are the ones no line lookup can name -- while the brief forbids the only remaining route, counting. |
 | [filtered-measurement-unrecorded](filtered-measurement-unrecorded.md) | testing | -- | 3/5 | The filtered-census measurement exists only in run history |
-| [six-mutations-survive-the-suite](six-mutations-survive-the-suite.md) | testing | -- | 7/9 | 720 tests green against six deliberate defects in shipped code |
+| [six-mutations-survive-the-suite](six-mutations-survive-the-suite.md) | testing | -- | 7/10 | 720 tests green against six deliberate defects in shipped code |
 | [versioning-at-v1](versioning-at-v1.md) | systems | -- | 7/14 | v1.x wants a concrete versioning system on everything that ships |
 | [a-series-never-fills-outside-python](a-series-never-fills-outside-python.md) | backend | -- | 22/23 | Outside Python the `a` place is emitted and never filled |
 | [bom-is-read-as-source](bom-is-read-as-source.md) | backend | -- | 7/10 | A UTF-8 BOM is censused as a line of code |
