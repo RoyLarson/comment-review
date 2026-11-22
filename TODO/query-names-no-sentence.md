@@ -20,6 +20,7 @@ A `query` names no sentence, so two marks on one place cannot be told apart.
 - [?] T1 | Decide whether a `query` owes a key naming its sentence. Verify:
       `docs/the- mark.md` states the answer for `query` as plainly as it does
       for `correct`, and `desk/mark.parse` enforces whatever it says.
+        > 2026-11-22 Outcome: a query names no sentence (Process #323)
 - [ ] T2 | A reviewer can say WHICH sentence it is querying without using
       `reason`. Verify: a mark written from the brief puts the queried sentence
       in a field a checker reads, not in prose.

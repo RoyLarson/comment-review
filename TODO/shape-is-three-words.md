@@ -80,6 +80,7 @@ by who answers it.
       'If it is anything it is a field on `clean`.' Verify: the answer says
       whether the two share one axis or hold two, and `docs/the-mark.md` states
       it.
+        > 2026-11-22 Outcome: the category is query's alone (Process #322)
 - [ ] T3 | Name it for WHAT IT DOES. `decision-log.md Process: #33` keyed the
       three on WHO RESOLVES IT, replacing an axis about where evidence lives --
       so the field says whom the query is FOR, which is also how publishing

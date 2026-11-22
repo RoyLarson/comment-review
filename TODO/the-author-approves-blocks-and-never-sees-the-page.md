@@ -130,3 +130,4 @@ not delete it without deciding which; this cannot be settled before T2.
 - [?] T10 | Rule on keeping SKILL.md:508-512's per-place listing beside the 7a
       page diffs
         > 2026-11-22 Check: the ruling with its reason is in decision-log.md
+        > 2026-11-22 Outcome: keep the listing beside the diffs (Process #321)

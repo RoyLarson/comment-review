@@ -6806,4 +6806,30 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   not be implemented the way the current code describes"*
 
   **What it settles.** The annotations do not reach the binder, and the step that computes them
-  is deleted rather than kept for a design that may not match it.
+  is deleted rather than kept for a design that may not match it. The tasks that would have
+  improved them -- `name-corpus-sees-one-language` T7-T10 and `concordance-gaps-stated-twice` T6
+  -- are superseded with it (Roy, the same day: *"Go ahead and supersede all of those"*).
+
+- **#321.** **At 7a the author sees the per-place listing alongside the page diffs** (Roy,
+  2026-11-22, on `7a-can-prove-the-change-by-applying-it-to-a-copy` T3 and
+  `the-author-approves-blocks-and-never-sees-the-page` T10, shown that the author accepts place by
+  place by address, `proof --only` under #192, and that a `git diff` shows no addresses):
+
+  *"yes"*
+
+  **What it settles.** SKILL.md stage 7a keeps both: the listing by address and one diff per
+  page.
+
+- **#322.** **The who-resolves-it category belongs to `query` alone** (Roy, 2026-11-22, on
+  `shape-is-three-words` T2, shown that `Shape` exists only on `QueryMark`):
+
+  *"yes"*
+
+  **What it settles.** No other instruction carries a shape.
+
+- **#323.** **A query applies to its whole place and names no sentence** (Roy, 2026-11-22, on
+  `query-names-no-sentence` T1, shown that the parser refuses any extra claim key on a query):
+
+  *"yes"*
+
+  **What it settles.** A query carries no sentence key.
