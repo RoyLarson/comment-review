@@ -142,6 +142,7 @@ is available.
 - [?] T8 | T8 -- **Extend the existing `SKILL.md:800-804` rule** rather than
       writing a second one. Verify: that paragraph states what happens when the
       twin is REFERENCE ONLY.
+        > 2026-11-22 Outcome: plain work; the rule is at SKILL.md:564 (#341)
 - [ ] T9 | T9 -- **Say in `docs/limitations.md` that a run can strand a copy it
       may not touch.** Verify: `grep -n "REFERENCE ONLY" docs/limitations.md` is
       non-empty.

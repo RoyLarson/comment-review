@@ -170,6 +170,7 @@ NOT X"* used as a DEFINITION, which is the comparing form the test already remov
       and the command that produced it are both recorded in this file.
 - [?] T9 | T9 -- **Rule each shipped-markdown hit against the residue test.**
       Verify: every survivor is named in this file as an output or as a refusal.
+        > 2026-11-22 Outcome: plain work; may never finish (Process #341)
 - [ ] T10 | T10 -- **Run `/comment-review` over the shipped tree.** Verify: the
       run's reports are recorded under `evidence/`, naming the commit they were
       produced at.

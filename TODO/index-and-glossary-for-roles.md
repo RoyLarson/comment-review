@@ -19,3 +19,4 @@ Hand a reviewer the name index and the glossary rather than leaving it to grep.
         > 2026-08-31 Roy 2026-08-31: a 0.2.7 thing, after the middle works
         > 2026-08-31 Roy 2026-08-31: a 0.2.7 thing, after the middle works
         > 2026-08-31 Agents can grep; handing them something is nicer, a tool nicer
+        > 2026-11-22 Outcome: waits on the annotations feature (Process #339)

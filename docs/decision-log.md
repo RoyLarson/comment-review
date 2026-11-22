@@ -6923,3 +6923,74 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   **What it settles.** The chief's rulings stay `taken_in` and `recast`. The prose that calls
   the chief's stet open or deferred is corrected to say `taken_in` carries it. A reader's `stet`
   answer to a placement, under #195, is a separate use of the word and stands.
+
+- **#333.** **The claim sense keeps `settle`; a place is `decided`** (Roy, 2026-11-22, on
+  `settle-carries-two-meanings` T1, shown that both senses are now contracts -- the `settles`
+  claim key and `mark --settles`, and the place's `Settled`, `state.SETTLED` and
+  `settled_<stage>.json` -- and that #184 already says "decided places"):
+
+  *"agree with you - claim settled, place decided"*
+
+  **What it settles.** The place sense is renamed to `decided`; the `settles` key and
+  `mark --settles` stay, so T7 of that file is moot.
+
+- **#334.** **A role may use CodeGraph to find a destination or an anchor** (Roy, 2026-11-22, on
+  `stage-1-is-re-derived-every-run` T4, restated: the anchor is seeded by the gather, so the
+  question is whether a role may use `codegraph_explore` to choose a `move` destination or an
+  `add` anchor, still reading the target code before it files):
+
+  *"agree"*
+
+- **#335.** **The marketplace fix is to the docs** (Roy, 2026-11-22, on `marketplace-resolves-live`
+  T4, shown that `plugins/` now changes only at release, so an install between releases reads the
+  last release):
+
+  *"yes - the docs fix is enough"*
+
+  **What it settles.** cut-a-release says the local marketplace copies `plugins/` as it stands
+  at update time, and its "reads committed state" claim is corrected.
+
+- **#336.** **Roles keep writing markers and indentation for `add`, `move` and `recast`** (Roy,
+  2026-11-22, on `strip-and-fill-the-markers` T9, shown that `mark` now builds the change for
+  `correct`, `patch` and `drop`, leaving those three as the only places an agent writes them):
+
+  *"keep as written"*
+
+  **What it settles.** Vocabulary #27 and Addressing #27 stand. The tool does not strip and fill;
+  that file's build tasks are superseded and its T1 measurement stays open as what would reopen
+  the question. `an-alteration-carries-its-own-indentation` is the side that holds, and its
+  tasks proceed.
+
+- **#337.** **Sources get no typed absence or count kinds** (Roy, 2026-11-22, on
+  `two-live-runs-proposed-fifteen-changes` T5, restated against `desk/proof/source.py`'s `cite`,
+  `verbatim` and `ran`, with nothing re-running `ran`):
+
+  *"no"*
+
+  **What it settles.** An absence stays a cite of where the role looked, with prose, and `ran`
+  holding the command.
+
+- **#338.** **The machine context's query stance is superseded until the role exists** (Roy,
+  2026-11-22, on `a-machine-context-raises-query-and-clean` T7, shown that its premise no longer
+  matches the fold and that no machine role is built):
+
+  *"supersede"*
+
+- **#339.** **A role's name index waits on the annotations feature** (Roy, 2026-11-22, on
+  `index-and-glossary-for-roles` T1, shown that the glossary half is handed and the rest is the
+  annotations #320 removed):
+
+  *"yes supersede until the annotations feature becomes relavant"*
+
+- **#340.** **What a document's reviewer marks waits on the document chain** (Roy, 2026-11-22, on
+  `a-prose-file-has-no-blocks` T1 and T3):
+
+  *"stays open - needs the document chaing"*
+
+- **#341.** **Two decision tasks become plain work** (Roy, 2026-11-22, on
+  `correcting-one-copy-strands-the-reference-copy` T8, whose rule now sits at `SKILL.md:564`, and
+  `the-shipped-python-does-not-pass-its-own-review` T9, which waits on T13's count):
+
+  *"turn back to a plain task open"*, and for the second: *"turn back to a plain task - but the
+  system has gone through the current comment-review several times and so this may be an
+  never-ending thing"*

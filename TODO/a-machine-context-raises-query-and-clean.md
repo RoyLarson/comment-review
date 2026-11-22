@@ -31,6 +31,7 @@ A machine context raises the queries a script can see, and certifies the rest cl
 - [?] T7 | Decide whether a machine-raised query gates its paragraph, as a
       role's query does
         > 2026-09-07 Every other instruction on that sentence waits on a query
+        > 2026-11-22 Outcome: superseded until the role exists (Process #338)
 - [?] T8 | Decide the name for this context, inside
       the-roles-are-named-for-what-they-read
         > 2026-09-07 The other four are named for the scope read, not the reader

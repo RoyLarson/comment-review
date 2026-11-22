@@ -141,6 +141,7 @@ ways -- a cap published since the last run, a `docs/` tree deleted since.
 - [?] T4 | T4 -- * Rule whether `codegraph_explore` is a sanctioned way to
       settle a paragraph's ANCHOR. Verify: the answer is recorded in `SKILL.md`
       or in this file.
+        > 2026-11-22 Outcome: CodeGraph may find a destination (Process #334)
 - [?] T5 | T5 -- * Rule whether `codegraph_explore` is a sanctioned way to
       settle a LIVENESS claim. Verify: the answer is recorded in `SKILL.md` or
       in this file.

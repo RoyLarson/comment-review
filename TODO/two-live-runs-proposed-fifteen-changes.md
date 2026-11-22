@@ -183,6 +183,7 @@ raised in conversation.
 - [?] T5 | T5 -- * Rule the two typed SOURCE shapes, `absence` and `count`,
       before the build. Verify: `docs/decision-log.md` records both shapes, key
       by key.
+        > 2026-11-22 Outcome: no typed absence or count source (Process #337)
 - [x] T6 | FINISHED | unknown | T6 -- SUPERSEDED. **P5 -- run the
       is-it-still-a-proposition check BEFORE the write.** It landed on both
       halves; the citations are in the Objective.

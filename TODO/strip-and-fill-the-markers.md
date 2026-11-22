@@ -242,3 +242,4 @@ one thing safe to take first -- it is evidence FOR the ruling, not work under it
 - [?] T9 | Decide whether the system strips and fills the markers, reversing
       Vocabulary 27
         > 2026-09-03 also decides compose granularity -- Open 5; reflow is the cost
+        > 2026-11-22 Outcome: roles keep writing markers (Process #336)

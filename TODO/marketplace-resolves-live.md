@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 3 of 5 tasks closed
+Progress: 3 of 6 tasks closed
 Owner:    systems
 Requires-Roy: true
 Raised:   2026-08-22 (Roy, 2026-08-22: the installed plugin traced itself back up to the
@@ -69,6 +69,10 @@ citation resolves nowhere. It is recorded here rather than repeated as a pointer
 - [?] T4 | T4 -- * RULE whether the fix is to the INSTALL, to the DOCS, or to
       both -- candidates in the Objective. Verify: the ruling is in
       `docs/decision-log.md`.
+        > 2026-11-22 Outcome: the fix is to the docs (Process #335)
 - [ ] T5 | T5 -- Give every measurement in `docs/` and `evidence/` that names a
       VERSION the TREE it ran against. Verify: no such measurement cites a
       `vX.Y.Z` without a SHA.
+- [ ] T6 | Correct cut-a-release SKILL.md:56 and :73 to say the local install
+      copies plugins/ at update
+        > 2026-11-22 Check: the skill makes no reads-committed-state claim

@@ -140,11 +140,13 @@ defect -- a tool measures it.
 - [?] T1 | T1 -- * RULE what BOUNDS a paragraph in a prose file, from the four
       candidates in the Objective. Verify: the ruling is recorded in
       `docs/decision-log.md`.
+        > 2026-11-22 Outcome: stays open; needs the document chain (Process #340)
 - [x] T2 | FINISHED | unknown | T2 -- RULED 2026-08-20: the four existing desks
       read a prose file, and no fifth. The mapping is in the Objective.
 - [?] T3 | T3 -- * RULE what a claim in a document is checked AGAINST. Verify:
       the answer names the input a `block-context` reviewer is handed for a
       `.md` page.
+        > 2026-11-22 Outcome: stays open; needs the document chain (Process #340)
 - [?] T4 | T4 -- * RULE what happens to the CAP on a prose page. Verify:
       `SKILL.md`'s cap rule states what it means there, including if the answer
       is "no cap applies".
