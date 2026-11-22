@@ -2,9 +2,9 @@
 
 ```
 Status:   decision-needed
-Progress: 3 of 6 tasks closed
+Progress: 4 of 6 tasks closed
 Owner:    systems
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-22 (Roy, 2026-08-22: the installed plugin traced itself back up to the
           commit just finished, when he expected v0.2.3 -- the d records gave it away
           because no cues had a d before this branch)
@@ -66,8 +66,9 @@ citation resolves nowhere. It is recorded here rather than repeated as a pointer
 - [x] T3 | FINISHED | unknown | T3 -- READ 2026-08-22. CLAUDE.md's release
       section describes the cache half only, and never says a directory-source
       marketplace resolves live. In the Objective.
-- [?] T4 | T4 -- * RULE whether the fix is to the INSTALL, to the DOCS, or to
-      both -- candidates in the Objective. Verify: the ruling is in
+- [x] T4 | Ruled: docs only, filed as T6; Process #335 | 5814f78efbf136da31ec84a22680a6e2be87d1c1 | T4
+      -- * RULE whether the fix is to the INSTALL, to the DOCS, or to both --
+      candidates in the Objective. Verify: the ruling is in
       `docs/decision-log.md`.
         > 2026-11-22 Outcome: the fix is to the docs (Process #335)
 - [ ] T5 | T5 -- Give every measurement in `docs/` and `evidence/` that names a

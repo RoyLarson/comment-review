@@ -2,9 +2,9 @@
 
 ```
 Status:   decision-needed
-Progress: 20 of 23 tasks closed
+Progress: 21 of 23 tasks closed
 Owner:    agents
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-17, from `evidence/todo-tool-full-v0_2/proposals.md` (5) and
           `evidence/redacted-corpus-full-v0_2/PROPOSALS.md` (10)
 Narrowed: 2026-08-19 -- the 0.2.4 scope moved to docs/plans/; this file is the job board
@@ -180,9 +180,9 @@ raised in conversation.
       -- * Re-read P6's INDENT FRAMING against the shipped compositor. Verify: a
       file:line here, and it is closed or filed to
       `galley-and-compositor-write-path`.
-- [?] T5 | T5 -- * Rule the two typed SOURCE shapes, `absence` and `count`,
-      before the build. Verify: `docs/decision-log.md` records both shapes, key
-      by key.
+- [x] T5 | Ruled: no typed absence or count source kinds; Process #337 | 5814f78efbf136da31ec84a22680a6e2be87d1c1 | T5
+      -- * Rule the two typed SOURCE shapes, `absence` and `count`, before the
+      build. Verify: `docs/decision-log.md` records both shapes, key by key.
         > 2026-11-22 Outcome: no typed absence or count source (Process #337)
 - [x] T6 | FINISHED | unknown | T6 -- SUPERSEDED. **P5 -- run the
       is-it-still-a-proposition check BEFORE the write.** It landed on both

@@ -4,7 +4,7 @@
 Status:   in-progress
 Progress: 8 of 13 tasks closed
 Owner:    backend
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-16 (Roy, on `census.py`: "this creates the pCST and that is it.
           Comments about 'cannot answer OWNERSHIP' are not helpful.")
 Triaged:  2026-08-23 -- the eighth box held Roy's 2026-08-18 ruling striking the hand-pass
@@ -168,7 +168,7 @@ NOT X"* used as a DEFINITION, which is the comparing form the test already remov
 - [-] T8 | SUPERSEDED by T13: plugins/ is release output; the shipped markdown's source is src/plugin/ | 22c3a0abcbc86509c74296319ce5b719a43338ca | T8
       -- **Run the nine-token count over `plugins/**/*.md`.** Verify: the number
       and the command that produced it are both recorded in this file.
-- [?] T9 | T9 -- **Rule each shipped-markdown hit against the residue test.**
+- [ ] T9 | T9 -- **Rule each shipped-markdown hit against the residue test.**
       Verify: every survivor is named in this file as an output or as a refusal.
         > 2026-11-22 Outcome: plain work; may never finish (Process #341)
 - [ ] T10 | T10 -- **Run `/comment-review` over the shipped tree.** Verify: the

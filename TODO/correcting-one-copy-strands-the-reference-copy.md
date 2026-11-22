@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 1 of 9 tasks closed
+Progress: 2 of 10 tasks closed
 Owner:    agents
 Requires-Roy: true
 Raised:   2026-08-17 (Roy: "This shouldn't happen - As much as FOR REFERENCE only might make
@@ -139,10 +139,14 @@ is available.
 - [ ] T7 | T7 -- **Prove that check on the measured case.** Verify: a run
       correcting `todo_tool.py:1129` reports the stranded copy at
       `todo-tool/SKILL.md:253`.
-- [?] T8 | T8 -- **Extend the existing `SKILL.md:800-804` rule** rather than
-      writing a second one. Verify: that paragraph states what happens when the
-      twin is REFERENCE ONLY.
+- [-] T8 | SUPERSEDED by T10: the rule moved from SKILL.md:800-804 to :564 | 5814f78efbf136da31ec84a22680a6e2be87d1c1 | T8
+      -- **Extend the existing `SKILL.md:800-804` rule** rather than writing a
+      second one. Verify: that paragraph states what happens when the twin is
+      REFERENCE ONLY.
         > 2026-11-22 Outcome: plain work; the rule is at SKILL.md:564 (#341)
 - [ ] T9 | T9 -- **Say in `docs/limitations.md` that a run can strand a copy it
       may not touch.** Verify: `grep -n "REFERENCE ONLY" docs/limitations.md` is
       non-empty.
+- [ ] T10 | Extend SKILL.md:564's same-sentence rule to say what the chief does
+      when one twin is REFERENCE ONLY
+        > 2026-11-22 Check: SKILL.md:564 covers a REFERENCE ONLY twin

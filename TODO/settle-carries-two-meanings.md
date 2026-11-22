@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 1 of 8 tasks closed
+Progress: 3 of 8 tasks closed
 Owner:    systems
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-24 (the moment `taken in` was ruled -- Roy: 'now we have a polysemy of
           the word settled and that has to get resolved')
 Reassigned: 2026-08-24 — Filed `agents`, reassigned `systems` the same day, with
@@ -52,8 +52,9 @@ is prose and is the frequent one. T1 is that ruling.
 
 ## Tasks
 
-- [?] T1 | T1 -- * Rule which sense keeps `settle`, and what the other becomes.
-      Verify: the ruling is in `docs/decision-log.md`.
+- [x] T1 | Ruled: the claim keeps settle and a place is decided; Process #333 | 5814f78efbf136da31ec84a22680a6e2be87d1c1 | T1
+      -- * Rule which sense keeps `settle`, and what the other becomes. Verify:
+      the ruling is in `docs/decision-log.md`.
         > 2026-11-22 Outcome: claim keeps settle; a place is decided (Process #333)
 - [ ] T2 | T2 -- Reword the losing sense in `SKILL.md`. Verify: `grep -c settle`
       counts only the kept sense.
@@ -67,8 +68,8 @@ is prose and is the frequent one. T1 is that ruling.
 - [ ] T6 | T6 -- Declare the outcome in `docs/vocabulary.md` and confine it.
       Verify: the kept sense is defined and the other appears in no shipped
       file.
-- [ ] T7 | Rename the `settles` claim key, with `mark --settles`, if T1's claim
-      sense loses
+- [-] T7 | Moot: the claim sense keeps settle, so the key stays; Process #333 | 5814f78efbf136da31ec84a22680a6e2be87d1c1 | Rename
+      the `settles` claim key, with `mark --settles`, if T1's claim sense loses
         > 2026-11-22 Check: the settles key follows the T1 ruling
 - [ ] T8 | Rename the place sense of `settle` to `decided` in src/comment_review
         > 2026-11-22 Check: no src/ name or file uses settle for a place

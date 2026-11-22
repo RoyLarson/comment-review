@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 6 of 16 tasks closed
+Progress: 7 of 16 tasks closed
 Owner:    agents
 Requires-Roy: true
 Raised:   2026-08-17 (two full runs in one session, on two repos; stage 1 was established
@@ -138,9 +138,10 @@ ways -- a cap published since the last run, a `docs/` tree deleted since.
 - [?] T3 | T3 -- * Rule whether the skill probes for `.codegraph/` alongside the
       LSP probe. Verify: the probe is in `SKILL.md`, or this file records the
       refusal and why.
-- [?] T4 | T4 -- * Rule whether `codegraph_explore` is a sanctioned way to
-      settle a paragraph's ANCHOR. Verify: the answer is recorded in `SKILL.md`
-      or in this file.
+- [x] T4 | Ruled: a role may use CodeGraph to find a destination or anchor; Process #334 | 5814f78efbf136da31ec84a22680a6e2be87d1c1 | T4
+      -- * Rule whether `codegraph_explore` is a sanctioned way to settle a
+      paragraph's ANCHOR. Verify: the answer is recorded in `SKILL.md` or in
+      this file.
         > 2026-11-22 Outcome: CodeGraph may find a destination (Process #334)
 - [?] T5 | T5 -- * Rule whether `codegraph_explore` is a sanctioned way to
       settle a LIVENESS claim. Verify: the answer is recorded in `SKILL.md` or

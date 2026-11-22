@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 8 tasks closed
+Progress: 1 of 8 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-09-07 (Roy 2026-09-07: a machine-context automatically raises query or
@@ -28,8 +28,8 @@ A machine context raises the queries a script can see, and certifies the rest cl
       contexts. Verify: topology verify passes over it and the four roles
 - [ ] T6 | Update reviewer-brief.md so an agent context is told it may resolve a
       machine-raised query. Verify: the brief names the raiser
-- [?] T7 | Decide whether a machine-raised query gates its paragraph, as a
-      role's query does
+- [-] T7 | Superseded until a machine role exists; Process #338 | 5814f78efbf136da31ec84a22680a6e2be87d1c1 | Decide
+      whether a machine-raised query gates its paragraph, as a role's query does
         > 2026-09-07 Every other instruction on that sentence waits on a query
         > 2026-11-22 Outcome: superseded until the role exists (Process #338)
 - [?] T8 | Decide the name for this context, inside

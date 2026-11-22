@@ -2,9 +2,9 @@
 
 ```
 Status:   decision-needed
-Progress: 0 of 9 tasks closed
+Progress: 8 of 9 tasks closed
 Owner:    backend
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-29 (2026-08-29, Roy, watching three failed edits in a row: "having the
           whole text comment marks and all is brittle and subject to breakage easily. We
           may need to rethink this and strip/fill in the comment marks ourselves else
@@ -210,36 +210,41 @@ one thing safe to take first -- it is evidence FOR the ruling, not work under it
       unparseable -- appending past a closing delimiter, moving a closer up a
       line, or missing that a docstring is indented. That number is the case for
       the change and the baseline the fill is measured against.
-- [ ] T2 | Strip and fill are EXACT INVERSES for an unchanged paragraph. Verify:
-      over every paragraph of every corpus file, `fill(strip(p)) == p`
-      byte-for-byte. ! THIS IS THE WHOLE SAFETY ARGUMENT and it must be able to
-      FAIL -- run it over fetched corpora, not hand-written fixtures, per
-      `docs/gates.md`.
-- [ ] T3 | The prose is EVERYTHING after the comment token, and the token is
-      what the language definition says it is. Verify: `#: x` strips to `: x` and fills
+- [-] T2 | The tool does not strip and fill; roles keep writing markers; Process #336 | 5814f78efbf136da31ec84a22680a6e2be87d1c1 | Strip
+      and fill are EXACT INVERSES for an unchanged paragraph. Verify: over every
+      paragraph of every corpus file, `fill(strip(p)) == p` byte-for-byte. !
+      THIS IS THE WHOLE SAFETY ARGUMENT and it must be able to FAIL -- run it
+      over fetched corpora, not hand-written fixtures, per `docs/gates.md`.
+- [-] T3 | The tool does not strip and fill; roles keep writing markers; Process #336 | 5814f78efbf136da31ec84a22680a6e2be87d1c1 | The
+      prose is EVERYTHING after the comment token, and the token is what the
+      language definition says it is. Verify: `#: x` strips to `: x` and fills
       back to `#: x`; `# x` strips to ` x` and fills back to `# x`. ! Stripping
       an optional space after the token is what breaks this -- `#: x` has none,
       so a fill that re-adds one writes `# : x`.
-- [ ] T4 | A blank line inside a paragraph survives. Verify: a bare `#` line
-      (140 in `src/`) fills back as `#` with no trailing space, and the round
-      trip is byte-exact.
-- [ ] T5 | The indentation rules land, per language. Verify: for Python, a `b`
-      fills at its anchor's level, an `a` at the next `b`'s level, an `f` at
-      column 0, a multi-line `c` at its anchor's level; a single-line `c`
-      specifies none.
-- [ ] T6 | Relative indentation INSIDE a paragraph is preserved. Verify: a
-      docstring whose body has an indented `Args:` block round-trips with that
-      inner indentation intact -- strip removes only the common leading level,
-      never the structure under it.
-- [ ] T7 | What the agent is shown matches what it may write. Verify: the
-      `raw_text` on a seeded row is the STRIPPED prose, and a `change` written
-      in that same form is accepted -- so a role never sees a delimiter it would
-      have to reproduce.
-- [ ] T8 | A `change` that would not parse is refused BY NAME before it reaches
-      the setter. Verify: the fill is what places delimiters, so a role cannot
+- [-] T4 | The tool does not strip and fill; roles keep writing markers; Process #336 | 5814f78efbf136da31ec84a22680a6e2be87d1c1 | A
+      blank line inside a paragraph survives. Verify: a bare `#` line (140 in
+      `src/`) fills back as `#` with no trailing space, and the round trip is
+      byte-exact.
+- [-] T5 | The tool does not strip and fill; roles keep writing markers; Process #336 | 5814f78efbf136da31ec84a22680a6e2be87d1c1 | The
+      indentation rules land, per language. Verify: for Python, a `b` fills at
+      its anchor's level, an `a` at the next `b`'s level, an `f` at column 0, a
+      multi-line `c` at its anchor's level; a single-line `c` specifies none.
+- [-] T6 | The tool does not strip and fill; roles keep writing markers; Process #336 | 5814f78efbf136da31ec84a22680a6e2be87d1c1 | Relative
+      indentation INSIDE a paragraph is preserved. Verify: a docstring whose
+      body has an indented `Args:` block round-trips with that inner indentation
+      intact -- strip removes only the common leading level, never the structure
+      under it.
+- [-] T7 | The tool does not strip and fill; roles keep writing markers; Process #336 | 5814f78efbf136da31ec84a22680a6e2be87d1c1 | What
+      the agent is shown matches what it may write. Verify: the `raw_text` on a
+      seeded row is the STRIPPED prose, and a `change` written in that same form
+      is accepted -- so a role never sees a delimiter it would have to
+      reproduce.
+- [-] T8 | The tool does not strip and fill; roles keep writing markers; Process #336 | 5814f78efbf136da31ec84a22680a6e2be87d1c1 | A
+      `change` that would not parse is refused BY NAME before it reaches the
+      setter. Verify: the fill is what places delimiters, so a role cannot
       produce a broken file; a paragraph that cannot be filled is a named
       refusal, never a silent skip.
-- [?] T9 | Decide whether the system strips and fills the markers, reversing
-      Vocabulary 27
+- [x] T9 | Ruled: roles keep writing markers and indentation; Process #336 | 5814f78efbf136da31ec84a22680a6e2be87d1c1 | Decide
+      whether the system strips and fills the markers, reversing Vocabulary 27
         > 2026-09-03 also decides compose granularity -- Open 5; reflow is the cost
         > 2026-11-22 Outcome: roles keep writing markers (Process #336)
