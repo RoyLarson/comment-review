@@ -239,7 +239,7 @@ that changed a published name or rule:
 | [staged-chain-untested](staged-chain-untested.md) | backend | -- | 5/6 | the four-stage chain runs and the edits accumulate, proven 2026-08-30 -- but no test in the suite drives it, and the only committed fan-out topology refuses any tree but this repo's |
 | [containers-and-verification-are-unwired](containers-and-verification-are-unwired.md) | backend | -- | 47/61 | The containers and the source-verification half are wired to nothing |
 | [mark-holds-spec-and-parse](mark-holds-spec-and-parse.md) | backend | -- | 4/9 | mark.py holds the instruction spec and the boundary parse at one scope |
-| [null-becomes-the-word-none](null-becomes-the-word-none.md) | backend | -- | 2/6 | A present-but-null key becomes the four characters None |
+| [null-becomes-the-word-none](null-becomes-the-word-none.md) | backend | -- | 3/6 | A present-but-null key becomes the four characters None |
 | [collate-flow-defects](collate-flow-defects.md) | backend | -- | 25/26 | Twelve defects in `flows/collate.py`, from a review of one file |
 | [mark-defects](mark-defects.md) | backend | -- | 42/52 | Eleven defects in `desk/mark.py`, found by running its parse against its own prose |
 | [binder-defects](binder-defects.md) | backend | -- | 19/40 | Eighteen defects in binder.py, and `read` admits four shapes it exists to refuse |

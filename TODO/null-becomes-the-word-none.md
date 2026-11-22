@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 2 of 6 tasks closed
+Progress: 3 of 6 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, a fix round on flows/carry.py surfaced the same
@@ -80,9 +80,10 @@ second is a guard.
       defaults only on an ABSENT key, so a present null enters `known_addresses`
       as a syntactically valid address and is compared for equality against
       marks.
-- [ ] T6 | Update `docket.read`'s role check at `docket.py:148-150` to key on
-      `"role" in page`, so a present JSON `null` is ruled on rather than skipped
-      by the `role is not None` first clause, and normalise `role` in
+- [x] T6 | Docket.deserialize folds a null role to absent; regression test in tests/test_docket.py | a138555052c9fd58316c62dc457ec52c0eeb2b2f | Update
+      `docket.read`'s role check at `docket.py:148-150` to key on `"role" in
+      page`, so a present JSON `null` is ruled on rather than skipped by the
+      `role is not None` first clause, and normalise `role` in
       `docket.schedules_of` and `flows/revise._set_by` the way `_real_pages`
       already does. Verify: a page carrying `"role": null` is refused or folded
       into the absent case; today `schedules_of` returns `Schedule(...,
