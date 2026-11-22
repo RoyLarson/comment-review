@@ -2,9 +2,9 @@
 
 ```
 Status:   in-progress
-Progress: 5 of 11 tasks closed
+Progress: 8 of 11 tasks closed
 Owner:    agents
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-17 (the 0.2.0 builder run: the operating session noticed scratch
           files left in the run directory by the reviewers themselves)
 Triaged:  2026-08-23 -- the contract has been RULED and narrowed in the brief, the
@@ -95,12 +95,13 @@ exists, and it bears on how far it can be relaxed -- see
 - [-] T2 | SUPERSEDED by T9: plugins/ is release output; the agent files' source is src/plugin/agents/ | 22c3a0abcbc86509c74296319ce5b719a43338ca | T2
       -- Add a `tools:` key to all six agent files. Verify: `grep -L "^tools:"
       plugins/comment-review/agents/*.md` returns nothing.
-- [ ] T3 | T3 -- Drop `Write`, `Edit` and `NotebookEdit` from the four
-      reviewers' `tools:`. Verify: none of the four reviewer files lists any of
-      the three.
-- [?] T4 | T4 -- * Decide what the reviewers still need to EXECUTE, before T3
-      picks a list. Verify: the decision is recorded and names the tools the
-      four reviewers keep.
+- [-] T3 | Superseded: the reviewers keep Write and Edit; Process #351 | 4e5eaa107e34071d082f7b76568d207f176bb478 | T3
+      -- Drop `Write`, `Edit` and `NotebookEdit` from the four reviewers'
+      `tools:`. Verify: none of the four reviewer files lists any of the three.
+- [x] T4 | Ruled: the seven tools of Process #351; sha check widened as T11 | 4e5eaa107e34071d082f7b76568d207f176bb478 | T4
+      -- * Decide what the reviewers still need to EXECUTE, before T3 picks a
+      list. Verify: the decision is recorded and names the tools the four
+      reviewers keep.
         > 2026-11-22 Outcome: keep the seven tools; widen the sha check (#351)
 - [-] T5 | Overtaken by #16/#17: binder sha checked at write refuses a file edited since review; no middle drift check (Process #62) | 26161acc | T5
       -- Hash the files under review after stage 3 and re-check them before the
@@ -113,8 +114,9 @@ exists, and it bears on how far it can be relaxed -- see
       -- * Decide whether `prove_unchanged.py`'s scope is a gap or a boundary.
       Verify: the answer is in `docs/decision-log.md`, and says whether T5 is a
       gate.
-- [ ] T8 | Implement a gate that fails when a shipped agent file grants a write
-      tool. Verify: adding Edit to one role turns it red
+- [-] T8 | SUPERSEDED by T10: the gate refuses tools outside the seven, not write tools | 4e5eaa107e34071d082f7b76568d207f176bb478 | Implement
+      a gate that fails when a shipped agent file grants a write tool. Verify:
+      adding Edit to one role turns it red
 - [ ] T9 | Add a `tools:` key to the six agent files under src/plugin/agents/
         > 2026-11-22 Check: grep -L ^tools: src/plugin/agents/*.md is empty
         > 2026-11-22 Check: each tools: key lists exactly the seven of Process #351

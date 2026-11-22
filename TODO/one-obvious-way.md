@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 1 of 23 tasks closed
+Progress: 2 of 23 tasks closed
 Owner:    backend
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-11-05 (Process #281 and the three flow audits, 2026-11-05)
 ```
 
@@ -51,7 +51,8 @@ evidence is checked when the task is worked.
 - [ ] T18 | Remove stable() from binder/addresses
 - [ ] T19 | Add load_docket to proof_io
 - [ ] T20 | Make proof load its proof, copy and docket through proof_io
-- [?] T21 | Decide how a flow reports a refusal
+- [x] T21 | Ruled: flows return (result, reasons), filed as T23; Process #353 | 4e5eaa107e34071d082f7b76568d207f176bb478 | Decide
+      how a flow reports a refusal
         > 2026-11-05 Today: raise, return a reason tuple, or emit events
         > 2026-11-22 Outcome: flows return (result, reasons) (Process #353)
 - [ ] T22 | Remove commands/carry.py's binder_reading_contexts call, which

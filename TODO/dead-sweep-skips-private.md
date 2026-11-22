@@ -2,9 +2,9 @@
 
 ```
 Status:   decision-needed
-Progress: 4 of 6 tasks closed
+Progress: 5 of 6 tasks closed
 Owner:    systems
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-22 (found while collapsing the Cues fields 2026-08-22:
           page._SHEBANG and page._CODING are dead and neither gate reports them)
 RE-CHECKED: 2026-08-23 -- 2026-08-23. Tasks 2, 4 and 5 were resolved by other work:
@@ -57,8 +57,9 @@ that mis-read them has not changed.
 - [x] T2 | FINISHED | unknown | T2 -- FINISHED. `page._SHEBANG` and
       `page._CODING` are deleted; the grep over `plugins/`, `scripts/` and
       `tests/` returns nothing (2026-08-23).
-- [?] T3 | T3 -- * Rule whether the `_private` skip is right, since such a name
-      is cheaper to check. Verify: `dead_sweep.py:194-196` states the answer.
+- [x] T3 | Ruled: stop skipping _private names, filed as T6; Process #354 | 4e5eaa107e34071d082f7b76568d207f176bb478 | T3
+      -- * Rule whether the `_private` skip is right, since such a name is
+      cheaper to check. Verify: `dead_sweep.py:194-196` states the answer.
         > 2026-11-22 Outcome: stop skipping _private names (Process #354)
 - [x] T4 | FINISHED | unknown | T4 -- FINISHED. The two constants were deleted
       rather than kept; see T2.
