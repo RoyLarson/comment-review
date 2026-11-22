@@ -7014,3 +7014,13 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   grep, (b) evidence on its own, or (c) not sanctioned):
 
   *"a"*
+
+- **#345.** **The machine context is superseded whole** (Roy, 2026-11-22, on
+  `a-machine-context-raises-query-and-clean`, shown that its "machine" is a script-run reviewer
+  context that would turn the concordance's annotation notes into queries -- the feature #320
+  removed -- and unrelated to the `machine/` package):
+
+  *"yes"*
+
+  **What it settles.** Every open task in that TODO, T8's naming question included, is
+  superseded under #320 and #338.
