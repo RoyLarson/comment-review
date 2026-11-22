@@ -7064,3 +7064,14 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
 
   **What it settles.** The gate names `compositor` and `taken_in` as dev-only. `carry`, the
   command and `flows.carry`, is deleted under #278.
+
+- **#350.** **No stage agrees this project's terms on another project** (Roy, 2026-11-22, on
+  `no-stage-agrees-the-terms` T1, shown that all nine measured cases are this project's own words
+  while the remedy proposed is a shipped stage run on the reviewed project):
+
+  *"supersede since it seems to be talking about this projects words and nothing about this
+  projects words needs to be agreed upon by agents reviewing another project"*
+
+  **What it settles.** The whole TODO is superseded, T2 included, so #348's hold covers only
+  `the-emitted-vocabulary-can-collide-with-the-repo` T1. This project's own words stay with
+  `vocabulary.toml` and its gates.
