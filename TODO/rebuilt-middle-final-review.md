@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 54 of 56 tasks closed
+Progress: 55 of 56 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-09-18 (final whole-branch review of feat/the-middle-rebuilt, 2026-09-18)
@@ -114,8 +114,9 @@ The rebuilt middle's final review.
 - [x] T31 | places and moves typed, read once, every bad entry named; tests failed first | cfec876a | Make
       MasterProof.places typed, and stop encoding a role into reasons, notes and
       asking as strings (D7)
-- [ ] T32 | Delete what nothing reads: AnswerRow.question, three event fields,
-      desk/proof.py, diff3, tally, mark --anchor-line (E2)
+- [x] T32 | Removed tally, three unused event fields and the no-op anchor-line flag. Kept diff3 and anchor. Focused tests and smoke passed. | 1bd897f077a06dc469bfec75390cca32317a8553 | Delete
+      what nothing reads: AnswerRow.question, three event fields, desk/proof.py,
+      diff3, tally, mark --anchor-line (E2)
         > 2026-09-30 R3 retired AnswerRow.question; other named dead fields remain
         > 2026-11-21 Keep diff3 for a-conflict-has-no-rendering T5.
 - [x] T33 | Shared gathered-tree comparison, chief role constant, mark grouping, and ruling eligibility. Full suite passed. | 258048c5863fd33081db05a70ca46c690665e682 | Reduce
