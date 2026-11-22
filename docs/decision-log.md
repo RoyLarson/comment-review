@@ -6753,3 +6753,57 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   paragraph differs from accepting the modified text in a composition.
   Acceptance gives the reader a side and a say if that text is contested.
   A reader who has no position can defer with a query for the others to resolve.
+
+- **#315.** **A reversal rate between runs asks nothing of the verdict table** (Roy, 2026-11-22,
+  on `a-role-can-reverse-itself-between-runs` T4, shown that runs are never compared and the
+  verdict table it named left with `verdicts.py`):
+
+  *"agree close"*
+
+  **What it settles.** T4 is moot and is superseded.
+
+- **#316.** **The em-dash TODO is not this project's** (Roy, 2026-11-22, on
+  `todo-tool-writes-em-dashes` T1, shown that the global ASCII rule already covers `TODO/` and the
+  installed board tool writes none):
+
+  *"close - should not have been part of this project at all. It violates the cross project
+  contamination rule"*
+
+  **What it settles.** The whole TODO is superseded, T2 with T1. What the vendored board script
+  writes is not tracked here.
+
+- **#317.** **A place settles on agreement across roles, not on a reversal rate** (Roy,
+  2026-11-22, on `a-role-can-reverse-itself-between-runs` T3, shown that a place settles only when
+  every role that read it agrees, `desk/evaluate/passes.py:223-233` under #180, and that nothing
+  carries between runs under #91):
+
+  *"close - agree"*
+
+  **What it settles.** A measured reversal rate adds no obligation to a run.
+
+- **#318.** **A scope declaration carries the full query payload** (Roy, 2026-11-22, on
+  `a-scope-declaration-costs-as-much-as-a-finding` T3, shown that every query carries shape,
+  attempted, settles and a source, under #301 and #305):
+
+  *"close - agree"*
+
+  **What it settles.** An `outside-my-role` query gets no lighter payload.
+
+- **#319.** **A declared vocabulary collision reaches the reviewers through the style sheet**
+  (Roy, 2026-11-22, on `the-emitted-vocabulary-can-collide-with-the-repo` T4, shown that the style
+  sheet is in the stage-4 packet, `SKILL.md:228`):
+
+  *"close - agree"*
+
+  **What it settles.** No separate channel is needed for a declared collision.
+
+- **#320.** **Gather's paragraph annotations are a future feature and are removed for now**
+  (Roy, 2026-11-22, on `computed-and-never-read` T19, shown that the gather computes annotations
+  on every paragraph, `flows/gather.py:222`, and the binder carries none of them, under
+  Addressing #12 and #158):
+
+  *"close - agree - this is a future feature expectation and can be removed for now because it may
+  not be implemented the way the current code describes"*
+
+  **What it settles.** The annotations do not reach the binder, and the step that computes them
+  is deleted rather than kept for a design that may not match it.

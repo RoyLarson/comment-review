@@ -134,6 +134,7 @@ do the thing we ruled out"*. It carried a box until 2026-08-23 and is recorded h
       payload than the other two shapes. Verify: the ruling is recorded in
       `docs/decision-log.md`.
         > 2026-08-31 a ruling was reported from the dogfood session; unconfirmed here
+        > 2026-11-22 Outcome: full query payload, no lighter form (Process #318)
 - [-] T4 | SUPERSEDED by T8: the query section moved from reviewer-brief.md:425 to :296-306 | 22c3a0abcbc86509c74296319ce5b719a43338ca | T4
       -- If T3 rules it stays, say at `reviewer-brief.md:425` that a small-remit
       role writes mostly scope declarations. Verify: that section names the

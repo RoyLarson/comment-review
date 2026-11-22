@@ -79,6 +79,7 @@ term belongs to the repo's sheet. This is settled, it is already ENFORCED, and i
 - [?] T4 | T4 -- Decide whether a declared collision reaches the REVIEWERS; the
       sheet is in the stage-4 packet, so today it would. Verify: the answer is
       written into this file.
+        > 2026-11-22 Outcome: reaches reviewers via the style sheet (Process #319)
 - [-] T5 | SUPERSEDED by T8: vocabulary.py moved to prototype/; the claim now sits in the six agent files | 22c3a0abcbc86509c74296319ce5b719a43338ca | T5
       -- Fix `vocabulary.py:73`, whose *"it is ordinary English"* is wrong for a
       collided term. Verify: the header names COLLISIONS or the term carries
