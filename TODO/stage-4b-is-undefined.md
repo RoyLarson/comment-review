@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 5 of 7 tasks closed
+Progress: 5 of 9 tasks closed
 Owner:    agents
 Requires-Roy: true
 Raised:   2026-08-20 (the /code-review high of 2026-08-20)
@@ -84,3 +84,9 @@ fails its own stage-4 gate.
 - [?] T7 | Decide which placement governs two 4c moves naming different
       destinations, since ownership-context runs only at 4a
         > 2026-11-22 Check: SKILL.md stage 5 names a rule a 4c conflict can use
+        > 2026-11-22 Outcome: no tie-break; the chief rules each (Process #352)
+- [ ] T8 | Delete SKILL.md:366-367's ownership-context tie-break for two
+      placements
+        > 2026-11-22 Check: SKILL.md names no tie-break for two placements
+- [ ] T9 | Measure whether collate refuses taking in two moves from one origin
+        > 2026-11-22 Check: a dated note records the probe's outcome

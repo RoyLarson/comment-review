@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 5 of 9 tasks closed
+Progress: 5 of 11 tasks closed
 Owner:    agents
 Requires-Roy: true
 Raised:   2026-08-17 (the 0.2.0 builder run: the operating session noticed scratch
@@ -101,6 +101,7 @@ exists, and it bears on how far it can be relaxed -- see
 - [?] T4 | T4 -- * Decide what the reviewers still need to EXECUTE, before T3
       picks a list. Verify: the decision is recorded and names the tools the
       four reviewers keep.
+        > 2026-11-22 Outcome: keep the seven tools; widen the sha check (#351)
 - [-] T5 | Overtaken by #16/#17: binder sha checked at write refuses a file edited since review; no middle drift check (Process #62) | 26161acc | T5
       -- Hash the files under review after stage 3 and re-check them before the
       collator. Verify: editing one between makes `verdicts.py` refuse, naming
@@ -116,6 +117,13 @@ exists, and it bears on how far it can be relaxed -- see
       tool. Verify: adding Edit to one role turns it red
 - [ ] T9 | Add a `tools:` key to the six agent files under src/plugin/agents/
         > 2026-11-22 Check: grep -L ^tools: src/plugin/agents/*.md is empty
+        > 2026-11-22 Check: each tools: key lists exactly the seven of Process #351
+- [ ] T10 | Implement a gate that fails when a shipped agent file grants a tool
+      outside Process #351's seven
+        > 2026-11-22 Check: adding NotebookEdit to one role turns it red
+- [ ] T11 | Extend the sha check to every file the run gathered or handed as
+      reference
+        > 2026-11-22 Check: an edit to an unscheduled gathered file is refused
 ## Related
 
 - [`stage-5-is-the-only-stage-with-no-independent-reader`](stage-5-is-the-only-stage-with-no-independent-reader.md)

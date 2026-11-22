@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 4 of 5 tasks closed
+Progress: 4 of 6 tasks closed
 Owner:    systems
 Requires-Roy: true
 Raised:   2026-08-22 (found while collapsing the Cues fields 2026-08-22:
@@ -59,8 +59,12 @@ that mis-read them has not changed.
       `tests/` returns nothing (2026-08-23).
 - [?] T3 | T3 -- * Rule whether the `_private` skip is right, since such a name
       is cheaper to check. Verify: `dead_sweep.py:194-196` states the answer.
+        > 2026-11-22 Outcome: stop skipping _private names (Process #354)
 - [x] T4 | FINISHED | unknown | T4 -- FINISHED. The two constants were deleted
       rather than kept; see T2.
 - [x] T5 | FINISHED | unknown | T5 -- MEASURED 2026-08-22 and moved to the
       Objective: the sweep matches a name TEXTUALLY, so a test METHOD NAME holds
       it.
+- [ ] T6 | Drop scripts/dead_sweep.py:217's _private skip, exempting _x_ hook
+      names
+        > 2026-11-22 Check: the sweep reports an unused _private module name

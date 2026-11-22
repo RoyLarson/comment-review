@@ -7075,3 +7075,46 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   **What it settles.** The whole TODO is superseded, T2 included, so #348's hold covers only
   `the-emitted-vocabulary-can-collide-with-the-repo` T1. This project's own words stay with
   `vocabulary.toml` and its gates.
+
+- **#351.** **The reviewers keep Read, Grep, Glob, Bash, Write, Edit and LSP** (Roy, 2026-11-22,
+  on `the-read-only-contract-is-enforced-by-nothing` T4, shown that the brief requires Bash, LSP,
+  Write for multi-line values and the answers file, and Write or Edit on a freeform copy under
+  #270; offered (a) keep those and drop the rest, (b) read-only tools with writes routed through
+  commands, or (c) no restriction and a wider sha check; the recommendation was (a), with (c)'s
+  wider sha check filed separately because Bash can write either way):
+
+  *"take your lean"*
+
+  **What it settles.** The `tools:` lists name those seven. The tasks that would drop Write and
+  Edit, or gate against any write tool, are superseded. The sha check is widened to every file
+  the run gathered or handed as reference.
+
+- **#352.** **Two 4c moves to different destinations go to the chief, with no tie-break** (Roy,
+  2026-11-22, on `stage-4b-is-undefined` T7, shown that `SKILL.md:366-367` hands the case to
+  ownership-context, which runs only at 4a; offered (a) delete the tie-break, (b) rank the 4c
+  roles, or (c) admit no `move` at 4c):
+
+  *"a"*
+
+  **What it settles.** The tie-break sentence is deleted; the chief rules each placement as any
+  contested move. Whether anything refuses taking in two moves from one origin is measured first.
+
+- **#353.** **A flow reports a refusal by returning its reasons** (Roy, 2026-11-22, on
+  `one-obvious-way` T21, shown that flows raise, return reasons and emit events, and that #281
+  wants one way per job; offered (a) every flow returns `(result, reasons)`, (b) every flow raises
+  one refusal carrying its reasons, or (c) every flow emits events):
+
+  *"a"*
+
+  **What it settles.** Flows return `(result, reasons)`, and commands turn reasons into the exit
+  code and the printout. The bus keeps events as its report of a multi-step fold.
+
+- **#354.** **The dead-code sweep stops skipping `_private` names** (Roy, 2026-11-22, on
+  `dead-sweep-skips-private` T3, shown that `scripts/dead_sweep.py:217` skips them as "ruff's to
+  see" while ruff does not report unused module-level names):
+
+  *"yes it should stop skipping private names. How much dead code can be hidden by that -
+  crayze"*
+
+  **What it settles.** The skip goes; `_x_` hook names such as `_generate_next_value_` are
+  exempt.

@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 1 of 22 tasks closed
+Progress: 1 of 23 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-11-05 (Process #281 and the three flow audits, 2026-11-05)
@@ -53,6 +53,10 @@ evidence is checked when the task is worked.
 - [ ] T20 | Make proof load its proof, copy and docket through proof_io
 - [?] T21 | Decide how a flow reports a refusal
         > 2026-11-05 Today: raise, return a reason tuple, or emit events
+        > 2026-11-22 Outcome: flows return (result, reasons) (Process #353)
 - [ ] T22 | Remove commands/carry.py's binder_reading_contexts call, which
       flows/carry.py repeats
         > 2026-11-22 Check: binder_reading_contexts runs once per carry
+- [ ] T23 | Convert the flows that raise a refusal to return (result, reasons),
+      as Process #353 rules
+        > 2026-11-22 Check: no flow raises CannotTranscribe or AddressesMoved
