@@ -123,10 +123,13 @@ is available.
 - [?] T1 | T1 -- * **RULE what the run DOES with a `correct` whose twin is
       REFERENCE ONLY.** Verify: the ruling names (a), (b) or (c) from the
       Objective and is recorded here.
+        > 2026-11-22 Outcome: stays open; waits on the document chain (Process #342)
 - [?] T2 | T2 -- * **RULE whether that applies to `drop`**, where the reference
       copy becomes the only copy. Verify: the ruling is recorded in this file.
+        > 2026-11-22 Outcome: stays open; waits on the document chain (Process #342)
 - [?] T3 | T3 -- * **RULE whether that applies to `move`.** Verify: the ruling
       is recorded in this file.
+        > 2026-11-22 Outcome: stays open; waits on the document chain (Process #342)
 - [ ] T4 | T4 -- **Land the `REFERENCE CONCERNS` section in
       `reviewer-brief.md`.** Verify: `grep -n "REFERENCE CONCERNS"
       reviewer-brief.md` returns the section.

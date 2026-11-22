@@ -150,6 +150,7 @@ defect -- a tool measures it.
 - [?] T4 | T4 -- * RULE what happens to the CAP on a prose page. Verify:
       `SKILL.md`'s cap rule states what it means there, including if the answer
       is "no cap applies".
+        > 2026-11-22 Outcome: stays open; waits on the document chain (Process #342)
 - [ ] T5 | T5 -- Name the prose-file asymmetry in `docs/limitations.md`: code
       prose citing a document is checkable, the document's drift is not. Verify:
       the file carries it.

@@ -6994,3 +6994,23 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   *"turn back to a plain task open"*, and for the second: *"turn back to a plain task - but the
   system has gone through the current comment-review several times and so this may be an
   never-ending thing"*
+
+- **#342.** **The other document-chain questions wait with #340** (Roy, 2026-11-22, on
+  `a-prose-file-has-no-blocks` T4, `correcting-one-copy-strands-the-reference-copy` T1-T3 and
+  `reference-only-misses-the-documentation` T1, each of which needs the document chain built):
+
+  *"yes keep open"*
+
+- **#343.** **Stage 1 probes for CodeGraph beside the language servers** (Roy, 2026-11-22, on
+  `stage-1-is-re-derived-every-run` T3, offered (a) probe both the tool in the session and a
+  `.codegraph/` index in the repo and record the result in the packet beside `LANGUAGE SERVERS`,
+  (b) no probe, or (c) fold it into the 0.2.7 decision on what a role receives):
+
+  *"a) yes"*
+
+- **#344.** **CodeGraph's "no caller" is a lead, confirmed by grep before it is filed** (Roy,
+  2026-11-22, on `stage-1-is-re-derived-every-run` T5, shown a measured false negative -- a
+  dataclass used only as a type annotation read as dead -- and offered (a) a lead confirmed by
+  grep, (b) evidence on its own, or (c) not sanctioned):
+
+  *"a"*

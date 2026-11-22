@@ -64,6 +64,7 @@ docstring saying *"the lexical tier cannot answer a comment's owner"* is checkab
 - [?] T1 | T1 -- * Rule on what SELECTS a documentation file, from the
       candidates in the Objective. Verify: the rule is written down; T4 is where
       it lands.
+        > 2026-11-22 Outcome: stays open; waits on the document chain (Process #342)
 - [-] T2 | Moot: c68a61a4 deleted stage 1.4 Find the destination tree; no 1.4 output exists; brief routes out-of-code prose to a human query | c68a61a4 | T2
       -- * Rule whether 1.4's destination tree is automatically REFERENCE ONLY.
       Verify: the ruling is recorded here and says whether 1.4 gains a second

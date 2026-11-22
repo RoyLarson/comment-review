@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 7 of 16 tasks closed
+Progress: 7 of 18 tasks closed
 Owner:    agents
 Requires-Roy: true
 Raised:   2026-08-17 (two full runs in one session, on two repos; stage 1 was established
@@ -138,6 +138,7 @@ ways -- a cap published since the last run, a `docs/` tree deleted since.
 - [?] T3 | T3 -- * Rule whether the skill probes for `.codegraph/` alongside the
       LSP probe. Verify: the probe is in `SKILL.md`, or this file records the
       refusal and why.
+        > 2026-11-22 Outcome: probe the tool and the index (Process #343)
 - [x] T4 | Ruled: a role may use CodeGraph to find a destination or anchor; Process #334 | 5814f78efbf136da31ec84a22680a6e2be87d1c1 | T4
       -- * Rule whether `codegraph_explore` is a sanctioned way to settle a
       paragraph's ANCHOR. Verify: the answer is recorded in `SKILL.md` or in
@@ -146,6 +147,7 @@ ways -- a cap published since the last run, a `docs/` tree deleted since.
 - [?] T5 | T5 -- * Rule whether `codegraph_explore` is a sanctioned way to
       settle a LIVENESS claim. Verify: the answer is recorded in `SKILL.md` or
       in this file.
+        > 2026-11-22 Outcome: a lead, confirmed by grep (Process #344)
 - [-] T6 | The per-run structure-state table was removed in c68a61a4 | c68a61a4 | T6
       -- State the three structure states PER SOURCE rather than per run.
       Verify: every row of the `SKILL.md` structure table names the source it is
@@ -178,3 +180,9 @@ ways -- a cap published since the last run, a `docs/` tree deleted since.
 - [ ] T16 | Name `.claude/comment-review/` in SKILL.md stage 1 step 4 as the
       style sheet's home
         > 2026-11-22 Check: grep .claude/comment-review src/plugin returns that line
+- [ ] T17 | Add a CodeGraph probe to SKILL.md stage 1, recording tool and index
+      beside LANGUAGE SERVERS
+        > 2026-11-22 Check: the packet names whether CodeGraph is available
+- [ ] T18 | State in reviewer-brief.md that CodeGraph's no-caller is a lead a
+      grep confirms before filing
+        > 2026-11-22 Check: the brief requires a grep behind a CodeGraph no-caller
