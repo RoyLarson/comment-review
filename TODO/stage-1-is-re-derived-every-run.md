@@ -2,9 +2,9 @@
 
 ```
 Status:   in-progress
-Progress: 7 of 18 tasks closed
+Progress: 9 of 18 tasks closed
 Owner:    agents
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-17 (two full runs in one session, on two repos; stage 1 was established
           from scratch both times and both style sheets were left in a session scratchpad)
 Sharpened: 2026-08-17 (Roy: "Figure out why twice / LSP state and name corpus -- twice /
@@ -135,8 +135,9 @@ ways -- a cap published since the last run, a `docs/` tree deleted since.
 - [-] T2 | No 1.7/1.8 citation under src/plugin or plugins after c68a61a4 (git grep empty) | c68a61a4 | T2
       -- Re-resolve every citation of the old substep numbers once T1 lands.
       Verify: `grep -rn "1\.8" plugins/` is empty or points at the new number.
-- [?] T3 | T3 -- * Rule whether the skill probes for `.codegraph/` alongside the
-      LSP probe. Verify: the probe is in `SKILL.md`, or this file records the
+- [x] T3 | Ruled: probe the tool and the index, filed as T17; Process #343 | 99a34507ef949dd91cca256894365726563130c2 | T3
+      -- * Rule whether the skill probes for `.codegraph/` alongside the LSP
+      probe. Verify: the probe is in `SKILL.md`, or this file records the
       refusal and why.
         > 2026-11-22 Outcome: probe the tool and the index (Process #343)
 - [x] T4 | Ruled: a role may use CodeGraph to find a destination or anchor; Process #334 | 5814f78efbf136da31ec84a22680a6e2be87d1c1 | T4
@@ -144,9 +145,10 @@ ways -- a cap published since the last run, a `docs/` tree deleted since.
       paragraph's ANCHOR. Verify: the answer is recorded in `SKILL.md` or in
       this file.
         > 2026-11-22 Outcome: CodeGraph may find a destination (Process #334)
-- [?] T5 | T5 -- * Rule whether `codegraph_explore` is a sanctioned way to
-      settle a LIVENESS claim. Verify: the answer is recorded in `SKILL.md` or
-      in this file.
+- [x] T5 | Ruled: CodeGraph is a lead a grep confirms, filed as T18; Process #344 | 99a34507ef949dd91cca256894365726563130c2 | T5
+      -- * Rule whether `codegraph_explore` is a sanctioned way to settle a
+      LIVENESS claim. Verify: the answer is recorded in `SKILL.md` or in this
+      file.
         > 2026-11-22 Outcome: a lead, confirmed by grep (Process #344)
 - [-] T6 | The per-run structure-state table was removed in c68a61a4 | c68a61a4 | T6
       -- State the three structure states PER SOURCE rather than per run.
