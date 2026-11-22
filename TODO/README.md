@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (95)
+### open  (94)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -276,7 +276,6 @@ that changed a published name or rule:
 | [dropped-history-has-no-home](dropped-history-has-no-home.md) | agents | -- | 1/4 | A dropped history sentence has no home |
 | [concordance-module](concordance-module.md) | backend | -- | 0/1 | Keep concordance logic in concordance/ |
 | [commands-reach-past-flows](commands-reach-past-flows.md) | backend | -- | 0/2 | Commands import only flows and the leaves |
-| [todo-tool-skill-routes-to-the-vendored-script](todo-tool-skill-routes-to-the-vendored-script.md) | systems | -- | 0/1 | The todo-tool skill sends board writes to the vendored script |
 
 ### in-progress  (12)
 
@@ -545,3 +544,4 @@ the reason is inside the file.
 | [index-and-glossary-for-roles](completed/index-and-glossary-for-roles.md) | 1 superseded |
 | [a-machine-context-raises-query-and-clean](completed/a-machine-context-raises-query-and-clean.md) | 8 superseded |
 | [no-stage-agrees-the-terms](completed/no-stage-agrees-the-terms.md) | 7 superseded |
+| [todo-tool-skill-routes-to-the-vendored-script](completed/todo-tool-skill-routes-to-the-vendored-script.md) | 1 superseded |
