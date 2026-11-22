@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 37 of 48 tasks closed
+Progress: 37 of 49 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, from the blind rewrite of collator.py -- the prose was
@@ -258,3 +258,6 @@ Four defects in collator.py, found by reading only the code.
 - [ ] T48 | Delete the last KNOWN crossing, results/compositor.py ->
       binder.page, from the area gate
         > 2026-11-22 Check: KNOWN is empty; the area gate still fails a crossing
+- [ ] T49 | Correct 'those three' in desk/collator.py's member roll to the two
+      functions source_verification calls
+        > 2026-11-22 Check: grep 'those three' desk/collator.py is empty

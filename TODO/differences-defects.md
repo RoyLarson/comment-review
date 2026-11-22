@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 7 of 15 tasks closed
+Progress: 7 of 17 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, a code review of `results/differences.py` that
@@ -144,3 +144,9 @@ containment. Each showed 0 behavioural differences over 104,088 cases.
 - [ ] T15 | Correct unified()'s 'reads two strings, not two commits' to
       sequences of lines
         > 2026-11-22 Check: the sentence is literally true of unified_diff's input
+- [ ] T16 | Delete `or stop building it` from the CannotCompose TODO comment,
+      since flows/answers.py:285 reads the message
+        > 2026-11-22 Check: grep 'stop building it' differences.py is empty
+- [ ] T17 | Correct the CannotCompose docstring to name flows/answers.py:285 as
+      a reader of its message
+        > 2026-11-22 Check: the docstring names flows/answers.py as a reader

@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 17 of 18 tasks closed
+Progress: 17 of 19 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-19 (the python_edge_cases.md run, 2026-08-19 -- b1 unresolvable on the
@@ -236,3 +236,6 @@ run restamps that run as a licence header -- is the same run's second defect and
       -- Make `test_b1_is_the_gap_above_the_first_line_of_code` assert the
       ANCHOR of the cue it names. Verify: it goes red today -- `b1` anchors the
       SECOND line of code.
+- [ ] T19 | Delete evidence/README.md:30-31's claim that a `path@b3` written
+      before the rename resolves today
+        > 2026-11-22 Check: evidence/README.md claims no old address resolves

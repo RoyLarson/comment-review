@@ -2,9 +2,9 @@
 
 ```
 Status:   decision-needed
-Progress: 15 of 17 tasks closed
+Progress: 15 of 19 tasks closed
 Owner:    agents
-Requires-Roy: false
+Requires-Roy: true
 Raised:   2026-08-21 (Roy, 2026-08-21, on leading and matter both being categories
           publishing already had: 'this is twice now that we have realized we were
           categorically wrong about something that the publishing industry already knew
@@ -174,3 +174,9 @@ the five series; this is the verdict vocabulary. It wants 0.2.4 or its own branc
 - [ ] T17 | Add `stet` beside `clean` in the reserved-word rules at
       CLAUDE.md:514, docs/vocabulary.md:579
         > 2026-11-22 Check: both name stet beside clean as reserved
+- [ ] T18 | Rewrite CLAUDE.md:477-482's stet paragraph to the copy chief's stet
+      that Process #87 re-ruled
+        > 2026-11-22 Check: CLAUDE.md glosses stet as the chief's agreed case
+- [?] T19 | Decide whether the copy chief writes a stet, which
+      docs/vocabulary.md:438-441 defers to this file
+        > 2026-11-22 Check: the ruling is recorded in docs/decision-log.md

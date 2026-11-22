@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 5 of 6 tasks closed
+Progress: 5 of 7 tasks closed
 Owner:    agents
-Requires-Roy: false
+Requires-Roy: true
 Raised:   2026-08-20 (the /code-review high of 2026-08-20)
 Re-measured: 2026-08-23 -- `4b` appears NOWHERE under `plugins/`; in `docs/plans/` it
           appears twice, one of them a link to this file. `SKILL.md` now defines 4a at
@@ -81,3 +81,6 @@ fails its own stage-4 gate.
       then census --revise 1, and 4c is seeded from 4a's revise
         > 2026-09-01 Raised by Process #73; the commands exist, the instruction did not
         > 2026-09-01 Named 4b per Process #75 -- the only skipped letter in SKILL.md
+- [?] T7 | Decide which placement governs two 4c moves naming different
+      destinations, since ownership-context runs only at 4a
+        > 2026-11-22 Check: SKILL.md stage 5 names a rule a 4c conflict can use

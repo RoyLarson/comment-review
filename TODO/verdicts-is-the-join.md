@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 11 of 12 tasks closed
+Progress: 11 of 13 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (Roy, 2026-08-22: the term the agent keeps saying is the collator but
@@ -122,3 +122,6 @@ the boxes below track that it is owed.
 - [x] T12 | SKILL.md stage 5 is 'collate, and rule as copy chief' | c68a61a4 | T12
       -- Name the copy chief at stage 5 in `SKILL.md`. Verify: stage 5 names it
       as the role that rules on what the collator hands up.
+- [ ] T13 | Rewrite docs/vocabulary.md:101's present-tense `verdicts.py`
+      sentence to name the modules that collate today
+        > 2026-11-22 Check: docs/vocabulary.md:101 names no prototype/ module

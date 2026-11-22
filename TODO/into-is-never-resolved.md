@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 2 of 3 tasks closed
+Progress: 2 of 4 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-25 (the narrow guard fix on the write-chain branch, 2026-08-25 --
@@ -21,3 +21,6 @@ The draft guard trusts an into it never resolves.
       test with a relative into. Verify: it fails against the current code
 - [ ] T3 | Ask whether any other flow trusts an unresolved directory the same
       way
+- [ ] T4 | Resolve `repo` once on entry to flows/gather.gather, whose walk
+      compares resolved paths against it
+        > 2026-11-22 Check: gather(Path('.'), [x.js]) lists x.js as freeform

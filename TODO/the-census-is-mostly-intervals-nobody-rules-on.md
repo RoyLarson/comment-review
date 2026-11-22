@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 27 of 28 tasks closed
+Progress: 27 of 29 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-18, from measuring what a reviewer is handed before it works
@@ -299,6 +299,9 @@ mock-up and matches nothing in the tree.
       Vocabulary 34. Verify: grep census returns nothing
 - [ ] T28 | Replace 'the census' at scripts/measure_binder.py:37 with the gather
         > 2026-11-22 Check: grep census scripts/measure_binder.py is empty
+- [ ] T29 | Remove the path+tier envelope cut from scripts/measure_binder.py,
+      since binder rows carry neither field
+        > 2026-11-22 Check: grep ENVELOPE scripts/measure_binder.py is empty
 ## Related
 
 - [`verdicts-py-announces-one-subject-and-holds-four`](completed/verdicts-py-announces-one-subject-and-holds-four.md)

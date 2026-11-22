@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 6 of 14 tasks closed
+Progress: 6 of 15 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-27 (Roy, 2026-10-27, decision-log #244)
@@ -64,3 +64,6 @@ only they need.
 - [ ] T14 | Merge reading/python/preservation.py with
       reading/rust/preservation.py into one proof
         > 2026-11-22 Check: one unchanged-code proof serves both readers
+- [ ] T15 | Read a Rust `///` doc set under an attribute above a fn as the fn's
+      `a` place, where rustc attaches it
+        > 2026-11-22 Check: #[inline], /// d, fn g() gathers /// d at a1, not b1
