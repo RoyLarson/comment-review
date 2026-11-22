@@ -137,6 +137,7 @@ focus for them gets a lot easier. ! The dependency is discharged: `cue` emits fo
 - [?] T4 | T4 -- * RULE where `function-context` and `module-context` START now
       the a-series has landed. Verify: each names its starting series, and says
       ORDER not filter.
+        > 2026-11-22 Outcome: every place is read; no start owed (Process #330)
 - [ ] T5 | T5 -- Record which currency each candidate above pays in -- CATCHES,
       or the search it SAVES. Verify: T1..T4 each carry that line, citing the
       measured cost table.

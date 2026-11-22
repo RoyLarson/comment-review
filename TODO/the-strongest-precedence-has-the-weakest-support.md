@@ -82,6 +82,7 @@ agreeing on a destination produces no output at all. MEASURED 2026-08-17: `funct
 - [?] T1 | T1 -- * RULE whether a placement verdict needs a second reader --
       candidates in the Objective. Verify: the ruling is recorded in
       `docs/decision-log.md`.
+        > 2026-11-22 Outcome: the chief, both ends, 4c and author read it (#331)
 - [x] T2 | FINISHED | unknown | T2 -- SUPERSEDED. It asked for an anchor the
       census now emits on every address at both tiers -- `census.py:454-458` and
       `page.py:681`. Detail in the Objective.

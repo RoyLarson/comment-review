@@ -87,8 +87,10 @@ statement is one per boundary, with the fields NAMED, and every named field is e
 - [?] T5 | T5 -- * **RULE WHAT A FINDING IS**, `claim` included. Verify: the
       ruling is recorded in this file and `claim-fallback-is-unreachable` can
       move on it.
+        > 2026-11-22 Outcome: answered by docs/the-mark.md and Process #92
 - [?] T6 | T6 -- * **RULE WHAT THE COLLATOR CERTIFIES**, and where a coverage
       gap goes. Verify: the ruling is recorded in this file.
+        > 2026-11-22 Outcome: certifies sources; skipped place returns (Process #329)
 - [-] T7 | Moot: record.py --check and verdicts.py are prototype-only; marks go through one parse; verified at HEAD | 67184ac1 | T7
       -- * Rule which of `record.py --check` and `verdicts.py` is right where
       they disagree. Verify: the ruling is recorded in this file.

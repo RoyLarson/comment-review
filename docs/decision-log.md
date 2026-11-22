@@ -6881,3 +6881,33 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   *"yes"*
 
   **What it settles.** T1 is moot, and T3, which waited on it, goes with it.
+
+- **#328.** **`referrers` stays a name matcher** (Roy, 2026-11-22, on
+  `reference-only-misses-the-documentation` T3, shown that `concordance/referrers.py:24-45`
+  matches names only):
+
+  *"yes"*
+
+- **#329.** **The collator certifies sources; a skipped place goes back to its role** (Roy,
+  2026-11-22, on `front-half-undetermined` T6, left open in #272, shown that the collator checks
+  sources only and that a place a reviewer skipped goes back to that role while the round rolls
+  back, `flows/mark_errors.py` under #186):
+
+  *"yes"*
+
+- **#330.** **A role reads every place it is handed; no starting series is owed** (Roy,
+  2026-11-22, on `role-rule-register` T4, which asked where function-context and module-context
+  start now the a-series has landed):
+
+  *"why would we give them a reading order? they need to look at all of the places. I am not
+  certain why it would matter where they start."*
+
+  **What it settles.** T4 is superseded. The role files name no starting series, and none is
+  added.
+
+- **#331.** **A placement decision already has its second readers** (Roy, 2026-11-22, on
+  `the-strongest-precedence-has-the-weakest-support` T1, shown that the copy chief reads both ends
+  before ruling, `SKILL.md:349-354`, each end is re-read, `:391-393`, and the three 4c roles and
+  the author then read it):
+
+  *"yes"*
