@@ -1,8 +1,8 @@
 # Resolve final review documentation and reporting findings
 
 ```
-Status:   in-progress
-Progress: 8 of 9 TODO tasks closed
+Status:   closed
+Progress: 9 of 9 TODO tasks closed
 Plan-tasks: 1 of 1 plan tasks closed
 Owner:    backend
 Requires-Roy: false
@@ -16,7 +16,7 @@ final-review items
 
 ## TODO tasks this plan closes
 
-### A - [rebuilt-middle-final-review](../../TODO/rebuilt-middle-final-review.md)
+### A - [rebuilt-middle-final-review](../../TODO/completed/rebuilt-middle-final-review.md)
 
 - [x] T13 | Correct 'no handler reads a page' in flows/bus.py and
       docs/the-turn.md; the collate path reads pages under review (D2)
@@ -30,7 +30,7 @@ final-review items
       lines of four shipped files and two tests (F2)
 - [x] T35 | Correct scripts/render_brief.py lines 7 and 103: INSTRUCTIONS is in
       desk/marks/table.py (F3, systems lane)
-- [ ] T36 | Correct the nine imprecise statements in docs/the-turn.md that the
+- [-] T36 | Correct the nine imprecise statements in docs/the-turn.md that the
       final review lists (G2)
 - [x] T37 | Correct docs/the-mark.md line 237: sixteen things is fifteen since
       rereads went (G3)

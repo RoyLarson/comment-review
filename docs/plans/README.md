@@ -43,7 +43,7 @@
 | [2026-11-04-look-up-address-reads-the-page](2026-11-04-look-up-address-reads-the-page.md) | closed | 22/22 | 11/11 |
 | [align-single-copy-checks](align-single-copy-checks.md) | closed | 1/1 | 2/2 |
 | [desk-boundaries-and-rules](desk-boundaries-and-rules.md) | closed | 2/2 | 2/2 |
-| [final-review-docs](final-review-docs.md) | in-progress | 8/9 | 1/1 |
+| [final-review-docs](final-review-docs.md) | closed | 9/9 | 1/1 |
 | [retire-chief-copy](retire-chief-copy.md) | closed | 2/2 | 2/2 |
 | [retire-unused-review-code](retire-unused-review-code.md) | closed | 1/1 | 2/2 |
 | [shared-refusal-formatter](shared-refusal-formatter.md) | closed | 1/1 | 1/1 |

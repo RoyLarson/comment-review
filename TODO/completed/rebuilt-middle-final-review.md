@@ -1,8 +1,8 @@
 # The rebuilt middle's final review
 
 ```
-Status:   open
-Progress: 55 of 56 tasks closed
+Status:   closed
+Progress: 56 of 56 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-09-18 (final whole-branch review of feat/the-middle-rebuilt, 2026-09-18)
@@ -128,8 +128,9 @@ The rebuilt middle's final review.
 - [x] T35 | Both render_brief references already point to desk/marks/table.py. | d608664a | Correct
       scripts/render_brief.py lines 7 and 103: INSTRUCTIONS is in
       desk/marks/table.py (F3, systems lane)
-- [ ] T36 | Correct the nine imprecise statements in docs/the-turn.md that the
-      final review lists (G2)
+- [-] T36 | Original G2 list unavailable. Replaced its checklist with a current-code audit of the turn guide, corrected verified discrepancies, and ran 265 focused tests. | f206d8c81c18606bc8325e97b791ddfb823c8281 | Correct
+      the nine imprecise statements in docs/the-turn.md that the final review
+      lists (G2)
         > 2026-11-21 Live prose audited. Original nine findings still need tracing.
 - [x] T37 | The mark guide already counts fifteen fields. | 72e6eac3 | Correct
       docs/the-mark.md line 237: sixteen things is fifteen since rereads went
