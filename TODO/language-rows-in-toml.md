@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 17 of 19 tasks closed
+Progress: 18 of 20 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (Roy, 2026-08-22: since tomllib is available the language
@@ -99,8 +99,9 @@ full name-harvester capability work remains separately scoped.
 - [-] T13 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | T13
       -- Dispatch the READER at `page.py:694` on the row, not on `lang.name`.
       Verify: a file cannot be read at one tier and stamped at the other.
-- [ ] T14 | T14 -- Gate the name harvester at `census.py:172` on a row field,
-      not on `lang.name != "python"`. Verify: `census.py` holds no comparison of
+- [-] T14 | SUPERSEDED by T20: the harvester gate moved from census.py:172 to concordance/code_names.py:41 | 22c3a0abcbc86509c74296319ce5b719a43338ca | T14
+      -- Gate the name harvester at `census.py:172` on a row field, not on
+      `lang.name != "python"`. Verify: `census.py` holds no comparison of
       `lang.name`.
 - [-] T15 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | T15
       -- Make `prove_unchanged.py:176` take the `(".py", ".pyi")` suffix tuple
@@ -119,3 +120,6 @@ full name-harvester capability work remains separately scoped.
         > 2026-10-11 Roy requires per-language definitions; engines may be reused.
 - [ ] T19 | Make concordance/referrers.py take its suffix tuple from the Python
       language definition. Verify: the tuple is not re-spelled in referrers.py
+- [ ] T20 | Gate concordance/code_names.py's harvester on a language-row field,
+      not a language name
+        > 2026-11-22 Check: code_names.py compares no language name

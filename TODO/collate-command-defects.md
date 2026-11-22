@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 21 of 29 tasks closed
+Progress: 23 of 31 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, a code review of `commands/collate.py` driven by
@@ -71,13 +71,14 @@ under `utf8_console()`.
 
 ## Tasks
 
-- [ ] T1 | Implement a guard around the `--out` write in `commands/collate.py`,
-      so a filesystem failure returns an exit code the function's own `Returns:`
-      list names and a stderr line naming the path, instead of escaping as a
-      traceback. Verify: a run whose `--out` parent directory does not exist,
-      and a run whose `--out` names an existing directory, each return a listed
-      exit code; `commands/distribute.py`'s write carries the same guard or a
-      sentence saying why not. Both return NO exit code today.
+- [-] T1 | SUPERSEDED by T30: --out is now --proof-out/--batch-out; write_raw creates parents now | 22c3a0abcbc86509c74296319ce5b719a43338ca | Implement
+      a guard around the `--out` write in `commands/collate.py`, so a filesystem
+      failure returns an exit code the function's own `Returns:` list names and
+      a stderr line naming the path, instead of escaping as a traceback. Verify:
+      a run whose `--out` parent directory does not exist, and a run whose
+      `--out` names an existing directory, each return a listed exit code;
+      `commands/distribute.py`'s write carries the same guard or a sentence
+      saying why not. Both return NO exit code today.
 - [-] T2 | A fold commits every place or none; any Refused rolls the round back (#183, #186); verified at HEAD | 67184ac1 | Update
       `commands/collate.py` so a non-empty `got.problems` does not discard the
       fold: write the chief AND report the per-role problems, which is the
@@ -100,10 +101,11 @@ under `utf8_console()`.
       `got.problems` and one refused for a missing `read_from` each write their
       reason to the stream the `Returns:` prose states; today the first is on
       stdout and the docstring says stderr.
-- [ ] T5 | Update the resolved-place count in `commands/collate.py` so it counts
-      PLACES rather than marks, and does not print `1 places`. Verify: a stage
-      holding one resolved `move` between two addresses prints 2, and the
-      singular is used at 1; today line 153 counts marks, calls them places, and
+- [-] T5 | SUPERSEDED by T31: counted() in commands/report.py now counts places by state; only '1 places' remains | 22c3a0abcbc86509c74296319ce5b719a43338ca | Update
+      the resolved-place count in `commands/collate.py` so it counts PLACES
+      rather than marks, and does not print `1 places`. Verify: a stage holding
+      one resolved `move` between two addresses prints 2, and the singular is
+      used at 1; today line 153 counts marks, calls them places, and
       under-states by one per resolved move.
 - [-] T6 | RECONCILE_ERRORS deleted (grep empty); verified at HEAD | 67184ac1 | Update
       the `RECONCILE_ERRORS` handling in `commands/collate.py` so only a
@@ -217,3 +219,8 @@ under `utf8_console()`.
       instead of raising OSError
 - [ ] T29 | Resolve the paths in a collate --pairs file against the file's own
       folder
+- [ ] T30 | Guard commands/collate.py's save_proof/save_batch writes against
+      OSError
+        > 2026-11-22 Check: --proof-out naming a directory exits with a listed code
+- [ ] T31 | Print '1 place', not '1 places', from commands/report.py counted()
+        > 2026-11-22 Check: a one-place proof prints the singular

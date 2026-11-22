@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 3 of 12 tasks closed
+Progress: 5 of 14 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (Roy, 2026-08-22, on the exceptions.py layer: a human would have
@@ -111,12 +111,19 @@ either they take it through the path shim two of them already use (`render_brief
 - [x] T8 | FINISHED | unknown | T8 -- Reasoning, moved to the Objective:
       deferring is safe because the named tuples are the seam, and every call
       site already names a QUESTION rather than a tuple.
-- [ ] T9 | T9 -- Audit the 22 bare `raise ValueError` once T1..T6 land: each is
-      a refusal or a bad argument. Verify: every one left carries a comment
-      saying which.
-- [ ] T10 | T10 -- Settle the five `scripts/` files holding their own
-      `READ_ERRORS` -- shim or declare. Verify: `grep -rn ^READ_ERRORS scripts/`
-      is empty, or all five say why.
+- [-] T9 | SUPERSEDED by T13: src/ now holds 151 bare raise ValueError, not 22 | 22c3a0abcbc86509c74296319ce5b719a43338ca | T9
+      -- Audit the 22 bare `raise ValueError` once T1..T6 land: each is a
+      refusal or a bad argument. Verify: every one left carries a comment saying
+      which.
+- [-] T10 | SUPERSEDED by T14: four scripts/ files define READ_ERRORS now, not five | 22c3a0abcbc86509c74296319ce5b719a43338ca | T10
+      -- Settle the five `scripts/` files holding their own `READ_ERRORS` --
+      shim or declare. Verify: `grep -rn ^READ_ERRORS scripts/` is empty, or all
+      five say why.
 - [ ] T11 | Derive `GIT_ERRORS` from `READ_ERRORS` instead of restating its
       members
 - [ ] T12 | Delete `TOML_ERRORS`, whose only reader is under `prototype/`
+- [ ] T13 | Classify each of the 151 bare `raise ValueError` in src/ once T1-T6
+      land
+        > 2026-11-22 Check: each one left carries a comment saying which kind
+- [ ] T14 | Settle the four scripts/ files that define their own READ_ERRORS
+        > 2026-11-22 Check: grep ^READ_ERRORS scripts/ is empty, or all four say why

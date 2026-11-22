@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 1 of 4 tasks closed
+Progress: 3 of 6 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-21 (the /code-review xhigh of 2026-08-21, focused on the file-to-
@@ -46,9 +46,10 @@ tests for the file is misled.
 
 ## Tasks
 
-- [ ] T1 | T1 -- Flatten `unaddressed()` to one pass, dropping `_by_path` and
-      the sort. Verify: `uv run pytest -q` green and its census sentences
-      byte-identical before and after.
+- [-] T1 | SUPERSEDED by T5: unaddressed() now lives in binder/addresses.py; census sentences are gone | 22c3a0abcbc86509c74296319ce5b719a43338ca | T1
+      -- Flatten `unaddressed()` to one pass, dropping `_by_path` and the sort.
+      Verify: `uv run pytest -q` green and its census sentences byte-identical
+      before and after.
 - [ ] T2 | T2 -- Re-take the `unaddressed()` timing on the current code, before
       and after T1. Verify: two numbers in this file, each with the command that
       produced it.
@@ -56,6 +57,13 @@ tests for the file is misled.
       -- Build the census row list ONCE on the text path, reusing what
       `census.py:434` already builds. Verify: `grep -c "vars(b) \| {" census.py`
       returns 1.
-- [ ] T4 | T4 -- Stop `census.py --out` leaving an empty file behind on a
-      refusal. Verify: a test asserting exit 1 and no `<path>` fails today and
-      passes after.
+- [-] T4 | SUPERSEDED by T6: census.py became commands/gather.py, which opens --out before _report refuses | 22c3a0abcbc86509c74296319ce5b719a43338ca | T4
+      -- Stop `census.py --out` leaving an empty file behind on a refusal.
+      Verify: a test asserting exit 1 and no `<path>` fails today and passes
+      after.
+- [ ] T5 | Flatten binder/addresses.unaddressed() to one pass without the
+      _by_path sort
+        > 2026-11-22 Check: suite green; gather's unaddressed lines byte-identical
+- [ ] T6 | Stop `gather --out` leaving an empty file behind when the gather
+      refuses
+        > 2026-11-22 Check: a refused gather --out X exits 1 with no file at X

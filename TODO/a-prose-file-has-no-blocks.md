@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 4 of 9 tasks closed
+Progress: 5 of 10 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-17 (Roy: "both todo-tool and another project ended up in / six rules are
@@ -154,12 +154,15 @@ defect -- a tool measures it.
 - [x] T6 | FINISHED | unknown | T6 -- SUPERSEDED 2026-08-23. The eight dangling
       `CLAUDE.md stage N` pointers are not in this tree. Measurement in the
       Objective.
-- [ ] T7 | T7 -- Move `README.md:348`'s gap row when T1's answer lands,
-      including if the answer is (d). Verify: the row states the ruled position
-      and cites where it was ruled.
+- [-] T7 | SUPERSEDED by T10: the gap row moved from README.md:348 to :366 | 22c3a0abcbc86509c74296319ce5b719a43338ca | T7
+      -- Move `README.md:348`'s gap row when T1's answer lands, including if the
+      answer is (d). Verify: the row states the ruled position and cites where
+      it was ruled.
 - [x] T8 | FINISHED | unknown | T8 -- RULING, MADE 2026-08-20: the four desks
       already ask the markdown questions. Kept in the Objective as the record of
       Roy's words.
 - [x] T9 | FINISHED | unknown | T9 -- REASONING, kept in the Objective: a header
       is a documentable declaration, so `a` works and `c` never emits -- and
       markdown is the first tier to reach two series.
+- [ ] T10 | Move README.md:366's prose-file gap row when T1's answer lands
+        > 2026-11-22 Check: the row states the ruled position, citing its ruling

@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 42 of 52 tasks closed
+Progress: 47 of 57 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, a code review of `desk/mark.py` that ran `parse`
@@ -133,13 +133,13 @@ cites as its measured example of a field answering neither necessary nor purpose
       -- today it returns `(mark, [])`, and `reading.addresser.cue_of("a0")`
       answers `Address('', '')`; the test goes red when the check is removed.
         > 2026-09-14 self-run 2026-09-14: still passes; fc1 marked it at mark.py b121
-- [ ] T2 | Update the COPIED, NOT ALIASED comment at `desk/mark.py:719-720` and
-      `:375-376` to the depth the copy holds, or copy `sources`' entries and
-      `claim`'s values deeply. Verify: mutating
-      `entry["sources"][0]["verbatim"]` after `parse` cannot change
-      `mark.sources`, or the comment bounds the guarantee to the containers and
-      names `as_entry()` as the second route -- today both mutations are visible
-      through a frozen `Mark`.
+- [-] T2 | SUPERSEDED by T53: desk/mark.py became desk/proof/mark.py; claim values are now typed str fields | 22c3a0abcbc86509c74296319ce5b719a43338ca | Update
+      the COPIED, NOT ALIASED comment at `desk/mark.py:719-720` and `:375-376`
+      to the depth the copy holds, or copy `sources`' entries and `claim`'s
+      values deeply. Verify: mutating `entry["sources"][0]["verbatim"]` after
+      `parse` cannot change `mark.sources`, or the comment bounds the guarantee
+      to the containers and names `as_entry()` as the second route -- today both
+      mutations are visible through a frozen `Mark`.
 - [x] T3 | Process 143: delete all three; nothing reads them | 7924d645 | Decide
       whether `can_declare_scope`, `rules_on_text` and `diffable` stay as row
       flags, and what reads each? MEASURED 2026-08-30: no reader anywhere in
@@ -173,27 +173,30 @@ cites as its measured example of a field answering neither necessary nor purpose
       as `replace(INSTRUCTIONS[ADD], claim_all=(), needs_anchor=True)` is
       refused; today an `add` carrying no anchor at all parses with `problems:
       []` under it.
-- [ ] T8 | Update `ROLE_FIELDS`' docstring at `desk/mark.py:380-383`, which
-      enumerates seven of `Mark`'s eight fields and omits `raw_text`. Verify: a
-      test differences `set(ROLE_FIELDS) \| {"address", "anchor",
-      "instruction"}` against `dataclasses.fields(Mark)` and asserts it is empty
-      -- today it reports `raw_text` unaccounted for.
-- [ ] T9 | Update `allowed()`'s `Returns:` block at `desk/mark.py:404-409`,
-      which names six keys where the function returns seven -- `source_keys` is
-      missing. Verify: a test compares `set(allowed())` against the keys the
-      docstring names and goes red when either is edited alone.
+- [-] T8 | SUPERSEDED by T54: ROLE_FIELDS moved to desk/proof/mark.py:763-766 | 22c3a0abcbc86509c74296319ce5b719a43338ca | Update
+      `ROLE_FIELDS`' docstring at `desk/mark.py:380-383`, which enumerates seven
+      of `Mark`'s eight fields and omits `raw_text`. Verify: a test differences
+      `set(ROLE_FIELDS) \| {"address", "anchor", "instruction"}` against
+      `dataclasses.fields(Mark)` and asserts it is empty -- today it reports
+      `raw_text` unaccounted for.
+- [-] T9 | SUPERSEDED by T55: allowed() moved to desk/marks/rules.py; it names seven keys, returns eight | 22c3a0abcbc86509c74296319ce5b719a43338ca | Update
+      `allowed()`'s `Returns:` block at `desk/mark.py:404-409`, which names six
+      keys where the function returns seven -- `source_keys` is missing. Verify:
+      a test compares `set(allowed())` against the keys the docstring names and
+      goes red when either is edited alone.
 - [-] T10 | Mark.seed and SEEDED removed; BlankMark writes from fields(self); wire._written raises one named AttributeError | 167c7f13 | Update
       `Mark.seed`'s "THIS IS THE WHOLE GUARD" sentence at
       `desk/mark.py:344-348`, since `zip(..., strict=True)` raises first and a
       name ADDED to or REMOVED from `SEEDED` meets a bare `ValueError` naming
       neither `Mark` nor `SEEDED`. Verify: the docstring names both failures, or
       `seed` raises one named error for both.
-- [ ] T11 | Update `allowed()` at `desk/mark.py:435` so the instruction list is
-      published in the order `docs/the-mark.md` states, as `QUERY_SHAPES`
-      already is, or state at `sorted(INSTRUCTIONS)` why the two closed sets in
-      one file order themselves by opposite rules. Verify:
-      `allowed()["instruction"]` reads `clean, query, drop, correct, patch, add,
-      move`, or the file says why it is alphabetical.
+- [-] T11 | SUPERSEDED by T56: allowed() moved from desk/mark.py:435 to desk/marks/rules.py:187 | 22c3a0abcbc86509c74296319ce5b719a43338ca | Update
+      `allowed()` at `desk/mark.py:435` so the instruction list is published in
+      the order `docs/the-mark.md` states, as `QUERY_SHAPES` already is, or
+      state at `sorted(INSTRUCTIONS)` why the two closed sets in one file order
+      themselves by opposite rules. Verify: `allowed()["instruction"]` reads
+      `clean, query, drop, correct, patch, add, move`, or the file says why it
+      is alphabetical.
 - [-] T12 | SUPERSEDED -- the instrument is the page's cues, not the full binder; refiled as T14 | 29e3cd4c | Update
       the mark command to refuse an address the full binder does not carry,
       before it writes. Verify: a cue no page holds is refused
@@ -342,3 +345,19 @@ cites as its measured example of a field answering neither necessary nor purpose
 - [ ] T52 | Correct table.py's dropped-word messages, which name a reordered
       word as dropped
         > 2026-11-22 Check: reordered words are not reported as a dropped word
+- [ ] T53 | Copy each `sources` entry in Mark.read so mark.sources shares no
+      caller dict
+        > 2026-11-22 Check: mutating entry['sources'][0] after read leaves the mark
+- [ ] T54 | Correct the ROLE_FIELDS comment at desk/proof/mark.py:763, which
+      omits seeded raw_text
+        > 2026-11-22 Check: the comment accounts for every Mark field
+- [ ] T55 | Add `source_keys` to allowed()'s Returns block in
+      desk/marks/rules.py
+        > 2026-11-22 Check: a case compares allowed()'s keys with its docstring's
+- [-] T56 | SUPERSEDED by T57: reworded to open with a listed verb | 22c3a0abcbc86509c74296319ce5b719a43338ca | Order
+      allowed()'s instruction list at desk/marks/rules.py:187 as
+      docs/the-mark.md does
+        > 2026-11-22 Check: order matches the-mark.md, or a comment says why not
+- [ ] T57 | Make allowed()'s instruction list at desk/marks/rules.py:187 follow
+      docs/the-mark.md's order
+        > 2026-11-22 Check: order matches the-mark.md, or a comment says why not

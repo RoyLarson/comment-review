@@ -2,7 +2,7 @@
 
 ```
 Status:   deferred
-Progress: 1 of 6 tasks closed
+Progress: 2 of 7 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-08-19 (Roy approving the desk names while the paragraph rename landed,
@@ -77,12 +77,15 @@ that scope closing, not work overtaken.
       no old id is left.
 - [ ] T3 | T3 -- Move the `[roles]` keys in `references/vocabulary.toml` to the
       new names. Verify: `uv run python scripts/check_vocabulary.py` exits 0.
-- [ ] T4 | T4 -- Rename the role in the shipped prose: `SKILL.md`'s 4a/4c
-      dispatch table and the `--reviewers` examples. Verify: no old role name is
-      left in `plugins/`.
+- [-] T4 | SUPERSEDED by T7: no --reviewers flag exists; roles are named in the 4a/4c topology | 22c3a0abcbc86509c74296319ce5b719a43338ca | T4
+      -- Rename the role in the shipped prose: `SKILL.md`'s 4a/4c dispatch table
+      and the `--reviewers` examples. Verify: no old role name is left in
+      `plugins/`.
 - [ ] T5 | T5 -- Rename the role in `docs/` and `CLAUDE.md`'s command block.
       Verify: only the held-run paths T1 ruled on keep an old name in `docs/`
       and `CLAUDE.md`.
 - [x] T6 | Each role file opens with its desk; SKILL.md and vocabulary name the desks | eab60741 | Update
       agent files, SKILL.md and vocabulary to name each role by its desk,
       keeping the ids; verify each role file opens with its desk
+- [ ] T7 | Rename the roles in SKILL.md's 4a/4c topology lines
+        > 2026-11-22 Check: no old role name is left in src/plugin/

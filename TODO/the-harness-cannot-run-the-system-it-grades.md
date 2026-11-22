@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 17 of 32 tasks closed
+Progress: 18 of 33 tasks closed
 Owner:    testing
 Requires-Roy: true
 Raised:   2026-08-18, after a run whose only question needed one role and cost four
@@ -327,9 +327,9 @@ to end, so the dominance claim waits on something that can disagree with it.
 - [-] T10 | Obsolete: a set short of four is not a legal run; SKILL.md:215 all four run (c68a61a4), #272 respawns a missing role | c68a61a4 | T10
       -- Where the set is short of four, make the collator name whose
       corroboration is absent. Verify: a three-role report names it.
-- [ ] T11 | T11 -- Give a MARK-level case its terminus in writing: stage 4's
-      record file. Verify: a case asserts on one and `git status --short` is
-      empty.
+- [-] T11 | SUPERSEDED by T33: stage 4's record file is gone; a role returns an edit copy | 22c3a0abcbc86509c74296319ce5b719a43338ca | T11
+      -- Give a MARK-level case its terminus in writing: stage 4's record file.
+      Verify: a case asserts on one and `git status --short` is empty.
 - [x] T12 | FINISHED | unknown | T12 -- RULED 2026-08-18 by Roy: a fixture is a
       CHECKOUT AT A HASH and this repo's own history is a source; the mechanism
       ships.
@@ -390,6 +390,8 @@ to end, so the dominance claim waits on something that can disagree with it.
       recall >= filtered.
 - [ ] T32 | Measure whether a topology's carries gives better answers, per
       Process #50
+- [ ] T33 | Give a mark-level case its terminus in writing: stage 4's edit copy
+        > 2026-11-22 Check: a case reads one; git status --short is empty
 
 ## What this costs today
 

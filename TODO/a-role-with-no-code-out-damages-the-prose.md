@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 8 of 12 tasks closed
+Progress: 11 of 15 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-08-23 (2026-08-23, Roy: 'we can't tell the agents to review all of this
@@ -172,15 +172,18 @@ is open, so *"effectiveness unchanged"* has no grader.
 - [-] T5 | #199: no code_concerns field; module-context.md:37,41,79 already name code concerns via the shared brief's query | 4df9982d | T5
       -- Name `code_concerns` in `comment-review-module-context.md`. Verify: the
       same grep lists four files in total; today it lists one.
-- [ ] T6 | T6 -- Say what verdict a docstring enumerating unrelated
-      responsibilities earns (`comment-review-module-context.md:27`). Verify:
-      that trigger names its verdict.
-- [ ] T7 | T7 -- Say what verdict section banners reading as chapter breaks earn
+- [-] T6 | SUPERSEDED by T13: the trigger moved from module-context.md:27 to :48 | 22c3a0abcbc86509c74296319ce5b719a43338ca | T6
+      -- Say what verdict a docstring enumerating unrelated responsibilities
+      earns (`comment-review-module-context.md:27`). Verify: that trigger names
+      its verdict.
+- [-] T7 | SUPERSEDED by T14: the trigger moved from module-context.md:28 to :49 | 22c3a0abcbc86509c74296319ce5b719a43338ca | T7
+      -- Say what verdict section banners reading as chapter breaks earn
       (`comment-review-module-context.md:28`). Verify: that trigger names its
       verdict.
-- [ ] T8 | T8 -- Say what verdict a summary line describing one half of the file
-      earns (`comment-review-module-context.md:29`). Verify: that trigger names
-      its verdict.
+- [-] T8 | SUPERSEDED by T15: the trigger moved from module-context.md:29 to :50 | 22c3a0abcbc86509c74296319ce5b719a43338ca | T8
+      -- Say what verdict a summary line describing one half of the file earns
+      (`comment-review-module-context.md:29`). Verify: that trigger names its
+      verdict.
 - [ ] T9 | T9 -- Re-run the harness case
       `module-context-widens-a-two-subject-docstring`. Verify:
       `evals/test-cases.jsonl` records an outcome for it other than `miss`.
@@ -193,3 +196,11 @@ is open, so *"effectiveness unchanged"* has no grader.
 - [x] T12 | Smoke plants a code concern answered add a TODO; the TODO lands at fib.py@c5; smoke exits 0 | 8cc885142d075e1c177464188ecb6f9124fb5348 | Implement
       a smoke plant of a code concern answered add a TODO; verify the smoke
       lands the TODO line and exits 0
+- [ ] T13 | Say what verdict module-context.md:48's unrelated-responsibilities
+      docstring earns
+        > 2026-11-22 Check: that trigger names its verdict
+- [ ] T14 | Say what verdict module-context.md:49's chapter-break banners earn
+        > 2026-11-22 Check: that trigger names its verdict
+- [ ] T15 | Say what verdict module-context.md:50's half-the-file summary line
+      earns
+        > 2026-11-22 Check: that trigger names its verdict

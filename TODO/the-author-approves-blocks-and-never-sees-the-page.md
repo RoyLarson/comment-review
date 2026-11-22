@@ -2,9 +2,9 @@
 
 ```
 Status:   decision-needed
-Progress: 8 of 9 tasks closed
+Progress: 9 of 10 tasks closed
 Owner:    agents
-Requires-Roy: false
+Requires-Roy: true
 Raised:   2026-08-15 (Roy, after the 7b cutting paragraph was found and deleted)
 Triaged:  2026-08-23 -- four of the nine landed since this was filed. 5b and 6b are
           shipped stages, and stage 8 is already a two-outcome verification that
@@ -122,7 +122,11 @@ not delete it without deciding which; this cannot be settled before T2.
 - [x] T8 | FINISHED | unknown | T8 -- FINISHED. "damage found and REPAIRED" is
       gone; `review.md:43` and `SKILL.md:1032` both refuse a second write after
       approval, at stage 8.
-- [ ] T9 | T9 -- Re-check what stage 7a presents once the page is visible;
-      blocked on T2. Verify: the five-part listing at `SKILL.md:996-999` is kept
-      or cut, with a reason.
+- [-] T9 | SUPERSEDED by T10: T2 is moot under #276; the listing moved from SKILL.md:996-999 to :508-512 | 22c3a0abcbc86509c74296319ce5b719a43338ca | T9
+      -- Re-check what stage 7a presents once the page is visible; blocked on
+      T2. Verify: the five-part listing at `SKILL.md:996-999` is kept or cut,
+      with a reason.
         > 2026-09-03 PROVISIONAL leaning noted on T2/T6 -- Process 85, not a ruling
+- [?] T10 | Rule on keeping SKILL.md:508-512's per-place listing beside the 7a
+      page diffs
+        > 2026-11-22 Check: the ruling with its reason is in decision-log.md

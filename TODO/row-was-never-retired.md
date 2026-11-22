@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 1 of 5 tasks closed
+Progress: 4 of 8 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-09-02 (systems)
@@ -80,11 +80,22 @@ Those are the record of what was decided and are not rewritten.
 
 ## Tasks
 
-- [ ] T1 | Rename desk/mark.py's Row for what it is: one instruction's spec
+- [-] T1 | SUPERSEDED by T6: Row moved from desk/mark.py to desk/marks/table.py | 22c3a0abcbc86509c74296319ce5b719a43338ca | Rename
+      desk/mark.py's Row for what it is: one instruction's spec
 - [ ] T2 | Rename the rows wire key binder/page.py serialises and reads back
 - [ ] T3 | Update src/ prose that calls a paragraph a row
-- [ ] T4 | Add row and rows to check_vocabulary.py's RETIRED, once T5 rules the
+- [-] T4 | SUPERSEDED by T7: RETIRED is read from scripts/retired_words.toml; this file has no T5 to wait on | 22c3a0abcbc86509c74296319ce5b719a43338ca | Add
+      row and rows to check_vocabulary.py's RETIRED, once T5 rules the
       language-row sense and the rename lands
 - [x] T5 | Ruled #275: retired; the term is language definition | 9812bd0c | Decide
       whether the LANGUAGE-ROW sense is retired too, or is declared polysemy.
       Verify: the answer is in `docs/vocabulary.md`
+- [ ] T6 | Rename desk/marks/table.py's Row for what it is: one instruction's
+      spec
+        > 2026-11-22 Check: no class named Row remains in desk/
+- [-] T7 | SUPERSEDED by T8: its label cited a reissued task; T1 is now T6 | 22c3a0abcbc86509c74296319ce5b719a43338ca | Retire
+      `row`/`rows` in scripts/retired_words.toml once T1-T3 land
+        > 2026-11-22 Check: check_vocabulary.py exits 0 with both retired
+- [ ] T8 | Retire `row`/`rows` in scripts/retired_words.toml once T2, T3 and T6
+      land
+        > 2026-11-22 Check: check_vocabulary.py exits 0 with both retired

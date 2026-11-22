@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 6 of 8 tasks closed
+Progress: 7 of 9 tasks closed
 Owner:    testing
 Requires-Roy: false
 Raised:   2026-08-20 (the branch review of 2026-08-20)
@@ -95,6 +95,10 @@ landing on a licence header -- and it left 720 tests OK.
       -- Re-apply the local-binding verdict mutation against the rewritten
       `tests/test_verdicts.py:1273-1291`. Verify: the result is recorded here,
       dated.
-- [ ] T8 | T8 -- Close the one-line escape from the verdict-name ban. Verify:
-      adding `v = f.verdict` then `if v == "drop"` to `desk.payload_problem`
-      fails the suite.
+- [-] T8 | SUPERSEDED by T9: the verdict-name ban is now 'every reader asks the row' (desk/marks/table.py:1) | 22c3a0abcbc86509c74296319ce5b719a43338ca | T8
+      -- Close the one-line escape from the verdict-name ban. Verify: adding `v
+      = f.verdict` then `if v == "drop"` to `desk.payload_problem` fails the
+      suite.
+- [ ] T9 | Add a gate failing on shipped code that compares an instruction name
+      instead of asking INSTRUCTIONS
+        > 2026-11-22 Check: a planted == 'drop' comparison in desk/ fails the gate

@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 9 of 10 tasks closed
+Progress: 10 of 11 tasks closed
 Owner:    testing
 Requires-Roy: false
 Raised:   2026-08-21 (Roy, 2026-08-21, on the boundary table: 'Was this language
@@ -83,7 +83,8 @@ boundaries, c 494 / 244,778, yaml 104, toml-ini 46, javascript 12, typescript 5,
 - [-] T5 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | T5
       -- Fetch the swift corpus (`corpora.toml:353`). Verify: `fetch_corpora.py
       --only swift` completes and `corpora/swift/` holds `.swift` files.
-- [ ] T6 | T6 -- Fetch the rust corpus (`corpora.toml:204-208`). Verify:
+- [-] T6 | SUPERSEDED by T11: the rust row moved from corpora.toml:204-208 to :205-209 | 22c3a0abcbc86509c74296319ce5b719a43338ca | T6
+      -- Fetch the rust corpus (`corpora.toml:204-208`). Verify:
       `fetch_corpora.py --only rust` completes and `corpora/rust/` holds `.rs`
       files.
 - [x] T7 | FINISHED | unknown | T7 -- FINISHED. The Rust row is in the manifest
@@ -98,3 +99,5 @@ boundaries, c 494 / 244,778, yaml 104, toml-ini 46, javascript 12, typescript 5,
       -- Re-take the leading-edge count over the languages it has never seen.
       Verify: an edge count per language for all 17, or a named list of
       languages it cannot cover.
+- [ ] T11 | Fetch the rust corpus named at corpora/corpora.toml:205-209
+        > 2026-11-22 Check: corpora/rust/ holds .rs files after the fetch

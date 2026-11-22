@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 2 of 8 tasks closed
+Progress: 4 of 10 tasks closed
 Owner:    systems
 Requires-Roy: false
 Raised:   2026-08-25 (backend, 2026-08-25, while giving Page a sha during the write-
@@ -40,14 +40,22 @@ render_page.py imports flat module names the 2026-08-24 reorg removed.
       margin, prose, rows
 - [ ] T4 | A gate that runs every script under scripts/ far enough to prove it
       imports. Verify: breaking one import turns it red
-- [ ] T5 | rows() checks the census subprocess return code and reports the
-      measurement as MISSING rather than printing 0 bytes. Verify: pointing it
-      at a bad path prints a failure, not a number
-- [ ] T6 | Point rows() at how the census is invoked now. Verify: all three
-      renderings report non-zero bytes over a real file
+- [-] T5 | SUPERSEDED by T9: the census subprocess is gone; rows() still ignores its return code | 22c3a0abcbc86509c74296319ce5b719a43338ca | rows()
+      checks the census subprocess return code and reports the measurement as
+      MISSING rather than printing 0 bytes. Verify: pointing it at a bad path
+      prints a failure, not a number
+- [-] T6 | SUPERSEDED by T10: src/census.py does not exist; what ships is the gather's binder | 22c3a0abcbc86509c74296319ce5b719a43338ca | Point
+      rows() at how the census is invoked now. Verify: all three renderings
+      report non-zero bytes over a real file
 - [ ] T7 | Rule the margin view once the script runs: an empty place's row, text
       or structured, its format, the marks. Verify: in decision-log.md
         > 2026-09-13 from the-census-is-mostly-intervals T19, Process 147
         > 2026-09-13 deferred by Roy 2026-09-13 until the rest is fixed
 - [ ] T8 | Update render_page.py's docstring to name this TODO, not the census
       one. Verify: grep census-is-mostly scripts returns nothing
+- [ ] T9 | Make render_page.rows() report MISSING when its subprocess fails, not
+      0 bytes
+        > 2026-11-22 Check: a bad path prints a failure, not a byte count
+- [ ] T10 | Point render_page.rows() at the gather's binder instead of
+      src/census.py
+        > 2026-11-22 Check: all three --show modes report nonzero bytes on a real file

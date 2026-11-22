@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 14 of 16 tasks closed
+Progress: 15 of 17 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-08-21 (Roy, 2026-08-21, on leading and matter both being categories
@@ -150,7 +150,8 @@ the five series; this is the verdict vocabulary. It wants 0.2.4 or its own branc
 - [-] T10 | SUPERSEDED -- stet is the copy chief's, not a role's. Vocabulary 29 gives the chief taken_in, stet and recast; Process 22 gives a role hold, withdraw, correct and patch. Process 79: Process 9 named this box and was wrong to leave it open | 5369f8a | T10
       -- Define `stet` in `vocabulary.toml` at :43 and add it to the four role
       lists. Verify: `uv run python scripts/check_vocabulary.py` passes.
-- [ ] T11 | T11 -- Add `stet` to the reserved-word rule at `CLAUDE.md:780` and
+- [-] T11 | SUPERSEDED by T17: the rules moved to CLAUDE.md:514, docs/vocabulary.md:579 | 22c3a0abcbc86509c74296319ce5b719a43338ca | T11
+      -- Add `stet` to the reserved-word rule at `CLAUDE.md:780` and
       `docs/vocabulary.md:140`. Verify: both name `stet` beside `clean` as
       reserved.
 - [-] T12 | SUPERSEDED -- stet is the copy chief's, not a role's. Vocabulary 29 gives the chief taken_in, stet and recast; Process 22 gives a role hold, withdraw, correct and patch. Process 79: Process 9 named this box and was wrong to leave it open | 5369f8a | T12
@@ -170,3 +171,6 @@ the five series; this is the verdict vocabulary. It wants 0.2.4 or its own branc
 - [-] T16 | SUPERSEDED -- stet is the copy chief's, not a role's. Vocabulary 29 gives the chief taken_in, stet and recast; Process 22 gives a role hold, withdraw, correct and patch. Process 79: Process 9 named this box and was wrong to leave it open | 5369f8a | T16
       -- Say what `module-context`'s own `stet` asserts, in its agent file.
       Verify: `agents/comment-review-module-context.md` states its own `stet`.
+- [ ] T17 | Add `stet` beside `clean` in the reserved-word rules at
+      CLAUDE.md:514, docs/vocabulary.md:579
+        > 2026-11-22 Check: both name stet beside clean as reserved

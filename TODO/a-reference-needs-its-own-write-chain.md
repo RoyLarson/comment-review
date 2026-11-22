@@ -3,7 +3,7 @@
 ```
 Status:   deferred -- waits on the middle piece working end to end (Roy, 2026-08-27:
           "is a todo for the future Not Yet - i want the middle piece to work first")
-Progress: 0 of 3 tasks closed
+Progress: 1 of 4 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-27 (Roy, answering whether a `references` page is settable: "Yes - needs a
@@ -62,7 +62,11 @@ directly *"there was no reason to try to fix the galley as it was."*
 - [ ] T2 | T2 -- Build the reference galley and compositor, whatever T1's signal
       decides. Verify: a reference schedule produces a draft, and a code
       schedule is untouched by it.
-- [ ] T3 | T3 -- Prove the reference chain skips `prove_unchanged` for the right
-      reason -- because the page is DECLARED not-code, not because a suffix was
+- [-] T3 | SUPERSEDED by T4: its blocker prove-refuses-a-doc T2 is obsolete: gather refuses docs | 22c3a0abcbc86509c74296319ce5b719a43338ca | T3
+      -- Prove the reference chain skips `prove_unchanged` for the right reason
+      -- because the page is DECLARED not-code, not because a suffix was
       matched. Verify: a test that fails when the discriminator is a suffix
       test. ! Blocked on `prove-refuses-a-doc.md` T2.
+- [ ] T4 | Make a reference chain skip the unchanged-code proof because the page
+      is declared not-code
+        > 2026-11-22 Check: a suffix-based discriminator fails the case

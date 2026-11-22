@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 8 of 9 tasks closed
+Progress: 9 of 10 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-20 (Roy, 2026-08-20: 'the edit_column is an idea that can be dropped
@@ -102,7 +102,11 @@ wait"*. It landed.
       -- Remove the three writes of `original_column` and its field declaration.
       Verify: `grep -rn original_column plugins/ scripts/ tests/` comes back
       empty.
-- [ ] T9 | T9 -- Correct `docs/addressing.md:114` and `:178-179`, which still
-      describe `galley.splice` and `original_column`. Verify: neither name
-      occurs in `docs/`.
+- [-] T9 | SUPERSEDED by T10: the stale text moved to docs/addressing.md:113 with :174-175 | 22c3a0abcbc86509c74296319ce5b719a43338ca | T9
+      -- Correct `docs/addressing.md:114` and `:178-179`, which still describe
+      `galley.splice` and `original_column`. Verify: neither name occurs in
+      `docs/`.
         > 2026-09-03 the live remainder T8 covered -- addressing.md still present-tense
+- [ ] T10 | Correct docs/addressing.md:113, :174-175, which describe
+      original_column, galley.splice
+        > 2026-11-22 Check: neither name occurs in docs/addressing.md

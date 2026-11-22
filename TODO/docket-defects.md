@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 7 of 12 tasks closed
+Progress: 10 of 15 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, a code review of `docket/docket.py` run end to end
@@ -74,7 +74,8 @@ caller.
 
 ## Tasks
 
-- [ ] T1 | Implement path normalisation before the `seen` membership test at
+- [-] T1 | SUPERSEDED by T13: docket.read became Docket.deserialize; the seen set is at docket.py:421-430 | 22c3a0abcbc86509c74296319ce5b719a43338ca | Implement
+      path normalisation before the `seen` membership test at
       `docket.py:134-145`, or refuse outright any path not already in normal
       form. Verify: a docket carrying schedules for `pkg/a.py` and `./pkg/a.py`
       is refused by name; today `read` answers `''` for both,
@@ -87,12 +88,12 @@ caller.
       refuse by name rather than the second draft -- built from the ORIGINAL
       file, not from the first draft -- overwriting the first's approved text;
       the test goes red today.
-- [ ] T3 | Update `tests/test_docket.py:130`
-      (`test_TWO_SCHEDULES_FOR_ONE_PAGE_are_refused`) so it exercises the shape
-      the guard is written against. Verify: the case feeds two DIFFERENT
-      spellings of one path and fails against `docket.py:134-145` as it reads
-      today; the byte-identical pair it feeds now is the one case the guard
-      already handles.
+- [-] T3 | SUPERSEDED by T14: the case moved to :263; the guard is now Docket.deserialize | 22c3a0abcbc86509c74296319ce5b719a43338ca | Update
+      `tests/test_docket.py:130` (`test_TWO_SCHEDULES_FOR_ONE_PAGE_are_refused`)
+      so it exercises the shape the guard is written against. Verify: the case
+      feeds two DIFFERENT spellings of one path and fails against
+      `docket.py:134-145` as it reads today; the byte-identical pair it feeds
+      now is the one case the guard already handles.
 - [-] T4 | SUPERSEDED -- desk.collator.docket_from left desk/ at P55 and collator.py:1019 with it. flows.transcribe.docket_of resolves no flattened path, reading sheet.path and sheet.sha off the copy, and Schedule.deserialize reports every bad alteration rather than the first | 7ae43d4 | Implement
       a refusal in `desk.collator.docket_from` at the point a flattened path
       fails to resolve, naming the address it could not place. Verify: no docket
@@ -120,12 +121,13 @@ caller.
       `tests/test_proof_setter.py` -- the suite is green after, and
       `schedules_of` no longer runs `str(page.get("role", ""))` at
       `docket.py:203` on every unwind.
-- [ ] T8 | Update `Schedule.path`'s docstring at `docket.py:84-86`, which calls
-      it "the one field a containment guard has to rule on" while no guard in
-      this file rules on it. Verify: the sentence points at
-      `machine.repo.can_escape` as the single guard site
-      (`flows/proof_setter.py:184`), and states that `docket.read` accepts
-      `/etc/passwd`, `../outside.py` and `C:/Windows/x.py` on purpose.
+- [-] T8 | SUPERSEDED by T15: the docstring moved to docket.py:203-205; the guard is proof_setter.py:195 | 22c3a0abcbc86509c74296319ce5b719a43338ca | Update
+      `Schedule.path`'s docstring at `docket.py:84-86`, which calls it "the one
+      field a containment guard has to rule on" while no guard in this file
+      rules on it. Verify: the sentence points at `machine.repo.can_escape` as
+      the single guard site (`flows/proof_setter.py:184`), and states that
+      `docket.read` accepts `/etc/passwd`, `../outside.py` and `C:/Windows/x.py`
+      on purpose.
 - [x] T9 | a move settled at turn 0 reaches the docket once each end; c7ca8be5 fixed _chief_copy, this test pins it at the docket | 61b9ab6a | Update
       flows/transcribe.docket_of so a settled move yields its two alterations
       once, not twice
@@ -143,3 +145,11 @@ caller.
         > 2026-09-14 evidence: OneDrive/comment-review-feedback/2026-09-14-self-run
 - [ ] T12 | Let `proof --copy` set a draft while the copy holds an open human
       question
+- [ ] T13 | Normalise each schedule path before Docket.deserialize's
+      duplicate-path guard
+        > 2026-11-22 Check: pkg/a.py with ./pkg/a.py in one docket is refused
+- [ ] T14 | Make TWO_SCHEDULES_FOR_ONE_PAGE feed two spellings of one path
+        > 2026-11-22 Check: it fails against today's Docket.deserialize
+- [ ] T15 | Point Schedule.path's docstring at docket.py:203-205 to can_escape
+      at proof_setter.py:195
+        > 2026-11-22 Check: the sentence names the one guard site

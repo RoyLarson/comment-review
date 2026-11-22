@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 66 of 75 tasks closed
+Progress: 67 of 76 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (/simplify rounds 1 and 2 and /code-review high round 3,
@@ -415,7 +415,8 @@ would.
 - [x] T68 | Doc comments rustc rejects (no item, before a close or inner attribute, misplaced inner doc) are refused as doc-without-item; 47 drafts checked against rustc, 1646 registry files read without self-refusal | 2768a650fa090ad37529962456288862a55676f6 | Refuse
       the `.rs` draft rustc cannot read at `rust/records.py:350`
         > 2026-10-31 Outcome: refuse in `RustRead.preserved`, #256
-- [ ] T69 | Add `RecursionError` to `PARSE_ERRORS` at `exceptions.py:80`
+- [-] T69 | SUPERSEDED by T76: PARSE_ERRORS moved from exceptions.py:80 to :63 | 22c3a0abcbc86509c74296319ce5b719a43338ca | Add
+      `RecursionError` to `PARSE_ERRORS` at `exceptions.py:80`
 - [ ] T70 | Refuse a Rust doc marker in a position with no item
         > 2026-10-31 Proves, rustc rejects: `if`, `else`, parameter, expression
         > 2026-10-31 Also struct literal, variant field list, const generic default
@@ -433,3 +434,5 @@ would.
         > 2026-11-07 #285: the lookup half is T11-T12; this is the proof's owner_at
 - [-] T75 | Filed in error: duplicate of T74 | 9e513b91 | Name the fn line as
       declaring when a Rust attribute is above it
+- [ ] T76 | Add RecursionError to PARSE_ERRORS at exceptions.py:63
+        > 2026-11-22 Check: deep nesting under referrers' ast.parse is caught

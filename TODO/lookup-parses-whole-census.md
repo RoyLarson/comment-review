@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 11 of 14 tasks closed
+Progress: 13 of 16 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-23 (Roy, 2026-08-23: if we pulled on a BIG project and had to do this
@@ -82,9 +82,10 @@ one, written where `addresser.py` states the hashed-static-table dependency.
 
 ## Tasks
 
-- [ ] T1 | T1 -- Batch the lookups: `--anchor` and `--resolve` take one value
-      each. Verify: one invocation answers N addresses, and N=10 costs less than
-      10 calls.
+- [-] T1 | SUPERSEDED by T15: --anchor/--resolve are gone; lookup is `addresses find --line` with `resolve` | 22c3a0abcbc86509c74296319ce5b719a43338ca | T1
+      -- Batch the lookups: `--anchor` and `--resolve` take one value each.
+      Verify: one invocation answers N addresses, and N=10 costs less than 10
+      calls.
 - [x] T2 | flows/addresses.py:47-55 _page reads one page; no binder is read; verified at HEAD | 67184ac1 | T2
       -- Give the binder a CLI that is not the census builder. Verify: a command
       returns ONE page without building the other 18 files' pages.
@@ -94,9 +95,10 @@ one, written where `addresser.py` states the hashed-static-table dependency.
 - [x] T4 | Resolving one address reads only the file it names (flows/addresses.py:111-117); verified at HEAD | 67184ac1 | T4
       -- Stop the chain as soon as the addresser can answer. Verify: resolving
       one address in a 19-file scope reads fewer than 19 files, reads counted.
-- [ ] T5 | T5 -- Substep the LEXER so it stops at the requested spot inside a
-      file. Verify: an address near the top of a 987-line file lexes fewer lines
-      than a late one.
+- [-] T5 | SUPERSEDED by T16: the lexer was deleted in e2b34a22; the Python with Rust readers read whole files | 22c3a0abcbc86509c74296319ce5b719a43338ca | T5
+      -- Substep the LEXER so it stops at the requested spot inside a file.
+      Verify: an address near the top of a 987-line file lexes fewer lines than
+      a late one.
 - [ ] T6 | T6 -- Substep the ADDRESSER so it stops walking at the requested
       place. Verify: resolving an early address builds fewer places than a late
       one.
@@ -125,3 +127,8 @@ one, written where `addresser.py` states the hashed-static-table dependency.
       are in the Objective.
 - [x] T14 | FINISHED | unknown | T14 -- RULED 2026-08-23, and neither way it was
       asked. In the Objective in full, with both Roy quotations.
+- [ ] T15 | Batch the address lookups so one `addresses` call answers N places
+        > 2026-11-22 Check: N=10 in one call costs less than ten calls
+- [ ] T16 | Substep each reader so an address lookup stops at the requested
+      place
+        > 2026-11-22 Check: an early address reads fewer lines than a late one

@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 7 of 12 tasks closed
+Progress: 8 of 13 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-16 (Roy, on `census.py`: "this creates the pCST and that is it.
@@ -165,9 +165,9 @@ NOT X"* used as a DEFINITION, which is the comparing form the test already remov
 - [x] T7 | FINISHED | unknown | T7 -- SUPERSEDED. Roy's 2026-08-18 ruling
       striking the hand-pass rule is stated under *THE RULING THAT SAYS WHAT
       CLOSES THIS FILE*, and the record stays.
-- [ ] T8 | T8 -- **Run the nine-token count over `plugins/**/*.md`.** Verify:
-      the number and the command that produced it are both recorded in this
-      file.
+- [-] T8 | SUPERSEDED by T13: plugins/ is release output; the shipped markdown's source is src/plugin/ | 22c3a0abcbc86509c74296319ce5b719a43338ca | T8
+      -- **Run the nine-token count over `plugins/**/*.md`.** Verify: the number
+      and the command that produced it are both recorded in this file.
 - [?] T9 | T9 -- **Rule each shipped-markdown hit against the residue test.**
       Verify: every survivor is named in this file as an output or as a refusal.
 - [ ] T10 | T10 -- **Run `/comment-review` over the shipped tree.** Verify: the
@@ -178,3 +178,5 @@ NOT X"* used as a DEFINITION, which is the comparing form the test already remov
 - [ ] T12 | T12 -- **Re-measure the negative-prose count from that run's
       result** rather than asserting it. Verify: the new number is in this file
       and names the run it came from.
+- [ ] T13 | Run the nine-token count over src/plugin/**/*.md
+        > 2026-11-22 Check: the number with its command is recorded in this file

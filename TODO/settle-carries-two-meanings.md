@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 6 tasks closed
+Progress: 1 of 7 tasks closed
 Owner:    systems
 Requires-Roy: true
 Raised:   2026-08-24 (the moment `taken in` was ruled -- Roy: 'now we have a polysemy of
@@ -60,11 +60,15 @@ is prose and is the frequent one. T1 is that ruling.
       the brief still generates from its row.
 - [ ] T4 | T4 -- Reword it in the four role files. Verify: each file uses only
       the kept sense.
-- [ ] T5 | T5 -- `backend` -- reword it in the scripts if the claim sense loses.
-      Verify: `needs_settles` and the `settles` key follow the ruling.
+- [-] T5 | SUPERSEDED by T7: needs_settles does not exist; the claim sense is mark --settles, claim.settles | 22c3a0abcbc86509c74296319ce5b719a43338ca | T5
+      -- `backend` -- reword it in the scripts if the claim sense loses. Verify:
+      `needs_settles` and the `settles` key follow the ruling.
 - [ ] T6 | T6 -- Declare the outcome in `docs/vocabulary.md` and confine it.
       Verify: the kept sense is defined and the other appears in no shipped
       file.
+- [ ] T7 | Rename the `settles` claim key, with `mark --settles`, if T1's claim
+      sense loses
+        > 2026-11-22 Check: the settles key follows the T1 ruling
 
 ## Related
 

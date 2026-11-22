@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 21 tasks closed
+Progress: 1 of 22 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-11-05 (Process #281 and the three flow audits, 2026-11-05)
@@ -44,11 +44,15 @@ evidence is checked when the task is worked.
 - [ ] T14 | Make every command resolve its repo root once, from the binder's
       root where it has one
 - [ ] T15 | Move the exit codes and refusal printing into one console module
-- [ ] T16 | Remove the reading-context checks repeated in bus, the carry command
-      and the collate command
+- [-] T16 | SUPERSEDED by T22: 82cee747 removed the collate/bus repeats; only the carry command repeats | 22c3a0abcbc86509c74296319ce5b719a43338ca | Remove
+      the reading-context checks repeated in bus, the carry command and the
+      collate command
 - [ ] T17 | Move the flow logic out of the commands into flows
 - [ ] T18 | Remove stable() from binder/addresses
 - [ ] T19 | Add load_docket to proof_io
 - [ ] T20 | Make proof load its proof, copy and docket through proof_io
 - [?] T21 | Decide how a flow reports a refusal
         > 2026-11-05 Today: raise, return a reason tuple, or emit events
+- [ ] T22 | Remove commands/carry.py's binder_reading_contexts call, which
+      flows/carry.py repeats
+        > 2026-11-22 Check: binder_reading_contexts runs once per carry

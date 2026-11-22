@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 0 of 2 tasks closed
+Progress: 1 of 3 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-25 (xhigh wave C on feat/the-write-chain-of-command, finding 2)
@@ -41,5 +41,9 @@ well, which is `agents` lane work.
 
 - [?] T1 | Rule whether an approved drop keeps a distinguishable spelling from a
       JSON null
-- [ ] T2 | If it does, change docket.read to that spelling and pin both the
-      accept and the refuse
+- [-] T2 | SUPERSEDED by T3: docket.read became Docket.deserialize | 22c3a0abcbc86509c74296319ce5b719a43338ca | If
+      it does, change docket.read to that spelling and pin both the accept and
+      the refuse
+- [ ] T3 | Make Docket.deserialize read the drop spelling T1 rules, if T1 keeps
+      one
+        > 2026-11-22 Check: a case accepts the spelling; another refuses null

@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 9 of 14 tasks closed
+Progress: 11 of 16 tasks closed
 Owner:    testing
 Requires-Roy: true
 Raised:   2026-08-19 (the seven-agent address review, 2026-08-19)
@@ -122,12 +122,19 @@ lines.
       -- Correct the `move` destination in
       `comment-review-function-context.md:112`. Verify: it names the address
       form, not *"a different line in this function"*.
-- [ ] T12 | T12 -- Correct the `move` destination in
+- [-] T12 | SUPERSEDED by T15: the sentence moved from ownership-context.md:100 to :70 | 22c3a0abcbc86509c74296319ce5b719a43338ca | T12
+      -- Correct the `move` destination in
       `comment-review-ownership-context.md:100`. Verify: it names the address
       form, not *"the destination is the line above"*.
-- [ ] T13 | T13 -- Build the `repeated-literal` note from `b.address`, not
-      `b.start`. Verify: no citation in the census listing is built from a line
-      number.
+- [-] T13 | SUPERSEDED by T16: the census listing is gone; the note is built in flows/annotations_for.py | 22c3a0abcbc86509c74296319ce5b719a43338ca | T13
+      -- Build the `repeated-literal` note from `b.address`, not `b.start`.
+      Verify: no citation in the census listing is built from a line number.
 - [-] T14 | The residue-check stage was removed in f4e62eb6 | f4e62eb6 | T14 --
       Key the residue check's scratch copy by address, not `file:start-end`.
       Verify: 7b's own edits cannot invalidate the key.
+- [ ] T15 | Correct ownership-context.md:70's move destination to the address
+      form
+        > 2026-11-22 Check: it names a path@cue, not 'the line above'
+- [ ] T16 | Build flows/annotations_for.py's repeated-literal note from
+      b.address
+        > 2026-11-22 Check: no repeated-literal note cites path:start

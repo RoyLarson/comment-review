@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 4 of 9 tasks closed
+Progress: 5 of 10 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, Roy ruling on a review finding that mark.py announces
@@ -86,9 +86,10 @@ change -- `conventions.md`, *The vocabulary is shared*.
 - [ ] T5 | Delete the inline restatements of `filled()` at their call sites so
       the predicate is called rather than repeated. Verify: the inline form
       appears nowhere in `desk/`, and the suite stays green.
-- [ ] T6 | Update `binder/annotate.py`'s `TICKED` so it states the question it
-      answers -- the back-of-book index of what documentation REFERS to, loose
-      about spaced words because a docstring may carry them. RULED 2026-08-30. !
+- [-] T6 | SUPERSEDED by T10: TICKED moved from binder/annotate.py to concordance/annotate.py | 22c3a0abcbc86509c74296319ce5b719a43338ca | Update
+      `binder/annotate.py`'s `TICKED` so it states the question it answers --
+      the back-of-book index of what documentation REFERS to, loose about spaced
+      words because a docstring may carry them. RULED 2026-08-30. !
       `ANCHOR_NAME` IS NOT ITS COUNTERPART AND WAS NEVER RULED ON: it is
       prototype residue ported in `67dc82b`, and the move spec deletes it with
       `add`'s claim anchor. Verify: `TICKED` carries the sentence and
@@ -98,3 +99,6 @@ change -- `conventions.md`, *The vocabulary is shared*.
 - [ ] T8 | Update the Objective to the single definition Process #61 settled
 - [ ] T9 | Split the wire-record helpers (`read_member`, `a_type`, `read_text`,
       `as_text`, `filled`, `E`) out of `desk/proof/mark.py`
+- [ ] T10 | Update concordance/annotate.py's TICKED so it states the question it
+      answers
+        > 2026-11-22 Check: TICKED's comment says what it indexes, with why

@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 1 of 6 tasks closed
+Progress: 3 of 8 tasks closed
 Owner:    agents
 Requires-Roy: true
 Raised:   2026-08-17 (a run declared the collision in its style sheet without being asked:
@@ -70,18 +70,25 @@ term belongs to the repo's sheet. This is settled, it is already ENFORCED, and i
 
 - [?] T1 | T1 -- * Rule whether stage 1 must LOOK for collisions or only record
       one a reviewer trips over. Verify: the answer is written into this file.
-- [ ] T2 | T2 -- Add a COLLISIONS section to the style sheet at
-      `SKILL.md:257-264`. Verify: a run over a repo defining an emitted term as
-      a symbol lists it.
+- [-] T2 | SUPERSEDED by T7: the style sheet is now SKILL.md stage 1 step 4, not :257-264 | 22c3a0abcbc86509c74296319ce5b719a43338ca | T2
+      -- Add a COLLISIONS section to the style sheet at `SKILL.md:257-264`.
+      Verify: a run over a repo defining an emitted term as a symbol lists it.
 - [ ] T3 | T3 -- State in that section that a collision is DECLARED rather than
       resolved. Verify: the section says neither vocabulary may be renamed to
       suit the other.
 - [?] T4 | T4 -- Decide whether a declared collision reaches the REVIEWERS; the
       sheet is in the stage-4 packet, so today it would. Verify: the answer is
       written into this file.
-- [ ] T5 | T5 -- Fix `vocabulary.py:73`, whose *"it is ordinary English"* is
-      wrong for a collided term. Verify: the header names COLLISIONS or the term
-      carries both.
+- [-] T5 | SUPERSEDED by T8: vocabulary.py moved to prototype/; the claim now sits in the six agent files | 22c3a0abcbc86509c74296319ce5b719a43338ca | T5
+      -- Fix `vocabulary.py:73`, whose *"it is ordinary English"* is wrong for a
+      collided term. Verify: the header names COLLISIONS or the term carries
+      both.
 - [x] T6 | FINISHED | unknown | T6 -- Not a task, and now in the Objective:
       adding a repo term to `vocabulary.toml` is a rule nobody ticks and is
       already enforced.
+- [ ] T7 | Add a COLLISIONS section to the style sheet at SKILL.md stage 1 step
+      4
+        > 2026-11-22 Check: a run over a repo defining an emitted term lists it
+- [ ] T8 | Correct the agent files' 'every other word is ordinary English' for a
+      collided term
+        > 2026-11-22 Check: the header names COLLISIONS, or the term carries both

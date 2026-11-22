@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 12 of 15 tasks closed
+Progress: 14 of 17 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-24 (P2 of refactor/the-boundaries-are-not-real, 2026-08-24)
@@ -29,8 +29,9 @@ The flow lives in the command, not in flows/.
         > 2026-09-04 tests/binder/test_page.py and command_source both no longer exist
 - [-] T5 | SUPERSEDED -- verdicts, galley and record all left src/ for prototype/original/ and none of them runs | b50e7a4 | Ask
       the same question of verdicts, galley and record
-- [ ] T6 | Update flows/__init__.py's inventory so collate, distribute and
-      mark_errors have rows. Verify: every module under flows/ is listed
+- [-] T6 | SUPERSEDED by T16: there is no flows/collate.py; distribute with mark_errors are listed; referrers is not | 22c3a0abcbc86509c74296319ce5b719a43338ca | Update
+      flows/__init__.py's inventory so collate, distribute and mark_errors have
+      rows. Verify: every module under flows/ is listed
 - [x] T7 | Binder is the one population; Gathering.paragraphs and carried deleted | e2ffd747 | Update
       Gathering so the binder is the one population: bind before annotate, drop
       paragraphs, both gates ask the binder. Verify: one list
@@ -54,5 +55,11 @@ The flow lives in the command, not in flows/.
       Verify: a refused gather runs no stage 3 in either mode
 - [ ] T14 | Move `unaddressed_report` and `not_gathered`, the gather command's
       wording, out of `flows/gather.py`
-- [ ] T15 | Delete the module-does-one-job paragraph from the 30 command modules
-      that restate it
+- [-] T15 | SUPERSEDED by T17: ten command modules restate the paragraph now, not thirty | 22c3a0abcbc86509c74296319ce5b719a43338ca | Delete
+      the module-does-one-job paragraph from the 30 command modules that restate
+      it
+- [ ] T16 | Add flows/referrers.py to the module inventory in flows/__init__.py
+        > 2026-11-22 Check: every module under flows/ has an inventory row
+- [ ] T17 | Delete the module-does-one-job paragraph from the ten command
+      modules restating it
+        > 2026-11-22 Check: grep 'DOES ONE JOB' commands/ finds only __init__.py

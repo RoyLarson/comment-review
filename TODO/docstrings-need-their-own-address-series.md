@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 7 of 9 tasks closed
+Progress: 11 of 13 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-18 (Roy, 2026-08-18, on splitting the census by editorial role)
@@ -125,12 +125,14 @@ still read *"The three series"*, and neither mentions an empty one.
 - [x] T5 | FINISHED | unknown | T5 -- FINISHED. The `a` form is in
       `addresser.stable`, and `--check` holds it to the same rule as `b` and
       `c`.
-- [ ] T6 | T6 -- ORDER the dispatched census by series -- `a`, then `b`, then
-      `c` -- and do NOT filter it. Verify: a dispatched census reads `a` first,
-      then `b`, then `c`.
-- [ ] T7 | T7 -- Hold the ordering to not becoming a filter. Verify:
-      `verdicts.py`'s coverage gate still counts the whole prose population per
-      role after T6 lands.
+- [-] T6 | SUPERSEDED by T10: the dispatched census is now the edit copy distribute seeds from the binder | 22c3a0abcbc86509c74296319ce5b719a43338ca | T6
+      -- ORDER the dispatched census by series -- `a`, then `b`, then `c` -- and
+      do NOT filter it. Verify: a dispatched census reads `a` first, then `b`,
+      then `c`.
+- [-] T7 | SUPERSEDED by T11: verdicts.py's coverage gate is gone; flows.verify.required_places succeeds it | 22c3a0abcbc86509c74296319ce5b719a43338ca | T7
+      -- Hold the ordering to not becoming a filter. Verify: `verdicts.py`'s
+      coverage gate still counts the whole prose population per role after T6
+      lands.
 - [-] T8 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | T8
       -- Tell a role when its `a` series is empty, and why. Verify: a run over a
       `.sh` file hands the role that sentence.
@@ -138,3 +140,15 @@ still read *"The three series"*, and neither mentions an empty one.
       Correct the two "The three series" sentences at `SKILL.md:378` and
       `reviewer-brief.md:69`. Verify: neither states three series
       unconditionally.
+- [ ] T10 | Order the edit copy distribute seeds by series a, b, c, without
+      filtering it
+        > 2026-11-22 Check: a seeded copy lists a slots, then b, then c
+- [-] T11 | SUPERSEDED by T12: its label cited a reissued task; T6 is now T10 | 22c3a0abcbc86509c74296319ce5b719a43338ca | Keep
+      required_places counting every handed place after T6 lands
+        > 2026-11-22 Check: a filter added in seed alone fails coverage
+- [-] T12 | SUPERSEDED by T13: 'keep' named no act | 22c3a0abcbc86509c74296319ce5b719a43338ca | Keep
+      required_places counting every handed place after T10 lands
+        > 2026-11-22 Check: a filter added in seed alone fails coverage
+- [ ] T13 | Make required_places count every place distribute hands a role,
+      after T10
+        > 2026-11-22 Check: a filter added in seed alone fails coverage

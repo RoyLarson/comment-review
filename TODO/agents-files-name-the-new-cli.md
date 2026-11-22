@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 50 of 57 tasks closed
+Progress: 51 of 58 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-09-04 (Roy, 2026-09-04, superseding the-flow-lives-in-the-command T4)
@@ -167,7 +167,8 @@ The agents files name the new CLI and say how to use it.
 - [x] T42 | Withdrawal brief matches removal and binder obligations; 8 focused tests pass; wording review clean | e5c05a63 | Correct
       withdrawal instructions to remove marks and require replacement for
       received places; verify the brief matches check
-- [ ] T43 | Restate SKILL.md's detached-doc step: matter, and the printed owner
+- [-] T43 | SUPERSEDED by T58: the printed-owner half landed in fbaaf7c5; only the matter half remains | 22c3a0abcbc86509c74296319ce5b719a43338ca | Restate
+      SKILL.md's detached-doc step: matter, and the printed owner
         > 2026-10-26 Detached doc in matter is read as matter; warning now names owner
 - [ ] T44 | Restate agent prose that takes an anchor to be one line of code
         > 2026-10-26 decision-log #238: an a/b anchor may span the unit's lines
@@ -207,3 +208,6 @@ The agents files name the new CLI and say how to use it.
       the brief to say a clean and every patch owe a source (#301, #304)
 - [x] T57 | FINISHED -- approved wording in the brief | e29c77b9 | Update the
       brief to say a role may answer one slot more than once (#308)
+- [ ] T58 | Correct SKILL.md:155-156 so a detached doc in matter is read as
+      matter
+        > 2026-11-22 Check: SKILL.md stage 2 names the matter case

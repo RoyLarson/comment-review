@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 13 of 14 tasks closed
+Progress: 14 of 15 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (/code-review high round 4, 2026-08-22 -- the findings OUTSIDE the
@@ -148,9 +148,10 @@ attributable to the edit rather than to the model. ! NOT RE-RUN 2026-08-23.
 - [x] T2 | FINISHED | unknown | T2 -- `record.py` -- make the generated `patch`
       row say what `desk.py`'s gate enforces. Verify: the shipped brief's
       sentence and `owes_sources` agree.
-- [ ] T3 | T3 -- `verdicts.py` -- stop `vocabulary.Reviewer` admitting
-      non-reviewer role names. Verify: a report named `review.json` is refused
-      as an unknown reviewer.
+- [-] T3 | SUPERSEDED by T15: verdicts.py is gone; flows/verify.stage_problems admits an undispatched role | 22c3a0abcbc86509c74296319ce5b719a43338ca | T3
+      -- `verdicts.py` -- stop `vocabulary.Reviewer` admitting non-reviewer role
+      names. Verify: a report named `review.json` is refused as an unknown
+      reviewer.
 - [x] T4 | FINISHED | unknown | T4 -- `census.py` -- refuse a run given zero
       path arguments instead of emitting `[]`. Verify: a zero-path census run
       exits nonzero.
@@ -186,3 +187,5 @@ attributable to the edit rather than to the model. ! NOT RE-RUN 2026-08-23.
 - [x] T14 | FINISHED | unknown | T14 -- A list, dict or number verdict returns a
       shape diagnostic. Verify: it fails if `record_problems`'s isinstance guard
       is removed.
+- [ ] T15 | Refuse a returned edit copy whose role the stage did not dispatch
+        > 2026-11-22 Check: a copy with role 'review' is refused, not folded

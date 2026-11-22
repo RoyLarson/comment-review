@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 4 of 8 tasks closed
+Progress: 5 of 9 tasks closed
 Owner:    agents
 Requires-Roy: true
 Raised:   2026-08-17 (the 0.2.0 builder run: the operating session noticed scratch
@@ -92,8 +92,9 @@ exists, and it bears on how far it can be relaxed -- see
 - [x] T1 | FINISHED | unknown | T1 -- RULED, and `reviewer-brief.md:6-18`
       carries it: a reviewer writes the record file it was handed and NOTHING
       ELSE. The scratch argument is in the Objective.
-- [ ] T2 | T2 -- Add a `tools:` key to all six agent files. Verify: `grep -L
-      "^tools:" plugins/comment-review/agents/*.md` returns nothing.
+- [-] T2 | SUPERSEDED by T9: plugins/ is release output; the agent files' source is src/plugin/agents/ | 22c3a0abcbc86509c74296319ce5b719a43338ca | T2
+      -- Add a `tools:` key to all six agent files. Verify: `grep -L "^tools:"
+      plugins/comment-review/agents/*.md` returns nothing.
 - [ ] T3 | T3 -- Drop `Write`, `Edit` and `NotebookEdit` from the four
       reviewers' `tools:`. Verify: none of the four reviewer files lists any of
       the three.
@@ -113,6 +114,8 @@ exists, and it bears on how far it can be relaxed -- see
       gate.
 - [ ] T8 | Implement a gate that fails when a shipped agent file grants a write
       tool. Verify: adding Edit to one role turns it red
+- [ ] T9 | Add a `tools:` key to the six agent files under src/plugin/agents/
+        > 2026-11-22 Check: grep -L ^tools: src/plugin/agents/*.md is empty
 ## Related
 
 - [`stage-5-is-the-only-stage-with-no-independent-reader`](stage-5-is-the-only-stage-with-no-independent-reader.md)

@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 5 tasks closed
+Progress: 1 of 6 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-09-26 (Roy 2026-09-26)
@@ -19,8 +19,9 @@ Exit codes are written in thirteen places.
         > 2026-09-26 Measured: 3 files define OK/BROKEN/UNREADABLE, 10 return bare ints
         > 2026-09-26 3 files define OK/BROKEN/UNREADABLE; 10 return bare ints
         > 2026-09-26 ASKS_THE_HUMAN = 5 lands in collate.py first (Process 197)
-- [ ] T2 | Update check, collate, mark, turn and disposition to return the enum,
-      deleting their own OK, BROKEN and UNREADABLE constants
+- [-] T2 | SUPERSEDED by T6: 7346304b moved the per-command constants into commands/report.py:24-33 | 22c3a0abcbc86509c74296319ce5b719a43338ca | Update
+      check, collate, mark, turn and disposition to return the enum, deleting
+      their own OK, BROKEN and UNREADABLE constants
         > 2026-11-10 2026-11-10 7346304b moved the constants to commands/report.py
 - [ ] T3 | Update the ten commands that return bare 0, 1 and 2 to return the
       enum members
@@ -29,3 +30,6 @@ Exit codes are written in thirteen places.
       SystemExit needs the int
 - [ ] T5 | Implement a gate that fails when a command returns a bare integer or
       defines its own exit-code constant
+- [ ] T6 | Replace commands/report.py's OK..ASKS_THE_HUMAN ints with T1's enum
+      members
+        > 2026-11-22 Check: report.py defines no int exit-code constant

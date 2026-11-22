@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 1 of 6 tasks closed
+Progress: 2 of 7 tasks closed
 Owner:    agents
 Requires-Roy: true
 Raised:   2026-08-17 (two runs of the same skill over the same repo at the same ref;
@@ -137,8 +137,9 @@ list. `grep -n "stability" docs/limitations.md` returns nothing today.
 
 ## Tasks
 
-- [ ] T1 | T1 -- Run one role twice over an unchanged skill and census, and diff
-      the verdicts per block. Verify: a per-block diff recorded, with reversals
+- [-] T1 | SUPERSEDED by T7: the census is now the binder; a role's verdicts are marks per place | 22c3a0abcbc86509c74296319ce5b719a43338ca | T1
+      -- Run one role twice over an unchanged skill and census, and diff the
+      verdicts per block. Verify: a per-block diff recorded, with reversals
       counted over blocks.
 - [ ] T2 | T2 -- Re-run r1's exact skill version against the same census to see
       whether the reversal reproduces. Verify: both `module-context` verdicts
@@ -158,3 +159,6 @@ list. `grep -n "stability" docs/limitations.md` returns nothing today.
 - [x] T6 | FINISHED | unknown | T6 -- NOT A TASK. The standing prohibition on
       adding a `confidence` field is kept in the Objective, under *A
       "confidence" field is not the answer*.
+- [ ] T7 | Diff one role's marks per place across two runs over an unchanged
+      binder
+        > 2026-11-22 Check: reversals counted over places are recorded here

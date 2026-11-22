@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 6 of 7 tasks closed
+Progress: 7 of 8 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (/simplify rounds 1 and 2 and /code-review high round 3,
@@ -99,6 +99,10 @@ part of the front half that will shift.
       -- Stop re-spelling the `(".py", ".pyi")` suffix tuple language.py:99
       owns. Verify: `grep -n "\.pyi"` over the shipped scripts returns only
       language.py.
-- [ ] T7 | T7 -- Batch referrers.py's git grep -- the loop at :126-127 calls
-      `_grep` once per token. Verify: one `git grep` runs for the whole token
-      set, with repeated `-e`.
+- [-] T7 | SUPERSEDED by T8: referrers moved; commands/referrers.py calls flows/referrers.files_naming per token | 22c3a0abcbc86509c74296319ce5b719a43338ca | T7
+      -- Batch referrers.py's git grep -- the loop at :126-127 calls `_grep`
+      once per token. Verify: one `git grep` runs for the whole token set, with
+      repeated `-e`.
+- [ ] T8 | Batch flows/referrers.files_naming into one git grep for the whole
+      token set
+        > 2026-11-22 Check: one git grep with repeated -e runs per referrers call

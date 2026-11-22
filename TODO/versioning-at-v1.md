@@ -2,7 +2,7 @@
 
 ```
 Status:   deferred
-Progress: 5 of 12 tasks closed
+Progress: 7 of 14 tasks closed
 Owner:    systems
 Requires-Roy: false
 Raised:   2026-08-21 (Roy, 2026-08-21, ruling out any versioning investment before v1)
@@ -50,10 +50,12 @@ what an unchecked box already says.
 - [ ] T1 | T1 -- **State the one versioning scheme, AFTER v1.0 is tagged and not
       before.** Verify: the scheme is stated in exactly one file, and no second
       file restates it.
-- [ ] T2 | T2 -- **The census carries a version field written from T1's
-      statement.** Verify: `census.py --json` emits it and its value comes from
-      the single statement.
-- [ ] T3 | T3 -- **The record file carries a version field written from T1's
+- [-] T2 | SUPERSEDED by T13: census.py --json is gone; the gather's binder carries BINDER_VERSION | 22c3a0abcbc86509c74296319ce5b719a43338ca | T2
+      -- **The census carries a version field written from T1's statement.**
+      Verify: `census.py --json` emits it and its value comes from the single
+      statement.
+- [-] T3 | SUPERSEDED by T14: the record file left src/; a role now returns an edit copy | 22c3a0abcbc86509c74296319ce5b719a43338ca | T3
+      -- **The record file carries a version field written from T1's
       statement.** Verify: a written record holds it.
 - [-] T4 | record.py and RECORD_VERSION left src/ in b50e7a43; grep of src, scripts, tests finds no RECORD_VERSION | b50e7a43 | T4
       -- **Retire `RECORD_VERSION` as a constant of its own** (`record.py:639`).
@@ -79,3 +81,9 @@ what an unchecked box already says.
       measurement is in the Objective with its file:line.
 - [x] T12 | FINISHED | unknown | T12 -- SUPERSEDED. The reasoning that a loud
       parse refusal already catches a wrong shape is kept in the Objective.
+- [ ] T13 | Write the binder's version field from T1's single versioning
+      statement
+        > 2026-11-22 Check: gather's binder version comes from T1's statement
+- [ ] T14 | Write an edit copy's version field from T1's single versioning
+      statement
+        > 2026-11-22 Check: a seeded edit copy carries the version T1 states

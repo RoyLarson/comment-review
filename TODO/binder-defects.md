@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 19 of 40 tasks closed
+Progress: 28 of 49 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, a code review of `binder/binder.py` run against its
@@ -67,8 +67,9 @@ task 5's, but the fix for these two lands in `binder/binder.py`.
 
 ## Tasks
 
-- [ ] T1 | Implement a refusal in `binder.read` for two rows carrying one `cue`
-      on one page. Verify: a page with rows `[{"cue":"b1","raw_text":"# FIRST"},
+- [-] T1 | SUPERSEDED by T41: binder.read, drift_in, DRIFT are gone; rows are read in binder/page.py | 22c3a0abcbc86509c74296319ce5b719a43338ca | Implement
+      a refusal in `binder.read` for two rows carrying one `cue` on one page.
+      Verify: a page with rows `[{"cue":"b1","raw_text":"# FIRST"},
       {"cue":"b1","raw_text":"# SECOND"}]` returns a named `why`; today `read`
       answers `''`, `desk/collator.py:119-123` keeps only the last row as
       `base_texts`, `flows/distribute.py:99-106` seeds both as marks at one
@@ -84,12 +85,13 @@ task 5's, but the fix for these two lands in `binder/binder.py`.
       op, and a substantive mark refuses with `mark 1: correct needs the
       address, copied from the row` -- which blames the ROLE for an address
       `seed` never gave it.
-- [ ] T3 | Implement the `rows` presence check in `binder.read` at
-      `binder.py:261`, so a page whose `rows` key is absent is refused rather
-      than defaulting to `[]`. Verify: `read('{"read_from": {"root": ".",
-      "revise": 0}, "pages": [{"path": "m.py"}]}')` is refused by name; today it
-      returns `(binder, '')` and a page whose rows array was lost reviews as a
-      page with no prose, at exit 0.
+- [-] T3 | SUPERSEDED by T42: binder.read became Binder.deserialize; the rows default is at page.py:323 | 22c3a0abcbc86509c74296319ce5b719a43338ca | Implement
+      the `rows` presence check in `binder.read` at `binder.py:261`, so a page
+      whose `rows` key is absent is refused rather than defaulting to `[]`.
+      Verify: `read('{"read_from": {"root": ".", "revise": 0}, "pages":
+      [{"path": "m.py"}]}')` is refused by name; today it returns `(binder, '')`
+      and a page whose rows array was lost reviews as a page with no prose, at
+      exit 0.
 - [-] T4 | The WHAT IS CHECKED paragraph was removed in 1d9314d8; binder.py:169-172 rules on every field | 1d9314d8 | Update
       the "WHAT IS CHECKED IS WHAT IS CONSUMED" paragraph at
       `binder.py:239-242`, which names `proof_setter.run` as a binder consumer.
@@ -110,20 +112,22 @@ task 5's, but the fix for these two lands in `binder/binder.py`.
       `_read_from_problem(loaded)` and returns a named refusal, and with that
       function's own docstring at `binder.py:188-190`; no two comments in the
       file state opposite rules for one code path.
-- [ ] T7 | Update `_read_from_problem` so its refusals name the artifact its
-      caller handed it and its name matches the reuse across areas. Verify:
+- [-] T7 | SUPERSEDED by T43: ef172e66 made read_from_problem public; problems_in, census --json are gone | 22c3a0abcbc86509c74296319ce5b719a43338ca | Update
+      `_read_from_problem` so its refusals name the artifact its caller handed
+      it and its name matches the reuse across areas. Verify:
       `collator.problems_in({"role": "block-context", "sheets": []})` no longer
       reports `the report's carries no read_from -- a binder written before
       2026-08-28`; the message is a sentence and does not tell an operator to
       re- run `census --json` over a role's edit_copy; and no module under
       `desk/` imports an underscored name from `comment_review.binder.binder` --
       today `desk/collator.py:63` and `desk/containers.py:48` both do.
-- [ ] T8 | Update the `revise` check at `binder.py:220` to `type(x) is int`, so
-      a JSON boolean is refused. Verify: `_read_from_problem({"read_from":
-      {"root": ".", "revise": True}})` returns a named refusal -- today `''` --
-      and `desk/containers.py:228` no longer passes a master_proof stamped
-      `revise: true` against a first edit_copy stamped `revise: 1`, which
-      compare equal in Python.
+- [-] T8 | SUPERSEDED by T44: the revise check moved from binder.py:220 to read_from.py:41 | 22c3a0abcbc86509c74296319ce5b719a43338ca | Update
+      the `revise` check at `binder.py:220` to `type(x) is int`, so a JSON
+      boolean is refused. Verify: `_read_from_problem({"read_from": {"root":
+      ".", "revise": True}})` returns a named refusal -- today `''` -- and
+      `desk/containers.py:228` no longer passes a master_proof stamped `revise:
+      true` against a first edit_copy stamped `revise: 1`, which compare equal
+      in Python.
 - [-] T9 | Collate path gone (#183); a row without a non-empty cue is refused (page.py:365-367); verified at HEAD | 67184ac1 | Implement
       the read-side `unaddressed` call the collate path is missing, at
       `binder.read` or at `commands/collate.py`'s binder load. Verify: `grep -rn
@@ -137,16 +141,19 @@ task 5's, but the fix for these two lands in `binder/binder.py`.
       `binder.py:65` and the five keys at `:75-103`, and states what a role is
       actually handed -- the four keys `{address, anchor, raw_text,
       instruction}` that `desk/mark.py:326-356` builds.
-- [ ] T11 | Update `_read_from_problem` to refuse an empty `root`. Verify:
+- [-] T11 | SUPERSEDED by T45: _read_from_problem moved to read_from.read_from_problem | 22c3a0abcbc86509c74296319ce5b719a43338ca | Update
+      `_read_from_problem` to refuse an empty `root`. Verify:
       `_read_from_problem({"read_from": {"root": "", "revise": 0}})` is refused
       -- today `''` -- and `bind([], {"root": "", "revise": 0})` no longer emits
       `"read_from": {"root": "", ...}`.
-- [ ] T12 | Update the missing-`read_from` refusal at `binder.py:210-213` to
-      read `loaded["version"]` instead of asserting the artifact is version "1".
+- [-] T12 | SUPERSEDED by T46: binder.py:210-213 moved; read_from runs at :213 before the version check at :216 | 22c3a0abcbc86509c74296319ce5b719a43338ca | Update
+      the missing-`read_from` refusal at `binder.py:210-213` to read
+      `loaded["version"]` instead of asserting the artifact is version "1".
       Verify: `read('{"version": "9", "pages": []}')` does not state a version
       it declined to check.
-- [ ] T13 | Update every refusal that renders `type(x).__name__` to name the
-      JSON type. Verify: `binder.py:216-217,257,260,263,266-267` and
+- [-] T13 | SUPERSEDED by T47: the type(x).__name__ refusals moved: binder.py:110, page.py:318-363, read_from.py | 22c3a0abcbc86509c74296319ce5b719a43338ca | Update
+      every refusal that renders `type(x).__name__` to name the JSON type.
+      Verify: `binder.py:216-217,257,260,263,266-267` and
       `machine/json_object.py:47` emit `null`, `string`, `boolean`, `number`,
       `array` or `object`, and `grep -rn "NoneType" src/comment_review/` returns
       no refusal text.
@@ -168,9 +175,10 @@ task 5's, but the fix for these two lands in `binder/binder.py`.
       `absent` and a copy seeded from an include-absent binder then collated
       against a default one is refused rather than reporting every `interval`
       and `margin` mark as naming a place the binder does not carry.
-- [ ] T17 | Update `bind`'s `ValueError` docstring at `binder.py:152-156` to
-      state that no shipped caller can reach the guard. Verify: it names the
-      four internal callers -- `commands/census.py:331`, `flows/revise.py:239`,
+- [-] T17 | SUPERSEDED by T48: commands/census.py is gone; bind's callers are taken_in, gather, revise | 22c3a0abcbc86509c74296319ce5b719a43338ca | Update
+      `bind`'s `ValueError` docstring at `binder.py:152-156` to state that no
+      shipped caller can reach the guard. Verify: it names the four internal
+      callers -- `commands/census.py:331`, `flows/revise.py:239`,
       `commands/taken_in.py:94,97` -- and says the guard is depth for an
       importable boundary function, the way `flows/carry.py:97-99` states
       "UNREACHABLE BY CONSTRUCTION ... It is here so a future lookup added
@@ -226,7 +234,8 @@ task 5's, but the fix for these two lands in `binder/binder.py`.
       parameter `page_for` overwrites unread
         > 2026-10-17 Reason: `language_for(path)` replaces it before anything reads it
         > 2026-10-17 Check: page_for takes no lang; its callers and tests pass
-- [ ] T30 | Remove the dead `cues` and `edges` stores in `page_for`
+- [-] T30 | SUPERSEDED by T49: the cues store is read; only the edges store at page.py:756 is dead | 22c3a0abcbc86509c74296319ce5b719a43338ca | Remove
+      the dead `cues` and `edges` stores in `page_for`
         > 2026-10-17 Reason: both are reassigned before any read
         > 2026-10-17 Check: ruff and the page suites pass with them gone
 - [ ] T31 | Move the binder wire format out of `binder/page.py`
@@ -256,3 +265,27 @@ task 5's, but the fix for these two lands in `binder/binder.py`.
 - [ ] T40 | Correct the loop back-edge comment at binder.py:181-185 to name ty's
       real cause
         > 2026-11-22 Check: a loop-free function shows the same ty diagnostic
+- [ ] T41 | Refuse two rows carrying one cue on one page when binder/page.py
+      reads a page
+        > 2026-11-22 Check: two b1 rows on one page return a named problem
+- [ ] T42 | Refuse a binder page whose `rows` key is absent at
+      binder/page.py:323
+        > 2026-11-22 Check: a page with no rows key is refused by name
+- [ ] T43 | Make read_from.read_from_problem's refusals name the artifact its
+      caller handed it
+        > 2026-11-22 Check: an edit copy's refusal no longer says 'a binder written'
+- [ ] T44 | Refuse a JSON boolean `revise` in read_from.read_from_problem
+        > 2026-11-22 Check: revise True returns a named refusal
+- [ ] T45 | Refuse an empty `root` in read_from.read_from_problem
+        > 2026-11-22 Check: root '' returns a named refusal
+- [ ] T46 | Stop Binder.deserialize's missing-read_from refusal asserting
+      version '1'
+        > 2026-11-22 Check: version '9' with no read_from states no version
+- [ ] T47 | Name the JSON type, not type(x).__name__, in the binder, read_from,
+      json_object refusals
+        > 2026-11-22 Check: grep -rn NoneType src/ finds no refusal text
+- [ ] T48 | State in bind's Raises at binder/binder.py:81 that no shipped caller
+      reaches the guard
+        > 2026-11-22 Check: it names taken_in.py:121,124, gather.py:283, revise.py:279
+- [ ] T49 | Remove page_for's dead `edges` store at binder/page.py:756
+        > 2026-11-22 Check: page_for assigns edges once

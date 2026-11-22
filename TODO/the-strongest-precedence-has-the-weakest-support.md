@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 2 of 4 tasks closed
+Progress: 3 of 5 tasks closed
 Owner:    agents
 Requires-Roy: true
 Raised:   2026-08-17, by the session that ran all eight stages -- "the weakest-verified input
@@ -88,6 +88,10 @@ agreeing on a destination produces no output at all. MEASURED 2026-08-17: `funct
 - [x] T3 | FINISHED | unknown | T3 -- SUPERSEDED. Its premise -- no anchor at
       the `lexical` tier -- is false as of 2026-08-23. What survives is T1's
       question, which does not vary by tier.
-- [ ] T4 | T4 -- Make the collator report when two roles independently name the
-      SAME destination for one paragraph. Verify: a test hands it two such
-      reports and asserts it appears.
+- [-] T4 | SUPERSEDED by T5: placement is decided in desk/evaluate/move.py, not the collator | 22c3a0abcbc86509c74296319ce5b719a43338ca | T4
+      -- Make the collator report when two roles independently name the SAME
+      destination for one paragraph. Verify: a test hands it two such reports
+      and asserts it appears.
+- [ ] T5 | Report both movers when two roles name one destination for a
+      paragraph
+        > 2026-11-22 Check: a case with two filers sees both named in the report

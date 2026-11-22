@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 18 of 21 tasks closed
+Progress: 20 of 23 tasks closed
 Owner:    agents
 Requires-Roy: true
 Raised:   2026-08-17, from `evidence/todo-tool-full-v0_2/proposals.md` (5) and
@@ -204,10 +204,12 @@ raised in conversation.
 - [x] T12 | FINISHED | unknown | T12 -- FINISHED. **P1 (todo-tool) -- a `REASON`
       naming a sentence no `CLAIM` names.** The checker ships at
       `verdicts.py:170-191`.
-- [ ] T13 | T13 -- Give the collator's output a section for a tension with no
-      address. Verify: `verdicts.py` prints that section.
-- [ ] T14 | T14 -- Test that a record with no address reaches that section.
-      Verify: the test fails on today's code first.
+- [-] T13 | SUPERSEDED by T22: verdicts.py is gone; collate's report has no section for an addressless finding | 22c3a0abcbc86509c74296319ce5b719a43338ca | T13
+      -- Give the collator's output a section for a tension with no address.
+      Verify: `verdicts.py` prints that section.
+- [-] T14 | SUPERSEDED by T23: the record is now a mark, which must carry a path@cue address | 22c3a0abcbc86509c74296319ce5b719a43338ca | T14
+      -- Test that a record with no address reaches that section. Verify: the
+      test fails on today's code first.
 - [-] T15 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | T15
       -- P1 (redacted-corpus) -- parse after every write, for the NON-PYTHON
       cases. Verify: name what stands in for a parse at the `lexical` tier, or
@@ -231,6 +233,10 @@ raised in conversation.
 - [x] T21 | FINISHED | unknown | T21 -- FINISHED. **P3, a prose file has no
       blocks.** Filed separately; **190 of 196 files** in one diff were
       `TODO/*.md`.
+- [ ] T22 | Give collate's report a section for a tension that has no address
+        > 2026-11-22 Check: collate prints that section
+- [ ] T23 | Add a failing case where an addressless finding reaches that section
+        > 2026-11-22 Check: it fails on today's code first
 ## Why T17-T21 are CHECKED, and why they now sit in `## Tasks`
 
 !! **AN UNCHECKED BOX IS A CLAIM THAT WORK REMAINS.** Roy, 2026-08-18: *"a check box

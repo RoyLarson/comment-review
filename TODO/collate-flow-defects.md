@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 25 of 26 tasks closed
+Progress: 26 of 27 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, a code review of `flows/collate.py` on the collate-
@@ -132,8 +132,9 @@ eight acts while `Collated` has eight attributes, so the two it omits -- `unrule
       context` copy split into shards over `m.py` and `n.py`, both fully
       unruled, reports both addresses; today `unruled` is `{'block-context':
       ['n.py@b1']}` and `m.py@b1` appears nowhere.
-- [ ] T5 | Update the two `Process: #22` citations at `flows/collate.py:25` and
-      `:274` to `Vocabulary: #22`, and the same mis-citation at `docs/decision-
+- [-] T5 | SUPERSEDED by T27: flows/collate.py is gone; the miscites are decision-log.md:1218,:2272,:3254, a plan | 22c3a0abcbc86509c74296319ce5b719a43338ca | Update
+      the two `Process: #22` citations at `flows/collate.py:25` and `:274` to
+      `Vocabulary: #22`, and the same mis-citation at `docs/decision-
       log.md:1780`. Verify: the quoted words `nobody is on record as having
       chosen it` are at `docs/decision-log.md:737`, inside the `## Vocabulary`
       section starting at line 325; `Process: #22` at line 1226 is `THE SHA IS
@@ -231,3 +232,6 @@ eight acts while `Collated` has eight attributes, so the two it omits -- `unrule
 - [x] T26 | FINISHED -- answers compose; contradictions refused (#308, #309) | 48a9966b | Implement
       several role answers at one slot, composed, refusing only contradictory
       ones (#308)
+- [ ] T27 | Correct the Process: #22 citations of the four-answer ruling to
+      Vocabulary: #22
+        > 2026-11-22 Check: no docs/ cite of the four answers names Process #22

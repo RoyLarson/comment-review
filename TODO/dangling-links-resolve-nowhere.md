@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 5 of 6 tasks closed
+Progress: 6 of 7 tasks closed
 Owner:    systems
 Requires-Roy: false
 Raised:   2026-08-23 (2026-08-23, from scripts/dead_sweep.py --links after the history
@@ -95,10 +95,11 @@ archival pattern the stance already covers, and it is what produced the third li
       -- Make `complete_todo` (todo_tool.py:1021) rewrite the moved file's own
       links. Verify: close a TODO citing a live sibling; `--links` reports no
       new path from it.
-- [ ] T6 | Implement a check that every decision-log citation resolves to an
-      entry that exists, in the section it names. Verify: it reports a citation
-      whose number is past its section's highest entry, and it FAILS against the
-      state measured 2026-08-30 -- Vocabulary: #53 cited four times across
+- [-] T6 | SUPERSEDED by T7: the Vocabulary #53 sample its Verify names no longer occurs in docs/ | 22c3a0abcbc86509c74296319ce5b719a43338ca | Implement
+      a check that every decision-log citation resolves to an entry that exists,
+      in the section it names. Verify: it reports a citation whose number is
+      past its section's highest entry, and it FAILS against the state measured
+      2026-08-30 -- Vocabulary: #53 cited four times across
       docs/plans/0.2.4-the- commands-for-the-middle.md and the two SP-1 files,
       where the Vocabulary section's highest entry is #30 and the ruling
       actually lives at Process #53. Nothing saw it: the citation is not a link,
@@ -107,3 +108,6 @@ archival pattern the stance already covers, and it is what produced the third li
       produced it -- the entry's own TEXT is about Vocabulary #11, so a reader
       who labels an entry by its subject rather than by the heading it sits
       under gets the section wrong and the number right.
+- [ ] T7 | Implement a gate that every decision-log citation names an entry in
+      its own section
+        > 2026-11-22 Check: a planted citation past its section's last entry fails

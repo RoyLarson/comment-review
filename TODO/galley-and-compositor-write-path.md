@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 72 of 84 tasks closed
+Progress: 73 of 85 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (code-review high round 3 and /simplify round 2, 2026-08-22 -- the
@@ -316,7 +316,8 @@ files in `corpora/` are in that state today.
         > 2026-10-30 Outcome: stays offered; landed test changes, #254
 - [x] T66 | Compositor comments corrected to the code | e3e138fa | Correct the
       front-matter comments at `results/compositor.py:26`, `:119`, `:385`
-- [ ] T67 | State `_reread`'s four whitespace passes in its docstring
+- [-] T67 | SUPERSEDED by T85: _reread was rewritten; its docstring now states two of the four passes | 22c3a0abcbc86509c74296319ce5b719a43338ca | State
+      `_reread`'s four whitespace passes in its docstring
 - [ ] T68 | Classify the seven other mutants surviving final review 3
         > 2026-10-30 landed-text-only head-ignores-a-series foot-any-a code-between-le
         > 2026-10-30 matter-part-no-raw cut-part-no-raw shares-any
@@ -355,3 +356,6 @@ files in `corpora/` are in that state today.
       dropped whole
 - [-] T84 | SUPERSEDED by T83: filed twice in error | 4db8b52f | Fix the
       compositor, which loses a paragraph's blank lines when it is dropped whole
+- [ ] T85 | State _reread's two unstated skips in its docstring: _holds_prose,
+      kept's blank lines
+        > 2026-11-22 Check: the docstring names both skips

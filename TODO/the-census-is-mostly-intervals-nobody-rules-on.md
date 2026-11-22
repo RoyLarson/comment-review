@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 26 of 27 tasks closed
+Progress: 27 of 28 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-18, from measuring what a reviewer is handed before it works
@@ -294,8 +294,11 @@ mock-up and matches nothing in the tree.
 - [-] T26 | SUPERSEDED by render-page-imports-flat-names T6, Process 147 | 99004b8f | Update
       scripts/render_page.py rows() to run the gather command; it names a
       scripts/census.py that does not exist. Verify: it runs
-- [ ] T27 | Update scripts/measure_binder.py so its prose and its census() name
-      the gather, Vocabulary 34. Verify: grep census returns nothing
+- [-] T27 | SUPERSEDED by T28: cedd8bbb renamed census() to binder_of(); one prose line remains | 22c3a0abcbc86509c74296319ce5b719a43338ca | Update
+      scripts/measure_binder.py so its prose and its census() name the gather,
+      Vocabulary 34. Verify: grep census returns nothing
+- [ ] T28 | Replace 'the census' at scripts/measure_binder.py:37 with the gather
+        > 2026-11-22 Check: grep census scripts/measure_binder.py is empty
 ## Related
 
 - [`verdicts-py-announces-one-subject-and-holds-four`](completed/verdicts-py-announces-one-subject-and-holds-four.md)

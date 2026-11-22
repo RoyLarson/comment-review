@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 5 of 15 tasks closed
+Progress: 6 of 16 tasks closed
 Owner:    agents
 Requires-Roy: true
 Raised:   2026-08-17 (two full runs in one session, on two repos; stage 1 was established
@@ -148,9 +148,10 @@ ways -- a cap published since the last run, a `docs/` tree deleted since.
       -- State the three structure states PER SOURCE rather than per run.
       Verify: every row of the `SKILL.md` structure table names the source it is
       about.
-- [ ] T7 | T7 -- Name `.claude/comment-review/` in `SKILL.md` 1.5 as where a
-      sheet is found and written. Verify: `grep -rn "\.claude/comment-review"
-      plugins/` returns that line.
+- [-] T7 | SUPERSEDED by T16: c68a61a4 renumbered stage 1; the style sheet is now step 4 | 22c3a0abcbc86509c74296319ce5b719a43338ca | T7
+      -- Name `.claude/comment-review/` in `SKILL.md` 1.5 as where a sheet is
+      found and written. Verify: `grep -rn "\.claude/comment-review" plugins/`
+      returns that line.
 - [ ] T8 | T8 -- Widen the sheet's own format to carry the REPO-side rows of the
       table above, marked as repo facts. Verify: the format lists them and says
       which are repo facts.
@@ -172,3 +173,6 @@ ways -- a cap published since the last run, a `docs/` tree deleted since.
       ruling is made; implementing it is T7.
 - [-] T15 | The 1.7/1.8 collapse happened in c68a61a4 | c68a61a4 | Collapse 1.7
       and 1.8 into one substep named for what it does, once T1 rules it
+- [ ] T16 | Name `.claude/comment-review/` in SKILL.md stage 1 step 4 as the
+      style sheet's home
+        > 2026-11-22 Check: grep .claude/comment-review src/plugin returns that line

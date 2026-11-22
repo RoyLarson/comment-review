@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 1 of 6 tasks closed
+Progress: 3 of 8 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-28 (2026-08-28, Roy asking what `claim.shape` is: 'because it is
@@ -86,17 +86,25 @@ by who answers it.
       names one (an *author query* is named by who answers it). Verify: the
       candidate is checked against the register BEFORE it is proposed, per
       `docs/vocabulary.md`, and the reasoning is recorded whichever way it goes.
-- [ ] T4 | Carry the ruling into the enum sweep. T1.15 of the 0.2.4 plan lists
+- [-] T4 | SUPERSEDED by T7: Shape(StrEnum) landed in 877c047a; plan item T1.15 is done | 22c3a0abcbc86509c74296319ce5b719a43338ca | Carry
+      the ruling into the enum sweep. T1.15 of the 0.2.4 plan lists
       `QUERY_SHAPES` as a closed set to make a `StrEnum`; if the axis
       generalises, the enum is not query's. Verify: T1.15 names the right set,
       and no site hand-writes the values.
-- [ ] T5 | Carry it into the agent-facing prose in the SAME change. The field
-      name is published in `reviewer-brief.md` and instructed at
-      `comment-review-module- context.md:108`. Verify: `grep -rn` finds no
-      shipped file using a retired sense, and `check_vocabulary.py` passes.
+- [-] T5 | SUPERSEDED by T8: the module-context use moved from :108 to :27, :37 | 22c3a0abcbc86509c74296319ce5b719a43338ca | Carry
+      it into the agent-facing prose in the SAME change. The field name is
+      published in `reviewer-brief.md` and instructed at `comment-review-module-
+      context.md:108`. Verify: `grep -rn` finds no shipped file using a retired
+      sense, and `check_vocabulary.py` passes.
 - [-] T6 | claim.shape value is read since 99c76203: marks/table.py _query_stance routes HUMAN_REVIEW_NECESSARY to UNSETTLABLE | 99c76203 | Does
       `claim.shape` earn a field when nothing in `src/` reads its VALUE?
       MEASURED 2026-08-30: the four occurrences are `desk/mark.py`'s row, its
       published value list and its membership check; no collate step reads it.
       Verify: the answer is recorded in `docs/decision-log.md` beside the ruling
       on the word, and the field is either read by a module or gone.
+- [ ] T7 | Move desk/proof/mark.py's Shape enum to the set T2 rules it belongs
+      to
+        > 2026-11-22 Check: no site hand-writes the shape values
+- [ ] T8 | Carry T1's ruled word into the brief, module-context.md:27, :37 in
+      one change
+        > 2026-11-22 Check: no shipped file uses a retired sense

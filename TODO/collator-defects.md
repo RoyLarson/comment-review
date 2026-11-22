@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 32 of 43 tasks closed
+Progress: 37 of 48 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, from the blind rewrite of collator.py -- the prose was
@@ -47,8 +47,9 @@ Four defects in collator.py, found by reading only the code.
 - [ ] T8 | Key the cache on the root as well, or refuse a cache handed a second
       root. Verify: the staged design cannot answer from the wrong tree -- a run
       reads an original at one stage and a revise at the next.
-- [ ] T9 | Reproduce the cite guard. Verify: `_cite_at` raises `ValueError` on a
-      superscript line number today, and a test asserts a named problem instead.
+- [-] T9 | SUPERSEDED by T44: _cite_at is now the public desk/collator.cite_at | 22c3a0abcbc86509c74296319ce5b719a43338ca | Reproduce
+      the cite guard. Verify: `_cite_at` raises `ValueError` on a superscript
+      line number today, and a test asserts a named problem instead.
 - [ ] T10 | Return a problem rather than raising. Verify: `verify_report` over an
       edit_copy holding one malformed cite reports it and still checks every other
       mark -- today one bad cite aborts the whole report.
@@ -124,16 +125,17 @@ Four defects in collator.py, found by reading only the code.
       count every entry that is not `untouched`. Verify: the `Returns:` agrees
       with the `!!` paragraph at 431-435, and a marks list of three entries,
       none carrying an instruction, still reports `ruled = 2`.
-- [ ] T21 | Update the module docstring's copy-level list at
-      `desk/collator.py:50-54`, which says an entry that is not an object produces
-      a `Problem` with nothing naming a mark, and omits the `read_from` problem at
-      477-479. Verify: the list holds four cases, and it says the address is `""`
-      because the entry has none to read; `problems_in` over `{"marks": ["not an
-      object"]}` returns `('', 'mark 1 is not an object')`, which names the mark.
-- [ ] T22 | Update `desk.collator._cite_at`'s digit test so it accepts ASCII
-      digits only. Verify: a cite whose line number is written in Arabic-Indic
-      digits no longer returns `('a.py', 12)` -- a line number no page ever
-      emitted.
+- [-] T21 | SUPERSEDED by T45: problems_in, the four-case list are gone; only the address='' sentence remains | 22c3a0abcbc86509c74296319ce5b719a43338ca | Update
+      the module docstring's copy-level list at `desk/collator.py:50-54`, which
+      says an entry that is not an object produces a `Problem` with nothing
+      naming a mark, and omits the `read_from` problem at 477-479. Verify: the
+      list holds four cases, and it says the address is `""` because the entry
+      has none to read; `problems_in` over `{"marks": ["not an object"]}`
+      returns `('', 'mark 1 is not an object')`, which names the mark.
+- [-] T22 | SUPERSEDED by T46: _cite_at is now the public desk/collator.cite_at | 22c3a0abcbc86509c74296319ce5b719a43338ca | Update
+      `desk.collator._cite_at`'s digit test so it accepts ASCII digits only.
+      Verify: a cite whose line number is written in Arabic-Indic digits no
+      longer returns `('a.py', 12)` -- a line number no page ever emitted.
 - [-] T23 | _touches deleted with the collator's reconciliation half | 0e2ff82a | Update
       `desk.collator._touches`' sentence at lines 605-606, which says a `move`
       whose destination is its own origin gives one address, as though such a
@@ -147,12 +149,13 @@ Four defects in collator.py, found by reading only the code.
       it. Verify: either `collator.py` stops importing `_read_from_problem` from
       `binder.binder`, or `_chief_copy`'s ~15 duplicated lines cite the import
       as allowed; no sentence in either file contradicts the other.
-- [ ] T25 | Update the module docstring's member roll at `desk/collator.py:3-25`
-      to account for `WITHIN`, `Cache`, `UnnamedRole`, `MalformedMark`, `Placed`,
+- [-] T25 | SUPERSEDED by T47: most names it listed are deleted; the roll now omits WITHIN, Cache, cite_at | 22c3a0abcbc86509c74296319ce5b719a43338ca | Update
+      the module docstring's member roll at `desk/collator.py:3-25` to account
+      for `WITHIN`, `Cache`, `UnnamedRole`, `MalformedMark`, `Placed`,
       `Reconciled` and `OUTCOMES`, and restate lines 45-46 by member rather than
-      by file-order range. Verify: every public name the module defines appears in
-      the roll or in the four-kind paragraph, and no sentence says `nothing above`
-      or `nothing below` a file position.
+      by file-order range. Verify: every public name the module defines appears
+      in the roll or in the four-kind paragraph, and no sentence says `nothing
+      above` or `nothing below` a file position.
         > 2026-08-31 P42 deleted UnnamedRole -- places takes a MasterProof, whose
         > 2026-08-31 copies each carry a role. The roll this box asks for should not
         > 2026-08-31 list it; the other six names stand.
@@ -178,9 +181,9 @@ Four defects in collator.py, found by reading only the code.
         > 2026-09-01 MEASURED 2026-09-01 after P52: neither has a production caller.
         > 2026-09-01 mark_errors answers both -- the unruled half and the refused half
         > 2026-09-01 -- and problems_in's ruled count is read by nothing. 29 test refs.
-- [ ] T29 | Delete the three remaining cross-area imports named in
-      tests/test_areas.py KNOWN. Verify: that set is empty and the test still
-      bites
+- [-] T29 | SUPERSEDED by T48: one KNOWN crossing remains, not three: results/compositor.py -> binder.page | 22c3a0abcbc86509c74296319ce5b719a43338ca | Delete
+      the three remaining cross-area imports named in tests/test_areas.py KNOWN.
+      Verify: that set is empty and the test still bites
         > 2026-09-02 conventions.md called these filed on 2026-08-31; no task did
         > 2026-09-03 confirmed, not superseded, by Process 83 -- correct as written
 - [x] T30 | verified at HEAD: rebuilt fold settles all-clean places as stet; smoke stage 2 prints stet for all 14 places | 393e3585 | Implement
@@ -240,3 +243,18 @@ Four defects in collator.py, found by reading only the code.
 - [x] T43 | a recast keeps a filed add at an empty place and its text lands; the test is 3fbaa5c5 | 3fbaa5c5 | Implement
       a test that a recast at an add's empty place, where a role filed the add,
       keeps add and lands its text
+- [ ] T44 | Reproduce desk/collator.cite_at raising ValueError on a superscript
+      line number
+        > 2026-11-22 Check: a case expects a named problem; it fails today
+- [ ] T45 | Delete collator.py:45-47's claim that a non-object entry yields a
+      Problem with address=''
+        > 2026-11-22 Check: the docstring names no case collator.py cannot produce
+- [ ] T46 | Make desk/collator.cite_at accept ASCII digits only in a cite's line
+      number
+        > 2026-11-22 Check: an Arabic-Indic line number no longer gives ('a.py', 12)
+- [ ] T47 | Add WITHIN, Cache, cite_at, cited_problems to desk/collator.py's
+      member roll
+        > 2026-11-22 Check: the roll names every public name collator.py defines
+- [ ] T48 | Delete the last KNOWN crossing, results/compositor.py ->
+      binder.page, from the area gate
+        > 2026-11-22 Check: KNOWN is empty; the area gate still fails a crossing

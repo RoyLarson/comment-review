@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 2 of 10 tasks closed
+Progress: 7 of 15 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, a code review of `results/differences.py` that
@@ -72,21 +72,23 @@ containment. Each showed 0 behavioural differences over 104,088 cases.
 
 ## Tasks
 
-- [ ] T1 | Implement a correct line span in `CannotCompose`'s message for a
-      zero-width merged span, where `start == end` renders `{start + 1}-{end}`
-      backwards. Verify: two roles both proposing an `add` at one place produce
-      a message naming a real position, and a test asserts the numbers so that
-      shifting them by 7, or replacing them with `?-?`, goes red; both of those
-      mutants survive the suite today.
+- [-] T1 | SUPERSEDED by T11: ee4a9c35 fixed the backwards span; only a case on its numbers is missing | 22c3a0abcbc86509c74296319ce5b719a43338ca | Implement
+      a correct line span in `CannotCompose`'s message for a zero-width merged
+      span, where `start == end` renders `{start + 1}-{end}` backwards. Verify:
+      two roles both proposing an `add` at one place produce a message naming a
+      real position, and a test asserts the numbers so that shifting them by 7,
+      or replacing them with `?-?`, goes red; both of those mutants survive the
+      suite today.
 - [ ] T2 | Implement `span` and `roles` attributes on `CannotCompose`, so a
       caller recovers the refusal without parsing an English sentence. Verify: a
       refused `compose` raises an exception whose `.span` and `.roles` match its
       own message, asserted by a test; the class declares no attributes today.
-- [ ] T3 | Update `flows/collate.py`'s `_composition` so a `CannotCompose` is
-      carried into what the run reports instead of becoming `None`. Verify: a
-      re-read caused by a refused composition names the span and the roles in
-      the run's own output, and the test goes red against today's code, where
-      the sole `except CannotCompose:` returns `None`.
+- [-] T3 | SUPERSEDED by T12: flows/collate.py went in 0e2ff82a; the catch is now in desk/evaluate/passes.py | 22c3a0abcbc86509c74296319ce5b719a43338ca | Update
+      `flows/collate.py`'s `_composition` so a `CannotCompose` is carried into
+      what the run reports instead of becoming `None`. Verify: a re-read caused
+      by a refused composition names the span and the roles in the run's own
+      output, and the test goes red against today's code, where the sole `except
+      CannotCompose:` returns `None`.
 - [x] T4 | verified at HEAD: fold catches CannotCompose per place and the CarriedForward line names the place's address | 393e3585 | Implement
       attaching the ADDRESS to a refused composition, which the message never
       names. Verify: a send-back for a refused composition names the place, not
@@ -99,18 +101,18 @@ containment. Each showed 0 behavioural differences over 104,088 cases.
       lacks a trailing newline prints two separate diff lines through
       `commands/taken_in.py`, not `-three+THREE` on one line. DO NOT fix by
       appending a newline -- that claims a newline the file does not have.
-- [ ] T6 | Update both `difflib.SequenceMatcher` constructions in
-      `results/differences.py` to state a choice about `autojunk`, which
-      reshapes the opcodes every correctness claim in the file is about. Verify:
-      the file either passes `autojunk=False` or carries a sentence saying the
-      heuristic is accepted and why, and a test pins the behaviour at the
-      199/200-line boundary.
-- [ ] T7 | Update the module docstring of `results/differences.py`, whose
-      opening sentence announces three operations over a base and its sides
-      while `unified` has neither. Verify: the header agrees with `unified`'s
-      own `Args` -- the page's text before the revise -- and the word `side` is
-      not spent on something that is not a side in the sense the rest of the
-      file uses it.
+- [-] T6 | SUPERSEDED by T13: results/differences.py moved to src/comment_review/differences.py | 22c3a0abcbc86509c74296319ce5b719a43338ca | Update
+      both `difflib.SequenceMatcher` constructions in `results/differences.py`
+      to state a choice about `autojunk`, which reshapes the opcodes every
+      correctness claim in the file is about. Verify: the file either passes
+      `autojunk=False` or carries a sentence saying the heuristic is accepted
+      and why, and a test pins the behaviour at the 199/200-line boundary.
+- [-] T7 | SUPERSEDED by T14: results/differences.py moved to src/comment_review/differences.py | 22c3a0abcbc86509c74296319ce5b719a43338ca | Update
+      the module docstring of `results/differences.py`, whose opening sentence
+      announces three operations over a base and its sides while `unified` has
+      neither. Verify: the header agrees with `unified`'s own `Args` -- the
+      page's text before the revise -- and the word `side` is not spent on
+      something that is not a side in the sense the rest of the file uses it.
 - [-] T8 | identical edits now apply once rather than being refused; test_identical_*_apply_once | f8b3deb1 | Update
       `compose`'s prose to state that two sides making the BYTE-IDENTICAL edit
       are refused, which the docstring explains for the abutting case and not
@@ -122,7 +124,23 @@ containment. Each showed 0 behavioural differences over 104,088 cases.
       there and a test renders a pure insert and asserts the empty base section,
       so a reader or an agent parsing the format can tell an insert from a
       truncated render.
-- [ ] T10 | Update the sentence *`difflib.unified_diff` reads two strings, not
-      two commits*, which reads two SEQUENCES OF LINES that this function splits
-      at lines 48-49. Verify: the sentence is literally true and still makes its
-      point that no git process is involved.
+- [-] T10 | SUPERSEDED by T15: unified now splits its inputs at differences.py:44-45, not lines 48-49 | 22c3a0abcbc86509c74296319ce5b719a43338ca | Update
+      the sentence *`difflib.unified_diff` reads two strings, not two commits*,
+      which reads two SEQUENCES OF LINES that this function splits at lines
+      48-49. Verify: the sentence is literally true and still makes its point
+      that no git process is involved.
+- [ ] T11 | Cover a zero-width merged span's line numbers in CannotCompose's
+      message
+        > 2026-11-22 Check: two adds at one place name 'base lines 2-2' in a case
+- [ ] T12 | Carry CannotCompose's span into the CarriedForward event
+      desk/evaluate/passes.py emits
+        > 2026-11-22 Check: a refused composition's report names span, roles
+- [ ] T13 | State an autojunk choice at both SequenceMatcher calls in
+      comment_review/differences.py
+        > 2026-11-22 Check: both pass autojunk=False, or carry the reason
+- [ ] T14 | Correct the comment_review/differences.py header, which gives
+      unified a base with sides
+        > 2026-11-22 Check: the header agrees with unified's own Args
+- [ ] T15 | Correct unified()'s 'reads two strings, not two commits' to
+      sequences of lines
+        > 2026-11-22 Check: the sentence is literally true of unified_diff's input

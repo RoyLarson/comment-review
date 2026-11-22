@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 3 of 7 tasks closed
+Progress: 4 of 8 tasks closed
 Owner:    agents
 Requires-Roy: true
 Raised:   2026-08-17, the day the query contract landed. `module-context`'s report on a
@@ -134,9 +134,10 @@ do the thing we ruled out"*. It carried a box until 2026-08-23 and is recorded h
       payload than the other two shapes. Verify: the ruling is recorded in
       `docs/decision-log.md`.
         > 2026-08-31 a ruling was reported from the dogfood session; unconfirmed here
-- [ ] T4 | T4 -- If T3 rules it stays, say at `reviewer-brief.md:425` that a
-      small-remit role writes mostly scope declarations. Verify: that section
-      names the cost.
+- [-] T4 | SUPERSEDED by T8: the query section moved from reviewer-brief.md:425 to :296-306 | 22c3a0abcbc86509c74296319ce5b719a43338ca | T4
+      -- If T3 rules it stays, say at `reviewer-brief.md:425` that a small-remit
+      role writes mostly scope declarations. Verify: that section names the
+      cost.
 - [x] T5 | FINISHED | unknown | T5 -- NOT A TASK. *"Do not solve this by
       exempting a role from blocks outside its remit"* is a standing
       prohibition. Kept in full in the Objective.
@@ -153,3 +154,6 @@ do the thing we ruled out"*. It carried a box until 2026-08-23 and is recorded h
         > 2026-09-02 T6's distinction is folded in here: clean must not read as
         > 2026-09-02 silence, and must not read as I could not settle it either
         > 2026-09-02 clean CERTIFIES and query ASKS -- collapsing them trades down
+- [ ] T8 | If T3 keeps the payload, state the scope-declaration cost in
+      reviewer-brief.md's query section
+        > 2026-11-22 Check: the query section names the cost

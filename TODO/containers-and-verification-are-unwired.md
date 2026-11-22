@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 47 of 61 tasks closed
+Progress: 57 of 71 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, Roy ruling that containers are wired and that the
@@ -150,9 +150,10 @@ task 9 of [`move-is-a-composite-mark`](move-is-a-composite-mark.md).
       in the file says the parse takes `read_from` from the first copy or
       refuses the disagreement `gather` refuses, and the no-copies case (where
       there is no first copy) is stated.
-- [ ] T9 | Update `parse_sheet`'s stated reason for admitting an absent or null
-      `sha` at lines 113-115, which says a tree that is not a repo has none.
-      Verify: the sentence names the real producer -- `desk/collator.py:992` and
+- [-] T9 | SUPERSEDED by T62: parse_sheet is Sheet.deserialize; its comments name the deleted chief_copy_of | 22c3a0abcbc86509c74296319ce5b719a43338ca | Update
+      `parse_sheet`'s stated reason for admitting an absent or null `sha` at
+      lines 113-115, which says a tree that is not a repo has none. Verify: the
+      sentence names the real producer -- `desk/collator.py:992` and
       `flows/collate.py:391` write an empty sha for a path `unflatten` cannot
       resolve -- and a census over a directory holding no `.git` is shown to
       report a real sha.
@@ -173,10 +174,11 @@ task 9 of [`move-is-a-composite-mark`](move-is-a-composite-mark.md).
       binder)` builds round-trips through `parse_edit_copy` with no problems,
       and the proof `desk.proof.gather("4c", [])` writes still parses -- today
       the first is refused by name and the second accepted, one stage apart.
-- [ ] T12 | Update `tests/test_containers.py:167` so it derives the
-      field-earns-itself property instead of asserting `"rounds" not in names`.
-      Verify: adding `Sheet.round_count: int = 0` that nothing reads turns the
-      test red -- today it passes.
+- [-] T12 | SUPERSEDED by T63: the case moved from :167 to :385-395 | 22c3a0abcbc86509c74296319ce5b719a43338ca | Update
+      `tests/test_containers.py:167` so it derives the field-earns-itself
+      property instead of asserting `"rounds" not in names`. Verify: adding
+      `Sheet.round_count: int = 0` that nothing reads turns the test red --
+      today it passes.
 - [-] T13 | flows.collate._chief_copy no longer exists (#183, #184, 4d43e9fe) | 4d43e9fe | Implement
       the test that hands a real `flows.collate._chief_copy` output to
       `desk.containers.parse_edit_copy`. Verify: the test exists and goes red
@@ -189,37 +191,43 @@ task 9 of [`move-is-a-composite-mark`](move-is-a-composite-mark.md).
       `parse_master_proof("4c", {"edit_copies": []})` is refused by name, or the
       field is gone -- today it returns `MasterProof(stage="")` with no
       problems, and so do `None`, `4` and `""`.
-- [ ] T15 | Update `_read_from_problem`'s absent-`read_from` message so it
-      composes at both call sites, which each prefix a possessive. Verify: a
-      test asserts all four messages at both sites read as sentences -- today
-      the absent case renders `4c: edit_copy 1: block-context's carries no
-      read_from -- ...` and `4c: master_proof's carries no read_from -- ...`.
-- [ ] T16 | Update `parse_sheet` and `parse_master_proof` so a `sha` or a
-      `stage` holding a non-string that is not null is refused rather than
-      folded to `""`. Verify: `parse_sheet("s", {"path": "p.py", "marks": [],
-      "sha": 12345})` is refused by name -- today it returns `Sheet(sha="")`
-      with no problems, and so do a list, a dict and `True`.
-- [ ] T17 | Update `parse_master_proof` to check its own header before walking
-      `edit_copies`, as `parse_edit_copy` already does. Verify:
-      `parse_master_proof("4c", {"stage": "4c", "read_from": "oops",
-      "edit_copies": [{"role": "r"}]})` reports the proof's `read_from` as well
-      as the copy -- today it reports the copy alone and returns at line 218.
-- [ ] T18 | Update the COPIED, NOT ALIASED comment at lines 177-179 and 242 to
-      the depth the copy holds. Verify: the sentence bounds the guarantee to the
-      two fields `_read_from_problem` checks, or a nested key mutated after the
-      parse cannot reach `EditCopy.read_from` -- today `nested["meta"]["n"] =
-      99` is visible through it.
-- [ ] T19 | Update the `checked: dict = data` comment at lines 150-153, which
-      blames a loop back-edge for a narrowing the annotation fixes. Verify: the
-      sentence states the real cause -- `isinstance(x, dict)` narrows `object`
-      to a `__getitem__` taking `Never` -- and a function with no loop at all
-      shows the same `invalid-argument-type` diagnostic without the annotation.
+- [-] T15 | SUPERSEDED by T64: _read_from_problem is now the public read_from.read_from_problem | 22c3a0abcbc86509c74296319ce5b719a43338ca | Update
+      `_read_from_problem`'s absent-`read_from` message so it composes at both
+      call sites, which each prefix a possessive. Verify: a test asserts all
+      four messages at both sites read as sentences -- today the absent case
+      renders `4c: edit_copy 1: block-context's carries no read_from -- ...` and
+      `4c: master_proof's carries no read_from -- ...`.
+- [-] T16 | SUPERSEDED by T65: the stage half landed; parse_sheet is now Sheet.deserialize | 22c3a0abcbc86509c74296319ce5b719a43338ca | Update
+      `parse_sheet` and `parse_master_proof` so a `sha` or a `stage` holding a
+      non-string that is not null is refused rather than folded to `""`. Verify:
+      `parse_sheet("s", {"path": "p.py", "marks": [], "sha": 12345})` is refused
+      by name -- today it returns `Sheet(sha="")` with no problems, and so do a
+      list, a dict and `True`.
+- [-] T17 | SUPERSEDED by T66: parse_master_proof is now MasterProof.deserialize | 22c3a0abcbc86509c74296319ce5b719a43338ca | Update
+      `parse_master_proof` to check its own header before walking `edit_copies`,
+      as `parse_edit_copy` already does. Verify: `parse_master_proof("4c",
+      {"stage": "4c", "read_from": "oops", "edit_copies": [{"role": "r"}]})`
+      reports the proof's `read_from` as well as the copy -- today it reports
+      the copy alone and returns at line 218.
+- [-] T18 | SUPERSEDED by T67: the comments moved to edit_copy.py:99-101, :169-171; read_from_problem is public | 22c3a0abcbc86509c74296319ce5b719a43338ca | Update
+      the COPIED, NOT ALIASED comment at lines 177-179 and 242 to the depth the
+      copy holds. Verify: the sentence bounds the guarantee to the two fields
+      `_read_from_problem` checks, or a nested key mutated after the parse
+      cannot reach `EditCopy.read_from` -- today `nested["meta"]["n"] = 99` is
+      visible through it.
+- [-] T19 | SUPERSEDED by T68: the comment moved from lines 150-153 to edit_copy.py:138-141 | 22c3a0abcbc86509c74296319ce5b719a43338ca | Update
+      the `checked: dict = data` comment at lines 150-153, which blames a loop
+      back-edge for a narrowing the annotation fixes. Verify: the sentence
+      states the real cause -- `isinstance(x, dict)` narrows `object` to a
+      `__getitem__` taking `Never` -- and a function with no loop at all shows
+      the same `invalid-argument-type` diagnostic without the annotation.
         > 2026-11-22 Location now desk/proof/edit_copy.py:140; containers.py is gone
-- [ ] T20 | Update the proof-versus-copy `read_from` comparison at line 228 so
-      it compares the fields `_read_from_problem` checks and names them in its
-      message. Verify: a proof whose `read_from` carries an extra key but the
-      same `root` and `revise` is accepted, and the refusal names what has to
-      match -- today `!=` refuses it and says only "disagrees".
+- [-] T20 | SUPERSEDED by T69: the comparison moved to master_proof.py:277-282; read_from_problem is public | 22c3a0abcbc86509c74296319ce5b719a43338ca | Update
+      the proof-versus-copy `read_from` comparison at line 228 so it compares
+      the fields `_read_from_problem` checks and names them in its message.
+      Verify: a proof whose `read_from` carries an extra key but the same `root`
+      and `revise` is accepted, and the refusal names what has to match -- today
+      `!=` refuses it and says only "disagrees".
 - [-] T21 | The builder enumeration went with containers.py in the split at 64d8931c | 64d8931c | Update
       the module docstring's builder list at lines 13-14 to name
       `flows.collate._chief_copy`. Verify: every builder of an `EditCopy` in
@@ -292,8 +300,9 @@ task 9 of [`move-is-a-composite-mark`](move-is-a-composite-mark.md).
         > 2026-08-31 Same misplacement Paragraph was in; the comment states the motive
         > 2026-08-31 annotate builds the KEY, code_names the index -- one predicate both
         > 2026-08-31 code_names matches it on string constants only, not arg/alias/def
-- [ ] T35 | Move the one filesystem call out of binder/annotate.py, where a path
-      existence check is IO outside machine
+- [-] T35 | SUPERSEDED by T70: annotate.py moved from binder/ to concordance/ | 22c3a0abcbc86509c74296319ce5b719a43338ca | Move
+      the one filesystem call out of binder/annotate.py, where a path existence
+      check is IO outside machine
         > 2026-08-31 line 156 -- the only IO in binder/; picks UNVERIFIABLE or UNRESOLVE
         > 2026-09-03 new location: concordance/annotate.py, not binder/
 - [x] T36 | Process 141: a container, re-read and escalation shaped apart | 57c89056 | Decide
@@ -404,3 +413,34 @@ task 9 of [`move-is-a-composite-mark`](move-is-a-composite-mark.md).
 - [ ] T61 | Refuse a Place whose `text` is neither a string nor null in
       Place.deserialize
         > 2026-11-22 Check: Place.deserialize refuses {"text": 5} by name
+- [ ] T62 | Correct desk/proof/sheet.py's empty-sha comments, which name the
+      deleted chief_copy_of
+        > 2026-11-22 Check: grep chief_copy_of src/ is empty
+- [ ] T63 | Derive the 'no container declares a field nothing reads' property in
+      test_containers.py:385
+        > 2026-11-22 Check: an unread Sheet.round_count field turns it red
+- [ ] T64 | Reword read_from_problem's absent-read_from message so a possessive
+      prefix reads as a sentence
+        > 2026-11-22 Check: both call sites render a sentence for every message
+- [ ] T65 | Refuse a non-string, non-null `sha` in Sheet.deserialize instead of
+      folding it to ''
+        > 2026-11-22 Check: sha 12345 is refused by name
+- [ ] T66 | Make MasterProof.deserialize read its own header before walking
+      edit_copies
+        > 2026-11-22 Check: a bad proof read_from is reported beside a bad copy
+- [ ] T67 | Bound edit_copy.py's COPIED, NOT ALIASED comments to the depth the
+      copy holds
+        > 2026-11-22 Check: a nested read_from key cannot change, or the text says so
+- [ ] T68 | Correct edit_copy.py:138-141's loop back-edge comment to name ty's
+      real cause
+        > 2026-11-22 Check: the comment names isinstance narrowing to Never
+- [-] T69 | SUPERSEDED by T71: reworded to open with a listed verb | 22c3a0abcbc86509c74296319ce5b719a43338ca | Compare
+      only the root, revise fields in MasterProof's proof-versus-copy read_from
+      comparison
+        > 2026-11-22 Check: an extra read_from key, same root, revise, is accepted
+- [ ] T70 | Move the exists() call in concordance/annotate.py:147 behind
+      machine/
+        > 2026-11-22 Check: concordance/ makes no filesystem call
+- [ ] T71 | Narrow MasterProof's proof-versus-copy read_from comparison to the
+      root and revise fields
+        > 2026-11-22 Check: an extra read_from key, same root, revise, is accepted

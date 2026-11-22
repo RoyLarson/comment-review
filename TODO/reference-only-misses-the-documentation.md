@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 1 of 4 tasks closed
+Progress: 2 of 5 tasks closed
 Owner:    agents
 Requires-Roy: true
 Raised:   2026-08-17 (Roy, during the first full run of 0.1.7: "At some point the
@@ -71,5 +71,8 @@ docstring saying *"the lexical tier cannot answer a comment's owner"* is checkab
 - [?] T3 | T3 -- * Rule on whether `referrers.py` widens or stays a NAME
       matcher. Verify: the answer is recorded here, with the reason it was
       decided that way.
-- [ ] T4 | T4 -- State what T1 to T3 decide in ONE file, `SKILL.md:649` being
-      the candidate. Verify: `grep -rn` for its phrase returns one path.
+- [-] T4 | SUPERSEDED by T5: SKILL.md:649 is gone (the file is 571 lines); REFERENCE ONLY is at :192 | 22c3a0abcbc86509c74296319ce5b719a43338ca | T4
+      -- State what T1 to T3 decide in ONE file, `SKILL.md:649` being the
+      candidate. Verify: `grep -rn` for its phrase returns one path.
+- [ ] T5 | State what T1 to T3 decide in one file, SKILL.md:192 the candidate
+        > 2026-11-22 Check: grep for its phrase returns one path

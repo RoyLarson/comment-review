@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 4 of 12 tasks closed
+Progress: 6 of 14 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-27 (Roy, 2026-10-27, decision-log #244)
@@ -31,8 +31,8 @@ only they need.
 
 ## Tasks
 
-- [ ] T1 | Move the cut by place out of lexer.py into one step every reader
-      passes
+- [-] T1 | SUPERSEDED by T13: lexer.py was deleted in e2b34a22; no shared cut by place exists | 22c3a0abcbc86509c74296319ce5b719a43338ca | Move
+      the cut by place out of lexer.py into one step every reader passes
         > 2026-10-30 A3: take _partner with the cut; A6: lexer.py is 1763 lines
         > 2026-10-30 file_matter runs twice while docs are decided after the cut
 - [ ] T2 | Write the design for the reader builder and its shared parts
@@ -40,7 +40,8 @@ only they need.
       the lexical reader through the builder
 - [ ] T4 | Rebuild the Python reader as a definition plus its own parts
 - [ ] T5 | Rebuild the Rust reader as a definition plus its own parts
-- [ ] T6 | Replace the three unchanged-code proofs with one
+- [-] T6 | SUPERSEDED by T14: stripped.py was deleted in e2b34a22; two proofs remain, not three | 22c3a0abcbc86509c74296319ce5b719a43338ca | Replace
+      the three unchanged-code proofs with one
 - [ ] T7 | Remove the reader's anchor text once the page places paragraphs
         > 2026-10-30 Page overwrites it at page.py:780; only use is the EOF flag :763
 - [x] T8 | CodeLine.joins removed; T51 derives a unit from DocPlace.at | e0da1c3a2a39e797c69ae351e76d296d5156ad5f | Remove
@@ -58,3 +59,8 @@ only they need.
         > 2026-11-07 Check: find at b2 inside a decorator unit answers the unit's b
         > 2026-11-07 Check: b and c inside a multi-line string answer per T11
         > 2026-11-07 Check: Rust a at pub struct S under #[derive] answers the unit's a
+- [ ] T13 | Add one cut-by-place step that every reader passes
+        > 2026-11-22 Check: both readers call it; held_twice is no longer the stopgap
+- [ ] T14 | Merge reading/python/preservation.py with
+      reading/rust/preservation.py into one proof
+        > 2026-11-22 Check: one unchanged-code proof serves both readers

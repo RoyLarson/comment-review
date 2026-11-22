@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 12 of 17 tasks closed
+Progress: 13 of 18 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (simplify round 7, 2026-08-22 -- found by Pyright and by reading,
@@ -112,9 +112,10 @@ page.py:793-794 for `_SHEBANG`/`_CODING`, which round 7 deleted; those citations
       -- Find out whether anything reaches the `Kind.MATTER` branch,
       page.py:332-333. Verify: this file records whether a `test_cues.py`
       fixture is its only caller.
-- [ ] T4 | T4 -- If T3 finds no caller, cut the branch. Verify: page.py:332-333
-      is gone and the suite is green. ! If a test IS the only caller, that is a
-      finding, not a cut.
+- [-] T4 | SUPERSEDED by T18: the branch moved from page.py:332-333 to :414-415; T3 found no caller | 22c3a0abcbc86509c74296319ce5b719a43338ca | T4
+      -- If T3 finds no caller, cut the branch. Verify: page.py:332-333 is gone
+      and the suite is green. ! If a test IS the only caller, that is a finding,
+      not a cut.
 - [-] T5 | record.prose_paragraphs moved to prototype/ at b50e7a43; no src function returns indexed tuples | b50e7a43 | T5
       -- Drop the index from `record.prose_paragraphs`' return type
       (record.py:645). Verify: the return type carries no index and the suite is
@@ -151,3 +152,6 @@ page.py:793-794 for `_SHEBANG`/`_CODING`, which round 7 deleted; those citations
         > 2026-10-30 D6: refusals have no production route and no test
 - [ ] T17 | Compute each c anchor once in the Python and Rust readers
         > 2026-10-30 D12: twice, 0 of 9,623 disagreed, nothing asserts it
+- [ ] T18 | Cut attach's unreachable Kind.MATTER branch at
+      binder/page.py:414-415
+        > 2026-11-22 Check: page.py:414-415 is gone; the suite is green

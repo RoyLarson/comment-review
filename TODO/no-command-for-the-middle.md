@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 101 of 103 tasks closed
+Progress: 102 of 104 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-29 (2026-08-29, running the chain end to end for the first time with a
@@ -114,8 +114,9 @@ Reconciliation has no command, so the chain cannot be driven end to end.
       returning either. Verify: the brief names the command
         > 2026-09-04 agents lane: the brief's wording is theirs; check is 6b673f0
         > 2026-09-04 hand 6: python -m fails at the root; src/comment-review.py runs
-- [ ] T15 | Update check.py's header: drop MEASURED, condition the guarantee on
-      --binder, name _load_value. Verify: it says so
+- [-] T15 | SUPERSEDED by T104: --binder is required in copy mode; _load_value was deleted; only MEASURED remains | 22c3a0abcbc86509c74296319ce5b719a43338ca | Update
+      check.py's header: drop MEASURED, condition the guarantee on --binder,
+      name _load_value. Verify: it says so
         > 2026-09-04 hand 6's four-way stet is the text; hands/h6/chief.json
 - [x] T16 | FINISHED -- turn (4040acea) and cap (54bde260) are console verbs over flows.turn; the chain gather, distribute, collate, turn, cap runs with no Python written by hand | 54bde260 | Implement
       the turn and cap commands over flows.turn, the master proof as the state
@@ -489,3 +490,6 @@ Reconciliation has no command, so the chain cannot be driven end to end.
       (#286)
         > 2026-11-07 Exit 3/4 names disposition; exit 1 names mark --withdraw (#286)
         > 2026-11-07 Check: collate, turn, check; update smoke_middle's expected lines
+- [ ] T104 | Delete the '! MEASURED 2026-09-04' paragraph from
+      `commands/check.py`'s header
+        > 2026-11-22 Check: the header carries no MEASURED line

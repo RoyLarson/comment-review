@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 5 of 9 tasks closed
+Progress: 6 of 10 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-24 (Roy, 2026-08-24: 'If python could parse python code names would be
@@ -17,7 +17,8 @@ The name corpus sees one language, and the AST is why.
 
 - [-] T1 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | declarations()
       gains the identifier on the declaring line, per language definition
-- [ ] T2 | code_names harvests from that instead of ast.parse
+- [-] T2 | SUPERSEDED by T10: its 'that' named T1's declarations(), which #259 superseded; readers hold the facts | 22c3a0abcbc86509c74296319ce5b719a43338ca | code_names
+      harvests from that instead of ast.parse
 - [-] T3 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | Measure
       the corpus again: the NO_HARVESTER list holds only languages with an empty
       keyword list
@@ -34,3 +35,6 @@ The name corpus sees one language, and the AST is why.
 - [ ] T8 | Make referrers.tokens_for stop parsing Python for top-level defs
 - [?] T9 | Decide whether concordance/code_names.py is renamed references, per
       Addressing #17
+- [ ] T10 | Harvest code_names from each reader's declaration facts instead of
+      ast.parse
+        > 2026-11-22 Check: code_names.py calls no ast.parse; Rust names harvest
