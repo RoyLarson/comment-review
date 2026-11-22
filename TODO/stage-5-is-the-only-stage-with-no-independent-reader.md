@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 14 of 17 tasks closed
+Progress: 15 of 17 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-08-17, by the session that ran all eight stages and rolled its own work back.
@@ -185,8 +185,9 @@ answered. A rail read and not run is a shape problem, and it was measured twice 
 - [ ] T6 | T6 -- If it runs, state that a SELECTIVE approval invalidates it and
       needs a re-read. Verify: `SKILL.md` says so; there are zero matches for
       `blanket` today.
-- [ ] T7 | T7 -- Count how many of stage 8's twelve findings a pre-write reader
-      could have caught. Verify: the number is in this file with its artifact.
+- [-] T7 | Moot: the count was evidence for option (d); #144 ruled it and #276 superseded #144 as no longer necessary; the run is under a redacted SHA | b7427eb34d37e7d87986891af23f10121b1c351f | T7
+      -- Count how many of stage 8's twelve findings a pre-write reader could
+      have caught. Verify: the number is in this file with its artifact.
 - [-] T8 | e0b63f48 removed the re-derivation rail from write.md; 7b copies set drafts and writes no prose to re-derive | e0b63f48 | T8
       -- Make the `write.md` re-derivation rail a question the writer answers
       per paragraph, as `residue-check.md:39` does. Verify: the rail is

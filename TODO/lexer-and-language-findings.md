@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 67 of 76 tasks closed
+Progress: 68 of 76 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (/simplify rounds 1 and 2 and /code-review high round 3,
@@ -407,7 +407,8 @@ would.
       one definition of a blank line in `lexer.py:967` and `stripped.py:26`
         > 2026-10-31 Also `lexer.py:1055`, `:1076`, `:1131`; U+3000 refuses wrongly
         > 2026-10-31 U+3000 refusal fixed in d64cd55f; reader `BLANK` differs from proof
-- [ ] T64 | Let `a0` hold a plain comment flush under a bare shebang
+- [-] T64 | Lexer rows gone (#259); at HEAD Python and Rust read a comment under a shebang as f0 per #232, and their a places hold docs only | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | Let
+      `a0` hold a plain comment flush under a bare shebang
 - [ ] T65 | Test a line ending carried through a `c` place
 - [ ] T66 | Test a line ending on a paragraph's later line
 - [-] T67 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | Confirm

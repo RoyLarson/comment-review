@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 2 of 7 tasks closed
+Progress: 3 of 7 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-24 (scoping the 0.2.4 round trip: every stage has tests and no test
@@ -84,8 +84,9 @@ picked a winner would be the defect the vocabulary entry is written against.
 - [x] T5 | verified at HEAD: smoke_middle.ps1 files all seven instructions and reaches proof with its EXPECTED diff passing, exit 0 | 393e3585 | T5
       -- Run the chain once per verdict: `clean`, `query`, `drop`, `correct`,
       `patch`, `add`, `move`. Verify: seven rows, each reaching PROVE.
-- [ ] T6 | T6 -- Collate several marks on ONE paragraph from different roles.
-      Verify: every mark reaches the proof and none is dropped.
+- [x] T6 | Smoke plants all four roles' marks on each place; at HEAD collate's proof0 holds 110 of 110 copy marks, c1 and a3 contested with every side kept | 4ed781c089034c55863055db4c4a1feed682caa3 | T6
+      -- Collate several marks on ONE paragraph from different roles. Verify:
+      every mark reaches the proof and none is dropped.
 - [ ] T7 | T7 -- Collate each conflicting PAIR named above. Verify: both marks
       reach the proof, the disagreement is stated, and nothing is decided.
 

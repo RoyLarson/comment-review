@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 16 of 19 tasks closed
+Progress: 17 of 19 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-09-08 (Roy 2026-09-08: implementing the recast workflow for the cli the
@@ -25,8 +25,9 @@ The copy chief has no workflow for recasting the places that never settled.
       reachable when a compose refused
         > 2026-09-08 Held for review after a run, per KISS; not a prerequisite for T1
         > 2026-09-30 Criteria: docs/reviews/2026-09-30-r4.md, E
-- [ ] T3 | Verify the docket records the chief as who set a recast, which
-      rule_at_cap already sides as CHIEF
+- [x] T3 | Docket names the transcribed copy's role; at HEAD smoke proof --to-docket sets the fib.py@b9 recast on a page with role copy-chief | 7ae43d4eeeb329ba14c260f0e500df62dec948f5 | Verify
+      the docket records the chief as who set a recast, which rule_at_cap
+      already sides as CHIEF
 - [ ] T4 | Implement the count a run reports: how many recasts were made, and
       how many landed on an empty place
         > 2026-09-08 claude-settings: 2 recasts of 13 carried; one was the lost add
