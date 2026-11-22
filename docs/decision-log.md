@@ -6858,3 +6858,26 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   spanning several lines continues on the lines that follow. The three-line window in
   `desk/collator.py` and the prose that states it are defects. It supersedes the 2026-08-18
   `address:lines` form for sources and the line form "with the fuzz".
+
+- **#326.** **Three of the two-lists candidates are already covered or moot** (Roy, 2026-11-22, on
+  `the-two-lists-were-tuned-to-one-diff` T3, T6 and T8, shown that a met expiry condition is a
+  false claim about the present under `reviewer-brief.md:345` and block-context's state rule, that
+  `names-its-line` only described ownership-context's own `clean`, and that no annotation reaches a
+  reviewer under #320):
+
+  *"yes"*
+
+  **What it settles.** No rule is added for any of the three. T1 and T2 of the same file asked
+  the same kind of question -- add a check the role files already make -- and Roy, asked them,
+  answered *"Is this already done? that doesn't look like a question for me"*; both are
+  superseded as covered (block-context's worked-example rule; function-context's coverage check
+  and absence table).
+
+- **#327.** **An approved drop needs no spelling distinct from a JSON null** (Roy, 2026-11-22, on
+  `null-is-not-a-decision` T1, shown that `--edits` is gone, only `Docket.serialize` writes a
+  docket, and the one drop an agent writes is a `recast` with `prose: ""` under #299, a field that
+  refuses null):
+
+  *"yes"*
+
+  **What it settles.** T1 is moot, and T3, which waited on it, goes with it.

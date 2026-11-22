@@ -41,6 +41,7 @@ well, which is `agents` lane work.
 
 - [?] T1 | Rule whether an approved drop keeps a distinguishable spelling from a
       JSON null
+        > 2026-11-22 Outcome: moot; nothing writes a null drop (Process #327)
 - [-] T2 | SUPERSEDED by T3: docket.read became Docket.deserialize | 22c3a0abcbc86509c74296319ce5b719a43338ca | If
       it does, change docket.read to that spelling and pin both the accept and
       the refuse

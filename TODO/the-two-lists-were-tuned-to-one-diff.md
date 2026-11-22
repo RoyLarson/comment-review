@@ -107,11 +107,14 @@ since it currently only survives in code comments where it doesn't belong in the
 - [?] T1 | T1 -- * Rule on **re-run the arithmetic** -- keep it as a check
       beside the checks it duplicates, or drop it. Verify: the ruling is written
       in `docs/decision-log.md`.
+        > 2026-11-22 Outcome: covered by block-context; no decision owed (#326)
 - [?] T2 | T2 -- * Rule on **verify a guard is really absent**, re-derived as
       the `guard` / `unguarded-invariant` split. Verify: the ruling is in
       `docs/decision-log.md`.
+        > 2026-11-22 Outcome: covered by function-context; no decision owed (#326)
 - [?] T3 | T3 -- * Rule on **an expiry condition already met is not an
       acquittal**. Verify: the ruling is written in `docs/decision-log.md`.
+        > 2026-11-22 Outcome: covered; a met expiry is a false claim (Process #326)
 - [x] T4 | FINISHED | unknown | T4 -- FINISHED 2026-08-16. The `clean` clause
       was restored in `clean`'s own section of `reviewer-brief.md` and points at
       the role file.
@@ -121,11 +124,13 @@ since it currently only survives in code comments where it doesn't belong in the
 - [?] T6 | T6 -- * Rule on `names-its-line` -- name what is lost by its absence,
       or record that nothing is. Verify: the ruling is written in
       `docs/decision-log.md`.
+        > 2026-11-22 Outcome: nothing lost without names-its-line (Process #326)
 - [x] T7 | FINISHED | unknown | T7 -- FINISHED 2026-08-16. `detector` is
       DELETED, along with everything the suppression list supported.
 - [?] T8 | T8 -- * Rule on whether **batch to triage** survives without its
       rates, which were measured on one repository. Verify: the ruling is
       written in `docs/decision-log.md`.
+        > 2026-11-22 Outcome: moot; no annotation reaches a reviewer (Process #326)
 - [x] T9 | grep -rniE acquit / suppression / jurisdiction over plugins/ and src/ is empty; e94a200e removed the last three hits from plugins/ | e94a200e | T9
       -- Sweep the remaining judicial register out of the shipped tree. Verify:
       `grep -rniE "acquit\|suppression\|jurisdiction" plugins/` comes back
