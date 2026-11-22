@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 12 of 17 tasks closed
+Progress: 14 of 17 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-08-17, by the session that ran all eight stages and rolled its own work back.
@@ -187,12 +187,13 @@ answered. A rail read and not run is a shape problem, and it was measured twice 
       `blanket` today.
 - [ ] T7 | T7 -- Count how many of stage 8's twelve findings a pre-write reader
       could have caught. Verify: the number is in this file with its artifact.
-- [ ] T8 | T8 -- Make the `write.md` re-derivation rail a question the writer
-      answers per paragraph, as `residue-check.md:39` does. Verify: the rail is
+- [-] T8 | e0b63f48 removed the re-derivation rail from write.md; 7b copies set drafts and writes no prose to re-derive | e0b63f48 | T8
+      -- Make the `write.md` re-derivation rail a question the writer answers
+      per paragraph, as `residue-check.md:39` does. Verify: the rail is
       answerable, not prose.
-- [ ] T9 | T9 -- Give the stage-7b report somewhere to put that per-paragraph
-      answer. Verify: the report has a field for it and an unanswered paragraph
-      shows.
+- [-] T9 | With the write.md rail removed in e0b63f48 there is no per-paragraph answer for the 7b report to carry | e0b63f48 | T9
+      -- Give the stage-7b report somewhere to put that per-paragraph answer.
+      Verify: the report has a field for it and an unanswered paragraph shows.
 - [x] T10 | FINISHED | unknown | T10 -- A RECORD, not a task: the mechanical
       stages held; the failure is specific to the stage that had no second
       reader. Stated in the Objective.

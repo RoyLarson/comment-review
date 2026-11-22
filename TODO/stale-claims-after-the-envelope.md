@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 2 of 9 tasks closed
+Progress: 4 of 9 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-21 (the /code-review xhigh of 2026-08-21, focused on the file-to-
@@ -50,9 +50,10 @@ for the shape this branch changed.
 
 ## Tasks
 
-- [ ] T1 | T1 -- Take the second record format out of `record.py`'s prose --
-      :6-11, :518 and :573-584. Verify: no shipped script describes a record
-      format the code cannot read.
+- [-] T1 | record.py and its second-format prose left src/ in b50e7a43; grep of src/ for that prose is empty | b50e7a43 | T1
+      -- Take the second record format out of `record.py`'s prose -- :6-11, :518
+      and :573-584. Verify: no shipped script describes a record format the code
+      cannot read.
 - [-] T2 | SUPERSEDED -- record.py left src/ for prototype/original/, so the two paragraphs that disagree are not in shipped code | b50e7a4 | T2
       -- Settle what `--seed` writes: `record.py:14` says `paragraph` and
       `address`, `record.SEEDED` and :699 say the address alone. Verify: the two
@@ -66,9 +67,10 @@ for the shape this branch changed.
 - [ ] T5 | T5 -- Name the command that produces those cues beside the sentence
       at `docs/addressing.md:142`. Verify: running it prints the cues the
       sentence states.
-- [ ] T6 | T6 -- Give the record shape in `reviewer-brief.md:93-107` its
-      envelope. Verify: `record.py --check` accepts a file filled to match the
-      brief's JSON.
+- [x] T6 | d34f4a29 gave the brief its envelope; reviewer-brief.md:121 shows role/read_from/sheets as edit_copy.serialize writes | d34f4a29 | T6
+      -- Give the record shape in `reviewer-brief.md:93-107` its envelope.
+      Verify: `record.py --check` accepts a file filled to match the brief's
+      JSON.
 - [ ] T7 | T7 -- Update the two false claims in
       `src/comment_review/docket/__init__.py`. Verify: `grep -rn
       "addresser\\|address_for\\|cue_of" src/comment_review/docket/` matches no

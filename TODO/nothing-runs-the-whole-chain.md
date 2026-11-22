@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 7 tasks closed
+Progress: 2 of 7 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-24 (scoping the 0.2.4 round trip: every stage has tests and no test
@@ -70,9 +70,10 @@ picked a winner would be the defect the vocabulary entry is written against.
 
 ## Tasks
 
-- [ ] T1 | T1 -- Build a fixture run: census, seed, record, join, galley,
-      compositor, prove. Verify: one command produces every artifact and exits
-      nonzero on a stage's refusal.
+- [x] T1 | scripts/smoke_middle.ps1 runs gather through proof (galley, compositor, prove) as one command, exits nonzero on a stage failure | 4279b443 | T1
+      -- Build a fixture run: census, seed, record, join, galley, compositor,
+      prove. Verify: one command produces every artifact and exits nonzero on a
+      stage's refusal.
 - [ ] T2 | T2 -- Record its artifacts as the baseline a later run is compared
       against. Verify: a re-run over an unchanged tree produces byte-identical
       artifacts.
@@ -80,9 +81,9 @@ picked a winner would be the defect the vocabulary entry is written against.
       one row per language in `tests/fixtures/`.
 - [ ] T4 | T4 -- Prove it can FAIL. Verify: reverting a known defect in any
       stage turns it red.
-- [ ] T5 | T5 -- Run the chain once per verdict: `clean`, `query`, `drop`,
-      `correct`, `patch`, `add`, `move`. Verify: seven rows, each reaching
-      PROVE.
+- [x] T5 | verified at HEAD: smoke_middle.ps1 files all seven instructions and reaches proof with its EXPECTED diff passing, exit 0 | 393e3585 | T5
+      -- Run the chain once per verdict: `clean`, `query`, `drop`, `correct`,
+      `patch`, `add`, `move`. Verify: seven rows, each reaching PROVE.
 - [ ] T6 | T6 -- Collate several marks on ONE paragraph from different roles.
       Verify: every mark reaches the proof and none is dropped.
 - [ ] T7 | T7 -- Collate each conflicting PAIR named above. Verify: both marks

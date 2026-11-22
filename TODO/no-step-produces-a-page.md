@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 2 of 4 tasks closed
+Progress: 3 of 4 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-25 (Roy, 2026-08-25, during the write-chain branch)
@@ -16,7 +16,8 @@ Five sites rebuild a page from a path and none of them is a step.
 
 - [x] T1 | FINISHED -- the census site is flows/gather.py now and its page step is page_of; the command calls no page_for | 68bfc548 | Repoint
       commands/census.py at page_of. Verify: it calls no page_for
-- [ ] T2 | Repoint commands/galley.py at page_of. Verify: it calls no page_for
+- [-] T2 | commands/galley.py deleted in 1119cb32; galley is an alias of proof, and every src page build goes through page_of | 1119cb32 | Repoint
+      commands/galley.py at page_of. Verify: it calls no page_for
 - [-] T3 | Replaced by galley-and-compositor-write-path T51: flow owns I/O and page construction | b03adaa8 | Repoint
       compositor.lossless and compositor.identity at page_of, which also removes
       the prologue those two share

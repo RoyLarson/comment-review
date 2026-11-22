@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 94 of 103 tasks closed
+Progress: 101 of 103 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-29 (2026-08-29, running the chain end to end for the first time with a
@@ -61,9 +61,10 @@ Reconciliation has no command, so the chain cannot be driven end to end.
       stage 1, pulls revise-1, runs stage 2 against that revise, and stops --
       the topology already expresses the order and `fan_out` already partitions,
       but nothing drives them.
-- [ ] T6 | The command compares each returned edit_copy's read_from against the
-      binder it was seeded from. Verify: a copy naming a different root or
-      revise is reported by name, and one seeded from that binder passes --
+- [x] T6 | verify.gathered_tree_problem compares copy and binder read_from in bus and check; test_single_copy_from_a_different_tree_is_refused passes | 62e54ef4 | The
+      command compares each returned edit_copy's read_from against the binder it
+      was seeded from. Verify: a copy naming a different root or revise is
+      reported by name, and one seeded from that binder passes --
       flows/marks.py:136-141 names this gap itself and says the comparison
       belongs wherever the two meet, which is the middle command once one
       exists.
@@ -80,10 +81,11 @@ Reconciliation has no command, so the chain cannot be driven end to end.
       places where nothing was ruled names all three addresses and does not exit
       0, since exit 0 means every place resolved and nothing carried forward;
       today it prints `0 places resolved` and exits 0.
-- [ ] T9 | Implement carrying `Collated.order` out of `commands/collate.py`, so
-      whatever applies the chief vacates every `move` origin before it is filled
-      instead of re-deriving the order or applying moves unsafely. Verify: `grep
-      -rn "\.order\b" src/` returns a consumer outside `flows/collate.py`, and a
+- [-] T9 | Collated and _move_order deleted with the old fold; the docket is cue-to-text assignment, so no move order exists to carry | 0e2ff82a | Implement
+      carrying `Collated.order` out of `commands/collate.py`, so whatever
+      applies the chief vacates every `move` origin before it is filled instead
+      of re-deriving the order or applying moves unsafely. Verify: `grep -rn
+      "\.order\b" src/` returns a consumer outside `flows/collate.py`, and a
       two-move stage's written artifact names the order; today the only readers
       are in `tests/test_collate.py`.
 - [-] T10 | SUPERSEDED against the 2026-08-17 ruling (the-record-is-a-parsed-template T2): no CLI writes a mark; re-filed as T13, the check | 6b673f0 | Implement
@@ -96,8 +98,9 @@ Reconciliation has no command, so the chain cannot be driven end to end.
         > 2026-09-01 FILL a record, which today means hand-writing the JSON.
         > 2026-09-02 audit: the label opens with Implement -- this is work
         > 2026-09-02 Roy answered it in substance at 3ffe334; no ruling is owed
-- [ ] T11 | Implement the one-line round summary from Collated.tally, or delete
-      tally if the report does not want it
+- [x] T11 | Took the delete branch: tally() removed from desk/collator.py; Collated went in 0e2ff82a; grep tally in src is empty | 1bd897f0 | Implement
+      the one-line round summary from Collated.tally, or delete tally if the
+      report does not want it
 - [x] T12 | FINISHED; distribute --topology --stage, one copy per dispatch through fan | d6d04d3a | Implement
       distribute taking a stage, so one call seeds one edit_copy per dispatch.
       Verify: fan and topology.read each gain a caller in src/
@@ -106,8 +109,9 @@ Reconciliation has no command, so the chain cannot be driven end to end.
 - [x] T13 | FINISHED -- commands/check.py over EditCopy.deserialize, mark_errors, verify_report, drift_in and parse_answers; tests/test_check_command.py | 6b673f0 | Implement
       the check a role runs over its copy or batch before returning it, on the
       fold's own boundaries. Verify: refusals named
-- [ ] T14 | Update reviewer-brief.md so a role runs check over its copy and its
-      batch before returning either. Verify: the brief names the command
+- [x] T14 | reviewer-brief.md 'Before you return: run the check' names check --edit-copy and check --answers | 3b0314e6 | Update
+      reviewer-brief.md so a role runs check over its copy and its batch before
+      returning either. Verify: the brief names the command
         > 2026-09-04 agents lane: the brief's wording is theirs; check is 6b673f0
         > 2026-09-04 hand 6: python -m fails at the root; src/comment-review.py runs
 - [ ] T15 | Update check.py's header: drop MEASURED, condition the guarantee on
@@ -475,9 +479,12 @@ Reconciliation has no command, so the chain cannot be driven end to end.
         > 2026-09-14 self-run: 23 destinations passed check; collate refused all 23
         > 2026-09-14 _resolution_problems runs only inside collate()
         > 2026-09-14 evidence: OneDrive/comment-review-feedback/2026-09-14-self-run
-- [ ] T100 | Update smoke_middle's stale wrap expectation
-- [ ] T101 | Reconcile smoke_middle's one-end move stage with the refusal
-- [ ] T102 | Reconcile smoke_middle's compacting check stage with check
+- [x] T100 | smoke expects the wrapped drop's whole paragraph; full smoke_middle.ps1 exits 0 at HEAD | 8d66c9b4 | Update
+      smoke_middle's stale wrap expectation
+- [x] T101 | one-end move approval is refused and the smoke asserts it; full smoke_middle.ps1 exits 0 at HEAD | 39646af8 | Reconcile
+      smoke_middle's one-end move stage with the refusal
+- [x] T102 | smoke checks the compacting copy against its received binder; full smoke_middle.ps1 exits 0 at HEAD | 651e3e8c | Reconcile
+      smoke_middle's compacting check stage with check
 - [ ] T103 | Print the next command on each carried-forward and refused line
       (#286)
         > 2026-11-07 Exit 3/4 names disposition; exit 1 names mark --withdraw (#286)

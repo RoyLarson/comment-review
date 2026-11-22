@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 3 of 9 tasks closed
+Progress: 4 of 9 tasks closed
 Owner:    agents
 Requires-Roy: true
 Raised:   2026-08-16 (Roy: "yes drop both lists / and lets create a todo to clean up
@@ -126,9 +126,10 @@ since it currently only survives in code comments where it doesn't belong in the
 - [?] T8 | T8 -- * Rule on whether **batch to triage** survives without its
       rates, which were measured on one repository. Verify: the ruling is
       written in `docs/decision-log.md`.
-- [ ] T9 | T9 -- Sweep the remaining judicial register out of the shipped tree.
-      Verify: `grep -rniE "acquit\|suppression\|jurisdiction" plugins/` comes
-      back empty.
+- [x] T9 | grep -rniE acquit / suppression / jurisdiction over plugins/ and src/ is empty; e94a200e removed the last three hits from plugins/ | e94a200e | T9
+      -- Sweep the remaining judicial register out of the shipped tree. Verify:
+      `grep -rniE "acquit\|suppression\|jurisdiction" plugins/` comes back
+      empty.
 ## Where the three surviving `acquit` sites are
 
 MEASURED 2026-08-23, and the two line numbers this file previously carried are both stale:

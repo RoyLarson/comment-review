@@ -2,7 +2,7 @@
 
 ```
 Status:   deferred (waits on someone needing a held run replayed -- nothing depends on it)
-Progress: 2 of 5 tasks closed
+Progress: 3 of 5 tasks closed
 Owner:    testing
 Requires-Roy: false
 Raised:   2026-08-19 (B4, after `convert` was made to refuse a 0.2.x report, 2026-08-19)
@@ -96,7 +96,8 @@ it is a constraint on the work and not a checkpoint of its own.
 - [x] T3 | FINISHED | unknown | T3 -- SUPERSEDED. The raw-text requirement and
       the `parse_report` claim it rested on are both false; the record of why is
       in the Objective.
-- [ ] T4 | T4 -- Run the shipped shape check, `record.record_problems`
+- [-] T4 | record.record_problems and verdicts.py moved to prototype/original at b50e7a43; the shape check this task runs no longer exists in src | b50e7a43 | T4
+      -- Run the shipped shape check, `record.record_problems`
       (`record.py:1033`), over what T2 emits. Verify: `verdicts.py` joins it at
       `1ad4ba7`, all citations resolving.
 - [x] T5 | FINISHED | unknown | T5 -- NOT A TASK. It lives in `scripts/`, not

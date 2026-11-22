@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 3 of 5 tasks closed
+Progress: 4 of 5 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-28, filing the work `decision-log.md Process: #20` created. The
@@ -59,8 +59,9 @@ the collator to ruling on nothing.
       Verify: a test builds two edits on DIFFERENT lines of one paragraph and
       asserts the `diff3` render shows them disjoint -- and fails if the
       renderer is switched to the two-sided form.
-- [ ] T3 | T3 -- Keep rendering out of reconciliation. Verify: reconciliation
-      returns escalations carrying no rendered text, and the renderer takes an
+- [x] T3 | Verified at HEAD: passes.py sets CONTESTED with sides and no text; differences.diff3 is a separate leaf that returns lines | 393e3585 | T3
+      -- Keep rendering out of reconciliation. Verify: reconciliation returns
+      escalations carrying no rendered text, and the renderer takes an
       escalation and returns lines.
 - [x] T4 | FINISHED | unknown | T4 -- Handle more than two marks at one place.
       Verify: three conflicting marks render without losing one, or the design

@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 1 of 6 tasks closed
+Progress: 5 of 6 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-08-20 (the /code-review high of 2026-08-20)
@@ -60,20 +60,24 @@ fails its own stage-4 gate.
       wrong prose split. Verify: `SKILL.md` defines 4b, or the split reads 4a/4b
       and `4b` is nowhere.
         > 2026-09-01 Process #73 answers the substance; the letter 4b stays unruled
-- [ ] T2 | T2 -- Make 4c's input differ from 4a's, or drop the RESOLVED
-      PLACEMENT claim. Verify: 4c gets an artifact 4a produced, or
-      `SKILL.md:555-558` stops claiming it.
+- [x] T2 | 4c is gathered from root4c built from 4a's proof pages and drafts (#295); SKILL.md:256-273 | 57a45615 | T2
+      -- Make 4c's input differ from 4a's, or drop the RESOLVED PLACEMENT claim.
+      Verify: 4c gets an artifact 4a produced, or `SKILL.md:555-558` stops
+      claiming it.
         > 2026-09-01 Process #73 takes branch one: 4c is censused from 4a's revise
-- [ ] T3 | T3 -- Make a run's own artifacts name the configuration that produced
-      them. Verify: the artifacts of one run say whether stage 4 was serial or
+- [x] T3 | run-dir topology.toml names 4a=ownership-context and 4c=the other three; copies are <stage>_<role>_<n>.json | 57a45615 | T3
+      -- Make a run's own artifacts name the configuration that produced them.
+      Verify: the artifacts of one run say whether stage 4 was serial or
       parallel.
 - [ ] T4 | T4 -- Reword `SKILL.md:3` so the parallel form reads as the BASELINE,
       not as current behaviour. Verify: `grep -n "parallel"` finds it named as a
       configuration.
-- [ ] T5 | T5 -- Make `SKILL.md` name every section `run_context.py --check`
-      refuses. Verify: `LOOKUP CENSUS` appears in `SKILL.md` and its count
-      equals `len(PATH_SECTIONS)`.
-- [ ] T6 | Update SKILL.md so stage 4 names the 4a-to-4c hand-off. Verify: it
-      names proof then census --revise 1, and 4c is seeded from 4a's revise
+- [-] T5 | run_context.py and PATH_SECTIONS moved to prototype/; no packet --check gate remains in src/ | b50e7a43 | T5
+      -- Make `SKILL.md` name every section `run_context.py --check` refuses.
+      Verify: `LOOKUP CENSUS` appears in `SKILL.md` and its count equals
+      `len(PATH_SECTIONS)`.
+- [x] T6 | SKILL.md:256-273 names proof --proof, gather --revise 1 on root4c, distribute --stage 4c --revise root4c | 57a45615 | Update
+      SKILL.md so stage 4 names the 4a-to-4c hand-off. Verify: it names proof
+      then census --revise 1, and 4c is seeded from 4a's revise
         > 2026-09-01 Raised by Process #73; the commands exist, the instruction did not
         > 2026-09-01 Named 4b per Process #75 -- the only skipped letter in SKILL.md

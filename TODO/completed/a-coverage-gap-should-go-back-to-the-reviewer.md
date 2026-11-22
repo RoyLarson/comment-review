@@ -1,8 +1,8 @@
 # A coverage gap should go back to the reviewer, not be reported as a result
 
 ```
-Status:   decision-needed
-Progress: 3 of 7 tasks closed
+Status:   closed
+Progress: 7 of 7 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-08-16 (Roy, on the re-sweep's `gap`: "looks like a different form of the
@@ -74,17 +74,21 @@ COVERAGE GAP, on every run, for as long as the file has a licence."*
       -- * RULE what bounds it -- with no bound, *"send it back"* is a loop, and
       the second failure IS what the gate handles today. Verify: the bound is
       written here.
-- [ ] T3 | T3 -- Send missed addresses back to the reviewer that skipped them,
-      once T1/T2 rule. Touches `verdicts.py:117-134`, `:520-529`. Verify: a
-      skipped paragraph ends RULED.
-- [ ] T4 | T4 -- Make `verdicts.py` exit nonzero only on the bound T2 sets.
-      Verify: a run inside the bound exits 0; a run past it exits nonzero.
-- [ ] T5 | T5 -- Correct what the reviewer is TOLD about a gap, at
+- [x] T3 | check names null slots, mark_errors routes a Revisit per role, SKILL.md:248-250 sends the copy back to its agent | c68a61a4 | T3
+      -- Send missed addresses back to the reviewer that skipped them, once
+      T1/T2 rule. Touches `verdicts.py:117-134`, `:520-529`. Verify: a skipped
+      paragraph ends RULED.
+- [-] T4 | T2 ruled #272: no bound in code, agents follow the instructions; verdicts.py is in prototype/ | e0a31457 | T4
+      -- Make `verdicts.py` exit nonzero only on the bound T2 sets. Verify: a
+      run inside the bound exits 0; a run past it exits nonzero.
+- [x] T5 | Brief no longer calls a null slot a coverage gap; reviewer-brief.md:412-416 says check names it and the role fixes it | a9d9de96 | T5
+      -- Correct what the reviewer is TOLD about a gap, at
       `reviewer-brief.md:137`. Verify: that line describes what follows a gap,
       and no brief line contradicts it.
-- [ ] T6 | T6 -- Re-check `SKILL.md:409`, `:674` and `:761` against the ruled
-      flow, changing only those that do not survive it. Verify: each of the
-      three matches the new flow.
+- [x] T6 | SKILL.md has no coverage sentence left; :248-250 and :298 describe the send-back flow | c68a61a4 | T6
+      -- Re-check `SKILL.md:409`, `:674` and `:761` against the ruled flow,
+      changing only those that do not survive it. Verify: each of the three
+      matches the new flow.
 - [x] T7 | FINISHED | unknown | T7 -- DONE. Front matter is out of the
       accountable set, so a licence header no longer reports INCOMPLETE forever.
       VERIFIED 2026-08-23 at `record.py:667-673`.

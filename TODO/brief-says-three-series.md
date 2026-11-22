@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 8 of 13 tasks closed
+Progress: 10 of 13 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-08-29 (found sweeping reviewer-brief.md against its consumers on
@@ -21,8 +21,9 @@ place the same brief tells it to cite at `:74`.
 - [x] T1 | Ruled #274: any role may mark an f place; each mark asks the human | faf59d1f | Decide
       what a role is told about the f series, and make reviewer-brief.md:69
       agree with SKILL.md:378
-- [ ] T2 | Fix the --series a\|b\|c example at reviewer-brief.md:221 to the set
-      the addresser command actually accepts
+- [x] T2 | reviewer-brief.md:105 reads --series a / b / c / f, matching addresses find choices=SERIES | a9d9de96 | Fix
+      the --series a\|b\|c example at reviewer-brief.md:221 to the set the
+      addresser command actually accepts
 - [x] T3 | Ruled #274: an f place is citable by any role, not read-only | faf59d1f | Reconcile
       with reviewer-brief.md:74-79, which calls @f0 the file's own matter,
       filtered out of the census and not a place a role rules on -- if that
@@ -52,8 +53,8 @@ place the same brief tells it to cite at `:74`.
 - [x] T8 | #287: the desk raises it as a collate exit code | 4c9bf66d | Decide
       at which stage each correction to an f place is raised to the human, and
       what the human is shown
-- [ ] T9 | Make the other roles mark against an f-to-b move the human accepted,
-      per #274
+- [-] T9 | Duplicate of T12: #290 says marking against the accepted f move is met by re-setting the page and binding anew | c036bd46 | Make
+      the other roles mark against an f-to-b move the human accepted, per #274
         > 2026-11-07 #290: met by re-setting the page and binding anew
 - [ ] T10 | Update reviewer-brief.md so any role may mark an f place it looks
       up, per #274

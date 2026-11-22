@@ -2,9 +2,9 @@
 
 ```
 Status:   decision-needed
-Progress: 1 of 4 tasks closed
+Progress: 3 of 4 tasks closed
 Owner:    agents
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-18 (Roy, 2026-08-18, finding 'the number to beat is zero blocks
           missed' in this repo's own docs)
 Triaged:  2026-08-23 -- the two prose statements that carried the defect have SINCE BEEN
@@ -89,11 +89,13 @@ say is whether the register entry states it.
 
 ## Tasks
 
-- [?] T1 | T1 -- * Rule whose remit this class is: a second half to
-      `block-context`'s constraint paragraph, or out of scope. Verify: the
-      answer is written into this file.
-- [ ] T2 | T2 -- File the candidate in `role-rule-register.md`, with the shape,
-      the example and the siblings. Verify: `grep -n "arithmetic"` on that file
+- [-] T1 | Duplicate of role-rule-register.md T1, which holds the same block-context arithmetic ruling | 15614fa4 | T1
+      -- * Rule whose remit this class is: a second half to `block-context`'s
+      constraint paragraph, or out of scope. Verify: the answer is written into
+      this file.
+- [x] T2 | role-rule-register.md:88-93 holds the arithmetic entry with its measurement and a link to the evidence and siblings | 15614fa4 | T2
+      -- File the candidate in `role-rule-register.md`, with the shape, the
+      example and the siblings. Verify: `grep -n "arithmetic"` on that file
       returns the entry.
 - [ ] T3 | T3 -- Make that entry name currency 2 and a check a reviewer runs
       without opening another file. Verify: the entry states both.

@@ -2,9 +2,9 @@
 
 ```
 Status:   decision-needed
-Progress: 5 of 9 tasks closed
+Progress: 8 of 9 tasks closed
 Owner:    agents
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-15 (Roy, after the 7b cutting paragraph was found and deleted)
 Triaged:  2026-08-23 -- four of the nine landed since this was filed. 5b and 6b are
           shipped stages, and stage 8 is already a two-outcome verification that
@@ -97,9 +97,10 @@ not delete it without deciding which; this cannot be settled before T2.
 
 - [x] T1 | FINISHED | unknown | T1 -- FINISHED 2026-08-15. The claim that 7b
       cuts is deleted; `write.md:16` is now "Nothing is judged here".
-- [?] T2 | T2 -- * RULE where the whole-page read goes: stage 8 ahead of 7a on
-      proposed text, or a new pass between 6b and 7a. Verify:
-      `docs/decision-log.md` records the answer.
+- [-] T2 | Moot: decision-log #276 supersedes #144; draft set in a temporary folder and reviewed whole before acceptance, no separate read needed | b7427eb3 | T2
+      -- * RULE where the whole-page read goes: stage 8 ahead of 7a on proposed
+      text, or a new pass between 6b and 7a. Verify: `docs/decision-log.md`
+      records the answer.
         > 2026-09-03 PROVISIONAL leaning: a git branch. Process 85. Not a ruling
 - [x] T3 | FINISHED | unknown | T3 -- FINISHED. Stage 6b exists at
       `SKILL.md:972-992`, running the residue check over the paragraphs stage 6
@@ -107,12 +108,13 @@ not delete it without deciding which; this cannot be settled before T2.
 - [x] T4 | FINISHED | unknown | T4 -- FINISHED. Stage 5b exists at
       `SKILL.md:905-944`, sending every `RE-REVIEW` paragraph back to the roles
       that ruled on it, against a galley census.
-- [ ] T5 | T5 -- Take the residue check OUT of stage 7b. Verify: neither
+- [x] T5 | f4e62eb6 deleted residue-check.md and its SKILL.md lines; grep -i residue over src/ returns nothing | f4e62eb6 | T5
+      -- Take the residue check OUT of stage 7b. Verify: neither
       `residue-check.md`, `write.md` nor `SKILL.md:834-836` names 7b as a place
       it runs.
-- [?] T6 | T6 -- * RULE the delivery mechanism: a temporary branch with the
-      diff, or the stage-7a prose listing. Verify: `docs/decision-log.md`
-      records which.
+- [-] T6 | Overtaken: 7a delivers drafts with git diff --no-index per page (c68a61a4, SKILL.md:517); #276 records the temporary-folder review | b7427eb3 | T6
+      -- * RULE the delivery mechanism: a temporary branch with the diff, or the
+      stage-7a prose listing. Verify: `docs/decision-log.md` records which.
         > 2026-09-03 PROVISIONAL leaning: a git branch. Process 85. Not a ruling
 - [x] T7 | FINISHED | unknown | T7 -- FINISHED. Stage 8 is a verification with
       two named outcomes -- the files are done, or the section goes to the human

@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 0 of 4 tasks closed
+Progress: 1 of 4 tasks closed
 Owner:    agents
 Requires-Roy: true
 Raised:   2026-08-17 (Roy, during the first full run of 0.1.7: "At some point the
@@ -64,9 +64,10 @@ docstring saying *"the lexical tier cannot answer a comment's owner"* is checkab
 - [?] T1 | T1 -- * Rule on what SELECTS a documentation file, from the
       candidates in the Objective. Verify: the rule is written down; T4 is where
       it lands.
-- [?] T2 | T2 -- * Rule whether 1.4's destination tree is automatically
-      REFERENCE ONLY. Verify: the ruling is recorded here and says whether 1.4
-      gains a second output.
+- [-] T2 | Moot: c68a61a4 deleted stage 1.4 Find the destination tree; no 1.4 output exists; brief routes out-of-code prose to a human query | c68a61a4 | T2
+      -- * Rule whether 1.4's destination tree is automatically REFERENCE ONLY.
+      Verify: the ruling is recorded here and says whether 1.4 gains a second
+      output.
 - [?] T3 | T3 -- * Rule on whether `referrers.py` widens or stays a NAME
       matcher. Verify: the answer is recorded here, with the reason it was
       decided that way.

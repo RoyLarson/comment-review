@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 10 of 17 tasks closed
+Progress: 11 of 17 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-09-06 (Roy, 2026-09-06, on reading the ownership-context agent file and
@@ -57,8 +57,9 @@ The reviewer prose is rules and punishments, not guidance toward a good result.
 - [ ] T11 | Update function-context and module-context to say they judge
       composition, whether the parts fit together. Verify: both name that
       question
-- [ ] T12 | Delete the prohibitions in the role files that carry no consequence,
-      keeping the checklists. Verify: each remaining one names what follows
+- [x] T12 | 2026-09-27 role-file rewrites dropped 16-17 prohibition lines each; HEAD hits are quoted examples only | 1563fc58 | Delete
+      the prohibitions in the role files that carry no consequence, keeping the
+      checklists. Verify: each remaining one names what follows
 - [ ] T13 | Verify each instruction for each stage for each role against the
       cli-flow's actual inputs and results. Verify: each disagreement is named
         > 2026-09-08 The brief asked for leading the compositor supplies; no gate saw it

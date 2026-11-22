@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 10 of 32 tasks closed
+Progress: 17 of 32 tasks closed
 Owner:    testing
 Requires-Roy: true
 Raised:   2026-08-18, after a run whose only question needed one role and cost four
@@ -305,22 +305,27 @@ to end, so the dominance claim waits on something that can disagree with it.
       `agents/comment-review-ownership-context.md`, verified 2026-08-23.
 - [x] T3 | FINISHED | unknown | T3 -- RULED 2026-08-18 by Roy: the scope is the
       PROJECT, and it shipped in `d3aa065`.
-- [ ] T4 | T4 -- State the residual cost of a reduced run -- every truth finding
+- [-] T4 | Obsolete: SKILL.md:215 all four roles run on every review (c68a61a4); #272 respawns a missing role; no reduced run exists | c68a61a4 | T4
+      -- State the residual cost of a reduced run -- every truth finding
       uncorroborated. Verify: the collator's report says so, not only this file.
-- [ ] T5 | T5 -- Rewrite stage 5's synthesis so it states no population count;
+- [x] T5 | c68a61a4 rewrote stage 5; SKILL.md:277-430 states no population count of roles | c68a61a4 | T5
+      -- Rewrite stage 5's synthesis so it states no population count;
       `SKILL.md:813`, `:847` and `:843-844` each assume four. Verify: the
       section names no count.
-- [ ] T6 | T6 -- Say in stage 5 that the synthesis ORDER is about verdict kinds,
-      not roles. Verify: it reads correctly for one role filing three marks.
-- [ ] T7 | T7 -- Make every stage-5 rule that names a role say what happens when
-      that role did not run. Verify: no rule naming a role is silent on its
-      absence.
+- [x] T6 | c68a61a4: stage 5 rules in instruction order query, move/drop, correct, patch, add (SKILL.md:345-357), naming no role | c68a61a4 | T6
+      -- Say in stage 5 that the synthesis ORDER is about verdict kinds, not
+      roles. Verify: it reads correctly for one role filing three marks.
+- [-] T7 | Obsolete: a role absent from a run is not a legal state; SKILL.md:215 all four run (c68a61a4), #272 respawns a missing role | c68a61a4 | T7
+      -- Make every stage-5 rule that names a role say what happens when that
+      role did not run. Verify: no rule naming a role is silent on its absence.
 - [x] T8 | FINISHED | unknown | T8 -- RULED 2026-08-18: `ownership-context` is
       never optional, so "who governs instead" does not arise and the placement
       precedence stays as written.
-- [ ] T9 | T9 -- Make the collator name the reporting set even with no
-      `--reviewers`. Verify: a run without it prints which roles reported.
-- [ ] T10 | T10 -- Where the set is short of four, make the collator name whose
+- [-] T9 | Obsolete: no --reviewers flag exists in src/; topology fixes the roles and SKILL.md:215 runs all four (c68a61a4) | c68a61a4 | T9
+      -- Make the collator name the reporting set even with no `--reviewers`.
+      Verify: a run without it prints which roles reported.
+- [-] T10 | Obsolete: a set short of four is not a legal run; SKILL.md:215 all four run (c68a61a4), #272 respawns a missing role | c68a61a4 | T10
+      -- Where the set is short of four, make the collator name whose
       corroboration is absent. Verify: a three-role report names it.
 - [ ] T11 | T11 -- Give a MARK-level case its terminus in writing: stage 4's
       record file. Verify: a case asserts on one and `git status --short` is
@@ -354,8 +359,9 @@ to end, so the dominance claim waits on something that can disagree with it.
 - [ ] T21 | T21 -- Make the parent of the 2026-08-16 hand pass a case. Verify: a
       row in `evals/test-cases.jsonl` pins that parent commit and names the
       files.
-- [?] T22 | T22 -- * Decide whether to ask for `claude plugin eval` early
-      access. Verify: the decision and its reason are written into this file.
+- [-] T22 | Moot: claude plugin eval ships in Claude Code 2.1.330 on this machine; no early access to ask for; verified at HEAD | 393e3585 | T22
+      -- * Decide whether to ask for `claude plugin eval` early access. Verify:
+      the decision and its reason are written into this file.
 - [x] T23 | FINISHED | unknown | T23 -- SUPERSEDED: both `todo-tool` packages
       were removed 2026-08-23 and the subject repo is private, so the DISCOVERY
       measurement they would have supplied falls to T14.

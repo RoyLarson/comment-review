@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 2 of 8 tasks closed
+Progress: 4 of 8 tasks closed
 Owner:    agents
 Requires-Roy: true
 Raised:   2026-08-17 (the 0.2.0 builder run: the operating session noticed scratch
@@ -100,14 +100,17 @@ exists, and it bears on how far it can be relaxed -- see
 - [?] T4 | T4 -- * Decide what the reviewers still need to EXECUTE, before T3
       picks a list. Verify: the decision is recorded and names the tools the
       four reviewers keep.
-- [ ] T5 | T5 -- Hash the files under review after stage 3 and re-check them
-      before the collator. Verify: editing one between makes `verdicts.py`
-      refuse, naming the file.
+- [-] T5 | Overtaken by #16/#17: binder sha checked at write refuses a file edited since review; no middle drift check (Process #62) | 26161acc | T5
+      -- Hash the files under review after stage 3 and re-check them before the
+      collator. Verify: editing one between makes `verdicts.py` refuse, naming
+      the file.
 - [x] T6 | FINISHED | unknown | T6 -- SUPERSEDED. "Keep the scratch files in the
       evidence package" cannot be done -- none exists in the tree or its
       history. The measurement is in the Objective.
-- [?] T7 | T7 -- * Decide whether `prove_unchanged.py`'s scope is a gap or a boundary.
-      Verify: the answer is in `docs/decision-log.md`, and says whether T5 is a gate.
+- [-] T7 | Moot: #17 rules the binder sha check proves reviewers stayed read-only, so prove_unchanged's code-only scope is a boundary | bbdc4324 | T7
+      -- * Decide whether `prove_unchanged.py`'s scope is a gap or a boundary.
+      Verify: the answer is in `docs/decision-log.md`, and says whether T5 is a
+      gate.
 - [ ] T8 | Implement a gate that fails when a shipped agent file grants a write
       tool. Verify: adding Edit to one role turns it red
 ## Related

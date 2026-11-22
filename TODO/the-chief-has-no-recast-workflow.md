@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 15 of 19 tasks closed
+Progress: 16 of 19 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-09-08 (Roy 2026-09-08: implementing the recast workflow for the cli the
@@ -33,8 +33,9 @@ The copy chief has no workflow for recasting the places that never settled.
 - [x] T5 | RULED Vocabulary: #36 -- disposition; directive collides with topology and dispose reads as release | 6e770324 | Decide
       what the chief's command is called, since cap names the condition that
       triggers it rather than the act
-- [ ] T6 | Update the command cap to disposition and rulings.json to
-      dispositions.json, across the shipped prose and the gate
+- [x] T6 | cap.py became disposition.py, --rulings became --dispositions over dispositions.json; no cap/rulings.json in shipped prose | c5080996 | Update
+      the command cap to disposition and rulings.json to dispositions.json,
+      across the shipped prose and the gate
         > 2026-09-08 A plugins change needs a version bump, as the role rename does
 - [x] T7 | Process 146: a correct from the original to the chief's prose | a4a132be | Decide
       what a recast of a drop should write, since change carries the chief's

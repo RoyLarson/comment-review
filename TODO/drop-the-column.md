@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 7 of 9 tasks closed
+Progress: 8 of 9 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-20 (Roy, 2026-08-20: 'the edit_column is an idea that can be dropped
@@ -94,8 +94,9 @@ wait"*. It landed.
       exist; nothing requires the field to be present.
 - [x] T6 | FINISHED | unknown | T6 -- SUPERSEDED. The deferral was on the galley
       rewrite, quoted in the Objective. It landed.
-- [ ] T7 | T7 -- Replace the four boolean reads with a kind or series membership
-      test. Verify: `addresser.py --check` reports UNADDRESSED and SHARED counts
+- [x] T7 | d894894a deleted Paragraph.original_column, the series answers it; original_column occurs nowhere in src/ | d894894a | T7
+      -- Replace the four boolean reads with a kind or series membership test.
+      Verify: `addresser.py --check` reports UNADDRESSED and SHARED counts
       unchanged.
 - [-] T8 | SUPERSEDED -- already done, d894894. Verify demanded deleting legitimate history of the removal too | d894894 | T8
       -- Remove the three writes of `original_column` and its field declaration.

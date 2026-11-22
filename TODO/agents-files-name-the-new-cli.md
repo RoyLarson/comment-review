@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 46 of 57 tasks closed
+Progress: 50 of 57 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-09-04 (Roy, 2026-09-04, superseding the-flow-lives-in-the-command T4)
@@ -51,13 +51,15 @@ The agents files name the new CLI and say how to use it.
 - [x] T10 | Ruled #272 and #170: by path | e0a31457 | Decide whether the brief
       and the vocabulary reach a role by path as the binder does, since four
       verbatim pastes did not fit one message
-- [ ] T11 | Update reviewer-brief.md's move text to say a move relocates a whole
-      place, never part of a paragraph. Verify: the from and to text says so
+- [-] T11 | Ruling #172: a move's change is a snippet removed from the origin; partial moves are the design | 35d2fcd9 | Update
+      reviewer-brief.md's move text to say a move relocates a whole place, never
+      part of a paragraph. Verify: the from and to text says so
 - [-] T12 | SUPERSEDED by Process 96: an add needs no include-absent binder once the lookup reads the page | 473afdba | Update
       SKILL.md stage 2 to gather with --include-absent, since an add needs an
       address for a gap. Verify: the gather line has the flag
-- [ ] T13 | Update SKILL.md stage 6 to take a paragraph's kind from its binder
-      row, not the listing, once the row carries it. Verify: no listing parse
+- [-] T13 | Stage 6 is a topology stage (series b,c; cap) seeded by distribute; no listing parse remains (SKILL.md:442-458) | c68a61a4 | Update
+      SKILL.md stage 6 to take a paragraph's kind from its binder row, not the
+      listing, once the row carries it. Verify: no listing parse
 - [x] T14 | SKILL.md and the brief say absent places are looked up | 3a1f14c7 | Update
       SKILL.md and the brief to say absent places are filtered out of the binder
       and are looked up with addresser. Verify: both say so
@@ -114,8 +116,9 @@ The agents files name the new CLI and say how to use it.
         > 2026-09-13 from census T14, Process 147
         > 2026-09-13 SKILL.md:610-614 sends a role no path into the plugin
         > 2026-09-14 self-run 2026-09-14: the packet carried the launcher itself
-- [ ] T28 | Update reviewer-brief.md:592-593 so ANSWERS, BATCH and PROOF name
-      what SKILL.md:712-713 hands a role. Verify: the two agree
+- [x] T28 | verified at HEAD: brief:366-368 and SKILL.md:338-341 both name batch, role, proof and answers path | 393e3585 | Update
+      reviewer-brief.md:592-593 so ANSWERS, BATCH and PROOF name what
+      SKILL.md:712-713 hands a role. Verify: the two agree
         > 2026-09-13 from census T16, Process 147
 - [x] T29 | 7a puts a held move to the author as one move; SKILL.md gives the lines disposition prints | dc06c677 | Update
       SKILL.md 7a so the task agent puts a held move's drop and add to the
@@ -174,7 +177,8 @@ The agents files name the new CLI and say how to use it.
 - [ ] T45 | Name the addresser's --line '<module>' and '<eof>' in the agent
       prose
         > 2026-10-27 reviewer-brief.md:99-105, SKILL.md:158, ownership-context.md:87-90
-- [ ] T46 | Remove --anchor-line from the reviewer brief, which nothing reads
+- [x] T46 | 1bd897f0 removed the no-op anchor-line flag; git grep anchor-line -- src/plugin is empty | 1bd897f0 | Remove
+      --anchor-line from the reviewer brief, which nothing reads
         > 2026-10-30 D11: reviewer-brief.md:177-178
 - [x] T47 | CLAUDE.md names --from-docket; Roy approved the wording | 207d733bcd76762e6fe72d77618c45e68c11ad42 | Correct
       `CLAUDE.md:81` to `--from-docket`

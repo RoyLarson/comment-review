@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 6 tasks closed
+Progress: 3 of 6 tasks closed
 Owner:    systems
 Requires-Roy: true
 Raised:   2026-08-23 (2026-08-23, from scripts/dead_sweep.py --links after the history
@@ -74,21 +74,24 @@ archival pattern the stance already covers, and it is what produced the third li
 
 ## Tasks
 
-- [ ] T1 | T1 -- Say what replaces the two removed evidence packages, or say
-      they are gone. Verify: `uv run python scripts/dead_sweep.py --links` names
-      no path in that TODO.
-- [ ] T2 | T2 -- Fix `the-census-is-mostly-intervals-nobody-rules-on.md`'s link
-      to a sibling now in `completed/`. Verify: `--links` names no path under a
-      live `TODO/*.md`.
+- [x] T1 | b4548759 removed both evidence links; the harness TODO line 148 marks the packages REMOVED 2026-08-23 | b4548759 | T1
+      -- Say what replaces the two removed evidence packages, or say they are
+      gone. Verify: `uv run python scripts/dead_sweep.py --links` names no path
+      in that TODO.
+- [x] T2 | b4548759 repointed the census TODO link to completed/verdicts-py-announces-one-subject-and-holds-four.md | b4548759 | T2
+      -- Fix `the-census-is-mostly-intervals-nobody-rules-on.md`'s link to a
+      sibling now in `completed/`. Verify: `--links` names no path under a live
+      `TODO/*.md`.
 - [?] T3 | T3 -- * Rule whether `dead_sweep.py:288-289`'s stance still holds for
       the 38 links, or narrows. Verify: the answer is written into
       `dead_sweep.py` beside that sentence.
 - [?] T4 | T4 -- * If archived links are to be repaired, rule HOW; only if T3
       narrows the stance. Verify: the rule is written into `dead_sweep.py`
       beside what it revises.
-- [ ] T5 | T5 -- Make `complete_todo` (todo_tool.py:1021) rewrite the moved
-      file's own links. Verify: close a TODO citing a live sibling; `--links`
-      reports no new path from it.
+- [-] T5 | Board ops moved to installed job-board (b418c973); vendored todo_tool complete_todo no longer closes TODOs | b418c973 | T5
+      -- Make `complete_todo` (todo_tool.py:1021) rewrite the moved file's own
+      links. Verify: close a TODO citing a live sibling; `--links` reports no
+      new path from it.
 - [ ] T6 | Implement a check that every decision-log citation resolves to an
       entry that exists, in the section it names. Verify: it reports a citation
       whose number is past its section's highest entry, and it FAILS against the

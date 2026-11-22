@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 6 tasks closed
+Progress: 2 of 6 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, a fix round on flows/carry.py surfaced the same
@@ -57,10 +57,11 @@ second is a guard.
 
 ## Tasks
 
-- [ ] T1 | Implement the null guard at `flows/distribute.py` for `path` and
-      `cue`, beside the `sha` already guarded in `6b2695f`. Verify: a binder
-      page carrying `"path": null` reaches the sheet as `""`, never as the four
-      characters `None`; the test goes red against today's code.
+- [-] T1 | distribute reads typed Binder pages; RedactedPage.deserialize refuses a null path and a null cue | 1d9314d8 | Implement
+      the null guard at `flows/distribute.py` for `path` and `cue`, beside the
+      `sha` already guarded in `6b2695f`. Verify: a binder page carrying
+      `"path": null` reaches the sheet as `""`, never as the four characters
+      `None`; the test goes red against today's code.
 - [ ] T2 | Update every site that reads a PARSED ARTIFACT -- a binder, a docket,
       an edit copy -- to the null-safe spelling. Verify: the unsafe form appears
       zero times in the modules that parse external JSON, counted with `grep -rn
@@ -71,13 +72,14 @@ second is a guard.
 - [ ] T4 | Record the repo's null-guard spelling once, where a reader finds it.
       Verify: `docs/conventions.md` or the module that owns the boundary states
       it, and no second file restates it.
-- [ ] T5 | Implement the null guard at `binder.rows_of` for `path`, beside the
-      two sibling sites that already carry one -- `flows/distribute.py:98` for
-      `sha` and `flows/carry.py:137-138`. Verify: a binder page carrying
-      `"path": null` no longer composes the address `None@b1`; today
-      `str(page.get("path", ""))` defaults only on an ABSENT key, so a present
-      null enters `known_addresses` as a syntactically valid address and is
-      compared for equality against marks.
+- [-] T5 | binder.rows_of deleted; known_addresses takes a typed Binder whose pages refuse a null path | 1d9314d8 | Implement
+      the null guard at `binder.rows_of` for `path`, beside the two sibling
+      sites that already carry one -- `flows/distribute.py:98` for `sha` and
+      `flows/carry.py:137-138`. Verify: a binder page carrying `"path": null` no
+      longer composes the address `None@b1`; today `str(page.get("path", ""))`
+      defaults only on an ABSENT key, so a present null enters `known_addresses`
+      as a syntactically valid address and is compared for equality against
+      marks.
 - [ ] T6 | Update `docket.read`'s role check at `docket.py:148-150` to key on
       `"role" in page`, so a present JSON `null` is ruled on rather than skipped
       by the `role is not None` first clause, and normalise `role` in

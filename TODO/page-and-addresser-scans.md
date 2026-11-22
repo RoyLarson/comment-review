@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 4 of 14 tasks closed
+Progress: 6 of 14 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (C:/Program Files/Git/simplify rounds 1 and 2 and /code-review high
@@ -69,9 +69,10 @@ a run.
 - [x] T1 | FINISHED | unknown | T1 -- FIXED 2026-08-23. Both call sites ask
       `unaddressed(paragraphs)`. The two-answers measurement is in the
       Objective.
-- [ ] T2 | T2 -- Make `addresser.unaddressed` and `_check` group by path ONCE,
-      not rescan. Verify: the iteration count falls and `--check` reports the
-      same addresses.
+- [-] T2 | _check and --check deleted in 3a1f14c7 (#278); unaddressed already groups once via _by_path (binder/addresses.py:84-136) | 3a1f14c7 | T2
+      -- Make `addresser.unaddressed` and `_check` group by path ONCE, not
+      rescan. Verify: the iteration count falls and `--check` reports the same
+      addresses.
 - [ ] T3 | T3 -- Stop `page.fill_the_gaps` being O(code x paragraphs). Verify:
       the steps are not the product and the fixture census is byte-identical.
 - [ ] T4 | T4 -- Stop `page.tie_leading` being O(code x paragraphs). Verify: the
@@ -80,8 +81,9 @@ a run.
       -- Stop `page.declarations()` running TWICE per file (`page.py:420`,
       `:726`). Verify: `grep -n 'declarations(' page.py` returns ONE call site,
       census unchanged.
-- [ ] T6 | T6 -- Stop `addresser.for_anchor` reading census-entry fields its own
-      rule does not name. Verify: it reads only what `series_of(address)` names.
+- [-] T6 | for_anchor deleted with its tests in 5bead16e; it survives only in prototype/original/addresser.py, verified at HEAD | 5bead16e | T6
+      -- Stop `addresser.for_anchor` reading census-entry fields its own rule
+      does not name. Verify: it reads only what `series_of(address)` names.
 - [x] T7 | FINISHED | unknown | T7 -- FIXED 2026-08-23. `documentable` is
       annotated as the three-tuple the walk unpacks, and the Args block says so.
       The contradiction as filed is in the Objective.

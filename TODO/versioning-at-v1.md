@@ -2,7 +2,7 @@
 
 ```
 Status:   deferred
-Progress: 3 of 12 tasks closed
+Progress: 5 of 12 tasks closed
 Owner:    systems
 Requires-Roy: false
 Raised:   2026-08-21 (Roy, 2026-08-21, ruling out any versioning investment before v1)
@@ -55,10 +55,11 @@ what an unchecked box already says.
       the single statement.
 - [ ] T3 | T3 -- **The record file carries a version field written from T1's
       statement.** Verify: a written record holds it.
-- [ ] T4 | T4 -- **Retire `RECORD_VERSION` as a constant of its own**
-      (`record.py:639`). Verify: nothing in `record.py` carries a hand-moved
-      version number.
-- [ ] T5 | T5 -- **The run context carries a version field written from T1's
+- [-] T4 | record.py and RECORD_VERSION left src/ in b50e7a43; grep of src, scripts, tests finds no RECORD_VERSION | b50e7a43 | T4
+      -- **Retire `RECORD_VERSION` as a constant of its own** (`record.py:639`).
+      Verify: nothing in `record.py` carries a hand-moved version number.
+- [-] T5 | run_context.py was deleted from src/ in b50e7a43; no run-context artifact or --template/--check command ships | b50e7a43 | T5
+      -- **The run context carries a version field written from T1's
       statement.** Verify: `run_context.py --template` emits it and `--check`
       reads it.
 - [ ] T6 | T6 -- **The plugin manifest's version is derived from T1's

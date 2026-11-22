@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 4 tasks closed
+Progress: 1 of 4 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-21 (the /code-review xhigh of 2026-08-21, focused on the file-to-
@@ -52,7 +52,8 @@ tests for the file is misled.
 - [ ] T2 | T2 -- Re-take the `unaddressed()` timing on the current code, before
       and after T1. Verify: two numbers in this file, each with the command that
       produced it.
-- [ ] T3 | T3 -- Build the census row list ONCE on the text path, reusing what
+- [-] T3 | 36f1e404 removed gather's text listing; no `vars(b) / {` row copy remains in src/ | 36f1e404 | T3
+      -- Build the census row list ONCE on the text path, reusing what
       `census.py:434` already builds. Verify: `grep -c "vars(b) \| {" census.py`
       returns 1.
 - [ ] T4 | T4 -- Stop `census.py --out` leaving an empty file behind on a

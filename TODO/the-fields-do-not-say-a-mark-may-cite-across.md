@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 5 of 8 tasks closed
+Progress: 6 of 8 tasks closed
 Owner:    agents
 Requires-Roy: true
 Raised:   2026-08-27 (Roy, on a finding whose subject is the relation between two
@@ -165,7 +165,8 @@ merge-or-fight table never sees the overlap. Filed as
       role B has a `correct` there, and the place does NOT reach the chief. !
       `backend`'s to write; filed here because the shape it depends on lives in
       the brief.
-- [ ] T8 | T8 -- Confirm no agent file restates any of T1-T7. Verify: `grep -rn`
-      over `plugins/comment-review/agents/` returns nothing for the rule's
-      phrase. ! It does TODAY -- `comment-review-module-context.md` carries the
-      old shapes.
+- [x] T8 | Verified at HEAD: no agent file in src/plugin or plugins restates the cite-across rule; old query shapes are gone | 393e3585 | T8
+      -- Confirm no agent file restates any of T1-T7. Verify: `grep -rn` over
+      `plugins/comment-review/agents/` returns nothing for the rule's phrase. !
+      It does TODAY -- `comment-review-module-context.md` carries the old
+      shapes.

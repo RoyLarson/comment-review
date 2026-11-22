@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 39 of 52 tasks closed
+Progress: 42 of 52 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, a code review of `desk/mark.py` that ran `parse`
@@ -160,17 +160,19 @@ cites as its measured example of a field answering neither necessary nor purpose
       Verify: two marks on one sentence, one `drop` and one `correct`, reach a
       named outcome; today `_outcome` routes on `Instruction.ADD`, the count and
       `_sentence_key` only, and no module in `src/` detects the pair.
-- [ ] T6 | Update the comment on `Shape.UNABLE_TO_DETERMINE` at
-      `desk/mark.py:132`, which calls it "the one a collate step can ACT on".
-      Verify: no sentence in `desk/mark.py` names a collate step that reads
-      `claim.shape`'s value -- `grep -rn 'claim\.shape\\|"shape"'
-      src/comment_review/` returns four lines, all inside `desk/mark.py`.
-- [ ] T7 | Implement the coupling check between a row's flags and its
-      `claim_all`, so `needs_anchor`, `owes_destination` and `quotes_original`
-      cannot be set on a row whose `claim_all` never names the key they read.
-      Verify: a row built as `replace(INSTRUCTIONS[ADD], claim_all=(),
-      needs_anchor=True)` is refused; today an `add` carrying no anchor at all
-      parses with `problems: []` under it.
+- [x] T6 | UNABLE_TO_DETERMINE comment now 'Deferred like OUTSIDE_MY_ROLE'; no collate-step claim remains | 8198f716 | Update
+      the comment on `Shape.UNABLE_TO_DETERMINE` at `desk/mark.py:132`, which
+      calls it "the one a collate step can ACT on". Verify: no sentence in
+      `desk/mark.py` names a collate step that reads `claim.shape`'s value --
+      `grep -rn 'claim\.shape\\|"shape"' src/comment_review/` returns four
+      lines, all inside `desk/mark.py`.
+- [-] T7 | flags moved to mark types; __init_subclass__ couples quotes_original/names_destination; an anchorless add is refused | 167c7f13 | Implement
+      the coupling check between a row's flags and its `claim_all`, so
+      `needs_anchor`, `owes_destination` and `quotes_original` cannot be set on
+      a row whose `claim_all` never names the key they read. Verify: a row built
+      as `replace(INSTRUCTIONS[ADD], claim_all=(), needs_anchor=True)` is
+      refused; today an `add` carrying no anchor at all parses with `problems:
+      []` under it.
 - [ ] T8 | Update `ROLE_FIELDS`' docstring at `desk/mark.py:380-383`, which
       enumerates seven of `Mark`'s eight fields and omits `raw_text`. Verify: a
       test differences `set(ROLE_FIELDS) \| {"address", "anchor",
@@ -180,7 +182,8 @@ cites as its measured example of a field answering neither necessary nor purpose
       which names six keys where the function returns seven -- `source_keys` is
       missing. Verify: a test compares `set(allowed())` against the keys the
       docstring names and goes red when either is edited alone.
-- [ ] T10 | Update `Mark.seed`'s "THIS IS THE WHOLE GUARD" sentence at
+- [-] T10 | Mark.seed and SEEDED removed; BlankMark writes from fields(self); wire._written raises one named AttributeError | 167c7f13 | Update
+      `Mark.seed`'s "THIS IS THE WHOLE GUARD" sentence at
       `desk/mark.py:344-348`, since `zip(..., strict=True)` raises first and a
       name ADDED to or REMOVED from `SEEDED` meets a bare `ValueError` naming
       neither `Mark` nor `SEEDED`. Verify: the docstring names both failures, or

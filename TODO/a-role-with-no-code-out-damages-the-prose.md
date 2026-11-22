@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 5 of 12 tasks closed
+Progress: 8 of 12 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-08-23 (2026-08-23, Roy: 'we can't tell the agents to review all of this
@@ -161,14 +161,17 @@ is open, so *"effectiveness unchanged"* has no grader.
       -- Record T1's ruling in
       `code-concerns-cannot-carry-a-proposed-change.md`, the backend file it
       gates. Verify: that file states it.
-- [ ] T3 | T3 -- Name `code_concerns` in `comment-review-ownership-context.md`.
-      Verify: `grep -l code_concerns plugins/comment-review/agents/*.md` lists
-      that file.
-- [ ] T4 | T4 -- Name `code_concerns` in `comment-review-block-context.md`.
-      Verify: `grep -l code_concerns plugins/comment-review/agents/*.md` lists
-      that file.
-- [ ] T5 | T5 -- Name `code_concerns` in `comment-review-module-context.md`.
-      Verify: the same grep lists four files in total; today it lists one.
+- [-] T3 | #199: no code_concerns field; a code concern is a human-review-necessary query in the shared brief. grep code_concerns src/ empty | 4df9982d | T3
+      -- Name `code_concerns` in `comment-review-ownership-context.md`. Verify:
+      `grep -l code_concerns plugins/comment-review/agents/*.md` lists that
+      file.
+- [-] T4 | #199: no code_concerns field; a code concern is a human-review-necessary query in the shared brief. grep code_concerns src/ empty | 4df9982d | T4
+      -- Name `code_concerns` in `comment-review-block-context.md`. Verify:
+      `grep -l code_concerns plugins/comment-review/agents/*.md` lists that
+      file.
+- [-] T5 | #199: no code_concerns field; module-context.md:37,41,79 already name code concerns via the shared brief's query | 4df9982d | T5
+      -- Name `code_concerns` in `comment-review-module-context.md`. Verify: the
+      same grep lists four files in total; today it lists one.
 - [ ] T6 | T6 -- Say what verdict a docstring enumerating unrelated
       responsibilities earns (`comment-review-module-context.md:27`). Verify:
       that trigger names its verdict.

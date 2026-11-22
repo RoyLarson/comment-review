@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 3 of 7 tasks closed
+Progress: 6 of 7 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (/simplify rounds 1 and 2 and /code-review high round 3,
@@ -88,14 +88,17 @@ part of the front half that will shift.
 - [x] T3 | FINISHED | unknown | T3 -- FINISHED. `flush_run()` never fired on a
       `b.path` change; it is now called at census.py:567, :574, :579 and :592,
       so both continues reach it.
-- [ ] T4 | T4 -- Give census loading ONE loader, in `addresser.py`. Verify: one
-      loader, four callers, and a test that fails without it.
-- [ ] T5 | T5 -- Split `_report` (census.py:296-649, 354 lines) so it only
-      dispatches. Verify: `--languages`, `--json`, `--filtered` and the default
-      listing are each a function.
-- [ ] T6 | T6 -- Stop re-spelling the `(".py", ".pyi")` suffix tuple
-      language.py:99 owns. Verify: `grep -n "\.pyi"` over the shipped scripts
-      returns only language.py.
+- [-] T4 | Overtaken: binder.Binder.deserialize with flows/proof_io.load_binder is the one loader five commands call | b50e7a43 | T4
+      -- Give census loading ONE loader, in `addresser.py`. Verify: one loader,
+      four callers, and a test that fails without it.
+- [-] T5 | 36f1e404 cut --json/--filtered/listing; gather.py _report is lines 101-152, about 52 lines | 36f1e404 | T5
+      -- Split `_report` (census.py:296-649, 354 lines) so it only dispatches.
+      Verify: `--languages`, `--json`, `--filtered` and the default listing are
+      each a function.
+- [-] T6 | Duplicate of language-rows-in-toml T19; verified at HEAD the only re-spelling is concordance/referrers.py:41 | 393e3585 | T6
+      -- Stop re-spelling the `(".py", ".pyi")` suffix tuple language.py:99
+      owns. Verify: `grep -n "\.pyi"` over the shipped scripts returns only
+      language.py.
 - [ ] T7 | T7 -- Batch referrers.py's git grep -- the loop at :126-127 calls
       `_grep` once per token. Verify: one `git grep` runs for the whole token
       set, with repeated `-e`.

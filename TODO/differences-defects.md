@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 10 tasks closed
+Progress: 2 of 10 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, a code review of `results/differences.py` that
@@ -87,11 +87,12 @@ containment. Each showed 0 behavioural differences over 104,088 cases.
       re-read caused by a refused composition names the span and the roles in
       the run's own output, and the test goes red against today's code, where
       the sole `except CannotCompose:` returns `None`.
-- [ ] T4 | Implement attaching the ADDRESS to a refused composition, which the
-      message never names. Verify: a send-back for a refused composition names
-      the place, not only base line numbers inside one paragraph;
-      `flows/collate.py:192` holds `entry["address"]` and cannot attach it today
-      because `_composition` returns `None`.
+- [x] T4 | verified at HEAD: fold catches CannotCompose per place and the CarriedForward line names the place's address | 393e3585 | Implement
+      attaching the ADDRESS to a refused composition, which the message never
+      names. Verify: a send-back for a refused composition names the place, not
+      only base line numbers inside one paragraph; `flows/collate.py:192` holds
+      `entry["address"]` and cannot attach it today because `_composition`
+      returns `None`.
 - [ ] T5 | Update `unified` so its output is not corrupt when joined and the
       last line has no trailing newline -- emit the missing-newline marker, or
       stop promising the join in the docstring. Verify: a page whose last line
@@ -110,11 +111,12 @@ containment. Each showed 0 behavioural differences over 104,088 cases.
       own `Args` -- the page's text before the revise -- and the word `side` is
       not spent on something that is not a side in the sense the rest of the
       file uses it.
-- [ ] T8 | Update `compose`'s prose to state that two sides making the
-      BYTE-IDENTICAL edit are refused, which the docstring explains for the
-      abutting case and not for this one. Verify: the sentence exists and a test
-      asserts the identical- edit refusal, so a reader is not left to read *no
-      composition exists* as a claim about disagreement.
+- [-] T8 | identical edits now apply once rather than being refused; test_identical_*_apply_once | f8b3deb1 | Update
+      `compose`'s prose to state that two sides making the BYTE-IDENTICAL edit
+      are refused, which the docstring explains for the abutting case and not
+      for this one. Verify: the sentence exists and a test asserts the
+      identical- edit refusal, so a reader is not left to read *no composition
+      exists* as a claim about disagreement.
 - [ ] T9 | Update `diff3`'s `Returns` block so it says the `\|\|\|\|\|\|\| base`
       section is legitimately EMPTY for a pure insert. Verify: the sentence is
       there and a test renders a pure insert and asserts the empty base section,

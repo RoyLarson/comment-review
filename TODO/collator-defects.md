@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 19 of 43 tasks closed
+Progress: 32 of 43 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, from the blind rewrite of collator.py -- the prose was
@@ -26,9 +26,10 @@ Four defects in collator.py, found by reading only the code.
 - [x] T2 | Prove the docket cannot carry that shape. Verify: a test asserts no
       alteration is a delete with no matching write, and it FAILS against today's
       code, which produces a docket entry of path m.py, cue b1, text None.
-- [ ] T3 | Check the neighbouring shapes. Verify: a `move` across files, and one
-      whose `to` names a place the binder does not carry, each reach a named
-      outcome rather than a silent delete.
+- [x] T3 | cross-file move transcribes both ends (test_revise); a claim.to no page carries is refused by name in verify._resolution_problems | 9e7532b5 | Check
+      the neighbouring shapes. Verify: a `move` across files, and one whose `to`
+      names a place the binder does not carry, each reach a named outcome rather
+      than a silent delete.
 - [ ] T4 | Reproduce the CRLF mismatch as a failing test over a real CRLF file.
       Verify: a two-line `verbatim` taken verbatim from that file is reported as
       not found. MEASURED: the window is rejoined with a newline while `_lines`
@@ -68,55 +69,61 @@ Four defects in collator.py, found by reading only the code.
       under today's grouping, and the DAG rule refuses it anyway -- so the
       protection does not rest on _sentence_key returning id(mark), which is a
       side effect of a function whose docstring is about two adds.
-- [ ] T15 | Update `MalformedMark`'s docstring at `desk/collator.py:621-630`. It
-      reads "a mark whose shape is unreadable cannot be grouped by the place it
-      touches, and a place grouped wrongly is settled wrongly", implying
+- [-] T15 | MalformedMark, places and reconcile deleted with the old fold; Sheet.refused holds unparseable entries | 0e2ff82a | Update
+      `MalformedMark`'s docstring at `desk/collator.py:621-630`. It reads "a
+      mark whose shape is unreadable cannot be grouped by the place it touches,
+      and a place grouped wrongly is settled wrongly", implying
       `places`/`reconcile` is where a malformed mark's shape is caught. That
       stopped being true on the only live path when `flows/collate.py` landed:
       `reconcile` has exactly one caller in `src/` (`flows.collate.collate`) and
       `places` only one (inside `reconcile`), and `collate` runs `_reconcilable`
-      first, which drops every entry `desk.collator.problems_in` already reported
-      before `reconcile` ever sees it -- so the raise this docstring describes
-      cannot fire from that path. Per `TODO/galley-refusals-cannot-fire.md`'s
-      ruling -- a guard at the boundary and a guard at the point of use is
-      defensible depth, and the guard stays, but say which one is load-bearing --
-      state in the docstring that `problems_in` (run by every caller of `collate`,
-      before `reconcile`) is what enforces this on the live path, and that
-      `places`'/`reconcile`'s own raise is depth: reachable only by a caller that
-      reaches `places` without going through `collate`'s check first. Verify: the
-      docstring names `problems_in` as load-bearing and its own raise as depth,
-      and `places` called directly (bypassing `collate`) still raises
-      `MalformedMark` on a malformed entry -- so the guard being called depth is
-      itself checkable rather than asserted.
-- [ ] T16 | Implement a `Problem` in `desk.collator.problems_in` for a sheet that
-      is not an object and for a `marks` that is not a list, which
-      `collator.py:483-485` skips silently. Verify: `problems_in` over a copy
-      whose `sheets` holds two strings returns a routable problem naming the role;
-      today it returns `[]`, so the module header's claim at lines 27-31 does not
-      hold at the sheet level.
-- [ ] T17 | Implement the `isinstance(sheets, list)` guard in
-      `desk.collator.tally`, the only sheet-walker without one, and stop its
-      membership test raising on an unhashable `instruction`. Verify:
-      `tally({'sheets': 7})`, `tally({'sheets': None})` and `tally` over a mark
-      whose `instruction` is `['clean']` each return counts; all three raise
-      `TypeError` today.
-- [ ] T18 | Implement a test that drives `collate()` from `reconcile` through
-      `_move_order` and can go red, covering the path the two critical move
-      defects live on. Verify: `tests/test_collate.py:349`'s only assertion is no
-      longer wrapped in a guard its own docstring records as never firing, and
+      first, which drops every entry `desk.collator.problems_in` already
+      reported before `reconcile` ever sees it -- so the raise this docstring
+      describes cannot fire from that path. Per
+      `TODO/galley-refusals-cannot-fire.md`'s ruling -- a guard at the boundary
+      and a guard at the point of use is defensible depth, and the guard stays,
+      but say which one is load-bearing -- state in the docstring that
+      `problems_in` (run by every caller of `collate`, before `reconcile`) is
+      what enforces this on the live path, and that `places`'/`reconcile`'s own
+      raise is depth: reachable only by a caller that reaches `places` without
+      going through `collate`'s check first. Verify: the docstring names
+      `problems_in` as load-bearing and its own raise as depth, and `places`
+      called directly (bypassing `collate`) still raises `MalformedMark` on a
+      malformed entry -- so the guard being called depth is itself checkable
+      rather than asserted.
+- [-] T16 | problems_in deleted; EditCopy.deserialize refuses a non-object sheet and a non-list marks naming the role, verified at HEAD | 0edefdca | Implement
+      a `Problem` in `desk.collator.problems_in` for a sheet that is not an
+      object and for a `marks` that is not a list, which `collator.py:483-485`
+      skips silently. Verify: `problems_in` over a copy whose `sheets` holds two
+      strings returns a routable problem naming the role; today it returns `[]`,
+      so the module header's claim at lines 27-31 does not hold at the sheet
+      level.
+- [-] T17 | tally() deleted from desk/collator.py; nothing to guard | 1bd897f0 | Implement
+      the `isinstance(sheets, list)` guard in `desk.collator.tally`, the only
+      sheet-walker without one, and stop its membership test raising on an
+      unhashable `instruction`. Verify: `tally({'sheets': 7})`,
+      `tally({'sheets': None})` and `tally` over a mark whose `instruction` is
+      `['clean']` each return counts; all three raise `TypeError` today.
+- [-] T18 | collate(), _move_order and tests/test_collate.py deleted with the old fold | 0e2ff82a | Implement
+      a test that drives `collate()` from `reconcile` through `_move_order` and
+      can go red, covering the path the two critical move defects live on.
+      Verify: `tests/test_collate.py:349`'s only assertion is no longer wrapped
+      in a guard its own docstring records as never firing, and
       `test_a_move_resolves_only_if_BOTH_its_ends_resolve` goes red when
       `_pair_moves` is deleted -- its docstring states today that it would not.
-- [ ] T19 | Implement a refusal for an address that is not `path@cue`, so a bare
-      cue cannot settle and reach the docket. Verify: two roles returning `b1` and
-      `b5` give a named problem instead of one docket page `{'path': '', 'sha':
-      '', 'alterations': [{'cue': ''}, {'cue': ''}]}`; today `collate` returns
+- [x] T19 | Mark.read refuses an address not path@cue, and verify._unresolved names it; a bare cue cannot reach the docket | 42987afd | Implement
+      a refusal for an address that is not `path@cue`, so a bare cue cannot
+      settle and reach the docket. Verify: two roles returning `b1` and `b5`
+      give a named problem instead of one docket page `{'path': '', 'sha': '',
+      'alterations': [{'cue': ''}, {'cue': ''}]}`; today `collate` returns
       `problems == []` and `drift == []`, and the chief sheet is `{'path': '',
       'sha': '', 'marks': [...]}`.
-- [ ] T20 | Update `desk.collator.problems_in`'s `Returns:` at lines 447-450,
-      which calls `ruled` the number of entries carrying an instruction while
-      lines 491-493 count every entry that is not `untouched`. Verify: the
-      `Returns:` agrees with the `!!` paragraph at 431-435, and a marks list of
-      three entries, none carrying an instruction, still reports `ruled = 2`.
+- [-] T20 | problems_in and its ruled count deleted | 0edefdca | Update
+      `desk.collator.problems_in`'s `Returns:` at lines 447-450, which calls
+      `ruled` the number of entries carrying an instruction while lines 491-493
+      count every entry that is not `untouched`. Verify: the `Returns:` agrees
+      with the `!!` paragraph at 431-435, and a marks list of three entries,
+      none carrying an instruction, still reports `ruled = 2`.
 - [ ] T21 | Update the module docstring's copy-level list at
       `desk/collator.py:50-54`, which says an entry that is not an object produces
       a `Problem` with nothing naming a mark, and omits the `read_from` problem at
@@ -127,9 +134,10 @@ Four defects in collator.py, found by reading only the code.
       digits only. Verify: a cite whose line number is written in Arabic-Indic
       digits no longer returns `('a.py', 12)` -- a line number no page ever
       emitted.
-- [ ] T23 | Update `desk.collator._touches`' sentence at lines 605-606, which says
-      a `move` whose destination is its own origin gives one address, as though
-      such a mark still reaches it. Verify: the sentence names
+- [-] T23 | _touches deleted with the collator's reconciliation half | 0e2ff82a | Update
+      `desk.collator._touches`' sentence at lines 605-606, which says a `move`
+      whose destination is its own origin gives one address, as though such a
+      mark still reaches it. Verify: the sentence names
       `desk.mark._destination_problems` as what refuses that mark now -- T1 of
       this file landed it -- and marks its own branch as depth, which is the
       template T15 applies to `MalformedMark`.
@@ -154,13 +162,14 @@ Four defects in collator.py, found by reading only the code.
       accepting `change=' '` on a `drop` yields an alteration whose text is
       null, and the docstring at 972-975 covers the whitespace case as well as
       the empty string.
-- [ ] T27 | Delete drift detection from the middle, per `decision-log.md
-      Process: #62` -- `desk.collator.drift_in`, the `drift` field on
-      `flows.collate.Collated`, and the `DRIFT` exit code and its reporting in
-      `commands/collate.py`. The middle touches no files, so whether a page
-      moved is a question it has no stake in. Verify: `grep -rn "drift"
-      src/comment_review/` returns nothing, the exit codes are a closed set with
-      no gap where DRIFT was, and the suite stays green.
+- [x] T27 | drift_in, its calls and DRIFT deleted; exit codes 0-5 closed; remaining 'drift' hits in src are unrelated prose | ae7a45be | Delete
+      drift detection from the middle, per `decision-log.md Process: #62` --
+      `desk.collator.drift_in`, the `drift` field on `flows.collate.Collated`,
+      and the `DRIFT` exit code and its reporting in `commands/collate.py`. The
+      middle touches no files, so whether a page moved is a question it has no
+      stake in. Verify: `grep -rn "drift" src/comment_review/` returns nothing,
+      the exit codes are a closed set with no gap where DRIFT was, and the suite
+      stays green.
         > 2026-09-03 Closing the DRIFT gap also settles collate-command-defects T15
         > 2026-09-03 T15 names DRIFT=5 above ESCALATIONS=4 as the ordering inversion
 - [x] T28 | Both are deleted; flows.mark_errors answers what they did. The seven test functions that called them are repointed rather than dropped, the ruled count is derived in the tests that assert it, and ten present-tense prose mentions are corrected while eight historical ones stay. | 0edefdc | Delete
@@ -174,15 +183,18 @@ Four defects in collator.py, found by reading only the code.
       bites
         > 2026-09-02 conventions.md called these filed on 2026-08-31; no task did
         > 2026-09-03 confirmed, not superseded, by Process 83 -- correct as written
-- [ ] T30 | Implement a stet Determined for a place every role marked clean, in
+- [x] T30 | verified at HEAD: rebuilt fold settles all-clean places as stet; smoke stage 2 prints stet for all 14 places | 393e3585 | Implement
+      a stet Determined for a place every role marked clean, in
       flows/collate._resolve. Verify: hand 7's b14 and a3 each carry one
         > 2026-09-04 hand 7, 2026-09-04: b14 and a3 all clean, proof0.determined == []
         > 2026-09-04 hand 7: b14 and a3 all clean, proof0.determined was empty
-- [ ] T31 | Update _identical so an identical stet's side names every agreeing
-      role, not the alphabetically first. Verify: hand 7 a1 names four
+- [-] T31 | _identical and desk/determined.py deleted; a settled place prints 'stet <address>' with no side | 0e2ff82a | Update
+      _identical so an identical stet's side names every agreeing role, not the
+      alphabetically first. Verify: hand 7 a1 names four
         > 2026-09-04 hand 7: a1 was ownership-context's drop; side read block-context
-- [ ] T32 | Update the fold so one owing mark beside outside-my-role queries and
-      cleans settles, per Process 90. Verify: 32 of 87 live-run carries settle
+- [-] T32 | #180 rules a lone proposal against cleans is carried forward to those roles, the opposite of this task | 6481e891 | Update
+      the fold so one owing mark beside outside-my-role queries and cleans
+      settles, per Process 90. Verify: 32 of 87 live-run carries settle
 - [x] T33 | FINISHED -- address_problems deleted; an add at a real absent place passes verify_report; Process 97 | 68980886 | Update
       the fold to refuse an address only when the page has no such place.
       Verify: a mark at a real gap the binder lacks is accepted
@@ -216,8 +228,9 @@ Four defects in collator.py, found by reading only the code.
       invented cue is refused, a valid empty place is not
         > 2026-09-07 b7 was a valid empty place; the redacted binder rightly lacks it
         > 2026-09-07 A page carries both the absent and present places of a series
-- [ ] T41 | Implement the fold's report for an address whose page the checkout
-      cannot read. Verify: an invented path half is named, not passed silently
+- [x] T41 | an address whose page cannot be read is reported (#122); verify._unresolved returns no_page(real) | fe13d10f | Implement
+      the fold's report for an address whose page the checkout cannot read.
+      Verify: an invented path half is named, not passed silently
         > 2026-09-08 About 50 fold tests use fictional paths and would break
         > 2026-09-08 Caught at fill and at the write; the fold is the silent one
 - [-] T42 | superseded by Process 162: hardening of the prototype middle, not built now | 9519ead5 | Update

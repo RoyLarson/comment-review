@@ -1,8 +1,8 @@
 # The lexer reads no files, nine other places do, and the identity passes on translated text
 
 ```
-Status:   in-progress
-Progress: 23 of 25 tasks closed
+Status:   closed
+Progress: 25 of 25 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-21 (Roy, 2026-08-21: 'The lexer reads zero files - this is also a
@@ -179,12 +179,13 @@ is at `docs/superpowers/specs/2026-08-23-io-and-the-chain-design.md:17`.
 - [x] T20 | test_the_chain_IS_this_list asserts the seven STEPS | 4290bfef | T20
       -- **Assert the WRITE chain as data**, the seven steps named in the
       Objective. Verify: the test fails when a step is removed from the list.
-- [ ] T21 | T21 -- **Re-take the losslessness number through the raw reader.**
-      Verify: the re-run reports its population and names the reader that
-      produced it.
-- [ ] T22 | T22 -- **Correct the spec's `read_raw` row, cited in the
-      Objective.** Verify: the row names the nine bypassing source reads rather
-      than an absence of callers.
+- [-] T21 | Lexer that produced the 3,049/3,082 number deleted (#259); number stated nowhere outside TODO/; identity compares exact bytes | e2b34a22 | T21
+      -- **Re-take the losslessness number through the raw reader.** Verify: the
+      re-run reports its population and names the reader that produced it.
+- [x] T22 | Spec row 17 now names two modules reaching read_raw and nine source reads going around it | b4548759 | T22
+      -- **Correct the spec's `read_raw` row, cited in the Objective.** Verify:
+      the row names the nine bypassing source reads rather than an absence of
+      callers.
 - [x] T23 | Exact filesystem and Git snapshots with named failures verified | 1c16426e | Acquire
       exact UTF-8 source from files and Git; verify BOM, line endings, Unicode,
       identity and named failures

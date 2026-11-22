@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 5 of 12 tasks closed
+Progress: 7 of 12 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, a code review of `docket/docket.py` run end to end
@@ -101,16 +101,17 @@ caller.
       -- `({}, 'pkg/a.py: every page needs the sha it was read at')` --
       discarding every other page's approved alterations, and naming the sha
       when the cause is a path that resolved against nothing.
-- [ ] T5 | Update the two citations of `flows.revise.pull._set_by` at
-      `docket.py:64-65` and `:92-93`. Verify: `grep -rn "pull\._set_by"
-      src/comment_review/` is empty and the sentences name
-      `flows.revise._set_by` (`revise.py:242`), the way `flows/revise.py:55-58`
-      already spells the relationship.
-- [ ] T6 | Update both `Schedule` sort sites to `sorted(schedules, key=lambda s:
-      s.path)`. Verify: `flows/proof_setter.py:211` and `commands/proof.py:140`
-      sort by path, and a hand-built docket whose two schedules share `path` and
-      `sha` no longer raises `TypeError: '<' not supported between instances of
-      'dict' and 'dict'` from the `alterations` field.
+- [x] T5 | grep pull._set_by in src is empty; docket.py names flows.revise._set_by | 6a9c6176 | Update
+      the two citations of `flows.revise.pull._set_by` at `docket.py:64-65` and
+      `:92-93`. Verify: `grep -rn "pull\._set_by" src/comment_review/` is empty
+      and the sentences name `flows.revise._set_by` (`revise.py:242`), the way
+      `flows/revise.py:55-58` already spells the relationship.
+- [x] T6 | proof_setter.py and commands/proof.py sort schedules by key=lambda s: s.path | 3fa2207d | Update
+      both `Schedule` sort sites to `sorted(schedules, key=lambda s: s.path)`.
+      Verify: `flows/proof_setter.py:211` and `commands/proof.py:140` sort by
+      path, and a hand-built docket whose two schedules share `path` and `sha`
+      no longer raises `TypeError: '<' not supported between instances of 'dict'
+      and 'dict'` from the `alterations` field.
 - [-] T7 | SUPERSEDED -- Process 81 makes Schedule.role correct and load-bearing. Its verify grep returns empty because the reader is page.role, where page iterates docket.schedules -- flows/revise.py:262 | 8ed4688 | Delete
       `Schedule.role` at `docket.py:100` and its justification at `:91-94`.
       Verify: `grep -rn "schedule\.role\\|s\.role" src/comment_review/ tests/`

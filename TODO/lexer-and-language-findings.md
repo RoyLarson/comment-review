@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 61 of 75 tasks closed
+Progress: 66 of 75 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (/simplify rounds 1 and 2 and /code-review high round 3,
@@ -305,11 +305,12 @@ would.
         > 2026-10-16 Reason: a bool states inside; above is only its absence
         > 2026-10-16 Check: Language has no default position; every row names one
         > 2026-10-16 Check: `doc_inside` is gone from src; page and compositor pass
-- [ ] T37 | Rename the side `documentable` returns for a doc set above its
-      declaration
+- [-] T37 | documentable deleted; readers state DocPlace(at, above: bool), so no side letter is returned | c0a4c6e2 | Rename
+      the side `documentable` returns for a doc set above its declaration
         > 2026-10-16 Reason: it is `ON`, the c letter, used for between gap and code
         > 2026-10-16 Check: documentable returns no series letter for a doc side
-- [ ] T38 | Rewrite the CLAUDE.md doc-position sentence to the stated field
+- [-] T38 | The CLAUDE.md doc-position sentence was removed, and the field it was to name (T36) was superseded by #259 | 78aca486 | Rewrite
+      the CLAUDE.md doc-position sentence to the stated field
         > 2026-10-16 Reason: Roy, 2026-10-16: on Rust it goes above, not on the line
         > 2026-10-16 Check: the sentence names the field T36 adds; Roy approves it
 - [-] T39 | Widened to removing the Python row; reissued as a new task | 9e376f5f | Remove
@@ -352,8 +353,9 @@ would.
       the Python `Language` row from `LANGUAGES`
 - [x] T49 | rust.toml states //! and /*! as inner doc openers | 3f1a4817 | State
       Rust's inner doc openers in Rust's own definition file
-- [ ] T50 | Read a line-1 comment run above a declaration as f0 matter, not an a
-      docstring (#232)
+- [-] T50 | Lexical js case left with #259; verified at HEAD the Rust reader reads a line-1 licence above fn as f0 | e2b34a22 | Read
+      a line-1 comment run above a declaration as f0 matter, not an a docstring
+      (#232)
         > 2026-10-26 js: // Licence, blank, function f() {} -> a1; over const x -> f0
         > 2026-10-26 At ef037f20 too; document_declarations claims before the matter cut
 - [-] T51 | #285: one-reader-builder T11-T12; Rust owner is T74 | 9e513b91 | Make
@@ -381,10 +383,12 @@ would.
 - [-] T56 | #285: one-reader-builder T11-T12 map string places | 9e513b91 | Offer
       no place inside a string literal that spans lines
         > 2026-10-27 C backslash strings get c; Python triple quotes get b
-- [ ] T57 | Place a doc comment whole when another opens on its first line
+- [-] T57 | lexer.py cut deleted (#259); verified at HEAD Rust reads /** M */ /** F */ above fn as one a1 paragraph | e2b34a22 | Place
+      a doc comment whole when another opens on its first line
         > 2026-10-27 /** M */ /** F, newline, */ over f is cut over a0 and a1
         > 2026-10-30 I7: lexer.py:948 same cut on another comment's closing line
-- [ ] T58 | Allow an add at the b directly above a declaration
+- [-] T58 | Its languages left with #259; verified at HEAD an add at the b above a declaration sets and proves in Rust and Python | e2b34a22 | Allow
+      an add at the b directly above a declaration
         > 2026-10-30 W2: refused in TS Go Ruby Lua Kotlin C# Swift
 - [-] T59 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | Read
       a delimited comment after a string-only prefix as trailing

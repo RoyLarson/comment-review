@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 9 tasks closed
+Progress: 3 of 9 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, Roy ruling on a review finding that mark.py announces
@@ -65,22 +65,23 @@ change -- `conventions.md`, *The vocabulary is shared*.
 
 ## Tasks
 
-- [ ] T1 | Implement the extraction of the instruction SPEC -- `Instruction`,
-      `Shape`, `QUERY_SHAPES`, `Row`, `INSTRUCTIONS`, `allowed()`, `ANCHOR_NAME`
-      and `ANCHOR_EXAMPLE` -- into its own module under `desk/`, leaving
-      `mark.py` holding the `Mark` type and the boundary parse. Verify:
-      `mark.py` imports the spec rather than defining it; `uv run ty check
-      src/comment_review/` passes and `uv run pytest -q` reports the same counts
-      as before the move.
+- [-] T1 | Row/INSTRUCTIONS in desk/marks/table.py, allowed() in rules.py; enums kept with the Mark record; ANCHOR_NAME is T7 | d71f7826 | Implement
+      the extraction of the instruction SPEC -- `Instruction`, `Shape`,
+      `QUERY_SHAPES`, `Row`, `INSTRUCTIONS`, `allowed()`, `ANCHOR_NAME` and
+      `ANCHOR_EXAMPLE` -- into its own module under `desk/`, leaving `mark.py`
+      holding the `Mark` type and the boundary parse. Verify: `mark.py` imports
+      the spec rather than defining it; `uv run ty check src/comment_review/`
+      passes and `uv run pytest -q` reports the same counts as before the move.
 - [ ] T2 | Update `scripts/render_brief.py` to import the classifier table from
       the spec module. Verify: it no longer imports from the module holding the
       parse, and the rendered brief is byte-identical to its pre-split output.
-- [ ] T3 | Update `tests/gates/test_mark_shape.py` to read the spec at its new
-      home. Verify: the gate passes, and goes red when a row is deleted from the
-      table.
-- [ ] T4 | Update `docs/lanes.md` and `docs/the-mark.md` wherever either names
-      the file. Verify: no document names a path that does not exist, checked
-      with `uv run python scripts/dead_sweep.py --links`.
+- [x] T3 | test_mark_shape imports from desk.marks.table; 48 pass; set(OWES_TABLE) == set(INSTRUCTIONS) fails on a deleted row | 0e2ff82a | Update
+      `tests/gates/test_mark_shape.py` to read the spec at its new home. Verify:
+      the gate passes, and goes red when a row is deleted from the table.
+- [x] T4 | the-mark.md names desk/proof/mark.py; lanes.md names no mark module; dead_sweep --links reports neither | b342e481 | Update
+      `docs/lanes.md` and `docs/the-mark.md` wherever either names the file.
+      Verify: no document names a path that does not exist, checked with `uv run
+      python scripts/dead_sweep.py --links`.
 - [ ] T5 | Delete the inline restatements of `filled()` at their call sites so
       the predicate is called rather than repeated. Verify: the inline form
       appears nowhere in `desk/`, and the suite stays green.
