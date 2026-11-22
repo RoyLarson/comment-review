@@ -109,13 +109,6 @@
     # ! `evidence/ga/` is NOT excluded: it is tracked, maintained code that scores
     # the corpora, and it is linted like anything else.
     #
-    # !! VENDORED CODE IS SOMEBODY ELSE'S SOURCE. `scripts/todo_tool.py` is copied
-    # verbatim from `redacted_corpus` at `todo-requires-roy` REDACTED_SHA_D, and is
-    # re-grabbed rather than maintained here. Formatting it to THIS repo's config
-    # forks it, so the next grab arrives as a conflict in every file -- the same
-    # argument the evidence exclude makes, one repository over. ! A local patch to a
-    # vendored file says so at the patch.
-    #
     # !! `prototype/` IS A RECORD OF HOW IT WORKED, NOT SOURCE. Roy, 2026-08-25:
     # *"all of the old code in the agent section are prototypes ... moving it into a
     # prototype/folder cleans the old code out once immediately but leaves us
@@ -123,7 +116,7 @@
     # nothing ships it, and it does not run -- its imports name modules that moved
     # out from under it. Linting it to this repo's config would ask a reference to
     # keep up with a codebase it is no longer part of.
-    extend-exclude = ["evidence/*-full-*", "scripts/todo_tool.py", "prototype"]
+    extend-exclude = ["evidence/*-full-*", "prototype"]
 
     [tool.ruff.lint]
         ignore = [
