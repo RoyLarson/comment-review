@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 47 of 57 tasks closed
+Progress: 47 of 60 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, a code review of `desk/mark.py` that ran `parse`
@@ -361,3 +361,12 @@ cites as its measured example of a field answering neither necessary nor purpose
 - [ ] T57 | Make allowed()'s instruction list at desk/marks/rules.py:187 follow
       docs/the-mark.md's order
         > 2026-11-22 Check: order matches the-mark.md, or a comment says why not
+- [ ] T58 | Make flows/fill.py:427 derive a ruling from the page text, not the
+      slot's carried raw_text
+        > 2026-11-22 Check (M2): drop on a cut slot keeps '# and the floor is one'
+- [ ] T59 | Strip the trailing newline with the BOM from an @path file in
+      commands/mark.py:109 _from_file
+        > 2026-11-22 Check (M28): --false @f.txt holding 'two\n' stores '# two'
+- [ ] T60 | Read a dash-led @path value as a value, not an option, in
+      commands/mark.py:129
+        > 2026-11-22 Check (M41): --true @-x.txt is read as a file, exit 0

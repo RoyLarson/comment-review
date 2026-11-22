@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 2 of 3 tasks closed
+Progress: 2 of 4 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-29 (2026-08-29, the first end-to-end run with a real block-context
@@ -29,3 +29,6 @@ A `query` names no sentence, so two marks on one place cannot be told apart.
       is correct for `query` either way. Verify: two queries at one place
       resolve the same way the ruling says they should -- today each gets
       `id(mark)` and can never be found to share a sentence.
+- [ ] T4 | Make mark --withdraw tell apart two clean/query rulings at one
+      address in flows/fill.py:678
+        > 2026-11-22 Check (M49): --withdraw --instruction query removes one of two

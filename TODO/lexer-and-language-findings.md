@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 69 of 76 tasks closed
+Progress: 69 of 84 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (/simplify rounds 1 and 2 and /code-review high round 3,
@@ -437,3 +437,27 @@ would.
       declaring when a Rust attribute is above it
 - [ ] T76 | Add RecursionError to PARSE_ERRORS at exceptions.py:63
         > 2026-11-22 Check: deep nesting under referrers' ast.parse is caught
+- [ ] T77 | Refuse a new Rust doc comment inside attribute token trees,
+      generics, where clauses at rust/documentation.py:226
+        > 2026-11-22 Check (M15): '#[derive(\n Debug, /// x' is refused
+- [ ] T78 | Make reading/rust/scanner.py:279 _shebang/_opens skip only non-doc
+      comments before '[', as rustc does
+        > 2026-11-22 Check (M16): '#! /// c' before '[allow(..)]' is refused
+- [ ] T79 | Add a literal-suffix step to reading/rust/scanner.py:396 so an r
+      after a closing quote opens no raw string
+        > 2026-11-22 Check (M17): m!("a"r"\" // c") offers no c1 place
+- [ ] T80 | Stop reading/rust/documentation.py:397 taking a braced const
+      expression in an item header as the body
+        > 2026-11-22 Check (M18): '//!' after 'S<const N: usize = { 3 }> {' is refused
+- [ ] T81 | Catch ast.parse's RecursionError with MemoryError at
+      concordance/code_names.py:66 as an unread gap
+        > 2026-11-22 Check (M26): a 2,969-term '+' chain file leaves gather exit 0
+- [ ] T82 | Pair docstring-escape diagnostics with the broken text at
+      reading/python/__init__.py:37
+        > 2026-11-22 Check (M81): a bad docstring escape gives a named refusal
+- [ ] T83 | Fix reading/rust/documentation.py:495 reading the wrong prose for
+      'x(); /* a */ /* b' closed on the next line
+        > 2026-11-22 Check (M82): that shape's place text is ' b' through '*/'
+- [ ] T84 | Make LEAD_PUNCT at reading/python/paragraph.py:33 strip a
+      docstring's quotes, plus the colon of '#:'
+        > 2026-11-22 Check (M84): a '#: TODO' line is not counted toward the cap

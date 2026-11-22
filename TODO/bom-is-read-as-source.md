@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 7 of 10 tasks closed
+Progress: 7 of 12 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-21 (the /code-review xhigh of 2026-08-21, focused on the file-to-
@@ -92,3 +92,9 @@ the first statement rather than as a `trailing-comment`, and no anchor is the BO
 - [ ] T10 | Read Python source with utf-8-sig before ast.parse at
       flows/gather.py:259, commands/referrers.py:62
         > 2026-11-22 Check: a BOM'd .py harvests its names; no SyntaxError gap row
+- [ ] T11 | Strip the BOM from line-1 raw_lines before flows/proof_setter.py:598
+      _reread compares them
+        > 2026-11-22 Check (M19): BOM + f0 '# licence' change drafts, exit 0
+- [ ] T12 | Index a derived drop on a BOM file's line 1 against BOM-free text at
+      reading/comment.py:383
+        > 2026-11-22 Check (M20): drop 'beta' at f0 derives '# Licence: alpha gamma'

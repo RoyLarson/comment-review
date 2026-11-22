@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 14 of 17 tasks closed
+Progress: 14 of 18 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-24 (P2 of refactor/the-boundaries-are-not-real, 2026-08-24)
@@ -63,3 +63,6 @@ The flow lives in the command, not in flows/.
 - [ ] T17 | Delete the module-does-one-job paragraph from the ten command
       modules restating it
         > 2026-11-22 Check: grep 'DOES ONE JOB' commands/ finds only __init__.py
+- [ ] T18 | Fix commands/gather.py:129's 'N of M files handed in' count, which
+      sums only the failures
+        > 2026-11-22 Check (M39): 3 targets, 1 missing, prints '1 of 3 files'

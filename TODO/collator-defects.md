@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 41 of 52 tasks closed
+Progress: 41 of 54 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, from the blind rewrite of collator.py -- the prose was
@@ -274,3 +274,9 @@ Four defects in collator.py, found by reading only the code.
         > 2026-11-22 Check: fill.py's docstring names no three-line window
 - [ ] T52 | Correct docs/the-mark.md:361's three-line window to the cited line
         > 2026-11-22 Check: the-mark.md states that verbatim starts on its cited line
+- [ ] T53 | Add the 'mark {n}' fallback desk/collator.py:384 verify_report
+      promises for an address-less mark
+        > 2026-11-22 Check (M47): a bad cite on an address-less clean names its mark
+- [ ] T54 | Refuse a path holding NUL before open() at flows/fill.py:229,
+      collator.py:178, source.py:47
+        > 2026-11-22 Check (M88): mark --cite with 'a\0b.py:1' is refused, no traceback

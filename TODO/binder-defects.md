@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 28 of 49 tasks closed
+Progress: 28 of 50 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, a code review of `binder/binder.py` run against its
@@ -289,3 +289,6 @@ task 5's, but the fix for these two lands in `binder/binder.py`.
         > 2026-11-22 Check: it names taken_in.py:121,124, gather.py:283, revise.py:279
 - [ ] T49 | Remove page_for's dead `edges` store at binder/page.py:756
         > 2026-11-22 Check: page_for assigns edges once
+- [ ] T50 | De-duplicate walked paths by resolved path, not spelling, in
+      flows/gather.py:122
+        > 2026-11-22 Check (M27): gather m.py sub/../m.py yields one page

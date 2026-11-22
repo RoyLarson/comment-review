@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 13 of 17 tasks closed
+Progress: 13 of 21 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-10 (live-run)
@@ -71,3 +71,14 @@ Use lexical code identity at both proof boundaries.
         > 2026-11-04 Prove against the machine/ sha; nothing need be committed
 - [ ] T17 | Remove the sibling line-ending lookup from prove_unchanged, per
       Process #104
+- [ ] T18 | Fix reading/python/preservation.py:266 erasing the newline of an
+      invisible line a backslash continuation joins
+        > 2026-11-22 Check (M10): dropping a comment after a backslash proves FAIL
+- [ ] T19 | Split a docstring joined to its def header by a backslash from the
+      header's logical line at python/line_breaks.py:56
+        > 2026-11-22 Check (M12): dropping that docstring is refused, not PROVEN
+- [ ] T20 | Fix reading/rust/preservation.py:31's unattached-doc test, which
+      checks presence instead of count
+        > 2026-11-22 Check (M13): adding '/// dangling' before a closing brace is FAIL
+- [ ] T21 | Fix commands/prove_unchanged.py:39 counting one unproven path as 2
+        > 2026-11-22 Check (M40): one unproven path prints '1 unproven'

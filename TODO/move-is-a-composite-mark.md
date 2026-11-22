@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 47 of 51 tasks closed
+Progress: 47 of 54 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, Roy ruling that a move is a composite mark rather than
@@ -339,3 +339,13 @@ and now there is one object that cannot be half-held.
         > 2026-09-30 Evidence and checks: docs/reviews/2026-09-30-r4.md, move tasks
 - [x] T51 | FINISHED -- a move's origin is set by Fragment.cut; no rewrap | 862cb59d | Fix
       `Comment.without_once`, which rewraps the text a move leaves at its origin
+- [ ] T52 | Fix desk/evaluate/passes.py:375 so a mover's withdraw at one end of
+      an agreed move leaves the sentence at one end
+        > 2026-11-22 Check (M1): probe_half_move.py leaves the sentence at b2 alone
+        > 2026-11-22 M1: where the guard goes needs Roy's ruling
+- [ ] T53 | Stop desk/evaluate/move.py:173 owing a withdrawn mover the placement
+      question, which a second withdraw refuses
+        > 2026-11-22 Check (M46): a second withdraw is not refused with a false message
+- [ ] T54 | Fix desk/marks/table.py:89 unwrapping a move snippet that opens with
+      a quoted word as a string literal
+        > 2026-11-22 Check (M76): moving '"fast" is the default.' empties the origin

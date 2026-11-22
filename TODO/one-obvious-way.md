@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 2 of 23 tasks closed
+Progress: 2 of 29 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-11-05 (Process #281 and the three flow audits, 2026-11-05)
@@ -61,3 +61,21 @@ evidence is checked when the task is worked.
 - [ ] T23 | Convert the flows that raise a refusal to return (result, reasons),
       as Process #353 rules
         > 2026-11-22 Check: no flow raises CannotTranscribe or AddressesMoved
+- [ ] T24 | Resolve path arguments against --repo, not the cwd, in
+      commands/referrers.py:51, prove_unchanged, compositor, taken_in
+        > 2026-11-22 Check (M4): referrers from outside the root lists the 8 referrers
+- [ ] T25 | Fold the address half like the page name in binder/addresses.py:46
+      addresses resolve
+        > 2026-11-22 Check (M25): addresses resolve M.py@b1 names the real place
+- [ ] T26 | Pass the copy's read_from root to fill when mark runs without
+      --repo, at commands/mark.py:248
+        > 2026-11-22 Check (M30): compact.md:36-38 as written exits 0
+- [ ] T27 | Make constants.py:134 utf8_console set stderr to UTF-8 as it does
+      stdout
+        > 2026-11-22 Check (M32): piped stderr of a non-ASCII NOT GATHERED line is UTF-8
+- [ ] T28 | Refuse a POSIX name holding a backslash at flows/gather.py:198,
+      which flattens it onto the slash path's address
+        > 2026-11-22 Check (M52): a repo with a\b.py beside a/b.py is refused at gather
+- [ ] T29 | Stop reading/addresser.py:931 folded using full casefold, which
+      merges Strasse.py with its sharp-s spelling
+        > 2026-11-22 Check (M83): Strasse.py and its sharp-s spelling get two addresses

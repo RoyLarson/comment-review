@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 6 of 9 tasks closed
+Progress: 6 of 11 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-08-20 (the /code-review high of 2026-08-20)
@@ -91,3 +91,8 @@ fails its own stage-4 gate.
         > 2026-11-22 Check: SKILL.md names no tie-break for two placements
 - [ ] T9 | Measure whether collate refuses taking in two moves from one origin
         > 2026-11-22 Check: a dated note records the probe's outcome
+- [ ] T10 | Make comment-review-ownership-context.md:66 send a move into an
+      ungathered file to a query, as reviewer-brief.md:284 does
+        > 2026-11-22 Check (M6): the role file says a move out of scope is a query
+- [ ] T11 | Make write.md:19 say how to set a 4c place on a page 4a also changed
+        > 2026-11-22 Check (M61): write.md gives the next step when the confirm fails

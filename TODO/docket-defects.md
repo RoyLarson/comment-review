@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 10 of 15 tasks closed
+Progress: 10 of 16 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, a code review of `docket/docket.py` run end to end
@@ -153,3 +153,6 @@ caller.
 - [ ] T15 | Point Schedule.path's docstring at docket.py:203-205 to can_escape
       at proof_setter.py:195
         > 2026-11-22 Check: the sentence names the one guard site
+- [ ] T16 | Refuse alteration text holding a lone surrogate at
+      docket/docket.py:177
+        > 2026-11-22 Check (M21): '# caf\ud83d' is refused at disposition, no traceback

@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 57 of 71 tasks closed
+Progress: 57 of 72 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, Roy ruling that containers are wired and that the
@@ -445,3 +445,6 @@ task 9 of [`move-is-a-composite-mark`](move-is-a-composite-mark.md).
 - [ ] T71 | Narrow MasterProof's proof-versus-copy read_from comparison to the
       root and revise fields
         > 2026-11-22 Check: an extra read_from key, same root, revise, is accepted
+- [ ] T72 | Type-check the Place/Move collection fields in
+      desk/proof/place.py:150 deserialize
+        > 2026-11-22 Check (M45): readers='abc' is refused, not three roles

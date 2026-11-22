@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 3 of 7 tasks closed
+Progress: 3 of 8 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-25 (decision-log Process #220, #221)
@@ -58,3 +58,6 @@ current corpus supplies.
       what `prove_unchanged` does with a file whose ending already differs from
       its siblings
         > 2026-11-08 Outside run: 22 false FAILs on all-LF files in a CRLF repo
+- [ ] T8 | Write taken_in's diff with the page's own line endings at
+      commands/taken_in.py:109
+        > 2026-11-22 Check (M36): git apply --check takes a CRLF page's diff on Windows

@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 5 of 14 tasks closed
+Progress: 5 of 16 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (Roy, 2026-08-22, on the exceptions.py layer: a human would have
@@ -127,3 +127,9 @@ either they take it through the path shim two of them already use (`render_brief
         > 2026-11-22 Check: each one left carries a comment saying which kind
 - [ ] T14 | Settle the four scripts/ files that define their own READ_ERRORS
         > 2026-11-22 Check: grep ^READ_ERRORS scripts/ is empty, or all four say why
+- [ ] T15 | Bind the except tuples at flows/proof_setter.py:396,
+      reading_context.py:138, master_proof.py:109 to names
+        > 2026-11-22 Check (M3): ruff --target-version py314 output parses on 3.11
+- [ ] T16 | Add an exception boundary at __main__.py:91 so a file read/write
+      error is a named refusal, not a traceback
+        > 2026-11-22 Check (M33): gather --out into a missing dir gives no traceback

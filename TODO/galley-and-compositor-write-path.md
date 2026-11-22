@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 75 of 85 tasks closed
+Progress: 75 of 89 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (code-review high round 3 and /simplify round 2, 2026-08-22 -- the
@@ -361,3 +361,14 @@ files in `corpora/` are in that state today.
 - [ ] T85 | State _reread's two unstated skips in its docstring: _holds_prose,
       kept's blank lines
         > 2026-11-22 Check: the docstring names both skips
+- [ ] T86 | Run the re-parse guard at reading/python/records.py:351 even when
+      the interpreter cannot parse the before file
+        > 2026-11-22 Check (M11): dropping a class's only docstring is refused on 3.11
+- [ ] T87 | Stop results/compositor.py:266 drafting a second blank line when a
+      comment is added under a header
+        > 2026-11-22 Check (M22): b1 add under 'class A:' then a blank keeps one blank
+- [ ] T88 | Drop the blank run above back matter at results/compositor.py:244
+      when f1 is removed
+        > 2026-11-22 Check (M23): dropping f1 drafts 'x = 1' with one final newline
+- [ ] T89 | Apply the --out guards to proof --to-docket at commands/proof.py:286
+        > 2026-11-22 Check (M31): --to-docket onto a page under review is refused

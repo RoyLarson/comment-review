@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 2 of 4 tasks closed
+Progress: 2 of 5 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-25 (the narrow guard fix on the write-chain branch, 2026-08-25 --
@@ -24,3 +24,6 @@ The draft guard trusts an into it never resolves.
 - [ ] T4 | Resolve `repo` once on entry to flows/gather.gather, whose walk
       compares resolved paths against it
         > 2026-11-22 Check: gather(Path('.'), [x.js]) lists x.js as freeform
+- [ ] T5 | Refuse a cited path that resolves outside the checkout through a
+      link, at flows/on_the_page.py:213
+        > 2026-11-22 Check (M50): a cite to link/secret.py:3 is refused at check

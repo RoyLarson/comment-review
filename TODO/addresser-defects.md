@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 3 tasks closed
+Progress: 0 of 4 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-11-08 (comment-review run over src/ since beta.7, 2026-11-08, 8198f716)
@@ -18,3 +18,6 @@ reading/addresser.py answers a miss with a real position.
 - [ ] T2 | Move `LEAD` to `binder/page.py`, its only reader
 - [ ] T3 | Refuse an address holding a carriage return by name, which today
       reads as naming no place
+- [ ] T4 | Fix reading/addresser.py:417 putting the comments directly around a
+      docstring in one gap
+        > 2026-11-22 Check (M78): '# one' / docstring / '# two' gathers, exit 0

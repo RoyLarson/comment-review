@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 19 of 23 tasks closed
+Progress: 19 of 26 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-11-02 (freeform plan Task 4 live run and stage walk, 2026-11-02)
@@ -94,3 +94,12 @@ What the first live freeform run showed.
       README.md:212's drop row
 - [ ] T23 | Stop the run when a freeform file is not formatter-clean before it
       starts, per Process #263
+- [ ] T24 | Correct SKILL.md:237's claim that a freeform-only dispatch has no
+      edit copy, which collate --topology requires
+        > 2026-11-22 Check (M54): one page plus web/app.js, n=2, collates exit 0
+- [ ] T25 | Add the missing inputs to SKILL.md:459's stage 6/8 dispatches
+      (script path, pages root, markers, address)
+        > 2026-11-22 Check (M60): the proofreader's addresses resolve call exits 0
+- [ ] T26 | Move the freeform-build removal at SKILL.md:489 after the freeform
+      re-check
+        > 2026-11-22 Check (M75): the 7a re-check finds its tree

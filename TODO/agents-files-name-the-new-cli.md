@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 51 of 60 tasks closed
+Progress: 51 of 82 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-09-04 (Roy, 2026-09-04, superseding the-flow-lives-in-the-command T4)
@@ -216,3 +216,69 @@ The agents files name the new CLI and say how to use it.
         > 2026-11-22 Check: SKILL.md stage 4 relaunches a role that never returns
 - [ ] T60 | Correct reviewer-brief.md:200's three-line window to the cited line
         > 2026-11-22 Check: the brief says verbatim starts on the cited line
+- [ ] T61 | Make write.md:49's 7b gate name the build root instead of running
+      prove_unchanged --repo . from an assumed cwd
+        > 2026-11-22 Check (M7): the gate prints FAIL for a changed return from any cwd
+- [ ] T62 | Make SKILL.md:435 hand stage 6 every page in scope, not only the
+      pages 4c changed
+        > 2026-11-22 Check (M8): an over-cap paragraph on a page 4c left alone is read
+- [ ] T63 | Make SKILL.md:261 build root4c with the untracked files the 4c roles
+      check claims against
+        > 2026-11-22 Check (M9): a cite to an un-added file resolves at 4c
+- [ ] T64 | Stop the turn loop at SKILL.md:340 (also reviewer-brief.md:406)
+      passing --repo ., which overrides the stage root
+        > 2026-11-22 Check (M53): a 4c cite correct for root4c passes check --answers
+- [ ] T65 | Prefix SKILL.md:341's turn outputs (proof<t>.json, batch<t+1>.json,
+      final.json) with the stage
+        > 2026-11-22 Check (M55): 4a and 4c write distinct final.json files
+- [ ] T66 | Single-quote the example values at reviewer-brief.md:180 so shell
+      metacharacters in a value reach mark unchanged
+        > 2026-11-22 Check (M56): a value holding a backtick is stored as typed
+- [ ] T67 | Correct SKILL.md:342's 'turn exits with the same codes', whose
+      exit-5 remedy reruns collate over committed turns
+        > 2026-11-22 Check (M57): SKILL.md gives turn's own remedy for each exit code
+- [ ] T68 | Correct the question line at SKILL.md:312 to the CLI's whole line,
+      whose tail an answer must match
+        > 2026-11-22 Check (M58): an answer to the documented line ends collate exit 5
+- [ ] T69 | Correct SKILL.md:297's exit-0 row, which skips the style-sheet
+      recast SKILL.md:370-374 requires
+        > 2026-11-22 Check (M59): following the row recasts '# one' to '# One.'
+- [ ] T70 | Say what to do at SKILL.md:163 when GATHERED reports 0 places, where
+      topology --build exits 2
+        > 2026-11-22 Check (M62): SKILL.md names the step for a zero-place scope
+- [ ] T71 | Make a stage carry out the author's 'move it' answer on detached
+      documentation recorded at SKILL.md:158
+        > 2026-11-22 Check (M63): a 'move it' answer ends with the doc moved
+- [ ] T72 | Remove the build/root4c worktrees on every exit from write.md:52's
+      Step 1
+        > 2026-11-22 Check (M64): a retry after a refused Step 1 succeeds
+- [ ] T73 | Show the run's changes with git diff <pre-edit ref> at write.md:77
+      (also SKILL.md:535), not a bare git diff
+        > 2026-11-22 Check (M65): uncommitted author edits are not shown as the run's
+- [ ] T74 | Stop SKILL.md:107 creating a branch named build when git stash
+      create prints nothing for untracked-only changes
+        > 2026-11-22 Check (M66): an untracked-only scope adds no branch to the repo
+- [ ] T75 | State at SKILL.md:27 that <run-dir> must sit outside the checkout,
+      since proof refuses an --out inside it
+        > 2026-11-22 Check (M67): SKILL.md says where <run-dir> may go
+- [ ] T76 | Correct reviewer-brief.md:384 to name the change key the parser
+      wants for a composition answer
+        > 2026-11-22 Check (M68): a composition answer written per the brief is taken
+- [ ] T77 | Correct reviewer-brief.md:185's 'mark refuses exactly what the fold
+      would refuse', false for an explicit --verbatim
+        > 2026-11-22 Check (M69): the brief matches mark --verbatim with a wrong cite
+- [ ] T78 | Tell the condenser at compact.md:66 to withdraw its query before
+      filing the answer's ruling
+        > 2026-11-22 Check (M70): following compact.md, collate stops asking
+- [ ] T79 | Make reviewer-brief.md:279's @path guidance work in PowerShell for a
+      literal value starting with @
+        > 2026-11-22 Check (M71): a literal '@x' value is stored, not opened as a file
+- [ ] T80 | Correct reviewer-brief.md:177's '--raw-text is left off at an empty
+      place', which mark refuses for a move
+        > 2026-11-22 Check (M72): a move to an empty place per the brief is placed
+- [ ] T81 | Reconcile SKILL.md:338's one answers file per role with a role split
+      into several dispatches
+        > 2026-11-22 Check (M73): two dispatches of one role can both answer a turn
+- [ ] T82 | Make SKILL.md:390's second disposition round accept the rulings
+      round 1 recorded
+        > 2026-11-22 Check (M74): rerunning disposition with round 1's rulings exits 0
