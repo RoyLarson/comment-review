@@ -123,7 +123,7 @@ def test_a_rollback_reports_its_refusals_and_nothing_else():
         "Refused",
         "RolledBack",
     ], fold.events
-    assert fold.events[-1] == events.RolledBack(reasons=2)
+    assert fold.events[-1] == events.RolledBack()
 
 
 def _a_place_of_each_kind() -> dict:
@@ -314,7 +314,7 @@ def test_a_moves_snippet_missing_from_its_origin_is_one_refusal():
             "m.py@b1",
             ("the snippet is not in the origin's paragraph: '# two\\n'",),
         ),
-        events.RolledBack(1),
+        events.RolledBack(),
     ]
 
 
@@ -339,7 +339,7 @@ def test_a_refused_placement_is_one_refusal_at_the_move():
             "m.py@b1 -> m.py@b5",
             ("clean is not an answer to a placement",),
         ),
-        events.RolledBack(1),
+        events.RolledBack(),
     ]
 
 

@@ -372,9 +372,9 @@ It opens no file and knows no container of the read or write end.
 | `CarriedForward` | the address, its state, its question and the roles it is put to |
 | `PlacementCarried` | an undecided move's two addresses, its placement and the roles it is put to |
 | `Advised` | what one role is told about one place without being refused for it |
-| `Settled` | one place the fold decided, the text if any, and the chief's ruling where there is one |
-| `Committed` | the count of places decided |
-| `RolledBack` | the count of reasons and human questions, and nothing saved |
+| `Settled` | one place the fold decided, with the chief's ruling where there is one |
+| `Committed` | the fold committed |
+| `RolledBack` | the fold rolled back and saved nothing |
 
 **An advisory note decides nothing** -- `decision-log.md Process: #177`. The `correct` row's
 `notes` cell reports a change that drops words the claim never named; the fold emits an

@@ -469,7 +469,7 @@ $Stages = [ordered]@{
             $Cmd.mark, '--edit-copy', $CopyFile['block-context'], '--address', 'fib.py@a0',
             '--instruction', 'add',
             '--missing', 'nothing states why the recursion is counted',
-            '--anchor', '`__doc__`', '--anchor-line', '<module>',
+            '--anchor', '`__doc__`',
             '--change', 'and why it is counted',
             '--raw-text', "@$($LandingFile.fib_a0)",
             '--reason', 'the module docstring says what it counts but not what for',
@@ -492,7 +492,7 @@ $Stages = [ordered]@{
             $Cmd.mark, '--edit-copy', $CopyFile['ownership-context'], '--address', 'fib.py@c12',
             '--instruction', 'add',
             '--missing', 'nothing notes which values are already fibonacci numbers',
-            '--anchor', '`n < 2`', '--anchor-line', '    if n < 2:',
+            '--anchor', '`n < 2`',
             '--change', '0 and 1 are already fibonacci numbers',
             '--raw-text', "@$($LandingFile.fib_c12)",
             '--reason', 'the base case deserves saying why it needs no recursion',
@@ -518,7 +518,7 @@ $Stages = [ordered]@{
             $Cmd.mark, '--edit-copy', $CopyFile['block-context'], '--address', 'fib.py@b8',
             '--instruction', 'add',
             '--missing', 'nothing notes that counting is finished before wrapper returns',
-            '--anchor', '`return wrapper`', '--anchor-line', '    return wrapper',
+            '--anchor', '`return wrapper`',
             '--change', "@$($LandingFile.fib_b8)",
             '--reason', 'the return is the last step and nothing says so',
             '--cite', 'fib.py:18', '--repo', $OriginalDir
@@ -528,7 +528,7 @@ $Stages = [ordered]@{
             $Cmd.mark, '--edit-copy', $CopyFile['module-context'], '--address', 'fib.py@b17',
             '--instruction', 'add',
             '--missing', 'nothing notes that the module has nothing left to do here',
-            '--anchor', '`__main__`', '--anchor-line', '<eof>',
+            '--anchor', '`__main__`',
             '--change', "@$($LandingFile.fib_b17)",
             '--reason', 'the module ends here and nothing says so',
             '--cite', 'fib.py:34', '--repo', $OriginalDir
@@ -538,7 +538,7 @@ $Stages = [ordered]@{
             $Cmd.mark, '--edit-copy', $CopyFile['function-context'], '--address', 'fib.py@c3',
             '--instruction', 'add',
             '--missing', "nothing notes that wraps preserves fn's identity",
-            '--anchor', '`functools.wraps`', '--anchor-line', '    @functools.wraps(fn)',
+            '--anchor', '`functools.wraps`',
             '--change', "@$($LandingFile.fib_c3)",
             '--reason', 'the decorator is why wrapper still looks like fn',
             '--cite', 'fib.py:12', '--repo', $OriginalDir
@@ -754,7 +754,6 @@ $Stages = [ordered]@{
             $Cmd.mark, '--edit-copy', $CopyFile['function-context'], '--address', 'fib.py@a2',
             '--instruction', 'add',
             '--missing', 'wrapper has no docstring', '--anchor', '`wrapper`',
-            '--anchor-line', '    def wrapper(n):',
             '--change', "@$($LandingFile.fib_a2)",
             '--reason', 'wrapper is the declared function; logged only wraps it',
             '--cite', 'fib.py:13', '--repo', $OriginalDir
@@ -781,9 +780,6 @@ $Stages = [ordered]@{
             Write-Host "command: $(Format-CommandLine $addresserCommand)"
             exit 1
         }
-        # The repr's enclosing quotes are its only escaping on this line,
-        # which holds no single quote and no backslash.
-        $addedAnchorLine = $fields[1].Substring(1, $fields[1].Length - 2)
         # `write_texts` names an add's file after its address's page and cue,
         # which `smoke_fixture.file_for` spells and this composes to match.
         $addedParts = $addedAddress.Split('@')
@@ -792,7 +788,7 @@ $Stages = [ordered]@{
             $Cmd.mark, '--edit-copy', $CopyFile['module-context'], '--address', $addedAddress,
             '--instruction', 'add',
             '--missing', 'nothing says what running the module directly does',
-            '--anchor', '`__name__`', '--anchor-line', $addedAnchorLine,
+            '--anchor', '`__name__`',
             '--change', "@$addedFile",
             '--reason', 'the entry point is where a reader looks to see how it runs',
             '--cite', "fib.py:$($row.line)", '--repo', $OriginalDir
@@ -1371,7 +1367,8 @@ $Stages = [ordered]@{
             '--batch-out', $OtherBatchFile
         )
         $refused = Invoke-Checked -Stage 'collate from two trees refused' -Expect 1 -Capture -CommandLine $mismatched
-        if (-not (($refused -join "`n").Contains('copies from different trees share no address space'))) {
+        $treeRefusal = $refused | Where-Object { $_.Contains('copy and binder name different gathered trees') }
+        if (-not ($treeRefusal -match '/other' -and $treeRefusal -match '/original')) {
             Write-Host 'stage failed: collate from two trees refused'
             Write-Host 'expected a refusal naming the two trees; collate printed:'
             $refused | Out-Host

@@ -8,7 +8,6 @@
     verify_report()            those three, over every ruled mark of one
                                edit_copy
     Problem                    one thing wrong with one mark, named to route
-    tally()                    how many of each instruction the edit_copy carries
 
 !! TWO KINDS OF CHECK, AND WHAT EACH NEEDS IS WHAT SEPARATES THEM. NAMED BY
 MEMBER, NOT BY FILE-ORDER RANGE -- `desk/marks/rules.py` answers everything a
@@ -23,8 +22,8 @@ THE BINDER CARRIES IS NOT ASKED, since 2026-09-05 -- `decision-log.md Process:
 place it dropped and a `move` may cite a file it never held;
 `flows.verify.resolution_problems` opens the page and says whether the place
 exists.
-One kind needs only the report itself, and nothing outside it (`Problem`,
-`tally`) -- `decision-log.md Process: #54` put them here because they ask
+One kind needs only the report itself, and nothing outside it (`Problem`).
+`decision-log.md Process: #54` put these checks here because they ask
 about the SET, and one mark cannot answer for the set alone. ! TWO MORE
 STOOD IN THAT GROUP UNTIL `P52`; `flows.mark_errors` answers what they did.
 Nothing here compares a returned `raw_text` with what was seeded: the middle
@@ -48,7 +47,7 @@ mark: an entry that is not an object produces one carrying `address=""`, with
 nothing in the message naming a mark at all.
 
 !! EVERY FUNCTION HERE TAKES A CONTAINER, NEVER A WIRE DICT, since 2026-08-31
--- `P42`, `decision-log.md Process: #65`. `verify_report` and `tally` take an
+-- `P42`, `decision-log.md Process: #65`. `verify_report` takes an
 `EditCopy`.
 
 !! AND THE DOCKET IS NOT BUILT HERE, since `P55`. `docket_from` and
@@ -68,9 +67,8 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from comment_review import constants
-from comment_review.desk.marks.table import INSTRUCTIONS
 from comment_review.desk.proof.edit_copy import EditCopy
-from comment_review.desk.proof.mark import Instruction, Mark, filled, without_location
+from comment_review.desk.proof.mark import Mark, filled, without_location
 from comment_review.desk.proof.source import entry_problems
 from comment_review.exceptions import READ_ERRORS
 from comment_review.machine.repo import can_escape, read_raw
@@ -429,24 +427,3 @@ def verify_report(
 #: a role wrote in and got WRONG still counts as ruled, and is not a coverage gap
 #: -- survives in `tests/test_collator.py::_ruled_places`, derived from the
 #: container where the cases that assert it live.
-
-
-def tally(copy: EditCopy) -> dict[Instruction, int]:
-    """How many of each instruction the edit_copy carries, for a one-line summary.
-
-    !! WALKED A TOP-LEVEL `marks` KEY UNTIL 2026-08-29 -- one `seed()` no
-    longer writes, since an edit_copy's marks nest one level down inside
-    `sheets`. On the reshaped report that read a KEY THAT NO LONGER EXISTS, so
-    the walk silently fell back to `[]` and this returned `{}` for every real
-    edit_copy, ruled or not -- a crash turned silent. ! THAT IS UNREACHABLE
-    NOW rather than merely fixed: an `EditCopy` has no such key to read.
-    """
-    # ! IT COUNTS `Mark.instruction`, WHICH IS THE MEMBER, since `P51`. It read
-    # the wire string and matched it against the members -- `Instruction` is a
-    # `StrEnum`, so `"clean"` found its counter -- and a parsed mark carries the
-    # member itself, so the string round trip has nothing left to do.
-    counts = dict.fromkeys(INSTRUCTIONS, 0)
-    for sheet in copy.sheets:
-        for mark in sheet.marks:
-            counts[mark.instruction] += 1
-    return {name: n for name, n in counts.items() if n}

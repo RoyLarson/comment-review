@@ -1691,7 +1691,6 @@ REPLACED_MARKS: dict[str, tuple[dict, ...]] = {
                 "--instruction": "add",
                 "--missing": "nothing says every logged function shares one count",
                 "--anchor": "`global CALLS`",
-                "--anchor-line": "        global CALLS",
                 "--change": "@" + file_for(TODO_AT),
                 "--reason": "the author asked for a TODO naming the code concern",
                 "--cite": "fib.py:14",

@@ -32,7 +32,6 @@ from conftest import ROOT
 from helpers import a_binder_over, returned
 
 from comment_review.commands.collate import main as collate_main
-from comment_review.desk.collator import tally
 from comment_review.desk.proof.mark import read_mark, untouched
 from comment_review.flows.mark_errors import mark_errors
 
@@ -55,7 +54,7 @@ EXAMPLE = the_briefs_worked_example()
 #: The one mark that example carries.
 ENTRY = EXAMPLE["sheets"][0]["marks"][0]
 #: The same example through the boundary the flow runs it through -- what
-#: `problems_in`, `unruled` and `tally` take since `P42`. ! IT IS ALSO A CLAIM
+#: the proof readers take. ! IT IS ALSO A CLAIM
 #: ABOUT THE BRIEF: the block a role is shown must parse as an `EditCopy`, and
 #: `returned` asserts that here rather than letting a malformed example reach
 #: the functions below as a surprising result.
@@ -93,10 +92,6 @@ def test_the_example_is_ONE_RULED_MARK_and_owes_nothing():
     assert [mark.address for sheet in PARSED.sheets for mark in sheet.marks] == [
         ENTRY["address"]
     ]
-
-
-def test_tally_names_the_instruction_the_brief_wrote():
-    assert tally(PARSED) == {ENTRY["instruction"]: 1}
 
 
 def test_collate_refuses_the_examples_fictional_installed_context(

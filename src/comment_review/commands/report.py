@@ -65,11 +65,7 @@ def human_answers(path: str | None) -> tuple[tuple[HumanAnswer, ...], list[str]]
 
 
 def lines(event: object) -> list[str]:
-    """One event as the lines a reader sees, or none where it reports nothing.
-
-    `Committed` and `RolledBack` carry a count of the places decided or the
-    reasons refused, and every one of those has already printed its own line.
-    """
+    """One event as the lines a reader sees, or none where it reports nothing."""
     if isinstance(event, events.AsksTheHuman):
         if event.answer:
             return [

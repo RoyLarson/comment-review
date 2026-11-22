@@ -30,11 +30,6 @@ A source is `--cite`, and `--verbatim` or `--ran` binds to the `--cite`
 before it. A `--cite` with no `--verbatim` has the cited line read out of the
 checkout by the flow.
 
-! `--anchor-line` IS NOT `--anchor`. The first is the line of code a slot
-CREATED here sits on -- an `add` at an empty place, which the binder does not
-carry -- as `addresses find` printed it. The second is `add`'s claim key: the
-anchor NAMED in backticks.
-
 `--change` is the text that moves or arrives and `--raw-text` is the
 paragraph it lands in -- `decision-log.md Process: #172`, `#175` and `#176`.
 An `add` gives the snippet in `--change` and the paragraph as it will read in
@@ -166,8 +161,6 @@ def _entry(args: argparse.Namespace) -> tuple[dict, list[str]]:
             entry[key] = getattr(args, key)
     if args.sources:
         entry["sources"] = args.sources
-    if args.anchor_line:
-        entry["anchor"] = args.anchor_line
     return entry, []
 
 
@@ -222,11 +215,6 @@ def main() -> int:
     )
     ap.add_argument(
         "--ran", dest="sources", action=_Source, help="the command that settled it"
-    )
-    ap.add_argument(
-        "--anchor-line",
-        help="the line of code a slot created here sits on, as `addresses find`"
-        " printed it",
     )
     ap.add_argument("--repo", help="the checkout a bare --cite is read from")
     argv, why = _expanded(sys.argv[1:])

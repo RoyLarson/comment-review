@@ -34,7 +34,6 @@ from comment_review.desk.collator import (
     claim_verbatim_problems,
     source_problems,
     source_verification,
-    tally,
     verify_report,
 )
 from comment_review.desk.proof.edit_copy import EditCopy
@@ -670,32 +669,3 @@ def test_a_copy_carrying_a_code_concern_validates():
     copy = returned(wire)
     assert mark_errors([copy]) == []
     assert _ruled_places(copy) == 0
-
-
-def test_tally_counts_a_ruled_mark_wherever_its_sheet_sits():
-    # INPUT FROM REALITY: a real binder through the real seed(), then filled
-    # exactly as a role legitimately would. `tally` walked `report["marks"]`, a
-    # top-level key `seed()` has not written since 2026-08-29 -- so on today's
-    # nested shape it silently returned `{}` for every sheet, ruled or not,
-    # rather than raising or reporting.
-    #
-    # !! THE MARK IS BUILT BY `a_correct` SINCE `P51`, AND THAT IS A FINDING
-    # RATHER THAN A FIXTURE REPAIR. It was a hand-written dict carrying
-    # `"sources": []`, which the mark's own read REFUSES -- *"needs at least one
-    # source"*. The old `tally` counted it anyway, because it read the
-    # `instruction` string off the entry and never parsed it: **it was counting
-    # marks that are not marks**. Counting `Sheet.marks` cannot, so the fixture
-    # had to become a mark that really parses.
-    wire = seed(binder_of(DESK, 0), "block-context")
-    entry = wire["sheets"][-1]["marks"][0]
-    entry.update(a_correct(entry["address"]))
-    assert tally(returned(wire)) == {Instruction.CORRECT: 1}
-
-
-def test_tally_of_a_freshly_seeded_sheet_is_empty():
-    # ! An unruled sheet's `{}` is the CORRECT answer -- every mark is still
-    # `None`, so nothing has an instruction to count. This is what
-    # distinguishes it from the silent `{}` the bug above produced for a
-    # RULED sheet: the same return value, for opposite reasons.
-    copy = returned(seed(binder_of(DESK, 0), "block-context"))
-    assert tally(copy) == {}

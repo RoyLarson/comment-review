@@ -85,43 +85,28 @@ class Advised(NamedTuple):
 
 
 class Settled(NamedTuple):
-    """One place a fold decided, and the text it settled on, if any.
+    """One place a fold decided, with the chief's ruling where there is one.
 
     A committed fold's only, as the module docstring says.
     """
 
     address: str
-    text: str | None
     disposition: Disposition | None = None
 
 
 class Committed(NamedTuple):
     """The fold committed: every place decided, none refused."""
 
-    places: int
-
 
 class RolledBack(NamedTuple):
-    """The fold rolled back: at least one refusal or human question, nothing saved.
-
-    `reasons` counts the reasons across the `Refused` events before it and one
-    per `AsksTheHuman`.
-    """
-
-    reasons: int
+    """The fold rolled back: at least one refusal or human question, nothing saved."""
 
 
 def rollback(
     blockers: Iterable[Refused | AsksTheHuman],
 ) -> list[Refused | AsksTheHuman | RolledBack]:
     """Report the blockers in order, then the rollback they caused."""
-    report: list[Refused | AsksTheHuman | RolledBack] = []
-    reasons = 0
-    for event in blockers:
-        report.append(event)
-        reasons += len(event.reasons) if isinstance(event, Refused) else 1
-    report.append(RolledBack(reasons))
-    return report
+    return [*blockers, RolledBack()]
 
 
 Event = (

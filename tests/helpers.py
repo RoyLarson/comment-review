@@ -620,7 +620,7 @@ def returned(wire: dict, where: str = "copy") -> EditCopy:
     A test builds the wire dict a role hands back -- `flows.distribute.seed`,
     then whatever the case writes into a slot -- and this is the boundary
     the fold runs it through before the per-mark checks,
-    `verify_report`, `unruled` or `tally` sees it.
+    `verify_report` or `unruled` sees it.
 
     ! IT ASSERTS THE PARSE SUCCEEDED, so a fixture that has quietly stopped
     being a well-formed copy fails HERE, naming the field, rather than as a

@@ -1178,11 +1178,11 @@ class TestAHumanQuestion:
         assert not (tmp_path / "proof.json").exists()
 
 
-def test_rollback_counts_grouped_refusals_and_human_questions():
+def test_rollback_preserves_grouped_refusals_and_human_questions():
     refused = events.Refused("block-context", "m.py@b1", ("first", "second"))
     question = events.AsksTheHuman("function-context", "m.py@b2", "which?")
     out = events.rollback([refused, question])
-    assert out == [refused, question, events.RolledBack(3)]
+    assert out == [refused, question, events.RolledBack()]
     assert report.code_for(out) == report.BROKEN
     assert report.code_for(events.rollback([question])) == report.ASKS_THE_HUMAN
 
@@ -1205,9 +1205,9 @@ def test_a_human_question_prints_what_to_do_and_exits_asks_the_human():
         "answered by the human m.py@b1: block-context -- Yes.; block-context"
         " replaces this query with its mark or answer"
     ]
-    assert code_for([open_, events.RolledBack(1)]) == ASKS_THE_HUMAN
+    assert code_for([open_, events.RolledBack()]) == ASKS_THE_HUMAN
     refused = events.Refused("module-context", "m.py@b1", ("bad",))
-    assert code_for([refused, open_, events.RolledBack(2)]) == BROKEN
+    assert code_for([refused, open_, events.RolledBack()]) == BROKEN
 
 
 def test_an_undecided_move_prints_one_line_and_sets_the_exit_code():
@@ -1224,8 +1224,8 @@ def test_an_undecided_move_prints_one_line_and_sets_the_exit_code():
         "m.py@b1", "m.py@b5", Placement.CONTESTED, ("a", "b")
     )
     assert lines(opened) == ["open m.py@b1 -> m.py@b5: b (placement)"]
-    assert code_for([opened, events.Committed(2)]) == REREADS
-    assert code_for([contested, events.Committed(2)]) == ESCALATIONS
+    assert code_for([opened, events.Committed()]) == REREADS
+    assert code_for([contested, events.Committed()]) == ESCALATIONS
 
 
 class TestACorrectionToTheMatterAsksTheHuman:

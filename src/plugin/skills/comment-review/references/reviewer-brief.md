@@ -180,8 +180,7 @@ python <skill>/scripts/comment-review.py mark --edit-copy <EDIT COPY> --repo <RE
 - **A value that spans lines is a file**: write it with your file-write tool and pass `@path`.
 - **Two rulings on one paragraph are two invocations** at the same `--address`. Rulings on
   different sentences compose; a second ruling on the same sentence is refused, naming both.
-- **An `add` at an empty place** carries `--anchor-line`, the line of code `addresses find`
-  printed for it, and the slot is created.
+- **An `add` at an empty place** creates the slot at the address from `addresses find`.
 
 `mark` refuses exactly what the fold would refuse, writes nothing when it does, and says why.
 `mark --withdraw --address <address> --instruction <instruction>` takes back that one
@@ -264,8 +263,8 @@ is a `patch` to the general rule.
 
 An `add` cites the empty place the prose belongs in, and its finding is a constraint the code
 holds that no prose states. Ask `addresses find` for that place by the line of code it belongs to
--- an anchor is a line of code, `def f():` -- and file the mark at that address with
-`--anchor-line`. Its `anchor` claim names that line of code in backticks.
+-- an anchor is a line of code, `def f():` -- and file the mark at that address. Pass the
+anchor claim with `--anchor`, naming that line of code in backticks.
 
 ### `move`
 
