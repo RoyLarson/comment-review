@@ -1,10 +1,10 @@
 # A serialisation failure and an approved drop are the same bytes
 
 ```
-Status:   decision-needed
-Progress: 1 of 3 tasks closed
+Status:   closed
+Progress: 3 of 3 tasks closed
 Owner:    backend
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-25 (xhigh wave C on feat/the-write-chain-of-command, finding 2)
 ```
 
@@ -39,12 +39,12 @@ well, which is `agents` lane work.
 
 ## Tasks
 
-- [?] T1 | Rule whether an approved drop keeps a distinguishable spelling from a
-      JSON null
+- [-] T1 | Moot: nothing writes a null drop; Process #327 | 836169cd710eb412adb9b0bb4da57e369c406b59 | Rule
+      whether an approved drop keeps a distinguishable spelling from a JSON null
         > 2026-11-22 Outcome: moot; nothing writes a null drop (Process #327)
 - [-] T2 | SUPERSEDED by T3: docket.read became Docket.deserialize | 22c3a0abcbc86509c74296319ce5b719a43338ca | If
       it does, change docket.read to that spelling and pin both the accept and
       the refuse
-- [ ] T3 | Make Docket.deserialize read the drop spelling T1 rules, if T1 keeps
-      one
+- [-] T3 | Moot: T1 keeps no distinct drop spelling; Process #327 | 836169cd710eb412adb9b0bb4da57e369c406b59 | Make
+      Docket.deserialize read the drop spelling T1 rules, if T1 keeps one
         > 2026-11-22 Check: a case accepts the spelling; another refuses null

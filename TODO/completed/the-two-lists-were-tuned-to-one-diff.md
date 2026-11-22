@@ -1,10 +1,10 @@
 # The acquittal and suppression lists are deleted -- five entries need re-deriving
 
 ```
-Status:   decision-needed
-Progress: 4 of 9 tasks closed
+Status:   closed
+Progress: 9 of 9 tasks closed
 Owner:    agents
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-16 (Roy: "yes drop both lists / and lets create a todo to clean up
           those entries - because several of them do not follow this own skills rules")
 Triaged:  2026-08-23 -- one box held an argument about `states-the-signature` with no state
@@ -104,16 +104,19 @@ since it currently only survives in code comments where it doesn't belong in the
 
 ## Tasks
 
-- [?] T1 | T1 -- * Rule on **re-run the arithmetic** -- keep it as a check
-      beside the checks it duplicates, or drop it. Verify: the ruling is written
-      in `docs/decision-log.md`.
+- [-] T1 | Covered: block-context re-runs worked examples; no decision owed; Process #326 | 836169cd710eb412adb9b0bb4da57e369c406b59 | T1
+      -- * Rule on **re-run the arithmetic** -- keep it as a check beside the
+      checks it duplicates, or drop it. Verify: the ruling is written in
+      `docs/decision-log.md`.
         > 2026-11-22 Outcome: covered by block-context; no decision owed (#326)
-- [?] T2 | T2 -- * Rule on **verify a guard is really absent**, re-derived as
-      the `guard` / `unguarded-invariant` split. Verify: the ruling is in
+- [-] T2 | Covered: function-context checks guards and absences; no decision owed; Process #326 | 836169cd710eb412adb9b0bb4da57e369c406b59 | T2
+      -- * Rule on **verify a guard is really absent**, re-derived as the
+      `guard` / `unguarded-invariant` split. Verify: the ruling is in
       `docs/decision-log.md`.
         > 2026-11-22 Outcome: covered by function-context; no decision owed (#326)
-- [?] T3 | T3 -- * Rule on **an expiry condition already met is not an
-      acquittal**. Verify: the ruling is written in `docs/decision-log.md`.
+- [x] T3 | Ruled: a met expiry is a false present claim, already covered; Process #326 | 836169cd710eb412adb9b0bb4da57e369c406b59 | T3
+      -- * Rule on **an expiry condition already met is not an acquittal**.
+      Verify: the ruling is written in `docs/decision-log.md`.
         > 2026-11-22 Outcome: covered; a met expiry is a false claim (Process #326)
 - [x] T4 | FINISHED | unknown | T4 -- FINISHED 2026-08-16. The `clean` clause
       was restored in `clean`'s own section of `reviewer-brief.md` and points at
@@ -121,15 +124,17 @@ since it currently only survives in code comments where it doesn't belong in the
 - [x] T5 | FINISHED | unknown | T5 -- SUPERSEDED. This box held the
       `states-the-signature` argument, which cannot be finished; it is stated in
       the Objective above and the record stays.
-- [?] T6 | T6 -- * Rule on `names-its-line` -- name what is lost by its absence,
-      or record that nothing is. Verify: the ruling is written in
+- [x] T6 | Ruled: nothing is lost without names-its-line; Process #326 | 836169cd710eb412adb9b0bb4da57e369c406b59 | T6
+      -- * Rule on `names-its-line` -- name what is lost by its absence, or
+      record that nothing is. Verify: the ruling is written in
       `docs/decision-log.md`.
         > 2026-11-22 Outcome: nothing lost without names-its-line (Process #326)
 - [x] T7 | FINISHED | unknown | T7 -- FINISHED 2026-08-16. `detector` is
       DELETED, along with everything the suppression list supported.
-- [?] T8 | T8 -- * Rule on whether **batch to triage** survives without its
-      rates, which were measured on one repository. Verify: the ruling is
-      written in `docs/decision-log.md`.
+- [-] T8 | Moot: no annotation reaches a reviewer; Process #326 | 836169cd710eb412adb9b0bb4da57e369c406b59 | T8
+      -- * Rule on whether **batch to triage** survives without its rates, which
+      were measured on one repository. Verify: the ruling is written in
+      `docs/decision-log.md`.
         > 2026-11-22 Outcome: moot; no annotation reaches a reviewer (Process #326)
 - [x] T9 | grep -rniE acquit / suppression / jurisdiction over plugins/ and src/ is empty; e94a200e removed the last three hits from plugins/ | e94a200e | T9
       -- Sweep the remaining judicial register out of the shipped tree. Verify:
