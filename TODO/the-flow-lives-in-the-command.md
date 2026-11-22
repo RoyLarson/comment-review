@@ -37,16 +37,16 @@ The flow lives in the command, not in flows/.
 - [-] T8 | Replaced by source-reading-contract T6: structured page failure admission | b03adaa8 | Update
       page_of to return (None, reason) for an unparsed page so _pages drops its
       bare except and kind scan. Verify: one call in _pages
-- [-] T9 | Roy 2026-11-10: not needed; the command's two checks already state the order | e2ffd747 | Implement
+- [-] T9 | Existing gather refusal checks already establish the order. | d7e32adb | Implement
       flows.gather.refusal(got) deciding the refusal order once; the command
       prints it. Verify: gather.py decides no order
-- [-] T10 | Into only-a-flow-reaches-the-machine T9: concordance's git and walk_files | d7e32adb | Update
+- [-] T10 | Reassigned to only-a-flow-reaches-the-machine T9. | 9ca77118 | Update
       _annotations to call git ls-files once and code_names to walk the tracked
       list, not an rglob. Verify: one subprocess per gather
 - [x] T11 | RULED Process 93 -- a step that fails stops the chain there; nothing downstream runs over it | 4545531e | Decide
       whether a gather that will refuse still runs stage 3 for the text listing.
       Verify: the flow matches the ruling
-- [-] T12 | Roy 2026-11-10: concordance work; move filed on concordance-module T1 | d7e32adb | Update
+- [-] T12 | Reassigned to concordance-module T1. | 9ca77118 | Update
       _repeated_literals to run prose_numbers once per paragraph. Verify: one
       pass keeps the pairs
 - [x] T13 | A step that names a gap is the last that runs; tested both gap kinds | e2ffd747 | Update
