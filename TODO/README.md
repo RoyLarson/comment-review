@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (94)
+### open  (93)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -198,17 +198,16 @@ that changed a published name or rule:
 | [unaddressed-is-quadratic](unaddressed-is-quadratic.md) | backend | -- | 3/6 | unaddressed() groups by path for a question that needs one flat pass |
 | [stale-claims-after-the-envelope](stale-claims-after-the-envelope.md) | backend | -- | 7/12 | Shipped prose still describes formats and flags this branch deleted |
 | [census-walks-and-flushes](census-walks-and-flushes.md) | backend | -- | 7/8 | census.py walks the whole repo, runs git twice, and its run-flush never fires |
-| [galley-and-compositor-write-path](galley-and-compositor-write-path.md) | backend | -- | 73/85 | The galley can overwrite the file under review, and the compositor reads through a normaliser |
+| [galley-and-compositor-write-path](galley-and-compositor-write-path.md) | backend | -- | 74/85 | The galley can overwrite the file under review, and the compositor reads through a normaliser |
 | [exception-hierarchy](exception-hierarchy.md) | backend | -- | 5/14 | Named tuples give us the seam; the hierarchy that catches our own types is not built |
 | [language-rows-in-toml](language-rows-in-toml.md) | backend | -- | 18/20 | 18 rows of pure data sit in shipped Python; references/vocabulary.toml is the pattern |
 | [computed-and-never-read](computed-and-never-read.md) | backend | -- | 14/20 | The insert line, the matter branch, the paragraph index and two repeated full-file scans -- each needs more than a comment fix |
 | [dangling-links-resolve-nowhere](dangling-links-resolve-nowhere.md) | systems | -- | 6/7 | 31 relative links resolve nowhere, and two of them are in a live TODO |
 | [drop-the-column](drop-the-column.md) | backend | -- | 9/10 | the column is len(anchor)+1 everywhere; the address system answers what it was added for |
-| [held-runs-need-a-one-off-migration](held-runs-need-a-one-off-migration.md) | testing | -- | 3/5 | the report cannot name a place, but the recorded hash can -- a script, not a feature |
 | [the-roles-are-named-for-what-they-read](the-roles-are-named-for-what-they-read.md) | agents | -- | 2/7 | block-context etc. become the editorial desks; unlike `block` these ARE on the wire |
 | [lookup-parses-whole-census](lookup-parses-whole-census.md) | backend | -- | 13/16 | A lookup is O(project), not O(file) -- 1.1s per lookup extrapolated at 500k lines; sharding or batching fixes it, re-lexing trades away staleness detection |
 | [verdicts-is-the-join](verdicts-is-the-join.md) | backend | -- | 11/13 | The VERDICTS table lives in record.py; verdicts.py is the collator and 43 sites say so |
-| [nothing-runs-the-whole-chain](nothing-runs-the-whole-chain.md) | backend | -- | 3/7 | Every stage of the backend has its own tests and nothing runs census -> seed -> record -> join -> galley -> compositor -> prove in one pass. So the redesign phase has no measurement to hold constant, and a defect that lives BETWEEN two stages is invisible to every gate this repo has. |
+| [nothing-runs-the-whole-chain](nothing-runs-the-whole-chain.md) | backend | -- | 4/7 | Every stage of the backend has its own tests and nothing runs census -> seed -> record -> join -> galley -> compositor -> prove in one pass. So the redesign phase has no measurement to hold constant, and a defect that lives BETWEEN two stages is invisible to every gate this repo has. |
 | [settle-carries-two-meanings](settle-carries-two-meanings.md) | systems | -- | 3/8 | settle carries two meanings in what an agent is handed, and neither is declared to it |
 | [the-flow-lives-in-the-command](the-flow-lives-in-the-command.md) | backend | -- | 14/17 | Lifting main() out showed the orchestration was always inside it: commands/census.py took 446 lines and calls page_for, while flows/census.py kept 261 lines of helpers. A command is meant to EXPOSE a flow, not be one. |
 | [two-areas-have-no-tests](two-areas-have-no-tests.md) | backend | -- | 1/5 | tests/ mirrors the package, so an area with no directory is a visible hole. machine/ (repo, constants, exceptions) and commands/ (all ten) have none. repo is exercised only through flows/test_census_names.py, which tests something else. |
@@ -251,7 +250,7 @@ that changed a published name or rule:
 | [a-non-code-document-has-no-read-review-resolve-or-write-chain-of-its-own](a-non-code-document-has-no-read-review-resolve-or-write-chain-of-its-own.md) | backend | -- | 0/2 | A non-code document has no read, review, resolve or write chain of its own |
 | [re-review-is-retired-for-revise](re-review-is-retired-for-revise.md) | agents | -- | 5/7 | re-review is retired for revise |
 | [agents-files-name-the-new-cli](agents-files-name-the-new-cli.md) | agents | -- | 51/60 | The agents files name the new CLI and say how to use it |
-| [reviewer-prose-is-rules-not-guidance](reviewer-prose-is-rules-not-guidance.md) | agents | -- | 11/17 | The reviewer prose is rules and punishments, not guidance toward a good result |
+| [reviewer-prose-is-rules-not-guidance](reviewer-prose-is-rules-not-guidance.md) | agents | -- | 12/17 | The reviewer prose is rules and punishments, not guidance toward a good result |
 | [the-chief-has-no-recast-workflow](the-chief-has-no-recast-workflow.md) | backend | -- | 17/19 | cap applies the chief's rulings and closes the stage, but a recast is written out as a correct, so a recast of an add at an empty place writes nothing and exits 0. |
 | [exit-codes-are-an-enum](exit-codes-are-an-enum.md) | backend | -- | 1/6 | Exit codes are written in thirteen places |
 | [command-help-carries-history](command-help-carries-history.md) | backend | -- | 0/1 | Command help carries development history |
@@ -292,7 +291,7 @@ that changed a published name or rule:
 | [the-census-is-mostly-intervals-nobody-rules-on](the-census-is-mostly-intervals-nobody-rules-on.md) | backend | -- | 27/29 | **The census is 67% of what it costs to start a reviewer, and 966 of its 1,120 blocks are intervals nobody rules on.** 131,353 bytes of 195,243, paid four times. Roy ruled the design 2026-08-18: the census stays fully enumerated ON DISK, the agents get a FILTERED view, and a destination outside their set comes from a TOOL answering one question -- what is the ADDRESS of this line of code. ! It does not reverse the 2026-08-17 enumeration; it is a projection of it, and `add` was not expressible before it. ! Rule 4 buys a check as well as bytes: `move`'s `to` is free text nothing resolves, and an index is resolvable exactly as an address already is |
 | [the-read-only-contract-is-enforced-by-nothing](the-read-only-contract-is-enforced-by-nothing.md) | agents | -- | 8/11 | The read-only contract is enforced by nothing, and four reviewers wrote files |
 | [the-shipped-python-does-not-pass-its-own-review](the-shipped-python-does-not-pass-its-own-review.md) | backend | -- | 8/13 | **Our own scripts spend a sixth of their prose on what the code does NOT do.** ! **Roy's reason, 2026-08-16: *"I don't want the system picking up bad cues from the documentation in the code."*** An agent reads these files and then writes in them. Re-measured after that day's rewrites: **136 of 697 (20%)** comment and docstring lines carry `cannot` / `never` / `does not` / `is not` / `nothing` -- UP from 123/714, because the prose written that day carries the same defect -- `census.py` worst at 52/284. Roy: *"census.py creates the pCST and that is it. Comments about 'cannot answer OWNERSHIP' are not helpful."* ! Not every negative is wrong -- an output (*"reports UNPROVABLE rather than passing"*) and a refusal aimed at a future editor both earn their place -- so the first task is writing the test that tells them apart !! **The hand-pass rule is STRUCK, 2026-08-18.** It told itself not to run `/comment-review` on this repo; Roy: *"By definition the code has to go through the review to state that it has passed."* A hand pass produces a rewrite, and this file's title is a claim about what the review RETURNS -- so it now closes on a run graded from the diff. ! The harness does not gate that: running the skill needs the skill |
-| [lexer-and-language-findings](lexer-and-language-findings.md) | backend | -- | 68/76 | Ten findings in lexer.py and language.py, from three review rounds |
+| [lexer-and-language-findings](lexer-and-language-findings.md) | backend | -- | 69/76 | Ten findings in lexer.py and language.py, from three review rounds |
 
 ### decision-needed  (17)
 
@@ -325,7 +324,7 @@ that changed a published name or rule:
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
-| [isolate-the-codes-contribution](isolate-the-codes-contribution.md) | testing | -- | 4/10 | Two graded arms, orchestration held constant; the rewording is the confound |
+| [isolate-the-codes-contribution](isolate-the-codes-contribution.md) | testing | -- | 8/10 | Two graded arms, orchestration held constant; the rewording is the confound |
 ---
 
 ## Completed
@@ -545,3 +544,4 @@ the reason is inside the file.
 | [a-machine-context-raises-query-and-clean](completed/a-machine-context-raises-query-and-clean.md) | 8 superseded |
 | [no-stage-agrees-the-terms](completed/no-stage-agrees-the-terms.md) | 7 superseded |
 | [todo-tool-skill-routes-to-the-vendored-script](completed/todo-tool-skill-routes-to-the-vendored-script.md) | 1 superseded |
+| [held-runs-need-a-one-off-migration](completed/held-runs-need-a-one-off-migration.md) | 2 finished, 3 superseded |

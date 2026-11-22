@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 68 of 76 tasks closed
+Progress: 69 of 76 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (/simplify rounds 1 and 2 and /code-review high round 3,
@@ -428,8 +428,8 @@ would.
         > 2026-11-01 context_for and page_for take a registry no production caller sets
 - [ ] T73 | List the freeform suffixes in gather --languages
         > 2026-11-01 gather --languages omits the set is_freeform reads
-- [ ] T74 | Name the fn line as the declaration when a Rust attribute is above
-      it
+- [-] T74 | Answered: the attribute-line anchor names the fn; the doc reads at a1; Process #362 | 9c0f736cfe5116574c1e348c394215426ec69244 | Name
+      the fn line as the declaration when a Rust attribute is above it
         > 2026-11-07 From T51 (#285): W5 says a0 when an attribute is above fn
         > 2026-11-07 Check: owner_at gets the trigger line; decorated drafts prove
         > 2026-11-07 #285: the lookup half is T11-T12; this is the proof's owner_at

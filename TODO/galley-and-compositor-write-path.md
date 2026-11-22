@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 73 of 85 tasks closed
+Progress: 74 of 85 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (code-review high round 3 and /simplify round 2, 2026-08-22 -- the
@@ -318,7 +318,8 @@ files in `corpora/` are in that state today.
       front-matter comments at `results/compositor.py:26`, `:119`, `:385`
 - [-] T67 | SUPERSEDED by T85: _reread was rewritten; its docstring now states two of the four passes | 22c3a0abcbc86509c74296319ce5b719a43338ca | State
       `_reread`'s four whitespace passes in its docstring
-- [ ] T68 | Classify the seven other mutants surviving final review 3
+- [-] T68 | Superseded: only the mutant labels were recorded; Process #365 | 9c0f736cfe5116574c1e348c394215426ec69244 | Classify
+      the seven other mutants surviving final review 3
         > 2026-10-30 landed-text-only head-ignores-a-series foot-any-a code-between-le
         > 2026-10-30 matter-part-no-raw cut-part-no-raw shares-any
 - [ ] T69 | Admit an approved `f` alteration that changes the interpreter line

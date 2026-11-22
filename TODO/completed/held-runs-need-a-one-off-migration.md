@@ -1,8 +1,8 @@
 # The held runs can be migrated one-off from the source at the recorded hash
 
 ```
-Status:   deferred (waits on someone needing a held run replayed -- nothing depends on it)
-Progress: 3 of 5 tasks closed
+Status:   closed
+Progress: 5 of 5 tasks closed
 Owner:    testing
 Requires-Roy: false
 Raised:   2026-08-19 (B4, after `convert` was made to refuse a 0.2.x report, 2026-08-19)
@@ -87,12 +87,14 @@ it is a constraint on the work and not a checkpoint of its own.
 
 ## Tasks
 
-- [ ] T1 | T1 -- !! RULE STEP 4 FIRST: which PLACE a held `path:start-end` maps
-      to. Verify: the rule is written down, and a run whose answer is known
-      agrees on every record.
-- [ ] T2 | T2 -- Migrate `evidence/cycle-0.2.3/` first -- its subject is this
-      repo at `1ad4ba7`. Verify: its four role reports re-emit under a `pages`
-      envelope with cues.
+- [-] T1 | Dropped: the held records are not migrated; Process #360 | 9c0f736cfe5116574c1e348c394215426ec69244 | T1
+      -- !! RULE STEP 4 FIRST: which PLACE a held `path:start-end` maps to.
+      Verify: the rule is written down, and a run whose answer is known agrees
+      on every record.
+- [-] T2 | Dropped: the held records are not migrated; Process #360 | 9c0f736cfe5116574c1e348c394215426ec69244 | T2
+      -- Migrate `evidence/cycle-0.2.3/` first -- its subject is this repo at
+      `1ad4ba7`. Verify: its four role reports re-emit under a `pages` envelope
+      with cues.
 - [x] T3 | FINISHED | unknown | T3 -- SUPERSEDED. The raw-text requirement and
       the `parse_report` claim it rested on are both false; the record of why is
       in the Objective.

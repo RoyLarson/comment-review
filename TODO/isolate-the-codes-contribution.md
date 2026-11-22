@@ -3,7 +3,7 @@
 ```
 Status:   blocked (on the-harness-cannot-run-the-system-it-grades -- neither the twelve
           hazards nor their grader is in this tree, so neither arm can be scored)
-Progress: 4 of 10 tasks closed
+Progress: 8 of 10 tasks closed
 Owner:    testing
 Requires-Roy: false
 Raised:   2026-08-22 (Roy, 2026-08-22, after ruling out a history split: the
@@ -82,16 +82,19 @@ has done.
       at.
 - [ ] T2 | T2 -- Grade arm A on the twelve planted hazards. Verify: the grade is
       recorded under `evidence/` beside arm A's run.
-- [ ] T3 | T3 -- Run ARM B -- 0.2.4 code with the arm B agents T5 builds.
-      Verify: the run's output is under `evidence/`, naming the commit it was
-      produced at.
-- [ ] T4 | T4 -- Grade arm B on the same twelve hazards as arm A. Verify: both
-      grades are recorded so a reader who ran neither can compare them.
-- [ ] T5 | T5 -- Build arm B's agents as a mechanical rename to the 0.2.4
-      dictionary. Verify: `git diff v0.2.3^{} -- agents/` against arm B reads as
+- [-] T3 | Superseded: arm B drives commands that no longer exist; Process #361 | 9c0f736cfe5116574c1e348c394215426ec69244 | T3
+      -- Run ARM B -- 0.2.4 code with the arm B agents T5 builds. Verify: the
+      run's output is under `evidence/`, naming the commit it was produced at.
+- [-] T4 | Superseded: arm B drives commands that no longer exist; Process #361 | 9c0f736cfe5116574c1e348c394215426ec69244 | T4
+      -- Grade arm B on the same twelve hazards as arm A. Verify: both grades
+      are recorded so a reader who ran neither can compare them.
+- [-] T5 | Superseded: arm B drives commands that no longer exist; Process #361 | 9c0f736cfe5116574c1e348c394215426ec69244 | T5
+      -- Build arm B's agents as a mechanical rename to the 0.2.4 dictionary.
+      Verify: `git diff v0.2.3^{} -- agents/` against arm B reads as
       substitution only.
-- [ ] T6 | T6 -- Keep the shipped vocabulary green over arm B's agents. Verify:
-      `uv run python scripts/check_vocabulary.py` exits 0 on arm B's tree.
+- [-] T6 | Superseded: arm B drives commands that no longer exist; Process #361 | 9c0f736cfe5116574c1e348c394215426ec69244 | T6
+      -- Keep the shipped vocabulary green over arm B's agents. Verify: `uv run
+      python scripts/check_vocabulary.py` exits 0 on arm B's tree.
 - [x] T7 | FINISHED | unknown | T7 -- NOT A TASK, in the Objective: THERE IS NO
       BASELINE YET -- `evidence/cycle-0.2.3/` is a MECHANICAL run and carries no
       hazard grade.

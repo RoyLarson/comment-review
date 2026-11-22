@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 11 of 17 tasks closed
+Progress: 12 of 17 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-09-06 (Roy, 2026-09-06, on reading the ownership-context agent file and
@@ -27,8 +27,9 @@ The reviewer prose is rules and punishments, not guidance toward a good result.
 - [x] T3 | Four role files rewritten positively, each opening with its desk; pytest green | 1563fc58 | Rewrite
       comment-review-ownership-context.md the same way, then the other three
       role files.
-- [ ] T4 | Measure the rewrite on the same target as the 2026-09-06 run: the
-      same binder, the four copies compared to that run's.
+- [-] T4 | Superseded: the run's copies are gone; Process #364 | 9c0f736cfe5116574c1e348c394215426ec69244 | Measure
+      the rewrite on the same target as the 2026-09-06 run: the same binder, the
+      four copies compared to that run's.
         > 2026-09-06 Copies of that run: the scratchpad run-2026-09-06 directory.
         > 2026-09-07 The Sonnet ownership copy is all clean; compare to the forks' parts
 - [x] T5 | the brief tells a role to fill its one copy itself: no sub-agent, no part file, no other copy | e0af5df1 | Update
