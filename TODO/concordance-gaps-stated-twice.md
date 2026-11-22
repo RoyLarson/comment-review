@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 4 of 12 tasks closed
+Progress: 5 of 12 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-24 (Roy, 2026-08-24: are referrers and code_names one workflow?)
@@ -23,8 +23,9 @@ The concordance states its gaps twice, in two vocabularies.
 - [-] T5 | SUPERSEDED by T10: the list is now 68,285 bytes with 565 rows, not 50 KB | 22c3a0abcbc86509c74296319ce5b719a43338ca | Print
       NOT CHECKED gaps with repo-relative paths and a cap, as FREEFORM is
       capped; the list is 50 KB on this repo
-- [ ] T6 | Reword gather's NOT CHECKED footer; the symbol notes it qualifies
-      never reach the binder
+- [-] T6 | Moot: the annotations it improves are removed; Process #320 | f5bb9ab6f78f12d239d415202b9de696b1fff9f1 | Reword
+      gather's NOT CHECKED footer; the symbol notes it qualifies never reach the
+      binder
 - [-] T7 | Revoked with the gather grouping (#271) | a75f0638 | Correct
       one_row_per_hole's docstring: the WALKED_TREE row is not a failed file
 - [-] T8 | Revoked: one_row_per_hole is gone (#271) | a75f0638 | Group known

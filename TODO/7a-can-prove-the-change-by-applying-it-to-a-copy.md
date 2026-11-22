@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 6 of 8 tasks closed
+Progress: 7 of 8 tasks closed
 Owner:    agents
 Requires-Roy: true
 Raised:   2026-08-17, while ruling on what CLAIM and CHANGE each carry
@@ -121,8 +121,9 @@ filed, and still two.
 - [x] T2 | FINISHED | unknown | T2 -- DONE 2026-08-17. `galley.splice` applies
       every edit in DESCENDING line order and refuses overlapping edits and
       stale ranges. The reasoning is in the Objective.
-- [?] T3 | T3 -- * Rule whether 7a shows the diff INSTEAD OF or ALONGSIDE the
-      block. Verify: `SKILL.md`'s stage 7a section names which, and
+- [x] T3 | Ruled: the listing stays alongside the page diffs; Process #321 | f5bb9ab6f78f12d239d415202b9de696b1fff9f1 | T3
+      -- * Rule whether 7a shows the diff INSTEAD OF or ALONGSIDE the block.
+      Verify: `SKILL.md`'s stage 7a section names which, and
       `docs/decision-log.md` records it.
         > 2026-09-03 PROVISIONAL leaning: a git branch. Process 85. Not a ruling
         > 2026-11-22 Outcome: listing alongside the page diffs (Process #321)

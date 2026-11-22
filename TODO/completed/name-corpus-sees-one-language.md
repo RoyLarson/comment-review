@@ -1,10 +1,10 @@
 # The name corpus sees one language, and the AST is why
 
 ```
-Status:   open
-Progress: 6 of 10 tasks closed
+Status:   closed
+Progress: 10 of 10 tasks closed
 Owner:    backend
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-24 (Roy, 2026-08-24: 'If python could parse python code names would be
           useful')
 ```
@@ -30,11 +30,14 @@ The name corpus sees one language, and the AST is why.
 - [-] T6 | SUPERSEDED by T8: one act; a reason to keep parsing goes in a note | b5bcfd27 | Make
       referrers.tokens_for stop parsing Python for top-level defs, or say why it
       still must
-- [ ] T7 | Add Python and Rust declaration facts to referrer discovery. Verify:
-      path terms remain; unharvested Rust is reported
-- [ ] T8 | Make referrers.tokens_for stop parsing Python for top-level defs
-- [?] T9 | Decide whether concordance/code_names.py is renamed references, per
-      Addressing #17
-- [ ] T10 | Harvest code_names from each reader's declaration facts instead of
-      ast.parse
+- [-] T7 | Moot: the annotations it improves are removed; Process #320 | f5bb9ab6f78f12d239d415202b9de696b1fff9f1 | Add
+      Python and Rust declaration facts to referrer discovery. Verify: path
+      terms remain; unharvested Rust is reported
+- [-] T8 | Moot: the annotations it improves are removed; Process #320 | f5bb9ab6f78f12d239d415202b9de696b1fff9f1 | Make
+      referrers.tokens_for stop parsing Python for top-level defs
+- [-] T9 | Moot: the annotations it improves are removed; Process #320 | f5bb9ab6f78f12d239d415202b9de696b1fff9f1 | Decide
+      whether concordance/code_names.py is renamed references, per Addressing
+      #17
+- [-] T10 | Moot: the annotations it improves are removed; Process #320 | f5bb9ab6f78f12d239d415202b9de696b1fff9f1 | Harvest
+      code_names from each reader's declaration facts instead of ast.parse
         > 2026-11-22 Check: code_names.py calls no ast.parse; Rust names harvest

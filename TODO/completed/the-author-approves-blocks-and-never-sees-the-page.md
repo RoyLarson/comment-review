@@ -1,10 +1,10 @@
 # The author approves a list of blocks and never sees the page
 
 ```
-Status:   decision-needed
-Progress: 9 of 10 tasks closed
+Status:   closed
+Progress: 10 of 10 tasks closed
 Owner:    agents
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-15 (Roy, after the 7b cutting paragraph was found and deleted)
 Triaged:  2026-08-23 -- four of the nine landed since this was filed. 5b and 6b are
           shipped stages, and stage 8 is already a two-outcome verification that
@@ -127,7 +127,7 @@ not delete it without deciding which; this cannot be settled before T2.
       T2. Verify: the five-part listing at `SKILL.md:996-999` is kept or cut,
       with a reason.
         > 2026-09-03 PROVISIONAL leaning noted on T2/T6 -- Process 85, not a ruling
-- [?] T10 | Rule on keeping SKILL.md:508-512's per-place listing beside the 7a
-      page diffs
+- [x] T10 | Ruled: keep the listing beside the 7a diffs; Process #321 | f5bb9ab6f78f12d239d415202b9de696b1fff9f1 | Rule
+      on keeping SKILL.md:508-512's per-place listing beside the 7a page diffs
         > 2026-11-22 Check: the ruling with its reason is in decision-log.md
         > 2026-11-22 Outcome: keep the listing beside the diffs (Process #321)

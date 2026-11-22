@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 3 of 8 tasks closed
+Progress: 4 of 8 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-28 (2026-08-28, Roy asking what `claim.shape` is: 'because it is
@@ -71,15 +71,15 @@ by who answers it.
       `QUERY_SHAPES`, instructed at `comment-review-module-context.md:108`); and
       THE FORM A CLASSIFIER TAKES (`the-mark.md:171`). Verify: the ruling names
       which sense keeps the word and `docs/vocabulary.md` declares the others.
-- [?] T2 | RULE whether the axis is `query`'s alone. MEASURED 2026-08-28:
-      `clean` and `query` are EXACTLY the two instructions with
-      `owes_change=False` -- the two that propose no text -- and only `query`
-      carries a sub-category. `docs/the- mark.md` already records the unfilled
-      need on the other: four roles asked for it in four forms and all landed as
-      `clean`, 'which asserts one thing and was used for four'. Roy, 2026-08-26:
-      'If it is anything it is a field on `clean`.' Verify: the answer says
-      whether the two share one axis or hold two, and `docs/the-mark.md` states
-      it.
+- [x] T2 | Ruled: the who-resolves-it category is query's alone; Process #322 | f5bb9ab6f78f12d239d415202b9de696b1fff9f1 | RULE
+      whether the axis is `query`'s alone. MEASURED 2026-08-28: `clean` and
+      `query` are EXACTLY the two instructions with `owes_change=False` -- the
+      two that propose no text -- and only `query` carries a sub-category.
+      `docs/the- mark.md` already records the unfilled need on the other: four
+      roles asked for it in four forms and all landed as `clean`, 'which asserts
+      one thing and was used for four'. Roy, 2026-08-26: 'If it is anything it
+      is a field on `clean`.' Verify: the answer says whether the two share one
+      axis or hold two, and `docs/the-mark.md` states it.
         > 2026-11-22 Outcome: the category is query's alone (Process #322)
 - [ ] T3 | Name it for WHAT IT DOES. `decision-log.md Process: #33` keyed the
       three on WHO RESOLVES IT, replacing an axis about where evidence lives --
