@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 3 of 9 tasks closed
+Progress: 4 of 9 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, Roy ruling on a review finding that mark.py announces
@@ -72,9 +72,10 @@ change -- `conventions.md`, *The vocabulary is shared*.
       holding the `Mark` type and the boundary parse. Verify: `mark.py` imports
       the spec rather than defining it; `uv run ty check src/comment_review/`
       passes and `uv run pytest -q` reports the same counts as before the move.
-- [ ] T2 | Update `scripts/render_brief.py` to import the classifier table from
-      the spec module. Verify: it no longer imports from the module holding the
-      parse, and the rendered brief is byte-identical to its pre-split output.
+- [x] T2 | Import moved to desk.marks.table in 0e2ff82a; brief --print is byte-identical at 0e2ff82a^ and 0e2ff82a | 0e2ff82a | Update
+      `scripts/render_brief.py` to import the classifier table from the spec
+      module. Verify: it no longer imports from the module holding the parse,
+      and the rendered brief is byte-identical to its pre-split output.
 - [x] T3 | test_mark_shape imports from desk.marks.table; 48 pass; set(OWES_TABLE) == set(INSTRUCTIONS) fails on a deleted row | 0e2ff82a | Update
       `tests/gates/test_mark_shape.py` to read the spec at its new home. Verify:
       the gate passes, and goes red when a row is deleted from the table.

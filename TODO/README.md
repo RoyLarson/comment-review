@@ -238,7 +238,7 @@ that changed a published name or rule:
 | [collator-defects](collator-defects.md) | backend | -- | 32/43 | four defects in `desk/collator.py`, all found by an agent writing the file's prose from the code alone: a `move` onto its own address becomes a bare delete, a multi-line `verbatim` from a CRLF file can never match, the source cache is keyed without its root, and a malformed cite raises where the half is meant to report |
 | [staged-chain-untested](staged-chain-untested.md) | backend | -- | 5/6 | the four-stage chain runs and the edits accumulate, proven 2026-08-30 -- but no test in the suite drives it, and the only committed fan-out topology refuses any tree but this repo's |
 | [containers-and-verification-are-unwired](containers-and-verification-are-unwired.md) | backend | -- | 47/61 | The containers and the source-verification half are wired to nothing |
-| [mark-holds-spec-and-parse](mark-holds-spec-and-parse.md) | backend | -- | 3/9 | mark.py holds the instruction spec and the boundary parse at one scope |
+| [mark-holds-spec-and-parse](mark-holds-spec-and-parse.md) | backend | -- | 4/9 | mark.py holds the instruction spec and the boundary parse at one scope |
 | [null-becomes-the-word-none](null-becomes-the-word-none.md) | backend | -- | 2/6 | A present-but-null key becomes the four characters None |
 | [collate-flow-defects](collate-flow-defects.md) | backend | -- | 25/26 | Twelve defects in `flows/collate.py`, from a review of one file |
 | [mark-defects](mark-defects.md) | backend | -- | 42/52 | Eleven defects in `desk/mark.py`, found by running its parse against its own prose |
