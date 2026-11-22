@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 2 of 5 tasks closed
+Progress: 3 of 5 tasks closed
 Owner:    agents
 Requires-Roy: true
 Raised:   2026-08-17 (Roy, during the first full run of 0.1.7: "At some point the
@@ -68,9 +68,10 @@ docstring saying *"the lexical tier cannot answer a comment's owner"* is checkab
       -- * Rule whether 1.4's destination tree is automatically REFERENCE ONLY.
       Verify: the ruling is recorded here and says whether 1.4 gains a second
       output.
-- [?] T3 | T3 -- * Rule on whether `referrers.py` widens or stays a NAME
-      matcher. Verify: the answer is recorded here, with the reason it was
-      decided that way.
+- [x] T3 | Ruled: referrers stays a name matcher; Process #328 | 460c35607e0322ef9f1bfdae36a82157fb2a8c00 | T3
+      -- * Rule on whether `referrers.py` widens or stays a NAME matcher.
+      Verify: the answer is recorded here, with the reason it was decided that
+      way.
         > 2026-11-22 Outcome: referrers stays a name matcher (Process #328)
 - [-] T4 | SUPERSEDED by T5: SKILL.md:649 is gone (the file is 571 lines); REFERENCE ONLY is at :192 | 22c3a0abcbc86509c74296319ce5b719a43338ca | T4
       -- State what T1 to T3 decide in ONE file, `SKILL.md:649` being the

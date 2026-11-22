@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 3 of 8 tasks closed
+Progress: 4 of 8 tasks closed
 Owner:    agents
 Requires-Roy: true
 Raised:   2026-08-18 (Roy, 2026-08-18: keep track of these and have a place to decide on
@@ -134,8 +134,9 @@ focus for them gets a lot easier. ! The dependency is discharged: `cue` emits fo
       -- * RULE ON THE every-role ENTRY -- what to do with a paragraph marked
       `doc-kind-unresolved`. Verify: it is in the role files or the brief,
       currency named.
-- [?] T4 | T4 -- * RULE where `function-context` and `module-context` START now
-      the a-series has landed. Verify: each names its starting series, and says
+- [-] T4 | No start is owed: a role reads every place it is handed; Process #330 | 460c35607e0322ef9f1bfdae36a82157fb2a8c00 | T4
+      -- * RULE where `function-context` and `module-context` START now the
+      a-series has landed. Verify: each names its starting series, and says
       ORDER not filter.
         > 2026-11-22 Outcome: every place is read; no start owed (Process #330)
 - [ ] T5 | T5 -- Record which currency each candidate above pays in -- CATCHES,

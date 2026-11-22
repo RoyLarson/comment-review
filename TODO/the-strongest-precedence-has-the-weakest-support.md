@@ -2,9 +2,9 @@
 
 ```
 Status:   decision-needed
-Progress: 3 of 5 tasks closed
+Progress: 4 of 5 tasks closed
 Owner:    agents
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-17, by the session that ran all eight stages -- "the weakest-verified input
           to the strongest-precedence role"
 Re-verified: 2026-08-23 -- the ANCHOR half of this file is out of date. `census.py:454-458`
@@ -79,8 +79,9 @@ agreeing on a destination produces no output at all. MEASURED 2026-08-17: `funct
 
 ## Tasks
 
-- [?] T1 | T1 -- * RULE whether a placement verdict needs a second reader --
-      candidates in the Objective. Verify: the ruling is recorded in
+- [x] T1 | Ruled: a placement already has its second readers; Process #331 | 460c35607e0322ef9f1bfdae36a82157fb2a8c00 | T1
+      -- * RULE whether a placement verdict needs a second reader -- candidates
+      in the Objective. Verify: the ruling is recorded in
       `docs/decision-log.md`.
         > 2026-11-22 Outcome: the chief, both ends, 4c and author read it (#331)
 - [x] T2 | FINISHED | unknown | T2 -- SUPERSEDED. It asked for an anchor the

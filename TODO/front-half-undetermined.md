@@ -2,9 +2,9 @@
 
 ```
 Status:   decision-needed
-Progress: 8 of 11 tasks closed
+Progress: 10 of 11 tasks closed
 Owner:    testing
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-22 (Roy, 2026-08-22: that whole system of from census to findings to
           verdicts is something that needs to be determined now that the backend part of
           the system works)
@@ -84,12 +84,13 @@ statement is one per boundary, with the fields NAMED, and every named field is e
       -- * **RULE WHAT A REVIEWER IS HANDED** -- which of the census row's 19
       fields the four roles need. Verify: the ruling names them and is recorded
       in this file.
-- [?] T5 | T5 -- * **RULE WHAT A FINDING IS**, `claim` included. Verify: the
-      ruling is recorded in this file and `claim-fallback-is-unreachable` can
-      move on it.
+- [-] T5 | Answered: docs/the-mark.md defines a finding and Process #92 requires claim be an object | 460c35607e0322ef9f1bfdae36a82157fb2a8c00 | T5
+      -- * **RULE WHAT A FINDING IS**, `claim` included. Verify: the ruling is
+      recorded in this file and `claim-fallback-is-unreachable` can move on it.
         > 2026-11-22 Outcome: answered by docs/the-mark.md and Process #92
-- [?] T6 | T6 -- * **RULE WHAT THE COLLATOR CERTIFIES**, and where a coverage
-      gap goes. Verify: the ruling is recorded in this file.
+- [x] T6 | Ruled: the collator certifies sources and a skipped place returns to its role; Process #329 | 460c35607e0322ef9f1bfdae36a82157fb2a8c00 | T6
+      -- * **RULE WHAT THE COLLATOR CERTIFIES**, and where a coverage gap goes.
+      Verify: the ruling is recorded in this file.
         > 2026-11-22 Outcome: certifies sources; skipped place returns (Process #329)
 - [-] T7 | Moot: record.py --check and verdicts.py are prototype-only; marks go through one parse; verified at HEAD | 67184ac1 | T7
       -- * Rule which of `record.py --check` and `verdicts.py` is right where
