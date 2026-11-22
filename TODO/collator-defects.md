@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 37 of 49 tasks closed
+Progress: 37 of 52 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, from the blind rewrite of collator.py -- the prose was
@@ -261,3 +261,11 @@ Four defects in collator.py, found by reading only the code.
 - [ ] T49 | Correct 'those three' in desk/collator.py's member roll to the two
       functions source_verification calls
         > 2026-11-22 Check: grep 'those three' desk/collator.py is empty
+- [ ] T50 | Refuse a source whose `verbatim` does not start on its cited line,
+      replacing source_problems' WITHIN window
+        > 2026-11-22 Check: a verbatim one line below its cite is refused
+- [ ] T51 | Correct flows/fill.py:197's docstring to say the text must start on
+      the cited line
+        > 2026-11-22 Check: fill.py's docstring names no three-line window
+- [ ] T52 | Correct docs/the-mark.md:361's three-line window to the cited line
+        > 2026-11-22 Check: the-mark.md states that verbatim starts on its cited line

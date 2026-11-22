@@ -93,9 +93,11 @@ lines.
 - [?] T3 | T3 -- * Rule how a code RANGE is expressed as an address, when every
       code line is its own one-line `c`. Verify: the ruling is recorded in
       `docs/decision-log.md`.
+        > 2026-11-22 Outcome: a source cites path:line, exact (Process #325)
 - [?] T4 | T4 -- * Rule what a source citing a caller in an uncensused file
       names: census on demand, or the line form with the fuzz. Verify: recorded
       in `docs/decision-log.md`.
+        > 2026-11-22 Outcome: line form, no fuzz; on the cited line (Process #325)
 - [ ] T5 | T5 -- Implement `address:lines` for SOURCES, lines counted WITHIN the
       block, 1-based, blanks included. Verify: a line-form source in a censused
       file is refused.

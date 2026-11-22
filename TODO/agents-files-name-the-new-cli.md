@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 51 of 59 tasks closed
+Progress: 51 of 60 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-09-04 (Roy, 2026-09-04, superseding the-flow-lives-in-the-command T4)
@@ -214,3 +214,5 @@ The agents files name the new CLI and say how to use it.
 - [ ] T59 | Add to SKILL.md stage 4 that a role whose agent never returns is
       relaunched as a new instance, per Process #272
         > 2026-11-22 Check: SKILL.md stage 4 relaunches a role that never returns
+- [ ] T60 | Correct reviewer-brief.md:200's three-line window to the cited line
+        > 2026-11-22 Check: the brief says verbatim starts on the cited line

@@ -6833,3 +6833,28 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   *"yes"*
 
   **What it settles.** A query carries no sentence key.
+
+- **#324.** **What the proof setter does with an unfilled slot is moot** (Roy, 2026-11-22, on
+  `7a-can-prove-the-change-by-applying-it-to-a-copy` T8, shown that collate refuses an unruled
+  place through `flows/mark_errors.py` and rolls the round back under #186, so a partly filled
+  copy never reaches the proof setter):
+
+  *"yes superseded"*
+
+  **What it settles.** T8 is superseded; the question cannot arise in a run.
+
+- **#325.** **A source's `verbatim` must stand on its cited line** (Roy, 2026-11-22, on
+  `evidence-still-names-places-by-line` T4, asked why `source_problems` accepts a `verbatim`
+  within three lines of its cite, shown that nothing records a reason for the window):
+
+  *"why 3 line window? it should be that line because the files should not be able to change
+  between the two parts of the run"*
+
+  and, asked whether a `verbatim` spanning two lines matches starting at the cited line:
+
+  *"yes"*
+
+  **What it settles.** A source cites `path:line`, and its `verbatim` starts on that line; one
+  spanning several lines continues on the lines that follow. The three-line window in
+  `desk/collator.py` and the prose that states it are defects. It supersedes the 2026-08-18
+  `address:lines` form for sources and the line form "with the fuzz".

@@ -143,6 +143,7 @@ filed, and still two.
       not both `census.json` and `galley-census.json`.
 - [?] T8 | Rule what the proof setter does with a seeded place the role has not
       filled, when it sets a partly filled copy.
+        > 2026-11-22 Outcome: moot; collate refuses an unruled slot (Process #324)
 ## Related
 
 - [`the-author-approves-blocks-and-never-sees-the-page`](the-author-approves-blocks-and-never-sees-the-page.md)
