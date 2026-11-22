@@ -70,6 +70,7 @@ term belongs to the repo's sheet. This is settled, it is already ENFORCED, and i
 
 - [?] T1 | T1 -- * Rule whether stage 1 must LOOK for collisions or only record
       one a reviewer trips over. Verify: the answer is written into this file.
+        > 2026-11-22 Outcome: open; waits with the concordance work (Process #348)
 - [-] T2 | SUPERSEDED by T7: the style sheet is now SKILL.md stage 1 step 4, not :257-264 | 22c3a0abcbc86509c74296319ce5b719a43338ca | T2
       -- Add a COLLISIONS section to the style sheet at `SKILL.md:257-264`.
       Verify: a run over a repo defining an emitted term as a symbol lists it.

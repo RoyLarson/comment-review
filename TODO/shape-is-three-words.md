@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 4 of 8 tasks closed
+Progress: 4 of 10 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-28 (2026-08-28, Roy asking what `claim.shape` is: 'because it is
@@ -71,6 +71,7 @@ by who answers it.
       `QUERY_SHAPES`, instructed at `comment-review-module-context.md:108`); and
       THE FORM A CLASSIFIER TAKES (`the-mark.md:171`). Verify: the ruling names
       which sense keeps the word and `docs/vocabulary.md` declares the others.
+        > 2026-11-22 Outcome: query keeps shape; structure is contract (#347)
 - [x] T2 | Ruled: the who-resolves-it category is query's alone; Process #322 | f5bb9ab6f78f12d239d415202b9de696b1fff9f1 | RULE
       whether the axis is `query`'s alone. MEASURED 2026-08-28: `clean` and
       `query` are EXACTLY the two instructions with `owes_change=False` -- the
@@ -109,3 +110,8 @@ by who answers it.
 - [ ] T8 | Carry T1's ruled word into the brief, module-context.md:27, :37 in
       one change
         > 2026-11-22 Check: no shipped file uses a retired sense
+- [ ] T9 | Rename the mark-structure sense of `shape` to `contract`, from
+      `distribute --shape` to the gate test
+        > 2026-11-22 Check: --shape is taken only by mark
+- [ ] T10 | Rename docs/the-mark.md:248's classifier column from shape to form
+        > 2026-11-22 Check: the-mark.md's classifier column reads form

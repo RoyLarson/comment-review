@@ -75,6 +75,7 @@ catches is the measurement this file is graded on.
       eight. Verify: the ruling is in `docs/decision-log.md`.
 - [?] T2 | T2 -- * Rule whether it runs once or grows as the roles work. Verify:
       the ruling is in `docs/decision-log.md`.
+        > 2026-11-22 Outcome: open; waits with the concordance work (Process #348)
 - [ ] T3 | T3 -- Give it an artifact a later stage reads. Verify: a run produces
       the file and stage 4 is handed it.
 - [ ] T4 | T4 -- Feed it from `vocabulary_sweep.py`, which already finds

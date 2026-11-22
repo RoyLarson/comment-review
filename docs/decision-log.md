@@ -7024,3 +7024,43 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
 
   **What it settles.** Every open task in that TODO, T8's naming question included, is
   superseded under #320 and #338.
+
+- **#346.** **The three query shapes take the trade's words** (Roy, 2026-11-22, on
+  `the-fields-do-not-say-a-mark-may-cite-across` T6, offered (a) keep the current names, (b) his
+  2026-08-27 candidates, or (c) rename only `outside-my-role`):
+
+  *"b looks better"*
+
+  **What it settles.** `human-review-necessary` becomes `author-query`, `unable-to-determine`
+  becomes `unverified`, and `outside-my-role` becomes `outside-my-remit`. The categories of #33
+  are unchanged.
+
+- **#347.** **The query kind keeps `shape`; a mark's structure is its `contract`** (Roy,
+  2026-11-22, on `shape-is-three-words` T1, shown that `shape` names the query kind, the mark's
+  structure and a classifier column, and that two commands taking `--shape` in different senses
+  overlap, which `docs/vocabulary.md:550` forbids):
+
+  *"a"*
+
+  **What it settles.** `claim.shape` and `mark --shape` stay. The structure sense becomes
+  `contract`, matching `check --contract`: `distribute --shape`, `docs/the-mark.md`'s title and
+  `tests/gates/test_mark_shape.py`. The classifier column becomes `form`. That file's T3 and T8,
+  which assumed the query word would change, are moot.
+
+- **#348.** **Whether the term list grows, and whether stage 1 looks for collisions, waits with
+  the concordance** (Roy, 2026-11-22, on `no-stage-agrees-the-terms` T2 and
+  `the-emitted-vocabulary-can-collide-with-the-repo` T1):
+
+  *"Part of the annotations and concordance piece. It is still open and outside of current
+  process"*
+
+- **#349.** **The agent-facing commands are the twelve a stage runs, and `carry` is deleted**
+  (Roy, 2026-11-22, on `task-agent-vocabulary-home` T4, shown that the agent files invoke 12 of
+  the 15 commands and never `carry`, `compositor` or `taken_in`, and that `flows.carry` has no
+  caller but its own command; offered (a) the 12, with the other three named dev-only, (b) all
+  15, or (c) (a) plus deleting `carry`):
+
+  *"c)"*
+
+  **What it settles.** The gate names `compositor` and `taken_in` as dev-only. `carry`, the
+  command and `flows.carry`, is deleted under #278.

@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 6 of 8 tasks closed
+Progress: 6 of 9 tasks closed
 Owner:    agents
 Requires-Roy: true
 Raised:   2026-08-27 (Roy, on a finding whose subject is the relation between two
@@ -135,6 +135,7 @@ merge-or-fight table never sees the overlap. Filed as
 - [?] T6 | T6 -- * RULE the register for all three names. ! The CATEGORIES are
       ruled and are not reopened by this -- only the words. Candidates, Roy
       2026-08-27:
+        > 2026-11-22 Outcome: author-query, unverified, outside-my-remit (#346)
 
           human-review-necessary  ->  author query   only the author holds the intent
           unable-to-determine     ->  unverified     the copy desk's word for a claim
@@ -170,3 +171,6 @@ merge-or-fight table never sees the overlap. Filed as
       `plugins/comment-review/agents/` returns nothing for the rule's phrase. !
       It does TODAY -- `comment-review-module-context.md` carries the old
       shapes.
+- [ ] T9 | Rename the three Shape values to author-query, unverified and
+      outside-my-remit across src/
+        > 2026-11-22 Check: no src/ file names a retired shape value

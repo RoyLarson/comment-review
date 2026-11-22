@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 2 of 6 tasks closed
+Progress: 2 of 8 tasks closed
 Owner:    agents (the instructions) - backend (the enum they derive from)
 Requires-Roy: true
 Raised:   2026-08-30 (2026-08-30, filing the distribute vocabulary entry for Task 14:
@@ -34,8 +34,14 @@ The task agent has no vocabulary home and is never told the command set.
 - [?] T4 | Decide which commands are agent-facing. Not every member of `COMMANDS`
       belongs in an agent's instructions -- the dev tools and the gates do not -- so the
       second direction needs a stated subset before it can be checked.
+        > 2026-11-22 Outcome: the 12 a stage runs; delete carry (Process #349)
 - [x] T5 | task-agent role added; check_vocabulary maps it to SKILL.md and write.md; 0 drift | 5820169c | Implement
       the task-agent role in vocabulary.toml and its check_vocabulary mapping;
       verify the gate reports 0 drift
 - [ ] T6 | Define distribute in vocabulary.toml and give it to the task-agent
       role; verify check_vocabulary passes
+- [ ] T7 | Name compositor and taken_in as dev-only in
+      tests/gates/test_skill_commands.py
+        > 2026-11-22 Check: the gate lists exactly those two as dev-only
+- [ ] T8 | Delete the carry command and flows/carry.py, which no stage runs
+        > 2026-11-22 Check: grep carry in src/comment_review/commands is empty
