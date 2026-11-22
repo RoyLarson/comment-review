@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 15 of 19 tasks closed
+Progress: 15 of 22 tasks closed
 Owner:    agents
 Requires-Roy: true
 Raised:   2026-08-21 (Roy, 2026-08-21, on leading and matter both being categories
@@ -180,3 +180,13 @@ the five series; this is the verdict vocabulary. It wants 0.2.4 or its own branc
 - [?] T19 | Decide whether the copy chief writes a stet, which
       docs/vocabulary.md:438-441 defers to this file
         > 2026-11-22 Check: the ruling is recorded in docs/decision-log.md
+        > 2026-11-22 Outcome: taken_in is the chief's stet; none added (Process #332)
+- [ ] T20 | Correct docs/vocabulary.md:438-441 and :479, which defer a
+      chief-written stet, to name taken_in
+        > 2026-11-22 Check: vocabulary.md defers no chief-written stet
+- [ ] T21 | Correct docs/vocabulary.md:456's 'a role cannot emit a stet' for
+      #195's placement answer
+        > 2026-11-22 Check: vocabulary.md names the reader's stet answer
+- [ ] T22 | Correct docs/the-turn.md:155-158, which defers a chief-written stet,
+      to name taken_in
+        > 2026-11-22 Check: the-turn.md defers no chief-written stet

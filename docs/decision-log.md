@@ -6911,3 +6911,15 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   the author then read it):
 
   *"yes"*
+
+- **#332.** **`taken_in` is the copy chief's stet; no stet ruling is added** (Roy, 2026-11-22, on
+  `no-mark-for-let-it-stand` T19, shown that #9 defines the chief's `stet` as pointing at what
+  stands -- the original or one role's mark -- and that `taken_in` already points at a side or the
+  original; offered (a) `taken_in` is the chief's stet and nothing is added, (b) rename
+  `taken_in`'s original case to `stet`, or (c) add `stet` as a third chief ruling):
+
+  *"a"*
+
+  **What it settles.** The chief's rulings stay `taken_in` and `recast`. The prose that calls
+  the chief's stet open or deferred is corrected to say `taken_in` carries it. A reader's `stet`
+  answer to a placement, under #195, is a separate use of the word and stands.
