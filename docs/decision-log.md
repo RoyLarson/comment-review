@@ -7163,3 +7163,43 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
 
   **What it settles.** The two conditions are checked before the runner is built. T18, which
   named `skill-creator`, is reissued for `claude plugin eval`.
+
+- **#360.** **The held 0.2.3 records are not migrated** (Roy, 2026-11-22, on
+  `held-runs-need-a-one-off-migration` T1 and T2, shown that the records in
+  `evidence/cycle-0.2.3/records/` use the deleted `record.py` format and nothing reads them):
+
+  *"drop it"*
+
+- **#361.** **The code's-contribution experiment is superseded** (Roy, 2026-11-22, on
+  `isolate-the-codes-contribution` T3-T6, shown that arm B's v0.2.3 agents drive six commands that
+  no longer exist and that no grader ran yet):
+
+  *"supersede"*
+
+- **#362.** **A Rust doc's anchor on its attribute line names the fn** (Roy, 2026-11-22, on
+  `lexer-and-language-findings` T74, shown that the doc now reads at `a1`, that a decorated draft
+  proves and a renamed fn fails, and that #238 and #285 make the attribute the first line of the
+  annotated unit):
+
+  *"yes, supersede"*
+
+- **#363.** **Cross-role composition is covered by the smoke scripts, not by new tests** (Roy,
+  2026-11-22, on `nothing-runs-the-whole-chain` T7, offered a reissue as one cross-role test per
+  composing pair):
+
+  *"I think we have the smoke scripts that cover this and while not tests they do a better job
+  and I don't want them to be tests"*
+
+  **What it settles.** T7 is superseded, and `scripts/smoke_middle.ps1` is where cross-role
+  composition is exercised.
+
+- **#364.** **The 2026-09-06 four-copy comparison is superseded** (Roy, 2026-11-22, on
+  `reviewer-prose-is-rules-not-guidance` T4, shown that the run's copies are gone):
+
+  *"supersede"*
+
+- **#365.** **The seven unrecorded mutants are superseded** (Roy, 2026-11-22, on
+  `galley-and-compositor-write-path` T68, shown that only their labels were recorded and the code
+  they targeted was rewritten):
+
+  *"supersede"*
