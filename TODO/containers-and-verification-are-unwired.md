@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 38 of 60 tasks closed
+Progress: 38 of 61 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, Roy ruling that containers are wired and that the
@@ -211,6 +211,7 @@ task 9 of [`move-is-a-composite-mark`](move-is-a-composite-mark.md).
       sentence states the real cause -- `isinstance(x, dict)` narrows `object`
       to a `__getitem__` taking `Never` -- and a function with no loop at all
       shows the same `invalid-argument-type` diagnostic without the annotation.
+        > 2026-11-22 Location now desk/proof/edit_copy.py:140; containers.py is gone
 - [ ] T20 | Update the proof-versus-copy `read_from` comparison at line 228 so
       it compares the fields `_read_from_problem` checks and names them in its
       message. Verify: a proof whose `read_from` carries an extra key but the
@@ -392,3 +393,6 @@ task 9 of [`move-is-a-composite-mark`](move-is-a-composite-mark.md).
 - [x] T60 | agreed move stays filed; split removed; equivalence tested first | 7726827a | Remove
       the split of an agreed move, leaving it filed at both ends (Process 205);
       a test first shows the move sets each end as the halves did
+- [ ] T61 | Refuse a Place whose `text` is neither a string nor null in
+      Place.deserialize
+        > 2026-11-22 Check: Place.deserialize refuses {"text": 5} by name

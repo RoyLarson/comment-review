@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 2 of 8 tasks closed
+Progress: 2 of 9 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-21 (the /code-review xhigh of 2026-08-21, focused on the file-to-
@@ -83,3 +83,5 @@ for the shape this branch changed.
       `"role": role`, and with `tests/test_docket.py:184`; the rest of the
       paragraph -- that this command receives two bare directories and so has no
       `Pulled` -- is unchanged.
+- [ ] T9 | Delete the sentences naming `galley` as the old name of `proof`
+        > 2026-11-22 Check: no src/ comment calls `galley` a name of `proof`

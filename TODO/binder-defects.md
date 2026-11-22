@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 9 of 39 tasks closed
+Progress: 9 of 40 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, a code review of `binder/binder.py` run against its
@@ -243,3 +243,6 @@ task 5's, but the fix for these two lands in `binder/binder.py`.
       so never finds a row
 - [ ] T39 | Narrow `_read_from_problem`'s use by the desk, which imports it
       though it is private
+- [ ] T40 | Correct the loop back-edge comment at binder.py:181-185 to name ty's
+      real cause
+        > 2026-11-22 Check: a loop-free function shows the same ty diagnostic

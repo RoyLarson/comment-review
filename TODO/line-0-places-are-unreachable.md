@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 4 of 6 tasks closed
+Progress: 4 of 7 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-19 (the seven-agent address review, 2026-08-19)
@@ -92,3 +92,6 @@ it.
 - [ ] T6 | T6 -- Stop `--filtered` collapsing scattered places into a range
       naming a place it excludes. Verify: it lists the addresses, or names a
       range holding only those.
+- [ ] T7 | Correct the 'as gathered' wording for `addresses find --line` to the
+      file as read now
+        > 2026-11-22 Check: --help and place_at's docstring say the file is read now

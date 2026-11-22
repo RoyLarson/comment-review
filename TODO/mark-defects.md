@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 39 of 50 tasks closed
+Progress: 39 of 52 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, a code review of `desk/mark.py` that ran `parse`
@@ -333,3 +333,9 @@ cites as its measured example of a field answering neither necessary nor purpose
         > 2026-11-09 #305: an unsourced clean refuses at check, seeded slots too
 - [x] T50 | FINISHED -- every patch owes a source | c042a9ce | Require a source
       on every patch (#304)
+- [ ] T51 | Refuse a `drop` whose supplied `change` differs from the change its
+      claim derives
+        > 2026-11-22 Check: a one-line drop carrying change "" is refused
+- [ ] T52 | Correct table.py's dropped-word messages, which name a reordered
+      word as dropped
+        > 2026-11-22 Check: reordered words are not reported as a dropped word

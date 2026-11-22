@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 6 of 10 tasks closed
+Progress: 6 of 11 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-09-03 (systems)
@@ -81,3 +81,5 @@ own.
       the git call out of results.prove_unchanged into the flow; grep finds no
       results import of machine.repo
         > 2026-11-04 Process #104 removes the git call; see lexical-code-identity T16
+- [ ] T11 | Make tests/test_areas.py refuse a `machine` import outside `flows/`
+        > 2026-11-22 Check: results/compositor.py's machine import fails the area test

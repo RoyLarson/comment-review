@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 21 of 22 tasks closed
+Progress: 21 of 23 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-21 (the /code-review xhigh of 2026-08-21, focused on the file-to-
@@ -216,3 +216,6 @@ a row is wrong the moment its justification cites another row.
         > 2026-10-26 Go a0 // Package p does. reads back as f0 matter
 - [ ] T22 | Make a0 fillable when a module doc sits above the first declaration
         > 2026-10-26 Java a0 /** Module. */ above class A reads back as a1
+- [ ] T23 | Refuse Rust text set at a0 that does not open with the module-doc
+      form `//!`
+        > 2026-11-22 Check: a Rust a0 change written with /// is refused

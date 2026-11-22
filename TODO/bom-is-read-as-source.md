@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 5 of 8 tasks closed
+Progress: 5 of 9 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-21 (the /code-review xhigh of 2026-08-21, focused on the file-to-
@@ -84,3 +84,6 @@ the first statement rather than as a `trailing-comment`, and no anchor is the BO
 - [ ] T7 | Test the mark in the docstring branch at `python/projection.py:150`
 - [ ] T8 | Read with utf-8-sig at concordance/code_names.py:85, which feeds
       ast.parse. Verify: a BOM'd .py is not listed as SyntaxError
+- [ ] T9 | Strip the byte-order mark from a Rust line-1 doc's text, as the
+      Python reader does
+        > 2026-11-22 Check: a BOM'd .rs file's line-1 doc text has no U+FEFF
