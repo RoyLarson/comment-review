@@ -2,9 +2,9 @@
 
 ```
 Status:   decision-needed
-Progress: 4 of 11 tasks closed
+Progress: 7 of 11 tasks closed
 Owner:    agents
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-18 (Roy, 2026-08-18: keep track of these and have a place to decide on
           them)
 Re-measured: 2026-08-23 -- the cost table was measured 2026-08-18 and every row has
@@ -124,13 +124,15 @@ focus for them gets a lot easier. ! The dependency is discharged: `cue` emits fo
 
 ## Tasks
 
-- [?] T1 | T1 -- * RULE ON THE `block-context` ENTRY -- a constraint false by
-      ARITHMETIC with no enforcing line. Verify: it is in the role file with its
-      currency, or refused.
+- [x] T1 | Ruled: check such a bound on its own terms, filed as T9; Process #356 | 64c5bca36a4119955b32e896ca956fc61e4d00f4 | T1
+      -- * RULE ON THE `block-context` ENTRY -- a constraint false by ARITHMETIC
+      with no enforcing line. Verify: it is in the role file with its currency,
+      or refused.
         > 2026-11-22 Outcome: check a bound on its own terms (Process #356)
-- [?] T2 | T2 -- * RULE ON THE `module-context` ENTRY -- the VERDICT a module
-      announcing more than one subject earns. Verify: the role file names it and
-      the eval case passes.
+- [x] T2 | Ruled: raise the split as a code concern; a-role-with-no-code-out T13-T15 carry it; Process #357 | 64c5bca36a4119955b32e896ca956fc61e4d00f4 | T2
+      -- * RULE ON THE `module-context` ENTRY -- the VERDICT a module announcing
+      more than one subject earns. Verify: the role file names it and the eval
+      case passes.
         > 2026-11-22 Outcome: raise the split as a code concern (Process #357)
 - [-] T3 | SUPERSEDED by #231 and #272: doc-kind-unresolved is retired | e0a31457 | T3
       -- * RULE ON THE every-role ENTRY -- what to do with a paragraph marked
@@ -144,8 +146,8 @@ focus for them gets a lot easier. ! The dependency is discharged: `cue` emits fo
 - [ ] T5 | T5 -- Record which currency each candidate above pays in -- CATCHES,
       or the search it SAVES. Verify: T1..T4 each carry that line, citing the
       measured cost table.
-- [?] T6 | Rule on the sentence-framing entry for `module-context` with
-      `function-context`
+- [x] T6 | Ruled: the #358 sentence, filed as T10 and T11; Process #358 | 64c5bca36a4119955b32e896ca956fc61e4d00f4 | Rule
+      on the sentence-framing entry for `module-context` with `function-context`
         > 2026-10-18 Shape: "stamps three -- a, b and c"; a passive that drops the actor
         > 2026-11-22 Outcome: a count or a hidden actor is a patch (Process #358)
 - [x] T7 | FINISHED -- ruled #302 | 813b3550 | Decide which role or stage owns

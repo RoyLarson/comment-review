@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 1 of 5 tasks closed
+Progress: 2 of 5 tasks closed
 Owner:    backend
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-25 (Roy, 2026-08-25, during the write-chain branch, after the suite
           was cleaned of tests a cut left behind)
 Updated:  2026-08-25 — BASELINE, 2026-08-25, coverage 7.15.4 over 789 passed / 3
@@ -40,7 +40,8 @@ Nothing measures which code the suite actually runs.
       it
 - [ ] T4 | For code that is wanted and uncovered, write the test -- and say what
       behaviour it pins, not that it raises coverage
-- [?] T5 | Decide whether a coverage floor becomes a gate. Verify: if it does,
-      it is systems-owned and it can FAIL -- a floor set at the current number
-      can never fail
+- [x] T5 | Ruled: no coverage floor gates the build; Process #355 | 64c5bca36a4119955b32e896ca956fc61e4d00f4 | Decide
+      whether a coverage floor becomes a gate. Verify: if it does, it is
+      systems-owned and it can FAIL -- a floor set at the current number can
+      never fail
         > 2026-11-22 Outcome: no coverage gate (Process #355)

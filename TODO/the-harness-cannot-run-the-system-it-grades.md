@@ -2,9 +2,9 @@
 
 ```
 Status:   decision-needed
-Progress: 18 of 36 tasks closed
+Progress: 20 of 36 tasks closed
 Owner:    testing
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-18, after a run whose only question needed one role and cost four
 Triaged:  2026-08-23 -- the grader, the twelve hazards and the two `todo-tool` evidence
           packages were REMOVED from the tree: they described a corpus this repo cannot
@@ -339,18 +339,18 @@ to end, so the dominance claim waits on something that can disagree with it.
 - [ ] T14 | T14 -- Survey public histories for a commit whose prose and code
       disagree, and its later fix. Verify: one such pair is a row in
       `evals/test-cases.jsonl`.
-- [?] T15 | T15 -- * Rule what executes a `test-cases.jsonl` row: a script in
-      this repo or `skill-creator`. Verify: the answer is written into this
-      file.
+- [x] T15 | Ruled: claude plugin eval, checks filed as T34 and T35; Process #359 | 64c5bca36a4119955b32e896ca956fc61e4d00f4 | T15
+      -- * Rule what executes a `test-cases.jsonl` row: a script in this repo or
+      `skill-creator`. Verify: the answer is written into this file.
         > 2026-11-22 Outcome: claude plugin eval, if two checks pass (Process #359)
 - [ ] T16 | T16 -- Build that runner. Verify: one command runs one row by `id`
       and exits nonzero on a miss.
 - [x] T17 | FINISHED | unknown | T17 -- SUPERSEDED: `evals/evals.json` is gone
       and the `assertions` field it wanted exists as `expected`, `observed` and
       `outcome` on every `test-cases.jsonl` row.
-- [ ] T18 | T18 -- Run the six `evals/test-cases.jsonl` cases through
-      `skill-creator`. Verify: a `benchmark.json` exists and reports a delta;
-      today none does.
+- [-] T18 | SUPERSEDED by T36: the runner is claude plugin eval, not skill-creator | 64c5bca36a4119955b32e896ca956fc61e4d00f4 | T18
+      -- Run the six `evals/test-cases.jsonl` cases through `skill-creator`.
+      Verify: a `benchmark.json` exists and reports a delta; today none does.
 - [x] T19 | FINISHED | unknown | T19 -- SUPERSEDED: `grade_hazards.py` is not in
       this tree and is not returning in that form; the guidance it carried is in
       the Objective and belongs to T26 to T29.
