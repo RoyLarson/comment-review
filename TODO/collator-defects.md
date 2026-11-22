@@ -264,6 +264,7 @@ Four defects in collator.py, found by reading only the code.
 - [ ] T50 | Refuse a source whose `verbatim` does not start on its cited line,
       replacing source_problems' WITHIN window
         > 2026-11-22 Check: a verbatim one line below its cite is refused
+        > 2026-11-22 Check: a two-line verbatim from a CRLF file is found (Process #369)
 - [ ] T51 | Correct flows/fill.py:197's docstring to say the text must start on
       the cited line
         > 2026-11-22 Check: fill.py's docstring names no three-line window

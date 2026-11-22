@@ -191,6 +191,7 @@ task 9 of [`move-is-a-composite-mark`](move-is-a-composite-mark.md).
       `parse_master_proof("4c", {"edit_copies": []})` is refused by name, or the
       field is gone -- today it returns `MasterProof(stage="")` with no
       problems, and so do `None`, `4` and `""`.
+        > 2026-11-22 Kept: delete stage if nothing reads it, else validate (#278)
 - [-] T15 | SUPERSEDED by T64: _read_from_problem is now the public read_from.read_from_problem | 22c3a0abcbc86509c74296319ce5b719a43338ca | Update
       `_read_from_problem`'s absent-`read_from` message so it composes at both
       call sites, which each prefix a possessive. Verify: a test asserts all

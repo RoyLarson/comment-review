@@ -7203,3 +7203,34 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   they targeted was rewritten):
 
   *"supersede"*
+
+- **#366.** **Test comments stop citing TODO files as each test file is touched** (Roy,
+  2026-11-22, shown 15 TODO paths in 12 test files' comments, most now under `TODO/completed/`, and
+  offered (a) leave them or (b) strip the citations as each file is touched):
+
+  *"b"*
+
+  **What it settles.** A change to a test file removes the TODO citations in its comments; no
+  sweep is filed, and no citation is repointed.
+
+- **#367.** **What a later stage reads is assembled by the skill** (Roy, 2026-11-22, on
+  `galley-and-compositor-write-path` T45, shown that SKILL.md builds `root4c` and `binder4c` at
+  `--revise 1` since `57a45615`, per #118):
+
+  *"okay"*
+
+- **#368.** **Collate's listing is the human-question list** (Roy, 2026-11-22, on
+  `2026-10-13-human-question-list` T1, shown that collate lists every question from every edit
+  copy and exits 5):
+
+  *"finish"*
+
+- **#369.** **The CRLF quote gap goes with the exact-line rewrite; the cache keeps its path key;
+  stage 6 needs no move test** (Roy, 2026-11-22, on `collator-defects` T4, T6, T7 and T8 and
+  `compact-can-buy-lines-with-width` T3, shown that #325 replaces the window, that every cache is
+  built in one call over one root, and that stage 6 admits no `move`):
+
+  *"go with recommended action"*, *"agree supersede"*, *"agree supersede"*
+
+  **What it settles.** `collator-defects` T50 carries the CRLF case; T4, T6, T7, T8 and
+  `compact-can-buy-lines-with-width` T3 are superseded.
