@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 6 of 9 tasks closed
+Progress: 7 of 9 tasks closed
 Owner:    agents
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-27 (Roy, on a finding whose subject is the relation between two
           places: "I would think one or both sides get a correct or query with a
           reason / The reason says this contradicts that / Along with the sources
@@ -132,9 +132,9 @@ merge-or-fight table never sees the overlap. Filed as
       `record.py`/`verdicts.py`/`desk.py` in `prototype/`. Verify: `grep -rn
       "outside the checkout"` returns nothing outside `docs/` (history keeps the
       old set legible) and `corpora/`.
-- [?] T6 | T6 -- * RULE the register for all three names. ! The CATEGORIES are
-      ruled and are not reopened by this -- only the words. Candidates, Roy
-      2026-08-27:
+- [x] T6 | Ruled: the trade's three words, filed as T9; Process #346 | 9304a51a21c437f2766cad8cbed14801f062cf7d | T6
+      -- * RULE the register for all three names. ! The CATEGORIES are ruled and
+      are not reopened by this -- only the words. Candidates, Roy 2026-08-27:
         > 2026-11-22 Outcome: author-query, unverified, outside-my-remit (#346)
 
           human-review-necessary  ->  author query   only the author holds the intent

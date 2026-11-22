@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 4 of 10 tasks closed
+Progress: 7 of 10 tasks closed
 Owner:    backend
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-28 (2026-08-28, Roy asking what `claim.shape` is: 'because it is
           ambiguous. Also why is it specific to query mark? Why isn't part of the other
           enum candidates? Why "shape" why not a better word?')
@@ -65,8 +65,9 @@ by who answers it.
 
 ## Tasks
 
-- [?] T1 | RULE the word. `shape` means THREE things in this tree, none
-      declared: the STRUCTURE of a mark (`docs/the-mark.md:1`, `mark --shape`,
+- [x] T1 | Ruled: query keeps shape, structure is contract; filed as T9, T10; Process #347 | 9304a51a21c437f2766cad8cbed14801f062cf7d | RULE
+      the word. `shape` means THREE things in this tree, none declared: the
+      STRUCTURE of a mark (`docs/the-mark.md:1`, `mark --shape`,
       `tests/gates/test_mark_shape.py`); a QUERY'S KIND (`claim.shape`,
       `QUERY_SHAPES`, instructed at `comment-review-module-context.md:108`); and
       THE FORM A CLASSIFIER TAKES (`the-mark.md:171`). Verify: the ruling names
@@ -82,11 +83,12 @@ by who answers it.
       is a field on `clean`.' Verify: the answer says whether the two share one
       axis or hold two, and `docs/the-mark.md` states it.
         > 2026-11-22 Outcome: the category is query's alone (Process #322)
-- [ ] T3 | Name it for WHAT IT DOES. `decision-log.md Process: #33` keyed the
-      three on WHO RESOLVES IT, replacing an axis about where evidence lives --
-      so the field says whom the query is FOR, which is also how publishing
-      names one (an *author query* is named by who answers it). Verify: the
-      candidate is checked against the register BEFORE it is proposed, per
+- [-] T3 | Moot: the query kind keeps shape; Process #347 | 9304a51a21c437f2766cad8cbed14801f062cf7d | Name
+      it for WHAT IT DOES. `decision-log.md Process: #33` keyed the three on WHO
+      RESOLVES IT, replacing an axis about where evidence lives -- so the field
+      says whom the query is FOR, which is also how publishing names one (an
+      *author query* is named by who answers it). Verify: the candidate is
+      checked against the register BEFORE it is proposed, per
       `docs/vocabulary.md`, and the reasoning is recorded whichever way it goes.
 - [-] T4 | SUPERSEDED by T7: Shape(StrEnum) landed in 877c047a; plan item T1.15 is done | 22c3a0abcbc86509c74296319ce5b719a43338ca | Carry
       the ruling into the enum sweep. T1.15 of the 0.2.4 plan lists
@@ -107,8 +109,8 @@ by who answers it.
 - [ ] T7 | Move desk/proof/mark.py's Shape enum to the set T2 rules it belongs
       to
         > 2026-11-22 Check: no site hand-writes the shape values
-- [ ] T8 | Carry T1's ruled word into the brief, module-context.md:27, :37 in
-      one change
+- [-] T8 | Moot: the brief's word does not change; Process #347 | 9304a51a21c437f2766cad8cbed14801f062cf7d | Carry
+      T1's ruled word into the brief, module-context.md:27, :37 in one change
         > 2026-11-22 Check: no shipped file uses a retired sense
 - [ ] T9 | Rename the mark-structure sense of `shape` to `contract`, from
       `distribute --shape` to the gate test
