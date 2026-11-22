@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 3 of 8 tasks closed
+Progress: 4 of 8 tasks closed
 Owner:    agents
 Requires-Roy: true
 Raised:   2026-08-17 (a run declared the collision in its style sheet without being asked:
@@ -76,9 +76,10 @@ term belongs to the repo's sheet. This is settled, it is already ENFORCED, and i
 - [ ] T3 | T3 -- State in that section that a collision is DECLARED rather than
       resolved. Verify: the section says neither vocabulary may be renamed to
       suit the other.
-- [?] T4 | T4 -- Decide whether a declared collision reaches the REVIEWERS; the
-      sheet is in the stage-4 packet, so today it would. Verify: the answer is
-      written into this file.
+- [x] T4 | Ruled: the style sheet carries a declared collision; Process #319 | fde63689f5a5b91eeefd4b1fa846038fbaa7cfc1 | T4
+      -- Decide whether a declared collision reaches the REVIEWERS; the sheet is
+      in the stage-4 packet, so today it would. Verify: the answer is written
+      into this file.
         > 2026-11-22 Outcome: reaches reviewers via the style sheet (Process #319)
 - [-] T5 | SUPERSEDED by T8: vocabulary.py moved to prototype/; the claim now sits in the six agent files | 22c3a0abcbc86509c74296319ce5b719a43338ca | T5
       -- Fix `vocabulary.py:73`, whose *"it is ordinary English"* is wrong for a

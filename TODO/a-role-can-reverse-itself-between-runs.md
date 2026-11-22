@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 2 of 7 tasks closed
+Progress: 4 of 7 tasks closed
 Owner:    agents
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-17 (two runs of the same skill over the same repo at the same ref;
           one role returned opposite verdicts on the same block)
 TRIAGED:  2026-08-23 — five of six boxes are tasks; the sixth was a standing
@@ -144,15 +144,17 @@ list. `grep -n "stability" docs/limitations.md` returns nothing today.
 - [ ] T2 | T2 -- Re-run r1's exact skill version against the same census to see
       whether the reversal reproduces. Verify: both `module-context` verdicts
       recorded side by side.
-- [?] T3 | T3 -- * Rule what a measured reversal rate would OBLIGE: nothing, a
-      bar on a lone `clean`, or agreement across roles. Verify:
-      `docs/decision-log.md` records it.
+- [x] T3 | Ruled: a place settles on agreement across roles; Process #317 | fde63689f5a5b91eeefd4b1fa846038fbaa7cfc1 | T3
+      -- * Rule what a measured reversal rate would OBLIGE: nothing, a bar on a
+      lone `clean`, or agreement across roles. Verify: `docs/decision-log.md`
+      records it.
         > 2026-09-02 A candidate obligation: a reversal is a row naming who last set it
         > 2026-09-02 It came from a-revise-answer-has-no-artifact T7, filed as backend
         > 2026-09-02 No revise step existed when it was observed; the stages are runs
         > 2026-11-22 Outcome: settles on agreement across roles (Process #317)
-- [?] T4 | T4 -- * Rule whether a `correct` reversing to `query` is WORSE than
-      the reverse. The verdict table treats them as peers. Verify:
+- [-] T4 | Moot: runs are never compared; Process #315 | fde63689f5a5b91eeefd4b1fa846038fbaa7cfc1 | T4
+      -- * Rule whether a `correct` reversing to `query` is WORSE than the
+      reverse. The verdict table treats them as peers. Verify:
       `docs/decision-log.md` records it.
         > 2026-11-22 Outcome: moot; runs are never compared (Process #315)
 - [ ] T5 | T5 -- Say in `docs/limitations.md` that verdict stability across runs

@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 13 of 20 tasks closed
+Progress: 14 of 20 tasks closed
 Owner:    backend
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-22 (simplify round 7, 2026-08-22 -- found by Pyright and by reading,
           not by dead_sweep.py, which is blind to unused parameters and tuple elements)
 RE-CHECKED: 2026-08-23 — 2026-08-23. Task 6 is a measurement the file itself says is
@@ -155,8 +155,9 @@ page.py:793-794 for `_SHEBANG`/`_CODING`, which round 7 deleted; those citations
 - [ ] T18 | Cut attach's unreachable Kind.MATTER branch at
       binder/page.py:414-415
         > 2026-11-22 Check: page.py:414-415 is gone; the suite is green
-- [?] T19 | Decide whether gather's stage 3 paragraph annotations reach the
-      binder, since binder/page._place serialises none of them
+- [x] T19 | Ruled: annotations stay out of the binder; deletion filed as T20; Process #320 | fde63689f5a5b91eeefd4b1fa846038fbaa7cfc1 | Decide
+      whether gather's stage 3 paragraph annotations reach the binder, since
+      binder/page._place serialises none of them
         > 2026-11-22 Check: the ruling is recorded in docs/decision-log.md
         > 2026-11-22 Outcome: not in the binder; delete the step (Process #320)
 - [ ] T20 | Delete the paragraph annotations gather computes at

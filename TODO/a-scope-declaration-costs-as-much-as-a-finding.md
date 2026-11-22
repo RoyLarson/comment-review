@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 4 of 8 tasks closed
+Progress: 5 of 8 tasks closed
 Owner:    agents
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-17, the day the query contract landed. `module-context`'s report on a
           1,174-block repo is 1.1 MB and most of it is the words "outside my role".
 TRIAGED:  2026-08-23 — three of four boxes are tasks; the fourth was a standing
@@ -130,8 +130,9 @@ do the thing we ruled out"*. It carried a box until 2026-08-23 and is recorded h
       this file.
 - [ ] T2 | T2 -- Measure them by RECORD COUNT on the same report. Verify: the
       count and the total record count are written into this file.
-- [?] T3 | T3 -- * RULE whether an `outside my role` query may carry a LIGHTER
-      payload than the other two shapes. Verify: the ruling is recorded in
+- [x] T3 | Ruled: the full query payload stands; Process #318 | fde63689f5a5b91eeefd4b1fa846038fbaa7cfc1 | T3
+      -- * RULE whether an `outside my role` query may carry a LIGHTER payload
+      than the other two shapes. Verify: the ruling is recorded in
       `docs/decision-log.md`.
         > 2026-08-31 a ruling was reported from the dogfood session; unconfirmed here
         > 2026-11-22 Outcome: full query payload, no lighter form (Process #318)
