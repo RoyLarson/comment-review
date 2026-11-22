@@ -2,9 +2,9 @@
 
 ```
 Status:   decision-needed
-Progress: 11 of 16 tasks closed
+Progress: 15 of 16 tasks closed
 Owner:    testing
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-19 (the seven-agent address review, 2026-08-19)
 RE-CHECKED: 2026-08-23 -- 2026-08-23. Every one of the nine claims was checked against
             the code and all nine are STILL TRUE; nothing here has been overtaken. The
@@ -90,17 +90,20 @@ lines.
       -- Keep the function-sized range ruled admissible 2026-08-17 passing.
       Verify: an entry citing a whole function, verbatim half inside it, still
       passes.
-- [?] T3 | T3 -- * Rule how a code RANGE is expressed as an address, when every
-      code line is its own one-line `c`. Verify: the ruling is recorded in
+- [x] T3 | Ruled: a source cites path:line and its verbatim starts there; Process #325 | 85cc5670260609adbe8de694d5c5dcd9a7bf8a19 | T3
+      -- * Rule how a code RANGE is expressed as an address, when every code
+      line is its own one-line `c`. Verify: the ruling is recorded in
       `docs/decision-log.md`.
         > 2026-11-22 Outcome: a source cites path:line, exact (Process #325)
-- [?] T4 | T4 -- * Rule what a source citing a caller in an uncensused file
-      names: census on demand, or the line form with the fuzz. Verify: recorded
-      in `docs/decision-log.md`.
+- [x] T4 | Ruled: the line form, exact on the cited line, no fuzz; Process #325 | 85cc5670260609adbe8de694d5c5dcd9a7bf8a19 | T4
+      -- * Rule what a source citing a caller in an uncensused file names:
+      census on demand, or the line form with the fuzz. Verify: recorded in
+      `docs/decision-log.md`.
         > 2026-11-22 Outcome: line form, no fuzz; on the cited line (Process #325)
-- [ ] T5 | T5 -- Implement `address:lines` for SOURCES, lines counted WITHIN the
-      block, 1-based, blanks included. Verify: a line-form source in a censused
-      file is refused.
+- [-] T5 | SUPERSEDED by collator-defects T50: #325 replaces address:lines with the exact cited line | 85cc5670260609adbe8de694d5c5dcd9a7bf8a19 | T5
+      -- Implement `address:lines` for SOURCES, lines counted WITHIN the block,
+      1-based, blanks included. Verify: a line-form source in a censused file is
+      refused.
 - [-] T6 | Moot: no freeform waiver exists; every mark owes a source and cites must resolve; verified at HEAD | 67184ac1 | T6
       -- * Rule what bounds a FREEFORM source, so the waiver cannot cover
       fabricated evidence. Verify: the ruling is recorded in
@@ -137,6 +140,6 @@ lines.
 - [ ] T15 | Correct ownership-context.md:70's move destination to the address
       form
         > 2026-11-22 Check: it names a path@cue, not 'the line above'
-- [ ] T16 | Build flows/annotations_for.py's repeated-literal note from
-      b.address
+- [-] T16 | Moot: annotations_for is the annotation step #320 deletes | 85cc5670260609adbe8de694d5c5dcd9a7bf8a19 | Build
+      flows/annotations_for.py's repeated-literal note from b.address
         > 2026-11-22 Check: no repeated-literal note cites path:start

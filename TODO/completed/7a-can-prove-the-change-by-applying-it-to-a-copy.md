@@ -1,10 +1,10 @@
 # 7a can PROVE the change by applying it to a copy and diffing
 
 ```
-Status:   in-progress
-Progress: 7 of 8 tasks closed
+Status:   closed
+Progress: 8 of 8 tasks closed
 Owner:    agents
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-17, while ruling on what CLAIM and CHANGE each carry
 TRIAGED:  2026-08-23 — re-verified in place. THREE of five are done: the galley tree
           (`--out`, galley.py:345), the descending splice, and the splice-failure
@@ -141,8 +141,9 @@ filed, and still two.
 - [-] T7 | SUPERSEDED: no census remains on disk | 68bfc548 | T7 -- Cut the
       cycle to ONE census on disk. Verify: `SKILL.md` names one census artifact,
       not both `census.json` and `galley-census.json`.
-- [?] T8 | Rule what the proof setter does with a seeded place the role has not
-      filled, when it sets a partly filled copy.
+- [-] T8 | Moot: collate refuses an unruled slot, so no partly filled copy is set; Process #324 | 85cc5670260609adbe8de694d5c5dcd9a7bf8a19 | Rule
+      what the proof setter does with a seeded place the role has not filled,
+      when it sets a partly filled copy.
         > 2026-11-22 Outcome: moot; collate refuses an unruled slot (Process #324)
 ## Related
 

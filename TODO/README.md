@@ -281,14 +281,13 @@ that changed a published name or rule:
 | [commands-reach-past-flows](commands-reach-past-flows.md) | backend | -- | 0/2 | Commands import only flows and the leaves |
 | [todo-tool-skill-routes-to-the-vendored-script](todo-tool-skill-routes-to-the-vendored-script.md) | systems | -- | 0/1 | The todo-tool skill sends board writes to the vendored script |
 
-### in-progress  (13)
+### in-progress  (12)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
 | [compact-can-buy-lines-with-width](compact-can-buy-lines-with-width.md) | agents | -- | 3/8 | COMPACT can buy lines with width, and nothing stops it |
 | [stage-1-is-re-derived-every-run](stage-1-is-re-derived-every-run.md) | agents | yes | 6/16 | Stage 1 is re-derived every run, asks one question twice, and knows one structure source |
 | [corpora-are-all-python](corpora-are-all-python.md) | testing | -- | 10/11 | The corpora are nine Python projects, so every per-language rule is measured on Python and C alone |
-| [7a-can-prove-the-change-by-applying-it-to-a-copy](7a-can-prove-the-change-by-applying-it-to-a-copy.md) | agents | yes | 7/8 | 7a can PROVE the change by applying it to a copy and diffing |
 | [b-addresser-uninitialised](b-addresser-uninitialised.md) | backend | -- | 17/19 | The b addresser is never initialised at the module trigger, and computes its cue from line numbers |
 | [census-degrades-silently](census-degrades-silently.md) | backend | -- | 9/10 | **Four inputs produce a census that is wrong rather than refused, each exiting 0.** The run reads as complete and the addresses are nonsense. |
 | [census-owns-addressing](census-owns-addressing.md) | backend | -- | 5/8 | The census owns addressing, and four modules share one subject between them |
@@ -304,7 +303,7 @@ that changed a published name or rule:
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
 | [role-rule-register](role-rule-register.md) | agents | yes | 3/8 | The register of proposed additions and amendments to the four editorial role files. ! Role prose is BUDGET-FIXED, so a candidate is not judged alone -- it is judged against what it would replace, which is why they collect here instead of landing one at a time. |
-| [evidence-still-names-places-by-line](evidence-still-names-places-by-line.md) | testing | yes | 11/16 | **The address reached the record key and a `move`'s destination and stopped.** `SOURCES` -- the field the evidentiary contract rests on -- is 100% line-form, and Roy's `address:lines` ruling is unimplemented. Four other artifacts name a place by nothing at all. |
+| [evidence-still-names-places-by-line](evidence-still-names-places-by-line.md) | testing | -- | 15/16 | **The address reached the record key and a `move`'s destination and stopped.** `SOURCES` -- the field the evidentiary contract rests on -- is 100% line-form, and Roy's `address:lines` ruling is unimplemented. Four other artifacts name a place by nothing at all. |
 | [no-mark-for-let-it-stand](no-mark-for-let-it-stand.md) | agents | yes | 15/19 | There is no mark for LET IT STAND -- a declined proposal is not recorded, so the next run proposes it again |
 | [front-half-undetermined](front-half-undetermined.md) | testing | yes | 8/11 | The census to findings to verdicts path has never been determined against a backend that works |
 | [a-role-with-no-code-out-damages-the-prose](a-role-with-no-code-out-damages-the-prose.md) | agents | -- | 11/15 | `code_concerns` is defined in the shared brief that every role reads, but named in only ONE of the four reviewer files -- `function-context`. It is absent from `module-context`, whose whole remit is whether a module announces ONE subject, which is the finding that most needs a code out. MEASURED in the harness: `module-context-widens-a-two-subject-docstring` detected that `verdicts.py` holds four subjects, had no verdict for 'split this module', and emitted a prose `patch` widening the docstring to announce TWO -- the exact defect its own trigger is named for. `code_concerns` came back empty. |
@@ -545,3 +544,4 @@ the reason is inside the file.
 | [todo-tool-writes-em-dashes](completed/todo-tool-writes-em-dashes.md) | 3 superseded |
 | [the-author-approves-blocks-and-never-sees-the-page](completed/the-author-approves-blocks-and-never-sees-the-page.md) | 7 finished, 3 superseded |
 | [name-corpus-sees-one-language](completed/name-corpus-sees-one-language.md) | 10 superseded |
+| [7a-can-prove-the-change-by-applying-it-to-a-copy](completed/7a-can-prove-the-change-by-applying-it-to-a-copy.md) | 4 finished, 4 superseded |
