@@ -15,7 +15,7 @@ Build rollback events in one place while preserving reasons and exit codes
 
 ## TODO tasks this plan closes
 
-### A - [rebuilt-middle-final-review](../../TODO/rebuilt-middle-final-review.md)
+### A - [rebuilt-middle-final-review](../../TODO/completed/rebuilt-middle-final-review.md)
 
 - [x] T27 | Give rollback one producer; the bus builds two without a Fold and
       commands/collate.py a third (C3)

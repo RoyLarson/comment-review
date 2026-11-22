@@ -16,7 +16,7 @@ answers conflict
 
 ## TODO tasks this plan closes
 
-### A - [rebuilt-middle-final-review](../../TODO/rebuilt-middle-final-review.md)
+### A - [rebuilt-middle-final-review](../../TODO/completed/rebuilt-middle-final-review.md)
 
 - [x] T23 | Define stands once; it means nothing proposed, a lone proposal
       nobody is owed, and closed by the chief (B5)

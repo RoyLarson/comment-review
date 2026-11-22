@@ -36,12 +36,12 @@ below are the final board association.
 
 | Area | Owning TODO and new IDs | Detailed review |
 | --- | --- | --- |
-| R2: seal query admission and remove the obsolete lifecycle | [human-questions-before-the-fold](../../TODO/human-questions-before-the-fold.md) T8; [rebuilt-middle-final-review](../../TODO/rebuilt-middle-final-review.md) T47 | [R2-A through R2-C](2026-09-30-r2-r3.md) |
-| R3: compose equal operations and convergent filings; relinquish deferred sides; exhaustively handle answer effects | [rebuilt-middle-final-review](../../TODO/rebuilt-middle-final-review.md) T48-T51 | [R3-A through R3-D](2026-09-30-r2-r3.md) |
+| R2: seal query admission and remove the obsolete lifecycle | [human-questions-before-the-fold](../../TODO/human-questions-before-the-fold.md) T8; [rebuilt-middle-final-review](../../TODO/completed/rebuilt-middle-final-review.md) T47 | [R2-A through R2-C](2026-09-30-r2-r3.md) |
+| R3: compose equal operations and convergent filings; relinquish deferred sides; exhaustively handle answer effects | [rebuilt-middle-final-review](../../TODO/completed/rebuilt-middle-final-review.md) T48-T51 | [R3-A through R3-D](2026-09-30-r2-r3.md) |
 | R4: source shape, unique quoted statement, complete headers, per-language rewrap | [mark-defects](../../TODO/mark-defects.md) T29-T32 | [R4 A, B, C, F](2026-09-30-r4.md) |
 | R4: generated chief ruling contract and remaining answer-payload decision | [the-chief-has-no-recast-workflow](../../TODO/the-chief-has-no-recast-workflow.md) T13-T14 | [R4 D and Genuine ruling](2026-09-30-r4.md) |
 | R6: complete readable chief result, source-free/anchorless cases, chief reason | [collate-flow-defects](../../TODO/collate-flow-defects.md) T17-T19, T23 | [R6 items 1-3 and 5](2026-09-30-r6-r7-r8.md) |
-| R6: reject undecided synthesis input | [rebuilt-middle-final-review](../../TODO/rebuilt-middle-final-review.md) T52 | [R6 item 4](2026-09-30-r6-r7-r8.md) |
+| R6: reject undecided synthesis input | [rebuilt-middle-final-review](../../TODO/completed/rebuilt-middle-final-review.md) T52 | [R6 item 4](2026-09-30-r6-r7-r8.md) |
 | R7: duplicate rulings/answers, exact human-question identity, all anchor provenance | [collate-flow-defects](../../TODO/collate-flow-defects.md) T20-T22, T24 | [R7 items 6-9](2026-09-30-r6-r7-r8.md) |
 | Standalone: literal topology paths | [staged-chain-untested](../../TODO/staged-chain-untested.md) T6 | [Standalone 06:3](2026-09-30-r6-r7-r8.md) |
 | Standalone: withdrawal respects stage dealing | [mark-defects](../../TODO/mark-defects.md) T33 | [Standalone 06:6](2026-09-30-r6-r7-r8.md) |

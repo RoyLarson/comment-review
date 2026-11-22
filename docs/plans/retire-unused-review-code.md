@@ -15,7 +15,7 @@ Remove verified dead functions, event fields and the no-op anchor-line flag
 
 ## TODO tasks this plan closes
 
-### A - [rebuilt-middle-final-review](../../TODO/rebuilt-middle-final-review.md)
+### A - [rebuilt-middle-final-review](../../TODO/completed/rebuilt-middle-final-review.md)
 
 - [x] T32 | Delete what nothing reads: AnswerRow.question, three event fields,
       desk/proof.py, diff3, tally, mark --anchor-line (E2)

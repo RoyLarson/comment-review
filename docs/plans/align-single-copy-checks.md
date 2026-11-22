@@ -16,7 +16,7 @@ collate
 
 ## TODO tasks this plan closes
 
-### A - [rebuilt-middle-final-review](../../TODO/rebuilt-middle-final-review.md)
+### A - [rebuilt-middle-final-review](../../TODO/completed/rebuilt-middle-final-review.md)
 
 - [x] T16 | Move the ten rules held in flows and commands into desk, and hold
       check's pre-fold list equal to the bus's (D6)

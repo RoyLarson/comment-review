@@ -16,7 +16,7 @@ wording and context labels
 
 ## TODO tasks this plan closes
 
-### A - [rebuilt-middle-final-review](../../TODO/rebuilt-middle-final-review.md)
+### A - [rebuilt-middle-final-review](../../TODO/completed/rebuilt-middle-final-review.md)
 
 - [x] T29 | Make one renderer for a refusal line; it is spelled at seven sites
       (C5)

@@ -16,7 +16,7 @@ output
 
 ## TODO tasks this plan closes
 
-### A - [rebuilt-middle-final-review](../../TODO/rebuilt-middle-final-review.md)
+### A - [rebuilt-middle-final-review](../../TODO/completed/rebuilt-middle-final-review.md)
 
 - [x] T56 | Decide whether Fold._unwritable refuses a place through the chief
       copy or the docket

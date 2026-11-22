@@ -27,7 +27,7 @@ Roy, 2026-09-02, verbatim and unelided:
 What the quotation calls a `DiffMark` is an `Answer` (`desk/proof/answer.py`); *recollated* is
 the fold run again over the same places, which is what `flows.bus` does with each turn's
 answers written onto them. The current escalation slot carries the base paragraph and
-role-labeled sides. The fold saves its decisions to the master proof.
+role-labeled sides. The bus puts the decisions on the master proof, and the command saves it.
 
 ## The loop, as steps
 
@@ -497,7 +497,7 @@ admit every instruction.
 `reading.series`, an instruction name against the marks table -- so a row naming something
 outside either is refused by the value it typed.
 
-**Each supplied filter restricts the places dealt.** A supplied series list limits the
+**A nonempty series list limits the places dealt.** It restricts the
 eligible addresses. A positive cap deals only places whose line count exceeds it.
 The count is the page's own `lines`, which `binder.page` fills from the paragraph's raw text
 when a binder is read back and the lexer fills when a page is built; a place holding no prose

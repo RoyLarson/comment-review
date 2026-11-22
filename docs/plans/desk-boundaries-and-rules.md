@@ -16,7 +16,7 @@ evaluator rules
 
 ## TODO tasks this plan closes
 
-### A - [rebuilt-middle-final-review](../../TODO/rebuilt-middle-final-review.md)
+### A - [rebuilt-middle-final-review](../../TODO/completed/rebuilt-middle-final-review.md)
 
 - [x] T12 | Move desk's two binder imports out: collator.py takes a Binder,
       containers.py a private binder name (D1)
