@@ -85,6 +85,7 @@ archival pattern the stance already covers, and it is what produced the third li
 - [?] T3 | T3 -- * Rule whether `dead_sweep.py:288-289`'s stance still holds for
       the 38 links, or narrows. Verify: the answer is written into
       `dead_sweep.py` beside that sentence.
+        > 2026-11-22 Outcome: stance holds; closed records are not rewritten (Roy)
 - [?] T4 | T4 -- * If archived links are to be repaired, rule HOW; only if T3
       narrows the stance. Verify: the rule is written into `dead_sweep.py`
       beside what it revises.
