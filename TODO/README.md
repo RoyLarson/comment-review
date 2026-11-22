@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (96)
+### open  (95)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -210,7 +210,6 @@ that changed a published name or rule:
 | [verdicts-is-the-join](verdicts-is-the-join.md) | backend | -- | 11/13 | The VERDICTS table lives in record.py; verdicts.py is the collator and 43 sites say so |
 | [nothing-runs-the-whole-chain](nothing-runs-the-whole-chain.md) | backend | -- | 3/7 | Every stage of the backend has its own tests and nothing runs census -> seed -> record -> join -> galley -> compositor -> prove in one pass. So the redesign phase has no measurement to hold constant, and a defect that lives BETWEEN two stages is invisible to every gate this repo has. |
 | [settle-carries-two-meanings](settle-carries-two-meanings.md) | systems | -- | 3/8 | settle carries two meanings in what an agent is handed, and neither is declared to it |
-| [no-stage-agrees-the-terms](no-stage-agrees-the-terms.md) | systems | yes | 0/7 | No stage establishes what the words mean before the roles are asked to use them |
 | [the-flow-lives-in-the-command](the-flow-lives-in-the-command.md) | backend | -- | 14/17 | Lifting main() out showed the orchestration was always inside it: commands/census.py took 446 lines and calls page_for, while flows/census.py kept 261 lines of helpers. A command is meant to EXPOSE a flow, not be one. |
 | [two-areas-have-no-tests](two-areas-have-no-tests.md) | backend | -- | 1/5 | tests/ mirrors the package, so an area with no directory is a visible hole. machine/ (repo, constants, exceptions) and commands/ (all ten) have none. repo is exercised only through flows/test_census_names.py, which tests something else. |
 | [concordance-gaps-stated-twice](concordance-gaps-stated-twice.md) | backend | -- | 5/12 | Both encode 'a gap is not a pass' and spell it differently: code_names returns unread rows keyed by NO_HARVESTER/WALKED_TREE, referrers collects unreadable and unsearched under NOT CHECKED. Three states, one idea, two vocabularies. The EXTRACTIONS stay separate -- code_names must be structural so a comment mentioning a symbol cannot prove it exists, and referrers must be textual to see mentions in files nothing parses. |
@@ -545,3 +544,4 @@ the reason is inside the file.
 | [null-is-not-a-decision](completed/null-is-not-a-decision.md) | 3 superseded |
 | [index-and-glossary-for-roles](completed/index-and-glossary-for-roles.md) | 1 superseded |
 | [a-machine-context-raises-query-and-clean](completed/a-machine-context-raises-query-and-clean.md) | 8 superseded |
+| [no-stage-agrees-the-terms](completed/no-stage-agrees-the-terms.md) | 7 superseded |
