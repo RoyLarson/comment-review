@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 57 of 74 tasks closed
+Progress: 58 of 74 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, Roy ruling that containers are wired and that the
@@ -269,9 +269,9 @@ task 9 of [`move-is-a-composite-mark`](move-is-a-composite-mark.md).
       Sheet.seed, EditCopy.seed and MasterProof.seed to return the container,
       splitting seed from serialize as Mark already does
         > 2026-08-31 Mark splits seed from as_entry already; the containers do not
-- [ ] T29 | Update the desk so it does not produce a docket its own reader
-      refuses -- an empty one when nothing settles, and a page whose sha it
-      folded to empty
+- [-] T29 | SUPERSEDED by T73 and T74: each half on its own side, per Process #380 | f8a5ce61c42f07a6c2347a915764865a3ecd69ac | Update
+      the desk so it does not produce a docket its own reader refuses -- an
+      empty one when nothing settles, and a page whose sha it folded to empty
         > 2026-08-31 Latent -- nothing writes a docket until P42/P43 wire the middle
         > 2026-08-31 Both shapes have tests pinning the producer; the reader is right
 - [-] T30 | SUPERSEDED IN PART -- a flow assembles the docket now: flows.transcribe.docket_of takes an EditCopy. The Binder TYPE half is live and is carried by collator-defects T29, which deletes the crossings tests/test_areas.py KNOWN names | 7ae43d4 | Update
