@@ -1,6 +1,6 @@
 | plan | status | T closed | P closed |
 | --- | --- | ---: | ---: |
-| [0.2.4-a-change-is-read-before-it-stands](0.2.4-a-change-is-read-before-it-stands.md) | in-progress | 1/13 | 0/4 |
+| [0.2.4-a-change-is-read-before-it-stands](0.2.4-a-change-is-read-before-it-stands.md) | in-progress | 3/13 | 0/4 |
 | [0.2.4-a-chief-ruling-is-recorded-whole](0.2.4-a-chief-ruling-is-recorded-whole.md) | closed | 11/11 | 11/11 |
 | [0.2.4-a-mark-cites-what-it-read](0.2.4-a-mark-cites-what-it-read.md) | closed | 8/8 | 6/6 |
 | [0.2.4-a-mark-lands-as-written](0.2.4-a-mark-lands-as-written.md) | closed | 4/4 | 6/6 |

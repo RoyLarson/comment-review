@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 1 of 3 tasks closed
+Progress: 2 of 3 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-11-23 (broken review, 2026-11-23)
@@ -41,5 +41,6 @@ W-F8, N-N5; V17, V19, V22]
         > 2026-11-23 Outcome: decision-log #385-#392 settle it; work is T2, T3, P1
 - [ ] T2 | Make two disjoint sentence edits settle alike from one role or from
       two
-- [ ] T3 | Make the console name a settled place by what settled it
+- [x] T3 | Console prints decided with original or the roles that stand | 3e764c5b18ed85a75319a89fb8dec6f836228bc0 | Make
+      the console name a settled place by what settled it
         > 2026-11-23 Related: no-mark-for-let-it-stand.md
