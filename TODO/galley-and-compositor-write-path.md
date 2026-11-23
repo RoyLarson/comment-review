@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 75 of 90 tasks closed
+Progress: 75 of 91 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (code-review high round 3 and /simplify round 2, 2026-08-22 -- the
@@ -375,3 +375,5 @@ files in `corpora/` are in that state today.
 - [ ] T90 | Make the compositor end the last line it sets in an empty file,
       updating the three pinning tests
         > 2026-11-22 Check: an a0 add on an empty file ends in a line break (#376)
+- [ ] T91 | Re-flow a paragraph the compositor sets after a drop
+        > 2026-11-23 Drops leave short wraps, comment-review 2026-11-23

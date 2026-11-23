@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 6 of 11 tasks closed
+Progress: 6 of 12 tasks closed
 Owner:    backend
-Requires-Roy: false
+Requires-Roy: true
 Raised:   2026-09-03 (systems)
 ```
 
@@ -59,6 +59,7 @@ own.
 
 - [ ] T1 | Delete results.compositor.approve, which has no caller and writes the
       real file
+        > 2026-11-23 comment-review 2026-11-23: approve() has no caller in src or tests
 - [ ] T2 | Move the write in results.compositor.draft out to the flow that calls
       it
 - [x] T3 | lossless and identity take strings; read_source left the compositor | 9ae8fd94 | Move
@@ -74,6 +75,7 @@ own.
       (Process 207); machine keeps repo and json_object
 - [ ] T8 | Route every command's machine import through a flow (Process 207);
       grep finds no commands module importing machine
+        > 2026-11-23 comment-review 2026-11-23: commands/mark.py imports read_raw
 - [x] T9 | concordance imports no machine; the gather flow walks and reads | 034a5fec | Move
       concordance's machine reads, walk_files and git, into the flow that calls
       it; grep finds no concordance import of machine
@@ -83,3 +85,8 @@ own.
         > 2026-11-04 Process #104 removes the git call; see lexical-code-identity T16
 - [ ] T11 | Make tests/test_areas.py refuse a `machine` import outside `flows/`
         > 2026-11-22 Check: results/compositor.py's machine import fails the area test
+- [?] T12 | Decide where the flows modules that decide no order belong
+        > 2026-11-23 source, proof_io, reading_context, read_diagnostics, referrers
+        > 2026-11-23 human: they decide no order; in flows only to import machine
+        > 2026-11-23 Options: move them out of flows, or restate the flows/__init__ rule
+        > 2026-11-23 Outcome: a TODO settles where the helpers go; #384

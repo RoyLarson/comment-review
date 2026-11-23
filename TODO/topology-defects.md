@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 8 tasks closed
+Progress: 0 of 10 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-11-04 (decision-log sweep, 2026-11-04: Process #50)
@@ -32,3 +32,9 @@ Topology defects.
 - [ ] T8 | Escape the stage name in reads = revise:<previous> at
       flows/topology.py:100
         > 2026-11-22 Check (M86): --stage 'a"b=ownership-context' builds valid TOML
+- [ ] T9 | Refuse an unreadable topology file with exit 2 in
+      commands/topology.py --verify
+        > 2026-11-23 Today: Path.read_text unguarded; exits 1 with a traceback
+- [ ] T10 | Refuse an unreadable --topology file with exit 2 in
+      commands/distribute.py
+        > 2026-11-23 Today: Path.read_text unguarded; exits 1 with a traceback

@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 2 of 29 tasks closed
+Progress: 2 of 38 tasks closed
 Owner:    backend
-Requires-Roy: false
+Requires-Roy: true
 Raised:   2026-11-05 (Process #281 and the three flow audits, 2026-11-05)
 ```
 
@@ -64,6 +64,7 @@ evidence is checked when the task is worked.
 - [ ] T24 | Resolve path arguments against --repo, not the cwd, in
       commands/referrers.py:51, prove_unchanged, compositor, taken_in
         > 2026-11-22 Check (M4): referrers from outside the root lists the 8 referrers
+        > 2026-11-23 comment-review 2026-11-23: every path outside --repo from elsewhere
 - [ ] T25 | Fold the address half like the page name in binder/addresses.py:46
       addresses resolve
         > 2026-11-22 Check (M25): addresses resolve M.py@b1 names the real place
@@ -79,3 +80,28 @@ evidence is checked when the task is worked.
 - [ ] T29 | Stop reading/addresser.py:931 folded using full casefold, which
       merges Strasse.py with its sharp-s spelling
         > 2026-11-22 Check (M83): Strasse.py and its sharp-s spelling get two addresses
+- [ ] T30 | Sort an address-less entry beside its page in flows/mark_errors.py
+        > 2026-11-23 where spells the path with /, an address with :; key misorders
+- [ ] T31 | Name the unreadable-context refusal in flows/revise.py apart from
+      AddressesMoved
+        > 2026-11-23 Missing context, unreadable page also raise AddressesMoved
+        > 2026-11-23 commands/proof.py prints all as "the address space moved"
+- [?] T32 | Decide where the commands' own file reads and writes belong
+        > 2026-11-23 topology --verify/--out, proof read_text+json.dumps, report
+        > 2026-11-23 carry/gather/distribute binder json.dumps; see T11 T12 T13 T20
+        > 2026-11-23 Options: move the I/O into flows, or restate the commands fence
+        > 2026-11-23 Outcome: commands invoke flows, flows chain flows; #383
+- [ ] T33 | Add one helper for enum-class membership, which raises on Python
+      3.11
+        > 2026-11-23 Sites: desk/proof/mark.py x4, desk/stages.py x2, desk/topology
+        > 2026-11-23 Sites: flows/proof_setter.py, __main__.py
+- [ ] T34 | Give the null sha folded to an empty string one owning function
+        > 2026-11-23 Sites: Sheet.seed, Sheet.deserialize, binder/page.py, docket.py
+- [ ] T35 | Give the read_from copy one owner beside read_from_problem
+        > 2026-11-23 Sites: bind, Binder.deserialize, Binder.serialize, EditCopy.seed
+        > 2026-11-23 Sites: EditCopy.deserialize, EditCopy.serialize, bus._on_copies
+- [ ] T36 | Make flows/fill.py marks_on reuse sheet.py _sorted_entries' split
+        > 2026-11-23 Both skip untouched entries, read_mark the rest
+- [ ] T37 | State the checked: dict ty workaround's reason in one place
+        > 2026-11-23 Stated in docket, answers, edit_copy, binder; two reasons differ
+- [ ] T38 | Move each command's file reads and writes into the flow it invokes

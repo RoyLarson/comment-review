@@ -17,3 +17,4 @@ The commands keep entry points of their own beside __main__.
 - [ ] T1 | Delete the `if __name__ == "__main__"` blocks in check, collate,
       disposition, mark and turn
 - [ ] T2 | Delete `commands/topology.py`'s own `utf8_console()` call
+        > 2026-11-23 comment-review 2026-11-23: repeats __main__.main's call

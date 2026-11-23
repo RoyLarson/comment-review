@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 14 of 24 tasks closed
+Progress: 14 of 29 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (simplify round 7, 2026-08-22 -- found by Pyright and by reading,
@@ -163,9 +163,12 @@ page.py:793-794 for `_SHEBANG`/`_CODING`, which round 7 deleted; those citations
 - [ ] T20 | Delete the paragraph annotations gather computes at
       flows/gather.py:222, keeping its unread list
         > 2026-11-22 Check: no src/ reader or writer of Paragraph.annotations remains
+        > 2026-11-23 comment-review 2026-11-23: annotations_for output reaches no role
 - [ ] T21 | Delete verify.resolution_problems, texts_at, received_problems and
       fan_out.fan, which only tests call
         > 2026-11-22 Check: grep finds no def of the four in src/ (M118)
+        > 2026-11-23 comment-review 2026-11-23: verify trio still test-only
+        > 2026-11-23 comment-review 2026-11-23: fan test-only; dealt, partition in use
 - [ ] T22 | Delete proof_setter.py's Step and STEPS, which run() never reads
         > 2026-11-22 Check: grep STEPS src/ is empty (M120)
 - [ ] T23 | Delete Gathering.reading_contexts and ProofReport.reading_contexts,
@@ -174,3 +177,15 @@ page.py:793-794 for `_SHEBANG`/`_CODING`, which round 7 deleted; those citations
 - [ ] T24 | Delete the twelve Python grammar keys and one Rust key that are
       validated but never read
         > 2026-11-22 Check: every key a definition validates has a reader (M122)
+- [ ] T25 | Delete needs_anchor in desk/proof/mark.py, which only a gate test
+      reads
+        > 2026-11-23 AddMark._claim_problems checks ANCHOR_NAME without it
+- [ ] T26 | Delete Revisit.address in flows/mark_errors.py, which only tests
+      read
+        > 2026-11-23 Consumers read Revisit.where
+- [ ] T27 | Delete Pulled.set_by in flows/revise.py, which only tests read
+        > 2026-11-23 Computed on every pull by _set_by; no production reader
+- [ ] T28 | Delete Event in desk/report.py, which nothing reads
+        > 2026-11-23 No reader in src/ or tests/, comment-review 2026-11-23
+- [ ] T29 | Make flows/fill.py place_on_the_page take one copy, not a list
+        > 2026-11-23 Every caller passes a one-element list

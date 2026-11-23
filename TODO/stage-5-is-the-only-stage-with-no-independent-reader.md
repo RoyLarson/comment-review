@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 15 of 17 tasks closed
+Progress: 15 of 19 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-08-17, by the session that ran all eight stages and rolled its own work back.
@@ -221,3 +221,10 @@ answered. A rail read and not run is a shape problem, and it was measured twice 
         > 2026-11-09 Outcome #298: yes, one turn by default after composing
 - [x] T17 | FINISHED -- SKILL.md stage 5 runs one turn after composing | d2f34057 | Update
       SKILL.md stage 5 to run one turn by default when collate composes (#298)
+- [ ] T18 | Have a role read each changed paragraph whole before stage 7a
+        > 2026-11-23 A drop beside clean marks settles with no turn; read at stage 8
+        > 2026-11-23 Measured 2026-11-23: stage 8 found defects on 35 of 62 pages
+- [ ] T19 | Extend the copy chief's style sweep to every place whose text
+      changed
+        > 2026-11-23 Scope: text != base, whoever's mark; this run swept recasts only
+        > 2026-11-23 ~25 stage-8 findings on 2026-11-23 came from the gap

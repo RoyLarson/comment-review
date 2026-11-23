@@ -18,3 +18,4 @@ Commands import only flows and the leaves.
       commands/ through flows
 - [ ] T2 | Extend tests/test_areas.py to refuse a commands import outside flows
       and the leaves
+        > 2026-11-23 comment-review 2026-11-23: gate misses commands/mark.py machine

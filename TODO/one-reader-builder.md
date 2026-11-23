@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 6 of 15 tasks closed
+Progress: 6 of 16 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-27 (Roy, 2026-10-27, decision-log #244)
@@ -67,3 +67,6 @@ only they need.
 - [ ] T15 | Read a Rust `///` doc set under an attribute above a fn as the fn's
       `a` place, where rustc attaches it
         > 2026-11-22 Check: #[inline], /// d, fn g() gathers /// d at a1, not b1
+- [ ] T16 | Move reading/docstring.py, a Python-only reader, into
+      reading/python/
+        > 2026-11-23 reading/ is language-neutral, comment-review 2026-11-23

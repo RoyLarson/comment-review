@@ -7343,3 +7343,33 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
 
   **What it settles.** #378 stands: the code proof does not protect doctest code. The agents are
   told to run the project's doctests at the proof stage when the project has them.
+
+- **#382.** **A module that no longer collates is named for what it does** (Roy, 2026-11-23, on
+  `collator-defects` T55, raised by the comment-review run's module-context role:
+  `desk/collator.py` holds the source verification of one copy and its docstring disowns
+  collation):
+
+  *"yes if it no longer does collation name it for what it does, but also figure out what is
+  doint the collation now and determine if that is in the wrong place"*
+
+  **What it settles.** `desk/collator.py` is renamed for the verification it does. Separately,
+  the code that collates now is found, and whether it sits in the right place is determined.
+
+- **#383.** **Commands invoke flows; flows chain flows** (Roy, 2026-11-23, on `one-obvious-way`
+  T32: commands reading and writing their own files outside `flows.proof_io`; offered move the
+  I/O into flows, or restate the commands fence):
+
+  *"Move the file-io to the flows commands invoke flows, flows chain flows"*
+
+  **What it settles.** A command's file reads and writes move into the flows it invokes. A
+  command calls flows, and a flow may call other flows; the commands fence stands as written.
+
+- **#384.** **Where the flow helpers belong is its own question** (Roy, 2026-11-23, on
+  `only-a-flow-reaches-the-machine` T12: about ten `flows/` modules decide no order and sit there
+  because `flows` is the one area that may import `machine`):
+
+  *"create a todo for determining where the flow helpers should go. Do they fit current packages
+  better or does a new package need to be created"*
+
+  **What it settles.** Nothing moves yet. A TODO determines, for each flow helper, whether an
+  existing package fits it better or a new package is needed.

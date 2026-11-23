@@ -16,6 +16,7 @@ reading/addresser.py answers a miss with a real position.
 
 - [ ] T1 | Make `Cues.anchor_num` answer a miss with a value no cue holds, not 0
 - [ ] T2 | Move `LEAD` to `binder/page.py`, its only reader
+        > 2026-11-23 comment-review 2026-11-23: LEAD still read only by binder/page.py
 - [ ] T3 | Refuse an address holding a carriage return by name, which today
       reads as naming no place
 - [ ] T4 | Fix reading/addresser.py:417 putting the comments directly around a

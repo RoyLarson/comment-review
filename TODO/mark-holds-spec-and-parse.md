@@ -99,6 +99,7 @@ change -- `conventions.md`, *The vocabulary is shared*.
 - [ ] T8 | Update the Objective to the single definition Process #61 settled
 - [ ] T9 | Split the wire-record helpers (`read_member`, `a_type`, `read_text`,
       `as_text`, `filled`, `E`) out of `desk/proof/mark.py`
+        > 2026-11-23 comment-review 2026-11-23: helpers serve 12 modules, no mark
 - [ ] T10 | Update concordance/annotate.py's TICKED so it states the question it
       answers
         > 2026-11-22 Check: TICKED's comment says what it indexes, with why

@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 85 of 87 tasks closed
+Progress: 85 of 88 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-09-04 (Roy, 2026-09-04, superseding the-flow-lives-in-the-command T4)
@@ -328,3 +328,6 @@ The agents files name the new CLI and say how to use it.
 - [x] T87 | FINISHED -- each rule owner named by its path; all four exist | ef95e6d22e153904930ceaf1a74763dfff9d4f12 | Name
       each rule owner in limitations.md by its module path
         > 2026-11-22 Check: each named path exists under src/comment_review/
+- [ ] T88 | Replace the bare `python` in SKILL.md's commands
+        > 2026-11-23 Other interpreter: every sheet refused, reading context differs
+        > 2026-11-23 The 2026-11-23 run worked only with uv run

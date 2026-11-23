@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 28 of 50 tasks closed
+Progress: 28 of 51 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, a code review of `binder/binder.py` run against its
@@ -259,6 +259,7 @@ task 5's, but the fix for these two lands in `binder/binder.py`.
       mid-run, per Vocabulary #16
 - [ ] T38 | Fix gather's unaddressed gate, which reads `Binder.paragraphs` and
       so never finds a row
+        > 2026-11-23 comment-review 2026-11-23: unaddressed guard still cannot fire
 - [x] T39 | ef172e66 made read_from.py public | ef172e66 | Narrow
       `_read_from_problem`'s use by the desk, which imports it though it is
       private
@@ -292,3 +293,5 @@ task 5's, but the fix for these two lands in `binder/binder.py`.
 - [ ] T50 | De-duplicate walked paths by resolved path, not spelling, in
       flows/gather.py:122
         > 2026-11-22 Check (M27): gather m.py sub/../m.py yields one page
+- [ ] T51 | Move BINDER_VERSION from read_from.py to the binder
+        > 2026-11-23 Only binder/binder.py reads it

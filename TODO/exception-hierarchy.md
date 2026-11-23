@@ -122,6 +122,7 @@ either they take it through the path shim two of them already use (`render_brief
 - [ ] T11 | Derive `GIT_ERRORS` from `READ_ERRORS` instead of restating its
       members
 - [ ] T12 | Delete `TOML_ERRORS`, whose only reader is under `prototype/`
+        > 2026-11-23 comment-review 2026-11-23: TOML_ERRORS still unread in src/
 - [ ] T13 | Classify each of the 151 bare `raise ValueError` in src/ once T1-T6
       land
         > 2026-11-22 Check: each one left carries a comment saying which kind

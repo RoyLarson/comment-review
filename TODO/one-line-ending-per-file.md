@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 3 of 8 tasks closed
+Progress: 3 of 9 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-25 (decision-log Process #220, #221)
@@ -62,3 +62,6 @@ current corpus supplies.
 - [ ] T8 | Write taken_in's diff with the page's own line endings at
       commands/taken_in.py:109
         > 2026-11-22 Check (M36): git apply --check takes a CRLF page's diff on Windows
+- [ ] T9 | Stop composition setting LF text into a CRLF page
+        > 2026-11-23 A composed paragraph held a sentence twice, one LF, one CRLF
+        > 2026-11-23 Seen: reading/comment.py, flows/proof_io.py, desk/marks/table.py

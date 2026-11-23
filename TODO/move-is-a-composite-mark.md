@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 47 of 54 tasks closed
+Progress: 47 of 56 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, Roy ruling that a move is a composite mark rather than
@@ -349,3 +349,8 @@ and now there is one object that cannot be half-held.
 - [ ] T54 | Fix desk/marks/table.py:89 unwrapping a move snippet that opens with
       a quoted word as a string literal
         > 2026-11-22 Check (M76): moving '"fast" is the default.' empties the origin
+- [ ] T55 | Fit a moved paragraph's text to its destination
+        > 2026-11-23 Unfitted: module-relative paths, indentation, antecedents
+        > 2026-11-23 e.g. proof.mark.read_mark read from desk.marks; see-the-header
+- [ ] T56 | Re-gather the files that received moved text in 4a before 4c
+        > 2026-11-23 Missed 2026-11-23: differences.py, desk/marks/__init__.py

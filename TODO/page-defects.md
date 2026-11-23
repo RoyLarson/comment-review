@@ -15,7 +15,9 @@ binder/page.py carries unread names and a branch nothing reaches.
 ## Tasks
 
 - [ ] T1 | Delete `WIRE_FIELDS`, which nothing reads
+        > 2026-11-23 comment-review 2026-11-23: still unread; _place spells the keys
 - [ ] T2 | Delete `Page.prose`, which only tests call and `handed` restates
+        > 2026-11-23 comment-review 2026-11-23: still test-only; restates handed
 - [ ] T3 | Delete `attach`'s `Kind.MATTER` branch, which `page_for` never
       reaches
 - [ ] T4 | Refuse a malformed row cue in binder/page.py:366 _checked_place

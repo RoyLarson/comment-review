@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 5 of 12 tasks closed
+Progress: 5 of 13 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-24 (Roy, 2026-08-24: are referrers and code_names one workflow?)
@@ -42,3 +42,5 @@ The concordance states its gaps twice, in two vocabularies.
         > 2026-11-22 Check: one gather prints at most the FREEFORM cap of gap rows
 - [ ] T12 | Print gather's NOT CHECKED gap paths relative to the repo
         > 2026-11-22 Check: no gap row carries an absolute path
+- [ ] T13 | Print gather's NO_HARVESTER rows apart from its unreadable-file rows
+        > 2026-11-23 One "until this list is empty" warning; never clears multi-lang

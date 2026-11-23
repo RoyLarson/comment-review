@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 47 of 60 tasks closed
+Progress: 47 of 62 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, a code review of `desk/mark.py` that ran `parse`
@@ -370,3 +370,8 @@ cites as its measured example of a field answering neither necessary nor purpose
 - [ ] T60 | Read a dash-led @path value as a value, not an option, in
       commands/mark.py:129
         > 2026-11-22 Check (M41): --true @-x.txt is read as a file, exit 0
+- [ ] T61 | Delete the unused dict(given) copy in desk/proof/mark.py mark
+      construction
+        > 2026-11-23 The copy is never stored or mutated, so it guards nothing
+- [ ] T62 | Stop mark reading text across a paragraph break as one sentence
+        > 2026-11-23 Neighbouring marks then do not compose; the chief must recast

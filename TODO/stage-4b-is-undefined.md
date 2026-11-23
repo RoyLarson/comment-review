@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 10 of 11 tasks closed
+Progress: 10 of 12 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-08-20 (the /code-review high of 2026-08-20)
@@ -99,3 +99,7 @@ fails its own stage-4 gate.
 - [x] T11 | FINISHED -- write.md says what to do when a later draft carries more | c3a088cd | Make
       write.md:19 say how to set a 4c place on a page 4a also changed
         > 2026-11-22 Check (M61): write.md gives the next step when the confirm fails
+- [ ] T12 | Send a move into an ungathered code file to that file, not to a
+      query
+        > 2026-11-23 Sites: reviewer-brief.md ~284, the ownership-context role file
+        > 2026-11-23 Rule: a comment can move to any code file, gathered or not

@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 8 of 13 tasks closed
+Progress: 8 of 27 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-16 (Roy, on `census.py`: "this creates the pCST and that is it.
@@ -181,3 +181,36 @@ NOT X"* used as a DEFINITION, which is the comparing form the test already remov
       and names the run it came from.
 - [ ] T13 | Run the nine-token count over src/plugin/**/*.md
         > 2026-11-22 Check: the number with its command is recorded in this file
+- [ ] T14 | Lower the all-caps words the 2026-11-23 run left in unchanged
+      paragraphs
+        > 2026-11-23 reading/addresser.py (many); binder/addresses.py
+        > 2026-11-23 binder.py deserialize inline; desk/proof/sheet.py Sheet.seed
+        > 2026-11-23 flows/fan_out.py fan Raises; flows/transcribe.py TRANSCRIBE --
+        > 2026-11-23 docket.py Schedule Attributes; desk/proof/mark.py module docstring
+        > 2026-11-23 commands/gather.py ~69-79
+- [ ] T15 | Move the prose set after a docstring's Google sections above them
+        > 2026-11-23 binder.py bind after Raises; Binder.deserialize after Returns
+        > 2026-11-23 flows/verify.py coverage_problems after Returns
+- [ ] T16 | Add `--repo` to the usage line in commands/turn.py
+- [ ] T17 | Spell every command's usage line in one form
+        > 2026-11-23 Today: comment_review <cmd> beside python -m comment_review <cmd>
+- [ ] T18 | Align the continuation indent in commands/disposition.py
+- [ ] T19 | Correct flows/fill.py withdraw's sentence about Check, which is not
+      about withdraw
+        > 2026-11-23 Text: "Check uses the received binder..."
+- [ ] T20 | Correct desk/proof/source.py naming a `sources` field the module
+      never names
+- [ ] T21 | Correct the leaf list in src/comment_review/__init__.py against
+      docs/conventions.md
+        > 2026-11-23 __init__ lists read_from as a leaf; the conventions leaf row omits
+- [ ] T22 | Name flows.answers among the users differences.py names
+        > 2026-11-23 Says shared by the middle, the command line; omits flows.answers
+- [ ] T23 | Correct the ungrammatical fold-boundaries sentence in
+      commands/check.py
+        > 2026-11-23 Text: "It is the same boundaries the fold runs"
+- [ ] T24 | Align the index columns in desk/proof/answer.py
+- [ ] T25 | Rename the "verbs of saying" list in concordance/annotate.py for
+      what it holds
+        > 2026-11-23 It holds be, do, live, sit
+- [ ] T26 | Correct reading/comment.py's repeat of the "verbs of saying" phrase
+- [ ] T27 | Remove the date from the refusal string in read_from.py
