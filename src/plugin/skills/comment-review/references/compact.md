@@ -33,7 +33,7 @@ File one ruling at each place your copy deals you with `mark`, and mark no other
 a file with your file-write tool and pass it as `@path`:
 
 ```bash
-python <script> mark --edit-copy <copy> --address <address> --instruction patch \
+python <script> mark --edit-copy <copy> --repo <proof pages root> --address <address> --instruction patch \
   --from @<file holding the paragraph> --to @<file holding the condensed text> --reason '<why>' \
   --cite <path>:<line>
 ```
@@ -44,6 +44,9 @@ exit 0 means it is ready:
 ```bash
 python <script> check --edit-copy <copy> --binder <binder> --repo <proof pages root>
 ```
+
+Exit 2 from `check` or `mark` means an input will not read: hand the copy back to the task agent
+with the lines printed.
 
 | the paragraph | your instruction |
 |---|---|
@@ -56,7 +59,7 @@ A paragraph that stays over the cap because every sentence is evidence is usuall
 code has no single owner for. Ask the author, naming the owner you can see:
 
 ```bash
-python <script> mark --edit-copy <copy> --address <address> --instruction query \
+python <script> mark --edit-copy <copy> --repo <proof pages root> --address <address> --instruction query \
   --shape human-review-necessary --attempted '<what you tried>' \
   --settles '<the answer that would settle it>' --reason '<the question>' --cite <path>:<line>
 ```

@@ -254,7 +254,8 @@ python <skill>/scripts/comment-review.py check --edit-copy <run-dir>/copies/<fil
 ```
 
 Exit 0 means the copy is ready to fold. Exit 5 means its only findings are human questions,
-which stage 5 asks. On any other exit, send the copy back to its own agent with the lines
+which stage 5 asks. Exit 2 is an input that will not read, and no mark can correct it; act on it
+as on `collate`'s exit 2, below. On exit 1, send the copy back to its own agent with the lines
 `check` printed; the agent corrects its own marks. When a copy still fails on its second
 return, stop the stage and report the role and the lines `check` printed.
 
@@ -305,10 +306,10 @@ Act on the exit code first:
 | exit | meaning | what you do |
 |---|---|---|
 | `0` | every place decided | read the decided places against the style sheet and rule on any freeform findings, both below; `<stage>_proof0.json` is the closed proof when no place takes a recast. Then go on to `4c`, or after `4c` to stage 6 or 7a |
-| `1` | the round rolled back; each line names `<role> <place>: <reason>` | send each line to its role, which withdraws the mark the line names with `mark --withdraw --address <place> --instruction <instruction>` and marks again; re-check and re-run |
-| `2` | a file could not be read | correct the invocation |
+| `1` | the round rolled back; each refusal line names `<role> <place>: <reason>`, and any `asks the human` lines are questions still pending | send each refusal line to its role, which withdraws the mark the line names with `mark --withdraw --address <place> --instruction <instruction>` and marks again; re-check and re-run, and ask the questions when the re-run exits `5` |
+| `2` | a file could not be read, or a page will not admit: its saved reading no longer matches the installed reader, or its sha or reading disagrees with another input's | where a line ends `regather`, gather again and distribute the stage's copies from the new binder; otherwise correct the invocation. No role is sent a line |
 | `3`, `4` | places or moves carried forward -- `composed`, `contested` or `open` -- to the roles each line names, or to `copy-chief` | run the turns and rule on them, below |
-| `5` | human questions are owed | ask them, below, then re-run with `--human` |
+| `5` | human questions are owed, and nothing was refused | ask them, below, then re-run with `--human` |
 
 Keep the path of the latest committed proof. A closed proof
 can come from `collate`, `turn` or `disposition`; use that file wherever
