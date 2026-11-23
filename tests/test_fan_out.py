@@ -13,7 +13,7 @@ from helpers import binder_of
 
 from comment_review.binder.binder import Binder
 from comment_review.desk.stages import Dispatch, Kind, Role, Stage
-from comment_review.flows.fan_out import OverlappingShards, UncoveredPage, fan
+from comment_review.flows.fan_out import OverlappingShards, UncoveredPage, dealt
 
 # !! ABSOLUTE, matching `tests/test_distribute_flow.py`'s own `DESK` -- a relative
 # `Path("src/comment_review/desk")` only rglobs correctly when the suite runs
@@ -24,6 +24,11 @@ DESK = Path(__file__).resolve().parents[1] / "src" / "comment_review" / "desk"
 #: `/` -- `DESK` alone is flat, so no pattern over it can demonstrate a glob
 #: crossing a directory separator.
 SRC = Path(__file__).resolve().parents[1] / "src" / "comment_review"
+
+
+def _copies(binder: Binder, stage: Stage) -> list[dict]:
+    """The seeded edit_copy of each dispatch `dealt` pairs with its binder."""
+    return [copy for _received, copy in dealt(binder, stage)]
 
 
 def test_every_page_reaches_exactly_one_shard_of_each_role():
@@ -40,7 +45,7 @@ def test_every_page_reaches_exactly_one_shard_of_each_role():
             Dispatch(Role.MODULE_CONTEXT, ()),
         ),
     )
-    copies = fan(binder, stage)
+    copies = _copies(binder, stage)
 
     block = [c for c in copies if c["role"] == "block-context"]
     seen = [s["path"] for c in block for s in c["sheets"]]
@@ -65,7 +70,7 @@ def test_a_page_in_two_shards_of_one_role_is_refused():
         ),
     )
     with pytest.raises(OverlappingShards):
-        fan(binder, stage)
+        _copies(binder, stage)
 
 
 def test_a_page_no_dispatch_of_a_role_covers_is_refused():
@@ -86,7 +91,7 @@ def test_a_page_no_dispatch_of_a_role_covers_is_refused():
         ),
     )
     with pytest.raises(UncoveredPage):
-        fan(binder, stage)
+        _copies(binder, stage)
 
 
 def test_two_different_roles_over_the_same_page_is_not_a_conflict():
@@ -103,7 +108,7 @@ def test_two_different_roles_over_the_same_page_is_not_a_conflict():
             Dispatch(Role.FUNCTION_CONTEXT, ()),
         ),
     )
-    copies = fan(binder, stage)
+    copies = _copies(binder, stage)
     assert [c["role"] for c in copies] == ["block-context", "function-context"]
 
 
@@ -139,7 +144,7 @@ def test_every_shard_carries_the_binder_s_own_read_from():
         (),
         (Dispatch(Role.BLOCK_CONTEXT, ()), Dispatch(Role.MODULE_CONTEXT, ())),
     )
-    assert [c["read_from"] for c in fan(binder, stage)] == [
+    assert [c["read_from"] for c in _copies(binder, stage)] == [
         binder.read_from,
         binder.read_from,
     ]
@@ -162,5 +167,5 @@ def test_the_glob_matches_across_a_directory_separator():
         (),
         (Dispatch(Role.BLOCK_CONTEXT, ("*.py",)),),
     )
-    copies = fan(binder, stage)
+    copies = _copies(binder, stage)
     assert sorted(s["path"] for s in copies[0]["sheets"]) == names

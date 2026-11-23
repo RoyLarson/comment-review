@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 14 of 33 tasks closed
+Progress: 17 of 35 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (simplify round 7, 2026-08-22 -- found by Pyright and by reading,
@@ -146,7 +146,8 @@ page.py:793-794 for `_SHEBANG`/`_CODING`, which round 7 deleted; those citations
 - [ ] T13 | Drop page_for's dead edges assignment and its duplicate path
 - [-] T14 | Duplicate of computed-and-never-read.md T11; closed by the same commit e2b34a22 | e2b34a22 | Delete
       the unparsed branch in readers.py, which no reader produces
-- [ ] T15 | Remove the reader and placement revisions and the compatibility hash
+- [x] T15 | Revisions and compatibility hash removed; 5734 tests pass | d1cb27d4d9f9650768e2a9951c1660be74c77cc1 | Remove
+      the reader and placement revisions and the compatibility hash
         > 2026-10-26 decision-log #239: reads are ephemeral; reading/context.py, flows
 - [ ] T16 | Remove the page's anchor_num and _documented_line checks
         > 2026-10-30 D6: refusals have no production route and no test
@@ -164,16 +165,18 @@ page.py:793-794 for `_SHEBANG`/`_CODING`, which round 7 deleted; those citations
       flows/gather.py:222, keeping its unread list
         > 2026-11-22 Check: no src/ reader or writer of Paragraph.annotations remains
         > 2026-11-23 comment-review 2026-11-23: annotations_for output reaches no role
-- [ ] T21 | Delete verify.resolution_problems, texts_at, received_problems and
-      fan_out.fan, which only tests call
+- [x] T21 | grep finds none of the four in src | c0b134dd1a8dfa0b93b5fbcadbc7b73748afd935 | Delete
+      verify.resolution_problems, texts_at, received_problems and fan_out.fan,
+      which only tests call
         > 2026-11-22 Check: grep finds no def of the four in src/ (M118)
         > 2026-11-23 comment-review 2026-11-23: verify trio still test-only
         > 2026-11-23 comment-review 2026-11-23: fan test-only; dealt, partition in use
 - [ ] T22 | Delete proof_setter.py's Step and STEPS, which run() never reads
         > 2026-11-22 Check: grep STEPS src/ is empty (M120)
         > 2026-11-23 Refusal.step is a bare string at 20 sites (broken review)
-- [ ] T23 | Delete Gathering.reading_contexts and ProofReport.reading_contexts,
-      which only tests read
+- [x] T23 | Both reading_contexts fields deleted; grep finds none in src | f90a0193e18148622d292041aa2e8b232c996c37 | Delete
+      Gathering.reading_contexts and ProofReport.reading_contexts, which only
+      tests read
         > 2026-11-22 Check: grep reading_contexts src/ is empty (M121)
 - [ ] T24 | Delete the twelve Python grammar keys and one Rust key that are
       validated but never read
@@ -201,3 +204,5 @@ page.py:793-794 for `_SHEBANG`/`_CODING`, which round 7 deleted; those citations
         > 2026-11-23 Related: external-address-cites-dead-modules.md T1
 - [ ] T33 | Determine which write-chain layer owns all-or-nothing cleanup
         > 2026-11-23 Drafts are staged twice; exception scopes differ per layer [I-F7]
+- [ ] T34 | Delete reading.context.compatible_contexts, which only tests call
+- [ ] T35 | Delete flows.fill.marks_on, which only a gate test calls

@@ -30,14 +30,8 @@ prose, and every prose edit moves the line numbers below it.
 """
 
 from dataclasses import replace
-from pathlib import Path
 
 from comment_review.binder.binder import Binder
-from comment_review.flows.reading_context import (
-    binder_reading_contexts,
-    page_reading_contexts,
-    reading_problems,
-)
 from comment_review.reading.addresser import SERIES, cue_of
 
 
@@ -116,8 +110,10 @@ def carry(binder: Binder, page, path: str, **lookup) -> tuple[Binder | None, str
     row would put two rows on one address, the shape `page_for` refuses.
 
     Args:
-        binder: the deserialized binder.
-        page: the page, read fresh from the checkout.
+        binder: the deserialized binder, its pages admitted
+            (`flows.reading_context.admit_pages`).
+        page: the page, read fresh from the checkout under the reading the
+            binder's page was admitted with.
         path: the page's path, as the binder names it.
         **lookup: passed to `cue_for`.
 
@@ -142,11 +138,6 @@ def carry(binder: Binder, page, path: str, **lookup) -> tuple[Binder | None, str
     could return None. `RedactedPage.deserialize` normalizes once, so `held.sha`
     is a `str` and there is nothing left to fold.
     """
-    contexts, problems = binder_reading_contexts(binder)
-    current, page_problems = page_reading_contexts([page])
-    problems.extend(page_problems)
-    if problems:
-        return None, "", "; ".join(problems)
     held = next((p for p in binder.pages if p.path == path), None)
     if held is None:
         return None, "", f"{path}: the binder carries no such page"
@@ -164,12 +155,6 @@ def carry(binder: Binder, page, path: str, **lookup) -> tuple[Binder | None, str
                 f" file reads now as {page.sha} -- re-run gather"
             ),
         )
-    problems = reading_problems(
-        {Path(path): contexts[path]},
-        {Path(name): context for name, context in current.items()},
-    )
-    if problems:
-        return None, "", "; ".join(problems) + "; regather"
     got, why = cue_for(page.cues, **lookup)
     if why:
         return None, "", f"{path}: {why}"

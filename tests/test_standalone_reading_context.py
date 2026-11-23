@@ -1,42 +1,15 @@
 import subprocess
-import sys
-from dataclasses import replace
 
-import pytest
-from conftest import SRC, run_command
+from conftest import run_command
 from test_proof_command import proof_repository
 
 from comment_review.commands import prove_unchanged as command
-from comment_review.flows import page_for, prove_unchanged, reading_context
+from comment_review.flows import page_for
 from comment_review.reading.diagnostics import ReadFailure
-from comment_review.reading.rust.records import RustRead
 
 
-@pytest.fixture
-def installed_choices(monkeypatch):
-    actual = reading_context.reader_for
-
-    def selected(path, registry=None):
-        if registry is None:
-            registry = reading_context.INSTALLED_REGISTRY
-        result = actual(path, registry)
-        assert result is not None and not isinstance(result, ReadFailure)
-        definition, binding = result
-        return (
-            replace(
-                definition,
-                defaults={"mode": "plain"},
-                choices={"mode": ("plain", "wide")},
-            ),
-            binding,
-        )
-
-    monkeypatch.setattr(reading_context, "reader_for", selected)
-    return selected
-
-
-def test_standalone_cli_proves_mixed_paths_with_distinct_effective_choices(
-    tmp_path, monkeypatch, capsys, installed_choices
+def test_standalone_cli_proves_mixed_paths_each_under_its_own_context(
+    tmp_path, monkeypatch, capsys
 ):
     suffix = ".rs"
     repo, rust = proof_repository(tmp_path, "const value = 1; // old\r\n", suffix)
@@ -67,8 +40,6 @@ def test_standalone_cli_proves_mixed_paths_with_distinct_effective_choices(
     )
     rust.write_bytes(b"const value = 1; // new\r\n")
     py.write_bytes(b"value = 1 # new\r\n")
-    settings = tmp_path / "settings.json"
-    settings.write_text(f'{{"pkg/source{suffix}":{{"mode":"wide"}}}}', encoding="utf-8")
     actual = page_for.page_for
     admitted = []
 
@@ -87,8 +58,6 @@ def test_standalone_cli_proves_mixed_paths_with_distinct_effective_choices(
         str(repo),
         "--base",
         "HEAD",
-        "--reading-settings",
-        str(settings),
         str(rust),
         str(py),
     )
@@ -101,142 +70,11 @@ def test_standalone_cli_proves_mixed_paths_with_distinct_effective_choices(
         "value = 1 # old\r\n",
         "value = 1 # new\r\n",
     ]
-    assert [item[2].settings for item in admitted] == [
-        (("mode", "wide"),),
-        (("mode", "wide"),),
-        (("mode", "plain"),),
-        (("mode", "plain"),),
+    assert [item[2].language for item in admitted] == [
+        "rust",
+        "rust",
+        "python",
+        "python",
     ]
     assert admitted[0][2] == admitted[1][2]
     assert admitted[2][2] == admitted[3][2]
-
-
-@pytest.mark.parametrize("settings", [None, [], {"mode": "unsupported"}])
-def test_standalone_flow_refuses_invalid_choices_before_source(
-    tmp_path, monkeypatch, installed_choices, settings
-):
-    suffix = ".rs"
-    repo, target = proof_repository(tmp_path, "const value = 1;\r\n", suffix)
-    monkeypatch.setattr(
-        prove_unchanged,
-        "revision_source_of",
-        lambda *_: pytest.fail("baseline read before settings refusal"),
-    )
-    report = prove_unchanged.run(repo, "HEAD", [target], settings={target: settings})
-    assert report.failures == 1
-    assert "invalid-reading-settings" in " ".join(report.messages)
-    assert "PROVEN" not in " ".join(report.messages)
-
-
-@pytest.mark.parametrize("field", ["settings", "revision", "grammar", "definition"])
-def test_standalone_equal_source_refuses_context_change_between_snapshot_reads(
-    tmp_path, monkeypatch, installed_choices, field
-):
-    suffix = ".rs"
-    repo, target = proof_repository(tmp_path, "const value = 1;\r\n", suffix)
-    before = prove_unchanged.revision_source_of
-
-    def changed(path, registry):
-        definition, binding = installed_choices(path, registry)
-        if field == "settings":
-            definition = replace(definition, defaults={"mode": "wide"})
-        elif field == "revision":
-            binding = replace(binding, revision="changed")
-        elif field == "grammar":
-            binding = replace(binding, grammar_identity="changed")
-        else:
-            definition = replace(definition, revision="changed")
-        return definition, binding
-
-    def acquire(*args):
-        source = before(*args)
-        monkeypatch.setattr(reading_context, "reader_for", changed)
-        return source
-
-    monkeypatch.setattr(prove_unchanged, "revision_source_of", acquire)
-    monkeypatch.setattr(
-        RustRead,
-        "preserved",
-        lambda *_, **__: pytest.fail("compared equal text before context admission"),
-    )
-    report = prove_unchanged.run(repo, "HEAD", [target])
-    assert report.failures == 1
-    assert "reading-context-mismatch" in " ".join(report.messages)
-    assert "PROVEN" not in " ".join(report.messages)
-
-
-def test_standalone_empty_source_accepts_explicit_settings(tmp_path, installed_choices):
-    suffix = ".rs"
-    repo, target = proof_repository(tmp_path, "", suffix)
-    report = prove_unchanged.run(
-        repo, "HEAD", [target], settings={target: {"mode": "wide"}}
-    )
-    assert report.failures == 0
-    assert "PROVEN" in " ".join(report.messages)
-    assert report.reading_contexts[target].settings == (("mode", "wide"),)
-
-
-def test_standalone_other_language_change_does_not_invalidate_selected_path(
-    tmp_path, monkeypatch, installed_choices
-):
-    suffix = ".rs"
-    repo, target = proof_repository(tmp_path, "const value = 1;\r\n", suffix)
-    before = prove_unchanged.revision_source_of
-
-    def changed(path, registry):
-        definition, binding = installed_choices(path, registry)
-        return (
-            replace(definition, revision="changed")
-            if path.suffix == ".py"
-            else definition,
-            binding,
-        )
-
-    def acquire(*args):
-        source = before(*args)
-        monkeypatch.setattr(reading_context, "reader_for", changed)
-        return source
-
-    monkeypatch.setattr(prove_unchanged, "revision_source_of", acquire)
-    report = prove_unchanged.run(repo, "HEAD", [target])
-    assert report.failures == 0
-    assert "PROVEN" in " ".join(report.messages)
-
-
-@pytest.mark.parametrize(
-    "contents,code,message",
-    [
-        ('{"pkg/source<suffix>":{}}', 0, "PROVEN"),
-        ('{"pkg/source<suffix>":{"unknown":"on"}}', 2, "unknown setting"),
-        ('{"pkg/source<suffix>":null}', 2, "settings must be an object"),
-        (None, 2, "settings.json"),
-    ],
-)
-def test_standalone_process_cli_settings_transport(tmp_path, contents, code, message):
-    suffix = ".rs"
-    repo, target = proof_repository(tmp_path, "", suffix)
-    settings = tmp_path / "settings.json"
-    if contents is not None:
-        settings.write_text(contents.replace("<suffix>", suffix), encoding="utf-8")
-    result = subprocess.run(
-        [
-            sys.executable,
-            str(SRC / "comment-review.py"),
-            "prove_unchanged",
-            "--repo",
-            str(repo),
-            "--base",
-            "HEAD",
-            "--reading-settings",
-            str(settings),
-            str(target),
-        ],
-        capture_output=True,
-        encoding="utf-8",
-        timeout=30,
-        check=False,
-    )
-    assert result.returncode == code, result.stdout + result.stderr
-    assert message in result.stdout + result.stderr
-    if code:
-        assert "PROVEN" not in result.stdout

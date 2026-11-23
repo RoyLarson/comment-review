@@ -40,8 +40,9 @@ from comment_review.desk.proof.edit_copy import EditCopy
 from comment_review.desk.proof.mark import Instruction, Mark, read_mark
 from comment_review.flows.distribute import seed
 from comment_review.flows.mark_errors import mark_errors
-from comment_review.flows.verify import texts_at
+from comment_review.flows.on_the_page import held_at
 from comment_review.reading.addresser import address_for
+from comment_review.reading.diagnostics import ReadFailure
 
 DESK = ROOT / "src" / "comment_review" / "desk"
 
@@ -130,8 +131,17 @@ def a_mark(**overrides) -> Mark:
 
 
 def _texts(copy: EditCopy, binder=BINDER, root: Path = DESK) -> dict:
-    """What the fold hands `verify_report` for `copy`, off the real pages."""
-    return texts_at(copy, [page.path for page in binder.pages], root, {})
+    """What `flows.verify.admit` hands `verify_report` for `copy`: the page's
+    text at each mark's own address, off the real pages, and nothing where a
+    page will not read."""
+    paths = [page.path for page in binder.pages]
+    out: dict[str, tuple[str, ...]] = {}
+    for sheet in copy.sheets:
+        for mark in sheet.marks:
+            held = held_at(mark.address, paths, root, {})
+            if not isinstance(held, ReadFailure):
+                out.setdefault(mark.address, (held.text,))
+    return out
 
 
 def _ruled_places(copy) -> int:

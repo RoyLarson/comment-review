@@ -70,7 +70,7 @@ def test_mark_context_refusal_leaves_exact_file_bytes(
 
     copy = run.copy()
     if reading == "incompatible":
-        copy["sheets"][0]["reading"]["compatibility"] = "0" * 64
+        copy["sheets"][0]["reading"]["reader"] = "another-reader"
     else:
         copy["sheets"][0]["reading"] = reading
     run.copy_path.write_text(json.dumps(copy), encoding="utf-8")
@@ -82,9 +82,27 @@ def test_mark_context_refusal_leaves_exact_file_bytes(
     monkeypatch.setattr(flow, "_slot_at", forbidden)
     withdrawing = ("--address", "m.py@b1", "--withdraw", "--instruction", "correct")
     flags = withdrawing if withdraw else CORRECT
-    code, out = run(*flags)
-    assert code == command.BROKEN
-    assert "regather" in out and "block-context" in out
+    if reading == "incompatible":
+        # A page identity that will not admit is an input that cannot be read
+        # (#401): exit 2 on stderr, never sent back to the role.
+        code, printed = run_command(
+            monkeypatch,
+            run._capsys,
+            command,
+            "--edit-copy",
+            str(run.copy_path),
+            "--repo",
+            str(run.dir),
+            *flags,
+            with_stderr=True,
+        )
+        assert code == command.UNREADABLE, printed
+        assert "regather" in printed and "block-context" in printed
+    else:
+        # A sheet whose reading will not decode is a copy that will not read.
+        code, out = run(*flags)
+        assert code == command.BROKEN
+        assert "regather" in out and "block-context" in out
     assert run.copy_path.read_bytes() == before
 
 
@@ -284,11 +302,20 @@ class TestARulingIsPlaced:
         ]
 
     def test_a_verbatim_given_overrides_the_read(self, run):
-        code, out = run(*CORRECT, "--verbatim", "y = 2  # given")
+        """A given `verbatim` is kept, and verified: one within three lines of
+        the cite is placed as given."""
+        code, out = run(*CORRECT, "--verbatim", "# three")
         assert code == command.OK, out
         assert run.copy()["sheets"][0]["marks"][0]["sources"] == [
-            {"cite": "m.py:5", "verbatim": "y = 2  # given"}
+            {"cite": "m.py:5", "verbatim": "# three"}
         ]
+
+    def test_a_verbatim_the_cite_does_not_hold_is_refused(self, run):
+        before = run.copy()
+        code, out = run(*CORRECT, "--verbatim", "y = 2  # given")
+        assert code == command.BROKEN, out
+        assert "m.py@b1" in out and "`verbatim`" in out, out
+        assert run.copy() == before
 
 
 #: An `add` at `m.py@b1`, which already holds `BASE` -- so the paragraph as it
@@ -346,7 +373,7 @@ class TestAnAddAndAMoveCarryTheParagraphAsItWillRead:
             "--from",
             "m.py@b1",
             "--to",
-            "m.py@b5",
+            "m.py@b2",
             "--change",
             "# two\n",
             "--raw-text",

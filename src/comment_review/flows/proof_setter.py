@@ -390,9 +390,7 @@ def _one(
     if not isinstance(reading, ReadingContext):
         return None, Refusal("read", rel, "malformed saved reading context; regather")
     try:
-        ReadingContext(
-            reading.language, reading.reader, reading.compatibility, reading.settings
-        )
+        ReadingContext(reading.language, reading.reader)
     except (TypeError, ValueError):
         return None, Refusal("read", rel, "malformed saved reading context; regather")
     page = page_of(source, rel=rel, source=held, reading_context=reading)

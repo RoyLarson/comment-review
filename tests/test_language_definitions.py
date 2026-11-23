@@ -14,10 +14,7 @@ WIRE = """format = 1
 language = "Invented MIX"
 suffixes = [".IX", ".invented"]
 reader = "invented-reader"
-revision = "r2"
 capabilities = ["comments", "strings"]
-defaults = { style = "" }
-choices = { style = ["", "wide"] }
 rules = { tokens = ["", 2, true, false, { end = [] }], empty = {} }
 """
 
@@ -38,10 +35,7 @@ def test_decode_exact_definition_and_ordered_nested_rules() -> None:
         language="Invented MIX",
         suffixes=(".IX", ".invented"),
         reader="invented-reader",
-        revision="r2",
         capabilities=("comments", "strings"),
-        defaults={"style": ""},
-        choices={"style": ("", "wide")},
         rules={"tokens": ("", 2, True, False, {"end": ()}), "empty": {}},
     )
     assert type(value.rules["tokens"][1]) is int
@@ -73,10 +67,7 @@ def test_decode_refuses_wrong_and_future_formats(raw: str) -> None:
         "language",
         "suffixes",
         "reader",
-        "revision",
         "capabilities",
-        "defaults",
-        "choices",
         "rules",
     ],
 )
@@ -94,7 +85,6 @@ def test_decode_refuses_unknown_wire_fields() -> None:
     [
         ("language", "1", "language must be a nonempty string"),
         ("reader", "[]", "reader must be a nonempty string"),
-        ("revision", "{}", "revision must be a nonempty string"),
         ("language", '""', "language must be a nonempty string"),
         ("suffixes", '".ix"', "suffixes must be an array of strings"),
         ("suffixes", "{}", "suffixes must be an array of strings"),
@@ -104,29 +94,7 @@ def test_decode_refuses_unknown_wire_fields() -> None:
         ("capabilities", '"comments"', "capabilities must be an array of strings"),
         ("capabilities", "{}", "capabilities must be an array of strings"),
         ("capabilities", "[false]", "capabilities must contain nonempty strings"),
-        ("defaults", "[]", "defaults must be a mapping"),
-        ("choices", "[]", "choices must be a mapping"),
         ("rules", "[]", "rules must be a mapping"),
-        (
-            "defaults",
-            "{ style = 1 }",
-            "defaults.style must be a declared string choice",
-        ),
-        (
-            "defaults",
-            '{ style = "absent" }',
-            "defaults.style must be a declared string choice",
-        ),
-        ("defaults", "{}", "defaults and choices must have the same settings keys"),
-        ("choices", '{ style = "wide" }', "choices.style must be an array of strings"),
-        ("choices", "{ style = {} }", "choices.style must be an array of strings"),
-        ("choices", "{ style = [] }", "choices.style must be nonempty"),
-        ("choices", "{ style = [1] }", "choices.style must contain strings"),
-        (
-            "choices",
-            '{ style = ["", ""] }',
-            "choices.style must contain unique strings",
-        ),
         (
             "rules",
             "{ nested = [1.5] }",
@@ -159,20 +127,14 @@ def test_decode_accepts_explicit_empty_arrays_and_tables() -> None:
 language = "Empty"
 suffixes = []
 reader = "empty-reader"
-revision = "1"
 capabilities = []
-defaults = {}
-choices = {}
 rules = {}
 """
     assert decode(text) == definition(
         language="Empty",
         suffixes=(),
         reader="empty-reader",
-        revision="1",
         capabilities=(),
-        defaults={},
-        choices={},
         rules={},
     )
 
@@ -195,10 +157,7 @@ def configuration(**changes: Any) -> dict[str, Any]:
         "language": "Example",
         "suffixes": (".ex",),
         "reader": "example-reader",
-        "revision": "1",
         "capabilities": ("comments",),
-        "defaults": {"style": ""},
-        "choices": {"style": ("", "wide")},
         "rules": {},
     }
     values.update(changes)
@@ -213,9 +172,7 @@ def definition(**values: Any) -> Any:
 def binding(**changes: Any) -> Any:
     values = {
         "reader": "example-reader",
-        "revision": "1",
         "capabilities": ("comments",),
-        "grammar_identity": "",
         "read": lambda path, text, lang: pytest.fail("the binding is not read"),
         "validate": lambda value: None,
     }
@@ -310,20 +267,17 @@ def test_binding_read_once_with_exact_source_and_retains_refusal() -> None:
     selected = bind(lang, {installed.reader: installed})
     assert selected.read(path, text, lang) is refused
     assert calls == [(path, text, lang)]
-    assert installed.grammar_identity == ""
     with pytest.raises(FrozenInstanceError):
-        installed.revision = "2"
+        installed.reader = "other"
 
 
 @pytest.mark.parametrize(
     "field,value",
     [
         ("reader", ""),
-        ("revision", ""),
         ("capabilities", ["comments"]),
         ("capabilities", ("comments", "comments")),
         ("capabilities", (1,)),
-        ("grammar_identity", None),
         ("read", None),
         ("validate", None),
     ],
@@ -342,16 +296,14 @@ def test_every_field_is_required(missing: str) -> None:
 
 
 def test_explicit_empty_configuration_is_valid() -> None:
-    value = definition(
-        **configuration(suffixes=(), capabilities=(), defaults={}, choices={}, rules={})
-    )
+    value = definition(**configuration(suffixes=(), capabilities=(), rules={}))
     assert value.language == "Example"
     assert value.suffixes == ()
     assert value.capabilities == ()
-    assert value.defaults == value.choices == value.rules == {}
+    assert value.rules == {}
 
 
-@pytest.mark.parametrize("field", ["language", "reader", "revision"])
+@pytest.mark.parametrize("field", ["language", "reader"])
 @pytest.mark.parametrize("invalid", ["", None, 1, [], {}])
 def test_identity_fields_require_nonempty_strings(field: str, invalid: Any) -> None:
     with pytest.raises(ValueError, match=field):
@@ -385,30 +337,6 @@ def test_tuple_fields_reject_invalid_values(field: str, invalid: Any) -> None:
         definition(**configuration(**{field: invalid}))
 
 
-@pytest.mark.parametrize(
-    "changes",
-    [
-        {"defaults": []},
-        {"choices": []},
-        {"defaults": {"": ""}, "choices": {"": ("",)}},
-        {"defaults": {1: ""}, "choices": {1: ("",)}},
-        {"defaults": {"style": 1}},
-        {"defaults": {"style": "missing"}},
-        {"defaults": {}},
-        {"choices": {}},
-        {"choices": {"style": []}},
-        {"choices": {"style": "wide"}},
-        {"choices": {"style": ()}},
-        {"choices": {"style": ("", "")}},
-        {"choices": {"style": ("", 1)}},
-        {"choices": {"style": ("wide",)}},
-    ],
-)
-def test_settings_require_matching_keys_and_declared_choices(changes: Any) -> None:
-    with pytest.raises(ValueError, match="defaults|choices|setting"):
-        definition(**configuration(**changes))
-
-
 @pytest.mark.parametrize("invalid", [None, 1.5, date(2000, 1, 1), set(), object()])
 def test_rules_reject_unsupported_nested_values(invalid: Any) -> None:
     with pytest.raises(ValueError, match="rules"):
@@ -437,8 +365,6 @@ def test_attributes_and_all_mapping_levels_are_immutable() -> None:
     with pytest.raises(FrozenInstanceError):
         value.language = "Other"
     for mapping in (
-        value.defaults,
-        value.choices,
         value.rules,
         value.rules["nested"][0],
     ):
@@ -449,19 +375,13 @@ def test_attributes_and_all_mapping_levels_are_immutable() -> None:
 
 
 def test_mutating_caller_inputs_does_not_change_definition() -> None:
-    defaults = {"style": ""}
-    choices = {"style": ("", "wide")}
     table = {"token": "end"}
     array = [table]
     rules = {"nested": array}
-    value = definition(**configuration(defaults=defaults, choices=choices, rules=rules))
-    defaults["style"] = "wide"
-    choices["style"] = ("wide",)
+    value = definition(**configuration(rules=rules))
     table["token"] = "changed"
     array.append({})
     rules.clear()
-    assert value.defaults == {"style": ""}
-    assert value.choices == {"style": ("", "wide")}
     assert value.rules == {"nested": ({"token": "end"},)}
 
 
@@ -656,7 +576,6 @@ def test_python_definition_loads_complete_grammar_and_installs_lexical_reader() 
     assert validate_python_definition(value) is None
     assert value.language == "python"
     assert value.suffixes == (".py", ".pyi")
-    assert value.defaults == value.choices == {}
     assert value.reader in INSTALLED_BINDINGS
     installed = {item.language: item for item in supported_definitions()}
     assert sorted(installed) == ["python", "rust"]
@@ -670,7 +589,6 @@ def test_python_definition_loads_complete_grammar_and_installs_lexical_reader() 
     [
         ("language", "rust"),
         ("reader", "python-stdlib"),
-        ("revision", "2"),
         ("suffixes", (".py",)),
         ("suffixes", (".py", ".pyi", ".pyw")),
         ("capabilities", ("comments", "tokenized")),
@@ -685,20 +603,6 @@ def test_python_definition_rejects_wrong_identity(field: str, wrong: Any) -> Non
     assert diagnostic.stage == ReadStage.SELECT
     assert diagnostic.code == "invalid-language-definition"
     assert field in diagnostic.message
-
-
-def test_python_definition_rejects_effective_settings() -> None:
-    from dataclasses import replace
-
-    value = replace(
-        python_definition(),
-        defaults={"version": "3.15"},
-        choices={"version": ("3.15",)},
-    )
-    result = validate_python_definition(value)
-    assert isinstance(result, ReadFailure)
-    assert "defaults" in result.diagnostics[0].message
-    assert "settings" in result.diagnostics[0].message
 
 
 def test_python_definition_requires_every_nested_key_and_rejects_unknown_keys() -> None:
@@ -788,7 +692,6 @@ def test_rust_definition_shipped_file_validates() -> None:
     value = rust_definition()
     assert validate_rust_definition(value) is None
     assert value.language == "rust"
-    assert value.defaults == value.choices == {}
 
 
 def test_rust_definition_rejects_wrong_identity() -> None:
@@ -797,7 +700,6 @@ def test_rust_definition_rejects_wrong_identity() -> None:
     for field, wrong in (
         ("language", "python"),
         ("reader", "rust-stdlib"),
-        ("revision", "1"),
         ("suffixes", (".rs", ".rlib")),
         ("capabilities", ("comments", "lexical")),
     ):
@@ -845,18 +747,7 @@ def test_rust_definition_rejects_missing_unknown_wrong_typed_and_changed_rules()
     assert "rules.comments" in result.diagnostics[0].message
 
 
-def test_rust_definition_rejects_effective_settings() -> None:
-    from dataclasses import replace
-
-    value = replace(
-        rust_definition(), defaults={"edition": "2024"}, choices={"edition": ("2024",)}
-    )
-    result = validate_rust_definition(value)
-    assert isinstance(result, ReadFailure)
-    assert "settings" in result.diagnostics[0].message
-
-
-def test_rust_definition_is_installed_as_rust_lexical_revision_2() -> None:
+def test_rust_definition_is_installed_as_rust_lexical() -> None:
     from comment_review.reading.language import INSTALLED_REGISTRY, SHIPPED_DEFINITIONS
     from comment_review.reading.readers import INSTALLED_BINDINGS, bind_reader
 
@@ -864,11 +755,10 @@ def test_rust_definition_is_installed_as_rust_lexical_revision_2() -> None:
     assert value is not None
     assert value.language == "rust"
     assert value.reader == "rust-lexical"
-    assert value.revision == "2"
     assert value in SHIPPED_DEFINITIONS
     binding = bind_reader(value, INSTALLED_BINDINGS)
     assert not isinstance(binding, ReadFailure)
-    assert binding.grammar_identity == "Rust Reference lexical"
+    assert binding.reader == "rust-lexical"
 
 
 def test_rust_comment_form_takes_its_markers_from_the_rust_scanner() -> None:

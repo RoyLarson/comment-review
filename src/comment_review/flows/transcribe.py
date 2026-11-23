@@ -4,12 +4,11 @@
     docket_of_proof(proof, repo) one closed master proof, read
     docket_of_proof(proof, repo, only=(...))   the approved places of one
 
-Two inputs, and they differ in where the decision comes from. A copy is folded
-here: its marks are turned into places (`flows.places.places_of`), the Unit of
-Work refuses what it cannot read, and each place the copy's role proposes a
-text for becomes one alteration. A closed proof already holds every place the
-fold decided, so nothing is folded again -- the places are read back and each
-whose text differs from its base becomes one alteration.
+Two inputs, and they differ in where the decision comes from. A copy is
+admitted and folded here, by `flows.verify.admit`, and each place the copy's
+role proposes a text for becomes one alteration. A closed proof already holds
+every place the fold decided, so nothing is folded again -- the places are
+read back and each whose text differs from its base becomes one alteration.
 
 Both paths return a `Docket` containing the corrections to apply.
 
@@ -45,10 +44,10 @@ output becomes a revise, which is the mechanism `reads = "revise:<name>"` and st
 calls it, and `commands/proof.py` calls both.
 
 !! It is a flow because a flow may reach both ends and neither end may reach the other.
-This reads the pages, builds the middle's places, runs the fold, and builds the write
-end's `Docket`; `Docket.of(edit_copy)` was offered and declined, because it would put
-a middle type in `docket/docket.py`, which imports only the leaves `constants` and
-`reading`.
+This reads the pages, takes the middle's fold from `flows.verify.admit`, and builds
+the write end's `Docket`; `Docket.of(edit_copy)` was offered and declined, because it
+would put a middle type in `docket/docket.py`, which imports only the leaves
+`constants` and `reading`.
 """
 
 from pathlib import Path
@@ -62,17 +61,12 @@ from comment_review.desk.proof.master_proof import MasterProof
 from comment_review.desk.proof.move import Move, Placement, is_open
 from comment_review.desk.proof.place import Place
 from comment_review.desk.proof.state import DECIDED
-from comment_review.desk.work.fold import Fold
 from comment_review.docket.docket import Alteration, Docket, Schedule
-from comment_review.flows.human import queries_in_copies
-from comment_review.flows.on_the_page import PageCache, held_at, no_page, page_named
-from comment_review.flows.places import bases_and_anchors, places_of
-from comment_review.flows.reading_context import (
-    copy_reading_contexts,
-    proof_reading_problems,
-)
+from comment_review.flows.on_the_page import PageCache, no_page, page_named
+from comment_review.flows.reading_context import admit_proof
+from comment_review.flows.verify import admit
 from comment_review.reading.addresser import cue_of, flatten
-from comment_review.reading.context import ReadingContext
+from comment_review.reading.context import Imprint
 from comment_review.reading.diagnostics import ReadFailure
 
 
@@ -87,6 +81,15 @@ class CannotTranscribe(Exception):
         """Hold every refusal and say it in the message too."""
         super().__init__("; ".join(reasons))
         self.reasons = reasons
+
+
+class CannotAdmit(CannotTranscribe):
+    """A page identity the copy claims will not admit, and nothing is set.
+
+    It is an input that cannot be read -- regathered, or the invocation
+    corrected -- and never a ruling to send back to a role, so
+    `commands/proof.py` catches it first and exits 2.
+    """
 
 
 class CannotApprove(CannotTranscribe):
@@ -124,7 +127,7 @@ def _pages_of(
     who: str,
     noun: str,
     cache: PageCache,
-    contexts: dict[str, ReadingContext] | None = None,
+    imprints: dict[str, Imprint],
 ) -> tuple[dict[str, tuple[str, Page]], list[str]]:
     """Every page a transcription writes at, read from `repo`, and what would not read.
 
@@ -144,7 +147,7 @@ def _pages_of(
             chief where a fold decided the places.
         noun: what is owed at those addresses, for the reasons.
         cache: the pages read, which the caller may read places off again.
-        contexts: admitted saved contexts keyed by real path.
+        imprints: the identity table admitted for the input, by real path.
 
     Returns:
         `(the flattened page name -> (its real relative path, the page), the
@@ -160,7 +163,7 @@ def _pages_of(
             known,
             repo,
             cache,
-            contexts=contexts,
+            imprints=imprints,
         )
         if not isinstance(page, ReadFailure):
             out[name] = (rel, page)
@@ -179,7 +182,6 @@ def _schedules_of(
     decided: dict[str, list[Place]],
     shas: dict[str, str],
     role: str,
-    contexts: dict[str, ReadingContext],
 ) -> tuple[Schedule, ...]:
     """One schedule per page a text was decided on, each page's places in order.
 
@@ -190,7 +192,6 @@ def _schedules_of(
         shas: flattened page name -> the sha recorded for it, where one was.
         role: the role written onto every schedule -- the copy a docket was
             pulled from, or the chief where a fold decided the places.
-        contexts: original contexts keyed by real relative path.
 
     Returns:
         The schedules, in `pages`' own order. A page with nothing to set gets
@@ -231,7 +232,7 @@ def _schedules_of(
                     for place in here
                 ),
                 role=role,
-                reading=contexts[rel],
+                reading=page.reading,
             )
         )
     return tuple(schedules)
@@ -260,53 +261,39 @@ def docket_of(copy: EditCopy, repo: Path) -> Docket:
         empty one would tell the write end to set a page from nothing.
 
     Raises:
-        CannotTranscribe: a human-review query is present, an edited page is
-            unreadable, or a mark is refused during reading or folding.
+        CannotAdmit: a page identity the copy claims will not admit.
+        CannotTranscribe: `flows.verify.admit` refuses the copy or holds a
+            human query, or an edited page is unreadable.
     """
-    contexts, why = copy_reading_contexts(copy)
-    if why:
-        raise CannotTranscribe(tuple(why))
-    questions = queries_in_copies([copy])
-    if questions:
-        raise CannotTranscribe(
-            tuple(f"{one.role} {one.at}: {one.question}" for one in questions)
-        )
+    # The copy is admitted as `collate` admits one, given no binder: nothing
+    # is required of it, so a partial draft transcribes. A human question is
+    # refused, as nothing answers it here; no answers file is given, so a
+    # change to the file's matter is drafted as filed, and `collate` asks it.
+    admission = admit([copy], repo)
+    if admission.unadmitted:
+        raise CannotAdmit(tuple(one.message for one in admission.unadmitted))
+    refused = [
+        events.refusal_line(one.role, one.address or "(the copy)", one.message)
+        for one in admission.problems
+    ]
+    refused += [
+        f"{query.role} {query.at}: {query.question}" for query, _ in admission.asks
+    ]
+    if refused or admission.fold is None:
+        raise CannotTranscribe(tuple(refused))
+    fold = admission.fold
     known = [sheet.path for sheet in copy.sheets]
-    cache: PageCache = {}
     pages, unreadable = _pages_of(
-        repo, known, _touched_by_page(copy), copy.role, "marks", cache, contexts
+        repo,
+        known,
+        _touched_by_page(copy),
+        copy.role,
+        "marks",
+        admission.pages,
+        admission.imprints,
     )
     if unreadable:
         raise CannotTranscribe(tuple(unreadable))
-    # A mark the envelope could not read is a decision nobody can write, and
-    # the fold below never sees it -- `Sheet.refused` holds it instead of
-    # `Sheet.marks`. Transcribing the rest would drop that place from the
-    # docket without a word, which is how a landing goes missing from a run
-    # that reports nothing wrong.
-    refused = [
-        events.refusal_line(copy.role, one.where, why)
-        for sheet in copy.sheets
-        for one in sheet.refused
-        for why in one.reasons
-    ]
-    if refused:
-        raise CannotTranscribe(tuple(refused))
-    held = bases_and_anchors(
-        [copy], lambda address: held_at(address, known, repo, cache, contexts=contexts)
-    )
-    if isinstance(held, ReadFailure):
-        raise CannotTranscribe(tuple(d.message for d in held.diagnostics))
-    bases, anchors = held
-    fold = Fold(places_of([copy], bases, anchors)).run()
-    if not fold.committed:
-        raise CannotTranscribe(
-            tuple(
-                events.refusal_line(one.role, one.address, why)
-                for one in fold.events
-                if isinstance(one, events.Refused)
-                for why in one.reasons
-            )
-        )
 
     decided: dict[str, list[Place]] = {}
     for address, place in fold.decided.items():
@@ -319,9 +306,7 @@ def docket_of(copy: EditCopy, repo: Path) -> Docket:
 
     shas = {name: page.sha for name, (_rel, page) in pages.items()}
     shas.update({flatten(sheet.path): sheet.sha for sheet in copy.sheets})
-    original = {rel: page.reading for rel, page in pages.values()}
-    original.update(contexts)
-    return Docket(schedules=_schedules_of(pages, decided, shas, copy.role, original))
+    return Docket(schedules=_schedules_of(pages, decided, shas, copy.role))
 
 
 def _open_moves(moves: list[Move]) -> list[str]:
@@ -420,6 +405,7 @@ def docket_of_proof(
         standing on the text already there: there is nothing to set at either.
 
     Raises:
+        CannotAdmit: a page identity the proof claims will not admit.
         CannotTranscribe: a place is still carried forward or refused, a move's
             placement is undecided and the chief has not ruled both of its ends,
             `only` names an address the proof does not carry or approves one end
@@ -429,9 +415,9 @@ def docket_of_proof(
             move that will not read never reaches here:
             `MasterProof.deserialize` refuses the proof and names it.
     """
-    problems = proof_reading_problems(proof)
+    imprints, problems = admit_proof(proof)
     if problems:
-        raise CannotTranscribe(tuple(problems))
+        raise CannotAdmit(tuple(one.text for one in problems))
     places = list(proof.places)
     unclosed = _unclosed(places) + _open_moves(list(proof.moves))
     if unclosed:
@@ -471,8 +457,7 @@ def docket_of_proof(
     ]
     if missing:
         raise CannotTranscribe(tuple(missing))
-    contexts = dict(proof.page_readings)
-    pages, unreadable = _pages_of(repo, known, touched, CHIEF, "places", {}, contexts)
+    pages, unreadable = _pages_of(repo, known, touched, CHIEF, "places", {}, imprints)
     if unreadable:
         raise CannotTranscribe(tuple(unreadable))
-    return Docket(schedules=_schedules_of(pages, decided, shas, CHIEF, contexts))
+    return Docket(schedules=_schedules_of(pages, decided, shas, CHIEF))

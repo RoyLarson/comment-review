@@ -2,10 +2,7 @@ format = 1
 language = "rust"
 suffixes = [".rs"]
 reader = "rust-lexical"
-revision = "2"
 capabilities = ["comments", "strings", "declarations", "documentation", "protected-directives", "lexical"]
-defaults = {}
-choices = {}
 
 [rules.comments]
 line = "//"

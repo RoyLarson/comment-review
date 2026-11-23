@@ -1,23 +1,21 @@
 """Fill -- place one role's ruling on its edit copy, in place.
 
     fill(copy, entry, root) -> (the entry as placed, []) or (None, problems)
-    place_on_the_page(copies, address, root) -> (that sheet's marks, a slot, [])
-                                                or (None, {}, problems)
-    row_problems(mark, base_at) -> what the mark's row finds against its bases
-    composition_problems(role, marks, base_at) -> the places its own marks
-                                                  will not compose at
+    admitted(copy) -> (the copy's identity table, []) or ({}, problems)
+    place_on_the_page(copies, address, root, imprints)
+                         -> (that sheet's marks, a slot, []) or (None, {}, problems)
     marks_on(copy) -> every entry on it that parses as a mark
     quoted_sources(root, sources) -> each source with its `verbatim` read in
-    page_text_at(copies, address, root) -> the page's paragraph at one place
     withdraw(copy, address, instruction, quote) -> one placed ruling taken back
 
-`row_problems` and `composition_problems` are the rules, and
-`commands/check.py` runs the same two calls over a whole copy. A role may
-write a copy with its file-write tool instead of placing each ruling here, so
-the check a ruling passes on the way in is the check a hand-written copy is
-held to -- and neither rule is written twice: the rows answer the first and
-`desk.evaluate.passes.composed_side`, which the fold itself asks, answers the
-second.
+A placed ruling is admitted as `collate` admits a copy: the copy as it would
+stand with the ruling on it goes through `flows.verify.admit`, and a finding at
+a place the ruling touches refuses it. So the instruction is held to the copy's
+own `admits`, each source is verified against the cited line, each address must
+resolve, and the trial fold reads the mark's row and composes it with the
+role's other marks there. `admit` is given no binder, so no place is required of
+the copy and coverage is not asked; and no stage label or row, so the copy's own
+`stage` and `admits` are what bind.
 
 !! It does the placing a role would otherwise script for itself: it finds the
 slot by address, sets the fields the role decided, builds `change` by
@@ -26,9 +24,10 @@ second entry for a second ruling. `commands/mark.py` exposes it.
 
 !! One ruling per call, and it writes nothing until every check has passed.
 The entry is built whole -- placed, derived, quoted -- and then read into its
-type by `desk.proof.mark.read_mark`, the same boundary the fold applies; only a
-mark that parses lands on the copy. A refusal leaves the copy exactly as it was, so
-a role reads the reasons and calls again.
+type by `desk.proof.mark.read_mark`, the same boundary the fold applies, and
+admitted; only a mark that parses and is admitted lands on the copy. A
+refusal leaves the copy exactly as it was, so a role reads the reasons and
+calls again.
 
 ! Where a ruling lands is decided by what the copy already holds at the address:
 
@@ -54,10 +53,12 @@ The three "no slot" rows are `place_on_the_page`, which `fill` calls where
 the copy holds no slot at the address, and `_seeded_beside` calls where the
 ruling already there wrote its own `raw_text`.
 
-!! The copy is a wire dict, never an `EditCopy`. `flows.proof_io.save_wire` says why:
-a role's copy mid-fill holds slots nobody has ruled on, and `Sheet.serialize` writes
-only the rulings, so parsing the copy to save it would drop every null slot -- the
-coverage the seeded shape exists to keep.
+!! The copy is placed on and saved as a wire dict, never an `EditCopy`.
+`flows.proof_io.save_wire` says why: a role's copy mid-fill holds slots nobody has
+ruled on, and `Sheet.serialize` writes only the rulings, so parsing the copy to save
+it would drop every null slot -- the coverage the seeded shape exists to keep. It is
+read as an `EditCopy` by `admitted`, for its pages' identity, and the copy with
+the ruling placed on it is read as one for `admit`.
 
 ! The flow reads the checkout and the desk does not. `desk.marks.rules.derived_change`
 is the pure half -- the paragraph and the claim in, the change out -- and the
@@ -65,14 +66,15 @@ cited line is read here, through `machine.repo.read_raw`, the same reader and
 the same splitter `desk.collator.source_problems` will check the result with.
 """
 
-from collections.abc import Callable
+from collections.abc import Mapping
+from copy import deepcopy
 from pathlib import Path
 
 from comment_review import constants
 from comment_review.desk.collator import cite_at
-from comment_review.desk.evaluate.passes import composed_side, proposing
 from comment_review.desk.marks.rules import derived_change
 from comment_review.desk.marks.table import INSTRUCTIONS, Row
+from comment_review.desk.proof.edit_copy import EditCopy
 from comment_review.desk.proof.mark import (
     ROLE_FIELDS,
     BlankMark,
@@ -83,19 +85,15 @@ from comment_review.desk.proof.mark import (
     read_mark,
     untouched,
 )
-from comment_review.desk.proof.place import Filed
 from comment_review.desk.proof.source import entry_problems
-from comment_review.desk.stages import not_admitted
 from comment_review.exceptions import READ_ERRORS
-from comment_review.flows.on_the_page import PageCache, held_at
 from comment_review.flows.page_for import page_of
 from comment_review.flows.read_diagnostics import format_failure
-from comment_review.flows.reading_context import (
-    copy_reading_contexts,
-    copy_reading_problems,
-)
+from comment_review.flows.reading_context import admit_pages
+from comment_review.flows.verify import admit
 from comment_review.machine.repo import can_escape, read_raw
 from comment_review.reading.addresser import cue_of, unflatten
+from comment_review.reading.context import Imprint
 from comment_review.reading.diagnostics import ReadFailure
 
 
@@ -137,8 +135,29 @@ def _sheet_for(copy: dict, address: str) -> tuple[list | None, str]:
     return (marks if isinstance(marks, list) else None), path
 
 
+def admitted(copy: dict) -> tuple[dict[str, Imprint], list[str], list[str]]:
+    """The copy's identity table, admitted once for one `fill` or `withdraw`.
+
+    The copy is read as an `EditCopy` for its sheets alone; `fill` goes on
+    placing the ruling on the wire dict, which is what is saved.
+
+    Returns:
+        `(the table, [], [])`; or `({}, why the copy does not read, [])`; or
+        `({}, [], why a page identity it claims will not admit)` -- an input
+        that cannot be read, which `commands/mark.py` exits 2 for.
+    """
+    parsed, why = EditCopy.deserialize("edit_copy", copy)
+    if parsed is None:
+        return {}, why, []
+    imprints, unadmitted = admit_pages((f"edit_copy: {parsed.role}", parsed.sheets))
+    return imprints, [], [one.text for one in unadmitted]
+
+
 def place_on_the_page(
-    copies: list[dict], address: str, root: Path | None
+    copies: list[dict],
+    address: str,
+    root: Path | None,
+    imprints: Mapping[str, Imprint],
 ) -> tuple[list | None, dict, list[str]]:
     """The sheet an address with no slot belongs on, and a slot seeded from the page.
 
@@ -147,22 +166,20 @@ def place_on_the_page(
             first whose sheets name the address's page is the one used.
         address: `path@cue`, a place none of `copies` holds a slot for.
         root: the checkout the page is read from, or None.
+        imprints: the copy's identity table, as `admitted` returns it; the
+            page is read under its sheet's admitted reading.
 
     Returns:
         `(that sheet's marks list, the seeded slot, [])`, the slot carrying the
         page's own anchor and `raw_text` at that place, and not yet on the
-        sheet. Or `(None, {}, [messages])` where a copy's saved reading context
-        is refused, no copy has a sheet for the page, there is no checkout, the
-        page cannot be read, or the page carries no such place.
+        sheet. Or `(None, {}, [messages])` where no copy has a sheet for the
+        page, there is no checkout, the page cannot be read, or the page
+        carries no such place.
     """
-    admitted = [(copy, copy_reading_contexts(copy)) for copy in copies]
-    problems = [problem for _, (_, why) in admitted for problem in why]
-    if problems:
-        return None, {}, problems
     found = next(
         (
-            (marks, rel, contexts[rel])
-            for copy, (contexts, _) in admitted
+            (marks, rel)
+            for copy in copies
             for marks, rel in [_sheet_for(copy, address)]
             if marks is not None
         ),
@@ -170,10 +187,10 @@ def place_on_the_page(
     )
     if found is None:
         return None, {}, [f"{address} names a page this copy has no sheet for"]
-    marks, rel, context = found
+    marks, rel = found
     if root is None:
         return None, {}, [f"{address}: no checkout to resolve its page against"]
-    page = page_of(root / rel, rel=rel, reading_context=context)
+    page = page_of(root / rel, rel=rel, reading_context=imprints[rel].reading)
     if isinstance(page, ReadFailure):
         return None, {}, [f"{address}: {format_failure(page, path=rel)}"]
     cue = address.partition("@")[2]
@@ -246,31 +263,6 @@ def quoted_sources(root: Path | None, sources: object) -> tuple[list | None, lis
     return out, []
 
 
-def row_problems(mark: Mark, base_at: Callable[[str], str]) -> list[str]:
-    """Every problem this mark's row finds, at each place the row writes.
-
-    The row says which places it touches and what it reads at each; this walks
-    them and asks. A `move` is the row with two, so its origin is read against
-    the origin's paragraph and its destination against the destination's.
-
-    Args:
-        mark: one parsed mark.
-        base_at: address -> the page's paragraph there, "" where the page
-            holds none. The caller supplies it because the two callers reach
-            a page differently: `fill` has the slot it seeded and reads one
-            more page at most, and `check` walks a whole copy through a cache.
-
-    Returns:
-        The row's own messages, in the order its touches are stated. Empty
-        where the row finds nothing.
-    """
-    row = INSTRUCTIONS[mark.instruction]
-    out: list[str] = []
-    for address, touch in row.places(mark):
-        out += row.reads(mark, touch, base_at(address))
-    return out
-
-
 def marks_on(copy: dict) -> list[Mark]:
     """Every entry on this copy that parses as a mark, in sheet then mark order.
 
@@ -291,113 +283,6 @@ def marks_on(copy: dict) -> list[Mark]:
     return out
 
 
-def composition_problems(
-    role: str, marks: list[Mark], base_at: Callable[[str], str]
-) -> list[tuple[str, str]]:
-    """Every place where several of one role's marks will not compose.
-
-    A role's own marks at one place compose
-    against the base the way two roles' do, so two that change different words
-    are one side and two that change the same words are refused back to the
-    role. The
-    rule is `desk.evaluate.passes.composed_side`, which the fold asks; this
-    walks a copy's marks into the places they touch and asks it there, so
-    `mark` refuses at placing time what the fold would refuse at the fold.
-
-    Args:
-        role: whose copy this is. It names the role in the reason, which is
-            the fold's own wording.
-        marks: the marks to consider, which for `mark` is what the copy
-            already holds plus the one being placed.
-        base_at: address -> the page's paragraph there.
-
-    Returns:
-        `(address, the reason)` per place that will not compose, in the order
-        the places were first touched.
-    """
-    at: dict[str, list[Filed]] = {}
-    for mark in marks:
-        for address, touch in INSTRUCTIONS[mark.instruction].places(mark):
-            at.setdefault(address, []).append(Filed(role, mark, touch))
-    out: list[tuple[str, str]] = []
-    for address, filed in at.items():
-        here = proposing(filed)
-        if len(here) < 2:
-            continue
-        _text, why = composed_side(role, here, base_at(address))
-        out += [(address, one) for one in why]
-    return out
-
-
-def page_text_at(
-    copies: list[dict], address: str, root: Path | None, cache: PageCache | None = None
-) -> str | ReadFailure:
-    """Return the paragraph at an address, or an explicit read failure.
-
-    Saved contexts are admitted before reading a page. A move may name a
-    destination outside the copies' sheets; its existing paragraph is still
-    the destination's base. Unknown extra paths derive defaults at acquisition.
-
-    Successful empty places and malformed addresses return "", as does an
-    unavailable root. Context or page read failures return ReadFailure for
-    fill to present as a refusal. The optional cache shares held snapshots
-    across lookups within the operation.
-    """
-    if root is None:
-        return ""
-    paths = [
-        str(sheet.get("path", ""))
-        for copy in copies
-        for sheet in copy.get("sheets", [])
-        if isinstance(sheet, dict)
-    ]
-    from comment_review.reading.diagnostics import ReadDiagnostic, ReadStage
-
-    contexts = {}
-    for copy in copies:
-        admitted, why = copy_reading_contexts(copy)
-        if why:
-            return ReadFailure(
-                tuple(
-                    ReadDiagnostic(ReadStage.SELECT, "invalid-reading-context", reason)
-                    for reason in why
-                )
-            )
-        for path, context in admitted.items():
-            if path in contexts and contexts[path] != context:
-                return ReadFailure(
-                    (
-                        ReadDiagnostic(
-                            ReadStage.SELECT,
-                            "reading-context-mismatch",
-                            f"{path}: conflicting reading contexts; regather",
-                        ),
-                    )
-                )
-            contexts[path] = context
-    result = held_at(
-        address, paths, root, cache if cache is not None else {}, contexts=contexts
-    )
-    return result if isinstance(result, ReadFailure) else result.text
-
-
-def _base_beside(
-    copy: dict,
-    seeded: dict,
-    address: str,
-    root: Path | None,
-    cache: PageCache | None = None,
-) -> str | ReadFailure:
-    """The page's paragraph at `address`, taking the slot already in hand first.
-
-    The seeded slot carries the page's text at the mark's own address, so only
-    a second place -- a move's destination -- costs a read.
-    """
-    if address == seeded["address"]:
-        return str(seeded["raw_text"])
-    return page_text_at([copy], address, root, cache)
-
-
 def _row_of(named: object):
     """The row a placed entry's `instruction` names, or None if it names none."""
     if isinstance(named, str) and named in INSTRUCTIONS:
@@ -406,7 +291,11 @@ def _row_of(named: object):
 
 
 def _seeded_beside(
-    copy: dict, slot: dict, address: str, root: Path | None
+    copy: dict,
+    slot: dict,
+    address: str,
+    root: Path | None,
+    imprints: Mapping[str, Imprint],
 ) -> tuple[dict | None, list[str]]:
     """A slot seeded as the place was handed out, given a ruling already there.
 
@@ -419,7 +308,7 @@ def _seeded_beside(
     """
     row = _row_of(slot.get("instruction"))
     if row is not None and row.carries_raw_text:
-        marks, from_page, why = place_on_the_page([copy], address, root)
+        marks, from_page, why = place_on_the_page([copy], address, root, imprints)
         return (from_page, []) if marks is not None else (None, why)
     return BlankMark(
         address, str(slot.get("anchor") or ""), str(slot.get("raw_text") or "")
@@ -465,7 +354,12 @@ def _composed_text(
     return change if isinstance(change, str) else "", []
 
 
-def fill(copy: dict, entry: dict, root: Path | None) -> tuple[dict | None, list[str]]:
+def fill(
+    copy: dict,
+    entry: dict,
+    root: Path | None,
+    imprints: Mapping[str, Imprint] | None = None,
+) -> tuple[dict | None, list[str]]:
     """One ruling, placed on the copy.
 
     Args:
@@ -478,6 +372,10 @@ def fill(copy: dict, entry: dict, root: Path | None) -> tuple[dict | None, list[
             read -- a slot that has to be created takes its anchor from the
             page, not from the entry.
         root: the checkout a bare `cite` is read from, or None.
+        imprints: the copy's identity table, as `admitted` returns it, where
+            the caller admitted the copy; None admits it here. Either way the
+            copy's pages are admitted once per call: the seed reads them under
+            it, and `admit` is handed it rather than admitting them again.
 
     Returns:
         `(mark, [])` -- the dict now on the copy -- or `(None, [messages])` with
@@ -485,42 +383,34 @@ def fill(copy: dict, entry: dict, root: Path | None) -> tuple[dict | None, list[
         where the parse is what refused, so a role learns the contract from the
         refusal.
 
-    The row is what decides whether the ruling stands: `row_problems` runs its
-    `reads` at every place it writes, against the pages, and a problem there is
-    a refusal in the row's own words. An `add` over prose keeps every word of
-    that prose in order; a `move` subtracts its snippet from the origin exactly
-    once and lands a destination paragraph holding both.
+    The admission is what decides whether the ruling stands: the trial fold
+    runs its row's `reads` at every place it writes, against the pages, and a
+    problem there is a refusal in the row's own words. An `add` over prose
+    keeps every word of that prose in order; a `move` subtracts its snippet
+    from the origin exactly once and lands a destination paragraph holding
+    both.
     """
-    problems = copy_reading_problems(copy)
-    if problems:
-        return None, problems
+    if imprints is None:
+        imprints, why, unadmitted = admitted(copy)
+        if why or unadmitted:
+            return None, [*why, *unadmitted]
     address = entry.get("address")
     if not filled(address):
         return None, ["names no `address`"]
     named = entry.get("instruction")
     if not isinstance(named, str) or named not in INSTRUCTIONS:
         return None, [f"`instruction` must be one of {', '.join(sorted(INSTRUCTIONS))}"]
-    # What the stage admits is asked before anything is built, and the copy
-    # is what carries it. A role learns the
-    # rule from the refusal here rather than from the fold, three commands
-    # later -- and `commands/check.py` asks the same function of a copy
-    # written by hand.
-    why_stage = not_admitted(
-        str(copy.get("stage") or ""), tuple(copy.get("admits") or ()), named
-    )
-    if why_stage:
-        return None, [why_stage]
     instruction = Instruction(named)
     row = INSTRUCTIONS[instruction]
 
     marks, at = _slot_at(copy, address)
     if marks is None:
-        marks, seeded, why = place_on_the_page([copy], address, root)
+        marks, seeded, why = place_on_the_page([copy], address, root, imprints)
         if marks is None:
             return None, why
         in_place = False
     else:
-        seeded, why = _seeded_beside(copy, marks[at], address, root)
+        seeded, why = _seeded_beside(copy, marks[at], address, root, imprints)
         if seeded is None:
             return None, why
         in_place = untouched(marks[at])
@@ -566,50 +456,56 @@ def fill(copy: dict, entry: dict, root: Path | None) -> tuple[dict | None, list[
     if parsed is None:
         return None, why
 
-    # The row reads the pages last, after the parse: `read_mark` is
-    # what settles a destination that is not addressable at all, and a row
-    # asked to read against a place no address names has nothing to say.
-    bases = {}
-    cache: PageCache = {}
-    for where, _ in INSTRUCTIONS[parsed.instruction].places(parsed):
-        result = _base_beside(copy, seeded, where, root, cache)
-        if isinstance(result, ReadFailure):
-            return None, [f"{address}: {d.message}" for d in result.diagnostics]
-        bases[where] = result
+    # The admission runs last, after the parse: `read_mark` is what settles a
+    # destination that is not addressable at all, and a rule asked to read
+    # against a place no address names has nothing to say.
+    if root is None:
+        return None, [f"{address}: no checkout to admit the ruling against"]
+    scratch = deepcopy(copy)
+    sheet = next(
+        i
+        for i, one in enumerate(copy["sheets"])
+        if isinstance(one, dict) and one.get("marks") is marks
+    )
+    _place(scratch["sheets"][sheet]["marks"], at, in_place, deepcopy(mark))
+    placed, why = EditCopy.deserialize("edit_copy", scratch)
+    if placed is None:
+        return None, why
+    # Only the places this mark touches are asked about: a finding the copy
+    # already held elsewhere is not this ruling's doing, and refusing it here
+    # would leave the role no call that lands.
+    touched = frozenset(where for where, _ in row.places(parsed))
+    admission = admit([placed], root, only=touched, imprints=imprints)
+    if admission.unadmitted or admission.problems:
+        return None, [
+            f"{one.address or address}: {one.message}"
+            for one in (*admission.unadmitted, *admission.problems)
+        ]
+    return _place(marks, at, in_place, mark), []
 
-    def base_at(where: str) -> str:
-        return bases.get(where, "")
 
-    found = row_problems(parsed, base_at)
-    if found:
-        return None, [f"{address}: {why}" for why in found]
+def _place(marks: list, at: int, in_place: bool, mark: dict) -> dict:
+    """`mark` placed on a sheet's `marks` list, and the dict now on it.
 
-    # And what this ruling makes of the ones already placed. Only the places
-    # this mark touches are asked about: a pair the copy already held
-    # elsewhere is not this ruling's doing, and refusing it here would leave
-    # the role no call that lands.
-    mine = {where for where, _touch in INSTRUCTIONS[parsed.instruction].places(parsed)}
-    doubled = [
-        f"{where}: {why}"
-        for where, why in composition_problems(
-            str(copy.get("role") or ""), [*marks_on(copy), parsed], base_at
-        )
-        if where in mine
-    ]
-    if doubled:
-        return None, doubled
-
+    An untouched slot at `at` is filled in place, the seeded dict object
+    itself; otherwise the mark goes in right after `at`, or at the end where
+    the sheet held no slot at the address.
+    """
     if in_place:
         slot = marks[at]
         slot.clear()
         slot.update(mark)
-        return slot, []
+        return slot
     marks.insert(at + 1 if at >= 0 else len(marks), mark)
-    return mark, []
+    return mark
 
 
 def withdraw(
-    copy: dict, address: str, instruction: str, quote: str | None = None
+    copy: dict,
+    address: str,
+    instruction: str,
+    quote: str | None = None,
+    imprints: Mapping[str, Imprint] | None = None,
 ) -> tuple[dict | None, list[str]]:
     """One ruling the copy holds at `address`, taken back.
 
@@ -625,6 +521,8 @@ def withdraw(
         instruction: which of the seven the ruling is.
         quote: the clause a `drop`, `correct` or `patch` quotes, or the
             `change` of an instruction that quotes none.
+        imprints: the copy's identity table where the caller admitted the
+            copy, as `fill` takes it; None admits it here.
 
     Returns:
         `({}, [])` on removal, or `(None, [messages])` with the copy untouched
@@ -632,9 +530,10 @@ def withdraw(
         no ruling of the instruction is, the rulings there are not one the
         quote names, or several are and no `quote` names one.
     """
-    problems = copy_reading_problems(copy)
-    if problems:
-        return None, problems
+    if imprints is None:
+        _, why, unadmitted = admitted(copy)
+        if why or unadmitted:
+            return None, [*why, *unadmitted]
     marks, _ = _slot_at(copy, address)
     if marks is None:
         return None, [f"{address}: this copy holds no slot there"]

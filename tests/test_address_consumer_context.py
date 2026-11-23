@@ -1,5 +1,4 @@
 import json
-from dataclasses import replace
 from typing import Any
 
 import pytest
@@ -7,9 +6,7 @@ from conftest import SAMPLE, build, run_command
 
 from comment_review.binder.binder import bind
 from comment_review.commands import carry as carry_command
-from comment_review.commands import compare
 from comment_review.flows import reading_context, revise
-from comment_review.flows.carry import carry
 from comment_review.reading.diagnostics import ReadFailure
 
 
@@ -20,18 +17,6 @@ def held_tree(tmp_path):
     page = build(SAMPLE)
     binder = bind([page], read_from={"root": str(root), "revise": 0})
     return root, page, binder
-
-
-@pytest.mark.parametrize("side", ["binder", "page"])
-def test_direct_carry_admits_both_in_memory_contexts(tmp_path, side):
-    _, page, binder = held_tree(tmp_path)
-    if side == "binder":
-        binder = replace(binder, pages=(replace(binder.pages[0], reading=None),))
-    else:
-        page.reading = replace(page.reading, reader="uninstalled-reader")
-    updated, added, why = carry(binder, page, "m.py", cue="b99")
-    assert updated is None and added == ""
-    assert "regather" in why
 
 
 def test_carry_command_refuses_before_read_or_write(tmp_path, monkeypatch, capsys):
@@ -61,76 +46,6 @@ def test_carry_command_refuses_before_read_or_write(tmp_path, monkeypatch, capsy
     assert artifact.read_text(encoding="utf-8") == original
 
 
-@pytest.mark.parametrize("consumer", ["compare", "revise"])
-@pytest.mark.parametrize("equal", [True, False])
-@pytest.mark.parametrize("change", ["revision", "missing-reader", "accepted-settings"])
-def test_fresh_text_comparison_refuses_reader_change(
-    tmp_path, monkeypatch, capsys, consumer, equal, change
-):
-    root, _, _ = held_tree(tmp_path)
-    revised = tmp_path / "revised"
-    revised.mkdir()
-    (revised / "m.py").write_text(
-        SAMPLE if equal else SAMPLE.replace("beside", "changed"),
-        encoding="utf-8",
-        newline="",
-    )
-    installed = reading_context.reader_for
-    from comment_review.flows import page_for
-
-    actual = page_for.page_for
-
-    def original(path, registry):
-        result = installed(path, registry)
-        assert result is not None and not isinstance(result, ReadFailure)
-        definition, binding = result
-        if change == "accepted-settings":
-            definition = replace(
-                definition,
-                language="test-settings",
-                reader="test-settings-reader",
-                defaults={"mode": "plain"},
-                choices={"mode": ("plain",)},
-            )
-            binding = replace(
-                binding, reader="test-settings-reader", validate=lambda _: None
-            )
-        return definition, binding
-
-    monkeypatch.setattr(reading_context, "reader_for", original)
-
-    def changed(path, registry):
-        if change == "missing-reader":
-            return None
-        definition, binding = original(path, registry)
-        if change == "accepted-settings":
-            return replace(
-                definition, defaults={"mode": "wide"}, choices={"mode": ("wide",)}
-            ), binding
-        return definition, replace(binding, revision="changed-reader")
-
-    def read_then_change(*args, **kwargs):
-        page = actual(*args, **kwargs)
-        monkeypatch.setattr(reading_context, "reader_for", changed)
-        return page
-
-    monkeypatch.setattr(page_for, "page_for", read_then_change)
-    if consumer == "compare":
-        assert (
-            compare.main(["--original", str(root), "--revise", str(revised), "m.py"])
-            == 0
-        )
-        seen = capsys.readouterr()
-        assert seen.out == ""
-        assert "regather" in seen.err
-        assert "addresses not compared" in seen.err
-    else:
-        with pytest.raises(revise.AddressesMoved, match="regather"):
-            revise.assert_addresses_held(
-                root, revise.Pulled(revised, 1, {}, []), ["m.py"]
-            )
-
-
 def test_pull_refuses_direct_schedule_context_before_output(tmp_path):
     from comment_review.docket.docket import Docket, Schedule
 
@@ -147,46 +62,15 @@ def test_pull_refuses_direct_schedule_context_before_output(tmp_path):
     assert not output.parent.exists()
 
 
-def test_direct_saved_gate_refuses_malformed_context(tmp_path):
-    root, _, _ = held_tree(tmp_path)
-    invalid: Any = None
-    with pytest.raises(revise.AddressesMoved, match="regather"):
-        revise.assert_addresses_held(
-            root,
-            revise.Pulled(root, 1, {}, []),
-            ["m.py"],
-            reading_contexts={"m.py": invalid},
-        )
-
-
-@pytest.fixture
-def installed_modes(monkeypatch):
-    actual = reading_context.reader_for
-
-    def selected(path, registry):
-        result = actual(path, registry)
-        assert result is not None and not isinstance(result, ReadFailure)
-        definition, binding = result
-        return replace(
-            definition,
-            language="test-settings",
-            reader="test-settings-reader",
-            defaults={"mode": "plain"},
-            choices={"mode": ("plain", "wide")},
-        ), replace(binding, reader="test-settings-reader", validate=lambda _: None)
-
-    monkeypatch.setattr(reading_context, "reader_for", selected)
-
-
 @pytest.mark.parametrize("consumer", ["carry", "pull"])
-def test_saved_consumers_retain_effective_settings(
-    tmp_path, monkeypatch, capsys, installed_modes, consumer
+def test_saved_consumers_retain_the_saved_context(
+    tmp_path, monkeypatch, capsys, consumer
 ):
     from comment_review.docket.docket import Docket, Schedule
     from comment_review.flows import page_for
 
     root, page, _ = held_tree(tmp_path)
-    saved = reading_context.context_for(root / "m.py", {"mode": "wide"})
+    saved = reading_context.context_for(root / "m.py")
     assert not isinstance(saved, ReadFailure)
     page.reading = saved
     binder = bind([page], read_from={"root": str(root), "revise": 0})
@@ -196,7 +80,7 @@ def test_saved_consumers_retain_effective_settings(
     def observe(*args, **kwargs):
         result = actual(*args, **kwargs)
         if not isinstance(result, ReadFailure):
-            admitted.append(result.reading.settings)
+            admitted.append(result.reading)
         return result
 
     monkeypatch.setattr(page_for, "page_for", observe)
@@ -232,14 +116,4 @@ def test_saved_consumers_retain_effective_settings(
         result = revise.pull(docket, root, output, 1)
         assert not result.refusals
     assert admitted
-    assert all(settings == (("mode", "wide"),) for settings in admitted)
-
-
-def test_direct_carry_refuses_distinct_compatible_settings(tmp_path, installed_modes):
-    root, page, binder = held_tree(tmp_path)
-    wide = reading_context.context_for(root / "m.py", {"mode": "wide"})
-    assert not isinstance(wide, ReadFailure)
-    page.reading = wide
-    updated, added, why = carry(binder, page, "m.py", cue="b99")
-    assert updated is None and not added
-    assert "regather" in why and "differs" in why
+    assert all(reading == saved for reading in admitted)

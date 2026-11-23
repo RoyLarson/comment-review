@@ -40,9 +40,9 @@ mark, is built in other modules: `flows.bus`, `flows.answers`, `flows.verify` an
 !! The per-mark checks take a `Mark` and `verify_report` an `EditCopy`, never a
 wire dict; `cited_problems` takes the sources as handed.
 
-`flows.verify.admitted_copy_problems` calls `verify_report` per copy.
-`flows.bus` admits all returned copies together. `commands/check.py`
-uses `flows.verify.copy_problems` to admit the one copy it is handed.
+`flows.verify.admit` calls `verify_report` per copy, for every entry point
+that admits one: `flows.bus` admits all returned copies together, and
+`commands/check.py`, `flows.fill` and `flows.transcribe` the one copy each holds.
 `flows.fill` splits a cite with `cite_at`, so the two agree on which line was
 cited, and `flows.answers` holds a turn's answer to `cited_problems`.
 """
@@ -317,13 +317,13 @@ def verify_report(
             to, and `EditCopy.deserialize` has already refused a copy that
             carries none.
         texts: address -> every text a quote there may be in, as
-            `flows.verify.texts_at` reads them. An address it lacks is
+            `flows.verify.admit` reads them. An address it lacks is
             checked against nothing, so a quote there is refused.
         root: the checkout every `cite` is resolved against.
         cache: a `Cache` to read cited files through.
             !! Required, and one per stage.
-            `flows.verify.admitted_copy_problems` calls this for `flows.bus`
-            and `commands/check.py`, once per copy, and a cache built per call
+            `flows.verify.admit` calls this for every entry point, once
+            per copy, and a cache built per call
             re-reads a file for every citing role.
             ! It is not optional, deliberately. A default would let a caller
             get the per-call cache back by saying nothing, which is exactly the

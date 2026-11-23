@@ -5,8 +5,7 @@
          "sha":  "e3b0c44298fc",
          "role":  "block-context",
          "reading": {"format": 1, "language": "python",
-                     "reader": "python-lexical", "settings": {},
-                     "compatibility": "<the reader's 64-hex digest>"},
+                     "reader": "python-lexical"},
          "alterations": [{"cue": "b1", "text": "# the new comment"},
                          {"cue": "c0", "text": null}]}]}
 

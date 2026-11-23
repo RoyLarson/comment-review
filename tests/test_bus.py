@@ -49,39 +49,28 @@ CORRECTED = "# one\n# TWO\n# three"
 @pytest.mark.parametrize("route", ["answers", "dispositions"])
 @pytest.mark.parametrize(
     "fault",
-    [
-        "missing",
-        "sheet",
-        "contradictory",
-        "installed",
-        "destination",
-        "destination-changed",
-    ],
+    ["sheet", "contradictory", "installed", "destination-changed"],
 )
 def test_resumed_context_refusal_precedes_addresses_without_mutation(
     tmp_path, monkeypatch, route, fault
 ):
     proof = _collated(tmp_path).proof
-    if fault == "missing":
-        proof = replace(proof, page_readings={})
-    elif fault in ("sheet", "contradictory"):
+    if fault in ("sheet", "contradictory"):
         copy = proof.edit_copies[0]
         context = copy.sheets[0].reading
         sheet = replace(
             copy.sheets[0],
             reading=None
             if fault == "sheet"
-            else replace(context, compatibility="0" * 64),
+            else replace(context, reader="another-reader"),
         )
         proof = replace(
             proof, edit_copies=(replace(copy, sheets=(sheet,)), *proof.edit_copies[1:])
         )
     elif fault == "installed":
-        monkeypatch.setattr(
-            "comment_review.flows.reading_context.PLACEMENT_REVISION", "changed"
-        )
-    elif fault == "destination":
-        proof = replace(proof, page_shas={"extra.py": "unchanged"})
+        from conftest import install_another_reader
+
+        install_another_reader(monkeypatch)
     else:
         context = proof.page_readings["m.py"]
         proof = replace(
@@ -89,7 +78,7 @@ def test_resumed_context_refusal_precedes_addresses_without_mutation(
             page_shas={"extra.py": "unchanged"},
             page_readings={
                 **proof.page_readings,
-                "extra.py": replace(context, compatibility="0" * 64),
+                "extra.py": replace(context, reader="another-reader"),
             },
         )
     answers = _both_hold()
@@ -139,7 +128,7 @@ def test_initial_context_refusal_precedes_address_work(
     ]
     received = binder
     context = binder.pages[0].reading
-    changed = None if fault == "missing" else replace(context, compatibility="0" * 64)
+    changed = None if fault == "missing" else replace(context, reader="another-reader")
     if target == "copy":
         copies[0] = replace(
             copies[0], sheets=(replace(copies[0].sheets[0], reading=changed),)
@@ -157,21 +146,23 @@ def test_initial_context_refusal_precedes_address_work(
         pytest.fail("address-dependent work preceded context admission")
 
     for name in (
-        "admitted_copy_problems",
-        "required_places",
-        "admitted_coverage_problems",
-        "admitted_received_problems",
+        "verify_report",
+        "_texts_at",
+        "_resolution_problems",
+        "_required_places",
+        "_coverage_problems",
+        "_received_problems",
         "bases_and_anchors",
         "held_at",
         "places_of",
         "Fold",
     ):
-        monkeypatch.setattr(f"comment_review.flows.bus.{name}", forbidden)
-    monkeypatch.setattr("comment_review.flows.verify.texts_at", forbidden)
+        monkeypatch.setattr(f"comment_review.flows.verify.{name}", forbidden)
     out, result = handle(message)
     assert result is None
+    owner = "" if target == "stage" else "block-context"
     assert any(
-        role == "block-context" and "regather" in why and "m.py" in why
+        role == owner and "regather" in why and "m.py" in why
         for role, _, why in _refusals(out)
     )
     assert repr(message) == before
@@ -192,20 +183,17 @@ def test_initial_context_admits_binders_without_copies(tmp_path, monkeypatch, ta
     def forbidden(*args, **kwargs):
         pytest.fail("empty-copy metadata refusal reached address work")
 
-    monkeypatch.setattr("comment_review.flows.bus.required_places", forbidden)
-    monkeypatch.setattr("comment_review.flows.bus.Fold", forbidden)
+    monkeypatch.setattr("comment_review.flows.verify._required_places", forbidden)
+    monkeypatch.setattr("comment_review.flows.verify.Fold", forbidden)
     out, result = handle(message)
     assert result is None
     assert any("m.py" in why and "regather" in why for _, _, why in _refusals(out))
 
 
-@pytest.mark.parametrize("revision", ["reader", "grammar", "rules", "placement"])
-def test_initial_context_refuses_installed_changes_with_unchanged_source(
-    tmp_path, monkeypatch, revision
+def test_initial_context_refuses_an_installed_change_with_unchanged_source(
+    tmp_path, monkeypatch
 ):
-    from comment_review.flows import reading_context
-    from comment_review.reading.definitions import LanguageDefinition
-    from comment_review.reading.readers import ReaderBinding
+    from conftest import install_another_reader
 
     binder = a_real_binder_over(tmp_path, {"m.py@b1": BASE})
     copies = [
@@ -214,97 +202,16 @@ def test_initial_context_refuses_installed_changes_with_unchanged_source(
             binder, {"block-context": {"m.py@b1": a_clean("m.py@b1")}}
         )
     ]
-    installed = reading_context.reader_for
-
-    def revised(path, registry):
-        selected = installed(path, registry)
-        assert isinstance(selected, tuple)
-        definition, binding = selected
-        assert isinstance(definition, LanguageDefinition)
-        assert isinstance(binding, ReaderBinding)
-        if revision == "rules":
-            definition = replace(definition, rules={"changed": True})
-        elif revision == "reader":
-            binding = replace(binding, revision="changed")
-        elif revision == "grammar":
-            binding = replace(binding, grammar_identity="changed")
-        return definition, binding
-
-    monkeypatch.setattr(reading_context, "reader_for", revised)
-    if revision == "placement":
-        monkeypatch.setattr(reading_context, "PLACEMENT_REVISION", "changed")
+    install_another_reader(monkeypatch)
 
     def forbidden(*args, **kwargs):
         pytest.fail("changed installed metadata reached source verification")
 
-    monkeypatch.setattr("comment_review.flows.bus.admitted_copy_problems", forbidden)
-    monkeypatch.setattr("comment_review.flows.bus.required_places", forbidden)
+    monkeypatch.setattr("comment_review.flows.verify.verify_report", forbidden)
+    monkeypatch.setattr("comment_review.flows.verify._required_places", forbidden)
     out, result = handle(CopiesReturned("4c", copies, binder, tmp_path))
     assert result is None
     assert any("differs" in why and "regather" in why for _, _, why in _refusals(out))
-
-
-@pytest.mark.parametrize("matching", [False, True])
-def test_initial_context_compares_saved_settings_before_fold(
-    tmp_path, monkeypatch, matching
-):
-    from pathlib import Path
-
-    from comment_review.flows import reading_context
-    from comment_review.reading.context import ReadingContext
-    from comment_review.reading.definitions import LanguageDefinition
-    from comment_review.reading.readers import ReaderBinding
-
-    binder = a_real_binder_over(tmp_path, {"m.py@b1": BASE})
-    installed = reading_context.reader_for
-
-    def configured(path, registry):
-        selected = installed(path, registry)
-        assert isinstance(selected, tuple)
-        definition, binding = selected
-        assert isinstance(definition, LanguageDefinition)
-        assert isinstance(binding, ReaderBinding)
-        return replace(
-            definition,
-            language="test-settings",
-            reader="test-settings-reader",
-            defaults={"mode": "narrow"},
-            choices={"mode": ("narrow", "wide")},
-        ), replace(binding, reader="test-settings-reader", validate=lambda _: None)
-
-    monkeypatch.setattr(reading_context, "reader_for", configured)
-    wide = reading_context.context_for(Path("m.py"), {"mode": "wide"})
-    narrow = reading_context.context_for(Path("m.py"), {"mode": "narrow"})
-    assert isinstance(wide, ReadingContext) and isinstance(narrow, ReadingContext)
-    binder = replace(binder, pages=(replace(binder.pages[0], reading=wide),))
-    copies = [
-        returned(wire)
-        for wire in copies_over(
-            binder, {"block-context": {"m.py@b1": a_clean("m.py@b1")}}
-        )
-    ]
-    copies[0] = replace(
-        copies[0],
-        sheets=(replace(copies[0].sheets[0], reading=wide if matching else narrow),),
-    )
-    if not matching:
-
-        def forbidden(*args, **kwargs):
-            pytest.fail("contradictory settings reached source verification")
-
-        monkeypatch.setattr(
-            "comment_review.flows.bus.admitted_copy_problems", forbidden
-        )
-    out, result = handle(CopiesReturned("4c", copies, binder, tmp_path))
-    if matching:
-        assert result is not None, _refusals(out)
-        assert [place.address for place in result.proof.places] == ["m.py@b1"]
-        assert result.proof.places[0].base == BASE
-    else:
-        assert result is None
-        assert any(
-            "differs" in why and "regather" in why for _, _, why in _refusals(out)
-        )
 
 
 def test_initial_context_accepts_mixed_languages_empty_sources_and_no_copies(tmp_path):
@@ -522,27 +429,6 @@ TWO_ROLES = {
         "m.py@b2": a_clean("m.py@b2"),
     },
 }
-
-
-def test_collate_admits_each_input_context_once(tmp_path, monkeypatch):
-    from collections import Counter
-
-    from comment_review.flows import reading_context
-
-    message = _message(tmp_path, TWO_ROLES)
-    admitted = Counter()
-    read_contexts = reading_context._reading_contexts
-
-    def count(sheets, location):
-        admitted[location] += 1
-        return read_contexts(sheets, location)
-
-    monkeypatch.setattr(reading_context, "_reading_contexts", count)
-    out, result = handle(message)
-    assert result is not None, out
-    expected = {"stage binder": 1}
-    expected.update({f"edit_copy: {copy.role}": 1 for copy in message.copies})
-    assert admitted == expected
 
 
 def test_a_committed_fold_says_what_it_settled_and_what_it_carries(tmp_path):
@@ -1795,10 +1681,10 @@ def test_extra_destination_records_the_page_it_read(tmp_path, monkeypatch):
     commit = bus._commit
     turns = []
 
-    def record(proof, places, recorded, turn):
-        assert not recorded
-        turns.append(turn)
-        return commit(proof, places, recorded, turn)
+    def record(proof, fold):
+        assert not fold.recorded
+        turns.append(fold.turn)
+        return commit(proof, fold)
 
     monkeypatch.setattr(bus, "_commit", record)
     message = _moved_into_n(tmp_path, "# seven\n# eight\n# two")
@@ -1817,7 +1703,7 @@ def test_extra_destination_records_the_page_it_read(tmp_path, monkeypatch):
 
 @pytest.mark.parametrize("marked", [False, True])
 def test_extra_returned_sheet_survives_collation_and_admission(tmp_path, marked):
-    from comment_review.flows.reading_context import proof_reading_problems
+    from comment_review.flows.reading_context import admit_proof
 
     message = _message(
         tmp_path,
@@ -1847,7 +1733,7 @@ def test_extra_returned_sheet_survives_collation_and_admission(tmp_path, marked)
     out, result = handle(message)
     assert result is not None, _refusals(out)
     assert result.proof.page_readings["n.py"] == page.reading
-    assert proof_reading_problems(result.proof) == []
+    assert admit_proof(result.proof)[1] == []
     saved = tmp_path / "extra-proof.json"
     save_proof(saved, result.proof)
     loaded, why = load_proof(saved)
@@ -1877,18 +1763,16 @@ def test_extra_returned_sheet_sha_disagreement_refuses_before_fold(
     monkeypatch.setattr("comment_review.flows.bus.Fold", forbidden)
     out, result = handle(message)
     assert result is None
-    assert any("conflicting sheet shas" in reason for _, _, reason in _refusals(out))
+    assert any("n.py: sha disagrees" in reason for _, _, reason in _refusals(out)), (
+        _refusals(out)
+    )
 
 
-@pytest.mark.parametrize(
-    "route", ["raw", "load", "decode", "answers", "dispositions", "mark"]
-)
+@pytest.mark.parametrize("route", ["load", "decode"])
 @pytest.mark.parametrize("marks_only", [False, True])
 def test_missing_both_destination_records_refuses_before_saved_work(
     tmp_path, monkeypatch, route, marks_only
 ):
-    from comment_review.flows.reading_context import proof_reading_problems
-
     message = _moved_into_n(tmp_path, "# seven\n# eight\n# two")
     out, result = handle(message)
     assert result is not None, _refusals(out)
@@ -1899,7 +1783,7 @@ def test_missing_both_destination_records_refuses_before_saved_work(
         },
         page_shas={p: s for p, s in result.proof.page_shas.items() if p != "n.py"},
     )
-    if route == "mark" or marks_only:
+    if marks_only:
         proof = replace(proof, places=(), moves=())
         move = next(
             mark
@@ -1919,19 +1803,15 @@ def test_missing_both_destination_records_refuses_before_saved_work(
 
     for name in ("_places_on", "_moves_on", "Fold"):
         monkeypatch.setattr(f"comment_review.flows.bus.{name}", forbidden)
-    if route == "mark":
-        why = proof_reading_problems(proof)
-    elif route == "raw":
-        why = proof_reading_problems(proof.serialize())
-    elif route == "load":
+    if route == "load":
         saved = tmp_path / "missing-destination.json"
         save_proof(saved, proof)
         monkeypatch.setattr(
-            "comment_review.flows.proof_io.MasterProof.deserialize", forbidden
+            "comment_review.desk.proof.master_proof._places_in", forbidden
         )
         loaded, why = load_proof(saved)
         assert loaded is None
-    elif route == "decode":
+    else:
         monkeypatch.setattr(
             "comment_review.desk.proof.master_proof._places_in", forbidden
         )
@@ -1941,37 +1821,9 @@ def test_missing_both_destination_records_refuses_before_saved_work(
             )
         decoded, why = MasterProof.deserialize("saved", proof.serialize())
         assert decoded is None
-    else:
-        resumed = (
-            AnswersReturned(proof, {}, message.root)
-            if route == "answers"
-            else DispositionsWritten(proof, [])
-        )
-        out, resumed_result = handle(resumed)
-        assert resumed_result is None
-        why = [reason for _, _, reason in _refusals(out)]
     assert any("n.py" in reason and "regather" in reason for reason in why)
     assert proof == before
     assert (message.root / "n.py").read_bytes() == source
-
-
-def test_extra_destination_with_missing_captured_context_refuses(tmp_path, monkeypatch):
-    from dataclasses import replace
-
-    from comment_review.flows import bus
-
-    original = bus.held_at
-
-    def without_context(address, paths, root, cache, **kwargs):
-        result = original(address, paths, root, cache, **kwargs)
-        if "n.py" in cache:
-            cache["n.py"] = replace(cache["n.py"], context=None)
-        return result
-
-    monkeypatch.setattr(bus, "held_at", without_context)
-    out, result = handle(_moved_into_n(tmp_path, "# seven\n# eight\n# two"))
-    assert result is None
-    assert any("regather" in reason for _, _, reason in _refusals(out))
 
 
 def test_destination_context_is_captured_before_installed_rules_change(
@@ -1979,7 +1831,7 @@ def test_destination_context_is_captured_before_installed_rules_change(
 ):
     from dataclasses import replace
 
-    from comment_review.flows import bus, on_the_page
+    from comment_review.flows import on_the_page, verify
     from comment_review.reading.diagnostics import ReadFailure
 
     message = _moved_into_n(tmp_path, "# seven\n# eight\n# two")
@@ -1991,23 +1843,23 @@ def test_destination_context_is_captured_before_installed_rules_change(
         return acquire(path)
 
     monkeypatch.setattr(on_the_page, "source_of", counted)
-    bases = bus.bases_and_anchors
+    bases = verify.bases_and_anchors
     context_for = on_the_page.context_for
     captured = []
 
     def changed_after_base(copies, held):
         result = bases(copies, held)
-        captured.append(context_for(message.root / "n.py", {}))
+        captured.append(context_for(message.root / "n.py"))
 
-        def changed(path, settings):
-            context = context_for(path, settings)
+        def changed(path):
+            context = context_for(path)
             assert not isinstance(context, ReadFailure)
-            return replace(context, compatibility="0" * 64)
+            return replace(context, reader="another-reader")
 
         monkeypatch.setattr(on_the_page, "context_for", changed)
         return result
 
-    monkeypatch.setattr(bus, "bases_and_anchors", changed_after_base)
+    monkeypatch.setattr(verify, "bases_and_anchors", changed_after_base)
     out, result = handle(message)
     assert result is not None, _refusals(out)
     assert reads.count("n.py") == 1

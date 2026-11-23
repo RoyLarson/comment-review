@@ -588,7 +588,7 @@ class MoveMark(Amendment):
         address, so the delete at the origin lands with no write to put the
         paragraph back. A destination is a `path@cue` place, for now; whether
         the page carries that place needs the page, and is
-        `flows.verify.resolution_problems`'.
+        `flows.verify.admit`'s.
 
         A destination that is not a string says nothing here --
         `_claim_problems` refuses a missing one, and there is nothing to
@@ -835,7 +835,7 @@ def _names_a_place(value: object) -> bool:
     answers two blanks for a string with no `@`, a bare cue included, and a
     blank path or a blank cue for one with `@` that is missing either half.
     Whether it is spelled as the page prints it is
-    `flows.verify.resolution_problems`' question.
+    `flows.verify.admit`'s question.
     """
     if not isinstance(value, str):
         return False

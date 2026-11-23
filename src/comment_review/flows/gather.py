@@ -1,7 +1,7 @@
 """Stage 2, gather: every page in scope, annotated and bound into one binder.
 
     gather(repo, targets, revise) -> Gathering
-    page_in(path, repo, settings) -> the page one file reads as, or why not
+    page_in(path, repo) -> the page one file reads as, or why not
     unaddressed_report(missing), not_gathered(handed_in, unreadable) -> text
 
 A page is one file -- its paragraphs in order among the code they sit with --
@@ -30,7 +30,7 @@ the binder lists it as freeform, unopened, for the reviewers to read as it
 stands.
 """
 
-from collections.abc import Callable, Mapping
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -55,7 +55,6 @@ from comment_review.machine.repo import (
     walk_files,
 )
 from comment_review.reading.addresser import SEPARATOR
-from comment_review.reading.context import ReadingContext
 from comment_review.reading.coordinates import SourceCoordinates
 from comment_review.reading.diagnostics import (
     DetachedDocumentation,
@@ -101,8 +100,6 @@ class Gathering:
     warnings: list[str] = field(default_factory=list)
     pages: list[Page] = field(default_factory=list)
     binder: Binder = field(init=False)
-    settings: Mapping[Path, Mapping[str, str]] = field(default_factory=dict)
-    reading_contexts: dict[Path, ReadingContext] = field(default_factory=dict)
 
 
 def _walk(g: Gathering) -> None:
@@ -147,11 +144,10 @@ def _walk(g: Gathering) -> None:
 def _pages(g: Gathering) -> None:
     """One page per file in scope, or the reason there is none."""
     for path in g.files:
-        got = page_in(path, g.repo, g.settings.get(path.resolve(), {}))
+        got = page_in(path, g.repo)
         if isinstance(got, str):
             g.unreadable.append(got)
             continue
-        g.reading_contexts[path.resolve()] = got.reading
         g.pages.append(got)
         rel = got.path
         located = [w for w in got.read.warnings if w.span is not None]
@@ -168,13 +164,13 @@ def _pages(g: Gathering) -> None:
             )
 
 
-def page_in(path: Path, repo: Path, settings: Mapping[str, str]) -> Page | str:
+def page_in(path: Path, repo: Path) -> Page | str:
     """One file in scope read as a page, addressed against `repo`.
 
     Returns:
         The page, or the reason there is none as the gather prints it.
     """
-    context = context_for(path, settings)
+    context = context_for(path)
     if isinstance(context, ReadFailure):
         return format_failure(context, path=path.as_posix())
     source = source_of(path)
@@ -294,8 +290,6 @@ def gather(
     targets: list[Path],
     revise: int,
     absent: bool = False,
-    *,
-    settings: Mapping[Path, Mapping[str, str]] | None = None,
 ) -> Gathering:
     """Every page under `targets`, annotated and bound, with the gaps named.
 
@@ -306,18 +300,12 @@ def gather(
             number for a revise root pulled after it. Stamped into `read_from`.
         absent: carry the empty places too -- see the command's
             `--include-absent`.
-        settings: fresh per-file overrides keyed by source path.
 
     Returns:
         The `Gathering` the steps wrote to, up to the first that named a gap
         in `unreadable`. `binder` is set when no step did.
     """
     g = Gathering(repo, targets, revise, absent)
-    g.settings = (
-        {path.resolve(): value for path, value in settings.items()}
-        if settings is not None
-        else {}
-    )
     for step in STEPS:
         step(g)
         if g.unreadable:

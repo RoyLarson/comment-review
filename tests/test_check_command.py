@@ -49,7 +49,7 @@ def test_check_context_refusal_precedes_address_checks(
     copy_path = Path(path)
     value = json.loads(copy_path.read_text(encoding="utf-8"))
     if reading == "incompatible":
-        value["sheets"][0]["reading"]["compatibility"] = "0" * 64
+        value["sheets"][0]["reading"]["reader"] = "another-reader"
     else:
         value["sheets"][0]["reading"] = reading
     copy_path.write_text(json.dumps(value), encoding="utf-8")
@@ -58,11 +58,18 @@ def test_check_context_refusal_precedes_address_checks(
     def forbidden(*args):
         pytest.fail("saved address checked before context admission")
 
-    monkeypatch.setattr(command, "mark_errors", forbidden)
+    monkeypatch.setattr("comment_review.flows.verify.mark_errors", forbidden)
     code, out, err = _run(monkeypatch, capsys, "--edit-copy", path, "--binder", binder)
-    assert code == command.BROKEN
-    assert "regather" in out and "block-context" in out
-    assert not err
+    if reading == "incompatible":
+        # A page identity that will not admit is an input that cannot be read.
+        assert code == command.UNREADABLE
+        assert "regather" in err and "block-context" in err
+        assert not out
+    else:
+        # A sheet whose reading will not decode is a copy that will not read.
+        assert code == command.BROKEN
+        assert "regather" in out and "block-context" in out
+        assert not err
     assert copy_path.read_bytes() == before
 
 
@@ -185,7 +192,7 @@ class TestACopy:
         """`decision-log.md Process: #187`. The destination's paragraph is read
         off the page, not off the binder, which holds no row for a file the run
         did not gather -- so a destination text that drops a word of what is
-        already there is named here, as the fold names it."""
+        already there is named here, at the destination, as the fold names it."""
         root = tmp_path / "repo"
         binder = a_real_binder_over(root, {"m.py@b1": BASE})
         (root / "n.py").write_text(
@@ -201,7 +208,7 @@ class TestACopy:
             monkeypatch, capsys, "--edit-copy", str(path), "--binder", str(binder_path)
         )
         assert code == 1
-        assert "block-context m.py@b1: the destination text does not keep 'eight'" in (
+        assert "block-context n.py@b1: the destination text does not keep 'eight'" in (
             out
         ), out
 

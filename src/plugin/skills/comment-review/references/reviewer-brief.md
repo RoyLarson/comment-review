@@ -128,9 +128,7 @@ You are handed one sheet per file, and one slot per paragraph on it. This is a f
       "sha":  "9c1f0b7a4e2d6835",
       "reading": { "format": 1,
                    "language": "example-language",
-                   "reader": "example-reader",
-                   "compatibility": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-                   "settings": {} },
+                   "reader": "example-reader" },
       "marks": [
         { "address": "redacted_pkg:billing:rates.py@b47",
           "anchor":  "def compute_rates(plan, period, *, clamp=True):",
@@ -189,8 +187,8 @@ python <skill>/scripts/comment-review.py mark --edit-copy <EDIT COPY> --repo <RE
   refused, naming both.
 - **An `add` at an empty place** creates the slot at the address from `addresses find`.
 
-`mark` refuses what the fold would refuse in the ruling itself, writes nothing when it does, and
-says why. A `--verbatim` you give is kept as given; `check` reads it against its cite.
+`mark` refuses what the fold would refuse in the ruling itself, such as a `--verbatim` its cite
+does not hold or an address that names no place, writes nothing when it does, and says why.
 `mark --withdraw --address <address> --instruction <instruction>` takes back that one
 ruling from your copy; your other rulings at the address stay. Where you placed two of
 that instruction there, add `--quote` with the clause the one you mean quotes, or its
@@ -421,7 +419,9 @@ It names every slot still `null`, every mark that will not read, every `claim` q
 sentence outside its paragraph, and every cite whose line does not match. Fix the copy and run
 it again until it exits 0. Exit 5 means only human input is pending: a
 `human-review-necessary` query or approval of a change to the file's matter. Hand the copy
-back so the task agent can ask the author.
+back so the task agent can ask the author. Exit 2 from `check` or `mark` means an input will not
+read, and no mark corrects it: hand the copy back to the task agent with the lines printed,
+and mark nothing more.
 
 For a batch's answers:
 

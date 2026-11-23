@@ -7471,3 +7471,47 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
 
   **What it settles.** `original` names the text a stage read, as `taken_in original` restores
   today. Run-start text needs its own word when the run record is designed.
+
+- **#397.** **Every entry point runs the checks its inputs allow** (Roy, 2026-11-23, on the broken
+  review's part 2a, `fold-admission-has-no-owner`; offered `mark` and `proof --copy` gaining the
+  checks collate runs on inputs they hold -- source verification, address resolution, admits,
+  destination snapshots -- or keeping drafts lighter):
+
+  *"Yes (Recommended)"*
+
+  **What it settles.** One admission runs at `collate`, `check`, `mark` and `proof --copy`; each
+  check runs wherever its input is given, so a bad cite is refused when the mark is filed.
+
+- **#398.** **A refusal beside a pending human question exits 1** (Roy, 2026-11-23, on part 2a;
+  the trial fold runs while human questions stand; offered exit 1 listing both, or exit 5 first):
+
+  *"Yes, exit 1 (Recommended)"*
+
+  **What it settles.** `collate` reports a refusal and the pending questions together and exits
+  1, as `check` already does for the same copy.
+
+- **#399.** **The page-identity value is an `Imprint`; the admission result is an `Admission`**
+  (Roy, 2026-11-23, on parts 2c and 2a; offered Imprint/Admission, Gathered/Admitted or
+  PageIdentity/Admission):
+
+  *"Imprint / Admission (Recommended)"*
+
+- **#400.** **The `reading` field stays for now** (Roy, 2026-11-23, on part 2c; after #239 and
+  #280 a reading context is its language and reader; offered keep it or remove it from every
+  artifact):
+
+  *"Keep it for now (Recommended)"*
+
+  **What it settles.** No format change in this work; the identity table still checks the field
+  once per load. Removing it is a later, separate decision.
+
+- **#401.** **A page identity that cannot be admitted exits 2 everywhere** (Roy, 2026-11-23, on
+  the Imprint table changing `turn`, `disposition` and `check` from 2 to 1 for a saved reading
+  that no longer matches the installed reader, or a copy's sha or reading that disagrees with its
+  binder, while `collate` already gave 1; offered 2 everywhere, 1 everywhere, or the old codes):
+
+  *"2 everywhere (Recommended)"*
+
+  **What it settles.** `check`, `collate`, `turn` and `disposition` exit 2 for an identity
+  refusal: an input that cannot be read is regathered or the invocation corrected, never sent to
+  a role to withdraw a mark.

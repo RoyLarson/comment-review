@@ -2,10 +2,7 @@ format = 1
 language = "python"
 suffixes = [".py", ".pyi"]
 reader = "python-lexical"
-revision = "1"
 capabilities = ["comments", "strings", "declarations", "documentation", "protected-directives", "lexical"]
-defaults = {}
-choices = {}
 
 [rules]
 language_version = "3.15"

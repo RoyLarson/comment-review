@@ -4,7 +4,6 @@ import ast
 import builtins
 import sys
 import tokenize
-import unicodedata
 from dataclasses import replace
 from pathlib import Path
 
@@ -20,11 +19,7 @@ from comment_review.flows import (
     prove_unchanged,
     reading_context,
 )
-from comment_review.machine.digests import sha256_hex
-from comment_review.machine.repo import Source, sha_of
-from comment_review.reading import readers
-from comment_review.reading.context import ReadingContext, resolve_context
-from comment_review.reading.definitions import LanguageDefinition
+from comment_review.reading.context import ReadingContext
 from comment_review.reading.diagnostics import ReadFailure
 
 MODERN_SOURCE = (
@@ -318,59 +313,13 @@ def test_standalone_modern_python_uses_one_context_without_host_parsing(
         report = prove_unchanged.run(repo, "HEAD", [target])
     assert report.failures == 0, report.messages
     assert len(admitted) == 2 and admitted[0] is admitted[1]
-    assert report.reading_contexts[target] is admitted[0]
-
-
-def test_python_unicode_database_change_invalidates_saved_context_only(monkeypatch):
-    name = "m.rs"
-    python = reading_context.context_for(Path("m.py"), {})
-    other = reading_context.context_for(Path(name), {})
-    assert isinstance(python, ReadingContext)
-    assert isinstance(other, ReadingContext)
-    monkeypatch.setattr(unicodedata, "unidata_version", "99.0.0")
-    changed = reading_context.context_for(Path("m.py"), {})
-    assert isinstance(changed, ReadingContext) and changed != python
-    assert reading_context.context_for(Path(name), {}) == other
-    failed = page_for.page_of(
-        Path("m.py"), source=Source("value = 1\n", "sha"), reading_context=python
-    )
-    assert isinstance(failed, ReadFailure)
-    assert failed.diagnostics[0].code == "reading-context-mismatch"
 
 
 def test_python_context_identity_is_independent_of_host_parser_version(monkeypatch):
-    before = reading_context.context_for(Path("m.py"), {})
+    before = reading_context.context_for(Path("m.py"))
     monkeypatch.setattr(sys, "version_info", (3, 99, 0, "final", 0))
-    after = reading_context.context_for(Path("m.py"), {})
+    after = reading_context.context_for(Path("m.py"))
     assert isinstance(before, ReadingContext) and after == before
-
-
-def test_previous_python_binding_context_refuses_before_reading(monkeypatch):
-    registry = reading_context.INSTALLED_REGISTRY
-    selected = readers.reader_for(Path("m.py"), registry)
-    assert isinstance(selected, tuple)
-    definition, _ = selected
-    assert isinstance(definition, LanguageDefinition)
-    old = resolve_context(
-        definition,
-        {},
-        reader_revision="1",
-        placement_revision="1",
-        grammar_identity="Python 3.15 lexical",
-        digest=sha256_hex,
-    )
-    assert isinstance(old, ReadingContext)
-
-    def forbidden(*args, **kwargs):
-        raise AssertionError("Incompatible context reached source recognition")
-
-    monkeypatch.setattr(page_model, "read_source", forbidden)
-    text = "value = 1\n"
-    failed = page_for.page_of(
-        Path("m.py"), source=Source(text, sha_of(text)), reading_context=old
-    )
-    assert isinstance(failed, ReadFailure)
-    assert failed.diagnostics[0].code == "reading-context-mismatch"
 
 
 @pytest.mark.parametrize(

@@ -18,7 +18,6 @@ from comment_review.flows.gather import (
     not_gathered,
     unaddressed_report,
 )
-from comment_review.flows.reading_context import load_settings
 from comment_review.reading.readers import supported_definitions
 
 
@@ -28,7 +27,7 @@ def main() -> int:
     Returns:
         The exit code: 0 with the binder or the language list printed, 1 when
         a file handed in was not gathered or a paragraph has no address, 2 on a
-        usage error -- no paths, or reading settings that do not load.
+        usage error such as no paths.
     """
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("paths", nargs="*")
@@ -56,15 +55,7 @@ def main() -> int:
         action="store_true",
         help="list known languages and their extensions, then exit",
     )
-    ap.add_argument("--reading-settings", type=Path, metavar="FILE")
     args = ap.parse_args()
-    args.settings = {}
-    if args.reading_settings is not None:
-        args.settings, problems = load_settings(args.reading_settings, Path(args.repo))
-        if problems:
-            for problem in problems:
-                print(problem, file=sys.stderr)
-            return 2
 
     # !! No paths is a refusal, not an empty binder. `paths` is `nargs="*"` so
     # `--languages` can run without one, and without this refusal everything else
@@ -74,7 +65,7 @@ def main() -> int:
     # ! Reachable without anyone typing it: stage 1 takes its paths from a
     # merge-base diff, and a diff that touches no reviewable file hands this
     # nothing. The run then reads as complete because there was nothing to be
-    # incomplete about -- the failure `flows.verify.coverage_problems` states the
+    # incomplete about -- the failure `flows.verify.admit`'s coverage states the
     # rule against, one stage earlier. ! Refused before `--out` opens anything, so
     # a usage error leaves no empty binder behind for the next stage to read as an
     # answered one.
@@ -116,7 +107,6 @@ def _report(args: argparse.Namespace) -> int:
         [repo / p for p in args.paths],
         args.revise,
         absent=args.include_absent,
-        settings=args.settings,
     )
 
     # !! The gate first. `--out` is the route SKILL.md mandates for the binder
@@ -131,7 +121,7 @@ def _report(args: argparse.Namespace) -> int:
         return 1
     # !! An unaddressed paragraph is uncitable, so a binder holding one is a
     # binder nobody can rule on -- and it fails silently:
-    # `flows.verify.coverage_problems` builds its accountability set from the
+    # `flows.verify.admit` builds its coverage set from the
     # addresses, so paragraphs with none are simply not accountable and the run
     # reads as complete.
     missing = unaddressed(got.binder.paragraphs)

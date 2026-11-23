@@ -89,8 +89,8 @@ class Page:
         paragraphs: in order down the page, prose and empty places alike.
         cues: EVERY place on the page, filled or not -- see
             `addresser.cue`. It is what makes an `add` citable.
-        reading: how the file was read -- its language, reader, compatibility
-            digest and settings, which a binder carries beside the sha.
+        reading: how the file was read -- its language and reader, which a
+            binder carries beside the sha.
         read: the record the reader made of the file. A proof compares two
             pages' reads to ask whether their code is the same.
         leading: the space below a place, keyed by the place it FOLLOWS --
@@ -130,7 +130,7 @@ class Page:
         ! Asked by series, not by the kind. The file's own matter is the `f`
         series, and every consumer that has to know reads that --
         `binder.addresses.handed`, which `flows.distribute.seed`,
-        `flows.distribute.assigned_binder` and `flows.verify.required_places`
+        `flows.distribute.assigned_binder` and `flows.verify.admit`
         read, and this.
 
         !! `d` IS OUT BECAUSE IT NAMES NO PLACE, and that is the whole test.

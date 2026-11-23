@@ -896,10 +896,19 @@ class TestProofTakesAClosedProof:
 
 
 def _tree(tmp_path):
-    """A one-file repo, and the binder taken over it."""
+    """A one-file repo, and the binder taken over it.
+
+    The file the mark builders cite is copied in beside it, so a copy's
+    sources verify against the repo it is drafted from.
+    """
     repo = tmp_path / "repo"
     repo.mkdir()
     (repo / "m.py").write_text(SAMPLE, encoding="utf-8", newline="")
+    cited = repo / "src" / "comment_review" / "desk" / "proof" / "mark.py"
+    cited.parent.mkdir(parents=True)
+    cited.write_bytes(
+        (SRC / "comment_review" / "desk" / "proof" / "mark.py").read_bytes()
+    )
     page = build(SAMPLE)
     return repo, bind([page], read_from={"root": str(repo), "revise": 0}), page
 

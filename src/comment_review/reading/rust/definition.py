@@ -24,7 +24,7 @@ OWNER_KINDS = frozenset({MODULE, ITEM, ASSOCIATED_ITEM, NESTED_ITEM, FIELD, VARI
 
 
 def validate_rust(definition: LanguageDefinition) -> ReadFailure | None:
-    """Require complete, supported Rust grammar and empty settings."""
+    """Require complete, supported Rust grammar."""
     try:
         _identity(definition)
         _grammar(definition.rules)
@@ -43,7 +43,6 @@ def _identity(value: LanguageDefinition) -> None:
     for field, expected in (
         ("language", "rust"),
         ("reader", "rust-lexical"),
-        ("revision", "2"),
     ):
         require_scalar(getattr(value, field), field, expected)
     require_array(value.suffixes, "suffixes", (".rs",))
@@ -59,8 +58,6 @@ def _identity(value: LanguageDefinition) -> None:
             "lexical",
         ),
     )
-    if value.defaults or value.choices:
-        raise ValueError("defaults and choices: Rust implements no settings")
 
 
 def _section(

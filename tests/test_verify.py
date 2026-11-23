@@ -4,10 +4,11 @@
 `seed`, marks built through the instruction rows. A literal appears only where
 malformed is the input.
 
-The cases here came from `tests/test_collate.py`, which drove them through the
-old fold. They drive the four functions directly now: the fold is not their
-subject, and the bus runs all four before it opens one.
+Each case runs `admit` over one copy and reads the findings of the one rule
+it asks about: resolution, the quote check, and coverage.
 """
+
+from dataclasses import replace
 
 import pytest
 from helpers import (
@@ -26,16 +27,11 @@ from helpers import (
 )
 
 from comment_review.binder.binder import known_addresses
-from comment_review.desk.collator import Cache, verify_report
 from comment_review.desk.proof.mark import BlankMark
 from comment_review.desk.proof.sheet import Sheet
 from comment_review.desk.stages import Kind, Stage
 from comment_review.flows.page_for import page_of
-from comment_review.flows.verify import (
-    coverage_problems,
-    resolution_problems,
-    texts_at,
-)
+from comment_review.flows.verify import admit
 from comment_review.reading.addresser import address_for
 
 BASE = "# one\n# two\n# three\n"
@@ -45,17 +41,21 @@ QUOTED = "# one\n# two\n# three"
 
 
 def _resolution(wire, binder, root):
-    """`resolution_problems` over one wire copy, with a cache of its own."""
-    paths = [page.path for page in binder.pages]
-    return resolution_problems(returned(wire), paths, root, {})
+    """The resolution findings `admit` makes over one wire copy."""
+    problems = admit([returned(wire)], root, binder=binder).problems
+    return [p for p in problems if "resolves against no page" in p.message]
 
 
 def _quote_problems(wire, binder, root):
-    """The quote check over one wire copy, reading its texts from the pages."""
-    copy = returned(wire)
-    paths = [page.path for page in binder.pages]
-    cache: Cache = {}
-    return verify_report(copy, texts_at(copy, paths, root, {}), root, cache)
+    """Every finding `admit` makes over one wire copy; the caller picks the
+    quote check's."""
+    return admit([returned(wire)], root, binder=binder).problems
+
+
+def coverage_problems(copies, binder, stage=None):
+    """The coverage findings `admit` makes over `copies`, given the binder."""
+    problems = admit(copies, binder.root, binder=binder, row=stage).problems
+    return [p for p in problems if p.message.startswith("missing ")]
 
 
 class TestAnAddressMustResolveAgainstAPage:
@@ -240,11 +240,7 @@ class TestAnAddressOutsideTheCheckoutIsNotRead:
             return page_of(page_path, *args, **kwargs)
 
         monkeypatch.setattr("comment_review.flows.on_the_page.page_of", recording)
-        copy = returned(wire)
-        paths = [page.path for page in binder.pages]
-        cache: dict = {}
-        problems = resolution_problems(copy, paths, root, cache)
-        texts_at(copy, paths, root, cache)
+        problems = _resolution(wire, binder, root)
         unresolved = [p.message for p in problems if p.address == address]
         assert unresolved, problems
         assert read, "the page inside the root is read, so the record sees reads"
@@ -302,7 +298,7 @@ class TestAQuoteIsCheckedAgainstThePage:
 class TestShardCoverage:
     """`containers-and-verification-are-unwired` T6.
 
-    !! `flows.fan_out.fan` REFUSES AN UNCOVERED PAGE AT THE DISPATCH; NOTHING
+    !! `flows.fan_out.dealt` REFUSES AN UNCOVERED PAGE AT THE DISPATCH; NOTHING
     READ THE RETURN. A partitioned role that answered for three of four files
     in its shard was invisible.
 
@@ -388,14 +384,18 @@ class TestShardCoverage:
     def test_two_shards_of_one_role_cover_the_binder_between_them(self):
         """!! COMPARED PER COPY THIS REPORTS EVERY FAN-OUT SHARD AS INCOMPLETE.
         The union across a role's copies is what keeps a correctly partitioned
-        role from being reported short of its own shard."""
+        role from being reported short of its own shard. Each shard is
+        measured against its received binder, and the role against the stage
+        binder's places across its shards."""
         binder = a_binder_over({"one.py@b1": BASE, "two.py@b1": BASE})
         halves = [
             returned({**seed(binder, "block-context"), "sheets": [sheet]})
             for sheet in seed(binder, "block-context")["sheets"]
         ]
         assert len(halves) == 2
-        assert coverage_problems(halves, binder) == []
+        received = tuple(replace(binder, pages=(page,)) for page in binder.pages)
+        problems = admit(halves, binder.root, binder=binder, received=received).problems
+        assert [p for p in problems if "miss" in p.message] == []
 
 
 def _an_empty_place_on_mark_py(repo, binder) -> str:

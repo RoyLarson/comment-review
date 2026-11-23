@@ -14,7 +14,7 @@ from comment_review.desk.proof.mark import (
     mark_type,
     read_mark,
 )
-from comment_review.flows.verify import resolution_problems
+from comment_review.flows.verify import admit
 
 
 def _mark(instruction: Instruction, **fields) -> Mark:
@@ -220,8 +220,8 @@ def test_a_refusal_about_the_destination_names_the_types_own_key(tmp_path):
     wire["sheets"][0]["marks"][0].update(
         {**entry, "claim": {"from": "m.py@b1", "to": "m.py@b9"}}
     )
-    problems = resolution_problems(returned(wire), ["m.py"], tmp_path, {})
-    assert [p.message for p in problems] == [
+    problems = admit([returned(wire)], tmp_path, binder=binder).problems
+    assert [p.message for p in problems if "resolves" in p.message] == [
         "`claim.to` 'm.py@b9' resolves against no page -- m.py carries no place 'b9'"
     ]
 

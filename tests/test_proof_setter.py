@@ -29,24 +29,29 @@ from comment_review.reading.rust.records import RustRead
 from comment_review.results import compositor, galley
 
 
-@pytest.mark.parametrize("fault", ["digest", "malformed", "duplicate-settings"])
+@pytest.mark.parametrize("fault", ["reader", "malformed", "empty-language"])
 def test_saved_context_refuses_before_setting(tmp_path, monkeypatch, fault):
     repo, binder, _ = _tree(tmp_path)
     docket = docket_from({address(binder, "m.py"): "# replacement"}, binder)
     saved = docket.schedules[0].reading
-    if fault == "digest":
-        saved = dataclasses.replace(saved, compatibility="0" * 64)
+    if fault == "reader":
+        saved = dataclasses.replace(saved, reader="another-reader")
     elif fault == "malformed":
         saved = []
     else:
-        object.__setattr__(saved, "settings", (("mode", "on"), ("mode", "off")))
+        object.__setattr__(saved, "language", "")
     schedule = dataclasses.replace(docket.schedules[0], reading=saved)
 
     def forbidden_set(*args, **kwargs):
         pytest.fail("incompatible context reached the setter")
 
     monkeypatch.setattr(galley, "reset", forbidden_set)
-    drafted, refused = proof_setter.run(Docket((schedule,)), repo, tmp_path / "out")
+    if fault == "reader":
+        # `revise.pull` admits the docket's readings before the setter runs.
+        pulled = revise.pull(Docket((schedule,)), repo, tmp_path / "out", 1)
+        drafted, refused = [], pulled.refusals
+    else:
+        drafted, refused = proof_setter.run(Docket((schedule,)), repo, tmp_path / "out")
     assert drafted == []
     assert refused and "reading" in refused[0].why
 
@@ -63,7 +68,7 @@ def test_direct_duplicate_paths_refuse_before_drafting(
         second = dataclasses.replace(first, sha="different")
     elif different == "reading":
         second = dataclasses.replace(
-            first, reading=dataclasses.replace(first.reading, compatibility="0" * 64)
+            first, reading=dataclasses.replace(first.reading, reader="another-reader")
         )
 
     def forbidden_set(*args, **kwargs):
@@ -75,7 +80,7 @@ def test_direct_duplicate_paths_refuse_before_drafting(
     assert "two schedules" in refused[0].why
 
 
-def test_later_saved_context_mismatch_discards_nested_draft(tmp_path, monkeypatch):
+def test_a_later_unreadable_page_discards_nested_draft(tmp_path, monkeypatch):
     repo, into = tmp_path / "repo", tmp_path / "out"
     originals = {
         "a/deep/first.py": b"x = 1\r\n\r\n# note\r\ny = 2\r\n",
@@ -94,15 +99,15 @@ def test_later_saved_context_mismatch_discards_nested_draft(tmp_path, monkeypatc
         {address(binder, rel): "# replacement" for rel in originals}, binder
     )
     first, second = docket.schedules
-    second = dataclasses.replace(
-        second, reading=dataclasses.replace(second.reading, compatibility="0" * 64)
-    )
     real_page = proof_setter.page_of
     observed = []
 
     def observing_page(path, *args, **kwargs):
         if path == repo / "z.py":
             observed.append((into / "a/deep/first.py").is_file())
+            return ReadFailure(
+                (ReadDiagnostic(ReadStage.SELECT, "unreadable", "will not read"),)
+            )
         return real_page(path, *args, **kwargs)
 
     monkeypatch.setattr(proof_setter, "page_of", observing_page)
@@ -114,27 +119,12 @@ def test_later_saved_context_mismatch_discards_nested_draft(tmp_path, monkeypatc
 
 
 @pytest.mark.parametrize("text", ["x = 1\n\n# note\ny = 2\n", ""])
-def test_saved_nondefault_settings_reach_original_and_draft(
-    tmp_path, monkeypatch, text
-):
-    from comment_review.flows import reading_context as flow_context
-
-    original_reader = flow_context.reader_for
-    registry = flow_context.INSTALLED_REGISTRY
-    selected = original_reader(Path("m.py"), registry)
-    assert selected is not None and not isinstance(selected, ReadFailure)
-    definition, binding = selected
-    configured = dataclasses.replace(
-        definition, defaults={"mode": "default"}, choices={"mode": ("default", "saved")}
-    )
-    monkeypatch.setattr(
-        flow_context, "reader_for", lambda path, registry: (configured, binding)
-    )
+def test_saved_context_reaches_original_and_draft(tmp_path, monkeypatch, text):
     repo, into = tmp_path / "repo", tmp_path / "out"
     repo.mkdir()
     path = repo / "m.py"
     path.write_text(text, encoding="utf-8")
-    page = proof_setter.page_of(path, rel="m.py", settings={"mode": "saved"})
+    page = proof_setter.page_of(path, rel="m.py")
     assert not isinstance(page, ReadFailure)
     if text:
         binder = bind([page], read_from={"root": str(repo), "revise": 0})
@@ -149,16 +139,13 @@ def test_saved_nondefault_settings_reach_original_and_draft(
 
     def require_saved(path, *args, **kwargs):
         reading = kwargs["reading"]
-        observed.append((Path(path), reading.settings))
+        observed.append((Path(path), reading))
         return real_page(path, *args, **kwargs)
 
     monkeypatch.setattr(page_for_mod, "page_for", require_saved)
     drafted, refused = proof_setter.run(docket, repo, into)
     assert refused == [] and len(drafted) == 1
-    assert observed == [
-        (path, (("mode", "saved"),)),
-        (into / "m.py", (("mode", "saved"),)),
-    ]
+    assert observed == [(path, page.reading), (into / "m.py", page.reading)]
 
 
 @pytest.mark.parametrize("stage", ["lex", "place"])
@@ -853,6 +840,10 @@ class TestEveryAlterationCarriesAnAnchor:
 
     def test_the_flows_own_docket_for_a_move_is_set(self, tmp_path):
         repo, binder, _ = _tree(tmp_path)
+        # The file the move's source cites, so it verifies against `repo`.
+        cited = repo / "src" / "comment_review" / "desk" / "proof" / "mark.py"
+        cited.parent.mkdir(parents=True)
+        cited.write_bytes((PKG / "desk" / "proof" / "mark.py").read_bytes())
         origin = address(binder, "m.py")
         destination = f"m.py@{min(c for c in ABSENT if c.startswith('b'))}"
         # The whole paragraph moves, so the snippet subtracted from the origin

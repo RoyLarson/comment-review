@@ -32,6 +32,7 @@ import json
 from pathlib import Path
 
 from comment_review import exceptions
+from comment_review.commands import report
 from comment_review.desk.proof.edit_copy import EditCopy
 from comment_review.desk.proof.master_proof import MasterProof
 from comment_review.docket.docket import Docket
@@ -216,6 +217,8 @@ def main() -> int:
             for line in refused.reasons:
                 print(line)
             return 1
+        except transcribe.CannotAdmit as unread:
+            return report.refused(list(unread.reasons))
         except transcribe.CannotTranscribe as refused:
             print(
                 "REFUSED: the proof decided nothing that can be set -- nothing written"
@@ -232,6 +235,10 @@ def main() -> int:
         # traceback, the same way `AddressesMoved` is reported below.
         try:
             held = transcribe.docket_of(copy, repo) if copy is not None else None
+        # A page identity that will not admit is an input that cannot be read,
+        # on stderr at 2 as every command reports one.
+        except transcribe.CannotAdmit as unread:
+            return report.refused(list(unread.reasons))
         except transcribe.CannotTranscribe as refused:
             print("REFUSED: the copy's own marks were sent back -- nothing written")
             for line in refused.reasons:

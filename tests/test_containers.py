@@ -531,7 +531,7 @@ def test_master_proof_page_readings_round_trip_and_detach(tmp_path):
     assert wire["page_readings"] == {"m.py": reading_wire()}
     back, why = MasterProof.deserialize("proof", wire)
     assert why == [] and back is not None
-    wire["page_readings"]["m.py"]["settings"]["new"] = "choice"
+    wire["page_readings"]["m.py"]["reader"] = "changed"
     assert back.serialize()["page_readings"] == {"m.py": reading_wire()}
 
 

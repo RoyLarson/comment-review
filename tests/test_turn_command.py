@@ -56,11 +56,11 @@ def test_saved_context_refusal_preserves_turn_artifacts(
     if fault == "missing":
         wire.pop("page_readings")
     elif fault == "contradictory":
-        wire["edit_copies"][0]["sheets"][0]["reading"]["compatibility"] = "0" * 64
+        wire["edit_copies"][0]["sheets"][0]["reading"]["reader"] = "another-reader"
     else:
-        monkeypatch.setattr(
-            "comment_review.flows.reading_context.PLACEMENT_REVISION", "changed"
-        )
+        from conftest import install_another_reader
+
+        install_another_reader(monkeypatch)
     proof_path.write_text(json.dumps(wire), encoding="utf-8")
     (tmp_path / "proof1.json").write_bytes(b"previous proof")
     (tmp_path / "batch2.json").write_bytes(b"previous batch")

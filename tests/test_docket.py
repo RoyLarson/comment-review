@@ -64,8 +64,6 @@ READING = {
     "format": 1,
     "language": "python",
     "reader": "lexical",
-    "compatibility": "a" * 64,
-    "settings": {},
 }
 
 #: The two paragraphs the move cases below stand on -- the sentence that

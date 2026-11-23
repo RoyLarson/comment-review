@@ -2,7 +2,6 @@
 
 from copy import deepcopy
 from dataclasses import replace
-from pathlib import Path
 
 import pytest
 from helpers import a_binder_over
@@ -11,65 +10,18 @@ from comment_review.desk.proof.edit_copy import EditCopy
 from comment_review.desk.proof.mark import CleanMark
 from comment_review.desk.proof.sheet import Sheet
 from comment_review.desk.stages import Dispatch, Kind, Role, Stage
-from comment_review.flows import reading_context
 from comment_review.flows.distribute import assigned_binder
-from comment_review.flows.fan_out import fan
+from comment_review.flows.fan_out import dealt
 from comment_review.reading.context import ReadingContext
 from comment_review.reading.context_io import context_to_wire
 
 
-def mixed_binder(monkeypatch=None):
-    binder = a_binder_over({"a.py@b1": "# a\n", "b.py@b1": "# b\n"})
-    if monkeypatch is not None:
-        from comment_review.reading.definitions import LanguageDefinition
-        from comment_review.reading.readers import ReaderBinding
-
-        definition = LanguageDefinition(
-            "Invented",
-            (".py",),
-            "invented-reader",
-            "1",
-            ("comments",),
-            {"mode": "a.py"},
-            {"mode": ("a.py", "b.py")},
-            {},
-        )
-        binding = ReaderBinding(
-            "invented-reader",
-            "1",
-            ("comments",),
-            "fixture",
-            lambda *_: pytest.fail("the fixture binding is not read"),
-            lambda _: None,
-        )
-        monkeypatch.setattr(
-            reading_context, "reader_for", lambda path, registry: (definition, binding)
-        )
-        return replace(
-            binder,
-            pages=tuple(
-                replace(
-                    page,
-                    reading=reading_context.context_for(
-                        Path(page.path), {"mode": page.path}
-                    ),
-                )
-                for page in binder.pages
-            ),
-        )
-    return replace(
-        binder,
-        pages=tuple(
-            replace(
-                page, reading=replace(page.reading, settings=(("mode", page.path),))
-            )
-            for page in binder.pages
-        ),
-    )
+def mixed_binder():
+    return a_binder_over({"a.py@b1": "# a\n", "b.py@b1": "# b\n"})
 
 
-def test_distribution_preserves_mixed_reading_on_disjoint_empty_sheets(monkeypatch):
-    binder = mixed_binder(monkeypatch)
+def test_distribution_preserves_reading_on_disjoint_empty_sheets():
+    binder = mixed_binder()
     stage = Stage(
         "sample",
         Kind.EDITORIAL,
@@ -83,7 +35,7 @@ def test_distribution_preserves_mixed_reading_on_disjoint_empty_sheets(monkeypat
         page.reading for page in binder.pages
     ]
     expected = {page.path: context_to_wire(page.reading) for page in binder.pages}
-    copies = fan(binder, stage)
+    copies = [copy for _received, copy in dealt(binder, stage)]
     assert len(copies) == 2
     for copy in copies:
         for sheet in copy["sheets"]:
@@ -93,10 +45,7 @@ def test_distribution_preserves_mixed_reading_on_disjoint_empty_sheets(monkeypat
 
 def test_sheet_reading_exact_round_trip_and_detached_json():
     page = replace(
-        mixed_binder().pages[0],
-        reading=ReadingContext(
-            "sample", "sample-reader", "a" * 64, (("mode", "wide"),)
-        ),
+        mixed_binder().pages[0], reading=ReadingContext("sample", "sample-reader")
     )
     marks = [
         CleanMark(
@@ -113,8 +62,6 @@ def test_sheet_reading_exact_round_trip_and_detached_json():
         "format": 1,
         "language": "sample",
         "reader": "sample-reader",
-        "compatibility": "a" * 64,
-        "settings": {"mode": "wide"},
     }
     marks[0]["instruction"] = "drop"
     assert wire == original
@@ -127,12 +74,12 @@ def test_sheet_reading_exact_round_trip_and_detached_json():
     outgoing_marks = sheet.serialize()
     outgoing_marks["marks"][0]["sources"][0]["verbatim"] = "changed output"
     assert sheet.serialize()["marks"] == original["marks"]
-    wire["reading"]["settings"]["mode"] = "changed"
+    wire["reading"]["reader"] = "changed"
     outgoing = sheet.serialize()
-    outgoing["reading"]["settings"]["mode"] = "also changed"
+    outgoing["reading"]["reader"] = "also changed"
     assert sheet.reading == page.reading
     copy_wire = EditCopy.seed("sample", {"root": "."}, [original])
-    original["reading"]["settings"]["mode"] = "changed again"
+    original["reading"]["reader"] = "changed again"
     assert copy_wire["sheets"][0]["reading"] == context_to_wire(page.reading)
 
 
@@ -142,13 +89,7 @@ def test_sheet_reading_exact_round_trip_and_detached_json():
         None,
         [],
         {},
-        {
-            "format": 2,
-            "language": "sample",
-            "reader": "sample-reader",
-            "compatibility": "a" * 64,
-            "settings": {},
-        },
+        {"format": 2, "language": "sample", "reader": "sample-reader"},
     ],
 )
 def test_sheet_refuses_missing_malformed_future_reading(reading):
@@ -160,7 +101,7 @@ def test_sheet_refuses_missing_malformed_future_reading(reading):
     assert why and "sample sheet" in why[0] and "regather" in why[0]
 
 
-def test_edit_copy_decode_does_not_consult_installed_compatibility():
+def test_edit_copy_decode_does_not_consult_the_installed_reader():
     binder = mixed_binder()
     wire = EditCopy.seed(
         "block-context",
@@ -171,8 +112,8 @@ def test_edit_copy_decode_does_not_consult_installed_compatibility():
         ],
     )
     for sheet in wire["sheets"]:
-        sheet["reading"]["compatibility"] = "f" * 64
+        sheet["reading"]["reader"] = "uninstalled-reader"
     copy, why = EditCopy.deserialize("sample", wire)
     assert why == []
     assert copy is not None
-    assert all(sheet.reading.compatibility == "f" * 64 for sheet in copy.sheets)
+    assert all(sheet.reading.reader == "uninstalled-reader" for sheet in copy.sheets)

@@ -39,33 +39,18 @@ def a_proof(tmp_path):
     )
 
 
-@pytest.mark.parametrize(
-    "revision", [None, "reader", "grammar", "rules", "placement", "host"]
-)
-def test_saved_nondefault_context_admitted_before_place_decoding(
-    tmp_path, monkeypatch, revision
+@pytest.mark.parametrize("changed", [False, True])
+def test_a_saved_proof_loads_and_is_admitted_by_its_reader(
+    tmp_path, monkeypatch, changed
 ):
+    from conftest import install_another_reader
+
     from comment_review.desk.proof.place import Place
     from comment_review.flows import reading_context
     from comment_review.reading.context import ReadingContext
-    from comment_review.reading.definitions import LanguageDefinition
 
     proof = a_proof(tmp_path)
-    installed = reading_context.reader_for
-
-    def configured(path, registry):
-        selected = installed(path, registry)
-        assert isinstance(selected, tuple)
-        definition, binding = selected
-        assert isinstance(definition, LanguageDefinition)
-        return replace(
-            definition,
-            defaults={"mode": "narrow"},
-            choices={"mode": ("narrow", "wide")},
-        ), binding
-
-    monkeypatch.setattr(reading_context, "reader_for", configured)
-    context = reading_context.context_for(Path("m.py"), {"mode": "wide"})
+    context = reading_context.context_for(Path("m.py"))
     assert isinstance(context, ReadingContext)
     copies = tuple(
         replace(
@@ -87,48 +72,24 @@ def test_saved_nondefault_context_admitted_before_place_decoding(
 
     def decode(*args, **kwargs):
         decoded.append(True)
-        if revision:
-            pytest.fail("incompatible saved context reached place decoding")
         return deserialize(*args, **kwargs)
 
     monkeypatch.setattr(Place, "deserialize", decode)
-    if revision == "placement":
-        monkeypatch.setattr(reading_context, "PLACEMENT_REVISION", "changed")
-    elif revision:
-
-        def revised(path, registry):
-            definition, binding = configured(path, registry)
-            if revision == "rules":
-                definition = replace(definition, rules={"changed": True})
-            elif revision == "reader":
-                binding = replace(binding, revision="changed")
-            elif revision == "grammar":
-                binding = replace(binding, grammar_identity="changed")
-            elif revision == "host":
-                binding = replace(
-                    binding, grammar_identity="CPython changed host version"
-                )
-            return definition, binding
-
-        monkeypatch.setattr(reading_context, "reader_for", revised)
+    if changed:
+        install_another_reader(monkeypatch)
+    # The load decodes the container; the installed reader is the question of
+    # the entry point that reads the proof, asked once there.
     loaded, why = load_proof(path)
-    if revision:
-        assert loaded is None
-        assert any("regather" in problem and "differs" in problem for problem in why)
-        assert not decoded
+    assert loaded is not None, why
+    assert loaded == proof, why
+    assert decoded
+    assert loaded.page_readings["extra.py"] == context
+    _, why = reading_context.admit_proof(loaded)
+    if changed:
+        assert any("regather" in one.text and "differs" in one.text for one in why)
     else:
-        assert loaded is not None, why
-        assert loaded == proof, why
-        assert decoded
-        assert loaded.page_readings["extra.py"] == context
+        assert why == []
     assert path.read_bytes() == before
-
-
-def test_load_value_optional_pairs_hook_preserves_raw_duplicates(tmp_path):
-    path = tmp_path / "settings.json"
-    path.write_text('{"key":1,"key":2}', encoding="utf-8")
-    assert load_value(path) == ({"key": 2}, [])
-    assert load_value(path, object_pairs_hook=list) == ([("key", 1), ("key", 2)], [])
 
 
 def test_load_copy_keeps_partial_copy_with_missing_metadata_raw(tmp_path):
