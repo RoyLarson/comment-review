@@ -201,7 +201,7 @@ that changed a published name or rule:
 | [galley-and-compositor-write-path](galley-and-compositor-write-path.md) | backend | -- | 75/91 | The galley can overwrite the file under review, and the compositor reads through a normaliser |
 | [exception-hierarchy](exception-hierarchy.md) | backend | -- | 5/16 | Named tuples give us the seam; the hierarchy that catches our own types is not built |
 | [language-rows-in-toml](language-rows-in-toml.md) | backend | -- | 18/20 | 18 rows of pure data sit in shipped Python; references/vocabulary.toml is the pattern |
-| [computed-and-never-read](computed-and-never-read.md) | backend | -- | 15/34 | The insert line, the matter branch, the paragraph index and two repeated full-file scans -- each needs more than a comment fix |
+| [computed-and-never-read](computed-and-never-read.md) | backend | -- | 16/34 | The insert line, the matter branch, the paragraph index and two repeated full-file scans -- each needs more than a comment fix |
 | [dangling-links-resolve-nowhere](dangling-links-resolve-nowhere.md) | systems | -- | 6/7 | 31 relative links resolve nowhere, and two of them are in a live TODO |
 | [drop-the-column](drop-the-column.md) | backend | -- | 9/10 | the column is len(anchor)+1 everywhere; the address system answers what it was added for |
 | [the-roles-are-named-for-what-they-read](the-roles-are-named-for-what-they-read.md) | agents | -- | 2/7 | block-context etc. become the editorial desks; unlike `block` these ARE on the wire |

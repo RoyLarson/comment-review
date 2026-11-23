@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 15 of 34 tasks closed
+Progress: 16 of 34 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (simplify round 7, 2026-08-22 -- found by Pyright and by reading,
@@ -173,8 +173,9 @@ page.py:793-794 for `_SHEBANG`/`_CODING`, which round 7 deleted; those citations
 - [ ] T22 | Delete proof_setter.py's Step and STEPS, which run() never reads
         > 2026-11-22 Check: grep STEPS src/ is empty (M120)
         > 2026-11-23 Refusal.step is a bare string at 20 sites (broken review)
-- [ ] T23 | Delete Gathering.reading_contexts and ProofReport.reading_contexts,
-      which only tests read
+- [x] T23 | Both reading_contexts fields deleted; grep finds none in src | f90a0193e18148622d292041aa2e8b232c996c37 | Delete
+      Gathering.reading_contexts and ProofReport.reading_contexts, which only
+      tests read
         > 2026-11-22 Check: grep reading_contexts src/ is empty (M121)
 - [ ] T24 | Delete the twelve Python grammar keys and one Rust key that are
       validated but never read
