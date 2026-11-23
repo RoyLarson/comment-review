@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 16 of 34 tasks closed
+Progress: 17 of 35 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (simplify round 7, 2026-08-22 -- found by Pyright and by reading,
@@ -165,8 +165,9 @@ page.py:793-794 for `_SHEBANG`/`_CODING`, which round 7 deleted; those citations
       flows/gather.py:222, keeping its unread list
         > 2026-11-22 Check: no src/ reader or writer of Paragraph.annotations remains
         > 2026-11-23 comment-review 2026-11-23: annotations_for output reaches no role
-- [ ] T21 | Delete verify.resolution_problems, texts_at, received_problems and
-      fan_out.fan, which only tests call
+- [x] T21 | grep finds none of the four in src | c0b134dd1a8dfa0b93b5fbcadbc7b73748afd935 | Delete
+      verify.resolution_problems, texts_at, received_problems and fan_out.fan,
+      which only tests call
         > 2026-11-22 Check: grep finds no def of the four in src/ (M118)
         > 2026-11-23 comment-review 2026-11-23: verify trio still test-only
         > 2026-11-23 comment-review 2026-11-23: fan test-only; dealt, partition in use
@@ -204,3 +205,4 @@ page.py:793-794 for `_SHEBANG`/`_CODING`, which round 7 deleted; those citations
 - [ ] T33 | Determine which write-chain layer owns all-or-nothing cleanup
         > 2026-11-23 Drafts are staged twice; exception scopes differ per layer [I-F7]
 - [ ] T34 | Delete reading.context.compatible_contexts, which only tests call
+- [ ] T35 | Delete flows.fill.marks_on, which only a gate test calls

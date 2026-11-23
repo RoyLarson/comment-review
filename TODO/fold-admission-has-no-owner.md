@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 3 tasks closed
+Progress: 2 of 3 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-11-23 (broken review, 2026-11-23)
@@ -39,10 +39,12 @@ Each entry point assembles its own admission checks, and they disagree.
 
 ## Tasks
 
-- [ ] T1 | Determine which component owns fold admission
+- [x] T1 | flows.verify.admit owns fold admission | c0b134dd1a8dfa0b93b5fbcadbc7b73748afd935 | Determine
+      which component owns fold admission
         > 2026-11-23 Solution phase running; recommendation to follow (broken review)
         > 2026-11-23 Symptom: computed-and-never-read.md T21
         > 2026-11-23 Symptom: one-obvious-way.md T3
-- [ ] T2 | Make one admission rule decide a copy for both the check and the
-      collate commands
+- [x] T2 | One admit; tamper table agrees; one injected rule refuses at all four | c0b134dd1a8dfa0b93b5fbcadbc7b73748afd935 | Make
+      one admission rule decide a copy for both the check and the collate
+      commands
 - [ ] T3 | Make what a stage admits independent of whether --topology is passed

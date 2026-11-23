@@ -201,7 +201,7 @@ that changed a published name or rule:
 | [galley-and-compositor-write-path](galley-and-compositor-write-path.md) | backend | -- | 75/91 | The galley can overwrite the file under review, and the compositor reads through a normaliser |
 | [exception-hierarchy](exception-hierarchy.md) | backend | -- | 5/16 | Named tuples give us the seam; the hierarchy that catches our own types is not built |
 | [language-rows-in-toml](language-rows-in-toml.md) | backend | -- | 18/20 | 18 rows of pure data sit in shipped Python; references/vocabulary.toml is the pattern |
-| [computed-and-never-read](computed-and-never-read.md) | backend | -- | 16/34 | The insert line, the matter branch, the paragraph index and two repeated full-file scans -- each needs more than a comment fix |
+| [computed-and-never-read](computed-and-never-read.md) | backend | -- | 17/35 | The insert line, the matter branch, the paragraph index and two repeated full-file scans -- each needs more than a comment fix |
 | [dangling-links-resolve-nowhere](dangling-links-resolve-nowhere.md) | systems | -- | 6/7 | 31 relative links resolve nowhere, and two of them are in a live TODO |
 | [drop-the-column](drop-the-column.md) | backend | -- | 9/10 | the column is len(anchor)+1 everywhere; the address system answers what it was added for |
 | [the-roles-are-named-for-what-they-read](the-roles-are-named-for-what-they-read.md) | agents | -- | 2/7 | block-context etc. become the editorial desks; unlike `block` these ARE on the wire |
@@ -276,7 +276,7 @@ that changed a published name or rule:
 | [machine-defects](machine-defects.md) | backend | -- | 0/5 | machine/ reads git output and JSON without the guards its callers assume |
 | [flow-helpers-placement](flow-helpers-placement.md) | backend | -- | 0/2 | Determine where the flow helpers belong |
 | [no-component-owns-the-run](no-component-owns-the-run.md) | backend | -- | 0/3 | No component owns the run across stages |
-| [fold-admission-has-no-owner](fold-admission-has-no-owner.md) | backend | -- | 0/3 | "Would the fold refuse this?" has no single owner |
+| [fold-admission-has-no-owner](fold-admission-has-no-owner.md) | backend | -- | 2/3 | "Would the fold refuse this?" has no single owner |
 | [a-mark-states-its-edit-three-times](a-mark-states-its-edit-three-times.md) | backend | -- | 0/3 | A mark states its edit up to three times and no field is authoritative |
 | [boundary-records-have-no-typed-form](boundary-records-have-no-typed-form.md) | backend | -- | 0/5 | Records crossing boundaries have no single typed form |
 | [area-model-stated-and-enforced-differently](area-model-stated-and-enforced-differently.md) | backend | -- | 0/5 | The area architecture is stated in one model and enforced against another |
