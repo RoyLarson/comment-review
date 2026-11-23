@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 14 of 33 tasks closed
+Progress: 15 of 34 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (simplify round 7, 2026-08-22 -- found by Pyright and by reading,
@@ -146,7 +146,8 @@ page.py:793-794 for `_SHEBANG`/`_CODING`, which round 7 deleted; those citations
 - [ ] T13 | Drop page_for's dead edges assignment and its duplicate path
 - [-] T14 | Duplicate of computed-and-never-read.md T11; closed by the same commit e2b34a22 | e2b34a22 | Delete
       the unparsed branch in readers.py, which no reader produces
-- [ ] T15 | Remove the reader and placement revisions and the compatibility hash
+- [x] T15 | Revisions and compatibility hash removed; 5734 tests pass | d1cb27d4d9f9650768e2a9951c1660be74c77cc1 | Remove
+      the reader and placement revisions and the compatibility hash
         > 2026-10-26 decision-log #239: reads are ephemeral; reading/context.py, flows
 - [ ] T16 | Remove the page's anchor_num and _documented_line checks
         > 2026-10-30 D6: refusals have no production route and no test
@@ -201,3 +202,4 @@ page.py:793-794 for `_SHEBANG`/`_CODING`, which round 7 deleted; those citations
         > 2026-11-23 Related: external-address-cites-dead-modules.md T1
 - [ ] T33 | Determine which write-chain layer owns all-or-nothing cleanup
         > 2026-11-23 Drafts are staged twice; exception scopes differ per layer [I-F7]
+- [ ] T34 | Delete reading.context.compatible_contexts, which only tests call

@@ -201,7 +201,7 @@ that changed a published name or rule:
 | [galley-and-compositor-write-path](galley-and-compositor-write-path.md) | backend | -- | 75/91 | The galley can overwrite the file under review, and the compositor reads through a normaliser |
 | [exception-hierarchy](exception-hierarchy.md) | backend | -- | 5/16 | Named tuples give us the seam; the hierarchy that catches our own types is not built |
 | [language-rows-in-toml](language-rows-in-toml.md) | backend | -- | 18/20 | 18 rows of pure data sit in shipped Python; references/vocabulary.toml is the pattern |
-| [computed-and-never-read](computed-and-never-read.md) | backend | -- | 14/33 | The insert line, the matter branch, the paragraph index and two repeated full-file scans -- each needs more than a comment fix |
+| [computed-and-never-read](computed-and-never-read.md) | backend | -- | 15/34 | The insert line, the matter branch, the paragraph index and two repeated full-file scans -- each needs more than a comment fix |
 | [dangling-links-resolve-nowhere](dangling-links-resolve-nowhere.md) | systems | -- | 6/7 | 31 relative links resolve nowhere, and two of them are in a live TODO |
 | [drop-the-column](drop-the-column.md) | backend | -- | 9/10 | the column is len(anchor)+1 everywhere; the address system answers what it was added for |
 | [the-roles-are-named-for-what-they-read](the-roles-are-named-for-what-they-read.md) | agents | -- | 2/7 | block-context etc. become the editorial desks; unlike `block` these ARE on the wire |
@@ -264,7 +264,7 @@ that changed a published name or rule:
 | [one-reader-builder](one-reader-builder.md) | backend | -- | 6/16 | One reader builder from each language's definition |
 | [freeform-run-findings](freeform-run-findings.md) | agents | -- | 22/26 | What the first live freeform run showed |
 | [topology-defects](topology-defects.md) | backend | -- | 0/10 | Topology defects |
-| [reading-settings-have-no-setting](reading-settings-have-no-setting.md) | backend | -- | 0/5 | Reading settings have no setting |
+| [reading-settings-have-no-setting](reading-settings-have-no-setting.md) | backend | -- | 4/5 | Reading settings have no setting |
 | [one-obvious-way](one-obvious-way.md) | backend | -- | 3/38 | One obvious way |
 | [page-defects](page-defects.md) | backend | -- | 0/4 | binder/page.py carries unread names and a branch nothing reaches |
 | [addresser-defects](addresser-defects.md) | backend | -- | 0/4 | reading/addresser.py answers a miss with a real position |
