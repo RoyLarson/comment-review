@@ -192,7 +192,7 @@ travels whole as the table below binds. Placement is a question of its own, with
 leave it undecided (`#201`). **Once agreed, the move stays filed at both ends**
 (`decision-log.md Process: #205`, which supersedes `#195`'s split into a `drop` and an `add`):
 each end is decided as an ordinary place against the move itself, whose row sets the remainder
-at the origin and the arrival at the destination. `desk.evaluate.move.settle_ends` takes off
+at the origin and the arrival at the destination. `desk.evaluate.move.decide_ends` takes off
 only the filings a final placement no longer stands on.
 
 **What that binds, everywhere the mark is handled:**
@@ -206,7 +206,7 @@ only the filings a final placement no longer stands on.
 
 ! **THIS IS WHAT [`collate-buckets-a-move-at-one-end`](../TODO/completed/collate-buckets-a-move-at-one-end.md)
 IS ABOUT**, and it is now a rule rather than a bug report: a `move` is grouped by every place it
-TOUCHES, because being seen at only one of them is how half of it gets settled.
+TOUCHES, because being seen at only one of them is how half of it gets decided.
 
 ! **It does not change what a `move` COMPOSES with.** Relocation and a truth-fix are still
 compatible -- see *The one contradiction the set can express*, below. Indivisible means its own two
@@ -274,9 +274,11 @@ the row in `desk/marks/table.py`. The gate reads both homes.
                             write, not the seed's
 
 There were six until `decision-log.md Process: #180`. `rereads` was True on `add`
-alone and carried an add forward for every role that read its page; a text now
-settles only once every role that read the place has accepted it, which carries
-an add to those roles along with every other lone proposal, so no row is asked.
+alone and carried an add forward for every role that read its page; a text is now
+decided only once every role that read the place has accepted it, which carries
+an add to those roles like any other proposal, so no row is asked. An add no other
+role read, or read only by roles that deferred, goes to the copy chief with no turn,
+as every such change does (`Process: #385`, `#386`).
 
 !! **THE COLUMN COUNT IN THIS HEADING AND THE FLAG COUNT IN THE LABEL ABOVE ARE BOTH READ
 BY THE GATE**, and their sum must equal the names these two tables state. Same rule as the
@@ -346,7 +348,8 @@ refuses by name at exit 1.
 
 ## The one contradiction the set can express
 
-**`drop` against `correct` or `patch`, on the same sentence.** That is a revise.
+**`drop` against `correct` or `patch`, where the words they change overlap.** That is a revise.
+Edits clash only where their changed words overlap, whoever filed them (`Process: #390`).
 
 ! **`move` is deliberately neither**: relocation and a truth-fix compose.
 

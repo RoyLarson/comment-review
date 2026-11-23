@@ -197,7 +197,10 @@ the rest of that plan gave the middle the ones under them. None is in `vocabular
   rules the placement. `decision-log.md Process: #201`.
 - **`side`** -- the one text a role proposes at a place, whatever number of marks it filed there.
   `place.sides` is role -> that text; it is what a batch slot carries and what a `taken_in` names.
-- **carried forward** -- a place the fold did not settle, `composed` or `contested`, which goes
+- **decided** -- a place the fold closed, `stands` or `agreed`; the write end requires it of
+  every place. `desk.proof.state.DECIDED`, and the console's `decided <address>` line.
+  `decision-log.md Process: #333`.
+- **carried forward** -- a place the fold did not decide, `composed` or `contested`, which goes
   out in the next batch or to the chief. `desk.proof.state.CARRIED` is the pair.
 - **human question** -- a query requiring the human's answer. The asking role replaces the
   query with a mark or answer reflecting that response before folding.
@@ -426,47 +429,50 @@ false attribution is most expensive, and it is the file with no reader but him.*
 
 ## What becomes of a mark -- `stet`, `taken in`, and `recast`
 
-**Three words, the copy chief's, and they split by whether the roles ever agreed.** `stet` and
+**Three words, and each keeps one meaning** -- `decision-log.md Process: #393`. `stet` and
 `taken in` were ruled 2026-08-24 and `recast` on 2026-08-30 (`Vocabulary: #29`); what each names
-was re-ruled 2026-09-04 (`Process: #87`), and the 2026-08-24 glosses below are kept as
-SUPERSEDED. All three are ADOPTED rather than held in reserve. None is a `Mark` instruction,
-since no role may give any of them.
+was re-ruled 2026-09-04 (`Process: #87`) and again 2026-11-22 and 2026-11-23 (`Process: #332`,
+`#393`), and the earlier glosses below are kept as superseded. All three are adopted rather than
+held in reserve. None is a `Mark` instruction.
 
 **Two of the three are rows of `desk/dispositions/table.py` and the third is not.** `taken in`
 is what the chief writes at a place the fold carried forward, `recast` at a carried-forward
-place or at one the roles settled (`Process: #310`), and
-`desk.proof.disposition.read_disposition` refuses any other name. `stet` has no row: it is what the console
-prints for a place the fold settled on its own, which is the program setting it on the chief's
-behalf, and a `stet` the chief writes waits on
-[`TODO/no-mark-for-let-it-stand.md`](../TODO/no-mark-for-let-it-stand.md). The chief-only object
-that carried all three answers, `Determined`, went with the old middle on 2026-09-18 --
-[`history.md`](history.md), *Reconciliation*.
+place or at a decided one (`Process: #310`), and
+`desk.proof.disposition.read_disposition` refuses any other name. **The chief's stet is
+`taken_in` with side `original`** (`Process: #332`): no stet ruling is added. A place the fold
+decided with no ruling is `decided` (`Process: #333`), and the console prints it so. The
+chief-only object that carried all three answers, `Determined`, went with the old middle on
+2026-09-18 -- [`history.md`](history.md), *Reconciliation*.
 
 | the word | what it names | who says it |
 | --- | --- | --- |
-| **`stet`** | *let this stand.* The roles agreed, on a turn or at once, and the chief lets what they agreed on stand. The program sets this one on the chief's behalf | the **copy chief**, and no one else |
-| **`taken in`** | they never agreed; at max turns the chief takes one side's text into the page. The original author is a side, so the original is a `taken in` too. *Taking in corrections* is the compositor's own phrase for making the marked changes on a proof | the **copy chief** at max turns; the compositor, mechanically, about every mark that reaches the text |
-| **`recast`** | the chief writes its own prose over every side -- where the roles never agreed, or at a place they settled, to bring its text into line with the style sheet (`Process: #310`). Empty prose drops the paragraph (`Process: #299`). The trade's word for rewriting a passage in a different form | the **copy chief**, and no one else |
+| **`stet`** | *let this stand.* A reader refuses a move's placement, so the move is carried forward contested for the chief (`Process: #195`) | a **reader** owed a say on a move's placement, as its answer to the `placement` question |
+| **`taken in`** | the chief takes one side's text into the page at a carried-forward place, or rules an undecided move's placement. The original is a side, so the original is a `taken in` too, and is the chief's stet | the **copy chief**, and no one else |
+| **`recast`** | the chief writes its own prose over every side -- where the roles never agreed, or at a decided place, to bring its text into line with the style sheet (`Process: #310`). Empty prose drops the paragraph (`Process: #299`). The trade's word for rewriting a passage in a different form | the **copy chief**, and no one else |
 
-!! **SUPERSEDED 2026-09-04, `Process: #87`, and kept so the change is legible.** The 2026-08-24
+!! **Superseded 2026-09-04, `Process: #87`, and kept so the change is legible.** The 2026-08-24
 row read `stet` as *"emitted where two roles could not agree, and it points at what stands --
 the mark it chose, or neither"*, and `Vocabulary: #29` read it as *the original stands; the
-correction is declined*. Both are now the cases `taken in` holds; `stet` is the agreed case.
+correction is declined*. `#87` made them the cases `taken in` holds and `stet` the agreed case,
+set by the program on the chief's behalf. `Process: #393` superseded that program-set `stet`:
+an agreed place is `decided`.
 
-!! **A ROLE CANNOT EMIT A `stet`.** It presupposes two roles that disagreed and a copy chief that
-ruled, so no single hand is ever in a position to file one. Roy, 2026-08-24: *"it is the
-declaration that the copy chief emits when two editorial roles couldn't agree. It emits on the
-one that it chose, or it overrules both."*
+!! **Superseded 2026-11-23, `Process: #393`: "a role cannot emit a `stet`".** This section said a
+`stet` presupposes two roles that disagreed and a copy chief that ruled, so no single hand could
+file one. Under `Process: #195` a reader answers a move's placement with `stet`, and that is now
+the word's one meaning. `#393` also superseded `Vocabulary: #12`'s compositor sense of `taken
+in`: the compositor's taking in of every mark is no longer called by the chief's word.
 
 ! **`the original stands` IS TOO NARROW A GLOSS.** Roy: *"stet -- let this stand."* What it points
 at may be the original OR one role's mark; the pointing is the whole of it, and the original is
-one of the two things it can point at.
+one of the two things it can point at. That pointing is now `taken in`'s, whose side is a role or
+the original (`Process: #332`).
 
 !! **`settled` WAS PROPOSED FOR `taken in` AND MEASURED OUT.** Roy, 2026-08-24: *"close to set but
 not confused with set"*, and *"not overly generic like set"* -- the shape is right and the word
 fails the second test. MEASURED the same day: `settle` appears **94 times across 19 shipped files
 and 35 more in `docs/`**. ! Two of those are collisions with the neighbour: `re-review.md:139`
-already writes *"a paragraph stage 5 **settled**"*, which is the `stet` case, and `SKILL.md:68`
+already writes *"a paragraph stage 5 **settled**"*, which is a `decided` place, and `SKILL.md:68`
 lists `query` as **unsettled**, an axis about whether a QUESTION is open rather than whether a
 mark reached the text. **`taken in` returns zero occurrences.**
 
@@ -475,9 +481,10 @@ English *take in* is to absorb or incorporate, so a reader who does not know a c
 marginal marks still reads it correctly. ! A two-word phrase also cannot drift into general use
 the way `set` did.
 
-! Tracked in [`TODO/nothing-makes-the-fair-copy.md`](../TODO/nothing-makes-the-fair-copy.md), and
-`stet`'s own build is [`TODO/no-mark-for-let-it-stand.md`](../TODO/no-mark-for-let-it-stand.md) --
-which is written on the reading this ruling corrects.
+! Tracked in [`TODO/nothing-makes-the-fair-copy.md`](../TODO/nothing-makes-the-fair-copy.md).
+The chief's stet is built: it is `taken_in` with side `original` (`Process: #332`). What
+[`TODO/no-mark-for-let-it-stand.md`](../TODO/no-mark-for-let-it-stand.md) keeps open is whether
+anything records a declined proposal for a later run.
 
 ## `turn` -- one cycle inside a stage's collate
 
@@ -559,9 +566,14 @@ check refuses a term no role uses. Adding it to tidy the numbers is writing to t
     retiring the word fired on 15 sentences reading *"leaves it unaccounted for"*.
   - ! **It is confined to `.py` and is checked there**: 10 uses, none in `agents/`, `SKILL.md` or
     `references/`, so nothing an agent is handed carries the ambiguity.
-  - !! **`settle` IS THE ONE WHERE THE CONTEXTS DO OVERLAP, AND IT IS OPEN.** Raised by Roy the
-    moment `taken in` was ruled, 2026-08-24: *"now we have a polysemy of the word settled and
-    that has to get resolved."* Two senses, and they are not confined:
+  - !! **`settle` was the one where the contexts overlapped, and it is resolved: a claim is
+    settled, a place is decided.** Ruled 2026-11-22, `decision-log.md Process: #333`: *"agree
+    with you - claim settled, place decided"*. `settle` keeps the claim sense alone -- the
+    `settles` claim key, `mark --settles`, `query`'s *could not settle the claim*. The place
+    sense is `decided` -- `desk.proof.state.DECIDED`, the `Decided` event, the console's
+    `decided <address>` and the master proof's count. Raised by Roy the moment `taken in` was
+    ruled, 2026-08-24: *"now we have a polysemy of the word settled and
+    that has to get resolved."* Two senses, and as measured then they were not confined:
 
     | sense | what it is about | where |
     | --- | --- | --- |
@@ -573,8 +585,8 @@ check refuses a term no role uses. Adding it to tidy the numbers is writing to t
     in what an agent is HANDED** -- `SKILL.md` 15, `reviewer-brief.md` 16, the four role files 7,
     `compact`/`write`/`re-review` 5 -- so this fails the confinement test `leaf` passes.
 
-    ! **AND A THIRD USE IS ALREADY RETIRED BY `stet`**: `re-review.md:139` writes *"a paragraph
-    stage 5 settled"*, which is the copy chief's ruling and now has its own word.
+    ! **And a third use was retired then**: `re-review.md:139` wrote *"a paragraph stage 5
+    settled"*, which is a place the fold decided -- `decided` since `Process: #333`.
 
 - **`clean` is reserved.** It is one of the seven instructions and is never a loose adjective for
   code, prose, a grep result or a run.
