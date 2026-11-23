@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 51 of 84 tasks closed
+Progress: 51 of 85 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-09-04 (Roy, 2026-09-04, superseding the-flow-lives-in-the-command T4)
@@ -187,6 +187,7 @@ The agents files name the new CLI and say how to use it.
       reviewer-brief.md's withdraw line so it takes back one mark, per #276
 - [ ] T49 | Replace write.md's git worktree with a copy of the gathered files,
       per #104
+        > 2026-11-22 Waits on lexical-code-identity.md T16, which removes --base
 - [x] T50 | FINISHED -- stage 1 records where code concerns go | 21cc283e | Update
       the brief's add-a-TODO answer for a repo that keeps its TODOs on a board
         > 2026-11-10 #311: stage 1 records where code concerns go
@@ -216,6 +217,7 @@ The agents files name the new CLI and say how to use it.
         > 2026-11-22 Check: SKILL.md stage 4 relaunches a role that never returns
 - [ ] T60 | Correct reviewer-brief.md:200's three-line window to the cited line
         > 2026-11-22 Check: the brief says verbatim starts on the cited line
+        > 2026-11-22 Outcome: brief matches WITHIN=3 either side; Roy: supersede
 - [ ] T61 | Make write.md:49's 7b gate name the build root instead of running
       prove_unchanged --repo . from an assumed cwd
         > 2026-11-22 Check (M7): the gate prints FAIL for a changed return from any cwd
@@ -240,6 +242,7 @@ The agents files name the new CLI and say how to use it.
 - [ ] T68 | Correct the question line at SKILL.md:312 to the CLI's whole line,
       whose tail an answer must match
         > 2026-11-22 Check (M58): an answer to the documented line ends collate exit 5
+        > 2026-11-22 Outcome: match key omits the tail (human.py:151); Roy: reissue
 - [ ] T69 | Correct SKILL.md:297's exit-0 row, which skips the style-sheet
       recast SKILL.md:370-374 requires
         > 2026-11-22 Check (M59): following the row recasts '# one' to '# One.'
@@ -288,3 +291,4 @@ The agents files name the new CLI and say how to use it.
 - [ ] T84 | Add to write.md's stage 7b check a run of the project's doctests
       when the project has them
         > 2026-11-22 Check: write.md runs doctests at 7b where they exist (#381)
+- [ ] T85 | State at SKILL.md:312 that the question is the text before the `;`
