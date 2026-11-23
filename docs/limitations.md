@@ -77,9 +77,9 @@ measurements unchanged in the history record.
 ! **A rule belongs in exactly one file.** Shared reviewer contract ->
 `reviewer-brief.md`; one role's -> that role's agent definition; how a freeform edit is composed
 and set -> `freeform.md`; a stage's procedure -> that
-stage's file under `references/` (`residue-check.md`, `compact.md`, `write.md`, `review.md`); a
-rule a SCRIPT enforces -> that script's docstring (`annotate.py`, `repo.py`, `referrers.py`,
-`prove_unchanged.py`);
+stage's file under `references/` (`compact.md`, `write.md`, `review.md`); a rule the code
+enforces -> the docstring of the module under `src/comment_review/` that enforces it
+(`concordance/annotate.py`, `machine/repo.py`, `concordance/referrers.py`, `reading/proof.py`);
 orchestration -> here. Restating one across two files is
 the antipattern this skill exists to find, and the four agents are the place it will happen --
 they read alike and invite copy-paste.
