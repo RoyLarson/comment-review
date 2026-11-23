@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 75 of 89 tasks closed
+Progress: 75 of 90 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (code-review high round 3 and /simplify round 2, 2026-08-22 -- the
@@ -372,3 +372,6 @@ files in `corpora/` are in that state today.
         > 2026-11-22 Check (M23): dropping f1 drafts 'x = 1' with one final newline
 - [ ] T89 | Apply the --out guards to proof --to-docket at commands/proof.py:286
         > 2026-11-22 Check (M31): --to-docket onto a page under review is refused
+- [ ] T90 | Make the compositor end the last line it sets in an empty file,
+      updating the three pinning tests
+        > 2026-11-22 Check: an a0 add on an empty file ends in a line break (#376)

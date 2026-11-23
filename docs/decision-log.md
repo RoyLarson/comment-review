@@ -7276,3 +7276,48 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   repaired, the agents-lane prose in its own commit. The callerless code (M118, M120, M121,
   M122) is filed for deletion, and the plugin vocabulary sites (M126, M128-M130, M132, M133) as
   one task. M108, M112, M124, M125, M135 and M136 are rejected.
+
+- **#374.** **The condenser marks only the places it was dealt; the CLI does not refuse others**
+  (Roy, 2026-11-22, on code-review finding M98, a stage-6 mark at an undealt place settling
+  unreviewed; offered (a) refuse it at stage 6 or (b) tell the role in `compact.md`):
+
+  *"b because it is there to shrink the comments which is what it is supposed to do"*
+
+- **#375.** **A copy that fails its second return stops the run** (Roy, 2026-11-22, on M99,
+  `SKILL.md:250`'s "fold without it", which collate refuses; offered (a) relaunch the dispatch,
+  (b) collate accepts a dispatch recorded unanswered, or (c) stop and report the role):
+
+  *"c"*
+
+  **What it settles.** The task agent stops the stage and reports the role; no fold runs short.
+
+- **#376.** **An add to an empty file ends with a line break** (Roy, 2026-11-22, on M100):
+
+  *"a else it might be considered matter on the return and while it doesn't immediately matter
+  because it can be moved it is an annoyance"*
+
+  **What it settles.** The compositor ends the last line it sets in an empty file; the three
+  tests that pin the unterminated output change with it.
+
+- **#377.** **`machine` may import the exception tuples** (Roy, 2026-11-22, on M101,
+  `machine/repo.py:27` importing `exceptions` against the area table; offered (a) amend the table
+  or (b) move what machine needs into machine):
+
+  *"a because we want the exceptions machinery to be specified once and be consistent"*
+
+  **What it settles.** The area table's machine row admits `exceptions`, in wording Roy approves
+  separately, and `tests/test_areas.py` checks what machine imports.
+
+- **#378.** **Doctest code is not protected by the proof** (Roy, 2026-11-22, on M102, offered
+  (a) protect it in the proof, (b) record a doctest runner at stage 1, or (c) defer):
+
+  *"c - and it doesn't matter."*
+
+- **#379.** **The work markers stay the five the reader names** (Roy, 2026-11-22, on M103, the
+  hardcoded markers in `reading/python/paragraph.py:29` against `compact.md`'s "markers the repo
+  exempts"; offered (a) pass the style sheet's markers into the count or (b) keep the five per
+  #223 and correct `compact.md`):
+
+  *"b - would become very difficult to have undetermined characters"*
+
+  **What it settles.** `compact.md` names exactly the five markers the count exempts.

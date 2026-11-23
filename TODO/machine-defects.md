@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 3 tasks closed
+Progress: 0 of 4 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-11-22 (code review 2026-11-22, merged findings)
@@ -28,3 +28,6 @@ Found by the code review of 2026-11-22 (M34, M37, M38).
 - [ ] T3 | Catch json.loads ValueError with RecursionError at
       machine/json_object.py:54 as a refusal
         > 2026-11-22 Check (M38): a 5000-digit int gives a named refusal, no traceback
+- [ ] T4 | Add machine's own imports to tests/test_areas.py, admitting
+      exceptions only
+        > 2026-11-22 Check: a machine import of binder turns the gate red (#377)

@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 4 of 8 tasks closed
+Progress: 4 of 10 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-08-17, on the FIRST exercise of stage 6 -- it returned two blocks at
@@ -159,3 +159,9 @@ for this case.
       being told it. Verify: no reference file or agent prose hands compact a
       kind field, and the docstring refusal resolves from the a series alone
         > 2026-08-31 Roy 2026-08-31: cue tells everything, defined by kind
+- [ ] T9 | Tell the stage-6 role in compact.md to mark only the places it was
+      dealt
+        > 2026-11-22 Check: compact.md names the dealt places as its scope (#374)
+- [ ] T10 | Correct compact.md to name exactly the five work markers
+      paragraph.py:29 exempts
+        > 2026-11-22 Check: compact.md lists the five markers by name (#379)

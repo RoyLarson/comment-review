@@ -198,7 +198,7 @@ that changed a published name or rule:
 | [unaddressed-is-quadratic](unaddressed-is-quadratic.md) | backend | -- | 3/6 | unaddressed() groups by path for a question that needs one flat pass |
 | [stale-claims-after-the-envelope](stale-claims-after-the-envelope.md) | backend | -- | 7/12 | Shipped prose still describes formats and flags this branch deleted |
 | [census-walks-and-flushes](census-walks-and-flushes.md) | backend | -- | 7/8 | census.py walks the whole repo, runs git twice, and its run-flush never fires |
-| [galley-and-compositor-write-path](galley-and-compositor-write-path.md) | backend | -- | 75/89 | The galley can overwrite the file under review, and the compositor reads through a normaliser |
+| [galley-and-compositor-write-path](galley-and-compositor-write-path.md) | backend | -- | 75/90 | The galley can overwrite the file under review, and the compositor reads through a normaliser |
 | [exception-hierarchy](exception-hierarchy.md) | backend | -- | 5/16 | Named tuples give us the seam; the hierarchy that catches our own types is not built |
 | [language-rows-in-toml](language-rows-in-toml.md) | backend | -- | 18/20 | 18 rows of pure data sit in shipped Python; references/vocabulary.toml is the pattern |
 | [computed-and-never-read](computed-and-never-read.md) | backend | -- | 14/24 | The insert line, the matter branch, the paragraph index and two repeated full-file scans -- each needs more than a comment fix |
@@ -249,7 +249,7 @@ that changed a published name or rule:
 | [only-a-flow-reaches-the-machine](only-a-flow-reaches-the-machine.md) | backend | -- | 6/11 | Route every machine read and write through a flow |
 | [a-non-code-document-has-no-read-review-resolve-or-write-chain-of-its-own](a-non-code-document-has-no-read-review-resolve-or-write-chain-of-its-own.md) | backend | -- | 0/2 | A non-code document has no read, review, resolve or write chain of its own |
 | [re-review-is-retired-for-revise](re-review-is-retired-for-revise.md) | agents | -- | 5/7 | re-review is retired for revise |
-| [agents-files-name-the-new-cli](agents-files-name-the-new-cli.md) | agents | -- | 51/82 | The agents files name the new CLI and say how to use it |
+| [agents-files-name-the-new-cli](agents-files-name-the-new-cli.md) | agents | -- | 51/83 | The agents files name the new CLI and say how to use it |
 | [reviewer-prose-is-rules-not-guidance](reviewer-prose-is-rules-not-guidance.md) | agents | -- | 12/17 | The reviewer prose is rules and punishments, not guidance toward a good result |
 | [the-chief-has-no-recast-workflow](the-chief-has-no-recast-workflow.md) | backend | -- | 17/19 | cap applies the chief's rulings and closes the stage, but a recast is written out as a correct, so a recast of an add at an empty place writes nothing and exits 0. |
 | [exit-codes-are-an-enum](exit-codes-are-an-enum.md) | backend | -- | 1/6 | Exit codes are written in thirteen places |
@@ -276,13 +276,13 @@ that changed a published name or rule:
 | [concordance-module](concordance-module.md) | backend | -- | 0/1 | Keep concordance logic in concordance/ |
 | [commands-reach-past-flows](commands-reach-past-flows.md) | backend | -- | 0/2 | Commands import only flows and the leaves |
 | [answers-file-defects](answers-file-defects.md) | backend | -- | 0/4 | Answers files are admitted with answers a turn drops or refuses |
-| [machine-defects](machine-defects.md) | backend | -- | 0/3 | machine/ reads git output and JSON without the guards its callers assume |
+| [machine-defects](machine-defects.md) | backend | -- | 0/4 | machine/ reads git output and JSON without the guards its callers assume |
 
 ### in-progress  (12)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
-| [compact-can-buy-lines-with-width](compact-can-buy-lines-with-width.md) | agents | -- | 4/8 | COMPACT can buy lines with width, and nothing stops it |
+| [compact-can-buy-lines-with-width](compact-can-buy-lines-with-width.md) | agents | -- | 4/10 | COMPACT can buy lines with width, and nothing stops it |
 | [stage-1-is-re-derived-every-run](stage-1-is-re-derived-every-run.md) | agents | -- | 9/18 | Stage 1 is re-derived every run, asks one question twice, and knows one structure source |
 | [corpora-are-all-python](corpora-are-all-python.md) | testing | -- | 10/11 | The corpora are nine Python projects, so every per-language rule is measured on Python and C alone |
 | [b-addresser-uninitialised](b-addresser-uninitialised.md) | backend | -- | 17/19 | The b addresser is never initialised at the module trigger, and computes its cue from line numbers |

@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 51 of 82 tasks closed
+Progress: 51 of 83 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-09-04 (Roy, 2026-09-04, superseding the-flow-lives-in-the-command T4)
@@ -282,3 +282,6 @@ The agents files name the new CLI and say how to use it.
 - [ ] T82 | Make SKILL.md:390's second disposition round accept the rulings
       round 1 recorded
         > 2026-11-22 Check (M74): rerunning disposition with round 1's rulings exits 0
+- [ ] T83 | Replace SKILL.md:250's fold without it with stopping the stage and
+      reporting the role
+        > 2026-11-22 Check: SKILL.md:250 stops the run; no short fold (#375)
