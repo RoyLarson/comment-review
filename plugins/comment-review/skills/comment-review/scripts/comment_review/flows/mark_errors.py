@@ -1,34 +1,30 @@
-"""MARK ERRORS -- every place a role must go back to, as addresses and reasons.
+"""Mark errors -- every place a role must go back to, as addresses and reasons.
 
-    mark_errors(edit_copies)   one `Revisit` per place a role still owes
+    mark_errors(edit_copies, required=None)
+                               one `Revisit` per place a role still owes
 
-!! ADDRESSES AND REASONS, NEVER A REBUILT COPY -- `decision-log.md Process: #72`.
-Roy, 2026-09-01: *"I think the return is a list of addresses and a statement of
-what the parse errors are for each address. The agents can find the marks in
-their remit and fix in their stuff directly. No reason to try to duplicate or
-fill in the problems for them and have disjointed what needs fixed."*
+!! Addresses and reasons, never a rebuilt copy. A role holds its own edit_copy
+and finds the marks in its remit there; what it needs told is where and what.
 
-! **THE ALTERNATIVE WAS DESIGNED AND REJECTED, AND THE REASON IS THE POINT.**
-Emitting one `EditCopy` per role holding only the places needing work reuses a
-container a role already knows how to fill -- and it is a SECOND copy of those
-marks. The role's own edit_copy still holds the originals, so *what needs
-fixing* would live in two documents and a role would fill one while the other
-went stale.
+! **Why not one `EditCopy` per role holding only the places needing work.** It
+would reuse a container a role already knows how to fill -- and it is a second
+copy of those marks. The role's own edit_copy still holds the originals, so
+*what needs fixing* would live in two documents and a role would fill one while
+the other went stale.
 
-!! IT IS FOR THE TASK AGENT, WHICH IS WHY IT IS ASSEMBLED AT ALL. Roy, the same
-day: the flow *"collects the errors and makes something that helps the task
-agent point to the correct ones for the role agents."* Every entry names the
-ROLE that owes it, so dispatch is a read rather than a lookup across two lists.
+!! It is for the task agent, which is why it is assembled at all. Every entry
+names the role that owes it, so dispatch is a read rather than a lookup across
+two lists.
 
-!! THE BOUND ON SENDING BACK IS NOT HERE. Roy, 2026-09-01: it *"will put it in
-the task agent briefing"*, and `a-coverage-gap-should-go-back-to-the-reviewer`
-T2 holds it open -- *"with no bound, send it back is a loop."* This flow says
-WHAT is owed; how many times it may be asked for is the briefing's.
+!! The bound on sending back is not here. This flow says what is owed; how
+many times a role is sent back is the task agent's instructions, and nothing in
+code bounds it.
 
-! WHAT IT DOES NOT DO IS VERIFICATION. `desk.collator.verify_report` asks
+! What it does not do is verification. `desk.collator.verify_report` asks
 whether a well-formed mark's claims hold against the tree; this asks only about
-places that produced no usable mark at all. The two are separate lists on
-the fold's own report for that reason.
+places that produced no usable mark at all. `flows.verify.copy_problems`
+calls `verify_report`; `flows.bus` turns each `Revisit` into a `Problem` and
+puts both into the one `problems` list it rolls back with.
 """
 
 from typing import NamedTuple
@@ -47,18 +43,18 @@ class Revisit(NamedTuple):
     Attributes:
         role: who owes it -- what makes this dispatchable rather than a list a
             task agent has to attribute by hand.
-        address: the place, and "" where the entry named none. ! IT IS WHAT
-            ROUTES, and nothing prints it.
-        where: how to POINT AT it, never empty -- the address where there is
+        address: the place, and "" where the entry named none. ! It is what
+            routes, and nothing prints it.
+        where: how to point at it, never empty -- the address where there is
             one, else the page and the entry's position, as `m.py mark 3`.
-            ! THE TWO ARE SEPARATE BECAUSE ONE CAN BE EMPTY AND THE OTHER MUST
-            NOT BE. A reader needs somewhere to look even for an entry the
+            ! The two are separate because one can be empty and the other must
+            not be. A reader needs somewhere to look even for an entry the
             system cannot route; a router needs to know when there is nowhere.
         reasons: every rule the entry broke, as its type's read worded them,
             or the one sentence `NOT_RULED` for a place nobody wrote in.
-            ! ALL OF THEM TOGETHER, which is the half `Process: #72` asks for
-            beyond the address -- one malformed `correct` breaks four rules, and
-            a role fixing them one per round is three more round trips.
+            ! All of them together -- one malformed `correct` breaks four
+            rules, and a role fixing them one per round is three more round
+            trips.
     """
 
     role: str
@@ -74,22 +70,22 @@ def mark_errors(
 
     Args:
         edit_copies: the parsed copies, as `flows.bus` holds them
-            after its envelope pass. ! PARSED, because that is what sorted each
+            after its envelope pass. ! Parsed, because that is what sorted each
             entry: `desk.proof.sheet.Sheet` carries `unruled` and `refused`, and
             this flow reads them rather than re-deciding what an entry was.
         required: each copy's assigned addresses, in the same order as the copies.
 
     Returns:
-        One `Revisit` per place, in ROLE then ADDRESS order -- so a task agent
+        One `Revisit` per place, in role then `where` order -- so a task agent
         reads a role's whole list together and can hand it over in one message.
         Empty where every role answered every place readably.
 
-        ! ONE ENTRY PER PLACE PER ROLE, and two roles owing the same address is
+        ! One entry per place per role, and two roles owing the same address is
         two entries. They are two things to fix, by two different agents;
         collapsing them would leave a reader unable to say who owes what.
 
-        ! NOTHING OF THE MARK IS COPIED. That is `Process: #72`, and it is why
-        this returns `Revisit` and not a container.
+        ! Nothing of the mark is copied, which is why this returns `Revisit`
+        and not a container.
     """
     out = [
         Revisit(copy.role, one.address, one.where, one.reasons)
@@ -97,7 +93,7 @@ def mark_errors(
         for sheet in copy.sheets
         for one in sheet.refused
     ] + [
-        # ! AN UNRULED PLACE ALWAYS HAS AN ADDRESS, so `where` is that address.
+        # ! An unruled place always has an address, so `where` is that address.
         # `Sheet.deserialize` refuses an untouched entry that names none rather
         # than counting it a coverage gap -- see `_sorted_entries`.
         Revisit(copy.role, address, address, (NOT_RULED,))
@@ -106,9 +102,9 @@ def mark_errors(
         for address in sheet.unruled
         if required is None or address in required[i]
     ]
-    # ! SORTED SO A STRANGER RE-DERIVES THE ORDER. The walk above is copy then
+    # ! Sorted so a stranger re-derives the order. The walk above is copy then
     # sheet then entry, which is an accident of how the stage was assembled;
-    # what a reader acts on is a role's places together. ! ON `where` RATHER
-    # THAN `address`, so an entry with no address sorts beside the page it sits
+    # what a reader acts on is a role's places together. ! On `where` rather
+    # than `address`, so an entry with no address sorts beside the page it sits
     # on instead of ahead of everything.
     return sorted(out, key=lambda one: (one.role, one.where))

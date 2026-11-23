@@ -10,10 +10,11 @@ from comment_review.desk.answers.table import (
 )
 from comment_review.desk.dispositions.table import DISPOSITIONS
 from comment_review.desk.evaluate.move import hold_ends, placement_pass, settle_ends
+from comment_review.desk.marks.rules import derived_change
 from comment_review.desk.marks.table import INSTRUCTIONS, Stance
 from comment_review.desk.proof.answer import QueryAnswer, Question, Rewrite
 from comment_review.desk.proof.disposition import CHIEF, ORIGINAL
-from comment_review.desk.proof.mark import Touch
+from comment_review.desk.proof.mark import Touch, mark_type
 from comment_review.desk.proof.move import Move
 from comment_review.desk.proof.place import Filed, Place
 from comment_review.desk.proof.state import CARRIED, State
@@ -70,6 +71,9 @@ def composed_side(
     if len(filed) == 1:
         one = filed[0]
         return INSTRUCTIONS[one.mark.instruction].sets(one.mark, one.touch, base), []
+    by_clause = _by_clause(filed, base)
+    if by_clause is not None:
+        return by_clause, []
     # Keyed by position, not by what `_named` calls the mark: two of a role's
     # corrections at one address are named the same, and one key would drop
     # one of them into the other and compose a pair with itself.
@@ -102,6 +106,52 @@ def composed_side(
         ]
 
 
+def _by_clause(filed: list[Filed], base: str) -> str | None:
+    """The base with each mark's quoted clause edited, or None to compose by line.
+
+    A `drop`, `correct` or `patch` names the clause it edits, so marks on
+    different sentences compose even where the sentences share a line, which a
+    line-by-line composition reads as one edit. Applied from the last clause
+    back, each through `derived_change`, so the clauses before it keep their
+    place. None where a mark quotes no clause, its `change` is not what its
+    claim derives, or two clauses overlap -- those compose by line, which
+    refuses a shared sentence.
+    """
+    edits = []
+    for one in filed:
+        quotes = mark_type(one.mark.instruction).quotes_original
+        if not quotes or one.touch is not Touch.OWN:
+            return None
+        claim = one.mark.serialize()["claim"]
+        derived, why = derived_change(
+            one.mark.instruction,
+            claim,
+            base,
+            address=one.mark.address,
+            anchor=one.mark.anchor,
+        )
+        if why or derived != getattr(one.mark, "change", None):
+            return None
+        at = base.index(claim[quotes])
+        edits.append((at, at + len(claim[quotes]), one.mark, claim))
+    edits.sort(key=lambda edit: edit[:2])
+    if any(
+        later[0] < earlier[1] for earlier, later in zip(edits, edits[1:], strict=False)
+    ):
+        return None
+    text = base
+    for at, end, mark, claim in reversed(edits):
+        quoted = claim[mark_type(mark.instruction).quotes_original]
+        if text[at:end] != quoted:
+            return None
+        text, why = derived_change(
+            mark.instruction, claim, text, address=mark.address, anchor=mark.anchor
+        )
+        if why or text is None:
+            return None
+    return text
+
+
 def sides_of(place: Place) -> tuple[dict[str, str | None], tuple[str, ...]]:
     """Role -> the one text it proposes here, and what would not compose.
 
@@ -115,12 +165,9 @@ def sides_of(place: Place) -> tuple[dict[str, str | None], tuple[str, ...]]:
         nothing there; a role whose marks would not compose is left out and
         named in the reasons instead.
     """
-    by_role: dict[str, list[Filed]] = {}
-    for one in place.filed:
-        by_role.setdefault(one.role, []).append(one)
     sides: dict[str, str | None] = {}
     reasons: list[str] = []
-    for role, filed in by_role.items():
+    for role, filed in _by_role(place).items():
         here = proposing(filed)
         if not here:
             continue
@@ -215,6 +262,29 @@ def owed_a_say(
     return tuple(sorted(out))
 
 
+def _anchor_reasons(place: Place) -> list[str]:
+    """One reason per role whose mark at its own address disagrees on the anchor.
+
+    A place carries one anchor, and the write end checks it against the page's
+    (`decision-log.md Process: #134`). Where the marks filed at their own
+    address carry different anchors, keeping any one of them discards the
+    rest unchecked, so every role holding one is refused, each reason naming
+    every role's anchor. A move filed at its destination is not counted: its
+    anchor is its origin's.
+    """
+    own = sorted(
+        (one for one in place.filed if one.mark.address == place.address),
+        key=lambda one: (one.role, one.mark.anchor),
+    )
+    if len({one.mark.anchor for one in own}) < 2:
+        return []
+    held = ", ".join(dict.fromkeys(f"{one.role} {one.mark.anchor!r}" for one in own))
+    return [
+        f"{role}: the marks at {place.address} carry differing anchors -- {held}"
+        for role in dict.fromkeys(one.role for one in own)
+    ]
+
+
 def marks_pass(place: Place) -> Place:
     """The place's state from the marks filed there, and what to advise on them.
 
@@ -234,7 +304,7 @@ def marks_pass(place: Place) -> Place:
             one.mark, one.touch, place.base
         )
     )
-    reasons = []
+    reasons = _anchor_reasons(place)
     for one in place.filed:
         row = INSTRUCTIONS[one.mark.instruction]
         if row.pairs(one.mark) is Stance.UNSETTLABLE:
@@ -335,7 +405,7 @@ def answers_pass(place: Place, turn: int) -> Place:
 
 
 def dispositions_pass(place: Place) -> Place:
-    """Close a carried-forward place on the chief's ruling.
+    """Close a place on the chief's ruling, where its row closes the place's state.
 
     A ruling that names the chief's own side (`CHIEF`) where its row does not
     fix that side -- every row but `recast` -- is refused by name, rather than
@@ -346,13 +416,13 @@ def dispositions_pass(place: Place) -> Place:
         return place
     row = DISPOSITIONS[place.disposition.name]
     side = place.disposition.taken_side
-    if place.state not in row.closes:
+    if not row.can_close(place.state):
         return _set(
             place,
             State.REFUSED,
             reasons=(
                 *place.reasons,
-                f"copy-chief: {place.disposition.name} cannot close a place "
+                f"{CHIEF}: {place.disposition.name} cannot close a place "
                 f"that is {place.state}",
             ),
         )
@@ -361,7 +431,7 @@ def dispositions_pass(place: Place) -> Place:
             place,
             State.REFUSED,
             reasons=(
-                f"copy-chief: {place.disposition.name} takes a role's side or the"
+                f"{CHIEF}: {place.disposition.name} takes a role's side or the"
                 f" original; the chief's own prose is a recast",
             ),
         )
@@ -369,7 +439,7 @@ def dispositions_pass(place: Place) -> Place:
         return _set(
             place,
             State.REFUSED,
-            reasons=(f"copy-chief: {side!r} proposed nothing here",),
+            reasons=(f"{CHIEF}: {side!r} proposed nothing here",),
         )
     text = row.sets(place.disposition, place.base, place.sides)
     return _set(place, State.STANDS, text=text)

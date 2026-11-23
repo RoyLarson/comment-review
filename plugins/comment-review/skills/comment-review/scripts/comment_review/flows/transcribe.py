@@ -290,7 +290,7 @@ def docket_of(copy: EditCopy, repo: Path) -> Docket:
     # docket without a word, which is how a landing goes missing from a run
     # that reports nothing wrong.
     refused = [
-        f"{copy.role} {one.where}: {why}"
+        events.refusal_line(copy.role, one.where, why)
         for sheet in copy.sheets
         for one in sheet.refused
         for why in one.reasons
@@ -307,7 +307,7 @@ def docket_of(copy: EditCopy, repo: Path) -> Docket:
     if not fold.committed:
         raise CannotTranscribe(
             tuple(
-                f"{one.role} {one.address}: {why}"
+                events.refusal_line(one.role, one.address, why)
                 for one in fold.events
                 if isinstance(one, events.Refused)
                 for why in one.reasons

@@ -1,4 +1,4 @@
-"""FILL -- place one role's ruling on its edit copy, in place.
+"""Fill -- place one role's ruling on its edit copy, in place.
 
     fill(copy, entry, root) -> (the entry as placed, []) or (None, problems)
     place_on_the_page(copies, address, root) -> (that sheet's marks, a slot, [])
@@ -18,21 +18,18 @@ held to -- and neither rule is written twice: the rows answer the first and
 `desk.evaluate.passes.composed_side`, which the fold itself asks, answers the
 second.
 
-!! IT DOES WHAT THE ROLES' OWN HELPERS DID. In the runs of 2026-09-06 and
-2026-09-07 every role wrote a script that found the slot by address, set the
-fields it had decided, built `change` by substituting the false clause inside
-the slot's `raw_text`, and appended a second entry for a second ruling -- and
-each one broke the brief's one-file rule to do it. Roy, watching: *"we should
-have made a script that fills it in for them."* `TODO/a-role-writes-its-own-
-mark-tool.md`. This is that script, and `commands/mark.py` exposes it.
+!! It does the placing a role would otherwise script for itself: it finds the
+slot by address, sets the fields the role decided, builds `change` by
+substituting the false clause inside the slot's `raw_text`, and inserts a
+second entry for a second ruling. `commands/mark.py` exposes it.
 
-!! ONE RULING PER CALL, AND IT WRITES NOTHING UNTIL EVERY CHECK HAS PASSED.
+!! One ruling per call, and it writes nothing until every check has passed.
 The entry is built whole -- placed, derived, quoted -- and then read into its
 type by `desk.proof.mark.read_mark`, the same boundary the fold applies; only a
 mark that parses lands on the copy. A refusal leaves the copy exactly as it was, so
 a role reads the reasons and calls again.
 
-! WHERE A RULING LANDS is decided by what the copy already holds at the address:
+! Where a ruling lands is decided by what the copy already holds at the address:
 
     an untouched slot        filled in place -- the seeded dict object itself
     a slot already ruled     a second entry, inserted right after it, seeded
@@ -46,8 +43,7 @@ a role reads the reasons and calls again.
                              the page's prose at an `f` place, which no role
                              is handed. The base is the page's, never the
                              role's own entry -- the rule the fold holds a
-                             place's base to (`decision-log.md Process:
-                             #187`), applied one layer up.
+                             place's base to, applied one layer up.
     no slot, no such page    refused
     no slot, no such place   refused -- the page carries every place, absent
                              and present, so a cue it does not hold names
@@ -57,12 +53,12 @@ The three "no slot" rows are `place_on_the_page`, which this flow's own `fill`
 also calls for a composition answer at a place the role's copy holds no
 slot for.
 
-!! THE COPY IS A WIRE DICT, NEVER AN `EditCopy`. `flows.proof_io`'s header
+!! The copy is a wire dict, never an `EditCopy`. `flows.proof_io`'s header
 says why: a role's copy mid-fill holds slots nobody has ruled on, and
 `Sheet.serialize` writes only the rulings, so parsing the copy to save it would
 drop every null slot -- the coverage the seeded shape exists to keep.
 
-! THE FLOW READS THE CHECKOUT AND THE DESK DOES NOT. `desk.marks.rules.derived_change`
+! The flow reads the checkout and the desk does not. `desk.marks.rules.derived_change`
 is the pure half -- the paragraph and the claim in, the change out -- and the
 cited line is read here, through `machine.repo.read_raw`, the same reader and
 the same splitter `desk.collator.source_problems` will check the result with.
@@ -77,6 +73,7 @@ from comment_review.desk.evaluate.passes import composed_side, proposing
 from comment_review.desk.marks.rules import derived_change
 from comment_review.desk.marks.table import INSTRUCTIONS, Row
 from comment_review.desk.proof.mark import (
+    ROLE_FIELDS,
     BlankMark,
     Instruction,
     Mark,
@@ -100,18 +97,11 @@ from comment_review.machine.repo import can_escape, read_raw
 from comment_review.reading.addresser import cue_of, unflatten
 from comment_review.reading.diagnostics import ReadFailure
 
-#: The fields a role decides, in the order a mark carries them. `address` is
-#: how the entry is placed; `anchor` is never read off the entry at all --
-#: a slot that must be created takes its anchor from the page. `raw_text` is
-#: read only for a row whose `carries_raw_text` is True, and ignored on every
-#: other row -- see `_composed_text`.
-ROLE_FIELDS = ("claim", "reason", "sources", "change")
-
 
 def _slot_at(copy: dict, address: str) -> tuple[list | None, int]:
     """The sheet's `marks` list holding `address`, and where on it, or `(None, -1)`.
 
-    The index is the LAST entry at that address, so a second ruling lands
+    The index is the last entry at that address, so a second ruling lands
     after every earlier one.
     """
     for sheet in copy.get("sheets", []):
@@ -201,7 +191,7 @@ def quoted_sources(root: Path | None, sources: object) -> tuple[list | None, lis
     A source already carrying `verbatim` is kept as given. One carrying only a
     `cite` has the line read out of the checkout and stripped -- the collator
     asks whether the text sits within three lines of the cite, and a stripped
-    line does. ! THE REFUSALS ARE THE COLLATOR'S OWN, asked before the send: a
+    line does. ! The refusals are the collator's own, asked before the send: a
     cite that is not `path:line`, a path that escapes the root, a file that
     cannot be read, a line past the end.
     """
@@ -260,8 +250,7 @@ def row_problems(mark: Mark, base_at: Callable[[str], str]) -> list[str]:
 
     The row says which places it touches and what it reads at each; this walks
     them and asks. A `move` is the row with two, so its origin is read against
-    the origin's paragraph and its destination against the destination's --
-    `decision-log.md Process: #172` and `#175`.
+    the origin's paragraph and its destination against the destination's.
 
     Args:
         mark: one parsed mark.
@@ -306,7 +295,7 @@ def composition_problems(
 ) -> list[tuple[str, str]]:
     """Every place where several of one role's marks will not compose.
 
-    `decision-log.md Process: #179`: a role's own marks at one place compose
+    A role's own marks at one place compose
     against the base the way two roles' do, so two on different sentences are
     one side and two on the same sentence are refused back to the role. The
     rule is `desk.evaluate.passes.composed_side`, which the fold asks; this
@@ -421,8 +410,8 @@ def _seeded_beside(
 
     The anchor and the paragraph come off the entry already at the address,
     which is where they were copied to -- except where that entry's row wrote
-    its own `raw_text`, the paragraph as it will read rather than as it stands
-    (`decision-log.md Process: #175`, `#176`). Reseeding from that would give
+    its own `raw_text`, the paragraph as it will read rather than as it stands.
+    Reseeding from that would give
     the next ruling at the place a base the page never held, so the page is
     read again instead.
     """
@@ -440,15 +429,15 @@ def _composed_text(
 ) -> tuple[str | None, list[str]]:
     """The `raw_text` this mark carries -- the role's, the seed's, or a refusal.
 
-    `decision-log.md Process: #175` and `#176`: on a row whose
-    `carries_raw_text` is True the field is the paragraph as it will read, with
+    On a row whose `carries_raw_text` is True the field is the paragraph as
+    it will read, with
     the added or moved text in, and the role writes it. A row that touches a
     destination always owes one, since the paragraph it describes is at the
     other end and nothing here stands in for it. A row that does not owes one
     only where the place already holds prose -- at an empty place the snippet
     and the paragraph as it will read are the same text. On a row that does not
     carry its own `raw_text`, a `raw_text` in the entry is ignored and the seed's
-    text is placed (`decision-log.md Process: #204`).
+    text is placed.
 
     Returns:
         `(the text, [])`, or `(None, [one message])`. The text is the seeded
@@ -479,7 +468,7 @@ def fill(copy: dict, entry: dict, root: Path | None) -> tuple[dict | None, list[
 
     Args:
         copy: a role's edit_copy as its wire dict, as `load_copy` returns it.
-            MUTATED on success, and only then.
+            Mutated on success, and only then.
         entry: what the role decided -- `address`, `instruction`, and whichever
             of `claim`, `reason`, `sources` and `change` its row owes. `change`
             may be left out where the row quotes a clause; `derived_change`
@@ -497,9 +486,8 @@ def fill(copy: dict, entry: dict, root: Path | None) -> tuple[dict | None, list[
     The row is what decides whether the ruling stands: `row_problems` runs its
     `reads` at every place it writes, against the pages, and a problem there is
     a refusal in the row's own words. An `add` over prose keeps every word of
-    that prose in order (`decision-log.md Process: #132` and `#176`); a `move`
-    subtracts its snippet from the origin exactly once and lands a destination
-    paragraph holding both (`#172`, `#175`).
+    that prose in order; a `move` subtracts its snippet from the origin exactly
+    once and lands a destination paragraph holding both.
     """
     problems = copy_reading_problems(copy)
     if problems:
@@ -511,7 +499,7 @@ def fill(copy: dict, entry: dict, root: Path | None) -> tuple[dict | None, list[
     if not isinstance(named, str) or named not in INSTRUCTIONS:
         return None, [f"`instruction` must be one of {', '.join(sorted(INSTRUCTIONS))}"]
     # What the stage admits is asked before anything is built, and the copy
-    # is what carries it (`decision-log.md Process: #193`). A role learns the
+    # is what carries it. A role learns the
     # rule from the refusal here rather than from the fold, three commands
     # later -- and `commands/check.py` asks the same function of a copy
     # written by hand.
@@ -536,6 +524,8 @@ def fill(copy: dict, entry: dict, root: Path | None) -> tuple[dict | None, list[
         in_place = untouched(marks[at])
 
     mark: dict = {**seeded, "instruction": named}
+    # `raw_text` is not a role's field: `_composed_text` reads it off the
+    # entry only for a row whose `carries_raw_text` is True.
     for key in ROLE_FIELDS:
         if key in entry and entry[key] is not None:
             mark[key] = entry[key]
@@ -616,20 +606,28 @@ def fill(copy: dict, entry: dict, root: Path | None) -> tuple[dict | None, list[
     return mark, []
 
 
-def withdraw(copy: dict, address: str) -> tuple[dict | None, list[str]]:
-    """Every ruling the copy holds at `address`, taken back.
+def withdraw(
+    copy: dict, address: str, instruction: str, quote: str | None = None
+) -> tuple[dict | None, list[str]]:
+    """One ruling the copy holds at `address`, taken back.
 
-    Remove every ruling at the address. Check uses the received binder to
+    The ruling is the one placed there with this instruction; where two are,
+    `quote` names it. The other rulings at the address stay as they were, and
+    the slot goes with the last one. Check uses the received binder to
     determine whether that place still requires a ruling.
 
     Args:
-        copy: a role's edit_copy as its wire dict. MUTATED on success, and only
+        copy: a role's edit_copy as its wire dict. Mutated on success, and only
             then.
         address: `path@cue`, as the slot carries it.
+        instruction: which of the seven the ruling is.
+        quote: the clause a `drop`, `correct` or `patch` quotes, or the
+            `change` of an instruction that quotes none.
 
     Returns:
         `({}, [])` on removal, or `(None, [message])` with the copy untouched
-        where nothing is placed.
+        where nothing is placed, no ruling of the instruction is, or the
+        rulings there are not one the quote names.
     """
     problems = copy_reading_problems(copy)
     if problems:
@@ -644,6 +642,31 @@ def withdraw(copy: dict, address: str) -> tuple[dict | None, list[str]]:
     ]
     if all(untouched(marks[i]) for i in here):
         return None, [f"{address}: nothing is placed there to withdraw"]
-    for i in reversed(here):
-        del marks[i]
+    named = [
+        i
+        for i in here
+        if not untouched(marks[i]) and marks[i].get("instruction") == instruction
+    ]
+    if not named:
+        return None, [f"{address}: no {instruction} is placed there to withdraw"]
+    if quote is not None:
+        named = [i for i in named if _quote_of(marks[i]) == quote]
+        if not named:
+            return None, [f"{address}: no {instruction} there quotes {quote!r}"]
+    if len(named) > 1:
+        quotes = ", ".join(repr(_quote_of(marks[i])) for i in named)
+        return None, [
+            f"{address}: {len(named)} rulings of {instruction} are placed there"
+            f" ({quotes}); name one with --quote"
+        ]
+    del marks[named[0]]
     return {}, []
+
+
+def _quote_of(entry: dict) -> str:
+    """What names one placed ruling among others of its instruction."""
+    key = mark_type(Instruction(entry["instruction"])).quotes_original
+    claim = entry.get("claim")
+    if key and isinstance(claim, dict):
+        return str(claim.get(key, ""))
+    return str(entry.get("change", ""))

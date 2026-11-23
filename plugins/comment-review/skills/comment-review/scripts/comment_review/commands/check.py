@@ -31,8 +31,8 @@ For a COPY: the envelope (`EditCopy.deserialize`), missing required rulings
 against the received binder, every assigned place the role left unruled or
 wrote unreadably (`flows.mark_errors`), source
 verification and whether each address and each move's destination names a
-place its page carries (`flows.verify.copy_problems`, the call the fold makes
-for every copy), and what each mark's row finds against the page's text at
+place its page carries (`flows.verify.copy_problems`, which applies the same
+rules as collate), and what each mark's row finds against the page's text at
 the places it writes (`flows.fill.row_problems`, `composition_problems`). For a
 BATCH: `flows.answers.answers_of`, the call the turn makes for each role --
 every answer paired to the slot that went out at its address, and read against
@@ -60,11 +60,19 @@ import json
 import sys
 from pathlib import Path
 
-from comment_review.commands.collate import ASKS_THE_HUMAN, _human_answers, _lines
+from comment_review.commands.report import (
+    ASKS_THE_HUMAN,
+    BROKEN,
+    OK,
+    UNREADABLE,
+    human_answers,
+    lines,
+    refused,
+)
 from comment_review.desk.collator import Cache, Problem
 from comment_review.desk.marks.table import INSTRUCTIONS
 from comment_review.desk.proof.edit_copy import EditCopy
-from comment_review.desk.report import AsksTheHuman
+from comment_review.desk.report import AsksTheHuman, refusal_line
 from comment_review.desk.stages import not_admitted
 from comment_review.flows.answers import answers_of, contracts, slot_key, slots_of
 from comment_review.flows.fill import composition_problems, row_problems
@@ -72,6 +80,7 @@ from comment_review.flows.human import (
     HumanAnswer,
     HumanQuery,
     answered,
+    corrections_to_matter,
     queries_in_answers,
     queries_in_copies,
 )
@@ -90,25 +99,11 @@ from comment_review.flows.reading_context import (
 from comment_review.flows.verify import (
     copy_problems,
     coverage_problems,
+    gathered_tree_problem,
     lookup_contexts,
     required_places,
 )
 from comment_review.reading.context import ReadingContext
-
-#: Exit codes -- `distribute`'s 0/1/2, and `collate`'s `ASKS_THE_HUMAN`.
-#: `BROKEN` is anything the fold would refuse or send back; `UNREADABLE` is a
-#: file that is not an object at all; `ASKS_THE_HUMAN` is human questions and
-#: nothing else.
-OK = 0
-BROKEN = 1
-UNREADABLE = 2
-
-
-def _refused(why: list[str]) -> int:
-    """A file that is not what it says: every reason on stderr, `UNREADABLE`."""
-    for line in why:
-        print(line, file=sys.stderr)
-    return UNREADABLE
 
 
 def _row_problems(
@@ -187,7 +182,7 @@ def _for_the_role(query: HumanQuery) -> str:
     """An unanswered human question, as the role that filed it reads it.
 
     `collate` and `turn` print the same question for the task agent, whose
-    part is to ask it and record the answer (`commands.collate._lines`). The
+    part is to ask it and record the answer (`commands.report.lines`). The
     reader of `check` is the role, which cannot ask the human: its part ends
     at filing the question, so this line says so rather than handing it the
     task agent's instruction (`decision-log.md Process: #197`).
@@ -211,7 +206,7 @@ def _asks_the_human(queries: list[HumanQuery], human: tuple[HumanAnswer, ...]) -
             print(_for_the_role(query))
             continue
         event = AsksTheHuman(query.role, query.at, query.question, answer.answer)
-        for line in _lines(event):
+        for line in lines(event):
             print(line)
     return len(queries)
 
@@ -235,7 +230,7 @@ def _check_copy(
 ) -> int:
     loaded, why = load_copy(Path(path))
     if why:
-        return _refused(why)
+        return refused(why)
     problems = copy_reading_problems(loaded, path)
     if problems:
         for line in problems:
@@ -247,21 +242,21 @@ def _check_copy(
             print(line)
         return BROKEN
     if not binder_path:
-        return _refused(["check --edit-copy needs --binder to check required rulings"])
+        return refused(["check --edit-copy needs --binder to check required rulings"])
     binder, why = load_binder(Path(binder_path))
     if binder is None:
-        return _refused(why)
+        return refused(why)
     contexts, why = binder_reading_contexts(binder, "received binder")
     if why:
-        return _refused(why)
+        return refused(why)
     contexts, why = lookup_contexts(copy, contexts)
     if why:
-        return _refused(why)
+        return refused(why)
     found = 0
     required = [required_places(binder)]
     for one in mark_errors([copy], required):
         for reason in one.reasons:
-            print(f"{one.role} {one.where}: {reason}")
+            print(refusal_line(one.role, one.where, reason))
             found += 1
     # What the stage admits, asked of a copy written by hand -- the same
     # `desk.stages.not_admitted` `flows.fill` asks as a ruling is placed
@@ -270,7 +265,7 @@ def _check_copy(
         for one in sheet.marks:
             why = not_admitted(copy.stage, copy.admits, str(one.instruction))
             if why:
-                print(f"{copy.role} {one.address}: {why}")
+                print(refusal_line(copy.role, one.address, why))
                 found += 1
     if binder is not None:
         root = Path(repo) if repo else binder.root
@@ -282,16 +277,14 @@ def _check_copy(
             *_row_problems(copy, paths, root, pages, contexts=contexts),
             *coverage_problems([copy], binder),
         ):
-            print(
-                f"{problem.role} {problem.address or '(the copy)'}: {problem.message}"
-            )
+            where = problem.address or "(the copy)"
+            print(refusal_line(problem.role, where, problem.message))
             found += 1
-        if copy.read_from != binder.read_from:
-            print(
-                f"{copy.role}: copy and received binder name different gathered trees"
-            )
+        if problem := gathered_tree_problem(copy, binder):
+            print(refusal_line(problem.role, "(the copy)", problem.message))
             found += 1
     asked = _asks_the_human(queries_in_copies([copy]), human)
+    asked += _asks_the_human(corrections_to_matter([copy], human), ())
     print(
         f"{path}: {found} thing(s) the fold would send back, {asked} question(s)"
         " for the human"
@@ -343,10 +336,10 @@ def _check_answers(
 ) -> int:
     loaded, why = load_value(Path(path))
     if why:
-        return _refused(why)
+        return refused(why)
     batch, why = load_batch(Path(sent_path))
     if why:
-        return _refused(why)
+        return refused(why)
     slots = slots_of(batch, role)
     if not slots:
         print(f"{sent_path}: no slots were sent to {role}")
@@ -361,7 +354,8 @@ def _check_answers(
         role, sent, slots_of(loaded, role), _never_sent, _root_of(repo, sent), cache
     )
     for one in problems:
-        print(f"{one.role} {one.address or '(the batch)'}: {one.message}")
+        where = one.address or "(the batch)"
+        print(refusal_line(one.role, where, one.message))
     asked = _asks_the_human(queries_in_answers({role: answers}), human)
     print(
         f"{path}: {len(answers)} answered, {len(problems)} the fold would refuse,"
@@ -420,9 +414,9 @@ def main() -> int:
         # contract by hand and got `query` wrong.
         print(json.dumps(contracts(), indent=2))
         return OK
-    human, why = _human_answers(args.human)
+    human, why = human_answers(args.human)
     if why:
-        return _refused(why)
+        return refused(why)
     if args.answers:
         if not args.role or not args.sent:
             print("check --answers needs --role and --sent", file=sys.stderr)

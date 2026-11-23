@@ -6,25 +6,24 @@
         [--revise REVISE_ROOT]
 
 The work is `flows.distribute`, `flows.fan_out` and `desk.marks`; this is only
-the
-console face of it.
+the console face of it.
 
-!! `--stage` IS THE TOPOLOGY'S READER -- `decision-log.md Process: #74`. One
+!! `--stage` is the topology's reader. One
 invocation reads one stage's dispatches out of the topology and writes one
 seeded edit copy per dispatch, in dispatch order, as `DIR/<stage>_<role>_<n>.json`.
 Its received binder is saved as `DIR/binders/<stage>_<role>_<n>.json`.
-The task agent reads the ORDER of the stages from SKILL.md and runs this once
-per stage (`#73`); no command sequences them.
+The task agent reads the order of the stages from SKILL.md and runs this once
+per stage; no command sequences them.
 
-!! AND THE STAGE'S `reads` DECIDES WHICH TREE IT IS SEEDED FROM. A stage
+!! And the stage's `reads` decides which tree it is seeded from. A stage
 reading `"revise:<name>"` is seeded from the revise that stage's `proof`
 pulled: `--revise` names that root and the binder must be the one gathered
 from it, which `desk.topology.seeded_from_problem` rules on. A stage reading
 `"original"` takes no `--revise`. The rule is the topology's; this passes it
 the stage, the root and what the binder says about itself.
 
-!! A MODULE DOES ONE JOB AND HAS NO CLI; A FLOW CALLS MODULES;
-A COMMAND EXPOSES A FLOW. `decision-log.md Process: #12`.
+!! A module does one job and has no CLI; a flow calls modules; a command
+exposes a flow.
 
 This command seeds and does not check. `collate` checks every copy before it
 folds, so a malformed copy is never folded; the `check` command checks one
@@ -51,14 +50,13 @@ FAN_REFUSALS = (OverlappingShards, UncoveredPage, IncompatibleBinder)
 
 
 def _as_json(payload: dict) -> str:
-    """This command's ONE `json.dumps` -- `P43`, `decision-log.md Process: #65`.
+    """This command's one `json.dumps`, for every JSON it prints or writes.
 
-    !! TWO BRANCHES, TWO DESTINATIONS, ONE SPELLING. `--shape` prints and
-    `--seed` writes a file, and each carried its own `json.dumps(..., indent=2)`
-    until `P43`. They are both at the SAVE end, which is where the rule allows
-    raw json -- what the rule does not allow is one command holding two answers
-    to *how does this command write JSON*, because that is where an indent or an
-    encoding drifts apart between two outputs nobody compares.
+    !! Several outputs, one spelling. `--shape` prints, and `--seed` and
+    `--stage` write files. All of them are at the save end, which is where the
+    rule allows raw json -- what the rule does not allow is one command holding
+    two answers to *how does this command write JSON*, because that is where an
+    indent or an encoding drifts apart between outputs nobody compares.
     """
     return json.dumps(payload, indent=2)
 
@@ -71,10 +69,11 @@ def main() -> int:
         input could not be read.
     """
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument(
+    mode = ap.add_mutually_exclusive_group()
+    mode.add_argument(
         "--shape", action="store_true", help="print what a mark may carry, as JSON"
     )
-    ap.add_argument("--seed", action="store_true", help="write a fillable edit_copy")
+    mode.add_argument("--seed", action="store_true", help="write a fillable edit_copy")
     ap.add_argument("--binder", help="the binder to seed from (--seed only)")
     # `choices=` takes the string values, not the `Role` members themselves:
     # argparse's "invalid choice" message reprs each choice, and a `StrEnum`
@@ -87,7 +86,7 @@ def main() -> int:
     )
     ap.add_argument("--out", help="the file to write (--seed only)")
     ap.add_argument("--topology", help="the run's topology file (--stage only)")
-    ap.add_argument("--stage", help="the stage to seed, by its name in the topology")
+    mode.add_argument("--stage", help="the stage to seed, by its name in the topology")
     ap.add_argument(
         "--out-dir", help="where one copy per dispatch is written (--stage only)"
     )
@@ -111,8 +110,8 @@ def main() -> int:
             wanted = ", ".join("--" + n for n in missing)
             print(f"--seed needs {wanted}", file=sys.stderr)
             return 2
-        # !! THE LOAD IS THE FLOW'S, THE DESERIALIZE THE CONTAINER'S --
-        # `decision-log.md Process: #67`; `flows.proof_io.load_binder` is both.
+        # !! The load is the flow's, the deserialize the container's;
+        # `flows.proof_io.load_binder` is both.
         binder, problems = load_binder(Path(args.binder))
         if binder is None:
             for line in problems:
@@ -154,7 +153,7 @@ def main() -> int:
             for line in problems:
                 print(line, file=sys.stderr)
             return 2
-        # ! THE TWO PATHS ARE RESOLVED BEFORE THE RULE ASKS, and only here: a
+        # ! The two paths are resolved before the rule asks, and only here: a
         # binder writes its root relative to the directory the gather was run
         # from, so the same tree is spelled two ways and a comparison of what
         # was typed would refuse a stage that is correctly seeded.
@@ -167,7 +166,7 @@ def main() -> int:
         if why:
             print(why, file=sys.stderr)
             return 2
-        # ! REFUSED BEFORE ANYTHING IS WRITTEN. `dealt` raises on the two guards
+        # ! Refused before anything is written. `dealt` raises on the two guards
         # over the whole stage, so a stage that does not fit leaves no copies
         # behind for a role to be handed.
         try:

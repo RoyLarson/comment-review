@@ -2,29 +2,21 @@
 
 `page_for()` builds one. Every line of the file is classified -- this line is
 code, this PART of a line is code, this line is comment, this line is docstring
--- and each line belongs to a PARAGRAPH, which is one unit of prose or the empty
-place where prose could go.
+-- and each line that is not code belongs to a PARAGRAPH, which is one unit of
+prose, a run of leading, or the empty place where prose could go.
 
 `page_for` builds it in steps: the cues are named, `empty_places` gives every
 place no prose fills a paragraph of its own, `fill_the_gaps` divides each gap's
 lines among its `b` places, and `tie_leading` keys each blank run by the place
-it follows.
+it follows. Before the cues, `leading_between` makes every blank run no
+paragraph holds a paragraph of its own; before the gaps are divided,
+`held_twice` refuses a page where two paragraphs hold one address.
 
 A page is all of the addresses in the file, which is what makes it a page and
 not a list.
 The read's `code_lines` hands `cue` its lines of code, each carrying the
 documentation place it declares; `addresser` emits every place, filled or not, and
-`attach` says which one a given paragraph sits in. A paragraph does not compute
-its own cue -- if it did, a place would exist only when prose happened to fill
-it.
-
-`Page.serialize` and `RedactedPage` are the page as a binder carries it: the
-five fields of each place, and the page read back with its source text and its
-empty places struck out.
-
-! The GATHER is every page in scope, put in the form the agents read. One page
-is one file, so building one is not its work: its job is to take the output of
-every page, and this module is where a page comes from.
+`attach` says which one a given paragraph sits in.
 
 !! IT IS A FLAT LIST, AND THAT IS THE SHAPE OF THE THING. Paragraphs run down a
 page and do not nest. An address is an ORDINAL over a linear sequence and cannot
@@ -33,6 +25,10 @@ express containment, so the two agree by construction rather than by compromise.
 !! THE ADDRESSER only needs to know the type of Series (DECLARED, GAP, ON, LEAD,
 COVERS): it imports no `Paragraph`. `attach` reads paragraphs, so it is a page
 question and lives here.
+
+`Page.serialize` writes a page as a binder carries it. `RedactedPage` is a page
+with its text and its empty places struck out, and every page a binder reads
+back is one.
 """
 
 from collections.abc import Collection
@@ -63,37 +59,10 @@ from comment_review.reading.readers import read_source
 from comment_review.reading.registry import LanguageRegistry
 from comment_review.reading.series import Kind, Series
 
-#: The five fields a place is carried by, in the order `Page.serialize` writes
-#: them. ! `path` IS NOT AMONG THEM: the page states it once, because repeating
-#: it per place is the same string as many times as the file has paragraphs.
+#: The five fields a place is carried by, in the order `_place` writes them.
+#: `path` is not among them: the page states it once, because repeating it per
+#: place is the same string as many times as the file has paragraphs.
 WIRE_FIELDS = ("cue", "anchor", "original_start", "original_end", "raw_text")
-
-# !! EVERY LINE HAS AN ADDRESS, AND SO DOES EVERY POTENTIAL LINE. Without an
-# empty `c` there is no way to say a comment belongs at the end of a code line,
-# and without an empty `b` no way to say code should have lines of comment above
-# it. So each series but `d` has an EMPTY kind, and they are what an `add`
-# cites:
-#
-#   a   `undocumented`  a declaration with no docstring
-#   b   `interval`      a gap with no prose
-#   c   `margin`        a code line with no trailing comment
-#   f   `dark-matter`   a file with none of its own prose
-#
-# !! THE QUESTION IS ASKED OF `Kind`, AND THIS MODULE KEEPS NO SET.
-# `Kind.holds_no_prose` is what a count or a record asks; it is not listed
-# here, and derives from `Series`.
-
-# !! THE FILE'S OWN PROSE IS A PARAGRAPH TYPE, AND THE READER STATES IT -- see
-# `Kind.MATTER`. Stamping it HERE would put a positioning rule in a module that
-# may hold none, and make the page reconstruct what "top of the file" meant from
-# a run already typed `comment`.
-#
-# ! ONE TYPE FOR BOTH ENDS. Which end a run sits at is read by `page_for` from
-# where it opens -- line 1 takes the first `f` place, any other run the last --
-# not recorded as a second fact that could disagree.
-#
-# Every consumer downstream asks the series, not this -- see `Page.prose`.
-# Asking the type would miss the EMPTY place, which has no prose to type.
 
 
 @dataclass
@@ -112,8 +81,9 @@ class Page:
     Attributes:
         path: as the REPO sees it. Every citation resolves against that root.
         text: the file, exactly as it reads. What a splice is checked against.
-        sha: of `text`, RECEIVED from the read and never derived here. ! The
-            write chain compares it against the one the binder recorded, which
+        sha: of the source the caller read, received with it and never derived
+            here -- not of `text` where the read broke a docstring's shared line.
+            The write chain compares it against the one the binder recorded, which
             is the only comparison that can fail -- a sha this module took for
             itself would be asking whether the text equals itself.
         paragraphs: in order down the page, prose and empty places alike.
@@ -135,17 +105,6 @@ class Page:
     cues: Cues
     reading: ReadingContext
     read: SourceRead
-    # !! `serialize` IS BELOW, AFTER `leading`. It writes what a binder carries
-    # for this page -- see `_place` for the five fields and `RedactedPage` for
-    # the variant that emits only the places holding prose.
-    #
-    # ! `leading` IS THE PAGE'S, NOT `cue`'S: `cue` runs before any prose is
-    # read, and leading exists only where the PAGE found a blank run. `cue`
-    # cannot know a `d` is there, so it cannot be `cue`'s to hold.
-    #
-    # !! ONE KEY, NOT A PAIR: the place a run follows. A second key naming the
-    # place after it goes stale on a `drop`, naming a place the run no longer
-    # separates. See `tie_leading`.
     leading: dict[str, str] = dataclass_field(default_factory=dict)
 
     def __iter__(self):
@@ -312,6 +271,7 @@ class RedactedPage:
             comparison that can fail.
         paragraphs: the places carried, in order down the page. ORDINARY
             paragraphs -- see `_paragraph`.
+        reading: how the file was read -- the same field a `Page` carries.
     """
 
     path: str
@@ -446,16 +406,11 @@ def attach(paragraph: dict, cues: "Cues") -> str:
     Returns:
         The cue, or "" when the paragraph states no position to tie it to.
     """
-    # ! FRONT MATTER IS THE FILE'S, so it takes an `f` place wherever it sits.
-    # Asking `above()` would give it the gap it happens to occupy, which is the
-    # gap that introduces the first statement and belongs to that statement.
-    # !! THE READER SAYS SO, and this only reads it. Stamping it here instead
-    # would be a positioning rule in a module that may hold none.
-    #
-    # ! WHICH `f` IS A POSITION -- `page_for` gives a run opening on line 1, or
-    # ending above the last line, the first `f` place `cue` emitted, and any
-    # other run the last. This says only that the question is not `above()`'s
-    # to answer.
+    # Front matter is the file's: the reader types it `Kind.MATTER`, and this
+    # only reads that type. `page_for` gives it an `f` place without asking
+    # this, so here it is tied to nothing. Asking `above()` would give it the
+    # gap it happens to occupy, which is the gap that introduces the first
+    # statement and belongs to that statement.
     if paragraph.get("kind") == Kind.MATTER:
         return ""
     if Series.of_kind(str(paragraph.get("kind", ""))) is Series.ON:
@@ -473,9 +428,10 @@ def empty_places(
     ! `cue` already emitted every place and said where each sits. This asks
     only which of them prose is sitting in, and gives the rest a paragraph.
 
-    ! An empty place occupies no lines -- that is what the ABSENT half of a series
-    means, see `Series` -- and it is why emitting one cannot move a code
-    line or renumber anything below it.
+    An empty place adds no line to the text: an `undocumented` or `dark-matter`
+    place stands on none, a `margin` on its own code line, and an `interval`
+    provisionally on its gap's lines -- so emitting one cannot move a code line
+    or renumber anything below it.
 
     Args:
         text: the page's source.
@@ -609,7 +565,7 @@ def empty_places(
 def leading_between(
     paragraphs: list["Paragraph"], text: str, code: Collection[int]
 ) -> list["Paragraph"]:
-    """Every blank run no paragraph holds, as LEADING -- see `LEADING`.
+    """Every blank run no paragraph holds, as LEADING -- see `Kind.LEADING`.
 
     !! ONE RULE FOR ALL READERS, and that is the point of it being a pass rather
     than a branch inside each.
@@ -782,6 +738,10 @@ def page_for(
 
     Reads the file, addresses every paragraph and empty place, refuses the page
     when two paragraphs hold one address, divides the gaps and ties the leading.
+
+    The page's `text` is the read's, which differs from the `text` passed in
+    where a docstring shared its line with code; `sha` is stored as given, so it
+    is of the source before that break.
     """
     result = read_source(path, text, registry=registry)
     if isinstance(result, ReadFailure):
@@ -863,13 +823,13 @@ def page_for(
 def fill_the_gaps(text: str, paragraphs: list[Paragraph], cues: Cues) -> None:
     """Give every line of a gap to the paragraph it belongs to, blanks included.
 
-    !! EVERY LINE HAS AN ADDRESS. A paragraph addressed only by the lines its
-    prose occupies leaves a blank line beside it belonging to nothing, and a
-    reviewer asking which place holds one gets no answer at all.
+    Every line of a gap is held by a paragraph. A paragraph addressed only
+    by the lines its prose occupies leaves a blank line beside it belonging to
+    nothing, and a reviewer asking which place holds one gets no answer at all.
 
-    ! A paragraph runs to the next paragraph, or to the end of its gap. Leading
-    blanks go to the first paragraph in the gap and trailing blanks to the last,
-    which is the same rule read from either end.
+    A paragraph runs to the next paragraph, or to the end of its gap. A blank
+    line no prose holds is already a run of leading, which owns its lines
+    exactly, so a `b` is given only the gap's lines no other paragraph holds.
 
     !! IT MOVES THE ORIGINAL RANGE WITH IT, and `raw_lines` with that. With the
     two ranges disagreeing, a blank line is addressed by a paragraph and covered

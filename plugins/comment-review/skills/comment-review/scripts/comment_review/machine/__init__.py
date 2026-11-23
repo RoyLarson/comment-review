@@ -1,19 +1,12 @@
-"""What the machine says: the checkout, the filesystem, the console, the tuples.
+"""What the machine says: the checkout, the filesystem, and text read off disk.
 
-    repo         git, and reading a file off disk
-    constants    the text/encoding rules, and the console guard
-    exceptions   every exception tuple, bound to a NAME
+    repo         git, and reading and writing a file's exact bytes
     json_object  text as a JSON object, or why it is not one
-    differences  renders two texts against each other -- `unified`, and
-                 `diff3` for the base paragraph plus every role's edit, and
-                 `compose` where no two sides touched one span. Rules on
-                 nothing, and does no file I/O
+    digests      the SHA-256 of bytes a caller supplies
 
-!! THE TUPLES LIVE HERE SO NO SHIPPED `except` CLAUSE HOLDS A LITERAL. A repo
-targeting a newer ruff `target-version` can rewrite `except (A, B):` into PEP 758
-form, which is a `SyntaxError` on the floor interpreter -- and the author of this
-repo never sees it, because the rewrite happens in someone else's `.claude/`.
+The exception tuples are not here: `exceptions`, like `constants` and
+`differences`, is a leaf at the package root.
 
-! THE NAME IS PROVISIONAL. `io` was the obvious word and collides: an `io`
+! The name is provisional. `io` was the obvious word and collides: an `io`
 package would shadow the stdlib name ambiguously for any reader.
 """

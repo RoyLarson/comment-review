@@ -1,6 +1,5 @@
 """SOURCE-VERIFICATION: one role's marks against the tree they were read from.
 
-    known_addresses()          every address the binder carries
     claim_verbatim_problems()  the sentence the claim quotes is really in a
                                text at its place
     source_problems()          every `cite` resolves inside the checkout, and
@@ -9,7 +8,6 @@
     verify_report()            those three, over every ruled mark of one
                                edit_copy
     Problem                    one thing wrong with one mark, named to route
-    tally()                    how many of each instruction the edit_copy carries
 
 !! TWO KINDS OF CHECK, AND WHAT EACH NEEDS IS WHAT SEPARATES THEM. NAMED BY
 MEMBER, NOT BY FILE-ORDER RANGE -- `desk/marks/rules.py` answers everything a
@@ -24,10 +22,8 @@ THE BINDER CARRIES IS NOT ASKED, since 2026-09-05 -- `decision-log.md Process:
 place it dropped and a `move` may cite a file it never held;
 `flows.verify.resolution_problems` opens the page and says whether the place
 exists.
-`known_addresses` stays for the revise diff; the coverage count asks what came
-back against what was handed out, and reads `binder.addresses.handed` for that.
-One kind needs only the report itself, and nothing outside it (`Problem`,
-`tally`) -- `decision-log.md Process: #54` put them here because they ask
+One kind needs only the report itself, and nothing outside it (`Problem`).
+`decision-log.md Process: #54` put these checks here because they ask
 about the SET, and one mark cannot answer for the set alone. ! TWO MORE
 STOOD IN THAT GROUP UNTIL `P52`; `flows.mark_errors` answers what they did.
 Nothing here compares a returned `raw_text` with what was seeded: the middle
@@ -51,21 +47,19 @@ mark: an entry that is not an object produces one carrying `address=""`, with
 nothing in the message naming a mark at all.
 
 !! EVERY FUNCTION HERE TAKES A CONTAINER, NEVER A WIRE DICT, since 2026-08-31
--- `P42`, `decision-log.md Process: #65`. `verify_report` and `tally` take an
+-- `P42`, `decision-log.md Process: #65`. `verify_report` takes an
 `EditCopy`.
 
 !! AND THE DOCKET IS NOT BUILT HERE, since `P55`. `docket_from` and
 `_real_pages` lived in this file and imported `Alteration`, `Schedule` and
 `Docket` -- the only MIDDLE-to-WRITE-END import in the tree. The transcription
-is `flows/revise.py::docket_of`, which takes an `EditCopy`, because a FLOW may
+is `flows/transcribe.py::docket_of`, which takes an `EditCopy`, because a FLOW may
 reach both ends and neither end may reach the other. `decision-log.md Process:
 #76`.
 
-!! AND THE THREE VERIFICATION QUESTIONS ARE ASKED IN PRODUCTION, which
-this file's prose assumed the opposite of until 2026-08-31.
-`flows.bus` calls `verify_report` per copy; `grep -rn "verify_report" src/`
-returns a caller outside this module, where before it returned only sentences
-inside it. `decision-log.md Process: #58`, `P25`.
+`flows.verify.admitted_copy_problems` calls `verify_report` per copy.
+`flows.bus` admits all returned copies together. `commands/check.py`
+uses `flows.verify.copy_problems` to admit the one copy it is handed.
 """
 
 from collections.abc import Mapping
@@ -73,10 +67,8 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from comment_review import constants
-from comment_review.binder.binder import Binder
-from comment_review.desk.marks.table import INSTRUCTIONS
 from comment_review.desk.proof.edit_copy import EditCopy
-from comment_review.desk.proof.mark import Instruction, Mark, filled, without_location
+from comment_review.desk.proof.mark import Mark, filled, without_location
 from comment_review.desk.proof.source import entry_problems
 from comment_review.exceptions import READ_ERRORS
 from comment_review.machine.repo import can_escape, read_raw
@@ -93,19 +85,6 @@ WITHIN = 3
 Cache = dict[str, tuple[str, ...] | None]
 
 
-def known_addresses(binder: Binder) -> frozenset[str]:
-    """Every address the binder's rows carry, as a set to test membership on.
-
-    Args:
-        binder: the deserialized binder. Each row already knows its own path
-            and address -- a page rejoins them when it is read back.
-
-    Returns:
-        The addresses. A row carrying an empty one is dropped.
-    """
-    return frozenset(b.address for b in binder.paragraphs if b.address)
-
-
 def claim_verbatim_problems(
     where: str, mark: Mark, texts: tuple[str, ...]
 ) -> list[str]:
@@ -117,9 +96,11 @@ def claim_verbatim_problems(
     `claim.from` for a `patch`. A type that quotes no existing sentence quotes
     "", and is passed over here entirely.
 
-    It passes when one of `texts` holds the quote, by a substring test over
+    It passes when one of `texts` holds the quote exactly once, counted over
     each whole text: the quoted text may run across several of its lines, and
-    is anchored at neither end.
+    is anchored at neither end. A quote no text holds names no statement, and
+    one every holding text holds more than once names several; both are
+    refused, whether the mark's change was derived or supplied.
 
     Args:
         where: how to name this mark in a message -- its address, or a position.
@@ -139,12 +120,17 @@ def claim_verbatim_problems(
     value = mark.quoted
     if not filled(value):
         return []
-    if not any(value in text for text in texts):
+    counts = [text.count(value) for text in texts]
+    if 1 in counts:
+        return []
+    if any(counts):
         return [
-            f"{where}: `claim.{mark.quotes_original}` is not in the paragraph at"
-            " this place"
+            f"{where}: `claim.{mark.quotes_original}` occurs {max(counts)} times in"
+            " the paragraph at this place -- a clause names one statement"
         ]
-    return []
+    return [
+        f"{where}: `claim.{mark.quotes_original}` is not in the paragraph at this place"
+    ]
 
 
 def cite_at(cite: str) -> tuple[str, int] | None:
@@ -441,24 +427,3 @@ def verify_report(
 #: a role wrote in and got WRONG still counts as ruled, and is not a coverage gap
 #: -- survives in `tests/test_collator.py::_ruled_places`, derived from the
 #: container where the cases that assert it live.
-
-
-def tally(copy: EditCopy) -> dict[Instruction, int]:
-    """How many of each instruction the edit_copy carries, for a one-line summary.
-
-    !! WALKED A TOP-LEVEL `marks` KEY UNTIL 2026-08-29 -- one `seed()` no
-    longer writes, since an edit_copy's marks nest one level down inside
-    `sheets`. On the reshaped report that read a KEY THAT NO LONGER EXISTS, so
-    the walk silently fell back to `[]` and this returned `{}` for every real
-    edit_copy, ruled or not -- a crash turned silent. ! THAT IS UNREACHABLE
-    NOW rather than merely fixed: an `EditCopy` has no such key to read.
-    """
-    # ! IT COUNTS `Mark.instruction`, WHICH IS THE MEMBER, since `P51`. It read
-    # the wire string and matched it against the members -- `Instruction` is a
-    # `StrEnum`, so `"clean"` found its counter -- and a parsed mark carries the
-    # member itself, so the string round trip has nothing left to do.
-    counts = dict.fromkeys(INSTRUCTIONS, 0)
-    for sheet in copy.sheets:
-        for mark in sheet.marks:
-            counts[mark.instruction] += 1
-    return {name: n for name, n in counts.items() if n}

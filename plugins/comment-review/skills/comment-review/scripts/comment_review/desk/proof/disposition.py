@@ -6,6 +6,7 @@
     TakenInRuling       `taken_in`: one side's text, or the original, stands
     RecastRuling        `recast`: the chief's own prose stands
     RULINGS             the ruling types, for the message naming them
+    contract()          the rulings as `check --contract` publishes them
     disposition_type()  the type a ruling's name names -- the one dispatch
     read_disposition()  an entry read as the type its name names, or problems
 
@@ -53,6 +54,8 @@ class Disposition:
     name: ClassVar[str]
     #: The fields that must be filled, besides `address` and `reason`.
     owes: ClassVar[tuple[str, ...]]
+    #: The fields that must be given as text, which may be empty.
+    owes_given: ClassVar[tuple[str, ...]] = ()
     #: The side taken where the entry names none -- `CHIEF` on `recast`, ""
     #: where the ruling must name its own.
     default_side: ClassVar[str] = ""
@@ -101,6 +104,11 @@ class Disposition:
             for key in cls.owes
             if not filled(values[key])
         ]
+        out += [
+            f"{where}: {cls.name} needs `{key}`"
+            for key in cls.owes_given
+            if not isinstance(data.get(key), str)
+        ]
         if out:
             return None, out
         return (
@@ -133,13 +141,15 @@ class RecastRuling(Disposition):
     """`recast`: the chief's own prose stands.
 
     Attributes:
-        prose: the paragraph as the chief sets it.
+        prose: the paragraph as the chief sets it; empty drops the paragraph
+            whole (`decision-log.md Process: #299`).
     """
 
     prose: str
 
     name: ClassVar[str] = "recast"
-    owes: ClassVar[tuple[str, ...]] = ("prose",)
+    owes: ClassVar[tuple[str, ...]] = ()
+    owes_given: ClassVar[tuple[str, ...]] = ("prose",)
     default_side: ClassVar[str] = CHIEF
 
     def _prose(self) -> str:
@@ -152,6 +162,43 @@ class RecastRuling(Disposition):
 
 #: The ruling types, for the message that names what the chief may give.
 RULINGS: tuple[type[Disposition], ...] = (TakenInRuling, RecastRuling)
+
+
+def contract() -> dict:
+    """The chief's rulings as `check --contract` publishes them.
+
+    Returns:
+        `answer` -> the ruling names; `owes` -> the fields each must fill;
+        `owes_given` -> the fields each must give as text, which may be
+        empty; `default_side` -> the side a ruling takes where it names
+        none; `fields` -> what each wire field holds. A field a ruling does
+        not take is ignored when it is read.
+    """
+    return {
+        "answer": sorted(one.name for one in RULINGS),
+        "owes": {one.name: ["address", "reason", *one.owes] for one in RULINGS},
+        "owes_given": {one.name: list(one.owes_given) for one in RULINGS},
+        "default_side": {
+            one.name: one.default_side for one in RULINGS if one.default_side
+        },
+        "fields": {
+            "address": "the place, or a move's origin on a placement ruling",
+            "side": (
+                "the side whose text stands: a role, or `original` to keep the"
+                " paragraph as it was; on a placement ruling, the mover moves it"
+                " and `original` keeps it"
+            ),
+            "prose": (
+                "the chief's own paragraph, as raw text; empty drops the"
+                " paragraph whole"
+            ),
+            "reason": "why, in prose",
+            "to": (
+                "a move's destination, on a ruling of its placement; absent on a"
+                " ruling at a place"
+            ),
+        },
+    }
 
 
 def disposition_type(name: str) -> type[Disposition] | None:

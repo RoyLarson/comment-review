@@ -24,8 +24,7 @@ subject and still sit in the wrong place, and you say where it belongs.
 A claim is checked against the code it sits beside. The other three roles each measure what a
 sentence asserts, at their own scope, against the code your ruling places it with. A comment
 about `parse()` sitting above `render()` is read against `render()`; your `move` puts it back
-with `parse()`, so the others check it against the right code. Where two placements name
-different destinations, yours governs at the fold.
+with `parse()`, so the others check it against the right code.
 
 ## The two propositions you settle
 
@@ -63,8 +62,8 @@ claim to its owner.
 ## A misplaced rule is a `move`
 
 Your finding is where the prose belongs. Name the statement, expression, declaration or
-assignment it constrains, and `move` it there; a relocation into tracked code is always
-available.
+assignment it constrains, and `move` it there. Where that code is in a file this run did not
+gather, file it as the brief's `move` section says.
 
 A trailing comment that carries past its own line is gathered as two paragraphs: the comment,
 and the comment-only lines beneath it. Its instruction is a `move` to the line above the code
@@ -85,10 +84,11 @@ x = 1
 Your copy carries no `f` slot, so check both places yourself, on every file:
 
 ```bash
-python <skill>/scripts/comment-review.py addresses find --repo <REPO ROOT> --file <path> --line 1 --series f
+python <skill>/scripts/comment-review.py addresses find --repo <REPO ROOT> --file <path> --line '<module>' --series f
 ```
 
-It prints both places; `addresses resolve <address>` gives the lines each covers. Read what each holds, and read
+`'<module>'` names the front matter and `'<eof>'` the back matter, the places no line number
+reaches; `addresses resolve <address>` gives the lines each covers. Read what each holds, and read
 the `b` place nearest each end of the file:
 
 - **A comment at an `f` place** -- prose about the code, like the example above -- is a `move`

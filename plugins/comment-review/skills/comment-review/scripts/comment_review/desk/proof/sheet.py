@@ -8,8 +8,7 @@
 an entry that is not an object was CARRIED so the mark parse could refuse it
 by name rather than have it vanish. `_sorted_entries` refuses it at the parse
 instead, into `Sheet.refused`, so nothing vanishes and nothing downstream has to
-re-read a raw entry. ! `Mark.sources` IS STILL `object` for the original
-reason; the two are no longer the same case.
+re-read a raw entry.
 """
 
 from copy import deepcopy
@@ -168,7 +167,7 @@ class Sheet:
     Attributes:
         path: the page's real repo path, as the binder stated it.
         sha: that page's sha when it was gathered. Read by
-            `flows.revise.docket_of`, which writes it onto the docket page so
+            `flows.transcribe.docket_of`, which writes it onto the docket page so
             the setter can refuse a page that moved underneath the run.
         reading: the page's saved language identity and effective settings.
         marks: one `Mark` per place a role RULED on, in the order they came

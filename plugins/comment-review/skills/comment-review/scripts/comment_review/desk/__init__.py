@@ -33,7 +33,7 @@ replaced both: a place is built from the marks filed on it
 (`flows.places.places_of`) and ruled from its own record (`evaluate`), inside a
 fold that commits or rolls back whole (`work`). ! `collator.docket_from` was
 added with them and left at `P55` -- the docket is transcribed by
-`flows.revise.docket_of`, because building the WRITE END's artifact was never
+`flows.transcribe.docket_of`, because building the WRITE END's artifact was never
 the middle's to do. ! The `stages` row
 credited that module with *"the roles it dispatches"* -- a `roles` FIELD this
 branch deleted, so a reader following the row reached for `Stage.roles` and got

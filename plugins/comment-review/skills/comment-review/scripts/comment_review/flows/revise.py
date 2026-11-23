@@ -8,35 +8,34 @@
         -> the revise root       the docket's pages, drafted, and no other file
 
 The revise root holds each page the docket schedules and no other file: the
-write phase copies only the files it modifies, `docs/decision-log.md Process:
-#117`. A file the docket does not name is absent from the revise, not copied
-into it unchanged.
+write phase copies only the files it modifies. A file the docket does not name
+is absent from the revise, not copied into it unchanged.
 
-`TODO/the-flow-assumes-every-role-reads-at-once.md` names the revise as the
-trade's word for this -- *"the second proof, pulled after the marked
-corrections have been set"* -- and T3 is what this module delivers.
+A revise is the trade's word for the second proof, pulled after the marked
+corrections have been set.
 
-!! A REFUSAL DISCARDS THE WHOLE REVISE, not only the drafts `proof_setter`
-already discards. `docs/decision-log.md Process: #20` -- *"a refusal aborts
-the run whole"* -- is `proof_setter.run`'s own ruling for ITS directory; this
-module carries the same ruling one level up, for the directory `pull` makes at
-`into`. A revise root that held some of a stage's corrections and not the rest
-would be indistinguishable from one that held all of them, so nothing partial
-is left on disk: `Pulled.root` does not exist after a refusal.
+!! A refusal discards the whole revise, not only the drafts `proof_setter`
+already discards. A refusal aborts the run whole: `proof_setter.run` applies
+that to its own directory, and this module applies it one level up, to the
+directory `pull` makes at `into`. A revise root that held some of a stage's
+corrections and not the rest would be indistinguishable from one that held all
+of them, so nothing partial is left on disk: `Pulled.root` does not exist after
+a refusal.
 
 `proof_setter.run` proves each draft, and nothing here proves it again. What
 `pull` adds is where the drafts land -- `into`, at each page's repo path --
-and `Process: #35`'s address gate over those same pages.
+and the address gate over those same pages.
 """
 
+import contextlib
+import itertools
 import shutil
 import tempfile
 from collections.abc import Mapping
 from pathlib import Path
 from typing import NamedTuple
 
-from comment_review.binder.binder import Binder, bind
-from comment_review.desk.collator import known_addresses
+from comment_review.binder.binder import Binder, bind, known_addresses
 from comment_review.docket.docket import Docket
 from comment_review.flows import proof_setter
 from comment_review.flows.page_for import page_of
@@ -57,18 +56,15 @@ class Pulled(NamedTuple):
 
     Attributes:
         root: the revise -- each page the docket schedules, as drafted, at its
-            repo path under this directory, and no other file
-            (`docs/decision-log.md Process: #117`). Absent when `refusals` is
-            non-empty.
+            repo path under this directory, and no other file. Absent when
+            `refusals` is non-empty.
         revise: the number this revise was pulled as. Passed through, never
-            computed here -- `TODO/the-flow-assumes-every-role-reads-at-once.md`
-            T2 is what a binder later reads this against.
+            computed here; `assert_addresses_held` gathers `root` at it.
         set_by: address -> the role that set it, over every alteration the
-            docket named. This is the provenance a later phase (P6) routes
-            on, not decoration. `role` is one per page in `docket.py`'s
-            schema (`path`, `sha`, `role`, `alterations`) and optional --
-            `docket_of` writes it from the source copy's own role; a docket
-            with none maps every one of its addresses to `""`.
+            docket named. `role` is one per page of the docket and optional
+            -- `flows.transcribe.docket_of` writes the source copy's own
+            role and `docket_of_proof` writes the copy chief's; a page with
+            none maps every one of its addresses to `""`.
         refusals: every `proof_setter.Refusal`, or `[]` on success. Non-empty
             means `root` was discarded and does not exist.
     """
@@ -83,11 +79,11 @@ class AddressesMoved(Exception):
     """A docket page in `pulled.root` does not address the places it did in `original`.
 
     A page's places follow from its code, so a revise that keeps the code
-    byte-identical keeps them (`docs/decision-log.md Process: #35`). An address
-    holds for one reading and text may read back at another place (`#254`),
-    which this leaves alone: it compares the sets of places, not where any text
-    reads. This names the one way those sets change: a revise whose code moved,
-    so a place below the change renumbers under it.
+    byte-identical keeps them. An address holds for one reading and text may
+    read back at another place, which this leaves alone: it compares the sets
+    of places, not where any text reads. This names the one way those sets
+    change: a revise whose code moved, so a place below the change renumbers
+    under it.
     """
 
 
@@ -96,7 +92,7 @@ def pull(docket: Docket, repo: Path, into: Path, revise: int) -> Pulled:
 
     `into` holds each page the docket schedules, drafted by `proof_setter.run`
     and written at its repo path, and no other file: the write phase copies
-    only the files it modifies (`docs/decision-log.md Process: #117`).
+    only the files it modifies.
 
     Args:
         docket: the deserialized docket -- the settled alterations for
@@ -115,7 +111,8 @@ def pull(docket: Docket, repo: Path, into: Path, revise: int) -> Pulled:
 
     Nothing partial is left on any path. Once `into` is made, any exception
     -- in the drafting, the writing of the drafts into `into`, or the address
-    gate -- removes it before propagating.
+    gate -- removes it before propagating. A refusal or an exception also
+    removes each directory above `into` that `pull` made, while it is empty.
     """
     repo = Path(repo)
     into = Path(into)
@@ -124,10 +121,14 @@ def pull(docket: Docket, repo: Path, into: Path, revise: int) -> Pulled:
         return Pulled(
             into, revise, {}, [proof_setter.Refusal("read", "", p) for p in problems]
         )
+    # The ancestors `mkdir` makes, nearest first, so a pull that does not
+    # return a revise removes them with `into`.
+    ancestors = list(itertools.takewhile(lambda p: not p.exists(), into.parents))
     # `into` is made outside the protection below, so an `into` that already
     # exists raises `FileExistsError` here and is never removed by it.
     into.mkdir(parents=True)
     scratch = None
+    whole = False
     try:
         # The scratch directory is a sibling of `into`. `proof_setter.run`
         # refuses, through `undraftable`, a draft directory that overlaps the
@@ -140,11 +141,11 @@ def pull(docket: Docket, repo: Path, into: Path, revise: int) -> Pulled:
         scratch = Path(tempfile.mkdtemp(prefix="revise-scratch-", dir=into.parent))
         drafted, refusals = proof_setter.run(docket, repo, scratch)
         if refusals:
-            # !! ONE RULING, CARRIED UP A LEVEL. `proof_setter.run` already
-            # discarded every draft IT wrote on this refusal; what is left
-            # here is the directory `pull` made before calling it, and
-            # `Process: #20` applies to that directory exactly as it applies
-            # to the drafts.
+            # !! One rule, carried up a level. `proof_setter.run` already
+            # discarded every draft it wrote on this refusal; what is left
+            # here is the directory `pull` made before calling it, and a
+            # refusal discards that directory exactly as it discards the
+            # drafts.
             #
             # Nothing has been written into `into` on this path: the drafts go
             # in only once every page has passed.
@@ -153,15 +154,15 @@ def pull(docket: Docket, repo: Path, into: Path, revise: int) -> Pulled:
 
         # Each draft is written at the path the docket names for its page, and
         # nothing else is written: the revise holds only the files the write
-        # phase modifies, `Process: #117`.
+        # phase modifies.
         for made in drafted:
             target = into / made.path
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(made.draft, target)
 
         pulled = Pulled(root=into, revise=revise, set_by=_set_by(docket), refusals=[])
-        # The gate runs on every pull, before the success return: it is
-        # `Process: #35`'s check, not an opt-in. It compares the docket's
+        # The gate runs on every pull, before the success return: it is not
+        # an opt-in. It compares the docket's
         # pages, which are the only pages the revise holds. `AddressesMoved`
         # propagates through the handler below, which removes `into` first --
         # a revise whose addresses moved looks whole, and a later stage
@@ -169,6 +170,7 @@ def pull(docket: Docket, repo: Path, into: Path, revise: int) -> Pulled:
         assert_addresses_held(
             repo, pulled, [s.path for s in docket.schedules], reading_contexts=contexts
         )
+        whole = True
         return pulled
     except BaseException:
         # Every way out but a return discards `into`: an exception escaping
@@ -184,13 +186,18 @@ def pull(docket: Docket, repo: Path, into: Path, revise: int) -> Pulled:
         #
         # `ignore_errors`, because an exception is already in flight and a
         # second one raised while removing would replace the one the caller
-        # needs; `remove_tree` clears the read-only bit before it retries, so
-        # a read-only file does not keep the copy standing.
+        # needs.
         remove_tree(into, ignore_errors=True)
         raise
     finally:
         if scratch is not None:
             remove_tree(scratch, ignore_errors=True)
+        # After the scratch directory, which sits in `into.parent`. `rmdir`
+        # removes only an empty directory, so one another writer filled stays.
+        if not whole:
+            for ancestor in ancestors:
+                with contextlib.suppress(OSError):
+                    ancestor.rmdir()
 
 
 def assert_addresses_held(
@@ -203,9 +210,9 @@ def assert_addresses_held(
     """Raise `AddressesMoved` unless `pulled` addresses the same places `original` did.
 
     The comparison runs over `pages` alone -- the docket's pages, which are the
-    only files the revise holds (`docs/decision-log.md Process: #117`) --
-    gathered from both roots at the same repo paths. Neither tree is walked,
-    so a file the docket does not name is never read.
+    only files the revise holds -- gathered from both roots at the same repo
+    paths. Neither tree is walked, so a file the docket does not name is never
+    read.
 
     Args:
         original: the checkout the revise was pulled from -- gathered at
@@ -261,14 +268,14 @@ def _binder_over(
     `pages` are repo paths, posix and relative to `root`; nothing else under
     `root` is read.
 
-    ! ADDRESSES ONLY. `annotate` and `code_names` resolve CITATIONS, a
+    ! Addresses only. `annotate` and `code_names` resolve citations, a
     question this gate never asks, so building a page is as far as this goes.
 
-    !! `absent=True`, so an EMPTY place is carried too. `bind`'s default
+    !! `absent=True`, so an empty place is carried too. `bind`'s default
     drops a place that holds no prose, and appended code with no comment or
     docstring is exactly that -- a new `undocumented` declaration would be
-    invisible to this gate without it, which is the one case `Process: #35`
-    exists to catch.
+    invisible to this gate without it, which is the one case the gate exists
+    to catch.
     """
     root = Path(root)
     held = []
@@ -283,15 +290,9 @@ def _binder_over(
 def _set_by(docket: Docket) -> dict[str, str]:
     """Every altered address, mapped to the role that set it.
 
-    ! READS AN OPTIONAL FIELD. `role` is per page and `docket_of` above is what
-    writes it; see `Pulled.set_by`'s own docstring for why `""` is what a
-    docket with no `role` field yields.
-
-    !! IT READ THE RAW DOCKET DICT UNTIL 2026-08-31, and said so: *"straight off
-    the raw docket dict"* was in `Schedule`'s own docstring, naming this
-    function. `P41`, `decision-log.md Process: #67`. Four `.get` defaults did
-    the work of the shape check the boundary now owns -- and each of them would
-    have answered `""` for a malformed page rather than refusing it.
+    ! Reads an optional field. `role` is per page and `flows.transcribe` writes
+    it; a page with no `role` yields `""` for each of its addresses, as
+    `Pulled.set_by` states.
 
     Args:
         docket: the deserialized docket.

@@ -2,23 +2,21 @@
 
 The packages beneath this one are the stages in that order:
 
-    machine      what the CHECKOUT and the interpreter say
+    machine      what the checkout and the interpreter say
     reading      a file becomes places and prose
     binder       the pages, and the record a reviewer fills
-    concordance  the checkout INDEXED, so a claim can be resolved off-page
-    desk         what a role is GIVEN, and what it HANDS BACK
-    results      the answer set into a file, and the proof code survived
+    concordance  the checkout indexed, so a claim can be resolved off-page
+    desk         what a role is given, and what it hands back
+    docket       every alteration the run is asked to make
+    results      the answer set into a file
     flows        one whole run, calling the above
     commands     the entry points
 
-!! A MODULE DOES ONE JOB AND HAS NO CLI; A FLOW CALLS MODULES; A
-COMMAND EXPOSES A FLOW. Ruled 2026-08-24 -- `docs/decision-log.md Process: #12`.
+!! A module does one job and has no CLI; a flow calls modules; a command
+exposes a flow. Stage 2's orchestration is `flows/gather.py`'s `STEPS`, and
+`commands/gather.py` builds no page.
 
-! IT IS TRUE OF `flows` SINCE THE GATHER LANDED THERE. Lifting the entry
-points out showed stage 2's orchestration was inside `main` all along;
-`flows/gather.py` holds it now, as `STEPS`, and `commands/gather.py` builds
-no page -- `TODO/the-flow-lives-in-the-command.md`.
-
-! NOTHING SITS AT THIS ROOT ANY MORE. `referrers` did, meaning UNPLACED rather
-than top-level, until `concordance` was ruled on 2026-08-24.
+! Beside the packages sit the leaves -- `constants`, `exceptions`,
+`differences` and `read_from` -- which any area may import, and `__main__`,
+which dispatches `python -m comment_review <command>`.
 """

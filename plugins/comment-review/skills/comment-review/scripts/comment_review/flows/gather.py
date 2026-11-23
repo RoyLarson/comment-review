@@ -1,29 +1,28 @@
-"""Stage 2, GATHER: every page in scope, annotated and bound into one binder.
+"""Stage 2, gather: every page in scope, annotated and bound into one binder.
 
     gather(repo, targets, revise) -> Gathering
+    page_in(path, repo, settings) -> the page one file reads as, or why not
+    unaddressed_report(missing), not_gathered(handed_in, unreadable) -> text
 
 A page is one file -- its paragraphs in order among the code they sit with --
 and `flows.page_for.page_of` builds one. This walks the files in scope, builds
-their pages, runs stage 3 over the paragraphs they carry, and binds the pages.
+their pages, binds them, and runs stage 3 over the paragraphs the binder holds.
 The command prints and decides the exit code; nothing here does either.
 
-!! THE CHAIN IS DATA. `STEPS` is the sequence, each step reads and writes one
-`Gathering`, and a step that does not exist yet -- `references_for`, the other
-half of stage 3 -- is one more element. `TODO/census-should-be-a-chain-of-
-producers.md` T2. ! It was the body of the command until this landed, which
-is what `TODO/the-flow-lives-in-the-command.md` T2 named.
+!! The chain is data. `STEPS` is the sequence, each step reads and writes one
+`Gathering`, and a new producer is one more element. The other half of stage
+3 -- which files name the files under review -- is `flows.referrers`, run by
+its own command, not a step here.
 
-!! THAT IS THE WHOLE SUBJECT: take the output of every page and put it in the
-form the agents read. It built one file's paragraphs AND addressed them AND
-aggregated them until 2026-08-20, which is three subjects and why it ran to
-1,759 lines. ! Which form reads BEST is measurable -- formats can be compared
-against hazard recall -- and until one is measured no claim about it ships.
-See `TODO/census-emits-no-page.md`.
+That is the whole subject: read every file in scope as a page, and bind the
+pages for the agents. Which form reads best is measurable -- formats can be
+compared against hazard recall -- and until one is measured no claim about it
+ships.
 
 ! Most of a page holds no prose -- an empty `interval`, an `undocumented`
-declaration, a bare `margin`. Those are ADDRESSABLE, so an `add` can cite the
+declaration, a bare `margin`. Those are addressable, so an `add` can cite the
 place its missing sentence belongs in, and nobody owes them a record. Coverage
-is over the paragraphs that HOLD prose.
+is over the paragraphs that hold prose.
 
 **Every file handed in is gathered, or the command errors** -- a file it could
 not read or parse, or a named file no reader claims, is named in `unreadable`,
@@ -33,19 +32,25 @@ the binder lists it as freeform, unopened, for the reviewers to read as it
 stands.
 """
 
-from collections.abc import Callable, Iterable, Mapping
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from comment_review import exceptions
 from comment_review.binder.binder import Binder, bind
 from comment_review.binder.page import Page
-from comment_review.concordance.code_names import code_names
+from comment_review.concordance.code_names import (
+    WALKED_TREE_ROW,
+    names_in,
+    no_harvester,
+)
 from comment_review.flows.annotations_for import annotations_for
 from comment_review.flows.page_for import page_of
 from comment_review.flows.read_diagnostics import format_failure
 from comment_review.flows.reading_context import context_for
 from comment_review.flows.source import source_of
 from comment_review.machine.repo import (
+    git_ls_files,
     path_index,
     relative_to,
     tracked_paths,
@@ -60,34 +65,34 @@ from comment_review.reading.diagnostics import (
     ReadFailure,
 )
 from comment_review.reading.language import INSTALLED_REGISTRY
-from comment_review.reading.paragraph import Paragraph
-from comment_review.reading.registry import is_freeform
 
 
 @dataclass
 class Gathering:
     """One gather, at whatever step of `STEPS` it has reached.
 
-    ! THE GAPS ARE LISTS OF REASONS, NOT RAISES. A file that cannot be read is
+    ! The gaps are lists of reasons, not raises. A file that cannot be read is
     named in `unreadable` and the command decides the exit code, so the emit
     refuses on one record rather than the walk raising mid-way.
 
-    ! `binder` IS SET BY THE LAST STEP AND HAS NO DEFAULT. Reading it before
-    the chain has run is an `AttributeError`, which is the honest answer; a
-    placeholder binder would be one that says nothing was gathered.
+    ! `binder` is set by the bind step and has no default. A gather that
+    stopped at a gap before it has none, and reading it is an
+    `AttributeError`, which is the honest answer; a placeholder binder would
+    be one that says nothing was gathered.
     """
 
     repo: Path
     targets: list[Path]
     revise: int
     absent: bool = False
-    #: what the walk found that has a language record, or that the caller NAMED
+    #: what the walk found that has a language record, or that the caller named
     files: list[Path] = field(default_factory=list)
     #: files the walk came across with no record -- reported, never refused
     no_record: list[str] = field(default_factory=list)
     #: source files with no reader, repo-relative posix, sorted, each once
     freeform: list[str] = field(default_factory=list)
-    #: a named file that produced no page, and why
+    #: a file in scope that produced no page, a target that matched nothing, or a
+    #: freeform file outside the repository, and why
     unreadable: list[str] = field(default_factory=list)
     #: files the name corpus could not read, from `code_names`
     unread: list[str] = field(default_factory=list)
@@ -96,8 +101,6 @@ class Gathering:
     #: command prints them
     warnings: list[str] = field(default_factory=list)
     pages: list[Page] = field(default_factory=list)
-    #: what the pages carry, flat, in page order -- see `carried`
-    paragraphs: list[Paragraph] = field(default_factory=list)
     binder: Binder = field(init=False)
     settings: Mapping[Path, Mapping[str, str]] = field(default_factory=dict)
     reading_contexts: dict[Path, ReadingContext] = field(default_factory=dict)
@@ -105,21 +108,20 @@ class Gathering:
 
 def _walk(g: Gathering) -> None:
     """Which files are in scope, and which targets named nothing."""
-    # ! WALKED ONCE PER TARGET. The emptiness test below re-walked every tree a
-    # second time to ask `not any(walk_files(t))`, which this already knows.
+    # Each target is walked once; the matched-nothing test below reads these lists.
     by_target = {t: sorted(walk_files(t)) for t in g.targets}
-    # !! NAMED, AS AGAINST FOUND -- the distinction the walk is no longer making.
-    # A file the caller NAMED is refused when nothing can read it; a file the
-    # walk came across is reported and skipped, because a directory holds
-    # READMEs and lockfiles and refusing on those makes the form unusable.
-    # A source file with no reader is neither: it is listed for the reviewers,
-    # named or found, and never opened, so a binary cannot fail the gather.
+    # This loop tells a named file from a found one. A file the caller named is
+    # refused when nothing can read it; a file the walk came across is reported
+    # and skipped, because a directory holds READMEs and lockfiles and refusing
+    # on those makes the form unusable. A source file with no reader is neither:
+    # it is listed for the reviewers, named or found, and never opened, so a
+    # binary cannot fail the gather.
     named = {t.resolve() for t in g.targets if t.is_file()}
     freeform = set()
     for path in sorted({f for found in by_target.values() for f in found}):
         if INSTALLED_REGISTRY.for_path(path) is not None:
             g.files.append(path)
-        elif is_freeform(path):
+        elif INSTALLED_REGISTRY.is_freeform(path):
             rel = _repo_relative(path, g.repo)
             # A page outside the repo is refused at the write; nothing writes a
             # freeform path through that check, so it is refused here. Resolved,
@@ -144,11 +146,6 @@ def _walk(g: Gathering) -> None:
 
 def _pages(g: Gathering) -> None:
     """One page per file in scope, or the reason there is none."""
-    # !! THE PAGES ARE KEPT, NOT ONLY THEIR PARAGRAPHS. A binder names the file
-    # ONCE PER PAGE and the rows sit under it, so the bind needs the page, and
-    # `paragraphs` is the same rows as one flat run. Both are built from this
-    # same walk, which is what stops the two disagreeing about what was
-    # gathered.
     for path in g.files:
         got = page_in(path, g.repo, g.settings.get(path.resolve(), {}))
         if isinstance(got, str):
@@ -157,18 +154,18 @@ def _pages(g: Gathering) -> None:
         g.reading_contexts[path.resolve()] = got.reading
         g.pages.append(got)
         rel = got.path
-        # The phrase is the warning's code as words, then the owner a
-        # detached doc was written for.
         located = [w for w in got.read.warnings if w.span is not None]
         if located:
             coordinates = SourceCoordinates(got.text)
+
+            # The phrase is the warning's code as words, then the owner a
+            # detached doc was written for.
             g.warnings.extend(
                 f"warning: {rel}:{coordinates.position(w.span.start).line}:"
                 f" {w.code.replace('-', ' ')}{_owner(w)}"
                 for w in located
                 if w.span is not None
             )
-        g.paragraphs.extend(carried(got))
 
 
 def page_in(path: Path, repo: Path, settings: Mapping[str, str]) -> Page | str:
@@ -183,28 +180,23 @@ def page_in(path: Path, repo: Path, settings: Mapping[str, str]) -> Page | str:
     source = source_of(path)
     if isinstance(source, ReadFailure):
         return format_failure(source, path=path.as_posix())
-    # !! EVERY PARAGRAPH'S PATH IS REPO-RELATIVE. It is what `--repo` is for: the
+    # !! Every paragraph's path is repo-relative. It is what `--repo` is for: the
     # binder, the file lists and every citation a reviewer writes all resolve
     # against that root, so a paragraph carrying an absolute path is a paragraph
     # no consumer can place: joined to another root, an absolute right-hand side
     # wins, and a write lands on the source file.
-    #
-    # ! A file outside the repo keeps the path AS IT WAS PASSED -- see
-    # `_repo_relative`. `flows/proof_setter.py` refuses such a page rather than
-    # guessing where it belongs: `repo.can_escape` reads the binder's page paths
-    # before any file is opened.
     rel = _repo_relative(path, repo)
-    # !! A PATH HOLDING THE SEPARATOR CANNOT BE ADDRESSED, so it is a GAP and not
+    # !! A path holding the separator cannot be addressed, so it is a gap and not
     # a paragraph with a broken name. `flatten` joins segments on `:`, which
     # Windows forbids in a filename; POSIX forbids only `/` and NUL, so a POSIX
     # checkout can hold `a:b.py`, whose address would be the address of `a/b.py`.
     #
-    # ! IT READS THE REPO-RELATIVE PATH, WHICH IS THE ONE ADDRESSED. The absolute
+    # ! It reads the repo-relative path, which is the one addressed. The absolute
     # path holds a colon on every Windows run -- the drive letter -- so checking
     # `path` here refuses the whole tree.
     if SEPARATOR in rel:
         return f"{rel} (a path may not hold '{SEPARATOR}')"
-    # ! THE REPO-RELATIVE PATH GOES IN, so the page comes back addressed against
+    # ! The repo-relative path goes in, so the page comes back addressed against
     # the root every citation resolves to.
     got = page_of(path, rel=rel, source=source, reading_context=context)
     if isinstance(got, ReadFailure):
@@ -222,42 +214,64 @@ def _owner(warning: ReadDiagnostic) -> str:
 
 
 def _annotations(g: Gathering) -> None:
-    """Stage 3, over everything the pages carry."""
-    known, g.unread = code_names([g.repo], tracked_paths(g.repo))
-    annotations_for(g.paragraphs, known, path_index(g.repo), g.repo)
+    """Stage 3, over every paragraph the binder holds."""
+    # The gather's one `git ls-files`; both indexes are built from it.
+    rels = git_ls_files(g.repo)
+    known, g.unread = _name_corpus(g.repo, tracked_paths(g.repo, rels))
+    annotations_for(g.binder.paragraphs, known, path_index(g.repo, rels), g.repo)
+
+
+def _name_corpus(repo: Path, tracked: set[Path] | None) -> tuple[set[str], list[str]]:
+    """Every name the tree defines, and the rows naming every gap in it.
+
+    A corpus built from raw text contains the comments being checked, so every
+    obituary resolves against itself and the check always passes; the names
+    come from each Python file's AST instead. A file that cannot be read or
+    parsed is a gap row, because a hole in the corpus turns every symbol
+    defined only there into a false obituary.
+
+    ! Tracked files only, when git can say which. A vendored, generated or
+    gitignored tree under the repo root otherwise donates its whole namespace,
+    so a symbol the repo defines nowhere resolves alive. That failure is silent
+    and one-sided: it can hide an obituary, and manufactures none.
+
+    Args:
+        repo: the root to harvest.
+        tracked: absolute paths git reports as tracked, or None when git could
+            not answer -- then the whole tree is walked and a gap row says so.
+
+    Returns:
+        The defined names, and the gap rows: `NO_HARVESTER` rows are known
+        holes, the `WALKED_TREE` row is a caveat about the whole corpus, and
+        any other row is a file that could not be read or parsed.
+    """
+    names: set[str] = set()
+    unread = [WALKED_TREE_ROW] if tracked is None else []
+    for path in walk_files(repo):
+        if tracked is not None and path.resolve() not in tracked:
+            continue
+        gap = no_harvester(path)
+        if gap is not None:
+            unread.append(gap)
+            continue
+        try:
+            names |= names_in(path, path.read_text(encoding="utf-8"))
+        except exceptions.PARSE_ERRORS as e:
+            unread.append(f"{path.as_posix()} ({type(e).__name__})")
+    return names, unread
 
 
 def _bind(g: Gathering) -> None:
     """The binder, with the root it was read from stated relative to the cwd."""
-    # !! RELATIVE TO `Path.cwd()`, RULED BY ROY 2026-08-28. This wrote
-    # `str(repo)` on a RESOLVED path, so on Windows it emitted
-    # `C:\\Users\\<name>\\projects\\...` into an artifact that is handed to
-    # agents and kept as evidence -- beside `pages[].path` values that are
-    # repo-relative posix, written by `_repo_relative` above.
+    # !! Relative to `Path.cwd()`. `str(repo)` on the resolved path would put
+    # a native absolute path -- `C:\\Users\\<name>\\projects\\...` on Windows --
+    # into an artifact that is handed to agents and kept as evidence, beside
+    # `pages[].path` values that are repo-relative posix, written by
+    # `_repo_relative` above.
     #
-    # ! TWO CALLERS ALREADY DISAGREED before this: the command wrote a native
-    # absolute path and `tests/helpers.py` wrote a relative one, for a field
-    # whose whole purpose is a later stage COMPARING a revise root against
-    # the original.
-    #
-    # ! `relpath` RATHER THAN `Path.relative_to`, because a revise root is a
-    # temporary directory OUTSIDE the checkout -- `relative_to` raises there
-    # and `relpath` walks up with `..`. The reader resolves this against its
-    # own cwd, which is the same cwd the run was started from.
-    #
-    # !! `revise` REPLACED A HARDCODED `0`, TASK 10 OF
-    # `.superpowers/sdd/2026-08-28-the-mark-and-the-revise/`. `--repo` could
-    # already be pointed at a revise root -- `TODO/the-flow-assumes-every-
-    # role-reads-at-once.md`'s own note that every read command already
-    # takes a root -- but the NUMBER stamped into `read_from` was fixed at
-    # 0 regardless, so a gather over a revise still reported the ORIGINAL's
-    # number: indistinguishable from having read the original. There is no
-    # default revise beyond the original's own 0; a caller states it, same
-    # as `--repo`.
     # ! `machine.repo.relative_to` owns the two cases this line must not
     # carry: the `..` walk to a revise root outside the checkout, and two
-    # different drives, where no relative path exists at all. Both are
-    # measured there.
+    # different drives, where no relative path exists at all.
     root = relative_to(g.repo, Path.cwd()).as_posix()
     g.binder = bind(
         g.pages,
@@ -269,7 +283,8 @@ def _bind(g: Gathering) -> None:
 
 #: The chain, in the order it runs. Each step reads the `Gathering` the steps
 #: before it filled and writes its own fields; a new producer is a new element.
-STEPS: tuple[Callable[[Gathering], None], ...] = (_walk, _pages, _annotations, _bind)
+#: A step that names a gap in `unreadable` is the last one that runs.
+STEPS: tuple[Callable[[Gathering], None], ...] = (_walk, _pages, _bind, _annotations)
 
 
 def gather(
@@ -287,12 +302,13 @@ def gather(
         targets: the files and directories in scope, as the caller spelled them.
         revise: the revise `repo` is -- 0 for the original, a later stage's
             number for a revise root pulled after it. Stamped into `read_from`.
-        absent: carry the EMPTY places too -- see the command's
+        absent: carry the empty places too -- see the command's
             `--include-absent`.
         settings: fresh per-file overrides keyed by source path.
 
     Returns:
-        The `Gathering` every step has written to. `binder` is set.
+        The `Gathering` the steps wrote to, up to the first that named a gap
+        in `unreadable`. `binder` is set when no step did.
     """
     g = Gathering(repo, targets, revise, absent)
     g.settings = (
@@ -302,61 +318,26 @@ def gather(
     )
     for step in STEPS:
         step(g)
+        if g.unreadable:
+            break
     return g
 
 
-def carried(page: Iterable[Paragraph]) -> list[Paragraph]:
-    """The paragraphs a gather HANDS OVER. A fence is not one of them.
-
-    !! LEADING IS NOT PASSED TO THE AGENTS, and it was until 2026-08-24. Roy:
-    *"The leading is not something that will be passed to the agents. The same
-    as the extra record attributes. It gets dropped because there is nothing to
-    rule on. It is for white space."*
-
-    !! A FENCE TAKES NO ADDRESS, WHICH IS WHY IT LEAKED IN THE FIRST PLACE. Roy,
-    2026-08-24: *"You don't put an address on a fence because it is what divides
-    properties. The only thing we can do is say well there was a fence here
-    before we did this there should be a fence here after we did this."* An
-    address is postal -- *"The cue is the street name and number, the file is
-    the city, and the rest is the folder structure and computer"* -- and the
-    fence between two properties has no street number. Carried anyway, it
-    arrived as a row whose `address` was `""`, and every consumer downstream had
-    to test for that blank to discover the row was never a place.
-
-    ! MEASURED, before this: `gather` over a ten-line file emitted THREE
-    such rows, and the report printed them as `@` with no cue after it. Over
-    this repo's own `src/`, 422 of 9,459 paragraphs -- every one leading.
-
-    ! THE PAGE KEEPS THEM. A fence still has to be set back, so `Page.leading`
-    holds it as the edge it is, keyed by the place it FOLLOWS, and the
-    compositor reaches it there by symbol. ! Nothing is lost by dropping it
-    here, because NOTHING TRANSFERS FROM THE BINDER TO THE END -- the write path
-    reloads the page from disk and takes only the address as a key.
-
-    ! THE GATE IS UNAFFECTED, AND THE REASON IS THE FILTER BELOW. `unaddressed`
-    reports paragraphs that lack an address, and this function hands over only
-    the paragraphs that HAVE one -- a fence's address is `""`, so it never
-    reaches the population that gate counts.
-    """
-    return [b for b in page if b.address]
-
-
 def _repo_relative(path: Path, repo: Path) -> str:
-    """`path` as `repo` sees it: posix, relative, no `..`.
+    """`path` as `repo` sees it: posix and relative where it is under `repo`.
 
     Args:
         path: the file gathered.
         repo: the root every citation resolves against.
 
     Returns:
-        The posix path relative to `repo`. ! A file NOT under `repo` keeps the
-        path AS IT WAS PASSED, which may itself be relative -- run from a
-        subdirectory, `--repo /r ../other/x.py` records `../other/x.py`. There
-        is no relative-to-`repo` form of such a file and inventing one with
-        `..` would hand a consumer a path that escapes the root it was given,
-        so it is passed through unresolved and the consumers refuse it:
-        `flows/proof_setter.py` writes nothing for a page path that is not
-        relative to the repository.
+        The posix path relative to `repo`. A file not under `repo` keeps the
+        path as it was passed, unresolved -- the command joins each argument to
+        the resolved repo, so `--repo /r ../other/x.py` records `/r/../other/x.py`.
+        There is no relative-to-`repo` form of such a file and inventing one with
+        `..` would hand a consumer a path that escapes the root it was given, so
+        it is passed through and the consumers refuse it: `flows/proof_setter.py`
+        writes nothing for a page path that is not relative to the repository.
     """
     try:
         return path.resolve().relative_to(repo).as_posix()
@@ -367,8 +348,8 @@ def _repo_relative(path: Path, repo: Path) -> str:
 def unaddressed_report(missing: list[str]) -> str:
     """What to say about a gather whose paragraphs cannot be cited.
 
-    ! It names them rather than counting them: a reader has to know WHICH file
-    to look at, and the count alone sends them through the whole binder.
+    It names them as well as counting them: a reader has to know which file to
+    look at, and the count alone sends them through the whole binder.
     """
     rows = "\n".join(f"  {line}" for line in missing)
     plural = "paragraph" if len(missing) == 1 else "paragraphs"
@@ -380,15 +361,7 @@ def unaddressed_report(missing: list[str]) -> str:
 
 
 def not_gathered(handed_in: int, unreadable: list[str]) -> str:
-    """The refusal, worded once.
-
-    !! The reviewers are handed the binder, so a file missing from it is
-    paragraphs nobody reviews and nothing downstream notices. The emit used to
-    return 0 with a SHORT array on exactly this input -- and `--out` is the
-    route `SKILL.md` mandates for the binder stage 5 parses, so the coverage
-    check then certified every paragraph accounted for over paragraphs that
-    were never collected.
-    """
+    """The refusal, worded once."""
     listed = "\n".join(f"    {u}" for u in unreadable)
     return (
         f"NOT GATHERED -- these are gaps, not passes:\n{listed}\n"

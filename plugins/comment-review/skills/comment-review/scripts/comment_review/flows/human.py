@@ -14,6 +14,11 @@ TOML file, one `[[answer]]` table per query, naming the role that asked.
 
 A query is found by what its row makes of it -- the stance a mark takes, the
 effect an answer has -- so no row is named here.
+
+`corrections_to_matter` asks a second kind of question: every proposed mark that
+changes the file's own matter, an `f` place, or moves text into one, is put to the
+human for approval before the fold. `corrections_in_answers` asks it of a turn's
+rewriting answers, and `corrections_in_rulings` of the chief's recasts.
 """
 
 import tomllib
@@ -22,6 +27,7 @@ from typing import NamedTuple
 from comment_review.desk.answers.table import asks_human
 from comment_review.desk.marks.table import INSTRUCTIONS, Stance
 from comment_review.desk.proof.answer import Answer
+from comment_review.desk.proof.disposition import CHIEF, Disposition, RecastRuling
 from comment_review.desk.proof.edit_copy import EditCopy
 from comment_review.desk.proof.mark import MoveMark
 from comment_review.reading.addresser import COVERS, cue_of
@@ -44,7 +50,7 @@ class HumanAnswer(NamedTuple):
     answer: str
 
 
-#: The keys every `[[answer]]` carries, each a non-empty string.
+#: The keys every `[[answer]]` carries, each a string holding more than whitespace.
 FIELDS = ("role", "at", "question", "answer")
 
 
@@ -78,7 +84,6 @@ def corrections_to_matter(
     asks a different question and is asked again. A query is asked by
     `queries_in_copies`.
     """
-    given = {(one.role, one.at, one.question) for one in human}
     out = []
     for copy in copies:
         for sheet in copy.sheets:
@@ -89,15 +94,62 @@ def corrections_to_matter(
                 if not (_in_matter(mark.address) or into):
                     continue
                 to = f" -> {mark.to}" if isinstance(mark, MoveMark) else ""
-                query = HumanQuery(
-                    copy.role,
-                    mark.address,
-                    f"approve this {mark.instruction}{to} to the file's matter: "
-                    f"{mark.reason}",
-                )
-                if (query.role, query.at, query.question) not in given:
-                    out.append(query)
-    return out
+                name = f"{mark.instruction}{to}"
+                out.append(_approval(copy.role, mark.address, name, mark.reason))
+    return _unanswered(out, human)
+
+
+def corrections_in_answers(
+    given: dict[str, dict[str, Answer]], human: tuple[HumanAnswer, ...]
+) -> list[HumanQuery]:
+    """Every turn's answer that rewrites an `f` place, not yet answered.
+
+    `decision-log.md Process: #291`: a change to the file's matter is put to
+    the human wherever it is made, so an answer that owes a `change` at an
+    `f` place asks as a mark there does. A placement answer is keyed by its
+    move and owes no change; a move into an `f` place asked when it was
+    marked.
+
+    Args:
+        given: role -> slot key -> answer, as `queries_in_answers` takes them.
+        human: the human's answers; one whose role, place and question are a
+            query's answers it.
+    """
+    out = []
+    for role in sorted(given):
+        for at, answer in sorted(given[role].items()):
+            if answer.owes_change and _in_matter(at):
+                out.append(_approval(role, at, answer.name, answer.reason))
+    return _unanswered(out, human)
+
+
+def corrections_in_rulings(
+    rulings: list[Disposition], human: tuple[HumanAnswer, ...]
+) -> list[HumanQuery]:
+    """Every chief's `recast` of an `f` place, not yet answered.
+
+    A `taken_in` sets a role's text, or keeps the original; a role's text at
+    an `f` place asked when the role proposed it.
+    """
+    out = [
+        _approval(CHIEF, ruling.address, ruling.name, ruling.reason)
+        for ruling in rulings
+        if isinstance(ruling, RecastRuling) and _in_matter(ruling.address)
+    ]
+    return _unanswered(out, human)
+
+
+def _approval(role: str, at: str, name: str, reason: str) -> HumanQuery:
+    """The question that puts one change to the file's matter to the human."""
+    return HumanQuery(role, at, f"approve this {name} to the file's matter: {reason}")
+
+
+def _unanswered(
+    queries: list[HumanQuery], human: tuple[HumanAnswer, ...]
+) -> list[HumanQuery]:
+    """`queries` less those an answer's role, place and question answer."""
+    given = {(one.role, one.at, one.question) for one in human}
+    return [q for q in queries if (q.role, q.at, q.question) not in given]
 
 
 def queries_in_answers(given: dict[str, dict[str, Answer]]) -> list[HumanQuery]:
@@ -129,7 +181,9 @@ def read_answers(text: str, where: str) -> tuple[list[HumanAnswer], list[str]]:
     Returns:
         `(the answers, [])`, or `([], problems)` where the file is not TOML or
         `answer` is not an array of tables, or `(the good ones, problems)` where
-        some sections lack a field.
+        some sections are not tables, lack a non-blank string field, or answer
+        a role, place and question an earlier section already answers -- the
+        file does not say which of the two stands, so the later one is refused.
     """
     try:
         doc = tomllib.loads(text)
@@ -140,6 +194,7 @@ def read_answers(text: str, where: str) -> tuple[list[HumanAnswer], list[str]]:
         return [], [f"{where}: `answer` must be an array of tables, [[answer]]"]
     out: list[HumanAnswer] = []
     problems: list[str] = []
+    first: dict[tuple[str, str, str], int] = {}
     for i, row in enumerate(rows, 1):
         if not isinstance(row, dict):
             problems.append(f"{where}: answer {i} is not a table")
@@ -154,7 +209,16 @@ def read_answers(text: str, where: str) -> tuple[list[HumanAnswer], list[str]]:
         if missing:
             problems.append(f"{where}: answer {i} needs {', '.join(missing)}")
             continue
-        out.append(HumanAnswer(*(str(checked.get(key)) for key in FIELDS)))
+        answer = HumanAnswer(*(str(checked.get(key)) for key in FIELDS))
+        key = (answer.role, answer.at, answer.question)
+        if key in first:
+            problems.append(
+                f"{where}: answer {i} answers {answer.role} at {answer.at}"
+                f" {answer.question!r}, which answer {first[key]} already answers"
+            )
+            continue
+        first[key] = i
+        out.append(answer)
     return out, problems
 
 
@@ -163,9 +227,14 @@ def answered(
 ) -> list[tuple[HumanQuery, HumanAnswer | None]]:
     """Each query with the human's answer to it, or None where there is none yet.
 
-    A section is the answer to a query where its role and its `at` are the
-    query's; a section for a question no copy still holds is left alone -- it
-    is the record of a question already worked through.
+    A section is the answer to a query where its role, its `at` and its
+    question are the query's, as `corrections_to_matter` matches them: an
+    answer to an earlier question at the same place does not answer a new one.
+    A section for a question no copy still holds is left alone -- it is the
+    record of a question already worked through. `read_answers` refuses two
+    sections for one role, place and question, so each key here has one.
     """
-    by = {(one.role, one.at): one for one in answers}
-    return [(query, by.get((query.role, query.at))) for query in queries]
+    by = {(one.role, one.at, one.question): one for one in answers}
+    return [
+        (query, by.get((query.role, query.at, query.question))) for query in queries
+    ]

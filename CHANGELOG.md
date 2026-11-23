@@ -76,6 +76,45 @@ and rust (`startraders`, 2026-08-17).
 
 ## [Unreleased]
 
+## [0.2.4-beta.9] -- 2026-11-22
+
+A pre-release whose agent instructions describe the CLI as it runs now, with answers that
+compose at one slot and a ruling contract the copy chief reads from the tool.
+
+### Changed
+
+- SKILL.md, the reviewer brief, the stage references and the ownership-context role file
+  describe the commands as they run: `<run-dir>` outside the checkout, dispatches in batches up
+  to the session's agent limit, a role that never returns relaunched, a copy that fails twice
+  stopping its stage, stage-prefixed turn outputs, and no `--repo .` in the turn loop.
+- Stage 6 reads every page in scope; stage 7b runs the project's doctests when it has them and
+  shows the run's changes with `git diff <pre-edit ref>`.
+- `addresses find --line` takes `<module>` and `<eof>`, and the prose names both.
+- Several answers at one slot compose; only contradictory ones are refused.
+- Every `correct`, `clean` and `patch`, as a mark or an answer, owes a source.
+- `mark --withdraw` takes back the one ruling its `--instruction` names.
+- The chief's ruling contract is generated and published beside the others, and the edit-copy
+  header carries the stage and what it admits.
+- A recast at a settled place is admitted for the style sheet; an empty recast drops the
+  paragraph.
+- A human question is asked before a turn answer or a recast changes an `f` place.
+- A role's clause marks compose by clause, so sentences sharing a line compose; prose is
+  removed by rewriting only the lines it touched.
+
+### Fixed
+
+- A human answer matches on its role, place and question.
+- A second chief ruling at one place or move, differing anchors from two marks at one place,
+  and an arrival with no anchor are refused.
+- A supplied change whose quoted clause occurs twice is refused.
+- `gather` stops at its first gap and lists tracked files once.
+- The composition answer names its `change` key; an explicit `--verbatim` is read by `check`.
+- A detached doc inside a file's matter is read as matter.
+
+### Removed
+
+- The chief copy artifact, unused review payloads and the no-op anchor-line flag.
+
 ## [0.2.4-beta.8] -- 2026-11-08
 
 A pre-release with stage 4 run in two stages, and each correction to a file's matter put to

@@ -1,7 +1,7 @@
-"""Facts about the checkout: git, the filesystem, exception tuples, and text identity.
+"""Facts about the checkout: git, the filesystem, and text identity.
 
 Every function here answers a question about the tree the review runs in, and
-carries the NON-ANSWER in its return type -- `None` for "git could not tell me",
+carries the non-answer in its return type -- `None` for "git could not tell me",
 a named list for "these files were unread". A caller that reads a non-answer as
 an empty answer produces the failure this whole skill exists to catch.
 
@@ -10,11 +10,11 @@ checkout contains, but what was actually read -- and belong here rather than
 downstream because a sha taken by a caller depends on which of this module's
 two readers that caller happened to use.
 
-!! AND `write_raw` IS `read_raw`'s PAIR, HERE SINCE `P45` FOR THE SAME REASON.
-Roy, 2026-08-31, on the flow spec: *"if the change is a code file it outputs
-the file through machine/ code."* The two halves of the byte-identity this
-system rests on -- the untranslated read and the untranslated write -- are one
-rule, and a rule stated in two areas is a rule that will disagree with itself.
+!! And `write_raw` is `read_raw`'s pair, here for the same reason. A changed
+code file is written through this module. The two halves of the byte-identity
+this system rests on -- the untranslated read and the untranslated write -- are
+one rule, and a rule stated in two areas is a rule that will disagree with
+itself.
 """
 
 import hashlib
@@ -26,8 +26,8 @@ from typing import NamedTuple
 
 from comment_review import exceptions
 
-# A virtualenv in the tree POISONS the name corpus: every installed package's
-# methods become "known", so a real obituary is HIDDEN because some library
+# A virtualenv in the tree poisons the name corpus: every installed package's
+# methods become "known", so a real obituary is hidden because some library
 # happens to define that name. It also makes the count depend on what is
 # installed, so the same file gathers differently on two machines.
 EXCLUDED_DIRS = frozenset(
@@ -50,21 +50,19 @@ def read_raw(path: Path) -> str:
 def write_raw(path: Path, text: str) -> Path:
     r"""Write text with its own line endings, untranslated. The pair to `read_raw`.
 
-    !! IT IS HERE BECAUSE THE WRITE END OBEYS THE SAME RULE AS THE READ END --
-    `P45`, and Roy's own wording of the flow spec, 2026-08-31: *"if the change
-    is a code file it outputs the file through machine/ code."* Every read of a
-    page in this system already comes through this module; the one write did
-    not, and lived in `results/compositor.py`.
+    !! It is here because the write end obeys the same rule as the read end:
+    a changed code file is written through this module, as every page is read
+    through it.
 
     Strict UTF-8 encoding completes before creating parents or opening the
     target, so an encoding failure leaves the filesystem untouched. Writing
     the encoded bytes avoids newline translation and preserves the exact
     source bytes, including CRLF, bare CR, and bare LF endings.
 
-    ! THE MKDIR IS PART OF THE WRITE, not the caller's. A draft lands under a
+    ! The mkdir is part of the write, not the caller's. A draft lands under a
     tree built from the repo's own paths, so the parent may not exist yet; a
     caller that had to remember the mkdir is a caller that will forget it. !
-    `flows.proof_setter._one` RECORDS WHICH PARENTS IT CREATED before calling,
+    `flows.proof_setter._one` records which parents it created before calling,
     so a refused draft can remove them -- that bookkeeping stays with the flow,
     because only the flow knows what a failed page should leave behind.
 
@@ -84,10 +82,10 @@ def write_raw(path: Path, text: str) -> Path:
 class Source(NamedTuple):
     """A file's text and the sha of that exact text, read together.
 
-    !! THEY TRAVEL AS ONE BECAUSE A SHA OF THE WRONG READING IS WORSE THAN NO
-    SHA. Roy, 2026-08-25: *"that is the only place to properly ensure it gets
-    read exactly the same and the middle things shouldn't depend on the
-    external things."*
+    !! They travel as one because a sha of the wrong reading is worse than no
+    sha. Reading and identifying in one place is what ensures a file is read
+    exactly the same way each time, and keeps the middle from depending on how
+    a caller read it.
 
     Attributes:
         text: as `read_raw` returns it -- the file's own line endings.
@@ -101,9 +99,8 @@ class Source(NamedTuple):
 def sha_of(text: str) -> str:
     """The identity of a text, truncated to 16 hex characters.
 
-    ! WHAT IT ANSWERS is one question -- *are these the bytes that were
-    reviewed?* Roy, 2026-08-21: *"if the file shifted at all it is dead and so
-    are the edits."*
+    ! What it answers is one question -- *are these the bytes that were
+    reviewed?* If the file shifted at all, it and its edits are void.
 
     Args:
         text: the text to identify.
@@ -165,27 +162,29 @@ def read_revision_source(repo: Path, ref: str, rel: str) -> Source:
 
 
 def git(repo: Path, *args: str, timeout: int = 30) -> subprocess.CompletedProcess:
-    r"""Every git invocation this plugin makes. ONE place, on purpose.
+    r"""Every text-mode git invocation this plugin makes.
 
-    ! `core.quotePath` DEFAULTS TO TRUE, so git renders a non-ASCII path as
+    This module is the only one that runs git. The one other invocation is
+    `read_revision_source`, which reads a blob as bytes and so cannot decode
+    here; it passes the same `core.quotePath=false`.
+
+    ! `core.quotePath` defaults to true, so git renders a non-ASCII path as
     octal escapes -- `"caf\303\251.py"`, quotes included. Measured: a tracked
     path holding one non-ASCII letter, defining `helper_name`, dropped out of
     the live-name corpus and
     `unread` stayed empty, so every symbol defined only there became a false
     obituary behind a silent coverage hole. The same escaping makes
-    `path_index` report a comment citing that file as UNRESOLVED -- a false
+    `path_index` report a comment citing that file as unresolved -- a false
     finding handed to four reviewers as settled fact.
 
-    ! The encoding is PINNED for the same reason: git writes UTF-8, and
+    ! The encoding is pinned for the same reason: git writes UTF-8, and
     `text=True` alone decodes with the machine's locale, so a non-ASCII path
-    arrives corrupted on this repo's own cp1252 machine.
+    arrives corrupted on a cp1252 machine.
 
-    Both are one-line fixes, and both were applied per call site -- three
-    scripts each received the encoding fix independently, and the quoting fix
-    reached none of them. Routing every call through here makes the NEXT
-    git-decoding hazard a one-place fix.
+    Routing every text-mode call through here makes the next git-decoding
+    hazard a one-place fix.
 
-    Exceptions are RAISED to the caller -- `exceptions.GIT_ERRORS` -- and a
+    Exceptions are raised to the caller -- `exceptions.GIT_ERRORS` -- and a
     nonzero return code
     mean different things at each call site (None as a third state, a real
     zero-match search), and catching them here would erase that.
@@ -212,7 +211,7 @@ def git(repo: Path, *args: str, timeout: int = 30) -> subprocess.CompletedProces
 def git_ls_files(repo: Path) -> list[str] | None:
     """Tracked, repo-relative posix paths -- or None when git cannot answer.
 
-    None is a THIRD state: "this is not a git checkout" and "this checkout
+    None is a third state: "this is not a git checkout" and "this checkout
     tracks nothing" lead to different fallbacks, and collapsing them lets a
     working tree with no index produce an empty corpus in silence.
 
@@ -236,47 +235,42 @@ def git_ls_files(repo: Path) -> list[str] | None:
 def undraftable(into: Path, repo: Path) -> str:
     """Why drafts of files under `repo` cannot be written into `into`, or "".
 
-    !! `into` MUST BE DISJOINT FROM `repo`, AND NO PER-FILE GUARD CAN ASK IT.
-    A per-file guard checks that a target lands inside `into`; on an OVERLAP
-    that is satisfied by the SOURCE FILE ITSELF, so the guard passes and the
-    draft is written over the file under review. MEASURED 2026-08-22 on the
-    galley command -- `docs/history.md` -- which did exactly that and printed
-    `1 page(s) set` at exit 0; MEASURED again 2026-08-25 on
-    `flows.proof_setter.run(alterations, binder, repo, repo)`, which answered
-    `refused=[]` while the source file on disk held the replacement text.
+    !! `into` must be disjoint from `repo`, and no per-file guard can ask it.
+    A per-file guard checks that a target lands inside `into`; on an overlap
+    that is satisfied by the source file itself, so the guard passes and the
+    draft is written over the file under review. Measured on
+    `flows.proof_setter.run(docket, repo, repo)` with this check removed: it
+    answered `refused=[]` while the source file on disk held the replacement
+    text.
 
-    !! IT LIVES HERE BECAUSE MORE THAN ONE CALLER ASKS IT --
-    `flows/proof_setter.run` and `commands/proof.py`. It was spelled out in two
-    commands instead, and the flow -- which the commands' own docstrings say
-    anyone may call -- asked it nowhere. ! One of those two commands was
-    `galley`, which is now the old NAME for `proof` and asks nothing itself.
+    !! It lives here because more than one caller asks it --
+    `flows/proof_setter.run` and `commands/proof.py`.
 
-    ! `is_relative_to` IS TRUE OF A PATH AND ITSELF, which is why both
+    ! `is_relative_to` is true of a path and itself, which is why both
     directions are tested and an equality test would be redundant.
 
-    ! THE `is_dir` CLAUSE IS FIRST BECAUSE THE MKDIR IS WHAT FAILS.
+    ! The `is_dir` clause is first because the mkdir is what fails.
     `into.mkdir(parents=True, exist_ok=True)` raises `FileExistsError` when
-    `into` names a regular file -- `exist_ok` covers an existing DIRECTORY only
-    -- and that reached `commands/proof.py`'s console as a traceback while
-    every other bad input there printed a reason.
+    `into` names a regular file -- `exist_ok` covers an existing directory only
+    -- and without this clause that reaches `commands/proof.py`'s console as a
+    traceback while every other bad input there prints a reason.
 
-    !! `is_symlink` IS ASKED BESIDE `exists` BECAUSE `exists` FOLLOWS THE LINK
-    AND A DANGLING ONE ANSWERS `False`. `exists` alone therefore let a link
-    naming nothing through the clause that exists to stop a non-directory --
-    and `mkdir` does not follow a link, so it is the same `FileExistsError` the
-    clause was added for. `is_symlink` asks about the link ITSELF; a symlink to
-    a real directory still passes, because `is_dir` follows it and answers
-    `True`.
+    !! `is_symlink` is asked beside `exists` because `exists` follows the link
+    and a dangling one answers `False`. `exists` alone would let a link naming
+    nothing through the clause that exists to stop a non-directory -- and
+    `mkdir` does not follow a link, so it is the same `FileExistsError` the
+    clause is for. `is_symlink` asks about the link itself; a symlink to a real
+    directory still passes, because `is_dir` follows it and answers `True`.
 
-    ! WHAT THE THREE CALLERS PASS IS ALREADY RESOLVED, so the clause bites for
-    a caller that does not resolve -- which this function's own `Args` says is
-    the caller's job and cannot check. It is NOT verified on the machine this
-    was written on: creating a symlink there raises `WinError 1314`, and
+    ! What the callers pass is already resolved, so the clause bites for a
+    caller that does not resolve -- which this function's own `Args` says is
+    the caller's job and cannot check. It is not verified on Windows without
+    symlink privilege: creating a symlink there raises `WinError 1314`, and
     `test_a_DANGLING_SYMLINK_is_not_a_directory` skips rather than fake a
     filesystem the case is about.
 
     Args:
-        into: the directory drafts are written to. RESOLVED by the caller;
+        into: the directory drafts are written to. Resolved by the caller;
             an unresolved path is never a prefix of a resolved one.
         repo: the checkout the pages are read from, resolved the same way.
 
@@ -296,23 +290,24 @@ def undraftable(into: Path, repo: Path) -> str:
 def can_escape(rel: str) -> bool:
     """Would joining this path to a root land somewhere other than under it?
 
-    !! A QUESTION ABOUT THE STRING, AND ONLY ABOUT THE STRING. It answers for
+    !! A question about the string, and only about the string. It answers for
     every root at once, which is what lets a caller stop asking per root -- but
     it cannot answer for the filesystem, so a caller that has a root in hand
-    still compares the RESOLVED target.
+    still compares the resolved target.
 
-    ! THE DRIVE AND THE ROOT ARE ASKED BESIDE `is_absolute`, because Windows has
+    ! The drive and the root are asked beside `is_absolute`, because Windows has
     a third form neither covers: `Path("C:util.py").is_absolute()` is `False`
     and it carries a drive, so joining it to a root on any other drive
-    DISCARDS the root.
+    discards the root.
 
-    !! IT LIVES HERE BECAUSE TWO CALLERS ASK IT, and one of them did not until
-    2026-08-29. `flows/proof_setter.py` asks it of a page path the schedule
-    records; `desk/collator.py` asks it of the `path` half of a `source`'s
-    `cite`, which a ROLE wrote. MEASURED: `Path(root) / "C:/outside/secrets.txt"`
-    is `C:/outside/secrets.txt` -- `pathlib` discards the left operand when the
-    right is absolute -- so `source_problems` read a file outside the checkout,
-    found the `verbatim` in it, and reported the citation VERIFIED.
+    !! It lives here because several callers ask it. `flows/proof_setter.py`
+    asks it of a page path the schedule records; `desk/collator.py` asks it of
+    the `path` half of a `source`'s `cite`, which a role wrote; `flows/fill.py`
+    and `flows/on_the_page.py` ask it of paths before joining them to a root. Measured:
+    `Path(root) / "C:/outside/secrets.txt"` is `C:/outside/secrets.txt` --
+    `pathlib` discards the left operand when the right is absolute -- so a
+    citation check that joined without asking read a file outside the checkout,
+    found the `verbatim` in it, and reported the citation verified.
 
     Args:
         rel: a path that is about to be joined to a root -- a page path in the
@@ -328,22 +323,22 @@ def can_escape(rel: str) -> bool:
 def remove_tree(root: Path, *, ignore_errors: bool = False) -> None:
     r"""`shutil.rmtree`, clearing the read-only bit Windows refuses to unlink.
 
-    !! `shutil.rmtree` ALONE CANNOT DELETE A COPIED `.git` ON WINDOWS. Git
+    !! `shutil.rmtree` alone cannot delete a copied `.git` on Windows. Git
     writes loose objects and `.git/objects/pack/*.pack` read-only, and Windows
-    refuses to unlink a read-only file. MEASURED 2026-08-29: `git init` plus one
-    commit leaves 3 read-only files under `.git/objects`; `shutil.copytree`
-    preserves the mode, and `shutil.rmtree` over the copy raised
-    `PermissionError: [WinError 5]` leaving 15 entries behind.
+    refuses to unlink a read-only file. Measured: `git init` plus one commit
+    leaves 3 read-only files under `.git/objects`; `shutil.copytree` preserves
+    the mode, and `shutil.rmtree` over the copy raises
+    `PermissionError: [WinError 5]`, leaving 15 entries behind.
 
-    ! `ignore_errors=True` IS NOT A FIX FOR IT, IT IS THE SILENT SHAPE OF IT.
-    The same measurement left `into.exists()` `True` at exit 0 -- a complete,
+    ! `shutil.rmtree(ignore_errors=True)` is not a fix for it but the silent
+    shape of it: the same case leaves the tree on disk at exit 0 -- a complete,
     ordinary-looking directory that the caller's own contract says is gone.
 
-    ! `onerror`, NOT `onexc`. `onexc` arrives in 3.12 and the floor here is
+    ! `onerror`, not `onexc`. `onexc` arrives in 3.12 and the floor here is
     3.11, where it is an unexpected keyword argument.
 
-    ! THE HOOK RE-RAISES rather than reporting, because `shutil.rmtree` calls it
-    OUTSIDE its own `try`, so an exception from it leaves `rmtree` and reaches
+    ! The hook re-raises rather than reporting, because `shutil.rmtree` calls it
+    outside its own `try`, so an exception from it leaves `rmtree` and reaches
     the caller -- which is what makes a tree that could not be removed a
     failure rather than a message.
 
@@ -369,47 +364,46 @@ def remove_tree(root: Path, *, ignore_errors: bool = False) -> None:
     shutil.rmtree(root, onerror=clear_and_retry)
 
 
-def tracked_paths(repo: Path) -> set[Path] | None:
-    """`git_ls_files` as resolved absolute paths, for membership tests."""
-    rels = git_ls_files(repo)
+def tracked_paths(repo: Path, rels: list[str] | None) -> set[Path] | None:
+    """`git_ls_files` output as resolved absolute paths, for membership tests."""
     if rels is None:
         return None
     return {(repo / rel).resolve() for rel in rels}
 
 
-def path_index(repo: Path) -> set[str]:
+def path_index(repo: Path, rels: list[str] | None) -> set[str]:
     """Every tracked path, plus every suffix of it, for citation resolution.
 
     Prose cites package-relative (`summary.py`, `billing/rates.py`) far more
     often than repo-relative, and a run's working directory may sit anywhere
-    under the root. Resolving against the repo root alone produced FALSE
-    dangling reports on nearly every citation of one repository -- an
+    under the root. Resolving against the repo root alone produces false
+    dangling reports on nearly every citation of such a repository -- an
     annotation handed to four reviewers as settled fact.
 
-    A suffix set answers "is this citation ANY file in the tree" in one lookup,
+    A suffix set answers "is this citation any file in the tree" in one lookup,
     which is the question prose is actually asking. Walking the tree once and
     indexing beats trying N candidate roots per citation.
 
-    ! TRACKED files only, via `git ls-files`. That is faster than walking a tree
+    ! Tracked files only, via `git ls-files`. That is faster than walking a tree
     full of generated data, and more correct: a citation into gitignored runtime
-    state is UNVERIFIABLE (absent from every fresh checkout), which is a
+    state is unverifiable (absent from every fresh checkout), which is a
     different finding from a citation that resolves nowhere.
     """
     out: set[str] = set()
     if not repo.is_dir():
         return out
-    rels = git_ls_files(repo)
-    # ! Written out rather than collapsed to `if not rels`. The two states DO
+    # ! Written out rather than collapsed to `if not rels`. The two states do
     # take the same fallback here -- an index that tracks nothing indexes the
     # same set as no index at all -- and `git_ls_files` documents None as a
-    # THIRD state, so a reader who saw them collapsed would learn the opposite
+    # third state, so a reader who saw them collapsed would learn the opposite
     # of what that docstring says.
     if rels is None or not rels:  # not a git repo, git unavailable, or empty
         rels = [
             p.relative_to(repo).as_posix()
             for p in repo.rglob("*")
-            # ! RELATIVE to the repo, not absolute: an ancestor named `venv`
-            # excluded the whole checkout. See `walk_files` below.
+            # ! Relative to the repo, not absolute: matched absolute, an
+            # ancestor named `venv` excludes the whole checkout. See
+            # `walk_files` below.
             if p.is_file() and not EXCLUDED_DIRS.intersection(p.relative_to(repo).parts)
         ]
     for rel in rels:
@@ -420,34 +414,34 @@ def path_index(repo: Path) -> set[str]:
 
 
 def walk_files(root: Path):
-    """Every file under `root`. It ENUMERATES; it classifies nothing.
+    """Every file under `root`. It enumerates; it classifies nothing.
 
-    ! THE WALK DOES NOT DECIDE. What a file no reader claims becomes -- freeform,
-    a refusal or a note -- is the GATHER's call, and it turns on something only
-    the gather knows: whether the path was NAMED or merely FOUND. A directory
+    ! The walk does not decide. What a file no reader claims becomes -- freeform,
+    a refusal or a note -- is the gather's call, and it turns on something only
+    the gather knows: whether the path was named or merely found. A directory
     holds READMEs, images and lockfiles; refusing on those makes the form
     unusable, and skipping them in silence is the false completeness this warns
     about.
 
-    ! `EXCLUDED_DIRS` IS THIS MODULE'S, which is why the walk sits here rather
-    than in the gather that used to hold it. It is not the same question. It is about
-    where the walk may GO -- a vendored tree is not this repo's code at all --
-    rather than about what a file is once found.
+    ! `EXCLUDED_DIRS` is this module's, which is why the walk sits here rather
+    than in the gather. It is not the same question. It is about where the walk
+    may go -- a vendored tree is not this repo's code at all -- rather than
+    about what a file is once found.
     """
     if root.is_file():
         yield root
         return
     for p in sorted(root.rglob("*")):
         if p.is_file():
-            # !! RELATIVE to the root being walked. Matched against `p.parts`
-            # this tested every ANCESTOR too, so a checkout living anywhere
+            # !! Relative to the root being walked. Matched against `p.parts`
+            # this tests every ancestor too, so a checkout living anywhere
             # under a directory called `venv`, `.venv`, `node_modules`,
-            # `site-packages`, `__pycache__` or `.git` excluded ITSELF.
-            # Measured 2026-08-17: `code_names` harvested 0 names from a repo
-            # under `.../venv/myproject`, and nothing joined `unread`, so the
-            # NOT CHECKED list stayed empty and the run read as complete --
-            # every `names-a-symbol` a false obituary, handed to four reviewers
-            # as settled fact.
+            # `site-packages`, `__pycache__` or `.git` excludes itself:
+            # `flows.gather._name_corpus` harvests 0 names from a git repo under
+            # `.../venv/myproject`, nothing is added to `unread`, so the not-checked
+            # list stays empty and the run reads as complete -- every
+            # `names-a-symbol` a false obituary, handed to four reviewers as
+            # settled fact.
             if not EXCLUDED_DIRS.intersection(p.relative_to(root).parts):
                 yield p
 
@@ -455,11 +449,10 @@ def walk_files(root: Path):
 def relative_to(target: Path, start: Path) -> Path:
     """`target` expressed from `start`, walking up with `..` where it must.
 
-    !! `pathlib` ALONE. Roy, 2026-08-28: *"No os.path. Only Pathlib. Fix this
-    everywhere."* the gather reached for `os.path.relpath` on 2026-08-28
-    because `Path.relative_to` RAISES when the target is not under the start,
-    and a revise root is a temporary directory outside the checkout -- so the
-    `..` walk this function does is the part `pathlib` does not ship.
+    !! `pathlib` alone; this package does not use `os.path`.
+    `Path.relative_to` raises when the target is not under the start, and a
+    revise root is a temporary directory outside the checkout -- so the `..`
+    walk this function does is the part `pathlib` does not ship.
 
     Args:
         target: the path to express.
@@ -467,14 +460,12 @@ def relative_to(target: Path, start: Path) -> Path:
 
     Returns:
         A relative path when both share an anchor, `Path(".")` when they are
-        the same place, and the RESOLVED ABSOLUTE `target` when they do not
+        the same place, and the resolved absolute `target` when they do not
         share one.
 
-    !! THE ABSOLUTE FALLBACK IS THE WINDOWS CASE, AND IT IS THE ONE THAT
-    CRASHED. MEASURED 2026-08-28: asking `os.path.relpath` for a path on drive
-    `D:` from a start on drive `C:` raises `ValueError: path is on mount 'D:',
-    start on mount 'C:'`, so a gather of a repo on one drive from a cwd on
-    another was an uncaught traceback. ! There is no relative path between two
+    !! The absolute fallback is the Windows case: a path on drive `D:` from a
+    start on drive `C:` (`os.path.relpath` raises `ValueError: path is on mount
+    'D:', start on mount 'C:'` there). ! There is no relative path between two
     anchors, so returning one is impossible and raising is unhelpful; the
     resolved target is the only honest answer. This repo names Windows as its
     primary platform and fetches corpora to arbitrary roots, which is what
@@ -485,8 +476,8 @@ def relative_to(target: Path, start: Path) -> Path:
     if here.anchor != there.anchor:
         return here
     shared = 0
-    # ! `strict=False` IS THE ANSWER HERE, not the lenient one: the two paths
-    # are EXPECTED to differ in length -- that difference is exactly what the
+    # ! `strict=False` is the answer here, not the lenient one: the two paths
+    # are expected to differ in length -- that difference is exactly what the
     # `..` count below is measured from -- so stopping at the shorter one is
     # the intent rather than a tolerated mismatch.
     for mine, yours in zip(here.parts, there.parts, strict=False):
@@ -495,7 +486,7 @@ def relative_to(target: Path, start: Path) -> Path:
         shared += 1
     up = [".."] * (len(there.parts) - shared)
     rest = here.parts[shared:]
-    # ! `Path(".")` FOR THE SAME PLACE, which is what a gather of the checkout
+    # ! `Path(".")` for the same place, which is what a gather of the checkout
     # it is standing in reports. `Path()` with no arguments is `Path(".")`
     # already, but saying it is the difference between a value and an accident.
     return Path(*up, *rest) if (up or rest) else Path(".")

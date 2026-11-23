@@ -1,22 +1,12 @@
 """Questions asked of a binder BY ADDRESS: which paragraph sits at which place.
 
-!! IT IS HERE BECAUSE IT READS PARAGRAPHS. `addresser.py` calls itself the leaf
-that *"knows nothing about a paragraph"* and these five functions each take a
-list of addressed things -- the rows, which are the binder's material. The
-claim and the code disagreed until 2026-08-24, and the code was what moved.
+`handed` is the set of rows a role is dealt and its coverage is counted over,
+and `unaddressed` names the rows that carry no address; `gather` asks it of
+`Binder.paragraphs`, which holds none.
 
-!! THEY TAKE OBJECTS, NOT DICTS, SINCE 2026-08-31 -- `decision-log.md Process:
-#67`. The signature was `list[dict]` and the two callers passed two different
-dict shapes: a binder's rejoined rows, and `vars(paragraph)` at the page side.
-! **`vars()` WAS THE TELL.** `commands/gather.py` carried a comment calling that
-call *"a second statement of what a row is"* -- a `Paragraph` turned into a dict
-for no reason but this signature.
-
-!! AND THEY TAKE `Paragraph` ITSELF SINCE 2026-08-31 -- `decision-log.md Process:
-#68`. For one day they took an `Addressed` PROTOCOL, because a `BinderRow` and a
-`Paragraph` both had to satisfy one signature. **That row type is deleted**: a
-binder holds pages, and both kinds of page hold paragraphs, so there is one type
-here and no structural typing needed to bridge two.
+!! IT IS HERE BECAUSE IT READS PARAGRAPHS. `addresser.py` says it *"still knows
+nothing about prose"*, and four of these six functions take a list of addressed
+things and two take one -- the rows, which are the binder's material.
 
 ! THE ADDRESSER STILL OWNS THE ADDRESS. Emitting a place, spelling it and
 parsing it back are one subject and stay there; asking WHICH PARAGRAPH sits at
@@ -35,19 +25,19 @@ from comment_review.reading.paragraph import Paragraph
 def resolve(address: str, paragraphs: Sequence[Paragraph]) -> list[int]:
     """Which binder entries carry this address, as 1-based binder indices.
 
-    !! THE INVERSE IS A LOOKUP, NOT ARITHMETIC. `bN` is "the gap after code line
-    N", and which entries sit there is a fact the binder holds -- an empty
-    interval, or a comment run filling the same gap, or both. Recomputing a line
-    range from N would answer where the gap IS while the question asked which
-    entries are THERE.
+    The inverse is a lookup, not arithmetic. `bN` is "the gap after code line
+    N", and which entry sits there is a fact the binder holds -- an empty
+    interval or a comment run filling that gap. Recomputing a line range from N
+    would answer where the gap is while the question asked which entry is there.
 
-    ! Several entries can share one address and that is not an error: `c0` and
-    `b0` are different places, but a comment run and the interval it occupies
-    are the same place seen twice by a binder built before an edit.
+    No two entries share an address: `page_of` refuses a page in which two
+    paragraphs hold one (`held_twice`), and an empty place is emitted only where
+    no filled paragraph stands.
 
     Args:
         address: `pkg:mod.py@b3` or `pkg:mod.py@c3`.
-        paragraphs: the binder entries FOR THAT FILE, in binder order.
+        paragraphs: one file's paragraphs, in order -- `flows.addresses.lines_of`,
+            the only caller, passes a page read from disk.
 
     Returns:
         The 1-based positions within `paragraphs`, in order. Empty when nothing
@@ -57,26 +47,19 @@ def resolve(address: str, paragraphs: Sequence[Paragraph]) -> list[int]:
 
 
 def series_of(paragraph: Paragraph) -> str:
-    """Which series this paragraph's own address is in -- `a`, `b` or `c`.
+    """Which series this paragraph's own address is in -- `a`, `b`, `c` or `f`.
 
-    !! READ OFF THE ADDRESS, which is the one place the series is STATED. It was
-    INFERRED from two other fields until 2026-08-20 -- a paragraph that declares
-    is an `a`, one with a column is a `c`, everything else a `b` -- and the
-    inference had no room for a fourth series. Front matter declares nothing and
-    has no column, so it came back `b`, and `--anchor <module> --series b`
-    answered with the file's own place.
+    Read off the address, which is the one place the series is stated.
 
-    ! Inferring was meant to avoid a case per KIND, and reading the address
-    avoids that too. It costs nothing: the caller holds a binder row, and an
-    entry carrying no address is one no caller could cite anyway.
+    Inferring the series from other fields was meant to avoid a case per kind,
+    and reading the address avoids that too. It costs nothing: the caller holds
+    a binder row, and an entry carrying no address is one no caller could cite
+    anyway.
 
-    !! A `d` IS NOT ASKED, AND ANSWERING IT WAS THE DEFECT. Leading is walked
+    A `d` is not asked, and answering it was the defect. Leading is walked
     because the compositor has to set those lines back, and it names no place --
     Roy, 2026-08-24: *"Series d are walked because they have to be but they are
-    not cues."* This defaulted its missing address to `""` and handed back `""`,
-    a non-answer every caller then compared against a series letter. Every
-    caller but one already tests `address` first; the one that did not is the
-    reason this is stated rather than absorbed.
+    not cues."* Its one caller, `handed`, tests `address` first.
 
     Args:
         paragraph: a binder row that NAMES A PLACE.
@@ -91,14 +74,9 @@ def series_of(paragraph: Paragraph) -> str:
 def stable(paragraph: Paragraph) -> str:
     """The place the gather STAMPED on this paragraph, or "" if it carries none.
 
-    !! IT READS; `place` COMPUTES. One implementation, one caller that runs it
-    -- `page_for`, which holds the file text and the finished paragraph list at
-    once -- and everything downstream reads the result. Two computations that
-    agree today is not the property wanted, because only one of them can be
-    right tomorrow.
-
-    ! "" means the binder predates the field. A caller REPORTS that rather than
-    deriving a place from a binder that never had one.
+    "" means the paragraph is leading, which takes no address: a page read
+    from disk carries leading, and `Binder.paragraphs` drops it. A caller
+    reports that rather than deriving a place from a paragraph that has none.
     """
     return paragraph.address
 
@@ -106,14 +84,11 @@ def stable(paragraph: Paragraph) -> str:
 def _by_path(paragraphs: Sequence[Paragraph]) -> dict[str, list[Paragraph]]:
     """Every paragraph grouped by the file it belongs to, in binder order.
 
-    !! ONE PASS, NOT ONE PER FILE. Four sites built the set of paths and then
-    filtered the WHOLE binder once for each of them -- O(files x paragraphs),
-    on a structure that arrives already grouped because a binder is stacked one
-    page at a time.
+    One pass, not one per file.
 
-    ! The grouping is what every caller actually wanted; the set of paths is
-    `.keys()` and the binder order inside a file is preserved, which is what
-    `entry N` in a report counts.
+    The grouping is what its one caller, `unaddressed`, wants; the set of
+    paths is `.keys()` and the binder order inside a file is preserved, which is
+    what `entry N` in a report counts.
     """
     out: dict[str, list[Paragraph]] = {}
     for b in paragraphs:
@@ -124,12 +99,10 @@ def _by_path(paragraphs: Sequence[Paragraph]) -> dict[str, list[Paragraph]]:
 def handed(paragraphs: Sequence[Paragraph]) -> list[Paragraph]:
     """The paragraphs a role is handed: addressed, and not the file's own matter.
 
-    !! ONE DEFINITION, TWO READERS. `flows.distribute.seed` builds a role's slots
-    from this, and `flows.verify.coverage_problems` counts a returned copy's
-    coverage against it. The two used to disagree by construction: the seed
-    handed out every row and the text report a role read dropped the `f`
-    series, so a role could never rule on a place its coverage was counted
-    over.
+    One definition, three readers. `flows.distribute.seed` builds a role's
+    slots from this, `flows.distribute.assigned_binder` cuts a stage's binder
+    with it, and `flows.verify.required_places` names the places a returned
+    copy's coverage is counted against.
 
     ! The `f` series -- a licence header, a shebang, an index -- states no
     constraint the code could contradict, so no role rules on it and the brief
@@ -148,7 +121,8 @@ def handed(paragraphs: Sequence[Paragraph]) -> list[Paragraph]:
 def unaddressed(paragraphs: Sequence[Paragraph]) -> list[str]:
     """Which paragraphs carry NO address, described one per line.
 
-    `gather` refuses to write a binder holding any. A paragraph with no address
+    `gather` runs it over `Binder.paragraphs`, which already drops every row
+    without an address, so there it finds none. A paragraph with no address
     cannot be cited, so a review over it would rule on nothing and report itself
     complete.
     """

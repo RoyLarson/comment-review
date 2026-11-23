@@ -13,11 +13,12 @@ file the turn takes, and a refusal has one wording.
 The sent slot carries the question and the returned one never does: an
 `Answer` belongs to one of three questions and a role writes none of them. A
 returned entry contributes its answer fields alone; the question comes from
-the place the turn is asking about, or from the slot the batch sent, which is
-the same question written down twice.
+the typed `Slot` the bus builds from the proof, or from the serialized slot
+`check --answers` reads from the batch.
 """
 
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
+from dataclasses import dataclass, field
 from pathlib import Path
 
 from comment_review.desk.answers.table import ANSWERS
@@ -25,13 +26,18 @@ from comment_review.desk.collator import Cache, Problem, cited_problems
 from comment_review.desk.marks.rules import allowed
 from comment_review.desk.proof.answer import (
     Answer,
+    CorrectAnswer,
+    PatchAnswer,
     Question,
+    Rewrite,
     answer_type,
     read_answer,
 )
-from comment_review.desk.proof.mark import QUERY_SHAPES, filled
+from comment_review.desk.proof.disposition import contract as ruling_contract
+from comment_review.desk.proof.mark import QUERY_SHAPES, MoveMark, filled
 from comment_review.desk.proof.move import key_of
 from comment_review.desk.proof.source import contract as source_contract
+from comment_review.differences import CannotCompose, compose
 
 #: What each field of an answer is, in the words an answer's own read
 #: checks by. The check asks whether a field is filled and not what it means, so a
@@ -47,13 +53,52 @@ ANSWER_FIELDS = {
     " `owes_change` names and absent for the others",
     "claim": "the keys `claim` names for this answer, each filled",
     "sources": "the evidence, each `{cite, verbatim}`, resolved against the tree"
-    " the slot was read from",
+    " the slot was read from; at least one is owed by the answers"
+    " `owes_sources` names",
 }
 
 #: The field whose value is itself a closed set, and that set. The mark's own
 #: contract publishes the same one under the same name (`desk.marks.rules.
 #: allowed`), and both read `QUERY_SHAPES` rather than spelling it twice.
 ANSWER_VALUES = {"shape": [str(one) for one in QUERY_SHAPES]}
+
+
+@dataclass(frozen=True)
+class Slot:
+    """The question sent to a role and the context for reading its answer."""
+
+    address: str
+    anchor: str
+    question: str
+    raw_text: str = ""
+    sides: dict[str, str] = field(default_factory=dict)
+    to: str = ""
+    movers: tuple[tuple[str, MoveMark], ...] = ()
+
+    @property
+    def key(self) -> str:
+        """The place address or the move's two-address key."""
+        return key_of(self.address, self.to) if self.to else self.address
+
+    def answer_context(self) -> dict:
+        """The fields the answer reader and rewrite composer use."""
+        context = {"anchor": self.anchor, "question": self.question}
+        if self.to:
+            return context
+        return {**context, "raw_text": self.raw_text, "sides": dict(self.sides)}
+
+    def serialize(self, read_from: dict) -> dict:
+        """Write the batch slot with its reading context and move proposals."""
+        slot: dict = {"address": self.address}
+        if self.to:
+            slot["to"] = self.to
+        slot.update(self.answer_context())
+        if self.to:
+            slot["movers"] = [
+                {"role": role, "snippet": mark.change, "raw_text": mark.raw_text}
+                for role, mark in self.movers
+            ]
+        return {**slot, "instruction": None, "read_from": dict(read_from)}
 
 
 def slot_key(entry: dict) -> str:
@@ -97,7 +142,7 @@ def slots_of(loaded: object, role: str) -> list:
 
 def answers_of(
     role: str,
-    sent: dict[str, dict],
+    sent: Mapping[str, Slot | dict],
     returned: list,
     unsent: Callable[[str], str],
     root: Path,
@@ -111,10 +156,17 @@ def answers_of(
     (`decision-log.md Process: #22`). A slot handed back as it was sent,
     carrying no instruction, is unanswered as surely as one never returned.
 
+    A role may answer one slot several times (`decision-log.md Process: #308`).
+    Each answer is read and its sources verified on its own; rewrites compose
+    into one `correct` or `patch` by `differences.compose`, repeats of one
+    other answer collapse, and the slot is refused, with no answer, where the
+    answers contradict each other (`_one_answer`).
+
     Args:
         role: whose answers these are.
         sent: slot key -> the slot that went out there (`slot_key`),
-            carrying `question` and, where the caller has one, `anchor`.
+            carrying `question` and, where the caller has one, `anchor`, and
+            the `raw_text` and `sides` that several rewrites compose against.
         returned: the entries as they came back, through `slots_of`.
         unsent: given an address outside `sent`, the reason an entry there is
             refused. Only the caller knows why the address is not this role's
@@ -129,7 +181,7 @@ def answers_of(
         `(slot key -> Answer, the problems)`, the problems in slot order after
         the entries that named no slot.
     """
-    answered: dict[str, dict] = {}
+    answered: dict[str, list[tuple[int, dict]]] = {}
     problems: list[Problem] = []
     for i, entry in enumerate(returned, 1):
         if not isinstance(entry, dict):
@@ -142,38 +194,110 @@ def answers_of(
         if address not in sent:
             problems.append(Problem(role, address, unsent(address)))
             continue
-        answered[address] = entry
+        answered.setdefault(address, []).append((i, entry))
 
     out: dict[str, Answer] = {}
-    for address, slot in sent.items():
-        entry = answered.get(address)
-        if entry is None or not filled(entry.get("instruction")):
+    for address, sent_slot in sent.items():
+        slot = sent_slot.answer_context() if isinstance(sent_slot, Slot) else sent_slot
+        entries = [
+            (i, entry)
+            for i, entry in answered.get(address, [])
+            if filled(entry.get("instruction"))
+        ]
+        if not entries:
             problems.append(Problem(role, address, "unanswered"))
             continue
-        answer, why = read_answer(
-            address,
-            {
-                **entry,
-                "question": slot.get("question"),
-                "anchor": entry.get("anchor") or slot.get("anchor", ""),
-            },
-        )
-        if answer is None:
-            # The location is the `Problem`'s own two fields, so it is taken
-            # off the front of each reason rather than printed twice.
-            problems += [
-                Problem(role, address, one.removeprefix(f"{address}: ")) for one in why
-            ]
+        read: list[tuple[int, Answer]] = []
+        refused: list[Problem] = []
+        for i, entry in entries:
+            answer, why = _read_one(address, slot, entry, root, cache)
+            if answer is None:
+                refused += [Problem(role, address, one) for one in why]
+            else:
+                read.append((i, answer))
+        if refused:
+            problems += refused
             continue
-        cited = [
-            Problem(role, address, one.removeprefix(f"{address}: "))
-            for one in cited_problems(address, answer.sources, root, cache)
-        ]
-        if cited:
-            problems += cited
+        answer, contradiction = _one_answer(role, slot, read)
+        if answer is None:
+            problems.append(Problem(role, address, contradiction))
             continue
         out[address] = answer
     return out, problems
+
+
+def _read_one(
+    address: str, slot: dict, entry: dict, root: Path, cache: Cache
+) -> tuple[Answer | None, list[str]]:
+    """One entry read against its slot and its sources verified, or the reasons.
+
+    Each reason has the address taken off its front: the `Problem` it goes on
+    carries the location in its own two fields.
+    """
+    answer, why = read_answer(
+        address,
+        {
+            **entry,
+            "question": slot.get("question"),
+            "anchor": entry.get("anchor") or slot.get("anchor", ""),
+        },
+    )
+    if answer is not None:
+        why = cited_problems(address, answer.sources, root, cache)
+    return (None if why else answer), [one.removeprefix(f"{address}: ") for one in why]
+
+
+def _one_answer(
+    role: str, slot: dict, read: list[tuple[int, Answer]]
+) -> tuple[Answer | None, str]:
+    """Several answers a role gave at one slot, as the one answer they compose to.
+
+    Rewrites compose against the text the role was asked about: at an
+    escalation its own side, which a single rewrite there replaces, and
+    otherwise the slot's `raw_text`. Repeats of one other answer with one
+    claim collapse to the first. Anything else -- rewrites whose edits meet,
+    two different answers beside each other, or repeats whose claims differ --
+    is a contradiction, and nothing is answered.
+
+    Returns:
+        `(answer, "")`, or `(None, the contradiction)`.
+    """
+    if len(read) == 1:
+        return read[0][1], ""
+    names = sorted({answer.name for _, answer in read})
+    rewrites = [(i, answer) for i, answer in read if isinstance(answer, Rewrite)]
+    if len(rewrites) < len(read):
+        if len(names) > 1:
+            return None, f"{' and '.join(names)} contradict each other at one slot"
+        # A repeat says the same thing only when its claim does; its reason
+        # and sources may differ without changing the answer.
+        claims = [answer.serialize()["claim"] for _, answer in read]
+        if any(claim != claims[0] for claim in claims):
+            return None, f"two {names[0]} answers at one slot say different things"
+        return read[0][1], ""
+    base = str(slot.get("raw_text") or "")
+    if slot.get("question") == str(Question.ESCALATION):
+        sides = slot.get("sides")
+        if isinstance(sides, dict) and role in sides:
+            base = str(sides[role])
+    try:
+        change = compose(base, {f"answer {i}": one.change for i, one in rewrites})
+    except CannotCompose as refused:
+        return None, f"the rewrites contradict each other: {refused}"
+    cited = [source for _, one in rewrites for source in one.sources]
+    kind = CorrectAnswer if "correct" in names else PatchAnswer
+    first = rewrites[0][1]
+    return (
+        kind(
+            address=first.address,
+            anchor=first.anchor,
+            question=first.question,
+            reason="; ".join(one.reason for _, one in rewrites),
+            sources=tuple(s for i, s in enumerate(cited) if s not in cited[:i]),
+            change=change,
+        ),
+        "",
+    )
 
 
 def contracts() -> dict:
@@ -197,13 +321,14 @@ def contracts() -> dict:
     a rule, and the half it leaves out is the one a role cannot guess.
 
     Returns:
-        `stage_4c_mark` -> the mark's own shape; one entry per question,
-        naming the answers that question admits, which of them owe a `change`,
-        the `claim` keys each owes, the closed value sets, and what each field
-        is. An answer owing no claim keys carries an empty list, so a reader
-        can tell "none" from "not published".
+        `stage_4c_mark` -> the mark's own shape; `chief` -> the chief's
+        rulings, from `desk.proof.disposition.contract`; one entry per question,
+        naming the answers that question admits, which of them owe a `change`
+        and which a source, the `claim` keys each owes, the closed value
+        sets, and what each field is. An answer owing no claim keys carries an
+        empty list, so a reader can tell "none" from "not published".
     """
-    out: dict = {"stage_4c_mark": allowed()}
+    out: dict = {"stage_4c_mark": allowed(), "chief": ruling_contract()}
     for question in Question:
         kinds = {
             name: kind
@@ -216,6 +341,9 @@ def contracts() -> dict:
             "instruction": sorted(kinds),
             "owes_change": sorted(
                 name for name, kind in kinds.items() if kind.owes_change
+            ),
+            "owes_sources": sorted(
+                name for name, kind in kinds.items() if kind.owes_sources
             ),
             "claim": claims,
             "values": {

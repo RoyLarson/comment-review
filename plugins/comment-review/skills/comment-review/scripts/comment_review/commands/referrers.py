@@ -12,7 +12,8 @@ from contextlib import redirect_stdout
 from pathlib import Path
 
 from comment_review import exceptions
-from comment_review.concordance.referrers import _grep, tokens_for
+from comment_review.concordance.referrers import tokens_for
+from comment_review.flows.referrers import files_naming
 from comment_review.machine.repo import git_ls_files
 
 
@@ -63,7 +64,7 @@ def _report(args: argparse.Namespace) -> int:
             text = ""
             unreadable.append(f"{rel} ({type(e).__name__})")
         for token in sorted(tokens_for(Path(rel), text)):
-            found, reason = _grep(repo, token)
+            found, reason = files_naming(repo, token)
             if found is None:
                 # ! The search never completed, so a real referrer for this
                 # token may exist unreported. A different state from

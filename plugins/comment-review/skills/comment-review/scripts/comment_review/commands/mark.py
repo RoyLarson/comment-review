@@ -3,52 +3,49 @@
     comment_review mark --edit-copy COPY --address ADDRESS --instruction correct \
         --false "the clause as it stands" --true "the clause as it should read" \
         --reason "..." --cite pkg/mod.py:12 [--ran "rg -n ..."] [--repo ROOT]
-    comment_review mark --edit-copy COPY --address ADDRESS --withdraw
+    comment_review mark --edit-copy COPY --address ADDRESS --withdraw \
+        --instruction drop [--quote "the clause it quotes"]
 
-`--withdraw` takes back every ruling the copy holds at `--address`, handing a
-seeded slot back as it was seeded, so a role places its ruling again rather
-than editing the JSON (`mark-defects` T24, `flows.fill.withdraw`).
+`--withdraw` takes back the one ruling of `--instruction` the copy holds at
+`--address`, so a role places it again rather than editing the JSON; where two
+of that instruction are placed there, `--quote` names the one. The other
+rulings at the address stay. With the last one gone, `check` reads the place
+from the binder as still owed (`flows.fill.withdraw`).
 
-!! A MODULE DOES ONE JOB AND HAS NO CLI; A FLOW CALLS MODULES;
-A COMMAND EXPOSES A FLOW. `decision-log.md Process: #12`. The flow is
-`flows.fill`; this parses the console and reads and writes the copy.
+The flow is `flows.fill`; this parses the console and reads and writes the copy.
 
-!! ONE INVOCATION PER RULING, ONE FLAG PER FIELD, AND ANY VALUE MAY BE
-`@path`. Roy, 2026-09-07, extending the 2026-08-17 ruling that no multi-line
-value passes through a shell: *"Can we just tell the cli which file to read
-for the text? And leave everything else in the cli pieces?"* A value spelled
-`@path` is read from that file, so a clause that wraps a comment line or a
-`change` that is a whole paragraph never crosses the shell; a one-line clause
-goes inline. And *"a false clause is one statement not multiple paragraphs"*,
-so the ordinary case is inline.
+One invocation per ruling, one flag per field, and any value may be `@path`. A
+value spelled `@path` is read from that file, so a clause that wraps a comment
+line or a `change` that is a whole paragraph never crosses the shell; a
+one-line clause goes inline. A false clause is one statement, not several
+paragraphs, so the ordinary case is inline.
 
-! THE CLAIM'S KEYS ARE FLAGS BY NAME -- `--false --true` for a `correct`,
+! The claim's keys are flags by name -- `--false --true` for a `correct`,
 `--from --to` for a `patch` or a `move`, `--drop`, `--missing --anchor` for an
 `add`, `--shape --attempted --settles` for a `query`. A flag the instruction's
 type does not carry is refused by name, and a missing one is named by the
 type's own read, so a role learns the contract from the refusal.
 
-! A SOURCE IS `--cite`, AND `--verbatim` OR `--ran` BINDS TO THE `--cite`
-BEFORE IT. Ruled 2026-09-07. A `--cite` with no `--verbatim` has the cited
-line read out of the checkout by the flow.
-
-! `--anchor-line` IS NOT `--anchor`. The first is the line of code a slot
-CREATED here sits on -- an `add` at an empty place, which the binder does not
-carry -- as `addresses find` printed it. The second is `add`'s claim key: the
-anchor NAMED in backticks.
+A source is `--cite`, and `--verbatim` or `--ran` binds to the `--cite`
+before it. A `--cite` with no `--verbatim` has the cited line read out of the
+checkout by the flow.
 
 `--change` is the text that moves or arrives and `--raw-text` is the
-paragraph it lands in -- `decision-log.md Process: #172`, `#175` and `#176`.
+paragraph it lands in.
 An `add` gives the snippet in `--change` and the paragraph as it will read in
 `--raw-text`; a `move` gives the snippet subtracted from the origin and the
 destination paragraph as it will read. `--raw-text` is owed on every `move`
 and on an `add` at a place that already holds prose; at an empty place the
 two are the same text and it may be left off. Every other instruction takes
-its paragraph from the page and is refused a `--raw-text`.
+its paragraph from the page, and a `--raw-text` given to it is ignored.
 
-! NO BULK PASS OF ANY KIND. Roy, 2026-09-07: a flag that marks every null
-slot `clean` *"invites skipping reviewing each paragraph"*; each role
-certifies each paragraph under its remit, one invocation at a time.
+Exits `OK` with the placed mark named on stdout, `BROKEN` with the flow's
+reasons on stdout and the copy untouched, and `UNREADABLE` when the copy or an
+`@path` cannot be read -- the same 0, 1 and 2 as `check`.
+
+There is no bulk pass of any kind. A flag that marks every null slot `clean`
+would invite skipping the review of each paragraph; each role certifies each
+paragraph under its remit, one invocation at a time.
 """
 
 import argparse
@@ -56,17 +53,12 @@ import sys
 from pathlib import Path
 
 from comment_review import constants, exceptions
+from comment_review.commands.report import BROKEN, OK, UNREADABLE
 from comment_review.desk.marks.table import INSTRUCTIONS
 from comment_review.desk.proof.mark import Instruction, mark_type
 from comment_review.flows.fill import fill, withdraw
 from comment_review.flows.proof_io import load_copy, save_wire
 from comment_review.machine.repo import read_raw
-
-#: Exit codes -- `check`'s. `BROKEN` is a ruling the flow refused, with the
-#: reasons on stdout; `UNREADABLE` is a copy that is not one, or a usage error.
-OK = 0
-BROKEN = 1
-UNREADABLE = 2
 
 #: Every claim key any type names, in the order `docs/the-mark.md` lists the
 #: instructions. Each is a flag; which ones an instruction accepts is its
@@ -124,9 +116,9 @@ def _expanded(argv: list[str]) -> tuple[list[str], list[str]]:
 
     A value is read from its file whether it stands as its own token or
     follows a flag's `=` -- `--true=@path`, which argparse reads as it reads
-    `--true @path`. Only the first form was read until `mark-defects` T23,
-    so the second saved the literal path as the clause and inside the derived
-    change. A flag is never a path, and neither is a lone `@`.
+    `--true @path`. A flag is never a path, and neither is a lone `@`.
+    A value that opens with `@` and has more after it is always read as a
+    path; a literal one is passed in a file.
     """
     out: list[str] = []
     problems: list[str] = []
@@ -169,13 +161,11 @@ def _entry(args: argparse.Namespace) -> tuple[dict, list[str]]:
             entry[key] = getattr(args, key)
     if args.sources:
         entry["sources"] = args.sources
-    if args.anchor_line:
-        entry["anchor"] = args.anchor_line
     return entry, []
 
 
 def main() -> int:
-    """Place one ruling on the copy and say so, or say why it was refused.
+    """Place one ruling, or withdraw one at `--address`; say so, or say why not.
 
     Returns:
         `OK` with the placed mark named on stdout; `BROKEN` with every reason
@@ -192,12 +182,17 @@ def main() -> int:
     ap.add_argument(
         "--instruction",
         choices=sorted(INSTRUCTIONS),
-        help="one of the seven; required unless --withdraw",
+        help="one of the seven; with --withdraw, the one taken back",
     )
     ap.add_argument(
         "--withdraw",
         action="store_true",
-        help="take back every ruling placed at --address, and place nothing",
+        help="take back the --instruction placed at --address, and place nothing",
+    )
+    ap.add_argument(
+        "--quote",
+        help="with --withdraw, where two of --instruction are placed: the clause"
+        " the one taken back quotes, or its change where it quotes none",
     )
     for key in CLAIM_FLAGS:
         ap.add_argument(f"--{key}", help=f"claim.{key}")
@@ -221,11 +216,6 @@ def main() -> int:
     ap.add_argument(
         "--ran", dest="sources", action=_Source, help="the command that settled it"
     )
-    ap.add_argument(
-        "--anchor-line",
-        help="the line of code a slot created here sits on, as `addresses find`"
-        " printed it",
-    )
     ap.add_argument("--repo", help="the checkout a bare --cite is read from")
     argv, why = _expanded(sys.argv[1:])
     if why:
@@ -233,10 +223,18 @@ def main() -> int:
             print(line, file=sys.stderr)
         return UNREADABLE
     args = ap.parse_args(argv)
-    if args.withdraw and args.instruction:
-        ap.error("--withdraw takes back what is placed; it takes no --instruction")
-    if not args.withdraw and not args.instruction:
-        ap.error("--instruction is required, unless --withdraw")
+    if not args.instruction:
+        ap.error("--instruction is required, and with --withdraw names what goes")
+    if args.quote is not None and not args.withdraw:
+        ap.error("--quote names a ruling to withdraw; it takes --withdraw")
+    # A withdraw places nothing, so a flag that only placing reads is refused
+    # rather than ignored. An argparse group cannot say this: it would also make
+    # the placing flags exclude each other.
+    placing = (*CLAIM_FLAGS, "reason", "change", "raw_text")
+    if args.withdraw and (
+        args.sources or any(getattr(args, key) is not None for key in placing)
+    ):
+        ap.error("--withdraw places nothing; it takes no claim, source or text flag")
 
     copy_path = Path(args.edit_copy)
     copy, why = load_copy(copy_path)
@@ -245,7 +243,7 @@ def main() -> int:
             print(line, file=sys.stderr)
         return UNREADABLE
     if args.withdraw:
-        _, why = withdraw(copy, args.address)
+        _, why = withdraw(copy, args.address, args.instruction, args.quote)
         if why:
             for line in why:
                 print(line)

@@ -7,6 +7,7 @@ A committed fold reports settled and carried-forward places, move
 placements and advisory notes.
 """
 
+from collections.abc import Iterable
 from typing import NamedTuple
 
 from comment_review.desk.proof.answer import Question
@@ -21,6 +22,11 @@ class Refused(NamedTuple):
     role: str
     address: str
     reasons: tuple[str, ...]
+
+
+def refusal_line(role: str, where: str, reason: str) -> str:
+    """Render one refusal using the location label supplied by its caller."""
+    return f"{role} {where}: {reason}"
 
 
 class AsksTheHuman(NamedTuple):
@@ -79,31 +85,28 @@ class Advised(NamedTuple):
 
 
 class Settled(NamedTuple):
-    """One place a fold decided, and the text it settled on, if any.
+    """One place a fold decided, with the chief's ruling where there is one.
 
     A committed fold's only, as the module docstring says.
     """
 
     address: str
-    text: str | None
     disposition: Disposition | None = None
 
 
 class Committed(NamedTuple):
     """The fold committed: every place decided, none refused."""
 
-    places: int
-
 
 class RolledBack(NamedTuple):
-    """The fold rolled back: at least one refusal or human question, nothing saved.
+    """The fold rolled back: at least one refusal or human question, nothing saved."""
 
-    `reasons` counts the reasons across the `Refused` events before it and one
-    per `AsksTheHuman`, which is what every producer counts: the fold,
-    `flows.bus` and the collate command's envelope check.
-    """
 
-    reasons: int
+def rollback(
+    blockers: Iterable[Refused | AsksTheHuman],
+) -> list[Refused | AsksTheHuman | RolledBack]:
+    """Report the blockers in order, then the rollback they caused."""
+    return [*blockers, RolledBack()]
 
 
 Event = (

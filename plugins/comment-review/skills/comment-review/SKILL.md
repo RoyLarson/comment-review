@@ -1,6 +1,6 @@
 ---
 name: comment-review
-description: Review the comments and docstrings in the files a change touched, across four editorial roles -- ownership-context, block-context, function-context, module-context -- using parallel read-only subagents, and return each finding as instruction/location/summary/finding/change for the human to rule on. Use this whenever comments or documentation are the subject -- after finishing a task that added or edited commentary, when a file's comments have drifted from what the code now does, when someone says a comment is too long or out of date or "isn't this history", when reviewing a diff specifically for its prose rather than its logic, before a docs or comment burn-down, or when asked to check whether a module still reads as one module. Trigger on phrasings that never say "comment review" -- "these comments are getting out of hand", "does this docstring still match", "is this comment still true", "clean up the narration in this file", "why does this file need so much explaining" all mean run this. It is NOT /simplify (which reviews code structure) and NOT /code-review (which hunts correctness bugs). The reviewers mark a copy; the human reads each changed page as a diff against its original, what they accept is written into the working tree, and a proofreader then reads the finished pages.
+description: Review the comments and docstrings in the files a change touched, across four editorial roles -- ownership-context, block-context, function-context, module-context -- using read-only subagents in the stages a topology configures, by default ownership-context alone and then the other three in parallel, and return each finding as instruction/location/summary/finding/change for the human to rule on. Use this whenever comments or documentation are the subject -- after finishing a task that added or edited commentary, when a file's comments have drifted from what the code now does, when someone says a comment is too long or out of date or "isn't this history", when reviewing a diff specifically for its prose rather than its logic, before a docs or comment burn-down, or when asked to check whether a module still reads as one module. Trigger on phrasings that never say "comment review" -- "these comments are getting out of hand", "does this docstring still match", "is this comment still true", "clean up the narration in this file", "why does this file need so much explaining" all mean run this. It is NOT /simplify (which reviews code structure) and NOT /code-review (which hunts correctness bugs). The reviewers mark a copy; the human reads each changed page as a diff against its original, what they accept is written into the working tree, and a proofreader then reads the finished pages.
 ---
 
 # comment-review
@@ -24,9 +24,10 @@ that settles it.
 A helper program does the mechanical work. `<skill>` is the directory holding this file;
 take it from the absolute path you were given. Every command runs through
 `<skill>/scripts/comment-review.py`, and `--help` after a command's name gives its flags.
-Give each run its own `<run-dir>`, and write every file with the command's `--out` flag.
+Give each run its own `<run-dir>` outside the checkout, since `proof` refuses an `--out` inside
+the repo, and write every file with the command's output flag.
 `<stage-root>` is the absolute root a stage's binder was gathered from: the repo root for
-stage `4a`, `<run-dir>/root4c` for stage `4c`, and the proof pages root for stage 6.
+stage `4a`, `<run-dir>/root4c` for stage `4c`, and `<run-dir>/proof4c` for stage 6.
 
 **Your vocabulary.** Read the `[definitions]` entries of
 `<skill>/scripts/comment_review/references/vocabulary.toml` whose keys are listed under
@@ -45,7 +46,7 @@ that sets the scope in place of the diff. `style` is the style sheet from an ear
 | 2 | gather | `gather`, `topology` | the binder and a verified topology |
 | 3 | find references | `referrers` | the `REFERENCE ONLY` list |
 | 4 | mark, in stages `4a` then `4c` | the four reviewers | each stage's checked edit copies, and each role's freeform copies and findings |
-| 5 | collate and rule, once per stage | `collate`, you, `disposition` | a closed proof, the chief's copy and the freeform drafts |
+| 5 | collate and rule, once per stage | `collate`, you, `disposition` | a closed proof and the freeform drafts |
 | 6 | compact, when a cap applies | the condenser | a closed proof whose text fits the cap |
 | 7a | set and present | `proof`, then you | the proof pages and the proposal in front of the author |
 | 7b | write | the author, then you | the accepted text in the working tree, its code proved unchanged |
@@ -60,10 +61,9 @@ Each stage hands the next one of these; your vocabulary defines each one:
 | **binder** | `gather` | `topology`, `distribute`, `check`, `collate` |
 | **topology** | `topology` | `distribute`, `collate` |
 | **edit copy**, one per dispatch | `distribute`, filled with `mark` | `check`, `collate` |
-| **master proof** | `collate`, `turn`, `disposition` | `turn`, `disposition`, `proof` |
+| **master proof** | `collate`, `turn`, `disposition` | `turn`, `disposition`, `proof`, you when presenting |
 | **batch** | `collate`, `turn` | the roles, in a turn |
 | **dispositions** | you | `disposition` |
-| the copy chief's **edit copy**, one mark per resolved place | `collate`, `disposition` | you, when you present |
 | **docket** | `proof`, from a closed master proof | the compositor |
 | **schedule**, one per page in the docket | `proof` | the compositor |
 | **alteration**, one per place in a schedule | `proof` | the compositor |
@@ -105,8 +105,8 @@ The author rules once, on the text that will actually be written.
 
 Work from the git repository at the repo root, and pass `--repo` to every command that takes it.
 
-1. **Pre-edit ref.** Record `HEAD` when the files in scope have no uncommitted change, and
-   the commit `git stash create` prints otherwise. Stage 7b proves the code against it.
+1. **Pre-edit ref.** Record the commit `git stash create` prints, or `HEAD` when it prints
+   nothing, as it does when no tracked file has an uncommitted change. Stage 7b proves the code against it.
 2. **Scope.** Use `target` when given. Otherwise take `git merge-base HEAD <upstream>` and list
    `git diff --name-only <base>..HEAD`, plus `git diff --name-only HEAD` for uncommitted work.
    When there is no upstream, scope from `git diff --name-only HEAD`.
@@ -115,18 +115,21 @@ Work from the git repository at the repo root, and pass `--repo` to every comman
    In the proposal, state which scope you used, and list each file removed with the file it is
    generated from when the repo names one.
 3. **Cap and width.** Find what the repo publishes -- a contributing guide, `.editorconfig`, a
-   formatter config -- and how it counts. Record where you found each, and which work markers
-   (`TODO`, `FIXME`, ...) it exempts. When the repo cites a test that enforces the cap, confirm
+   formatter config -- and how it counts. Record where you found each. When the repo cites a test that enforces the cap, confirm
    the test exists, and report whether it does.
 4. **Style sheet.** Read `style` when given; otherwise start one. It records the width stage 1
-   found, the repo's dialect, the capitalisation of domain terms, its citation form, and one
-   template for each documentation format the tree actually uses: module docstring, function docstring and,
+   found, the repo's dialect, the capitalisation of domain terms, its citation form, where the
+   repo keeps code concerns -- in `TODO:` comments, or on a board or tracker its own
+   instructions name -- asking the author with `AskUserQuestion` when the repo does not say,
+   and one template for each documentation format the tree actually uses: module docstring,
+   function docstring and,
    where the repo is consistent, comments. Write each template out with its slots, measured
    from the docstrings in the tree.
 5. **Check and format commands.** Find how the repo proves its code compiles -- its CI config,
    Makefile, `package.json` or `pyproject.toml` -- and record one command per language in scope,
    for example `python -m compileall -q .`, `tsc --noEmit`, `cargo check`, `go build ./...`.
-   Stages 7a and 7b run it. For each freeform language, record the repo's formatter as a command
+   Stages 7a and 7b run it. Where the project has doctests, record the command that runs them,
+   for example `python -m pytest --doctest-modules`; stage 7b runs it. For each freeform language, record the repo's formatter as a command
    that rewrites the files it is given, for example `prettier --write`, `gofmt -w`. Record `none`
    where the repo has no such command.
 6. **Reviewers.** Confirm the agents `comment-review:comment-review-*` resolve. When they are
@@ -151,15 +154,18 @@ it as passed over. Report every gap it prints, and the freeform list.
 The gather also prints one line on stderr for each detached documentation it read, in the form
 `warning: <path>:<line>: detached documentation (owner on line <n>)`, or `(owner: module)` when
 the owner is the module. The documentation starts at `<line>` and is
-read as a comment. Ask the author about each line with `AskUserQuestion`, showing that comment
-and its owner, the anchor it was written for, and offering two answers: move it to the owner's
-`a` cue, or leave it where it is. Record each answer in the style sheet, and continue the
-run whatever the answer is.
+read as a comment, or as the file's matter where it falls inside the front or back matter. Ask
+the author about each line with `AskUserQuestion`, showing that comment and its owner, the
+anchor it was written for, and offering two answers: move it to the owner's `a` cue, or leave
+it where it is. Record each answer in the style sheet. For each `move it`, name the comment and
+the owner's `a` cue in the prompt of the `4a` dispatch that holds the page, as a `move` the
+author asked for.
 
 Then build the topology: two stages. Stage `4a` runs `ownership-context` alone, so that every
 paragraph is settled where it belongs; stage `4c` runs the other three roles against that
-placement. `<n>` is the places on the gather's `GATHERED` line divided by 100, rounded up, and
-at most the number of pages and freeform files together. `--build` deals each role's pages so
+placement. `<n>` is the places on the gather's `GATHERED` line divided by 100, rounded up, at
+least 1, and at most the number of pages and freeform files together. When the binder holds no
+page and no freeform file, stop the run and tell the author the scope holds nothing to review. `--build` deals each role's pages so
 its dispatches hold near-equal places.
 
 ```bash
@@ -172,10 +178,11 @@ python <skill>/scripts/comment-review.py topology --build --binder <run-dir>/bin
 prints one misfit per line; change the `--stage` value and build again.
 
 The binder holds only the places that hold prose. To look up any place, ask `addresses`,
-which reads the file; each series is counted separately:
+which reads the file; each series is counted separately, and `--line <module>` or `<eof>` names
+the places no line does, at the head and the foot of the file:
 
 ```bash
-python <skill>/scripts/comment-review.py addresses find --repo <stage-root> --file <path> --line <n> --series a|b|c|f
+python <skill>/scripts/comment-review.py addresses find --repo <stage-root> --file <path> --line <n>|<module>|<eof> --series a|b|c|f
 python <skill>/scripts/comment-review.py addresses resolve <address> --repo <stage-root>
 ```
 
@@ -201,7 +208,8 @@ python <skill>/scripts/comment-review.py distribute --topology <run-dir>/topolog
 
 It prints each edit copy, named `<stage>_<role>_<n>.json`, and its received binder,
 saved as `copies/binders/<stage>_<role>_<n>.json`, with the count of freeform files dealt to it.
-Dispatch one agent per edit copy of the stage:
+Dispatch one agent per edit copy of the stage, in batches no larger than the number of agents the
+session can run at once:
 
 | desk | agent | its question |
 |---|---|---|
@@ -231,11 +239,13 @@ Each agent's prompt is its packet, every section filled --
      the received binder lists a freeform file
 
 An agent whose received binder lists no page takes a shorter packet: `FREEFORM SHEET` in place of
-`BRIEF`, then `VOCABULARY`, `SKILL DIR`, `REPO ROOT`, `FILES UNDER REVIEW`, `REFERENCE ONLY`,
-`STYLE SHEET` and `FREEFORM DIR`. It has no edit copy, so it has no `check` to run.
+`BRIEF`, then `VOCABULARY`, `SKILL DIR`, `REPO ROOT`, `BINDER`, `EDIT COPY`, `FILES UNDER
+REVIEW`, `REFERENCE ONLY`, `STYLE SHEET` and `FREEFORM DIR`. Its edit copy holds no place and
+returns as seeded; `collate` still reads it.
 
 Each agent fills its copy in place and runs `check` on it. An agent dealt a freeform file also
-returns the paths of its `findings.json` and its copies. When an agent returns, run the same
+returns the paths of its `findings.json` and its copies. An agent that never returns is
+relaunched as a new instance with the same packet. When an agent returns, run the same
 check yourself:
 
 ```bash
@@ -245,7 +255,7 @@ python <skill>/scripts/comment-review.py check --edit-copy <run-dir>/copies/<fil
 Exit 0 means the copy is ready to fold. Exit 5 means its only findings are human questions,
 which stage 5 asks. On any other exit, send the copy back to its own agent with the lines
 `check` printed; the agent corrects its own marks. When a copy still fails on its second
-return, fold without it and report that role as unanswered.
+return, stop the stage and report the role and the lines `check` printed.
 
 For each freeform file, confirm the agent's `findings.json` holds that path with its `swept`
 list. Send a missing path back to its agent. When it is still missing on the second return, report
@@ -257,8 +267,9 @@ has closed `4a`'s proof, set it with `proof --repo . --proof <closed-proof> --ou
 tree:
 
 1. `git worktree add --detach <run-dir>/root4c HEAD`.
-2. Copy each file under review from the checkout over its path in `root4c`, so uncommitted work
-   is reviewed.
+2. Copy each file under review, and each untracked file `git ls-files --others
+   --exclude-standard` lists, from the checkout over its path in `root4c`, so uncommitted work is
+   reviewed and can be cited.
 3. Copy each page in `<run-dir>/proof4a` and each file in `<run-dir>/freeform/draft/` over its
    path in `root4c`.
 
@@ -275,26 +286,30 @@ Remove `root4c` with `git worktree remove --force <run-dir>/root4c` after stage 
 ### Stage 5 -- collate, and rule as copy chief
 
 Repeat `--edit-copy` and `--received-binder` for each pair, keeping the binder
-paths in the same order as the copy paths.
+paths in the same order as the copy paths. For a large dispatch set, write the pairs to
+`<run-dir>/<stage>_pairs.json` as `[{"edit_copy": "<one returned copy>", "received_binder":
+"<its received binder>"}, ...]`, with absolute paths, and pass `--pairs
+<run-dir>/<stage>_pairs.json` in place of the repeated `--edit-copy` and `--received-binder`
+flags; a long command line fails on Windows.
 
 ```bash
 python <skill>/scripts/comment-review.py collate --stage <stage> --binder <the stage's binder> --repo <stage-root> \
   --topology <run-dir>/topology.toml \
   --edit-copy <one returned copy> --received-binder <its received binder> \
-  --out <run-dir>/<stage>_chief0.json --proof-out <run-dir>/<stage>_proof0.json --batch-out <run-dir>/<stage>_batch1.json
+  --proof-out <run-dir>/<stage>_proof0.json --batch-out <run-dir>/<stage>_batch1.json
 ```
 
 Act on the exit code first:
 
 | exit | meaning | what you do |
 |---|---|---|
-| `0` | every place settled | `<stage>_proof0.json` is the closed proof; settle any freeform findings, below, then go on to `4c`, or after `4c` to stage 6 or 7a |
-| `1` | the round rolled back; each line names `<role> <place>: <reason>` | send each line to its role, which withdraws with `mark --withdraw --address <place>` and marks again; re-check and re-run |
+| `0` | every place settled | read the settled places against the style sheet and settle any freeform findings, both below; `<stage>_proof0.json` is the closed proof when no place takes a recast. Then go on to `4c`, or after `4c` to stage 6 or 7a |
+| `1` | the round rolled back; each line names `<role> <place>: <reason>` | send each line to its role, which withdraws the mark the line names with `mark --withdraw --address <place> --instruction <instruction>` and marks again; re-check and re-run |
 | `2` | a file could not be read | correct the invocation |
 | `3`, `4` | places carried forward -- `composed`, `contested` or `open` | rule on them, below |
 | `5` | human questions are owed | ask them, below, then re-run with `--human` |
 
-Keep the path of the latest committed proof and the chief's copy. A closed proof
+Keep the path of the latest committed proof. A closed proof
 can come from `collate`, `turn` or `disposition`; use that file wherever
 `<closed-proof>` appears below. A refused round supplies no new proof.
 
@@ -303,7 +318,8 @@ A place is settled when every role that read it proposed the same text or answer
 whose change removes words its claim never quoted; weigh that when you rule, and show it to
 the author at 7a.
 
-**Human questions.** Each line `asks the human <at>: <role> -- <question>` is one question.
+**Human questions.** Each line `asks the human <at>: <role> -- <question>; ask it, ...` is one
+question, and `<question>` is the text before `; ask it,`, which the answer repeats exactly.
 Ask it with `AskUserQuestion`, showing the paragraph at `<at>` (both ends for a move) and the
 query's `attempted` text from the role's copy. A query whose `settles` reads `code concern` is
 a code concern: offer the author three answers -- `add a TODO` (first, as the default),
@@ -327,15 +343,20 @@ role withdraws it and marks the place again without that change.
 Send the asking role its `[[answer]]` sections with its copy; it replaces its query with a
 mark. Then re-run `collate` with the same inputs plus `--human <run-dir>/human.toml`.
 
-**Turns.** Run turns only when you are told a number above zero. Each turn sends `batch<t>.json`
-to every role it names, with the proof and a path for its answers; checks each returned file
-with `check --answers <file> --sent <batch> --role <role> --repo .`; and folds them with
-`turn --proof <last proof> --answers <role>=<file> ... --proof-out <run-dir>/proof<t>.json
---batch-out <run-dir>/batch<t+1>.json --repo .`. `turn` exits with the same codes. The turns
-end when a turn writes no batch or the count is reached.
+**Turns.** When `collate` carries a place forward as `composed`, run one turn even when you
+are told no number, so every role reads the text composed from its mark before you rule.
+Run more turns only when you are told a number above one. Each turn sends `<stage>_batch<t>.json`
+to one agent of every role it names, even a role that ran as several dispatches, with the proof
+and a path for its answers; checks each returned file with `check --answers <file> --sent
+<batch> --role <role>`; and folds them with `turn --proof <last proof> --answers <role>=<file>
+... --proof-out <run-dir>/<stage>_proof<t>.json --batch-out <run-dir>/<stage>_batch<t+1>.json`.
+A second `--answers` for one role replaces the first. `turn` exits with the codes in the table
+above: on `1` each role corrects its answers file, and on `5` you run the same `turn` again with
+`--human`. The turns end when a turn writes no batch or the count is reached.
 
 **Ruling.** Rule on every place still carried forward, reading the code beside or below each paragraph
-first. Rule in this order, because each step builds on the one before:
+first. Read each composed paragraph whole, and confirm every pronoun, contrast word and pointer in
+it still has what it refers to. Rule in this order, because each step builds on the one before:
 
 1. `query` -- resolve what it asks.
 2. `move` and `drop` -- settle where the prose lives. A move prints as
@@ -353,25 +374,37 @@ Each ruling is one of two answers:
 | answer | use it when | it carries |
 |---|---|---|
 | `taken_in` | one side is right | `side`: the role whose text stands, or `original` to keep the paragraph as it was |
-| `recast` | you write the paragraph yourself | `prose`: your paragraph, as raw text |
+| `recast` | you write the paragraph yourself | `prose`: your paragraph, as raw text; empty `prose` drops the paragraph whole |
 
-A `correct` outranks any number of `clean`s. Where two placements name different destinations,
-`ownership-context`'s governs. Verify every clause you keep: each path it cites is tracked,
+A `correct` outranks any number of `clean`s. Verify every clause you keep: each path it cites is tracked,
 each name exists, and each count re-derives.
 
-Write the rulings to `<run-dir>/dispositions.json` as a list of
-`{"address", "answer", "side", "reason", "prose"}`, with a `reason` on each and `"to"` added on
-a placement ruling (`address` the origin, `to` the destination), then close the proof:
+**The style sheet.** Then read every settled place against the style sheet: its dialect, its
+review labels, the width stage 1 recorded, and its templates. Where a place breaks one,
+`recast` it into line with the sheet, keeping every claim it makes, and name the style-sheet
+entry in the `reason`. A settled place takes only a `recast`. Write these with your other
+rulings, and run `disposition` for them even when `collate` exited `0`.
+
+Write the rulings to `<run-dir>/dispositions.json` as a list of entries in the shape `check
+--contract` prints under `chief`, with `"to"` added on a placement ruling (`address` the origin,
+`to` the destination), then close the proof:
 
 ```bash
 python <skill>/scripts/comment-review.py disposition --proof <last proof written> \
-  --dispositions <run-dir>/dispositions.json --out <run-dir>/chief.json --proof-out <run-dir>/final.json
+  --dispositions <run-dir>/dispositions.json --proof-out <run-dir>/<stage>_final.json
 ```
+
+A `recast` of an `f` place asks the author first: `disposition` exits `5` and prints the
+question. Ask it with `AskUserQuestion`, showing the paragraph and your prose, record the
+answer in `<run-dir>/human.toml` with `role = "copy-chief"`, and run `disposition` again with
+`--human <run-dir>/human.toml`. Where the author refuses, change the ruling.
 
 It names any move or carried-forward place still unruled, and writes when every one has a ruling.
 A placement ruling moves the paragraph or keeps it, and each end is then read as an ordinary
 place; when `disposition` exits `3` or `4`, those ends are carried forward. Rule them from the
-code at each end, and run `disposition` again with the proof it just wrote. Use a
+code at each end, and run `disposition` again with the proof it just wrote and a dispositions
+file holding only those rulings: that proof already carries the earlier ones, and a ruling on a
+place it no longer carries forward is refused. Use a
 fresh output filename for each ruling round. Its proof becomes `<closed-proof>`
 once it exits `0`.
 
@@ -411,10 +444,12 @@ carries on.
 
 ### Stage 6 -- compact, when a cap applies
 
-Stage 6 runs as a third stage over the proof pages, and a run with no pages skips it. Set them
-from `4c`'s closed proof into `<run-dir>/proof4c` with `proof --repo <run-dir>/root4c --proof
-<closed-proof> --out <run-dir>/proof4c`, then gather them as revise 2, naming pages alone, because
-a revise root holds no freeform file:
+Stage 6 runs as a third stage over every page in scope, and a run with no pages skips it. Set
+`4c`'s closed proof into `<run-dir>/proof4c` with `proof --repo <run-dir>/root4c --proof
+<closed-proof> --out <run-dir>/proof4c`. It holds only the pages `4c` drafted, so copy each
+other page in scope from `root4c` to its path in `proof4c`, leaving `root4c` as `4c`'s proof was
+cut from it. Then gather `proof4c` as revise 2, naming pages alone, because stage 5 held each
+freeform comment to the cap:
 
 ```bash
 python <skill>/scripts/comment-review.py gather --repo <run-dir>/proof4c --revise 2 --out <run-dir>/binder6.json <paths...>
@@ -438,8 +473,9 @@ Seed it with `distribute --topology <run-dir>/topology.toml --stage 6 --binder
 <run-dir>/binder6.json --revise <run-dir>/proof4c --out-dir <run-dir>/copies`.
 Each received binder and edit copy holds only the comment paragraphs over the
 cap. Dispatch `comment-review:comment-review-compact` with its edit copy and
-received binder, `references/compact.md` pasted whole, the style sheet and the
-cap. Check the copy against its received binder, then run `collate --stage 6`
+received binder, `references/compact.md` pasted whole, the style sheet, the
+cap, the helper script's path, `proof4c` as the proof pages root and the repo root
+as the original. Check the copy against its received binder, then run `collate --stage 6`
 with the received binders paired with the copies and rule as in stage 5. The
 closed proof this produces is the one stage 7a sets.
 
@@ -457,20 +493,24 @@ Use a fresh `--out` directory each time. `proof` prints one `<path> -> <draft>` 
 it set. It reads each drafted page back and proves its code byte-identical to the original.
 When it refuses, it prints what refused and where; read that, fix the input, and set again.
 
+**Code concerns.** Where the repo keeps code concerns outside its comments, list each one the
+author answered `add a TODO`, with its place and the role's question, so the author can file
+it.
+
 **Freeform files.** Check the drafts stage 5 wrote, in this order:
 
 1. `git worktree add <run-dir>/freeform-build <pre-edit ref>`, run the stage 1 check command there,
    and keep its result as the baseline.
 2. Copy each draft over its `<path>` in the worktree, run the formatter on those paths, and run the
    check command again.
-3. Copy the formatted files back over the drafts, then `git worktree remove --force
-   <run-dir>/freeform-build`.
+3. Copy the formatted files back over the drafts.
 
 The check passes when the second run passes everything the baseline passed. When it fails
 something the baseline passed, hold the run at this stage: edit the draft until it passes, and run
-the check again. When the failure comes from code no finding touched, bring the author the output
+steps 2 and 3 again. When the failure comes from code no finding touched, bring the author the output
 and the files it names. A language with no formatter or no check command, one whose command cannot run in the
-worktree, or one whose baseline passes nothing is reported as not verified.
+worktree, or one whose baseline passes nothing is reported as not verified. Once the check passes
+or is reported, remove the worktree with `git worktree remove --force <run-dir>/freeform-build`.
 
 Then audit each draft:
 
@@ -483,10 +523,10 @@ other change holds the run at this stage: edit the draft until the change is gon
 again. Nothing is presented until the audit passes. The command exits 1 when the files differ.
 
 Present to the author, grouped by instruction, most consequential first. Use the
-closed proof's decided text and the drafts for the proposed result. The chief's
-copy supplies `INSTRUCTION / PARAGRAPH / CLAIM / REASON`; show the current
-`CHANGE` from the draft inline. A turn writes a proof without refreshing the
-chief's copy, so check its entries against the closed proof before presenting.
+closed proof's decided text and the drafts for the proposed result. For each settled place, follow
+its filed references to the reviewer marks in the proof and read any disposition on the place.
+Use those for the instruction, paragraph, claim and reason. Show the decided change from the
+draft inline.
 Show each freeform draft whole. When the author asks why a change was made, answer from
 `settled_<stage>.json`.
 Then give:
@@ -509,12 +549,12 @@ none.
 
 Load [`references/write.md`](references/write.md) and follow it. It proves the accepted
 drafts' code unchanged in a temporary worktree, runs the repo's check on them there, and writes
-them into the working tree. `git diff` then shows the author exactly what the run changed.
+them into the working tree. `git diff <pre-edit ref>` then shows the author exactly what the run changed.
 
 ### Stage 8 -- review
 
-Dispatch `comment-review:comment-review-review` with the pages and freeform files written at 7b
-and the style sheet, and paste [`references/review.md`](references/review.md) into its prompt
+Dispatch `comment-review:comment-review-review` with the pages and freeform files written at 7b,
+the style sheet, the absolute paths of `<skill>` and the repo root, and paste [`references/review.md`](references/review.md) into its prompt
 whole.
 
 Bring its findings to the author, who chooses for each page and freeform file: done, a new comment-review round

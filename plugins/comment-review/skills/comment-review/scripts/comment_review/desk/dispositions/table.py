@@ -9,7 +9,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from comment_review.desk.proof.disposition import ORIGINAL, RecastRuling
-from comment_review.desk.proof.state import CARRIED, State
+from comment_review.desk.proof.state import CARRIED, SETTLED, State
 
 Sets = Callable[[Any, str, dict[str, str]], str | None]
 
@@ -31,8 +31,14 @@ class DispositionRow:
     closes: frozenset[State]
     sets: Sets
 
+    def can_close(self, state: State | None) -> bool:
+        """Whether this ruling can close a place in the given state."""
+        return state in self.closes
+
 
 DISPOSITIONS: dict[str, DispositionRow] = {
     "taken_in": DispositionRow(CARRIED, _a_sides_text),
-    "recast": DispositionRow(CARRIED, _the_prose),
+    # A recast also closes a settled place, so the chief can bring the roles'
+    # text into line with the style sheet.
+    "recast": DispositionRow(CARRIED | SETTLED, _the_prose),
 }

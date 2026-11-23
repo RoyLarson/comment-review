@@ -1,7 +1,7 @@
-"""Every name the tree DEFINES, harvested from the AST.
+"""Every name the tree defines, harvested from the AST.
 
-! IT ANSWERS THE OBITUARY QUESTION and nothing else. `block-context`'s remit
-includes a symbol, file, test or flag that exists NOWHERE; this is the corpus
+! It answers the obituary question and nothing else. `block-context`'s remit
+includes a symbol, file, test or flag that exists nowhere; this is the corpus
 that claim is resolved against, and its own docstring says why a naive one
 cannot work -- a corpus built from raw text contains the comments being
 checked, so every obituary resolves against itself and the check always passes.
@@ -10,96 +10,73 @@ checked, so every obituary resolves against itself and the check always passes.
 import ast
 from pathlib import Path
 
-from comment_review import exceptions
 from comment_review.concordance.names import NAMED_DEFS, SYMBOLISH
-from comment_review.machine.repo import walk_files
 from comment_review.reading.language import INSTALLED_REGISTRY
-from comment_review.reading.registry import is_freeform
 
-# The two gaps in the name corpus that are NOT read failures, named so a caller
-# can tell them apart from one. Every row `code_names` returns reads alike --
-# `<path> (<reason>)` -- and a reporting caller that treated all of them as
-# unreadable files told a polyglot repo that six files "could not be read" and
-# then instructed the reader to wait for a list that can never empty.
+# The two gaps in the name corpus that are not read failures, named so a caller
+# can tell them apart from one. Every gap row reads alike -- `<path> (<reason>)`
+# -- and a reporting caller that treated all of them as unreadable files would
+# tell a polyglot repo its files "could not be read" and have the reader wait
+# for a list that can never empty.
 NO_HARVESTER = "no name harvester for"
 WALKED_TREE = "name corpus built by WALKING the tree"
 
+#: The gap row for a corpus built without git's list of tracked files.
+WALKED_TREE_ROW = (
+    f"{WALKED_TREE} (not a git checkout, or git unavailable) -- "
+    "untracked or vendored code may mask an obituary"
+)
 
-def code_names(
-    roots: list[Path], tracked: set[Path] | None = None
-) -> tuple[set[str], list[str]]:
-    """Every name the tree DEFINES, harvested from the AST.
 
-    A corpus built from raw text contains the comments being checked, so every
-    obituary resolves against itself and the check always passes. Unreadable
-    files are RETURNED alongside the names: a hole in the corpus turns every
-    symbol defined only there into a false obituary, which fails loud and wrong.
+def no_harvester(path: Path) -> str | None:
+    """The gap row for a file no harvester reads, or None for a Python file.
 
-    ! TRACKED files only, when git can say which. A vendored, generated or
-    gitignored tree under the repo root otherwise donates its whole namespace,
-    so a symbol the repo defines nowhere resolves ALIVE. That failure is SILENT
-    and one-sided: it can hide an obituary, and manufactures none.
+    ! A non-Python file is a known hole, reported as one. Parsed as Python it
+    came back `a.go (SyntaxError)`, which reads as "your file is malformed" and
+    sends a reviewer after an invented defect. Liveness in these languages
+    needs its own harvester; this names the gap until there is one.
+    """
+    definition = INSTALLED_REGISTRY.for_path(path)
+    if definition is not None and definition.language == "python":
+        return None
+    if definition is not None:
+        name = definition.language
+    elif INSTALLED_REGISTRY.is_freeform(path):
+        name = "a freeform file"
+    else:
+        name = "unknown"
+    return f"{path.as_posix()} ({NO_HARVESTER} {name})"
+
+
+def names_in(path: Path, text: str) -> set[str]:
+    """Every name one Python file defines, harvested from its AST.
 
     Args:
-        roots: directories or files to harvest.
-        tracked: absolute paths git reports as tracked, or None when git could
-            not answer -- in which case the whole tree is walked and the caller
-            is told, so a change in coverage arrives with the result.
+        path: the file, for its stem and for whether it is a test.
+        text: its contents.
 
     Returns:
-        The set of defined names, and the rows naming every gap in it. A row
-        holding `NO_HARVESTER` is a KNOWN hole and a row holding `WALKED_TREE`
-        is a caveat about the whole corpus; anything else is a file this
-        process genuinely could not read or parse. A caller that tells the
-        three apart says so with those two constants -- the three read alike as
-        prose, and a caller matching on the prose reclassifies them silently
-        the next time this wording changes.
+        The stem, every defined, bound, attribute, argument and imported name,
+        and outside the tests every string constant shaped like a symbol.
+
+    Raises:
+        SyntaxError, ValueError: `text` does not parse.
     """
-    names: set[str] = set()
-    unread: list[str] = []
-    if tracked is None:
-        unread.append(
-            f"{WALKED_TREE} (not a git checkout, or git unavailable) -- "
-            "untracked or vendored code may mask an obituary"
-        )
-    for root in roots:
-        for p in walk_files(root):
-            if tracked is not None and p.resolve() not in tracked:
-                continue
-            definition = INSTALLED_REGISTRY.for_path(p)
-            # ! A non-Python file is a KNOWN hole, reported as one. Parsed as
-            # Python it came back `a.go (SyntaxError)`, which reads as "your
-            # file is malformed" and sends a reviewer after an invented defect.
-            # Liveness in these languages needs its own harvester; this names
-            # the gap until there is one.
-            if definition is None or definition.language != "python":
-                if definition is not None:
-                    name = definition.language
-                elif is_freeform(p):
-                    name = "a freeform file"
-                else:
-                    name = "unknown"
-                unread.append(f"{p.as_posix()} ({NO_HARVESTER} {name})")
-                continue
-            try:
-                tree = ast.parse(p.read_text(encoding="utf-8"))
-            except exceptions.PARSE_ERRORS as e:
-                unread.append(f"{p.as_posix()} ({type(e).__name__})")
-                continue
-            names.add(p.stem)
-            harvest_constants = not (p.name.startswith("test_") or "tests" in p.parts)
-            for node in ast.walk(tree):
-                if isinstance(node, NAMED_DEFS):
-                    names.add(node.name)
-                elif isinstance(node, ast.Name):
-                    names.add(node.id)
-                elif isinstance(node, ast.Attribute):
-                    names.add(node.attr)
-                elif isinstance(node, ast.arg):
-                    names.add(node.arg)
-                elif isinstance(node, ast.alias):
-                    names.add((node.asname or node.name).split(".")[0])
-                elif harvest_constants and isinstance(node, ast.Constant):
-                    if isinstance(node.value, str) and SYMBOLISH.match(node.value):
-                        names.add(node.value)
-    return names, unread
+    tree = ast.parse(text)
+    names = {path.stem}
+    harvest_constants = not (path.name.startswith("test_") or "tests" in path.parts)
+    for node in ast.walk(tree):
+        if isinstance(node, NAMED_DEFS):
+            names.add(node.name)
+        elif isinstance(node, ast.Name):
+            names.add(node.id)
+        elif isinstance(node, ast.Attribute):
+            names.add(node.attr)
+        elif isinstance(node, ast.arg):
+            names.add(node.arg)
+        elif isinstance(node, ast.alias):
+            names.add((node.asname or node.name).split(".")[0])
+        elif harvest_constants and isinstance(node, ast.Constant):
+            if isinstance(node.value, str) and SYMBOLISH.match(node.value):
+                names.add(node.value)
+    return names

@@ -13,7 +13,7 @@ wheels = [
 
 [[package]]
 name = "comment-review"
-version = "0.2.4b8"
+version = "0.2.4b9"
 source = { virtual = "." }
 
 [package.dev-dependencies]
