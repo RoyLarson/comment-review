@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 20 of 36 tasks closed
+Progress: 20 of 37 tasks closed
 Owner:    testing
 Requires-Roy: false
 Raised:   2026-08-18, after a run whose only question needed one role and cost four
@@ -401,6 +401,9 @@ to end, so the dominance claim waits on something that can disagree with it.
         > 2026-11-22 Check: a dated note records the probe's outcome
 - [ ] T36 | Run the six evals/test-cases.jsonl cases through claude plugin eval
         > 2026-11-22 Check: the run reports a with/without-plugin delta
+- [ ] T37 | Determine whether later roles answer better when they see earlier
+      proposals undecided
+        > 2026-11-23 Carried from #50; Stage.carries deleted by #407
 
 ## What this costs today
 
