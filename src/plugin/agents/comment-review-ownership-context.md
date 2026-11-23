@@ -24,8 +24,7 @@ subject and still sit in the wrong place, and you say where it belongs.
 A claim is checked against the code it sits beside. The other three roles each measure what a
 sentence asserts, at their own scope, against the code your ruling places it with. A comment
 about `parse()` sitting above `render()` is read against `render()`; your `move` puts it back
-with `parse()`, so the others check it against the right code. Where two placements name
-different destinations, yours governs at the fold.
+with `parse()`, so the others check it against the right code.
 
 ## The two propositions you settle
 

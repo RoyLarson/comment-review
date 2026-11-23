@@ -20,8 +20,8 @@ and checkable sentence.
 
 1. Read the paragraph as it stands on the proof pages, and the same place in the original.
 2. Ask first whether it is long because it states one instance of a rule it could state
-   once, generally. When it is, mark it `clean` and give that as the reason; the next review
-   round rewrites it.
+   once, generally. When it is, mark it `clean` and give that as the reason; the paragraph is
+   set as it stands, and the author reads it at stage 7a.
 3. Otherwise remove what repeats: a hedge, an aside, a line that restates the line below it.
 4. Count the result. A work marker line (`TODO`, `FIXME`, `HACK`, `XXX`, `BUG`, or the markers
    the repo exempts) is free; each line after it counts.

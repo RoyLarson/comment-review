@@ -68,8 +68,8 @@ It sets each page your marks change into that directory, which is yours to read 
 
 ### Reading a paragraph
 
-- **A paragraph is the prose between two lines of code.** Blank lines and work markers sit
-  inside it.
+- **A paragraph is what your vocabulary's `paragraph` entry defines.** Blank lines and work
+  markers sit inside it.
 - **A trailing comment is a paragraph of its own.** When its sentence carries on into comment
   lines underneath, those lines are the next paragraph, anchored to the code below them:
 
