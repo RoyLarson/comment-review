@@ -1,4 +1,4 @@
-"""`taken_in`: the original against the revise a role is holding.
+"""`compare`: the original against the revise a role is holding.
 
 `docs/plans/0.2.4-the-mark-and-the-collator.md` T2.6 and T5.2.
 `TODO/the-flow-assumes-every-role-reads-at-once.md` T6.
@@ -6,11 +6,11 @@
 
 from helpers import a_docket_over, a_small_real_tree, binder_of
 
-from comment_review.commands.taken_in import main
+from comment_review.commands.compare import main
 from comment_review.flows.revise import pull
 
 
-def test_taken_in_prints_nothing_when_no_stage_has_set_anything(tmp_path, capsys):
+def test_compare_prints_nothing_when_no_stage_has_set_anything(tmp_path, capsys):
     repo = a_small_real_tree(tmp_path)
     assert main(["--original", str(repo), "--revise", str(repo)]) == 0
     assert capsys.readouterr().out.strip() == ""
@@ -48,7 +48,7 @@ def test_identical_valid_sources_print_nothing(tmp_path, capsys):
     assert (seen.out, seen.err) == ("", "")
 
 
-def test_taken_in_shows_a_real_revise(tmp_path, capsys):
+def test_compare_shows_a_real_revise(tmp_path, capsys):
     """A real docket, pulled through `flows.revise.pull` -- never a
     hand-authored before/after pair, per `CLAUDE.md`'s ruling on this suite."""
     repo = a_small_real_tree(tmp_path)
@@ -67,7 +67,7 @@ def test_taken_in_shows_a_real_revise(tmp_path, capsys):
     assert "role not tracked" in out
 
 
-def test_taken_in_with_no_paths_compares_only_the_pages_the_revise_holds(
+def test_compare_with_no_paths_compares_only_the_pages_the_revise_holds(
     tmp_path, capsys
 ):
     """With no paths, compare only the pages the revise holds: a revise holds
@@ -115,7 +115,7 @@ def test_an_address_that_disappeared_is_listed(tmp_path, capsys):
     ]
     target.write_text("".join(kept), encoding="utf-8", newline="")
 
-    # ! THE EXPECTATION COMES FROM THE BINDER, NOT FROM `taken_in`. Asserting
+    # ! THE EXPECTATION COMES FROM THE BINDER, NOT FROM `compare`. Asserting
     # merely that SOME address was printed passed under the old code too --
     # removing comment lines renumbers the places below them, so other
     # addresses change anyway. What only the union can answer is the set that
@@ -177,7 +177,8 @@ def test_a_page_with_no_language_record_is_named_after_its_diff(tmp_path, capsys
     assert "addresses not compared" in seen.err
 
 
-def test_taken_in_is_a_named_command():
+def test_compare_is_a_named_command():
     from comment_review.__main__ import COMMANDS
 
-    assert "taken_in" in COMMANDS
+    assert "compare" in COMMANDS
+    assert "taken_in" not in COMMANDS

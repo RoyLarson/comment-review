@@ -7,7 +7,7 @@ from conftest import SAMPLE, build, run_command
 
 from comment_review.binder.binder import bind
 from comment_review.commands import carry as carry_command
-from comment_review.commands import taken_in
+from comment_review.commands import compare
 from comment_review.flows import reading_context, revise
 from comment_review.flows.carry import carry
 from comment_review.reading.diagnostics import ReadFailure
@@ -61,7 +61,7 @@ def test_carry_command_refuses_before_read_or_write(tmp_path, monkeypatch, capsy
     assert artifact.read_text(encoding="utf-8") == original
 
 
-@pytest.mark.parametrize("consumer", ["taken_in", "revise"])
+@pytest.mark.parametrize("consumer", ["compare", "revise"])
 @pytest.mark.parametrize("equal", [True, False])
 @pytest.mark.parametrize("change", ["revision", "missing-reader", "accepted-settings"])
 def test_fresh_text_comparison_refuses_reader_change(
@@ -115,9 +115,9 @@ def test_fresh_text_comparison_refuses_reader_change(
         return page
 
     monkeypatch.setattr(page_for, "page_for", read_then_change)
-    if consumer == "taken_in":
+    if consumer == "compare":
         assert (
-            taken_in.main(["--original", str(root), "--revise", str(revised), "m.py"])
+            compare.main(["--original", str(root), "--revise", str(revised), "m.py"])
             == 0
         )
         seen = capsys.readouterr()

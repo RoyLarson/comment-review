@@ -20,7 +20,7 @@ class Command(StrEnum):
 
     Each value is derived from the member name via `_generate_next_value_`, never
     hand-typed. A value carries an underscore where the module it names does
-    (`prove_unchanged`, `taken_in`), so `.lower()` alone is what derives it.
+    (`prove_unchanged`), so `.lower()` alone is what derives it.
     """
 
     @staticmethod
@@ -33,6 +33,7 @@ class Command(StrEnum):
     CARRY = auto()
     CHECK = auto()
     COLLATE = auto()
+    COMPARE = auto()
     COMPOSITOR = auto()
     DISPOSITION = auto()
     DISTRIBUTE = auto()
@@ -41,7 +42,6 @@ class Command(StrEnum):
     PROOF = auto()
     PROVE_UNCHANGED = auto()
     REFERRERS = auto()
-    TAKEN_IN = auto()
     TOPOLOGY = auto()
     TURN = auto()
 

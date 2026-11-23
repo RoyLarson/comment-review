@@ -81,7 +81,7 @@ uv run python src/comment-review.py prove_unchanged --base <merge-base> --repo .
 uv run python src/comment-review.py proof --from-docket <docket>.json --repo . --out <dir>
 
 # What one stage's revise changed, against the tree it was pulled from
-uv run python src/comment-review.py taken_in --original <root> --revise <root> [paths...]
+uv run python src/comment-review.py compare --original <root> --revise <root> [paths...]
 
 # The pinned corpora: git worktrees / clones into corpora/<name>/, gitignored
 uv run python scripts/fetch_corpora.py [--list] [--only numpy pymc] [--clean sentry]

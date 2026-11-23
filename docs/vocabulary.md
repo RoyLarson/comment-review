@@ -109,7 +109,7 @@ names coverage gaps, and hands every conflict up -- so whatever it is called, it
 
   !! **AND IT HAS A SECOND TRADE MEANING THIS SYSTEM DOES NOT USE.** In bibliography, **collation**
   is comparing two states of one text to find where they differ -- the Hinman collator. That is
-  exactly what `taken_in` does (original against the revise a role is holding), so the obvious word
+  exactly what `compare` does (original against the revise a role is holding), so the obvious word
   is the wrong one: `collator.py` keeps the copy-desk sense above, and the comparison sense is
   declared here rather than left to be rediscovered. **The undeclared meaning is the defect**, not
   the ambiguity, which is a fact about English older than this repo.
