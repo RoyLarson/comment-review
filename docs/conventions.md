@@ -237,7 +237,7 @@ not a permission.
 
 | area | packages | may import |
 | --- | --- | --- |
-| machine | `machine` -- the checkout's I/O, nothing else | nothing in this package |
+| machine | `machine` -- the checkout's I/O, nothing else | `exceptions` only |
 | leaf | `reading`, `differences`, `constants`, `exceptions` | other leaves only |
 | index | `concordance` | a leaf; flows read it |
 | read end | `binder` | a leaf |
