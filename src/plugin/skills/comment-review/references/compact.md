@@ -10,11 +10,13 @@ and checkable sentence.
   cap -- `b` places, the comment runs between lines of code, and `c` places, the comments
   beside a line. Each slot carries the paragraph's address, its anchor and its text as the
   proof pages set it.
+- **The proof pages root.** Your stage's tree: the text as the run started, with every earlier
+  stage's decided changes set. It holds the file you open, and every path resolves against it.
 - **The original.** The file in the repo root is the paragraph as it stood when the run
   began.
 - **The cap**, in lines.
 - **The style sheet.**
-- Your copy, your received binder, the proof pages root, and the helper script.
+- Your copy, your received binder, and the helper script.
 
 ## How you condense a paragraph
 
