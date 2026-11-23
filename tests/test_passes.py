@@ -1124,6 +1124,90 @@ class TestAMoveIsDecidedBeforeItsEnds:
         assert (origin.state, origin.text) == (State.STANDS, self.REMAINDER)
         assert (destination.state, destination.text) == (State.STANDS, recast)
 
+    def _agreed_by_b(self, destination_readers=("a", "b"), **kwargs):
+        """`a`'s move, which `b` agreed in turn 1, with `b` reading the
+        destination's page only where `destination_readers` says so."""
+        places, _ = self._places(**kwargs)
+        places["m.py@b5"].readers = destination_readers
+        moves = moves_in(places)
+        decide(places, moves)
+        moves[self.KEY].answers[1] = {"b": self._placement("agree")}
+        decide(places, moves, turn=1)
+        assert moves[self.KEY].placement is Placement.AGREED
+        return places, moves
+
+    def _chief_rules_end(self, places, moves, address, name, side, prose=""):
+        places[address].disposition = a_typed_ruling(
+            address=address, name=name, side=side, prose=prose, reason="r"
+        )
+        decide(places, moves_in(places, moves), turn=1)
+        return places[address]
+
+    def _split_reason(self, address):
+        return (
+            f"copy-chief: the ruling at {address} puts back the text the agreed"
+            f" move {self.KEY} changed here, which splits the move; withdraw a"
+            " move on its placement, where `taken_in original` takes it off both"
+            " ends, and at an end rule the move's text or a further mark"
+        )
+
+    @pytest.mark.parametrize(
+        ("destination_readers", "address"),
+        [(("a", "b"), "m.py@b1"), (("a",), "m.py@b5")],
+        ids=["agreed-by-two-roles", "arrival-on-a-page-the-agreeing-role-never-read"],
+    )
+    def test_original_at_one_end_of_an_agreed_move_is_refused(
+        self, destination_readers, address
+    ):
+        """`Process: #283`: a move is approved whole, so the original at one
+        end -- the paragraph back at its origin, or the arrival dropped --
+        would duplicate or lose the paragraph while the move reads agreed."""
+        places, moves = self._agreed_by_b(destination_readers)
+        end = self._chief_rules_end(places, moves, address, "taken_in", ORIGINAL)
+        assert (end.state, end.text) == (State.REFUSED, None)
+        assert end.reasons == (self._split_reason(address),)
+
+    def test_a_recast_to_the_pre_move_text_is_refused_as_the_original_is(self):
+        places, moves = self._agreed_by_b(("a",))
+        end = self._chief_rules_end(
+            places, moves, "m.py@b5", "recast", "copy-chief", prose=self.LANDING
+        )
+        assert end.state is State.REFUSED
+        assert end.reasons == (self._split_reason("m.py@b5"),)
+
+    @pytest.mark.parametrize(
+        ("name", "side", "prose", "text"),
+        [
+            ("taken_in", "a", "", LANDED),
+            ("recast", "copy-chief", "# four\n# two, reworded\n# five\n", None),
+        ],
+        ids=["the-moves-own-text", "a-recast-of-the-arrival"],
+    )
+    def test_a_ruling_that_keeps_the_move_at_an_end_stands(
+        self, name, side, prose, text
+    ):
+        places, moves = self._agreed_by_b(("a",))
+        end = self._chief_rules_end(places, moves, "m.py@b5", name, side, prose)
+        assert (end.state, end.text) == (State.STANDS, text or prose)
+
+    def test_a_further_mark_at_an_end_of_an_agreed_move_is_taken_in(self):
+        """`Process: #283`: once agreed, a move's ends are split for further
+        marks -- here a patch on top of the arrival."""
+        patch = _mark(
+            Instruction.PATCH,
+            change="# 4\n# five\n",
+            raw_text=self.LANDING,
+            claim={"from": "four", "to": "4"},
+            address="m.py@b5",
+        )
+        places, moves = self._agreed_by_b(
+            ("a",),
+            landed="# four\n# five\n# two\n",
+            extra=(Filed("a", patch, Touch.OWN),),
+        )
+        end = self._chief_rules_end(places, moves, "m.py@b5", "taken_in", "a")
+        assert (end.state, end.text) == (State.STANDS, "# 4\n# five\n# two\n")
+
 
 def test_an_agreed_move_leaves_the_reverse_move_between_its_places_filed():
     """Two moves between one pair of places, in opposite directions, are two

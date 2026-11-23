@@ -17,6 +17,7 @@ from comment_review.desk.dispositions.table import DISPOSITIONS
 from comment_review.desk.evaluate.move import (
     cover_ends,
     hold_ends,
+    keep_ends,
     placement_pass,
     settle_ends,
 )
@@ -427,7 +428,8 @@ def decide(
     answers, as for any one-place mark; then each move the chief took in from
     its mover decides the ends it sets, and every move not yet final holds its
     two ends `to-come`; then the chief's dispositions, which a `to-come` end
-    does not take.
+    does not take, and an agreed move's end does not take where the ruling
+    puts the end back as it was.
 
     Args:
         places: address -> place, each from its own record. Mutated.
@@ -451,6 +453,8 @@ def decide(
         hold_ends(move, places)
     for place in places.values():
         dispositions_pass(place)
+    for move in moves.values():
+        keep_ends(move, places)
     return places
 
 

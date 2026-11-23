@@ -4,7 +4,8 @@
     placement_pass   one move's placement, from what was filed and answered
     settle_ends      a final placement, written onto the two place records
     cover_ends       the ends the chief's placement ruling decides
-    hold_ends        an undecided placement, held on its two ends
+    keep_ends        an agreed move's ends, refused a ruling that restores one
+    hold_ends       an undecided placement, held on its two ends
 
 The move itself -- its fields, its placements and its name -- is
 `desk.proof.move`.
@@ -278,6 +279,33 @@ def cover_ends(move: Move, places: dict[str, Place]) -> None:
         sets = row.sets(mark, touch, end.base)
         if end.sides[ruling.taken_side] == (end.base if sets is None else sets):
             end.state, end.question = State.STANDS, None
+
+
+def keep_ends(move: Move, places: dict[str, Place]) -> None:
+    """Refuse a chief's ruling that puts an end of an agreed move back as it was.
+
+    An agreed move is approved whole. A ruling at one end that sets the end's
+    base -- `taken_in original`, or a `recast` to that text -- would leave the
+    paragraph at both ends or at neither while the move reads agreed. A ruling
+    that keeps the move's text, or a further mark on it, stands.
+    """
+    if move.placement is not Placement.AGREED:
+        return
+    for end in (places.get(move.origin), places.get(move.destination)):
+        if end is None or end.disposition is None or end.state is not State.STANDS:
+            continue
+        if end.text is None or end.text == end.base:
+            end.state, end.text, end.reasons = (
+                State.REFUSED,
+                None,
+                (
+                    f"{CHIEF}: the ruling at {end.address} puts back the text the"
+                    f" agreed move {move.key} changed here, which splits the move;"
+                    " withdraw a move on its placement, where `taken_in original`"
+                    " takes it off both ends, and at an end rule the move's text"
+                    " or a further mark",
+                ),
+            )
 
 
 def hold_ends(move: Move, places: dict[str, Place]) -> None:
