@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 51 of 85 tasks closed
+Progress: 53 of 85 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-09-04 (Roy, 2026-09-04, superseding the-flow-lives-in-the-command T4)
@@ -215,7 +215,8 @@ The agents files name the new CLI and say how to use it.
 - [ ] T59 | Add to SKILL.md stage 4 that a role whose agent never returns is
       relaunched as a new instance, per Process #272
         > 2026-11-22 Check: SKILL.md stage 4 relaunches a role that never returns
-- [ ] T60 | Correct reviewer-brief.md:200's three-line window to the cited line
+- [-] T60 | SUPERSEDED -- the brief already matches WITHIN = 3 | dc93beea3e4cc5a4b92f945ae53569aa2a5379c3 | Correct
+      reviewer-brief.md:200's three-line window to the cited line
         > 2026-11-22 Check: the brief says verbatim starts on the cited line
         > 2026-11-22 Outcome: brief matches WITHIN=3 either side; Roy: supersede
 - [ ] T61 | Make write.md:49's 7b gate name the build root instead of running
@@ -239,8 +240,9 @@ The agents files name the new CLI and say how to use it.
 - [ ] T67 | Correct SKILL.md:342's 'turn exits with the same codes', whose
       exit-5 remedy reruns collate over committed turns
         > 2026-11-22 Check (M57): SKILL.md gives turn's own remedy for each exit code
-- [ ] T68 | Correct the question line at SKILL.md:312 to the CLI's whole line,
-      whose tail an answer must match
+- [-] T68 | SUPERSEDED by T85 -- the match key omits the tail | dc93beea3e4cc5a4b92f945ae53569aa2a5379c3 | Correct
+      the question line at SKILL.md:312 to the CLI's whole line, whose tail an
+      answer must match
         > 2026-11-22 Check (M58): an answer to the documented line ends collate exit 5
         > 2026-11-22 Outcome: match key omits the tail (human.py:151); Roy: reissue
 - [ ] T69 | Correct SKILL.md:297's exit-0 row, which skips the style-sheet
