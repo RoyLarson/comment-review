@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (102)
+### open  (101)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -279,7 +279,6 @@ that changed a published name or rule:
 | [no-component-owns-the-run](no-component-owns-the-run.md) | backend | -- | 0/3 | No component owns the run across stages |
 | [fold-admission-has-no-owner](fold-admission-has-no-owner.md) | backend | -- | 0/3 | "Would the fold refuse this?" has no single owner |
 | [a-mark-states-its-edit-three-times](a-mark-states-its-edit-three-times.md) | backend | -- | 0/3 | A mark states its edit up to three times and no field is authoritative |
-| [settlement-depends-on-who-filed](settlement-depends-on-who-filed.md) | backend | -- | 2/3 | Settlement depends on who filed, not on what was read |
 | [boundary-records-have-no-typed-form](boundary-records-have-no-typed-form.md) | backend | -- | 0/5 | Records crossing boundaries have no single typed form |
 | [area-model-stated-and-enforced-differently](area-model-stated-and-enforced-differently.md) | backend | -- | 0/5 | The area architecture is stated in one model and enforced against another |
 | [freeform-rules-have-no-source](freeform-rules-have-no-source.md) | agents | -- | 0/3 | Freeform is a second pipeline run only by prose, sharing rules with no source |
@@ -556,3 +555,4 @@ the reason is inside the file.
 | [held-runs-need-a-one-off-migration](completed/held-runs-need-a-one-off-migration.md) | 2 finished, 3 superseded |
 | [brief-example-and-scope](completed/brief-example-and-scope.md) | 2 finished, 1 superseded |
 | [the-skill-names-commands-that-moved-to-prototype](completed/the-skill-names-commands-that-moved-to-prototype.md) | 4 finished, 1 superseded |
+| [settlement-depends-on-who-filed](completed/settlement-depends-on-who-filed.md) | 3 finished |
