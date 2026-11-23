@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (95)
+### open  (93)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -213,7 +213,6 @@ that changed a published name or rule:
 | [two-areas-have-no-tests](two-areas-have-no-tests.md) | backend | -- | 1/5 | tests/ mirrors the package, so an area with no directory is a visible hole. machine/ (repo, constants, exceptions) and commands/ (all ten) have none. repo is exercised only through flows/test_census_names.py, which tests something else. |
 | [concordance-gaps-stated-twice](concordance-gaps-stated-twice.md) | backend | -- | 5/12 | Both encode 'a gap is not a pass' and spell it differently: code_names returns unread rows keyed by NO_HARVESTER/WALKED_TREE, referrers collects unreadable and unsearched under NOT CHECKED. Three states, one idea, two vocabularies. The EXTRACTIONS stay separate -- code_names must be structural so a comment mentioning a symbol cannot prove it exists, and referrers must be textual to see mentions in files nothing parses. |
 | [two-filters-for-one-fence-rule](two-filters-for-one-fence-rule.md) | backend | -- | 3/5 | binder.bind() filters fences with 'if b.address' and flows.census.carried() filters them with the same predicate. Two statements of one rule: removing either leaves the binder correct, which is how a mutation removing carried() changed nothing an agent receives. One of them owns the rule; the other should call it or go. |
-| [the-skill-names-commands-that-moved-to-prototype](the-skill-names-commands-that-moved-to-prototype.md) | agents | -- | 4/5 | Stages 4-7 of the shipped skill cannot be followed as written: SKILL.md invokes record (x2), run_context (x2), verdicts and vocabulary, and all four moved to prototype/ on 2026-08-25. The dispatcher lists six commands now, not ten. This is deliberate rather than an oversight -- the agent-facing design is what is being reconsidered, and rewriting the stages before deciding the new one would be inventing the answer. It is filed so the breakage is a known state and not a discovery. |
 | [render-page-imports-flat-names](render-page-imports-flat-names.md) | systems | -- | 4/10 | scripts/render_page.py dies at import: ModuleNotFoundError: No module named 'lexer'. It imports lexer, page and addresser as flat top-level modules, which is what src/ looked like before the 2026-08-24 move to src/comment_review/ with sub-packages. Nothing runs it, so nothing noticed. CLAUDE.md documents it as an INPUT to the-census-is-mostly-intervals-nobody-rules-on, where a decision is meant to be made -- so a tool that cannot run is a decision that cannot be informed. Found while updating its page_for call for the sha parameter: the call edit landed, but the file was already dead above it. |
 | [coverage-is-not-measured](coverage-is-not-measured.md) | backend | -- | 2/5 | coverage is not a pinned dev dependency and is not installed -- pytest, ruff and ty are. So nothing answers which lines the 789 tests actually execute. Roy, 2026-08-25: cleaning up the tests also allows us to use coverage to verify the tests cover everything and to delete that which we do not need. TWO USES, and the second is the one no other instrument here provides: uncovered code is a DELETION candidate. dead_sweep.py answers a different question -- it finds names nothing POINTS AT, statically. Coverage finds code nothing RUNS. A function called only by another dead function is invisible to the first and obvious to the second. THE ORDER MATTERS AND IS WHY THIS WAS NOT FILED EARLIER: a suite holding tests orphaned by a cut reports coverage on the code those tests touch, so dead code reads as live and the number argues for keeping it. The cleanup has to come first or the instrument lies in the direction of keeping everything. |
 | [no-step-produces-a-page](no-step-produces-a-page.md) | backend | -- | 3/4 | MEASURED 2026-08-25: commands/census.py, commands/galley.py, results/compositor.py lossless, results/compositor.py identity each run the same four calls inline -- read_source, language_for, page_for, carry the sha. Roy: you only have a step that produces a binder but you need a step here that produces a page so you can use it which is one piece of the binder. THE COST IS NOT THE DUPLICATION. With no step that yields a PAGE, a consumer that wants one either rebuilds it or reaches for the BINDER, because the binder is the only thing the tree can hand you. That is what pulled rows_of into desk/notations.py on this branch and had to be undone. The io-and-the-chain spec measured the same thing from the other side -- page_for takes TEXT, so by the time anyone reaches the reading code somebody else has already read the file -- and read it as an I/O ownership problem. It is also a missing step. flows/page.py::page_of lands on the write-chain branch and the write chain uses it; the other four sites are NOT repointed there. |
@@ -225,11 +224,10 @@ that changed a published name or rule:
 | [shape-is-three-words](shape-is-three-words.md) | backend | -- | 7/10 | `shape` carries three senses, only one reaches an agent as a field name; and the axis it names is on `query` alone while `clean` has a recorded, unfilled need for the same thing |
 | [prototype-move-orphaned-tasks](prototype-move-orphaned-tasks.md) | systems | -- | 0/4 | 25 open TODOs carry an unchecked task naming a module that moved to `prototype/` on 2026-08-25, so the task's site is gone and its verification cannot be run |
 | [sheet-rename-gate-cannot-see-the-source](sheet-rename-gate-cannot-see-the-source.md) | systems | -- | 0/2 | the gate's scope excludes the tree the retired sense actually survived in -- docs/gates.md: a check that could not have failed is not evidence |
-| [brief-says-three-series](brief-says-three-series.md) | agents | -- | 10/13 | reviewer-brief.md:69 and :221 say three series; reading/series.py ADDRESSED is ('a','b','c','f') and SKILL.md:378 says four, so a role cannot resolve the @f0 place the same brief tells it to cite |
+| [brief-says-three-series](brief-says-three-series.md) | agents | -- | 11/13 | reviewer-brief.md:69 and :221 say three series; reading/series.py ADDRESSED is ('a','b','c','f') and SKILL.md:378 says four, so a role cannot resolve the @f0 place the same brief tells it to cite |
 | [external-address-cites-dead-modules](external-address-cites-dead-modules.md) | backend | -- | 1/2 | desk/external_address.py says the address is declared in binder/record.py and resolved in desk/desk.py; record.py left on b50e7a4 and desk.py is in no directory of this tree |
 | [no-command-for-the-middle](no-command-for-the-middle.md) | backend | -- | 102/104 | `gather`, `places`, `reconcile` and `docket_from` have no CLI face, so nothing turns checked marks into the docket `proof --docket` requires. Measured 2026-08-29 on a real run: every other step of the chain is a command; this one had to be driven from a hand-written script |
 | [query-names-no-sentence](query-names-no-sentence.md) | backend | -- | 2/4 | every other substantive instruction names the sentence it rules on through a `claim` key -- `false` for `correct`, `drop` for `drop`, `from` for `patch` -- and `query` has none, so `_sentence_key` falls back to an identity and two queries at one place read as two different sentences |
-| [brief-example-and-scope](brief-example-and-scope.md) | agents | -- | 2/3 | the brief's worked example shows a 40-character `sha` where `bind` writes 16, and the brief says a source resolves against 'the repo' without saying whether that is the scoped tree or the checkout it was cut from |
 | [strip-before-review-experiment](strip-before-review-experiment.md) | agents | -- | 0/5 | the `collator.py` prose was deleted whole and rewritten by an agent that could read only the code -- it found three defects the old prose never mentioned and named two things the code cannot say; whether that beats editing in place is untested |
 | [collator-defects](collator-defects.md) | backend | -- | 41/54 | four defects in `desk/collator.py`, all found by an agent writing the file's prose from the code alone: a `move` onto its own address becomes a bare delete, a multi-line `verbatim` from a CRLF file can never match, the source cache is keyed without its root, and a malformed cite raises where the half is meant to report |
 | [staged-chain-untested](staged-chain-untested.md) | backend | -- | 5/8 | the four-stage chain runs and the edits accumulate, proven 2026-08-30 -- but no test in the suite drives it, and the only committed fan-out topology refuses any tree but this repo's |
@@ -243,19 +241,19 @@ that changed a published name or rule:
 | [collate-command-defects](collate-command-defects.md) | backend | -- | 23/31 | Sixteen defects in `commands/collate.py`, measured by running it |
 | [differences-defects](differences-defects.md) | backend | -- | 7/17 | Ten defects in `results/differences.py`, none of them in its arithmetic |
 | [local-annotation-false-positive](local-annotation-false-positive.md) | systems | -- | 0/1 | check_shipped_syntax reads a local variable annotation as a forward reference |
-| [stage-4b-is-undefined](stage-4b-is-undefined.md) | agents | -- | 6/11 | the 4a/4c split promises a resolved placement that nothing produces |
+| [stage-4b-is-undefined](stage-4b-is-undefined.md) | agents | -- | 10/11 | the 4a/4c split promises a resolved placement that nothing produces |
 | [citations-resolve-to-no-object](citations-resolve-to-no-object.md) | systems | -- | 0/1 | Find the four commit citations that resolve to no object |
 | [row-was-never-retired](row-was-never-retired.md) | backend | -- | 4/8 | Retire row everywhere -- the type, the wire key and the prose |
 | [only-a-flow-reaches-the-machine](only-a-flow-reaches-the-machine.md) | backend | -- | 6/11 | Route every machine read and write through a flow |
 | [a-non-code-document-has-no-read-review-resolve-or-write-chain-of-its-own](a-non-code-document-has-no-read-review-resolve-or-write-chain-of-its-own.md) | backend | -- | 0/2 | A non-code document has no read, review, resolve or write chain of its own |
 | [re-review-is-retired-for-revise](re-review-is-retired-for-revise.md) | agents | -- | 5/7 | re-review is retired for revise |
-| [agents-files-name-the-new-cli](agents-files-name-the-new-cli.md) | agents | -- | 53/85 | The agents files name the new CLI and say how to use it |
+| [agents-files-name-the-new-cli](agents-files-name-the-new-cli.md) | agents | -- | 83/85 | The agents files name the new CLI and say how to use it |
 | [reviewer-prose-is-rules-not-guidance](reviewer-prose-is-rules-not-guidance.md) | agents | -- | 12/17 | The reviewer prose is rules and punishments, not guidance toward a good result |
 | [the-chief-has-no-recast-workflow](the-chief-has-no-recast-workflow.md) | backend | -- | 17/19 | cap applies the chief's rulings and closes the stage, but a recast is written out as a correct, so a recast of an add at an empty place writes nothing and exits 0. |
 | [exit-codes-are-an-enum](exit-codes-are-an-enum.md) | backend | -- | 1/6 | Exit codes are written in thirteen places |
 | [command-help-carries-history](command-help-carries-history.md) | backend | -- | 0/1 | Command help carries development history |
 | [vocabulary-has-one-source](vocabulary-has-one-source.md) | systems | -- | 1/2 | Vocabulary has one source |
-| [p5-self-run-findings](p5-self-run-findings.md) | systems | -- | 2/6 | The P5 self-run findings |
+| [p5-self-run-findings](p5-self-run-findings.md) | systems | -- | 4/6 | The P5 self-run findings |
 | [r2-preexisting-prose](r2-preexisting-prose.md) | backend | -- | 0/2 | Correct pre-existing move and fold-helper prose |
 | [mark-stance-metadata-prose](mark-stance-metadata-prose.md) | backend | -- | 0/2 | Clarify mark stance and reading metadata prose |
 | [lexical-code-identity](lexical-code-identity.md) | backend | -- | 13/21 | Use lexical code identity at both proof boundaries |
@@ -265,7 +263,7 @@ that changed a published name or rule:
 | [one-line-ending-per-file](one-line-ending-per-file.md) | backend | -- | 3/8 | One line ending per file |
 | [edit-path-isolation](edit-path-isolation.md) | backend | -- | 2/7 | Isolate the edit path from comment reading |
 | [one-reader-builder](one-reader-builder.md) | backend | -- | 6/15 | One reader builder from each language's definition |
-| [freeform-run-findings](freeform-run-findings.md) | agents | -- | 19/26 | What the first live freeform run showed |
+| [freeform-run-findings](freeform-run-findings.md) | agents | -- | 22/26 | What the first live freeform run showed |
 | [topology-defects](topology-defects.md) | backend | -- | 0/8 | Topology defects |
 | [reading-settings-have-no-setting](reading-settings-have-no-setting.md) | backend | -- | 0/4 | Reading settings have no setting |
 | [one-obvious-way](one-obvious-way.md) | backend | -- | 2/29 | One obvious way |
@@ -282,7 +280,7 @@ that changed a published name or rule:
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
-| [compact-can-buy-lines-with-width](compact-can-buy-lines-with-width.md) | agents | -- | 4/10 | COMPACT can buy lines with width, and nothing stops it |
+| [compact-can-buy-lines-with-width](compact-can-buy-lines-with-width.md) | agents | -- | 6/10 | COMPACT can buy lines with width, and nothing stops it |
 | [stage-1-is-re-derived-every-run](stage-1-is-re-derived-every-run.md) | agents | -- | 9/18 | Stage 1 is re-derived every run, asks one question twice, and knows one structure source |
 | [corpora-are-all-python](corpora-are-all-python.md) | testing | -- | 10/11 | The corpora are nine Python projects, so every per-language rule is measured on Python and C alone |
 | [b-addresser-uninitialised](b-addresser-uninitialised.md) | backend | -- | 17/19 | The b addresser is never initialised at the module trigger, and computes its cue from line numbers |
@@ -547,3 +545,5 @@ the reason is inside the file.
 | [no-stage-agrees-the-terms](completed/no-stage-agrees-the-terms.md) | 7 superseded |
 | [todo-tool-skill-routes-to-the-vendored-script](completed/todo-tool-skill-routes-to-the-vendored-script.md) | 1 superseded |
 | [held-runs-need-a-one-off-migration](completed/held-runs-need-a-one-off-migration.md) | 2 finished, 3 superseded |
+| [brief-example-and-scope](completed/brief-example-and-scope.md) | 2 finished, 1 superseded |
+| [the-skill-names-commands-that-moved-to-prototype](completed/the-skill-names-commands-that-moved-to-prototype.md) | 4 finished, 1 superseded |

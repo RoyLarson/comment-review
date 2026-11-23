@@ -1,8 +1,8 @@
 # SKILL.md names six commands that moved to prototype
 
 ```
-Status:   open
-Progress: 4 of 5 tasks closed
+Status:   closed
+Progress: 5 of 5 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-08-25 (the prototype move, 2026-08-25)
@@ -37,6 +37,6 @@ SKILL.md names six commands that moved to prototype.
       token needs the same design decision as the rest of this TODO -- what
       replaces the stage-5 collator invocation -- so it was left as-is rather
       than inventing a placeholder command name.
-- [ ] T5 | Remove the scripts that moved to prototype/ from limitations.md's
-      rule owners
+- [x] T5 | FINISHED -- limitations.md drops the four moved scripts | c3a088cd | Remove
+      the scripts that moved to prototype/ from limitations.md's rule owners
         > 2026-11-22 Check: every script docs/limitations.md:82 names is in src/

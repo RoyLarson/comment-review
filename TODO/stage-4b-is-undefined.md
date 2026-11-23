@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 6 of 11 tasks closed
+Progress: 10 of 11 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-08-20 (the /code-review high of 2026-08-20)
@@ -69,8 +69,9 @@ fails its own stage-4 gate.
       -- Make a run's own artifacts name the configuration that produced them.
       Verify: the artifacts of one run say whether stage 4 was serial or
       parallel.
-- [ ] T4 | T4 -- Reword `SKILL.md:3` so the parallel form reads as the BASELINE,
-      not as current behaviour. Verify: `grep -n "parallel"` finds it named as a
+- [x] T4 | FINISHED -- the description names the topology stages | c3a088cd | T4
+      -- Reword `SKILL.md:3` so the parallel form reads as the BASELINE, not as
+      current behaviour. Verify: `grep -n "parallel"` finds it named as a
       configuration.
 - [-] T5 | run_context.py and PATH_SECTIONS moved to prototype/; no packet --check gate remains in src/ | b50e7a43 | T5
       -- Make `SKILL.md` name every section `run_context.py --check` refuses.
@@ -86,13 +87,15 @@ fails its own stage-4 gate.
       ownership-context runs only at 4a
         > 2026-11-22 Check: SKILL.md stage 5 names a rule a 4c conflict can use
         > 2026-11-22 Outcome: no tie-break; the chief rules each (Process #352)
-- [ ] T8 | Delete SKILL.md:366-367's ownership-context tie-break for two
-      placements
+- [x] T8 | FINISHED -- the placement tie-break is deleted | c3a088cd | Delete
+      SKILL.md:366-367's ownership-context tie-break for two placements
         > 2026-11-22 Check: SKILL.md names no tie-break for two placements
 - [ ] T9 | Measure whether collate refuses taking in two moves from one origin
         > 2026-11-22 Check: a dated note records the probe's outcome
-- [ ] T10 | Make comment-review-ownership-context.md:66 send a move into an
-      ungathered file to a query, as reviewer-brief.md:284 does
+- [x] T10 | FINISHED -- ownership-context points to the brief for an ungathered move | c3a088cd | Make
+      comment-review-ownership-context.md:66 send a move into an ungathered file
+      to a query, as reviewer-brief.md:284 does
         > 2026-11-22 Check (M6): the role file says a move out of scope is a query
-- [ ] T11 | Make write.md:19 say how to set a 4c place on a page 4a also changed
+- [x] T11 | FINISHED -- write.md says what to do when a later draft carries more | c3a088cd | Make
+      write.md:19 say how to set a 4c place on a page 4a also changed
         > 2026-11-22 Check (M61): write.md gives the next step when the confirm fails
