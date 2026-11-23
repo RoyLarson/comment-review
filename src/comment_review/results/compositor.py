@@ -148,8 +148,7 @@ def _set(page: Page, newline: str | None) -> tuple[str, dict[str, tuple[int, int
     # !! Leading is set between two places, not at one. It is an edge -- see
     # `Page.leading` -- so the walk hands over a sequence of places and the
     # space between each adjacent pair is looked up as it is reached. An absent
-    # key means those two places sit against each other, which is what 90% of
-    # `c`->`c` boundaries do.
+    # key means those two places sit against each other.
     #
     # A run above everything is keyed under `f0`, the first place `cue` emits,
     # while `f0` holds no lines. Above a filled `f0`, and for a `Cues` with no
