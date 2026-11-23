@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 14 of 29 tasks closed
+Progress: 14 of 33 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (simplify round 7, 2026-08-22 -- found by Pyright and by reading,
@@ -171,6 +171,7 @@ page.py:793-794 for `_SHEBANG`/`_CODING`, which round 7 deleted; those citations
         > 2026-11-23 comment-review 2026-11-23: fan test-only; dealt, partition in use
 - [ ] T22 | Delete proof_setter.py's Step and STEPS, which run() never reads
         > 2026-11-22 Check: grep STEPS src/ is empty (M120)
+        > 2026-11-23 Refusal.step is a bare string at 20 sites (broken review)
 - [ ] T23 | Delete Gathering.reading_contexts and ProofReport.reading_contexts,
       which only tests read
         > 2026-11-22 Check: grep reading_contexts src/ is empty (M121)
@@ -189,3 +190,14 @@ page.py:793-794 for `_SHEBANG`/`_CODING`, which round 7 deleted; those citations
         > 2026-11-23 No reader in src/ or tests/, comment-review 2026-11-23
 - [ ] T29 | Make flows/fill.py place_on_the_page take one copy, not a list
         > 2026-11-23 Every caller passes a one-element list
+- [ ] T30 | Determine which tests pin machinery no production path consults
+        > 2026-11-23 Broken review 6a81c7b0, 2026-11-23, problem 8 [I-F6, A-F8]
+        > 2026-11-23 Symptoms here: T20, T21, T22, T25
+        > 2026-11-23 Symptom: task-agent-vocabulary-home.md T7, T8 (unnamed commands)
+- [ ] T31 | Determine whether the stage model's unread members have a consumer
+        > 2026-11-23 Members: pulls_revise, Kind.ENRICHING, Stage.carries
+        > 2026-11-23 Related: no-component-owns-the-run.md; topology-defects.md T1
+- [ ] T32 | Determine whether the shipped external_address sketch has a consumer
+        > 2026-11-23 Related: external-address-cites-dead-modules.md T1
+- [ ] T33 | Determine which write-chain layer owns all-or-nothing cleanup
+        > 2026-11-23 Drafts are staged twice; exception scopes differ per layer [I-F7]

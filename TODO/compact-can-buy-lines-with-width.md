@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 6 of 10 tasks closed
+Progress: 6 of 11 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-08-17, on the FIRST exercise of stage 6 -- it returned two blocks at
@@ -165,3 +165,7 @@ for this case.
 - [x] T10 | FINISHED -- compact.md names the five fixed markers | c3a088cd | Correct
       compact.md to name exactly the five work markers paragraph.py:29 exempts
         > 2026-11-22 Check: compact.md lists the five markers by name (#379)
+- [ ] T11 | Make the proof name a stage 6 condensation apart from block-context
+      rulings
+        > 2026-11-23 Broken review 6a81c7b0 [W-F7]: role set closed at four
+        > 2026-11-23 Condenser files as block-context; 7a shows it as a fact-check

@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 16 of 22 tasks closed
+Progress: 16 of 24 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-08-21 (Roy, 2026-08-21, on leading and matter both being categories
@@ -191,3 +191,7 @@ the five series; this is the verdict vocabulary. It wants 0.2.4 or its own branc
 - [ ] T22 | Correct docs/the-turn.md:155-158, which defers a chief-written stet,
       to name taken_in
         > 2026-11-22 Check: the-turn.md defers no chief-written stet
+- [ ] T23 | Determine what consumes stage 8's findings in a later run
+        > 2026-11-23 Broken review 6a81c7b0, 2026-11-23, problem 10 [W-F9; V17]
+- [ ] T24 | Determine what records a declined proposal for a later run
+        > 2026-11-23 Related: a-role-can-reverse-itself-between-runs.md
