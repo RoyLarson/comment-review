@@ -2,7 +2,7 @@
 
     moves_in         every move filed on the places, with its movers and readers
     placement_pass   one move's placement, from what was filed and answered
-    settle_ends      a final placement, written onto the two place records
+    decide_ends      a final placement, written onto the two place records
     cover_ends       the ends the chief's placement ruling decides
     keep_ends        an agreed move's ends, refused a ruling that restores one
     hold_ends       an undecided placement, held on its two ends
@@ -189,7 +189,7 @@ def _ruled(move: Move, ruling: Disposition) -> None:
 
     Only an undecided move takes one. The original keeps the paragraph where
     it is; a mover's side agrees the move as that mover filed it, and any
-    other mover's filing comes off when the placement is settled.
+    other mover's filing comes off when the placement is decided.
     """
     if move.placement not in UNDECIDED:
         move.placement, move.reasons = (
@@ -225,7 +225,7 @@ def _is_this_move(one: Filed, move: Move) -> bool:
     ) in written
 
 
-def settle_ends(move: Move, places: dict[str, Place]) -> None:
+def decide_ends(move: Move, places: dict[str, Place]) -> None:
     """Take off the two ends the filings a final placement no longer stands on.
 
     `decision-log.md Process: #205`: an agreed move stays filed at both ends,

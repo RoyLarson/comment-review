@@ -1096,7 +1096,7 @@ def test_a_mover_deferral_is_not_redispatched_after_proof_reload(tmp_path, shape
 
 
 def test_an_undecided_moves_ends_are_to_come_and_ask_nothing(tmp_path):
-    """A move's placement is settled before the marks around it, so neither
+    """A move's placement is decided before the marks around it, so neither
     end of an undecided move is asked about its words: the one question put
     to the roles is the placement."""
     collated = _collated(tmp_path, A_CONTESTED_MOVE)

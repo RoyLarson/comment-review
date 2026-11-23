@@ -377,7 +377,7 @@ class CleanMark(Mark):
 
 @dataclass(frozen=True)
 class QueryMark(Mark):
-    """`query`: the role could not settle the place, and says who can.
+    """`query`: the role could not settle the claim, and says who can.
 
     Attributes:
         shape: who resolves it -- one of `QUERY_SHAPES`.

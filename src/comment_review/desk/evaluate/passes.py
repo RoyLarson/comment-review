@@ -16,10 +16,10 @@ from comment_review.desk.answers.table import (
 from comment_review.desk.dispositions.table import DISPOSITIONS
 from comment_review.desk.evaluate.move import (
     cover_ends,
+    decide_ends,
     hold_ends,
     keep_ends,
     placement_pass,
-    settle_ends,
 )
 from comment_review.desk.marks.table import INSTRUCTIONS, Stance
 from comment_review.desk.proof.answer import QueryAnswer, Question, Rewrite
@@ -443,7 +443,7 @@ def decide(
     moves = {} if moves is None else moves
     for move in moves.values():
         placement_pass(move, places, turn)
-        settle_ends(move, places)
+        decide_ends(move, places)
     for place in places.values():
         marks_pass(place)
         for t in range(1, turn + 1):

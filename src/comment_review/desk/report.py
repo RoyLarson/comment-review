@@ -62,7 +62,7 @@ class CarriedForward(NamedTuple):
 
 
 class PlacementCarried(NamedTuple):
-    """A move whose placement the fold could not settle -- put to `roles` next.
+    """A move whose placement the fold could not decide -- put to `roles` next.
 
     `open` is put to the readers of either page that did not file it and have
     neither agreed nor deferred, or to the chief alone where there are none;
