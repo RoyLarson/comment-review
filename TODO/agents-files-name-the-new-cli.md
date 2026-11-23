@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 83 of 87 tasks closed
+Progress: 85 of 87 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-09-04 (Roy, 2026-09-04, superseding the-flow-lives-in-the-command T4)
@@ -170,7 +170,8 @@ The agents files name the new CLI and say how to use it.
 - [-] T43 | SUPERSEDED by T58: the printed-owner half landed in fbaaf7c5; only the matter half remains | 22c3a0abcbc86509c74296319ce5b719a43338ca | Restate
       SKILL.md's detached-doc step: matter, and the printed owner
         > 2026-10-26 Detached doc in matter is read as matter; warning now names owner
-- [ ] T44 | Restate agent prose that takes an anchor to be one line of code
+- [-] T44 | SUPERSEDED by T86 -- waits on the whole-unit anchor | e3c0a1fd42d1709dda95cd1500d1d7dc835cb2ef | Restate
+      agent prose that takes an anchor to be one line of code
         > 2026-10-26 decision-log #238: an a/b anchor may span the unit's lines
         > 2026-10-26 reviewer-brief.md:259 and :177-178 state a one-line anchor
         > 2026-10-31 Also `references/review.md:38`: two ranges claim unchecked
@@ -324,5 +325,6 @@ The agents files name the new CLI and say how to use it.
 - [ ] T86 | Restate agent prose that takes an anchor to be one line of code,
       once #238 lands
         > 2026-11-22 Waits on one-reader-builder.md T11 and T12 (whole-unit anchor)
-- [ ] T87 | Name each rule owner in limitations.md by its module path
+- [x] T87 | FINISHED -- each rule owner named by its path; all four exist | ef95e6d22e153904930ceaf1a74763dfff9d4f12 | Name
+      each rule owner in limitations.md by its module path
         > 2026-11-22 Check: each named path exists under src/comment_review/
