@@ -17,9 +17,11 @@ check on the drafts, and writes them into the working tree.
   ```
 
   Use the closed proof and source root for the stage that produced the proposed
-  text. When several stages changed a selected page, compare the new draft with
-  the original and confirm every difference is among the author's accepted
-  changes before writing it.
+  text. A later stage read the pages the earlier ones left, so its draft of a page carries
+  every change they made there: compare the new draft with the original and confirm every
+  difference is among the author's accepted changes. Where one is not, that place cannot be
+  set without it; show the author both and ask whether to accept the earlier change or leave
+  the place.
 
   A move is approved as a whole: name both of its ends, or neither. `proof`
   refuses one end named alone. When the author accepts one end, show them both
@@ -35,18 +37,20 @@ check on the drafts, and writes them into the working tree.
 
 ## Step 1 -- prove unchanged
 
-Set the accepted drafts over the pre-edit tree in a temporary worktree:
+Set the accepted drafts over the pre-edit tree in a temporary worktree, and on every exit from
+this stage, written or refused, remove it with `git worktree remove --force <run-dir>/build`:
 
 1. `git worktree add <run-dir>/build <pre-edit ref>`
-2. Run the check command stage 1 recorded in `<run-dir>/build`, and keep its result as the
-   baseline.
+2. Run the check command stage 1 recorded in `<run-dir>/build`, and the project's doctests
+   where it has them, and keep the results as the baseline.
 3. Copy each draft over its `<path>` in `<run-dir>/build`.
 
-Then, from `<run-dir>/build`, prove the code in every draft reads the same as at the pre-edit
-ref:
+Then prove the code in every draft reads the same as at the pre-edit ref, naming each path
+under the build root:
 
 ```bash
-python <skill>/scripts/comment-review.py prove_unchanged --base <pre-edit ref> --repo . <paths>
+python <skill>/scripts/comment-review.py prove_unchanged --base <pre-edit ref> \
+  --repo <run-dir>/build <run-dir>/build/<path> ...
 ```
 
 It prints `PROVEN` for each page whose code is unchanged. When it refuses a page, write nothing:
@@ -60,9 +64,9 @@ After `prove_unchanged` succeeds, check whether the project's local tools suppor
 syntax validation. If available, run the applicable check on the edited result and report the
 outcome.
 
-Run it in `<run-dir>/build`. The drafts pass when it passes everything the baseline passed. Where
-it fails something the baseline passed, write nothing: bring the author the check's output and
-the pages it names. Then `git worktree remove --force <run-dir>/build`.
+Run that check, the check command and the doctests in `<run-dir>/build`. The drafts pass when
+they pass everything the baseline passed. Where they fail something the baseline passed, write
+nothing: bring the author the output and the pages it names.
 
 ## Step 3 -- write
 
@@ -72,8 +76,9 @@ Copy each draft over its `<path>` in the working tree.
 
 - the pages and freeform files written, and the places accepted and left
 - what `prove_unchanged` printed
-- separately, the check command, its baseline, and its result with the drafts
+- separately, the check command and the doctests, their baseline, and their result with the drafts
 - each freeform language not verified
-- `git diff`, which the author reads to see exactly what the run changed
+- `git diff <pre-edit ref> -- <paths written>`, which the author reads to see exactly what the
+  run changed
 
 Stage 8 follows, on the pages and freeform files written.

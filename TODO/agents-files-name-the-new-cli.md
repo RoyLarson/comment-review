@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 51 of 84 tasks closed
+Progress: 85 of 87 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-09-04 (Roy, 2026-09-04, superseding the-flow-lives-in-the-command T4)
@@ -170,13 +170,15 @@ The agents files name the new CLI and say how to use it.
 - [-] T43 | SUPERSEDED by T58: the printed-owner half landed in fbaaf7c5; only the matter half remains | 22c3a0abcbc86509c74296319ce5b719a43338ca | Restate
       SKILL.md's detached-doc step: matter, and the printed owner
         > 2026-10-26 Detached doc in matter is read as matter; warning now names owner
-- [ ] T44 | Restate agent prose that takes an anchor to be one line of code
+- [-] T44 | SUPERSEDED by T86 -- waits on the whole-unit anchor | e3c0a1fd42d1709dda95cd1500d1d7dc835cb2ef | Restate
+      agent prose that takes an anchor to be one line of code
         > 2026-10-26 decision-log #238: an a/b anchor may span the unit's lines
         > 2026-10-26 reviewer-brief.md:259 and :177-178 state a one-line anchor
         > 2026-10-31 Also `references/review.md:38`: two ranges claim unchecked
         > 2026-10-31 Also `references/review.md:38`: two ranges unchecked
-- [ ] T45 | Name the addresser's --line '<module>' and '<eof>' in the agent
-      prose
+        > 2026-11-22 Outcome: Roy 2026-11-22 -- supersede out of plan; reissued
+- [x] T45 | FINISHED -- <module> and <eof> named in SKILL, brief, ownership role | c3a088cd | Name
+      the addresser's --line '<module>' and '<eof>' in the agent prose
         > 2026-10-27 reviewer-brief.md:99-105, SKILL.md:158, ownership-context.md:87-90
 - [x] T46 | 1bd897f0 removed the no-op anchor-line flag; git grep anchor-line -- src/plugin is empty | 1bd897f0 | Remove
       --anchor-line from the reviewer brief, which nothing reads
@@ -187,19 +189,22 @@ The agents files name the new CLI and say how to use it.
       reviewer-brief.md's withdraw line so it takes back one mark, per #276
 - [ ] T49 | Replace write.md's git worktree with a copy of the gathered files,
       per #104
+        > 2026-11-22 Waits on lexical-code-identity.md T16, which removes --base
 - [x] T50 | FINISHED -- stage 1 records where code concerns go | 21cc283e | Update
       the brief's add-a-TODO answer for a repo that keeps its TODOs on a board
         > 2026-11-10 #311: stage 1 records where code concerns go
 - [-] T51 | SUPERSEDED by #312: predates the current CLI | a419ac11 | Update
       SKILL.md's commands so every stage runs under the interpreter `gather` ran
       under
-- [ ] T52 | Correct review.md's two-ranges sentence, which `resolve` and
-      `lines_of` now contradict
-- [ ] T53 | Update the brief so a role keeps its scratch files under its
-      FREEFORM DIR
+- [x] T52 | FINISHED -- review.md says one range comes back, or a refusal | c3a088cd | Correct
+      review.md's two-ranges sentence, which `resolve` and `lines_of` now
+      contradict
+- [x] T53 | FINISHED -- the brief puts every scratch file under FREEFORM DIR | c3a088cd | Update
+      the brief so a role keeps its scratch files under its FREEFORM DIR
         > 2026-11-08 Outside run: roles collided on one shared /tmp address list
-- [ ] T54 | Update SKILL.md stage 4 to dispatch in batches when copies outnumber
-      the session's agent limit
+- [x] T54 | FINISHED -- stage 4 dispatches in batches up to the agent limit | c3a088cd | Update
+      SKILL.md stage 4 to dispatch in batches when copies outnumber the
+      session's agent limit
         > 2026-11-08 Outside run: 92 dispatches against a limit of 20
 - [-] T55 | SUPERSEDED by T56: #304 widens it to every patch | b3e29557 | Update
       the brief to say a clean and a patch altering a number, name or error type
@@ -208,83 +213,118 @@ The agents files name the new CLI and say how to use it.
       the brief to say a clean and every patch owe a source (#301, #304)
 - [x] T57 | FINISHED -- approved wording in the brief | e29c77b9 | Update the
       brief to say a role may answer one slot more than once (#308)
-- [ ] T58 | Correct SKILL.md:155-156 so a detached doc in matter is read as
-      matter
+- [x] T58 | FINISHED -- a detached doc inside the matter is read as matter | c3a088cd | Correct
+      SKILL.md:155-156 so a detached doc in matter is read as matter
         > 2026-11-22 Check: SKILL.md stage 2 names the matter case
-- [ ] T59 | Add to SKILL.md stage 4 that a role whose agent never returns is
-      relaunched as a new instance, per Process #272
+- [x] T59 | FINISHED -- an agent that never returns is relaunched | c3a088cd | Add
+      to SKILL.md stage 4 that a role whose agent never returns is relaunched as
+      a new instance, per Process #272
         > 2026-11-22 Check: SKILL.md stage 4 relaunches a role that never returns
-- [ ] T60 | Correct reviewer-brief.md:200's three-line window to the cited line
+- [-] T60 | SUPERSEDED -- the brief already matches WITHIN = 3 | dc93beea3e4cc5a4b92f945ae53569aa2a5379c3 | Correct
+      reviewer-brief.md:200's three-line window to the cited line
         > 2026-11-22 Check: the brief says verbatim starts on the cited line
-- [ ] T61 | Make write.md:49's 7b gate name the build root instead of running
+        > 2026-11-22 Outcome: brief matches WITHIN=3 either side; Roy: supersede
+- [x] T61 | FINISHED -- the 7b gate names <run-dir>/build as --repo | c3a088cd | Make
+      write.md:49's 7b gate name the build root instead of running
       prove_unchanged --repo . from an assumed cwd
         > 2026-11-22 Check (M7): the gate prints FAIL for a changed return from any cwd
-- [ ] T62 | Make SKILL.md:435 hand stage 6 every page in scope, not only the
-      pages 4c changed
+- [x] T62 | FINISHED -- stage 6 gathers every page in scope into proof4c | c3a088cd | Make
+      SKILL.md:435 hand stage 6 every page in scope, not only the pages 4c
+      changed
         > 2026-11-22 Check (M8): an over-cap paragraph on a page 4c left alone is read
-- [ ] T63 | Make SKILL.md:261 build root4c with the untracked files the 4c roles
-      check claims against
+- [x] T63 | FINISHED -- root4c gets the untracked files roles cite | c3a088cd | Make
+      SKILL.md:261 build root4c with the untracked files the 4c roles check
+      claims against
         > 2026-11-22 Check (M9): a cite to an un-added file resolves at 4c
-- [ ] T64 | Stop the turn loop at SKILL.md:340 (also reviewer-brief.md:406)
-      passing --repo ., which overrides the stage root
+- [x] T64 | FINISHED -- turn loop and brief checks pass no --repo . | c3a088cd | Stop
+      the turn loop at SKILL.md:340 (also reviewer-brief.md:406) passing --repo
+      ., which overrides the stage root
         > 2026-11-22 Check (M53): a 4c cite correct for root4c passes check --answers
-- [ ] T65 | Prefix SKILL.md:341's turn outputs (proof<t>.json, batch<t+1>.json,
-      final.json) with the stage
+- [x] T65 | FINISHED -- turn and disposition outputs carry the stage prefix | c3a088cd | Prefix
+      SKILL.md:341's turn outputs (proof<t>.json, batch<t+1>.json, final.json)
+      with the stage
         > 2026-11-22 Check (M55): 4a and 4c write distinct final.json files
-- [ ] T66 | Single-quote the example values at reviewer-brief.md:180 so shell
-      metacharacters in a value reach mark unchanged
+- [x] T66 | FINISHED -- brief and compact.md examples are single-quoted | c3a088cd | Single-quote
+      the example values at reviewer-brief.md:180 so shell metacharacters in a
+      value reach mark unchanged
         > 2026-11-22 Check (M56): a value holding a backtick is stored as typed
-- [ ] T67 | Correct SKILL.md:342's 'turn exits with the same codes', whose
-      exit-5 remedy reruns collate over committed turns
+- [x] T67 | FINISHED -- turn exit 5 re-runs turn with --human | c3a088cd | Correct
+      SKILL.md:342's 'turn exits with the same codes', whose exit-5 remedy
+      reruns collate over committed turns
         > 2026-11-22 Check (M57): SKILL.md gives turn's own remedy for each exit code
-- [ ] T68 | Correct the question line at SKILL.md:312 to the CLI's whole line,
-      whose tail an answer must match
+- [-] T68 | SUPERSEDED by T85 -- the match key omits the tail | dc93beea3e4cc5a4b92f945ae53569aa2a5379c3 | Correct
+      the question line at SKILL.md:312 to the CLI's whole line, whose tail an
+      answer must match
         > 2026-11-22 Check (M58): an answer to the documented line ends collate exit 5
-- [ ] T69 | Correct SKILL.md:297's exit-0 row, which skips the style-sheet
-      recast SKILL.md:370-374 requires
+        > 2026-11-22 Outcome: match key omits the tail (human.py:151); Roy: reissue
+- [x] T69 | FINISHED -- the exit-0 row goes through the style-sheet recast | c3a088cd | Correct
+      SKILL.md:297's exit-0 row, which skips the style-sheet recast
+      SKILL.md:370-374 requires
         > 2026-11-22 Check (M59): following the row recasts '# one' to '# One.'
-- [ ] T70 | Say what to do at SKILL.md:163 when GATHERED reports 0 places, where
-      topology --build exits 2
+- [x] T70 | FINISHED -- a scope with nothing to review stops the run | c3a088cd | Say
+      what to do at SKILL.md:163 when GATHERED reports 0 places, where topology
+      --build exits 2
         > 2026-11-22 Check (M62): SKILL.md names the step for a zero-place scope
-- [ ] T71 | Make a stage carry out the author's 'move it' answer on detached
-      documentation recorded at SKILL.md:158
+- [x] T71 | FINISHED -- a move-it answer goes to the 4a dispatch as a move | c3a088cd | Make
+      a stage carry out the author's 'move it' answer on detached documentation
+      recorded at SKILL.md:158
         > 2026-11-22 Check (M63): a 'move it' answer ends with the doc moved
-- [ ] T72 | Remove the build/root4c worktrees on every exit from write.md:52's
-      Step 1
+- [x] T72 | FINISHED -- write.md removes the build worktree on every exit | c3a088cd | Remove
+      the build/root4c worktrees on every exit from write.md:52's Step 1
         > 2026-11-22 Check (M64): a retry after a refused Step 1 succeeds
-- [ ] T73 | Show the run's changes with git diff <pre-edit ref> at write.md:77
-      (also SKILL.md:535), not a bare git diff
+- [x] T73 | FINISHED -- the diff is git diff <pre-edit ref> | c3a088cd | Show
+      the run's changes with git diff <pre-edit ref> at write.md:77 (also
+      SKILL.md:535), not a bare git diff
         > 2026-11-22 Check (M65): uncommitted author edits are not shown as the run's
-- [ ] T74 | Stop SKILL.md:107 creating a branch named build when git stash
-      create prints nothing for untracked-only changes
+- [x] T74 | FINISHED -- the pre-edit ref is HEAD when stash create is empty | c3a088cd | Stop
+      SKILL.md:107 creating a branch named build when git stash create prints
+      nothing for untracked-only changes
         > 2026-11-22 Check (M66): an untracked-only scope adds no branch to the repo
-- [ ] T75 | State at SKILL.md:27 that <run-dir> must sit outside the checkout,
-      since proof refuses an --out inside it
+- [x] T75 | FINISHED -- <run-dir> sits outside the checkout | c3a088cd | State
+      at SKILL.md:27 that <run-dir> must sit outside the checkout, since proof
+      refuses an --out inside it
         > 2026-11-22 Check (M67): SKILL.md says where <run-dir> may go
-- [ ] T76 | Correct reviewer-brief.md:384 to name the change key the parser
-      wants for a composition answer
+- [x] T76 | FINISHED -- the brief names change for a composition answer | c3a088cd | Correct
+      reviewer-brief.md:384 to name the change key the parser wants for a
+      composition answer
         > 2026-11-22 Check (M68): a composition answer written per the brief is taken
-- [ ] T77 | Correct reviewer-brief.md:185's 'mark refuses exactly what the fold
-      would refuse', false for an explicit --verbatim
+- [x] T77 | FINISHED -- an explicit --verbatim is read by check, not mark | c3a088cd | Correct
+      reviewer-brief.md:185's 'mark refuses exactly what the fold would refuse',
+      false for an explicit --verbatim
         > 2026-11-22 Check (M69): the brief matches mark --verbatim with a wrong cite
-- [ ] T78 | Tell the condenser at compact.md:66 to withdraw its query before
-      filing the answer's ruling
+- [x] T78 | FINISHED -- the condenser withdraws its query first | c3a088cd | Tell
+      the condenser at compact.md:66 to withdraw its query before filing the
+      answer's ruling
         > 2026-11-22 Check (M70): following compact.md, collate stops asking
-- [ ] T79 | Make reviewer-brief.md:279's @path guidance work in PowerShell for a
-      literal value starting with @
+- [x] T79 | FINISHED -- @path quoting and literal @ values stated | c3a088cd | Make
+      reviewer-brief.md:279's @path guidance work in PowerShell for a literal
+      value starting with @
         > 2026-11-22 Check (M71): a literal '@x' value is stored, not opened as a file
-- [ ] T80 | Correct reviewer-brief.md:177's '--raw-text is left off at an empty
-      place', which mark refuses for a move
+- [x] T80 | FINISHED -- only an add at an empty place leaves off --raw-text | c3a088cd | Correct
+      reviewer-brief.md:177's '--raw-text is left off at an empty place', which
+      mark refuses for a move
         > 2026-11-22 Check (M72): a move to an empty place per the brief is placed
-- [ ] T81 | Reconcile SKILL.md:338's one answers file per role with a role split
-      into several dispatches
+- [x] T81 | FINISHED -- one agent per role per turn; a 2nd --answers replaces | c3a088cd | Reconcile
+      SKILL.md:338's one answers file per role with a role split into several
+      dispatches
         > 2026-11-22 Check (M73): two dispatches of one role can both answer a turn
-- [ ] T82 | Make SKILL.md:390's second disposition round accept the rulings
-      round 1 recorded
+- [x] T82 | FINISHED -- the second disposition round holds only new rulings | c3a088cd | Make
+      SKILL.md:390's second disposition round accept the rulings round 1
+      recorded
         > 2026-11-22 Check (M74): rerunning disposition with round 1's rulings exits 0
-- [ ] T83 | Replace SKILL.md:250's fold without it with stopping the stage and
-      reporting the role
+- [x] T83 | FINISHED -- a copy failing twice stops the stage | c3a088cd | Replace
+      SKILL.md:250's fold without it with stopping the stage and reporting the
+      role
         > 2026-11-22 Check: SKILL.md:250 stops the run; no short fold (#375)
-- [ ] T84 | Add to write.md's stage 7b check a run of the project's doctests
-      when the project has them
+- [x] T84 | FINISHED -- stage 1 records doctests; 7b runs them | c3a088cd | Add
+      to write.md's stage 7b check a run of the project's doctests when the
+      project has them
         > 2026-11-22 Check: write.md runs doctests at 7b where they exist (#381)
+- [x] T85 | FINISHED -- the question is the text before ; ask it, | c3a088cd | State
+      at SKILL.md:312 that the question is the text before the `;`
+- [ ] T86 | Restate agent prose that takes an anchor to be one line of code,
+      once #238 lands
+        > 2026-11-22 Waits on one-reader-builder.md T11 and T12 (whole-unit anchor)
+- [x] T87 | FINISHED -- each rule owner named by its path; all four exist | ef95e6d22e153904930ceaf1a74763dfff9d4f12 | Name
+      each rule owner in limitations.md by its module path
+        > 2026-11-22 Check: each named path exists under src/comment_review/

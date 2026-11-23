@@ -54,6 +54,7 @@ current corpus supplies.
         > 2026-10-25 Check: no "\r\n"-vs-"\n" choice in src/ outside machine/
 - [ ] T6 | Delete each line-ending guess made outside machine/
         > 2026-10-25 Check: no "\r\n"-vs-"\n" choice in src/ outside machine/
+        > 2026-11-22 Removing dominant_ending empties results/prove_unchanged.py too
 - [-] T7 | Moot: #104 rules the sibling lookup goes, #276 restates it; work is lexical-code-identity T17 plus this T4 | b7427eb3 | Decide
       what `prove_unchanged` does with a file whose ending already differs from
       its siblings

@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 10 of 13 tasks closed
+Progress: 11 of 13 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-08-29 (found sweeping reviewer-brief.md against its consumers on
@@ -56,8 +56,8 @@ place the same brief tells it to cite at `:74`.
 - [-] T9 | Duplicate of T12: #290 says marking against the accepted f move is met by re-setting the page and binding anew | c036bd46 | Make
       the other roles mark against an f-to-b move the human accepted, per #274
         > 2026-11-07 #290: met by re-setting the page and binding anew
-- [ ] T10 | Update reviewer-brief.md so any role may mark an f place it looks
-      up, per #274
+- [x] T10 | FINISHED -- any role may mark an f place it looks up | c3a088cd | Update
+      reviewer-brief.md so any role may mark an f place it looks up, per #274
 - [ ] T11 | Refuse every instruction but move on an f place, per #290
         > 2026-11-07 #291: a move into an f place stays admitted and asked
 - [ ] T12 | Implement re-setting the page with an accepted f move and binding a

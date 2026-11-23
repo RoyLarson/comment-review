@@ -1,8 +1,8 @@
 # The brief's example and its resolution scope disagree with a real run
 
 ```
-Status:   open
-Progress: 2 of 3 tasks closed
+Status:   closed
+Progress: 3 of 3 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-08-29 (2026-08-29, the first end-to-end run with a real block-context
@@ -16,9 +16,10 @@ The brief's example and its resolution scope disagree with a real run.
 
 ## Tasks
 
-- [ ] T1 | The brief's `sha` matches what `bind` writes. Verify: the example's
-      sha is the length `binder.bind` produces -- 16 hex characters on
-      2026-08-29, where the example shows 40.
+- [x] T1 | FINISHED -- the example sha is 16 hex, as sha_of writes | c3a088cd | The
+      brief's `sha` matches what `bind` writes. Verify: the example's sha is the
+      length `binder.bind` produces -- 16 hex characters on 2026-08-29, where
+      the example shows 40.
 - [x] T2 | brief states REPO ROOT is the checkout every path resolves against and a source may cite any file in the project | a9d9de96 | The
       brief says what a `source` may resolve against. Verify: it states whether
       a cite is resolved against the scoped tree or the checkout, and a role

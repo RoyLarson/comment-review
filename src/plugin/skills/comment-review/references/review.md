@@ -22,7 +22,7 @@ Of each page as a whole, that it reads as one page:
 - Every paragraph is a whole proposition, every clause belongs to a whole sentence, and every
   contrast word still has its contrast.
 - Paragraphs separated before the edit are still separate; an `add` beside an existing
-  paragraph can make the two one run.
+  paragraph can make the two one comment run.
 - Each sentence appears once; a `move` can land beside a paragraph that already said it.
 - The dialect, capitalisation and citation form match the style sheet.
 
@@ -36,8 +36,8 @@ python <skill>/scripts/comment-review.py addresses resolve <address> --repo .
 ```
 
 The file was read again after the edit, so text can stand at a different address than it did
-before. Check its location relative to the code and the prose around it. Where two
-ranges come back, a docstring and the comment run beneath it share the place; both are real.
+before. Check its location relative to the code and the prose around it. One range comes
+back, or a refusal when no paragraph on the page holds that address.
 
 ## Report
 
