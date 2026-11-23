@@ -38,7 +38,6 @@ def test_every_page_reaches_exactly_one_shard_of_each_role():
         "4c",
         Kind.EDITORIAL,
         "original",
-        (),
         (
             Dispatch(Role.BLOCK_CONTEXT, (names[0],)),
             Dispatch(Role.BLOCK_CONTEXT, tuple(names[1:])),
@@ -63,7 +62,6 @@ def test_a_page_in_two_shards_of_one_role_is_refused():
         "4c",
         Kind.EDITORIAL,
         "original",
-        (),
         (
             Dispatch(Role.BLOCK_CONTEXT, (name,)),
             Dispatch(Role.BLOCK_CONTEXT, (name,)),
@@ -84,7 +82,6 @@ def test_a_page_no_dispatch_of_a_role_covers_is_refused():
         "4c",
         Kind.EDITORIAL,
         "original",
-        (),
         (
             Dispatch(Role.BLOCK_CONTEXT, (names[0],)),
             Dispatch(Role.MODULE_CONTEXT, ()),
@@ -102,7 +99,6 @@ def test_two_different_roles_over_the_same_page_is_not_a_conflict():
         "4c",
         Kind.EDITORIAL,
         "original",
-        (),
         (
             Dispatch(Role.BLOCK_CONTEXT, ()),
             Dispatch(Role.FUNCTION_CONTEXT, ()),
@@ -141,7 +137,6 @@ def test_every_shard_carries_the_binder_s_own_read_from():
         "4c",
         Kind.EDITORIAL,
         "original",
-        (),
         (Dispatch(Role.BLOCK_CONTEXT, ()), Dispatch(Role.MODULE_CONTEXT, ())),
     )
     assert [c["read_from"] for c in _copies(binder, stage)] == [
@@ -164,7 +159,6 @@ def test_the_glob_matches_across_a_directory_separator():
         "4c",
         Kind.EDITORIAL,
         "original",
-        (),
         (Dispatch(Role.BLOCK_CONTEXT, ("*.py",)),),
     )
     copies = _copies(binder, stage)

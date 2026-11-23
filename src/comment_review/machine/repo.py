@@ -227,6 +227,32 @@ def git_ls_files(repo: Path) -> list[str] | None:
     return listed.stdout.splitlines()
 
 
+def git_untracked(repo: Path) -> list[str] | None:
+    """Untracked, unignored, repo-relative posix paths, or None as `git_ls_files`."""
+    if not repo.is_dir():
+        return None
+    try:
+        listed = git(repo, "ls-files", "--others", "--exclude-standard")
+    except exceptions.GIT_ERRORS:
+        return None
+    if listed.returncode != 0:
+        return None
+    return listed.stdout.splitlines()
+
+
+def commit_of(repo: Path, ref: str) -> str | None:
+    """The full sha of the commit `ref` names in `repo`, or None when none does."""
+    # A ref starting with "-" would be read as an option, not a name.
+    if not repo.is_dir() or not ref or ref.startswith("-"):
+        return None
+    try:
+        got = git(repo, "rev-parse", "--verify", "--quiet", f"{ref}^{{commit}}")
+    except exceptions.GIT_ERRORS:
+        return None
+    sha = got.stdout.strip()
+    return sha if got.returncode == 0 and sha else None
+
+
 def undraftable(into: Path, repo: Path) -> str:
     """Why drafts of files under `repo` cannot be written into `into`, or "".
 

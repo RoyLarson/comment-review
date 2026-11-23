@@ -100,7 +100,6 @@ def _shards(tmp_path):
         "4c",
         Kind.EDITORIAL,
         "original",
-        (),
         (
             Dispatch(Role.BLOCK_CONTEXT, ("m.py",)),
             Dispatch(Role.BLOCK_CONTEXT, ("n.py",)),

@@ -3,22 +3,17 @@
     Kind            what a stage can be, closed
     Kind.EDITORIAL  hands back marks -- verify -> fold -> revise step ->
                     pull a revise
-    Kind.ENRICHING  hands back facts -- into the next binder. No docket, no
-                    revise, and no producer yet
     Role            the four editorial roles, closed, independent of any
                     run's topology
     ROLES           the companion to `Role` -- membership is asked of THIS
     Dispatch        one role dispatched within a stage, and the pages it sees
     Stage           one row: a name and a kind, plus (once a run's topology
-                    names them) what it reads, what it carries, what it deals
-                    and admits, and its dispatches -- each dispatch names the
-                    role that runs
-    pulls_revise    is this stage's output followed by a revise?
+                    names them) what it reads, what it deals and admits, and
+                    its dispatches -- each dispatch names the role that runs
     deals           does this stage deal this place to the role it dispatches?
 
-!! NO MODULE-LEVEL ALIAS OF A MEMBER, AND THERE WERE TWO UNTIL 2026-08-28:
-`EDITORIAL = Kind.EDITORIAL` beside `ENRICHING = Kind.ENRICHING`. Roy:
-*"aliasing like that is lazy and bad ... It allows for drift without the drift
+!! NO MODULE-LEVEL ALIAS OF A MEMBER, such as `EDITORIAL = Kind.EDITORIAL`.
+Roy: *"aliasing like that is lazy and bad ... It allows for drift without the drift
 being apparent because of shadowing. That is a horrible practice."*
 
 ! THE DRIFT IS THE ARGUMENT, NOT THE READABILITY. An alias is a SECOND name for
@@ -29,9 +24,9 @@ pointing at what the member USED to be, and every call site reading the alias
 goes with it. Nothing announces that: the name still resolves, the module still
 imports, and `ty` still passes, because both sides are the same type.
 
-! IT ALSO MADE A CAPITALISED NAME UNREADABLE AS A MEMBER, which is how this
-surfaced -- a bare `ENRICHING` shown to Roy read as a module constant, and it
-WAS one. That is the symptom; the drift is the defect.
+! IT ALSO MAKES A CAPITALISED NAME UNREADABLE AS A MEMBER: a bare name reads
+as a module constant, and it is one. That is the symptom; the drift is the
+defect.
 
 Every site names `Kind.EDITORIAL` in full.
 
@@ -42,32 +37,8 @@ once."* The skill never worked that way -- `SKILL.md` stage 4 already runs
 the other three at 4c, in one message, measuring a claim against the code at
 their own scope.
 
-!! `Kind.ENRICHING` HAS NO PRODUCER, AND IS KEPT ANYWAY. It was dropped on
-2026-08-28 and restored the same day. Roy: *"Put it back on the Kind because it
-might have uses in `annotate.py` once `annotate.py` goes to `concordance.py`
-which it is part of."*
-
-! WHAT IT MEANS: a stage that hands back FACTS rather than marks -- resolutions
-fed into the next stage's binder. It seeds no docket and pulls no revise, which
-is what `pulls_revise` reads it for. `annotate` is stage 3 and resolves exactly
-that kind of fact; no run's topology names it today, so nothing in `src/`
-constructs an ENRICHING `Stage` yet.
-
-! WHY THAT IS NOT SPECULATIVE MACHINERY: the candidate is NAMED and the move is
-already filed -- `TODO/annotate-belongs-in-concordance.md`. ! WHAT IS NOT
-CLAIMED is that anything exercises it: no shipped topology fixture builds an
-ENRICHING stage, so `pulls_revise`'s False branch is unreachable from this
-module's own data.
-
-!! AND THE DROP IS RECORDED BECAUSE OF HOW IT HAPPENED. A session showed Roy a
-bare `ENRICHING` -- which was then ALSO a module-level alias -- while asking
-whether it earned its place; he read it as a constant, which it was, and said to
-drop it. The session removed the MEMBER, a wider change than the answer covered.
-`decision-log.md Process: #38` holds that, and the alias it came from is gone.
-
-!! ADDING A STAGE IS A ROW, NOT A BRANCH. Nothing in this module or in
-`pulls_revise` asks a stage's or a role's NAME; `pulls_revise` reads only
-`stage.kind`.
+!! ADDING A STAGE IS A ROW, NOT A BRANCH. Nothing in this module asks a
+stage's or a role's NAME.
 
 ! `Kind`'s values are DERIVED from the member names via `_generate_next_value_`,
 never hand-typed, following `T1.15` of `docs/plans/0.2.4-the-mark-and-the-
@@ -75,13 +46,12 @@ collator.md`. No site in this module asks membership of `Kind` itself --
 `x in SomeEnum` raises `TypeError` on Python 3.11 -- so there is no companion
 frozenset here; nothing in this file needs one.
 
-!! `STAGE` GAINED THREE DEFAULTED FIELDS -- `reads`, `carries`, `dispatches` --
-for `desk/topology.py` to build. `docs/superpowers/specs/2026-08-29-the-
-master-proof-and-reconciliation-design.md` section 2 specifies a `Stage`
-NamedTuple of its own; it EVOLVES this one in place instead, because a second
-same-named type in this package is the collision `Kind` already had to
-declare once. `topology.py` imports `Stage` and `Dispatch` from here rather
-than defining them.
+!! `STAGE`'S DEFAULTED FIELDS are for `desk/topology.py` to build.
+`docs/superpowers/specs/2026-08-29-the-master-proof-and-reconciliation-design.md`
+section 2 specifies a `Stage` NamedTuple of its own; it EVOLVES this one in
+place instead, because a second same-named type in this package is the
+collision `Kind` already had to declare once. `topology.py` imports `Stage`
+and `Dispatch` from here rather than defining them.
 
 !! `roles` AND THE `STAGES` LITERAL ARE GONE. `STAGES` answered two questions
 -- which roles exist, and when they run; `Role` took the first, and a run's
@@ -121,7 +91,6 @@ class Kind(StrEnum):
         return name.lower()
 
     EDITORIAL = auto()
-    ENRICHING = auto()
 
 
 class Role(StrEnum):
@@ -177,17 +146,12 @@ class Stage(NamedTuple):
         name: the stage's own label, drawn from `SKILL.md`'s stage-4 table
             (`4a`, `4c`) or, for a stage a run's topology file names, that
             file's own `name` key.
-        kind: a `Kind` -- what `pulls_revise` reads. Typed as `Kind` and not
+        kind: a `Kind` -- what the stage hands back. Typed as `Kind` and not
             `str`: annotated `str`, the type gate admitted
             `Stage("x", "banana", ())`, measured 2026-08-28.
         reads: what this stage reads -- `"original"`, or `"revise:<name>"`
             naming an earlier stage's pulled revise. Set by `topology.py`;
             defaults to `"original"`.
-        carries: the names of earlier stages whose `edit_copies` this stage
-            carries forward, undecided, alongside what it reads. Format
-            only -- `docs/superpowers/specs/2026-08-29-the-master-proof-and-
-            reconciliation-design.md` section 2 -- `topology.py` refuses a
-            non-empty value rather than building it.
         dispatches: the `Dispatch` rows this stage runs, in the run's
             topology file order. Set by `topology.py`; defaults to `()`.
             A stage's roles are `[d.role for d in stage.dispatches]` --
@@ -218,7 +182,6 @@ class Stage(NamedTuple):
     name: str
     kind: Kind
     reads: str = "original"
-    carries: tuple[str, ...] = ()
     dispatches: tuple[Dispatch, ...] = ()
     # Appended rather than slotted in beside `reads`, though that is where
     # they belong by subject: a `Stage` is a NamedTuple and several callers
@@ -227,21 +190,6 @@ class Stage(NamedTuple):
     cap: int = 0
     series: tuple[str, ...] = ()
     admits: tuple[str, ...] = ()
-
-
-def pulls_revise(stage: Stage) -> bool:
-    """Does a revise get pulled after this stage runs?
-
-    Only a `Kind.EDITORIAL` stage does -- `decision-log.md Process: #34`. A
-    `Kind.ENRICHING` stage hands facts into the next binder; it seeds no docket
-    and pulls nothing.
-
-    ! TRUE FOR EVERY STAGE A SHIPPED TOPOLOGY FIXTURE BUILDS
-    (`tests/fixtures/topologies/*.toml`), because every one is EDITORIAL and
-    nothing constructs an ENRICHING `Stage` yet. The False branch is
-    reachable only from a `Stage` a caller builds itself.
-    """
-    return stage.kind == Kind.EDITORIAL
 
 
 def deals(stage: Stage, paragraph: Paragraph) -> bool:

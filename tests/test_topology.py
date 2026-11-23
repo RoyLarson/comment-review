@@ -83,25 +83,36 @@ def test_reading_a_later_stage_is_refused():
     assert stages == [] and "revise:2" in why
 
 
-def test_reading_an_enriching_stage_is_refused_BY_NAME():
-    # ! An enriching stage pulls no revise, so naming it in `reads` cannot be
-    # quietly resolved to the previous editorial one.
+def test_a_stage_key_nothing_reads_is_refused_naming_the_key_and_the_stage():
+    stages, why = read(
+        '[[stage]]\nname="4c"\nkind="editorial"\nreads="original"\ncarries=["4a"]\n'
+        '[[stage.dispatch]]\nrole="block-context"\n'
+    )
+    assert stages == [] and "'carries'" in why and "'4c'" in why
+
+
+def test_a_top_level_key_nothing_reads_is_refused():
+    stages, why = read(
+        'version=1\n[[stage]]\nname="1"\nkind="editorial"\n'
+        '[[stage.dispatch]]\nrole="block-context"\n'
+    )
+    assert stages == [] and "'version'" in why
+
+
+def test_a_dispatch_key_nothing_reads_is_refused():
+    stages, why = read(
+        '[[stage]]\nname="1"\nkind="editorial"\n'
+        '[[stage.dispatch]]\nrole="block-context"\nways=2\n'
+    )
+    assert stages == [] and "'ways'" in why and "'1'" in why
+
+
+def test_a_kind_other_than_editorial_is_refused():
     stages, why = read(
         '[[stage]]\nname="a"\nkind="enriching"\nreads="original"\n'
         '[[stage.dispatch]]\nrole="block-context"\n'
-        '[[stage]]\nname="b"\nkind="editorial"\nreads="revise:a"\n'
-        '[[stage.dispatch]]\nrole="module-context"\n'
     )
-    assert stages == []
-    assert "enriching" in why and "a" in why
-
-
-def test_a_non_empty_carries_is_refused_with_a_reason():
-    stages, why = read(
-        '[[stage]]\nname="1"\nkind="editorial"\nreads="original"\ncarries=["0"]\n'
-        '[[stage.dispatch]]\nrole="block-context"\n'
-    )
-    assert stages == [] and "carries" in why
+    assert stages == [] and "enriching" in why
 
 
 ORIGINAL = Stage(name="4", kind=Kind.EDITORIAL, reads="original")
