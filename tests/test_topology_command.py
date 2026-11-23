@@ -6,6 +6,7 @@ so a bad configuration is caught before the first page is read.
 
 from pathlib import Path
 
+import pytest
 from conftest import SAMPLE, run_command
 
 from comment_review.commands import gather as gather_command
@@ -120,6 +121,30 @@ def test_build_refuses_a_directive_the_binder_cannot_honour(
     )
     assert code == 2
     assert "9 ways" in printed
+
+
+def test_build_and_verify_together_is_a_usage_error(tmp_path, monkeypatch, capsys):
+    binder = _binder(tmp_path, monkeypatch, capsys)
+    t = tmp_path / "t.toml"
+    t.write_text(UNCOVERED, encoding="utf-8")
+    with pytest.raises(SystemExit) as exited:
+        run_command(
+            monkeypatch,
+            capsys,
+            topology_command,
+            "--build",
+            "--verify",
+            str(t),
+            "--binder",
+            str(binder),
+            "--out",
+            str(tmp_path / "built.toml"),
+            "--stage",
+            "4a=ownership-context",
+        )
+    assert exited.value.code == 2
+    assert "not allowed with" in capsys.readouterr().err
+    assert not (tmp_path / "built.toml").exists()
 
 
 def test_it_is_a_command():

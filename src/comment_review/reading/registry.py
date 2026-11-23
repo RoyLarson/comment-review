@@ -24,9 +24,9 @@ _EXCLUDED_SUFFIXES = frozenset(
 )
 
 
-#: The suffixes of source files with no reader. The gather lists these for the
-#: reviewers to read as they stand; any other file with no reader is not source
-#: and no reviewer is handed it.
+#: The suffixes of source files. One no definition claims is freeform: the
+#: gather lists it for the reviewers to read as it stands. Any other file with
+#: no reader is not source and no reviewer is handed it.
 _FREEFORM_SUFFIXES = frozenset(
     {
         ".bash",
@@ -57,11 +57,6 @@ _FREEFORM_SUFFIXES = frozenset(
         ".zsh",
     }
 )
-
-
-def is_freeform(path: Path) -> bool:
-    """Whether `path` is a source file with no reader, ignoring suffix case."""
-    return path.suffix.lower() in _FREEFORM_SUFFIXES
 
 
 @dataclass(frozen=True)
@@ -112,3 +107,12 @@ class LanguageRegistry:
             ),
             None,
         )
+
+    def is_freeform(self, path: Path) -> bool:
+        """Whether `path` is a source file this registry has no reader for.
+
+        The suffix is listed as source and no definition claims it, ignoring
+        letter case. A suffix a definition claims is read, so it is not
+        freeform.
+        """
+        return path.suffix.lower() in _FREEFORM_SUFFIXES and self.for_path(path) is None

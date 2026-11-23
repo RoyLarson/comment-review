@@ -1,14 +1,19 @@
 """What one stage's returned copies can be wrong about against the pages.
 
-    lookup_contexts      a copy's saved readings merged with admitted contexts
-    copy_problems        one copy against the pages and the files it cites
-    texts_at             every text a quote on one copy may be in
-    resolution_problems  a ruled mark whose address resolves against no page
-    required_places      the review addresses a binder (and stage) requires
-    context_problems     shared page contexts admitted before coverage work
-    received_problems    each copy against the binder its role received
-    coverage_problems    a role whose copies do not carry the binder's addresses
-    stage_problems       a dispatch the topology named that never came back
+    lookup_contexts         a copy's saved readings merged with admitted contexts
+    gathered_tree_problem   a copy gathered from another tree than its binder
+    copy_problems           one copy against the pages and the files it cites
+    resolution_problems     a ruled mark whose address resolves against no page
+    texts_at                every text a quote on one copy may be in
+    required_places         the review addresses a binder (and stage) requires
+    context_problems        one copy's page contexts against its binders'
+    admit_collate_contexts  a stage's page contexts, admitted once for collate
+    received_problems       each copy against the binder its role received
+    coverage_problems       a role whose copies do not carry the binder's addresses
+    stage_problems          a dispatch the topology named that never came back
+
+Each `admitted_` function runs its namesake's check on contexts the caller has
+already admitted.
 
 Each asks a question the desk cannot: a mark's own read holds no
 binder, no page and no filesystem, so whether an address names a place a real
@@ -91,10 +96,10 @@ def copy_problems(
     """What one copy is wrong about against the pages and the files it cites.
 
     Source verification over the texts the page holds at each mark's place
-    (`desk.collator.verify_report`, `texts_at`), then the resolution check.
-    `flows.bus` runs it over every copy of a stage before it opens a fold, and
-    `commands/check.py` runs it over the one copy it is handed, so the two
-    hold a copy to one list.
+    (`desk.collator.verify_report`), then the resolution check. `flows.bus`
+    runs `admitted_copy_problems` over every copy of a stage before it opens a
+    fold, and `commands/check.py` runs this over the one copy it is handed, so
+    the two hold a copy to one list.
 
     Args:
         copy: one parsed edit_copy, as it came back.
@@ -144,24 +149,22 @@ def resolution_problems(
     An address resolves when a page can be read at its path and that page
     carries its cue. Where this checkout holds no readable page there, the
     address resolves against nothing and is reported, as a quote there is
-    refused (`decision-log.md Process: #122`). An address the binder lacks is
-    not thereby unresolved: the page is read, not the binder (`Process: #97`),
-    and the page carries every place a series has, filled or not.
+    refused. An address the binder lacks is not thereby unresolved: the page
+    is read, not the binder, and the page carries every place a series has,
+    filled or not.
 
     The address a mark names its destination under -- `claim.to` on a
     `move`, its type's `names_destination` -- is an address as well, and
-    resolves the same way (`Process: #111`). An address that is not
-    `path@cue` resolves against nothing -- `path@cue` is the only address
-    built (`Addressing: #21`) -- and one resolves only as it is printed: the
-    binder's spelling of its path, or the checkout's for a page the binder
-    lacks, and the page's spelling of its cue. A case slip or stray
+    resolves the same way. An address that is not `path@cue` resolves against
+    nothing -- `path@cue` is the only address built -- and one resolves only
+    as it is printed: the binder's spelling of its path, or the checkout's for
+    a page the binder lacks, and the page's spelling of its cue. A case slip or stray
     whitespace is refused, naming the printed address; a file system that
     ignores case would otherwise open the page, and the docket would carry it
     as a second page.
 
-    Verify: an invented cue is refused, a valid empty place is not -- the case
-    `Process: #97` settled, restated against the real page rather than the
-    redacted binder.
+    Verify: an invented cue is refused, a valid empty place is not, measured
+    against the real page rather than the redacted binder.
 
     Args:
         copy: one parsed edit_copy, as it came back.
@@ -486,16 +489,16 @@ def coverage_problems(
 ) -> list[Problem]:
     """One `Problem` per role whose copies do not carry the binder's addresses.
 
-    !! `flows.fan_out.fan` REFUSES AT THE DISPATCH AND NOTHING READ THE RETURN.
-    It raises `OverlappingShards` and `UncoveredPage` over the pages it is about
-    to hand out; a role that then answered for three of the four files in its
-    shard was invisible.
+    !! `flows.fan_out.fan` refuses at the dispatch and does not read the
+    return. It raises `OverlappingShards` and `UncoveredPage` over the pages it
+    is about to hand out; a role that then answers for three of the four files
+    in its shard is found here.
 
-    !! THE UNION ACROSS A ROLE'S COPIES, NEVER ONE COPY AGAINST THE BINDER.
+    !! The union across a role's copies, never one copy against the binder.
     Under fan-out each copy carries only its own shard, so comparing per copy
     would report every shard of a correctly partitioned role as incomplete.
 
-    ! STAGE COVERAGE IS A DIFFERENT QUESTION and cannot be answered from here.
+    ! Stage coverage is a different question and cannot be answered from here.
     A role that returned nothing leaves nothing behind to be missing from,
     since `flows.distribute.seed` stamps a copy with `role`, `read_from` and
     `sheets` and no dispatch identity. That one is `stage_problems`, which
@@ -506,9 +509,7 @@ def coverage_problems(
         binder: the binder they were seeded from.
         stage: the stage they were dealt in, where the caller has the row.
             A stage that deals part of the binder is owed that part and no
-            more -- `decision-log.md Process: #193`, Roy: only the places over
-            the length limit are touched, and all the others are
-            automatically clean for this role. None measures against every
+            more. None measures against every
             place a role is handed, which is what an ordinary stage deals.
 
     Returns:
@@ -516,9 +517,9 @@ def coverage_problems(
         carry, sorted so a reader can re-derive the list. Empty where every
         role is complete. Reported rather than raised, so the findings stack;
         each one rolls the round back, and none of the places that did come
-        back settles (`Process: #186`).
+        back settles.
 
-    ! AN EMPTY BINDER YIELDS NOTHING. There is no address to be missing, and a
+    ! An empty binder yields nothing. There is no address to be missing, and a
     run over one is what `tests/test_brief_worked_example.py` drives.
 
     A stage that deals part of the binder and is collated without its row is
@@ -541,19 +542,19 @@ def admitted_coverage_problems(
     edit_copies: list[EditCopy], binder: Binder, stage: Stage | None = None
 ) -> list[Problem]:
     """Check addressed coverage after the copy and binder are admitted."""
-    # ! THE PLACES A ROLE WAS HANDED, not every address the binder carries --
+    # ! The places a role was handed, not every address the binder carries --
     # `binder.addresses.handed` is the one definition, and the seed reads it too.
     # And narrowed by the same `deals` the seed used, so the two cannot
     # disagree about which places a stage dealt.
     known = required_places(binder, stage)
     if not known:
         return []
-    # !! ALL THREE KINDS COUNT AS CARRIED, and that is the whole point of this
-    # check. It asks whether the copy came BACK with the binder's addresses, not
+    # !! All three kinds count as carried, and that is the whole point of this
+    # check. It asks whether the copy came back with the binder's addresses, not
     # whether the role ruled on them -- an untouched slot and an entry that
-    # would not parse are both places the role still HAS. Whether it answered
+    # would not parse are both places the role still has. Whether it answered
     # is `flows.mark_errors`' question, and `commands/collate.py` reports that
-    # separately. ! A REFUSED ENTRY WITH NO ADDRESS contributes nothing, since
+    # separately. ! A refused entry with no address contributes nothing, since
     # there is no place to say it carried.
     by_role: dict[str, set[str]] = {}
     for copy in edit_copies:
@@ -566,25 +567,21 @@ def admitted_coverage_problems(
     for role, carried in by_role.items():
         missing = sorted(known - carried)
         if missing:
-            # !! THE ADDRESSES LEAD, AND THE COUNT FOLLOWS. Roy, 2026-09-01:
-            # *"That way the potential address comes as soon as possible."* This
-            # is the ONE line in the report whose `address` field is empty --
-            # the finding is about the copy, so the places it names can only be
-            # in the message -- and a reader scanning for somewhere to look had
-            # to read past a count to reach them. Every other line opens with
-            # its place; this one now does too.
+            # !! The addresses lead, and the count follows, so a reader
+            # reaches a place to look as soon as possible. This line's
+            # `address` field is empty -- the finding is about the copy, so
+            # the places it names can only be in the message. Every other line
+            # opens with its place; this one does too.
             #
-            # !! COUNTED OVER THE INTERSECTION, NOT OVER EVERYTHING RETURNED.
+            # !! Counted over the intersection, not over everything returned.
             # `carried` holds every address the role sent back, including any
             # the binder never held, so `len(carried)` can equal `len(known)`
-            # while something is still missing. MEASURED 2026-08-31, and quoted
-            # in the order it printed then: a role that dropped `m.py@b5` and
-            # invented `m.py@b9` against a two-place binder reported
-            # *"answered for 2 of 2 places -- missing m.py@b5"*, which
-            # contradicts itself on its own line.
+            # while something is still missing: a role that dropped `m.py@b5`
+            # and invented `m.py@b9` against a two-place binder would report
+            # 2 of 2 places while naming `m.py@b5` missing.
             #
-            # ! AN ADDRESS THE BINDER NEVER HELD IS NOT REPORTED AT ALL --
-            # `Process: #97`. A role may cite a place the filter dropped or a
+            # ! An address the binder never held is not reported at all. A
+            # role may cite a place the filter dropped or a
             # file the run never gathered; whether the page has it is
             # `resolution_problems`' question, which reads the page. This
             # counts what came back against what was handed out, and nothing
@@ -603,9 +600,9 @@ def admitted_coverage_problems(
 def stage_problems(dispatches: Stage, edit_copies: list[EditCopy]) -> list[Problem]:
     """One `Problem` per role that returned fewer copies than the stage dispatched.
 
-    ! STAGE COVERAGE, as against shard coverage. `coverage_problems` asks
+    ! Stage coverage, as against shard coverage. `coverage_problems` asks
     whether a copy that came back carries the addresses it was handed; this
-    asks whether every dispatch the topology named came back AT ALL. A role
+    asks whether every dispatch the topology named came back at all. A role
     dispatched twice under fan-out that returned once leaves nothing behind to
     be short -- only the topology knows a second copy was owed.
     """

@@ -1,7 +1,7 @@
-"""Every name the tree DEFINES, harvested from the AST.
+"""Every name the tree defines, harvested from the AST.
 
-! IT ANSWERS THE OBITUARY QUESTION and nothing else. `block-context`'s remit
-includes a symbol, file, test or flag that exists NOWHERE; this is the corpus
+! It answers the obituary question and nothing else. `block-context`'s remit
+includes a symbol, file, test or flag that exists nowhere; this is the corpus
 that claim is resolved against, and its own docstring says why a naive one
 cannot work -- a corpus built from raw text contains the comments being
 checked, so every obituary resolves against itself and the check always passes.
@@ -12,13 +12,12 @@ from pathlib import Path
 
 from comment_review.concordance.names import NAMED_DEFS, SYMBOLISH
 from comment_review.reading.language import INSTALLED_REGISTRY
-from comment_review.reading.registry import is_freeform
 
 # The two gaps in the name corpus that are not read failures, named so a caller
 # can tell them apart from one. Every gap row reads alike -- `<path> (<reason>)`
-# -- and a reporting caller that treated all of them as unreadable files told a
-# polyglot repo that six files "could not be read" and then instructed the
-# reader to wait for a list that can never empty.
+# -- and a reporting caller that treated all of them as unreadable files would
+# tell a polyglot repo its files "could not be read" and have the reader wait
+# for a list that can never empty.
 NO_HARVESTER = "no name harvester for"
 WALKED_TREE = "name corpus built by WALKING the tree"
 
@@ -42,7 +41,7 @@ def no_harvester(path: Path) -> str | None:
         return None
     if definition is not None:
         name = definition.language
-    elif is_freeform(path):
+    elif INSTALLED_REGISTRY.is_freeform(path):
         name = "a freeform file"
     else:
         name = "unknown"

@@ -13,18 +13,17 @@ row of the three tables.
 handlers and for the `turn` and `disposition` commands that report it.
 
 What each handler reads. The collate handler reads the pages its copies'
-marks touch: to check an address and a quote against the page
-(`decision-log.md Process: #119`, `#122`) and to take each place's base text
-and anchor from it (`#187`, `#125`). It and the turn handler read a file a
-mark or an answer cites, to verify the citation (`#181`). The disposition
-handler reads nothing. None of them asks whether a page changed since it was gathered
-(`#62`); once the places are built, the fold decides from them alone, and the
-turn and the disposition take their places off the proof.
+marks touch: to check an address and a quote against the page and to take
+each place's base text and anchor from it. It and the turn handler read a file
+a mark or an answer cites, to verify the citation. The disposition handler
+reads nothing. None of them asks whether a page changed since it was
+gathered; once the places are built, the fold decides from them alone, and
+the turn and the disposition take their places off the proof.
 
 The collate and turn handlers also check for a human question -- a
 `human-review-necessary` query filed as a mark or given as an answer -- and
-roll back while one stands, until the role replaces it (`#197`). The human's
-answers file (`#198`) rides on the message, and each answer rides on the
+roll back while one stands, until the role replaces it. The human's
+answers file rides on the message, and each answer rides on the
 `AsksTheHuman` for the question it answers.
 """
 
@@ -97,9 +96,8 @@ class CopiesReturned(NamedTuple):
             each place's base text comes from.
         topology: the stage as the topology declares it, where the caller
             has one. Without it nothing can know a dispatch was owed.
-        human: the human's answers file, read (`decision-log.md Process:
-            #198`) -- each answer rides on the `AsksTheHuman` for the query
-            it answers.
+        human: the human's answers file, read -- each answer rides on the
+            `AsksTheHuman` for the query it answers.
         binders: each copy's received binder, in the same order as the copies.
     """
 
@@ -125,11 +123,9 @@ class AnswersReturned(NamedTuple):
         root: the checkout an answer's `cite` is resolved against. Opening a
             cited file is not a page read: the places are still decided from
             the record alone, and what an answer cites as its evidence is
-            held to the check a mark's citation is held to
-            (`decision-log.md Process: #181`).
-        human: the human's answers file, read (`decision-log.md Process:
-            #198`) -- each answer rides on the `AsksTheHuman` for the query
-            it answers.
+            held to the check a mark's citation is held to.
+        human: the human's answers file, read -- each answer rides on the
+            `AsksTheHuman` for the query it answers.
     """
 
     proof: MasterProof
@@ -192,11 +188,10 @@ def _on_copies(message: CopiesReturned) -> tuple[list, Result | None]:
     the other copies were not gathered from -- is found before the fold
     opens, because none of it is a question about how the roles' rulings
     meet. Each becomes one `Refused`, and the fold never runs. A human
-    question rolls the stage back as well, as one `AsksTheHuman` each
-    (`decision-log.md Process: #197`).
+    question rolls the stage back as well, as one `AsksTheHuman` each.
 
     Each place's base text and anchor are then read off the page, as `mark`,
-    `check` and `proof` read them (`decision-log.md Process: #187`), so an
+    `check` and `proof` read them, so an
     `add` or a `move` at a place the binder lacks is measured here against
     the paragraph already there rather than first at the write end.
     """
@@ -205,7 +200,7 @@ def _on_copies(message: CopiesReturned) -> tuple[list, Result | None]:
     if problems:
         return _rolled_back(problems, [])
     paths = [page.path for page in binder.pages]
-    # ! ONE CACHE OF EACH FOR THE WHOLE STAGE, not one per copy: the roles cite
+    # ! One cache of each for the whole stage, not one per copy: the roles cite
     # the same evidence and mark the same pages, so a per-copy cache reads one
     # file once per citing role.
     cache: Cache = {}
@@ -219,12 +214,12 @@ def _on_copies(message: CopiesReturned) -> tuple[list, Result | None]:
     if message.binders is not None and len(message.binders) == len(copies):
         required = [required_places(b) for b in message.binders]
 
-    # ! `where` RATHER THAN `address`, and the two differ in one case only:
+    # ! `where` rather than `address`, and the two differ in one case only:
     # an entry that named no place. `where` is that entry's own address
     # wherever it has one, and the page and the entry's position where it has
     # none -- so a reader always has somewhere to look. A `Refused` carrying
     # "" would print as a finding about the whole copy, which is a different
-    # fact (`collate-command-defects`, measured 2026-09-01).
+    # fact.
     problems += [
         Problem(one.role, one.where, "; ".join(one.reasons))
         for one in mark_errors(copies, required)
@@ -345,7 +340,7 @@ def _dealt_problems(copies: list[EditCopy], stage: str) -> list[Problem]:
 def _admitted_problems(copies: list[EditCopy], stage: Stage | None) -> list[Problem]:
     """One `Problem` per mark filed under an instruction its stage does not admit.
 
-    `decision-log.md Process: #193`. `commands/mark.py` refuses one as it is
+    `commands/mark.py` refuses one as it is
     placed and `commands/check.py` refuses one on a copy written by hand, and
     both read the copy's own `admits` -- which is a field on a document a role
     writes. The row is where a stage's admitted set is decided, so the copies
@@ -439,12 +434,12 @@ def _on_answers(message: AnswersReturned) -> tuple[list, Result | None]:
     slot left unanswered. Each refusal voids the round, as a copy's does, so
     a proof is never written over an answer that was not read. A human
     question given as an answer rolls the turn back too, as one
-    `AsksTheHuman` each (`decision-log.md Process: #197`).
+    `AsksTheHuman` each.
 
     A move whose placement is undecided, and which the chief has not ruled at
     both ends, is asked of each role in its `owed` as one slot keyed by the
     move (`flows.answers.slot_key`); the answer is written onto the move, not
-    onto either end (`decision-log.md Process: #195`).
+    onto either end.
     """
     why = proof_reading_problems(message.proof)
     if why:
@@ -512,12 +507,11 @@ def _on_dispositions(message: DispositionsWritten) -> tuple[list, Result | None]
     takes one ruling: a second ruling at the same place or on the same move,
     identical or not, is refused by name and neither is applied, since the
     chief has not said which one stands. A ruling naming a move (`to`) rules
-    its placement, and every move
-    still undecided takes one (`decision-log.md Process: #195` item 4). A
+    its placement, and every move still undecided takes one. A
     place carried forward takes a ruling on its words, and one with none is
     refused by name and with the roles it was put to. A place the roles
     settled takes a recast and no other ruling, so the chief can bring its
-    text into line with the style sheet (`decision-log.md Process: #310`); a
+    text into line with the style sheet; a
     recast whose prose is the settled text changes nothing and is refused. A
     ruling at a place that rides to the human, or that waits on its move, is
     refused as well. Which states each ruling closes is its row's `closes`,
@@ -629,8 +623,7 @@ def _rolled_back(
 ) -> tuple[list, None]:
     """Every problem as its own `Refused`, then `asks`, then the rollback.
 
-    Nothing is saved. The rollback counts one reason per problem and one per
-    human question.
+    Nothing is saved.
     """
     refusals = [
         events.Refused(one.role, one.address, (one.message,)) for one in problems
@@ -719,9 +712,9 @@ def _batch_of(
     """Role -> one slot per carried-forward place that role is asked about.
 
     And one slot per move whose placement is undecided, for each role it is
-    put to (`decision-log.md Process: #195`): the move's two addresses and,
-    for every role that filed it, the snippet and the paragraph it arrives as
-    (`Process: #196`) -- the roles may have moved different text.
+    put to: the move's two addresses and, for every role that filed it, the
+    snippet and the paragraph it arrives as -- the roles may have moved
+    different text.
 
     Every slot carries the tree the copies were read from, as an edit_copy and
     a master proof each carry their own: a role hands the slot back as it was

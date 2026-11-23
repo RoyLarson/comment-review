@@ -12,7 +12,7 @@ from comment_review.flows.source import revision_source_of, source_of
 from comment_review.machine.repo import Source, git_ls_files
 from comment_review.reading.context import ReadingContext
 from comment_review.reading.diagnostics import ReadFailure
-from comment_review.reading.registry import is_freeform
+from comment_review.reading.language import INSTALLED_REGISTRY
 from comment_review.results.prove_unchanged import dominant_ending
 
 
@@ -30,7 +30,7 @@ class ProofReport:
 def _sibling(
     repo: Path, target: Path, edited: set[Path], tracked: list[str]
 ) -> tuple[Path, Source] | None:
-    """A READABLE tracked file beside `target` that WRITE did not edit.
+    """A readable tracked file beside `target` that the write did not edit.
 
     Skips a candidate this process cannot read as UTF-8 text. Binary or
     non-UTF-8 siblings cannot supply a line-ending reference, so selection
@@ -46,7 +46,7 @@ def _sibling(
     """
     for rel in tracked:
         cand = (repo / rel).resolve()
-        # ! `cand == target` IS COVERED. `edited` is built from every path this
+        # ! `cand == target` is covered. `edited` is built from every path this
         # run was given and `target` is one of them, so a candidate equal to
         # the target is already in the set the test above it uses.
         if cand.parent != target.parent or cand in edited:
@@ -84,7 +84,7 @@ def run(
             messages.append(f"FAIL      {raw}: outside --repo")
             failures += 1
             continue
-        if is_freeform(target):
+        if INSTALLED_REGISTRY.is_freeform(target):
             messages.append(
                 f"UNCHECKED  {rel}: no reader -- formatter and compiler are the check"
             )
@@ -154,9 +154,9 @@ def run(
             sibling, held = sib
             want = dominant_ending(held.text)
             got = dominant_ending(after.text)
-            # ! BOTH sides are guarded against "none". A single-line file with
+            # ! Both sides are guarded against "none". A single-line file with
             # no trailing newline has no ending to measure, so it reads "none"
-            # and would FAIL against any CRLF sibling on ABSENT endings rather
+            # and would FAIL against any CRLF sibling on absent endings rather
             # than wrong ones.
             if want != "none" and got != "none" and got != want:
                 messages.append(

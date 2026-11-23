@@ -20,7 +20,7 @@ line or a `change` that is a whole paragraph never crosses the shell; a
 one-line clause goes inline. A false clause is one statement, not several
 paragraphs, so the ordinary case is inline.
 
-! THE CLAIM'S KEYS ARE FLAGS BY NAME -- `--false --true` for a `correct`,
+! The claim's keys are flags by name -- `--false --true` for a `correct`,
 `--from --to` for a `patch` or a `move`, `--drop`, `--missing --anchor` for an
 `add`, `--shape --attempted --settles` for a `query`. A flag the instruction's
 type does not carry is refused by name, and a missing one is named by the
@@ -31,7 +31,7 @@ before it. A `--cite` with no `--verbatim` has the cited line read out of the
 checkout by the flow.
 
 `--change` is the text that moves or arrives and `--raw-text` is the
-paragraph it lands in -- `decision-log.md Process: #172`, `#175` and `#176`.
+paragraph it lands in.
 An `add` gives the snippet in `--change` and the paragraph as it will read in
 `--raw-text`; a `move` gives the snippet subtracted from the origin and the
 destination paragraph as it will read. `--raw-text` is owed on every `move`
@@ -227,6 +227,14 @@ def main() -> int:
         ap.error("--instruction is required, and with --withdraw names what goes")
     if args.quote is not None and not args.withdraw:
         ap.error("--quote names a ruling to withdraw; it takes --withdraw")
+    # A withdraw places nothing, so a flag that only placing reads is refused
+    # rather than ignored. An argparse group cannot say this: it would also make
+    # the placing flags exclude each other.
+    placing = (*CLAIM_FLAGS, "reason", "change", "raw_text")
+    if args.withdraw and (
+        args.sources or any(getattr(args, key) is not None for key in placing)
+    ):
+        ap.error("--withdraw places nothing; it takes no claim, source or text flag")
 
     copy_path = Path(args.edit_copy)
     copy, why = load_copy(copy_path)

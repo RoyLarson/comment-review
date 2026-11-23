@@ -5,24 +5,24 @@ stage 2 under its current name: *"with the filled edit_copies of a stage on
 disk, the chain gather -> seed -> collate -> <this> -> proof runs with no Python
 written by hand."*
 
-!! THE `<this>` IS GONE, WHICH IS WHAT T1 WAS OPEN FOR. `collate` wrote the copy
+!! The `<this>` is gone, which is what T1 was open for. `collate` wrote the copy
 chief's `edit_copy` and `proof` read a docket, and nothing turned one into the
 other -- `commands/proof.py` would refuse the one given the other. Since `P57`
-the transcribe is the proof flow's first step, so the chain is FOUR commands
+the transcribe is the proof flow's first step, so the chain is four commands
 with no step between them.
 
-!! WHAT THIS FILE MAY AND MAY NOT DO. Every stage runs through that command's
+!! What this file may and may not do. Every stage runs through that command's
 own `main()` over `sys.argv` -- the console face, argument parsing included --
 because that is the only thing that catches an argparse flag the body reads
 under a different name. `conftest.run_command` is what does it, and its own
 docstring carries the measurement.
 
-! THE ONE THING WRITTEN BY HAND IS A ROLE'S RULING, and it has to be: no command
-fills a mark, because a REVIEWER does. `TODO/no-command-for-the-middle.md` T10
+! The one thing written by hand is a role's ruling, and it has to be: no command
+fills a mark, because a reviewer does. `TODO/no-command-for-the-middle.md` T10
 is the mark-edit command that would remove even that.
 
-! IT IS A `backend` TEST. `docs/lanes.md` files a test under the lane that owns
-what it ASKS, and this asks whether these commands compose -- not whether a role
+! It is a `backend` test. `docs/lanes.md` files a test under the lane that owns
+what it asks, and this asks whether these commands compose -- not whether a role
 behaves, which is `agents`', nor how well a run scores, which is `testing`'s.
 """
 
@@ -37,7 +37,7 @@ from comment_review.commands import gather as gather_command
 from comment_review.commands import proof as proof_command
 
 #: The four editorial roles, in the order stage 4 dispatches them -- one alone,
-#: then three. This test runs the ALL-AT-ONCE topology, where a single stage
+#: then three. This test runs the all-at-once topology, where a single stage
 #: carries all four, because it is the one shape needing no revise between
 #: stages.
 ROLES = (
@@ -56,11 +56,11 @@ class TestTheChainRunsOnCommandsAlone:
         repo.mkdir()
         (repo / "m.py").write_text(SAMPLE, encoding="utf-8", newline="")
 
-        # 1 GATHER -- the binder every copy is seeded from.
+        # 1 Gather -- the binder every copy is seeded from.
         binder_path = tmp_path / "binder.json"
-        # ! THE PATH IS ABSOLUTE. `gather` resolves its positional paths against
-        # the CWD and not against `--repo`, so a bare `m.py` matches no file and
-        # the run errors -- "1 of 0 files handed in were not gathered".
+        # ! The path is absolute, which `--repo` still accepts: `gather` joins
+        # each positional path to `--repo`, and joining an absolute path
+        # leaves it as given.
         code, out = run_command(
             monkeypatch,
             capsys,
@@ -74,10 +74,10 @@ class TestTheChainRunsOnCommandsAlone:
         assert code == 0, out
         binder = json.loads(binder_path.read_text(encoding="utf-8"))
         page = binder["pages"][0]
-        # ! A ROW CARRIES ITS `cue`, NOT ITS ADDRESS. The two are rejoined as
+        # ! A row carries its `cue`, not its address. The two are rejoined as
         # `path@cue` when a page is read back, so a test reading the wire form
         # has to rejoin them the same way.
-        # ! A COMMENT PLACE, `b` or `c`, FIRST. The file's own matter gets no
+        # ! A comment place, `b` or `c`, first. The file's own matter gets no
         # seeded slot, so `f0` is not a place a role can rule on; and the
         # placeholder change below is a `#` line, which a docstring's place
         # cannot hold.
@@ -87,7 +87,7 @@ class TestTheChainRunsOnCommandsAlone:
         )
         assert addresses, "the gather carried no addressed place to rule on"
 
-        # 2 MARK -- one seeded copy per role, then a ruling written into one.
+        # 2 Mark -- one seeded copy per role, then a ruling written into one.
         copies = []
         for role in ROLES:
             where = tmp_path / f"{role}.json"
@@ -106,16 +106,16 @@ class TestTheChainRunsOnCommandsAlone:
             assert code == 0, out
             copies.append(where)
 
-        # !! EVERY ROLE RULES ON EVERY PLACE IT WAS HANDED. A slot left untouched
-        # is a COVERAGE problem and `collate` exits nonzero naming it -- "handed
+        # !! Every role rules on every place it was handed. A slot left untouched
+        # is a coverage problem and `collate` exits nonzero naming it -- "handed
         # to this role and not ruled on" -- which is the check that stops a role
         # answering one place of three and the run reporting OK. `clean` is the
         # ruling for a place with nothing to report; it is one of the seven.
-        # ! THE READ AND THE WRITE ARE THE CALLER'S, so the two rulings compose
+        # ! The read and the write are the caller's, so the two rulings compose
         # in memory. Each used to do its own read-modify-write, which made the
-        # ORDER a silent dependency: running the correction alone, or before the
+        # order a silent dependency: running the correction alone, or before the
         # cleans, failed only at runtime inside a slot search.
-        # !! EVERY ROLE RETURNS THE SAME CORRECTION, since `Process: #89`. One
+        # !! Every role returns the same correction, since `Process: #89`. One
         # role correcting while three stay clean is a lone mark, and the fold
         # sends it back to the three for a read -- a turn no console command
         # runs yet. Four roles carrying one text agree at the first fold
@@ -126,7 +126,7 @@ class TestTheChainRunsOnCommandsAlone:
             _correct_one_place(document, addresses[0])
             one.write_text(json.dumps(document), encoding="utf-8", newline="")
 
-        # 3 COLLATE -- the four returned copies folded into a master proof.
+        # 3 Collate -- the four returned copies folded into a master proof.
         closed = tmp_path / "closed.json"
         argv = ["--stage", "4c", "--binder", str(binder_path)]
         for one in copies:
@@ -137,7 +137,7 @@ class TestTheChainRunsOnCommandsAlone:
         assert code == 0, out
         assert closed.exists()
 
-        # 4 PROOF -- the master proof, transcribed and set into a revise.
+        # 4 Proof -- the master proof, transcribed and set into a revise.
         code, out = run_command(
             monkeypatch,
             capsys,
@@ -151,20 +151,20 @@ class TestTheChainRunsOnCommandsAlone:
         )
         assert code == 0, out
 
-        # !! THE PAGE MUST HAVE CHANGED, not merely exist. `pull` copies the
+        # !! The page must have changed, not merely exist. `pull` copies the
         # whole tree before it sets anything, so asserting the file is present
         # would pass over an empty docket -- measured on this branch, in
         # `tests/test_proof_command.py`.
         drafted = (tmp_path / "r1" / "m.py").read_text(encoding="utf-8")
         assert drafted != SAMPLE
-        # ! AND THE CHECKOUT IS UNTOUCHED, which is the whole promise of a revise.
+        # ! And the checkout is untouched, which is the whole promise of a revise.
         assert (repo / "m.py").read_text(encoding="utf-8") == SAMPLE
 
 
 def _cited() -> list[dict]:
     """A source inside this run's own repo: the page's first line.
 
-    !! THE CITE MUST RESOLVE INSIDE THE RUN'S OWN REPO. The helpers' marks
+    !! The cite must resolve inside the run's own repo. The helpers' marks
     cite `src/comment_review/desk/proof/mark.py`, which is real in this
     checkout and absent from a tmp tree, and `collate` resolves a cite
     against the binder's `read_from.root`.
@@ -175,10 +175,10 @@ def _cited() -> list[dict]:
 def _rule_every_place(document: dict) -> None:
     """`clean` in every seeded slot -- this role read the page and reports nothing.
 
-    !! THIS AND `_correct_one_place` ARE THE HAND-WRITTEN STEP, AND IT IS THE
-    ONLY ONE. A mark is a REVIEWER's act, so no command fills one --
+    !! This and `_correct_one_place` are the hand-written step, and it is the
+    only one. A mark is a reviewer's act, so no command fills one --
     `TODO/no-command-for-the-middle.md` T10 is the command that would. What they
-    must not do is BUILD the copy: the slots come from `distribute --seed`, and
+    must not do is build the copy: the slots come from `distribute --seed`, and
     these fill them.
     """
     for sheet in document["sheets"]:
@@ -189,7 +189,7 @@ def _rule_every_place(document: dict) -> None:
 def _correct_one_place(document: dict, address: str) -> None:
     """Turn one of that copy's `clean` slots into the `correct` the revise sets.
 
-    ! THE QUOTED SENTENCE IS THE PAGE'S OWN. `a_correct` seeds a placeholder,
+    ! The quoted sentence is the page's own. `a_correct` seeds a placeholder,
     and a claim quoting a sentence the paragraph does not hold is what
     `verify_report` refuses -- so `claim.false` is read off the slot the seed
     already carried.

@@ -1,8 +1,7 @@
 """One role's copy of the binder -- what goes out, and what comes back.
 
-! THE CHIEF'S COPY IS AN ORDINARY `EditCopy`. `Vocabulary: #30`: after the fold
-every place has exactly one answer, and one mark per place is an ordinary copy.
-There is no second shape and no second parse.
+`flows.distribute.seed` deals one to an editorial role; the role fills it and
+hands it back, and a master proof carries the copies its stage collated.
 """
 
 from copy import deepcopy
@@ -25,18 +24,16 @@ class EditCopy:
     """One role's copy of the binder -- what goes out, and what comes back.
 
     Attributes:
-        role: the editorial role that filled it, or `copy-chief` for the fold's
-            result. It is what an outcome is decided from and what a place is
-            sent back to.
-        read_from: `{root, revise}` -- which tree this copy was gathered from.
-            `decision-log.md Process: #34`: the field exists so a later role can
-            know it holds a REVISE and not the original.
+        role: the editorial role it was seeded for and that filled it. It is
+            what an outcome is decided from and what a place is sent back to.
+        read_from: `{root, revise}` -- which tree this copy was gathered from,
+            so a later role can know it holds a revise and not the original.
         stage: the stage this copy was dealt in, as the run's topology names
             it, or "" where the seed was handed no stage. A refusal names it,
             so a role reads which stage's row refused its ruling, and the
             collate handler folds a copy only in the stage it names.
         admits: the instructions this stage's roles may file, by name, or
-            empty for every one of them (`decision-log.md Process: #193`).
+            empty for every one of them.
             Each is one of the seven instructions.
             It rides on the copy for the reason `read_from` does: the rule
             is about the artifact in hand, so `commands/mark.py` and
@@ -95,8 +92,8 @@ class EditCopy:
             admits: the instructions its roles may file, or None for all.
 
         Returns:
-            `{role, read_from, sheets, stage, admits}`. ! `read_from` IS
-            COPIED, NOT ALIASED, as `bind`, `seed` and the bus's `_on_copies`
+            `{role, read_from, sheets, stage, admits}`. ! `read_from` is
+            copied, not aliased, as `bind`, `seed` and the bus's `_on_copies`
             all do with this field: a caller mutating its own dict afterward
             cannot change what this copy holds.
         """
@@ -117,7 +114,7 @@ class EditCopy:
     ) -> "tuple[EditCopy | None, list[str]]":
         """One edit_copy and every sheet under it, checked.
 
-        ! EVERY BAD SHEET IS REPORTED, not the first. A copy handed back with two
+        ! Every bad sheet is reported, not the first. A copy handed back with two
         malformed sheets is two things to fix, and a parse that stopped at the
         first would make the second invisible until the next run.
 
@@ -135,7 +132,7 @@ class EditCopy:
         """
         if not isinstance(data, dict):
             return None, [f"{where}: an edit_copy must be an object"]
-        # !! DECLARED, NOT NARROWED, because the read at `checked["read_from"]`
+        # !! Declared, not narrowed, because the read at `checked["read_from"]`
         # below sits past a loop. An `isinstance` narrow is invalidated at a loop
         # back-edge, so `ty` loses it before that read; an explicit annotation is
         # a declaration and survives.
@@ -166,7 +163,7 @@ class EditCopy:
         return (
             EditCopy(
                 role=role,
-                # ! COPIED, NOT ALIASED -- `bind`, `seed` and the bus's `_on_copies`
+                # ! Copied, not aliased -- `bind`, `seed` and the bus's `_on_copies`
                 # all do the same with this field, so a caller mutating its own
                 # dict cannot change what a parsed copy already holds.
                 read_from={**checked["read_from"]},
@@ -180,7 +177,7 @@ class EditCopy:
     def serialize(self) -> dict:
         """This edit_copy as the wire dict, the shape `seed` writes.
 
-        ! `read_from` IS COPIED, NOT ALIASED, matching `seed` and every other
+        ! `read_from` is copied, not aliased, matching `seed` and every other
         producer of this field.
         """
         return {

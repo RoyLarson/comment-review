@@ -6,21 +6,14 @@ Prints, per page whose text differs, the unified diff `differences.unified`
 renders; then one line per address whose row-level text differs between the
 two roots.
 
-!! THE ROLE THAT SET EACH ADDRESS IS NEVER PRINTED, AND THIS IS NOT AN
-OVERSIGHT. `flows.revise.Pulled.set_by` maps an address to the role that set
-it, but only when a docket carries a `role` field -- and no docket does yet
-(`flows/revise.py`'s own `Pulled.set_by` docstring, and
-`TODO/the-flow-assumes-every-role-reads-at-once.md` T1/T2 name the producer
-this waits on). This command does not even receive a `Pulled`: `--original`
-and `--revise` are two bare directories, so it has no `set_by` dict to read
-at all. `Pulled.revise` -- the STAGE -- would be real the moment a caller
-had a `Pulled` to pass; this command is not that caller, so neither stage
-nor role is printed for a changed address, only the address itself, which is
-the one fact two directory trees can answer.
+!! Neither the stage nor the role that set an address is printed. Both live
+on `flows.revise.Pulled` -- `revise` and `set_by` -- and this command receives
+no `Pulled`: `--original` and `--revise` are two bare directories, so a
+changed address is printed alone, the one fact two directory trees can answer.
 
-The work is inline here rather than in a flow module: there is no docket to
-resolve, only two trees to read and compare -- `decision-log.md Process:
-#12`'s rule (a command exposes a flow) has nothing underneath it to expose.
+The work is inline here rather than in a flow module. A command exposes a
+flow, and here there is no docket to resolve, only two trees to read and
+compare, so there is no flow underneath to expose.
 """
 
 import argparse
@@ -68,9 +61,9 @@ def main(argv: list[str] | None = None) -> int:
         return 2
 
     # With no paths, compare the pages the revise holds. A revise holds only
-    # the pages its docket schedules (`docs/decision-log.md Process: #117`),
-    # so no other page is the revise's to compare. A path given explicitly is
-    # read from both roots, and one the revise lacks is named on stderr, below.
+    # the pages its docket schedules, so no other page is the revise's to
+    # compare. A path given explicitly is read from both roots, and one the
+    # revise lacks is named on stderr, below.
     rels = args.paths or _every_page(revise)
 
     changed_addresses: list[str] = []
@@ -124,17 +117,13 @@ def main(argv: list[str] | None = None) -> int:
         after_binder = bind([after_page], read_from={"root": str(revise), "revise": 0})
         before_rows = {b.address: b.raw_text for b in before_binder.paragraphs}
         after_rows = {b.address: b.raw_text for b in after_binder.paragraphs}
-        # !! THE UNION, AND IT WALKED `after_rows` ALONE UNTIL 2026-08-28. An
-        # address present in the ORIGINAL and GONE from the revise was never
-        # listed -- and `bind` here carries no `absent=True`, so a `drop`
-        # instruction that empties a place removes its row entirely. MEASURED on a
-        # two-paragraph change (one comment dropped, one rewritten): the
-        # unified diff showed both, the address list showed only the rewrite.
+        # !! The union of both sides. `bind` here carries no `absent=True`, so
+        # a `drop` that empties a place removes its row entirely, and that
+        # address is present in the original and gone from the revise.
         #
-        # ! A DROP IS A CHANGE A ROLE MUST SEE. This module's docstring
+        # ! A drop is a change a role must see. This module's docstring
         # promises *"one line per address whose row-level text differs between
-        # the two roots"*, and an address that stopped existing differs. The
-        # same gap swallowed a page deleted in the revise.
+        # the two roots"*, and an address that stopped existing differs.
         changed_addresses.extend(
             address
             for address in sorted(before_rows | after_rows)

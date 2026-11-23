@@ -591,18 +591,25 @@ def test_installed_selection_excludes_non_code(suffix: str) -> None:
 
 @pytest.mark.parametrize("name", ["a.js", "a.JS", "a.go", "dir/a.sh"])
 def test_a_source_suffix_with_no_reader_is_freeform(name: str) -> None:
-    from comment_review.reading.registry import is_freeform
+    from comment_review.reading.language import INSTALLED_REGISTRY
 
-    assert is_freeform(Path(name))
+    assert INSTALLED_REGISTRY.is_freeform(Path(name))
 
 
 @pytest.mark.parametrize(
     "name", ["a.py", "a.rs", "a.md", "a.toml", "a.png", "Makefile"]
 )
 def test_a_read_or_non_source_file_is_not_freeform(name: str) -> None:
-    from comment_review.reading.registry import is_freeform
+    from comment_review.reading.language import INSTALLED_REGISTRY
 
-    assert not is_freeform(Path(name))
+    assert not INSTALLED_REGISTRY.is_freeform(Path(name))
+
+
+def test_a_listed_suffix_with_a_reader_is_not_freeform() -> None:
+    script = definition(**configuration(language="Script", suffixes=(".js",)))
+    value = registry((script,))
+    assert not value.is_freeform(Path("a.JS"))
+    assert value.is_freeform(Path("a.go"))
 
 
 def test_installed_selection_and_coverage_use_validated_bindings(monkeypatch) -> None:

@@ -9,18 +9,20 @@
     save_proof(path, proof), save_batch(path, batch)
     save_wire(path, copy)   a role's copy mid-fill, every slot kept
 
-`decision-log.md Process: #65`, `#67`: raw JSON exists at the load and the
-save only, and each load is three steps -- the read is this module's, the
-decode is `machine.json_object`'s, and whether the object is the artifact it
-claims is the container's. Every command reads through here, so a file is
-refused in one wording and a change to the read is one edit.
+Raw JSON exists at the load and the save only, and each load is three steps
+-- the read is this module's, the decode is `machine.json_object`'s, and
+whether the object is the artifact it claims is the container's. Every
+command reads through here, so a file is refused in one wording and a change
+to the read is one edit.
 
-! A COPY LOADS AS ITS WIRE DICT, NOT AS AN `EditCopy`. `commands/collate.py`
+! A copy loads as its wire dict, not as an `EditCopy`. `commands/collate.py`
 parses the copies itself and reports each refusal beside the role that owes
 it, and `flows.fill` mutates the dicts in place; a loader that parsed them
 here would parse them twice and refuse them once, in the wrong place.
 
-! THE SAVE IS `machine.repo.write_raw`, the tree's one `newline=""` writer.
+! The save is `machine.repo.write_raw`, which writes the text's own line
+endings untranslated.
+
 The master proof is the state between turns -- the copies as they stand,
 every place the fold decided (each carrying its own answers, its state and who
 it is asked of), every move with its placement answers, and each page's
@@ -63,7 +65,7 @@ def load_value(
     *,
     object_pairs_hook: Callable[[list[tuple[str, object]]], object] | None = None,
 ) -> tuple[object, list[str]]:
-    """The file as ANY JSON value, or the reason there is none.
+    """The file as any JSON value, or the reason there is none.
 
     A role's answered batch and the chief's rulings are lists, which
     `object_of` refuses by design; the shape is the caller's question.
@@ -142,9 +144,10 @@ def save_batch(path: Path, batch: dict[str, list[dict]]) -> None:
 def save_wire(path: Path, copy: dict) -> None:
     """A role's copy as its wire dict at `path`, every slot kept.
 
-    ! NOT `save_copy`. That takes an `EditCopy`, and `Sheet.serialize` writes
-    only the rulings -- a copy mid-fill holds slots nobody has ruled on yet,
-    and parsing it to save it would drop every one. `commands/mark.py` writes
+    ! The dict, not a parsed `EditCopy`. `EditCopy.serialize` writes each
+    sheet through `Sheet.serialize`, which writes only the rulings -- a copy
+    mid-fill holds slots nobody has ruled on yet, and parsing it to save it
+    would drop every one. `commands/mark.py` writes
     the dict `load_copy` returned, with one more ruling on it.
     """
     _dump(path, copy)

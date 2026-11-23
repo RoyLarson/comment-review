@@ -1,7 +1,8 @@
 """Build places from reviewer copies.
 
-The flow's half of the middle: it knows EditCopy and Sheet, which desk does
-not, and hands desk plain places.
+The bus and `flows.transcribe` read the roles' returned copies through
+`bases_and_anchors` and `places_of`, and the fold decides from the places they
+build.
 """
 
 from collections.abc import Callable
@@ -20,12 +21,12 @@ def bases_and_anchors(
     """The base text and the anchor of every place the copies' marks touch.
 
     The base is the page's text at the place, whether or not the binder holds
-    it (`decision-log.md Process: #187`, `#125`), so a move into a file the
+    it, so a move into a file the
     run did not gather is measured against the paragraph already there.
 
     The anchor is the page's, except at a mark's own address, where it is the
     one the role returned: the write end checks an alteration's anchor
-    against the page's and refuses one that differs (`Process: #134`), which
+    against the page's and refuses one that differs, which
     it can only do while what reaches it is the role's. A move's destination
     has no mark of its own, so it takes the page's. Where two marks at one
     address carry different anchors the one kept here is arbitrary, and the
@@ -64,8 +65,8 @@ def places_of(
     (`desk.marks.table.Row.places`), with the touch it has there and its
     position in `copies` -- copy, sheet and mark, each counted from 1 -- which
     is where a master proof holding these copies in this order stores it.
-    `readers` is every role whose copy holds a sheet for the address's page
-    (Ruling R4: an add is carried forward for every role that read the page).
+    `readers` is every role whose copy holds a sheet for the address's page,
+    so an add is carried forward for every role that read the page.
 
     Args:
         copies: the roles' returned copies for this stage.

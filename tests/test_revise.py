@@ -6,7 +6,6 @@
 
 import json
 import shutil
-import stat
 from pathlib import Path
 
 import pytest
@@ -65,7 +64,7 @@ from comment_review.reading.diagnostics import ReadFailure
 def a_copy(root: Path, role: str, paragraphs: dict[str, str], marks: dict) -> EditCopy:
     """One returned `edit_copy`, seeded from a real binder over real pages.
 
-    ! THROUGH `seed` AND `EditCopy.deserialize`, never hand-built -- `copies_over`
+    ! Through `seed` and `EditCopy.deserialize`, never hand-built -- `copies_over`
     seeds from the binder the way `distribute` does, and `returned` runs the
     result through the container boundary. A dict shaped the way this test
     expects would agree with the test whatever the code did.
@@ -97,7 +96,7 @@ def every_other_file_fails_to_gather(monkeypatch, names: set[str]) -> None:
 class TestDocketOf:
     """`edit_copy -> the fold -> Docket`, the proof flow's first step.
 
-    !! IT TAKES ANY COPY, NOT ONLY THE COPY CHIEF'S. Roy, 2026-09-02: *"it could
+    !! It takes any copy, not only the copy chief's. Roy, 2026-09-02: *"it could
     also be ownership contexts edit-copy or any intermediate edit-copy which
     allows the stage outputs to run."* That is what lets a stage's own output
     become a revise, which `reads = "revise:N"` and `4b` both need.
@@ -438,7 +437,7 @@ class TestDocketOf:
         ]
 
     def test_the_schedule_carries_the_copys_own_role(self, tmp_path):
-        """! THE COPY'S ROLE, NOT A PER-PLACE ONE. An ordinary role's copy names
+        """! The copy's role, not a per-place one. An ordinary role's copy names
         that role; the fold's names `copy-chief`. Either is what set the page."""
         root = tmp_path / "repo"
         copy = a_copy(
@@ -488,14 +487,14 @@ class TestDocketOf:
         assert [(one.cue, one.text) for one in schedule.alterations] == [("b1", None)]
 
     def test_set_by_names_the_role_whose_copy_was_pulled(self, tmp_path):
-        """!! WHICH ROLE SET A PLACE IS ANSWERED BY WHICH COPY YOU PULLED FROM.
+        """!! Which role set a place is answered by which copy you pulled from.
         Roy, 2026-09-02: *"If we are pulling from the individual roles already
         then we know the answer."* `_set_by` maps every altered address to the
         schedule's role, so a role's own copy attributes every place to that
         role -- and the copy chief's attributes them to the fold, which is what
         set them.
 
-        ! IT WAS `tests/test_docket.py::test_set_by_stops_mapping_everything_to_
+        ! It was `tests/test_docket.py::test_set_by_stops_mapping_everything_to_
         empty`, which built a `MasterProof` and went through `docket_from`. The
         subject is the same and the input is now the one production carries.
         """
@@ -509,7 +508,7 @@ class TestDocketOf:
         assert set(_set_by(docket_of(copy, root)).values()) == {"module-context"}
 
     def test_a_page_nobody_ruled_on_gets_no_schedule(self, tmp_path):
-        """!! AN UNTOUCHED SLOT IS NOT AN ALTERATION. A seeded copy carries a
+        """!! An untouched slot is not an alteration. A seeded copy carries a
         slot for every place; only the ones a role filled become edits, and a
         page whose slots are all untouched must not reach the docket as an empty
         schedule the write end would then set nothing from."""
@@ -1224,11 +1223,11 @@ def test_the_gate_raises_on_a_docket_page_whose_addresses_moved(tmp_path, monkey
 
 
 def test_a_failure_mid_overlay_leaves_no_partial_revise(tmp_path, monkeypatch):
-    # !! WHAT THIS PINS: this module's docstring asserts that "nothing partial
+    # !! What this pins: this module's docstring asserts that "nothing partial
     # is left on disk". Only the refusal and `AddressesMoved` paths discarded
     # the copy until 2026-08-28 -- so `shutil.copy2` failing partway through
     # the overlay (a full disk, a permission, a locked target) left `into`
-    # holding SOME of the stage's corrections and not the rest, which is
+    # holding some of the stage's corrections and not the rest, which is
     # verbatim the state the docstring says cannot exist.
     repo = a_small_real_tree(tmp_path)
     into = tmp_path / "r1"
@@ -1275,35 +1274,35 @@ def test_a_refusal_leaves_no_revise(tmp_path):
     assert pulled.refusals and not pulled.root.exists()
 
 
-def test_a_refusal_leaves_no_revise_when_the_copy_holds_a_read_only_file(tmp_path):
-    """A refused pull leaves no revise when the checkout holds a read-only file.
-
-    `Pulled.refusals` says *"root was discarded and does not exist"*, and a
-    checkout carries files the platform refuses to unlink: git writes loose
-    objects and packs under `.git/objects` read-only. The revise holds only
-    the docket's pages -- `docs/decision-log.md Process: #117` -- so such a
-    file never reaches it.
-
-    The precondition is asserted, not assumed -- the same probe
-    `tests/test_machine.py` uses, so this says nothing about a platform where
-    a read-only file unlinks freely.
-    """
-    probe = tmp_path / "probe"
-    probe.mkdir()
-    (probe / "object").write_bytes(b"contents\n")
-    (probe / "object").chmod(stat.S_IREAD)
-    try:
-        shutil.rmtree(probe)
-    except PermissionError:
-        pass
-    else:
-        pytest.skip("this platform unlinks a read-only file; the defect cannot arise")
-
+def test_a_refusal_removes_the_directories_pull_made_above_into(tmp_path):
     repo = a_small_real_tree(tmp_path)
-    unwritable = repo / "object"
-    unwritable.write_bytes(b"contents\n")
-    unwritable.chmod(stat.S_IREAD)
-
     docket = a_docket_whose_claim_is_not_in_the_page(repo, "mark.py")
-    pulled = pull(docket, repo, tmp_path / "r1", revise=1)
-    assert pulled.refusals and not pulled.root.exists()
+    pulled = pull(docket, repo, tmp_path / "new1" / "new2" / "r1", revise=1)
+    assert pulled.refusals
+    assert not (tmp_path / "new1").exists()
+
+
+def test_a_failure_removes_the_directories_pull_made_above_into(tmp_path, monkeypatch):
+    repo = a_small_real_tree(tmp_path)
+
+    def explodes(src, dst, *a, **kw):
+        raise OSError("disk full (simulated)")
+
+    monkeypatch.setattr("comment_review.flows.revise.shutil.copy2", explodes)
+    with pytest.raises(OSError):
+        pull(
+            a_docket_over(repo, ["mark.py"]),
+            repo,
+            tmp_path / "new1" / "new2" / "r1",
+            revise=1,
+        )
+    assert not (tmp_path / "new1").exists()
+
+
+def test_a_pull_leaves_an_existing_parent_of_into_standing(tmp_path):
+    repo = a_small_real_tree(tmp_path)
+    (tmp_path / "out").mkdir()
+    docket = a_docket_whose_claim_is_not_in_the_page(repo, "mark.py")
+    pulled = pull(docket, repo, tmp_path / "out" / "r1", revise=1)
+    assert pulled.refusals
+    assert (tmp_path / "out").is_dir()

@@ -1,11 +1,11 @@
-"""page -> galley: every cue type, every operation, and what must NOT change.
+"""page -> galley: every cue type, every operation, and what must not change.
 
-The second chain, and it starts from a PAGE read fresh -- never from a binder.
+The second chain, and it starts from a page read fresh -- never from a binder.
 Roy, 2026-08-25: the workflow *"will take something and determine that and then
 roll forward re getting the page because it needs the full page."*
 
-!! COMPLETENESS IS THE HALF THAT IS EASY TO MISS. "The edit landed" is half an
-assertion; the other half is that NOTHING ELSE MOVED. Every case below states
+!! Completeness is the half that is easy to miss. "The edit landed" is half an
+assertion; the other half is that nothing else moved. Every case below states
 the exact set of places allowed to differ, so a change that also disturbed a
 neighbour fails even though its own place is right.
 """
@@ -20,12 +20,12 @@ from comment_review.results.galley import reset
 
 
 def places(page):
-    """`(filled, absent)` -- EVERY cue of each series, in each state, discovered.
+    """`(filled, absent)` -- every cue of each series, in each state, discovered.
 
-    ! DISCOVERED, NOT HARDCODED. A hardcoded cue is a fixture asserting what the
+    ! Discovered, not hardcoded. A hardcoded cue is a fixture asserting what the
     walk emitted last time someone looked; this asks the page.
 
-    !! IT KEPT ONE CUE PER SERIES UNTIL 2026-08-26, via `setdefault`, so 8 of
+    !! It kept one cue per series until 2026-08-26, via `setdefault`, so 8 of
     the sample's 14 places were exercised and the other 6 were never set at all.
     Roy asked for every cue position on the page; what it picked for `b` was
     `b1`, which round trips, while `b0` -- the one that did not -- was never
@@ -80,7 +80,7 @@ def leading_by_symbol(page) -> dict[str, list[str]]:
 FILLED, ABSENT = places(build(SAMPLE))
 SERIES = sorted(REPLACEMENT)
 #: `(series, cue)` for every addressed place on the sample, so a case runs once
-#: per PLACE rather than once per series. The series travels with the cue
+#: per place rather than once per series. The series travels with the cue
 #: because `REPLACEMENT` is what a legal edit for that series looks like.
 FILLED_PLACES = [(s, c) for s in SERIES for c in FILLED.get(s, [])]
 ABSENT_PLACES = [(s, c) for s in SERIES for c in ABSENT.get(s, [])]
@@ -94,7 +94,7 @@ def test_the_sample_offers_a_filled_and_an_absent_place_in_every_series():
 
 
 def test_every_addressed_place_on_the_sample_is_under_test():
-    """!! THE MATRIX IS COMPLETE, AND THIS IS WHAT SAYS SO. Without it, a
+    """!! The matrix is complete, and this is what says so. Without it, a
     narrowing of `places` would quietly shrink the matrix and every case below
     would still pass -- which is how `b0` went unexercised."""
     assert len(FILLED_PLACES) + len(ABSENT_PLACES) == len(by_cue(build(SAMPLE)))
@@ -125,7 +125,7 @@ class TestModify:
         assert "REPLACED" in set_page(sample)
 
     def test_a_multi_line_replacement_does_not_eat_the_line_below(self, sample):
-        """A paragraph hands back its lines and the next place is set NEXT, so
+        """A paragraph hands back its lines and the next place is set next, so
         growing one moves nothing -- the property that made the line-arithmetic
         splice unnecessary."""
         cue = FILLED["b"][0]
@@ -136,7 +136,7 @@ class TestModify:
 
 
 class TestDrop:
-    """`None` is the ONLY vacation -- `galley.reset` refuses any other value,
+    """`None` is the only vacation -- `galley.reset` refuses any other value,
     including an empty string, because a `""` from a failed serialisation
     upstream would otherwise be indistinguishable from a deliberate
     deletion."""
@@ -176,9 +176,9 @@ class TestDrop:
         assert after_d == before_d
 
     def test_a_c_keeps_the_blank_below_its_code(self, sample):
-        """Stated separately because `prove_unchanged` cannot see the
-        difference -- the AST is identical either way -- so getting it wrong
-        would land silently."""
+        """Stated separately because the code proof cannot see the
+        difference -- a blank line is not part of the lexical structure it
+        compares -- so getting it wrong would land silently."""
         cue = FILLED["c"][0]
         before = leading_by_symbol(build(SAMPLE))
         reset(sample, {cue: None})
@@ -194,7 +194,7 @@ class TestDrop:
 
 class TestAddToAnAbsentPlace:
     """The reason every place is addressed, filled or not: an `add` cites the
-    place where prose BELONGS and does not yet exist."""
+    place where prose belongs and does not yet exist."""
 
     @pytest.mark.parametrize("series,cue", ABSENT_PLACES)
     def test_the_absent_place_takes_the_text(self, sample, series, cue):
@@ -219,9 +219,9 @@ class TestAddToAnAbsentPlace:
     @pytest.mark.parametrize("series,cue", ABSENT_PLACES)
     def test_nothing_that_was_on_the_page_is_lost(self, sample, series, cue):
         """An `a` or `f` adds its own line and a `c` joins the code line already
-        there, so the file never SHRINKS and every original line survives.
+        there, so the file never shrinks and every original line survives.
 
-        ! THE EXACT GROWTH IS NOT ASSERTED HERE, and that is deliberate. A `b`
+        ! The exact growth is not asserted here, and that is deliberate. A `b`
         may also bring a leading -- see the round trip below -- and stating when
         would mean writing `compositor.set_page`'s condition a second time, in
         the one place that is supposed to be able to disagree with it.
@@ -230,7 +230,7 @@ class TestAddToAnAbsentPlace:
         reset(sample, {cue: REPLACEMENT[series]})
         after = set_page(sample).splitlines()
         assert len(after) >= len(before)
-        # ! TAKEN BACK OUT RATHER THAN FILTERED. A `c` is APPENDED to its code
+        # ! Taken back out rather than filtered. A `c` is appended to its code
         # line, so dropping every line that mentions the replacement deletes
         # `    return y` along with it and reports the code as lost.
         kept = [
@@ -244,17 +244,17 @@ class TestAddToAnAbsentPlace:
     def test_the_added_prose_RE_READS_at_the_cue_it_was_added_to(
         self, sample, series, cue
     ):
-        """!! THE PROPERTY THE WHOLE LEADING RULE EXISTS FOR. An `add` is only
+        """!! The property the whole leading rule exists for. An `add` is only
         real if the place it cited is the place that gives the prose back --
         otherwise the write chain refuses its own draft at `reread`, which is
         how `b0` was found.
 
-        !! THE CLOSING GAP IS IN THIS MATRIX, and it was xfailed for one commit.
+        !! The closing gap is in this matrix, and it was xfailed for one commit.
         `b4` and `f1` are emitted at the same `<eof>` trigger, so prose set at
         either came back at `f1` -- `TODO/foot-of-file-two-places.md`. Roy,
         2026-08-26: *"still the same rule as the frontmatter in reverse."* Matter
-        is the run that STARTS on line 1 or ENDS on the last one, so the blank
-        that pushes a gap out of it goes BEFORE at the head and AFTER at the
+        is the run that starts on line 1 or ends on the last one, so the blank
+        that pushes a gap out of it goes before at the head and after at the
         foot. The exemption was the mirror image of the fix.
         """
         reset(sample, {cue: REPLACEMENT[series]})
@@ -275,17 +275,12 @@ class TestDropThenAddIsAFullCycle:
 
     @pytest.mark.parametrize("series,cue", FILLED_PLACES)
     def test_restoring_the_ORIGINAL_text_restores_the_file(self, sample, series, cue):
-        """The strongest form: out and back leaves the page where it started.
-
-        ! `c` AND ANY OWNER OF A FENCE ARE EXCLUDED FROM THE FILE COMPARISON --
-        a drop vacates the fence too, and putting the prose back does not put
-        the blank back. That is the ruled behaviour, not a defect, so the
-        assertion here is about the PLACE rather than the whole file.
-        """
+        """The strongest form: out and back sets the file it started from."""
         original = list(by_cue(build(SAMPLE))[cue].raw_lines)
         reset(sample, {cue: None})
         reset(sample, {cue: "\n".join(original)})
         assert by_cue(sample)[cue].raw_lines == original
+        assert set_page(sample) == SAMPLE
 
 
 class TestWhatTheGalleyRefuses:

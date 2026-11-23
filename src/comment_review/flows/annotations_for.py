@@ -2,12 +2,9 @@
 
 `concordance.annotate` answers one paragraph at a time -- a cited path, a
 backticked name, a counted claim. The repeated-literal pass cannot: a number is
-a hand-copied value only when it is written in prose at two PLACES, so it reads
+a hand-copied value only when it is written in prose at two places, so it reads
 the whole set. This step runs both, and it is the one caller of `annotate`;
 `tests/test_gather.py` reads the tree to say so.
-
-! `TODO/census-should-be-a-chain-of-producers.md` T1. The command ran both
-inline until this landed, which left stage 3 with no name a flow could call.
 """
 
 from collections import Counter, defaultdict
@@ -23,7 +20,7 @@ def annotations_for(
 ) -> None:
     """Attach every annotation stage 3 can settle, onto the paragraphs themselves.
 
-    ! IN PLACE, AS `annotate` IS. A paragraph carries its own `annotations` and
+    ! In place, as `annotate` is. A paragraph carries its own `annotations` and
     `notes`, and the binder reads them there; a returned copy
     would be a second place for the same facts.
 

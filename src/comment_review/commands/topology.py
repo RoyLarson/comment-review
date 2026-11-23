@@ -7,15 +7,15 @@
 
 The work is `flows.topology`; this is only the console face of it.
 
-!! A MODULE DOES ONE JOB AND HAS NO CLI; A FLOW CALLS MODULES;
-A COMMAND EXPOSES A FLOW. `decision-log.md Process: #12`.
+!! A module does one job and has no CLI; a flow calls modules; a command
+exposes a flow.
 
-! VERIFY BEFORE A PAGE IS READ. A bad configuration costs nothing only when
+! Verify before a page is read. A bad configuration costs nothing only when
 it is caught here -- `fan` refuses the same shapes, but from inside a run,
-blaming the tree for the topology's assumption (`Process: #55`). `--build`
+blaming the tree for the topology's assumption. `--build`
 verifies what it wrote, so a built topology is a verified one.
 
-! EXIT CODES. 0 fits; 1 does not fit, one misfit per line as
+! Exit codes. 0 fits; 1 does not fit, one misfit per line as
 `<stage>  <kind>  <detail>`; 2 the file itself is refused -- `read`'s
 reason under the `reads` kind -- or an input could not be read.
 """
@@ -50,8 +50,9 @@ def main() -> int:
     """Verify a topology against a binder, or build one for it."""
     constants.utf8_console()
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("--verify", metavar="T.toml", help="the topology to check")
-    ap.add_argument(
+    mode = ap.add_mutually_exclusive_group()
+    mode.add_argument("--verify", metavar="T.toml", help="the topology to check")
+    mode.add_argument(
         "--build", action="store_true", help="compose a topology for the binder"
     )
     ap.add_argument("--binder", required=True, help="the binder the topology must fit")

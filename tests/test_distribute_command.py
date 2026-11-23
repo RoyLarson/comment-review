@@ -2,7 +2,7 @@
 
 `decision-log.md Process: #74`: the topology keeps a reader, and the reader is the
 distribution -- one invocation reads one stage's dispatches and writes one seeded
-edit copy per dispatch. The task agent reads the ORDER from SKILL.md (`#73`).
+edit copy per dispatch. The task agent reads the order from SKILL.md (`#73`).
 """
 
 import json
@@ -505,3 +505,11 @@ def test_a_seeded_copy_says_how_many_freeform_paths_its_binder_holds(
     )
     assert code == 0, printed
     assert "0 places for block-context to rule on; 2 freeform" in printed
+
+
+@pytest.mark.parametrize("modes", [("--seed", "--stage", "4a"), ("--shape", "--seed")])
+def test_two_modes_together_are_a_usage_error(tmp_path, monkeypatch, capsys, modes):
+    with pytest.raises(SystemExit) as exited:
+        run_command(monkeypatch, capsys, distribute_command, *modes)
+    assert exited.value.code == 2
+    assert "not allowed with" in capsys.readouterr().err

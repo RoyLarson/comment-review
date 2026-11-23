@@ -1,11 +1,11 @@
 """The `mark` command: one ruling placed on a copy from the console.
 
-! DRIVEN THROUGH `main()` AND `sys.argv` via `conftest.run_command`, so every
+! Driven through `main()` and `sys.argv` via `conftest.run_command`, so every
 flag is parsed by the command's own argparse. Inputs are real -- a binder
 from `a_binder_over`, a copy from the real `seed`, a checkout under
 `tmp_path`.
 
-! WHERE THE EXPECTATIONS COME FROM: Roy's rulings of 2026-09-07 --
+! Where the expectations come from: Roy's rulings of 2026-09-07 --
 one invocation per ruling, `@path` for a value that spans lines, `--cite`
 repeatable with `--ran` binding to the cite before it, and no bulk pass.
 """
@@ -255,6 +255,25 @@ class TestARulingIsPlaced:
         with pytest.raises(SystemExit) as exited:
             run("--address", "m.py@b1", "--withdraw")
         assert exited.value.code == 2
+
+    @pytest.mark.parametrize(
+        "placing",
+        [("--reason", "why"), ("--false", "two"), ("--cite", "m.py:5")],
+    )
+    def test_withdraw_with_a_placing_flag_is_a_usage_error(self, run, placing):
+        run(*CORRECT)
+        before = run.copy()
+        with pytest.raises(SystemExit) as exited:
+            run(
+                "--address",
+                "m.py@b1",
+                "--withdraw",
+                "--instruction",
+                "correct",
+                *placing,
+            )
+        assert exited.value.code == 2
+        assert run.copy() == before
 
     def test_ran_binds_to_the_cite_before_it(self, run):
         code, out = run(*CORRECT, "--cite", "m.py:1", "--ran", "rg -n x m.py")
