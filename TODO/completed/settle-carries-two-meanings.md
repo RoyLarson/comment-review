@@ -1,8 +1,8 @@
 # `settle` carries two meanings in what an agent is handed, and neither is declared to it
 
 ```
-Status:   open
-Progress: 3 of 8 tasks closed
+Status:   closed
+Progress: 8 of 8 tasks closed
 Owner:    systems
 Requires-Roy: false
 Raised:   2026-08-24 (the moment `taken in` was ruled -- Roy: 'now we have a polysemy of
@@ -56,22 +56,26 @@ is prose and is the frequent one. T1 is that ruling.
       -- * Rule which sense keeps `settle`, and what the other becomes. Verify:
       the ruling is in `docs/decision-log.md`.
         > 2026-11-22 Outcome: claim keeps settle; a place is decided (Process #333)
-- [ ] T2 | T2 -- Reword the losing sense in `SKILL.md`. Verify: `grep -c settle`
-      counts only the kept sense.
-- [ ] T3 | T3 -- Reword it in `reviewer-brief.md`. Verify: the same count, and
-      the brief still generates from its row.
-- [ ] T4 | T4 -- Reword it in the four role files. Verify: each file uses only
-      the kept sense.
+- [x] T2 | Place sense reworded to decided; remaining uses are the claim sense | 5cc2b3a1990f4b9409b482cbfe62cdc686f0e0c6 | T2
+      -- Reword the losing sense in `SKILL.md`. Verify: `grep -c settle` counts
+      only the kept sense.
+- [x] T3 | Place sense reworded to decided; remaining uses are the claim sense | 5cc2b3a1990f4b9409b482cbfe62cdc686f0e0c6 | T3
+      -- Reword it in `reviewer-brief.md`. Verify: the same count, and the brief
+      still generates from its row.
+- [x] T4 | Place sense reworded to decided; remaining uses are the claim sense | 5cc2b3a1990f4b9409b482cbfe62cdc686f0e0c6 | T4
+      -- Reword it in the four role files. Verify: each file uses only the kept
+      sense.
 - [-] T5 | SUPERSEDED by T7: needs_settles does not exist; the claim sense is mark --settles, claim.settles | 22c3a0abcbc86509c74296319ce5b719a43338ca | T5
       -- `backend` -- reword it in the scripts if the claim sense loses. Verify:
       `needs_settles` and the `settles` key follow the ruling.
-- [ ] T6 | T6 -- Declare the outcome in `docs/vocabulary.md` and confine it.
-      Verify: the kept sense is defined and the other appears in no shipped
-      file.
+- [x] T6 | Outcome declared; place sense gone from shipped files after be028bd7 | a3f1a5b514273642d40783ac4915f5a7c2a9aa72 | T6
+      -- Declare the outcome in `docs/vocabulary.md` and confine it. Verify: the
+      kept sense is defined and the other appears in no shipped file.
 - [-] T7 | Moot: the claim sense keeps settle, so the key stays; Process #333 | 5814f78efbf136da31ec84a22680a6e2be87d1c1 | Rename
       the `settles` claim key, with `mark --settles`, if T1's claim sense loses
         > 2026-11-22 Check: the settles key follows the T1 ruling
-- [ ] T8 | Rename the place sense of `settle` to `decided` in src/comment_review
+- [x] T8 | Place sense renamed to decided in src; gates and 5910 tests pass | 3e764c5b18ed85a75319a89fb8dec6f836228bc0 | Rename
+      the place sense of `settle` to `decided` in src/comment_review
         > 2026-11-22 Check: no src/ name or file uses settle for a place
 
 ## Related

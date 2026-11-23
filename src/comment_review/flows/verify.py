@@ -525,7 +525,7 @@ def coverage_problems(
         will not admit, nothing is counted and those problems come back
         instead. Reported rather than raised, so the findings stack;
         each one rolls the round back, and none of the places that did come
-        back settles.
+        back is decided.
 
     ! An empty binder yields nothing. There is no address to be missing, and the
     empty-binder run in `tests/test_brief_worked_example.py` is refused at

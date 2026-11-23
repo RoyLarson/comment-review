@@ -32,8 +32,8 @@ role-labeled sides. The bus puts the decisions on the master proof, and the comm
 ## The loop, as steps
 
     COLLECT     `collate` folds one stage's returned copies into places; each place
-                no one text settles is carried forward, and so is each move whose
-                placement is undecided
+                not decided on one text is carried forward, and so is each move
+                whose placement is undecided
     BATCH       one file, one slot per carried-forward place or undecided move per
                 role it is put to
     ANSWER      each role answers every slot it was sent, in its own file
@@ -46,7 +46,7 @@ role-labeled sides. The bus puts the decisions on the master proof, and the comm
                 `collate` carries a place forward as `composed`, one turn runs
                 when no number is given
     CHIEF       `disposition` takes the chief's ruling at every place and move
-                still carried forward, and a `recast` at any settled place the
+                still carried forward, and a `recast` at any decided place the
                 style sheet asks it to change
     CLOSE       the editorial roles are done
 
@@ -63,7 +63,9 @@ task agent to do not what the code enforces."*
 
 **One turn runs by default where `collate` composes** -- `decision-log.md Process: #298`. A
 `composed` place may hold a merge of several sides or a lone proposal that other readers
-still need to see. The turn sends that text to the roles owed a say before the chief rules. `SKILL.md` tells the task agent so; nothing in the code requires
+still need to see. The turn sends that text to the roles owed a say before the chief rules; a
+change no role but its proposer read is owed to no role and goes to the chief with no turn
+(`Process: #385`). `SKILL.md` tells the task agent so; nothing in the code requires
 the turn.
 
 **So a code-enforced cap is wrong and a turn counter is not.** The counter is derived rather
@@ -103,9 +105,9 @@ its own, over its two places -- `desk/proof/move.py`, and the passes that decide
 
 | state | when a place is in it | what becomes of it |
 | --- | --- | --- |
-| `stands` | see [the definition on `State.STANDS`](../src/comment_review/desk/proof/state.py) | settled |
-| `agreed` | two or more roles' proposals come to one text and every role owed a say has accepted it | settled on that text |
-| `composed` | proposals on different sentences compose, or one text is not yet accepted by every role owed a say | carried forward, asking a `composition` |
+| `stands` | see [the definition on `State.STANDS`](../src/comment_review/desk/proof/state.py) | decided |
+| `agreed` | two or more roles' proposals come to one text and every role owed a say has accepted it | decided on that text |
+| `composed` | proposals whose changed words do not overlap compose, one text is not yet accepted by every role owed a say, or a change only its proposer read awaits the chief (`Process: #385`) | carried forward, asking a `composition` |
 | `contested` | proposals that will not compose against the base | carried forward, asking an `escalation` |
 | `refused` | a mark, an answer or a ruling its table will not read; one role's marks that will not compose; marks at one address carrying differing anchors; a human query still standing | back to the role or the chief, and the fold rolls back |
 | `to-come` | an end of a move whose placement is undecided | waits on the placement; holds no text, is put to no role, takes no ruling |
@@ -113,8 +115,9 @@ its own, over its two places -- `desk/proof/move.py`, and the passes that decide
 **Carried forward is `composed` and `contested`, and the set has a name.**
 `desk.proof.state.CARRIED` is those two, and every reader of "is this still open" asks it:
 the bus builds the batch from it and refuses an answer at a place outside it, and the
-dispositions table's `taken_in` closes that same set. **Settled is `stands` and `agreed`**,
-`desk.proof.state.SETTLED`, which is the set the write end requires of every place.
+dispositions table's `taken_in` closes that same set. **Decided is `stands` and `agreed`**,
+`desk.proof.state.DECIDED` (`Process: #333`), which is the set the write end requires of every
+place.
 
 ## A human question stops the round before the fold
 
@@ -153,21 +156,25 @@ their own row types built to the same idea: a frozen dataclass whose cells are v
 functions, never prose.
 
 **`stet` is not a disposition row.** `DISPOSITIONS` holds two names, and
-`desk.proof.disposition.read_disposition` refuses any other by name. The word is what the
-console prints for a place the fold settled on its own -- see *What each command prints*,
-below -- and a `stet` the chief emits waits on `TODO/no-mark-for-let-it-stand.md`.
+`desk.proof.disposition.read_disposition` refuses any other by name. The chief's stet is
+`taken_in` with side `original` (`Process: #332`). `stet` is a reader's answer refusing a
+move's placement (`Process: #195`, `#393`), below.
 
 ## The passes, and the one order they run in
 
 `desk.evaluate.passes.decide(places, moves, turn)` is the whole sequence and the only entry:
 
     for each move      placement_pass, with the chief's placement ruling where
-                       there is one; then settle_ends, which takes a withdrawn
+                       there is one; then decide_ends, which takes a withdrawn
                        move off both ends and an agreed move's untaken movers off
     for each place     marks_pass, then answers_pass once per turn up to `turn`
-    for each move      hold_ends: an undecided move's ends are `to-come`,
+    for each move      cover_ends: a move the chief took in from its one mover
+                       decides each end that reads exactly as the move sets it;
+                       then hold_ends: an undecided move's ends are `to-come`,
                        except an end already refused
     for each place     dispositions_pass
+    for each move      keep_ends: a ruling that puts an agreed move's end back
+                       to its base is refused
 
 **A move's placement is decided before either end's words** -- `decision-log.md Process: #195`
 and `#200`. So the placement pass and its settling run first, and the ends are then read as
@@ -179,7 +186,7 @@ and a ruling there is refused rather than closing words the move's outcome may c
 on its own places (`moves_in`), so a caller cannot fold a move's two ends as unrelated places.
 The passes stay public and `tests/test_passes.py` drives them one at a time.
 
-## A text settles only when every role that read the place has had its say
+## A text is decided only when every role that read the place has had its say
 
 **This is the invariant, and it is one rule rather than a rule per instruction** --
 `decision-log.md Process: #180`. `desk.evaluate.passes.owed_a_say` names the roles that have
@@ -189,13 +196,22 @@ things is true of it:
 
 | | |
 | --- | --- |
-| it filed only a `query` | a deferring query hands the place on and waits on nothing (`Process: #121`) |
+| it filed only a `query` | a deferring query hands the place on and is not a second party |
 | its side is this text | it proposed the text, or its answer replaced or accepted its way to it |
 | it answered and holds no side | it was asked, and withdrew or deferred; it has had its say |
 
-**A lone proposal at a place no other role read stands**, because no reader is owed anything
-there. **A lone proposal against three `clean`s does not**: those three read the place and have
-not seen this text, so it goes back to them.
+**A change no role but its proposer read goes to the copy chief** -- `Process: #385`, which
+supersedes `#180`'s lone-proposal clause. No role is owed a say, so no turn is run for it: the
+place is carried forward as `composed`, owed to nobody, and `desk.work.fold.put_to` names the
+chief. A role that only filed deferring queries there is not a second party, so an `add` beside
+them goes to the chief too (`#386`, superseding `#121`), and a stage 6 condensation is under the
+same rule (`#387`). A move whose one mover is its only reader is held `open`, owed to no role,
+the same way. **A lone proposal against three `clean`s is different**: those three read the place
+and have not seen this text, so it goes back to them.
+
+**The chief's ruling on a lone move is the second party at both ends** -- `#388`.
+`desk.evaluate.move.cover_ends` decides each end whose one side is the mover's and reads exactly
+as the move sets it; an end where the mover changed more stays carried for its own ruling.
 
 **`#89` and `#116` are cases of this rule.** *A lone owing mark goes back to every role that
 marked but a query* and *an `add` goes back to every role of the stage* both fall out of the
@@ -209,9 +225,11 @@ invariant, so no row of the marks table is asked.
 
 `decision-log.md Process: #179`. A role may file a second ruling at an address, and its marks
 there make one side: `desk.evaluate.passes.composed_side` sets the side from the one mark where
-there is one, and composes several against the base -- clause by clause where each quotes the
-clause it edits and its `change` is what its claim derives (`_by_clause`), line by line
-otherwise. Marks with incompatible overlapping edits are refused back to that role
+there is one, and composes several against the base with `differences.compose`, the one rule
+two roles' sides compose by too (`Process: #389`-`#392`). It reads only the texts: edits clash
+only where the base words they change overlap, where two inserts sit at one position, or where
+an insert falls inside another edit, so edits on neighbouring words or lines compose. Marks
+whose edits clash are refused back to that role
 naming each: the reason asks it to withdraw one, or, where every one of them sets its own
 `raw_text` and none is a move's origin, to restate the paragraph with both texts. A `clean` or a
 deferring `query` proposes no text and stands beside them.
@@ -291,11 +309,11 @@ read.
 | ruling | what it carries | the text it sets | what it closes |
 | --- | --- | --- | --- |
 | `taken_in` | `side` -- a role, or `original` | that role's side, or none, which leaves the paragraph as it was | a carried-forward place |
-| `recast` | `prose` | the chief's own paragraph; empty `prose` drops the paragraph whole (`Process: #299`) | a carried-forward place, or a settled one (`Process: #310`) |
+| `recast` | `prose` | the chief's own paragraph; empty `prose` drops the paragraph whole (`Process: #299`) | a carried-forward place, or a decided one (`Process: #310`) |
 
-**A `recast` at a settled place is how the chief brings the roles' text into line with the style
-sheet** -- `Process: #310`; its reason names the style-sheet entry. A `taken_in` at a settled
-place is refused, and so is a `recast` whose prose is the text the roles settled, which would
+**A `recast` at a decided place is how the chief brings the roles' text into line with the style
+sheet** -- `Process: #310`; its reason names the style-sheet entry. A `taken_in` at a decided
+place is refused, and so is a `recast` whose prose is the text the roles decided on, which would
 change nothing.
 
 `dispositions_pass` refuses a ruling at a place outside its row's `closes`, a `taken_in` naming
@@ -306,7 +324,7 @@ has not said which stands -- and a carried-forward place or an undecided move le
 naming the roles a place was put to. Any refusal rolls the round back and nothing is written,
 so neither of two rulings at one place is applied.
 
-**The proof records the chief's reason.** A settled place holds its decided text, filed marks and any disposition. The disposition carries the chief's reason, and each filed mark keeps its reviewer's reason.
+**The proof records the chief's reason.** A decided place holds its decided text, filed marks and any disposition. The disposition carries the chief's reason, and each filed mark keeps its reviewer's reason.
 
 **The chief rules an undecided move's placement once, then its ends** --
 `decision-log.md Process: #195` item 4, `#200` and `#201`. While a move's placement is open or
@@ -336,7 +354,7 @@ an end's own reasons at that end (`desk.work.fold.Fold.run`).
 `proof --proof <the closed proof>` transcribes one alteration per place whose decided text
 differs from the paragraph already there, in each page's own place order, with an emptied place
 written as the delete; `flows.transcribe.docket_of_proof` is that step. It refuses, naming each:
-a place that is not settled -- such a text has not settled (`Process: #180`), so a proof holding
+a place that is not decided -- such a text has not been decided (`Process: #180`), so a proof holding
 one is not closed -- an undecided move, a place that will not read back, and a page a decided
 place sits on that the checkout cannot open.
 
@@ -375,7 +393,7 @@ the files they save and derive proof counts from its places.
 | `CarriedForward` | the address, its state, its question and the roles it is put to |
 | `PlacementCarried` | an undecided move's two addresses, its placement and the roles it is put to |
 | `Advised` | what one role is told about one place without being refused for it |
-| `Settled` | one place the fold decided, with the chief's ruling where there is one |
+| `Decided` | one place the fold decided, the roles whose text stands, and the chief's ruling where there is one |
 | `Committed` | the fold committed |
 | `RolledBack` | the fold rolled back and saved nothing |
 
@@ -459,16 +477,16 @@ notes after them; what was written prints last.**
 | `<role> <address>: <reason>`, the address `(the copy)` where there is none | `Refused` |
 | `asks the human <at>: <role> -- <question>; ask it, record the answer in the answers file, and send it back to <role>` | `AsksTheHuman`, not yet answered |
 | `answered by the human <at>: <role> -- <answer>; <role> replaces this query with its mark or answer` | `AsksTheHuman`, with the answers file's answer |
-| `<state> <address>: <roles> (<question>)` | `CarriedForward` |
-| `<placement> <origin> -> <destination>: <roles> (placement)` | `PlacementCarried` |
-| `stet <address>` | `Settled`, by the fold alone |
-| `<ruling> <address>: <side> -- <reason>` | `Settled`, by the chief's ruling |
+| `<state> <address>: <roles> (<question>)`, the roles `copy-chief` where no role is owed a say (`desk.work.fold.put_to`) | `CarriedForward` |
+| `<placement> <origin> -> <destination>: <roles> (placement)`, the same | `PlacementCarried` |
+| `decided <address>: <roles>`, or `decided <address>: original` where the text is the stage's base (`Process: #396`) | `Decided`, by the fold alone |
+| `<ruling> <address>: <side> -- <reason>` | `Decided`, by the chief's ruling |
 | the `for the chief -- advisory notes:` heading, then `<role> <address>: <note>` | `Advised`, printed last, and only over a commit: `Fold.run` reports a rollback's refusals and nothing else. A note itself still rolls nothing back (`Process: #177`) |
 
 **Then the files, one line each, and only on a commit** (`commands/collate.py`,
 `commands/turn.py`, `commands/disposition.py`; the counts are `commands.report.counted`):
 
-    <proof-out>: the master proof -- <n> places -- <s> settled, <c> carried forward, <t> to come
+    <proof-out>: the master proof -- <n> places -- <d> decided, <c> carried forward, <t> to come
     <batch-out>: turn 1's batch -- <role> <slots>, ...
 
     <proof-out>: the master proof after turn <t> -- <counts>               turn
@@ -580,13 +598,17 @@ updated paragraph as raw text ([`the-mark.md`](the-mark.md)). The chief can take
 | agreement is the text alone, and it takes every owing mark | `Process: #88` | `desk.evaluate.passes._from_sides` |
 | a lone owing mark goes back to every role that marked but a query | `Process: #89` | a case of `#180`; no row is asked |
 | an `add` goes back to every role that read the page | `Process: #116` | a case of `#180`; no row is asked |
-| a human query is asked before the fold; the other shapes defer | `Process: #121`, `#197` | `flows.human`, `flows.bus._asks`, `desk.marks.table._query_stance`, `desk.answers.table.asks_human` |
-| ordinary turn answers apply only to carried-forward places | `Process: #91` | `desk.evaluate.passes.answers_pass`; the chief may recast a settled place under #310 |
-| a text settles only once every reader has proposed or accepted it | `Process: #180` | `desk.evaluate.passes.owed_a_say` |
+| a human query is asked before the fold; the other shapes defer | `Process: #197` | `flows.human`, `flows.bus._asks`, `desk.marks.table._query_stance`, `desk.answers.table.asks_human` |
+| ordinary turn answers apply only to carried-forward places | `Process: #91` | `desk.evaluate.passes.answers_pass`; the chief may recast a decided place under #310 |
+| a text is decided only once every reader has proposed or accepted it | `Process: #180` | `desk.evaluate.passes.owed_a_say` |
+| a change only its proposer read goes to the chief, with no turn | `Process: #385`, `#386`, `#387` | `desk.evaluate.passes._from_sides`, `desk.evaluate.move.placement_pass`, `desk.work.fold.put_to` |
+| the chief's ruling on a lone move decides both ends it sets | `Process: #388` | `desk.evaluate.move.cover_ends` |
+| a ruling that puts an agreed move's end back is refused | `Process: #283` | `desk.evaluate.move.keep_ends` |
 | one role's marks at one place compose | `Process: #179` | `desk.evaluate.passes.composed_side` |
+| edits clash only where their changed words overlap, whoever filed them | `Process: #389`-`#392` | `differences.compose` |
 | an answer's sources are verified before the fold | `Process: #181` | `flows.answers.answers_of` |
 | a move's placement is one question for the pair, answered on the move | `Process: #195` | `desk.evaluate.move.placement_pass`, `flows.bus._batch_of` |
-| one end of a move settles with the move, not before it | `Process: #190`, `#200`, `#201` | `desk.evaluate.move.hold_ends`, the `to-come` state |
+| one end of a move is decided with the move, not before it | `Process: #190`, `#200`, `#201` | `desk.evaluate.move.hold_ends`, the `to-come` state |
 | the chief rules an undecided move's placement once, then its ends | `Process: #195` item 4, `#201` | `desk.evaluate.move._ruled`, `flows.bus._on_dispositions` |
 | the dropped-words list is advisory | `Process: #163`, `#177` | `desk.marks.table._correct_notes`, `events.Advised` |
 | copies from different trees are refused | `Process: #178` | `flows.verify.gathered_tree_problem`, `flows.verify.admitted_received_problems` |
@@ -600,4 +622,4 @@ updated paragraph as raw text ([`the-mark.md`](the-mark.md)). The chief can take
 | a `clean`, `correct` or `patch` answer owes a source | `Process: #306` | `desk.proof.answer`'s `owes_sources` |
 | the chief's reason is on the place's disposition | `Process: #313` | `desk.proof.place.Place` |
 | several answers at one slot compose, and any other mix is refused | `Process: #308`, `#309` | `flows.answers._one_answer` |
-| the chief may recast a settled place for the style sheet | `Process: #310` | `desk.dispositions.table`'s `recast` row, `flows.bus._on_dispositions` |
+| the chief may recast a decided place for the style sheet | `Process: #310` | `desk.dispositions.table`'s `recast` row, `flows.bus._on_dispositions` |

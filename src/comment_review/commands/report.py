@@ -19,7 +19,7 @@ from comment_review.desk import report as events
 from comment_review.desk.proof.answer import Question
 from comment_review.desk.proof.move import Placement
 from comment_review.desk.proof.place import Place
-from comment_review.desk.proof.state import CARRIED, SETTLED, State
+from comment_review.desk.proof.state import CARRIED, DECIDED, State
 from comment_review.flows.human import HumanAnswer, read_answers
 
 #: Exit codes.
@@ -90,13 +90,13 @@ def lines(event: object) -> list[str]:
             f"{event.placement} {event.origin} -> {event.destination}:"
             f" {roles} (placement)"
         ]
-    if isinstance(event, events.Settled):
+    if isinstance(event, events.Decided):
         ruling = event.disposition
         if ruling is not None:
             return [
                 f"{ruling.name} {event.address}: {ruling.taken_side} -- {ruling.reason}"
             ]
-        return [f"stet {event.address}"]
+        return [f"decided {event.address}: {', '.join(event.stands) or 'original'}"]
     # `Committed` and `RolledBack` print nothing, and `Advised` prints under its own
     # heading, after the places -- see `print_report`.
     return []
@@ -165,17 +165,17 @@ def counted(places: tuple[Place, ...]) -> str:
         places: `MasterProof.places`.
 
     Returns:
-        `"N places -- S settled, C carried forward, T to come"`.
+        `"N places -- D decided, C carried forward, T to come"`.
 
-    Settled is counted rather than subtracted, and `desk.proof.state.SETTLED`
-    is the one set of settled states both this and `flows.transcribe._unclosed`
+    Decided is counted rather than subtracted, and `desk.proof.state.DECIDED`
+    is the one set of decided states both this and `flows.transcribe._unclosed`
     read.
     """
     states = [str(place.state or "") for place in places]
     carried = sum(1 for state in states if state in CARRIED)
-    settled = sum(1 for state in states if state in SETTLED)
+    decided = sum(1 for state in states if state in DECIDED)
     to_come = sum(1 for state in states if state == State.TO_COME)
     return (
-        f"{len(states)} places -- {settled} settled,"
+        f"{len(states)} places -- {decided} decided,"
         f" {carried} carried forward, {to_come} to come"
     )

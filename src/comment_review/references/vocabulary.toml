@@ -46,7 +46,7 @@ finding = "One ruling on one sentence, emitted as a MARK."
 "edit copy" = "One role's own copy of the pages it was handed -- its role, the tree it was gathered from, and one SHEET per page. Seeded with a slot per prose paragraph; the role fills the slots in place and hands the copy back. The one file a reviewer writes for a page."
 sheet = "One page inside an edit copy: the file's path, the sha it was read at, and the marks on it."
 "managing editor" = "The task agent: it runs the review -- dispatches the roles, sends the revises, decides the proof is done and hands it to the human. The copy chief rules on marks at a place; the managing editor runs the process that ruling sits inside."
-"copy chief" = "Who folds the roles' edit copies into one set of edits and rules where they disagree -- the task agent, at max turns. It rules only where the roles never settled, and there are two rulings: take one side's text in, the original being a side, or recast the paragraph in its own prose. No role may give either."
+"copy chief" = "Who folds the roles' edit copies into one set of edits and rules where they disagree -- the task agent, at max turns. It rules where the roles never decided and on each change no role but its proposer read, and there are two rulings: take one side's text in, the original being a side, or recast the paragraph in its own prose. No role may give either."
 remit ="The categories of claim a role rules on -- as against verifying, which is what it does to them."
 "editorial role" = "One of the four desks a reviewer sits at, each named by its role id: the notes editor (ownership-context), the fact-check editor (block-context), the line editor (function-context) and the developmental editor (module-context)."
 reviewer = "The identifier for an editorial role, in flags, filenames and report stems."
@@ -92,7 +92,7 @@ alteration = "One place, and what the compositor sets there: its replacement tex
 
 # --- what carries the work between the stages --------------------------------
 topology = "Which roles each stage dispatches, in what order, how many ways each role is split, and the pages each dispatch covers. A stage may also name a cap, the series it deals and the instructions it admits. `topology --build` writes one that fits the binder."
-"master proof" = "Every place the fold has seen: its base text, the marks on it, and its state -- settled, carried forward, or to come. `collate` writes it, each `turn` and `disposition` advance it, and it is closed when every place is decided."
+"master proof" = "Every place the fold has seen: its base text, the marks on it, and its state -- decided, carried forward, or to come. `collate` writes it, each `turn` and `disposition` advance it, and it is closed when every place is decided."
 batch = "One slot for each carried-forward place, for each role it is put to, sent out in a turn."
 dispositions = "The copy chief's rulings: one per undecided move, `taken_in` a mover's side or the original, and one per carried-forward place, `taken_in` a side's text or `recast` in the chief's own prose."
 "to come" = "An end of a move whose placement is not yet decided -- the trade's TK. It holds no text, asks no role anything, and takes no ruling; once the placement is decided it is read as any place."

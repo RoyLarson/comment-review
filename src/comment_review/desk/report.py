@@ -3,7 +3,7 @@
 The stage reports refusals as `Refused`, from the fold or before it, and human
 questions as `AsksTheHuman`. A rollback is reported as `RolledBack`.
 
-A committed fold reports settled and carried-forward places, move
+A committed fold reports decided and carried-forward places, move
 placements and advisory notes.
 
 `refusal_line` is the one wording of a refusal line, printed by the
@@ -50,7 +50,10 @@ class AsksTheHuman(NamedTuple):
 
 
 class CarriedForward(NamedTuple):
-    """A place the fold could not settle alone -- asked of `roles` next turn."""
+    """A place the fold could not decide alone -- put to `roles` next.
+
+    `roles` is the chief alone where no role is owed a turn on it.
+    """
 
     address: str
     state: State
@@ -59,11 +62,12 @@ class CarriedForward(NamedTuple):
 
 
 class PlacementCarried(NamedTuple):
-    """A move whose placement the fold could not settle -- asked of `roles` next turn.
+    """A move whose placement the fold could not decide -- put to `roles` next.
 
     `open` is put to the readers of either page that did not file it and have
-    neither agreed nor deferred; `contested` to its movers and the roles that
-    stetted it, less those that defer.
+    neither agreed nor deferred, or to the chief alone where there are none;
+    `contested` to its movers and the roles that stetted it, less those that
+    defer.
     """
 
     origin: str
@@ -84,11 +88,16 @@ class Advised(NamedTuple):
     notes: tuple[str, ...]
 
 
-class Settled(NamedTuple):
-    """One place a fold decided, with the chief's ruling where there is one."""
+class Decided(NamedTuple):
+    """One place a fold decided, with the chief's ruling where there is one.
+
+    `stands` names what the decided text is: empty where it is the base, and
+    otherwise the roles whose side holds it, sorted.
+    """
 
     address: str
     disposition: Disposition | None = None
+    stands: tuple[str, ...] = ()
 
 
 class Committed(NamedTuple):
@@ -112,7 +121,7 @@ Event = (
     | CarriedForward
     | PlacementCarried
     | Advised
-    | Settled
+    | Decided
     | Committed
     | RolledBack
 )

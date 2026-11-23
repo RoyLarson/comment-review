@@ -1,8 +1,8 @@
 # Settlement depends on who filed, not on what was read
 
 ```
-Status:   open
-Progress: 0 of 3 tasks closed
+Status:   closed
+Progress: 3 of 3 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-11-23 (broken review, 2026-11-23)
@@ -34,10 +34,13 @@ W-F8, N-N5; V17, V19, V22]
 
 ## Tasks
 
-- [ ] T1 | Determine what settles a place apart from who filed its marks
+- [x] T1 | Ruled: #385-#392 decide what settles a place | 0baa9c2cb579b375e30973e1134a035247028eeb | Determine
+      what settles a place apart from who filed its marks
         > 2026-11-23 Solution phase running; recommendation to follow (broken review)
         > 2026-11-23 Symptom: stage-5-is-the-only-stage-with-no-independent-reader T18
-- [ ] T2 | Make two disjoint sentence edits settle alike from one role or from
-      two
-- [ ] T3 | Make the console name a settled place by what settled it
+        > 2026-11-23 Outcome: decision-log #385-#392 settle it; work is T2, T3, P1
+- [x] T2 | One text-only compose; groupings reach one outcome; 5942 pass | 69eec9d717168cc7e111d5046143251702ab5e73 | Make
+      two disjoint sentence edits settle alike from one role or from two
+- [x] T3 | Console prints decided with original or the roles that stand | 3e764c5b18ed85a75319a89fb8dec6f836228bc0 | Make
+      the console name a settled place by what settled it
         > 2026-11-23 Related: no-mark-for-let-it-stand.md

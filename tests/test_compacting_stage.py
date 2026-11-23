@@ -13,7 +13,7 @@ run does: nothing here calls the fold or the write end directly.
 import json
 
 from conftest import run_command
-from helpers import a_real_binder_over
+from helpers import a_real_binder_over, taken_in_as_filed
 
 from comment_review.commands import collate as collate_command
 from comment_review.commands import mark as mark_command
@@ -142,9 +142,9 @@ def test_a_correct_is_refused_naming_the_stage(tmp_path, monkeypatch, capsys):
 
 def test_the_condensed_text_folds_and_is_set(tmp_path, monkeypatch, capsys):
     """The stage's one role files a lone proposal at a place no other role
-    read, so it settles at once (`decision-log.md Process: #180`), and
-    `proof --proof` sets the closed proof's decided place. Nothing about the
-    write end changes for a compacting stage.
+    read, so it is put to the chief (`decision-log.md Process: #387`), and
+    once the chief takes it in, `proof --proof` sets the closed proof's
+    decided place. Nothing about the write end changes for a compacting stage.
     """
     root, copy = _run(tmp_path, monkeypatch, capsys, COMPACTING)
     (tmp_path / "from.txt").write_text(OVER, encoding="utf-8")
@@ -190,15 +190,16 @@ def test_the_condensed_text_folds_and_is_set(tmp_path, monkeypatch, capsys):
         "--proof-out",
         str(tmp_path / "proof.json"),
     )
-    assert code == report.OK, out
-    assert "stet m.py@b1" in out
+    assert code == report.REREADS, out
+    assert "composed m.py@b1: copy-chief (composition)" in out
+    taken_in_as_filed(tmp_path, monkeypatch, capsys, proof="proof.json")
 
     code, out = run_command(
         monkeypatch,
         capsys,
         proof_command,
         "--proof",
-        str(tmp_path / "proof.json"),
+        str(tmp_path / "final.json"),
         "--repo",
         str(root),
         "--out",

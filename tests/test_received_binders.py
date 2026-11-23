@@ -548,7 +548,7 @@ def test_cli_collation_reads_a_large_dispatch_set_from_a_pairs_file(
         str(tmp_path / "proof.json"),
     )
     assert code == report.OK, out
-    assert out.count("stet ") == count, out
+    assert out.count("decided ") == count, out
 
 
 @pytest.mark.parametrize(

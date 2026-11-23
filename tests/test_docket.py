@@ -124,7 +124,7 @@ def _settled(copies, bases: dict | None = None) -> list[str]:
     return sorted(
         one.address
         for one in _fold(copies, bases).events
-        if isinstance(one, events.Settled)
+        if isinstance(one, events.Decided)
     )
 
 
@@ -457,7 +457,10 @@ def test_a_settled_move_DELETES_its_origin_and_writes_its_destination():
     move = a_move(
         "m.py@a0", "m.py@a8", change=SNIPPET, reads=AT_THE_DESTINATION + SNIPPET
     )
-    copies = returned_copies({"block-context": {"m.py@a0": move}})
+    # Two roles file it, so the roles agree it without the chief.
+    copies = returned_copies(
+        {"block-context": {"m.py@a0": move}, "function-context": {"m.py@a0": move}}
+    )
     fold = _fold(copies, {"m.py@a0": SNIPPET, "m.py@a8": AT_THE_DESTINATION})
     assert sorted(fold.decided) == ["m.py@a0", "m.py@a8"]
     assert fold.decided["m.py@a0"].text == ""

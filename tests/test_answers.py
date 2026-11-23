@@ -546,6 +546,32 @@ def test_two_patches_to_different_sentences_compose_into_one_answer(tmp_path):
     assert answer.sources == (FIRST, SECOND)
 
 
+def test_two_patches_to_two_sentences_of_one_line_compose_into_one_answer(tmp_path):
+    slot = {
+        "question": "composition",
+        "anchor": "x = 1",
+        "raw_text": "# Alpha: one. Beta: two.",
+    }
+    got, problems = _several_at_one_slot(
+        tmp_path,
+        [
+            {
+                "instruction": "patch",
+                "change": "# Alpha: 1. Beta: two.",
+                "sources": [FIRST],
+            },
+            {
+                "instruction": "patch",
+                "change": "# Alpha: one. Beta: 2.",
+                "sources": [FIRST],
+            },
+        ],
+        slot,
+    )
+    assert problems == []
+    assert got["m.py@b1"].change == "# Alpha: 1. Beta: 2."
+
+
 def test_a_correct_and_a_patch_compose_into_a_correct(tmp_path):
     got, problems = _several_at_one_slot(
         tmp_path,

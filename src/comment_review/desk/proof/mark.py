@@ -94,7 +94,7 @@ class Shape(StrEnum):
         return name.lower().replace("_", "-")
 
     OUTSIDE_MY_ROLE = auto()
-    #: Deferred like `OUTSIDE_MY_ROLE`: another role may have settled this place.
+    #: Deferred like `OUTSIDE_MY_ROLE`: another role may have decided this place.
     UNABLE_TO_DETERMINE = auto()
     HUMAN_REVIEW_NECESSARY = auto()
 
@@ -377,7 +377,7 @@ class CleanMark(Mark):
 
 @dataclass(frozen=True)
 class QueryMark(Mark):
-    """`query`: the role could not settle the place, and says who can.
+    """`query`: the role could not settle the claim, and says who can.
 
     Attributes:
         shape: who resolves it -- one of `QUERY_SHAPES`.

@@ -147,10 +147,11 @@ def test_a_move_is_found_by_its_own_two_addresses():
     assert set(move.movers) == {"a"} and move.readers == ("a", "b")
 
 
-def test_a_move_no_other_role_read_is_agreed_at_once():
-    """D2: ownership-context alone at 4a -- its moves land before 4c."""
+def test_a_move_no_other_role_read_is_open_to_the_chief_alone():
+    """`decision-log.md Process: #385`: ownership-context alone at 4a -- its
+    moves wait on the chief's placement ruling, and no role is owed a say."""
     move = _decided(_ends(readers=("a",)), turn=0)
-    assert move.placement is Placement.AGREED and move.owed == ()
+    assert move.placement is Placement.OPEN and move.owed == ()
 
 
 def test_a_move_another_reader_has_not_answered_is_open_to_it():
@@ -264,7 +265,8 @@ def test_a_human_review_query_filed_at_either_end_refuses_it(at_origin):
 def test_a_role_deferring_at_either_end_is_not_owed_the_placement():
     query = _mark(Instruction.QUERY, claim=DEFERRING)
     move = _decided(_ends(at_origin=(Filed("b", query, Touch.OWN),)), turn=0)
-    assert move.placement is Placement.AGREED
+    # No other reader holds a view, so the move is the chief's alone.
+    assert move.placement is Placement.OPEN and move.owed == ()
 
 
 def test_an_answer_to_another_question_is_refused():
@@ -325,13 +327,17 @@ def test_two_roles_moves_into_one_place_are_two_placements():
     assert moves["m.py@b3 -> m.py@b5"].movers.keys() == {"b"}
 
 
-def test_one_roles_two_moves_into_one_place_are_each_agreed_on_their_own():
+def test_one_roles_two_moves_into_one_place_are_each_decided_on_their_own():
     """#196 supersedes #154: two pieces of one passage, or two addresses,
-    may belong at one place, and neither placement is refused for the other."""
+    may belong at one place, and neither placement is refused for the other.
+    One role read them, so each waits on its own placement ruling."""
     places = _two_into_one_place("a")
     moves = moves_in(places)
     decided = [placement_pass(move, places, 0) for move in moves.values()]
-    assert [move.placement for move in decided] == [Placement.AGREED, Placement.AGREED]
+    assert [(move.placement, move.owed) for move in decided] == [
+        (Placement.OPEN, ()),
+        (Placement.OPEN, ()),
+    ]
 
 
 def test_a_recorded_moves_answers_survive_being_found_again():

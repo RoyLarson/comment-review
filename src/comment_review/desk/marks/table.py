@@ -104,7 +104,7 @@ def _correct_notes(mark: CorrectMark, touch, base):
     is replacing, so the rest of the base is what it said nothing about and
     what the change is expected to keep. A word missing from there is the
     only one worth telling anyone about, and it is advisory: the chief reads
-    it and the place settles either way.
+    it and the place is decided either way.
     """
     rest = base.replace(mark.false, "", 1)
     word = first_word_dropped(rest, mark.change)

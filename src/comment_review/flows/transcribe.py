@@ -6,10 +6,10 @@
 
 Two inputs, and they differ in where the decision comes from. A copy is folded
 here: its marks are turned into places (`flows.places.places_of`), the Unit of
-Work decides every one of them, and each place the fold settled a text for
-becomes one alteration. A closed proof already holds every place the fold
-decided, so nothing is folded again -- the places are read back and each whose
-text differs from its base becomes one alteration.
+Work refuses what it cannot read, and each place the copy's role proposes a
+text for becomes one alteration. A closed proof already holds every place the
+fold decided, so nothing is folded again -- the places are read back and each
+whose text differs from its base becomes one alteration.
 
 Both paths return a `Docket` containing the corrections to apply.
 
@@ -61,7 +61,7 @@ from comment_review.desk.proof.edit_copy import EditCopy
 from comment_review.desk.proof.master_proof import MasterProof
 from comment_review.desk.proof.move import Move, Placement, is_open
 from comment_review.desk.proof.place import Place
-from comment_review.desk.proof.state import SETTLED
+from comment_review.desk.proof.state import DECIDED
 from comment_review.desk.work.fold import Fold
 from comment_review.docket.docket import Alteration, Docket, Schedule
 from comment_review.flows.human import queries_in_copies
@@ -253,10 +253,11 @@ def docket_of(copy: EditCopy, repo: Path) -> Docket:
         address, the page's at a move's destination -- and its text, with an
         emptied place written as the `None` the write end reads as a delete.
 
-        A place the fold decided no text for gets no alteration: a `clean` and a
-        `query` propose none, and neither does a place every role left alone. A
-        page with no alteration gets no schedule, since an empty one would tell
-        the write end to set a page from nothing.
+        Each place carries the text the copy's role proposes there, whether
+        the fold decided it or carried it to the chief. A place the role
+        proposed no text for gets no alteration: a `clean` and a `query`
+        propose none. A page with no alteration gets no schedule, since an
+        empty one would tell the write end to set a page from nothing.
 
     Raises:
         CannotTranscribe: a human-review query is present, an edited page is
@@ -309,6 +310,10 @@ def docket_of(copy: EditCopy, repo: Path) -> Docket:
 
     decided: dict[str, list[Place]] = {}
     for address, place in fold.decided.items():
+        # A copy is its role's draft: each place reads as that role's marks
+        # set it, though a change no other role read is carried to the chief
+        # and a move it alone filed waits on the chief's placement ruling.
+        place.text = place.sides.get(copy.role, place.text)
         if place.text is not None:
             decided.setdefault(cue_of(address).path, []).append(place)
 
@@ -336,25 +341,16 @@ def _open_moves(moves: list[Move]) -> list[str]:
 
 
 def _unclosed(places: list[Place]) -> list[str]:
-    """Refusal reasons for unsettled places.
+    """Refusal reasons for undecided places.
 
-    Each place must have a state in `SETTLED` for the proof to close.
+    Each place must have a state in `DECIDED` for the proof to close.
     """
     return [
         f"{CHIEF} {place.address}: {place.state} -- this proof is not closed,"
-        " so nothing on it has settled"
+        " so nothing on it is decided"
         for place in places
-        if place.state not in SETTLED
+        if place.state not in DECIDED
     ]
-
-
-def _sets(place: Place) -> bool:
-    """Whether the write end has anything to set at this place.
-
-    A place the fold decided no text for is nothing to set, and so is one
-    whose decided text is the paragraph already there.
-    """
-    return place.text is not None and place.text != place.base
 
 
 def _approved(
@@ -454,7 +450,7 @@ def docket_of_proof(
 
     decided: dict[str, list[Place]] = {}
     for place in places:
-        if _sets(place):
+        if place.changed:
             decided.setdefault(cue_of(place.address).path, []).append(place)
     touched = {
         name: sorted(place.address for place in here) for name, here in decided.items()

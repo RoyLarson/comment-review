@@ -18,6 +18,7 @@ from helpers import (
     a_clean,
     a_correct_setting,
     a_move,
+    a_patch,
     deal,
     disposition,
     held_open,
@@ -116,8 +117,8 @@ class TestTheChiefRules:
         )
         assert code == report.OK, out
         assert "taken_in m.py@b1: function-context -- theirs reads better" in out
-        assert "stet m.py@b2" in out
-        assert "stet m.py@b1" not in out
+        assert "decided m.py@b2: original" in out
+        assert "decided m.py@b1" not in out
 
     def test_a_taken_in_side_stands_on_the_chief_and_the_proof_closes(
         self, tmp_path, monkeypatch, capsys
@@ -138,7 +139,7 @@ class TestTheChiefRules:
         )
         assert code == report.OK, out
         assert "taken_in m.py@b1: function-context -- theirs reads better" in out
-        assert "stet m.py@b1" not in out
+        assert "decided m.py@b1" not in out
         place = place_on(_closed(tmp_path), "m.py@b1")
         assert place["state"] == "stands"
         assert place["text"] == DOS
@@ -163,7 +164,7 @@ class TestTheChiefRules:
         )
         assert code == report.OK, out
         assert "taken_in m.py@b1: original -- neither improves it" in out
-        assert "stet m.py@b1" not in out
+        assert "decided m.py@b1" not in out
         place = place_on(_closed(tmp_path), "m.py@b1")
         assert place["disposition"]["side"] == ORIGINAL
         assert place["text"] is None
@@ -185,7 +186,7 @@ class TestTheChiefRules:
         )
         assert code == report.OK, out
         assert "recast m.py@b1: copy-chief -- both half right" in out
-        assert "stet m.py@b1" not in out
+        assert "decided m.py@b1" not in out
         assert place_on(_closed(tmp_path), "m.py@b1")["text"] == RECAST
 
     def test_an_empty_recast_drops_the_whole_paragraph(
@@ -211,7 +212,7 @@ class TestTheChiefRules:
         assert place_on(_closed(tmp_path), "m.py@b1")["text"] == ""
 
 
-class TestTheChiefRecastsASettledPlace:
+class TestTheChiefRecastsADecidedPlace:
     """`decision-log.md Process: #310`: the chief may recast a place the
     roles settled, to bring it into line with the style sheet.
 
@@ -220,7 +221,7 @@ class TestTheChiefRecastsASettledPlace:
     """
 
     TEXTS = {"m.py@b1": BASE, "m.py@b2": "# four\n# five\n# six\n"}
-    SETTLED = {
+    DECIDED = {
         role: {"m.py@b2": a_clean("m.py@b2")}
         for role in ("block-context", "function-context")
     }
@@ -228,7 +229,7 @@ class TestTheChiefRecastsASettledPlace:
     PROSE = "# Four.\n# Five.\n# Six.\n"
 
     def _ruled(self, tmp_path, monkeypatch, capsys, ruling):
-        held_open(tmp_path, monkeypatch, capsys, self.SETTLED, self.TEXTS)
+        held_open(tmp_path, monkeypatch, capsys, self.DECIDED, self.TEXTS)
         return disposition(
             tmp_path,
             monkeypatch,
@@ -252,7 +253,7 @@ class TestTheChiefRecastsASettledPlace:
         )
         assert code == report.OK, out
         assert f"recast m.py@b2: copy-chief -- {self.STYLE}" in out
-        assert "stet m.py@b2" not in out
+        assert "decided m.py@b2" not in out
         place = place_on(_closed(tmp_path), "m.py@b2")
         assert (place["state"], place["text"]) == ("stands", self.PROSE)
 
@@ -276,7 +277,7 @@ class TestTheChiefRecastsASettledPlace:
     def test_a_recast_repeating_the_paragraph_is_BROKEN(
         self, tmp_path, monkeypatch, capsys
     ):
-        held_open(tmp_path, monkeypatch, capsys, self.SETTLED, self.TEXTS)
+        held_open(tmp_path, monkeypatch, capsys, self.DECIDED, self.TEXTS)
         settled = place_on(proof_at(tmp_path, 1), "m.py@b2")
         assert (settled["state"], settled["text"]) == ("stands", None)
         code, out = disposition(
@@ -408,6 +409,90 @@ class TestTheChiefRulesAMoveThenItsEnds:
         )
         assert code == report.BROKEN, out
         assert "copy-chief m.py@b2: an end of an undecided move" in out
+
+
+class TestTheChiefIsTheSecondPartyToALoneChange:
+    """`decision-log.md Process: #385` and `#388`: one role read the stage, so
+    its move and its changes reach the chief, who rules each once."""
+
+    TEXTS = TestTheChiefRulesAMoveThenItsEnds.TEXTS
+    ARRIVAL = "# four\n# five\n# six\n# two\n"
+    MOVE = a_move("m.py@b1", "m.py@b2", change="# two\n", reads=ARRIVAL)
+    PLACEMENT = TestTheChiefRulesAMoveThenItsEnds.PLACEMENT
+    REMAINDER = TestTheChiefRulesAMoveThenItsEnds.REMAINDER
+
+    def _dealt(self, tmp_path, monkeypatch, capsys, marks):
+        """`block-context` alone, clean wherever `marks` holds nothing."""
+        marks = {address: a_clean(address) for address in self.TEXTS} | marks
+        code = deal(tmp_path, monkeypatch, capsys, {"block-context": marks}, self.TEXTS)
+        assert code == report.REREADS
+        assert not (tmp_path / "batch1.json").exists()
+
+    def test_the_chiefs_original_withdraws_the_move_and_both_ends_keep_the_base(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        self._dealt(tmp_path, monkeypatch, capsys, {"m.py@b1": self.MOVE})
+        code, out = disposition(
+            tmp_path,
+            monkeypatch,
+            capsys,
+            [{**self.PLACEMENT, "side": ORIGINAL, "reason": "it reads right here"}],
+            proof="proof0.json",
+        )
+        assert code == report.OK, out
+        closed = _closed(tmp_path)
+        assert [m.placement for m in closed.moves] == ["withdrawn"]
+        for address in self.TEXTS:
+            assert place_on(closed, address)["text"] is None
+        assert not docket_of_proof(closed, tmp_path / "repo").schedules
+
+    def test_taking_the_move_in_decides_both_ends_in_one_ruling(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        self._dealt(tmp_path, monkeypatch, capsys, {"m.py@b1": self.MOVE})
+        code, out = disposition(
+            tmp_path, monkeypatch, capsys, [self.PLACEMENT], proof="proof0.json"
+        )
+        assert code == report.OK, out
+        closed = _closed(tmp_path)
+        assert [m.placement for m in closed.moves] == ["agreed"]
+        assert place_on(closed, "m.py@b1")["text"] == self.REMAINDER
+        assert place_on(closed, "m.py@b2")["text"].strip() == self.ARRIVAL.strip()
+
+    def test_a_patch_the_mover_added_at_an_end_is_ruled_on_its_own(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        patched = "# 4\n# five\n# six\n# two\n"
+        self._dealt(
+            tmp_path,
+            monkeypatch,
+            capsys,
+            {
+                "m.py@b1": self.MOVE,
+                "m.py@b2": a_patch("m.py@b2", "four", "4", "# 4\n# five\n# six"),
+            },
+        )
+        code, out = disposition(
+            tmp_path, monkeypatch, capsys, [self.PLACEMENT], proof="proof0.json"
+        )
+        assert code == report.REREADS, out
+        assert "composed m.py@b2: copy-chief (composition)" in out
+        placed = _closed(tmp_path)
+        assert place_on(placed, "m.py@b1")["text"] == self.REMAINDER
+        assert place_on(placed, "m.py@b2")["text"].strip() == patched.strip()
+
+    def test_a_lone_change_left_unruled_is_BROKEN_naming_the_chief(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        self._dealt(
+            tmp_path,
+            monkeypatch,
+            capsys,
+            {"m.py@b1": a_correct_setting("m.py@b1", "two", TWO)},
+        )
+        code, out = disposition(tmp_path, monkeypatch, capsys, [], proof="proof0.json")
+        assert code == report.BROKEN, out
+        assert "carried forward and not ruled on -- it was put to copy-chief" in out
 
 
 #: The two paragraphs the add cases stand between: `m.py@b2` is the gap they
@@ -581,7 +666,7 @@ class TestRefusals:
         )
         assert code == report.BROKEN
         assert (
-            "copy-chief m.py@b2: not carried forward -- a place the roles settled"
+            "copy-chief m.py@b2: not carried forward -- a place the roles decided"
             " takes only a recast" in out
         )
         assert not (tmp_path / "final.json").exists()

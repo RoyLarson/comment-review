@@ -1,4 +1,4 @@
-"""The `taken_in` command: the original against the revise a role is holding.
+"""The `compare` command: the original against the revise a role is holding.
 
 It does what bibliography calls collation: it compares two states of one text to find
 where they differ. `docs/vocabulary.md` declares that sense for this command and keeps
@@ -133,7 +133,7 @@ def main(argv: list[str] | None = None) -> int:
     if changed_addresses:
         print()
         for address in changed_addresses:
-            print(f"{address}\trole not tracked -- no docket reaches taken_in")
+            print(f"{address}\trole not tracked -- no docket reaches compare")
 
     for line in skipped:
         print(f"NOT COMPARED {line}", file=sys.stderr)

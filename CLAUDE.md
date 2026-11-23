@@ -81,7 +81,7 @@ uv run python src/comment-review.py prove_unchanged --base <merge-base> --repo .
 uv run python src/comment-review.py proof --from-docket <docket>.json --repo . --out <dir>
 
 # What one stage's revise changed, against the tree it was pulled from
-uv run python src/comment-review.py taken_in --original <root> --revise <root> [paths...]
+uv run python src/comment-review.py compare --original <root> --revise <root> [paths...]
 
 # The pinned corpora: git worktrees / clones into corpora/<name>/, gitignored
 uv run python scripts/fetch_corpora.py [--list] [--only numpy pymc] [--clean sentry]
@@ -473,12 +473,12 @@ fit -- before inventing a rule to make one category cover both. Publishing has s
 centuries naming the parts of a page; a part this system keeps tripping over probably has a name
 already, and the name usually arrives with the rule attached.
 
-And a third is open, found the same way. Roy, 2026-08-21: *"There is no stet. -- we called
-this 'clean' we were incorrect."* `clean` records two different facts -- *a role read this and had
-nothing to report*, and *a mark WAS proposed here and the original stands*. The second is
-publishing's stet ("let it stand"), written in the margin with dots under the text so the
-refused correction stays visible underneath. Recorded as `clean`, a declined proposal says
-nothing was found, so a re-run raises it again and stage 8 cannot know it was already refused.
+And a third was open, found the same way. Roy, 2026-08-21: *"There is no stet. -- we called
+this 'clean' we were incorrect."* `clean` recorded two different facts -- *a role read this
+and had nothing to report*, and *a mark was proposed here and the original stands*. The
+second is publishing's stet ("let it stand"). The copy chief writes it as `taken_in` with
+side `original` (`decision-log.md Process: #332`); a reader refusing a proposed move answers
+`stet` (`Process: #195`); a place no ruling touched is `decided` (`Process: #333`).
 
 The register is itself an instruction, and that is the point. Roy, 2026-08-16: *"I bet it
 helps the LLM focus in on what it is doing. Because of locality and other context items the llm

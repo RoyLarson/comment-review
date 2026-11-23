@@ -15,9 +15,13 @@ from helpers import (
     a_clean,
     a_correct,
     a_correct_setting,
+    a_drop,
     a_misspelled_address,
+    a_move,
+    a_patch,
     a_query,
     a_real_binder_over,
+    agreed,
     an_add,
     changes_of,
     contested,
@@ -140,6 +144,86 @@ TWO_ROLES = (
 )
 
 
+class TestADecidedPlaceNamesWhatStands:
+    """An unruled decided place prints what stands there: `original` where its
+    text is the base, otherwise the roles holding the text."""
+
+    def test_a_change_two_roles_read_names_its_roles_not_the_original(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        code, out = run(tmp_path, agreed("m.py@b1"), monkeypatch, capsys)
+        assert code == report.OK, out
+        assert "decided m.py@b1: block-context, function-context" in out
+        assert "decided m.py@b1: original" not in out
+
+    def test_an_untouched_place_names_the_original(self, tmp_path, monkeypatch, capsys):
+        code, out = run(
+            tmp_path,
+            {
+                "block-context": {"m.py@b1": a_clean("m.py@b1")},
+                "function-context": {"m.py@b1": a_clean("m.py@b1")},
+            },
+            monkeypatch,
+            capsys,
+        )
+        assert code == report.OK, out
+        assert "decided m.py@b1: original" in out
+
+
+class TestAChangeOnlyItsProposerReadGoesToTheChief:
+    """`decision-log.md Process: #385`: at a stage one role reads, that role's
+    change is carried to the copy chief, owed to no role, and the round exits
+    for the chief's ruling with no batch written."""
+
+    @pytest.mark.parametrize(
+        "mark",
+        (
+            a_drop("m.py@b1", "two"),
+            a_patch("m.py@b1", "two", "2", "# one\n# 2\n# three\n"),
+        ),
+        ids=("drop", "patch"),
+    )
+    def test_a_lone_change_is_carried_and_named_for_the_chief(
+        self, tmp_path, monkeypatch, capsys, mark
+    ):
+        batch = tmp_path / "batch1.json"
+        code, out = run(
+            tmp_path,
+            {"block-context": {"m.py@b1": mark}},
+            monkeypatch,
+            capsys,
+            "--batch-out",
+            str(batch),
+        )
+        assert code == report.REREADS, out
+        assert "composed m.py@b1: copy-chief (composition)" in out
+        assert "decided m.py@b1" not in out
+        assert not batch.exists()
+
+    def test_a_lone_move_is_open_and_named_for_the_chief(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        code, out = run(
+            tmp_path,
+            {
+                "block-context": {
+                    "m.py@b1": a_move(
+                        "m.py@b1",
+                        "m.py@b2",
+                        change="# two\n",
+                        reads="# four\n# five\n# six\n# two\n",
+                    ),
+                    "m.py@b2": a_clean("m.py@b2"),
+                }
+            },
+            monkeypatch,
+            capsys,
+            places={"m.py@b1": BASE, "m.py@b2": "# four\n# five\n# six\n"},
+        )
+        assert code == report.REREADS, out
+        assert "open m.py@b1 -> m.py@b2: copy-chief (placement)" in out
+
+
 class TestTheDroppedList:
     """`decision-log.md Process: #163` and `#177`: the list reaches the chief
     under its own heading in the report, carries no exit code of its own, and
@@ -147,21 +231,20 @@ class TestTheDroppedList:
 
     ! IT IS THE `correct` ROW'S `notes` RULE NOW, reported as an `Advised`
     event rather than as a fourth list beside the fold's own. The heading and the
-    sentence a reader sees are the ones `#163` landed."""
+    sentence a reader sees are the ones `#163` landed.
+
+    Both roles propose the one text, so the place is decided by the roles and
+    the note is the only thing left for the chief."""
+
+    DROPPING = {
+        role: {"m.py@b1": a_correct_setting("m.py@b1", "two", "# one\n# TWO\n")}
+        for role in ("block-context", "function-context")
+    }
 
     def test_a_run_whose_only_finding_is_the_list_exits_as_it_did(
         self, tmp_path, monkeypatch, capsys
     ):
-        code, out = run(
-            tmp_path,
-            {
-                "block-context": {
-                    "m.py@b1": a_correct_setting("m.py@b1", "two", "# one\n# TWO\n")
-                }
-            },
-            monkeypatch,
-            capsys,
-        )
+        code, out = run(tmp_path, self.DROPPING, monkeypatch, capsys)
         assert code == 0, out
         assert "for the chief -- advisory notes:" in out
         assert (
@@ -173,18 +256,9 @@ class TestTheDroppedList:
         self, tmp_path, monkeypatch, capsys
     ):
         """A note is not a refusal: the round commits over it."""
-        code, out = run(
-            tmp_path,
-            {
-                "block-context": {
-                    "m.py@b1": a_correct_setting("m.py@b1", "two", "# one\n# TWO\n")
-                }
-            },
-            monkeypatch,
-            capsys,
-        )
+        code, out = run(tmp_path, self.DROPPING, monkeypatch, capsys)
         assert code == report.OK, out
-        assert "stet m.py@b1" in out
+        assert "decided m.py@b1: block-context, function-context" in out
         proof = json.loads((tmp_path / "proof.json").read_text(encoding="utf-8"))
         assert any(
             p["address"] == "m.py@b1" and p["text"].strip() == "# one\n# TWO"
@@ -332,12 +406,7 @@ class TestWhatTheStageAdmits:
 
 class TestExitCodes:
     def test_everything_resolved_exits_zero(self, tmp_path, monkeypatch, capsys):
-        code, _out = run(
-            tmp_path,
-            {"block-context": {"m.py@b1": a_correct("m.py@b1")}},
-            monkeypatch,
-            capsys,
-        )
+        code, _out = run(tmp_path, agreed("m.py@b1"), monkeypatch, capsys)
         assert code == 0
 
     def test_a_composition_exits_three(self, tmp_path, monkeypatch, capsys):
@@ -919,7 +988,7 @@ class TestTheReport:
         )
         assert code == report.BROKEN, out
         assert "block-context m.py@b2: the text does not keep 'two'" in out
-        assert "stet" not in out
+        assert "decided" not in out
 
     def test_a_rolled_back_round_prints_its_refusals_and_nothing_else(
         self, tmp_path, monkeypatch, capsys
@@ -959,7 +1028,7 @@ class TestTheReport:
             places=places,
         )
         assert code == report.ESCALATIONS, out
-        assert "stet m.py@b1" in out
+        assert "decided m.py@b1: original" in out
         assert "contested m.py@b2" in out
         assert report.FOR_THE_CHIEF in out
 
@@ -1005,7 +1074,11 @@ class TestTheStateBetweenTurnsOnDisk:
     the master proof as `Process: #87`'s state between turns, `--batch-out` the
     first turn's batch -- and only when a place is carried forward."""
 
-    ONE = {"block-context": {"m.py@b1": a_correct("m.py@b1")}}
+    #: Two roles proposing one text, so the place is decided at the first fold.
+    ONE = {
+        role: {"m.py@b1": a_correct("m.py@b1")}
+        for role in ("block-context", "function-context")
+    }
     CONTESTED = {
         "block-context": {"m.py@b1": a_correct_setting("m.py@b1", "two", "# a\n")},
         "function-context": {"m.py@b1": a_correct_setting("m.py@b1", "two", "# b\n")},
@@ -1022,13 +1095,13 @@ class TestTheStateBetweenTurnsOnDisk:
         # ! THE SUMMARY COUNTS THE PLACES BY WHAT THEY CAME TO. A bare place
         # count says nothing a reader can act on, which is what it said for
         # one commit.
-        assert "1 places -- 1 settled, 0 carried forward, 0 to come" in out
+        assert "1 places -- 1 decided, 0 carried forward, 0 to come" in out
         proof, why = load_proof(proof_path)
         assert why == []
         assert proof is not None
         assert [p.address for p in proof.places] == ["m.py@b1"]
         (place,) = proof.places
-        assert place.state is State.STANDS
+        assert place.state is State.AGREED
         assert place.text is not None
 
     def test_the_proof_carries_the_copies_as_they_stand(

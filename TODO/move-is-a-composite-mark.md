@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 47 of 57 tasks closed
+Progress: 48 of 57 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, Roy ruling that a move is a composite mark rather than
@@ -354,6 +354,8 @@ and now there is one object that cannot be half-held.
         > 2026-11-23 e.g. proof.mark.read_mark read from desk.marks; see-the-header
 - [ ] T56 | Re-gather the files that received moved text in 4a before 4c
         > 2026-11-23 Missed 2026-11-23: differences.py, desk/marks/__init__.py
-- [ ] T57 | Refuse a `taken_in original` at one end of an agreed move
+- [x] T57 | End rulings restoring pre-move text refused; 5948 tests pass | 1d6e3ed6aaa3749123825c8dc614b520d86ca2d4 | Refuse
+      a `taken_in original` at one end of an agreed move
         > 2026-11-23 Broken review 2026-11-23: a chief can split an agreed move; #283
         > 2026-11-23 Found by 4A ranking; multi-role stages, reachable at 6a81c7b0
+        > 2026-11-23 Also reachable from a role-agreed move whose arrival only it read

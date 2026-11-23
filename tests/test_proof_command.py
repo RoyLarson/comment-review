@@ -22,6 +22,7 @@ from helpers import (
     copies_over,
     deal,
     patched,
+    taken_in_as_filed,
     turn,
 )
 
@@ -621,7 +622,8 @@ def a_closed_proof(tmp_path, monkeypatch, capsys):
 
 
 def a_closed_proof_with_a_place_that_stands(tmp_path, monkeypatch, capsys):
-    """One place corrected and one left standing, settled at the first fold.
+    """One place corrected and one left standing, closed by the chief taking
+    the one role's correction in.
 
     The filter's cases need a place the write end sets nothing at, which
     `a_closed_proof` above has none of: its one place carries a text.
@@ -638,8 +640,9 @@ def a_closed_proof_with_a_place_that_stands(tmp_path, monkeypatch, capsys):
         },
         {"m.py@b1": BASE, "m.py@b2": "# four\n"},
     )
-    assert code == report.OK
-    return tmp_path / "proof0.json", tmp_path / "repo"
+    assert code == report.REREADS
+    taken_in_as_filed(tmp_path, monkeypatch, capsys)
+    return tmp_path / "final.json", tmp_path / "repo"
 
 
 def test_a_bad_place_is_named_the_same_by_every_command_that_reads_the_proof(

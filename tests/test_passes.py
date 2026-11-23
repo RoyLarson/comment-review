@@ -8,7 +8,9 @@ from helpers import a_typed_answer, a_typed_mark, a_typed_ruling
 from comment_review.desk.answers.table import ANSWERS
 from comment_review.desk.evaluate.move import moves_in
 from comment_review.desk.evaluate.passes import (
+    _from_sides,
     answers_pass,
+    composed_side,
     decide,
     dispositions_pass,
     marks_pass,
@@ -138,25 +140,37 @@ class TestSeveralOfOneRolesMarksAtOnePlace:
     #: correct edits -- the correct replaces the second.
     ABOVE = "# five\n" + BASE
     #: And here it lands on the second line, keeping every word already there
-    #: as its row demands -- which is the line the correct rewrites. One
-    #: sentence, two marks.
+    #: as its row demands -- after the word the correct changes, inside no
+    #: edit of the correct's.
     ON_THE_SENTENCE = "# one\n# two five\n# three\n"
 
     def test_marks_on_different_sentences_compose_into_one_side(self):
         got = sides_of(self._place_with("a", "a", self.ABOVE))
         assert got == ({"a": "# five\n# one\n# 2\n# three\n"}, ())
 
-    def test_the_composed_side_settles_the_place_as_one_side_would(self):
+    def test_the_composed_side_carries_the_place_as_one_side_would(self):
         got = marks_pass(self._place_with("a", "a", self.ABOVE))
-        assert got.state is State.STANDS
+        assert got.state is State.COMPOSED and got.owed == ()
         assert got.text == "# five\n# one\n# 2\n# three\n"
 
-    def test_marks_on_the_same_sentence_are_refused_naming_both(self):
-        got = marks_pass(self._place_with("a", "a", self.ON_THE_SENTENCE))
+    def test_an_arrival_beside_the_corrected_word_composes(self):
+        got = sides_of(self._place_with("a", "a", self.ON_THE_SENTENCE))
+        assert got == ({"a": "# one\n# 2 five\n# three\n"}, ())
+
+    def test_marks_on_the_same_words_are_refused_naming_both(self):
+        patch = _mark(
+            Instruction.PATCH,
+            change="# one\n# II\n# three\n",
+            claim={"from": "two", "to": "II"},
+        )
+        place = _place(
+            Filed("a", self._a_correct(), Touch.OWN), Filed("a", patch, Touch.OWN)
+        )
+        got = marks_pass(place)
         assert got.state is State.REFUSED
         (why,) = got.reasons
         assert why.startswith("a: ")
-        assert "its correct at m.py@b1" in why and "its move at m.py@b5" in why
+        assert "its correct at m.py@b1" in why and "its patch at m.py@b1" in why
         assert "withdraw one" in why
 
     def test_two_roles_filing_one_mark_each_still_compose(self):
@@ -308,7 +322,7 @@ class TestSeveralOfOneRolesMarksAtOnePlace:
                 Instruction.CORRECT, {"false": "Two", "true": "2"}, base
             ),
         )
-        assert len(why) == 1 and "same sentence" in why[0]
+        assert len(why) == 1 and "same words" in why[0]
 
 
 def _a_correct(change="# one\n# 2\n# three\n", false="two", true="2"):
@@ -366,14 +380,50 @@ def test_future_deferral_cannot_change_an_earlier_fold():
     assert got.owed == ("a", "b", "c")
 
 
-def test_a_lone_proposal_no_one_else_read_stands():
-    """`decision-log.md Process: #180`: the rule waits on the roles that read
-    the place, and here there are none."""
-    place = _place(Filed("a", _a_correct(), Touch.OWN))
-    place.readers = ("a",)
-    got = marks_pass(place)
-    assert got.state is State.STANDS and got.text == "# one\n# 2\n# three\n"
-    assert got.owed == ()
+class TestAChangeOnlyItsProposerReadGoesToTheChief:
+    """`decision-log.md Process: #385`: no role but the proposer read the
+    place, so the change is carried to the copy chief, owed to no role."""
+
+    @pytest.mark.parametrize(
+        "mark",
+        (
+            _mark(Instruction.DROP, change="# one\n# three\n", claim={"drop": "two"}),
+            _mark(
+                Instruction.PATCH,
+                change="# one\n# 2\n# three\n",
+                claim={"was": "two", "now": "2"},
+            ),
+        ),
+        ids=("drop", "patch"),
+    )
+    def test_a_lone_change_is_composed_and_owed_to_no_role(self, mark):
+        place = _place(Filed("a", mark, Touch.OWN))
+        place.readers = ("a",)
+        got = marks_pass(place)
+        assert got.state is State.COMPOSED and got.text == mark.change
+        assert got.question is Question.COMPOSITION and got.owed == ()
+        assert got.sides == {"a": mark.change}
+
+    def test_the_chiefs_original_returns_it_to_the_base(self):
+        place = _place(Filed("a", _a_correct(), Touch.OWN))
+        place.readers = ("a",)
+        place.disposition = a_typed_ruling(
+            address="m.py@b1", name="taken_in", side=ORIGINAL, prose="", reason="r"
+        )
+        got = decide({place.address: place})[place.address]
+        assert got.state is State.STANDS and got.text is None
+
+    def test_a_lone_proposal_of_the_base_changes_nothing_and_stands(self):
+        place = _place(Filed("a", _a_correct(change=BASE), Touch.OWN))
+        place.readers = ("a",)
+        assert marks_pass(place).state is State.STANDS
+
+    def test_a_change_a_second_role_read_is_not_the_chiefs(self):
+        """The rule reads who read the place, not what stage it is."""
+        place = _place(Filed("a", _a_correct(), Touch.OWN))
+        place.readers = ("a", "b")
+        got = marks_pass(place)
+        assert got.state is State.COMPOSED and got.owed == ("b",)
 
 
 class TestATextEveryReaderMustHaveSeen:
@@ -440,7 +490,7 @@ class TestATextEveryReaderMustHaveSeen:
         )
         place.readers = ("a", "b")
         got = marks_pass(place)
-        assert got.state is State.STANDS and got.owed == ()
+        assert got.state is State.COMPOSED and got.owed == ()
 
     def test_one_hold_and_a_withdrawal_go_to_the_roles_that_were_never_asked(self):
         """The role that withdrew has had its say and holds no position; the
@@ -474,9 +524,9 @@ class TestATextEveryReaderMustHaveSeen:
         assert got.state is State.COMPOSED and got.text == "# new paragraph\n"
         assert got.question is Question.COMPOSITION and got.owed == ("b",)
 
-    def test_a_deferring_query_beside_an_add_settles_it(self):
-        """`decision-log.md Process: #121`, which the invariant keeps: the one
-        role that could have opposed the add abstains, so nothing is owed."""
+    def test_a_deferring_query_beside_an_add_puts_it_to_the_chief(self):
+        """`decision-log.md Process: #386`: the one other role abstains, so no
+        role but the proposer read the add, and it goes to the chief."""
         add = _mark(
             Instruction.ADD,
             raw_text="# new paragraph\n",
@@ -493,7 +543,8 @@ class TestATextEveryReaderMustHaveSeen:
         )
         place.readers = ("a", "b")
         got = marks_pass(place)
-        assert got.state is State.STANDS and got.text == "# new paragraph\n"
+        assert got.state is State.COMPOSED and got.text == "# new paragraph\n"
+        assert got.owed == ()
 
 
 def test_two_proposals_of_one_text_agree():
@@ -850,7 +901,10 @@ class TestAMoveIsDecidedBeforeItsEnds:
     LANDED = "# four\n# two\n# five\n"
     REMAINDER = "# one\n# three\n"
 
-    def _places(self, readers=("a", "b"), change=None, landed=None):
+    KEY = "m.py@b1 -> m.py@b5"
+
+    def _places(self, readers=("a", "b"), change=None, landed=None, extra=()):
+        """The move, with `extra` filed beside it at the destination."""
         move = _mark(
             Instruction.MOVE,
             change=change or self.MOVED,
@@ -859,7 +913,10 @@ class TestAMoveIsDecidedBeforeItsEnds:
         )
         origin = _place(Filed("a", move, Touch.ORIGIN))
         destination = _place(
-            Filed("a", move, Touch.DESTINATION), base=self.LANDING, address="m.py@b5"
+            Filed("a", move, Touch.DESTINATION),
+            *extra,
+            base=self.LANDING,
+            address="m.py@b5",
         )
         destination.anchor = "y = 5"
         origin.readers = destination.readers = readers
@@ -869,11 +926,48 @@ class TestAMoveIsDecidedBeforeItsEnds:
     def _placement(self, name, claim=None):
         return _answer(name, claim=claim, question=Question.PLACEMENT)
 
-    def test_a_move_only_its_mover_read_settles_at_turn_0_still_filed(self):
-        """`Process: #205`: agreed, the move stays filed at both ends, and each
-        end is decided against it."""
+    def _chief_takes(self, places, moves, side):
+        """The chief's placement ruling on the lone move, folded."""
+        decide(places, moves)
+        moves[self.KEY].disposition = a_typed_ruling(
+            address="m.py@b1",
+            to="m.py@b5",
+            name="taken_in",
+            side=side,
+            prose="",
+            reason="r",
+        )
+        moves = moves_in(places, moves)
+        decide(places, moves)
+        return moves
+
+    def test_a_move_only_its_mover_read_is_open_and_put_to_the_chief(self):
+        """`Process: #385`: no role but the mover read either page, so the
+        placement is open, owed to no role, and both ends wait on it."""
         places, moves = self._places(readers=("a",))
         decide(places, moves)
+        move = moves[self.KEY]
+        assert (move.placement, move.owed) == (Placement.OPEN, ())
+        for end in places.values():
+            assert (end.state, end.text, end.owed) == (State.TO_COME, None, ())
+
+    def test_the_chiefs_original_withdraws_a_lone_move_and_both_ends_keep_the_base(
+        self,
+    ):
+        places, moves = self._places(readers=("a",))
+        moves = self._chief_takes(places, moves, ORIGINAL)
+        assert moves[self.KEY].placement is Placement.WITHDRAWN
+        for end in places.values():
+            assert end.filed == []
+            assert (end.state, end.text) == (State.STANDS, None)
+
+    def test_taking_a_lone_move_in_decides_both_ends_it_sets(self):
+        """`Process: #388`: the placement ruling is the chief's say at each
+        end whose text is exactly what the move sets there, and the move
+        stays filed at both (`Process: #205`)."""
+        places, moves = self._places(readers=("a",))
+        moves = self._chief_takes(places, moves, "a")
+        assert moves[self.KEY].placement is Placement.AGREED
         origin, destination = places["m.py@b1"], places["m.py@b5"]
         assert [(one.mark.instruction, one.touch) for one in origin.filed] == [
             (Instruction.MOVE, Touch.ORIGIN)
@@ -881,8 +975,44 @@ class TestAMoveIsDecidedBeforeItsEnds:
         assert [(one.mark.instruction, one.touch) for one in destination.filed] == [
             (Instruction.MOVE, Touch.DESTINATION)
         ]
-        assert (origin.state, origin.text) == (State.STANDS, self.REMAINDER)
+        assert (origin.state, origin.text, origin.owed) == (
+            State.STANDS,
+            self.REMAINDER,
+            (),
+        )
         assert (destination.state, destination.text) == (State.STANDS, self.LANDED)
+
+    def test_an_end_the_placement_ruling_decided_takes_no_ruling_of_its_own(self):
+        """`Process: #283`: a move is not split by a ruling at one end."""
+        places, moves = self._places(readers=("a",))
+        moves = self._chief_takes(places, moves, "a")
+        places["m.py@b1"].disposition = a_typed_ruling(
+            address="m.py@b1", name="taken_in", side=ORIGINAL, prose="", reason="r"
+        )
+        decide(places, moves_in(places, moves))
+        assert places["m.py@b1"].state is State.REFUSED
+
+    def test_a_patch_the_mover_added_at_an_end_still_goes_to_the_chief(self):
+        patch = _mark(
+            Instruction.PATCH,
+            change="# 4\n# five\n",
+            raw_text=self.LANDING,
+            claim={"from": "four", "to": "4"},
+            address="m.py@b5",
+        )
+        places, moves = self._places(
+            readers=("a",),
+            landed="# four\n# five\n# two\n",
+            extra=(Filed("a", patch, Touch.OWN),),
+        )
+        moves = self._chief_takes(places, moves, "a")
+        origin, destination = places["m.py@b1"], places["m.py@b5"]
+        assert (origin.state, origin.text) == (State.STANDS, self.REMAINDER)
+        assert (destination.state, destination.text, destination.owed) == (
+            State.COMPOSED,
+            "# 4\n# five\n# two\n",
+            (),
+        )
 
     def test_an_open_moves_ends_are_to_come_and_ask_nothing(self):
         """`Process: #200`: an end's words wait on its move's placement."""
@@ -994,6 +1124,90 @@ class TestAMoveIsDecidedBeforeItsEnds:
         assert (origin.state, origin.text) == (State.STANDS, self.REMAINDER)
         assert (destination.state, destination.text) == (State.STANDS, recast)
 
+    def _agreed_by_b(self, destination_readers=("a", "b"), **kwargs):
+        """`a`'s move, which `b` agreed in turn 1, with `b` reading the
+        destination's page only where `destination_readers` says so."""
+        places, _ = self._places(**kwargs)
+        places["m.py@b5"].readers = destination_readers
+        moves = moves_in(places)
+        decide(places, moves)
+        moves[self.KEY].answers[1] = {"b": self._placement("agree")}
+        decide(places, moves, turn=1)
+        assert moves[self.KEY].placement is Placement.AGREED
+        return places, moves
+
+    def _chief_rules_end(self, places, moves, address, name, side, prose=""):
+        places[address].disposition = a_typed_ruling(
+            address=address, name=name, side=side, prose=prose, reason="r"
+        )
+        decide(places, moves_in(places, moves), turn=1)
+        return places[address]
+
+    def _split_reason(self, address):
+        return (
+            f"copy-chief: the ruling at {address} puts back the text the agreed"
+            f" move {self.KEY} changed here, which splits the move; withdraw a"
+            " move on its placement, where `taken_in original` takes it off both"
+            " ends, and at an end rule the move's text or a further mark"
+        )
+
+    @pytest.mark.parametrize(
+        ("destination_readers", "address"),
+        [(("a", "b"), "m.py@b1"), (("a",), "m.py@b5")],
+        ids=["agreed-by-two-roles", "arrival-on-a-page-the-agreeing-role-never-read"],
+    )
+    def test_original_at_one_end_of_an_agreed_move_is_refused(
+        self, destination_readers, address
+    ):
+        """`Process: #283`: a move is approved whole, so the original at one
+        end -- the paragraph back at its origin, or the arrival dropped --
+        would duplicate or lose the paragraph while the move reads agreed."""
+        places, moves = self._agreed_by_b(destination_readers)
+        end = self._chief_rules_end(places, moves, address, "taken_in", ORIGINAL)
+        assert (end.state, end.text) == (State.REFUSED, None)
+        assert end.reasons == (self._split_reason(address),)
+
+    def test_a_recast_to_the_pre_move_text_is_refused_as_the_original_is(self):
+        places, moves = self._agreed_by_b(("a",))
+        end = self._chief_rules_end(
+            places, moves, "m.py@b5", "recast", "copy-chief", prose=self.LANDING
+        )
+        assert end.state is State.REFUSED
+        assert end.reasons == (self._split_reason("m.py@b5"),)
+
+    @pytest.mark.parametrize(
+        ("name", "side", "prose", "text"),
+        [
+            ("taken_in", "a", "", LANDED),
+            ("recast", "copy-chief", "# four\n# two, reworded\n# five\n", None),
+        ],
+        ids=["the-moves-own-text", "a-recast-of-the-arrival"],
+    )
+    def test_a_ruling_that_keeps_the_move_at_an_end_stands(
+        self, name, side, prose, text
+    ):
+        places, moves = self._agreed_by_b(("a",))
+        end = self._chief_rules_end(places, moves, "m.py@b5", name, side, prose)
+        assert (end.state, end.text) == (State.STANDS, text or prose)
+
+    def test_a_further_mark_at_an_end_of_an_agreed_move_is_taken_in(self):
+        """`Process: #283`: once agreed, a move's ends are split for further
+        marks -- here a patch on top of the arrival."""
+        patch = _mark(
+            Instruction.PATCH,
+            change="# 4\n# five\n",
+            raw_text=self.LANDING,
+            claim={"from": "four", "to": "4"},
+            address="m.py@b5",
+        )
+        places, moves = self._agreed_by_b(
+            ("a",),
+            landed="# four\n# five\n# two\n",
+            extra=(Filed("a", patch, Touch.OWN),),
+        )
+        end = self._chief_rules_end(places, moves, "m.py@b5", "taken_in", "a")
+        assert (end.state, end.text) == (State.STANDS, "# 4\n# five\n# two\n")
+
 
 def test_an_agreed_move_leaves_the_reverse_move_between_its_places_filed():
     """Two moves between one pair of places, in opposite directions, are two
@@ -1038,17 +1252,17 @@ def test_an_agreed_move_leaves_the_reverse_move_between_its_places_filed():
         )
 
 
-def test_a_correct_that_drops_an_unnamed_word_is_noted_and_still_settles():
+def test_a_correct_that_drops_an_unnamed_word_is_noted_and_not_refused():
     """`decision-log.md Process: #163` and `#177`: the words a change drops
-    that its claim never named are advisory, so the place settles on the
-    change and the note rides beside it."""
+    that its claim never named are advisory, so the place comes to the change
+    as any lone change does, and the note rides beside it."""
     correct = _mark(
         Instruction.CORRECT,
         change="# one\n# TWO\n",
         claim={"false": "two", "true": "TWO"},
     )
     got = marks_pass(_place(Filed("a", correct, Touch.OWN)))
-    assert got.state is State.STANDS
+    assert got.state is State.COMPOSED
     assert got.text == "# one\n# TWO\n"
     assert got.notes == ("a: its change drops 'three', which its claim never names",)
 
@@ -1060,8 +1274,184 @@ def test_a_correct_that_keeps_every_unnamed_word_is_not_noted():
         claim={"false": "two", "true": "TWO"},
     )
     got = marks_pass(_place(Filed("a", correct, Touch.OWN)))
-    assert got.state is State.STANDS
+    assert got.state is State.COMPOSED
     assert got.notes == ()
+
+
+def _derived(instruction, claim, base):
+    change, why = derived_change(instruction, claim, base, address="m.py@b1")
+    assert why == [] and change is not None
+    return _mark(instruction, change=change, raw_text=base, claim=claim)
+
+
+def _a_line_added(line, text):
+    return _mark(Instruction.ADD, change=line, raw_text=text)
+
+
+class TestWhoFiledDoesNotDecideWhetherEditsCompose:
+    """One rule decides whether edits compose: one role filing both, or two
+    roles filing one each, reach the same text and the same question."""
+
+    @pytest.mark.parametrize(
+        "base, first, second, composed",
+        (
+            (
+                "# Alpha: one. Beta: two.\n",
+                {"false": "one", "true": "1"},
+                {"false": "two", "true": "2"},
+                "# Alpha: 1. Beta: 2.\n",
+            ),
+            (
+                "# Alpha: one and two.\n",
+                {"false": "one", "true": "1"},
+                {"false": "two", "true": "2"},
+                "# Alpha: 1 and 2.\n",
+            ),
+        ),
+    )
+    def test_one_role_or_two_compose_to_one_text(self, base, first, second, composed):
+        def folded(other):
+            place = _place(
+                Filed("a", _derived(Instruction.CORRECT, first, base), Touch.OWN),
+                Filed(other, _derived(Instruction.CORRECT, second, base), Touch.OWN),
+                base=base,
+            )
+            place.readers = ("a", "b")
+            got = marks_pass(place)
+            return got.state, got.text, got.question
+
+        assert (
+            folded("a")
+            == folded("b")
+            == (
+                State.COMPOSED,
+                composed,
+                Question.COMPOSITION,
+            )
+        )
+
+
+def _groupings(items):
+    """Every way to split `items` into non-empty groups, order kept within each."""
+    if not items:
+        yield []
+        return
+    first, *rest = items
+    for groups in _groupings(rest):
+        for i in range(len(groups)):
+            yield [*groups[:i], [first, *groups[i]], *groups[i + 1 :]]
+        yield [[first], *groups]
+
+
+def _outcome(base, groups):
+    """The composed text, or "clash", with each group filed by its own role."""
+    sides = {}
+    for i, group in enumerate(groups):
+        role = f"r{i}"
+        text, why = composed_side(
+            role, [Filed(role, m, Touch.OWN) for m in group], base
+        )
+        if why:
+            return "clash"
+        sides[role] = base if text is None else text
+    place = _place(base=base)
+    place.readers = tuple(sides)
+    got = _from_sides(place, sides)
+    return "clash" if got.state is State.CONTESTED else got.text
+
+
+_LINES = "# one\n# two\n# three\n"
+
+
+def _grouping_cases():
+    """Eight edit sets, 28 groupings in all, and the outcome every one must reach."""
+    s7 = "# Alpha: one. Beta: two.\n"
+    one_sentence = "# Alpha: one and two.\n"
+    words = "# alpha beta gamma\n"
+    c = Instruction.CORRECT
+    yield (
+        s7,
+        [
+            _derived(c, {"false": "one", "true": "1"}, s7),
+            _derived(c, {"false": "two", "true": "2"}, s7),
+        ],
+        "# Alpha: 1. Beta: 2.\n",
+    )
+    yield (
+        one_sentence,
+        [
+            _derived(c, {"false": "one", "true": "1"}, one_sentence),
+            _derived(c, {"false": "two", "true": "2"}, one_sentence),
+        ],
+        "# Alpha: 1 and 2.\n",
+    )
+    yield (
+        _LINES,
+        [
+            _derived(c, {"false": "one", "true": "1"}, _LINES),
+            _derived(c, {"false": "two", "true": "2"}, _LINES),
+            _derived(c, {"false": "three", "true": "3"}, _LINES),
+        ],
+        "# 1\n# 2\n# 3\n",
+    )
+    yield (
+        _LINES,
+        [
+            _derived(Instruction.DROP, {"drop": "one"}, _LINES),
+            _derived(Instruction.DROP, {"drop": "two"}, _LINES),
+        ],
+        "# three\n",
+    )
+    yield (
+        _LINES,
+        [
+            _derived(c, {"false": "one", "true": "1"}, _LINES),
+            _derived(c, {"false": "two", "true": "2"}, _LINES),
+            _derived(c, {"false": "two", "true": "II"}, _LINES),
+        ],
+        "clash",
+    )
+    yield (
+        _LINES,
+        [
+            _a_line_added("# INSERTED\n", "# one\n# INSERTED\n# two\n# three\n"),
+            _derived(c, {"false": "one", "true": "1"}, _LINES),
+            _derived(c, {"false": "two", "true": "2"}, _LINES),
+        ],
+        "# 1\n# INSERTED\n# 2\n# three\n",
+    )
+    yield (
+        words,
+        [
+            _derived(Instruction.PATCH, {"from": "alpha beta gamma", "to": "x"}, words),
+            _derived(Instruction.PATCH, {"from": "alpha", "to": "alpha new"}, words),
+        ],
+        "clash",
+    )
+    yield (
+        _LINES,
+        [
+            _derived(c, {"false": "one", "true": "1"}, _LINES),
+            _derived(c, {"false": "two", "true": "2"}, _LINES),
+            _derived(c, {"false": "one", "true": "1"}, _LINES),
+        ],
+        "# 1\n# 2\n# three\n",
+    )
+
+
+@pytest.mark.parametrize("base, edits, outcome", list(_grouping_cases()))
+def test_every_grouping_of_the_edits_into_roles_reaches_one_outcome(
+    base, edits, outcome
+):
+    """However the edits are split between roles -- all to one, one each, or
+    any grouping between -- they compose to one text or all clash."""
+    got = {
+        tuple(map(tuple, groups)): _outcome(
+            base, [[edits[i] for i in g] for g in groups]
+        )
+        for groups in _groupings(list(range(len(edits))))
+    }
+    assert set(got.values()) == {outcome}, got
 
 
 def test_a_note_survives_the_state_the_place_comes_to():

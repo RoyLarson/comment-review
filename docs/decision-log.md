@@ -7373,3 +7373,101 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
 
   **What it settles.** Nothing moves yet. A TODO determines, for each flow helper, whether an
   existing package fits it better or a new package is needed.
+
+- **#385.** **A change only its proposer read goes to the copy chief** (Roy, 2026-11-23, on the
+  broken review's part 4A, `settlement-depends-on-who-filed`; offered supersede #180's "a lone
+  proposal at a place no other role read stands" or keep it):
+
+  *"Supersede (Recommended)"*
+
+  **What it settles.** #180's lone-proposal clause is superseded: a change no role but its
+  proposer read is put to the copy chief, and no turn is run for it. A changed place is carried
+  as composed and a move stays open, owed to no role, until the chief rules.
+
+- **#386.** **An add beside only deferring queries goes to the chief too** (Roy, 2026-11-23, on
+  part 4A; offered supersede #121 or keep it):
+
+  *"Supersede (Recommended)"*
+
+  **What it settles.** #121 is superseded: such an add is a change only its proposer read, under
+  #385.
+
+- **#387.** **Stage 6's condensations go to the chief under the same rule** (Roy, 2026-11-23, on
+  part 4A; offered the same rule or a stage-6 exemption):
+
+  *"Yes, same rule (Recommended)"*
+
+  **What it settles.** No stage-specific branch: a compaction patch only its proposer read goes
+  to the chief like any other.
+
+- **#388.** **The chief's placement ruling is the second party at both ends of a lone move** (Roy,
+  2026-11-23, on part 4A, reading #195 item 2 and #331; offered one ruling or a ruling per end):
+
+  *"Confirm, one ruling (Recommended)"*
+
+  **What it settles.** Taking a lone mover's move in counts as the chief's say at both ends,
+  wherever an end's text is exactly what the move sets there. A patch the mover added at an end
+  still goes to the chief. A move is not split by end rulings (#283).
+
+- **#389.** **Edits on adjacent lines compose** (Roy, 2026-11-23, on part 4B; T36's
+  `test_fill.py` fixture and `test_differences.py::test_two_edits_on_adjacent_lines_still_refuse`
+  expect opposite results on one shape; offered either):
+
+  *"They compose (Recommended)"*
+
+  **What it settles.** The line-adjacency rule is retired; the refusing test flips.
+
+- **#390.** **Two edits clash only where their changed words overlap** (Roy, 2026-11-23, on part
+  4B; offered overlapping words or same sentence):
+
+  *"Overlapping words (Recommended)"*
+
+  **What it settles.** One merge rule reads only the texts and refuses only overlapping changed
+  spans, whoever filed them. #179's "same sentence", #196's "same line" and
+  `reviewer-brief.md:187-188` are restated to match.
+
+- **#391.** **An insert clashes only with the edit it falls inside** (Roy, 2026-11-23, on part
+  4B; offered retire the line-block insert rule or keep it):
+
+  *"Retire it (Recommended)"*
+
+  **What it settles.** `test_a_line_added_inside_another_sides_rewrite_refuses` flips; an insert's
+  outcome no longer depends on how edits are split between roles.
+
+- **#392.** **A clash keeps its two remedies** (Roy, 2026-11-23, on part 4B; offered keep the
+  remedies or unify them):
+
+  *"Yes, keep the remedies (Recommended)"*
+
+  **What it settles.** One role's clash is refused back to it; two roles' clash is escalated.
+  Whether edits compose, and the text they compose to, is one rule.
+
+- **#393.** **`stet`, `taken_in` and `decided` each keep one meaning** (Roy, 2026-11-23, on part
+  4C; offered superseding Process #87's program-set stet, Process #9's "a role cannot emit a
+  stet" and Vocabulary #12's compositor sense of "taken in"):
+
+  *"Supersede all three (Recommended)"*
+
+  **What it settles.** A place no ruling touched is `decided` (#333); `stet` is a reader refusing
+  a move (#195, #332); `taken_in` is the chief's ruling only.
+
+- **#394.** **CLAUDE.md's stet paragraph is replaced** (Roy, 2026-11-23, on part 4C; shown the
+  exact wording for `CLAUDE.md:476-481`):
+
+  *"Approve (Recommended)"*
+
+- **#395.** **The tree-diff command is renamed `compare`** (Roy, 2026-11-23, on part 4C; offered
+  rename, delete, or keep `taken_in`):
+
+  *"Rename to `compare` (Recommended)"*
+
+  **What it settles.** #349's command stays, under a name that no longer collides with the
+  chief's ruling.
+
+- **#396.** **"Original" means the stage's base** (Roy, 2026-11-23, on part 4C's console line and
+  the broken review's run-record design, which wanted run-start text only):
+
+  *"The stage's base (Recommended)"*
+
+  **What it settles.** `original` names the text a stage read, as `taken_in original` restores
+  today. Run-start text needs its own word when the run record is designed.

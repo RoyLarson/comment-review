@@ -297,8 +297,9 @@ def composition_problems(
     """Every place where several of one role's marks will not compose.
 
     A role's own marks at one place compose
-    against the base the way two roles' do, so two on different sentences are
-    one side and two on the same sentence are refused back to the role. The
+    against the base the way two roles' do, so two that change different words
+    are one side and two that change the same words are refused back to the
+    role. The
     rule is `desk.evaluate.passes.composed_side`, which the fold asks; this
     walks a copy's marks into the places they touch and asks it there, so
     `mark` refuses at placing time what the fold would refuse at the fold.

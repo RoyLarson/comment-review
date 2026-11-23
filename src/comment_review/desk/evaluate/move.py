@@ -2,8 +2,10 @@
 
     moves_in         every move filed on the places, with its movers and readers
     placement_pass   one move's placement, from what was filed and answered
-    settle_ends      a final placement, written onto the two place records
-    hold_ends        an undecided placement, held on its two ends
+    decide_ends      a final placement, written onto the two place records
+    cover_ends       the ends the chief's placement ruling decides
+    keep_ends        an agreed move's ends, refused a ruling that restores one
+    hold_ends       an undecided placement, held on its two ends
 
 The move itself -- its fields, its placements and its name -- is
 `desk.proof.move`.
@@ -75,8 +77,9 @@ def placement_pass(move: Move, places: dict[str, Place], turn: int) -> Move:
 
     A mover's filing is its agreement. The roles owed a say are the readers
     of either page, less the movers, less a role whose every mark at both
-    ends defers; an answer up to `turn` narrows them. A final placement is
-    left as it is.
+    ends defers; an answer up to `turn` narrows them. A move with one mover
+    and no other such reader stays open with no role owed, for the chief's
+    placement ruling. A final placement is left as it is.
 
     Each later vote replaces the role's earlier vote. Deferral removes its
     prior acceptance or contest and leaves other readers owing their say.
@@ -172,7 +175,10 @@ def placement_pass(move: Move, places: dict[str, Place], turn: int) -> Move:
     else:
         owed = set(move.readers) - set(movers) - deferring - accepted
         move.owed = tuple(sorted(owed))
-        move.placement = Placement.OPEN if owed else Placement.AGREED
+        # A move no role but its one mover read is put to the chief, owed to
+        # no role.
+        unread = len(movers) == 1 and not set(move.readers) - set(movers) - deferring
+        move.placement = Placement.OPEN if owed or unread else Placement.AGREED
     if move.disposition is not None:
         _ruled(move, move.disposition)
     return move
@@ -183,7 +189,7 @@ def _ruled(move: Move, ruling: Disposition) -> None:
 
     Only an undecided move takes one. The original keeps the paragraph where
     it is; a mover's side agrees the move as that mover filed it, and any
-    other mover's filing comes off when the placement is settled.
+    other mover's filing comes off when the placement is decided.
     """
     if move.placement not in UNDECIDED:
         move.placement, move.reasons = (
@@ -219,7 +225,7 @@ def _is_this_move(one: Filed, move: Move) -> bool:
     ) in written
 
 
-def settle_ends(move: Move, places: dict[str, Place]) -> None:
+def decide_ends(move: Move, places: dict[str, Place]) -> None:
     """Take off the two ends the filings a final placement no longer stands on.
 
     `decision-log.md Process: #205`: an agreed move stays filed at both ends,
@@ -240,6 +246,66 @@ def settle_ends(move: Move, places: dict[str, Place]) -> None:
             if not _is_this_move(one, move)
             or (move.placement is Placement.AGREED and one.role in move.movers)
         ]
+
+
+def cover_ends(move: Move, places: dict[str, Place]) -> None:
+    """Decide the ends a move the chief took in from its mover sets, and no more.
+
+    The chief's placement ruling is the second party at each end whose one
+    side is the mover's and reads exactly as the move sets it there: the
+    remainder at the origin, the arrival at the destination. Such an end is
+    carried to nobody (`passes._from_sides`) and is decided here, so the two
+    ends are never ruled apart. An end where the mover changed more than the
+    move sets stays carried, for its own ruling.
+    """
+    ruling = move.disposition
+    if (
+        move.placement is not Placement.AGREED
+        or ruling is None
+        or ruling.taken_side not in move.movers
+    ):
+        return
+    mark = move.movers[ruling.taken_side]
+    row = INSTRUCTIONS[mark.instruction]
+    for address, touch in (
+        (move.origin, Touch.ORIGIN),
+        (move.destination, Touch.DESTINATION),
+    ):
+        end = places.get(address)
+        if end is None or end.state is not State.COMPOSED or end.owed:
+            continue
+        if set(end.sides) != {ruling.taken_side}:
+            continue
+        sets = row.sets(mark, touch, end.base)
+        if end.sides[ruling.taken_side] == (end.base if sets is None else sets):
+            end.state, end.question = State.STANDS, None
+
+
+def keep_ends(move: Move, places: dict[str, Place]) -> None:
+    """Refuse a chief's ruling that puts an end of an agreed move back as it was.
+
+    An agreed move is approved whole. A ruling at one end that sets the end's
+    base -- `taken_in original`, or a `recast` to that text -- would leave the
+    paragraph at both ends or at neither while the move reads agreed. A ruling
+    that keeps the move's text, or a further mark on it, stands.
+    """
+    if move.placement is not Placement.AGREED:
+        return
+    for end in (places.get(move.origin), places.get(move.destination)):
+        if end is None or end.disposition is None or end.state is not State.STANDS:
+            continue
+        if end.text is None or end.text == end.base:
+            end.state, end.text, end.reasons = (
+                State.REFUSED,
+                None,
+                (
+                    f"{CHIEF}: the ruling at {end.address} puts back the text the"
+                    f" agreed move {move.key} changed here, which splits the move;"
+                    " withdraw a move on its placement, where `taken_in original`"
+                    " takes it off both ends, and at an end rule the move's text"
+                    " or a further mark",
+                ),
+            )
 
 
 def hold_ends(move: Move, places: dict[str, Place]) -> None:

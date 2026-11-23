@@ -5,7 +5,7 @@
                          the table of rows every reader asks
     answers             what a role hands back in a turn, and its own table
     dispositions        what the chief rules on a place the roles never
-                         settled, and its own table
+                         decided, and its own table
     evaluate            the passes that take a place from the marks filed on
                          it to the state it comes to
     work                the Unit of Work: a fold over the places, which
