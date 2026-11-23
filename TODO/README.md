@@ -229,7 +229,7 @@ that changed a published name or rule:
 | [no-command-for-the-middle](no-command-for-the-middle.md) | backend | -- | 102/104 | `gather`, `places`, `reconcile` and `docket_from` have no CLI face, so nothing turns checked marks into the docket `proof --docket` requires. Measured 2026-08-29 on a real run: every other step of the chain is a command; this one had to be driven from a hand-written script |
 | [query-names-no-sentence](query-names-no-sentence.md) | backend | -- | 2/4 | every other substantive instruction names the sentence it rules on through a `claim` key -- `false` for `correct`, `drop` for `drop`, `from` for `patch` -- and `query` has none, so `_sentence_key` falls back to an identity and two queries at one place read as two different sentences |
 | [strip-before-review-experiment](strip-before-review-experiment.md) | agents | -- | 0/5 | the `collator.py` prose was deleted whole and rewritten by an agent that could read only the code -- it found three defects the old prose never mentioned and named two things the code cannot say; whether that beats editing in place is untested |
-| [collator-defects](collator-defects.md) | backend | yes | 41/58 | four defects in `desk/collator.py`, all found by an agent writing the file's prose from the code alone: a `move` onto its own address becomes a bare delete, a multi-line `verbatim` from a CRLF file can never match, the source cache is keyed without its root, and a malformed cite raises where the half is meant to report |
+| [collator-defects](collator-defects.md) | backend | -- | 42/58 | four defects in `desk/collator.py`, all found by an agent writing the file's prose from the code alone: a `move` onto its own address becomes a bare delete, a multi-line `verbatim` from a CRLF file can never match, the source cache is keyed without its root, and a malformed cite raises where the half is meant to report |
 | [staged-chain-untested](staged-chain-untested.md) | backend | -- | 5/8 | the four-stage chain runs and the edits accumulate, proven 2026-08-30 -- but no test in the suite drives it, and the only committed fan-out topology refuses any tree but this repo's |
 | [containers-and-verification-are-unwired](containers-and-verification-are-unwired.md) | backend | -- | 58/74 | The containers and the source-verification half are wired to nothing |
 | [mark-holds-spec-and-parse](mark-holds-spec-and-parse.md) | backend | -- | 5/10 | mark.py holds the instruction spec and the boundary parse at one scope |
@@ -244,7 +244,7 @@ that changed a published name or rule:
 | [stage-4b-is-undefined](stage-4b-is-undefined.md) | agents | -- | 10/12 | the 4a/4c split promises a resolved placement that nothing produces |
 | [citations-resolve-to-no-object](citations-resolve-to-no-object.md) | systems | -- | 0/1 | Find the four commit citations that resolve to no object |
 | [row-was-never-retired](row-was-never-retired.md) | backend | -- | 4/8 | Retire row everywhere -- the type, the wire key and the prose |
-| [only-a-flow-reaches-the-machine](only-a-flow-reaches-the-machine.md) | backend | yes | 6/12 | Route every machine read and write through a flow |
+| [only-a-flow-reaches-the-machine](only-a-flow-reaches-the-machine.md) | backend | -- | 7/12 | Route every machine read and write through a flow |
 | [a-non-code-document-has-no-read-review-resolve-or-write-chain-of-its-own](a-non-code-document-has-no-read-review-resolve-or-write-chain-of-its-own.md) | backend | -- | 0/2 | A non-code document has no read, review, resolve or write chain of its own |
 | [re-review-is-retired-for-revise](re-review-is-retired-for-revise.md) | agents | -- | 5/7 | re-review is retired for revise |
 | [agents-files-name-the-new-cli](agents-files-name-the-new-cli.md) | agents | -- | 85/88 | The agents files name the new CLI and say how to use it |
@@ -266,7 +266,7 @@ that changed a published name or rule:
 | [freeform-run-findings](freeform-run-findings.md) | agents | -- | 22/26 | What the first live freeform run showed |
 | [topology-defects](topology-defects.md) | backend | -- | 0/10 | Topology defects |
 | [reading-settings-have-no-setting](reading-settings-have-no-setting.md) | backend | -- | 0/4 | Reading settings have no setting |
-| [one-obvious-way](one-obvious-way.md) | backend | yes | 2/38 | One obvious way |
+| [one-obvious-way](one-obvious-way.md) | backend | -- | 3/38 | One obvious way |
 | [page-defects](page-defects.md) | backend | -- | 0/4 | binder/page.py carries unread names and a branch nothing reaches |
 | [addresser-defects](addresser-defects.md) | backend | -- | 0/4 | reading/addresser.py answers a miss with a real position |
 | [command-entry-points](command-entry-points.md) | backend | -- | 0/2 | The commands keep entry points of their own beside __main__ |

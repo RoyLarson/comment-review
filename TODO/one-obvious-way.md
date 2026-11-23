@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 2 of 38 tasks closed
+Progress: 3 of 38 tasks closed
 Owner:    backend
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-11-05 (Process #281 and the three flow audits, 2026-11-05)
 ```
 
@@ -86,7 +86,8 @@ evidence is checked when the task is worked.
       AddressesMoved
         > 2026-11-23 Missing context, unreadable page also raise AddressesMoved
         > 2026-11-23 commands/proof.py prints all as "the address space moved"
-- [?] T32 | Decide where the commands' own file reads and writes belong
+- [x] T32 | Ruled: commands invoke flows, flows chain flows; work is T38 | 0ae9cbb99461eeae2b3f7e5b5932918a6269e958 | Decide
+      where the commands' own file reads and writes belong
         > 2026-11-23 topology --verify/--out, proof read_text+json.dumps, report
         > 2026-11-23 carry/gather/distribute binder json.dumps; see T11 T12 T13 T20
         > 2026-11-23 Options: move the I/O into flows, or restate the commands fence

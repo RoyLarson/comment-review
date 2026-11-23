@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 41 of 58 tasks closed
+Progress: 42 of 58 tasks closed
 Owner:    backend
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, from the blind rewrite of collator.py -- the prose was
           deleted whole and written back by an agent with no access to the vocabulary,
           the docs, the prototype, git history or the built copy under plugins)
@@ -280,7 +280,8 @@ Four defects in collator.py, found by reading only the code.
 - [ ] T54 | Refuse a path holding NUL before open() at flows/fill.py:229,
       collator.py:178, source.py:47
         > 2026-11-22 Check (M88): mark --cite with 'a\0b.py:1' is refused, no traceback
-- [?] T55 | Decide whether desk/collator.py is renamed for source verification
+- [x] T55 | Ruled: rename for what it does; work is T56-T58 | 0ae9cbb99461eeae2b3f7e5b5932918a6269e958 | Decide
+      whether desk/collator.py is renamed for source verification
         > 2026-11-23 Holds one copy's source verification; docstring disowns name
         > 2026-11-23 Outcome: rename for what it does; decision-log #382
 - [ ] T56 | Rename `desk/collator.py` for the source verification it does

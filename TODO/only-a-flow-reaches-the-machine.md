@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 6 of 12 tasks closed
+Progress: 7 of 12 tasks closed
 Owner:    backend
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-09-03 (systems)
 ```
 
@@ -85,7 +85,8 @@ own.
         > 2026-11-04 Process #104 removes the git call; see lexical-code-identity T16
 - [ ] T11 | Make tests/test_areas.py refuse a `machine` import outside `flows/`
         > 2026-11-22 Check: results/compositor.py's machine import fails the area test
-- [?] T12 | Decide where the flows modules that decide no order belong
+- [x] T12 | Ruled: flow-helpers-placement settles where they go | 0ae9cbb99461eeae2b3f7e5b5932918a6269e958 | Decide
+      where the flows modules that decide no order belong
         > 2026-11-23 source, proof_io, reading_context, read_diagnostics, referrers
         > 2026-11-23 human: they decide no order; in flows only to import machine
         > 2026-11-23 Options: move them out of flows, or restate the flows/__init__ rule
