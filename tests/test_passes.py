@@ -8,7 +8,9 @@ from helpers import a_typed_answer, a_typed_mark, a_typed_ruling
 from comment_review.desk.answers.table import ANSWERS
 from comment_review.desk.evaluate.move import moves_in
 from comment_review.desk.evaluate.passes import (
+    _from_sides,
     answers_pass,
+    composed_side,
     decide,
     dispositions_pass,
     marks_pass,
@@ -138,8 +140,8 @@ class TestSeveralOfOneRolesMarksAtOnePlace:
     #: correct edits -- the correct replaces the second.
     ABOVE = "# five\n" + BASE
     #: And here it lands on the second line, keeping every word already there
-    #: as its row demands -- which is the line the correct rewrites. One
-    #: sentence, two marks.
+    #: as its row demands -- after the word the correct changes, inside no
+    #: edit of the correct's.
     ON_THE_SENTENCE = "# one\n# two five\n# three\n"
 
     def test_marks_on_different_sentences_compose_into_one_side(self):
@@ -151,12 +153,24 @@ class TestSeveralOfOneRolesMarksAtOnePlace:
         assert got.state is State.COMPOSED and got.owed == ()
         assert got.text == "# five\n# one\n# 2\n# three\n"
 
-    def test_marks_on_the_same_sentence_are_refused_naming_both(self):
-        got = marks_pass(self._place_with("a", "a", self.ON_THE_SENTENCE))
+    def test_an_arrival_beside_the_corrected_word_composes(self):
+        got = sides_of(self._place_with("a", "a", self.ON_THE_SENTENCE))
+        assert got == ({"a": "# one\n# 2 five\n# three\n"}, ())
+
+    def test_marks_on_the_same_words_are_refused_naming_both(self):
+        patch = _mark(
+            Instruction.PATCH,
+            change="# one\n# II\n# three\n",
+            claim={"from": "two", "to": "II"},
+        )
+        place = _place(
+            Filed("a", self._a_correct(), Touch.OWN), Filed("a", patch, Touch.OWN)
+        )
+        got = marks_pass(place)
         assert got.state is State.REFUSED
         (why,) = got.reasons
         assert why.startswith("a: ")
-        assert "its correct at m.py@b1" in why and "its move at m.py@b5" in why
+        assert "its correct at m.py@b1" in why and "its patch at m.py@b1" in why
         assert "withdraw one" in why
 
     def test_two_roles_filing_one_mark_each_still_compose(self):
@@ -308,7 +322,7 @@ class TestSeveralOfOneRolesMarksAtOnePlace:
                 Instruction.CORRECT, {"false": "Two", "true": "2"}, base
             ),
         )
-        assert len(why) == 1 and "same sentence" in why[0]
+        assert len(why) == 1 and "same words" in why[0]
 
 
 def _a_correct(change="# one\n# 2\n# three\n", false="two", true="2"):
@@ -1178,6 +1192,182 @@ def test_a_correct_that_keeps_every_unnamed_word_is_not_noted():
     got = marks_pass(_place(Filed("a", correct, Touch.OWN)))
     assert got.state is State.COMPOSED
     assert got.notes == ()
+
+
+def _derived(instruction, claim, base):
+    change, why = derived_change(instruction, claim, base, address="m.py@b1")
+    assert why == [] and change is not None
+    return _mark(instruction, change=change, raw_text=base, claim=claim)
+
+
+def _a_line_added(line, text):
+    return _mark(Instruction.ADD, change=line, raw_text=text)
+
+
+class TestWhoFiledDoesNotDecideWhetherEditsCompose:
+    """One rule decides whether edits compose: one role filing both, or two
+    roles filing one each, reach the same text and the same question."""
+
+    @pytest.mark.parametrize(
+        "base, first, second, composed",
+        (
+            (
+                "# Alpha: one. Beta: two.\n",
+                {"false": "one", "true": "1"},
+                {"false": "two", "true": "2"},
+                "# Alpha: 1. Beta: 2.\n",
+            ),
+            (
+                "# Alpha: one and two.\n",
+                {"false": "one", "true": "1"},
+                {"false": "two", "true": "2"},
+                "# Alpha: 1 and 2.\n",
+            ),
+        ),
+    )
+    def test_one_role_or_two_compose_to_one_text(self, base, first, second, composed):
+        def folded(other):
+            place = _place(
+                Filed("a", _derived(Instruction.CORRECT, first, base), Touch.OWN),
+                Filed(other, _derived(Instruction.CORRECT, second, base), Touch.OWN),
+                base=base,
+            )
+            place.readers = ("a", "b")
+            got = marks_pass(place)
+            return got.state, got.text, got.question
+
+        assert (
+            folded("a")
+            == folded("b")
+            == (
+                State.COMPOSED,
+                composed,
+                Question.COMPOSITION,
+            )
+        )
+
+
+def _groupings(items):
+    """Every way to split `items` into non-empty groups, order kept within each."""
+    if not items:
+        yield []
+        return
+    first, *rest = items
+    for groups in _groupings(rest):
+        for i in range(len(groups)):
+            yield [*groups[:i], [first, *groups[i]], *groups[i + 1 :]]
+        yield [[first], *groups]
+
+
+def _outcome(base, groups):
+    """The composed text, or "clash", with each group filed by its own role."""
+    sides = {}
+    for i, group in enumerate(groups):
+        role = f"r{i}"
+        text, why = composed_side(
+            role, [Filed(role, m, Touch.OWN) for m in group], base
+        )
+        if why:
+            return "clash"
+        sides[role] = base if text is None else text
+    place = _place(base=base)
+    place.readers = tuple(sides)
+    got = _from_sides(place, sides)
+    return "clash" if got.state is State.CONTESTED else got.text
+
+
+_LINES = "# one\n# two\n# three\n"
+
+
+def _grouping_cases():
+    """Eight edit sets, 28 groupings in all, and the outcome every one must reach."""
+    s7 = "# Alpha: one. Beta: two.\n"
+    one_sentence = "# Alpha: one and two.\n"
+    words = "# alpha beta gamma\n"
+    c = Instruction.CORRECT
+    yield (
+        s7,
+        [
+            _derived(c, {"false": "one", "true": "1"}, s7),
+            _derived(c, {"false": "two", "true": "2"}, s7),
+        ],
+        "# Alpha: 1. Beta: 2.\n",
+    )
+    yield (
+        one_sentence,
+        [
+            _derived(c, {"false": "one", "true": "1"}, one_sentence),
+            _derived(c, {"false": "two", "true": "2"}, one_sentence),
+        ],
+        "# Alpha: 1 and 2.\n",
+    )
+    yield (
+        _LINES,
+        [
+            _derived(c, {"false": "one", "true": "1"}, _LINES),
+            _derived(c, {"false": "two", "true": "2"}, _LINES),
+            _derived(c, {"false": "three", "true": "3"}, _LINES),
+        ],
+        "# 1\n# 2\n# 3\n",
+    )
+    yield (
+        _LINES,
+        [
+            _derived(Instruction.DROP, {"drop": "one"}, _LINES),
+            _derived(Instruction.DROP, {"drop": "two"}, _LINES),
+        ],
+        "# three\n",
+    )
+    yield (
+        _LINES,
+        [
+            _derived(c, {"false": "one", "true": "1"}, _LINES),
+            _derived(c, {"false": "two", "true": "2"}, _LINES),
+            _derived(c, {"false": "two", "true": "II"}, _LINES),
+        ],
+        "clash",
+    )
+    yield (
+        _LINES,
+        [
+            _a_line_added("# INSERTED\n", "# one\n# INSERTED\n# two\n# three\n"),
+            _derived(c, {"false": "one", "true": "1"}, _LINES),
+            _derived(c, {"false": "two", "true": "2"}, _LINES),
+        ],
+        "# 1\n# INSERTED\n# 2\n# three\n",
+    )
+    yield (
+        words,
+        [
+            _derived(Instruction.PATCH, {"from": "alpha beta gamma", "to": "x"}, words),
+            _derived(Instruction.PATCH, {"from": "alpha", "to": "alpha new"}, words),
+        ],
+        "clash",
+    )
+    yield (
+        _LINES,
+        [
+            _derived(c, {"false": "one", "true": "1"}, _LINES),
+            _derived(c, {"false": "two", "true": "2"}, _LINES),
+            _derived(c, {"false": "one", "true": "1"}, _LINES),
+        ],
+        "# 1\n# 2\n# three\n",
+    )
+
+
+@pytest.mark.parametrize("base, edits, outcome", list(_grouping_cases()))
+def test_every_grouping_of_the_edits_into_roles_reaches_one_outcome(
+    base, edits, outcome
+):
+    """However the edits are split between roles -- all to one, one each, or
+    any grouping between -- they compose to one text or all clash."""
+    got = {
+        tuple(map(tuple, groups)): _outcome(
+            base, [[edits[i] for i in g] for g in groups]
+        )
+        for groups in _groupings(list(range(len(edits))))
+    }
+    assert set(got.values()) == {outcome}, got
 
 
 def test_a_note_survives_the_state_the_place_comes_to():

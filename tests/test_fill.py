@@ -198,7 +198,7 @@ class TestASecondRulingOnARuledSlotIsAppendedBesideIt:
     def test_the_second_entry_follows_the_first_and_carries_its_seed(self, copy, root):
         """The two rule on the paragraph's first and last lines, which compose
         -- a role's marks at one place have to (`decision-log.md Process:
-        #179`), and `compose` reads edits on adjacent lines as meeting."""
+        #179`)."""
         _, why = fill(copy, _a_correct(claim={"false": "one", "true": "1"}), root)
         assert why == []
         second = _a_correct(claim={"false": "three", "true": "3"})

@@ -370,21 +370,17 @@ class TestDocketOf:
             ("b2", None),
         ]
 
-    def test_two_of_one_roles_marks_on_one_sentence_are_a_refusal(self, tmp_path):
+    def test_a_move_run_onto_the_line_a_correction_rewrites_composes(self, tmp_path):
         """The move's comment is run onto the paragraph's last line instead,
-        which rewrites the line the correction rewrites. Two marks, one
-        sentence, and the role is told which two."""
+        after the word the correction changes. An arrival meets only the edit
+        it falls inside, so the place takes both."""
         root = tmp_path / "repo"
         copy = self._a_correction_and_a_move_into_it(root, "# one\n# two # five")
-        with pytest.raises(CannotTranscribe) as raised:
-            docket_of(copy, root)
-        # The move has one mover, so it is agreed before the place is
-        # decided; its arrival collides with the correction at b1, and the
-        # reason names the move the role filed.
-        (why,) = raised.value.reasons
-        assert why.startswith("block-context m.py@b1: ")
-        assert "its correct at m.py@b1" in why
-        assert "its move at m.py@b2" in why
+        schedule = docket_of(copy, root).schedules[0]
+        assert [(one.cue, one.text) for one in schedule.alterations] == [
+            ("b1", "# one\n# 2 # five"),
+            ("b2", None),
+        ]
 
     def test_a_page_this_checkout_cannot_read_is_a_refusal(self, tmp_path):
         """A page a mark writes at that the checkout has no page for would
@@ -555,13 +551,13 @@ class TestDocketOf:
 #: cases deal.
 TYPO_TEXTS = {"m.py@b1": TYPOS}
 TWO_PATCHES = patched("m.py@b1")
-#: Both roles patch the same line instead, so the two will not compose and the
+#: Both roles patch the same word instead, so the two will not compose and the
 #: place is contested for the chief to rule.
-SAME_LINE = {
+SAME_WORD = {
     "block-context": {"m.py@b1": a_patch("m.py@b1", "teh", "the", FIRST_FIXED)},
     "function-context": {
         "m.py@b1": a_patch(
-            "m.py@b1", "count", "total", "# teh total\n# of the items\n# adn the sum"
+            "m.py@b1", "teh", "a", "# a count\n# of the items\n# adn the sum"
         )
     },
 }
@@ -668,7 +664,7 @@ class TestDocketOfProof:
         """The same case with the chief deciding it: the two patches will not
         compose, the chief writes its own paragraph, and nothing filed here
         brought a source for a synthesized mark to carry."""
-        assert deal(tmp_path, monkeypatch, capsys, SAME_LINE, TYPO_TEXTS) == (
+        assert deal(tmp_path, monkeypatch, capsys, SAME_WORD, TYPO_TEXTS) == (
             report.ESCALATIONS
         )
         code, out = disposition(
@@ -696,7 +692,7 @@ class TestDocketOfProof:
         self, tmp_path, monkeypatch, capsys
     ):
         """`decision-log.md Process: #299`."""
-        assert deal(tmp_path, monkeypatch, capsys, SAME_LINE, TYPO_TEXTS) == (
+        assert deal(tmp_path, monkeypatch, capsys, SAME_WORD, TYPO_TEXTS) == (
             report.ESCALATIONS
         )
         code, out = disposition(
@@ -895,7 +891,7 @@ class TestDocketOfProof:
         ("by_role", "code", "state"),
         [
             (TWO_PATCHES, report.REREADS, "composed"),
-            (SAME_LINE, report.ESCALATIONS, "contested"),
+            (SAME_WORD, report.ESCALATIONS, "contested"),
         ],
     )
     def test_a_proof_still_carrying_a_place_forward_is_a_refusal(

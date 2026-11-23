@@ -19,7 +19,9 @@ The top-level `comment_review.differences` leaf renders and composes texts
 without file I/O. It is shared by the middle and the command line.
 """
 
+import bisect
 import difflib
+import re
 from typing import Literal
 
 
@@ -154,15 +156,21 @@ def compose(base: str, sides: dict[str, str]) -> str:
         The composed paragraph. An empty `sides` returns `base` unchanged --
         nothing was proposed, so nothing is applied.
 
-    Equal edits share a base span and replacement lines. They apply once;
+    ! AN EDIT IS A SPAN OF WORDS. Each side is diffed against the base by
+    line, and each run of rewritten lines again by token -- a line end, a
+    run of other whitespace, a word, or one other character -- so an edit is
+    the base tokens it replaces and the tokens it puts there. A line added or
+    removed whole stays one edit at a line's edge. Only the texts are read, so
+    edits compose alike whoever filed them.
+
+    Equal edits share a base span and replacement tokens. They apply once;
     their proposer names remain available if a different edit conflicts.
 
-    ! TWO DIFFERENT EDITS MEET where they share a base line, where two rewrites
-    sit on adjacent lines, where two inserts sit at one position, or where one
-    side inserts inside lines the other rewrites. Adjacent rewrites meet
-    because they can be two halves of one wrapped sentence; two inserts at one
-    position have no order. An insert at the edge of another side's rewrite
-    has one order, the base's, and composes (`mark-defects` T28).
+    ! TWO DIFFERENT EDITS MEET where the base tokens they change overlap,
+    where two inserts sit at one position, or where one inserts strictly
+    inside the tokens the other changes. Two inserts at one position have no
+    order; anywhere else the base gives the order, so edits on neighbouring
+    words or lines compose.
 
     ! AN UNTERMINATED PARAGRAPH IS DIFFED AS IF TERMINATED. A `raw_text` ends
     without a newline, so a line added after it would otherwise read as a
@@ -178,11 +186,16 @@ def compose(base: str, sides: dict[str, str]) -> str:
     if not terminated:
         base += "\n"
         sides = {role: side + "\n" for role, side in sides.items()}
-    composed = _compose_lines(base, sides)
+    composed = _compose_tokens(base, sides)
     return composed if terminated else composed.removesuffix("\n")
 
 
-#: One distinct edit: its proposers, base span, and replacement lines.
+#: A token, as `compose` diffs rewritten lines: a line end, a run of other
+#: whitespace, a word, or one other character. Every character of a text
+#: falls in exactly one, so joining a text's tokens gives the text back.
+_TOKEN = re.compile(r"\n|[^\S\n]+|\w+|[^\w\s]")
+
+#: One distinct edit: its proposers, base token span, and replacement tokens.
 _Edit = tuple[frozenset[str], int, int, tuple[str, ...]]
 
 
@@ -196,41 +209,59 @@ def _meet(a: _Edit, b: _Edit) -> bool:
         return b1 < a1 < b2
     if b1 == b2:
         return a1 < b1 < a2
-    return a1 <= b2 and b1 <= a2
+    return a1 < b2 and b1 < a2
 
 
-def _compose_lines(base: str, sides: dict[str, str]) -> str:
+def _compose_tokens(base: str, sides: dict[str, str]) -> str:
     """`compose` over a base whose every line ends in a newline, the last included."""
     base_lines = base.splitlines(True)
+    base_tokens = _TOKEN.findall(base)
+    # The token index each base line starts at, and one past the last line.
+    starts = [0]
+    for line in base_lines:
+        starts.append(starts[-1] + len(_TOKEN.findall(line)))
     by_operation: dict[tuple[int, int, tuple[str, ...]], set[str]] = {}
     for role in sorted(sides):
         side_lines = sides[role].splitlines(True)
-        matcher = difflib.SequenceMatcher(None, base_lines, side_lines)
-        for tag, i1, i2, j1, j2 in matcher.get_opcodes():
-            if tag != "equal":
-                operation = (i1, i2, tuple(side_lines[j1:j2]))
+        lines = difflib.SequenceMatcher(None, base_lines, side_lines, autojunk=False)
+        for tag, i1, i2, j1, j2 in lines.get_opcodes():
+            if tag == "equal":
+                continue
+            tokens = _TOKEN.findall("".join(side_lines[j1:j2]))
+            at = starts[i1]
+            if tag != "replace":
+                operation = (at, starts[i2], tuple(tokens))
                 by_operation.setdefault(operation, set()).add(role)
+                continue
+            words = difflib.SequenceMatcher(
+                None, base_tokens[at : starts[i2]], tokens, autojunk=False
+            )
+            for word_tag, a1, a2, b1, b2 in words.get_opcodes():
+                if word_tag != "equal":
+                    operation = (at + a1, at + a2, tuple(tokens[b1:b2]))
+                    by_operation.setdefault(operation, set()).add(role)
     edits: list[_Edit] = [
-        (frozenset(roles), i1, i2, lines)
-        for (i1, i2, lines), roles in by_operation.items()
+        (frozenset(roles), i1, i2, tokens)
+        for (i1, i2, tokens), roles in by_operation.items()
     ]
     for i, a in enumerate(edits):
         for b in edits[i + 1 :]:
             if len(a[0] | b[0]) > 1 and _meet(a, b):
-                start, end = min(a[1], b[1]), max(a[2], b[2])
+                first = bisect.bisect_right(starts, min(a[1], b[1])) - 1
+                last = bisect.bisect_right(starts, max(a[2], b[2]) - 1) - 1
                 raise CannotCompose(
-                    f"base lines {start + 1}-{max(end, start + 1)} were edited by "
+                    f"base lines {first + 1}-{max(first, last) + 1} were edited by "
                     f"{', '.join(sorted(a[0] | b[0]))} -- no composition"
                 )
     # An insert at a position goes before a rewrite that starts there.
     edits.sort(key=lambda edit: (edit[1], edit[1] != edit[2]))
     out: list[str] = []
     at = 0
-    for _role, i1, i2, lines in edits:
-        out.extend(base_lines[at:i1])
-        out.extend(lines)
+    for _role, i1, i2, tokens in edits:
+        out.extend(base_tokens[at:i1])
+        out.extend(tokens)
         at = i2
-    out.extend(base_lines[at:])
+    out.extend(base_tokens[at:])
     return "".join(out)
 
 

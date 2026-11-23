@@ -456,11 +456,32 @@ class TestCompose:
         }
         assert compose(base, sides) == "# one\n# INSERTED\n# TWO\n"
 
-    def test_two_edits_on_adjacent_lines_still_refuse(self):
-        """Two rewrites of adjacent lines can be two halves of one wrapped
-        sentence, so they still meet."""
+    def test_two_edits_on_adjacent_lines_compose(self):
+        """Edits meet only where their changed words overlap, so rewrites of
+        two adjacent lines compose."""
         base = "# one\n# two\n"
         sides = {"a": "# ONE\n# two\n", "b": "# one\n# TWO\n"}
+        assert compose(base, sides) == "# ONE\n# TWO\n"
+
+    def test_two_edits_on_different_words_of_one_sentence_compose(self):
+        base = "# Alpha: one and two.\n"
+        sides = {"a": "# Alpha: 1 and two.\n", "b": "# Alpha: one and 2.\n"}
+        assert compose(base, sides) == "# Alpha: 1 and 2.\n"
+
+    def test_two_edits_on_two_sentences_of_one_line_compose(self):
+        base = "# Alpha: one. Beta: two."
+        sides = {"a": "# Alpha: 1. Beta: two.", "b": "# Alpha: one. Beta: 2."}
+        assert compose(base, sides) == "# Alpha: 1. Beta: 2."
+
+    def test_two_edits_of_one_word_refuse(self):
+        base = "# Alpha: one and two.\n"
+        sides = {"a": "# Alpha: 1 and two.\n", "b": "# Alpha: uno and two.\n"}
+        with pytest.raises(CannotCompose):
+            compose(base, sides)
+
+    def test_an_edit_overlapping_part_of_another_refuses(self):
+        base = "# Alpha: one and two.\n"
+        sides = {"a": "# Alpha: 1 and two.\n", "b": "# Alpha: two.\n"}
         with pytest.raises(CannotCompose):
             compose(base, sides)
 
@@ -471,12 +492,19 @@ class TestCompose:
         with pytest.raises(CannotCompose):
             compose(base, sides)
 
-    def test_a_line_added_inside_another_sides_rewrite_refuses(self):
+    def test_a_line_added_between_two_rewritten_lines_composes(self):
+        """An insert meets only the edit it falls inside. Between two edited
+        lines it falls inside neither, and the base gives its order."""
         base = "# one\n# two\n# three\n"
         sides = {
             "rewrite": "# ONE\n# TWO\n# three\n",
             "add": "# one\n# INSERTED\n# two\n# three\n",
         }
+        assert compose(base, sides) == "# ONE\n# INSERTED\n# TWO\n# three\n"
+
+    def test_words_added_inside_another_sides_rewritten_words_refuse(self):
+        base = "# alpha beta gamma\n"
+        sides = {"rewrite": "# x\n", "add": "# alpha new beta gamma\n"}
         with pytest.raises(CannotCompose):
             compose(base, sides)
 
