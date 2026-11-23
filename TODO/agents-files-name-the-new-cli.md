@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 83 of 85 tasks closed
+Progress: 83 of 87 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-09-04 (Roy, 2026-09-04, superseding the-flow-lives-in-the-command T4)
@@ -175,6 +175,7 @@ The agents files name the new CLI and say how to use it.
         > 2026-10-26 reviewer-brief.md:259 and :177-178 state a one-line anchor
         > 2026-10-31 Also `references/review.md:38`: two ranges claim unchecked
         > 2026-10-31 Also `references/review.md:38`: two ranges unchecked
+        > 2026-11-22 Outcome: Roy 2026-11-22 -- supersede out of plan; reissued
 - [x] T45 | FINISHED -- <module> and <eof> named in SKILL, brief, ownership role | c3a088cd | Name
       the addresser's --line '<module>' and '<eof>' in the agent prose
         > 2026-10-27 reviewer-brief.md:99-105, SKILL.md:158, ownership-context.md:87-90
@@ -320,3 +321,8 @@ The agents files name the new CLI and say how to use it.
         > 2026-11-22 Check: write.md runs doctests at 7b where they exist (#381)
 - [x] T85 | FINISHED -- the question is the text before ; ask it, | c3a088cd | State
       at SKILL.md:312 that the question is the text before the `;`
+- [ ] T86 | Restate agent prose that takes an anchor to be one line of code,
+      once #238 lands
+        > 2026-11-22 Waits on one-reader-builder.md T11 and T12 (whole-unit anchor)
+- [ ] T87 | Name each rule owner in limitations.md by its module path
+        > 2026-11-22 Check: each named path exists under src/comment_review/
