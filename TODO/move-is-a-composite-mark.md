@@ -357,3 +357,4 @@ and now there is one object that cannot be half-held.
 - [ ] T57 | Refuse a `taken_in original` at one end of an agreed move
         > 2026-11-23 Broken review 2026-11-23: a chief can split an agreed move; #283
         > 2026-11-23 Found by 4A ranking; multi-role stages, reachable at 6a81c7b0
+        > 2026-11-23 Also reachable from a role-agreed move whose arrival only it read
