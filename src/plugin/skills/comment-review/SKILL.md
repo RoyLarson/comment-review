@@ -70,7 +70,7 @@ Each stage hands the next one of these; your vocabulary defines each one:
 | **proof**, the pages as set | the compositor, through `proof` | the author, stage 6, stage 7b |
 | a role's freeform copies and `findings.json` | the reviewers | you, at stage 5 |
 | `freeform/draft/<path>`, one per freeform file changed | you, at stage 5 | stage 7a, the author, stage 7b |
-| `freeform/settled_<stage>.json` | you, at stage 5 | you, at the 7a audit and when the author asks why |
+| `freeform/decided_<stage>.json` | you, at stage 5 | you, at the 7a audit and when the author asks why |
 
 `proof` transcribes the closed proof into a docket, and the compositor sets each schedule's
 alterations onto a copy of its page. `proof --to-docket <file>` writes the docket out without
@@ -86,7 +86,7 @@ setting it.
    check what those files say about them.
 4. **Mark** gives each paragraph four independent readings. Each role reads alone, so two
    roles that agree corroborate each other.
-5. **Collate** settles what the roles agreed on. You rule on the rest, so every place ends
+5. **Collate** decides what the roles agreed on. You rule on the rest, so every place ends
    with one text that is true of the code beside or below it, at whatever length that takes.
 6. **Compact** shortens the paragraphs on pages that run over the cap, keeping every true,
    necessary and checkable sentence. The copy chief holds a freeform comment to the cap at stage 5.
@@ -161,10 +161,11 @@ it where it is. Record each answer in the style sheet. For each `move it`, name 
 the owner's `a` cue in the prompt of the `4a` dispatch that holds the page, as a `move` the
 author asked for.
 
-Then build the topology: two stages. Stage `4a` runs `ownership-context` alone, so that every
-paragraph is settled where it belongs; stage `4c` runs the other three roles against that
-placement. `<n>` is the places on the gather's `GATHERED` line divided by 100, rounded up, at
-least 1, and at most the number of pages and freeform files together. When the binder holds no
+Then build the topology: two stages. Stage `4a` runs `ownership-context` alone, so that where
+each paragraph belongs is decided before the others read it; no other role reads its changes, so
+you rule on each one at stage 5. Stage `4c` runs the other three roles against that placement.
+`<n>` is the places on the gather's `GATHERED` line divided by 100, rounded up, at least 1, and
+at most the number of pages and freeform files together. When the binder holds no
 page and no freeform file, stop the run and tell the author the scope holds nothing to review. `--build` deals each role's pages so
 its dispatches hold near-equal places.
 
@@ -303,18 +304,23 @@ Act on the exit code first:
 
 | exit | meaning | what you do |
 |---|---|---|
-| `0` | every place settled | read the settled places against the style sheet and settle any freeform findings, both below; `<stage>_proof0.json` is the closed proof when no place takes a recast. Then go on to `4c`, or after `4c` to stage 6 or 7a |
+| `0` | every place decided | read the decided places against the style sheet and rule on any freeform findings, both below; `<stage>_proof0.json` is the closed proof when no place takes a recast. Then go on to `4c`, or after `4c` to stage 6 or 7a |
 | `1` | the round rolled back; each line names `<role> <place>: <reason>` | send each line to its role, which withdraws the mark the line names with `mark --withdraw --address <place> --instruction <instruction>` and marks again; re-check and re-run |
 | `2` | a file could not be read | correct the invocation |
-| `3`, `4` | places carried forward -- `composed`, `contested` or `open` | rule on them, below |
+| `3`, `4` | places or moves carried forward -- `composed`, `contested` or `open` -- to the roles each line names, or to `copy-chief` | run the turns and rule on them, below |
 | `5` | human questions are owed | ask them, below, then re-run with `--human` |
 
 Keep the path of the latest committed proof. A closed proof
 can come from `collate`, `turn` or `disposition`; use that file wherever
 `<closed-proof>` appears below. A refused round supplies no new proof.
 
-A place is settled when every role that read it proposed the same text or answered `clean`;
-`collate` prints each as `decided <place>: original` or `decided <place>: <roles>`. The lines under `for the chief` name a `correct`
+A place is decided when every role that read it proposed the same text or answered `clean`, and
+a change to it was read by a party besides its proposer: another role, or you. A role whose only
+marks there are `outside-my-role` or `unable-to-determine` queries does not count as that party.
+`collate` prints each decided place as `decided <place>: original` or `decided <place>: <roles>`.
+A change only its proposer read is put to you: it prints as `composed <place>: copy-chief
+(composition)`, or for a move `open <origin> -> <destination>: copy-chief (placement)`, and takes
+no turn. The lines under `for the chief` name a `correct`
 whose change removes words its claim never quoted; weigh that when you rule, and show it to
 the author at 7a.
 
@@ -343,8 +349,9 @@ role withdraws it and marks the place again without that change.
 Send the asking role its `[[answer]]` sections with its copy; it replaces its query with a
 mark. Then re-run `collate` with the same inputs plus `--human <run-dir>/human.toml`.
 
-**Turns.** When `collate` carries a place forward as `composed`, run one turn even when you
-are told no number, so every role reads the text composed from its mark before you rule.
+**Turns.** When `collate` writes a batch, run one turn even when you are told no number, so
+every role owed a say reads the text composed from the marks before you rule. A place or move
+put to `copy-chief` is in no batch; you rule on it below.
 Run more turns only when you are told a number above one. Each turn sends `<stage>_batch<t>.json`
 to one agent of every role it names, even a role that ran as several dispatches, with the proof
 and a path for its answers; checks each returned file with `check --answers <file> --sent
@@ -359,12 +366,14 @@ first. Read each composed paragraph whole, and confirm every pronoun, contrast w
 it still has what it refers to. Rule in this order, because each step builds on the one before:
 
 1. `query` -- resolve what it asks.
-2. `move` and `drop` -- settle where the prose lives. A move prints as
+2. `move` and `drop` -- decide where the prose lives. A move prints as
    `<placement> <origin> -> <destination>`, and its two ends are *to come*: they wait on the
    placement and take no ruling. Read both ends against their code first: taking a move in says
    the origin reads right without the snippet and the destination reads right with it. Rule the
    placement with a ruling that carries `to`: `taken_in` with `side` the mover, which moves the
-   paragraph, or `original`, which keeps it where it is.
+   paragraph, or `original`, which withdraws the move from both ends and keeps the paragraph
+   where it is. Taking in a move only its mover read also decides each end that reads exactly as
+   the move sets it; an end where the mover changed more comes back for its own ruling.
 3. `correct` -- fix what is false, against the code at the place the prose now sits.
 4. `patch` -- improve the wording of text now known to be true.
 5. `add` -- insert new text at its anchor.
@@ -373,16 +382,16 @@ Each ruling is one of two answers:
 
 | answer | use it when | it carries |
 |---|---|---|
-| `taken_in` | one side is right | `side`: the role whose text stands, or `original` to keep the paragraph as it was |
+| `taken_in` | one side is right | `side`: the role whose text stands, or `original` to keep the paragraph as it was; at an end of an agreed move, `original` is refused, below |
 | `recast` | you write the paragraph yourself | `prose`: your paragraph, as raw text; empty `prose` drops the paragraph whole |
 
 A `correct` outranks any number of `clean`s. Verify every clause you keep: each path it cites is tracked,
 each name exists, and each count re-derives.
 
-**The style sheet.** Then read every settled place against the style sheet: its dialect, its
+**The style sheet.** Then read every decided place against the style sheet: its dialect, its
 review labels, the width stage 1 recorded, and its templates. Where a place breaks one,
 `recast` it into line with the sheet, keeping every claim it makes, and name the style-sheet
-entry in the `reason`. A settled place takes only a `recast`. Write these with your other
+entry in the `reason`. A decided place takes only a `recast`. Write these with your other
 rulings, and run `disposition` for them even when `collate` exited `0`.
 
 Write the rulings to `<run-dir>/dispositions.json` as a list of entries in the shape `check
@@ -400,13 +409,17 @@ answer in `<run-dir>/human.toml` with `role = "copy-chief"`, and run `dispositio
 `--human <run-dir>/human.toml`. Where the author refuses, change the ruling.
 
 It names any move or carried-forward place still unruled, and writes when every one has a ruling.
-A placement ruling moves the paragraph or keeps it, and each end is then read as an ordinary
-place; when `disposition` exits `3` or `4`, those ends are carried forward. Rule them from the
-code at each end, and run `disposition` again with the proof it just wrote and a dispositions
-file holding only those rulings: that proof already carries the earlier ones, and a ruling on a
-place it no longer carries forward is refused. Use a
+A placement ruling moves the paragraph or keeps it, and each end it did not decide is then read
+as an ordinary place; when `disposition` exits `3` or `4`, those ends are carried forward. Rule
+them from the code at each end, and run `disposition` again with the proof it just wrote and a
+dispositions file holding only those rulings: that proof already carries the earlier ones, and a
+ruling on a place it no longer carries forward is refused. Use a
 fresh output filename for each ruling round. Its proof becomes `<closed-proof>`
 once it exits `0`.
+
+At an end of an agreed move, a ruling that puts back the end's text from before the move --
+`taken_in original`, or a `recast` to that text -- is refused, naming the move: an agreed move
+stands whole, so rule the move's text there or a further change to it.
 
 **Freeform findings.** Read each role's `findings.json` from its path, and diff each of its copies
 against the file it copied:
@@ -437,7 +450,7 @@ git diff --no-index -U0 <base> <FREEFORM DIR>/<path>
 Anything sent back that still fails on its second return is left out, and its role is reported as
 unanswered on that finding.
 
-Write the result to `<run-dir>/freeform/settled_<stage>.json`, a list of the findings' own shape with
+Write the result to `<run-dir>/freeform/decided_<stage>.json`, a list of the findings' own shape with
 `roles` added to each, naming every role whose change stands in it, and `at` the line in the
 draft, holding only the changes that stand. A run with no pages prints `0 places` at `collate` and
 carries on.
@@ -476,7 +489,8 @@ cap. Dispatch `comment-review:comment-review-compact` with its edit copy and
 received binder, `references/compact.md` pasted whole, the style sheet, the
 cap, the helper script's path, `proof4c` as the proof pages root and the repo root
 as the original. Check the copy against its received binder, then run `collate --stage 6`
-with the received binders paired with the copies and rule as in stage 5. The
+with the received binders paired with the copies and rule as in stage 5: no other role
+reads the condenser's changes, so each one is put to you. The
 closed proof this produces is the one stage 7a sets.
 
 ### Stage 7a -- set and present
@@ -518,17 +532,17 @@ Then audit each draft:
 git diff --no-index -U0 <path> <run-dir>/freeform/draft/<path>
 ```
 
-Every changed line belongs to a settled finding, and every settled finding has its change. Any
+Every changed line belongs to a decided finding, and every decided finding has its change. Any
 other change holds the run at this stage: edit the draft until the change is gone, and audit it
 again. Nothing is presented until the audit passes. The command exits 1 when the files differ.
 
 Present to the author, grouped by instruction, most consequential first. Use the
-closed proof's decided text and the drafts for the proposed result. For each settled place, follow
+closed proof's decided text and the drafts for the proposed result. For each decided place, follow
 its filed references to the reviewer marks in the proof and read any disposition on the place.
 Use those for the instruction, paragraph, claim and reason. Show the decided change from the
 draft inline.
 Show each freeform draft whole. When the author asks why a change was made, answer from
-`settled_<stage>.json`.
+`decided_<stage>.json`.
 Then give:
 
 - one command per page and per drafted freeform file, to read it beside its original:

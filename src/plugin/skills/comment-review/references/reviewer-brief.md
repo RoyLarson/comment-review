@@ -184,8 +184,9 @@ python <skill>/scripts/comment-review.py mark --edit-copy <EDIT COPY> --repo <RE
   and pass `'@path'`, quoted so PowerShell does not read the `@`. A value opening with `@` is
   always read as a path, so a literal one goes in a file too, as does one holding a `'`.
   Single-quote every other value, so the shell passes it as typed.
-- **Two rulings on one paragraph are two invocations** at the same `--address`. Rulings on
-  different sentences compose; a second ruling on the same sentence is refused, naming both.
+- **Two rulings on one paragraph are two invocations** at the same `--address`. They compose
+  unless their changed words overlap; a second ruling that changes words the first changed is
+  refused, naming both.
 - **An `add` at an empty place** creates the slot at the address from `addresses find`.
 
 `mark` refuses what the fold would refuse in the ruling itself, writes nothing when it does, and
@@ -382,7 +383,7 @@ were sent; `check --contract` prints the shape each answer takes.
 
 You may answer one slot more than once, one answer for each sentence you rule on; the turn
 composes your rewrites against the slot's text. Answers that contradict each other -- two
-different rewrites of one sentence, a `clean` beside a rewrite, or `hold` beside `withdraw` --
+rewrites that change the same words, a `clean` beside a rewrite, or `hold` beside `withdraw` --
 are refused, and the slot comes back to you.
 
 - **An `escalation`** asks whether your finding still stands. Answer with a `reason` and one
