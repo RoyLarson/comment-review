@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 57 of 72 tasks closed
+Progress: 57 of 74 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, Roy ruling that containers are wired and that the
@@ -448,3 +448,9 @@ task 9 of [`move-is-a-composite-mark`](move-is-a-composite-mark.md).
 - [ ] T72 | Type-check the Place/Move collection fields in
       desk/proof/place.py:150 deserialize
         > 2026-11-22 Check (M45): readers='abc' is refused, not three roles
+- [ ] T73 | Make Docket.deserialize accept the empty pages list that proof
+      --to-docket writes when nothing settled
+        > 2026-11-22 Check: --to-docket then --from-docket on an all-stet copy exits 0
+- [ ] T74 | Refuse to serialize a docket page whose sha the desk folded to
+      empty, which Docket.deserialize refuses
+        > 2026-11-22 Check: serializing such a page is refused by name (#380)

@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 4 tasks closed
+Progress: 0 of 5 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-11-22 (code review 2026-11-22, merged findings)
@@ -31,3 +31,6 @@ Found by the code review of 2026-11-22 (M34, M37, M38).
 - [ ] T4 | Add machine's own imports to tests/test_areas.py, admitting
       exceptions only
         > 2026-11-22 Check: a machine import of binder turns the gate red (#377)
+- [ ] T5 | Delete remove_tree's clear-read-only retry in machine/repo.py, which
+      no caller can reach
+        > 2026-11-22 Check: remove_tree has no read-only branch

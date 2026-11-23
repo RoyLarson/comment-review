@@ -7321,3 +7321,16 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   *"b - would become very difficult to have undetermined characters"*
 
   **What it settles.** `compact.md` names exactly the five markers the count exempts.
+
+- **#380.** **What serializes must deserialize, or must not serialize** (Roy, 2026-11-22, on
+  code-review finding M104, `proof --to-docket` writing `{"pages": []}` for a stage that settled
+  nothing and `--from-docket` refusing it, shown that no stage of the skill runs that split):
+
+  *"No it should have a todo to make it work. I doubt it ever gets used but it should load if
+  that is the expected output. A valid serialize() should be deserialize-able or it shouldn't be
+  able to be serialized"*
+
+  **What it settles.** An empty docket is the expected output of a stage that settled nothing
+  (#52), so the reader accepts it. A docket page the reader would refuse, such as one whose sha
+  the desk folded to empty, is refused at serialize instead. `containers-and-verification-are-
+  unwired` T29, which held both halves, is split into those two tasks.
