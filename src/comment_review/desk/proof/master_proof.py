@@ -2,8 +2,7 @@
 
 `referenced_reading_problems` is the proof's reference check: every page
 a place, move, sheet or mark names carries a reading context and an
-original sha. `deserialize` asks it before decoding a proof, and
-`flows.reading_context` asks it of a raw one.
+original sha. `deserialize` asks it before decoding a proof.
 """
 
 from dataclasses import dataclass, field
@@ -57,35 +56,12 @@ class MasterProof:
         object.__setattr__(self, "page_shas", dict(self.page_shas))
 
     def reading_problems(self, where: str) -> list[str]:
-        """Check saved page metadata without reading source or registry state."""
+        """Hold the sheets and the two page tables to each other.
+
+        `deserialize` asks this after `referenced_reading_problems` has held
+        the wire to its references and each reading has decoded.
+        """
         problems: list[str] = []
-        problems.extend(
-            referenced_reading_problems(
-                {
-                    "page_readings": self.page_readings,
-                    "page_shas": self.page_shas,
-                    "places": [{"address": place.address} for place in self.places],
-                    "moves": [
-                        {"origin": move.origin, "destination": move.destination}
-                        for move in self.moves
-                    ],
-                    "edit_copies": [
-                        {
-                            "sheets": [
-                                {
-                                    "path": sheet.path,
-                                    "sha": sheet.sha,
-                                    "marks": [mark.serialize() for mark in sheet.marks],
-                                }
-                                for sheet in copy.sheets
-                            ]
-                        }
-                        for copy in self.edit_copies
-                    ],
-                },
-                where,
-            )
-        )
         if any(
             not isinstance(path, str)
             or not path.strip()
@@ -97,21 +73,6 @@ class MasterProof:
                 f"{where}: master_proof's `page_shas` must map nonempty paths"
                 " to nonempty shas; regather"
             )
-        for path, context in self.page_readings.items():
-            if (
-                not isinstance(path, str)
-                or not path.strip()
-                or not isinstance(context, ReadingContext)
-            ):
-                problems.append(f"{where}: malformed page_readings; regather")
-                continue
-            try:
-                validated = ReadingContext(context.language, context.reader)
-            except (TypeError, ValueError):
-                problems.append(f"{where}: {path}: malformed reading context; regather")
-                continue
-            _, why = context_from_wire(f"{where}: {path}", context_to_wire(validated))
-            problems.extend(why)
         shas: dict[str, object] = {}
         for copy in self.edit_copies:
             for sheet in copy.sheets:

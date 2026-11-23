@@ -1,5 +1,4 @@
 import json
-from collections import Counter
 from dataclasses import replace
 
 import pytest
@@ -19,45 +18,6 @@ from comment_review.flows.page_for import page_of
 from comment_review.flows.proof_io import load_proof
 
 
-@pytest.mark.parametrize("target", ["copy", "received", "stage"])
-@pytest.mark.parametrize("field", ["reader", "missing"])
-def test_received_context_refusal_precedes_coverage(
-    tmp_path, monkeypatch, target, field
-):
-    binder, received, wires, stage = _shards(tmp_path)
-    context = received[0].pages[0].reading
-    changed = None if field == "missing" else replace(context, reader="another-reader")
-    copies = [returned(wire) for wire in wires]
-    if target == "copy":
-        copies[0] = replace(
-            copies[0], sheets=(replace(copies[0].sheets[0], reading=changed),)
-        )
-    elif target == "received":
-        received = (
-            replace(
-                received[0], pages=(replace(received[0].pages[0], reading=changed),)
-            ),
-            received[1],
-        )
-    else:
-        binder = replace(
-            binder, pages=(replace(binder.pages[0], reading=changed), *binder.pages[1:])
-        )
-
-    def forbidden(*args, **kwargs):
-        pytest.fail("coverage used before context refusal")
-
-    monkeypatch.setattr(verify, "required_places", forbidden)
-    monkeypatch.setattr(verify, "coverage_problems", forbidden)
-    problems = verify.received_problems(copies, received, binder, stage)
-    assert problems
-    assert all(problem.role == "block-context" for problem in problems)
-    assert any(
-        "m.py" in problem.message and "regather" in problem.message
-        for problem in problems
-    )
-
-
 def test_received_context_accepts_disjoint_shards(tmp_path):
     binder, received, wires, stage = _shards(tmp_path)
     assert (
@@ -68,40 +28,11 @@ def test_received_context_accepts_disjoint_shards(tmp_path):
     )
 
 
-def test_installed_reader_change_refused_before_received_coverage(
-    tmp_path, monkeypatch
-):
-    from conftest import install_another_reader
-
-    binder, received, wires, stage = _shards(tmp_path)
-    install_another_reader(monkeypatch)
-
-    def forbidden(*args, **kwargs):
-        pytest.fail("required places used before reader change refusal")
-
-    monkeypatch.setattr(verify, "required_places", forbidden)
-    assert verify.received_problems(
-        [returned(wire) for wire in wires], received, binder, stage
-    )
-
-
-def test_direct_coverage_refuses_context_before_required_places(tmp_path, monkeypatch):
-    binder, received, wires, _ = _shards(tmp_path)
-    copy = returned(wires[0])
-    copy = replace(copy, sheets=(replace(copy.sheets[0], reading=None),))
-
-    def forbidden(*args, **kwargs):
-        pytest.fail("required places used before direct coverage refusal")
-
-    monkeypatch.setattr(verify, "required_places", forbidden)
-    assert verify.coverage_problems([copy], received[0])
-
-
 @pytest.mark.parametrize("matching", [False, True])
 def test_extra_stage_sheet_context_is_compared_without_expanding_shard(
-    tmp_path, monkeypatch, matching
+    tmp_path, matching
 ):
-    binder, received, wires, stage = _shards(tmp_path)
+    binder, received, _, _ = _shards(tmp_path)
     installed = binder.pages[0].reading
     other = replace(installed, reader="another-reader")
     copies = [returned(seed(shard, "block-context")) for shard in received]
@@ -109,49 +40,15 @@ def test_extra_stage_sheet_context_is_compared_without_expanding_shard(
         copies[1].sheets[0], reading=installed if matching else other, unruled=()
     )
     copies[0] = replace(copies[0], sheets=(*copies[0].sheets, extra))
-
-    if not matching:
-
-        def forbidden(*args, **kwargs):
-            pytest.fail("coverage used before extra stage sheet context refusal")
-
-        monkeypatch.setattr(verify, "required_places", forbidden)
-        monkeypatch.setattr(verify, "coverage_problems", forbidden)
-    problems = verify.received_problems(copies, received, binder, stage)
+    _, why = reading_context.admit_pages(
+        ("stage binder", binder.pages),
+        *(("received binder", one.pages) for one in received),
+        *(("edit_copy", copy.sheets) for copy in copies),
+    )
     if matching:
-        assert problems == []
+        assert why == []
     else:
-        assert any(
-            "n.py" in problem.message and "regather" in problem.message
-            for problem in problems
-        )
-
-
-@pytest.mark.parametrize("boundary", ["received", "coverage"])
-@pytest.mark.parametrize("invalid", ["missing", "incompatible"])
-def test_zero_copies_still_admit_present_binder_metadata(
-    tmp_path, monkeypatch, boundary, invalid
-):
-    binder, _, _, _ = _shards(tmp_path)
-    page = binder.pages[0]
-    context = (
-        None if invalid == "missing" else replace(page.reading, reader="another-reader")
-    )
-    binder = replace(binder, pages=(replace(page, reading=context),))
-
-    def forbidden(*args, **kwargs):
-        pytest.fail("required places used before zero-copy binder refusal")
-
-    monkeypatch.setattr(verify, "required_places", forbidden)
-    problems = (
-        verify.received_problems([], (), binder)
-        if boundary == "received"
-        else verify.coverage_problems([], binder)
-    )
-    assert any(
-        "m.py" in problem.message and "regather" in problem.message
-        for problem in problems
-    )
+        assert any("n.py" in one.text and "regather" in one.text for one in why)
 
 
 def test_zero_copies_accept_valid_empty_binders(tmp_path):
@@ -318,25 +215,32 @@ def test_collation_checks_each_copy_against_its_received_binder(tmp_path, with_b
 
 
 def test_shards_admit_each_input_context_once(tmp_path, monkeypatch):
+    from comment_review.flows import bus
+
     binder, received, wires, stage = _shards(tmp_path)
-    admitted = Counter()
-    read_contexts = reading_context._reading_contexts
+    calls = []
+    admit = bus.admit_pages
 
-    def count(sheets, location):
-        admitted[location, id(sheets)] += 1
-        return read_contexts(sheets, location)
+    def count(*sources):
+        calls.append([(label, id(records)) for label, records in sources])
+        return admit(*sources)
 
-    monkeypatch.setattr(reading_context, "_reading_contexts", count)
+    monkeypatch.setattr(bus, "admit_pages", count)
     copies = [returned(wire) for wire in wires]
     out, result = handle(
         CopiesReturned(stage.name, copies, binder, binder.root, stage, binders=received)
     )
     assert result is not None, out
-    assert admitted == {
-        ("stage binder", id(binder.pages)): 1,
-        **{("received binder", id(one.pages)): 1 for one in received},
-        **{(f"edit_copy: {copy.role}", id(copy.sheets)): 1 for copy in copies},
-    }
+    assert calls == [
+        [
+            ("stage binder", id(binder.pages)),
+            *(
+                (f"received binder {i}", id(one.pages))
+                for i, one in enumerate(received, 1)
+            ),
+            *((f"edit_copy: {copy.role}", id(copy.sheets)) for copy in copies),
+        ]
+    ]
 
 
 def test_complete_shards_commit_without_changing_binders(tmp_path):

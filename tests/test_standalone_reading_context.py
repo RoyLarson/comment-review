@@ -1,13 +1,11 @@
 import subprocess
 
-import pytest
 from conftest import run_command
 from test_proof_command import proof_repository
 
 from comment_review.commands import prove_unchanged as command
-from comment_review.flows import page_for, prove_unchanged
+from comment_review.flows import page_for
 from comment_review.reading.diagnostics import ReadFailure
-from comment_review.reading.rust.records import RustRead
 
 
 def test_standalone_cli_proves_mixed_paths_each_under_its_own_context(
@@ -80,29 +78,3 @@ def test_standalone_cli_proves_mixed_paths_each_under_its_own_context(
     ]
     assert admitted[0][2] == admitted[1][2]
     assert admitted[2][2] == admitted[3][2]
-
-
-def test_standalone_equal_source_refuses_context_change_between_snapshot_reads(
-    tmp_path, monkeypatch
-):
-    from conftest import install_another_reader
-
-    suffix = ".rs"
-    repo, target = proof_repository(tmp_path, "const value = 1;\r\n", suffix)
-    before = prove_unchanged.revision_source_of
-
-    def acquire(*args):
-        source = before(*args)
-        install_another_reader(monkeypatch)
-        return source
-
-    monkeypatch.setattr(prove_unchanged, "revision_source_of", acquire)
-    monkeypatch.setattr(
-        RustRead,
-        "preserved",
-        lambda *_, **__: pytest.fail("compared equal text before context admission"),
-    )
-    report = prove_unchanged.run(repo, "HEAD", [target])
-    assert report.failures == 1
-    assert "reading-context-mismatch" in " ".join(report.messages)
-    assert "PROVEN" not in " ".join(report.messages)

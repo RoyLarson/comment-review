@@ -3,6 +3,7 @@ import pytest
 from comment_review.binder.page import Page
 from comment_review.flows import on_the_page as flow
 from comment_review.machine.repo import Source
+from comment_review.reading.context import Imprint
 from comment_review.reading.diagnostics import ReadFailure
 
 
@@ -26,31 +27,22 @@ def _clean_here(address: str) -> dict:
     return {**a_clean(address), "sources": [{"cite": f"{path}:1", "verbatim": "x = 0"}]}
 
 
-def test_same_path_two_contexts_retains_first_valid_read(
+def test_a_held_page_keeps_the_reading_it_was_first_read_under(
     tmp_path, monkeypatch, saved_context
 ):
-    from dataclasses import replace
-
     from conftest import install_another_reader
 
     path = tmp_path / "m.py"
     path.write_bytes(b"# note\r\nx = 1\r\n")
     cache = {}
-    _, page = flow.page_named(
-        "m.py", [], tmp_path, cache, reading_context=saved_context
-    )
+    imprints = {"m.py": Imprint("", saved_context)}
+    _, page = flow.page_named("m.py", ["m.py"], tmp_path, cache, imprints=imprints)
     assert isinstance(page, Page)
     assert page.reading == saved_context
     assert cache["m.py"].source.text == "# note\r\nx = 1\r\n"
     with monkeypatch.context() as patch:
         install_another_reader(patch)
-        another = replace(saved_context, reader="another-reader")
-        _, failure = flow.page_named(
-            "m.py", [], tmp_path, cache, reading_context=another
-        )
-    assert isinstance(failure, ReadFailure)
-    assert failure.diagnostics[0].code == "held-context-mismatch"
-    assert flow.page_named("m.py", [], tmp_path, cache)[1] is page
+        assert flow.page_named("m.py", [], tmp_path, cache)[1] is page
 
 
 @pytest.mark.parametrize(
@@ -63,7 +55,7 @@ def test_saved_context_reaches_shared_read_routes(
 
     from comment_review.commands import check
     from comment_review.desk.proof.sheet import Sheet
-    from comment_review.flows import fill, transcribe, verify
+    from comment_review.flows import fill, reading_context, transcribe, verify
 
     (tmp_path / "m.py").write_text(
         "x = 0\n# one\n# two\n# three\nx = 1\n", encoding="utf-8"
@@ -76,6 +68,8 @@ def test_saved_context_reaches_shared_read_routes(
         ],
     }
     copy = returned(wire)
+    imprints, why = reading_context.admit_pages(("copy", copy.sheets))
+    assert why == []
     calls = []
     actual = flow.page_of
 
@@ -85,17 +79,26 @@ def test_saved_context_reaches_shared_read_routes(
 
     monkeypatch.setattr(flow, "page_of", read)
     if route == "fill":
-        assert fill.page_text_at([wire], "m.py@b1", tmp_path) == "# one\n# two\n# three"
+        text = fill.page_text_at([wire], "m.py@b1", tmp_path, imprints)
+        assert text == "# one\n# two\n# three"
     elif route == "check":
-        assert check._row_problems(copy, ["m.py"], tmp_path, {}) == []
+        assert (
+            check._row_problems(copy, ["m.py"], tmp_path, {}, imprints=imprints) == []
+        )
     elif route == "texts":
-        assert verify.texts_at(copy, ["m.py"], tmp_path, {}) == {
+        assert verify.texts_at(copy, ["m.py"], tmp_path, {}, imprints=imprints) == {
             "m.py@b1": ("# one\n# two\n# three",)
         }
     elif route == "resolution":
-        assert verify.resolution_problems(copy, ["m.py"], tmp_path, {}) == []
+        assert (
+            verify.resolution_problems(copy, ["m.py"], tmp_path, {}, imprints=imprints)
+            == []
+        )
     elif route == "copy":
-        assert verify.copy_problems(copy, ["m.py"], tmp_path, {}, {}) == []
+        assert (
+            verify.copy_problems(copy, ["m.py"], tmp_path, {}, {}, imprints=imprints)
+            == []
+        )
     else:
         assert transcribe.docket_of(copy, tmp_path).schedules == ()
     assert calls == [saved_context]
@@ -157,7 +160,7 @@ def test_valid_page_retains_original_disk_snapshot(tmp_path, monkeypatch):
 def test_known_saved_path_cannot_default_missing_context(tmp_path):
     (tmp_path / "m.py").write_text("x = 1\n", encoding="utf-8")
     assert isinstance(
-        flow.held_at("m.py@b1", ["m.py"], tmp_path, {}, contexts={}), ReadFailure
+        flow.held_at("m.py@b1", ["m.py"], tmp_path, {}, imprints={}), ReadFailure
     )
 
 
@@ -240,10 +243,14 @@ def test_disjoint_saved_paths_supply_destination_context(
         tmp_path,
         {},
         cache,
-        contexts={"m.py": saved_context, "n.py": saved_context},
+        imprints={
+            "m.py": Imprint("", saved_context),
+            "n.py": Imprint("", saved_context),
+        },
     )
     assert not any("reading context" in problem.message for problem in problems)
-    assert cache["n.py"].context == saved_context
+    held = cache["n.py"].result
+    assert isinstance(held, Page) and held.reading == saved_context
 
 
 def test_disjoint_shard_move_uses_full_stage_contexts(
@@ -297,36 +304,6 @@ def test_disjoint_shard_move_uses_full_stage_contexts(
     assert seen["n.py"] == saved_context
 
 
-def test_context_merge_conflict_refuses_before_source(
-    tmp_path, monkeypatch, saved_context
-):
-    from dataclasses import replace
-
-    from helpers import returned
-
-    from comment_review.desk.proof.sheet import Sheet
-    from comment_review.flows.verify import copy_problems
-
-    copy = returned(
-        {
-            "role": "block-context",
-            "read_from": {"root": str(tmp_path), "revise": 0},
-            "sheets": [
-                Sheet.seed("m.py", "", [_clean_here("m.py@b1")], reading=saved_context)
-            ],
-        }
-    )
-
-    def forbidden(path):
-        pytest.fail("conflicting saved contexts acquired source")
-
-    monkeypatch.setattr(flow, "source_of", forbidden)
-    other = replace(saved_context, reader="another-reader")
-    problems = copy_problems(copy, ["m.py"], tmp_path, {}, {}, contexts={"m.py": other})
-    assert problems and all(problem.role == "block-context" for problem in problems)
-    assert "conflicting reading contexts" in problems[0].message
-
-
 @pytest.mark.parametrize("known", [False, True])
 @pytest.mark.parametrize("saved", [False, True])
 def test_resolution_context_admission_precedes_acquisition(
@@ -350,7 +327,7 @@ def test_resolution_context_admission_precedes_acquisition(
         ["m.py"] if known else [],
         tmp_path,
         cache,
-        {"m.py": saved_context} if saved else {},
+        {"m.py": Imprint("", saved_context)} if saved else {},
     )
     if known and not saved:
         assert "saved reading context is missing" in why
@@ -360,22 +337,5 @@ def test_resolution_context_admission_precedes_acquisition(
         assert why == ""
         assert calls == [path]
         if saved:
-            assert cache["m.py"].context == saved_context
-
-
-def test_incompatible_context_refused_before_cached_address(tmp_path):
-    from dataclasses import replace
-
-    cache = {}
-    _, page = flow.page_named(
-        "m.py", [], tmp_path, cache, source=Source("# note\nx = 1\n", "first")
-    )
-    assert isinstance(page, Page)
-    result = flow.held_at(
-        "m.py@b1",
-        [],
-        tmp_path,
-        cache,
-        reading_context=replace(page.reading, reader="another-reader"),
-    )
-    assert isinstance(result, ReadFailure)
+            held = cache["m.py"].result
+            assert isinstance(held, Page) and held.reading == saved_context

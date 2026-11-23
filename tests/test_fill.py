@@ -22,7 +22,7 @@ from comment_review.flows.distribute import seed
 from comment_review.flows.fill import fill, withdraw
 
 
-@pytest.mark.parametrize("operation", ["fill", "withdraw", "place"])
+@pytest.mark.parametrize("operation", ["fill", "withdraw"])
 @pytest.mark.parametrize("fault", ["missing", "malformed", "language", "reader"])
 def test_context_refusal_precedes_address_lookup(
     copy, root, monkeypatch, operation, fault
@@ -45,10 +45,8 @@ def test_context_refusal_precedes_address_lookup(
     monkeypatch.setattr(flow, "_sheet_for", forbidden)
     if operation == "fill":
         placed, why = fill(copy, _a_correct(), root)
-    elif operation == "withdraw":
-        placed, why = withdraw(copy, "m.py@b1", "correct")
     else:
-        placed, _, why = flow.place_on_the_page([copy], "m.py@b1", root)
+        placed, why = withdraw(copy, "m.py@b1", "correct")
     assert placed is None
     assert why and "regather" in " ".join(why)
     assert "block-context" in " ".join(why)
@@ -77,7 +75,9 @@ def test_place_on_page_transports_saved_context(copy, root, monkeypatch):
         return page
 
     monkeypatch.setattr(flow, "page_of", read)
-    marks, slot, why = flow.place_on_the_page([copy], "m.py@b1", root)
+    imprints, why = flow.admitted(copy)
+    assert why == []
+    marks, slot, why = flow.place_on_the_page([copy], "m.py@b1", root, imprints)
     assert why == [] and marks is copy["sheets"][0]["marks"]
     assert slot["raw_text"] == "# one\n# two\n# three"
 

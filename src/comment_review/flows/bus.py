@@ -39,6 +39,7 @@ from pathlib import Path
 from typing import NamedTuple
 
 from comment_review.binder.binder import Binder
+from comment_review.binder.page import Page
 from comment_review.desk import report as events
 from comment_review.desk.collator import Cache, Problem
 from comment_review.desk.dispositions.table import DISPOSITIONS
@@ -71,11 +72,8 @@ from comment_review.flows.human import (
 from comment_review.flows.mark_errors import mark_errors
 from comment_review.flows.on_the_page import PageCache, held_at
 from comment_review.flows.places import bases_and_anchors, places_of
-from comment_review.flows.reading_context import (
-    proof_reading_problems,
-)
+from comment_review.flows.reading_context import admit_pages, admit_proof
 from comment_review.flows.verify import (
-    admit_collate_contexts,
     admitted_copy_problems,
     admitted_coverage_problems,
     admitted_received_problems,
@@ -83,7 +81,6 @@ from comment_review.flows.verify import (
     required_places,
     stage_problems,
 )
-from comment_review.machine.repo import Source
 from comment_review.reading.diagnostics import ReadFailure
 
 
@@ -201,15 +198,37 @@ def _on_copies(message: CopiesReturned) -> tuple[list, Result | None]:
     `add` or a `move` at a place the binder lacks is measured here against
     the paragraph already there rather than first at the write end.
 
-    A page read only because a mark reaches into it -- one no copy holds a
-    sheet for -- must hold the source and reading context it was read in, or
-    the stage is refused; the proof records its reading and sha beside the
-    binder's pages.
+    Each page's sha and reading are admitted once, before any of that
+    (`flows.reading_context.admit_pages`): the stage binder is the reference,
+    and each received binder and then each copy is compared with it. A page
+    read only because a mark reaches into it -- one no copy holds a sheet for
+    -- is read under the installed reader, and the proof records its reading
+    and sha beside the binder's pages.
     """
     binder, root, copies = message.binder, message.root, message.copies
-    contexts, problems = admit_collate_contexts(binder, copies, message.binders)
-    if problems:
-        return _rolled_back(problems, [])
+    # The stage binder is the reference; each received binder, then each copy,
+    # is one later claim on the pages it holds. A refusal goes to the role
+    # whose input it names, and one about the stage binder to no role.
+    sources = [
+        ("stage binder", binder.pages, ""),
+        *(
+            (
+                f"received binder {i}",
+                one.pages,
+                copies[i - 1].role if i <= len(copies) else "",
+            )
+            for i, one in enumerate(message.binders or (), 1)
+        ),
+        *((f"edit_copy: {copy.role}", copy.sheets, copy.role) for copy in copies),
+    ]
+    owner = {label: role for label, _, role in sources}
+    imprints, why = admit_pages(*((label, records) for label, records, _ in sources))
+    unadmitted = [Problem(owner[one.source], "", one.text) for one in why]
+    problems = []
+    if message.binders is not None and len(message.binders) != len(copies):
+        problems.append(Problem("", "", "each edit copy needs one received binder"))
+    if unadmitted or problems:
+        return _rolled_back(problems, [], unreadable=unadmitted)
     paths = [page.path for page in binder.pages]
     # ! One cache of each for the whole stage, not one per copy: the roles cite
     # the same evidence and mark the same pages, so a per-copy cache reads one
@@ -219,7 +238,7 @@ def _on_copies(message: CopiesReturned) -> tuple[list, Result | None]:
     problems = []
     for copy in copies:
         problems += admitted_copy_problems(
-            copy, paths, root, cache, page_cache, contexts=contexts
+            copy, paths, root, cache, page_cache, imprints=imprints
         )
     required = [required_places(binder, message.topology)] * len(copies)
     if message.binders is not None and len(message.binders) == len(copies):
@@ -255,7 +274,7 @@ def _on_copies(message: CopiesReturned) -> tuple[list, Result | None]:
 
     held = bases_and_anchors(
         copies,
-        lambda address: held_at(address, paths, root, page_cache, contexts=contexts),
+        lambda address: held_at(address, paths, root, page_cache, imprints=imprints),
     )
     if isinstance(held, ReadFailure):
         return _rolled_back(
@@ -268,32 +287,13 @@ def _on_copies(message: CopiesReturned) -> tuple[list, Result | None]:
         )
     bases, anchors = held
     sheet_paths = {sheet.path for copy in copies for sheet in copy.sheets}
-    snapshots = {
-        path: snapshot
-        for path, snapshot in page_cache.items()
-        if path not in sheet_paths and not isinstance(snapshot.result, ReadFailure)
+    # A page read only because a mark reaches into it: the page records the
+    # sha and reading it was read at.
+    extra = {
+        path: held.result
+        for path, held in page_cache.items()
+        if path not in sheet_paths and isinstance(held.result, Page)
     }
-    missing = [
-        path
-        for path, snapshot in snapshots.items()
-        if snapshot.context is None
-        or not isinstance(snapshot.source, Source)
-        or isinstance(snapshot.result, ReadFailure)
-        or snapshot.context != snapshot.result.reading
-        or snapshot.source.sha != snapshot.result.sha
-    ]
-    if missing:
-        return _rolled_back(
-            [
-                Problem(
-                    "",
-                    path,
-                    "destination snapshot lacks consistent source and reading"
-                    " context; regather",
-                )
-                for path in missing
-            ]
-        )
     places = places_of(copies, bases, anchors)
     read_from = copies[0].read_from if copies else {}
     proof = MasterProof(
@@ -301,24 +301,16 @@ def _on_copies(message: CopiesReturned) -> tuple[list, Result | None]:
         read_from={**read_from},
         edit_copies=tuple(copies),
         page_readings={
-            **contexts,
-            **{
-                path: snapshot.context
-                for path, snapshot in snapshots.items()
-                if snapshot.context is not None
-            },
+            **{path: imprint.reading for path, imprint in imprints.items()},
+            **{path: page.reading for path, page in extra.items()},
         },
         page_shas={
             **{
-                page.path: page.sha
-                for page in binder.pages
-                if page.path not in sheet_paths
+                path: imprint.sha
+                for path, imprint in imprints.items()
+                if path not in sheet_paths
             },
-            **{
-                path: snapshot.source.sha
-                for path, snapshot in snapshots.items()
-                if isinstance(snapshot.source, Source)
-            },
+            **{path: page.sha for path, page in extra.items()},
         },
     )
     return _commit(proof, places, {}, turn=0)
@@ -452,9 +444,9 @@ def _on_answers(message: AnswersReturned) -> tuple[list, Result | None]:
     move (`flows.answers.slot_key`); the answer is written onto the move, not
     onto either end.
     """
-    why = proof_reading_problems(message.proof)
+    _, why = admit_proof(message.proof)
     if why:
-        return _rolled_back([Problem("", "", reason) for reason in why])
+        return _rolled_back([], unreadable=[Problem("", "", one.text) for one in why])
     places = _places_on(message.proof)
     moves = moves_in(places, _moves_on(message.proof))
     problems: list[Problem] = []
@@ -539,9 +531,11 @@ def _on_dispositions(message: DispositionsWritten) -> tuple[list, Result | None]
     needs words is carried forward in what this commits, for the chief to
     rule on the proof it writes.
     """
-    why = proof_reading_problems(message.proof)
+    _, why = admit_proof(message.proof)
     if why:
-        return _rolled_back([Problem(CHIEF, "", reason) for reason in why])
+        return _rolled_back(
+            [], unreadable=[Problem(CHIEF, "", one.text) for one in why]
+        )
     places = _places_on(message.proof)
     moves = moves_in(places, _moves_on(message.proof))
     problems: list[Problem] = []
@@ -636,14 +630,22 @@ def _on_dispositions(message: DispositionsWritten) -> tuple[list, Result | None]
 
 
 def _rolled_back(
-    problems: list[Problem], asks: Sequence[events.AsksTheHuman] = ()
+    problems: list[Problem],
+    asks: Sequence[events.AsksTheHuman] = (),
+    *,
+    unreadable: Sequence[Problem] = (),
 ) -> tuple[list, None]:
     """Every problem as its own `Refused`, then `asks`, then the rollback.
 
-    Nothing is saved.
+    `unreadable` problems are page identities that will not admit, each
+    refused as `unreadable`. Nothing is saved.
     """
     refusals = [
-        events.Refused(one.role, one.address, (one.message,)) for one in problems
+        *(
+            events.Refused(one.role, one.address, (one.message,), unreadable=True)
+            for one in unreadable
+        ),
+        *(events.Refused(one.role, one.address, (one.message,)) for one in problems),
     ]
     return events.rollback([*refusals, *asks]), None
 

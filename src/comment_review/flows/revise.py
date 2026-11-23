@@ -37,14 +37,10 @@ from comment_review.docket.docket import Docket
 from comment_review.flows import proof_setter
 from comment_review.flows.page_for import page_of
 from comment_review.flows.read_diagnostics import format_failure
-from comment_review.flows.reading_context import (
-    context_for,
-    docket_reading_contexts,
-    page_reading_contexts,
-)
+from comment_review.flows.reading_context import admit_pages, context_for
 from comment_review.machine.repo import remove_tree
 from comment_review.reading.addresser import address_for
-from comment_review.reading.context import ReadingContext
+from comment_review.reading.context import Imprint, ReadingContext
 from comment_review.reading.diagnostics import ReadFailure
 
 
@@ -81,7 +77,7 @@ class AddressesMoved(Exception):
     of places, not where any text reads. This names the one way those sets
     change: a revise whose code moved, so a place below the change renumbers
     under it. It is also raised before any comparison, for a page whose saved
-    reading context is missing or will not admit, or that will not read.
+    reading context is missing, or that will not read.
     """
 
 
@@ -115,10 +111,13 @@ def pull(docket: Docket, repo: Path, into: Path, revise: int) -> Pulled:
     """
     repo = Path(repo)
     into = Path(into)
-    contexts, problems = docket_reading_contexts(docket)
+    imprints, problems = admit_pages(("docket", docket.schedules))
     if problems:
         return Pulled(
-            into, revise, {}, [proof_setter.Refusal("read", "", p) for p in problems]
+            into,
+            revise,
+            {},
+            [proof_setter.Refusal("read", "", p.text) for p in problems],
         )
     # The ancestors `mkdir` makes, nearest first, so a pull that does not
     # return a revise removes them with `into`.
@@ -162,7 +161,7 @@ def pull(docket: Docket, repo: Path, into: Path, revise: int) -> Pulled:
         # and a later stage reading it would measure every mark against the
         # wrong place.
         assert_addresses_held(
-            repo, pulled, [s.path for s in docket.schedules], reading_contexts=contexts
+            repo, pulled, [s.path for s in docket.schedules], imprints=imprints
         )
         whole = True
         return pulled
@@ -199,7 +198,7 @@ def assert_addresses_held(
     pulled: Pulled,
     pages: list[str],
     *,
-    reading_contexts: Mapping[str, ReadingContext] | None = None,
+    imprints: Mapping[str, Imprint] | None = None,
 ) -> None:
     """Raise `AddressesMoved` unless `pulled` addresses the same places `original` did.
 
@@ -214,29 +213,21 @@ def assert_addresses_held(
         pulled: the revise. `pulled.root` is gathered at `pulled.revise`.
         pages: the repo path of each page the docket schedules, posix and
             relative to both roots.
-        reading_contexts: saved contexts for a docket's pages. Omit for a fresh
-            comparison that selects one context per file for both roots.
+        imprints: the docket's identity table, as `pull` admitted it. Omit
+            for a fresh comparison that selects one context per file for both
+            roots.
 
     Raises:
         AddressesMoved: naming the addresses that appeared in the revise and
             the ones that disappeared from the original -- or, before any
-            comparison, a page whose saved reading context is missing or will
-            not admit, or that will not read.
+            comparison, a page the table lacks, or that will not read.
     """
-    contexts = {}
-    if reading_contexts is not None:
-        contexts, problems = page_reading_contexts(
-            [
-                {"path": path, "reading": value}
-                for path, value in reading_contexts.items()
-            ],
-            "address gate",
-        )
-        if problems:
-            raise AddressesMoved("; ".join(problems))
+    contexts: dict[str, ReadingContext] = {}
+    if imprints is not None:
+        contexts = {path: imprint.reading for path, imprint in imprints.items()}
     for rel in pages:
         if rel not in contexts:
-            if reading_contexts is not None:
+            if imprints is not None:
                 raise AddressesMoved(f"{rel}: missing saved reading context; regather")
             selected = context_for(Path(original) / rel)
             if isinstance(selected, ReadFailure):

@@ -313,7 +313,6 @@ def test_standalone_modern_python_uses_one_context_without_host_parsing(
         report = prove_unchanged.run(repo, "HEAD", [target])
     assert report.failures == 0, report.messages
     assert len(admitted) == 2 and admitted[0] is admitted[1]
-    assert report.reading_contexts[target] is admitted[0]
 
 
 def test_python_context_identity_is_independent_of_host_parser_version(monkeypatch):

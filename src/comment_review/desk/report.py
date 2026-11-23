@@ -22,11 +22,17 @@ from comment_review.desk.proof.state import State
 
 
 class Refused(NamedTuple):
-    """One role's problems at one place or one move, as the messages that refused it."""
+    """One role's problems at one place or one move, as the messages that refused it.
+
+    `unreadable` marks a refusal of an input that cannot be read -- a page
+    identity that will not admit -- which a regather or a corrected invocation
+    answers, not a role.
+    """
 
     role: str
     address: str
     reasons: tuple[str, ...]
+    unreadable: bool = False
 
 
 def refusal_line(role: str, where: str, reason: str) -> str:

@@ -55,7 +55,6 @@ from comment_review.machine.repo import (
     walk_files,
 )
 from comment_review.reading.addresser import SEPARATOR
-from comment_review.reading.context import ReadingContext
 from comment_review.reading.coordinates import SourceCoordinates
 from comment_review.reading.diagnostics import (
     DetachedDocumentation,
@@ -101,7 +100,6 @@ class Gathering:
     warnings: list[str] = field(default_factory=list)
     pages: list[Page] = field(default_factory=list)
     binder: Binder = field(init=False)
-    reading_contexts: dict[Path, ReadingContext] = field(default_factory=dict)
 
 
 def _walk(g: Gathering) -> None:
@@ -150,7 +148,6 @@ def _pages(g: Gathering) -> None:
         if isinstance(got, str):
             g.unreadable.append(got)
             continue
-        g.reading_contexts[path.resolve()] = got.reading
         g.pages.append(got)
         rel = got.path
         located = [w for w in got.read.warnings if w.span is not None]

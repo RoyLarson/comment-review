@@ -47,7 +47,7 @@ from comment_review.desk.proof.mark import BlankMark
 from comment_review.desk.proof.sheet import Sheet
 from comment_review.desk.stages import Stage, deals
 from comment_review.exceptions import Refused
-from comment_review.flows.reading_context import binder_reading_contexts
+from comment_review.flows.reading_context import admit_pages
 
 
 class IncompatibleBinder(Refused):
@@ -55,15 +55,19 @@ class IncompatibleBinder(Refused):
 
 
 def admit_binder(binder: Binder) -> None:
-    """Refuse incompatible saved metadata before distribution uses addresses."""
-    _, problems = binder_reading_contexts(binder)
+    """Refuse incompatible saved metadata before distribution uses addresses.
+
+    It runs once per binder loaded: `commands/distribute.py` runs it before
+    `seed`, and `flows.fan_out.dealt` before it shards. `seed` and
+    `assigned_binder` admit nothing.
+    """
+    _, problems = admit_pages(("binder", binder.pages))
     if problems:
-        raise IncompatibleBinder("\n".join(problems))
+        raise IncompatibleBinder("\n".join(one.text for one in problems))
 
 
 def assigned_binder(binder: Binder, stage: Stage | None = None) -> Binder:
     """The binder containing the review places assigned by this stage."""
-    admit_binder(binder)
     return replace(
         binder,
         pages=tuple(
@@ -149,7 +153,6 @@ def seed(binder: Binder, role: str, stage: Stage | None = None) -> dict:
     # The sheet records the page and the sha it was read at, which the proof
     # reads back; dropping the page here would leave the run unable to say
     # what it was cut from.
-    admit_binder(binder)
     return EditCopy.seed(
         role=role,
         read_from=binder.read_from,

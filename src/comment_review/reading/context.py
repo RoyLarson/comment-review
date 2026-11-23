@@ -1,4 +1,4 @@
-"""The immutable identity of a saved reading: its language and reader."""
+"""The immutable identity of a saved reading, and of a page gathered under one."""
 
 from dataclasses import dataclass
 
@@ -17,6 +17,14 @@ class ReadingContext:
         for name, value in (("language", self.language), ("reader", self.reader)):
             if not isinstance(value, str) or not value:
                 raise ValueError(f"{name} must be a nonempty string")
+
+
+@dataclass(frozen=True)
+class Imprint:
+    """The source sha and reading one page was gathered under."""
+
+    sha: str
+    reading: ReadingContext
 
 
 def compatible_contexts(saved: ReadingContext, current: ReadingContext) -> bool:

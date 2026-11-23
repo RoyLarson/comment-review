@@ -60,9 +60,16 @@ def test_check_context_refusal_precedes_address_checks(
 
     monkeypatch.setattr(command, "mark_errors", forbidden)
     code, out, err = _run(monkeypatch, capsys, "--edit-copy", path, "--binder", binder)
-    assert code == command.BROKEN
-    assert "regather" in out and "block-context" in out
-    assert not err
+    if reading == "incompatible":
+        # A page identity that will not admit is an input that cannot be read.
+        assert code == command.UNREADABLE
+        assert "regather" in err and "block-context" in err
+        assert not out
+    else:
+        # A sheet whose reading will not decode is a copy that will not read.
+        assert code == command.BROKEN
+        assert "regather" in out and "block-context" in out
+        assert not err
     assert copy_path.read_bytes() == before
 
 

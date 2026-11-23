@@ -129,7 +129,9 @@ def print_report(out: list) -> None:
 def code_for(out: list) -> int:
     """The exit code one fold's events come to.
 
-    A rollback is `BROKEN` where any `Refused` is in `out`, and
+    A rollback is `UNREADABLE` where a `Refused` in `out` is `unreadable` --
+    an input whose page identity will not admit -- `BROKEN` where any other
+    `Refused` is, and
     `ASKS_THE_HUMAN` where it holds human questions and no refusal: the run
     is paused for the person, nothing was saved, and every question is on
     stdout beside the role that owes it.
@@ -138,6 +140,8 @@ def code_for(out: list) -> int:
     an open placement (`REREADS`), and `OK` where the fold carried nothing forward.
     """
     if any(isinstance(one, events.RolledBack) for one in out):
+        if any(isinstance(one, events.Refused) and one.unreadable for one in out):
+            return UNREADABLE
         if any(isinstance(one, events.Refused) for one in out):
             return BROKEN
         if any(isinstance(one, events.AsksTheHuman) for one in out):

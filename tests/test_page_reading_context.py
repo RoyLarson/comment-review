@@ -82,7 +82,8 @@ def test_fresh_flow_retains_admitted_context_and_held_source(monkeypatch):
     assert isinstance(page, Page)
     assert page.reading is context
     assert page.sha == "supplied"
-    assert received == [Path("missing.py")]
+    # A supplied reading is the caller's, derived or admitted; it is not derived again.
+    assert received == []
     assigned = assigned_binder(bind([page], read_from=READ_FROM))
     assert assigned.pages[0].reading is context
 

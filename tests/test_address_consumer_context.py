@@ -1,5 +1,4 @@
 import json
-from dataclasses import replace
 from typing import Any
 
 import pytest
@@ -7,9 +6,7 @@ from conftest import SAMPLE, build, run_command
 
 from comment_review.binder.binder import bind
 from comment_review.commands import carry as carry_command
-from comment_review.commands import compare
 from comment_review.flows import reading_context, revise
-from comment_review.flows.carry import carry
 from comment_review.reading.diagnostics import ReadFailure
 
 
@@ -20,18 +17,6 @@ def held_tree(tmp_path):
     page = build(SAMPLE)
     binder = bind([page], read_from={"root": str(root), "revise": 0})
     return root, page, binder
-
-
-@pytest.mark.parametrize("side", ["binder", "page"])
-def test_direct_carry_admits_both_in_memory_contexts(tmp_path, side):
-    _, page, binder = held_tree(tmp_path)
-    if side == "binder":
-        binder = replace(binder, pages=(replace(binder.pages[0], reading=None),))
-    else:
-        page.reading = replace(page.reading, reader="uninstalled-reader")
-    updated, added, why = carry(binder, page, "m.py", cue="b99")
-    assert updated is None and added == ""
-    assert "regather" in why
 
 
 def test_carry_command_refuses_before_read_or_write(tmp_path, monkeypatch, capsys):
@@ -61,51 +46,6 @@ def test_carry_command_refuses_before_read_or_write(tmp_path, monkeypatch, capsy
     assert artifact.read_text(encoding="utf-8") == original
 
 
-@pytest.mark.parametrize("consumer", ["compare", "revise"])
-@pytest.mark.parametrize("equal", [True, False])
-@pytest.mark.parametrize("change", ["reader", "missing-reader"])
-def test_fresh_text_comparison_refuses_reader_change(
-    tmp_path, monkeypatch, capsys, consumer, equal, change
-):
-    from conftest import install_another_reader
-
-    from comment_review.flows import page_for
-
-    root, _, _ = held_tree(tmp_path)
-    revised = tmp_path / "revised"
-    revised.mkdir()
-    (revised / "m.py").write_text(
-        SAMPLE if equal else SAMPLE.replace("beside", "changed"),
-        encoding="utf-8",
-        newline="",
-    )
-    actual = page_for.page_for
-
-    def read_then_change(*args, **kwargs):
-        page = actual(*args, **kwargs)
-        if change == "reader":
-            install_another_reader(monkeypatch)
-        else:
-            monkeypatch.setattr(reading_context, "reader_for", lambda *_: None)
-        return page
-
-    monkeypatch.setattr(page_for, "page_for", read_then_change)
-    if consumer == "compare":
-        assert (
-            compare.main(["--original", str(root), "--revise", str(revised), "m.py"])
-            == 0
-        )
-        seen = capsys.readouterr()
-        assert seen.out == ""
-        assert "regather" in seen.err
-        assert "addresses not compared" in seen.err
-    else:
-        with pytest.raises(revise.AddressesMoved, match="regather"):
-            revise.assert_addresses_held(
-                root, revise.Pulled(revised, 1, {}, []), ["m.py"]
-            )
-
-
 def test_pull_refuses_direct_schedule_context_before_output(tmp_path):
     from comment_review.docket.docket import Docket, Schedule
 
@@ -120,18 +60,6 @@ def test_pull_refuses_direct_schedule_context_before_output(tmp_path):
     result = revise.pull(docket, root, output, 1)
     assert result.refusals and "regather" in result.refusals[0].why
     assert not output.parent.exists()
-
-
-def test_direct_saved_gate_refuses_malformed_context(tmp_path):
-    root, _, _ = held_tree(tmp_path)
-    invalid: Any = None
-    with pytest.raises(revise.AddressesMoved, match="regather"):
-        revise.assert_addresses_held(
-            root,
-            revise.Pulled(root, 1, {}, []),
-            ["m.py"],
-            reading_contexts={"m.py": invalid},
-        )
 
 
 @pytest.mark.parametrize("consumer", ["carry", "pull"])

@@ -1,158 +1,151 @@
-"""Resolve installed reading metadata and admit saved reading contexts."""
+"""Derive the installed reading context, and admit each page's identity once.
 
-from collections.abc import Mapping
+context_for(path)        the reading the installed reader gives a path
+admit_pages(*sources)    the identity table of one load, or why it will not admit
+Unadmitted               one such reason, with the source it names as data
+admit_proof(proof)       a master proof's pages, admitted through `admit_pages`
+"""
+
+from collections.abc import Iterable
 from pathlib import Path
+from typing import NamedTuple, Protocol
 
-from comment_review.binder.binder import Binder
-from comment_review.binder.page import Page, RedactedPage
-from comment_review.desk.proof.edit_copy import EditCopy
-from comment_review.desk.proof.master_proof import (
-    MasterProof,
-    referenced_reading_problems,
-)
-from comment_review.desk.proof.sheet import Sheet
-from comment_review.docket.docket import Docket, Schedule
-from comment_review.reading.context import ReadingContext, resolve_context
-from comment_review.reading.context_io import context_from_wire, context_to_wire
+from comment_review.desk.proof.master_proof import MasterProof
+from comment_review.reading.context import Imprint, ReadingContext, resolve_context
 from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, ReadStage
 from comment_review.reading.language import INSTALLED_REGISTRY
 from comment_review.reading.readers import reader_for
 from comment_review.reading.registry import LanguageRegistry
 
 
-def proof_reading_problems(
-    proof: MasterProof | dict, where: str = "master_proof"
-) -> list[str]:
-    """Admit saved proof metadata before any address-dependent work."""
-    if isinstance(proof, MasterProof):
-        problems = proof.reading_problems(where)
-        if problems:
-            return problems
-        records = proof.page_readings
-        sheets = [sheet for copy in proof.edit_copies for sheet in copy.sheets]
-    else:
-        records = proof.get("page_readings")
-        copies = proof.get("edit_copies", [])
-        if not isinstance(copies, list):
-            return [f"{where}: edit_copies must be a list; regather"]
-        sheets = []
-        for copy in copies:
-            if not isinstance(copy, dict) or not isinstance(copy.get("sheets"), list):
-                return [f"{where}: edit_copy sheets must be a list; regather"]
-            sheets.extend(copy["sheets"])
-        problems = referenced_reading_problems(proof, where)
-        if problems:
-            return problems
-    if not isinstance(records, dict):
-        return [f"{where}: page_readings is missing or malformed; regather"]
-    admitted, why = _reading_contexts(
-        [
-            {
-                "path": path,
-                "reading": context_to_wire(value)
-                if isinstance(value, ReadingContext)
-                else value,
-            }
-            for path, value in records.items()
-        ],
-        where,
-    )
-    problems.extend(why)
-    sheet_contexts, why = _reading_contexts(sheets, where)
-    problems.extend(why)
-    for path, context in sheet_contexts.items():
-        if admitted.get(path) != context:
-            problems.append(
-                f"{where}: {path}: sheet reading disagrees with page_readings; regather"
-            )
-    return problems
+class Imprinted(Protocol):
+    """What `admit_pages` reads of a page, sheet or schedule."""
+
+    @property
+    def path(self) -> str:
+        """The page's real relative path."""
+        ...
+
+    @property
+    def sha(self) -> str:
+        """The sha of the source the page was read from."""
+        ...
+
+    @property
+    def reading(self) -> ReadingContext:
+        """The reading the page was read under."""
+        ...
 
 
-def copy_reading_problems(copy: object, where: str = "edit_copy") -> list[str]:
-    """Admit sheet metadata without parsing marks or resolving saved addresses."""
-    return copy_reading_contexts(copy, where)[1]
+class Unadmitted(NamedTuple):
+    """One reason a page identity will not admit, and the source that claimed it.
+
+    `source` is the label the caller gave the claimant's records, so the caller
+    routes the reason by it; `text` is the reason as printed, and opens with
+    the source and the path.
+    """
+
+    source: str
+    text: str
 
 
-def copy_reading_contexts(
-    copy: object, where: str = "edit_copy"
-) -> tuple[dict[str, ReadingContext], list[str]]:
-    """Return admitted saved contexts for readers of a copy's pages."""
-    if isinstance(copy, EditCopy):
-        role, sheets = copy.role, copy.sheets
-    elif isinstance(copy, dict):
-        role, sheets = copy.get("role", ""), copy.get("sheets")
-    else:
-        return {}, [f"{where}: an edit_copy must be an object; regather"]
-    location = f"{where}: {role}"
-    if not isinstance(sheets, (list, tuple)):
-        return {}, [f"{location}: sheets must be a list; regather"]
-    return _reading_contexts(sheets, location)
+class _Recorded(NamedTuple):
+    """One row of a master proof's `page_readings`, with the sha it records."""
+
+    path: str
+    sha: str
+    reading: ReadingContext
 
 
-def binder_reading_contexts(
-    binder: Binder, where: str = "binder"
-) -> tuple[dict[str, ReadingContext], list[str]]:
-    """Admit page metadata using the same installed policy as returned sheets."""
-    return _reading_contexts(binder.pages, where)
+def admit_pages(
+    *sources: tuple[str, Iterable[Imprinted]],
+) -> tuple[dict[str, Imprint], list[Unadmitted]]:
+    """The identity table of one load: real path -> the sha and reading it was read at.
 
+    Identity is `(sha, reading)` per path. The sources are taken in the order
+    given, which is the entry point's order of authority: the first claimant
+    of a path is its reference. That claimant's reading is compared once with
+    the installed reader's, and each later claim on the path is compared once
+    with the first. Nothing here reads a page or the checkout.
 
-def page_reading_contexts(
-    pages: list | tuple, where: str = "pages"
-) -> tuple[dict[str, ReadingContext], list[str]]:
-    """Admit supplied pages before resolving their saved cues."""
-    return _reading_contexts(pages, where)
+    Args:
+        sources: `(label, records)` pairs. The label names the artifact in a
+            reason.
 
-
-def docket_reading_contexts(
-    docket: Docket, where: str = "docket"
-) -> tuple[dict[str, ReadingContext], list[str]]:
-    """Admit scheduled contexts before a revise creates output."""
-    return _reading_contexts(docket.schedules, where)
-
-
-def _reading_contexts(
-    sheets: list | tuple, location: str
-) -> tuple[dict[str, ReadingContext], list[str]]:
-    contexts: dict[str, ReadingContext] = {}
-    problems: list[str] = []
-    for index, sheet in enumerate(sheets, 1):
-        label = f"{location} sheet {index}"
-        if isinstance(sheet, (Sheet, Page, RedactedPage, Schedule)):
-            path, value = sheet.path, sheet.reading
-        elif isinstance(sheet, dict):
-            path, value = sheet.get("path"), sheet.get("reading")
-        else:
-            problems.append(f"{label}: a sheet must be an object; regather")
-            continue
-        if isinstance(value, ReadingContext):
-            try:
-                validated = ReadingContext(value.language, value.reader)
-                value = context_to_wire(validated)
-            except (TypeError, ValueError):
-                problems.append(f"{label}: malformed reading context; regather")
+    Returns:
+        `(table, [])`, or `({}, reasons)`: one `Unadmitted` per source and
+        path that will not admit. Every reason's text ends in `regather`.
+    """
+    table: dict[str, Imprint] = {}
+    first: dict[str, str] = {}
+    refused: set[str] = set()
+    reasons: list[Unadmitted] = []
+    for label, records in sources:
+        for record in records:
+            path, reading = record.path, record.reading
+            if path in refused:
                 continue
-        if not isinstance(path, str) or not path:
-            problems.append(f"{label}: sheet path is missing; regather")
-            continue
-        saved, why = context_from_wire(f"{label} {path}", value)
-        if saved is None:
-            problems.extend(why)
-            continue
-        current = context_for(Path(path))
-        if isinstance(current, ReadFailure):
-            problems.extend(
-                f"{label} {path}: {diagnostic.message}; regather"
-                for diagnostic in current.diagnostics
-            )
-            continue
-        problems.extend(
-            f"{label}: {problem}; regather to save a fresh reading context"
-            for problem in reading_problems({Path(path): saved}, {Path(path): current})
-        )
-        if path in contexts and contexts[path] != saved:
-            problems.append(f"{label} {path}: conflicting reading contexts; regather")
-        contexts[path] = saved
-    return ({}, problems) if problems else (contexts, [])
+            if not isinstance(reading, ReadingContext):
+                reasons.append(
+                    Unadmitted(
+                        label, f"{label}: {path}: reading context is missing; regather"
+                    )
+                )
+                continue
+            claim = Imprint(record.sha, reading)
+            if path in table:
+                held = table[path]
+                if claim == held:
+                    continue
+                differs = "reading context" if reading != held.reading else "sha"
+                reasons.append(
+                    Unadmitted(
+                        label,
+                        f"{label}: {path}: {differs} disagrees with {first[path]};"
+                        " regather",
+                    )
+                )
+                continue
+            current = context_for(Path(path))
+            if isinstance(current, ReadFailure):
+                reasons.extend(
+                    Unadmitted(
+                        label, f"{label}: {path}: {diagnostic.message}; regather"
+                    )
+                    for diagnostic in current.diagnostics
+                )
+            elif current != reading:
+                reasons.append(
+                    Unadmitted(
+                        label,
+                        f"{label}: {path}: reading context differs from the installed"
+                        " reader's; regather to save a fresh reading context",
+                    )
+                )
+            else:
+                table[path], first[path] = claim, label
+                continue
+            # Refused once: a later claim on the path is not asked again.
+            refused.add(path)
+    return ({}, reasons) if reasons else (table, [])
+
+
+def admit_proof(
+    proof: MasterProof, where: str = "master_proof"
+) -> tuple[dict[str, Imprint], list[Unadmitted]]:
+    """A master proof's pages: its tables first, then its sheets, through `admit_pages`.
+
+    A table row's sha is the one `page_shas` records for the path, or for a
+    page a sheet holds, the sheet's.
+    """
+    sheets = [sheet for copy in proof.edit_copies for sheet in copy.sheets]
+    shas = {sheet.path: sheet.sha for sheet in sheets}
+    shas.update(proof.page_shas)
+    tables = [
+        _Recorded(path, shas.get(path, ""), reading)
+        for path, reading in proof.page_readings.items()
+    ]
+    return admit_pages((where, tables), (f"{where} sheets", sheets))
 
 
 def context_for(
@@ -175,16 +168,3 @@ def context_for(
             )
         )
     return resolve_context(selected[0])
-
-
-def reading_problems(
-    saved: Mapping[Path, ReadingContext], current: Mapping[Path, ReadingContext]
-) -> list[str]:
-    """Compare saved metadata without reading source or consulting addresses."""
-    return [
-        f"{path.as_posix()}: current reading context is missing"
-        if path not in current
-        else f"{path.as_posix()}: reading context differs from saved context"
-        for path in sorted(saved)
-        if path not in current or saved[path] != current[path]
-    ]

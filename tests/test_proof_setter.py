@@ -46,7 +46,12 @@ def test_saved_context_refuses_before_setting(tmp_path, monkeypatch, fault):
         pytest.fail("incompatible context reached the setter")
 
     monkeypatch.setattr(galley, "reset", forbidden_set)
-    drafted, refused = proof_setter.run(Docket((schedule,)), repo, tmp_path / "out")
+    if fault == "reader":
+        # `revise.pull` admits the docket's readings before the setter runs.
+        pulled = revise.pull(Docket((schedule,)), repo, tmp_path / "out", 1)
+        drafted, refused = [], pulled.refusals
+    else:
+        drafted, refused = proof_setter.run(Docket((schedule,)), repo, tmp_path / "out")
     assert drafted == []
     assert refused and "reading" in refused[0].why
 
@@ -75,7 +80,7 @@ def test_direct_duplicate_paths_refuse_before_drafting(
     assert "two schedules" in refused[0].why
 
 
-def test_later_saved_context_mismatch_discards_nested_draft(tmp_path, monkeypatch):
+def test_a_later_unreadable_page_discards_nested_draft(tmp_path, monkeypatch):
     repo, into = tmp_path / "repo", tmp_path / "out"
     originals = {
         "a/deep/first.py": b"x = 1\r\n\r\n# note\r\ny = 2\r\n",
@@ -94,15 +99,15 @@ def test_later_saved_context_mismatch_discards_nested_draft(tmp_path, monkeypatc
         {address(binder, rel): "# replacement" for rel in originals}, binder
     )
     first, second = docket.schedules
-    second = dataclasses.replace(
-        second, reading=dataclasses.replace(second.reading, reader="another-reader")
-    )
     real_page = proof_setter.page_of
     observed = []
 
     def observing_page(path, *args, **kwargs):
         if path == repo / "z.py":
             observed.append((into / "a/deep/first.py").is_file())
+            return ReadFailure(
+                (ReadDiagnostic(ReadStage.SELECT, "unreadable", "will not read"),)
+            )
         return real_page(path, *args, **kwargs)
 
     monkeypatch.setattr(proof_setter, "page_of", observing_page)

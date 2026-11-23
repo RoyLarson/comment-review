@@ -40,7 +40,9 @@ def a_proof(tmp_path):
 
 
 @pytest.mark.parametrize("changed", [False, True])
-def test_saved_context_admitted_before_place_decoding(tmp_path, monkeypatch, changed):
+def test_a_saved_proof_loads_and_is_admitted_by_its_reader(
+    tmp_path, monkeypatch, changed
+):
     from conftest import install_another_reader
 
     from comment_review.desk.proof.place import Place
@@ -70,23 +72,23 @@ def test_saved_context_admitted_before_place_decoding(tmp_path, monkeypatch, cha
 
     def decode(*args, **kwargs):
         decoded.append(True)
-        if changed:
-            pytest.fail("incompatible saved context reached place decoding")
         return deserialize(*args, **kwargs)
 
     monkeypatch.setattr(Place, "deserialize", decode)
     if changed:
         install_another_reader(monkeypatch)
+    # The load decodes the container; the installed reader is the question of
+    # the entry point that reads the proof, asked once there.
     loaded, why = load_proof(path)
+    assert loaded is not None, why
+    assert loaded == proof, why
+    assert decoded
+    assert loaded.page_readings["extra.py"] == context
+    _, why = reading_context.admit_proof(loaded)
     if changed:
-        assert loaded is None
-        assert any("regather" in problem and "differs" in problem for problem in why)
-        assert not decoded
+        assert any("regather" in one.text and "differs" in one.text for one in why)
     else:
-        assert loaded is not None, why
-        assert loaded == proof, why
-        assert decoded
-        assert loaded.page_readings["extra.py"] == context
+        assert why == []
     assert path.read_bytes() == before
 
 

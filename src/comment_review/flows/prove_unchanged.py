@@ -5,8 +5,8 @@ sibling in its directory that the run did not edit (`_sibling`); a page
 with no readable sibling is counted unchecked.
 """
 
-from collections.abc import Mapping, Sequence
-from dataclasses import dataclass, field
+from collections.abc import Sequence
+from dataclasses import dataclass
 from pathlib import Path
 
 from comment_review.binder.page import Page
@@ -15,7 +15,6 @@ from comment_review.flows.read_diagnostics import format_failure
 from comment_review.flows.reading_context import context_for
 from comment_review.flows.source import revision_source_of, source_of
 from comment_review.machine.repo import Source, git_ls_files
-from comment_review.reading.context import ReadingContext
 from comment_review.reading.diagnostics import ReadFailure
 from comment_review.reading.language import INSTALLED_REGISTRY
 from comment_review.results.prove_unchanged import dominant_ending
@@ -29,7 +28,6 @@ class ProofReport:
     failures: int
     unchecked: int
     freeform: int = 0
-    reading_contexts: Mapping[Path, ReadingContext] = field(default_factory=dict)
 
 
 def _sibling(
@@ -73,7 +71,6 @@ def run(
     tracked = git_ls_files(repo) or []
     messages: list[str] = []
     failures = unchecked = freeform = 0
-    contexts: dict[Path, ReadingContext] = {}
     for raw in paths:
         target = raw.resolve()
         try:
@@ -93,7 +90,6 @@ def run(
             messages.append(f"FAIL      {format_failure(context, path=rel)}")
             failures += 1
             continue
-        contexts[target] = context
         before = revision_source_of(repo, base, rel)
         if isinstance(before, ReadFailure):
             if any(d.code == "missing-revision-source" for d in before.diagnostics):
@@ -162,4 +158,4 @@ def run(
                     f"sibling {sibling.name} {want}"
                 )
                 failures += 1
-    return ProofReport(tuple(messages), failures, unchecked, freeform, contexts)
+    return ProofReport(tuple(messages), failures, unchecked, freeform)

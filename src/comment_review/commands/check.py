@@ -32,8 +32,8 @@ here, which is what the turn refuses the round for.
 The shape a role hands back is read the way the fold reads it
 (`flows.answers.slots_of`): a list of slots, `{role: [slots]}`, or a lone slot.
 
-A copy is also held to its pages' reading metadata
-(`flows.reading_context.copy_reading_problems`), to the instructions its
+A copy is also held to its binder's sha and reading for each page
+(`flows.reading_context.admit_pages`), to the instructions its
 stage admits (`desk.stages.not_admitted`), to carrying the addresses its
 binder deals it (`flows.verify.coverage_problems`), and to the tree that
 binder was gathered from (`flows.verify.gathered_tree_problem`).
@@ -90,18 +90,14 @@ from comment_review.flows.proof_io import (
     load_copy,
     load_value,
 )
-from comment_review.flows.reading_context import (
-    binder_reading_contexts,
-    copy_reading_problems,
-)
+from comment_review.flows.reading_context import admit_pages
 from comment_review.flows.verify import (
     copy_problems,
     coverage_problems,
     gathered_tree_problem,
-    lookup_contexts,
     required_places,
 )
-from comment_review.reading.context import ReadingContext
+from comment_review.reading.context import Imprint
 
 
 def _row_problems(
@@ -110,7 +106,7 @@ def _row_problems(
     root: Path,
     pages: PageCache,
     *,
-    contexts: dict[str, ReadingContext] | None = None,
+    imprints: dict[str, Imprint] | None = None,
 ) -> list[Problem]:
     """What each mark's own row finds against the pages -- `mark`'s own check.
 
@@ -126,26 +122,22 @@ def _row_problems(
         paths: the binder's own page paths.
         root: the checkout every page is read from.
         pages: the pages already read for this copy's other checks.
-        contexts: admitted contexts from the received binder, when available.
+        imprints: the identity table admitted for the copy and its binder.
 
     Returns:
-        One `Problem` per reading-context refusal, and nothing else, when
-        there is any; else one per place that cannot be read, and nothing
-        else, when any cannot; otherwise one per row finding, in sheet then
+        One `Problem` per place that cannot be read, and nothing else, when
+        any cannot; otherwise one per row finding, in sheet then
         mark order, then one per place where the copy's own marks will not
         compose.
     """
     from comment_review.reading.diagnostics import ReadFailure
 
-    contexts, why = lookup_contexts(copy, contexts)
-    if why:
-        return [Problem(copy.role, "", reason) for reason in why]
     bases = {}
     failures = []
     for sheet in copy.sheets:
         for mark in sheet.marks:
             for address, _ in INSTRUCTIONS[mark.instruction].places(mark):
-                result = held_at(address, paths, root, pages, contexts=contexts)
+                result = held_at(address, paths, root, pages, imprints=imprints)
                 if isinstance(result, ReadFailure):
                     failures.append(
                         Problem(
@@ -231,11 +223,6 @@ def _check_copy(
     loaded, why = load_copy(Path(path))
     if why:
         return refused(why)
-    problems = copy_reading_problems(loaded, path)
-    if problems:
-        for line in problems:
-            print(line)
-        return BROKEN
     copy, problems = EditCopy.deserialize(path, loaded)
     if copy is None:
         for line in problems:
@@ -246,12 +233,12 @@ def _check_copy(
     binder, why = load_binder(Path(binder_path))
     if binder is None:
         return refused(why)
-    contexts, why = binder_reading_contexts(binder, "received binder")
+    # The received binder is the reference, and the copy's sheets one claim on it.
+    imprints, why = admit_pages(
+        ("received binder", binder.pages), (f"{path}: {copy.role}", copy.sheets)
+    )
     if why:
-        return refused(why)
-    contexts, why = lookup_contexts(copy, contexts)
-    if why:
-        return refused(why)
+        return refused([one.text for one in why])
     found = 0
     required = [required_places(binder)]
     for one in mark_errors([copy], required):
@@ -273,8 +260,8 @@ def _check_copy(
         pages: PageCache = {}
         paths = [page.path for page in binder.pages]
         for problem in (
-            *copy_problems(copy, paths, root, cache, pages, contexts=contexts),
-            *_row_problems(copy, paths, root, pages, contexts=contexts),
+            *copy_problems(copy, paths, root, cache, pages, imprints=imprints),
+            *_row_problems(copy, paths, root, pages, imprints=imprints),
             *coverage_problems([copy], binder),
         ):
             where = problem.address or "(the copy)"

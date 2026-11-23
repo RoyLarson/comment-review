@@ -7,7 +7,11 @@ import pytest
 from comment_review.flows import reading_context as flow_context
 from comment_review.flows.compositor import round_trip
 from comment_review.flows.gather import gather
-from comment_review.reading.context import ReadingContext, compatible_contexts
+from comment_review.reading.context import (
+    Imprint,
+    ReadingContext,
+    compatible_contexts,
+)
 from comment_review.reading.context_io import context_to_wire
 from comment_review.reading.diagnostics import ReadFailure
 
@@ -300,6 +304,7 @@ def test_direct_distribution_admits_context_before_saved_rows(
         monkeypatch.setattr(distribute, "handed", forbidden)
 
     def operation():
+        distribute.admit_binder(binder)
         return (
             distribute.seed(binder, "block-context")
             if route == "seed"
@@ -478,14 +483,14 @@ def test_rust_context_gathered_now_is_admitted(tmp_path):
     path.write_bytes(RUST_SOURCE)
     gathered = gather(tmp_path, [path], 0)
     assert not gathered.unreadable
-    current = gathered.reading_contexts[path]
+    current = gathered.binder.pages[0].reading
     assert current == rust_context()
     page = rust_page(current)
     assert not isinstance(page, ReadFailure)
     assert page.reading == current
-    admitted, problems = flow_context.binder_reading_contexts(gathered.binder)
+    admitted, problems = flow_context.admit_pages(("binder", gathered.binder.pages))
     assert problems == []
-    assert admitted == {"m.rs": current}
+    assert admitted == {"m.rs": Imprint(gathered.binder.pages[0].sha, current)}
 
 
 def test_saved_rust_workflow_keeps_context_through_the_draft(
@@ -768,7 +773,8 @@ def test_direct_copy_metadata_is_admitted_without_trusting_annotations(fault):
         object.__setattr__(sheet, "reading", [])
     copy = EditCopy("block-context", {"root": ".", "revise": 0}, (sheet,))
     before = repr(copy)
-    problems = flow_context.copy_reading_problems(copy)
+    _, unadmitted = flow_context.admit_pages(("edit_copy: block-context", copy.sheets))
+    problems = [one.text for one in unadmitted]
     if fault == "compatible":
         assert problems == []
     else:
@@ -783,9 +789,11 @@ def test_direct_proof_saved_context_is_admitted_against_installed_identity():
     saved = flow_context.context_for(Path("m.py"))
     assert isinstance(saved, ReadingContext)
     proof = MasterProof("4c", {}, (), {"m.py": saved}, page_shas={"m.py": "sha"})
-    assert flow_context.proof_reading_problems(proof) == []
+    assert flow_context.admit_proof(proof)[1] == []
     proof.page_readings["m.py"] = replace(saved, reader="another-reader")
-    assert "regather" in " ".join(flow_context.proof_reading_problems(proof))
+    assert "regather" in " ".join(
+        one.text for one in flow_context.admit_proof(proof)[1]
+    )
 
 
 @pytest.mark.parametrize(
@@ -798,45 +806,18 @@ def test_direct_extra_page_proof_refuses_invalid_sha_metadata(path, sha):
     saved = flow_context.context_for(Path("m.py"))
     assert isinstance(saved, ReadingContext)
     proof = MasterProof("4c", {}, (), {"m.py": saved}, page_shas={path: sha})
-    problems = flow_context.proof_reading_problems(proof)
+    problems = proof.reading_problems("master_proof")
     assert any("page_shas" in reason and "regather" in reason for reason in problems)
-
-
-def test_direct_proof_malformed_context_returns_refusal_before_conversion():
-    from comment_review.desk.proof.master_proof import MasterProof
-
-    saved = flow_context.context_for(Path("m.py"))
-    assert isinstance(saved, ReadingContext)
-    object.__setattr__(saved, "reader", "")
-    proof = MasterProof("4c", {}, (), {"m.py": saved}, page_shas={"m.py": "sha"})
-    problems = flow_context.proof_reading_problems(proof)
-    assert problems == ["master_proof: m.py: malformed reading context; regather"]
-
-
-def test_reading_problems_name_a_differing_or_missing_context():
-    first = flow_context.context_for(Path("a.py"))
-    assert isinstance(first, ReadingContext)
-    second = replace(first, reader="another-reader")
-    assert (
-        flow_context.reading_problems({Path("a.ix"): first}, {Path("a.ix"): first})
-        == []
-    )
-    assert flow_context.reading_problems(
-        {Path("a.ix"): first}, {Path("a.ix"): second}
-    ) == ["a.ix: reading context differs from saved context"]
-    assert flow_context.reading_problems({Path("a.ix"): first}, {}) == [
-        "a.ix: current reading context is missing"
-    ]
 
 
 def test_installed_contexts_are_retained_in_fresh_results(tmp_path):
     path = tmp_path / "x.py"
     path.write_text("# prose\n", encoding="utf-8")
     gathering = gather(tmp_path, [path], 0)
-    assert gathering.reading_contexts[path].language == "python"
+    assert gathering.binder.pages[0].reading.language == "python"
     result = round_trip(path)
     assert not isinstance(result, ReadFailure)
-    assert result.reading_context == gathering.reading_contexts[path]
+    assert result.reading_context == gathering.binder.pages[0].reading
 
 
 @pytest.mark.parametrize("command", ["gather", "compositor", "prove_unchanged"])

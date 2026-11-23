@@ -118,7 +118,7 @@ def test_collate_refuses_the_examples_fictional_installed_context(
     )
     code = collate_main()
     printed = capsys.readouterr().out
-    assert code == 1, printed
+    assert code == 2, printed
     lines = [line for line in printed.splitlines() if line.strip()]
     assert lines
     for line in lines:
