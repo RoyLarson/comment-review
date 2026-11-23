@@ -279,7 +279,7 @@ that changed a published name or rule:
 | [no-component-owns-the-run](no-component-owns-the-run.md) | backend | -- | 0/3 | No component owns the run across stages |
 | [fold-admission-has-no-owner](fold-admission-has-no-owner.md) | backend | -- | 0/3 | "Would the fold refuse this?" has no single owner |
 | [a-mark-states-its-edit-three-times](a-mark-states-its-edit-three-times.md) | backend | -- | 0/3 | A mark states its edit up to three times and no field is authoritative |
-| [settlement-depends-on-who-filed](settlement-depends-on-who-filed.md) | backend | -- | 0/3 | Settlement depends on who filed, not on what was read |
+| [settlement-depends-on-who-filed](settlement-depends-on-who-filed.md) | backend | -- | 1/3 | Settlement depends on who filed, not on what was read |
 | [boundary-records-have-no-typed-form](boundary-records-have-no-typed-form.md) | backend | -- | 0/5 | Records crossing boundaries have no single typed form |
 | [area-model-stated-and-enforced-differently](area-model-stated-and-enforced-differently.md) | backend | -- | 0/5 | The area architecture is stated in one model and enforced against another |
 | [freeform-rules-have-no-source](freeform-rules-have-no-source.md) | agents | -- | 0/3 | Freeform is a second pipeline run only by prose, sharing rules with no source |

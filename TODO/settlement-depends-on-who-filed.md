@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 3 tasks closed
+Progress: 1 of 3 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-11-23 (broken review, 2026-11-23)
@@ -34,9 +34,11 @@ W-F8, N-N5; V17, V19, V22]
 
 ## Tasks
 
-- [ ] T1 | Determine what settles a place apart from who filed its marks
+- [x] T1 | Ruled: #385-#392 decide what settles a place | 0baa9c2cb579b375e30973e1134a035247028eeb | Determine
+      what settles a place apart from who filed its marks
         > 2026-11-23 Solution phase running; recommendation to follow (broken review)
         > 2026-11-23 Symptom: stage-5-is-the-only-stage-with-no-independent-reader T18
+        > 2026-11-23 Outcome: decision-log #385-#392 settle it; work is T2, T3, P1
 - [ ] T2 | Make two disjoint sentence edits settle alike from one role or from
       two
 - [ ] T3 | Make the console name a settled place by what settled it
