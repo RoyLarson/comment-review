@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 51 of 83 tasks closed
+Progress: 51 of 84 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-09-04 (Roy, 2026-09-04, superseding the-flow-lives-in-the-command T4)
@@ -285,3 +285,6 @@ The agents files name the new CLI and say how to use it.
 - [ ] T83 | Replace SKILL.md:250's fold without it with stopping the stage and
       reporting the role
         > 2026-11-22 Check: SKILL.md:250 stops the run; no short fold (#375)
+- [ ] T84 | Add to write.md's stage 7b check a run of the project's doctests
+      when the project has them
+        > 2026-11-22 Check: write.md runs doctests at 7b where they exist (#381)

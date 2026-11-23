@@ -7334,3 +7334,12 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   (#52), so the reader accepts it. A docket page the reader would refuse, such as one whose sha
   the desk folded to empty, is refused at serialize instead. `containers-and-verification-are-
   unwired` T29, which held both halves, is split into those two tasks.
+
+- **#381.** **The proof stage runs the project's doctests where it has them** (Roy, 2026-11-22,
+  asked whether his aside on #378, "Maybe we tell the agents to run a doctest if available during
+  the proof stage", should become a task):
+
+  *"Yes"*
+
+  **What it settles.** #378 stands: the code proof does not protect doctest code. The agents are
+  told to run the project's doctests at the proof stage when the project has them.
