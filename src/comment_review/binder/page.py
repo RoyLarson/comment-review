@@ -130,7 +130,7 @@ class Page:
         ! Asked by series, not by the kind. The file's own matter is the `f`
         series, and every consumer that has to know reads that --
         `binder.addresses.handed`, which `flows.distribute.seed`,
-        `flows.distribute.assigned_binder` and `flows.verify.required_places`
+        `flows.distribute.assigned_binder` and `flows.verify.admit`
         read, and this.
 
         !! `d` IS OUT BECAUSE IT NAMES NO PLACE, and that is the whole test.

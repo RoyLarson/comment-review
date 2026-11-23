@@ -183,10 +183,16 @@ class TestDocketOf:
             marks,
         )
 
-        def must_not_fold(*args, **kwargs):
-            pytest.fail("a human query reached Fold")
+        from comment_review.flows import verify
 
-        monkeypatch.setattr("comment_review.flows.transcribe.Fold", must_not_fold)
+        fold = verify.Fold
+
+        def without_queries(places, *args, **kwargs):
+            filed = [one.mark for place in places.values() for one in place.filed]
+            assert all(mark.instruction != "query" for mark in filed), filed
+            return fold(places, *args, **kwargs)
+
+        monkeypatch.setattr(verify, "Fold", without_queries)
         with pytest.raises(CannotTranscribe) as raised:
             docket_of(copy, root)
         assert len(raised.value.reasons) == len(questions)
@@ -396,9 +402,11 @@ class TestDocketOf:
         (root / "m.py").unlink()
         with pytest.raises(CannotTranscribe) as raised:
             docket_of(copy, root)
-        (why,) = raised.value.reasons
-        assert why.startswith("block-context m.py: ")
-        assert "m.py@b1" in why
+        assert any(
+            why.startswith("block-context m.py@b1: ")
+            and "no page can be read at m.py" in why
+            for why in raised.value.reasons
+        ), raised.value.reasons
 
     def test_a_page_the_copy_files_no_mark_on_is_not_missed(self, tmp_path):
         """Only a page a mark writes at is owed. A sheet nobody ruled on has

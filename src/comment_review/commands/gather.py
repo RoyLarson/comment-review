@@ -65,7 +65,7 @@ def main() -> int:
     # ! Reachable without anyone typing it: stage 1 takes its paths from a
     # merge-base diff, and a diff that touches no reviewable file hands this
     # nothing. The run then reads as complete because there was nothing to be
-    # incomplete about -- the failure `flows.verify.coverage_problems` states the
+    # incomplete about -- the failure `flows.verify.admit`'s coverage states the
     # rule against, one stage earlier. ! Refused before `--out` opens anything, so
     # a usage error leaves no empty binder behind for the next stage to read as an
     # answered one.
@@ -121,7 +121,7 @@ def _report(args: argparse.Namespace) -> int:
         return 1
     # !! An unaddressed paragraph is uncitable, so a binder holding one is a
     # binder nobody can rule on -- and it fails silently:
-    # `flows.verify.coverage_problems` builds its accountability set from the
+    # `flows.verify.admit` builds its coverage set from the
     # addresses, so paragraphs with none are simply not accountable and the run
     # reads as complete.
     missing = unaddressed(got.binder.paragraphs)

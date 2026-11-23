@@ -840,6 +840,10 @@ class TestEveryAlterationCarriesAnAnchor:
 
     def test_the_flows_own_docket_for_a_move_is_set(self, tmp_path):
         repo, binder, _ = _tree(tmp_path)
+        # The file the move's source cites, so it verifies against `repo`.
+        cited = repo / "src" / "comment_review" / "desk" / "proof" / "mark.py"
+        cited.parent.mkdir(parents=True)
+        cited.write_bytes((PKG / "desk" / "proof" / "mark.py").read_bytes())
         origin = address(binder, "m.py")
         destination = f"m.py@{min(c for c in ABSENT if c.startswith('b'))}"
         # The whole paragraph moves, so the snippet subtracted from the origin

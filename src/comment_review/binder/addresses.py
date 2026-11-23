@@ -93,7 +93,7 @@ def handed(paragraphs: Sequence[Paragraph]) -> list[Paragraph]:
 
     One definition, three readers. `flows.distribute.seed` builds a role's
     slots from this, `flows.distribute.assigned_binder` cuts a stage's binder
-    with it, and `flows.verify.required_places` names the places a returned
+    with it, and `flows.verify.admit` names the places a returned
     copy's coverage is counted against.
 
     ! The `f` series -- a licence header, a shebang, an index -- states no

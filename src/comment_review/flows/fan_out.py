@@ -1,9 +1,8 @@
 """Split a binder by dispatch, so a stage's shards are structural, not counted.
 
-    fan(binder, stage)        one seeded edit_copy per dispatch, in dispatch order
     partition(binder, stage)  each dispatch with its files, after the two guards
     dealt(binder, stage)      each dispatch's received binder with its seeded
-                              edit_copy; `fan` returns the copies alone
+                              edit_copy, in dispatch order
     Shard                     a dispatch, with the pages and freeform paths it
                               matched
     OverlappingShards         two dispatches of one role both claim a file
@@ -54,30 +53,6 @@ def _matches(path: str, patterns: tuple[str, ...]) -> bool:
     `fnmatch` never withholds `/` from a plain `*`.
     """
     return not patterns or any(fnmatch(path, pattern) for pattern in patterns)
-
-
-def fan(binder: Binder, stage: Stage) -> list[dict]:
-    """One `edit_copy` per dispatch in `stage`, each seeded from its own pages.
-
-    Args:
-        binder: the deserialized binder, as `bind` or `Binder.deserialize`
-            returns it.
-        stage: the `Stage` whose `dispatches` name the roles and the glob
-            patterns selecting each one's pages.
-
-    Returns:
-        A list of edit_copies (`flows.distribute.seed`'s shape), one per dispatch,
-        in `stage.dispatches`' own order.
-
-    Raises:
-        OverlappingShards: a page in `binder` matches two dispatches of the
-            SAME role -- the address `path@cue` would then be marked twice.
-        UncoveredPage: a page in `binder` matches NO dispatch of some role
-            that this stage dispatches at all -- that role would never see it.
-        IncompatibleBinder: `binder`'s saved reading context cannot be used --
-            `flows.distribute.admit_binder`, which `dealt` runs first.
-    """
-    return [copy for _received, copy in dealt(binder, stage)]
 
 
 def dealt(binder: Binder, stage: Stage) -> list[tuple[Binder, dict]]:

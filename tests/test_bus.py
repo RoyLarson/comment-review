@@ -146,17 +146,18 @@ def test_initial_context_refusal_precedes_address_work(
         pytest.fail("address-dependent work preceded context admission")
 
     for name in (
-        "admitted_copy_problems",
-        "required_places",
-        "admitted_coverage_problems",
-        "admitted_received_problems",
+        "verify_report",
+        "_texts_at",
+        "_resolution_problems",
+        "_required_places",
+        "_coverage_problems",
+        "_received_problems",
         "bases_and_anchors",
         "held_at",
         "places_of",
         "Fold",
     ):
-        monkeypatch.setattr(f"comment_review.flows.bus.{name}", forbidden)
-    monkeypatch.setattr("comment_review.flows.verify.texts_at", forbidden)
+        monkeypatch.setattr(f"comment_review.flows.verify.{name}", forbidden)
     out, result = handle(message)
     assert result is None
     owner = "" if target == "stage" else "block-context"
@@ -182,8 +183,8 @@ def test_initial_context_admits_binders_without_copies(tmp_path, monkeypatch, ta
     def forbidden(*args, **kwargs):
         pytest.fail("empty-copy metadata refusal reached address work")
 
-    monkeypatch.setattr("comment_review.flows.bus.required_places", forbidden)
-    monkeypatch.setattr("comment_review.flows.bus.Fold", forbidden)
+    monkeypatch.setattr("comment_review.flows.verify._required_places", forbidden)
+    monkeypatch.setattr("comment_review.flows.verify.Fold", forbidden)
     out, result = handle(message)
     assert result is None
     assert any("m.py" in why and "regather" in why for _, _, why in _refusals(out))
@@ -206,8 +207,8 @@ def test_initial_context_refuses_an_installed_change_with_unchanged_source(
     def forbidden(*args, **kwargs):
         pytest.fail("changed installed metadata reached source verification")
 
-    monkeypatch.setattr("comment_review.flows.bus.admitted_copy_problems", forbidden)
-    monkeypatch.setattr("comment_review.flows.bus.required_places", forbidden)
+    monkeypatch.setattr("comment_review.flows.verify.verify_report", forbidden)
+    monkeypatch.setattr("comment_review.flows.verify._required_places", forbidden)
     out, result = handle(CopiesReturned("4c", copies, binder, tmp_path))
     assert result is None
     assert any("differs" in why and "regather" in why for _, _, why in _refusals(out))
@@ -1680,10 +1681,10 @@ def test_extra_destination_records_the_page_it_read(tmp_path, monkeypatch):
     commit = bus._commit
     turns = []
 
-    def record(proof, places, recorded, turn):
-        assert not recorded
-        turns.append(turn)
-        return commit(proof, places, recorded, turn)
+    def record(proof, fold):
+        assert not fold.recorded
+        turns.append(fold.turn)
+        return commit(proof, fold)
 
     monkeypatch.setattr(bus, "_commit", record)
     message = _moved_into_n(tmp_path, "# seven\n# eight\n# two")
@@ -1830,7 +1831,7 @@ def test_destination_context_is_captured_before_installed_rules_change(
 ):
     from dataclasses import replace
 
-    from comment_review.flows import bus, on_the_page
+    from comment_review.flows import on_the_page, verify
     from comment_review.reading.diagnostics import ReadFailure
 
     message = _moved_into_n(tmp_path, "# seven\n# eight\n# two")
@@ -1842,7 +1843,7 @@ def test_destination_context_is_captured_before_installed_rules_change(
         return acquire(path)
 
     monkeypatch.setattr(on_the_page, "source_of", counted)
-    bases = bus.bases_and_anchors
+    bases = verify.bases_and_anchors
     context_for = on_the_page.context_for
     captured = []
 
@@ -1858,7 +1859,7 @@ def test_destination_context_is_captured_before_installed_rules_change(
         monkeypatch.setattr(on_the_page, "context_for", changed)
         return result
 
-    monkeypatch.setattr(bus, "bases_and_anchors", changed_after_base)
+    monkeypatch.setattr(verify, "bases_and_anchors", changed_after_base)
     out, result = handle(message)
     assert result is not None, _refusals(out)
     assert reads.count("n.py") == 1

@@ -13,6 +13,8 @@ rulings at the address stay. With the last one gone, `check` reads the place
 from the binder as still owed (`flows.fill.withdraw`).
 
 The flow is `flows.fill`; this parses the console and reads and writes the copy.
+The ruling is admitted against `--repo`, or the checkout the copy's own
+`read_from` names, as `collate` admits the copy.
 
 One invocation per ruling, one flag per field, and any value may be `@path`. A
 value spelled `@path` is read from that file, so a clause that wraps a comment
@@ -40,8 +42,9 @@ two are the same text and it may be left off. Every other instruction takes
 its paragraph from the page, and a `--raw-text` given to it is ignored.
 
 Exits `OK` with the placed mark named on stdout, `BROKEN` with the flow's
-reasons on stdout and the copy untouched, and `UNREADABLE` when the copy or an
-`@path` cannot be read -- the same 0, 1 and 2 as `check`.
+reasons on stdout and the copy untouched, and `UNREADABLE` on stderr when the
+copy or an `@path` cannot be read or a page identity the copy claims will not
+admit -- the same 0, 1 and 2 as `check`.
 
 There is no bulk pass of any kind. A flag that marks every null slot `clean`
 would invite skipping the review of each paragraph; each role certifies each
@@ -53,10 +56,10 @@ import sys
 from pathlib import Path
 
 from comment_review import constants, exceptions
-from comment_review.commands.report import BROKEN, OK, UNREADABLE
+from comment_review.commands.report import BROKEN, OK, UNREADABLE, refused
 from comment_review.desk.marks.table import INSTRUCTIONS
 from comment_review.desk.proof.mark import Instruction, mark_type
-from comment_review.flows.fill import fill, withdraw
+from comment_review.flows.fill import admitted, fill, withdraw
 from comment_review.flows.proof_io import load_copy, save_wire
 from comment_review.machine.repo import read_raw
 
@@ -164,13 +167,20 @@ def _entry(args: argparse.Namespace) -> tuple[dict, list[str]]:
     return entry, []
 
 
+def _root_of(copy: dict) -> Path | None:
+    """The checkout a copy's own `read_from` names, or None where it names none."""
+    read_from = copy.get("read_from")
+    root = read_from.get("root") if isinstance(read_from, dict) else None
+    return Path(root) if isinstance(root, str) and root else None
+
+
 def main() -> int:
     """Place one ruling, or withdraw one at `--address`; say so, or say why not.
 
     Returns:
         `OK` with the placed mark named on stdout; `BROKEN` with every reason
         on stdout and the copy untouched; `UNREADABLE` when the copy or a
-        `@path` cannot be read.
+        `@path` cannot be read, or a page identity it claims will not admit.
     """
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument(
@@ -216,7 +226,11 @@ def main() -> int:
     ap.add_argument(
         "--ran", dest="sources", action=_Source, help="the command that settled it"
     )
-    ap.add_argument("--repo", help="the checkout a bare --cite is read from")
+    ap.add_argument(
+        "--repo",
+        help="the checkout a --cite is read from and the ruling admitted against"
+        " (default: the copy's own read_from.root)",
+    )
     argv, why = _expanded(sys.argv[1:])
     if why:
         for line in why:
@@ -242,8 +256,19 @@ def main() -> int:
         for line in why:
             print(line, file=sys.stderr)
         return UNREADABLE
+    # The copy's pages are admitted once, here: a page identity that will not
+    # admit is an input that cannot be read, not a ruling to send back.
+    imprints, why, unadmitted = admitted(copy)
+    if unadmitted:
+        return refused(unadmitted)
+    if why:
+        for line in why:
+            print(line)
+        return BROKEN
     if args.withdraw:
-        _, why = withdraw(copy, args.address, args.instruction, args.quote)
+        _, why = withdraw(
+            copy, args.address, args.instruction, args.quote, imprints=imprints
+        )
         if why:
             for line in why:
                 print(line)
@@ -253,7 +278,8 @@ def main() -> int:
         return OK
     entry, why = _entry(args)
     if not why:
-        _, why = fill(copy, entry, Path(args.repo) if args.repo else None)
+        root = Path(args.repo) if args.repo else _root_of(copy)
+        _, why = fill(copy, entry, root, imprints)
     if why:
         for line in why:
             print(line)

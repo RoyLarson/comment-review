@@ -20,12 +20,11 @@ from comment_review.flows.proof_io import load_proof
 
 def test_received_context_accepts_disjoint_shards(tmp_path):
     binder, received, wires, stage = _shards(tmp_path)
-    assert (
-        verify.received_problems(
-            [returned(wire) for wire in wires], received, binder, stage
-        )
-        == []
+    copies = [returned(wire) for wire in wires]
+    admission = verify.admit(
+        copies, binder.root, binder=binder, received=received, row=stage
     )
+    assert admission.problems == []
 
 
 @pytest.mark.parametrize("matching", [False, True])
@@ -54,8 +53,8 @@ def test_extra_stage_sheet_context_is_compared_without_expanding_shard(
 def test_zero_copies_accept_valid_empty_binders(tmp_path):
     binder, _, _, _ = _shards(tmp_path)
     empty = replace(binder, pages=())
-    assert verify.received_problems([], (), empty) == []
-    assert verify.coverage_problems([], empty) == []
+    assert verify.admit([], binder.root, binder=empty, received=()).problems == []
+    assert verify.admit([], binder.root, binder=empty).problems == []
 
 
 def test_received_context_accepts_distinct_languages_and_empty_sheets(tmp_path):
@@ -77,14 +76,12 @@ def test_received_context_accepts_distinct_languages_and_empty_sheets(tmp_path):
         for copy in copies
         for sheet in copy.sheets
     )
-    assert verify.received_problems(copies, received, binder) == []
+    admission = verify.admit(copies, tmp_path, binder=binder, received=received)
+    assert admission.problems == []
     empty = replace(binder, pages=())
-    assert (
-        verify.received_problems(
-            [returned(seed(empty, "block-context"))], (empty,), empty
-        )
-        == []
-    )
+    copies = [returned(seed(empty, "block-context"))]
+    admission = verify.admit(copies, tmp_path, binder=empty, received=(empty,))
+    assert admission.problems == []
 
 
 def _shards(tmp_path):
@@ -215,17 +212,15 @@ def test_collation_checks_each_copy_against_its_received_binder(tmp_path, with_b
 
 
 def test_shards_admit_each_input_context_once(tmp_path, monkeypatch):
-    from comment_review.flows import bus
-
     binder, received, wires, stage = _shards(tmp_path)
     calls = []
-    admit = bus.admit_pages
+    admit = verify.admit_pages
 
     def count(*sources):
         calls.append([(label, id(records)) for label, records in sources])
         return admit(*sources)
 
-    monkeypatch.setattr(bus, "admit_pages", count)
+    monkeypatch.setattr(verify, "admit_pages", count)
     copies = [returned(wire) for wire in wires]
     out, result = handle(
         CopiesReturned(stage.name, copies, binder, binder.root, stage, binders=received)

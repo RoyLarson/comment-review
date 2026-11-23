@@ -433,7 +433,7 @@ def test_saved_mixed_workflow_keeps_literal_context_through_proof(
         with_stderr=True,
     )
     if changed:
-        assert code == 1, out
+        assert code == 2, out
         assert "regather" in out
         assert {
             path: path.read_bytes() for path in tmp_path.rglob("*") if path.is_file()

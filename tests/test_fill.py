@@ -75,8 +75,8 @@ def test_place_on_page_transports_saved_context(copy, root, monkeypatch):
         return page
 
     monkeypatch.setattr(flow, "page_of", read)
-    imprints, why = flow.admitted(copy)
-    assert why == []
+    imprints, why, unadmitted = flow.admitted(copy)
+    assert why == [] and unadmitted == []
     marks, slot, why = flow.place_on_the_page([copy], "m.py@b1", root, imprints)
     assert why == [] and marks is copy["sheets"][0]["marks"]
     assert slot["raw_text"] == "# one\n# two\n# three"
@@ -500,7 +500,7 @@ class TestAMoveCarriesItsSnippetAndTheDestinationsText:
         """`decision-log.md Process: #187`: the destination's paragraph is read
         off the page whether or not the copy holds a sheet for it, so a move
         into a file the run did not gather is held to the words already
-        there."""
+        there. The refusal names the destination, where the fold reads it."""
         copy, origin = self._origin(root)
         (root / "n.py").write_text(
             "v0 = 0\n# seven\n# eight\nv1 = 1\n", encoding="utf-8", newline="\n"
@@ -512,7 +512,7 @@ class TestAMoveCarriesItsSnippetAndTheDestinationsText:
         )
         placed, why = fill(copy, entry, root)
         assert placed is None
-        assert why == [f"{origin}: the destination text does not keep 'eight'"]
+        assert why == ["n.py@b1: the destination text does not keep 'eight'"]
 
 
 class TestAnAddAtAPlaceHoldingProseKeepsItsWords:

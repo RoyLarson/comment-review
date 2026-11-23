@@ -45,17 +45,14 @@ def test_a_held_page_keeps_the_reading_it_was_first_read_under(
         assert flow.page_named("m.py", [], tmp_path, cache)[1] is page
 
 
-@pytest.mark.parametrize(
-    "route", ["fill", "check", "texts", "resolution", "copy", "docket"]
-)
+@pytest.mark.parametrize("route", ["admit", "docket"])
 def test_saved_context_reaches_shared_read_routes(
     tmp_path, monkeypatch, saved_context, route
 ):
     from helpers import returned
 
-    from comment_review.commands import check
     from comment_review.desk.proof.sheet import Sheet
-    from comment_review.flows import fill, reading_context, transcribe, verify
+    from comment_review.flows import reading_context, transcribe, verify
 
     (tmp_path / "m.py").write_text(
         "x = 0\n# one\n# two\n# three\nx = 1\n", encoding="utf-8"
@@ -78,27 +75,10 @@ def test_saved_context_reaches_shared_read_routes(
         return actual(*args, **kwargs)
 
     monkeypatch.setattr(flow, "page_of", read)
-    if route == "fill":
-        text = fill.page_text_at([wire], "m.py@b1", tmp_path, imprints)
-        assert text == "# one\n# two\n# three"
-    elif route == "check":
-        assert (
-            check._row_problems(copy, ["m.py"], tmp_path, {}, imprints=imprints) == []
-        )
-    elif route == "texts":
-        assert verify.texts_at(copy, ["m.py"], tmp_path, {}, imprints=imprints) == {
-            "m.py@b1": ("# one\n# two\n# three",)
-        }
-    elif route == "resolution":
-        assert (
-            verify.resolution_problems(copy, ["m.py"], tmp_path, {}, imprints=imprints)
-            == []
-        )
-    elif route == "copy":
-        assert (
-            verify.copy_problems(copy, ["m.py"], tmp_path, {}, {}, imprints=imprints)
-            == []
-        )
+    if route == "admit":
+        admission = verify.admit([copy], tmp_path)
+        assert admission.imprints == imprints
+        assert admission.problems == []
     else:
         assert transcribe.docket_of(copy, tmp_path).schedules == ()
     assert calls == [saved_context]
@@ -209,7 +189,7 @@ def test_disjoint_saved_paths_supply_destination_context(
     from helpers import a_move, returned
 
     from comment_review.desk.proof.sheet import Sheet
-    from comment_review.flows.verify import copy_problems
+    from comment_review.flows.verify import admit
 
     for name in ("m.py", "n.py"):
         (tmp_path / name).write_text(
@@ -236,20 +216,10 @@ def test_disjoint_saved_paths_supply_destination_context(
             ],
         }
     )
-    cache = {}
-    problems = copy_problems(
-        copy,
-        ["m.py", "n.py"],
-        tmp_path,
-        {},
-        cache,
-        imprints={
-            "m.py": Imprint("", saved_context),
-            "n.py": Imprint("", saved_context),
-        },
-    )
+    admission = admit([copy], tmp_path)
+    problems = [*admission.unadmitted, *admission.problems]
     assert not any("reading context" in problem.message for problem in problems)
-    held = cache["n.py"].result
+    held = admission.pages["n.py"].result
     assert isinstance(held, Page) and held.reading == saved_context
 
 

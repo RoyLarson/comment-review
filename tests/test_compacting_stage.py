@@ -11,16 +11,20 @@ run does: nothing here calls the fold or the write end directly.
 """
 
 import json
+from pathlib import Path
 
 from conftest import run_command
 from helpers import a_real_binder_over, taken_in_as_filed
 
+from comment_review.commands import check as check_command
 from comment_review.commands import collate as collate_command
+from comment_review.commands import gather as gather_command
 from comment_review.commands import mark as mark_command
 from comment_review.commands import proof as proof_command
 from comment_review.commands import report
 from comment_review.desk.stages import Kind, Stage
-from comment_review.flows.distribute import seed
+from comment_review.flows.distribute import assigned_binder, seed
+from comment_review.flows.proof_io import load_binder
 
 #: The stage a compacting run declares, as its row and as the topology text
 #: that builds it. The two are the same row: the flow takes the `Stage` and
@@ -219,3 +223,75 @@ def test_an_ordinary_stage_over_the_same_binder_deals_both_places(
     not the fixture's."""
     _root, copy = _run(tmp_path, monkeypatch, capsys, None)
     assert _addresses(copy) == ["m.py@b1", "m.py@b2"]
+
+
+def test_a_stage_6_copy_names_the_proof_pages_root_mark_and_check_read(
+    tmp_path, monkeypatch, capsys
+):
+    """Stage 6 gathers the proof pages with `gather --repo <run-dir>/proof4c`
+    (SKILL.md, stage 6), so the copy it seeds names that tree as its
+    `read_from.root`. `mark` with no `--repo` admits a ruling against the
+    copy's own root, and compact.md's `check` passes `--repo <proof pages
+    root>`: both read one tree."""
+    monkeypatch.chdir(tmp_path)
+    pages = tmp_path / "run" / "proof4c"
+    a_real_binder_over(pages, {"m.py@b1": OVER, "m.py@b2": UNDER})
+    code, out = run_command(
+        monkeypatch,
+        capsys,
+        gather_command,
+        "--repo",
+        "run/proof4c",
+        "--revise",
+        "2",
+        "--out",
+        "run/binder6.json",
+        "m.py",
+        with_stderr=True,
+    )
+    assert code == 0, out
+    binder, why = load_binder(Path("run/binder6.json"))
+    assert binder is not None, why
+    wire = seed(binder, "block-context", COMPACTING)
+    assert (Path.cwd() / wire["read_from"]["root"]).resolve() == pages.resolve()
+    copy = tmp_path / "copy.json"
+    copy.write_text(json.dumps(wire), encoding="utf-8")
+    (tmp_path / "from.txt").write_text(OVER, encoding="utf-8")
+    (tmp_path / "to.txt").write_text(CONDENSED, encoding="utf-8")
+    code, out = run_command(
+        monkeypatch,
+        capsys,
+        mark_command,
+        "--edit-copy",
+        str(copy),
+        "--address",
+        "m.py@b1",
+        "--instruction",
+        "patch",
+        "--from",
+        "@" + str(tmp_path / "from.txt"),
+        "--to",
+        "@" + str(tmp_path / "to.txt"),
+        "--reason",
+        "five lines state what two state",
+        "--cite",
+        "m.py:1",
+    )
+    assert code == mark_command.OK, out
+    # The received binder `distribute` writes beside the copy.
+    received = tmp_path / "received.json"
+    received.write_text(
+        json.dumps(assigned_binder(binder, COMPACTING).serialize()), encoding="utf-8"
+    )
+    code, out = run_command(
+        monkeypatch,
+        capsys,
+        check_command,
+        "--edit-copy",
+        str(copy),
+        "--binder",
+        str(received),
+        "--repo",
+        str(pages),
+    )
+    assert code == check_command.OK, out

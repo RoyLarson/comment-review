@@ -11,7 +11,7 @@ from comment_review.desk.marks.table import INSTRUCTIONS
 from comment_review.desk.proof.mark import Instruction, Touch, read_mark
 from comment_review.flows import proof_setter
 from comment_review.flows.distribute import seed
-from comment_review.flows.fill import fill, row_problems
+from comment_review.flows.fill import fill
 from comment_review.flows.transcribe import docket_of
 from comment_review.results import compositor, galley
 
@@ -867,8 +867,6 @@ def test_mark_check_and_proof_agree_for_wrapped_sentences(
     assert problems == [] and placed is not None
     mark, problems = read_mark(origin.address, placed)
     assert problems == [] and mark is not None
-    bases = {p.address: p.raw_text for p in loaded.paragraphs}
-    assert row_problems(mark, bases.__getitem__) == []
     docket = docket_of(returned(copy), tmp_path)
     drafted, refused = proof_setter.run(
         docket, tmp_path, tmp_path.parent / (tmp_path.name + "-draft")

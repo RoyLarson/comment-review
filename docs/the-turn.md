@@ -422,12 +422,14 @@ that is not in its paragraph, a cite that resolves against nothing, an address n
 a place a role left unruled, a role short of its shard, a received binder or reading context
 that disagrees with the stage's, a copy dealt in another stage, a mark its stage does not admit,
 and a copy gathered from a tree other than the binder's (`Process: #178`) each become one
-`Refused`, and the fold never runs. None of them is a question about how the roles' rulings
+`Refused`, reported beside the trial fold's own refusals. None of them is a question about how the roles' rulings
 meet. The fold then applies mark-row rules against each place's base. A short shard and
 an unruled place roll the whole round back like the rest: the role is
 named, nothing is written, and `collate` runs again over the repaired copies (`Process: #186`).
-`flows.verify.admitted_copy_problems` checks addresses and evidence against the pages.
-`check --edit-copy` uses it through `copy_problems` and applies the mark rows directly.
+`flows.verify.admit` checks addresses and evidence against the pages, then runs a trial fold
+over every mark but the human queries; `collate` commits from that fold. `check --edit-copy`,
+`mark` and `proof --copy` call the same `admit` with the inputs they hold, so `check` reports
+the fold's own row reads and compositions rather than applying the mark rows itself.
 
 **What each handler reads.**
 
@@ -522,7 +524,7 @@ when a binder is read back and the lexer fills when a page is built; a place hol
 counts none, so it is never over a cap.
 
 **The deal is narrowed in two places and stated in one.** `flows.distribute.seed` gives a slot
-to the places the stage deals, and `flows.verify.coverage_problems` measures a returned copy
+to the places the stage deals, and `flows.verify.admit` measures a returned copy
 against the same `deals` -- Roy, 2026-09-19: *"only touching places that are over the length
 limit - all other places are automatically clean for this role."* A page a stage deals nothing
 on keeps its sheet and no slot, and `distribute` prints `0 places for <role> to rule on`.
@@ -533,7 +535,7 @@ its coverage, and correctly: nothing else in the run says what was dealt.
 instructions onto the `edit_copy`, as `read_from` carries the tree it was cut from, so
 `flows.fill` refuses a ruling as `mark` places it -- `stage 6 admits patch, drop, add, clean,
 and not correct` -- and `commands/check.py` holds a hand-written copy to the same rule without
-the run's topology beside it. `flows.bus._admitted_problems` holds the returned copies to the
+the run's topology beside it. `flows.verify._admitted_problems` holds the returned copies to the
 row itself at `collate`, where the row is in hand.
 
 **Compaction is the stage these were built for, and it runs before the author is shown
@@ -566,9 +568,9 @@ updated paragraph as raw text ([`the-mark.md`](the-mark.md)). The chief can take
 | disagreements collected at the fold | `flows.places.places_of`, `desk.evaluate.passes.marks_pass` |
 | the docket the write end sets from | `flows.transcribe.docket_of_proof`, from the closed proof's places |
 | the author's partial approval | `flows.transcribe._approved`, reached through `docket_of_proof`'s `only`; the flag is `proof --only` |
-| what a page holds at an address -- the base and anchor a place is built on | `flows.on_the_page.held_at`, read by `flows.places.bases_and_anchors`, `flows.verify`, `flows.fill.page_text_at` and `commands/check.py` |
-| which places a stage deals | `desk.stages.deals`, read by `flows.distribute.seed` and `flows.verify.coverage_problems` |
-| which instructions its roles may file | `desk.stages.not_admitted`, read by `flows.fill.fill`, `commands/check.py` and `flows.bus._admitted_problems` |
+| what a page holds at an address -- the base and anchor a place is built on | `flows.on_the_page.held_at`, read by `flows.places.bases_and_anchors` and `flows.verify` |
+| which places a stage deals | `desk.stages.deals`, read by `flows.distribute.seed` and `flows.verify.admit` |
+| which instructions its roles may file | `desk.stages.not_admitted`, read by `flows.verify._admitted_problems` |
 | a role states the paragraph it wants | `Mark.change`, raw text |
 | the answer a role gives in a turn | `desk/proof/answer.py` -- `Answer` and its types; `desk/answers/table.py`, the twelve rows |
 | several answers at one slot, made one | `flows.answers._one_answer` |
@@ -611,10 +613,10 @@ updated paragraph as raw text ([`the-mark.md`](the-mark.md)). The chief can take
 | one end of a move is decided with the move, not before it | `Process: #190`, `#200`, `#201` | `desk.evaluate.move.hold_ends`, the `to-come` state |
 | the chief rules an undecided move's placement once, then its ends | `Process: #195` item 4, `#201` | `desk.evaluate.move._ruled`, `flows.bus._on_dispositions` |
 | the dropped-words list is advisory | `Process: #163`, `#177` | `desk.marks.table._correct_notes`, `events.Advised` |
-| copies from different trees are refused | `Process: #178` | `flows.verify.gathered_tree_problem`, `flows.verify.admitted_received_problems` |
+| copies from different trees are refused | `Process: #178` | `flows.verify.admit` |
 | the write end reads the proof's decided places | `Process: #184` | `flows.transcribe.docket_of_proof`, `commands/proof.py` |
 | no drift check: nothing asks whether a page changed | `Process: #62`, `#185` | nothing |
-| a short shard or an unruled place rolls the round back | `Process: #186` | `flows.verify.coverage_problems`, `flows.mark_errors`, `flows.bus._on_copies` |
+| a short shard or an unruled place rolls the round back | `Process: #186` | `flows.verify.admit`, `flows.mark_errors`, `flows.bus._on_copies` |
 | the fold's base is the page's text | `Process: #125`, `#187` | `flows.on_the_page`, `flows.places.bases_and_anchors`, `flows.bus._on_copies` |
 | a partial approval is a place filter on `proof` | `Process: #192` | `flows.transcribe._approved`, `commands/proof.py` |
 | compaction is a stage, dealt the places over its cap | `Process: #193` | `desk/topology.py`'s three keys, `desk.stages.deals` and `not_admitted` |

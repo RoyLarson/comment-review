@@ -11,7 +11,7 @@ from comment_review.desk.proof.mark import CleanMark
 from comment_review.desk.proof.sheet import Sheet
 from comment_review.desk.stages import Dispatch, Kind, Role, Stage
 from comment_review.flows.distribute import assigned_binder
-from comment_review.flows.fan_out import fan
+from comment_review.flows.fan_out import dealt
 from comment_review.reading.context import ReadingContext
 from comment_review.reading.context_io import context_to_wire
 
@@ -35,7 +35,7 @@ def test_distribution_preserves_reading_on_disjoint_empty_sheets():
         page.reading for page in binder.pages
     ]
     expected = {page.path: context_to_wire(page.reading) for page in binder.pages}
-    copies = fan(binder, stage)
+    copies = [copy for _received, copy in dealt(binder, stage)]
     assert len(copies) == 2
     for copy in copies:
         for sheet in copy["sheets"]:

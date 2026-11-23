@@ -87,7 +87,7 @@ def _sorted_entries(
     !! An untouched entry naming no place is refused, not unruled, and that is a
     ruling rather than a convenience. *"Handed to this role and not ruled on"*
     is a claim about a place, so an entry that names none cannot be it -- and
-    `flows.verify.admitted_coverage_problems` reads `unruled` as addresses, so
+    `flows.verify.admit`'s coverage reads `unruled` as addresses, so
     an "" among them would count a place the binder never held.
     `flows.distribute.seed` writes the address on every slot it hands out, so an
     entry reaching here without one was edited after it was seeded, which is a

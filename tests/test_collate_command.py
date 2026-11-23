@@ -81,8 +81,8 @@ def test_loaded_initial_context_refusal_preserves_files(
     def forbidden(*args, **kwargs):
         pytest.fail("loaded stale context reached address-dependent work")
 
-    monkeypatch.setattr("comment_review.flows.bus.admitted_copy_problems", forbidden)
-    monkeypatch.setattr("comment_review.flows.bus.required_places", forbidden)
+    monkeypatch.setattr("comment_review.flows.verify.verify_report", forbidden)
+    monkeypatch.setattr("comment_review.flows.verify._required_places", forbidden)
     code = command.main()
     printed = capsys.readouterr()
     assert code in (report.BROKEN, report.UNREADABLE)
@@ -1307,17 +1307,20 @@ class TestACorrectionToTheMatterAsksTheHuman:
 
     MARKS = {"ownership-context": {"m.py@b1": a_clean("m.py@b1")}}
 
-    def test_an_add_at_f0_pauses_for_the_human(self, tmp_path, monkeypatch, capsys):
-        def must_not_fold(*args, **kwargs):
-            pytest.fail("an unapproved correction to the matter reached Fold")
+    @staticmethod
+    def _add() -> dict:
+        """An `add` at the empty `m.py@f0`, which reads as its own snippet."""
+        mark = an_add("m.py@f0")
+        mark["raw_text"] = mark["change"]
+        return mark
 
-        monkeypatch.setattr("comment_review.flows.bus.Fold", must_not_fold)
+    def test_an_add_at_f0_pauses_for_the_human(self, tmp_path, monkeypatch, capsys):
         code, out = run(
             tmp_path,
             self.MARKS,
             monkeypatch,
             capsys,
-            appended=[an_add("m.py@f0")],
+            appended=[self._add()],
         )
         assert code == report.ASKS_THE_HUMAN, out
         assert "m.py@f0" in out
@@ -1344,7 +1347,7 @@ class TestACorrectionToTheMatterAsksTheHuman:
             capsys,
             "--human",
             self._human(tmp_path, "Is the licence current?"),
-            appended=[an_add("m.py@f0")],
+            appended=[self._add()],
         )
         assert code == report.ASKS_THE_HUMAN, out
         assert "file's matter" in out
@@ -1359,7 +1362,7 @@ class TestACorrectionToTheMatterAsksTheHuman:
             capsys,
             "--human",
             self._human(tmp_path, self.ASKED),
-            appended=[an_add("m.py@f0")],
+            appended=[self._add()],
         )
         assert code != report.ASKS_THE_HUMAN, out
         assert "file's matter" not in out

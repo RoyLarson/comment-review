@@ -56,7 +56,7 @@ from comment_review.desk.proof.master_proof import MasterProof
 from comment_review.desk.proof.move import Move, is_open, key_of
 from comment_review.desk.proof.place import Place
 from comment_review.desk.proof.state import CARRIED, DECIDED, State
-from comment_review.desk.stages import Stage, not_admitted
+from comment_review.desk.stages import Stage
 from comment_review.desk.work.fold import Fold, asked, put_to
 from comment_review.flows.answers import Slot, answers_of, slots_of
 from comment_review.flows.human import (
@@ -65,23 +65,10 @@ from comment_review.flows.human import (
     answered,
     corrections_in_answers,
     corrections_in_rulings,
-    corrections_to_matter,
     queries_in_answers,
-    queries_in_copies,
 )
-from comment_review.flows.mark_errors import mark_errors
-from comment_review.flows.on_the_page import PageCache, held_at
-from comment_review.flows.places import bases_and_anchors, places_of
-from comment_review.flows.reading_context import admit_pages, admit_proof
-from comment_review.flows.verify import (
-    admitted_copy_problems,
-    admitted_coverage_problems,
-    admitted_received_problems,
-    gathered_tree_problem,
-    required_places,
-    stage_problems,
-)
-from comment_review.reading.diagnostics import ReadFailure
+from comment_review.flows.reading_context import admit_proof
+from comment_review.flows.verify import admit
 
 
 class CopiesReturned(NamedTuple):
@@ -183,118 +170,48 @@ def handle(message) -> tuple[list, Result | None]:
 
 
 def _on_copies(message: CopiesReturned) -> tuple[list, Result | None]:
-    """The copies checked, then folded: a commit with a result, or a rollback.
+    """The copies admitted, then committed from the trial fold, or rolled back.
 
-    Everything a copy can be wrong about on its own -- a quote that is not in
-    its paragraph, a cite that resolves against nothing, an address no page
-    carries, a place a role left unruled, a role short of its shard, a tree
-    the other copies were not gathered from -- is found before the fold
-    opens, because none of it is a question about how the roles' rulings
-    meet. Each becomes one `Refused`, and the fold never runs. A human
-    question rolls the stage back as well, as one `AsksTheHuman` each.
+    `flows.verify.admit` is given every input the message holds -- the stage
+    binder, the received binders, the stage label, the row and the human's
+    answers -- and runs each rule and the fold. Each problem becomes one
+    `Refused` and each human question one `AsksTheHuman`, and the stage rolls
+    back while either stands. A refusal the fold finds is listed beside a
+    question still pending, since the trial fold runs over every mark but the
+    human queries.
 
-    Each place's base text and anchor are then read off the page, as `mark`,
-    `check` and `proof` read them, so an
-    `add` or a `move` at a place the binder lacks is measured here against
-    the paragraph already there rather than first at the write end.
-
-    Each page's sha and reading are admitted once, before any of that
-    (`flows.reading_context.admit_pages`): the stage binder is the reference,
-    and each received binder and then each copy is compared with it. A page
-    read only because a mark reaches into it -- one no copy holds a sheet for
-    -- is read under the installed reader, and the proof records its reading
-    and sha beside the binder's pages.
+    Otherwise the trial fold is the stage's fold, and the proof records each
+    page's sha and reading: the admitted table's, and for a page read only
+    because a mark reaches into it -- one no copy holds a sheet for -- the
+    reading and sha it was read at under the installed reader.
     """
-    binder, root, copies = message.binder, message.root, message.copies
-    # The stage binder is the reference; each received binder, then each copy,
-    # is one later claim on the pages it holds. A refusal goes to the role
-    # whose input it names, and one about the stage binder to no role.
-    sources = [
-        ("stage binder", binder.pages, ""),
-        *(
-            (
-                f"received binder {i}",
-                one.pages,
-                copies[i - 1].role if i <= len(copies) else "",
-            )
-            for i, one in enumerate(message.binders or (), 1)
-        ),
-        *((f"edit_copy: {copy.role}", copy.sheets, copy.role) for copy in copies),
-    ]
-    owner = {label: role for label, _, role in sources}
-    imprints, why = admit_pages(*((label, records) for label, records, _ in sources))
-    unadmitted = [Problem(owner[one.source], "", one.text) for one in why]
-    problems = []
-    if message.binders is not None and len(message.binders) != len(copies):
-        problems.append(Problem("", "", "each edit copy needs one received binder"))
-    if unadmitted or problems:
-        return _rolled_back(problems, [], unreadable=unadmitted)
-    paths = [page.path for page in binder.pages]
-    # ! One cache of each for the whole stage, not one per copy: the roles cite
-    # the same evidence and mark the same pages, so a per-copy cache reads one
-    # file once per citing role.
-    cache: Cache = {}
-    page_cache: PageCache = {}
-    problems = []
-    for copy in copies:
-        problems += admitted_copy_problems(
-            copy, paths, root, cache, page_cache, imprints=imprints
-        )
-    required = [required_places(binder, message.topology)] * len(copies)
-    if message.binders is not None and len(message.binders) == len(copies):
-        required = [required_places(b) for b in message.binders]
-
-    # ! `where` rather than `address`, and the two differ in one case only:
-    # an entry that named no place. `where` is that entry's own address
-    # wherever it has one, and the page and the entry's position where it has
-    # none -- so a reader always has somewhere to look. A `Refused` carrying
-    # "" would print as a finding about the whole copy, which is a different
-    # fact.
-    problems += [
-        Problem(one.role, one.where, "; ".join(one.reasons))
-        for one in mark_errors(copies, required)
-    ]
-    if message.binders is not None:
-        problems += admitted_received_problems(
-            copies, message.binders, binder, message.topology
-        )
-    else:
-        for copy in copies:
-            problems += admitted_coverage_problems([copy], binder, message.topology)
-            if problem := gathered_tree_problem(copy, binder):
-                problems.append(problem)
-    problems += _dealt_problems(copies, message.stage)
-    problems += _admitted_problems(copies, message.topology)
-    if message.topology is not None:
-        problems += stage_problems(message.topology, copies)
-    asks = _asks(queries_in_copies(copies), message.human)
-    asks += _asks(corrections_to_matter(copies, message.human), ())
-    if problems or asks:
-        return _rolled_back(problems, asks)
-
-    held = bases_and_anchors(
+    copies = message.copies
+    admission = admit(
         copies,
-        lambda address: held_at(address, paths, root, page_cache, imprints=imprints),
+        message.root,
+        binder=message.binder,
+        received=message.binders,
+        stage=message.stage,
+        row=message.topology,
+        human=message.human,
     )
-    if isinstance(held, ReadFailure):
-        return _rolled_back(
-            [
-                Problem(copy.role, "", d.message)
-                for copy in copies
-                for d in held.diagnostics
-            ],
-            [],
-        )
-    bases, anchors = held
+    if admission.unadmitted:
+        return _rolled_back(admission.problems, [], unreadable=admission.unadmitted)
+    asks = [
+        events.AsksTheHuman(q.role, q.at, q.question, a.answer if a else "")
+        for q, a in [*admission.asks, *((one, None) for one in admission.approvals)]
+    ]
+    if admission.problems or asks or admission.fold is None:
+        return _rolled_back(admission.problems, asks)
+    imprints = admission.imprints
     sheet_paths = {sheet.path for copy in copies for sheet in copy.sheets}
     # A page read only because a mark reaches into it: the page records the
     # sha and reading it was read at.
     extra = {
         path: held.result
-        for path, held in page_cache.items()
+        for path, held in admission.pages.items()
         if path not in sheet_paths and isinstance(held.result, Page)
     }
-    places = places_of(copies, bases, anchors)
     read_from = copies[0].read_from if copies else {}
     proof = MasterProof(
         stage=message.stage,
@@ -313,89 +230,7 @@ def _on_copies(message: CopiesReturned) -> tuple[list, Result | None]:
             **{path: page.sha for path, page in extra.items()},
         },
     )
-    return _commit(proof, places, {}, turn=0)
-
-
-def _dealt_problems(copies: list[EditCopy], stage: str) -> list[Problem]:
-    """One `Problem` per copy dealt in a stage other than the one being folded.
-
-    A copy folds only in the stage it was dealt in: its `admits` and its
-    places are that stage's, so a stage-6 copy handed to stage 4 would be
-    held to the wrong row -- and without a topology, to none. A copy that
-    names no stage (`""`, seeded without a row) is not compared.
-
-    Returns:
-        One `Problem` per copy whose own `stage` names another, with no
-        address -- the finding is about the document.
-    """
-    return [
-        Problem(
-            copy.role,
-            "",
-            f"was dealt in stage {copy.stage!r}, and this is stage {stage!r} -- a"
-            " copy folds only in the stage it was dealt in",
-        )
-        for copy in copies
-        if copy.stage and copy.stage != stage
-    ]
-
-
-def _admitted_problems(copies: list[EditCopy], stage: Stage | None) -> list[Problem]:
-    """One `Problem` per mark filed under an instruction its stage does not admit.
-
-    `commands/mark.py` refuses one as it is
-    placed and `commands/check.py` refuses one on a copy written by hand, and
-    both read the copy's own `admits` -- which is a field on a document a role
-    writes. The row is where a stage's admitted set is decided, so the copies
-    are held to it here, where they are in hand together with the row they
-    were dealt under.
-
-    Args:
-        copies: the parsed copies, as they came back.
-        stage: the row they were dealt under, where the caller has it. None
-            leaves the copy's own `admits` as the only statement there is.
-
-    Returns:
-        One `Problem` per refused mark, at that mark's address, and one per
-        copy whose own `admits` disagrees with the row, with no address --
-        that finding is about the document. Empty where every mark is one its
-        stage admits.
-
-    The field is compared rather than trusted. A copy that widened its
-    `admits` passes both commands that read it, and one that cleared the
-    field reads as every instruction wherever it is asked; comparing it with
-    the row is what makes either loud instead of silent.
-
-    Without a row the copy's own set still binds, so this is never weaker
-    than `check` over the same copy.
-    """
-    problems: list[Problem] = []
-    for copy in copies:
-        admits = tuple(stage.admits) if stage is not None else copy.admits
-        named = stage.name if stage is not None else copy.stage
-        if stage is not None and copy.admits != tuple(stage.admits):
-            problems.append(
-                Problem(
-                    copy.role,
-                    "",
-                    f"says it may file {_named(copy.admits)}, and stage"
-                    f" {stage.name}'s row admits {_named(stage.admits)} -- what a"
-                    " stage admits is the row's, not the copy's",
-                )
-            )
-        problems += [
-            Problem(copy.role, mark.address, why)
-            for sheet in copy.sheets
-            for mark in sheet.marks
-            for why in [not_admitted(named, admits, str(mark.instruction))]
-            if why
-        ]
-    return problems
-
-
-def _named(admits: tuple[str, ...]) -> str:
-    """What a set of admitted instructions is called in a reason."""
-    return ", ".join(admits) if admits else "every instruction"
+    return _commit(proof, admission.fold)
 
 
 def _places_on(proof: MasterProof) -> dict[str, Place]:
@@ -481,7 +316,7 @@ def _on_answers(message: AnswersReturned) -> tuple[list, Result | None]:
         for key, answer in answers.items():
             target = moves[key].answers if key in moves else places[key].answers
             target.setdefault(turn, {})[role] = answer
-    return _commit(message.proof, places, moves, turn)
+    return _commit(message.proof, Fold(places, moves, turn=turn).run())
 
 
 def _unsent(
@@ -626,7 +461,8 @@ def _on_dispositions(message: DispositionsWritten) -> tuple[list, Result | None]
     asks = _asks(corrections_in_rulings(applied, message.human), ())
     if problems or asks:
         return _rolled_back(problems, asks)
-    return _commit(message.proof, places, moves, turn_of(message.proof))
+    turn = turn_of(message.proof)
+    return _commit(message.proof, Fold(places, moves, turn=turn).run())
 
 
 def _rolled_back(
@@ -660,30 +496,20 @@ def _asks(
     ]
 
 
-def _commit(
-    proof: MasterProof,
-    places: dict[str, Place],
-    recorded: dict[str, Move],
-    turn: int,
-) -> tuple[list, Result | None]:
-    """The fold over the places and moves as they now stand, and what a commit saves.
+def _commit(proof: MasterProof, fold: Fold) -> tuple[list, Result | None]:
+    """A fold that has run, and what its commit saves.
 
     Args:
         proof: the stage metadata prepared at collate, or the proof read by
             a later message. The fold replaces its places and moves.
-        places: the places, each carrying whatever this message wrote onto
-            it. `Fold` evaluates every one of them from its own record.
-        recorded: the moves as the proof recorded them, each carrying the
-            placement answers this message wrote onto it. The fold finds the
-            moves on the places itself and keeps what these record.
-        turn: the turn the fold stands at -- every answer up to it is applied.
+        fold: the fold, run -- the collate handler's trial fold, or one over
+            the places and moves as a later message wrote onto them, each
+            evaluated from its own record.
 
     Returns:
         `(the events, the result)`, the result being None on a rollback.
     """
-    out: list = []
-    fold = Fold(places, recorded, turn=turn).run()
-    out += fold.events
+    out: list = list(fold.events)
     if not fold.committed:
         return out, None
     next_proof = replace(

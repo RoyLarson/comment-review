@@ -15,6 +15,7 @@ from helpers import (
 )
 
 from comment_review.desk import report as events
+from comment_review.desk.collator import Problem
 from comment_review.desk.evaluate.move import _is_this_move, moves_in
 from comment_review.desk.marks.table import Row
 from comment_review.desk.proof.mark import (
@@ -22,11 +23,11 @@ from comment_review.desk.proof.mark import (
 )
 from comment_review.desk.proof.state import State
 from comment_review.desk.work.fold import Fold
-from comment_review.flows.fill import composition_problems, fill, row_problems
+from comment_review.flows.fill import fill
 from comment_review.flows.on_the_page import Held
 from comment_review.flows.places import bases_and_anchors, places_of
 from comment_review.flows.transcribe import _touched_by_page
-from comment_review.flows.verify import resolution_problems
+from comment_review.flows.verify import admit
 from comment_review.reading.diagnostics import ReadFailure
 
 BASE = "# one\n# two\n# three\n"
@@ -173,7 +174,6 @@ def test_every_reader_of_where_a_mark_writes_asks_the_row(monkeypatch, tmp_path)
         binder, {"block-context": {"m.py@b1": a_move("m.py@b1", "m.py@b5")}}
     )
     copies = [returned(w) for w in wire]
-    mark = copies[0].sheets[0].marks[0]
     elsewhere = (("m.py@b1", Touch.ORIGIN), ("m.py@b7", Touch.DESTINATION))
     monkeypatch.setattr(Row, "places", lambda self, mark: elsewhere)
 
@@ -186,12 +186,6 @@ def test_every_reader_of_where_a_mark_writes_asks_the_row(monkeypatch, tmp_path)
     places = places_of(copies, _binder_bases(binder), {})
     assert set(places) == {"m.py@b1", "m.py@b7"}
 
-    asked: list[str] = []
-    row_problems(mark, lambda address: asked.append(address) or BASE)
-    assert asked == ["m.py@b1", "m.py@b7"]
-    asked.clear()
-    composition_problems("r", [mark, mark], lambda a: asked.append(a) or BASE)
-    assert asked == ["m.py@b1", "m.py@b7"]
     assert _touched_by_page(copies[0]) == {"m.py": ["m.py@b1", "m.py@b7"]}
 
     resolved: list[str] = []
@@ -199,14 +193,17 @@ def test_every_reader_of_where_a_mark_writes_asks_the_row(monkeypatch, tmp_path)
         "comment_review.flows.verify._unresolved",
         lambda address, *_: resolved.append(address) or "",
     )
-    assert resolution_problems(copies[0], [], tmp_path, {}) == []
+    admit([copies[0]], tmp_path)
     assert resolved == ["m.py@b1", "m.py@b7"]
 
-    # `fill` refuses a composition only at the places the row says this mark
-    # writes, so a refusal at the destination the claim names is not its.
+    # `fill` refuses only at the places the row says this mark writes, so a
+    # refusal at the destination the claim names is not its.
     monkeypatch.setattr(
-        "comment_review.flows.fill.composition_problems",
-        lambda role, marks, base_at: [("m.py@b5", "at b5"), ("m.py@b7", "at b7")],
+        "comment_review.flows.verify._admitted_problems",
+        lambda copies, row: [
+            Problem("block-context", "m.py@b5", "at b5"),
+            Problem("block-context", "m.py@b7", "at b7"),
+        ],
     )
     real = a_real_binder_over(
         tmp_path / "repo", {"m.py@b1": BASE, "m.py@b5": BASE, "m.py@b7": "# seven\n"}
