@@ -62,8 +62,8 @@ claim to its owner.
 ## A misplaced rule is a `move`
 
 Your finding is where the prose belongs. Name the statement, expression, declaration or
-assignment it constrains, and `move` it there; a relocation into tracked code is always
-available.
+assignment it constrains, and `move` it there. Where that code is in a file this run did not
+gather, file it as the brief's `move` section says.
 
 A trailing comment that carries past its own line is gathered as two paragraphs: the comment,
 and the comment-only lines beneath it. Its instruction is a `move` to the line above the code
@@ -84,10 +84,11 @@ x = 1
 Your copy carries no `f` slot, so check both places yourself, on every file:
 
 ```bash
-python <skill>/scripts/comment-review.py addresses find --repo <REPO ROOT> --file <path> --line 1 --series f
+python <skill>/scripts/comment-review.py addresses find --repo <REPO ROOT> --file <path> --line '<module>' --series f
 ```
 
-It prints both places; `addresses resolve <address>` gives the lines each covers. Read what each holds, and read
+`'<module>'` names the front matter and `'<eof>'` the back matter, the places no line number
+reaches; `addresses resolve <address>` gives the lines each covers. Read what each holds, and read
 the `b` place nearest each end of the file:
 
 - **A comment at an `f` place** -- prose about the code, like the example above -- is a `move`

@@ -33,7 +33,7 @@ Your packet gives you:
   in the mark it bears on.
 - `STYLE SHEET` -- this repo's documentation templates and conventions.
 - `LANGUAGE SERVERS` -- which languages answered the task agent's probe.
-- `FREEFORM DIR` -- your own directory for freeform work.
+- `FREEFORM DIR` -- your own directory for freeform work and every scratch file you write.
 - `FREEFORM SHEET` -- the path of `references/freeform.md`, given when your binder lists a
   freeform file.
 
@@ -107,11 +107,14 @@ python <skill>/scripts/comment-review.py addresses find --repo <REPO ROOT> --fil
 
 It prints one line per place: its address and its anchor. Your binder holds only the places
 that hold prose; the command reads the file, so it answers for the places the binder leaves out,
-and a mark may cite them. `--series f` prints both of the file's own places; choose between them
-by address. You ask with a line number and answer with an address.
+and a mark may cite them. No line number reaches the module's documentation and front matter,
+asked with `--line '<module>'`, or the closing gap, documentation and back matter, asked with
+`--line '<eof>'`. One answer can name more than one place, as a line number with `--series f`
+names both of the file's own; choose between them by address. You ask with a line and answer
+with an address.
 
-Your copy carries no `f` slot. The notes editor, `ownership-context`, checks every file's `f`
-places, and the human approves each change to one individually.
+Your copy carries no `f` slot. Any role may mark an `f` place it looks up, and the human approves
+each change to one individually.
 
 ## The Edit Copy
 
@@ -122,7 +125,7 @@ You are handed one sheet per file, and one slot per paragraph on it. This is a f
   "read_from": { "root": "/checkout/of/the/project", "revise": 0 },
   "sheets": [
     { "path": "redacted_pkg/billing/rates.py",
-      "sha":  "9c1f0b7a4e2d6835aa10c4bb37f9e05d2c8471a6",
+      "sha":  "9c1f0b7a4e2d6835",
       "reading": { "format": 1,
                    "language": "example-language",
                    "reader": "example-reader",
@@ -162,9 +165,9 @@ One invocation per ruling:
 ```bash
 python <skill>/scripts/comment-review.py mark --edit-copy <EDIT COPY> --repo <REPO ROOT> \
   --address <the slot's address> --instruction correct \
-  --false "the clause as it stands" --true "the clause as it should read" \
-  --reason "what you derived, and why the claim is wrong" \
-  --cite path:line --ran "the command that settled it"
+  --false 'the clause as it stands' --true 'the clause as it should read' \
+  --reason 'what you derived, and why the claim is wrong' \
+  --cite path:line --ran 'the command that settled it'
 ```
 
 - **The claim's keys are flags by name**: `--false --true` for `correct`, `--from --to` for
@@ -173,16 +176,20 @@ python <skill>/scripts/comment-review.py mark --edit-copy <EDIT COPY> --repo <RE
 - **`change` is built for you** for `correct`, `patch` and `drop`, by substituting the clause
   you quote inside `raw_text`. Quote a clause that appears in the paragraph exactly once.
 - **`add` and `move` take `--change`**, the text that arrives, and `--raw-text`, the paragraph
-  as it will read with that text in, keeping every word already there. At an empty place the
-  two are the same text, and `--raw-text` is left off.
+  as it will read with that text in, keeping every word already there. For an `add` at an empty
+  place the two are the same text, and `--raw-text` may be left off; a `move` always takes it.
 - **A source is `--cite path:line`**, repeatable. `--verbatim` and `--ran` bind to the `--cite`
   before them. Without `--verbatim`, the cited line is read from the file for you.
-- **A value that spans lines is a file**: write it with your file-write tool and pass `@path`.
+- **A value that spans lines is a file**: write it under `FREEFORM DIR` with your file-write tool
+  and pass `'@path'`, quoted so PowerShell does not read the `@`. A value opening with `@` is
+  always read as a path, so a literal one goes in a file too, as does one holding a `'`.
+  Single-quote every other value, so the shell passes it as typed.
 - **Two rulings on one paragraph are two invocations** at the same `--address`. Rulings on
   different sentences compose; a second ruling on the same sentence is refused, naming both.
 - **An `add` at an empty place** creates the slot at the address from `addresses find`.
 
-`mark` refuses exactly what the fold would refuse, writes nothing when it does, and says why.
+`mark` refuses what the fold would refuse in the ruling itself, writes nothing when it does, and
+says why. A `--verbatim` you give is kept as given; `check` reads it against its cite.
 `mark --withdraw --address <address> --instruction <instruction>` takes back that one
 ruling from your copy; your other rulings at the address stay. Where you placed two of
 that instruction there, add `--quote` with the clause the one you mean quotes, or its
@@ -276,8 +283,8 @@ paragraph as it will read:
 ```bash
 python <skill>/scripts/comment-review.py mark --edit-copy <EDIT COPY> --repo <REPO ROOT> \
   --address <the origin> --instruction move --from <the origin> --to <the destination> \
-  --change @snippet.txt --raw-text @destination.txt \
-  --reason "why it belongs there" --cite path:line
+  --change '@<FREEFORM DIR>/snippet.txt' --raw-text '@<FREEFORM DIR>/destination.txt' \
+  --reason 'why it belongs there' --cite path:line
 ```
 
 What stays at the origin is the paragraph with the snippet taken out -- nothing, when the
@@ -326,7 +333,7 @@ what it asks for:
 
 | the author answers | you file |
 | --- | --- |
-| add a TODO | the ruling that makes the paragraph true of the code as it stands, and an `add` of a `TODO:` comment naming the concern, placed beside the whole of the code it is about |
+| add a TODO | the ruling that makes the paragraph true of the code as it stands, which does not restate the concern, and an `add` of a `TODO:` comment naming the action the concern asks for, placed beside the whole of the code it is about |
 | not a concern | the ruling that makes the paragraph true of the code as it stands; where the prose leaves out why the code is this way, a `patch` or `add` that says why |
 | leave it | the ruling that makes the paragraph true of the code as it stands |
 
@@ -382,9 +389,9 @@ are refused, and the slot comes back to you.
   of: `hold` keeps your mark, `withdraw` takes it back, or `correct` or `patch` replaces its
   text with `change`, the whole updated paragraph as raw text.
 - **A `composition`** asks whether the slot's `raw_text` is right. Answer `clean`, `query`,
-  `correct` or `patch`, each with the fields and `claim` keys it takes in your copy. A
-  `correct`'s `false` or a `patch`'s `from` quotes a sentence of that text. A `query` takes one
-  of the three shapes.
+  `correct` or `patch`, each with a `reason`. `correct` and `patch` carry `change`, the whole
+  updated paragraph as raw text, and no `claim` keys; they and `clean` owe a source. A `query`
+  takes the `claim` keys it takes in your copy and one of the three shapes.
 - **At an `add`'s empty place**, where the add is another role's, the slot's text is the add's.
   Your `clean` agrees; an `outside-my-role` or `unable-to-determine` query abstains.
 - **A `placement`** asks whether a move's paragraph belongs at its destination. Its slot
@@ -406,7 +413,7 @@ are refused, and the slot comes back to you.
 Check your copy from the repo root:
 
 ```bash
-python <skill>/scripts/comment-review.py check --edit-copy <EDIT COPY> --binder <BINDER> --repo .
+python <skill>/scripts/comment-review.py check --edit-copy <EDIT COPY> --binder <BINDER>
 ```
 
 It names every slot still `null`, every mark that will not read, every `claim` quoting a
@@ -418,11 +425,12 @@ back so the task agent can ask the author.
 For a batch's answers:
 
 ```bash
-python <skill>/scripts/comment-review.py check --answers <ANSWERS> --sent <BATCH> --role <your role> --repo .
+python <skill>/scripts/comment-review.py check --answers <ANSWERS> --sent <BATCH> --role <your role>
 ```
 
-It pairs each answer to the slot you were sent and reads it against that slot's question. Run
-it until it exits 0 or 5.
+Give neither check a `--repo`: each reads its cites against the tree the binder or the batch
+names. `check --answers` pairs each answer to the slot you were sent and reads it against that
+slot's question. Run it until it exits 0 or 5.
 
 **When the task agent hands you the author's answer to your query** -- an `[[answer]]` section
 naming your role, the place or move `at`, your question and the answer -- replace that query

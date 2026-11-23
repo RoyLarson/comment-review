@@ -12,7 +12,7 @@ and checkable sentence.
   proof pages set it.
 - **The original.** The file in the repo root is the paragraph as it stood when the run
   began.
-- **The cap**, in lines, and the work markers the repo exempts from it.
+- **The cap**, in lines.
 - **The style sheet.**
 - Your copy, your received binder, the proof pages root, and the helper script.
 
@@ -23,18 +23,18 @@ and checkable sentence.
    once, generally. When it is, mark it `clean` and give that as the reason; the paragraph is
    set as it stands, and the author reads it at stage 7a.
 3. Otherwise remove what repeats: a hedge, an aside, a line that restates the line below it.
-4. Count the result. A work marker line (`TODO`, `FIXME`, `HACK`, `XXX`, `BUG`, or the markers
-   the repo exempts) is free; each line after it counts.
+4. Count the result. A work marker line (`TODO`, `FIXME`, `HACK`, `XXX` or `BUG`) is free;
+   each line after it counts.
 
 ## How you record it
 
-File one ruling for every review place in your received binder with `mark`.
+File one ruling at each place your copy deals you with `mark`, and mark no other place.
 `<script>` is the helper path your packet gives. Write each multi-line value to
 a file with your file-write tool and pass it as `@path`:
 
 ```bash
 python <script> mark --edit-copy <copy> --address <address> --instruction patch \
-  --from @<file holding the paragraph> --to @<file holding the condensed text> --reason "<why>" \
+  --from @<file holding the paragraph> --to @<file holding the condensed text> --reason '<why>' \
   --cite <path>:<line>
 ```
 
@@ -57,14 +57,15 @@ code has no single owner for. Ask the author, naming the owner you can see:
 
 ```bash
 python <script> mark --edit-copy <copy> --address <address> --instruction query \
-  --shape human-review-necessary --attempted "<what you tried>" \
-  --settles "<the answer that would settle it>" --reason "<the question>" --cite <path>:<line>
+  --shape human-review-necessary --attempted '<what you tried>' \
+  --settles '<the answer that would settle it>' --reason '<the question>' --cite <path>:<line>
 ```
 
 A clause you find false is a finding for the author too; ask it the same way.
 
 `check` then exits 5, which tells you your part is done; the task agent asks the author and
-hands you the answer to finish the slot.
+hands you the answer. Withdraw the query with `mark --withdraw --address <address> --instruction
+query`, then file the ruling the answer settles.
 
 ## What you return
 
