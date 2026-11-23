@@ -6,30 +6,28 @@ r"""The `turn` command: one turn of a stage's fold, from the console.
 
 The work is `flows.bus`: this loads the proof and each role's answers, sends
 one `AnswersReturned`, prints the events the fold produced, and saves what a
-commit left behind. `Process: #87`: the master proof is the state between
+commit left behind. The master proof is the state between
 turns, so a turn reads one, writes the answers onto the places it carries,
 folds them again and writes the next one, with the next batch beside it while
 a place is still carried forward.
-
-!! A MODULE DOES ONE JOB AND HAS NO CLI; A FLOW CALLS MODULES;
-A COMMAND EXPOSES A FLOW. `decision-log.md Process: #12`.
 
 The turn number is the record's and nothing here names it: a proof fresh from
 `collate` has no place carrying an answer, so its first turn is 1, and a
 caller cannot replay a turn under a number the places already record.
 
-The exit codes and the report are `commands.report`'s, shared with `collate`,
-so a caller branching on a code branches once; every file is read
-through `flows.proof_io`, so a refusal has one wording.
+The exit codes and the report are `commands.report`'s, shared with `collate`, so
+a caller branching on a code branches once; the proof and each answers file are
+read through `flows.proof_io`, and the `--human` file through
+`commands.report.human_answers`, which words its own refusal.
 
 Neither the binder nor the batch is read here. The places on the proof carry
 their own base text and say who each was put to, so what a role owes is read
 off the proof rather than off the batch that went out, and no page is opened.
 `--repo` is the checkout an answer's own citations resolve against, which is
-verified before the fold as a mark's is (`Process: #181`). `--human` is the
-human's answers file (`Process: #198`): a human question given as an answer
-rolls the turn back until the role replaces it, and the file's answer to it
-is printed beside it (`Process: #197`).
+verified before the fold as a mark's is. `--human` is the
+human's answers file: a human question given as an answer rolls the turn
+back until the role replaces it, and the file's answer to it is printed
+beside it.
 """
 
 import argparse

@@ -4,15 +4,10 @@ It hands the places to `desk.evaluate.passes.decide`, which runs the passes in
 their one order, and commits -- every place decided, no place refused -- or
 rolls back, in which case the flow saves nothing and the events are the
 report. It reads no file and knows no container of the read or write end; the
-flow derives the places and saves the result (`decision-log.md Process: #171`
-and the design of 2026-09-14).
+flow derives the places and saves the result.
 
-! THE ORDER IS `decide`'s AND NOT THIS MODULE'S, since 2026-09-18. This ran
-the passes per place and paired afterwards, which put the chief's disposition
-before the pairing and made a contested move impossible to close; the sequence
-lives with the passes now, where nothing can call them in another order.
-Each move's placement is decided before its places are (`decision-log.md
-Process: #195`).
+`asked` reads back who a carried-forward place is put to, for the fold's own
+report, the batch, and the checks `flows.bus` runs on the fold's result.
 """
 
 from dataclasses import dataclass, field
@@ -89,8 +84,7 @@ class Fold:
             else:
                 on_commit.append(events.Settled(address, place.disposition))
             # A place's notes go with what a commit reports, whatever state
-            # the place came to, and nothing branches on them -- `Process:
-            # #177`.
+            # the place came to, and nothing branches on them.
             for role, notes in _by_role(place.notes).items():
                 on_commit.append(events.Advised(role, address, notes))
         for key in sorted(self.moves):
@@ -116,13 +110,12 @@ class Fold:
 
 
 def asked(place: Place) -> tuple[str, ...]:
-    """Who a carried-forward place is put to, in role order.
+    """Who a carried-forward place is put to, sorted by role id.
 
     The pass that carried it forward decided this: a text is put to the roles
     that have not accepted it, and a place with no one text yet to the roles
-    that hold the texts (`desk.evaluate.passes.owed_a_say`,
-    `decision-log.md Process: #180`). Reading it back rather than deriving it
-    again is what keeps the rule in one place.
+    that hold the texts (`desk.evaluate.passes.owed_a_say`). Reading
+    it back rather than deriving it again is what keeps the rule in one place.
 
     Args:
         place: a place the fold is carrying forward.
@@ -130,7 +123,8 @@ def asked(place: Place) -> tuple[str, ...]:
     Returns:
         The roles, as the pass recorded them. Empty where nothing is carried
         forward, and for a place whose record predates the field, which is
-        why the batch and the unanswered check both read this one function.
+        why the batch, the unanswered check, the refusal of an answer the place
+        was not put to, and the fold's own report all read this one function.
     """
     return place.owed
 

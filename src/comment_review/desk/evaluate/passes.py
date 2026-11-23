@@ -1,4 +1,9 @@
-"""The three passes over a place, run after each move's placement is decided."""
+"""The three passes over a place, run after each move's placement is decided.
+
+`decide` runs them in that order for `desk.work.fold`. `proposing` and
+`composed_side` make one role's marks at a place into one side, which
+`flows.fill` also asks, so `mark` refuses what the fold would.
+"""
 
 from typing import assert_never
 
@@ -24,7 +29,7 @@ from comment_review.differences import CannotCompose, compose
 def proposing(filed: list[Filed]) -> list[Filed]:
     """Those of these marks whose row proposes text where they are filed.
 
-    A `clean` and a deferring `query` propose none: they stand beside a
+    A `clean` and a `query` of any shape propose none: they stand beside a
     proposal and are read for their stance, never for a text.
     """
     return [
@@ -49,11 +54,11 @@ def composed_side(
 ) -> tuple[str | None, list[str]]:
     """The one text a role proposes at a place, from every mark it filed there.
 
-    `decision-log.md Process: #179`: a role's own marks compose the way two
-    roles' do. One proposing mark sets the side by itself. Two or more compose
-    against the base, each keyed by the mark it came from. Equal edits apply
-    once without discarding their filings; competing edits are refused back
-    to the role rather than one of them silently standing.
+    A role's own marks compose the way two roles' do. One proposing mark sets
+    the side by itself. Two or more compose against the base, each keyed by the
+    mark it came from. Equal edits apply once without discarding their filings;
+    competing edits are refused back to the role rather than one of them
+    silently standing.
 
     Args:
         role: whose marks these are, for the reason.
@@ -85,10 +90,10 @@ def composed_side(
         return compose(base, texts), []
     except CannotCompose:
         # Marks whose rows set their own `raw_text` -- each a paragraph as it
-        # will read (`decision-log.md Process: #196`) -- are all wanted, so
-        # the role is asked for one paragraph holding both rather than to
-        # give one up. Not at a move's origin, where the text is a remainder
-        # rather than an arrival and there is no paragraph holding both.
+        # will read -- are all wanted, so the role is asked for one paragraph
+        # holding both rather than to give one up. Not at a move's origin,
+        # where the text is a remainder rather than an arrival and there is no
+        # paragraph holding both.
         whole = all(
             INSTRUCTIONS[one.mark.instruction].carries_raw_text
             and one.touch is not Touch.ORIGIN
@@ -156,9 +161,9 @@ def sides_of(place: Place) -> tuple[dict[str, str | None], tuple[str, ...]]:
     """Role -> the one text it proposes here, and what would not compose.
 
     One entry per role that filed a proposing mark, whatever number of them it
-    filed: a role holds one position on a place, and `#179` is how several of
-    its marks make one. A role that proposed nothing is absent, which is what
-    keeps a `clean` from reading as a proposal of the base.
+    filed: a role holds one position on a place, and `composed_side` is how
+    several of its marks make one. A role that proposed nothing is absent,
+    which is what keeps a `clean` from reading as a proposal of the base.
 
     Returns:
         `(role -> its text, the reasons)`. A text is None where the row sets
@@ -208,7 +213,7 @@ def _by_role(place: Place) -> dict[str, list[Filed]]:
 
 
 def _deferring(place: Place | None) -> set[str]:
-    """The roles that hold no view at this place, because they filed only queries."""
+    """The roles that hold no view at this place, because all their marks defer."""
     if place is None:
         return set()
     return {role for role, filed in _by_role(place).items() if _defers(filed)}
@@ -222,11 +227,11 @@ def owed_a_say(
 ) -> tuple[str, ...]:
     """The roles that have not accepted `text`, whose say it still owes.
 
-    `decision-log.md Process: #180`: a place settles on a text only when every
-    role that read it has proposed that text or answered `clean` to it. A role
-    is owed a say unless one of three things is true of it:
+    A place settles on a text only when every role that read it has proposed
+    that text or answered `clean` to it. A role is owed a say unless one of
+    three things is true of it:
 
-        it filed only a query   it defers, either shape (`Process: #121`)
+        it filed only a query   it defers, either shape
         its side is this text   it proposed it, or its answer replaced or
                                 accepted its way to it
         it answered and holds   it was asked, and withdrew or abstained; it
@@ -265,12 +270,11 @@ def owed_a_say(
 def _anchor_reasons(place: Place) -> list[str]:
     """One reason per role whose mark at its own address disagrees on the anchor.
 
-    A place carries one anchor, and the write end checks it against the page's
-    (`decision-log.md Process: #134`). Where the marks filed at their own
-    address carry different anchors, keeping any one of them discards the
-    rest unchecked, so every role holding one is refused, each reason naming
-    every role's anchor. A move filed at its destination is not counted: its
-    anchor is its origin's.
+    A place carries one anchor, and the write end checks it against the page's.
+    Where the marks filed at their own address carry different anchors, keeping
+    any one of them discards the rest unchecked, so every role holding one is
+    refused, each reason naming every role's anchor. A move filed at its
+    destination is not counted: its anchor is its origin's.
     """
     own = sorted(
         (one for one in place.filed if one.mark.address == place.address),
@@ -290,7 +294,7 @@ def marks_pass(place: Place) -> Place:
 
     The notes are collected first and kept whatever the state turns out to
     be: a note is something the chief is told, never a reason a place came
-    to one state rather than another (`decision-log.md Process: #177`).
+    to one state rather than another.
     Collected here rather than once per fold so that re-evaluating a place
     from its own record derives them again with everything else.
 
@@ -450,20 +454,19 @@ def decide(
 ) -> dict[str, Place]:
     """Every move's placement, then every place, in the one order they run in.
 
-    `decision-log.md Process: #195`: a move is a placement claim decided once
-    for the pair before either end's words. So each move's placement pass
-    runs first, with the chief's placement ruling where there is one, and a
-    final one takes off the filings that no longer stand (`Process: #205`):
-    an agreed move stays filed at both ends, and each end is then decided
-    against it as an ordinary place. Then each place's marks and answers, as
-    for any one-place mark; then every move not yet final holds its two ends
-    `to-come` (`Process: #200`); then the chief's dispositions, which a
-    `to-come` end does not take.
+    A move is a placement claim decided once for the pair before either end's
+    words. So each move's placement pass runs first, with the chief's placement
+    ruling where there is one, and a final one takes off the filings that no
+    longer stand: an agreed move stays filed at both ends, and each end is then
+    decided against it as an ordinary place. Then each place's marks and
+    answers, as for any one-place mark; then every move not yet final holds its
+    two ends `to-come`; then the chief's dispositions, which a `to-come` end
+    does not take.
 
     Args:
         places: address -> place, each from its own record. Mutated.
         moves: key -> move, from `desk.evaluate.move.moves_in`. Mutated.
-            None where the caller has none, which is every place alone.
+            None from the tests alone; `desk.work.fold.Fold.run` passes its dict.
         turn: the turn to decide at -- every answer up to it is applied.
 
     Returns:
@@ -487,11 +490,10 @@ def decide(
 def _from_sides(place: Place, sides: dict[str, str], turn: int = 0) -> Place:
     """The place's state from the one text its sides hold, or from their disagreement.
 
-    A text every role owed a say has accepted settles here; a text some have
-    not seen is carried forward to exactly those roles, as a composition
-    (`decision-log.md Process: #180`). It is the same question at the first
-    fold and after a turn, so both reach it here rather than each keeping a
-    rule of its own -- which is what made an `add` a special case before.
+    A text every role owed a say has accepted settles here; a text some have not
+    seen is carried forward to exactly those roles, as a composition. It is the
+    same question at the first fold and after a turn, so both reach it here
+    rather than each keeping a rule of its own.
     """
     distinct = set(sides.values())
     if not sides:
@@ -509,14 +511,11 @@ def _from_sides(place: Place, sides: dict[str, str], turn: int = 0) -> Place:
                 owed=owed,
             )
         state = State.STANDS if len(sides) == 1 else State.AGREED
-        # !! THE SIDES ARE KEPT, AND WERE DROPPED HERE UNTIL 2026-09-18. They
-        # are what the roles proposed, which is a fact about the marks and not
-        # about the state the place came to -- and a move's origin that stands
-        # alone is carried forward by `move.hold_ends` while the move's
-        # placement is not final, where the chief's
-        # `taken_in` names a side and found none to name. MEASURED: the ruling
-        # was refused with *"'block-context' proposed nothing here"* at a
-        # place that role had moved a paragraph out of.
+        # !! The sides are kept. They are what the roles proposed, which is a
+        # fact about the marks and not about the state the place came to -- and
+        # a move's origin that stands alone is carried forward by
+        # `move.hold_ends` while the move's placement is not final, where the
+        # chief's `taken_in` must find a side to name.
         return _set(place, state, text=text, sides=sides)
     try:
         composed = compose(place.base, sides)

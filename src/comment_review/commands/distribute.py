@@ -22,9 +22,6 @@ from it, which `desk.topology.seeded_from_problem` rules on. A stage reading
 `"original"` takes no `--revise`. The rule is the topology's; this passes it
 the stage, the root and what the binder says about itself.
 
-!! A module does one job and has no CLI; a flow calls modules; a command
-exposes a flow.
-
 This command seeds and does not check. `collate` checks every copy before it
 folds, so a malformed copy is never folded; the `check` command checks one
 returned copy on its own, which is how a role validates its copy before handing
@@ -44,8 +41,7 @@ from comment_review.flows.distribute import IncompatibleBinder, seed
 from comment_review.flows.fan_out import OverlappingShards, UncoveredPage, dealt
 from comment_review.flows.proof_io import load_binder
 
-# ! Bound to a name: a tuple literal in an `except` is what a newer formatter
-# rewrites into a form the floor interpreter cannot parse.
+# ! Bound to a name, for the reason `exceptions.py`'s module docstring gives.
 FAN_REFUSALS = (OverlappingShards, UncoveredPage, IncompatibleBinder)
 
 
@@ -62,11 +58,13 @@ def _as_json(payload: dict) -> str:
 
 
 def main() -> int:
-    """Publish the shape, or seed an `edit_copy`.
+    """Publish the shape, seed one `edit_copy`, or seed one per dispatch of a stage.
 
     Returns:
-        0 when the shape printed or the edit_copy was written; 2 when an
-        input could not be read.
+        0 when the shape printed or the copies were written; 2 when a
+        required flag is missing, no mode was given, the binder could not be
+        read, or the topology, the stage or the binder was refused. A
+        `--topology` file that cannot be read raises, and Python exits 1.
     """
     ap = argparse.ArgumentParser(description=__doc__)
     mode = ap.add_mutually_exclusive_group()
@@ -110,8 +108,6 @@ def main() -> int:
             wanted = ", ".join("--" + n for n in missing)
             print(f"--seed needs {wanted}", file=sys.stderr)
             return 2
-        # !! The load is the flow's, the deserialize the container's;
-        # `flows.proof_io.load_binder` is both.
         binder, problems = load_binder(Path(args.binder))
         if binder is None:
             for line in problems:
@@ -166,7 +162,7 @@ def main() -> int:
         if why:
             print(why, file=sys.stderr)
             return 2
-        # ! Refused before anything is written. `dealt` raises on the two guards
+        # ! Refused before anything is written. `dealt` raises on the three guards
         # over the whole stage, so a stage that does not fit leaves no copies
         # behind for a role to be handed.
         try:

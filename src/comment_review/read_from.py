@@ -1,9 +1,14 @@
-"""Validate the gathered-tree header shared by binders, copies and proofs."""
+"""Validate the gathered-tree header shared by binders, copies and proofs.
+
+`BINDER_VERSION` is the binder's format number. `read_from_problem` names it
+in the refusal for a header with no `read_from`, and `binder.binder`
+imports it as `VERSION`.
+"""
 
 # The shape's own version, so a reader can say which format it refused rather
 # than only that it could not read one.
 #
-# `Binder.deserialize` refuses on it: a binder whose `version` is not `VERSION`
+# `Binder.deserialize` refuses on it: a binder whose `version` is not `BINDER_VERSION`
 # is refused by name, and one at version "2" is told it carries no saved
 # reading context.
 BINDER_VERSION = "4"
@@ -12,20 +17,17 @@ BINDER_VERSION = "4"
 def read_from_problem(loaded: dict) -> str:
     """Why a `read_from` cannot be used, or `""`: a binder's, an edit copy's, a proof's.
 
-    MEASURED 2026-08-28, and it is why the check moved here from `seed` alone:
-    `distribute --seed` over a version-"1" binder exited 1 with `KeyError:
-    'read_from'` and an eight-frame traceback on stderr and nothing on stdout,
-    past `main`'s own promise of *"2 when an input could not be read"*.
-    `commands/distribute.py:122` calls `seed` immediately after `load_binder`
-    returns a binder, and `Binder.deserialize` runs this function first, so a
-    field `seed` requires could only surface as a crash. Raising is not
-    refusing: a refusal in this module is a named reason, which a command turns
-    into an exit code, which is what a reader can act on.
+    The check is here, not in `seed` alone: `commands.distribute.main` calls
+    `seed` immediately after `load_binder` returns a binder, and
+    `Binder.deserialize` runs this function once its `pages` read, so a field
+    `seed` requires and nothing checked could only surface as a crash. Raising
+    is not refusing: a refusal in this module is a named reason, which a command
+    turns into an exit code, which is what a reader can act on.
 
-    ! AND THE SHAPE IS CHECKED, NOT ONLY THE PRESENCE. MEASURED the same day:
-    `read_from="oops"`, `None`, `[]` and `{"root": 7}` each built a binder, each
-    passed `ty`, and `seed` copied the value verbatim onto the `edit_copy`
-    handed to an editorial role.
+    ! The shape is checked, not only the presence. A `read_from` of `"oops"`,
+    `None`, `[]` or `{"root": 7}` would otherwise build a binder and pass `ty`,
+    and `seed` would copy it verbatim onto the `edit_copy` handed to an
+    editorial role.
     """
     if "read_from" not in loaded:
         return (

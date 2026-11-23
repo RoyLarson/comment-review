@@ -14,6 +14,9 @@ the edits, and refuses where two sides' edits meet.
 
 Both read `SequenceMatcher` opcodes, base against each side, because `difflib`
 ships no diff3 of its own.
+
+The top-level `comment_review.differences` leaf renders and composes texts
+without file I/O. It is shared by the middle and the command line.
 """
 
 import difflib

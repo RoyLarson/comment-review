@@ -6,6 +6,9 @@ these codes and prints a human question as `collate` does; `mark` exits the
 first three. What each code means for one command is in that command's
 `main()` docstring.
 
+`human_answers` reads the `--human` answers file that `check`, `collate`,
+`disposition` and `turn` each take, and hands its problems to `refused`.
+
 Not a command: `__main__.Command` does not name it.
 """
 
@@ -19,17 +22,14 @@ from comment_review.desk.proof.place import Place
 from comment_review.desk.proof.state import CARRIED, SETTLED, State
 from comment_review.flows.human import HumanAnswer, read_answers
 
-#: Exit codes. A short shard, a place a role left unruled and a slot a role
-#: left unanswered are found before the fold opens, so each is a `Refused`
-#: and the round rolls back (`Process: #186`).
+#: Exit codes.
 OK = 0
 BROKEN = 1
 UNREADABLE = 2
 REREADS = 3
 ESCALATIONS = 4
 # The run paused for the person: human questions and nothing else, nothing
-# saved, and the round runs again once each role has the answer
-# (`Process: #197`, `#289`).
+# saved, and the round runs again once each role has the answer.
 ASKS_THE_HUMAN = 5
 
 
@@ -97,7 +97,8 @@ def lines(event: object) -> list[str]:
                 f"{ruling.name} {event.address}: {ruling.taken_side} -- {ruling.reason}"
             ]
         return [f"stet {event.address}"]
-    # `Advised` prints under its own heading, after the places -- see `print_report`.
+    # `Committed` and `RolledBack` print nothing, and `Advised` prints under its own
+    # heading, after the places -- see `print_report`.
     return []
 
 

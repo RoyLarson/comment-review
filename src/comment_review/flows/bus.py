@@ -4,10 +4,11 @@
     AnswersReturned      one turn's answers, back from the roles
     DispositionsWritten  the chief's rulings on what is still carried forward
 
-Each handler checks what its message carries, derives the places, opens a
-Fold, and on commit builds what the stage saves. A command sends one message
-and prints the events; nothing here writes a file, and nothing here names a
-row of the three tables.
+Each handler checks what its message carries, derives the places, opens a Fold,
+and on commit builds the `Result` the stage saves. A command sends one message
+through `handle` and prints the events; nothing here writes a file, and nothing
+here names a row of the three tables but `recast`, whose prose
+`_on_dispositions` compares against a settled text.
 
 `turn_of` reads the turn a proof stands at, for the turn and disposition
 handlers and for the `turn` and `disposition` commands that report it.
@@ -25,6 +26,10 @@ The collate and turn handlers also check for a human question -- a
 roll back while one stands, until the role replaces it. The human's
 answers file rides on the message, and each answer rides on the
 `AsksTheHuman` for the question it answers.
+
+Every handler also rolls back while a change to an `f` place -- a mark, an
+answer or the chief's recast -- waits on the human's approval, as one
+`AsksTheHuman` each.
 """
 
 from collections.abc import Callable, Mapping, Sequence
@@ -142,7 +147,8 @@ class DispositionsWritten(NamedTuple):
             fold wrote it where no turn ran -- the baseline.
         dispositions: one ruling per place still carried forward, as the
             chief wrote them. A place left unruled is refused by name, and a
-            ruling at a place nothing carries forward is refused too.
+            ruling at a place nothing carries forward is refused too, except a
+            `recast` of a place the roles settled.
         human: the human's answers file, read -- a `recast` of an `f` place
             waits on the human's approval as a mark there does.
     """
@@ -194,6 +200,11 @@ def _on_copies(message: CopiesReturned) -> tuple[list, Result | None]:
     `check` and `proof` read them, so an
     `add` or a `move` at a place the binder lacks is measured here against
     the paragraph already there rather than first at the write end.
+
+    A page read only because a mark reaches into it -- one no copy holds a
+    sheet for -- must hold the source and reading context it was read in, or
+    the stage is refused; the proof records its reading and sha beside the
+    binder's pages.
     """
     binder, root, copies = message.binder, message.root, message.copies
     contexts, problems = admit_collate_contexts(binder, copies, message.binders)

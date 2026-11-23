@@ -13,16 +13,15 @@ text differs from its base becomes one alteration.
 
 Both paths return a `Docket` containing the corrections to apply.
 
-`only` is the author's partial approval -- `decision-log.md Process: #192`.
-The author approves some decided places and not others, and what they ruled on
-is a set of addresses over the proof the fold closed rather than a second
-artifact pruned by hand.
+`only` is the author's partial approval. The author approves some decided places
+and not others, and what they ruled on is a set of addresses over the proof the
+fold closed rather than a second artifact pruned by hand.
 
-The proof is what the write end reads, ruled `decision-log.md Process: #184`.
-The chief's copy restated the same decisions as marks, found or synthesized,
-and folding those marks a second time made the docket depend on that restatement
-reproducing the first fold exactly. `docket_of` stays for a role's own draft,
-which is the artifact it was written for.
+The proof is what the write end reads. The chief's copy restated the same
+decisions as marks, found or synthesized, and folding those marks a second time
+made the docket depend on that restatement reproducing the first fold exactly.
+`docket_of` stays for a role's own draft, which is the artifact it was written
+for.
 
 Neither path reads a mark's `change` or asks which end of a `move` it is
 looking at: the marks table answered both when the fold ran, and a place
@@ -33,26 +32,23 @@ carries the events' own reasons, and `commands/proof.py` prints them. An empty
 docket would say the copy asked for nothing, which is the opposite of a copy
 whose marks could not be read.
 
-!! ANY COPY, NOT ONLY THE COPY CHIEF'S. Roy, 2026-09-02: *"it could also be
-ownership contexts edit-copy or any intermediate edit-copy which allows the stage
-outputs to run."* A stage's own output therefore becomes a revise, which is the
-mechanism `reads = "revise:N"` and stage `4b` both need. `decision-log.md
-Process: #76`.
+`CannotApprove`, a `CannotTranscribe`, is the refusal of an approval: an
+`only` naming a place the proof does not carry, or one end of an agreed move
+without the other. `commands/proof.py` catches it first, so the console says
+the approval failed rather than that the proof decided nothing.
 
-!! IT IS ITS OWN FLOW BECAUSE IT IS ITS OWN ACT. It lived in `flows/revise.py`
-until `P55`+, whose docstring describes exactly one job -- *"Pull a revise: a
-second proof of the pages one stage's corrections set"* -- which transcription
-is not: `pull` never calls this, and `commands/proof.py` calls both. Every other
-flow file here -- `distribute.seed`, `fan_out.fan`, `mark_errors.mark_errors`,
-`proof_setter.run` -- exposes one act.
+!! `docket_of` transcribes any edit copy, not only the copy chief's, so a stage's own
+output becomes a revise, which is the mechanism `reads = "revise:<name>"` and stage
+`4c` both need.
 
-!! AND IT IS A FLOW BECAUSE A FLOW MAY REACH BOTH ENDS AND NEITHER END MAY REACH
-THE OTHER. Roy, 2026-08-31: *"No direct coupling inside of ends and middle, flows
-are neither they run the steps."* This reads the pages, builds the middle's
-places, runs the fold, and builds the write end's `Docket`;
-`Docket.of(edit_copy)`
-was offered and declined, because it would put a middle type in
-`docket/docket.py`, which imports nothing at all.
+!! Transcription is its own flow because it is its own act: `flows.revise.pull` never
+calls it, and `commands/proof.py` calls both.
+
+!! It is a flow because a flow may reach both ends and neither end may reach the other.
+This reads the pages, builds the middle's places, runs the fold, and builds the write
+end's `Docket`; `Docket.of(edit_copy)` was offered and declined, because it would put
+a middle type in `docket/docket.py`, which imports only the leaves `constants` and
+`reading`.
 """
 
 from pathlib import Path
@@ -94,15 +90,14 @@ class CannotTranscribe(Exception):
 
 
 class CannotApprove(CannotTranscribe):
-    """The approval named a place this proof cannot set, and nothing is set.
+    """The approval cannot be honoured as it was named, and nothing is set.
 
     It is its own class so the console can say so. Every other refusal here
     is about the proof -- it has not closed, a place will not read back, a
     page cannot be opened -- and the command opens those with *the proof
     decided nothing that can be set*. That sentence is false of an approval
     the proof cannot honour: the proof decided plenty, and what could not be
-    honoured is the list of places it was handed (`decision-log.md Process:
-    #192`).
+    honoured is the list of places it was handed.
     """
 
 
@@ -230,7 +225,7 @@ def _schedules_of(
                         # set when the places were built: the role's at a
                         # mark's own address and the page's at a move's
                         # destination. The write end refuses one that is not
-                        # the page's (`decision-log.md Process: #134`).
+                        # the page's.
                         anchor=place.anchor,
                     )
                     for place in here
@@ -254,16 +249,14 @@ def docket_of(copy: EditCopy, repo: Path) -> Docket:
     Returns:
         A `Docket` -- one `Schedule` per page the fold decided a text on, each
         naming that page's own path and sha and the copy's own role. An
-        alteration carries the anchor at its place -- the role's at a mark's
-        own address, the page's at a move's destination (`decision-log.md
-        Process: #134` and `#135`) -- and its text, with an emptied place
-        written as the `None` the write end reads as a delete.
+        alteration carries the anchor at its place -- the role's at a mark's own
+        address, the page's at a move's destination -- and its text, with an
+        emptied place written as the `None` the write end reads as a delete.
 
-        A place the fold decided no text for gets no alteration: a `clean` and
-        a `query` propose none, and neither does a place every role left
-        alone (`Process: #174`). A page with no alteration gets no schedule,
-        since an empty one would tell the write end to set a page from
-        nothing.
+        A place the fold decided no text for gets no alteration: a `clean` and a
+        `query` propose none, and neither does a place every role left alone. A
+        page with no alteration gets no schedule, since an empty one would tell
+        the write end to set a page from nothing.
 
     Raises:
         CannotTranscribe: a human-review query is present, an edited page is
@@ -330,9 +323,9 @@ def _open_moves(moves: list[Move]) -> list[str]:
     """One reason per move whose placement is still to be decided.
 
     An open move (`desk.proof.move.is_open`) keeps the proof from closing:
-    neither end has a text until the placement is decided, by the roles or
-    by the chief's placement ruling (`decision-log.md Process: #195` item 4),
-    so transcribing around it would set one end of a move and not the other.
+    neither end has a text until the placement is decided, by the roles or by
+    the chief's placement ruling, so transcribing around it would set one end of
+    a move and not the other.
     """
     return [
         f"{CHIEF} {move.key}: the placement of this move is {move.placement} and"
@@ -359,8 +352,7 @@ def _sets(place: Place) -> bool:
     """Whether the write end has anything to set at this place.
 
     A place the fold decided no text for is nothing to set, and so is one
-    whose decided text is the paragraph already there (`decision-log.md
-    Process: #174`).
+    whose decided text is the paragraph already there.
     """
     return place.text is not None and place.text != place.base
 
@@ -370,11 +362,10 @@ def _approved(
 ) -> tuple[list[Place], list[str]]:
     """The approved places and the reasons an address is refused.
 
-    `decision-log.md Process: #192`. One refusal: an address the proof does
-    not carry. Nothing was decided there, so nothing was approved there, and
-    the name is likelier a mistyped address than a ruling -- transcribing the
-    rest would set what was named correctly and say nothing about what was
-    not.
+    One refusal: an address the proof does not carry. Nothing was decided there,
+    so nothing was approved there, and the name is likelier a mistyped address
+    than a ruling -- transcribing the rest would set what was named correctly
+    and say nothing about what was not.
 
     Args:
         places: every place the proof carries, parsed and closed.
@@ -383,8 +374,8 @@ def _approved(
 
     Returns:
         `(the approved places, the reasons)`. The places keep the proof's own
-        order, since that is the order the schedules come out in; a non-empty
-        second half means nothing is to be set at all.
+        order, though the schedules come out in the order the run recorded the
+        pages; a non-empty second half means nothing is to be set at all.
     """
     by_address = {place.address: place for place in places}
     named = list(dict.fromkeys(only))
@@ -408,10 +399,9 @@ def docket_of_proof(
 ) -> Docket:
     """One closed master proof, transcribed into the docket the write chain reads.
 
-    `decision-log.md Process: #184`: the proof holds each place's decided
-    text, so the write end reads those places. Nothing is folded here and no
-    mark is read for what it sets -- the fold has already ruled on that, and
-    the place carries the answer.
+    The proof holds each place's decided text, so the write end reads those
+    places. Nothing is folded here and no mark is read for what it sets -- the
+    fold has already ruled on that, and the place carries the answer.
 
     Args:
         proof: a closed master proof, already through
@@ -419,9 +409,8 @@ def docket_of_proof(
         repo: the checkout whose pages the write end sets. Each page is read
             for its own place order; every place on the proof carries the
             anchor the collate handler gave it.
-        only: the places the author approved, where they approved some and
-            not others (`Process: #192`). None is the blanket approval: every
-            place the proof decided.
+        only: the places the author approved, where they approved some and not
+            others. None is the blanket approval: every place the proof decided.
 
     Returns:
         A `Docket` holding one `Schedule` per page with an approved correction,
@@ -432,17 +421,17 @@ def docket_of_proof(
         the `None` the write end reads as a delete.
 
         A place the fold decided no text for gets none, and neither does one
-        standing on the text already there (`Process: #174`): there is
-        nothing to set at either.
+        standing on the text already there: there is nothing to set at either.
 
     Raises:
-        CannotTranscribe: a place is still carried forward or refused, a
-            move's placement is undecided and the chief has not ruled both of
-            its ends, `only` names an address the proof does not carry, or a
+        CannotTranscribe: a place is still carried forward or refused, a move's
+            placement is undecided and the chief has not ruled both of its ends,
+            `only` names an address the proof does not carry or approves one end
+            of an agreed move alone, a decided page has no recorded sha, or a
             page a decided place sits on cannot be read here. Nothing it
             reported can be set, and the reasons are the report. A place or a
-            move that will not read never reaches here: `MasterProof.deserialize`
-            refuses the proof and names it.
+            move that will not read never reaches here:
+            `MasterProof.deserialize` refuses the proof and names it.
     """
     problems = proof_reading_problems(proof)
     if problems:

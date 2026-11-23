@@ -6,6 +6,9 @@
     HoldAnswer .. StetAnswer  one type per answer name, each holding its own
                    fields and naming the questions that take it
     answer_type()  the type an answer's name names -- the one dispatch
+    not_an_answer()
+                   the refusal for a name its question does not take, or that
+                   no answer has
     read_answer()  an entry read as the type its name names, or named problems
     read_answers() a record's answers, turn -> role -> answer, each read
 
@@ -15,7 +18,7 @@ the question a field, because the rows of `desk.answers.table.ANSWERS` that
 share a name -- `withdraw`, `correct`, `patch`, `query` -- differ only in what
 the answer does, which is the table's; what each owes is the same whichever
 question asked it. What an answer does to a side or a move is the table's,
-keyed by `(question, name)` as before.
+keyed by `(question, name)`.
 """
 
 from dataclasses import dataclass
@@ -31,9 +34,10 @@ class Question(StrEnum):
 
     An `escalation` and a `composition` are asked of a place, about the text
     there. A `placement` is asked of a move, about the pair of addresses, once
-    per open move to every role that read either page -- `decision-log.md
-    Process: #195`. Its answers act on the move and none of them rewrites a
-    paragraph.
+    per undecided move to the roles it owes: for an open move, the readers of
+    either page less its movers and the roles that agreed or defer; for a
+    contested move, its movers and the roles that stetted it, less those that
+    defer. Its answers act on the move and none of them rewrites a paragraph.
     """
 
     @staticmethod
@@ -57,8 +61,8 @@ class Answer:
         anchor: the slot's anchor, copied from the slot.
         question: which question this answers -- one of the type's `asked`.
         reason: why, in prose.
-        sources: the evidence, each `{cite, verbatim}`; resolved against the
-            tree by the flow, never checked here.
+        sources: the evidence, each `{cite, verbatim}`; each entry's shape
+            checked here, its `cite` resolved against the tree by the flow.
     """
 
     address: str
@@ -74,7 +78,7 @@ class Answer:
     #: Whether a `change` is owed -- True on every `Rewrite`.
     owes_change: ClassVar[bool] = False
     #: Whether at least one source is owed -- True on `correct`, `patch` and
-    #: `clean`, as on their marks (`decision-log.md Process: #288`, `#306`).
+    #: `clean`, as on their marks.
     owes_sources: ClassVar[bool] = False
     #: Every key the wire `claim` must carry, filled.
     claim_all: ClassVar[tuple[str, ...]] = ()
@@ -107,9 +111,8 @@ class Answer:
         """One entry naming this answer, read as this type.
 
         A field of the wrong type is read as absent, and a field this type does
-        not take is ignored, never refused (`decision-log.md Process: #204`).
-        An answer its question does not take is one message, and nothing else
-        is asked of it.
+        not take is ignored, never refused. An answer its question does not
+        take is one message, and nothing else is asked of it.
 
         Args:
             where: how to name this answer in a message -- its address.
@@ -165,7 +168,7 @@ class Answer:
 
     @classmethod
     def _value_problems(cls, where: str, claim: dict) -> list[str]:
-        """Whether a claim value from a closed set is one of it. None to ask here."""
+        """A message for each claim value outside its closed set; none here."""
         return []
 
 
@@ -290,7 +293,7 @@ class AgreeAnswer(Answer):
 
 @dataclass(frozen=True)
 class StetAnswer(Answer):
-    """`stet`: the role refuses the move; the paragraph stays where it is."""
+    """`stet`: the role refuses the move; the move is carried forward contested."""
 
     name: ClassVar[str] = "stet"
     asked: ClassVar[tuple[Question, ...]] = (Question.PLACEMENT,)
@@ -320,7 +323,7 @@ def answer_type(name: str) -> type[Answer] | None:
 
 
 def not_an_answer(where: str, name: str, question: Question) -> str:
-    """The refusal for a name its question does not take."""
+    """The refusal for a name its question does not take, or that no answer has."""
     article = "an" if str(question)[:1] in "aeiou" else "a"
     return f"{where}: {name!r} is not an answer to {article} {question}"
 

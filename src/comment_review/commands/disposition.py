@@ -5,9 +5,7 @@ r"""The `disposition` command: the chief's rulings close a stage's fold.
 
 The work is `flows.bus`: this loads the proof and the rulings, sends one
 `DispositionsWritten`, prints the events the fold produced, and saves the
-resulting proof. `Process: #78`: the task agent's max turns
-ends the roles' part; `#87`: every place still carried forward takes the
-chief's own ruling.
+resulting proof.
 
     dispositions.json  a list of rulings in the shape `check --contract`
                    prints under `chief`, generated from the ruling types.
@@ -16,9 +14,6 @@ Every undecided move takes a placement ruling, and its ends take none until
 it has one. A placement ruling moves the paragraph or keeps it, and each end
 is then an ordinary place: one that needs words is carried forward in what
 this writes, for the chief to rule by running this again on that proof.
-
-!! A MODULE DOES ONE JOB AND HAS NO CLI; A FLOW CALLS MODULES;
-A COMMAND EXPOSES A FLOW. `decision-log.md Process: #12`.
 
 Nothing survives the chief's ruling unruled. A carried-forward place with no
 ruling is refused by name, with the roles it was put to, and nothing is
@@ -104,12 +99,8 @@ def main() -> int:
     if result is None:
         return code_for(out)
 
-    # The serialize is the container's and the dump is the flow's
-    # (`decision-log.md Process: #65`, `#67`), as `collate` saves.
     save_proof(Path(args.proof_out), result.proof)
     code = code_for(out)
-    # A placement ruling can leave its move's ends carried forward, for the
-    # chief to rule by running this again on the proof it just wrote.
     turn, held = turn_of(result.proof), counted(result.proof.places)
     if code == OK:
         print(f"{args.proof_out}: the proof closed at turn {turn} -- {held}")

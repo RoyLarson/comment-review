@@ -6,35 +6,23 @@
         [--human answers.toml]
     comment_review check --contract
 
-A role writes its copy or its batch answers with its file-write tool and runs
-this over the file. It is the same boundaries the fold runs -- nothing here
-decides anything the fold would not -- so a run that exits 0 here is a file
-the fold reads whole.
+A role fills its copy with `mark` or its file-write tool, or writes its batch
+answers with its file-write tool, and runs this over the file. It is the same
+boundaries the fold runs -- nothing here decides anything the fold would not
+-- so a run that exits 0 here is a file the fold reads whole.
 
-!! A MODULE DOES ONE JOB AND HAS NO CLI; A FLOW CALLS MODULES;
-A COMMAND EXPOSES A FLOW. `decision-log.md Process: #12`.
+!! It checks and does not write. A role places each ruling with `mark`, which
+reads any multi-line value from an `@path` file, or writes the copy with its
+file-write tool; either way this is the check run over the result.
 
-!! IT CHECKS AND DOES NOT WRITE. `TODO/completed/the-record-is-a-parsed-template
--and-should-be-a-value.md` T2, ruled 2026-08-17: a role edits a SEEDED
-TEMPLATE in place with its file-write tool, not through a CLI it calls per
-record, because no multi-line value may pass through a shell. The safe shape
-named there is the file-write plus a CLI that validates; this is that CLI.
-
-! MEASURED 2026-09-04, the game that asked for it: of about fifty submissions
-across five hands, ten were refused at the fold and none on substance -- a
-slot rewritten without its `question` key, an escalation `patch` meant as *keep
-my patch*, three batches returned keyed by role instead of as a list, a
-citation whose line did not match, addresses in slash form where the seed
-was flattened. Each cost a turn. All are named here, before the send.
-
-For a COPY: the envelope (`EditCopy.deserialize`), missing required rulings
+For a copy: the envelope (`EditCopy.deserialize`), missing required rulings
 against the received binder, every assigned place the role left unruled or
 wrote unreadably (`flows.mark_errors`), source
 verification and whether each address and each move's destination names a
 place its page carries (`flows.verify.copy_problems`, which applies the same
 rules as collate), and what each mark's row finds against the page's text at
 the places it writes (`flows.fill.row_problems`, `composition_problems`). For a
-BATCH: `flows.answers.answers_of`, the call the turn makes for each role --
+batch: `flows.answers.answers_of`, the call the turn makes for each role --
 every answer paired to the slot that went out at its address, and read against
 that slot's own question. So `--sent` is the batch that went out, whose slots
 name the checkout their citations resolve against; nothing is saved. A slot left
@@ -44,15 +32,25 @@ here, which is what the turn refuses the round for.
 The shape a role hands back is read the way the fold reads it
 (`flows.answers.slots_of`): a list of slots, `{role: [slots]}`, or a lone slot.
 
+A copy is also held to its pages' reading metadata
+(`flows.reading_context.copy_reading_problems`), to the instructions its
+stage admits (`desk.stages.not_admitted`), to carrying the addresses its
+binder deals it (`flows.verify.coverage_problems`), and to the tree that
+binder was gathered from (`flows.verify.gathered_tree_problem`).
+
 In either mode a human question -- a `human-review-necessary` query, filed as
 a mark or given as an answer -- is named and counted apart from what the fold
-would send back (`decision-log.md Process: #197`). The reader here is the
-role that filed it, which cannot ask the human, so an unanswered one tells it
-its part is done; where the human questions are the only findings the exit is
-`ASKS_THE_HUMAN`, as `collate` and `turn` exit, and not `BROKEN`, which would
-invite the role to turn a real question into a clean. `--human` names the
-human's answers file (`#198`); a question it answers is printed with the
-answer, as `collate` prints it.
+would send back. The reader here is the role that filed it, which cannot ask the
+human, so an unanswered one tells it its part is done; where the human questions
+are the only findings the exit is `ASKS_THE_HUMAN`, as `collate` and `turn` exit,
+and not `BROKEN`, which would invite the role to turn a real question into a
+clean. `--human` names the human's answers file; a question it answers is printed
+with the answer, as `collate` prints it.
+
+A mark that changes the file's matter, an `f` place, or moves text into one
+is counted with the human questions too
+(`flows.human.corrections_to_matter`): each waits on the human's approval,
+and one the `--human` file answers is not counted.
 """
 
 import argparse
@@ -116,13 +114,12 @@ def _row_problems(
 ) -> list[Problem]:
     """What each mark's own row finds against the pages -- `mark`'s own check.
 
-    It is the same call `flows.fill` makes, over a whole copy. A role may
-    write its copy with its file-write tool rather than placing each ruling
-    through `mark`, and the rows are what decide a `move`'s snippet and an
-    `add`'s paragraph (`decision-log.md Process: #172`, `#175`, `#176`), so
-    a hand-written copy is held to what `mark` enforces on the way in. Each
-    place is measured against the page's text there, as the fold measures
-    it (`#187`), whether or not the binder holds that place or its file.
+    It is the same call `flows.fill` makes, over a whole copy. A role may write
+    its copy with its file-write tool rather than placing each ruling through
+    `mark`, and the rows are what decide a `move`'s snippet and an `add`'s
+    paragraph, so a hand-written copy is held to what `mark` enforces on the way
+    in. Each place is measured against the page's text there, as the fold
+    measures it, whether or not the binder holds that place or its file.
 
     Args:
         copy: one parsed edit_copy.
@@ -132,7 +129,11 @@ def _row_problems(
         contexts: admitted contexts from the received binder, when available.
 
     Returns:
-        One `Problem` per finding, in sheet then mark order.
+        One `Problem` per reading-context refusal, and nothing else, when
+        there is any; else one per place that cannot be read, and nothing
+        else, when any cannot; otherwise one per row finding, in sheet then
+        mark order, then one per place where the copy's own marks will not
+        compose.
     """
     from comment_review.reading.diagnostics import ReadFailure
 
@@ -168,9 +169,8 @@ def _row_problems(
         for why in row_problems(mark, base_at)
     ]
     # And what this role's own marks make of each other: two at one place
-    # compose or are refused back to it (`decision-log.md Process: #179`),
-    # which `mark` asks of one ruling as it is placed and this asks of the
-    # copy as it stands.
+    # compose or are refused back to it, which `mark` asks of one ruling as it
+    # is placed and this asks of the copy as it stands.
     marks = [mark for sheet in copy.sheets for mark in sheet.marks]
     return out + [
         Problem(copy.role, address, why)
@@ -185,7 +185,7 @@ def _for_the_role(query: HumanQuery) -> str:
     part is to ask it and record the answer (`commands.report.lines`). The
     reader of `check` is the role, which cannot ask the human: its part ends
     at filing the question, so this line says so rather than handing it the
-    task agent's instruction (`decision-log.md Process: #197`).
+    task agent's instruction.
     """
     return (
         f"asks the human {query.at}: {query.role} -- {query.question}; this is the"
@@ -196,10 +196,10 @@ def _for_the_role(query: HumanQuery) -> str:
 def _asks_the_human(queries: list[HumanQuery], human: tuple[HumanAnswer, ...]) -> int:
     """Each human question, printed for the role, and how many there were.
 
-    `decision-log.md Process: #197`: the fold rolls back on each. An
-    unanswered one is the role's part done (`_for_the_role`); an answered one
-    is printed as `collate` prints it, which is addressed to the role -- it
-    replaces its query with its mark or answer.
+    The stage or the turn rolls back on each one, before the fold runs. An
+    unanswered one is the role's part done (`_for_the_role`); an answered one is
+    printed as `collate` prints it, which is addressed to the role -- it replaces
+    its query with its mark or answer.
     """
     for query, answer in answered(queries, list(human)):
         if answer is None:
@@ -258,9 +258,9 @@ def _check_copy(
         for reason in one.reasons:
             print(refusal_line(one.role, one.where, reason))
             found += 1
-    # What the stage admits, asked of a copy written by hand -- the same
-    # `desk.stages.not_admitted` `flows.fill` asks as a ruling is placed
-    # The copy carries the stage's instruction contract.
+    # What the stage admits, asked of the copy as it stands, however it was
+    # written -- the same `desk.stages.not_admitted` `flows.fill` asks as a
+    # ruling is placed. The copy carries the stage's instruction contract.
     for sheet in copy.sheets:
         for one in sheet.marks:
             why = not_admitted(copy.stage, copy.admits, str(one.instruction))
@@ -372,7 +372,8 @@ def main() -> int:
         something would, each named on stdout; `ASKS_THE_HUMAN` when the only
         findings are human questions, each named on stdout -- the role's part
         is done; `UNREADABLE` when the file is not a JSON object or list, or
-        the binder or the batch is not one.
+        the binder or the batch is not one, or the mode is missing a
+        flag it needs (`--binder`, or `--role` and `--sent`).
     """
     ap = argparse.ArgumentParser(description=__doc__)
     what = ap.add_mutually_exclusive_group(required=True)
@@ -410,8 +411,8 @@ def main() -> int:
     args = ap.parse_args()
 
     if args.contract:
-        # ! GENERATED, NEVER HAND-WRITTEN. The game's first brief typed the
-        # contract by hand and got `query` wrong.
+        # ! Generated from `contracts()`, never hand-written: a contract typed
+        # by hand can disagree with the tables the checks read.
         print(json.dumps(contracts(), indent=2))
         return OK
     human, why = human_answers(args.human)

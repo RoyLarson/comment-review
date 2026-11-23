@@ -1,4 +1,9 @@
-"""Admit exact current and revision pages before comparing executable code."""
+"""Admit exact current and revision pages before comparing executable code.
+
+Each page compared is also checked for line endings against a tracked
+sibling in its directory that the run did not edit (`_sibling`); a page
+with no readable sibling is counted unchecked.
+"""
 
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
@@ -48,7 +53,7 @@ def _sibling(
         cand = (repo / rel).resolve()
         # ! `cand == target` is covered. `edited` is built from every path this
         # run was given and `target` is one of them, so a candidate equal to
-        # the target is already in the set the test above it uses.
+        # the target is already in the set the test below it uses.
         if cand.parent != target.parent or cand in edited:
             continue
         held = source_of(cand)
@@ -155,9 +160,9 @@ def run(
             want = dominant_ending(held.text)
             got = dominant_ending(after.text)
             # ! Both sides are guarded against "none". A single-line file with
-            # no trailing newline has no ending to measure, so it reads "none"
-            # and would FAIL against any CRLF sibling on absent endings rather
-            # than wrong ones.
+            # no trailing newline has no ending to measure, so it reads "none",
+            # and against a sibling that has endings it would FAIL on an absent
+            # ending rather than a wrong one.
             if want != "none" and got != "none" and got != want:
                 messages.append(
                     f"FAIL      {rel}: line endings {got}, "

@@ -3,6 +3,10 @@
 `comment_form` parses a comment's markers and fragments for `Paragraph.text`
 and `desk.marks.rules`; `Comment` and `Fragment` hold what it found and take
 prose out of that form.
+
+`CommentSpan` is one comment as its language's reader scans it --
+`reading.rust.scanner` returns them -- and `comment_form` cuts a paragraph into
+fragments at them.
 """
 
 import re
@@ -59,7 +63,9 @@ class Fragment:
         line's lead for any line after, and its last line's trail, at the
         paragraph's own width; every other line is kept byte for byte. A run
         left with no prose goes, with the blank line it would strand. None where the
-        prose cannot be mapped back onto the raw text.
+        prose cannot be mapped back onto the raw text, where an emptied first
+        line's opener has no prose below to come up onto it, or where an emptied
+        line's closer has no line above to move onto.
         """
         text, at, raw = self.text, self.positions, self.raw_text
         if len(at) != len(text):
@@ -225,7 +231,12 @@ class Comment:
         return " ".join(part.text for part in self.fragments if part.text)
 
     def without_once(self, snippet: str) -> str | None:
-        """The raw text with a unique prose match removed, or None."""
+        """The raw text with the one whole-word prose match of `snippet` removed.
+
+        A match that continues a word at either end does not count. None where
+        there is not exactly one, or where the match cannot be taken out of the
+        raw text.
+        """
         if not snippet:
             return None
         matches = list(re.finditer(r"(?=" + re.escape(snippet) + r")", self.text))
@@ -317,8 +328,9 @@ class Comment:
                 carried = ""
             if ends_line:
                 carried = ""
-            # An emptied comment leaves nothing, so `rendered[-1]` is always the
-            # last text kept, and it ends in a line break unless its line is open.
+            # An emptied comment leaves at most its suffix or its line ending, so
+            # `rendered[-1]` is always the last text kept, and it ends in a line
+            # break unless its line is open.
             if text:
                 rendered.append(text)
         found = re.search(r"[\r\n]+$", self.raw_text)
@@ -329,9 +341,10 @@ class Comment:
 def _join(lines: list[str]) -> str:
     """Prose lines, their markers already cut, as ONE normalised string.
 
-    Prose wraps, so every claim-bearing phrase in a real file straddles a line
-    break. Matching line-by-line reports the fragment instead of the claim: a
-    count reads as absent and `used to say` degrades to a bare `used to`.
+    Prose wraps, so a claim-bearing phrase in a real file often straddles a
+    line break. Matching line-by-line reports the fragment instead of the claim: a
+    count reads as absent, and so does `used to say`, since `annotate` matches
+    `used to` only before a verb of saying.
     """
     return re.sub(r"\s+", " ", " ".join(ln.strip() for ln in lines)).strip()
 
@@ -387,7 +400,7 @@ def comment_form(
         return _scanned_form(grammar, series, raw_text, anchor, found)
     value = grammar.definition
     if value is not None and grammar.in_literals and series is Series.DECLARED:
-        # Imported here: `docstring` imports this module for `Comment`.
+        # Imported here: `docstring` imports this module for `Comment` and `Fragment`.
         from comment_review.reading.docstring import concatenated
 
         docstring = concatenated(raw_text, value)

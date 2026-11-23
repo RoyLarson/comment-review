@@ -1,65 +1,50 @@
-"""SOURCE-VERIFICATION: one role's marks against the tree they were read from.
+"""Source verification: one role's marks against the tree they were read from.
 
     claim_verbatim_problems()  the sentence the claim quotes is really in a
                                text at its place
     source_problems()          every `cite` resolves inside the checkout, and
                                its `verbatim` sits near the line it names
-    source_verification()      those three, over one mark
-    verify_report()            those three, over every ruled mark of one
+    source_verification()      those two, over one mark
+    verify_report()            those two, over every ruled mark of one
                                edit_copy
-    Problem                    one thing wrong with one mark, named to route
+    Problem                    one thing wrong with one mark or with the copy,
+                               named to route
+    cited_problems()           the source check, over sources as handed rather
+                               than a mark's
+    cite_at()                  a `cite` split into its path and line
+    WITHIN                     how many lines from its cite a `verbatim` may sit
+    Cache                      a cited path -> its lines, one cache per root
 
-!! TWO KINDS OF CHECK, AND WHAT EACH NEEDS IS WHAT SEPARATES THEM. NAMED BY
-MEMBER, NOT BY FILE-ORDER RANGE -- `desk/marks/rules.py` answers everything a
-mark can be judged by on its own. One kind needs the PAGE the role read and the
-FILES it cited: `claim_verbatim_problems`, `source_problems`,
-`source_verification` and `verify_report` measure a mark against the texts
-`flows.verify` reads off the page, and against those files -- never a mark's
-own `raw_text`, the base a party being checked could have altered.
-! WHETHER THE ADDRESS IS ONE
-THE BINDER CARRIES IS NOT ASKED, since 2026-09-05 -- `decision-log.md Process:
-#97`. The binder is filtered to the places holding prose, so an `add` cites a
-place it dropped and a `move` may cite a file it never held;
-`flows.verify.resolution_problems` opens the page and says whether the place
-exists.
-One kind needs only the report itself, and nothing outside it (`Problem`).
-`decision-log.md Process: #54` put these checks here because they ask
-about the SET, and one mark cannot answer for the set alone. ! TWO MORE
-STOOD IN THAT GROUP UNTIL `P52`; `flows.mark_errors` answers what they did.
-Nothing here compares a returned `raw_text` with what was seeded: the middle
-does not ask whether a page changed, so there is no drift check
-(`decision-log.md Process: #62`, `#185`).
+!! Every check here needs the page the role read and the files it cited, which is
+what separates this module from `desk/marks/rules.py`, which answers everything a
+mark can be judged by on its own. `claim_verbatim_problems`, `source_problems`,
+`source_verification`, `cited_problems` and `verify_report` measure a mark against
+the texts `flows.verify` reads off the page, and against those files -- never a
+mark's own `raw_text`, the base a party being checked could have altered. Whether a
+role's report is complete and well formed is `flows.mark_errors`' question. Nothing
+here compares a returned `raw_text` with what was seeded: the middle does not ask
+whether a page changed, so there is no drift check.
 
-!! HOW ONE ROLE'S MARKS MEET ANOTHER'S IS NOT ASKED HERE AT ALL. It was:
-`places` grouped a master proof's marks by the addresses they land on and
-`reconcile` ruled each group settled, escalated or re-read, raising
-`MalformedMark` where an entry would not parse. `flows.places.places_of`
-builds the places now and `desk.evaluate` rules them, from each place's own
-record, and an entry that will not parse is `Sheet.refused` before either
-runs.
+!! How one role's marks meet another's is not asked here at all.
+`flows.places.places_of` builds the places and `desk.evaluate` rules them, from
+each place's own record, and an entry that will not parse is `Sheet.refused`
+before either runs.
 
-!! EVERYTHING HERE RETURNS A `Problem` PER BROKEN RULE, so a whole report is
-checked in one pass and every problem is read at once. ! IT RETURNED SENTENCES
-UNTIL 2026-08-31, each opening with the mark it was about; `P25` gave it a
-production caller and `Problem` is what a caller can ROUTE -- see that type,
-and `verify_report`. One `Problem` is about the COPY rather than about any one
-mark: an entry that is not an object produces one carrying `address=""`, with
-nothing in the message naming a mark at all.
+!! `verify_report` returns a `Problem` per broken rule, so a whole report is
+checked in one pass and every problem is read at once. `Problem` is what a
+caller can route -- see that type. Every `Problem` `verify_report` returns names
+a mark; a `Problem` carrying `address=""`, about the copy rather than any one
+mark, is built in other modules: `flows.bus`, `flows.answers`, `flows.verify` and
+`commands/check.py`.
 
-!! EVERY FUNCTION HERE TAKES A CONTAINER, NEVER A WIRE DICT, since 2026-08-31
--- `P42`, `decision-log.md Process: #65`. `verify_report` takes an
-`EditCopy`.
-
-!! AND THE DOCKET IS NOT BUILT HERE, since `P55`. `docket_from` and
-`_real_pages` lived in this file and imported `Alteration`, `Schedule` and
-`Docket` -- the only MIDDLE-to-WRITE-END import in the tree. The transcription
-is `flows/transcribe.py::docket_of`, which takes an `EditCopy`, because a FLOW may
-reach both ends and neither end may reach the other. `decision-log.md Process:
-#76`.
+!! The per-mark checks take a `Mark` and `verify_report` an `EditCopy`, never a
+wire dict; `cited_problems` takes the sources as handed.
 
 `flows.verify.admitted_copy_problems` calls `verify_report` per copy.
 `flows.bus` admits all returned copies together. `commands/check.py`
 uses `flows.verify.copy_problems` to admit the one copy it is handed.
+`flows.fill` splits a cite with `cite_at`, so the two agree on which line was
+cited, and `flows.answers` holds a turn's answer to `cited_problems`.
 """
 
 from collections.abc import Mapping
@@ -90,7 +75,7 @@ def claim_verbatim_problems(
 ) -> list[str]:
     """Whether the sentence this mark's claim quotes is really in a text at its place.
 
-    !! THE MARK SAYS WHICH CLAUSE IT QUOTES, never branched on the
+    !! The mark says which clause it quotes, never branched on the
     instruction: `Mark.quoted` is it, and the type's `quotes_original` names
     the key -- `claim.drop` for a `drop`, `claim.false` for a `correct`,
     `claim.from` for a `patch`. A type that quotes no existing sentence quotes
@@ -106,13 +91,12 @@ def claim_verbatim_problems(
         where: how to name this mark in a message -- its address, or a position.
         mark: one role's ruling, already read into its type.
         texts: every text at this place the quote may be in, as the flow reads
-            them (`decision-log.md Process: #119`): the page's text at the
-            mark's address, whether or not the binder holds that place or its
-            file, and for a place a turn's batch sent the role, the text sent
-            there. Where no page can be read the page's text is "", so a quote
-            nothing else holds is refused. Never `mark.raw_text`, which is what
-            came back -- a check reading its own base off the thing it is
-            checking cannot disagree with it.
+            them: the page's text at the mark's address, whether or not the
+            binder holds that place or its file, and for a place a turn's batch
+            sent the role, the text sent there. Where no page can be read the
+            page's text is "", so a quote nothing else holds is refused. Never
+            `mark.raw_text`, which is what came back -- a check reading its own
+            base off the thing it is checking cannot disagree with it.
 
     Returns:
         One message, or an empty list.
@@ -134,14 +118,14 @@ def claim_verbatim_problems(
 
 
 def cite_at(cite: str) -> tuple[str, int] | None:
-    """`path:line` split at the LAST colon, or None where it is not that form.
+    """`path:line` split at the last colon, or None where it is not that form.
 
-    ! THE LAST COLON, so a path carrying one of its own -- a Windows drive,
+    ! The last colon, so a path carrying one of its own -- a Windows drive,
     `C:/pkg/mod.py:12` -- keeps it and only the line number is taken off.
 
-    ! PUBLIC SINCE 2026-09-07: `flows.fill` reads the cited line to fill a
-    source's `verbatim`, and it has to split the cite the way this check does
-    or the two would disagree about which line was cited.
+    ! Public: `flows.fill` reads the cited line to fill a source's `verbatim`,
+    and it has to split the cite the way this check does or the two would
+    disagree about which line was cited.
 
     Returns:
         `(path, lineno)`, or None for an empty path, a line that is not
@@ -186,10 +170,10 @@ def _lines(root: Path, path: str, cache: Cache) -> tuple[str, ...] | None:
 def source_problems(where: str, mark: Mark, root: Path, cache: Cache) -> list[str]:
     """Every source on this mark, checked against the file it cites.
 
-    The checks are `cited_problems`, over the mark's own `sources`. An answer
-    a turn brings back cites its evidence the same way and is held to the same
-    checks (`decision-log.md Process: #181`), which is why they take a list of
-    sources rather than the mark that carries them.
+    The checks are `cited_problems`, over the mark's own `sources`. An answer a
+    turn brings back cites its evidence the same way and is held to the same
+    checks, which is why they take a list of sources rather than the mark that
+    carries them.
     """
     return cited_problems(where, mark.sources, root, cache)
 
@@ -218,7 +202,8 @@ def cited_problems(where: str, sources: object, root: Path, cache: Cache) -> lis
     Args:
         where: how to name the citing ruling in a message -- its address, or
             a position.
-        sources: what it cites, as a mark or an answer carries them.
+        sources: what it cites, as a mark or an answer carries them. A
+            value that is not a list or tuple is passed over, with no message.
         root: the checkout every `cite` is resolved against.
         cache: shared across the rulings of one report so a file cited many
             times is read once.
@@ -298,11 +283,9 @@ def source_verification(
 
 @dataclass(frozen=True)
 class Problem:
-    """One thing wrong with one mark, named so a reader can ROUTE it.
+    """One thing wrong with one mark or with the copy, named so a reader can route it.
 
-    !! STRUCTURED RATHER THAN A SENTENCE, ruled by Roy 2026-08-30: *"the errors
-    should be stacked and capable of being read off correctly so that each can
-    be fixed or sent back to the role."* `desk.proof.mark.read_mark` returns
+    !! Structured rather than a sentence. `desk.proof.mark.read_mark` returns
     flat strings each opening with a `where`, and a caller cannot route on a
     sentence -- so the role and the address ride beside the message.
 
@@ -326,7 +309,7 @@ class Problem:
 def verify_report(
     copy: EditCopy, texts: Mapping[str, tuple[str, ...]], root: Path, cache: Cache
 ) -> list[Problem]:
-    """Source-verification over every ruled mark of ONE role's edit_copy.
+    """Source-verification over every ruled mark of one role's edit_copy.
 
     Args:
         copy: one parsed edit_copy, as `flows.distribute.seed` hands it out and
@@ -338,13 +321,11 @@ def verify_report(
             checked against nothing, so a quote there is refused.
         root: the checkout every `cite` is resolved against.
         cache: a `Cache` to read cited files through.
-            !! REQUIRED, AND ONE PER STAGE. `flows.bus` calls this
-            once per copy, and a cache built per call re-reads a file for every
-            citing role -- MEASURED 2026-08-31: four roles citing the same line
-            read it from disk four times. The note below already promised "a
-            file twenty sources cite is read once", which held inside one copy
-            and not across the stage that copy belongs to.
-            ! IT IS NOT OPTIONAL, deliberately. A default would let a caller
+            !! Required, and one per stage.
+            `flows.verify.admitted_copy_problems` calls this for `flows.bus`
+            and `commands/check.py`, once per copy, and a cache built per call
+            re-reads a file for every citing role.
+            ! It is not optional, deliberately. A default would let a caller
             get the per-call cache back by saying nothing, which is exactly the
             defect this parameter exists to remove -- and a caller who has no
             stage to share one across can still pass `{}` and say so.
@@ -352,57 +333,34 @@ def verify_report(
     Returns:
         Every problem found, in sheet order and then in mark order.
 
-        !! `Problem`s RATHER THAN SENTENCES, since 2026-08-31, when this got a
-        production caller. It is the same decision the per-copy check made
-        on 2026-08-30 and for the same reason -- see `Problem`: a caller cannot
+        !! `Problem`s rather than sentences -- see `Problem`: a caller cannot
         route on a sentence, and every one of these findings names a mark, so
-        it has both a role and an address to route on. ! THE THREE LEAF
-        FUNCTIONS STILL RETURN STRINGS. They answer about one mark and are
+        it has both a role and an address to route on. ! The three leaf
+        functions return strings. They answer about one mark and are
         handed a `where`; assembling the routing is this function's job,
         because it is the one that holds the copy and therefore the role.
 
-    !! AN UNTOUCHED SLOT IS SKIPPED, and so is AN UNPARSEABLE ENTRY -- the
-    second only since 2026-08-31. The first is `desk.proof.mark.untouched`: a
-    coverage gap, a place no role wrote in. The second has no `Mark` to check,
-    and its parse messages belong to `flows.mark_errors`.
+    !! An untouched slot is skipped, and so is an unparseable entry. The first
+    is `desk.proof.mark.untouched`: a coverage gap, a place no role wrote in.
+    The second has no `Mark` to check, and its parse messages belong to
+    `flows.mark_errors`.
 
-    !! IT USED TO REPORT THEM, AND THAT WAS RIGHT WHILE THIS HAD NO PRODUCTION
-    CALLER. `P25` put it in the fold beside the per-copy check,
-    which parsed every entry already -- so a malformed mark came back **twice
-    with a BYTE-IDENTICAL message**, measured on an emptied `claim`:
-    `m.py@b1: correct needs `claim` to carry false, true (missing false, true)`,
-    reported once by each -- the same sentence twice.
-
-    ! SO THE TWO QUESTIONS THIS FUNCTION OWNS ARE THE ONLY ONES IT ANSWERS --
+    ! The two questions this function owns are the only ones it answers --
     is the quoted sentence really in the paragraph, does every `cite` resolve.
     Whether the mark is well formed at all is asked once, one function over.
-    !! IT ASKED A THIRD UNTIL 2026-09-05 -- is the address one the binder
-    carries -- and `Process: #97` retired it: the binder is a filtered view, an
-    `add` cites a place the filter dropped, and only the write end can say
-    whether the page has it. Two live runs lost four `add`s to the refusal.
 
-    ! A MARK IS NAMED BY ITS OWN `address`, falling back to `mark {n}` where it
-    carries none. ! `n` COUNTS EVERY ENTRY WALKED, untouched slots included, so
-    it is a position in the report rather than a count of rulings.
-
-    ! ONE CACHE PER STAGE, threaded in by the caller and through every mark, so
-    a file twenty sources cite is read once no matter how many roles cite it.
-    ! IT READ *"one cache per report, BUILT HERE"* until 2026-08-31, which was
-    this function's own contradiction: `Args: cache` said one per stage and
-    this said one per report, and the second is what the code did.
+    ! A mark is named by its own `address`.
     """
     out: list[Problem] = []
     for sheet in copy.sheets:
-        # !! IT WALKS PARSED MARKS AND PARSES NOTHING, since `P51`. This held
-        # its own untouched test, its own `mark {n}` fallback and its own mark
-        # parse -- one of the four sites that each parsed every ruled entry.
-        # `Sheet.marks` holds only what ruled, so an untouched slot and an
-        # unparseable entry are both already elsewhere.
+        # !! It walks parsed marks and parses nothing. `Sheet.marks` holds only
+        # what ruled, so an untouched slot and an unparseable entry are both
+        # already elsewhere.
         for mark in sheet.marks:
-            # ! THE ADDRESS IS `Problem.address`, SO IT IS NOT ALSO THE OPENING
-            # OF EVERY MESSAGE -- T3 of `collate-command-defects`. The three
-            # leaf checks are handed a `where` and prefix it, which is right for
-            # a caller holding nothing else; this one records it as a field.
+            # ! The address is `Problem.address`, so it is not also the opening
+            # of every message. The three leaf checks are handed a `where` and
+            # prefix it, which is right for a caller holding nothing else; this
+            # one records it as a field.
             out += [
                 Problem(
                     copy.role, mark.address, without_location(mark.address, message)
@@ -416,14 +374,3 @@ def verify_report(
                 )
             ]
     return out
-
-
-#: !! `problems_in` AND `unruled` ARE DELETED, `P52`. Both walked a copy and
-#: reported what a role still owed -- `problems_in` turning `Sheet.refused` into
-#: `Problem`s, `unruled` naming `Sheet.unruled` -- and `flows.mark_errors`
-#: answers both, as addresses and reasons, per `decision-log.md Process: #72`.
-#: ! `problems_in` ALSO RETURNED A `ruled` COUNT that nothing in production ever
-#: read: the fold discarded it at the call. The claim it carried -- a mark
-#: a role wrote in and got WRONG still counts as ruled, and is not a coverage gap
-#: -- survives in `tests/test_collator.py::_ruled_places`, derived from the
-#: container where the cases that assert it live.

@@ -7,17 +7,17 @@
 
 The work is `flows.topology`; this is only the console face of it.
 
-!! A module does one job and has no CLI; a flow calls modules; a command
-exposes a flow.
-
 ! Verify before a page is read. A bad configuration costs nothing only when
-it is caught here -- `fan` refuses the same shapes, but from inside a run,
-blaming the tree for the topology's assumption. `--build`
+it is caught here -- `distribute` refuses the same shapes through
+`flows.fan_out.partition`, but from inside a run, blaming the tree for the
+topology's assumption. `--build`
 verifies what it wrote, so a built topology is a verified one.
 
 ! Exit codes. 0 fits; 1 does not fit, one misfit per line as
-`<stage>  <kind>  <detail>`; 2 the file itself is refused -- `read`'s
-reason under the `reads` kind -- or an input could not be read.
+`<stage>  <kind>  <detail>`; 2 the file itself is refused (`read`'s
+reason under the `reads` kind), the binder could not be read, or the
+arguments are not usable. A `--verify` file that cannot be read raises, and
+Python exits 1.
 """
 
 import argparse
@@ -48,6 +48,8 @@ def _directive(spec: str) -> Directive:
 
 def main() -> int:
     """Verify a topology against a binder, or build one for it."""
+    # `__main__.main` already runs this guard for every command, so this call
+    # repeats it.
     constants.utf8_console()
     ap = argparse.ArgumentParser(description=__doc__)
     mode = ap.add_mutually_exclusive_group()

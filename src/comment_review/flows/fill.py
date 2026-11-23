@@ -9,6 +9,7 @@
     marks_on(copy) -> every entry on it that parses as a mark
     quoted_sources(root, sources) -> each source with its `verbatim` read in
     page_text_at(copies, address, root) -> the page's paragraph at one place
+    withdraw(copy, address, instruction, quote) -> one placed ruling taken back
 
 `row_problems` and `composition_problems` are the rules, and
 `commands/check.py` runs the same two calls over a whole copy. A role may
@@ -49,14 +50,14 @@ a role reads the reasons and calls again.
                              and present, so a cue it does not hold names
                              nothing there
 
-The three "no slot" rows are `place_on_the_page`, which this flow's own `fill`
-also calls for a composition answer at a place the role's copy holds no
-slot for.
+The three "no slot" rows are `place_on_the_page`, which `fill` calls where
+the copy holds no slot at the address, and `_seeded_beside` calls where the
+ruling already there wrote its own `raw_text`.
 
-!! The copy is a wire dict, never an `EditCopy`. `flows.proof_io`'s header
-says why: a role's copy mid-fill holds slots nobody has ruled on, and
-`Sheet.serialize` writes only the rulings, so parsing the copy to save it would
-drop every null slot -- the coverage the seeded shape exists to keep.
+!! The copy is a wire dict, never an `EditCopy`. `flows.proof_io.save_wire` says why:
+a role's copy mid-fill holds slots nobody has ruled on, and `Sheet.serialize` writes
+only the rulings, so parsing the copy to save it would drop every null slot -- the
+coverage the seeded shape exists to keep.
 
 ! The flow reads the checkout and the desk does not. `desk.marks.rules.derived_change`
 is the pure half -- the paragraph and the claim in, the change out -- and the
@@ -142,7 +143,7 @@ def place_on_the_page(
     """The sheet an address with no slot belongs on, and a slot seeded from the page.
 
     Args:
-        copies: one role's copies as wire dicts -- one, or one per shard. The
+        copies: one role's copies as wire dicts -- every caller passes one. The
             first whose sheets name the address's page is the one used.
         address: `path@cue`, a place none of `copies` holds a slot for.
         root: the checkout the page is read from, or None.
@@ -150,9 +151,9 @@ def place_on_the_page(
     Returns:
         `(that sheet's marks list, the seeded slot, [])`, the slot carrying the
         page's own anchor and `raw_text` at that place, and not yet on the
-        sheet. Or `(None, {}, [message])` where no copy has a sheet for
-        the page, there is no checkout, the page cannot be read, or the page
-        carries no such place.
+        sheet. Or `(None, {}, [messages])` where a copy's saved reading context
+        is refused, no copy has a sheet for the page, there is no checkout, the
+        page cannot be read, or the page carries no such place.
     """
     admitted = [(copy, copy_reading_contexts(copy)) for copy in copies]
     problems = [problem for _, (_, why) in admitted for problem in why]
@@ -625,9 +626,10 @@ def withdraw(
             `change` of an instruction that quotes none.
 
     Returns:
-        `({}, [])` on removal, or `(None, [message])` with the copy untouched
-        where nothing is placed, no ruling of the instruction is, or the
-        rulings there are not one the quote names.
+        `({}, [])` on removal, or `(None, [messages])` with the copy untouched
+        where the copy's saved reading context is refused, nothing is placed,
+        no ruling of the instruction is, the rulings there are not one the
+        quote names, or several are and no `quote` names one.
     """
     problems = copy_reading_problems(copy)
     if problems:

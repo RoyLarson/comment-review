@@ -1,10 +1,10 @@
 """The `taken_in` command: the original against the revise a role is holding.
 
-Bibliography's own sense of collation -- comparing two states of one text to
-find where they differ, `docs/vocabulary.md`'s own naming for this command.
-Prints, per page whose text differs, the unified diff `differences.unified`
-renders; then one line per address whose row-level text differs between the
-two roots.
+It does what bibliography calls collation: it compares two states of one text to find
+where they differ. `docs/vocabulary.md` declares that sense for this command and keeps
+the word itself for `collator.py`'s copy-desk sense. Prints, per page whose text
+differs, the unified diff `differences.unified` renders; then one line per address
+whose row-level text differs between the two roots.
 
 !! Neither the stage nor the role that set an address is printed. Both live
 on `flows.revise.Pulled` -- `revise` and `set_by` -- and this command receives
@@ -39,7 +39,7 @@ def main(argv: list[str] | None = None) -> int:
 
     Returns:
         0 whether or not anything changed -- agreement is success, not a
-        no-op. 2 when `--original` or `--revise` is not a readable directory.
+        no-op. 2 when `--original` or `--revise` is not a directory.
     """
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument(

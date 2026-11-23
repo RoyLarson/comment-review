@@ -17,6 +17,7 @@ exposes a flow. Stage 2's orchestration is `flows/gather.py`'s `STEPS`, and
 `commands/gather.py` builds no page.
 
 ! Beside the packages sit the leaves -- `constants`, `exceptions`,
-`differences` and `read_from` -- which any area may import, and `__main__`,
+`differences` and `read_from`, which any area may import, though `machine`
+imports `exceptions` alone -- and `__main__`,
 which dispatches `python -m comment_review <command>`.
 """

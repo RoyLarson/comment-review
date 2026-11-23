@@ -14,13 +14,10 @@ is absent from the revise, not copied into it unchanged.
 A revise is the trade's word for the second proof, pulled after the marked
 corrections have been set.
 
-!! A refusal discards the whole revise, not only the drafts `proof_setter`
-already discards. A refusal aborts the run whole: `proof_setter.run` applies
-that to its own directory, and this module applies it one level up, to the
-directory `pull` makes at `into`. A revise root that held some of a stage's
-corrections and not the rest would be indistinguishable from one that held all
-of them, so nothing partial is left on disk: `Pulled.root` does not exist after
-a refusal.
+!! A refusal discards the whole revise, not only the drafts `proof_setter` already
+discards. A revise root that held some of a stage's corrections and not the rest
+would be indistinguishable from one that held all of them, so nothing partial is
+left on disk: `Pulled.root` does not exist after a refusal.
 
 `proof_setter.run` proves each draft, and nothing here proves it again. What
 `pull` adds is where the drafts land -- `into`, at each page's repo path --
@@ -76,31 +73,33 @@ class Pulled(NamedTuple):
 
 
 class AddressesMoved(Exception):
-    """A docket page in `pulled.root` does not address the places it did in `original`.
+    """A docket page in `pulled.root` no longer addresses its places in `original`.
 
     A page's places follow from its code, so a revise that keeps the code
     byte-identical keeps them. An address holds for one reading and text may
     read back at another place, which this leaves alone: it compares the sets
     of places, not where any text reads. This names the one way those sets
     change: a revise whose code moved, so a place below the change renumbers
-    under it.
+    under it. It is also raised before any comparison, for a page whose saved
+    reading context is missing or will not admit, or that will not read.
     """
 
 
 def pull(docket: Docket, repo: Path, into: Path, revise: int) -> Pulled:
     """The docket's pages, with its corrections set -- or nothing at all.
 
-    `into` holds each page the docket schedules, drafted by `proof_setter.run`
-    and written at its repo path, and no other file: the write phase copies
-    only the files it modifies.
-
     Args:
         docket: the deserialized docket -- the settled alterations for
             one editorial boundary.
         repo: the checkout the docket's pages are read from.
-        into: where the revise lands. Must not exist yet: `pull` makes it,
-            and an `into` that is already there raises `FileExistsError` and
-            is left as it was.
+        into: where the revise lands. Must not exist yet: `pull` makes it, and
+            an `into` that is already there raises `FileExistsError` and is left
+            as it was. `into.parent` must be outside `repo`: the scratch
+            directory the drafts are set in is made beside `into`, so an
+            `into` nested inside the checkout puts that directory inside it
+            too, and `undraftable` then refuses the whole run before any page
+            is read. The `proof` command asks `undraftable(out, repo)` before
+            it gets here; `pull` as a flow does not, so the caller owns this.
         revise: the number this revise is pulled as, carried onto `Pulled`
             unexamined.
 
@@ -133,11 +132,7 @@ def pull(docket: Docket, repo: Path, into: Path, revise: int) -> Pulled:
         # The scratch directory is a sibling of `into`. `proof_setter.run`
         # refuses, through `undraftable`, a draft directory that overlaps the
         # repo it drafts from, so scratch must be disjoint from `repo`; a fresh,
-        # randomly named directory is disjoint from `into`. That holds while
-        # `into.parent` is outside `repo`: an `into` nested inside the checkout
-        # puts scratch inside it too, and `undraftable` then refuses every page.
-        # The `proof` command asks `undraftable(out, repo)` before it gets here;
-        # `pull` as a flow does not, so the caller owns this.
+        # randomly named directory is disjoint from `into`.
         scratch = Path(tempfile.mkdtemp(prefix="revise-scratch-", dir=into.parent))
         drafted, refusals = proof_setter.run(docket, repo, scratch)
         if refusals:
@@ -161,12 +156,11 @@ def pull(docket: Docket, repo: Path, into: Path, revise: int) -> Pulled:
             shutil.copy2(made.draft, target)
 
         pulled = Pulled(root=into, revise=revise, set_by=_set_by(docket), refusals=[])
-        # The gate runs on every pull, before the success return: it is not
-        # an opt-in. It compares the docket's
-        # pages, which are the only pages the revise holds. `AddressesMoved`
-        # propagates through the handler below, which removes `into` first --
-        # a revise whose addresses moved looks whole, and a later stage
-        # reading it would measure every mark against the wrong place.
+        # The gate runs on every pull, before the success return: it is not an
+        # opt-in. `AddressesMoved` propagates through the handler below, which
+        # removes `into` first -- a revise whose addresses moved looks whole,
+        # and a later stage reading it would measure every mark against the
+        # wrong place.
         assert_addresses_held(
             repo, pulled, [s.path for s in docket.schedules], reading_contexts=contexts
         )
@@ -225,7 +219,9 @@ def assert_addresses_held(
 
     Raises:
         AddressesMoved: naming the addresses that appeared in the revise and
-            the ones that disappeared from the original.
+            the ones that disappeared from the original -- or, before any
+            comparison, a page whose saved reading context is missing or will
+            not admit, or that will not read.
     """
     contexts = {}
     if reading_contexts is not None:

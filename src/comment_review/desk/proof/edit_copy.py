@@ -93,7 +93,7 @@ class EditCopy:
 
         Returns:
             `{role, read_from, sheets, stage, admits}`. ! `read_from` is
-            copied, not aliased, as `bind`, `seed` and the bus's `_on_copies`
+            copied, not aliased, as `bind`, `deserialize` and the bus's `_on_copies`
             all do with this field: a caller mutating its own dict afterward
             cannot change what this copy holds.
         """

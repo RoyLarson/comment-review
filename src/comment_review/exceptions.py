@@ -45,19 +45,18 @@ class Refused(ValueError):
 #: catching only the latter misses a file that exists and cannot be decoded.
 READ_ERRORS = (OSError, UnicodeDecodeError)
 
-#: Reading a TOML file AND decoding it. ! The extra member is the whole reason
-#: this is its own name: a malformed table is a fact about the CONTENT, and a
-#: caller that wanted "could not read it" should not be told the same thing.
+#: Reading a TOML file and decoding it: the read failures, and a malformed table
+#: (`tomllib.TOMLDecodeError`). Nothing under `src/` catches it.
 TOML_ERRORS = READ_ERRORS + (tomllib.TOMLDecodeError,)
 
 #: Reading a Python file AND parsing it -- both failures, under one name,
 #: because a caller that wants a tree cannot use the file either way.
 #:
-#: On Python 3.11.18 `ast.parse` raises `SyntaxError` on a source string
-#: holding a NUL byte -- a file that decoded as valid UTF-8 and passed
-#: `READ_ERRORS` cleanly. `code_names` walks a whole repository, so one such
-#: file degrades one file's harvest rather than ending the gather. `ValueError`
-#: is caught as well; nothing in this tree is known to raise it on a parse path.
+#: On Python 3.11.18 `ast.parse` raises `SyntaxError` on a source string holding
+#: a NUL byte -- a file that decoded as valid UTF-8 and passed `READ_ERRORS`
+#: cleanly. `flows.gather._name_corpus` walks the whole tree, so one such file
+#: degrades one file's harvest rather than ending the gather. `ValueError` is
+#: caught as well; nothing in this tree is known to raise it on a parse path.
 #: Every caller treats a parse failure as one file degrading, never as the run
 #: ending, which is why the read failures are folded in here too.
 PARSE_ERRORS = READ_ERRORS + (SyntaxError, ValueError)

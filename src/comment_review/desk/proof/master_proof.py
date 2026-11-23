@@ -1,4 +1,10 @@
-"""Every edit_copy of one stage, held in one master_proof."""
+"""Every edit_copy of one stage, held in one master_proof.
+
+`referenced_reading_problems` is the proof's reference check: every page
+a place, move, sheet or mark names carries a reading context and an
+original sha. `deserialize` asks it before decoding a proof, and
+`flows.reading_context` asks it of a raw one.
+"""
 
 from dataclasses import dataclass, field
 from typing import cast
@@ -21,10 +27,10 @@ class MasterProof:
         stage: the label the copies were dispatched under -- `SKILL.md`'s "4a",
             "4c".
         read_from: taken from the first copy by the bus's `_on_copies`, and `{}`
-            where there is none. The bus holds each copy to the binder's tree,
-            and `deserialize` refuses a proof whose copies disagree with its
-            own `read_from`.
+            where there is none.
         edit_copies: one per role, or one per SHARD under fan-out.
+        page_readings: real path -> the `ReadingContext` the page was read
+            under, for every page a sheet, a place or a move names.
         places: every place one fold of this stage decided. `flows.bus`
             writes it; empty until such a fold has run. Each is read by
             `Place.deserialize` where the proof is read, so a reader of the
@@ -159,12 +165,6 @@ class MasterProof:
             so a proof holding one was not built by it, and a copy from another
             tree would give the docket a sha from that tree.
 
-            ! THE SHAPE CHECK RUNS WHETHER OR NOT THERE ARE COPIES, since
-            2026-08-31; the COMPARISON needs copies and runs over each. The
-            single exemption is an empty proof whose `read_from` is `{}` or
-            absent, which is what `_on_copies` writes when it has no first copy
-            to take one from.
-
             Every place and every move is read here, and one that will not read
             is named by its position -- `place 2`, `move 1` -- and, for a
             place, its address, so every command that reads the proof names a
@@ -237,23 +237,10 @@ class MasterProof:
         if problems:
             return None, problems
         read_from = data.get("read_from")
-        # !! THE HEADER IS HELD TO A SHAPE WHETHER OR NOT THERE ARE COPIES, and was
-        # not until 2026-08-31. `read_from_problem` ran inside the `if copies:`
-        # below, so a proof carrying none admitted ANY value: MEASURED with
-        # `edit_copies: []`, all of `'oops'`, None, 7, [], {'root': 7} and
-        # {'junk': 1} returned `problems == []`, and the two dict-shaped ones were
-        # carried into `MasterProof.read_from` VERBATIM.
+        # !! The header is held to a shape whether or not there are copies.
         #
-        # ! AND THOSE TWO VALUES ARE THE REASON `read_from_problem` IS REUSED
-        # RATHER THAN HAND-ROLLED. A weaker `isinstance(..., dict) and truthy`
-        # let `{"junk": 1}` and `{"root": 7, "revise": "x"}` through at exit 0
-        # while `bind` REFUSED the identical value -- two spellings of one rule,
-        # disagreeing. So the validator here had re-acquired the very defect
-        # reuse exists to prevent.
-        # ! THIS CITED `desk.collator.problems_in`'s OWN COMMENT for that
-        # measurement until 2026-09-01, and `P42` had deleted the comment with
-        # the header checks it explained. The measurement is stated here now,
-        # where the code it justifies is.
+        # ! `read_from_problem` is reused rather than hand-rolled, so this header
+        # and `bind` refuse the same values.
         #
         # ! `{}` IS STILL ADMITTED, AND ONLY FOR AN EMPTY PROOF. The bus's
         # `_on_copies` writes it when there is no first copy to take a

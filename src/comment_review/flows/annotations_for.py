@@ -21,15 +21,17 @@ def annotations_for(
     """Attach every annotation stage 3 can settle, onto the paragraphs themselves.
 
     ! In place, as `annotate` is. A paragraph carries its own `annotations` and
-    `notes`, and the binder reads them there; a returned copy
-    would be a second place for the same facts.
+    `notes`, and nothing past this step reads them: a binder row carries only the
+    five `binder.page.WIRE_FIELDS`.
 
     Args:
         paragraphs: what the gather carried, across every page in scope. The
             repeated-literal pass reads across them, so a page at a time would
             miss the pair it looks for.
         known: every symbol the name corpus defines.
-        paths: every tracked path, as the repo names it.
+        paths: every tracked path and every suffix of one, as
+            `machine.repo.path_index` builds it, so a package-relative citation
+            resolves.
         repo: the root a cited path resolves against.
     """
     for b in paragraphs:

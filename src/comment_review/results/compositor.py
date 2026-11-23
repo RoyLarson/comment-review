@@ -13,13 +13,8 @@ step may trust: a paragraph that grows moves every line below it.
 
 !! Nothing is written over the real file until the draft is approved. `draft()`
 emits the whole page into a file of its own so a reviewer or the author can
-compare it against the original; `approve()` copies that over the real file
-wholesale, once.
-
-! `draft()` writes no bytes of its own: it hands its text to
-`machine.repo.write_raw`; what this module owns is setting a page, and where a
-page lands is the checkout's business. `approve()` copies with
-`shutil.copyfile`.
+compare it against the original; `approve()` would copy it over the real file
+wholesale, once, and nothing calls it.
 
 !! And the round trip is a test.
 For a supplied, unchanged `Page`, `set_page(page) == page.text`, byte for byte,
@@ -30,6 +25,9 @@ lost or invented, and the `compositor` command fails on that one.
 ! The code proof answers a different question: `reading.proof`, asked by
 `flows.prove_unchanged`, says whether the executable code survived an edit,
 not whether the model of a page is lossless.
+
+`spans` reports the lines each place holding prose was set on, which
+`flows.proof_setter._reread` reads the draft back against.
 
 Every place has an anchor; only a `c` place's anchor is part of what is set:
 
@@ -122,10 +120,6 @@ def _set(page: Page, newline: str | None) -> tuple[str, dict[str, tuple[int, int
     or invented. `flows.proof_setter._reread` expects the file's order, so an
     alteration on such a page is refused.
 
-    ! That is why `lossless` exists beside `identity`. The first is the invariant
-    that must never break; the second is the strict form, and the gap between
-    them is this normalisation and mixed line endings.
-
     Args:
         page: the page to set. Its cues states the order.
         newline: the ending each line takes. `None` reads it from the page's own
@@ -166,11 +160,9 @@ def _set(page: Page, newline: str | None) -> tuple[str, dict[str, tuple[int, int
     # above the last line of code, `adding_a_gap` supplies one; `N` owns no
     # edge, so it sits directly against Y.
     #
-    # ! Measured: that is the shape real code has. Over flask 3.1.0 and this
-    # repo's `src/`, a `b` holding prose is followed in the reading order by a
-    # `c` 797 times, and 790 of those, 99%, have no leading between them, so a
-    # new comment sitting straight on the code it documents is the common case,
-    # not a compromise.
+    # ! That is the shape real code has: a `b` holding prose sits straight on the
+    # code it documents, so a new comment set with no leading before its `c` is
+    # the common case, not a compromise.
     #
     # The survivor needs no new key, which is why this is a lookup and not a
     # rewrite. Dropping `P` between X and Y leaves X's edge keyed on X, and this
@@ -197,11 +189,6 @@ def _set(page: Page, newline: str | None) -> tuple[str, dict[str, tuple[int, int
     # `drop` just vacated -- which is the only case the rule below may fire
     # on.
     #
-    # Keyed on the place's state, not on the edge or on a lookup: a gate on
-    # "no leading was looked up" would fire on a modify and on an unedited
-    # compose too. `absent` gates the add side the same way, and this is its
-    # mirror.
-    #
     # `ON` is excluded. A `c` sets its line of code whether or not
     # anything sits beside it, so a comment leaving that line vacates
     # nothing the code itself did not already occupy --
@@ -225,11 +212,6 @@ def _set(page: Page, newline: str | None) -> tuple[str, dict[str, tuple[int, int
         # that character back off is the same test twice -- and it is spelled the
         # direct way in `binder/page.py` too.
         beside_code = cue.startswith(ON)
-        # !! Every place advances `previous`, including one that sets nothing, and
-        # that is what makes this walk exact. An empty place is still a place --
-        # it is a position an instruction can cite -- so skipping it here would
-        # make this list disagree with the one `tie_leading` walks.
-        #
         # ! The edge is looked up before the place is set, so it lands between
         # what came before and what comes next. A place that sets nothing
         # contributes no lines, so the space still falls exactly where it did.
@@ -278,6 +260,11 @@ def _set(page: Page, newline: str | None) -> tuple[str, dict[str, tuple[int, int
         # ! Owed until the prose is set, which is why it is held rather than
         # written here -- the blank belongs below the paragraph.
         trailing = adding_a_gap and at > last_code and not edges.get(cue)
+
+        # !! Every place advances `previous`, including one that sets nothing, and
+        # that is what makes this walk exact. An empty place is still a place --
+        # it is a position an instruction can cite -- so skipping it here would
+        # make this list disagree with the one `tie_leading` walks.
         previous = cue
         # ! A `c` is never empty in this sense -- it sets its line of code
         # whether or not anything sits beside it.
@@ -369,7 +356,8 @@ def draft(page: Page, into: Path) -> Path:
     ! `write_raw` creates the parent directories and writes the text's own line
     endings untranslated. `flows.proof_setter._one` records the parents it is
     about to create before calling this, and `flows.proof_setter._prove`'s
-    byte comparison depends on the untranslated write.
+    comparison of the retained source, which holds literal characters exact,
+    depends on the untranslated write.
     """
     return write_raw(into, set_page(page))
 

@@ -1,10 +1,11 @@
 """Every name the tree defines, harvested from the AST.
 
-! It answers the obituary question and nothing else. `block-context`'s remit
-includes a symbol, file, test or flag that exists nowhere; this is the corpus
-that claim is resolved against, and its own docstring says why a naive one
-cannot work -- a corpus built from raw text contains the comments being
-checked, so every obituary resolves against itself and the check always passes.
+! It answers the obituary question. `block-context`'s remit includes a symbol, file,
+test or flag that exists nowhere; `flows.gather._name_corpus` builds that corpus from
+these harvests, and its docstring says why the names come from the AST.
+
+It also words the corpus's gap rows: `no_harvester` for a file no harvester reads, and
+`WALKED_TREE_ROW` for a corpus built without git's list of tracked files.
 """
 
 import ast
@@ -14,10 +15,10 @@ from comment_review.concordance.names import NAMED_DEFS, SYMBOLISH
 from comment_review.reading.language import INSTALLED_REGISTRY
 
 # The two gaps in the name corpus that are not read failures, named so a caller
-# can tell them apart from one. Every gap row reads alike -- `<path> (<reason>)`
-# -- and a reporting caller that treated all of them as unreadable files would
-# tell a polyglot repo its files "could not be read" and have the reader wait
-# for a list that can never empty.
+# could tell them apart from one, though none does. A `NO_HARVESTER` row reads
+# like a read failure's -- `<path> (<reason>)` -- and a reporting caller that
+# treated all of them as unreadable files would tell a polyglot repo its files
+# "could not be read" and have the reader wait for a list that can never empty.
 NO_HARVESTER = "no name harvester for"
 WALKED_TREE = "name corpus built by WALKING the tree"
 
@@ -49,15 +50,16 @@ def no_harvester(path: Path) -> str | None:
 
 
 def names_in(path: Path, text: str) -> set[str]:
-    """Every name one Python file defines, harvested from its AST.
+    """Every name one Python file defines or references, harvested from its AST.
 
     Args:
         path: the file, for its stem and for whether it is a test.
         text: its contents.
 
     Returns:
-        The stem, every defined, bound, attribute, argument and imported name,
-        and outside the tests every string constant shaped like a symbol.
+        The stem, every defined, bound or referenced, attribute, argument and
+        imported name, and outside the tests every string constant shaped
+        like a symbol.
 
     Raises:
         SyntaxError, ValueError: `text` does not parse.

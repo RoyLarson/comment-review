@@ -14,6 +14,9 @@ class State(StrEnum):
     #: when nobody is owed a say, or on the outcome of a chief ruling.
     #: The proof's text and disposition record how it settled.
     STANDS = auto()
+
+    #: Multiple sides holding the same text with nobody left to ask are
+    #: `agreed`.
     AGREED = auto()
     COMPOSED = auto()
     CONTESTED = auto()
@@ -27,6 +30,5 @@ class State(StrEnum):
 #: The states a fold carries forward for a turn or the chief.
 CARRIED = frozenset({State.COMPOSED, State.CONTESTED})
 
-#: The states a place has settled in. Multiple sides holding the same text
-#: with nobody left to ask are `agreed`.
+#: The states a place has settled in.
 SETTLED = frozenset({State.STANDS, State.AGREED})

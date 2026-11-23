@@ -8,7 +8,7 @@ After a committed fold, the command saves the master proof to `--proof-out`.
 Use `--batch-out` to save the next turn's batch.
 
 The report and the exit codes are `commands.report`'s, shared with `turn`,
-`disposition` and `check`.
+`disposition` and `check`, and the exit codes with `mark` as well.
 
 `--pairs` names a JSON file holding the copies and their received binders,
 `[{"edit_copy": PATH, "received_binder": PATH}, ...]`, for a dispatch set
@@ -45,19 +45,20 @@ from comment_review.flows.proof_io import (
 def _envelope(documents: list) -> tuple[list[EditCopy], list]:
     """The copies that parse, and one `Refused` per reason the rest did not.
 
-    !! THE ENVELOPE IS PARSED HERE AND A FAILURE IS REPORTED RATHER THAN
-    RAISED -- `P21`, `decision-log.md Process: #57`. What the two boundaries
-    are is stated once, in `desk/proof/__init__.py`'s module docstring. What is
-    this command's own is the ORDER and the response: envelope first, because
-    a document that is not a copy has no contents to rule on, and every
-    refusal printed beside whoever owes it rather than raised past the rest.
+    !! The envelope is parsed here and a failure is reported rather than raised.
+    What the two boundaries are is stated once, in `desk/proof/__init__.py`'s
+    module docstring. What is this command's own is the order and the response:
+    envelope first, because a document that is not a copy has no contents to
+    rule on, and every refusal printed beside whoever owes it rather than raised
+    past the rest.
 
-    ! THE ROLE MAY BE THE MISSING THING, so the file's own path stands in
+    ! The role may be the missing thing, so the file's own path stands in
     where the document names none -- a reader can act on that, where an empty
     column reads as a missing value.
 
     Args:
-        documents: `(path, the wire dict)` per `--edit-copy`, as loaded.
+        documents: `(path, the wire dict)` per copy path, from `--edit-copy` or
+            `--pairs`, as loaded.
 
     Returns:
         `(the parsed copies, the refusals)`. A non-empty second half means
@@ -192,11 +193,9 @@ def main() -> int:
         print("collate needs at least one --edit-copy", file=sys.stderr)
         return UNREADABLE
 
-    # !! THE LOAD IS THE FLOW'S, THE DESERIALIZE THE CONTAINER'S --
-    # `decision-log.md Process: #67`. `flows.proof_io` holds both steps of
-    # the read and hands the binder over as a `Binder`; a copy comes back as
-    # its wire dict, and `_envelope` turns it into an `EditCopy` or into the
-    # reasons it is not one.
+    # `flows.proof_io` holds both steps of the read and hands the binder over as
+    # a `Binder`; a copy comes back as its wire dict, and `_envelope` turns it
+    # into an `EditCopy` or into the reasons it is not one.
     binder, why = load_binder(Path(args.binder))
     if binder is None:
         return refused(why)
@@ -207,18 +206,20 @@ def main() -> int:
             return refused(why)
         documents.append((path, document))
 
-    # ! THE BINDER NAMES ITS OWN TREE, so a caller that already passed one does
+    # ! The binder names its own tree, so a caller that already passed one does
     # not pass it twice. `read_from` is refused as absent or malformed further
     # up the chain, and `.` is what a binder read from the working directory
     # says, so it is a fallback rather than a guess.
-    # `root` is where source verification resolves a `cite` (`P25`): the
-    # binder's tree is the one the copies were gathered from, and so the one
-    # their citations were written against.
+    # `root` is where source verification resolves a `cite`: the binder's tree
+    # is the one the copies were gathered from, and so the one their citations
+    # were written against.
     root = Path(args.repo) if args.repo else binder.root
 
-    # ! THE TOPOLOGY IS OPTIONAL HERE AND THE STAGE LABEL IS NOT: without a
-    # topology the fold still runs, and only the count of dispatches owed is
-    # unknown (`P26`).
+    # ! The topology is optional here and the stage label is not: without a
+    # topology the fold still runs, but the count of dispatches owed is unknown,
+    # a copy with no received binder is held to every place it was handed rather
+    # than the stage's, and its marks are held to its own `admits` rather than
+    # the stage's row.
     dispatches = None
     if args.topology:
         text, unread = load_text(Path(args.topology))
@@ -270,9 +271,6 @@ def main() -> int:
     if result is None:
         return code_for(out)
 
-    # !! THE SERIALIZE IS THE CONTAINER'S AND THE DUMP IS THE FLOW'S --
-    # `decision-log.md Process: #65`, `#67`. The fold returns containers; the
-    # wire dict is made at the save, and nowhere between.
     save_proof(Path(args.proof_out), result.proof)
     print(f"{args.proof_out}: the master proof -- {counted(result.proof.places)}")
     # ! NOTHING CARRIED FORWARD IS NO BATCH, NOT AN EMPTY ONE. A file holding

@@ -67,7 +67,6 @@ def main(argv: list[str] | None = None) -> int:
     """
     # A Windows console is cp1252 and one non-ASCII glyph in a report kills the
     # run; every command emits prose, so the guard runs here, at the entry.
-    # `commands/topology.py` calls it a second time in its own `main`.
     constants.utf8_console()
     args = sys.argv[1:] if argv is None else argv
     if not args or args[0] in ("-h", "--help"):

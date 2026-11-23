@@ -66,19 +66,18 @@ def main() -> int:
                 print(problem, file=sys.stderr)
             return 2
 
-    # !! NO PATHS IS A REFUSAL, NOT AN EMPTY BINDER. `paths` is `nargs="*"` so
-    # `--languages` can run without one, and everything else with none produced
-    # `[]` at exit 0 -- which the collator then reads as a complete binder and
-    # certifies. Measured 2026-08-24: `gather --repo . --json` printed `[]`
-    # and returned 0, and the collator over it printed "Every finding is
-    # admissible. Stage 5 may rule."
+    # !! No paths is a refusal, not an empty binder. `paths` is `nargs="*"` so
+    # `--languages` can run without one, and without this refusal everything else
+    # with none would print `[]` at exit 0 -- which coverage then reads as a
+    # complete binder and certifies.
     #
-    # ! REACHABLE WITHOUT ANYONE TYPING IT: stage 1 takes its paths from a
+    # ! Reachable without anyone typing it: stage 1 takes its paths from a
     # merge-base diff, and a diff that touches no reviewable file hands this
-    # nothing. The run then reads as complete BECAUSE there was nothing to be
-    # incomplete about -- the failure the collator states the rule against, one
-    # stage earlier. ! Refused BEFORE `--out` opens anything, so a usage error
-    # leaves no empty binder behind for the next stage to read as an answered one.
+    # nothing. The run then reads as complete because there was nothing to be
+    # incomplete about -- the failure `flows.verify.coverage_problems` states the
+    # rule against, one stage earlier. ! Refused before `--out` opens anything, so
+    # a usage error leaves no empty binder behind for the next stage to read as an
+    # answered one.
     if not args.languages and not args.paths:
         print(
             "REFUSED: no paths. A gather over nothing is not an empty binder --"
@@ -120,29 +119,28 @@ def _report(args: argparse.Namespace) -> int:
         settings=args.settings,
     )
 
-    # !! THE GATE FIRST. `--out` is the route SKILL.md mandates for the binder
-    # stage 5 parses, and this returned 0 with a SHORT array for a file that
-    # could not be read -- so a named file no reader claims, or one that
-    # failed to parse, vanished, and the coverage check then certified "every
-    # paragraph accounted for" over paragraphs never collected.
+    # !! The gate first. `--out` is the route SKILL.md mandates for the binder
+    # stage 5 parses, and without this gate the command would return 0 with a
+    # short array for a file that could not be read -- so a named file no reader
+    # claims, or one that failed to parse, would vanish, and the coverage check
+    # would then certify "every paragraph accounted for" over paragraphs never
+    # collected.
     if got.unreadable:
         handed_in = len(got.pages) + len(got.freeform) + len(got.unreadable)
         print(not_gathered(handed_in, got.unreadable), file=sys.stderr)
         return 1
-    # !! AN UNADDRESSED PARAGRAPH IS UNCITABLE, so a binder holding one is a
-    # binder nobody can rule on -- and it fails SILENTLY: the collator builds
-    # its accountability set from the addresses, so paragraphs with none are
-    # simply not accountable and the run reads as complete. Measured 2026-08-20:
-    # a 5-paragraph binder with its addresses stripped certified "Every finding
-    # is admissible. Stage 5 may rule." at exit 0.
+    # !! An unaddressed paragraph is uncitable, so a binder holding one is a
+    # binder nobody can rule on -- and it fails silently:
+    # `flows.verify.coverage_problems` builds its accountability set from the
+    # addresses, so paragraphs with none are simply not accountable and the run
+    # reads as complete.
     missing = unaddressed(got.binder.paragraphs)
     if missing:
         print(unaddressed_report(missing), file=sys.stderr)
         return 1
-    # !! THE SERIALIZE IS THE CONTAINER'S AND THE DUMP IS THE FLOW'S --
-    # `decision-log.md Process: #67`. This is the read flow's save end, and
-    # one of three places a binder becomes text, with `commands/distribute.py`
-    # and `commands/carry.py`.
+    # !! The serialize is the container's and the dump is the command's. This is
+    # the read flow's save end, and one of three places a binder becomes text,
+    # with `commands/distribute.py` and `commands/carry.py`.
     wire = got.binder.serialize()
     print(json.dumps(wire, indent=1, default=str))
     # Stage 2 sizes a role's dispatches from this count of the places carried.
@@ -163,11 +161,10 @@ def _first_twenty(rows: list[str]) -> None:
 def _passed_over(got: Gathering) -> None:
     """The gap reports and the read's warnings, all on stderr.
 
-    Stdout holds the binder, which stays parseable. The gaps are not passes,
-    and both were said only by the text report that stage 2 no longer
-    prints; a gather that stopped saying them would read as complete over
-    files it never read. A warning does not change the exit code: the file
-    was read, and the line names the file and line the warning is about.
+    Stdout holds the binder, which stays parseable. The gaps are not passes; a
+    gather that stopped saying them would read as complete over files it never
+    read. A warning does not change the exit code: the file was read, and the
+    line names the file and line the warning is about.
     """
     for line in got.warnings:
         print(line, file=sys.stderr)

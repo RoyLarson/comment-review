@@ -312,7 +312,13 @@ def _texts_at(
 
 
 def required_places(binder: Binder, stage: Stage | None = None) -> frozenset[str]:
-    """The review addresses required by this binder and stage."""
+    """The review addresses required by this binder and stage.
+
+    ! The places a role was handed, not every address the binder carries --
+    `binder.addresses.handed` is the one definition, and the seed reads it too.
+    They are narrowed by the same `deals` the seed used, so the two cannot
+    disagree about which places a stage dealt.
+    """
     return frozenset(
         b.address for b in handed(binder.paragraphs) if stage is None or deals(stage, b)
     )
@@ -489,7 +495,7 @@ def coverage_problems(
 ) -> list[Problem]:
     """One `Problem` per role whose copies do not carry the binder's addresses.
 
-    !! `flows.fan_out.fan` refuses at the dispatch and does not read the
+    !! `flows.fan_out.dealt` refuses at the dispatch and does not read the
     return. It raises `OverlappingShards` and `UncoveredPage` over the pages it
     is about to hand out; a role that then answers for three of the four files
     in its shard is found here.
@@ -515,12 +521,15 @@ def coverage_problems(
     Returns:
         One `Problem` per short role, naming every address that role did not
         carry, sorted so a reader can re-derive the list. Empty where every
-        role is complete. Reported rather than raised, so the findings stack;
+        role is complete; where the binder's or a copy's reading contexts
+        will not admit, nothing is counted and those problems come back
+        instead. Reported rather than raised, so the findings stack;
         each one rolls the round back, and none of the places that did come
         back settles.
 
-    ! An empty binder yields nothing. There is no address to be missing, and a
-    run over one is what `tests/test_brief_worked_example.py` drives.
+    ! An empty binder yields nothing. There is no address to be missing, and the
+    empty-binder run in `tests/test_brief_worked_example.py` is refused at
+    context admission before coverage is counted.
 
     A stage that deals part of the binder and is collated without its row is
     reported short, and correctly: nothing else in the run says which places
@@ -542,20 +551,16 @@ def admitted_coverage_problems(
     edit_copies: list[EditCopy], binder: Binder, stage: Stage | None = None
 ) -> list[Problem]:
     """Check addressed coverage after the copy and binder are admitted."""
-    # ! The places a role was handed, not every address the binder carries --
-    # `binder.addresses.handed` is the one definition, and the seed reads it too.
-    # And narrowed by the same `deals` the seed used, so the two cannot
-    # disagree about which places a stage dealt.
     known = required_places(binder, stage)
     if not known:
         return []
     # !! All three kinds count as carried, and that is the whole point of this
     # check. It asks whether the copy came back with the binder's addresses, not
     # whether the role ruled on them -- an untouched slot and an entry that
-    # would not parse are both places the role still has. Whether it answered
-    # is `flows.mark_errors`' question, and `commands/collate.py` reports that
-    # separately. ! A refused entry with no address contributes nothing, since
-    # there is no place to say it carried.
+    # would not parse are both places the role still has. Whether it answered is
+    # `flows.mark_errors`' question, and `flows.bus` and `commands/check.py`
+    # each run it beside this one. ! A refused entry with no address contributes
+    # nothing, since there is no place to say it carried.
     by_role: dict[str, set[str]] = {}
     for copy in edit_copies:
         carried = by_role.setdefault(copy.role, set())

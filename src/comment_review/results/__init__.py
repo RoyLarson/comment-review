@@ -7,9 +7,6 @@
 Whether the executable code survived is `reading.proof`'s question, asked by
 `flows.prove_unchanged`.
 
-The top-level `comment_review.differences` leaf renders and composes texts
-without file I/O. It is shared by the middle and the command line.
-
 !! The galley edits and the compositor sets, and they are two roles. The galley
 updates the old page with the marks; the compositor sets that page as the output
 text. Keeping them apart is what lets the round-trip identity fail: a module
