@@ -73,4 +73,7 @@ next one.
 The install reads committed state, so commit before updating, and a session already open keeps
 the old agents until it restarts.
 
+Then remove every folder under `~/.claude/plugins/cache/roy-local/comment-review/` except the new
+version's, after confirming no plugin config file names it.
+
 -> `docs/decision-log.md`, *Process*.
