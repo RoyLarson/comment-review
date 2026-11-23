@@ -44,6 +44,16 @@ def _move_into_ungathered_page(tmp_path, peer=False):
     return result, repo
 
 
+#: The chief's placement ruling on the move, which one role alone read.
+PLACEMENT = {
+    "address": "m.py@b1",
+    "to": "n.py@b1",
+    "answer": "taken_in",
+    "side": "block-context",
+    "reason": "as filed",
+}
+
+
 @pytest.mark.parametrize(
     "changed",
     [
@@ -52,7 +62,9 @@ def _move_into_ungathered_page(tmp_path, peer=False):
     ],
 )
 def test_saved_proof_refuses_a_destination_changed_after_collation(tmp_path, changed):
-    result, repo = _move_into_ungathered_page(tmp_path)
+    collated, repo = _move_into_ungathered_page(tmp_path)
+    events, result = handle(DispositionsWritten(collated.proof, [PLACEMENT]))
+    assert result is not None, events
     proof = result.proof
     proof, problems = MasterProof.deserialize("proof", proof.serialize())
     assert proof is not None and not problems
@@ -66,7 +78,7 @@ def test_saved_proof_refuses_a_destination_changed_after_collation(tmp_path, cha
 def test_unchanged_destination_identity_survives_a_committed_transition(tmp_path):
     result, repo = _move_into_ungathered_page(tmp_path)
     proof = result.proof
-    events, result = handle(DispositionsWritten(proof, []))
+    events, result = handle(DispositionsWritten(proof, [PLACEMENT]))
     assert result is not None, events
     assert result.proof.page_shas == proof.page_shas
     assert "n.py" in proof.page_shas
@@ -123,7 +135,17 @@ def test_destination_identity_survives_an_answer_turn(tmp_path):
         for role, slots in result.batch.items()
     }
     events, result = handle(AnswersReturned(result.proof, answers, repo))
-    assert result is not None and result.batch is None, events
+    assert result is not None and not result.batch, events
+    assert result.proof.page_shas == proof.page_shas
+    # The peer never read n.py, so the arrival there is the chief's to rule.
+    arrival = {
+        "address": "n.py@b1",
+        "answer": "taken_in",
+        "side": "block-context",
+        "reason": "as filed",
+    }
+    events, result = handle(DispositionsWritten(result.proof, [arrival]))
+    assert result is not None, events
     assert result.proof.page_shas == proof.page_shas
     drafted, refused = run(
         docket_of_proof(result.proof, repo), repo, tmp_path / "draft"

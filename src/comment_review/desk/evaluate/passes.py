@@ -14,7 +14,12 @@ from comment_review.desk.answers.table import (
     asks_human,
 )
 from comment_review.desk.dispositions.table import DISPOSITIONS
-from comment_review.desk.evaluate.move import hold_ends, placement_pass, settle_ends
+from comment_review.desk.evaluate.move import (
+    cover_ends,
+    hold_ends,
+    placement_pass,
+    settle_ends,
+)
 from comment_review.desk.marks.rules import derived_change
 from comment_review.desk.marks.table import INSTRUCTIONS, Stance
 from comment_review.desk.proof.answer import QueryAnswer, Question, Rewrite
@@ -267,6 +272,16 @@ def owed_a_say(
     return tuple(sorted(out))
 
 
+def _heard_by_another(place: Place, sides: dict[str, str]) -> bool:
+    """Whether a role other than the ones holding `sides` read this place.
+
+    A role that read it or filed at it counts, whatever it said, unless every
+    mark it filed here defers: it holds no view, so it was not a second party.
+    """
+    readers = set(place.readers) | set(_by_role(place))
+    return bool(readers - set(sides) - _deferring(place))
+
+
 def _anchor_reasons(place: Place) -> list[str]:
     """One reason per role whose mark at its own address disagrees on the anchor.
 
@@ -459,7 +474,8 @@ def decide(
     ruling where there is one, and a final one takes off the filings that no
     longer stand: an agreed move stays filed at both ends, and each end is then
     decided against it as an ordinary place. Then each place's marks and
-    answers, as for any one-place mark; then every move not yet final holds its
+    answers, as for any one-place mark; then each move the chief took in from
+    its mover decides the ends it sets, and every move not yet final holds its
     two ends `to-come`; then the chief's dispositions, which a `to-come` end
     does not take.
 
@@ -481,6 +497,7 @@ def decide(
         for t in range(1, turn + 1):
             answers_pass(place, t)
     for move in moves.values():
+        cover_ends(move, places)
         hold_ends(move, places)
     for place in places.values():
         dispositions_pass(place)
@@ -491,7 +508,9 @@ def _from_sides(place: Place, sides: dict[str, str], turn: int = 0) -> Place:
     """The place's state from the one text its sides hold, or from their disagreement.
 
     A text every role owed a say has accepted is decided here; a text some have not
-    seen is carried forward to exactly those roles, as a composition. It is the
+    seen is carried forward to exactly those roles, as a composition. A change
+    no other role read is carried forward to nobody, which puts it to the
+    chief (`desk.work.fold.put_to`). It is the
     same question at the first fold and after a turn, so both reach it here
     rather than each keeping a rule of its own.
     """
@@ -510,12 +529,24 @@ def _from_sides(place: Place, sides: dict[str, str], turn: int = 0) -> Place:
                 question=Question.COMPOSITION,
                 owed=owed,
             )
+        if (
+            len(sides) == 1
+            and text != place.base
+            and not _heard_by_another(place, sides)
+        ):
+            # A change no role but its proposer read is put to the chief, and
+            # no role is owed a turn for it.
+            return _set(
+                place,
+                State.COMPOSED,
+                text=text,
+                sides=sides,
+                question=Question.COMPOSITION,
+            )
         state = State.STANDS if len(sides) == 1 else State.AGREED
         # !! The sides are kept. They are what the roles proposed, which is a
-        # fact about the marks and not about the state the place came to -- and
-        # a move's origin that stands alone is carried forward by
-        # `move.hold_ends` while the move's placement is not final, where the
-        # chief's `taken_in` must find a side to name.
+        # fact about the marks and not about the state the place came to, and
+        # the fold's report names the roles holding the text that stands.
         return _set(place, state, text=text, sides=sides)
     try:
         composed = compose(place.base, sides)

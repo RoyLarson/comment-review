@@ -354,6 +354,19 @@ def test_two_moves_keep_both_origins_and_one_arrival_after_proof_reload(
     copies = [returned(wire) for wire in copies_over(binder, {"block-context": marks})]
     out, result = handle(CopiesReturned("4c", copies, binder, root, None))
     assert result is not None, _refusals(out)
+    # One role read both moves, so each waits on the chief's placement ruling.
+    rulings = [
+        {
+            "address": origin,
+            "to": "m.py@b3",
+            "answer": "taken_in",
+            "side": "block-context",
+            "reason": "as filed",
+        }
+        for origin in ("m.py@b1", "m.py@b2")
+    ]
+    out, result = handle(DispositionsWritten(result.proof, rulings))
+    assert result is not None, _refusals(out)
     reloaded, why = MasterProof.deserialize("proof", result.proof.serialize())
     assert reloaded is not None, why
     assert {move.key for move in reloaded.moves} == {
@@ -772,7 +785,13 @@ def test_a_correct_that_drops_an_unnamed_word_is_advised_and_the_fold_commits(tm
     assert advised[0].notes == (
         "its change drops 'three', which its claim never names",
     )
-    assert events.Decided("m.py@b1", None, ("block-context",)) in out
+    # The one role's change is carried to the chief, beside its note.
+    assert (
+        events.CarriedForward(
+            "m.py@b1", State.COMPOSED, Question.COMPOSITION, ("copy-chief",)
+        )
+        in out
+    )
     assert (
         next(p.text for p in result.proof.places if p.address == PLACE)
         == "# one\n# TWO"

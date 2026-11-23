@@ -56,7 +56,7 @@ from comment_review.desk.proof.move import Move, is_open, key_of
 from comment_review.desk.proof.place import Place
 from comment_review.desk.proof.state import CARRIED, DECIDED, State
 from comment_review.desk.stages import Stage, not_admitted
-from comment_review.desk.work.fold import Fold, asked
+from comment_review.desk.work.fold import Fold, asked, put_to
 from comment_review.flows.answers import Slot, answers_of, slots_of
 from comment_review.flows.human import (
     HumanAnswer,
@@ -502,11 +502,17 @@ def _unsent(
         if move is not None:
             if not is_open(move):
                 return "not an open move"
-            return f"not put to {role} -- this move is put to {', '.join(move.owed)}"
+            return (
+                f"not put to {role} -- this move is put to"
+                f" {', '.join(put_to(move.owed))}"
+            )
         place = places.get(address)
         if place is None or place.state not in CARRIED:
             return "not carried forward"
-        return f"not put to {role} -- this place is put to {', '.join(asked(place))}"
+        return (
+            f"not put to {role} -- this place is put to"
+            f" {', '.join(put_to(asked(place)))}"
+        )
 
     return why
 
@@ -620,7 +626,7 @@ def _on_dispositions(message: DispositionsWritten) -> tuple[list, Result | None]
                     CHIEF,
                     address,
                     "carried forward and not ruled on -- it was put to "
-                    f"{', '.join(asked(place))}",
+                    f"{', '.join(put_to(asked(place)))}",
                 )
             )
     asks = _asks(corrections_in_rulings(applied, message.human), ())
@@ -701,7 +707,11 @@ def _undecided(fold: Fold) -> list[Move]:
 
 
 def _batch_or_none(fold: Fold, read_from: dict) -> dict[str, list[dict]] | None:
-    """The committed fold's batch, or None where it carries nothing forward."""
+    """The committed fold's batch, or None where it carries nothing forward.
+
+    It is empty where everything carried is put to the copy chief alone, who
+    has no slot.
+    """
     carried = [place for place in fold.decided.values() if place.state in CARRIED]
     moves = _undecided(fold)
     if not carried and not moves:

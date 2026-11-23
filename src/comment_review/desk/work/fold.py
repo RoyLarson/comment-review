@@ -6,8 +6,9 @@ rolls back, in which case the flow saves nothing and the events are the
 report. It reads no file and knows no container of the read or write end; the
 flow derives the places and saves the result.
 
-`asked` reads back who a carried-forward place is put to, for the fold's own
-report, the batch, and the checks `flows.bus` runs on the fold's result.
+`asked` reads back which roles a carried-forward place is put to, for the
+fold's own report, the batch, and the checks `flows.bus` runs on the fold's
+result; `put_to` names the chief where that is no role.
 """
 
 from dataclasses import dataclass, field
@@ -15,6 +16,7 @@ from dataclasses import dataclass, field
 from comment_review.desk import report as events
 from comment_review.desk.evaluate.move import moves_in
 from comment_review.desk.evaluate.passes import decide
+from comment_review.desk.proof.disposition import CHIEF
 from comment_review.desk.proof.move import Move, Placement, is_open
 from comment_review.desk.proof.place import Place
 from comment_review.desk.proof.state import CARRIED, State
@@ -75,12 +77,11 @@ class Fold:
                 # `PlacementCarried`, below, is what is put to the roles.
                 pass
             elif place.state in CARRIED:
-                if asked(place):
-                    on_commit.append(
-                        events.CarriedForward(
-                            address, place.state, place.question, asked(place)
-                        )
+                on_commit.append(
+                    events.CarriedForward(
+                        address, place.state, place.question, put_to(asked(place))
                     )
+                )
             else:
                 stands = tuple(sorted(place.sides)) if place.changed else ()
                 on_commit.append(events.Decided(address, place.disposition, stands))
@@ -98,7 +99,7 @@ class Fold:
             elif is_open(move):
                 on_commit.append(
                     events.PlacementCarried(
-                        move.origin, move.destination, move.placement, move.owed
+                        move.origin, move.destination, move.placement, put_to(move.owed)
                     )
                 )
         if refusals:
@@ -122,12 +123,22 @@ def asked(place: Place) -> tuple[str, ...]:
         place: a place the fold is carrying forward.
 
     Returns:
-        The roles, as the pass recorded them. Empty where nothing is carried
-        forward, and for a place whose record predates the field, which is
-        why the batch, the unanswered check, the refusal of an answer the place
-        was not put to, and the fold's own report all read this one function.
+        The roles, as the pass recorded them, which the batch, the unanswered
+        check, the refusal of an answer the place was not put to, and the
+        fold's own report all read. Empty where nothing is carried forward,
+        and on a carried place no other role read, which is put to the chief
+        alone (`put_to`).
     """
     return place.owed
+
+
+def put_to(owed: tuple[str, ...]) -> tuple[str, ...]:
+    """Who a carried place or open move is put to, as a report names them.
+
+    `owed` is the roles a turn is sent to; where it is empty the chief rules
+    with no turn run, so the chief is named instead.
+    """
+    return owed or (CHIEF,)
 
 
 def _by_role(reasons: tuple[str, ...]) -> dict[str, tuple[str, ...]]:

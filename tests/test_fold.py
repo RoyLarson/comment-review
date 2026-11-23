@@ -34,6 +34,12 @@ def _place(address, *filed, base=BASE):
 
 
 def test_a_fold_of_settled_places_commits_and_says_what_it_settled():
+    correct = _mark(
+        Instruction.CORRECT,
+        "# one\n# 2\n# three\n",
+        {"false": "two", "true": "2"},
+        "m.py@b5",
+    )
     fold = Fold(
         {
             "m.py@b1": _place(
@@ -41,16 +47,8 @@ def test_a_fold_of_settled_places_commits_and_says_what_it_settled():
             ),
             "m.py@b5": _place(
                 "m.py@b5",
-                Filed(
-                    "a",
-                    _mark(
-                        Instruction.CORRECT,
-                        "# one\n# 2\n# three\n",
-                        {"false": "two", "true": "2"},
-                        "m.py@b5",
-                    ),
-                    Touch.OWN,
-                ),
+                Filed("a", correct, Touch.OWN),
+                Filed("b", correct, Touch.OWN),
             ),
         }
     )
@@ -94,7 +92,7 @@ def test_a_rollback_reports_its_refusals_and_nothing_else():
         "Decided",
         "CarriedForward",
         "Decided",
-        "Decided",
+        "CarriedForward",
         "Advised",
         "Committed",
     ]
@@ -128,7 +126,8 @@ def test_a_rollback_reports_its_refusals_and_nothing_else():
 
 def _a_place_of_each_kind() -> dict:
     """Four places, unfolded: one that settles, one carried forward, one held
-    for the human, and one that settles with a note for the chief."""
+    for the human, and one only its proposer read, carried to the chief with
+    a note."""
     return {
         "m.py@b1": _place("m.py@b1", Filed("a", _mark(Instruction.CLEAN), Touch.OWN)),
         "m.py@b2": _place(
@@ -245,11 +244,10 @@ def test_an_advised_place_is_reported_and_the_fold_commits():
     fold = Fold({"m.py@b1": _place("m.py@b1", Filed("a", correct, Touch.OWN))})
     fold.run()
     assert fold.committed
-    assert [type(e).__name__ for e in fold.events] == [
-        "Decided",
-        "Advised",
-        "Committed",
-    ]
+    assert fold.events[0] == events.CarriedForward(
+        "m.py@b1", State.COMPOSED, Question.COMPOSITION, ("copy-chief",)
+    )
+    assert [type(e).__name__ for e in fold.events[1:]] == ["Advised", "Committed"]
     advised = fold.events[1]
     assert advised.role == "a"
     assert advised.address == "m.py@b1"
@@ -302,10 +300,24 @@ def _a_move_between(readers):
     return places, moves_in(places)
 
 
-def test_a_lone_moves_ends_are_decided_on_the_movers_text():
-    """A move nobody else read is decided at both ends, and each end names
-    the mover as what stands there, not the original."""
+def test_a_lone_move_is_put_to_the_chief_and_its_ruling_decides_both_ends():
+    """A move nobody else read is put to the chief, and taking it in decides
+    both ends, each naming the mover as what stands there."""
     places, moves = _a_move_between(("a",))
+    fold = Fold(places, moves).run()
+    assert fold.committed
+    assert fold.events == [
+        events.PlacementCarried("m.py@b1", "m.py@b5", Placement.OPEN, ("copy-chief",)),
+        events.Committed(),
+    ]
+    moves["m.py@b1 -> m.py@b5"].disposition = a_typed_ruling(
+        address="m.py@b1",
+        to="m.py@b5",
+        name="taken_in",
+        side="a",
+        prose="",
+        reason="r",
+    )
     fold = Fold(places, moves).run()
     assert fold.committed
     decided = [e for e in fold.events if isinstance(e, events.Decided)]

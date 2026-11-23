@@ -50,7 +50,10 @@ class AsksTheHuman(NamedTuple):
 
 
 class CarriedForward(NamedTuple):
-    """A place the fold could not decide alone -- asked of `roles` next turn."""
+    """A place the fold could not decide alone -- put to `roles` next.
+
+    `roles` is the chief alone where no role is owed a turn on it.
+    """
 
     address: str
     state: State
@@ -59,11 +62,12 @@ class CarriedForward(NamedTuple):
 
 
 class PlacementCarried(NamedTuple):
-    """A move whose placement the fold could not settle -- asked of `roles` next turn.
+    """A move whose placement the fold could not settle -- put to `roles` next.
 
     `open` is put to the readers of either page that did not file it and have
-    neither agreed nor deferred; `contested` to its movers and the roles that
-    stetted it, less those that defer.
+    neither agreed nor deferred, or to the chief alone where there are none;
+    `contested` to its movers and the roles that stetted it, less those that
+    defer.
     """
 
     origin: str

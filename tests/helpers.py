@@ -65,7 +65,9 @@ from comment_review.desk.proof.mark import (
     mark_type,
 )
 from comment_review.desk.proof.master_proof import MasterProof
+from comment_review.desk.proof.move import is_open
 from comment_review.desk.proof.sheet import Sheet
+from comment_review.desk.proof.state import CARRIED
 from comment_review.docket.docket import Docket
 from comment_review.flows.bus import CopiesReturned, handle
 from comment_review.flows.distribute import seed
@@ -1217,6 +1219,49 @@ def disposition(
         "--proof-out",
         str(tmp_path / "final.json"),
     )
+
+
+def taken_in_as_filed(
+    tmp_path, monkeypatch, capsys, proof: str = "proof0.json"
+) -> MasterProof:
+    """The chief takes in the one side at every carried place and open move.
+
+    A change only its proposer read is carried to the chief
+    (`decision-log.md Process: #385`). A case about something else closes it
+    with this: one `taken_in` per move, naming its one mover, and one per
+    carried place, naming its one side -- the text as filed.
+
+    Returns:
+        The closed proof `disposition` wrote to final.json.
+    """
+    held, why = load_proof(tmp_path / proof)
+    assert held is not None, why
+    sides = {place.address: place.sides for place in held.places}
+    rulings = [
+        {
+            "address": move.origin,
+            "to": move.destination,
+            "answer": "taken_in",
+            "side": next(iter(sides[move.origin])),
+            "reason": "as filed",
+        }
+        for move in held.moves
+        if is_open(move)
+    ] + [
+        {
+            "address": place.address,
+            "answer": "taken_in",
+            "side": next(iter(place.sides)),
+            "reason": "as filed",
+        }
+        for place in held.places
+        if place.state in CARRIED
+    ]
+    code, out = disposition(tmp_path, monkeypatch, capsys, rulings, proof=proof)
+    assert code == report.OK, out
+    closed, why = load_proof(tmp_path / "final.json")
+    assert closed is not None, why
+    return closed
 
 
 def proof_at(tmp_path, n: int) -> MasterProof:

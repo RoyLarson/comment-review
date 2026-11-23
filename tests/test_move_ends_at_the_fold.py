@@ -112,22 +112,36 @@ def _fold(places, answers=None, ruling=None, turn=0):
     return fold.committed, refusals, ends
 
 
+#: The chief's placement ruling taking in `a`'s move. A move only its mover
+#: read is agreed by it, and it decides each end the move sets
+#: (`decision-log.md Process: #385`, `#388`).
+TAKEN_IN_A = a_typed_ruling(
+    address=ORIGIN, name="taken_in", side="a", reason="r", to=DESTINATION
+)
+
 AGREED = {
     "whole-paragraph": (
         lambda: _fold(
-            _places("# two\n", LANDING, {"a": _move("# two\n", LANDED)}, ("a",))
+            _places("# two\n", LANDING, {"a": _move("# two\n", LANDED)}, ("a",)),
+            ruling=TAKEN_IN_A,
         ),
         {ORIGIN: (State.STANDS, "", ()), DESTINATION: (State.STANDS, LANDED, ())},
     ),
     "partial-snippet": (
-        lambda: _fold(_places(BASE, LANDING, {"a": _move("# two\n", LANDED)}, ("a",))),
+        lambda: _fold(
+            _places(BASE, LANDING, {"a": _move("# two\n", LANDED)}, ("a",)),
+            ruling=TAKEN_IN_A,
+        ),
         {
             ORIGIN: (State.STANDS, "# one\n# three\n", ()),
             DESTINATION: (State.STANDS, LANDED, ()),
         },
     ),
     "into-an-empty-place": (
-        lambda: _fold(_places(BASE, "", {"a": _move("# two\n", "# two\n")}, ("a",))),
+        lambda: _fold(
+            _places(BASE, "", {"a": _move("# two\n", "# two\n")}, ("a",)),
+            ruling=TAKEN_IN_A,
+        ),
         {
             ORIGIN: (State.STANDS, "# one\n# three\n", ()),
             DESTINATION: (State.STANDS, "# two\n", ()),

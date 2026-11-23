@@ -11,7 +11,8 @@ class State(StrEnum):
         return name.lower()
 
     #: Decided on the base when nobody proposed text, on a lone proposal
-    #: when nobody is owed a say, or on the outcome of a chief ruling.
+    #: another role read and was not owed a say on, at a move's end the
+    #: chief's placement ruling decided, or on the outcome of a chief ruling.
     #: The proof's text and disposition record how it was decided.
     STANDS = auto()
 

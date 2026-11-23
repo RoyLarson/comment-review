@@ -35,6 +35,7 @@ from helpers import (
     patched,
     proof_at,
     returned,
+    taken_in_as_filed,
     turn,
 )
 
@@ -616,10 +617,13 @@ class TestDocketOfProof:
     """
 
     def _closed(self, tmp_path, monkeypatch, capsys, by_role=None, **kwargs):
-        """collate over one hand that settles at the first fold."""
+        """collate over one role's hand, closed by the chief taking in each of
+        its changes as filed."""
         code = deal(tmp_path, monkeypatch, capsys, by_role, **kwargs)
-        assert code == report.OK
-        return proof_at(tmp_path, 0), tmp_path / "repo"
+        if code == report.OK:
+            return proof_at(tmp_path, 0), tmp_path / "repo"
+        assert code == report.REREADS
+        return taken_in_as_filed(tmp_path, monkeypatch, capsys), tmp_path / "repo"
 
     def test_two_patches_that_compose_reach_the_docket(
         self, tmp_path, monkeypatch, capsys
@@ -718,15 +722,16 @@ class TestDocketOfProof:
     def test_a_recast_at_a_settled_place_reaches_the_docket(
         self, tmp_path, monkeypatch, capsys
     ):
-        """`decision-log.md Process: #310`: the roles settle the correction at
-        the first fold, and the chief recasts it to follow the style sheet."""
-        self._closed(
+        """The one role's correction is carried to the chief, who recasts it to
+        follow the style sheet."""
+        code = deal(
             tmp_path,
             monkeypatch,
             capsys,
             {"block-context": {"m.py@b1": a_correct_setting("m.py@b1", "two", TWO)}},
             texts={"m.py@b1": BASE},
         )
+        assert code == report.REREADS
         code, out = disposition(
             tmp_path,
             monkeypatch,
@@ -972,9 +977,11 @@ class TestOnlyTheApprovedPlaces:
     """
 
     def _closed(self, tmp_path, monkeypatch, capsys, by_role, texts):
+        """collate over one role's hand, closed by the chief taking in each of
+        its changes as filed."""
         code = deal(tmp_path, monkeypatch, capsys, by_role, texts)
-        assert code == report.OK
-        return proof_at(tmp_path, 0), tmp_path / "repo"
+        assert code == report.REREADS
+        return taken_in_as_filed(tmp_path, monkeypatch, capsys), tmp_path / "repo"
 
     def _closed_move(self, tmp_path, monkeypatch, capsys, destination="m.py@b2"):
         return self._closed(
@@ -1048,7 +1055,7 @@ class TestOnlyTheApprovedPlaces:
             capsys,
             proof_command,
             "--proof",
-            str(tmp_path / "proof0.json"),
+            str(tmp_path / "final.json"),
             "--repo",
             str(repo),
             "--only",
