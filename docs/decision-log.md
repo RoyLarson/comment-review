@@ -7504,3 +7504,14 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
 
   **What it settles.** No format change in this work; the identity table still checks the field
   once per load. Removing it is a later, separate decision.
+
+- **#401.** **A page identity that cannot be admitted exits 2 everywhere** (Roy, 2026-11-23, on
+  the Imprint table changing `turn`, `disposition` and `check` from 2 to 1 for a saved reading
+  that no longer matches the installed reader, or a copy's sha or reading that disagrees with its
+  binder, while `collate` already gave 1; offered 2 everywhere, 1 everywhere, or the old codes):
+
+  *"2 everywhere (Recommended)"*
+
+  **What it settles.** `check`, `collate`, `turn` and `disposition` exit 2 for an identity
+  refusal: an input that cannot be read is regathered or the invocation corrected, never sent to
+  a role to withdraw a mark.
