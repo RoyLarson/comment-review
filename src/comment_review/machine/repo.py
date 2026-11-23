@@ -239,9 +239,9 @@ def undraftable(into: Path, repo: Path) -> str:
     A per-file guard checks that a target lands inside `into`; on an overlap
     that is satisfied by the source file itself, so the guard passes and the
     draft is written over the file under review. Measured on
-    `flows.proof_setter.run(alterations, binder, repo, repo)` before it asked
-    this: it answered `refused=[]` while the source file on disk held the
-    replacement text.
+    `flows.proof_setter.run(docket, repo, repo)` with this check removed: it
+    answered `refused=[]` while the source file on disk held the replacement
+    text.
 
     !! It lives here because more than one caller asks it --
     `flows/proof_setter.run` and `commands/proof.py`.
@@ -437,7 +437,7 @@ def walk_files(root: Path):
             # this tests every ancestor too, so a checkout living anywhere
             # under a directory called `venv`, `.venv`, `node_modules`,
             # `site-packages`, `__pycache__` or `.git` excludes itself:
-            # `code_names` harvests 0 names from a repo under
+            # `flows.gather._name_corpus` harvests 0 names from a git repo under
             # `.../venv/myproject`, nothing is added to `unread`, so the not-checked
             # list stays empty and the run reads as complete -- every
             # `names-a-symbol` a false obituary, handed to four reviewers as

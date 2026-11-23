@@ -167,9 +167,11 @@ def _set(page: Page, newline: str | None) -> tuple[str, dict[str, tuple[int, int
     # above the last line of code, `adding_a_gap` supplies one; `N` owns no
     # edge, so it sits directly against Y.
     #
-    # ! Measured: that is the shape the corpus has. `b`->`c` holds no blank in
-    # 88% of 15,987 boundaries, so a new comment sitting straight on the code it
-    # documents is the common case, not a compromise.
+    # ! Measured: that is the shape real code has. Over flask 3.1.0 and this
+    # repo's `src/`, a `b` holding prose is followed in the reading order by a
+    # `c` 797 times, and 790 of those, 99%, have no leading between them, so a
+    # new comment sitting straight on the code it documents is the common case,
+    # not a compromise.
     #
     # The survivor needs no new key, which is why this is a lookup and not a
     # rewrite. Dropping `P` between X and Y leaves X's edge keyed on X, and this
