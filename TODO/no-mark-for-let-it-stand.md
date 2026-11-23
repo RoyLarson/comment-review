@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 16 of 24 tasks closed
+Progress: 21 of 25 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-08-21 (Roy, 2026-08-21, on leading and matter both being categories
@@ -174,24 +174,30 @@ the five series; this is the verdict vocabulary. It wants 0.2.4 or its own branc
 - [ ] T17 | Add `stet` beside `clean` in the reserved-word rules at
       CLAUDE.md:514, docs/vocabulary.md:579
         > 2026-11-22 Check: both name stet beside clean as reserved
-- [ ] T18 | Rewrite CLAUDE.md:477-482's stet paragraph to the copy chief's stet
-      that Process #87 re-ruled
+- [-] T18 | Its check encodes #87, superseded by #393; reissued to #394 wording | a3f1a5b514273642d40783ac4915f5a7c2a9aa72 | Rewrite
+      CLAUDE.md:477-482's stet paragraph to the copy chief's stet that Process
+      #87 re-ruled
         > 2026-11-22 Check: CLAUDE.md glosses stet as the chief's agreed case
 - [x] T19 | Ruled: taken_in is the chief's stet and no stet ruling is added; Process #332 | 423884a9b2e97856444d0685f48ee97b4b3163be | Decide
       whether the copy chief writes a stet, which docs/vocabulary.md:438-441
       defers to this file
         > 2026-11-22 Check: the ruling is recorded in docs/decision-log.md
         > 2026-11-22 Outcome: taken_in is the chief's stet; none added (Process #332)
-- [ ] T20 | Correct docs/vocabulary.md:438-441 and :479, which defer a
-      chief-written stet, to name taken_in
+- [x] T20 | Corrected to taken_in original and the reader stet per #393 | a3f1a5b514273642d40783ac4915f5a7c2a9aa72 | Correct
+      docs/vocabulary.md:438-441 and :479, which defer a chief-written stet, to
+      name taken_in
         > 2026-11-22 Check: vocabulary.md defers no chief-written stet
-- [ ] T21 | Correct docs/vocabulary.md:456's 'a role cannot emit a stet' for
-      #195's placement answer
+- [x] T21 | Corrected to taken_in original and the reader stet per #393 | a3f1a5b514273642d40783ac4915f5a7c2a9aa72 | Correct
+      docs/vocabulary.md:456's 'a role cannot emit a stet' for #195's placement
+      answer
         > 2026-11-22 Check: vocabulary.md names the reader's stet answer
-- [ ] T22 | Correct docs/the-turn.md:155-158, which defers a chief-written stet,
-      to name taken_in
+- [x] T22 | Corrected to taken_in original and the reader stet per #393 | a3f1a5b514273642d40783ac4915f5a7c2a9aa72 | Correct
+      docs/the-turn.md:155-158, which defers a chief-written stet, to name
+      taken_in
         > 2026-11-22 Check: the-turn.md defers no chief-written stet
 - [ ] T23 | Determine what consumes stage 8's findings in a later run
         > 2026-11-23 Broken review 6a81c7b0, 2026-11-23, problem 10 [W-F9; V17]
 - [ ] T24 | Determine what records a declined proposal for a later run
         > 2026-11-23 Related: a-role-can-reverse-itself-between-runs.md
+- [x] T25 | CLAUDE.md:476-481 is the #394 wording, verbatim | a3f1a5b514273642d40783ac4915f5a7c2a9aa72 | Replace
+      CLAUDE.md's stet paragraph with the wording Roy approved in #394

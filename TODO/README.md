@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (101)
+### open  (100)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -208,7 +208,6 @@ that changed a published name or rule:
 | [lookup-parses-whole-census](lookup-parses-whole-census.md) | backend | -- | 13/16 | A lookup is O(project), not O(file) -- 1.1s per lookup extrapolated at 500k lines; sharding or batching fixes it, re-lexing trades away staleness detection |
 | [verdicts-is-the-join](verdicts-is-the-join.md) | backend | -- | 11/13 | The VERDICTS table lives in record.py; verdicts.py is the collator and 43 sites say so |
 | [nothing-runs-the-whole-chain](nothing-runs-the-whole-chain.md) | backend | -- | 4/7 | Every stage of the backend has its own tests and nothing runs census -> seed -> record -> join -> galley -> compositor -> prove in one pass. So the redesign phase has no measurement to hold constant, and a defect that lives BETWEEN two stages is invisible to every gate this repo has. |
-| [settle-carries-two-meanings](settle-carries-two-meanings.md) | systems | -- | 4/8 | settle carries two meanings in what an agent is handed, and neither is declared to it |
 | [the-flow-lives-in-the-command](the-flow-lives-in-the-command.md) | backend | -- | 14/18 | Lifting main() out showed the orchestration was always inside it: commands/census.py took 446 lines and calls page_for, while flows/census.py kept 261 lines of helpers. A command is meant to EXPOSE a flow, not be one. |
 | [two-areas-have-no-tests](two-areas-have-no-tests.md) | backend | -- | 1/5 | tests/ mirrors the package, so an area with no directory is a visible hole. machine/ (repo, constants, exceptions) and commands/ (all ten) have none. repo is exercised only through flows/test_census_names.py, which tests something else. |
 | [concordance-gaps-stated-twice](concordance-gaps-stated-twice.md) | backend | -- | 5/13 | Both encode 'a gap is not a pass' and spell it differently: code_names returns unread rows keyed by NO_HARVESTER/WALKED_TREE, referrers collects unreadable and unsearched under NOT CHECKED. Three states, one idea, two vocabularies. The EXTRACTIONS stay separate -- code_names must be structural so a comment mentioning a symbol cannot prove it exists, and referrers must be textual to see mentions in files nothing parses. |
@@ -307,7 +306,7 @@ that changed a published name or rule:
 | --- | --- | :-: | ---: | --- |
 | [role-rule-register](role-rule-register.md) | agents | -- | 7/11 | The register of proposed additions and amendments to the four editorial role files. ! Role prose is BUDGET-FIXED, so a candidate is not judged alone -- it is judged against what it would replace, which is why they collect here instead of landing one at a time. |
 | [evidence-still-names-places-by-line](evidence-still-names-places-by-line.md) | testing | -- | 15/16 | **The address reached the record key and a `move`'s destination and stopped.** `SOURCES` -- the field the evidentiary contract rests on -- is 100% line-form, and Roy's `address:lines` ruling is unimplemented. Four other artifacts name a place by nothing at all. |
-| [no-mark-for-let-it-stand](no-mark-for-let-it-stand.md) | agents | -- | 16/24 | There is no mark for LET IT STAND -- a declined proposal is not recorded, so the next run proposes it again |
+| [no-mark-for-let-it-stand](no-mark-for-let-it-stand.md) | agents | -- | 21/25 | There is no mark for LET IT STAND -- a declined proposal is not recorded, so the next run proposes it again |
 | [front-half-undetermined](front-half-undetermined.md) | testing | -- | 10/11 | The census to findings to verdicts path has never been determined against a backend that works |
 | [a-role-with-no-code-out-damages-the-prose](a-role-with-no-code-out-damages-the-prose.md) | agents | -- | 11/15 | `code_concerns` is defined in the shared brief that every role reads, but named in only ONE of the four reviewer files -- `function-context`. It is absent from `module-context`, whose whole remit is whether a module announces ONE subject, which is the finding that most needs a code out. MEASURED in the harness: `module-context-widens-a-two-subject-docstring` detected that `verdicts.py` holds four subjects, had no verdict for 'split this module', and emitted a prose `patch` widening the docstring to announce TWO -- the exact defect its own trigger is named for. `code_concerns` came back empty. |
 | [dead-sweep-skips-private](dead-sweep-skips-private.md) | systems | -- | 5/6 | dead_sweep skips every _private name, so a dead module constant is invisible to it and to ruff |
@@ -556,3 +555,4 @@ the reason is inside the file.
 | [brief-example-and-scope](completed/brief-example-and-scope.md) | 2 finished, 1 superseded |
 | [the-skill-names-commands-that-moved-to-prototype](completed/the-skill-names-commands-that-moved-to-prototype.md) | 4 finished, 1 superseded |
 | [settlement-depends-on-who-filed](completed/settlement-depends-on-who-filed.md) | 3 finished |
+| [settle-carries-two-meanings](completed/settle-carries-two-meanings.md) | 6 finished, 2 superseded |
