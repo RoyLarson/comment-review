@@ -264,7 +264,7 @@ that changed a published name or rule:
 | [one-reader-builder](one-reader-builder.md) | backend | -- | 6/16 | One reader builder from each language's definition |
 | [freeform-run-findings](freeform-run-findings.md) | agents | -- | 22/26 | What the first live freeform run showed |
 | [topology-defects](topology-defects.md) | backend | -- | 0/10 | Topology defects |
-| [reading-settings-have-no-setting](reading-settings-have-no-setting.md) | backend | -- | 0/4 | Reading settings have no setting |
+| [reading-settings-have-no-setting](reading-settings-have-no-setting.md) | backend | -- | 0/5 | Reading settings have no setting |
 | [one-obvious-way](one-obvious-way.md) | backend | -- | 3/38 | One obvious way |
 | [page-defects](page-defects.md) | backend | -- | 0/4 | binder/page.py carries unread names and a branch nothing reaches |
 | [addresser-defects](addresser-defects.md) | backend | -- | 0/4 | reading/addresser.py answers a miss with a real position |
