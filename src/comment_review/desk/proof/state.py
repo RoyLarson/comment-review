@@ -1,4 +1,4 @@
-"""Place evaluation states and the sets carried forward or settled."""
+"""Place evaluation states and the sets carried forward or decided."""
 
 from enum import StrEnum, auto
 
@@ -10,9 +10,9 @@ class State(StrEnum):
     def _generate_next_value_(name, start, count, last_values):
         return name.lower()
 
-    #: Settled on the base when nobody proposed text, on a lone proposal
+    #: Decided on the base when nobody proposed text, on a lone proposal
     #: when nobody is owed a say, or on the outcome of a chief ruling.
-    #: The proof's text and disposition record how it settled.
+    #: The proof's text and disposition record how it was decided.
     STANDS = auto()
 
     #: Multiple sides holding the same text with nobody left to ask are
@@ -30,5 +30,5 @@ class State(StrEnum):
 #: The states a fold carries forward for a turn or the chief.
 CARRIED = frozenset({State.COMPOSED, State.CONTESTED})
 
-#: The states a place has settled in.
-SETTLED = frozenset({State.STANDS, State.AGREED})
+#: The states a place is decided in.
+DECIDED = frozenset({State.STANDS, State.AGREED})

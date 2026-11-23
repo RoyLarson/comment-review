@@ -1,6 +1,6 @@
 """Pull a revise: a second proof of the pages one stage's corrections set.
 
-    the docket           the settled alterations for one editorial boundary
+    the docket           the decided alterations for one editorial boundary
         -> proof_setter.run      into a scratch directory, disjoint from both
                                   the checkout and `into`
         -> write each draft      into `into`, at the page path it names
@@ -89,7 +89,7 @@ def pull(docket: Docket, repo: Path, into: Path, revise: int) -> Pulled:
     """The docket's pages, with its corrections set -- or nothing at all.
 
     Args:
-        docket: the deserialized docket -- the settled alterations for
+        docket: the deserialized docket -- the decided alterations for
             one editorial boundary.
         repo: the checkout the docket's pages are read from.
         into: where the revise lands. Must not exist yet: `pull` makes it, and

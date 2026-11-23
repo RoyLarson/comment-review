@@ -124,7 +124,7 @@ def _settled(copies, bases: dict | None = None) -> list[str]:
     return sorted(
         one.address
         for one in _fold(copies, bases).events
-        if isinstance(one, events.Settled)
+        if isinstance(one, events.Decided)
     )
 
 

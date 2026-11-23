@@ -82,7 +82,8 @@ class Fold:
                         )
                     )
             else:
-                on_commit.append(events.Settled(address, place.disposition))
+                stands = tuple(sorted(place.sides)) if place.changed else ()
+                on_commit.append(events.Decided(address, place.disposition, stands))
             # A place's notes go with what a commit reports, whatever state
             # the place came to, and nothing branches on them.
             for role, notes in _by_role(place.notes).items():

@@ -237,12 +237,12 @@ class TestOneTurn:
         assert place["text"] == DOS
 
 
-class TestOnceSettledAlwaysSettled:
-    def test_a_place_the_first_fold_settled_still_reads_the_same_after_a_turn(
+class TestOnceDecidedAlwaysDecided:
+    def test_a_place_the_first_fold_decided_still_reads_the_same_after_a_turn(
         self, tmp_path, monkeypatch, capsys
     ):
         """`Process: #91`, across two processes. The place is the record, so a
-        place the first fold settled is derived again from the same marks and
+        place the first fold decided is derived again from the same marks and
         comes to the same text -- it is in no batch and no turn touches it."""
         texts = {"m.py@b1": BASE, "m.py@b2": "# four\n# five\n# six\n"}
         cinco = "# four\n# cinco\n# six\n"

@@ -15,6 +15,7 @@ from helpers import (
     a_clean,
     a_correct,
     a_correct_setting,
+    a_drop,
     a_misspelled_address,
     a_query,
     a_real_binder_over,
@@ -140,6 +141,37 @@ TWO_ROLES = (
 )
 
 
+class TestADecidedPlaceNamesWhatStands:
+    """An unruled decided place prints what stands there: `original` where its
+    text is the base, otherwise the roles holding the text."""
+
+    def test_a_lone_change_names_its_role_not_the_original(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        code, out = run(
+            tmp_path,
+            {"block-context": {"m.py@b1": a_drop("m.py@b1", "two")}},
+            monkeypatch,
+            capsys,
+        )
+        assert code == report.OK, out
+        assert "decided m.py@b1: block-context" in out
+        assert "decided m.py@b1: original" not in out
+
+    def test_an_untouched_place_names_the_original(self, tmp_path, monkeypatch, capsys):
+        code, out = run(
+            tmp_path,
+            {
+                "block-context": {"m.py@b1": a_clean("m.py@b1")},
+                "function-context": {"m.py@b1": a_clean("m.py@b1")},
+            },
+            monkeypatch,
+            capsys,
+        )
+        assert code == report.OK, out
+        assert "decided m.py@b1: original" in out
+
+
 class TestTheDroppedList:
     """`decision-log.md Process: #163` and `#177`: the list reaches the chief
     under its own heading in the report, carries no exit code of its own, and
@@ -184,7 +216,7 @@ class TestTheDroppedList:
             capsys,
         )
         assert code == report.OK, out
-        assert "stet m.py@b1" in out
+        assert "decided m.py@b1: block-context" in out
         proof = json.loads((tmp_path / "proof.json").read_text(encoding="utf-8"))
         assert any(
             p["address"] == "m.py@b1" and p["text"].strip() == "# one\n# TWO"
@@ -919,7 +951,7 @@ class TestTheReport:
         )
         assert code == report.BROKEN, out
         assert "block-context m.py@b2: the text does not keep 'two'" in out
-        assert "stet" not in out
+        assert "decided" not in out
 
     def test_a_rolled_back_round_prints_its_refusals_and_nothing_else(
         self, tmp_path, monkeypatch, capsys
@@ -959,7 +991,7 @@ class TestTheReport:
             places=places,
         )
         assert code == report.ESCALATIONS, out
-        assert "stet m.py@b1" in out
+        assert "decided m.py@b1: original" in out
         assert "contested m.py@b2" in out
         assert report.FOR_THE_CHIEF in out
 
@@ -1022,7 +1054,7 @@ class TestTheStateBetweenTurnsOnDisk:
         # ! THE SUMMARY COUNTS THE PLACES BY WHAT THEY CAME TO. A bare place
         # count says nothing a reader can act on, which is what it said for
         # one commit.
-        assert "1 places -- 1 settled, 0 carried forward, 0 to come" in out
+        assert "1 places -- 1 decided, 0 carried forward, 0 to come" in out
         proof, why = load_proof(proof_path)
         assert why == []
         assert proof is not None

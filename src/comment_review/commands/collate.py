@@ -1,6 +1,6 @@
 """Collate returned edit copies and report the stage's outcome.
 
-The report includes `Refused`, `Settled`, `CarriedForward` and
+The report includes `Refused`, `Decided`, `CarriedForward` and
 `PlacementCarried` events. Human questions are reported as `AsksTheHuman`
 before folding. `Advised` notes print last, under `FOR_THE_CHIEF`.
 

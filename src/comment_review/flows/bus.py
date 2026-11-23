@@ -8,7 +8,7 @@ Each handler checks what its message carries, derives the places, opens a Fold,
 and on commit builds the `Result` the stage saves. A command sends one message
 through `handle` and prints the events; nothing here writes a file, and nothing
 here names a row of the three tables but `recast`, whose prose
-`_on_dispositions` compares against a settled text.
+`_on_dispositions` compares against a decided text.
 
 `turn_of` reads the turn a proof stands at, for the turn and disposition
 handlers and for the `turn` and `disposition` commands that report it.
@@ -54,7 +54,7 @@ from comment_review.desk.proof.edit_copy import EditCopy
 from comment_review.desk.proof.master_proof import MasterProof
 from comment_review.desk.proof.move import Move, is_open, key_of
 from comment_review.desk.proof.place import Place
-from comment_review.desk.proof.state import CARRIED, SETTLED, State
+from comment_review.desk.proof.state import CARRIED, DECIDED, State
 from comment_review.desk.stages import Stage, not_admitted
 from comment_review.desk.work.fold import Fold, asked
 from comment_review.flows.answers import Slot, answers_of, slots_of
@@ -140,7 +140,7 @@ class AnswersReturned(NamedTuple):
 
 
 class DispositionsWritten(NamedTuple):
-    """The chief's rulings on the places the roles never settled.
+    """The chief's rulings on the places the roles never decided.
 
     Attributes:
         proof: the master proof as the last turn wrote it, or as the first
@@ -148,7 +148,7 @@ class DispositionsWritten(NamedTuple):
         dispositions: one ruling per place still carried forward, as the
             chief wrote them. A place left unruled is refused by name, and a
             ruling at a place nothing carries forward is refused too, except a
-            `recast` of a place the roles settled.
+            `recast` of a place the roles decided.
         human: the human's answers file, read -- a `recast` of an `f` place
             waits on the human's approval as a mark there does.
     """
@@ -521,9 +521,9 @@ def _on_dispositions(message: DispositionsWritten) -> tuple[list, Result | None]
     its placement, and every move still undecided takes one. A
     place carried forward takes a ruling on its words, and one with none is
     refused by name and with the roles it was put to. A place the roles
-    settled takes a recast and no other ruling, so the chief can bring its
+    decided takes a recast and no other ruling, so the chief can bring its
     text into line with the style sheet; a
-    recast whose prose is the settled text changes nothing and is refused. A
+    recast whose prose is the decided text changes nothing and is refused. A
     ruling at a place that rides to the human, or that waits on its move, is
     refused as well. Which states each ruling closes is its row's `closes`,
     in `desk.dispositions.table`. A recast of an `f` place the human has not
@@ -583,12 +583,12 @@ def _on_dispositions(message: DispositionsWritten) -> tuple[list, Result | None]
             continue
         if place is None or not DISPOSITIONS[disposition.name].can_close(place.state):
             why = "not carried forward"
-            if place is not None and place.state in SETTLED:
-                why += " -- a place the roles settled takes only a recast"
+            if place is not None and place.state in DECIDED:
+                why += " -- a place the roles decided takes only a recast"
             problems.append(Problem(CHIEF, disposition.address, why))
             continue
         if (
-            place.state in SETTLED
+            place.state in DECIDED
             and isinstance(disposition, RecastRuling)
             and disposition.prose == (place.base if place.text is None else place.text)
         ):
@@ -596,7 +596,7 @@ def _on_dispositions(message: DispositionsWritten) -> tuple[list, Result | None]
                 Problem(
                     CHIEF,
                     disposition.address,
-                    "nothing to recast -- the prose is the text the roles settled",
+                    "nothing to recast -- the prose is the text the roles decided",
                 )
             )
             continue

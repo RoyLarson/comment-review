@@ -314,7 +314,7 @@ can come from `collate`, `turn` or `disposition`; use that file wherever
 `<closed-proof>` appears below. A refused round supplies no new proof.
 
 A place is settled when every role that read it proposed the same text or answered `clean`;
-`collate` prints each as `stet <place>`. The lines under `for the chief` name a `correct`
+`collate` prints each as `decided <place>: original` or `decided <place>: <roles>`. The lines under `for the chief` name a `correct`
 whose change removes words its claim never quoted; weigh that when you rule, and show it to
 the author at 7a.
 

@@ -184,7 +184,7 @@ class Stage(NamedTuple):
             naming an earlier stage's pulled revise. Set by `topology.py`;
             defaults to `"original"`.
         carries: the names of earlier stages whose `edit_copies` this stage
-            carries forward, unsettled, alongside what it reads. Format
+            carries forward, undecided, alongside what it reads. Format
             only -- `docs/superpowers/specs/2026-08-29-the-master-proof-and-
             reconciliation-design.md` section 2 -- `topology.py` refuses a
             non-empty value rather than building it.

@@ -162,7 +162,7 @@ class Schedule:
         alterations: one `Alteration` per place, in the order the docket lists
             them.
         reading: the original context that assigned the saved cues.
-        role: the role whose mark settled every alteration here, or "" when
+        role: the role whose mark decided every alteration here, or "" when
             the docket carries none. `proof_setter` does not read this --
             `flows.revise._set_by` does; carried here so a caller unwinding a
             docket sees every field the format defines.

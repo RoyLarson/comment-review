@@ -116,8 +116,8 @@ class TestTheChiefRules:
         )
         assert code == report.OK, out
         assert "taken_in m.py@b1: function-context -- theirs reads better" in out
-        assert "stet m.py@b2" in out
-        assert "stet m.py@b1" not in out
+        assert "decided m.py@b2: original" in out
+        assert "decided m.py@b1" not in out
 
     def test_a_taken_in_side_stands_on_the_chief_and_the_proof_closes(
         self, tmp_path, monkeypatch, capsys
@@ -138,7 +138,7 @@ class TestTheChiefRules:
         )
         assert code == report.OK, out
         assert "taken_in m.py@b1: function-context -- theirs reads better" in out
-        assert "stet m.py@b1" not in out
+        assert "decided m.py@b1" not in out
         place = place_on(_closed(tmp_path), "m.py@b1")
         assert place["state"] == "stands"
         assert place["text"] == DOS
@@ -163,7 +163,7 @@ class TestTheChiefRules:
         )
         assert code == report.OK, out
         assert "taken_in m.py@b1: original -- neither improves it" in out
-        assert "stet m.py@b1" not in out
+        assert "decided m.py@b1" not in out
         place = place_on(_closed(tmp_path), "m.py@b1")
         assert place["disposition"]["side"] == ORIGINAL
         assert place["text"] is None
@@ -185,7 +185,7 @@ class TestTheChiefRules:
         )
         assert code == report.OK, out
         assert "recast m.py@b1: copy-chief -- both half right" in out
-        assert "stet m.py@b1" not in out
+        assert "decided m.py@b1" not in out
         assert place_on(_closed(tmp_path), "m.py@b1")["text"] == RECAST
 
     def test_an_empty_recast_drops_the_whole_paragraph(
@@ -211,7 +211,7 @@ class TestTheChiefRules:
         assert place_on(_closed(tmp_path), "m.py@b1")["text"] == ""
 
 
-class TestTheChiefRecastsASettledPlace:
+class TestTheChiefRecastsADecidedPlace:
     """`decision-log.md Process: #310`: the chief may recast a place the
     roles settled, to bring it into line with the style sheet.
 
@@ -220,7 +220,7 @@ class TestTheChiefRecastsASettledPlace:
     """
 
     TEXTS = {"m.py@b1": BASE, "m.py@b2": "# four\n# five\n# six\n"}
-    SETTLED = {
+    DECIDED = {
         role: {"m.py@b2": a_clean("m.py@b2")}
         for role in ("block-context", "function-context")
     }
@@ -228,7 +228,7 @@ class TestTheChiefRecastsASettledPlace:
     PROSE = "# Four.\n# Five.\n# Six.\n"
 
     def _ruled(self, tmp_path, monkeypatch, capsys, ruling):
-        held_open(tmp_path, monkeypatch, capsys, self.SETTLED, self.TEXTS)
+        held_open(tmp_path, monkeypatch, capsys, self.DECIDED, self.TEXTS)
         return disposition(
             tmp_path,
             monkeypatch,
@@ -252,7 +252,7 @@ class TestTheChiefRecastsASettledPlace:
         )
         assert code == report.OK, out
         assert f"recast m.py@b2: copy-chief -- {self.STYLE}" in out
-        assert "stet m.py@b2" not in out
+        assert "decided m.py@b2" not in out
         place = place_on(_closed(tmp_path), "m.py@b2")
         assert (place["state"], place["text"]) == ("stands", self.PROSE)
 
@@ -276,7 +276,7 @@ class TestTheChiefRecastsASettledPlace:
     def test_a_recast_repeating_the_paragraph_is_BROKEN(
         self, tmp_path, monkeypatch, capsys
     ):
-        held_open(tmp_path, monkeypatch, capsys, self.SETTLED, self.TEXTS)
+        held_open(tmp_path, monkeypatch, capsys, self.DECIDED, self.TEXTS)
         settled = place_on(proof_at(tmp_path, 1), "m.py@b2")
         assert (settled["state"], settled["text"]) == ("stands", None)
         code, out = disposition(
@@ -581,7 +581,7 @@ class TestRefusals:
         )
         assert code == report.BROKEN
         assert (
-            "copy-chief m.py@b2: not carried forward -- a place the roles settled"
+            "copy-chief m.py@b2: not carried forward -- a place the roles decided"
             " takes only a recast" in out
         )
         assert not (tmp_path / "final.json").exists()

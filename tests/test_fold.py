@@ -57,8 +57,8 @@ def test_a_fold_of_settled_places_commits_and_says_what_it_settled():
     fold.run()
     assert fold.committed
     assert [type(e).__name__ for e in fold.events] == [
-        "Settled",
-        "Settled",
+        "Decided",
+        "Decided",
         "Committed",
     ]
     assert fold.decided["m.py@b5"].text == "# one\n# 2\n# three\n"
@@ -91,10 +91,10 @@ def test_a_rollback_reports_its_refusals_and_nothing_else():
     theirs: two roles refused at one place are two."""
     committed = Fold(_a_place_of_each_kind()).run()
     assert [type(e).__name__ for e in committed.events] == [
-        "Settled",
+        "Decided",
         "CarriedForward",
-        "Settled",
-        "Settled",
+        "Decided",
+        "Decided",
         "Advised",
         "Committed",
     ]
@@ -246,7 +246,7 @@ def test_an_advised_place_is_reported_and_the_fold_commits():
     fold.run()
     assert fold.committed
     assert [type(e).__name__ for e in fold.events] == [
-        "Settled",
+        "Decided",
         "Advised",
         "Committed",
     ]
@@ -300,6 +300,19 @@ def _a_move_between(readers):
     )
     places = {"m.py@b1": origin, "m.py@b5": destination}
     return places, moves_in(places)
+
+
+def test_a_lone_moves_ends_are_decided_on_the_movers_text():
+    """A move nobody else read is decided at both ends, and each end names
+    the mover as what stands there, not the original."""
+    places, moves = _a_move_between(("a",))
+    fold = Fold(places, moves).run()
+    assert fold.committed
+    decided = [e for e in fold.events if isinstance(e, events.Decided)]
+    assert decided == [
+        events.Decided("m.py@b1", None, ("a",)),
+        events.Decided("m.py@b5", None, ("a",)),
+    ]
 
 
 def test_a_moves_snippet_missing_from_its_origin_is_one_refusal():
@@ -411,8 +424,8 @@ def test_a_contested_move_the_chief_ruled_asks_no_placement():
     fold = Fold(places, moves, turn=1).run()
     assert fold.decided_moves["m.py@b1 -> m.py@b5"].placement is Placement.AGREED
     assert [type(e).__name__ for e in fold.events] == [
-        "Settled",
-        "Settled",
+        "Decided",
+        "Decided",
         "Committed",
     ], fold.events
 

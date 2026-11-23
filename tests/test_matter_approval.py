@@ -23,7 +23,7 @@ from comment_review.commands import check as check_command
 from comment_review.commands import disposition as disposition_command
 from comment_review.commands import report
 from comment_review.desk import report as events
-from comment_review.desk.proof.state import SETTLED
+from comment_review.desk.proof.state import DECIDED
 from comment_review.flows.bus import (
     AnswersReturned,
     CopiesReturned,
@@ -188,7 +188,7 @@ def _settled(tmp_path):
     }
     out, turned = handle(AnswersReturned(proof, {"function-context": [clean]}, root))
     assert turned is not None, out
-    assert {p.address: p.state for p in turned.proof.places}[F0] in SETTLED
+    assert {p.address: p.state for p in turned.proof.places}[F0] in DECIDED
     return turned.proof
 
 

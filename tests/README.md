@@ -132,7 +132,7 @@ carry its own date for.
 | an unanswered slot is refused, not read as a withdraw | `flows/answers.py` | `test_turn_command.py::test_an_unanswered_slot_is_BROKEN_and_nothing_is_written` and `::test_a_slot_left_unanswered_beside_an_answered_one_is_BROKEN` |
 | a role that was asked and returned nothing is refused | `flows/bus.py` | `test_bus.py::test_a_role_that_was_asked_and_answered_nothing_is_refused` |
 | an address never sent is refused | `flows/bus.py` | `test_bus.py::test_an_answer_at_a_place_no_turn_carried_is_refused` and `::test_an_answer_from_a_role_the_place_was_not_put_to_is_refused` |
-| a place an earlier fold settled is not re-opened | `desk/evaluate/passes.py` | `test_turn_command.py::TestOnceSettledAlwaysSettled::test_a_place_the_first_fold_settled_still_reads_the_same_after_a_turn` -- across two processes, the place is derived again from the same marks |
+| a place an earlier fold decided is not re-opened | `desk/evaluate/passes.py` | `test_turn_command.py::TestOnceDecidedAlwaysDecided::test_a_place_the_first_fold_decided_still_reads_the_same_after_a_turn` -- across two processes, the place is derived again from the same marks |
 | the chief's close refuses an unruled place | `flows/bus.py` | `test_disposition_command.py::TestRefusals::test_an_unruled_place_is_BROKEN_naming_it_and_its_roles` |
 | agreement needs byte-identical text | `desk/evaluate/passes.py` | `test_passes.py::test_two_proposals_of_one_text_agree` against `::test_two_proposals_on_one_sentence_contest` |
 | a lone mark goes back to the roles that read the page | `desk/evaluate/passes.py` | `test_passes.py::TestATextEveryReaderMustHaveSeen::test_a_lone_correct_against_three_cleans_is_composed_and_asked_of_them` |

@@ -191,7 +191,7 @@ def test_the_condensed_text_folds_and_is_set(tmp_path, monkeypatch, capsys):
         str(tmp_path / "proof.json"),
     )
     assert code == report.OK, out
-    assert "stet m.py@b1" in out
+    assert "decided m.py@b1: block-context" in out
 
     code, out = run_command(
         monkeypatch,

@@ -227,7 +227,7 @@ def owed_a_say(
 ) -> tuple[str, ...]:
     """The roles that have not accepted `text`, whose say it still owes.
 
-    A place settles on a text only when every role that read it has proposed
+    A place is decided on a text only when every role that read it has proposed
     that text or answered `clean` to it. A role is owed a say unless one of
     three things is true of it:
 
@@ -238,7 +238,7 @@ def owed_a_say(
         no side                 has had its say and holds no position now
 
     Args:
-        place: the place being settled, carrying its readers, what was filed
+        place: the place being decided, carrying its readers, what was filed
             and every turn's answers.
         text: the one text the sides have come to.
         sides: role -> the text that role proposes, as the pass holds them.
@@ -248,7 +248,7 @@ def owed_a_say(
 
     Returns:
         The roles owed a say, sorted, so two runs name them in one order.
-        Empty where the text may settle.
+        Empty where the text may be decided.
     """
     filed_by = _by_role(place)
     answered = {
@@ -490,7 +490,7 @@ def decide(
 def _from_sides(place: Place, sides: dict[str, str], turn: int = 0) -> Place:
     """The place's state from the one text its sides hold, or from their disagreement.
 
-    A text every role owed a say has accepted settles here; a text some have not
+    A text every role owed a say has accepted is decided here; a text some have not
     seen is carried forward to exactly those roles, as a composition. It is the
     same question at the first fold and after a turn, so both reach it here
     rather than each keeping a rule of its own.

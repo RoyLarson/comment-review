@@ -1038,7 +1038,7 @@ def contested(address: str, sentence="two", one=TWO, other=DOS) -> dict:
 
 
 def agreed(address: str) -> dict:
-    """Two roles correcting the same sentence to the same text -- a stet at once."""
+    """Two roles correcting the same sentence to the same text -- agreed at once."""
     return {
         role: {address: a_correct_setting(address, "two", DOS)} for role in HAND_ROLES
     }

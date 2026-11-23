@@ -537,7 +537,7 @@ def test_a_committed_fold_says_what_it_settled_and_what_it_carries(tmp_path):
     not seen a text for is carried to it; the place they both cleaned settles
     on the paragraph as it stands."""
     out, result = handle(_message(tmp_path, TWO_ROLES))
-    assert events.Settled("m.py@b2") in out
+    assert events.Decided("m.py@b2") in out
     assert (
         events.CarriedForward(
             "m.py@b1", State.COMPOSED, Question.COMPOSITION, ("function-context",)
@@ -623,7 +623,7 @@ def test_a_copy_from_another_tree_rolls_the_fold_back(tmp_path):
     assert refused[0].address == ""
     assert "somewhere/else" in refused[0].reasons[0]
     assert any(isinstance(one, events.RolledBack) for one in out)
-    assert not any(isinstance(one, events.Settled) for one in out)
+    assert not any(isinstance(one, events.Decided) for one in out)
 
 
 #: A stage dealt the `b` places over a cap of two lines, admitting the edit
@@ -772,7 +772,7 @@ def test_a_correct_that_drops_an_unnamed_word_is_advised_and_the_fold_commits(tm
     assert advised[0].notes == (
         "its change drops 'three', which its claim never names",
     )
-    assert events.Settled("m.py@b1") in out
+    assert events.Decided("m.py@b1", None, ("block-context",)) in out
     assert (
         next(p.text for p in result.proof.places if p.address == PLACE)
         == "# one\n# TWO"
@@ -916,7 +916,7 @@ def test_a_hold_and_a_withdraw_settle_the_place_where_nobody_else_read_it(tmp_pa
         AnswersReturned(collated.proof, _held_and_withdrawn(), tmp_path / "repo")
     )
     assert result is not None, out
-    assert events.Settled(PLACE) in out
+    assert events.Decided(PLACE, None, ("block-context",)) in out
     assert _state_at(result.proof, PLACE) == "stands"
     assert next(p.text for p in result.proof.places if p.address == PLACE) == CORRECTED
     assert result.batch is None
@@ -936,7 +936,7 @@ def test_two_patches_at_one_slot_compose_onto_the_proof(tmp_path):
     }
     out, result = handle(AnswersReturned(collated.proof, answers, tmp_path / "repo"))
     assert result is not None, out
-    assert events.Settled(PLACE) in out
+    assert events.Decided(PLACE, None, ("block-context",)) in out
     assert (
         next(p.text for p in result.proof.places if p.address == PLACE)
         == "# ONE\n# TWO\n# THREE"
@@ -1294,8 +1294,8 @@ def test_the_chief_rules_a_moves_placement_then_its_ends(tmp_path):
     )
     assert closed is not None, out
     ruled = {p.address: p.disposition for p in closed.proof.places}
-    assert events.Settled(PLACE, ruled[PLACE]) in out
-    assert events.Settled("m.py@b2", ruled["m.py@b2"]) in out
+    assert events.Decided(PLACE, ruled[PLACE]) in out
+    assert events.Decided("m.py@b2", ruled["m.py@b2"]) in out
     texts_by_address = {p.address: p.text for p in closed.proof.places}
     assert texts_by_address[PLACE] == REMAINDER
     assert texts_by_address["m.py@b2"] == CHIEFS_OWN
@@ -1527,7 +1527,7 @@ def test_a_second_turn_reads_the_first_turns_answers_and_its_own(tmp_path):
         )
     )
     assert result is not None, out
-    assert events.Settled(PLACE) in out
+    assert events.Decided(PLACE, None, ("function-context",)) in out
     assert next(p.text for p in result.proof.places if p.address == PLACE) == DOS
     assert sorted(_answers_at(result.proof, PLACE)) == ["1", "2"]
 
@@ -1555,7 +1555,7 @@ def test_a_disposition_at_a_place_the_answers_settled_is_refused(tmp_path):
     assert (
         "copy-chief",
         PLACE,
-        "not carried forward -- a place the roles settled takes only a recast",
+        "not carried forward -- a place the roles decided takes only a recast",
     ) in _refusals(out)
 
 
@@ -1609,7 +1609,7 @@ def test_a_recast_repeating_the_settled_text_is_refused(tmp_path):
     assert (
         "copy-chief",
         PLACE,
-        "nothing to recast -- the prose is the text the roles settled",
+        "nothing to recast -- the prose is the text the roles decided",
     ) in _refusals(out)
 
 

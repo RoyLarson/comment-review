@@ -6,7 +6,7 @@
 
 Two inputs, and they differ in where the decision comes from. A copy is folded
 here: its marks are turned into places (`flows.places.places_of`), the Unit of
-Work decides every one of them, and each place the fold settled a text for
+Work decides every one of them, and each place the fold decided a text for
 becomes one alteration. A closed proof already holds every place the fold
 decided, so nothing is folded again -- the places are read back and each whose
 text differs from its base becomes one alteration.
@@ -61,7 +61,7 @@ from comment_review.desk.proof.edit_copy import EditCopy
 from comment_review.desk.proof.master_proof import MasterProof
 from comment_review.desk.proof.move import Move, Placement, is_open
 from comment_review.desk.proof.place import Place
-from comment_review.desk.proof.state import SETTLED
+from comment_review.desk.proof.state import DECIDED
 from comment_review.desk.work.fold import Fold
 from comment_review.docket.docket import Alteration, Docket, Schedule
 from comment_review.flows.human import queries_in_copies
@@ -336,25 +336,16 @@ def _open_moves(moves: list[Move]) -> list[str]:
 
 
 def _unclosed(places: list[Place]) -> list[str]:
-    """Refusal reasons for unsettled places.
+    """Refusal reasons for undecided places.
 
-    Each place must have a state in `SETTLED` for the proof to close.
+    Each place must have a state in `DECIDED` for the proof to close.
     """
     return [
         f"{CHIEF} {place.address}: {place.state} -- this proof is not closed,"
-        " so nothing on it has settled"
+        " so nothing on it is decided"
         for place in places
-        if place.state not in SETTLED
+        if place.state not in DECIDED
     ]
-
-
-def _sets(place: Place) -> bool:
-    """Whether the write end has anything to set at this place.
-
-    A place the fold decided no text for is nothing to set, and so is one
-    whose decided text is the paragraph already there.
-    """
-    return place.text is not None and place.text != place.base
 
 
 def _approved(
@@ -454,7 +445,7 @@ def docket_of_proof(
 
     decided: dict[str, list[Place]] = {}
     for place in places:
-        if _sets(place):
+        if place.changed:
             decided.setdefault(cue_of(place.address).path, []).append(place)
     touched = {
         name: sorted(place.address for place in here) for name, here in decided.items()

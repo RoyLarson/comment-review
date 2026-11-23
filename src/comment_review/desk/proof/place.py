@@ -68,12 +68,21 @@ class Place:
     #: (`decision-log.md Process: #177`).
     notes: tuple[str, ...] = ()
     #: The roles this place's text still owes a say to, in role order. A text
-    #: settles only once every role that read the place has proposed it or
+    #: is decided only once every role that read the place has proposed it or
     #: accepted it (`decision-log.md Process: #180`), so a place carried
     #: forward names here who has not, and `desk.work.fold.asked` sends it to
     #: them. Empty on a place nothing is carried forward for.
     owed: tuple[str, ...] = ()
     question: Question | None = None
+
+    @property
+    def changed(self) -> bool:
+        """Whether the decided text differs from the base.
+
+        False where no text was decided (`text` is None) and where the
+        decided text is the paragraph already there.
+        """
+        return self.text is not None and self.text != self.base
 
     def serialize(self) -> dict:
         """This place's own fields, as a dict keyed by this class's own field names."""
