@@ -201,7 +201,7 @@ that changed a published name or rule:
 | [galley-and-compositor-write-path](galley-and-compositor-write-path.md) | backend | -- | 75/89 | The galley can overwrite the file under review, and the compositor reads through a normaliser |
 | [exception-hierarchy](exception-hierarchy.md) | backend | -- | 5/16 | Named tuples give us the seam; the hierarchy that catches our own types is not built |
 | [language-rows-in-toml](language-rows-in-toml.md) | backend | -- | 18/20 | 18 rows of pure data sit in shipped Python; references/vocabulary.toml is the pattern |
-| [computed-and-never-read](computed-and-never-read.md) | backend | -- | 14/20 | The insert line, the matter branch, the paragraph index and two repeated full-file scans -- each needs more than a comment fix |
+| [computed-and-never-read](computed-and-never-read.md) | backend | -- | 14/24 | The insert line, the matter branch, the paragraph index and two repeated full-file scans -- each needs more than a comment fix |
 | [dangling-links-resolve-nowhere](dangling-links-resolve-nowhere.md) | systems | -- | 6/7 | 31 relative links resolve nowhere, and two of them are in a live TODO |
 | [drop-the-column](drop-the-column.md) | backend | -- | 9/10 | the column is len(anchor)+1 everywhere; the address system answers what it was added for |
 | [the-roles-are-named-for-what-they-read](the-roles-are-named-for-what-they-read.md) | agents | -- | 2/7 | block-context etc. become the editorial desks; unlike `block` these ARE on the wire |
@@ -314,7 +314,7 @@ that changed a published name or rule:
 | [the-strongest-precedence-has-the-weakest-support](the-strongest-precedence-has-the-weakest-support.md) | agents | -- | 4/5 | The role with verdict precedence has the least mechanical support |
 | [two-live-runs-proposed-fifteen-changes](two-live-runs-proposed-fifteen-changes.md) | agents | -- | 21/23 | Two live runs proposed fifteen changes |
 | [strip-and-fill-the-markers](strip-and-fill-the-markers.md) | backend | -- | 8/9 | A role is handed the paragraph with its `#`/`"""` markers and indentation, and must reproduce them exactly in `change`. Measured 2026-08-29: three consecutive attempts by an agent with full context broke the file, and each failure read as a defect in the setter |
-| [task-agent-vocabulary-home](task-agent-vocabulary-home.md) | agents (the instructions) - backend (the enum they derive from) | -- | 3/8 | The task agent has no vocabulary home and is never told the command set |
+| [task-agent-vocabulary-home](task-agent-vocabulary-home.md) | agents (the instructions) - backend (the enum they derive from) | -- | 3/9 | The task agent has no vocabulary home and is never told the command set |
 | [move-is-a-composite-mark](move-is-a-composite-mark.md) | backend | -- | 47/54 | A move is a composite mark and the code cannot express one |
 
 ### in flight  (0)

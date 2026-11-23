@@ -7245,3 +7245,34 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
 
   **What it settles.** `master_proof.py:367` asks the instruction table which claim keys carry an
   address, and the gate takes no exception for it.
+
+- **#371.** **An old all-caps word changes when its file is next edited, not its line** (Roy,
+  2026-11-22, on code-review finding M106, all-caps prose on lines edited after the rule, offered a
+  rejection as a sweep because the rule changes text "when it is next edited"):
+
+  *"should change to 'when the file is next edited'-agents have been too good at avoiding the
+  comments to avoid the edits"*
+
+  **What it settles.** `CLAUDE.md`'s all-caps rule reads "when the file is next edited". An edit
+  anywhere in a file brings its prose onto the rule; no sweep is filed.
+
+- **#372.** **Dated history in shipped prose is cleared the same way** (Roy, 2026-11-22, on
+  code-review finding M105, dated and attributed rulings in shipped comments across five
+  packages, offered (a) a sweep filed per package or (b) a fix as each file is touched):
+
+  *"yes like M106"*
+
+  **What it settles.** No sweep is filed. A file brought under edit has its shipped prose
+  restated as what the code does now.
+
+- **#373.** **The code review's improvements are triaged** (Roy, 2026-11-22, on the 32
+  improvement findings of the merged review, offered in six groups):
+
+  *"A yes / B yes / C yes / ... D - remaining yes on the todo / E - yes one repair commit /
+  F - reject"*
+
+  **What it settles.** The false comments (M109, M110, M113, M114, M116, M117, M127, M131, M134),
+  the two tests that cannot fail (M107, M119) and the three small fixes (M111, M115, M123) are
+  repaired, the agents-lane prose in its own commit. The callerless code (M118, M120, M121,
+  M122) is filed for deletion, and the plugin vocabulary sites (M126, M128-M130, M132, M133) as
+  one task. M108, M112, M124, M125, M135 and M136 are rejected.

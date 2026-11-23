@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 14 of 20 tasks closed
+Progress: 14 of 24 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (simplify round 7, 2026-08-22 -- found by Pyright and by reading,
@@ -163,3 +163,14 @@ page.py:793-794 for `_SHEBANG`/`_CODING`, which round 7 deleted; those citations
 - [ ] T20 | Delete the paragraph annotations gather computes at
       flows/gather.py:222, keeping its unread list
         > 2026-11-22 Check: no src/ reader or writer of Paragraph.annotations remains
+- [ ] T21 | Delete verify.resolution_problems, texts_at, received_problems and
+      fan_out.fan, which only tests call
+        > 2026-11-22 Check: grep finds no def of the four in src/ (M118)
+- [ ] T22 | Delete proof_setter.py's Step and STEPS, which run() never reads
+        > 2026-11-22 Check: grep STEPS src/ is empty (M120)
+- [ ] T23 | Delete Gathering.reading_contexts and ProofReport.reading_contexts,
+      which only tests read
+        > 2026-11-22 Check: grep reading_contexts src/ is empty (M121)
+- [ ] T24 | Delete the twelve Python grammar keys and one Rust key that are
+      validated but never read
+        > 2026-11-22 Check: every key a definition validates has a reader (M122)
