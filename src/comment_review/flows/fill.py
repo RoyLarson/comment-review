@@ -336,7 +336,8 @@ def page_text_at(
 
     Saved contexts are admitted before reading a page. A move may name a
     destination outside the copies' sheets; its existing paragraph is still
-    the destination's base. Unknown extra paths derive defaults at acquisition.
+    the destination's base. Unknown extra paths take the installed context at
+    acquisition.
 
     Successful empty places and malformed addresses return "", as does an
     unavailable root. Context or page read failures return ReadFailure for

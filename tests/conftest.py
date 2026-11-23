@@ -90,13 +90,29 @@ def build(text: str, name: str = "m.py"):
     assert registry.for_path(path) is not None, (
         f"no language definition for suffix {path.suffix!r}"
     )
-    reading = context_for(path, {}, registry=registry)
+    reading = context_for(path, registry=registry)
     assert not isinstance(reading, ReadFailure), reading
     page = page_for(
         path, text, rel=name, sha=sha_of(text), reading=reading, registry=registry
     )
     assert not isinstance(page, ReadFailure), page
     return page
+
+
+def install_another_reader(monkeypatch) -> None:
+    """Make the installed reading context differ from every saved one.
+
+    The installed reader keeps its language and is renamed, so a context saved
+    before this call no longer matches what `context_for` derives.
+    """
+    from comment_review.flows import reading_context
+    from comment_review.reading.context import ReadingContext
+
+    monkeypatch.setattr(
+        reading_context,
+        "resolve_context",
+        lambda definition: ReadingContext(definition.language, "another-reader"),
+    )
 
 
 def kinds(name: str, text: str) -> list[tuple[int, int, str]]:

@@ -7,21 +7,14 @@ from comment_review.reading.diagnostics import ReadFailure
 
 
 @pytest.fixture
-def selectable_context(monkeypatch):
-    from dataclasses import replace
+def saved_context():
     from pathlib import Path
 
     from comment_review.flows import reading_context as metadata
 
-    registry = metadata.INSTALLED_REGISTRY
-    installed = metadata.reader_for(Path("m.py"), registry)
-    assert installed is not None and not isinstance(installed, ReadFailure)
-    definition, binding = installed
-    selected = replace(
-        definition, defaults={"mode": ""}, choices={"mode": ("", "wide")}
-    )
-    monkeypatch.setattr(metadata, "reader_for", lambda _, registry: (selected, binding))
-    return metadata.context_for(Path("m.py"), {"mode": "wide"})
+    context = metadata.context_for(Path("m.py"))
+    assert not isinstance(context, ReadFailure)
+    return context
 
 
 def _clean_here(address: str) -> dict:
@@ -33,17 +26,28 @@ def _clean_here(address: str) -> dict:
     return {**a_clean(address), "sources": [{"cite": f"{path}:1", "verbatim": "x = 0"}]}
 
 
-def test_same_path_two_settings_retains_first_valid_read(tmp_path, selectable_context):
+def test_same_path_two_contexts_retains_first_valid_read(
+    tmp_path, monkeypatch, saved_context
+):
+    from dataclasses import replace
+
+    from conftest import install_another_reader
+
     path = tmp_path / "m.py"
     path.write_bytes(b"# note\r\nx = 1\r\n")
     cache = {}
     _, page = flow.page_named(
-        "m.py", [], tmp_path, cache, reading_context=selectable_context
+        "m.py", [], tmp_path, cache, reading_context=saved_context
     )
     assert isinstance(page, Page)
-    assert page.reading == selectable_context
+    assert page.reading == saved_context
     assert cache["m.py"].source.text == "# note\r\nx = 1\r\n"
-    _, failure = flow.page_named("m.py", [], tmp_path, cache, settings={"mode": ""})
+    with monkeypatch.context() as patch:
+        install_another_reader(patch)
+        another = replace(saved_context, reader="another-reader")
+        _, failure = flow.page_named(
+            "m.py", [], tmp_path, cache, reading_context=another
+        )
     assert isinstance(failure, ReadFailure)
     assert failure.diagnostics[0].code == "held-context-mismatch"
     assert flow.page_named("m.py", [], tmp_path, cache)[1] is page
@@ -52,8 +56,8 @@ def test_same_path_two_settings_retains_first_valid_read(tmp_path, selectable_co
 @pytest.mark.parametrize(
     "route", ["fill", "check", "texts", "resolution", "copy", "docket"]
 )
-def test_saved_nondefault_context_reaches_shared_read_routes(
-    tmp_path, monkeypatch, selectable_context, route
+def test_saved_context_reaches_shared_read_routes(
+    tmp_path, monkeypatch, saved_context, route
 ):
     from helpers import returned
 
@@ -68,7 +72,7 @@ def test_saved_nondefault_context_reaches_shared_read_routes(
         "role": "block-context",
         "read_from": {"root": str(tmp_path), "revise": 0},
         "sheets": [
-            Sheet.seed("m.py", "", [_clean_here("m.py@b1")], reading=selectable_context)
+            Sheet.seed("m.py", "", [_clean_here("m.py@b1")], reading=saved_context)
         ],
     }
     copy = returned(wire)
@@ -94,7 +98,7 @@ def test_saved_nondefault_context_reaches_shared_read_routes(
         assert verify.copy_problems(copy, ["m.py"], tmp_path, {}, {}) == []
     else:
         assert transcribe.docket_of(copy, tmp_path).schedules == ()
-    assert calls == [selectable_context]
+    assert calls == [saved_context]
 
 
 def test_supplied_source_must_match_first_snapshot(tmp_path):
@@ -158,7 +162,7 @@ def test_known_saved_path_cannot_default_missing_context(tmp_path):
 
 
 def test_fill_move_reads_destination_under_saved_context(
-    tmp_path, monkeypatch, selectable_context
+    tmp_path, monkeypatch, saved_context
 ):
     from comment_review.binder.binder import bind
     from comment_review.flows.distribute import seed
@@ -166,7 +170,7 @@ def test_fill_move_reads_destination_under_saved_context(
 
     path = tmp_path / "m.py"
     path.write_text("x = 0\n# one\n# two\n# three\nx = 1\ny = 2\n", encoding="utf-8")
-    page = flow.page_of(path, rel="m.py", reading_context=selectable_context)
+    page = flow.page_of(path, rel="m.py", reading_context=saved_context)
     assert isinstance(page, Page)
     copy = seed(
         bind([page], read_from={"root": str(tmp_path), "revise": 0}), "block-context"
@@ -193,11 +197,11 @@ def test_fill_move_reads_destination_under_saved_context(
         tmp_path,
     )
     assert why == [] and placed is not None
-    assert calls == [selectable_context]
+    assert calls == [saved_context]
 
 
 def test_disjoint_saved_paths_supply_destination_context(
-    tmp_path, monkeypatch, selectable_context
+    tmp_path, monkeypatch, saved_context
 ):
     from helpers import a_move, returned
 
@@ -224,7 +228,7 @@ def test_disjoint_saved_paths_supply_destination_context(
                             "# one\n# two\n# three\n# two",
                         )
                     ],
-                    reading=selectable_context,
+                    reading=saved_context,
                 )
             ],
         }
@@ -236,14 +240,14 @@ def test_disjoint_saved_paths_supply_destination_context(
         tmp_path,
         {},
         cache,
-        contexts={"m.py": selectable_context, "n.py": selectable_context},
+        contexts={"m.py": saved_context, "n.py": saved_context},
     )
     assert not any("reading context" in problem.message for problem in problems)
-    assert cache["n.py"].context == selectable_context
+    assert cache["n.py"].context == saved_context
 
 
-def test_disjoint_shard_move_uses_full_stage_settings(
-    tmp_path, monkeypatch, selectable_context
+def test_disjoint_shard_move_uses_full_stage_contexts(
+    tmp_path, monkeypatch, saved_context
 ):
     from dataclasses import replace
 
@@ -257,7 +261,7 @@ def test_disjoint_shard_move_uses_full_stage_settings(
     for name in ("m.py", "n.py"):
         path = tmp_path / name
         path.write_text("x = 0\n# one\n# two\n# three\nx = 1\n", encoding="utf-8")
-        page = flow.page_of(path, rel=name, reading_context=selectable_context)
+        page = flow.page_of(path, rel=name, reading_context=saved_context)
         assert isinstance(page, Page)
         pages.append(page)
     binder = bind(pages, read_from={"root": str(tmp_path), "revise": 0})
@@ -290,18 +294,17 @@ def test_disjoint_shard_move_uses_full_stage_settings(
     monkeypatch.setattr(flow, "page_of", read)
     out, result = handle(CopiesReturned("4c", copies, binder, tmp_path, binders=shards))
     assert result is not None, out
-    assert seen["n.py"] == selectable_context
+    assert seen["n.py"] == saved_context
 
 
 def test_context_merge_conflict_refuses_before_source(
-    tmp_path, monkeypatch, selectable_context
+    tmp_path, monkeypatch, saved_context
 ):
-    from pathlib import Path
+    from dataclasses import replace
 
     from helpers import returned
 
     from comment_review.desk.proof.sheet import Sheet
-    from comment_review.flows.reading_context import context_for
     from comment_review.flows.verify import copy_problems
 
     copy = returned(
@@ -309,9 +312,7 @@ def test_context_merge_conflict_refuses_before_source(
             "role": "block-context",
             "read_from": {"root": str(tmp_path), "revise": 0},
             "sheets": [
-                Sheet.seed(
-                    "m.py", "", [_clean_here("m.py@b1")], reading=selectable_context
-                )
+                Sheet.seed("m.py", "", [_clean_here("m.py@b1")], reading=saved_context)
             ],
         }
     )
@@ -320,11 +321,8 @@ def test_context_merge_conflict_refuses_before_source(
         pytest.fail("conflicting saved contexts acquired source")
 
     monkeypatch.setattr(flow, "source_of", forbidden)
-    current = context_for(Path("m.py"), {})
-    assert not isinstance(current, ReadFailure)
-    problems = copy_problems(
-        copy, ["m.py"], tmp_path, {}, {}, contexts={"m.py": current}
-    )
+    other = replace(saved_context, reader="another-reader")
+    problems = copy_problems(copy, ["m.py"], tmp_path, {}, {}, contexts={"m.py": other})
     assert problems and all(problem.role == "block-context" for problem in problems)
     assert "conflicting reading contexts" in problems[0].message
 
@@ -332,7 +330,7 @@ def test_context_merge_conflict_refuses_before_source(
 @pytest.mark.parametrize("known", [False, True])
 @pytest.mark.parametrize("saved", [False, True])
 def test_resolution_context_admission_precedes_acquisition(
-    tmp_path, monkeypatch, selectable_context, known, saved
+    tmp_path, monkeypatch, saved_context, known, saved
 ):
     from comment_review.flows.verify import _unresolved
 
@@ -352,7 +350,7 @@ def test_resolution_context_admission_precedes_acquisition(
         ["m.py"] if known else [],
         tmp_path,
         cache,
-        {"m.py": selectable_context} if saved else {},
+        {"m.py": saved_context} if saved else {},
     )
     if known and not saved:
         assert "saved reading context is missing" in why
@@ -362,7 +360,7 @@ def test_resolution_context_admission_precedes_acquisition(
         assert why == ""
         assert calls == [path]
         if saved:
-            assert cache["m.py"].context == selectable_context
+            assert cache["m.py"].context == saved_context
 
 
 def test_incompatible_context_refused_before_cached_address(tmp_path):
@@ -378,6 +376,6 @@ def test_incompatible_context_refused_before_cached_address(tmp_path):
         [],
         tmp_path,
         cache,
-        reading_context=replace(page.reading, compatibility="0" * 64),
+        reading_context=replace(page.reading, reader="another-reader"),
     )
     assert isinstance(result, ReadFailure)

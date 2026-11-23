@@ -71,7 +71,7 @@ def main(argv: list[str] | None = None) -> int:
     # texts match. Exit stays 0: an unreadable page is not an unreadable root.
     skipped: list[str] = []
     for rel in rels:
-        context = context_for(original / rel, {})
+        context = context_for(original / rel)
         before_source = source_of(original / rel)
         after_source = source_of(revise / rel)
         if isinstance(before_source, ReadFailure) or isinstance(

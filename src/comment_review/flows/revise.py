@@ -238,7 +238,7 @@ def assert_addresses_held(
         if rel not in contexts:
             if reading_contexts is not None:
                 raise AddressesMoved(f"{rel}: missing saved reading context; regather")
-            selected = context_for(Path(original) / rel, {})
+            selected = context_for(Path(original) / rel)
             if isinstance(selected, ReadFailure):
                 raise AddressesMoved(format_failure(selected, path=rel))
             contexts[rel] = selected

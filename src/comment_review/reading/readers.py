@@ -1,8 +1,7 @@
 """Explicit installed paragraph readers and language grammar validation."""
 
-import unicodedata
 from collections.abc import Callable, Mapping
-from dataclasses import dataclass, replace
+from dataclasses import dataclass
 from pathlib import Path
 from types import MappingProxyType
 from typing import TypeAlias
@@ -29,26 +28,20 @@ class ReaderBinding:
     """Installed callables and metadata independent of the source being read."""
 
     reader: str
-    revision: str
     capabilities: tuple[str, ...]
-    grammar_identity: str
     read: SourceReader
     validate: Callable[[LanguageDefinition], ReadFailure | None]
 
     def __post_init__(self) -> None:
-        """Require explicit identities, unique capabilities and callable operations."""
-        for field in ("reader", "revision"):
-            value = getattr(self, field)
-            if not isinstance(value, str) or not value:
-                raise ValueError(f"{field} must be a nonempty string")
+        """Require an explicit identity, unique capabilities and callable operations."""
+        if not isinstance(self.reader, str) or not self.reader:
+            raise ValueError("reader must be a nonempty string")
         if (
             not isinstance(self.capabilities, tuple)
             or any(not isinstance(value, str) for value in self.capabilities)
             or len(set(self.capabilities)) != len(self.capabilities)
         ):
             raise ValueError("capabilities must be a tuple of unique strings")
-        if not isinstance(self.grammar_identity, str):
-            raise ValueError("grammar_identity must be a string")
         for field in ("read", "validate"):
             if not callable(getattr(self, field)):
                 raise ValueError(f"{field} must be callable")
@@ -120,7 +113,6 @@ INSTALLED_BINDINGS = MappingProxyType(
     {
         "rust-lexical": ReaderBinding(
             "rust-lexical",
-            "2",
             (
                 "comments",
                 "strings",
@@ -129,13 +121,11 @@ INSTALLED_BINDINGS = MappingProxyType(
                 "protected-directives",
                 "lexical",
             ),
-            "Rust Reference lexical",
             _read_rust,
             validate_rust,
         ),
         "python-lexical": ReaderBinding(
             "python-lexical",
-            "2",
             (
                 "comments",
                 "strings",
@@ -144,7 +134,6 @@ INSTALLED_BINDINGS = MappingProxyType(
                 "protected-directives",
                 "lexical",
             ),
-            "Python 3.15 lexical",
             _read_python,
             validate_python,
         ),
@@ -163,13 +152,6 @@ def reader_for(
     binding = bind_reader(definition, INSTALLED_BINDINGS)
     if isinstance(binding, ReadFailure):
         return binding
-    if binding.reader == "python-lexical":
-        binding = replace(
-            binding,
-            grammar_identity=(
-                f"{binding.grammar_identity}; Unicode {unicodedata.unidata_version}"
-            ),
-        )
     return definition, binding
 
 

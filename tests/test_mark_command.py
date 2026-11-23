@@ -70,7 +70,7 @@ def test_mark_context_refusal_leaves_exact_file_bytes(
 
     copy = run.copy()
     if reading == "incompatible":
-        copy["sheets"][0]["reading"]["compatibility"] = "0" * 64
+        copy["sheets"][0]["reading"]["reader"] = "another-reader"
     else:
         copy["sheets"][0]["reading"] = reading
     run.copy_path.write_text(json.dumps(copy), encoding="utf-8")

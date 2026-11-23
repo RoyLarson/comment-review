@@ -51,7 +51,7 @@ def test_loaded_initial_context_refusal_preserves_files(
     copy = copies_over(binder, {"block-context": {"m.py@b1": a_clean("m.py@b1")}})[0]
     container = {"copy": copy, "binder": binder_wire, "received": received_wire}[target]
     pages = container["sheets" if target == "copy" else "pages"]
-    pages[0]["reading"]["compatibility"] = "0" * 64
+    pages[0]["reading"]["reader"] = "another-reader"
     inputs = {"binder": binder_wire, "received": received_wire, "copy": copy}
     for name, value in inputs.items():
         (tmp_path / f"{name}.json").write_text(json.dumps(value), encoding="utf-8")

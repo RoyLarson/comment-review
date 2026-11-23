@@ -106,12 +106,7 @@ class MasterProof:
                 problems.append(f"{where}: malformed page_readings; regather")
                 continue
             try:
-                validated = ReadingContext(
-                    context.language,
-                    context.reader,
-                    context.compatibility,
-                    context.settings,
-                )
+                validated = ReadingContext(context.language, context.reader)
             except (TypeError, ValueError):
                 problems.append(f"{where}: {path}: malformed reading context; regather")
                 continue

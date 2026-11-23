@@ -16,10 +16,7 @@ _WIRE_FIELDS = frozenset(
         "language",
         "suffixes",
         "reader",
-        "revision",
         "capabilities",
-        "defaults",
-        "choices",
         "rules",
     }
 )
@@ -47,18 +44,11 @@ def decode_definition(text: str) -> LanguageDefinition | ReadFailure:
     if type(fields["format"]) is not int or fields["format"] != 1:
         return _definition_failure("format must be integer 1")
     try:
-        choices = {
-            key: _array_tuple(value, f"choices.{key}")
-            for key, value in _mapping(fields["choices"], "choices").items()
-        }
         return LanguageDefinition(
             language=fields["language"],
             suffixes=_array_tuple(fields["suffixes"], "suffixes"),
             reader=fields["reader"],
-            revision=fields["revision"],
             capabilities=_array_tuple(fields["capabilities"], "capabilities"),
-            defaults=fields["defaults"],
-            choices=choices,
             rules=fields["rules"],
         )
     except ValueError as error:
@@ -72,17 +62,12 @@ def _definition_failure(message: str) -> ReadFailure:
     )
 
 
-def _string_tuple(
-    value: object, field: str, *, allow_empty: bool = False
-) -> tuple[str, ...]:
+def _string_tuple(value: object, field: str) -> tuple[str, ...]:
     """Validate a tuple of unique strings without changing its spelling."""
     if not isinstance(value, tuple):
         raise ValueError(f"{field} must be a tuple of strings")
-    if any(
-        not isinstance(item, str) or (not allow_empty and not item) for item in value
-    ):
-        qualifier = "" if allow_empty else "nonempty "
-        raise ValueError(f"{field} must contain {qualifier}strings")
+    if any(not isinstance(item, str) or not item for item in value):
+        raise ValueError(f"{field} must contain nonempty strings")
     if len(set(value)) != len(value):
         raise ValueError(f"{field} must contain unique strings")
     return cast(tuple[str, ...], value)
@@ -122,15 +107,12 @@ class LanguageDefinition:
     language: str
     suffixes: tuple[str, ...]
     reader: str
-    revision: str
     capabilities: tuple[str, ...]
-    defaults: Mapping[str, str]
-    choices: Mapping[str, tuple[str, ...]]
     rules: Mapping[str, object]
 
     def __post_init__(self) -> None:
         """Validate configuration and detach it from caller-owned mappings."""
-        for field in ("language", "reader", "revision"):
+        for field in ("language", "reader"):
             value = getattr(self, field)
             if not isinstance(value, str) or not value:
                 raise ValueError(f"{field} must be a nonempty string")
@@ -140,20 +122,5 @@ class LanguageDefinition:
         if len({suffix.lower() for suffix in self.suffixes}) != len(self.suffixes):
             raise ValueError("suffixes must be unique after lowercasing")
         _string_tuple(self.capabilities, "capabilities")
-        defaults = _mapping(self.defaults, "defaults")
-        choices = _mapping(self.choices, "choices")
-        if defaults.keys() != choices.keys():
-            raise ValueError("defaults and choices must have the same settings keys")
-        for key, raw_options in choices.items():
-            if not key:
-                raise ValueError("setting keys must be nonempty strings")
-            options = _string_tuple(raw_options, f"choices.{key}", allow_empty=True)
-            if not options:
-                raise ValueError(f"choices.{key} must be nonempty")
-            default = defaults[key]
-            if not isinstance(default, str) or default not in options:
-                raise ValueError(f"defaults.{key} must be a declared string choice")
-        object.__setattr__(self, "defaults", MappingProxyType(dict(defaults)))
-        object.__setattr__(self, "choices", MappingProxyType(dict(choices)))
         rules = _mapping(self.rules, "rules")
         object.__setattr__(self, "rules", _freeze_rule(rules, "rules"))

@@ -23,7 +23,6 @@ own files.
 """
 
 import json
-from collections.abc import Callable
 from pathlib import Path
 
 from comment_review import exceptions
@@ -52,24 +51,17 @@ def _object(path: Path, noun: str) -> tuple[dict | None, list[str]]:
     return loaded, []
 
 
-def load_value(
-    path: Path,
-    *,
-    object_pairs_hook: Callable[[list[tuple[str, object]]], object] | None = None,
-) -> tuple[object, list[str]]:
+def load_value(path: Path) -> tuple[object, list[str]]:
     """The file as any JSON value, or the reason there is none.
 
     A role's answered batch and the chief's rulings are lists, which
     `object_of` refuses by design; the shape is the caller's question.
-
-    `object_pairs_hook` goes to `json.loads`; `flows.reading_context.load_settings`
-    passes one that refuses a repeated key.
     """
     text, why = load_text(path)
     if text is None:
         return None, why
     try:
-        return json.loads(text, object_pairs_hook=object_pairs_hook), []
+        return json.loads(text), []
     except ValueError as err:
         return None, [f"{path} is not JSON: {err}"]
 

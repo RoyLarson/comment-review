@@ -1,6 +1,5 @@
 """Acquire a source snapshot and admit it as a complete page."""
 
-from collections.abc import Mapping
 from dataclasses import replace
 from pathlib import Path
 
@@ -22,18 +21,10 @@ def page_of(
     source: Source | None = None,
     *,
     reading_context: ReadingContext | None = None,
-    settings: Mapping[str, str] | None = None,
 ) -> Page | ReadFailure:
     """Build from the supplied snapshot, retaining available failure context."""
     where = rel if rel is not None else path.as_posix()
-    context = context_for(
-        path,
-        settings
-        if settings is not None
-        else dict(reading_context.settings)
-        if reading_context is not None
-        else {},
-    )
+    context = context_for(path)
     if isinstance(context, ReadFailure):
         if reading_context is not None:
             return ContextAdmissionFailure(

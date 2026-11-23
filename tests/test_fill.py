@@ -23,9 +23,7 @@ from comment_review.flows.fill import fill, withdraw
 
 
 @pytest.mark.parametrize("operation", ["fill", "withdraw", "place"])
-@pytest.mark.parametrize(
-    "fault", ["missing", "malformed", "digest", "language", "reader", "settings"]
-)
+@pytest.mark.parametrize("fault", ["missing", "malformed", "language", "reader"])
 def test_context_refusal_precedes_address_lookup(
     copy, root, monkeypatch, operation, fault
 ):
@@ -37,10 +35,7 @@ def test_context_refusal_precedes_address_lookup(
     elif fault == "malformed":
         sheet["reading"] = []
     else:
-        key = "compatibility" if fault == "digest" else fault
-        sheet["reading"][key] = (
-            {"unknown": "choice"} if fault == "settings" else "0" * 64
-        )
+        sheet["reading"][fault] = "0" * 64
     before = json.dumps(copy)
 
     def forbidden(*args):
@@ -63,40 +58,22 @@ def test_context_refusal_precedes_address_lookup(
 BASE = "# one\n# two\n# three\n"
 
 
-def test_place_on_page_transports_saved_effective_settings(copy, root, monkeypatch):
-    from types import SimpleNamespace
-
+def test_place_on_page_transports_saved_context(copy, root, monkeypatch):
     from conftest import build
 
     from comment_review.flows import fill as flow
     from comment_review.flows import reading_context as metadata
     from comment_review.reading.context import ReadingContext
     from comment_review.reading.context_io import context_to_wire
-    from comment_review.reading.definitions import LanguageDefinition
 
     page = build(PAGE)
-    definition = LanguageDefinition(
-        "test-language",
-        (".py",),
-        "test-reader",
-        "1",
-        ("comments",),
-        {"mode": ""},
-        {"mode": ("", "wide")},
-        {},
-    )
-    binding = SimpleNamespace(revision="1", grammar_identity="test-grammar")
-    monkeypatch.setattr(
-        metadata, "reader_for", lambda path, registry: (definition, binding)
-    )
-    saved = metadata.context_for(root / "m.py", {"mode": "wide"})
+    saved = metadata.context_for(root / "m.py")
     assert isinstance(saved, ReadingContext)
     copy["sheets"][0]["reading"] = context_to_wire(saved)
 
     def read(path, *, rel, reading_context=None):
         assert path == root / "m.py" and rel == "m.py"
-        assert reading_context is not None
-        assert reading_context.settings == (("mode", "wide"),)
+        assert reading_context == saved
         return page
 
     monkeypatch.setattr(flow, "page_of", read)

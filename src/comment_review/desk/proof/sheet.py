@@ -144,7 +144,7 @@ class Sheet:
         sha: that page's sha when it was gathered. Read by
             `flows.transcribe.docket_of`, which writes it onto the docket page so
             the setter can refuse a page that moved underneath the run.
-        reading: the page's saved language identity and effective settings.
+        reading: the page's saved language and reader.
         marks: one `Mark` per place a role ruled on, in the order they came
             back.
         unruled: the address of every place handed to the role and left

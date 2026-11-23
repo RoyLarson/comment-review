@@ -66,8 +66,6 @@ def run(
     repo: Path,
     base: str,
     paths: Sequence[Path],
-    *,
-    settings: Mapping[Path, Mapping[str, str]] | None = None,
 ) -> ProofReport:
     """Prove admitted pages against their exact Git baselines and sibling endings."""
     repo = repo.resolve()
@@ -76,11 +74,6 @@ def run(
     messages: list[str] = []
     failures = unchecked = freeform = 0
     contexts: dict[Path, ReadingContext] = {}
-    overrides = (
-        {path.resolve(): value for path, value in settings.items()}
-        if settings is not None
-        else {}
-    )
     for raw in paths:
         target = raw.resolve()
         try:
@@ -95,7 +88,7 @@ def run(
             )
             freeform += 1
             continue
-        context = context_for(target, overrides.get(target, {}))
+        context = context_for(target)
         if isinstance(context, ReadFailure):
             messages.append(f"FAIL      {format_failure(context, path=rel)}")
             failures += 1

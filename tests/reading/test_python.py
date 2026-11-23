@@ -2529,7 +2529,7 @@ def test_doc_ownership_empty_declarations(python_definition, text):
 def test_doc_ownership_rejects_invalid_definition(python_definition):
     scan, structure = read_placement('"doc"\n', python_definition)
     assert not isinstance(structure, ReadFailure)
-    definition = replace(python_definition, revision="unsupported")
+    definition = replace(python_definition, reader="unsupported")
     documentation = import_module("comment_review.reading.python.documentation")
     result = documentation.documentation_in(scan, structure, definition)
     assert isinstance(result, ReadFailure)
@@ -2661,7 +2661,7 @@ def test_payloads_required_escapes_and_unavailable_names_fail_at_raw_escape(
 
 def test_payloads_reject_invalid_definition(python_definition):
     scan, expression, _ = read_payload('"doc"\n', python_definition)
-    definition = replace(python_definition, revision="unsupported")
+    definition = replace(python_definition, reader="unsupported")
     documentation = import_module("comment_review.reading.python.documentation")
     result = documentation.decode_documentation(scan, expression, definition)
     assert isinstance(result, ReadFailure)
@@ -2928,7 +2928,7 @@ def test_sections_reject_invalid_definition_before_projection(python_definition)
     except ModuleNotFoundError:
         pytest.fail("Python whole-source sections are not implemented", pytrace=False)
     result = projection.sections_for(
-        scan, structure, payloads, replace(python_definition, revision="bad"), protected
+        scan, structure, payloads, replace(python_definition, reader="bad"), protected
     )
     assert isinstance(result, ReadFailure)
     assert result.diagnostics[0].stage == ReadStage.SELECT

@@ -71,15 +71,15 @@ def test_resumed_context_refusal_precedes_addresses_without_mutation(
             copy.sheets[0],
             reading=None
             if fault == "sheet"
-            else replace(context, compatibility="0" * 64),
+            else replace(context, reader="another-reader"),
         )
         proof = replace(
             proof, edit_copies=(replace(copy, sheets=(sheet,)), *proof.edit_copies[1:])
         )
     elif fault == "installed":
-        monkeypatch.setattr(
-            "comment_review.flows.reading_context.PLACEMENT_REVISION", "changed"
-        )
+        from conftest import install_another_reader
+
+        install_another_reader(monkeypatch)
     elif fault == "destination":
         proof = replace(proof, page_shas={"extra.py": "unchanged"})
     else:
@@ -89,7 +89,7 @@ def test_resumed_context_refusal_precedes_addresses_without_mutation(
             page_shas={"extra.py": "unchanged"},
             page_readings={
                 **proof.page_readings,
-                "extra.py": replace(context, compatibility="0" * 64),
+                "extra.py": replace(context, reader="another-reader"),
             },
         )
     answers = _both_hold()
@@ -139,7 +139,7 @@ def test_initial_context_refusal_precedes_address_work(
     ]
     received = binder
     context = binder.pages[0].reading
-    changed = None if fault == "missing" else replace(context, compatibility="0" * 64)
+    changed = None if fault == "missing" else replace(context, reader="another-reader")
     if target == "copy":
         copies[0] = replace(
             copies[0], sheets=(replace(copies[0].sheets[0], reading=changed),)
@@ -199,13 +199,10 @@ def test_initial_context_admits_binders_without_copies(tmp_path, monkeypatch, ta
     assert any("m.py" in why and "regather" in why for _, _, why in _refusals(out))
 
 
-@pytest.mark.parametrize("revision", ["reader", "grammar", "rules", "placement"])
-def test_initial_context_refuses_installed_changes_with_unchanged_source(
-    tmp_path, monkeypatch, revision
+def test_initial_context_refuses_an_installed_change_with_unchanged_source(
+    tmp_path, monkeypatch
 ):
-    from comment_review.flows import reading_context
-    from comment_review.reading.definitions import LanguageDefinition
-    from comment_review.reading.readers import ReaderBinding
+    from conftest import install_another_reader
 
     binder = a_real_binder_over(tmp_path, {"m.py@b1": BASE})
     copies = [
@@ -214,25 +211,7 @@ def test_initial_context_refuses_installed_changes_with_unchanged_source(
             binder, {"block-context": {"m.py@b1": a_clean("m.py@b1")}}
         )
     ]
-    installed = reading_context.reader_for
-
-    def revised(path, registry):
-        selected = installed(path, registry)
-        assert isinstance(selected, tuple)
-        definition, binding = selected
-        assert isinstance(definition, LanguageDefinition)
-        assert isinstance(binding, ReaderBinding)
-        if revision == "rules":
-            definition = replace(definition, rules={"changed": True})
-        elif revision == "reader":
-            binding = replace(binding, revision="changed")
-        elif revision == "grammar":
-            binding = replace(binding, grammar_identity="changed")
-        return definition, binding
-
-    monkeypatch.setattr(reading_context, "reader_for", revised)
-    if revision == "placement":
-        monkeypatch.setattr(reading_context, "PLACEMENT_REVISION", "changed")
+    install_another_reader(monkeypatch)
 
     def forbidden(*args, **kwargs):
         pytest.fail("changed installed metadata reached source verification")
@@ -242,69 +221,6 @@ def test_initial_context_refuses_installed_changes_with_unchanged_source(
     out, result = handle(CopiesReturned("4c", copies, binder, tmp_path))
     assert result is None
     assert any("differs" in why and "regather" in why for _, _, why in _refusals(out))
-
-
-@pytest.mark.parametrize("matching", [False, True])
-def test_initial_context_compares_saved_settings_before_fold(
-    tmp_path, monkeypatch, matching
-):
-    from pathlib import Path
-
-    from comment_review.flows import reading_context
-    from comment_review.reading.context import ReadingContext
-    from comment_review.reading.definitions import LanguageDefinition
-    from comment_review.reading.readers import ReaderBinding
-
-    binder = a_real_binder_over(tmp_path, {"m.py@b1": BASE})
-    installed = reading_context.reader_for
-
-    def configured(path, registry):
-        selected = installed(path, registry)
-        assert isinstance(selected, tuple)
-        definition, binding = selected
-        assert isinstance(definition, LanguageDefinition)
-        assert isinstance(binding, ReaderBinding)
-        return replace(
-            definition,
-            language="test-settings",
-            reader="test-settings-reader",
-            defaults={"mode": "narrow"},
-            choices={"mode": ("narrow", "wide")},
-        ), replace(binding, reader="test-settings-reader", validate=lambda _: None)
-
-    monkeypatch.setattr(reading_context, "reader_for", configured)
-    wide = reading_context.context_for(Path("m.py"), {"mode": "wide"})
-    narrow = reading_context.context_for(Path("m.py"), {"mode": "narrow"})
-    assert isinstance(wide, ReadingContext) and isinstance(narrow, ReadingContext)
-    binder = replace(binder, pages=(replace(binder.pages[0], reading=wide),))
-    copies = [
-        returned(wire)
-        for wire in copies_over(
-            binder, {"block-context": {"m.py@b1": a_clean("m.py@b1")}}
-        )
-    ]
-    copies[0] = replace(
-        copies[0],
-        sheets=(replace(copies[0].sheets[0], reading=wide if matching else narrow),),
-    )
-    if not matching:
-
-        def forbidden(*args, **kwargs):
-            pytest.fail("contradictory settings reached source verification")
-
-        monkeypatch.setattr(
-            "comment_review.flows.bus.admitted_copy_problems", forbidden
-        )
-    out, result = handle(CopiesReturned("4c", copies, binder, tmp_path))
-    if matching:
-        assert result is not None, _refusals(out)
-        assert [place.address for place in result.proof.places] == ["m.py@b1"]
-        assert result.proof.places[0].base == BASE
-    else:
-        assert result is None
-        assert any(
-            "differs" in why and "regather" in why for _, _, why in _refusals(out)
-        )
 
 
 def test_initial_context_accepts_mixed_languages_empty_sources_and_no_copies(tmp_path):
@@ -1997,12 +1913,12 @@ def test_destination_context_is_captured_before_installed_rules_change(
 
     def changed_after_base(copies, held):
         result = bases(copies, held)
-        captured.append(context_for(message.root / "n.py", {}))
+        captured.append(context_for(message.root / "n.py"))
 
-        def changed(path, settings):
-            context = context_for(path, settings)
+        def changed(path):
+            context = context_for(path)
             assert not isinstance(context, ReadFailure)
-            return replace(context, compatibility="0" * 64)
+            return replace(context, reader="another-reader")
 
         monkeypatch.setattr(on_the_page, "context_for", changed)
         return result

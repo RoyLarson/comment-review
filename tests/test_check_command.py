@@ -49,7 +49,7 @@ def test_check_context_refusal_precedes_address_checks(
     copy_path = Path(path)
     value = json.loads(copy_path.read_text(encoding="utf-8"))
     if reading == "incompatible":
-        value["sheets"][0]["reading"]["compatibility"] = "0" * 64
+        value["sheets"][0]["reading"]["reader"] = "another-reader"
     else:
         value["sheets"][0]["reading"] = reading
     copy_path.write_text(json.dumps(value), encoding="utf-8")

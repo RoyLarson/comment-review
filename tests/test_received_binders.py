@@ -1,7 +1,6 @@
 import json
 from collections import Counter
 from dataclasses import replace
-from pathlib import Path
 
 import pytest
 from conftest import run_command
@@ -18,27 +17,16 @@ from comment_review.flows.distribute import assigned_binder, seed
 from comment_review.flows.fill import withdraw
 from comment_review.flows.page_for import page_of
 from comment_review.flows.proof_io import load_proof
-from comment_review.reading.definitions import LanguageDefinition
-from comment_review.reading.readers import ReaderBinding
 
 
 @pytest.mark.parametrize("target", ["copy", "received", "stage"])
-@pytest.mark.parametrize("field", ["compatibility", "settings", "missing"])
+@pytest.mark.parametrize("field", ["reader", "missing"])
 def test_received_context_refusal_precedes_coverage(
     tmp_path, monkeypatch, target, field
 ):
     binder, received, wires, stage = _shards(tmp_path)
     context = received[0].pages[0].reading
-    changed = (
-        None
-        if field == "missing"
-        else replace(
-            context,
-            **{"compatibility": "0" * 64}
-            if field == "compatibility"
-            else {"settings": (("invented", "yes"),)},
-        )
-    )
+    changed = None if field == "missing" else replace(context, reader="another-reader")
     copies = [returned(wire) for wire in wires]
     if target == "copy":
         copies[0] = replace(
@@ -80,77 +68,20 @@ def test_received_context_accepts_disjoint_shards(tmp_path):
     )
 
 
-@pytest.mark.parametrize("revision", ["reader", "rules"])
-def test_installed_revision_refused_before_received_coverage(
-    tmp_path, monkeypatch, revision
+def test_installed_reader_change_refused_before_received_coverage(
+    tmp_path, monkeypatch
 ):
+    from conftest import install_another_reader
+
     binder, received, wires, stage = _shards(tmp_path)
-    installed = reading_context.reader_for
-
-    def revised(path, registry):
-        selected = installed(path, registry)
-        assert isinstance(selected, tuple)
-        definition, binding = selected
-        assert isinstance(definition, LanguageDefinition)
-        assert isinstance(binding, ReaderBinding)
-        if revision == "reader":
-            binding = replace(binding, revision="changed")
-        else:
-            definition = replace(definition, rules={"changed": True})
-        return definition, binding
-
-    monkeypatch.setattr(reading_context, "reader_for", revised)
+    install_another_reader(monkeypatch)
 
     def forbidden(*args, **kwargs):
-        pytest.fail("required places used before revision refusal")
+        pytest.fail("required places used before reader change refusal")
 
     monkeypatch.setattr(verify, "required_places", forbidden)
     assert verify.received_problems(
         [returned(wire) for wire in wires], received, binder, stage
-    )
-
-
-def test_valid_installed_settings_must_agree_on_shared_path(tmp_path, monkeypatch):
-    binder, received, wires, stage = _shards(tmp_path)
-    installed = reading_context.reader_for
-
-    def configured(path, registry):
-        selected = installed(path, registry)
-        assert isinstance(selected, tuple)
-        definition, binding = selected
-        assert isinstance(definition, LanguageDefinition)
-        assert isinstance(binding, ReaderBinding)
-        return replace(
-            definition,
-            language="test-settings",
-            reader="test-settings-reader",
-            defaults={"mode": "narrow"},
-            choices={"mode": ("narrow", "wide")},
-        ), replace(binding, reader="test-settings-reader", validate=lambda _: None)
-
-    monkeypatch.setattr(reading_context, "reader_for", configured)
-    narrow = reading_context.context_for(Path("m.py"), {"mode": "narrow"})
-    wide = reading_context.context_for(Path("m.py"), {"mode": "wide"})
-    received = tuple(
-        replace(
-            shard, pages=tuple(replace(page, reading=narrow) for page in shard.pages)
-        )
-        for shard in received
-    )
-    binder = replace(
-        binder, pages=tuple(replace(page, reading=narrow) for page in binder.pages)
-    )
-    copies = [returned(seed(shard, "block-context")) for shard in received]
-    copies[0] = replace(copies[0], sheets=(replace(copies[0].sheets[0], reading=wide),))
-
-    def forbidden(*args, **kwargs):
-        pytest.fail("required places used before setting mismatch refusal")
-
-    monkeypatch.setattr(verify, "required_places", forbidden)
-    problems = verify.received_problems(copies, received, binder, stage)
-    assert any(
-        "m.py" in problem.message and "differs" in problem.message
-        for problem in problems
     )
 
 
@@ -171,37 +102,11 @@ def test_extra_stage_sheet_context_is_compared_without_expanding_shard(
     tmp_path, monkeypatch, matching
 ):
     binder, received, wires, stage = _shards(tmp_path)
-    installed = reading_context.reader_for
-
-    def configured(path, registry):
-        selected = installed(path, registry)
-        assert isinstance(selected, tuple)
-        definition, binding = selected
-        assert isinstance(definition, LanguageDefinition)
-        assert isinstance(binding, ReaderBinding)
-        return replace(
-            definition,
-            language="test-settings",
-            reader="test-settings-reader",
-            defaults={"mode": "narrow"},
-            choices={"mode": ("narrow", "wide")},
-        ), replace(binding, reader="test-settings-reader", validate=lambda _: None)
-
-    monkeypatch.setattr(reading_context, "reader_for", configured)
-    narrow = reading_context.context_for(Path("m.py"), {"mode": "narrow"})
-    wide = reading_context.context_for(Path("m.py"), {"mode": "wide"})
-    binder = replace(
-        binder, pages=tuple(replace(page, reading=narrow) for page in binder.pages)
-    )
-    received = tuple(
-        replace(
-            shard, pages=tuple(replace(page, reading=narrow) for page in shard.pages)
-        )
-        for shard in received
-    )
+    installed = binder.pages[0].reading
+    other = replace(installed, reader="another-reader")
     copies = [returned(seed(shard, "block-context")) for shard in received]
     extra = replace(
-        copies[1].sheets[0], reading=narrow if matching else wide, unruled=()
+        copies[1].sheets[0], reading=installed if matching else other, unruled=()
     )
     copies[0] = replace(copies[0], sheets=(*copies[0].sheets, extra))
 
@@ -230,7 +135,7 @@ def test_zero_copies_still_admit_present_binder_metadata(
     binder, _, _, _ = _shards(tmp_path)
     page = binder.pages[0]
     context = (
-        None if invalid == "missing" else replace(page.reading, compatibility="0" * 64)
+        None if invalid == "missing" else replace(page.reading, reader="another-reader")
     )
     binder = replace(binder, pages=(replace(page, reading=context),))
 

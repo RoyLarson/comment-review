@@ -6,7 +6,6 @@ edit copy per dispatch. The task agent reads the order from SKILL.md (`#73`).
 """
 
 import json
-from dataclasses import replace
 from pathlib import Path
 
 import pytest
@@ -49,7 +48,7 @@ def test_stage_admits_later_language_before_consuming_first_shard(
     tmp_path, monkeypatch, capsys, incompatible
 ):
     from comment_review.flows import reading_context
-    from comment_review.reading.readers import ReaderBinding
+    from comment_review.reading.context import ReadingContext
 
     later = "b.rs"
 
@@ -75,20 +74,12 @@ def test_stage_admits_later_language_before_consuming_first_shard(
     )
     before = {path: path.read_bytes() for path in tmp_path.rglob("*") if path.is_file()}
     if incompatible:
-        original = reading_context.reader_for
 
-        def changed(path, registry):
-            selected = original(path, registry)
-            assert isinstance(selected, tuple)
-            definition, binding = selected
-            assert isinstance(binding, ReaderBinding)
-            return definition, (
-                replace(binding, revision="later-changed")
-                if path.name == later
-                else binding
-            )
+        def changed(definition):
+            reader = "rust-changed" if definition.language == "rust" else None
+            return ReadingContext(definition.language, reader or definition.reader)
 
-        monkeypatch.setattr(reading_context, "reader_for", changed)
+        monkeypatch.setattr(reading_context, "resolve_context", changed)
 
         def forbidden(*args, **kwargs):
             pytest.fail("first shard consumed before later language admission")
@@ -115,40 +106,14 @@ def test_stage_admits_later_language_before_consuming_first_shard(
 
 
 @pytest.mark.parametrize("route", ["seed", "stage"])
-@pytest.mark.parametrize(
-    "installed_change", ["placement", "reader", "definition", "rules"]
-)
 def test_distribution_refuses_installed_incompatible_saved_binder_before_addresses(
-    tmp_path, monkeypatch, capsys, route, installed_change
+    tmp_path, monkeypatch, capsys, route
 ):
-    from comment_review.flows import reading_context
-    from comment_review.reading.definitions import LanguageDefinition
-    from comment_review.reading.readers import ReaderBinding
+    from conftest import install_another_reader
 
     root = _tree(tmp_path, monkeypatch, capsys)
     before = {path: path.read_bytes() for path in root.rglob("*") if path.is_file()}
-    if installed_change == "placement":
-        monkeypatch.setattr(reading_context, "PLACEMENT_REVISION", "changed")
-    else:
-        original = reading_context.reader_for
-
-        def changed(path, registry):
-            selected = original(path, registry)
-            assert isinstance(selected, tuple)
-            definition, binding = selected
-            assert isinstance(definition, LanguageDefinition)
-            assert isinstance(binding, ReaderBinding)
-            if installed_change == "reader":
-                binding = replace(binding, revision="changed")
-            elif installed_change == "definition":
-                definition = replace(definition, revision="changed")
-            else:
-                definition = replace(
-                    definition, rules={**definition.rules, "changed": True}
-                )
-            return definition, binding
-
-        monkeypatch.setattr(reading_context, "reader_for", changed)
+    install_another_reader(monkeypatch)
 
     def forbidden(*args, **kwargs):
         pytest.fail("incompatible binder reached saved address consumption")

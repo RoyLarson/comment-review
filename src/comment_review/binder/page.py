@@ -89,8 +89,8 @@ class Page:
         paragraphs: in order down the page, prose and empty places alike.
         cues: EVERY place on the page, filled or not -- see
             `addresser.cue`. It is what makes an `add` citable.
-        reading: how the file was read -- its language, reader, compatibility
-            digest and settings, which a binder carries beside the sha.
+        reading: how the file was read -- its language and reader, which a
+            binder carries beside the sha.
         read: the record the reader made of the file. A proof compares two
             pages' reads to ask whether their code is the same.
         leading: the space below a place, keyed by the place it FOLLOWS --

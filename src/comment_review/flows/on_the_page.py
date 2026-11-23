@@ -1,9 +1,10 @@
 """Read addressed pages once per caller-owned snapshot cache.
 
 Each held result retains its acquired source and requested reading context.
-Requests admit installed compatibility before consulting places, and refuse
-different settings or supplied source versions without replacing the first
-reading. Extra paths derive defaults at acquisition and retain that context.
+Requests admit the installed reading context before consulting places, and
+refuse a different context or supplied source version without replacing the
+first reading. Extra paths take the installed context at acquisition and
+retain it.
 """
 
 import os
@@ -129,7 +130,6 @@ def page_named(
     reading_context: ReadingContext | None = None,
     contexts: Mapping[str, ReadingContext] | None = None,
     source: Source | None = None,
-    settings: Mapping[str, str] | None = None,
 ) -> tuple[str, Page | ReadFailure]:
     """Return a real path and its page or retained expected failure.
 
@@ -138,7 +138,7 @@ def page_named(
     source rather than reacquired. A changed context or source is refused
     without replacing the first result. Unsafe paths never acquire source.
     A supplied contexts map must contain every recorded path requested;
-    only paths outside those records may acquire fresh default readings.
+    only paths outside those records may acquire fresh readings.
     """
     real = real_path(name, paths)
     previous = cache.get(real)
@@ -159,16 +159,9 @@ def page_named(
         if contexts is not None
         else None
     )
-    if requested is None and settings is None and previous is not None:
+    if requested is None and previous is not None:
         requested = previous.context
-    context = context_for(
-        root / real,
-        settings
-        if settings is not None
-        else dict(requested.settings)
-        if requested
-        else {},
-    )
+    context = context_for(root / real)
     if isinstance(context, ReadFailure):
         if previous is None:
             cache[real] = HeldPage(requested, source, context)
@@ -234,12 +227,11 @@ def held_at(
     reading_context: ReadingContext | None = None,
     contexts: Mapping[str, ReadingContext] | None = None,
     source: Source | None = None,
-    settings: Mapping[str, str] | None = None,
 ) -> Held | ReadFailure:
     """Return text and anchor at an address, or an explicit read failure.
 
-    Saved contexts are keyed by real path. A missing extra path uses explicit
-    defaults on its first acquisition. A malformed address or absent place
+    Saved contexts are keyed by real path. A missing extra path takes the
+    installed context on its first acquisition. A malformed address or absent place
     yields empty text and anchor; unreadable or incompatible pages fail.
     """
     addr = cue_of(address)
@@ -253,7 +245,6 @@ def held_at(
         reading_context=reading_context,
         contexts=contexts,
         source=source,
-        settings=settings,
     )
     if isinstance(page, ReadFailure):
         return page

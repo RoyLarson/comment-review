@@ -1246,7 +1246,7 @@ def test_owners_refuses_an_invalid_definition(rust_definition):
     scan_result = scanned("fn f() {}", rust_definition)
     structure = import_module("comment_review.reading.rust.structure")
     result = structure.place_declarations(
-        scan_result, replace(rust_definition, revision="9")
+        scan_result, replace(rust_definition, reader="unsupported")
     )
     assert isinstance(result, ReadFailure)
 
