@@ -2,6 +2,9 @@
 
     open_stage(jacket_file, name, repo) -> (lines, problems)
     close_stage(jacket_file, name, proof) -> problems
+    stage_of(jacket_file, name) -> (OpenStage | None, problems)
+                            an open stage's row, root, binder and copies,
+                            which `collate --jacket` folds
 
 A stage opens once every stage its `reads` chain names has closed. The first
 open copies the manuscript. A stage reading `"original"` is gathered from the
@@ -22,7 +25,8 @@ row the jacket holds, into `<run-dir>/copies/`, and the jacket records the
 root, the binder and the copies dispatched.
 
 A stage closes in topology order: it is open, it is the first row not closed
-whose chain has closed, and the proof is closed and stamped with its name.
+whose chain has closed, and the proof is closed, stamped with its name, and
+folded every copy the jacket records the stage dispatched.
 The jacket records the proof's path and the sha256 of its bytes, and a later
 `stage open` refuses a proof whose bytes changed since.
 """
@@ -32,6 +36,7 @@ import shutil
 import tempfile
 from dataclasses import replace
 from pathlib import Path
+from typing import NamedTuple
 
 from comment_review import exceptions
 from comment_review.binder.addresses import unaddressed
@@ -40,7 +45,12 @@ from comment_review.desk.stages import Stage
 from comment_review.desk.topology import REVISE, read
 from comment_review.flows import revise
 from comment_review.flows.distribute import IncompatibleBinder
-from comment_review.flows.fan_out import OverlappingShards, UncoveredPage, write_dealt
+from comment_review.flows.fan_out import (
+    OverlappingShards,
+    UncoveredPage,
+    received_binder_of,
+    write_dealt,
+)
 from comment_review.flows.gather import gather, not_gathered, unaddressed_report
 from comment_review.flows.jacket import (
     MANUSCRIPT,
@@ -359,6 +369,15 @@ def _close(jacket_file: Path, name: str, proof_path: Path) -> None:
     still_open = unclosed(proof)
     if still_open:
         raise _Refused([f"{proof_path} has not closed", *still_open])
+    if proof.returned != entry.dispatched:
+        missing = [one for one in entry.dispatched if one not in proof.returned]
+        raise _Refused(
+            [
+                f"{proof_path} folded {len(proof.returned)} of the"
+                f" {len(entry.dispatched)} copies stage {name!r} dispatched"
+                + (f"; not returned: {', '.join(missing)}" if missing else "")
+            ]
+        )
     try:
         closed = Closed(
             stored_path(proof_path, jacket_file),
@@ -372,3 +391,77 @@ def _close(jacket_file: Path, name: str, proof_path: Path) -> None:
         )
     except BUILD_ERRORS as err:
         raise _Refused([f"stage {name!r}: {err}"]) from err
+
+
+class Dispatched(NamedTuple):
+    """One copy an open stage dispatched.
+
+    Attributes:
+        name: the copy as the jacket records it, relative to the jacket file.
+        copy: the copy's path.
+        binder: its received binder's path.
+        role: the role its dispatch names.
+    """
+
+    name: str
+    copy: Path
+    binder: Path
+    role: str
+
+
+class OpenStage(NamedTuple):
+    """What `collate` folds an open stage from, all of it off the jacket.
+
+    Attributes:
+        row: the stage's topology row.
+        root: the tree the stage was gathered from.
+        binder: the stage's binder.
+        dispatched: each copy the stage dispatched, in dispatch order.
+    """
+
+    row: Stage
+    root: Path
+    binder: Path
+    dispatched: tuple[Dispatched, ...]
+
+
+def stage_of(jacket_file: Path, name: str) -> tuple[OpenStage | None, list[str]]:
+    """Stage `name` as the jacket records it, while it is open.
+
+    Returns:
+        `(the stage, [])`, or `(None, reasons)` where it is not a row, has not
+        opened, has closed, or records another count of copies than its row
+        dispatches.
+
+    Raises:
+        UnreadableInput: `jacket_file` cannot be read as a jacket.
+    """
+    try:
+        jacket, _, row = _rows(jacket_file, name)
+    except _Refused as refused:
+        return None, refused.reasons
+    entry = jacket.stages.get(name)
+    if entry is None:
+        return None, [f"stage {name!r} has not opened -- open it with `stage open`"]
+    if entry.closed is not None:
+        return None, [f"stage {name!r} has already closed"]
+    if len(entry.dispatched) != len(row.dispatches):
+        return None, [
+            f"{jacket_file} records {len(entry.dispatched)} copies for stage"
+            f" {name!r}, and its row dispatches {len(row.dispatches)}"
+        ]
+    dispatched = []
+    for stored, dispatch in zip(entry.dispatched, row.dispatches, strict=True):
+        copy = resolved_path(stored, jacket_file)
+        dispatched.append(
+            Dispatched(stored, copy, received_binder_of(copy), str(dispatch.role))
+        )
+    return (
+        OpenStage(
+            row,
+            resolved_path(entry.root, jacket_file),
+            resolved_path(entry.binder, jacket_file),
+            tuple(dispatched),
+        ),
+        [],
+    )

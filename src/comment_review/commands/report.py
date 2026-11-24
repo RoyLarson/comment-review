@@ -31,6 +31,9 @@ ESCALATIONS = 4
 # The run paused for the person: human questions and nothing else, nothing
 # saved, and the round runs again once each role has the answer.
 ASKS_THE_HUMAN = 5
+# A copy the stage dispatched did not come back, so no role has a line to act
+# on; nothing was folded, and that dispatch is launched again.
+NOT_RETURNED = 6
 
 
 def refused(why: list[str]) -> int:

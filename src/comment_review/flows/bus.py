@@ -88,6 +88,10 @@ class CopiesReturned(NamedTuple):
         human: the human's answers file, read -- each answer rides on the
             `AsksTheHuman` for the query it answers.
         binders: each copy's received binder, in the same order as the copies.
+        dispatched: the copies the stage dispatched, as the jacket names
+            them, recorded on the proof.
+        returned: the name of each copy in `copies`, in the same order,
+            recorded on the proof.
     """
 
     stage: str
@@ -97,6 +101,8 @@ class CopiesReturned(NamedTuple):
     topology: Stage | None = None
     human: tuple[HumanAnswer, ...] = ()
     binders: tuple[Binder, ...] | None = None
+    dispatched: tuple[str, ...] = ()
+    returned: tuple[str, ...] = ()
 
 
 class AnswersReturned(NamedTuple):
@@ -229,6 +235,8 @@ def _on_copies(message: CopiesReturned) -> tuple[list, Result | None]:
             },
             **{path: page.sha for path, page in extra.items()},
         },
+        dispatched=message.dispatched,
+        returned=message.returned,
     )
     return _commit(proof, admission.fold)
 

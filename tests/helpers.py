@@ -71,7 +71,15 @@ from comment_review.desk.proof.state import CARRIED
 from comment_review.docket.docket import Docket
 from comment_review.flows.bus import CopiesReturned, handle
 from comment_review.flows.distribute import seed
+from comment_review.flows.fan_out import received_binder_of
 from comment_review.flows.fill import fill
+from comment_review.flows.jacket import (
+    JACKET_FILE,
+    Jacket,
+    StageEntry,
+    save_jacket,
+    stored_path,
+)
 from comment_review.flows.page_for import page_of
 from comment_review.flows.proof_io import load_proof
 from comment_review.flows.source import source_of
@@ -1087,7 +1095,7 @@ def deal(
     placed: dict | None = None,
     stage: str = "4c",
 ) -> int:
-    """`collate` over the hand: binder.json, proof0.json, batch1.json.
+    """`collate --jacket` over the hand: jacket.json, proof0.json, batch1.json.
 
     The binder is over real pages written to `tmp_path / "repo"`, which the
     commands read as its root.
@@ -1125,25 +1133,63 @@ def deal(
             _mark, why = fill(copy, ruling, root)
             assert why == [], (role, ruling["address"], why)
         copies.append(copy)
-    (tmp_path / "binder.json").write_text(
-        json.dumps(binder.serialize()), encoding="utf-8"
-    )
     argv = [
+        "--jacket",
+        str(a_jacket_over(tmp_path, binder, copies, stage)),
         "--stage",
         stage,
-        "--binder",
-        str(tmp_path / "binder.json"),
         "--proof-out",
         str(tmp_path / "proof0.json"),
         "--batch-out",
         str(tmp_path / "batch1.json"),
     ]
-    for i, copy in enumerate(copies):
-        path = tmp_path / f"copy{i}.json"
-        path.write_text(json.dumps(copy), encoding="utf-8")
-        argv += ["--edit-copy", str(path)]
     code, _out = run_command(monkeypatch, capsys, collate_command, *argv)
     return code
+
+
+def a_jacket_over(
+    where: Path,
+    binder: Binder,
+    copies: list[dict],
+    stage: str = "4c",
+    topology: str = "",
+    received: list[dict] | None = None,
+) -> Path:
+    """`where/jacket.json` holding `stage` open over these copies, for `collate`.
+
+    The layout is the one `stage open` records: the binder at `binder.json`,
+    each copy at `copy<i>.json` with its received binder where
+    `flows.fan_out.received_binder_of` puts it -- the stage binder, or
+    `received`'s wire in the same order. The root is the binder's own.
+
+    Args:
+        topology: the rows; "" is one editorial row named `stage`
+            dispatching each copy's role in order.
+
+    Returns:
+        The jacket's path.
+    """
+    where.mkdir(parents=True, exist_ok=True)
+    (where / "binder.json").write_text(json.dumps(binder.serialize()), encoding="utf-8")
+    names = []
+    for i, copy in enumerate(copies):
+        path = where / f"copy{i}.json"
+        path.write_text(json.dumps(copy), encoding="utf-8")
+        held = received_binder_of(path)
+        held.parent.mkdir(exist_ok=True)
+        wire = received[i] if received is not None else binder.serialize()
+        held.write_text(json.dumps(wire), encoding="utf-8")
+        names.append(path.name)
+    roles = [copy.get("role") or "block-context" for copy in copies]
+    topology = topology or (
+        f'[[stage]]\nname = "{stage}"\nkind = "editorial"\n'
+        + "".join(f'  [[stage.dispatch]]\n  role = "{role}"\n' for role in roles)
+    )
+    jacket = where / JACKET_FILE
+    entry = StageEntry(stored_path(binder.root, jacket), "binder.json", tuple(names))
+    scope = tuple(page.path for page in binder.pages) or ("m.py",)
+    save_jacket(jacket, Jacket("0" * 40, scope, topology, {stage: entry}))
+    return jacket
 
 
 def answer(tmp_path, n: int, role: str, address: str, **fields) -> str:

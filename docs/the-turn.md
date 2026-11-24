@@ -413,6 +413,11 @@ and on commit builds what the stage saves.
 | `AnswersReturned` | the last proof, each role's answers, the checkout a cite resolves against, and the human's answers | the next proof and the next batch |
 | `DispositionsWritten` | the last proof, the chief's rulings, and any human approvals | the next proof -- closed, or carrying a ruled move's ends forward -- |
 
+**`collate --jacket J --stage S` reads every input off the jacket** -- the stage's row, its
+root, its binder, and each dispatched copy with its received binder -- and takes none of the
+flags below. It folds an open stage only; a dispatched copy not on disk is the
+`NOT_RETURNED` line, and nothing is folded (`decision-log.md Process: #406`).
+
 **`collate` can take each copy with its received binder**, by `--edit-copy` and
 `--received-binder` repeated in one order, or by `--pairs`, a JSON list of
 `{edit_copy, received_binder}` paths, in place of both.
@@ -456,8 +461,8 @@ them alone.
 
 ## What each command prints, and what it exits
 
-**Six exit codes are declared in `commands/report.py`.** `collate`, `turn` and
-`disposition` share them. `check` uses 0, 1, 2 and 5.
+**Seven exit codes are declared in `commands/report.py`.** `collate`, `turn` and
+`disposition` share 0 to 5, and `collate --jacket` alone exits 6. `check` uses 0, 1, 2 and 5.
 
 | code | name | what it means |
 | --- | --- | --- |
@@ -467,6 +472,7 @@ them alone.
 | 3 | `REREADS` | places carried forward, all of them compositions, or a placement still open |
 | 4 | `ESCALATIONS` | at least one place carried forward as an escalation, or a placement contested |
 | 5 | `ASKS_THE_HUMAN` | a rollback holding human questions and no refusal; nothing was written |
+| 6 | `NOT_RETURNED` | a copy the jacket records as dispatched is not on disk: one `not returned <copy>: <role>` line each on stdout; nothing was folded |
 
 A short shard, a place a role left unruled and a slot a role left unanswered are found before
 the fold opens, so each is a `Refused` and the round rolls back (`Process: #186`).
@@ -570,7 +576,8 @@ seeded from the jacket's row into `<run-dir>/copies/`, printed as `distribute --
 them, and the jacket records the root, the binder and the copies dispatched.
 
 **A stage closes in topology order.** It is open, it is the first row not closed whose chain has
-closed, and the proof is closed and stamped with its name; the jacket records the proof's path
+closed, and the proof is closed, stamped with its name, and its `returned` equals the copies the
+jacket records as dispatched; the jacket records the proof's path
 and sha256, and a later `stage open` refuses a proof whose bytes changed since. A refusal exits
 1; a jacket or a closed proof that cannot be read as one exits 2.
 

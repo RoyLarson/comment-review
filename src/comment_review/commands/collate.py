@@ -1,5 +1,18 @@
 """Collate returned edit copies and report the stage's outcome.
 
+    comment_review collate --jacket <run-dir>/jacket.json --stage 4c
+        --proof-out P [--batch-out B] [--human answers.toml]
+
+With `--jacket`, the jacket names everything the fold reads: the stage's
+topology row, the tree it was gathered from, its binder, and each copy it
+dispatched with that copy's received binder. The stage must be open. A
+dispatched copy that is not on disk is reported as
+`not returned <copy>: <role>`, one line per copy, and nothing is folded.
+The proof records the copies dispatched and the copies folded.
+
+Without `--jacket`, `--binder` and the copies are named as flags, and
+`--topology` is optional.
+
 The report includes `Refused`, `Decided`, `CarriedForward` and
 `PlacementCarried` events. Human questions are reported as `AsksTheHuman`
 before folding. `Advised` notes print last, under `FOR_THE_CHIEF`.
@@ -9,6 +22,7 @@ Use `--batch-out` to save the next turn's batch.
 
 The report and the exit codes are `commands.report`'s, shared with `turn`,
 `disposition` and `check`, and the exit codes with `mark` as well.
+`NOT_RETURNED` is this command's alone.
 
 `--pairs` names a JSON file holding the copies and their received binders,
 `[{"edit_copy": PATH, "received_binder": PATH}, ...]`, for a dispatch set
@@ -21,6 +35,7 @@ import sys
 from pathlib import Path
 
 from comment_review.commands.report import (
+    NOT_RETURNED,
     UNREADABLE,
     code_for,
     counted,
@@ -31,7 +46,7 @@ from comment_review.commands.report import (
 from comment_review.desk import report as events
 from comment_review.desk.proof.edit_copy import EditCopy
 from comment_review.desk.topology import read as read_topology
-from comment_review.flows.bus import CopiesReturned, handle
+from comment_review.flows.bus import CopiesReturned, Result, handle
 from comment_review.flows.proof_io import (
     load_binder,
     load_copy,
@@ -40,6 +55,10 @@ from comment_review.flows.proof_io import (
     save_batch,
     save_proof,
 )
+from comment_review.flows.stage import UnreadableInput, stage_of
+
+#: The flags `--jacket` replaces; the jacket names what each one names.
+FLAGS = ("binder", "edit_copy", "pairs", "received_binder", "topology", "repo")
 
 
 def _envelope(documents: list) -> tuple[list[EditCopy], list]:
@@ -57,8 +76,8 @@ def _envelope(documents: list) -> tuple[list[EditCopy], list]:
     column reads as a missing value.
 
     Args:
-        documents: `(path, the wire dict)` per copy path, from `--edit-copy` or
-            `--pairs`, as loaded.
+        documents: `(path, the wire dict)` per copy path, from the jacket,
+            `--edit-copy` or `--pairs`, as loaded.
 
     Returns:
         `(the parsed copies, the refusals)`. A non-empty second half means
@@ -114,9 +133,12 @@ def main() -> int:
     """Fold one stage's returned copies, report, and say what is left.
 
     Returns:
-        One of `OK`, `BROKEN`, `UNREADABLE`, `REREADS`, `ESCALATIONS` or
-        `ASKS_THE_HUMAN`. `UNREADABLE` is a file or an argument that is not
-        what it says, and nothing is read past it. `BROKEN` is a rollback: a
+        One of `OK`, `BROKEN`, `UNREADABLE`, `REREADS`, `ESCALATIONS`,
+        `ASKS_THE_HUMAN` or `NOT_RETURNED`. `UNREADABLE` is a file or an
+        argument that is not what it says, a stage the jacket does not hold
+        open among them, and nothing is read past it. `NOT_RETURNED` is a
+        copy the jacket records as dispatched that is not on disk, and nothing
+        is folded. `BROKEN` is a rollback: a
         document that is not a copy, or a place the fold refused.
         `ASKS_THE_HUMAN` is a rollback holding human questions and nothing
         else. The proof and the batch are written only on a commit.
@@ -124,8 +146,11 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--stage", required=True, help="the stage label, e.g. 4c")
     ap.add_argument(
-        "--binder", required=True, help="the binder these copies were seeded from"
+        "--jacket",
+        help="the run's jacket.json; it names the stage's row, root, binder and"
+        " copies, in place of every flag below up to --proof-out",
     )
+    ap.add_argument("--binder", help="the binder these copies were seeded from")
     ap.add_argument(
         "--edit-copy",
         action="append",
@@ -179,6 +204,18 @@ def main() -> int:
         " (Process 198)",
     )
     args = ap.parse_args()
+
+    if args.jacket:
+        given = [
+            f"--{flag.replace('_', '-')}"
+            for flag in FLAGS
+            if getattr(args, flag) not in (None, [])
+        ]
+        if given:
+            return refused([f"--jacket names what {', '.join(given)} would; give one"])
+        return _from_jacket(args)
+    if not args.binder:
+        return refused(["collate needs --jacket, or --binder and the copies"])
 
     copy_paths, binder_paths = args.edit_copy, args.received_binder
     if args.pairs:
@@ -267,6 +304,66 @@ def main() -> int:
             tuple(received) if received is not None else None,
         )
     )
+    return _reported(args, out, result)
+
+
+def _from_jacket(args: argparse.Namespace) -> int:
+    """Fold the open stage the jacket records, and report it."""
+    try:
+        stage, why = stage_of(Path(args.jacket), args.stage)
+    except UnreadableInput as unread:
+        return refused(unread.reasons)
+    if stage is None:
+        return refused(why)
+    missing = [one for one in stage.dispatched if not one.copy.is_file()]
+    if missing:
+        for one in missing:
+            print(f"not returned {one.copy}: {one.role}")
+        return NOT_RETURNED
+    binder, why = load_binder(stage.binder)
+    if binder is None:
+        return refused(why)
+    documents = []
+    for one in stage.dispatched:
+        document, why = load_copy(one.copy)
+        if why:
+            return refused(why)
+        documents.append((str(one.copy), document))
+    human, why = human_answers(args.human)
+    if why:
+        return refused(why)
+    copies, refusals = _envelope(documents)
+    if refusals:
+        out = events.rollback(refusals)
+        print_report(out)
+        return code_for(out)
+    received = []
+    for one in stage.dispatched:
+        got, why = load_binder(one.binder)
+        if got is None:
+            return refused(why)
+        received.append(got)
+    # The row decides what the stage admits, which places it deals and how
+    # many dispatches are owed; `stage open` stamped each copy from that row.
+    names = tuple(one.name for one in stage.dispatched)
+    out, result = handle(
+        CopiesReturned(
+            args.stage,
+            copies,
+            binder,
+            stage.root,
+            stage.row,
+            human,
+            tuple(received),
+            dispatched=names,
+            returned=names,
+        )
+    )
+    return _reported(args, out, result)
+
+
+def _reported(args: argparse.Namespace, out: list, result: Result | None) -> int:
+    """Print the report, save the proof and the batch on a commit; the code."""
     print_report(out)
     if result is None:
         return code_for(out)

@@ -5,6 +5,7 @@
                               edit_copy, in dispatch order
     write_dealt(binder, stage, out_dir)
                               those copies and binders, written to disk
+    received_binder_of(copy)  where `write_dealt` writes a copy's binder
     Shard                     a dispatch, with the pages and freeform paths it
                               matched
     OverlappingShards         two dispatches of one role both claim a file
@@ -94,7 +95,7 @@ def write_dealt(binder: Binder, stage: Stage, out_dir: Path) -> list[tuple[Path,
         n = seen[dispatch.role] = seen.get(dispatch.role, 0) + 1
         where = out_dir / f"{stage.name}_{dispatch.role}_{n}.json"
         write_raw(where, json.dumps(copy, indent=2))
-        binder_path = out_dir / "binders" / where.name
+        binder_path = received_binder_of(where)
         write_raw(binder_path, json.dumps(received.serialize(), indent=2))
         places = sum(len(sheet["marks"]) for sheet in copy["sheets"])
         written.append(
@@ -105,6 +106,11 @@ def write_dealt(binder: Binder, stage: Stage, out_dir: Path) -> list[tuple[Path,
             )
         )
     return written
+
+
+def received_binder_of(copy: Path) -> Path:
+    """The received binder `write_dealt` writes beside the copy at `copy`."""
+    return copy.parent / "binders" / copy.name
 
 
 #: A dispatch, the pages it matched and the freeform paths it matched.

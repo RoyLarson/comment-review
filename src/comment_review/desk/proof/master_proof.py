@@ -37,6 +37,9 @@ class MasterProof:
         moves: every move one fold of this stage decided, as the proof records
             it (`Move.recorded`).
         page_shas: real path -> sha for pages touched outside the copies.
+        dispatched: the copies the stage dispatched, as the run's jacket
+            names them; empty for a proof folded without a jacket.
+        returned: the copies folded into this proof, named the same way.
 
     Each place carries its answers, state and owed readers. Each move carries
     its placement answers. These records determine the proof's turn and rulings.
@@ -49,6 +52,8 @@ class MasterProof:
     places: tuple[Place, ...] = ()
     moves: tuple[Move, ...] = ()
     page_shas: dict[str, str] = field(default_factory=dict)
+    dispatched: tuple[str, ...] = ()
+    returned: tuple[str, ...] = ()
 
     def __post_init__(self) -> None:
         """Detach caller-owned metadata mappings."""
@@ -233,6 +238,14 @@ class MasterProof:
         problems += why
         moves, why = _moves_in(where, data.get("moves", []))
         problems += why
+        # Absent is empty, as `places` and `moves` are: a proof folded without
+        # a jacket names no dispatch.
+        named = {key: data.get(key, []) for key in ("dispatched", "returned")}
+        for key, value in named.items():
+            if not isinstance(value, list) or not all(
+                isinstance(one, str) for one in value
+            ):
+                problems.append(f"{where}: master_proof's `{key}` must list copies")
         raw_shas = data.get("page_shas", {})
         page_shas: dict = raw_shas if isinstance(raw_shas, dict) else {}
         if problems:
@@ -246,6 +259,8 @@ class MasterProof:
                 places=places,
                 moves=moves,
                 page_shas=dict(page_shas),
+                dispatched=tuple(cast(list[str], named["dispatched"])),
+                returned=tuple(cast(list[str], named["returned"])),
             ),
             [],
         )
@@ -259,6 +274,8 @@ class MasterProof:
             "places": [place.serialize() for place in self.places],
             "moves": [move.serialize() for move in self.moves],
             "page_shas": dict(self.page_shas),
+            "dispatched": list(self.dispatched),
+            "returned": list(self.returned),
             "page_readings": {
                 path: context_to_wire(context)
                 for path, context in self.page_readings.items()
