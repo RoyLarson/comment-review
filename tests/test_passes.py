@@ -1208,6 +1208,48 @@ class TestAMoveIsDecidedBeforeItsEnds:
         end = self._chief_rules_end(places, moves, "m.py@b5", name, side, prose)
         assert (end.state, end.text) == (State.STANDS, text or prose)
 
+    @pytest.mark.parametrize("address", ["m.py@b1", "m.py@b5"])
+    def test_the_movers_withdraw_at_one_end_of_an_agreed_move_is_refused(self, address):
+        """`Process: #283`: a mover's `withdraw` on an end's words would put
+        that end back while the other keeps the move, leaving the paragraph
+        at both ends or at neither. A move is withdrawn on its placement."""
+        base, change, claim = {
+            "m.py@b1": (
+                BASE,
+                "# one\n# TWO\n# three\n",
+                {"false": "two", "true": "TWO"},
+            ),
+            "m.py@b5": (
+                self.LANDING,
+                "# four and five\n",
+                {"false": "four\n# five", "true": "four and five"},
+            ),
+        }[address]
+        rival = _mark(
+            Instruction.CORRECT,
+            change=change,
+            raw_text=base,
+            claim=claim,
+            address=address,
+        )
+        places, moves = self._places()
+        places[address].filed.append(Filed("b", rival, Touch.OWN))
+        moves = moves_in(places)
+        decide(places, moves)
+        moves[self.KEY].answers[1] = {"b": self._placement("agree")}
+        decide(places, moves, turn=1)
+        assert moves[self.KEY].placement is Placement.AGREED
+        assert places[address].state is State.CONTESTED
+        places[address].answers[2] = {"a": _answer("withdraw")}
+        decide(places, moves_in(places, moves), turn=2)
+        end = places[address]
+        assert (end.state, end.text) == (State.REFUSED, None)
+        assert end.reasons == (
+            f"a: a withdraw at {address} takes the agreed move {self.KEY} off"
+            " this end alone, which splits the move; withdraw the move on its"
+            " placement, which takes it off both ends",
+        )
+
     def test_a_further_mark_at_an_end_of_an_agreed_move_is_taken_in(self):
         """`Process: #283`: once agreed, a move's ends are split for further
         marks -- here a patch on top of the arrival."""
