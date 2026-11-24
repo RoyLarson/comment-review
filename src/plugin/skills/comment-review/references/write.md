@@ -76,7 +76,7 @@ copy the draft over its `<path>` in the working tree.
 - what `prove_unchanged` printed
 - separately, the check command and the doctests, their baseline, and their result with the drafts
 - each freeform language not verified
-- `git diff <pre-edit ref> -- <paths written>`, which the author reads to see exactly what the
-  run changed
+- the diffs step 3 kept, which show exactly what the run changed and nothing the author
+  changed before it
 
 Stage 8 follows, on the pages and freeform files written.

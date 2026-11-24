@@ -558,7 +558,7 @@ path, or accept none.
 ### Stage 7b -- write
 
 Load [`references/write.md`](references/write.md) and follow it. It writes the accepted drafts
-into the working tree. `git diff <pre-edit ref>` then shows the author exactly what the run changed.
+into the working tree and reports what the run changed.
 
 ### Stage 8 -- review
 
