@@ -7598,3 +7598,45 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   **What it settles.** A stage that has opened and not closed can be discarded -- its root, binder
   and copies -- and opened again under the installed reader; SKILL.md's exit-2 row reopens the
   stage and relaunches its dispatches.
+
+- **#411.** **`check` does not police a role's freeform files** (Roy, 2026-11-24, on
+  freeform-rules-have-no-source T3, offered before the next beta: `check` exits 0 for a role that
+  left its freeform file unread):
+
+  *"no can do. Explicity excluded - the agents are expected to know how to modify files. There is
+  a signficant question on whether or not all of this machinery is actually necessary given that
+  agents are very capable of modifying files on their own and not messing them up. This session
+  has modified many files without all of the checks just fine do you expect the other agents to
+  be bad?"*
+
+  **What it settles.** No check is added for a freeform file a role did not read.
+
+- **#412.** **`f` places are not handed to a role, by design** (Roy, 2026-11-24, on
+  brief-says-three-series T14, which proposed counting `f` places in `handed` and the coverage
+  checks):
+
+  *"Yes that is intended. It isn't there for them to be reviewed. That was the definition of
+  matter - license agreements and other things that are not up for agent review at the beginning
+  and ending of a file"*
+
+  **What it settles.** `handed` and coverage leave the file's own matter out; an `f` place is not
+  a review gap.
+
+- **#413.** **A mark's claim serves the agents; the code does not check it against the change**
+  (Roy, 2026-11-24, on a-mark-states-its-edit-three-times T1-T2: the reviewer brief says `claim`
+  and `change` are checked against each other, and nothing in the code does):
+
+  *"It is meant to be used by the agents to determine what is correct. If an agent is malicious
+  there is nothing that is going to stop them. They can just overwrite things anyways"*
+
+  **What it settles.** No code check of `claim` against `change` is added; the claim is how an
+  agent states and checks its own edit.
+
+- **#414.** **The write gate is not weaker than the proof** (Roy, 2026-11-24, on
+  lexical-code-identity T22: stage 7b's `prove_unchanged` runs without the `documented` check
+  stage 7a's proof runs; asked whether that is intended):
+
+  *"no it should not be less strict"*
+
+  **What it settles.** Stage 7b's `prove_unchanged` runs every check stage 7a's proof runs,
+  `documented` included.
