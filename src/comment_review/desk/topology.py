@@ -111,7 +111,8 @@ def read(text: str) -> tuple[list[Stage], str]:
             return [], why
 
         kind_str = raw.get("kind")
-        if kind_str not in _KINDS:
+        # A list or a table is unhashable, so it is refused before the lookup.
+        if not isinstance(kind_str, str) or kind_str not in _KINDS:
             return [], (f"stage {name!r}: key 'kind' is {kind_str!r}, not 'editorial'")
         kind = _KINDS[kind_str]
 
