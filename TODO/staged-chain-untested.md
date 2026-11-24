@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 7 of 9 tasks closed
+Progress: 8 of 9 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, driving distribute and collate across real stages for
@@ -64,5 +64,6 @@ The staged chain runs but nothing tests it, and the fan-out topology fits one tr
 - [ ] T8 | Match fan-out globs with fnmatchcase, not fnmatch, at
       flows/fan_out.py:66
         > 2026-11-22 Check (M87): SRC/*.txt over src/a.txt deals alike on Windows, Linux
-- [ ] T9 | Make smoke_middle.ps1 run past check: update its #179 and #397
-      expectations and its batch-1 answer
+- [x] T9 | Full smoke exits 0, 16 of 16 sections; gated whole | 138f4d918163858f6f1cc284f9dfffda99021fac | Make
+      smoke_middle.ps1 run past check: update its #179 and #397 expectations and
+      its batch-1 answer
