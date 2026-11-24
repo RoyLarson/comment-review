@@ -282,6 +282,40 @@ def test_an_uncommitted_original_proves_with_no_git_and_no_base(
     assert "unrecognized arguments: --base" in capsys.readouterr().err
 
 
+CRLF_STRING = '"""Doc."""\r\n\r\nS = """a\r\nb\r\n"""\r\n'
+
+
+def test_an_unchanged_crlf_file_holding_a_multi_line_string_proves(
+    tmp_path, monkeypatch, capsys
+):
+    """The tokens of a multi-line string that is not a docstring hold its line
+    endings; both sides are read from disk, so they carry the same ones."""
+    from comment_review.commands import prove_unchanged as command
+
+    repo, target = proof_repository(tmp_path, CRLF_STRING, ".py")
+    code, out = run_command(
+        monkeypatch, capsys, command, *prove_args(repo), str(target)
+    )
+    assert code == 0, out
+    assert "PROVEN    pkg/source.py" in out
+
+
+def test_a_draft_differing_only_in_line_endings_fails_on_a_multi_line_string(
+    tmp_path, monkeypatch, capsys
+):
+    """The string's line endings are part of its value, so an LF draft of a CRLF
+    original changes executable code."""
+    from comment_review.commands import prove_unchanged as command
+
+    repo, target = proof_repository(tmp_path, CRLF_STRING, ".py")
+    draft_of(repo, target).write_bytes(CRLF_STRING.replace("\r\n", "\n").encode())
+    code, out = run_command(
+        monkeypatch, capsys, command, *prove_args(repo), str(target)
+    )
+    assert code == 1, out
+    assert "executable code DIFFERS" in out
+
+
 def test_a_sibling_with_other_line_endings_does_not_fail_the_page(
     tmp_path, monkeypatch, capsys
 ):
