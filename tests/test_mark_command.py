@@ -388,6 +388,31 @@ class TestAnAddAndAMoveCarryTheParagraphAsItWillRead:
         assert slot["change"] == "# two\n"
         assert slot["raw_text"] == "# two\n"
 
+    def test_a_move_into_a_code_file_the_run_did_not_gather_is_placed(self, run):
+        """The brief's `move` section sends prose that belongs in an ungathered
+        code file there, so `mark` must take that destination."""
+        (run.dir / "n.py").write_text("v0 = 0\n# four\nv1 = 1\n", encoding="utf-8")
+        code, out = run(
+            "--address",
+            "m.py@b1",
+            "--instruction",
+            "move",
+            "--from",
+            "m.py@b1",
+            "--to",
+            "n.py@b1",
+            "--change",
+            "# two\n",
+            "--raw-text",
+            "# four\n# two\n",
+            "--reason",
+            "the note describes n.py",
+            "--cite",
+            "m.py:5",
+        )
+        assert code == command.OK, out
+        assert run.copy()["sheets"][0]["marks"][0]["claim"]["to"] == "n.py@b1"
+
 
 class TestARefusalWritesNothing:
     def test_a_claim_flag_the_row_does_not_carry(self, run):

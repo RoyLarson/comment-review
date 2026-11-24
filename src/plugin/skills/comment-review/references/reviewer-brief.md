@@ -288,8 +288,9 @@ python <skill>/scripts/comment-review.py mark --edit-copy <EDIT COPY> --repo <RE
 ```
 
 What stays at the origin is the paragraph with the snippet taken out -- nothing, when the
-snippet is the whole paragraph. A destination may be an empty place. For prose that belongs
-outside the code, or in a file this run did not gather, file a `query` of shape
+snippet is the whole paragraph. A destination may be an empty place. A destination in a code
+file this run did not gather is a `move` like any other: ask `addresses find` for its place in
+that file. For prose that belongs outside the code, file a `query` of shape
 `human-review-necessary` at the origin, naming where it belongs. For a destination in a freeform
 file, see *A freeform file*.
 
