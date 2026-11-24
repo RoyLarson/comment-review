@@ -151,6 +151,7 @@ for this case.
 - [ ] T6 | T6 -- Write the rule for what stage 6 reports when in-cap and
       at-habit conflict. Verify: `compact.md` names the case and says what stage
       6 emits.
+        > 2026-11-24 Outcome (#419): keep the width; condenser files clean
 - [x] T7 | FINISHED | unknown | T7 -- RECORD, not a task. What the 2026-08-17
       run got RIGHT, kept in the Objective so a later pass does not rewrite the
       good part.

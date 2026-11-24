@@ -217,12 +217,10 @@ that changed a published name or rule:
 | [into-is-never-resolved](into-is-never-resolved.md) | backend | -- | 2/5 | flows/proof_setter.py resolves TARGET but never resolves INTO, then asks whether target is relative to it. A relative or symlinked into would weaken the containment guard that stops a draft escaping the output directory. NOT REACHABLE TODAY: commands/proof.py resolves out before calling in, and every test hands an absolute tmp_path. This is library hardening, not a live defect. FOUND BY THE IMPLEMENTER OF THE GUARD, WHO REPORTED IT RATHER THAN WIDENING ITS OWN SCOPE. Worth recording because the guard it weakens was itself introduced to close an escape that the previous fix opened -- proof_setter copied the collator half of the galley command's pattern and not the guard half, and wrote a draft onto the original source file at exit 0. Two rounds of path handling on the same function, each fixing the last. |
 | [an-alteration-carries-its-own-indentation](an-alteration-carries-its-own-indentation.md) | backend | -- | 1/3 | An alteration carries its own indentation and nothing says so |
 | [the-fields-do-not-say-a-mark-may-cite-across](the-fields-do-not-say-a-mark-may-cite-across.md) | agents | -- | 7/9 | The mark's fields permit a cross-citation and never say so |
-| [a-conflict-has-no-rendering](a-conflict-has-no-rendering.md) | backend | -- | 4/5 | A conflict is detected and nothing renders it |
 | [shape-is-three-words](shape-is-three-words.md) | backend | -- | 7/10 | `shape` carries three senses, only one reaches an agent as a field name; and the axis it names is on `query` alone while `clean` has a recorded, unfilled need for the same thing |
 | [prototype-move-orphaned-tasks](prototype-move-orphaned-tasks.md) | systems | -- | 2/4 | 25 open TODOs carry an unchecked task naming a module that moved to `prototype/` on 2026-08-25, so the task's site is gone and its verification cannot be run |
 | [sheet-rename-gate-cannot-see-the-source](sheet-rename-gate-cannot-see-the-source.md) | systems | -- | 0/2 | the gate's scope excludes the tree the retired sense actually survived in -- docs/gates.md: a check that could not have failed is not evidence |
 | [brief-says-three-series](brief-says-three-series.md) | agents | -- | 12/14 | reviewer-brief.md:69 and :221 say three series; reading/series.py ADDRESSED is ('a','b','c','f') and SKILL.md:378 says four, so a role cannot resolve the @f0 place the same brief tells it to cite |
-| [external-address-cites-dead-modules](external-address-cites-dead-modules.md) | backend | -- | 1/2 | desk/external_address.py says the address is declared in binder/record.py and resolved in desk/desk.py; record.py left on b50e7a4 and desk.py is in no directory of this tree |
 | [no-command-for-the-middle](no-command-for-the-middle.md) | backend | -- | 102/104 | `gather`, `places`, `reconcile` and `docket_from` have no CLI face, so nothing turns checked marks into the docket `proof --docket` requires. Measured 2026-08-29 on a real run: every other step of the chain is a command; this one had to be driven from a hand-written script |
 | [query-names-no-sentence](query-names-no-sentence.md) | backend | -- | 2/4 | every other substantive instruction names the sentence it rules on through a `claim` key -- `false` for `correct`, `drop` for `drop`, `from` for `patch` -- and `query` has none, so `_sentence_key` falls back to an identity and two queries at one place read as two different sentences |
 | [strip-before-review-experiment](strip-before-review-experiment.md) | agents | -- | 0/5 | the `collator.py` prose was deleted whole and rewritten by an agent that could read only the code -- it found three defects the old prose never mentioned and named two things the code cannot say; whether that beats editing in place is untested |
@@ -233,7 +231,7 @@ that changed a published name or rule:
 | [null-becomes-the-word-none](null-becomes-the-word-none.md) | backend | -- | 3/6 | A present-but-null key becomes the four characters None |
 | [collate-flow-defects](collate-flow-defects.md) | backend | -- | 26/27 | Twelve defects in `flows/collate.py`, from a review of one file |
 | [mark-defects](mark-defects.md) | backend | -- | 49/62 | Eleven defects in `desk/mark.py`, found by running its parse against its own prose |
-| [binder-defects](binder-defects.md) | backend | -- | 28/51 | Eighteen defects in binder.py, and `read` admits four shapes it exists to refuse |
+| [binder-defects](binder-defects.md) | backend | -- | 29/52 | Eighteen defects in binder.py, and `read` admits four shapes it exists to refuse |
 | [docket-defects](docket-defects.md) | backend | -- | 10/16 | Six defects in docket.py, and one discards an approved page at exit 0 |
 | [collate-command-defects](collate-command-defects.md) | backend | -- | 27/31 | Sixteen defects in `commands/collate.py`, measured by running it |
 | [differences-defects](differences-defects.md) | backend | -- | 7/17 | Ten defects in `results/differences.py`, none of them in its arithmetic |
@@ -277,6 +275,8 @@ that changed a published name or rule:
 | [area-model-stated-and-enforced-differently](area-model-stated-and-enforced-differently.md) | backend | -- | 0/5 | The area architecture is stated in one model and enforced against another |
 | [freeform-rules-have-no-source](freeform-rules-have-no-source.md) | agents | -- | 1/3 | Freeform is a second pipeline run only by prose, sharing rules with no source |
 | [names-persist-before-they-settle](names-persist-before-they-settle.md) | systems | -- | 0/2 | Names reach four persisted layers before their meaning settles |
+| [a-conflict-has-no-rendering](a-conflict-has-no-rendering.md) | backend | -- | 5/6 | A conflict is detected and nothing renders it |
+| [external-address-cites-dead-modules](external-address-cites-dead-modules.md) | backend | -- | 2/3 | external_address.py cites two modules that left the tree |
 
 ### in-progress  (12)
 

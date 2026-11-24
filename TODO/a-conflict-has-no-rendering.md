@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 4 of 5 tasks closed
+Progress: 5 of 6 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-28, filing the work `decision-log.md Process: #20` created. The
@@ -66,7 +66,9 @@ the collator to ruling on nothing.
 - [x] T4 | FINISHED | unknown | T4 -- Handle more than two marks at one place.
       Verify: three conflicting marks render without losing one, or the design
       says why three cannot arise.
-- [ ] T5 | Send the diff3 view as the default text for reviewer escalations
+- [-] T5 | #418: diff3 is deleted, not wired in | 707ec407 | Send the diff3 view
+      as the default text for reviewer escalations
         > 2026-11-21 Check: show base and all labeled sides without duplicate text.
         > 2026-11-21 Check: replay hold, withdraw and rewrite through turn.
         > 2026-11-21 Check: reviewer brief uses diff3 for text escalations.
+- [ ] T6 | Delete differences.diff3 and the helpers only it uses
