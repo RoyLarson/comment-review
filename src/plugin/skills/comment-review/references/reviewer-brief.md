@@ -198,7 +198,7 @@ requires a ruling; file its replacement before returning the copy.
 
 ### What makes a mark stand
 
-- **`claim` and `change` state the same edit twice**, and they are checked against each other:
+- **`claim` and `change` state the same edit twice**, and must agree:
   the difference between `raw_text` and `change` is exactly the sentence your `claim` names.
 - **One mark makes one edit.** Three edits to one paragraph are three marks, each showing the
   paragraph with its own edit alone. Each reads unfinished on its own, and the copy chief
