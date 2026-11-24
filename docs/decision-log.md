@@ -7667,3 +7667,22 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   *"imprimatur (Recommended)"*
 
   **What it settles.** `<out>/imprimatur.json`, read by `prove_unchanged --imprimatur`.
+
+- **#418.** **`differences.diff3` is deleted, not wired in** (Roy, 2026-11-24, on the three-way
+  conflict view that nothing outside the tests calls; offered deleting it, wiring it in as the
+  default text for reviewer escalations, or leaving both for later):
+
+  *"Delete it (Recommended)"*
+
+  **What it settles.** `diff3` and its helpers are removed; a-conflict-has-no-rendering T5,
+  which proposed the wiring, is superseded.
+
+- **#419.** **Stage 6 keeps the file's width and reports `clean` when the cap and the width
+  conflict** (Roy, 2026-11-24, on what the condenser does when a paragraph cannot meet the line
+  cap at the file's usual width without losing a necessary sentence; offered keeping the width
+  and reporting `clean`, asking the author, or leaving it open):
+
+  *"Keep width, report clean (Recommended)"*
+
+  **What it settles.** The condenser never widens lines to meet the cap. It files `clean`,
+  naming what holds the paragraph over the cap; `compact.md` states the case.
