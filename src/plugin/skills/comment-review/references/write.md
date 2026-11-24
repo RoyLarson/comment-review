@@ -42,13 +42,14 @@ this stage, written or refused, remove it with `git worktree remove --force <run
    where it has them, and keep the results as the baseline.
 3. Copy each draft over its `<path>` in `<run-dir>/build`.
 
-Then prove the code in every draft reads the same as at the pre-edit ref, naming each path
-under the build root and the imprimatur `proof` wrote in the `--out` that holds the drafts:
+Then prove the code in every draft reads the same as the file in the working tree, naming each
+`<path>` in the working tree, the `--out` that holds the drafts, and the imprimatur `proof` wrote
+there:
 
 ```bash
-python <skill>/scripts/comment-review.py prove_unchanged --base <pre-edit ref> \
+python <skill>/scripts/comment-review.py prove_unchanged --drafts <drafts> \
   --imprimatur <drafts>/imprimatur.json \
-  --repo <run-dir>/build <run-dir>/build/<path> ...
+  --repo . <path> ...
 ```
 
 It prints `PROVEN` for each page whose code is unchanged. When it refuses a page, write nothing:

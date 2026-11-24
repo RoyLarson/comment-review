@@ -156,10 +156,10 @@ corrected to a deferral naming what it waits on.
 
 ## 6. What is provisional
 
-The code does not do this yet. As of 2026-09-07 `results/prove_unchanged.py` still holds the AST
-proof, the comment-stripping proof, `code_fingerprint`, `dominant_ending`, `_sibling`, `_show`
-and `_spec`, and `commands/prove_unchanged.py` still requires `--base` and calls `git show`.
-This section describes the ruling in `Process: #104` rather than the tree.
+The code does not do this yet. `flows/prove_unchanged.py` compares each draft with the file in
+the working tree through the page's read (`reading.proof`), not through the address and anchor
+mapping. It takes no `--base`, reads no git and compares no line endings. This section
+describes the ruling in `Process: #104` rather than the tree.
 
 What the shape rests on:
 

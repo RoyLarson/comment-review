@@ -124,44 +124,10 @@ def read_source(path: Path) -> Source:
     return source_from_bytes(path.read_bytes())
 
 
-def read_revision_source(repo: Path, ref: str, rel: str) -> Source:
-    """Read a revision blob as strict UTF-8, preserving its exact contents.
-
-    Args:
-        repo: repository directory; relative paths start here.
-        ref: Git revision to read.
-        rel: path relative to the repository directory.
-
-    Returns:
-        The blob's text and identity, including for an empty blob.
-
-    Raises:
-        subprocess.CalledProcessError: Git cannot resolve the revision or path.
-        UnicodeDecodeError: the blob is not valid UTF-8.
-    """
-    got = subprocess.run(
-        [
-            "git",
-            "-c",
-            "core.quotePath=false",
-            "-C",
-            str(repo),
-            "show",
-            f"{ref}:./{rel}",
-        ],
-        capture_output=True,
-        timeout=30,
-        check=True,
-    )
-    return source_from_bytes(got.stdout)
-
-
 def git(repo: Path, *args: str, timeout: int = 30) -> subprocess.CompletedProcess:
-    r"""Every text-mode git invocation this plugin makes.
+    r"""Every git invocation this plugin makes.
 
-    This module is the only one that runs git. The one other invocation is
-    `read_revision_source`, which reads a blob as bytes and so cannot decode
-    here; it passes the same `core.quotePath=false`.
+    This module is the only one that runs git.
 
     ! `core.quotePath` defaults to true, so git renders a non-ASCII path as
     octal escapes -- `"caf\303\251.py"`, quotes included. Measured: a tracked
