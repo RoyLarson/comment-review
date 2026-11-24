@@ -104,8 +104,8 @@ def _report(args: argparse.Namespace) -> int:
         print(not_gathered(handed_in, got.unreadable), file=sys.stderr)
         return 1
     # !! The serialize is the container's and the dump is the command's. This is
-    # the read flow's save end, and one of three places a binder becomes text,
-    # with `flows/stage.py` and `commands/carry.py`.
+    # the read flow's save end, and one of two places a binder becomes text,
+    # with `flows/stage.py`.
     wire = got.binder.serialize()
     print(json.dumps(wire, indent=1, default=str))
     # Stage 2 sizes a role's dispatches from this count of the places carried.

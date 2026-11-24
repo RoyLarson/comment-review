@@ -30,7 +30,6 @@ class Command(StrEnum):
         return name.lower()
 
     ADDRESSES = auto()
-    CARRY = auto()
     CHECK = auto()
     COLLATE = auto()
     COMPARE = auto()

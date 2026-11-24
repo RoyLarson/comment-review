@@ -18,8 +18,7 @@ through here refuses a file in one wording, and a change to the read is one edit
 Not every read and write is here. `commands/proof.py` reads its docket, proof or copy
 itself. `commands/distribute.py` and `commands/topology.py` read a topology with
 `Path.read_text`, and `commands/report.py` reads the human's answers file the same way.
-`commands/carry.py`, `commands/distribute.py` and `commands/topology.py` write their
-own files.
+`commands/distribute.py` and `commands/topology.py` write their own files.
 """
 
 import json
