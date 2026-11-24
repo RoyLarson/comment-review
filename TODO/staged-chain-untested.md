@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 6 of 8 tasks closed
+Progress: 7 of 9 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, driving distribute and collate across real stages for
@@ -57,9 +57,12 @@ The staged chain runs but nothing tests it, and the fan-out topology fits one tr
       composed topology dispatches match literal page paths containing glob
       characters
         > 2026-09-30 Criteria: docs/reviews/2026-09-30-r6-r7-r8.md, 06:3
-- [ ] T7 | Refuse a binder gathered from a revise for an original-reading stage
-      at commands/distribute.py:166, even without --revise
+- [-] T7 | read_from.stage replaced the revise check; seeded_from_problem gone | da0196df95a741dc3900c61a2105576111ae060c | Refuse
+      a binder gathered from a revise for an original-reading stage at
+      commands/distribute.py:166, even without --revise
         > 2026-11-22 Check (M5): distribute --stage 4c --binder Brev.json exits non-zero
 - [ ] T8 | Match fan-out globs with fnmatchcase, not fnmatch, at
       flows/fan_out.py:66
         > 2026-11-22 Check (M87): SRC/*.txt over src/a.txt deals alike on Windows, Linux
+- [ ] T9 | Make smoke_middle.ps1 run past check: update its #179 and #397
+      expectations and its batch-1 answer

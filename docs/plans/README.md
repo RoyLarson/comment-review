@@ -29,7 +29,7 @@
 | [0.2.4-the-middle-rebuilt](0.2.4-the-middle-rebuilt.md) | closed | 109/109 | 45/45 |
 | [0.2.4-the-placement-branch-runs](0.2.4-the-placement-branch-runs.md) | closed | 22/22 | 12/12 |
 | [0.2.4-the-proof-is-one-unit](0.2.4-the-proof-is-one-unit.md) | closed | 15/15 | 15/15 |
-| [0.2.4-the-run-has-a-jacket](0.2.4-the-run-has-a-jacket.md) | in-progress | 5/7 | 3/6 |
+| [0.2.4-the-run-has-a-jacket](0.2.4-the-run-has-a-jacket.md) | in-progress | 7/7 | 6/7 |
 | [0.2.4-the-turn-as-commands](0.2.4-the-turn-as-commands.md) | closed | 14/14 | 10/10 |
 | [0.2.4-the-vocabulary-gate-is-asserted](0.2.4-the-vocabulary-gate-is-asserted.md) | closed | 1/1 | 2/2 |
 | [0.2.4-what-a-reviewer-is-handed](0.2.4-what-a-reviewer-is-handed.md) | closed | 24/24 | 4/4 |

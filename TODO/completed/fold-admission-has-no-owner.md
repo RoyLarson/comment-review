@@ -1,8 +1,8 @@
 # "Would the fold refuse this?" has no single owner
 
 ```
-Status:   open
-Progress: 2 of 3 tasks closed
+Status:   closed
+Progress: 3 of 3 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-11-23 (broken review, 2026-11-23)
@@ -47,5 +47,6 @@ Each entry point assembles its own admission checks, and they disagree.
 - [x] T2 | One admit; tamper table agrees; one injected rule refuses at all four | c0b134dd1a8dfa0b93b5fbcadbc7b73748afd935 | Make
       one admission rule decide a copy for both the check and the collate
       commands
-- [ ] T3 | Make what a stage admits independent of whether --topology is passed
+- [x] T3 | collate runs only from the jacket row | da0196df95a741dc3900c61a2105576111ae060c | Make
+      what a stage admits independent of whether --topology is passed
         > 2026-11-23 Jacket path done in beafb27d; closes with the old flags' deletion

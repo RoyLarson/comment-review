@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (99)
+### open  (98)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -229,7 +229,7 @@ that changed a published name or rule:
 | [query-names-no-sentence](query-names-no-sentence.md) | backend | -- | 2/4 | every other substantive instruction names the sentence it rules on through a `claim` key -- `false` for `correct`, `drop` for `drop`, `from` for `patch` -- and `query` has none, so `_sentence_key` falls back to an identity and two queries at one place read as two different sentences |
 | [strip-before-review-experiment](strip-before-review-experiment.md) | agents | -- | 0/5 | the `collator.py` prose was deleted whole and rewritten by an agent that could read only the code -- it found three defects the old prose never mentioned and named two things the code cannot say; whether that beats editing in place is untested |
 | [collator-defects](collator-defects.md) | backend | -- | 42/58 | four defects in `desk/collator.py`, all found by an agent writing the file's prose from the code alone: a `move` onto its own address becomes a bare delete, a multi-line `verbatim` from a CRLF file can never match, the source cache is keyed without its root, and a malformed cite raises where the half is meant to report |
-| [staged-chain-untested](staged-chain-untested.md) | backend | -- | 6/8 | the four-stage chain runs and the edits accumulate, proven 2026-08-30 -- but no test in the suite drives it, and the only committed fan-out topology refuses any tree but this repo's |
+| [staged-chain-untested](staged-chain-untested.md) | backend | -- | 7/9 | the four-stage chain runs and the edits accumulate, proven 2026-08-30 -- but no test in the suite drives it, and the only committed fan-out topology refuses any tree but this repo's |
 | [containers-and-verification-are-unwired](containers-and-verification-are-unwired.md) | backend | -- | 58/74 | The containers and the source-verification half are wired to nothing |
 | [mark-holds-spec-and-parse](mark-holds-spec-and-parse.md) | backend | -- | 5/10 | mark.py holds the instruction spec and the boundary parse at one scope |
 | [null-becomes-the-word-none](null-becomes-the-word-none.md) | backend | -- | 3/6 | A present-but-null key becomes the four characters None |
@@ -275,7 +275,6 @@ that changed a published name or rule:
 | [answers-file-defects](answers-file-defects.md) | backend | -- | 0/4 | Answers files are admitted with answers a turn drops or refuses |
 | [machine-defects](machine-defects.md) | backend | -- | 0/5 | machine/ reads git output and JSON without the guards its callers assume |
 | [flow-helpers-placement](flow-helpers-placement.md) | backend | -- | 0/2 | Determine where the flow helpers belong |
-| [fold-admission-has-no-owner](fold-admission-has-no-owner.md) | backend | -- | 2/3 | "Would the fold refuse this?" has no single owner |
 | [a-mark-states-its-edit-three-times](a-mark-states-its-edit-three-times.md) | backend | -- | 0/3 | A mark states its edit up to three times and no field is authoritative |
 | [boundary-records-have-no-typed-form](boundary-records-have-no-typed-form.md) | backend | -- | 0/5 | Records crossing boundaries have no single typed form |
 | [area-model-stated-and-enforced-differently](area-model-stated-and-enforced-differently.md) | backend | -- | 0/5 | The area architecture is stated in one model and enforced against another |
@@ -556,3 +555,4 @@ the reason is inside the file.
 | [settlement-depends-on-who-filed](completed/settlement-depends-on-who-filed.md) | 3 finished |
 | [settle-carries-two-meanings](completed/settle-carries-two-meanings.md) | 6 finished, 2 superseded |
 | [no-component-owns-the-run](completed/no-component-owns-the-run.md) | 3 finished |
+| [fold-admission-has-no-owner](completed/fold-admission-has-no-owner.md) | 3 finished |
