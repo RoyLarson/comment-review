@@ -520,6 +520,15 @@ Every changed line belongs to a decided finding, and every decided finding has i
 other change holds the run at this stage: edit the draft until the change is gone, and audit it
 again. Nothing is presented until the audit passes. The command exits 1 when the files differ.
 
+**Sentences in no file.** List each sentence the write removes that no file of the tree as
+written holds, naming the `proof` output and, when stage 5 wrote any, the freeform drafts:
+
+```bash
+python <skill>/scripts/comment-review.py lost --repo . <run-dir>/proof <run-dir>/freeform/draft
+```
+
+Present the list with the proposal, so the author can give a sentence a home before accepting.
+
 Present to the author, grouped by instruction, most consequential first. Use each stage's
 closed proof's decided text and the drafts for the proposed result. For each decided place, follow
 its filed references to the reviewer marks in the proof and read any disposition on the place.
