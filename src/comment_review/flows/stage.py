@@ -5,6 +5,9 @@
     stage_of(jacket_file, name) -> (OpenStage | None, problems)
                             an open stage's row, root, binder and copies,
                             which `collate --jacket` folds
+    replay(jacket_file, repo, out, only) -> (lines, problems)
+                            every closed proof set over the manuscript, which
+                            `proof --jacket` drafts
 
 A stage opens once every stage its `reads` chain names has closed. The first
 open copies the manuscript. A stage reading `"original"` is gathered from the
@@ -24,17 +27,27 @@ that received moved text is read even when the scope does not name it. Its
 row the jacket holds, into `<run-dir>/copies/`, and the jacket records the
 root, the binder and the copies dispatched.
 
-A stage closes in topology order: it is open, it is the first row not closed
-whose chain has closed, and the proof is closed, stamped with its name, and
-folded every copy the jacket records the stage dispatched.
+A stage closes when it is open and the proof is closed, stamped with its name,
+and folded every copy the jacket records the stage dispatched. A jacket's
+stages form one chain and a stage opens only once the one before it closed,
+so one stage is open at a time.
 The jacket records the proof's path and the sha256 of its bytes, and a later
 `stage open` refuses a proof whose bytes changed since.
+
+A run is set once every stage has closed. `replay` builds a tree as a root is
+built, without the freeform drafts, and sets each stage's closed proof over it
+in topology order, restricted to the places the author accepted where they
+named any. A later stage's place on a page whose replayed text differs from
+what that stage read is refused by the docket's sha refusal.
 """
 
 import json
 import shutil
 import tempfile
+from collections.abc import Callable, Iterator
+from contextlib import contextmanager
 from dataclasses import replace
+from functools import partial
 from pathlib import Path
 from typing import NamedTuple
 
@@ -43,6 +56,7 @@ from comment_review.binder.addresses import unaddressed
 from comment_review.desk.proof.master_proof import MasterProof
 from comment_review.desk.stages import Stage
 from comment_review.desk.topology import REVISE, read
+from comment_review.docket.docket import Docket
 from comment_review.flows import revise
 from comment_review.flows.distribute import IncompatibleBinder
 from comment_review.flows.fan_out import (
@@ -65,7 +79,14 @@ from comment_review.flows.jacket import (
     stored_path,
 )
 from comment_review.flows.proof_io import load_proof
-from comment_review.flows.transcribe import CannotTranscribe, docket_of_proof, unclosed
+from comment_review.flows.proof_setter import Refusal
+from comment_review.flows.transcribe import (
+    CannotAdmit,
+    CannotApprove,
+    CannotTranscribe,
+    docket_of_proof,
+    unclosed,
+)
 from comment_review.machine.digests import sha256_hex
 from comment_review.machine.repo import (
     git_worktree_add,
@@ -74,6 +95,7 @@ from comment_review.machine.repo import (
     walk_files,
     write_raw,
 )
+from comment_review.reading.addresser import cue_of, flatten
 
 #: Where the freeform drafts a stage tree takes last sit, under the run dir.
 FREEFORM_DRAFTS = ("freeform", "draft")
@@ -234,41 +256,66 @@ def _build(root: Path, run_dir: Path, proofs: list[MasterProof]) -> list[str]:
         Every page an earlier docket wrote, repo-relative posix, sorted.
     """
     written: set[str] = set()
-    deleted, problems = manuscript_deleted(run_dir)
-    if problems:
-        raise _Refused(problems)
-    try:
-        _overlay(run_dir / MANUSCRIPT, root)
-        for rel in deleted:
-            (root / rel).unlink(missing_ok=True)
+    with _setting(root):
+        _start(root, run_dir)
         for number, proof in enumerate(proofs, 1):
             docket = docket_of_proof(proof, root)
-            if not docket.schedules:
-                continue
-            scratch = Path(tempfile.mkdtemp(prefix="pull-", dir=run_dir))
-            try:
-                pulled = revise.pull(docket, root, scratch / "revise", revise=number)
-                if pulled.refusals:
-                    raise _Refused(
-                        [
-                            f"stage {proof.stage!r}: REFUSED at {one.step}:"
-                            f" {one.path or '<the set>'} -- {one.why}"
-                            for one in pulled.refusals
-                        ]
-                    )
-                for schedule in docket.schedules:
-                    shutil.copyfile(pulled.root / schedule.path, root / schedule.path)
-                    written.add(schedule.path)
-            finally:
-                remove_tree(scratch, ignore_errors=True)
+            refusals = _set(docket, root, run_dir, number)
+            if refusals:
+                raise _Refused(_refusal_lines(proof.stage, refusals))
+            written.update(schedule.path for schedule in docket.schedules)
         _overlay(run_dir.joinpath(*FREEFORM_DRAFTS), root)
+    return sorted(written)
+
+
+@contextmanager
+def _setting(root: Path) -> Iterator[None]:
+    """Turn what setting a proof over `root` raises into the stage's refusal."""
+    try:
+        yield
     except CannotTranscribe as refused:
         raise _Refused(list(refused.reasons)) from refused
     except revise.AddressesMoved as moved:
         raise _Refused([f"the address space moved -- {moved}"]) from moved
     except OSError as err:
         raise _Refused([f"cannot build {root}: {err}"]) from err
-    return sorted(written)
+
+
+def _start(root: Path, run_dir: Path) -> None:
+    """Set the manuscript over `root` and remove the files the checkout had deleted."""
+    deleted, problems = manuscript_deleted(run_dir)
+    if problems:
+        raise _Refused(problems)
+    _overlay(run_dir / MANUSCRIPT, root)
+    for rel in deleted:
+        (root / rel).unlink(missing_ok=True)
+
+
+def _set(docket: Docket, root: Path, run_dir: Path, number: int) -> list[Refusal]:
+    """Set `docket` over `root` through `revise.pull`; what refused, or [] once set."""
+    if not docket.schedules:
+        return []
+    scratch = Path(tempfile.mkdtemp(prefix="pull-", dir=run_dir))
+    try:
+        pulled = revise.pull(docket, root, scratch / "revise", revise=number)
+        if pulled.refusals:
+            return pulled.refusals
+        for schedule in docket.schedules:
+            shutil.copyfile(pulled.root / schedule.path, root / schedule.path)
+        return []
+    finally:
+        remove_tree(scratch, ignore_errors=True)
+
+
+def _refusal_lines(
+    stage: str, refusals: list[Refusal], why: Callable[[Refusal], str] = lambda _: ""
+) -> list[str]:
+    """One line per refusal setting stage `stage`'s proof, each with `why` after it."""
+    return [
+        f"stage {stage!r}: REFUSED at {one.step}: {one.path or '<the set>'}"
+        f" -- {one.why}{why(one)}"
+        for one in refusals
+    ]
 
 
 def _overlay(source: Path, root: Path) -> None:
@@ -342,23 +389,12 @@ def close_stage(jacket_file: Path, name: str, proof_path: Path) -> list[str]:
 
 
 def _close(jacket_file: Path, name: str, proof_path: Path) -> None:
-    jacket, rows, _ = _rows(jacket_file, name)
+    jacket, _, _ = _rows(jacket_file, name)
     entry = jacket.stages.get(name)
     if entry is None:
         raise _Refused([f"stage {name!r} has not opened"])
     if entry.closed is not None:
         raise _Refused([f"stage {name!r} has already closed"])
-    after = next(
-        (
-            row.name
-            for row in rows
-            if _closed(jacket, row.name) is None
-            and all(_closed(jacket, one.name) for one in _chain(rows, row))
-        ),
-        None,
-    )
-    if after != name:
-        raise _Refused([f"stage {name!r} is not next to close -- {after!r} is"])
     proof, problems = load_proof(proof_path)
     if proof is None:
         raise UnreadableInput(problems)
@@ -391,6 +427,165 @@ def _close(jacket_file: Path, name: str, proof_path: Path) -> None:
         )
     except BUILD_ERRORS as err:
         raise _Refused([f"stage {name!r}: {err}"]) from err
+
+
+def replay(
+    jacket_file: Path, repo: Path, out: Path, only: tuple[str, ...] | None = None
+) -> tuple[list[str], list[str]]:
+    """Set every stage's closed proof over the manuscript; draft each page written.
+
+    The tree is built as `stage open` builds a root, and each stage's proof is
+    set over it in topology order through `revise.pull`, so a stage's place on
+    a page whose replayed text differs from the text that stage read is
+    refused by the docket's sha refusal.
+
+    Args:
+        jacket_file: the run's `jacket.json`.
+        repo: the checkout the run reviews.
+        out: where the drafts are written, one per page a proof set, at its
+            repo path. Must not exist yet.
+        only: the places the author accepted, each `<stage>:<address>`; None
+            accepts every place.
+
+    Returns:
+        `(the lines to print, [])`, or `([], every reason nothing was drafted)`.
+        A sha refusal names each place an earlier stage set on that page that
+        the author did not accept.
+
+    Raises:
+        UnreadableInput: `jacket_file` cannot be read as a jacket, a closed
+            proof cannot be read, or a page identity it claims will not admit.
+    """
+    try:
+        return _replay(jacket_file, repo.resolve(), out, only), []
+    except _Refused as refused:
+        return [], refused.reasons
+
+
+def _replay(
+    jacket_file: Path, repo: Path, out: Path, only: tuple[str, ...] | None
+) -> list[str]:
+    jacket, problems = load_jacket(jacket_file)
+    if jacket is None:
+        raise UnreadableInput(problems)
+    rows, _ = read(jacket.topology)
+    closed = {row.name: _closed(jacket, row.name) for row in rows}
+    waiting = [name for name, proof in closed.items() if proof is None]
+    if waiting:
+        raise _Refused(
+            [
+                f"stage {', '.join(waiting)} has not closed -- every stage of the"
+                " topology closes before the run is set"
+            ]
+        )
+    accepted = _accepted(only, list(closed))
+    proofs = [
+        (name, _closed_proof(jacket_file, name, proof))
+        for name, proof in closed.items()
+        if proof is not None
+    ]
+    run_dir = jacket_file.parent
+    scratch = Path(tempfile.mkdtemp(prefix="replay-", dir=run_dir))
+    tree = scratch / "tree"
+    try:
+        why = git_worktree_add(repo, tree, jacket.ref)
+        if why:
+            raise _Refused([why])
+        written = _replayed(tree, run_dir, proofs, accepted)
+        try:
+            for rel in written:
+                (out / rel).parent.mkdir(parents=True, exist_ok=True)
+                shutil.copyfile(tree / rel, out / rel)
+        except OSError as err:
+            remove_tree(out, ignore_errors=True)
+            raise _Refused([f"cannot write the drafts into {out}: {err}"]) from err
+    finally:
+        git_worktree_remove(repo, tree)
+        remove_tree(scratch, ignore_errors=True)
+    return [
+        *(f"{rel} -> {out / rel}" for rel in written),
+        f"{len(written)} page(s) drafted for review",
+    ]
+
+
+def _accepted(
+    only: tuple[str, ...] | None, names: list[str]
+) -> dict[str, tuple[str, ...]] | None:
+    """Each stage's accepted addresses, from `<stage>:<address>`; None accepts all."""
+    if only is None:
+        return None
+    by_stage: dict[str, list[str]] = {name: [] for name in names}
+    bad = []
+    for one in only:
+        name, colon, address = one.partition(":")
+        if colon and address and name in by_stage:
+            by_stage[name].append(address)
+        else:
+            bad.append(
+                f"{one!r} names no stage's place -- name each as <stage>:<address>,"
+                f" the stage one of {', '.join(names)}"
+            )
+    if bad:
+        raise _Refused(bad)
+    return {name: tuple(addresses) for name, addresses in by_stage.items()}
+
+
+def _replayed(
+    tree: Path,
+    run_dir: Path,
+    proofs: list[tuple[str, MasterProof]],
+    accepted: dict[str, tuple[str, ...]] | None,
+) -> list[str]:
+    """Set the manuscript and each stage's accepted places over `tree`.
+
+    Returns:
+        Every page a proof set, repo-relative posix, sorted.
+    """
+    written: set[str] = set()
+    # The flattened page name -> each `<stage>:<address>` set there that the
+    # author did not accept.
+    declined: dict[str, list[str]] = {}
+
+    def unaccepted(name: str, one: Refusal) -> str:
+        names = declined.get(flatten(one.path), []) if one.step == "verify" else []
+        if not names:
+            return ""
+        return (
+            f"; stage {name!r} read {one.path} with {', '.join(names)} set, and the"
+            f" author did not accept {'it' if len(names) == 1 else 'them'} -- accept"
+            f" {'it' if len(names) == 1 else 'them'} too, or decline stage"
+            f" {name!r}'s places on {one.path}"
+        )
+
+    with _setting(tree):
+        _start(tree, run_dir)
+        for number, (name, proof) in enumerate(proofs, 1):
+            only = None if accepted is None else accepted[name]
+            try:
+                docket = docket_of_proof(proof, tree, only=only)
+            except CannotAdmit as unread:
+                raise UnreadableInput(list(unread.reasons)) from unread
+            except CannotApprove as refused:
+                raise _Refused(
+                    [
+                        f"stage {name!r}: the approval names a place this proof"
+                        " cannot set",
+                        *refused.reasons,
+                    ]
+                ) from refused
+            refusals = _set(docket, tree, run_dir, number)
+            if refusals:
+                raise _Refused(
+                    _refusal_lines(name, refusals, partial(unaccepted, name))
+                )
+            written.update(schedule.path for schedule in docket.schedules)
+            if only is not None:
+                for place in proof.places:
+                    if place.changed and place.address not in only:
+                        declined.setdefault(cue_of(place.address).path, []).append(
+                            f"{name}:{place.address}"
+                        )
+    return sorted(written)
 
 
 class Dispatched(NamedTuple):

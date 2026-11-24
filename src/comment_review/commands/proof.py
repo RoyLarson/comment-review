@@ -2,8 +2,14 @@
 
     comment_review proof --proof P.json --repo . --out DIR
     comment_review proof --proof P.json --only ADDRESS --repo . --out DIR
+    comment_review proof --jacket J.json [--only STAGE:ADDRESS] --repo . --out DIR
 
 The work is `flows.revise.pull`; this is only the console face of it.
+
+`--jacket` sets the whole run: `flows.stage.replay` builds the manuscript's
+tree and sets every stage's closed proof over it in topology order, and
+`--only` names each accepted place as `<stage>:<address>`. `--out` then holds
+one draft per page a proof set.
 
 The input is the closed master proof: its decided places are what the write
 end sets. `--copy` takes a role's own edit_copy instead, for that role's own
@@ -37,17 +43,18 @@ from comment_review.desk.proof.edit_copy import EditCopy
 from comment_review.desk.proof.master_proof import MasterProof
 from comment_review.docket.docket import Docket
 from comment_review.flows import revise, transcribe
+from comment_review.flows.stage import UnreadableInput, replay
 from comment_review.machine.json_object import object_of
 from comment_review.machine.repo import undraftable, write_raw
 
 
 def main() -> int:
-    """Read a proof, a copy or a docket, run the chain, report what refused.
+    """Read a proof, a copy, a docket or a jacket, run the chain, report what refused.
 
     Returns:
         0 when the drafts or the docket were written; 1 when the transcribe
-        or the pull refused; 2 when an argument or an input file is wrong, or
-        the docket cannot be written.
+        or the pull refused, or a jacket's run is not closed; 2 when an
+        argument or an input file is wrong, or the docket cannot be written.
     """
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument(
@@ -83,6 +90,10 @@ def main() -> int:
         "--from-docket",
         help="JSON: a docket a --to-docket run wrote -- skips the transcribe",
     )
+    source.add_argument(
+        "--jacket",
+        help="the run's jacket.json -- every stage's closed proof, set in order",
+    )
     # `--only` is the partial approval. The author approves some decided places
     # and not others, and what they ruled is a set of addresses over the proof
     # rather than a second artifact. Repeatable, and a place it does not name is
@@ -93,7 +104,7 @@ def main() -> int:
         default=[],
         metavar="ADDRESS",
         help="set this decided place alone; repeat for each place the author"
-        " approved (requires --proof)",
+        " approved (requires --proof, or --jacket with STAGE:ADDRESS)",
     )
     # !! `--to-docket` stops the run at the transcribe. It is also what gives
     # `Docket.serialize` a production caller, so the format is exercised rather
@@ -125,8 +136,17 @@ def main() -> int:
     # and a docket holds alterations already chosen, so the flag has nothing
     # to filter on either -- an input error rather than a refusal further
     # down, where it would read as a fact about the file.
-    if args.only and not args.proof:
-        print("REFUSED: --only names places of a closed proof, so it needs --proof")
+    if args.only and not (args.proof or args.jacket):
+        print(
+            "REFUSED: --only names places of a closed proof, so it needs --proof"
+            " or --jacket"
+        )
+        return 2
+    if args.jacket and args.to_docket:
+        print(
+            "REFUSED: --jacket sets one docket per stage, and --to-docket writes"
+            " one -- nothing written"
+        )
         return 2
     # !! ONE FORK, ASKED ONCE: is a revise being pulled, or does the run stop at
     # the docket? Every `--out` rule below belongs to the pulling path alone,
@@ -169,6 +189,22 @@ def main() -> int:
                 " into a directory that does not exist yet -- nothing written"
             )
             return 2
+    if args.jacket:
+        assert out is not None
+        try:
+            lines, problems = replay(
+                Path(args.jacket), repo, out, only=tuple(args.only) or None
+            )
+        except UnreadableInput as unread:
+            return report.refused(unread.reasons)
+        for line in problems:
+            print(line)
+        if problems:
+            print(f"{len(problems)} refusal(s) -- nothing drafted")
+            return 1
+        for line in lines:
+            print(line)
+        return 0
     # !! The load is three steps and each fails for its own reason.
     #
     #     read_text     the file is missing, unreadable, undecodable

@@ -1,7 +1,7 @@
-"""`stage open`, `collate --jacket` and `stage close` over one run's jacket.
+"""`stage open`, `collate --jacket`, `stage close` and `proof --jacket` over a jacket.
 
-`no-component-owns-the-run` T2, `move-is-a-composite-mark` T56 and
-`fold-admission-has-no-owner` T3, under
+`no-component-owns-the-run` T2 and T3, `move-is-a-composite-mark` T56,
+`staged-chain-untested` T3 and `fold-admission-has-no-owner` T3, under
 `docs/plans/0.2.4-the-run-has-a-jacket.md`. Each case drives the commands' own
 `main()`: `4a` is gathered from a committed checkout, its copies filled,
 folded by `collate --jacket` and closed on the proof the chief closed, and
@@ -12,30 +12,38 @@ import json
 import subprocess
 from pathlib import Path
 
-from conftest import run_command
+import pytest
+from conftest import ROOT, run_command
 from helpers import (
     BASE,
     TWO,
     _overlaid,
     a_correct_setting,
     a_move,
+    a_patch,
     a_real_binder_over,
     taken_in_as_filed,
 )
 
 from comment_review.commands import check as check_command
 from comment_review.commands import collate as collate_command
+from comment_review.commands import proof as proof_command
 from comment_review.commands import report
 from comment_review.commands import stage as stage_command
+from comment_review.flows import revise
 from comment_review.flows.fan_out import received_binder_of
 from comment_review.flows.jacket import (
     JACKET_FILE,
     Jacket,
+    jacket_from_wire,
+    jacket_to_wire,
     load_jacket,
+    put_topology,
     resolved_path,
     save_jacket,
 )
 from comment_review.flows.proof_io import load_binder, load_proof
+from comment_review.flows.transcribe import docket_of_proof
 
 
 def _row(name: str, reads: str, *roles: str, admits: str = "") -> str:
@@ -362,15 +370,22 @@ def test_another_stages_proof_does_not_close_this_one(tmp_path, monkeypatch, cap
     assert "not stage '4a'" in printed
 
 
-def test_a_stage_closes_only_in_topology_order(tmp_path, monkeypatch, capsys):
-    _a_run(tmp_path, TWO_ORIGINALS)
-    for stage in ("4a", "4b"):
-        code, printed = _open(tmp_path, monkeypatch, capsys, stage)
-        assert code == 0, printed
-    proof = _folded(tmp_path, monkeypatch, capsys, CORRECTED, "4b")
-    code, printed = _close(tmp_path, monkeypatch, capsys, "4b", proof)
-    assert code == 1, printed
-    assert "not next to close" in printed and "'4a'" in printed
+def test_a_topology_that_is_not_one_chain_is_refused_naming_the_stage(tmp_path):
+    """Two stages reading the original could open and close, and never be set."""
+    repo = tmp_path / "repo"
+    a_real_binder_over(repo, {"m.py@b1": BASE})
+    _git(repo, "init")
+    _git(repo, "add", ".")
+    _commit(repo)
+    run = tmp_path / "run"
+    why = put_topology(run, TWO_ORIGINALS, "HEAD", ("m.py",), repo)
+    assert len(why) == 1 and "stage '4b' reads 'original'" in why[0], why
+    assert "so it reads 'revise:4a'" in why[0]
+    assert not (run / JACKET_FILE).exists()
+    wire = jacket_to_wire(Jacket("0" * 40, ("m.py",), FOUR_A_THEN_FOUR_C))
+    wire["topology"] = TWO_ORIGINALS
+    jacket, why = jacket_from_wire("j", wire)
+    assert jacket is None and "stage '4b'" in why[0], why
 
 
 def test_a_stage_tree_is_the_checkout_as_the_run_started_outside_the_scope(
@@ -595,3 +610,262 @@ def test_collate_jacket_folds_only_an_open_stage(tmp_path, monkeypatch, capsys):
         code, printed = _collate(tmp_path, monkeypatch, capsys, stage)
         assert code == report.UNREADABLE, printed
         assert f"stage {stage!r} {why}" in printed
+
+
+# -- proof --jacket: the author's approval, replayed over the manuscript -------
+
+#: 4a's correction at `m.py@b1`, and 4c's over the text 4a set there.
+FOUR_C_OVER_TWO = "# one\n# TWO C\n# three\n"
+RECORRECTED = {
+    "block-context": {"m.py@b1": a_correct_setting("m.py@b1", "TWO", FOUR_C_OVER_TWO)}
+}
+FOUR_A_ALONE = _row("4a", "original", "block-context")
+
+
+def _stage_closed(tmp_path, monkeypatch, capsys, stage: str, by_role: dict) -> Path:
+    """Stage `stage` opened, its copies filled and folded, and closed.
+
+    The closed proof is kept at `final<stage>.json`, since the next stage's
+    chief writes `final.json` again and the jacket holds each proof's sha.
+    """
+    code, printed = _open(tmp_path, monkeypatch, capsys, stage)
+    assert code == 0, printed
+    kept = tmp_path / f"final{stage}.json"
+    _folded(tmp_path, monkeypatch, capsys, by_role, stage).replace(kept)
+    code, printed = _close(tmp_path, monkeypatch, capsys, stage, kept)
+    assert code == 0, printed
+    return kept
+
+
+def _set_run(tmp_path, monkeypatch, capsys, *only: str):
+    """`proof --jacket` into `tmp_path/drafts`, accepting `only` where named."""
+    return run_command(
+        monkeypatch,
+        capsys,
+        proof_command,
+        "--jacket",
+        str(_jacket(tmp_path)),
+        "--repo",
+        str(tmp_path / "repo"),
+        "--out",
+        str(tmp_path / "drafts"),
+        *(arg for one in only for arg in ("--only", one)),
+        with_stderr=True,
+    )
+
+
+def _moved_into(tmp_path) -> str:
+    """The address 4a's move landed at in `n.py`, as 4c's binder reads it."""
+    (address,) = [
+        p.address
+        for p in _binder_of(tmp_path, "4c").paragraphs
+        if p.address.startswith("n.py@") and p.raw_text == BASE.rstrip("\n")
+    ]
+    return address
+
+
+def _drafts(tmp_path) -> dict[str, bytes]:
+    drafts = tmp_path / "drafts"
+    return {
+        path.relative_to(drafts).as_posix(): path.read_bytes()
+        for path in drafts.rglob("*")
+        if path.is_file()
+    }
+
+
+def test_accept_all_sets_the_last_stages_tree_page_for_page(
+    tmp_path, monkeypatch, capsys
+):
+    """4a moves `m.py@b1` into `n.py`; 4c corrects the moved paragraph. The
+    replay equals 4c's root with 4c's proof set over it, page for page."""
+    _a_run(tmp_path)
+    _stage_closed(tmp_path, monkeypatch, capsys, "4a", MOVED_OUT)
+    _open(tmp_path, monkeypatch, capsys, "4c")
+    there = _moved_into(tmp_path)
+    landed = {"block-context": {there: a_correct_setting(there, "two", TWO)}}
+    _filled(tmp_path, "4c", landed)
+    code, printed = _collate(tmp_path, monkeypatch, capsys, "4c")
+    assert code == report.REREADS, printed
+    taken_in_as_filed(tmp_path, monkeypatch, capsys)
+    code, printed = _close(tmp_path, monkeypatch, capsys, "4c", tmp_path / "final.json")
+    assert code == 0, printed
+
+    code, printed = _set_run(tmp_path, monkeypatch, capsys)
+    assert code == 0, printed
+    assert "2 page(s) drafted for review" in printed
+
+    root4c = tmp_path / "run" / "root4c"
+    proof4c, why = load_proof(tmp_path / "final.json")
+    assert proof4c is not None, why
+    docket = docket_of_proof(proof4c, root4c)
+    pulled = revise.pull(docket, root4c, tmp_path / "last", revise=2)
+    assert pulled.refusals == []
+    last = {
+        rel: (pulled.root / rel if (pulled.root / rel).exists() else root4c / rel)
+        for rel in ("m.py", "n.py")
+    }
+    assert _drafts(tmp_path) == {rel: path.read_bytes() for rel, path in last.items()}
+    assert TWO in (tmp_path / "drafts" / "n.py").read_text(encoding="utf-8")
+
+
+def _corrected_twice(tmp_path, monkeypatch, capsys) -> None:
+    """4a corrects `m.py@b1` to `TWO`; 4c corrects what 4a set there."""
+    _a_run(tmp_path)
+    _stage_closed(tmp_path, monkeypatch, capsys, "4a", CORRECTED)
+    _stage_closed(tmp_path, monkeypatch, capsys, "4c", RECORRECTED)
+
+
+def test_E4_a_later_stages_place_without_the_earlier_one_is_refused_naming_it(
+    tmp_path, monkeypatch, capsys
+):
+    _corrected_twice(tmp_path, monkeypatch, capsys)
+    code, printed = _set_run(tmp_path, monkeypatch, capsys, "4c:m.py@b1")
+    assert code == 1, printed
+    assert "stage '4c': REFUSED at verify: m.py" in printed
+    assert "with 4a:m.py@b1 set, and the author did not accept it" in printed
+    assert not (tmp_path / "drafts").exists()
+
+    code, printed = _set_run(tmp_path, monkeypatch, capsys, "4a:m.py@b1", "4c:m.py@b1")
+    assert code == 0, printed
+    assert _drafts(tmp_path).keys() == {"m.py"}
+    assert FOUR_C_OVER_TWO in (tmp_path / "drafts" / "m.py").read_text(encoding="utf-8")
+
+
+def test_an_earlier_stages_place_accepted_alone_is_drafted(
+    tmp_path, monkeypatch, capsys
+):
+    _corrected_twice(tmp_path, monkeypatch, capsys)
+    code, printed = _set_run(tmp_path, monkeypatch, capsys, "4a:m.py@b1")
+    assert code == 0, printed
+    assert TWO in (tmp_path / "drafts" / "m.py").read_text(encoding="utf-8")
+
+
+def test_an_accepted_move_drafts_both_pages_and_one_end_is_refused(
+    tmp_path, monkeypatch, capsys
+):
+    _a_run(tmp_path, FOUR_A_ALONE)
+    _stage_closed(tmp_path, monkeypatch, capsys, "4a", MOVED_OUT)
+    code, printed = _set_run(tmp_path, monkeypatch, capsys, "4a:m.py@b1")
+    assert code == 1, printed
+    assert "approve both ends of this move together" in printed
+    assert not (tmp_path / "drafts").exists()
+
+    code, printed = _set_run(tmp_path, monkeypatch, capsys, "4a:m.py@b1", "4a:n.py@b0")
+    assert code == 0, printed
+    drafts = _drafts(tmp_path)
+    assert drafts.keys() == {"m.py", "n.py"}
+    assert b"# one\n# two\n# three" in drafts["n.py"]
+    assert b"# one" not in drafts["m.py"]
+
+
+def test_a_run_with_a_stage_not_closed_is_not_set(tmp_path, monkeypatch, capsys):
+    _closed_4a(tmp_path, monkeypatch, capsys, CORRECTED)
+    code, printed = _set_run(tmp_path, monkeypatch, capsys)
+    assert code == 1, printed
+    assert "stage 4c has not closed" in printed
+    assert not (tmp_path / "drafts").exists()
+
+
+def test_an_approval_naming_no_stage_is_refused(tmp_path, monkeypatch, capsys):
+    _corrected_twice(tmp_path, monkeypatch, capsys)
+    code, printed = _set_run(tmp_path, monkeypatch, capsys, "m.py@b1")
+    assert code == 1, printed
+    assert "'m.py@b1' names no stage's place" in printed
+
+
+#: 4a, 4c and a compacting stage 6, each block-context alone.
+CHAIN = (
+    FOUR_A_THEN_FOUR_C
+    + '[[stage]]\nname = "6"\nkind = "editorial"\nreads = "revise:4c"\ncap = 2\n'
+    'series = ["b", "c"]\nadmits = ["patch", "drop", "add", "clean"]\n'
+    '  [[stage.dispatch]]\n  role = "block-context"\n'
+)
+AT = "m.py@b1"
+#: Per stage: its name, the role it dispatches, its mark at `AT`, and the
+#: paragraph once it is set -- one more marker than the stage before.
+FOUR_A_C_6 = (
+    ("4a", "block-context", "# one A\n# two\n# three", ("correct", "one")),
+    ("4c", "block-context", "# one A\n# two C\n# three", ("correct", "two")),
+    ("6", "block-context", "# one A\n# two C\n# three 6", ("patch", "three")),
+)
+SEQUENTIAL = tuple(
+    (
+        name,
+        role,
+        "# one " + " ".join("1234"[: int(name)]) + "\n# two\n# three",
+        ("correct", "one"),
+    )
+    for name, role in (
+        ("1", "ownership-context"),
+        ("2", "block-context"),
+        ("3", "function-context"),
+        ("4", "module-context"),
+    )
+)
+
+
+def _marked(after: str, how: tuple[str, str]) -> dict:
+    instruction, sentence = how
+    if instruction == "patch":
+        return a_patch(AT, sentence, f"{sentence} 6", after)
+    return a_correct_setting(AT, sentence, after)
+
+
+@pytest.mark.parametrize(
+    ("topology", "stages"),
+    [
+        (CHAIN, FOUR_A_C_6),
+        (
+            (ROOT / "tests/fixtures/topologies/sequential.toml").read_text(
+                encoding="utf-8"
+            ),
+            SEQUENTIAL,
+        ),
+    ],
+    ids=["4a-4c-6", "sequential.toml"],
+)
+def test_staged_chain_T3_each_stage_reads_the_one_before_and_the_edits_accumulate(
+    tmp_path, monkeypatch, capsys, topology, stages
+):
+    """`staged-chain-untested` T3: one marker per stage in one paragraph, each
+    stage reading the text the stage before it set, and the run set holds all."""
+    _a_run(tmp_path, topology)
+    before = BASE.rstrip("\n")
+    for name, role, after, how in stages:
+        _stage_closed(
+            tmp_path, monkeypatch, capsys, name, {role: {AT: _marked(after, how)}}
+        )
+        (row,) = [p for p in _binder_of(tmp_path, name).paragraphs if p.address == AT]
+        assert row.raw_text == before, name
+        before = after
+
+    code, printed = _set_run(tmp_path, monkeypatch, capsys)
+    assert code == 0, printed
+    assert _drafts(tmp_path).keys() == {"m.py"}
+    assert before in (tmp_path / "drafts" / "m.py").read_text(encoding="utf-8")
+
+
+def test_E5_check_from_another_cwd_at_4c_passes_with_the_stage_root(
+    tmp_path, monkeypatch, capsys
+):
+    _closed_4a(tmp_path, monkeypatch, capsys, CORRECTED)
+    code, printed = _open(tmp_path, monkeypatch, capsys, "4c")
+    assert code == 0, printed
+    _filled(tmp_path, "4c", RECORRECTED)
+    (copy,) = _copies(tmp_path, "4c")
+    elsewhere = tmp_path / "elsewhere"
+    elsewhere.mkdir()
+    monkeypatch.chdir(elsewhere)
+    code, printed = run_command(
+        monkeypatch,
+        capsys,
+        check_command,
+        "--edit-copy",
+        str(copy),
+        "--binder",
+        str(received_binder_of(copy)),
+        "--repo",
+        str(tmp_path / "run" / "root4c"),
+        with_stderr=True,
+    )
+    assert code == report.OK, printed

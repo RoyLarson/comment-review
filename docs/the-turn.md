@@ -365,8 +365,8 @@ has it. It refuses an address the proof does not carry, and one end of an agreed
 other end is not approved: a move is one decision at two places, and setting the origin alone
 drops the paragraph and adds it nowhere, while setting the destination alone writes it in both.
 A named place the write end sets nothing at -- it stands on the text already there -- is
-approved with nothing to set rather than refused. `--only` without `--proof` is an argument
-error: a copy holds marks and a docket holds alterations already chosen, so neither has places
+approved with nothing to set rather than refused. `--only` without `--proof` or `--jacket` is
+an argument error: a copy holds marks and a docket holds alterations already chosen, so neither has places
 to filter.
 
 **The master proof is the record of the decisions.** The `collate`, `turn` and `disposition` commands write it to `--proof-out` on commit. The docket reads the closed proof's decided places.
@@ -575,11 +575,25 @@ moved text is read at the next stage. The binder's `read_from` carries `stage`, 
 seeded from the jacket's row into `<run-dir>/copies/`, printed as `distribute --stage` prints
 them, and the jacket records the root, the binder and the copies dispatched.
 
-**A stage closes in topology order.** It is open, it is the first row not closed whose chain has
-closed, and the proof is closed, stamped with its name, and its `returned` equals the copies the
-jacket records as dispatched; the jacket records the proof's path
+**A stage closes when it is open** and the proof is closed, stamped with its name, and its
+`returned` equals the copies the jacket records as dispatched. The stages form one chain and a
+stage opens only once the one before it closed, so one stage is open at a time; the jacket records the proof's path
 and sha256, and a later `stage open` refuses a proof whose bytes changed since. A refusal exits
 1; a jacket or a closed proof that cannot be read as one exits 2.
+
+**`proof --jacket J --out D` sets the whole run, and `--only <stage>:<address>` is the author's
+approval over it** -- `decision-log.md Process: #405`. `flows.stage.replay` builds a tree as
+`stage open` builds a root, without the freeform drafts, and sets every stage's closed proof over
+it in topology order through `revise.pull`, each transcribed with that stage's accepted places
+alone when `--only` is given. `D` holds one draft per page a proof set, at its repo path.
+Accepting every place sets the last stage's tree with its own proof over it. A later stage's
+place on a page whose replayed text differs from what that stage read is refused by the docket's
+page-sha refusal, and the refusal names each earlier `<stage>:<address>` on that page the author
+did not accept; one end of an agreed move is refused as `--only` refuses it on one proof. A stage
+of the topology not closed is refused. The jacket holds only a topology that is one chain -- the
+first row reads `original`, each other row reads `revise:<the row above it>` -- and refuses any
+other, naming the stage that breaks it, since replay sets stages in one line. Refusals exit 1; a jacket, a closed proof or a page
+identity that cannot be read exits 2.
 
 ## What this does to stages 4 and 5
 
@@ -601,6 +615,7 @@ updated paragraph as raw text ([`the-mark.md`](the-mark.md)). The chief can take
 | what a page holds at an address -- the base and anchor a place is built on | `flows.on_the_page.held_at`, read by `flows.places.bases_and_anchors` and `flows.verify` |
 | which places a stage deals | `desk.stages.deals`, read by `flows.distribute.seed` and `flows.verify.admit` |
 | the tree a stage reads, and the order stages open and close | `flows.stage.open_stage` and `close_stage`; the command is `stage open` / `stage close` |
+| the whole run set, with the author's approval by `<stage>:<address>` | `flows.stage.replay`; the command is `proof --jacket` |
 | which instructions its roles may file | `desk.stages.not_admitted`, read by `flows.verify._admitted_problems` |
 | a role states the paragraph it wants | `Mark.change`, raw text |
 | the answer a role gives in a turn | `desk/proof/answer.py` -- `Answer` and its types; `desk/answers/table.py`, the twelve rows |

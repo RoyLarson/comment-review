@@ -10,7 +10,8 @@
     stored_path / resolved_path
                             a path as the jacket records it, relative to the
                             jacket file, and back
-    put_topology            write a built topology's rows into the run's jacket
+    put_topology            write a built topology's rows into the run's jacket;
+                            rows that are not one chain are refused
     snapshot_manuscript     copy the manuscript into `<run-dir>/manuscript/`
     manuscript_deleted      the tracked files the checkout had deleted
 
@@ -44,7 +45,8 @@ from pathlib import Path
 from typing import cast
 
 from comment_review import exceptions
-from comment_review.desk.topology import read
+from comment_review.desk.stages import Stage
+from comment_review.desk.topology import REVISE, read
 from comment_review.flows.proof_io import load_text
 from comment_review.machine.json_object import object_of
 from comment_review.machine.repo import (
@@ -114,7 +116,9 @@ class Jacket:
     Attributes:
         ref: the full sha of the pre-edit commit.
         scope: the paths under review, repo-relative, as the gather is given them.
-        topology: the topology rows, verbatim -- text `desk.topology.read` accepts.
+        topology: the topology rows, verbatim -- text `desk.topology.read` accepts,
+            forming one chain: the first row reads `"original"` and each
+            other row reads `"revise:<the row above it>"`.
         stages: each opened stage's entry, by the stage's name, in opening order.
     """
 
@@ -172,6 +176,9 @@ def jacket_from_wire(where: str, value: object) -> tuple[Jacket | None, list[str
     rows, why = read(topology)
     if why:
         return refused(why)
+    why = _not_a_chain(rows)
+    if why:
+        return refused(why)
     raw_stages = wire["stages"]
     if not isinstance(raw_stages, dict):
         return refused("stages must be an object of stage name to entry")
@@ -185,6 +192,23 @@ def jacket_from_wire(where: str, value: object) -> tuple[Jacket | None, list[str
             return refused(f"stage {name!r}: {why}")
         stages[name] = entry
     return Jacket(ref, tuple(scope), topology, stages), []
+
+
+def _not_a_chain(rows: list[Stage]) -> str:
+    """Why these rows are not one chain, naming the stage that breaks it, or "".
+
+    The run is set by replaying each stage's proof over the one before it, so
+    the first row reads the original and every other row reads the revise of
+    the row above it.
+    """
+    for before, row in zip([None, *rows], rows, strict=False):
+        owed = "original" if before is None else f"{REVISE}{before.name}"
+        if row.reads != owed:
+            return (
+                f"stage {row.name!r} reads {row.reads!r}, and a run's stages form"
+                f" one chain, so it reads {owed!r}"
+            )
+    return ""
 
 
 def _entry(raw: object) -> tuple[StageEntry | None, str]:
