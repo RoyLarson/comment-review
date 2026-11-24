@@ -7,8 +7,8 @@ The work is `flows.stage`; this is only the console face of it.
 
 `open` builds the stage's tree from the jacket, gathers it into
 `<run-dir>/binder<stage>.json`, seeds one copy per dispatch into
-`<run-dir>/copies/` and prints one line per copy, as `distribute --stage`
-does. `close` records a closed proof as the stage's.
+`<run-dir>/copies/` and prints one line per copy. `close` records a closed
+proof as the stage's.
 
 ! Exit codes. 0 the stage opened or closed; 1 refused, every reason on stderr;
 2 the jacket or a closed proof cannot be read as one, on stderr, or the arguments are

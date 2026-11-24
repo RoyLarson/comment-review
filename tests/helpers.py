@@ -26,6 +26,7 @@ what drive them now.
 """
 
 import json
+import subprocess
 from pathlib import Path
 from typing import Any
 
@@ -75,14 +76,18 @@ from comment_review.flows.fan_out import received_binder_of
 from comment_review.flows.fill import fill
 from comment_review.flows.jacket import (
     JACKET_FILE,
+    Closed,
     Jacket,
     StageEntry,
     save_jacket,
+    snapshot_manuscript,
     stored_path,
 )
 from comment_review.flows.page_for import page_of
 from comment_review.flows.proof_io import load_proof
 from comment_review.flows.source import source_of
+from comment_review.flows.transcribe import CannotTranscribe, docket_of_proof
+from comment_review.machine.digests import sha256_hex
 from comment_review.reading.diagnostics import ReadFailure
 
 #: `src/comment_review/desk/` -- the source `a_small_real_tree` copies from.
@@ -132,8 +137,8 @@ def pages_of(root: Path) -> list:
     return pages
 
 
-def binder_of(root: Path, revise: int) -> Binder:
-    return bind(pages_of(root), read_from={"root": str(root), "revise": revise})
+def binder_of(root: Path) -> Binder:
+    return bind(pages_of(root), read_from={"root": str(root)})
 
 
 def _deserialized(wire: dict) -> Binder:
@@ -222,7 +227,7 @@ def a_docket_over(repo: Path, names: list[str]) -> Docket:
     Raises:
         AssertionError: a name has no filled `b` row to alter.
     """
-    binder = binder_of(repo, 0)
+    binder = binder_of(repo)
     remaining = set(names)
     pages = []
     for page in binder.pages:
@@ -276,7 +281,7 @@ def a_docket_whose_claim_is_not_in_the_page(repo: Path, name: str) -> Docket:
     Raises:
         AssertionError: no page in `repo` has this basename.
     """
-    binder = binder_of(repo, 0)
+    binder = binder_of(repo)
     for page in binder.pages:
         if Path(page.path).name == name:
             return _a_docket(
@@ -376,7 +381,7 @@ def _synthetic_binder(addresses: list[str]) -> Binder:
     return _deserialized(
         {
             "version": VERSION,
-            "read_from": {"root": str(REPO), "revise": 0},
+            "read_from": {"root": str(REPO)},
             "freeform": [],
             "pages": [
                 {
@@ -413,7 +418,7 @@ def a_binder_over(paragraphs: dict[str, str]) -> Binder:
     return _deserialized(
         {
             "version": VERSION,
-            "read_from": {"root": str(REPO), "revise": 0},
+            "read_from": {"root": str(REPO)},
             "freeform": [],
             "pages": [
                 {
@@ -472,7 +477,7 @@ def a_real_binder_over(root: Path, paragraphs: dict[str, str]) -> Binder:
         page = page_of(root / path, rel=path)
         assert not isinstance(page, ReadFailure), page
         pages.append(page)
-    binder = bind(pages, read_from={"root": str(root), "revise": 0})
+    binder = bind(pages, read_from={"root": str(root)})
     held = {p.address: p.raw_text for p in binder.paragraphs}
     assert held == {a: t.rstrip("\n") for a, t in paragraphs.items()}, held
     return binder
@@ -1189,6 +1194,154 @@ def a_jacket_over(
     entry = StageEntry(stored_path(binder.root, jacket), "binder.json", tuple(names))
     scope = tuple(page.path for page in binder.pages) or ("m.py",)
     save_jacket(jacket, Jacket("0" * 40, scope, topology, {stage: entry}))
+    return jacket
+
+
+def a_jacket_naming(
+    binder: Path,
+    copies: list[Path],
+    stage: str = "4c",
+    topology: str = "",
+    received: list[Path] | None = None,
+    root: Path | None = None,
+) -> list[str]:
+    """`collate`'s jacket flags over files already on disk, as a case wrote them.
+
+    Unlike `a_jacket_over`, nothing is re-serialized: the jacket beside
+    `binder` names `binder` and each copy where they stand, so a case that
+    tampered with a file on disk is folded as tampered. Each copy's received
+    binder is `received`'s file at the same index, or `binder`, copied to
+    where `flows.fan_out.received_binder_of` puts it. A copy path that does not
+    exist is a dispatch that never returned.
+
+    Args:
+        topology: the rows; "" is one editorial row named `stage`
+            dispatching each copy's role in order.
+        root: the stage's tree; None is the binder's own `read_from.root`.
+
+    Returns:
+        `["--jacket", <the jacket>, "--stage", stage]`.
+    """
+    jacket = binder.parent / JACKET_FILE
+    roles = []
+    for i, copy in enumerate(copies):
+        source = received[i] if received is not None else binder
+        held = received_binder_of(copy)
+        if source.is_file() and held.resolve() != source.resolve():
+            held.parent.mkdir(exist_ok=True)
+            held.write_bytes(source.read_bytes())
+        try:
+            role = json.loads(copy.read_text(encoding="utf-8")).get("role")
+        except (OSError, ValueError, AttributeError):
+            role = None
+        roles.append(role if isinstance(role, str) and role else "block-context")
+    topology = topology or (
+        f'[[stage]]\nname = "{stage}"\nkind = "editorial"\n'
+        + "".join(f'  [[stage.dispatch]]\n  role = "{role}"\n' for role in roles)
+    )
+    try:
+        wire = json.loads(binder.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        wire = {}
+    pages = wire.get("pages") if isinstance(wire, dict) else None
+    scope = tuple(
+        page["path"]
+        for page in pages or []
+        if isinstance(page, dict) and isinstance(page.get("path"), str)
+    ) or ("m.py",)
+    if root is None:
+        read_from = wire.get("read_from") if isinstance(wire, dict) else None
+        named = read_from.get("root") if isinstance(read_from, dict) else None
+        root = Path(named) if isinstance(named, str) else binder.parent
+    entry = StageEntry(
+        stored_path(root, jacket),
+        stored_path(binder, jacket),
+        tuple(stored_path(copy, jacket) for copy in copies),
+    )
+    save_jacket(jacket, Jacket("0" * 40, scope, topology, {stage: entry}))
+    return ["--jacket", str(jacket), "--stage", stage]
+
+
+def proof_to_docket(proof: Path, repo: Path, docket: Path) -> list[str]:
+    """Write the docket `flows.transcribe.docket_of_proof` makes of `proof`.
+
+    The transcription `stage open` and `proof --jacket` run on a closed
+    proof, stopped at the docket, so `proof --from-docket` can set it.
+
+    Returns:
+        `[]` once `docket` is written, or every reason the proof was refused.
+    """
+    held, why = load_proof(proof)
+    if held is None:
+        return why
+    try:
+        made = docket_of_proof(held, repo)
+    except CannotTranscribe as refused:
+        return list(refused.reasons)
+    docket.write_text(json.dumps(made.serialize(), indent=2), encoding="utf-8")
+    return []
+
+
+def git_in(repo: Path, *args: str) -> str:
+    """`git -C repo` with a fixed author, its stdout stripped."""
+    return subprocess.run(
+        [
+            "git",
+            "-C",
+            str(repo),
+            "-c",
+            "user.name=Test",
+            "-c",
+            "user.email=test@example.invalid",
+            *args,
+        ],
+        capture_output=True,
+        text=True,
+        check=True,
+        timeout=60,
+    ).stdout.strip()
+
+
+def a_closed_run(repo: Path, proof: Path) -> Path:
+    """A jacket whose one stage closed on `proof`, over `repo`, for `proof --jacket`.
+
+    `repo` is made a git checkout and committed, since the replay builds its
+    tree from the jacket's commit; the manuscript is the proof's pages as
+    `repo` holds them. The stage is the proof's own. The run dir is beside
+    the proof.
+
+    Returns:
+        The jacket's path.
+    """
+    # The project's own checkout is never committed to.
+    assert not repo.resolve().is_relative_to(ROOT), repo
+    wire = json.loads(proof.read_text(encoding="utf-8"))
+    stage = wire["stage"]
+    scope = sorted(
+        {sheet["path"] for copy in wire["edit_copies"] for sheet in copy["sheets"]}
+        | set(wire.get("page_shas", {}))
+    ) or ["m.py"]
+    if not (repo / ".git").exists():
+        git_in(repo, "init", "-q")
+        git_in(repo, "config", "core.autocrlf", "false")
+    git_in(repo, "add", "-A")
+    git_in(repo, "commit", "-q", "--allow-empty", "-m", "fixture")
+    ref = git_in(repo, "rev-parse", "HEAD")
+    run_dir = proof.parent / f"{proof.stem}-run"
+    jacket = run_dir / JACKET_FILE
+    _lines, problems = snapshot_manuscript(repo, tuple(scope), run_dir, ref)
+    assert problems == [], problems
+    topology = (
+        f'[[stage]]\nname = "{stage}"\nkind = "editorial"\n'
+        '  [[stage.dispatch]]\n  role = "block-context"\n'
+    )
+    entry = StageEntry(
+        stored_path(repo, jacket),
+        "binder.json",
+        (),
+        Closed(stored_path(proof, jacket), sha256_hex(proof.read_bytes())),
+    )
+    save_jacket(jacket, Jacket(ref, tuple(scope), topology, {stage: entry}))
     return jacket
 
 

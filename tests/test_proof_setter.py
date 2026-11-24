@@ -48,7 +48,7 @@ def test_saved_context_refuses_before_setting(tmp_path, monkeypatch, fault):
     monkeypatch.setattr(galley, "reset", forbidden_set)
     if fault == "reader":
         # `revise.pull` admits the docket's readings before the setter runs.
-        pulled = revise.pull(Docket((schedule,)), repo, tmp_path / "out", 1)
+        pulled = revise.pull(Docket((schedule,)), repo, tmp_path / "out")
         drafted, refused = [], pulled.refusals
     else:
         drafted, refused = proof_setter.run(Docket((schedule,)), repo, tmp_path / "out")
@@ -94,7 +94,7 @@ def test_a_later_unreadable_page_discards_nested_draft(tmp_path, monkeypatch):
         page = proof_setter.page_of(path, rel=rel)
         assert not isinstance(page, ReadFailure)
         pages.append(page)
-    binder = bind(pages, read_from={"root": str(repo), "revise": 0})
+    binder = bind(pages, read_from={"root": str(repo)})
     docket = docket_from(
         {address(binder, rel): "# replacement" for rel in originals}, binder
     )
@@ -127,7 +127,7 @@ def test_saved_context_reaches_original_and_draft(tmp_path, monkeypatch, text):
     page = proof_setter.page_of(path, rel="m.py")
     assert not isinstance(page, ReadFailure)
     if text:
-        binder = bind([page], read_from={"root": str(repo), "revise": 0})
+        binder = bind([page], read_from={"root": str(repo)})
         docket = docket_from({address(binder, "m.py"): "# replacement"}, binder)
         docket = Docket(
             (dataclasses.replace(docket.schedules[0], reading=page.reading),)
@@ -220,7 +220,7 @@ def test_second_file_read_failure_discards_all_nested_drafts(
         page = proof_setter.page_of(path, rel=rel)
         assert not isinstance(page, ReadFailure), page
         pages.append(page)
-    binder = bind(pages, read_from={"root": str(repo), "revise": 0})
+    binder = bind(pages, read_from={"root": str(repo)})
     docket = docket_from(
         {address(binder, rel): "# replacement" for rel in originals}, binder
     )
@@ -412,7 +412,7 @@ def _tree(tmp_path):
     repo.mkdir()
     (repo / "m.py").write_text(SAMPLE, encoding="utf-8", newline="")
     page = build(SAMPLE)
-    return repo, bind([page], read_from={"root": str(repo), "revise": 0}), page
+    return repo, bind([page], read_from={"root": str(repo)}), page
 
 
 def test_a_alteration_reaches_a_drafted_file(tmp_path):
@@ -437,9 +437,7 @@ def test_a_file_BELOW_THE_REPO_ROOT_drafts(tmp_path):
     repo = tmp_path / "repo"
     (repo / "pkg" / "a").mkdir(parents=True)
     (repo / "pkg" / "a" / "util.py").write_text(SAMPLE, encoding="utf-8", newline="")
-    binder = bind(
-        [build(SAMPLE, "pkg/a/util.py")], read_from={"root": str(repo), "revise": 0}
-    )
+    binder = bind([build(SAMPLE, "pkg/a/util.py")], read_from={"root": str(repo)})
 
     where = address(binder, "pkg/a/util.py")
     assert where.startswith("pkg:a:util.py@")
@@ -626,7 +624,7 @@ def test_ONE_FILES_REFUSAL_DRAFTS_NOTHING_FOR_ANY_FILE(tmp_path):
     (repo / "n.py").write_text(SAMPLE, encoding="utf-8", newline="")
     page_m = build(SAMPLE, "m.py")
     page_n = build(SAMPLE, "n.py")
-    binder = bind([page_m, page_n], read_from={"root": str(repo), "revise": 0})
+    binder = bind([page_m, page_n], read_from={"root": str(repo)})
     into = tmp_path / "out"
     alterations = {address(binder, "m.py"): "# REPLACED", "n.py@b99": "# bad"}
     drafted, refused = proof_setter.run(docket_from(alterations, binder), repo, into)
@@ -695,7 +693,7 @@ def _two_pages(tmp_path):
     (repo / "z.py").write_text(SAMPLE, encoding="utf-8", newline="")
     binder = bind(
         [build(SAMPLE, "a.py"), build(SAMPLE, "z.py")],
-        read_from={"root": str(repo), "revise": 0},
+        read_from={"root": str(repo)},
     )
     # ! Stale AFTER the binder was taken, so `a.py` refuses at `verify`.
     (repo / "a.py").write_text(SAMPLE + "\n", encoding="utf-8", newline="")
@@ -931,7 +929,7 @@ def test_TWO_PAGES_SHARING_A_BASENAME_do_not_collide(tmp_path):
     (repo / "pkg" / "b" / "util.py").write_text(SAMPLE, encoding="utf-8", newline="")
     binder = bind(
         [build(SAMPLE, "pkg/a/util.py"), build(SAMPLE, "pkg/b/util.py")],
-        read_from={"root": str(repo), "revise": 0},
+        read_from={"root": str(repo)},
     )
     into = tmp_path / "out"
     alterations = {
@@ -967,7 +965,7 @@ def test_a_rel_that_ESCAPES_the_repo_is_REFUSED_AT_READ(tmp_path, monkeypatch):
     before = escaped_file.read_bytes()
 
     rel = "../escape_repo/sub/util.py"
-    binder = bind([build(SAMPLE, rel)], read_from={"root": str(repo), "revise": 0})
+    binder = bind([build(SAMPLE, rel)], read_from={"root": str(repo)})
     into = tmp_path / "out"
 
     read: list[Path] = []
@@ -1014,7 +1012,7 @@ def test_a_rel_that_RESOLVES_INSIDE_the_repo_but_outside_into_is_REFUSED(tmp_pat
     into = tmp_path / "out"
     assert not (into / rel).resolve().is_relative_to(into)
 
-    binder = bind([build(SAMPLE, rel)], read_from={"root": str(repo), "revise": 0})
+    binder = bind([build(SAMPLE, rel)], read_from={"root": str(repo)})
     drafted, refused = proof_setter.run(
         docket_from({address(binder, rel): "# REPLACED"}, binder), repo, into
     )
@@ -1040,7 +1038,7 @@ def test_an_EXCEPTION_removes_earlier_drafts_and_still_propagates(
     (repo / "n.py").write_text(SAMPLE, encoding="utf-8", newline="")
     binder = bind(
         [build(SAMPLE, "m.py"), build(SAMPLE, "n.py")],
-        read_from={"root": str(repo), "revise": 0},
+        read_from={"root": str(repo)},
     )
     into = tmp_path / "out"
 
@@ -1095,9 +1093,7 @@ def test_a_refusal_over_a_NESTED_rel_removes_its_directory_too(tmp_path, monkeyp
     repo = tmp_path / "repo"
     (repo / "pkg").mkdir(parents=True)
     (repo / "pkg" / "d.py").write_text(SAMPLE, encoding="utf-8", newline="")
-    binder = bind(
-        [build(SAMPLE, "pkg/d.py")], read_from={"root": str(repo), "revise": 0}
-    )
+    binder = bind([build(SAMPLE, "pkg/d.py")], read_from={"root": str(repo)})
     into = tmp_path / "out"
 
     def failing_reread(*args, **kwargs):
@@ -1122,9 +1118,7 @@ def test_a_REREAD_REFUSAL_over_a_NESTED_rel_removes_its_directory_too(
     repo = tmp_path / "repo"
     (repo / "pkg").mkdir(parents=True)
     (repo / "pkg" / "d.py").write_text(SAMPLE, encoding="utf-8", newline="")
-    binder = bind(
-        [build(SAMPLE, "pkg/d.py")], read_from={"root": str(repo), "revise": 0}
-    )
+    binder = bind([build(SAMPLE, "pkg/d.py")], read_from={"root": str(repo)})
     into = tmp_path / "out"
 
     def refusing_reread(*args, **kwargs):
@@ -1346,7 +1340,7 @@ class TestEveryVerdictThePlacesCanEXPRESSGetsThroughTheChain:
         repo = tmp_path / "repo"
         repo.mkdir()
         (repo / "m.py").write_text(NESTED, encoding="utf-8", newline="")
-        binder = bind([build(NESTED)], read_from={"root": str(repo), "revise": 0})
+        binder = bind([build(NESTED)], read_from={"root": str(repo)})
         assert by_cue(build(NESTED))["a2"].anchor == "    def inner():"
         added = '        """ADDED."""'
         drafted, refused = proof_setter.run(
@@ -1498,7 +1492,7 @@ def _chain(tmp_path, name: str, text: str, alterations: dict):
     repo = tmp_path / "repo"
     repo.mkdir()
     (repo / name).write_text(text, encoding="utf-8", newline="")
-    binder = bind([build(text, name)], read_from={"root": str(repo), "revise": 0})
+    binder = bind([build(text, name)], read_from={"root": str(repo)})
     flat = {f"{name}@{where}": prose for where, prose in alterations.items()}
     return proof_setter.run(docket_from(flat, binder), repo, tmp_path / "out")
 
@@ -1552,9 +1546,9 @@ def _pulled(tmp_path, n: int, name: str, text: str, alterations: dict) -> str:
     repo = tmp_path / str(n) / "repo"
     repo.mkdir()
     (repo / name).write_text(text, encoding="utf-8", newline="")
-    binder = bind([build(text, name)], read_from={"root": str(repo), "revise": 0})
+    binder = bind([build(text, name)], read_from={"root": str(repo)})
     flat = {f"{name}@{where}": prose for where, prose in alterations.items()}
-    pulled = revise.pull(docket_from(flat, binder), repo, tmp_path / str(n) / "out", 1)
+    pulled = revise.pull(docket_from(flat, binder), repo, tmp_path / str(n) / "out")
     assert pulled.refusals == []
     return (pulled.root / name).read_bytes().decode("utf-8")
 
@@ -2244,7 +2238,7 @@ def test_white_space_is_not_a_way_to_spell_a_drop(tmp_path, name, text, alterati
     repo = tmp_path / "repo"
     repo.mkdir()
     (repo / name).write_text(text, encoding="utf-8", newline="")
-    binder = bind([build(text, name)], read_from={"root": str(repo), "revise": 0})
+    binder = bind([build(text, name)], read_from={"root": str(repo)})
     docket = docket_from({f"{name}@{at}": "x" for at in alterations}, binder)
     only = docket.schedules[0]
     held = tuple(
@@ -2272,7 +2266,7 @@ def test_a_directory_THAT_WAS_THERE_BEFORE_the_run_survives_it(tmp_path, monkeyp
     (repo / "n.py").write_text(SAMPLE, encoding="utf-8", newline="")
     binder = bind(
         [build(SAMPLE, "pkg/d.py"), build(SAMPLE, "n.py")],
-        read_from={"root": str(repo), "revise": 0},
+        read_from={"root": str(repo)},
     )
     into = tmp_path / "out"
     (into / "pkg").mkdir(parents=True)
@@ -2299,9 +2293,7 @@ def test_a_WRITE_THAT_RAISES_leaves_no_directory_behind(tmp_path, monkeypatch):
     repo = tmp_path / "repo"
     (repo / "pkg").mkdir(parents=True)
     (repo / "pkg" / "d.py").write_text(SAMPLE, encoding="utf-8", newline="")
-    binder = bind(
-        [build(SAMPLE, "pkg/d.py")], read_from={"root": str(repo), "revise": 0}
-    )
+    binder = bind([build(SAMPLE, "pkg/d.py")], read_from={"root": str(repo)})
     into = tmp_path / "out"
 
     _fail_the_draft_of(monkeypatch, "d.py", "simulated: the draft could not be written")

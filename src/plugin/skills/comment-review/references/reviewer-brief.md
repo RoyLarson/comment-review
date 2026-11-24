@@ -23,8 +23,8 @@ Your packet gives you:
 - `VOCABULARY` -- the vocabulary file. Read the `[definitions]` entries whose keys are listed
   under your role in `[roles]`, plus the `all` list.
 - `SKILL DIR` -- the directory holding the helper script, written `<skill>` in the commands below.
-- `REPO ROOT` -- your stage's tree, which every path resolves against: the original at the
-  first stage, and the original with every earlier stage's decided changes set at a later one.
+- `REPO ROOT` -- your stage's tree, which every path resolves against: the manuscript at the
+  first stage, and the manuscript with every earlier stage's decided changes set at a later one.
 - `BINDER` -- your assigned review places, each with its address, anchor, start
   and end line and text. Every review place in this binder requires your ruling.
 - `EDIT COPY` -- your copy, holding one slot per paragraph of prose your role is dealt, each
@@ -123,7 +123,7 @@ You are handed one sheet per file, and one slot per paragraph on it. This is a f
 
 ```json
 { "role": "block-context",
-  "read_from": { "root": "/checkout/of/the/project", "revise": 0 },
+  "read_from": { "root": "/checkout/of/the/project", "stage": "4c" },
   "sheets": [
     { "path": "redacted_pkg/billing/rates.py",
       "sha":  "9c1f0b7a4e2d6835",

@@ -101,7 +101,7 @@ def seed(binder: Binder, role: str, stage: Stage | None = None) -> dict:
 
     Returns:
         `{"role": ..., "read_from": ..., "sheets": [...]}` -- `read_from` is
-        copied from the binder as-is, naming the root and revise this
+        copied from the binder as-is, naming the root and the stage this
         edit_copy was gathered from. Each entry in `sheets` carries one page's `path`
         and `sha`, plus its `marks` -- one per row on that page, holding the
         `address`, `anchor` and `raw_text` copied from the row, and
@@ -116,7 +116,7 @@ def seed(binder: Binder, role: str, stage: Stage | None = None) -> dict:
     by any other path -- an artifact read from disk, a hand-built dict --
     produced an edit_copy whose `read_from` was empty. ! THAT IS THE AMBIGUITY
     THE FIELD WAS ADDED TO REMOVE: a role holding an empty `read_from` cannot
-    tell a revise from the original, which is the whole question
+    tell a stage's tree from the checkout, which is the whole question
     `decision-log.md Process: #34` turns on.
 
     ! IT RAISED `KeyError` UNTIL 2026-08-31 AND NOW CANNOT. `Binder.deserialize`

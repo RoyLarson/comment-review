@@ -60,6 +60,8 @@ here**, and `scripts/check_vocabulary.py` refuses a live term defined in both pl
 | `Collated` | -> the fold's **events**. It was what the old fold returned, carrying its escalations, rereads and unsettlable places as lists; `desk.work.fold.Fold` emits one event per place and commits or rolls back whole, and the commands print from the events alone |
 | `census` | -> **gather** for the stage, the act and the command; **binder** for what it hands over. `gather` has been stage 2's word since 2026-08-23 and a second `gather` had taken it for building the master proof, which `flows.bus` does now. `censused` -> gathered, and where the lexer classified a line, **read**. No alias. Roy, 2026-09-04; `decision-log.md Vocabulary: #34` |
 | `lexer` (`reading/lexer.py`, and the `lexical` tier) | -> the language's own **reader**, `reading/python/` or `reading/rust/`. The module read every language with no reader package of its own from a row of comment syntax, and it left with those languages. `comment_form` went to `reading/comment.py`. The reader ids `python-lexical` and `rust-lexical` are not this word: they name how those readers compare code. `decision-log.md Process: #259` |
+| the revise number (`read_from.revise`, `gather --revise`, `distribute --revise`, `Pulled.revise`) | -> **`read_from.stage`**. A gathered tree was numbered 0 for the checkout and 1, 2 for each revise pulled after it, and nothing but the hand steps kept the numbers true. The jacket names each stage's tree by its stage, and `stage open` stamps it. `decision-log.md Process: #404` |
+| `original` (the text as the run began) | -> **manuscript**. `original` is the text a stage read, the side `taken_in original` keeps; the run-start text a later stage's tree is built from is the manuscript. `decision-log.md Process: #396`, `#409` |
 | `language row` (a row of the language table) | -> the **language definition**, `LanguageDefinition`, read from `references/languages/<lang>.toml`. The table it was a row of became one TOML file per language. `decision-log.md Process: #275` |
 
 ## Held in reserve -- publishing's word for something we already have
@@ -493,14 +495,14 @@ Vocabulary: #32` and `#33`; `turn` is ADOPTED rather than held in reserve.
 
 | the word | what it names | where it runs |
 | --- | --- | --- |
-| **`revise`** | the corrected proof, pulled after the marked corrections are set -- and the reading of it. Stages 5b and 6b are revises | at a stage boundary; `flows/revise.pull`, `read_from.revise` |
+| **`revise`** | the corrected proof, pulled after the marked corrections are set -- and the reading of it. Stages 5b and 6b are revises | at a stage boundary; `flows/revise.pull` |
 | **`round`** | one distribute-then-collate: each role is handed its `edit_copy`, the filled copies are folded back | a stage's own cycle |
 | **`turn`** | one batch-answer-fold: every place carried forward goes out to the roles it is owed to, comes back as answers, and the places are folded again | INSIDE one collate, before any pull. A round may hold several turns |
 
 !! **THE COUNTER IS `turn`, AND THE CAP IS NOT IN THE CODE.** Turn one, turn two; how many are
 allowed is what the task agent is told -- `decision-log.md Process: #78` -- and one runs by
-default where `collate` composes (`Process: #298`). `read_from.revise`
-numbers pulled trees and is a different count; the two never share a field.
+default where `collate` composes (`Process: #298`). A stage's tree is named by its stage,
+`read_from.stage`, and never by a count.
 
 ! **Checked against the register before it was proposed.** Editing workflows say it -- *the
 author turn*. `query round` was the trade's exact phrase for the copy desk's back-and-forth and

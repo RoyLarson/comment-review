@@ -13,7 +13,7 @@
 The work is `flows.topology`; this is only the console face of it.
 
 ! Verify before a page is read. A bad configuration costs nothing only when
-it is caught here -- `distribute` refuses the same shapes through
+it is caught here -- `stage open` refuses the same shapes through
 `flows.fan_out.partition`, but from inside a run, blaming the tree for the
 topology's assumption. `--build`
 verifies what it wrote, so a built topology is a verified one.

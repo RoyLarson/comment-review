@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+from helpers import a_jacket_naming, proof_to_docket
 
 from comment_review.flows import reading_context as flow_context
 from comment_review.flows.compositor import round_trip
@@ -26,7 +27,7 @@ def test_saved_stage_with_no_dealt_rows_preserves_empty_shard_context(tmp_path):
     path = tmp_path / "m.py"
     path.write_bytes(b"x = 1\n# short\ny = 2\n")
     saved = tmp_path / "binder.json"
-    saved.write_text(json.dumps(gather(tmp_path, [path], 0).binder.serialize()))
+    saved.write_text(json.dumps(gather(tmp_path, [path]).binder.serialize()))
     binder, problems = Binder.deserialize(str(saved), json.loads(saved.read_text()))
     assert binder is not None, problems
     stage = Stage(
@@ -126,18 +127,8 @@ def test_ungathered_move_saved_proof_retains_destination_context_for_transcripti
         "19d7640ebdcb2fb1"
     )
     docket = tmp_path / "docket.json"
-    code, out = run_command(
-        monkeypatch,
-        capsys,
-        proof,
-        "--proof",
-        str(tmp_path / "final.json"),
-        "--repo",
-        str(root),
-        "--to-docket",
-        str(docket),
-        with_stderr=True,
-    )
+    why = proof_to_docket(tmp_path / "final.json", root, docket)
+    code, out = (2 if why else 0), "\n".join(why)
     assert code == 0, out
     pages = json.loads(docket.read_text())["pages"]
     assert {p["path"]: p["reading"] for p in pages} == {
@@ -241,18 +232,8 @@ def test_saved_turn_and_disposition_keep_original_context_through_docket(
         "m.py": expected
     }
     docket = tmp_path / "docket.json"
-    code, out = run_command(
-        monkeypatch,
-        capsys,
-        proof,
-        "--proof",
-        str(tmp_path / "final.json"),
-        "--repo",
-        str(tmp_path / "repo"),
-        "--to-docket",
-        str(docket),
-        with_stderr=True,
-    )
+    why = proof_to_docket(tmp_path / "final.json", tmp_path / "repo", docket)
+    code, out = (2 if why else 0), "\n".join(why)
     assert code == 0, out
     assert json.loads(docket.read_text())["pages"][0]["reading"] == expected
     code, out = run_command(
@@ -284,7 +265,7 @@ def test_direct_distribution_admits_context_before_saved_rows(
 
     path = tmp_path / "m.py"
     path.write_bytes(b"x = 1\n# old\ny = 2\n")
-    binder = gather(tmp_path, [path], 0).binder
+    binder = gather(tmp_path, [path]).binder
     wire = binder.serialize()
     if fault in ("missing", "future"):
         if fault == "missing":
@@ -338,7 +319,7 @@ def test_saved_mixed_workflow_keeps_literal_context_through_proof(
     sources = {"m.py": b"x = 1\n# old\ny = 2\n", other: b""}
     for name, raw in sources.items():
         (root / name).write_bytes(raw)
-    gathered = gather(root, [root / name for name in sources], 0)
+    gathered = gather(root, [root / name for name in sources])
     assert not gathered.unreadable
     binder_path = tmp_path / "binder.json"
     binder_path.write_text(json.dumps(gathered.binder.serialize()), encoding="utf-8")
@@ -391,19 +372,15 @@ def test_saved_mixed_workflow_keeps_literal_context_through_proof(
         wire = json.loads(copy.read_text(encoding="utf-8"))
         assert {sheet["path"]: sheet["reading"] for sheet in wire["sheets"]} == expected
         assert next(s for s in wire["sheets"] if s["path"] == other)["marks"] == []
-        copies += ["--edit-copy", str(copy)]
+        copies.append(copy)
     proof_path = tmp_path / "proof.json"
     code, out = run_command(
         monkeypatch,
         capsys,
         collate,
-        "--stage",
-        "4c",
-        "--binder",
-        str(binder_path),
+        *a_jacket_naming(binder_path, copies),
         "--proof-out",
         str(proof_path),
-        *copies,
         with_stderr=True,
     )
     assert code == 0, out
@@ -420,18 +397,8 @@ def test_saved_mixed_workflow_keeps_literal_context_through_proof(
             pytest.fail("saved proof context refusal reached address transcription")
 
         monkeypatch.setattr("comment_review.flows.transcribe._unclosed", forbidden)
-    code, out = run_command(
-        monkeypatch,
-        capsys,
-        proof,
-        "--proof",
-        str(proof_path),
-        "--repo",
-        str(root),
-        "--to-docket",
-        str(docket_path),
-        with_stderr=True,
-    )
+    why = proof_to_docket(proof_path, root, docket_path)
+    code, out = (2 if why else 0), "\n".join(why)
     if changed:
         assert code == 2, out
         assert "regather" in out
@@ -481,7 +448,7 @@ def rust_page(saved: ReadingContext):
 def test_rust_context_gathered_now_is_admitted(tmp_path):
     path = tmp_path / "m.rs"
     path.write_bytes(RUST_SOURCE)
-    gathered = gather(tmp_path, [path], 0)
+    gathered = gather(tmp_path, [path])
     assert not gathered.unreadable
     current = gathered.binder.pages[0].reading
     assert current == rust_context()
@@ -505,7 +472,7 @@ def test_saved_rust_workflow_keeps_context_through_the_draft(
     root = tmp_path / "repo"
     root.mkdir()
     (root / "m.rs").write_bytes(RUST_SOURCE)
-    gathered = gather(root, [root / "m.rs"], 0)
+    gathered = gather(root, [root / "m.rs"])
     assert not gathered.unreadable
     binder_path = tmp_path / "binder.json"
     binder_path.write_text(json.dumps(gathered.binder.serialize()), encoding="utf-8")
@@ -586,37 +553,23 @@ def test_saved_rust_workflow_keeps_context_through_the_draft(
         assert code == 0, out
         sheets = json.loads(copy.read_text(encoding="utf-8"))["sheets"]
         assert [sheet["reading"] for sheet in sheets] == [expected]
-        copies += ["--edit-copy", str(copy)]
+        copies.append(copy)
     proof_path = tmp_path / "proof.json"
     code, out = run_command(
         monkeypatch,
         capsys,
         collate,
-        "--stage",
-        "4c",
-        "--binder",
-        str(binder_path),
+        *a_jacket_naming(binder_path, copies),
         "--proof-out",
         str(proof_path),
-        *copies,
         with_stderr=True,
     )
     assert code == 0, out
     saved_proof = json.loads(proof_path.read_text(encoding="utf-8"))
     assert saved_proof["page_readings"] == {"m.rs": expected}
     docket_path = tmp_path / "docket.json"
-    code, out = run_command(
-        monkeypatch,
-        capsys,
-        proof,
-        "--proof",
-        str(proof_path),
-        "--repo",
-        str(root),
-        "--to-docket",
-        str(docket_path),
-        with_stderr=True,
-    )
+    why = proof_to_docket(proof_path, root, docket_path)
+    code, out = (2 if why else 0), "\n".join(why)
     assert code == 0, out
     docket = json.loads(docket_path.read_text(encoding="utf-8"))
     assert [page["reading"] for page in docket["pages"]] == [expected]
@@ -771,7 +724,7 @@ def test_direct_copy_metadata_is_admitted_without_trusting_annotations(fault):
     sheet = Sheet("m.py", "unchanged-sha", (), saved)
     if fault == "malformed":
         object.__setattr__(sheet, "reading", [])
-    copy = EditCopy("block-context", {"root": ".", "revise": 0}, (sheet,))
+    copy = EditCopy("block-context", {"root": "."}, (sheet,))
     before = repr(copy)
     _, unadmitted = flow_context.admit_pages(("edit_copy: block-context", copy.sheets))
     problems = [one.text for one in unadmitted]
@@ -813,7 +766,7 @@ def test_direct_extra_page_proof_refuses_invalid_sha_metadata(path, sha):
 def test_installed_contexts_are_retained_in_fresh_results(tmp_path):
     path = tmp_path / "x.py"
     path.write_text("# prose\n", encoding="utf-8")
-    gathering = gather(tmp_path, [path], 0)
+    gathering = gather(tmp_path, [path])
     assert gathering.binder.pages[0].reading.language == "python"
     result = round_trip(path)
     assert not isinstance(result, ReadFailure)

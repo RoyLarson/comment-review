@@ -13,7 +13,7 @@ What stands here is the envelope: the version, the header, the list of pages,
 the freeform paths.
 
 `known_addresses` turns a binder into the set of addresses its rows carry;
-the address gate in `flows.revise` compares that set before and after a revise.
+the address gate in `flows.revise` compares that set before and after a pull.
 """
 
 from dataclasses import dataclass
@@ -35,8 +35,8 @@ def bind(
 
     !! `read_from` is required, not defaulted. A binder that cannot say which
     root it was gathered from is exactly the ambiguity a later stage needs
-    resolved: a revise re-binds from a tree copy, and a role holding that
-    binder cannot tell it apart from the original unless the binder says so.
+    resolved: a stage tree re-binds from a tree copy, and a role holding that
+    binder cannot tell it apart from the checkout unless the binder says so.
     A caller with no root to name has nothing it was gathered from, so there
     is no default that would not be a fabrication.
 
@@ -47,9 +47,9 @@ def bind(
 
     Args:
         pages: the pages in scope.
-        read_from: `{"root": "<path>", "revise": <int>}` -- the root this
-            binder was gathered from, and `0` for the original or the
-            revise's own number otherwise.
+        read_from: `{"root": "<path>"}` -- the root this binder was
+            gathered from -- and `"stage"`, the stage `stage open` built
+            that root for.
         absent: carry the empty places too. For the callers that specifically
             ask: `gather --include-absent`, for a reviewer surveying where
             prose could go, and `flows.revise`'s address gate, which must see
@@ -60,16 +60,16 @@ def bind(
             promises them sorted, so the caller sorts -- `flows.gather` does.
 
     Raises:
-        ValueError: `read_from` is not `{"root": str, "revise": int}`.
+        ValueError: `read_from` is not `{"root": str}`, with an optional
+            `"stage": str`.
 
     The shape of `read_from` is checked here and on the way back in, by
     `read_from_problem`.
 
     And it is copied, not aliased. Aliased, a binder, every `edit_copy` seeded
     from it, and whatever the caller kept would be one object -- a test writing
-    `binder["read_from"]["revise"] = 1`, which is how a revise test is naturally
-    written, would change what every later test in the session saw, with no gate
-    able to attribute it.
+    `binder["read_from"]["root"] = "elsewhere"` would change what every later
+    test in the session saw, with no gate able to attribute it.
     """
     why = read_from_problem({"read_from": read_from})
     if why:
@@ -97,7 +97,8 @@ class Binder:
 
     Attributes:
         version: the format's own number -- `VERSION` for one this tree wrote.
-        read_from: `{"root": str, "revise": int}` -- which tree was gathered.
+        read_from: `{"root": str}` and an optional `"stage": str` -- which
+            tree was gathered, and for which stage.
         pages: one per file in scope, in the order they were bound.
         freeform: sorted repo-relative posix paths of files in scope that no
             reader claims; they have no page.
@@ -219,7 +220,7 @@ class Binder:
         )
 
     def serialize(self) -> dict:
-        """This binder as a wire dict; `gather`, `distribute` and `carry` write it."""
+        """This binder as a wire dict; `gather`, `stage open` and `carry` write it."""
         return {
             "version": self.version,
             "read_from": {**self.read_from},

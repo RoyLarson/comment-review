@@ -28,7 +28,7 @@ def test_a_child_is_named_without_a_walk(tmp_path):
 
 def test_the_same_place_is_a_dot(tmp_path):
     # ! WHAT A GATHER OF ITS OWN CHECKOUT REPORTS: `gather --repo .` records
-    # `{"root": ".", "revise": 0}`, which is the value this case produces.
+    # `{"root": "."}`, which is the value this case produces.
     assert relative_to(tmp_path, tmp_path) == Path(".")
 
 

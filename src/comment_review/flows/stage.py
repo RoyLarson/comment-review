@@ -209,7 +209,7 @@ def _open(jacket_file: Path, name: str, repo: Path) -> list[str]:
         if problems:
             raise _Refused(problems)
     if not chain:
-        return _gather_and_seed(jacket_file, jacket, stage, repo, [], 0)
+        return _gather_and_seed(jacket_file, jacket, stage, repo, [])
     root = run_dir / f"root{name}"
     if root.exists() or root.is_symlink():
         raise _Refused(
@@ -220,9 +220,7 @@ def _open(jacket_file: Path, name: str, repo: Path) -> list[str]:
         raise _Refused([why])
     try:
         written = _build(root, run_dir, proofs)
-        return _gather_and_seed(
-            jacket_file, jacket, stage, root.resolve(), written, len(chain)
-        )
+        return _gather_and_seed(jacket_file, jacket, stage, root.resolve(), written)
     except BaseException:
         # An unrecorded root would be a leftover the next `stage open` refuses.
         git_worktree_remove(repo, root)
@@ -258,9 +256,9 @@ def _build(root: Path, run_dir: Path, proofs: list[MasterProof]) -> list[str]:
     written: set[str] = set()
     with _setting(root):
         _start(root, run_dir)
-        for number, proof in enumerate(proofs, 1):
+        for proof in proofs:
             docket = docket_of_proof(proof, root)
-            refusals = _set(docket, root, run_dir, number)
+            refusals = _set(docket, root, run_dir)
             if refusals:
                 raise _Refused(_refusal_lines(proof.stage, refusals))
             written.update(schedule.path for schedule in docket.schedules)
@@ -291,13 +289,13 @@ def _start(root: Path, run_dir: Path) -> None:
         (root / rel).unlink(missing_ok=True)
 
 
-def _set(docket: Docket, root: Path, run_dir: Path, number: int) -> list[Refusal]:
+def _set(docket: Docket, root: Path, run_dir: Path) -> list[Refusal]:
     """Set `docket` over `root` through `revise.pull`; what refused, or [] once set."""
     if not docket.schedules:
         return []
     scratch = Path(tempfile.mkdtemp(prefix="pull-", dir=run_dir))
     try:
-        pulled = revise.pull(docket, root, scratch / "revise", revise=number)
+        pulled = revise.pull(docket, root, scratch / "revise")
         if pulled.refusals:
             return pulled.refusals
         for schedule in docket.schedules:
@@ -334,12 +332,11 @@ def _gather_and_seed(
     stage: Stage,
     root: Path,
     written: list[str],
-    revise_number: int,
 ) -> list[str]:
     """Gather `root`, seed the stage's copies, record the stage; the lines to print."""
     targets = [root / rel for rel in jacket.scope]
     targets += [root / rel for rel in written if rel not in jacket.scope]
-    got = gather(root, targets, revise_number, stage=stage.name)
+    got = gather(root, targets, stage=stage.name)
     if got.unreadable:
         raise _Refused([not_gathered(len(targets), got.unreadable)])
     missing = unaddressed(got.binder.paragraphs)
@@ -559,7 +556,7 @@ def _replayed(
 
     with _setting(tree):
         _start(tree, run_dir)
-        for number, (name, proof) in enumerate(proofs, 1):
+        for name, proof in proofs:
             only = None if accepted is None else accepted[name]
             try:
                 docket = docket_of_proof(proof, tree, only=only)
@@ -573,7 +570,7 @@ def _replayed(
                         *refused.reasons,
                     ]
                 ) from refused
-            refusals = _set(docket, tree, run_dir, number)
+            refusals = _set(docket, tree, run_dir)
             if refusals:
                 raise _Refused(
                     _refusal_lines(name, refusals, partial(unaccepted, name))

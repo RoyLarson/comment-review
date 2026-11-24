@@ -169,7 +169,7 @@ FORMS = (
 def test_each_supported_form_can_be_edited_from_a_serialized_binder(name, raw):
     source = f"x = 1;\n{raw}\nx = 2;\n"
     page = build(source, name)
-    binder = bind([page], read_from={"root": ".", "revise": 0})
+    binder = bind([page], read_from={"root": "."})
     loaded, problems = Binder.deserialize("test binder", binder.serialize())
     assert problems == []
     assert loaded is not None
@@ -841,7 +841,7 @@ def test_mark_check_and_proof_agree_for_wrapped_sentences(
     (tmp_path / name).parent.mkdir(parents=True, exist_ok=True)
     (tmp_path / name).write_text(source, encoding="utf-8", newline="\n")
     page = build(source, name)
-    binder = bind([page], read_from={"root": str(tmp_path), "revise": 0})
+    binder = bind([page], read_from={"root": str(tmp_path)})
     loaded, problems = Binder.deserialize("binder", binder.serialize())
     assert problems == [] and loaded is not None
     origin = next(p for p in loaded.paragraphs if "Move this" in p.raw_text)
@@ -912,7 +912,7 @@ def test_cross_language_move_sets_the_supplied_destination_form(
     for name, source in [(origin_name, origin_source), (dest_name, dest_source)]:
         (tmp_path / name).write_text(source, encoding="utf-8", newline="\n")
     pages = [build(origin_source, origin_name), build(dest_source, dest_name)]
-    binder = bind(pages, read_from={"root": str(tmp_path), "revise": 0})
+    binder = bind(pages, read_from={"root": str(tmp_path)})
     loaded, problems = Binder.deserialize("binder", binder.serialize())
     assert problems == [] and loaded is not None
     origin = next(p for p in loaded.paragraphs if "Kept." in p.raw_text)
@@ -960,7 +960,7 @@ def test_refused_move_leaves_the_edit_copy_unchanged(tmp_path, prose):
     source = f"x = 1\n# {prose}\ny = 2\n# Destination stays.\nz = 3\n"
     (tmp_path / "m.py").write_text(source, encoding="utf-8")
     page = build(source, "m.py")
-    binder = bind([page], read_from={"root": str(tmp_path), "revise": 0})
+    binder = bind([page], read_from={"root": str(tmp_path)})
     copy = seed(binder, "block-context")
     before = deepcopy(copy)
     origin = next(p for p in page if p.raw_text == f"# {prose}")

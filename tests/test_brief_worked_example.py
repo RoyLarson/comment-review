@@ -29,7 +29,7 @@ import sys
 
 import pytest
 from conftest import ROOT
-from helpers import a_binder_over, returned
+from helpers import a_binder_over, a_jacket_naming, returned
 
 from comment_review.commands.collate import main as collate_main
 from comment_review.desk.proof.mark import read_mark, untouched
@@ -106,14 +106,9 @@ def test_collate_refuses_the_examples_fictional_installed_context(
         "argv",
         [
             "collate",
-            "--stage",
-            "4c",
-            "--binder",
-            str(binder_path),
+            *a_jacket_naming(binder_path, [copy_path]),
             "--proof-out",
             str(tmp_path / "proof.json"),
-            "--edit-copy",
-            str(copy_path),
         ],
     )
     code = collate_main()

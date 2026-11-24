@@ -15,7 +15,7 @@ def held_tree(tmp_path):
     root.mkdir()
     (root / "m.py").write_text(SAMPLE, encoding="utf-8", newline="")
     page = build(SAMPLE)
-    binder = bind([page], read_from={"root": str(root), "revise": 0})
+    binder = bind([page], read_from={"root": str(root)})
     return root, page, binder
 
 
@@ -57,7 +57,7 @@ def test_pull_refuses_direct_schedule_context_before_output(tmp_path):
         )
     )
     output = tmp_path / "missing-parent" / "revise"
-    result = revise.pull(docket, root, output, 1)
+    result = revise.pull(docket, root, output)
     assert result.refusals and "regather" in result.refusals[0].why
     assert not output.parent.exists()
 
@@ -73,7 +73,7 @@ def test_saved_consumers_retain_the_saved_context(
     saved = reading_context.context_for(root / "m.py")
     assert not isinstance(saved, ReadFailure)
     page.reading = saved
-    binder = bind([page], read_from={"root": str(root), "revise": 0})
+    binder = bind([page], read_from={"root": str(root)})
     actual = page_for.page_for
     admitted = []
 
@@ -113,7 +113,7 @@ def test_saved_consumers_retain_the_saved_context(
             )
         )
         output = tmp_path / "revise"
-        result = revise.pull(docket, root, output, 1)
+        result = revise.pull(docket, root, output)
         assert not result.refusals
     assert admitted
     assert all(reading == saved for reading in admitted)

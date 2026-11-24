@@ -1,7 +1,7 @@
 """A compacting stage, end to end: dealt the over-cap places, folded, set.
 
 `decision-log.md Process: #193`. Compaction is an ordinary stage over the
-revise the review's proof pulled -- the pages are gathered again, the role is
+tree the review's closed proofs set -- the pages are gathered again, the role is
 dealt a copy holding only the `b` and `c` places whose text runs over the cap,
 it files the edit instructions with `mark`, and its copy is folded and set
 like any stage's.
@@ -14,7 +14,12 @@ import json
 from pathlib import Path
 
 from conftest import run_command
-from helpers import a_real_binder_over, taken_in_as_filed
+from helpers import (
+    a_closed_run,
+    a_jacket_naming,
+    a_real_binder_over,
+    taken_in_as_filed,
+)
 
 from comment_review.commands import check as check_command
 from comment_review.commands import collate as collate_command
@@ -147,7 +152,7 @@ def test_a_correct_is_refused_naming_the_stage(tmp_path, monkeypatch, capsys):
 def test_the_condensed_text_folds_and_is_set(tmp_path, monkeypatch, capsys):
     """The stage's one role files a lone proposal at a place no other role
     read, so it is put to the chief (`decision-log.md Process: #387`), and
-    once the chief takes it in, `proof --proof` sets the closed proof's
+    once the chief takes it in, `proof --jacket` sets the closed proof's
     decided place. Nothing about the write end changes for a compacting stage.
     """
     root, copy = _run(tmp_path, monkeypatch, capsys, COMPACTING)
@@ -176,21 +181,25 @@ def test_the_condensed_text_folds_and_is_set(tmp_path, monkeypatch, capsys):
     )
     assert code == mark_command.OK, out
 
-    (tmp_path / "topology.toml").write_text(TOPOLOGY, encoding="utf-8")
+    binder, why = load_binder(tmp_path / "binder.json")
+    assert binder is not None, why
+    received = tmp_path / "received.json"
+    received.write_text(
+        json.dumps(assigned_binder(binder, COMPACTING).serialize()), encoding="utf-8"
+    )
+    flags = a_jacket_naming(
+        tmp_path / "binder.json",
+        [copy],
+        stage="6",
+        topology=TOPOLOGY,
+        received=[received],
+        root=root,
+    )
     code, out = run_command(
         monkeypatch,
         capsys,
         collate_command,
-        "--stage",
-        "6",
-        "--binder",
-        str(tmp_path / "binder.json"),
-        "--topology",
-        str(tmp_path / "topology.toml"),
-        "--repo",
-        str(root),
-        "--edit-copy",
-        str(copy),
+        *flags,
         "--proof-out",
         str(tmp_path / "proof.json"),
     )
@@ -202,8 +211,8 @@ def test_the_condensed_text_folds_and_is_set(tmp_path, monkeypatch, capsys):
         monkeypatch,
         capsys,
         proof_command,
-        "--proof",
-        str(tmp_path / "final.json"),
+        "--jacket",
+        str(a_closed_run(root, tmp_path / "final.json")),
         "--repo",
         str(root),
         "--out",
@@ -228,11 +237,10 @@ def test_an_ordinary_stage_over_the_same_binder_deals_both_places(
 def test_a_stage_6_copy_names_the_proof_pages_root_mark_and_check_read(
     tmp_path, monkeypatch, capsys
 ):
-    """Stage 6 gathers the proof pages with `gather --repo <run-dir>/proof4c`
-    (SKILL.md, stage 6), so the copy it seeds names that tree as its
-    `read_from.root`. `mark` with no `--repo` admits a ruling against the
-    copy's own root, and compact.md's `check` passes `--repo <proof pages
-    root>`: both read one tree."""
+    """Stage 6 is gathered from the tree `stage open` builds for it, so the
+    copy it seeds names that tree as its `read_from.root`. `mark` with no
+    `--repo` admits a ruling against the copy's own root, and compact.md's
+    `check` passes `--repo <stage tree>`: both read one tree."""
     monkeypatch.chdir(tmp_path)
     pages = tmp_path / "run" / "proof4c"
     a_real_binder_over(pages, {"m.py@b1": OVER, "m.py@b2": UNDER})
@@ -242,8 +250,6 @@ def test_a_stage_6_copy_names_the_proof_pages_root_mark_and_check_read(
         gather_command,
         "--repo",
         "run/proof4c",
-        "--revise",
-        "2",
         "--out",
         "run/binder6.json",
         "m.py",

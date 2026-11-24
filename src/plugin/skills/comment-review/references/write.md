@@ -1,27 +1,24 @@
 # Stage 7b -- write
 
-The author has read each page and freeform draft beside its original and accepted all of it, some places, or
+The author has read each page and freeform draft beside the manuscript and accepted all of it, some places, or
 none. This stage proves the code in every accepted draft is unchanged, runs the repo's own
 check on the drafts, and writes them into the working tree.
 
 ## Choose the drafts
 
-- **All of it.** Use the drafts retained at stage 7a, taking the latest draft of
-  each page when more than one stage changed it.
-- **Some places.** Set those places alone into a fresh directory; its drafts are the ones this
-  prints:
+- **All of it.** Use the drafts stage 7a wrote, one per page.
+- **Some places.** Set those places alone into a fresh directory, naming each by the stage that
+  decided it; its drafts are the ones this prints:
 
   ```bash
-  python <skill>/scripts/comment-review.py proof --repo <stage-root> --proof <closed-proof> \
-    --only <address> --only <address> --out <run-dir>/accepted
+  python <skill>/scripts/comment-review.py proof --jacket <run-dir>/jacket.json --repo . \
+    --only <stage>:<address> --only <stage>:<address> --out <run-dir>/accepted
   ```
 
-  Use the closed proof and source root for the stage that produced the proposed
-  text. A later stage read the pages the earlier ones left, so its draft of a page carries
-  every change they made there: compare the new draft with the original and confirm every
-  difference is among the author's accepted changes. Where one is not, that place cannot be
-  set without it; show the author both and ask whether to accept the earlier change or leave
-  the place.
+  A later stage read the pages the earlier ones left. Where the author declined an earlier
+  stage's place on a page a later stage changed, `proof` refuses, naming that place: show the
+  author both and ask whether to accept the earlier change too, or decline the later stage's
+  places on that page.
 
   A move is approved as a whole: name both of its ends, or neither. `proof`
   refuses one end named alone. When the author accepts one end, show them both

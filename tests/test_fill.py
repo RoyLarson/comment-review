@@ -338,7 +338,7 @@ class TestAWithdrawnMarkIsRemoved:
         assert all(m["address"] != "m.py@b3" for m in _marks(copy))
 
     def test_an_add_over_prose_is_removed_without_reading_the_page(self, root):
-        copy = seed(binder_of(root, 0), "block-context")
+        copy = seed(binder_of(root), "block-context")
         slot = dict(_marks(copy)[0])
         added = "# y is 2 because the fixture says so\n"
         entry = {
@@ -358,7 +358,7 @@ class TestAWithdrawnMarkIsRemoved:
         assert all(m["address"] != slot["address"] for m in _marks(copy))
 
     def test_a_move_is_removed_without_reading_the_page(self, root):
-        copy = seed(binder_of(root, 0), "block-context")
+        copy = seed(binder_of(root), "block-context")
         slot = dict(_marks(copy)[0])
         entry = {
             "address": slot["address"],
@@ -451,7 +451,7 @@ class TestAMoveCarriesItsSnippetAndTheDestinationsText:
         return entry
 
     def _origin(self, root) -> tuple[dict, str]:
-        copy = seed(binder_of(root, 0), "block-context")
+        copy = seed(binder_of(root), "block-context")
         return copy, _marks(copy)[0]["address"]
 
     def test_both_texts_land_on_the_mark(self, root):
@@ -536,7 +536,7 @@ class TestAnAddAtAPlaceHoldingProseKeepsItsWords:
         return entry
 
     def test_an_add_whose_raw_text_drops_a_word_is_refused(self, root):
-        copy = seed(binder_of(root, 0), "block-context")
+        copy = seed(binder_of(root), "block-context")
         slot = _marks(copy)[0]
         assert slot["raw_text"] == "# one\n# two\n# three"
         before = json.dumps(copy)
@@ -550,7 +550,7 @@ class TestAnAddAtAPlaceHoldingProseKeepsItsWords:
         assert json.dumps(copy) == before
 
     def test_an_add_whose_raw_text_reorders_the_words_is_refused(self, root):
-        copy = seed(binder_of(root, 0), "block-context")
+        copy = seed(binder_of(root), "block-context")
         slot = _marks(copy)[0]
         before = json.dumps(copy)
         added = "# y is 2 because the fixture says so\n"
@@ -562,7 +562,7 @@ class TestAnAddAtAPlaceHoldingProseKeepsItsWords:
         assert json.dumps(copy) == before
 
     def test_an_add_whose_raw_text_keeps_every_word_in_order_is_placed(self, root):
-        copy = seed(binder_of(root, 0), "block-context")
+        copy = seed(binder_of(root), "block-context")
         slot = _marks(copy)[0]
         added = "# y is 2 because the fixture says so\n"
         reads = "# one, two and three.\n" + added
@@ -577,7 +577,7 @@ class TestAnAddAtAPlaceHoldingProseKeepsItsWords:
         """The paragraph as it will read is the role's, and at a place holding
         prose nothing can derive it -- so its absence is named rather than
         guessed at."""
-        copy = seed(binder_of(root, 0), "block-context")
+        copy = seed(binder_of(root), "block-context")
         slot = _marks(copy)[0]
         before = json.dumps(copy)
         added = "# y is 2 because the fixture says so\n"
@@ -589,7 +589,7 @@ class TestAnAddAtAPlaceHoldingProseKeepsItsWords:
     def test_an_add_at_an_empty_place_takes_its_change_as_its_raw_text(self, root):
         """`decision-log.md Process: #176`: at an empty place the snippet and
         the paragraph as it will read are the same text, so nothing is owed."""
-        binder = binder_of(root, 0)
+        binder = binder_of(root)
         assert "m.py@b3" not in {p.address for p in binder.paragraphs}
         copy = seed(binder, "block-context")
         change = "# y is 2 because the fixture says so\n"
@@ -624,7 +624,7 @@ class TestAnAddAtAnFPlaceKeepsThePagesProse:
         return entry
 
     def test_an_add_whose_raw_text_drops_the_prose_is_refused(self, front):
-        copy = seed(binder_of(front, 0), "block-context")
+        copy = seed(binder_of(front), "block-context")
         assert "m.py@f0" not in {m["address"] for m in _marks(copy)}
         before = json.dumps(copy)
         added = "# runs as a script\n"
@@ -634,7 +634,7 @@ class TestAnAddAtAnFPlaceKeepsThePagesProse:
         assert json.dumps(copy) == before
 
     def test_an_add_whose_raw_text_keeps_the_pages_prose_is_placed(self, front):
-        copy = seed(binder_of(front, 0), "block-context")
+        copy = seed(binder_of(front), "block-context")
         reads = "#!/usr/bin/env python\n# runs as a script\n"
         entry = self._add_at_f0("# runs as a script\n", raw_text=reads)
         placed, why = fill(copy, entry, front)
@@ -697,7 +697,7 @@ class TestACueThePageDoesNotHaveIsRefused:
         """The page carries every place, absent and present, so a cue it does
         not have names nothing. `decision-log.md Process: #111`."""
         tree = a_small_real_tree(tmp_path)
-        copy = seed(binder_of(tree, 0), "block-context")
+        copy = seed(binder_of(tree), "block-context")
         entry = {"address": "mark.py@b9999", "instruction": "clean"}
         placed, why = fill(copy, entry, tree)
         assert placed is None
@@ -708,7 +708,7 @@ class TestACueThePageDoesNotHaveIsRefused:
         with no slot and no checkout to build one from is refused rather
         than crashing on `root / rel`."""
         tree = a_small_real_tree(tmp_path)
-        copy = seed(binder_of(tree, 0), "block-context")
+        copy = seed(binder_of(tree), "block-context")
         entry = {"address": "mark.py@b9999", "instruction": "clean"}
         placed, why = fill(copy, entry, None)
         assert placed is None

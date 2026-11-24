@@ -26,20 +26,20 @@ def test_identically_failed_sources_cannot_pass_address_comparison(tmp_path):
     for root in (original, revised):
         (root / "m.py").write_text("def broken(:\n", encoding="utf-8")
     with pytest.raises(AddressesMoved, match="lex/unfinished-continuation"):
-        assert_addresses_held(original, Pulled(revised, 1, {}, []), ["m.py"])
+        assert_addresses_held(original, Pulled(revised, {}, []), ["m.py"])
 
 
 def test_a_revise_yields_the_address_set_the_original_yielded(tmp_path):
     """The revise holds the docket's pages alone (`Process: #117`), so the
     original is compared over the same pages."""
     repo = a_small_real_tree(tmp_path)
-    pulled = pull(a_docket_over(repo, ["mark.py"]), repo, tmp_path / "r1", revise=1)
-    revised = binder_of(pulled.root, 1)
+    pulled = pull(a_docket_over(repo, ["mark.py"]), repo, tmp_path / "r1")
+    revised = binder_of(pulled.root)
     held = {page.path for page in revised.pages}
     assert held == {"mark.py"}
     before = {
         row.address
-        for page in binder_of(repo, 0).pages
+        for page in binder_of(repo).pages
         if page.path in held
         for row in page.paragraphs
     }
@@ -51,7 +51,7 @@ def test_the_gate_fires_when_the_code_moved(tmp_path):
     # ! WHAT PROVES THE CHECK CAN FAIL. A revise whose CODE was changed by hand
     # renumbers the places below it, which is exactly what the gate exists to catch.
     repo = a_small_real_tree(tmp_path)
-    pulled = pull(a_docket_over(repo, ["mark.py"]), repo, tmp_path / "r1", revise=1)
+    pulled = pull(a_docket_over(repo, ["mark.py"]), repo, tmp_path / "r1")
     page = pulled.root / "mark.py"
     page.write_text(
         page.read_text(encoding="utf-8") + "\n\ndef added():\n    return 1\n",
@@ -85,7 +85,7 @@ def test_pull_itself_runs_the_gate_and_discards_a_revise_that_moved(
 
     monkeypatch.setattr("comment_review.flows.revise.assert_addresses_held", moved)
     with pytest.raises(AddressesMoved):
-        pull(docket, repo, into, revise=1)
+        pull(docket, repo, into)
 
     # ! `Process: #20` carried up a level: nothing partial, and nothing that
     # LOOKS whole but addresses the wrong places, is left for a later stage.

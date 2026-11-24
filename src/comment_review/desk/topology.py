@@ -9,9 +9,6 @@ sentence there.
 
     read    parse a topology file's text into `(stages, "")`, or refuse with
             `([], reason)` -- this repo's binder/docket shape
-    seeded_from_problem
-            whether a stage may be seeded from the binder in hand, given the
-            revise root the caller named -- the reader for `reads`
 
 ! **WHICH ROLES EXIST STAYS IN CODE; WHICH ROLE RUNS WHEN MOVES HERE.** `Role`
 and `ROLES` are `desk/stages.py`'s closed set -- a dispatch's `role` key is
@@ -63,8 +60,8 @@ from comment_review.reading.series import ADDRESSED
 _KINDS = {"editorial": Kind.EDITORIAL}
 
 #: What a `reads` value starts with when it names an earlier stage's revise.
-#: Spelled once: `read` refuses a bad one and `seeded_from_problem` decides
-#: what a stage is seeded from, and the two cannot disagree about the prefix.
+#: Spelled once: `read` refuses a bad one and `flows.stage` walks the chain,
+#: and the two cannot disagree about the prefix.
 REVISE = "revise:"
 
 #: The keys a stage table may hold, and a dispatch table's.
@@ -229,55 +226,3 @@ def _listed(
             f" {what} -- it holds: {', '.join(known)}"
         )
     return tuple(given), ""
-
-
-def seeded_from_problem(stage: Stage, revise: str, read_from: dict) -> str:
-    """Why this stage may not be seeded from this binder, or `""`.
-
-    `reads` says which tree a stage's copies are cut from, and this is what
-    reads it: a stage reading `"original"` is seeded from the gathered binder
-    and names no revise root, and a stage reading `"revise:<name>"` is seeded
-    from the revise that stage pulled -- so the binder in hand must be the one
-    gathered from it.
-
-    A binder says which tree it was gathered from and which revise that tree
-    is, so both halves are asked: a binder from another tree answers to
-    another address space, and one stamped revise 0 says it read the original,
-    whatever directory it was pointed at.
-
-    Args:
-        stage: the stage being seeded.
-        revise: the revise root the caller named, or `""` where it named
-            none. Compared with `read_from["root"]` as given, so a caller
-            spelling either of them differently resolves both first.
-        read_from: the binder's own `{"root": str, "revise": int}`.
-
-    Returns:
-        The one reason, naming the stage, or `""` where the stage may be
-        seeded from this binder.
-    """
-    if not stage.reads.startswith(REVISE):
-        if revise:
-            return (
-                f"stage {stage.name!r} reads {stage.reads!r}, so it is seeded from"
-                " the binder it was gathered into and names no revise root"
-            )
-        return ""
-    earlier = stage.reads[len(REVISE) :]
-    if not revise:
-        return (
-            f"stage {stage.name!r} reads the revise stage {earlier!r} pulled,"
-            " and no revise root was named"
-        )
-    root = str(read_from.get("root", ""))
-    if root != revise:
-        return (
-            f"stage {stage.name!r} reads {revise!r} and the binder was gathered"
-            f" from {root!r} -- a stage is seeded from the revise it reads"
-        )
-    if not read_from.get("revise"):
-        return (
-            f"stage {stage.name!r} reads a revise, and the binder says it"
-            f" gathered revise 0 of {root!r}, which is the original"
-        )
-    return ""

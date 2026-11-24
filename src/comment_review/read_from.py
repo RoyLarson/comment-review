@@ -17,8 +17,8 @@ BINDER_VERSION = "4"
 def read_from_problem(loaded: dict) -> str:
     """Why a `read_from` cannot be used, or `""`: a binder's, an edit copy's, a proof's.
 
-    `{"root": str, "revise": int}`, and `"stage": str` where `stage open`
-    built the tree for a stage.
+    `{"root": str}`, and `"stage": str` where `stage open` built the tree
+    for a stage.
 
     The check is here, not in `seed` alone: `commands.distribute.main` calls
     `seed` immediately after `load_binder` returns a binder, and
@@ -40,11 +40,9 @@ def read_from_problem(loaded: dict) -> str:
     read_from = loaded["read_from"]
     if not isinstance(read_from, dict):
         kind = type(read_from).__name__
-        return f"`read_from` is a JSON {kind}, not a mapping of `root` and `revise`"
+        return f"`read_from` is a JSON {kind}, not a mapping holding `root`"
     if not isinstance(read_from.get("root"), str):
         return "`read_from` carries no `root` string -- which tree was gathered?"
-    if not isinstance(read_from.get("revise"), int):
-        return "`read_from` carries no `revise` number -- 0 is the original"
     # `stage open` stamps the stage the tree was built for; a plain gather does not.
     if not isinstance(read_from.get("stage", ""), str):
         return "`read_from`'s `stage` is not a stage name"

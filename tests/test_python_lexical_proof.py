@@ -273,7 +273,7 @@ def test_real_python_draft_proves_selected_presence_without_host_parsing(
     path.write_bytes(before.encode())
     page = page_for.page_of(path, rel="m.py")
     assert not isinstance(page, ReadFailure)
-    binder = bind([page], read_from={"root": str(repo), "revise": 0})
+    binder = bind([page], read_from={"root": str(repo)})
     docket = docket_from({f"m.py@{owner}": documentation if adding else None}, binder)
     admitted = []
     actual = proof_setter.page_of

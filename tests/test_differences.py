@@ -116,7 +116,7 @@ def _three_line_row(repo: Path) -> str:
     by scanning `repo` (built by `a_small_real_tree`), not hand-picked, so
     the fixture is real source and not a literal `CLAUDE.md` forbids.
     """
-    binder = binder_of(repo, 0)
+    binder = binder_of(repo)
     for row in binder.paragraphs:
         lines = row.raw_text.splitlines()
         if len(lines) == 3 and all(line.strip() for line in lines):

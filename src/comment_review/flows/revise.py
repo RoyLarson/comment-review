@@ -45,14 +45,12 @@ from comment_review.reading.diagnostics import ReadFailure
 
 
 class Pulled(NamedTuple):
-    """One revise: where it landed, which number it is, and who set what.
+    """One revise: where it landed and who set what.
 
     Attributes:
         root: the revise -- each page the docket schedules, as drafted, at its
             repo path under this directory, and no other file. Absent when
             `refusals` is non-empty.
-        revise: the number this revise was pulled as. Passed through, never
-            computed here; `assert_addresses_held` gathers `root` at it.
         set_by: address -> the role that set it, over every alteration the
             docket named. `role` is one per page of the docket and optional
             -- `flows.transcribe.docket_of` writes the source copy's own
@@ -63,7 +61,6 @@ class Pulled(NamedTuple):
     """
 
     root: Path
-    revise: int
     set_by: dict[str, str]
     refusals: list[proof_setter.Refusal]
 
@@ -81,7 +78,7 @@ class AddressesMoved(Exception):
     """
 
 
-def pull(docket: Docket, repo: Path, into: Path, revise: int) -> Pulled:
+def pull(docket: Docket, repo: Path, into: Path) -> Pulled:
     """The docket's pages, with its corrections set -- or nothing at all.
 
     Args:
@@ -96,13 +93,11 @@ def pull(docket: Docket, repo: Path, into: Path, revise: int) -> Pulled:
             too, and `undraftable` then refuses the whole run before any page
             is read. The `proof` command asks `undraftable(out, repo)` before
             it gets here; `pull` as a flow does not, so the caller owns this.
-        revise: the number this revise is pulled as, carried onto `Pulled`
-            unexamined.
 
     Returns:
-        `Pulled(into, revise, set_by, [])` when every page in the docket
-        passed, or `Pulled(into, revise, {}, refusals)` with `into` removed
-        again when any page refused.
+        `Pulled(into, set_by, [])` when every page in the docket passed, or
+        `Pulled(into, {}, refusals)` with `into` removed again when any page
+        refused.
 
     Nothing partial is left on any path. Once `into` is made, any exception
     -- in the drafting, the writing of the drafts into `into`, or the address
@@ -115,7 +110,6 @@ def pull(docket: Docket, repo: Path, into: Path, revise: int) -> Pulled:
     if problems:
         return Pulled(
             into,
-            revise,
             {},
             [proof_setter.Refusal("read", "", p.text) for p in problems],
         )
@@ -144,7 +138,7 @@ def pull(docket: Docket, repo: Path, into: Path, revise: int) -> Pulled:
             # Nothing has been written into `into` on this path: the drafts go
             # in only once every page has passed.
             remove_tree(into)
-            return Pulled(root=into, revise=revise, set_by={}, refusals=refusals)
+            return Pulled(root=into, set_by={}, refusals=refusals)
 
         # Each draft is written at the path the docket names for its page, and
         # nothing else is written: the revise holds only the files the write
@@ -154,7 +148,7 @@ def pull(docket: Docket, repo: Path, into: Path, revise: int) -> Pulled:
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(made.draft, target)
 
-        pulled = Pulled(root=into, revise=revise, set_by=_set_by(docket), refusals=[])
+        pulled = Pulled(root=into, set_by=_set_by(docket), refusals=[])
         # The gate runs on every pull, before the success return: it is not an
         # opt-in. `AddressesMoved` propagates through the handler below, which
         # removes `into` first -- a revise whose addresses moved looks whole,
@@ -208,9 +202,8 @@ def assert_addresses_held(
     read.
 
     Args:
-        original: the checkout the revise was pulled from -- gathered at
-            revise 0, the original's own number.
-        pulled: the revise. `pulled.root` is gathered at `pulled.revise`.
+        original: the checkout the revise was pulled from.
+        pulled: the revise.
         pages: the repo path of each page the docket schedules, posix and
             relative to both roots.
         imprints: the docket's identity table, as `pull` admitted it. Omit
@@ -233,10 +226,8 @@ def assert_addresses_held(
             if isinstance(selected, ReadFailure):
                 raise AddressesMoved(format_failure(selected, path=rel))
             contexts[rel] = selected
-    before = known_addresses(_binder_over(Path(original), 0, pages, contexts))
-    after = known_addresses(
-        _binder_over(Path(pulled.root), pulled.revise, pages, contexts)
-    )
+    before = known_addresses(_binder_over(Path(original), pages, contexts))
+    after = known_addresses(_binder_over(Path(pulled.root), pages, contexts))
     appeared = sorted(after - before)
     disappeared = sorted(before - after)
     if appeared or disappeared:
@@ -248,9 +239,9 @@ def assert_addresses_held(
 
 
 def _binder_over(
-    root: Path, revise: int, pages: list[str], contexts: Mapping[str, ReadingContext]
+    root: Path, pages: list[str], contexts: Mapping[str, ReadingContext]
 ) -> Binder:
-    """The named pages under `root`, gathered at `revise` -- what the gate compares.
+    """The named pages under `root`, bound -- what the gate compares.
 
     `pages` are repo paths, posix and relative to `root`; nothing else under
     `root` is read.
@@ -271,7 +262,7 @@ def _binder_over(
         if isinstance(page, ReadFailure):
             raise AddressesMoved(format_failure(page, path=rel))
         held.append(page)
-    return bind(held, read_from={"root": str(root), "revise": revise}, absent=True)
+    return bind(held, read_from={"root": str(root)}, absent=True)
 
 
 def _set_by(docket: Docket) -> dict[str, str]:

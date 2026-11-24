@@ -79,7 +79,7 @@ SRC = Path(__file__).resolve().parents[1] / "src" / "comment_review"
 
 def test_a_seeded_row_carries_the_paragraph_bytes():
     # INPUT FROM REALITY: a real page of this repo through the real binder.
-    binder = binder_of(DESK, 0)
+    binder = binder_of(DESK)
     sheet = seed(binder, "block-context")
     # !! EXACT, NOT `endswith`. `desk/` holds several files whose own `@a0` is
     # its module docstring, and more than one name ends in another's --
@@ -108,7 +108,7 @@ def test_the_files_own_matter_gets_no_slot(tmp_path):
         "    return x + 1  # beside\n",
         encoding="utf-8",
     )
-    binder = binder_of(tmp_path, 0)
+    binder = binder_of(tmp_path)
     # ! The case has to be able to fail: the binder does carry the place.
     assert any("@f" in b.address for page in binder.pages for b in page.paragraphs)
     copy = seed(binder, "block-context")
@@ -119,7 +119,7 @@ def test_the_files_own_matter_gets_no_slot(tmp_path):
 
 def test_an_edit_copy_holds_a_sheet_per_page_with_its_sha():
     # INPUT FROM REALITY: a real package through the real binder.
-    binder = binder_of(DESK, 0)
+    binder = binder_of(DESK)
     copy = seed(binder, "block-context")
 
     by_path = {sheet["path"]: sheet for sheet in copy["sheets"]}
@@ -135,7 +135,7 @@ def test_every_mark_reaches_the_sheet_for_its_own_page():
     # stamped, `os.sep` on this platform. `desk/` gained a subdirectory in
     # T1 of the-middle-rebuilt, so a nested page's raw path and its
     # flattened address stopped reading as the same string here.
-    binder = binder_of(DESK, 0)
+    binder = binder_of(DESK)
     copy = seed(binder, "block-context")
     for sheet in copy["sheets"]:
         for mark in sheet["marks"]:
@@ -156,7 +156,7 @@ def test_a_NULL_sha_is_seeded_as_absent_not_the_word_None():
     """
     wire = {
         "version": VERSION,
-        "read_from": {"root": "tests/test_distribute_flow.py", "revise": 0},
+        "read_from": {"root": "tests/test_distribute_flow.py"},
         "freeform": [],
         "pages": [
             {

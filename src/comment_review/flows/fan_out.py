@@ -120,7 +120,10 @@ Shard = tuple[Dispatch, list[Page | RedactedPage], list[str]]
 def partition(binder: Binder, stage: Stage) -> list[Shard]:
     """Each dispatch with the files its globs select, after the two guards.
 
-    A freeform path is dealt as a page is: the guards count both alike.
+    A freeform path is dealt as a page is: the guards count both alike. A
+    stage whose row sets a `cap` deals no freeform path: it compacts the
+    places the reader addressed, and stage 5 holds a freeform comment to the
+    cap itself.
 
     ! One computation, two readers. `dealt` seeds from this, and
     `flows.topology.fit` asks it whether a topology fits before any page is
@@ -131,7 +134,8 @@ def partition(binder: Binder, stage: Stage) -> list[Shard]:
         UncoveredPage: a file matches no dispatch of a role this stage
             dispatches at all.
     """
-    all_paths = [*(page.path for page in binder.pages), *binder.freeform]
+    freeform_dealt = () if stage.cap else binder.freeform
+    all_paths = [*(page.path for page in binder.pages), *freeform_dealt]
 
     # ! MATCHED ONCE PER DISPATCH, kept alongside it, so the guard pass below
     # and the seeding pass after it read the same computation rather than
@@ -140,7 +144,7 @@ def partition(binder: Binder, stage: Stage) -> list[Shard]:
         (
             dispatch,
             [p for p in binder.pages if _matches(p.path, dispatch.paths)],
-            [f for f in binder.freeform if _matches(f, dispatch.paths)],
+            [f for f in freeform_dealt if _matches(f, dispatch.paths)],
         )
         for dispatch in stage.dispatches
     ]

@@ -52,7 +52,7 @@ def test_compare_shows_a_real_revise(tmp_path, capsys):
     """A real docket, pulled through `flows.revise.pull` -- never a
     hand-authored before/after pair, per `CLAUDE.md`'s ruling on this suite."""
     repo = a_small_real_tree(tmp_path)
-    pulled = pull(a_docket_over(repo, ["mark.py"]), repo, tmp_path / "r1", revise=1)
+    pulled = pull(a_docket_over(repo, ["mark.py"]), repo, tmp_path / "r1")
     assert not pulled.refusals
 
     exit_code = main(["--original", str(repo), "--revise", str(pulled.root)])
@@ -76,7 +76,7 @@ def test_compare_with_no_paths_compares_only_the_pages_the_revise_holds(
     """
     repo = a_small_real_tree(tmp_path)
     assert len(list(repo.glob("*.py"))) > 1, "one page cannot show a page left out"
-    pulled = pull(a_docket_over(repo, ["mark.py"]), repo, tmp_path / "r1", revise=1)
+    pulled = pull(a_docket_over(repo, ["mark.py"]), repo, tmp_path / "r1")
     assert not pulled.refusals
 
     exit_code = main(["--original", str(repo), "--revise", str(pulled.root)])
@@ -120,8 +120,8 @@ def test_an_address_that_disappeared_is_listed(tmp_path, capsys):
     # removing comment lines renumbers the places below them, so other
     # addresses change anyway. What only the union can answer is the set that
     # DISAPPEARED, so that set is what is named.
-    before = {r.address for r in binder_of(repo, 0).paragraphs}
-    after = {r.address for r in binder_of(revise, 1).paragraphs}
+    before = {r.address for r in binder_of(repo).paragraphs}
+    after = {r.address for r in binder_of(revise).paragraphs}
     gone = before - after
     assert gone, "the fixture removed no address -- the test would be vacuous"
 
@@ -137,7 +137,7 @@ def test_a_page_that_cannot_be_read_is_named_not_skipped(tmp_path, capsys):
     # NO OUTPUT AND EXIT 0 -- which is this command's own success condition
     # above. "nothing changed" and "I could not look" were the same result.
     repo = a_small_real_tree(tmp_path)
-    pulled = pull(a_docket_over(repo, ["mark.py"]), repo, tmp_path / "r1", revise=1)
+    pulled = pull(a_docket_over(repo, ["mark.py"]), repo, tmp_path / "r1")
     # The path is named explicitly: with no paths, only the pages the revise
     # holds are compared (`Process: #117`), and an unlinked page is not one of
     # them. Naming it makes this the case where a caller asks about a page the

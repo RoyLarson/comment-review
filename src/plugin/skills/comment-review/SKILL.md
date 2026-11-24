@@ -13,7 +13,7 @@ You are the task agent -- the **managing editor** -- and the **copy chief** of a
 comments and docstrings in the files a change touched. Four editors each read it in one
 editorial role -- the notes editor, the fact-check editor, the line editor and the
 developmental editor -- and mark it. You fold their marks into one set of edits, rule where they
-differ, have the result set as a proof, and show the author each page beside its original.
+differ, have the result set as a proof, and show the author each page beside the manuscript.
 The text the author accepts is written into the working tree, and a proofreader then reads
 the finished pages.
 
@@ -26,8 +26,10 @@ take it from the absolute path you were given. Every command runs through
 `<skill>/scripts/comment-review.py`, and `--help` after a command's name gives its flags.
 Give each run its own `<run-dir>` outside the checkout, since `proof` refuses an `--out` inside
 the repo, and write every file with the command's output flag.
-`<stage-root>` is the absolute root a stage's binder was gathered from: the repo root for
-stage `4a`, `<run-dir>/root4c` for stage `4c`, and `<run-dir>/proof4c` for stage 6.
+`<run-dir>/jacket.json` is the jacket, the run's record; only the commands write it.
+`<stage-root>` is the stage's tree, the root `stage open` prints: the repo root for stage `4a`,
+and `<run-dir>/root<stage>` for each later stage, holding the manuscript with every earlier
+stage's decided changes set.
 
 **Your vocabulary.** Read the `[definitions]` entries of
 `<skill>/scripts/comment_review/references/vocabulary.toml` whose keys are listed under
@@ -43,11 +45,11 @@ that sets the scope in place of the diff. `style` is the style sheet from an ear
 | # | stage | who acts | what exists at the end |
 |---|---|---|---|
 | 1 | project determination | you | scope, cap, style sheet, run context |
-| 2 | gather | `gather`, `topology` | the binder and a verified topology |
+| 2 | gather | `gather`, `topology` | the binder, and the jacket holding a verified topology |
 | 3 | find references | `referrers` | the `REFERENCE ONLY` list |
 | 4 | mark, in stages `4a` then `4c` | the four reviewers | each stage's checked edit copies, and each role's freeform copies and findings |
-| 5 | collate and rule, once per stage | `collate`, you, `disposition` | a closed proof and the freeform drafts |
-| 6 | compact, when a cap applies | the condenser | a closed proof whose text fits the cap |
+| 5 | collate and rule, once per stage | `collate`, you, `disposition`, `stage close` | the stage closed on its proof, and the freeform drafts |
+| 6 | compact, when a cap applies | the condenser | stage 6 closed on a proof whose text fits the cap |
 | 7a | set and present | `proof`, then you | the proof pages and the proposal in front of the author |
 | 7b | write | the author, then you | the accepted text in the working tree, its code proved unchanged |
 | 8 | review | the proofreader | a reading of the finished pages and freeform files |
@@ -58,13 +60,13 @@ Each stage hands the next one of these; your vocabulary defines each one:
 
 | structure | made by | read by |
 |---|---|---|
-| **binder** | `gather` | `topology`, `distribute`, `check`, `collate` |
-| **topology** | `topology` | `distribute`, `collate` |
-| **edit copy**, one per dispatch | `distribute`, filled with `mark` | `check`, `collate` |
-| **master proof** | `collate`, `turn`, `disposition` | `turn`, `disposition`, `proof`, you when presenting |
+| **binder** | `gather`, `stage open` | `topology`, `check`, `collate` |
+| **jacket**, holding the topology | `topology --run`, `stage open`, `stage close` | `stage open`, `collate`, `proof` |
+| **edit copy**, one per dispatch | `stage open`, filled with `mark` | `check`, `collate` |
+| **master proof** | `collate`, `turn`, `disposition` | `turn`, `disposition`, `stage close`, you when presenting |
 | **batch** | `collate`, `turn` | the roles, in a turn |
 | **dispositions** | you | `disposition` |
-| **docket** | `proof`, from a closed master proof | the compositor |
+| **docket** | `proof`, from each stage's closed master proof | the compositor |
 | **schedule**, one per page in the docket | `proof` | the compositor |
 | **alteration**, one per place in a schedule | `proof` | the compositor |
 | **proof**, the pages as set | the compositor, through `proof` | the author, stage 6, stage 7b |
@@ -72,9 +74,8 @@ Each stage hands the next one of these; your vocabulary defines each one:
 | `freeform/draft/<path>`, one per freeform file changed | you, at stage 5 | stage 7a, the author, stage 7b |
 | `freeform/decided_<stage>.json` | you, at stage 5 | you, at the 7a audit and when the author asks why |
 
-`proof` transcribes the closed proof into a docket, and the compositor sets each schedule's
-alterations onto a copy of its page. `proof --to-docket <file>` writes the docket out without
-setting it.
+`proof` transcribes each stage's closed proof into a docket, and the compositor sets each
+schedule's alterations onto a copy of its page.
 
 ## The goals of the steps
 
@@ -91,7 +92,7 @@ setting it.
 6. **Compact** shortens the paragraphs on pages that run over the cap, keeping every true,
    necessary and checkable sentence. The copy chief holds a freeform comment to the cap at stage 5.
 7. **Set and present** puts the final text on copies of the pages, proves the code is
-   byte-identical, and gives the author a diff of each page against its original. A freeform file
+   byte-identical, and gives the author a diff of each page against the manuscript. A freeform file
    is set on a draft, formatted and compiled there, and audited hunk by hunk instead of proved.
    **Write** puts what the author accepted into the working tree.
 8. **Review** reads the finished pages as a reader meets them, and catches anything the
@@ -161,22 +162,34 @@ it where it is. Record each answer in the style sheet. For each `move it`, name 
 the owner's `a` cue in the prompt of the `4a` dispatch that holds the page, as a `move` the
 author asked for.
 
-Then build the topology: two stages. Stage `4a` runs `ownership-context` alone, so that where
+Then build the topology into the jacket: two stages, and a third when a cap applies. Stage `4a`
+runs `ownership-context` alone, so that where
 each paragraph belongs is decided before the others read it; no other role reads its changes, so
 you rule on each one at stage 5. Stage `4c` runs the other three roles against that placement.
 `<n>` is the places on the gather's `GATHERED` line divided by 100, rounded up, at least 1, and
 at most the number of pages and freeform files together. When the binder holds no
 page and no freeform file, stop the run and tell the author the scope holds nothing to review. `--build` deals each role's pages so
-its dispatches hold near-equal places.
+its dispatches hold near-equal places. `--ref` is the pre-edit ref, and the paths are the ones
+you gathered; the jacket records both as the run's.
 
 ```bash
-python <skill>/scripts/comment-review.py topology --build --binder <run-dir>/binder.json --out <run-dir>/topology.toml \
+python <skill>/scripts/comment-review.py topology --build --binder <run-dir>/binder.json --run <run-dir> \
+  --repo . --ref <pre-edit ref> \
   --stage 4a=ownership-context/<n> \
-  --stage 4c=block-context/<n>,function-context/<n>,module-context/<n>
+  --stage 4c=block-context/<n>,function-context/<n>,module-context/<n> \
+  <paths...>
+```
+
+When a cap applies and the binder holds a page, add stage 6, the compaction, to the same
+command:
+
+```bash
+  --stage 6=block-context --cap 6=<cap> --series 6=b,c --admits 6=patch,drop,add,clean,query
 ```
 
 `--build` verifies what it writes and exits 0 when the topology fits the binder. On exit 1 it
-prints one misfit per line; change the `--stage` value and build again.
+prints one misfit per line; change the `--stage` value and build again. Once a stage has opened,
+the jacket's topology is fixed.
 
 The binder holds only the places that hold prose. To look up any place, ask `addresses`,
 which reads the file; each series is counted separately, and `--line <module>` or `<eof>` names
@@ -199,15 +212,16 @@ under review, choose the `REFERENCE ONLY` list.
 
 ### Stage 4 -- mark
 
-Stage 4 runs twice: `4a`, then stages 4 and 5 again for `4c`. `<stage>` is the one running. Seed
-one edit copy and one received binder per dispatch of `4a`:
+Stage 4 runs twice: `4a`, then stages 4 and 5 again for `4c`. `<stage>` is the one running. Open
+it: this builds the stage's tree, gathers it into `<run-dir>/binder<stage>.json`, and seeds one
+edit copy and one received binder per dispatch:
 
 ```bash
-python <skill>/scripts/comment-review.py distribute --topology <run-dir>/topology.toml --stage 4a \
-  --binder <run-dir>/binder.json --out-dir <run-dir>/copies
+python <skill>/scripts/comment-review.py stage open --jacket <run-dir>/jacket.json --stage <stage> --repo .
 ```
 
-It prints each edit copy, named `<stage>_<role>_<n>.json`, and its received binder,
+It refuses a stage whose stage before has not closed. It prints the stage's root, which is
+`<stage-root>`, then each edit copy, named `<stage>_<role>_<n>.json`, and its received binder,
 saved as `copies/binders/<stage>_<role>_<n>.json`, with the count of freeform files dealt to it.
 Dispatch one agent per edit copy of the stage, in batches no larger than the number of agents the
 session can run at once:
@@ -263,41 +277,19 @@ For each freeform file, confirm the agent's `findings.json` holds that path with
 list. Send a missing path back to its agent. When it is still missing on the second return, report
 that role as unanswered on that file.
 
-Roles in one stage work blind to each other. Stage `4c` starts from what `4a` left. When stage 5
-has closed `4a`'s proof, set it with `proof --repo . --proof <closed-proof> --out
-<run-dir>/proof4a`. That root holds only the pages `4a` changed, so build `4c`'s root from the whole
-tree:
+Roles in one stage work blind to each other. Stage `4c` starts from what `4a` left: once stage 5
+has closed `4a`, `stage open --stage 4c` builds `<run-dir>/root4c` from the manuscript with
+`4a`'s decided changes and the files in `<run-dir>/freeform/draft/` set over it.
 
-1. `git worktree add --detach <run-dir>/root4c HEAD`.
-2. Copy each file under review, and each untracked file `git ls-files --others
-   --exclude-standard` lists, from the checkout over its path in `root4c`, so uncommitted work is
-   reviewed and can be cited.
-3. Copy each page in `<run-dir>/proof4a` and each file in `<run-dir>/freeform/draft/` over its
-   path in `root4c`.
-
-Then gather it, naming the same paths as stage 2, and seed `4c` from it:
-
-```bash
-python <skill>/scripts/comment-review.py gather --repo <run-dir>/root4c --revise 1 --out <run-dir>/binder4c.json <paths...>
-python <skill>/scripts/comment-review.py distribute --topology <run-dir>/topology.toml --stage 4c \
-  --binder <run-dir>/binder4c.json --revise <run-dir>/root4c --out-dir <run-dir>/copies
-```
-
-Remove `root4c` with `git worktree remove --force <run-dir>/root4c` after stage 7b.
+After stage 7b, remove each `<run-dir>/root<stage>` with `git worktree remove --force
+<run-dir>/root<stage>`.
 
 ### Stage 5 -- collate, and rule as copy chief
 
-Repeat `--edit-copy` and `--received-binder` for each pair, keeping the binder
-paths in the same order as the copy paths. For a large dispatch set, write the pairs to
-`<run-dir>/<stage>_pairs.json` as `[{"edit_copy": "<one returned copy>", "received_binder":
-"<its received binder>"}, ...]`, with absolute paths, and pass `--pairs
-<run-dir>/<stage>_pairs.json` in place of the repeated `--edit-copy` and `--received-binder`
-flags; a long command line fails on Windows.
+The jacket names the open stage's binder, its root and every copy it dispatched:
 
 ```bash
-python <skill>/scripts/comment-review.py collate --stage <stage> --binder <the stage's binder> --repo <stage-root> \
-  --topology <run-dir>/topology.toml \
-  --edit-copy <one returned copy> --received-binder <its received binder> \
+python <skill>/scripts/comment-review.py collate --jacket <run-dir>/jacket.json --stage <stage> \
   --proof-out <run-dir>/<stage>_proof0.json --batch-out <run-dir>/<stage>_batch1.json
 ```
 
@@ -305,11 +297,12 @@ Act on the exit code first:
 
 | exit | meaning | what you do |
 |---|---|---|
-| `0` | every place decided | read the decided places against the style sheet and rule on any freeform findings, both below; `<stage>_proof0.json` is the closed proof when no place takes a recast. Then go on to `4c`, or after `4c` to stage 6 or 7a |
+| `0` | every place decided | read the decided places against the style sheet and rule on any freeform findings, both below; `<stage>_proof0.json` is the closed proof when no place takes a recast. Then close the stage, below |
 | `1` | the round rolled back; each refusal line names `<role> <place>: <reason>`, and any `asks the human` lines are questions still pending | send each refusal line to its role, which withdraws the mark the line names with `mark --withdraw --address <place> --instruction <instruction>` and marks again; re-check and re-run, and ask the questions when the re-run exits `5` |
-| `2` | a file could not be read, or a page will not admit: its saved reading no longer matches the installed reader, or its sha or reading disagrees with another input's | where a line ends `regather`, gather again and distribute the stage's copies from the new binder; otherwise correct the invocation. No role is sent a line |
+| `2` | a file could not be read, or a page will not admit: its saved reading no longer matches the installed reader, or its sha or reading disagrees with another input's | where a line ends `regather`, stop the run and report the line, since an opened stage is not gathered again; otherwise correct the invocation. No role is sent a line |
 | `3`, `4` | places or moves carried forward -- `composed`, `contested` or `open` -- to the roles each line names, or to `copy-chief` | run the turns and rule on them, below |
 | `5` | human questions are owed, and nothing was refused | ask them, below, then re-run with `--human` |
+| `6` | a dispatch never returned its copy; each line reads `not returned <copy>: <role>`, and nothing was folded | relaunch that dispatch as a new instance with its packet, then re-run |
 
 Keep the path of the latest committed proof. A closed proof
 can come from `collate`, `turn` or `disposition`; use that file wherever
@@ -456,56 +449,44 @@ Write the result to `<run-dir>/freeform/decided_<stage>.json`, a list of the fin
 draft, holding only the changes that stand. A run with no pages prints `0 places` at `collate` and
 carries on.
 
-### Stage 6 -- compact, when a cap applies
-
-Stage 6 runs as a third stage over every page in scope, and a run with no pages skips it. Set
-`4c`'s closed proof into `<run-dir>/proof4c` with `proof --repo <run-dir>/root4c --proof
-<closed-proof> --out <run-dir>/proof4c`. It holds only the pages `4c` drafted, so copy each
-other page in scope from `root4c` to its path in `proof4c`, leaving `root4c` as `4c`'s proof was
-cut from it. Then gather `proof4c` as revise 2, naming pages alone, because stage 5 held each
-freeform comment to the cap:
+**Closing the stage.** Record the closed proof as the stage's:
 
 ```bash
-python <skill>/scripts/comment-review.py gather --repo <run-dir>/proof4c --revise 2 --out <run-dir>/binder6.json <paths...>
+python <skill>/scripts/comment-review.py stage close --jacket <run-dir>/jacket.json --stage <stage> --proof <closed-proof>
 ```
 
-Add this stage to `topology.toml`, with `cap` set to the run's cap:
+It refuses a proof that has not closed, that is another stage's, or that did not fold every copy
+the stage dispatched. Then go on to `4c`, or after `4c` to stage 6 when the topology holds it, or
+to 7a.
 
-```toml
-[[stage]]
-name = "6"
-kind = "editorial"
-reads = "revise:4c"
-cap = <cap>
-series = ["b", "c"]
-admits = ["patch", "drop", "add", "clean", "query"]
-  [[stage.dispatch]]
-  role = "block-context"
+### Stage 6 -- compact, when a cap applies
+
+Stage 6 runs as a third stage over every page in scope, when stage 2 gave the topology its row.
+Open it once `4c` has closed:
+
+```bash
+python <skill>/scripts/comment-review.py stage open --jacket <run-dir>/jacket.json --stage 6 --repo .
 ```
 
-Seed it with `distribute --topology <run-dir>/topology.toml --stage 6 --binder
-<run-dir>/binder6.json --revise <run-dir>/proof4c --out-dir <run-dir>/copies`.
 Each received binder and edit copy holds only the comment paragraphs over the
 cap. Dispatch `comment-review:comment-review-compact` with its edit copy and
 received binder, `references/compact.md` pasted whole, the style sheet, the
-cap, the helper script's path, `proof4c` as the proof pages root and the repo root
-as the original. Check the copy against its received binder, then run `collate --stage 6`
-with the received binders paired with the copies and rule as in stage 5: no other role
-reads the condenser's changes, so each one is put to you. The
-closed proof this produces is the one stage 7a sets.
+cap, the helper script's path, `<run-dir>/root6` as the proof pages root and the repo root
+as the manuscript. Check the copy against its received binder, then run `collate --jacket
+<run-dir>/jacket.json --stage 6`, rule as in stage 5 and close the stage: no other role
+reads the condenser's changes, so each one is put to you.
 
 ### Stage 7a -- set and present
 
 ```bash
-python <skill>/scripts/comment-review.py proof --repo <stage-root> --proof <closed-proof> --out <run-dir>/proof
+python <skill>/scripts/comment-review.py proof --jacket <run-dir>/jacket.json --repo . --out <run-dir>/proof
 ```
 
-Use the `<stage-root>` the closed proof's binder was gathered from. Keep the drafts from every
-stage; when a later stage drafts a page again, its draft is the one to present
-and write. Pages unchanged by that stage keep their earlier drafts.
+It refuses until every stage has closed. It sets every stage's closed proof over the manuscript,
+in stage order, and writes one draft per page any stage changed, carrying every stage's changes.
 
 Use a fresh `--out` directory each time. `proof` prints one `<path> -> <draft>` line per page
-it set. It reads each drafted page back and proves its code byte-identical to the original.
+it set. It reads each drafted page back and proves its code byte-identical to the manuscript.
 When it refuses, it prints what refused and where; read that, fix the input, and set again.
 
 **Code concerns.** Where the repo keeps code concerns outside its comments, list each one the
@@ -537,7 +518,7 @@ Every changed line belongs to a decided finding, and every decided finding has i
 other change holds the run at this stage: edit the draft until the change is gone, and audit it
 again. Nothing is presented until the audit passes. The command exits 1 when the files differ.
 
-Present to the author, grouped by instruction, most consequential first. Use the
+Present to the author, grouped by instruction, most consequential first. Use each stage's
 closed proof's decided text and the drafts for the proposed result. For each decided place, follow
 its filed references to the reviewer marks in the proof and read any disposition on the place.
 Use those for the instruction, paragraph, claim and reason. Show the decided change from the
@@ -546,7 +527,7 @@ Show each freeform draft whole. When the author asks why a change was made, answ
 `decided_<stage>.json`.
 Then give:
 
-- one command per page and per drafted freeform file, to read it beside its original:
+- one command per page and per drafted freeform file, to read it beside the manuscript:
   `git diff --no-index <path> <draft>`
 - the count of places raised and places clean, and `N swept, M raised` per freeform file
 - which places you ruled, and how
@@ -557,8 +538,8 @@ Then give:
 - the updated style sheet, holding every decision this run made
 
 The author may edit a freeform draft line by line. Close by asking the author to accept all of
-it, accept the places they name by address and the freeform files they name by path, or accept
-none.
+it, accept the places they name, each as `<stage>:<address>`, and the freeform files they name by
+path, or accept none.
 
 ### Stage 7b -- write
 

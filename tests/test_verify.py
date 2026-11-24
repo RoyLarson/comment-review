@@ -66,7 +66,7 @@ class TestAnAddressMustResolveAgainstAPage:
 
     def test_an_invented_cue_is_reported(self, tmp_path):
         repo = a_small_real_tree(tmp_path)
-        binder = binder_of(repo, 0)
+        binder = binder_of(repo)
         wire = seed(binder, "block-context")
         sheet = next(s for s in wire["sheets"] if s["path"] == "mark.py")
         sheet["marks"].append(a_clean("mark.py@b9999"))
@@ -77,7 +77,7 @@ class TestAnAddressMustResolveAgainstAPage:
 
     def test_a_real_empty_place_is_not_reported(self, tmp_path):
         repo = a_small_real_tree(tmp_path)
-        binder = binder_of(repo, 0)
+        binder = binder_of(repo)
         absent = _an_empty_place_on_mark_py(repo, binder)
         wire = seed(binder, "block-context")
         sheet = next(s for s in wire["sheets"] if s["path"] == "mark.py")
@@ -90,7 +90,7 @@ class TestAnAddressMustResolveAgainstAPage:
         """`decision-log.md Process: #122`: an address whose page cannot be
         read resolves against nothing, and is reported as an invented cue is."""
         repo = a_small_real_tree(tmp_path)
-        binder = binder_of(repo, 0)
+        binder = binder_of(repo)
         wire = seed(binder, "block-context")
         sheet = next(s for s in wire["sheets"] if s["path"] == "mark.py")
         sheet["marks"].append(a_clean("gone.py@b1"))
@@ -120,7 +120,7 @@ class TestAnAddressMustResolveAgainstAPage:
 
     def test_a_move_to_a_real_empty_place_is_not_reported(self, tmp_path):
         repo = a_small_real_tree(tmp_path)
-        absent = _an_empty_place_on_mark_py(repo, binder_of(repo, 0))
+        absent = _an_empty_place_on_mark_py(repo, binder_of(repo))
         binder, wire, origin = _a_move_on_mark_py(repo, absent)
         moved = [
             m for s in returned(wire).sheets for m in s.marks if m.address == origin
@@ -419,7 +419,7 @@ def _a_move_on_mark_py(repo, destination: str):
     Returns:
         `(binder, the wire copy, the move's own address)`.
     """
-    binder = binder_of(repo, 0)
+    binder = binder_of(repo)
     wire = seed(binder, "block-context")
     sheet = next(s for s in wire["sheets"] if s["path"] == "mark.py")
     slot = sheet["marks"][0]

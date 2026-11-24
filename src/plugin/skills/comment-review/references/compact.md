@@ -10,9 +10,9 @@ and checkable sentence.
   cap -- `b` places, the comment runs between lines of code, and `c` places, the comments
   beside a line. Each slot carries the paragraph's address, its anchor and its text as the
   proof pages set it.
-- **The proof pages root.** Your stage's tree: the text as the run started, with every earlier
-  stage's decided changes set. It holds the file you open, and every path resolves against it.
-- **The original.** The file in the repo root is the paragraph as it stood when the run
+- **The proof pages root.** Your stage's tree: the manuscript, with every earlier stage's
+  decided changes set. It holds the file you open, and every path resolves against it.
+- **The manuscript.** The file in the repo root is the paragraph as it stood when the run
   began.
 - **The cap**, in lines.
 - **The style sheet.**
@@ -20,7 +20,7 @@ and checkable sentence.
 
 ## How you condense a paragraph
 
-1. Read the paragraph as it stands on the proof pages, and the same place in the original.
+1. Read the paragraph as it stands on the proof pages, and the same place in the manuscript.
 2. Ask first whether it is long because it states one instance of a rule it could state
    once, generally. When it is, mark it `clean` and give that as the reason; the paragraph is
    set as it stands, and the author reads it at stage 7a.

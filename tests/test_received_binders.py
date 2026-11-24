@@ -3,16 +3,18 @@ from dataclasses import replace
 
 import pytest
 from conftest import run_command
-from helpers import a_clean, a_patch, a_real_binder_over, returned
+from helpers import a_clean, a_jacket_naming, a_patch, a_real_binder_over, returned
 
 from comment_review.binder.binder import bind
 from comment_review.binder.page import Page
-from comment_review.commands import check, collate, distribute, report
+from comment_review.commands import check, collate, report
 from comment_review.desk import report as events
 from comment_review.desk.stages import Dispatch, Kind, Role, Stage
+from comment_review.desk.topology import read as read_topology
 from comment_review.flows import reading_context, verify
 from comment_review.flows.bus import AnswersReturned, CopiesReturned, handle
 from comment_review.flows.distribute import assigned_binder, seed
+from comment_review.flows.fan_out import write_dealt
 from comment_review.flows.fill import withdraw
 from comment_review.flows.page_for import page_of
 from comment_review.flows.proof_io import load_proof
@@ -66,7 +68,7 @@ def test_received_context_accepts_distinct_languages_and_empty_sheets(tmp_path):
     assert all(isinstance(page, Page) for page in pages)
     binder = bind(
         [page for page in pages if isinstance(page, Page)],
-        read_from={"root": str(tmp_path), "revise": 0},
+        read_from={"root": str(tmp_path)},
     )
     assert {page.reading.language for page in binder.pages} == {"python", language}
     received = tuple(replace(binder, pages=(page,)) for page in binder.pages)
@@ -264,7 +266,7 @@ def test_received_binders_must_cover_the_role_assignment(tmp_path, defect):
     else:
         received = (
             received[0],
-            replace(received[1], read_from={"root": "elsewhere", "revise": 0}),
+            replace(received[1], read_from={"root": "elsewhere"}),
         )
     out, result = handle(
         CopiesReturned(
@@ -284,109 +286,30 @@ def test_cli_collation_accepts_paired_received_binders(tmp_path, monkeypatch, ca
     binder, received, wires, _ = _shards(tmp_path)
     binder_path = tmp_path / "binder.json"
     binder_path.write_text(json.dumps(binder.serialize()), encoding="utf-8")
-    args = [
-        "--stage",
-        "",
-        "--binder",
-        str(binder_path),
-        "--proof-out",
-        str(tmp_path / "proof.json"),
-    ]
+    copies, shards = [], []
     for i, (b, wire) in enumerate(zip(received, wires, strict=True)):
         path = tmp_path / f"copy{i}.json"
         path.write_text(json.dumps(wire), encoding="utf-8")
         shard = tmp_path / f"received{i}.json"
         shard.write_text(json.dumps(b.serialize()), encoding="utf-8")
-        args.extend(["--edit-copy", str(path), "--received-binder", str(shard)])
+        copies.append(path)
+        shards.append(shard)
+    args = [
+        *a_jacket_naming(binder_path, copies, topology=SHARDED, received=shards),
+        "--proof-out",
+        str(tmp_path / "proof.json"),
+    ]
     code, out = run_command(monkeypatch, capsys, collate, *args)
     assert code == report.OK, out
     assert (tmp_path / "proof.json").exists()
 
 
-#: The longest command line `CreateProcess` accepts on Windows, in characters.
-WINDOWS_COMMAND_LINE = 32767
-
-
-def test_cli_collation_reads_a_large_dispatch_set_from_a_pairs_file(
-    tmp_path, monkeypatch, capsys
-):
-    count = 120
-    binder = a_real_binder_over(
-        tmp_path / "repo", {f"m{i}.py@b1": f"# line {i}" for i in range(count)}
-    )
-    received = [assigned_binder(replace(binder, pages=(p,))) for p in binder.pages]
-    deep = (tmp_path / ("dispatches" * 6)).resolve()
-    deep.mkdir()
-    pairs = []
-    for i, shard in enumerate(received):
-        wire = seed(shard, "block-context")
-        for sheet in wire["sheets"]:
-            for slot in sheet["marks"]:
-                slot.update(a_clean(slot["address"]))
-        copy_path = deep / f"4c_block-context_{i}.json"
-        copy_path.write_text(json.dumps(wire), encoding="utf-8")
-        binder_path = deep / f"4c_block-context_{i}.binder.json"
-        binder_path.write_text(json.dumps(shard.serialize()), encoding="utf-8")
-        pairs.append({"edit_copy": str(copy_path), "received_binder": str(binder_path)})
-    flags = " ".join(
-        f"--edit-copy {p['edit_copy']} --received-binder {p['received_binder']}"
-        for p in pairs
-    )
-    assert len(flags) > WINDOWS_COMMAND_LINE
-    pairs_path = tmp_path / "pairs.json"
-    pairs_path.write_text(json.dumps(pairs), encoding="utf-8")
-    binder_path = tmp_path / "binder.json"
-    binder_path.write_text(json.dumps(binder.serialize()), encoding="utf-8")
-    code, out = run_command(
-        monkeypatch,
-        capsys,
-        collate,
-        "--stage",
-        "",
-        "--binder",
-        str(binder_path),
-        "--pairs",
-        str(pairs_path),
-        "--proof-out",
-        str(tmp_path / "proof.json"),
-    )
-    assert code == report.OK, out
-    assert out.count("decided ") == count, out
-
-
-@pytest.mark.parametrize(
-    "pairs",
-    [
-        {"edit_copy": "c.json", "received_binder": "b.json"},
-        [{"edit_copy": "c.json"}],
-        [{"edit_copy": "c.json", "received_binder": 3}],
-    ],
+#: `_shards`' stage, as the jacket's row.
+SHARDED = (
+    '[[stage]]\nname = "4c"\nkind = "editorial"\n'
+    '  [[stage.dispatch]]\nrole = "block-context"\npaths = ["m.py"]\n'
+    '  [[stage.dispatch]]\nrole = "block-context"\npaths = ["n.py"]\n'
 )
-def test_a_pairs_file_that_is_not_a_list_of_pairs_is_unreadable(
-    tmp_path, monkeypatch, capsys, pairs
-):
-    binder = a_real_binder_over(tmp_path / "repo", {"m.py@b1": "# one"})
-    binder_path = tmp_path / "binder.json"
-    binder_path.write_text(json.dumps(binder.serialize()), encoding="utf-8")
-    pairs_path = tmp_path / "pairs.json"
-    pairs_path.write_text(json.dumps(pairs), encoding="utf-8")
-    code, out = run_command(
-        monkeypatch,
-        capsys,
-        collate,
-        "--stage",
-        "",
-        "--binder",
-        str(binder_path),
-        "--pairs",
-        str(pairs_path),
-        "--proof-out",
-        str(tmp_path / "proof.json"),
-        with_stderr=True,
-    )
-    assert code == report.UNREADABLE, out
-    assert "pairs.json" in out
-    assert not (tmp_path / "proof.json").exists()
 
 
 def test_distribution_through_fold_and_turn_preserves_received_binders(
@@ -404,30 +327,9 @@ def test_distribution_through_fold_and_turn_preserves_received_binders(
         encoding="utf-8",
     )
     out_dir = tmp_path / "copies"
-    code, out = run_command(
-        monkeypatch,
-        capsys,
-        distribute,
-        "--topology",
-        str(topology),
-        "--stage",
-        "4c",
-        "--binder",
-        str(original),
-        "--out-dir",
-        str(out_dir),
-    )
-    assert code == 0, out
-    args = [
-        "--stage",
-        "4c",
-        "--binder",
-        str(original),
-        "--topology",
-        str(topology),
-        "--proof-out",
-        str(tmp_path / "proof.json"),
-    ]
+    (row,), why = read_topology(topology.read_text(encoding="utf-8"))
+    assert why == "", why
+    write_dealt(binder, row, out_dir)
     paths = sorted(out_dir.glob("*.json"))
     before = {path: path.read_bytes() for path in (out_dir / "binders").glob("*.json")}
     for path in paths:
@@ -454,7 +356,16 @@ def test_distribution_through_fold_and_turn_preserves_received_binders(
             str(received),
         )
         assert code == check.OK, out
-        args.extend(["--edit-copy", str(path), "--received-binder", str(received)])
+    args = [
+        *a_jacket_naming(
+            original,
+            paths,
+            topology=topology.read_text(encoding="utf-8"),
+            received=[out_dir / "binders" / path.name for path in paths],
+        ),
+        "--proof-out",
+        str(tmp_path / "proof.json"),
+    ]
     code, out = run_command(monkeypatch, capsys, collate, *args)
     assert code == report.ESCALATIONS, out
     proof, why = load_proof(tmp_path / "proof.json")

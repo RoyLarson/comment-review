@@ -48,7 +48,7 @@ DESK = ROOT / "src" / "comment_review" / "desk"
 
 #: A real binder over `desk/` -- the same fixture-free input
 #: `tests/test_distribute_flow.py` already builds this way.
-BINDER = binder_of(DESK, 0)
+BINDER = binder_of(DESK)
 ROWS = BINDER.paragraphs
 #: `mark.py`'s own `@a0` -- narrowed by suffix, since `desk/` holds several
 #: files that each carry their own `@a0`.
@@ -500,7 +500,7 @@ class TestTheBaseIsThePages:
         reported even when the mark's own `raw_text` was rewritten to contain
         it -- the text is read off the page, never off the mark."""
         repo = a_small_real_tree(tmp_path)
-        binder = binder_of(repo, 0)
+        binder = binder_of(repo)
         wire = seed(binder, "block-context")
         entry = wire["sheets"][0]["marks"][0]
         entry.update(a_correct(entry["address"], "a sentence nobody wrote"))
@@ -544,7 +544,7 @@ class TestAnAbsentAddressIsNotRefused:
 
     def test_an_add_at_a_place_the_binder_lacks_passes_verify_report(self, tmp_path):
         repo = a_small_real_tree(tmp_path)
-        binder = binder_of(repo, 0)
+        binder = binder_of(repo)
         known = known_addresses(binder)
         # ! A REAL EMPTY PLACE, read off the page the binder was built from --
         # not an invented cue. The default binder carried none of these.
@@ -571,7 +571,7 @@ class TestProblemsAreRoutable:
         """Roy, 2026-08-30: "the errors should be stacked and capable of being
         read off correctly so that each can be fixed or sent back to the role."
         A sentence cannot be routed; a role and an address can."""
-        wire = seed(binder_of(a_small_real_tree(tmp_path), 0), "block-context")
+        wire = seed(binder_of(a_small_real_tree(tmp_path)), "block-context")
         entry = wire["sheets"][0]["marks"][0]
         entry.update({"instruction": "correct", "claim": {}})
         copy = returned(wire)
@@ -594,7 +594,7 @@ class TestProblemsAreRoutable:
     ):
         # The sheet is whichever one carries two places: `a_small_real_tree`'s
         # `__init__.py` page sorts first and holds a single row.
-        wire = seed(binder_of(a_small_real_tree(tmp_path), 0), "block-context")
+        wire = seed(binder_of(a_small_real_tree(tmp_path)), "block-context")
         marks = next(s["marks"] for s in wire["sheets"] if len(s["marks"]) >= 2)
         for entry in marks[:2]:
             entry.update({"instruction": "correct", "claim": {}})
@@ -626,7 +626,7 @@ class TestProblemsAreRoutable:
         position -- so a role has somewhere to look; see
         `tests/test_containers.py::TestAnAddressLessEntryIsStillFindable`.
         """
-        wire = seed(binder_of(a_small_real_tree(tmp_path), 0), "block-context")
+        wire = seed(binder_of(a_small_real_tree(tmp_path)), "block-context")
         wire["sheets"][0]["marks"][0] = "not an object"
         found = mark_errors([returned(wire)])
         assert any(
@@ -642,7 +642,7 @@ class TestProblemsAreRoutable:
 # through `problems_in` they drive through `flows.mark_errors`, which is the one
 # assembler now. The claims are unchanged.
 def test_the_error_flow_reads_every_sheet_not_just_the_first():
-    wire = seed(binder_of(DESK, 0), "block-context")
+    wire = seed(binder_of(DESK), "block-context")
     # A malformed mark on the LAST sheet -- a walker that stops at the first
     # sheet passes this file and misses it.
     wire["sheets"][-1]["marks"][0]["instruction"] = "correct"
@@ -654,7 +654,7 @@ def test_the_error_flow_reads_every_sheet_not_just_the_first():
 #: !! `test_a_sheet_whose_read_from_is_the_wrong_SHAPE_is_refused` MOVED, and
 #: did not go: `problems_in` no longer rules on the header, because
 #: `EditCopy.deserialize` decides it and `P42` made that the only door. The six
-#: values it drove -- `{"junk": 1}`, `{"root": 7, "revise": "x"}`, `{}`,
+#: values it drove -- `{"junk": 1}`, `{"root": 7}`, `{}`,
 #: `"oops"`, `None`, `[]` -- are asserted against the parse in
 #: `tests/test_containers.py::TestWhatItRefuses::
 #: test_an_edit_copy_whose_read_from_is_the_wrong_SHAPE`, against the parse
@@ -670,7 +670,7 @@ def test_a_copy_carrying_a_code_concern_validates():
         # ! `read_from` IS PART OF A WELL-FORMED COPY since 2026-08-28 --
         # `seed` puts it there and `EditCopy.deserialize` rules on it, so a
         # literal that omits it is testing a copy no role can return.
-        "read_from": {"root": "src/comment_review/desk", "revise": 0},
+        "read_from": {"root": "src/comment_review/desk"},
         "sheets": [],
         "code_concerns": [
             {"where": "src/m.py:12", "concern": "the guard admits a negative"}

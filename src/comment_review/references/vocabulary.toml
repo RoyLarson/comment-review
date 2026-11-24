@@ -69,7 +69,8 @@ laundering = "Applying a `patch` to a FALSE claim: the wording gets polished, an
 template = "A shape written out with its slots, not a shape NAMED. Measured from the tree for each kind of documentation."
 cap = "The published line limit a comment run may not exceed."
 width = "The published column limit for a line."
-original = "The text as it stood when THIS RUN began -- not the first version ever written. A file this run edits is the next run's original."
+original = "The text a stage read: the manuscript at the first stage, and that text with every earlier stage's settled changes at a later one. `taken_in original` keeps it."
+manuscript = "The text as it stood when THIS RUN began -- every file a stage can read, copied when the first stage opens. Not the first version ever written: a file this run edits is the next run's manuscript."
 proofreader = "Who reads the finished PROOF and decides whether the document deserves more marks."
 
 # --- how a place is NAMED ---------------------------------------------------
@@ -86,7 +87,7 @@ paragraph = "One unit of prose on the page: a comment run, a docstring, or the e
 # --- what is SET, and who sets it --------------------------------------------
 compositor = "Who SETS a page as text. It walks the page's places in order and asks each one what it holds. It decides nothing, and it is the only thing that writes a page."
 proof = "Pages as set, pulled to be judged -- what a PROOFREADER reads. It is read as set: the proofreader reports, and moves nothing and writes no alteration or schedule for it."
-docket = "Every alteration the compositor is to set, as one SCHEDULE per page. `proof` transcribes it from a closed MASTER PROOF and sets it; `proof --to-docket` writes it out instead."
+docket = "Every alteration the compositor is to set, as one SCHEDULE per page. `proof` transcribes it from each stage's closed MASTER PROOF and sets it; `proof --copy --to-docket` writes one role's out instead."
 schedule = "One page's ALTERATIONS, with the page's path and the sha of its text when it was read."
 alteration = "One place, and what the compositor sets there: its replacement text, or its deletion."
 
@@ -95,6 +96,9 @@ topology = "Which roles each stage dispatches, in what order, how many ways each
 "master proof" = "Every place the fold has seen: its base text, the marks on it, and its state -- decided, carried forward, or to come. `collate` writes it, each `turn` and `disposition` advance it, and it is closed when every place is decided."
 batch = "One slot for each carried-forward place, for each role it is put to, sent out in a turn."
 dispositions = "The copy chief's rulings: one per undecided move, `taken_in` a mover's side or the original, and one per carried-forward place, `taken_in` a side's text or `recast` in the chief's own prose."
+jacket = "The run's record, `<run-dir>/jacket.json`, written only by `topology --run`, `stage open` and `stage close`: the pre-edit commit, the scope, the topology, and for each stage its tree, its binder, the copies it dispatched and the proof it closed on. `collate` and `proof` read it."
+"stage open" = "Builds a stage's tree from the manuscript and each earlier stage's closed proof, gathers it, seeds the stage's copies from its row and records them in the jacket. A stage opens once every stage before it has closed."
+"stage close" = "Records a stage's closed proof in the jacket, once that proof folded every copy the stage dispatched. The next stage opens on it."
 "to come" = "An end of a move whose placement is not yet decided -- the trade's TK. It holds no text, asks no role anything, and takes no ruling; once the placement is decided it is read as any place."
 
 # --- the empty places, which are what an `add` cites -------------------------
@@ -135,8 +139,10 @@ all = ["paragraph", "sentence", "clause", "finding", "move"]
   "freeform",
   "gather",
   "instruction",
+  "jacket",
   "line of code",
   "managing editor",
+  "manuscript",
   "mark",
   "master proof",
   "original",
@@ -151,6 +157,8 @@ all = ["paragraph", "sentence", "clause", "finding", "move"]
   "schedule",
   "series",
   "sheet",
+  "stage close",
+  "stage open",
   "style sheet",
   "template",
   "to come",
@@ -193,7 +201,6 @@ all = ["paragraph", "sentence", "clause", "finding", "move"]
   "load-bearing",
   "margin",
   "mark",
-  "original",
   "owner",
   "page",
   "freeform",
@@ -207,6 +214,7 @@ all = ["paragraph", "sentence", "clause", "finding", "move"]
   "trailing comment",
   "truthy",
   "undocumented",
+  "manuscript",
 ]
 "block-context" = [
   "add",
@@ -241,7 +249,6 @@ all = ["paragraph", "sentence", "clause", "finding", "move"]
   "margin",
   "mark",
   "obituary",
-  "original",
   "page",
   "freeform",
   "patch",
@@ -255,6 +262,7 @@ all = ["paragraph", "sentence", "clause", "finding", "move"]
   "trailing comment",
   "truthy",
   "undocumented",
+  "manuscript",
 ]
 "function-context" = [
   "add",
@@ -290,7 +298,6 @@ all = ["paragraph", "sentence", "clause", "finding", "move"]
   "line of code",
   "margin",
   "mark",
-  "original",
   "page",
   "freeform",
   "patch",
@@ -304,6 +311,7 @@ all = ["paragraph", "sentence", "clause", "finding", "move"]
   "trailing comment",
   "truthy",
   "undocumented",
+  "manuscript",
 ]
 "module-context" = [
   "add",
@@ -341,7 +349,6 @@ all = ["paragraph", "sentence", "clause", "finding", "move"]
   "mark",
   "obituary",
   "omission",
-  "original",
   "owner",
   "page",
   "freeform",
@@ -356,6 +363,7 @@ all = ["paragraph", "sentence", "clause", "finding", "move"]
   "truthy",
   "undocumented",
   "width",
+  "manuscript",
 ]
 
 compact = [
@@ -370,7 +378,6 @@ compact = [
   "edit copy",
   "instruction",
   "mark",
-  "original",
   "owner",
   "page",
   "patch",
@@ -378,6 +385,7 @@ compact = [
   "query",
   "sheet",
   "style sheet",
+  "manuscript",
 ]
 review = [
   "add",

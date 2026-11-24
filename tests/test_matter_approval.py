@@ -59,7 +59,7 @@ def _collated(tmp_path: Path, at_f0: dict):
     root = _root(tmp_path)
     page = page_of(root / "m.py", rel="m.py")
     assert isinstance(page, Page), page
-    binder = bind([page], read_from={"root": str(root), "revise": 0})
+    binder = bind([page], read_from={"root": str(root)})
     roles = ("block-context", "function-context")
     wires = copies_over(binder, {role: {B0: a_clean(B0)} for role in roles})
     for wire in wires:
@@ -79,7 +79,7 @@ def test_check_reports_pending_matter_approval(tmp_path, monkeypatch, capsys):
     root = _root(tmp_path)
     page = page_of(root / "m.py", rel="m.py")
     assert isinstance(page, Page), page
-    binder = bind([page], read_from={"root": str(root), "revise": 0})
+    binder = bind([page], read_from={"root": str(root)})
     copy = copies_over(binder, {"block-context": {B0: a_clean(B0)}})[0]
     copy["sheets"][0]["marks"].append(a_correct_setting(F0, LICENCE, SAMPLE))
     binder_path = tmp_path / "binder.json"

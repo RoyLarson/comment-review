@@ -100,7 +100,7 @@ def test_decoded_rows_are_detached_from_wire():
 def test_literal_version_four_wire_needs_no_installed_language():
     wire = {
         "version": "4",
-        "read_from": {"root": "fixture", "revise": 0},
+        "read_from": {"root": "fixture"},
         "freeform": [],
         "pages": [
             {

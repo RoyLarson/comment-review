@@ -106,7 +106,7 @@ def test_a_path_with_a_quote_in_it_is_still_valid_toml():
 
 def _freeform_only(tmp_path, *paths: str):
     """A saved binder that holds freeform paths and no page."""
-    binder = bind([], read_from={"root": ".", "revise": 0}, freeform=paths)
+    binder = bind([], read_from={"root": "."}, freeform=paths)
     where = tmp_path / "binder.json"
     where.write_text(json.dumps(binder.serialize()), encoding="utf-8")
     return where

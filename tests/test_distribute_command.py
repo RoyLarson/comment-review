@@ -1,8 +1,8 @@
-"""`commands/distribute.py --topology --stage`: one seeded copy per dispatch, in order.
+"""Dealing one stage: one seeded copy per dispatch, in order, and `distribute --seed`.
 
 `decision-log.md Process: #74`: the topology keeps a reader, and the reader is the
-distribution -- one invocation reads one stage's dispatches and writes one seeded
-edit copy per dispatch. The task agent reads the order from SKILL.md (`#73`).
+distribution -- one stage's dispatches, one seeded edit copy per dispatch, written
+by `flows.fan_out.write_dealt`, which `stage open` calls.
 """
 
 import json
@@ -10,6 +10,7 @@ from pathlib import Path
 
 import pytest
 from conftest import SAMPLE, build, run_command
+from helpers import a_jacket_naming
 
 from comment_review.binder.binder import bind
 from comment_review.commands import check as check_command
@@ -18,7 +19,16 @@ from comment_review.commands import distribute as distribute_command
 from comment_review.commands import gather as gather_command
 from comment_review.commands import topology as topology_command
 from comment_review.desk.topology import read as read_topology
-from comment_review.flows.fan_out import partition
+from comment_review.flows.distribute import IncompatibleBinder
+from comment_review.flows.fan_out import (
+    OverlappingShards,
+    UncoveredPage,
+    partition,
+    write_dealt,
+)
+from comment_review.flows.proof_io import load_binder
+
+DEAL_REFUSALS = (OverlappingShards, UncoveredPage, IncompatibleBinder)
 
 FOUR_C = """
 [[stage]]
@@ -85,9 +95,8 @@ def test_stage_admits_later_language_before_consuming_first_shard(
             pytest.fail("first shard consumed before later language admission")
 
         monkeypatch.setattr("comment_review.flows.distribute.handed", forbidden)
-        monkeypatch.setattr(distribute_command, "_as_json", forbidden)
     out = tmp_path / "copies"
-    code, printed = _stage(tmp_path, monkeypatch, capsys, "4a", out)
+    code, printed = _stage(tmp_path, "4a", out)
     if incompatible:
         assert code == 2, printed
         assert later in printed and "regather" in printed
@@ -119,8 +128,8 @@ def test_distribution_refuses_installed_incompatible_saved_binder_before_address
         pytest.fail("incompatible binder reached saved address consumption")
 
     monkeypatch.setattr("comment_review.flows.distribute.handed", forbidden)
-    monkeypatch.setattr(distribute_command, "_as_json", forbidden)
     if route == "seed":
+        monkeypatch.setattr(distribute_command, "_as_json", forbidden)
         code, printed = run_command(
             monkeypatch,
             capsys,
@@ -135,7 +144,7 @@ def test_distribution_refuses_installed_incompatible_saved_binder_before_address
             with_stderr=True,
         )
     else:
-        code, printed = _stage(root, monkeypatch, capsys, "4a", root / "copies")
+        code, printed = _stage(root, "4a", root / "copies")
     assert code == 2, printed
     assert "regather" in printed
     assert {
@@ -143,16 +152,14 @@ def test_distribution_refuses_installed_incompatible_saved_binder_before_address
     } == before
 
 
-def _bind(tmp_path, monkeypatch, capsys, repo: Path, out: Path, revise: int):
-    """One binder over `repo`'s two pages, stamped with the revise `repo` is."""
+def _bind(tmp_path, monkeypatch, capsys, repo: Path, out: Path):
+    """One binder over `repo`'s two pages."""
     code, printed = run_command(
         monkeypatch,
         capsys,
         gather_command,
         "--repo",
         str(repo),
-        "--revise",
-        str(revise),
         "--out",
         str(out),
         str(repo / "a.py"),
@@ -163,61 +170,45 @@ def _bind(tmp_path, monkeypatch, capsys, repo: Path, out: Path, revise: int):
 
 
 def _tree(tmp_path, monkeypatch, capsys) -> Path:
-    """Two pages, a revise of them, a binder over each, and the topology above.
+    """Two pages, a copy of them, a binder over each, and the topology above.
 
-    The revise stands in for what stage `4a`'s `proof` pulls: `4c` reads it,
-    so the copies it seeds are cut from the revise's binder rather than the
-    original's.
+    The copy stands in for the tree `stage open` builds for `4c`, so the copies
+    `4c` deals are cut from that tree's binder.
     """
     pulled = tmp_path / "revise"
     pulled.mkdir()
     for name in ("a.py", "b.py"):
         (tmp_path / name).write_text(SAMPLE, encoding="utf-8", newline="")
         (pulled / name).write_text(SAMPLE, encoding="utf-8", newline="")
-    _bind(tmp_path, monkeypatch, capsys, tmp_path, tmp_path / "binder.json", 0)
-    _bind(tmp_path, monkeypatch, capsys, pulled, tmp_path / "revise-binder.json", 1)
+    _bind(tmp_path, monkeypatch, capsys, tmp_path, tmp_path / "binder.json")
+    _bind(tmp_path, monkeypatch, capsys, pulled, tmp_path / "revise-binder.json")
     (tmp_path / "t.toml").write_text(FOUR_C, encoding="utf-8")
     return tmp_path
 
 
-def _stage(
-    root: Path,
-    monkeypatch,
-    capsys,
-    stage: str,
-    out: Path,
-    revise: Path | None = None,
-    binder: str = "",
-):
-    named = ["--revise", str(revise)] if revise is not None else []
-    return run_command(
-        monkeypatch,
-        capsys,
-        distribute_command,
-        "--topology",
-        str(root / "t.toml"),
-        "--stage",
-        stage,
-        "--binder",
-        str(root / (binder or "binder.json")),
-        "--out-dir",
-        str(out),
-        *named,
-        with_stderr=True,
-    )
+def _stage(root: Path, stage: str, out: Path, binder: str = "") -> tuple[int, str]:
+    """Deal `stage` of `root / "t.toml"` from the binder into `out`.
+
+    Returns:
+        `(0, the lines written)`, or `(2, the refusal)` -- the codes `stage
+        open` exits with for a stage that deals or does not.
+    """
+    held, problems = load_binder(root / (binder or "binder.json"))
+    if held is None:
+        return 2, "\n".join(problems)
+    stages, why = read_topology((root / "t.toml").read_text(encoding="utf-8"))
+    assert why == "", why
+    (row,) = [one for one in stages if one.name == stage]
+    try:
+        written = write_dealt(held, row, out)
+    except DEAL_REFUSALS as refused:
+        return 2, str(refused)
+    return 0, "\n".join(line for _, line in written)
 
 
-def _second(root: Path, monkeypatch, capsys, out: Path, **named):
-    """Stage `4c` as it is meant to be run: the revise it reads, and its binder."""
-    return _stage(
-        root,
-        monkeypatch,
-        capsys,
-        "4c",
-        out,
-        revise=named.pop("revise", root / "revise"),
-        binder=named.pop("binder", "revise-binder.json"),
-    )
+def _second(root: Path, out: Path) -> tuple[int, str]:
+    """Stage `4c`, dealt from the binder over its own tree."""
+    return _stage(root, "4c", out, binder="revise-binder.json")
 
 
 def test_a_stage_seeds_one_copy_per_dispatch_in_dispatch_order(
@@ -225,7 +216,7 @@ def test_a_stage_seeds_one_copy_per_dispatch_in_dispatch_order(
 ):
     root = _tree(tmp_path, monkeypatch, capsys)
     out = root / "copies"
-    code, printed = _second(root, monkeypatch, capsys, out)
+    code, printed = _second(root, out)
     assert code == 0, printed
     names = sorted(p.name for p in out.iterdir())
     assert names == [
@@ -243,7 +234,7 @@ def test_a_stage_seeds_one_copy_per_dispatch_in_dispatch_order(
 def test_each_dispatched_copy_has_its_received_binder(tmp_path, monkeypatch, capsys):
     root = _tree(tmp_path, monkeypatch, capsys)
     out = root / "copies"
-    code, printed = _second(root, monkeypatch, capsys, out)
+    code, printed = _second(root, out)
     assert code == 0, printed
     for name, paths in (
         ("4c_block-context_1.json", ["a.py"]),
@@ -253,7 +244,6 @@ def test_each_dispatched_copy_has_its_received_binder(tmp_path, monkeypatch, cap
         binder = json.loads((out / "binders" / name).read_text(encoding="utf-8"))
         assert [p["path"] for p in binder["pages"]] == paths
         assert Path(binder["read_from"]["root"]).resolve() == root / "revise"
-        assert binder["read_from"]["revise"] == 1
         assert str(out / "binders" / name) in printed
 
 
@@ -267,13 +257,13 @@ def test_received_binder_contains_only_stage_assigned_places(
             '    """Doc."""\n    pass\n',
             encoding="utf-8",
         )
-    _bind(root, monkeypatch, capsys, root / "revise", root / "revise-binder.json", 1)
+    _bind(root, monkeypatch, capsys, root / "revise", root / "revise-binder.json")
     (root / "t.toml").write_text(
         FOUR_C.replace('name = "4c"', 'name = "4c"\nseries = ["b"]\ncap = 1'),
         encoding="utf-8",
     )
     out = root / "copies"
-    code, printed = _second(root, monkeypatch, capsys, out)
+    code, printed = _second(root, out)
     assert code == 0, printed
     for copy_path in out.glob("*.json"):
         copy = json.loads(copy_path.read_text(encoding="utf-8"))
@@ -288,13 +278,6 @@ def test_received_binder_contains_only_stage_assigned_places(
         ]
 
 
-def test_a_stage_the_topology_lacks_is_refused_by_name(tmp_path, monkeypatch, capsys):
-    root = _tree(tmp_path, monkeypatch, capsys)
-    code, printed = _stage(root, monkeypatch, capsys, "4b", root / "copies")
-    assert code == 2
-    assert "4b" in printed and "4a" in printed and "4c" in printed
-
-
 def test_an_uncovered_page_is_refused_with_fan_outs_own_reason(
     tmp_path, monkeypatch, capsys
 ):
@@ -302,42 +285,13 @@ def test_an_uncovered_page_is_refused_with_fan_outs_own_reason(
     (root / "t.toml").write_text(
         FOUR_C.replace('paths = ["b.py"]', 'paths = ["zzz.py"]'), encoding="utf-8"
     )
-    code, printed = _second(root, monkeypatch, capsys, root / "copies")
+    code, printed = _second(root, root / "copies")
     assert code == 2
     assert "no dispatch covers" in printed and "b.py" in printed
 
 
-def test_a_stage_reading_a_revise_is_refused_without_one(tmp_path, monkeypatch, capsys):
-    """`4c` reads `revise:4a`, so the original's binder is not what seeds it."""
-    root = _tree(tmp_path, monkeypatch, capsys)
-    out = root / "copies"
-    code, printed = _stage(root, monkeypatch, capsys, "4c", out)
-    assert code == 2, printed
-    assert "4c" in printed and "4a" in printed
-    assert not out.exists()
-
-
-def test_a_binder_gathered_from_another_tree_is_refused(tmp_path, monkeypatch, capsys):
-    """The revise root is named and the binder is the original's."""
-    root = _tree(tmp_path, monkeypatch, capsys)
-    out = root / "copies"
-    code, printed = _second(root, monkeypatch, capsys, out, binder="binder.json")
-    assert code == 2, printed
-    assert "revise" in printed
-    assert not out.exists()
-
-
-def test_a_stage_reading_the_original_takes_no_revise(tmp_path, monkeypatch, capsys):
-    root = _tree(tmp_path, monkeypatch, capsys)
-    out = root / "copies"
-    code, printed = _stage(root, monkeypatch, capsys, "4a", out, revise=root / "revise")
-    assert code == 2, printed
-    assert "4a" in printed and "original" in printed
-    assert not out.exists()
-
-
 def test_a_binder_with_no_freeform_path_deals_shards_with_none():
-    binder = bind([build(SAMPLE, "a.py")], read_from={"root": ".", "revise": 0})
+    binder = bind([build(SAMPLE, "a.py")], read_from={"root": "."})
     stage, _ = read_topology(FOUR_C)
     assert [free for _, _, free in partition(binder, stage[0])] == [[]]
 
@@ -376,20 +330,7 @@ def _freeform_run(root: Path, monkeypatch, capsys) -> tuple[Path, Path, Path]:
     )
     assert code == 0, printed
     out = root / "copies"
-    code, printed = run_command(
-        monkeypatch,
-        capsys,
-        distribute_command,
-        "--topology",
-        str(topology),
-        "--stage",
-        "4a",
-        "--binder",
-        str(binder),
-        "--out-dir",
-        str(out),
-        with_stderr=True,
-    )
+    code, printed = _stage(root, "4a", out)
     assert code == 0, printed
     assert "0 places for ownership-context to rule on; 1 freeform" in printed
     return binder, topology, out
@@ -427,20 +368,15 @@ def test_check_and_collate_accept_a_copy_with_no_sheets(tmp_path, monkeypatch, c
             with_stderr=True,
         )
         assert code == 0, printed
-    argv = [
-        "--stage",
-        "4a",
-        "--binder",
-        str(binder),
-        "--topology",
-        str(topology),
-        "--repo",
-        str(tmp_path),
-        "--proof-out",
-        str(tmp_path / "proof.json"),
-    ]
-    for copy in copies:
-        argv += ["--edit-copy", str(copy)]
+    flags = a_jacket_naming(
+        binder,
+        copies,
+        stage="4a",
+        topology=topology.read_text(encoding="utf-8"),
+        received=[out / "binders" / copy.name for copy in copies],
+        root=tmp_path,
+    )
+    argv = [*flags, "--proof-out", str(tmp_path / "proof.json")]
     code, printed = run_command(
         monkeypatch, capsys, collate_command, *argv, with_stderr=True
     )
@@ -472,9 +408,8 @@ def test_a_seeded_copy_says_how_many_freeform_paths_its_binder_holds(
     assert "0 places for block-context to rule on; 2 freeform" in printed
 
 
-@pytest.mark.parametrize("modes", [("--seed", "--stage", "4a"), ("--shape", "--seed")])
-def test_two_modes_together_are_a_usage_error(tmp_path, monkeypatch, capsys, modes):
+def test_two_modes_together_are_a_usage_error(tmp_path, monkeypatch, capsys):
     with pytest.raises(SystemExit) as exited:
-        run_command(monkeypatch, capsys, distribute_command, *modes)
+        run_command(monkeypatch, capsys, distribute_command, "--shape", "--seed")
     assert exited.value.code == 2
     assert "not allowed with" in capsys.readouterr().err

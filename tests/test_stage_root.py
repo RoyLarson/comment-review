@@ -18,18 +18,16 @@ def test_a_source_citing_an_edited_page_reads_the_revise(tmp_path):
     # `marks.py` imports from `mark.py`, so a source cite crosses between them
     # for real rather than by arrangement.
     repo = a_small_real_tree(tmp_path)
-    pulled = pull(
-        a_docket_that_rewrites(repo, "mark.py"), repo, tmp_path / "r1", revise=1
-    )
-    row = the_row_for(binder_of(pulled.root, 1), "mark.py")
+    pulled = pull(a_docket_that_rewrites(repo, "mark.py"), repo, tmp_path / "r1")
+    row = the_row_for(binder_of(pulled.root), "mark.py")
     assert row.raw_text in (pulled.root / "mark.py").read_text(encoding="utf-8")
     assert row.raw_text not in (repo / "mark.py").read_text(encoding="utf-8")
 
 
-def _gather_args(repo, revise: int, paths: list[str]) -> argparse.Namespace:
+def _gather_args(repo, paths: list[str]) -> argparse.Namespace:
     """The `argparse.Namespace` `commands.gather._report` reads -- built
     directly rather than through `sys.argv`, since `_report` is the call
-    site itself and the point is to force ITS `revise` handling, not
+    site itself and the point is to force ITS `--repo` handling, not
     argparse's.
     """
     return argparse.Namespace(
@@ -37,7 +35,6 @@ def _gather_args(repo, revise: int, paths: list[str]) -> argparse.Namespace:
         paths=paths,
         repo=str(repo),
         include_absent=False,
-        revise=revise,
         settings=None,
     )
 
@@ -45,13 +42,9 @@ def _gather_args(repo, revise: int, paths: list[str]) -> argparse.Namespace:
 def test_a_relative_path_reads_from_the_named_root(tmp_path, capsys, monkeypatch):
     # Standing in the original, where a file of the same name holds other text.
     repo = a_small_real_tree(tmp_path)
-    pulled = pull(
-        a_docket_that_rewrites(repo, "mark.py"), repo, tmp_path / "r1", revise=1
-    )
+    pulled = pull(a_docket_that_rewrites(repo, "mark.py"), repo, tmp_path / "r1")
     monkeypatch.chdir(repo)
-    exit_code = gather_command._report(
-        _gather_args(pulled.root, revise=1, paths=["mark.py"])
-    )
+    exit_code = gather_command._report(_gather_args(pulled.root, paths=["mark.py"]))
     assert exit_code == 0
     binder, problems = Binder.deserialize("stdout", json.loads(capsys.readouterr().out))
     assert binder is not None, problems
@@ -60,16 +53,10 @@ def test_a_relative_path_reads_from_the_named_root(tmp_path, capsys, monkeypatch
     assert row.raw_text not in (repo / "mark.py").read_text(encoding="utf-8")
 
 
-def test_the_gather_command_states_the_revise_it_read(tmp_path, capsys, monkeypatch):
-    """`commands/gather.py --json` wrote `"revise": 0` into `read_from`
-    unconditionally -- MEASURED, no `--revise` argument existed at all, so a
-    stage gathering a revise still reported the ORIGINAL's number, which is
-    indistinguishable from having read the original.
-    """
+def test_the_gather_command_states_the_root_it_read(tmp_path, capsys, monkeypatch):
+    """The binder's `read_from` names the root `--repo` gave, not the cwd."""
     repo = a_small_real_tree(tmp_path)
-    pulled = pull(
-        a_docket_that_rewrites(repo, "mark.py"), repo, tmp_path / "r1", revise=1
-    )
+    pulled = pull(a_docket_that_rewrites(repo, "mark.py"), repo, tmp_path / "r1")
     # !! THE CWD IS NOT THE ROOT, AND IT WAS `chdir(pulled.root)` UNTIL
     # 2026-08-28. MEASURED by mutation: with the two equal, replacing
     # `Path(args.repo)` with `Path.cwd()` in the command left this test GREEN --
@@ -79,14 +66,13 @@ def test_the_gather_command_states_the_revise_it_read(tmp_path, capsys, monkeypa
     # the two distinguishable; `--repo` is then a real choice.
     monkeypatch.chdir(tmp_path)
     exit_code = gather_command._report(
-        _gather_args(pulled.root, revise=1, paths=[str(pulled.root / "mark.py")])
+        _gather_args(pulled.root, paths=[str(pulled.root / "mark.py")])
     )
     assert exit_code == 0
     # ! DESERIALIZED, NOT READ AS A DICT -- so this also asserts the command
     # emits a binder the boundary accepts, which a raw `json.loads` never did.
     binder, problems = Binder.deserialize("stdout", json.loads(capsys.readouterr().out))
     assert binder is not None, problems
-    assert binder.read_from["revise"] == 1
     # ! THE RECORDED ROOT IS ASSERTED, and nothing asserted it until the same
     # day: a fixed string in place of the computed root passed every check here.
     # Resolved on both sides, because the field is now written RELATIVE to the

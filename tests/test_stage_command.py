@@ -18,6 +18,7 @@ from helpers import (
     BASE,
     TWO,
     _overlaid,
+    a_clean,
     a_correct_setting,
     a_move,
     a_patch,
@@ -588,20 +589,48 @@ def test_a_copy_that_widened_its_admits_is_held_to_the_jacket_row(
     assert not (tmp_path / "proof0.json").exists()
 
 
-def test_collate_jacket_takes_none_of_the_flags_the_jacket_replaces(
-    tmp_path, monkeypatch, capsys
+@pytest.mark.parametrize(
+    "admits",
+    [["patch", "drop", "add", "clean", "correct"], ["patch", "clean"]],
+    ids=["wider", "narrower"],
+)
+def test_a_copy_whose_admits_differ_from_the_row_is_refused_naming_both(
+    tmp_path, monkeypatch, capsys, admits
 ):
-    _a_run(tmp_path)
+    """`stage open` stamped `admits` from the row, so a copy holding any other
+    list was edited after it was seeded, whichever way it moved. The one mark
+    is a `clean`, which both lists and the row admit, so the list is the only
+    thing refused."""
+    _a_run(tmp_path, EDITS_ONLY)
     code, printed = _open(tmp_path, monkeypatch, capsys, "4a")
     assert code == 0, printed
-    topology = tmp_path / "t.toml"
-    topology.write_text(FOUR_A_THEN_FOUR_C, encoding="utf-8")
-    code, printed = _collate(
-        tmp_path, monkeypatch, capsys, "4a", "--topology", str(topology)
-    )
-    assert code == report.UNREADABLE, printed
-    assert "--jacket names what --topology would" in printed
+    cleaned = {"block-context": {"m.py@b1": a_clean("m.py@b1")}}
+    _filled(tmp_path, "4a", cleaned, admits=admits)
+    code, printed = _collate(tmp_path, monkeypatch, capsys, "4a")
+    assert code == report.BROKEN, printed
+    assert (
+        f"says it may file {', '.join(admits)}, and stage 4a's row admits"
+        " patch, drop, add, clean" in printed
+    ), printed
     assert not (tmp_path / "proof0.json").exists()
+
+
+def test_collate_runs_only_from_a_jacket(tmp_path, monkeypatch, capsys):
+    """A stage is folded from the jacket's record, and no flag names its parts."""
+    proof = tmp_path / "proof0.json"
+    with pytest.raises(SystemExit) as exited:
+        run_command(
+            monkeypatch,
+            capsys,
+            collate_command,
+            "--stage",
+            "4a",
+            "--proof-out",
+            str(proof),
+        )
+    assert exited.value.code == 2
+    assert "--jacket" in capsys.readouterr().err
+    assert not proof.exists()
 
 
 def test_collate_jacket_folds_only_an_open_stage(tmp_path, monkeypatch, capsys):
@@ -698,7 +727,7 @@ def test_accept_all_sets_the_last_stages_tree_page_for_page(
     proof4c, why = load_proof(tmp_path / "final.json")
     assert proof4c is not None, why
     docket = docket_of_proof(proof4c, root4c)
-    pulled = revise.pull(docket, root4c, tmp_path / "last", revise=2)
+    pulled = revise.pull(docket, root4c, tmp_path / "last")
     assert pulled.refusals == []
     last = {
         rel: (pulled.root / rel if (pulled.root / rel).exists() else root4c / rel)
