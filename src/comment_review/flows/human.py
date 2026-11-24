@@ -176,8 +176,8 @@ def read_answers(text: str, where: str) -> tuple[list[HumanAnswer], list[str]]:
         where: how to name the file in a problem.
 
     Returns:
-        `(the answers, [])`, or `([], problems)` where the file is not TOML or
-        `answer` is not an array of tables, or `(the good ones, problems)` where
+        `(the answers, [])`, or `([], problems)` where the file is not TOML,
+        holds no `answer`, or `answer` is not an array of tables, or `(the good ones, problems)` where
         some sections are not tables, lack a non-blank string field, or answer
         a role, place and question an earlier section already answers -- the
         file does not say which of the two stands, so the later one is refused.
@@ -186,7 +186,10 @@ def read_answers(text: str, where: str) -> tuple[list[HumanAnswer], list[str]]:
         doc = tomllib.loads(text)
     except tomllib.TOMLDecodeError as exc:
         return [], [f"{where}: not TOML -- {exc}"]
-    rows = doc.get("answer", [])
+    # A misspelt table, `[[answers]]`, would otherwise read as no answers at all.
+    if "answer" not in doc:
+        return [], [f"{where}: holds no [[answer]] table"]
+    rows = doc["answer"]
     if not isinstance(rows, list):
         return [], [f"{where}: `answer` must be an array of tables, [[answer]]"]
     out: list[HumanAnswer] = []
