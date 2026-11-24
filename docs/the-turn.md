@@ -551,6 +551,29 @@ that tree's places it is dealt are two questions: a stage reading `"original"` m
 it deals, and a stage reading a revise may narrow nothing. `#193` is the use they were built
 for, not the only row they fit.
 
+## Each stage's tree, from the jacket
+
+**`stage open --jacket J --stage S` builds the tree a stage reads; `stage close` records the
+proof it closed on.** Both are `flows.stage`, and both read and write only
+`<run-dir>/jacket.json` (`flows.jacket`). A stage opens once every stage its `reads` chain names
+has closed, and the first open copies the manuscript. A stage reading `"original"` is gathered
+from the checkout. Any other is gathered from `<run-dir>/root<S>`: a worktree of the jacket's
+pre-edit commit, the manuscript over it with the tracked files the checkout had deleted removed
+-- the checkout as the run started, for every path -- each earlier closed proof in chain order set through
+`revise.pull` -- so the docket's page-sha refusal and the address gate run on every stage tree
+-- and then `<run-dir>/freeform/draft/`. A root already on disk is refused, never reused; a build
+that refuses removes its root; once the stage is recorded, removing the root is the caller's.
+
+**The gather is the scope plus every page an earlier docket wrote**, so a file that received
+moved text is read at the next stage. The binder's `read_from` carries `stage`, the copies are
+seeded from the jacket's row into `<run-dir>/copies/`, printed as `distribute --stage` prints
+them, and the jacket records the root, the binder and the copies dispatched.
+
+**A stage closes in topology order.** It is open, it is the first row not closed whose chain has
+closed, and the proof is closed and stamped with its name; the jacket records the proof's path
+and sha256, and a later `stage open` refuses a proof whose bytes changed since. A refusal exits
+1; a jacket or a closed proof that cannot be read as one exits 2.
+
 ## What this does to stages 4 and 5
 
 **A role states what it wants the paragraph to read like**, because a mark's `change` is the
@@ -570,6 +593,7 @@ updated paragraph as raw text ([`the-mark.md`](the-mark.md)). The chief can take
 | the author's partial approval | `flows.transcribe._approved`, reached through `docket_of_proof`'s `only`; the flag is `proof --only` |
 | what a page holds at an address -- the base and anchor a place is built on | `flows.on_the_page.held_at`, read by `flows.places.bases_and_anchors` and `flows.verify` |
 | which places a stage deals | `desk.stages.deals`, read by `flows.distribute.seed` and `flows.verify.admit` |
+| the tree a stage reads, and the order stages open and close | `flows.stage.open_stage` and `close_stage`; the command is `stage open` / `stage close` |
 | which instructions its roles may file | `desk.stages.not_admitted`, read by `flows.verify._admitted_problems` |
 | a role states the paragraph it wants | `Mark.change`, raw text |
 | the answer a role gives in a turn | `desk/proof/answer.py` -- `Answer` and its types; `desk/answers/table.py`, the twelve rows |

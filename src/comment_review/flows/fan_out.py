@@ -3,6 +3,8 @@
     partition(binder, stage)  each dispatch with its files, after the two guards
     dealt(binder, stage)      each dispatch's received binder with its seeded
                               edit_copy, in dispatch order
+    write_dealt(binder, stage, out_dir)
+                              those copies and binders, written to disk
     Shard                     a dispatch, with the pages and freeform paths it
                               matched
     OverlappingShards         two dispatches of one role both claim a file
@@ -19,13 +21,16 @@ place at most once, and nothing downstream needs extra identity to tell shards
 apart.
 """
 
+import json
 from dataclasses import replace
 from fnmatch import fnmatch
+from pathlib import Path
 
 from comment_review.binder.binder import Binder
 from comment_review.binder.page import Page, RedactedPage
 from comment_review.desk.stages import Dispatch, Stage
 from comment_review.flows.distribute import admit_binder, assigned_binder, seed
+from comment_review.machine.repo import write_raw
 
 
 class OverlappingShards(Exception):
@@ -70,6 +75,36 @@ def dealt(binder: Binder, stage: Stage) -> list[tuple[Binder, dict]]:
         received = assigned_binder(shard, stage)
         out.append((received, seed(received, dispatch.role, stage)))
     return out
+
+
+def write_dealt(binder: Binder, stage: Stage, out_dir: Path) -> list[tuple[Path, str]]:
+    """Write `dealt`'s copies into `out_dir`, each received binder under `binders/`.
+
+    A copy is `<stage>_<role>_<n>.json`, `n` counting that role's dispatches,
+    and its binder has the same name. `dealt` refuses the whole stage before
+    anything is written.
+
+    Returns:
+        Each copy's path with the line that reports it, in dispatch order.
+    """
+    packets = dealt(binder, stage)
+    seen: dict[str, int] = {}
+    written = []
+    for dispatch, (received, copy) in zip(stage.dispatches, packets, strict=True):
+        n = seen[dispatch.role] = seen.get(dispatch.role, 0) + 1
+        where = out_dir / f"{stage.name}_{dispatch.role}_{n}.json"
+        write_raw(where, json.dumps(copy, indent=2))
+        binder_path = out_dir / "binders" / where.name
+        write_raw(binder_path, json.dumps(received.serialize(), indent=2))
+        places = sum(len(sheet["marks"]) for sheet in copy["sheets"])
+        written.append(
+            (
+                where,
+                f"{where}: {places} places for {dispatch.role} to rule on; "
+                f"{len(received.freeform)} freeform; binder {binder_path}",
+            )
+        )
+    return written
 
 
 #: A dispatch, the pages it matched and the freeform paths it matched.

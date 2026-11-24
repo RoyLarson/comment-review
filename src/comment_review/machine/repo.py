@@ -253,6 +253,27 @@ def commit_of(repo: Path, ref: str) -> str | None:
     return sha if got.returncode == 0 and sha else None
 
 
+def git_worktree_add(repo: Path, path: Path, ref: str) -> str:
+    """Check `ref` out, detached, as a worktree of `repo` at `path`; why not, or ""."""
+    try:
+        got = git(repo, "worktree", "add", "--detach", str(path), ref, timeout=120)
+    except exceptions.GIT_ERRORS as err:
+        return f"git could not add a worktree at {path}: {err}"
+    if got.returncode != 0:
+        return f"git could not add a worktree at {path}: {got.stderr.strip()}"
+    return ""
+
+
+def git_worktree_remove(repo: Path, path: Path) -> None:
+    """Remove the worktree of `repo` at `path`, whatever it holds; never raises."""
+    try:
+        git(repo, "worktree", "remove", "--force", str(path), timeout=120)
+    except exceptions.GIT_ERRORS:
+        pass
+    if path.exists():
+        remove_tree(path, ignore_errors=True)
+
+
 def undraftable(into: Path, repo: Path) -> str:
     """Why drafts of files under `repo` cannot be written into `into`, or "".
 

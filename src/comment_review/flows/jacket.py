@@ -12,6 +12,7 @@
                             jacket file, and back
     put_topology            write a built topology's rows into the run's jacket
     snapshot_manuscript     copy the manuscript into `<run-dir>/manuscript/`
+    manuscript_deleted      the tracked files the checkout had deleted
 
 A job jacket holds every proof of one job. This one holds references, not
 copies: a stage's binder and its closed proof each carry their own pages' shas,
@@ -23,9 +24,12 @@ run reads the same from any working directory and no home path is written into
 the record.
 
 The manuscript is the text the run started from: each file in scope, walked as
-`flows.gather` walks it, and each untracked file the checkout holds, so text no
-commit carries is reviewed and can be cited. A later stage's tree is built from
-it rather than from whatever the checkout holds by then.
+`flows.gather` walks it, each untracked file the checkout holds, so text no
+commit carries is reviewed and can be cited, and each tracked file whose bytes
+differ from a fresh checkout of the pre-edit commit, with the list of tracked
+files deleted. A later
+stage's tree is built from it rather than from whatever the checkout holds by
+then.
 
 Nothing outside `flows` imports `Jacket`; a consumer declares a `Protocol` of
 what it reads.
@@ -34,6 +38,7 @@ what it reads.
 import json
 import re
 import shutil
+import tempfile
 from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import cast
@@ -46,7 +51,10 @@ from comment_review.machine.repo import (
     EXCLUDED_DIRS,
     can_escape,
     commit_of,
+    git_ls_files,
     git_untracked,
+    git_worktree_add,
+    git_worktree_remove,
     relative_to,
     remove_tree,
     walk_files,
@@ -58,6 +66,10 @@ JACKET_FILE = "jacket.json"
 
 #: The directory under a run directory the manuscript is copied into.
 MANUSCRIPT = "manuscript"
+
+#: The file under a run directory naming the tracked files the checkout had
+#: deleted when the manuscript was copied.
+MANUSCRIPT_DELETED = "manuscript-deleted.json"
 
 #: The wire's format number; a reader refuses any other.
 FORMAT = 1
@@ -327,13 +339,17 @@ def put_topology(
 
 
 def snapshot_manuscript(
-    repo: Path, scope: tuple[str, ...], run_dir: Path
+    repo: Path, scope: tuple[str, ...], run_dir: Path, ref: str
 ) -> tuple[list[str], list[str]]:
     """Copy the manuscript from the checkout into `<run-dir>/manuscript/`.
 
-    Each file in scope, walked as the gather walks it, and each untracked file
-    git does not ignore, at its repo path, byte for byte. A manuscript already
-    on disk is refused and left as it is; any other refusal leaves none.
+    Each file in scope, walked as the gather walks it, each untracked file git
+    does not ignore, and each tracked file whose bytes differ from a fresh
+    checkout of `ref`, at its repo path, byte for byte. Each tracked file the
+    checkout deleted is listed in `<run-dir>/manuscript-deleted.json`, so a
+    worktree of `ref` with the manuscript over it and those files removed is
+    the checkout as the run started, byte for byte. A manuscript already on
+    disk is refused and left as it is; any other refusal leaves none.
 
     Returns:
         `(the repo-relative paths copied, sorted, [])`, or `([], reasons)`.
@@ -362,12 +378,88 @@ def snapshot_manuscript(
         for rel in cast(list[str], untracked)
         if not EXCLUDED_DIRS.intersection(Path(rel).parts)
     )
+    present, deleted, problems = _differs_from_ref(repo, run_dir, ref)
+    if problems:
+        return [], problems
+    rels.update(present)
     copied = sorted(rels)
     try:
         for rel in copied:
             (into / rel).parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(repo / rel, into / rel)
+        write_raw(run_dir / MANUSCRIPT_DELETED, json.dumps(sorted(deleted), indent=2))
     except OSError as err:
         remove_tree(into, ignore_errors=True)
         return [], [f"cannot copy the manuscript into {into}: {err}"]
     return copied, []
+
+
+def _differs_from_ref(
+    repo: Path, run_dir: Path, ref: str
+) -> tuple[list[str], list[str], list[str]]:
+    """The tracked paths whose checkout bytes differ from a checkout of `ref`.
+
+    `ref` is checked out once, as a worktree under `run_dir` that is removed
+    before this returns, and each path is compared byte for byte, so a line
+    ending `core.autocrlf` or `.gitattributes` writes differently counts as a
+    difference. A path tracked in `ref` or in the index is asked; one that is
+    not a file in the checkout is deleted there.
+
+    Returns:
+        `(paths whose checkout file differs, paths the checkout deleted, [])`,
+        each repo-relative posix, or `([], [], reasons)`.
+    """
+    run_dir.mkdir(parents=True, exist_ok=True)
+    scratch = Path(tempfile.mkdtemp(prefix="ref-", dir=run_dir))
+    fresh = scratch / "ref"
+    try:
+        why = git_worktree_add(repo, fresh, ref)
+        if why:
+            return [], [], [why]
+        in_ref = git_ls_files(fresh)
+        in_index = git_ls_files(repo)
+        if in_ref is None or in_index is None:
+            return [], [], [f"git could not list the tracked files of {ref}"]
+        present: list[str] = []
+        deleted: list[str] = []
+        for rel in sorted({*in_ref, *in_index}):
+            mine = repo / rel
+            if not mine.is_file():
+                # A tracked directory -- a submodule -- is not a file to copy.
+                if not mine.exists():
+                    deleted.append(rel)
+                continue
+            theirs = fresh / rel
+            if not theirs.is_file() or not _same_bytes(mine, theirs):
+                present.append(rel)
+        return present, deleted, []
+    except OSError as err:
+        return [], [], [f"cannot compare {repo} with {ref}: {err}"]
+    finally:
+        git_worktree_remove(repo, fresh)
+        remove_tree(scratch, ignore_errors=True)
+
+
+def _same_bytes(one: Path, other: Path) -> bool:
+    return one.stat().st_size == other.stat().st_size and (
+        one.read_bytes() == other.read_bytes()
+    )
+
+
+def manuscript_deleted(run_dir: Path) -> tuple[list[str], list[str]]:
+    """The tracked files the checkout had deleted when the run started.
+
+    Returns:
+        `(repo-relative paths, [])`, or `([], the reason they cannot be read)`.
+    """
+    path = run_dir / MANUSCRIPT_DELETED
+    text, why = load_text(path)
+    if text is None:
+        return [], why
+    try:
+        value = json.loads(text)
+    except ValueError:
+        value = None
+    if not _strings(value) or any(can_escape(rel) for rel in cast(list, value)):
+        return [], [f"{path} is not a list of repo-relative paths"]
+    return cast(list[str], value), []

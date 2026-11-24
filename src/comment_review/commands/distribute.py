@@ -38,7 +38,7 @@ from comment_review.desk.stages import ROLES
 from comment_review.desk.topology import read as read_topology
 from comment_review.desk.topology import seeded_from_problem
 from comment_review.flows.distribute import IncompatibleBinder, admit_binder, seed
-from comment_review.flows.fan_out import OverlappingShards, UncoveredPage, dealt
+from comment_review.flows.fan_out import OverlappingShards, UncoveredPage, write_dealt
 from comment_review.flows.proof_io import load_binder
 
 # ! Bound to a name, for the reason `exceptions.py`'s module docstring gives.
@@ -48,8 +48,9 @@ FAN_REFUSALS = (OverlappingShards, UncoveredPage, IncompatibleBinder)
 def _as_json(payload: dict) -> str:
     """This command's one `json.dumps`, for every JSON it prints or writes.
 
-    !! Several outputs, one spelling. `--shape` prints, and `--seed` and
-    `--stage` write files. All of them are at the save end, which is where the
+    !! Several outputs, one spelling. `--shape` prints and `--seed` writes a
+    file; `--stage`'s files are `flows.fan_out.write_dealt`'s, dumped the same
+    way. All of them are at the save end, which is where the
     rule allows raw json -- what the rule does not allow is one command holding
     two answers to *how does this command write JSON*, because that is where an
     indent or an encoding drifts apart between outputs nobody compares.
@@ -167,28 +168,12 @@ def main() -> int:
         # over the whole stage, so a stage that does not fit leaves no copies
         # behind for a role to be handed.
         try:
-            packets = dealt(binder, stage)
+            written = write_dealt(binder, stage, Path(args.out_dir))
         except FAN_REFUSALS as exc:
             print(f"stage {stage.name!r}: {exc}", file=sys.stderr)
             return 2
-        out_dir = Path(args.out_dir)
-        out_dir.mkdir(parents=True, exist_ok=True)
-        binder_dir = out_dir / "binders"
-        binder_dir.mkdir(parents=True, exist_ok=True)
-        seen: dict[str, int] = {}
-        for dispatch, (received, copy) in zip(stage.dispatches, packets, strict=True):
-            n = seen[dispatch.role] = seen.get(dispatch.role, 0) + 1
-            where = out_dir / f"{stage.name}_{dispatch.role}_{n}.json"
-            where.write_text(_as_json(copy), encoding="utf-8", newline="")
-            binder_path = binder_dir / where.name
-            binder_path.write_text(
-                _as_json(received.serialize()), encoding="utf-8", newline=""
-            )
-            places = sum(len(sheet["marks"]) for sheet in copy["sheets"])
-            print(
-                f"{where}: {places} places for {dispatch.role} to rule on; "
-                f"{len(received.freeform)} freeform; binder {binder_path}"
-            )
+        for _, line in written:
+            print(line)
         return 0
 
     ap.print_usage()

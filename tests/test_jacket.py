@@ -25,6 +25,7 @@ from comment_review.flows.jacket import (
     jacket_from_wire,
     jacket_to_wire,
     load_jacket,
+    manuscript_deleted,
     resolved_path,
     save_jacket,
     snapshot_manuscript,
@@ -320,6 +321,16 @@ def test_a_rebuild_after_a_stage_opened_is_refused(tmp_path, monkeypatch, capsys
     assert load_jacket(run / JACKET_FILE) == (opened, [])
 
 
+def test_a_malformed_jacket_is_an_unreadable_input(tmp_path, monkeypatch, capsys):
+    run = tmp_path / "run"
+    run.mkdir()
+    (run / JACKET_FILE).write_text('{"format": 1}', encoding="utf-8")
+    code, printed = _build_into_run(tmp_path, monkeypatch, capsys)
+    assert code == 2, printed
+    assert "the jacket is missing" in printed
+    assert (run / JACKET_FILE).read_text(encoding="utf-8") == '{"format": 1}'
+
+
 def test_a_compaction_key_naming_no_stage_is_refused(tmp_path, monkeypatch, capsys):
     code, printed = _build_into_run(
         tmp_path, monkeypatch, capsys, "--cap", "9=3", "--ref", "HEAD", "a.py"
@@ -341,12 +352,18 @@ def _checkout(tmp_path) -> Path:
         "pkg/core.py": "x = 1\r\n",
         "pkg/sub/util.py": "y = 2\n",
         "other/tracked.py": "z = 3\n",
+        "other/edited.py": "e = 1\n",
+        "other/staged.py": "s = 1\n",
+        "other/gone.py": "g = 1\n",
         ".gitignore": "*.log\n",
     }
     for rel, text in files.items():
         (repo / rel).parent.mkdir(parents=True, exist_ok=True)
         (repo / rel).write_bytes(text.encode("utf-8"))
     _git(repo, "init")
+    # A fresh checkout writes the bytes committed, so the only tracked files that
+    # differ from one are those edited below, whatever this machine's own setting.
+    _git(repo, "config", "core.autocrlf", "false")
     _git(repo, "add", ".")
     _git(
         repo,
@@ -365,13 +382,18 @@ def _checkout(tmp_path) -> Path:
     (repo / "notes/draft.md").write_bytes(b"cite me\n")
     (repo / "pkg/run.log").write_bytes(b"ignored\n")
     (repo / "other/run.log").write_bytes(b"ignored\n")
+    # And outside the scope: edited, edited and staged, deleted.
+    (repo / "other/edited.py").write_bytes(b"e = 2\n")
+    (repo / "other/staged.py").write_bytes(b"s = 2\n")
+    _git(repo, "add", "other/staged.py")
+    (repo / "other/gone.py").unlink()
     return repo
 
 
-def test_the_manuscript_is_the_scope_and_the_untracked_files_as_they_stand(tmp_path):
+def test_the_manuscript_is_the_checkout_as_it_stands_where_it_differs(tmp_path):
     repo = _checkout(tmp_path)
     run = tmp_path / "run"
-    copied, problems = snapshot_manuscript(repo, ("pkg",), run)
+    copied, problems = snapshot_manuscript(repo, ("pkg",), run, "HEAD")
     assert problems == []
     manuscript = run / MANUSCRIPT
     on_disk = sorted(
@@ -380,10 +402,14 @@ def test_the_manuscript_is_the_scope_and_the_untracked_files_as_they_stand(tmp_p
         if p.is_file()
     )
     # The scope as the checkout holds it -- the gather's walk, so an ignored file
-    # under a scoped directory is in it -- and every untracked file outside the
-    # scope; a tracked file outside the scope is not.
+    # under a scoped directory is in it -- and outside the scope every untracked
+    # file and every tracked file that differs from the ref, staged or not; an
+    # unchanged tracked file outside the scope is not, and a deleted one is
+    # listed beside the manuscript.
     expected = [
         "notes/draft.md",
+        "other/edited.py",
+        "other/staged.py",
         "pkg/core.py",
         "pkg/new.py",
         "pkg/run.log",
@@ -392,6 +418,8 @@ def test_the_manuscript_is_the_scope_and_the_untracked_files_as_they_stand(tmp_p
     assert on_disk == expected
     assert copied == expected
     assert (manuscript / "pkg/core.py").read_bytes() == b"x = 10\r\n"
+    assert (manuscript / "other/edited.py").read_bytes() == b"e = 2\n"
+    assert manuscript_deleted(run) == (["other/gone.py"], [])
 
 
 def test_a_manuscript_already_on_disk_is_refused_and_left_alone(tmp_path):
@@ -399,13 +427,13 @@ def test_a_manuscript_already_on_disk_is_refused_and_left_alone(tmp_path):
     run = tmp_path / "run"
     (run / MANUSCRIPT).mkdir(parents=True)
     (run / MANUSCRIPT / "kept.txt").write_bytes(b"kept")
-    copied, problems = snapshot_manuscript(repo, ("pkg",), run)
+    copied, problems = snapshot_manuscript(repo, ("pkg",), run, "HEAD")
     assert copied == [] and problems
     assert [p.name for p in (run / MANUSCRIPT).iterdir()] == ["kept.txt"]
 
 
 def test_a_scope_path_that_matches_nothing_is_refused(tmp_path):
     repo = _checkout(tmp_path)
-    copied, problems = snapshot_manuscript(repo, ("nope",), tmp_path / "run")
+    copied, problems = snapshot_manuscript(repo, ("nope",), tmp_path / "run", "HEAD")
     assert copied == [] and any("nope" in p for p in problems)
     assert not (tmp_path / "run" / MANUSCRIPT).exists()

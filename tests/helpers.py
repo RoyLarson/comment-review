@@ -1085,6 +1085,7 @@ def deal(
     by_role: dict | None = None,
     texts: dict | None = None,
     placed: dict | None = None,
+    stage: str = "4c",
 ) -> int:
     """`collate` over the hand: binder.json, proof0.json, batch1.json.
 
@@ -1108,6 +1109,7 @@ def deal(
             `fill` is what creates one from the page. An `add` or a move's
             destination at an empty place can only be dealt this way. A role
             may appear in both, and its overlaid marks go on first.
+        stage: the stage the proof is stamped with.
 
     Returns:
         `collate`'s exit code, which is what a caller of it reads.
@@ -1128,7 +1130,7 @@ def deal(
     )
     argv = [
         "--stage",
-        "4c",
+        stage,
         "--binder",
         str(tmp_path / "binder.json"),
         "--proof-out",
