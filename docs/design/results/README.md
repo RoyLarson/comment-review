@@ -27,7 +27,6 @@ read end. It is in `conventions.md`'s table of four couplings, measured 2026-08-
 | `compositor.py` | sets a page as TEXT, in memory, top to bottom. It decides nothing |
 | `differences.py` | renders the difference between two texts, and composes them where disjoint |
 | `galley.py` | the proposed text SET AS FILES, so it can be read and gathered like any tree |
-| `prove_unchanged.py` | whether the setting changed anything but prose |
 
 ## 3a. What each stage holds
 

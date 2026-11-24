@@ -4,8 +4,7 @@
                     `STEPS` is the chain, as data
     referrers       stage 3, inbound -- the `git grep` behind `referrers`
     page_for        acquires a source snapshot and admits it as a complete page
-    source          source acquisition outcomes for filesystem and revision
-                    reads
+    source          source acquisition outcomes for filesystem reads
     compositor      acquires, admits and sets one held source snapshot
     on_the_page     reads addressed pages once per caller-owned snapshot cache
     addresses       looks a place up on the page it names, by line or by
@@ -14,8 +13,6 @@
                     per-file overrides
     read_diagnostics retained source context and report formatting for read
                     failures
-    carry           makes the binder carry an empty place it dropped, so an
-                    `add` has an address to cite
     fan_out         splits a binder by a stage's dispatches -- one seeded
                     edit_copy per dispatch, refusing an overlap or a gap
     distribute      seeds the edit_copy a role fills, one entry per row it is

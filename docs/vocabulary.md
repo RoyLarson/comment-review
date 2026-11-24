@@ -33,9 +33,9 @@ here**, and `scripts/check_vocabulary.py` refuses a live term defined in both pl
 | `owner` (the census field) | -> **anchor**. It is a position, not a judgement |
 | `level` | removed ENTIRELY. It gated which verdicts a reviewer could emit and had no provenance. Every verdict is available on every run |
 | `FORMATTING` | -> **`move`** to the line above. Never declared in the vocabulary, the brief or the gate, so emitting it would have failed the run |
-| `marks` (the census's) | -> **annotations**, including the JSON key |
+| `marks` (the census's) | -> **annotations**, including the JSON key, and then removed: the gather attaches none to a paragraph, and **annotation** now means a type annotation in code only |
 | `walk` | an editor READS a manuscript and CHECKS a list. `ast.walk` is untouched |
-| `detector` | the word is **annotation** |
+| `detector` | the word was **annotation**, and the gather no longer attaches any |
 | `gap` (the module-surface sense) | -> **omission**, which pairs with **obituary**: one is in the code and absent from the prose, the other the reverse |
 | `statement` (of prose) | prose units are **sentence** and **clause**. The word names CODE |
 | `listing` | -> **binder**, and the reviewer's own **edit copy**. The text report `gather` printed without `--json`, handed to every role as the thing it read end to end. Removed 2026-09-06, `decision-log.md Process: #99`: the seeded copy carries each paragraph's text, so nothing needed a second rendering |
@@ -557,8 +557,7 @@ check refuses a term no role uses. Adding it to tidy the numbers is writing to t
   date, not what it replaced. Every word in `vocabulary.toml` is shipped into a prompt and
   charged for; this table is where a superseded term stays legible.
 - **Polysemy is allowed when it is DECLARED and the contexts do not overlap** -- `opener` (a
-  comment delimiter, and a record's `--- RECORD`), `annotations` (the gather's, and
-  `from __future__`), `node` (a page's node, and an AST node), **`leaf`** (a module that imports
+  comment delimiter, and a record's `--- RECORD`), `node` (a page's node, and an AST node), **`leaf`** (a module that imports
   no sibling, and -- retired -- a sheet of paper).
   - !! **`leaf` IS THE ONE WHERE ONE SENSE WAS RETIRED AND THE OTHER KEPT.** Ruled by Roy,
     2026-08-23. The PAGE sense is gone; the IMPORT-GRAPH sense is his own term from 2026-08-22 --
