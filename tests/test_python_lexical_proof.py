@@ -2,13 +2,14 @@
 
 import ast
 import builtins
+import json
 import sys
 import tokenize
 from dataclasses import replace
 from pathlib import Path
 
 import pytest
-from conftest import build, by_cue, docket_from
+from conftest import build, by_cue, docket_from, run_command
 from test_proof_command import proof_repository
 
 from comment_review.binder import page as page_model
@@ -113,7 +114,7 @@ def test_both_python_proof_gates_refuse_retained_source_mutations(
     assert refusal is not None and refusal.step == "prove"
     repo, target = proof_repository(tmp_path, before.replace("\n", "\r\n"), ".py")
     target.write_bytes(after.replace("\n", "\r\n").encode())
-    report = prove_unchanged.run(repo, "HEAD", [target])
+    report = prove_unchanged.run(repo, "HEAD", [target], approved={})
     assert report.failures == 1
     assert "PROVEN" not in " ".join(report.messages)
 
@@ -122,7 +123,8 @@ def test_standalone_proof_refuses_a_draft_that_no_longer_parses(tmp_path):
     before = 'class E(Exception):\n    """x"""\n\n\ndef f():\n    return 1\n'
     repo, target = proof_repository(tmp_path, before.replace("\n", "\r\n"), ".py")
     target.write_bytes(b"class E(Exception):\r\n\r\n\r\ndef f():\r\n    return 1\r\n")
-    report = prove_unchanged.run(repo, "HEAD", [target])
+    approved = {"pkg/source.py": [_cue_of(before, "class E(Exception):")]}
+    report = prove_unchanged.run(repo, "HEAD", [target], approved=approved)
     text = " ".join(report.messages)
     assert report.failures == 1
     assert "PROVEN" not in text
@@ -159,7 +161,9 @@ def test_standalone_and_approved_proof_allow_documentation_presence_changes(
         refusal = proof_setter._prove(
             "m.py", was, now, Path("m.py"), [(by_cue(was)[owner], by_cue(now)[owner])]
         )
-        report = prove_unchanged.run(repo, "HEAD", [target])
+        report = prove_unchanged.run(
+            repo, "HEAD", [target], approved={"pkg/source.py": [owner]}
+        )
     assert refusal is None
     assert report.failures == 0, report.messages
     assert any("PROVEN" in message for message in report.messages)
@@ -189,7 +193,9 @@ def test_both_gates_preserve_promoted_ordinary_literal(
         refusal = proof_setter._prove(
             "m.py", was, now, Path("m.py"), [(by_cue(was)[owner], by_cue(now)[owner])]
         )
-        report = prove_unchanged.run(repo, "HEAD", [target])
+        report = prove_unchanged.run(
+            repo, "HEAD", [target], approved={"pkg/source.py": [owner]}
+        )
     if mutation is None:
         assert refusal is None
         assert report.failures == 0, report.messages
@@ -213,7 +219,7 @@ def test_whitespace_inside_a_string_literal_is_code(tmp_path, suffix, before, ed
     repo, target = proof_repository(tmp_path, before.replace("\n", "\r\n"), suffix)
     after = before.replace("a\nb", edit, 1)
     target.write_bytes(after.replace("\n", "\r\n").encode())
-    report = prove_unchanged.run(repo, "HEAD", [target])
+    report = prove_unchanged.run(repo, "HEAD", [target], approved={})
     assert report.failures == 1, report.messages
     assert any("DIFFERS" in message for message in report.messages)
 
@@ -310,9 +316,93 @@ def test_standalone_modern_python_uses_one_context_without_host_parsing(
     with monkeypatch.context() as patch:
         patch.setattr(prove_unchanged, "page_of", observe)
         forbid_host_parsers(patch)
-        report = prove_unchanged.run(repo, "HEAD", [target])
+        report = prove_unchanged.run(repo, "HEAD", [target], approved={})
     assert report.failures == 0, report.messages
     assert len(admitted) == 2 and admitted[0] is admitted[1]
+
+
+TWO_FUNCTIONS = "def one():\n    return 1\n\n\ndef two():\n    return 2\n"
+
+
+def crlf(text: str) -> str:
+    """`text` with the CRLF endings `proof_repository`'s sibling holds."""
+    return text.replace("\n", "\r\n")
+
+
+def _documented(text: str, name: str) -> str:
+    """`text` with a docstring added to function `name`."""
+    return text.replace(
+        f"def {name}():\n", f'def {name}():\n    """Document {name}."""\n'
+    )
+
+
+def _cue_of(text: str, anchor: str) -> str:
+    """The cue of the `a` place documenting `anchor` on the page for `text`."""
+    return next(
+        cue
+        for cue, place in by_cue(build(text)).items()
+        if cue.startswith("a") and place.anchor == anchor
+    )
+
+
+@pytest.mark.parametrize("approved_owner", [True, False], ids=["approved", "none"])
+def test_standalone_proof_refuses_an_unapproved_docstring_beside_an_approved_one(
+    tmp_path, approved_owner
+):
+    """Stage 7b lets only the imprimatur's docstrings appear (#414, #415)."""
+    after = _documented(_documented(TWO_FUNCTIONS, "one"), "two")
+    repo, target = proof_repository(tmp_path, crlf(TWO_FUNCTIONS), ".py")
+    target.write_bytes(crlf(after).encode())
+    cues = [_cue_of(TWO_FUNCTIONS, "def one():")] if approved_owner else []
+    report = prove_unchanged.run(
+        repo, "HEAD", [target], approved={"pkg/source.py": cues}
+    )
+    assert report.failures == 1, report.messages
+    assert "PROVEN" not in " ".join(report.messages)
+
+
+def test_standalone_proof_proves_the_approved_docstring_alone(tmp_path):
+    after = _documented(TWO_FUNCTIONS, "one")
+    repo, target = proof_repository(tmp_path, crlf(TWO_FUNCTIONS), ".py")
+    target.write_bytes(crlf(after).encode())
+    cue = _cue_of(TWO_FUNCTIONS, "def one():")
+    report = prove_unchanged.run(
+        repo, "HEAD", [target], approved={"pkg/source.py": [cue]}
+    )
+    assert report.failures == 0, report.messages
+    assert any("PROVEN" in message for message in report.messages)
+    refused = prove_unchanged.run(repo, "HEAD", [target], approved={})
+    assert refused.failures == 1, refused.messages
+
+
+@pytest.mark.parametrize("record", [None, "approves", "unreadable"])
+def test_the_command_reads_the_imprimatur_it_is_named(
+    tmp_path, monkeypatch, capsys, record
+):
+    from comment_review.commands import prove_unchanged as command
+
+    repo, target = proof_repository(tmp_path, crlf(TWO_FUNCTIONS), ".py")
+    target.write_bytes(crlf(_documented(TWO_FUNCTIONS, "one")).encode())
+    named = tmp_path / "imprimatur.json"
+    cue = _cue_of(TWO_FUNCTIONS, "def one():")
+    named.write_text(
+        json.dumps({"pkg/source.py": [cue]}) if record == "approves" else "[]",
+        encoding="utf-8",
+    )
+    flag = ["--imprimatur", str(named)] if record else []
+    code, out = run_command(
+        monkeypatch,
+        capsys,
+        command,
+        "--repo",
+        str(repo),
+        "--base",
+        "HEAD",
+        *flag,
+        str(target),
+        with_stderr=True,
+    )
+    assert code == {None: 1, "approves": 0, "unreadable": 2}[record], out
 
 
 def test_python_context_identity_is_independent_of_host_parser_version(monkeypatch):
@@ -336,5 +426,5 @@ def test_a_same_line_docstring_moved_below_its_declaration_proves(
     before = 'def g(): """d."""\nx = 1\n'
     repo, target = proof_repository(tmp_path, before.replace("\n", "\r\n"), ".py")
     target.write_bytes(after.replace("\n", "\r\n").encode())
-    report = prove_unchanged.run(repo, "HEAD", [target])
+    report = prove_unchanged.run(repo, "HEAD", [target], approved={})
     assert (report.failures == 0) is proves, report.messages

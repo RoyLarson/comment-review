@@ -255,7 +255,7 @@ that changed a published name or rule:
 | [p5-self-run-findings](p5-self-run-findings.md) | systems | -- | 4/6 | The P5 self-run findings |
 | [r2-preexisting-prose](r2-preexisting-prose.md) | backend | -- | 0/2 | Correct pre-existing move and fold-helper prose |
 | [mark-stance-metadata-prose](mark-stance-metadata-prose.md) | backend | -- | 0/2 | Clarify mark stance and reading metadata prose |
-| [lexical-code-identity](lexical-code-identity.md) | backend | -- | 14/23 | Use lexical code identity at both proof boundaries |
+| [lexical-code-identity](lexical-code-identity.md) | backend | -- | 15/23 | Use lexical code identity at both proof boundaries |
 | [2026-10-13-human-question-list](2026-10-13-human-question-list.md) | backend | -- | 1/4 | Expose human questions across edit copies |
 | [empty-comment-gets-a-drop](empty-comment-gets-a-drop.md) | backend | -- | 0/1 | An empty comment gets a drop mark |
 | [paragraph-is-a-passage](paragraph-is-a-passage.md) | backend | -- | 0/9 | The addressed unit of prose is a passage, not a paragraph |
@@ -285,7 +285,7 @@ that changed a published name or rule:
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
-| [compact-can-buy-lines-with-width](compact-can-buy-lines-with-width.md) | agents | -- | 6/11 | COMPACT can buy lines with width, and nothing stops it |
+| [compact-can-buy-lines-with-width](compact-can-buy-lines-with-width.md) | agents | -- | 7/11 | COMPACT can buy lines with width, and nothing stops it |
 | [stage-1-is-re-derived-every-run](stage-1-is-re-derived-every-run.md) | agents | -- | 9/18 | Stage 1 is re-derived every run, asks one question twice, and knows one structure source |
 | [corpora-are-all-python](corpora-are-all-python.md) | testing | -- | 10/11 | The corpora are nine Python projects, so every per-language rule is measured on Python and C alone |
 | [b-addresser-uninitialised](b-addresser-uninitialised.md) | backend | -- | 17/19 | The b addresser is never initialised at the module trigger, and computes its cue from line numbers |

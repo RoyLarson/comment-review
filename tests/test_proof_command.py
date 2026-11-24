@@ -210,7 +210,7 @@ def test_standalone_an_unprovable_comparison_refuses_at_equal_text(
         False, (ReadDiagnostic(ReadStage.PLACE, UNPROVABLE, "not separated"),)
     )
     monkeypatch.setattr(RustRead, "preserved", lambda *_, **__: unprovable)
-    report = prove_unchanged.run(repo, "HEAD", [target])
+    report = prove_unchanged.run(repo, "HEAD", [target], approved={})
     assert report.failures == 1
     assert all("PROVEN" not in message for message in report.messages)
     assert any("UNPROVABLE" in message for message in report.messages)
@@ -689,6 +689,36 @@ def test_a_bad_place_is_named_the_same_by_every_command_that_reads_the_proof(
     assert code != 0 and named in out, out
 
 
+MODULE_PLACE = "m.py@a0"
+
+
+def a_closed_proof_adding_a_module_docstring(tmp_path, monkeypatch, capsys):
+    """`m.py@b1` corrected and a module docstring added at `m.py@a0`, closed by
+    the chief taking both in as filed."""
+    code = deal(
+        tmp_path,
+        monkeypatch,
+        capsys,
+        {"block-context": {"m.py@b1": a_correct_setting("m.py@b1", "two", TWO)}},
+        {"m.py@b1": BASE},
+        placed={
+            "block-context": [
+                {
+                    "address": MODULE_PLACE,
+                    "instruction": "add",
+                    "claim": {"missing": "what the module holds", "anchor": "`v0`"},
+                    "reason": "the module is explained nowhere",
+                    "sources": [{"cite": "m.py:1"}],
+                    "change": '"""Hold four values."""\n',
+                }
+            ]
+        },
+    )
+    assert code == report.REREADS
+    taken_in_as_filed(tmp_path, monkeypatch, capsys)
+    return tmp_path / "final.json", tmp_path / "repo"
+
+
 def _set(tmp_path, monkeypatch, capsys, proof: Path, repo: Path, *only: str):
     """`proof --jacket` over a run whose one stage closed on `proof`, into r1."""
     return run_command(
@@ -805,6 +835,30 @@ class TestProofTakesAClosedProof:
         assert "m.py@b2" not in out
         assert TWO in (tmp_path / "r1" / "m.py").read_text(encoding="utf-8")
         assert "# four\n" in (tmp_path / "r1" / "m.py").read_text(encoding="utf-8")
+
+    @pytest.mark.parametrize(
+        ("only", "imprimatur"),
+        [
+            ((), {"m.py": ["a0"]}),
+            ((f"4c:{MODULE_PLACE}",), {"m.py": ["a0"]}),
+            (("4c:m.py@b1",), {"m.py": []}),
+        ],
+        ids=["jacket", "only-the-docstring", "only-the-comment"],
+    )
+    def test_proof_records_the_docstrings_it_was_approved_to_change(
+        self, tmp_path, monkeypatch, capsys, only, imprimatur
+    ):
+        """`decision-log.md Process: #415`: beside its drafts, `proof` writes
+        each page's `a` places an accepted alteration set, for stage 7b."""
+        proof, repo = a_closed_proof_adding_a_module_docstring(
+            tmp_path, monkeypatch, capsys
+        )
+        code, out = _set(tmp_path, monkeypatch, capsys, proof, repo, *only)
+        assert code == 0, out
+        record = json.loads(
+            (tmp_path / "r1" / "imprimatur.json").read_text(encoding="utf-8")
+        )
+        assert record == imprimatur
 
     def test_only_without_a_proof_is_an_argument_error(
         self, tmp_path, monkeypatch, capsys
@@ -1082,7 +1136,7 @@ def test_the_summary_never_counts_a_freeform_path_as_proven(
             ["git", "-C", str(repo), *args], capture_output=True, check=True, timeout=30
         )
     note.write_bytes(b"// after\r\n")
-    report = prove_unchanged.run(repo, "HEAD", [target, note])
+    report = prove_unchanged.run(repo, "HEAD", [target, note], approved={})
     assert report.freeform == 1 and report.failures == 0
     base = ("--repo", str(repo), "--base", "HEAD")
     code, out = run_command(monkeypatch, capsys, command, *base, str(target), str(note))

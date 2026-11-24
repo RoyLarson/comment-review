@@ -1996,7 +1996,7 @@ $Stages = [ordered]@{
     # `proof --jacket` sets the whole run once every stage has closed: the
     # pre-edit commit's tree with each stage's closed proof set over it in
     # topology order, into $ProofDir, which must not exist yet and holds only
-    # the pages a proof set. The diff is against the first stage's expected
+    # the pages a proof set and the imprimatur. The diff is against the first stage's expected
     # pages with the second stage's fib.py and the compacting stage's
     # store.py written over them; no later stage opens on the compacting
     # stage's tree, so this is where its page is read. On a difference it
@@ -2015,6 +2015,12 @@ $Stages = [ordered]@{
         foreach ($dir in @($ExpectedDir, $SecondExpectedDir, $CompactingExpectedDir)) {
             Copy-Item -Path (Join-Path $dir '*') -Destination $ProofExpectedDir -Force
         }
+        # Beside the drafts, the record of the docstrings each page's proof let change.
+        Invoke-Checked -Stage 'proof imprimatur expected' -CommandLine @(
+            'uv', 'run', 'python', '-c',
+            'import sys; sys.path.insert(0, "scripts"); from pathlib import Path; from smoke_fixture import write_proof_imprimatur; write_proof_imprimatur(Path(sys.argv[1]))',
+            $ProofExpectedDir
+        )
         Invoke-Checked -Stage 'proof diff' -CommandLine @(
             'git', '-c', 'core.autocrlf=false', '--no-pager', 'diff', '--no-index', '--',
             $ProofExpectedDir, $ProofDir

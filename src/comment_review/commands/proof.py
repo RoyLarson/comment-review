@@ -12,7 +12,8 @@ console face of them.
 tree and sets every stage's closed proof over it in topology order. `--only`
 is the author's partial approval, each accepted place named as
 `<stage>:<address>`, and nothing set anywhere else. `--out` then holds one
-draft per page a proof set.
+draft per page a proof set, and `imprimatur.json`, the docstrings each page's
+proof let appear or disappear, which `prove_unchanged --imprimatur` reads.
 
 `--copy` takes a role's own edit_copy, for that role's own draft.
 

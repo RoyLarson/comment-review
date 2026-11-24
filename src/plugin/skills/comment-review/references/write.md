@@ -43,10 +43,11 @@ this stage, written or refused, remove it with `git worktree remove --force <run
 3. Copy each draft over its `<path>` in `<run-dir>/build`.
 
 Then prove the code in every draft reads the same as at the pre-edit ref, naming each path
-under the build root:
+under the build root and the imprimatur `proof` wrote in the `--out` that holds the drafts:
 
 ```bash
 python <skill>/scripts/comment-review.py prove_unchanged --base <pre-edit ref> \
+  --imprimatur <drafts>/imprimatur.json \
   --repo <run-dir>/build <run-dir>/build/<path> ...
 ```
 

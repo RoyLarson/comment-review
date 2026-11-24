@@ -90,6 +90,7 @@ proof = "Pages as set, pulled to be judged -- what a PROOFREADER reads. It is re
 docket = "Every alteration the compositor is to set, as one SCHEDULE per page. `proof` transcribes it from each stage's closed MASTER PROOF and sets it; `proof --copy --to-docket` writes one role's out instead."
 schedule = "One page's ALTERATIONS, with the page's path and the sha of its text when it was read."
 alteration = "One place, and what the compositor sets there: its replacement text, or its deletion."
+imprimatur = "The licence to print: `imprimatur.json`, which `proof` writes beside its drafts, naming for each page the `a` places an accepted alteration set. `prove_unchanged --imprimatur` lets a docstring appear or disappear there and nowhere else."
 
 # --- what carries the work between the stages --------------------------------
 topology = "Which roles each stage dispatches, in what order, how many ways each role is split, and the pages each dispatch covers. A stage may also name a cap, the series it deals and the instructions it admits. `topology --build` writes one that fits the binder."
@@ -138,6 +139,7 @@ all = ["paragraph", "sentence", "clause", "finding", "move"]
   "editorial role",
   "freeform",
   "gather",
+  "imprimatur",
   "instruction",
   "jacket",
   "line of code",

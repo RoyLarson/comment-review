@@ -7640,3 +7640,30 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
 
   **What it settles.** Stage 7b's `prove_unchanged` runs every check stage 7a's proof runs,
   `documented` included.
+
+- **#415.** **`proof` records the approved docstrings for `prove_unchanged`** (Roy, 2026-11-24,
+  on lexical-code-identity T23, implementing #414; offered `proof` recording the approved set
+  beside its drafts, 7b relying on `proof`'s own proof, or `prove_unchanged` replaying the
+  jacket):
+
+  *"proof records it (Recommended)"*
+
+  **What it settles.** `proof` writes, beside its drafts, the declarations whose docstrings it
+  was approved to change; `prove_unchanged` reads that record and lets only those differ.
+
+- **#416.** **A condensation is named by its stage at 7a** (Roy, 2026-11-24, on
+  compact-can-buy-lines-with-width T11; offered SKILL.md 7a presenting stage 6's places as
+  condensations, or a fifth role in the closed role set):
+
+  *"7a names stage 6 (Recommended)"*
+
+  **What it settles.** The role set stays at four; 7a presents stage 6's places as
+  condensations, not as block-context findings.
+
+- **#417.** **The record #415 names is the `imprimatur`** (Roy, 2026-11-24, on the name of the
+  list `proof` writes beside its drafts of the docstrings each page was approved to add or
+  remove; offered `imprimatur`, `approved` or `passed for press`):
+
+  *"imprimatur (Recommended)"*
+
+  **What it settles.** `<out>/imprimatur.json`, read by `prove_unchanged --imprimatur`.

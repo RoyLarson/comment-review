@@ -58,11 +58,15 @@ class Pulled(NamedTuple):
             none maps every one of its addresses to `""`.
         refusals: every `proof_setter.Refusal`, or `[]` on success. Non-empty
             means `root` was discarded and does not exist.
+        documented: each drafted page's path -> the `a` places whose
+            docstrings its proof let change, as `proof_setter.Drafted` holds
+            them. Empty after a refusal.
     """
 
     root: Path
     set_by: dict[str, str]
     refusals: list[proof_setter.Refusal]
+    documented: dict[str, tuple[str, ...]]
 
 
 class AddressesMoved(Exception):
@@ -95,9 +99,9 @@ def pull(docket: Docket, repo: Path, into: Path) -> Pulled:
             it gets here; `pull` as a flow does not, so the caller owns this.
 
     Returns:
-        `Pulled(into, set_by, [])` when every page in the docket passed, or
-        `Pulled(into, {}, refusals)` with `into` removed again when any page
-        refused.
+        `Pulled(into, set_by, [], documented)` when every page in the docket
+        passed, or `Pulled(into, {}, refusals, {})` with `into` removed again
+        when any page refused.
 
     Nothing partial is left on any path. Once `into` is made, any exception
     -- in the drafting, the writing of the drafts into `into`, or the address
@@ -112,6 +116,7 @@ def pull(docket: Docket, repo: Path, into: Path) -> Pulled:
             into,
             {},
             [proof_setter.Refusal("read", "", p.text) for p in problems],
+            {},
         )
     # The ancestors `mkdir` makes, nearest first, so a pull that does not
     # return a revise removes them with `into`.
@@ -138,7 +143,7 @@ def pull(docket: Docket, repo: Path, into: Path) -> Pulled:
             # Nothing has been written into `into` on this path: the drafts go
             # in only once every page has passed.
             remove_tree(into)
-            return Pulled(root=into, set_by={}, refusals=refusals)
+            return Pulled(root=into, set_by={}, refusals=refusals, documented={})
 
         # Each draft is written at the path the docket names for its page, and
         # nothing else is written: the revise holds only the files the write
@@ -148,7 +153,12 @@ def pull(docket: Docket, repo: Path, into: Path) -> Pulled:
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(made.draft, target)
 
-        pulled = Pulled(root=into, set_by=_set_by(docket), refusals=[])
+        pulled = Pulled(
+            root=into,
+            set_by=_set_by(docket),
+            refusals=[],
+            documented={made.path: made.documented for made in drafted},
+        )
         # The gate runs on every pull, before the success return: it is not an
         # opt-in. `AddressesMoved` propagates through the handler below, which
         # removes `into` first -- a revise whose addresses moved looks whole,

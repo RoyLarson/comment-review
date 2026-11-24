@@ -2882,6 +2882,40 @@ COMPACTED_EXPECTED = (
 )
 
 
+#: The imprimatur `proof --jacket` writes beside the whole run's drafts. The
+#: second stage rewords `fib.py`'s module and `logged` docstrings (`a0`, `a1`)
+#: and gives `wrapper` one (`a2`); no other page's docstrings change.
+PROOF_IMPRIMATUR = (
+    "{\n"
+    '  "fib.py": [\n'
+    '    "a0",\n'
+    '    "a1",\n'
+    '    "a2"\n'
+    "  ],\n"
+    '  "rate.py": [],\n'
+    '  "store.py": [],\n'
+    '  "tally.py": []\n'
+    "}\n"
+)
+
+#: The imprimatur beside the partial approval's one page.
+PARTIAL_IMPRIMATUR = '{\n  "store.py": []\n}\n'
+
+
+def write_proof_imprimatur(root: Path) -> Path:
+    """Write `PROOF_IMPRIMATUR` to `root / "imprimatur.json"`.
+
+    Args:
+        root: the directory to write into. Not created here.
+
+    Returns:
+        The path written.
+    """
+    path = root / "imprimatur.json"
+    path.write_text(PROOF_IMPRIMATUR, encoding="utf-8", newline="\n")
+    return path
+
+
 def write_compacted_expected(root: Path) -> Path:
     """Write `COMPACTED_EXPECTED` to `root / "store.py"`, as `write_expected` writes.
 
@@ -2905,7 +2939,8 @@ def write_partial_expected(root: Path) -> Path:
 
     One page and no other: a revise holds only the pages its docket
     schedules, and a partial approval over two places of `store.py`
-    schedules that page alone.
+    schedules that page alone. `PARTIAL_IMPRIMATUR` is written beside it,
+    as `proof` writes its record beside its drafts.
 
     Args:
         root: the directory to write into. Not created here -- the smoke
@@ -2916,6 +2951,9 @@ def write_partial_expected(root: Path) -> Path:
     """
     path = root / "store.py"
     path.write_text(PARTIAL_EXPECTED, encoding="utf-8", newline="\n")
+    (root / "imprimatur.json").write_text(
+        PARTIAL_IMPRIMATUR, encoding="utf-8", newline="\n"
+    )
     return path
 
 

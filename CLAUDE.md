@@ -74,7 +74,8 @@ uv run python src/comment-review.py gather --languages
 uv run python src/comment-review.py referrers --repo . <paths...>
 
 # Stage 7b gate: prove WRITE changed no executable code
-uv run python src/comment-review.py prove_unchanged --base <merge-base> --repo . <paths...>
+uv run python src/comment-review.py prove_unchanged --base <merge-base> --repo . \
+  --imprimatur <proof-out>/imprimatur.json <paths...>
 
 # The write chain: a docket -> a REVISE. `--out` must not exist yet; the chain's
 # own shutil.copytree requires it fresh. The order lives in flows/revise.py.

@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 14 of 23 tasks closed
+Progress: 15 of 23 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-10 (live-run)
@@ -85,4 +85,5 @@ Use lexical code identity at both proof boundaries.
 - [x] T22 | Ruled #414: 7b must not be less strict than 7a | 52ca7d9bb89ade8f8f05e427420286480890f17d | Determine
       whether 7b prove_unchanged may omit the documented check 7a runs
         > 2026-11-23 Broken review 6a81c7b0 [A]: 7b runs without documented; open
-- [ ] T23 | Make 7b prove_unchanged run the documented check 7a runs, per #414
+- [x] T23 | 7b passes the imprimatur proof wrote; mutants killed; 5779 pass | ad94403f88b8353559d97d09741d61d7ca88341d | Make
+      7b prove_unchanged run the documented check 7a runs, per #414
