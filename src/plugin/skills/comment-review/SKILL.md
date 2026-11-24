@@ -522,7 +522,8 @@ Present to the author, grouped by instruction, most consequential first. Use eac
 closed proof's decided text and the drafts for the proposed result. For each decided place, follow
 its filed references to the reviewer marks in the proof and read any disposition on the place.
 Use those for the instruction, paragraph, claim and reason. Show the decided change from the
-draft inline.
+draft inline. Present stage 6's places as condensations, apart from the fact-check editor's
+findings: the condenser files its marks as `block-context`, and a shortening is not a fact-check.
 Show each freeform draft whole. When the author asks why a change was made, answer from
 `decided_<stage>.json`.
 Then give:
