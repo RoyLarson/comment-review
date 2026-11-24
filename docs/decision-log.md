@@ -7734,3 +7734,29 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   **What it settles.** galley-and-compositor-write-path T61 sets both blanks, so the place reads
   back as `b0`. T83 did not reproduce as filed. T91 is not the compositor's: re-flowing a
   paragraph is a decision, and the text arrives already flowed from whoever wrote it.
+
+- **#425.** **A removed sentence survives only at the place its mark named** (Roy,
+  2026-11-24, on how `lost` matches a short sentence, which matches by chance somewhere in
+  any tree; offered (a) the sentence has to appear whole anywhere in the tree, or (b) it has
+  to appear at the place its move or drop named):
+
+  *"B"*
+
+  **What it settles.** It narrows #420. A sentence a `move` removed survives when it appears at
+  the move's destination, and one a `drop` of history removed survives when it appears in the
+  home the drop named. A `drop` names that home only in its `reason`, which no checker reads,
+  so checking a drop needs a field the mark does not yet carry.
+
+- **#426.** **The 0.2.4-wrong-results-and-dead-code plan checks a move at its destination;
+  drops wait for a home field** (Roy, 2026-11-24, on how much of #425 the plan takes; offered
+  moves now and drops later, all of it, or deferring all of it):
+
+  *"Moves now, drops later (Recommended)"*
+
+  **What it settles.** `lost` reads the closed proofs and checks a move's removed sentences at
+  its destination, and dropped-history-has-no-home T5 splits at line ends. T6 is superseded:
+  nothing is matched against the whole tree once a sentence is checked at a named place. A
+  drop's home field, and checking a drop against it, are filed for a later plan; until then a
+  history drop's sentences are listed. On the same question Roy chose *"File it
+  (Recommended)"* for the compositor's blank-line rule, which is filed unassigned on
+  galley-and-compositor-write-path.
