@@ -203,6 +203,12 @@ def _set(page: Page, newline: str | None) -> tuple[str, dict[str, tuple[int, int
     last_code = max((i for i, c in enumerate(reading) if c.startswith(ON)), default=-1)
     previous = ""
     closing_gap = False
+    # Where in `out` the leading set since the last line a place set begins,
+    # or None when none has been; and whether a vacated place has been passed
+    # since it began. Leading that only a vacated place kept from the head or
+    # the foot of the file is not set.
+    pending: int | None = None
+    vacated_since = False
     for at, cue in enumerate(reading):
         prose = held.get(cue, [])
         # ! Asked of the cue directly. `series_of` reads a paragraph's address
@@ -222,7 +228,14 @@ def _set(page: Page, newline: str | None) -> tuple[str, dict[str, tuple[int, int
         # laid out, so it is asked here and not by the edit that touched the
         # place. The question is the place's state -- a kind that says prose
         # belongs, and no lines held -- which is what `vacated` reads.
-        edge = [] if previous in vacated else held.get(edges.get(previous, ""), [])
+        #
+        # ! A vacated place's own leading is still set when nothing has been
+        # set between the last line and it: a drop removes the paragraph, not
+        # the space that separated the lines on either side of it.
+        owned = held.get(edges.get(previous, ""), [])
+        edge = owned if previous not in vacated or (out and pending is None) else []
+        if edge and pending is None:
+            pending = len(out)
         out.extend(edge)
         # !! A `b` set into a place that owned no leading takes one: when an
         # added `b` finds no leading looked up before it, a blank line is set
@@ -244,7 +257,7 @@ def _set(page: Page, newline: str | None) -> tuple[str, dict[str, tuple[int, int
         # leading above an added closing `b` pushes it into the matter it was
         # meant to stay clear of: on `SAMPLE`, `b4` with a leading still re-reads
         # at `f1`, so the blank changes the bytes and not the outcome.
-        if adding_a_gap and not edge and at < last_code:
+        if adding_a_gap and pending is None and at < last_code:
             out.append("")
         # !! And at the foot it goes on the other side -- the head's rule in
         # reverse. Matter is the run that starts on line 1 or ends on the last
@@ -264,10 +277,15 @@ def _set(page: Page, newline: str | None) -> tuple[str, dict[str, tuple[int, int
         # it is a position an instruction can cite -- so skipping it here would
         # make this list disagree with the one `tie_leading` walks.
         previous = cue
+        if cue in vacated and pending is not None:
+            vacated_since = True
         # ! A `c` is never empty in this sense -- it sets its line of code
         # whether or not anything sits beside it.
         if not prose and not beside_code:
             continue
+        if pending == 0 and vacated_since:
+            del out[:]
+        pending, vacated_since = None, False
         closing_gap = False
         if prose:
             lines_of[cue] = (len(out) + 1, len(out) + len(prose))
@@ -289,7 +307,10 @@ def _set(page: Page, newline: str | None) -> tuple[str, dict[str, tuple[int, int
     # ! The closing edge. A file ending in blank lines has leading below its last
     # place, which the loop cannot reach -- it sets the space before each place,
     # so the last place's own edge is still owed when the walk runs out.
-    out.extend(held.get(edges.get(previous, ""), []))
+    if previous in vacated or (pending is not None and vacated_since):
+        del out[len(out) if pending is None else pending :]
+    else:
+        out.extend(held.get(edges.get(previous, ""), []))
     if not page.cues.reading and page.text:
         # !! A page with no places over a file with text is not an empty page --
         # it is a page that was never built, and setting it would empty the file.
@@ -312,11 +333,12 @@ def _set(page: Page, newline: str | None) -> tuple[str, dict[str, tuple[int, int
         return mark, lines_of
     out[0] = mark + out[0]
     # A closing-gap insertion, or text ending in a blank, needs a physical blank
-    # below its prose, whether or not the file ended on a line break.
+    # below its prose, whether or not the file ended on a line break. A file
+    # that was empty has no ending of its own, and its last line takes one.
     held_blank = not out[-1]
-    tail = (
-        ending if closing_gap or held_blank or page.text.endswith(("\n", "\r")) else ""
-    )
+    was_empty = not page.text[len(mark) :]
+    ended = page.text.endswith(("\n", "\r"))
+    tail = ending if closing_gap or held_blank or was_empty or ended else ""
     return ending.join(out) + tail, lines_of
 
 

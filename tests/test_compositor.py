@@ -410,18 +410,22 @@ class TestAnEditedPageStillComposes:
     def test_the_sample_itself_round_trips_before_any_edit(self):
         assert set_page(build(SAMPLE)) == SAMPLE
 
-    def test_a_vacated_place_loses_its_leading(self, sample):
+    def test_a_vacated_place_keeps_its_leading_where_nothing_else_separates(
+        self, sample
+    ):
         """`Addressing: #22` -- the compositor derives a fence from the
-        place's kind, so a place a `drop` vacated does not stand over
-        whatever follows it. `a0` is the sample's one FILLED place whose
-        edge owns a leading (`page.leading == {"a0": "d0", "c1": "d1"}`).
+        place's kind. `a0` is the sample's one FILLED place whose edge owns a
+        leading (`page.leading == {"a0": "d0", "c1": "d1"}`), and the shebang
+        above it owns none, so dropping `a0` keeps the blanks: set flush, the
+        `# note` below would re-read as part of the shebang's front matter.
         """
         from comment_review.results.galley import reset
 
         reset(sample, {"a0": None})
         out = set_page(sample)
-        assert "#!/usr/bin/env python\n# note\n" in out
+        assert "#!/usr/bin/env python\n\n\n# note\n" in out
         assert '"""Doc."""' not in out
+        assert by_cue(build(out))["b0"].raw_lines == ["# note"]
 
     def test_a_vacated_gap_loses_its_leading(self):
         """The same rule at a `b`, on a page with no `a` at all, so a rule
@@ -783,3 +787,51 @@ def test_a_same_line_docstring_is_set_on_its_own_line_below_the_declaration(
     assert by_cue(page)[cue].raw_lines == doc
     assert set_page(page) == expected
     assert set_page(build(expected, "m.py")) == expected
+
+
+def _set_after(text, edits):
+    page = build(text, "m.py")
+    assert galley.reset(page, edits) == []
+    return set_page(page)
+
+
+def test_an_add_and_drop_at_b0_returns_the_file_it_started_from():
+    """The blank an added `b0` takes above it goes when the `b0` goes, so
+    cycling the two grows nothing at the head of the file."""
+    added = _set_after("x = 1\n", {"b0": "# c"})
+    assert added == "\n# c\nx = 1\n"
+    assert _set_after(added, {"b0": None}) == "x = 1\n"
+
+
+@pytest.mark.parametrize(
+    ("text", "cue", "expected"),
+    [
+        ("x = 1\n# note\n\ny = 2\n", "b1", "x = 1\n\ny = 2\n"),
+        ("x = 1\n\n# note\n\ny = 2\n", "b1", "x = 1\n\ny = 2\n"),
+    ],
+    ids=["only-the-dropped-place-owns-the-blank", "both-own-one"],
+)
+def test_a_dropped_paragraph_leaves_its_neighbours_separated(text, cue, expected):
+    """A drop removes the paragraph, not the space between the code on either
+    side of it: when nothing else separates them, the dropped place's blank
+    lines stay."""
+    assert _set_after(text, {cue: None}) == expected
+
+
+def test_a_comment_added_under_a_header_then_a_blank_keeps_one_blank():
+    """The blank below `class A:` is looked up at an empty `a` before the
+    added `b1`, and it is the leading the added comment needs."""
+    out = _set_after("class A:\n\n    x = 1\n", {"b1": "    # added"})
+    assert out == "class A:\n\n    # added\n    x = 1\n"
+    assert by_cue(build(out, "m.py"))["b1"].raw_lines == ["    # added"]
+
+
+def test_dropping_the_back_matter_drops_the_blank_run_above_it():
+    assert _set_after("x = 1\n\n# back\n", {"f1": None}) == "x = 1\n"
+
+
+def test_an_add_to_an_empty_file_ends_with_a_line_break():
+    """`decision-log.md Process: #376`."""
+    out = _set_after("", {"a0": '"""Doc."""'})
+    assert out == '"""Doc."""\n'
+    assert by_cue(build(out, "m.py"))["a0"].raw_lines == ['"""Doc."""']
