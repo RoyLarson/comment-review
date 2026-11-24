@@ -123,7 +123,8 @@ Work from the git repository at the repo root, and pass `--repo` to every comman
    lines, marked as measured, not published -- the repo's dialect, the capitalisation of domain terms, its citation form, where the
    repo keeps code concerns -- in `TODO:` comments, or on a board or tracker its own
    instructions name -- asking the author with `AskUserQuestion` when the repo does not say,
-   and one template for each documentation format the tree actually uses: module docstring,
+   where the repo keeps removed history -- a changelog, a decision record, an ADR directory --
+   or that it has none, asked the same way, and one template for each documentation format the tree actually uses: module docstring,
    function docstring and,
    where the repo is consistent, comments. Write each template out with its slots, measured
    from the docstrings in the tree.
