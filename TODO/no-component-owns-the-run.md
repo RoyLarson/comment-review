@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 3 tasks closed
+Progress: 1 of 3 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-11-23 (broken review, 2026-11-23)
@@ -51,5 +51,6 @@ The stage chain is modelled in Python, run by prose, and the two disagree.
         > 2026-11-23 Symptom: move-is-a-composite-mark.md T56
         > 2026-11-23 Symptom: topology-defects.md T1, T5
         > 2026-11-23 Correction: T61/T72 are Place deserialize, not the run chain
-- [ ] T2 | Make a seeded stage start from every earlier stage's settled changes
+- [x] T2 | stage open builds from earlier closed proofs; E1, E2 with mutants | a6b560752b05a1eeb4762c657e8433ad58de9e75 | Make
+      a seeded stage start from every earlier stage's settled changes
 - [ ] T3 | Make the author's approval reach every stage's places

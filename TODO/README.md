@@ -275,7 +275,7 @@ that changed a published name or rule:
 | [answers-file-defects](answers-file-defects.md) | backend | -- | 0/4 | Answers files are admitted with answers a turn drops or refuses |
 | [machine-defects](machine-defects.md) | backend | -- | 0/5 | machine/ reads git output and JSON without the guards its callers assume |
 | [flow-helpers-placement](flow-helpers-placement.md) | backend | -- | 0/2 | Determine where the flow helpers belong |
-| [no-component-owns-the-run](no-component-owns-the-run.md) | backend | -- | 0/3 | No component owns the run across stages |
+| [no-component-owns-the-run](no-component-owns-the-run.md) | backend | -- | 1/3 | No component owns the run across stages |
 | [fold-admission-has-no-owner](fold-admission-has-no-owner.md) | backend | -- | 2/3 | "Would the fold refuse this?" has no single owner |
 | [a-mark-states-its-edit-three-times](a-mark-states-its-edit-three-times.md) | backend | -- | 0/3 | A mark states its edit up to three times and no field is authoritative |
 | [boundary-records-have-no-typed-form](boundary-records-have-no-typed-form.md) | backend | -- | 0/5 | Records crossing boundaries have no single typed form |
@@ -320,7 +320,7 @@ that changed a published name or rule:
 | [two-live-runs-proposed-fifteen-changes](two-live-runs-proposed-fifteen-changes.md) | agents | -- | 21/23 | Two live runs proposed fifteen changes |
 | [strip-and-fill-the-markers](strip-and-fill-the-markers.md) | backend | -- | 8/9 | A role is handed the paragraph with its `#`/`"""` markers and indentation, and must reproduce them exactly in `change`. Measured 2026-08-29: three consecutive attempts by an agent with full context broke the file, and each failure read as a defect in the setter |
 | [task-agent-vocabulary-home](task-agent-vocabulary-home.md) | agents (the instructions) - backend (the enum they derive from) | -- | 3/9 | The task agent has no vocabulary home and is never told the command set |
-| [move-is-a-composite-mark](move-is-a-composite-mark.md) | backend | -- | 48/57 | A move is a composite mark and the code cannot express one |
+| [move-is-a-composite-mark](move-is-a-composite-mark.md) | backend | -- | 49/57 | A move is a composite mark and the code cannot express one |
 
 ### in flight  (0)
 
