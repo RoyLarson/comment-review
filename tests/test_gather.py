@@ -200,3 +200,10 @@ class TestGather:
         got = flow.gather(tmp_path, [target])
         assert len(got.unreadable) == 1
         assert not hasattr(got, "binder")
+
+
+def test_a_bom_file_still_yields_its_names(tmp_path):
+    (tmp_path / "m.py").write_bytes(b"\xef\xbb\xbfdef harvested():\n    pass\n")
+    names, unread = flow._name_corpus(tmp_path, None)
+    assert "harvested" in names
+    assert not any("m.py" in row for row in unread)

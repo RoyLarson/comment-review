@@ -42,6 +42,7 @@ from comment_review.concordance.code_names import (
     names_in,
     no_harvester,
 )
+from comment_review.constants import without_mark
 from comment_review.flows.annotations_for import annotations_for
 from comment_review.flows.page_for import page_of
 from comment_review.flows.read_diagnostics import format_failure
@@ -254,7 +255,8 @@ def _name_corpus(repo: Path, tracked: set[Path] | None) -> tuple[set[str], list[
             unread.append(gap)
             continue
         try:
-            names |= names_in(path, path.read_text(encoding="utf-8"))
+            text = without_mark(path.read_text(encoding="utf-8"))
+            names |= names_in(path, text)
         except exceptions.PARSE_ERRORS as e:
             unread.append(f"{path.as_posix()} ({type(e).__name__})")
     return names, unread

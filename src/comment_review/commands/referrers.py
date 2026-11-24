@@ -18,6 +18,7 @@ from pathlib import Path
 
 from comment_review import exceptions
 from comment_review.concordance.referrers import tokens_for
+from comment_review.constants import without_mark
 from comment_review.flows.referrers import files_naming
 from comment_review.machine.repo import git_ls_files
 
@@ -64,7 +65,7 @@ def _report(args: argparse.Namespace) -> int:
     for rel in sorted(under_review):
         target = repo / rel
         try:
-            text = target.read_text(encoding="utf-8")
+            text = without_mark(target.read_text(encoding="utf-8"))
         except exceptions.READ_ERRORS as e:
             text = ""
             unreadable.append(f"{rel} ({type(e).__name__})")
