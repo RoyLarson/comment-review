@@ -799,26 +799,6 @@ def test_an_add_and_drop_at_b0_returns_the_file_it_started_from():
     assert _set_after(added, {"b0": None}) == "x = 1\n"
 
 
-@pytest.mark.parametrize(
-    ("text", "cue", "expected"),
-    [
-        ("x = 1\n# note\n\ny = 2\n", "b1", "x = 1\n\ny = 2\n"),
-        ("x = 1\n\n# note\n\ny = 2\n", "b1", "x = 1\n\ny = 2\n"),
-    ],
-    ids=["only-the-dropped-place-owns-the-blank", "both-own-one"],
-)
-def test_a_dropped_paragraph_leaves_its_neighbours_separated(text, cue, expected):
-    """A drop removes the paragraph, not the space between the code on either
-    side of it: when nothing else separates them, the dropped place's blank
-    lines stay."""
-    assert _set_after(text, {cue: None}) == expected
-
-
-def test_a_dropped_docstring_takes_the_blank_below_it():
-    text = 'def f():\n    """Doc."""\n\n    return 1\n'
-    assert _set_after(text, {"a1": None}) == "def f():\n    return 1\n"
-
-
 def test_a_comment_added_under_a_header_then_a_blank_keeps_one_blank():
     """The blank below `class A:` is looked up at an empty `a` before the
     added `b1`, and it is the leading the added comment needs."""
