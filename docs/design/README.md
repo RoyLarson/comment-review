@@ -69,8 +69,8 @@ can come up with a closed set of failure modes is silly."* See
       desk/            collator, containers, external_address, mark, proof,
                        stages, topology
       docket/          docket
-      results/         compositor, differences, galley, prove_unchanged
-      flows/           carry, census, collate, distribute, fan_out, mark_errors,
+      results/         compositor, differences, galley
+      flows/           census, collate, distribute, fan_out, mark_errors,
                        page_for, proof_setter, revise, transcribe
       commands/        every main() and its argparse
 

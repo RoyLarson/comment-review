@@ -298,7 +298,7 @@ class TestAReaderRefusesRatherThanCoping:
         MEANS. For one commit this asserted `got == binder`, comparing the
         objects on the argument that two dicts can agree while both are wrong.
         **It fails, correctly**: a `Paragraph` carries `start`, `end`, `kind`,
-        `lines`, `declares`, `symbol`, `annotations`, `notes` and
+        `lines`, `declares`, `symbol`, `notes` and
         `original_column`, and the wire carries five fields. `original_column`
         is the one that shows it -- 17 on the page, 0 on the way back.
 
