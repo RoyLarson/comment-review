@@ -222,6 +222,9 @@ $WrapDraftDir = Join-Path $Run 'wrap-draft'
 $WrapExpectedDir = Join-Path $Run 'wrap-expected'
 $CollideDraftDir = Join-Path $Run 'collide-draft'
 $CollideExpectedDir = Join-Path $Run 'collide-expected'
+$SameSentenceCopyFile = Join-Path $Run 'same-sentence-copy.json'
+$SameSentenceDraftDir = Join-Path $Run 'same-sentence-draft'
+$SameSentenceExpectedDir = Join-Path $Run 'same-sentence-expected'
 
 # The root refusal sub-plant (Process #178): a second tree holding the same
 # fixture, a binder over it, the copy `distribute --seed` seeds from that
@@ -259,6 +262,10 @@ $BadCiteBatchFile = Join-Path $Run 'bad-cite-batch.json'
 $SecondStage = '5'
 $SecondRole = 'ownership-context'
 $SecondProofFile = Join-Path $Run 'proof2.json'
+# What collate writes for it before the chief rules, and the batch it must not
+# write, since no role is owed a turn.
+$SecondCollatedFile = Join-Path $Run 'proof2-collated.json'
+$SecondBatchFile = Join-Path $Run 'batch-second.json'
 $SecondExpectedDir = Join-Path $Run 'second-expected'
 
 # The compacting stage (Process #193): its plant, its proof, and the page
@@ -267,6 +274,7 @@ $SecondExpectedDir = Join-Path $Run 'second-expected'
 $CompactingStage = '6'
 $CompactingFile = Join-Path $Run 'compacting.json'
 $CompactingProofFile = Join-Path $Run 'proof3.json'
+$CompactingCollatedFile = Join-Path $Run 'proof3-collated.json'
 $CompactingExpectedDir = Join-Path $Run 'compacted-expected'
 # The widened-copy sub-plant (Process #193): a copy that added `correct` to
 # what it says it admits, where the stage's own copy is kept while it stands
@@ -1247,10 +1255,10 @@ $Stages = [ordered]@{
         )
         # docket-defects T11, over a copy of that role's copy: a move from
         # rate.py@b5 into rate.py@b1, a place the role also corrected. It is a
-        # copy so the fold still reads the role's own. Three `mark` calls at
-        # the same move, differing only in the destination text, and each
-        # refusal writes nothing -- so the copy the fold reads holds the one
-        # that was placed.
+        # copy so the fold still reads the role's own. Each refusal below
+        # writes nothing, and the composing same-sentence move is placed on a
+        # copy of its own -- so the collide copy the draft reads holds the one
+        # move placed on it.
         Copy-Item -LiteralPath $CopyFile['function-context'] -Destination $CollideCopyFile
         Invoke-Checked -Stage 'collide plant' -CommandLine @(
             'uv', 'run', 'python', '-c',
@@ -1279,23 +1287,55 @@ $Stages = [ordered]@{
             Write-Host "command: $(Format-CommandLine $discards)"
             exit 1
         }
-        # The same comment run onto the paragraph's last line keeps every
-        # word, so the row takes it -- and it rewrites that line, beside the
-        # line the role's own correct rewrites. Two rewrites of adjacent lines
-        # meet, so two of one role's marks there do not compose, and `mark`
-        # refuses at placing time what the fold would refuse at the fold
-        # (Process #179).
-        $sameSentence = $collideMove + @(
-            '--raw-text', "@$(Join-Path $Run 'collide-same-sentence.txt')"
+        # A second correct from the same role rewriting the word its own
+        # correct already rewrites: the two edit the same words, so they do
+        # not compose, and `mark` refuses at placing time what the fold would
+        # refuse at the fold (Process #390, #397). A move cannot be the second
+        # mark here -- its destination keeps every word of the paragraph, so
+        # it only inserts, and the correct rewrites one word.
+        $sameWords = $Launcher + @(
+            $Cmd.mark, '--edit-copy', $CollideCopyFile, '--address', 'rate.py@b1',
+            '--instruction', 'correct',
+            '--false', 'never above one', '--true', 'never past one',
+            '--reason', 'past names the bound the division never crosses',
+            '--cite', 'rate.py:7', '--repo', $OriginalDir
         )
-        $refused = Invoke-Checked -Stage 'draft collide same sentence refused' -Expect 1 -Capture -CommandLine $sameSentence
-        if (-not (($refused -join "`n").Contains('edit the same sentence and do not compose'))) {
-            Write-Host 'stage failed: draft collide same sentence refused'
+        $refused = Invoke-Checked -Stage 'draft collide same words refused' -Expect 1 -Capture -AndErrors -CommandLine $sameWords
+        if (-not (($refused -join "`n").Contains('edit the same words and do not compose'))) {
+            Write-Host 'stage failed: draft collide same words refused'
             Write-Host 'expected a refusal naming the two marks that do not compose; mark printed:'
             $refused | Out-Host
-            Write-Host "command: $(Format-CommandLine $sameSentence)"
+            Write-Host "command: $(Format-CommandLine $sameWords)"
             exit 1
         }
+        # The moved comment run onto the paragraph's last line keeps every
+        # word, so the row takes it, and it edits other words of the sentence
+        # the correct rewrites -- so the two compose (Process #390). It is
+        # placed on a copy of its own, so the collide copy keeps one move, and
+        # `write_same_sentence_draft` writes what its draft makes of each page.
+        Copy-Item -LiteralPath $CollideCopyFile -Destination $SameSentenceCopyFile
+        Invoke-Checked -Stage 'draft collide same sentence mark' -CommandLine ($Launcher + @(
+            $Cmd.mark, '--edit-copy', $SameSentenceCopyFile, '--address', 'rate.py@b5',
+            '--instruction', 'move', '--from', 'rate.py@b5', '--to', 'rate.py@b1',
+            '--change', '    # Kept for callers that ask for a share rather than a rate.',
+            '--reason', "share's comment says what rate's does, and belongs with it",
+            '--cite', 'rate.py:11', '--repo', $OriginalDir,
+            '--raw-text', "@$(Join-Path $Run 'collide-same-sentence.txt')"
+        ))
+        Invoke-Checked -Stage 'draft collide same sentence' -CommandLine ($Launcher + @(
+            $Cmd.proof, '--copy', $SameSentenceCopyFile, '--repo', $OriginalDir,
+            '--out', $SameSentenceDraftDir
+        ))
+        New-Item -ItemType Directory -Path $SameSentenceExpectedDir | Out-Null
+        Invoke-Checked -Stage 'draft collide same sentence expected' -CommandLine @(
+            'uv', 'run', 'python', '-c',
+            'import sys; sys.path.insert(0, "scripts"); from pathlib import Path; from smoke_fixture import write_same_sentence_draft; write_same_sentence_draft(Path(sys.argv[1]))',
+            $SameSentenceExpectedDir
+        )
+        Invoke-Checked -Stage 'draft collide same sentence diff' -CommandLine @(
+            'git', '-c', 'core.autocrlf=false', '--no-pager', 'diff', '--no-index', '--',
+            $SameSentenceExpectedDir, $SameSentenceDraftDir
+        )
         # And the same comment ABOVE the paragraph edits no line the correct
         # edits, so the two compose into that role's one side and the draft
         # lands both: the moved comment arrives and the correction stands.
@@ -1670,7 +1710,9 @@ $Stages = [ordered]@{
     # text the roles that cleaned it have not seen, and at the destination
     # its arrival composes with function-context's correction into one
     # they have not seen either. So the call commits its proof and exits 3,
-    # as `collate` does with a place composed. The second call takes that
+    # as `collate` does with a place composed. The same call takes in the changes and the two moves only their
+    # proposer read, which no turn was run for (Process #385); taking each
+    # move in settles both its ends (Process #388). The second call takes that
     # proof and dispositions-ends.json, `ENDS`, which rules the two ends, and
     # closes the proof with exit 0. The stage closes on that proof; until it
     # does, the stage reading its revise is refused, since the stage's own
@@ -1773,11 +1815,18 @@ $Stages = [ordered]@{
         Invoke-Checked -Stage 'second check' -CommandLine ($Launcher + @(
             $Cmd.check, '--edit-copy', $secondCopy, '--binder', $entry.Received[0]
         ))
-        # One role read the place, so its proposal stands with nothing to
-        # carry forward and no turn to run (Process #180). collate exits 0,
-        # and the stage closes on that proof.
-        Invoke-Checked -Stage 'second collate' -CommandLine ($Launcher + @(
+        # One role read the place, so its change goes to the chief with no
+        # turn to run (Process #385): collate carries it forward and exits 3,
+        # writing no batch, and `disposition` takes the change in from
+        # second-dispositions.json. The stage closes on that proof.
+        Invoke-Checked -Stage 'second collate' -Expect 3 -CommandLine ($Launcher + @(
             $Cmd.collate, '--jacket', $JacketFile, '--stage', $SecondStage,
+            '--proof-out', $SecondCollatedFile, '--batch-out', $SecondBatchFile
+        ))
+        Assert-NotWritten -Stage 'second collate' -Paths @($SecondBatchFile)
+        Invoke-Checked -Stage 'second disposition' -CommandLine ($Launcher + @(
+            $Cmd.disposition, '--proof', $SecondCollatedFile,
+            '--dispositions', (Join-Path $Run 'second-dispositions.json'),
             '--proof-out', $SecondProofFile
         ))
         Invoke-Checked -Stage 'stage close 5' -CommandLine ($Launcher + @(
@@ -1792,10 +1841,12 @@ $Stages = [ordered]@{
     # as the first stage left it. The stage is dealt the `b` and `c` places
     # over its cap and nothing else -- the two in store.py's last function,
     # whose prose the plant wrote on both sides of the cap -- and the copy is
-    # what says so. The role condenses one with a `patch` quoting the whole
-    # paragraph and leaves the other at length with a `clean` carrying the
-    # reason, which is what compact.md asks of a paragraph that cannot come
-    # under the cap. A `correct` there is refused by `mark`, naming the stage.
+    # what says so -- with rate.py@b1, three lines as the first stage left it,
+    # since the stage's binder holds the whole scope. The role condenses one
+    # of store.py's with a `patch` quoting the whole paragraph and leaves the
+    # other two at length with a `clean` carrying the reason, which is what
+    # compact.md asks of a paragraph that cannot come under the cap. A
+    # `correct` there is refused by `mark`, naming the stage.
     compacting = {
         $plant = Get-Content -LiteralPath $CompactingFile -Raw | ConvertFrom-Json
         Invoke-Checked -Stage 'stage open 6' -CommandLine ($Launcher + @(
@@ -1863,6 +1914,10 @@ $Stages = [ordered]@{
             $Cmd.mark, '--edit-copy', $WidenedCopyFile, '--address', $plant.kept,
             '--instruction', 'clean', '--reason', $plant.reason, '--cite', "$(($plant.kept -split '@')[0]):1", '--repo', $root
         ))
+        Invoke-Checked -Stage 'widened rate clean placed' -CommandLine ($Launcher + @(
+            $Cmd.mark, '--edit-copy', $WidenedCopyFile, '--address', $plant.rate_kept,
+            '--instruction', 'clean', '--reason', $plant.rate_reason, '--cite', "$(($plant.rate_kept -split '@')[0]):1", '--repo', $root
+        ))
         Copy-Item -LiteralPath $copy -Destination $KeptCompactingCopyFile
         Copy-Item -LiteralPath $WidenedCopyFile -Destination $copy
         $widened = $Launcher + @(
@@ -1892,6 +1947,10 @@ $Stages = [ordered]@{
             $Cmd.mark, '--edit-copy', $copy, '--address', $plant.kept,
             '--instruction', 'clean', '--reason', $plant.reason, '--cite', "$(($plant.kept -split '@')[0]):1", '--repo', $root
         ))
+        Invoke-Checked -Stage 'compacting rate clean' -CommandLine ($Launcher + @(
+            $Cmd.mark, '--edit-copy', $copy, '--address', $plant.rate_kept,
+            '--instruction', 'clean', '--reason', $plant.rate_reason, '--cite', "$(($plant.rate_kept -split '@')[0]):1", '--repo', $root
+        ))
         # The instruction the row does not admit. `mark` refuses it as it
         # places, so the copy is left exactly as the two rulings above left
         # it -- which the check below is what proves.
@@ -1916,11 +1975,17 @@ $Stages = [ordered]@{
             $Cmd.check, '--edit-copy', $copy, '--binder', $entry.Received[0],
             '--repo', $root
         ))
-        # One role read each place, so each proposal stands with nothing to
-        # carry forward and no turn to run (Process #180). collate exits 0,
-        # and the stage closes on that proof.
-        Invoke-Checked -Stage 'compacting collate' -CommandLine ($Launcher + @(
+        # One role read each place, so the patch goes to the chief with no
+        # turn to run, as any lone change does (Process #385, #387): collate
+        # carries it forward and exits 3, and `disposition` takes it in from
+        # compacting-dispositions.json. The stage closes on that proof.
+        Invoke-Checked -Stage 'compacting collate' -Expect 3 -CommandLine ($Launcher + @(
             $Cmd.collate, '--jacket', $JacketFile, '--stage', $CompactingStage,
+            '--proof-out', $CompactingCollatedFile
+        ))
+        Invoke-Checked -Stage 'compacting disposition' -CommandLine ($Launcher + @(
+            $Cmd.disposition, '--proof', $CompactingCollatedFile,
+            '--dispositions', (Join-Path $Run 'compacting-dispositions.json'),
             '--proof-out', $CompactingProofFile
         ))
         Invoke-Checked -Stage 'stage close 6' -CommandLine ($Launcher + @(
@@ -2037,6 +2102,9 @@ try {
 
     foreach ($stageName in $Stages.Keys) {
         & $Stages[$stageName]
+        # A stage that fails exits above, so this line names a section that
+        # ran to its end; the full-run gate reads one per section.
+        Write-Host "section passed: $stageName"
         if ($Stop -eq $stageName) {
             break
         }
