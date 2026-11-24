@@ -1,7 +1,5 @@
-import subprocess
-
 from conftest import run_command
-from test_proof_command import proof_repository
+from test_proof_command import draft_of, proof_repository, prove_args
 
 from comment_review.commands import prove_unchanged as command
 from comment_review.flows import page_for
@@ -15,31 +13,8 @@ def test_standalone_cli_proves_mixed_paths_each_under_its_own_context(
     repo, rust = proof_repository(tmp_path, "const value = 1; // old\r\n", suffix)
     py = rust.with_suffix(".py")
     py.write_bytes(b"value = 1 # old\r\n")
-    subprocess.run(
-        ["git", "-C", str(repo), "add", "."],
-        check=True,
-        capture_output=True,
-        timeout=30,
-    )
-    subprocess.run(
-        [
-            "git",
-            "-C",
-            str(repo),
-            "-c",
-            "user.name=Test",
-            "-c",
-            "user.email=test@example.invalid",
-            "commit",
-            "-m",
-            "Mixed fixture",
-        ],
-        check=True,
-        capture_output=True,
-        timeout=30,
-    )
-    rust.write_bytes(b"const value = 1; // new\r\n")
-    py.write_bytes(b"value = 1 # new\r\n")
+    draft_of(repo, rust).write_bytes(b"const value = 1; // new\r\n")
+    draft_of(repo, py).write_bytes(b"value = 1 # new\r\n")
     actual = page_for.page_for
     admitted = []
 
@@ -51,15 +26,7 @@ def test_standalone_cli_proves_mixed_paths_each_under_its_own_context(
 
     monkeypatch.setattr(page_for, "page_for", observe)
     code, out = run_command(
-        monkeypatch,
-        capsys,
-        command,
-        "--repo",
-        str(repo),
-        "--base",
-        "HEAD",
-        str(rust),
-        str(py),
+        monkeypatch, capsys, command, *prove_args(repo), str(rust), str(py)
     )
     assert code == 0, out
     assert f"PROVEN    pkg/source{suffix}" in out

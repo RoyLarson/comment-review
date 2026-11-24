@@ -1,4 +1,4 @@
-"""Exact source snapshots from filesystem and revision bytes."""
+"""Exact source snapshots from filesystem bytes."""
 
 import hashlib
 import subprocess
@@ -98,32 +98,6 @@ def revision_repo(tmp_path):
     return tmp_path
 
 
-@pytest.mark.parametrize(("index", "case"), enumerate(CASES))
-def test_revision_sources_preserve_literal_blob_bytes(revision_repo, index, case):
-    raw, text = case
-    for root, rel in [
-        (revision_repo, f"nested/source-{index}.py"),
-        (revision_repo / "nested", f"source-{index}.py"),
-    ]:
-        source = repo.read_revision_source(root, "HEAD", rel)
-        assert source.text == text
-        assert source.text.encode("utf-8") == raw
-        assert source.sha == hashlib.sha256(raw).hexdigest()[:16]
-
-
-@pytest.mark.parametrize(
-    ("ref", "rel"), [("missing-ref", "nested/source-0.py"), ("HEAD", "missing.py")]
-)
-def test_missing_revision_or_path_raises(revision_repo, ref, rel):
-    with pytest.raises(subprocess.CalledProcessError):
-        repo.read_revision_source(revision_repo, ref, rel)
-
-
-def test_revision_rejects_invalid_utf8(revision_repo):
-    with pytest.raises(UnicodeDecodeError):
-        repo.read_revision_source(revision_repo, "HEAD", "nested/invalid.py")
-
-
 def test_metadata_git_helper_stays_text_and_reports_nonzero(revision_repo):
     result = repo.git(revision_repo, "ls-files")
     assert isinstance(result.stdout, str)
@@ -176,110 +150,17 @@ def test_source_outcomes_separate_acquisition_and_decode(tmp_path):
     assert source_of(path) == repo.source_from_bytes(b"")
 
 
-@pytest.mark.parametrize(
-    ("ref", "rel"), [("missing-ref", "nested/source-0.py"), ("HEAD", "missing.py")]
-)
-def test_revision_failure_outcomes(revision_repo, ref, rel):
-    from comment_review.flows.source import revision_source_of
-
-    result = revision_source_of(revision_repo, ref, rel)
-    assert isinstance(result, ReadFailure)
-    assert result.diagnostics[0].stage == ReadStage.ACQUIRE
-    assert result.diagnostics[0].code == "missing-revision-source"
-    assert result.diagnostics[0].message
-
-
-def test_revision_empty_and_invalid_outcomes(revision_repo):
-    from comment_review.flows.source import revision_source_of
-
-    assert revision_source_of(revision_repo, "HEAD", "nested/source-0.py") == (
-        repo.source_from_bytes(b"")
-    )
-    result = revision_source_of(revision_repo, "HEAD", "nested/invalid.py")
-    assert isinstance(result, ReadFailure)
-    assert result.diagnostics[0].stage == ReadStage.DECODE
-
-
-def test_missing_repository_is_an_io_failure(tmp_path):
-    from comment_review.flows.source import revision_source_of
-
-    result = revision_source_of(tmp_path / "missing-repository", "HEAD", "a.py")
-    assert isinstance(result, ReadFailure)
-    diagnostic = result.diagnostics[0]
-    assert (diagnostic.stage, diagnostic.code) == (ReadStage.ACQUIRE, "io-error")
-    assert "cannot change to" in diagnostic.message
-
-
-@pytest.mark.parametrize(
-    "error",
-    [
-        OSError("denied"),
-        subprocess.TimeoutExpired("git", 30),
-        subprocess.SubprocessError("failed"),
-    ],
-)
-@pytest.mark.parametrize("revision", [False, True])
-def test_expected_acquisition_errors(tmp_path, monkeypatch, error, revision):
+def test_an_os_error_is_an_acquisition_failure(tmp_path, monkeypatch):
     from comment_review.flows import source
 
     def fail(*args):
-        raise error
+        raise OSError("denied")
 
-    monkeypatch.setattr(
-        source, "read_revision_source" if revision else "read_source", fail
-    )
-    result = (
-        source.revision_source_of(tmp_path, "HEAD", "a.py")
-        if revision
-        else source.source_of(tmp_path)
-    )
+    monkeypatch.setattr(source, "read_source", fail)
+    result = source.source_of(tmp_path)
     assert isinstance(result, ReadFailure)
     assert result.diagnostics[0].stage == ReadStage.ACQUIRE
     assert result.diagnostics[0].code == "io-error"
-
-
-@pytest.mark.parametrize(
-    "error",
-    [
-        OSError("denied"),
-        subprocess.TimeoutExpired("git", 30),
-        subprocess.SubprocessError("failed"),
-    ],
-)
-def test_expected_repository_probe_errors_keep_acquisition_reason(
-    tmp_path, monkeypatch, error
-):
-    from comment_review.flows import source
-
-    def missing_blob(*args):
-        raise subprocess.CalledProcessError(128, "git show", stderr="blob missing")
-
-    def failed_probe(*args):
-        raise error
-
-    monkeypatch.setattr(source, "read_revision_source", missing_blob)
-    monkeypatch.setattr(source, "git", failed_probe)
-    result = source.revision_source_of(tmp_path, "HEAD", "a.py")
-    assert isinstance(result, ReadFailure)
-    diagnostic = result.diagnostics[0]
-    assert (diagnostic.stage, diagnostic.code) == (ReadStage.ACQUIRE, "io-error")
-    assert "blob missing" in diagnostic.message
-
-
-@pytest.mark.parametrize("error", [ValueError("bad argument"), RuntimeError("bug")])
-def test_unexpected_repository_probe_errors_propagate(tmp_path, monkeypatch, error):
-    from comment_review.flows import source
-
-    def missing_blob(*args):
-        raise subprocess.CalledProcessError(128, "git show", stderr="blob missing")
-
-    def failed_probe(*args):
-        raise error
-
-    monkeypatch.setattr(source, "read_revision_source", missing_blob)
-    monkeypatch.setattr(source, "git", failed_probe)
-    with pytest.raises(type(error)):
-        source.revision_source_of(tmp_path, "HEAD", "a.py")
 
 
 @pytest.mark.parametrize("error", [ValueError("bad argument"), RuntimeError("bug")])
@@ -290,11 +171,8 @@ def test_unexpected_errors_propagate(tmp_path, monkeypatch, error):
         raise error
 
     monkeypatch.setattr(source, "read_source", fail)
-    monkeypatch.setattr(source, "read_revision_source", fail)
     with pytest.raises(type(error)):
         source.source_of(tmp_path)
-    with pytest.raises(type(error)):
-        source.revision_source_of(tmp_path, "HEAD", "a.py")
 
 
 @pytest.mark.parametrize("offset", [-1, 3, 9])

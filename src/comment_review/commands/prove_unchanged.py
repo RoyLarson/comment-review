@@ -22,9 +22,13 @@ def main() -> int:
         `--imprimatur` file will not read.
     """
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("paths", nargs="+")
-    ap.add_argument("--base", required=True, help="ref holding the pre-edit text")
-    ap.add_argument("--repo", default=".", help="repo root")
+    ap.add_argument("paths", nargs="+", help="the originals, in the repo")
+    ap.add_argument(
+        "--drafts",
+        required=True,
+        help="the `--out` `proof` wrote, holding each draft at its repo path",
+    )
+    ap.add_argument("--repo", default=".", help="repo root, holding the originals")
     # Optional, and its absence approves no docstring: a page without it may
     # still change a docstring's text, never whether one is there.
     ap.add_argument(
@@ -42,7 +46,7 @@ def main() -> int:
         approved = loaded
     report = run(
         Path(args.repo),
-        args.base,
+        Path(args.drafts),
         [Path(raw) for raw in args.paths],
         approved=approved,
     )
@@ -59,9 +63,4 @@ def main() -> int:
     if report.freeform:
         counts.append(f"{report.freeform} UNCHECKED (no reader)")
     print(", ".join(counts) + ".")
-    if report.unchecked:
-        print(
-            f"{report.unchecked} with line endings UNCHECKED "
-            "(no readable untouched sibling to compare against)."
-        )
     return 0

@@ -36,33 +36,34 @@ from comment_review.commands import turn as turn_command
 from comment_review.docket.docket import Docket
 
 
+def draft_of(repo, original):
+    """Where `proof_repository` keeps the draft of `original`."""
+    return repo.parent / "drafts" / original.relative_to(repo)
+
+
+def prove_args(repo):
+    """The `prove_unchanged` options naming `proof_repository`'s two roots."""
+    return ("--repo", str(repo), "--drafts", str(repo.parent / "drafts"))
+
+
 def proof_repository(tmp_path, before, suffix):
+    """A checkout holding `pkg/source<suffix>`, and a draft of it beside.
+
+    Neither is a git repository: `prove_unchanged` reads the original from
+    the checkout and the draft from the drafts root. The draft starts as a
+    copy of the original; a test writes its edit there.
+    """
     repo = tmp_path / "repo"
     (repo / "pkg").mkdir(parents=True)
     target = repo / "pkg" / f"source{suffix}"
     target.write_bytes(before.encode("utf-8"))
-    (target.parent / "sibling.txt").write_bytes(b"one\r\ntwo\r\n")
-    for args in (
-        ("init",),
-        ("config", "core.autocrlf", "false"),
-        ("add", "."),
-        (
-            "-c",
-            "user.name=Test",
-            "-c",
-            "user.email=test@example.invalid",
-            "commit",
-            "-m",
-            "Proof fixture",
-        ),
-    ):
-        subprocess.run(
-            ["git", "-C", str(repo), *args], capture_output=True, check=True, timeout=30
-        )
+    draft = draft_of(repo, target)
+    draft.parent.mkdir(parents=True)
+    draft.write_bytes(target.read_bytes())
     return repo, target
 
 
-@pytest.mark.parametrize("failed_side", ["current", "baseline", "both"])
+@pytest.mark.parametrize("failed_side", ["draft", "original", "both"])
 @pytest.mark.parametrize("stage", ["lex", "place"])
 def test_standalone_proof_admits_both_pages(
     tmp_path, monkeypatch, capsys, failed_side, stage
@@ -80,12 +81,12 @@ def test_standalone_proof_admits_both_pages(
 
     before, after = "const value = 1; // before\r\n", "const value = 1; // after\r\n"
     repo, target = proof_repository(tmp_path, before, suffix)
-    target.write_bytes(after.encode("utf-8"))
+    draft_of(repo, target).write_bytes(after.encode("utf-8"))
     real_page_for = page_for.page_for
 
     def failing_page(path, text, *args, **kwargs):
         failed = failed_side == "both" or text == (
-            before if failed_side == "baseline" else after
+            before if failed_side == "original" else after
         )
         if failed:
             return ReadFailure(
@@ -102,7 +103,7 @@ def test_standalone_proof_admits_both_pages(
 
     monkeypatch.setattr(page_for, "page_for", failing_page)
     code, out = run_command(
-        monkeypatch, capsys, command, "--repo", str(repo), "--base", "HEAD", str(target)
+        monkeypatch, capsys, command, *prove_args(repo), str(target)
     )
     assert code == 1, out
     assert "PROVEN" not in out
@@ -119,7 +120,7 @@ def test_standalone_cli_preserves_exact_mixed_unicode_snapshots(
     before = "# caf\u00e9\r\nx = '\u03bb'\r\nx += 'e\u0301'\n"
     after = "# changed\r\nx = '\u03bb'\r\nx += 'e\u0301'\n"
     repo, target = proof_repository(tmp_path, before, ".py")
-    target.write_bytes(after.encode("utf-8"))
+    draft_of(repo, target).write_bytes(after.encode("utf-8"))
     real_page_for = page_for.page_for
     admitted = []
 
@@ -129,27 +130,17 @@ def test_standalone_cli_preserves_exact_mixed_unicode_snapshots(
 
     monkeypatch.setattr(page_for, "page_for", watching_page)
     code, out = run_command(
-        monkeypatch,
-        capsys,
-        command,
-        "--repo",
-        str(repo / "pkg"),
-        "--base",
-        "HEAD",
-        str(target),
+        monkeypatch, capsys, command, *prove_args(repo), str(target)
     )
     assert code == 0, out
     assert admitted == [before, after]
-    assert "PROVEN    source.py" in out
+    assert "PROVEN    pkg/source.py" in out
     cli = subprocess.run(
         [
             sys.executable,
             str(SRC / "comment-review.py"),
             "prove_unchanged",
-            "--repo",
-            str(repo / "pkg"),
-            "--base",
-            "HEAD",
+            *prove_args(repo),
             str(target),
         ],
         capture_output=True,
@@ -158,7 +149,7 @@ def test_standalone_cli_preserves_exact_mixed_unicode_snapshots(
         check=False,
     )
     assert cli.returncode == 0, cli.stdout + cli.stderr
-    assert "PROVEN    source.py" in cli.stdout
+    assert "PROVEN    pkg/source.py" in cli.stdout
 
 
 def test_standalone_failed_or_unprovable_inputs_cannot_prove_equal(
@@ -170,7 +161,7 @@ def test_standalone_failed_or_unprovable_inputs_cannot_prove_equal(
 
     repo, target = proof_repository(tmp_path, "int value = 1; /* open\r\n", suffix)
     code, out = run_command(
-        monkeypatch, capsys, command, "--repo", str(repo), "--base", "HEAD", str(target)
+        monkeypatch, capsys, command, *prove_args(repo), str(target)
     )
     assert code == 1
     assert "PROVEN" not in out
@@ -191,7 +182,7 @@ def test_standalone_a_file_with_no_code_line_proves_under_its_row(
 
     repo, target = proof_repository(tmp_path, text, suffix)
     code, out = run_command(
-        monkeypatch, capsys, command, "--repo", str(repo), "--base", "HEAD", str(target)
+        monkeypatch, capsys, command, *prove_args(repo), str(target)
     )
     assert code == 0
     assert "PROVEN" in out
@@ -210,13 +201,13 @@ def test_standalone_an_unprovable_comparison_refuses_at_equal_text(
         False, (ReadDiagnostic(ReadStage.PLACE, UNPROVABLE, "not separated"),)
     )
     monkeypatch.setattr(RustRead, "preserved", lambda *_, **__: unprovable)
-    report = prove_unchanged.run(repo, "HEAD", [target], approved={})
+    report = prove_unchanged.run(repo, repo.parent / "drafts", [target], approved={})
     assert report.failures == 1
     assert all("PROVEN" not in message for message in report.messages)
     assert any("UNPROVABLE" in message for message in report.messages)
 
 
-@pytest.mark.parametrize("failed_side", ["current", "baseline"])
+@pytest.mark.parametrize("failed_side", ["draft", "original"])
 def test_standalone_strict_decode_failure_refuses(
     tmp_path, monkeypatch, capsys, failed_side
 ):
@@ -225,29 +216,11 @@ def test_standalone_strict_decode_failure_refuses(
     suffix = ".rs"
 
     repo, target = proof_repository(tmp_path, "const value = 1;\r\n", suffix)
-    target.write_bytes(b"\xff")
-    if failed_side == "baseline":
-        for args in (
-            ("add", "."),
-            (
-                "-c",
-                "user.name=Test",
-                "-c",
-                "user.email=test@example.invalid",
-                "commit",
-                "-m",
-                "Invalid source",
-            ),
-        ):
-            subprocess.run(
-                ["git", "-C", str(repo), *args],
-                capture_output=True,
-                check=True,
-                timeout=30,
-            )
-        target.write_bytes(b"const value = 1;\r\n")
+    (target if failed_side == "original" else draft_of(repo, target)).write_bytes(
+        b"\xff"
+    )
     code, out = run_command(
-        monkeypatch, capsys, command, "--repo", str(repo), "--base", "HEAD", str(target)
+        monkeypatch, capsys, command, *prove_args(repo), str(target)
     )
     assert code == 1
     assert f"{failed_side}:" in out
@@ -262,46 +235,66 @@ def test_standalone_empty_and_supported_comment_only_success(
 
     repo, target = proof_repository(tmp_path, text, suffix)
     code, out = run_command(
-        monkeypatch, capsys, command, "--repo", str(repo), "--base", "HEAD", str(target)
+        monkeypatch, capsys, command, *prove_args(repo), str(target)
     )
     assert code == 0, out
     assert "PROVEN" in out
 
 
-def test_standalone_absent_baseline_is_explicit(tmp_path, monkeypatch, capsys):
+@pytest.mark.parametrize("absent", ["original", "draft"])
+def test_standalone_an_absent_side_fails_naming_it(
+    tmp_path, monkeypatch, capsys, absent
+):
     from comment_review.commands import prove_unchanged as command
 
-    suffix = ".rs"
-
-    repo, _ = proof_repository(tmp_path, "const value = 1;\r\n", suffix)
-    target = repo / "pkg" / f"new{suffix}"
-    target.write_bytes(b"const value = 1;\r\n")
+    repo, target = proof_repository(tmp_path, "const value = 1;\r\n", ".rs")
+    (target if absent == "original" else draft_of(repo, target)).unlink()
     code, out = run_command(
-        monkeypatch,
-        capsys,
-        command,
-        "--repo",
-        str(repo / "pkg"),
-        "--base",
-        "HEAD",
-        str(target),
+        monkeypatch, capsys, command, *prove_args(repo), str(target)
     )
     assert code == 1
-    assert f"no HEAD:./new{suffix}" in out
+    assert f"FAIL      {absent}: " in out and "acquire/io-error" in out
 
 
-def test_standalone_sibling_endings_refuse_mismatch(tmp_path, monkeypatch, capsys):
+def test_an_uncommitted_original_proves_with_no_git_and_no_base(
+    tmp_path, monkeypatch, capsys
+):
+    """The original is read from the checkout, never from a commit.
+
+    `proof_repository` makes no git repository at all, and the command takes
+    no `--base`.
+    """
     from comment_review.commands import prove_unchanged as command
 
-    suffix = ".rs"
-
-    repo, target = proof_repository(tmp_path, "const value = 1;\r\n", suffix)
-    target.write_bytes(b"const value = 1;\n")
+    repo, target = proof_repository(tmp_path, "const value = 1; // old\r\n", ".rs")
+    draft_of(repo, target).write_bytes(b"const value = 1; // new\r\n")
     code, out = run_command(
-        monkeypatch, capsys, command, "--repo", str(repo), "--base", "HEAD", str(target)
+        monkeypatch, capsys, command, *prove_args(repo), str(target)
     )
-    assert code == 1
-    assert "line endings lf" in out and "sibling sibling.txt crlf" in out
+    assert code == 0, out
+    assert "PROVEN    pkg/source.rs" in out
+    assert not (repo / ".git").exists()
+    with pytest.raises(SystemExit) as refused:
+        run_command(
+            monkeypatch, capsys, command, *prove_args(repo), "--base", "HEAD", "x"
+        )
+    assert refused.value.code == 2
+    assert "unrecognized arguments: --base" in capsys.readouterr().err
+
+
+def test_a_sibling_with_other_line_endings_does_not_fail_the_page(
+    tmp_path, monkeypatch, capsys
+):
+    from comment_review.commands import prove_unchanged as command
+
+    repo, target = proof_repository(tmp_path, "const value = 1; // old\r\n", ".rs")
+    (target.parent / "sibling.txt").write_bytes(b"one\ntwo\n")
+    draft_of(repo, target).write_bytes(b"const value = 1; // new\r\n")
+    code, out = run_command(
+        monkeypatch, capsys, command, *prove_args(repo), str(target)
+    )
+    assert code == 0, out
+    assert "line endings" not in out and "sibling" not in out
 
 
 def a_copy_on_disk(tmp_path, binder):
@@ -1070,29 +1063,13 @@ class TestTheCommand:
         assert "already exists" in capsys.readouterr().out
 
 
-def test_a_lone_cr_sibling_is_skipped_as_a_line_ending_reference(tmp_path):
-    from comment_review.flows.prove_unchanged import _sibling
-
-    target = tmp_path / "target.txt"
-    target.write_bytes(b"one\n")
-    (tmp_path / "a_lone.txt").write_bytes(b"one\rtwo\n")
-    (tmp_path / "b_ok.txt").write_bytes(b"one\r\ntwo\r\n")
-    edited = {target.resolve()}
-
-    both = _sibling(tmp_path, target.resolve(), edited, ["a_lone.txt", "b_ok.txt"])
-    only_lone = _sibling(tmp_path, target.resolve(), edited, ["a_lone.txt"])
-
-    assert both is not None and both[0].name == "b_ok.txt"
-    assert only_lone is None
-
-
 def test_a_file_no_reader_claims_is_unchecked(tmp_path, monkeypatch, capsys):
     from comment_review.commands import prove_unchanged as command
 
     repo, target = proof_repository(tmp_path, "// before\r\n", ".js")
-    target.write_bytes(b"// after\r\n")
+    draft_of(repo, target).write_bytes(b"// after\r\n")
     code, out = run_command(
-        monkeypatch, capsys, command, "--repo", str(repo), "--base", "HEAD", str(target)
+        monkeypatch, capsys, command, *prove_args(repo), str(target)
     )
     assert code == 0, out
     assert (
@@ -1109,9 +1086,9 @@ def test_a_file_outside_the_source_suffixes_fails(
     from comment_review.commands import prove_unchanged as command
 
     repo, target = proof_repository(tmp_path, "# before\r\n", suffix)
-    target.write_bytes(b"# after\r\n")
+    draft_of(repo, target).write_bytes(b"# after\r\n")
     code, out = run_command(
-        monkeypatch, capsys, command, "--repo", str(repo), "--base", "HEAD", str(target)
+        monkeypatch, capsys, command, *prove_args(repo), str(target)
     )
     assert code == 1, out
     assert f"FAIL      pkg/source{suffix}" in out
@@ -1128,17 +1105,12 @@ def test_the_summary_never_counts_a_freeform_path_as_proven(
     repo, target = proof_repository(tmp_path, "x = 1  # before\r\n", ".py")
     note = target.parent / "note.js"
     note.write_bytes(b"// before\r\n")
-    for args in (
-        ("add", "."),
-        ("-c", "user.name=T", "-c", "user.email=t@e.invalid", "commit", "-m", "note"),
-    ):
-        subprocess.run(
-            ["git", "-C", str(repo), *args], capture_output=True, check=True, timeout=30
-        )
-    note.write_bytes(b"// after\r\n")
-    report = prove_unchanged.run(repo, "HEAD", [target, note], approved={})
+    draft_of(repo, note).write_bytes(b"// after\r\n")
+    report = prove_unchanged.run(
+        repo, repo.parent / "drafts", [target, note], approved={}
+    )
     assert report.freeform == 1 and report.failures == 0
-    base = ("--repo", str(repo), "--base", "HEAD")
+    base = prove_args(repo)
     code, out = run_command(monkeypatch, capsys, command, *base, str(target), str(note))
     assert code == 0, out
     assert "1 proven, 1 UNCHECKED" in out
@@ -1151,9 +1123,9 @@ def test_a_python_file_that_fails_to_read_still_fails(tmp_path, monkeypatch, cap
     from comment_review.commands import prove_unchanged as command
 
     repo, target = proof_repository(tmp_path, "x = 1\r\n", ".py")
-    target.write_bytes(b"\xff")
+    draft_of(repo, target).write_bytes(b"\xff")
     code, out = run_command(
-        monkeypatch, capsys, command, "--repo", str(repo), "--base", "HEAD", str(target)
+        monkeypatch, capsys, command, *prove_args(repo), str(target)
     )
     assert code == 1, out
     assert "PROVEN" not in out
@@ -1168,16 +1140,9 @@ def test_a_failing_python_file_beside_a_freeform_one_exits_1(
     repo, target = proof_repository(tmp_path, "x = 1\r\n", ".py")
     note = target.parent / "note.js"
     note.write_bytes(b"// before\r\n")
-    for args in (
-        ("add", "."),
-        ("-c", "user.name=T", "-c", "user.email=t@e.invalid", "commit", "-m", "n"),
-    ):
-        subprocess.run(
-            ["git", "-C", str(repo), *args], capture_output=True, check=True, timeout=30
-        )
-    target.write_bytes(b"\xff")
-    note.write_bytes(b"// after\r\n")
-    base = ("--repo", str(repo), "--base", "HEAD")
+    draft_of(repo, target).write_bytes(b"\xff")
+    draft_of(repo, note).write_bytes(b"// after\r\n")
+    base = prove_args(repo)
     code, out = run_command(monkeypatch, capsys, command, *base, str(target), str(note))
     assert code == 1, out
     assert "UNCHECKED  pkg/note.js: no reader" in out

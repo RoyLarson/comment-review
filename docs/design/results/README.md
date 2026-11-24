@@ -41,7 +41,6 @@ the design intent."*
 | `galley.reset` | a page, and `{address: text}` where `None` is a delete | one sentence per edit it could not place; empty means all landed |
 | `compositor.set_page` | the page the galley has updated | the file's text |
 | `compositor.draft` | that page, and a directory | the drafted file's path |
-| `compositor.approve` | the drafted file and the real one | the real path, now holding the draft |
 
 `reset` resolves nothing. Roy, 2026-08-25: *"the galley shouldn't be resolving the page ... it
 should get handed the page, the cues-new text or a delete."* A page names its own file, so the
@@ -157,10 +156,10 @@ corrected to a deferral naming what it waits on.
 
 ## 6. What is provisional
 
-The code does not do this yet. As of 2026-09-07 `results/prove_unchanged.py` still holds the AST
-proof, the comment-stripping proof, `code_fingerprint`, `dominant_ending`, `_sibling`, `_show`
-and `_spec`, and `commands/prove_unchanged.py` still requires `--base` and calls `git show`.
-This section describes the ruling in `Process: #104` rather than the tree.
+The code does not do this yet. `flows/prove_unchanged.py` compares each draft with the file in
+the working tree through the page's read (`reading.proof`), not through the address and anchor
+mapping. It takes no `--base`, reads no git and compares no line endings. This section
+describes the ruling in `Process: #104` rather than the tree.
 
 What the shape rests on:
 

@@ -74,7 +74,7 @@ uv run python src/comment-review.py gather --languages
 uv run python src/comment-review.py referrers --repo . <paths...>
 
 # Stage 7b gate: prove WRITE changed no executable code
-uv run python src/comment-review.py prove_unchanged --base <merge-base> --repo . \
+uv run python src/comment-review.py prove_unchanged --drafts <proof-out> --repo . \
   --imprimatur <proof-out>/imprimatur.json <paths...>
 
 # The write chain: a docket -> a REVISE. `--out` must not exist yet; the chain's
@@ -239,7 +239,7 @@ content elsewhere, and a change to a rule belongs in exactly one of these files 
 
 ### The galley and the compositor
 
-`prove_unchanged` proves the code in each page written is unchanged from the pre-edit ref. A
+`prove_unchanged` proves the code in each draft is unchanged from the file in the working tree. A
 freeform file has no reader, so it answers `UNCHECKED`, and the formatter and compiler are the
 check.
 

@@ -781,7 +781,7 @@ def test_reading_settings_is_not_an_option(tmp_path, monkeypatch, command):
     module = importlib.import_module(f"comment_review.commands.{command}")
     argv = [command, str(tmp_path / "x.py"), "--reading-settings", "s.json"]
     if command == "prove_unchanged":
-        argv += ["--base", "HEAD"]
+        argv += ["--drafts", str(tmp_path)]
     monkeypatch.setattr(sys, "argv", argv)
     with pytest.raises(SystemExit) as refused:
         module.main(argv[1:]) if command == "compositor" else module.main()
