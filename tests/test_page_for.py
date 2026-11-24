@@ -505,6 +505,14 @@ def test_documentation_naming_no_declaring_line_is_refused(monkeypatch, line):
     assert [d.code for d in result.diagnostics] == ["documentation-declares-nothing"]
 
 
+def test_a_trailing_paragraph_on_a_line_with_no_code_is_refused(monkeypatch):
+    name = "m.rs"
+    found = [Paragraph(name, 3, 3, Kind.TRAILING, raw_lines=["// F."])]
+    result = page_over_read(monkeypatch, found, name)
+    assert isinstance(result, ReadFailure)
+    assert [d.code for d in result.diagnostics] == ["paragraph-has-no-place"]
+
+
 def test_two_paragraphs_at_one_address_refuse_the_page(monkeypatch):
     name = "m.rs"
     found = [

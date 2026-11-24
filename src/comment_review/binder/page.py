@@ -787,6 +787,19 @@ def page_for(
                 )
         else:
             place = attach(vars(b), cues)
+            if not place:
+                # A paragraph the reader placed where the addresser has no
+                # place is a reader bug; an empty address names nowhere.
+                return ReadFailure(
+                    (
+                        ReadDiagnostic(
+                            ReadStage.PLACE,
+                            "paragraph-has-no-place",
+                            f"{here}:{b.start}: a {b.kind} paragraph sits in no"
+                            " place the addresser emitted",
+                        ),
+                    )
+                )
         b.address = address_for(here, place)
         b.anchor = cues.anchor_of(place, b.anchor)
     occupied = {b.address.split("@")[-1] for b in got if "@" in b.address}
