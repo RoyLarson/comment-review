@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (95)
+### open  (96)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -277,6 +277,7 @@ that changed a published name or rule:
 | [names-persist-before-they-settle](names-persist-before-they-settle.md) | systems | -- | 0/2 | Names reach four persisted layers before their meaning settles |
 | [a-conflict-has-no-rendering](a-conflict-has-no-rendering.md) | backend | -- | 5/6 | A conflict is detected and nothing renders it |
 | [external-address-cites-dead-modules](external-address-cites-dead-modules.md) | backend | -- | 2/3 | external_address.py cites two modules that left the tree |
+| [prove-unchanged-compares-raw-line-endings](prove-unchanged-compares-raw-line-endings.md) | backend | -- | 0/2 | prove_unchanged fails a file whose multi-line string differs only in line endings |
 
 ### in-progress  (12)
 
