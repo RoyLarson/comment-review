@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 82 of 91 tasks closed
+Progress: 83 of 91 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (code-review high round 3 and /simplify round 2, 2026-08-22 -- the
@@ -303,7 +303,8 @@ files in `corpora/` are in that state today.
 - [-] T60 | SUPERSEDED by one-line-ending-per-file T2: a lone CR is refused | 74a033c2 | Set
       a lone CR back as a CR on every page
         > 2026-10-23 A lone CR becomes LF on set-back, even inside a string literal
-- [ ] T61 | Set an added b0 below matter in a file with no code, adding no blank
+- [x] T61 | #424: an added b0 under matter gets both blanks, reads back at b0 | 78679fea | Set
+      an added b0 below matter in a file with no code, adding no blank
 - [x] T62 | An add then drop at b0 returns the file it started from | 673eecf7 | Stop
       an add and drop at b0 growing blanks at the file head
         > 2026-10-30 W6: compositor.py:228-251; each cycle adds one blank

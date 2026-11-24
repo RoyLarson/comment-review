@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (95)
+### open  (94)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -197,7 +197,7 @@ that changed a published name or rule:
 | [unaddressed-is-quadratic](unaddressed-is-quadratic.md) | backend | -- | 4/6 | unaddressed() groups by path for a question that needs one flat pass |
 | [stale-claims-after-the-envelope](stale-claims-after-the-envelope.md) | backend | -- | 7/12 | Shipped prose still describes formats and flags this branch deleted |
 | [census-walks-and-flushes](census-walks-and-flushes.md) | backend | -- | 7/8 | census.py walks the whole repo, runs git twice, and its run-flush never fires |
-| [galley-and-compositor-write-path](galley-and-compositor-write-path.md) | backend | -- | 82/91 | The galley can overwrite the file under review, and the compositor reads through a normaliser |
+| [galley-and-compositor-write-path](galley-and-compositor-write-path.md) | backend | -- | 83/91 | The galley can overwrite the file under review, and the compositor reads through a normaliser |
 | [exception-hierarchy](exception-hierarchy.md) | backend | -- | 5/16 | Named tuples give us the seam; the hierarchy that catches our own types is not built |
 | [language-rows-in-toml](language-rows-in-toml.md) | backend | -- | 18/20 | 18 rows of pure data sit in shipped Python; references/vocabulary.toml is the pattern |
 | [computed-and-never-read](computed-and-never-read.md) | backend | -- | 18/36 | The insert line, the matter branch, the paragraph index and two repeated full-file scans -- each needs more than a comment fix |
@@ -275,7 +275,6 @@ that changed a published name or rule:
 | [area-model-stated-and-enforced-differently](area-model-stated-and-enforced-differently.md) | backend | -- | 0/5 | The area architecture is stated in one model and enforced against another |
 | [freeform-rules-have-no-source](freeform-rules-have-no-source.md) | agents | -- | 1/3 | Freeform is a second pipeline run only by prose, sharing rules with no source |
 | [names-persist-before-they-settle](names-persist-before-they-settle.md) | systems | -- | 0/2 | Names reach four persisted layers before their meaning settles |
-| [prove-unchanged-compares-raw-line-endings](prove-unchanged-compares-raw-line-endings.md) | backend | -- | 1/2 | prove_unchanged fails a file whose multi-line string differs only in line endings |
 | [external-address-cites-dead-modules](external-address-cites-dead-modules.md) | backend | -- | 2/3 | external_address.py cites two modules that left the tree |
 
 ### in-progress  (10)
@@ -557,3 +556,4 @@ the reason is inside the file.
 | [census-degrades-silently](completed/census-degrades-silently.md) | 6 finished, 4 superseded |
 | [a-conflict-has-no-rendering](completed/a-conflict-has-no-rendering.md) | 5 finished, 1 superseded |
 | [compact-can-buy-lines-with-width](completed/compact-can-buy-lines-with-width.md) | 10 finished, 1 superseded |
+| [prove-unchanged-compares-raw-line-endings](completed/prove-unchanged-compares-raw-line-endings.md) | 1 finished, 1 superseded |
