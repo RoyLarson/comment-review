@@ -3,7 +3,7 @@
 from pathlib import Path
 
 from comment_review import exceptions
-from comment_review.machine.repo import git
+from comment_review.machine.repo import git, nul_separated
 
 
 def files_naming(repo: Path, token: str) -> tuple[list[str] | None, str]:
@@ -20,11 +20,11 @@ def files_naming(repo: Path, token: str) -> tuple[list[str] | None, str]:
         naming why.
     """
     try:
-        got = git(repo, "grep", "-l", "-F", "--", token, timeout=60)
+        got = git(repo, "grep", "-l", "-z", "-F", "--", token, timeout=60)
     except exceptions.GIT_ERRORS as e:
         return None, type(e).__name__
     if got.returncode == 0:
-        return got.stdout.splitlines(), ""
+        return nul_separated(got.stdout), ""
     if got.returncode == 1:
         return [], ""
     return None, f"git grep exit {got.returncode}"

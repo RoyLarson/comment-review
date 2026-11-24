@@ -219,12 +219,12 @@ def git_ls_files(repo: Path) -> list[str] | None:
     if not repo.is_dir():
         return None
     try:
-        listed = git(repo, "ls-files")
+        listed = git(repo, "ls-files", "-z")
     except exceptions.GIT_ERRORS:
         return None
     if listed.returncode != 0:
         return None
-    return listed.stdout.splitlines()
+    return nul_separated(listed.stdout)
 
 
 def git_untracked(repo: Path) -> list[str] | None:
@@ -232,12 +232,21 @@ def git_untracked(repo: Path) -> list[str] | None:
     if not repo.is_dir():
         return None
     try:
-        listed = git(repo, "ls-files", "--others", "--exclude-standard")
+        listed = git(repo, "ls-files", "-z", "--others", "--exclude-standard")
     except exceptions.GIT_ERRORS:
         return None
     if listed.returncode != 0:
         return None
-    return listed.stdout.splitlines()
+    return nul_separated(listed.stdout)
+
+
+def nul_separated(out: str) -> list[str]:
+    """The paths a `-z` git listing printed, verbatim.
+
+    Without `-z`, git quotes a path holding a tab, a newline, a quote or a
+    backslash, and a newline in a name splits it in two.
+    """
+    return [p for p in out.split("\0") if p]
 
 
 def commit_of(repo: Path, ref: str) -> str | None:

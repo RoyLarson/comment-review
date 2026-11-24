@@ -4,11 +4,13 @@ Inputs are a real git checkout in `tmp_path`, built through `git_in`, because
 the search is `git grep` over the index.
 """
 
+import pytest
 from conftest import run_command
 from helpers import git_in
 
 from comment_review.commands import referrers as referrers_command
 from comment_review.constants import BYTE_ORDER_MARK
+from comment_review.flows.referrers import files_naming
 
 
 def a_checkout(root, files):
@@ -38,3 +40,12 @@ def test_a_bom_file_still_yields_its_public_names(tmp_path, monkeypatch, capsys)
     )
     assert status == 0
     assert "cites.md\n      names: harvested" in out
+
+
+def test_files_naming_lists_an_awkward_name_verbatim(tmp_path):
+    name = 'a\t"b".md'
+    try:
+        repo = a_checkout(tmp_path, {name: "harvested\n"})
+    except OSError:
+        pytest.skip("this filesystem refuses a tab or a quote in a file name")
+    assert files_naming(repo, "harvested") == ([name], "")
