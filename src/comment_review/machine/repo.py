@@ -241,7 +241,7 @@ def git_untracked(repo: Path) -> list[str] | None:
 
 
 def nul_separated(out: str) -> list[str]:
-    """The paths a `-z` git listing printed, verbatim.
+    """The paths a git command run with `-z` printed, verbatim.
 
     Without `-z`, git quotes a path holding a tab, a newline, a quote or a
     backslash, and a newline in a name splits it in two.
