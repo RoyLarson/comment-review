@@ -63,7 +63,7 @@ from comment_review.desk.proof.master_proof import MasterProof
 from comment_review.desk.stages import Stage
 from comment_review.desk.topology import REVISE, read
 from comment_review.docket.docket import Docket
-from comment_review.flows import revise
+from comment_review.flows import imprimatur, revise
 from comment_review.flows.distribute import IncompatibleBinder
 from comment_review.flows.fan_out import (
     OverlappingShards,
@@ -264,7 +264,7 @@ def _build(root: Path, run_dir: Path, proofs: list[MasterProof]) -> list[str]:
         _start(root, run_dir)
         for proof in proofs:
             docket = docket_of_proof(proof, root)
-            refusals = _set(docket, root, run_dir)
+            refusals, _ = _set(docket, root, run_dir)
             if refusals:
                 raise _Refused(_refusal_lines(proof.stage, refusals))
             written.update(schedule.path for schedule in docket.schedules)
@@ -295,18 +295,24 @@ def _start(root: Path, run_dir: Path) -> None:
         (root / rel).unlink(missing_ok=True)
 
 
-def _set(docket: Docket, root: Path, run_dir: Path) -> list[Refusal]:
-    """Set `docket` over `root` through `revise.pull`; what refused, or [] once set."""
+def _set(
+    docket: Docket, root: Path, run_dir: Path
+) -> tuple[list[Refusal], dict[str, tuple[str, ...]]]:
+    """Set `docket` over `root` through `revise.pull`.
+
+    Returns:
+        `(what refused, {})`, or `([], revise.Pulled.documented)` once set.
+    """
     if not docket.schedules:
-        return []
+        return [], {}
     scratch = Path(tempfile.mkdtemp(prefix="pull-", dir=run_dir))
     try:
         pulled = revise.pull(docket, root, scratch / "revise")
         if pulled.refusals:
-            return pulled.refusals
+            return pulled.refusals, {}
         for schedule in docket.schedules:
             shutil.copyfile(pulled.root / schedule.path, root / schedule.path)
-        return []
+        return [], pulled.documented
     finally:
         remove_tree(scratch, ignore_errors=True)
 
@@ -522,7 +528,8 @@ def replay(
         jacket_file: the run's `jacket.json`.
         repo: the checkout the run reviews.
         out: where the drafts are written, one per page a proof set, at its
-            repo path. Must not exist yet.
+            repo path, beside the `imprimatur` record of the docstrings each
+            page's proof let change. Must not exist yet.
         only: the places the author accepted, each `<stage>:<address>`; None
             accepts every place.
 
@@ -575,6 +582,7 @@ def _replay(
             for rel in written:
                 (out / rel).parent.mkdir(parents=True, exist_ok=True)
                 shutil.copyfile(tree / rel, out / rel)
+            imprimatur.save(out, written)
         except OSError as err:
             remove_tree(out, ignore_errors=True)
             raise _Refused([f"cannot write the drafts into {out}: {err}"]) from err
@@ -614,13 +622,14 @@ def _replayed(
     run_dir: Path,
     proofs: list[tuple[str, MasterProof]],
     accepted: dict[str, tuple[str, ...]] | None,
-) -> list[str]:
+) -> dict[str, set[str]]:
     """Set the manuscript and each stage's accepted places over `tree`.
 
     Returns:
-        Every page a proof set, repo-relative posix, sorted.
+        Every page a proof set, repo-relative posix, sorted, -> the `a` places
+        whose docstrings any stage's proof let change on it.
     """
-    written: set[str] = set()
+    written: dict[str, set[str]] = {}
     # The flattened page name -> each `<stage>:<address>` set there that the
     # author did not accept.
     declined: dict[str, list[str]] = {}
@@ -652,19 +661,21 @@ def _replayed(
                         *refused.reasons,
                     ]
                 ) from refused
-            refusals = _set(docket, tree, run_dir)
+            refusals, documented = _set(docket, tree, run_dir)
             if refusals:
                 raise _Refused(
                     _refusal_lines(name, refusals, partial(unaccepted, name))
                 )
-            written.update(schedule.path for schedule in docket.schedules)
+            for schedule in docket.schedules:
+                cues = written.setdefault(schedule.path, set())
+                cues.update(documented.get(schedule.path, ()))
             if only is not None:
                 for place in proof.places:
                     if place.changed and place.address not in only:
                         declined.setdefault(cue_of(place.address).path, []).append(
                             f"{name}:{place.address}"
                         )
-    return sorted(written)
+    return dict(sorted(written.items()))
 
 
 class Dispatched(NamedTuple):

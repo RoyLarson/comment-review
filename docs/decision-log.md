@@ -7659,3 +7659,11 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
 
   **What it settles.** The role set stays at four; 7a presents stage 6's places as
   condensations, not as block-context findings.
+
+- **#417.** **The record #415 names is the `imprimatur`** (Roy, 2026-11-24, on the name of the
+  list `proof` writes beside its drafts of the docstrings each page was approved to add or
+  remove; offered `imprimatur`, `approved` or `passed for press`):
+
+  *"imprimatur (Recommended)"*
+
+  **What it settles.** `<out>/imprimatur.json`, read by `prove_unchanged --imprimatur`.

@@ -1,22 +1,27 @@
 """Admit exact current and revision pages before comparing executable code.
 
+A docstring may appear or disappear only at an `a` place the imprimatur
+`proof` wrote names for that page, which is what stage 7a's proof allowed.
+
 Each page compared is also checked for line endings against a tracked
 sibling in its directory that the run did not edit (`_sibling`); a page
 with no readable sibling is counted unchecked.
 """
 
-from collections.abc import Sequence
+from collections.abc import Collection, Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 
 from comment_review.binder.page import Page
 from comment_review.flows.page_for import page_of
+from comment_review.flows.proof_setter import documented_line
 from comment_review.flows.read_diagnostics import format_failure
 from comment_review.flows.reading_context import context_for
 from comment_review.flows.source import revision_source_of, source_of
 from comment_review.machine.repo import Source, git_ls_files
 from comment_review.reading.diagnostics import ReadFailure
 from comment_review.reading.language import INSTALLED_REGISTRY
+from comment_review.reading.proof import UNIDENTIFIED_OWNER
 from comment_review.results.prove_unchanged import dominant_ending
 
 
@@ -60,12 +65,39 @@ def _sibling(
     return None
 
 
+def _documented(
+    before: Page, after: Page, cues: Collection[str]
+) -> list[tuple[int | None, int | None]] | None:
+    """Each approved `a` place's anchor line before and after, for `preserved`.
+
+    None when either page carries no such place.
+    """
+    pairs = []
+    for cue in sorted(cues):
+        was, now = documented_line(before, cue), documented_line(after, cue)
+        if was is None or now is None:
+            return None
+        pairs.append((was[0], now[0]))
+    return pairs
+
+
 def run(
     repo: Path,
     base: str,
     paths: Sequence[Path],
+    *,
+    approved: Mapping[str, Collection[str]],
 ) -> ProofReport:
-    """Prove admitted pages against their exact Git baselines and sibling endings."""
+    """Prove admitted pages against their exact Git baselines and sibling endings.
+
+    Args:
+        repo: the repository root each path is named relative to.
+        base: the ref holding the pre-edit text.
+        paths: the pages and freeform files to prove.
+        approved: repo path -> the cues of the `a` places whose docstrings
+            may appear or disappear, as `flows.imprimatur` records them. A
+            page it does not name may change no docstring's presence.
+    """
     repo = repo.resolve()
     edited = {path.resolve() for path in paths}
     tracked = git_ls_files(repo) or []
@@ -120,10 +152,22 @@ def run(
             continue
         assert isinstance(page_b, Page) and isinstance(page_a, Page)
         proof = page_b.read.proof
+        documented = _documented(page_b, page_a, approved.get(rel, ()))
         result = (
-            page_b.read.preserved(page_a.read) if proof == page_a.read.proof else None
+            page_b.read.preserved(page_a.read, documented=documented)
+            if proof == page_a.read.proof and documented is not None
+            else None
         )
-        if result is None:
+        if documented is None or (
+            result is not None
+            and any(d.code == UNIDENTIFIED_OWNER for d in result.diagnostics)
+        ):
+            messages.append(
+                f"FAIL      {rel}: an approved docstring's declaration is not"
+                " identified"
+            )
+            failures += 1
+        elif result is None:
             messages.append(f"FAIL      {rel}: proof kind changed")
             failures += 1
         elif result.unchanged:

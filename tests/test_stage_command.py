@@ -31,7 +31,7 @@ from comment_review.commands import collate as collate_command
 from comment_review.commands import proof as proof_command
 from comment_review.commands import report
 from comment_review.commands import stage as stage_command
-from comment_review.flows import revise
+from comment_review.flows import imprimatur, revise
 from comment_review.flows.fan_out import received_binder_of
 from comment_review.flows.jacket import (
     JACKET_FILE,
@@ -695,11 +695,12 @@ def _moved_into(tmp_path) -> str:
 
 
 def _drafts(tmp_path) -> dict[str, bytes]:
+    """Each draft `proof` wrote into `drafts`, by repo path; not the imprimatur."""
     drafts = tmp_path / "drafts"
     return {
         path.relative_to(drafts).as_posix(): path.read_bytes()
         for path in drafts.rglob("*")
-        if path.is_file()
+        if path.is_file() and path != drafts / imprimatur.NAME
     }
 
 

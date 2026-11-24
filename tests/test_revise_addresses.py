@@ -26,7 +26,7 @@ def test_identically_failed_sources_cannot_pass_address_comparison(tmp_path):
     for root in (original, revised):
         (root / "m.py").write_text("def broken(:\n", encoding="utf-8")
     with pytest.raises(AddressesMoved, match="lex/unfinished-continuation"):
-        assert_addresses_held(original, Pulled(revised, {}, []), ["m.py"])
+        assert_addresses_held(original, Pulled(revised, {}, [], {}), ["m.py"])
 
 
 def test_a_revise_yields_the_address_set_the_original_yielded(tmp_path):

@@ -1197,7 +1197,7 @@ def test_matching_failed_readings_cannot_pass_the_address_gate(tmp_path, raw, co
         readings.append(page_of(path, rel="m.py"))
     assert all(isinstance(reading, ReadFailure) for reading in readings)
     assert readings[0] == readings[1]
-    pulled = Pulled(revise, {}, [])
+    pulled = Pulled(revise, {}, [], {})
     with pytest.raises(AddressesMoved) as raised:
         assert_addresses_held(original, pulled, ["m.py"])
     assert code in str(raised.value)
