@@ -168,9 +168,7 @@ def git(repo: Path, *args: str, timeout: int = 30) -> subprocess.CompletedProces
     path holding one non-ASCII letter, defining `helper_name`, dropped out of
     the live-name corpus and
     `unread` stayed empty, so every symbol defined only there became a false
-    obituary behind a silent coverage hole. The same escaping makes
-    `path_index` report a comment citing that file as unresolved -- a false
-    finding handed to four reviewers as settled fact.
+    obituary behind a silent coverage hole.
 
     ! The encoding is pinned for the same reason: git writes UTF-8, and
     `text=True` alone decodes with the machine's locale, so a non-ASCII path
@@ -411,50 +409,6 @@ def tracked_paths(repo: Path, rels: list[str] | None) -> set[Path] | None:
     if rels is None:
         return None
     return {(repo / rel).resolve() for rel in rels}
-
-
-def path_index(repo: Path, rels: list[str] | None) -> set[str]:
-    """Every tracked path, plus every suffix of it, for citation resolution.
-
-    Prose cites package-relative (`summary.py`, `billing/rates.py`) far more
-    often than repo-relative, and a run's working directory may sit anywhere
-    under the root. Resolving against the repo root alone produces false
-    dangling reports on nearly every citation of such a repository -- an
-    annotation handed to four reviewers as settled fact.
-
-    A suffix set answers "is this citation any file in the tree" in one lookup,
-    which is the question prose is actually asking. Walking the tree once and
-    indexing beats trying N candidate roots per citation.
-
-    ! Tracked files, via `git ls-files`, whenever the index lists any. That is
-    faster than walking a tree full of generated data, and more correct: a
-    citation into gitignored runtime state is unverifiable (absent from every
-    fresh checkout), which is a different finding from a citation that
-    resolves nowhere. With no index, or an empty one, it is every file the
-    walk does not exclude.
-    """
-    out: set[str] = set()
-    if not repo.is_dir():
-        return out
-    # ! Written out rather than collapsed to `if not rels`. The two states do
-    # take the same fallback here -- an index that tracks nothing indexes the
-    # same set as no index at all -- and `git_ls_files` documents None as a
-    # third state, so a reader who saw them collapsed would learn the opposite
-    # of what that docstring says.
-    if rels is None or not rels:  # not a git repo, git unavailable, or empty
-        rels = [
-            p.relative_to(repo).as_posix()
-            for p in repo.rglob("*")
-            # ! Relative to the repo, not absolute: matched absolute, an
-            # ancestor named `venv` excludes the whole checkout. See
-            # `walk_files` below.
-            if p.is_file() and not EXCLUDED_DIRS.intersection(p.relative_to(repo).parts)
-        ]
-    for rel in rels:
-        parts = rel.split("/")
-        for i in range(len(parts)):
-            out.add("/".join(parts[i:]))
-    return out
 
 
 def walk_files(root: Path):

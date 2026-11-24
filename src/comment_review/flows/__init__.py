@@ -1,9 +1,7 @@
 """One whole run, calling the modules. A flow decides ORDER, not behaviour.
 
-    gather          stage 2 -- every page in scope, annotated and bound into
-                    the binder. `STEPS` is the chain, as data
-    annotations_for stage 3 as one step of it -- what the concordance can
-                    settle, over every paragraph the gather carried
+    gather          stage 2 -- every page in scope, bound into the binder.
+                    `STEPS` is the chain, as data
     referrers       stage 3, inbound -- the `git grep` behind `referrers`
     page_for        acquires a source snapshot and admits it as a complete page
     source          source acquisition outcomes for filesystem and revision

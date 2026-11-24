@@ -1,8 +1,8 @@
 """The `gather` command: its argument parsing, its printing and its exit code.
 
 The work is `flows.gather`; this is only the console face of it. It builds no
-page and resolves no annotation -- `tests/test_gather_command.py` reads this
-file for the names of the flow's two steps, and so must not find them here.
+page -- `tests/test_gather_command.py` reads this file for the name of the
+flow's page step, and so must not find it here.
 """
 
 import argparse
@@ -137,12 +137,6 @@ def _passed_over(got: Gathering) -> None:
         print("NOT CHECKED -- these are gaps, not passes:", file=sys.stderr)
         for u in got.unread:
             print(f"    {u}", file=sys.stderr)
-        print(
-            "    !! A file missing from the name corpus turns every symbol defined\n"
-            "      only there into a false obituary. Treat symbol notes as weaker\n"
-            "      until this list is empty.",
-            file=sys.stderr,
-        )
     if got.freeform:
         print(
             f"FREEFORM -- {len(got.freeform)} file(s) have no reader; the binder"
