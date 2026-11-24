@@ -177,10 +177,11 @@ def read_answers(text: str, where: str) -> tuple[list[HumanAnswer], list[str]]:
 
     Returns:
         `(the answers, [])`, or `([], problems)` where the file is not TOML,
-        holds no `answer`, or `answer` is not an array of tables, or `(the good ones, problems)` where
-        some sections are not tables, lack a non-blank string field, or answer
-        a role, place and question an earlier section already answers -- the
-        file does not say which of the two stands, so the later one is refused.
+        holds no `answer`, or `answer` is not an array of tables, or `(the good
+        ones, problems)` where some sections are not tables, lack a non-blank
+        string field, or answer a role, place and question an earlier section
+        already answers -- the file does not say which of the two stands, so
+        the later one is refused.
     """
     try:
         doc = tomllib.loads(text)
