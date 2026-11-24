@@ -41,7 +41,6 @@ the design intent."*
 | `galley.reset` | a page, and `{address: text}` where `None` is a delete | one sentence per edit it could not place; empty means all landed |
 | `compositor.set_page` | the page the galley has updated | the file's text |
 | `compositor.draft` | that page, and a directory | the drafted file's path |
-| `compositor.approve` | the drafted file and the real one | the real path, now holding the draft |
 
 `reset` resolves nothing. Roy, 2026-08-25: *"the galley shouldn't be resolving the page ... it
 should get handed the page, the cues-new text or a delete."* A page names its own file, so the

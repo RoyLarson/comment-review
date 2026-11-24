@@ -11,10 +11,9 @@ is its places in sequence; `Cues.reading` is that sequence, recorded by the walk
 that emitted them. ! A paragraph's stored line numbers are not a position this
 step may trust: a paragraph that grows moves every line below it.
 
-!! Nothing is written over the real file until the draft is approved. `draft()`
-emits the whole page into a file of its own so a reviewer or the author can
-compare it against the original; `approve()` would copy it over the real file
-wholesale, once, and nothing calls it.
+!! Nothing here writes over the real file. `draft()` emits the whole page into
+a file of its own so a reviewer or the author can compare it against the
+original.
 
 !! And the round trip is a test.
 For a supplied, unchanged `Page`, `set_page(page) == page.text`, byte for byte,
@@ -45,7 +44,6 @@ compositor that guessed would rewrite every line of a Windows checkout.
 """
 
 import collections
-import shutil
 from pathlib import Path
 
 from comment_review import constants, exceptions
@@ -360,19 +358,6 @@ def draft(page: Page, into: Path) -> Path:
     depends on the untranslated write.
     """
     return write_raw(into, set_page(page))
-
-
-def approve(drafted: Path, real: Path) -> Path:
-    """Put an approved draft over the real file, wholesale.
-
-    ! A copy, not a splice. The draft is the finished page -- it was set from the
-    whole of it -- so there is nothing to merge and no range to get wrong. That
-    is the difference this module exists to make.
-
-    ! It has no caller, in `src/` or in `tests/`.
-    """
-    shutil.copyfile(drafted, real)
-    return real
 
 
 def lossless(original: str, rendered: str) -> str | None:

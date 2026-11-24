@@ -15,8 +15,8 @@
 
 !! IT STOPS AT THE TEMPORARY FILE. Roy, 2026-08-25: *"The workflow stops at
 making a temporary file for the human to review. The final human-review
-human-edit machine-review machine copy is its own workflow."* So `approve` is
-not called here, and neither is anything transactional -- the per-page state,
+human-edit machine-review machine copy is its own workflow."* So nothing here
+writes the real file, and nothing here is transactional -- the per-page state,
 the manifest and the resumable retry all belong to that second workflow.
 
 !! THE BINDER DOES NOT REACH HERE AT ALL, SINCE 2026-08-26. Roy, 2026-08-24:
