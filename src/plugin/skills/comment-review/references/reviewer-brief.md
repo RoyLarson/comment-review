@@ -263,7 +263,7 @@ it.
 | **not checkable** | `move` -- real rationale, belonging where it can be read | `drop` -- history |
 
 A `drop` of history names, in its reason, the home the style sheet records for removed history.
-Where the style sheet records none answered, file a `query` of shape `human-review-necessary`
+Where the style sheet holds no answer on it, file a `query` of shape `human-review-necessary`
 asking the author where the sentence goes; where it records that the repo has none, the `drop`
 stands.
 
