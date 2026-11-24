@@ -252,7 +252,10 @@ def _set(page: Page, newline: str | None) -> tuple[str, dict[str, tuple[int, int
         # leading above an added closing `b` pushes it into the matter it was
         # meant to stay clear of: on `SAMPLE`, `b4` with a leading still re-reads
         # at `f1`, so the blank changes the bytes and not the outcome.
-        if adding_a_gap and pending is None and at < last_code:
+        # ! A file with no code has no closing gap to exempt: a `b` added under
+        # its matter takes the blank above as well as the one below.
+        under_matter = last_code < 0 and bool(out)
+        if adding_a_gap and pending is None and (at < last_code or under_matter):
             out.append("")
         # !! And at the foot it goes on the other side -- the head's rule in
         # reverse. Matter is the run that starts on line 1 or ends on the last
