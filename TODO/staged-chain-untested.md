@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 5 of 8 tasks closed
+Progress: 6 of 8 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, driving distribute and collate across real stages for
@@ -35,13 +35,14 @@ The staged chain runs but nothing tests it, and the fan-out topology fits one tr
         > 2026-09-02 is illegal -- a topology can hold one and still cover every page
         > 2026-09-02 and those are different conditions. That remainder is this box
         > 2026-09-06 Roy: an empty glob does not matter; the agent reads and modifies.
-- [ ] T3 | Cover the staged chain with a test that survives. Verify: a test
-      drives `sequential.toml` over a real tree through distribute, collate,
-      docket and pull for every stage, and asserts the edits ACCUMULATE.
-      MEASURED: four stages produce four markers in one paragraph -- one per
-      stage, each reading the revise the one before it pulled. Fewer means a
-      stage read a tree that did not carry the one before it, and nothing in the
-      suite would notice today.
+- [x] T3 | sequential.toml: four stages, four markers, edits accumulate | d508479d805864fec046b73ea6d3c95b4010f812 | Cover
+      the staged chain with a test that survives. Verify: a test drives
+      `sequential.toml` over a real tree through distribute, collate, docket and
+      pull for every stage, and asserts the edits ACCUMULATE. MEASURED: four
+      stages produce four markers in one paragraph -- one per stage, each
+      reading the revise the one before it pulled. Fewer means a stage read a
+      tree that did not carry the one before it, and nothing in the suite would
+      notice today.
 - [x] T4 | desk/topology.py seeded_from_problem reads Stage.reads; distribute --revise; tests/test_topology.py, test_distribute_command.py | 5e08440f | Implement
       the reader for `Stage.reads`, so a stage seeds from the binder its
       topology names rather than from a path typed by hand
