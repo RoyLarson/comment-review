@@ -34,15 +34,7 @@ check on the drafts, and writes them into the working tree.
 
 ## Step 1 -- prove unchanged
 
-Set the accepted drafts over the pre-edit tree in a temporary worktree, and on every exit from
-this stage, written or refused, remove it with `git worktree remove --force <run-dir>/build`:
-
-1. `git worktree add <run-dir>/build <pre-edit ref>`
-2. Run the check command stage 1 recorded in `<run-dir>/build`, and the project's doctests
-   where it has them, and keep the results as the baseline.
-3. Copy each draft over its `<path>` in `<run-dir>/build`.
-
-Then prove the code in every draft reads the same as the file in the working tree, naming each
+Prove the code in every draft reads the same as the file in the working tree, naming each
 `<path>` in the working tree, the `--out` that holds the drafts, and the imprimatur `proof` wrote
 there:
 
@@ -59,17 +51,24 @@ unchecked, never as proven.
 
 ## Step 2 -- validate locally
 
-After `prove_unchanged` succeeds, check whether the project's local tools support compilation or
-syntax validation. If available, run the applicable check on the edited result and report the
-outcome.
+After `prove_unchanged` succeeds, check the drafts in a temporary worktree holding the working
+tree as it is now, and on every exit from this stage, written or refused, remove it with
+`git worktree remove --force <run-dir>/build`:
 
-Run that check, the check command and the doctests in `<run-dir>/build`. The drafts pass when
-they pass everything the baseline passed. Where they fail something the baseline passed, write
-nothing: bring the author the output and the pages it names.
+1. Record the commit `git stash create` prints, or `HEAD` when it prints nothing, and run
+   `git worktree add <run-dir>/build <that commit>`.
+2. Run the check command stage 1 recorded in `<run-dir>/build`, the project's doctests where it
+   has them, and any compilation or syntax check the project's local tools support, and keep
+   the results as the baseline.
+3. Copy each draft over its `<path>` in `<run-dir>/build` and run the same checks again.
+
+The drafts pass when they pass everything the baseline passed. Where they fail something the
+baseline passed, write nothing: bring the author the output and the pages it names.
 
 ## Step 3 -- write
 
-Copy each draft over its `<path>` in the working tree.
+For each draft, keep the output of `git diff --no-index <path> <draft>` for the report, then
+copy the draft over its `<path>` in the working tree.
 
 ## Report
 

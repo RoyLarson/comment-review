@@ -107,7 +107,8 @@ The author rules once, on the text that will actually be written.
 Work from the git repository at the repo root, and pass `--repo` to every command that takes it.
 
 1. **Pre-edit ref.** Record the commit `git stash create` prints, or `HEAD` when it prints
-   nothing, as it does when no tracked file has an uncommitted change. Stage 7b proves the code against it.
+   nothing, as it does when no tracked file has an uncommitted change. Stage 2's topology and
+   stage 7a's freeform check build from it.
 2. **Scope.** Use `target` when given. Otherwise take `git merge-base HEAD <upstream>` and list
    `git diff --name-only <base>..HEAD`, plus `git diff --name-only HEAD` for uncommitted work.
    When there is no upstream, scope from `git diff --name-only HEAD`.
@@ -556,9 +557,8 @@ path, or accept none.
 
 ### Stage 7b -- write
 
-Load [`references/write.md`](references/write.md) and follow it. It proves the accepted
-drafts' code unchanged in a temporary worktree, runs the repo's check on them there, and writes
-them into the working tree. `git diff <pre-edit ref>` then shows the author exactly what the run changed.
+Load [`references/write.md`](references/write.md) and follow it. It writes the accepted drafts
+into the working tree. `git diff <pre-edit ref>` then shows the author exactly what the run changed.
 
 ### Stage 8 -- review
 
