@@ -119,10 +119,12 @@ Work from the git repository at the repo root, and pass `--repo` to every comman
    formatter config -- and how it counts. Record where you found each. When the repo cites a test that enforces the cap, confirm
    the test exists, and report whether it does.
 4. **Style sheet.** Read `style` when given; otherwise start one. It records the width stage 1
-   found, the repo's dialect, the capitalisation of domain terms, its citation form, where the
+   found, the comment wrap observed in the tree -- the median and maximum column of its comment
+   lines, marked as measured, not published -- the repo's dialect, the capitalisation of domain terms, its citation form, where the
    repo keeps code concerns -- in `TODO:` comments, or on a board or tracker its own
    instructions name -- asking the author with `AskUserQuestion` when the repo does not say,
-   and one template for each documentation format the tree actually uses: module docstring,
+   where the repo keeps removed history -- a changelog, a decision record, an ADR directory --
+   or that it has none, asked the same way, and one template for each documentation format the tree actually uses: module docstring,
    function docstring and,
    where the repo is consistent, comments. Write each template out with its slots, measured
    from the docstrings in the tree.

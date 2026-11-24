@@ -26,7 +26,12 @@ and checkable sentence.
    set as it stands, and the author reads it at stage 7a.
 3. Otherwise remove what repeats: a hedge, an aside, a line that restates the line below it.
 4. Count the result. A work marker line (`TODO`, `FIXME`, `HACK`, `XXX` or `BUG`) is free;
-   each line after it counts.
+   each line after it counts. Set each line no wider than the style sheet's published width or
+   its measured comment wrap, whichever is less. Never widen a line to remove a line.
+5. Keep the paragraph's kind. A `b` paragraph stays a comment between lines of code; turning it into a
+   docstring or any other kind of text to leave the count is not a condensation.
+6. When the paragraph cannot reach the cap at that width without losing a necessary sentence,
+   keep the width and mark it `clean`, naming what holds it over the cap.
 
 ## How you record it
 
