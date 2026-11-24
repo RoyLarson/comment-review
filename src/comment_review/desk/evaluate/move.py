@@ -95,13 +95,10 @@ def placement_pass(move: Move, places: dict[str, Place], turn: int) -> Move:
     ends = [
         end for end in (places.get(move.origin), places.get(move.destination)) if end
     ]
-    stances: dict[str, set[Stance]] = {}
     reasons: list[str] = []
     for end in ends:
         for one in end.filed:
-            stance = INSTRUCTIONS[one.mark.instruction].pairs(one.mark)
-            stances.setdefault(one.role, set()).add(stance)
-            if stance is Stance.UNSETTLABLE:
+            if INSTRUCTIONS[one.mark.instruction].pairs(one.mark) is Stance.UNSETTLABLE:
                 reasons.append(
                     f"{one.role}: human query must be replaced before folding: "
                     f"{one.mark.reason}"
@@ -118,7 +115,7 @@ def placement_pass(move: Move, places: dict[str, Place], turn: int) -> Move:
         return move
     if move.placement in FINAL:
         return move
-    deferring = {role for role, held in stances.items() if held == {Stance.DEFERS}}
+    deferring = _deferring_on(move, places)
     movers = dict(move.filed)
     accepted: set[str] = set()
     stetted: set[str] = set()
@@ -182,6 +179,17 @@ def placement_pass(move: Move, places: dict[str, Place], turn: int) -> Move:
     if move.disposition is not None:
         _ruled(move, move.disposition)
     return move
+
+
+def _deferring_on(move: Move, places: dict[str, Place]) -> set[str]:
+    """The roles whose every mark at either end of this move defers."""
+    stances: dict[str, set[Stance]] = {}
+    for address in (move.origin, move.destination):
+        end = places.get(address)
+        for one in end.filed if end else ():
+            stance = INSTRUCTIONS[one.mark.instruction].pairs(one.mark)
+            stances.setdefault(one.role, set()).add(stance)
+    return {role for role, held in stances.items() if held == {Stance.DEFERS}}
 
 
 def _ruled(move: Move, ruling: Disposition) -> None:
@@ -255,8 +263,11 @@ def cover_ends(move: Move, places: dict[str, Place]) -> None:
     side is the mover's and reads exactly as the move sets it there: the
     remainder at the origin, the arrival at the destination. Such an end is
     carried to nobody (`passes._from_sides`) and is decided here, so the two
-    ends are never ruled apart. An end where the mover changed more than the
-    move sets stays carried, for its own ruling.
+    ends are never ruled apart. A role that deferred on the move is not owed
+    a say at either end, even one it filed nothing at, since the move it
+    declined to read is what sets that end. An end where the mover changed
+    more than the move sets, or that a role holding a view is owed, stays
+    carried, for its own ruling.
     """
     ruling = move.disposition
     if (
@@ -267,18 +278,21 @@ def cover_ends(move: Move, places: dict[str, Place]) -> None:
         return
     mark = move.movers[ruling.taken_side]
     row = INSTRUCTIONS[mark.instruction]
+    deferring = _deferring_on(move, places)
     for address, touch in (
         (move.origin, Touch.ORIGIN),
         (move.destination, Touch.DESTINATION),
     ):
         end = places.get(address)
-        if end is None or end.state is not State.COMPOSED or end.owed:
+        if end is None or end.state is not State.COMPOSED:
+            continue
+        if set(end.owed) - deferring:
             continue
         if set(end.sides) != {ruling.taken_side}:
             continue
         sets = row.sets(mark, touch, end.base)
         if end.sides[ruling.taken_side] == (end.base if sets is None else sets):
-            end.state, end.question = State.STANDS, None
+            end.state, end.question, end.owed = State.STANDS, None, ()
 
 
 def keep_ends(move: Move, places: dict[str, Place]) -> None:
