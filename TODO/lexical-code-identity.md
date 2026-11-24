@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 17 of 23 tasks closed
+Progress: 17 of 26 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-10 (live-run)
@@ -88,3 +88,8 @@ Use lexical code identity at both proof boundaries.
         > 2026-11-23 Broken review 6a81c7b0 [A]: 7b runs without documented; open
 - [x] T23 | 7b passes the imprimatur proof wrote; mutants killed; 5779 pass | ad94403f88b8353559d97d09741d61d7ca88341d | Make
       7b prove_unchanged run the documented check 7a runs, per #414
+- [ ] T24 | Build write.md's validation tree from the working tree, not the
+      pre-edit ref
+- [ ] T25 | Show only the run's own changes in write.md's report, not a diff
+      against the pre-edit ref
+- [ ] T26 | Remove "revision reads" from the source entry in flows/__init__.py

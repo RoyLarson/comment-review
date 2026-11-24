@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 7 of 12 tasks closed
+Progress: 7 of 19 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-21 (the /code-review xhigh of 2026-08-21, focused on the file-to-
@@ -97,3 +97,15 @@ for the shape this branch changed.
 - [ ] T12 | Correct commands/taken_in.py:11-12, which says no docket carries
       `role` yet
         > 2026-11-22 Check: the sentence agrees with docket.Schedule's role field
+- [ ] T13 | Remove carry from the module inventory in flows/__init__.py
+- [ ] T14 | Correct concordance/__init__.py, which says the gather resolves what
+      a comment cites
+- [ ] T15 | Remove results/prove_unchanged and flows/carry from
+      docs/design/README.md
+- [ ] T16 | Remove prove_unchanged.py from docs/design/results/README.md
+- [ ] T17 | Update docs/vocabulary.md's annotation entries, now that the gather
+      attaches none
+- [ ] T18 | Remove the deleted annotate.py and Paragraph.annotations from
+      test_docket.py and test_binder.py
+- [ ] T19 | Correct binder/__init__.py's annotation entry, which vocabulary.toml
+      contradicts

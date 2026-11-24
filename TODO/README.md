@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (93)
+### open  (94)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -195,7 +195,7 @@ that changed a published name or rule:
 | [a-series-never-fills-outside-python](a-series-never-fills-outside-python.md) | backend | -- | 22/23 | Outside Python the `a` place is emitted and never filled |
 | [bom-is-read-as-source](bom-is-read-as-source.md) | backend | -- | 8/12 | A UTF-8 BOM is censused as a line of code |
 | [unaddressed-is-quadratic](unaddressed-is-quadratic.md) | backend | -- | 4/6 | unaddressed() groups by path for a question that needs one flat pass |
-| [stale-claims-after-the-envelope](stale-claims-after-the-envelope.md) | backend | -- | 7/12 | Shipped prose still describes formats and flags this branch deleted |
+| [stale-claims-after-the-envelope](stale-claims-after-the-envelope.md) | backend | -- | 7/19 | Shipped prose still describes formats and flags this branch deleted |
 | [census-walks-and-flushes](census-walks-and-flushes.md) | backend | -- | 7/8 | census.py walks the whole repo, runs git twice, and its run-flush never fires |
 | [galley-and-compositor-write-path](galley-and-compositor-write-path.md) | backend | -- | 83/91 | The galley can overwrite the file under review, and the compositor reads through a normaliser |
 | [exception-hierarchy](exception-hierarchy.md) | backend | -- | 5/16 | Named tuples give us the seam; the hierarchy that catches our own types is not built |
@@ -250,7 +250,7 @@ that changed a published name or rule:
 | [p5-self-run-findings](p5-self-run-findings.md) | systems | -- | 4/6 | The P5 self-run findings |
 | [r2-preexisting-prose](r2-preexisting-prose.md) | backend | -- | 0/2 | Correct pre-existing move and fold-helper prose |
 | [mark-stance-metadata-prose](mark-stance-metadata-prose.md) | backend | -- | 0/2 | Clarify mark stance and reading metadata prose |
-| [lexical-code-identity](lexical-code-identity.md) | backend | -- | 17/23 | Use lexical code identity at both proof boundaries |
+| [lexical-code-identity](lexical-code-identity.md) | backend | -- | 17/26 | Use lexical code identity at both proof boundaries |
 | [2026-10-13-human-question-list](2026-10-13-human-question-list.md) | backend | -- | 1/4 | Expose human questions across edit copies |
 | [empty-comment-gets-a-drop](empty-comment-gets-a-drop.md) | backend | -- | 0/1 | An empty comment gets a drop mark |
 | [paragraph-is-a-passage](paragraph-is-a-passage.md) | backend | -- | 0/9 | The addressed unit of prose is a passage, not a paragraph |
@@ -275,6 +275,7 @@ that changed a published name or rule:
 | [freeform-rules-have-no-source](freeform-rules-have-no-source.md) | agents | -- | 1/3 | Freeform is a second pipeline run only by prose, sharing rules with no source |
 | [names-persist-before-they-settle](names-persist-before-they-settle.md) | systems | -- | 0/2 | Names reach four persisted layers before their meaning settles |
 | [external-address-cites-dead-modules](external-address-cites-dead-modules.md) | backend | -- | 2/3 | external_address.py cites two modules that left the tree |
+| [dropped-history-has-no-home](dropped-history-has-no-home.md) | agents | -- | 4/6 | A dropped history sentence has no home |
 
 ### in-progress  (10)
 
@@ -556,4 +557,3 @@ the reason is inside the file.
 | [a-conflict-has-no-rendering](completed/a-conflict-has-no-rendering.md) | 5 finished, 1 superseded |
 | [compact-can-buy-lines-with-width](completed/compact-can-buy-lines-with-width.md) | 10 finished, 1 superseded |
 | [prove-unchanged-compares-raw-line-endings](completed/prove-unchanged-compares-raw-line-endings.md) | 1 finished, 1 superseded |
-| [dropped-history-has-no-home](completed/dropped-history-has-no-home.md) | 4 finished |

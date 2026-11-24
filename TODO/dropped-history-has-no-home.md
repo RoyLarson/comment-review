@@ -1,8 +1,8 @@
 # A dropped history sentence has no home
 
 ```
-Status:   closed
-Progress: 4 of 4 tasks closed
+Status:   open
+Progress: 4 of 6 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-11-08 (2026-11-08 run on another repository, plugin 0.2.4-beta.7)
@@ -41,3 +41,6 @@ rule with no check that the prose arrived, leaves the loss in place.
       a 7a list of every removed sentence the write leaves in no file, matched
       exactly
         > 2026-11-08 Waits on external addresses, after the code section works (#297)
+- [ ] T5 | Split lost's sentences at line ends as well as at sentence
+      punctuation
+- [ ] T6 | Parse in lost only the files the raw-text match could not rule out
