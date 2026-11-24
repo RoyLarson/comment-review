@@ -811,6 +811,14 @@ def test_dropping_the_back_matter_drops_the_blank_run_above_it():
     assert _set_after("x = 1\n\n# back\n", {"f1": None}) == "x = 1\n"
 
 
+def test_a_b0_added_under_matter_in_a_file_with_no_code_reads_back_at_b0():
+    """With no code, the added `b0` is set with a blank above it, which keeps it
+    out of the front matter, and a blank below it, which keeps it out of the back."""
+    out = _set_after("# licence\n", {"b0": "# added"})
+    assert out == "# licence\n\n# added\n\n"
+    assert by_cue(build(out, "m.py"))["b0"].raw_lines == ["# added"]
+
+
 def test_an_add_to_an_empty_file_ends_with_a_line_break():
     """`decision-log.md Process: #376`."""
     out = _set_after("", {"a0": '"""Doc."""'})
