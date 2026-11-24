@@ -27,16 +27,16 @@ the named stage's row.
 
 ! Exit codes. 0 fits; 1 does not fit, one misfit per line as
 `<stage>  <kind>  <detail>`; 2 the file itself is refused (`read`'s
-reason under the `reads` kind), the binder could not be read, the jacket
-could not be written, or the arguments are not usable. A `--verify` file that
-cannot be read raises, and Python exits 1.
+reason under the `reads` kind) or cannot be read, the binder could not be
+read, the jacket could not be written, or the arguments are not usable.
+`--out` is written only on exit 0, so a refusal leaves no file behind.
 """
 
 import argparse
 import sys
 from pathlib import Path
 
-from comment_review import constants
+from comment_review import constants, exceptions
 from comment_review.desk.topology import read
 from comment_review.flows.jacket import JACKET_FILE, put_topology
 from comment_review.flows.proof_io import load_binder
@@ -130,11 +130,13 @@ def main() -> int:
             print(str(exc), file=sys.stderr)
             return 2
         target = Path(args.out) if args.out else Path(args.run) / JACKET_FILE
-        if args.out:
-            Path(args.out).write_text(text, encoding="utf-8", newline="")
     elif args.verify:
         target = Path(args.verify)
-        text = target.read_text(encoding="utf-8")
+        try:
+            text = target.read_text(encoding="utf-8")
+        except exceptions.READ_ERRORS as exc:
+            print(f"{target}: cannot be read: {exc}", file=sys.stderr)
+            return 2
     else:
         ap.print_usage()
         return 2
@@ -156,5 +158,7 @@ def main() -> int:
             for line in refused:
                 print(line, file=sys.stderr)
             return 2
+    if args.build and args.out:
+        Path(args.out).write_text(text, encoding="utf-8", newline="")
     print(f"{target} fits {args.binder}: {len(stages)} stages")
     return 0

@@ -115,6 +115,15 @@ def test_a_kind_other_than_editorial_is_refused():
     assert stages == [] and "enriching" in why
 
 
+def test_a_kind_that_is_not_a_string_is_refused():
+    stages, why = read(
+        '[[stage]]\nname="a"\nkind=["editorial"]\nreads="original"\n'
+        '[[stage.dispatch]]\nrole="block-context"\n'
+    )
+    assert stages == []
+    assert why == "stage 'a': key 'kind' is ['editorial'], not 'editorial'"
+
+
 #: An editorial stage, and after it a stage row carrying the three keys a
 #: compacting stage needs, as a run's author writes them -- `decision-log.md
 #: Process: #193`. The expectation is that ruling's own words: the stage

@@ -3,6 +3,7 @@
 `decision-log.md Process: #197` and `#198`.
 """
 
+import pytest
 from helpers import (
     a_binder_over,
     a_clean,
@@ -120,6 +121,13 @@ def test_a_malformed_answers_file_is_named():
         "human.toml",
     )
     assert why == ["human.toml: answer 1 needs answer"]
+
+
+@pytest.mark.parametrize("text", ["", '[[answers]]\nrole = "block-context"\n'])
+def test_a_file_with_no_answer_table_is_refused(text):
+    got, why = read_answers(text, "human.toml")
+    assert got == []
+    assert why == ["human.toml: holds no [[answer]] table"]
 
 
 def test_each_query_is_paired_with_its_own_roles_answer():
