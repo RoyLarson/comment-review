@@ -335,9 +335,10 @@ def test_a_named_file_that_is_neither_read_nor_source_stops_the_gather(
 ):
     target = tmp_path / "logo.png"
     target.write_bytes(b"\x89PNG\x00")
-    code, printed, _ = _gather(tmp_path, monkeypatch, capsys, target)
+    code, printed, out = _gather(tmp_path, monkeypatch, capsys, target)
     assert code == 1, printed
     assert "logo.png" in printed
+    assert not out.exists()
 
 
 def test_a_python_file_that_fails_to_read_still_stops_the_gather(

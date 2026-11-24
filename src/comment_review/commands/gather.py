@@ -6,6 +6,7 @@ file for the names of the flow's two steps, and so must not find them here.
 """
 
 import argparse
+import io
 import json
 import sys
 from contextlib import redirect_stdout
@@ -73,10 +74,14 @@ def main() -> int:
     # worktree-isolated harness -- "too complex to verify that it stays inside
     # the worktree" -- and the JSON binder is what the stage-5 collator reads, so
     # the only documented route to it was unrunnable there.
+    # Written only on exit 0, so a refusal leaves no file for a later stage.
     if args.out:
-        with open(args.out, "w", encoding="utf-8", newline="") as fh:
-            with redirect_stdout(fh):
-                return _report(args)
+        printed = io.StringIO()
+        with redirect_stdout(printed):
+            code = _report(args)
+        if code == 0:
+            Path(args.out).write_text(printed.getvalue(), encoding="utf-8", newline="")
+        return code
     return _report(args)
 
 

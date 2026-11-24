@@ -12,6 +12,7 @@ read, and stays outside what an instruction may target.
 """
 
 import argparse
+import io
 from collections import defaultdict
 from contextlib import redirect_stdout
 from pathlib import Path
@@ -37,10 +38,14 @@ def main() -> int:
     # worktree-isolated harness REFUSES a command carrying a shell redirect,
     # and the REFERENCE ONLY list is what stage 3 keeps -- so the only route to
     # holding it was unrunnable in the session type the skill is written for.
+    # Written only on exit 0, so a refusal leaves no file for a later stage.
     if args.out:
-        with open(args.out, "w", encoding="utf-8", newline="") as fh:
-            with redirect_stdout(fh):
-                return _report(args)
+        printed = io.StringIO()
+        with redirect_stdout(printed):
+            code = _report(args)
+        if code == 0:
+            Path(args.out).write_text(printed.getvalue(), encoding="utf-8", newline="")
+        return code
     return _report(args)
 
 

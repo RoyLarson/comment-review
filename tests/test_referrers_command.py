@@ -42,6 +42,28 @@ def test_a_bom_file_still_yields_its_public_names(tmp_path, monkeypatch, capsys)
     assert "cites.md\n      names: harvested" in out
 
 
+def test_a_run_that_fails_leaves_no_out_file(tmp_path, monkeypatch, capsys):
+    repo = a_checkout(tmp_path, {"target.py": "def harvested():\n    pass\n"})
+
+    def fails(*args):
+        raise RuntimeError("the search broke")
+
+    monkeypatch.setattr(referrers_command, "files_naming", fails)
+    out = tmp_path / "referrers.txt"
+    with pytest.raises(RuntimeError):
+        run_command(
+            monkeypatch,
+            capsys,
+            referrers_command,
+            "--repo",
+            str(repo),
+            "--out",
+            str(out),
+            str(repo / "target.py"),
+        )
+    assert not out.exists()
+
+
 def test_files_naming_lists_an_awkward_name_verbatim(tmp_path):
     name = 'a\t"b".md'
     try:
