@@ -7587,3 +7587,14 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
 
   **What it settles.** The jacket's run-start snapshot is the manuscript; `original` stays the
   text a stage read.
+
+- **#410.** **An open stage can be reopened** (Roy, 2026-11-23, on the jacket's SKILL.md
+  rewrite: collate's exit 2 for a page identity that will not admit used to be answered by a
+  regather, and an opened stage cannot be gathered again; offered stopping the run and reporting,
+  or a way to reopen a stage):
+
+  *"Add a way to reopen a stage"*
+
+  **What it settles.** A stage that has opened and not closed can be discarded -- its root, binder
+  and copies -- and opened again under the installed reader; SKILL.md's exit-2 row reopens the
+  stage and relaunches its dispatches.
