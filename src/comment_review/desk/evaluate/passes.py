@@ -19,6 +19,7 @@ from comment_review.desk.evaluate.move import (
     decide_ends,
     hold_ends,
     keep_ends,
+    keep_movers,
     placement_pass,
 )
 from comment_review.desk.marks.table import INSTRUCTIONS, Stance
@@ -425,7 +426,8 @@ def decide(
     ruling where there is one, and a final one takes off the filings that no
     longer stand: an agreed move stays filed at both ends, and each end is then
     decided against it as an ordinary place. Then each place's marks and
-    answers, as for any one-place mark; then each move the chief took in from
+    answers, as for any one-place mark; then each agreed move refuses an end
+    its mover withdrew from alone; then each move the chief took in from
     its mover decides the ends it sets, and every move not yet final holds its
     two ends `to-come`; then the chief's dispositions, which a `to-come` end
     does not take, and an agreed move's end does not take where the ruling
@@ -449,6 +451,7 @@ def decide(
         for t in range(1, turn + 1):
             answers_pass(place, t)
     for move in moves.values():
+        keep_movers(move, places, turn)
         cover_ends(move, places)
         hold_ends(move, places)
     for place in places.values():

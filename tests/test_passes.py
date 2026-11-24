@@ -1079,6 +1079,55 @@ class TestAMoveIsDecidedBeforeItsEnds:
             end.state is State.STANDS and end.text is None for end in places.values()
         )
 
+    def _two_movers(self):
+        """`a`'s move, filed by `c` too, read by `b`."""
+        places, _ = self._places(readers=("a", "b", "c"))
+        for end in places.values():
+            end.filed.append(Filed("c", end.filed[0].mark, end.filed[0].touch))
+        return places, moves_in(places)
+
+    def test_a_withdrawn_mover_is_not_owed_the_placement(self):
+        """A mover that withdrew has had its say, as a role that withdrew its
+        side has at a place, so the other mover's move is agreed without it."""
+        places, moves = self._two_movers()
+        decide(places, moves)
+        moves[self.KEY].answers[1] = {
+            "a": self._placement("withdraw"),
+            "b": self._placement("agree"),
+        }
+        decide(places, moves, turn=1)
+        move = moves[self.KEY]
+        assert (move.placement, move.owed, list(move.movers)) == (
+            Placement.AGREED,
+            (),
+            ["c"],
+        )
+
+    def test_a_move_its_other_mover_withdrew_from_goes_to_the_chief(self):
+        """`b` defers, so no role but the mover left holds a view."""
+        places, moves = self._two_movers()
+        decide(places, moves)
+        defer = self._placement("query", {"shape": str(Shape.OUTSIDE_MY_ROLE)})
+        moves[self.KEY].answers[1] = {"a": self._placement("withdraw"), "b": defer}
+        decide(places, moves, turn=1)
+        assert (moves[self.KEY].placement, moves[self.KEY].owed) == (
+            Placement.OPEN,
+            (),
+        )
+
+    def test_a_second_withdraw_by_a_withdrawn_mover_is_not_refused(self):
+        places, moves = self._two_movers()
+        decide(places, moves)
+        moves[self.KEY].answers[1] = {"a": self._placement("withdraw")}
+        decide(places, moves, turn=1)
+        moves[self.KEY].answers[2] = {
+            "a": self._placement("withdraw"),
+            "b": self._placement("agree"),
+        }
+        decide(places, moves, turn=2)
+        move = moves[self.KEY]
+        assert (move.placement, move.reasons) == (Placement.AGREED, ())
+
     def test_a_human_placement_answer_refuses_the_move(self):
         places, moves = self._places()
         decide(places, moves)
@@ -1207,6 +1256,48 @@ class TestAMoveIsDecidedBeforeItsEnds:
         places, moves = self._agreed_by_b(("a",))
         end = self._chief_rules_end(places, moves, "m.py@b5", name, side, prose)
         assert (end.state, end.text) == (State.STANDS, text or prose)
+
+    @pytest.mark.parametrize("address", ["m.py@b1", "m.py@b5"])
+    def test_the_movers_withdraw_at_one_end_of_an_agreed_move_is_refused(self, address):
+        """`Process: #283`: a mover's `withdraw` on an end's words would put
+        that end back while the other keeps the move, leaving the paragraph
+        at both ends or at neither. A move is withdrawn on its placement."""
+        base, change, claim = {
+            "m.py@b1": (
+                BASE,
+                "# one\n# TWO\n# three\n",
+                {"false": "two", "true": "TWO"},
+            ),
+            "m.py@b5": (
+                self.LANDING,
+                "# four and five\n",
+                {"false": "four\n# five", "true": "four and five"},
+            ),
+        }[address]
+        rival = _mark(
+            Instruction.CORRECT,
+            change=change,
+            raw_text=base,
+            claim=claim,
+            address=address,
+        )
+        places, moves = self._places()
+        places[address].filed.append(Filed("b", rival, Touch.OWN))
+        moves = moves_in(places)
+        decide(places, moves)
+        moves[self.KEY].answers[1] = {"b": self._placement("agree")}
+        decide(places, moves, turn=1)
+        assert moves[self.KEY].placement is Placement.AGREED
+        assert places[address].state is State.CONTESTED
+        places[address].answers[2] = {"a": _answer("withdraw")}
+        decide(places, moves_in(places, moves), turn=2)
+        end = places[address]
+        assert (end.state, end.text) == (State.REFUSED, None)
+        assert end.reasons == (
+            f"a: a withdraw at {address} takes the agreed move {self.KEY} off"
+            " this end alone, which splits the move; withdraw the move on its"
+            " placement, which takes it off both ends",
+        )
 
     def test_a_further_mark_at_an_end_of_an_agreed_move_is_taken_in(self):
         """`Process: #283`: once agreed, a move's ends are split for further
