@@ -92,4 +92,3 @@ def handed(paragraphs: Sequence[Paragraph]) -> list[Paragraph]:
         The rows a role is accountable for, in the order given.
     """
     return [b for b in paragraphs if b.address and series_of(b) != COVERS]
-

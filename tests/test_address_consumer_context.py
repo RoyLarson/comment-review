@@ -49,9 +49,7 @@ def test_pull_retains_the_saved_context(tmp_path, monkeypatch):
 
     monkeypatch.setattr(page_for, "page_for", observe)
     docket = Docket(
-        schedules=(
-            Schedule(path="m.py", sha=page.sha, reading=saved, alterations=()),
-        )
+        schedules=(Schedule(path="m.py", sha=page.sha, reading=saved, alterations=()),)
     )
     output = tmp_path / "revise"
     result = revise.pull(docket, root, output)

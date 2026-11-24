@@ -189,4 +189,3 @@ def _compose_tokens(base: str, sides: dict[str, str]) -> str:
         at = i2
     out.extend(base_tokens[at:])
     return "".join(out)
-
