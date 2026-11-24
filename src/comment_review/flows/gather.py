@@ -2,7 +2,7 @@
 
     gather(repo, targets, stage) -> Gathering
     page_in(path, repo) -> the page one file reads as, or why not
-    unaddressed_report(missing), not_gathered(handed_in, unreadable) -> text
+    not_gathered(handed_in, unreadable) -> text
 
 A page is one file -- its paragraphs in order among the code they sit with --
 and `flows.page_for.page_of` builds one. This walks the files in scope, builds
@@ -337,21 +337,6 @@ def _repo_relative(path: Path, repo: Path) -> str:
         return path.resolve().relative_to(repo).as_posix()
     except ValueError:
         return path.as_posix()
-
-
-def unaddressed_report(missing: list[str]) -> str:
-    """What to say about a gather whose paragraphs cannot be cited.
-
-    It names them as well as counting them: a reader has to know which file to
-    look at, and the count alone sends them through the whole binder.
-    """
-    rows = "\n".join(f"  {line}" for line in missing)
-    plural = "paragraph" if len(missing) == 1 else "paragraphs"
-    return (
-        f"{len(missing)} {plural} carry NO ADDRESS, so nothing can cite them\n"
-        f"and the stage-5 gate would count them as nobody's:\n{rows}\n"
-        "A binder with no `original_start` cannot name a gap. Re-run gather."
-    )
 
 
 def not_gathered(handed_in: int, unreadable: list[str]) -> str:

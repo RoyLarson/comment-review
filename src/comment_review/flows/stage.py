@@ -58,7 +58,6 @@ from pathlib import Path
 from typing import NamedTuple
 
 from comment_review import exceptions
-from comment_review.binder.addresses import unaddressed
 from comment_review.desk.proof.master_proof import MasterProof
 from comment_review.desk.stages import Stage
 from comment_review.desk.topology import REVISE, read
@@ -71,7 +70,7 @@ from comment_review.flows.fan_out import (
     received_binder_of,
     write_dealt,
 )
-from comment_review.flows.gather import gather, not_gathered, unaddressed_report
+from comment_review.flows.gather import gather, not_gathered
 from comment_review.flows.jacket import (
     MANUSCRIPT,
     Closed,
@@ -351,9 +350,6 @@ def _gather_and_seed(
     got = gather(root, targets, stage=stage.name)
     if got.unreadable:
         raise _Refused([not_gathered(len(targets), got.unreadable)])
-    missing = unaddressed(got.binder.paragraphs)
-    if missing:
-        raise _Refused([unaddressed_report(missing)])
     run_dir = jacket_file.parent
     binder_path = run_dir / f"binder{stage.name}.json"
     wire = got.binder.serialize()

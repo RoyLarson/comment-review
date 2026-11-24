@@ -11,13 +11,7 @@ import sys
 from contextlib import redirect_stdout
 from pathlib import Path
 
-from comment_review.binder.addresses import unaddressed
-from comment_review.flows.gather import (
-    Gathering,
-    gather,
-    not_gathered,
-    unaddressed_report,
-)
+from comment_review.flows.gather import Gathering, gather, not_gathered
 from comment_review.reading.readers import supported_definitions
 
 
@@ -26,8 +20,7 @@ def main() -> int:
 
     Returns:
         The exit code: 0 with the binder or the language list printed, 1 when
-        a file handed in was not gathered or a paragraph has no address, 2 on a
-        usage error such as no paths.
+        a file handed in was not gathered, 2 on a usage error such as no paths.
     """
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("paths", nargs="*")
@@ -109,15 +102,6 @@ def _report(args: argparse.Namespace) -> int:
     if got.unreadable:
         handed_in = len(got.pages) + len(got.freeform) + len(got.unreadable)
         print(not_gathered(handed_in, got.unreadable), file=sys.stderr)
-        return 1
-    # !! An unaddressed paragraph is uncitable, so a binder holding one is a
-    # binder nobody can rule on -- and it fails silently:
-    # `flows.verify.admit` builds its coverage set from the
-    # addresses, so paragraphs with none are simply not accountable and the run
-    # reads as complete.
-    missing = unaddressed(got.binder.paragraphs)
-    if missing:
-        print(unaddressed_report(missing), file=sys.stderr)
         return 1
     # !! The serialize is the container's and the dump is the command's. This is
     # the read flow's save end, and one of three places a binder becomes text,

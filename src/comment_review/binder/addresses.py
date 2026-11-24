@@ -1,10 +1,9 @@
 """Questions asked of a binder BY ADDRESS: which paragraph sits at which place.
 
-`handed` is the set of rows a role is dealt and its coverage is counted over,
-and `unaddressed` names the rows that carry no address.
+`handed` is the set of rows a role is dealt and its coverage is counted over.
 
 !! IT IS HERE BECAUSE IT READS PARAGRAPHS. `addresser.py` says it *"still knows
-nothing about prose"*, and four of these six functions take a list of addressed
+nothing about prose"*, and two of these four functions take a list of addressed
 things and two take one -- the rows, which are the binder's material.
 
 ! THE ADDRESSER STILL OWNS THE ADDRESS. Emitting a place, spelling it and
@@ -73,21 +72,6 @@ def stable(paragraph: Paragraph) -> str:
     return paragraph.address
 
 
-def _by_path(paragraphs: Sequence[Paragraph]) -> dict[str, list[Paragraph]]:
-    """Every paragraph grouped by the file it belongs to, in binder order.
-
-    One pass, not one per file.
-
-    The grouping is what its one caller, `unaddressed`, wants; the set of
-    paths is `.keys()` and the binder order inside a file is preserved, which is
-    what `entry N` in a report counts.
-    """
-    out: dict[str, list[Paragraph]] = {}
-    for b in paragraphs:
-        out.setdefault(b.path, []).append(b)
-    return out
-
-
 def handed(paragraphs: Sequence[Paragraph]) -> list[Paragraph]:
     """The paragraphs a role is handed: addressed, and not the file's own matter.
 
@@ -109,20 +93,3 @@ def handed(paragraphs: Sequence[Paragraph]) -> list[Paragraph]:
     """
     return [b for b in paragraphs if b.address and series_of(b) != COVERS]
 
-
-def unaddressed(paragraphs: Sequence[Paragraph]) -> list[str]:
-    """Which paragraphs carry NO address, described one per line.
-
-    `gather` runs it over `Binder.paragraphs`, which already drops every row
-    without an address, so there it finds none. A paragraph with no address
-    cannot be cited, so a review over it would rule on nothing and report itself
-    complete.
-    """
-    out: list[str] = []
-    for path, mine in sorted(_by_path(paragraphs).items()):
-        for i, paragraph in enumerate(mine, 1):
-            if not stable(paragraph):
-                start = paragraph.original_start
-                end = paragraph.original_end
-                out.append(f"{path} entry {i}: lines {start}-{end}")
-    return out
