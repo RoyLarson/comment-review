@@ -410,22 +410,18 @@ class TestAnEditedPageStillComposes:
     def test_the_sample_itself_round_trips_before_any_edit(self):
         assert set_page(build(SAMPLE)) == SAMPLE
 
-    def test_a_vacated_place_keeps_its_leading_where_nothing_else_separates(
-        self, sample
-    ):
+    def test_a_vacated_place_loses_its_leading(self, sample):
         """`Addressing: #22` -- the compositor derives a fence from the
-        place's kind. `a0` is the sample's one FILLED place whose edge owns a
-        leading (`page.leading == {"a0": "d0", "c1": "d1"}`), and the shebang
-        above it owns none, so dropping `a0` keeps the blanks: set flush, the
-        `# note` below would re-read as part of the shebang's front matter.
+        place's kind, so a place a `drop` vacated does not stand over
+        whatever follows it. `a0` is the sample's one FILLED place whose
+        edge owns a leading (`page.leading == {"a0": "d0", "c1": "d1"}`).
         """
         from comment_review.results.galley import reset
 
         reset(sample, {"a0": None})
         out = set_page(sample)
-        assert "#!/usr/bin/env python\n\n\n# note\n" in out
+        assert "#!/usr/bin/env python\n# note\n" in out
         assert '"""Doc."""' not in out
-        assert by_cue(build(out))["b0"].raw_lines == ["# note"]
 
     def test_a_vacated_gap_loses_its_leading(self):
         """The same rule at a `b`, on a page with no `a` at all, so a rule
@@ -816,6 +812,11 @@ def test_a_dropped_paragraph_leaves_its_neighbours_separated(text, cue, expected
     side of it: when nothing else separates them, the dropped place's blank
     lines stay."""
     assert _set_after(text, {cue: None}) == expected
+
+
+def test_a_dropped_docstring_takes_the_blank_below_it():
+    text = 'def f():\n    """Doc."""\n\n    return 1\n'
+    assert _set_after(text, {"a1": None}) == "def f():\n    return 1\n"
 
 
 def test_a_comment_added_under_a_header_then_a_blank_keeps_one_blank():

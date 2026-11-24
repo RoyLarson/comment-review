@@ -49,7 +49,7 @@ from pathlib import Path
 from comment_review import constants, exceptions
 from comment_review.binder.page import Page
 from comment_review.machine.repo import write_raw
-from comment_review.reading.addresser import GAP, ON, cue_of
+from comment_review.reading.addresser import DECLARED, GAP, ON, cue_of
 from comment_review.reading.series import Kind
 
 CRLF = "\r\n"
@@ -229,11 +229,13 @@ def _set(page: Page, newline: str | None) -> tuple[str, dict[str, tuple[int, int
         # place. The question is the place's state -- a kind that says prose
         # belongs, and no lines held -- which is what `vacated` reads.
         #
-        # ! A vacated place's own leading is still set when nothing has been
+        # ! A vacated comment's own leading is still set when nothing has been
         # set between the last line and it: a drop removes the paragraph, not
-        # the space that separated the lines on either side of it.
+        # the space that separated the lines on either side of it. A dropped
+        # docstring takes the blank below it, which is part of its layout.
         owned = held.get(edges.get(previous, ""), [])
-        edge = owned if previous not in vacated or (out and pending is None) else []
+        keeps = out and pending is None and not previous.startswith(DECLARED)
+        edge = owned if previous not in vacated or keeps else []
         if edge and pending is None:
             pending = len(out)
         out.extend(edge)
