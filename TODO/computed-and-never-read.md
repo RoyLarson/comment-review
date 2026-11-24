@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 17 of 36 tasks closed
+Progress: 18 of 36 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (simplify round 7, 2026-08-22 -- found by Pyright and by reading,
@@ -161,8 +161,9 @@ page.py:793-794 for `_SHEBANG`/`_CODING`, which round 7 deleted; those citations
       binder/page._place serialises none of them
         > 2026-11-22 Check: the ruling is recorded in docs/decision-log.md
         > 2026-11-22 Outcome: not in the binder; delete the step (Process #320)
-- [ ] T20 | Delete the paragraph annotations gather computes at
-      flows/gather.py:222, keeping its unread list
+- [x] T20 | Paragraph annotations and their builders deleted | 52131920 | Delete
+      the paragraph annotations gather computes at flows/gather.py:222, keeping
+      its unread list
         > 2026-11-22 Check: no src/ reader or writer of Paragraph.annotations remains
         > 2026-11-23 comment-review 2026-11-23: annotations_for output reaches no role
 - [x] T21 | grep finds none of the four in src | c0b134dd1a8dfa0b93b5fbcadbc7b73748afd935 | Delete

@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 7 of 12 tasks closed
+Progress: 8 of 12 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-09-03 (systems)
@@ -57,8 +57,8 @@ own.
 
 ## Tasks
 
-- [ ] T1 | Delete results.compositor.approve, which has no caller and writes the
-      real file
+- [x] T1 | compositor.approve deleted | 6a9322ea | Delete
+      results.compositor.approve, which has no caller and writes the real file
         > 2026-11-23 comment-review 2026-11-23: approve() has no caller in src or tests
 - [ ] T2 | Move the write in results.compositor.draft out to the flow that calls
       it

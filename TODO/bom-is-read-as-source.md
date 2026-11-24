@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 7 of 12 tasks closed
+Progress: 8 of 12 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-21 (the /code-review xhigh of 2026-08-21, focused on the file-to-
@@ -89,8 +89,9 @@ the first statement rather than as a `trailing-comment`, and no anchor is the BO
 - [ ] T9 | Strip the byte-order mark from a Rust line-1 doc's text, as the
       Python reader does
         > 2026-11-22 Check: a BOM'd .rs file's line-1 doc text has no U+FEFF
-- [ ] T10 | Read Python source with utf-8-sig before ast.parse at
-      flows/gather.py:259, commands/referrers.py:62
+- [x] T10 | BOM stripped before the name harvest; test fails without it | 9cb865b1 | Read
+      Python source with utf-8-sig before ast.parse at flows/gather.py:259,
+      commands/referrers.py:62
         > 2026-11-22 Check: a BOM'd .py harvests its names; no SyntaxError gap row
 - [ ] T11 | Strip the BOM from line-1 raw_lines before flows/proof_setter.py:598
       _reread compares them

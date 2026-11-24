@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 6 of 14 tasks closed
+Progress: 7 of 14 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (C:/Program Files/Git/simplify rounds 1 and 2 and /code-review high
@@ -97,7 +97,8 @@ a run.
         > 2026-10-26 _bodies scans lines per declaration twice; 3.0 of 4.2 s on 9k lines
 - [ ] T11 | Align Page.text, sha and lines after a Python read rewrites
         > 2026-10-30 W3 D7: shared-line docstring; compositor says LOSSY
-- [ ] T12 | Refuse a trailing paragraph with no c instead of an empty address
+- [x] T12 | page_for returns a ReadFailure for a paragraph with no place | 296362f5 | Refuse
+      a trailing paragraph with no c instead of an empty address
         > 2026-10-30 D2: address '' bypasses held_twice; synthetic input only
 - [-] T13 | Superseded by #259: its language or reader left the system | e2b34a22ad36b0919b9d01cfd05bb74e80e76db9 | Declare
       what page_for reads from a lexical read in a Protocol

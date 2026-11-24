@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 2 tasks closed
+Progress: 1 of 2 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-11-24 (stage 7b refusal reproduced 2026-11-24)
@@ -45,7 +45,8 @@ is asked to accept it on the agent's word rather than the proof.
 
 ## Tasks
 
-- [ ] T1 | Make read_revision_source return the base blob with the working-tree
-      line endings
+- [-] T1 | read_revision_source deleted; prove_unchanged reads no git blob | 2990793e | Make
+      read_revision_source return the base blob with the working-tree line
+      endings
 - [ ] T2 | Add a regression test: an unchanged CRLF file holding a multi-line
       string proves under core.autocrlf=true

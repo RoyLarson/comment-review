@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 4 tasks closed
+Progress: 2 of 4 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-11-22 (code review 2026-11-22, merged findings)
@@ -21,8 +21,9 @@ Found by the code review of 2026-11-22 (M29, M48, M51, M85).
 
 ## Tasks
 
-- [ ] T1 | Make commands/check.py:359 check --answers ask corrections_in_answers
-      as well as queries_in_answers
+- [x] T1 | check --answers asks corrections_in_answers too | 36e9c9e2 | Make
+      commands/check.py:359 check --answers ask corrections_in_answers as well
+      as queries_in_answers
         > 2026-11-22 Check (M29): f0 patch in a turn answer counts as a human question
 - [ ] T2 | Refuse a turn answer with a null instruction but a filled change at
       flows/answers.py:205
@@ -30,6 +31,6 @@ Found by the code review of 2026-11-22 (M29, M48, M51, M85).
 - [ ] T3 | Apply the change-must-be-filled rule to rewrites that compose to
       blank text at flows/answers.py:291
         > 2026-11-22 Check (M51): two corrects composing to blank text are refused
-- [ ] T4 | Refuse an answers TOML that holds no [[answer]] table at
-      flows/human.py:192
+- [x] T4 | An answers file with no [[answer]] table is refused | 407b933e | Refuse
+      an answers TOML that holds no [[answer]] table at flows/human.py:192
         > 2026-11-22 Check (M85): an [[answers]] typo is refused, not read as no answers

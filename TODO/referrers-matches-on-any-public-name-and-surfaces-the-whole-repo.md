@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 6 tasks closed
+Progress: 3 of 8 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-17 (referrers.py's FIRST real exercise, the redacted_corpus
@@ -100,15 +100,17 @@ was expected to behave.
 
 ## Tasks
 
-- [ ] T1 | T1 -- Drop a token by its MEASURED match count, with the threshold
-      derived from the run, not hard-coded. Verify: a token matching several
-      hundred files is dropped.
-- [ ] T2 | T2 -- Require a bare NAME token to match as a CITATION -- `` `run`
-      ``, `run()` or `module.run`, not the word in a sentence. Verify: a prose
-      `run` no longer matches.
-- [ ] T3 | T3 -- Print what was dropped and why -- one line per dropped token
-      with its count. Verify: the packet records the narrowing; no token is
-      dropped silently.
+- [-] T1 | #423: deferred until a run measures T2; reissued | 7660e4a7 | T1 --
+      Drop a token by its MEASURED match count, with the threshold derived from
+      the run, not hard-coded. Verify: a token matching several hundred files is
+      dropped.
+- [x] T2 | A name token matches only as a citation | 7498bf17 | T2 -- Require a
+      bare NAME token to match as a CITATION -- `` `run` ``, `run()` or
+      `module.run`, not the word in a sentence. Verify: a prose `run` no longer
+      matches.
+- [-] T3 | #423: deferred with T1; reissued | 7660e4a7 | T3 -- Print what was
+      dropped and why -- one line per dropped token with its count. Verify: the
+      packet records the narrowing; no token is dropped silently.
 - [ ] T4 | T4 -- Say in `SKILL.md` what to do when referrers' output is too
       large to hand over as-is. Verify: `SKILL.md` names a sanctioned response;
       today it offers none.
@@ -118,6 +120,9 @@ was expected to behave.
 - [ ] T6 | T6 -- Re-run referrers against the same 24 files and compare. Verify:
       the two mirror docs still appear and the returned count is workable, taken
       from the run.
+- [ ] T7 | Drop a token by its measured match count, with the threshold derived
+      from the run
+- [ ] T8 | Print each dropped token with its match count
 ## Related
 
 - [`ownership-is-read-first`](ownership-is-read-first-but-nothing-makes-it-so.md) -- carries the

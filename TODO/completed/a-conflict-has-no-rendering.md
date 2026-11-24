@@ -1,8 +1,8 @@
 # A conflict is detected and nothing renders it
 
 ```
-Status:   open
-Progress: 5 of 6 tasks closed
+Status:   closed
+Progress: 6 of 6 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-28, filing the work `decision-log.md Process: #20` created. The
@@ -71,4 +71,5 @@ the collator to ruling on nothing.
         > 2026-11-21 Check: show base and all labeled sides without duplicate text.
         > 2026-11-21 Check: replay hold, withdraw and rewrite through turn.
         > 2026-11-21 Check: reviewer brief uses diff3 for text escalations.
-- [ ] T6 | Delete differences.diff3 and the helpers only it uses
+- [x] T6 | diff3 and its helpers deleted (#418) | f81ad323 | Delete
+      differences.diff3 and the helpers only it uses

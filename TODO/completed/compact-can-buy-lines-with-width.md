@@ -1,8 +1,8 @@
 # COMPACT can buy lines with width, and nothing stops it
 
 ```
-Status:   in-progress
-Progress: 7 of 11 tasks closed
+Status:   closed
+Progress: 11 of 11 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-08-17, on the FIRST exercise of stage 6 -- it returned two blocks at
@@ -135,22 +135,24 @@ for this case.
 - [x] T1 | FINISHED | unknown | T1 -- RULING, MADE 2026-08-17: WHICHEVER IS
       LESS. Both the published width and the observed wrap bind stage 6, and the
       tighter wins. Kept in full in the Objective.
-- [ ] T2 | T2 -- Say in `compact.md` that a block may not change KIND to escape
-      the cap. Verify: the words are there and `scripts/check_vocabulary.py`
-      still passes.
+- [x] T2 | compact.md: a paragraph keeps its kind | c4fbe010 | T2 -- Say in
+      `compact.md` that a block may not change KIND to escape the cap. Verify:
+      the words are there and `scripts/check_vocabulary.py` still passes.
 - [-] T3 | Moot: stage 6 admits no move; Process #369 | 718944e14524f963b93cc5c8fcca2e7948fb0a67 | T3
       -- State in `compact.md` the test that separates a legitimate `move` into
       a docstring from cap-dodging. Verify: the file names both sides of that
       line.
-- [ ] T4 | T4 -- Say in `compact.md` that lines may not be widened to buy a
-      line, under T1. Verify: `width` occurs in the file and the sentence states
-      WHICHEVER IS LESS.
-- [ ] T5 | T5 -- Add the observed comment wrap to the measured section of the
-      STYLE SHEET. Verify: the style sheet carries the number and says it was
-      measured, not published.
-- [ ] T6 | T6 -- Write the rule for what stage 6 reports when in-cap and
-      at-habit conflict. Verify: `compact.md` names the case and says what stage
-      6 emits.
+- [x] T4 | compact.md: no line widened; the lesser width bounds | c16bf4bc | T4
+      -- Say in `compact.md` that lines may not be widened to buy a line, under
+      T1. Verify: `width` occurs in the file and the sentence states WHICHEVER
+      IS LESS.
+- [x] T5 | The style sheet records the measured comment wrap | e5eb81f5 | T5 --
+      Add the observed comment wrap to the measured section of the STYLE SHEET.
+      Verify: the style sheet carries the number and says it was measured, not
+      published.
+- [x] T6 | compact.md states #419: keep the width, mark clean | a67b8de9 | T6 --
+      Write the rule for what stage 6 reports when in-cap and at-habit conflict.
+      Verify: `compact.md` names the case and says what stage 6 emits.
         > 2026-11-24 Outcome (#419): keep the width; condenser files clean
 - [x] T7 | FINISHED | unknown | T7 -- RECORD, not a task. What the 2026-08-17
       run got RIGHT, kept in the Objective so a later pass does not rewrite the

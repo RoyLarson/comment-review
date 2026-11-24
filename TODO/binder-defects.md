@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 29 of 52 tasks closed
+Progress: 30 of 52 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, a code review of `binder/binder.py` run against its
@@ -296,5 +296,5 @@ task 5's, but the fix for these two lands in `binder/binder.py`.
         > 2026-11-22 Check (M27): gather m.py sub/../m.py yields one page
 - [ ] T51 | Move BINDER_VERSION from read_from.py to the binder
         > 2026-11-23 Only binder/binder.py reads it
-- [ ] T52 | Delete unaddressed() and unaddressed_report(), which nothing can
-      reach
+- [x] T52 | unaddressed() and unaddressed_report() deleted with their callers | d74e4c17 | Delete
+      unaddressed() and unaddressed_report(), which nothing can reach
