@@ -5,31 +5,31 @@ written for.
 layout, so on a scratch tree `topology --verify` refuses it and NAMES THE GLOBS --
 the "state why it is not" branch, said by the system rather than by a sentence
 here. And `topology --build` writes the same shape for the scratch tree, which
-`distribute --stage` then drives -- the "drives a scratch tree of four files"
-branch, on a topology built for it.
+`flows.fan_out.write_dealt` -- what `stage open` deals with -- then drives: the
+"drives a scratch tree of four files" branch, on a topology built for it.
 """
 
 from pathlib import Path
 
 from conftest import ROOT, SAMPLE, run_command
 
-from comment_review.commands import distribute as distribute_command
 from comment_review.commands import gather as gather_command
 from comment_review.commands import topology as topology_command
+from comment_review.desk.topology import read as read_topology
+from comment_review.flows.fan_out import write_dealt
+from comment_review.flows.proof_io import load_binder
 
 FIXTURE = ROOT / "tests" / "fixtures" / "topologies" / "4a-then-4c.toml"
 
 
-def _bind(tmp_path, monkeypatch, capsys, repo: Path, out: Path, revise: int) -> Path:
-    """One binder over `repo`'s four pages, stamped with the revise `repo` is."""
+def _bind(tmp_path, monkeypatch, capsys, repo: Path, out: Path) -> Path:
+    """One binder over `repo`'s four pages."""
     code, printed = run_command(
         monkeypatch,
         capsys,
         gather_command,
         "--repo",
         str(repo),
-        "--revise",
-        str(revise),
         "--out",
         str(out),
         *[str(repo / f"{n}.py") for n in "abcd"],
@@ -43,23 +43,7 @@ def _four(tmp_path, monkeypatch, capsys) -> Path:
     """Four pages on disk and a binder over them."""
     for n in "abcd":
         (tmp_path / f"{n}.py").write_text(SAMPLE, encoding="utf-8", newline="")
-    return _bind(tmp_path, monkeypatch, capsys, tmp_path, tmp_path / "binder.json", 0)
-
-
-def _revise(tmp_path, monkeypatch, capsys) -> tuple[Path, Path]:
-    """A revise of the four pages, standing in for what `4a`'s proof pulls.
-
-    `4c` reads `revise:4a`, so it is seeded from a binder gathered over that
-    revise rather than over the original -- `desk.topology.seeded_from_problem`.
-    """
-    pulled = tmp_path / "revise"
-    pulled.mkdir()
-    for n in "abcd":
-        (pulled / f"{n}.py").write_text(SAMPLE, encoding="utf-8", newline="")
-    binder = _bind(
-        tmp_path, monkeypatch, capsys, pulled, tmp_path / "revise-binder.json", 1
-    )
-    return pulled, binder
+    return _bind(tmp_path, monkeypatch, capsys, tmp_path, tmp_path / "binder.json")
 
 
 def test_the_committed_fixture_is_refused_on_a_scratch_tree_by_its_globs(
@@ -101,25 +85,12 @@ def test_the_same_shape_built_for_the_scratch_tree_drives_it(
         with_stderr=True,
     )
     assert code == 0, printed
-    pulled, revise_binder = _revise(tmp_path, monkeypatch, capsys)
+    rows, why = read_topology(t.read_text(encoding="utf-8"))
+    assert why == "", why
+    held, problems = load_binder(binder)
+    assert held is not None, problems
     out = tmp_path / "copies"
-    code, printed = run_command(
-        monkeypatch,
-        capsys,
-        distribute_command,
-        "--topology",
-        str(t),
-        "--stage",
-        "4c",
-        "--binder",
-        str(revise_binder),
-        "--revise",
-        str(pulled),
-        "--out-dir",
-        str(out),
-        with_stderr=True,
-    )
-    assert code == 0, printed
+    write_dealt(held, next(row for row in rows if row.name == "4c"), out)
     assert sorted(p.name for p in out.iterdir()) == [
         "4c_block-context_1.json",
         "4c_block-context_2.json",

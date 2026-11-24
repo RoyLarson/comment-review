@@ -7,7 +7,6 @@
 name    = "1"
 kind    = "editorial"
 reads   = "original"
-carries = []
 
   [[stage.dispatch]]
   role = "ownership-context"
@@ -16,7 +15,6 @@ carries = []
 name    = "2"
 kind    = "editorial"
 reads   = "revise:1"
-carries = []
 
   [[stage.dispatch]]
   role = "block-context"
@@ -25,7 +23,6 @@ carries = []
 name    = "3"
 kind    = "editorial"
 reads   = "revise:2"
-carries = []
 
   [[stage.dispatch]]
   role = "function-context"
@@ -34,7 +31,6 @@ carries = []
 name    = "4"
 kind    = "editorial"
 reads   = "revise:3"
-carries = []
 
   [[stage.dispatch]]
   role = "module-context"

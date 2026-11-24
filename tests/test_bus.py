@@ -227,7 +227,7 @@ def test_initial_context_accepts_mixed_languages_empty_sources_and_no_copies(tmp
         page = page_of(tmp_path / path, path)
         assert isinstance(page, Page)
         pages.append(page)
-    binder = bind(pages, {"root": str(tmp_path), "revise": 0})
+    binder = bind(pages, {"root": str(tmp_path)})
     copy = returned(seed(binder, "block-context"))
     out, result = handle(
         CopiesReturned("4c", [copy], binder, tmp_path, binders=(binder,))
@@ -401,7 +401,7 @@ def test_two_moves_and_a_composition_deferral_write_the_expected_page(
         "m.py@b1 -> m.py@b3",
         "m.py@b2 -> m.py@b3",
     }
-    pulled = pull(docket_of_proof(proof, root), root, tmp_path / "revise", 1)
+    pulled = pull(docket_of_proof(proof, root), root, tmp_path / "revise")
     assert pulled.refusals == []
     expected = (
         b"v0 = 0\n# one\nv1 = 1\n# two\nv2 = 2\n"
@@ -514,7 +514,7 @@ def test_a_copy_from_another_tree_rolls_the_fold_back(tmp_path):
         },
     )
     odd = message.copies[1]
-    message.copies[1] = replace(odd, read_from={"root": "somewhere/else", "revise": 0})
+    message.copies[1] = replace(odd, read_from={"root": "somewhere/else"})
     out, result = handle(message)
     assert result is None
     refused = [one for one in out if isinstance(one, events.Refused)]

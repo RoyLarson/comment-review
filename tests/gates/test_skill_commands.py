@@ -197,25 +197,44 @@ def test_a_subcommand_on_a_continuation_line_is_read(tmp_path):
     assert _unaccepted(found) == []
 
 
-#: The files the task agent reads. Stages 7a and 7b set pages from the closed
-#: master proof, so every `proof` they run takes `--proof`; `--copy` sets one
-#: role's own draft, which the brief hands the reviewers.
+#: The files the task agent reads. Stage 7a sets pages from the run's jacket,
+#: the run record every stage's closed proof is named in, so every `proof` they
+#: run takes `--jacket`; `--copy` sets one role's own draft, which the brief
+#: hands the reviewers.
 TASK_AGENT_FILES = (
     SKILL_DIR / "SKILL.md",
     SKILL_DIR / "references" / "write.md",
 )
 
 
-def proof_from_a_copy(paths=TASK_AGENT_FILES) -> list[tuple[list[str], str, int]]:
+def proof_without_the_jacket(
+    paths=TASK_AGENT_FILES,
+) -> list[tuple[list[str], str, int]]:
     """Every `proof` invocation in `paths` that sets pages from something
-    other than the master proof: `(its flags, filename, 1-based line)`."""
+    other than the jacket: `(its flags, filename, 1-based line)`."""
     return [
         (flags, path, line)
         for name, _word, flags, path, line in _invocations(paths)
-        if name == "proof" and ("--proof" not in flags or "--copy" in flags)
+        if name == "proof" and "--jacket" not in flags
     ]
 
 
-def test_the_task_agent_sets_pages_from_the_master_proof():
-    bad = proof_from_a_copy()
-    assert not bad, f"a task-agent `proof` that does not read --proof: {bad}"
+def test_the_task_agent_sets_pages_from_the_jacket():
+    bad = proof_without_the_jacket()
+    assert not bad, f"a task-agent `proof` that does not read --jacket: {bad}"
+
+
+def test_a_proof_without_the_jacket_is_refused(tmp_path):
+    """The check can fail: a `proof` reading a master proof or a copy is a
+    row, and one reading the jacket is not."""
+    prose = tmp_path / "SKILL.md"
+    prose.write_text(
+        "comment-review.py proof --proof P.json --repo . --out D\n"
+        "comment-review.py proof --copy C.json --repo . --out D\n"
+        "comment-review.py proof --jacket J.json --repo . --out D\n",
+        encoding="utf-8",
+    )
+    assert proof_without_the_jacket([prose]) == [
+        (["--proof", "--repo", "--out"], "SKILL.md", 1),
+        (["--copy", "--repo", "--out"], "SKILL.md", 2),
+    ]

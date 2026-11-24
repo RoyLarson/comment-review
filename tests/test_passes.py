@@ -982,6 +982,24 @@ class TestAMoveIsDecidedBeforeItsEnds:
         )
         assert (destination.state, destination.text) == (State.STANDS, self.LANDED)
 
+    def test_taking_in_a_move_the_others_deferred_on_decides_both_ends(self):
+        """`Process: #385`, `#388`: `b` read the page and deferred at the
+        origin and filed nothing at the destination, so the move is its
+        mover's alone. The placement ruling is the second party at the
+        destination too, which `b` never saw and is not owed."""
+        defer = _mark(Instruction.QUERY, claim={"shape": str(Shape.OUTSIDE_MY_ROLE)})
+        places, moves = self._places()
+        places["m.py@b1"].filed.append(Filed("b", defer, Touch.OWN))
+        moves = self._chief_takes(places, moves, "a")
+        assert moves[self.KEY].placement is Placement.AGREED
+        origin, destination = places["m.py@b1"], places["m.py@b5"]
+        assert (origin.state, origin.text) == (State.STANDS, self.REMAINDER)
+        assert (destination.state, destination.text, destination.owed) == (
+            State.STANDS,
+            self.LANDED,
+            (),
+        )
+
     def test_an_end_the_placement_ruling_decided_takes_no_ruling_of_its_own(self):
         """`Process: #283`: a move is not split by a ruling at one end."""
         places, moves = self._places(readers=("a",))

@@ -5,7 +5,7 @@
     load_proof(path)  -> (MasterProof | None, problems)
     load_batch(path)  -> (role -> slots, problems)
     load_value(path)  -> (any JSON value, problems)      a role's answers, the rulings
-    load_text(path)   -> (the text | None, problems)     `collate`'s topology
+    load_text(path)   -> (the text | None, problems)     the jacket's text
     save_proof(path, proof), save_batch(path, batch)
     save_wire(path, copy)   a role's copy mid-fill, every slot kept
 

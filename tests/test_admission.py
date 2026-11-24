@@ -11,12 +11,14 @@ docstring names the input (`decision-log.md` #397, #398).
 """
 
 import json
+from pathlib import Path
 
 import pytest
 from conftest import run_command
 from helpers import (
     a_clean,
     a_correct_setting,
+    a_jacket_naming,
     a_query,
     a_real_binder_over,
     copies_over,
@@ -106,9 +108,12 @@ def _check(tmp_path, monkeypatch, capsys, files):
 
 
 def _collate(tmp_path, monkeypatch, capsys, files):
-    argv = ["--stage", "4c", "--binder", files["binder"], "--edit-copy", files["copy"]]
-    if "topology" in files:
-        argv += ["--topology", files["topology"]]
+    topology = files.get("topology")
+    argv = a_jacket_naming(
+        Path(files["binder"]),
+        [Path(files["copy"])],
+        topology=Path(topology).read_text(encoding="utf-8") if topology else "",
+    )
     argv += ["--proof-out", str(tmp_path / "proof.json")]
     return run_command(monkeypatch, capsys, collate, *argv, with_stderr=True)
 

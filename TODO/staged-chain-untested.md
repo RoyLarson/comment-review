@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 5 of 8 tasks closed
+Progress: 8 of 9 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, driving distribute and collate across real stages for
@@ -35,13 +35,14 @@ The staged chain runs but nothing tests it, and the fan-out topology fits one tr
         > 2026-09-02 is illegal -- a topology can hold one and still cover every page
         > 2026-09-02 and those are different conditions. That remainder is this box
         > 2026-09-06 Roy: an empty glob does not matter; the agent reads and modifies.
-- [ ] T3 | Cover the staged chain with a test that survives. Verify: a test
-      drives `sequential.toml` over a real tree through distribute, collate,
-      docket and pull for every stage, and asserts the edits ACCUMULATE.
-      MEASURED: four stages produce four markers in one paragraph -- one per
-      stage, each reading the revise the one before it pulled. Fewer means a
-      stage read a tree that did not carry the one before it, and nothing in the
-      suite would notice today.
+- [x] T3 | sequential.toml: four stages, four markers, edits accumulate | d508479d805864fec046b73ea6d3c95b4010f812 | Cover
+      the staged chain with a test that survives. Verify: a test drives
+      `sequential.toml` over a real tree through distribute, collate, docket and
+      pull for every stage, and asserts the edits ACCUMULATE. MEASURED: four
+      stages produce four markers in one paragraph -- one per stage, each
+      reading the revise the one before it pulled. Fewer means a stage read a
+      tree that did not carry the one before it, and nothing in the suite would
+      notice today.
 - [x] T4 | desk/topology.py seeded_from_problem reads Stage.reads; distribute --revise; tests/test_topology.py, test_distribute_command.py | 5e08440f | Implement
       the reader for `Stage.reads`, so a stage seeds from the binder its
       topology names rather than from a path typed by hand
@@ -56,9 +57,13 @@ The staged chain runs but nothing tests it, and the fan-out topology fits one tr
       composed topology dispatches match literal page paths containing glob
       characters
         > 2026-09-30 Criteria: docs/reviews/2026-09-30-r6-r7-r8.md, 06:3
-- [ ] T7 | Refuse a binder gathered from a revise for an original-reading stage
-      at commands/distribute.py:166, even without --revise
+- [-] T7 | read_from.stage replaced the revise check; seeded_from_problem gone | da0196df95a741dc3900c61a2105576111ae060c | Refuse
+      a binder gathered from a revise for an original-reading stage at
+      commands/distribute.py:166, even without --revise
         > 2026-11-22 Check (M5): distribute --stage 4c --binder Brev.json exits non-zero
 - [ ] T8 | Match fan-out globs with fnmatchcase, not fnmatch, at
       flows/fan_out.py:66
         > 2026-11-22 Check (M87): SRC/*.txt over src/a.txt deals alike on Windows, Linux
+- [x] T9 | Full smoke exits 0, 16 of 16 sections; gated whole | 138f4d918163858f6f1cc284f9dfffda99021fac | Make
+      smoke_middle.ps1 run past check: update its #179 and #397 expectations and
+      its batch-1 answer

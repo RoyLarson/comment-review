@@ -1,17 +1,16 @@
 # Drives the middle stages of the comment-review chain over a fixture tree,
 # for a smoke check that the chain from gather through proof still
-# composes: a binder, a topology, seeded copies, the planted marks, the
-# fold's proof, two turns in which every role answers what the fold carried
-# forward, the chief's dispositions closing what the turns still carry
-# forward, the docket
-# `proof` transcribes from the closed proof, and the
-# revise `proof` pulls from that docket. The diff stage compares that revise
-# with the text smoke_fixture.py says the plant makes land, and passes
-# only when the two are identical. The partial stage runs the same closed
-# proof through the author's approval of two of its places and diffs the one
-# page that leaves. The last stage runs a second editorial
-# stage over that revise -- the topology says it reads it -- and diffs its
-# proof the same way.
+# composes: a binder, a topology written into the run's jacket, the copies
+# `stage open` seeds, the planted marks, the fold's proof, two turns in which
+# every role answers what the fold carried forward, and the chief's
+# dispositions closing what the turns still carry forward. Each stage closes
+# on its closed proof, and the next stage's tree is that proof set over the
+# one before it. The diff stage compares the tree stage 5 opens on with the
+# text smoke_fixture.py says the plant makes land, and passes only when the
+# two are identical. A second and a compacting editorial stage run over the
+# trees the jacket builds for them, `proof --jacket` sets the whole run, and
+# the partial stage sets the author's approval of two of the first stage's
+# places and diffs the one page that leaves.
 # Provisional -- it drives a prototype surface and may be thrown away once
 # that surface settles.
 
@@ -30,6 +29,7 @@ $Cmd = @{
     gather = 'gather'; topology = 'topology'; distribute = 'distribute'
     mark = 'mark'; check = 'check'; collate = 'collate'; turn = 'turn'
     disposition = 'disposition'; proof = 'proof'; addresses = 'addresses'
+    stage = 'stage'
 }
 
 # The launcher every comment-review command runs through, written once so
@@ -168,13 +168,17 @@ $RateFile = Join-Path $OriginalDir 'rate.py'
 $StoreFile = Join-Path $OriginalDir 'store.py'
 $TallyFile = Join-Path $OriginalDir 'tally.py'
 $BinderFile = Join-Path $Run 'binder.json'
-$TopologyFile = Join-Path $Run 'topology.toml'
+# $Run is the jacket's run directory: `stage open` writes each stage's binder,
+# root and copies beside the jacket, and records them in it.
+$JacketFile = Join-Path $Run 'jacket.json'
 $CopiesDir = Join-Path $Run 'copies'
 
-# The four roles stage 4 dispatches to. The distribute stage fills $CopyFile
-# with the copy distribute wrote for each.
+# The four roles stage 4 dispatches to. The open stage fills $CopyFile with
+# the copy `stage open` wrote for each, and $ReceivedFile with its received
+# binder, which is the binder `check` reads the copy against.
 $Roles = @('ownership-context', 'block-context', 'function-context', 'module-context')
 $CopyFile = @{}
+$ReceivedFile = @{}
 
 $Proof0File = Join-Path $Run 'proof0.json'
 $Batch1File = Join-Path $Run 'batch1.json'
@@ -190,8 +194,11 @@ $DispositionsFile = Join-Path $Run 'dispositions.json'
 $PlacedFile = Join-Path $Run 'placed.json'
 $EndsFile = Join-Path $Run 'dispositions-ends.json'
 $FinalFile = Join-Path $Run 'final.json'
-$DocketFile = Join-Path $Run 'docket.json'
+# What `proof --jacket` sets for the whole run, and the pages it must hold:
+# the first stage's expected pages with the second stage's fib.py and the
+# compacting stage's store.py written over them.
 $ProofDir = Join-Path $Run 'proof'
+$ProofExpectedDir = Join-Path $Run 'proof-expected'
 $ExpectedDir = Join-Path $Run 'expected'
 # The partial approval (Process #192): the places the author approved, the
 # revise `proof --only` pulls for them, the page that revise must hold, and
@@ -210,27 +217,35 @@ $RoleDraftDir = Join-Path $Run 'role-draft'
 $RoleExpectedDir = Join-Path $Run 'role-expected'
 $CollideCopyFile = Join-Path $Run 'collide-copy.json'
 $ParityCopyFile = Join-Path $Run 'parity-copy.json'
-$WrapCopiesDir = Join-Path $Run 'wrap-copies'
+$WrapCopyFile = Join-Path $Run 'wrap-copy.json'
 $WrapDraftDir = Join-Path $Run 'wrap-draft'
 $WrapExpectedDir = Join-Path $Run 'wrap-expected'
 $CollideDraftDir = Join-Path $Run 'collide-draft'
 $CollideExpectedDir = Join-Path $Run 'collide-expected'
+$SameSentenceCopyFile = Join-Path $Run 'same-sentence-copy.json'
+$SameSentenceDraftDir = Join-Path $Run 'same-sentence-draft'
+$SameSentenceExpectedDir = Join-Path $Run 'same-sentence-expected'
 
 # The root refusal sub-plant (Process #178): a second tree holding the same
-# fixture, a binder over it, and the copy distribute seeds from that binder.
-# The three paths below it are what a refused collate must not write.
+# fixture, a binder over it, the copy `distribute --seed` seeds from that
+# binder, and where ownership-context's own copy is kept while that one stands
+# in its place. The two paths below them are what a refused collate must not
+# write.
 $OtherDir = Join-Path $Run 'other'
 $OtherBinderFile = Join-Path $Run 'other-binder.json'
-$OtherCopiesDir = Join-Path $Run 'other-copies'
+$OtherCopyFile = Join-Path $Run 'other-copy.json'
+$KeptCopyFile = Join-Path $Run 'kept-copy.json'
 $OtherProofFile = Join-Path $Run 'other-proof.json'
 $OtherBatchFile = Join-Path $Run 'other-batch.json'
 
-# The ungathered-destination sub-plant (Process #187): a tree holding the
-# three fixture files and a fourth the binder never gathered, a copy seeded
-# from the smoke's binder and ruled by hand, and the three paths a refused
+# The ungathered-destination sub-plant (Process #187): a checkout holding the
+# four fixture files and a fifth the binder never gathered, a run of its own
+# whose one stage dispatches block-context alone, and the two paths a refused
 # collate must not write.
 $UngatheredDir = Join-Path $Run 'ungathered'
-$UngatheredCopyFile = Join-Path $Run 'ungathered-copy.json'
+$UngatheredBinderFile = Join-Path $Run 'ungathered-binder.json'
+$UngatheredRun = Join-Path $Run 'ungathered-run'
+$UngatheredJacketFile = Join-Path $UngatheredRun 'jacket.json'
 $UngatheredProofFile = Join-Path $Run 'ungathered-proof.json'
 $UngatheredBatchFile = Join-Path $Run 'ungathered-batch.json'
 
@@ -240,37 +255,73 @@ $BadCiteProofFile = Join-Path $Run 'bad-cite-proof.json'
 $BadCiteBatchFile = Join-Path $Run 'bad-cite-batch.json'
 
 # The second stage, whose topology row reads the revise the first stage's
-# proof pulled. Its binder is gathered from $ProofDir, so the addresses it
-# rules on are the revise's own.
+# closed proof makes. `stage open` builds that tree and gathers its binder, so
+# the addresses it rules on are the revise's own; the second stage's closed
+# proof is what the expected page is compared with, in the tree the next
+# stage opens on.
 $SecondStage = '5'
 $SecondRole = 'ownership-context'
-$SecondBinderFile = Join-Path $Run 'binder2.json'
-$SecondCopiesDir = Join-Path $Run 'copies2'
 $SecondProofFile = Join-Path $Run 'proof2.json'
-$SecondDocketFile = Join-Path $Run 'docket2.json'
-$SecondProofDir = Join-Path $Run 'proof2'
+# What collate writes for it before the chief rules, and the batch it must not
+# write, since no role is owed a turn.
+$SecondCollatedFile = Join-Path $Run 'proof2-collated.json'
+$SecondBatchFile = Join-Path $Run 'batch-second.json'
 $SecondExpectedDir = Join-Path $Run 'second-expected'
 
-# The compacting stage (Process #193): its plant, the binder gathered over the
-# first stage's revise, the copy it is dealt, and what its own proof pulls.
-# The refusal sub-plant needs no path of its own -- `mark` writes nothing on a
-# ruling it refuses.
+# The compacting stage (Process #193): its plant, its proof, and the page
+# that proof must make. The refusal sub-plant needs no path of its own --
+# `mark` writes nothing on a ruling it refuses.
 $CompactingStage = '6'
 $CompactingFile = Join-Path $Run 'compacting.json'
-$CompactingBinderFile = Join-Path $Run 'binder3.json'
-$CompactingCopiesDir = Join-Path $Run 'copies3'
 $CompactingProofFile = Join-Path $Run 'proof3.json'
-$CompactingDocketFile = Join-Path $Run 'docket3.json'
-$CompactingProofDir = Join-Path $Run 'proof3'
+$CompactingCollatedFile = Join-Path $Run 'proof3-collated.json'
 $CompactingExpectedDir = Join-Path $Run 'compacted-expected'
 # The widened-copy sub-plant (Process #193): a copy that added `correct` to
-# what it says it admits, and the proof path a refused collate must not write.
+# what it says it admits, where the stage's own copy is kept while it stands
+# in its place, and the proof path a refused collate must not write.
 $WidenedCopyFile = Join-Path $Run 'copy3-widened.json'
+$KeptCompactingCopyFile = Join-Path $Run 'copy3-kept.json'
 $WidenedProofFile = Join-Path $Run 'proof3-widened.json'
 
 # The one-liner that writes the four fixture files into a directory, used by
 # the fixture stage and by the second tree the root refusal sub-plant gathers.
 $WriteFixtures = 'import sys; sys.path.insert(0, "scripts"); from pathlib import Path; from smoke_fixture import write_fixture, write_rate_fixture, write_store_fixture, write_tally_fixture; root = Path(sys.argv[1]); write_fixture(root); write_rate_fixture(root); write_store_fixture(root); write_tally_fixture(root)'
+
+# Commits a directory's files as a checkout of its own, since a jacket
+# records the run's pre-edit commit. core.autocrlf is off so every tree built
+# from that commit holds the LF bytes the fixture wrote.
+function Initialize-Checkout {
+    param(
+        [Parameter(Mandatory)] [string]$Stage,
+        [Parameter(Mandatory)] [string]$Dir
+    )
+    Invoke-Checked -Stage "$Stage init" -CommandLine @('git', '-C', $Dir, 'init', '-q')
+    Invoke-Checked -Stage "$Stage config" -CommandLine @('git', '-C', $Dir, 'config', 'core.autocrlf', 'false')
+    Invoke-Checked -Stage "$Stage add" -CommandLine @('git', '-C', $Dir, 'add', '.')
+    Invoke-Checked -Stage "$Stage commit" -CommandLine @(
+        'git', '-C', $Dir, '-c', 'user.name=smoke', '-c', 'user.email=smoke@example.invalid',
+        'commit', '-q', '-m', 'fixture'
+    )
+}
+
+# One opened stage as -Jacket records it, each path resolved against the
+# jacket's own directory: Root, Binder, and Copies, the copies it dispatched
+# in dispatch order, with Received, each copy's received binder, beside them.
+function Get-StageEntry {
+    param(
+        [Parameter(Mandatory)] [string]$Name,
+        [string]$Jacket = $JacketFile
+    )
+    $base = Split-Path -Parent $Jacket
+    $entry = (Get-Content -LiteralPath $Jacket -Raw | ConvertFrom-Json).stages.$Name
+    $copies = @($entry.dispatched | ForEach-Object { [System.IO.Path]::GetFullPath($_, $base) })
+    [pscustomobject]@{
+        Root = [System.IO.Path]::GetFullPath($entry.root, $base)
+        Binder = [System.IO.Path]::GetFullPath($entry.binder, $base)
+        Copies = $copies
+        Received = @($copies | ForEach-Object { Join-Path (Join-Path (Split-Path -Parent $_) 'binders') (Split-Path -Leaf $_) })
+    }
+}
 
 # Stops the script unless every line in -Expected is one of the lines a
 # command printed, whole. A command's report names each human question on a
@@ -333,10 +384,10 @@ function Get-HumanLines {
 }
 
 # Each entry is one stage's work, and the chain as this script leaves it ends
-# at diff. Each block runs in its own scope, so a variable a stage assigns is
-# gone when the next stage starts: what a later stage reads is a path above,
-# or a table above that a stage fills in place, as distribute fills
-# $CopyFile. Add an entry to $Stages to extend the chain, and a path
+# at partial. Each block runs in its own scope, so a variable a stage assigns
+# is gone when the next stage starts: what a later stage reads is a path
+# above, the jacket, or a table above that a stage fills in place, as open
+# fills $CopyFile. Add an entry to $Stages to extend the chain, and a path
 # variable above for anything the new stage writes.
 $Stages = [ordered]@{
     fixture = {
@@ -346,6 +397,7 @@ $Stages = [ordered]@{
             $WriteFixtures,
             $OriginalDir
         )
+        Initialize-Checkout -Stage 'fixture' -Dir $OriginalDir
     }
     gather = {
         Invoke-Checked -Stage 'gather' -CommandLine ($Launcher + @(
@@ -354,56 +406,59 @@ $Stages = [ordered]@{
         ))
     }
     topology = {
-        # Two stages: the four roles at once, then one role reading the revise
-        # the first stage's proof pulls. `compose` writes the second stage's
-        # `reads` as `revise:4`, which is what decides the tree the `second`
-        # stage below is seeded from.
-        Invoke-Checked -Stage 'topology-build' -CommandLine ($Launcher + @(
-            $Cmd.topology, '--build', '--binder', $BinderFile, '--out', $TopologyFile,
-            '--stage', ('4=' + ($Roles -join ',')),
-            '--stage', ($SecondStage + '=' + $SecondRole)
-        ))
-        # And a third, appended by hand, because the three keys a compacting
-        # stage carries are not what `--build`'s directives spell (Process
-        # #193). It reads the FIRST stage's revise, where the pages the plant
-        # writes over-cap prose on are; `topology --verify` below reads the
-        # whole file, so the appended row is held to the same parse as the
-        # built ones.
+        # Three stages, written into the run's jacket with the pre-edit commit
+        # and the scope: the four roles at once, then one role reading the
+        # revise the first stage's closed proof makes, then the compacting
+        # stage. A jacket's stages are one chain, so `compose` writes each
+        # later stage's `reads` as the revise of the stage before it, which is
+        # what decides the tree `stage open` builds for it. The compacting
+        # stage's cap, series and admits are read off the row the plant
+        # writes (Process #193); `--build` verifies the rows it writes, so they
+        # are held to the same parse as the built ones.
         Invoke-Checked -Stage 'plant-compacting' -CommandLine @(
             'uv', 'run', 'python', '-c',
             'import sys; sys.path.insert(0, "scripts"); from pathlib import Path; from smoke_fixture import write_compacting; write_compacting(Path(sys.argv[1]))',
             $Run
         )
-        $row = (Get-Content -LiteralPath $CompactingFile -Raw | ConvertFrom-Json).row
-        [System.IO.File]::AppendAllText($TopologyFile, $row)
-        Invoke-Checked -Stage 'topology-verify' -CommandLine ($Launcher + @(
-            $Cmd.topology, '--verify', $TopologyFile, '--binder', $BinderFile
+        $compacting = @(Invoke-Checked -Stage 'compacting row' -Capture -CommandLine @(
+            'uv', 'run', 'python', '-c',
+            'import json, sys, tomllib; row = tomllib.loads(json.load(open(sys.argv[1]))["row"])["stage"][0]; n = row["name"]; print("\n".join(["--stage", n + "=" + row["dispatch"][0]["role"], "--cap", n + "=" + str(row["cap"]), "--series", n + "=" + ",".join(row["series"]), "--admits", n + "=" + ",".join(row["admits"])]))',
+            $CompactingFile
         ))
+        Invoke-Checked -Stage 'topology-build' -CommandLine ($Launcher + @(
+            $Cmd.topology, '--build', '--binder', $BinderFile, '--run', $Run,
+            '--ref', 'HEAD', '--repo', $OriginalDir,
+            'fib.py', 'rate.py', 'store.py', 'tally.py',
+            '--stage', ('4=' + ($Roles -join ',')),
+            '--stage', ($SecondStage + '=' + $SecondRole)
+        ) + $compacting)
     }
-    distribute = {
-        Invoke-Checked -Stage 'distribute-4' -CommandLine ($Launcher + @(
-            $Cmd.distribute, '--topology', $TopologyFile, '--stage', '4',
-            '--binder', $BinderFile, '--out-dir', $CopiesDir
+    open = {
+        Invoke-Checked -Stage 'stage open 4' -CommandLine ($Launcher + @(
+            $Cmd.stage, 'open', '--jacket', $JacketFile, '--stage', '4', '--repo', $OriginalDir
         ))
         # Each copy names its own role, so the copies are found by what they
-        # hold rather than by the file names distribute gives them. The plant
+        # hold rather than by the file names `stage open` gives them. The plant
         # marks one copy per role, so a role with none, or with more than one
         # -- a role stage 4 sharded -- stops the run here.
-        $written = @(Get-ChildItem -LiteralPath $CopiesDir -File | ForEach-Object {
+        $entry = Get-StageEntry -Name '4'
+        $written = @(for ($i = 0; $i -lt $entry.Copies.Count; $i++) {
             [pscustomobject]@{
-                Role = (Get-Content -LiteralPath $_.FullName -Raw | ConvertFrom-Json).role
-                Path = $_.FullName
+                Role = (Get-Content -LiteralPath $entry.Copies[$i] -Raw | ConvertFrom-Json).role
+                Path = $entry.Copies[$i]
+                Received = $entry.Received[$i]
             }
         })
         foreach ($role in $Roles) {
             $held = @($written | Where-Object Role -EQ $role)
             if ($held.Count -ne 1) {
-                Write-Host 'stage failed: distribute-4'
+                Write-Host 'stage failed: stage open 4'
                 Write-Host "copies for ${role}: $($held.Count), where the plant marks one"
-                Write-Host "directory: $CopiesDir"
+                Write-Host "jacket: $JacketFile"
                 exit 1
             }
             $CopyFile[$role] = $held[0].Path
+            $ReceivedFile[$role] = $held[0].Received
         }
     }
     # One `mark` call per ruling per role: `mark` takes one ruling per call
@@ -1129,7 +1184,7 @@ $Stages = [ordered]@{
     check = {
         foreach ($role in $Roles) {
             $checkCopy = $Launcher + @(
-                $Cmd.check, '--edit-copy', $CopyFile[$role], '--binder', $BinderFile
+                $Cmd.check, '--edit-copy', $CopyFile[$role], '--binder', $ReceivedFile[$role]
             )
             if ($role -ne 'block-context') {
                 Invoke-Checked -Stage "check $role" -CommandLine $checkCopy
@@ -1142,18 +1197,33 @@ $Stages = [ordered]@{
         }
         # no-command-for-the-middle T99: check resolves a move's destination
         # against the real page, as collate does. A copy of module-context's
-        # copy moves fib.py@b14 to fib.py@b99, a place fib.py does not carry;
-        # mark takes it, since the form is right, and check names it.
+        # copy moves fib.py@b14 to fib.py@b99, a place fib.py does not carry.
+        # `mark` runs the same admission and refuses it as it places, so the
+        # move is written into the copy by hand, as a role writes its copy
+        # with its file-write tool, and check names it.
         Copy-Item -LiteralPath $CopyFile['module-context'] -Destination $ParityCopyFile
-        Invoke-Checked -Stage 'check parity mark' -CommandLine ($Launcher + @(
+        $parityMark = $Launcher + @(
             $Cmd.mark, '--edit-copy', $ParityCopyFile, '--address', 'fib.py@b14',
             '--instruction', 'move', '--from', 'fib.py@b14', '--to', 'fib.py@b99',
             '--change', '    # Two calls per level, which is what the counter measures.',
             '--raw-text', '    # Two calls per level, which is what the counter measures.',
             '--reason', 'the counting note belongs with the counter',
             '--cite', 'fib.py:29', '--repo', $OriginalDir
-        ))
-        $parity = $Launcher + @($Cmd.check, '--edit-copy', $ParityCopyFile, '--binder', $BinderFile)
+        )
+        $named = Invoke-Checked -Stage 'check parity mark refused' -Expect 1 -Capture -CommandLine $parityMark
+        if (-not (($named -join "`n").Contains("carries no place 'b99'"))) {
+            Write-Host 'stage failed: check parity mark refused'
+            Write-Host 'expected mark to name fib.py@b99 as a place fib.py does not carry; mark printed:'
+            $named | Out-Host
+            Write-Host "command: $(Format-CommandLine $parityMark)"
+            exit 1
+        }
+        Invoke-Checked -Stage 'check parity plant' -CommandLine @(
+            'uv', 'run', 'python', '-c',
+            'import json, sys; from pathlib import Path; copy = Path(sys.argv[1]); held = json.loads(copy.read_text(encoding="utf-8")); line = Path(sys.argv[2], "fib.py").read_text(encoding="utf-8").splitlines()[28].strip(); text = "    # Two calls per level, which is what the counter measures."; [slot.update({"instruction": "move", "claim": {"from": "fib.py@b14", "to": "fib.py@b99"}, "change": text, "raw_text": text, "reason": "the counting note belongs with the counter", "sources": [{"cite": "fib.py:29", "verbatim": line}]}) for sheet in held["sheets"] for slot in sheet["marks"] if slot["address"] == "fib.py@b14"]; copy.write_text(json.dumps(held, indent=2), encoding="utf-8")',
+            $ParityCopyFile, $OriginalDir
+        )
+        $parity = $Launcher + @($Cmd.check, '--edit-copy', $ParityCopyFile, '--binder', $ReceivedFile['module-context'])
         $named = Invoke-Checked -Stage 'check parity refused' -Expect 1 -Capture -CommandLine $parity
         if (-not (($named -join "`n").Contains("carries no place 'b99'"))) {
             Write-Host 'stage failed: check parity refused'
@@ -1185,10 +1255,10 @@ $Stages = [ordered]@{
         )
         # docket-defects T11, over a copy of that role's copy: a move from
         # rate.py@b5 into rate.py@b1, a place the role also corrected. It is a
-        # copy so the fold still reads the role's own. Three `mark` calls at
-        # the same move, differing only in the destination text, and each
-        # refusal writes nothing -- so the copy the fold reads holds the one
-        # that was placed.
+        # copy so the fold still reads the role's own. Each refusal below
+        # writes nothing, and the composing same-sentence move is placed on a
+        # copy of its own -- so the collide copy the draft reads holds the one
+        # move placed on it.
         Copy-Item -LiteralPath $CopyFile['function-context'] -Destination $CollideCopyFile
         Invoke-Checked -Stage 'collide plant' -CommandLine @(
             'uv', 'run', 'python', '-c',
@@ -1217,23 +1287,55 @@ $Stages = [ordered]@{
             Write-Host "command: $(Format-CommandLine $discards)"
             exit 1
         }
-        # The same comment run onto the paragraph's last line keeps every
-        # word, so the row takes it -- and it rewrites that line, beside the
-        # line the role's own correct rewrites. Two rewrites of adjacent lines
-        # meet, so two of one role's marks there do not compose, and `mark`
-        # refuses at placing time what the fold would refuse at the fold
-        # (Process #179).
-        $sameSentence = $collideMove + @(
-            '--raw-text', "@$(Join-Path $Run 'collide-same-sentence.txt')"
+        # A second correct from the same role rewriting the word its own
+        # correct already rewrites: the two edit the same words, so they do
+        # not compose, and `mark` refuses at placing time what the fold would
+        # refuse at the fold (Process #390, #397). A move cannot be the second
+        # mark here -- its destination keeps every word of the paragraph, so
+        # it only inserts, and the correct rewrites one word.
+        $sameWords = $Launcher + @(
+            $Cmd.mark, '--edit-copy', $CollideCopyFile, '--address', 'rate.py@b1',
+            '--instruction', 'correct',
+            '--false', 'never above one', '--true', 'never past one',
+            '--reason', 'past names the bound the division never crosses',
+            '--cite', 'rate.py:7', '--repo', $OriginalDir
         )
-        $refused = Invoke-Checked -Stage 'draft collide same sentence refused' -Expect 1 -Capture -CommandLine $sameSentence
-        if (-not (($refused -join "`n").Contains('edit the same sentence and do not compose'))) {
-            Write-Host 'stage failed: draft collide same sentence refused'
+        $refused = Invoke-Checked -Stage 'draft collide same words refused' -Expect 1 -Capture -AndErrors -CommandLine $sameWords
+        if (-not (($refused -join "`n").Contains('edit the same words and do not compose'))) {
+            Write-Host 'stage failed: draft collide same words refused'
             Write-Host 'expected a refusal naming the two marks that do not compose; mark printed:'
             $refused | Out-Host
-            Write-Host "command: $(Format-CommandLine $sameSentence)"
+            Write-Host "command: $(Format-CommandLine $sameWords)"
             exit 1
         }
+        # The moved comment run onto the paragraph's last line keeps every
+        # word, so the row takes it, and it edits other words of the sentence
+        # the correct rewrites -- so the two compose (Process #390). It is
+        # placed on a copy of its own, so the collide copy keeps one move, and
+        # `write_same_sentence_draft` writes what its draft makes of each page.
+        Copy-Item -LiteralPath $CollideCopyFile -Destination $SameSentenceCopyFile
+        Invoke-Checked -Stage 'draft collide same sentence mark' -CommandLine ($Launcher + @(
+            $Cmd.mark, '--edit-copy', $SameSentenceCopyFile, '--address', 'rate.py@b5',
+            '--instruction', 'move', '--from', 'rate.py@b5', '--to', 'rate.py@b1',
+            '--change', '    # Kept for callers that ask for a share rather than a rate.',
+            '--reason', "share's comment says what rate's does, and belongs with it",
+            '--cite', 'rate.py:11', '--repo', $OriginalDir,
+            '--raw-text', "@$(Join-Path $Run 'collide-same-sentence.txt')"
+        ))
+        Invoke-Checked -Stage 'draft collide same sentence' -CommandLine ($Launcher + @(
+            $Cmd.proof, '--copy', $SameSentenceCopyFile, '--repo', $OriginalDir,
+            '--out', $SameSentenceDraftDir
+        ))
+        New-Item -ItemType Directory -Path $SameSentenceExpectedDir | Out-Null
+        Invoke-Checked -Stage 'draft collide same sentence expected' -CommandLine @(
+            'uv', 'run', 'python', '-c',
+            'import sys; sys.path.insert(0, "scripts"); from pathlib import Path; from smoke_fixture import write_same_sentence_draft; write_same_sentence_draft(Path(sys.argv[1]))',
+            $SameSentenceExpectedDir
+        )
+        Invoke-Checked -Stage 'draft collide same sentence diff' -CommandLine @(
+            'git', '-c', 'core.autocrlf=false', '--no-pager', 'diff', '--no-index', '--',
+            $SameSentenceExpectedDir, $SameSentenceDraftDir
+        )
         # And the same comment ABOVE the paragraph edits no line the correct
         # edits, so the two compose into that role's one side and the draft
         # lands both: the moved comment arrives and the correction stands.
@@ -1256,17 +1358,16 @@ $Stages = [ordered]@{
             $CollideExpectedDir, $CollideDraftDir
         )
         # mark-defects T25, smoke T8: a drop across a line break joins the text
-        # either side onto one line. Copies distributed again hold no rulings,
-        # so ownership-context's fresh copy carries this one drop alone, and
-        # its draft of rate.py is compared with smoke_fixture.py's
-        # WRAP_RATE_DRAFT: the paragraph rewrapped to b1's widest before it.
-        Invoke-Checked -Stage 'wrap distribute' -CommandLine ($Launcher + @(
-            $Cmd.distribute, '--topology', $TopologyFile, '--stage', '4',
-            '--binder', $BinderFile, '--out-dir', $WrapCopiesDir
+        # either side onto one line. A copy seeded again holds no rulings, so
+        # ownership-context's fresh copy, seeded from the binder it received,
+        # carries this one drop alone, and its draft of rate.py is compared
+        # with smoke_fixture.py's WRAP_RATE_DRAFT: the paragraph rewrapped to
+        # b1's widest before it.
+        Invoke-Checked -Stage 'wrap seed' -CommandLine ($Launcher + @(
+            $Cmd.distribute, '--seed', '--binder', $ReceivedFile['ownership-context'],
+            '--role', 'ownership-context', '--out', $WrapCopyFile
         ))
-        $wrapCopy = @(Get-ChildItem -LiteralPath $WrapCopiesDir -File | Where-Object {
-            (Get-Content -LiteralPath $_.FullName -Raw | ConvertFrom-Json).role -eq 'ownership-context'
-        })[0].FullName
+        $wrapCopy = $WrapCopyFile
         New-Item -ItemType Directory -Path $WrapExpectedDir | Out-Null
         Invoke-Checked -Stage 'wrap plant' -CommandLine @(
             'uv', 'run', 'python', '-c',
@@ -1302,10 +1403,10 @@ $Stages = [ordered]@{
     # the docstring and the TODO's add in the margin of `global CALLS`
     # (Process #199) -- `check` passes its copy, and `collate` folds.
     collate = {
-        $copies = foreach ($role in $Roles) { '--edit-copy', $CopyFile[$role] }
+        # The jacket names the stage's row, binder and copies, so collate is
+        # handed the stage and nothing it folds.
         $collateLine = $Launcher + @(
-            $Cmd.collate, '--stage', '4', '--binder', $BinderFile, '--topology', $TopologyFile
-        ) + $copies + @(
+            $Cmd.collate, '--jacket', $JacketFile, '--stage', '4',
             '--proof-out', $Proof0File, '--batch-out', $Batch1File,
             '--human', $HumanFile
         )
@@ -1331,17 +1432,18 @@ $Stages = [ordered]@{
             }
         }
         Invoke-Checked -Stage 'check block-context replaced' -CommandLine ($Launcher + @(
-            $Cmd.check, '--edit-copy', $CopyFile['block-context'], '--binder', $BinderFile,
+            $Cmd.check, '--edit-copy', $CopyFile['block-context'], '--binder', $ReceivedFile['block-context'],
             '--human', $HumanFile
         ))
         Invoke-Checked -Stage 'collate' -Expect 4 -CommandLine $collateLine
         # Process #178, beside the main line: the same fixture written to a
-        # second tree, gathered, and a copy seeded from that binder. Handed to
-        # `collate` alongside the four real copies it is one copy from another
+        # second tree, gathered, and a copy seeded from that binder. Standing
+        # in for ownership-context's own copy, it is one copy from another
         # tree, whose addresses answer to another address space, and the round
         # rolls back. The copy is unruled, so the report also carries one line
         # per place it left alone; what is asserted is the root line, the exit
-        # code, and that nothing was written.
+        # code, and that nothing was written. The role's own copy is put back
+        # once the refusal is read.
         New-Item -ItemType Directory -Path $OtherDir | Out-Null
         Invoke-Checked -Stage 'other fixture' -CommandLine @(
             'uv', 'run', 'python', '-c',
@@ -1353,20 +1455,19 @@ $Stages = [ordered]@{
             (Join-Path $OtherDir 'fib.py'), (Join-Path $OtherDir 'rate.py'),
             (Join-Path $OtherDir 'store.py'), (Join-Path $OtherDir 'tally.py')
         ))
-        Invoke-Checked -Stage 'other distribute' -CommandLine ($Launcher + @(
-            $Cmd.distribute, '--topology', $TopologyFile, '--stage', '4',
-            '--binder', $OtherBinderFile, '--out-dir', $OtherCopiesDir
+        Invoke-Checked -Stage 'other seed' -CommandLine ($Launcher + @(
+            $Cmd.distribute, '--seed', '--binder', $OtherBinderFile,
+            '--role', 'ownership-context', '--out', $OtherCopyFile
         ))
-        $otherCopy = @(Get-ChildItem -LiteralPath $OtherCopiesDir -File | Where-Object {
-            (Get-Content -LiteralPath $_.FullName -Raw | ConvertFrom-Json).role -eq 'ownership-context'
-        })[0].FullName
+        Copy-Item -LiteralPath $CopyFile['ownership-context'] -Destination $KeptCopyFile
+        Copy-Item -LiteralPath $OtherCopyFile -Destination $CopyFile['ownership-context']
         $mismatched = $Launcher + @(
-            $Cmd.collate, '--stage', '4', '--binder', $BinderFile
-        ) + $copies + @('--edit-copy', $otherCopy) + @(
+            $Cmd.collate, '--jacket', $JacketFile, '--stage', '4',
             '--proof-out', $OtherProofFile,
             '--batch-out', $OtherBatchFile
         )
         $refused = Invoke-Checked -Stage 'collate from two trees refused' -Expect 1 -Capture -CommandLine $mismatched
+        Copy-Item -LiteralPath $KeptCopyFile -Destination $CopyFile['ownership-context']
         $treeRefusal = $refused | Where-Object { $_.Contains('copy and binder name different gathered trees') }
         if (-not ($treeRefusal -match '/other' -and $treeRefusal -match '/original')) {
             Write-Host 'stage failed: collate from two trees refused'
@@ -1384,31 +1485,45 @@ $Stages = [ordered]@{
         }
         # Process #187, beside the main line: a move into a file the binder
         # never gathered, whose destination text drops a word of the
-        # paragraph already there. `collate --repo` reads a tree holding the
-        # three fixture files and that fourth one; the copy is every slot
-        # ruled clean but the move. The fold measures the destination against
-        # the page's paragraph, so the move's own row refuses it and the round
-        # rolls back. What is asserted is that line, the exit code, and that
-        # nothing was written.
+        # paragraph already there. A run of its own over a checkout holding
+        # the four fixture files dispatches block-context alone; the plant
+        # rules every slot of its copy clean but the move, and writes the
+        # fifth file into the checkout `collate` reads. The fold measures the
+        # destination against the page's paragraph, so the move's own row
+        # refuses it and the round rolls back. What is asserted is that line,
+        # the exit code, and that nothing was written.
         New-Item -ItemType Directory -Path $UngatheredDir | Out-Null
         Invoke-Checked -Stage 'ungathered fixture' -CommandLine @(
             'uv', 'run', 'python', '-c',
             $WriteFixtures,
             $UngatheredDir
         )
-        Invoke-Checked -Stage 'ungathered seed' -CommandLine ($Launcher + @(
-            $Cmd.distribute, '--seed', '--binder', $BinderFile,
-            '--role', 'block-context', '--out', $UngatheredCopyFile
+        Initialize-Checkout -Stage 'ungathered fixture' -Dir $UngatheredDir
+        Invoke-Checked -Stage 'ungathered gather' -CommandLine ($Launcher + @(
+            $Cmd.gather, '--repo', $UngatheredDir, '--out', $UngatheredBinderFile,
+            (Join-Path $UngatheredDir 'fib.py'), (Join-Path $UngatheredDir 'rate.py'),
+            (Join-Path $UngatheredDir 'store.py'), (Join-Path $UngatheredDir 'tally.py')
         ))
+        New-Item -ItemType Directory -Path $UngatheredRun | Out-Null
+        Invoke-Checked -Stage 'ungathered topology' -CommandLine ($Launcher + @(
+            $Cmd.topology, '--build', '--binder', $UngatheredBinderFile, '--run', $UngatheredRun,
+            '--ref', 'HEAD', '--repo', $UngatheredDir,
+            'fib.py', 'rate.py', 'store.py', 'tally.py',
+            '--stage', '4=block-context'
+        ))
+        Invoke-Checked -Stage 'ungathered open' -CommandLine ($Launcher + @(
+            $Cmd.stage, 'open', '--jacket', $UngatheredJacketFile, '--stage', '4',
+            '--repo', $UngatheredDir
+        ))
+        $ungatheredCopy = (Get-StageEntry -Name '4' -Jacket $UngatheredJacketFile).Copies[0]
         Invoke-Checked -Stage 'ungathered plant' -CommandLine @(
             'uv', 'run', 'python', '-c',
             'import sys; sys.path.insert(0, "scripts"); from pathlib import Path; from smoke_fixture import write_ungathered_plant; write_ungathered_plant(Path(sys.argv[1]), Path(sys.argv[2]))',
-            $UngatheredCopyFile, $UngatheredDir
+            $ungatheredCopy, $UngatheredDir
         )
         $refusal = (& uv run python -c 'import sys; sys.path.insert(0, "scripts"); from smoke_fixture import UNGATHERED_REFUSAL; print(UNGATHERED_REFUSAL)')
         $ungathered = $Launcher + @(
-            $Cmd.collate, '--stage', '4', '--binder', $BinderFile,
-            '--repo', $UngatheredDir, '--edit-copy', $UngatheredCopyFile,
+            $Cmd.collate, '--jacket', $UngatheredJacketFile, '--stage', '4',
             '--proof-out', $UngatheredProofFile,
             '--batch-out', $UngatheredBatchFile
         )
@@ -1595,9 +1710,13 @@ $Stages = [ordered]@{
     # text the roles that cleaned it have not seen, and at the destination
     # its arrival composes with function-context's correction into one
     # they have not seen either. So the call commits its proof and exits 3,
-    # as `collate` does with a place composed. The second call takes that
+    # as `collate` does with a place composed. The same call takes in the changes and the two moves only their
+    # proposer read, which no turn was run for (Process #385); taking each
+    # move in settles both its ends (Process #388). The second call takes that
     # proof and dispositions-ends.json, `ENDS`, which rules the two ends, and
-    # closes the proof with exit 0.
+    # closes the proof with exit 0. The stage closes on that proof; until it
+    # does, the stage reading its revise is refused, since the stage's own
+    # `reads` decides the tree rather than a path typed here.
     disposition = {
         Invoke-Checked -Stage 'disposition placements' -Expect 3 -CommandLine ($Launcher + @(
             $Cmd.disposition, '--proof', $TurnTwoProofFile,
@@ -1607,50 +1726,311 @@ $Stages = [ordered]@{
             $Cmd.disposition, '--proof', $PlacedFile,
             '--dispositions', $EndsFile, '--proof-out', $FinalFile
         ))
-    }
-    # `proof --to-docket` transcribes the closed proof's decided places into a
-    # docket and stops (ruling #184). `proof --from-docket` then reads that
-    # docket as the write end reads one, and pulls it into a revise of the
-    # original tree at $ProofDir, which must not exist yet -- so a docket the
-    # write end refuses stops the smoke at proof-from-docket.
-    proof = {
-        Invoke-Checked -Stage 'proof-to-docket' -CommandLine ($Launcher + @(
-            $Cmd.proof, '--proof', $FinalFile, '--repo', $OriginalDir,
-            '--to-docket', $DocketFile
+        $early = $Launcher + @(
+            $Cmd.stage, 'open', '--jacket', $JacketFile, '--stage', $SecondStage,
+            '--repo', $OriginalDir
+        )
+        $refused = Invoke-Checked -Stage 'stage open 5 before 4 closes refused' -Expect 1 -Capture -AndErrors -CommandLine $early
+        if (-not (($refused -join "`n").Contains('not closed'))) {
+            Write-Host 'stage failed: stage open 5 before 4 closes refused'
+            Write-Host 'expected a refusal naming the stage that has not closed; stage open printed:'
+            $refused | Out-Host
+            Write-Host "command: $(Format-CommandLine $early)"
+            exit 1
+        }
+        Invoke-Checked -Stage 'stage close 4' -CommandLine ($Launcher + @(
+            $Cmd.stage, 'close', '--jacket', $JacketFile, '--stage', '4', '--proof', $FinalFile
         ))
-        Invoke-Checked -Stage 'proof-from-docket' -CommandLine ($Launcher + @(
-            $Cmd.proof, '--from-docket', $DocketFile, '--repo', $OriginalDir,
-            '--out', $ProofDir
-        ))
     }
+    # `stage open 5` builds the second stage's tree: a worktree of the
+    # pre-edit commit with the first stage's closed proof set over it through
+    # the write end, so a docket the write end refuses stops the smoke here.
     # The diff is the assertion: `write_expected` writes the text
-    # smoke_fixture.py says the plant makes land, and git compares it with
-    # the proof, with core.autocrlf off so a line ending that differs is a
-    # difference. Exit 0 means the proof is exactly what was planted. On a
-    # difference it also prints the original against the proof, so a reader
-    # sees what the chain did.
+    # smoke_fixture.py says the plant makes land, and git compares each page
+    # with the tree's, with core.autocrlf off so a line ending that differs is
+    # a difference. Exit 0 means the first stage set exactly what was planted.
+    # On a difference it also prints the original against the tree, so a
+    # reader sees what the chain did.
     diff = {
+        Invoke-Checked -Stage 'stage open 5' -CommandLine ($Launcher + @(
+            $Cmd.stage, 'open', '--jacket', $JacketFile, '--stage', $SecondStage,
+            '--repo', $OriginalDir
+        ))
+        $root = (Get-StageEntry -Name $SecondStage).Root
         New-Item -ItemType Directory -Path $ExpectedDir | Out-Null
         Invoke-Checked -Stage 'expected' -CommandLine @(
             'uv', 'run', 'python', '-c',
             'import sys; sys.path.insert(0, "scripts"); from pathlib import Path; from smoke_fixture import write_expected; write_expected(Path(sys.argv[1]))',
             $ExpectedDir
         )
-        Invoke-Checked -Stage 'diff' -CommandLine @(
+        foreach ($page in (Get-ChildItem -LiteralPath $ExpectedDir -File)) {
+            $set = Join-Path $root $page.Name
+            Invoke-Checked -Stage "diff $($page.Name)" -CommandLine @(
+                'git', '-c', 'core.autocrlf=false', '--no-pager', 'diff', '--no-index', '--',
+                $page.FullName, $set
+            ) -OnFailure {
+                Write-Host 'what the chain did -- the original against the tree:'
+                & git -c core.autocrlf=false --no-pager diff --no-index -- (Join-Path $OriginalDir $page.Name) $set | Out-Host
+            }
+        }
+    }
+    # The second stage, which reads what the first one closed on. Its row
+    # says `reads = "revise:4"`, so the tree `stage open` built for it at the
+    # diff stage is the first stage's closed proof set over the pre-edit
+    # commit, and its binder is gathered there: the addresses are the
+    # revise's own and not the original's. The one role corrects a paragraph
+    # the first stage already corrected, so the correction is measured
+    # against the revised text. Every other prose place is cleaned -- fib.py's
+    # from the plant's list, and the scope's other pages as the copy holds
+    # them, since the stage's binder holds the whole scope -- and the diff at
+    # the compacting stage, in the tree that stage opens on, is what says the
+    # revise still carries the paragraphs nobody changed.
+    second = {
+        $entry = Get-StageEntry -Name $SecondStage
+        $secondCopy = $entry.Copies[0]
+        $root = $entry.Root
+        Invoke-Checked -Stage 'second plant' -CommandLine @(
+            'uv', 'run', 'python', '-c',
+            'import sys; sys.path.insert(0, "scripts"); from pathlib import Path; from smoke_fixture import write_second_plant; write_second_plant(Path(sys.argv[1]))',
+            $Run
+        )
+        Invoke-Checked -Stage 'second correct' -CommandLine ($Launcher + @(
+            $Cmd.mark, '--edit-copy', $secondCopy, '--address', 'fib.py@a0',
+            '--instruction', 'correct',
+            '--false', "@$(Join-Path $Run 'second-a0-false.txt')",
+            '--true', "@$(Join-Path $Run 'second-a0-true.txt')",
+            '--reason', 'what the count is for is the point, not that it happens',
+            '--cite', 'fib.py:1', '--repo', $root
+        ))
+        $secondClean = Get-Content -LiteralPath (Join-Path $Run 'second-clean.json') -Raw | ConvertFrom-Json
+        $others = @((Get-Content -LiteralPath $secondCopy -Raw | ConvertFrom-Json).sheets |
+            ForEach-Object { $_.marks } | ForEach-Object { $_.address } |
+            Where-Object { -not $_.StartsWith('fib.py@') })
+        foreach ($address in @($secondClean) + $others) {
+            Invoke-Checked -Stage "second clean $address" -CommandLine ($Launcher + @(
+                $Cmd.mark, '--edit-copy', $secondCopy, '--address', $address,
+                '--instruction', 'clean', '--cite', "$(($address -split '@')[0]):1", '--repo', $root
+            ))
+        }
+        Invoke-Checked -Stage 'second check' -CommandLine ($Launcher + @(
+            $Cmd.check, '--edit-copy', $secondCopy, '--binder', $entry.Received[0]
+        ))
+        # One role read the place, so its change goes to the chief with no
+        # turn to run (Process #385): collate carries it forward and exits 3,
+        # writing no batch, and `disposition` takes the change in from
+        # second-dispositions.json. The stage closes on that proof.
+        Invoke-Checked -Stage 'second collate' -Expect 3 -CommandLine ($Launcher + @(
+            $Cmd.collate, '--jacket', $JacketFile, '--stage', $SecondStage,
+            '--proof-out', $SecondCollatedFile, '--batch-out', $SecondBatchFile
+        ))
+        Assert-NotWritten -Stage 'second collate' -Paths @($SecondBatchFile)
+        Invoke-Checked -Stage 'second disposition' -CommandLine ($Launcher + @(
+            $Cmd.disposition, '--proof', $SecondCollatedFile,
+            '--dispositions', (Join-Path $Run 'second-dispositions.json'),
+            '--proof-out', $SecondProofFile
+        ))
+        Invoke-Checked -Stage 'stage close 5' -CommandLine ($Launcher + @(
+            $Cmd.stage, 'close', '--jacket', $JacketFile, '--stage', $SecondStage,
+            '--proof', $SecondProofFile
+        ))
+    }
+    # The compacting stage (Process #193), reading the second stage's revise
+    # as its row says, since a jacket's stages are one chain. `stage open`
+    # builds that tree, and the second stage's diff is read there first:
+    # fib.py is what `write_second_expected` writes and every other page is
+    # as the first stage left it. The stage is dealt the `b` and `c` places
+    # over its cap and nothing else -- the two in store.py's last function,
+    # whose prose the plant wrote on both sides of the cap -- and the copy is
+    # what says so -- with rate.py@b1, three lines as the first stage left it,
+    # since the stage's binder holds the whole scope. The role condenses one
+    # of store.py's with a `patch` quoting the whole paragraph and leaves the
+    # other two at length with a `clean` carrying the reason, which is what
+    # compact.md asks of a paragraph that cannot come under the cap. A
+    # `correct` there is refused by `mark`, naming the stage.
+    compacting = {
+        $plant = Get-Content -LiteralPath $CompactingFile -Raw | ConvertFrom-Json
+        Invoke-Checked -Stage 'stage open 6' -CommandLine ($Launcher + @(
+            $Cmd.stage, 'open', '--jacket', $JacketFile, '--stage', $CompactingStage,
+            '--repo', $OriginalDir
+        ))
+        $entry = Get-StageEntry -Name $CompactingStage
+        $root = $entry.Root
+        $secondRoot = (Get-StageEntry -Name $SecondStage).Root
+        New-Item -ItemType Directory -Path $SecondExpectedDir | Out-Null
+        Invoke-Checked -Stage 'second expected' -CommandLine @(
+            'uv', 'run', 'python', '-c',
+            'import sys; sys.path.insert(0, "scripts"); from pathlib import Path; from smoke_fixture import write_second_expected; write_second_expected(Path(sys.argv[1]))',
+            $SecondExpectedDir
+        )
+        foreach ($page in (Get-ChildItem -LiteralPath $ExpectedDir -File)) {
+            $want = Join-Path $SecondExpectedDir $page.Name
+            if (-not (Test-Path -LiteralPath $want)) {
+                $want = $page.FullName
+            }
+            $set = Join-Path $root $page.Name
+            Invoke-Checked -Stage "second diff $($page.Name)" -CommandLine @(
+                'git', '-c', 'core.autocrlf=false', '--no-pager', 'diff', '--no-index', '--',
+                $want, $set
+            ) -OnFailure {
+                Write-Host 'what the second stage did -- the revise against its tree:'
+                & git -c core.autocrlf=false --no-pager diff --no-index -- (Join-Path $secondRoot $page.Name) $set | Out-Host
+            }
+        }
+        $copy = $entry.Copies[0]
+        $held = Get-Content -LiteralPath $copy -Raw | ConvertFrom-Json
+        # The deal is the assertion: the copy holds a slot at each place over
+        # the cap and at no other, so a stage dealt everything, or nothing,
+        # fails here rather than at the diff.
+        $slots = @($held.sheets | ForEach-Object { $_.marks } | ForEach-Object { $_.address })
+        if (($slots -join ',') -ne ($plant.dealt -join ',')) {
+            Write-Host 'stage failed: stage open 6'
+            Write-Host "expected slots at $($plant.dealt -join ', '); the copy holds: $($slots -join ', ')"
+            Write-Host "copy: $copy"
+            exit 1
+        }
+        if ($held.stage -ne $CompactingStage) {
+            Write-Host 'stage failed: stage open 6'
+            Write-Host "the copy names stage '$($held.stage)', not '$CompactingStage'"
+            exit 1
+        }
+        # The widened copy, taken before the two rulings below: a role that
+        # adds `correct` to its own copy's `admits` gets it past `mark`,
+        # which reads that field, so `collate` is what holds the marks to the
+        # stage's row. It stands in for the stage's own copy while `collate`
+        # reads it, and the copy the stage returns is put back untouched.
+        Invoke-Checked -Stage 'plant-widened' -CommandLine @(
+            'uv', 'run', 'python', '-c',
+            'import sys; sys.path.insert(0, "scripts"); from pathlib import Path; from smoke_fixture import widen; widen(Path(sys.argv[1]), Path(sys.argv[2]))',
+            $copy, $WidenedCopyFile
+        )
+        Invoke-Checked -Stage 'widened correct placed' -CommandLine ($Launcher + @(
+            $Cmd.mark, '--edit-copy', $WidenedCopyFile, '--address', $plant.patched,
+            '--instruction', $plant.refused,
+            '--false', 'Nothing is ever', '--true', 'Nothing is',
+            '--reason', 'the sentence reads shorter', '--cite', 'store.py:40',
+            '--repo', $root
+        ))
+        Invoke-Checked -Stage 'widened clean placed' -CommandLine ($Launcher + @(
+            $Cmd.mark, '--edit-copy', $WidenedCopyFile, '--address', $plant.kept,
+            '--instruction', 'clean', '--reason', $plant.reason, '--cite', "$(($plant.kept -split '@')[0]):1", '--repo', $root
+        ))
+        Invoke-Checked -Stage 'widened rate clean placed' -CommandLine ($Launcher + @(
+            $Cmd.mark, '--edit-copy', $WidenedCopyFile, '--address', $plant.rate_kept,
+            '--instruction', 'clean', '--reason', $plant.rate_reason, '--cite', "$(($plant.rate_kept -split '@')[0]):1", '--repo', $root
+        ))
+        Copy-Item -LiteralPath $copy -Destination $KeptCompactingCopyFile
+        Copy-Item -LiteralPath $WidenedCopyFile -Destination $copy
+        $widened = $Launcher + @(
+            $Cmd.collate, '--jacket', $JacketFile, '--stage', $CompactingStage,
+            '--proof-out', $WidenedProofFile
+        )
+        $refused = Invoke-Checked -Stage 'collate over a widened copy refused' -Expect 1 -Capture -CommandLine $widened
+        Copy-Item -LiteralPath $KeptCompactingCopyFile -Destination $copy
+        if (-not (($refused -join "`n").Contains("stage $CompactingStage admits"))) {
+            Write-Host 'stage failed: collate over a widened copy refused'
+            Write-Host 'expected a refusal naming the stage and what it admits; collate printed:'
+            $refused | Out-Host
+            Write-Host "command: $(Format-CommandLine $widened)"
+            exit 1
+        }
+        Assert-NotWritten -Stage 'collate over a widened copy refused' -Paths @($WidenedProofFile)
+        Invoke-Checked -Stage 'compacting patch' -CommandLine ($Launcher + @(
+            $Cmd.mark, '--edit-copy', $copy, '--address', $plant.patched,
+            '--instruction', 'patch',
+            '--cite', "$(($plant.patched -split '@')[0]):1",
+            '--from', "@$(Join-Path $Run 'compacting-from.txt')",
+            '--to', "@$(Join-Path $Run 'compacting-to.txt')",
+            '--reason', 'three lines state what two state, and the cap is two',
+            '--repo', $root
+        ))
+        Invoke-Checked -Stage 'compacting clean' -CommandLine ($Launcher + @(
+            $Cmd.mark, '--edit-copy', $copy, '--address', $plant.kept,
+            '--instruction', 'clean', '--reason', $plant.reason, '--cite', "$(($plant.kept -split '@')[0]):1", '--repo', $root
+        ))
+        Invoke-Checked -Stage 'compacting rate clean' -CommandLine ($Launcher + @(
+            $Cmd.mark, '--edit-copy', $copy, '--address', $plant.rate_kept,
+            '--instruction', 'clean', '--reason', $plant.rate_reason, '--cite', "$(($plant.rate_kept -split '@')[0]):1", '--repo', $root
+        ))
+        # The instruction the row does not admit. `mark` refuses it as it
+        # places, so the copy is left exactly as the two rulings above left
+        # it -- which the check below is what proves.
+        $notAdmitted = $Launcher + @(
+            $Cmd.mark, '--edit-copy', $copy, '--address', $plant.patched,
+            '--instruction', $plant.refused,
+            '--false', 'Nothing is ever', '--true', 'Nothing is',
+            '--reason', 'the sentence reads shorter', '--cite', 'store.py:40',
+            '--repo', $root
+        )
+        $refused = Invoke-Checked -Stage 'compacting correct refused' -Expect 1 -Capture -CommandLine $notAdmitted
+        if (-not (($refused -join "`n").Contains("stage $CompactingStage admits"))) {
+            Write-Host 'stage failed: compacting correct refused'
+            Write-Host 'expected a refusal naming the stage and what it admits; mark printed:'
+            $refused | Out-Host
+            Write-Host "command: $(Format-CommandLine $notAdmitted)"
+            exit 1
+        }
+        # The binder the role received holds the dealt places alone, and is
+        # the one `check` reads (references/compact.md).
+        Invoke-Checked -Stage 'compacting check' -CommandLine ($Launcher + @(
+            $Cmd.check, '--edit-copy', $copy, '--binder', $entry.Received[0],
+            '--repo', $root
+        ))
+        # One role read each place, so the patch goes to the chief with no
+        # turn to run, as any lone change does (Process #385, #387): collate
+        # carries it forward and exits 3, and `disposition` takes it in from
+        # compacting-dispositions.json. The stage closes on that proof.
+        Invoke-Checked -Stage 'compacting collate' -Expect 3 -CommandLine ($Launcher + @(
+            $Cmd.collate, '--jacket', $JacketFile, '--stage', $CompactingStage,
+            '--proof-out', $CompactingCollatedFile
+        ))
+        Invoke-Checked -Stage 'compacting disposition' -CommandLine ($Launcher + @(
+            $Cmd.disposition, '--proof', $CompactingCollatedFile,
+            '--dispositions', (Join-Path $Run 'compacting-dispositions.json'),
+            '--proof-out', $CompactingProofFile
+        ))
+        Invoke-Checked -Stage 'stage close 6' -CommandLine ($Launcher + @(
+            $Cmd.stage, 'close', '--jacket', $JacketFile, '--stage', $CompactingStage,
+            '--proof', $CompactingProofFile
+        ))
+    }
+    # `proof --jacket` sets the whole run once every stage has closed: the
+    # pre-edit commit's tree with each stage's closed proof set over it in
+    # topology order, into $ProofDir, which must not exist yet and holds only
+    # the pages a proof set. The diff is against the first stage's expected
+    # pages with the second stage's fib.py and the compacting stage's
+    # store.py written over them; no later stage opens on the compacting
+    # stage's tree, so this is where its page is read. On a difference it
+    # also prints the original against the proof.
+    proof = {
+        Invoke-Checked -Stage 'proof' -CommandLine ($Launcher + @(
+            $Cmd.proof, '--jacket', $JacketFile, '--repo', $OriginalDir, '--out', $ProofDir
+        ))
+        New-Item -ItemType Directory -Path $CompactingExpectedDir | Out-Null
+        Invoke-Checked -Stage 'compacting expected' -CommandLine @(
+            'uv', 'run', 'python', '-c',
+            'import sys; sys.path.insert(0, "scripts"); from pathlib import Path; from smoke_fixture import write_compacted_expected; write_compacted_expected(Path(sys.argv[1]))',
+            $CompactingExpectedDir
+        )
+        New-Item -ItemType Directory -Path $ProofExpectedDir | Out-Null
+        foreach ($dir in @($ExpectedDir, $SecondExpectedDir, $CompactingExpectedDir)) {
+            Copy-Item -Path (Join-Path $dir '*') -Destination $ProofExpectedDir -Force
+        }
+        Invoke-Checked -Stage 'proof diff' -CommandLine @(
             'git', '-c', 'core.autocrlf=false', '--no-pager', 'diff', '--no-index', '--',
-            $ExpectedDir, $ProofDir
+            $ProofExpectedDir, $ProofDir
         ) -OnFailure {
-            Write-Host 'what the chain did -- the original against the proof:'
+            Write-Host 'what the run did -- the original against the proof:'
             & git -c core.autocrlf=false --no-pager diff --no-index -- $OriginalDir $ProofDir | Out-Host
         }
     }
     # The partial approval, beside the main line and over the same closed
-    # proof (ruling #192): the author approved two of its decided places, so
-    # `proof --only` sets those and nothing else. Its revise holds `store.py`
-    # alone -- the only page those two places sit on -- and the diff is
-    # against a page written by hand as the fixture with those two places set,
-    # so a run that set a third place, or set neither, fails here. A second
-    # approval names one end of the agreed move alone, which is set as named.
+    # run (ruling #192): the author approved two of the first stage's decided
+    # places, so `proof --jacket --only` sets those and nothing else. Its
+    # revise holds `store.py` alone -- the only page those two places sit on
+    # -- and the diff is against a page written by hand as the fixture with
+    # those two places set, so a run that set a third place, or set neither,
+    # fails here. A second approval names one end of the agreed move alone,
+    # which is refused.
     partial = {
         Invoke-Checked -Stage 'plant-approval' -CommandLine @(
             'uv', 'run', 'python', '-c',
@@ -1658,12 +2038,13 @@ $Stages = [ordered]@{
             $Run
         )
         $approval = Get-Content -LiteralPath $ApprovalFile -Raw | ConvertFrom-Json
+        # An approved place is named with the stage that decided it.
         $only = @()
         foreach ($address in $approval.approved) {
-            $only += @('--only', $address)
+            $only += @('--only', "4:$address")
         }
         Invoke-Checked -Stage 'partial approval' -CommandLine ($Launcher + @(
-            $Cmd.proof, '--proof', $FinalFile, '--repo', $OriginalDir
+            $Cmd.proof, '--jacket', $JacketFile, '--repo', $OriginalDir
         ) + $only + @('--out', $PartialDir))
         New-Item -ItemType Directory -Path $PartialExpectedDir | Out-Null
         Invoke-Checked -Stage 'partial expected' -CommandLine @(
@@ -1682,239 +2063,14 @@ $Stages = [ordered]@{
         # at all (Process #283), so `proof --only` refuses it, naming the
         # move, and writes nothing.
         $oneEnd = $Launcher + @(
-            $Cmd.proof, '--proof', $FinalFile, '--repo', $OriginalDir,
-            '--only', $approval.'one-end', '--out', $OneEndDir
+            $Cmd.proof, '--jacket', $JacketFile, '--repo', $OriginalDir,
+            '--only', "4:$($approval.'one-end')", '--out', $OneEndDir
         )
         $refused = Invoke-Checked -Stage 'one end refused' -Expect 1 -Capture -AndErrors -CommandLine $oneEnd
         Assert-Lines -Stage 'one end refused' -Printed $refused -CommandLine $oneEnd -Expected @(
             'copy-chief store.py@b9 -> store.py@b8: approve both ends of this move together'
         )
-    }
-    # The second stage, which reads what the first one pulled. Its topology row
-    # says `reads = "revise:4"`, so `distribute` is handed that revise root and
-    # refuses a binder gathered from anywhere else -- the stage's own `reads`
-    # deciding the tree rather than a path typed here. The binder is gathered
-    # over the revise's fib.py, whose addresses are its own and not the
-    # original's, and the one role corrects a paragraph the first stage already
-    # corrected, so the correction is measured against the revised text. Every
-    # other prose place is cleaned, and the diff is what says the revise still
-    # carries the paragraphs nobody changed.
-    second = {
-        Invoke-Checked -Stage 'second gather' -CommandLine ($Launcher + @(
-            $Cmd.gather, '--repo', $ProofDir, '--revise', '1',
-            '--out', $SecondBinderFile, (Join-Path $ProofDir 'fib.py')
-        ))
-        Invoke-Checked -Stage 'second distribute' -CommandLine ($Launcher + @(
-            $Cmd.distribute, '--topology', $TopologyFile, '--stage', $SecondStage,
-            '--binder', $SecondBinderFile, '--revise', $ProofDir,
-            '--out-dir', $SecondCopiesDir
-        ))
-        $secondCopy = @(Get-ChildItem -LiteralPath $SecondCopiesDir -File)[0].FullName
-        # A binder gathered from the original is refused for the same stage,
-        # so what the stage reads is what decides the seeding rather than
-        # whichever binder the caller reached for.
-        $wrongTree = $Launcher + @(
-            $Cmd.distribute, '--topology', $TopologyFile, '--stage', $SecondStage,
-            '--binder', $BinderFile, '--revise', $ProofDir,
-            '--out-dir', (Join-Path $Run 'copies2-refused')
-        )
-        $refused = Invoke-Checked -Stage 'second distribute from the original refused' -Expect 2 -Capture -AndErrors -CommandLine $wrongTree
-        if (-not (($refused -join "`n").Contains('a stage is seeded from the revise it reads'))) {
-            Write-Host 'stage failed: second distribute from the original refused'
-            Write-Host 'expected a refusal naming the revise the stage reads; distribute printed:'
-            $refused | Out-Host
-            Write-Host "command: $(Format-CommandLine $wrongTree)"
-            exit 1
-        }
-        Invoke-Checked -Stage 'second plant' -CommandLine @(
-            'uv', 'run', 'python', '-c',
-            'import sys; sys.path.insert(0, "scripts"); from pathlib import Path; from smoke_fixture import write_second_plant; write_second_plant(Path(sys.argv[1]))',
-            $Run
-        )
-        Invoke-Checked -Stage 'second correct' -CommandLine ($Launcher + @(
-            $Cmd.mark, '--edit-copy', $secondCopy, '--address', 'fib.py@a0',
-            '--instruction', 'correct',
-            '--false', "@$(Join-Path $Run 'second-a0-false.txt')",
-            '--true', "@$(Join-Path $Run 'second-a0-true.txt')",
-            '--reason', 'what the count is for is the point, not that it happens',
-            '--cite', 'fib.py:1', '--repo', $ProofDir
-        ))
-        $secondClean = Get-Content -LiteralPath (Join-Path $Run 'second-clean.json') -Raw | ConvertFrom-Json
-        foreach ($address in $secondClean) {
-            Invoke-Checked -Stage "second clean $address" -CommandLine ($Launcher + @(
-                $Cmd.mark, '--edit-copy', $secondCopy, '--address', $address,
-                '--instruction', 'clean', '--cite', "$(($address -split '@')[0]):1", '--repo', $ProofDir
-            ))
-        }
-        Invoke-Checked -Stage 'second check' -CommandLine ($Launcher + @(
-            $Cmd.check, '--edit-copy', $secondCopy, '--binder', $SecondBinderFile
-        ))
-        # One role read the place, so its proposal stands with nothing to
-        # carry forward and no turn to run (Process #180). collate exits 0.
-        Invoke-Checked -Stage 'second collate' -CommandLine ($Launcher + @(
-            $Cmd.collate, '--stage', $SecondStage, '--binder', $SecondBinderFile,
-            '--topology', $TopologyFile, '--repo', $ProofDir,
-            '--edit-copy', $secondCopy, '--proof-out', $SecondProofFile
-        ))
-        Invoke-Checked -Stage 'second proof-to-docket' -CommandLine ($Launcher + @(
-            $Cmd.proof, '--proof', $SecondProofFile, '--repo', $ProofDir,
-            '--to-docket', $SecondDocketFile
-        ))
-        Invoke-Checked -Stage 'second proof-from-docket' -CommandLine ($Launcher + @(
-            $Cmd.proof, '--from-docket', $SecondDocketFile, '--repo', $ProofDir,
-            '--out', $SecondProofDir
-        ))
-        New-Item -ItemType Directory -Path $SecondExpectedDir | Out-Null
-        Invoke-Checked -Stage 'second expected' -CommandLine @(
-            'uv', 'run', 'python', '-c',
-            'import sys; sys.path.insert(0, "scripts"); from pathlib import Path; from smoke_fixture import write_second_expected; write_second_expected(Path(sys.argv[1]))',
-            $SecondExpectedDir
-        )
-        Invoke-Checked -Stage 'second diff' -CommandLine @(
-            'git', '-c', 'core.autocrlf=false', '--no-pager', 'diff', '--no-index', '--',
-            $SecondExpectedDir, $SecondProofDir
-        ) -OnFailure {
-            Write-Host 'what the second stage did -- the revise against its proof:'
-            & git -c core.autocrlf=false --no-pager diff --no-index -- $ProofDir $SecondProofDir | Out-Host
-        }
-    }
-    # The compacting stage (Process #193), reading the first stage's revise as
-    # its row says. Its binder is gathered over that revise's store.py, whose
-    # last function the plant wrote with prose on both sides of the cap; the
-    # stage is dealt the two `b` places over it and nothing else, and the copy
-    # is what says so. The role condenses one with a `patch` quoting the whole
-    # paragraph and leaves the other at length with a `clean` carrying the
-    # reason, which is what compact.md asks of a paragraph that cannot come
-    # under the cap. A `correct` there is refused by `mark`, naming the stage.
-    compacting = {
-        $plant = Get-Content -LiteralPath $CompactingFile -Raw | ConvertFrom-Json
-        Invoke-Checked -Stage 'compacting gather' -CommandLine ($Launcher + @(
-            $Cmd.gather, '--repo', $ProofDir, '--revise', '1',
-            '--out', $CompactingBinderFile, (Join-Path $ProofDir 'store.py')
-        ))
-        Invoke-Checked -Stage 'compacting distribute' -CommandLine ($Launcher + @(
-            $Cmd.distribute, '--topology', $TopologyFile, '--stage', $CompactingStage,
-            '--binder', $CompactingBinderFile, '--revise', $ProofDir,
-            '--out-dir', $CompactingCopiesDir
-        ))
-        $copy = @(Get-ChildItem -LiteralPath $CompactingCopiesDir -File)[0].FullName
-        $held = Get-Content -LiteralPath $copy -Raw | ConvertFrom-Json
-        # The deal is the assertion: the copy holds a slot at each place over
-        # the cap and at no other, so a stage dealt everything, or nothing,
-        # fails here rather than at the diff.
-        $slots = @($held.sheets | ForEach-Object { $_.marks } | ForEach-Object { $_.address })
-        if (($slots -join ',') -ne ($plant.dealt -join ',')) {
-            Write-Host 'stage failed: compacting distribute'
-            Write-Host "expected slots at $($plant.dealt -join ', '); the copy holds: $($slots -join ', ')"
-            Write-Host "copy: $copy"
-            exit 1
-        }
-        if ($held.stage -ne $CompactingStage) {
-            Write-Host 'stage failed: compacting distribute'
-            Write-Host "the copy names stage '$($held.stage)', not '$CompactingStage'"
-            exit 1
-        }
-        # The widened copy, taken before the two rulings below: a role that
-        # adds `correct` to its own copy's `admits` gets it past `mark`,
-        # which reads that field, so `collate` is what holds the marks to the
-        # stage's row. Placed on its own copy, so the one the stage returns
-        # is untouched.
-        Invoke-Checked -Stage 'plant-widened' -CommandLine @(
-            'uv', 'run', 'python', '-c',
-            'import sys; sys.path.insert(0, "scripts"); from pathlib import Path; from smoke_fixture import widen; widen(Path(sys.argv[1]), Path(sys.argv[2]))',
-            $copy, $WidenedCopyFile
-        )
-        Invoke-Checked -Stage 'widened correct placed' -CommandLine ($Launcher + @(
-            $Cmd.mark, '--edit-copy', $WidenedCopyFile, '--address', $plant.patched,
-            '--instruction', $plant.refused,
-            '--false', 'Nothing is ever', '--true', 'Nothing is',
-            '--reason', 'the sentence reads shorter', '--cite', 'store.py:40',
-            '--repo', $ProofDir
-        ))
-        Invoke-Checked -Stage 'widened clean placed' -CommandLine ($Launcher + @(
-            $Cmd.mark, '--edit-copy', $WidenedCopyFile, '--address', $plant.kept,
-            '--instruction', 'clean', '--reason', $plant.reason, '--cite', "$(($plant.kept -split '@')[0]):1", '--repo', $ProofDir
-        ))
-        $widened = $Launcher + @(
-            $Cmd.collate, '--stage', $CompactingStage, '--binder', $CompactingBinderFile,
-            '--topology', $TopologyFile, '--repo', $ProofDir,
-            '--edit-copy', $WidenedCopyFile, '--proof-out', $WidenedProofFile
-        )
-        $refused = Invoke-Checked -Stage 'collate over a widened copy refused' -Expect 1 -Capture -CommandLine $widened
-        if (-not (($refused -join "`n").Contains("stage $CompactingStage admits"))) {
-            Write-Host 'stage failed: collate over a widened copy refused'
-            Write-Host 'expected a refusal naming the stage and what it admits; collate printed:'
-            $refused | Out-Host
-            Write-Host "command: $(Format-CommandLine $widened)"
-            exit 1
-        }
-        Assert-NotWritten -Stage 'collate over a widened copy refused' -Paths @($WidenedProofFile)
-        Invoke-Checked -Stage 'compacting patch' -CommandLine ($Launcher + @(
-            $Cmd.mark, '--edit-copy', $copy, '--address', $plant.patched,
-            '--instruction', 'patch',
-            '--cite', "$(($plant.patched -split '@')[0]):1",
-            '--from', "@$(Join-Path $Run 'compacting-from.txt')",
-            '--to', "@$(Join-Path $Run 'compacting-to.txt')",
-            '--reason', 'three lines state what two state, and the cap is two',
-            '--repo', $ProofDir
-        ))
-        Invoke-Checked -Stage 'compacting clean' -CommandLine ($Launcher + @(
-            $Cmd.mark, '--edit-copy', $copy, '--address', $plant.kept,
-            '--instruction', 'clean', '--reason', $plant.reason, '--cite', "$(($plant.kept -split '@')[0]):1", '--repo', $ProofDir
-        ))
-        # The instruction the row does not admit. `mark` refuses it as it
-        # places, so the copy is left exactly as the two rulings above left
-        # it -- which the check below is what proves.
-        $notAdmitted = $Launcher + @(
-            $Cmd.mark, '--edit-copy', $copy, '--address', $plant.patched,
-            '--instruction', $plant.refused,
-            '--false', 'Nothing is ever', '--true', 'Nothing is',
-            '--reason', 'the sentence reads shorter', '--cite', 'store.py:40',
-            '--repo', $ProofDir
-        )
-        $refused = Invoke-Checked -Stage 'compacting correct refused' -Expect 1 -Capture -CommandLine $notAdmitted
-        if (-not (($refused -join "`n").Contains("stage $CompactingStage admits"))) {
-            Write-Host 'stage failed: compacting correct refused'
-            Write-Host 'expected a refusal naming the stage and what it admits; mark printed:'
-            $refused | Out-Host
-            Write-Host "command: $(Format-CommandLine $notAdmitted)"
-            exit 1
-        }
-        # The binder the role received holds the dealt places alone, and is
-        # the one `check` reads (references/compact.md).
-        $received = Join-Path (Join-Path $CompactingCopiesDir 'binders') (Split-Path -Leaf $copy)
-        Invoke-Checked -Stage 'compacting check' -CommandLine ($Launcher + @(
-            $Cmd.check, '--edit-copy', $copy, '--binder', $received,
-            '--repo', $ProofDir
-        ))
-        # One role read each place, so each proposal stands with nothing to
-        # carry forward and no turn to run (Process #180). collate exits 0.
-        Invoke-Checked -Stage 'compacting collate' -CommandLine ($Launcher + @(
-            $Cmd.collate, '--stage', $CompactingStage, '--binder', $CompactingBinderFile,
-            '--topology', $TopologyFile, '--repo', $ProofDir,
-            '--edit-copy', $copy, '--proof-out', $CompactingProofFile
-        ))
-        Invoke-Checked -Stage 'compacting proof-to-docket' -CommandLine ($Launcher + @(
-            $Cmd.proof, '--proof', $CompactingProofFile, '--repo', $ProofDir,
-            '--to-docket', $CompactingDocketFile
-        ))
-        Invoke-Checked -Stage 'compacting proof-from-docket' -CommandLine ($Launcher + @(
-            $Cmd.proof, '--from-docket', $CompactingDocketFile, '--repo', $ProofDir,
-            '--out', $CompactingProofDir
-        ))
-        New-Item -ItemType Directory -Path $CompactingExpectedDir | Out-Null
-        Invoke-Checked -Stage 'compacting expected' -CommandLine @(
-            'uv', 'run', 'python', '-c',
-            'import sys; sys.path.insert(0, "scripts"); from pathlib import Path; from smoke_fixture import write_compacted_expected; write_compacted_expected(Path(sys.argv[1]))',
-            $CompactingExpectedDir
-        )
-        Invoke-Checked -Stage 'compacting diff' -CommandLine @(
-            'git', '-c', 'core.autocrlf=false', '--no-pager', 'diff', '--no-index', '--',
-            $CompactingExpectedDir, $CompactingProofDir
-        ) -OnFailure {
-            Write-Host 'what the compacting stage did -- the revise against its proof:'
-            & git -c core.autocrlf=false --no-pager diff --no-index -- $ProofDir $CompactingProofDir | Out-Host
-        }
+        Assert-NotWritten -Stage 'one end refused' -Paths @($OneEndDir)
     }
 }
 
@@ -1946,6 +2102,9 @@ try {
 
     foreach ($stageName in $Stages.Keys) {
         & $Stages[$stageName]
+        # A stage that fails exits above, so this line names a section that
+        # ran to its end; the full-run gate reads one per section.
+        Write-Host "section passed: $stageName"
         if ($Stop -eq $stageName) {
             break
         }

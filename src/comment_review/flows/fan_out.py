@@ -3,6 +3,9 @@
     partition(binder, stage)  each dispatch with its files, after the two guards
     dealt(binder, stage)      each dispatch's received binder with its seeded
                               edit_copy, in dispatch order
+    write_dealt(binder, stage, out_dir)
+                              those copies and binders, written to disk
+    received_binder_of(copy)  where `write_dealt` writes a copy's binder
     Shard                     a dispatch, with the pages and freeform paths it
                               matched
     OverlappingShards         two dispatches of one role both claim a file
@@ -19,13 +22,16 @@ place at most once, and nothing downstream needs extra identity to tell shards
 apart.
 """
 
+import json
 from dataclasses import replace
 from fnmatch import fnmatch
+from pathlib import Path
 
 from comment_review.binder.binder import Binder
 from comment_review.binder.page import Page, RedactedPage
 from comment_review.desk.stages import Dispatch, Stage
 from comment_review.flows.distribute import admit_binder, assigned_binder, seed
+from comment_review.machine.repo import write_raw
 
 
 class OverlappingShards(Exception):
@@ -72,6 +78,41 @@ def dealt(binder: Binder, stage: Stage) -> list[tuple[Binder, dict]]:
     return out
 
 
+def write_dealt(binder: Binder, stage: Stage, out_dir: Path) -> list[tuple[Path, str]]:
+    """Write `dealt`'s copies into `out_dir`, each received binder under `binders/`.
+
+    A copy is `<stage>_<role>_<n>.json`, `n` counting that role's dispatches,
+    and its binder has the same name. `dealt` refuses the whole stage before
+    anything is written.
+
+    Returns:
+        Each copy's path with the line that reports it, in dispatch order.
+    """
+    packets = dealt(binder, stage)
+    seen: dict[str, int] = {}
+    written = []
+    for dispatch, (received, copy) in zip(stage.dispatches, packets, strict=True):
+        n = seen[dispatch.role] = seen.get(dispatch.role, 0) + 1
+        where = out_dir / f"{stage.name}_{dispatch.role}_{n}.json"
+        write_raw(where, json.dumps(copy, indent=2))
+        binder_path = received_binder_of(where)
+        write_raw(binder_path, json.dumps(received.serialize(), indent=2))
+        places = sum(len(sheet["marks"]) for sheet in copy["sheets"])
+        written.append(
+            (
+                where,
+                f"{where}: {places} places for {dispatch.role} to rule on; "
+                f"{len(received.freeform)} freeform; binder {binder_path}",
+            )
+        )
+    return written
+
+
+def received_binder_of(copy: Path) -> Path:
+    """The received binder `write_dealt` writes beside the copy at `copy`."""
+    return copy.parent / "binders" / copy.name
+
+
 #: A dispatch, the pages it matched and the freeform paths it matched.
 Shard = tuple[Dispatch, list[Page | RedactedPage], list[str]]
 
@@ -79,7 +120,10 @@ Shard = tuple[Dispatch, list[Page | RedactedPage], list[str]]
 def partition(binder: Binder, stage: Stage) -> list[Shard]:
     """Each dispatch with the files its globs select, after the two guards.
 
-    A freeform path is dealt as a page is: the guards count both alike.
+    A freeform path is dealt as a page is: the guards count both alike. A
+    stage whose row sets a `cap` deals no freeform path: it compacts the
+    places the reader addressed, and stage 5 holds a freeform comment to the
+    cap itself.
 
     ! One computation, two readers. `dealt` seeds from this, and
     `flows.topology.fit` asks it whether a topology fits before any page is
@@ -90,7 +134,8 @@ def partition(binder: Binder, stage: Stage) -> list[Shard]:
         UncoveredPage: a file matches no dispatch of a role this stage
             dispatches at all.
     """
-    all_paths = [*(page.path for page in binder.pages), *binder.freeform]
+    freeform_dealt = () if stage.cap else binder.freeform
+    all_paths = [*(page.path for page in binder.pages), *freeform_dealt]
 
     # ! MATCHED ONCE PER DISPATCH, kept alongside it, so the guard pass below
     # and the seeding pass after it read the same computation rather than
@@ -99,7 +144,7 @@ def partition(binder: Binder, stage: Stage) -> list[Shard]:
         (
             dispatch,
             [p for p in binder.pages if _matches(p.path, dispatch.paths)],
-            [f for f in binder.freeform if _matches(f, dispatch.paths)],
+            [f for f in freeform_dealt if _matches(f, dispatch.paths)],
         )
         for dispatch in stage.dispatches
     ]

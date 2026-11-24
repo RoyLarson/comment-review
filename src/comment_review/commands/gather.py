@@ -33,14 +33,6 @@ def main() -> int:
     ap.add_argument("paths", nargs="*")
     ap.add_argument("--repo", default=".", help="repo root for citation resolution")
     ap.add_argument(
-        "--revise",
-        type=int,
-        default=0,
-        help="the revise `--repo` is -- 0 for the original, a later stage's"
-        " number for a revise root pulled after it. Stamped into `read_from`"
-        " so a role can tell which tree the binder was gathered from",
-    )
-    ap.add_argument(
         "--include-absent",
         action="store_true",
         help="carry the EMPTY places too -- a place where prose could go but does"
@@ -105,7 +97,6 @@ def _report(args: argparse.Namespace) -> int:
     got = gather(
         repo,
         [repo / p for p in args.paths],
-        args.revise,
         absent=args.include_absent,
     )
 
@@ -130,7 +121,7 @@ def _report(args: argparse.Namespace) -> int:
         return 1
     # !! The serialize is the container's and the dump is the command's. This is
     # the read flow's save end, and one of three places a binder becomes text,
-    # with `commands/distribute.py` and `commands/carry.py`.
+    # with `flows/stage.py` and `commands/carry.py`.
     wire = got.binder.serialize()
     print(json.dumps(wire, indent=1, default=str))
     # Stage 2 sizes a role's dispatches from this count of the places carried.

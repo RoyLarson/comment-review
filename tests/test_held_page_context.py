@@ -59,7 +59,7 @@ def test_saved_context_reaches_shared_read_routes(
     )
     wire = {
         "role": "block-context",
-        "read_from": {"root": str(tmp_path), "revise": 0},
+        "read_from": {"root": str(tmp_path)},
         "sheets": [
             Sheet.seed("m.py", "", [_clean_here("m.py@b1")], reading=saved_context)
         ],
@@ -155,9 +155,7 @@ def test_fill_move_reads_destination_under_saved_context(
     path.write_text("x = 0\n# one\n# two\n# three\nx = 1\ny = 2\n", encoding="utf-8")
     page = flow.page_of(path, rel="m.py", reading_context=saved_context)
     assert isinstance(page, Page)
-    copy = seed(
-        bind([page], read_from={"root": str(tmp_path), "revise": 0}), "block-context"
-    )
+    copy = seed(bind([page], read_from={"root": str(tmp_path)}), "block-context")
     calls = []
     actual = flow.page_of
 
@@ -198,7 +196,7 @@ def test_disjoint_saved_paths_supply_destination_context(
     copy = returned(
         {
             "role": "block-context",
-            "read_from": {"root": str(tmp_path), "revise": 0},
+            "read_from": {"root": str(tmp_path)},
             "sheets": [
                 Sheet.seed(
                     "m.py",
@@ -241,7 +239,7 @@ def test_disjoint_shard_move_uses_full_stage_contexts(
         page = flow.page_of(path, rel=name, reading_context=saved_context)
         assert isinstance(page, Page)
         pages.append(page)
-    binder = bind(pages, read_from={"root": str(tmp_path), "revise": 0})
+    binder = bind(pages, read_from={"root": str(tmp_path)})
     shards = tuple(replace(binder, pages=(page,)) for page in binder.pages)
     copies = []
     for shard in shards:

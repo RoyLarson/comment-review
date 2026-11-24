@@ -184,7 +184,7 @@ REPLACEMENT = {
 #: read off a gather root, so there is no real root to name for it -- this stands in
 #: for the tests below that exercise `bind()` in isolation and assert nothing about
 #: `read_from` itself.
-READ_FROM = {"root": "<synthetic>", "revise": 0}
+READ_FROM = {"root": "<synthetic>"}
 
 
 def docket_from(flat: dict, binder: Binder) -> Docket:

@@ -1,6 +1,6 @@
 """Stage 2, gather: every page in scope, annotated and bound into one binder.
 
-    gather(repo, targets, revise) -> Gathering
+    gather(repo, targets, stage) -> Gathering
     page_in(path, repo) -> the page one file reads as, or why not
     unaddressed_report(missing), not_gathered(handed_in, unreadable) -> text
 
@@ -80,8 +80,9 @@ class Gathering:
 
     repo: Path
     targets: list[Path]
-    revise: int
     absent: bool = False
+    #: the stage `stage open` built `repo` for, or "" for a plain gather
+    stage: str = ""
     #: what the walk found that has a language record, or that the caller named
     files: list[Path] = field(default_factory=list)
     #: files the walk came across with no record -- reported, never refused
@@ -268,12 +269,15 @@ def _bind(g: Gathering) -> None:
     # `_repo_relative` below.
     #
     # ! `machine.repo.relative_to` owns the two cases this line must not
-    # carry: the `..` walk to a revise root outside the checkout, and two
+    # carry: the `..` walk to a stage root outside the checkout, and two
     # different drives, where no relative path exists at all.
     root = relative_to(g.repo, Path.cwd()).as_posix()
+    read_from: dict = {"root": root}
+    if g.stage:
+        read_from["stage"] = g.stage
     g.binder = bind(
         g.pages,
-        read_from={"root": root, "revise": g.revise},
+        read_from=read_from,
         absent=g.absent,
         freeform=tuple(g.freeform),
     )
@@ -288,24 +292,24 @@ STEPS: tuple[Callable[[Gathering], None], ...] = (_walk, _pages, _bind, _annotat
 def gather(
     repo: Path,
     targets: list[Path],
-    revise: int,
     absent: bool = False,
+    stage: str = "",
 ) -> Gathering:
     """Every page under `targets`, annotated and bound, with the gaps named.
 
     Args:
         repo: the root every citation resolves against, resolved.
         targets: the files and directories in scope, as the caller spelled them.
-        revise: the revise `repo` is -- 0 for the original, a later stage's
-            number for a revise root pulled after it. Stamped into `read_from`.
         absent: carry the empty places too -- see the command's
             `--include-absent`.
+        stage: the stage `repo` was built for, stamped into `read_from`;
+            "" stamps none.
 
     Returns:
         The `Gathering` the steps wrote to, up to the first that named a gap
         in `unreadable`. `binder` is set when no step did.
     """
-    g = Gathering(repo, targets, revise, absent)
+    g = Gathering(repo, targets, absent, stage)
     for step in STEPS:
         step(g)
         if g.unreadable:

@@ -1,8 +1,8 @@
-"""`binder.bind`: the root and revise it was gathered from.
+"""`binder.bind`: the root it was gathered from.
 
 `the-flow-assumes-every-role-reads-at-once` T2 -- a sheet seeded from a binder
-names the revise and the original in its header, and a binder built from the
-original says so rather than leaving the field absent.
+names the tree in its header, and a binder says which root it read rather than
+leaving the field absent.
 """
 
 from pathlib import Path
@@ -22,17 +22,16 @@ from comment_review.flows.distribute import seed
 DESK = Path(__file__).resolve().parents[1] / "src" / "comment_review" / "desk"
 
 
-def test_a_binder_built_from_the_original_says_so():
+def test_a_binder_says_which_root_it_read():
     # !! RULING, pre-flight: COMPARE `Path`s, NEVER PATH STRINGS. This repo is
     # developed on Windows, where `str(Path("a/b"))` is `a\b` -- a string literal
     # here is green on one machine and red on the other.
-    binder = binder_of(DESK, 0)
+    binder = binder_of(DESK)
     # ! THE PAGE COUNT IS ASSERTED FIRST, and that is what stops the whole
     # module passing over an empty read: every assertion below holds trivially
     # when nothing was gathered.
     assert binder.pages, "gathered no page -- the rest of this test is vacuous"
     assert Path(binder.read_from["root"]) == DESK
-    assert binder.read_from["revise"] == 0
 
 
 def test_a_binder_that_cannot_say_which_root_it_read_is_refused():
@@ -46,18 +45,18 @@ def test_a_binder_that_cannot_say_which_root_it_read_is_refused():
 def test_the_binder_does_not_alias_the_caller_s_read_from():
     # ! The suite feeds one module-level `conftest.READ_FROM` into many binders,
     # so an aliased dict made every binder, every sheet seeded from one, and
-    # that global a single object -- a test writing `["revise"] = 1` would have
-    # changed what every later test in the session saw.
-    mine = {"root": str(DESK), "revise": 0}
+    # that global a single object -- a test writing `["stage"] = "4c"` would
+    # have changed what every later test in the session saw.
+    mine = {"root": str(DESK)}
     binder = bind(pages_of(DESK), read_from=mine)
-    binder.read_from["revise"] = 99
-    assert mine["revise"] == 0
-    assert seed(binder, "block-context")["read_from"]["revise"] == 99
+    binder.read_from["stage"] = "4c"
+    assert "stage" not in mine
+    assert seed(binder, "block-context")["read_from"]["stage"] == "4c"
 
 
-def test_the_sheet_header_names_the_revise():
-    sheet = seed(binder_of(DESK, 0), "block-context")
-    assert sheet["read_from"]["revise"] == 0
+def test_the_sheet_header_names_the_root():
+    sheet = seed(binder_of(DESK), "block-context")
+    assert Path(sheet["read_from"]["root"]) == DESK
 
 
 def test_a_binder_that_names_no_root_is_REFUSED_AT_THE_BOUNDARY():
@@ -71,7 +70,7 @@ def test_a_binder_that_names_no_root_is_REFUSED_AT_THE_BOUNDARY():
     # ! THE REFUSAL IS THE SAME ONE, ONE STEP EARLIER, and it gained a message
     # a reader can act on -- `seed` raised an eight-frame traceback past
     # `main`'s own promise of "2 when an input could not be read".
-    wire = binder_of(DESK, 0).serialize()
+    wire = binder_of(DESK).serialize()
     del wire["read_from"]
     got, problems = Binder.deserialize("b.json", wire)
     assert got is None

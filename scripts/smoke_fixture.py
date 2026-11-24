@@ -365,10 +365,11 @@ class Landing(NamedTuple):
 LANDINGS: dict[str, Landing] = {
     # block-context's correction is the only one that lands at c6; the
     # other three roles mark a scope-declaring query instead of clean, so
-    # the fold settles it.
+    # no role but its proposer read the change and the chief takes it in
+    # (`Process: #385`).
     "fib.py@c6": Landing(
         "text",
-        route="mark",
+        route="disposition",
         filed=("correct", "query"),
         text="  # the decorator's only job",
         claim={
@@ -392,15 +393,15 @@ LANDINGS: dict[str, Landing] = {
         marked="  # every entry, cached or not",
     ),
     # the move's --change: b1's paragraph relocates to b0, unchanged. The
-    # three roles that read the page defer at b1, so nobody else is owed a
-    # say on the placement and the fold agrees the move, which stays filed at
-    # b1 and b0 (`Process: #205`). Its arrival at b0 is a text the other three
-    # have not seen, so b0 is carried to them as a composition; each cleans
-    # it in the turn and it settles. b0's gap
-    # sits above `import functools`.
+    # three roles that read the page defer at b1, so the move is its
+    # mover's alone: its placement is open, owed to no role, and put to
+    # the chief (`Process: #385`), who takes the mover's side in. That
+    # ruling is the second party at both ends (`Process: #388`), so b0's
+    # arrival settles with it and the move stays filed at b1 and b0
+    # (`Process: #205`). b0's gap sits above `import functools`.
     "fib.py@b0": Landing(
         "text",
-        route="turn",
+        route="disposition",
         filed=("move",),
         text="# Module state, written by the wrapper and read by the caller.",
         line=3,
@@ -431,13 +432,13 @@ LANDINGS: dict[str, Landing] = {
             "# separately. fib is cached; logged counts every call, cached or not."
         ),
     ),
-    # the drop vacates b14, and the fold settles it; nothing replaces the
-    # dropped paragraph.
-    "fib.py@b14": Landing("removed", route="mark", filed=("drop", "query")),
-    # the move vacates its own address: the agreed move sets the empty
-    # remainder here, which the fold settles; the text it carried now lives
-    # at b0.
-    "fib.py@b1": Landing("removed", route="mark", filed=("move", "query")),
+    # the drop vacates b14; the other three defer there, so the chief
+    # takes it in (`Process: #385`). Nothing replaces the dropped paragraph.
+    "fib.py@b14": Landing("removed", route="disposition", filed=("drop", "query")),
+    # the move vacates its own address: the chief's placement ruling sets
+    # the empty remainder here (`Process: #388`); the text it carried now
+    # lives at b0.
+    "fib.py@b1": Landing("removed", route="disposition", filed=("move", "query")),
     # collate escalates a3. In the turn block-context withdraws and the other
     # two each hold, so two texts still stand at the place and it is carried
     # forward; disposition keeps the original over both.
@@ -563,11 +564,12 @@ LANDINGS: dict[str, Landing] = {
     ),
     # module-context's patch is the only mark that owes a change at c3.
     # function-context marks an unable-to-determine query and the other two
-    # a scope-declaring one; a query of either shape abstains, so the fold
-    # settles the patch alone.
+    # a scope-declaring one; a query of either shape abstains, so no role
+    # but its proposer read the patch and the chief takes it in
+    # (`Process: #385`).
     "rate.py@c3": Landing(
         "text",
-        route="mark",
+        route="disposition",
         filed=("patch", "query"),
         text="  # fraction of calls the cache answered",
         claim={"from": "share of calls", "to": "fraction of calls"},
@@ -590,21 +592,22 @@ LANDINGS: dict[str, Landing] = {
     ),
     # the drop of a place that owns a leading: block-context drops share's
     # comment, and the other three roles mark a scope-declaring query
-    # instead of clean, so the fold settles it. The blank line below the
-    # comment is the leading `b5` owns, and `set_page` sets no leading after
-    # a place a drop vacated, so the blank goes with the comment.
-    "rate.py@b5": Landing("removed", route="mark", filed=("drop", "query")),
+    # instead of clean, so the chief takes it in (`Process: #385`). The
+    # blank line below the comment is the leading `b5` owns, and `set_page`
+    # sets no leading after a place a drop vacated, so the blank goes with
+    # the comment.
+    "rate.py@b5": Landing("removed", route="disposition", filed=("drop", "query")),
     # the partial move's origin: ownership-context takes the paragraph's
     # second sentence to `b3` and the first stays where it is, since a move's
     # `change` is the snippet and the origin keeps what the snippet left
     # behind (`Process: #172`). The other three roles mark a scope-declaring
-    # query at both ends rather than clean, so nobody else is owed a say on
-    # the placement: the fold agrees the move and settles each end against
-    # it. `marked` is that snippet, which the move's `mark` call carries as
-    # `--change`.
+    # query at both ends rather than clean, so the move is its mover's
+    # alone and put to the chief (`Process: #385`), whose placement ruling
+    # settles each end against it (`Process: #388`). `marked` is that
+    # snippet, which the move's `mark` call carries as `--change`.
     "store.py@b1": Landing(
         "text",
-        route="mark",
+        route="disposition",
         filed=("move", "query"),
         text="    # Every lookup is recorded.",
         marked=" Entries are never removed.",
@@ -612,11 +615,11 @@ LANDINGS: dict[str, Landing] = {
     # and its destination: the paragraph `b3` already held with the snippet
     # on a line below it, which is the move's `--raw-text` -- the destination
     # text as it will read (`Process: #175`). ownership-context marks `b3`
-    # clean beside its own move and the other three query, so the fold
-    # settles it.
+    # clean beside its own move and the other three query, so the chief's
+    # placement ruling settles it.
     "store.py@b3": Landing(
         "text",
-        route="mark",
+        route="disposition",
         filed=("move", "clean", "query"),
         text=(
             "    # A miss is a lookup the store had no answer for.\n"
@@ -693,12 +696,13 @@ LANDINGS: dict[str, Landing] = {
     # writes its own `--change` rather than letting the claim derive one, and
     # it drops a word the claim never named. The fold reports that as an
     # advisory and rolls nothing back for it (`Process: #177`), the other
-    # three roles query, and the change lands. `text` is what the role wrote,
+    # three roles query, and the chief takes the change in (`Process:
+    # #385`). `text` is what the role wrote,
     # which is not what the claim derives -- `tests/gates/
     # test_smoke_fixture.py`'s `WIDER` names the word it drops.
     "store.py@c5": Landing(
         "text",
-        route="mark",
+        route="disposition",
         filed=("correct", "query"),
         text="  # two decimal places, as the report asks",
         claim={"false": "two places", "true": "two decimal places"},
@@ -808,13 +812,14 @@ ADDRESSER_ROW = "fib.py@b15"
 #: the proposing role is not asked about its own proposal. Six are `add`s, at
 #: places no other role was handed a slot for; `store.py@b7` is a `correct`
 #: the other three roles cleaned, which is the same rule reaching a place they
-#: all read. `fib.py@b0` is the destination of a move the fold agrees: the
-#: arrival it sets there is a text the page's other readers have not seen,
-#: so each is asked about it. The ends of a move whose placement
-#: is still undecided are to come and ask nothing (`decision-log.md Process:
-#: #201`), so no other move's destination is here. The last two are the marks
-#: the code concern's asker files in place of its query (`REPLACED_MARKS`), a
-#: `correct` the other three had cleaned and an `add` at an empty place.
+#: all read. No move's destination is here: the ends of a move whose
+#: placement is still undecided are to come and ask nothing
+#: (`decision-log.md Process: #201`), and `fib.py@b0`, the destination of the
+#: move ownership-context alone read, is put to the copy chief, whose ruling
+#: is the second party at both ends (`Process: #385`, `#388`). The last two
+#: are the marks the code concern's asker files in place of its query
+#: (`REPLACED_MARKS`), a `correct` the other three had cleaned and an `add` at
+#: an empty place.
 PROPOSED = {
     "fib.py@a0": "block-context",
     "fib.py@b8": "block-context",
@@ -823,7 +828,6 @@ PROPOSED = {
     "fib.py@b17": "module-context",
     "fib.py@b15": "module-context",
     "store.py@b7": "module-context",
-    "fib.py@b0": "ownership-context",
     "fib.py@a1": "block-context",
     "fib.py@c5": "block-context",
 }
@@ -1283,6 +1287,8 @@ ANSWERS2: dict[str, dict[str, dict]] = {
 #: ends settle with nothing left proposing at either; `tally.py@b1`'s is
 #: ruled for its mover, which agrees it and leaves both ends carried, so
 #: this call exits with places still carried and `ENDS` below closes them.
+#: The entries after those rule what no turn was run for: the five changes
+#: and two moves only their proposer read (`Process: #385`, `#388`).
 DISPOSITIONS = [
     {
         "address": "fib.py@c1",
@@ -1379,6 +1385,56 @@ DISPOSITIONS = [
         "answer": "taken_in",
         "side": "module-context",
         "reason": "a repeat is what repeats counts, so the sentence defines it there",
+    },
+    # The changes only their proposer read: every other role deferred there,
+    # so each is put to the chief and no turn is run for it (`Process: #385`).
+    # The chief takes each proposer's text in.
+    {
+        "address": "fib.py@c6",
+        "answer": "taken_in",
+        "side": "block-context",
+        "reason": "the decorator does one thing, and only says so",
+    },
+    {
+        "address": "fib.py@b14",
+        "answer": "taken_in",
+        "side": "ownership-context",
+        "reason": "the counter's own comment already says what it measures",
+    },
+    {
+        "address": "rate.py@b5",
+        "answer": "taken_in",
+        "side": "block-context",
+        "reason": "share's body says it defers to rate, which the comment restates",
+    },
+    {
+        "address": "rate.py@c3",
+        "answer": "taken_in",
+        "side": "module-context",
+        "reason": "a fraction is what hits over total is",
+    },
+    {
+        "address": "store.py@c5",
+        "answer": "taken_in",
+        "side": "block-context",
+        "reason": "round's second argument is decimal places",
+    },
+    # The two moves only their mover read. The chief takes each mover's side
+    # in, which is the second party at both ends: each end's text is exactly
+    # what the move sets there, so both settle with it (`Process: #388`).
+    {
+        "address": "fib.py@b1",
+        "to": "fib.py@b0",
+        "answer": "taken_in",
+        "side": "ownership-context",
+        "reason": "module state is described above the imports, at the top",
+    },
+    {
+        "address": "store.py@b1",
+        "to": "store.py@b3",
+        "answer": "taken_in",
+        "side": "ownership-context",
+        "reason": "that entries are never removed is what makes a miss final",
     },
 ]
 
@@ -2232,11 +2288,31 @@ COLLIDE_RATE_BASE = (
 COLLIDE_RATE_B1 = COLLIDE_SNIPPET + "\n" + COLLIDE_RATE_BASE
 
 #: And what it reads with the snippet run onto the paragraph's last line
-#: instead, which keeps the same words and does not compose: that line is
-#: rewritten, beside the line the `correct` rewrites, and two rewrites of
-#: adjacent lines meet. A snippet on a line of its own below the paragraph
-#: is an insert, and would compose.
-COLLIDE_SAME_SENTENCE = COLLIDE_RATE_BASE + " " + COLLIDE_SNIPPET.strip()
+#: instead, the sentence the role's `correct` rewrites. The snippet's words
+#: are inserted after the last word the `correct` changes, so the two edit
+#: different words of one sentence and compose (`decision-log.md Process:
+#: #390`).
+COLLIDE_SAME_SENTENCE = (
+    COLLIDE_RATE_BASE + " " + COLLIDE_SNIPPET.strip().removeprefix("# ")
+)
+
+#: What `proof --copy` drafts of `rate.py` from a copy holding the role's
+#: `correct` and the move whose destination is `COLLIDE_SAME_SENTENCE`: both
+#: edits land on the one line, the `correct`'s and the snippet's.
+COLLIDE_SAME_SENTENCE_DRAFT = (
+    "def rate(hits, total):\n"
+    "    # Zero calls give a zero rate: nothing\n"
+    "    # was asked of the cache. The rate is\n"
+    "    # hits over total, never more than one."
+    " Kept for callers that ask for a share rather than a rate.\n"
+    "    if total == 0:\n"
+    "        return 0.0\n"
+    "    return hits / total  # share of calls the cache answered\n"
+    "\n"
+    "\n"
+    "def share(hits, total):\n"
+    "    return rate(hits, total)\n"
+)
 
 
 def write_collide_plant(run: Path) -> tuple[Path, Path]:
@@ -2248,13 +2324,14 @@ def write_collide_plant(run: Path) -> tuple[Path, Path]:
             to `mark` as `@path`.
 
     Returns:
-        The composing text's path first, the refused one's second.
+        The text set above the paragraph's path first, the one run onto its
+        last sentence second.
     """
     composes = run / "collide-raw-text.txt"
     composes.write_text(COLLIDE_RATE_B1, encoding="utf-8", newline="\n")
-    refused = run / "collide-same-sentence.txt"
-    refused.write_text(COLLIDE_SAME_SENTENCE, encoding="utf-8", newline="\n")
-    return composes, refused
+    same_sentence = run / "collide-same-sentence.txt"
+    same_sentence.write_text(COLLIDE_SAME_SENTENCE, encoding="utf-8", newline="\n")
+    return composes, same_sentence
 
 
 #: What `proof --copy` drafts of `rate.py` from the collide copy, written out
@@ -2303,6 +2380,21 @@ def write_collide_draft(root: Path) -> tuple[Path, Path, Path, Path]:
     return fib, rate, store, tally
 
 
+def write_same_sentence_draft(root: Path) -> tuple[Path, Path, Path, Path]:
+    """Write what the same-sentence copy drafts, as `write_collide_draft` writes.
+
+    Args:
+        root: the directory to write into. Not created here -- the smoke
+            script creates it first.
+
+    Returns:
+        The four paths written, `fib.py`'s first.
+    """
+    fib, rate, store, tally = write_collide_draft(root)
+    rate.write_text(COLLIDE_SAME_SENTENCE_DRAFT, encoding="utf-8", newline="\n")
+    return fib, rate, store, tally
+
+
 def write_wrap_plant(run: Path, expected: Path) -> tuple[Path, Path]:
     """Write `WRAP_DROP` for the smoke's `mark` call, and `WRAP_RATE_DRAFT`.
 
@@ -2333,10 +2425,21 @@ SECOND_ROLE = "ownership-context"
 #: What that stage rules, on the revise's `fib.py`: one `correct` over the
 #: module docstring, a paragraph the first stage already changed, so the
 #: correction is measured against the revised text rather than the original's.
-#: No other role reads the place, so the proposal stands at once
-#: (`decision-log.md Process: #180`).
+#: No other role reads the place, so the change goes to the copy chief and no
+#: turn is run for it (`decision-log.md Process: #385`); `SECOND_DISPOSITIONS`
+#: takes it in.
 SECOND_CORRECT = "fib.py@a0"
 SECOND_CLAIM = {"false": "why it is counted", "true": "why the count matters"}
+
+#: The chief's ruling on the second stage's one change.
+SECOND_DISPOSITIONS = [
+    {
+        "address": SECOND_CORRECT,
+        "answer": "taken_in",
+        "side": "ownership-context",
+        "reason": "what the count is for is the point, not that it happens",
+    },
+]
 
 #: And a `clean` at every other prose place the revise carries, written out by
 #: hand from `EXPECTED` -- the addresses the revise has, which are not the
@@ -2386,6 +2489,13 @@ def write_second_plant(run: Path) -> dict[str, Path]:
         json.dumps(list(SECOND_CLEAN)) + "\n", encoding="utf-8", newline="\n"
     )
     paths["clean"] = clean
+    dispositions = run / "second-dispositions.json"
+    dispositions.write_text(
+        json.dumps(SECOND_DISPOSITIONS, indent=2) + "\n",
+        encoding="utf-8",
+        newline="\n",
+    )
+    paths["dispositions"] = dispositions
     return paths
 
 
@@ -2559,10 +2669,25 @@ UNTOUCHED = (
     "store.py@c15",
 )
 
-#: The two of them the stage deals: over the cap, and in a series it names.
-#: The docstring `a7` runs to four lines and is not dealt because `a` is not
-#: in the series; `b14` and `c15` stand on one line each.
-DEALT = ("store.py@b13", "store.py@b15")
+#: The places the stage deals: over the cap, and in a series it names, on
+#: every page of the scope, since `stage open` gathers the stage's binder over
+#: the whole scope (`decision-log.md Process: #402`). Two are `summary`'s: the
+#: docstring `a7` runs to four lines and is not dealt because `a` is not in
+#: the series; `b14` and `c15` stand on one line each. The third is
+#: `rate.py@b1`, three lines as the first stage left it. In the order the copy
+#: holds them.
+DEALT = ("rate.py@b1", "store.py@b13", "store.py@b15")
+
+#: The one the stage condenses, and the one it leaves at length.
+PATCHED = "store.py@b13"
+KEPT = "store.py@b15"
+
+#: And `rate.py@b1`, which the stage leaves at length too, and why.
+RATE_KEPT = "rate.py@b1"
+RATE_KEPT_AT_LENGTH = (
+    "each line states one fact about the rate, and none of the three is"
+    " implied by the others"
+)
 
 #: The paragraph at `b13`, as `STORE_FIXTURE` writes it and as the revise
 #: still holds it -- the `claim.from` of the one `patch`, which quotes the
@@ -2592,6 +2717,18 @@ KEPT_AT_LENGTH = (
 #: The instruction the stage does not admit, planted to be refused by `mark`.
 REFUSED_INSTRUCTION = "correct"
 
+#: The chief's ruling on the condensation: the stage's one role alone read
+#: `b13`, so its patch goes to the chief like any lone change
+#: (`decision-log.md Process: #385`, `#387`), who takes it in.
+COMPACTING_DISPOSITIONS = [
+    {
+        "address": PATCHED,
+        "answer": "taken_in",
+        "side": COMPACTING_ROLE,
+        "reason": "the two lines keep every claim the three made",
+    },
+]
+
 
 def write_compacting(run: Path) -> dict[str, Path]:
     """Write the compacting stage's plant: its table, and the patch's clauses.
@@ -2601,10 +2738,11 @@ def write_compacting(run: Path) -> dict[str, Path]:
 
     Returns:
         `{"table": compacting.json, "from": the paragraph as it stands,
-        "to": the condensed paragraph}`. The script reads the table for the
+        "to": the condensed paragraph, "dispositions":
+        compacting-dispositions.json}`. The script reads the table for the
         stage's row, the places it deals, and the places every role cleans in
         the first stage; the two clause files are what its `mark` call passes
-        by `@path`.
+        by `@path`, and the dispositions are what its `disposition` call reads.
     """
     table = run / "compacting.json"
     table.write_text(
@@ -2615,9 +2753,11 @@ def write_compacting(run: Path) -> dict[str, Path]:
                 "row": COMPACTING_ROW,
                 "untouched": list(UNTOUCHED),
                 "dealt": list(DEALT),
-                "patched": DEALT[0],
-                "kept": DEALT[1],
+                "patched": PATCHED,
+                "kept": KEPT,
                 "reason": KEPT_AT_LENGTH,
+                "rate_kept": RATE_KEPT,
+                "rate_reason": RATE_KEPT_AT_LENGTH,
                 "refused": REFUSED_INSTRUCTION,
             }
         ),
@@ -2630,7 +2770,17 @@ def write_compacting(run: Path) -> dict[str, Path]:
     }
     for path, text in clauses.values():
         path.write_text(text, encoding="utf-8", newline="\n")
-    return {"table": table, **{key: path for key, (path, _t) in clauses.items()}}
+    dispositions = run / "compacting-dispositions.json"
+    dispositions.write_text(
+        json.dumps(COMPACTING_DISPOSITIONS, indent=2) + "\n",
+        encoding="utf-8",
+        newline="\n",
+    )
+    return {
+        "table": table,
+        **{key: path for key, (path, _t) in clauses.items()},
+        "dispositions": dispositions,
+    }
 
 
 def widen(copy: Path, out: Path) -> Path:

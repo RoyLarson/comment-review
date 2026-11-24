@@ -21,7 +21,7 @@ from pathlib import Path
 
 from conftest import build
 
-from comment_review.desk.stages import ROLES, Kind, Stage, deals, pulls_revise
+from comment_review.desk.stages import ROLES, Kind, Stage, deals
 from comment_review.desk.topology import read as read_topology
 from comment_review.reading.addresser import cue_of
 from comment_review.reading.paragraph import Paragraph
@@ -78,23 +78,6 @@ def test_the_other_three_share_one_stage():
         "function-context",
         "module-context",
     )
-
-
-def test_only_an_editorial_stage_pulls_a_revise():
-    # !! THE EXPECTATION IS THE TRANSCRIBED TABLE, NOT THE MODULE'S OWN RULE.
-    # This read `all(pulls_revise(s) == (s.kind == EDITORIAL) for s in STAGES)`
-    # until 2026-08-28 -- a restatement of `pulls_revise`'s body over the same
-    # objects, which is self-consistency and is what this file's docstring
-    # forbids. Both stages being EDITORIAL, it also only ever evaluated the
-    # True branch.
-    stages = _stages()
-    assert [s.name for s in stages] == ["4a", "4c"]
-    assert [s.name for s in stages if pulls_revise(s)] == ["4a", "4c"]
-    # ! THE FALSE BRANCH NEEDS A `Stage` BUILT HERE, because no stage the
-    # fixture builds is ENRICHING -- `annotate` is the named candidate and is
-    # stage 3, not in this topology. `stages.py` says so rather than implying
-    # the enum is exercised.
-    assert not pulls_revise(Stage("annotate", Kind.ENRICHING))
 
 
 #: A page holding one place of each series the deal asks about: a module

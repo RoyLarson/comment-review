@@ -28,7 +28,7 @@ from comment_review.reading.diagnostics import ReadFailure
 #: number the repeated-literal pass pairs.
 A_PAGE = '"""See `budget`. The cap is 3."""\n'
 
-READ_FROM = {"root": ".", "revise": 0}
+READ_FROM = {"root": "."}
 
 
 def _pages(root):
@@ -54,7 +54,7 @@ def test_a_reader_failure_is_reported_without_a_successful_page(tmp_path):
 
     path = tmp_path / name
     path.write_text(text, encoding="utf-8", newline="")
-    gathered = Gathering(tmp_path, [path], 0, files=[path])
+    gathered = Gathering(tmp_path, [path], files=[path])
     _pages(gathered)
     assert gathered.pages == []
     assert gathered.unreadable == [expected]
@@ -73,7 +73,7 @@ def test_a_lone_cr_is_unreadable_at_the_gather(tmp_path, name, raw):
 
     path = tmp_path / name
     path.write_bytes(raw)
-    gathered = Gathering(tmp_path, [path], 0, files=[path])
+    gathered = Gathering(tmp_path, [path], files=[path])
     _pages(gathered)
     assert gathered.pages == []
     assert len(gathered.unreadable) == 1
@@ -86,7 +86,7 @@ def test_unexpected_page_errors_propagate_from_gather(tmp_path, monkeypatch):
 
     path = tmp_path / "m.py"
     path.write_text("v = 1\n", encoding="utf-8")
-    gathered = gather_mod.Gathering(tmp_path, [path], 0, files=[path])
+    gathered = gather_mod.Gathering(tmp_path, [path], files=[path])
 
     def broken_page(*args, **kwargs):
         raise RuntimeError("page bug")
@@ -134,11 +134,11 @@ class TestGather:
     def test_it_returns_the_binder_the_pages_and_the_gaps(self, tmp_path):
         repo = a_small_real_tree(tmp_path)
         (repo / "notes.lock").write_text("not a language\n", encoding="utf-8")
-        got = flow.gather(repo, [repo], 0)
+        got = flow.gather(repo, [repo])
 
         assert isinstance(got.binder, Binder)
         assert [p.path for p in got.binder.pages] == [p.path for p in got.pages]
-        assert got.binder.read_from["revise"] == 0
+        assert "stage" not in got.binder.read_from
         assert got.unreadable == []
         assert got.no_record == [(repo / "notes.lock").as_posix()]
         assert sorted(f.name for f in got.files) == [
@@ -151,12 +151,12 @@ class TestGather:
     def test_a_named_file_it_cannot_read_is_a_gap_and_not_a_raise(self, tmp_path):
         bad = tmp_path / "m.py"
         bad.write_bytes(b"\xff\xfe" + "x = 1\n".encode("utf-16-le"))
-        got = flow.gather(tmp_path, [bad], 0)
+        got = flow.gather(tmp_path, [bad])
         assert got.pages == []
         assert len(got.unreadable) == 1 and "m.py" in got.unreadable[0]
 
     def test_a_target_that_matched_no_file_is_a_gap(self, tmp_path):
-        got = flow.gather(tmp_path, [tmp_path / "nope.py"], 0)
+        got = flow.gather(tmp_path, [tmp_path / "nope.py"])
         assert got.unreadable == [
             f"{(tmp_path / 'nope.py').as_posix()} (matched no files)"
         ]
@@ -170,14 +170,14 @@ class TestGather:
             seen.append((g, hasattr(g, "binder")))
 
         monkeypatch.setattr(flow, "STEPS", (*flow.STEPS, references_for))
-        got = flow.gather(a_small_real_tree(tmp_path), [tmp_path / "repo"], 0)
+        got = flow.gather(a_small_real_tree(tmp_path), [tmp_path / "repo"])
         assert seen == [(got, True)]
         assert got.binder.paragraphs, "the step ran over nothing"
 
     def test_stage_3_annotates_the_paragraphs_the_binder_holds(self, tmp_path):
         """The binder is the one population: no second list beside it."""
         _pages(tmp_path)
-        got = flow.gather(tmp_path, [tmp_path], 0)
+        got = flow.gather(tmp_path, [tmp_path])
         prose = [b for b in got.binder.paragraphs if b.text]
         assert len(prose) == 2
         assert all("repeated-literal" in b.annotations for b in prose)
@@ -197,6 +197,6 @@ class TestGather:
         target = tmp_path / "m.py"
         if gap == "unreadable":
             target.write_bytes(b"\xff\xfe" + "x = 1\n".encode("utf-16-le"))
-        got = flow.gather(tmp_path, [target], 0)
+        got = flow.gather(tmp_path, [target])
         assert len(got.unreadable) == 1
         assert not hasattr(got, "binder")

@@ -16,6 +16,7 @@ from helpers import (
     a_correct,
     a_correct_setting,
     a_drop,
+    a_jacket_naming,
     a_misspelled_address,
     a_move,
     a_patch,
@@ -63,14 +64,11 @@ def test_loaded_initial_context_refusal_preserves_files(
         "sys.argv",
         [
             "collate",
-            "--stage",
-            "4c",
-            "--binder",
-            str(tmp_path / "binder.json"),
-            "--received-binder",
-            str(tmp_path / "received.json"),
-            "--edit-copy",
-            str(tmp_path / "copy.json"),
+            *a_jacket_naming(
+                tmp_path / "binder.json",
+                [tmp_path / "copy.json"],
+                received=[tmp_path / "received.json"],
+            ),
             "--proof-out",
             str(outputs[0]),
             "--batch-out",
@@ -101,13 +99,15 @@ def run(
     places=None,
     appended=(),
     with_stderr=False,
+    topology="",
 ):
     """`collate` over one page's copies. `on_copy` is laid over each copy as
     it is written, which is how a role hand-edits one before returning it.
     `places` is the page's paragraphs by address, one at `m.py@b1` unless a
     case names more. `appended` entries are added to each copy's first sheet,
     as a role adds a mark at a place it was not handed a slot for.
-    `with_stderr` returns stderr after stdout, for a refusal printed there."""
+    `with_stderr` returns stderr after stdout, for a refusal printed there.
+    `topology` is the jacket's rows, for `a_jacket_naming`."""
     binder = a_real_binder_over(tmp_path / "repo", places or {"m.py@b1": BASE})
     copies = copies_over(binder, marks_by_role)
     for copy in copies:
@@ -118,19 +118,14 @@ def run(
     for i, copy in enumerate(copies):
         path = tmp_path / f"copy{i}.json"
         path.write_text(json.dumps({**copy, **(on_copy or {})}), encoding="utf-8")
-        paths.append(str(path))
+        paths.append(path)
     argv = [
         "collate",
-        "--stage",
-        "4c",
-        "--binder",
-        str(binder_path),
+        *a_jacket_naming(binder_path, paths, topology=topology),
         "--proof-out",
         str(tmp_path / "proof.json"),
         *extra,
     ]
-    for path in paths:
-        argv += ["--edit-copy", path]
     monkeypatch.setattr("sys.argv", argv)
     code = command.main()
     got = capsys.readouterr()
@@ -284,24 +279,29 @@ class TestStageCoverage:
     round rolls back: a stage that is short a dispatch has not been folded.
     """
 
-    def test_a_dispatch_that_returned_nothing_is_named_with_its_count(
+    def test_a_dispatch_that_returned_nothing_is_named_and_nothing_folds(
         self, tmp_path, monkeypatch, capsys
     ):
-        (tmp_path / "t.toml").write_text(TWO_ROLES, encoding="utf-8")
-        code, out = run(
-            tmp_path,
-            {"block-context": {"m.py@b1": a_correct("m.py@b1")}},
-            monkeypatch,
-            capsys,
-            "--topology",
-            str(tmp_path / "t.toml"),
+        binder = a_real_binder_over(tmp_path / "repo", {"m.py@b1": BASE})
+        (copy,) = copies_over(
+            binder, {"block-context": {"m.py@b1": a_correct("m.py@b1")}}
         )
-        assert code == report.BROKEN, out
-        assert "stage 4c: function-context returned 0 of 1 dispatches" in out
-        assert not (tmp_path / "proof.json").exists()
+        binder_path = tmp_path / "binder.json"
+        binder_path.write_text(json.dumps(binder.serialize()), encoding="utf-8")
+        copy_path = tmp_path / "copy0.json"
+        copy_path.write_text(json.dumps(copy), encoding="utf-8")
+        flags = a_jacket_naming(
+            binder_path, [copy_path, tmp_path / "copy1.json"], topology=TWO_ROLES
+        )
+        proof = tmp_path / "proof.json"
+        monkeypatch.setattr("sys.argv", ["collate", *flags, "--proof-out", str(proof)])
+        code = command.main()
+        out = capsys.readouterr().out
+        assert code == report.NOT_RETURNED, out
+        assert f"not returned {tmp_path / 'copy1.json'}: function-context" in out
+        assert not proof.exists()
 
     def test_every_dispatch_returned_is_no_report(self, tmp_path, monkeypatch, capsys):
-        (tmp_path / "t.toml").write_text(TWO_ROLES, encoding="utf-8")
         code, out = run(
             tmp_path,
             # ! The two agree, so the fold settles and nothing else is reported.
@@ -311,8 +311,7 @@ class TestStageCoverage:
             },
             monkeypatch,
             capsys,
-            "--topology",
-            str(tmp_path / "t.toml"),
+            topology=TWO_ROLES,
         )
         assert code == 0, out
         assert "dispatches" not in out
@@ -320,35 +319,22 @@ class TestStageCoverage:
     def test_a_stage_the_topology_lacks_is_refused_by_name(
         self, tmp_path, monkeypatch, capsys
     ):
-        (tmp_path / "t.toml").write_text(
-            TWO_ROLES.replace('"4c"', '"4a"'), encoding="utf-8"
+        binder = a_real_binder_over(tmp_path / "repo", {"m.py@b1": BASE})
+        (copy,) = copies_over(
+            binder, {"block-context": {"m.py@b1": a_correct("m.py@b1")}}
         )
-        code, out = run(
-            tmp_path,
-            {"block-context": {"m.py@b1": a_correct("m.py@b1")}},
-            monkeypatch,
-            capsys,
-            "--topology",
-            str(tmp_path / "t.toml"),
-        )
+        binder_path = tmp_path / "binder.json"
+        binder_path.write_text(json.dumps(binder.serialize()), encoding="utf-8")
+        copy_path = tmp_path / "copy0.json"
+        copy_path.write_text(json.dumps(copy), encoding="utf-8")
+        flags = a_jacket_naming(binder_path, [copy_path], stage="4a")
+        flags[flags.index("--stage") + 1] = "4c"
+        argv = ["collate", *flags, "--proof-out", str(tmp_path / "proof.json")]
+        monkeypatch.setattr("sys.argv", argv)
+        code = command.main()
+        printed = capsys.readouterr()
         assert code == report.UNREADABLE
-
-    def test_a_topology_file_that_cannot_be_read_is_unreadable_by_name(
-        self, tmp_path, monkeypatch, capsys
-    ):
-        missing = tmp_path / "missing.toml"
-        code, out = run(
-            tmp_path,
-            {"block-context": {"m.py@b1": a_correct("m.py@b1")}},
-            monkeypatch,
-            capsys,
-            "--topology",
-            str(missing),
-            with_stderr=True,
-        )
-        assert code == report.UNREADABLE, out
-        assert "missing.toml" in out
-        assert not (tmp_path / "proof.json").exists()
+        assert "stage '4c' is not a row of the topology" in printed.out + printed.err
 
 
 #: A compacting stage's row over the same page: dealt the `b` places over two
@@ -372,36 +358,18 @@ class TestWhatTheStageAdmits:
     def test_a_copy_that_widened_its_own_admits_is_BROKEN_by_name(
         self, tmp_path, monkeypatch, capsys
     ):
-        (tmp_path / "t.toml").write_text(COMPACTING, encoding="utf-8")
         code, out = run(
             tmp_path,
             {"block-context": {"m.py@b1": a_correct("m.py@b1")}},
             monkeypatch,
             capsys,
-            "--topology",
-            str(tmp_path / "t.toml"),
+            topology=COMPACTING,
             on_copy={"stage": "4c", "admits": ["patch", "correct"]},
         )
         assert code == report.BROKEN, out
         assert "stage 4c admits patch, drop, add, clean, and not correct" in out
         assert "block-context (the copy):" in out
         assert not (tmp_path / "proof.json").exists()
-
-    def test_the_same_copy_under_no_topology_is_held_to_its_own_admits(
-        self, tmp_path, monkeypatch, capsys
-    ):
-        """Without a row there is nothing else to hold a mark to, and the
-        copy's own field is what `check` would have used -- so `collate` is
-        never weaker than `check`."""
-        code, out = run(
-            tmp_path,
-            {"block-context": {"m.py@b1": a_correct("m.py@b1")}},
-            monkeypatch,
-            capsys,
-            on_copy={"stage": "6", "admits": ["patch", "drop", "add", "clean"]},
-        )
-        assert code == report.BROKEN, out
-        assert "stage 6 admits patch, drop, add, clean, and not correct" in out
 
 
 class TestExitCodes:
@@ -486,18 +454,13 @@ class TestExitCodes:
         for i, copy in enumerate(copies):
             path = tmp_path / f"copy{i}.json"
             path.write_text(json.dumps(copy), encoding="utf-8")
-            paths.append(str(path))
+            paths.append(path)
         argv = [
             "collate",
-            "--stage",
-            "4c",
-            "--binder",
-            str(binder_path),
+            *a_jacket_naming(binder_path, paths),
             "--proof-out",
             str(tmp_path / "proof.json"),
         ]
-        for path in paths:
-            argv += ["--edit-copy", path]
         monkeypatch.setattr("sys.argv", argv)
         code = command.main()
         out = capsys.readouterr().out
@@ -521,14 +484,9 @@ class TestExitCodes:
             "sys.argv",
             [
                 "collate",
-                "--stage",
-                "4c",
-                "--binder",
-                str(binder_path),
+                *a_jacket_naming(binder_path, [copy_path]),
                 "--proof-out",
                 str(tmp_path / "proof.json"),
-                "--edit-copy",
-                str(copy_path),
             ],
         )
         assert command.main() == 1
@@ -563,14 +521,9 @@ class TestExitCodes:
             "sys.argv",
             [
                 "collate",
-                "--stage",
-                "4c",
-                "--binder",
-                str(binder_path),
+                *a_jacket_naming(binder_path, [copy_path]),
                 "--proof-out",
                 str(tmp_path / "proof.json"),
-                "--edit-copy",
-                str(copy_path),
             ],
         )
         code = command.main()
@@ -592,7 +545,7 @@ class TestExitCodes:
             {"block-context": {"m.py@b1": a_clean("m.py@b1")}},
             monkeypatch,
             capsys,
-            on_copy={"read_from": {"root": "somewhere/else", "revise": 0}},
+            on_copy={"read_from": {"root": "somewhere/else"}},
         )
         assert code == report.BROKEN, out
         assert "different gathered trees" in out
@@ -615,22 +568,20 @@ class TestExitCodes:
                 "function-context": {"m.py@b1": a_correct("m.py@b1", 2)},
             },
         )
-        copies[1]["read_from"] = {"root": "somewhere/else", "revise": 0}
+        copies[1]["read_from"] = {"root": "somewhere/else"}
         binder_path = tmp_path / "binder.json"
         binder_path.write_text(json.dumps(binder.serialize()), encoding="utf-8")
-        argv = [
-            "collate",
-            "--stage",
-            "4c",
-            "--binder",
-            str(binder_path),
-            "--proof-out",
-            str(tmp_path / "proof.json"),
-        ]
+        paths = []
         for i, copy in enumerate(copies):
             path = tmp_path / f"copy{i}.json"
             path.write_text(json.dumps(copy), encoding="utf-8")
-            argv += ["--edit-copy", str(path)]
+            paths.append(path)
+        argv = [
+            "collate",
+            *a_jacket_naming(binder_path, paths),
+            "--proof-out",
+            str(tmp_path / "proof.json"),
+        ]
         monkeypatch.setattr("sys.argv", argv)
         code = command.main()
         out = capsys.readouterr().out
@@ -659,19 +610,17 @@ class TestExitCodes:
             copy["sheets"][0]["marks"][0]["claim"] = {}
         binder_path = tmp_path / "binder.json"
         binder_path.write_text(json.dumps(binder.serialize()), encoding="utf-8")
-        argv = [
-            "collate",
-            "--stage",
-            "4c",
-            "--binder",
-            str(binder_path),
-            "--proof-out",
-            str(tmp_path / "proof.json"),
-        ]
+        paths = []
         for i, copy in enumerate(copies):
             path = tmp_path / f"copy{i}.json"
             path.write_text(json.dumps(copy), encoding="utf-8")
-            argv += ["--edit-copy", str(path)]
+            paths.append(path)
+        argv = [
+            "collate",
+            *a_jacket_naming(binder_path, paths),
+            "--proof-out",
+            str(tmp_path / "proof.json"),
+        ]
         monkeypatch.setattr("sys.argv", argv)
         code = command.main()
         out = capsys.readouterr()
@@ -700,14 +649,9 @@ class TestExitCodes:
             "sys.argv",
             [
                 "collate",
-                "--stage",
-                "4c",
-                "--binder",
-                str(binder_path),
+                *a_jacket_naming(binder_path, [copy_path]),
                 "--proof-out",
                 str(tmp_path / "proof.json"),
-                "--edit-copy",
-                str(copy_path),
             ],
         )
         code = command.main()
@@ -744,16 +688,9 @@ class TestExitCodes:
             "sys.argv",
             [
                 "collate",
-                "--stage",
-                "4c",
-                "--binder",
-                str(binder_path),
+                *a_jacket_naming(binder_path, [copy_path], root=root),
                 "--proof-out",
                 str(out_path),
-                "--edit-copy",
-                str(copy_path),
-                "--repo",
-                str(root),
             ],
         )
         code = command.main()
@@ -787,16 +724,9 @@ class TestExitCodes:
             "sys.argv",
             [
                 "collate",
-                "--stage",
-                "4c",
-                "--binder",
-                str(binder_path),
+                *a_jacket_naming(binder_path, [copy_path], root=REPO),
                 "--proof-out",
                 str(tmp_path / "proof.json"),
-                "--edit-copy",
-                str(copy_path),
-                "--repo",
-                str(REPO),
             ],
         )
         command.main()
@@ -842,16 +772,9 @@ class TestExitCodes:
             "sys.argv",
             [
                 "collate",
-                "--stage",
-                "4c",
-                "--binder",
-                str(binder_path),
+                *a_jacket_naming(binder_path, [copy_path], root=root),
                 "--proof-out",
                 str(out_path),
-                "--edit-copy",
-                str(copy_path),
-                "--repo",
-                str(root),
             ],
         )
         code = command.main()
@@ -896,19 +819,17 @@ class TestExitCodes:
         )
         binder_path = tmp_path / "binder.json"
         binder_path.write_text(json.dumps(binder.serialize()), encoding="utf-8")
-        argv = [
-            "collate",
-            "--stage",
-            "4c",
-            "--binder",
-            str(binder_path),
-            "--proof-out",
-            str(tmp_path / "proof.json"),
-        ]
+        paths = []
         for i, copy in enumerate(copies):
             path = tmp_path / f"copy{i}.json"
             path.write_text(json.dumps(copy), encoding="utf-8")
-            argv += ["--edit-copy", str(path)]
+            paths.append(path)
+        argv = [
+            "collate",
+            *a_jacket_naming(binder_path, paths),
+            "--proof-out",
+            str(tmp_path / "proof.json"),
+        ]
         monkeypatch.setattr("sys.argv", argv)
         code = command.main()
         out = capsys.readouterr().out
@@ -923,14 +844,12 @@ class TestExitCodes:
             "sys.argv",
             [
                 "collate",
+                "--jacket",
+                str(tmp_path / "nowhere.json"),
                 "--stage",
                 "4c",
-                "--binder",
-                str(tmp_path / "nowhere.json"),
                 "--proof-out",
                 str(tmp_path / "proof.json"),
-                "--edit-copy",
-                str(tmp_path / "nowhere-either.json"),
             ],
         )
         assert command.main() == 2

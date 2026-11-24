@@ -1,8 +1,8 @@
 # No component owns the run across stages
 
 ```
-Status:   open
-Progress: 0 of 3 tasks closed
+Status:   closed
+Progress: 3 of 3 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-11-23 (broken review, 2026-11-23)
@@ -44,12 +44,15 @@ The stage chain is modelled in Python, run by prose, and the two disagree.
 
 ## Tasks
 
-- [ ] T1 | Determine which component owns the run across stages
+- [x] T1 | The jacket and its stage verbs own the run (#402) | d508479d805864fec046b73ea6d3c95b4010f812 | Determine
+      which component owns the run across stages
         > 2026-11-23 Solution phase running; recommendation to follow (broken review)
         > 2026-11-23 Symptom: stage-4b-is-undefined.md
         > 2026-11-23 Symptom: containers-and-verification-are-unwired.md T61, T72
         > 2026-11-23 Symptom: move-is-a-composite-mark.md T56
         > 2026-11-23 Symptom: topology-defects.md T1, T5
         > 2026-11-23 Correction: T61/T72 are Place deserialize, not the run chain
-- [ ] T2 | Make a seeded stage start from every earlier stage's settled changes
-- [ ] T3 | Make the author's approval reach every stage's places
+- [x] T2 | stage open builds from earlier closed proofs; E1, E2 with mutants | a6b560752b05a1eeb4762c657e8433ad58de9e75 | Make
+      a seeded stage start from every earlier stage's settled changes
+- [x] T3 | proof --jacket replays with stage:address approvals; E4 with mutant | d508479d805864fec046b73ea6d3c95b4010f812 | Make
+      the author's approval reach every stage's places

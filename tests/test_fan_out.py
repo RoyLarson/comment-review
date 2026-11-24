@@ -6,6 +6,7 @@ hand-writes a page or a row.
 """
 
 import os
+from dataclasses import replace
 from pathlib import Path
 
 import pytest
@@ -32,13 +33,12 @@ def _copies(binder: Binder, stage: Stage) -> list[dict]:
 
 
 def test_every_page_reaches_exactly_one_shard_of_each_role():
-    binder = binder_of(DESK, 0)
+    binder = binder_of(DESK)
     names = sorted(page.path for page in binder.pages)
     stage = Stage(
         "4c",
         Kind.EDITORIAL,
         "original",
-        (),
         (
             Dispatch(Role.BLOCK_CONTEXT, (names[0],)),
             Dispatch(Role.BLOCK_CONTEXT, tuple(names[1:])),
@@ -57,13 +57,12 @@ def test_every_page_reaches_exactly_one_shard_of_each_role():
 
 
 def test_a_page_in_two_shards_of_one_role_is_refused():
-    binder = binder_of(DESK, 0)
+    binder = binder_of(DESK)
     name = binder.pages[0].path
     stage = Stage(
         "4c",
         Kind.EDITORIAL,
         "original",
-        (),
         (
             Dispatch(Role.BLOCK_CONTEXT, (name,)),
             Dispatch(Role.BLOCK_CONTEXT, (name,)),
@@ -77,14 +76,13 @@ def test_a_page_no_dispatch_of_a_role_covers_is_refused():
     # A different role's dispatch reaches every page in the binder -- one
     # earlier over `paths` is deliberately narrower, so `names[1:]` never
     # reaches a `block-context` shard at all.
-    binder = binder_of(DESK, 0)
+    binder = binder_of(DESK)
     names = sorted(page.path for page in binder.pages)
     assert len(names) > 1, "DESK must hold more than one page for this case"
     stage = Stage(
         "4c",
         Kind.EDITORIAL,
         "original",
-        (),
         (
             Dispatch(Role.BLOCK_CONTEXT, (names[0],)),
             Dispatch(Role.MODULE_CONTEXT, ()),
@@ -97,12 +95,11 @@ def test_a_page_no_dispatch_of_a_role_covers_is_refused():
 def test_two_different_roles_over_the_same_page_is_not_a_conflict():
     # Four roles reading one binder is the ordinary case -- no overlap guard
     # applies ACROSS roles, only within one role's own dispatches.
-    binder = binder_of(DESK, 0)
+    binder = binder_of(DESK)
     stage = Stage(
         "4c",
         Kind.EDITORIAL,
         "original",
-        (),
         (
             Dispatch(Role.BLOCK_CONTEXT, ()),
             Dispatch(Role.FUNCTION_CONTEXT, ()),
@@ -128,7 +125,7 @@ def test_a_binder_that_cannot_say_which_tree_it_read_NEVER_REACHES_THE_FAN():
     `test_every_shard_carries_the_binder_s_own_read_from` below, which still
     compares the two answers on one binder.
     """
-    wire = binder_of(DESK, 0).serialize()
+    wire = binder_of(DESK).serialize()
     del wire["read_from"]
     got, problems = Binder.deserialize("b.json", wire)
     assert got is None
@@ -136,12 +133,11 @@ def test_a_binder_that_cannot_say_which_tree_it_read_NEVER_REACHES_THE_FAN():
 
 
 def test_every_shard_carries_the_binder_s_own_read_from():
-    binder = binder_of(DESK, 0)
+    binder = binder_of(DESK)
     stage = Stage(
         "4c",
         Kind.EDITORIAL,
         "original",
-        (),
         (Dispatch(Role.BLOCK_CONTEXT, ()), Dispatch(Role.MODULE_CONTEXT, ())),
     )
     assert [c["read_from"] for c in _copies(binder, stage)] == [
@@ -156,7 +152,7 @@ def test_the_glob_matches_across_a_directory_separator():
     # include a real separator (`tests/helpers.py`'s `pages_of` stamps
     # `path.relative_to(root)` verbatim, so the separator is whatever the
     # platform writes -- `os.sep`, not assumed to be `/`).
-    binder = binder_of(SRC, 0)
+    binder = binder_of(SRC)
     names = sorted(page.path for page in binder.pages)
     nested = [n for n in names if os.sep in n]
     assert nested, "SRC must hold at least one nested page for this case"
@@ -164,8 +160,25 @@ def test_the_glob_matches_across_a_directory_separator():
         "4c",
         Kind.EDITORIAL,
         "original",
-        (),
         (Dispatch(Role.BLOCK_CONTEXT, ("*.py",)),),
     )
     copies = _copies(binder, stage)
     assert sorted(s["path"] for s in copies[0]["sheets"]) == names
+
+
+@pytest.mark.parametrize("cap", [0, 2])
+def test_a_stage_with_a_cap_deals_no_freeform_file(cap):
+    """A compacting stage condenses addressed places; stage 5 holds a freeform
+    comment to the cap, so a row that sets one deals no freeform file and its
+    received binder lists none."""
+    binder = replace(binder_of(DESK), freeform=("notes.js",))
+    stage = Stage(
+        "6",
+        Kind.EDITORIAL,
+        "original",
+        (Dispatch(Role.BLOCK_CONTEXT, ()),),
+        cap=cap,
+        series=("b", "c") if cap else (),
+    )
+    ((received, _copy),) = dealt(binder, stage)
+    assert received.freeform == (() if cap else ("notes.js",))

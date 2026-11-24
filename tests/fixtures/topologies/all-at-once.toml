@@ -6,7 +6,6 @@
 name    = "4"
 kind    = "editorial"
 reads   = "original"
-carries = []
 
   [[stage.dispatch]]
   role = "ownership-context"

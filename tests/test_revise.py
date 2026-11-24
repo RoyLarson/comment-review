@@ -17,6 +17,7 @@ from helpers import (
     TWO,
     TYPOS,
     a_clean,
+    a_closed_run,
     a_correct,
     a_correct_setting,
     a_docket_over,
@@ -1047,24 +1048,23 @@ class TestOnlyTheApprovedPlaces:
         assert docket_of_proof(proof, repo, only=()).schedules == ()
 
     @pytest.mark.parametrize("end", ["m.py@b1", "m.py@b2"])
-    @pytest.mark.parametrize("output", ["--to-docket", "--out"])
     def test_the_command_writes_nothing_for_half_a_move_approval(
-        self, tmp_path, monkeypatch, capsys, end, output
+        self, tmp_path, monkeypatch, capsys, end
     ):
         _proof, repo = self._closed_move(tmp_path, monkeypatch, capsys)
         before = (repo / "m.py").read_bytes()
-        destination = tmp_path / ("docket.json" if output == "--to-docket" else "r1")
+        destination = tmp_path / "r1"
         code, report = run_command(
             monkeypatch,
             capsys,
             proof_command,
-            "--proof",
-            str(tmp_path / "final.json"),
+            "--jacket",
+            str(a_closed_run(repo, tmp_path / "final.json")),
             "--repo",
             str(repo),
             "--only",
-            end,
-            output,
+            f"4c:{end}",
+            "--out",
             str(destination),
         )
         assert code == 1, report
@@ -1150,7 +1150,7 @@ def test_the_revise_holds_only_the_docket_page_as_drafted(tmp_path):
     repo = a_small_real_tree(tmp_path)  # input from reality, not a fixture literal
     assert len(list(repo.glob("*.py"))) > 1, "one file cannot show a file left out"
     docket = a_docket_over(repo, ["mark.py"])
-    pulled = pull(docket, repo, tmp_path / "r1", revise=1)
+    pulled = pull(docket, repo, tmp_path / "r1")
     held = sorted(
         p.relative_to(pulled.root).as_posix()
         for p in pulled.root.rglob("*")
@@ -1174,7 +1174,7 @@ def test_the_gate_passes_reading_only_the_docket_pages(tmp_path, monkeypatch):
     repo = a_small_real_tree(tmp_path)
     docket = a_docket_over(repo, ["mark.py"])
     every_other_file_fails_to_gather(monkeypatch, {"mark.py"})
-    pulled = pull(docket, repo, tmp_path / "r1", revise=1)
+    pulled = pull(docket, repo, tmp_path / "r1")
     assert not pulled.refusals
     assert (pulled.root / "mark.py").is_file()
 
@@ -1197,7 +1197,7 @@ def test_matching_failed_readings_cannot_pass_the_address_gate(tmp_path, raw, co
         readings.append(page_of(path, rel="m.py"))
     assert all(isinstance(reading, ReadFailure) for reading in readings)
     assert readings[0] == readings[1]
-    pulled = Pulled(revise, 1, {}, [])
+    pulled = Pulled(revise, {}, [])
     with pytest.raises(AddressesMoved) as raised:
         assert_addresses_held(original, pulled, ["m.py"])
     assert code in str(raised.value)
@@ -1229,7 +1229,7 @@ def test_the_gate_raises_on_a_docket_page_whose_addresses_moved(tmp_path, monkey
     every_other_file_fails_to_gather(monkeypatch, {"mark.py"})
     into = tmp_path / "r1"
     with pytest.raises(AddressesMoved):
-        pull(docket, repo, into, revise=1)
+        pull(docket, repo, into)
     assert not into.exists()
 
 
@@ -1248,7 +1248,7 @@ def test_a_failure_mid_overlay_leaves_no_partial_revise(tmp_path, monkeypatch):
 
     monkeypatch.setattr("comment_review.flows.revise.shutil.copy2", explodes)
     with pytest.raises(OSError):
-        pull(a_docket_over(repo, ["mark.py"]), repo, into, revise=1)
+        pull(a_docket_over(repo, ["mark.py"]), repo, into)
     assert not into.exists()
 
 
@@ -1273,7 +1273,7 @@ def test_a_failure_mid_copy_leaves_no_partial_revise(tmp_path, monkeypatch):
         "comment_review.flows.revise.shutil.copy2", copies_once_then_fails
     )
     with pytest.raises(OSError):
-        pull(a_docket_over(repo, ["mark.py", "collator.py"]), repo, into, revise=1)
+        pull(a_docket_over(repo, ["mark.py", "collator.py"]), repo, into)
     assert written, "no draft was written, so nothing failed part way"
     assert not into.exists()
 
@@ -1281,14 +1281,14 @@ def test_a_failure_mid_copy_leaves_no_partial_revise(tmp_path, monkeypatch):
 def test_a_refusal_leaves_no_revise(tmp_path):
     repo = a_small_real_tree(tmp_path)
     docket = a_docket_whose_claim_is_not_in_the_page(repo, "mark.py")
-    pulled = pull(docket, repo, tmp_path / "r1", revise=1)
+    pulled = pull(docket, repo, tmp_path / "r1")
     assert pulled.refusals and not pulled.root.exists()
 
 
 def test_a_refusal_removes_the_directories_pull_made_above_into(tmp_path):
     repo = a_small_real_tree(tmp_path)
     docket = a_docket_whose_claim_is_not_in_the_page(repo, "mark.py")
-    pulled = pull(docket, repo, tmp_path / "new1" / "new2" / "r1", revise=1)
+    pulled = pull(docket, repo, tmp_path / "new1" / "new2" / "r1")
     assert pulled.refusals
     assert not (tmp_path / "new1").exists()
 
@@ -1305,7 +1305,6 @@ def test_a_failure_removes_the_directories_pull_made_above_into(tmp_path, monkey
             a_docket_over(repo, ["mark.py"]),
             repo,
             tmp_path / "new1" / "new2" / "r1",
-            revise=1,
         )
     assert not (tmp_path / "new1").exists()
 
@@ -1314,6 +1313,6 @@ def test_a_pull_leaves_an_existing_parent_of_into_standing(tmp_path):
     repo = a_small_real_tree(tmp_path)
     (tmp_path / "out").mkdir()
     docket = a_docket_whose_claim_is_not_in_the_page(repo, "mark.py")
-    pulled = pull(docket, repo, tmp_path / "out" / "r1", revise=1)
+    pulled = pull(docket, repo, tmp_path / "out" / "r1")
     assert pulled.refusals
     assert (tmp_path / "out").is_dir()

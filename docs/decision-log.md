@@ -7515,3 +7515,86 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   **What it settles.** `check`, `collate`, `turn` and `disposition` exit 2 for an identity
   refusal: an input that cannot be read is regathered or the invocation corrected, never sent to
   a role to withdraw a mark.
+
+- **#402.** **Commands assemble every stage tree** (Roy, 2026-11-23, on the broken review's
+  problem 1, `no-component-owns-the-run`; offered commands assembling each stage's tree from a
+  run record, or the task agent keeping the hand steps checked by a record):
+
+  *"Commands assemble (Recommended)"*
+
+  **What it settles.** Supersedes #367 and #295's *"Agent assembles root"* answer. `stage open`
+  builds a stage's tree from the run-start snapshot and each earlier closed proof, set through
+  `revise.pull`. #117, #118 and #295's order stand.
+
+- **#403.** **A stage root is recorded relative to the jacket** (Roy, 2026-11-23, on problem 1;
+  #164 forbids a home path in an artifact and itself listed this form; offered relative to the
+  jacket file, or relative to the working directory as today):
+
+  *"Relative to the jacket (Recommended)"*
+
+- **#404.** **The run record is the `jacket`; its verbs are `stage open` and `stage close`**
+  (Roy, 2026-11-23, on problem 1; a job jacket holds every proof of one job, and `job ticket`
+  collides with the docket):
+
+  *"jacket, stage open/close (Recommended)"*
+
+  **What it settles.** The revise number leaves the vocabulary with `--revise`.
+
+- **#405.** **Partial approval replays under the strict page-sha refusal** (Roy, 2026-11-23, on
+  problem 1; declining an earlier stage's change on a page a later stage also changed; offered per
+  page with the existing refusal, or per place with a base text on each alteration):
+
+  *"Per page, strict (Recommended)"*
+
+  **What it settles.** No new docket field. Declining a stage's change on a page declines every
+  later stage's places on that page, by a refusal that names them. Revisited when real runs show
+  the refusal turning selections away.
+
+- **#406.** **A dispatch that never returned has its own exit code** (Roy, 2026-11-23, on
+  problem 1's part 2b; exit 1 sends lines to roles and a missing copy has none; offered its own
+  code or a line form under exit 1):
+
+  *"Its own exit code (Recommended)"*
+
+  **What it settles.** `collate --jacket` refuses a stage whose returned copies fall short of its
+  dispatched ones with a new code, whose SKILL.md row says to relaunch that dispatch with its
+  packet.
+
+- **#407.** **`Stage.carries` is deleted; carrying stays a question** (Roy, 2026-11-23, on
+  problem 1, shown that the field is parsed and refused when non-empty, that nothing builds or
+  carries anything, and that #50's measurement is blocked by
+  `the-harness-cannot-run-the-system-it-grades`; first asked *"What makes #50 worth keeping if it
+  isn't used?"*, then offered deleting the field and keeping the question, or keeping the field):
+
+  *"Delete the field, keep the question (Recommended)"*
+
+  **What it settles.** Supersedes #50's build of `carries`. Whether later roles answer better when
+  they see earlier proposals undecided is a task on
+  `the-harness-cannot-run-the-system-it-grades`; the jacket is designed without the field.
+
+- **#408.** **`Kind.ENRICHING` is deleted** (Roy, 2026-11-23, on problem 1; restored 2026-08-28
+  and still with no producer; offered keeping it for `stage open` to branch on, or deleting it):
+
+  *"Delete it"*
+
+  **What it settles.** Supersedes the 2026-08-28 restore. `pulls_revise` loses its one branch.
+
+- **#409.** **Run-start text is the `manuscript`** (Roy, 2026-11-23, on problem 1, completing
+  #396, which left run-start text needing its own word once the run record was designed; offered
+  `manuscript`, `as received` or `start`):
+
+  *"manuscript (Recommended)"*
+
+  **What it settles.** The jacket's run-start snapshot is the manuscript; `original` stays the
+  text a stage read.
+
+- **#410.** **An open stage can be reopened** (Roy, 2026-11-23, on the jacket's SKILL.md
+  rewrite: collate's exit 2 for a page identity that will not admit used to be answered by a
+  regather, and an opened stage cannot be gathered again; offered stopping the run and reporting,
+  or a way to reopen a stage):
+
+  *"Add a way to reopen a stage"*
+
+  **What it settles.** A stage that has opened and not closed can be discarded -- its root, binder
+  and copies -- and opened again under the installed reader; SKILL.md's exit-2 row reopens the
+  stage and relaunches its dispatches.

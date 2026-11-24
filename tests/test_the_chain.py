@@ -3,7 +3,8 @@
 `P61`, and the verify text of `TODO/no-command-for-the-middle.md` T1, with
 stage 2 under its current name: *"with the filled edit_copies of a stage on
 disk, the chain gather -> seed -> collate -> <this> -> proof runs with no Python
-written by hand."*
+written by hand."* The seed is `stage open` now, and the run's record between
+the commands is the jacket.
 
 !! The `<this>` is gone, which is what T1 was open for. `collate` wrote the copy
 chief's `edit_copy` and `proof` read a docket, and nothing turned one into the
@@ -29,17 +30,18 @@ behaves, which is `agents`', nor how well a run scores, which is `testing`'s.
 import json
 
 from conftest import SAMPLE, run_command
-from helpers import a_clean, a_correct
+from helpers import a_clean, a_correct, git_in
 
 from comment_review.commands import collate as collate_command
-from comment_review.commands import distribute as distribute_command
 from comment_review.commands import gather as gather_command
 from comment_review.commands import proof as proof_command
+from comment_review.commands import stage as stage_command
+from comment_review.commands import topology as topology_command
 
 #: The four editorial roles, in the order stage 4 dispatches them -- one alone,
 #: then three. This test runs the all-at-once topology, where a single stage
-#: carries all four, because it is the one shape needing no revise between
-#: stages.
+#: carries all four, because it is the one shape needing no stage tree built
+#: between stages.
 ROLES = (
     "ownership-context",
     "block-context",
@@ -49,12 +51,20 @@ ROLES = (
 
 
 class TestTheChainRunsOnCommandsAlone:
-    def test_gather_to_distribute_to_collate_to_proof(
+    def test_gather_to_stage_open_to_collate_to_proof(
         self, tmp_path, monkeypatch, capsys
     ):
         repo = tmp_path / "repo"
         repo.mkdir()
         (repo / "m.py").write_text(SAMPLE, encoding="utf-8", newline="")
+        # The run's pre-edit commit: the jacket records it and `proof` builds
+        # its tree from it.
+        git_in(repo, "init", "-q")
+        git_in(repo, "config", "core.autocrlf", "false")
+        git_in(repo, "add", "-A")
+        git_in(repo, "commit", "-q", "-m", "fixture")
+        run = tmp_path / "run"
+        jacket = run / "jacket.json"
 
         # 1 Gather -- the binder every copy is seeded from.
         binder_path = tmp_path / "binder.json"
@@ -87,24 +97,43 @@ class TestTheChainRunsOnCommandsAlone:
         )
         assert addresses, "the gather carried no addressed place to rule on"
 
-        # 2 Mark -- one seeded copy per role, then a ruling written into one.
-        copies = []
-        for role in ROLES:
-            where = tmp_path / f"{role}.json"
-            code, out = run_command(
-                monkeypatch,
-                capsys,
-                distribute_command,
-                "--seed",
-                "--binder",
-                str(binder_path),
-                "--role",
-                role,
-                "--out",
-                str(where),
-            )
-            assert code == 0, out
-            copies.append(where)
+        # 2 Topology and stage open -- the row into the jacket, then one seeded
+        # copy per role.
+        code, out = run_command(
+            monkeypatch,
+            capsys,
+            topology_command,
+            "--build",
+            "--binder",
+            str(binder_path),
+            "--run",
+            str(run),
+            "--repo",
+            str(repo),
+            "--ref",
+            "HEAD",
+            "m.py",
+            "--stage",
+            f"4c={','.join(ROLES)}",
+            with_stderr=True,
+        )
+        assert code == 0, out
+        code, out = run_command(
+            monkeypatch,
+            capsys,
+            stage_command,
+            "open",
+            "--jacket",
+            str(jacket),
+            "--stage",
+            "4c",
+            "--repo",
+            str(repo),
+            with_stderr=True,
+        )
+        assert code == 0, out
+        copies = sorted((run / "copies").glob("*.json"))
+        assert len(copies) == len(ROLES), out
 
         # !! Every role rules on every place it was handed. A slot left untouched
         # is a coverage problem and `collate` exits nonzero naming it -- "handed
@@ -128,22 +157,31 @@ class TestTheChainRunsOnCommandsAlone:
 
         # 3 Collate -- the four returned copies folded into a master proof.
         closed = tmp_path / "closed.json"
-        argv = ["--stage", "4c", "--binder", str(binder_path)]
-        for one in copies:
-            argv += ["--edit-copy", str(one)]
+        argv = ["--jacket", str(jacket), "--stage", "4c"]
         code, out = run_command(
             monkeypatch, capsys, collate_command, *argv, "--proof-out", str(closed)
         )
         assert code == 0, out
         assert closed.exists()
+        code, out = run_command(
+            monkeypatch,
+            capsys,
+            stage_command,
+            "close",
+            *argv,
+            "--proof",
+            str(closed),
+            with_stderr=True,
+        )
+        assert code == 0, out
 
-        # 4 Proof -- the master proof, transcribed and set into a revise.
+        # 4 Proof -- every closed proof, transcribed and set over the manuscript.
         code, out = run_command(
             monkeypatch,
             capsys,
             proof_command,
-            "--proof",
-            str(closed),
+            "--jacket",
+            str(jacket),
             "--repo",
             str(repo),
             "--out",
@@ -157,7 +195,7 @@ class TestTheChainRunsOnCommandsAlone:
         # `tests/test_proof_command.py`.
         drafted = (tmp_path / "r1" / "m.py").read_text(encoding="utf-8")
         assert drafted != SAMPLE
-        # ! And the checkout is untouched, which is the whole promise of a revise.
+        # ! And the checkout is untouched, which is the whole promise of a draft.
         assert (repo / "m.py").read_text(encoding="utf-8") == SAMPLE
 
 
@@ -178,8 +216,8 @@ def _rule_every_place(document: dict) -> None:
     !! This and `_correct_one_place` are the hand-written step, and it is the
     only one. A mark is a reviewer's act, so no command fills one --
     `TODO/no-command-for-the-middle.md` T10 is the command that would. What they
-    must not do is build the copy: the slots come from `distribute --seed`, and
-    these fill them.
+    must not do is build the copy: the slots come from `stage open`, and these
+    fill them.
     """
     for sheet in document["sheets"]:
         for slot in sheet["marks"]:

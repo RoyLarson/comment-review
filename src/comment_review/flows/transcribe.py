@@ -325,6 +325,11 @@ def _open_moves(moves: list[Move]) -> list[str]:
     ]
 
 
+def unclosed(proof: MasterProof) -> list[str]:
+    """One reason per place still undecided and per move still open; [] when closed."""
+    return _unclosed(list(proof.places)) + _open_moves(list(proof.moves))
+
+
 def _unclosed(places: list[Place]) -> list[str]:
     """Refusal reasons for undecided places.
 
@@ -419,9 +424,9 @@ def docket_of_proof(
     if problems:
         raise CannotAdmit(tuple(one.text for one in problems))
     places = list(proof.places)
-    unclosed = _unclosed(places) + _open_moves(list(proof.moves))
-    if unclosed:
-        raise CannotTranscribe(tuple(unclosed))
+    still_open = unclosed(proof)
+    if still_open:
+        raise CannotTranscribe(tuple(still_open))
     if only is not None:
         places, problems = _approved(places, only)
         approved = set(only)

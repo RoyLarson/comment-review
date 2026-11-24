@@ -7,6 +7,7 @@ is the standing precedent for a command's own file.
 import json
 import subprocess
 import sys
+from pathlib import Path
 
 import pytest
 from conftest import SAMPLE, SRC, build, run_command
@@ -16,12 +17,14 @@ from helpers import (
     TWO,
     TYPOS,
     a_clean,
+    a_closed_run,
     a_correct,
     a_correct_setting,
     answer,
     copies_over,
     deal,
     patched,
+    proof_to_docket,
     taken_in_as_filed,
     turn,
 )
@@ -675,57 +678,53 @@ def test_a_bad_place_is_named_the_same_by_every_command_that_reads_the_proof(
         monkeypatch,
         capsys,
         proof_command,
-        "--proof",
-        str(path),
+        "--jacket",
+        str(a_closed_run(tmp_path / "repo", path)),
         "--repo",
         str(tmp_path / "repo"),
         "--out",
         str(tmp_path / "r1"),
+        with_stderr=True,
     )
     assert code != 0 and named in out, out
 
 
+def _set(tmp_path, monkeypatch, capsys, proof: Path, repo: Path, *only: str):
+    """`proof --jacket` over a run whose one stage closed on `proof`, into r1."""
+    return run_command(
+        monkeypatch,
+        capsys,
+        proof_command,
+        "--jacket",
+        str(a_closed_run(repo, proof)),
+        "--repo",
+        str(repo),
+        *(flag for one in only for flag in ("--only", one)),
+        "--out",
+        str(tmp_path / "r1"),
+    )
+
+
 class TestProofTakesAClosedProof:
-    """`--proof` is the write end's input: the decided places the fold closed
-    on, transcribed straight -- `decision-log.md Process: #184`.
+    """The write end's input is each stage's closed proof: the decided places
+    the fold closed on, transcribed straight -- `decision-log.md Process: #184`.
 
     The text these cases land is one no filed mark sets.
     """
 
     def test_a_closed_proof_pulls_a_revise(self, tmp_path, monkeypatch, capsys):
         proof, repo = a_closed_proof(tmp_path, monkeypatch, capsys)
-        code, out = run_command(
-            monkeypatch,
-            capsys,
-            proof_command,
-            "--proof",
-            str(proof),
-            "--repo",
-            str(repo),
-            "--out",
-            str(tmp_path / "r1"),
-        )
+        code, out = _set(tmp_path, monkeypatch, capsys, proof, repo)
         assert code == 0, out
         drafted = (tmp_path / "r1" / "m.py").read_text(encoding="utf-8")
         assert BOTH_FIXED in drafted
 
-    def test_to_docket_over_a_proof_writes_a_docket_and_stops(
+    def test_a_closed_proof_transcribes_to_one_alteration_per_decided_place(
         self, tmp_path, monkeypatch, capsys
     ):
         proof, repo = a_closed_proof(tmp_path, monkeypatch, capsys)
         where = tmp_path / "d.json"
-        code, out = run_command(
-            monkeypatch,
-            capsys,
-            proof_command,
-            "--proof",
-            str(proof),
-            "--repo",
-            str(repo),
-            "--to-docket",
-            str(where),
-        )
-        assert code == 0, out
+        assert proof_to_docket(proof, repo, where) == []
         docket, why = Docket.deserialize(str(where), json.loads(where.read_text()))
         assert docket is not None, why
         (schedule,) = docket.schedules
@@ -738,42 +737,34 @@ class TestProofTakesAClosedProof:
         """The fold has not settled that text, so there is nothing to set and
         no revise is pulled. The place is named on stdout."""
         assert a_stage_dealt(tmp_path, monkeypatch, capsys) == report.REREADS
-        code, out = run_command(
-            monkeypatch,
-            capsys,
-            proof_command,
-            "--proof",
-            str(tmp_path / "proof0.json"),
-            "--repo",
-            str(tmp_path / "repo"),
-            "--out",
-            str(tmp_path / "r1"),
+        code, out = _set(
+            tmp_path, monkeypatch, capsys, tmp_path / "proof0.json", tmp_path / "repo"
         )
         assert code == 1, out
-        assert "REFUSED" in out and PLACE in out
-        assert "the proof decided nothing that can be set" in out
+        assert PLACE in out and "nothing drafted" in out
         assert not (tmp_path / "r1").exists()
 
-    def test_a_proof_that_will_not_read_reports_and_writes_nothing(
+    def test_a_jacket_that_will_not_read_reports_and_writes_nothing(
         self, tmp_path, monkeypatch, capsys
     ):
-        bad = tmp_path / "proof.json"
-        bad.write_text('{"edit_copies": 7}', encoding="utf-8", newline="")
+        bad = tmp_path / "jacket.json"
+        bad.write_text('{"format": 7}', encoding="utf-8", newline="")
         repo = tmp_path / "repo"
         repo.mkdir()
         code, out = run_command(
             monkeypatch,
             capsys,
             proof_command,
-            "--proof",
+            "--jacket",
             str(bad),
             "--repo",
             str(repo),
             "--out",
             str(tmp_path / "r1"),
+            with_stderr=True,
         )
         assert code == 2, out
-        assert "CANNOT READ THE PROOF" in out
+        assert "jacket.json" in out
         assert not (tmp_path / "r1").exists()
 
     def test_only_sets_the_named_place_and_leaves_the_rest(
@@ -783,19 +774,7 @@ class TestProofTakesAClosedProof:
         filter on the closed proof. The place named is set; the place the
         author did not approve is left as the page has it."""
         proof, repo = a_closed_proof(tmp_path, monkeypatch, capsys)
-        code, out = run_command(
-            monkeypatch,
-            capsys,
-            proof_command,
-            "--proof",
-            str(proof),
-            "--repo",
-            str(repo),
-            "--only",
-            PLACE,
-            "--out",
-            str(tmp_path / "r1"),
-        )
+        code, out = _set(tmp_path, monkeypatch, capsys, proof, repo, f"4c:{PLACE}")
         assert code == 0, out
         assert BOTH_FIXED in (tmp_path / "r1" / "m.py").read_text(encoding="utf-8")
 
@@ -803,19 +782,7 @@ class TestProofTakesAClosedProof:
         self, tmp_path, monkeypatch, capsys
     ):
         proof, repo = a_closed_proof(tmp_path, monkeypatch, capsys)
-        code, out = run_command(
-            monkeypatch,
-            capsys,
-            proof_command,
-            "--proof",
-            str(proof),
-            "--repo",
-            str(repo),
-            "--only",
-            "m.py@b9",
-            "--out",
-            str(tmp_path / "r1"),
-        )
+        code, out = _set(tmp_path, monkeypatch, capsys, proof, repo, "4c:m.py@b9")
         assert code == 1, out
         assert "m.py@b9" in out
         assert not (tmp_path / "r1").exists()
@@ -831,20 +798,8 @@ class TestProofTakesAClosedProof:
         proof, repo = a_closed_proof_with_a_place_that_stands(
             tmp_path, monkeypatch, capsys
         )
-        code, out = run_command(
-            monkeypatch,
-            capsys,
-            proof_command,
-            "--proof",
-            str(proof),
-            "--repo",
-            str(repo),
-            "--only",
-            "m.py@b1",
-            "--only",
-            "m.py@b2",
-            "--out",
-            str(tmp_path / "r1"),
+        code, out = _set(
+            tmp_path, monkeypatch, capsys, proof, repo, "4c:m.py@b1", "4c:m.py@b2"
         )
         assert code == 0, out
         assert "m.py@b2" not in out
@@ -854,7 +809,7 @@ class TestProofTakesAClosedProof:
     def test_only_without_a_proof_is_an_argument_error(
         self, tmp_path, monkeypatch, capsys
     ):
-        """It filters the proof's places, and a copy has none: a run naming
+        """It filters the closed proofs' places, and a copy has none: a run naming
         `--only` beside `--copy` asked for something this command cannot do,
         which is an input error rather than a refusal further down."""
         code, out = run_command(
@@ -871,7 +826,7 @@ class TestProofTakesAClosedProof:
             str(tmp_path / "r1"),
         )
         assert code == 2, out
-        assert "--only" in out and "--proof" in out
+        assert "--only" in out and "--jacket" in out
 
     @pytest.mark.parametrize("other", ["--copy", "--from-docket"])
     def test_the_proof_is_exclusive_with_the_other_inputs(
@@ -884,8 +839,8 @@ class TestProofTakesAClosedProof:
                 monkeypatch,
                 capsys,
                 proof_command,
-                "--proof",
-                "p.json",
+                "--jacket",
+                "j.json",
                 other,
                 "x.json",
                 "--repo",
@@ -910,7 +865,7 @@ def _tree(tmp_path):
         (SRC / "comment_review" / "desk" / "proof" / "mark.py").read_bytes()
     )
     page = build(SAMPLE)
-    return repo, bind([page], read_from={"root": str(repo), "revise": 0}), page
+    return repo, bind([page], read_from={"root": str(repo)}), page
 
 
 class TestTheCommand:

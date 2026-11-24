@@ -8,6 +8,7 @@ from conftest import install_another_reader, run_command
 from helpers import (
     a_clean,
     a_correct_setting,
+    a_jacket_naming,
     a_real_binder_over,
     copies_over,
     returned,
@@ -160,14 +161,9 @@ def test_collate_exits_unreadable_for_a_sheet_sha_that_disagrees_with_its_binder
         monkeypatch,
         capsys,
         collate,
-        "--stage",
-        "4c",
-        "--binder",
-        str(binder_path),
+        *a_jacket_naming(binder_path, [copy_path]),
         "--proof-out",
         str(proof_path),
-        "--edit-copy",
-        str(copy_path),
     )
     assert code == 2, out
     assert "m.py: sha disagrees with stage binder" in out, out

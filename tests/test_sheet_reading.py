@@ -26,7 +26,6 @@ def test_distribution_preserves_reading_on_disjoint_empty_sheets():
         "sample",
         Kind.EDITORIAL,
         "original",
-        (),
         tuple(Dispatch(Role.BLOCK_CONTEXT, (page.path,)) for page in binder.pages),
         series=("z",),
     )

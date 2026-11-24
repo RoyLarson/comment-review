@@ -6,10 +6,10 @@ the word itself for `collator.py`'s copy-desk sense. Prints, per page whose text
 differs, the unified diff `differences.unified` renders; then one line per address
 whose row-level text differs between the two roots.
 
-!! Neither the stage nor the role that set an address is printed. Both live
-on `flows.revise.Pulled` -- `revise` and `set_by` -- and this command receives
-no `Pulled`: `--original` and `--revise` are two bare directories, so a
-changed address is printed alone, the one fact two directory trees can answer.
+!! The role that set an address is not printed. It lives on
+`flows.revise.Pulled.set_by`, and this command receives no `Pulled`:
+`--original` and `--revise` are two bare directories, so a changed address
+is printed alone, the one fact two directory trees can answer.
 
 The work is inline here rather than in a flow module. A command exposes a
 flow, and here there is no docket to resolve, only two trees to read and
@@ -104,10 +104,8 @@ def main(argv: list[str] | None = None) -> int:
             continue
         if before_source.text == after_source.text:
             continue
-        before_binder = bind(
-            [before_page], read_from={"root": str(original), "revise": 0}
-        )
-        after_binder = bind([after_page], read_from={"root": str(revise), "revise": 0})
+        before_binder = bind([before_page], read_from={"root": str(original)})
+        after_binder = bind([after_page], read_from={"root": str(revise)})
         before_rows = {b.address: b.raw_text for b in before_binder.paragraphs}
         after_rows = {b.address: b.raw_text for b in after_binder.paragraphs}
         # !! The union of both sides. `bind` here carries no `absent=True`, so

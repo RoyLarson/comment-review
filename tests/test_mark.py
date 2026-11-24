@@ -362,9 +362,7 @@ class TestWhatAllowedPublishes:
     def test_the_header_names_every_key_a_seeded_copy_carries(self):
         """A staged copy carries `stage` and `admits` beside `role` and
         `read_from`, so the published header names all four."""
-        seeded = EditCopy.seed(
-            "r", {"root": ".", "revise": 0}, [], stage="4c", admits=["clean"]
-        )
+        seeded = EditCopy.seed("r", {"root": "."}, [], stage="4c", admits=["clean"])
         header = allowed()["edit_copy_header"]
         assert sorted(header) == ["admits", "read_from", "role", "stage"]
         assert sorted(header) == sorted(set(seeded) - {"sheets"})

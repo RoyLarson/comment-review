@@ -15,7 +15,6 @@
 name    = "4a"
 kind    = "editorial"
 reads   = "original"
-carries = []
 
   [[stage.dispatch]]
   role = "ownership-context"
@@ -24,7 +23,6 @@ carries = []
 name    = "4c"
 kind    = "editorial"
 reads   = "revise:4a"
-carries = []
 
   [[stage.dispatch]]
   role  = "block-context"

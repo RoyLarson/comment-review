@@ -1,16 +1,20 @@
 """The `proof` command: its argument parsing and its exit code.
 
-    comment_review proof --proof P.json --repo . --out DIR
-    comment_review proof --proof P.json --only ADDRESS --repo . --out DIR
+    comment_review proof --jacket J.json [--only STAGE:ADDRESS] --repo . --out DIR
+    comment_review proof --copy C.json --repo . --out DIR
+    comment_review proof --copy C.json --repo . --to-docket D.json
+    comment_review proof --from-docket D.json --repo . --out DIR
 
-The work is `flows.revise.pull`; this is only the console face of it.
+The work is `flows.stage.replay` and `flows.revise.pull`; this is only the
+console face of them.
 
-The input is the closed master proof: its decided places are what the write
-end sets. `--copy` takes a role's own edit_copy instead, for that role's own
-draft.
+`--jacket` sets the whole run: `flows.stage.replay` builds the manuscript's
+tree and sets every stage's closed proof over it in topology order. `--only`
+is the author's partial approval, each accepted place named as
+`<stage>:<address>`, and nothing set anywhere else. `--out` then holds one
+draft per page a proof set.
 
-`--only` is the author's partial approval: the places they approved, named
-over that same proof, and nothing set anywhere else.
+`--copy` takes a role's own edit_copy, for that role's own draft.
 
 `--to-docket` stops the run at the transcribe and writes the docket there;
 `--from-docket` starts a run from such a docket, below the transcribe. They
@@ -34,46 +38,37 @@ from pathlib import Path
 from comment_review import exceptions
 from comment_review.commands import report
 from comment_review.desk.proof.edit_copy import EditCopy
-from comment_review.desk.proof.master_proof import MasterProof
 from comment_review.docket.docket import Docket
 from comment_review.flows import revise, transcribe
+from comment_review.flows.stage import UnreadableInput, replay
 from comment_review.machine.json_object import object_of
 from comment_review.machine.repo import undraftable, write_raw
 
 
 def main() -> int:
-    """Read a proof, a copy or a docket, run the chain, report what refused.
+    """Read a jacket, a copy or a docket, run the chain, report what refused.
 
     Returns:
         0 when the drafts or the docket were written; 1 when the transcribe
-        or the pull refused; 2 when an argument or an input file is wrong, or
-        the docket cannot be written.
+        or the pull refused, or a jacket's run is not closed; 2 when an
+        argument or an input file is wrong, or the docket cannot be written.
     """
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument(
         "--repo", default=".", help="repo root the addresses resolve against"
     )
-    # !! The three inputs are exclusive and one is required. `--proof` and
-    # `--copy` enter at the top of the flow and transcribe; `--from-docket`
-    # enters below the transcribe, at the docket a `--to-docket` run stopped on.
-    # Two together would name two inputs for one run, and argparse states that
-    # itself rather than leaving it to a hand-written check.
+    # !! The three inputs are exclusive and one is required. `--jacket` sets
+    # every stage's closed proof; `--copy` enters at the top of the flow and
+    # transcribes; `--from-docket` enters below the transcribe, at the docket a
+    # `--to-docket` run stopped on. Two together would name two inputs for one
+    # run, and argparse states that itself rather than leaving it to a
+    # hand-written check.
     source = ap.add_mutually_exclusive_group(required=True)
-
-    # !! `--proof` is the write end's input. A closed master proof holds every
-    # place the fold decided, so the transcribe reads those places. `--copy`
-    # stays for a role's own draft, which is the artifact it was written for.
-    source.add_argument(
-        "--proof",
-        help="JSON: a closed master_proof -- its decided places are what is set",
-    )
 
     # The flow's first step transcribes an `edit_copy` into a docket --
     # `flows.transcribe.docket_of` -- so the input is the artifact the middle
     # actually produces, and the docket is an internal value.
     #
-    # !! It takes any copy, not only the copy chief's. That is what lets one
-    # stage's output become the revise the next stage reads.
     source.add_argument(
         "--copy",
         help='JSON: an edit_copy -- {"role", "read_from", "sheets"} -- for a'
@@ -83,17 +78,21 @@ def main() -> int:
         "--from-docket",
         help="JSON: a docket a --to-docket run wrote -- skips the transcribe",
     )
+    source.add_argument(
+        "--jacket",
+        help="the run's jacket.json -- every stage's closed proof, set in order",
+    )
     # `--only` is the partial approval. The author approves some decided places
-    # and not others, and what they ruled is a set of addresses over the proof
-    # rather than a second artifact. Repeatable, and a place it does not name is
-    # left as the page has it.
+    # and not others, and what they ruled is a set of addresses over the closed
+    # proofs rather than a second artifact. Repeatable, and a place it does not
+    # name is left as the page has it.
     ap.add_argument(
         "--only",
         action="append",
         default=[],
-        metavar="ADDRESS",
+        metavar="STAGE:ADDRESS",
         help="set this decided place alone; repeat for each place the author"
-        " approved (requires --proof)",
+        " approved (requires --jacket)",
     )
     # !! `--to-docket` stops the run at the transcribe. It is also what gives
     # `Docket.serialize` a production caller, so the format is exercised rather
@@ -121,12 +120,18 @@ def main() -> int:
             " transcribe, and naming both leaves nothing to run"
         )
         return 2
-    # `--only` filters places, and only a proof has any. A copy holds marks
-    # and a docket holds alterations already chosen, so the flag has nothing
-    # to filter on either -- an input error rather than a refusal further
-    # down, where it would read as a fact about the file.
-    if args.only and not args.proof:
-        print("REFUSED: --only names places of a closed proof, so it needs --proof")
+    # `--only` filters places, and only a closed proof has any. A copy holds
+    # marks and a docket holds alterations already chosen, so the flag has
+    # nothing to filter on either -- an input error rather than a refusal
+    # further down, where it would read as a fact about the file.
+    if args.only and not args.jacket:
+        print("REFUSED: --only names places of the closed proofs, so it needs --jacket")
+        return 2
+    if args.jacket and args.to_docket:
+        print(
+            "REFUSED: --jacket sets one docket per stage, and --to-docket writes"
+            " one -- nothing written"
+        )
         return 2
     # !! ONE FORK, ASKED ONCE: is a revise being pulled, or does the run stop at
     # the docket? Every `--out` rule below belongs to the pulling path alone,
@@ -169,17 +174,33 @@ def main() -> int:
                 " into a directory that does not exist yet -- nothing written"
             )
             return 2
+    if args.jacket:
+        assert out is not None
+        try:
+            lines, problems = replay(
+                Path(args.jacket), repo, out, only=tuple(args.only) or None
+            )
+        except UnreadableInput as unread:
+            return report.refused(unread.reasons)
+        for line in problems:
+            print(line)
+        if problems:
+            print(f"{len(problems)} refusal(s) -- nothing drafted")
+            return 1
+        for line in lines:
+            print(line)
+        return 0
     # !! The load is three steps and each fails for its own reason.
     #
     #     read_text     the file is missing, unreadable, undecodable
     #     object_of     the text is not JSON, or is JSON that is not an object
-    #     deserialize   it is an object, and not the docket, proof or copy named
+    #     deserialize   it is an object, and not the docket or copy named
     #
-    # ! Every input takes the same three steps; only the container differs. The
+    # ! Both inputs take the same three steps; only the container differs. The
     # noun in each message is the flag the caller passed, so a reason names the
     # thing they handed over rather than an internal type.
-    source = args.from_docket or args.proof or args.copy
-    noun = "DOCKET" if args.from_docket else "PROOF" if args.proof else "COPY"
+    source = args.from_docket or args.copy
+    noun = "DOCKET" if args.from_docket else "COPY"
     try:
         text = Path(source).read_text(encoding="utf-8")
     except exceptions.READ_ERRORS as e:
@@ -193,39 +214,6 @@ def main() -> int:
 
     if args.from_docket:
         held, problems = Docket.deserialize(source, loaded)
-    elif args.proof:
-        proof, problems = MasterProof.deserialize(source, loaded)
-
-        # The transcribe refuses a proof that has not closed, one whose
-        # places will not read back, and a page it cannot open -- so the
-        # same console face reports it here as below.
-        try:
-            held = (
-                transcribe.docket_of_proof(proof, repo, only=tuple(args.only) or None)
-                if proof is not None
-                else None
-            )
-        # The approval's refusals open with their own sentence. *The proof
-        # decided nothing that can be set* is false where the proof decided
-        # everything and the list of places could not be honoured, so the two
-        # are told apart by the exception rather than by the reader.
-        except transcribe.CannotApprove as refused:
-            print(
-                "REFUSED: the approval names a place this proof cannot set"
-                " -- nothing written"
-            )
-            for line in refused.reasons:
-                print(line)
-            return 1
-        except transcribe.CannotAdmit as unread:
-            return report.refused(list(unread.reasons))
-        except transcribe.CannotTranscribe as refused:
-            print(
-                "REFUSED: the proof decided nothing that can be set -- nothing written"
-            )
-            for line in refused.reasons:
-                print(line)
-            return 1
     else:
         copy, problems = EditCopy.deserialize(source, loaded)
         # The transcribe folds, so it can refuse. `docket_of` runs the Unit of
@@ -281,13 +269,8 @@ def main() -> int:
     # stack trace -- and this is the rarest input path, which is where a
     # traceback is least actionable. `pull` has already removed the revise
     # root by the time this runs, so there is nothing to clean up here.
-    #
-    # `revise=1`: this command pulls straight off the checkout (the original,
-    # revise 0), and has no record of an earlier revise to number itself after
-    # -- the same number `tests/test_revise.py` and
-    # `tests/test_revise_addresses.py` use for a pull off the original.
     try:
-        pulled = revise.pull(held, repo, out, revise=1)
+        pulled = revise.pull(held, repo, out)
     except revise.AddressesMoved as moved:
         print(f"REFUSED: the address space moved -- {moved}")
         print("nothing drafted -- the revise could not be trusted")

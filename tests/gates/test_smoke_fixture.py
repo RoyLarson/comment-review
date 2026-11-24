@@ -217,18 +217,28 @@ class TestTheLandingTableAgreesWithTheFixture(unittest.TestCase):
         agree with the fixture about which places those are -- and about the
         paragraph its one `patch` quotes, which it spells out to pass by
         `@path`."""
-        by_cue = {cue_of(p): p for p in self.pages["store.py"].paragraphs if p.text}
+        # The stage's binder holds the whole scope (`Process: #402`). Every
+        # place the deal reaches is one the first stage leaves as the fixture
+        # has it, so the fixture's pages answer for the revise's.
         dealt = {
-            f"store.py@{cue}"
-            for cue, p in by_cue.items()
-            if cue[0] in ("b", "c") and p.lines > smoke_fixture.COMPACTING_CAP
+            f"{path}@{cue_of(p)}"
+            for path, page in self.pages.items()
+            for p in page.paragraphs
+            if p.text
+            and cue_of(p)[0] in ("b", "c")
+            and p.lines > smoke_fixture.COMPACTING_CAP
         }
         self.assertEqual(dealt, set(smoke_fixture.DEALT))
+        by_cue = {cue_of(p): p for p in self.pages["store.py"].paragraphs if p.text}
         self.assertEqual(
             {f"store.py@{cue}" for cue in by_cue} & set(smoke_fixture.UNTOUCHED),
             set(smoke_fixture.UNTOUCHED),
         )
-        patched = by_cue[smoke_fixture.DEALT[0].split("@")[1]]
+        self.assertEqual(
+            {smoke_fixture.PATCHED, smoke_fixture.KEPT, smoke_fixture.RATE_KEPT},
+            set(smoke_fixture.DEALT),
+        )
+        patched = by_cue[smoke_fixture.PATCHED.split("@")[1]]
         self.assertEqual(patched.raw_text, smoke_fixture.OVER_THE_CAP)
         self.assertLessEqual(
             len(smoke_fixture.CONDENSED.splitlines()), smoke_fixture.COMPACTING_CAP
@@ -366,14 +376,41 @@ class TestTheChiefRulesAPlacementForItsMoverThenItsEnds(unittest.TestCase):
     """`decision-log.md Process: #195` item 4 and `#201`: an undecided move
     reaches the chief as a placement, ruled once with `to`; taken in for a
     mover it is agreed, and each end is then ruled in a second `disposition`
-    call. The plant carries one such move, and these read its tables."""
+    call. The plant carries one such move, and these read its tables.
+
+    A move only its mover read is ruled the same way but was never put to a
+    role, and the one ruling decides both its ends (`Process: #385`, `#388`);
+    the plant carries two, and the last test here reads those."""
 
     def setUp(self):
-        self.moves = [
+        placements = [
             one
             for one in smoke_fixture.DISPOSITIONS
             if "to" in one and one["side"] != ORIGINAL
         ]
+        asked = {
+            key
+            for answers in (smoke_fixture.ANSWERS, smoke_fixture.ANSWERS2)
+            for given in answers.values()
+            for key in given
+        }
+
+        def key(one):
+            return str(one["address"]) + smoke_fixture.MOVE_KEY + str(one["to"])
+
+        self.moves = [one for one in placements if key(one) in asked]
+        self.lone = [one for one in placements if key(one) not in asked]
+
+    def test_a_lone_moves_one_ruling_decides_both_its_ends(self):
+        """No `ENDS` entry rules an end of a lone move, and each end lands what
+        the move sets there: the origin's remainder, the destination's text."""
+        self.assertTrue(self.lone, "no lone move is ruled for its mover")
+        ends = {one["address"] for one in smoke_fixture.ENDS}
+        for one in self.lone:
+            for end in (str(one["address"]), str(one["to"])):
+                self.assertNotIn(end, ends, end)
+                self.assertEqual(smoke_fixture.LANDINGS[end].route, "disposition")
+            self.assertIn("move", smoke_fixture.LANDINGS[str(one["address"])].filed)
 
     def test_a_placement_is_taken_in_for_a_mover_of_a_contested_move(self):
         """Contested when the turns are spent: some role stets its placement
@@ -433,7 +470,9 @@ class TestTheCopiesFileWhatTheLandingTableSays(unittest.TestCase):
     three tables the smoke reaches, and a field nothing checks would say so
     whether or not the `mark` calls still place them. The copies are what the
     calls placed. It ran beside the old fold's differential until that was
-    deleted with the fold; the run is the same one, stopped after `mark`.
+    deleted with the fold; the run is the same one, stopped after `mark`,
+    because the copies are all this question reads. Whether the chain runs
+    end to end is `TestTheWholeSmokeRuns`' question, not this one's.
     """
 
     @classmethod
@@ -486,6 +525,60 @@ class TestTheCopiesFileWhatTheLandingTableSays(unittest.TestCase):
         self.assertEqual(placed, said)
 
 
+class TestTheWholeSmokeRuns(unittest.TestCase):
+    """`scripts/smoke_middle.ps1` with no `-Stop`, gather through partial.
+
+    The smoke is the check that the stages work together, whatever each
+    command's own tests say. Exit 0 alone would also pass a script that
+    dropped a section, so the run must print `section passed: <name>` once
+    for every section, in order -- the script prints that line only after a
+    section's block returns, and any failed stage exits before it.
+    """
+
+    SECTIONS = (
+        "fixture",
+        "gather",
+        "topology",
+        "open",
+        "mark",
+        "check",
+        "draft",
+        "collate",
+        "turn",
+        "turn2",
+        "disposition",
+        "diff",
+        "second",
+        "compacting",
+        "proof",
+        "partial",
+    )
+
+    def test_every_section_runs_and_the_run_exits_0(self):
+        if shutil.which("pwsh") is None:
+            raise unittest.SkipTest("pwsh is not on PATH")
+        done = subprocess.run(
+            [
+                "pwsh",
+                "-NoProfile",
+                "-File",
+                str(ROOT / "scripts" / "smoke_middle.ps1"),
+            ],
+            capture_output=True,
+            encoding="utf-8",
+            errors="replace",
+            cwd=str(ROOT),
+        )
+        tail = "\n".join(done.stdout.splitlines()[-40:]) + done.stderr
+        self.assertEqual(done.returncode, 0, tail)
+        passed = tuple(
+            line.strip().removeprefix("section passed: ")
+            for line in done.stdout.splitlines()
+            if line.strip().startswith("section passed: ")
+        )
+        self.assertEqual(passed, self.SECTIONS, tail)
+
+
 class TestTheSecondStageRulesTheRevisesOwnPlaces(unittest.TestCase):
     """`SECOND_CORRECT` and `SECOND_CLEAN` against the page built from
     `EXPECTED`, which is the revise the first stage pulls: the second stage
@@ -525,7 +618,13 @@ class TestTheSecondStageRulesTheRevisesOwnPlaces(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             run = Path(tmp)
             paths = smoke_second_plant(run)
-            self.assertEqual(set(paths), {*smoke_fixture.SECOND_CLAIM, "clean"})
+            self.assertEqual(
+                set(paths), {*smoke_fixture.SECOND_CLAIM, "clean", "dispositions"}
+            )
+            self.assertEqual(
+                json.loads(paths["dispositions"].read_bytes()),
+                smoke_fixture.SECOND_DISPOSITIONS,
+            )
             for key, value in smoke_fixture.SECOND_CLAIM.items():
                 self.assertEqual(paths[key], run / f"second-a0-{key}.txt", key)
                 self.assertEqual(paths[key].read_bytes().decode("utf-8"), value, key)

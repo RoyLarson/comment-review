@@ -24,7 +24,7 @@ def reading_wire():
 
 
 def a_real_copy(tmp_path, role="block-context"):
-    return seed(binder_of(a_small_real_tree(tmp_path), 0), role)
+    return seed(binder_of(a_small_real_tree(tmp_path)), role)
 
 
 class TestTheWriteHalfLivesWithTheRead:
@@ -126,7 +126,7 @@ class TestWhatTheChainBuilds:
 
     def test_every_sheet_names_a_page_the_binder_carried(self, tmp_path):
         repo = a_small_real_tree(tmp_path)
-        binder = binder_of(repo, 0)
+        binder = binder_of(repo)
         copy, why = EditCopy.deserialize(
             "copy 1",
             seed(binder, "block-context"),
@@ -158,7 +158,7 @@ class TestWhatTheChainBuilds:
             "block-context",
             "function-context",
         ]
-        assert proof.read_from == {"root": str(root), "revise": 0}
+        assert proof.read_from == {"root": str(root)}
 
     def test_the_chiefs_copy_parses_as_an_ORDINARY_edit_copy(self, tmp_path):
         """`decision-log.md Vocabulary: #30`: the chief's copy is the same
@@ -241,12 +241,10 @@ class TestWhatItRefuses:
         assert got is None
         assert "`role`" in why[0]
 
-    @pytest.mark.parametrize(
-        "bad", [{"junk": 1}, {"root": 7, "revise": "x"}, {}, "oops", None, []]
-    )
+    @pytest.mark.parametrize("bad", [{"junk": 1}, {"root": 7}, {}, "oops", None, []])
     def test_an_edit_copy_whose_read_from_is_the_wrong_SHAPE(self, tmp_path, bad):
         """`decision-log.md Process: #34`: the field exists so a later role can
-        know it holds a REVISE. Each of these is a way of not saying so.
+        know which tree it holds. Each of these is a way of not saying so.
 
         !! MOVED FROM `tests/test_collator.py` BY `P42`, where it drove
         `problems_in`. That function takes an `EditCopy` now, so the header is
@@ -254,8 +252,8 @@ class TestWhatItRefuses:
         values come across unchanged.
 
         ! WHAT THEY MEASURED, on `problems_in`'s own comment: a hand-rolled
-        `isinstance(..., dict) and truthy` let `{"junk": 1}` and `{"root": 7,
-        "revise": "x"}` through at exit 0 while `bind` REFUSED the identical
+        `isinstance(..., dict) and truthy` let `{"junk": 1}` and
+        `{"root": 7}` through at exit 0 while `bind` REFUSED the identical
         value -- two spellings of one rule, disagreeing. `_read_from_problem`
         is the one spelling, and this is what holds it to it.
         """
@@ -310,15 +308,15 @@ class TestWhatItRefuses:
         proof = a_master_proof(
             tmp_path / "repo", {"block-context": {"m.py@b1": a_clean("m.py@b1")}}
         ).serialize()
-        proof["read_from"] = {"root": "somewhere else", "revise": 99}
+        proof["read_from"] = {"root": "somewhere else"}
         got, why = MasterProof.deserialize("4c", proof)
         assert got is None
         assert "4c: edit_copy 1's `read_from`" in why[0]
 
-    def test_a_later_copy_from_another_revise_is_refused_by_name(self, tmp_path):
+    def test_a_later_copy_from_another_stage_tree_is_refused_by_name(self, tmp_path):
         """Every copy's `read_from` is held to the proof's, not the first
-        copy's alone: a second copy gathered from revise 1 while the first
-        names revise 0 answers to another tree."""
+        copy's alone: a second copy gathered from stage 4a's tree while the
+        first names the checkout answers to another tree."""
         proof = a_master_proof(
             tmp_path / "repo",
             {
@@ -328,7 +326,7 @@ class TestWhatItRefuses:
         ).serialize()
         proof["edit_copies"][1]["read_from"] = {
             **proof["read_from"],
-            "revise": 1,
+            "stage": "4a",
         }
         got, why = MasterProof.deserialize("4c", proof)
         assert got is None
@@ -340,10 +338,10 @@ class TestWhatItRefuses:
         proof = a_master_proof(
             tmp_path / "repo", {"block-context": {"m.py@b1": a_clean("m.py@b1")}}
         ).serialize()
-        proof["read_from"] = {"root": proof["read_from"]["root"]}
+        proof["read_from"] = {"root": 7}
         got, why = MasterProof.deserialize("4c", proof)
         assert got is None
-        assert "`revise`" in why[0]
+        assert "`root`" in why[0]
 
     def test_a_master_proof_WITH_NO_EDIT_COPIES_still_parses(self):
         """An empty `edit_copies` reads back with `read_from={}`, the shape the

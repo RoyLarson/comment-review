@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 17 of 35 tasks closed
+Progress: 17 of 36 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (simplify round 7, 2026-08-22 -- found by Pyright and by reading,
@@ -206,3 +206,4 @@ page.py:793-794 for `_SHEBANG`/`_CODING`, which round 7 deleted; those citations
         > 2026-11-23 Drafts are staged twice; exception scopes differ per layer [I-F7]
 - [ ] T34 | Delete reading.context.compatible_contexts, which only tests call
 - [ ] T35 | Delete flows.fill.marks_on, which only a gate test calls
+- [ ] T36 | Delete smoke_fixture Landing.route, which nothing reads

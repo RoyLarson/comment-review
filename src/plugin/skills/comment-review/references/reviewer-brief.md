@@ -23,7 +23,8 @@ Your packet gives you:
 - `VOCABULARY` -- the vocabulary file. Read the `[definitions]` entries whose keys are listed
   under your role in `[roles]`, plus the `all` list.
 - `SKILL DIR` -- the directory holding the helper script, written `<skill>` in the commands below.
-- `REPO ROOT` -- the checkout every path resolves against.
+- `REPO ROOT` -- your stage's tree, which every path resolves against: the manuscript at the
+  first stage, and the manuscript with every earlier stage's decided changes set at a later one.
 - `BINDER` -- your assigned review places, each with its address, anchor, start
   and end line and text. Every review place in this binder requires your ruling.
 - `EDIT COPY` -- your copy, holding one slot per paragraph of prose your role is dealt, each
@@ -47,8 +48,8 @@ Every command below runs `<skill>/scripts/comment-review.py` from the repo root.
 1. **Read your binder end to end.** Rule on every review place in it with one of
    the seven instructions. File each ruling with its own invocation of `mark`.
 2. **Open the code for every slot.** `raw_text` tells you where the paragraph is; the code
-   beside or below it tells you whether it is true. The file you open is the original: the text as it
-   stood when this run began, the same text your addresses and anchors were taken from.
+   beside or below it tells you whether it is true. The file you open is the one in `REPO ROOT`,
+   the same text your addresses and anchors were taken from.
 3. **Settle each claim by evidence.** Grep, read the definition and its callers, run the worked
    example. Where your tools include LSP and the packet says a server answered for that
    language, use `goToDefinition`, `findReferences`, `workspaceSymbol` and `hover`;
@@ -122,7 +123,7 @@ You are handed one sheet per file, and one slot per paragraph on it. This is a f
 
 ```json
 { "role": "block-context",
-  "read_from": { "root": "/checkout/of/the/project", "revise": 0 },
+  "read_from": { "root": "/checkout/of/the/project", "stage": "4c" },
   "sheets": [
     { "path": "redacted_pkg/billing/rates.py",
       "sha":  "9c1f0b7a4e2d6835",
@@ -412,7 +413,7 @@ are refused, and the slot comes back to you.
 Check your copy from the repo root:
 
 ```bash
-python <skill>/scripts/comment-review.py check --edit-copy <EDIT COPY> --binder <BINDER>
+python <skill>/scripts/comment-review.py check --edit-copy <EDIT COPY> --binder <BINDER> --repo <REPO ROOT>
 ```
 
 It names every slot still `null`, every mark that will not read, every `claim` quoting a
@@ -429,9 +430,9 @@ For a batch's answers:
 python <skill>/scripts/comment-review.py check --answers <ANSWERS> --sent <BATCH> --role <your role>
 ```
 
-Give neither check a `--repo`: each reads its cites against the tree the binder or the batch
-names. `check --answers` pairs each answer to the slot you were sent and reads it against that
-slot's question. Run it until it exits 0 or 5.
+`check --edit-copy` reads its cites against `REPO ROOT`, as `mark` does; `check --answers` reads
+them against the tree its batch's slots name, pairs each answer to the slot you were sent and
+reads it against that slot's question. Run it until it exits 0 or 5.
 
 **When the task agent hands you the author's answer to your query** -- an `[[answer]]` section
 naming your role, the place or move `at`, your question and the answer -- replace that query

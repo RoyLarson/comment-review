@@ -350,8 +350,9 @@ an end's own reasons at that end (`desk.work.fold.Fold.run`).
 
 ## What the write end reads
 
-**The closed proof, and the places it decided** -- `decision-log.md Process: #184`.
-`proof --proof <the closed proof>` transcribes one alteration per place whose decided text
+**Each stage's closed proof, and the places it decided** -- `decision-log.md Process: #184`.
+`proof --jacket <the jacket>` sets every stage's closed proof over the manuscript in topology
+order (`flows.stage.replay`). For each, it transcribes one alteration per place whose decided text
 differs from the paragraph already there, in each page's own place order, with an emptied place
 written as the delete; `flows.transcribe.docket_of_proof` is that step. It refuses, naming each:
 a place that is not decided -- such a text has not been decided (`Process: #180`), so a proof holding
@@ -359,21 +360,23 @@ one is not closed -- an undecided move, a place that will not read back, and a p
 place sits on that the checkout cannot open.
 
 **A partial approval is a place filter on that same command** -- `Process: #192`. The author
-approves some decided places and not others, so `proof --proof <the closed proof> --only
-<address>`, repeatable, transcribes those places alone and leaves every other place as the page
-has it. It refuses an address the proof does not carry, and one end of an agreed move whose
+approves some decided places and not others, so `proof --jacket <the jacket> --only
+<stage>:<address>`, repeatable, transcribes those places alone and leaves every other place as the
+page has it. A later stage's place on a page whose replayed text differs from the text that
+stage read is refused, naming the earlier stage's places on that page the author did not accept
+(`Process: #405`). It refuses an address the proof does not carry, and one end of an agreed move whose
 other end is not approved: a move is one decision at two places, and setting the origin alone
 drops the paragraph and adds it nowhere, while setting the destination alone writes it in both.
 A named place the write end sets nothing at -- it stands on the text already there -- is
-approved with nothing to set rather than refused. `--only` without `--proof` is an argument
-error: a copy holds marks and a docket holds alterations already chosen, so neither has places
+approved with nothing to set rather than refused. `--only` without `--jacket` is
+an argument error: a copy holds marks and a docket holds alterations already chosen, so neither has places
 to filter.
 
 **The master proof is the record of the decisions.** The `collate`, `turn` and `disposition` commands write it to `--proof-out` on commit. The docket reads the closed proof's decided places.
 
 **`proof --copy` stays, for a role's own draft.** A role's copy holds that role's marks and
-nobody else's, and drafting it is how one stage's output becomes the revise the next stage
-reads (`Process: #76`).
+nobody else's (`Process: #76`). A later stage's tree is built by `stage open`, from the
+manuscript and each earlier stage's closed proof (`Process: #402`).
 
 ## The Unit of Work, and the events
 
@@ -409,13 +412,14 @@ and on commit builds what the stage saves.
 
 | message | what it reads | what a commit leaves |
 | --- | --- | --- |
-| `CopiesReturned` | one stage's parsed copies, the binder, each copy's received binder where given, the checkout, the topology where there is one, and the human's answers | the master proof at turn 0 and the first batch |
+| `CopiesReturned` | one stage's parsed copies, the binder, each copy's received binder, the stage's tree, its topology row, and the human's answers | the master proof at turn 0 and the first batch |
 | `AnswersReturned` | the last proof, each role's answers, the checkout a cite resolves against, and the human's answers | the next proof and the next batch |
 | `DispositionsWritten` | the last proof, the chief's rulings, and any human approvals | the next proof -- closed, or carrying a ruled move's ends forward -- |
 
-**`collate` can take each copy with its received binder**, by `--edit-copy` and
-`--received-binder` repeated in one order, or by `--pairs`, a JSON list of
-`{edit_copy, received_binder}` paths, in place of both.
+**`collate --jacket J --stage S` reads every input off the jacket** -- the stage's row, its
+root, its binder, and each dispatched copy with its received binder. No flag names any of
+them. It folds an open stage only; a dispatched copy not on disk is the `NOT_RETURNED` line,
+and nothing is folded (`decision-log.md Process: #406`).
 
 **Collate checks admission before the fold opens.** A quote
 that is not in its paragraph, a cite that resolves against nothing, an address no page carries,
@@ -456,8 +460,8 @@ them alone.
 
 ## What each command prints, and what it exits
 
-**Six exit codes are declared in `commands/report.py`.** `collate`, `turn` and
-`disposition` share them. `check` uses 0, 1, 2 and 5.
+**Seven exit codes are declared in `commands/report.py`.** `collate`, `turn` and
+`disposition` share 0 to 5, and `collate --jacket` alone exits 6. `check` uses 0, 1, 2 and 5.
 
 | code | name | what it means |
 | --- | --- | --- |
@@ -467,6 +471,7 @@ them alone.
 | 3 | `REREADS` | places carried forward, all of them compositions, or a placement still open |
 | 4 | `ESCALATIONS` | at least one place carried forward as an escalation, or a placement contested |
 | 5 | `ASKS_THE_HUMAN` | a rollback holding human questions and no refusal; nothing was written |
+| 6 | `NOT_RETURNED` | a copy the jacket records as dispatched is not on disk: one `not returned <copy>: <role>` line each on stdout; nothing was folded |
 
 A short shard, a place a role left unruled and a slot a role left unanswered are found before
 the fold opens, so each is a `Refused` and the round rolls back (`Process: #186`).
@@ -527,9 +532,8 @@ counts none, so it is never over a cap.
 to the places the stage deals, and `flows.verify.admit` measures a returned copy
 against the same `deals` -- Roy, 2026-09-19: *"only touching places that are over the length
 limit - all other places are automatically clean for this role."* A page a stage deals nothing
-on keeps its sheet and no slot, and `distribute` prints `0 places for <role> to rule on`.
-A stage that deals part of the binder and is collated without `--topology` is reported short of
-its coverage, and correctly: nothing else in the run says what was dealt.
+on keeps its sheet and no slot, and `stage open` prints `0 places for <role> to rule on`.
+`collate` reads the row off the jacket, so what a stage dealt is what it is held to.
 
 **What a role may file rides on the copy.** The seed stamps the stage's name and its admitted
 instructions onto the `edit_copy`, as `read_from` carries the tree it was cut from, so
@@ -551,6 +555,54 @@ that tree's places it is dealt are two questions: a stage reading `"original"` m
 it deals, and a stage reading a revise may narrow nothing. `#193` is the use they were built
 for, not the only row they fit.
 
+## Each stage's tree, from the jacket
+
+**`stage open --jacket J --stage S` builds the tree a stage reads; `stage close` records the
+proof it closed on.** Both are `flows.stage`, and both read and write only
+`<run-dir>/jacket.json` (`flows.jacket`). A stage opens once every stage its `reads` chain names
+has closed, and the first open copies the manuscript. A stage reading `"original"` is gathered
+from the checkout. Any other is gathered from `<run-dir>/root<S>`: a worktree of the jacket's
+pre-edit commit, the manuscript over it with the tracked files the checkout had deleted removed
+-- the checkout as the run started, for every path -- each earlier closed proof in chain order set through
+`revise.pull` -- so the docket's page-sha refusal and the address gate run on every stage tree
+-- and then `<run-dir>/freeform/draft/`. A root already on disk is refused, never reused; a build
+that refuses removes its root; once the stage is recorded, removing the root is the caller's.
+
+**The gather is the scope plus every page an earlier docket wrote**, so a file that received
+moved text is read at the next stage. The binder's `read_from` carries `stage`, the copies are
+seeded from the jacket's row into `<run-dir>/copies/`, one line printed per copy, and the
+jacket records the root, the binder and the copies dispatched.
+
+**A stage closes when it is open** and the proof is closed, stamped with its name, and its
+`returned` equals the copies the jacket records as dispatched. The stages form one chain and a
+stage opens only once the one before it closed, so one stage is open at a time; the jacket records the proof's path
+and sha256, and a later `stage open` refuses a proof whose bytes changed since. A refusal exits
+1; a jacket or a closed proof that cannot be read as one exits 2.
+
+**`stage reopen --jacket J --stage S` discards a stage that is open and has not closed, and
+opens it again** under the installed reader -- `decision-log.md Process: #410`. It removes
+`<run-dir>/root<S>` as a worktree, the stage's binder, and each copy it dispatched with its
+received binder and its `freeform/<copy name>` directory, which a relaunched dispatch would
+otherwise reuse; the first stage's root is the checkout and is never removed. The jacket entry
+is cleared last, so a removal that leaves anything on disk refuses with the entry kept and a
+later reopen removes it. Then it opens as `stage open` does. A stage not opened or already
+closed is refused, exit 1; an unreadable jacket exits 2. Under the one-chain rule no later stage
+can be open beside it.
+
+**`proof --jacket J --out D` sets the whole run, and `--only <stage>:<address>` is the author's
+approval over it** -- `decision-log.md Process: #405`. `flows.stage.replay` builds a tree as
+`stage open` builds a root, without the freeform drafts, and sets every stage's closed proof over
+it in topology order through `revise.pull`, each transcribed with that stage's accepted places
+alone when `--only` is given. `D` holds one draft per page a proof set, at its repo path.
+Accepting every place sets the last stage's tree with its own proof over it. A later stage's
+place on a page whose replayed text differs from what that stage read is refused by the docket's
+page-sha refusal, and the refusal names each earlier `<stage>:<address>` on that page the author
+did not accept; one end of an agreed move is refused as `--only` refuses it on one proof. A stage
+of the topology not closed is refused. The jacket holds only a topology that is one chain -- the
+first row reads `original`, each other row reads `revise:<the row above it>` -- and refuses any
+other, naming the stage that breaks it, since replay sets stages in one line. Refusals exit 1; a jacket, a closed proof or a page
+identity that cannot be read exits 2.
+
 ## What this does to stages 4 and 5
 
 **A role states what it wants the paragraph to read like**, because a mark's `change` is the
@@ -570,6 +622,8 @@ updated paragraph as raw text ([`the-mark.md`](the-mark.md)). The chief can take
 | the author's partial approval | `flows.transcribe._approved`, reached through `docket_of_proof`'s `only`; the flag is `proof --only` |
 | what a page holds at an address -- the base and anchor a place is built on | `flows.on_the_page.held_at`, read by `flows.places.bases_and_anchors` and `flows.verify` |
 | which places a stage deals | `desk.stages.deals`, read by `flows.distribute.seed` and `flows.verify.admit` |
+| the tree a stage reads, and the order stages open and close | `flows.stage.open_stage`, `reopen_stage` and `close_stage`; the command is `stage open` / `stage reopen` / `stage close` |
+| the whole run set, with the author's approval by `<stage>:<address>` | `flows.stage.replay`; the command is `proof --jacket` |
 | which instructions its roles may file | `desk.stages.not_admitted`, read by `flows.verify._admitted_problems` |
 | a role states the paragraph it wants | `Mark.change`, raw text |
 | the answer a role gives in a turn | `desk/proof/answer.py` -- `Answer` and its types; `desk/answers/table.py`, the twelve rows |

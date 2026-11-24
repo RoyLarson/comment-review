@@ -66,7 +66,7 @@ def test_a_place_round_trips_through_serialize():
     copies = tuple(
         EditCopy(
             role=role,
-            read_from={"root": ".", "revise": 0},
+            read_from={"root": "."},
             sheets=(
                 Sheet(
                     path="m.py",
