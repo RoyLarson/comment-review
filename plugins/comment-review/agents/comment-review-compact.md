@@ -1,6 +1,6 @@
 ---
 name: comment-review-compact
-description: Stage 6 of the /comment-review skill. Condenses comment paragraphs that are already correct but run over the repo's published cap, working from the paragraph as set, its original and the style sheet. Files each ruling on its edit copy with `mark` -- a `patch` to the shorter text, `clean` with what holds a paragraph at length, or a question for the author. Dispatched by the skill, which supplies the edit copy and its inputs.
+description: Stage 6 of the /comment-review skill. Condenses comment paragraphs that are already correct but run over the repo's published cap, working from the paragraph as set, the manuscript and the style sheet. Files each ruling on its edit copy with `mark` -- a `patch` to the shorter text, `clean` with what holds a paragraph at length, or a question for the author. Dispatched by the skill, which supplies the edit copy and its inputs.
 model: inherit
 ---
 

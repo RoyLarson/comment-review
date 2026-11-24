@@ -20,7 +20,7 @@ class Command(StrEnum):
 
     Each value is derived from the member name via `_generate_next_value_`, never
     hand-typed. A value carries an underscore where the module it names does
-    (`prove_unchanged`, `taken_in`), so `.lower()` alone is what derives it.
+    (`prove_unchanged`), so `.lower()` alone is what derives it.
     """
 
     @staticmethod
@@ -33,6 +33,7 @@ class Command(StrEnum):
     CARRY = auto()
     CHECK = auto()
     COLLATE = auto()
+    COMPARE = auto()
     COMPOSITOR = auto()
     DISPOSITION = auto()
     DISTRIBUTE = auto()
@@ -41,7 +42,7 @@ class Command(StrEnum):
     PROOF = auto()
     PROVE_UNCHANGED = auto()
     REFERRERS = auto()
-    TAKEN_IN = auto()
+    STAGE = auto()
     TOPOLOGY = auto()
     TURN = auto()
 
@@ -67,7 +68,6 @@ def main(argv: list[str] | None = None) -> int:
     """
     # A Windows console is cp1252 and one non-ASCII glyph in a report kills the
     # run; every command emits prose, so the guard runs here, at the entry.
-    # `commands/topology.py` calls it a second time in its own `main`.
     constants.utf8_console()
     args = sys.argv[1:] if argv is None else argv
     if not args or args[0] in ("-h", "--help"):

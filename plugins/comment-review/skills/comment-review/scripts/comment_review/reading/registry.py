@@ -1,10 +1,12 @@
-"""Immutable language registration and selection refusals."""
+"""Immutable language registration, refused on a collision, and suffix selection."""
 
 from dataclasses import dataclass
 from pathlib import Path
 
 from comment_review.reading.definitions import LanguageDefinition
 
+#: Data, markup and prose suffixes no definition may claim: `__post_init__`
+#: refuses a registry in which one does.
 _EXCLUDED_SUFFIXES = frozenset(
     {
         ".toml",
@@ -24,9 +26,10 @@ _EXCLUDED_SUFFIXES = frozenset(
 )
 
 
-#: The suffixes of source files. One no definition claims is freeform: the
-#: gather lists it for the reviewers to read as it stands. Any other file with
-#: no reader is not source and no reviewer is handed it.
+#: The suffixes of source files. One no definition claims is freeform
+#: (`is_freeform` checks both): the gather lists it for the reviewers to read as
+#: it stands. Any other file with no reader is not source and no reviewer is
+#: handed it.
 _FREEFORM_SUFFIXES = frozenset(
     {
         ".bash",
@@ -61,7 +64,10 @@ _FREEFORM_SUFFIXES = frozenset(
 
 @dataclass(frozen=True)
 class LanguageRegistry:
-    """Unique language definitions whose code suffix claims do not overlap."""
+    """Unique language definitions, refused where their code suffixes overlap.
+
+    No definition's code suffix may name an excluded suffix either.
+    """
 
     definitions: tuple[LanguageDefinition, ...]
 

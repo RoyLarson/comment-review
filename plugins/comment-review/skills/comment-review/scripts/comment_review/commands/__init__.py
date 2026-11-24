@@ -1,18 +1,8 @@
-"""The console face of this package: argument parsing and exit codes only.
+"""The console face of this package: arguments, the files they name, exit codes.
 
-One module per command. Each holds the `argparse` for that command and nothing
-else -- the work it calls lives in the package it names.
+One module per command. Each holds the `argparse` for that command, and reads and
+writes the files it names -- the work it calls lives in the package it names.
 
 `report` is the one module here that is not a command: the exit codes and the
-console report the fold's commands share.
-
-!! A MODULE DOES ONE JOB AND HAS NO CLI; A FLOW CALLS MODULES; A
-COMMAND EXPOSES A FLOW. Ruled 2026-08-24 -- `docs/decision-log.md Process: #12`.
-Before it, TEN of nineteen modules carried a `main()` and four of those were
-imported by other modules while also being commands -- `addresser` by seven.
-
-! THE CONSOLE GUARD IS CALLED ONCE, IN `__main__.py`, because that is where the
-console is entered. It was called from each of the eleven `main()`s, which was
-correct while each was its own entry point and is a duplicate now that they
-share one.
+console report the fold's commands share, which `check` and `mark` also use.
 """

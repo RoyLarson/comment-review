@@ -89,8 +89,8 @@ class Page:
         paragraphs: in order down the page, prose and empty places alike.
         cues: EVERY place on the page, filled or not -- see
             `addresser.cue`. It is what makes an `add` citable.
-        reading: how the file was read -- its language, reader, compatibility
-            digest and settings, which a binder carries beside the sha.
+        reading: how the file was read -- its language and reader, which a
+            binder carries beside the sha.
         read: the record the reader made of the file. A proof compares two
             pages' reads to ask whether their code is the same.
         leading: the space below a place, keyed by the place it FOLLOWS --
@@ -127,10 +127,11 @@ class Page:
         one, and nobody owes it a ruling. Front matter is prose and is not
         accountable either -- no role can settle a licence header.
 
-        ! ASKED BY SERIES, not by the kind. The file's own matter is the `f`
+        ! Asked by series, not by the kind. The file's own matter is the `f`
         series, and every consumer that has to know reads that --
-        `binder.addresses.handed`, which `flows.distribute.seed` and
-        `flows.verify.coverage_problems` read, and this.
+        `binder.addresses.handed`, which `flows.distribute.seed`,
+        `flows.distribute.assigned_binder` and `flows.verify.admit`
+        read, and this.
 
         !! `d` IS OUT BECAUSE IT NAMES NO PLACE, and that is the whole test.
         Leading is not prose, it is the space BETWEEN two paragraphs; a reviewer
@@ -245,31 +246,32 @@ def _paragraph(place: dict, path: str) -> Paragraph:
 class RedactedPage:
     """A page with its source struck out: what a binder carries and hands back.
 
-    !! A REDACTION, NOT A PARALLEL DOCUMENT. Both hold the same `Paragraph`s.
-    Two things are removed and both are the PAGE's:
+    !! A redaction, not a parallel document. Both hold the same `Paragraph`s.
+    Two things are removed and both are the page's:
 
         the source text     an agent reads places, not the file; the compositor
                             reads the file from disk and never the binder
-        the empty places    a place where prose COULD go but does not
+        the empty places    a place where prose could go but does not
 
-    !! AND AN EMPTY PLACE IS STILL ADDRESSED, WHICH IS WHAT MAKES THE CUT SAFE.
-    The walk emits every place, so a reviewer that wants to `add` ASKS the
-    addresser for the one it means -- `addresses find --file m.py --line N --series b`
-    answers `m.py@b1` from the PAGE, not from these rows. The place is citable
-    without being carried.
+    !! And an empty place is still addressed, which is what makes the cut safe.
+    The walk emits every place, so a reviewer that wants to `add` asks the
+    addresser for the one it means -- `addresses find --file m.py --line N
+    --series b` answers `m.py@b1` from the page, not from these rows. The place
+    is citable without being carried.
 
-    !! EVERYTHING READ BACK IS ONE OF THESE, WHATEVER WAS WRITTEN. A `Page`
+    !! Everything read back is one of these, whatever was written. A `Page`
     serializes its text nowhere, so a binder off disk cannot rebuild one --
     and saying it could is the lie a redaction exists to prevent. What differs
-    between the two on the way OUT is which places are emitted; on the way IN,
+    between the two on the way out is which places are emitted; on the way in,
     both are redacted, because the text is gone either way.
 
     Attributes:
-        path: as the REPO sees it, the same field a `Page` carries.
-        sha: of the page's text when it was gathered. The write chain compares
-            it against the file it is about to set, which is the only
-            comparison that can fail.
-        paragraphs: the places carried, in order down the page. ORDINARY
+        path: as the repo sees it, the same field a `Page` carries.
+        sha: `Page.sha`, copied by `of` -- of the source the caller read, not of
+            `Page.text` where the read broke a docstring's shared line. The
+            write chain compares it against the file it is about to set, which
+            is the only comparison that can fail.
+        paragraphs: the places carried, in order down the page. Ordinary
             paragraphs -- see `_paragraph`.
         reading: how the file was read -- the same field a `Page` carries.
     """
@@ -452,12 +454,10 @@ def empty_places(
             # ! A DECLARATION WITH NO DOCSTRING. It occupies NO LINE, because the
             # prose is not written yet.
             #
-            # !! SO ITS ORIGINAL LINES ARE None, NOT `insert..insert-1`. The
-            # field holds a closed list of lines, or None when no line currently
-            # holds the place. WHERE the prose would go is the `DocPlace` the
-            # reader hands to `cue`, and is not this field's to say -- an
-            # empty slice standing in for a position teaches a reader to take
-            # these numbers for one.
+            # !! So its original lines are None, not `insert..insert-1`. Where
+            # the prose would go is the `DocPlace` the reader hands to `cue`,
+            # and is not this field's to say -- an empty slice standing in for
+            # a position teaches a reader to take these numbers for one.
             out.append(
                 Paragraph(
                     path="",
@@ -471,10 +471,6 @@ def empty_places(
                 )
             )
         elif cue_name.startswith(ON):
-            # ! The room BESIDE a line of code: whatever follows the statement,
-            # which is nothing unless the line ends in whitespace. The code is
-            # the ANCHOR, so storing it here too would put one fact in two
-            # fields.
             n = cues.anchor_line(cue_name)
             if n is None:
                 # !! A `c` ANSWERS TO A LINE OF CODE BY CONSTRUCTION. The `ON`
@@ -495,6 +491,11 @@ def empty_places(
                         ),
                     )
                 )
+
+            # ! The room BESIDE a line of code: whatever follows the statement,
+            # which is nothing unless the line ends in whitespace. The code is
+            # the ANCHOR, so storing it here too would put one fact in two
+            # fields.
             out.append(
                 Paragraph(
                     path="",

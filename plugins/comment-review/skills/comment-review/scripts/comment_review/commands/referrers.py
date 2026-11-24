@@ -1,9 +1,14 @@
 """The `referrers` command: its argument parsing and its exit code.
 
-The work is `referrers`; this is only the console face of it.
+    python -m comment_review referrers --repo D [--out PATH] <targets...>
 
-!! A MODULE DOES ONE JOB AND HAS NO CLI; A FLOW CALLS MODULES;
-A COMMAND EXPOSES A FLOW. Ruled 2026-08-24 -- `decision-log.md Process: #12`.
+The work is `concordance.referrers.tokens_for` and
+`flows.referrers.files_naming`; this is only the console face of it.
+
+It writes nothing but the `--out` file, and exits 0 whenever its arguments parse and
+that file can be opened; an `--out` it cannot open raises. It is an input to a
+review. Every file it lists is a candidate -- a file that names a token is a file to
+read, and stays outside what an instruction may target.
 """
 
 import argparse

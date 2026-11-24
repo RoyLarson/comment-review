@@ -7,7 +7,15 @@ OPTIONAL = ("ran",)
 
 
 class Source(TypedDict):
-    """One source as a mark holds it, once `problems` has found none."""
+    """One source as a mark holds it, once `problems` has found none.
+
+    !! PAIRS, NOT STRINGS. A `path:line | text` string reads for a human and
+    cannot be checked -- nothing can confirm the verbatim string sits near the
+    cited line.
+
+    ! `ran` is the command that SETTLED the claim, for a claim settled by
+    running something; `sources` otherwise records WHAT was seen and never HOW.
+    """
 
     cite: str
     verbatim: str

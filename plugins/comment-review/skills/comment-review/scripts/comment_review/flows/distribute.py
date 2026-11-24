@@ -47,7 +47,7 @@ from comment_review.desk.proof.mark import BlankMark
 from comment_review.desk.proof.sheet import Sheet
 from comment_review.desk.stages import Stage, deals
 from comment_review.exceptions import Refused
-from comment_review.flows.reading_context import binder_reading_contexts
+from comment_review.flows.reading_context import admit_pages
 
 
 class IncompatibleBinder(Refused):
@@ -55,15 +55,19 @@ class IncompatibleBinder(Refused):
 
 
 def admit_binder(binder: Binder) -> None:
-    """Refuse incompatible saved metadata before distribution uses addresses."""
-    _, problems = binder_reading_contexts(binder)
+    """Refuse incompatible saved metadata before distribution uses addresses.
+
+    It runs once per binder loaded: `commands/distribute.py` runs it before
+    `seed`, and `flows.fan_out.dealt` before it shards. `seed` and
+    `assigned_binder` admit nothing.
+    """
+    _, problems = admit_pages(("binder", binder.pages))
     if problems:
-        raise IncompatibleBinder("\n".join(problems))
+        raise IncompatibleBinder("\n".join(one.text for one in problems))
 
 
 def assigned_binder(binder: Binder, stage: Stage | None = None) -> Binder:
     """The binder containing the review places assigned by this stage."""
-    admit_binder(binder)
     return replace(
         binder,
         pages=tuple(
@@ -97,7 +101,7 @@ def seed(binder: Binder, role: str, stage: Stage | None = None) -> dict:
 
     Returns:
         `{"role": ..., "read_from": ..., "sheets": [...]}` -- `read_from` is
-        copied from the binder as-is, naming the root and revise this
+        copied from the binder as-is, naming the root and the stage this
         edit_copy was gathered from. Each entry in `sheets` carries one page's `path`
         and `sha`, plus its `marks` -- one per row on that page, holding the
         `address`, `anchor` and `raw_text` copied from the row, and
@@ -112,7 +116,7 @@ def seed(binder: Binder, role: str, stage: Stage | None = None) -> dict:
     by any other path -- an artifact read from disk, a hand-built dict --
     produced an edit_copy whose `read_from` was empty. ! THAT IS THE AMBIGUITY
     THE FIELD WAS ADDED TO REMOVE: a role holding an empty `read_from` cannot
-    tell a revise from the original, which is the whole question
+    tell a stage's tree from the checkout, which is the whole question
     `decision-log.md Process: #34` turns on.
 
     ! IT RAISED `KeyError` UNTIL 2026-08-31 AND NOW CANNOT. `Binder.deserialize`
@@ -149,7 +153,6 @@ def seed(binder: Binder, role: str, stage: Stage | None = None) -> dict:
     # The sheet records the page and the sha it was read at, which the proof
     # reads back; dropping the page here would leave the run unable to say
     # what it was cut from.
-    admit_binder(binder)
     return EditCopy.seed(
         role=role,
         read_from=binder.read_from,

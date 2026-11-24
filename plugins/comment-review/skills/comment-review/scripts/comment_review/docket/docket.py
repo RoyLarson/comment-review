@@ -1,105 +1,52 @@
-"""THE DOCKET: every alteration the write chain is asked to make.
+"""The docket: every alteration the write chain is asked to make.
 
     {"pages": [
         {"path": "pkg/a/util.py",
          "sha":  "e3b0c44298fc",
          "role":  "block-context",
+         "reading": {"format": 1, "language": "python",
+                     "reader": "python-lexical"},
          "alterations": [{"cue": "b1", "text": "# the new comment"},
                          {"cue": "c0", "text": null}]}]}
 
-!! IT IS THE WRITE SIDE'S BINDER, AND THE THREE LEVELS MIRROR IT. Roy,
-2026-08-26: *"like the binder we have three levels of containers -- paragraph,
-page, binder. We have to be able to unwind the alterations pretty close to the
-same way."*
+!! It is the write side's binder, and its three levels mirror the binder's:
+paragraph, page, binder.
 
-    level       READ                    WRITE
-    one place   a Paragraph             an ALTERATION -- a cue, its text, its anchor
-    one file    a Page / RedactedPage   a SCHEDULE: path, sha, alterations
-    the whole   a Binder                a DOCKET: its schedules
+    level       read                    write
+    one place   a Paragraph             an alteration -- a cue, its text, its anchor
+    one file    a Page / RedactedPage   a schedule: path, sha, alterations
+    the whole   a Binder                a docket: its schedules
 
-!! ALL SIX ARE TYPES SINCE 2026-08-31, and this table stated the pairing while
-three of the six were plain dict entries -- `decision-log.md Process: #67`. Each
-answers `deserialize` over an already-loaded dict and `serialize` back to one,
-so the read side and the write side unwind the same way, which is what Roy asked
-for above.
+!! All six are types. The write side's three answer `deserialize` over an
+already-loaded dict and `serialize` back to one. On the read side `Binder` and
+`RedactedPage` do both, `Page` only serializes and `Paragraph` does neither.
 
-!! THE LOAD IS THE FLOW'S, AND THAT MAKES THREE FAILURES SEPARABLE. Roy,
-2026-08-31: *"This also makes file io errors and malformed json load dump errors
-an explicit different step in the flow so those can be done without extra
-collisions."*
+!! The load is the command's, `commands/proof.py`, and that makes three
+failures separable.
 
-    step           fails on                                  owned by
-    read_text      the file is missing, unreadable, undecodable   the flow
-    object_of      the text is not JSON, or not an object         the flow
-    deserialize    it is an object, and not a docket              the container
+    step           fails on                                        owned by
+    read_text      the file is missing, unreadable, undecodable    the command
+    object_of      the text is not JSON, or not an object          the command
+    deserialize    it is an object, and not a docket               the container
 
-! THEY COLLIDED WHILE `read(text)` HELD THE FIRST TWO. It took TEXT and did its
-own decode, so "this file is not JSON" and "this JSON is not a docket" came back
-as one `(dict, reason)` from one call, and a caller that wanted to answer them
-differently had to match on the message. ! The IO failure was already separate
--- it had to be, because `read` could not open a file -- so the split was
-one-of-three and looked like two.
-
-! A DOCKET IN PRINT PRODUCTION is the instruction paperwork that travels with a
+! A docket in print production is the instruction paperwork that travels with a
 job, which is what this is: what the desk hands the chain that sets type.
 
-!! THE NESTING IS NOT TIDINESS -- IT REMOVES TWO COUPLINGS. Flat, the docket was
-one map from address to text, so the per-page grouping had to be DERIVED by
-splitting every address, and the path an address carries is FLATTENED
-(`pkg:a:util.py`), so something else had to turn it back. `proof_setter` used
-the binder's page paths for that, and for the sha.
+!! The nesting is not tidiness -- it removes two couplings. A flat docket, one
+map from address to text, would have to derive the per-page grouping by
+splitting every address, and the path an address carries is flattened
+(`pkg:a:util.py`), so something else would have to turn it back.
 
     flat    address -> text     grouping derived; path flattened; sha from the binder
     nested  pages -> schedule   grouping structural; path real; sha on the page
 
-! MEASURED, on the flat form: `proof_setter.run` used the flattened key both as
-a binder key and as a filesystem path, so every alteration on a file below the
-repo root refused -- `repo / "pkg:a:util.py"` is invalid on Windows and missing
-on POSIX. Every test hand-wrote its address with `/`, so none could disagree.
-The nested form has no flattened path to recover.
+!! So the gathered binder does not reach the write chain; `flows.revise` binds
+the pages it pulled only for its address gate. The docket carries the sha and
+the real path, the two facts of the binder the write chain reads.
 
-!! SO THE BINDER DOES NOT REACH THE WRITE CHAIN AT ALL. Roy, 2026-08-25:
-*"besides reading the sha and file path/name you should not be assuming any
-binder things make it this far."* The docket carries both, which is what makes
-that literally true rather than nearly true.
-
-!! THE SHA IS RECORDED, NEVER RECOMPUTED. Roy, 2026-08-25: *"we can't assume
-that the file didn't change between original read and loading to write and so
-getting it out of the json blob is important."* A sha taken from the file at
-write time would ask whether the file equals itself, which cannot fail.
-
-!! IT WAS `desk/notations.py`, A STAND-IN, AND THE NAME COLLIDED. `notations`
-sat one letter from the `annotations` that `concordance/annotate.py` owns. ! The
-instinct was right and that is why it collided -- Roy, 2026-08-26: *"if I was
-writing between the lines with marks in red pen I think of those red marks as
-notations."* The trade calls those PROOF CORRECTION MARKS, and `mark` is already
-this system's word for what a role emits. What needed a name was what the DESK
-makes of those marks. `decision-log.md Vocabulary: #14`.
-
-!! `None` IS THE DELETE AND AN EMPTY PATCH IS REFUSED. Roy, 2026-08-25: *"None
-is explicit enough."* ! The galley took `""` as its vacation signal until this
-landed, and a key whose value failed to serialise arrives looking exactly like
-a deliberate deletion. Two spellings for one act is how a bug upstream becomes
-a deletion downstream at exit 0. A replacement is measured with its white space
-removed, so `"   "` is the same empty patch as `""`.
-
-! `role` IS OPTIONAL AND, WHEN PRESENT, ONE PER PAGE -- since `P55`, the role
-of the `edit_copy` this docket was transcribed from.
-`flows.transcribe.docket_of` is what writes it; `flows.revise._set_by` reads
-it back into `address -> role`, the provenance a reversal pairs against. A
-docket with no `role` field maps every one of its addresses to `""`.
-
-!! SO WHICH ROLE SET A PLACE IS ANSWERED BY WHICH COPY WAS PULLED FROM. A
-role's own copy names that role on every schedule; the copy chief's names
-`copy-chief`, which is true -- the fold is what set those places. Roy,
-2026-09-02: *"by the time the copy-chiefs edit-copy becomes the sole
-edit-copy in the master proof the per role piece is lost. If we are pulling
-from the individual roles already then we know the answer."*
-
-! IT USED TO BE DERIVED PER PLACE, and a page two roles had settled carried
-no `role` at all rather than naming one of them. That input was
-the fold's own intermediate, which never travelled through an `edit_copy` -- so the rule
-went with the function that could read it.
+!! The sha is recorded, never recomputed. The file may change between the
+gather and the write, so the sha is read from the docket. A sha taken from the
+file at write time would ask whether the file equals itself, which cannot fail.
 """
 
 from dataclasses import dataclass, field
@@ -120,22 +67,20 @@ class Alteration:
 
     Attributes:
         cue: the place on the page -- `b1`, `c0`.
-        text: the replacement, or None to DELETE.
+        text: the replacement, or None to delete.
         anchor: the page's anchor at this place, as the docket's writer took
             it -- `flows.transcribe.docket_of` takes a mark's own, and the
             page's at a move's destination -- or None where a docket carries
             none. The write end refuses one that is not the page's anchor
-            here (`decision-log.md Process: #134`), and refuses None
-            (`#135`).
+            here, and refuses None.
 
-    !! `None` IS THE DELETE AND AN EMPTY PATCH IS REFUSED -- see this module's
-    header. Two spellings for one act is how a serialisation bug upstream
-    becomes a deletion downstream at exit 0.
+    !! `None` is the delete and an empty patch is refused. Were `""` the
+    delete, a key whose value failed to serialise would arrive looking exactly
+    like a deliberate deletion. Two spellings for one act is how a bug upstream
+    becomes a deletion downstream at exit 0. A replacement is measured with its
+    white space removed, so `"   "` is the same empty patch as `""`.
 
-    ! IT IS THE THIRD LEVEL THE HEADER'S TABLE NAMES, and it was a bare
-    `dict[str, str | None]` entry inside `Schedule` until 2026-08-31. The table
-    said "one place -> an ALTERATION" while the code had no such type; this is
-    that row made real -- `decision-log.md Process: #67`.
+    ! It is the `one place` row of the header's table.
     """
 
     cue: str
@@ -157,8 +102,8 @@ class Alteration:
         """
         if not isinstance(data, dict):
             return None, [f"{where}: an alteration must be an object"]
-        # ! DECLARED, NOT NARROWED -- an isinstance narrow does not survive the
-        # reads below, the same reason desk.proof.edit_copy.EditCopy.deserialize gives.
+        # ! Declared, not narrowed -- `ty` narrows an `object` to `Top[dict]`,
+        # whose `__getitem__` takes no key, and refuses the reads below.
         checked: dict = data
         cue = checked.get("cue")
         if not isinstance(cue, str) or not cue:
@@ -199,6 +144,14 @@ class Alteration:
 class Schedule:
     """One page's alterations, and the page they are checked against.
 
+    `role` is optional and, when present, one per page: the role of the
+    `edit_copy` this docket was transcribed from. `flows.transcribe.docket_of`
+    writes it, and `flows.revise._set_by` reads it back into `address -> role`,
+    the provenance a reversal pairs against. A docket with no `role` field maps
+    every one of its addresses to `""`. A role's own copy names that role on
+    every schedule; the copy chief's names `copy-chief`, because the fold set
+    those places.
+
     Attributes:
         path: as the REPO sees it -- `pkg/a/util.py`, NOT flattened. It is
             joined to the checkout and to the draft directory, so it is the one
@@ -208,7 +161,7 @@ class Schedule:
         alterations: one `Alteration` per place, in the order the docket lists
             them.
         reading: the original context that assigned the saved cues.
-        role: the role whose mark settled every alteration here, or "" when
+        role: the role whose mark decided every alteration here, or "" when
             the docket carries none. `proof_setter` does not read this --
             `flows.revise._set_by` does; carried here so a caller unwinding a
             docket sees every field the format defines.
@@ -282,13 +235,13 @@ class Schedule:
     def serialize(self) -> dict:
         """This schedule as the wire dict.
 
-        ! `role` IS OMITTED WHEN EMPTY, so an absent field and an empty one
-        stay ONE thing rather than two. `flows.transcribe.docket_of` writes the
+        ! `role` is omitted when empty, so an absent field and an empty one stay
+        one thing rather than two. `flows.transcribe.docket_of` writes the
         source copy's own role and an `edit_copy` always carries one, so an
-        empty `role` reaches here only from a `Schedule` built directly.
-        Emitting
-        `"role": ""` would make an absent field and an empty one look alike on
-        the wire.
+        empty `role` reaches here only from a `Schedule` built directly, or from
+        a docket read with no `role`. Emitting `"role": ""` would write a
+        schedule `deserialize` refuses: a `role` that is present must be a
+        non-empty string.
         """
         out: dict = {
             "path": self.path,
@@ -319,7 +272,7 @@ class Schedule:
 
         Empty for a schedule `deserialize` read, which refuses a repeated cue.
         `flows.transcribe.docket_of` builds its schedules directly, so the write
-        end asks this before it sets a page (`docket-defects` T11).
+        end asks this before it sets a page.
         """
         at: dict[str, list[Alteration]] = {}
         for one in self.alterations:
@@ -330,8 +283,7 @@ class Schedule:
     def anchors(self) -> dict[str, str]:
         """Cue -> the anchor the alteration there carries, for each one with one.
 
-        What `flows.proof_setter._one` checks against the page's own anchors
-        (`decision-log.md Process: #134`).
+        What `flows.proof_setter._one` checks against the page's own anchors.
         """
         return {
             one.cue: one.anchor for one in self.alterations if one.anchor is not None
@@ -345,31 +297,16 @@ class Docket:
     Attributes:
         schedules: one `Schedule` per page, in the order the docket lists them.
 
-    !! THE FIELD IS `schedules` AND THE WIRE KEY IS `pages`, AND THAT
-    DISAGREEMENT IS DELIBERATE. `Binder.pages` holds pages. A
-    docket holds SCHEDULES: what to do to a page, which is not a page. Naming
-    both `pages` would put two attributes of the same name on the two halves of
-    the system returning different kinds of thing, and the write half's would
-    be lying about what it holds.
+    !! The field is `schedules` and the wire key is `pages`, and that
+    disagreement is deliberate. `Binder.pages` holds pages. A docket holds
+    schedules: what to do to a page, which is not a page. Naming both `pages`
+    would put two attributes of the same name on the two halves of the system
+    returning different kinds of thing, and the write half's would be lying
+    about what it holds.
 
-    ! IT WAS `pages` FOR ONE COMMIT, 2026-08-31, and that repeated an error this
-    module had already made and fixed. `schedules_of` carried the ruling:
-    *"IT IS NAMED FOR WHAT IT PRODUCES. It was `by_page`, which named the
-    mechanism."* Deleting that function took the ruling with it, and the field
-    that replaced it was named for the WIRE KEY -- the same class of mistake one
-    layer down. Roy caught it by asking whether `docket.pages` meant the read
-    half's `Page`. It does not, and it never did.
-
-    ! THE WIRE KEEPS `pages`, because the format is not this module's to change:
-    a docket arrives from outside the system. `serialize` writes `pages`;
-    `deserialize` reads it.
-
-    !! THE LOAD IS NOT HERE, ruled `decision-log.md Process: #67`. Roy,
-    2026-08-31: *"all flows start with a load step - not the modules code."*
-    `deserialize` takes what the load PRODUCED -- an already-decoded dict -- so
-    this module holds no `json.loads` and reaches no path. ! `read(text)` did
-    both until 2026-08-31; `machine.json_object.object_of` is that load and
-    moved to `commands/proof.py`, the one command that owns one.
+    ! The wire keeps `pages`: a docket is written to disk by `proof --to-docket`
+    and read back by `proof --from-docket`, so the key is a file format rather
+    than an attribute name. `serialize` writes `pages`; `deserialize` reads it.
     """
 
     schedules: tuple[Schedule, ...] = field(default_factory=tuple)
@@ -381,28 +318,22 @@ class Docket:
         Args:
             where: how to name this docket in a message.
             data: the decoded object, as `machine.json_object.object_of`
-                returns one. NEVER text and never a path.
+                returns one. Never text and never a path.
 
         Returns:
             `(Docket, [])` or `(None, [messages])`.
 
-        !! IT REFUSES RATHER THAN COPING, which is the shape the binder's own
+        !! It refuses rather than coping, which is the shape the binder's own
         boundary uses and for the same measured reason: a guess that is wrong
-        reads as an EMPTY input, and downstream that is indistinguishable from
+        reads as an empty input, and downstream that is indistinguishable from
         a run with nothing to do.
 
-        !! AN EMPTY DOCKET IS REFUSED BY NAME, the same floor the binder puts
-        under a missing `pages` key. Measured 2026-08-25 on the flat form:
-        `read("{}")` answered `({}, "")`, `proof_setter.run` drafted nothing
-        and `commands/proof.py` printed `0 page(s) drafted for review` at exit
-        0.
+        !! An empty docket is refused by name, the same floor the binder puts
+        under a missing `pages` key.
 
-        !! IT REPORTED ONE REASON AND NOW REPORTS EVERY ONE. `read` returned
-        `(dict, str)` and stopped at the first broken rule, so a docket with
-        three bad pages took three runs to fix. Every other container in this
-        tree returns `(T | None, [messages])`; this is that contract arriving
-        here -- Roy, 2026-08-31: *"Every container needs to be wired to do
-        this."*
+        !! It reports every broken rule, not the first, so a docket with three
+        bad pages takes one run to fix. Every other container in this tree
+        returns `(T | None, [messages])`, and this one does too.
         """
         if not isinstance(data, dict):
             return None, [_not_a(where, "a docket", data)]

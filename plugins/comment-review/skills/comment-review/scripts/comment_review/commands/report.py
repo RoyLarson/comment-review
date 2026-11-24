@@ -6,6 +6,9 @@ these codes and prints a human question as `collate` does; `mark` exits the
 first three. What each code means for one command is in that command's
 `main()` docstring.
 
+`human_answers` reads the `--human` answers file that `check`, `collate`,
+`disposition` and `turn` each take, and hands its problems to `refused`.
+
 Not a command: `__main__.Command` does not name it.
 """
 
@@ -16,21 +19,21 @@ from comment_review.desk import report as events
 from comment_review.desk.proof.answer import Question
 from comment_review.desk.proof.move import Placement
 from comment_review.desk.proof.place import Place
-from comment_review.desk.proof.state import CARRIED, SETTLED, State
+from comment_review.desk.proof.state import CARRIED, DECIDED, State
 from comment_review.flows.human import HumanAnswer, read_answers
 
-#: Exit codes. A short shard, a place a role left unruled and a slot a role
-#: left unanswered are found before the fold opens, so each is a `Refused`
-#: and the round rolls back (`Process: #186`).
+#: Exit codes.
 OK = 0
 BROKEN = 1
 UNREADABLE = 2
 REREADS = 3
 ESCALATIONS = 4
 # The run paused for the person: human questions and nothing else, nothing
-# saved, and the round runs again once each role has the answer
-# (`Process: #197`, `#289`).
+# saved, and the round runs again once each role has the answer.
 ASKS_THE_HUMAN = 5
+# A copy the stage dispatched did not come back, so no role has a line to act
+# on; nothing was folded, and that dispatch is launched again.
+NOT_RETURNED = 6
 
 
 def refused(why: list[str]) -> int:
@@ -90,14 +93,15 @@ def lines(event: object) -> list[str]:
             f"{event.placement} {event.origin} -> {event.destination}:"
             f" {roles} (placement)"
         ]
-    if isinstance(event, events.Settled):
+    if isinstance(event, events.Decided):
         ruling = event.disposition
         if ruling is not None:
             return [
                 f"{ruling.name} {event.address}: {ruling.taken_side} -- {ruling.reason}"
             ]
-        return [f"stet {event.address}"]
-    # `Advised` prints under its own heading, after the places -- see `print_report`.
+        return [f"decided {event.address}: {', '.join(event.stands) or 'original'}"]
+    # `Committed` and `RolledBack` print nothing, and `Advised` prints under its own
+    # heading, after the places -- see `print_report`.
     return []
 
 
@@ -128,7 +132,9 @@ def print_report(out: list) -> None:
 def code_for(out: list) -> int:
     """The exit code one fold's events come to.
 
-    A rollback is `BROKEN` where any `Refused` is in `out`, and
+    A rollback is `UNREADABLE` where a `Refused` in `out` is `unreadable` --
+    an input whose page identity will not admit -- `BROKEN` where any other
+    `Refused` is, and
     `ASKS_THE_HUMAN` where it holds human questions and no refusal: the run
     is paused for the person, nothing was saved, and every question is on
     stdout beside the role that owes it.
@@ -137,6 +143,8 @@ def code_for(out: list) -> int:
     an open placement (`REREADS`), and `OK` where the fold carried nothing forward.
     """
     if any(isinstance(one, events.RolledBack) for one in out):
+        if any(isinstance(one, events.Refused) and one.unreadable for one in out):
+            return UNREADABLE
         if any(isinstance(one, events.Refused) for one in out):
             return BROKEN
         if any(isinstance(one, events.AsksTheHuman) for one in out):
@@ -164,17 +172,17 @@ def counted(places: tuple[Place, ...]) -> str:
         places: `MasterProof.places`.
 
     Returns:
-        `"N places -- S settled, C carried forward, T to come"`.
+        `"N places -- D decided, C carried forward, T to come"`.
 
-    Settled is counted rather than subtracted, and `desk.proof.state.SETTLED`
-    is the one set of settled states both this and `flows.transcribe._unclosed`
+    Decided is counted rather than subtracted, and `desk.proof.state.DECIDED`
+    is the one set of decided states both this and `flows.transcribe._unclosed`
     read.
     """
     states = [str(place.state or "") for place in places]
     carried = sum(1 for state in states if state in CARRIED)
-    settled = sum(1 for state in states if state in SETTLED)
+    decided = sum(1 for state in states if state in DECIDED)
     to_come = sum(1 for state in states if state == State.TO_COME)
     return (
-        f"{len(states)} places -- {settled} settled,"
+        f"{len(states)} places -- {decided} decided,"
         f" {carried} carried forward, {to_come} to come"
     )

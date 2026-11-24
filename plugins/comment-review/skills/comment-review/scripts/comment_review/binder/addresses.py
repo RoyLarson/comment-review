@@ -1,8 +1,7 @@
 """Questions asked of a binder BY ADDRESS: which paragraph sits at which place.
 
 `handed` is the set of rows a role is dealt and its coverage is counted over,
-and `unaddressed` names the rows that carry no address; `gather` asks it of
-`Binder.paragraphs`, which holds none.
+and `unaddressed` names the rows that carry no address.
 
 !! IT IS HERE BECAUSE IT READS PARAGRAPHS. `addresser.py` says it *"still knows
 nothing about prose"*, and four of these six functions take a list of addressed
@@ -11,9 +10,6 @@ things and two take one -- the rows, which are the binder's material.
 ! THE ADDRESSER STILL OWNS THE ADDRESS. Emitting a place, spelling it and
 parsing it back are one subject and stay there; asking WHICH PARAGRAPH sits at
 one is a different question, and it needs a binder to answer.
-
-! THE NAME IS DESCRIPTIVE, NOT A TERM OF ART. It says what the module holds --
-addresses, over a binder -- and no trade word has been proposed for it.
 """
 
 from collections.abc import Sequence
@@ -49,17 +45,13 @@ def resolve(address: str, paragraphs: Sequence[Paragraph]) -> list[int]:
 def series_of(paragraph: Paragraph) -> str:
     """Which series this paragraph's own address is in -- `a`, `b`, `c` or `f`.
 
-    Read off the address, which is the one place the series is stated.
+    Read off the address, which is the one place the series is stated. Reading it
+    there costs nothing: the caller holds a binder row, and an entry carrying no
+    address is one no caller could cite anyway.
 
-    Inferring the series from other fields was meant to avoid a case per kind,
-    and reading the address avoids that too. It costs nothing: the caller holds
-    a binder row, and an entry carrying no address is one no caller could cite
-    anyway.
-
-    A `d` is not asked, and answering it was the defect. Leading is walked
-    because the compositor has to set those lines back, and it names no place --
-    Roy, 2026-08-24: *"Series d are walked because they have to be but they are
-    not cues."* Its one caller, `handed`, tests `address` first.
+    A `d` is not asked. Leading is walked because the compositor has to set
+    those lines back, and it names no place. Its one caller, `handed`, tests
+    `address` first.
 
     Args:
         paragraph: a binder row that NAMES A PLACE.
@@ -101,7 +93,7 @@ def handed(paragraphs: Sequence[Paragraph]) -> list[Paragraph]:
 
     One definition, three readers. `flows.distribute.seed` builds a role's
     slots from this, `flows.distribute.assigned_binder` cuts a stage's binder
-    with it, and `flows.verify.required_places` names the places a returned
+    with it, and `flows.verify.admit` names the places a returned
     copy's coverage is counted against.
 
     ! The `f` series -- a licence header, a shebang, an index -- states no

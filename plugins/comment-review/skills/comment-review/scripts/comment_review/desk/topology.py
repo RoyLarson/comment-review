@@ -9,9 +9,6 @@ sentence there.
 
     read    parse a topology file's text into `(stages, "")`, or refuse with
             `([], reason)` -- this repo's binder/docket shape
-    seeded_from_problem
-            whether a stage may be seeded from the binder in hand, given the
-            revise root the caller named -- the reader for `reads`
 
 ! **WHICH ROLES EXIST STAYS IN CODE; WHICH ROLE RUNS WHEN MOVES HERE.** `Role`
 and `ROLES` are `desk/stages.py`'s closed set -- a dispatch's `role` key is
@@ -38,12 +35,13 @@ tree a stage is seeded from and which of that tree's places it is dealt are
 two questions, so a row answering one is never required to answer the other.
 
 ! **`reads` ENFORCES SECTION 2'S "BARRIER".** A `"revise:<name>"` value may
-only name a stage that appears EARLIER in the file's own `[[stage]]` order
-and whose `kind` is `"editorial"` -- a forward reference is refused, and an
-`"enriching"` stage named in `reads` is refused BY NAME rather than quietly
-resolved to the previous editorial one (`Process: #34`). `carries` parses as
-`()`; a non-empty value is refused as format-only, not built
-(`Process: #50`). `TODO/topology-is-a-source-edit.md` T2 and T5.
+only name a stage that appears EARLIER in the file's own `[[stage]]` order --
+a forward reference is refused. `kind` is `"editorial"`, the one `Kind`.
+
+! **EVERY KEY IS ONE THIS MODULE READS.** The file holds only `stage`
+tables, a stage only the keys in `STAGE_KEYS` and a dispatch only `role` and
+`paths`; any other key is refused by name, so a key nothing reads cannot sit in
+a run's topology looking as if it were honoured.
 
 ! **FAN-OUT'S FILE-PARTITION GUARDS ARE NOT THIS MODULE'S.** Section 2
 states two guards over how a dispatch's `paths` glob against a binder's
@@ -59,12 +57,24 @@ from comment_review.desk.marks.table import INSTRUCTIONS
 from comment_review.desk.stages import ROLES, Dispatch, Kind, Role, Stage
 from comment_review.reading.series import ADDRESSED
 
-_KINDS = {"editorial": Kind.EDITORIAL, "enriching": Kind.ENRICHING}
+_KINDS = {"editorial": Kind.EDITORIAL}
 
 #: What a `reads` value starts with when it names an earlier stage's revise.
-#: Spelled once: `read` refuses a bad one and `seeded_from_problem` decides
-#: what a stage is seeded from, and the two cannot disagree about the prefix.
+#: Spelled once: `read` refuses a bad one and `flows.stage` walks the chain,
+#: and the two cannot disagree about the prefix.
 REVISE = "revise:"
+
+#: The keys a stage table may hold, and a dispatch table's.
+STAGE_KEYS = ("name", "kind", "reads", "cap", "series", "admits", "dispatch")
+DISPATCH_KEYS = ("role", "paths")
+
+
+def _unknown(where: str, table: dict, known: tuple[str, ...]) -> str:
+    """Why this table holds a key `read` does not read, or ""."""
+    extra = sorted(set(table) - set(known))
+    if not extra:
+        return ""
+    return f"{where}: key {extra[0]!r} is not one of: {', '.join(known)}"
 
 
 def read(text: str) -> tuple[list[Stage], str]:
@@ -79,12 +89,15 @@ def read(text: str) -> tuple[list[Stage], str]:
     except tomllib.TOMLDecodeError as exc:
         return [], f"topology: not valid TOML -- {exc}"
 
+    why = _unknown("topology", doc, ("stage",))
+    if why:
+        return [], why
+
     raw_stages = doc.get("stage")
     if not isinstance(raw_stages, list) or not raw_stages:
         return [], "topology: key 'stage' is missing or empty"
 
     stages: list[Stage] = []
-    kind_by_name: dict[str, Kind] = {}
     for raw in raw_stages:
         if not isinstance(raw, dict):
             return [], "topology: a 'stage' entry is not a table"
@@ -93,42 +106,26 @@ def read(text: str) -> tuple[list[Stage], str]:
         if not isinstance(name, str) or not name:
             return [], "topology: a stage is missing key 'name'"
 
+        why = _unknown(f"stage {name!r}", raw, STAGE_KEYS)
+        if why:
+            return [], why
+
         kind_str = raw.get("kind")
         if kind_str not in _KINDS:
-            return [], (
-                f"stage {name!r}: key 'kind' is {kind_str!r}, "
-                "not 'editorial' or 'enriching'"
-            )
+            return [], (f"stage {name!r}: key 'kind' is {kind_str!r}, not 'editorial'")
         kind = _KINDS[kind_str]
 
         reads = raw.get("reads", "original")
         if not isinstance(reads, str):
             return [], f"stage {name!r}: key 'reads' must be a string"
 
-        if reads.startswith(REVISE):
-            read_name = reads[len(REVISE) :]
-            read_kind = kind_by_name.get(read_name)
-            if read_kind is None:
-                return [], (
-                    f"stage {name!r}: key 'reads' is {reads!r}, naming a "
-                    "stage not run earlier in the file -- a stage may only "
-                    "read a revise pulled by an earlier stage"
-                )
-            if read_kind == Kind.ENRICHING:
-                return [], (
-                    f"stage {name!r}: key 'reads' is {reads!r}, but stage "
-                    f"{read_name!r} is 'enriching' and pulls no revise"
-                )
-
-        raw_carries = raw.get("carries", [])
-        if not isinstance(raw_carries, list) or not all(
-            isinstance(c, str) for c in raw_carries
-        ):
-            return [], f"stage {name!r}: key 'carries' must be a list of strings"
-        if raw_carries:
+        if reads.startswith(REVISE) and reads[len(REVISE) :] not in {
+            s.name for s in stages
+        }:
             return [], (
-                f"stage {name!r}: key 'carries' is not empty -- 'carries' "
-                "is format only, not built (Process: #50)"
+                f"stage {name!r}: key 'reads' is {reads!r}, naming a "
+                "stage not run earlier in the file -- a stage may only "
+                "read a revise pulled by an earlier stage"
             )
 
         cap, why_cap = _cap(name, raw)
@@ -156,6 +153,10 @@ def read(text: str) -> tuple[list[Stage], str]:
             if not isinstance(raw_dispatch, dict):
                 return [], f"stage {name!r}: a 'dispatch' entry is not a table"
 
+            why = _unknown(f"stage {name!r} dispatch", raw_dispatch, DISPATCH_KEYS)
+            if why:
+                return [], why
+
             role_str = raw_dispatch.get("role")
             if role_str not in ROLES:
                 return [], (
@@ -178,14 +179,12 @@ def read(text: str) -> tuple[list[Stage], str]:
                 name=name,
                 kind=kind,
                 reads=reads,
-                carries=tuple(raw_carries),
                 cap=cap,
                 series=series,
                 admits=admits,
                 dispatches=tuple(dispatches),
             )
         )
-        kind_by_name[name] = kind
 
     return stages, ""
 
@@ -227,55 +226,3 @@ def _listed(
             f" {what} -- it holds: {', '.join(known)}"
         )
     return tuple(given), ""
-
-
-def seeded_from_problem(stage: Stage, revise: str, read_from: dict) -> str:
-    """Why this stage may not be seeded from this binder, or `""`.
-
-    `reads` says which tree a stage's copies are cut from, and this is what
-    reads it: a stage reading `"original"` is seeded from the gathered binder
-    and names no revise root, and a stage reading `"revise:<name>"` is seeded
-    from the revise that stage pulled -- so the binder in hand must be the one
-    gathered from it.
-
-    A binder says which tree it was gathered from and which revise that tree
-    is, so both halves are asked: a binder from another tree answers to
-    another address space, and one stamped revise 0 says it read the original,
-    whatever directory it was pointed at.
-
-    Args:
-        stage: the stage being seeded.
-        revise: the revise root the caller named, or `""` where it named
-            none. Compared with `read_from["root"]` as given, so a caller
-            spelling either of them differently resolves both first.
-        read_from: the binder's own `{"root": str, "revise": int}`.
-
-    Returns:
-        The one reason, naming the stage, or `""` where the stage may be
-        seeded from this binder.
-    """
-    if not stage.reads.startswith(REVISE):
-        if revise:
-            return (
-                f"stage {stage.name!r} reads {stage.reads!r}, so it is seeded from"
-                " the binder it was gathered into and names no revise root"
-            )
-        return ""
-    earlier = stage.reads[len(REVISE) :]
-    if not revise:
-        return (
-            f"stage {stage.name!r} reads the revise stage {earlier!r} pulled,"
-            " and no revise root was named"
-        )
-    root = str(read_from.get("root", ""))
-    if root != revise:
-        return (
-            f"stage {stage.name!r} reads {revise!r} and the binder was gathered"
-            f" from {root!r} -- a stage is seeded from the revise it reads"
-        )
-    if not read_from.get("revise"):
-        return (
-            f"stage {stage.name!r} reads a revise, and the binder says it"
-            f" gathered revise 0 of {root!r}, which is the original"
-        )
-    return ""

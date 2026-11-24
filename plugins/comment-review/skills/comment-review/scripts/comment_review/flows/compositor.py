@@ -1,6 +1,5 @@
 """Acquire, admit, and set one held source snapshot."""
 
-from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -23,11 +22,9 @@ class RoundTrip:
     reading_context: ReadingContext | None = None
 
 
-def round_trip(
-    path: Path, *, settings: Mapping[str, str] | None = None
-) -> RoundTrip | ReadFailure:
+def round_trip(path: Path) -> RoundTrip | ReadFailure:
     """Set one snapshot, retaining known context for expected refusals."""
-    context = context_for(path, settings if settings is not None else {})
+    context = context_for(path)
     if isinstance(context, ReadFailure):
         return LocatedReadFailure(context.diagnostics, path.as_posix(), None, None)
     source = source_of(path)

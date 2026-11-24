@@ -4,6 +4,7 @@
                     the binder. `STEPS` is the chain, as data
     annotations_for stage 3 as one step of it -- what the concordance can
                     settle, over every paragraph the gather carried
+    referrers       stage 3, inbound -- the `git grep` behind `referrers`
     page_for        acquires a source snapshot and admits it as a complete page
     source          source acquisition outcomes for filesystem and revision
                     reads
@@ -36,8 +37,9 @@
     bus             the stage transitions as messages, one handler each --
                     copies returned, answers returned, dispositions written.
                     The turn and the master proof between turns live here
-    proof_io        that proof on disk: the load and the save, raw JSON at
-                    those two ends only
+    proof_io        the middle's artifacts on disk -- binder, copy, proof,
+                    batch: the load and the save, raw JSON at those two
+                    ends only
     transcribe      decided places, as the docket the write chain reads
     proof_setter    the results-side flow -- calls the galley and the
                     compositor from a role's alterations to a drafted file a
@@ -49,8 +51,13 @@
                     no other file
 
 A flow is where a sequence lives, so that no module has to know it is part of
-one.
+one. Not every module here is a flow: `page_for`, `source`, `on_the_page`,
+`addresses`, `reading_context`, `read_diagnostics`, `places`, `proof_io`,
+`human` and `referrers` decide no order, and hold the reads, writes and
+conversions the flows share.
 
-`page_for` decides no order and sits here anyway: `proof_setter` and `gather`
-read their pages through it, so a change to how a page is read is one edit.
+Every module here that reads a page reads it through `page_for.page_of` -- the
+flows `gather`, `proof_setter`, `fill`, `revise`, `compositor` and
+`prove_unchanged`, and the shared `on_the_page` -- so a change to how a page is read
+is one edit.
 """

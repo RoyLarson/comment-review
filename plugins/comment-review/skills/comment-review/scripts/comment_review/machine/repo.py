@@ -1,14 +1,13 @@
-"""Facts about the checkout: git, the filesystem, and text identity.
+"""The checkout's I/O: git, reading, writing and removing files, and text identity.
 
-Every function here answers a question about the tree the review runs in, and
-carries the non-answer in its return type -- `None` for "git could not tell me",
-a named list for "these files were unread". A caller that reads a non-answer as
-an empty answer produces the failure this whole skill exists to catch.
+Where git cannot answer, the return type says so: `git_ls_files` and
+`tracked_paths` return `None` for "git could not tell me". A caller that reads a
+non-answer as an empty answer produces the failure this whole skill exists to
+catch.
 
-`read_source` and `sha_of` answer a different question -- not what the
-checkout contains, but what was actually read -- and belong here rather than
-downstream because a sha taken by a caller depends on which of this module's
-two readers that caller happened to use.
+`read_source` and `sha_of` answer what was actually read, not what the checkout
+contains, and belong here rather than downstream because a sha taken by a caller
+depends on which of this module's two readers that caller happened to use.
 
 !! And `write_raw` is `read_raw`'s pair, here for the same reason. A changed
 code file is written through this module. The two halves of the byte-identity
@@ -49,10 +48,6 @@ def read_raw(path: Path) -> str:
 
 def write_raw(path: Path, text: str) -> Path:
     r"""Write text with its own line endings, untranslated. The pair to `read_raw`.
-
-    !! It is here because the write end obeys the same rule as the read end:
-    a changed code file is written through this module, as every page is read
-    through it.
 
     Strict UTF-8 encoding completes before creating parents or opening the
     target, so an encoding failure leaves the filesystem untouched. Writing
@@ -184,10 +179,10 @@ def git(repo: Path, *args: str, timeout: int = 30) -> subprocess.CompletedProces
     Routing every text-mode call through here makes the next git-decoding
     hazard a one-place fix.
 
-    Exceptions are raised to the caller -- `exceptions.GIT_ERRORS` -- and a
-    nonzero return code
-    mean different things at each call site (None as a third state, a real
-    zero-match search), and catching them here would erase that.
+    Exceptions -- `exceptions.GIT_ERRORS` -- and a nonzero return code mean
+    different things at each call site (None as a third state, a real
+    zero-match search), so both go to the caller; catching them here would
+    erase that.
 
     Args:
         repo: the repository root, passed as `-C`.
@@ -230,6 +225,53 @@ def git_ls_files(repo: Path) -> list[str] | None:
     if listed.returncode != 0:
         return None
     return listed.stdout.splitlines()
+
+
+def git_untracked(repo: Path) -> list[str] | None:
+    """Untracked, unignored, repo-relative posix paths, or None as `git_ls_files`."""
+    if not repo.is_dir():
+        return None
+    try:
+        listed = git(repo, "ls-files", "--others", "--exclude-standard")
+    except exceptions.GIT_ERRORS:
+        return None
+    if listed.returncode != 0:
+        return None
+    return listed.stdout.splitlines()
+
+
+def commit_of(repo: Path, ref: str) -> str | None:
+    """The full sha of the commit `ref` names in `repo`, or None when none does."""
+    # A ref starting with "-" would be read as an option, not a name.
+    if not repo.is_dir() or not ref or ref.startswith("-"):
+        return None
+    try:
+        got = git(repo, "rev-parse", "--verify", "--quiet", f"{ref}^{{commit}}")
+    except exceptions.GIT_ERRORS:
+        return None
+    sha = got.stdout.strip()
+    return sha if got.returncode == 0 and sha else None
+
+
+def git_worktree_add(repo: Path, path: Path, ref: str) -> str:
+    """Check `ref` out, detached, as a worktree of `repo` at `path`; why not, or ""."""
+    try:
+        got = git(repo, "worktree", "add", "--detach", str(path), ref, timeout=120)
+    except exceptions.GIT_ERRORS as err:
+        return f"git could not add a worktree at {path}: {err}"
+    if got.returncode != 0:
+        return f"git could not add a worktree at {path}: {got.stderr.strip()}"
+    return ""
+
+
+def git_worktree_remove(repo: Path, path: Path) -> None:
+    """Remove the worktree of `repo` at `path`, whatever it holds; never raises."""
+    try:
+        git(repo, "worktree", "remove", "--force", str(path), timeout=120)
+    except exceptions.GIT_ERRORS:
+        pass
+    if path.exists():
+        remove_tree(path, ignore_errors=True)
 
 
 def undraftable(into: Path, repo: Path) -> str:
@@ -288,7 +330,7 @@ def undraftable(into: Path, repo: Path) -> str:
 
 
 def can_escape(rel: str) -> bool:
-    """Would joining this path to a root land somewhere other than under it?
+    """Whether joining this path to a root would land somewhere other than under it.
 
     !! A question about the string, and only about the string. It answers for
     every root at once, which is what lets a caller stop asking per root -- but
@@ -384,10 +426,12 @@ def path_index(repo: Path, rels: list[str] | None) -> set[str]:
     which is the question prose is actually asking. Walking the tree once and
     indexing beats trying N candidate roots per citation.
 
-    ! Tracked files only, via `git ls-files`. That is faster than walking a tree
-    full of generated data, and more correct: a citation into gitignored runtime
-    state is unverifiable (absent from every fresh checkout), which is a
-    different finding from a citation that resolves nowhere.
+    ! Tracked files, via `git ls-files`, whenever the index lists any. That is
+    faster than walking a tree full of generated data, and more correct: a
+    citation into gitignored runtime state is unverifiable (absent from every
+    fresh checkout), which is a different finding from a citation that
+    resolves nowhere. With no index, or an empty one, it is every file the
+    walk does not exclude.
     """
     out: set[str] = set()
     if not repo.is_dir():
@@ -414,7 +458,7 @@ def path_index(repo: Path, rels: list[str] | None) -> set[str]:
 
 
 def walk_files(root: Path):
-    """Every file under `root`. It enumerates; it classifies nothing.
+    """Each file under `root` it may enter. It enumerates; it classifies nothing.
 
     ! The walk does not decide. What a file no reader claims becomes -- freeform,
     a refusal or a note -- is the gather's call, and it turns on something only
@@ -467,9 +511,9 @@ def relative_to(target: Path, start: Path) -> Path:
     start on drive `C:` (`os.path.relpath` raises `ValueError: path is on mount
     'D:', start on mount 'C:'` there). ! There is no relative path between two
     anchors, so returning one is impossible and raising is unhelpful; the
-    resolved target is the only honest answer. This repo names Windows as its
-    primary platform and fetches corpora to arbitrary roots, which is what
-    makes two drives ordinary rather than exotic.
+    resolved target is the only honest answer. This package handles Windows
+    paths elsewhere too (`can_escape`, `remove_tree`) and fetches corpora to
+    arbitrary roots, which is what makes two drives ordinary rather than exotic.
     """
     here = target.resolve()
     there = start.resolve()

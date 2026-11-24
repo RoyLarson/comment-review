@@ -2,7 +2,8 @@
 
     slots_of(loaded, role)                -> the slots, whatever shape they came in
     slot_key(entry)                       -> which slot an entry answers
-    answers_of(role, sent, returned, why) -> (slot key -> Answer, the problems)
+    answers_of(role, sent, returned, unsent, root, cache)
+                                          -> (slot key -> Answer, the problems)
     contracts()                           -> the shapes a role is handed
 
 `flows.bus` derives what a role was asked from the places the proof carries;
@@ -116,8 +117,7 @@ def slot_key(entry: dict) -> str:
 def slots_of(loaded: object, role: str) -> list:
     """A role's slots, from any of the shapes a role has handed back.
 
-    Measured 2026-09-04: three of four roles returned `{role: [slots]}`, the
-    batch's own shape, on the first turn they were asked. It is that role's
+    A role may hand back `{role: [slots]}`, the batch's own shape. It is that role's
     slots, and this reads it as such rather than refusing the envelope.
 
     Args:
@@ -129,8 +129,8 @@ def slots_of(loaded: object, role: str) -> list:
         The slots, or an empty list where the value is none of the three.
     """
     if isinstance(loaded, dict):
-        # Declared, not narrowed -- `ty` loses an isinstance narrow at the
-        # subscript, the same reason `EditCopy.deserialize` gives.
+        # Declared, not narrowed -- `ty` narrows an `object` to `Top[dict]`,
+        # whose `__getitem__` takes no key, and refuses the subscript.
         data: dict = loaded
         if role in data:
             slots = data[role]
@@ -152,15 +152,15 @@ def answers_of(
 
     Every sent slot contributes to exactly one of the two: an `Answer` at its
     address, or a `Problem`. An unanswered slot is refused by name and never
-    read as a withdrawal -- the null answer must be written by a hand
-    (`decision-log.md Process: #22`). A slot handed back as it was sent,
-    carrying no instruction, is unanswered as surely as one never returned.
+    read as a withdrawal -- the null answer must be written by a hand. A slot
+    handed back as it was sent, carrying no instruction, is unanswered as surely
+    as one never returned.
 
-    A role may answer one slot several times (`decision-log.md Process: #308`).
-    Each answer is read and its sources verified on its own; rewrites compose
-    into one `correct` or `patch` by `differences.compose`, repeats of one
-    other answer collapse, and the slot is refused, with no answer, where the
-    answers contradict each other (`_one_answer`).
+    A role may answer one slot several times. Each answer is read and its
+    sources verified on its own; rewrites compose into one `correct` or `patch`
+    by `differences.compose`, repeats of one other answer collapse, and the slot
+    is refused, with no answer, where the answers contradict each other
+    (`_one_answer`).
 
     Args:
         role: whose answers these are.
@@ -172,8 +172,7 @@ def answers_of(
             refused. Only the caller knows why the address is not this role's
             to answer, so only the caller can word it.
         root: the checkout each answer's `cite` is resolved against. An
-            answer's evidence is verified as a mark's is
-            (`decision-log.md Process: #181`), by the same checks.
+            answer's evidence is verified as a mark's is, by the same checks.
         cache: path -> lines, shared across the roles of one turn so a file
             several answers cite is read once.
 
@@ -303,17 +302,13 @@ def _one_answer(
 def contracts() -> dict:
     """The shapes a role is handed, generated from the tables, never hand-typed.
 
-    A stage-4c `Mark`, from the marks table, and one entry per question a turn
-    asks, from the answers table and each answer's type -- the same facts an
-    answer's own read holds it to, so the contract cannot say a thing the
-    check does not.
-    `commands/check.py --contract` prints them; publishing them in the brief is
-    the agents lane's.
+    A stage-4c `Mark`, from the marks table, the chief's rulings, and one entry
+    per question a turn asks, from the answers table and each answer's type --
+    the same facts an answer's own read holds it to, so the contract cannot say
+    a thing the check does not. `commands/check.py --contract` prints them;
+    publishing them in the brief is the agents lane's.
 
-    ! GENERATED BECAUSE A HAND-TYPED ONE WAS WRONG. The game's first brief
-    typed the contract by hand and got `query` wrong, which cost a turn.
-
-    !! IT PUBLISHES EVERY KEY THE PARSE READS, AND THAT IS THE WHOLE POINT.
+    !! It publishes every key the parse reads, and that is the whole point.
     `claim` is derived from each type's `claim_all`, so an answer whose effect
     turns on a claim key -- a `query`'s `shape`, which decides whether the
     place is held for a person -- is handed to the role that must write it. A

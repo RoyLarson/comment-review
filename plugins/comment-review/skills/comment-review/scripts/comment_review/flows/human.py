@@ -1,10 +1,9 @@
 """Human questions: found before a fold, and the human's answers read back.
 
-`decision-log.md Process: #197`: a `human-review-necessary` query -- filed as
-a mark, or given as an answer in a turn -- is asked of the human before the
-fold runs, and the human's answer goes back to the role that asked, which
-replaces its query with a real mark or answer. `#198`: the answers are one
-TOML file, one `[[answer]]` table per query, naming the role that asked.
+A `human-review-necessary` query -- filed as a mark, or given as an answer in a turn
+-- is asked of the human before the fold runs, and the human's answer goes back to the
+role that asked, which replaces its query with a real mark or answer. The answers are
+one TOML file, one `[[answer]]` table per query, naming the role that asked.
 
     [[answer]]
     role = "block-context"
@@ -76,13 +75,12 @@ def corrections_to_matter(
 ) -> list[HumanQuery]:
     """Every mark that changes an `f` place, or moves text into one, not yet answered.
 
-    `decision-log.md Process: #274`, `#287`: each correction to the file's
-    matter is put to the human on its own before the fold. An answer whose
-    role, place and question are this one's answers it: the role holds the
-    answer and its mark stands as it now reads, so it is not asked again. A
-    mark changed after the answer -- its reason, or a move's destination --
-    asks a different question and is asked again. A query is asked by
-    `queries_in_copies`.
+    Each correction to the file's matter is put to the human on its own before the
+    fold. An answer whose role, place and question are this one's answers it: the
+    role holds the answer and its mark stands as it now reads, so it is not asked
+    again. A mark changed after the answer -- its reason, or a move's destination --
+    asks a different question and is asked again; a change to its text alone, under
+    the same reason, is not. A query is asked by `queries_in_copies`.
     """
     out = []
     for copy in copies:
@@ -104,11 +102,10 @@ def corrections_in_answers(
 ) -> list[HumanQuery]:
     """Every turn's answer that rewrites an `f` place, not yet answered.
 
-    `decision-log.md Process: #291`: a change to the file's matter is put to
-    the human wherever it is made, so an answer that owes a `change` at an
-    `f` place asks as a mark there does. A placement answer is keyed by its
-    move and owes no change; a move into an `f` place asked when it was
-    marked.
+    A change to the file's matter is put to the human wherever it is made, so an
+    answer that owes a `change` at an `f` place asks as a mark there does. A
+    placement answer is keyed by its move and owes no change; a move into an `f`
+    place asked when it was marked.
 
     Args:
         given: role -> slot key -> answer, as `queries_in_answers` takes them.
@@ -228,9 +225,9 @@ def answered(
     """Each query with the human's answer to it, or None where there is none yet.
 
     A section is the answer to a query where its role, its `at` and its
-    question are the query's, as `corrections_to_matter` matches them: an
+    question are the query's, as `_unanswered` matches them: an
     answer to an earlier question at the same place does not answer a new one.
-    A section for a question no copy still holds is left alone -- it is the
+    A section for a question none of `queries` asks is left alone -- it is the
     record of a question already worked through. `read_answers` refuses two
     sections for one role, place and question, so each key here has one.
     """

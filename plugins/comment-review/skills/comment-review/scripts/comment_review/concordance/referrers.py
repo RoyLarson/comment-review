@@ -1,15 +1,11 @@
-"""Stage 3, inbound: which tracked files NAME the files under review.
+"""Stage 3, inbound: the names by which a tracked file would cite a file under review.
 
-    python -m comment_review referrers --repo D [--out PATH] <targets...>
+`flows.referrers.files_naming` searches the tree for them.
 
-The gather resolves what a comment CITES. This resolves the other direction --
-who cites the code being edited -- and it is the half that decides the
-REFERENCE ONLY list. Without it that list is assembled from memory, and a
-`target` run has no diff to widen from at all.
-
-Read-only, always exits 0: an INPUT to a review. Every line it prints is a
-CANDIDATE -- a file that names a token is a file to READ, and stays outside what
-an instruction may target.
+The gather resolves what a comment cites. These names serve the other direction --
+who cites the code being edited -- which is the half that decides the
+`REFERENCE ONLY` list. Without it that list is assembled from memory, and a `target`
+run has no diff to widen from at all.
 """
 
 import ast
@@ -30,9 +26,11 @@ def tokens_for(path: Path, text: str) -> set[str]:
 
     Returns:
         The stem, the posix path and each of its trailing suffixes, and the
-        PUBLIC top-level definitions. Underscored names are excluded: prose
+        public top-level definitions. Underscored names are excluded: prose
         cites the public surface, and a private helper's name collides with
-        every unrelated private helper spelled the same way.
+        every unrelated private helper spelled the same way. A name of two
+        characters or fewer is left out: searched with `git grep -l -F` it
+        matches nearly every tracked file.
     """
     out = {path.stem}
     parts = path.as_posix().split("/")
@@ -42,13 +40,12 @@ def tokens_for(path: Path, text: str) -> set[str]:
         try:
             tree = ast.parse(text)
         except exceptions.PARSE_ERRORS:
-            # !! A file that will not parse yields its PATH and STEM only, and
+            # !! A file that will not parse yields its path and stem only, and
             # must still reach the length filter below -- an earlier `return`
             # here skipped it, so a two-character stem went to `git grep -l -F`
             # and matched nearly every tracked file. ! `tree = None`, not a bare
             # `pass`: this is not a loop, and falling through left `tree`
-            # unbound, so the handler written for a mid-edit file crashed on
-            # one. Both shapes measured 2026-08-17.
+            # unbound, so the handler written for a mid-edit file crashed on one.
             tree = None
         for node in tree.body if tree is not None else ():
             if isinstance(node, NAMED_DEFS) and not node.name.startswith("_"):

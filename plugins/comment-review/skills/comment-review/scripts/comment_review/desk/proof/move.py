@@ -5,7 +5,8 @@ wrongly and belongs at its destination, and nothing about the wording of
 either end. So its placement is one question for the pair, put to every role
 that read either page, and decided here before either end's words are:
 
-    OPEN        a reader owed a say has not answered it
+    OPEN        a reader owed a say has not answered it, or no role but its
+                one mover read it, which puts it to the chief
     AGREED      every reader owed a say agreed, or the chief took a mover's
                 side -- final; the move stays filed at both ends
     CONTESTED   a reader answered `stet`; carried forward for the chief

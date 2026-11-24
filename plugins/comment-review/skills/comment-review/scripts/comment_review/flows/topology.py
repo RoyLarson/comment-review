@@ -4,8 +4,8 @@
     compose(directives, binder)  a topology's TEXT that fits by construction
 
 ! WHY A FLOW AND NOT `desk/topology.py`: `read` takes text and has no binder,
-so it cannot ask whether a dispatch reaches a page -- `Process: #55` puts that
-question in a command with a repo, and a command exposes a flow (`#12`).
+so it cannot ask whether a dispatch reaches a page; `fit` needs the binder and
+`flows.fan_out.partition`, and the middle may import neither.
 """
 
 import json
@@ -41,15 +41,15 @@ class Misfit(NamedTuple):
 def fit(stages: list[Stage], binder: Binder) -> list[Misfit]:
     """Every misfit between these stages and this binder; `[]` when it fits.
 
-    ! THE GUARDS ARE `fan_out.partition`'s, NOT A SECOND COPY. `fit` runs the same
-    partition `fan` will run and turns its two refusals into misfits, so a topology
-    `fit` passes is one `fan` will not refuse. A glob that matches no page is NOT
-    a third kind -- `Process: #100`: it either leaves a page uncovered, which the
-    guard names, or costs nothing, and the agent that wrote it reads the result.
-    What `fit` adds is the stage's globs on an `uncovered` detail, so that agent
-    sees which glob missed.
+    ! The guards are `fan_out.partition`'s, not a second copy. `fit` runs the
+    same partition `fan` will run and turns its two refusals into misfits, so a
+    topology `fit` passes is one `fan` will not refuse. A glob that matches no
+    page is not a third kind: it either leaves a page uncovered, which the guard
+    names, or costs nothing, and the agent that wrote it reads the result. What
+    `fit` adds is the stage's globs on an `uncovered` detail, so that agent sees
+    which glob missed.
 
-    ! ONE MISFIT PER STAGE AT MOST: `partition` raises on the first role that
+    ! One misfit per stage at most: `partition` raises on the first role that
     fails, and the caller fixes the topology and runs it again.
     """
     out: list[Misfit] = []
@@ -74,22 +74,36 @@ def _toml_string(s: str) -> str:
     return json.dumps(s)
 
 
-def compose(directives: list[Directive], binder: Binder) -> str:
+#: A stage's `cap`, `series` and `admits` keys, by stage name, as `compose`
+#: writes them onto that stage's row. `read` checks the values.
+RowKeys = dict[str, dict[str, int | list[str]]]
+
+
+def compose(
+    directives: list[Directive], binder: Binder, keys: RowKeys | None = None
+) -> str:
     """A topology, as text, that `read` accepts and `fit` passes for `binder`.
 
     Every stage is `editorial`; the first reads `original` and each later one
     reads the revise of the stage before it. A role split `ways` > 1 gets
     `ways` dispatches, each carrying explicit paths -- see `_deal` -- so it
-    fits by construction rather than by a glob that happens to match.
+    fits by construction rather than by a glob that happens to match. `keys`
+    adds a stage's `cap`, `series` or `admits` to its row, which is how a
+    compacting stage is written.
 
     Each stage names at least one role and no role twice; neither is refused
     here, and the text built from either fails -- an empty stage in `read`, a
     repeated role in `fit`, as an `overlap`.
 
     Raises:
-        ValueError: a role outside the closed set, or a split the binder's
-            file count cannot honour.
+        ValueError: a role outside the closed set, a split below one way or
+            above the binder's file count, or `keys` naming no directive's
+            stage.
     """
+    keys = keys or {}
+    unknown = sorted(set(keys) - {name for name, _ in directives})
+    if unknown:
+        raise ValueError(f"stage {unknown[0]!r} has keys and no --stage")
     paths = sorted([*(page.path for page in binder.pages), *binder.freeform])
     shards: dict[int, list[list[str]]] = {}
     lines: list[str] = []
@@ -99,6 +113,12 @@ def compose(directives: list[Directive], binder: Binder) -> str:
         lines.append(
             f'reads = "revise:{previous}"' if previous else 'reads = "original"'
         )
+        for key, value in keys.get(name, {}).items():
+            if isinstance(value, int):
+                lines.append(f"{key} = {value}")
+            else:
+                listed = ", ".join(_toml_string(one) for one in value)
+                lines.append(f"{key} = [{listed}]")
         for role, ways in roles:
             if role not in ROLES:
                 raise ValueError(f"stage {name!r}: {role!r} is not a known role")

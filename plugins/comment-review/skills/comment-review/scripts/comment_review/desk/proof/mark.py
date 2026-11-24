@@ -28,14 +28,13 @@ page: reading an entry into its type IS that check, so a mark that exists has
 passed it. What a mark does at a place -- the text it sets, what it reads
 against the page, how it pairs -- is the marks table's, in `desk.marks`.
 
-The wire entry is the same for every type: `docs/the-mark.md`'s eight fields,
-with the per-instruction claim written as one `claim` object. `Mark.FIELDS` is
-that list, in order, and `serialize` writes exactly those keys.
+The wire entry holds `docs/the-mark.md`'s eight fields on every type but
+`clean` and `query`, which write no `change`; the per-instruction claim is
+written as one `claim` object.
 
-Membership is asked of a tuple. No site here asks membership of an enum class
-directly (`x in SomeEnum` raises `TypeError` on Python 3.11) --
-`INSTRUCTION_NAMES` is the membership check for `Instruction`, and `QUERY_SHAPES`
-is `Shape`'s companion tuple.
+Membership is asked of a tuple, or member by member in `read_member`. No site
+here asks membership of an enum class directly (`x in SomeEnum` raises
+`TypeError` on Python 3.11).
 """
 
 import re
@@ -95,7 +94,7 @@ class Shape(StrEnum):
         return name.lower().replace("_", "-")
 
     OUTSIDE_MY_ROLE = auto()
-    #: Deferred like `OUTSIDE_MY_ROLE`: another role may have settled this place.
+    #: Deferred like `OUTSIDE_MY_ROLE`: another role may have decided this place.
     UNABLE_TO_DETERMINE = auto()
     HUMAN_REVIEW_NECESSARY = auto()
 
@@ -172,14 +171,14 @@ class Mark:
     owes_change: ClassVar[bool] = False
 
     #: Whether at least one source is owed. True on every type: a role cites
-    #: the code it read, whatever it rules (`decision-log.md Process: #301`,
-    #: `#304`).
+    #: the code it read, whatever it rules.
     owes_sources: ClassVar[bool] = True
     #: Whether an `address` and a `reason` are owed. False on `clean` alone.
     substantive: ClassVar[bool] = True
     #: Whether an empty `change` is the edit rather than a missing one.
     may_empty: ClassVar[bool] = False
-    #: Whether the claim's `anchor` must be named in backticks.
+    #: Whether the claim's `anchor` must be named in backticks. No
+    #: check reads it: `AddMark._claim_problems` asks `ANCHOR_NAME` itself.
     needs_anchor: ClassVar[bool] = False
 
     #: The wire entry's keys, in `docs/the-mark.md`'s order. `serialize` writes
@@ -257,9 +256,8 @@ class Mark:
 
         Every field is read as the type the mark holds, and a field of another
         type is read as absent. A field this type does not take is ignored,
-        never refused (`decision-log.md Process: #204`). Then every check that
-        needs no page is asked: address, reason, claim, destination, sources,
-        then change.
+        never refused. Then every check that needs no page is asked: address,
+        reason, claim, destination, sources, then change.
 
         What is NOT checked here, because it needs the page the role read:
         whether the address resolves, and whether a quoted clause is really in
@@ -279,8 +277,6 @@ class Mark:
         anchor = as_text(data.get("anchor"))
         reason = as_text(data.get("reason"))
         given = data.get("claim")
-        # ! COPIED, NOT ALIASED -- a mark is frozen, and its fields must not be
-        # reachable through the caller's own containers.
         claim: dict = dict(given) if isinstance(given, dict) else {}
         listed = data.get("sources")
         sources = tuple(listed) if isinstance(listed, list) else ()
@@ -381,7 +377,7 @@ class CleanMark(Mark):
 
 @dataclass(frozen=True)
 class QueryMark(Mark):
-    """`query`: the role could not settle the place, and says who can.
+    """`query`: the role could not settle the claim, and says who can.
 
     Attributes:
         shape: who resolves it -- one of `QUERY_SHAPES`.
@@ -590,9 +586,9 @@ class MoveMark(Amendment):
 
         A destination equal to the origin is refused: its two ends are one
         address, so the delete at the origin lands with no write to put the
-        paragraph back. A destination is a `path@cue` place, for now
-        (`decision-log.md Process: #173`); whether the page carries that place
-        needs the page, and is `flows.verify.resolution_problems`'.
+        paragraph back. A destination is a `path@cue` place, for now; whether
+        the page carries that place needs the page, and is
+        `flows.verify.admit`'s.
 
         A destination that is not a string says nothing here --
         `_claim_problems` refuses a missing one, and there is nothing to
@@ -610,8 +606,8 @@ class MoveMark(Amendment):
                 f"{where}: `claim.{key}` is this mark's own `address` -- a move to "
                 "where the paragraph already is deletes it and writes nothing back"
             ]
-        # PROVISIONAL, `decision-log.md Process: #173`: a destination that is not
-        # a `path@cue` place is carried by neither the fold nor the write end.
+        # Provisional: a destination that is not a `path@cue` place is carried by
+        # neither the fold nor the write end.
         if destination.strip() and not _names_a_place(destination):
             return [
                 f"{where}: `claim.{key}` {destination!r} is not a `path@cue` place"
@@ -715,8 +711,8 @@ def read_member(
 ) -> "tuple[E | None, list[str]]":
     """`value` as the member of `kind` it names, or one problem naming the field.
 
-    Asked member by member, never as `value in kind`, which raises on Python
-    3.11 for a value that is not a member.
+    Asked member by member, never as `value in kind`, which raises on Python 3.11
+    for any value that is not itself a member, a member's own string value included.
 
     Args:
         where: how to name the record in a message.
@@ -755,14 +751,14 @@ def read_text(where: str, name: str, value: object) -> "tuple[str, list[str]]":
 def as_text(value: object) -> str:
     """A string field as a record holds it: the string, or "" for anything else.
 
-    `decision-log.md Process: #204`: a field of the wrong type is read as absent.
+    A field of the wrong type is read as absent.
     """
     return value if isinstance(value, str) else ""
 
 
-#: The four fields a ROLE fills that `untouched` looks at. `address` and
-#: `anchor` are seeded onto every slot, so neither says whether anyone wrote
-#: here; `instruction` is the field being ruled on and is read separately.
+#: The four fields a role fills that `untouched` looks at. `address`, `anchor` and
+#: `raw_text` are seeded onto every slot, so none says whether anyone wrote here;
+#: `instruction` is the field being ruled on and is read separately.
 ROLE_FIELDS = ("claim", "reason", "sources", "change")
 
 
@@ -835,10 +831,11 @@ def untouched(entry: object) -> bool:
 def _names_a_place(value: object) -> bool:
     """Whether `value` is a `path@cue` address -- a page, and a place on it.
 
-    `reading.addresser.cue_of` is the parse of an address used here, and it
-    answers two blanks for anything that is not one, a bare cue included.
+    `reading.addresser.cue_of` is the parse of an address used here. It
+    answers two blanks for a string with no `@`, a bare cue included, and a
+    blank path or a blank cue for one with `@` that is missing either half.
     Whether it is spelled as the page prints it is
-    `flows.verify.resolution_problems`' question.
+    `flows.verify.admit`'s question.
     """
     if not isinstance(value, str):
         return False
@@ -847,15 +844,7 @@ def _names_a_place(value: object) -> bool:
 
 
 def _source_problems(where: str, sources: tuple[object, ...]) -> list[str]:
-    """At least one source, each a `{cite, verbatim}` pair that may carry `ran`.
-
-    !! PAIRS, NOT STRINGS. A `path:line | text` string reads for a human and
-    cannot be checked -- nothing can confirm the verbatim string sits near the
-    cited line.
-
-    ! `ran` is the command that SETTLED the claim, for a claim settled by
-    running something; `sources` otherwise records WHAT was seen and never HOW.
-    """
+    """At least one source, each a `{cite, verbatim}` pair that may carry `ran`."""
     if not sources:
         return [f"{where}: needs at least one source"]
     return source_entry_problems(where, sources)

@@ -76,6 +76,48 @@ and rust (`startraders`, 2026-08-17).
 
 ## [Unreleased]
 
+## [0.2.4-beta.10] -- 2026-11-24
+
+A pre-release where a jacket records the run from the manuscript to the proof, every entry
+point admits a copy the same way, and a change only its proposer read goes to the copy chief.
+
+### Added
+
+- `<run-dir>/jacket.json`, the run's record: the pre-edit ref, the scope, the topology, and per
+  stage its root, binder, dispatched copies and closed proof. `topology --build --run` writes
+  it and snapshots the manuscript, the checkout as the run started.
+- `stage open`, `stage close` and `stage reopen`: a stage builds its own tree from the
+  manuscript and the earlier stages' closed proofs, gathers and seeds it, and an open stage can
+  be discarded and opened again.
+- `collate --jacket` and `proof --jacket [--only <stage>:<address>]`; `proof` sets every
+  stage's closed proof over the manuscript in order. A missing dispatch exits 6.
+- `proof --jacket` writes `imprimatur.json` beside its drafts, the docstrings each page was
+  approved to add or remove; stage 7b passes it to `prove_unchanged --imprimatur`.
+
+### Changed
+
+- A change no role but its proposer read is put to the copy chief.
+- One rule decides whether edits compose, whoever filed them: they meet only where the words
+  they change overlap.
+- A place no ruling touched is decided, and the console prints `decided <address>` with what
+  stands. The tree-diff command `taken_in` is now `compare`.
+- `check`, `collate`, `mark` and `proof` admit a copy through one step, and each page identity
+  is admitted once per load. A page identity that cannot be admitted exits 2 everywhere; a
+  refusal beside a pending human question exits 1.
+- Stage 7a presents stage 6's places as condensations, not as fact-check findings.
+- The reviewer brief says a mark's `claim` and `change` must agree.
+
+### Fixed
+
+- A ruling that puts back one end of an agreed move is refused.
+- Taking in a lone move decides an end whose other roles deferred on it.
+- Stage 7b's `prove_unchanged` lets no docstring appear or disappear that stage 7a did not
+  approve.
+
+### Removed
+
+- `Stage.carries`, `Kind.ENRICHING` and the `read_from.revise` number.
+
 ## [0.2.4-beta.9] -- 2026-11-22
 
 A pre-release whose agent instructions describe the CLI as it runs now, with answers that

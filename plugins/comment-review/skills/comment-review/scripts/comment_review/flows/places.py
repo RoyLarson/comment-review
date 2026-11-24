@@ -1,6 +1,6 @@
 """Build places from reviewer copies.
 
-The bus and `flows.transcribe` read the roles' returned copies through
+`flows.verify.admit` reads the roles' returned copies through
 `bases_and_anchors` and `places_of`, and the fold decides from the places they
 build.
 """
@@ -97,7 +97,7 @@ def places_of(
                 # A `clean` may carry no address, and `places` then returns
                 # none, so the mark opens no place here. That is deliberate:
                 # there is no place to open, and `Row.places` is also why
-                # `flows.verify.resolution_problems` never sees one to resolve.
+                # `flows.verify.admit` never sees one to resolve.
                 for address, touch in INSTRUCTIONS[mark.instruction].places(mark):
                     at(address).filed.append(Filed(copy.role, mark, touch, (c, s, m)))
 

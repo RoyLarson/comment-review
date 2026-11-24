@@ -1,18 +1,27 @@
-"""Admit exact current and revision pages before comparing executable code."""
+"""Admit exact current and revision pages before comparing executable code.
 
-from collections.abc import Mapping, Sequence
-from dataclasses import dataclass, field
+A docstring may appear or disappear only at an `a` place the imprimatur
+`proof` wrote names for that page, which is what stage 7a's proof allowed.
+
+Each page compared is also checked for line endings against a tracked
+sibling in its directory that the run did not edit (`_sibling`); a page
+with no readable sibling is counted unchecked.
+"""
+
+from collections.abc import Collection, Mapping, Sequence
+from dataclasses import dataclass
 from pathlib import Path
 
 from comment_review.binder.page import Page
 from comment_review.flows.page_for import page_of
+from comment_review.flows.proof_setter import documented_line
 from comment_review.flows.read_diagnostics import format_failure
 from comment_review.flows.reading_context import context_for
 from comment_review.flows.source import revision_source_of, source_of
 from comment_review.machine.repo import Source, git_ls_files
-from comment_review.reading.context import ReadingContext
 from comment_review.reading.diagnostics import ReadFailure
 from comment_review.reading.language import INSTALLED_REGISTRY
+from comment_review.reading.proof import UNIDENTIFIED_OWNER
 from comment_review.results.prove_unchanged import dominant_ending
 
 
@@ -24,7 +33,6 @@ class ProofReport:
     failures: int
     unchecked: int
     freeform: int = 0
-    reading_contexts: Mapping[Path, ReadingContext] = field(default_factory=dict)
 
 
 def _sibling(
@@ -48,7 +56,7 @@ def _sibling(
         cand = (repo / rel).resolve()
         # ! `cand == target` is covered. `edited` is built from every path this
         # run was given and `target` is one of them, so a candidate equal to
-        # the target is already in the set the test above it uses.
+        # the target is already in the set the test below it uses.
         if cand.parent != target.parent or cand in edited:
             continue
         held = source_of(cand)
@@ -57,25 +65,44 @@ def _sibling(
     return None
 
 
+def _documented(
+    before: Page, after: Page, cues: Collection[str]
+) -> list[tuple[int | None, int | None]] | None:
+    """Each approved `a` place's anchor line before and after, for `preserved`.
+
+    None when either page carries no such place.
+    """
+    pairs = []
+    for cue in sorted(cues):
+        was, now = documented_line(before, cue), documented_line(after, cue)
+        if was is None or now is None:
+            return None
+        pairs.append((was[0], now[0]))
+    return pairs
+
+
 def run(
     repo: Path,
     base: str,
     paths: Sequence[Path],
     *,
-    settings: Mapping[Path, Mapping[str, str]] | None = None,
+    approved: Mapping[str, Collection[str]],
 ) -> ProofReport:
-    """Prove admitted pages against their exact Git baselines and sibling endings."""
+    """Prove admitted pages against their exact Git baselines and sibling endings.
+
+    Args:
+        repo: the repository root each path is named relative to.
+        base: the ref holding the pre-edit text.
+        paths: the pages and freeform files to prove.
+        approved: repo path -> the cues of the `a` places whose docstrings
+            may appear or disappear, as `flows.imprimatur` records them. A
+            page it does not name may change no docstring's presence.
+    """
     repo = repo.resolve()
     edited = {path.resolve() for path in paths}
     tracked = git_ls_files(repo) or []
     messages: list[str] = []
     failures = unchecked = freeform = 0
-    contexts: dict[Path, ReadingContext] = {}
-    overrides = (
-        {path.resolve(): value for path, value in settings.items()}
-        if settings is not None
-        else {}
-    )
     for raw in paths:
         target = raw.resolve()
         try:
@@ -90,12 +117,11 @@ def run(
             )
             freeform += 1
             continue
-        context = context_for(target, overrides.get(target, {}))
+        context = context_for(target)
         if isinstance(context, ReadFailure):
             messages.append(f"FAIL      {format_failure(context, path=rel)}")
             failures += 1
             continue
-        contexts[target] = context
         before = revision_source_of(repo, base, rel)
         if isinstance(before, ReadFailure):
             if any(d.code == "missing-revision-source" for d in before.diagnostics):
@@ -126,10 +152,22 @@ def run(
             continue
         assert isinstance(page_b, Page) and isinstance(page_a, Page)
         proof = page_b.read.proof
+        documented = _documented(page_b, page_a, approved.get(rel, ()))
         result = (
-            page_b.read.preserved(page_a.read) if proof == page_a.read.proof else None
+            page_b.read.preserved(page_a.read, documented=documented)
+            if proof == page_a.read.proof and documented is not None
+            else None
         )
-        if result is None:
+        if documented is None or (
+            result is not None
+            and any(d.code == UNIDENTIFIED_OWNER for d in result.diagnostics)
+        ):
+            messages.append(
+                f"FAIL      {rel}: an approved docstring's declaration is not"
+                " identified"
+            )
+            failures += 1
+        elif result is None:
             messages.append(f"FAIL      {rel}: proof kind changed")
             failures += 1
         elif result.unchanged:
@@ -155,13 +193,13 @@ def run(
             want = dominant_ending(held.text)
             got = dominant_ending(after.text)
             # ! Both sides are guarded against "none". A single-line file with
-            # no trailing newline has no ending to measure, so it reads "none"
-            # and would FAIL against any CRLF sibling on absent endings rather
-            # than wrong ones.
+            # no trailing newline has no ending to measure, so it reads "none",
+            # and against a sibling that has endings it would FAIL on an absent
+            # ending rather than a wrong one.
             if want != "none" and got != "none" and got != want:
                 messages.append(
                     f"FAIL      {rel}: line endings {got}, "
                     f"sibling {sibling.name} {want}"
                 )
                 failures += 1
-    return ProofReport(tuple(messages), failures, unchecked, freeform, contexts)
+    return ProofReport(tuple(messages), failures, unchecked, freeform)

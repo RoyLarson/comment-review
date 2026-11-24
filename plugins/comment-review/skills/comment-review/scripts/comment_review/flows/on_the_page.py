@@ -1,9 +1,9 @@
 """Read addressed pages once per caller-owned snapshot cache.
 
-Each held result retains its acquired source and requested reading context.
-Requests admit installed compatibility before consulting places, and refuse
-different settings or supplied source versions without replacing the first
-reading. Extra paths derive defaults at acquisition and retain that context.
+Each held result retains its acquired source. A recorded path is read under
+its admitted imprint's reading and an extra path under the installed reader's;
+a request supplying a different source is refused without replacing the
+first reading.
 """
 
 import os
@@ -24,15 +24,14 @@ from comment_review.reading.addresser import (
     folded,
     unflatten,
 )
-from comment_review.reading.context import ReadingContext
+from comment_review.reading.context import Imprint
 from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, ReadStage
 
 
 @dataclass(frozen=True)
 class HeldPage:
-    """One acquired snapshot, requested context, and retained read outcome."""
+    """One acquired snapshot and its retained read outcome."""
 
-    context: ReadingContext | None
     source: Source | ReadFailure | None
     result: Page | ReadFailure
 
@@ -126,102 +125,48 @@ def page_named(
     root: Path,
     cache: PageCache,
     *,
-    reading_context: ReadingContext | None = None,
-    contexts: Mapping[str, ReadingContext] | None = None,
+    imprints: Mapping[str, Imprint] | None = None,
     source: Source | None = None,
-    settings: Mapping[str, str] | None = None,
 ) -> tuple[str, Page | ReadFailure]:
     """Return a real path and its page or retained expected failure.
 
-    The caller owns a cache for one checkout snapshot. Installed metadata is
-    admitted on every request; a supplied source is compared with the held
-    source rather than reacquired. A changed context or source is refused
-    without replacing the first result. Unsafe paths never acquire source.
-    A supplied contexts map must contain every recorded path requested;
-    only paths outside those records may acquire fresh default readings.
+    The caller owns a cache for one checkout snapshot, and a page is read once
+    into it. A recorded path is read under the reading its admitted imprint
+    holds (`flows.reading_context.admit_pages`), and a table that lacks one
+    is refused. A path outside the records is read under the installed
+    reader's reading. A supplied source is compared with the held source
+    rather than reacquired. Unsafe paths never acquire source.
     """
     real = real_path(name, paths)
     previous = cache.get(real)
     if not real or can_escape(real):
         failure = _refusal("unsafe-page-path", no_page(real))
         if previous is None:
-            cache[real] = HeldPage(None, None, failure)
+            cache[real] = HeldPage(None, failure)
         return real, cache[real].result
-    if contexts is not None and real in paths and real not in contexts:
+    if imprints is not None and real in paths and real not in imprints:
         return real, _refusal(
             "missing-reading-context",
             f"{real}: saved reading context is missing; regather",
         )
-    requested = (
-        reading_context
-        if reading_context is not None
-        else contexts.get(real)
-        if contexts is not None
-        else None
-    )
-    if requested is None and settings is None and previous is not None:
-        requested = previous.context
-    context = context_for(
-        root / real,
-        settings
-        if settings is not None
-        else dict(requested.settings)
-        if requested
-        else {},
-    )
-    if isinstance(context, ReadFailure):
-        if previous is None:
-            cache[real] = HeldPage(requested, source, context)
-        if previous is not None and source is not None and source != previous.source:
-            return real, _refusal(
-                "held-source-mismatch", "Supplied source differs from held snapshot"
-            )
-        return (
-            real,
-            previous.result
-            if previous
-            and previous.context == requested
-            and isinstance(previous.result, ReadFailure)
-            and previous.result.diagnostics == context.diagnostics
-            else context,
-        )
-    if requested is not None and context != requested:
-        failure = _refusal(
-            "reading-context-mismatch",
-            "Reading context differs from installed metadata; regather",
-        )
-        if previous is None:
-            cache[real] = HeldPage(requested, source, failure)
-        elif (
-            previous.context == requested
-            and isinstance(previous.result, ReadFailure)
-            and previous.result.diagnostics == failure.diagnostics
-        ):
-            failure = previous.result
-        return real, failure
     if previous is not None:
-        if previous.context != context:
-            return real, _refusal(
-                "held-context-mismatch",
-                "Requested reading context differs from held page; regather",
-            )
         if source is not None and source != previous.source:
             return real, _refusal(
                 "held-source-mismatch", "Supplied source differs from held snapshot"
             )
         return real, previous.result
+    imprint = imprints.get(real) if imprints is not None else None
+    reading = imprint.reading if imprint is not None else context_for(root / real)
+    if isinstance(reading, ReadFailure):
+        cache[real] = HeldPage(source, reading)
+        return real, reading
     acquired = source_of(root / real) if source is None else source
     result = (
         acquired
         if isinstance(acquired, ReadFailure)
-        else page_of(
-            root / real,
-            rel=real,
-            source=acquired,
-            reading_context=context,
-        )
+        else page_of(root / real, rel=real, source=acquired, reading_context=reading)
     )
-    cache[real] = HeldPage(context, acquired, result)
+    cache[real] = HeldPage(acquired, result)
     return real, result
 
 
@@ -231,16 +176,14 @@ def held_at(
     root: Path,
     cache: PageCache,
     *,
-    reading_context: ReadingContext | None = None,
-    contexts: Mapping[str, ReadingContext] | None = None,
+    imprints: Mapping[str, Imprint] | None = None,
     source: Source | None = None,
-    settings: Mapping[str, str] | None = None,
 ) -> Held | ReadFailure:
     """Return text and anchor at an address, or an explicit read failure.
 
-    Saved contexts are keyed by real path. A missing extra path uses explicit
-    defaults on its first acquisition. A malformed address or absent place
-    yields empty text and anchor; unreadable or incompatible pages fail.
+    Imprints are keyed by real path, as `page_named` reads them. A malformed
+    address or absent place yields empty text and anchor; an unreadable page
+    fails.
     """
     addr = cue_of(address)
     if not addr.path or not addr.cue:
@@ -250,10 +193,8 @@ def held_at(
         paths,
         root,
         cache,
-        reading_context=reading_context,
-        contexts=contexts,
+        imprints=imprints,
         source=source,
-        settings=settings,
     )
     if isinstance(page, ReadFailure):
         return page

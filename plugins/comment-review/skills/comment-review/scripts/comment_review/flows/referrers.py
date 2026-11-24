@@ -2,8 +2,6 @@
 
 from pathlib import Path
 
-# ! The exception tuple is IMPORTED and bound to a name, so no `except` clause
-# here holds a tuple literal; `exceptions.py` carries that reason once.
 from comment_review import exceptions
 from comment_review.machine.repo import git
 
@@ -12,7 +10,7 @@ def files_naming(repo: Path, token: str) -> tuple[list[str] | None, str]:
     """Tracked files containing `token` as a fixed string.
 
     ! `git grep` exits 1 for a genuine zero-match search; any other nonzero (a
-    bad pathspec, a corrupt index, a timeout) means the search never completed.
+    bad pathspec, a corrupt index), or a timeout, means the search never completed.
     Collapsing both into `[]` reads a failed search as "nothing found", so None
     is a third state here, the same as in `git_ls_files`.
 

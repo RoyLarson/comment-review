@@ -1,37 +1,28 @@
-"""The middle's artifacts on disk: every load and every save, and nothing between.
+"""The middle's artifacts on disk: the shared loads and saves, and nothing between.
 
     load_binder(path) -> (Binder | None, problems)
     load_copy(path)   -> (the edit_copy wire dict, problems)
     load_proof(path)  -> (MasterProof | None, problems)
     load_batch(path)  -> (role -> slots, problems)
     load_value(path)  -> (any JSON value, problems)      a role's answers, the rulings
-    load_text(path)   -> (the text | None, problems)     a topology, read as text
+    load_text(path)   -> (the text | None, problems)     the jacket's text
     save_proof(path, proof), save_batch(path, batch)
     save_wire(path, copy)   a role's copy mid-fill, every slot kept
 
-Raw JSON exists at the load and the save only, and each load is three steps
--- the read is this module's, the decode is `machine.json_object`'s, and
-whether the object is the artifact it claims is the container's. Every
-command reads through here, so a file is refused in one wording and a change
-to the read is one edit.
+Raw JSON exists at the load and the save only, and each load is three steps: the read
+is this module's, the decode is `machine.json_object.object_of`'s, and whether the
+object is the artifact it claims is the container's. `load_value` decodes with
+`json.loads` itself, because its value need not be an object. A command that reads
+through here refuses a file in one wording, and a change to the read is one edit.
 
-! A copy loads as its wire dict, not as an `EditCopy`. `commands/collate.py`
-parses the copies itself and reports each refusal beside the role that owes
-it, and `flows.fill` mutates the dicts in place; a loader that parsed them
-here would parse them twice and refuse them once, in the wrong place.
-
-! The save is `machine.repo.write_raw`, which writes the text's own line
-endings untranslated.
-
-The master proof is the state between turns -- the copies as they stand,
-every place the fold decided (each carrying its own answers, its state and who
-it is asked of), every move with its placement answers, and each page's
-reading and sha -- so `collate` saves it and the verbs that advance and close
-a turn load it.
+Not every read and write is here. `commands/proof.py` reads its docket, proof or copy
+itself. `commands/distribute.py` and `commands/topology.py` read a topology with
+`Path.read_text`, and `commands/report.py` reads the human's answers file the same way.
+`commands/carry.py`, `commands/distribute.py` and `commands/topology.py` write their
+own files.
 """
 
 import json
-from collections.abc import Callable
 from pathlib import Path
 
 from comment_review import exceptions
@@ -60,11 +51,7 @@ def _object(path: Path, noun: str) -> tuple[dict | None, list[str]]:
     return loaded, []
 
 
-def load_value(
-    path: Path,
-    *,
-    object_pairs_hook: Callable[[list[tuple[str, object]]], object] | None = None,
-) -> tuple[object, list[str]]:
+def load_value(path: Path) -> tuple[object, list[str]]:
     """The file as any JSON value, or the reason there is none.
 
     A role's answered batch and the chief's rulings are lists, which
@@ -74,7 +61,7 @@ def load_value(
     if text is None:
         return None, why
     try:
-        return json.loads(text, object_pairs_hook=object_pairs_hook), []
+        return json.loads(text), []
     except ValueError as err:
         return None, [f"{path} is not JSON: {err}"]
 
@@ -88,7 +75,13 @@ def load_binder(path: Path) -> tuple[Binder | None, list[str]]:
 
 
 def load_copy(path: Path) -> tuple[dict, list[str]]:
-    """One edit_copy off disk as its wire dict, or `({}, why)` -- see the header."""
+    """One edit_copy off disk as its wire dict, or `({}, why)`.
+
+    ! A copy loads as its wire dict, not as an `EditCopy`. `commands/collate.py`
+    parses the copies itself and reports each refusal beside the role that owes
+    it, and `flows.fill` mutates the dicts in place; a loader that parsed them
+    here would parse them twice and refuse them once, in the wrong place.
+    """
     loaded, why = _object(path, "edit_copy")
     return (loaded, []) if loaded is not None else ({}, why)
 
@@ -97,13 +90,6 @@ def load_proof(path: Path) -> tuple[MasterProof | None, list[str]]:
     """One master proof off disk, or every reason it is not one."""
     loaded, why = _object(path, "master_proof")
     if loaded is None:
-        return None, why
-    from comment_review.flows.reading_context import proof_reading_problems
-
-    if not isinstance(loaded.get("edit_copies"), list):
-        return MasterProof.deserialize(str(path), loaded)
-    why = proof_reading_problems(loaded, str(path))
-    if why:
         return None, why
     return MasterProof.deserialize(str(path), loaded)
 
@@ -144,10 +130,10 @@ def save_batch(path: Path, batch: dict[str, list[dict]]) -> None:
 def save_wire(path: Path, copy: dict) -> None:
     """A role's copy as its wire dict at `path`, every slot kept.
 
-    ! The dict, not a parsed `EditCopy`. `EditCopy.serialize` writes each
-    sheet through `Sheet.serialize`, which writes only the rulings -- a copy
-    mid-fill holds slots nobody has ruled on yet, and parsing it to save it
-    would drop every one. `commands/mark.py` writes
-    the dict `load_copy` returned, with one more ruling on it.
+    ! The dict, not a parsed `EditCopy`. `EditCopy.serialize` writes each sheet through
+    `Sheet.serialize`, which writes only the rulings -- a copy mid-fill holds slots
+    nobody has ruled on yet, and parsing it to save it would drop every one.
+    `commands/mark.py` writes the dict `load_copy` returned, with one ruling placed on
+    it or withdrawn from it.
     """
     _dump(path, copy)

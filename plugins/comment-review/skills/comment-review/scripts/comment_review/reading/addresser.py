@@ -1,43 +1,47 @@
-"""THE ADDRESSER: numbering the places on a page, and reading the number back.
+"""The addresser: numbering the places on a page, and reading the number back.
 
     python comment-review.py addresses find --file m.py --line 12 --series a
 
-FOUR ADDRESSERS walk one trigger list -- the MODULE, every line of code, then
-EOF -- each holding its own counter and the places it emitted. `cue()` runs
-`cue`; `Cues` answers back, which address does this line belong to right
-now.
+Four addressers -- each an `Addresser` -- walk one trigger list, `triggers`: the
+`MODULE`, every line of code, then `EOF`. Each holds its own counter and the
+places it emitted. `cue()` walks the list and returns a `Cues`, which answers
+back which address a line belongs to right now.
 
-!! BOTH HALVES OF AN ADDRESS ARE MADE HERE, and joined in one place. `flatten`
+!! Both halves of an address are made here, and joined in one place. `flatten`
 makes the path half, `emit` makes the cue, `address_for` is the only site that
-puts them together, `cue_of` splits one back and `unflatten` recovers the real
-path.
+puts them together, `cue_of` splits one back into an `Address` and `unflatten`
+recovers the real path.
 
 `folded` trims and case-folds an address, or either half, so two spellings of
 one place compare equal; nothing stores the folded form.
 
-!! IT ADDRESSES EVERY PLACE AND EVERY POTENTIAL PLACE. The empty places are what
+`ON`, `GAP`, `DECLARED`, `COVERS` and `LEAD` are the series letters, read from
+`reading.series`; `SERIES` is the four `cue` emits, and `SEPARATOR` the character
+`flatten` joins a path with.
+
+!! It addresses every place and every potential place. The empty places are what
 an `add` cites, so giving them addresses is what makes `add` expressible at all.
 
-!! AN ADDRESS IS NOT A SPAN OF LINES. NO LINE HAS MORE THAN ONE, AND A
-PARAGRAPH IS JUST THE LINES THAT SHARE ONE. ! Read it as a range and every
+!! An address is not a span of lines. No line has more than one, and a
+paragraph is just the lines that share one. ! Read it as a range and every
 question a line-numbered address had comes back: which lines a paragraph
-"covers", whether two overlap, how wide to make the range. This tool EDITS
-PROSE, and a prose edit moves the line numbers of everything below it -- so a
+"covers", whether two overlap, how wide to make the range. This tool edits
+prose, and a prose edit moves the line numbers of everything below it -- so a
 page is taken apart into places and set back from the places alone, consulting
 no line number anywhere.
 
-! An ANCHOR is the exception that proves it. A declaration carries prose at
+! An anchor is the exception that proves it. A declaration carries prose at
 several addresses -- the `b` above it, the `c` beside it, its own `a`, the `b`s
-in its body -- so an anchor has many addresses. A LINE still has one.
+in its body -- so an anchor has many addresses. A line still has one.
 
-! THE `d` SERIES TAKES NO ADDRESS AT ALL -- see `LEAD` for why, and `SERIES`
+! The `d` series takes no address at all -- see `LEAD` for why, and `SERIES`
 for what it takes instead.
 
-!! THIS RESTS ENTIRELY ON THE BINDER BEING WHAT ROY CALLED IT, 2026-08-18: a
-HASHED STATIC TABLE -- exact, constant, FULLY ENUMERATED. Take away any one of
-those and the scheme collapses without saying so:
+!! This rests entirely on the binder being a hashed static table -- exact,
+constant, fully enumerated. Take away any one of those and the scheme collapses
+without saying so:
 
-  fully enumerated  a code line missed anywhere above a place SHIFTS ITS NAME.
+  fully enumerated  a code line missed anywhere above a place shifts its name.
                     Every addresser steps past every line of code, so a partial
                     enumeration does not fail -- it renames every place below
                     the hole, silently and consistently
@@ -46,16 +50,16 @@ those and the scheme collapses without saying so:
   exact             a heuristic that is usually right is a table that is
                     occasionally renumbered
 
-! What MAKES it constant across this tool's own work is stage 7b's CODE CHECK:
+! What makes it constant across this tool's own work is stage 7b's code check:
 the reader's record compares the code of two reads of a file, so the Nth code
 line is still the same statement -- which is exactly what an ordinal counts. The
 line numbers move with the prose; the ordinal does not.
 
-!! AND IT PROVES NOTHING AT ALL ON AN UNPROVABLE FILE, which is the hard
+!! And it proves nothing at all on an unprovable file, which is the hard
 exception this scheme rests on and must name. `prove_unchanged` returns
 `UNPROVABLE` for a file with no copy at the base ref -- a new file or a bad
 ref -- and for two reads whose reader cannot separate prose from code. Such
-a run is REPORTED and counted a failure rather than passed -- so there is no
+a run is reported and counted a failure rather than passed -- so there is no
 stage 8 to hand an address to, and the guarantee above is never claimed for a
 file it does not cover.
 
@@ -64,52 +68,41 @@ while the enumeration underneath it is complete.
 
 Four series, because prose answers to one of exactly four subjects:
 
-    package:core.py@a5    the 5th DECLARATION's documentation
-    package:core.py@c3    BESIDE a line of code
-    package:core.py@b3    a GAP between two lines of code
-    package:core.py@f0    the FILE'S OWN matter, at either end
+    package:core.py@a5    the 5th declaration's documentation
+    package:core.py@c3    beside a line of code
+    package:core.py@b3    a gap between two lines of code
+    package:core.py@f0    the file's own matter, at either end
 
-!! `a` IS SEPARATE FOR A DIFFERENT REASON: IT NAMES A SUBJECT, NOT A POSITION.
-A docstring is about its DECLARATION, and `a0` is the module with `a1..aN` its
+!! `a` is separate for a different reason: it names a subject, not a position.
+A docstring is about its declaration, and `a0` is the module with `a1..aN` its
 declarations in source order. The direction question disappears here: Python's
 docstring after its `def` and Rust's `///` before its `fn` number alike, because
 the number counts declarations rather than positions.
 
-!! SO NO POSITIONING RULE IS STATED IN THIS MODULE. A language's reader says
+!! So no positioning rule is stated in this module. A language's reader says
 where its documentation sits and which declaration a doc belongs to, because
 that is language-dependent and a reader knows it while a position does not.
 `DocPlace` carries what it states.
 
-!! THE `a` NUMBER COUNTS DECLARATIONS, NOT CODE LINES, AND THAT IS A RULING.
-Numbering each declaration by the `c` of its own `def` line would put all three
-series on one count and was REJECTED 2026-08-19. Roy: `a` as "the module, class,
-function, method definitions in order ... will make it easier for the agents to
-use, vs having to cross-reference where cs are and then jump to there to see the
-as." `a5` read directly is "the 5th definition in this file"; aligned to code
-lines it is a number that means nothing until it is resolved against another
-series.
+!! The `a` number counts declarations, not code lines. Numbered by the `c` of
+its own `def` line, all three series would share one count and `a5` would mean
+nothing until it was resolved against another series; counted by declaration,
+`a5` read directly is "the 5th definition in this file".
 
-!! THE SAME PLACE IS THE SAME ADDRESS WHETHER PROSE FILLS IT OR NOT, which is
-the property line numbers cannot give. A comment paragraph occupying three lines and
-an empty interval in the same position are both `b0`; a documented and an
-undocumented declaration are both `a5`. So a finding can say where prose belongs
-in a file that does not have it yet, and two versions of a file compare place by
-place.
+!! The same place is the same address whether prose fills it or not, which is
+the property line numbers cannot give. A comment paragraph occupying three
+lines and an empty interval in the same position are both `b0`; a documented
+and an undocumented declaration are both `a5`. So a finding can say where prose
+belongs in a file that does not have it yet, and two versions of a file compare
+place by place.
 
-!! AN ADDRESS IS A SINGLE FACT, and the `a` series is what makes it one.
-Measured 2026-08-18 over 9,975 paragraphs in this repo, 28 places were answered by
-two paragraphs -- and 28 of 28 were a docstring sharing a gap with the comment run
-beneath it, because a docstring was being named for the gap it sat in rather
-than for the declaration it is about. With `a` the docstring leaves the `b`
-series: re-measured over 10,744 paragraphs, 0 shared places.
+!! An address is a single fact, and the `a` series is what makes it one.
+With `a` a docstring is named for its declaration and leaves the `b`
+series, so it never shares a gap's address with the comment run beneath it.
 
 ! So an address alone identifies a place, and a record needs nothing beside it.
 
-!! ONE NAMING LIVES HERE, and the module is named for owning it. The LINE form
-it replaced was kept beside it for a while, because one owner is what stops two
-namings drifting -- they were computed in two modules for an hour and agreed,
-which is exactly the property that cannot be relied on. There is nothing left to
-drift from.
+!! One naming lives here, and the module is named for owning it.
 """
 
 from dataclasses import dataclass, field
@@ -141,67 +134,56 @@ DECLARED = Series.DECLARED.value.letter
 # at both ends: `cue` emits `f0` at the module and `f1` at EOF.
 COVERS = Series.COVERS.value.letter
 
-# !! THE SPACE BETWEEN TWO PARAGRAPHS -- see `Kind.LEADING` for what it is and
-# why. Roy ruled the letter 2026-08-21: *"and d works."*
+# !! The space between two paragraphs -- see `Kind.LEADING` for what it is and
+# why.
 #
-# ! `l` WAS THE OBVIOUS CHOICE AND THE WORST POSSIBLE CHARACTER: `m.py@l0` reads
+# ! `l` was the obvious choice and the worst possible character: `m.py@l0` reads
 # as `@10`, and this whole scheme rests on a cue being unmistakable.
 #
-# !! IT IS THE ONE SERIES NOTHING CITES. Roy: *"there is no information to rule
-# on. It is just there for document preservation."* So a `d` is kept out of
-# `Page.prose` and out of record seeding, and NO EMPTY `d` IS EMITTED -- the
-# other four series exist wherever prose COULD go, because an `add` cites them;
-# a place no instruction can name has no reason to exist unfilled.
+# !! It is the one series nothing cites: a `d` holds nothing to rule on and is
+# there to preserve the document. So a `d` is kept out of `Page.prose` and out
+# of edit-copy seeding, and no empty `d` is emitted -- the other four series
+# exist wherever prose could go, because an `add` cites them; a place no
+# instruction can name has no reason to exist unfilled.
 #
-# !! IT IS A FENCE, AND FENCES HAVE NO ADDRESS. Roy, 2026-08-23: *"the `d`
-# series doesn't get an address for the same reasons fences in the real world
-# don't get addresses. They mark a demarcation boundary and they have the same
-# problem as fences -- whose fence is it."* ! Every other place is attached to a
-# line of code, and that line is what a reviewer measures a claim against. A
-# blank run sits BETWEEN two places and is attached to neither, so the ownership
-# question has no answer rather than an unknown one.
+# !! It is a fence, and fences have no address. ! Every other place is attached
+# to a line of code, and that line is what a reviewer measures a claim against.
+# A blank run sits between two places and is attached to neither, so the
+# ownership question has no answer rather than an unknown one.
 #
-# ! IT WAS TRIED AND REFUSED THREE TIMES -- `875b0d4` made it a fifth series,
-# `b998a60` repaired it as an edge, `c27ea1d` retreated to a symbol. Roy,
-# closing it: *"We tried leading getting a place. We tried several different
-# ways. The constraints of coding AND editing do not allow it."* Two things stop
-# being determinable the moment the slack is addressable: WHERE everything below
-# an edit shifted to, and HOW MUCH blank belongs where afterwards -- the second
-# being a typographic judgement no rule computes.
-#
-# !! UNADDRESSED IS NOT UNRECORDED, and that is the whole of the arrangement.
-# Roy: *"the system knows hey there was a fence here we should put it back."*
-# `Page.leading` keys the fence on the place it FOLLOWS -- `f0 -> d0` -- so what
-# is remembered is a fact about a boundary rather than a thing with a location.
-# ! Nobody can cite it, nobody can rule on it, and the compositor puts it back
-# exactly where it was. ! WHICH IS WHY THE EDGE SHAPE HOLDS: this system never
-# chooses an amount of blank, it replays what it read.
+# !! Unaddressed is not unrecorded, and that is the whole of the arrangement:
+# the system knows a fence stood here and puts it back. `Page.leading` keys the
+# fence on the place it follows -- `f0 -> d0` -- so what is remembered is a fact
+# about a boundary rather than a thing with a location. ! Nobody can cite it,
+# nobody can rule on it, and the compositor puts it back exactly where it was.
+# ! Which is why the edge shape holds: this system never chooses an amount of
+# blank, it replays what it read.
 LEAD = Series.LEAD.value.letter
-#: The four series `cue` emits. **`LEAD` IS NOT ONE OF THEM**, since 2026-08-22.
+#: The four series `cue` emits. **`LEAD` is not one of them**.
 #:
-#: !! IT FAILED THE SUBSTITUTION THE OTHER FOUR SATISFY. Roy: *"it has no
-#: anchor, and so by the LSR -- any child class has to be able to answer its
-#: parent class's answers as well, correctly -- it breaks that rule."* `places`
-#: is `cue -> the code it is attached to`; `a0` and `f0` answer `<module>`, the
-#: closing `b` and `f1` answer `<eof>`, every other `b` and every `c` answer a
-#: line, and a `d` answered `""`. That is the absence of an answer, not a
-#: different one, so a consumer could not use a `d` where it expected a place.
+#: !! It fails the substitution the other four satisfy: a `d` has no anchor,
+#: and a child class must answer its parent class's questions correctly.
+#: `places` is `cue -> the code it is attached to`; `a0` and `f0` answer
+#: `<module>`, the closing `b` and `f1` answer `<eof>`, every other `b` and every
+#: `c` answer a line, and a `d` would answer `""`. That is the absence of an
+#: answer, not a different one, so a consumer could not use a `d` where it
+#: expected a place.
 #:
-#: ! AND THE CAUSE IS WHERE IT COMES FROM, which is what makes this a category
+#: ! And the cause is where it comes from, which is what makes this a category
 #: error rather than a missing field. Every place here exists because `cue`
-#: reached a trigger, and the trigger IS the anchor. A `d` exists because the
-#: PAGE found blank lines -- so it was never anchored to anything, it was
-#: FOUND. It also never entered `reading`, so the compositor could not set from
-#: it the way it sets every other place; it is set as an EDGE, from
+#: reached a trigger, and the trigger is the anchor. A `d` exists because the
+#: page found blank lines -- so it is never anchored to anything, it is
+#: found. It also never enters `reading`, so the compositor cannot set from
+#: it the way it sets every other place; it is set as an edge, from
 #: `Page.leading`.
 #:
-#: ! WHAT PUBLISHING ALREADY SAID: leading is not an object on the page, it is a
-#: measurement of the type it accompanies -- "10 on 12". A measurement cannot be
-#: anchored; only the thing measured can.
+#: ! What publishing already says: leading is not an object on the page, it is
+#: a measurement of the type it accompanies -- "10 on 12". A measurement cannot
+#: be anchored; only the thing measured can.
 #:
-#: ! `LEAD` SURVIVES AS A SYMBOL, on Roy's ruling that the page/symbol map is
-#: what shows every line is covered -- see `Paragraph.symbol`.
-# ! DERIVED, NOT LISTED. Every series whose absence can be CITED -- which is
+#: ! `LEAD` survives as a symbol, because the page/symbol map is what shows
+#: every line is covered -- see `Paragraph.symbol`.
+# ! Derived, not listed. Every series whose absence can be cited -- which is
 # every series but `d`, and the definition says so by giving `d` no `absent`
 # rather than by an exclusion written here.
 SERIES = ADDRESSED
@@ -223,18 +205,10 @@ EOF = "<eof>"
 
 
 def triggers(code: list[int]) -> list[int | str]:
-    """What a addresser walks: the MODULE, every line of code, then EOF.
+    """What an addresser walks: the MODULE, every line of code, then EOF.
 
-    !! ONE LIST, SO THE FOUR SERIES CANNOT DRIFT APART. Each cue used to be a
-    different expression computed where it was needed -- `declares` for `a`,
-    `code.index(start)` for `c`, `sum(1 for n in code if n < at)` for `b` --
-    three mechanisms for one question, *which step am I*. Roy, 2026-08-19:
-    *"every adjustment to the rules has to be edited thoroughly in each place ...
-    manually indexing clearly causes issues to remember."* Aligning `b` and `c`
-    earlier that day took both expressions plus prose in four places, and it was
-    still wrong: `b0` named the module's front matter AND the gap above the
-    first line of code, so a licence header and the comment introducing the
-    first declaration answered to one address.
+    !! One list for all four series, so a step means the same trigger in every
+    series and no series can count its steps by a rule of its own.
 
     ! BOTH ENDS ARE SENTINELS, and neither is a line. The MODULE is the file
     before any code and EOF is the file after all of it, so a series that emits
@@ -254,22 +228,23 @@ def triggers(code: list[int]) -> list[int | str]:
 class Addresser:
     """One series' counter, and every place it emitted.
 
-    !! IT HOLDS BOTH HALVES. A cue and the code it is attached to are one
-    fact, so they are stated by ONE STEP of `cue` -- not computed here and
+    !! It holds both halves. A cue and the code it is attached to are one
+    fact, so they are stated by one step of `cue` -- not computed here and
     decorated on later, which is what lets an anchor disagree with its address.
 
-    !! A SERIES OWNS ITS OWN RULE ABOUT WHAT IT SKIPS, AND SKIPPING TAKES NO
-    NUMBER. Every trigger is offered to every series -- `a` skips what cannot be
+    !! A series owns its own rule about what it skips, and skipping takes no
+    number. Every trigger is offered to every series -- `a` skips what cannot be
     documented and `EOF`, `b` skips `<module>`, `c` skips both sentinels, `f`
     skips every line of code -- and a series that does not emit for a trigger
     does not advance either, so **every series starts at 0**.
 
-    ! A skip that INCREMENTED would burn `b0` and make the first line of code
+    ! A skip that incremented would burn `b0` and make the first line of code
     `c1`, starting two series at 1 for no reason a reader could derive.
 
     Attributes:
         series: `a`, `b`, `c` or `f`.
-        places: cue -> the LINE OF CODE it is attached to, in emission order.
+        places: cue -> the line of code it is attached to, or the sentinel it
+            fired at, in emission order.
     """
 
     series: str
@@ -287,7 +262,7 @@ class Addresser:
     _step: int = 0
 
     def emit(self, anchor: str, trigger: int) -> str:
-        """Take this trigger's number, record what it is, and return the cue.
+        """Take this series' next number, record what it is, and return the cue.
 
         Args:
             anchor: the line of code this place is attached to, or a sentinel.
@@ -302,9 +277,9 @@ class Addresser:
     def at(self, step: int) -> str:
         """This series' cue at `step`, or "" if `cue` never emitted one.
 
-        ! THE EMPTY ANSWER IS LOAD-BEARING. A page whose reader refused the
-        source has emitted nothing, so every position is unfilled; the old
-        tables answered "" there by being empty, and this answers it by asking.
+        ! The empty answer is load-bearing. A page whose reader refused the
+        source has emitted nothing, so every position is unfilled, and this
+        answers it by asking.
         """
         got = cue_for(self.series, step)
         return got if got in self.places else ""
@@ -316,25 +291,15 @@ class Cues:
 
     !! IT ANSWERS BOTH DIRECTIONS, which is why it is one object. `cue`
     assigns them; these read them back -- *which address does this line
-    belong to right now*. Roy, 2026-08-19: that second half *"helps the agents
-    understand what they are looking at right now in the code -- they need to
-    search it anyways."*
+    belong to right now*.
 
-    ! Reading back is a LOOKUP, never arithmetic. `above` ITERATES the triggers
-    `cue` stepped and returns the cue it EMITTED there; it does not count
+    ! Reading back is a lookup, never arithmetic. `above` iterates the triggers
+    `cue` stepped and returns the cue it emitted there; it does not count
     anything. That is the difference between line order driving `cue` and a
     line number computing a number.
-    ! It ITERATES rather than SCANS, and the word matters here: scanning is what
-    a READER does, over characters, looking at what they are. Nothing in this
-    module reads a character -- it steps a sequence it was handed.
-
-    !! IT KEEPS ITS ADDRESSERS RATHER THAN FLATTENING THEM. Roy, 2026-08-21:
-    *"`_above`, `_beside`, `_declared`, `_front`, `_back`, `_closing` are 1
-    object type flattened into a special case with different names."* They were
-    six dicts of the same fact -- a place and its anchor -- each keyed
-    differently, and every one of them was an index into a `Addresser` `cue`
-    had just discarded. The walkers survive now, so an accessor is a QUERY over
-    one collection instead of a lookup in a table of its own.
+    ! It iterates rather than scans, and the word matters here: scanning is what
+    a reader does, over characters, looking at what they are. Nothing in `Cues`
+    reads a character -- it steps a sequence it was handed.
 
     ! Each of the three fields is documented where it is DECLARED, below.
     """
@@ -360,13 +325,6 @@ class Cues:
     # emitted them. It is what a compositor sets from: a page IS its places in
     # sequence, and the sequence is a fact `cue` knows rather than an
     # arithmetic over line numbers -- which shift the moment one paragraph grows.
-    #
-    # !! WHERE AN `a` FALLS IS THE LANGUAGE'S CALL, AND ITS READER STATES IT.
-    # Rust puts a declaration's documentation ABOVE the declaring line; Python
-    # puts it INSIDE the body, which a wrapped signature moves several lines
-    # down. The reader states that as the `DocPlace` on the declaring
-    # `CodeLine`, and `cue` turns it into a position in this list -- so
-    # nothing downstream asks the question again.
     reading: list[str] = field(default_factory=list)
 
     @property
@@ -375,10 +333,7 @@ class Cues:
 
         ! DERIVED FROM THE ADDRESSERS, in `SERIES` order.
 
-        !! IT IS A FRESH DICT EACH TIME, so writing into it changes nothing.
-        `page.py` used to number the `d` series by assigning here, and numbers
-        it with a counter of its own now -- leading is not a place, so nothing
-        here makes one. See `SERIES`.
+        !! It is a fresh dict each time, so writing into it changes nothing.
         """
         return {
             cue: anchor
@@ -389,11 +344,10 @@ class Cues:
     def anchor_of(self, cue: str, default: str = "") -> str:
         """This place's line of code, or sentinel; else `default`.
 
-        !! ONE LOOKUP, NOT A REBUILT DICT. `places` composes the walkers into a
-        fresh mapping on every read, so asking it for ONE place inside a loop is
-        quadratic -- MEASURED 2026-08-22, a corpus sweep that ran in under three
-        minutes did not finish in ten. The six callers that ask for one place
-        ask here; the ones that want the whole mapping still take `places`.
+        !! One lookup, not a rebuilt dict. `places` composes the walkers into a fresh
+        mapping on every read, so asking it for one place inside a loop is quadratic.
+        The six callers that ask for one place ask here; the ones that want the whole
+        mapping still take `places`.
 
         It takes a default so a caller can keep the anchor it already holds when
         the cue names no place: `binder/page.py` passes the paragraph's own.
@@ -409,9 +363,6 @@ class Cues:
         ! The gap above the FIRST code line at or after `line`. Past the last
         one it is the closing gap, which is the place with no line below it --
         the `b` fired at the EOF trigger.
-
-        ! IT READS `cue` DIRECTLY. A `b` fires at the trigger BELOW it, and
-        the closing gap is the one at the EOF trigger.
         """
         gaps = self._gaps
         for step, trigger in enumerate(self.triggers):
@@ -457,14 +408,14 @@ class Cues:
         }
 
     def at_line(self, line: int | str, series: str) -> list[str]:
-        """The places of one SERIES that a line NUMBER or a SENTINEL names.
+        """The places of one series that a line number or a sentinel names.
 
-        !! A LINE NUMBER IS HOW A ROLE ASKS; AN ADDRESS IS HOW IT ANSWERS --
-        `decision-log.md Process: #96`. The binder a role reads is filtered to
-        the places holding prose, so the place an `add` wants is exactly the
-        one it cannot find there; this answers from the file `cue` walked.
+        !! A line number is how a role asks; an address is how it answers. The
+        binder a role reads is filtered to the places holding prose, so the
+        place an `add` wants is exactly the one it cannot find there; this
+        answers from the file `cue` walked.
 
-        ! EACH SERIES IS A DIFFERENT QUESTION OF THE SAME LINE, and each is a
+        ! Each series is a different question of the same line, and each is a
         lookup this object already answers -- `above`, `beside`, `documents`,
         `file_places` -- never a count.
 
@@ -500,35 +451,24 @@ class Cues:
         return []
 
     def anchor_line(self, cue: str) -> int | None:
-        """The LINE this place's anchor opens on. None when it has none.
+        """The line this place's anchor opens on. None when it has none.
 
-        !! IT IS THE LINE OF THE TRIGGER THE PLACE FIRED AT, which is one lookup
-        and not a table. A `lines` dict held it for an `a` and a `c` alone, and a
-        `b` fell through to `gap_bounds` -- two mechanisms answering one
-        question, and neither of them a fact `cue` did not already carry.
+        !! It is the line of the trigger the place fired at, which is one lookup
+        and not a table.
 
-        !! A SENTINEL HAS NO LINE, AND `None` IS HOW THIS SAYS SO. It answered 0
-        for both until 2026-08-22, and Roy named the asymmetry that hid in it:
-        *"`<module>` gets somewhat attached to line 0 by accident and because it
-        is functional, but the end of file getting a 0 is non-functional filling
-        in for a missing value. They either both get None, or they get 0 and
-        -1."*
+        !! A sentinel has no line, and `None` is how this says so, for both
+        sentinels. Line 0 is genuinely above line 1, so it would sort first and
+        render at the head, which is right for the head; at the foot it would be
+        a null standing in for a position.
 
-        ! ZERO WAS A POSITION FOR THE HEAD AND A NULL FOR THE FOOT. Line 0 is
-        genuinely above line 1, so it sorted first and rendered at the head and
-        both were right; the foot inherited those two behaviours and both were
-        wrong.
+        ! Not `0` and `-1` either: both branching consumers handle `None` and
+        neither handles `-1`. `scripts/render_page.py` tests `if anchored:` --
+        `-1` is truthy and would draw the foot at line -1 -- and `binder/page.py`
+        tests a `c`'s line `is None`, which `-1` passes as a line. ! `-1` also
+        already means *the last line* in Python, which is a borrowed anchor.
 
-        ! MEASURED before choosing between `None` and `0`/`-1`: both branching
-        consumers already handle `None` and neither handles `-1`.
-        `render_page` tests `if anchored:` -- `-1` is TRUTHY and would draw the
-        foot at line -1 -- and `for_anchor` filters on `isinstance(..., int)`,
-        which `-1` passes and then wins a `min`. ! `-1` also already means *the
-        last line* in Python, which is the borrowed anchor this branch removed.
-
-        ! IT IS NOT WHAT ORDERS A RECORD -- see `anchor_num`. This remains
-        because a consumer READING A FILE needs a line to slice it, which is a
-        different job from naming or ordering a place.
+        A consumer reading a file needs a line to slice it, which is a different
+        job from naming a place.
         """
         if not self.triggers:
             return None
@@ -536,37 +476,29 @@ class Cues:
         return trigger if isinstance(trigger, int) else None
 
     def anchor_num(self, cue: str) -> int:
-        """WHICH TRIGGER this place was emitted at, indexing `triggers()`.
+        """Which trigger this place was emitted at, indexing `triggers()`.
 
-        !! A LINE MOVES AND AN ORDINAL DOES NOT, which is the whole reason this
-        exists. Roy, 2026-08-21: *"where it is in the original and where it ends
-        up on the resulting page can be two very different things -- but a single
-        shift on anchor_num and you know it is all trash after rereading."* This
-        tool edits prose, and every prose edit moves the line numbers of the code
-        below it; the Nth line of code is still the Nth line of code.
+        !! A line moves and an ordinal does not, which is the whole reason this
+        exists. This tool edits prose, and every prose edit moves the line
+        numbers of the code below it; the Nth line of code is still the Nth line
+        of code.
 
-        !! IT REPLACES `anchor_line` AS THE ORDER, and the two rank identically:
-        lines of code ascend, so their ordinals do. MEASURED 2026-08-21 --
-        `anchor_line` had exactly two consumers, `record.py`'s sort key and
-        `for_anchor`'s identity lookup, and NEITHER did arithmetic on the line.
+        ! Carried alongside the anchor, never instead of it. An ordinal alone
+        cannot see a rename in place -- `def f():` becoming `def RENAMED():`
+        shifts nothing -- and the anchor text alone cannot cheaply see an
+        insertion. The pair sees both.
 
-        ! CARRIED ALONGSIDE THE ANCHOR, never instead of it. Roy: *"anchor_num
-        along with anchor."* An ordinal alone cannot see a rename in place --
-        `def f():` becoming `def RENAMED():` shifts nothing -- and the anchor
-        text alone cannot cheaply see an insertion. The pair sees both.
-
-        !! IT IS READ FROM `cue`, NOT RECONSTRUCTED. Reconstructing it hardens
+        !! It is read from `cue`, not reconstructed. Reconstructing it hardens
         the very mistake it looks like a fix for, because it assumes `cue`
-        emitted every anchor. THREE ARITHMETICS ARE GONE:
+        emitted every anchor, as each of these arithmetics does:
 
             b_n         -> n + 1
             f_n         -> 0, or len(code) + 1
             everything  -> code.index(anchor_line) + 1
 
-        ! THE VALUES ARE UNCHANGED, and that is checkable: 0 for the MODULE,
-        1..N for the lines of code, N+1 for EOF, which is what the three
-        expressions computed. What changed is that a place now SAYS where it
-        came from instead of being asked to prove it afterwards.
+        ! The values are the ones those expressions compute, and that is
+        checkable: 0 for the `MODULE`, 1..N for the lines of code, N+1 for
+        `EOF`.
 
         0 is the module, which is a real position -- and also what a cue no
         addresser emitted answers, so the two cannot be told apart here. It is
@@ -580,24 +512,24 @@ class Cues:
         return walker.trigger.get(cue, 0)
 
     def gap_bounds(self, cue: str) -> tuple[int, int]:
-        """The two lines of CODE around this gap; 0 for the file's own edge.
+        """The two lines of code around this gap; 0 for the file's own edge.
 
-        !! COMPUTED, NOT STORED. Held as its own dict it is a second object
+        !! Computed, not stored. Held as its own dict it is a second object
         inside `Cues`, written at four points and read at two, with nothing
         holding the two in step.
 
-        !! IT IS THE TRIGGER BEFORE THIS GAP AND THE ONE IT FIRED AT, read off
-        `cue`. A gap is emitted at the trigger BELOW it, so the pair either
+        !! It is the trigger before this gap and the one it fired at, read off
+        `cue`. A gap is emitted at the trigger below it, so the pair either
         side of it is `triggers[at - 1]` and `triggers[at]`, and a sentinel on
         either end answers 0 because the file's own edge is not a line of code.
 
-        ! WHICH IS WHY THE CLOSING GAP STILL BOUNDS CORRECTLY while being
+        ! Which is why the closing gap still bounds correctly while being
         anchored to `EOF`: it fires at the EOF trigger, so its pair is the last
-        line of code above it and nothing below. Placement never read an anchor.
+        line of code above it and nothing below. Placement never reads an
+        anchor.
 
-        ! A SERIES THAT IS NOT A GAP ANSWERS `(0, 0)`, which is what the `f`
-        places were given explicitly before. A file's own matter is bounded by
-        the head or the foot of the file, not by code.
+        ! A series that is not a gap answers `(0, 0)`. A file's own matter is
+        bounded by the head or the foot of the file, not by code.
         """
         if not cue.startswith(GAP):
             return (0, 0)
@@ -624,14 +556,10 @@ class Cues:
 def cue(code: list[CodeLine]) -> Cues:
     """Walk the anchors of one file; return every cue and its code.
 
-    !! `cue` IS WHAT MAKES EVERY PLACE EXIST. A place is emitted because
-    `cue` reached its trigger, not because prose was found sitting there -- which
-    is why the file's own matter and the first gap can now both exist. Before
-    this, the matter's place came from a BRANCH that fired only when front-matter
-    prose had already been stamped, so the two were mutually exclusive: measured
-    over five file shapes, the gap above the first line of code was `b1` on a
-    file with no licence header and `b0` on a file with one, and adding a module
-    docstring renamed it mid-run. ! They are `f0` and `b0` now, in two series.
+    !! `cue` is what makes every place exist. A place is emitted because `cue`
+    reached its trigger, not because prose was found sitting there -- which is why
+    the file's own matter and the first gap both exist. ! They are `f0` and `b0`,
+    in two series.
 
     ! The four rules differ, and each is measured rather than chosen:
 
@@ -668,18 +596,11 @@ def cue(code: list[CodeLine]) -> Cues:
         ValueError: when a `DocPlace` names a line `cue` has already passed,
             which would leave its `a` out of the reading order.
     """
-    # ! THE `Cues` KEEPS THE ADDRESSERS IT MADE, so every position a place reports
-    # indexes something the object still holds.
     out = Cues(triggers=triggers([line.line for line in code]))
 
     # ! ONE PER SERIES, AND THEY BELONG TO THE `Cues`. The names below are
     # for `cue`, which is genuinely per-series -- each emits at different
     # triggers -- but nothing downstream has to know how many there are.
-    #
-    # !! THEY USED TO BE LOCAL AND WERE FLATTENED AWAY at the end of this
-    # function, which left every accessor on `Cues` rebuilding an index
-    # into a collection that no longer existed. They belong to it now, so
-    # `cue` fills the object it returns rather than a set of side tables.
     a, b, c, f = (out.addressers[s] for s in (DECLARED, GAP, ON, COVERS))
     # ! Each code line's step, so a `DocPlace` naming a line is filed against it.
     step_of = {line.line: step for step, line in enumerate(code)}
@@ -690,25 +611,23 @@ def cue(code: list[CodeLine]) -> Cues:
     # Python files it against the step that ends the signature.
     release: dict[tuple[int, bool], list[str]] = {}
     # Every emit names the trigger it fired at, and `at` is that position --
-    # 0 the MODULE, 1..N the lines of code, N+1 the EOF. `cue` knew it and
-    # threw it away until 2026-08-22, leaving `anchor_num` to guess afterwards.
+    # 0 the MODULE, 1..N the lines of code, N+1 the EOF.
     #
     # The loop walks `out.triggers`, the list `triggers()` returned above, not a
     # second call: two calls agree today and are two things that can stop
-    # agreeing, which is the drift `triggers` exists to prevent -- *"ONE LIST, SO
-    # THE FOUR SERIES CANNOT DRIFT APART."*
+    # agreeing, which is the drift `triggers` exists to prevent.
     #
     # Each series decides at each trigger, and that rule is now complete --
     # there is no step a place comes from except one of these.
+    #
+    # !! A place's anchor is the trigger it was emitted at. One rule, no series
+    # exempt: `MODULE` at the head, the line of code in between, `EOF` at the foot.
     for at, trigger in enumerate(out.triggers):
         # ! A SENTINEL IS A STRING AND A LINE IS AN INT. Neither sentinel is a
         # line, which is what makes them sentinels.
         if isinstance(trigger, str):
             # !! `b` AND `c` SKIP THE MODULE ENTIRELY -- no place, and no
-            # number. It has no gap above it and no line to sit beside. Roy,
-            # 2026-08-20: *"let's initiate all of them at 0 ... bs and cs
-            # will stay aligned until there is some specific reason to split
-            # them."*
+            # number. It has no gap above it and no line to sit beside.
             if trigger == MODULE:
                 # ! `f0` is the FILE'S OWN matter, bounded by nothing: the head
                 # of the file on both sides. It is not the gap above the first
@@ -719,21 +638,15 @@ def cue(code: list[CodeLine]) -> Cues:
                 out.reading.append(f.emit(MODULE, at))
                 out.reading.append(a.emit(MODULE, at))
             else:
-                # !! A PLACE'S ANCHOR IS THE TRIGGER IT WAS EMITTED AT. One rule,
-                # no series exempt: `MODULE` at the head, the line of code in
-                # between, `EOF` at the foot.
-                #
                 # !! THE CLOSING GAP RECORDS EOF, NOT THE LAST LINE OF
                 # CODE. EOF is a trigger so that a place emitted here is a ROW at
                 # it, like every other place. Reaching back to the previous
                 # trigger for an anchor reinstates, one level down, exactly the
                 # special case that making EOF a trigger removes.
                 #
-                # ! Roy, 2026-08-22: *"the last `b` triggers on EOF and records
-                # either `<eof>` or `<module>`, and its anchor and where it is
-                # placed becomes a determined fact by the compositor."* WHERE it
-                # sets is not `cue`'s business, and `gap_bounds` already
-                # answers it from the ordinal without reading an anchor at all.
+                # ! Where the closing gap sets is not `cue`'s business:
+                # `gap_bounds` answers that from the ordinal without reading an
+                # anchor at all.
                 closing = b.emit(EOF, at)
                 if release:
                     # !! EVERY FILED `a` IS RELEASED BY NOW, unless its
@@ -744,16 +657,15 @@ def cue(code: list[CodeLine]) -> Cues:
                         + ", ".join(name for held in release.values() for name in held)
                     )
                 out.reading.append(closing)
-                # !! `f` EMITS ITS SECOND PLACE HERE, and this is the reason the
+                # !! `f` emits its second place here, and this is the reason the
                 # EOF trigger is a trigger rather than an N+1 rule. A file's
-                # matter sits at BOTH ends and neither end belongs to a gap:
+                # matter sits at both ends and neither end belongs to a gap:
                 # `f0` is bounded by the head of the file on both sides, `f1` by
                 # the foot. ! Bounded by nothing, exactly as `f0` is -- a licence
-                # at the foot is the FILE's, not the last gap's, which is where
-                # it landed while this place did not exist.
-                # ! THE FOOT OF THE PAGE: the gap after the last statement, then
+                # at the foot is the file's, not the last gap's.
+                # ! The foot of the page: the gap after the last statement, then
                 # the file's own matter, which is bounded by nothing.
-                # ! `EOF` FOR THE SAME REASON THE GAP TAKES IT: the anchor names
+                # ! `EOF` for the same reason the gap takes it: the anchor names
                 # the trigger. `f0` answers `<module>` because that is where it
                 # was emitted, not because the file's matter belongs to the
                 # module -- and the foot answers `<eof>` on the same rule.
@@ -800,26 +712,23 @@ SEPARATOR = ":"
 def flatten(path: str) -> str:
     """`pkg/sub/mod.py` as `pkg:sub:mod.py` -- the whole path, extension kept.
 
-    !! THE ADDRESS IS THE FULL PATH from the runner's root, not the file name.
-    Roy, 2026-08-18: "the address is the full thing not just `__init__@b0`".
+    !! The address is the full path from the runner's root, not the file name.
     Files form a tree, so two complete paths differ somewhere, and the
     separator below carries that difference through into the address.
 
-    !! THE EXTENSION STAYS. Dropping it reads better and reintroduces collisions
+    !! The extension stays. Dropping it reads better and reintroduces collisions
     the moment a repo holds `b.py` beside `b.rs`, and one gather reads both.
 
-    !! THE SEPARATOR IS A CHARACTER A PATH CANNOT HOLD, and that is what makes
-    this INVERTIBLE. It was `.` until 2026-08-19, and a dot is ordinary in a
-    filename -- `app.test.js`, `types.d.ts` -- so `a/b.py` and `a.b.py` both read
-    `a.b.py` and every one of their addresses collided. Roy: *"lets use an
-    illegal symbol for the separator then."*
+    !! The separator is a character a path cannot hold, and that is what makes
+    this invertible. A dot is ordinary in a filename -- `app.test.js`,
+    `types.d.ts` -- so with `.` as the separator `a/b.py` and `a.b.py` would
+    both read `a.b.py`.
 
-    ! `:` is the one Windows forbids that is NOT shell-special, so an address is
+    ! `:` is the one Windows forbids that is not shell-special, so an address is
     safe as a bare command-line argument where `<`, `>`, `|`, `?` and `*` are
-    not. Measured 2026-08-19 over 2,472 source paths in seven corpora: zero hold
-    any of the seven. ! POSIX forbids only `/` and NUL, so a POSIX path CAN
-    hold a colon and this would be ambiguous again -- `gather` refuses such a
-    file rather than addressing it.
+    not. ! POSIX forbids only `/` and NUL, so a POSIX path can hold a colon and
+    this would be ambiguous again -- `gather` refuses such a file rather than
+    addressing it.
     """
     return str(path).replace("\\", "/").replace("/", SEPARATOR)
 
@@ -830,7 +739,7 @@ def address_for(path: str, cue: str) -> str:
     !! THE ONLY PLACE THEY ARE JOINED, and it lives here because this module
     already owns both halves and the whole take-apart: `flatten` makes the path
     half, `emit` makes the cue, `cue_of` splits one back, and `unflatten` recovers
-    the real path. Putting them together was the one direction that had leaked.
+    the real path.
 
     ! BOTH HALVES OR NOTHING. An address missing either half resolves nowhere,
     so a blank is returned rather than `pkg:mod.py@` or `@a5`, both of which read
@@ -850,12 +759,11 @@ def address_for(path: str, cue: str) -> str:
 def unflatten(name: str, paths: list[str]) -> str:
     """The real path a flattened one names, or "" if the binder cannot say.
 
-    ! It resolves against the BINDER rather than by string surgery, because the
+    ! It resolves against the binder rather than by string surgery, because the
     binder is what knows which paths exist. With `:` as the separator the form
-    is invertible, so this now answers for exactly one path or none.
+    is invertible, so this answers for exactly one path or none.
 
-    ! Ambiguity is still REFUSED rather than resolved by preferring one. It was
-    reachable while the separator was `.`; it is kept because `gather`'s
+    ! Ambiguity is refused rather than resolved by preferring one. `gather`'s
     refusal is what makes it unreachable, and a reader here should not have to
     know that to trust the answer.
 
@@ -874,15 +782,11 @@ def unflatten(name: str, paths: list[str]) -> str:
 class Address(NamedTuple):
     """An address in its two halves, so a caller names the one it wants.
 
-    !! IT WAS A BARE TUPLE AND EVERY CALLER SUBSCRIPTED `[1]` -- fifteen of them
-    after `galley`'s second `cue_of` was consolidated onto this one. Roy,
-    2026-08-22, reading that diff: *"interesting sentinel as a number."* The `1`
-    means *the cue* and nothing in it says so; a reader has to know the
-    tuple's order to know what was asked for.
+    !! A bare tuple's `[1]` means *the cue* and nothing in it says so; a reader
+    has to know the tuple's order to know what was asked for.
 
-    ! ADDITIVE, NOT A MIGRATION. A `NamedTuple` unpacks and subscripts exactly
-    as the tuple did, so nothing that already worked had to change; the sites
-    that read better by name were changed and the rest are free to follow.
+    ! A `NamedTuple` unpacks and subscripts exactly as a tuple does, so a caller
+    may index it or name the field.
     """
 
     path: str
@@ -892,15 +796,10 @@ class Address(NamedTuple):
     def series(self) -> str:
         """Which series this address is in -- `a`, `b`, `c` or `f`.
 
-        !! IT IS A NAMED READER FOR THE SAME REASON THIS IS A `NamedTuple`.
-        Callers wrote `.cue[:1]`, which is a slice carrying a meaning the slice
-        does not hold -- the defect recorded above, one field down. Roy,
-        2026-08-24: *"cue.series is the Right answer."*
+        !! It is a named reader for the same reason this is a `NamedTuple`:
+        `.cue[:1]` is a slice carrying a meaning the slice does not say.
 
         It raises on an address with no cue, and that is deliberate.
-        It was `self.cue[:1]` for one commit, which answered `""` -- and the
-        only thing that ever reached it blank was LEADING. Roy, 2026-08-24:
-        *"Series d are walked because they have to be but they are not cues."*
         A `d` is walked because the compositor has to set those lines back, and
         it names no place; asking it which series it is in is a category error,
         not a case to absorb.

@@ -1,4 +1,9 @@
-"""Every edit_copy of one stage, held in one master_proof."""
+"""Every edit_copy of one stage, held in one master_proof.
+
+`referenced_reading_problems` is the proof's reference check: every page
+a place, move, sheet or mark names carries a reading context and an
+original sha. `deserialize` asks it before decoding a proof.
+"""
 
 from dataclasses import dataclass, field
 from typing import cast
@@ -21,10 +26,10 @@ class MasterProof:
         stage: the label the copies were dispatched under -- `SKILL.md`'s "4a",
             "4c".
         read_from: taken from the first copy by the bus's `_on_copies`, and `{}`
-            where there is none. The bus holds each copy to the binder's tree,
-            and `deserialize` refuses a proof whose copies disagree with its
-            own `read_from`.
+            where there is none.
         edit_copies: one per role, or one per SHARD under fan-out.
+        page_readings: real path -> the `ReadingContext` the page was read
+            under, for every page a sheet, a place or a move names.
         places: every place one fold of this stage decided. `flows.bus`
             writes it; empty until such a fold has run. Each is read by
             `Place.deserialize` where the proof is read, so a reader of the
@@ -32,6 +37,9 @@ class MasterProof:
         moves: every move one fold of this stage decided, as the proof records
             it (`Move.recorded`).
         page_shas: real path -> sha for pages touched outside the copies.
+        dispatched: the copies the stage dispatched, as the run's jacket
+            names them; empty for a proof folded without a jacket.
+        returned: the copies folded into this proof, named the same way.
 
     Each place carries its answers, state and owed readers. Each move carries
     its placement answers. These records determine the proof's turn and rulings.
@@ -44,6 +52,8 @@ class MasterProof:
     places: tuple[Place, ...] = ()
     moves: tuple[Move, ...] = ()
     page_shas: dict[str, str] = field(default_factory=dict)
+    dispatched: tuple[str, ...] = ()
+    returned: tuple[str, ...] = ()
 
     def __post_init__(self) -> None:
         """Detach caller-owned metadata mappings."""
@@ -51,35 +61,12 @@ class MasterProof:
         object.__setattr__(self, "page_shas", dict(self.page_shas))
 
     def reading_problems(self, where: str) -> list[str]:
-        """Check saved page metadata without reading source or registry state."""
+        """Hold the sheets and the two page tables to each other.
+
+        `deserialize` asks this after `referenced_reading_problems` has held
+        the wire to its references and each reading has decoded.
+        """
         problems: list[str] = []
-        problems.extend(
-            referenced_reading_problems(
-                {
-                    "page_readings": self.page_readings,
-                    "page_shas": self.page_shas,
-                    "places": [{"address": place.address} for place in self.places],
-                    "moves": [
-                        {"origin": move.origin, "destination": move.destination}
-                        for move in self.moves
-                    ],
-                    "edit_copies": [
-                        {
-                            "sheets": [
-                                {
-                                    "path": sheet.path,
-                                    "sha": sheet.sha,
-                                    "marks": [mark.serialize() for mark in sheet.marks],
-                                }
-                                for sheet in copy.sheets
-                            ]
-                        }
-                        for copy in self.edit_copies
-                    ],
-                },
-                where,
-            )
-        )
         if any(
             not isinstance(path, str)
             or not path.strip()
@@ -91,26 +78,6 @@ class MasterProof:
                 f"{where}: master_proof's `page_shas` must map nonempty paths"
                 " to nonempty shas; regather"
             )
-        for path, context in self.page_readings.items():
-            if (
-                not isinstance(path, str)
-                or not path.strip()
-                or not isinstance(context, ReadingContext)
-            ):
-                problems.append(f"{where}: malformed page_readings; regather")
-                continue
-            try:
-                validated = ReadingContext(
-                    context.language,
-                    context.reader,
-                    context.compatibility,
-                    context.settings,
-                )
-            except (TypeError, ValueError):
-                problems.append(f"{where}: {path}: malformed reading context; regather")
-                continue
-            _, why = context_from_wire(f"{where}: {path}", context_to_wire(validated))
-            problems.extend(why)
         shas: dict[str, object] = {}
         for copy in self.edit_copies:
             for sheet in copy.sheets:
@@ -158,12 +125,6 @@ class MasterProof:
             `read_from` from its first copy and refuses copies that disagree,
             so a proof holding one was not built by it, and a copy from another
             tree would give the docket a sha from that tree.
-
-            ! THE SHAPE CHECK RUNS WHETHER OR NOT THERE ARE COPIES, since
-            2026-08-31; the COMPARISON needs copies and runs over each. The
-            single exemption is an empty proof whose `read_from` is `{}` or
-            absent, which is what `_on_copies` writes when it has no first copy
-            to take one from.
 
             Every place and every move is read here, and one that will not read
             is named by its position -- `place 2`, `move 1` -- and, for a
@@ -237,23 +198,10 @@ class MasterProof:
         if problems:
             return None, problems
         read_from = data.get("read_from")
-        # !! THE HEADER IS HELD TO A SHAPE WHETHER OR NOT THERE ARE COPIES, and was
-        # not until 2026-08-31. `read_from_problem` ran inside the `if copies:`
-        # below, so a proof carrying none admitted ANY value: MEASURED with
-        # `edit_copies: []`, all of `'oops'`, None, 7, [], {'root': 7} and
-        # {'junk': 1} returned `problems == []`, and the two dict-shaped ones were
-        # carried into `MasterProof.read_from` VERBATIM.
+        # !! The header is held to a shape whether or not there are copies.
         #
-        # ! AND THOSE TWO VALUES ARE THE REASON `read_from_problem` IS REUSED
-        # RATHER THAN HAND-ROLLED. A weaker `isinstance(..., dict) and truthy`
-        # let `{"junk": 1}` and `{"root": 7, "revise": "x"}` through at exit 0
-        # while `bind` REFUSED the identical value -- two spellings of one rule,
-        # disagreeing. So the validator here had re-acquired the very defect
-        # reuse exists to prevent.
-        # ! THIS CITED `desk.collator.problems_in`'s OWN COMMENT for that
-        # measurement until 2026-09-01, and `P42` had deleted the comment with
-        # the header checks it explained. The measurement is stated here now,
-        # where the code it justifies is.
+        # ! `read_from_problem` is reused rather than hand-rolled, so this header
+        # and `bind` refuse the same values.
         #
         # ! `{}` IS STILL ADMITTED, AND ONLY FOR AN EMPTY PROOF. The bus's
         # `_on_copies` writes it when there is no first copy to take a
@@ -290,6 +238,14 @@ class MasterProof:
         problems += why
         moves, why = _moves_in(where, data.get("moves", []))
         problems += why
+        # Absent is empty, as `places` and `moves` are: a proof folded without
+        # a jacket names no dispatch.
+        named = {key: data.get(key, []) for key in ("dispatched", "returned")}
+        for key, value in named.items():
+            if not isinstance(value, list) or not all(
+                isinstance(one, str) for one in value
+            ):
+                problems.append(f"{where}: master_proof's `{key}` must list copies")
         raw_shas = data.get("page_shas", {})
         page_shas: dict = raw_shas if isinstance(raw_shas, dict) else {}
         if problems:
@@ -303,6 +259,8 @@ class MasterProof:
                 places=places,
                 moves=moves,
                 page_shas=dict(page_shas),
+                dispatched=tuple(cast(list[str], named["dispatched"])),
+                returned=tuple(cast(list[str], named["returned"])),
             ),
             [],
         )
@@ -316,6 +274,8 @@ class MasterProof:
             "places": [place.serialize() for place in self.places],
             "moves": [move.serialize() for move in self.moves],
             "page_shas": dict(self.page_shas),
+            "dispatched": list(self.dispatched),
+            "returned": list(self.returned),
             "page_readings": {
                 path: context_to_wire(context)
                 for path, context in self.page_readings.items()

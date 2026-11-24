@@ -1,33 +1,19 @@
-"""What a BINDER is on disk, and how one is read back.
+"""What a binder is on disk, and how one is read back.
 
 A binder is the artifact the gatherer hands over -- a folder of pages, each
 naming its file, with the rows an agent rules on -- a 3-ring binder full of
 stuff, the object and not the trade; `docs/vocabulary.md`, *binder*.
 
-!! ONE MODULE OWNS BOTH DIRECTIONS, and the reason is what happened without it.
-MEASURED 2026-08-24: the gather wrote a bare list and FOUR commands each decided
-for themselves what a binder file is --
-
-    addresser   loaded.get("paragraphs", []) if isinstance(loaded, dict) else loaded
-    galley      binder["paragraphs"] if isinstance(binder, dict) else binder
-    record      loaded["paragraphs"] if isinstance(loaded, dict) else loaded
-    collator    json.loads(binder_text)          -- no envelope handling at all
-
-Three spellings of one guess and one absence. They already disagreed: the first
-tolerates a missing key, the next two raise `KeyError`, and the last would
-iterate a dict's KEYS. ! All three guesses anticipated an envelope NOTHING
-PRODUCED -- so the format lived in five places, none of which could be checked
-against the others.
-
-! THE FORMAT IS A CONTRACT AND BELONGS TO NEITHER END. That is the answer to the
-locality question: scattering it across the consumers is what broke locality,
-and one module both sides import is the fix rather than the compromise. Roy:
-*"we should have a module that does the serialization/deserialization work not
-just let each parse its own."*
+!! One module owns both directions: the format is a contract and belongs to
+neither end. Scattered across its consumers, each would decide for itself what
+a binder file is; one module both sides import states it once.
 
 Each page writes itself, its path and sha included -- see `Page.serialize`.
 What stands here is the envelope: the version, the header, the list of pages,
 the freeform paths.
+
+`known_addresses` turns a binder into the set of addresses its rows carry;
+the address gate in `flows.revise` compares that set before and after a pull.
 """
 
 from dataclasses import dataclass
@@ -47,56 +33,51 @@ def bind(
 ) -> "Binder":
     """Every page in scope, as the binder that is handed over.
 
-    !! `read_from` IS REQUIRED, NOT DEFAULTED. A binder that cannot say which
+    !! `read_from` is required, not defaulted. A binder that cannot say which
     root it was gathered from is exactly the ambiguity a later stage needs
-    resolved: a revise re-binds from a tree copy, and a role holding that
-    binder cannot tell it apart from the original unless the binder says so.
-    A caller with no root to name has nothing it was gathered FROM, so there
+    resolved: a stage tree re-binds from a tree copy, and a role holding that
+    binder cannot tell it apart from the checkout unless the binder says so.
+    A caller with no root to name has nothing it was gathered from, so there
     is no default that would not be a fabrication.
 
-    ! THE SHA IS REPORTED, NOT TAKEN. It arrives on the page from
-    `repo.read_source`; this module hashes nothing. Roy, 2026-08-25: *"It is
-    information received by page and binder, not something requested by
-    page/binder."*
+    ! The sha is reported, not taken. It arrives on the page from
+    `repo.read_source`; this module hashes nothing.
 
-    !! AN ABSENT PLACE IS NOT SENT UNLESS IT IS ASKED FOR. Roy, 2026-08-25:
-    *"The absent kinds are not supposed to be sent to the agents unless
-    specifically asked for."* MEASURED over this repo's own source before the
-    cut: **5,201 of 5,685 rows -- 91% -- held no prose.** 2,692 `margin` and
-    2,437 `interval`, which is roughly one empty place per line of code, against
-    2 `undocumented` in the whole tree. 850KB, and four roles read it.
+    !! An absent place is not sent unless it is asked for.
 
     Args:
         pages: the pages in scope.
-        read_from: `{"root": "<path>", "revise": <int>}` -- the root this
-            binder was gathered from, and `0` for the original or the
-            revise's own number otherwise.
+        read_from: `{"root": "<path>"}` -- the root this binder was
+            gathered from -- and `"stage"`, the stage `stage open` built
+            that root for.
         absent: carry the empty places too. For the callers that specifically
             ask: `gather --include-absent`, for a reviewer surveying where
             prose could go, and `flows.revise`'s address gate, which must see
             a new `undocumented` declaration.
         freeform: repo-relative posix paths of the files in scope that no
             reader claims. They have no page; the binder only names them.
+            `bind` keeps them in the order given, and `Binder.freeform`
+            promises them sorted, so the caller sorts -- `flows.gather` does.
 
     Raises:
-        ValueError: `read_from` is not `{"root": str, "revise": int}`.
+        ValueError: `read_from` is not `{"root": str}`, with an optional
+            `"stage": str`.
 
     The shape of `read_from` is checked here and on the way back in, by
     `read_from_problem`.
 
-    And it is copied, not aliased. The stored dict was the caller's own until
-    2026-08-28, so a binder, every `edit_copy` seeded from it, and whatever the
-    caller kept were one object -- a test writing `binder["read_from"]["revise"]
-    = 1`, which is how a revise test is naturally written, would have changed
-    what every later test in the session saw, with no gate able to attribute it.
+    And it is copied, not aliased. Aliased, a binder, every `edit_copy` seeded
+    from it, and whatever the caller kept would be one object -- a test writing
+    `binder["read_from"]["root"] = "elsewhere"` would change what every later
+    test in the session saw, with no gate able to attribute it.
     """
     why = read_from_problem({"read_from": read_from})
     if why:
         raise ValueError(why)
-    # !! `absent` CHOOSES THE PAGE TYPE, IT DOES NOT FILTER A ROW LIST --
-    # `decision-log.md Process: #68`. A `Page` serializes every addressed place;
-    # a `RedactedPage` serializes the ones holding prose. The cut is the page's
-    # own, at the one moment it knows what it is being asked for.
+    # !! `absent` chooses the page type, it does not filter a row list. A `Page`
+    # serializes every addressed place; a `RedactedPage` serializes the ones
+    # holding prose. The cut is the page's own, at the one moment it knows what
+    # it is being asked for.
     return Binder(
         version=VERSION,
         read_from={**read_from},
@@ -116,20 +97,11 @@ class Binder:
 
     Attributes:
         version: the format's own number -- `VERSION` for one this tree wrote.
-        read_from: `{"root": str, "revise": int}` -- which tree was gathered.
+        read_from: `{"root": str}` and an optional `"stage": str` -- which
+            tree was gathered, and for which stage.
         pages: one per file in scope, in the order they were bound.
         freeform: sorted repo-relative posix paths of files in scope that no
             reader claims; they have no page.
-
-    !! THE LOAD IS NOT HERE, ruled `decision-log.md Process: #67`. Roy,
-    2026-08-31: *"all flows start with a load step - not the modules code."*
-    `deserialize` takes what the load PRODUCED -- an already-decoded dict --
-    so this module holds no `json.loads` and reaches no path. What a binder IS
-    stays here; turning bytes into an object belongs to the end that owns one.
-
-    ! `machine.json_object.object_of` IS THAT LOAD and did not go anywhere: it
-    is called in `flows.proof_io`, whose `load_binder` calls it and then this;
-    five commands call `load_binder`.
     """
 
     version: str
@@ -152,29 +124,36 @@ class Binder:
     def deserialize(cls, where: str, data: object) -> "tuple[Binder | None, list[str]]":
         """A binder read back, or every rule it breaks.
 
+        !! The load is not here. `deserialize` takes what the load produced --
+        an already-decoded dict -- so this module holds no `json.loads` and
+        reaches no path. What a binder is stays here; turning bytes into an
+        object belongs to the end that owns one.
+
+        ! `machine.json_object.object_of` is that load: it is called in
+        `flows.proof_io`, whose `load_binder` calls it through `_object` and
+        then this; five commands call `load_binder`.
+
         Args:
             where: how to name this binder in a message.
             data: the decoded object, as `machine.json_object.object_of`
-                returns one. NEVER text and never a path.
+                returns one. Never text and never a path.
 
         Returns:
             `(Binder, [])` or `(None, [messages])`.
 
-        !! IT REFUSES RATHER THAN COPING. Every one of the four readers this
-        replaced guessed at the shape, and a guess that is wrong reads as an
-        EMPTY binder -- which downstream is indistinguishable from a run with
-        nothing to do. The collator was measured certifying exactly that on
-        2026-08-20.
+        !! It refuses rather than coping. A guess at the shape that is wrong reads
+        as an empty binder -- which downstream is indistinguishable from a run
+        with nothing to do.
 
         It rules on every field it carries. A `Binder` promises its fields to
         everything downstream, so a page with no `path` and a place with no
         `cue` are refused by name here rather than folded to `""` by
         whichever consumer met them first.
 
-        !! EVERYTHING READ BACK IS A `RedactedPage`, whichever kind was written --
-        `decision-log.md Process: #68`. Neither page type serializes its source
-        text, so a binder off disk cannot rebuild a `Page`, and claiming it
-        could is the lie a redaction exists to prevent.
+        !! Everything read back is a `RedactedPage`, whichever kind was written.
+        Neither page type serializes its source text, so a binder off disk
+        cannot rebuild a `Page`, and claiming it could is the lie a redaction
+        exists to prevent.
         """
         if not isinstance(data, dict):
             return None, [_not_a(where, "a binder", data)]
@@ -241,7 +220,7 @@ class Binder:
         )
 
     def serialize(self) -> dict:
-        """This binder as a wire dict; `gather`, `distribute` and `carry` write it."""
+        """This binder as a wire dict; `gather`, `stage open` and `carry` write it."""
         return {
             "version": self.version,
             "read_from": {**self.read_from},
@@ -253,12 +232,11 @@ class Binder:
     def paragraphs(self) -> list[Paragraph]:
         """Every ADDRESSED paragraph on every page, in the binder's own order.
 
-        !! A FENCE IS NEVER CARRIED, ASKED FOR OR NOT -- `bind`'s own rule, and
-        this is where it now holds. It names no place, so there is nothing to
-        cite and nothing to rule on. ! `bind` used to apply it while building a
-        row list; a `Page` holds every paragraph it read, fences included, so
-        the rule moved to the two places that hand places out: here, and
-        `Page.serialize`. **They filter alike, so what a binder carries in
+        !! A fence is never carried, asked for or not -- `bind`'s own rule, and
+        this is where it holds. It names no place, so there is nothing to cite
+        and nothing to rule on. A `Page` holds every paragraph it read, fences
+        included, so the rule holds at the two places that hand places out: here,
+        and `Page.serialize`. **They filter alike, so what a binder carries in
         memory and what it writes are the same set.**
         """
         return [b for page in self.pages for b in page.paragraphs if b.address]
@@ -268,8 +246,9 @@ def known_addresses(binder: Binder) -> frozenset[str]:
     """Every address the binder's rows carry, as a set to test membership on.
 
     Args:
-        binder: the deserialized binder. Each row already knows its own path
-            and address -- a page rejoins them when it is read back.
+        binder: a binder, as `bind` or `Binder.deserialize` returns one. Each
+            row already knows its own path and address -- a page rejoins them
+            when it is read back.
 
     Returns:
         The addresses. A row carrying an empty one is dropped.

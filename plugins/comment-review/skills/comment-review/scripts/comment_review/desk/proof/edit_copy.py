@@ -26,8 +26,9 @@ class EditCopy:
     Attributes:
         role: the editorial role it was seeded for and that filled it. It is
             what an outcome is decided from and what a place is sent back to.
-        read_from: `{root, revise}` -- which tree this copy was gathered from,
-            so a later role can know it holds a revise and not the original.
+        read_from: `{root}`, and `stage` where `stage open` built the tree
+            -- which tree this copy was gathered from, so a later role can
+            know it holds a stage's tree and not the checkout.
         stage: the stage this copy was dealt in, as the run's topology names
             it, or "" where the seed was handed no stage. A refusal names it,
             so a role reads which stage's row refused its ruling, and the
@@ -60,8 +61,8 @@ class EditCopy:
             "role": "the role this edit_copy was seeded for",
             "read_from": (
                 "the tree this edit_copy was gathered from -- "
-                '`{"root": "<path>", "revise": <number>}`, '
-                "where revise 0 is the original"
+                '`{"root": "<path>"}`, with `"stage"` naming the stage'
+                " that tree was built for"
             ),
             "stage": (
                 "the stage this edit_copy was dealt in, a string; absent or null"
@@ -86,14 +87,15 @@ class EditCopy:
 
         Args:
             role: the editorial role this copy is for.
-            read_from: `{root, revise}` -- which tree it was gathered from.
+            read_from: `{root}`, and `stage` where one was stamped -- which
+                tree it was gathered from.
             sheets: one `Sheet.seed` dict per page.
             stage: the stage being dealt, or "" where the caller names none.
             admits: the instructions its roles may file, or None for all.
 
         Returns:
             `{role, read_from, sheets, stage, admits}`. ! `read_from` is
-            copied, not aliased, as `bind`, `seed` and the bus's `_on_copies`
+            copied, not aliased, as `bind`, `deserialize` and the bus's `_on_copies`
             all do with this field: a caller mutating its own dict afterward
             cannot change what this copy holds.
         """

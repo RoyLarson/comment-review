@@ -12,9 +12,10 @@ copy of those marks. The role's own edit_copy still holds the originals, so
 *what needs fixing* would live in two documents and a role would fill one while
 the other went stale.
 
-!! It is for the task agent, which is why it is assembled at all. Every entry
-names the role that owes it, so dispatch is a read rather than a lookup across
-two lists.
+!! Its reader is `flows.verify.admit`, which every entry point admits a copy
+through -- the task agent's `collate` and a role's own `check` among them. Every
+entry names the role that owes it, so dispatch is a read rather than a lookup
+across two lists.
 
 !! The bound on sending back is not here. This flow says what is owed; how
 many times a role is sent back is the task agent's instructions, and nothing in
@@ -22,9 +23,9 @@ code bounds it.
 
 ! What it does not do is verification. `desk.collator.verify_report` asks
 whether a well-formed mark's claims hold against the tree; this asks only about
-places that produced no usable mark at all. `flows.verify.copy_problems`
-calls `verify_report`; `flows.bus` turns each `Revisit` into a `Problem` and
-puts both into the one `problems` list it rolls back with.
+places that produced no usable mark at all. `flows.verify.admit` calls
+`verify_report` and this, and turns each `Revisit` into a `Problem` in the one
+`problems` list it returns.
 """
 
 from typing import NamedTuple
@@ -43,13 +44,12 @@ class Revisit(NamedTuple):
     Attributes:
         role: who owes it -- what makes this dispatchable rather than a list a
             task agent has to attribute by hand.
-        address: the place, and "" where the entry named none. ! It is what
-            routes, and nothing prints it.
+        address: the place, and "" where the entry named none. ! Nothing reads
+            it: `flows.verify.admit` reports each at its `where`.
         where: how to point at it, never empty -- the address where there is
             one, else the page and the entry's position, as `m.py mark 3`.
-            ! The two are separate because one can be empty and the other must
-            not be. A reader needs somewhere to look even for an entry the
-            system cannot route; a router needs to know when there is nowhere.
+            ! A reader needs somewhere to look even for an entry the system
+            cannot route.
         reasons: every rule the entry broke, as its type's read worded them,
             or the one sentence `NOT_RULED` for a place nobody wrote in.
             ! All of them together -- one malformed `correct` breaks four
@@ -69,11 +69,13 @@ def mark_errors(
     """Every place a role must revisit, across one stage's returned copies.
 
     Args:
-        edit_copies: the parsed copies, as `flows.bus` holds them
-            after its envelope pass. ! Parsed, because that is what sorted each
+        edit_copies: the parsed copies, as `flows.verify.admit` holds them after the
+            command's envelope pass. ! Parsed, because that is what sorted each
             entry: `desk.proof.sheet.Sheet` carries `unruled` and `refused`, and
             this flow reads them rather than re-deciding what an entry was.
         required: each copy's assigned addresses, in the same order as the copies.
+            An unruled place outside them is not reported, and `None` reports
+            every unruled place; a refused entry is reported whatever this holds.
 
     Returns:
         One `Revisit` per place, in role then `where` order -- so a task agent
@@ -104,7 +106,7 @@ def mark_errors(
     ]
     # ! Sorted so a stranger re-derives the order. The walk above is copy then
     # sheet then entry, which is an accident of how the stage was assembled;
-    # what a reader acts on is a role's places together. ! On `where` rather
-    # than `address`, so an entry with no address sorts beside the page it sits
-    # on instead of ahead of everything.
+    # what a reader acts on is a role's places together. ! On `where`; an entry
+    # with no address sorts by its page's path spelled with `/`, an addressed
+    # one by the path flattened with `:`, so the two need not sit together.
     return sorted(out, key=lambda one: (one.role, one.where))

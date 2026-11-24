@@ -10,15 +10,17 @@ and checkable sentence.
   cap -- `b` places, the comment runs between lines of code, and `c` places, the comments
   beside a line. Each slot carries the paragraph's address, its anchor and its text as the
   proof pages set it.
-- **The original.** The file in the repo root is the paragraph as it stood when the run
+- **The proof pages root.** Your stage's tree: the manuscript, with every earlier stage's
+  decided changes set. It holds the file you open, and every path resolves against it.
+- **The manuscript.** The file in the repo root is the paragraph as it stood when the run
   began.
 - **The cap**, in lines.
 - **The style sheet.**
-- Your copy, your received binder, the proof pages root, and the helper script.
+- Your copy, your received binder, and the helper script.
 
 ## How you condense a paragraph
 
-1. Read the paragraph as it stands on the proof pages, and the same place in the original.
+1. Read the paragraph as it stands on the proof pages, and the same place in the manuscript.
 2. Ask first whether it is long because it states one instance of a rule it could state
    once, generally. When it is, mark it `clean` and give that as the reason; the paragraph is
    set as it stands, and the author reads it at stage 7a.
@@ -33,7 +35,7 @@ File one ruling at each place your copy deals you with `mark`, and mark no other
 a file with your file-write tool and pass it as `@path`:
 
 ```bash
-python <script> mark --edit-copy <copy> --address <address> --instruction patch \
+python <script> mark --edit-copy <copy> --repo <proof pages root> --address <address> --instruction patch \
   --from @<file holding the paragraph> --to @<file holding the condensed text> --reason '<why>' \
   --cite <path>:<line>
 ```
@@ -44,6 +46,9 @@ exit 0 means it is ready:
 ```bash
 python <script> check --edit-copy <copy> --binder <binder> --repo <proof pages root>
 ```
+
+Exit 2 from `check` or `mark` means an input will not read: hand the copy back to the task agent
+with the lines printed.
 
 | the paragraph | your instruction |
 |---|---|
@@ -56,7 +61,7 @@ A paragraph that stays over the cap because every sentence is evidence is usuall
 code has no single owner for. Ask the author, naming the owner you can see:
 
 ```bash
-python <script> mark --edit-copy <copy> --address <address> --instruction query \
+python <script> mark --edit-copy <copy> --repo <proof pages root> --address <address> --instruction query \
   --shape human-review-necessary --attempted '<what you tried>' \
   --settles '<the answer that would settle it>' --reason '<the question>' --cite <path>:<line>
 ```

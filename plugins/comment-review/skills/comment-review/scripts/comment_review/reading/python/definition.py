@@ -12,7 +12,7 @@ from comment_review.reading.diagnostics import ReadDiagnostic, ReadFailure, Read
 
 
 def validate_python(definition: LanguageDefinition) -> ReadFailure | None:
-    """Require complete, supported Python 3.15 grammar and empty settings."""
+    """Require complete, supported Python 3.15 grammar."""
     try:
         _identity(definition)
         _grammar(definition.rules)
@@ -31,7 +31,6 @@ def _identity(value: LanguageDefinition) -> None:
     for field, expected in (
         ("language", "python"),
         ("reader", "python-lexical"),
-        ("revision", "1"),
     ):
         require_scalar(getattr(value, field), field, expected)
     require_array(value.suffixes, "suffixes", (".py", ".pyi"))
@@ -47,8 +46,6 @@ def _identity(value: LanguageDefinition) -> None:
             "lexical",
         ),
     )
-    if value.defaults or value.choices:
-        raise ValueError("defaults and choices: Python implements no settings")
 
 
 def _grammar(rules: Mapping[str, object]) -> None:

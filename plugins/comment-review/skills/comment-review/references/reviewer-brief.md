@@ -23,7 +23,8 @@ Your packet gives you:
 - `VOCABULARY` -- the vocabulary file. Read the `[definitions]` entries whose keys are listed
   under your role in `[roles]`, plus the `all` list.
 - `SKILL DIR` -- the directory holding the helper script, written `<skill>` in the commands below.
-- `REPO ROOT` -- the checkout every path resolves against.
+- `REPO ROOT` -- your stage's tree, which every path resolves against: the manuscript at the
+  first stage, and the manuscript with every earlier stage's decided changes set at a later one.
 - `BINDER` -- your assigned review places, each with its address, anchor, start
   and end line and text. Every review place in this binder requires your ruling.
 - `EDIT COPY` -- your copy, holding one slot per paragraph of prose your role is dealt, each
@@ -47,8 +48,8 @@ Every command below runs `<skill>/scripts/comment-review.py` from the repo root.
 1. **Read your binder end to end.** Rule on every review place in it with one of
    the seven instructions. File each ruling with its own invocation of `mark`.
 2. **Open the code for every slot.** `raw_text` tells you where the paragraph is; the code
-   beside or below it tells you whether it is true. The file you open is the original: the text as it
-   stood when this run began, the same text your addresses and anchors were taken from.
+   beside or below it tells you whether it is true. The file you open is the one in `REPO ROOT`,
+   the same text your addresses and anchors were taken from.
 3. **Settle each claim by evidence.** Grep, read the definition and its callers, run the worked
    example. Where your tools include LSP and the packet says a server answered for that
    language, use `goToDefinition`, `findReferences`, `workspaceSymbol` and `hover`;
@@ -122,15 +123,13 @@ You are handed one sheet per file, and one slot per paragraph on it. This is a f
 
 ```json
 { "role": "block-context",
-  "read_from": { "root": "/checkout/of/the/project", "revise": 0 },
+  "read_from": { "root": "/checkout/of/the/project", "stage": "4c" },
   "sheets": [
     { "path": "redacted_pkg/billing/rates.py",
       "sha":  "9c1f0b7a4e2d6835",
       "reading": { "format": 1,
                    "language": "example-language",
-                   "reader": "example-reader",
-                   "compatibility": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-                   "settings": {} },
+                   "reader": "example-reader" },
       "marks": [
         { "address": "redacted_pkg:billing:rates.py@b47",
           "anchor":  "def compute_rates(plan, period, *, clamp=True):",
@@ -184,12 +183,13 @@ python <skill>/scripts/comment-review.py mark --edit-copy <EDIT COPY> --repo <RE
   and pass `'@path'`, quoted so PowerShell does not read the `@`. A value opening with `@` is
   always read as a path, so a literal one goes in a file too, as does one holding a `'`.
   Single-quote every other value, so the shell passes it as typed.
-- **Two rulings on one paragraph are two invocations** at the same `--address`. Rulings on
-  different sentences compose; a second ruling on the same sentence is refused, naming both.
+- **Two rulings on one paragraph are two invocations** at the same `--address`. They compose
+  unless their changed words overlap; a second ruling that changes words the first changed is
+  refused, naming both.
 - **An `add` at an empty place** creates the slot at the address from `addresses find`.
 
-`mark` refuses what the fold would refuse in the ruling itself, writes nothing when it does, and
-says why. A `--verbatim` you give is kept as given; `check` reads it against its cite.
+`mark` refuses what the fold would refuse in the ruling itself, such as a `--verbatim` its cite
+does not hold or an address that names no place, writes nothing when it does, and says why.
 `mark --withdraw --address <address> --instruction <instruction>` takes back that one
 ruling from your copy; your other rulings at the address stay. Where you placed two of
 that instruction there, add `--quote` with the clause the one you mean quotes, or its
@@ -198,7 +198,7 @@ requires a ruling; file its replacement before returning the copy.
 
 ### What makes a mark stand
 
-- **`claim` and `change` state the same edit twice**, and they are checked against each other:
+- **`claim` and `change` state the same edit twice**, and must agree:
   the difference between `raw_text` and `change` is exactly the sentence your `claim` names.
 - **One mark makes one edit.** Three edits to one paragraph are three marks, each showing the
   paragraph with its own edit alone. Each reads unfinished on its own, and the copy chief
@@ -382,7 +382,7 @@ were sent; `check --contract` prints the shape each answer takes.
 
 You may answer one slot more than once, one answer for each sentence you rule on; the turn
 composes your rewrites against the slot's text. Answers that contradict each other -- two
-different rewrites of one sentence, a `clean` beside a rewrite, or `hold` beside `withdraw` --
+rewrites that change the same words, a `clean` beside a rewrite, or `hold` beside `withdraw` --
 are refused, and the slot comes back to you.
 
 - **An `escalation`** asks whether your finding still stands. Answer with a `reason` and one
@@ -413,14 +413,16 @@ are refused, and the slot comes back to you.
 Check your copy from the repo root:
 
 ```bash
-python <skill>/scripts/comment-review.py check --edit-copy <EDIT COPY> --binder <BINDER>
+python <skill>/scripts/comment-review.py check --edit-copy <EDIT COPY> --binder <BINDER> --repo <REPO ROOT>
 ```
 
 It names every slot still `null`, every mark that will not read, every `claim` quoting a
 sentence outside its paragraph, and every cite whose line does not match. Fix the copy and run
 it again until it exits 0. Exit 5 means only human input is pending: a
 `human-review-necessary` query or approval of a change to the file's matter. Hand the copy
-back so the task agent can ask the author.
+back so the task agent can ask the author. Exit 2 from `check` or `mark` means an input will not
+read, and no mark corrects it: hand the copy back to the task agent with the lines printed,
+and mark nothing more.
 
 For a batch's answers:
 
@@ -428,9 +430,9 @@ For a batch's answers:
 python <skill>/scripts/comment-review.py check --answers <ANSWERS> --sent <BATCH> --role <your role>
 ```
 
-Give neither check a `--repo`: each reads its cites against the tree the binder or the batch
-names. `check --answers` pairs each answer to the slot you were sent and reads it against that
-slot's question. Run it until it exits 0 or 5.
+`check --edit-copy` reads its cites against `REPO ROOT`, as `mark` does; `check --answers` reads
+them against the tree its batch's slots name, pairs each answer to the slot you were sent and
+reads it against that slot's question. Run it until it exits 0 or 5.
 
 **When the task agent hands you the author's answer to your query** -- an `[[answer]]` section
 naming your role, the place or move `at`, your question and the answer -- replace that query

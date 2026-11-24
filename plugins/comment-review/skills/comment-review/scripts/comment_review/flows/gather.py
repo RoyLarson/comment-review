@@ -1,7 +1,7 @@
 """Stage 2, gather: every page in scope, annotated and bound into one binder.
 
-    gather(repo, targets, revise) -> Gathering
-    page_in(path, repo, settings) -> the page one file reads as, or why not
+    gather(repo, targets, stage) -> Gathering
+    page_in(path, repo) -> the page one file reads as, or why not
     unaddressed_report(missing), not_gathered(handed_in, unreadable) -> text
 
 A page is one file -- its paragraphs in order among the code they sit with --
@@ -15,9 +15,7 @@ The command prints and decides the exit code; nothing here does either.
 its own command, not a step here.
 
 That is the whole subject: read every file in scope as a page, and bind the
-pages for the agents. Which form reads best is measurable -- formats can be
-compared against hazard recall -- and until one is measured no claim about it
-ships.
+pages for the agents.
 
 ! Most of a page holds no prose -- an empty `interval`, an `undocumented`
 declaration, a bare `margin`. Those are addressable, so an `add` can cite the
@@ -32,7 +30,7 @@ the binder lists it as freeform, unopened, for the reviewers to read as it
 stands.
 """
 
-from collections.abc import Callable, Mapping
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -57,7 +55,6 @@ from comment_review.machine.repo import (
     walk_files,
 )
 from comment_review.reading.addresser import SEPARATOR
-from comment_review.reading.context import ReadingContext
 from comment_review.reading.coordinates import SourceCoordinates
 from comment_review.reading.diagnostics import (
     DetachedDocumentation,
@@ -83,8 +80,9 @@ class Gathering:
 
     repo: Path
     targets: list[Path]
-    revise: int
     absent: bool = False
+    #: the stage `stage open` built `repo` for, or "" for a plain gather
+    stage: str = ""
     #: what the walk found that has a language record, or that the caller named
     files: list[Path] = field(default_factory=list)
     #: files the walk came across with no record -- reported, never refused
@@ -94,7 +92,8 @@ class Gathering:
     #: a file in scope that produced no page, a target that matched nothing, or a
     #: freeform file outside the repository, and why
     unreadable: list[str] = field(default_factory=list)
-    #: files the name corpus could not read, from `code_names`
+    #: the name corpus's gap rows, from `_name_corpus`: files it could not
+    #: read or parse, files no harvester reads, and the walked-tree caveat
     unread: list[str] = field(default_factory=list)
     #: what a read noted without refusing the file, one printable line per
     #: warning of the read, naming its file and line; the run proceeds and the
@@ -102,22 +101,21 @@ class Gathering:
     warnings: list[str] = field(default_factory=list)
     pages: list[Page] = field(default_factory=list)
     binder: Binder = field(init=False)
-    settings: Mapping[Path, Mapping[str, str]] = field(default_factory=dict)
-    reading_contexts: dict[Path, ReadingContext] = field(default_factory=dict)
 
 
 def _walk(g: Gathering) -> None:
     """Which files are in scope, and which targets named nothing."""
     # Each target is walked once; the matched-nothing test below reads these lists.
     by_target = {t: sorted(walk_files(t)) for t in g.targets}
+    named = {t.resolve() for t in g.targets if t.is_file()}
+    freeform = set()
+
     # This loop tells a named file from a found one. A file the caller named is
     # refused when nothing can read it; a file the walk came across is reported
     # and skipped, because a directory holds READMEs and lockfiles and refusing
     # on those makes the form unusable. A source file with no reader is neither:
     # it is listed for the reviewers, named or found, and never opened, so a
     # binary cannot fail the gather.
-    named = {t.resolve() for t in g.targets if t.is_file()}
-    freeform = set()
     for path in sorted({f for found in by_target.values() for f in found}):
         if INSTALLED_REGISTRY.for_path(path) is not None:
             g.files.append(path)
@@ -147,11 +145,10 @@ def _walk(g: Gathering) -> None:
 def _pages(g: Gathering) -> None:
     """One page per file in scope, or the reason there is none."""
     for path in g.files:
-        got = page_in(path, g.repo, g.settings.get(path.resolve(), {}))
+        got = page_in(path, g.repo)
         if isinstance(got, str):
             g.unreadable.append(got)
             continue
-        g.reading_contexts[path.resolve()] = got.reading
         g.pages.append(got)
         rel = got.path
         located = [w for w in got.read.warnings if w.span is not None]
@@ -168,23 +165,25 @@ def _pages(g: Gathering) -> None:
             )
 
 
-def page_in(path: Path, repo: Path, settings: Mapping[str, str]) -> Page | str:
+def page_in(path: Path, repo: Path) -> Page | str:
     """One file in scope read as a page, addressed against `repo`.
 
     Returns:
         The page, or the reason there is none as the gather prints it.
     """
-    context = context_for(path, settings)
+    context = context_for(path)
     if isinstance(context, ReadFailure):
         return format_failure(context, path=path.as_posix())
     source = source_of(path)
     if isinstance(source, ReadFailure):
         return format_failure(source, path=path.as_posix())
-    # !! Every paragraph's path is repo-relative. It is what `--repo` is for: the
-    # binder, the file lists and every citation a reviewer writes all resolve
-    # against that root, so a paragraph carrying an absolute path is a paragraph
-    # no consumer can place: joined to another root, an absolute right-hand side
-    # wins, and a write lands on the source file.
+    # !! Every paragraph's path is repo-relative where its file is under `repo`;
+    # one outside it keeps the path as passed, which `_repo_relative` explains.
+    # It is what `--repo` is for: the binder, the file lists and every citation
+    # a reviewer writes all resolve against that root, so a paragraph carrying
+    # an absolute path is a paragraph no consumer can place: joined to another
+    # root, an absolute right-hand side wins, and a write lands on the source
+    # file.
     rel = _repo_relative(path, repo)
     # !! A path holding the separator cannot be addressed, so it is a gap and not
     # a paragraph with a broken name. `flatten` joins segments on `:`, which
@@ -267,15 +266,18 @@ def _bind(g: Gathering) -> None:
     # a native absolute path -- `C:\\Users\\<name>\\projects\\...` on Windows --
     # into an artifact that is handed to agents and kept as evidence, beside
     # `pages[].path` values that are repo-relative posix, written by
-    # `_repo_relative` above.
+    # `_repo_relative` below.
     #
     # ! `machine.repo.relative_to` owns the two cases this line must not
-    # carry: the `..` walk to a revise root outside the checkout, and two
+    # carry: the `..` walk to a stage root outside the checkout, and two
     # different drives, where no relative path exists at all.
     root = relative_to(g.repo, Path.cwd()).as_posix()
+    read_from: dict = {"root": root}
+    if g.stage:
+        read_from["stage"] = g.stage
     g.binder = bind(
         g.pages,
-        read_from={"root": root, "revise": g.revise},
+        read_from=read_from,
         absent=g.absent,
         freeform=tuple(g.freeform),
     )
@@ -290,32 +292,24 @@ STEPS: tuple[Callable[[Gathering], None], ...] = (_walk, _pages, _bind, _annotat
 def gather(
     repo: Path,
     targets: list[Path],
-    revise: int,
     absent: bool = False,
-    *,
-    settings: Mapping[Path, Mapping[str, str]] | None = None,
+    stage: str = "",
 ) -> Gathering:
     """Every page under `targets`, annotated and bound, with the gaps named.
 
     Args:
         repo: the root every citation resolves against, resolved.
         targets: the files and directories in scope, as the caller spelled them.
-        revise: the revise `repo` is -- 0 for the original, a later stage's
-            number for a revise root pulled after it. Stamped into `read_from`.
         absent: carry the empty places too -- see the command's
             `--include-absent`.
-        settings: fresh per-file overrides keyed by source path.
+        stage: the stage `repo` was built for, stamped into `read_from`;
+            "" stamps none.
 
     Returns:
         The `Gathering` the steps wrote to, up to the first that named a gap
         in `unreadable`. `binder` is set when no step did.
     """
-    g = Gathering(repo, targets, revise, absent)
-    g.settings = (
-        {path.resolve(): value for path, value in settings.items()}
-        if settings is not None
-        else {}
-    )
+    g = Gathering(repo, targets, absent, stage)
     for step in STEPS:
         step(g)
         if g.unreadable:

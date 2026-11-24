@@ -117,11 +117,16 @@ class Refusal(NamedTuple):
 
 
 class Drafted(NamedTuple):
-    """One page set into a temporary file, and the bytes it was reviewed at."""
+    """One page set into a temporary file, and the bytes it was reviewed at.
+
+    `documented` is the cues of the `a` places an approved alteration set,
+    whose docstrings the proof let appear or disappear.
+    """
 
     path: str
     draft: Path
     sha: str
+    documented: tuple[str, ...]
 
 
 def run(docket: Docket, repo: Path, into: Path) -> tuple[list[Drafted], list[Refusal]]:
@@ -390,9 +395,7 @@ def _one(
     if not isinstance(reading, ReadingContext):
         return None, Refusal("read", rel, "malformed saved reading context; regather")
     try:
-        ReadingContext(
-            reading.language, reading.reader, reading.compatibility, reading.settings
-        )
+        ReadingContext(reading.language, reading.reader)
     except (TypeError, ValueError):
         return None, Refusal("read", rel, "malformed saved reading context; regather")
     page = page_of(source, rel=rel, source=held, reading_context=reading)
@@ -491,14 +494,17 @@ def _one(
             _discard(target, created)
             return None, off
 
-        unproven = _prove(rel, page, draft, target, _approved(page, draft, edits))
+        approved = _approved(page, draft, edits)
+        unproven = _prove(rel, page, draft, target, approved)
     except Exception:
         _discard(target, created)
         raise
     if unproven is not None:
         _discard(target, created)
         return None, unproven
-    return Drafted(rel, target, page.sha), None
+    cues = (cue_of(was.address).cue for was, _ in approved)
+    documented = tuple(sorted(c for c in cues if Series.of(c) is Series.DECLARED))
+    return Drafted(rel, target, page.sha, documented), None
 
 
 def _reread(
@@ -808,7 +814,7 @@ def _documented_line(page: Page, paragraph: Paragraph) -> tuple[int | None] | No
     """
     places = [place for place in page if place.address == paragraph.address]
     cue = cue_of(paragraph.address).cue
-    if len(places) != 1 or Series.of(cue) is not Series.DECLARED:
+    if len(places) != 1:
         return None
     if (paragraph.anchor, paragraph.anchor_line, paragraph.anchor_num) != (
         page.cues.anchor_of(cue),
@@ -816,6 +822,17 @@ def _documented_line(page: Page, paragraph: Paragraph) -> tuple[int | None] | No
         page.cues.anchor_num(cue),
     ):
         return None
-    if paragraph.anchor == MODULE and paragraph.anchor_line is None:
+    return documented_line(page, cue)
+
+
+def documented_line(page: Page, cue: str) -> tuple[int | None] | None:
+    """The anchor line the `a` place at `cue` documents, `(None,)` for the module.
+
+    None when `cue` is not an `a` place the page's cues carry with a line.
+    """
+    if Series.of(cue) is not Series.DECLARED:
+        return None
+    anchor, line = page.cues.anchor_of(cue), page.cues.anchor_line(cue)
+    if anchor == MODULE and line is None:
         return (None,)
-    return (paragraph.anchor_line,)
+    return (line,) if anchor and line is not None else None

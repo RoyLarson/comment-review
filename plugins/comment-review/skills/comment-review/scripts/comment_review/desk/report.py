@@ -1,10 +1,15 @@
 """Stage reports rendered by the commands.
 
-Before folding, the stage reports refusals as `Refused` and human questions
-as `AsksTheHuman`. A rollback is reported as `RolledBack`.
+The stage reports refusals as `Refused`, from the fold or before it, and human
+questions as `AsksTheHuman`. A rollback is reported as `RolledBack`.
 
-A committed fold reports settled and carried-forward places, move
+A committed fold reports decided and carried-forward places, move
 placements and advisory notes.
+
+`refusal_line` is the one wording of a refusal line, printed by the
+commands and by `flows.transcribe`. `rollback` reports the blockers and
+then the `RolledBack` they cause, for the fold, the bus and
+`commands/collate.py`.
 """
 
 from collections.abc import Iterable
@@ -17,11 +22,17 @@ from comment_review.desk.proof.state import State
 
 
 class Refused(NamedTuple):
-    """One role's problems with one place, folded to a delta of the mark."""
+    """One role's problems at one place or one move, as the messages that refused it.
+
+    `unreadable` marks a refusal of an input that cannot be read -- a page
+    identity that will not admit -- which a regather or a corrected invocation
+    answers, not a role.
+    """
 
     role: str
     address: str
     reasons: tuple[str, ...]
+    unreadable: bool = False
 
 
 def refusal_line(role: str, where: str, reason: str) -> str:
@@ -32,10 +43,10 @@ def refusal_line(role: str, where: str, reason: str) -> str:
 class AsksTheHuman(NamedTuple):
     """One question a role put to the human, found before the fold ran.
 
-    `decision-log.md Process: #197`: a human question never folds, so it rolls
-    the stage or the turn back like a refusal, and says what is owed next --
-    the human's answer where there is none yet (`answer` empty), or, where the
-    answers file holds it, the role's replacement for its query.
+    A human question never folds, so it rolls the stage or the turn back like
+    a refusal, and says what is owed next -- the human's answer where there is
+    none yet (`answer` empty), or, where the answers file holds it, the role's
+    replacement for its query.
     """
 
     role: str
@@ -45,9 +56,9 @@ class AsksTheHuman(NamedTuple):
 
 
 class CarriedForward(NamedTuple):
-    """A place the fold could not settle alone -- asked of `roles` next turn.
+    """A place the fold could not decide alone -- put to `roles` next.
 
-    A committed fold's only, as the module docstring says.
+    `roles` is the chief alone where no role is owed a turn on it.
     """
 
     address: str
@@ -57,11 +68,12 @@ class CarriedForward(NamedTuple):
 
 
 class PlacementCarried(NamedTuple):
-    """A move whose placement the fold could not settle -- asked of `roles` next turn.
+    """A move whose placement the fold could not decide -- put to `roles` next.
 
-    `decision-log.md Process: #195`. `open` is put to the readers who have
-    not answered; `contested` to its movers and the roles that stetted it.
-    A committed fold's only, as the module docstring says.
+    `open` is put to the readers of either page that did not file it and have
+    neither agreed nor deferred, or to the chief alone where there are none;
+    `contested` to its movers and the roles that stetted it, less those that
+    defer.
     """
 
     origin: str
@@ -74,9 +86,7 @@ class Advised(NamedTuple):
     """What one role is told about one place without being refused for it.
 
     It reports and decides nothing: a place carrying notes takes whatever
-    state its marks give it, and a fold that emits one still commits
-    (`decision-log.md Process: #177`). A committed fold's only, as the module
-    docstring says.
+    state its marks give it, and a fold that emits one still commits.
     """
 
     role: str
@@ -84,14 +94,16 @@ class Advised(NamedTuple):
     notes: tuple[str, ...]
 
 
-class Settled(NamedTuple):
+class Decided(NamedTuple):
     """One place a fold decided, with the chief's ruling where there is one.
 
-    A committed fold's only, as the module docstring says.
+    `stands` names what the decided text is: empty where it is the base, and
+    otherwise the roles whose side holds it, sorted.
     """
 
     address: str
     disposition: Disposition | None = None
+    stands: tuple[str, ...] = ()
 
 
 class Committed(NamedTuple):
@@ -115,7 +127,7 @@ Event = (
     | CarriedForward
     | PlacementCarried
     | Advised
-    | Settled
+    | Decided
     | Committed
     | RolledBack
 )

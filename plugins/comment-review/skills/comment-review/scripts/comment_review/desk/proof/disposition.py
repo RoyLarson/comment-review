@@ -5,7 +5,7 @@
     Disposition         what every ruling carries, its wire entry and its read
     TakenInRuling       `taken_in`: one side's text, or the original, stands
     RecastRuling        `recast`: the chief's own prose stands
-    RULINGS             the ruling types, for the message naming them
+    RULINGS             the ruling types, for `contract()` and the message naming them
     contract()          the rulings as `check --contract` publishes them
     disposition_type()  the type a ruling's name names -- the one dispatch
     read_disposition()  an entry read as the type its name names, or problems
@@ -15,9 +15,9 @@ reading an entry into its type IS that check. What a ruling does at a place --
 which states it closes, the text it sets -- is `desk.dispositions.table`'s.
 
 A placement ruling is not a type of its own. It is a ruling of either name
-that carries `to`, naming the move by its two addresses: the name says whose
+that carries `to`, naming the move by its two addresses: its side says whose
 text stands and `to` says which record it is for, and the move's own pass
-decides what each name means there.
+decides what each side means there.
 """
 
 from dataclasses import dataclass
@@ -85,7 +85,7 @@ class Disposition:
         """One entry naming this ruling, read as this type.
 
         A field of the wrong type is read as absent, and a field this type does
-        not take is ignored, never refused (`decision-log.md Process: #204`).
+        not take is ignored, never refused.
 
         Returns:
             `(ruling, [])`, or `(None, [one message per broken rule])`.
@@ -142,7 +142,7 @@ class RecastRuling(Disposition):
 
     Attributes:
         prose: the paragraph as the chief sets it; empty drops the paragraph
-            whole (`decision-log.md Process: #299`).
+            whole.
     """
 
     prose: str
@@ -160,7 +160,8 @@ class RecastRuling(Disposition):
         return {"prose": values["prose"]}
 
 
-#: The ruling types, for the message that names what the chief may give.
+#: The ruling types, for `contract()` and for the message that names what the
+#: chief may give.
 RULINGS: tuple[type[Disposition], ...] = (TakenInRuling, RecastRuling)
 
 

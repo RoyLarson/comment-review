@@ -5,6 +5,8 @@
     derived_change()     the `change` a claim implies, built from the paragraph,
                          so a role never types the paragraph out
     first_word_dropped() the keep-the-prose check the rows' `reads` ask
+    comment_at()         the comment form an address assigns to its raw text,
+                         read here and by the marks table
 
 The mark itself -- its types, its fields and the checks reading an entry into
 its type asks -- is `desk.proof.mark`. This module reads `INSTRUCTIONS`
@@ -44,14 +46,15 @@ _WORD = re.compile(r"[^\W_]+")
 def first_word_dropped(prose: str, change: str) -> str | None:
     """The first word of `prose` that `change` does not keep in order, or None.
 
-    `decision-log.md Process: #132`: an `add` at a place holding prose adds to
-    that paragraph, so its change holds every word of the prose, in the order
-    the prose has them, and punctuation and whitespace are free to move.
+    An `add` at a place holding prose adds to that paragraph, so its
+    `raw_text` holds every word of the prose and of its change, in the order
+    the prose has them, and punctuation and whitespace are free to move. A
+    `move` is asked the same at its destination: its `raw_text` keeps every
+    word of the destination's paragraph and of the snippet that arrives.
 
-    `desk.evaluate` asks the same of a `correct`'s change, over its seeded
-    paragraph with `claim.false` taken out (`decision-log.md Process: #163`).
-    Moved here from `flows.fill` so the marks table can read it without
-    `desk` importing `flows`.
+    The marks table asks the same of a `correct`'s change, over its seeded
+    paragraph with `claim.false` taken out. This function sits in `desk` so
+    the marks table can read it without `desk` importing `flows`.
     """
     kept = iter(_WORD.findall(change))
     for word in _WORD.findall(prose):
@@ -83,8 +86,7 @@ def derived_change(
     -- removes the clause. A type that quotes nothing (`clean`, `query`, `add`,
     `move`) derives nothing, and its `change` is the role's to supply.
 
-    !! THE QUOTED CLAUSE IS ONE STATEMENT. Roy, 2026-09-07: *"a false clause is
-    one statement not multiple paragraphs."* A clause the paragraph holds twice
+    !! The quoted clause is one statement. A clause the paragraph holds twice
     names two statements and one it holds nowhere names none; both are refused
     rather than guessed at. `desk.collator.claim_verbatim_problems` asks the
     same of every quoting mark at the fold, a supplied change included; this
@@ -156,29 +158,13 @@ def allowed() -> dict:
         `scope_shape` -> the one shape that is a boundary report rather than
         work; `anchor_form` -> the form an `add`'s anchor takes; `raw_text` ->
         which instructions write it, and what it means where they do;
+        `source_keys` -> the required and optional keys of a `sources` entry;
         `edit_copy_header` -> the keys an `edit_copy` carries beside its sheets.
 
-    !! IT WAS `sheet_header`, AND BOTH THE NAME AND ITS TWO DESCRIPTIONS WERE
-    FALSE. `role` and `read_from` sit on the EDIT_COPY -- `seed` returns
-    `{"role", "read_from", "sheets"}` and a sheet carries `{"path", "sha",
-    "marks"}` -- so a role reading `distribute --shape` was told to put two keys on
-    the container that does not hold them. `sheet` names the PAGE-UNIT since
-    `decision-log.md Vocabulary: #28`; the per-role container is `edit_copy`.
-
-    !! THE HEADER LANDED 2026-08-28, AND UNTIL THEN `read_from` WAS PUBLISHED
-    NOWHERE. `seed` began putting it on every edit_copy and `problems_in`
-    began refusing one without it, while a grep for the name across
-    `SKILL.md`, `references/` and `agents/` returned nothing -- so the field a
-    role is required to carry was one no role was told about.
-
-    ! `decision-log.md Process: #34` is what makes that a defect rather than an
-    omission: the field exists so a later role can know it holds a REVISE and
-    not the original. A role that is never told it exists cannot use it for
-    that, which is the whole benefit the staged flow was designed to buy.
-
-    ! WHAT A ROLE DOES WITH IT IS THE `agents` LANE. This states the key and its
-    shape, which `docs/conventions.md` puts on this side; the instruction to
-    READ it before ruling belongs in the reviewer brief and is not written here.
+    ! What a role does with the `edit_copy` header's `read_from` is the `agents`
+    lane. This states the key and its shape, which `docs/conventions.md` puts on
+    this side; the instruction to read `read_from` before ruling belongs in the
+    reviewer brief and is not written here.
     """
     from comment_review.desk.marks.table import INSTRUCTIONS
 
@@ -196,7 +182,7 @@ def allowed() -> dict:
         # has only moved the guessing.
         "anchor_form": f"the anchor NAMED in backticks, e.g. {ANCHOR_EXAMPLE}",
         # Who writes `raw_text` rather than copying it: the rows whose
-        # `carries_raw_text` is set (`decision-log.md Process: #175`, `#176`).
+        # `carries_raw_text` is set.
         "raw_text": {
             "owed_by": sorted(
                 name for name, spec in INSTRUCTIONS.items() if spec.carries_raw_text
