@@ -48,3 +48,4 @@ Each entry point assembles its own admission checks, and they disagree.
       one admission rule decide a copy for both the check and the collate
       commands
 - [ ] T3 | Make what a stage admits independent of whether --topology is passed
+        > 2026-11-23 Jacket path done in beafb27d; closes with the old flags' deletion
