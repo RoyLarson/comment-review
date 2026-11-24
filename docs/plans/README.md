@@ -34,7 +34,7 @@
 | [0.2.4-the-turn-as-commands](0.2.4-the-turn-as-commands.md) | closed | 14/14 | 10/10 |
 | [0.2.4-the-vocabulary-gate-is-asserted](0.2.4-the-vocabulary-gate-is-asserted.md) | closed | 1/1 | 2/2 |
 | [0.2.4-what-a-reviewer-is-handed](0.2.4-what-a-reviewer-is-handed.md) | closed | 24/24 | 4/4 |
-| [0.2.4-wrong-results-and-dead-code](0.2.4-wrong-results-and-dead-code.md) | in-progress | 46/46 | 0/0 |
+| [0.2.4-wrong-results-and-dead-code](0.2.4-wrong-results-and-dead-code.md) | in-progress | 46/57 | 0/0 |
 | [2026-10-11-lexer-python](2026-10-11-lexer-python.md) | closed | 36/36 | 53/53 |
 | [2026-10-11-lexical-read-results](2026-10-11-lexical-read-results.md) | closed | 17/17 | 14/14 |
 | [2026-10-11-lexical-readers](2026-10-11-lexical-readers.md) | closed | 189/189 | 61/61 |

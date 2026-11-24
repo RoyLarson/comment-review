@@ -195,7 +195,7 @@ that changed a published name or rule:
 | [a-series-never-fills-outside-python](a-series-never-fills-outside-python.md) | backend | -- | 22/23 | Outside Python the `a` place is emitted and never filled |
 | [bom-is-read-as-source](bom-is-read-as-source.md) | backend | -- | 8/12 | A UTF-8 BOM is censused as a line of code |
 | [unaddressed-is-quadratic](unaddressed-is-quadratic.md) | backend | -- | 4/6 | unaddressed() groups by path for a question that needs one flat pass |
-| [stale-claims-after-the-envelope](stale-claims-after-the-envelope.md) | backend | -- | 7/19 | Shipped prose still describes formats and flags this branch deleted |
+| [stale-claims-after-the-envelope](stale-claims-after-the-envelope.md) | backend | -- | 7/20 | Shipped prose still describes formats and flags this branch deleted |
 | [census-walks-and-flushes](census-walks-and-flushes.md) | backend | -- | 7/8 | census.py walks the whole repo, runs git twice, and its run-flush never fires |
 | [galley-and-compositor-write-path](galley-and-compositor-write-path.md) | backend | -- | 83/91 | The galley can overwrite the file under review, and the compositor reads through a normaliser |
 | [exception-hierarchy](exception-hierarchy.md) | backend | -- | 5/16 | Named tuples give us the seam; the hierarchy that catches our own types is not built |

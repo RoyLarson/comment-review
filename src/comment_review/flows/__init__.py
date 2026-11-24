@@ -39,7 +39,7 @@
     proof_setter    the results-side flow -- calls the galley and the
                     compositor from a role's alterations to a drafted file a
                     human can read, then proves only comments changed
-    prove_unchanged admits exact current and revision pages before comparing
+    prove_unchanged admits each working-tree page and its draft before comparing
                     executable code
     revise          pulls one revise -- drafts the docket's pages through
                     `proof_setter` and writes each at its repo path, copying

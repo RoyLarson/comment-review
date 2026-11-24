@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 7 of 19 tasks closed
+Progress: 7 of 20 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-21 (the /code-review xhigh of 2026-08-21, focused on the file-to-
@@ -109,3 +109,5 @@ for the shape this branch changed.
       test_docket.py and test_binder.py
 - [ ] T19 | Correct binder/__init__.py's annotation entry, which vocabulary.toml
       contradicts
+- [ ] T20 | Correct test_binder.py's redaction docstring, which names Paragraph
+      fields that are gone
