@@ -579,6 +579,16 @@ stage opens only once the one before it closed, so one stage is open at a time; 
 and sha256, and a later `stage open` refuses a proof whose bytes changed since. A refusal exits
 1; a jacket or a closed proof that cannot be read as one exits 2.
 
+**`stage reopen --jacket J --stage S` discards a stage that is open and has not closed, and
+opens it again** under the installed reader -- `decision-log.md Process: #410`. It removes
+`<run-dir>/root<S>` as a worktree, the stage's binder, and each copy it dispatched with its
+received binder and its `freeform/<copy name>` directory, which a relaunched dispatch would
+otherwise reuse; the first stage's root is the checkout and is never removed. The jacket entry
+is cleared last, so a removal that leaves anything on disk refuses with the entry kept and a
+later reopen removes it. Then it opens as `stage open` does. A stage not opened or already
+closed is refused, exit 1; an unreadable jacket exits 2. Under the one-chain rule no later stage
+can be open beside it.
+
 **`proof --jacket J --out D` sets the whole run, and `--only <stage>:<address>` is the author's
 approval over it** -- `decision-log.md Process: #405`. `flows.stage.replay` builds a tree as
 `stage open` builds a root, without the freeform drafts, and sets every stage's closed proof over
@@ -612,7 +622,7 @@ updated paragraph as raw text ([`the-mark.md`](the-mark.md)). The chief can take
 | the author's partial approval | `flows.transcribe._approved`, reached through `docket_of_proof`'s `only`; the flag is `proof --only` |
 | what a page holds at an address -- the base and anchor a place is built on | `flows.on_the_page.held_at`, read by `flows.places.bases_and_anchors` and `flows.verify` |
 | which places a stage deals | `desk.stages.deals`, read by `flows.distribute.seed` and `flows.verify.admit` |
-| the tree a stage reads, and the order stages open and close | `flows.stage.open_stage` and `close_stage`; the command is `stage open` / `stage close` |
+| the tree a stage reads, and the order stages open and close | `flows.stage.open_stage`, `reopen_stage` and `close_stage`; the command is `stage open` / `stage reopen` / `stage close` |
 | the whole run set, with the author's approval by `<stage>:<address>` | `flows.stage.replay`; the command is `proof --jacket` |
 | which instructions its roles may file | `desk.stages.not_admitted`, read by `flows.verify._admitted_problems` |
 | a role states the paragraph it wants | `Mark.change`, raw text |

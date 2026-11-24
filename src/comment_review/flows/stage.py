@@ -1,6 +1,7 @@
-"""`stage open` and `stage close`: a stage's tree, binder and copies, from the jacket.
+"""`stage open`, `reopen` and `close`: a stage's tree, binder and copies.
 
     open_stage(jacket_file, name, repo) -> (lines, problems)
+    reopen_stage(jacket_file, name, repo) -> (lines, problems)
     close_stage(jacket_file, name, proof) -> problems
     stage_of(jacket_file, name) -> (OpenStage | None, problems)
                             an open stage's row, root, binder and copies,
@@ -26,6 +27,11 @@ that received moved text is read even when the scope does not name it. Its
 `read_from` carries the stage's name. The stage's copies are seeded from the
 row the jacket holds, into `<run-dir>/copies/`, and the jacket records the
 root, the binder and the copies dispatched.
+
+A stage that is open and has not closed reopens: its built root, its binder,
+its copies and their received binders are removed, its jacket entry is cleared
+last, and it opens again under the installed reader. The first stage's root is
+the checkout and is never removed.
 
 A stage closes when it is open and the proof is closed, stamped with its name,
 and folded every copy the jacket records the stage dispatched. A jacket's
@@ -366,6 +372,82 @@ def _gather_and_seed(
         f" {places} places on {len(wire['pages'])} pages",
         *(line for _, line in copies),
     ]
+
+
+def reopen_stage(
+    jacket_file: Path, name: str, repo: Path
+) -> tuple[list[str], list[str]]:
+    """Discard open stage `name`'s root, binder and copies, then open it again.
+
+    The stage is gathered again under the installed reader. A stage that reads
+    `"original"` was gathered from the checkout, so no root is removed.
+
+    Returns:
+        `(the lines to print, [])`, or `([], every reason it did not reopen)`.
+        A removal that leaves anything on disk keeps the stage's entry, so the
+        jacket still records what is there and a later reopen removes it.
+
+    Raises:
+        UnreadableInput: `jacket_file` cannot be read as a jacket, or an
+            earlier stage's closed proof cannot be read.
+    """
+    try:
+        _discard(jacket_file, name, repo.resolve())
+        return _open(jacket_file, name, repo.resolve()), []
+    except _Refused as refused:
+        return [], refused.reasons
+
+
+def _discard(jacket_file: Path, name: str, repo: Path) -> None:
+    """Remove what `stage open` wrote for stage `name`, then its jacket entry."""
+    jacket, rows, stage = _rows(jacket_file, name)
+    entry = jacket.stages.get(name)
+    if entry is None:
+        raise _Refused([f"stage {name!r} has not opened -- open it with `stage open`"])
+    if entry.closed is not None:
+        raise _Refused([f"stage {name!r} has closed, and a closed stage stays closed"])
+    # Only one stage is open at a time, so no later stage has an entry to clear.
+    roots = [jacket_file.parent / f"root{name}"] if _chain(rows, stage) else []
+    for root in roots:
+        git_worktree_remove(repo, root)
+    files = [resolved_path(entry.binder, jacket_file)]
+    # Each dispatch's freeform directory is named for its copy; a relaunch
+    # reuses the name, so the discarded run's findings go with the copy.
+    folders = []
+    for stored in entry.dispatched:
+        copy = resolved_path(stored, jacket_file)
+        files += [copy, received_binder_of(copy)]
+        folders.append(jacket_file.parent / "freeform" / copy.stem)
+    left = [str(root) for root in roots if root.exists() or root.is_symlink()]
+    for path in files:
+        try:
+            path.unlink(missing_ok=True)
+        except OSError as err:
+            left.append(f"{path} ({err})")
+    for folder in folders:
+        try:
+            shutil.rmtree(folder)
+        except FileNotFoundError:
+            pass
+        except OSError as err:
+            left.append(f"{folder} ({err})")
+    if left:
+        raise _Refused(
+            [
+                f"stage {name!r} is still open; cannot remove {', '.join(left)}"
+                " -- remove each and reopen the stage"
+            ]
+        )
+    try:
+        save_jacket(
+            jacket_file,
+            replace(
+                jacket,
+                stages={one: e for one, e in jacket.stages.items() if one != name},
+            ),
+        )
+    except BUILD_ERRORS as err:
+        raise _Refused([f"stage {name!r}: {err}"]) from err
 
 
 def close_stage(jacket_file: Path, name: str, proof_path: Path) -> list[str]:

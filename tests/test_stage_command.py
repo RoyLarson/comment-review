@@ -435,6 +435,7 @@ def test_an_unreadable_jacket_is_an_input_that_cannot_be_read(
         for argv in (
             ("open", "--repo", str(tmp_path / "repo")),
             ("close", "--proof", str(proof)),
+            ("reopen", "--repo", str(tmp_path / "repo")),
         ):
             verb, *rest = argv
             code, out, err = _streams(
@@ -898,3 +899,164 @@ def test_E5_check_from_another_cwd_at_4c_passes_with_the_stage_root(
         with_stderr=True,
     )
     assert code == report.OK, printed
+
+
+# -- stage reopen: an open stage discarded and opened again ----------------------
+
+
+def _reopen(tmp_path, monkeypatch, capsys, stage: str):
+    return run_command(
+        monkeypatch,
+        capsys,
+        stage_command,
+        "reopen",
+        "--jacket",
+        str(_jacket(tmp_path)),
+        "--stage",
+        stage,
+        "--repo",
+        str(tmp_path / "repo"),
+        with_stderr=True,
+    )
+
+
+def _seeded(tmp_path, stage: str) -> dict[Path, bytes]:
+    """Each copy the stage dispatched and its received binder, as on disk."""
+    paths = []
+    for copy in _copies(tmp_path, stage):
+        paths += [copy, received_binder_of(copy)]
+    return {path: path.read_bytes() for path in paths}
+
+
+def test_reopen_of_an_open_stage_rebuilds_it_and_seeds_fresh_copies(
+    tmp_path, monkeypatch, capsys
+):
+    _closed_4a(tmp_path, monkeypatch, capsys, CORRECTED)
+    code, printed = _open(tmp_path, monkeypatch, capsys, "4c")
+    assert code == 0, printed
+    seeded = _seeded(tmp_path, "4c")
+    _filled(tmp_path, "4c", RECORRECTED)
+    root = tmp_path / "run" / "root4c"
+    (root / "stale.txt").write_bytes(b"stale")
+    (tmp_path / "run" / "binder4c.json").write_text("{}", encoding="utf-8")
+
+    code, printed = _reopen(tmp_path, monkeypatch, capsys, "4c")
+    assert code == 0, printed
+    assert "stage '4c' opened" in printed
+    assert _seeded(tmp_path, "4c") == seeded
+    assert not (root / "stale.txt").exists()
+    assert TWO in (root / "m.py").read_text(encoding="utf-8")
+    assert _binder_of(tmp_path, "4c").read_from["stage"] == "4c"
+    jacket, _ = load_jacket(_jacket(tmp_path))
+    assert jacket is not None and list(jacket.stages) == ["4a", "4c"]
+    assert jacket.stages["4c"].closed is None
+
+
+def test_reopen_removes_each_dispatchs_freeform_findings(tmp_path, monkeypatch, capsys):
+    _closed_4a(tmp_path, monkeypatch, capsys, CORRECTED)
+    code, printed = _open(tmp_path, monkeypatch, capsys, "4c")
+    assert code == 0, printed
+    jacket, _ = load_jacket(_jacket(tmp_path))
+    assert jacket is not None
+    names = [Path(one).stem for one in jacket.stages["4c"].dispatched]
+    freeform = tmp_path / "run" / "freeform"
+    for name in names:
+        (freeform / name).mkdir(parents=True)
+        (freeform / name / "findings.json").write_text("{}", encoding="utf-8")
+    kept = freeform / "4a_block-context_1"
+    kept.mkdir(parents=True, exist_ok=True)
+
+    code, printed = _reopen(tmp_path, monkeypatch, capsys, "4c")
+    assert code == 0, printed
+    assert names and not any((freeform / name).exists() for name in names)
+    assert kept.is_dir()
+
+
+def test_reopen_of_a_closed_stage_is_refused(tmp_path, monkeypatch, capsys):
+    _closed_4a(tmp_path, monkeypatch, capsys, CORRECTED)
+    before = _jacket(tmp_path).read_bytes()
+    seeded = _seeded(tmp_path, "4a")
+    code, printed = _reopen(tmp_path, monkeypatch, capsys, "4a")
+    assert code == 1, printed
+    assert "stage '4a' has closed" in printed
+    assert _jacket(tmp_path).read_bytes() == before
+    assert _seeded(tmp_path, "4a") == seeded
+
+
+def test_reopen_of_a_stage_never_opened_is_refused(tmp_path, monkeypatch, capsys):
+    _a_run(tmp_path)
+    before = _jacket(tmp_path).read_bytes()
+    code, printed = _reopen(tmp_path, monkeypatch, capsys, "4a")
+    assert code == 1, printed
+    assert "stage '4a' has not opened" in printed
+    assert _jacket(tmp_path).read_bytes() == before
+    assert not (tmp_path / "run" / "binder4a.json").exists()
+
+
+def test_after_a_reader_change_reopen_seeds_under_it_and_collate_proceeds(
+    tmp_path, monkeypatch, capsys
+):
+    from conftest import install_another_reader
+
+    _a_run(tmp_path)
+    code, printed = _open(tmp_path, monkeypatch, capsys, "4a")
+    assert code == 0, printed
+    _filled(tmp_path, "4a", CORRECTED)
+    install_another_reader(monkeypatch)
+    code, printed = _collate(tmp_path, monkeypatch, capsys, "4a")
+    assert code == report.UNREADABLE == 2, printed
+    assert "regather" in printed
+
+    code, printed = _reopen(tmp_path, monkeypatch, capsys, "4a")
+    assert code == 0, printed
+    wire = json.loads((tmp_path / "run" / "binder4a.json").read_text("utf-8"))
+    assert "another-reader" in json.dumps(wire)
+    _filled(tmp_path, "4a", CORRECTED)
+    code, printed = _collate(tmp_path, monkeypatch, capsys, "4a")
+    assert code == report.REREADS, printed
+
+
+def test_reopen_of_the_first_stage_leaves_the_checkout_untouched(
+    tmp_path, monkeypatch, capsys
+):
+    _a_run(tmp_path, local=True)
+    repo = tmp_path / "repo"
+
+    def checkout() -> dict[str, bytes]:
+        return {
+            path.relative_to(repo).as_posix(): path.read_bytes()
+            for path in repo.rglob("*")
+            if path.is_file() and ".git" not in path.relative_to(repo).parts
+        }
+
+    code, printed = _open(tmp_path, monkeypatch, capsys, "4a")
+    assert code == 0, printed
+    before = checkout()
+    status = _git(repo, "status", "--porcelain")
+    code, printed = _reopen(tmp_path, monkeypatch, capsys, "4a")
+    assert code == 0, printed
+    assert checkout() == before
+    assert _git(repo, "status", "--porcelain") == status
+    jacket, _ = load_jacket(_jacket(tmp_path))
+    assert jacket is not None
+    assert resolved_path(jacket.stages["4a"].root, _jacket(tmp_path)) == repo.resolve()
+
+
+def test_a_reopen_whose_root_stays_is_refused_and_the_entry_kept(
+    tmp_path, monkeypatch, capsys
+):
+    from comment_review.flows import stage as stage_flow
+
+    _closed_4a(tmp_path, monkeypatch, capsys, CORRECTED)
+    code, printed = _open(tmp_path, monkeypatch, capsys, "4c")
+    assert code == 0, printed
+    before = _jacket(tmp_path).read_bytes()
+    with monkeypatch.context() as patched:
+        patched.setattr(stage_flow, "git_worktree_remove", lambda repo, path: None)
+        code, printed = _reopen(tmp_path, monkeypatch, capsys, "4c")
+    assert code == 1, printed
+    assert "root4c" in printed and "still open" in printed
+    assert _jacket(tmp_path).read_bytes() == before
+
+    code, printed = _reopen(tmp_path, monkeypatch, capsys, "4c")
+    assert code == 0, printed
