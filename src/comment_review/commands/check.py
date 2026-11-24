@@ -77,6 +77,7 @@ from comment_review.flows.human import (
     HumanAnswer,
     HumanQuery,
     answered,
+    corrections_in_answers,
     queries_in_answers,
 )
 from comment_review.flows.proof_io import (
@@ -236,7 +237,12 @@ def _check_answers(
     for one in problems:
         where = one.address or "(the batch)"
         print(refusal_line(one.role, where, one.message))
-    asked = _asks_the_human(answered(queries_in_answers({role: answers}), list(human)))
+    given = {role: answers}
+    asked = _asks_the_human(answered(queries_in_answers(given), list(human)))
+    # As the turn asks them: `corrections_in_answers` already left out the answered.
+    asked += _asks_the_human(
+        [(query, None) for query in corrections_in_answers(given, human)]
+    )
     print(
         f"{path}: {len(answers)} answered, {len(problems)} the fold would refuse,"
         f" {asked} question(s) for the human"

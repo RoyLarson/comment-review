@@ -72,7 +72,7 @@ def _collated(tmp_path: Path, at_f0: dict):
     )
     out, result = handle(CopiesReturned("4c", copies, binder, root, None, approved))
     assert result is not None, out
-    return root, result.proof
+    return root, result.proof, result.batch
 
 
 def test_check_reports_pending_matter_approval(tmp_path, monkeypatch, capsys):
@@ -139,7 +139,7 @@ def _turn_answers(reason: str) -> dict:
 
 
 def test_a_rewriting_answer_at_an_f_place_asks_the_human(tmp_path):
-    root, proof = _contested(tmp_path)
+    root, proof, _batch = _contested(tmp_path)
     out, result = handle(AnswersReturned(proof, _turn_answers("stated"), root))
     assert result is None
     assert _asked(out) == [
@@ -151,8 +151,25 @@ def test_a_rewriting_answer_at_an_f_place_asks_the_human(tmp_path):
     ]
 
 
+def test_check_answers_asks_for_a_rewriting_answer_at_an_f_place(
+    tmp_path, monkeypatch, capsys
+):
+    root, _proof, batch = _contested(tmp_path)
+    sent = tmp_path / "batch.json"
+    sent.write_text(json.dumps(batch), encoding="utf-8")
+    role = "function-context"
+    answers = tmp_path / "answers.json"
+    answers.write_text(json.dumps(_turn_answers("stated")[role]), encoding="utf-8")
+    args = ("--answers", str(answers), "--sent", str(sent), "--role", role)
+    code, out = run_command(
+        monkeypatch, capsys, check_command, *args, "--repo", str(root)
+    )
+    assert code == report.ASKS_THE_HUMAN, out
+    assert "approve this correct to the file's matter: stated" in out
+
+
 def test_an_approved_rewriting_answer_at_an_f_place_folds(tmp_path):
-    root, proof = _contested(tmp_path)
+    root, proof, _batch = _contested(tmp_path)
     yes = HumanAnswer(
         "function-context",
         F0,
@@ -165,7 +182,7 @@ def test_an_approved_rewriting_answer_at_an_f_place_folds(tmp_path):
 
 
 def test_a_hold_at_an_f_place_asks_nothing(tmp_path):
-    root, proof = _contested(tmp_path)
+    root, proof, _batch = _contested(tmp_path)
     answers = {
         role: [{"address": F0, "instruction": "hold", "reason": "mine stands"}]
         for role in ("block-context", "function-context")
@@ -177,7 +194,7 @@ def test_a_hold_at_an_f_place_asks_nothing(tmp_path):
 def _settled(tmp_path):
     """One role's approved correct at f0, which the other role then reads and
     cleans in a turn: it settles."""
-    root, proof = _collated(
+    root, proof, _batch = _collated(
         tmp_path, {"block-context": a_correct_setting(F0, "example", SAMPLE)}
     )
     clean = {
