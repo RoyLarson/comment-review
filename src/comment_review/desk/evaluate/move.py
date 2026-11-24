@@ -86,6 +86,9 @@ def placement_pass(move: Move, places: dict[str, Place], turn: int) -> Move:
 
     Each later vote replaces the role's earlier vote. Deferral removes its
     prior acceptance or contest and leaves other readers owing their say.
+    A mover that withdrew has had its say: it is not owed one on the movers
+    left, it is not the second party a lone mover needs, and a second
+    withdraw from it changes nothing.
 
     Args:
         move: the move, its movers and readers from `moves_in`.
@@ -122,6 +125,7 @@ def placement_pass(move: Move, places: dict[str, Place], turn: int) -> Move:
     movers = dict(move.filed)
     accepted: set[str] = set()
     stetted: set[str] = set()
+    withdrawn: set[str] = set()
     for at in sorted(t for t in move.answers if t <= turn):
         for role, answer in move.answers[at].items():
             row = ANSWERS.get((answer.question, answer.name))
@@ -147,7 +151,8 @@ def placement_pass(move: Move, places: dict[str, Place], turn: int) -> Move:
                 case PlacementEffect.REMOVES:
                     if role in movers:
                         movers.pop(role)
-                    else:
+                        withdrawn.add(role)
+                    elif role not in withdrawn:
                         reasons.append(
                             f"{role}: only the role that filed a move withdraws it --"
                             " stet it to keep the paragraph where it is"
@@ -173,11 +178,13 @@ def placement_pass(move: Move, places: dict[str, Place], turn: int) -> Move:
         move.placement = Placement.CONTESTED
         move.owed = tuple(sorted((set(movers) | stetted) - deferring))
     else:
-        owed = set(move.readers) - set(movers) - deferring - accepted
+        owed = set(move.readers) - set(movers) - deferring - accepted - withdrawn
         move.owed = tuple(sorted(owed))
         # A move no role but its one mover read is put to the chief, owed to
         # no role.
-        unread = len(movers) == 1 and not set(move.readers) - set(movers) - deferring
+        unread = len(movers) == 1 and not (
+            set(move.readers) - set(movers) - deferring - withdrawn
+        )
         move.placement = Placement.OPEN if owed or unread else Placement.AGREED
     if move.disposition is not None:
         _ruled(move, move.disposition)

@@ -1079,6 +1079,55 @@ class TestAMoveIsDecidedBeforeItsEnds:
             end.state is State.STANDS and end.text is None for end in places.values()
         )
 
+    def _two_movers(self):
+        """`a`'s move, filed by `c` too, read by `b`."""
+        places, _ = self._places(readers=("a", "b", "c"))
+        for end in places.values():
+            end.filed.append(Filed("c", end.filed[0].mark, end.filed[0].touch))
+        return places, moves_in(places)
+
+    def test_a_withdrawn_mover_is_not_owed_the_placement(self):
+        """A mover that withdrew has had its say, as a role that withdrew its
+        side has at a place, so the other mover's move is agreed without it."""
+        places, moves = self._two_movers()
+        decide(places, moves)
+        moves[self.KEY].answers[1] = {
+            "a": self._placement("withdraw"),
+            "b": self._placement("agree"),
+        }
+        decide(places, moves, turn=1)
+        move = moves[self.KEY]
+        assert (move.placement, move.owed, list(move.movers)) == (
+            Placement.AGREED,
+            (),
+            ["c"],
+        )
+
+    def test_a_move_its_other_mover_withdrew_from_goes_to_the_chief(self):
+        """`b` defers, so no role but the mover left holds a view."""
+        places, moves = self._two_movers()
+        decide(places, moves)
+        defer = self._placement("query", {"shape": str(Shape.OUTSIDE_MY_ROLE)})
+        moves[self.KEY].answers[1] = {"a": self._placement("withdraw"), "b": defer}
+        decide(places, moves, turn=1)
+        assert (moves[self.KEY].placement, moves[self.KEY].owed) == (
+            Placement.OPEN,
+            (),
+        )
+
+    def test_a_second_withdraw_by_a_withdrawn_mover_is_not_refused(self):
+        places, moves = self._two_movers()
+        decide(places, moves)
+        moves[self.KEY].answers[1] = {"a": self._placement("withdraw")}
+        decide(places, moves, turn=1)
+        moves[self.KEY].answers[2] = {
+            "a": self._placement("withdraw"),
+            "b": self._placement("agree"),
+        }
+        decide(places, moves, turn=2)
+        move = moves[self.KEY]
+        assert (move.placement, move.reasons) == (Placement.AGREED, ())
+
     def test_a_human_placement_answer_refuses_the_move(self):
         places, moves = self._places()
         decide(places, moves)
