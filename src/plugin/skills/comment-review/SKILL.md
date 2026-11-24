@@ -521,12 +521,13 @@ Every changed line belongs to a decided finding, and every decided finding has i
 other change holds the run at this stage: edit the draft until the change is gone, and audit it
 again. Nothing is presented until the audit passes. The command exits 1 when the files differ.
 
-**Sentences in no file.** List each sentence the write removes that no file of the tree as
-written holds. Name the `proof` output, and add `<run-dir>/freeform/draft` when stage 5 wrote
-freeform drafts:
+**Sentences in no file.** List each sentence the write removes that is neither still in its own
+file nor in the file an agreed `move` sent it to. Name each stage's closed proof with `--proof`
+and the `proof` output, and add `<run-dir>/freeform/draft` when stage 5 wrote freeform drafts:
 
 ```bash
-python <skill>/scripts/comment-review.py lost --repo . <run-dir>/proof [<run-dir>/freeform/draft]
+python <skill>/scripts/comment-review.py lost --repo . --proof <closed-proof> [--proof ...] \
+  <run-dir>/proof [<run-dir>/freeform/draft]
 ```
 
 Present the list with the proposal, so the author can give a sentence a home before accepting.

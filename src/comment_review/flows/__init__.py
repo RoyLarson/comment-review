@@ -41,7 +41,9 @@
                     human can read, then proves only comments changed
     prove_unchanged admits each working-tree page and its draft before comparing
                     executable code
-    revise          pulls one revise -- drafts the docket's pages through
+    lost            the sentences a write removes that are neither still in
+                    their own file nor where an agreed move sent them
+    revise         pulls one revise -- drafts the docket's pages through
                     `proof_setter` and writes each at its repo path, copying
                     no other file
 

@@ -81,8 +81,8 @@ uv run python src/comment-review.py prove_unchanged --drafts <proof-out> --repo 
 # own shutil.copytree requires it fresh. The order lives in flows/revise.py.
 uv run python src/comment-review.py proof --from-docket <docket>.json --repo . --out <dir>
 
-# Stage 7a: the removed sentences no file of the tree as written holds
-uv run python src/comment-review.py lost --repo . <proof-out> [<freeform-drafts>]
+# Stage 7a: the removed sentences neither in their own file nor where a move sent them
+uv run python src/comment-review.py lost --repo . --proof <closed-proof> <proof-out> [<freeform-drafts>]
 
 # What one stage's revise changed, against the tree it was pulled from
 uv run python src/comment-review.py compare --original <root> --revise <root> [paths...]
